@@ -120,7 +120,7 @@ export default function CzatView() {
       style={{
         backgroundImage: `url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1600&auto=format&fit=crop')`,
       }}
-      className="flex flex-col h-[calc(100dvh-4.25rem)] max-w-2xl mx-auto bg-cover bg-center font-sans text-gray-900 overflow-hidden relative"
+      className="flex flex-col h-dvh w-full max-w-2xl mx-auto bg-cover bg-center font-sans text-gray-900 overflow-hidden relative"
     >
       {/* Translucent Backdrop Overlay */}
       <div className="absolute inset-0 bg-black/15 pointer-events-none" />
@@ -137,8 +137,8 @@ export default function CzatView() {
 
       <ChatThemeModal open={themeOpen} onClose={() => setThemeOpen(false)} />
 
-      {/* Telegram Header */}
-      <div className="relative z-10 px-3 py-2 bg-white/90 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border-b border-black/5 flex items-center justify-between shadow-xs">
+      {/* Telegram Header - Safe Area Padding Top for Android Status Bar */}
+      <div className="relative z-10 px-3 pt-8 sm:pt-3 pb-2.5 bg-white/90 dark:bg-[#1C1C1E]/95 backdrop-blur-xl border-b border-black/5 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => navigate(-1)} className="p-1 rounded-full text-gray-700 dark:text-gray-200 hover:bg-black/5">
             <ArrowLeft className="w-6 h-6" />
@@ -194,8 +194,8 @@ export default function CzatView() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Bottom Controls Area */}
-      <div className="relative z-10">
+      {/* Bottom Controls Area - Full Bleed to Bottom */}
+      <div className="relative z-10 pb-safe">
         <TelegramInputToolbar
           input={input}
           loading={loading}
