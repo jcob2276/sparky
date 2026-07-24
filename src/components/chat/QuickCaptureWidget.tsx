@@ -136,7 +136,8 @@ export default function QuickCaptureWidget() {
     }
   };
 
-  if (location.pathname === '/czat') return null;
+  // Floating chat button removed per user request
+  return null;
 
   return (
     <>

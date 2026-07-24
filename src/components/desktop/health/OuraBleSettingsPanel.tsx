@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card } from '../../ui/Card';
-import Button from '../../ui/Button';
-import { Bluetooth, RefreshCw, CheckCircle2, ShieldCheck, Cpu } from 'lucide-react';
+import { Bluetooth, RefreshCw, CheckCircle2, ShieldCheck, Cpu, Battery, BatteryCharging } from 'lucide-react';
 import { isNativePlatform } from '../../../lib/native/platform';
 import { BleProbe } from '../../../lib/native/bleProbePlugin';
 import { isOuraBleModeEnabled, setOuraBleModeEnabled } from '../../../lib/biometrics/ouraBleSync';
@@ -57,8 +55,8 @@ export default function OuraBleSettingsPanel() {
     });
 
     return () => {
-      sub1.then(s => s.remove()).catch(() => {});
-      sub2.then(s => s.remove()).catch(() => {});
+      sub1.then((s) => s.remove()).catch(() => {});
+      sub2.then((s) => s.remove()).catch(() => {});
     };
   }, []);
 
@@ -76,37 +74,50 @@ export default function OuraBleSettingsPanel() {
   };
 
   return (
-    <Card padding="1.25rem" className="space-y-4 text-text-primary slate-card">
-      <div className="flex items-center justify-between gap-2 border-b border-border-custom/40 pb-3">
-        <div className="flex items-center gap-2">
-          <Bluetooth size={16} className="text-primary shrink-0" />
+    <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 text-white shadow-2xl backdrop-blur-xl space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-xl bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-400">
+            <Bluetooth size={18} />
+          </div>
           <div>
-            <h3 className="text-xs font-medium tracking-tight text-text-primary">Oura Ring BLE Direct (Heritage Gen 3)</h3>
-            <p className="text-2xs text-text-muted">Bezpośrednia synchronizacja Bluetooth za 0zł / miesiąc (Bez Chmury Oury)</p>
+            <h3 className="text-xs font-bold tracking-tight text-white">Oura Ring Direct BLE (Gen 3/4)</h3>
+            <p className="text-3xs text-slate-400">Bezpośrednia synchronizacja Bluetooth za 0 zł / miesiąc (Bez Chmury Oury)</p>
           </div>
         </div>
-        <span className={`text-2xs font-medium px-2 py-0.5 slate-pill ${paired ? 'bg-success/10 text-success' : 'bg-surface-2 text-text-muted'}`}>
+
+        <span
+          className={`text-3xs font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full border ${
+            paired
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+              : 'bg-white/5 text-slate-400 border-white/10'
+          }`}
+        >
           {paired ? 'Sparowano (BLE Direct)' : 'Gotowy do podłączenia'}
         </span>
       </div>
 
+      {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-        <div className="p-3 bg-surface-2/40 rounded-xl space-y-1.5 border border-border-custom/30">
-          <div className="flex items-center gap-1.5 text-text-muted font-medium text-2xs uppercase">
-            <Cpu size={12} /> Status Sprzętu
+        {/* Hardware Status */}
+        <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-1.5">
+          <div className="flex items-center gap-1.5 text-slate-400 font-bold text-3xs uppercase tracking-wider">
+            <Cpu size={12} className="text-teal-400" /> Status Sprzętu
           </div>
-          <p className="font-medium text-text-primary">
+          <p className="font-bold text-white text-sm">
             {deviceFound ? `Wykryto: ${deviceFound}` : isScanning ? 'Skanowanie w toku...' : 'Heritage Gen 3 w zasięgu'}
           </p>
-          <p className="text-2xs text-text-muted">Protokół GATT: 98ED0001 (MTU 203)</p>
+          <p className="text-3xs text-slate-400">Protokół GATT: 98ED0001 (MTU 203)</p>
         </div>
 
-        <div className="p-3 bg-surface-2/40 rounded-xl space-y-1.5 border border-border-custom/30">
-          <div className="flex items-center justify-between text-2xs uppercase font-medium text-text-muted">
+        {/* Battery & Status */}
+        <div className="p-3.5 bg-white/5 rounded-2xl border border-white/10 space-y-1.5">
+          <div className="flex items-center justify-between text-3xs uppercase font-bold tracking-wider text-slate-400">
             <span className="flex items-center gap-1.5">
-              <ShieldCheck size={12} /> Stan Baterii Oura Ring
+              <ShieldCheck size={12} className="text-teal-400" /> Stan Baterii Oura Ring
             </span>
-            <span className="font-bold text-text-primary">
+            <span className="font-bold text-teal-400">
               {batteryLevel !== null ? `${batteryLevel}%` : 'Brak połączenia'}
             </span>
           </div>
@@ -125,46 +136,49 @@ export default function OuraBleSettingsPanel() {
             />
           </div>
 
-          <div className="flex justify-between text-3xs text-text-muted">
-            <span>{batteryLevel !== null ? (batteryLevel > 20 ? '🟢 Poziom naładowania OK' : '🔴 Wymaga ładowania') : 'Zabezpieczenie AES-128 Ready'}</span>
+          <div className="flex justify-between text-3xs text-slate-400">
+            <span>
+              {batteryLevel !== null
+                ? batteryLevel > 20
+                  ? '🟢 Poziom naładowania OK'
+                  : '🔴 Wymaga ładowania'
+                : 'Zabezpieczenie AES-128 Ready'}
+            </span>
             <span>{batteryLevel !== null ? 'Próbkowanie BLE' : 'Klucz: APK'}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex items-center justify-between pt-2">
-        <Button
-          variant="outline"
-          size="sm"
+      {/* Action Buttons */}
+      <div className="flex items-center justify-between pt-1">
+        <button
+          type="button"
           onClick={handleStartScan}
           disabled={isScanning || !isNativePlatform()}
-          icon={<RefreshCw size={12} className={isScanning ? 'animate-spin' : ''} />}
-          className="slate-nav text-xs font-medium"
+          className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-white/15 bg-white/5 hover:bg-white/10 text-xs font-bold text-slate-200 disabled:opacity-50 transition-colors cursor-pointer"
         >
+          <RefreshCw size={14} className={isScanning ? 'animate-spin text-teal-400' : 'text-slate-400'} />
           {isScanning ? 'Skanowanie BLE...' : 'Szukaj Oura Ring'}
-        </Button>
+        </button>
 
         {!paired ? (
-          <Button
-            variant="tonal"
-            size="sm"
+          <button
+            type="button"
             onClick={handlePairToggle}
-            icon={<CheckCircle2 size={12} />}
-            className="slate-pill text-xs font-medium"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-extrabold text-xs shadow-lg shadow-teal-500/20 transition-transform active:scale-95 cursor-pointer"
           >
-            Aktywuj Połączenie Direct
-          </Button>
+            <CheckCircle2 size={14} /> Aktywuj Połączenie Direct
+          </button>
         ) : (
-          <Button
-            variant="outline"
-            size="sm"
+          <button
+            type="button"
             onClick={handlePairToggle}
-            className="slate-pill text-xs font-medium text-danger hover:border-danger/50"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold text-xs transition-colors cursor-pointer"
           >
             Rozłącz BLE
-          </Button>
+          </button>
         )}
       </div>
-    </Card>
+    </div>
   );
 }
