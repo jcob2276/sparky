@@ -44,14 +44,14 @@ public class WidgetBridgePlugin extends Plugin {
     @PluginMethod
     public void cycleDemoMode(PluginCall call) {
         JSObject state = WidgetStateStore.cycleMode(getContext(), false);
-        DemoWidgetProvider.updateAll(getContext());
+        VanguardFoodWidgetProvider.updateAll(getContext());
         notifyDemoStateChanged(state);
         call.resolve(state);
     }
 
     @PluginMethod
     public void refreshDemoWidget(PluginCall call) {
-        DemoWidgetProvider.updateAll(getContext());
+        VanguardFoodWidgetProvider.updateAll(getContext());
         call.resolve(WidgetStateStore.readState(getContext()));
     }
 
@@ -67,7 +67,7 @@ public class WidgetBridgePlugin extends Plugin {
             call.reject("PIN_WIDGET_NOT_SUPPORTED");
             return;
         }
-        ComponentName provider = new ComponentName(context, DemoWidgetProvider.class);
+        ComponentName provider = new ComponentName(context, VanguardFoodWidgetProvider.class);
         Intent success = new Intent(context, MainActivity.class);
         success.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         android.app.PendingIntent callback = android.app.PendingIntent.getActivity(

@@ -3,6 +3,7 @@ package app.vanguard.os;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -35,5 +36,13 @@ public class VanguardFoodWidgetProvider extends AppWidgetProvider {
         views.setOnClickPendingIntent(R.id.widget_food_root, pendingFood);
 
         manager.updateAppWidget(appWidgetId, views);
+    }
+
+    public static void updateAll(Context context) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = manager.getAppWidgetIds(new ComponentName(context, VanguardFoodWidgetProvider.class));
+        for (int id : ids) {
+            updateWidget(context, manager, id);
+        }
     }
 }
