@@ -13,6 +13,7 @@ import { OuraReadinessTab } from './oura/OuraReadinessTab';
 import { OuraSleepTab } from './oura/OuraSleepTab';
 import { OuraActivityTab } from './oura/OuraActivityTab';
 import { OuraTrendsTab } from './oura/OuraTrendsTab';
+import OuraBleSettingsPanel from '../desktop/health/OuraBleSettingsPanel';
 
 export default function OuraHealthPage() {
   const navigate = useNavigate();
@@ -97,6 +98,7 @@ export default function OuraHealthPage() {
           </div>
         ) : (
           <main className="space-y-4">
+            <OuraBleSettingsPanel />
             {activeTab === 'readiness' && <OuraReadinessTab {...dataProps} />}
             {activeTab === 'sleep' && <OuraSleepTab {...dataProps} />}
             {activeTab === 'activity' && <OuraActivityTab {...dataProps} />}
