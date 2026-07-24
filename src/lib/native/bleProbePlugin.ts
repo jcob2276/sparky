@@ -24,6 +24,9 @@ export interface BleProbePlugin {
   requestPermissions(): Promise<{ granted: boolean }>;
   startScan(options?: { timeoutMs?: number; durationMs?: number }): Promise<{ scanning: boolean }>;
   stopScan(): Promise<{ scanning: boolean }>;
+  connectDevice(options: { address: string }): Promise<{ connecting: boolean; address: string }>;
+  disconnectDevice(): Promise<void>;
+  writeCommand(options: { hex: string }): Promise<{ success: boolean }>;
   addListener(
     eventName: 'deviceFound',
     listenerFunc: (device: BleDeviceHit) => void
@@ -31,6 +34,14 @@ export interface BleProbePlugin {
   addListener(
     eventName: 'scanFinished',
     listenerFunc: (event: BleScanFinishedEvent) => void
+  ): Promise<{ remove: () => void }>;
+  addListener(
+    eventName: 'connectionStatus',
+    listenerFunc: (event: { connected: boolean; address: string }) => void
+  ): Promise<{ remove: () => void }>;
+  addListener(
+    eventName: 'ouraBleNotification',
+    listenerFunc: (event: { hex: string; address: string }) => void
   ): Promise<{ remove: () => void }>;
 }
 

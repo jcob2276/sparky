@@ -12,26 +12,53 @@ export default function OuraBleSettingsPanel() {
   const [paired, setPaired] = useState(() => isOuraBleModeEnabled());
   const [batteryLevel, setBatteryLevel] = useState<number | null>(() => (isOuraBleModeEnabled() ? 84 : null));
 
-  const handlePairToggle = () => {
+  const [deviceAddress, setDeviceAddress] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+
+  const handlePairToggle = async () => {
     const nextState = !paired;
     setPaired(nextState);
     setOuraBleModeEnabled(nextState);
-    if (nextState) setBatteryLevel(84);
-    else setBatteryLevel(null);
+    if (nextState) {
+      setBatteryLevel(84);
+      if (deviceAddress && isNativePlatform()) {
+        try {
+          await BleProbe.connectDevice({ address: deviceAddress });
+        } catch {
+          /* fallback */
+        }
+      }
+    } else {
+      setBatteryLevel(null);
+      setIsConnected(false);
+      if (isNativePlatform()) {
+        await BleProbe.disconnectDevice().catch(() => {});
+      }
+    }
   };
 
   useEffect(() => {
     if (!isNativePlatform()) return;
 
-    const sub = BleProbe.addListener('deviceFound', (device) => {
+    const sub1 = BleProbe.addListener('deviceFound', (device) => {
       if (device.ouraLike) {
         setDeviceFound(device.name || device.address);
+        setDeviceAddress(device.address);
         setIsScanning(false);
       }
     });
 
+    const sub2 = BleProbe.addListener('connectionStatus', (evt) => {
+      setIsConnected(evt.connected);
+      if (evt.connected) {
+        setPaired(true);
+        setOuraBleModeEnabled(true);
+      }
+    });
+
     return () => {
-      sub.then(s => s.remove()).catch(() => {});
+      sub1.then(s => s.remove()).catch(() => {});
+      sub2.then(s => s.remove()).catch(() => {});
     };
   }, []);
 
@@ -39,6 +66,7 @@ export default function OuraBleSettingsPanel() {
     if (!isNativePlatform()) return;
     setIsScanning(true);
     setDeviceFound(null);
+    setDeviceAddress(null);
     try {
       await BleProbe.requestPermissions();
       await BleProbe.startScan({ durationMs: 10000 });

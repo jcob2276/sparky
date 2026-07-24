@@ -160,6 +160,112 @@ public class BleProbePlugin extends Plugin {
         call.resolve(ret);
     }
 
+    private OuraBleDriver activeDriver;
+
+    @PluginMethod
+    public void connectDevice(PluginCall call) {
+        String address = call.getString("address");
+        if (address == null || address.isEmpty()) {
+            call.reject("ADDRESS_REQUIRED");
+            return;
+        }
+        if (!hasConnectPermission()) {
+            call.reject("BLE_PERMISSION_DENIED");
+            return;
+        }
+
+        BluetoothAdapter adapter = getAdapter();
+        if (adapter == null || !adapter.isEnabled()) {
+            call.reject("BLUETOOTH_OFF");
+            return;
+        }
+
+        try {
+            android.bluetooth.BluetoothDevice device = adapter.getRemoteDevice(address);
+            if (activeDriver != null) {
+                // disconnect previous
+                activeDriver = null;
+            }
+
+            activeDriver = new OuraBleDriver(new OuraBleDriver.ConnectionCallback() {
+                @Override
+                public void onConnected() {
+                    JSObject payload = new JSObject();
+                    payload.put("connected", true);
+                    payload.put("address", address);
+                    notifyListeners("connectionStatus", payload);
+                }
+
+                @Override
+                public void onDisconnected() {
+                    JSObject payload = new JSObject();
+                    payload.put("connected", false);
+                    payload.put("address", address);
+                    notifyListeners("connectionStatus", payload);
+                }
+
+                @Override
+                public void onError(String message) {
+                    JSObject payload = new JSObject();
+                    payload.put("error", message);
+                    notifyListeners("connectionError", payload);
+                }
+
+                @Override
+                public void onNotificationReceived(byte[] data) {
+                    if (data == null) return;
+                    StringBuilder sb = new StringBuilder();
+                    for (byte b : data) {
+                        sb.append(String.format("%02x", b));
+                    }
+                    JSObject payload = new JSObject();
+                    payload.put("hex", sb.toString());
+                    payload.put("address", address);
+                    notifyListeners("ouraBleNotification", payload);
+                }
+            });
+
+            device.connectGatt(getContext(), false, activeDriver.gattCallback);
+            JSObject ret = new JSObject();
+            ret.put("connecting", true);
+            ret.put("address", address);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("CONNECT_FAILED", e);
+        }
+    }
+
+    @PluginMethod
+    public void disconnectDevice(PluginCall call) {
+        activeDriver = null;
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void writeCommand(PluginCall call) {
+        String hex = call.getString("hex");
+        if (hex == null || hex.isEmpty()) {
+            call.reject("HEX_REQUIRED");
+            return;
+        }
+        if (activeDriver == null) {
+            call.reject("NOT_CONNECTED");
+            return;
+        }
+
+        int len = hex.length();
+        byte[] bytes = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            bytes[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+                                 + Character.digit(hex.charAt(i+1), 16));
+        }
+
+        boolean ok = activeDriver.writeCommand(bytes);
+        JSObject ret = new JSObject();
+        ret.put("success", ok);
+        call.resolve(ret);
+    }
+
     @Override
     protected void handleOnDestroy() {
         if (session != null) {
