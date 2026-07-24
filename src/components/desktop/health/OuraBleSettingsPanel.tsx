@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bluetooth, RefreshCw, CheckCircle2, ShieldCheck, Cpu, Battery, BatteryCharging } from 'lucide-react';
+import { Bluetooth, RefreshCw, CheckCircle2, ShieldCheck, Cpu } from 'lucide-react';
 import { isNativePlatform } from '../../../lib/native/platform';
 import { BleProbe } from '../../../lib/native/bleProbePlugin';
 import { isOuraBleModeEnabled, setOuraBleModeEnabled } from '../../../lib/biometrics/ouraBleSync';
@@ -8,7 +8,8 @@ export default function OuraBleSettingsPanel() {
   const [isScanning, setIsScanning] = useState(false);
   const [deviceFound, setDeviceFound] = useState<string | null>(null);
   const [paired, setPaired] = useState(() => isOuraBleModeEnabled());
-  const [batteryLevel, setBatteryLevel] = useState<number | null>(() => (isOuraBleModeEnabled() ? 84 : null));
+  const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
+  const [liveLog, setLiveLog] = useState<string>('Brak aktywnego połączenia');
 
   const [deviceAddress, setDeviceAddress] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
@@ -17,18 +18,22 @@ export default function OuraBleSettingsPanel() {
     const nextState = !paired;
     setPaired(nextState);
     setOuraBleModeEnabled(nextState);
+
     if (nextState) {
-      setBatteryLevel(84);
+      setLiveLog('Inicjalizacja połączenia GATT z Oura...');
       if (deviceAddress && isNativePlatform()) {
         try {
           await BleProbe.connectDevice({ address: deviceAddress });
-        } catch {
-          /* fallback */
+        } catch (err: any) {
+          setLiveLog(`Błąd połączenia: ${err?.message || 'Nieznany'}`);
         }
+      } else {
+        setLiveLog('Skanowanie wymagane — najpierw wyszukaj urządzenie.');
       }
     } else {
       setBatteryLevel(null);
       setIsConnected(false);
+      setLiveLog('Rozłączono z Oura Direct BLE.');
       if (isNativePlatform()) {
         await BleProbe.disconnectDevice().catch(() => {});
       }
@@ -38,25 +43,55 @@ export default function OuraBleSettingsPanel() {
   useEffect(() => {
     if (!isNativePlatform()) return;
 
+    // 1. Device discovered during scan
     const sub1 = BleProbe.addListener('deviceFound', (device) => {
       if (device.ouraLike) {
         setDeviceFound(device.name || device.address);
         setDeviceAddress(device.address);
         setIsScanning(false);
+        setLiveLog(`Znaleziono Oura Ring (${device.address})`);
       }
     });
 
-    const sub2 = BleProbe.addListener('connectionStatus', (evt) => {
+    // 2. Scan finished (timeout elapsed)
+    const sub2 = BleProbe.addListener('scanFinished', () => {
+      setIsScanning(false);
+    });
+
+    // 3. Connection status change
+    const sub3 = BleProbe.addListener('connectionStatus', (evt) => {
       setIsConnected(evt.connected);
       if (evt.connected) {
         setPaired(true);
         setOuraBleModeEnabled(true);
+        setLiveLog('Połączono GATT. Wysyłanie zapytania o baterię i tętno live...');
+        // Request battery command: 0c 00
+        BleProbe.writeCommand({ hex: '0c00' }).catch(() => {});
+      } else {
+        setLiveLog('Połączenie GATT przerwane.');
+      }
+    });
+
+    // 4. Notifications from Oura GATT
+    const sub4 = BleProbe.addListener('ouraBleNotification', (evt) => {
+      const hex = (evt.hex || '').toLowerCase();
+      setLiveLog(`Pakiet BLE: ${hex.slice(0, 20)}...`);
+
+      // 0d response: battery payload [0d, level, volt_low, volt_high, is_charging]
+      if (hex.startsWith('0d') && hex.length >= 4) {
+        const levelPct = parseInt(hex.slice(2, 4), 16);
+        if (!isNaN(levelPct) && levelPct >= 0 && levelPct <= 100) {
+          setBatteryLevel(levelPct);
+          setLiveLog(`Odczyt baterii Oura: ${levelPct}%`);
+        }
       }
     });
 
     return () => {
       sub1.then((s) => s.remove()).catch(() => {});
       sub2.then((s) => s.remove()).catch(() => {});
+      sub3.then((s) => s.remove()).catch(() => {});
+      sub4.then((s) => s.remove()).catch(() => {});
     };
   }, []);
 
@@ -65,16 +100,19 @@ export default function OuraBleSettingsPanel() {
     setIsScanning(true);
     setDeviceFound(null);
     setDeviceAddress(null);
+    setLiveLog('Skanowanie nagłówków BLE (UUID 98ED0001)...');
+
     try {
       await BleProbe.requestPermissions();
       await BleProbe.startScan({ durationMs: 10000 });
-    } catch {
+    } catch (err: any) {
       setIsScanning(false);
+      setLiveLog(`Błąd skanowania: ${err?.message || 'Brak uprawnień BLE'}`);
     }
   };
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 text-white shadow-2xl backdrop-blur-xl space-y-4">
+    <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 text-white shadow-2xl backdrop-blur-xl space-y-4 animate-fadeIn">
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
         <div className="flex items-center gap-2.5">
@@ -89,12 +127,14 @@ export default function OuraBleSettingsPanel() {
 
         <span
           className={`text-3xs font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full border ${
-            paired
-              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+            isConnected
+              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 animate-pulse'
+              : paired
+              ? 'bg-teal-500/10 text-teal-300 border-teal-500/30'
               : 'bg-white/5 text-slate-400 border-white/10'
           }`}
         >
-          {paired ? 'Sparowano (BLE Direct)' : 'Gotowy do podłączenia'}
+          {isConnected ? 'Połączono (Live BLE)' : paired ? 'Zapisano Ring BLE' : 'Gotowy do podłączenia'}
         </span>
       </div>
 
@@ -106,9 +146,9 @@ export default function OuraBleSettingsPanel() {
             <Cpu size={12} className="text-teal-400" /> Status Sprzętu
           </div>
           <p className="font-bold text-white text-sm">
-            {deviceFound ? `Wykryto: ${deviceFound}` : isScanning ? 'Skanowanie w toku...' : 'Heritage Gen 3 w zasięgu'}
+            {deviceFound ? `Wykryto: ${deviceFound}` : isScanning ? 'Skanowanie w toku...' : 'Oura Ring Direct'}
           </p>
-          <p className="text-3xs text-slate-400">Protokół GATT: 98ED0001 (MTU 203)</p>
+          <p className="text-3xs text-slate-400 truncate">{liveLog}</p>
         </div>
 
         {/* Battery & Status */}
@@ -118,7 +158,7 @@ export default function OuraBleSettingsPanel() {
               <ShieldCheck size={12} className="text-teal-400" /> Stan Baterii Oura Ring
             </span>
             <span className="font-bold text-teal-400">
-              {batteryLevel !== null ? `${batteryLevel}%` : 'Brak połączenia'}
+              {batteryLevel !== null ? `${batteryLevel}%` : isConnected ? 'Odczytywanie...' : 'Brak połączenia'}
             </span>
           </div>
 
@@ -130,7 +170,9 @@ export default function OuraBleSettingsPanel() {
                   ? 'bg-emerald-400'
                   : (batteryLevel ?? 0) > 20
                   ? 'bg-amber-400'
-                  : 'bg-rose-500'
+                  : (batteryLevel ?? 0) > 0
+                  ? 'bg-rose-500'
+                  : 'bg-white/10'
               }`}
               style={{ width: `${batteryLevel ?? 0}%` }}
             />
@@ -142,6 +184,8 @@ export default function OuraBleSettingsPanel() {
                 ? batteryLevel > 20
                   ? '🟢 Poziom naładowania OK'
                   : '🔴 Wymaga ładowania'
+                : isConnected
+                ? '🟡 Wysyłanie komendy 0x0C...'
                 : 'Zabezpieczenie AES-128 Ready'}
             </span>
             <span>{batteryLevel !== null ? 'Próbkowanie BLE' : 'Klucz: APK'}</span>
