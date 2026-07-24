@@ -1,67 +1,230 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_food_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/widget_demo_bg"
-    android:gravity="center_vertical"
+    android:background="@drawable/widget_card_white"
+    android:clickable="true"
+    android:focusable="true"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="14dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/app_name"
-        android:textAllCaps="true"
-        android:textColor="#A8A29E"
-        android:textSize="10sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:layout_marginBottom="8dp"
-        android:text="Posiłki &amp; Notatnik"
-        android:textColor="#FAFAF9"
-        android:textSize="15sp"
-        android:textStyle="bold" />
-
-    <LinearLayout
-        android:id="@+id/btn_open_food"
+    <!-- Header: POSIŁEK + Dziś/Wczoraj -->
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/widget_btn_bg"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center"
-        android:padding="10dp">
+        android:layout_marginBottom="10dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🍽️ Zapisz Posiłek"
-            android:textColor="#FAFAF9"
-            android:textSize="13sp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:text="POSIŁEK"
+            android:textColor="#1C1C1E"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/widget_pill_brown"
+                android:paddingLeft="10dp"
+                android:paddingTop="4dp"
+                android:paddingRight="10dp"
+                android:paddingBottom="4dp"
+                android:text="Dziś"
+                android:textColor="#FFFFFF"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="6dp"
+                android:background="@drawable/widget_pill_outline"
+                android:paddingLeft="10dp"
+                android:paddingTop="4dp"
+                android:paddingRight="10dp"
+                android:paddingBottom="4dp"
+                android:text="Wczoraj"
+                android:textColor="#1C1C1E"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Macros HUD: 943 / 1908 kcal  •  45 / 150 g B -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:text="943 / 1908 kcal"
+            android:textColor="#1C1C1E"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:text="45 / 150 g B"
+            android:textColor="#1C1C1E"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+    <!-- Macros Bar -->
+    <ProgressBar
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="6dp"
+        android:layout_marginBottom="10dp"
+        android:max="100"
+        android:progress="50"
+        android:progressTint="#C85A32" />
+
+    <!-- Quality Banner -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="Jakość 65 — Dzień bez treningu, ale z niską podażą białka"
+        android:textColor="#D97706"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <!-- Meal Type Pills -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/widget_pill_outline"
+            android:gravity="center"
+            android:padding="6dp"
+            android:text="ŚNIADANIE"
+            android:textColor="#1C1C1E"
+            android:textSize="9sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_pill_outline"
+            android:gravity="center"
+            android:padding="6dp"
+            android:text="OBIAD"
+            android:textColor="#1C1C1E"
+            android:textSize="9sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_pill_outline"
+            android:gravity="center"
+            android:padding="6dp"
+            android:text="KOLACJA"
+            android:textColor="#C85A32"
+            android:textSize="9sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_weight="1"
+            android:background="@drawable/widget_pill_outline"
+            android:gravity="center"
+            android:padding="6dp"
+            android:text="PRZEKĄSKA"
+            android:textColor="#1C1C1E"
+            android:textSize="9sp"
             android:textStyle="bold" />
     </LinearLayout>
 
+    <!-- Quick Input Pill Button -->
     <LinearLayout
-        android:id="@+id/btn_open_notes"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:background="@drawable/widget_btn_bg"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center"
-        android:padding="10dp">
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/widget_pill_outline"
+        android:gravity="center_vertical"
+        android:paddingLeft="12dp"
+        android:paddingTop="8dp"
+        android:paddingRight="12dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Wpisz lub podyktuj posiłek..."
+            android:textColor="#8E8E93"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/widget_pill_brown"
+            android:gravity="center"
+            android:text="✨"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Favorites Row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="📝 Notatki Keep"
-            android:textColor="#FAFAF9"
-            android:textSize="13sp"
+            android:background="@drawable/widget_pill_outline"
+            android:paddingLeft="10dp"
+            android:paddingTop="6dp"
+            android:paddingRight="10dp"
+            android:paddingBottom="6dp"
+            android:text="★ Kawa domowa"
+            android:textColor="#C85A32"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="6dp"
+            android:background="@drawable/widget_pill_outline"
+            android:paddingLeft="10dp"
+            android:paddingTop="6dp"
+            android:paddingRight="10dp"
+            android:paddingBottom="6dp"
+            android:text="★ Banan"
+            android:textColor="#C85A32"
+            android:textSize="10sp"
             android:textStyle="bold" />
     </LinearLayout>
 </LinearLayout>
