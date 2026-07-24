@@ -20,7 +20,7 @@ public class VanguardFoodWidgetProvider extends AppWidgetProvider {
     private static void updateWidget(Context context, AppWidgetManager manager, int appWidgetId) {
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget_food);
 
-        // Food Button Intent (https://localhost/dzis?capture=food)
+        // Food Card Intent (https://localhost/dzis?capture=food)
         Intent foodIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://localhost/dzis?capture=food"));
         foodIntent.setPackage(context.getPackageName());
         foodIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -30,19 +30,9 @@ public class VanguardFoodWidgetProvider extends AppWidgetProvider {
             foodIntent,
             PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
-        views.setOnClickPendingIntent(R.id.btn_open_food, pendingFood);
 
-        // Notes Button Intent (https://localhost/keep)
-        Intent notesIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://localhost/keep"));
-        notesIntent.setPackage(context.getPackageName());
-        notesIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pendingNotes = PendingIntent.getActivity(
-            context,
-            appWidgetId * 10 + 4,
-            notesIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
-        );
-        views.setOnClickPendingIntent(R.id.btn_open_notes, pendingNotes);
+        // Bind pending intent to widget root
+        views.setOnClickPendingIntent(R.id.widget_food_root, pendingFood);
 
         manager.updateAppWidget(appWidgetId, views);
     }
