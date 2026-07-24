@@ -102,13 +102,33 @@ export default function OuraBleSettingsPanel() {
         </div>
 
         <div className="p-3 bg-surface-2/40 rounded-xl space-y-1.5 border border-border-custom/30">
-          <div className="flex items-center gap-1.5 text-text-muted font-medium text-2xs uppercase">
-            <ShieldCheck size={12} /> Bateria & Autoryzacja
+          <div className="flex items-center justify-between text-2xs uppercase font-medium text-text-muted">
+            <span className="flex items-center gap-1.5">
+              <ShieldCheck size={12} /> Stan Baterii Oura Ring
+            </span>
+            <span className="font-bold text-text-primary">
+              {batteryLevel !== null ? `${batteryLevel}%` : 'Brak połączenia'}
+            </span>
           </div>
-          <p className="font-medium text-text-primary">
-            {batteryLevel !== null ? `Bateria: ${batteryLevel}% (Status OK)` : 'Zabezpieczenie AES-128 Ready'}
-          </p>
-          <p className="text-2xs text-text-muted">Klucz Sesji: Zabezpieczony w APK</p>
+
+          {/* Battery level progress bar */}
+          <div className="h-2 w-full rounded-full bg-white/10 overflow-hidden my-1">
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                (batteryLevel ?? 0) > 50
+                  ? 'bg-emerald-400'
+                  : (batteryLevel ?? 0) > 20
+                  ? 'bg-amber-400'
+                  : 'bg-rose-500'
+              }`}
+              style={{ width: `${batteryLevel ?? 0}%` }}
+            />
+          </div>
+
+          <div className="flex justify-between text-3xs text-text-muted">
+            <span>{batteryLevel !== null ? (batteryLevel > 20 ? '🟢 Poziom naładowania OK' : '🔴 Wymaga ładowania') : 'Zabezpieczenie AES-128 Ready'}</span>
+            <span>{batteryLevel !== null ? 'Próbkowanie BLE' : 'Klucz: APK'}</span>
+          </div>
         </div>
       </div>
 
