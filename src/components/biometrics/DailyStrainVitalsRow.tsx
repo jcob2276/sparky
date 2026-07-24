@@ -211,6 +211,46 @@ export default function DailyStrainVitalsRow({
         </>
       )}
 
+      {/* Cardiovascular & Resilience Row */}
+      {(enhanced?.vascular_age != null || enhanced?.resilience_level != null || enhanced?.stress_high_minutes != null || enhanced?.vo2_max != null) && (
+        <>
+          <div className="h-px bg-border-custom/30" />
+          <div className="flex items-center justify-between text-2xs px-1">
+            <div className="flex-1 text-center">
+              <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Wiek Naczyniowy</span>
+              <span className="text-xs font-black text-emerald-400 flex items-center justify-center">
+                {enhanced?.vascular_age != null ? `${enhanced.vascular_age > 0 ? '+' : ''}${enhanced.vascular_age} lat` : 'Optymalny'}
+              </span>
+            </div>
+            <div className="w-px h-6 bg-border-custom/30" />
+            <div className="flex-1 text-center">
+              <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Odporność</span>
+              <span className="text-xs font-black text-teal-300 capitalize flex items-center justify-center">
+                {enhanced?.resilience_level || 'Solidna'}
+              </span>
+            </div>
+            <div className="w-px h-6 bg-border-custom/30" />
+            <div className="flex-1 text-center">
+              <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Stres Dnia</span>
+              <span className="text-xs font-black text-amber-400 flex items-center justify-center">
+                {enhanced?.stress_high_minutes != null ? `${enhanced.stress_high_minutes}m` : 'Niski'}
+              </span>
+            </div>
+            {enhanced?.vo2_max != null && (
+              <>
+                <div className="w-px h-6 bg-border-custom/30" />
+                <div className="flex-1 text-center">
+                  <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">VO2 Max</span>
+                  <span className="text-xs font-black text-sky-400 flex items-center justify-center">
+                    {enhanced.vo2_max}
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+        </>
+      )}
+
       {/* Bedtime Advice Banner */}
       {bedtimeAdvice && (
         <div className="px-3 py-2 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center gap-2 animate-fadeIn">

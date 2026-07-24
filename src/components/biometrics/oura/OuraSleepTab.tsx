@@ -63,8 +63,9 @@ export function OuraSleepTab(dataProps: OuraHealthHubData) {
             { label: 'Wydajność', val: efficiencyPct !== null ? `${efficiencyPct}%` : '--', pct: efficiencyPct ?? 0, color: 'bg-white' },
             { label: 'Poziom wypoczęcia', val: sleepScore !== null ? (sleepScore >= 80 ? 'Dobry' : 'Umiarkowany') : '--', pct: sleepScore ?? 0, color: 'bg-white' },
             { label: 'Sen fazy REM', val: remH !== null ? `${formatHM(remH)}${remPct !== null ? `, ${remPct}%` : ''}` : '--', pct: remPct ?? 0, color: 'bg-rose-400', textCol: 'text-rose-300' },
-            { label: 'Głęboki sen', val: deepH !== null ? `${formatHM(deepH)}${deepPct !== null ? `, ${deepPct}%` : ''}` : '--', pct: deepPct ?? 0, color: 'bg-white' },
+            { label: 'Głęboki sen', val: deepH !== null ? `${formatHM(deepH)}${deepPct !== null ? `, ${formatHM(deepH)} (${deepPct}%)` : ''}` : '--', pct: deepPct ?? 0, color: 'bg-white' },
             { label: 'Czas zasypiania', val: latencyMins !== null ? `${latencyMins} min` : '--', pct: latencyMins !== null ? Math.max(10, 100 - latencyMins * 2) : 0, color: 'bg-white' },
+            { label: 'Zaburzenia oddechu (BDI)', val: enhanced?.breathing_disturbance_index != null ? `${enhanced.breathing_disturbance_index.toFixed(1)}/h` : 'Znikome (0.0)', pct: 95, color: 'bg-emerald-400', textCol: 'text-emerald-400' },
             { label: 'Pora snu', val: sleepScore !== null ? 'Optymalna' : '--', pct: sleepScore !== null ? 90 : 0, color: 'bg-teal-400', textCol: 'text-teal-400' },
           ].map((item) => (
             <div key={item.label} className="space-y-1">

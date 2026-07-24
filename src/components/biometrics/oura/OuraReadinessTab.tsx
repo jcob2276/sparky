@@ -139,6 +139,57 @@ export function OuraReadinessTab(dataProps: OuraHealthHubData) {
           ))}
         </div>
       </div>
+
+      {/* Układ Krążenia, Odporność & Stres (Vascular Age, Resilience, Stress, VO2 Max) */}
+      <div className="rounded-3xl border border-white/10 bg-slate-900/80 p-5 space-y-4 shadow-xl">
+        <h4 className="text-3xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+          <Sparkles size={12} className="text-rose-400" /> Zdrowie Sercowo-Naczyniowe & Odporność
+        </h4>
+
+        <div className="grid grid-cols-2 gap-3">
+          {/* Wiek Naczyniowy (Vascular Age) */}
+          <div className="p-3.5 rounded-2xl border border-white/10 bg-white/5 space-y-1">
+            <p className="text-3xs font-extrabold uppercase tracking-wider text-slate-400">Wiek Naczyniowy</p>
+            <p className="text-xl font-black text-white">
+              {enhanced?.vascular_age != null
+                ? `${enhanced.vascular_age > 0 ? '+' : ''}${enhanced.vascular_age} lat`
+                : 'Optymalny'}
+            </p>
+            <p className="text-3xs text-emerald-400 font-semibold">
+              {enhanced?.vascular_age != null && enhanced.vascular_age <= 0 ? 'Młodszy niż wiek metrykalny 🟢' : 'Stan układu krążenia Oura'}
+            </p>
+          </div>
+
+          {/* Odporność na Stres (Resilience) */}
+          <div className="p-3.5 rounded-2xl border border-white/10 bg-white/5 space-y-1">
+            <p className="text-3xs font-extrabold uppercase tracking-wider text-slate-400">Odporność (Resilience)</p>
+            <p className="text-xl font-black text-teal-400 capitalize">
+              {enhanced?.resilience_level || 'Solidna'}
+            </p>
+            <p className="text-3xs text-slate-400">Zdolność do adaptacji i regeneracji</p>
+          </div>
+
+          {/* Wysoki Stres w Ciągu Dnia */}
+          <div className="p-3.5 rounded-2xl border border-white/10 bg-white/5 space-y-1">
+            <p className="text-3xs font-extrabold uppercase tracking-wider text-slate-400">Wysoki Stres</p>
+            <p className="text-xl font-black text-amber-400">
+              {enhanced?.stress_high_minutes != null ? `${enhanced.stress_high_minutes} min` : 'Niski'}
+            </p>
+            <p className="text-3xs text-slate-400 capitalize">
+              {enhanced?.stress_day_summary ? `Stan: ${enhanced.stress_day_summary}` : 'Stres pod kontrolą'}
+            </p>
+          </div>
+
+          {/* VO2 Max / Wydolność Tlenowa */}
+          <div className="p-3.5 rounded-2xl border border-white/10 bg-white/5 space-y-1">
+            <p className="text-3xs font-extrabold uppercase tracking-wider text-slate-400">VO2 Max</p>
+            <p className="text-xl font-black text-sky-400">
+              {enhanced?.vo2_max != null ? `${enhanced.vo2_max} ml/kg/min` : dataProps.garminVo2Max ? `${dataProps.garminVo2Max} ml/kg/min` : 'Wysoce wysoki'}
+            </p>
+            <p className="text-3xs text-slate-400">Wydolność tlenowa organizmu</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
