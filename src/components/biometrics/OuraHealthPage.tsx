@@ -5,20 +5,19 @@
  */
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Zap, Moon, Activity, TrendingUp, ArrowLeft } from 'lucide-react';
+import { Zap, Moon, TrendingUp, ArrowLeft } from 'lucide-react';
 import { useUserId } from '../../store/useStore';
 import { useDailyStrainOura, useOuraHistory30Days } from '../../lib/biometricsApi';
 
 import { OuraReadinessTab } from './oura/OuraReadinessTab';
 import { OuraSleepTab } from './oura/OuraSleepTab';
-import { OuraActivityTab } from './oura/OuraActivityTab';
 import { OuraTrendsTab } from './oura/OuraTrendsTab';
 import OuraBleSettingsPanel from '../desktop/health/OuraBleSettingsPanel';
 
 export default function OuraHealthPage() {
   const navigate = useNavigate();
   const userId = useUserId();
-  const [activeTab, setActiveTab] = useState<'readiness' | 'sleep' | 'activity' | 'trends'>('readiness');
+  const [activeTab, setActiveTab] = useState<'readiness' | 'sleep' | 'trends'>('readiness');
 
   const { data: dbData, isLoading: loading1 } = useDailyStrainOura(userId ?? '');
   const { data: historyData, isLoading: loading2 } = useOuraHistory30Days(userId ?? '');
@@ -67,11 +66,10 @@ export default function OuraHealthPage() {
         </div>
 
         {/* Tab Nav */}
-        <div className="grid grid-cols-4 gap-1 p-1.5 rounded-2xl border border-white/10 bg-slate-900/90 shadow-2xl">
+        <div className="grid grid-cols-3 gap-1 p-1.5 rounded-2xl border border-white/10 bg-slate-900/90 shadow-2xl">
           {[
             { id: 'readiness', label: 'Gotowość', icon: Zap },
             { id: 'sleep', label: 'Sen', icon: Moon },
-            { id: 'activity', label: 'Aktywność', icon: Activity },
             { id: 'trends', label: 'Trendy', icon: TrendingUp },
           ].map(({ id, label, icon: Icon }) => (
             <button
@@ -101,7 +99,6 @@ export default function OuraHealthPage() {
             <OuraBleSettingsPanel />
             {activeTab === 'readiness' && <OuraReadinessTab {...dataProps} />}
             {activeTab === 'sleep' && <OuraSleepTab {...dataProps} />}
-            {activeTab === 'activity' && <OuraActivityTab {...dataProps} />}
             {activeTab === 'trends' && <OuraTrendsTab {...dataProps} />}
           </main>
         )}
