@@ -14,7 +14,7 @@ public class WidgetTapReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (intent == null || !ACTION_WIDGET_DEMO_TAP.equals(intent.getAction())) return;
         JSObject state = WidgetStateStore.cycleMode(context, true);
-        DemoWidgetProvider.updateAll(context);
+        VanguardFoodWidgetProvider.updateAll(context);
         WidgetBridgePlugin.notifyDemoStateChanged(state);
     }
 }
