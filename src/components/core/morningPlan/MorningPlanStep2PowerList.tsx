@@ -1,138 +1,106 @@
+import { Plus, X } from 'lucide-react';
 import Button from '../../ui/Button';
-import { X, Flame } from 'lucide-react';
-import { TodoSlot } from './types';
+import { ControlInput } from '../../ui/ControlPrimitives';
+import type { TodoSlot } from './types';
 import { PRIORITY_COLORS } from './useMorningPlanData';
 
 interface Props {
   powerList: (TodoSlot | null)[];
-  todayTasks: TodoSlot[];
-  inboxTasks: TodoSlot[];
-  nutritionTarget: { target_kcal: number | null; protein_floor_g: number | null } | null;
+  suggestions: TodoSlot[];
   dayWord: string;
-  dayWordAcc: string;
-  activeSlotIdx: number | null;
-  setActiveSlotIdx: (idx: number | null) => void;
-  onAssign: (task: TodoSlot) => void;
-  onClear: (idx: number) => void;
+  onEditSlot: (index: number, title: string) => void;
+  onAssign: (index: number, task: TodoSlot) => void;
+  onClear: (index: number) => void;
 }
+
+const SLOT_META = [
+  { label: 'Ciało', badge: 'text-success bg-success/15 border-success/30', placeholder: 'Ciało (trening, sen, zdrowie…)' },
+  { label: 'Duch', badge: 'text-primary bg-primary/15 border-primary/30', placeholder: 'Duch (rozwój, dyscyplina, umysł…)' },
+  { label: 'Konto', badge: 'text-warning bg-warning/15 border-warning/30', placeholder: 'Konto (finanse, praca, dowożenie…)' },
+  { label: 'Ruch 4', badge: 'text-text-muted bg-surface-2 border-border-custom/40', placeholder: 'Wpisz własne działanie…' },
+  { label: 'Ruch 5', badge: 'text-text-muted bg-surface-2 border-border-custom/40', placeholder: 'Wpisz własne działanie…' },
+];
 
 export default function MorningPlanStep2PowerList({
   powerList,
-  todayTasks,
-  inboxTasks,
-  nutritionTarget,
+  suggestions,
   dayWord,
-  dayWordAcc,
-  activeSlotIdx,
-  setActiveSlotIdx,
+  onEditSlot,
   onAssign,
   onClear,
 }: Props) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div>
-        <h3 className="text-sm font-black text-text-primary">Twoja {dayWordAcc} Power List</h3>
-        <p className="text-xs text-text-muted mt-0.5">Wybierz 3-5 najważniejszych zadań (Zwycięstw) na {dayWord}.</p>
+        <h3 className="text-sm font-black text-text-primary">Co chcesz zrobić {dayWord}?</h3>
+        <p className="text-xs text-text-muted mt-0.5">
+          Wpisz własny plan. Zadania z Todo poniżej są tylko sugestiami.
+        </p>
       </div>
 
-      {/* Power List slots */}
-      {nutritionTarget && (
-        <div className="bg-success/5 dark:bg-success/10 border border-success/10 dark:border-success/30 rounded-xl p-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-success/10 flex items-center justify-center text-success">
-              <Flame size={16} />
-            </div>
-            <div>
-              <span className="text-xs font-bold text-success block uppercase tracking-wider">Dzienny Cel Żywieniowy</span>
-              <span className="text-sm text-text-primary font-bold">
-                {nutritionTarget.target_kcal ? `${nutritionTarget.target_kcal} kcal` : '—'}
-                <span className="text-text-muted font-normal mx-1.5">|</span>
-                {nutritionTarget.protein_floor_g ? `min. ${nutritionTarget.protein_floor_g}g białka` : '—'}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="space-y-2 bg-surface-2 dark:bg-on-accent/[0.015] border border-border-custom/50 p-3 rounded-2xl">
-        <span className="text-2xs font-bold text-text-muted uppercase tracking-wider block mb-1">Sloty Power List</span>
-        {powerList.map((slot, idx) => (
-          <div
-            key={idx}
-            onClick={() => setActiveSlotIdx(idx)}
-            className={`p-2.5 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
-              activeSlotIdx === idx
-                ? 'border-primary bg-primary/5 shadow-sm'
-                : slot
-                ? 'border-border-custom/40 bg-surface'
-                : 'border-dashed border-border-custom/60 bg-transparent hover:bg-surface/30'
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-border-custom/30 flex items-center justify-center text-xs font-bold text-text-muted">
-                {idx + 1}
-              </div>
-              <span className={`text-sm font-semibold ${slot ? 'text-text-primary' : 'text-text-muted/50 italic'}`}>
-                {slot ? slot.title : 'Wybierz zadanie do tego slotu...'}
-              </span>
-            </div>
-            {slot && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClear(idx);
-                }}
-                icon={<X size={14} />}
-                className="!p-1 hover:!text-danger"
-              />
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Selection list */}
       <div className="space-y-2">
-        <span className="text-2xs font-bold text-text-muted uppercase tracking-wider block">Dostępne zadania na {dayWord} i Inbox</span>
-        <div className="space-y-1.5 max-h-[var(--ds-h-220px)] overflow-y-auto pr-1">
-          {[...todayTasks, ...inboxTasks].length === 0 ? (
-            <p className="text-xs text-text-muted italic py-4 text-center">Brak wolnych zadań</p>
-          ) : (
-            [...todayTasks, ...inboxTasks].map((task) => {
-              const isUsed = powerList.some((s) => s?.id === task.id);
-              return (
+        {powerList.map((slot, index) => {
+          const meta = SLOT_META[index] ?? SLOT_META[3];
+          return (
+            <div key={index} className="flex items-center gap-2">
+              <span className="size-6 rounded-full bg-border-custom/30 flex items-center justify-center text-xs font-bold text-text-muted shrink-0">
+                {index + 1}
+              </span>
+              <span className={`px-2 py-1 rounded-lg text-2xs font-black uppercase tracking-wider border shrink-0 min-w-14 text-center ${meta.badge}`}>
+                {meta.label}
+              </span>
+              <ControlInput
+                value={slot?.title ?? ''}
+                onChange={(event) => onEditSlot(index, event.target.value)}
+                placeholder={meta.placeholder}
+                aria-label={`${meta.label} - Działanie ${index + 1}`}
+                className="flex-1 rounded-xl border border-border-custom/60 bg-surface px-3 py-2.5 text-sm font-semibold text-text-primary"
+              />
+              {slot && (
                 <Button
-                  key={task.id}
-                  disabled={isUsed || activeSlotIdx === null}
-                  onClick={() => onAssign(task)}
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onClear(index)}
+                  icon={<X size={14} />}
+                  aria-label={`Wyczyść działanie ${index + 1}`}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <details className="rounded-2xl border border-border-custom/40 bg-surface-2 p-3">
+        <summary className="cursor-pointer text-xs font-bold text-text-secondary">
+          Sugestie z Todo ({suggestions.length})
+        </summary>
+        <div className="space-y-1.5 mt-3">
+          {suggestions.length === 0 ? (
+            <p className="text-xs text-text-muted">Brak otwartych sugestii.</p>
+          ) : (
+            suggestions.map((task) => (
+              <div key={task.id} className="flex items-center gap-2">
+                <span className={`text-2xs font-black ${PRIORITY_COLORS[task.priority] || 'text-text-muted'}`}>
+                  {task.priority === 'urgent' ? '!!' : task.priority === 'high' ? '!' : '·'}
+                </span>
+                <span className="text-sm font-semibold text-text-primary flex-1 truncate">{task.title}</span>
+                <Button
                   variant="outline"
                   size="sm"
-                  className={`w-full text-left !justify-between ${
-                    isUsed
-                      ? '!opacity-[var(--opacity-40)] !border-border-custom/20 !bg-surface-solid/10'
-                      : activeSlotIdx !== null
-                      ? '!border-primary/40 hover:!border-primary hover:!bg-primary/[0.02]'
-                      : ''
-                  }`}
+                  icon={<Plus size={13} />}
+                  onClick={() => {
+                    const emptyIndex = powerList.findIndex((slot) => !slot?.title.trim());
+                    if (emptyIndex >= 0) onAssign(emptyIndex, task);
+                  }}
+                  disabled={powerList.every((slot) => Boolean(slot?.title.trim()))}
                 >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={`text-2xs font-black ${PRIORITY_COLORS[task.priority] || 'text-text-muted'}`}>
-                      {task.priority === 'urgent' ? '!!' : task.priority === 'high' ? '!' : '·'}
-                    </span>
-                    <span className="text-sm font-semibold text-text-primary truncate">{task.title}</span>
-                  </div>
-                  {task.duration_minutes && (
-                    <span className="text-2xs font-bold text-text-muted bg-border-custom/20 px-1.5 py-0.5 rounded shrink-0">
-                      {task.duration_minutes}m
-                    </span>
-                  )}
+                  Dodaj
                 </Button>
-              );
-            })
+              </div>
+            ))
           )}
         </div>
-      </div>
+      </details>
     </div>
   );
 }

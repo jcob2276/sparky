@@ -9,7 +9,7 @@ export interface MorningPlanSlotInput {
   slot: number;
   title: string;
   category: string;
-  todo_id: string;
+  todo_id: string | null;
 }
 
 export interface MorningPlanScheduleInput {

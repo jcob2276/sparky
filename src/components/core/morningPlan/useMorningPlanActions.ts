@@ -10,6 +10,7 @@ import { addMinutes, isoDateStr, isoDurationMin, isoMinutesOfDay } from './morni
 import { TodoSlot, CalEvent } from './types';
 import { CAPACITY_HOURS } from './useMorningPlanData';
 import { TimelineBlock } from '../../shared/DayTimeline';
+import { buildMorningPlanSlots, createCustomPlanSlot } from './morningPlanModel';
 
 interface UseMorningPlanActionsArgs {
   userId: string | undefined;
@@ -17,7 +18,6 @@ interface UseMorningPlanActionsArgs {
   onClose: () => void;
   yesterdayTasks: TodoSlot[];
   setYesterdayTasks: React.Dispatch<React.SetStateAction<TodoSlot[]>>;
-  todayTasks: TodoSlot[];
   setTodayTasks: React.Dispatch<React.SetStateAction<TodoSlot[]>>;
   setInboxTasks: React.Dispatch<React.SetStateAction<TodoSlot[]>>;
   powerList: (TodoSlot | null)[];
@@ -34,7 +34,6 @@ export function useMorningPlanActions({
   onClose,
   yesterdayTasks,
   setYesterdayTasks,
-  todayTasks,
   setTodayTasks,
   setInboxTasks,
   powerList,
@@ -73,18 +72,24 @@ export function useMorningPlanActions({
     }
   };
 
-  const handleAssignToSlot = (task: TodoSlot) => {
-    if (activeSlotIdx === null) return;
-
+  const handleAssignToSlot = (slotIndex: number, task: TodoSlot) => {
     setPowerList((prev) => {
       const next = prev.map((s, idx) => {
-        if (idx === activeSlotIdx) return task;
+        if (idx === slotIndex) return { ...task, todoId: task.todoId ?? task.id };
         if (s?.id === task.id) return null;
         return s;
       });
       return next;
     });
     setActiveSlotIdx(null);
+  };
+
+  const handleEditSlot = (slotIndex: number, title: string) => {
+    setPowerList((previous) => {
+      const next = [...previous];
+      next[slotIndex] = title.trim() ? createCustomPlanSlot(title, slotIndex) : null;
+      return next;
+    });
   };
 
   const handleClearSlot = (idx: number) => {
@@ -107,16 +112,15 @@ export function useMorningPlanActions({
 
   const totalMinutesPlanned = useMemo(() => {
     let sum = calendarMeetingMinutes;
-    const todayTaskIds = new Set(todayTasks.map((t) => t.id));
     const powerListTaskIds = new Set(powerList.filter(Boolean).map((t) => t!.id));
 
     Object.keys(times).forEach((taskId) => {
-      if (times[taskId] && (todayTaskIds.has(taskId) || powerListTaskIds.has(taskId))) {
+      if (times[taskId] && powerListTaskIds.has(taskId)) {
         sum += durations[taskId] || 30;
       }
     });
     return sum;
-  }, [todayTasks, powerList, times, durations, calendarMeetingMinutes]);
+  }, [powerList, times, durations, calendarMeetingMinutes]);
 
   const capacityPct = Math.min(100, Math.round((totalMinutesPlanned / (CAPACITY_HOURS * 60)) * 100));
   const capacityHoursPlanned = Math.round((totalMinutesPlanned / 60) * 10) / 10;
@@ -130,7 +134,7 @@ export function useMorningPlanActions({
       label: e.summary || 'Wydarzenie',
       variant: 'existing',
     }));
-    const uniqueTasks = [...powerList.filter(Boolean), ...todayTasks].filter(
+    const uniqueTasks = powerList.filter(Boolean).filter(
       (t, idx, self): t is TodoSlot => !!t && self.findIndex((x) => x?.id === t?.id) === idx,
     );
     const planned: TimelineBlock[] = uniqueTasks
@@ -146,35 +150,24 @@ export function useMorningPlanActions({
         };
       });
     return [...existing, ...planned];
-  }, [dayCalendarEvents, powerList, todayTasks, times, durations]);
+  }, [dayCalendarEvents, powerList, times, durations]);
 
   const handleSubmitPlan = async () => {
     if (!userId) return;
     setSending(true);
     try {
-      const slots = powerList
-        .map((task, idx) =>
-          task
-            ? {
-                slot: idx + 1,
-                title: task.title,
-                category: idx === 0 ? 'cialo' : idx === 1 ? 'duch' : idx === 2 ? 'konto' : 'general',
-                todo_id: task.id,
-              }
-            : null,
-        )
-        .filter((s): s is NonNullable<typeof s> => s != null);
+      const slots = buildMorningPlanSlots(powerList);
 
-      const allSchedulable = [...todayTasks, ...powerList.filter(Boolean)] as TodoSlot[];
+      const allSchedulable = powerList.filter(Boolean) as TodoSlot[];
       const uniqueTasksMap = new Map<string, TodoSlot>();
       allSchedulable.forEach((t) => uniqueTasksMap.set(t.id, t));
 
-      const schedules = [...uniqueTasksMap.entries()]
-        .filter(([taskId]) => Boolean(times[taskId]))
-        .map(([taskId]) => ({
-          todo_id: taskId,
-          scheduled_time: combineDateTimeWarsawISO(planningDate, times[taskId]),
-          duration_minutes: durations[taskId] || 30,
+      const schedules = [...uniqueTasksMap.values()]
+        .filter((task) => Boolean(task.todoId && times[task.id]))
+        .map((task) => ({
+          todo_id: task.todoId!,
+          scheduled_time: combineDateTimeWarsawISO(planningDate, times[task.id]),
+          duration_minutes: durations[task.id] || 30,
         }));
 
       // Atomic: wins + slots + todo schedules (todayWinId unused — RPC upserts by date)
@@ -221,6 +214,7 @@ export function useMorningPlanActions({
     setActiveSlotIdx,
     handleYesterdayAction,
     handleAssignToSlot,
+    handleEditSlot,
     handleClearSlot,
     dayCalendarEvents,
     calendarMeetingMinutes,

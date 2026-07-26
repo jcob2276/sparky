@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Vanguard</string>
-    <string name="title_activity_main">Vanguard</string>
+    <string name="app_name">Sparky</string>
+    <string name="title_activity_main">Sparky</string>
     <string name="package_name">app.vanguard.os</string>
     <string name="custom_url_scheme">app.vanguard.os</string>
     <string name="shortcut_todo">Zadania</string>
@@ -9,9 +9,9 @@
     <string name="shortcut_keep">Notatki</string>
     <string name="shortcut_czat">Oracle Czat</string>
     <string name="shortcut_voice">Quick Voice</string>
-    <string name="widget_czat_name">Vanguard: Czat &amp; Głos</string>
+    <string name="widget_czat_name">Sparky: Czat &amp; Głos</string>
     <string name="widget_czat_description">Otwórz czat z Wyrocznią lub nagraj głos z pulpitu telefonu</string>
-    <string name="widget_food_name">Vanguard: Posiłki &amp; Notatki</string>
+    <string name="widget_food_name">Sparky: Posiłki &amp; Notatki</string>
     <string name="widget_food_description">Szybkie logowanie posiłków i notatek z pulpitu telefonu</string>
 </resources>
 

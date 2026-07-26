@@ -7,7 +7,6 @@ import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 import { useSupplementsData } from './useSupplementsData';
 import SupplementCard from './SupplementCard';
 import SupplementAddForm from './SupplementAddForm';
-import OuraBleSettingsPanel from './OuraBleSettingsPanel';
 
 interface SupplementsPanelProps {
   userId: string;
@@ -77,9 +76,6 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
         </div>
       )}
 
-      <div className="pt-4 border-t border-border-custom/30">
-        <OuraBleSettingsPanel />
-      </div>
     </Card>
   );
 }

@@ -1,6 +1,6 @@
 /**
  * @component OuraDeepAnalyticsLabCard
- * @role Głębokie Laboratorium Snu (Deep Sleep Analytics Lab) z 7 miesięcy (220 nocy) danych Oura Ring.
+ * @role Głębokie Laboratorium Snu oparte na dostępnej historii danych Oura Ring.
  *       Analizuje Social Jetlag, ranking dni tygodnia oraz architekturę faz (Deep / REM ratio).
  */
 import type { OuraHealthHubData } from './types';
@@ -170,7 +170,7 @@ export function OuraDeepAnalyticsLabCard({ ouraHistory }: OuraHealthHubData) {
       {/* 3. Sleep Architecture (Deep vs REM) */}
       <div className="p-4 rounded-2xl bg-slate-950/60 border border-white/10 space-y-3">
         <span className="text-3xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-1">
-          <Layers size={12} className="text-purple-400" /> Architektura Faz Snu (Udział % z 7 Miesięcy)
+          <Layers size={12} className="text-purple-400" /> Architektura faz snu (udział w dostępnej historii)
         </span>
 
         <div className="grid grid-cols-2 gap-3 text-xs">

@@ -122,10 +122,10 @@ export function OuraReadinessTab(dataProps: OuraHealthHubData) {
 
         <div className="space-y-3">
           {[
-            { label: 'Tętno spoczynkowe (RHR)', value: rhrAvg > 0 ? `${rhrAvg} bpm` : '--', pct: Math.min(100, Math.max(20, 100 - rhrAvg)), note: rhrAvg > 0 ? (rhrAvg < 60 ? 'Optymalne' : 'W normie') : 'Brak danych' },
-            { label: 'HRV Balance', value: hrvAvg > 0 ? `${hrvAvg} ms` : '--', pct: Math.min(100, (hrvAvg / 100) * 100), note: hrvAvg > 0 ? (hrvAvg > 50 ? 'Powyżej normy' : 'W normie') : 'Brak danych' },
-            { label: 'Odchylenie temperatury', value: tempDev !== 0 ? `${tempDev > 0 ? '+' : ''}${tempDev}°C` : '0.00°C', pct: 88, note: 'W normie' },
-            { label: 'Indeks regeneracji', value: recovScore > 0 ? `${recovScore}/100` : '--', pct: recovScore || 50, note: recovScore > 70 ? 'Dobra regeneracja' : 'Standard' },
+            { label: 'Tętno spoczynkowe (RHR)', value: rhrAvg > 0 ? `${rhrAvg} bpm` : '--', pct: rhrAvg > 0 ? Math.min(100, Math.max(0, 100 - rhrAvg)) : 0, note: rhrAvg > 0 ? 'Pomiar nocny' : 'Brak danych' },
+            { label: 'HRV Balance', value: hrvAvg > 0 ? `${hrvAvg} ms` : '--', pct: hrvAvg > 0 ? Math.min(100, hrvAvg) : 0, note: hrvAvg > 0 ? 'Pomiar nocny' : 'Brak danych' },
+            { label: 'Odchylenie temperatury', value: tempDev !== 0 ? `${tempDev > 0 ? '+' : ''}${tempDev}°C` : '--', pct: tempDev !== 0 ? Math.min(100, Math.abs(tempDev) * 100) : 0, note: tempDev !== 0 ? 'Względem bazy osobistej' : 'Brak danych' },
+            { label: 'Indeks regeneracji', value: recovScore > 0 ? `${recovScore}/100` : '--', pct: recovScore > 0 ? recovScore : 0, note: recovScore > 0 ? 'Wynik obliczony' : 'Brak danych' },
           ].map((item) => (
             <div key={item.label} className="space-y-1">
               <div className="flex justify-between text-xs">
@@ -153,10 +153,10 @@ export function OuraReadinessTab(dataProps: OuraHealthHubData) {
             <p className="text-xl font-black text-white">
               {enhanced?.vascular_age != null
                 ? `${enhanced.vascular_age > 0 ? '+' : ''}${enhanced.vascular_age} lat`
-                : 'Optymalny'}
+                : '--'}
             </p>
             <p className="text-3xs text-emerald-400 font-semibold">
-              {enhanced?.vascular_age != null && enhanced.vascular_age <= 0 ? 'Młodszy niż wiek metrykalny 🟢' : 'Stan układu krążenia Oura'}
+              {enhanced?.vascular_age != null ? 'Pomiar Oura' : 'Brak danych'}
             </p>
           </div>
 
@@ -164,7 +164,7 @@ export function OuraReadinessTab(dataProps: OuraHealthHubData) {
           <div className="p-3.5 rounded-2xl border border-white/10 bg-white/5 space-y-1">
             <p className="text-3xs font-extrabold uppercase tracking-wider text-slate-400">Odporność (Resilience)</p>
             <p className="text-xl font-black text-teal-400 capitalize">
-              {enhanced?.resilience_level || 'Solidna'}
+              {enhanced?.resilience_level || '--'}
             </p>
             <p className="text-3xs text-slate-400">Zdolność do adaptacji i regeneracji</p>
           </div>
@@ -173,10 +173,10 @@ export function OuraReadinessTab(dataProps: OuraHealthHubData) {
           <div className="p-3.5 rounded-2xl border border-white/10 bg-white/5 space-y-1">
             <p className="text-3xs font-extrabold uppercase tracking-wider text-slate-400">Wysoki Stres</p>
             <p className="text-xl font-black text-amber-400">
-              {enhanced?.stress_high_minutes != null ? `${enhanced.stress_high_minutes} min` : 'Niski'}
+              {enhanced?.stress_high_minutes != null ? `${enhanced.stress_high_minutes} min` : '--'}
             </p>
             <p className="text-3xs text-slate-400 capitalize">
-              {enhanced?.stress_day_summary ? `Stan: ${enhanced.stress_day_summary}` : 'Stres pod kontrolą'}
+              {enhanced?.stress_day_summary ? `Stan: ${enhanced.stress_day_summary}` : 'Brak danych'}
             </p>
           </div>
 
@@ -184,7 +184,7 @@ export function OuraReadinessTab(dataProps: OuraHealthHubData) {
           <div className="p-3.5 rounded-2xl border border-white/10 bg-white/5 space-y-1">
             <p className="text-3xs font-extrabold uppercase tracking-wider text-slate-400">VO2 Max</p>
             <p className="text-xl font-black text-sky-400">
-              {enhanced?.vo2_max != null ? `${enhanced.vo2_max} ml/kg/min` : dataProps.garminVo2Max ? `${dataProps.garminVo2Max} ml/kg/min` : 'Wysoce wysoki'}
+              {enhanced?.vo2_max != null ? `${enhanced.vo2_max} ml/kg/min` : dataProps.garminVo2Max ? `${dataProps.garminVo2Max} ml/kg/min` : '--'}
             </p>
             <p className="text-3xs text-slate-400">Wydolność tlenowa organizmu</p>
           </div>

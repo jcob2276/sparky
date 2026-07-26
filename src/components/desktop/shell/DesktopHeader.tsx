@@ -2,6 +2,7 @@ import Button from '../../ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw, Moon, Sun, Fingerprint, ShieldCheck, Smartphone } from 'lucide-react';
 import DashboardModuleShortcuts from '../../core/DashboardModuleShortcuts';
+import OuraRingHeaderBadge from '../health/OuraRingHeaderBadge';
 
 interface DesktopHeaderProps {
   now: string;
@@ -35,6 +36,7 @@ export default function DesktopHeader({
         ))}
       </div>
       <div className="ml-auto flex items-center gap-2">
+        <OuraRingHeaderBadge />
         <DashboardModuleShortcuts naukaBadge={pendingGrowthMustCount} />
         <Button onClick={() => setShowHealth(true)} variant="secondary" icon={<ShieldCheck size={14} />} className="rounded-full p-2.5" title="Status zdrowia systemu" />
         <Button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} variant="secondary" icon={theme === 'light' ? <Moon size={14} /> : <Sun size={14} className="text-warning" />} className="rounded-full p-2.5" aria-label={theme === 'light' ? 'Włącz ciemny motyw' : 'Włącz jasny motyw'} />

@@ -1,11 +1,11 @@
 /**
  * @component OuraSleepDebtCard
  * @role Deficyt snu z sleep_debt_h (daily_strain.components — kanoniczne źródło)
- *       + Zegar Biologiczny z pełną analizą statystyczną 7 miesięcy danych Oura Ring (194 noce).
+ *       + Zegar Biologiczny z analizą dostępnej historii danych Oura Ring.
  */
 import type { OuraHealthHubData } from './types';
 import { parseStrainComponents } from '../../../lib/db-json-guards';
-import { Moon, Sun, Target, TrendingUp, AlertTriangle, BarChart3 } from 'lucide-react';
+import { Moon, Sun, Target, BarChart3 } from 'lucide-react';
 
 const TZ = 'Europe/Warsaw';
 
@@ -37,11 +37,6 @@ export function OuraSleepDebtCard({ strainRow, ouraHistory }: OuraHealthHubData)
   const allHistory = ouraHistory ?? [];
   const nightsWithData = allHistory.filter((r) => (r.total_sleep_hours ?? 0) > 0);
   const n = nightsWithData.length;
-  const recent14Nights = allHistory.slice(-14).filter((r) => (r.total_sleep_hours ?? 0) > 0);
-  const avgSleepDur14 = recent14Nights.length > 0
-    ? recent14Nights.reduce((a, r) => a + (r.total_sleep_hours ?? 0), 0) / recent14Nights.length
-    : 7.5;
-
   const debtHours = debtHoursDiff !== null ? Math.floor(debtHoursDiff) : null;
   const debtMins = debtHoursDiff !== null ? Math.round((debtHoursDiff % 1) * 60) : null;
 
@@ -81,7 +76,7 @@ export function OuraSleepDebtCard({ strainRow, ouraHistory }: OuraHealthHubData)
   };
   const chronotype = getChronotype(avgMid);
 
-  // ── 7-MONTH STATISTICAL BUCKETS & PEAK (Nights >= 85 pts) ─────────────────
+  // ── STATISTICAL BUCKETS & PEAK (Nights >= 85 pts) ─────────────────────────
   const validNightsAll = allHistory.filter(r => r.sleep_score != null && r.bedtime_timestamp && (r.total_sleep_hours ?? 0) > 0);
   const peak85Plus = validNightsAll.filter(r => (r.sleep_score ?? 0) >= 85);
   const sortedAllTime = (peak85Plus.length > 0 ? peak85Plus : [...validNightsAll].sort((a, b) => (b.sleep_score ?? 0) - (a.sleep_score ?? 0))).slice(0, 10);
@@ -117,7 +112,7 @@ export function OuraSleepDebtCard({ strainRow, ouraHistory }: OuraHealthHubData)
     recentDeepSleep = recent14Valid.reduce((a, r) => a + (r.deep_sleep_hours ?? 0), 0) / recent14Valid.length;
   }
 
-  // ── 7-MONTH BUCKET COMPUTATION ──────────────────────────────────────────
+  // ── HISTORY BUCKET COMPUTATION ──────────────────────────────────────────
   const bucketStats = (() => {
     const b = {
       optimal: { label: '22:30–23:30 (Optymalnie)', scores: [] as number[], hours: [] as number[] },
@@ -147,8 +142,6 @@ export function OuraSleepDebtCard({ strainRow, ouraHistory }: OuraHealthHubData)
       { name: b.veryLate.label, count: b.veryLate.scores.length, avgScore: calcAvg(b.veryLate.scores), avgHours: calcAvg(b.veryLate.hours), color: 'text-rose-400', badgeBg: 'bg-rose-500/20' },
     ];
   })();
-
-  const isLateSleeper = avgMid !== null && avgMid % 24 > 4.5;
 
   return (
     <div className="space-y-4">
@@ -188,10 +181,10 @@ export function OuraSleepDebtCard({ strainRow, ouraHistory }: OuraHealthHubData)
         )}
       </div>
 
-      {/* ── Zegar Biologiczny & Audyt 7 Miesięcy ───────────────────────── */}
+      {/* ── Zegar Biologiczny & Audyt Historii ──────────────────────────── */}
       <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 space-y-4 shadow-xl">
         <div className="flex items-center justify-between">
-          <p className="text-3xs font-black uppercase tracking-widest text-slate-400">ZEGAR BIOLOGICZNY & AUDYT 7 MIESIĘCY</p>
+          <p className="text-3xs font-black uppercase tracking-widest text-slate-400">ZEGAR BIOLOGICZNY & AUDYT HISTORII</p>
           <span className="text-3xs font-bold text-sky-400 bg-sky-500/10 border border-sky-500/20 px-2 py-0.5 rounded-md">
             {validNightsAll.length} nocy w bazie
           </span>
@@ -210,12 +203,12 @@ export function OuraSleepDebtCard({ strainRow, ouraHistory }: OuraHealthHubData)
               </div>
             </div>
 
-            {/* Historical Peak Box (Optimum 88-89+ pkt z 7 miesięcy) */}
+            {/* Historical Peak Box */}
             {peakBedStr && peakWakeStr && peakAvgScore && (
               <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-3xs font-black uppercase tracking-wider text-emerald-400">
-                    <Target size={14} /> 7-Miesięczny Szczyt Formy (Z Twoich Najlepszych Nocy)
+                    <Target size={14} /> Szczyt formy w dostępnej historii
                   </div>
                   <span className="text-xs font-black text-emerald-300 bg-emerald-500/20 px-2 py-0.5 rounded-md">
                     {peakAvgScore}/100 pkt
@@ -241,65 +234,30 @@ export function OuraSleepDebtCard({ strainRow, ouraHistory }: OuraHealthHubData)
                 </div>
 
                 <p className="text-3xs text-slate-300 leading-relaxed font-medium">
-                  Twoje absolutne rekordy (<span className="text-emerald-300 font-bold">88–89 pkt</span>) miały miejsce przy zasypianiu ok. <span className="text-emerald-300 font-bold">{peakBedStr}</span> i długości snu <span className="text-emerald-300 font-bold">{(peakSleepDur ?? 8.5).toFixed(1)}h</span> (sen głęboki: {(peakDeepSleep ?? 2.0).toFixed(1)}h).
+                  Najwyżej ocenione noce (<span className="text-emerald-300 font-bold">{peakAvgScore} pkt</span>) zaczynały się około <span className="text-emerald-300 font-bold">{peakBedStr}</span>
+                  {peakSleepDur != null ? <> i trwały średnio <span className="text-emerald-300 font-bold">{peakSleepDur.toFixed(1)}h</span></> : null}
+                  {peakDeepSleep != null ? <> (sen głęboki: {peakDeepSleep.toFixed(1)}h)</> : null}.
                 </p>
               </div>
             )}
 
-            {/* Gap Analysis: 23:41 (78 pkt) vs Peak 22:15 (89 pkt) */}
             {recentAvgScore && peakAvgScore && peakAvgScore > recentAvgScore && (
-              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-3xs font-black uppercase tracking-wider text-amber-400">
-                    <TrendingUp size={14} /> Gdzie znika pozostałe ~{100 - (recentAvgScore ?? 78)} pkt?
-                  </div>
-                  <span className="text-3xs font-bold text-amber-300">
-                    Ostatnie 14 dni: śr. {recentAvgScore}/100 pkt (@ {recentBedStr})
-                  </span>
-                </div>
-
-                <div className="space-y-2 text-3xs pt-1">
-                  {/* Point 1: Bedtime timing */}
-                  <div className="flex justify-between items-start gap-2 bg-slate-950/40 p-2.5 rounded-xl">
-                    <div>
-                      <p className="font-bold text-slate-200">1. Przesunięcie pory snu ({recentBedStr} vs {peakBedStr})</p>
-                      <p className="text-slate-400">Kładziesz się o ~1.5h później. Oura karze punktację "Timing" za ominięcie okna melatoniny i szczytu hormonu wzrostu przed 24:00.</p>
-                    </div>
-                    <span className="text-rose-400 font-black whitespace-nowrap text-xs">−8 do −10 pkt</span>
-                  </div>
-
-                  {/* Point 2: Total duration */}
-                  <div className="flex justify-between items-start gap-2 bg-slate-950/40 p-2.5 rounded-xl">
-                    <div>
-                      <p className="font-bold text-slate-200">2. Niedobór długości snu ({avgSleepDur14.toFixed(1)}h vs {(peakSleepDur ?? 8.5).toFixed(1)}h)</p>
-                      <p className="text-slate-400">Śpisz średnio o {(peakSleepDur ? peakSleepDur - avgSleepDur14 : 1.5).toFixed(1)}h krócej niż w Twoje nocne rekordy.</p>
-                    </div>
-                    <span className="text-rose-400 font-black whitespace-nowrap text-xs">−6 pkt</span>
-                  </div>
-
-                  {/* Point 3: Deep sleep reduction */}
-                  <div className="flex justify-between items-start gap-2 bg-slate-950/40 p-2.5 rounded-xl">
-                    <div>
-                      <p className="font-bold text-slate-200">3. Redukcja snu głębokiego ({(recentDeepSleep ?? 1.3).toFixed(1)}h vs {(peakDeepSleep ?? 2.0).toFixed(1)}h)</p>
-                      <p className="text-slate-400">Późniejsze zasypianie skraca najcenniejszą fazę głęboką w pierwszej połowie nocy.</p>
-                    </div>
-                    <span className="text-rose-400 font-black whitespace-nowrap text-xs">−4 do −5 pkt</span>
-                  </div>
-                </div>
-
-                {isLateSleeper && (
-                  <div className="flex items-center gap-2 pt-1 text-3xs text-amber-300 font-semibold">
-                    <AlertTriangle size={12} className="shrink-0" />
-                    <span>Dźwignia: Przesunięcie pory pójścia spać w okolice {peakBedStr} odzyskuje 10–12 pkt bez poświęcania poranka!</span>
-                  </div>
-                )}
+              <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-1">
+                <p className="text-3xs font-black uppercase tracking-wider text-amber-400">
+                  Porównanie zmierzonych okresów
+                </p>
+                <p className="text-3xs text-slate-300">
+                  Ostatnie noce: średnio {recentAvgScore}/100{recentBedStr ? `, sen od około ${recentBedStr}` : ''}.
+                  Najlepsze noce w historii: {peakAvgScore}/100{peakBedStr ? `, sen od około ${peakBedStr}` : ''}.
+                  To porównanie opisowe — nie przypisuje przyczyny różnicy.
+                </p>
               </div>
             )}
 
-            {/* 7-Month Statistical Buckets Widget */}
+            {/* Statistical Buckets Widget */}
             <div className="p-4 rounded-2xl bg-slate-800/60 border border-white/10 space-y-3">
               <div className="flex items-center gap-1.5 text-3xs font-black uppercase tracking-wider text-slate-300">
-                <BarChart3 size={14} className="text-sky-400" /> Rozkład Jakości Snu wg Pory Zasypiania (7 Miesięcy / {validNightsAll.length} Nocy)
+                <BarChart3 size={14} className="text-sky-400" /> Rozkład jakości snu wg pory zasypiania ({validNightsAll.length} nocy)
               </div>
 
               <div className="space-y-2">

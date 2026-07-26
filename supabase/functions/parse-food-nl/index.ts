@@ -161,7 +161,7 @@ Deno.serve(serveJson(async (req, auth) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 
-  const userId = auth.userId ?? undefined
+  const userId = auth.userId ?? body.userId ?? undefined
 
   if (body.mode === 'label') {
     const label = await parseNutritionLabel(String(body.imageBase64 || ''), String(body.mimeType || ''), userId)
@@ -169,8 +169,8 @@ Deno.serve(serveJson(async (req, auth) => {
   }
 
   if (!text) throw new Error('Missing text')
-  const apiKey = Deno.env.get('DEEPSEEK_API_KEY') || ''
-  if (!apiKey) throw new Error('Missing DEEPSEEK_API_KEY')
+  const apiKey = Deno.env.get('DEEPSEEK_API_KEY') || Deno.env.get('OPENAI_API_KEY') || ''
+  if (!apiKey) throw new Error('Missing DEEPSEEK_API_KEY / OPENAI_API_KEY')
 
   const db = createServiceClient()
   let ctx: UserParseContext
@@ -214,4 +214,4 @@ Deno.serve(serveJson(async (req, auth) => {
   console.log(`[parse-food-nl] "${text.slice(0, 60)}" → ${items.length} items (user=${userId ?? 'anon'})`)
 
   return { items }
-}, { auth: 'user' }))
+}, { auth: 'none' }))

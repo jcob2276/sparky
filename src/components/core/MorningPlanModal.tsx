@@ -1,29 +1,24 @@
 /**
  * @component MorningPlanModal
- * @role Poranny plan dnia: review wczoraj → PowerList → time-box (3 kroki).
- * @folders morningPlan/ = useMorningPlanData/Actions + kroki (Step1Review, Step2PowerList,
- *          Step3TimeBox), WeekStrip, FooterActions
+ * @role Swobodny plan dnia: własne działania, opcjonalne sugestie Todo i time-boxing.
  */
-import Button from '../ui/Button';
 import { useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 import { getTodayWarsaw, shiftDateStr } from '../../lib/date';
 import { getWeekStartWarsaw } from '../../lib/growth/growth';
-import Spinner from '../ui/Spinner';
-import Modal from '../ui/Modal';
 import { useUserId } from '../../store/useStore';
-import { useMorningPlanData } from './morningPlan/useMorningPlanData';
-import { useMorningPlanActions } from './morningPlan/useMorningPlanActions';
-import MorningPlanWeekStrip from './morningPlan/MorningPlanWeekStrip';
+import Button from '../ui/Button';
+import Modal from '../ui/Modal';
+import Spinner from '../ui/Spinner';
 import MorningPlanFooterActions from './morningPlan/MorningPlanFooterActions';
-import MorningPlanStep1Review from './morningPlan/MorningPlanStep1Review';
 import MorningPlanStep2PowerList from './morningPlan/MorningPlanStep2PowerList';
 import MorningPlanStep3TimeBox from './morningPlan/MorningPlanStep3TimeBox';
+import MorningPlanWeekStrip from './morningPlan/MorningPlanWeekStrip';
+import { useMorningPlanActions } from './morningPlan/useMorningPlanActions';
+import { useMorningPlanData } from './morningPlan/useMorningPlanData';
 
 interface Props {
   onClose: () => void;
-  /** Date being planned (YYYY-MM-DD). Defaults to today; pass tomorrow's date
-   * to chain this straight out of the evening shutdown ritual. */
   targetDate?: string;
 }
 
@@ -31,23 +26,17 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
   const userId = useUserId();
   const actualToday = getTodayWarsaw();
   const planningDate = targetDate ?? actualToday;
-  const isPlanningTomorrow = planningDate !== actualToday;
-  const dayWord = isPlanningTomorrow ? 'jutro' : 'dziś';
-  const dayWordCap = isPlanningTomorrow ? 'Jutro' : 'Dziś';
-  const dayWordGen = isPlanningTomorrow ? 'jutrzejszego' : 'dzisiejszego';
-  const dayWordAcc = isPlanningTomorrow ? 'jutrzejszą' : 'dzisiejszą';
-
-  const [step, setStep] = useState<1 | 2 | 3>(1);
-
-  const data = useMorningPlanData({ userId, planningDate, isPlanningTomorrow });
-
+  const planningTomorrow = planningDate !== actualToday;
+  const dayWord = planningTomorrow ? 'jutro' : 'dziś';
+  const dayWordGen = planningTomorrow ? 'jutrzejszego' : 'dzisiejszego';
+  const [step, setStep] = useState<1 | 2>(1);
+  const data = useMorningPlanData({ userId, planningDate, isPlanningTomorrow: planningTomorrow });
   const actions = useMorningPlanActions({
     userId,
     planningDate,
     onClose,
     yesterdayTasks: data.yesterdayTasks,
     setYesterdayTasks: data.setYesterdayTasks,
-    todayTasks: data.todayTasks,
     setTodayTasks: data.setTodayTasks,
     setInboxTasks: data.setInboxTasks,
     powerList: data.powerList,
@@ -59,47 +48,41 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
   });
 
   const weekStart = useMemo(() => getWeekStartWarsaw(planningDate), [planningDate]);
-  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => shiftDateStr(weekStart, i)), [weekStart]);
+  const weekDays = useMemo(
+    () => Array.from({ length: 7 }, (_, index) => shiftDateStr(weekStart, index)),
+    [weekStart],
+  );
+  const uniqueSuggestions = new Map<string, (typeof data.todayTasks)[number]>();
+  [...data.todayTasks, ...data.inboxTasks].forEach((task) => uniqueSuggestions.set(task.id, task));
+  const suggestions = [...uniqueSuggestions.values()];
 
   if (data.loading) {
     return (
-      <Modal isOpen={true} onClose={onClose} showCloseButton={false} padding="p-6" size="xs" overlayClassName="z-[var(--ds-arbitrary-60)]" closeOnBackdropClick={false}>
+      <Modal isOpen onClose={onClose} showCloseButton={false} padding="p-6" size="xs" closeOnBackdropClick={false}>
         <div className="flex flex-col items-center gap-3">
           <Spinner size="md" />
-          <span className="text-sm font-bold text-text-muted">Wczytywanie rytuału planowania...</span>
+          <span className="text-sm font-bold text-text-muted">Wczytywanie planowania…</span>
         </div>
       </Modal>
     );
   }
 
   return (
-    <Modal
-      isOpen={true}
-      onClose={onClose}
-      showCloseButton={false}
-      padding="p-0"
-      overflowY={false}
-      size="lg"
-      overlayClassName="z-[var(--ds-arbitrary-60)]"
-    >
-      {/* Sheet / Dialog */}
-      <div className="relative w-full max-w-lg rounded-t-3xl sm:rounded-2xl bg-background border border-border-custom/60 shadow-2xl flex flex-col max-h-[var(--ds-h-85vh)] sm:max-h-[var(--ds-h-750px)] overflow-hidden">
-
-        {/* Header */}
-        <div className="p-4 border-b border-border-custom/20 flex items-center justify-between shrink-0">
+    <Modal isOpen onClose={onClose} showCloseButton={false} padding="p-0" overflowY={false} size="lg">
+      <div className="relative w-full max-w-lg bg-background border border-border-custom/60 flex flex-col max-h-[var(--ds-h-85vh)] overflow-hidden">
+        <header className="p-4 border-b border-border-custom/20 flex items-center justify-between">
           <div>
             <h2 className="text-base font-black text-text-primary uppercase tracking-wider">
-              {isPlanningTomorrow ? 'Zaplanuj Jutro' : 'Planowanie Poranne'}
+              {planningTomorrow ? 'Zaplanuj jutro' : 'Zaplanuj dzień'}
             </h2>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-xs font-semibold text-text-muted">{planningDate}</span>
-              <span className="text-2xs font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">Krok {step} z 3</span>
+              <span className="text-2xs font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">Krok {step} z 2</span>
             </div>
           </div>
-          <Button onClick={onClose} variant="ghost" icon={<X size={18} />} className="p-1.5" />
-        </div>
+          <Button onClick={onClose} variant="ghost" icon={<X size={18} />} />
+        </header>
 
-        {/* Week-at-a-glance strip */}
         <MorningPlanWeekStrip
           weekDays={weekDays}
           planningDate={planningDate}
@@ -108,42 +91,24 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
           weekTaskCounts={data.weekTaskCounts}
         />
 
-        {/* Wizard Progress Line */}
-        <div className="grid grid-cols-3 h-1 bg-border-custom/20 shrink-0">
-          <div className={`h-full transition-all duration-[var(--motion-slow)] ${step >= 1 ? 'bg-primary' : 'bg-transparent'}`} />
-          <div className={`h-full transition-all duration-[var(--motion-slow)] ${step >= 2 ? 'bg-primary' : 'bg-transparent'}`} />
-          <div className={`h-full transition-all duration-[var(--motion-slow)] ${step >= 3 ? 'bg-primary' : 'bg-transparent'}`} />
+        <div className="grid grid-cols-2 h-1 bg-border-custom/20">
+          <div className="h-full bg-primary" />
+          <div className={`h-full ${step === 2 ? 'bg-primary' : 'bg-transparent'}`} />
         </div>
 
-        {/* Content Box */}
         <div className="flex-1 overflow-y-auto p-5">
-          {step === 1 && (
-            <MorningPlanStep1Review
-              yesterdayTasks={data.yesterdayTasks}
-              dayWord={dayWord}
-              onAction={actions.handleYesterdayAction}
-            />
-          )}
-
-          {step === 2 && (
+          {step === 1 ? (
             <MorningPlanStep2PowerList
               powerList={data.powerList}
-              todayTasks={data.todayTasks}
-              inboxTasks={data.inboxTasks}
-              nutritionTarget={data.nutritionTarget}
+              suggestions={suggestions}
               dayWord={dayWord}
-              dayWordAcc={dayWordAcc}
-              activeSlotIdx={actions.activeSlotIdx}
-              setActiveSlotIdx={actions.setActiveSlotIdx}
+              onEditSlot={actions.handleEditSlot}
               onAssign={actions.handleAssignToSlot}
               onClear={actions.handleClearSlot}
             />
-          )}
-
-          {step === 3 && (
+          ) : (
             <MorningPlanStep3TimeBox
               powerList={data.powerList}
-              todayTasks={data.todayTasks}
               times={data.times}
               durations={data.durations}
               setTimes={data.setTimes}
@@ -163,7 +128,7 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
         <MorningPlanFooterActions
           step={step}
           setStep={setStep}
-          dayWordCap={dayWordCap}
+          planningTomorrow={planningTomorrow}
           sending={actions.sending}
           onSubmit={actions.handleSubmitPlan}
         />

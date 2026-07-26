@@ -26,6 +26,8 @@ const DesignSystemPage = lazy(() => import('./components/dev/DesignSystemPage'))
 const OuraHealthPage = lazy(() => import('./components/biometrics/OuraHealthPage'));
 const RunningPerformancePage = lazy(() => import('./components/biometrics/RunningPerformancePage'));
 const CzatView = lazy(() => import('./components/chat/CzatView'));
+import { queryClient } from './lib/queryClient';
+import { setupGlobalBleSync } from './lib/biometrics/ouraBleSync';
 import QuickCaptureWidget from './components/chat/QuickCaptureWidget';
 
 
@@ -84,10 +86,12 @@ function AppRoutes() {
     const stopUsage = initUsageStatsSync(session.user.id);
     const stopLocation = initLocationSync(session.user.id);
     const stopBackground = initBackgroundSync(session.user.id);
+    const stopBleSync = setupGlobalBleSync(queryClient, session.user.id);
     return () => {
       stopUsage();
       stopLocation();
       stopBackground();
+      stopBleSync();
     };
   }, [session?.user.id]);
 

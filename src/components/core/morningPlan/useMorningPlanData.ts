@@ -32,7 +32,12 @@ interface MorningPlanLocalState {
 }
 
 function deriveLocalState(data: MorningPlanData, planningDate: string): MorningPlanLocalState {
-  const allTasks = [...data.pastTasks, ...data.currentTasks, ...data.inboxTasks] as TodoSlot[];
+  const allTasks = [...data.pastTasks, ...data.currentTasks, ...data.inboxTasks].map(
+    (task) => ({ ...task, todoId: task.id }),
+  ) as TodoSlot[];
+  const pastIds = new Set(data.pastTasks.map((task) => task.id));
+  const currentIds = new Set(data.currentTasks.map((task) => task.id));
+  const inboxIds = new Set(data.inboxTasks.map((task) => task.id));
 
   const times: Record<string, string> = {};
   const durations: Record<string, number> = {};
@@ -51,10 +56,11 @@ function deriveLocalState(data: MorningPlanData, planningDate: string): MorningP
     const tasks = ((data.dailyWin as Record<string, unknown>).daily_win_tasks as DailyWinTask[]) || [];
     for (const t of tasks) {
       const i = t.slot;
-      if (i >= 1 && i <= 5 && t.todo_id) {
-        const found = allTasks.find((item) => item.id === t.todo_id);
+      if (i >= 1 && i <= 5 && t.title?.trim()) {
+        const found = t.todo_id ? allTasks.find((item) => item.id === t.todo_id) : null;
         powerList[i - 1] = found || {
-          id: t.todo_id,
+          id: t.todo_id || `custom-${i - 1}`,
+          todoId: t.todo_id,
           title: t.title || 'Zadanie',
           priority: 'normal',
           duration_minutes: 30,
@@ -72,9 +78,9 @@ function deriveLocalState(data: MorningPlanData, planningDate: string): MorningP
   });
 
   return {
-    yesterdayTasks: data.pastTasks as TodoSlot[],
-    todayTasks: data.currentTasks as TodoSlot[],
-    inboxTasks: data.inboxTasks as TodoSlot[],
+    yesterdayTasks: allTasks.filter((task) => pastIds.has(task.id)),
+    todayTasks: allTasks.filter((task) => currentIds.has(task.id)),
+    inboxTasks: allTasks.filter((task) => inboxIds.has(task.id)),
     powerList,
     todayWinId,
     nutritionTarget: data.nutritionTarget,

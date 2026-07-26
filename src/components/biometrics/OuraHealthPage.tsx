@@ -12,7 +12,7 @@ import { useDailyStrainOura, useOuraHistory30Days } from '../../lib/biometricsAp
 import { OuraReadinessTab } from './oura/OuraReadinessTab';
 import { OuraSleepTab } from './oura/OuraSleepTab';
 import { OuraTrendsTab } from './oura/OuraTrendsTab';
-import OuraBleSettingsPanel from '../desktop/health/OuraBleSettingsPanel';
+import OuraRingHeaderBadge from '../desktop/health/OuraRingHeaderBadge';
 
 export default function OuraHealthPage() {
   const navigate = useNavigate();
@@ -59,10 +59,7 @@ export default function OuraHealthPage() {
           >
             <ArrowLeft size={16} /> Powrót do Vanguard
           </button>
-          <div className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-3xs font-black uppercase tracking-widest text-slate-400">Dane Biometryczne</span>
-          </div>
+          <OuraRingHeaderBadge />
         </div>
 
         {/* Tab Nav */}
@@ -96,7 +93,6 @@ export default function OuraHealthPage() {
           </div>
         ) : (
           <main className="space-y-4">
-            <OuraBleSettingsPanel />
             {activeTab === 'readiness' && <OuraReadinessTab {...dataProps} />}
             {activeTab === 'sleep' && <OuraSleepTab {...dataProps} />}
             {activeTab === 'trends' && <OuraTrendsTab {...dataProps} />}

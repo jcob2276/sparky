@@ -4,6 +4,7 @@ import android.Manifest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
+import android.bluetooth.le.ScanFilter;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.bluetooth.le.ScanSettings;
@@ -12,14 +13,17 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.ParcelUuid;
 
 import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 final class BleScanSession {
 
@@ -61,6 +65,7 @@ final class BleScanSession {
         }
 
         devices.clear();
+        addBondedOuraDevices(adapter);
         callback = new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {
@@ -83,10 +88,38 @@ final class BleScanSession {
         ScanSettings settings = new ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build();
-        scanner.startScan(null, settings, callback);
+        ScanFilter ouraServiceFilter = new ScanFilter.Builder()
+            .setServiceUuid(new ParcelUuid(UUID.fromString(OuraBleMarkers.SERVICE_UUID)))
+            .build();
+        scanner.startScan(Collections.singletonList(ouraServiceFilter), settings, callback);
 
         stopRunnable = () -> stopInternal(true);
         handler.postDelayed(stopRunnable, Math.max(3000, durationMs));
+    }
+
+    private void addBondedOuraDevices(BluetoothAdapter adapter) {
+        try {
+            for (android.bluetooth.BluetoothDevice bonded : adapter.getBondedDevices()) {
+                String name = bonded.getName();
+                String address = bonded.getAddress();
+                if (!OuraBleMarkers.isOuraName(name) || address == null) continue;
+
+                JSObject device = new JSObject();
+                device.put("address", address);
+                device.put("name", name);
+                device.put("rssi", 0);
+                device.put("ouraLike", true);
+                device.put("bonded", true);
+                devices.put(address, device);
+                android.util.Log.i(
+                    "BleScanSession",
+                    "Found bonded Oura device address=" + address + " name=" + name
+                );
+                listener.onDeviceFound(device);
+            }
+        } catch (SecurityException e) {
+            android.util.Log.w("BleScanSession", "Cannot read bonded Oura devices", e);
+        }
     }
 
     void stop() {
@@ -140,7 +173,23 @@ final class BleScanSession {
         java.util.List<android.os.ParcelUuid> serviceUuids = result.getScanRecord() != null
             ? result.getScanRecord().getServiceUuids()
             : null;
-        boolean ouraLike = OuraBleMarkers.isOuraLike(name, serviceUuids);
+        android.util.SparseArray<byte[]> manufacturerData = result.getScanRecord() != null
+            ? result.getScanRecord().getManufacturerSpecificData()
+            : null;
+        boolean ouraLike = OuraBleMarkers.isOuraLike(name, serviceUuids, manufacturerData);
+
+        // Gen 3/4 often advertises with no name — only service UUID
+        if (name == null && ouraLike) name = "Oura Ring";
+        if (ouraLike) {
+            android.util.Log.i(
+                "BleScanSession",
+                "Verified Oura advertisement address=" + address
+                    + " name=" + name
+                    + " rssi=" + result.getRssi()
+                    + " serviceUuids=" + serviceUuids
+                    + " manufacturerIds=" + manufacturerIds(manufacturerData)
+            );
+        }
 
         JSObject device = new JSObject();
         device.put("address", address);
@@ -150,6 +199,16 @@ final class BleScanSession {
 
         devices.put(address, device);
         listener.onDeviceFound(device);
+    }
+
+    private static String manufacturerIds(android.util.SparseArray<byte[]> data) {
+        if (data == null || data.size() == 0) return "[]";
+        StringBuilder ids = new StringBuilder("[");
+        for (int i = 0; i < data.size(); i++) {
+            if (i > 0) ids.append(',');
+            ids.append(String.format("0x%04X", data.keyAt(i)));
+        }
+        return ids.append(']').toString();
     }
 
     private BluetoothAdapter getAdapter() {

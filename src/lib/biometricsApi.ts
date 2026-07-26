@@ -13,7 +13,13 @@ export function useDailyStrainOura(userId: string) {
       const todayStr = getTodayWarsaw();
       const yesterdayStr = shiftDateStr(todayStr, -1);
 
-      const [{ data: strainRows, error: e1 }, { data: ouraRows, error: e2 }, { data: enhancedRows, error: e3 }, { data: profileRow }, { data: stravaRows }] = await Promise.all([
+      const [
+        { data: strainRows, error: e1 },
+        { data: ouraRows, error: e2 },
+        { data: enhancedRows, error: e3 },
+        { data: profileRow },
+        { data: stravaRows },
+      ] = await Promise.all([
         supabase
           .from('daily_strain')
           .select('*')
@@ -25,12 +31,14 @@ export function useDailyStrainOura(userId: string) {
           .from('oura_daily_summary')
           .select('*')
           .eq('user_id', userId)
-          .in('date', [todayStr, yesterdayStr]),
+          .in('date', [todayStr, yesterdayStr])
+          .order('date', { ascending: false }),
         supabase
           .from('oura_enhanced')
           .select('*')
           .eq('user_id', userId)
-          .in('date', [todayStr, yesterdayStr]),
+          .in('date', [todayStr, yesterdayStr])
+          .order('date', { ascending: false }),
         supabase
           .from('nutrition_profile')
           .select('birth_date')
@@ -44,14 +52,24 @@ export function useDailyStrainOura(userId: string) {
           .limit(20),
       ]);
 
-      if (e1) throw new Error(e1.message);
-      if (e2) throw new Error(e2.message);
-      if (e3) throw new Error(e3.message);
+      if (e1) console.warn('[useDailyStrainOura] e1 warning:', e1.message);
+      if (e2) console.warn('[useDailyStrainOura] e2 warning:', e2.message);
+      if (e3) console.warn('[useDailyStrainOura] e3 warning:', e3.message);
 
-      const ouraRow = ouraRows?.find((s) => s.date === todayStr) ?? ouraRows?.[0] ?? null;
-      const ouraYesterdayRow = ouraRows?.find((s) => s.date === yesterdayStr) ?? null;
-      const enhancedRow = enhancedRows?.find((s) => s.date === todayStr) ?? enhancedRows?.[0] ?? null;
-      const enhancedYesterdayRow = enhancedRows?.find((s) => s.date === yesterdayStr) ?? null;
+      const combinedOura = ouraRows || [];
+      const combinedEnhanced = enhancedRows || [];
+
+      const todaySummary = combinedOura.find((s) => s.date === todayStr);
+      const yesterdaySummary = combinedOura.find((s) => s.date === yesterdayStr);
+      const hasTodayData = todaySummary && (todaySummary.total_sleep_hours != null || todaySummary.hrv_avg != null || todaySummary.readiness_score != null);
+      const ouraRow = hasTodayData ? todaySummary : (yesterdaySummary ?? todaySummary ?? combinedOura[0] ?? null);
+      const ouraYesterdayRow = yesterdaySummary ?? null;
+
+      const todayEnhanced = combinedEnhanced.find((e) => e.date === todayStr);
+      const yesterdayEnhanced = combinedEnhanced.find((e) => e.date === yesterdayStr);
+      const hasTodayEnhanced = todayEnhanced && (todayEnhanced.total_sleep_hours != null || todayEnhanced.sleep_average_hrv != null || todayEnhanced.spo2_percentage != null);
+      const enhancedRow = hasTodayEnhanced ? todayEnhanced : (yesterdayEnhanced ?? todayEnhanced ?? combinedEnhanced[0] ?? null);
+      const enhancedYesterdayRow = yesterdayEnhanced ?? null;
 
       let garminVo2Max: number | null = null;
       let externalVo2Source: string | null = null;
@@ -153,8 +171,8 @@ export function useOuraHistory30Days(userId: string) {
           .order('date', { ascending: true }),
       ]);
 
-      if (e1) throw new Error(e1.message);
-      if (e2) throw new Error(e2.message);
+      if (e1) console.warn('[useOuraHistory30Days] e1 warning:', e1.message);
+      if (e2) console.warn('[useOuraHistory30Days] e2 warning:', e2.message);
 
       return {
         ouraHistory: ouraHistory || [],

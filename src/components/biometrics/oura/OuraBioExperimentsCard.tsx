@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import { Sparkles, FlaskConical, TestTube, CheckCircle2, Play, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
 import type { OuraHealthHubData } from './types';
+import { notify } from '../../../lib/notify';
 
 interface BioExperiment {
   id: string;
@@ -18,8 +19,9 @@ interface BioExperiment {
   expectedImpact: string;
 }
 
-export function OuraBioExperimentsCard({ enhanced, oura }: OuraHealthHubData) {
+export function OuraBioExperimentsCard({ enhanced, oura, ouraHistory }: OuraHealthHubData) {
   const [activeTab, setActiveTab] = useState<'experiments' | 'suggested'>('suggested');
+  const nightCount = ouraHistory?.filter((night) => (night.total_sleep_hours ?? 0) > 0).length ?? 0;
 
   const experiments: BioExperiment[] = [
     {
@@ -78,7 +80,7 @@ export function OuraBioExperimentsCard({ enhanced, oura }: OuraHealthHubData) {
       {/* Suggested Experiments List */}
       <div className="space-y-3">
         <h5 className="text-3xs font-black uppercase tracking-wider text-slate-400">
-          Proponowane Protokóły i Eksperymenty na Baza Twoich 220 Nocy:
+          Proponowane protokoły do samodzielnej oceny ({nightCount} nocy z danymi):
         </h5>
 
         <div className="space-y-2.5">
@@ -101,7 +103,10 @@ export function OuraBioExperimentsCard({ enhanced, oura }: OuraHealthHubData) {
               <div className="flex items-center justify-between border-t border-white/5 pt-2 text-3xs">
                 <span className="text-slate-400 font-medium italic">Oczekiwany efekt: {exp.expectedImpact}</span>
                 <button
-                  onClick={() => alert(`Uruchomiono eksperyment: ${exp.name}. System Oura będzie śledził Twoją biometrię przez ${exp.durationDays} dni.`)}
+                  onClick={() => notify(
+                    'Automatyczne śledzenie eksperymentów nie jest jeszcze dostępne.',
+                    'info',
+                  )}
                   className="px-3 py-1 rounded-lg bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-extrabold text-[10px] uppercase tracking-wider hover:brightness-110 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
                 >
                   <Play size={10} /> Rozpocznij Test

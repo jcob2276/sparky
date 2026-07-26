@@ -22,5 +22,4 @@ export * from './finance/snowballEngine.ts';
 export * from './lifeObligations.ts';
 export * from './phoneUsage.ts';
 export * from './location.ts';
-export * from './ouraBleProtocol.ts';
 

@@ -1,5 +1,6 @@
 export interface TodoSlot {
   id: string;
+  todoId?: string | null;
   title: string;
   priority: string;
   duration_minutes: number | null;

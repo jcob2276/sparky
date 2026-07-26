@@ -9,6 +9,7 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:8.13.0'
         classpath 'com.google.gms:google-services:4.4.4'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0'
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -21,6 +22,31 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+    }
+}
+
+subprojects {
+    // Capacitor's generated Cordova bridge iterates this extension during project evaluation.
+    // Android Studio can evaluate the bridge before cordova.variables.gradle has exposed it,
+    // while command-line Gradle happens to load it in the opposite order. Seed the documented
+    // empty default at the root so both import paths are deterministic; plugin scripts may still
+    // append their post-build callbacks normally.
+    ext.cdvPluginPostBuildExtras = []
+
+    afterEvaluate { project ->
+        if (project.plugins.hasPlugin('kotlin-android') || project.plugins.hasPlugin('org.jetbrains.kotlin.android')) {
+            project.kotlin {
+                jvmToolchain(17)
+            }
+        }
+        if (project.plugins.hasPlugin('com.android.application') || project.plugins.hasPlugin('com.android.library')) {
+            project.android {
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
+                }
+            }
+        }
     }
 }
 

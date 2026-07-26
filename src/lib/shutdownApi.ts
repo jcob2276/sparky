@@ -23,16 +23,6 @@ export async function fetchDailyReconciliationScore(userId: string, date: string
   return data?.day_score ?? null;
 }
 
-export async function fetchWorkoutSessionsRpe(userId: string, date: string): Promise<number[]> {
-  const { data, error } = await supabase
-    .from('workout_sessions')
-    .select('session_rpe')
-    .eq('user_id', userId)
-    .eq('date', date);
-  if (error) throw error;
-  return (data || []).map((w) => w.session_rpe || 0);
-}
-
 export async function upsertDailyReconciliationScore(userId: string, date: string, score: number): Promise<void> {
   const { data: recon, error: fetchError } = await supabase
     .from('daily_reconciliations')

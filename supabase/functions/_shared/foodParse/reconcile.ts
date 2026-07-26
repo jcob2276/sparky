@@ -1,4 +1,5 @@
 import { deepseekChat, parseJsonFromContent } from "../deepseek.ts";
+import { openaiChat } from "../openai.ts";
 import { LLM_TASKS } from "../llm/tasks.ts";
 import { lookupGenericFood, scoreFoodNameMatch } from "../foodGeneric.ts";
 import { lookupReferencePl } from "../foodReferencePl.ts";
@@ -119,14 +120,31 @@ async function reconcileOne(item: ParsedFoodItem, opts: ReconcileOpts): Promise<
 export async function reconcileItems(items: ParsedFoodItem[], opts: ReconcileOpts): Promise<ParsedFoodItem[]> { return Promise.all(items.map((item) => reconcileOne(item, opts))); }
 
 export async function callParseLLM(apiKey: string, system: string, userText: string, maxTokens?: number): Promise<unknown> {
-  const result = await deepseekChat({
-    apiKey,
-    ...LLM_TASKS.structured,
-    maxTokens: maxTokens ?? 1200,
-    timeoutMs: 32000,
-    messages: [{ role: 'system', content: system }, { role: 'user', content: userText }]
-  });
-  return parseJsonFromContent(result.content);
+  try {
+    const result = await deepseekChat({
+      apiKey,
+      ...LLM_TASKS.structured,
+      maxTokens: maxTokens ?? 1200,
+      timeoutMs: 32000,
+      messages: [{ role: 'system', content: system }, { role: 'user', content: userText }]
+    });
+    return parseJsonFromContent(result.content);
+  } catch (err) {
+    console.warn('[callParseLLM] DeepSeek failed, trying OpenAI fallback:', err);
+    const openAiKey = Deno.env.get('OPENAI_API_KEY');
+    if (openAiKey) {
+      const { content } = await openaiChat({
+        apiKey: openAiKey,
+        model: 'gpt-4o-mini',
+        temperature: 0.1,
+        maxTokens: maxTokens ?? 1200,
+        responseFormat: { type: 'json_object' },
+        messages: [{ role: 'system', content: system }, { role: 'user', content: userText }]
+      });
+      return parseJsonFromContent(content);
+    }
+    throw err;
+  }
 }
 
 export async function fillMacrosLlmFallback(items: ParsedFoodItem[], apiKey: string, ctx: UserParseContext, originalText: string): Promise<ParsedFoodItem[]> {

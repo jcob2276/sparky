@@ -10,6 +10,10 @@ interface WeatherPoint {
   humidityPct: number;
 }
 
+function finiteNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
 export function OuraWeatherBarometerCard({ ouraHistory, enhanced }: OuraHealthHubData) {
   const today = getTodayWarsaw();
   const rangeStart = shiftDateStr(today, -30);
@@ -27,11 +31,15 @@ export function OuraWeatherBarometerCard({ ouraHistory, enhanced }: OuraHealthHu
       const list: WeatherPoint[] = [];
       if (data.daily && data.daily.time) {
         for (let i = 0; i < data.daily.time.length; i++) {
+          const pressure = finiteNumber(data.daily.surface_pressure_mean?.[i]);
+          const temperature = finiteNumber(data.daily.temperature_2m_min?.[i]);
+          const humidity = finiteNumber(data.daily.relative_humidity_2m_mean?.[i]);
+          if (pressure === null || temperature === null || humidity === null) continue;
           list.push({
             date: data.daily.time[i],
-            pressureHpa: Math.round(data.daily.surface_pressure_mean[i] ?? 1013),
-            tempNightC: Math.round(data.daily.temperature_2m_min[i] ?? 12),
-            humidityPct: Math.round(data.daily.relative_humidity_2m_mean[i] ?? 70),
+            pressureHpa: Math.round(pressure),
+            tempNightC: Math.round(temperature),
+            humidityPct: Math.round(humidity),
           });
         }
       }
@@ -166,13 +174,14 @@ export function OuraWeatherBarometerCard({ ouraHistory, enhanced }: OuraHealthHu
         </div>
       )}
 
-      {/* Bio Summary */}
+      {/* Descriptive summary */}
       <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-white/5 space-y-1.5">
         <div className="flex items-center gap-1.5 text-3xs font-black uppercase tracking-wider text-sky-300">
-          <ShieldAlert size={14} /> Wniosek Barometryczny Vanguard
+          <ShieldAlert size={14} /> Zakres porównania
         </div>
         <p className="text-3xs leading-relaxed text-slate-300 font-medium">
-          Gwałtowne spadki ciśnienia (front atmosferyczny &lt;1010 hPa) wywołują lekką inercję i powierzchowny sen. Z kolei nocne chłodzenie sypialni (&lt;18°C) wydłuża sen głęboki o średnio +20 minut.
+          Zestawienie obejmuje {paired.length} nocy ze wspólnym pomiarem snu i pogody.
+          Pokazuje różnice między grupami, ale samo nie dowodzi, że pogoda była ich przyczyną.
         </p>
       </div>
 

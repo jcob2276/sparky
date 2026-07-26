@@ -1,5 +1,81 @@
 # Active Work
 
+## Priorytet: wieczorne domknięcie i swobodne planowanie dnia
+
+### Cel
+
+Wieczorny przepływ ma pozwalać użytkownikowi rozliczyć faktyczne wykonanie dnia,
+zapisać krótką refleksję i bez dodatkowego ekranu przejść do samodzielnego
+zaplanowania jutra. Todo jest źródłem opcjonalnych sugestii, a nie obowiązkowym
+wsadem planu.
+
+### Zatwierdzone zachowanie
+
+1. Po 20:00 otwiera się pojedynczy panel „Domknięcie dnia”.
+2. Zadania Power List są interaktywnymi checkboxami. Zmiany pozostają lokalne
+   do kliknięcia „Zatwierdź zamknięcie”.
+3. Panel zawiera jedno pole tekstowe: „Co realnie poszło inaczej i dlaczego?”.
+   Pole dodatkowych notatek z wykonania zostaje usunięte.
+4. Z ocen pozostają „Wynik dnia” i „Samopoczucie”. RPE znika z formularza,
+   zapisu wieczornego i wpisu `daily_shutdown` w strumieniu.
+5. Zatwierdzenie atomowo zapisuje stany wykonania Power List, refleksję i dwie
+   oceny. Błąd pozostawia panel otwarty wraz z lokalnymi zmianami.
+6. Po udanym zapisie nie ma ekranu „Dzień zamknięty”. Automatycznie otwiera się
+   planowanie jutra.
+7. Plan jutra zaczyna się od pięciu pustych, edytowalnych miejsc. Użytkownik
+   może wpisać dowolne działania. Zadania Todo są pokazane wyłącznie jako
+   opcjonalne sugestie, które można świadomie dodać.
+
+### Architektura
+
+- `DailyShutdownModal` pozostaje pojedynczym panelem formularza bez drugiego kroku.
+- `useShutdownData` odpowiada za lokalny draft i jeden zapis po zatwierdzeniu.
+- `MorningPlanModal` oraz jego hook rozdzielają własne pozycje planu od sugestii Todo.
+- Istniejące mutacje i tabele pozostają kanoniczną ścieżką zapisu; nie powstaje
+  równoległy model planowania.
+
+### Obsługa błędów i testy
+
+- Nieudany zapis nie otwiera planowania i nie gubi zaznaczeń ani refleksji.
+- Testy obejmują zaznaczanie i odznaczanie przed zatwierdzeniem, brak zapisu RPE,
+  automatyczne przejście po sukcesie oraz pusty plan bez automatycznego Todo.
+- Końcowa brama: testy obszaru, typecheck UI, lint i frontend ratchet.
+
+### Plan wykonawczy
+
+- [x] Dodać test payloadu zamknięcia dnia: `done_1…done_5`, bez `daily_rpe`.
+- [x] Wydzielić czystą funkcję budującą zapis i podłączyć ją do `useShutdownData`.
+- [x] Dodać interaktywne checkboxy oraz usunąć drugie pole tekstowe, RPE i ekran sukcesu.
+- [x] Po udanym zapisie przełączyć modal bezpośrednio na planowanie jutra.
+- [x] Dodać test pustych własnych slotów planu i jawnego dodawania sugestii Todo.
+- [x] Rozszerzyć model slotu o własne wpisy bez `todo_id` i zachować atomowy RPC.
+- [x] Uruchomić testy obszaru, typecheck, focused lint oraz produkcyjny build.
+
+## Priorytet: zielone bramy jakości
+
+### Cel
+
+Doprowadzić bieżący stan aplikacji do zielonego lintowania, frontendowych i
+backendowych ratchetów oraz kompilacji Edge Functions bez zmiany eksperymentalnego
+zachowania BLE.
+
+### Plan techniczny
+
+- [ ] Naprawić kontrakt `analyze-physique` zgodnie z kanonicznym `serveJson`.
+- [ ] Usunąć pliki i eksporty wskazane przez Knip jako martwe.
+- [ ] Zastąpić surowe kontrolki, kolory i wartości Tailwind istniejącymi
+  prymitywami oraz tokenami design systemu.
+- [ ] Rozdzielić komponenty przekraczające limity odpowiedzialności i długości.
+- [ ] Rozdzielić nowe pliki Edge Functions przekraczające 300 linii.
+- [ ] Usunąć nowe `any` bez rozszerzania baseline’ów.
+- [ ] Zweryfikować lint, ratchety, Knip, typy, testy, Edge Functions i build.
+
+### Ograniczenia
+
+- Bez zmian zachowania eksperymentalnego BLE.
+- Bez podnoszenia baseline’ów długu.
+- Bez tworzenia równoległych ścieżek danych lub nowych dokumentów planistycznych.
+
 ## Priorytet: Vanguard — system interakcji inspirowany iOS
 
 ### Cel

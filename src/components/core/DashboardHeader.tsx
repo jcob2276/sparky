@@ -11,6 +11,7 @@ import {
 import { isNativePlatform } from '../../lib/native/platform';
 import { BrandTitle } from '../ui/BrandTitle';
 import { useHaptics } from '../../hooks/useHaptics';
+import OuraRingHeaderBadge from '../desktop/health/OuraRingHeaderBadge';
 
 
 interface DashboardHeaderProps {
@@ -65,6 +66,8 @@ export function DashboardHeader({
         </p>
       </div>
       <div className="header-icon-row flex min-w-0 items-center gap-1.5 overflow-x-auto">
+        <OuraRingHeaderBadge />
+
         <Pressable
           onClick={() => { selection(); toggleTheme(); }}
           variant="ghost"

@@ -7,7 +7,6 @@ import type { TimelineBlock } from '../../shared/DayTimeline';
 
 interface Props {
   powerList: (TodoSlot | null)[];
-  todayTasks: TodoSlot[];
   times: Record<string, string>;
   durations: Record<string, number>;
   setTimes: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -24,7 +23,6 @@ interface Props {
 
 export default function MorningPlanStep3TimeBox({
   powerList,
-  todayTasks,
   times,
   durations,
   setTimes,
@@ -81,7 +79,7 @@ export default function MorningPlanStep3TimeBox({
       <div className="space-y-2">
         <span className="text-2xs font-bold text-text-muted uppercase tracking-wider block">Zaplanuj godziny dla zadań</span>
         <div className="space-y-2 max-h-[var(--ds-h-220px)] overflow-y-auto pr-1">
-          {[...powerList.filter(Boolean), ...todayTasks].filter((t, idx, self) => self.findIndex((x) => x?.id === t?.id) === idx).map((task) => (
+          {powerList.filter(Boolean).map((task) => (
             <div
               key={task!.id}
               className="p-3 bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/30 rounded-xl flex items-center justify-between gap-3"

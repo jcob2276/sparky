@@ -1,49 +1,35 @@
+import { ChevronLeft, ChevronRight, Send } from 'lucide-react';
 import Button from '../../ui/Button';
-import { ChevronRight, ChevronLeft, Send } from 'lucide-react';
 
-interface MorningPlanFooterActionsProps {
-  step: 1 | 2 | 3;
-  setStep: (updater: (prev: 1 | 2 | 3) => 1 | 2 | 3) => void;
-  dayWordCap: string;
+interface Props {
+  step: 1 | 2;
+  setStep: (step: 1 | 2) => void;
+  planningTomorrow: boolean;
   sending: boolean;
   onSubmit: () => void;
 }
 
-export default function MorningPlanFooterActions({ step, setStep, dayWordCap, sending, onSubmit }: MorningPlanFooterActionsProps) {
+export default function MorningPlanFooterActions({
+  step,
+  setStep,
+  planningTomorrow,
+  sending,
+  onSubmit,
+}: Props) {
   return (
-    <div className="p-4 border-t border-border-custom/20 flex items-center justify-between shrink-0">
-      {step > 1 ? (
-        <Button
-          onClick={() => setStep((prev) => (prev - 1) as 1 | 2 | 3)}
-          variant="outline"
-          size="sm"
-          icon={<ChevronLeft size={16} />}
-        >
+    <div className="p-4 border-t border-border-custom/20 flex items-center justify-between">
+      {step === 2 && (
+        <Button variant="outline" size="sm" icon={<ChevronLeft size={16} />} onClick={() => setStep(1)}>
           Wróć
         </Button>
-      ) : (
-        <div />
       )}
-
-      {step < 3 ? (
-        <Button
-          onClick={() => setStep((prev) => (prev + 1) as 1 | 2 | 3)}
-          size="sm"
-          icon={<ChevronRight size={16} />}
-          iconPosition="right"
-          className="ml-auto"
-        >
-          Dalej
+      {step === 1 ? (
+        <Button className="ml-auto" size="sm" icon={<ChevronRight size={16} />} iconPosition="right" onClick={() => setStep(2)}>
+          Ułóż godziny
         </Button>
       ) : (
-        <Button
-          onClick={onSubmit}
-          loading={sending}
-          icon={<Send size={14} />}
-          size="sm"
-          className="ml-auto"
-        >
-          {sending ? 'Zapisuję plan...' : `Zatwierdź Plan${dayWordCap === 'Jutro' ? ' na Jutro' : ''}`}
+        <Button className="ml-auto" size="sm" icon={<Send size={14} />} loading={sending} onClick={onSubmit}>
+          {sending ? 'Zapisuję plan…' : planningTomorrow ? 'Zatwierdź plan na jutro' : 'Zatwierdź plan'}
         </Button>
       )}
     </div>

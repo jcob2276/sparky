@@ -12,23 +12,27 @@ export function OuraOracleAiCoachCard({ strainRow, oura, enhanced, ouraHistory }
   const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const readiness = enhanced?.readiness_score ?? oura?.readiness_score ?? 78;
-  const sleepScore = enhanced?.sleep_score ?? oura?.sleep_score ?? 75;
-  const deepHours = enhanced?.deep_sleep_hours ?? 1.3;
-  const hrv = enhanced?.sleep_average_hrv ?? oura?.hrv_avg ?? 60;
-  const rhr = enhanced?.sleep_lowest_heart_rate ?? oura?.rhr_avg ?? 54;
+  const readiness = enhanced?.readiness_score ?? oura?.readiness_score ?? null;
+  const sleepScore = enhanced?.sleep_score ?? oura?.sleep_score ?? null;
+  const deepHours = enhanced?.deep_sleep_hours ?? null;
+  const hrv = enhanced?.sleep_average_hrv ?? oura?.hrv_avg ?? null;
+  const rhr = enhanced?.sleep_lowest_heart_rate ?? oura?.rhr_avg ?? null;
+  const nightCount = ouraHistory?.filter((night) => (night.total_sleep_hours ?? 0) > 0).length ?? 0;
+  const hasBiometrics = [readiness, sleepScore, deepHours, hrv, rhr]
+    .some((value) => value != null);
 
   const handleGenerateAiStrategy = async () => {
     setLoading(true);
     try {
-      const promptText = `Przeanalizuj moje dane Oura Ring z dzisiaj i ostatnich 7 miesięcy:
-- Gotowość (Readiness): ${readiness}/100
-- Sleep Score: ${sleepScore}/100
-- Sen Głęboki: ${deepHours}h
-- Średnie HRV: ${hrv} ms, RHR: ${rhr} bpm
-- Szczyt historyczny (7 miesięcy): 88-89 pkt przy zasypianiu o 22:45 i czasie snu 8.5h.
+      const promptText = `Przeanalizuj wyłącznie poniższe dostępne dane Oura Ring:
+- Gotowość (Readiness): ${readiness ?? 'brak danych'}
+- Sleep Score: ${sleepScore ?? 'brak danych'}
+- Sen głęboki: ${deepHours ?? 'brak danych'} h
+- Średnie HRV: ${hrv ?? 'brak danych'} ms
+- RHR: ${rhr ?? 'brak danych'} bpm
+- Liczba nocy z danymi: ${nightCount}
 
-Wygeneruj dla mnie precyzyjną, 3-punktową strategię bio-hakerską na dzisiaj (1. Zalecany poziom aktywności/Strain, 2. Protokół snu i kofeiny, 3. Priorytet regeneracyjny). Bądź konkretny, zwięzły i bezpośredni. Napisz w języku polskim.`;
+Nie uzupełniaj brakujących wartości ani historii. Wygeneruj zwięzłą, 3-punktową strategię na dziś i zaznacz ograniczenia danych.`;
 
       const res = await invokeEdge('vanguard-oracle', {
         body: { prompt: promptText }
@@ -38,19 +42,11 @@ Wygeneruj dla mnie precyzyjną, 3-punktową strategię bio-hakerską na dzisiaj 
       if (responseText) {
         setAiAnalysis(responseText);
       } else {
-        setAiAnalysis(
-          `• **Obciążenie (Strain):** Twoja gotowość to ${readiness}/100. Możesz wykonać umiarkowany trening siłowy lub cardio strefy 2.\n` +
-          `• **Protokół Snu:** Ostatni kubek kofeiny o 13:30. Kolacja do 19:15. Celem jest pójście spać ok. 22:30–22:45.\n` +
-          `• **Regeneracja:** Priorytetem na dziś jest wydłużenie czasu snu o 1h, aby odbudować fazę głęboką i spłacić deficyt.`
-        );
+        setAiAnalysis('Nie udało się uzyskać analizy. Spróbuj ponownie po synchronizacji danych.');
       }
     } catch (err) {
       console.error('Błąd generowania strategii AI:', err);
-      setAiAnalysis(
-        `• **Obciążenie (Strain):** Przy gotowości ${readiness}/100 masz zielone światło na umiarkowaną aktywność.\n` +
-        `• **Protokół Snu:** Cutoff kofeiny o 14:00. Pójście do łóżka o 22:45 w celu uderzenia w Twoje okno 89-punktowe.\n` +
-        `• **Regeneracja:** Zadbaj o 8h całkowitego snu w łóżku.`
-      );
+      setAiAnalysis('Analiza jest chwilowo niedostępna. Żadne zalecenia nie zostały wygenerowane.');
     } finally {
       setLoading(false);
     }
@@ -83,11 +79,12 @@ Wygeneruj dla mnie precyzyjną, 3-punktową strategię bio-hakerską na dzisiaj 
       {!aiAnalysis && !loading && (
         <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-3">
           <p className="text-xs text-slate-300 leading-relaxed font-medium">
-            Wyrocznia przeanalizuje Twoje 220 nocy z Oura Ringa, dzisiejszy wynik gotowości (<span className="text-emerald-400 font-bold">{readiness}/100</span>), deficyt snu oraz parametry HRV, tworząc spersonalizowaną strategię na dzisiejszy dzień.
+            Wyrocznia przeanalizuje {nightCount} nocy z danymi Oura oraz dostępne dzisiejsze parametry, bez uzupełniania brakujących wartości.
           </p>
 
           <button
             onClick={handleGenerateAiStrategy}
+            disabled={!hasBiometrics}
             className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-extrabold text-xs tracking-wider uppercase shadow-lg hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Sparkles size={16} /> Wygeneruj Indywidualną Strategię AI na Dziś <ArrowRight size={16} />
@@ -98,7 +95,7 @@ Wygeneruj dla mnie precyzyjną, 3-punktową strategię bio-hakerską na dzisiaj 
       {loading && (
         <div className="p-8 rounded-2xl bg-white/5 border border-white/10 text-center space-y-2 animate-pulse">
           <Loader2 size={24} className="mx-auto text-indigo-400 animate-spin" />
-          <p className="text-xs font-bold text-slate-200">Wyrocznia przetwarza Twoje biometryczne 220 nocy z Oura...</p>
+          <p className="text-xs font-bold text-slate-200">Wyrocznia przetwarza {nightCount} nocy z danymi Oura...</p>
           <p className="text-3xs text-slate-400">Analiza DeepSeek RAG + biometria Oura Ring</p>
         </div>
       )}

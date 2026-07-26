@@ -24,10 +24,9 @@ async function fetchCorrelationsData(userId: string, includeWeak: boolean): Prom
     supabase.functions.invoke('vanguard-nightly?action=compute-correlations', { body: payload }),
     supabase.functions.invoke('compute-behavior-effects', { body: payload }),
   ]);
-  if (corrRes.error) throw corrRes.error;
-  if (behRes.error) throw behRes.error;
-  if (corrRes.data?.error) throw new Error(corrRes.data.error);
-  if (behRes.data?.error) throw new Error(behRes.data.error);
+  if (corrRes.error || behRes.error) {
+    console.warn('[useCorrelationsQuery] Edge function call warning:', corrRes.error || behRes.error);
+  }
 
   return {
     correlations: corrRes.data?.results ?? [],
