@@ -70,7 +70,16 @@ export async function handleCallbackQuery(
   }
 
   if (isSupplementCallback(data)) {
-    await handleSupplementCallback(data, chatId, messageId, callbackId, supabase, telegramToken, vanguardUserId);
+    await handleSupplementCallback(
+      data,
+      chatId,
+      messageId,
+      callbackId,
+      supabase,
+      telegramToken,
+      vanguardUserId,
+      callbackQuery,
+    );
     return;
   }
 

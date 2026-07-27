@@ -88,8 +88,8 @@ export async function runStravaSync(req: Request): Promise<unknown> {
       const hrAvg = a.average_heartrate ? Math.round(a.average_heartrate) : null;
       const hrMax = a.max_heartrate ? Math.round(a.max_heartrate) : null;
 
-      // Ensure start_date is parsed in Warsaw time and normalized to UTC ISO string
-      const startDateStr = a.start_date_local || a.start_date;
+      // Ensure start_date uses UTC timestamp from API (a.start_date), fallback to a.start_date_local
+      const startDateStr = a.start_date || a.start_date_local;
 
       return {
         strava_id:            numericId,
