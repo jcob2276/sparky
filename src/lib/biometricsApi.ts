@@ -4,6 +4,7 @@ import { getTodayWarsaw, shiftDateStr } from './date';
 import { biometricsKeys } from './queryKeys';
 import { buildWeeklyBodyPulse, weeklyBodyPulseWindow } from './weeklyBodyPulse';
 import { selectCanonicalOuraDay } from './biometrics/ouraDayModel';
+import { mapOuraNightDetails } from './biometrics/ouraNightDetails';
 
 // ── QUERIES ──
 
@@ -182,5 +183,47 @@ export function useOuraHistory30Days(userId: string) {
     },
     staleTime: 1000 * 60 * 30,
     enabled: !!userId,
+  });
+}
+
+export function useOuraNightDetails(userId: string, date: string | null) {
+  return useQuery({
+    queryKey: biometricsKeys.ouraNight(userId, date ?? ''),
+    queryFn: async () => {
+      if (!date) return null;
+      const [phasesResult, heartRateResult, hrvResult] = await Promise.all([
+        supabase
+          .from('oura_sleep_phase_timeline')
+          .select('ts,phase,phase_code')
+          .eq('user_id', userId)
+          .eq('day', date)
+          .order('ts'),
+        supabase
+          .from('oura_sleep_hr_timeline')
+          .select('ts,bpm')
+          .eq('user_id', userId)
+          .eq('day', date)
+          .order('ts'),
+        supabase
+          .from('oura_sleep_hrv_timeline')
+          .select('ts,hrv')
+          .eq('user_id', userId)
+          .eq('day', date)
+          .order('ts'),
+      ]);
+
+      if (phasesResult.error) console.warn('[useOuraNightDetails] phases:', phasesResult.error.message);
+      if (heartRateResult.error) console.warn('[useOuraNightDetails] heart rate:', heartRateResult.error.message);
+      if (hrvResult.error) console.warn('[useOuraNightDetails] HRV:', hrvResult.error.message);
+
+      return mapOuraNightDetails({
+        date,
+        phases: phasesResult.data ?? [],
+        heartRate: heartRateResult.data ?? [],
+        hrv: hrvResult.data ?? [],
+      });
+    },
+    enabled: !!userId && !!date,
+    staleTime: 1000 * 60 * 30,
   });
 }

@@ -18,7 +18,7 @@ function formatDuration(hours: number): string {
   return `${Math.floor(totalMinutes / 60)} h ${totalMinutes % 60} min`;
 }
 
-export function OuraHypnogramChart({ enhanced, oura }: OuraHealthHubData) {
+export function OuraHypnogramChart({ enhanced, oura, nightDetails }: OuraHealthHubData) {
   const totalSleepHours = enhanced?.total_sleep_hours ?? oura?.total_sleep_hours ?? 0;
   const timeInBedHours = enhanced?.time_in_bed_hours ?? 0;
   const awakeMinutes = enhanced?.awake_time_minutes ?? 0;
@@ -28,7 +28,9 @@ export function OuraHypnogramChart({ enhanced, oura }: OuraHealthHubData) {
     ?? Math.max(0, totalSleepHours - remHours - deepHours);
   const totalSleepMinutes = Math.max(1, Math.round(totalSleepHours * 60));
   const timeline = buildSleepTimeline({
-    phases: enhanced?.sleep_phase_5_min,
+    phases: nightDetails?.phaseStatus === 'available'
+      ? nightDetails.phases.map((point) => point.phase_code).join('')
+      : enhanced?.sleep_phase_5_min,
     bedtimeStart: enhanced?.bedtime_start,
     bedtimeEnd: enhanced?.bedtime_end,
   });

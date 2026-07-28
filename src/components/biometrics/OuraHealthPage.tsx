@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Zap, Moon, TrendingUp, ArrowLeft } from 'lucide-react';
 import { useUserId } from '../../store/useStore';
-import { useDailyStrainOura, useOuraHistory30Days } from '../../lib/biometricsApi';
+import { useDailyStrainOura, useOuraHistory30Days, useOuraNightDetails } from '../../lib/biometricsApi';
 
 import { OuraReadinessTab } from './oura/OuraReadinessTab';
 import { OuraSleepTab } from './oura/OuraSleepTab';
@@ -21,10 +21,14 @@ export default function OuraHealthPage() {
 
   const { data: dbData, isLoading: loading1 } = useDailyStrainOura(userId ?? '');
   const { data: historyData, isLoading: loading2 } = useOuraHistory30Days(userId ?? '');
+  const { data: nightDetails, isLoading: loading3 } = useOuraNightDetails(
+    userId ?? '',
+    dbData?.date ?? null,
+  );
 
   if (!userId) return null;
 
-  const isLoading = loading1 || loading2;
+  const isLoading = loading1 || loading2 || loading3;
   const strainRow = dbData?.row ?? null;
   const oura = dbData?.oura ?? null;
   const ouraYesterday = dbData?.ouraYesterday ?? null;
@@ -34,6 +38,7 @@ export default function OuraHealthPage() {
   const enhancedHistory = historyData?.enhancedHistory ?? [];
 
   const dataProps = {
+    date: dbData?.date ?? null,
     strainRow,
     oura,
     ouraYesterday,
@@ -44,6 +49,7 @@ export default function OuraHealthPage() {
     birthDateStr: dbData?.birthDateStr ?? null,
     garminVo2Max: dbData?.garminVo2Max ?? null,
     externalVo2Source: dbData?.externalVo2Source ?? null,
+    nightDetails: nightDetails ?? null,
   };
 
   return (

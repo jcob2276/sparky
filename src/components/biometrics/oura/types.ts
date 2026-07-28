@@ -3,9 +3,11 @@
  * @role Definicje typów dla Oura / NOOP Health & Sleep Hub (110%) z pełną obsługą historii 30 dni.
  */
 import type { Tables } from '../../../lib/database.types';
+import type { OuraNightDetails } from '../../../lib/biometrics/ouraNightDetails';
 
 
 export interface OuraHealthHubData {
+  date?: string | null;
   strainRow: Tables<'daily_strain'> | null;
   oura: Tables<'oura_daily_summary'> | null;
   ouraYesterday?: Tables<'oura_daily_summary'> | null;
@@ -16,5 +18,6 @@ export interface OuraHealthHubData {
   birthDateStr?: string | null;
   garminVo2Max?: number | null;
   externalVo2Source?: string | null;
+  nightDetails?: OuraNightDetails | null;
 }
 
