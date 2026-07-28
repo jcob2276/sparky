@@ -4,6 +4,7 @@
  */
 import type { Tables } from '../../../lib/database.types';
 import type { OuraNightDetails } from '../../../lib/biometrics/ouraNightDetails';
+import type { OuraContextInsights } from '../../../lib/biometrics/ouraContextInsights';
 
 
 export interface OuraHealthHubData {
@@ -19,5 +20,6 @@ export interface OuraHealthHubData {
   garminVo2Max?: number | null;
   externalVo2Source?: string | null;
   nightDetails?: OuraNightDetails | null;
+  context?: OuraContextInsights | null;
 }
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   useDailyStrainOura,
+  useOuraContext,
   useOuraHistory30Days,
   useOuraNightDetails,
 } from '../../../lib/biometricsApi';
@@ -16,6 +17,11 @@ export function OuraHealthContainer() {
   const dailyQuery = useDailyStrainOura(userId ?? '');
   const historyQuery = useOuraHistory30Days(userId ?? '');
   const nightQuery = useOuraNightDetails(userId ?? '', dailyQuery.data?.date ?? null);
+  const contextQuery = useOuraContext(
+    userId ?? '',
+    dailyQuery.data?.date ?? null,
+    dailyQuery.data?.enhanced?.bedtime_start ?? null,
+  );
 
   if (!userId) return null;
 
@@ -32,13 +38,14 @@ export function OuraHealthContainer() {
     garminVo2Max: dailyQuery.data?.garminVo2Max ?? null,
     externalVo2Source: dailyQuery.data?.externalVo2Source ?? null,
     nightDetails: nightQuery.data ?? null,
+    context: contextQuery.data ?? null,
   };
 
   return (
     <OuraHealthView
       activeSection={activeSection}
       data={data}
-      isLoading={dailyQuery.isLoading || historyQuery.isLoading || nightQuery.isLoading}
+      isLoading={dailyQuery.isLoading || historyQuery.isLoading || nightQuery.isLoading || contextQuery.isLoading}
       onExit={() => navigate(-1)}
       onOpenSleep={() => setSleepOpen(true)}
       onSectionChange={setActiveSection}

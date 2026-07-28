@@ -1,5 +1,6 @@
 import { Activity, BedDouble, Flame, HeartPulse, Moon, Sprout } from 'lucide-react';
 import type { OuraHealthHubData } from './types';
+import { OuraContextSection } from './OuraContextSection';
 
 interface OuraTodayViewProps {
   data: OuraHealthHubData;
@@ -84,6 +85,7 @@ export function OuraTodayView({ data, onOpenSleep }: OuraTodayViewProps) {
           <p className="mt-2 text-sm text-slate-500">Napięcie / regeneracja</p>
         </article>
       </div>
+      <OuraContextSection context={data.context} />
     </div>
   );
 }

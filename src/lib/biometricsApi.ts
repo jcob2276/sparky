@@ -5,6 +5,7 @@ import { biometricsKeys } from './queryKeys';
 import { buildWeeklyBodyPulse, weeklyBodyPulseWindow } from './weeklyBodyPulse';
 import { selectCanonicalOuraDay } from './biometrics/ouraDayModel';
 import { mapOuraNightDetails } from './biometrics/ouraNightDetails';
+import { buildOuraContextInsights } from './biometrics/ouraContextInsights';
 
 // ── QUERIES ──
 
@@ -225,5 +226,49 @@ export function useOuraNightDetails(userId: string, date: string | null) {
     },
     enabled: !!userId && !!date,
     staleTime: 1000 * 60 * 30,
+  });
+}
+
+export function useOuraContext(userId: string, sleepDate: string | null, bedtimeStart: string | null) {
+  return useQuery({
+    queryKey: biometricsKeys.ouraContext(userId, sleepDate ?? ''),
+    queryFn: async () => {
+      if (!sleepDate) return null;
+      const contextDate = shiftDateStr(sleepDate, -1);
+      const [phoneResult, workoutResult, foodResult] = await Promise.all([
+        supabase
+          .from('phone_usage_daily')
+          .select('total_minutes,late_night_minutes')
+          .eq('user_id', userId)
+          .eq('date', contextDate)
+          .maybeSingle(),
+        supabase
+          .from('workout_sessions')
+          .select('duration_minutes,hr_strain_score,end_time')
+          .eq('user_id', userId)
+          .eq('workout_day', contextDate)
+          .order('end_time'),
+        supabase
+          .from('daily_food_entries')
+          .select('name,calories,food_quality_score,logged_at')
+          .eq('user_id', userId)
+          .eq('date', contextDate)
+          .order('logged_at'),
+      ]);
+
+      if (phoneResult.error) console.warn('[useOuraContext] phone usage:', phoneResult.error.message);
+      if (workoutResult.error) console.warn('[useOuraContext] workouts:', workoutResult.error.message);
+      if (foodResult.error) console.warn('[useOuraContext] food:', foodResult.error.message);
+
+      return buildOuraContextInsights({
+        sleepDate,
+        bedtimeStart,
+        phoneUsage: phoneResult.data,
+        workouts: workoutResult.data ?? [],
+        foodEntries: foodResult.data ?? [],
+      });
+    },
+    enabled: !!userId && !!sleepDate,
+    staleTime: 1000 * 60 * 15,
   });
 }
