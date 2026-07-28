@@ -119,6 +119,28 @@ Kierunek to około 90% spokoju i hierarchii Oura oraz 10% charakteru Sparky:
 Kolory i powierzchnie używają istniejących tokenów semantycznych. Nowe tokeny
 powstają tylko wtedy, gdy istniejący system nie potrafi opisać faz snu.
 
+### Wariant Oura-first
+
+Widok `/oura` ma własny, izolowany kontekst ciemnego motywu. Nie może dziedziczyć
+jasnych powierzchni aktywnego motywu całej aplikacji. Izolacja obejmuje tło,
+powierzchnie kart, tekst, obramowania i nawigację, ale nie zmienia globalnych
+tokenów ani wyglądu innych modułów.
+
+- tło strony jest niemal czarne, a karty używają kilku bliskich sobie odcieni
+  grafitu;
+- biały lub kremowy panel nie może być domyślną powierzchnią żadnej karty;
+- treść tworzy wyśrodkowaną kolumnę aplikacyjną o maksymalnej szerokości 720 px,
+  również na szerokim ekranie;
+- skróty wyników zachowują mobilny charakter Oura: są zwarte, przewijane poziomo
+  i nie rozciągają się, aby wypełnić desktop;
+- główny wynik dnia jest ciemnym hero z subtelnym, chłodnym gradientem i dużą,
+  lekką typografią;
+- karty kontekstu Sparky pozostają wizualnie wtórne wobec pomiarów Oura;
+- na telefonie nawigacja jest przyklejona u dołu, a na szerokim ekranie pozostaje
+  w obrębie kolumny aplikacyjnej;
+- ekran nie używa logo ani chronionych zasobów Oura, lecz zachowuje jej spokojną
+  hierarchię, proporcje i sposób prezentacji danych.
+
 ## Granice komponentów
 
 - Kontener strony pobiera i składa model widoku, po czym przekazuje go czystym
