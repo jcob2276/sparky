@@ -1,0 +1,39 @@
+.oura-theme {
+  --background: #0b0c0f;
+  --surface: #17181c;
+  --surface-solid: #1b1d22;
+  --surface-1: #17181c;
+  --surface-2: #22242a;
+  --surface-3: #2a2d34;
+  --surface-tonal: #172b37;
+  --surface-tonal-strong: #1e3b4a;
+  --text-primary: #f4f1ed;
+  --text-secondary: #b9b8b6;
+  --text-muted: #7f8389;
+  --text-tertiary: #696d74;
+  --border-custom: rgb(255 255 255 / 8%);
+  --color-info: #62b7e8;
+  --color-success: #4bc6a2;
+  --color-warning: #d7b96d;
+  --color-danger: #e4878e;
+  --primary: #9d8bd3;
+  background:
+    radial-gradient(circle at 50% -12%, rgb(34 83 99 / 32%), transparent 30rem),
+    var(--background);
+  color: var(--text-primary);
+  color-scheme: dark;
+}
+
+.oura-hero {
+  background:
+    radial-gradient(circle at 50% 18%, rgb(98 183 232 / 20%), transparent 16rem),
+    linear-gradient(180deg, #1b303a 0%, var(--surface-1) 72%);
+}
+
+.oura-scrollbar {
+  scrollbar-width: none;
+}
+
+.oura-scrollbar::-webkit-scrollbar {
+  display: none;
+}

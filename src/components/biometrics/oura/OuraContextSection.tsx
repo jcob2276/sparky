@@ -21,8 +21,10 @@ export function OuraContextSection({ context }: OuraContextSectionProps) {
       label: 'Trening',
       value: context.training.status === 'available'
         ? `${context.training.durationMinutes} min`
-        : 'Brak danych',
-      detail: context.training.strainScore == null ? 'workout_sessions' : `Obciążenie ${context.training.strainScore} · workout_sessions`,
+        : 'Nie zapisano treningu',
+      detail: context.training.status === 'unavailable' || context.training.strainScore == null
+        ? null
+        : `Obciążenie ${context.training.strainScore}`,
       color: 'text-warning',
     },
     {
@@ -30,8 +32,10 @@ export function OuraContextSection({ context }: OuraContextSectionProps) {
       label: 'Ekran',
       value: context.screen.status === 'available'
         ? `${context.screen.totalMinutes ?? '—'} min`
-        : 'Brak danych',
-      detail: context.screen.lateNightMinutes == null ? 'phone_usage_daily' : `${context.screen.lateNightMinutes} min późnym wieczorem · phone_usage_daily`,
+        : 'Brak pomiaru czasu przed ekranem',
+      detail: context.screen.lateNightMinutes == null
+        ? null
+        : `${context.screen.lateNightMinutes} min późnym wieczorem`,
       color: 'text-info',
     },
     {
@@ -39,8 +43,8 @@ export function OuraContextSection({ context }: OuraContextSectionProps) {
       label: 'Kofeina',
       value: context.caffeine.status === 'available'
         ? `${context.caffeine.amountMg} mg`
-        : 'Brak danych',
-      detail: context.caffeine.lastAt == null ? 'daily_food_entries' : `Ostatnia o ${context.caffeine.lastAt} · daily_food_entries`,
+        : 'Nie zapisano kofeiny',
+      detail: context.caffeine.lastAt == null ? null : `Ostatnia o ${context.caffeine.lastAt}`,
       color: 'text-warning',
     },
     {
@@ -48,8 +52,10 @@ export function OuraContextSection({ context }: OuraContextSectionProps) {
       label: 'Jedzenie',
       value: context.meals.status === 'available'
         ? `${context.meals.calories} kcal`
-        : 'Brak danych',
-      detail: context.meals.lastAt == null ? 'daily_food_entries' : `Ostatni wpis ${context.meals.lastAt} · jakość ${context.meals.averageQuality ?? '—'}/10`,
+        : 'Nie zapisano posiłków',
+      detail: context.meals.lastAt == null
+        ? null
+        : `Ostatni wpis ${context.meals.lastAt} · jakość ${context.meals.averageQuality ?? '—'}/10`,
       color: 'text-success',
     },
   ];
@@ -67,8 +73,8 @@ export function OuraContextSection({ context }: OuraContextSectionProps) {
           <article key={label} className="rounded-xl border border-white/5 bg-surface-2 p-5">
             <Icon className={color} size={22} />
             <p className="mt-8 text-sm text-text-secondary">{label}</p>
-            <p className="mt-1 text-3xl font-light text-white">{value}</p>
-            <p className="mt-2 text-xs leading-5 text-text-muted">{detail}</p>
+            <p className="mt-1 text-2xl font-light text-text-primary">{value}</p>
+            {detail && <p className="mt-2 text-xs leading-5 text-text-muted">{detail}</p>}
           </article>
         ))}
       </div>

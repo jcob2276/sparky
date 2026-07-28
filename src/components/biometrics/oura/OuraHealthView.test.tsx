@@ -18,6 +18,20 @@ const data: OuraHealthHubData = {
 };
 
 describe('OuraHealthView', () => {
+  it('isolates the Oura-first dark theme and app-width content', () => {
+    const { container } = render(
+      <OuraHealthView
+        activeSection="today"
+        data={data}
+        onOpenSleep={vi.fn()}
+        onSectionChange={vi.fn()}
+      />,
+    );
+
+    expect(container.firstElementChild).toHaveClass('dark');
+    expect(screen.getByTestId('oura-content')).toHaveClass('max-w-3xl');
+  });
+
   it('shows the three primary health sections', () => {
     render(
       <OuraHealthView

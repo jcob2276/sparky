@@ -6,6 +6,7 @@ import type { OuraHealthHubData } from './types';
 import { OuraSleepTab } from './OuraSleepTab';
 import Button from '../../ui/Button';
 import IconButton from '../../ui/IconButton';
+import './ouraTheme.css';
 
 export type OuraSection = 'today' | 'vitals' | 'health';
 
@@ -38,8 +39,8 @@ export function OuraHealthView({
 }: OuraHealthViewProps) {
   if (sleepOpen) {
     return (
-      <div className="min-h-screen bg-black text-white">
-        <div className="sticky top-0 z-40 border-b border-white/5 bg-black/90 px-4 py-3 backdrop-blur-xl">
+      <div className="oura-theme dark min-h-screen text-text-primary">
+        <div className="sticky top-0 z-40 border-b border-white/5 bg-surface-1/90 px-4 py-3 backdrop-blur-xl">
           <Button
             className="!rounded-full"
             icon={<ArrowLeft size={19} />}
@@ -57,17 +58,20 @@ export function OuraHealthView({
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <header className="mx-auto flex max-w-5xl items-center justify-between px-4 pt-4 sm:px-6">
+    <div className="oura-theme dark min-h-screen text-text-primary">
+      <header className="mx-auto flex max-w-3xl items-center justify-between px-4 pt-4 sm:px-6">
         <IconButton
           label="Wróć"
           icon={<ArrowLeft size={22} />}
           onClick={onExit}
         />
-        <p className="text-sm font-medium text-text-secondary">Sparky Health</p>
+        <p className="text-sm font-light tracking-wide text-text-secondary">Sparky</p>
         <span className="h-11 w-11" aria-hidden="true" />
       </header>
-      <main className="mx-auto w-full max-w-5xl px-4 pb-32 pt-6 sm:px-6 sm:pb-12">
+      <main
+        data-testid="oura-content"
+        className="mx-auto w-full max-w-3xl px-4 pb-32 pt-7 sm:px-6"
+      >
         {isLoading ? (
           <div className="grid min-h-96 place-items-center text-sm text-text-muted">
             Synchronizuję pomiary zdrowia…
@@ -83,7 +87,7 @@ export function OuraHealthView({
 
       <nav
         aria-label="Sekcje zdrowia"
-        className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center justify-around rounded-full border border-white/10 bg-surface-1/90 p-2 shadow-2xl backdrop-blur-xl sm:sticky sm:bottom-auto sm:top-4 sm:mb-4 sm:mt-4"
+        className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-center justify-around rounded-full border border-white/10 bg-surface-1/90 p-2 shadow-2xl backdrop-blur-xl"
       >
         {NAV_ITEMS.map(({ icon: Icon, id, label }) => {
           const active = activeSection === id;

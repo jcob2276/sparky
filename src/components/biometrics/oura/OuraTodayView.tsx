@@ -31,11 +31,11 @@ export function OuraTodayView({ data, onOpenSleep }: OuraTodayViewProps) {
 
   return (
     <div className="space-y-5">
-      <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
+      <div className="oura-scrollbar -mx-1 flex gap-3 overflow-x-auto px-1 pb-1">
         {shortcuts.map(({ color, icon: Icon, label, onClick, suffix = '', value }) => (
           <Button
             key={label}
-            className="!min-h-28 !min-w-24 !flex-col !rounded-xl border border-white/5 !bg-surface-2 !px-3 !py-4 text-center"
+            className="!min-h-24 !min-w-24 !flex-col !rounded-full border border-white/10 !bg-transparent !px-3 !py-3 text-center"
             onClick={onClick}
             variant="ghost"
           >
@@ -46,14 +46,14 @@ export function OuraTodayView({ data, onOpenSleep }: OuraTodayViewProps) {
         ))}
       </div>
 
-      <section className="relative overflow-hidden rounded-xl border border-info/10 bg-surface-1 p-7 text-center">
+      <section className="oura-hero relative min-h-80 overflow-hidden rounded-xl border border-white/5 p-7 text-center">
         <div className="absolute inset-x-10 top-10 h-40 rounded-full bg-info/10 blur-3xl" />
         <Sprout className="relative mx-auto text-info" size={31} strokeWidth={1.4} />
         {readiness != null ? (
           <>
-            <p className="relative mt-3 text-7xl font-extralight tracking-tighter text-white">{readiness}</p>
+            <p className="relative mt-3 text-7xl font-extralight tracking-tighter text-text-primary">{readiness}</p>
             <p className="relative mt-2 text-xs font-semibold uppercase tracking-widest text-info">Gotowość na dziś</p>
-            <h2 className="relative mt-6 text-3xl font-light text-white">{scoreStatus(readiness)}</h2>
+            <h2 className="relative mt-6 text-4xl font-light text-text-primary">{scoreStatus(readiness)}</h2>
             <p className="relative mx-auto mt-3 max-w-lg text-sm leading-6 text-text-secondary">
               Wynik pochodzi z pomiarów Oura dla {data.date ?? 'wybranego dnia'}.
             </p>

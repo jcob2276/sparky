@@ -55,4 +55,23 @@ describe('SleepDetailView', () => {
 
     expect(screen.getByText(/Niespójność danych dla 2026-07-28/)).toBeInTheDocument();
   });
+
+  it('explains when Oura did not provide movement measurements', () => {
+    render(
+      <SleepDetailView
+        data={{
+          ...referenceNight,
+          enhanced: {
+            ...referenceNight.enhanced,
+            movement_items: null,
+          } as OuraHealthHubData['enhanced'],
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByText('Oura nie udostępniła pomiaru ruchu dla tej nocy'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Brak danych o ruchu dla tej nocy')).not.toBeInTheDocument();
+  });
 });

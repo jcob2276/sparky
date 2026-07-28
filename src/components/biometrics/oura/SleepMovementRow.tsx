@@ -26,7 +26,7 @@ export function SleepMovementRow({ movementItems }: { movementItems?: string | n
         <div className="mt-4 rounded-xl bg-surface-2 px-4 py-3 text-center text-xs text-text-muted">
           {timeline.status === 'available'
             ? 'Brak wykrytego ruchu'
-            : 'Brak danych o ruchu dla tej nocy'}
+            : 'Oura nie udostępniła pomiaru ruchu dla tej nocy'}
         </div>
       )}
     </div>
