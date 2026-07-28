@@ -3,6 +3,7 @@ import { supabase } from './supabase';
 import { getTodayWarsaw, shiftDateStr } from './date';
 import { biometricsKeys } from './queryKeys';
 import { buildWeeklyBodyPulse, weeklyBodyPulseWindow } from './weeklyBodyPulse';
+import { selectCanonicalOuraDay } from './biometrics/ouraDayModel';
 
 // ── QUERIES ──
 
@@ -11,7 +12,7 @@ export function useDailyStrainOura(userId: string) {
     queryKey: biometricsKeys.dailyStrainOura(userId),
     queryFn: async () => {
       const todayStr = getTodayWarsaw();
-      const yesterdayStr = shiftDateStr(todayStr, -1);
+      const recentStart = shiftDateStr(todayStr, -7);
 
       const [
         { data: strainRows, error: e1 },
@@ -31,13 +32,15 @@ export function useDailyStrainOura(userId: string) {
           .from('oura_daily_summary')
           .select('*')
           .eq('user_id', userId)
-          .in('date', [todayStr, yesterdayStr])
+          .gte('date', recentStart)
+          .lte('date', todayStr)
           .order('date', { ascending: false }),
         supabase
           .from('oura_enhanced')
           .select('*')
           .eq('user_id', userId)
-          .in('date', [todayStr, yesterdayStr])
+          .gte('date', recentStart)
+          .lte('date', todayStr)
           .order('date', { ascending: false }),
         supabase
           .from('nutrition_profile')
@@ -56,20 +59,15 @@ export function useDailyStrainOura(userId: string) {
       if (e2) console.warn('[useDailyStrainOura] e2 warning:', e2.message);
       if (e3) console.warn('[useDailyStrainOura] e3 warning:', e3.message);
 
-      const combinedOura = ouraRows || [];
-      const combinedEnhanced = enhancedRows || [];
-
-      const todaySummary = combinedOura.find((s) => s.date === todayStr);
-      const yesterdaySummary = combinedOura.find((s) => s.date === yesterdayStr);
-      const hasTodayData = todaySummary && (todaySummary.total_sleep_hours != null || todaySummary.hrv_avg != null || todaySummary.readiness_score != null);
-      const ouraRow = hasTodayData ? todaySummary : (yesterdaySummary ?? todaySummary ?? combinedOura[0] ?? null);
-      const ouraYesterdayRow = yesterdaySummary ?? null;
-
-      const todayEnhanced = combinedEnhanced.find((e) => e.date === todayStr);
-      const yesterdayEnhanced = combinedEnhanced.find((e) => e.date === yesterdayStr);
-      const hasTodayEnhanced = todayEnhanced && (todayEnhanced.total_sleep_hours != null || todayEnhanced.sleep_average_hrv != null || todayEnhanced.spo2_percentage != null);
-      const enhancedRow = hasTodayEnhanced ? todayEnhanced : (yesterdayEnhanced ?? todayEnhanced ?? combinedEnhanced[0] ?? null);
-      const enhancedYesterdayRow = yesterdayEnhanced ?? null;
+      const canonicalDay = selectCanonicalOuraDay({
+        preferredDate: todayStr,
+        summaries: ouraRows || [],
+        enhanced: enhancedRows || [],
+      });
+      const ouraRow = canonicalDay?.summary ?? null;
+      const enhancedRow = canonicalDay?.enhanced ?? null;
+      const ouraYesterdayRow = canonicalDay?.previous?.summary ?? null;
+      const enhancedYesterdayRow = canonicalDay?.previous?.enhanced ?? null;
 
       let garminVo2Max: number | null = null;
       let externalVo2Source: string | null = null;
@@ -110,6 +108,9 @@ export function useDailyStrainOura(userId: string) {
 
       return {
         row: strainRows,
+        day: canonicalDay,
+        date: canonicalDay?.date ?? null,
+        missingSources: canonicalDay?.missingSources ?? ['oura_daily_summary', 'oura_enhanced'],
         oura: ouraRow,
         ouraYesterday: ouraYesterdayRow,
         enhanced: enhancedRow,
