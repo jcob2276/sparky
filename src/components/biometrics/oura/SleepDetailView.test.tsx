@@ -21,6 +21,7 @@ const referenceNight: OuraHealthHubData = {
     bedtime_start: '2026-07-27T23:31:00+02:00',
     bedtime_end: '2026-07-28T08:42:00+02:00',
     sleep_phase_5_min: '4'.repeat(18) + '2'.repeat(64) + '1'.repeat(20) + '3'.repeat(8),
+    movement_items: '0010302',
   } as OuraHealthHubData['enhanced'],
 };
 
@@ -35,6 +36,7 @@ describe('SleepDetailView', () => {
     expect(screen.getByText('REM 41 min 9%')).toBeInTheDocument();
     expect(screen.getByText('Płytki 5 h 19 min 69%')).toBeInTheDocument();
     expect(screen.getByText('Głęboki 1 h 41 min 22%')).toBeInTheDocument();
+    expect(screen.getByLabelText('Zmierzony ruch: 3 zdarzenia')).toBeInTheDocument();
     expect(screen.getByText('Kontekst przed snem')).toBeInTheDocument();
   });
 

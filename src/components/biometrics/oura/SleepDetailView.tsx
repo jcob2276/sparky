@@ -14,9 +14,9 @@ const STAGE_HEIGHT: Record<SleepStage, string> = {
 
 const STAGE_COLOR: Record<SleepStage, string> = {
   awake: 'bg-stone-100',
-  rem: 'bg-info/35',
-  light: 'bg-info/70',
-  deep: 'bg-info',
+  rem: 'bg-info/60',
+  light: 'bg-info',
+  deep: 'bg-info/35',
 };
 
 const duration = (hours: number) => {
@@ -101,7 +101,7 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
         )}
 
         <div className="px-6">
-          <SleepMovementRow />
+          <SleepMovementRow movementItems={enhanced?.movement_items} />
         </div>
         <div className="p-6">
           <SleepStageSummary

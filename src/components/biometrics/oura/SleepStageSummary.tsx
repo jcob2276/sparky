@@ -22,9 +22,9 @@ export function SleepStageSummary({
 }: SleepStageSummaryProps) {
   const rows = [
     { label: 'Stan czuwania', minutes: awakeMinutes, color: 'bg-stone-100', percent: null },
-    { label: 'REM', minutes: remMinutes, color: 'bg-info/35', percent: Math.round(remMinutes / totalSleepMinutes * 100) },
-    { label: 'Płytki', minutes: lightMinutes, color: 'bg-info/70', percent: Math.round(lightMinutes / totalSleepMinutes * 100) },
-    { label: 'Głęboki', minutes: deepMinutes, color: 'bg-info', percent: Math.round(deepMinutes / totalSleepMinutes * 100) },
+    { label: 'REM', minutes: remMinutes, color: 'bg-info/60', percent: Math.round(remMinutes / totalSleepMinutes * 100) },
+    { label: 'Płytki', minutes: lightMinutes, color: 'bg-info', percent: Math.round(lightMinutes / totalSleepMinutes * 100) },
+    { label: 'Głęboki', minutes: deepMinutes, color: 'bg-info/35', percent: Math.round(deepMinutes / totalSleepMinutes * 100) },
   ];
 
   return (

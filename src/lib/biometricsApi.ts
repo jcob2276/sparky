@@ -187,7 +187,12 @@ export function useOuraHistory30Days(userId: string) {
   });
 }
 
-export function useOuraNightDetails(userId: string, date: string | null) {
+export function useOuraNightDetails(
+  userId: string,
+  date: string | null,
+  bedtimeStart?: string | null,
+  bedtimeEnd?: string | null,
+) {
   return useQuery({
     queryKey: biometricsKeys.ouraNight(userId, date ?? ''),
     queryFn: async () => {
@@ -219,6 +224,8 @@ export function useOuraNightDetails(userId: string, date: string | null) {
 
       return mapOuraNightDetails({
         date,
+        bedtimeStart,
+        bedtimeEnd,
         phases: phasesResult.data ?? [],
         heartRate: heartRateResult.data ?? [],
         hrv: hrvResult.data ?? [],

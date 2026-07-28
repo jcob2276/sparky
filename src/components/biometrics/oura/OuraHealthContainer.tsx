@@ -16,7 +16,12 @@ export function OuraHealthContainer() {
   const [sleepOpen, setSleepOpen] = useState(false);
   const dailyQuery = useDailyStrainOura(userId ?? '');
   const historyQuery = useOuraHistory30Days(userId ?? '');
-  const nightQuery = useOuraNightDetails(userId ?? '', dailyQuery.data?.date ?? null);
+  const nightQuery = useOuraNightDetails(
+    userId ?? '',
+    dailyQuery.data?.date ?? null,
+    dailyQuery.data?.enhanced?.bedtime_start ?? null,
+    dailyQuery.data?.enhanced?.bedtime_end ?? null,
+  );
   const contextQuery = useOuraContext(
     userId ?? '',
     dailyQuery.data?.date ?? null,
