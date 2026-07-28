@@ -26,9 +26,11 @@ const DesignSystemPage = lazy(() => import('./components/dev/DesignSystemPage'))
 const OuraHealthPage = lazy(() => import('./components/biometrics/OuraHealthPage'));
 const RunningPerformancePage = lazy(() => import('./components/biometrics/RunningPerformancePage'));
 const CzatView = lazy(() => import('./components/chat/CzatView'));
+const AlarmView = lazy(() => import('./components/lifestyle/alarm/AlarmView'));
 import { queryClient } from './lib/queryClient';
 import { setupGlobalBleSync } from './lib/biometrics/ouraBleSync';
 import QuickCaptureWidget from './components/chat/QuickCaptureWidget';
+import FluxOverlay from './components/nightShift/FluxOverlay';
 
 
 const FALLBACK_SPINNER = (
@@ -178,6 +180,11 @@ function AppRoutes() {
           <Screen kind="dashboard"><CzatView /></Screen>
         </Suspense>
       } />
+      <Route path="/budzik" element={
+        <Suspense fallback={FALLBACK_SPINNER}>
+          <Screen kind="dashboard"><AlarmView /></Screen>
+        </Suspense>
+      } />
       <Route path="*" element={<Navigate to="/dzis" replace />} />
       </Routes>
     </AnimatePresence>
@@ -188,6 +195,7 @@ function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
+        <FluxOverlay />
         <AppRoutes />
         <ActionHistoryController />
         <ToastHost />

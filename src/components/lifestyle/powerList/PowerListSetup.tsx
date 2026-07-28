@@ -15,6 +15,10 @@ interface Props {
   yesterdayWin: DailyWinWithTasks | null;
   yesterdayNote: string;
   setYesterdayNote: (value: string) => void;
+  yesterdayDayScore: number;
+  setYesterdayDayScore: (value: number) => void;
+  yesterdayMoodScore: number;
+  setYesterdayMoodScore: (value: number) => void;
   yesterdayNoteRequired: boolean;
   direction: ReturnType<typeof useDirectionContext>;
   fillSlotFromCheckpoint: (checkpoint: { title: string; checkpointId: string; projectId: string }) => void;
@@ -34,6 +38,7 @@ interface Props {
 
 export default function PowerListSetup({
   yesterdayWin, yesterdayNote, setYesterdayNote, yesterdayNoteRequired,
+  yesterdayDayScore, setYesterdayDayScore, yesterdayMoodScore, setYesterdayMoodScore,
   direction, fillSlotFromCheckpoint, occupiedSlots, aiQuestions, aiLoading,
   generateQuestions, newTaskForm, updateSlot, todoItems, pickerSlot,
   setPickerSlot, pickerRef, startNewDay, submitting,
@@ -46,7 +51,16 @@ export default function PowerListSetup({
   return (
     <Card variant="glass" padding="0.75rem" className="space-y-3">
       <PowerListSetupHeader reflectionRequired={yesterdayNoteRequired} reflectionReady={reflectionReady} filledCount={filledCount} />
-      <YesterdayRecap yesterdayWin={yesterdayWin} yesterdayNote={yesterdayNote} setYesterdayNote={setYesterdayNote} yesterdayNoteRequired={yesterdayNoteRequired} />
+      <YesterdayRecap
+        yesterdayWin={yesterdayWin}
+        yesterdayNote={yesterdayNote}
+        setYesterdayNote={setYesterdayNote}
+        yesterdayNoteRequired={yesterdayNoteRequired}
+        dayScore={yesterdayDayScore}
+        setDayScore={setYesterdayDayScore}
+        moodScore={yesterdayMoodScore}
+        setMoodScore={setYesterdayMoodScore}
+      />
       <PlanningCheckpointsStrip checkpoints={[...direction.checkpoints.overdue, ...direction.checkpoints.upcoming]} loading={direction.loading} onFillSlot={fillSlotFromCheckpoint} occupiedSlots={occupiedSlots} />
 
       <div className="px-1 pt-2">

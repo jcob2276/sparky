@@ -1,5 +1,81 @@
 # Active Work
 
+## Priorytet: pełna migracja marki Vanguard → SPARKY
+
+### Cel i definicja ukończenia
+
+Usunąć aktywną nazwę `Vanguard` z produktu, kodu, danych i infrastruktury.
+Kanoniczna nazwa produktu to `SPARKY`; identyfikatory techniczne używają form
+`sparky-*`, `sparky_*`, `SPARKY_*`, a pakiet Androida to `app.sparky.os`.
+
+Migracja jest ukończona, gdy:
+
+- aplikacja webowa/PWA i Android pokazują wyłącznie nazwę SPARKY;
+- kod, funkcje Edge, SQL, skrypty, testy, dokumentacja i konfiguracja używają
+  identyfikatorów SPARKY;
+- dane użytkownika, webhooki, crony i integracje działają bez utraty ciągłości;
+- GitHub, Supabase, Telegram oraz lokalny folder projektu mają nazwę SPARKY;
+- końcowy skan nie znajduje aktywnych wystąpień `Vanguard`, z wyjątkiem historii Git
+  oraz niezmienialnych identyfikatorów nadanych przez zewnętrzne usługi.
+
+### Strategia migracji
+
+Zmiana przebiega kontrolowanie, a nie przez ślepą globalną zamianę:
+
+1. Sporządzić inwentarz wystąpień i sklasyfikować je jako branding, kod,
+   identyfikatory danych, sekrety, infrastrukturę albo historię.
+2. Dodać migracje zachowujące istniejące dane oraz krótkotrwałe mosty zgodności
+   wszędzie, gdzie jednoczesne przełączenie producenta i konsumenta nie jest możliwe.
+3. Przepiąć aplikację, funkcje, skrypty, webhooki, crony i integracje na SPARKY.
+4. Wdrożyć i zweryfikować pełną ścieżkę użytkownika.
+5. Usunąć aliasy, stare funkcje, sekrety i mosty zawierające nazwę Vanguard.
+6. Zmienić nazwy zasobów zewnętrznych i lokalnego folderu na końcu, po przejściu
+   testów oraz zapisaniu mapy rollbacku.
+
+### Zakres
+
+- Branding: UI, manifest PWA, metadata, powiadomienia, treści Telegrama, ikony i
+  nazwy aplikacji.
+- Kod: symbole, typy, pliki, katalogi, testy, skrypty, konfiguracja i dokumentacja.
+- Supabase: funkcje `vanguard-*`, współdzielone moduły, wywołania, crony, webhooki,
+  polityki, funkcje SQL, tabele/widoki/kolumny z prefiksem oraz sekrety.
+- Android: application ID, namespace, pakiety Java/Kotlin, manifest, deep linki,
+  skróty i konfiguracja Capacitor.
+- Integracje: Telegram, GitHub, Supabase Dashboard, automatyzacje i środowiska
+  lokalne/produkcyjne.
+- System plików: folder repozytorium `Vanguard` → `Sparky` po zamknięciu operacji
+  zależnych od bieżącej ścieżki.
+
+### Zasady bezpieczeństwa i rollback
+
+- Nie przepisywać historii Git; stara nazwa w dawnych commitach jest dozwolona.
+- Nie usuwać ani nie odtwarzać danych tylko po to, by zmienić nazwę.
+- Każda zmiana nazwy tabeli, funkcji SQL lub endpointu otrzymuje odwracalną migrację
+  albo udokumentowany alias na czas przepięcia konsumentów.
+- Sekrety są kopiowane pod nowe klucze, konsumenci są przełączani, a stare klucze
+  usuwane dopiero po potwierdzeniu działania.
+- Stare funkcje Edge pozostają chwilowo dostępne tylko wtedy, gdy chroni to aktywny
+  webhook lub cron; nie mogą pozostać po końcowym czyszczeniu.
+- Istniejące niezacommitowane zmiany użytkownika nie są cofane ani nadpisywane.
+
+### Weryfikacja
+
+- Testy obszarów, typecheck, lint, ratchety, build PWA i build Androida.
+- `npm run smoke` oraz logi Edge bez błędów autoryzacji po wdrożeniu.
+- Test webhooka Telegram, harmonogramów, Oracle, klasyfikacji, planowania,
+  synchronizacji i powiadomień.
+- Kontrola migracji na istniejących danych oraz sprawdzenie rollbacku przed
+  usunięciem aliasów.
+- Końcowe wyszukiwanie bez rozróżniania wielkości liter w repozytorium, sekretach,
+  cronach i nazwach wdrożonych zasobów.
+
+### Poza zakresem
+
+- Przepisywanie historii commitów, tagów i już opublikowanych artefaktów.
+- Zmiana stabilnych, nieedytowalnych identyfikatorów dostawców, jeśli ich wartość
+  nie jest widoczna jako marka i nie zawiera nazwy Vanguard.
+- Refaktory niezwiązane bezpośrednio z migracją nazwy.
+
 ## Priorytet: wieczorne domknięcie i swobodne planowanie dnia
 
 ### Cel
@@ -50,6 +126,52 @@ wsadem planu.
 - [x] Dodać test pustych własnych slotów planu i jawnego dodawania sugestii Todo.
 - [x] Rozszerzyć model slotu o własne wpisy bez `todo_id` i zachować atomowy RPC.
 - [x] Uruchomić testy obszaru, typecheck, focused lint oraz produkcyjny build.
+
+## Priorytet: ciągłość dwóch ocen dnia
+
+### Problem
+
+Wieczorne „Domknięcie dnia” zapisuje `day_score` (Wynik dnia 1–10) oraz
+`mood_score` (Samopoczucie 1–5). Jeżeli użytkownik nie wykona wieczornego
+domknięcia, poranny przepływ „Podsumuj i zaplanuj dzień” wymaga tylko komentarza
+do wczoraj. Powstaje wtedy luka w obu szeregach ocen.
+
+### Zatwierdzone zachowanie
+
+1. Nie powstaje osobny poranny ekran ani dodatkowy rytuał.
+2. Istniejący wspólny komponent dwóch suwaków jest wyświetlany także w porannej
+   karcie refleksji o wczoraj, bezpośrednio przy polu komentarza.
+3. Suwaki i komentarz w tej karcie zawsze dotyczą `yesterdayWin.date`; planowane
+   poniżej zadania dotyczą bieżącego dnia.
+4. Jeżeli oceny zapisano wieczorem, poranny formularz ładuje te wartości i nie
+   tworzy drugiego rekordu.
+5. Jeżeli ocen brakuje, użytkownik uzupełnia je rano. „Zacznij dzień” zapisuje
+   komentarz, `day_score` i `mood_score` przed utworzeniem planu na dziś.
+6. Poranny zapis korzysta z tych samych tabel, pól i funkcji warstwy `src/lib`
+   co wieczorne domknięcie. Nie powstaje równoległa ścieżka danych.
+7. System nie wpisuje ocen domyślnych jako danych użytkownika. Wartość początkowa
+   suwaka jest wyłącznie stanem formularza do chwili świadomego zatwierdzenia.
+
+### Architektura
+
+- `ShutdownScoreSliders` staje się współdzielonym prezentacyjnym komponentem obu
+  przepływów.
+- Dane porannej karty zostają rozszerzone o wczorajsze `day_score` i `mood_score`.
+- Zapis ocen zostaje wystawiony przez kanoniczną warstwę API; komponenty nie
+  wykonują bezpośrednich operacji Supabase.
+- Operacja „Zacznij dzień” najpierw zapisuje brakującą refleksję i oceny dla
+  wczoraj, a dopiero po sukcesie tworzy dzisiejszy plan.
+- Błąd zapisu wczorajszego podsumowania nie tworzy dzisiejszego planu i zachowuje
+  lokalne wartości formularza.
+
+### Testy akceptacyjne
+
+- Wieczorne domknięcie nadal zapisuje obie oceny bez regresji.
+- Poranny formularz pokazuje zapisane wcześniej oceny wczorajszego dnia.
+- Przy braku wieczornego domknięcia poranny zapis uzupełnia obie oceny właściwej daty.
+- Ponowne otwarcie nie duplikuje rekordu i odczytuje zapisane wartości.
+- Błąd zapisu ocen zatrzymuje utworzenie dzisiejszego planu.
+- Typecheck UI, testy obszaru, focused lint i frontend ratchet pozostają zielone.
 
 ## Priorytet: zielone bramy jakości
 

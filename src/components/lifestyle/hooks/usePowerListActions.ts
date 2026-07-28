@@ -9,6 +9,7 @@ import type { TablesUpdate } from '../../../lib/database.types';
 import { appendStreamEntry } from '../../../lib/streamApi';
 import { invokeEdge } from '../../../lib/supabase';
 import { deleteDailyWinTasks, insertDailyWinTasks } from '../../../lib/morningPlanApi';
+import { upsertDailyReconciliationScore } from '../../../lib/shutdownApi';
 import {
   applyKpiRollup,
   currentWeekStart,
@@ -25,6 +26,7 @@ import {
   type ProjectOption,
   powerListDraftKey,
 } from '../usePowerListTypes';
+import { buildMorningReflectionRecord } from '../powerList/morningReflectionModel';
 import type { useDirectionContext } from '../direction/hooks/useDirectionContext';
 import {
   suggestDailyKpiTarget,
@@ -49,6 +51,8 @@ interface UsePowerListActionsArgs {
   setMarkingCheckpoint: React.Dispatch<React.SetStateAction<boolean>>;
   yesterdayWin: DailyWinWithTasks | null;
   yesterdayNote: string;
+  yesterdayDayScore: number;
+  yesterdayMoodScore: number;
   yesterdayNoteRequired: boolean;
   submitting: boolean;
   setSubmitting: React.Dispatch<React.SetStateAction<boolean>>;
@@ -306,8 +310,15 @@ async function startNewDayHelper(args: UsePowerListActionsArgs, haptics: ReturnT
 
   args.setSubmitting(true);
   try {
-    if (args.yesterdayWin?.id && args.yesterdayNote.trim() && args.yesterdayNote.trim() !== (args.yesterdayWin.day_note ?? '')) {
-      await updateDailyWin(args.userId, args.yesterdayWin.id, { day_note: args.yesterdayNote.trim() });
+    if (args.yesterdayWin?.id && args.yesterdayWin.date) {
+      const reflection = buildMorningReflectionRecord({
+        date: args.yesterdayWin.date,
+        note: args.yesterdayNote,
+        dayScore: args.yesterdayDayScore,
+        moodScore: args.yesterdayMoodScore,
+      });
+      await updateDailyWin(args.userId, args.yesterdayWin.id, reflection.dailyWinPatch);
+      await upsertDailyReconciliationScore(args.userId, reflection.date, reflection.dayScore);
     }
 
     const todoIds = await materializeDailyWinTodos(

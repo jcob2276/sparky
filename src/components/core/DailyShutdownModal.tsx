@@ -9,6 +9,8 @@ import Modal from '../ui/Modal';
 import Spinner from '../ui/Spinner';
 import { useShutdownData } from './shutdown/useShutdownData';
 import ShutdownScoreSliders from './shutdown/ShutdownScoreSliders';
+import ShutdownChecklist from './shutdown/ShutdownChecklist';
+import ShutdownFoodReview from './shutdown/ShutdownFoodReview';
 
 interface Props {
   onClose: () => void;
@@ -111,6 +113,13 @@ export default function DailyShutdownModal({
             moodScore={data.moodScore}
             setMoodScore={data.setMoodScore}
           />
+
+          {data.userId ? (
+            <>
+              <ShutdownChecklist userId={data.userId} date={data.today} />
+              <ShutdownFoodReview userId={data.userId} date={data.today} />
+            </>
+          ) : null}
         </div>
 
         <footer className="p-4 border-t border-border-custom/20">

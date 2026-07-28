@@ -1,6 +1,11 @@
 import { supabase } from './supabase';
 import type { Tables, TablesInsert } from './database.types';
 
+export type ShutdownFoodEntry = Pick<
+  Tables<'daily_food_entries'>,
+  'id' | 'name' | 'brand' | 'calories' | 'protein' | 'carbs' | 'fat' | 'amount' | 'date' | 'meal_type'
+>;
+
 export async function fetchDailyWin(userId: string, date: string): Promise<Tables<'daily_wins'> | null> {
   const { data, error } = await supabase
     .from('daily_wins')
@@ -51,4 +56,19 @@ export async function insertVanguardStream(entry: TablesInsert<'vanguard_stream'
     .from('vanguard_stream')
     .insert(entry);
   if (error) throw error;
+}
+
+export async function fetchShutdownFoodEntries(
+  userId: string,
+  date: string,
+): Promise<ShutdownFoodEntry[]> {
+  const { data, error } = await supabase
+    .from('daily_food_entries')
+    .select('id, name, brand, calories, protein, carbs, fat, amount, date, meal_type')
+    .eq('user_id', userId)
+    .eq('date', date)
+    .order('logged_at', { ascending: true, nullsFirst: false })
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data ?? [];
 }

@@ -74,6 +74,8 @@ export function usePowerListData({
   const [checkpointPrompt, setCheckpointPrompt] = useState<{ index: number; checkpointId: string; title: string } | null>(null);
   const [markingCheckpoint, setMarkingCheckpoint] = useState(false);
   const [yesterdayNote, setYesterdayNote] = useState('');
+  const [yesterdayDayScore, setYesterdayDayScore] = useState(7);
+  const [yesterdayMoodScore, setYesterdayMoodScore] = useState(3);
   const [newTaskForm, setNewTaskForm] = useState<TaskSlot[]>(getInitialTaskForm);
   const [pickerSlot, setPickerSlot] = useState(-1);
   const [submitting, setSubmitting] = useState(false);
@@ -113,6 +115,8 @@ export function usePowerListData({
     setNewTaskForm,
     yesterdayNote,
     setYesterdayNote,
+    setYesterdayDayScore,
+    setYesterdayMoodScore,
     planDaySignal,
     directionLoading: direction.loading,
   });
@@ -131,6 +135,8 @@ export function usePowerListData({
     setMarkingCheckpoint,
     yesterdayWin: queries.yesterdayWin,
     yesterdayNote,
+    yesterdayDayScore,
+    yesterdayMoodScore,
     yesterdayNoteRequired,
     submitting,
     setSubmitting,
@@ -161,6 +167,10 @@ export function usePowerListData({
     yesterdayWin: queries.yesterdayWin,
     yesterdayNote,
     setYesterdayNote,
+    yesterdayDayScore,
+    setYesterdayDayScore,
+    yesterdayMoodScore,
+    setYesterdayMoodScore,
     yesterdayNoteRequired,
     newTaskForm,
     setNewTaskForm,

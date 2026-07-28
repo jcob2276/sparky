@@ -38,6 +38,10 @@ export default function PowerList({
     yesterdayWin,
     yesterdayNote,
     setYesterdayNote,
+    yesterdayDayScore,
+    setYesterdayDayScore,
+    yesterdayMoodScore,
+    setYesterdayMoodScore,
     yesterdayNoteRequired,
     newTaskForm,
     todoItems,
@@ -108,6 +112,10 @@ export default function PowerList({
           yesterdayWin={yesterdayWin}
           yesterdayNote={yesterdayNote}
           setYesterdayNote={setYesterdayNote}
+          yesterdayDayScore={yesterdayDayScore}
+          setYesterdayDayScore={setYesterdayDayScore}
+          yesterdayMoodScore={yesterdayMoodScore}
+          setYesterdayMoodScore={setYesterdayMoodScore}
           yesterdayNoteRequired={yesterdayNoteRequired}
           direction={direction}
           fillSlotFromCheckpoint={fillSlotFromCheckpoint}

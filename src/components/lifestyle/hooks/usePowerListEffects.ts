@@ -5,6 +5,7 @@ import { parseDailyWinWithTasks } from '../../../lib/db-json-guards';
 import { listTodoItems, listTodoSections } from '../../../lib/todo/todo';
 import { listProjects } from '../../../lib/projects/projects';
 import { getYesterdayWarsaw } from '../../../lib/date';
+import { fetchDailyReconciliationScore } from '../../../lib/shutdownApi';
 import {
   type TaskSlot,
   type PowerListDraft,
@@ -22,6 +23,8 @@ interface UsePowerListEffectsArgs {
   setNewTaskForm: React.Dispatch<React.SetStateAction<TaskSlot[]>>;
   yesterdayNote: string;
   setYesterdayNote: React.Dispatch<React.SetStateAction<string>>;
+  setYesterdayDayScore: React.Dispatch<React.SetStateAction<number>>;
+  setYesterdayMoodScore: React.Dispatch<React.SetStateAction<number>>;
   planDaySignal: number | undefined;
   directionLoading: boolean;
 }
@@ -35,6 +38,8 @@ export function usePowerListEffects({
   setNewTaskForm,
   yesterdayNote,
   setYesterdayNote,
+  setYesterdayDayScore,
+  setYesterdayMoodScore,
   planDaySignal: _planDaySignal,
   directionLoading: _directionLoading,
 }: UsePowerListEffectsArgs) {
@@ -82,27 +87,41 @@ export function usePowerListEffects({
   });
 
   // 2. Fetch yesterday's win details
-  const yesterdayWinQuery = useQuery<DailyWinWithTasks | null>({
+  const yesterdayWinQuery = useQuery<{
+    win: DailyWinWithTasks | null;
+    dayScore: number | null;
+  }>({
     queryKey: ['powerlist-yesterday-win', userId],
     queryFn: async () => {
       const yesterday = getYesterdayWarsaw();
-      const { data } = await supabase
-        .from('daily_wins')
-        .select('id, date, day_note, daily_win_tasks(*)')
-        .eq('user_id', userId)
-        .eq('date', yesterday)
-        .maybeSingle();
-      return parseDailyWinWithTasks(data);
+      const [{ data }, dayScore] = await Promise.all([
+        supabase
+          .from('daily_wins')
+          .select('id, date, day_note, mood_score, daily_win_tasks(*)')
+          .eq('user_id', userId)
+          .eq('date', yesterday)
+          .maybeSingle(),
+        fetchDailyReconciliationScore(userId, yesterday),
+      ]);
+      return { win: parseDailyWinWithTasks(data), dayScore };
     },
     enabled: !!userId && !todayWin,
   });
 
   useEffect(() => {
     if (yesterdayWinQuery.data !== undefined) {
-      setYesterdayNote(yesterdayWinQuery.data?.day_note ?? '');
+      setYesterdayNote(yesterdayWinQuery.data.win?.day_note ?? '');
+      setYesterdayDayScore(yesterdayWinQuery.data.dayScore ?? 7);
+      setYesterdayMoodScore(yesterdayWinQuery.data.win?.mood_score ?? 3);
       draftLoadedRef.current = false;
     }
-  }, [yesterdayWinQuery.data, setYesterdayNote, draftLoadedRef]);
+  }, [
+    yesterdayWinQuery.data,
+    setYesterdayNote,
+    setYesterdayDayScore,
+    setYesterdayMoodScore,
+    draftLoadedRef,
+  ]);
 
   // 3. LocalStorage draft loading (NOT react-query — localStorage)
   useEffect(() => {
@@ -177,7 +196,7 @@ export function usePowerListEffects({
 
   return {
     projectMap: projectMetadataQuery.data ?? {},
-    yesterdayWin: yesterdayWinQuery.data ?? null,
+    yesterdayWin: yesterdayWinQuery.data?.win ?? null,
     todoItems: openTodosQuery.data ?? [],
     loading: projectMetadataQuery.isLoading || yesterdayWinQuery.isLoading || openTodosQuery.isLoading,
   };

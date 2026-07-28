@@ -18,6 +18,7 @@ import { notify } from '../../lib/notify';
 import type { Tables } from '../../lib/database.types';
 import { Card } from '../ui/Card';
 import AiContextSettings from './AiContextSettings';
+import FluxSettingsSection from './FluxSettingsSection';
 
 export default function SettingsView({ session }: { session: Session }) {
   const queryClient = useQueryClient();
@@ -132,6 +133,8 @@ export default function SettingsView({ session }: { session: Session }) {
       </Card>
 
       <NutritionProfileSettings profile={profile} onChange={setProfile} />
+
+      <FluxSettingsSection />
 
       <AiContextSettings userId={session.user.id} />
 

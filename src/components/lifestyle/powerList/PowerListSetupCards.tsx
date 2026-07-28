@@ -3,15 +3,29 @@ import { Card } from '../../ui/Card';
 import { ControlTextarea, Pressable } from '../../ui/ControlPrimitives';
 import type { Tables } from '../../../lib/database.types';
 import type { DailyWinWithTasks } from '../usePowerListData';
+import ShutdownScoreSliders from '../../core/shutdown/ShutdownScoreSliders';
 
 interface RecapProps {
   yesterdayWin: DailyWinWithTasks | null;
   yesterdayNote: string;
   setYesterdayNote: (value: string) => void;
   yesterdayNoteRequired: boolean;
+  dayScore: number;
+  setDayScore: (value: number) => void;
+  moodScore: number;
+  setMoodScore: (value: number) => void;
 }
 
-export function YesterdayRecap({ yesterdayWin, yesterdayNote, setYesterdayNote, yesterdayNoteRequired }: RecapProps) {
+export function YesterdayRecap({
+  yesterdayWin,
+  yesterdayNote,
+  setYesterdayNote,
+  yesterdayNoteRequired,
+  dayScore,
+  setDayScore,
+  moodScore,
+  setMoodScore,
+}: RecapProps) {
   if (!yesterdayWin) return null;
   const ready = !yesterdayNoteRequired || Boolean(yesterdayNote.trim());
   return (
@@ -38,6 +52,12 @@ export function YesterdayRecap({ yesterdayWin, yesterdayNote, setYesterdayNote, 
         </label>
         <ControlTextarea id="yesterday-reflection" value={yesterdayNote} onChange={(event) => setYesterdayNote(event.target.value)} placeholder="Co pomogło lub zatrzymało realizację?" rows={3} className="mt-2 min-h-20 w-full resize-y rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-primary/50" />
       </div>
+      <ShutdownScoreSliders
+        dayScore={dayScore}
+        setDayScore={setDayScore}
+        moodScore={moodScore}
+        setMoodScore={setMoodScore}
+      />
     </Card>
   );
 }

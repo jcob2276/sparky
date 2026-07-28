@@ -16,7 +16,17 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(ShareIntentPlugin.class);
         registerPlugin(WidgetBridgePlugin.class);
         registerPlugin(BleProbePlugin.class);
+        registerPlugin(NightLightPlugin.class);
         super.onCreate(savedInstanceState);
+
+        if (this.bridge != null && this.bridge.getWebView() != null) {
+            this.bridge.getWebView().setWebChromeClient(new com.getcapacitor.BridgeWebChromeClient(this.bridge) {
+                @Override
+                public void onPermissionRequest(final android.webkit.PermissionRequest request) {
+                    request.grant(request.getResources());
+                }
+            });
+        }
     }
 
     @Override
