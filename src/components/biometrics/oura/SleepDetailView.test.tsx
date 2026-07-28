@@ -33,6 +33,7 @@ describe('SleepDetailView', () => {
     expect(screen.getByText('Całkowity czas trwania 9 h 10 min')).toBeInTheDocument();
     expect(screen.getByText('23:31')).toBeInTheDocument();
     expect(screen.getByText('08:42')).toBeInTheDocument();
+    expect(screen.getByText('Stan czuwania 1 h 28 min')).toBeInTheDocument();
     expect(screen.getByText('REM 41 min 9%')).toBeInTheDocument();
     expect(screen.getByText('Płytki 5 h 19 min 69%')).toBeInTheDocument();
     expect(screen.getByText('Głęboki 1 h 41 min 22%')).toBeInTheDocument();
