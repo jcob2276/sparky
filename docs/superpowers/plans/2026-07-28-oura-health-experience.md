@@ -449,3 +449,131 @@ Inspect Android-sized and desktop viewports, keyboard navigation, focus rings,
 - [ ] **Step 6: Final commit**
 
 Commit only cleanup and durable contract changes with `test: verify Oura health experience`.
+
+---
+
+### Task 8: Przywrócenie izolowanego wyglądu Oura-first
+
+**Files:**
+- Modify: `src/components/biometrics/oura/OuraHealthView.tsx`
+- Modify: `src/components/biometrics/oura/OuraTodayView.tsx`
+- Modify: `src/components/biometrics/oura/OuraVitalsView.tsx`
+- Modify: `src/components/biometrics/oura/OuraLongTermView.tsx`
+- Modify: `src/components/biometrics/oura/OuraMetricCard.tsx`
+- Modify: `src/components/biometrics/oura/OuraContextSection.tsx`
+- Modify: `src/components/biometrics/oura/OuraHealthView.test.tsx`
+
+**Interfaces:**
+- Consumes: istniejące tokeny `.dark` z `src/index.css` i `OuraHealthHubData`.
+- Produces: izolowany ciemny shell Oura, wyśrodkowaną kolumnę aplikacyjną
+  `max-w-3xl` oraz niezmienione zachowanie trzech sekcji.
+
+- [ ] **Step 1: Write the failing shell contract test**
+
+```tsx
+const { container } = render(
+  <OuraHealthView
+    activeSection="today"
+    data={data}
+    onOpenSleep={vi.fn()}
+    onSectionChange={vi.fn()}
+  />,
+);
+
+expect(container.firstElementChild).toHaveClass('dark');
+expect(screen.getByTestId('oura-content')).toHaveClass('max-w-3xl');
+```
+
+- [ ] **Step 2: Run the focused test and verify RED**
+
+Run:
+`npx vitest run src/components/biometrics/oura/OuraHealthView.test.tsx`
+
+Expected: FAIL because the root does not isolate dark tokens and the content still
+uses the wide dashboard container.
+
+- [ ] **Step 3: Implement the isolated dark shell**
+
+Add `dark` to both page roots in `OuraHealthView`. Keep `bg-black` and semantic
+surface/text utilities inside that subtree so `--surface-*` and `--text-*` resolve
+to the existing dark values without changing another route. Change main/header/nav
+containers from `max-w-5xl` to `max-w-3xl`.
+
+- [ ] **Step 4: Restore Oura proportions**
+
+Keep score shortcuts horizontally scrollable and compact. Replace oversized desktop
+card heights with content-led spacing, preserve the large lightweight hero score,
+and keep context cards visually secondary. Do not change any metric selection,
+formatting or data fallback in this task.
+
+- [ ] **Step 5: Run focused tests and commit**
+
+Run:
+
+- `npx vitest run src/components/biometrics/oura/OuraHealthView.test.tsx`
+- `npm run typecheck:ui`
+- focused ESLint for the six touched presenters.
+
+Commit `fix: restore Oura-first health layout`.
+
+---
+
+### Task 9: Human empty states for context and movement
+
+**Files:**
+- Create: `src/components/biometrics/oura/OuraContextSection.test.tsx`
+- Modify: `src/components/biometrics/oura/OuraContextSection.tsx`
+- Modify: `src/components/biometrics/oura/SleepMovementRow.tsx`
+- Modify: `src/components/biometrics/oura/SleepDetailView.test.tsx`
+
+**Interfaces:**
+- Consumes: existing `OuraContextInsights` statuses and `movement_items`.
+- Produces: user-facing empty copy with no database identifiers.
+
+- [ ] **Step 1: Write failing copy tests**
+
+```tsx
+render(<OuraContextSection context={contextWithoutCaffeine} />);
+expect(screen.getByText('Nie zapisano kofeiny')).toBeInTheDocument();
+expect(screen.queryByText(/daily_food_entries|workout_sessions|phone_usage_daily/)).not.toBeInTheDocument();
+```
+
+Extend the sleep-detail empty-state test:
+
+```tsx
+expect(
+  screen.getByText('Oura nie udostępniła pomiaru ruchu dla tej nocy'),
+).toBeInTheDocument();
+expect(screen.queryAllByText('Brak danych')).toHaveLength(0);
+```
+
+- [ ] **Step 2: Run both tests and verify RED**
+
+Run:
+`npx vitest run src/components/biometrics/oura/OuraContextSection.test.tsx src/components/biometrics/oura/SleepDetailView.test.tsx`
+
+Expected: FAIL on the old technical source labels and old movement copy.
+
+- [ ] **Step 3: Implement concise user language**
+
+Use these exact empty values:
+
+- caffeine: `Nie zapisano kofeiny`;
+- training: `Nie zapisano treningu`;
+- screen: `Brak pomiaru czasu przed ekranem`;
+- meals: `Nie zapisano posiłków`;
+- movement: `Oura nie udostępniła pomiaru ruchu dla tej nocy`.
+
+When a measurement exists, describe its timing or value without appending table
+names. Preserve the context disclaimer that one night does not prove causality.
+
+- [ ] **Step 4: Verify all Oura gates and render**
+
+Run all Oura-focused tests, `npm run typecheck:ui`, focused ESLint,
+`npm run build`, and `git diff --check`. Inspect `/oura` at approximately
+390 px and 1280 px width. Confirm no cream card is visible inside the Oura shell
+and no internal table name appears in the rendered text.
+
+- [ ] **Step 5: Commit**
+
+Commit `fix: polish Oura empty states`.
