@@ -8,6 +8,7 @@ import {
   type ParsedFoodItem,
 } from './foodParseCore.ts'
 import { lookupGenericFood, scoreFoodNameMatch } from './foodGeneric.ts'
+import { applyPhysiologicalGuardrails } from './foodParse/normalize.ts'
 
 const llmItem = (overrides: Partial<ParsedFoodItem> = {}): ParsedFoodItem => ({
   name: 'test',
@@ -72,4 +73,26 @@ Deno.test('lookupGenericFood — wątróbka', () => {
 Deno.test('scoreFoodNameMatch — odrzuca słabe OFF-style false positive', () => {
   assertEquals(scoreFoodNameMatch('borówki', 'Ser topiony Borówka'), 0)
   assertEquals(scoreFoodNameMatch('borówki', 'Borówki') > 0.5, true)
+})
+
+Deno.test('guardrail nie traktuje rosołu jak soli', () => {
+  const [result] = applyPhysiologicalGuardrails([llmItem({
+    name: 'Rosół z makaronem',
+    grams: 600,
+    calories: 576,
+    protein: 24,
+    carbs: 60,
+    fat: 24,
+    confidence: 'high',
+    source: 'library',
+  })], '2 miski rosołu z makaronem')
+
+  assertEquals(result.grams, 600)
+  assertEquals(result.calories, 576)
+  assertEquals(result.assumptions, undefined)
+})
+
+Deno.test('scoreFoodNameMatch — nie myli bułki z bułką tartą', () => {
+  assertEquals(scoreFoodNameMatch('bułka pszenna', 'Bułka tarta pszenna'), 0)
+  assertEquals(scoreFoodNameMatch('bułka pszenna', 'Bułka pszenna burger'), 0)
 })

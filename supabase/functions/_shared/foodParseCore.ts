@@ -2,6 +2,7 @@ import {
   applyDeclaredPieceCount,
   applyHomemadeAdjustment,
   isComplexMeal,
+  recoverUnitCountFromText,
 } from "./foodParse/matching.ts";
 import {
   applyPhysiologicalGuardrails,
@@ -17,6 +18,7 @@ import {
   tryExpandCompoundItems,
 } from "./foodParse/reconcile.ts";
 import { buildSystemPrompt } from "./foodParse/prompts.ts";
+import { validateParsedItems } from "./foodParse/semanticValidation.ts";
 
 export {
   applyDeclaredPieceCount,
@@ -35,7 +37,13 @@ export interface FoodParseMeta {
   macroSource: 'library' | 'generic' | 'reference_pl' | 'off' | 'llm_estimate' | 'user_correction'
   matchScore?: number
   matchedName?: string
+  dataSource?: string
   parserVersion: string
+  quantity?: number
+  unit?: string
+  explicitGrams?: boolean
+  warnings?: string[]
+  validationStatus?: 'accepted' | 'review'
 }
 
 export interface ParsedFoodItem {
@@ -97,6 +105,7 @@ export async function parseMealText(
   )
   let items = normalizeGramOnlyItems(gramsRaw)
   items = applyDeclaredPieceCount(trimmed, items)
+  items = recoverUnitCountFromText(trimmed, items)
   return items
 }
 
@@ -114,6 +123,7 @@ export async function finalizeParsedItems(
     userId: opts.userId,
     db: opts.db,
     apiKey: opts.apiKey,
+    originalText: opts.originalText,
   }
 
   let out = applyUserCorrections(items, opts.corrections, opts.originalText)
@@ -127,5 +137,6 @@ export async function finalizeParsedItems(
   out = applyHomemadeAdjustment(opts.originalText, out)
   out = applyPhysiologicalGuardrails(out, opts.originalText)
   out = enforceMacroMath(out)
+  out = validateParsedItems(out, opts.originalText)
   return out
 }

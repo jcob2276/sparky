@@ -143,7 +143,8 @@ function confidenceRulesBlock(): string {
 function jsonSchemaBlock(mode: 'full' | 'grams_only' | 'macros_only'): string {
   if (mode === 'grams_only') {
     return `Zwróć WYŁĄCZNIE poprawny format JSON (żadnego dodatkowego tekstu ani markdownu poza JSON):
-{"items":[{"name":"dokładna nazwa produktu gotowego/potrawy","grams":130,"confidence":"high|medium|low","assumptions":["opcjonalna lista założeń gdy szacujesz gramaturę"]}]}`
+{"items":[{"name":"dokładna nazwa produktu gotowego/potrawy","quantity":2,"unit":"g|kg|ml|sztuka|miska|kromka|plaster|porcja|opakowanie","grams":130,"explicitGrams":true,"confidence":"high|medium|low","assumptions":["opcjonalna lista założeń gdy szacujesz gramaturę"]}]}
+quantity i unit zachowują ilość podaną przez użytkownika. grams to przeliczona masa całkowita. explicitGrams=true tylko gdy użytkownik podał wprost g/kg/ml; dla sztuk, misek i porcji ustaw false.`
   }
   if (mode === 'macros_only') {
     return `Zwróć WYŁĄCZNIE poprawny format JSON (żadnego dodatkowego tekstu ani markdownu poza JSON):

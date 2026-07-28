@@ -82,6 +82,15 @@ export function scoreFoodNameMatch(query: string, candidateName: string): number
   const nameWords = name.split(/\s+/).filter(Boolean)
   if (nameWords.length === 0) return 0
 
+  if (qWords.some((word) => word.startsWith('bulk'))) {
+    const incompatibleModifiers = ['tart', 'burger', 'hotdog', 'hot-dog']
+    const hasUnrequestedModifier = incompatibleModifiers.some((modifier) =>
+      nameWords.some((word) => word.startsWith(modifier))
+      && !qWords.some((word) => word.startsWith(modifier))
+    )
+    if (hasUnrequestedModifier) return 0
+  }
+
   let matched = 0
   for (const w of qWords) {
     if (name.includes(w)) matched++

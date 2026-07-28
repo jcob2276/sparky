@@ -87,6 +87,37 @@ export function applyDeclaredPieceCount(text: string, items: ParsedFoodItem[]): 
   return items;
 }
 
+export function recoverUnitCountFromText(
+  text: string,
+  items: ParsedFoodItem[],
+): ParsedFoodItem[] {
+  const normalized = normalizePl(text);
+  const bowlMatch = normalized.match(/\b(\d{1,2})\s*(?:x\s*)?(?:miska|miski|misek)\b/);
+  if (!bowlMatch) return items;
+
+  const quantity = Number(bowlMatch[1]);
+  if (!Number.isFinite(quantity) || quantity < 1 || quantity > 10) return items;
+
+  return items.map((item) => {
+    if (item.parseMeta?.unit !== 'bowl' || item.grams > quantity * 2) return item;
+    const grams = quantity * 300;
+    return {
+      ...item,
+      grams,
+      confidence: item.confidence === 'high' ? 'medium' : item.confidence,
+      assumptions: [
+        ...(item.assumptions ?? []),
+        `przeliczono miskę na ~300g (${quantity} × 300g)`,
+      ],
+      parseMeta: {
+        ...item.parseMeta,
+        quantity,
+        explicitGrams: false,
+      },
+    };
+  });
+}
+
 function isHomemadeContext(text: string): boolean {
   const n = normalizePl(text);
   return /\b(domow\w*|wlasn\w*|babci|babcia|mamy|tesciow\w*|gotowane w domu)\b/.test(n);

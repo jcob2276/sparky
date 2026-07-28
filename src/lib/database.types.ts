@@ -457,6 +457,7 @@ export type Database = {
           parse_meta: Json | null
           protein: number | null
           quality_reason: string | null
+          request_id: string | null
           salt: number | null
           saturated_fat: number | null
           sugar: number | null
@@ -481,6 +482,7 @@ export type Database = {
           parse_meta?: Json | null
           protein?: number | null
           quality_reason?: string | null
+          request_id?: string | null
           salt?: number | null
           saturated_fat?: number | null
           sugar?: number | null
@@ -505,6 +507,7 @@ export type Database = {
           parse_meta?: Json | null
           protein?: number | null
           quality_reason?: string | null
+          request_id?: string | null
           salt?: number | null
           saturated_fat?: number | null
           sugar?: number | null
@@ -1865,6 +1868,9 @@ export type Database = {
           source: string
           sugar: number | null
           user_id: string
+          validated_at: string | null
+          validation_reason: string | null
+          validation_status: string
         }
         Insert: {
           barcode?: string | null
@@ -1881,6 +1887,9 @@ export type Database = {
           source?: string
           sugar?: number | null
           user_id: string
+          validated_at?: string | null
+          validation_reason?: string | null
+          validation_status?: string
         }
         Update: {
           barcode?: string | null
@@ -1897,6 +1906,9 @@ export type Database = {
           source?: string
           sugar?: number | null
           user_id?: string
+          validated_at?: string | null
+          validation_reason?: string | null
+          validation_status?: string
         }
         Relationships: []
       }

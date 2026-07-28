@@ -15,6 +15,20 @@ function parseAssumptions(value: unknown): string[] | undefined {
   return items.length ? items : undefined;
 }
 
+function normalizeUnit(value: unknown): string | undefined {
+  const unit = normalizePl(String(value ?? '').trim());
+  if (!unit) return undefined;
+  if (/^(g|gram|gramy|gramow)$/.test(unit)) return 'g';
+  if (/^(kg|kilogram|kilogramy|kilogramow)$/.test(unit)) return 'kg';
+  if (/^(ml|mililitr|mililitry|mililitrow)$/.test(unit)) return 'ml';
+  if (/^(szt|sztuka|sztuki|sztuk)$/.test(unit)) return 'piece';
+  if (/^(miska|miski|misek)$/.test(unit)) return 'bowl';
+  if (/^(kromka|kromki|kromek|plaster|plasterek|plastry|plasterki)$/.test(unit)) return 'slice';
+  if (/^(porcja|porcje|porcji)$/.test(unit)) return 'portion';
+  if (/^(opakowanie|opakowania|opakowan)$/.test(unit)) return 'package';
+  return unit.slice(0, 32);
+}
+
 export function normalizeGramOnlyItems(raw: unknown): ParsedFoodItem[] {
   const parsed = typeof raw === 'string'
     ? JSON.parse(raw)
@@ -34,8 +48,22 @@ export function normalizeGramOnlyItems(raw: unknown): ParsedFoodItem[] {
       const name = String(item.name || '').trim();
       if (!name) return null;
 
-      const grams = Math.max(1, Math.round(Number(item.grams) || 100));
-      const assumptions = parseAssumptions(item.assumptions);
+      let grams = Math.max(1, Math.round(Number(item.grams) || 100));
+      const assumptions = [...(parseAssumptions(item.assumptions) ?? [])];
+      const quantity = Number.isFinite(Number(item.quantity))
+        ? Math.max(0, Number(item.quantity))
+        : undefined;
+      const unit = normalizeUnit(item.unit);
+
+      if (
+        unit === 'bowl'
+        && quantity != null
+        && quantity > 0
+        && grams <= quantity * 2
+      ) {
+        grams = Math.round(quantity * 300);
+        assumptions.push(`przeliczono miskę na ~300g (${quantity} × 300g)`);
+      }
 
       const result: ParsedFoodItem = {
         name,
@@ -46,9 +74,17 @@ export function normalizeGramOnlyItems(raw: unknown): ParsedFoodItem[] {
         fat: 0,
         confidence: parseConfidence(item.confidence),
         source: 'llm',
-        parseMeta: { macroSource: 'llm_estimate', parserVersion: PARSER_VERSION },
+        parseMeta: {
+          macroSource: 'llm_estimate',
+          parserVersion: PARSER_VERSION,
+          quantity,
+          unit,
+          explicitGrams: typeof item.explicitGrams === 'boolean'
+            ? item.explicitGrams
+            : undefined,
+        },
       };
-      if (assumptions) result.assumptions = assumptions;
+      if (assumptions.length) result.assumptions = assumptions;
       return result;
     })
     .filter((item): item is ParsedFoodItem => item != null && item.name.length > 0);
@@ -130,11 +166,13 @@ const NUTRITION_GUARDRAILS: GuardrailRule[] = [
 
 export function applyPhysiologicalGuardrails(items: ParsedFoodItem[], originalText: string): ParsedFoodItem[] {
   const normText = normalizePl(originalText);
+  const containsKeyword = (value: string, keyword: string) =>
+    new RegExp(`(?:^|\\s)${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:$|\\s)`).test(value);
 
   return items.map((item) => {
     const normName = normalizePl(item.name);
     for (const rule of NUTRITION_GUARDRAILS) {
-      const matches = rule.keywords.some((kw) => normName.includes(kw));
+      const matches = rule.keywords.some((kw) => containsKeyword(normName, kw));
       if (matches && item.grams > rule.maxGrams) {
         // Sprawdź czy użytkownik wpisał ilość jawnie (np. "50g masła", "masło 50g")
         const explicitePattern = new RegExp(`(\\d+)\\s*(?:g|gram\\w*|szt\\w*)\\s*(?:${rule.keywords.join('|')})|(?:${rule.keywords.join('|')})\\s*(\\d+)`, 'i');

@@ -10,13 +10,26 @@ import { buildSystemPrompt } from "./prompts.ts";
 
 const MIN_RECONCILE_SCORE = 0.52;
 
-interface Per100gFood { name: string; calories: number | null; protein: number | null; carbs: number | null; fat: number | null; fiber?: number | null; sugar?: number | null; source?: 'generic' | 'reference_pl' | 'off'; }
-export type ReconcileOpts = { supabaseUrl: string; serviceKey: string; userId?: string; db?: unknown; apiKey?: string };
+interface Per100gFood { name: string; calories: number | null; protein: number | null; carbs: number | null; fat: number | null; fiber?: number | null; sugar?: number | null; source?: string; }
+export type ReconcileOpts = { supabaseUrl: string; serviceKey: string; userId?: string; db?: unknown; apiKey?: string; originalText?: string };
+
+export function isPlausibleFoodCandidate(query: string, candidate: Per100gFood): boolean {
+  const calories = Number(candidate.calories ?? 0);
+  if (!Number.isFinite(calories) || calories <= 0 || calories > 1000) return false;
+  const normalized = normalizePl(`${query} ${candidate.name}`);
+  if (/\b(bulka|chleb|bagietka|kajzerka)\b/.test(normalized) && calories < 180) {
+    return false;
+  }
+  if (/\b(kebab|burger|pizza|zapiekanka|hot dog)\b/.test(normalized) && calories < 120) {
+    return false;
+  }
+  return true;
+}
 
 function pickBestMatchScored(query: string, results: Per100gFood[]): { match: Per100gFood; score: number } | null {
   if (!results.length) return null;
   let best: Per100gFood | null = null, bestScore = MIN_RECONCILE_SCORE;
-  for (const r of results) { if (r.calories == null || !r.name) continue; const score = scoreFoodNameMatch(query, r.name); if (score > bestScore) { bestScore = score; best = r; } }
+  for (const r of results) { if (r.calories == null || !r.name || !isPlausibleFoodCandidate(query, r)) continue; const score = scoreFoodNameMatch(query, r.name); if (score > bestScore) { bestScore = score; best = r; } }
   return best ? { match: best, score: bestScore } : null;
 }
 
@@ -34,7 +47,7 @@ export function applyUserCorrections(items: ParsedFoodItem[], corrections: FoodC
     if (!c) return item;
     const newGrams = Math.max(1, c.corrected_grams);
     const scaled = newGrams !== item.grams ? scaleParsedItem(item, newGrams / item.grams) : item;
-    return { ...scaled, name: c.corrected_name?.trim() || item.name, grams: newGrams, confidence: 'high', source: 'library', parseMeta: { macroSource: 'user_correction', matchedName: c.corrected_name?.trim() || item.name, parserVersion: PARSER_VERSION }, assumptions: [...(item.assumptions ?? []), `poprawka użytkownika: ${newGrams}g`] };
+    return { ...scaled, name: c.corrected_name?.trim() || item.name, grams: newGrams, confidence: 'high', source: 'library', parseMeta: { ...item.parseMeta, macroSource: 'user_correction', matchedName: c.corrected_name?.trim() || item.name, dataSource: 'user_correction', parserVersion: PARSER_VERSION }, assumptions: [...(item.assumptions ?? []), `poprawka użytkownika: ${newGrams}g`] };
   });
 }
 
@@ -48,8 +61,13 @@ function splitCompoundName(name: string): [string, string] | null {
 
 function titleCasePl(fragment: string): string { const t = fragment.trim(); return t ? t.charAt(0).toUpperCase() + t.slice(1) : fragment; }
 
+export function shouldExpandCompoundDish(originalText: string): boolean {
+  return /[,;+]/.test(originalText);
+}
+
 export async function tryExpandCompoundItems(items: ParsedFoodItem[], opts: ReconcileOpts): Promise<ParsedFoodItem[]> {
   if (items.length !== 1 || !isUnmatchedForMacros(items[0])) return items;
+  if (!shouldExpandCompoundDish(opts.originalText ?? '')) return items;
   const split = splitCompoundName(items[0].name);
   if (!split) return items;
   const [mainRaw, secRaw] = split;
@@ -95,10 +113,40 @@ async function verifyMatchWithLLM(query: string, candidate: string, apiKey: stri
   } catch { return true; }
 }
 
+export function mergeUserFoodCandidates(
+  favorites: Per100gFood[],
+  library: Per100gFood[],
+): Per100gFood[] {
+  return [
+    ...favorites.map((item) => ({ ...item, source: 'favorite' })),
+    ...library,
+  ];
+}
+
 async function lookupViaLibraryRaw(name: string, userId: string, db: any): Promise<Per100gFood[] | null> {
-  const { data, error } = await db.from('food_library').select('name, calories, protein, carbs, fat, fiber, sugar').eq('user_id', userId).ilike('name', `%${name}%`).limit(10);
-  if (error || !data?.length) return null;
-  return data as Per100gFood[];
+  const [favoritesResult, libraryResult] = await Promise.all([
+    db.from('food_favorites')
+      .select('name, calories, protein, carbs, fat, fiber, sugar')
+      .eq('user_id', userId)
+      .ilike('name', `%${name}%`)
+      .order('use_count', { ascending: false })
+      .limit(5),
+    db.from('food_library')
+      .select('name, calories, protein, carbs, fat, fiber, sugar, source, validation_status')
+      .eq('user_id', userId)
+      .neq('validation_status', 'quarantined')
+      .ilike('name', `%${name}%`)
+      .limit(10),
+  ]);
+
+  const favorites = favoritesResult.error
+    ? []
+    : (favoritesResult.data ?? []) as Per100gFood[];
+  const library = libraryResult.error
+    ? []
+    : (libraryResult.data ?? []) as Per100gFood[];
+  const merged = mergeUserFoodCandidates(favorites, library);
+  return merged.length ? merged : null;
 }
 
 async function reconcileOne(item: ParsedFoodItem, opts: ReconcileOpts): Promise<ParsedFoodItem> {
@@ -113,7 +161,7 @@ async function reconcileOne(item: ParsedFoodItem, opts: ReconcileOpts): Promise<
   if (!match?.calories) { const local = lookupGenericFood(item.name); if (local) { match = local; source = 'database'; macroSource = 'generic'; matchedName = local.name; matchScore = scoreFoodNameMatch(item.name, local.name); } }
   if (!match?.calories) { const remote = await lookupOffFast(item.name); if (remote?.match.calories != null) { match = remote.match; source = 'database'; macroSource = remote.macroSource; matchScore = remote.score; matchedName = remote.match.name; } }
   if (matchScore != null && matchScore >= 0.50 && matchScore <= 0.72 && opts.apiKey && matchedName) { const ok = await verifyMatchWithLLM(item.name, matchedName, opts.apiKey); if (!ok) { match = null; source = 'llm'; macroSource = 'llm_estimate'; matchScore = undefined; matchedName = undefined; } }
-  if (match?.calories != null && source !== 'llm') { return { ...item, ...recalcFromPer100g(item.grams, match), name: match.name || item.name, confidence: 'high', source, assumptions: item.assumptions, parseMeta: { macroSource, matchScore, matchedName, parserVersion: PARSER_VERSION } }; }
+  if (match?.calories != null && source !== 'llm') { return { ...item, ...recalcFromPer100g(item.grams, match), name: match.name || item.name, confidence: 'high', source, assumptions: item.assumptions, parseMeta: { ...item.parseMeta, macroSource, matchScore, matchedName, dataSource: match.source ?? macroSource, parserVersion: PARSER_VERSION } }; }
   return item;
 }
 
@@ -158,7 +206,7 @@ export async function fillMacrosLlmFallback(items: ParsedFoodItem[], apiKey: str
     const idx = indices[j];
     const macro = macroItems[j] ?? macroItems.find((m) => normalizePl(m.name).includes(normalizePl(out[idx].name)));
     if (!macro) continue;
-    out[idx] = { ...out[idx], calories: macro.calories, protein: macro.protein, carbs: macro.carbs, fat: macro.fat, fiber: macro.fiber, sugar: macro.sugar, confidence: macro.confidence === 'high' ? 'medium' : macro.confidence, source: 'llm', assumptions: [...(out[idx].assumptions ?? []), ...(macro.assumptions ?? []), 'makro szacowane — brak w bazie'], parseMeta: { macroSource: 'llm_estimate', parserVersion: PARSER_VERSION } };
+    out[idx] = { ...out[idx], calories: macro.calories, protein: macro.protein, carbs: macro.carbs, fat: macro.fat, fiber: macro.fiber, sugar: macro.sugar, confidence: macro.confidence === 'high' ? 'medium' : macro.confidence, source: 'llm', assumptions: [...(out[idx].assumptions ?? []), ...(macro.assumptions ?? []), 'makro szacowane — brak w bazie'], parseMeta: { ...out[idx].parseMeta, macroSource: 'llm_estimate', dataSource: 'llm_estimate', parserVersion: PARSER_VERSION } };
   }
   return out;
 }

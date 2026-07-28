@@ -18,7 +18,13 @@ interface FoodParseMeta {
   macroSource: 'library' | 'generic' | 'reference_pl' | 'off' | 'llm_estimate' | 'user_correction'
   matchScore?: number
   matchedName?: string
+  dataSource?: string
   parserVersion: string
+  quantity?: number
+  unit?: string
+  explicitGrams?: boolean
+  warnings?: string[]
+  validationStatus?: 'accepted' | 'review'
 }
 
 export interface ParsedFoodItem {
@@ -105,7 +111,6 @@ export async function saveParsedFoodItems(
   opts: { date: string; mealType: string; mealGroupId?: string },
 ): Promise<void> {
   const groupId = opts.mealGroupId ?? (items.length > 1 ? crypto.randomUUID() : undefined)
-
   for (const item of items) {
     const grams = Math.max(1, Math.round(item.grams || 100))
     const scale100 = 100 / grams
@@ -125,6 +130,7 @@ export async function saveParsedFoodItems(
         sugar: item.sugar != null ? Math.round(item.sugar * scale100 * 10) / 10 : null,
         meal_type: opts.mealType,
         meal_group_id: groupId ?? null,
+        request_id: crypto.randomUUID(),
         parse_meta: ({
           ...(item.parseMeta ?? {}),
           source: item.parseMeta?.macroSource ?? (item.source === 'library' ? 'confirmed' : 'estimated'),

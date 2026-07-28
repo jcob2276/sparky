@@ -68,6 +68,7 @@ async function saveParsedFoodEntries(
         sugar: item.sugar != null ? Math.round(Number(item.sugar) * scale100 * 10) / 10 : null,
         meal_type: mealType,
         meal_group_id: mealGroupId,
+        request_id: crypto.randomUUID(),
         parse_meta: item.parseMeta ?? null,
       },
     })

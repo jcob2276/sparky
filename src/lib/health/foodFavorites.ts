@@ -84,6 +84,13 @@ export async function quickAddFavorite(
       fiber: fav.fiber,
       sugar: fav.sugar,
       meal_type: mealType,
+      request_id: crypto.randomUUID(),
+      parse_meta: {
+        source: 'fixed_favorite',
+        trust_level: 'confirmed',
+        parserVersion: 'food-trust-v2',
+        uncertainty_pct: 5,
+      },
     },
   })
   if (error) throw error
