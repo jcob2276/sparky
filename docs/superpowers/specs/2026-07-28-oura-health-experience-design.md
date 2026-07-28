@@ -157,7 +157,11 @@ tokenów ani wyglądu innych modułów.
 
 - Błąd źródła wskazuje nazwę niedostępnego źródła oraz pozostawia dostępne dane.
 - Brak osi faz pokazuje „Brak szczegółowego przebiegu faz dla tej nocy”.
-- Brak ruchu pokazuje „Brak danych o ruchu”, bez dekoracyjnych znaczników.
+- Brak ruchu pokazuje „Oura nie udostępniła pomiaru ruchu dla tej nocy”, bez
+  dekoracyjnych znaczników.
+- Karty kontekstu nigdy nie pokazują nazw tabel, kolumn ani innych identyfikatorów
+  technicznych. Brak wpisu kofeiny pokazuje „Nie zapisano kofeiny”; analogiczne
+  braki używają krótkiego języka użytkownika bez powtarzania „Brak danych”.
 - Rekordy z różnych dni nigdy nie są łączone po cichu.
 - Długoterminowa ocena bez minimalnego okna pokazuje stan kalibracji oraz liczbę
   dostępnych dni.
