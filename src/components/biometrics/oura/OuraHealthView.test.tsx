@@ -110,4 +110,40 @@ describe('OuraHealthView', () => {
     expect(screen.getByText('95 mg')).toBeInTheDocument();
     expect(screen.queryByText('Nie zapisano kofeiny')).not.toBeInTheDocument();
   });
+
+  it('shows practical sleep and heart metrics in Parametry', () => {
+    render(
+      <OuraHealthView
+        activeSection="vitals"
+        data={{
+          ...data,
+          birthDateStr: '1998-01-01',
+          enhanced: {
+            date: '2026-07-28',
+            vascular_age: 23,
+            sleep_average_breath: 13.625,
+            total_sleep_hours: 7.5,
+            bedtime_start: '2026-07-27T23:10:00+02:00',
+            bedtime_end: '2026-07-28T07:10:00+02:00',
+            readiness_contributors: { sleep_regularity: 88 },
+          } as unknown as NonNullable<OuraHealthHubData['enhanced']>,
+          enhancedHistory: [{
+            date: '2026-07-27',
+            total_sleep_hours: 7.5,
+            bedtime_start: '2026-07-26T23:00:00+02:00',
+            bedtime_end: '2026-07-27T07:00:00+02:00',
+          } as unknown as NonNullable<OuraHealthHubData['enhanced']>],
+        }}
+        onOpenSleep={vi.fn()}
+        onSectionChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Zegar biologiczny')).toBeInTheDocument();
+    expect(screen.getByText('Regularność snu')).toBeInTheDocument();
+    expect(screen.getByText('Deficyt snu')).toBeInTheDocument();
+    expect(screen.getByText('Wiek sercowo-naczyniowy')).toBeInTheDocument();
+    expect(screen.getByText('Częstotliwość oddechu')).toBeInTheDocument();
+    expect(screen.getByText('13,6/min')).toBeInTheDocument();
+  });
 });

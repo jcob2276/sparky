@@ -1,9 +1,10 @@
-import { Activity, HeartPulse, Moon } from 'lucide-react';
+import { Moon } from 'lucide-react';
 import { buildSleepTimeline, type SleepStage } from '../../../lib/biometrics/ouraSleepTimeline';
 import { SleepMovementRow } from './SleepMovementRow';
 import { SleepStageSummary } from './SleepStageSummary';
 import type { OuraHealthHubData } from './types';
 import { OuraContextSection } from './OuraContextSection';
+import { NightSignalChart } from './NightSignalChart';
 
 const STAGE_HEIGHT: Record<SleepStage, string> = {
   awake: '100%',
@@ -50,6 +51,23 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
   });
   const averageHeartRate = average(data.nightDetails?.heartRate.map((point) => point.bpm) ?? []);
   const averageHrv = average(data.nightDetails?.hrv.map((point) => point.hrv) ?? []);
+  const heartRatePoints = (data.nightDetails?.heartRate ?? []).map((point) => ({
+    ts: point.ts,
+    value: point.bpm,
+  }));
+  const hrvPoints = (data.nightDetails?.hrv ?? []).map((point) => ({
+    ts: point.ts,
+    value: point.hrv,
+  }));
+  const lowestHeartRate = enhanced?.sleep_lowest_heart_rate
+    ?? heartRatePoints.reduce<number | null>(
+      (lowest, point) => point.value == null ? lowest : Math.min(lowest ?? point.value, point.value),
+      null,
+    );
+  const maximumHrv = hrvPoints.reduce<number | null>(
+    (highest, point) => point.value == null ? highest : Math.max(highest ?? point.value, point.value),
+    null,
+  );
 
   return (
     <div className="space-y-5">
@@ -114,18 +132,28 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
         </div>
       </section>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <article className="rounded-xl border border-white/5 bg-surface-2 p-5">
-          <HeartPulse className="text-danger" size={22} />
-          <p className="mt-8 text-sm text-text-secondary">Średnie tętno podczas snu</p>
-          <p className="mt-2 text-3xl font-light text-white">{averageHeartRate == null ? 'Brak danych' : `${averageHeartRate} bpm`}</p>
-        </article>
-        <article className="rounded-xl border border-white/5 bg-surface-2 p-5">
-          <Activity className="text-info" size={22} />
-          <p className="mt-8 text-sm text-text-secondary">Średnie HRV podczas snu</p>
-          <p className="mt-2 text-3xl font-light text-white">{averageHrv == null ? 'Brak danych' : `${averageHrv} ms`}</p>
-        </article>
-      </div>
+      <NightSignalChart
+        ariaLabel="Przebieg tętna podczas snu"
+        average={enhanced?.sleep_average_heart_rate == null
+          ? averageHeartRate
+          : Math.round(enhanced.sleep_average_heart_rate)}
+        averageLabel="Średnie tętno"
+        colorClass="text-white"
+        points={heartRatePoints}
+        summary={lowestHeartRate == null ? 'Minimum niedostępne' : `Najniższe ${Math.round(lowestHeartRate)} bpm`}
+        title="Tętno podczas snu"
+        unit="bpm"
+      />
+      <NightSignalChart
+        ariaLabel="Przebieg HRV podczas snu"
+        average={enhanced?.sleep_average_hrv == null ? averageHrv : Math.round(enhanced.sleep_average_hrv)}
+        averageLabel="Średnie HRV"
+        colorClass="text-info"
+        points={hrvPoints}
+        summary={maximumHrv == null ? 'Maksimum niedostępne' : `Maks. ${Math.round(maximumHrv)} ms`}
+        title="Zmienność tętna"
+        unit="ms"
+      />
       <OuraContextSection context={data.nightContext ?? data.context} />
     </div>
   );

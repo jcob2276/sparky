@@ -75,4 +75,42 @@ describe('SleepDetailView', () => {
     ).toBeInTheDocument();
     expect(screen.queryByText('Brak danych o ruchu dla tej nocy')).not.toBeInTheDocument();
   });
+
+  it('shows measured heart-rate and HRV timelines with source summaries', () => {
+    render(
+      <SleepDetailView
+        data={{
+          ...referenceNight,
+          enhanced: {
+            ...referenceNight.enhanced,
+            sleep_average_heart_rate: 52.5,
+            sleep_lowest_heart_rate: 47,
+            sleep_average_hrv: 60,
+          } as OuraHealthHubData['enhanced'],
+          nightDetails: {
+            date: '2026-07-28',
+            phases: [],
+            heartRate: [
+              { ts: '2026-07-28T00:00:00+02:00', bpm: 55 },
+              { ts: '2026-07-28T04:00:00+02:00', bpm: 47 },
+              { ts: '2026-07-28T08:00:00+02:00', bpm: 52 },
+            ],
+            hrv: [
+              { ts: '2026-07-28T00:00:00+02:00', hrv: 58 },
+              { ts: '2026-07-28T04:00:00+02:00', hrv: 83 },
+              { ts: '2026-07-28T08:00:00+02:00', hrv: 60 },
+            ],
+            phaseStatus: 'unavailable',
+            heartRateStatus: 'available',
+            hrvStatus: 'available',
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByRole('img', { name: 'Przebieg tętna podczas snu' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Przebieg HRV podczas snu' })).toBeInTheDocument();
+    expect(screen.getByText('Najniższe 47 bpm')).toBeInTheDocument();
+    expect(screen.getByText('Maks. 83 ms')).toBeInTheDocument();
+  });
 });
