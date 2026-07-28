@@ -34,6 +34,14 @@ Example guarded claim:
 
 Acceptance checks:
 
+- Daily summary, enhanced metrics, and timelines must resolve to the same Oura date
+  or sleep episode. Never choose each source's fallback row independently.
+- Sleep phase, movement, HR, and HRV charts render measured timeline rows only.
+  Missing timelines show a named unavailable state instead of synthetic points.
+- Bedtime labels and intermediate axis labels derive from the measured night
+  interval. They must not use fixed example hours.
+- Material differences between the measured phase duration and stored night
+  interval remain visible with the affected date.
 - If `oura_hr_zones_daily` has no rows, show "Brak stref HR" and do not render an empty chart.
 - If correlations are unavailable, show that the view/data is missing.
 - If `n_dni < 60`, show the sample size warning.
