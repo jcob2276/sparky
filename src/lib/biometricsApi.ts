@@ -236,12 +236,11 @@ export function useOuraNightDetails(
   });
 }
 
-export function useOuraContext(userId: string, sleepDate: string | null, bedtimeStart: string | null) {
+export function useOuraContext(userId: string, contextDate: string | null, bedtimeStart: string | null) {
   return useQuery({
-    queryKey: biometricsKeys.ouraContext(userId, sleepDate ?? ''),
+    queryKey: biometricsKeys.ouraContext(userId, contextDate ?? ''),
     queryFn: async () => {
-      if (!sleepDate) return null;
-      const contextDate = shiftDateStr(sleepDate, -1);
+      if (!contextDate) return null;
       const [phoneResult, workoutResult, foodResult] = await Promise.all([
         supabase
           .from('phone_usage_daily')
@@ -268,14 +267,14 @@ export function useOuraContext(userId: string, sleepDate: string | null, bedtime
       if (foodResult.error) console.warn('[useOuraContext] food:', foodResult.error.message);
 
       return buildOuraContextInsights({
-        sleepDate,
+        sleepDate: contextDate,
         bedtimeStart,
         phoneUsage: phoneResult.data,
         workouts: workoutResult.data ?? [],
         foodEntries: foodResult.data ?? [],
       });
     },
-    enabled: !!userId && !!sleepDate,
+    enabled: !!userId && !!contextDate,
     staleTime: 1000 * 60 * 15,
   });
 }

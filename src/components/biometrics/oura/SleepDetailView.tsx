@@ -126,7 +126,7 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
           <p className="mt-2 text-3xl font-light text-white">{averageHrv == null ? 'Brak danych' : `${averageHrv} ms`}</p>
         </article>
       </div>
-      <OuraContextSection context={data.context} />
+      <OuraContextSection context={data.nightContext ?? data.context} />
     </div>
   );
 }

@@ -86,7 +86,7 @@ export function OuraTodayView({ data, onOpenSleep }: OuraTodayViewProps) {
           <p className="mt-2 text-sm text-text-muted">Napięcie / regeneracja</p>
         </article>
       </div>
-      <OuraContextSection context={data.context} />
+      <OuraContextSection context={data.todayContext ?? data.context} title="Kontekst dnia" />
     </div>
   );
 }

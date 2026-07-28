@@ -21,5 +21,7 @@ export interface OuraHealthHubData {
   externalVo2Source?: string | null;
   nightDetails?: OuraNightDetails | null;
   context?: OuraContextInsights | null;
+  todayContext?: OuraContextInsights | null;
+  nightContext?: OuraContextInsights | null;
 }
 

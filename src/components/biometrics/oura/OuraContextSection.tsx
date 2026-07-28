@@ -3,9 +3,13 @@ import type { OuraContextInsights } from '../../../lib/biometrics/ouraContextIns
 
 interface OuraContextSectionProps {
   context: OuraContextInsights | null | undefined;
+  title?: string;
 }
 
-export function OuraContextSection({ context }: OuraContextSectionProps) {
+export function OuraContextSection({
+  context,
+  title = 'Kontekst przed snem',
+}: OuraContextSectionProps) {
   if (!context) {
     return (
       <section className="rounded-xl border border-white/5 bg-surface-2 p-5">
@@ -63,7 +67,7 @@ export function OuraContextSection({ context }: OuraContextSectionProps) {
   return (
     <section className="space-y-3">
       <div>
-        <h2 className="text-2xl font-light text-white">Kontekst przed snem</h2>
+        <h2 className="text-2xl font-light text-white">{title}</h2>
         <p className="mt-1 text-sm text-text-muted">
           Fakty z dnia poprzedzającego sen {context.date}. To kontekst, nie dowód przyczynowości.
         </p>

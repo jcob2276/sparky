@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { buildOuraContextInsights } from '../../../lib/biometrics/ouraContextInsights';
 import { OuraHealthView } from './OuraHealthView';
 import type { OuraHealthHubData } from './types';
 
@@ -74,5 +75,39 @@ describe('OuraHealthView', () => {
     );
 
     expect(screen.getByText('Brak wyniku gotowości dla tego dnia')).toBeInTheDocument();
+  });
+  it('shows current-day caffeine on Dzisiaj instead of the previous-night context', () => {
+    const todayContext = buildOuraContextInsights({
+      sleepDate: '2026-07-28',
+      bedtimeStart: null,
+      phoneUsage: null,
+      workouts: [],
+      foodEntries: [{
+        name: 'Kawa domowa',
+        calories: 5,
+        food_quality_score: null,
+        logged_at: '2026-07-28T11:44:00+02:00',
+      }],
+    });
+    const nightContext = buildOuraContextInsights({
+      sleepDate: '2026-07-28',
+      bedtimeStart: '2026-07-27T23:31:00+02:00',
+      phoneUsage: null,
+      workouts: [],
+      foodEntries: [],
+    });
+
+    render(
+      <OuraHealthView
+        activeSection="today"
+        data={{ ...data, todayContext, nightContext } as OuraHealthHubData}
+        onOpenSleep={vi.fn()}
+        onSectionChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('heading', { name: 'Kontekst dnia' })).toBeInTheDocument();
+    expect(screen.getByText('95 mg')).toBeInTheDocument();
+    expect(screen.queryByText('Nie zapisano kofeiny')).not.toBeInTheDocument();
   });
 });

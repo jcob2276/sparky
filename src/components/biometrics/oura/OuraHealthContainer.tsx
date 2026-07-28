@@ -6,6 +6,7 @@ import {
   useOuraHistory30Days,
   useOuraNightDetails,
 } from '../../../lib/biometricsApi';
+import { shiftDateStr } from '../../../lib/date';
 import { useUserId } from '../../../store/useStore';
 import { OuraHealthView, type OuraSection } from './OuraHealthView';
 
@@ -22,9 +23,15 @@ export function OuraHealthContainer() {
     dailyQuery.data?.enhanced?.bedtime_start ?? null,
     dailyQuery.data?.enhanced?.bedtime_end ?? null,
   );
-  const contextQuery = useOuraContext(
+  const selectedDate = dailyQuery.data?.date ?? null;
+  const todayContextQuery = useOuraContext(
     userId ?? '',
-    dailyQuery.data?.date ?? null,
+    selectedDate,
+    null,
+  );
+  const nightContextQuery = useOuraContext(
+    userId ?? '',
+    selectedDate ? shiftDateStr(selectedDate, -1) : null,
     dailyQuery.data?.enhanced?.bedtime_start ?? null,
   );
 
@@ -43,14 +50,15 @@ export function OuraHealthContainer() {
     garminVo2Max: dailyQuery.data?.garminVo2Max ?? null,
     externalVo2Source: dailyQuery.data?.externalVo2Source ?? null,
     nightDetails: nightQuery.data ?? null,
-    context: contextQuery.data ?? null,
+    todayContext: todayContextQuery.data ?? null,
+    nightContext: nightContextQuery.data ?? null,
   };
 
   return (
     <OuraHealthView
       activeSection={activeSection}
       data={data}
-      isLoading={dailyQuery.isLoading || historyQuery.isLoading || nightQuery.isLoading || contextQuery.isLoading}
+      isLoading={dailyQuery.isLoading || historyQuery.isLoading || nightQuery.isLoading || todayContextQuery.isLoading || nightContextQuery.isLoading}
       onExit={() => navigate(-1)}
       onOpenSleep={() => setSleepOpen(true)}
       onSectionChange={setActiveSection}
