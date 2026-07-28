@@ -3,6 +3,7 @@ import { buildSleepTimeline, type SleepStage } from '../../../lib/biometrics/our
 import { SleepMovementRow } from './SleepMovementRow';
 import { SleepStageSummary } from './SleepStageSummary';
 import type { OuraHealthHubData } from './types';
+import { OuraContextSection } from './OuraContextSection';
 
 const STAGE_HEIGHT: Record<SleepStage, string> = {
   awake: '100%',
@@ -13,9 +14,9 @@ const STAGE_HEIGHT: Record<SleepStage, string> = {
 
 const STAGE_COLOR: Record<SleepStage, string> = {
   awake: 'bg-stone-100',
-  rem: 'bg-sky-300',
-  light: 'bg-sky-500',
-  deep: 'bg-sky-800',
+  rem: 'bg-info/35',
+  light: 'bg-info/70',
+  deep: 'bg-info',
 };
 
 const duration = (hours: number) => {
@@ -53,18 +54,18 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
   return (
     <div className="space-y-5">
       <header className="px-1">
-        <p className="text-sm text-slate-500">{data.date ?? 'Brak wybranej daty'}</p>
+        <p className="text-sm text-text-muted">{data.date ?? 'Brak wybranej daty'}</p>
         <h1 className="mt-2 text-4xl font-light text-white">Szczegółowe dane</h1>
       </header>
 
-      <section className="overflow-hidden rounded-[34px] border border-white/5 bg-white/[0.045]">
+      <section className="overflow-hidden rounded-xl border border-white/5 bg-surface-2">
         <div className="p-6">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Czas snu</p>
-            <Moon className="text-emerald-300" size={22} />
+            <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Czas snu</p>
+            <Moon className="text-success" size={22} />
           </div>
           <p className="mt-3 text-5xl font-light tracking-tight text-white">{duration(totalSleepHours)}</p>
-          <p className="mt-3 text-sm text-slate-400">
+          <p className="mt-3 text-sm text-text-secondary">
             Całkowity czas trwania {timeInBedHours > 0 ? duration(timeInBedHours) : 'Brak danych'}
           </p>
         </div>
@@ -81,14 +82,14 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
               }}
             />
           )) : (
-            <div className="grid h-full place-items-center px-5 text-center text-sm text-slate-500">
+            <div className="grid h-full place-items-center px-5 text-center text-sm text-text-muted">
               Brak szczegółowego przebiegu faz dla tej nocy
             </div>
           )}
         </div>
 
         {timeline.axisLabels.length > 0 && (
-          <div className="flex justify-between px-5 py-3 text-xs text-slate-400">
+          <div className="flex justify-between px-5 py-3 text-xs text-text-secondary">
             {timeline.axisLabels.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}
           </div>
         )}
@@ -114,17 +115,18 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
       </section>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <article className="rounded-[28px] border border-white/5 bg-white/[0.045] p-5">
-          <HeartPulse className="text-rose-300" size={22} />
-          <p className="mt-8 text-sm text-slate-400">Średnie tętno podczas snu</p>
+        <article className="rounded-xl border border-white/5 bg-surface-2 p-5">
+          <HeartPulse className="text-danger" size={22} />
+          <p className="mt-8 text-sm text-text-secondary">Średnie tętno podczas snu</p>
           <p className="mt-2 text-3xl font-light text-white">{averageHeartRate == null ? 'Brak danych' : `${averageHeartRate} bpm`}</p>
         </article>
-        <article className="rounded-[28px] border border-white/5 bg-white/[0.045] p-5">
-          <Activity className="text-sky-300" size={22} />
-          <p className="mt-8 text-sm text-slate-400">Średnie HRV podczas snu</p>
+        <article className="rounded-xl border border-white/5 bg-surface-2 p-5">
+          <Activity className="text-info" size={22} />
+          <p className="mt-8 text-sm text-text-secondary">Średnie HRV podczas snu</p>
           <p className="mt-2 text-3xl font-light text-white">{averageHrv == null ? 'Brak danych' : `${averageHrv} ms`}</p>
         </article>
       </div>
+      <OuraContextSection context={data.context} />
     </div>
   );
 }

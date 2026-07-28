@@ -22,9 +22,9 @@ export function SleepStageSummary({
 }: SleepStageSummaryProps) {
   const rows = [
     { label: 'Stan czuwania', minutes: awakeMinutes, color: 'bg-stone-100', percent: null },
-    { label: 'REM', minutes: remMinutes, color: 'bg-sky-300', percent: Math.round(remMinutes / totalSleepMinutes * 100) },
-    { label: 'Płytki', minutes: lightMinutes, color: 'bg-sky-500', percent: Math.round(lightMinutes / totalSleepMinutes * 100) },
-    { label: 'Głęboki', minutes: deepMinutes, color: 'bg-sky-800', percent: Math.round(deepMinutes / totalSleepMinutes * 100) },
+    { label: 'REM', minutes: remMinutes, color: 'bg-info/35', percent: Math.round(remMinutes / totalSleepMinutes * 100) },
+    { label: 'Płytki', minutes: lightMinutes, color: 'bg-info/70', percent: Math.round(lightMinutes / totalSleepMinutes * 100) },
+    { label: 'Głęboki', minutes: deepMinutes, color: 'bg-info', percent: Math.round(deepMinutes / totalSleepMinutes * 100) },
   ];
 
   return (
@@ -34,7 +34,7 @@ export function SleepStageSummary({
         return (
           <div key={label} className="flex items-center gap-3">
             <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${color}`} />
-            <p className="flex-1 text-sm text-slate-200">{text}</p>
+            <p className="flex-1 text-sm text-text-primary">{text}</p>
             <div className="h-2 w-24 overflow-hidden rounded-full bg-white/5 sm:w-36">
               <div
                 className={`h-full rounded-full ${color}`}

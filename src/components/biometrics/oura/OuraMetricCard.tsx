@@ -27,14 +27,14 @@ export function OuraMetricCard({
   const Tag = onClick ? 'button' : 'article';
   return (
     <Tag
-      className="group min-h-44 w-full rounded-[28px] border border-white/5 bg-white/[0.045] p-5 text-left transition-[transform,background-color] duration-200 active:scale-[0.98]"
+      className="group min-h-44 w-full rounded-xl border border-white/5 bg-surface-2 p-5 text-left transition-transform duration-200 active:scale-95"
       onClick={onClick}
       type={onClick ? 'button' : undefined}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm text-slate-300">{label}</p>
-          {status && <p className="mt-1 text-xs text-slate-500">{status}</p>}
+          <p className="text-sm text-text-secondary">{label}</p>
+          {status && <p className="mt-1 text-xs text-text-muted">{status}</p>}
         </div>
         <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${ACCENTS[accent]}`}>
           <Icon size={19} strokeWidth={1.8} />

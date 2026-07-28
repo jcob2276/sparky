@@ -14,31 +14,31 @@ export function OuraLongTermView({ data }: { data: OuraHealthHubData }) {
   const hrvAverage = average(recent.map((day) => day.hrv_avg));
   const calibrating = recent.length < 7;
   const areas = [
-    { icon: Moon, label: 'Zdrowie snu', value: sleepAverage, color: 'text-emerald-300' },
-    { icon: Sparkles, label: 'Regeneracja', value: readinessAverage, color: 'text-sky-300' },
-    { icon: HeartPulse, label: 'Zdrowie serca', value: hrvAverage, suffix: ' ms', color: 'text-rose-300' },
+    { icon: Moon, label: 'Zdrowie snu', value: sleepAverage, color: 'text-success' },
+    { icon: Sparkles, label: 'Regeneracja', value: readinessAverage, color: 'text-info' },
+    { icon: HeartPulse, label: 'Zdrowie serca', value: hrvAverage, suffix: ' ms', color: 'text-danger' },
   ];
 
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-sm text-slate-500">Perspektywa długoterminowa</p>
+        <p className="text-sm text-text-muted">Perspektywa długoterminowa</p>
         <h2 className="mt-1 text-3xl font-light text-white">Moje zdrowie</h2>
       </header>
-      <section className="overflow-hidden rounded-[34px] border border-white/5 bg-gradient-to-br from-sky-950 via-slate-900 to-emerald-950/60 p-6">
-        <TrendingUp className="text-sky-300" size={26} />
+      <section className="overflow-hidden rounded-xl border border-white/5 bg-surface-1 p-6">
+        <TrendingUp className="text-info" size={26} />
         <h3 className="mt-8 text-2xl font-light text-white">
           {calibrating ? 'Trwa kalibracja' : 'Twój obraz z ostatnich 14 dni'}
         </h3>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+        <p className="mt-2 max-w-xl text-sm leading-6 text-text-secondary">
           Dostępne dni: {recent.length}/14. Oceny powstają wyłącznie z zapisanych pomiarów.
         </p>
       </section>
       <div className="grid gap-3 sm:grid-cols-3">
         {areas.map(({ color, icon: Icon, label, suffix = '', value }) => (
-          <article key={label} className="min-h-48 rounded-[28px] border border-white/5 bg-white/[0.045] p-5">
+          <article key={label} className="min-h-48 rounded-xl border border-white/5 bg-surface-2 p-5">
             <Icon className={color} size={23} />
-            <p className="mt-10 text-sm text-slate-400">{label}</p>
+            <p className="mt-10 text-sm text-text-secondary">{label}</p>
             <p className="mt-2 text-3xl font-light text-white">
               {value == null ? 'Kalibracja' : `${value}${suffix}`}
             </p>

@@ -14,13 +14,13 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
   return (
     <div className="space-y-7">
       <header>
-        <p className="text-sm text-slate-500">{data.date ?? 'Ostatni dostępny dzień'}</p>
+        <p className="text-sm text-text-muted">{data.date ?? 'Ostatni dostępny dzień'}</p>
         <h2 className="mt-1 text-3xl font-light text-white">Parametry życiowe</h2>
       </header>
 
       <section className="space-y-3">
-        <h3 className="flex items-center gap-2 text-xl font-light text-slate-200">
-          <Activity size={20} className="text-sky-300" /> Gotowość
+        <h3 className="flex items-center gap-2 text-xl font-light text-text-primary">
+          <Activity size={20} className="text-info" /> Gotowość
         </h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <OuraMetricCard accent="blue" icon={Gauge} label="Wynik gotowości" status="Bieżący wynik" value={value(data.oura?.readiness_score)} />
@@ -29,8 +29,8 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
       </section>
 
       <section className="space-y-3">
-        <h3 className="flex items-center gap-2 text-xl font-light text-slate-200">
-          <Moon size={20} className="text-emerald-300" /> Sen
+        <h3 className="flex items-center gap-2 text-xl font-light text-text-primary">
+          <Moon size={20} className="text-success" /> Sen
         </h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <OuraMetricCard accent="green" icon={Moon} label="Wynik snu" status="Szczegóły nocy" value={value(data.enhanced?.sleep_score ?? data.oura?.sleep_score)} onClick={onOpenSleep} />
@@ -39,8 +39,8 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
       </section>
 
       <section className="space-y-3">
-        <h3 className="flex items-center gap-2 text-xl font-light text-slate-200">
-          <HeartPulse size={20} className="text-rose-300" /> Metryki podstawowe
+        <h3 className="flex items-center gap-2 text-xl font-light text-text-primary">
+          <HeartPulse size={20} className="text-danger" /> Metryki podstawowe
         </h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <OuraMetricCard accent="purple" icon={Thermometer} label="Odchylenie temperatury" value={data.enhanced?.temperature_deviation == null ? 'Brak danych' : `${data.enhanced.temperature_deviation > 0 ? '+' : ''}${data.enhanced.temperature_deviation.toFixed(2)}°C`} />

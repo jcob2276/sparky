@@ -35,6 +35,7 @@ describe('SleepDetailView', () => {
     expect(screen.getByText('REM 41 min 9%')).toBeInTheDocument();
     expect(screen.getByText('Płytki 5 h 19 min 69%')).toBeInTheDocument();
     expect(screen.getByText('Głęboki 1 h 41 min 22%')).toBeInTheDocument();
+    expect(screen.getByText('Kontekst przed snem')).toBeInTheDocument();
   });
 
   it('surfaces a material mismatch between the phase timeline and night interval', () => {
