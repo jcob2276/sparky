@@ -17,6 +17,21 @@
   --color-warning: #d7b96d;
   --color-danger: #e4878e;
   --primary: #9d8bd3;
+  --border: rgb(255 255 255 / 8%);
+  --color-background: #0b0c0f;
+  --color-surface: #17181c;
+  --color-surface-solid: #1b1d22;
+  --color-surface-1: #17181c;
+  --color-surface-2: #22242a;
+  --color-surface-3: #2a2d34;
+  --color-surface-tonal: #172b37;
+  --color-surface-tonal-strong: #1e3b4a;
+  --color-text-primary: #f4f1ed;
+  --color-text-secondary: #b9b8b6;
+  --color-text-muted: #7f8389;
+  --color-text-tertiary: #696d74;
+  --color-border-custom: rgb(255 255 255 / 8%);
+  --color-primary: #9d8bd3;
   background:
     radial-gradient(circle at 50% -12%, rgb(34 83 99 / 32%), transparent 30rem),
     var(--background);
