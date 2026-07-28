@@ -111,13 +111,6 @@ public class BleProbePlugin extends Plugin {
             return;
         }
 
-        // A fresh pairing scan must not leave a stale foreground-service GATT
-        // targeting an address selected by an older detector version.
-        OuraForegroundService.stop(getContext());
-        activeDriver = null;
-        getContext().getSharedPreferences("vanguard_oura_ble", Context.MODE_PRIVATE)
-            .edit().remove("device_address").apply();
-
         Integer durationMs = call.getInt("durationMs");
         int duration = durationMs != null ? durationMs : 12000;
 
@@ -190,7 +183,20 @@ public class BleProbePlugin extends Plugin {
         OuraForegroundService.start(getContext(), address);
 
         // Build the JS-bridge callback once
-        OuraBleDriver.ConnectionCallback pluginCallback = new OuraBleDriver.ConnectionCallback() {
+        OuraBleDriver.ConnectionCallback pluginCallback = buildPluginCallback(address);
+
+        // Attach callback to service driver (the single owner of the GATT connection).
+        // If service hasn't started yet, retry once after 500ms — it's always fast.
+        attachToServiceDriver(pluginCallback, address, 0);
+
+        JSObject ret = new JSObject();
+        ret.put("connecting", true);
+        ret.put("address", address);
+        call.resolve(ret);
+    }
+
+    private OuraBleDriver.ConnectionCallback buildPluginCallback(String address) {
+        return new OuraBleDriver.ConnectionCallback() {
             @Override public void onConnected() {
                 JSObject p = new JSObject(); p.put("connected", true); p.put("address", address);
                 notifyListeners("connectionStatus", p);
@@ -216,23 +222,7 @@ public class BleProbePlugin extends Plugin {
                 notifyListeners("ouraDataUpdated", p);
                 android.util.Log.i("BleProbePlugin", "ouraDataUpdated fired for " + address);
             }
-            @Override public void onNotificationReceived(byte[] data) {
-                if (data == null) return;
-                StringBuilder sb = new StringBuilder();
-                for (byte b : data) sb.append(String.format("%02x", b));
-                JSObject p = new JSObject(); p.put("hex", sb.toString()); p.put("address", address);
-                notifyListeners("ouraBleNotification", p);
-            }
         };
-
-        // Attach callback to service driver (the single owner of the GATT connection).
-        // If service hasn't started yet, retry once after 500ms — it's always fast.
-        attachToServiceDriver(pluginCallback, address, 0);
-
-        JSObject ret = new JSObject();
-        ret.put("connecting", true);
-        ret.put("address", address);
-        call.resolve(ret);
     }
 
     private void attachToServiceDriver(OuraBleDriver.ConnectionCallback cb, String address, int attempt) {
@@ -262,34 +252,25 @@ public class BleProbePlugin extends Plugin {
             return;
         }
 
-        OuraAuthKeyStore.setPendingAdopt(getContext(), "oura:" + address, true);
+        com.noop.ble.OuraInstallKeyStore.INSTANCE.setPendingAdopt(
+            getContext(),
+            "oura:" + address,
+            true
+        );
         if (activeDriver != null) {
             activeDriver.disconnect();
             activeDriver = null;
         }
         OuraForegroundService.stop(getContext());
-        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(
-            () -> OuraForegroundService.start(getContext(), address),
-            500L
-        );
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            OuraForegroundService.start(getContext(), address);
+            attachToServiceDriver(buildPluginCallback(address), address, 0);
+        }, 500L);
 
         JSObject result = new JSObject();
         result.put("adopting", true);
         result.put("address", address);
         call.resolve(result);
-    }
-
-    @PluginMethod
-    public void fetchHistory(PluginCall call) {
-        if (activeDriver == null) {
-            call.reject("NOT_CONNECTED");
-            return;
-        }
-        long cursor = call.getInt("cursor", 0);
-        activeDriver.fetchHistory(cursor);
-        JSObject ret = new JSObject();
-        ret.put("fetching", true);
-        call.resolve(ret);
     }
 
     @PluginMethod
@@ -302,63 +283,6 @@ public class BleProbePlugin extends Plugin {
         getContext().getSharedPreferences("vanguard_oura_ble", Context.MODE_PRIVATE)
             .edit().remove("device_address").apply();
         call.resolve();
-    }
-
-    /**
-     * Query local SQLite dailyMetric rows for the active ring.
-     * JS calls this after receiving 'ouraDataUpdated' to get fresh data without
-     * hitting Supabase — the same offline-first pattern noop's WhoopRepository uses.
-     *
-     * Returns a JSON array of daily metric objects (newest first), shape:
-     *   { date, total_sleep_hours, deep_sleep_hours, rem_sleep_hours,
-     *     hrv_avg, rhr_avg, spo2_avg, temp_deviation, recovery, strain }
-     */
-    @PluginMethod
-    public void queryLocalMetrics(PluginCall call) {
-        String requestedDeviceId = call.getString("deviceId", "oura-ring");
-        String selectedAddress = getContext()
-            .getSharedPreferences("vanguard_oura_ble", Context.MODE_PRIVATE)
-            .getString("device_address", null);
-        String deviceId = OuraBleProtocol.resolveStoredDeviceId(
-            requestedDeviceId,
-            selectedAddress
-        );
-        int limit = call.getInt("limit", 90);
-        try {
-            OuraStreamStore store = new OuraStreamStore(OuraLocalDb.get(getContext()));
-            org.json.JSONArray rows = store.queryDailyMetrics(deviceId, limit);
-            JSObject ret = new JSObject();
-            ret.put("rows", rows.toString());
-            ret.put("count", rows.length());
-            call.resolve(ret);
-        } catch (Exception e) {
-            call.reject("QUERY_FAILED", e);
-        }
-    }
-
-    @PluginMethod
-    public void writeCommand(PluginCall call) {
-        String hex = call.getString("hex");
-        if (hex == null || hex.isEmpty()) {
-            call.reject("HEX_REQUIRED");
-            return;
-        }
-        if (activeDriver == null) {
-            call.reject("NOT_CONNECTED");
-            return;
-        }
-
-        int len = hex.length();
-        byte[] bytes = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            bytes[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
-                                 + Character.digit(hex.charAt(i+1), 16));
-        }
-
-        boolean ok = activeDriver.writeCommand(bytes);
-        JSObject ret = new JSObject();
-        ret.put("success", ok);
-        call.resolve(ret);
     }
 
     @Override

@@ -133,6 +133,10 @@ describe('OuraHealthView', () => {
             bedtime_start: '2026-07-26T23:00:00+02:00',
             bedtime_end: '2026-07-27T07:00:00+02:00',
           } as unknown as NonNullable<OuraHealthHubData['enhanced']>],
+          ouraHistory: [
+            { date: '2026-07-27', total_sleep_hours: 7.5 },
+            { date: '2026-07-28', total_sleep_hours: 7.5 },
+          ] as OuraHealthHubData['ouraHistory'],
         }}
         onOpenSleep={vi.fn()}
         onSectionChange={vi.fn()}
@@ -141,7 +145,8 @@ describe('OuraHealthView', () => {
 
     expect(screen.getByText('Zegar biologiczny')).toBeInTheDocument();
     expect(screen.getByText('Regularność snu')).toBeInTheDocument();
-    expect(screen.getByText('Deficyt snu')).toBeInTheDocument();
+    expect(screen.getByText('Bilans snu')).toBeInTheDocument();
+    expect(screen.getByText(/Potrzeba 16 h 0 min − sen 15 h 0 min/)).toBeInTheDocument();
     expect(screen.getByText('Wiek sercowo-naczyniowy')).toBeInTheDocument();
     expect(screen.getByText('Częstotliwość oddechu')).toBeInTheDocument();
     expect(screen.getByText('13,6/min')).toBeInTheDocument();

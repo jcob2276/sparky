@@ -10,7 +10,7 @@ interface Props {
 
 const ACCENTS: { id: AccentColor; name: string; bgClass: string; hex: string }[] = [
   { id: 'blue', name: 'Apple Blue', bgClass: 'bg-[#007AFF]', hex: '#007AFF' },
-  { id: 'emerald', name: 'Vanguard Emerald', bgClass: 'bg-[#10B981]', hex: '#10B981' },
+  { id: 'emerald', name: 'Sparky Emerald', bgClass: 'bg-[#10B981]', hex: '#10B981' },
   { id: 'amber', name: 'Cyber Amber', bgClass: 'bg-[#F59E0B]', hex: '#F59E0B' },
   { id: 'violet', name: 'Deep Violet', bgClass: 'bg-[#8B5CF6]', hex: '#8B5CF6' },
   { id: 'rose', name: 'Neon Rose', bgClass: 'bg-[#F43F5E]', hex: '#F43F5E' },

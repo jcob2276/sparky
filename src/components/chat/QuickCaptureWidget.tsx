@@ -82,7 +82,7 @@ export default function QuickCaptureWidget() {
 
     try {
       await captureEntry({ content, source: activeCategory ? `quick_${activeCategory}` : 'quick_capture_widget' });
-      notify('Wpis zapisany w Vanguard Stream', 'success');
+      notify('Wpis zapisany w Sparky', 'success');
       setOpen(false);
     } catch (err) {
       notify('Błąd zapisu wpisu', 'error');

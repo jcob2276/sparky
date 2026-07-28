@@ -22,8 +22,6 @@ export function useOuraBleSettings() {
       : 'Kliknij „Szukaj”, aby znaleźć Oura Ring'
   );
   const [currentBpm, setCurrentBpm] = useState<number | null>(null);
-  const [historySyncing, setHistorySyncing] = useState(false);
-  const [historyStatus, setHistoryStatus] = useState<string | null>(null);
   const [needsAdoption, setNeedsAdoption] = useState(false);
   const subscriptions = useRef<Array<Promise<{ remove: () => void }>>>([]);
 
@@ -68,14 +66,10 @@ export function useOuraBleSettings() {
   useEffect(() => {
     if (!isNativePlatform()) return;
     const hr = BleProbe.addListener('ouraLiveHr', (event) => {
-      if (event.bpm > 30 && event.bpm < 250) setCurrentBpm(event.bpm);
-    });
-    const history = BleProbe.addListener('ouraDataUpdated', () => {
-      setHistoryStatus('Historia zapisana lokalnie ✓');
+      if (event.bpm > 0) setCurrentBpm(event.bpm);
     });
     return () => {
       hr.then((item) => item.remove()).catch(() => {});
-      history.then((item) => item.remove()).catch(() => {});
     };
   }, []);
 
@@ -150,24 +144,11 @@ export function useOuraBleSettings() {
     setStatusMsg('Rozłączono z Oura Ring.');
   };
 
-  const fetchHistory = async () => {
-    setHistorySyncing(true);
-    setHistoryStatus('Pobieranie historii z pamięci pierścienia...');
-    try {
-      await BleProbe.fetchHistory({ cursor: 0 });
-      setHistoryStatus('Synchronizacja historii uruchomiona...');
-    } catch (error: any) {
-      setHistoryStatus(`Błąd pobierania: ${error?.message || 'Nieznany błąd'}`);
-    } finally {
-      setHistorySyncing(false);
-    }
-  };
-
   return {
     savedDevice, connectedDevice, state, devices, batteryLevel, statusMsg,
-    currentBpm, historySyncing, historyStatus, needsAdoption,
+    currentBpm, needsAdoption,
     ouraDevices: devices.filter((device) => device.ouraLike),
     otherDevices: devices.filter((device) => !device.ouraLike),
-    scan, pair, adopt, disconnect, fetchHistory,
+    scan, pair, adopt, disconnect,
   };
 }

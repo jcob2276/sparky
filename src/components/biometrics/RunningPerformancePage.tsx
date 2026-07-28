@@ -130,7 +130,7 @@ export default function RunningPerformancePage() {
           onClick={() => navigate('/dzis')}
           className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer"
         >
-          <ArrowLeft size={16} /> Powrót do Vanguard
+          <ArrowLeft size={16} /> Powrót do Sparky
         </button>
 
         <div className="flex items-center gap-2">

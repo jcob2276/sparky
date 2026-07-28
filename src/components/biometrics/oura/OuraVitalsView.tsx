@@ -30,6 +30,14 @@ function minutesValue(minutes: number | null): string {
   return hours > 0 ? `${hours} h ${rest} min` : `${rest} min`;
 }
 
+function sleepBalanceValue(minutes: number | null): string {
+  if (minutes == null) return 'Brak danych';
+  const formatted = minutesValue(Math.abs(minutes));
+  if (minutes > 0) return `${formatted} nadwyżki`;
+  if (minutes < 0) return `${formatted} długu`;
+  return 'Bilans wyrównany';
+}
+
 function ageOnDate(birthDate: string | null | undefined, date: string | null | undefined) {
   if (!birthDate || !date) return null;
   const birth = new Date(`${birthDate}T00:00:00Z`);
@@ -48,7 +56,20 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
   const insightHistory = currentInHistory || !data.enhanced
     ? enhancedHistory
     : [...enhancedHistory, data.enhanced];
-  const sleepInsights = buildOuraSleepInsights(data.enhanced ?? null, insightHistory);
+  const aggregateSleepHistory = (data.ouraHistory ?? []).map((day) => ({
+    date: day.date,
+    bedtime_start: day.bedtime_timestamp,
+    bedtime_end: day.bedtime_end_timestamp,
+    total_sleep_hours: day.total_sleep_hours,
+    readiness_contributors: null,
+    readiness_score: day.readiness_score,
+    sleep_score: day.sleep_score,
+  }));
+  const sleepInsights = buildOuraSleepInsights(
+    data.enhanced ?? null,
+    insightHistory,
+    aggregateSleepHistory,
+  );
   const vascularAge = data.enhanced?.vascular_age;
   const chronologicalAge = ageOnDate(data.birthDateStr, data.date);
   const vascularAgeDelta = vascularAge == null || chronologicalAge == null
@@ -57,7 +78,7 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
   const circadianOffset = sleepInsights.circadianOffsetMinutes;
   const circadianStatus = circadianOffset == null
     ? 'Potrzeba co najmniej 2 nocy'
-    : `${circadianOffset >= 0 ? '+' : '−'}${Math.abs(circadianOffset)} min od rytmu`;
+    : `${circadianOffset >= 0 ? '+' : '−'}${Math.abs(circadianOffset)} min · zmienność ${minutesValue(sleepInsights.circadianVariabilityMinutes)} · ${sleepInsights.circadianConfidence}`;
 
   return (
     <div className="space-y-7">
@@ -93,7 +114,15 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
         <div className="grid gap-3 sm:grid-cols-2">
           <OuraMetricCard accent="blue" icon={AlarmClock} label="Zegar biologiczny" status={circadianStatus} value={sleepInsights.circadianStatus ?? 'Kalibracja'} />
           <OuraMetricCard accent="green" icon={CalendarCheck} label="Regularność snu" status="Pomiar Oura" value={value(sleepInsights.regularityScore)} />
-          <OuraMetricCard accent="orange" icon={Hourglass} label="Deficyt snu" status={sleepInsights.sleepDebtDays > 0 ? `Suma z ${sleepInsights.sleepDebtDays} dni względem 8 h` : 'Potrzeba danych historycznych'} value={minutesValue(sleepInsights.sleepDebtMinutes)} />
+          <OuraMetricCard
+            accent="orange"
+            icon={Hourglass}
+            label="Bilans snu"
+            status={sleepInsights.sleepDebtDays > 0
+              ? `${sleepInsights.sleepDebtDays} nocy · cel ${minutesValue(sleepInsights.personalNeedMinutes)} (${sleepInsights.personalNeedSource === 'personal' ? 'osobisty' : 'typowy'}) · Potrzeba ${minutesValue(sleepInsights.totalNeededMinutes)} − sen ${minutesValue(sleepInsights.totalSleptMinutes)}`
+              : 'Potrzeba danych historycznych'}
+            value={sleepBalanceValue(sleepInsights.sleepBalanceMinutes)}
+          />
         </div>
       </section>
 

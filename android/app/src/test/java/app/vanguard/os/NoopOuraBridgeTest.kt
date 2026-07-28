@@ -111,4 +111,27 @@ class NoopOuraBridgeTest {
         assertEquals(listOf(1, 2, 3, 0), drained.events.map { it.payload["phase"] })
         assertEquals(listOf(1_699_999_990), drained.events.map { it.ts }.distinct())
     }
+
+    @Test
+    fun productionKeepsEachNoopSleepPhaseAsItsOwnBufferedBatch() {
+        val bridge = NoopOuraBridge(IntArray(16))
+        val epoch = 1_700_000_000L
+        val timeSync = byteArrayOf(
+            0x42, 0x0d,
+            0xe8.toByte(), 0x03, 0x00, 0x00,
+            *ByteArray(8) { ((epoch ushr (8 * it)) and 0xff).toByte() },
+            0x00,
+        )
+        bridge.ingestNotificationBatches(timeSync, 1_800_000_000)
+
+        val sleep = byteArrayOf(
+            0x4e, 0x06,
+            0x84.toByte(), 0x03, 0x00, 0x00,
+            0x00, 0x6c,
+        )
+        val batches = bridge.ingestNotificationBatches(sleep, 1_800_000_000)
+
+        assertEquals(4, batches.size)
+        assertEquals(listOf(1, 2, 3, 0), batches.map { it.events.single().payload["phase"] })
+    }
 }

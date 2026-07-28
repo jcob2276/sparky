@@ -15,8 +15,8 @@ function pwaPlugin(): PluginOption {
     },
     includeAssets: ['favicon.png', 'favicon.svg', 'apple-touch-icon.png', 'icons.svg'],
     manifest: {
-      name: 'Vanguard',
-      short_name: 'Vanguard',
+      name: 'Sparky',
+      short_name: 'Sparky',
       description: 'Elite performance, discipline and identity tracking system',
       // Must match .dark --background in src/index.css — manifest.json/build config
       // can't read CSS custom properties, so this is kept in sync by hand.

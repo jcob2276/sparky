@@ -1,7 +1,7 @@
 interface BrandTitleProps { className?: string; }
 
 export function BrandTitle({ className = '' }: BrandTitleProps) {
-  const word = 'Vanguard';
+  const word = 'Sparky';
   const body = word.slice(0, -1);
   const last = word.slice(-1);
   return (

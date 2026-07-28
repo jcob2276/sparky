@@ -26,6 +26,7 @@ class NoopOuraBridge(
     data class SecureResult(
         val commands: List<ByteArray> = emptyList(),
         val streams: Streams = Streams(),
+        val streamBatches: List<Streams> = emptyList(),
         val liveBpm: Int? = null,
         val liveIbiMs: Int? = null,
         val streaming: Boolean = false,
@@ -54,13 +55,22 @@ class NoopOuraBridge(
 
     fun ingestNotification(fragment: ByteArray, arrivalUnixSeconds: Int): Streams {
         val out = Streams()
+        ingestNotificationBatches(fragment, arrivalUnixSeconds).forEach(out::append)
+        return out
+    }
+
+    fun ingestNotificationBatches(
+        fragment: ByteArray,
+        arrivalUnixSeconds: Int,
+    ): List<Streams> {
+        val out = ArrayList<Streams>()
         for (record in reassembler.feed(fragment)) {
             for (event in driver.ingest(record)) {
                 when (event) {
                     is OuraEvent.Hr,
                     is OuraEvent.Ibi,
                     is OuraEvent.Battery ->
-                        out.append(OuraStreamMapping.streams(listOf(event)) { arrivalUnixSeconds })
+                        out.add(OuraStreamMapping.streams(listOf(event)) { arrivalUnixSeconds })
 
                     is OuraEvent.Temp -> {
                         if (event.value.celsius in 20.0..45.0) {
@@ -76,11 +86,11 @@ class NoopOuraBridge(
                     is OuraEvent.TimeSyncEvent -> {
                         val events = ArrayList(pending)
                         pending.clear()
-                        out.append(
-                            OuraStreamMapping.streams(events) { ringTimestamp ->
+                        events.forEach { pendingEvent ->
+                            out.add(OuraStreamMapping.streams(listOf(pendingEvent)) { ringTimestamp ->
                                 driver.unixSeconds(ringTimestamp)?.toInt() ?: arrivalUnixSeconds
-                            },
-                        )
+                            })
+                        }
                     }
                     else -> Unit
                 }
@@ -89,12 +99,16 @@ class NoopOuraBridge(
         return out
     }
 
-    private fun appendAnchoredOrPark(out: Streams, event: OuraEvent, ringTimestamp: Long) {
+    private fun appendAnchoredOrPark(
+        out: MutableList<Streams>,
+        event: OuraEvent,
+        ringTimestamp: Long,
+    ) {
         val timestamp = driver.unixSeconds(ringTimestamp)?.toInt()
         if (timestamp == null) {
             pending.add(event)
         } else {
-            out.append(OuraStreamMapping.streams(listOf(event)) { timestamp })
+            out.add(OuraStreamMapping.streams(listOf(event)) { timestamp })
         }
     }
 
@@ -105,10 +119,18 @@ class NoopOuraBridge(
     }
 
     fun drainAtTeardown(arrivalUnixSeconds: Int): Streams {
+        val out = Streams()
+        drainAtTeardownBatches(arrivalUnixSeconds).forEach(out::append)
+        return out
+    }
+
+    fun drainAtTeardownBatches(arrivalUnixSeconds: Int): List<Streams> {
         val events = ArrayList(pending)
         pending.clear()
-        return OuraStreamMapping.streams(events) { ringTimestamp ->
-            driver.unixSeconds(ringTimestamp)?.toInt() ?: arrivalUnixSeconds
+        return events.map { event ->
+            OuraStreamMapping.streams(listOf(event)) { ringTimestamp ->
+                driver.unixSeconds(ringTimestamp)?.toInt() ?: arrivalUnixSeconds
+            }
         }
     }
 
@@ -126,6 +148,7 @@ class NoopOuraBridge(
         val secure = OuraFraming.parseSecureFrame(outer) ?: return SecureResult()
         var commands = emptyList<ByteArray>()
         var streams = Streams()
+        var streamBatches = emptyList<Streams>()
         var bpm: Int? = null
         var ibi: Int? = null
         when (val routed = driver.handleSecureFrame(secure)) {
@@ -137,7 +160,10 @@ class NoopOuraBridge(
                 commands = driver.nextStep(OuraTransition.EnableAckReceived).toByteArrays()
             is OuraDriver.SecureRouting.LiveHRPush -> {
                 val events = driver.ingestLiveHRPush(routed.body)
-                streams = OuraStreamMapping.streams(events) { arrivalUnixSeconds }
+                streamBatches = events.map { event ->
+                    OuraStreamMapping.streams(listOf(event)) { arrivalUnixSeconds }
+                }
+                streamBatches.forEach(streams::append)
                 bpm = (events.firstOrNull { it is OuraEvent.Hr } as? OuraEvent.Hr)?.value?.bpm
                 ibi = (events.firstOrNull { it is OuraEvent.Ibi } as? OuraEvent.Ibi)?.value?.ibiMs
             }
@@ -146,6 +172,7 @@ class NoopOuraBridge(
         return SecureResult(
             commands = commands,
             streams = streams,
+            streamBatches = streamBatches,
             liveBpm = bpm,
             liveIbiMs = ibi,
             streaming = driver.phase == OuraDriverPhase.Streaming,
@@ -164,9 +191,6 @@ class NoopOuraBridge(
 
     fun reengageLiveHrCommands(): List<ByteArray> =
         driver.reengageLiveHRCommands().toByteArrays()
-
-    fun disableLiveHrCommand(): ByteArray =
-        OuraCommands.liveHRDisable().bytes.toByteArray()
 
     fun batteryCommand(): ByteArray =
         OuraCommands.getBattery().bytes.toByteArray()

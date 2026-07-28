@@ -170,7 +170,7 @@ interface NutritionSectionParams {
 export function renderNutritionSection({ dayFood, dayNutrition, foodError }: NutritionSectionParams): string {
   let md = '';
   if (dayFood.length > 0) {
-    md += `### 🥗 Dieta (Vanguard)\n`;
+    md += `### 🥗 Dieta (Sparky)\n`;
     const meals = { breakfast: 'Śniadanie', lunch: 'Obiad', dinner: 'Kolacja', snack: 'Przekąski' };
 
     Object.entries(meals).forEach(([key, label]) => {
@@ -213,7 +213,7 @@ export function renderNutritionSection({ dayFood, dayNutrition, foodError }: Nut
     md += `\n**Suma dnia: ${totalCal} kcal | B: ${totalProt.toFixed(1)}g | W: ${totalCarb.toFixed(1)}g | T: ${totalFat.toFixed(1)}g${fiberSugarStr ? ' | ' + fiberSugarStr : ''}**\n`;
     md += `_Gęstość białka: ${proteinDensity}g / 100 kcal | IL_est: ${totalIL.toFixed(1)} — ${ilLabel}_\n\n`;
   } else if (dayNutrition) {
-    md += `### 🥗 Dieta (Vanguard)\n`;
+    md += `### 🥗 Dieta (Sparky)\n`;
     md += foodError
       ? `Nie udało się pobrać szczegółowych produktów z \`daily_food_entries\`: ${foodError.message}\n\n`
       : `Brak szczegółowych produktów w \`daily_food_entries\`, ale dzienna suma makro jest zapisana.\n\n`;

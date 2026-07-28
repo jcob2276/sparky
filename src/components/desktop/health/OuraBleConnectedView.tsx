@@ -6,9 +6,6 @@ interface Props {
   savedDevice: { address: string; name: string } | null;
   batteryLevel: number | null;
   currentBpm: number | null;
-  historySyncing: boolean;
-  historyStatus: string | null;
-  onFetchHistory: () => void;
   onDisconnect: () => void;
 }
 
@@ -17,9 +14,6 @@ export function OuraBleConnectedView({
   savedDevice,
   batteryLevel,
   currentBpm,
-  historySyncing,
-  historyStatus,
-  onFetchHistory,
   onDisconnect,
 }: Props) {
   return (
@@ -75,21 +69,10 @@ export function OuraBleConnectedView({
       </div>
 
       <div className="rounded-xl border border-white/10 bg-black/30 p-3 space-y-2">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-white">Dane z nocy (HRV, sen, temperatura, SpO₂)</p>
-            <p className="text-3xs text-slate-400">Pobieranie z pamięci pierścienia</p>
-          </div>
-          <button
-            type="button"
-            onClick={onFetchHistory}
-            disabled={historySyncing}
-            className="px-3 py-1.5 rounded-lg text-2xs font-extrabold bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 transition-all disabled:opacity-50"
-          >
-            {historySyncing ? 'Pobieranie...' : 'Pobierz historię'}
-          </button>
-        </div>
-        {historyStatus && <p className="text-3xs text-teal-400/90 font-mono pt-1">{historyStatus}</p>}
+        <p className="text-xs font-bold text-white">Dane z nocy (HRV, sen, temperatura, SpO₂)</p>
+        <p className="text-3xs text-slate-400">
+          Historia synchronizuje się automatycznie po połączeniu i co 15 minut.
+        </p>
       </div>
 
       <button

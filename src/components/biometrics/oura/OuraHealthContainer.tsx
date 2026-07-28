@@ -7,6 +7,7 @@ import {
   useOuraNightDetails,
 } from '../../../lib/biometricsApi';
 import { shiftDateStr } from '../../../lib/date';
+import { useCorrelationsQuery } from '../../../lib/correlationsApi';
 import { useUserId } from '../../../store/useStore';
 import { OuraHealthView, type OuraSection } from './OuraHealthView';
 
@@ -17,6 +18,7 @@ export function OuraHealthContainer() {
   const [sleepOpen, setSleepOpen] = useState(false);
   const dailyQuery = useDailyStrainOura(userId ?? '');
   const historyQuery = useOuraHistory30Days(userId ?? '');
+  const correlationsQuery = useCorrelationsQuery(userId, false);
   const nightQuery = useOuraNightDetails(
     userId ?? '',
     dailyQuery.data?.date ?? null,
@@ -52,6 +54,7 @@ export function OuraHealthContainer() {
     nightDetails: nightQuery.data ?? null,
     todayContext: todayContextQuery.data ?? null,
     nightContext: nightContextQuery.data ?? null,
+    correlations: correlationsQuery.data ?? null,
   };
 
   return (

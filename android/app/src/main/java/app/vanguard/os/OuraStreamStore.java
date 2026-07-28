@@ -1,174 +1,113 @@
 package app.vanguard.os;
 
-import android.content.ContentValues;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.util.Log;
+import android.database.sqlite.SQLiteStatement;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.noop.data.BatteryRow;
+import com.noop.data.EventEntry;
+import com.noop.data.HrRow;
+import com.noop.data.RrRow;
+import com.noop.data.SkinTempRow;
+import com.noop.data.Spo2Row;
+import com.noop.data.StreamBatch;
 
 /**
- * Write + read facade over {@link OuraLocalDb}.
- *
- * Mirrors noop's StreamStore.swift / WhoopRepository insert path:
- *   - Every insert uses INSERT OR IGNORE (= ON CONFLICT DO NOTHING).
- *   - Natural keys are the same as noop's Room entities in Entities.kt.
- *   - dailyMetric is upserted field-by-field so a partial BLE payload
- *     (e.g. temp-only) NEVER overwrites a previously recorded avgHrv/sleep
- *     with NULL — the exact bug we had with Supabase upsert.
- *
- * Thread-safety: SQLiteDatabase under WAL allows concurrent reads alongside
- * the single writer. All write calls must come from one thread at a time
- * (the BLE callback thread is already serialised by the GATT handler).
+ * SQLite adapter for NOOP's WhoopRepository.insert(StreamBatch, deviceId).
+ * The decoded batch and all natural-key conflict rules come directly from NOOP.
  */
-public class OuraStreamStore {
-
-    private static final String TAG = "OuraStreamStore";
-
-    // ── Event kind constants (mirror noop OuraStreamMapping) ───────────────
-    public static final String KIND_SLEEP_PHASE = "OURA_SLEEP_PHASE";
-    public static final String KIND_HRV         = "OURA_HRV";
-    public static final String KIND_MOTION      = "OURA_MOTION";
-    public static final String KIND_STATE       = "OURA_STATE";
-    public static final String KIND_WEAR        = "OURA_WEAR";
-    public static final String KIND_DEBUG       = "OURA_DEBUG";
-
+public final class OuraStreamStore {
     private final OuraLocalDb dbHelper;
 
     public OuraStreamStore(OuraLocalDb dbHelper) {
         this.dbHelper = dbHelper;
     }
 
-    // ── HR sample — INSERT OR IGNORE (PK: deviceId, ts) ───────────────────
+    public boolean insert(StreamBatch batch, String deviceId) {
+        if (batch == null || deviceId == null) return false;
+        boolean hasRows = !batch.getHr().isEmpty()
+            || !batch.getRr().isEmpty()
+            || !batch.getEvents().isEmpty()
+            || !batch.getBattery().isEmpty()
+            || !batch.getSpo2().isEmpty()
+            || !batch.getSkinTemp().isEmpty();
+        if (!hasRows) return false;
 
-    public void insertHr(String deviceId, long ts, int bpm) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.execSQL(
-            "INSERT OR IGNORE INTO hrSample (deviceId, ts, bpm) VALUES (?, ?, ?)",
-            new Object[]{deviceId, ts, bpm}
-        );
-    }
-
-    // ── R-R interval — INSERT OR IGNORE (PK: deviceId, ts, rrMs) ──────────
-
-    public void insertRr(String deviceId, long ts, int rrMs) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.execSQL(
-            "INSERT OR IGNORE INTO rrInterval (deviceId, ts, rrMs) VALUES (?, ?, ?)",
-            new Object[]{deviceId, ts, rrMs}
-        );
-    }
-
-    // ── Typed event — INSERT OR IGNORE (PK: deviceId, ts, kind) ──────────
-
-    /** payloadJSON must be deterministic sorted-keys JSON (mirror noop StreamPersistence.encodePayload). */
-    public void insertEvent(String deviceId, long ts, String kind, String payloadJSON) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.execSQL(
-            "INSERT OR IGNORE INTO event (deviceId, ts, kind, payloadJSON) VALUES (?, ?, ?, ?)",
-            new Object[]{deviceId, ts, kind, payloadJSON}
-        );
-    }
-
-    // ── SpO2 — INSERT OR IGNORE (PK: deviceId, ts) ────────────────────────
-
-    /** red = Oura's decoded SpO2 value; ir = 0 (single-channel, mirror noop OuraStreamMapping). */
-    public void insertSpo2(String deviceId, long ts, int red, int ir) {
-        insertSpo2(deviceId, ts, red, ir, "raw_adc");
-    }
-
-    public void insertSpo2(String deviceId, long ts, int red, int ir, String unit) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.execSQL(
-            "INSERT OR IGNORE INTO spo2Sample (deviceId, ts, red, ir, unit) VALUES (?, ?, ?, ?, ?)",
-            new Object[]{deviceId, ts, red, ir, unit}
-        );
-    }
-
-    // ── Skin temp — INSERT OR IGNORE (PK: deviceId, ts) ───────────────────
-
-    /** raw = celsius * 100 (centi-°C), matching noop SkinTempSample convention. */
-    public void insertSkinTemp(String deviceId, long ts, int centiCelsius) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.execSQL(
-            "INSERT OR IGNORE INTO skinTempSample (deviceId, ts, raw) VALUES (?, ?, ?)",
-            new Object[]{deviceId, ts, centiCelsius}
-        );
-    }
-
-    // ── Reads ──────────────────────────────────────────────────────────────
-
-    /**
-     * Returns daily metrics for a device, newest first, up to {@code limit} days.
-     * JSON shape mirrors the Supabase oura_daily_summary columns so the JS layer
-     * can treat both sources identically.
-     */
-    public JSONArray queryDailyMetrics(String deviceId, int limit) {
-        JSONArray out = new JSONArray();
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor c = db.rawQuery(
-            "SELECT day, totalSleepMin, deepMin, remMin, lightMin, restingHr, avgHrv," +
-            "       spo2Pct, skinTempDevC, respRateBpm, recovery, strain" +
-            "  FROM dailyMetric" +
-            " WHERE deviceId = ?" +
-            " ORDER BY day DESC" +
-            " LIMIT ?",
-            new String[]{deviceId, String.valueOf(limit)}
-        );
+        boolean inserted = false;
+        db.beginTransaction();
         try {
-            while (c.moveToNext()) {
-                JSONObject row = new JSONObject();
-                row.put("date",              c.getString(0));
-                row.put("total_sleep_hours", nullOrDouble(c, 1, 1.0 / 60.0));  // min → hours
-                row.put("deep_sleep_hours",  nullOrDouble(c, 2, 1.0 / 60.0));
-                row.put("rem_sleep_hours",   nullOrDouble(c, 3, 1.0 / 60.0));
-                row.put("light_sleep_hours", nullOrDouble(c, 4, 1.0 / 60.0));
-                row.put("rhr_avg",           nullOrInt(c, 5));
-                row.put("hrv_avg",           nullOrDouble(c, 6, 1.0));
-                row.put("spo2_avg",          nullOrDouble(c, 7, 1.0));
-                row.put("temp_deviation",    nullOrDouble(c, 8, 1.0));
-                row.put("resp_rate",         nullOrDouble(c, 9, 1.0));
-                row.put("recovery",          nullOrDouble(c, 10, 1.0));
-                row.put("strain",            nullOrDouble(c, 11, 1.0));
-                out.put(row);
+            SQLiteStatement hr = db.compileStatement(
+                "INSERT OR IGNORE INTO hrSample (deviceId, ts, bpm) VALUES (?, ?, ?)");
+            for (HrRow row : batch.getHr()) {
+                hr.clearBindings();
+                hr.bindString(1, deviceId);
+                hr.bindLong(2, row.getTs());
+                hr.bindLong(3, row.getBpm());
+                inserted = hr.executeInsert() != -1L || inserted;
             }
-        } catch (Exception e) {
-            Log.e(TAG, "queryDailyMetrics failed", e);
+
+            SQLiteStatement rr = db.compileStatement(
+                "INSERT OR IGNORE INTO rrInterval (deviceId, ts, rrMs) VALUES (?, ?, ?)");
+            for (RrRow row : batch.getRr()) {
+                rr.clearBindings();
+                rr.bindString(1, deviceId);
+                rr.bindLong(2, row.getTs());
+                rr.bindLong(3, row.getRrMs());
+                inserted = rr.executeInsert() != -1L || inserted;
+            }
+
+            SQLiteStatement event = db.compileStatement(
+                "INSERT OR IGNORE INTO event (deviceId, ts, kind, payloadJSON) VALUES (?, ?, ?, ?)");
+            for (EventEntry row : batch.getEvents()) {
+                event.clearBindings();
+                event.bindString(1, deviceId);
+                event.bindLong(2, row.getTs());
+                event.bindString(3, row.getKind());
+                event.bindString(4, row.getPayloadJSON());
+                inserted = event.executeInsert() != -1L || inserted;
+            }
+
+            SQLiteStatement battery = db.compileStatement(
+                "INSERT OR IGNORE INTO battery " +
+                "(deviceId, ts, soc, mv, charging) VALUES (?, ?, ?, ?, ?)");
+            for (BatteryRow row : batch.getBattery()) {
+                battery.clearBindings();
+                battery.bindString(1, deviceId);
+                battery.bindLong(2, row.getTs());
+                if (row.getSoc() == null) battery.bindNull(3);
+                else battery.bindDouble(3, row.getSoc());
+                if (row.getMv() == null) battery.bindNull(4);
+                else battery.bindLong(4, row.getMv());
+                if (row.getCharging() == null) battery.bindNull(5);
+                else battery.bindLong(5, row.getCharging() ? 1L : 0L);
+                inserted = battery.executeInsert() != -1L || inserted;
+            }
+
+            SQLiteStatement spo2 = db.compileStatement(
+                "INSERT OR IGNORE INTO spo2Sample (deviceId, ts, red, ir) VALUES (?, ?, ?, ?)");
+            for (Spo2Row row : batch.getSpo2()) {
+                spo2.clearBindings();
+                spo2.bindString(1, deviceId);
+                spo2.bindLong(2, row.getTs());
+                spo2.bindLong(3, row.getRed());
+                spo2.bindLong(4, row.getIr());
+                inserted = spo2.executeInsert() != -1L || inserted;
+            }
+
+            SQLiteStatement skinTemp = db.compileStatement(
+                "INSERT OR IGNORE INTO skinTempSample (deviceId, ts, raw) VALUES (?, ?, ?)");
+            for (SkinTempRow row : batch.getSkinTemp()) {
+                skinTemp.clearBindings();
+                skinTemp.bindString(1, deviceId);
+                skinTemp.bindLong(2, row.getTs());
+                skinTemp.bindLong(3, row.getRaw());
+                inserted = skinTemp.executeInsert() != -1L || inserted;
+            }
+
+            db.setTransactionSuccessful();
+            return inserted;
         } finally {
-            c.close();
+            db.endTransaction();
         }
-        return out;
-    }
-
-    /**
-     * Returns the count of HR samples in the last 24 hours for diagnostics.
-     */
-    public int hrSampleCount(String deviceId, long sinceTs) {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor c = db.rawQuery(
-            "SELECT COUNT(*) FROM hrSample WHERE deviceId = ? AND ts >= ?",
-            new String[]{deviceId, String.valueOf(sinceTs)}
-        );
-        try {
-            return c.moveToFirst() ? c.getInt(0) : 0;
-        } finally {
-            c.close();
-        }
-    }
-
-    // ── Helpers ────────────────────────────────────────────────────────────
-
-    private static Object nullOrDouble(Cursor c, int col, double multiplier) {
-        if (c.isNull(col)) return JSONObject.NULL;
-        return c.getDouble(col) * multiplier;
-    }
-
-    private static Object nullOrInt(Cursor c, int col) {
-        if (c.isNull(col)) return JSONObject.NULL;
-        return c.getInt(col);
     }
 }

@@ -72,7 +72,7 @@ public class TelemetryForegroundService extends Service {
         );
 
         return new NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Vanguard OS")
+            .setContentTitle("Sparky")
             .setContentText("Direct BLE & Telemetry Sync Aktywny w Tle")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)

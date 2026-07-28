@@ -5,7 +5,7 @@ import { Pressable } from '../ui/ControlPrimitives';
 import './workspaceToolsLauncher.css';
 
 const TOOLS = [
-  { id: 'dzis', label: 'Vanguard', icon: Sparkles },
+  { id: 'dzis', label: 'Sparky', icon: Sparkles },
   { id: 'keep', label: 'Notatki', icon: StickyNote },
   { id: 'todo', label: 'Zadania', icon: ListTodo },
   { id: 'kalendarz', label: 'Kalendarz', icon: Calendar },

@@ -30,7 +30,7 @@ export function BorderBeamGallery() {
 
         <Card variant="glass" className="relative overflow-hidden p-6">
           <BorderBeam size={180} duration={6} colorFrom="var(--color-success)" colorTo="var(--color-info)" />
-          <h4 className="text-sm font-bold text-text-primary">Aktywny status Vanguard</h4>
+          <h4 className="text-sm font-bold text-text-primary">Aktywny status Sparky</h4>
           <p className="mt-1 text-xs text-text-muted">
             Szybki promień z zielono-cyjanowym gradientem dla alertów i odzyskiwania.
           </p>

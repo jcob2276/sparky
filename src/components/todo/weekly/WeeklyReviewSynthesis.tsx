@@ -57,7 +57,7 @@ export default function WeeklyReviewSynthesis() {
         <ControlTextarea
           value={weeklyNote}
           onChange={(e) => setWeeklyNote(e.target.value)}
-          placeholder="Zapisz refleksje, np. 'Wyczyściłem 15 zaległych zadań, przełożyłem 3 projekty. W kolejnym tygodniu skupiam się na wdrożeniach Vanguard.'"
+          placeholder="Zapisz refleksje, np. 'Wyczyściłem 15 zaległych zadań, przełożyłem 3 projekty. W kolejnym tygodniu skupiam się na wdrożeniach Sparky.'"
           rows={4}
           className="w-full bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/60 rounded-xl px-3 py-2 text-sm font-semibold text-text-primary placeholder:text-text-muted/30 focus:border-primary/50 outline-none transition-colors resize-none"
         />

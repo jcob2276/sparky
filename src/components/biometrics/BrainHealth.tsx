@@ -35,7 +35,7 @@ export default function BrainHealth() {
     <Card variant="glass" className="border border-border-custom space-y-4" padding="1.25rem">
       <div className="flex items-center justify-between">
         <h4 className="text-xs font-black text-text-primary uppercase tracking-widest flex items-center gap-2">
-          <Brain size={14} className="text-primary" /> Vanguard Brain Health
+          <Brain size={14} className="text-primary" /> Sparky Brain Health
         </h4>
         <Button
           onClick={() => void queryClient.invalidateQueries({ queryKey: ['brain-health', userId] })}

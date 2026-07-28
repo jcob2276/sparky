@@ -16,8 +16,6 @@ import android.util.Log;
  *   event         PK (deviceId, ts, kind)   — OURA_SLEEP_PHASE, OURA_HRV
  *   spo2Sample    PK (deviceId, ts)         — SpO2 raw ADC
  *   skinTempSample PK (deviceId, ts)        — skin temp (centi-°C)
- *   sleepSession  PK (deviceId, startTs)    — nightly sleep block
- *   dailyMetric   PK (deviceId, day)        — per-day aggregates (YYYY-MM-DD)
  *
  * All ts values are wall-clock unix SECONDS (long).
  * INSERT OR IGNORE on the PK = ON CONFLICT DO NOTHING (noop parity).
@@ -27,7 +25,7 @@ public class OuraLocalDb extends SQLiteOpenHelper {
 
     private static final String TAG = "OuraLocalDb";
     private static final String DB_NAME = "vanguard_oura.db";
-    private static final int DB_VERSION = 4;
+    private static final int DB_VERSION = 5;
 
     // ── Singleton ──────────────────────────────────────────────────────────
 
@@ -68,25 +66,64 @@ public class OuraLocalDb extends SQLiteOpenHelper {
 
     /** Idempotent — adds any column that may be missing from older DB files. */
     private static void addMissingColumns(SQLiteDatabase db) {
-        android.database.Cursor cur = db.rawQuery("PRAGMA table_info(dailyMetric)", null);
-        java.util.Set<String> existing = new java.util.HashSet<>();
-        while (cur.moveToNext()) existing.add(cur.getString(1));
-        cur.close();
-        if (!existing.contains("steps")) {
-            db.execSQL("ALTER TABLE dailyMetric ADD COLUMN steps INTEGER");
-            Log.i("OuraLocalDb", "Migration: added steps column to dailyMetric");
+        addColumnIfMissing(db, "hrSample", "synced", "INTEGER NOT NULL DEFAULT 0");
+        addColumnIfMissing(db, "rrInterval", "synced", "INTEGER NOT NULL DEFAULT 0");
+        addColumnIfMissing(db, "event", "synced", "INTEGER NOT NULL DEFAULT 0");
+        addColumnIfMissing(db, "spo2Sample", "synced", "INTEGER NOT NULL DEFAULT 0");
+        addColumnIfMissing(db, "skinTempSample", "synced", "INTEGER NOT NULL DEFAULT 0");
+        removeLegacySpo2UnitColumn(db);
+    }
+
+    private static void addColumnIfMissing(
+        SQLiteDatabase db,
+        String table,
+        String column,
+        String declaration
+    ) {
+        android.database.Cursor cursor = db.rawQuery("PRAGMA table_info(" + table + ")", null);
+        boolean present = false;
+        while (cursor.moveToNext()) {
+            if (column.equals(cursor.getString(1))) {
+                present = true;
+                break;
+            }
         }
-        if (!existing.contains("skinTempMeanC")) {
-            db.execSQL("ALTER TABLE dailyMetric ADD COLUMN skinTempMeanC REAL");
-            Log.i("OuraLocalDb", "Migration: added skinTempMeanC column to dailyMetric");
+        cursor.close();
+        if (!present) db.execSQL(
+            "ALTER TABLE " + table + " ADD COLUMN " + column + " " + declaration
+        );
+    }
+
+    private static void removeLegacySpo2UnitColumn(SQLiteDatabase db) {
+        android.database.Cursor cursor = db.rawQuery("PRAGMA table_info(spo2Sample)", null);
+        boolean hasLegacyUnit = false;
+        while (cursor.moveToNext()) {
+            if ("unit".equals(cursor.getString(1))) {
+                hasLegacyUnit = true;
+                break;
+            }
         }
-        android.database.Cursor spo2 = db.rawQuery("PRAGMA table_info(spo2Sample)", null);
-        java.util.Set<String> spo2Columns = new java.util.HashSet<>();
-        while (spo2.moveToNext()) spo2Columns.add(spo2.getString(1));
-        spo2.close();
-        if (!spo2Columns.contains("unit")) {
-            db.execSQL("ALTER TABLE spo2Sample ADD COLUMN unit TEXT NOT NULL DEFAULT 'raw_adc'");
-            Log.i("OuraLocalDb", "Migration: added unit column to spo2Sample");
+        cursor.close();
+        if (!hasLegacyUnit) return;
+
+        boolean ownsTransaction = !db.inTransaction();
+        if (ownsTransaction) db.beginTransaction();
+        try {
+            db.execSQL(
+                "CREATE TABLE spo2Sample_noop (" +
+                "deviceId TEXT NOT NULL, ts INTEGER NOT NULL, red INTEGER NOT NULL, " +
+                "ir INTEGER NOT NULL, synced INTEGER NOT NULL DEFAULT 0, " +
+                "PRIMARY KEY (deviceId, ts))"
+            );
+            db.execSQL(
+                "INSERT OR IGNORE INTO spo2Sample_noop (deviceId, ts, red, ir, synced) " +
+                "SELECT deviceId, ts, red, ir, synced FROM spo2Sample"
+            );
+            db.execSQL("DROP TABLE spo2Sample");
+            db.execSQL("ALTER TABLE spo2Sample_noop RENAME TO spo2Sample");
+            if (ownsTransaction) db.setTransactionSuccessful();
+        } finally {
+            if (ownsTransaction) db.endTransaction();
         }
     }
 
@@ -109,6 +146,7 @@ public class OuraLocalDb extends SQLiteOpenHelper {
             "  deviceId TEXT NOT NULL," +
             "  ts       INTEGER NOT NULL," +
             "  bpm      INTEGER NOT NULL," +
+            "  synced   INTEGER NOT NULL DEFAULT 0," +
             "  PRIMARY KEY (deviceId, ts)" +
             ")"
         );
@@ -117,6 +155,7 @@ public class OuraLocalDb extends SQLiteOpenHelper {
             "  deviceId TEXT NOT NULL," +
             "  ts       INTEGER NOT NULL," +
             "  rrMs     INTEGER NOT NULL," +
+            "  synced   INTEGER NOT NULL DEFAULT 0," +
             "  PRIMARY KEY (deviceId, ts, rrMs)" +
             ")"
         );
@@ -126,7 +165,19 @@ public class OuraLocalDb extends SQLiteOpenHelper {
             "  ts          INTEGER NOT NULL," +
             "  kind        TEXT NOT NULL," +
             "  payloadJSON TEXT NOT NULL," +
+            "  synced      INTEGER NOT NULL DEFAULT 0," +
             "  PRIMARY KEY (deviceId, ts, kind)" +
+            ")"
+        );
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS battery (" +
+            "  deviceId TEXT NOT NULL," +
+            "  ts       INTEGER NOT NULL," +
+            "  soc      REAL," +
+            "  mv       INTEGER," +
+            "  charging INTEGER," +
+            "  synced   INTEGER NOT NULL DEFAULT 0," +
+            "  PRIMARY KEY (deviceId, ts)" +
             ")"
         );
         db.execSQL(
@@ -135,7 +186,7 @@ public class OuraLocalDb extends SQLiteOpenHelper {
             "  ts       INTEGER NOT NULL," +
             "  red      INTEGER NOT NULL," +
             "  ir       INTEGER NOT NULL," +
-            "  unit     TEXT NOT NULL DEFAULT 'raw_adc'," +
+            "  synced   INTEGER NOT NULL DEFAULT 0," +
             "  PRIMARY KEY (deviceId, ts)" +
             ")"
         );
@@ -144,42 +195,8 @@ public class OuraLocalDb extends SQLiteOpenHelper {
             "  deviceId TEXT NOT NULL," +
             "  ts       INTEGER NOT NULL," +
             "  raw      INTEGER NOT NULL," +
+            "  synced   INTEGER NOT NULL DEFAULT 0," +
             "  PRIMARY KEY (deviceId, ts)" +
-            ")"
-        );
-        db.execSQL(
-            "CREATE TABLE IF NOT EXISTS sleepSession (" +
-            "  deviceId    TEXT NOT NULL," +
-            "  startTs     INTEGER NOT NULL," +
-            "  endTs       INTEGER NOT NULL," +
-            "  efficiency  REAL," +
-            "  restingHr   INTEGER," +
-            "  avgHrv      REAL," +
-            "  stagesJSON  TEXT," +
-            "  PRIMARY KEY (deviceId, startTs)" +
-            ")"
-        );
-        db.execSQL(
-            "CREATE TABLE IF NOT EXISTS dailyMetric (" +
-            "  deviceId      TEXT NOT NULL," +
-            "  day           TEXT NOT NULL," +
-            "  totalSleepMin REAL," +
-            "  efficiency    REAL," +
-            "  deepMin       REAL," +
-            "  remMin        REAL," +
-            "  lightMin      REAL," +
-            "  disturbances  INTEGER," +
-            "  restingHr     INTEGER," +
-            "  avgHrv        REAL," +
-            "  recovery      REAL," +
-            "  strain        REAL," +
-            "  exerciseCount INTEGER," +
-            "  spo2Pct       REAL," +
-            "  skinTempDevC  REAL," +
-            "  skinTempMeanC REAL," +
-            "  respRateBpm   REAL," +
-            "  steps         INTEGER," +
-            "  PRIMARY KEY (deviceId, day)" +
             ")"
         );
     }

@@ -23,22 +23,14 @@ export default function OuraRingHeaderBadge() {
       }
     });
 
-    // Listen to notification events for battery (0d 06 XX...)
-    const subNotif = BleProbe.addListener('ouraBleNotification', (evt) => {
-      const hex = (evt.hex || '').toLowerCase();
-      if (hex.startsWith('0d') && hex.length >= 6) {
-        // Frame: 0d (op) + 06 (len) + XX (battery pct at byte 2)
-        const pct = parseInt(hex.slice(4, 6), 16);
-        if (!isNaN(pct) && pct <= 100) {
-          setBatteryLevel(pct);
-          setIsConnected(true);
-        }
-      }
+    const subBattery = BleProbe.addListener('ouraBattery', (evt) => {
+      setBatteryLevel(evt.percent);
+      setIsConnected(true);
     });
 
     // Listen to live HR events (Daytime HR 1Hz)
     const subHr = BleProbe.addListener('ouraLiveHr', (evt) => {
-      if (evt.bpm && evt.bpm > 30 && evt.bpm < 250) {
+      if (evt.bpm > 0) {
         setLiveBpm(evt.bpm);
         setIsConnected(true);
       }
@@ -46,7 +38,7 @@ export default function OuraRingHeaderBadge() {
 
     return () => {
       subConn.then((s) => s.remove()).catch(() => {});
-      subNotif.then((s) => s.remove()).catch(() => {});
+      subBattery.then((s) => s.remove()).catch(() => {});
       subHr.then((s) => s.remove()).catch(() => {});
     };
   }, []);

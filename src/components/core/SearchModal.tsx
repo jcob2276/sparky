@@ -97,7 +97,7 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
           onChange={(event) => { setQuery(event.target.value); setActiveIndex(0); }}
           onKeyDown={handleKeyDown}
           placeholder="Szukaj albo wpisz, co chcesz zrobić…"
-          aria-label="Centrum komend Vanguard"
+          aria-label="Centrum komend Sparky"
           className="flex-1 bg-transparent text-base font-semibold text-text-primary outline-none placeholder:text-text-muted"
         />
         {loading ? <Spinner size="sm" /> : (

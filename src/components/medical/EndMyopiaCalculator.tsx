@@ -322,7 +322,7 @@ export default function EndMyopiaCalculator() {
               <ArrowLeft size={18} />
             </Link>
             <div>
-              <h1 className="text-base font-black uppercase tracking-tight leading-none">Vanguard Optics</h1>
+              <h1 className="text-base font-black uppercase tracking-tight leading-none">Sparky Optics</h1>
               <p className="text-xs text-text-muted mt-0.5">
                 {phase === 'calibrate' ? 'Kalibracja wymagana' : 'Wybierz oko do pomiaru'}
               </p>

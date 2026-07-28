@@ -2,6 +2,7 @@ import { Activity, BedDouble, Flame, HeartPulse, Moon, Sprout } from 'lucide-rea
 import type { OuraHealthHubData } from './types';
 import { OuraContextSection } from './OuraContextSection';
 import Button from '../../ui/Button';
+import { OuraNightExplanation } from './OuraNightExplanation';
 
 interface OuraTodayViewProps {
   data: OuraHealthHubData;
@@ -86,6 +87,7 @@ export function OuraTodayView({ data, onOpenSleep }: OuraTodayViewProps) {
           <p className="mt-2 text-sm text-text-muted">Napięcie / regeneracja</p>
         </article>
       </div>
+      <OuraNightExplanation data={data} />
       <OuraContextSection context={data.todayContext ?? data.context} title="Kontekst dnia" />
     </div>
   );

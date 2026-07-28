@@ -7,7 +7,7 @@ import { ControlInput, Pressable } from '../ui/ControlPrimitives';
 type AuthMode = 'signin' | 'signup' | 'reset';
 
 const COPY: Record<AuthMode, { title: string; subtitle: string; submit: string }> = {
-  signin: { title: 'Witaj ponownie', subtitle: 'Zaloguj się do swojego Vanguard.', submit: 'Zaloguj się' },
+  signin: { title: 'Witaj ponownie', subtitle: 'Zaloguj się do Sparky.', submit: 'Zaloguj się' },
   signup: { title: 'Utwórz konto', subtitle: 'Jedno prywatne miejsce dla Twojego systemu.', submit: 'Utwórz konto' },
   reset: { title: 'Odzyskaj dostęp', subtitle: 'Wyślemy bezpieczny link na Twój adres e-mail.', submit: 'Wyślij link' },
 };

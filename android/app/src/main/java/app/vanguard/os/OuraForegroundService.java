@@ -19,8 +19,8 @@ import androidx.core.app.NotificationCompat;
  * 24/7 Foreground Service for Vanguard Oura BLE Direct Sync.
  *
  * Keeps continuous BLE connection alive with Oura Ring overnight,
- * streaming raw R-R intervals, heart rate, and skin temperature directly
- * into native SQLite (vanguard_oura.db) for 100% offline sleep staging (noop parity).
+ * streaming NOOP-decoded R-R intervals, heart rate, and history directly
+ * into native SQLite (vanguard_oura.db).
  */
 public class OuraForegroundService extends Service {
 
@@ -48,7 +48,7 @@ public class OuraForegroundService extends Service {
         public void run() {
             if (bleDriver != null) {
                 Log.d(TAG, "Background polling Oura BLE history...");
-                bleDriver.fetchHistory(0);
+                bleDriver.fetchHistory();
             }
             if (isRunning) {
                 handler.postDelayed(this, POLL_INTERVAL_MS);
@@ -99,7 +99,6 @@ public class OuraForegroundService extends Service {
         if (!isRunning) {
             isRunning = true;
             initBleDriver(macAddress);
-            handler.post(pollRunnable);
         } else if (needsDriverRestart(activeMacAddress, macAddress)) {
             Log.i(TAG, "Selected Oura address changed from " + activeMacAddress
                 + " to " + macAddress + "; replacing stale GATT target");
@@ -121,23 +120,20 @@ public class OuraForegroundService extends Service {
             @Override
             public void onConnected() {
                 Log.i(TAG, "Oura Ring connected in background service!");
+                handler.removeCallbacks(pollRunnable);
+                handler.postDelayed(pollRunnable, POLL_INTERVAL_MS);
             }
 
             @Override
             public void onDisconnected() {
-                // autoConnect=true handles reconnection automatically via Android BLE whitelist.
-                // Do NOT call connectDevice() here — that creates a second competing GATT connection
-                // (the root cause of status=147 / multiple-thread auth race).
-                Log.i(TAG, "Oura Ring disconnected — autoConnect will restore connection automatically.");
+                handler.removeCallbacks(pollRunnable);
+                Log.i(TAG, "Oura Ring disconnected; the NOOP reconnect loop owns recovery.");
             }
 
             @Override
             public void onError(String error) {
                 Log.e(TAG, "BLE Service Error: " + error);
             }
-
-            @Override
-            public void onNotificationReceived(byte[] data) {}
 
             @Override
             public void onLiveHrReceived(int bpm, int ibiMs) {}

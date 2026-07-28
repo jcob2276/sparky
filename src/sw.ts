@@ -18,7 +18,7 @@ precacheAndRoute(self.__WB_MANIFEST);
 self.addEventListener('push', (event) => {
   try {
     const data = event.data ? event.data.json() : {};
-    const title = data.title || 'Vanguard';
+    const title = data.title || 'Sparky';
     const options = {
       body: data.body || '',
       icon: '/favicon.png',

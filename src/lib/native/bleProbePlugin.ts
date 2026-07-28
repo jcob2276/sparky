@@ -27,10 +27,6 @@ export interface BleProbePlugin {
   connectDevice(options: { address: string }): Promise<{ connecting: boolean; address: string }>;
   adoptDevice(options: { address: string }): Promise<{ adopting: boolean; address: string }>;
   disconnectDevice(): Promise<void>;
-  writeCommand(options: { hex: string }): Promise<{ success: boolean }>;
-  fetchHistory(options?: { cursor?: number }): Promise<{ fetching: boolean }>;
-  /** Query daily metric rows from the native SQLite store (OuraLocalDb). */
-  queryLocalMetrics(options: { deviceId?: string; limit?: number }): Promise<{ rows: string; count: number }>;
   addListener(
     eventName: 'deviceFound',
     listenerFunc: (device: BleDeviceHit) => void
@@ -42,10 +38,6 @@ export interface BleProbePlugin {
   addListener(
     eventName: 'connectionStatus',
     listenerFunc: (event: { connected: boolean; address: string }) => void
-  ): Promise<{ remove: () => void }>;
-  addListener(
-    eventName: 'ouraBleNotification',
-    listenerFunc: (event: { hex: string; address: string }) => void
   ): Promise<{ remove: () => void }>;
   addListener(
     eventName: 'ouraLiveHr',

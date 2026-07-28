@@ -74,7 +74,7 @@ export function DataExportSection({
         {[
           { state: includeWorkouts, setter: setIncludeWorkouts, label: 'Trening (Siłownia/Garmin)' },
           { state: includeBody, setter: setIncludeBody, label: 'Pomiary Ciała' },
-          { state: includeNutrition, setter: setIncludeNutrition, label: 'Dieta (Vanguard)' },
+          { state: includeNutrition, setter: setIncludeNutrition, label: 'Dieta (Sparky)' },
           { state: includeJournal, setter: setIncludeJournal, label: 'Notatnik (Telegram)' },
         ].map(({ state, setter, label }) => (
 

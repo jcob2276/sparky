@@ -22,7 +22,7 @@ import { hasUsageStatsAccess, syncPhoneUsageToday } from '../../lib/native/usage
 function syncErrorMessage(code: string | undefined): string {
   switch (code) {
     case 'usage_access_denied':
-      return 'Brak dostępu do statystyk — tapnij Uprawnienia i włącz Vanguard.';
+      return 'Brak dostępu do statystyk — tapnij Uprawnienia i włącz Sparky.';
     case 'location_denied':
       return 'Brak lokalizacji — zezwól w popupie Androida.';
     case 'not_authenticated':

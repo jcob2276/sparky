@@ -51,9 +51,6 @@ export default function OuraBleSettingsPanel() {
           savedDevice={model.savedDevice}
           batteryLevel={model.batteryLevel}
           currentBpm={model.currentBpm}
-          historySyncing={model.historySyncing}
-          historyStatus={model.historyStatus}
-          onFetchHistory={model.fetchHistory}
           onDisconnect={model.disconnect}
         />
       )}

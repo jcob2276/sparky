@@ -10,12 +10,11 @@
  *
  * THIS FILE does not accumulate, aggregate, or parse raw BLE records.
  * The native path delegates decoding and persistence mapping to vendored NOOP code.
- * JS only manages: device preference, cursor persistence, connect/disconnect lifecycle.
+ * JS only manages device preference and connect/disconnect lifecycle.
  *
  * @usedBy App.tsx (setupGlobalBleSync)
  */
 
-const CURSOR_STORAGE_KEY  = 'vanguard_oura_ble_cursor';
 const BLE_MODE_KEY        = 'vanguard_oura_ble_mode_enabled';
 const DEVICE_ADDRESS_KEY  = 'vanguard_oura_device_address';
 const DEVICE_NAME_KEY     = 'vanguard_oura_device_name';
@@ -23,21 +22,6 @@ const DEVICE_MARKER_VERSION_KEY = 'vanguard_oura_device_marker_version';
 const DEVICE_MARKER_VERSION = '2';
 
 // ── Device preference ──────────────────────────────────────────────────────
-
-export function getOuraBleCursor(): number {
-  try {
-    const val = localStorage.getItem(CURSOR_STORAGE_KEY);
-    return val ? parseInt(val, 10) : 0;
-  } catch {
-    return 0;
-  }
-}
-
-export function saveOuraBleCursor(cursor: number): void {
-  try {
-    localStorage.setItem(CURSOR_STORAGE_KEY, cursor.toString());
-  } catch { /* ignore */ }
-}
 
 export function getSavedOuraDevice(): { address: string; name: string } | null {
   try {

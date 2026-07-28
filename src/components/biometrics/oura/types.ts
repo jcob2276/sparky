@@ -5,6 +5,7 @@
 import type { Tables } from '../../../lib/database.types';
 import type { OuraNightDetails } from '../../../lib/biometrics/ouraNightDetails';
 import type { OuraContextInsights } from '../../../lib/biometrics/ouraContextInsights';
+import type { CorrelationsData } from '../../../lib/correlationsApi';
 
 
 export interface OuraHealthHubData {
@@ -23,5 +24,6 @@ export interface OuraHealthHubData {
   context?: OuraContextInsights | null;
   todayContext?: OuraContextInsights | null;
   nightContext?: OuraContextInsights | null;
+  correlations?: CorrelationsData | null;
 }
 

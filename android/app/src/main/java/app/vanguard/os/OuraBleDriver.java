@@ -19,11 +19,9 @@ import com.noop.oura.GetEventsSummary;
 import com.noop.protocol.Streams;
 import com.noop.data.StreamBatch;
 import com.noop.data.StreamPersistence;
-import com.noop.data.HrRow;
-import com.noop.data.RrRow;
-import com.noop.data.Spo2Row;
-import com.noop.data.SkinTempRow;
-import com.noop.data.EventEntry;
+import com.noop.ble.OuraHistoryCursorStore;
+import com.noop.ble.OuraInstallKeyStore;
+import com.noop.oura.OuraGatt;
 
 /**
  * Oura Ring BLE GATT driver with application-level auth handshake,
@@ -42,12 +40,12 @@ import com.noop.data.EventEntry;
 public class OuraBleDriver {
     private static final String TAG = "OuraBleDriver";
 
-    public static final UUID SERVICE_UUID     = UUID.fromString(OuraBleMarkers.SERVICE_UUID);
-    public static final UUID WRITE_CHAR_UUID  = UUID.fromString("98ED0002-A541-11E4-B6A0-0002A5D5C51B");
-    public static final UUID NOTIFY_CHAR_UUID = UUID.fromString("98ED0003-A541-11E4-B6A0-0002A5D5C51B");
+    public static final UUID SERVICE_UUID     = UUID.fromString(OuraGatt.serviceUUID);
+    public static final UUID WRITE_CHAR_UUID  = UUID.fromString(OuraGatt.writeCharacteristicUUID);
+    public static final UUID NOTIFY_CHAR_UUID = UUID.fromString(OuraGatt.notifyCharacteristicUUID);
     public static final UUID CCCD_UUID        = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
 
-    public static final int MTU_GEN3 = 203;
+    public static final int MTU_GEN3 = OuraGatt.mtuGen3;
 
     private enum AuthState { IDLE, NONCE_SENT, KEY_INSTALLING, AUTHENTICATED }
     private AuthState authState = AuthState.IDLE;
@@ -61,7 +59,6 @@ public class OuraBleDriver {
         void onConnected();
         void onDisconnected();
         void onError(String message);
-        void onNotificationReceived(byte[] data);
         void onLiveHrReceived(int bpm, int ibiMs);
         default void onBatteryReceived(int percent) {}
         /** Fired once after each history-fetch flush completes (lightweight UI refresh signal). */
@@ -85,7 +82,6 @@ public class OuraBleDriver {
     private long historyCursor;
     private boolean historyFetchInProgress;
     private boolean initialHistoryRequested;
-    private android.content.SharedPreferences cursorPreferences;
     private Context appContext;
     private android.bluetooth.BluetoothDevice targetDevice;
     private boolean intentionalDisconnect;
@@ -138,38 +134,32 @@ public class OuraBleDriver {
         if (extraCallback != null) extraCallback.onDataFlushed();
     }
 
-    private void notifyRawFrame(byte[] value) {
-        if (callback != null) callback.onNotificationReceived(value);
-        if (extraCallback != null) extraCallback.onNotificationReceived(value);
+    private void persistNoopStreams(Streams streams) {
+        if (streams == null) return;
+        boolean persisted = false;
+        for (Streams buffered : persistBuffer.enqueue(streams)) {
+            persisted = persistNoopStreamsNow(buffered) || persisted;
+        }
+        if (persisted) notifyDataFlushed();
     }
 
-    private void persistNoopStreams(Streams streams) {
-        if (streamStore == null || streams == null) return;
+    private void flushNoopStreams() {
+        boolean persisted = false;
+        for (Streams buffered : persistBuffer.flush()) {
+            persisted = persistNoopStreamsNow(buffered) || persisted;
+        }
+        if (persisted) notifyDataFlushed();
+    }
+
+    private boolean persistNoopStreamsNow(Streams streams) {
+        if (streamStore == null) return false;
         StreamBatch batch = StreamPersistence.INSTANCE.toBatch(streams);
-        for (HrRow sample : batch.getHr()) {
-            streamStore.insertHr(deviceId, sample.getTs(), sample.getBpm());
-        }
-        for (RrRow sample : batch.getRr()) {
-            streamStore.insertRr(deviceId, sample.getTs(), sample.getRrMs());
-        }
-        for (Spo2Row sample : batch.getSpo2()) {
-            streamStore.insertSpo2(deviceId, sample.getTs(), sample.getRed(), sample.getIr());
-        }
-        for (SkinTempRow sample : batch.getSkinTemp()) {
-            streamStore.insertSkinTemp(deviceId, sample.getTs(), sample.getRaw());
-        }
-        for (EventEntry event : batch.getEvents()) {
-            streamStore.insertEvent(
-                deviceId,
-                event.getTs(),
-                event.getKind(),
-                event.getPayloadJSON()
-            );
-        }
+        return streamStore.insert(batch, deviceId);
     }
 
     // ── Local SQLite store (noop OuraStreamStore parity) ──────────────────
     private OuraStreamStore streamStore;
+    private final NoopOuraPersistBuffer persistBuffer = new NoopOuraPersistBuffer();
     /** device id key for this ring — set at connect time */
     private String deviceId = "oura-ring";
 
@@ -182,6 +172,13 @@ public class OuraBleDriver {
         int[] values = new int[bytes.length];
         for (int i = 0; i < bytes.length; i++) values[i] = bytes[i] & 0xff;
         return values;
+    }
+
+    private static byte[] toBytes(int[] values) {
+        if (values == null) return null;
+        byte[] bytes = new byte[values.length];
+        for (int i = 0; i < values.length; i++) bytes[i] = (byte) values[i];
+        return bytes;
     }
 
     private NoopOuraBridge createNoopProtocol() {
@@ -197,7 +194,16 @@ public class OuraBleDriver {
                 return;
             }
         }
+        stopReconnectForPairing();
         notifyError("Pierścień wymaga świadomego ponownego sparowania");
+    }
+
+    private void stopReconnectForPairing() {
+        intentionalDisconnect = true;
+        targetDevice = null;
+        failedReconnectAttempts = 0;
+        pendingInstallKey = null;
+        mainHandler.removeCallbacks(reconnectRunnable);
     }
 
     /**
@@ -207,13 +213,22 @@ public class OuraBleDriver {
     public void attachStore(Context ctx, String ringDeviceId) {
         this.streamStore = new OuraStreamStore(OuraLocalDb.get(ctx));
         this.deviceId    = ringDeviceId;
-        this.cursorPreferences = ctx.getSharedPreferences("vanguard_oura_ble", Context.MODE_PRIVATE);
-        this.historyCursor = cursorPreferences.getLong("cursor_" + ringDeviceId, 0L);
-        this.authKey = OuraAuthKeyStore.load(ctx, ringDeviceId);
-        this.adoptConsent = OuraAuthKeyStore.consumePendingAdopt(ctx, ringDeviceId);
+        this.historyCursor = OuraHistoryCursorStore.INSTANCE.read(ctx, ringDeviceId);
+        int[] noopKey = OuraInstallKeyStore.INSTANCE.load(ctx, ringDeviceId);
+        if (noopKey == null) {
+            byte[] legacyKey = OuraAuthKeyStore.load(ctx, ringDeviceId);
+            if (legacyKey != null) {
+                int[] migrated = toUnsignedInts(legacyKey);
+                if (OuraInstallKeyStore.INSTANCE.save(ctx, ringDeviceId, migrated)) {
+                    noopKey = migrated;
+                }
+            }
+        }
+        this.authKey = noopKey == null ? null : toBytes(noopKey);
+        this.adoptConsent = OuraInstallKeyStore.INSTANCE.consumePendingAdopt(ctx, ringDeviceId);
         this.noopProtocol = createNoopProtocol();
         if (adoptConsent) {
-            this.pendingInstallKey = new byte[OuraAuthKeyStore.KEY_LENGTH];
+            this.pendingInstallKey = new byte[OuraInstallKeyStore.KEY_LENGTH];
             new SecureRandom().nextBytes(this.pendingInstallKey);
         } else {
             this.pendingInstallKey = null;
@@ -236,11 +251,17 @@ public class OuraBleDriver {
     private void openGatt() {
         mainHandler.removeCallbacks(reconnectRunnable);
         if (appContext == null || targetDevice == null || intentionalDisconnect) return;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            bluetoothGatt = targetDevice.connectGatt(
-                appContext, false, gattCallback, android.bluetooth.BluetoothDevice.TRANSPORT_LE);
-        } else {
-            bluetoothGatt = targetDevice.connectGatt(appContext, false, gattCallback);
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                bluetoothGatt = targetDevice.connectGatt(
+                    appContext, false, gattCallback, android.bluetooth.BluetoothDevice.TRANSPORT_LE);
+            } else {
+                bluetoothGatt = targetDevice.connectGatt(appContext, false, gattCallback);
+            }
+        } catch (RuntimeException error) {
+            Log.e(TAG, "Failed to open Oura GATT connection", error);
+            bluetoothGatt = null;
+            notifyError("Nie udało się otworzyć połączenia BLE z pierścieniem");
         }
     }
 
@@ -249,26 +270,11 @@ public class OuraBleDriver {
         android.bluetooth.BluetoothManager bm = (android.bluetooth.BluetoothManager) ctx.getSystemService(Context.BLUETOOTH_SERVICE);
         if (bm == null || bm.getAdapter() == null) return;
         try {
-            android.bluetooth.BluetoothDevice device = null;
-            for (android.bluetooth.BluetoothDevice bonded : bm.getAdapter().getBondedDevices()) {
-                String name = bonded.getName();
-                if (name != null && name.toLowerCase(java.util.Locale.ROOT).contains("oura")) {
-                    device = bonded;
-                    if (!macAddress.equalsIgnoreCase(bonded.getAddress())) {
-                        Log.i(TAG, "Using current bonded Oura identity instead of stale saved BLE address");
-                    }
-                    break;
-                }
-            }
-            if (device == null) device = bm.getAdapter().getRemoteDevice(macAddress);
-            connectDevice(ctx, device);
+            connectDevice(ctx, bm.getAdapter().getRemoteDevice(macAddress));
         } catch (Exception e) {
             Log.e(TAG, "Failed to get remote device: " + e.getMessage());
         }
     }
-
-    private String lastPacketHex = null;
-    private long lastPacketTimeMs = 0;
 
     public void disconnect() {
         intentionalDisconnect = true;
@@ -281,14 +287,13 @@ public class OuraBleDriver {
         historyFetchInProgress = false;
         initialHistoryRequested = false;
         if (noopProtocol != null) {
-            persistNoopStreams(noopProtocol.drainAtTeardown(
+            for (Streams batch : noopProtocol.drainAtTeardownBatches(
                 (int) (System.currentTimeMillis() / 1000L)
-            ));
+            )) persistNoopStreams(batch);
             noopProtocol.reset();
         }
+        flushNoopStreams();
         mainHandler.removeCallbacks(liveHrReengage);
-        lastPacketHex = null;
-        lastPacketTimeMs = 0;
         failedReconnectAttempts = 0;
         retriedGatt133 = false;
     }
@@ -303,10 +308,9 @@ public class OuraBleDriver {
         }
     }
 
-    public void fetchHistory(long cursor) {
+    public void fetchHistory() {
         if (authState != AuthState.AUTHENTICATED) return;
         if (historyFetchInProgress) return;
-        if (cursor > historyCursor) historyCursor = cursor;
         historyFetchInProgress = true;
         Log.i(TAG, "Fetching Oura history from persisted cursor " + historyCursor);
         for (byte[] command : noopProtocol.startHistory(historyCursor)) {
@@ -333,8 +337,6 @@ public class OuraBleDriver {
                 if (noopProtocol != null) noopProtocol.reset();
                 noopProtocol = createNoopProtocol();
                 mainHandler.removeCallbacks(liveHrReengage);
-                lastPacketHex = null;
-                lastPacketTimeMs = 0;
                 gatt.discoverServices();
             } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 Log.i(TAG, "GATT disconnected (status=" + status + ")");
@@ -344,14 +346,15 @@ public class OuraBleDriver {
                 liveHrActive = false;
                 historyFetchInProgress = false;
                 if (noopProtocol != null) {
-                    persistNoopStreams(noopProtocol.drainAtTeardown(
+                    for (Streams batch : noopProtocol.drainAtTeardownBatches(
                         (int) (System.currentTimeMillis() / 1000L)
-                    ));
+                    )) persistNoopStreams(batch);
                     noopProtocol.reset();
                 }
+                flushNoopStreams();
                 mainHandler.removeCallbacks(liveHrReengage);
                 notifyDisconnected();
-                if (!intentionalDisconnect) {
+                if (OuraBleProtocol.shouldReconnect(intentionalDisconnect, targetDevice != null)) {
                     mainHandler.removeCallbacks(reconnectRunnable);
                     if (status == 133 && !retriedGatt133) {
                         retriedGatt133 = true;
@@ -359,7 +362,7 @@ public class OuraBleDriver {
                         mainHandler.postDelayed(reconnectRunnable, 1_000L);
                     } else {
                         failedReconnectAttempts++;
-                        long delay = OuraBleProtocol.reconnectDelayMs(failedReconnectAttempts);
+                        long delay = NoopOuraTransport.reconnectDelayMs(failedReconnectAttempts);
                         Log.i(TAG, "Reconnecting in " + (delay / 1000L)
                             + "s (attempt " + failedReconnectAttempts + ")");
                         mainHandler.postDelayed(reconnectRunnable, delay);
@@ -378,6 +381,7 @@ public class OuraBleDriver {
             BluetoothGattService service = gatt.getService(SERVICE_UUID);
             if (service == null) {
                 Log.e(TAG, "Oura primary service not found after discovery");
+                stopReconnectForPairing();
                 notifyError("Oura primary service missing");
                 return;
             }
@@ -416,6 +420,7 @@ public class OuraBleDriver {
                 Log.i(TAG, "Ring notifications enabled; GetAuthNonce queued: " + ok);
             } else {
                 Log.e(TAG, "CCCD write failed: " + status);
+                stopReconnectForPairing();
                 notifyError("Failed to enable notifications: " + status);
             }
         }
@@ -430,20 +435,16 @@ public class OuraBleDriver {
         private void handleFrame(byte[] value) {
             if (value == null || value.length < 2) return;
 
-            StringBuilder sb = new StringBuilder();
-            for (byte b : value) sb.append(String.format("%02x", b));
-            String hex = sb.toString();
-            lastPacketHex = hex;
-            lastPacketTimeMs = System.currentTimeMillis();
-
-            Log.i(TAG, "Notification [auth=" + authState + "]: " + hex);
-
             int op = value[0] & 0xFF;
 
             if (op == 0x0D) {
                 Integer percent = NoopOuraBridge.decodeBatteryPercent(value);
-                if (percent != null && percent >= 0 && percent <= 100) notifyBattery(percent);
-                notifyRawFrame(value);
+                if (percent != null && percent >= 0 && percent <= 100) {
+                    notifyBattery(percent);
+                    // NOOP enqueues the battery event even though OuraStreamMapping intentionally
+                    // produces no durable battery row; it still counts as one buffer batch.
+                    persistNoopStreams(new Streams());
+                }
                 return;
             }
 
@@ -457,8 +458,8 @@ public class OuraBleDriver {
                     } else {
                         historyCursor = summary.getCursor();
                     }
-                    if (cursorPreferences != null) {
-                        cursorPreferences.edit().putLong("cursor_" + deviceId, historyCursor).apply();
+                    if (appContext != null) {
+                        OuraHistoryCursorStore.INSTANCE.save(appContext, deviceId, historyCursor);
                     }
                 }
                 Log.i(TAG, "GetEventsSummary moreData=" + summary.getMoreData()
@@ -466,8 +467,7 @@ public class OuraBleDriver {
                 for (byte[] command : noopProtocol.advanceHistory(summary)) writeCommand(command);
                 if (!summary.getMoreData()) {
                     historyFetchInProgress = false;
-                    Log.i(TAG, "All Oura history pages fetched — flushing to SQLite...");
-                    notifyDataFlushed();
+                    Log.i(TAG, "All Oura history pages fetched");
                 }
                 return;
             }
@@ -477,9 +477,15 @@ public class OuraBleDriver {
                     value, (int) (System.currentTimeMillis() / 1000L)
                 );
                 for (byte[] command : result.getCommands()) writeCommand(command);
-                persistNoopStreams(result.getStreams());
-                if (result.getLiveBpm() != null && result.getLiveIbiMs() != null) {
-                    notifyLiveHr(result.getLiveBpm(), result.getLiveIbiMs());
+                for (Streams batch : result.getStreamBatches()) persistNoopStreams(batch);
+                Integer liveBpm = result.getLiveBpm();
+                Integer liveIbi = result.getLiveIbiMs();
+                boolean publishHr = liveBpm != null
+                    && OuraBleProtocol.shouldPublishLiveHr(liveBpm);
+                boolean publishIbi = liveIbi != null
+                    && OuraBleProtocol.shouldPublishLiveIbi(liveIbi);
+                if (publishHr || publishIbi) {
+                    notifyLiveHr(publishHr ? liveBpm : 0, publishIbi ? liveIbi : 0);
                 }
                 if (result.getStreaming()) {
                     boolean firstStreaming = authState != AuthState.AUTHENTICATED;
@@ -491,12 +497,13 @@ public class OuraBleDriver {
                         writeCommand(noopProtocol.batteryCommand());
                         if (!initialHistoryRequested) {
                             initialHistoryRequested = true;
-                            fetchHistory(historyCursor);
+                            fetchHistory();
                         }
                     }
                 } else if (result.getNeedsKeyInstall()) {
                     handleNeedsKeyInstall();
                 } else if (result.getAuthFailed()) {
+                    stopReconnectForPairing();
                     notifyError("Klucz aplikacji nie pasuje do tego pierścienia");
                 }
                 return;
@@ -507,7 +514,12 @@ public class OuraBleDriver {
                 Log.i(TAG, "SetAuthKey response: status=0x" + String.format("%02x", keyStatus));
                 if (keyStatus == 0x00 && authState == AuthState.KEY_INSTALLING) {
                     if (appContext == null || pendingInstallKey == null
-                        || !OuraAuthKeyStore.save(appContext, deviceId, pendingInstallKey)) {
+                        || !OuraInstallKeyStore.INSTANCE.save(
+                            appContext,
+                            deviceId,
+                            toUnsignedInts(pendingInstallKey)
+                        )) {
+                        stopReconnectForPairing();
                         notifyError("Klucz zainstalowano, ale nie udało się go bezpiecznie zapisać");
                         return;
                     }
@@ -521,21 +533,18 @@ public class OuraBleDriver {
                     }
                 } else if (keyStatus != 0x00) {
                     Log.w(TAG, "SetAuthKey rejected (status=0x" + String.format("%02x", keyStatus) + ")");
-                    if (bluetoothGatt != null && bluetoothGatt.getDevice() != null) {
-                        try { bluetoothGatt.getDevice().createBond(); } catch (Exception ignored) {}
-                    }
-                    notifyError("Pierścień zablokowany inną aplikacją. Wymagany Reset Fabryczny w apce Oura (Ustawienia -> Reset).");
+                    stopReconnectForPairing();
+                    notifyError("Pierścień nie zaakceptował klucza. Wymagane ponowne sparowanie.");
                 }
                 return;
             }
 
             if (op >= 0x41 && noopProtocol != null) {
-                persistNoopStreams(noopProtocol.ingestNotification(
+                for (Streams batch : noopProtocol.ingestNotificationBatches(
                     value, (int) (System.currentTimeMillis() / 1000L)
-                ));
+                )) persistNoopStreams(batch);
             }
 
-            notifyRawFrame(value);
         }
 
         @Override
@@ -563,13 +572,26 @@ public class OuraBleDriver {
 
     private void enableNotifications(BluetoothGatt gatt) {
         BluetoothGattService service = gatt.getService(SERVICE_UUID);
-        if (service == null) return;
+        if (service == null) {
+            stopReconnectForPairing();
+            notifyError("Oura primary service missing");
+            return;
+        }
         BluetoothGattCharacteristic notifyChar = service.getCharacteristic(NOTIFY_CHAR_UUID);
-        if (notifyChar == null) return;
+        BluetoothGattCharacteristic writeChar = service.getCharacteristic(WRITE_CHAR_UUID);
+        if (notifyChar == null || writeChar == null) {
+            stopReconnectForPairing();
+            notifyError("Oura communication characteristics missing");
+            return;
+        }
 
         gatt.setCharacteristicNotification(notifyChar, true);
         BluetoothGattDescriptor descriptor = notifyChar.getDescriptor(CCCD_UUID);
-        if (descriptor == null) return;
+        if (descriptor == null) {
+            stopReconnectForPairing();
+            notifyError("Oura notification descriptor missing");
+            return;
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             gatt.writeDescriptor(descriptor, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
@@ -579,7 +601,7 @@ public class OuraBleDriver {
         }
     }
 
-    public boolean writeCommand(byte[] commandBytes) {
+    private boolean writeCommand(byte[] commandBytes) {
         if (commandBytes == null || commandBytes.length == 0) return false;
         return startGattWrite(Arrays.copyOf(commandBytes, commandBytes.length));
     }

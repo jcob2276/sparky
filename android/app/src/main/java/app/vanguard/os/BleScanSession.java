@@ -19,6 +19,7 @@ import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.JSArray;
 import com.getcapacitor.JSObject;
+import com.noop.oura.OuraGatt;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -65,7 +66,6 @@ final class BleScanSession {
         }
 
         devices.clear();
-        addBondedOuraDevices(adapter);
         callback = new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {
@@ -89,37 +89,12 @@ final class BleScanSession {
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
             .build();
         ScanFilter ouraServiceFilter = new ScanFilter.Builder()
-            .setServiceUuid(new ParcelUuid(UUID.fromString(OuraBleMarkers.SERVICE_UUID)))
+            .setServiceUuid(new ParcelUuid(UUID.fromString(OuraGatt.serviceUUID)))
             .build();
         scanner.startScan(Collections.singletonList(ouraServiceFilter), settings, callback);
 
         stopRunnable = () -> stopInternal(true);
         handler.postDelayed(stopRunnable, Math.max(3000, durationMs));
-    }
-
-    private void addBondedOuraDevices(BluetoothAdapter adapter) {
-        try {
-            for (android.bluetooth.BluetoothDevice bonded : adapter.getBondedDevices()) {
-                String name = bonded.getName();
-                String address = bonded.getAddress();
-                if (!OuraBleMarkers.isOuraName(name) || address == null) continue;
-
-                JSObject device = new JSObject();
-                device.put("address", address);
-                device.put("name", name);
-                device.put("rssi", 0);
-                device.put("ouraLike", true);
-                device.put("bonded", true);
-                devices.put(address, device);
-                android.util.Log.i(
-                    "BleScanSession",
-                    "Found bonded Oura device address=" + address + " name=" + name
-                );
-                listener.onDeviceFound(device);
-            }
-        } catch (SecurityException e) {
-            android.util.Log.w("BleScanSession", "Cannot read bonded Oura devices", e);
-        }
     }
 
     void stop() {
@@ -166,28 +141,19 @@ final class BleScanSession {
         String address = result.getDevice().getAddress();
         if (address == null) return;
 
-        String name = result.getDevice().getName();
-        if (name == null && result.getScanRecord() != null) {
-            name = result.getScanRecord().getDeviceName();
-        }
-        java.util.List<android.os.ParcelUuid> serviceUuids = result.getScanRecord() != null
-            ? result.getScanRecord().getServiceUuids()
+        String name = result.getScanRecord() != null
+            ? result.getScanRecord().getDeviceName()
             : null;
-        android.util.SparseArray<byte[]> manufacturerData = result.getScanRecord() != null
-            ? result.getScanRecord().getManufacturerSpecificData()
-            : null;
-        boolean ouraLike = OuraBleMarkers.isOuraLike(name, serviceUuids, manufacturerData);
+        if (name == null) name = result.getDevice().getName();
+        boolean ouraLike = OuraBleMarkers.isOuraName(name);
 
         // Gen 3/4 often advertises with no name — only service UUID
-        if (name == null && ouraLike) name = "Oura Ring";
         if (ouraLike) {
             android.util.Log.i(
                 "BleScanSession",
                 "Verified Oura advertisement address=" + address
                     + " name=" + name
                     + " rssi=" + result.getRssi()
-                    + " serviceUuids=" + serviceUuids
-                    + " manufacturerIds=" + manufacturerIds(manufacturerData)
             );
         }
 
@@ -199,16 +165,6 @@ final class BleScanSession {
 
         devices.put(address, device);
         listener.onDeviceFound(device);
-    }
-
-    private static String manufacturerIds(android.util.SparseArray<byte[]> data) {
-        if (data == null || data.size() == 0) return "[]";
-        StringBuilder ids = new StringBuilder("[");
-        for (int i = 0; i < data.size(); i++) {
-            if (i > 0) ids.append(',');
-            ids.append(String.format("0x%04X", data.keyAt(i)));
-        }
-        return ids.append(']').toString();
     }
 
     private BluetoothAdapter getAdapter() {
