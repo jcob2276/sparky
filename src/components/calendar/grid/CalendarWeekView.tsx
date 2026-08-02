@@ -1,7 +1,7 @@
 import { Pressable } from '../../ui/ControlPrimitives';
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { HOURS, PX_PER_HOUR, dayLabel, addDays, weekMon, formatWeekdayShort } from '../calendarHelpers';
+import { HOURS, PX_PER_HOUR, dayLabel, addDays, weekMon, formatWeekdayShort, getISOWeekNumber } from '../calendarHelpers';
 import { WMO_WEATHER_DESC, getWMOWeatherIcon } from '../CalendarWeather';
 import { renderTimeGutter, renderDayColumn, renderAllDayTodos } from './CalendarGridColumns';
 import type { CalRow } from '../calendarHelpers';
@@ -49,14 +49,21 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
     setSelectedDay(week);
   };
 
+  const currentWeekNumber = getISOWeekNumber(weekStart);
+
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="calendar-period-header flex items-center justify-between border-b border-border-custom/20 px-4 py-2">
+      <div className="calendar-period-header flex items-center justify-between border-b border-border-custom/20 px-4 py-2 select-none">
         <Pressable onClick={() => moveWeek(-7)} className="rounded-full p-2 hover:bg-surface-solid">
           <ChevronLeft size={18} className="text-text-muted" />
         </Pressable>
-        <div className="text-center">
-          <p className="text-sm font-bold text-text-primary">{dayLabel(weekStart)} – {dayLabel(addDays(weekStart, 6))}</p>
+        <div className="text-center flex flex-col items-center">
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-bold text-text-primary">{dayLabel(weekStart)} – {dayLabel(addDays(weekStart, 6))}</p>
+            <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary font-black text-xs border border-primary/30">
+              Tydz. {currentWeekNumber}
+            </span>
+          </div>
           {!weekDays.includes(today) && (
             <Pressable onClick={() => {
               const week = weekMon(today);

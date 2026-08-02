@@ -1,7 +1,7 @@
 import { Pressable } from '../ui/ControlPrimitives';
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { toLocalISO, todayStr } from './calendarHelpers';
+import { toLocalISO, todayStr, getISOWeekNumber } from './calendarHelpers';
 import { getMoonPhase } from '../../lib/solar';
 import { Card } from '../ui/Card';
 
@@ -79,7 +79,7 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
     <Card
       variant="outline"
       padding="1rem"
-      className="!bg-surface-solid/5 dark:!bg-on-accent/[0.015] !border-border-custom/30 space-y-3.5 shadow-sm"
+      className="!bg-surface-solid/5 dark:!bg-on-accent/[0.015] !border-border-custom/30 space-y-3.5 shadow-sm select-none"
       style={{ borderRadius: 'var(--radius-md)' }}
     >
       <div className="flex items-center justify-between">
@@ -104,49 +104,60 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-y-1.5 text-center">
+      <div className="grid grid-cols-[20px_repeat(7,1fr)] gap-y-1.5 text-center">
+        <span className="text-3xs font-black text-text-muted/40 uppercase self-center">T.</span>
         {['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'].map((d, idx) => (
           <span key={idx} className="text-2xs font-bold text-text-muted/50 uppercase tracking-wider">
             {d}
           </span>
         ))}
-        {daysGrid.map((item, idx) => {
-          const isSelected = item.dayStr === selectedDay;
-          const isToday = item.dayStr === today;
-          const hasEvents = eventDatesSet?.has(item.dayStr);
-          const moon = getMoonPhase(item.dayStr);
-          // Pokazujemy emoji tylko dla 4 głównych faz i tylko dla dni bieżącego miesiąca
-          const showMoon = moon.isMajor && item.isCurrentMonth;
+        {Array.from({ length: 6 }).map((_, rowIdx) => {
+          const rowDays = daysGrid.slice(rowIdx * 7, (rowIdx + 1) * 7);
+          const weekNum = getISOWeekNumber(rowDays[0].dayStr);
 
           return (
-            <div key={idx} className="relative flex flex-col items-center">
-              <Pressable
-                onClick={() => onSelectDay(item.dayStr)}
-                title={showMoon ? moon.name : undefined}
-                className={`h-6.5 w-6.5 mx-auto rounded-full flex items-center justify-center text-xs transition-all duration-[var(--motion-medium)] active:scale-90 ${
-                  isSelected
-                    ? 'bg-primary text-on-accent font-black shadow-md shadow-[var(--shadow-glow-primary)] scale-[var(--ds-arbitrary-1-08)] hover:scale-[var(--ds-arbitrary-1-12)]'
-                    : isToday
-                    ? 'bg-danger/10 text-danger font-black border border-danger/30 hover:scale-[var(--ds-arbitrary-1-08)]'
-                    : item.isCurrentMonth
-                    ? 'text-text-primary hover:bg-primary/10 hover:text-primary font-semibold hover:scale-[var(--ds-arbitrary-1-08)]'
-                    : 'text-text-muted/30 hover:bg-primary/10 hover:text-primary/70'
-                }`}
-              >
-                {item.dayNum}
-              </Pressable>
-              {/* Ikona fazy księżyca lub kropka wydarzeń */}
-              {showMoon ? (
-                <span
-                  className="text-3xs leading-none mt-[var(--ds-arbitrary-1px)] opacity-[var(--opacity-80)]"
-                  title={moon.name}
-                >
-                  {moon.emoji}
-                </span>
-              ) : hasEvents ? (
-                <span className="h-1 w-1 rounded-full bg-primary mt-0.5" />
-              ) : null}
-            </div>
+            <React.Fragment key={rowIdx}>
+              <span className="text-3xs font-black text-text-muted/40 flex items-center justify-center">
+                {weekNum}
+              </span>
+              {rowDays.map((item, idx) => {
+                const isSelected = item.dayStr === selectedDay;
+                const isToday = item.dayStr === today;
+                const hasEvents = eventDatesSet?.has(item.dayStr);
+                const moon = getMoonPhase(item.dayStr);
+                const showMoon = moon.isMajor && item.isCurrentMonth;
+
+                return (
+                  <div key={idx} className="relative flex flex-col items-center">
+                    <Pressable
+                      onClick={() => onSelectDay(item.dayStr)}
+                      title={showMoon ? moon.name : undefined}
+                      className={`h-6.5 w-6.5 mx-auto rounded-full flex items-center justify-center text-xs transition-all duration-[var(--motion-medium)] active:scale-90 ${
+                        isSelected
+                          ? 'bg-primary text-on-accent font-black shadow-md shadow-[var(--shadow-glow-primary)] scale-[var(--ds-arbitrary-1-08)] hover:scale-[var(--ds-arbitrary-1-12)]'
+                          : isToday
+                          ? 'bg-danger/10 text-danger font-black border border-danger/30 hover:scale-[var(--ds-arbitrary-1-08)]'
+                          : item.isCurrentMonth
+                          ? 'text-text-primary hover:bg-primary/10 hover:text-primary font-semibold hover:scale-[var(--ds-arbitrary-1-08)]'
+                          : 'text-text-muted/30 hover:bg-primary/10 hover:text-primary/70'
+                      }`}
+                    >
+                      {item.dayNum}
+                    </Pressable>
+                    {showMoon ? (
+                      <span
+                        className="text-3xs leading-none mt-[var(--ds-arbitrary-1px)] opacity-[var(--opacity-80)]"
+                        title={moon.name}
+                      >
+                        {moon.emoji}
+                      </span>
+                    ) : hasEvents ? (
+                      <span className="h-1 w-1 rounded-full bg-primary mt-0.5" />
+                    ) : null}
+                  </div>
+                );
+              })}
+            </React.Fragment>
           );
         })}
       </div>
