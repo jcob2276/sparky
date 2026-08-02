@@ -68,15 +68,15 @@ export const renderEventBlock = ({
         {isAIScheduled && !tooShort && <Sparkles size={11} className="shrink-0 animate-pulse text-amber-500 mt-0.5" />}
         {isFocusTime && !tooShort && <Shield size={11} className="shrink-0 text-current mt-0.5" />}
         {videoCall && !tooShort && <Video size={11} className="shrink-0 text-current mt-0.5" />}
-        <p className={`${tooShort ? 'text-xs truncate font-black' : isMedium ? 'text-xs font-black leading-tight break-words line-clamp-2' : 'text-xs md:text-sm font-black leading-snug break-words line-clamp-4'}`}>
+        <p className={`text-white ${tooShort ? 'text-xs truncate font-black' : isMedium ? 'text-xs font-black leading-tight break-words line-clamp-2' : 'text-xs md:text-sm font-black leading-snug break-words line-clamp-4'}`}>
           {displaySummary}
         </p>
       </div>
       {!tooShort && (
-        <div className="mt-0.5 text-3xs font-semibold tracking-wider uppercase opacity-85 flex items-center justify-between shrink-0">
+        <div className="mt-0.5 text-3xs font-bold tracking-wider uppercase text-white/90 flex items-center justify-between shrink-0">
           <span>{formatTime(ev.start_time)}–{formatTime(ev.end_time)}</span>
           {videoCall && (
-            <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-black/15 text-current font-bold text-3xs">
+            <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-white/25 text-white font-bold text-3xs">
               📹 {videoCall.provider}
             </span>
           )}

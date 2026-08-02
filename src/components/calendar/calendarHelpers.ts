@@ -203,19 +203,19 @@ export function eventColor(ev: CalRow) {
   }
 
   const categoryMap: Record<string, string> = {
-    brak: 'bg-slate-500/15 text-slate-800 dark:text-slate-200 border border-slate-400/40 font-bold',
-    none: 'bg-slate-500/15 text-slate-800 dark:text-slate-200 border border-slate-400/40 font-bold',
-    praca: 'bg-info/22 text-info-hover border border-info/50 font-bold',
-    work: 'bg-info/22 text-info-hover border border-info/50 font-bold',
-    cialo_trening: 'bg-success/22 text-success-hover border border-success/50 font-bold',
-    health: 'bg-success/22 text-success-hover border border-success/50 font-bold',
-    sport: 'bg-success/22 text-success-hover border border-success/50 font-bold',
-    duch_refleksja: 'bg-sky-500/22 text-sky-800 dark:text-sky-300 border border-sky-500/50 font-bold',
-    study: 'bg-sky-500/22 text-sky-800 dark:text-sky-300 border border-sky-500/50 font-bold',
-    finanse: 'bg-warning/22 text-warning-hover border border-warning/50 font-bold',
-    relacje_rodzina: 'bg-violet-500/22 text-violet-900 dark:text-violet-300 border border-violet-500/50 font-bold',
-    personal: 'bg-violet-500/22 text-violet-900 dark:text-violet-300 border border-violet-500/50 font-bold',
-    odpoczynek_regeneracja: 'bg-danger/22 text-danger-hover border border-danger/50 font-bold',
+    brak: 'bg-slate-600 dark:bg-slate-700 text-white border border-slate-500/50 font-black shadow-xs',
+    none: 'bg-slate-600 dark:bg-slate-700 text-white border border-slate-500/50 font-black shadow-xs',
+    praca: 'bg-blue-600 dark:bg-blue-700 text-white border border-blue-500/50 font-black shadow-xs',
+    work: 'bg-blue-600 dark:bg-blue-700 text-white border border-blue-500/50 font-black shadow-xs',
+    cialo_trening: 'bg-emerald-600 dark:bg-emerald-700 text-white border border-emerald-500/50 font-black shadow-xs',
+    health: 'bg-emerald-600 dark:bg-emerald-700 text-white border border-emerald-500/50 font-black shadow-xs',
+    sport: 'bg-emerald-600 dark:bg-emerald-700 text-white border border-emerald-500/50 font-black shadow-xs',
+    duch_refleksja: 'bg-sky-600 dark:bg-sky-700 text-white border border-sky-500/50 font-black shadow-xs',
+    study: 'bg-sky-600 dark:bg-sky-700 text-white border border-sky-500/50 font-black shadow-xs',
+    finanse: 'bg-amber-600 dark:bg-amber-700 text-white border border-amber-500/50 font-black shadow-xs',
+    relacje_rodzina: 'bg-purple-600 dark:bg-purple-700 text-white border border-purple-500/50 font-black shadow-xs',
+    personal: 'bg-purple-600 dark:bg-purple-700 text-white border border-purple-500/50 font-black shadow-xs',
+    odpoczynek_regeneracja: 'bg-rose-600 dark:bg-rose-700 text-white border border-rose-500/50 font-black shadow-xs',
   };
 
   // 1. Explicit database category
