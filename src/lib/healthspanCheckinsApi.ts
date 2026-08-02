@@ -166,30 +166,26 @@ async function evaluatePreviousHealthspanLevers(userId: string, profile: Functio
   }
 }
 
-async function fetchHealthspanLevers(userId: string) {
-  const { data, error } = await supabase
-    .from('healthspan_levers')
-    .select('*')
+export async function fetchHealthspanLevers(userId: string) {
+  const { data, error } = await supabase.from('healthspan_levers')
+    .select('id, contributor_key, title, target_label, baseline_score, target_score, actual_score, status, outcome, week_start')
     .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+    .order('week_start', { ascending: false })
+    .limit(20);
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as HealthspanLeverRow[];
 }
 
-async function decideHealthspanLever(
+export async function decideHealthspanLever(
   userId: string,
-  leverKey: string,
-  decision: 'accepted' | 'dismissed' | 'completed',
+  id: string,
+  status: 'accepted' | 'completed' | 'dismissed',
 ) {
-  const { error } = await supabase
-    .from('healthspan_levers')
-    .update({
-      decision,
-      decided_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
-    .eq('user_id', userId)
-    .eq('lever_key', leverKey);
+  const { error } = await supabase.from('healthspan_levers').update({
+    status,
+    decided_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  }).eq('id', id).eq('user_id', userId);
   if (error) throw error;
 }
 

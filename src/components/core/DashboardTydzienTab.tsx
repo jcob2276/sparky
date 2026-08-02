@@ -12,7 +12,7 @@ import WeeklyNutritionPulse from './WeeklyNutritionPulse';
 import WeeklyBodyPulse from './WeeklyBodyPulse';
 import WeeklyWinsMap from './WeeklyWinsMap';
 
-const Direction = lazy(() => import('../lifestyle/Direction'));
+import Direction from '../lifestyle/Direction';
 
 function ViewFallback() {
   return (

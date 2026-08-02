@@ -16,9 +16,9 @@ import { useDashboardContext } from './context/DashboardContext';
 import HorizonHeader from './HorizonHeader';
 import TodayStatusStrip from './TodayStatusStrip';
 
-const DailyStrainCard  = lazy(() => import('../biometrics/DailyStrainCard'));
-const DailySnapshotCard = lazy(() => import('./DailySnapshotCard'));
-const TodayRunwayCard   = lazy(() => import('./TodayRunwayCard'));
+import DailyStrainCard from '../biometrics/DailyStrainCard';
+import DailySnapshotCard from './DailySnapshotCard';
+import TodayRunwayCard from './TodayRunwayCard';
 
 function ViewFallback() {
   return (

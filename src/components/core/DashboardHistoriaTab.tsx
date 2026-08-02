@@ -10,13 +10,12 @@ import Spinner from '../ui/Spinner';
 import Tabs from '../ui/Tabs';
 import HorizonHeader from './HorizonHeader';
 
-const Stats             = lazy(() => import('./Stats'));
-const StandaloneBodyMetricsCard = lazy(() => import('./stats/StandaloneBodyMetricsCard'));
-const InsightsDashboard = lazy(() => import('../insights/InsightsDashboard').then(m => ({ default: m.InsightsDashboard })));
-const StravaWidget      = lazy(() => import('../integrations/StravaWidget'));
-
-const Photos            = lazy(() => import('../identity/Photos'));
-const NutritionCard     = lazy(() => import('./NutritionCard'));
+import Stats from './Stats';
+import StandaloneBodyMetricsCard from './stats/StandaloneBodyMetricsCard';
+import { InsightsDashboard } from '../insights/InsightsDashboard';
+import StravaWidget from '../integrations/StravaWidget';
+import Photos from '../identity/Photos';
+import NutritionCard from './NutritionCard';
 
 function ViewFallback() {
   return (

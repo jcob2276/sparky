@@ -36,10 +36,10 @@ const LinksInbox      = lazy(() => import('../lifestyle/LinksInbox'));
 const CalendarView    = lazy(() => import('../calendar/CalendarView'));
 const TerminyPage     = lazy(() => import('../terminy/TerminyPage'));
 
-const DashboardDzisTab = lazy(() => import('./DashboardDzisTab').then(m => ({ default: m.DashboardDzisTab })));
-const DashboardTydzienTab = lazy(() => import('./DashboardTydzienTab').then(m => ({ default: m.DashboardTydzienTab })));
-const DashboardHistoriaTab = lazy(() => import('./DashboardHistoriaTab').then(m => ({ default: m.DashboardHistoriaTab })));
-const DashboardProjektyTab = lazy(() => import('./DashboardProjektyTab').then(m => ({ default: m.DashboardProjektyTab })));
+import { DashboardDzisTab } from './DashboardDzisTab';
+import { DashboardTydzienTab } from './DashboardTydzienTab';
+import { DashboardHistoriaTab } from './DashboardHistoriaTab';
+import { DashboardProjektyTab } from './DashboardProjektyTab';
 
 const TAB_ORDER = ['dzis', 'tydzien', 'projekty', 'historia'];
 
@@ -203,40 +203,33 @@ export default function Dashboard({ session }: { session: Session }) {
             ) : (
               <>
                 <ErrorBoundary>
-                  {s.view === 'dzis' && (
-                    <Suspense fallback={<ViewFallback />}>
-                      <DashboardDzisTab />
-                    </Suspense>
-                  )}
+                  <div className={s.view === 'dzis' ? 'block min-h-full' : 'hidden'}>
+                    <DashboardDzisTab />
+                  </div>
                 </ErrorBoundary>
                 <ErrorBoundary>
-                  {s.view === 'tydzien' && (
-                    <Suspense fallback={<ViewFallback />}>
-                      <DashboardTydzienTab
-                        weeklyCalories={s.weeklyCalories}
-                        nutritionKey={s.nutritionKey} onOpenActionCenter={() => s.setActionCenterOpen(true)}
-                      />
-                    </Suspense>
-                  )}
+                  <div className={s.view === 'tydzien' ? 'block min-h-full' : 'hidden'}>
+                    <DashboardTydzienTab
+                      weeklyCalories={s.weeklyCalories}
+                      nutritionKey={s.nutritionKey}
+                      onOpenActionCenter={() => s.setActionCenterOpen(true)}
+                    />
+                  </div>
                 </ErrorBoundary>
                 <ErrorBoundary>
-                  {s.view === 'historia' && (
-                    <Suspense fallback={<ViewFallback />}>
-                      <DashboardHistoriaTab
-                        historySubTab={s.historySubTab}
-                        onSetSubTab={s.setHistorySubTab}
-                        weeklyCalories={s.weeklyCalories}
-                        nutritionKey={s.nutritionKey}
-                      />
-                    </Suspense>
-                  )}
+                  <div className={s.view === 'historia' ? 'block min-h-full' : 'hidden'}>
+                    <DashboardHistoriaTab
+                      historySubTab={s.historySubTab}
+                      onSetSubTab={s.setHistorySubTab}
+                      weeklyCalories={s.weeklyCalories}
+                      nutritionKey={s.nutritionKey}
+                    />
+                  </div>
                 </ErrorBoundary>
                 <ErrorBoundary>
-                  {s.view === 'projekty' && (
-                    <Suspense fallback={<ViewFallback />}>
-                      <DashboardProjektyTab />
-                    </Suspense>
-                  )}
+                  <div className={s.view === 'projekty' ? 'block min-h-full' : 'hidden'}>
+                    <DashboardProjektyTab />
+                  </div>
                 </ErrorBoundary>
               </>
             )}
