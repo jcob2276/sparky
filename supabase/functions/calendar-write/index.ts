@@ -26,7 +26,10 @@ async function getAccessToken(userId: string): Promise<string | null> {
       .eq('provider', 'google')
       .maybeSingle()
   )
-  if (!tokenData?.refresh_token) return null
+  if (!tokenData?.refresh_token) {
+    console.warn('[calendar-write] No Google refresh_token found for user', userId)
+    return null
+  }
 
   try {
     const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
@@ -82,13 +85,20 @@ Deno.serve(serveJson(async (req, ctx) => {
 
   if (action === 'create') {
     let createdId = event.id || `vanguard-${crypto.randomUUID()}`
+    let gcalError: string | null = null
 
-    if (headers) {
+    if (!access_token) {
+      console.warn('[calendar-write] No Google access_token — skipping GCal push')
+      gcalError = 'no_google_token'
+    } else {
       try {
         const gcalRes = await fetch(gcalBase, {
           signal: AbortSignal.timeout(15000),
           method: 'POST',
-          headers,
+          headers: {
+            Authorization: `Bearer ${access_token}`,
+            'Content-Type': 'application/json',
+          },
           body: JSON.stringify({
             summary: event.summary,
             description: event.description ?? '',
@@ -100,9 +110,15 @@ Deno.serve(serveJson(async (req, ctx) => {
         if (gcalRes.ok) {
           const created = await gcalRes.json()
           createdId = created.id ?? createdId
+          console.log('[calendar-write] GCal event created:', createdId)
+        } else {
+          const errText = await gcalRes.text().catch(() => '')
+          gcalError = `gcal_${gcalRes.status}: ${errText.substring(0, 200)}`
+          console.error('[calendar-write] GCal create failed:', gcalError)
         }
       } catch (gcalErr) {
-        console.warn('GCal create skipped:', gcalErr)
+        gcalError = String(gcalErr)
+        console.error('[calendar-write] GCal create exception:', gcalErr)
       }
     }
 
@@ -120,7 +136,7 @@ Deno.serve(serveJson(async (req, ctx) => {
         category: event.category ?? 'vanguard',
       }, { onConflict: 'event_id' })
     )
-    return { success: true, eventId: createdId }
+    return { success: true, eventId: createdId, gcalError }
   }
 
   if (action === 'update') {
