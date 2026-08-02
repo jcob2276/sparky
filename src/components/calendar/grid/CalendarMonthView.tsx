@@ -85,17 +85,43 @@ export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
             >
               {/* Day Header inside Cell */}
               <div className="flex items-center justify-between mb-1">
-                <span
-                  className={`flex h-6.5 w-6.5 items-center justify-center rounded-full text-xs font-black transition-transform ${
-                    cell.isToday
-                      ? 'bg-primary text-on-accent shadow-md scale-105'
-                      : cell.isCurrentMonth
-                      ? 'text-text-primary'
-                      : 'text-text-muted/40'
-                  }`}
-                >
-                  {cell.dayNumber}
-                </span>
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`flex h-6.5 w-6.5 items-center justify-center rounded-full text-xs font-black transition-transform ${
+                      cell.isToday
+                        ? 'bg-primary text-on-accent shadow-md scale-105'
+                        : cell.isCurrentMonth
+                        ? 'text-text-primary'
+                        : 'text-text-muted/40'
+                    }`}
+                  >
+                    {cell.dayNumber}
+                  </span>
+
+                  {/* FSCalendar Category Dots */}
+                  {dayEvents.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      {Array.from(new Set(dayEvents.map((e) => e.category || 'default'))).slice(0, 3).map((cat) => (
+                        <span
+                          key={cat}
+                          className={`w-1.5 h-1.5 rounded-full ${
+                            cat === 'ciało_trening'
+                              ? 'bg-success'
+                              : cat === 'praca'
+                              ? 'bg-primary'
+                              : cat === 'finanse'
+                              ? 'bg-warning'
+                              : cat === 'relacje_rodzina'
+                              ? 'bg-purple-500'
+                              : cat === 'duch_refleksja'
+                              ? 'bg-indigo-500'
+                              : 'bg-primary'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
 
                 <Pressable
                   onClick={(e) => {
