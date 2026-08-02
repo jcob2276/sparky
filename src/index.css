@@ -620,7 +620,7 @@
   --control-md: 2.5rem;
   --control-lg: 3rem;
   --touch-target: 2.75rem;
-  --sidebar-width: 15.5rem;
+  --sidebar-width: 17.5rem;
   --sidebar-toggle-offset: calc(var(--sidebar-width) - 1.125rem);
   --content-narrow: 45rem;
   --content-default: 55rem;
