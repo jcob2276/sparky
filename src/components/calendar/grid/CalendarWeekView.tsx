@@ -121,7 +121,7 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
                           : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/40'
                       }`}
                     >
-                      {score}/10
+                      {score}
                     </span>
                   )}
                 </div>
