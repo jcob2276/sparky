@@ -129,6 +129,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
         {todoView === 'lista' && (
           <TodoListView
             navDest={navDest}
+            onSelectNavDest={(d) => { setNavDest(d); setActiveFilterSection(null); }}
             renderInlineQuickCapture={renderInlineQuickCapture}
             renderAddTodoButton={renderAddTodoButton}
           />

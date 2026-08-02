@@ -6,7 +6,7 @@ import type { WorkspaceDestination } from '../shared/WorkspaceNavigation';
 import WorkspaceSidebar from '../shared/WorkspaceSidebar';
 import SidebarSection from '../shared/SidebarSection';
 
-export type TodoNavDest = 'overview' | 'inbox' | 'today' | 'upcoming';
+export type TodoNavDest = 'overview' | 'inbox' | 'today' | 'upcoming' | 'all' | 'flagged' | 'completed';
 
 export interface TodoSidebarProps {
   navDest: TodoNavDest;
