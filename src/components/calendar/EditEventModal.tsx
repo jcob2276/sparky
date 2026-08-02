@@ -9,6 +9,7 @@ import RecurrencePicker from './RecurrencePicker';
 import CalendarConflictNotice from './CalendarConflictNotice';
 import { findCalendarConflicts } from '../../lib/calendarConflicts';
 import EventContextCard from './EventContextCard';
+import { ALARM_OPTIONS } from './calendarHelpers';
 
 interface Props {
   calData: ReturnType<typeof useCalendarData>;
@@ -117,15 +118,18 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
             <Bell size={14} className="text-text-muted shrink-0" />
             <span className="text-text-muted">Przypomnienie:</span>
             <ControlSelect
-              value={editReminder ?? ''}
-              onChange={(e) => setEditReminder(e.target.value ? Number(e.target.value) : null)}
+              value={editReminder ?? -1}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setEditReminder(val < 0 ? null : val);
+              }}
               className="bg-transparent text-text-primary font-bold focus:outline-none cursor-pointer flex-1"
             >
-              <option value="">Brak przypomnienia</option>
-              <option value="15">15 minut przed</option>
-              <option value="30">30 minut przed</option>
-              <option value="60">1 godzina przed</option>
-              <option value="1440">1 dzień przed</option>
+              {ALARM_OPTIONS.map((opt) => (
+                <option key={opt.minutes} value={opt.minutes}>
+                  {opt.label}
+                </option>
+              ))}
             </ControlSelect>
           </div>
 

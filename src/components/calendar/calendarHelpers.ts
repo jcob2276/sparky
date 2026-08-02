@@ -1,6 +1,11 @@
 import { getTodayWarsaw, shiftDateStr, TIMEZONE } from '../../lib/date';
 import { CATEGORY_COLORS } from '../../lib/projects/lifeSpheres';
 
+export * from '../../lib/appleCalendar/appleDateInterval';
+export * from '../../lib/appleCalendar/appleRecurrenceEngine';
+export * from '../../lib/appleCalendar/appleEventLayoutEngine';
+export * from '../../lib/appleCalendar/appleAlarmEngine';
+
 const warsawOffsetFormatter = new Intl.DateTimeFormat('en-US', { timeZone: TIMEZONE, timeZoneName: 'shortOffset' });
 
 export function getWarsawOffset(date?: string | Date): string {

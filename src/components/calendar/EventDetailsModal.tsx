@@ -4,7 +4,7 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import type { CalRow } from './calendarHelpers';
 import { LIFE_SPHERES } from '../../lib/projects/lifeSpheres';
-import { monthLabel } from './calendarHelpers';
+import { monthLabel, formatAlarmLabel, parseEKRecurrenceRule } from './calendarHelpers';
 
 interface EventDetailsModalProps {
   event: CalRow | null;
@@ -94,10 +94,10 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
         ) : null}
 
         {/* Reminder */}
-        {event.reminder_minutes ? (
+        {event.reminder_minutes != null && event.reminder_minutes >= 0 ? (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-solid/20 border border-border-custom/20 text-xs font-semibold text-text-secondary">
             <Bell size={14} className="text-warning shrink-0" />
-            <span>Przypomnienie: {event.reminder_minutes} minut przed</span>
+            <span>Przypomnienie: {formatAlarmLabel(event.reminder_minutes)}</span>
           </div>
         ) : null}
 
@@ -105,7 +105,9 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
         {event.recurrence && event.recurrence.length > 0 ? (
           <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-solid/20 border border-border-custom/20 text-xs font-semibold text-text-secondary">
             <Repeat size={14} className="text-primary shrink-0" />
-            <span>Powtarzalne: {event.recurrence.join(', ')}</span>
+            <span>
+              Wydarzenie cykliczne ({parseEKRecurrenceRule(event.recurrence)?.frequency || 'powtarzalne'})
+            </span>
           </div>
         ) : null}
 
