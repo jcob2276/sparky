@@ -86,31 +86,6 @@ export const QuickCreateEventModal: React.FC<QuickCreateEventModalProps> = ({ ca
             className="min-h-12 w-full rounded-xl border border-border-custom/40 bg-surface-solid/40 px-4 text-base font-bold tracking-tight text-text-primary focus:border-primary/50 placeholder:text-text-muted/40 transition-colors"
           />
 
-          {/* Apple Quick Suggestion Chips */}
-          <div className="flex flex-wrap gap-1.5 pt-0.5">
-            {[
-              { label: 'Bieg 🏃', title: 'Trening biegowy', cat: 'ciało_trening', dur: 45 },
-              { label: 'Siłownia 🏋️', title: 'Trening siłowy', cat: 'ciało_trening', dur: 60 },
-              { label: 'Praca głęboka 🛡️', title: 'Blok pracy głębokiej', cat: 'praca', dur: 90 },
-              { label: 'Spotkanie 👥', title: 'Spotkanie', cat: 'praca', dur: 30 },
-              { label: 'Refleksja 🧘', title: 'Nawyk duchowy & refleksja', cat: 'duch_refleksja', dur: 30 },
-              { label: 'Spacer 🚶', title: 'Spacer i regeneracja', cat: 'odpoczynek_regeneracja', dur: 30 },
-            ].map((chip) => (
-              <button
-                key={chip.label}
-                type="button"
-                onClick={() => {
-                  setQuickTitle(chip.title);
-                  setQuickCategory(chip.cat);
-                  setQuickDuration(chip.dur);
-                }}
-                className="text-2xs font-bold px-2.5 py-1 rounded-lg border border-border-custom/30 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer"
-              >
-                {chip.label}
-              </button>
-            ))}
-          </div>
-
           <QuickScheduleFields calData={calData} conflicts={conflicts} budgets={budgets} />
 
           {/* Duration Chips */}
