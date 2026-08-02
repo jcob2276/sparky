@@ -12,6 +12,9 @@ interface TodoListViewProps {
   onSelectNavDest: (dest: TodoNavDest) => void;
   renderInlineQuickCapture: (sectionId: string) => React.ReactNode;
   renderAddTodoButton: (sectionId: string) => React.ReactNode;
+  isSelectMode?: boolean;
+  selectedIds?: Set<string>;
+  onToggleId?: (id: string) => void;
 }
 
 export default function TodoListView({
@@ -19,6 +22,9 @@ export default function TodoListView({
   onSelectNavDest,
   renderInlineQuickCapture,
   renderAddTodoButton,
+  isSelectMode,
+  selectedIds,
+  onToggleId,
 }: TodoListViewProps) {
   const { items, todayItems, upcomingItems, error, setExpandedId, activeFilterSection } = useTodoContext();
   const isSmartView = navDest !== 'overview' || !!activeFilterSection;

@@ -17,9 +17,19 @@ interface TodoHeaderProps {
   setTodoView: (value: TodoViewMode) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (value: boolean) => void;
+  isSelectMode?: boolean;
+  onToggleSelectMode?: () => void;
 }
 
-export default function TodoHeader({ onBack, todoView, setTodoView, sidebarCollapsed, setSidebarCollapsed }: TodoHeaderProps) {
+export default function TodoHeader({
+  onBack,
+  todoView,
+  setTodoView,
+  sidebarCollapsed,
+  setSidebarCollapsed,
+  isSelectMode,
+  onToggleSelectMode,
+}: TodoHeaderProps) {
   const { push, pushSubscribed, setPushSubscribed } = useTodoContext();
 
   return (
@@ -33,13 +43,24 @@ export default function TodoHeader({ onBack, todoView, setTodoView, sidebarColla
           </Pressable>
         )}
         actions={
-          <>
+          <div className="flex items-center gap-2">
+            {onToggleSelectMode && (
+              <Pressable
+                variant={isSelectMode ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={onToggleSelectMode}
+                className="text-xs font-bold"
+              >
+                {isSelectMode ? 'Gotowe' : 'Zaznacz masowo'}
+              </Pressable>
+            )}
+
             {push.isSupported && pushSubscribed === false && (
               <Pressable variant="tonal" size="sm" onClick={async () => { const ok = await push.subscribe(); if (ok) setPushSubscribed(true); }} icon={<Bell size={12} />} className="flex">
                 Powiadomienia
               </Pressable>
             )}
-          </>
+          </div>
         }
         tabs={{ items: VIEW_TABS, active: todoView, onChange: (key) => setTodoView(key as TodoViewMode) }}
       />
