@@ -1,10 +1,10 @@
 import React from 'react';
-import { CalendarDays, Clock, MapPin, AlignLeft, Bell, Repeat, Edit3, Trash2 } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, AlignLeft, Bell, Repeat, Edit3, Trash2, Video, ExternalLink } from 'lucide-react';
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import type { CalRow } from './calendarHelpers';
 import { LIFE_SPHERES } from '../../lib/projects/lifeSpheres';
-import { monthLabel, formatAlarmLabel, parseEKRecurrenceRule } from './calendarHelpers';
+import { monthLabel, formatAlarmLabel, parseEKRecurrenceRule, detectVideoCallUrl } from './calendarHelpers';
 
 interface EventDetailsModalProps {
   event: CalRow | null;
@@ -30,9 +30,30 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
   const formattedDate = dateStr ? monthLabel(dateStr) : '';
   const timeFormatted = formatEventTime(event.start_time, event.end_time, event.is_all_day);
 
+  const videoCall = detectVideoCallUrl(event.location) || detectVideoCallUrl(event.description) || detectVideoCallUrl(event.summary);
+
   return (
     <Modal isOpen={Boolean(event)} onClose={onClose} title="Szczegóły wydarzenia" size="md">
       <div className="space-y-4">
+        {/* Video Call Quick Join Banner */}
+        {videoCall && (
+          <a
+            href={videoCall.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-between p-3.5 rounded-2xl bg-primary text-on-accent font-bold shadow-lg hover:brightness-110 active:scale-98 transition-all cursor-pointer"
+          >
+            <div className="flex items-center gap-2.5">
+              <Video size={18} strokeWidth={2.5} />
+              <div className="text-left leading-tight">
+                <p className="text-xs font-black uppercase tracking-wider">Dołącz do spotkania</p>
+                <p className="text-2xs opacity-80">{videoCall.provider}</p>
+              </div>
+            </div>
+            <ExternalLink size={16} />
+          </a>
+        )}
+
         {/* Category & Title */}
         <div className="space-y-2">
           {sphere ? (

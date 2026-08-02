@@ -1,6 +1,6 @@
 import { Pressable } from '../../ui/ControlPrimitives';
 import React from 'react';
-import { Sparkles, Shield, Check } from 'lucide-react';
+import { Sparkles, Shield, Check, Video } from 'lucide-react';
 import {
   HOUR_START,
   HOUR_END,
@@ -8,6 +8,7 @@ import {
   eventColor,
   formatTime,
   parseTime,
+  detectVideoCallUrl,
 } from '../calendarHelpers';
 import { GOAL_ICON } from '../../todo/todoUtils';
 import type {
@@ -34,6 +35,7 @@ export const renderEventBlock = ({
   const tooShort = height < 32;
   const isAIScheduled = ev.summary?.includes('✨') || ev.summary?.includes('[AI]');
   const isFocusTime = ev.summary?.includes('Focus Time') || ev.summary?.includes('🛡️');
+  const videoCall = detectVideoCallUrl(ev.location) || detectVideoCallUrl(ev.description) || detectVideoCallUrl(ev.summary);
 
   let displaySummary = ev.summary;
   if (tooShort) {
@@ -56,6 +58,7 @@ export const renderEventBlock = ({
       <div className="flex items-start gap-1 min-w-0 w-full justify-start">
         {isAIScheduled && !tooShort && <Sparkles size={11} className="shrink-0 animate-pulse text-amber-500 mt-0.5" />}
         {isFocusTime && !tooShort && <Shield size={11} className="shrink-0 text-primary mt-0.5" />}
+        {videoCall && !tooShort && <Video size={12} className="shrink-0 text-primary mt-0.5" />}
         <p className={`${tooShort ? 'text-xs' : 'text-xs md:text-sm'} font-black tracking-tight leading-tight break-words line-clamp-2`}>
           {displaySummary}
         </p>
@@ -63,6 +66,11 @@ export const renderEventBlock = ({
       {!tooShort && (
         <div className="mt-0.5 text-3xs font-black tracking-wider uppercase opacity-80 flex items-center justify-between">
           <span>{formatTime(ev.start_time)}–{formatTime(ev.end_time)}</span>
+          {videoCall && (
+            <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-primary/20 text-primary font-bold text-3xs">
+              📹 {videoCall.provider}
+            </span>
+          )}
         </div>
       )}
       <div

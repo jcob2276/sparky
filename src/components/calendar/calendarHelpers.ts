@@ -277,21 +277,57 @@ export function getMonthGridDays(dateStr: string): MonthDayInfo[] {
   return days;
 }
 
+export interface VideoCallDetection {
+  url: string;
+  provider: 'Google Meet' | 'Zoom' | 'Microsoft Teams' | 'FaceTime' | 'Spotkanie Wideo';
+}
+
+export function detectVideoCallUrl(text?: string | null): VideoCallDetection | null {
+  if (!text) return null;
+  const meetMatch = text.match(/https?:\/\/meet\.google\.com\/[a-z0-9-]+/i);
+  if (meetMatch) return { url: meetMatch[0], provider: 'Google Meet' };
+
+  const zoomMatch = text.match(/https?:\/\/[a-z0-9-]+\.zoom\.us\/j\/[0-9?=&-]+/i);
+  if (zoomMatch) return { url: zoomMatch[0], provider: 'Zoom' };
+
+  const teamsMatch = text.match(/https?:\/\/teams\.microsoft\.com\/l\/meetup-join\/[^\s>]+/i);
+  if (teamsMatch) return { url: teamsMatch[0], provider: 'Microsoft Teams' };
+
+  const ftMatch = text.match(/https?:\/\/facetime\.apple\.com\/join[^\s>]+/i);
+  if (ftMatch) return { url: ftMatch[0], provider: 'FaceTime' };
+
+  const genericMatch = text.match(/https?:\/\/[^\s>]*(meet|zoom|teams|whereby|jitsi)[^\s>]*/i);
+  if (genericMatch) return { url: genericMatch[0], provider: 'Spotkanie Wideo' };
+
+  return null;
+}
+
+export function getISOWeekNumber(dateStr: string): number {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const target = new Date(y, m - 1, d);
+  const dayNr = (target.getDay() + 6) % 7;
+  target.setDate(target.getDate() - dayNr + 3);
+  const firstThursday = new Date(target.getFullYear(), 0, 4);
+  const dayDiff = (target.getTime() - firstThursday.getTime()) / 86400000;
+  return 1 + Math.round(dayDiff / 7);
+}
+
 export function formatRangeLabel(calView: string, selectedDay: string, weekStart: string): string {
   const [y, m, d] = selectedDay.split('-').map(Number);
   const selDate = new Date(y, m - 1, d);
+  const weekNum = getISOWeekNumber(selectedDay);
 
   if (calView === 'dzien') {
-    return selDate.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    return `${selDate.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} (Tydz. ${weekNum})`;
   }
   if (calView === '3dni') {
     const endStr = addDays(selectedDay, 2);
     const [ey, em, ed] = endStr.split('-').map(Number);
     const endDate = new Date(ey, em - 1, ed);
     if (m === em) {
-      return `${d}–${ed} ${selDate.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}`;
+      return `${d}–${ed} ${selDate.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })} (Tydz. ${weekNum})`;
     }
-    return `${d} ${selDate.toLocaleDateString('pl-PL', { month: 'short' })} – ${ed} ${endDate.toLocaleDateString('pl-PL', { month: 'short', year: 'numeric' })}`;
+    return `${d} ${selDate.toLocaleDateString('pl-PL', { month: 'short' })} – ${ed} ${endDate.toLocaleDateString('pl-PL', { month: 'short', year: 'numeric' })} (Tydz. ${weekNum})`;
   }
   if (calView === 'tydzien') {
     const weekEnd = addDays(weekStart, 6);
@@ -299,10 +335,11 @@ export function formatRangeLabel(calView: string, selectedDay: string, weekStart
     const [ey, em, ed] = weekEnd.split('-').map(Number);
     const sDate = new Date(sy, sm - 1, sd);
     const eDate = new Date(ey, em - 1, ed);
+    const wNum = getISOWeekNumber(weekStart);
     if (sm === em) {
-      return `${sd}–${ed} ${sDate.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}`;
+      return `${sd}–${ed} ${sDate.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })} (Tydz. ${wNum})`;
     }
-    return `${sd} ${sDate.toLocaleDateString('pl-PL', { month: 'short' })} – ${ed} ${eDate.toLocaleDateString('pl-PL', { month: 'short', year: 'numeric' })}`;
+    return `${sd} ${sDate.toLocaleDateString('pl-PL', { month: 'short' })} – ${ed} ${eDate.toLocaleDateString('pl-PL', { month: 'short', year: 'numeric' })} (Tydz. ${wNum})`;
   }
   if (calView === 'miesiac') {
     return selDate.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
