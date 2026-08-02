@@ -199,21 +199,21 @@ export function eventColor(ev: CalRow) {
   const summaryLower = ev.summary?.toLowerCase() || '';
   const isFocusTime = ev.summary?.includes('Focus Time') || ev.summary?.includes('🛡️');
   if (isFocusTime) {
-    return 'bg-blue-100 text-blue-950 border-blue-500 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-400 font-semibold';
+    return 'bg-primary/22 dark:bg-primary/25 text-primary-hover dark:text-primary-hover border border-primary/50 font-bold';
   }
 
   const categoryMap: Record<string, string> = {
-    praca: 'bg-blue-100 text-blue-950 border-blue-500 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-400 font-semibold',
-    work: 'bg-blue-100 text-blue-950 border-blue-500 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-400 font-semibold',
-    cialo_trening: 'bg-emerald-100 text-emerald-950 border-emerald-500 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-400 font-semibold',
-    health: 'bg-emerald-100 text-emerald-950 border-emerald-500 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-400 font-semibold',
-    sport: 'bg-emerald-100 text-emerald-950 border-emerald-500 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-400 font-semibold',
-    duch_refleksja: 'bg-sky-100 text-sky-950 border-sky-500 dark:bg-sky-950/60 dark:text-sky-200 dark:border-sky-400 font-semibold',
-    study: 'bg-sky-100 text-sky-950 border-sky-500 dark:bg-sky-950/60 dark:text-sky-200 dark:border-sky-400 font-semibold',
-    finanse: 'bg-amber-100 text-amber-950 border-amber-500 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-400 font-semibold',
-    relacje_rodzina: 'bg-violet-100 text-violet-950 border-violet-500 dark:bg-violet-950/60 dark:text-violet-200 dark:border-violet-400 font-semibold',
-    personal: 'bg-violet-100 text-violet-950 border-violet-500 dark:bg-violet-950/60 dark:text-violet-200 dark:border-violet-400 font-semibold',
-    odpoczynek_regeneracja: 'bg-rose-100 text-rose-950 border-rose-500 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-400 font-semibold',
+    praca: 'bg-info/22 dark:bg-info/25 text-info-hover dark:text-info-hover border border-info/50 font-bold',
+    work: 'bg-info/22 dark:bg-info/25 text-info-hover dark:text-info-hover border border-info/50 font-bold',
+    cialo_trening: 'bg-success/22 dark:bg-success/25 text-success-hover dark:text-success-hover border border-success/50 font-bold',
+    health: 'bg-success/22 dark:bg-success/25 text-success-hover dark:text-success-hover border border-success/50 font-bold',
+    sport: 'bg-success/22 dark:bg-success/25 text-success-hover dark:text-success-hover border border-success/50 font-bold',
+    duch_refleksja: 'bg-sky-500/22 dark:bg-sky-500/25 text-sky-700 dark:text-sky-300 border border-sky-500/50 font-bold',
+    study: 'bg-sky-500/22 dark:bg-sky-500/25 text-sky-700 dark:text-sky-300 border border-sky-500/50 font-bold',
+    finanse: 'bg-warning/22 dark:bg-warning/25 text-warning-hover dark:text-warning-hover border border-warning/50 font-bold',
+    relacje_rodzina: 'bg-violet-500/22 dark:bg-violet-500/25 text-violet-700 dark:text-violet-300 border border-violet-500/50 font-bold',
+    personal: 'bg-violet-500/22 dark:bg-violet-500/25 text-violet-700 dark:text-violet-300 border border-violet-500/50 font-bold',
+    odpoczynek_regeneracja: 'bg-danger/22 dark:bg-danger/25 text-danger-hover dark:text-danger-hover border border-danger/50 font-bold',
   };
 
   // 1. Explicit database category
