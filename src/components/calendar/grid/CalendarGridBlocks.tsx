@@ -49,25 +49,25 @@ export const renderEventBlock = ({
     <div
       key={ev.id}
       onMouseDown={(e) => handleEventMouseDown(ev, e, 'move')}
-      className={`absolute rounded-xl ${tooShort ? 'px-2 py-0.5 flex items-center justify-start' : 'px-3 py-2'} overflow-hidden cursor-move hover:shadow-sm transition-[box-shadow,border-color,background-color] duration-[var(--motion-fast)] ease-[var(--ease-out)] hover:z-[var(--z-popover)] select-none ${eventColor(ev)}`}
+      className={`apple-event-card absolute border-l-[3.5px] ${tooShort ? 'px-2 py-0.5 flex items-center justify-start' : 'px-3 py-1.5 flex flex-col justify-between'} overflow-hidden cursor-move shadow-xs hover:shadow-md hover:z-[var(--z-popover)] select-none ${eventColor(ev)}`}
       style={{ top, height, left: `calc(${left} + 1px)`, width: `calc(${width} - 2px)` }}
       title={ev.summary || ''}
     >
-      <div className="flex items-start gap-0.5 min-w-0 w-full justify-start flex-wrap">
-        {isAIScheduled && !tooShort && <Sparkles size={9} className="shrink-0 animate-pulse opacity-[var(--opacity-90)] mt-0.5" />}
-        {isFocusTime && !tooShort && <Shield size={9} className="shrink-0 opacity-[var(--opacity-90)] mt-0.5" />}
-        <p className={`${tooShort ? 'text-xs' : 'text-sm'} font-bold leading-snug break-words whitespace-normal line-clamp-3`}>
+      <div className="flex items-start gap-1 min-w-0 w-full justify-start">
+        {isAIScheduled && !tooShort && <Sparkles size={11} className="shrink-0 animate-pulse text-amber-500 mt-0.5" />}
+        {isFocusTime && !tooShort && <Shield size={11} className="shrink-0 text-primary mt-0.5" />}
+        <p className={`${tooShort ? 'text-xs' : 'text-xs md:text-sm'} font-black tracking-tight leading-tight break-words line-clamp-2`}>
           {displaySummary}
         </p>
       </div>
       {!tooShort && (
-        <div className="mt-1 text-xs font-medium leading-none opacity-[var(--opacity-70)]">
+        <div className="mt-0.5 text-3xs font-black tracking-wider uppercase opacity-80 flex items-center justify-between">
           <span>{formatTime(ev.start_time)}–{formatTime(ev.end_time)}</span>
         </div>
       )}
       <div
         onMouseDown={(e) => handleEventMouseDown(ev, e, 'resize')}
-        className="absolute bottom-0 left-0 right-0 h-1.5 cursor-s-resize hover:bg-scrim/10 dark:hover:bg-on-accent/10 z-[var(--z-sticky)]"
+        className="absolute bottom-0 left-0 right-0 h-2 cursor-s-resize hover:bg-black/10 dark:hover:bg-white/10 z-[var(--z-sticky)]"
       />
     </div>
   );

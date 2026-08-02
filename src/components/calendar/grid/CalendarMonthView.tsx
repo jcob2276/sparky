@@ -86,12 +86,12 @@ export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
               {/* Day Header inside Cell */}
               <div className="flex items-center justify-between mb-1">
                 <span
-                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-black ${
+                  className={`flex h-6.5 w-6.5 items-center justify-center rounded-full text-xs font-black transition-transform ${
                     cell.isToday
-                      ? 'bg-primary text-on-accent'
+                      ? 'bg-primary text-on-accent shadow-md scale-105'
                       : cell.isCurrentMonth
                       ? 'text-text-primary'
-                      : 'text-text-muted/60'
+                      : 'text-text-muted/40'
                   }`}
                 >
                   {cell.dayNumber}
@@ -102,7 +102,7 @@ export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
                     e.stopPropagation();
                     setQuickCreate({ date: cell.dateStr, startMin: 540 });
                   }}
-                  className="opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] p-1 rounded hover:bg-surface-solid text-text-muted transition-opacity"
+                  className="opacity-0 group-hover:opacity-100 p-1 rounded-full hover:bg-surface-solid text-text-muted transition-opacity"
                   title="Dodaj wydarzenie"
                 >
                   <Plus size={12} />

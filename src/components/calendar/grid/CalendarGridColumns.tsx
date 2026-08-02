@@ -204,11 +204,11 @@ export const renderDayColumn = ({
       })()}
       {nowLine !== null && nowLine >= 0 && (
         <div className="absolute left-0 right-0 flex items-center pointer-events-none z-[var(--z-popover)]" style={{ top: nowLine }}>
-          <span className="flex items-center gap-1 rounded-full bg-danger px-1.5 py-0.5 text-3xs font-black text-on-accent shadow-md shadow-danger/50 -ml-2 shrink-0 select-none">
+          <span className="apple-now-dot flex items-center gap-1 rounded-full bg-danger px-1.5 py-0.5 text-3xs font-black text-on-accent shadow-md -ml-2.5 shrink-0 select-none">
             <span className="w-1.5 h-1.5 rounded-full bg-on-accent animate-pulse" />
             {String(Math.floor(nowMin / 60)).padStart(2, '0')}:{String(nowMin % 60).padStart(2, '0')}
           </span>
-          <div className="flex-1 h-[var(--ds-h-1-5px)] bg-danger" />
+          <div className="flex-1 h-[2px] bg-danger shadow-xs shadow-danger/40" />
         </div>
       )}
     </div>
