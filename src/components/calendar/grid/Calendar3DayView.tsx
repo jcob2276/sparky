@@ -24,6 +24,7 @@ interface Calendar3DayViewProps {
   handleColumnMouseDown: (day: string, e: React.MouseEvent) => void;
   handleColumnMouseMove: (day: string, e: React.MouseEvent) => void;
   handleEventMouseDown: (ev: CalRow, e: React.MouseEvent<HTMLDivElement>, action: 'move' | 'resize') => void;
+  handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
   handleToggleTodo: (id: string) => void;
   setEditingTodo: (todo: CalendarTodo | null) => void;
   setEditingTodoTitle: (title: string) => void;
@@ -36,8 +37,8 @@ interface Calendar3DayViewProps {
 export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
   selectedDay, setSelectedDay, setWeekStart, weather, today, nowMin, dragSelect,
   goalChipFor, completedTodoIds, getEventsForDay, todosForDay, handleColumnMouseDown,
-  handleColumnMouseMove, handleEventMouseDown, handleToggleTodo, setEditingTodo,
-  setEditingTodoTitle, setToastMessage, setSaving, scheduleTodoAt, gridRef,
+  handleColumnMouseMove, handleEventMouseDown, handleEventContextMenu, handleToggleTodo,
+  setEditingTodo, setEditingTodoTitle, setToastMessage, setSaving, scheduleTodoAt, gridRef,
 }) => {
   const topScrollRef = React.useRef<HTMLDivElement>(null);
   const days = [selectedDay, addDays(selectedDay, 1), addDays(selectedDay, 2)];
@@ -122,7 +123,7 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
                 day, today, nowMin, dayEvents: getEventsForDay(day),
                 dayTodos: todosForDay(day).filter(todo => todo.scheduled_time), dragSelect,
                 goalChipFor, completedTodoIds, handleColumnMouseDown, handleColumnMouseMove,
-                handleEventMouseDown, handleToggleTodo, setEditingTodo, setEditingTodoTitle,
+                handleEventMouseDown, handleEventContextMenu, handleToggleTodo, setEditingTodo, setEditingTodoTitle,
                 setToastMessage, setSaving, scheduleTodoAt,
               })}
             </div>

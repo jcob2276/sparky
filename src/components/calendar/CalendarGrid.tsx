@@ -33,6 +33,7 @@ interface CalendarGridProps {
   todosForDay: (day: string) => CalendarTodo[];
   goalChipFor: (sectionId: string | null) => GoalChip;
   scheduleTodoAt: (todo: { id: string }, day: string, startMin: number, duration: number) => Promise<unknown>;
+  handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
 }
 
 function groupEventsByDay(events: CalRow[]): Record<string, CalRow[]> {
@@ -72,6 +73,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   todosForDay,
   goalChipFor,
   scheduleTodoAt,
+  handleEventContextMenu,
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -133,6 +135,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
             handleColumnMouseDown={handleColumnMouseDown}
             handleColumnMouseMove={handleColumnMouseMove}
             handleEventMouseDown={handleEventMouseDown}
+            handleEventContextMenu={handleEventContextMenu}
             handleToggleTodo={handleToggleTodo}
             setEditingTodo={setEditingTodo}
             setEditingTodoTitle={setEditingTodoTitle}
@@ -159,6 +162,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
             handleColumnMouseDown={handleColumnMouseDown}
             handleColumnMouseMove={handleColumnMouseMove}
             handleEventMouseDown={handleEventMouseDown}
+            handleEventContextMenu={handleEventContextMenu}
             handleToggleTodo={handleToggleTodo}
             setEditingTodo={setEditingTodo}
             setEditingTodoTitle={setEditingTodoTitle}
@@ -186,6 +190,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
             handleColumnMouseDown={handleColumnMouseDown}
             handleColumnMouseMove={handleColumnMouseMove}
             handleEventMouseDown={handleEventMouseDown}
+            handleEventContextMenu={handleEventContextMenu}
             handleToggleTodo={handleToggleTodo}
             setEditingTodo={setEditingTodo}
             setEditingTodoTitle={setEditingTodoTitle}

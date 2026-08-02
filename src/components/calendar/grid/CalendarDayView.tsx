@@ -1,6 +1,6 @@
-import Button from '../../ui/Button';
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Button from '../../ui/Button';
 import {
   HOURS,
   PX_PER_HOUR,
@@ -34,6 +34,7 @@ interface CalendarDayViewProps {
   handleColumnMouseDown: (day: string, e: React.MouseEvent) => void;
   handleColumnMouseMove: (day: string, e: React.MouseEvent) => void;
   handleEventMouseDown: (ev: CalRow, e: React.MouseEvent<HTMLDivElement>, action: 'move' | 'resize') => void;
+  handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
   handleToggleTodo: (id: string) => void;
   setEditingTodo: (todo: CalendarTodo | null) => void;
   setEditingTodoTitle: (title: string) => void;
@@ -58,6 +59,7 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
   handleColumnMouseDown,
   handleColumnMouseMove,
   handleEventMouseDown,
+  handleEventContextMenu,
   handleToggleTodo,
   setEditingTodo,
   setEditingTodoTitle,
@@ -70,7 +72,7 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
-      <div className="calendar-period-header flex items-center justify-between px-4 py-2 border-b border-border-custom/20">
+      <div className="calendar-period-header flex items-center justify-between px-4 py-2 border-b border-border-custom/20 select-none">
         <Button
           variant="ghost"
           onClick={() => {
@@ -141,6 +143,7 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
               handleColumnMouseDown,
               handleColumnMouseMove,
               handleEventMouseDown,
+              handleEventContextMenu,
               handleToggleTodo,
               setEditingTodo,
               setEditingTodoTitle,

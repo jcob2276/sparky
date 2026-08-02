@@ -91,6 +91,7 @@ export const renderDayColumn = ({
   handleColumnMouseDown,
   handleColumnMouseMove,
   handleEventMouseDown,
+  handleEventContextMenu,
   handleToggleTodo,
   setEditingTodo,
   setEditingTodoTitle,
@@ -165,7 +166,7 @@ export const renderDayColumn = ({
         const layouts = layoutDayEvents(dayEvents);
         return dayEvents.map((ev) => {
           const layout = layouts.get(ev.id) || { left: '0%', width: '100%' };
-          return renderEventBlock({ ev, left: layout.left, width: layout.width, handleEventMouseDown });
+          return renderEventBlock({ ev, left: layout.left, width: layout.width, handleEventMouseDown, handleEventContextMenu });
         });
       })()}
       {dayTodos.map((todo) =>

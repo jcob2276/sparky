@@ -7,7 +7,7 @@
  * @composes CalendarGrid (renderowanie siatki, patrz grid/)
  * @usedBy Dashboard, WeeklyBalanceHexagon
  */
-import { useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import type { Session } from '@supabase/supabase-js';
 
 import { useCalendarData } from './hooks/useCalendarData';
@@ -15,8 +15,9 @@ import { useTimeBudgets } from './hooks/useTimeBudgets';
 import { useCalendarTodos } from './hooks/useCalendarTodos';
 import { CalendarGrid } from './CalendarGrid';
 import { CalendarEventModal } from './CalendarEventModal';
+import { CalendarContextMenu, type CalendarContextMenuState } from './CalendarContextMenu';
 
-import { todayStr, addDays, weekMon } from './calendarHelpers';
+import { todayStr, addDays, weekMon, type CalRow } from './calendarHelpers';
 
 import { CalendarContext, CalendarContextType } from './context/CalendarContext';
 import CalendarSidebar from './components/CalendarSidebar';
@@ -54,6 +55,60 @@ export default function CalendarView({
 
   const calData = useCalendarData(userId, accessToken);
   const today = todayStr();
+  const [contextMenu, setContextMenu] = useState<CalendarContextMenuState | null>(null);
+
+  const handleEventContextMenu = useCallback((event: CalRow, e: React.MouseEvent) => {
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      event,
+    });
+  }, []);
+
+  const handleContextMenuChangeCategory = useCallback(async (event: CalRow, category: string) => {
+    try {
+      await calData.updateEventMutation.mutateAsync({
+        userId: userId || '',
+        accessToken: accessToken || '',
+        event: {
+          id: event.event_id || event.id,
+          summary: event.summary || 'Bez tytułu',
+          start: event.start_time || new Date().toISOString(),
+          end: event.end_time || event.start_time || new Date().toISOString(),
+          category,
+          description: event.description || undefined,
+        },
+      });
+      calData.setToastMessage(`Zmieniono sferę na: ${category} 🎨`);
+    } catch (err) {
+      console.error('Failed to change category:', err);
+      calData.setToastMessage('Nie udało się zmienić kategorii.');
+    }
+  }, [calData, userId, accessToken]);
+
+  const handleContextMenuMoveToDate = useCallback(async (event: CalRow, dateStr: string) => {
+    try {
+      const timePart = event.start_time ? event.start_time.split('T')[1] || '09:00:00+02:00' : '09:00:00+02:00';
+      const newStart = `${dateStr}T${timePart}`;
+      const newEnd = event.end_time ? `${dateStr}T${event.end_time.split('T')[1] || '10:00:00+02:00'}` : `${dateStr}T10:00:00+02:00`;
+      await calData.updateEventMutation.mutateAsync({
+        userId: userId || '',
+        accessToken: accessToken || '',
+        event: {
+          id: event.event_id || event.id,
+          summary: event.summary || 'Bez tytułu',
+          start: newStart,
+          end: newEnd,
+          category: event.category || undefined,
+          description: event.description || undefined,
+        },
+      });
+      calData.setToastMessage(`Przełożono wydarzenie na ${dateStr} 📅`);
+    } catch (err) {
+      console.error('Failed to move event date:', err);
+      calData.setToastMessage('Nie udało się przełożyć wydarzenia.');
+    }
+  }, [calData, userId, accessToken]);
 
   const calTodos = useCalendarTodos({
     userId: userId || '',
@@ -229,8 +284,23 @@ export default function CalendarView({
             todosForDay={calTodos.todosForDay}
             goalChipFor={calTodos.goalChipFor}
             scheduleTodoAt={calTodos.scheduleTodoAt}
+            handleEventContextMenu={handleEventContextMenu}
           />
         </div>
+
+        {/* Apple Calendar Glassmorphic Context Menu */}
+        <CalendarContextMenu
+          menu={contextMenu}
+          onClose={() => setContextMenu(null)}
+          onEdit={(event) => calData.openEditFromPreview(event)}
+          onDelete={(event) => {
+            calData.setSelectedEvent(event);
+            calData.setShowDeleteConfirm(true);
+          }}
+          onChangeCategory={handleContextMenuChangeCategory}
+          onMoveToDate={handleContextMenuMoveToDate}
+          today={today}
+        />
 
         {/* Mobile Quick Create Floating Action Button (FAB) */}
         <Fab

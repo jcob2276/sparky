@@ -21,6 +21,7 @@ export const renderEventBlock = ({
   left,
   width,
   handleEventMouseDown,
+  handleEventContextMenu,
 }: CalendarGridEventBlockProps) => {
   if (!ev.start_time || !ev.end_time) return null;
   const startMin = parseTime(ev.start_time);
@@ -51,6 +52,11 @@ export const renderEventBlock = ({
     <div
       key={ev.id}
       onMouseDown={(e) => handleEventMouseDown(ev, e, 'move')}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleEventContextMenu?.(ev, e);
+      }}
       className={`apple-event-card absolute border-l-[3.5px] ${tooShort ? 'px-2 py-0.5 flex items-center justify-start' : 'px-3 py-1.5 flex flex-col justify-between'} overflow-hidden cursor-move shadow-xs hover:shadow-md hover:z-[var(--z-popover)] select-none ${eventColor(ev)}`}
       style={{ top, height, left: `calc(${left} + 1px)`, width: `calc(${width} - 2px)` }}
       title={ev.summary || ''}
