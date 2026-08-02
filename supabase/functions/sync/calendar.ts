@@ -47,6 +47,7 @@ export async function runCalendarSync(req: Request): Promise<unknown> {
         .from('vanguard_tokens')
         .select('refresh_token')
         .eq('user_id', userId)
+        .eq('provider', 'google')
         .maybeSingle()
     )
 

@@ -23,6 +23,7 @@ async function getAccessToken(userId: string): Promise<string | null> {
       .from('vanguard_tokens')
       .select('refresh_token')
       .eq('user_id', userId)
+      .eq('provider', 'google')
       .maybeSingle()
   )
   if (!tokenData?.refresh_token) return null
