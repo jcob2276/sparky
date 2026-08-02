@@ -103,8 +103,21 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
   }, [obligations, today]);
 
   // Cast events to CalRow[] safely and merge obligation events
+  // Exclude generic Garmin/Intervals "Kardio" / "Cardio" activities to avoid duplication with manual Sauna entries
   const events = useMemo(() => {
-    const raw = rawEvents as CalRow[];
+    const raw = (rawEvents as CalRow[]).filter((ev) => {
+      const summaryLower = ev.summary?.toLowerCase() || '';
+      if (
+        summaryLower === 'kardio' ||
+        summaryLower === 'cardio' ||
+        summaryLower.includes('(kardio)') ||
+        summaryLower.includes('(cardio)') ||
+        summaryLower === 'bieg 🏃 (kardio)'
+      ) {
+        return false;
+      }
+      return true;
+    });
     return [...raw, ...obligationEvents];
   }, [rawEvents, obligationEvents]);
   const [searchQuery, setSearchQuery] = useState('');
