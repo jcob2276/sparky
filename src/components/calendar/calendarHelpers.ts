@@ -203,19 +203,19 @@ export function eventColor(ev: CalRow) {
   }
 
   const categoryMap: Record<string, string> = {
-    brak: 'bg-slate-500/15 dark:bg-slate-500/25 text-slate-700 dark:text-slate-300 border border-slate-400/50 font-bold',
-    none: 'bg-slate-500/15 dark:bg-slate-500/25 text-slate-700 dark:text-slate-300 border border-slate-400/50 font-bold',
-    praca: 'bg-info/22 dark:bg-info/25 text-info-hover dark:text-info-hover border border-info/50 font-bold',
-    work: 'bg-info/22 dark:bg-info/25 text-info-hover dark:text-info-hover border border-info/50 font-bold',
-    cialo_trening: 'bg-success/22 dark:bg-success/25 text-success-hover dark:text-success-hover border border-success/50 font-bold',
-    health: 'bg-success/22 dark:bg-success/25 text-success-hover dark:text-success-hover border border-success/50 font-bold',
-    sport: 'bg-success/22 dark:bg-success/25 text-success-hover dark:text-success-hover border border-success/50 font-bold',
-    duch_refleksja: 'bg-sky-500/22 dark:bg-sky-500/25 text-sky-700 dark:text-sky-300 border border-sky-500/50 font-bold',
-    study: 'bg-sky-500/22 dark:bg-sky-500/25 text-sky-700 dark:text-sky-300 border border-sky-500/50 font-bold',
-    finanse: 'bg-warning/22 dark:bg-warning/25 text-warning-hover dark:text-warning-hover border border-warning/50 font-bold',
-    relacje_rodzina: 'bg-violet-500/22 dark:bg-violet-500/25 text-violet-700 dark:text-violet-300 border border-violet-500/50 font-bold',
-    personal: 'bg-violet-500/22 dark:bg-violet-500/25 text-violet-700 dark:text-violet-300 border border-violet-500/50 font-bold',
-    odpoczynek_regeneracja: 'bg-danger/22 dark:bg-danger/25 text-danger-hover dark:text-danger-hover border border-danger/50 font-bold',
+    brak: 'bg-slate-200/90 dark:bg-slate-800/90 text-slate-950 dark:text-slate-100 border border-slate-400/70 font-black shadow-2xs',
+    none: 'bg-slate-200/90 dark:bg-slate-800/90 text-slate-950 dark:text-slate-100 border border-slate-400/70 font-black shadow-2xs',
+    praca: 'bg-blue-100/90 dark:bg-blue-950/70 text-blue-950 dark:text-blue-100 border border-blue-500/70 font-black shadow-2xs',
+    work: 'bg-blue-100/90 dark:bg-blue-950/70 text-blue-950 dark:text-blue-100 border border-blue-500/70 font-black shadow-2xs',
+    cialo_trening: 'bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-950 dark:text-emerald-100 border border-emerald-500/70 font-black shadow-2xs',
+    health: 'bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-950 dark:text-emerald-100 border border-emerald-500/70 font-black shadow-2xs',
+    sport: 'bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-950 dark:text-emerald-100 border border-emerald-500/70 font-black shadow-2xs',
+    duch_refleksja: 'bg-sky-100/90 dark:bg-sky-950/70 text-sky-950 dark:text-sky-100 border border-sky-500/70 font-black shadow-2xs',
+    study: 'bg-sky-100/90 dark:bg-sky-950/70 text-sky-950 dark:text-sky-100 border border-sky-500/70 font-black shadow-2xs',
+    finanse: 'bg-amber-100/90 dark:bg-amber-950/70 text-amber-950 dark:text-amber-100 border border-amber-500/70 font-black shadow-2xs',
+    relacje_rodzina: 'bg-violet-100/90 dark:bg-violet-950/70 text-violet-950 dark:text-violet-100 border border-violet-500/70 font-black shadow-2xs',
+    personal: 'bg-violet-100/90 dark:bg-violet-950/70 text-violet-950 dark:text-violet-100 border border-violet-500/70 font-black shadow-2xs',
+    odpoczynek_regeneracja: 'bg-rose-100/90 dark:bg-rose-950/70 text-rose-950 dark:text-rose-100 border border-rose-500/70 font-black shadow-2xs',
   };
 
   // 1. Explicit database category

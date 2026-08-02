@@ -68,7 +68,7 @@ export const renderEventBlock = ({
         {isAIScheduled && !tooShort && <Sparkles size={11} className="shrink-0 animate-pulse text-amber-500 mt-0.5" />}
         {isFocusTime && !tooShort && <Shield size={11} className="shrink-0 text-current mt-0.5" />}
         {videoCall && !tooShort && <Video size={11} className="shrink-0 text-current mt-0.5" />}
-        <p className={`${tooShort ? 'text-xs truncate font-bold' : isMedium ? 'text-xs font-bold leading-tight break-words line-clamp-2' : 'text-xs md:text-sm font-bold leading-snug break-words line-clamp-4'}`}>
+        <p className={`${tooShort ? 'text-xs truncate font-black' : isMedium ? 'text-xs font-black leading-tight break-words line-clamp-2' : 'text-xs md:text-sm font-black leading-snug break-words line-clamp-4'}`}>
           {displaySummary}
         </p>
       </div>
