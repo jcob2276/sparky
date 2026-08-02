@@ -199,42 +199,49 @@ export function eventColor(ev: CalRow) {
   const summaryLower = ev.summary?.toLowerCase() || '';
   const isFocusTime = ev.summary?.includes('Focus Time') || ev.summary?.includes('🛡️');
   if (isFocusTime) {
-    return 'bg-primary/22 dark:bg-primary/25 text-primary-hover dark:text-primary-hover border border-primary/50 font-bold';
+    return 'bg-blue-100 text-blue-950 border-blue-500 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-400 font-semibold';
   }
 
+  const categoryMap: Record<string, string> = {
+    praca: 'bg-blue-100 text-blue-950 border-blue-500 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-400 font-semibold',
+    work: 'bg-blue-100 text-blue-950 border-blue-500 dark:bg-blue-950/60 dark:text-blue-200 dark:border-blue-400 font-semibold',
+    cialo_trening: 'bg-emerald-100 text-emerald-950 border-emerald-500 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-400 font-semibold',
+    health: 'bg-emerald-100 text-emerald-950 border-emerald-500 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-400 font-semibold',
+    sport: 'bg-emerald-100 text-emerald-950 border-emerald-500 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-400 font-semibold',
+    duch_refleksja: 'bg-sky-100 text-sky-950 border-sky-500 dark:bg-sky-950/60 dark:text-sky-200 dark:border-sky-400 font-semibold',
+    study: 'bg-sky-100 text-sky-950 border-sky-500 dark:bg-sky-950/60 dark:text-sky-200 dark:border-sky-400 font-semibold',
+    finanse: 'bg-amber-100 text-amber-950 border-amber-500 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-400 font-semibold',
+    relacje_rodzina: 'bg-violet-100 text-violet-950 border-violet-500 dark:bg-violet-950/60 dark:text-violet-200 dark:border-violet-400 font-semibold',
+    personal: 'bg-violet-100 text-violet-950 border-violet-500 dark:bg-violet-950/60 dark:text-violet-200 dark:border-violet-400 font-semibold',
+    odpoczynek_regeneracja: 'bg-rose-100 text-rose-950 border-rose-500 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-400 font-semibold',
+  };
+
   // 1. Explicit database category
-  if (ev.category && CATEGORY_COLORS[ev.category.toLowerCase()]) {
-    const tonalCategoryColors: Record<string, string> = {
-      praca: 'bg-info/22 dark:bg-info/25 text-info-hover dark:text-info-hover border border-info/50 font-bold',
-      cialo_trening: 'bg-success/22 dark:bg-success/25 text-success-hover dark:text-success-hover border border-success/50 font-bold',
-      duch_refleksja: 'bg-info/22 dark:bg-info/25 text-info-hover dark:text-info-hover border border-info/50 font-bold',
-      finanse: 'bg-warning/22 dark:bg-warning/25 text-warning-hover dark:text-warning-hover border border-warning/50 font-bold',
-      relacje_rodzina: 'bg-primary/22 dark:bg-primary/25 text-primary-hover dark:text-primary-hover border border-primary/50 font-bold',
-      odpoczynek_regeneracja: 'bg-danger/22 dark:bg-danger/25 text-danger-hover dark:text-danger-hover border border-danger/50 font-bold',
-    };
-    return tonalCategoryColors[ev.category.toLowerCase()] || CATEGORY_COLORS[ev.category.toLowerCase()];
+  const catKey = ev.category?.toLowerCase();
+  if (catKey && categoryMap[catKey]) {
+    return categoryMap[catKey];
   }
 
   // 2. Keyword-based fallbacks for uncategorized events
   if (summaryLower.includes('sen') || summaryLower.includes('sleep') || summaryLower.includes('sauna')) {
-    return CATEGORY_COLORS['odpoczynek_regeneracja'];
+    return categoryMap['odpoczynek_regeneracja'];
   }
   if (summaryLower.includes('bieg') || summaryLower.includes('trening') || summaryLower.includes('siłownia') || summaryLower.includes('run') || summaryLower.includes('gym') || summaryLower.includes('workout')) {
-    return CATEGORY_COLORS['cialo_trening'];
+    return categoryMap['cialo_trening'];
   }
   if (summaryLower.includes('medyt') || summaryLower.includes('reflek') || summaryLower.includes('cich') || summaryLower.includes('silent') || summaryLower.includes('mindful')) {
-    return CATEGORY_COLORS['duch_refleksja'];
+    return categoryMap['duch_refleksja'];
   }
   if (summaryLower.includes('budżet') || summaryLower.includes('finans') || summaryLower.includes('money') || summaryLower.includes('invest') || summaryLower.includes('giełd')) {
-    return CATEGORY_COLORS['finanse'];
+    return categoryMap['finanse'];
   }
-  if (summaryLower.includes('rodzin') || summaryLower.includes('randk') || summaryLower.includes('spotkan') || summaryLower.includes('koleg') || summaryLower.includes('znajom') || summaryLower.includes('dinner') || summaryLower.includes('date') || summaryLower.includes('urodzin')) {
+  if (summaryLower.includes('rodzin') || summaryLower.includes('randk') || summaryLower.includes('spotkan') || summaryLower.includes('koleg') || summaryLower.includes('znajom') || summaryLower.includes('dinner') || summaryLower.includes('date') || summaryLower.includes('urodzin') || summaryLower.includes('babcia') || summaryLower.includes('piłka') || summaryLower.includes('pilka')) {
     if (!summaryLower.includes('pracy') && !summaryLower.includes('work') && !summaryLower.includes('daily') && !summaryLower.includes('sync')) {
-      return CATEGORY_COLORS['relacje_rodzina'];
+      return categoryMap['relacje_rodzina'];
     }
   }
 
-  return 'bg-primary/22 dark:bg-primary/25 text-primary-hover dark:text-primary-hover font-bold border border-primary/50';
+  return categoryMap['praca'];
 }
 
 export interface MonthDayInfo {

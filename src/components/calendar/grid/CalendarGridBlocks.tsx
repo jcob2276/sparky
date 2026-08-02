@@ -34,6 +34,7 @@ export const renderEventBlock = ({
   const top = (visibleStartMin - HOUR_START * 60) * PX_PER_MIN;
   const height = Math.max(20, (visibleEndMin - visibleStartMin) * PX_PER_MIN);
   const tooShort = height < 32;
+  const isMedium = height >= 32 && height < 54;
   const isAIScheduled = ev.summary?.includes('✨') || ev.summary?.includes('[AI]');
   const isFocusTime = ev.summary?.includes('Focus Time') || ev.summary?.includes('🛡️');
   const videoCall = detectVideoCallUrl(ev.location) || detectVideoCallUrl(ev.description) || detectVideoCallUrl(ev.summary);
@@ -57,23 +58,25 @@ export const renderEventBlock = ({
         e.stopPropagation();
         handleEventContextMenu?.(ev, e);
       }}
-      className={`apple-event-card absolute border-l-[3.5px] ${tooShort ? 'px-2 py-0.5 flex items-center justify-start' : 'px-3 py-1.5 flex flex-col justify-between'} overflow-hidden cursor-move shadow-xs hover:shadow-md hover:z-[var(--z-popover)] select-none ${eventColor(ev)}`}
+      className={`apple-event-card absolute border-l-[3.5px] rounded-r-lg ${
+        tooShort ? 'px-2 py-0.5 flex items-center justify-start' : 'px-2 py-1 flex flex-col justify-between'
+      } overflow-hidden cursor-move shadow-xs hover:shadow-md hover:z-[var(--z-popover)] select-none ${eventColor(ev)}`}
       style={{ top, height, left: `calc(${left} + 1px)`, width: `calc(${width} - 2px)` }}
       title={ev.summary || ''}
     >
       <div className="flex items-start gap-1 min-w-0 w-full justify-start">
         {isAIScheduled && !tooShort && <Sparkles size={11} className="shrink-0 animate-pulse text-amber-500 mt-0.5" />}
-        {isFocusTime && !tooShort && <Shield size={11} className="shrink-0 text-primary mt-0.5" />}
-        {videoCall && !tooShort && <Video size={12} className="shrink-0 text-primary mt-0.5" />}
-        <p className={`${tooShort ? 'text-xs' : 'text-xs md:text-sm'} font-black tracking-tight leading-tight break-words line-clamp-2`}>
+        {isFocusTime && !tooShort && <Shield size={11} className="shrink-0 text-current mt-0.5" />}
+        {videoCall && !tooShort && <Video size={11} className="shrink-0 text-current mt-0.5" />}
+        <p className={`${tooShort ? 'text-xs truncate font-bold' : isMedium ? 'text-xs font-bold leading-tight break-words line-clamp-2' : 'text-xs md:text-sm font-bold leading-snug break-words line-clamp-4'}`}>
           {displaySummary}
         </p>
       </div>
       {!tooShort && (
-        <div className="mt-0.5 text-3xs font-black tracking-wider uppercase opacity-80 flex items-center justify-between">
+        <div className="mt-0.5 text-3xs font-semibold tracking-wider uppercase opacity-85 flex items-center justify-between shrink-0">
           <span>{formatTime(ev.start_time)}–{formatTime(ev.end_time)}</span>
           {videoCall && (
-            <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-primary/20 text-primary font-bold text-3xs">
+            <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-black/15 text-current font-bold text-3xs">
               📹 {videoCall.provider}
             </span>
           )}
