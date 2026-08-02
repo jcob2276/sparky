@@ -1,11 +1,15 @@
 import JSZip from 'jszip';
 import { describe, expect, it, vi } from 'vitest';
 import type { Note } from './notesApi';
-import { buildNotesArchive, noteAsText } from './notesExport';
+import { buildNotesArchive, noteAsMarkdown, noteAsText } from './notesExport';
 
 vi.mock('./noteAttachmentsApi', () => ({
   listUserNoteAttachments: vi.fn().mockResolvedValue([]),
   downloadNoteAttachmentFile: vi.fn(),
+}));
+
+vi.mock('./noteDrawingsApi', () => ({
+  downloadNoteDrawingPreview: vi.fn().mockResolvedValue(new Blob(['png'], { type: 'image/png' })),
 }));
 
 const note: Note = {
@@ -38,8 +42,27 @@ describe('notes export', () => {
     const zip = await JSZip.loadAsync(await blob.arrayBuffer());
 
     expect(zip.file('manifest.json')).not.toBeNull();
-    const noteFile = Object.keys(zip.files).find(path => path.startsWith('notes/') && path.endsWith('.txt'));
+    const noteFile = Object.keys(zip.files).find(path => path.startsWith('notes/') && path.endsWith('.md'));
     expect(noteFile).toBeTruthy();
     await expect(zip.file(noteFile!)!.async('string')).resolves.toContain('Plan podróży');
+  });
+
+  it('embeds a drawing preview beside the Markdown note in an archive', async () => {
+    const blob = await buildNotesArchive('user-1', [{ ...note, drawing_preview_path: 'user-1/note-1/drawing-preview.png' }], []);
+    const zip = await JSZip.loadAsync(await blob.arrayBuffer());
+    const noteFile = Object.keys(zip.files).find(path => path.startsWith('notes/') && path.endsWith('.md'))!;
+    const markdown = await zip.file(noteFile)!.async('string');
+
+    expect(markdown).toContain('![Rysunek](../drawings/note-1.png)');
+    expect(zip.file('drawings/note-1.png')).not.toBeNull();
+  });
+
+  it('creates Markdown metadata and readable content', () => {
+    const markdown = noteAsMarkdown(note, 'Podróże');
+    expect(markdown).toContain('# Plan podróży');
+    expect(markdown).toContain('**Folder:** Podróże');
+    expect(markdown).toContain('**Tagi:** #wakacje');
+    expect(markdown).toContain('Lot do Gdańska');
+    expect(markdown).not.toContain('<p>');
   });
 });

@@ -30,7 +30,9 @@ export function DashboardNavBar({
 
   return (
     <nav
-      className="fixed left-1/2 z-[var(--z-modal)] flex w-[92%] max-w-[380px] -translate-x-1/2 items-center justify-between p-1.5 ios-pill-nav"
+      aria-label="Główna nawigacja"
+      data-material="floating"
+      className="ui-floating-nav fixed left-1/2 z-[var(--z-modal)] flex w-[92%] max-w-[380px] -translate-x-1/2 items-center justify-between p-1.5"
       style={{ bottom: 'max(14px, env(safe-area-inset-bottom))' }}
     >
       {(() => {
@@ -41,6 +43,7 @@ export function DashboardNavBar({
             <Button
               key={item.id}
               variant="ghost"
+              aria-current={isActive ? 'page' : undefined}
               onClick={() => {
                 if (!isActive) haptics.selection();
                 navigateTo(item.id);

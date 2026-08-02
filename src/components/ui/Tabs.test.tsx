@@ -26,9 +26,10 @@ describe('Tabs', () => {
 
   it('applies active class to the selected tab', () => {
     render(<Tabs tabs={tabs} active="b" onChange={() => {}} />);
-    const buttons = screen.getAllByRole('button');
-    const activeBtn = buttons[1];
+    const activeBtn = screen.getByRole('tab', { name: 'Tab B' });
     expect(activeBtn.className).toContain('bg-surface-tonal');
     expect(activeBtn.className).toContain('text-primary');
+    expect(activeBtn).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tablist')).toBeInTheDocument();
   });
 });

@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware';
 export type AccentColor = 'blue' | 'emerald' | 'amber' | 'violet' | 'rose';
 export type BubbleStyle = 'imessage' | 'pill' | 'card';
 export type BgMode = 'amoled' | 'dark' | 'light';
-export type ChannelId = 'oracle' | 'friction' | 'food' | 'todo';
+type ChannelId = 'oracle' | 'friction' | 'food' | 'todo';
 
 interface ChatThemeState {
   accentColor: AccentColor;

@@ -33,6 +33,8 @@ interface InlineEditorProps {
   isMobile: boolean;
   folders?: NoteFolder[];
   onExportNote?: (note: Note) => void;
+  onExportPdf?: (note: Note) => void;
+  onShareNote?: (note: Note) => void;
   onNavigateToNote?: (noteId: string) => void;
   onLockNote?: (note: Note) => Promise<void>;
 }
@@ -40,7 +42,7 @@ interface InlineEditorProps {
 
 
 export default function InlineEditor({
-  note, onClose, onUpdate, onDelete, onTogglePin, busy: _busy, allTags: _allTags = [], allNotes = [], onExportChecklists: _onExportChecklists, isMobile, folders = [], onExportNote, onNavigateToNote, onLockNote,
+  note, onClose, onUpdate, onDelete, onTogglePin, busy: _busy, allTags: _allTags = [], allNotes = [], onExportChecklists: _onExportChecklists, isMobile, folders = [], onExportNote, onExportPdf, onShareNote, onNavigateToNote, onLockNote,
 }: InlineEditorProps) {
   const userId = useUserId();
   const {
@@ -119,6 +121,8 @@ export default function InlineEditor({
             onPin={() => onTogglePin(note)}
             onArchive={() => { onUpdate(note.id, { is_archived: !note.is_archived }); onClose(); }}
             onExport={onExportNote ? () => onExportNote({ ...note, ...metadata, content, color, folder_id }) : undefined}
+            onExportPdf={onExportPdf ? () => onExportPdf({ ...note, ...metadata, content, color, folder_id }) : undefined}
+            onShare={onShareNote ? () => onShareNote({ ...note, ...metadata, content, color, folder_id }) : undefined}
             onLock={onLockNote ? () => { void flushAndWait().then(() => onLockNote({
               ...note, ...metadata, content, color, folder_id,
             })); } : undefined}

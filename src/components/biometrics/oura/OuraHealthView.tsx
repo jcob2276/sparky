@@ -7,6 +7,7 @@ import { OuraSleepTab } from './OuraSleepTab';
 import Button from '../../ui/Button';
 import IconButton from '../../ui/IconButton';
 import './ouraTheme.css';
+import HealthspanExperienceContainer from '../healthspan/HealthspanExperienceContainer';
 
 export type OuraSection = 'today' | 'vitals' | 'health';
 
@@ -80,7 +81,12 @@ export function OuraHealthView({
           <>
             {activeSection === 'today' && <OuraTodayView data={data} onOpenSleep={onOpenSleep} />}
             {activeSection === 'vitals' && <OuraVitalsView data={data} onOpenSleep={onOpenSleep} />}
-            {activeSection === 'health' && <OuraLongTermView data={data} />}
+            {activeSection === 'health' && (
+              <div className="space-y-8">
+                <HealthspanExperienceContainer />
+                <OuraLongTermView data={data} />
+              </div>
+            )}
           </>
         )}
       </main>

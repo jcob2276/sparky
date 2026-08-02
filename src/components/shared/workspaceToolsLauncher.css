@@ -1,11 +1,11 @@
 .workspace-tools-nav {
   position: fixed !important;
   right: auto !important;
-  bottom: var(--central-bottom-017edde0) !important;
+  bottom: max(12px, env(safe-area-inset-bottom)) !important;
   left: 50% !important;
   width: auto !important;
   padding: 4px !important;
-  transform: var(--central-transform-1b8ae7b7);
+  transform: translateX(-50%);
   border: 1px solid color-mix(in srgb, var(--border-custom) 72%, transparent) !important;
   border-radius: var(--central-border-radius-a28678f5);
   background: color-mix(in srgb, var(--background) 88%, transparent) !important;

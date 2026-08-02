@@ -1,234 +1,587 @@
-# Vanguard OS — Stan Aplikacji (01.07.2026)
+# Vanguard OS — stan aplikacji
 
-Dokument opisuje wszystko co istnieje. Podstawa do projektowania nowych funkcji.
-SSOT dla stanu backendu: [`supabase/functions/README.md`](../supabase/functions/README.md).
+Dokument opisuje aktualne powierzchnie produktu, ich przeznaczenie i połączenia.
+Stan backendu jest generowany z kodu w
+[`supabase/functions/FUNCTIONS.md`](../supabase/functions/FUNCTIONS.md).
 
----
+## Główna pętla
 
-## Czym jest Vanguard
+```text
+capture → Dziś → wykonanie → refleksja → Historia/Wiedza → korekta Tygodnia
+```
 
-Zintegrowany, osobisty kokpit samoobserwacji i logowania Jakuba. System który:
-- Zbiera wszystko co Jakub robi, je, ćwiczy, mówi, planuje
-- Klasyfikuje tarcia behawioralne (co mówię że zrobię vs co robię)
-- Prowadzi pętlę dobową przez Telegram (południe → wieczór)
-- Odpowiada na pytania o fakty i biometrię (Oracle)
-- Wykrywa wzorce i rozbieżności narracja vs dane
-- Zunifikowany kręgosłup planowania (dzień → tydzień → sprint → cel długoterminowy)
+- Telegram, czat, share target i szybkie formularze zbierają wejście.
+- `Dziś` łączy stan organizmu, plan, kalendarz, zadania i szybki zapis.
+- `Tydzień` reguluje zakres i pokazuje odchylenia.
+- `Kierunek` utrzymuje cele i projekty.
+- `Historia` oddziela znaczące zdarzenia od pełnego archiwum danych.
+- Oracle, nightly, analyst, graf i wiki interpretują dane w tle.
 
-**Stack:** React 19 + Vite + TypeScript / Supabase Postgres + Deno Edge Functions / Vercel
+## Powierzchnie globalne
 
----
-
-## Frontend — Zakładki i Widoki
-
-### Nawigacja mobilna (4 zakładki)
-
-| Zakładka | Ikona | Zawartość |
+| Powierzchnia | Przeznaczenie | Połączenia |
 |---|---|---|
-| **DZIŚ** | Sun | PowerList, DailyStrainCard, StravaWidget, NutritionTrainingBarCard, FoodQuickCapture, TrainingSaunaQuickBar, SpineGuideStrip, ActionCenterSheet |
-| **TYDZIEŃ** | Calendar | Direction (review/refleksja, KPI, sprint), WeekHub, NutritionCard |
-| **PROJEKTY** | FolderKanban | Projects (lista + KPI + milestone), GoalCreateModal |
-| **HISTORIA** | Clock | Stats (ciało, treningi, dieta), Photos, MuscleHeatmap, InsightsDashboard |
+| Logowanie | Sesja Supabase i ochrona wszystkich danych użytkownika | Każda produkcyjna trasa |
+| Quick Capture | Stały przycisk czatu/capture dostępny ponad routerem | `vanguard-capture`, stream, linki, transkrypcja |
+| Fast Capture | Jedzenie, trening, sauna i pomiar wzroku | Żywienie, trening, Kartoteka/Historia |
+| Action Center | Decyzja „Istotne / Olej” dla propozycji systemu | `vanguard-analyst` → `system_proposals` → Tydzień |
+| Wyszukiwanie/Command Center | Przejście do głównych narzędzi oraz undo/redo | Router, historia odwracalnych akcji |
+| Flux Overlay | Globalne ocieplenie ekranu według ustawień | Ustawienia, lokalny harmonogram |
+| Service Worker / APK | PWA, powiadomienia, natywne intencje i synchronizacja | Push, lokalizacja, Usage Stats, Oura BLE |
 
-### Trasy (App.tsx)
+## Główny shell
 
-| Trasa | Komponent | Opis |
-|---|---|---|
-| `/` | `Dashboard` | Główny dashboard mobilny (4 zakładki) |
-| `/dashboard` | `DesktopDashboard` | Wielokolumnowy cockpit desktopowy |
-| `/settings` | `SettingsView` | Ustawienia |
-| `/rozwoj` | `GrowthView` | Rozwój: skill tree, radar, projekty, media queue, week plan |
-| `/badania` | `MedicalStudiesPage` | Badania medyczne: lab results, biology scores, trend charts |
-| `/korealcje` | `CorrelationsPage` | Korelacje między zmiennymi, BehaviorEffectCard |
+### `/` i `/dzis` — Dziś
 
-### Widoki dodatkowe (modal / pełny ekran)
+**Cel:** odpowiedzieć, jaki jest stan i co zrobić dalej.
 
-- **Todo** (`/` →(todo)`) — Sekcje zadań, priorytety, drag & drop, linkowanie do projektów
-- **Keep** — Notatki WYSIWYG (bold, italic, kod, tabela, kolory, tagi, archiwum, rich editor z toolbar)
-- **WorkoutLogger** — Logowanie treningu (ćwiczenia, serie, wagi, RIR, RPE) + auto-resume po kill PWA
-- **SaunaLoggerModal** — Logowanie sesji sauny
-- **LinksInbox** — Share target PWA (zapisywanie linków z przeglądarki)
-- **FoodEntryModal** — Wyszukiwanie jedzenia (favorites/recent, NL parsing, barcode lookup)
-- **ActionCenterSheet** — Panel akcji (system_proposals: Istotne / Olej)
+Funkcje:
 
-### Desktop Dashboard (`/dashboard`)
+- status dnia i najważniejszy ruch;
+- PowerList i plan dnia;
+- dzisiejszy runway z kalendarza i zadań;
+- szybkie logowanie jedzenia;
+- strain, recovery i główny limiter;
+- dzienny snapshot;
+- rytuał wieczornego domknięcia;
+- niedzielny przegląd zadań;
+- blokada pełnego interfejsu do utworzenia dziennego planu.
 
-Wielokolumnowy cockpit z panelami:
-- DesktopHero, Heatmap, SmartAlerts, MarathonPanel
-- IntelligencePanel, LeniePanelMini, HexagonPanel
-- FitnessScorePanel, HabitsPanel, BehaviorCapturePanel
-- DreamsPanel, VisionBoardPanel, SprintPanel
-- GeneralView (uniwersalny widok)
+Połączenia:
 
----
+- `daily_wins` i Todo dostarczają wykonanie;
+- Kalendarz i Terminy dostarczają ograniczenia czasu;
+- Oura, trening, Strava i żywienie zasilają strain/snapshot;
+- zakończenie dnia zapisuje refleksję używaną przez Historię i Oracle.
 
-## Backend — Edge Functions
+### `/tydzien` — Tydzień
 
-Dla zachowania spójności i zapobiegania rozjazdowi informacji, pełny rejestr wszystkich wdrożonych Edge Functions oraz ich konfiguracji jest utrzymywany w jednym miejscu.
+**Cel:** zobaczyć przebieg tygodnia i skorygować pozostały zakres.
 
-Zobacz Single Source of Truth (SSOT) dla backendu:
-👉 **[supabase/functions/README.md](../supabase/functions/README.md)**
+Funkcje:
 
----
+- tygodniowy puls ciała;
+- tygodniowy puls żywienia;
+- mapa wykonanych dni;
+- Direction: przegląd, KPI, sprint, plan i refleksja;
+- wejście do Action Center.
 
-## Baza Danych — Główne Tabele i Schemat
+Połączenia:
 
-Baza danych Supabase jest podzielona na logiczne obszary domenowe. Pełne i aktualne definicje typów znajdują się w `src/lib/database.types.ts`. Poniżej znajduje się wyszczególnienie kluczowych domen danych:
+- agreguje Dziś, Oura, żywienie, KPI i projekty;
+- zatwierdzone decyzje wpływają na kolejne dni;
+- system proposals z analityka trafiają tu do ludzkiej decyzji.
 
-*   **Strumień i tarcia** (`vanguard_stream`, `friction_events`, `confirmed_friction_events`): Rejestruje surowy strumień wejściowy użytkownika z Telegrama/głosówek oraz automatycznie wykryte tarcia behawioralne (avoidance, habit_break, itp.).
-*   **Planowanie i PowerList** (`daily_wins`, `weekly_reviews`, `sprint_goals`, `kpi_entries`, `life_goals`): Pentla celów i zadań – od BHAG (cele życiowe), przez cele sprintu i KPI, po dzienne wykonanie PowerList.
-*   **Oracle i RAG** (`vanguard_oracle_runs`, `oracle_clarification_requests`, `vanguard_behavioral_patterns`, `vanguard_wiki_pages`): Logi Wyroczni, pytania doprecyzowujące dla użytkownika (active learning) oraz pamięć skompilowana (wiki) i wyekstrahowane wzorce.
-*   **Biometria i sport** (`oura_daily_summary`, `oura_enhanced`, `oura_sleep_*`, `oura_heartrate`, `strava_activities`, `workout_sessions`, `exercise_logs`, `daily_strain`): Dane z Oura Ring, aktywności ze Strava oraz lokalnych logów treningowych i sauny, z których wyliczany jest dobowy Strain/Recovery.
-*   **Dieta i zdrowie** (`daily_nutrition`, `daily_food_entries`, `food_library`, `body_metrics`, `medical_lab_results`): Zapisy zjedzonych posiłków, baza produktów, waga oraz wyniki badań laboratoryjnych użytkownika.
-*   **Zadania, notatki i projekty** (`projects`, `todo_sections`, `todo_items`, `vanguard_notes`, `vanguard_links`): Zarządzanie zadaniami i projektami oraz synchronizacja notatek Keep i linków.
-*   **Tożsamość i inne** (`user_settings`, `vanguard_preferences`, `vanguard_calendar`, `audit_events`, `vanguard_tokens`, `vanguard_identity`, `dreams`, `vision_board_items`): Ustawienia użytkownika, tokeny, zintegrowany kalendarz Google, zdjęcia progresu oraz sny.
+### `/projekty` — Kierunek
 
----
+**Cel:** utrzymywać trzy sfery życia, aktywne projekty i mierzalne postępy.
 
-## Integracje Zewnętrzne
+Funkcje:
 
-| System | Auth | Co zbiera |
-|---|---|---|
-| **Oura Ring** | Bearer token (user_settings.oura_token) | Readiness, HRV, RHR, sen, temperatura, kroki, aktywność, treningi |
-| **Strava** | OAuth2 (refresh rotation w strava_tokens) | Aktywności sportowe, dystans, HR, suffer_score |
-| **Google Calendar** | OAuth2 (redirect) | Synchronizacja kalendarza |
-| **Telegram Bot** | Bot token | Input głosowy/tekstowy, output (briefingi, pytania, odpowiedzi, przyciski) |
-| **DeepSeek** | API key (env) | LLM: klasyfikacja, Oracle, analiza treningu, nutrition coach, goal create |
-| **OpenAI** | API key (env) | Embeddings (text-embedding-3-small), transkrypcja (Whisper) |
+- cele długoterminowe;
+- projekty i ich stan;
+- KPI;
+- kamienie milowe zapisane jako zadania;
+- dowody postępu;
+- Top 5 / priorytety kierunku.
 
----
+Połączenia:
 
-## Logika Biznesowa
+- projekt może grupować sekcję Todo;
+- wykonanie PowerList może zasilać KPI projektu;
+- Tydzień wybiera zakres z Kierunku;
+- Historia pokazuje rezultaty, a Oracle czyta projekty jako kontekst.
 
-### Vanguard States (7 stanów)
+### `/historia` — Historia
 
-System wylicza aktualny stan Jakuba na podstawie sygnałów:
+**Cel:** zobaczyć zmianę w czasie i pełne dane źródłowe.
 
-| Stan | Warunki |
+Funkcje:
+
+- Kronika: znaczące zdarzenia, pomiary ciała, insighty i zdjęcia;
+- Archiwum: żywienie, treningi, statystyki oraz Strava;
+- eksport statystyk i danych Oura.
+
+Połączenia:
+
+- zbiera rezultaty z Dziś, treningu, żywienia, Oura i Kartoteki;
+- insighty korzystają z danych pochodnych nightly;
+- zdjęcia mogą zostać przeanalizowane przez `analyze-physique`.
+
+## Workspace
+
+### `/keep` — Notatki
+
+**Cel:** trwałe przechowywanie i opracowywanie własnych materiałów.
+
+Funkcje:
+
+- edytor rich text i inline;
+- foldery, tagi, wyszukiwanie, pinowanie i kolejność;
+- widok listy/galerii;
+- kosz, przywracanie i trwałe usuwanie;
+- blokowanie notatki hasłem;
+- eksport pojedynczej notatki lub całego archiwum;
+- triage notatek.
+
+Połączenia:
+
+- share target bez URL trafia do Keep;
+- `vanguard-keep-triage` klasyfikuje materiał jako keep/archive/todo;
+- notatka może przejść do Todo lub Pocket;
+- Oracle czyta notatki jako kontekst, ale nie nadpisuje ich automatycznie.
+
+### `/todo` — Zadania
+
+**Cel:** jedna kolejka wykonawcza.
+
+Funkcje:
+
+- sekcje, inbox, priorytety i terminy;
+- szybkie dodawanie;
+- lista, Kanban i macierz Eisenhowera;
+- drag and drop;
+- wyszukiwanie;
+- wydarzenia dnia;
+- skanowanie tekstu do zadań;
+- kamienie milowe projektów;
+- tygodniowy przegląd.
+
+Połączenia:
+
+- zadania trafiają do PowerList/Dziś;
+- mogą należeć do projektu;
+- Kalendarz pokazuje zadania w czasie;
+- Telegram i Oracle mogą proponować lub tworzyć działania przez kontrolowane ścieżki;
+- push reminder obsługuje przypomnienia.
+
+### `/kalendarz` — Kalendarz
+
+**Cel:** zobaczyć realne ograniczenia czasu i umieścić w nich wydarzenia oraz zadania.
+
+Funkcje:
+
+- dzień, tydzień i agenda;
+- tworzenie i edycja wydarzeń;
+- zadania nakładane na kalendarz;
+- tygodniowe budżety czasu;
+- synchronizacja Google Calendar, Oura i Strava.
+
+Połączenia:
+
+- `sync` pobiera wydarzenia;
+- `calendar-write` zapisuje zmiany do Google;
+- Todo dostarcza zadania;
+- Dziś używa wydarzeń do runway;
+- Terminy mogą generować przypomnienia i działania.
+
+### `/terminy` — Terminy
+
+**Cel:** nie przegapić cyklicznych i odległych obowiązków.
+
+Funkcje:
+
+- urodziny;
+- przeglądy pojazdu i urządzeń;
+- polisy oraz dokumenty;
+- własne terminy;
+- offsety przypomnień;
+- horyzont nadchodzących spraw i archiwum.
+
+Połączenia:
+
+- `life_obligations` jest źródłem prawdy;
+- push reminder wysyła przypomnienia;
+- sprawa może prowadzić do Kalendarza, Todo albo Kartoteki;
+- Dziś powinno konsumować tylko terminy wymagające działania.
+
+### `/links` — Pocket
+
+**Cel:** zebrać link i podjąć decyzję, zanim stanie się martwym archiwum.
+
+Funkcje:
+
+- PWA share target;
+- ręczne dodawanie;
+- odczytane/nieprzeczytane;
+- kategorie, wyszukiwanie i widok lista/karty;
+- automatyczny triage AI;
+- decyzja zachowaj/przenieś/usuń.
+
+Połączenia:
+
+- share target z URL trafia tutaj;
+- `vanguard-capture` zapisuje link i ślad w streamie;
+- materiał może przejść do Keep lub Todo;
+- wiedza pochodna może być konsumowana przez Oracle.
+
+### `/fundament` — Fundament
+
+**Cel:** świadomie zapisać stały kontekst tożsamości, misji i granic.
+
+Funkcje:
+
+- misja długoterminowa;
+- filary;
+- wyzwalacze unikania;
+- baseline zachowania;
+- Identity Vault;
+- Data Hub i synchronizacja.
+
+Połączenia:
+
+- Oracle używa Fundamentu jako kontekstu, nie jako bieżącej prawdy;
+- Kierunek i refleksje mogą konfrontować deklaracje z zachowaniem;
+- zapis do Fundamentu jest świadomy, nie automatyczny.
+
+## Zdrowie i sprawność
+
+### `/badania` — Kartoteka
+
+**Cel:** zachować historię zdrowia i wskazać otwarte działania.
+
+Funkcje:
+
+- Paszport zdrowia;
+- dokumenty i wyniki laboratoryjne;
+- skład ciała;
+- wizyty, badania, diagnozy, objawy, zabiegi, leki i notatki;
+- jedna oś zdrowia;
+- szybkie dodanie wpisu;
+- propozycje profilaktyczne z podstawą, terminem i możliwością odrzucenia;
+- statusy: zaplanowane, wykonane, odroczone i odrzucone.
+
+Połączenia:
+
+- `medical_documents`, `medical_lab_results` i pomiary ciała tworzą kontekst kliniczny;
+- Oracle i trener żywieniowy mogą czytać zatwierdzone dane;
+- Terminy/Kalendarz powinny konsumować zaplanowane wizyty i kontrole;
+- Historia pokazuje medyczne zdarzenia w szerszej chronologii.
+
+### `/oura` — Oura
+
+**Cel:** głęboka analiza regeneracji i danych z pierścienia.
+
+Funkcje:
+
+- sen, readiness, HRV, RHR, stres i aktywność;
+- szczegółowe fazy snu i timeline tętna/HRV;
+- trendy i wybór zakresu dat;
+- korelacje związane z Oura;
+- status synchronizacji i BLE.
+
+Połączenia:
+
+- `sync` zapisuje dane Oura;
+- nightly wykorzystuje je do strain, recovery, illness, agregatów i korelacji;
+- Dziś pokazuje skompresowany wynik;
+- Historia i Korelacje pokazują dłuższy kontekst.
+
+### `/trening` — Centrum Analityki Biegowej
+
+**Cel:** analizować bieganie i obciążenie treningowe.
+
+Funkcje:
+
+- aktywności Garmin/Intervals/Strava;
+- dystans, tempo, tętno i strefy;
+- obciążenie oraz trend;
+- rozkład intensywności;
+- podsumowanie planu i wykonania;
+- wejście do lokalnego Workout Loggera.
+
+Połączenia:
+
+- Strava/Garmin/Intervals dostarczają aktywności;
+- Oura dostarcza regenerację;
+- `analyze-training-load` interpretuje obciążenie;
+- nightly i Dziś używają treningu do strain;
+- cel maratoński łączy trening z Kierunkiem.
+
+### `/sauna` — Sauna
+
+**Cel:** szybko zapisać sesję sauny jako zachowanie wellness/trening.
+
+Funkcje:
+
+- czas, rundy, temperatura i odczucia;
+- zapis sesji i natychmiastowy powrót do Dziś.
+
+Połączenia:
+
+- zapis trafia do modelu sesji treningowych;
+- Historia i analityka mogą porównywać saunę z HR, snem i regeneracją;
+- Oura dostarcza sygnały przed/po.
+
+### `/optics` — Wzrok
+
+**Cel:** mierzyć zmianę ostrości wzroku i przechowywać kontekst korekcji.
+
+Funkcje:
+
+- kalibracja kamery;
+- automatyczny pomiar odległości rozmycia dla obu oczu;
+- przeliczenie dioptrii;
+- dziennik wzroku;
+- gabinet okularów;
+- ocena stabilności pomiaru.
+
+Połączenia:
+
+- pomiary tworzą historię EndMyopia;
+- Fast Capture prowadzi bezpośrednio do pomiaru;
+- wyniki powinny być widoczne w Kartotece i Historii.
+
+### Żywienie — powierzchnie osadzone
+
+**Cel:** rejestrować jedzenie i regulować plan na podstawie realnego spożycia.
+
+Funkcje:
+
+- szybki zapis i pełny modal;
+- język naturalny;
+- wyszukiwanie lokalne/Open Food Facts;
+- ulubione, ostatnie i korekty;
+- makra, kalorie, post i kofeina;
+- jakość jedzenia;
+- cele adaptacyjne TDEE.
+
+Połączenia:
+
+- Dziś służy do capture;
+- Tydzień pokazuje puls;
+- Historia przechowuje archiwum;
+- Oura, trening, masa i dane medyczne zasilają `vanguard-nutrition-coach`.
+
+## Analityka i wiedza
+
+### `/korelacje` — Korelacje i eksperymenty N-of-1
+
+**Cel:** rozdzielić stabilne czynniki wpływu od przypadkowych zbieżności.
+
+Funkcje:
+
+- potwierdzone, prawdopodobne, słabe i odrzucone zależności;
+- filtry i ręczne odświeżenie;
+- FDR, stabilność i opis dowodu;
+- tworzenie eksperymentu N-of-1;
+- aktywne eksperymenty i archiwum dowodów.
+
+Połączenia:
+
+- nightly buduje szeregi z Oura, treningu, żywienia, zachowania i wykonania;
+- istotne wyniki mogą zasilać claims/wiedzę;
+- Oracle używa ich jako hipotez, nie diagnoz;
+- działanie powinno trafić do Tygodnia lub Todo.
+
+### `/czat` — Oracle w aplikacji
+
+**Cel:** rozmowa z systemem przy zachowaniu artefaktów i akcji w aplikacji.
+
+Funkcje:
+
+- historia rozmowy;
+- Oracle RAG;
+- tekst, głos i zdjęcie;
+- szybki zapis jedzenia;
+- skróty Wywiad/Koniec dnia;
+- kopiowanie i usuwanie wiadomości.
+
+Połączenia:
+
+- `vanguard-oracle` czyta bieżący stan, wiedzę, projekty, zdrowie i historię;
+- `vanguard-capture` obsługuje głos/plik;
+- Telegram jest drugim klientem tej samej warstwy rozumowania;
+- pending actions wymagają potwierdzenia przed wykonaniem.
+
+### Warstwa wiedzy bez osobnej głównej trasy
+
+- Stream przechowuje surowe dowody.
+- `vanguard-auto-classify` jako jedyny zapisuje tarcie.
+- Architect buduje encje i relacje.
+- Graph embedder umożliwia wyszukiwanie semantyczne.
+- Wiki compiler tworzy pochodne strony i kolejkę weryfikacji.
+- Metabolism kondensuje historię.
+- Eval interview pyta o luki i niepewne twierdzenia.
+- Oracle odczytuje wynik, ale nie zapisuje automatycznie „prawdy o użytkowniku”.
+
+## Pozostałe samodzielne powierzchnie
+
+### `/finanse` — Finanse
+
+**Cel:** widzieć przepływy, zobowiązania i cele finansowe.
+
+Funkcje:
+
+- szybki zapis wydatku;
+- przychody i wydatki;
+- rachunki i subskrypcje;
+- konta oraz portfel;
+- cele, wishlist i budżet;
+- import CSV;
+- runway/FIRE i wynik finansowy;
+- oś zmian.
+
+Połączenia:
+
+- dane domeny finansowej są niezależne od evidence pipeline;
+- Dziś może pokazywać tylko pilne zobowiązania;
+- Kierunek może posiadać cel finansowy;
+- Terminy mogą przypominać o rachunkach i odnowieniach.
+
+### `/rozwoj` — Rozwój
+
+**Cel:** prowadzić rozwój umiejętności przez praktykę i dowody.
+
+Funkcje:
+
+- tożsamość rozwojowa;
+- mapa pojemności;
+- aktywna ścieżka;
+- biblioteka umiejętności i materiałów;
+- praktyka oraz dowody;
+- tygodniowy przegląd;
+- eksperymenty rozwojowe.
+
+Połączenia:
+
+- aktywna umiejętność powinna być projektem Kierunku;
+- konkretna praktyka trafia do Todo/Tygodnia;
+- dowody trafiają do Historii;
+- Fundament dostarcza świadomy kontekst.
+
+### `/budzik` — Budzik
+
+**Cel:** lokalnie uruchomić alarm i wymusić świadome wyłączenie.
+
+Funkcje:
+
+- wiele alarmów;
+- harmonogram i drzemki;
+- test alarmu;
+- misje: ruch, kod, matematyka lub pamięć;
+- lokalny ekran dzwonienia.
+
+Połączenia:
+
+- stan jest lokalny w store;
+- nie jest obecnie niezawodnym serwerowym reminderem;
+- serwerowe przypomnienia Todo/Terminy obsługuje osobno `vanguard-push-reminder`.
+
+### `/settings` — Ustawienia
+
+**Cel:** skonfigurować źródła danych, kontekst i zachowanie aplikacji.
+
+Funkcje:
+
+- profil użytkownika;
+- Oura i integracje;
+- Google Calendar;
+- strefa/cel zdrowotny i ustawienia domenowe;
+- kontekst AI;
+- Flux;
+- uprawnienia APK: powiadomienia, Usage Stats, lokalizacja i praca w tle.
+
+Połączenia:
+
+- `user_settings`, tokeny i lokalne storage;
+- `sync`, Calendar, Oura BLE i natywne procesy;
+- Oracle czyta wybrany kontekst AI.
+
+### `/dashboard` — Desktop Scoreboard
+
+**Cel:** rozszerzone centrum dowodzenia do pracy na komputerze — nie desktopowa kopia
+wersji mobilnej.
+
+Funkcje:
+
+- hero i alerty;
+- ręczna synchronizacja źródeł;
+- heatmapa treningów i maraton;
+- intelligence, score i wykresy;
+- nawyki, zachowania i suplementy;
+- sny i vision board;
+- biometria, Kartoteka, Fundament i trening;
+- stan zdrowia pipeline’u.
+
+Połączenia:
+
+- agreguje prawie wszystkie domeny;
+- służy do przekrojowej analizy, syntezy, planowania i diagnostyki systemu;
+- mobile służy do szybkiego capture, decyzji i wykonania w ruchu;
+- oba tryby muszą współdzielić API, definicje metryk, statusy i mutacje, ale mogą mieć
+  zupełnie różną gęstość oraz architekturę ekranu;
+- zmiana wykonana w centrum dowodzenia jest natychmiast widoczna w Dziś i odwrotnie.
+
+### `/dev/design-system` — Design System
+
+**Cel:** deweloperski katalog komponentów i tokenów.
+
+- Dostępny bez sesji tylko w środowisku developerskim.
+- Nie jest powierzchnią produktu.
+
+### `/korealcje`
+
+Historyczny błąd w adresie. Przekierowuje do `/korelacje`.
+
+## Telegram
+
+| Wejście | Efekt |
 |---|---|
-| **LOCKED_IN** | exec === 1.0 AND readiness ≥ 70 |
-| **MOMENTUM** | exec ≥ 0.8 |
-| **RECOVERY** | readiness < 60 OR hrv < 50% baseline OR sleep < 6.2h |
-| **CHAOS** | sleep < 5.5h OR (exec < 0.4 AND readiness < 60) |
-| **AVOIDANCE** | exec < 0.4 AND readiness ≥ 70 |
-| **CALIBRATING** | <5 dni danych historycznych |
+| Zwykły tekst / krótki głos | Zapis do streamu |
+| `?` | Oracle chat |
+| `!!` | Oracle deep reasoning |
+| `##` | Świadomy zapis wiedzy |
+| Długi głos | Vault ingest |
+| Odpowiedź na Wywiad | Uzupełnia lukę wiedzy |
+| Koniec dnia | Uruchamia refleksję |
+| Jedzenie / trening / zadanie | Parser domenowy i zapis |
 
-### Sygnały (computeSignals)
+Webhook zapisuje wiadomość do inboxu, worker ją przetwarza, a wiadomości wychodzące
+przechodzą przez outbox. Telegram i czat w aplikacji współdzielą Oracle, ale nie są
+jeszcze jednym w pełni zunifikowanym wątkiem.
 
-- Godziny snu (Oura)
-- HRV, RHR (Oura)
-- Readiness score (Oura)
-- Execution ratio (PowerList: 0–5 zadań, penalty za późne ukończenie)
-- Daily RPE
-- Ratio białka (spożyte vs cel 160g)
-- Konsekwencja treningowa (dni od ostatniego treningu)
+## Funkcje backendowe
 
-### Zunifikowany Kręgosłup Planowania (goalSpine)
+Pełna lista wraz z triggerem, odczytami, zapisami i konsumentem:
+[`supabase/functions/FUNCTIONS.md`](../supabase/functions/FUNCTIONS.md).
 
-SSOT: `src/lib/goalSpine.ts` — jeden fetch łączy dzień → tydzień → sprint → cel długoterminowy.
+Grupy:
 
-```
-BHAG (life_goals)
-  └─ Sprint goal (sprint_goals)
-       └─ Month review (monthly_reviews)
-            └─ Week plan (weekly_reviews)
-                 └─ Day execution (daily_wins → kpi_entries via RPC)
-```
+- **capture i komunikacja:** `vanguard-capture`, `vanguard-telegram`,
+  `vanguard-telegram-worker`, `vanguard-outbox-sender`, `vanguard-push-reminder`;
+- **Oracle i wiedza:** `vanguard-oracle`, `vanguard-architect`,
+  `vanguard-graph-embedder`, `vanguard-wiki-compiler`, `vanguard-metabolism`,
+  `vanguard-eval-interview`, `vanguard-eval-runner`, `vanguard-mcp-server`;
+- **analiza dobowa:** `vanguard-auto-classify`, `vanguard-analyst`,
+  `vanguard-nightly`, `vanguard-backtester`, `recap`;
+- **zdrowie i sport:** `sync`, `analyze-training-load`, `compute-behavior-effects`,
+  `analyze-physique`;
+- **żywienie:** `lookup-food`, `parse-food-nl`, `analyze-food-quality`,
+  `vanguard-librarian`, `vanguard-nutrition-coach`;
+- **planowanie i workspace:** `parse-workout-nl`, `calendar-write`,
+  `vanguard-keep-triage`, `vanguard-kpi-suggest`.
 
-- `daily_wins.task_N_target_value` + `task_N_project_id` → auto-rollup do `kpi_entries` przez RPC `increment_kpi_entry_for_week` (tylko gdy projekt ma dokładnie 1 KPI)
-- SpineGuideStrip — "prowadzenie za rękę" (jeden komunikat: sprint → tydzień → refleksja → daily)
-- Direction — review/refleksja, KPI, sprint, monthly — zunifikowany widok
+## Integracje
 
-### Przepływ Stream → Tarcia → Oracle
+| System | Dane / rola | Główni konsumenci |
+|---|---|---|
+| Oura | sen, readiness, HRV, RHR, stres, aktywność, timeline | Dziś, Oura, Historia, strain, Oracle |
+| Strava/Garmin/Intervals | aktywności, tempo, HR, strefy, obciążenie | Trening, Historia, strain, maraton |
+| Google Calendar | wydarzenia i ograniczenia czasu | Kalendarz, Dziś, planowanie |
+| Telegram | capture, rozmowa, wywiad, refleksja, powiadomienia | Stream, Oracle, Todo, żywienie |
+| DeepSeek | klasyfikacja i większość rozumowania tekstowego | Oracle, analyst, parsery, wiki |
+| OpenAI | Whisper, embeddingi i analiza zdjęć sylwetki | Capture, graf, Historia |
+| Open Food Facts | informacje o produktach | Food logger |
+| ActivityWatch / Android Usage Stats | użycie urządzeń | zachowanie i korelacje |
+| Android lokalizacja | kontekst miejsca | stream/agregaty po podłączeniu konsumenta |
 
-```
-Telegram/Voice
-     ↓
-vanguard_stream (write)
-     ↓ (DB trigger)
-vanguard-auto-classify
-     ├── DeepSeek → importance, category, tags → update stream
-     └── Friction detection → friction_events
-                                     ↓ (batch)
-                              vanguard-architect
-                                     ↓
-                              vanguard_entity_links (graf)
-                                     ↓ (cron)
-                              vanguard-wiki-compiler
-                                     ↓
-                              vanguard_wiki_pages + review queue
-```
+## Zasady interpretacji
 
-### Oracle RAG — Pobieranie Kontekstu
-
-Przy każdym zapytaniu Oracle zbiera:
-1. Stream 72h (current-first) + 14-dniowe archiwum
-2. `confirmed_friction_events` (VIEW)
-3. Biometria (Oura, daily_strain — 7 dni)
-4. Wiki pages (skompilowana pamięć)
-5. Kontekst medyczny (wyniki badań, pomiary ciała)
-6. Wzorce (behavioral_patterns, iron_rules)
-
-Następnie: DeepSeek chat (tryb: `chat` / `planning` / `mirror`)
-
-### Daily Strain — Jak się liczy
-
-Wejście: Oura (cardio zones, sleep, readiness) + Strava (suffer_score) + RPE z PowerList
-Wyjście: `daily_strain`
-- `strain_score` (0–21, wzorowany na Whoop)
-- `recovery_score` (0–100)
-- `main_limiter` (sleep/kalorie/cardio_load/siłownia/mental_load)
-- `daily_status` (green/yellow/red)
-- `illness_score`, `illness_level` (z compute-illness-signal)
-
-### System Proposals (N>=3 friction)
-
-`vanguard-analyst` wykrywa powtarzające się tarcia (≥3 potwierdzone w 7 dni) → `system_proposals` (via RPC `sync_friction_proposals`) → Week Hub / Action Center pokazuje je użytkownikowi do oceny (Istotne / Olej).
-
----
-
-## Deprecated — Nie Używać
-
-### Funkcje (usunięte z codebase / stub 410)
-- `vanguard-morning-brief` — usunięta
-- `vanguard-morning-ping` — usunięta
-- `vanguard-midday-check` — usunięta
-- `vanguard-briefing` — usunięta
-- `vanguard-friction-qa` — usunięta
-- `analyze-training` — usunięta (stub 410)
-- `sync-yazio` — usunięta (dieta przez app food log)
-- `vanguard-weekly-brief` — stubbed 410 (skonsolidowane do Direction)
-- `vanguard-backfill` — usunięta
-- `vanguard-debug-retrieval` — usunięta
-
-### Tabele (usunięte / nie pisać)
-- `career_projects`, `career_moves`, `career_evidence`, `career_decisions` — usunięte 2026-06-30
-- `project_checkpoints` — usunięte 2026-06-30 (milestone'y to `todo_items.is_milestone`)
-- `goals` — usunięte 2026-06-30
-- `focus_sessions` — usunięte 2026-06-30
-- `vanguard_pattern_feedback` — zero odwołań
-- `vanguard_intentions` — usunięte 2026-06-11
-- `vanguard_correlations`, `vanguard_temporal_links` — usunięte 2026-06-11
-- `stayfree_usage` — deprecated, brak ingestion path
-- `daily_habits` — deprecated, używaj `habits` + `habit_logs`
-
-### Komponenty (usunięte)
-- OuraWidget, OuraEnhanced, SleepDebtCard, MentorChat, GraphMind, ThoughtStream
-- IntentionTracker, ManifestationBoard, LocationTracker, AWImporter
-- WeeklyReview.tsx (skonsolidowane do Direction)
-
----
-
-## Reguły Krytyczne (z AGENTS.md)
-
-1. **Strefa czasowa:** Zawsze `Europe/Warsaw` — nigdy UTC dla dat
-2. **Supabase:** `createServiceClient()` + `safeExecute()` + `resolveUserScope()`
-3. **Graf:** Oracle tylko czyta. Mutacja grafu tylko przez pipeline Architect/Ingest
-4. **verify_jwt: false** dla cronów i webhooków Telegram
-5. **planning_status:** Tylko `pending` / `active` / `completed` (nie 'done')
-6. **Prompt injection:** Telegram/stream to untrusted input
-7. **Po każdym deploy:** `npm run smoke`
-
----
-
-*Ostatnia aktualizacja: 01.07.2026*
+- Evidence i reasoning są oddzielone.
+- Tarcie zapisuje wyłącznie stream → auto-classify.
+- Brak danych nie oznacza, że zdarzenie nie wystąpiło.
+- Korelacja jest hipotezą, nie diagnozą.
+- Rekomendacja medyczna musi pokazać podstawę, datę i poziom pewności.
+- Każdy producent danych musi mieć konsumenta w UI, Telegramie albo w kolejnym kroku
+  pipeline’u.

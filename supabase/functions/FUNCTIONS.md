@@ -1,14 +1,15 @@
 # Mapa Edge Functions Vanguard
 
-Ten plik jest generowany automatycznie i opisuje mapę domenową, triggery oraz statusy wszystkich **30 aktywnych Edge Functions** w monorepo.
+Ten plik jest generowany automatycznie i opisuje mapę domenową, triggery oraz statusy wszystkich **31 aktywnych Edge Functions** w monorepo.
 
 ## Skaner Domenowy (Główna Mapa)
 
 | Funkcja | Status | Trigger / Wyzwalacz | Rola | DB Odczyt (`@reads`) | DB Zapis (`@writes`) | Konsument |
 |---|---|---|---|---|---|---|
 | [`analyze-food-quality`](./analyze-food-quality/index.ts) | **active** | HTTP POST / Frontend / manual LLM analysis | Analiza jakości żywienia za dany dzień przy użyciu LLM. | `daily_food_entries, daily_nutrition, fasting_logs, workout_sessions, strava_activities_clean` | `daily_food_entries, daily_nutrition` | Widok podsumowania jakości jedzenia w aplikacji |
+| [`analyze-physique`](./analyze-physique/index.ts) | **active** | HTTP POST / Frontend physique image analyzer | Analizuje zdjęcie sylwetki użytkownika za pomocą Vision AI pod kątem % body fat, ogólnej oceny, 15 grup mięśniowych i priorytetów. | `progress_photos` | `progress_photos` | Moduł transformacji/zdjęć w aplikacji WWW Vanguard |
 | [`analyze-training-load`](./analyze-training-load/index.ts) | **active** | HTTP POST / Frontend / manual LLM analysis | Analiza obciążenia treningowego na podstawie sesji i planów. | `daily_strain, workout_sessions, strava_activities_clean, training_plan_workouts, oura_daily_summary` | `—` | Sekcja treningowa w aplikacji |
-| [`calendar-write`](./calendar-write/index.ts) | **active** | HTTP POST / Frontend / manual | Zapis/aktualizacja wydarzeń w kalendarzu Google. | `vanguard_tokens, vanguard_calendar` | `vanguard_calendar` | Kalendarz Google użytkownika |
+| [`calendar-write`](./calendar-write/index.ts) | **active** | HTTP POST / Frontend / manual | Zapis/aktualizacja wydarzeń w kalendarzu Google oraz bazy danych vanguard_calendar. | `vanguard_tokens, vanguard_calendar` | `vanguard_calendar` | Kalendarz Google użytkownika |
 | [`compute-behavior-effects`](./compute-behavior-effects/index.ts) | **active** | HTTP POST / Frontend / manual | Oblicza wpływ zachowań i nawyków na strain/recovery przy użyciu Welch t-test + Cohen's d. | `behavior_log, daily_strain` | `—` | Sekcja "What Moves You" w aplikacji |
 | [`lookup-food`](./lookup-food/index.ts) | **active** | HTTP POST / Frontend / manual | Wyszukiwanie makroskładników produktów spożywczych (baza lokalna + API zewnętrzne jak Open Food Facts). | `—` | `—` | Modal dodawania jedzenia (FoodEntryModal) w aplikacji |
 | [`parse-food-nl`](./parse-food-nl/index.ts) | **active** | HTTP POST / Frontend NL meal parser | Parser posiłków z języka naturalnego na struktury danych z uwzględnieniem kontekstu użytkownika. | `daily_food_entries, user_settings, food_library, nutrition_profile, nutrition_targets, body_metrics, food_favorites, food_corrections, user_portions` | `—` | Zapis posiłków w aplikacji frontendowej i Telegramie |

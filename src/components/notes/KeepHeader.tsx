@@ -3,9 +3,11 @@
  * @role Pasek góry: wyszukiwanie + przełącznik widoku siatka/podział.
  * @usedBy Keep
  */
-import { Grid3X3, List, Download, LockKeyhole, Search, X } from 'lucide-react';
+import { Grid3X3, List, Download, LockKeyhole, Search, SquarePen, X } from 'lucide-react';
 import { WorkspaceHeader } from '../shared/WorkspaceHeader';
 import { ControlInput, Pressable } from '../ui/ControlPrimitives';
+import NoteViewOptions from './NoteViewOptions';
+import type { NoteCollectionPreferences } from '../../lib/noteOrganization';
 
 interface KeepHeaderProps {
   onBack: () => void;
@@ -14,13 +16,17 @@ interface KeepHeaderProps {
   search: string;
   setSearch: (value: string) => void;
   onExport: () => void;
+  onNewNote: () => void;
   exporting: boolean;
   showLockNow?: boolean;
   onLockNow?: () => void;
+  preferences: NoteCollectionPreferences;
+  onPreferencesChange: (value: NoteCollectionPreferences) => void;
 }
 
 export default function KeepHeader({
-  onBack, viewMode, setViewMode, search, setSearch, onExport, exporting, showLockNow, onLockNow,
+  onBack, viewMode, setViewMode, search, setSearch, onExport, onNewNote, exporting, showLockNow, onLockNow,
+  preferences, onPreferencesChange,
 }: KeepHeaderProps) {
   return (
     <WorkspaceHeader
@@ -44,6 +50,11 @@ export default function KeepHeader({
         </div>
       )}
       actions={<>
+        <NoteViewOptions value={preferences} onChange={onPreferencesChange} />
+        <Pressable variant="primary" size="sm" onClick={onNewNote} aria-label="Nowa notatka">
+          <SquarePen size={15} />
+          <span className="hidden lg:inline">Nowa notatka</span>
+        </Pressable>
         {showLockNow && <Pressable variant="ghost" size="sm" onClick={onLockNow} title="Zablokuj teraz"><LockKeyhole size={15} /></Pressable>}
         <Pressable variant="ghost" size="sm" onClick={onExport} disabled={exporting} title="Eksportuj wszystkie notatki">
           <Download size={15} />

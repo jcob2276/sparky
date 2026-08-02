@@ -8,7 +8,7 @@ const SECTIONS: { id: string; label: string; href?: string }[] = [
   { id: 'korelacje', label: 'Korelacje', href: '/korelacje' },
   { id: 'trening', label: 'Trening' },
   { id: 'biometria', label: 'Biometria' },
-  { id: 'badania', label: 'Badania' },
+  { id: 'badania', label: 'Kartoteka' },
   { id: 'kierunek', label: 'Kierunek' },
   { id: 'pamiec', label: 'Pamięć' },
   { id: 'sprint', label: 'Sprint' },

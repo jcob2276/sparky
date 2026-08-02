@@ -46,6 +46,16 @@ export const dashboardKeys = {
   main: (userId: string) => [...dashboardKeys.all, 'main', userId] as const,
 };
 
+export const synthesisKeys = {
+  all: ['sparky-synthesis'] as const,
+  today: (userId: string, date: string) => [...synthesisKeys.all, userId, date] as const,
+};
+
+export const healthspanKeys = {
+  all: ['healthspan'] as const,
+  profile: (userId: string, date: string) => [...healthspanKeys.all, userId, date] as const,
+};
+
 // ── NUDGE KEYS ──
 export const nudgeKeys = {
   all: ['nudge'] as const,

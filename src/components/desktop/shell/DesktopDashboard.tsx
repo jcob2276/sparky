@@ -59,6 +59,7 @@ const WorkoutLogger = lazy(() => import('../../biometrics/WorkoutLogger'));
 const Fundament = lazy(() => import('../../core/Fundament'));
 const MuscleHeatmap = lazy(() => import('../../biometrics/MuscleHeatmap'));
 const MedicalDesktopTeaser = lazy(() => import('../../medical/MedicalDesktopTeaser'));
+const SynthesisCommandCenter = lazy(() => import('../synthesis/SynthesisCommandCenterContainer'));
 
 export default function DesktopDashboard({ session }: { session: Session }) {
   const userId      = session?.user?.id;
@@ -217,6 +218,11 @@ export default function DesktopDashboard({ session }: { session: Session }) {
           <DesktopSectionNav />
           <div className="flex-1 min-w-0 space-y-5">
             <DesktopHero strain={strain} oura={oura14} sprint={sprint} sprintGoal={sprintGoal} sprintReview={sprintReview} metrics={currMetrics} prevMetrics={prevMetrics} projectMetrics={projectMetrics} goals={goals} currentWeight={currentWeight} weight30ago={weight30ago} />
+            {userId && (
+              <Suspense fallback={<Skeleton className="h-80 rounded-2xl" />}>
+                <SynthesisCommandCenter userId={userId} />
+              </Suspense>
+            )}
             <SmartAlerts alerts={alerts} />
             <section id="scoreboard" className="scroll-mt-28"><ScoreboardPanel userId={userId} /></section>
             <GeneralView userId={userId} oura={oura} />
@@ -236,7 +242,7 @@ export default function DesktopDashboard({ session }: { session: Session }) {
             <MarathonPanel strava={strava} grid={grid} tick={tick} marathon={marathon} />
 
             <section id="badania" className="scroll-mt-28 space-y-5">
-              <div className="flex items-center gap-3"><div className="h-px flex-1 bg-border-custom" /><span className="pixel-label">Badania i analityka</span><div className="h-px flex-1 bg-border-custom" /></div>
+              <div className="flex items-center gap-3"><div className="h-px flex-1 bg-border-custom" /><span className="pixel-label">Kartoteka</span><div className="h-px flex-1 bg-border-custom" /></div>
               <Suspense fallback={<Skeleton variant="card" className="h-32 rounded-[var(--radius-xl)]" />}><MedicalDesktopTeaser userId={userId} /></Suspense>
             </section>
 

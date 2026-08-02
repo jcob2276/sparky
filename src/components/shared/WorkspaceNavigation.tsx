@@ -40,7 +40,17 @@ export default function WorkspaceNavigation({
 
   if (horizontal) {
     return (
-      <nav aria-label="Narzędzia" className={`workspace-tools-nav flex ${className}`}>
+      <nav
+        aria-label="Narzędzia"
+        className={`workspace-tools-nav flex ${className}`}
+        style={{
+          position: 'fixed',
+          right: 'auto',
+          bottom: '12px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+        }}
+      >
         {primaryAction && (
           <Pressable
             onClick={primaryAction.onClick}

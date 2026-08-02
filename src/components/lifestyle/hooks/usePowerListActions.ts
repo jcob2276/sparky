@@ -1,13 +1,10 @@
-import type { Session } from '@supabase/supabase-js';
 import { getWarsawHour } from '../../../lib/date';
 import { useHaptics } from '../../../hooks/useHaptics';
 import { notify } from '../../../lib/notify';
 import { markCheckpointDone } from '../../../lib/checkpoints';
-import { gatherDailyWinsContext } from '../../../lib/aiContext';
-import { materializeDailyWinTodos } from '../../../lib/todo/dailyWinTodoBridge';
+import { resolveDailyWinTodoIds } from '../../../lib/todo/dailyWinTodoLink';
 import type { TablesUpdate } from '../../../lib/database.types';
 import { appendStreamEntry } from '../../../lib/streamApi';
-import { invokeEdge } from '../../../lib/supabase';
 import { deleteDailyWinTasks, insertDailyWinTasks } from '../../../lib/morningPlanApi';
 import { upsertDailyReconciliationScore } from '../../../lib/shutdownApi';
 import {
@@ -60,10 +57,7 @@ interface UsePowerListActionsArgs {
   savingEvening: boolean;
   setSavingEvening: React.Dispatch<React.SetStateAction<boolean>>;
   todaySlotKpis: Record<number, string>;
-  setAiQuestions: React.Dispatch<React.SetStateAction<string>>;
-  setAiLoading: React.Dispatch<React.SetStateAction<boolean>>;
   onUpdate?: (data: Record<string, unknown>) => void;
-  session: Session;
   setTodaySlotKpis: React.Dispatch<React.SetStateAction<Record<number, string>>>;
   allProjectOptions: ProjectOption[];
 }
@@ -75,7 +69,6 @@ export function usePowerListActions(args: UsePowerListActionsArgs) {
     fillSlotFromCheckpoint: (payload: { title: string; checkpointId: string; projectId: string }, slotIndex?: number) =>
       fillSlotFromCheckpointHelper(payload, slotIndex, args.newTaskForm, args.setNewTaskForm, haptics),
     confirmCheckpointDone: () => confirmCheckpointDoneHelper(args),
-    generateQuestions: () => generateQuestionsHelper(args),
     saveEveningClose: (win: DailyWinWithTasks | null) => saveEveningCloseHelper(args, win, haptics),
     toggleTask: (idx: number, win: DailyWinWithTasks | null) => toggleTaskHelper(args, idx, win, haptics),
     startNewDay: () => startNewDayHelper(args, haptics),
@@ -126,36 +119,6 @@ async function confirmCheckpointDoneHelper(args: UsePowerListActionsArgs) {
     notify(err instanceof Error ? (err as Error).message : 'Błąd', 'error');
   } finally {
     args.setMarkingCheckpoint(false);
-  }
-}
-
-async function generateQuestionsHelper(args: UsePowerListActionsArgs) {
-  args.setAiLoading(true);
-  try {
-    const stateVector = await gatherDailyWinsContext(args.session);
-    const query = `Zanalizuj mój kontekst życiowy, cele z projektów (goal_chain), kalendarz i otwarte zadania.
-Zadaj mi 3-4 krótkie, bezpośrednie i bardzo trafne pytania po polsku, które pomogą mi spójnie zdefiniować dzisiejsze 5 zwycięstw (Ciało, Duch, Konto + 2 ogólne).
-Kontekst celów tygodniowych i ich KPI (widoczne w goal_chain) jest kluczowy. Jeśli widać zaległości w tym tygodniu (np. 0/20 setów sprzedażowych, 0/3 treningi siłowe), Twoje pytania muszą bezpośrednio punktować te liczby i pytać, jak dzisiejsze zwycięstwa przełożą się na ich postęp.
-Wskaż bezlitośnie wszelkie próby ucieczki (np. robienie bezpiecznych "ćwiczeń na sucho" zamiast realnego outreachu/telefonów, lub załatwianie drobnych spraw zamiast poznawania nowych ludzi).
-Nie sugeruj mi gotowych zadań. Zadaj mi tylko pytania, które zmuszą mnie do myślenia i zdefiniowania konkretnych, mierzalnych zwycięstw.
-Odpowiedz wyłącznie w postaci wypunktowanej listy 3-4 pytań w polu "answer", bez żadnego wstępu, powitań czy komentarzy.`;
-
-    const data = await invokeEdge('vanguard-oracle', {
-      body: {
-        state_vector: stateVector,
-        history: [],
-        current_query: query,
-        user_id: args.userId,
-        mode: 'chat',
-      },
-    });
-    const reply = String(data?.text ?? data?.answer ?? '');
-    args.setAiQuestions(reply);
-  } catch (err: unknown) {
-    console.error('generateQuestions failed', err);
-    notify('Błąd pomocy AI: ' + (err instanceof Error ? err.message : 'nieznany'), 'error');
-  } finally {
-    args.setAiLoading(false);
   }
 }
 
@@ -321,14 +284,7 @@ async function startNewDayHelper(args: UsePowerListActionsArgs, haptics: ReturnT
       await upsertDailyReconciliationScore(args.userId, reflection.date, reflection.dayScore);
     }
 
-    const todoIds = await materializeDailyWinTodos(
-      args.userId,
-      args.newTaskForm.map((slot) => ({
-        title: slot.task.trim(),
-        todoId: slot.todoId,
-        projectId: slot.projectId,
-      })),
-    );
+    const todoIds = resolveDailyWinTodoIds(args.newTaskForm);
 
     const parentWin = await insertDailyWin(args.userId, {
       user_id: args.userId,

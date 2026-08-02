@@ -2,7 +2,7 @@ import { safeSendTelegram } from "../_utils/helpers.ts";
 import { answerCallbackQuery, editMessageText } from "../../_shared/telegram.ts";
 import { getWarsawDateString } from "../../_shared/time.ts";
 
-export type SupplementItem = {
+type SupplementItem = {
   id: string;
   slug: string;
   name: string;
@@ -133,7 +133,11 @@ export async function handleSupplementCallback(
 
     const summaryLines = itemsToLog.map(s => {
       const qty = state[s.slug] || 1;
-      return `• ${s.emoji || '💊'} **${s.name}**: ${qty}x ${s.unit || 'porcja'}`;
+      const isSkipQty = s.skip_qty || s.slug === 'kreatyna' || s.name.toLowerCase().includes('kreatyna');
+      const unitStr = (s.slug === 'kreatyna' || s.name.toLowerCase().includes('kreatyna')) ? '5g' : (s.unit || 'porcja');
+      return isSkipQty
+        ? `• ${s.emoji || '💊'} **${s.name}**: ${unitStr}`
+        : `• ${s.emoji || '💊'} **${s.name}**: ${qty}x ${unitStr}`;
     });
 
     const summaryText = `✓ **Zapisano suplementy** (${today})\n\n${summaryLines.join('\n')}`;
@@ -179,21 +183,34 @@ function renderSupplementMenu(supls: SupplementItem[], state: Record<string, num
     const qty = state[s.slug] ?? 1;
     const isSelected = qty > 0;
     const emoji = s.emoji || '💊';
-    const unitStr = s.unit || 'porcja';
+    const isSkipQty = s.skip_qty || s.slug === 'kreatyna' || s.name.toLowerCase().includes('kreatyna');
+    const unitStr = (s.slug === 'kreatyna' || s.name.toLowerCase().includes('kreatyna')) ? '5g' : (s.unit || 'porcja');
 
     if (isSelected) {
-      selectedSummary.push(`• ${emoji} **${s.name}**: ${qty}x ${unitStr}`);
+      if (isSkipQty) {
+        selectedSummary.push(`• ${emoji} **${s.name}**: ${unitStr}`);
+      } else {
+        selectedSummary.push(`• ${emoji} **${s.name}**: ${qty}x ${unitStr}`);
+      }
     }
 
-    const row = [
-      { text: '➖', callback_data: `supl_d:${s.slug}:${qty}` },
-      {
-        text: isSelected ? `${emoji} ${s.name} (${qty}x)` : `⚪️ ${s.name} (0)`,
-        callback_data: `supl_t:${s.slug}:${qty}`,
-      },
-      { text: '➕', callback_data: `supl_i:${s.slug}:${qty}` },
-    ];
-    keyboard.push(row);
+    if (isSkipQty) {
+      keyboard.push([
+        {
+          text: isSelected ? `✅ ${emoji} ${s.name} (${unitStr})` : `⚪️ ${emoji} ${s.name}`,
+          callback_data: `supl_t:${s.slug}:${qty}`,
+        },
+      ]);
+    } else {
+      keyboard.push([
+        { text: '➖', callback_data: `supl_d:${s.slug}:${qty}` },
+        {
+          text: isSelected ? `${emoji} ${s.name} (${qty}x)` : `⚪️ ${s.name} (0)`,
+          callback_data: `supl_t:${s.slug}:${qty}`,
+        },
+        { text: '➕', callback_data: `supl_i:${s.slug}:${qty}` },
+      ]);
+    }
   }
 
   const selectedCount = supls.filter(s => (state[s.slug] || 0) > 0).length;
@@ -215,9 +232,9 @@ function renderSupplementMenu(supls: SupplementItem[], state: Record<string, num
   if (selectedSummary.length > 0) {
     text += `**Do zapisania:**\n${selectedSummary.join('\n')}\n\n`;
   } else {
-    text += `_Brak zaznaczonych suplementów (wybierz dawki poniżej)._\n\n`;
+    text += `_Brak zaznaczonych suplementów (wybierz dawkę poniżej)._\n\n`;
   }
-  text += `_Dostosuj dawki przyciskami + / - i kliknij Zapisz:_`;
+  text += `_Zaznacz suplementy i kliknij Zapisz:_`;
 
   return { text, inlineKeyboard: keyboard };
 }

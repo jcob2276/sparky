@@ -5,14 +5,15 @@
  * @usedBy Keep (gdy viewMode === 'split')
  */
 import { useEffect, useState } from 'react';
-import { Bot, Pin } from 'lucide-react';
+import { Bot } from 'lucide-react';
 import { Note } from './keepUtils';
-import NoteRow from './NoteRow';
 import InlineEditor from './InlineEditor';
 import NoteQuickActions from './NoteQuickActions';
-import { confirmDialog } from '../../lib/notify';
+import { confirmDialog, notify, promptDialog } from '../../lib/notify';
 import type { NoteFolder } from '../../lib/noteFoldersApi';
 import MasonryGrid from './MasonryGrid';
+import NoteCollectionSections from './NoteCollectionSections';
+import type { NoteSection } from '../../lib/noteOrganization';
 
 interface SplitNotesViewProps {
   notes: Note[];
@@ -33,15 +34,18 @@ interface SplitNotesViewProps {
   onExportChecklists?: (note: Note) => void;
   folders?: NoteFolder[];
   onExportNote?: (note: Note) => void;
+  onExportPdf?: (note: Note) => void;
+  onShareNote?: (note: Note) => void;
   onLockNote?: (note: Note) => Promise<void>;
   collectionView: 'list' | 'gallery';
   gridProps: Omit<Parameters<typeof MasonryGrid>[0], 'notes'>;
+  sections?: NoteSection[];
 }
 
 export default function SplitNotesView({
   notes, filtered, pinned, others, activeNoteId, onSelectNote, onCloseNote, onUpdate, onDelete, onTogglePin,
-  busy, allTags, onExportChecklists, folders = [], onExportNote, onLockNote,
-  collectionView, gridProps,
+  busy, allTags, onExportChecklists, folders = [], onExportNote, onExportPdf, onShareNote, onLockNote,
+  collectionView, gridProps, sections,
 }: SplitNotesViewProps) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [actionNote, setActionNote] = useState<Note | null>(null);
@@ -53,78 +57,62 @@ export default function SplitNotesView({
   }, []);
 
   const activeNote = notes.find(n => n.id === activeNoteId) || null;
+  const galleryMode = collectionView === 'gallery';
+  const showCollection = galleryMode ? !activeNoteId : (!isMobile || !activeNoteId);
+  const showEditor = galleryMode ? !!activeNoteId : (!isMobile || !!activeNoteId);
+  const visibleSections: NoteSection[] = sections ?? [
+    ...(pinned.length ? [{ key: 'pinned', label: 'Przypięte', notes: pinned }] : []),
+    ...(others.length ? [{ key: 'all', label: 'Notatki', notes: others }] : []),
+  ];
+
+  const requestMove = async (note: Note) => {
+    const destination = await promptDialog('Przenieś do folderu (wpisz nazwę lub „Bez folderu”)', 'Bez folderu');
+    if (destination === null) return;
+    const normalized = destination.trim().toLocaleLowerCase('pl-PL');
+    const folderId = normalized === '' || normalized === 'bez folderu'
+      ? null
+      : folders.find(folder => folder.name.toLocaleLowerCase('pl-PL') === normalized)?.id;
+    if (folderId === undefined) {
+      notify('Nie znaleziono folderu o tej nazwie', 'error');
+      return;
+    }
+    onUpdate(note.id, { folder_id: folderId });
+  };
 
   return (
     <div className="keep-split-container">
       {/* List Pane - Visible on desktop, or on mobile when no note is selected */}
-      {(!isMobile || !activeNoteId) && (
-        <div className={`keep-split-list-pane ${collectionView === 'gallery' ? 'gallery' : ''}`}>
+      {showCollection && (
+        <section
+          className={`keep-split-list-pane ${galleryMode ? 'gallery' : ''}`}
+          aria-label={galleryMode ? 'Galeria notatek' : 'Lista notatek'}
+        >
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-text-muted p-6 text-center">
               <p className="font-bold text-sm">Brak notatek</p>
               <p className="text-xs mt-1">Zmień filtry lub utwórz nową notatkę.</p>
             </div>
-          ) : collectionView === 'gallery' ? (
-            <div className="p-2 pb-20">
-              <MasonryGrid notes={filtered} {...gridProps} />
-            </div>
           ) : (
-            <div className="space-y-6 px-3 pb-20 pt-5 md:px-1 md:py-2 md:pb-4">
-              {/* Pinned section in iOS Grouped List Style */}
-              {pinned.length > 0 && (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1.5 px-1 pb-1 text-xs font-semibold text-text-secondary">
-                    <Pin size={11} fill="currentColor" className="text-[var(--color-warning)]" /> Przypięte
-                  </div>
-                  <div className="overflow-hidden rounded-2xl bg-surface-1 shadow-2xs ring-1 ring-text-primary/[0.04]">
-                    {pinned.map((n, idx) => (
-                      <div key={n.id}>
-                        <NoteRow
-                          note={n}
-                          isActive={activeNoteId === n.id}
-                          onClick={() => onSelectNote(n.id)}
-                          onLongPress={() => setActionNote(n)}
-                        />
-                        {idx < pinned.length - 1 && (
-                          <div className="border-b border-border-custom/10 ml-4 mr-2" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Others section in iOS Grouped List Style */}
-              {others.length > 0 && (
-                <div className="space-y-1">
-                  <div className="px-1 pb-1 text-xs font-semibold text-text-secondary">
-                    Notatki
-                  </div>
-                  <div className="overflow-hidden rounded-2xl bg-surface-1 shadow-2xs ring-1 ring-text-primary/[0.04]">
-                    {others.map((n, idx) => (
-                      <div key={n.id}>
-                        <NoteRow
-                          note={n}
-                          isActive={activeNoteId === n.id}
-                          onClick={() => onSelectNote(n.id)}
-                          onLongPress={() => setActionNote(n)}
-                        />
-                        {idx < others.length - 1 && (
-                          <div className="border-b border-border-custom/10 ml-4 mr-2" />
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            <NoteCollectionSections
+              sections={visibleSections}
+              collectionView={collectionView}
+              activeNoteId={activeNoteId}
+              onSelectNote={id => onSelectNote(id)}
+              onLongPress={setActionNote}
+              gridProps={gridProps}
+              onTogglePin={onTogglePin}
+              onMove={note => { void requestMove(note); }}
+              onDelete={note => {
+                void confirmDialog('Czy usunąć tę notatkę?').then(ok => { if (ok) onDelete(note.id); });
+              }}
+            />
           )}
-        </div>
+        </section>
       )}
 
       {/* Editor Pane - Visible on desktop, or on mobile when a note IS selected */}
-      {(!isMobile || !!activeNoteId) && (
-        <div className="keep-split-editor-pane">
+      {showEditor && (
+        <section className={`keep-split-editor-pane ${galleryMode ? 'gallery-note' : ''}`} aria-label="Edytor notatki">
           {activeNote ? (
             <InlineEditor
               note={activeNote}
@@ -139,6 +127,8 @@ export default function SplitNotesView({
               isMobile={isMobile}
               folders={folders}
               onExportNote={onExportNote}
+              onExportPdf={onExportPdf}
+              onShareNote={onShareNote}
               onNavigateToNote={id => onSelectNote(id)}
               onLockNote={onLockNote}
             />
@@ -149,7 +139,7 @@ export default function SplitNotesView({
               <p className="text-xs mt-1">Kliknij dowolną notatkę po lewej stronie lub utwórz nową notatkę klikając przycisk "+" na dole.</p>
             </div>
           )}
-        </div>
+        </section>
       )}
       {actionNote && (
         <NoteQuickActions

@@ -13,7 +13,7 @@ const MIN_RECONCILE_SCORE = 0.52;
 interface Per100gFood { name: string; calories: number | null; protein: number | null; carbs: number | null; fat: number | null; fiber?: number | null; sugar?: number | null; source?: string; }
 export type ReconcileOpts = { supabaseUrl: string; serviceKey: string; userId?: string; db?: unknown; apiKey?: string; originalText?: string };
 
-export function isPlausibleFoodCandidate(query: string, candidate: Per100gFood): boolean {
+function isPlausibleFoodCandidate(query: string, candidate: Per100gFood): boolean {
   const calories = Number(candidate.calories ?? 0);
   if (!Number.isFinite(calories) || calories <= 0 || calories > 1000) return false;
   const normalized = normalizePl(`${query} ${candidate.name}`);
@@ -61,7 +61,7 @@ function splitCompoundName(name: string): [string, string] | null {
 
 function titleCasePl(fragment: string): string { const t = fragment.trim(); return t ? t.charAt(0).toUpperCase() + t.slice(1) : fragment; }
 
-export function shouldExpandCompoundDish(originalText: string): boolean {
+function shouldExpandCompoundDish(originalText: string): boolean {
   return /[,;+]/.test(originalText);
 }
 
@@ -113,7 +113,7 @@ async function verifyMatchWithLLM(query: string, candidate: string, apiKey: stri
   } catch { return true; }
 }
 
-export function mergeUserFoodCandidates(
+function mergeUserFoodCandidates(
   favorites: Per100gFood[],
   library: Per100gFood[],
 ): Per100gFood[] {

@@ -3,7 +3,8 @@ import { getRecentStrongBehavioralPatterns } from "../../_shared/vanguardPattern
 import { fetchMedicalContext, formatMedicalContextBlock } from "../../_shared/medicalContext.ts";
 import { avg, classifyIntentSafe } from "./ragHelpers.ts";
 import { runRagPipeline } from "./ragPipeline.ts";
-
+import { fetchHealthspanContext } from "./healthspanContext.ts";
+import { formatHealthSummary, formatStrainContext } from "./healthContextFormatters.ts";
 export async function retrieveRagContext(
   supabase: any,
   user_id: string,
@@ -15,7 +16,6 @@ export async function retrieveRagContext(
 ) {
   let recentPlanQuality: any = null;
   let lastEveningReflection: any = null;
-
   if (mode === 'planning' || classifyIntentSafe(current_query || '').includes('recent')) {
     const { data: recentPlan } = await supabase
       .from('daily_reconciliations')
@@ -33,8 +33,6 @@ export async function retrieveRagContext(
         target_date: (recentPlan.planning_summary as Record<string, unknown>)?.target_date || null,
       };
     }
-
-    // P2 adoption: last evening's user reflection (biggest_cost, best_move, blockers)
     if (recentPlan?.p2_parsed) {
       const p2 = recentPlan.p2_parsed as Record<string, unknown>;
       if (Number(p2.parse_confidence) >= 0.4 && (p2.biggest_cost || p2.best_move || (p2.blocker_candidates as unknown[] | undefined)?.length)) {
@@ -49,8 +47,6 @@ export async function retrieveRagContext(
       }
     }
   }
-
-  // Intent first — gates medical fetch, raw window size, clarifications
   const intent = classifyIntentSafe(current_query || '');
   const wantsFullBiometrics = intent === 'biometric';
   const wantsMedical = wantsFullBiometrics ||
@@ -58,7 +54,6 @@ export async function retrieveRagContext(
   const wantsClarifications = intent === 'identity' ||
     /\b(pamiętasz|pamietasz|mówiłeś|mowiles|odpowiadałeś|pytałeś|preferenc)\w*/i.test(current_query || '');
 
-  // STATIC CONTEXT
   const [
     fundamentRes, preferencesRes, oura14dRes, nutrition14dRes, foodEntries14dRes,
     strainRes, dailyWinsRes, proposalsRes, medicalContext,
@@ -151,32 +146,14 @@ export async function retrieveRagContext(
     nutrition_daily: nutritionRaw,
   };
 
-  const healthSummaryText = `[ZDROWIE/JEDZENIE - AGREGAT 14D + SUROWE OSTATNIE ${rawDayLimit}D, DANE DETERMINISTYCZNE]:
-Zakres: ${healthSummary14d.date_from} - ${healthSummary14d.date_to}
-Dni Oura: ${healthSummary14d.oura_days_logged}/14; srednie kroki: ${healthSummary14d.avg_steps ?? 'brak danych'}; srednie active kcal: ${healthSummary14d.avg_active_calories ?? 'brak danych'}; srednie total burned kcal: ${healthSummary14d.avg_total_calories_burned ?? 'brak danych'}
-Sen (Oura sensor): srednie godziny snu: ${healthSummary14d.avg_sleep_hours ?? 'brak danych'}h; srednie HRV: ${healthSummary14d.avg_hrv ?? 'brak danych'}; sredni readiness: ${healthSummary14d.avg_readiness ?? 'brak danych'}
-Dni logu posilkow/daily_nutrition: ${healthSummary14d.nutrition_days_logged}/14; srednio zjedzone kcal: ${healthSummary14d.avg_food_calories ?? 'brak danych'}; srednie bialko: ${healthSummary14d.avg_protein ?? 'brak danych'}; srednie wegle: ${healthSummary14d.avg_carbs ?? 'brak danych'}; sredni tluszcz: ${healthSummary14d.avg_fat ?? 'brak danych'}; sredni blonnik: ${healthSummary14d.avg_fiber ?? 'brak danych'}; sredni cukier: ${healthSummary14d.avg_sugar ?? 'brak danych'}
-Jakosc jedzenia: avg_food_quality to srednia wazona kalorycznie (0-100, real-food dietitian scale) — jesli null, analiza nie zostala jeszcze uruchomiona dla tego dnia. Pole q przy produkcie = jego food_quality_score.
-Oura dzien po dniu (ostatnie ${rawDayLimit}d — bedtime_timestamp, total_sleep_hours, hrv_avg, rhr_avg, readiness_score, deep/rem, efficiency, latency): ${JSON.stringify(healthSummary14d.oura_daily)}
-Jedzenie dzien po dniu (agregat, ostatnie ${rawDayLimit}d): ${JSON.stringify(healthSummary14d.nutrition_daily)}
-Jedzenie produkty (ostatnie ${rawDayLimit}d, pole q = food_quality_score): ${JSON.stringify(foodByDate)}`;
-
-  // DAILY STRAIN
+  const healthSummaryText = formatHealthSummary(healthSummary14d, foodByDate, rawDayLimit);
   const strain14dAll = strainRes.data || [];
-  const strain14d = wantsFullBiometrics ? strain14dAll : strain14dAll.slice(0, 5);
-  const strainToday = strain14dAll[0] || null;
-  const strainText = strain14dAll.length > 0 ? `[TRENING/OBCIĄŻENIE — DAILY STRAIN, DANE DETERMINISTYCZNE]:
-To jest zintegrowany wskaźnik łączący bieg (Strava HR), siłownię, kroki, odżywianie (log posiłków) i regenerację (Oura).
-- strain_score: 0–21 (koszt fizjologiczny dnia). recovery_score: 0–100. fueling_score: 0–100. daily_status: green/yellow/red.
-- main_limiter: co dziś najbardziej ogranicza (sleep/calories/carbs/cardio_load/strength_load/mental_load/recovery_ok).
-- fueling_provisional: gdy true, fueling/kcal dla TEGO dnia są TYMCZASOWE — dzień jeszcze trwa, log posiłków niedomknięty (cron liczy ~11:15). NIE twierdź o deficycie kalorycznym ani o "za mało jedzenia" na podstawie tymczasowego fuelingu; potraktuj go jako niepełny i powiedz, że doszacuje się po domknięciu dnia.
-DZIŚ (${strainToday?.date}): Strain ${strainToday?.strain_score ?? '—'}/21, Recovery ${strainToday?.recovery_score ?? '—'}/100, Fueling ${strainToday?.fueling_score ?? '—'}/100${strainToday?.fueling_provisional ? ' (TYMCZASOWY — dzień niezamknięty, nie wnioskuj o deficycie)' : ''}, Status ${strainToday?.daily_status ?? '—'}, Limiter: ${strainToday?.main_limiter ?? '—'}. ${strainToday?.explanation ?? ''}
-Gdy pytanie brzmi "czy mogę dziś cisnąć / jak forma / co mnie ogranicza" — odpowiadaj NA TYCH LICZBACH: green=można obciążać, yellow=ostrożnie/easy, red=regeneracja. Wskaż konkretny limiter. Jeśli fueling_provisional=true, fueling dziś nie jest finalnym limiterem.
-Strain dzień po dniu (ostatnie ${strain14d.length}d): ${JSON.stringify(strain14d)}` : '[DAILY STRAIN]: brak danych (jeszcze nie policzono).';
+  const strainText = formatStrainContext(strain14dAll, wantsFullBiometrics);
 
   const medicalContextText = medicalContext
     ? formatMedicalContextBlock(medicalContext)
     : '';
+  const healthspanContextText = await fetchHealthspanContext(supabase, user_id);
   // DYNAMIC CONTEXT (RAG) - DETERMINISTIC 3-STEP PIPELINE
   let semanticContext = "";
   let graphContext = "";
@@ -304,6 +281,7 @@ Strain dzień po dniu (ostatnie ${strain14d.length}d): ${JSON.stringify(strain14
     healthSummaryText,
     strainText,
     medicalContextText,
+    healthspanContextText,
     semanticContext,
     graphContext,
     wikiContext,

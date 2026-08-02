@@ -8,7 +8,7 @@ export interface OuraSleepInsightDay {
   sleep_score?: number | null;
 }
 
-export interface OuraSleepLedgerEntry {
+interface OuraSleepLedgerEntry {
   date: string;
   sleptMinutes: number;
   deltaMinutes: number;

@@ -27,6 +27,7 @@ describe('Badge', () => {
 
   it('renders tag variant with children', () => {
     render(<Badge variant="tag">Active</Badge>);
-    expect(screen.getByText('Active')).toBeTruthy();
+    expect(screen.getByText('Active')).toHaveAttribute('data-ui', 'badge');
+    expect(screen.getByText('Active')).toHaveAttribute('data-variant', 'tag');
   });
 });

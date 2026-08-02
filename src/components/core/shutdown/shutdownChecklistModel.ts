@@ -3,7 +3,7 @@ export interface ShutdownChecklistItem {
   label: string;
 }
 
-export interface ShutdownSupplementItem {
+type ShutdownSupplementItem = {
   id: string;
   name: string;
 }

@@ -56,15 +56,16 @@ export function DashboardDzisTab() {
   );
 
   return (
-    <div className="p-5 pb-8">
+    <div className="min-h-full bg-background p-5 pb-8">
       <div className="mb-5 space-y-4">
         <HorizonHeader
-          eyebrow="Wykonuję"
-          title="Dziś"
+          eyebrow="Sparky"
+          title="Dzisiaj"
           description="Stan, najważniejszy ruch i najbliższa rzecz do zrobienia. Reszta systemu pracuje w tle."
           icon={Play}
         />
         <TodayStatusStrip />
+        <OrientationFooter />
       </div>
       <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0">
         {/* Lewa kolumna: Planowanie, zadania i szybki Posiłek */}
@@ -99,7 +100,6 @@ export function DashboardDzisTab() {
           <Suspense fallback={<ViewFallback />}>
             <DailySnapshotCard />
           </Suspense>
-          <OrientationFooter />
         </div>
       </div>
     </div>

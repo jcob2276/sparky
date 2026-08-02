@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Archive, Download, ListTodo, Lock, MoreHorizontal, Pin, Sparkles, Trash2 } from 'lucide-react';
+import { Archive, Download, FileText, ListTodo, Lock, MoreHorizontal, Pin, Share2, Sparkles, Trash2 } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
 import { COLORS } from './keepUtils';
 
@@ -9,6 +9,8 @@ interface Props {
   onPin: () => void;
   onArchive: () => void;
   onExport?: () => void;
+  onExportPdf?: () => void;
+  onShare?: () => void;
   onLock?: () => void;
   onDelete: () => void;
   onSummarize: () => void;
@@ -36,7 +38,9 @@ export default function NoteEditorMoreMenu(props: Props) {
             <MenuItem icon={<Archive size={14} />} label="Archiwizuj" onClick={() => run(props.onArchive)} />
             <MenuItem icon={<Sparkles size={14} />} label="Podsumuj przez AI" onClick={() => run(props.onSummarize)} />
             <MenuItem icon={<ListTodo size={14} />} label="Wyciągnij zadania" onClick={() => run(props.onExtractTasks)} />
-            {props.onExport && <MenuItem icon={<Download size={14} />} label="Eksportuj" onClick={() => run(props.onExport!)} />}
+            {props.onExport && <MenuItem icon={<Download size={14} />} label="Eksportuj Markdown" onClick={() => run(props.onExport!)} />}
+            {props.onExportPdf && <MenuItem icon={<FileText size={14} />} label="Eksportuj PDF" onClick={() => run(props.onExportPdf!)} />}
+            {props.onShare && <MenuItem icon={<Share2 size={14} />} label="Udostępnij kopię" onClick={() => run(props.onShare!)} />}
             {props.onLock && <MenuItem icon={<Lock size={14} />} label="Zablokuj" onClick={() => run(props.onLock!)} />}
             <div className="flex gap-1 border-y border-border-custom/20 p-2">
               {COLORS.map(color => (

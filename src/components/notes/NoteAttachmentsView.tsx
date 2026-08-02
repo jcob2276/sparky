@@ -1,4 +1,4 @@
-import { Camera, File as FileIcon, Paperclip, Trash2 } from 'lucide-react';
+import { Camera, File as FileIcon, Paperclip, PencilLine, Trash2 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import type { NoteAttachment } from '../../lib/noteAttachmentsApi';
 import { confirmDialog } from '../../lib/notify';
@@ -15,6 +15,7 @@ interface NoteAttachmentsViewProps {
   onScanText: (file: File) => Promise<void>;
   onRecord: (file: File) => Promise<void>;
   onDelete: (attachment: NoteAttachment) => Promise<void>;
+  onDraw?: () => void;
 }
 
 const formatSize = (bytes: number) => (
@@ -30,6 +31,7 @@ export default function NoteAttachmentsView({
   onScanText,
   onRecord,
   onDelete,
+  onDraw,
 }: NoteAttachmentsViewProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [scanning, setScanning] = useState(false);
@@ -51,6 +53,9 @@ export default function NoteAttachmentsView({
               <Pressable variant="ghost" className="justify-start" onClick={() => { setAttachmentMenu(false); setScanning(true); }}>
                 <Camera size={14} /> Skanuj dokument
               </Pressable>
+              {onDraw && <Pressable variant="ghost" className="justify-start" onClick={() => { setAttachmentMenu(false); onDraw(); }}>
+                <PencilLine size={14} /> Rysuj lub pisz
+              </Pressable>}
               <Pressable variant="ghost" className="justify-start" onClick={() => { setAttachmentMenu(false); textScanRef.current?.click(); }}>
                 Skanuj tekst
               </Pressable>

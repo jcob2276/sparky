@@ -1,10 +1,25 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Note } from '../../../lib/notesApi';
 import { convertNoteToTodoItem, exportNoteChecklistsToTodos } from '../../../lib/behavior/captureBridge';
 import { notify, confirmDialog, promptDialog } from '../../../lib/notify';
 import { useKeepPageEffects } from './useKeepPageEffects';
 import { matchesNoteSearch } from '../keepUtils';
+import {
+  DEFAULT_NOTE_COLLECTION_PREFERENCES,
+  sortAndGroupNotes,
+  type NoteCollectionPreferences,
+} from '../../../lib/noteOrganization';
+import {
+  fetchNoteViewPreferences,
+  getCollectionPreferenceKey,
+  saveNoteViewPreferences,
+  type NoteViewPreferenceMap,
+} from '../../../lib/noteViewPreferences';
+import type { NoteFolder } from '../../../lib/noteFoldersApi';
+import { getFolderDescendantIds } from '../../../lib/noteFoldersApi';
+import { matchesSmartFolder, type NoteSmartFolder } from '../../../lib/noteSmartFolders';
+import { filterNotesByTags } from '../../../lib/noteOrganization';
 
 type KeepViewMode = 'list' | 'gallery';
 
@@ -27,6 +42,8 @@ interface UseKeepViewProps {
   handleDiscardEmpty: (id: string) => Promise<void>;
   handleUnlockNote: (note: Note, passphrase: string) => Promise<void>;
   unlockedNoteIds: Set<string>;
+  folders: NoteFolder[];
+  smartFolders: NoteSmartFolder[];
   onBack?: () => void;
   onNavigateTo?: (dest: string) => void;
 }
@@ -34,7 +51,7 @@ interface UseKeepViewProps {
 export function useKeepView({
   userId, notes, setNotes, busy, setBusy, handleCreate, handleUpdate, handleDelete,
   handleTogglePin, handleReorder, handleNewNote, handleDeleteTag, handleDiscardEmpty, handleUnlockNote,
-  unlockedNoteIds,
+  unlockedNoteIds, folders, smartFolders,
   onBack, onNavigateTo,
 }: UseKeepViewProps) {
   const navigate = useNavigate();
@@ -42,7 +59,9 @@ export function useKeepView({
 
   const [search, setSearch] = useState('');
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [tagFilter, setTagFilter] = useState<{ tags: string[]; mode: 'all' | 'any' }>({ tags: [], mode: 'all' });
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
+  const [activeSmartFolderId, setActiveSmartFolderId] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab] = useState<'notes' | 'archive' | 'trash'>('notes');
   
   const [viewMode, setViewMode] = useState<KeepViewMode>(() => {
@@ -56,6 +75,22 @@ export function useKeepView({
     }
     return 'list';
   });
+  const [organizationPreferences, setOrganizationPreferences] = useState<Omit<NoteCollectionPreferences, 'view'>>({
+    sortField: DEFAULT_NOTE_COLLECTION_PREFERENCES.sortField,
+    direction: DEFAULT_NOTE_COLLECTION_PREFERENCES.direction,
+    groupByDate: DEFAULT_NOTE_COLLECTION_PREFERENCES.groupByDate,
+  });
+  const [preferenceMap, setPreferenceMap] = useState<NoteViewPreferenceMap>({});
+
+  useEffect(() => {
+    let active = true;
+    void fetchNoteViewPreferences(userId).then(value => {
+      if (active) setPreferenceMap(value);
+    }).catch(() => {
+      if (active) notify('Nie udało się wczytać ustawień widoku', 'error');
+    });
+    return () => { active = false; };
+  }, [userId]);
 
   const setViewModeWithPersist = useCallback((val: KeepViewMode | ((prev: KeepViewMode) => KeepViewMode)) => {
     setViewMode((prev) => {
@@ -129,17 +164,49 @@ export function useKeepView({
     setActiveTag(t => (t === tagToDelete ? null : t));
   }, [handleDeleteTag]);
 
-  const filtered = notes.filter(n => {
+  const activeSmartFolder = smartFolders.find(folder => folder.id === activeSmartFolderId);
+  const smartDescendants = activeSmartFolder?.rule.folderId
+    ? getFolderDescendantIds(folders, activeSmartFolder.rule.folderId)
+    : new Set<string>();
+  const filtered = filterNotesByTags(notes, tagFilter.tags, tagFilter.mode).filter(n => {
     const matchTab = sidebarTab === 'notes' ? !n.is_archived : sidebarTab === 'archive' && !!n.is_archived;
     const matchSearch = matchesNoteSearch(n, search);
     const matchTag = !activeTag || n.tags.includes(activeTag);
     const matchFolder = !activeFolderId || n.folder_id === activeFolderId;
-    return matchTab && matchSearch && matchTag && matchFolder;
+    const matchSmartFolder = !activeSmartFolder
+      || matchesSmartFolder(n, activeSmartFolder.rule, smartDescendants);
+    return matchTab && matchSearch && matchTag && matchFolder && matchSmartFolder;
   });
 
   const pinned = sidebarTab === 'notes' ? filtered.filter(n => n.is_pinned) : [];
   const others = sidebarTab === 'notes' ? filtered.filter(n => !n.is_pinned) : filtered;
   const visibleOthers = others.slice(0, visibleCount);
+  const fallbackPreferences: NoteCollectionPreferences = {
+    view: viewMode,
+    ...organizationPreferences,
+  };
+  const preferenceKey = getCollectionPreferenceKey(activeFolderId);
+  const collectionPreferences = preferenceMap[preferenceKey] ?? fallbackPreferences;
+  const sections = useMemo(() => sortAndGroupNotes(
+    sidebarTab === 'notes' ? filtered : filtered.map(note => ({ ...note, is_pinned: false })),
+    collectionPreferences,
+  ), [collectionPreferences, filtered, sidebarTab]);
+
+  const setCollectionPreferences = useCallback((next: NoteCollectionPreferences) => {
+    setViewModeWithPersist(next.view);
+    setOrganizationPreferences({
+      sortField: next.sortField,
+      direction: next.direction,
+      groupByDate: next.groupByDate,
+    });
+    setPreferenceMap(previous => {
+      const updated = { ...previous, [preferenceKey]: next };
+      void saveNoteViewPreferences(userId, updated).catch(() => {
+        notify('Nie udało się zapisać ustawień widoku', 'error');
+      });
+      return updated;
+    });
+  }, [preferenceKey, setViewModeWithPersist, userId]);
 
   const handleTagClick = useCallback((tag: string) => {
     setSidebarTab('notes');
@@ -192,9 +259,12 @@ export function useKeepView({
   return {
     search, setSearch,
     activeTag, setActiveTag,
+    tagFilter, setTagFilter,
     activeFolderId, setActiveFolderId,
+    activeSmartFolderId, setActiveSmartFolderId,
     sidebarTab, setSidebarTab,
     viewMode, setViewMode: setViewModeWithPersist,
+    collectionPreferences, setCollectionPreferences,
     editingId, setEditingId,
     visibleCount, setVisibleCount,
     goTo, goBack,
@@ -202,7 +272,7 @@ export function useKeepView({
     handleOpenNote,
     allTags,
     handleConfirmDeleteTag,
-    filtered, pinned, others, visibleOthers,
+    filtered, pinned, others, visibleOthers, sections,
     handleExportChecklists,
     sharedGridProps,
   };

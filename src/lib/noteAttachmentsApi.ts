@@ -39,6 +39,15 @@ export function useNoteAttachments(noteId: string) {
   });
 }
 
+export async function hasNoteAttachments(noteId: string): Promise<boolean> {
+  const { count, error } = await supabase
+    .from('note_attachments')
+    .select('id', { count: 'exact', head: true })
+    .eq('note_id', noteId);
+  if (error) throw new Error(error.message);
+  return (count ?? 0) > 0;
+}
+
 export async function uploadNoteAttachment(
   userId: string,
   noteId: string,

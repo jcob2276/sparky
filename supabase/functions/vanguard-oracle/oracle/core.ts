@@ -98,6 +98,7 @@ export async function runOracleQuery(
     intent: rag.intent, clarificationsContext: rag.clarificationsContext,
     healthSummaryText: rag.healthSummaryText, strainText: rag.strainText,
     medicalContextText: rag.medicalContextText, semanticContext: rag.semanticContext,
+    healthspanContextText: rag.healthspanContextText,
     graphContext: resolved_claims ? `${resolved_claims}\n\n${rag.graphContext}` : rag.graphContext,
     wikiContext: rag.wikiContext, localTimeString, safeUserConf, safeStateVector,
   });

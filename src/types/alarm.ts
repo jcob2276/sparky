@@ -2,7 +2,7 @@ export type MissionType = 'none' | 'shake' | 'barcode' | 'math' | 'memory' | 'ty
 
 export type MathDifficulty = 'easy' | 'medium' | 'hard';
 
-export interface MissionConfig {
+interface MissionConfig {
   shakeCount?: number;
   barcodeValue?: string;
   barcodeName?: string;

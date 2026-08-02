@@ -18,9 +18,16 @@ describe('Input', () => {
   });
 
   it('shows error state', () => {
-    render(<Input error="Required" data-testid="input" />);
-    expect(screen.getByTestId('input')).toHaveClass('border-danger/50');
+    render(<Input label="Name" error="Required" data-testid="input" />);
+    const input = screen.getByRole('textbox', { name: 'Name' });
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAccessibleDescription('Required');
     expect(screen.getByText('Required')).toBeInTheDocument();
+  });
+
+  it('uses the shared control surface', () => {
+    render(<Input label="Name" />);
+    expect(screen.getByRole('textbox', { name: 'Name' })).toHaveClass('ui-control');
   });
 
   it('renders icon', () => {

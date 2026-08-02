@@ -11,6 +11,11 @@ describe('Sheet iOS interaction contract', () => {
     );
 
     expect(screen.getByRole('dialog', { name: 'Opcje' })).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Opcje' })).toHaveAttribute(
+      'data-material',
+      'floating',
+    );
+    expect(screen.getByRole('dialog', { name: 'Opcje' })).toHaveClass('ui-floating-layer');
     expect(screen.getByLabelText('Przeciągnij, aby zamknąć')).toBeInTheDocument();
   });
 });

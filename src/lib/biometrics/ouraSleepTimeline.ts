@@ -1,7 +1,7 @@
 export type SleepStage = 'awake' | 'rem' | 'light' | 'deep';
-export type SleepTimelineStatus = 'available' | 'unavailable' | 'invalid';
+type SleepTimelineStatus = 'available' | 'unavailable' | 'invalid';
 
-export interface SleepTimelineSegment {
+interface SleepTimelineSegment {
   stage: SleepStage;
   startBlock: number;
   blocks: number;

@@ -40,6 +40,8 @@ export default function SupplementCard({
 }: SupplementCardProps) {
   const [editingReminder, setEditingReminder] = useState(false);
   const [draftReminder, setDraftReminder] = useState(formatReminderInputValue(sup.reminder_time));
+  const isSkipQty = sup.skip_qty || sup.slug === 'kreatyna' || sup.name.toLowerCase().includes('kreatyna');
+  const displayUnit = (sup.slug === 'kreatyna' || sup.name.toLowerCase().includes('kreatyna')) ? '5g' : (sup.unit || 'porcja');
   const isReverse = sup.name.toLowerCase().includes('pyłek') || sup.name.toLowerCase().includes('pollen') || sup.dose_per_unit?.['reverse_logic'] === true;
 
   let cycleProgress = null;
@@ -67,7 +69,7 @@ export default function SupplementCard({
           <div className="min-w-0">
             <p className="text-xs font-black uppercase text-text-primary leading-tight truncate">{sup.name}</p>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-2xs text-text-muted">
-              <span>1x {sup.unit}</span>
+              <span>{isSkipQty ? displayUnit : `1x ${displayUnit}`}</span>
               {sup.reminder_time && !editingReminder && (
                 <Pressable
                   variant="ghost"

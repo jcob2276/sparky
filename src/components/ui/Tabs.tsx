@@ -15,15 +15,19 @@ export interface TabsProps {
 
 export default function Tabs({ tabs, active, onChange, className = '' }: TabsProps) {
   return (
-    <div className={`flex gap-1 rounded-[var(--radius-md)] bg-surface-2 p-1 ${className}`}>
+    <div role="tablist" data-ui="tabs" className={`ui-tabs flex gap-1 ${className}`}>
       {tabs.map((tab) => (
         <button
           key={tab.key}
           type="button"
+          role="tab"
+          aria-selected={active === tab.key}
+          tabIndex={active === tab.key ? 0 : -1}
+          data-ui="tab"
           onClick={() => onChange(tab.key)}
-          className={`flex-1 flex items-center justify-center gap-1.5 rounded-[var(--radius-sm)] py-2 text-xs font-bold transition-[transform,background-color,color,box-shadow] duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-97 cursor-pointer ${
+          className={`ui-tab flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer ${
             active === tab.key
-              ? 'bg-surface-tonal text-primary shadow-sm'
+              ? 'bg-surface-tonal text-primary'
               : 'text-text-muted hover:bg-surface-3 hover:text-text-primary'
           }`}
         >

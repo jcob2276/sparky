@@ -3,7 +3,7 @@
  * Calculates color temperature matrices and time schedule intensity.
  */
 
-export interface FluxSchedule {
+interface FluxSchedule {
   startTime: string; // "HH:MM" e.g. "21:00"
   endTime: string;   // "HH:MM" e.g. "07:00"
   gradualRampMinutes?: number; // default 30 mins

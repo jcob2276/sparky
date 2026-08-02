@@ -8,10 +8,25 @@ import { notesKeys } from '../../../lib/queryKeys';
 import { notify } from '../../../lib/notify';
 import { STORAGE_KEYS } from '../../../lib/constants';
 import { useNotesMutations } from './useNotesMutations';
-import { deleteAllNoteAttachmentFiles } from '../../../lib/noteAttachmentsApi';
-import { createNoteFolder, deleteNoteFolder, useNoteFolders } from '../../../lib/noteFoldersApi';
+import { deleteAllNoteAttachmentFiles, hasNoteAttachments } from '../../../lib/noteAttachmentsApi';
+import { hasNoteDrawing } from '../../../lib/noteDrawingsApi';
+import { shouldDiscardEmptyNote } from '../../../lib/noteDiscardRules';
+import {
+  createNoteFolder,
+  deleteNoteFolder,
+  moveNoteFolder,
+  renameNoteFolder,
+  useNoteFolders,
+} from '../../../lib/noteFoldersApi';
 import { decryptNotePayload, encryptNotePayload } from '../../../lib/noteLockCrypto';
 import { getNoteLockBlockReason } from '../../../lib/noteLockRules';
+import {
+  createNoteSmartFolder,
+  deleteNoteSmartFolder,
+  updateNoteSmartFolder,
+  useNoteSmartFolders,
+  type SmartFolderRuleV1,
+} from '../../../lib/noteSmartFolders';
 
 function readLocalFallback(): Note[] {
   try {
@@ -42,6 +57,7 @@ export function useNotesData(userId: string) {
   const { data: serverNotes, isLoading: loading, isError, refetch: fetchNotes } = useNotes(userId);
   const { data: trashedNotes = [], isLoading: trashLoading } = useTrashedNotes(userId);
   const { data: folders = [], isLoading: foldersLoading } = useNoteFolders(userId);
+  const { data: smartFolders = [], isLoading: smartFoldersLoading } = useNoteSmartFolders(userId);
   const storedNotes = useMemo(
     () => (isError ? readLocalFallback() : (serverNotes ?? [])),
     [isError, serverNotes],
@@ -167,6 +183,20 @@ export function useNotesData(userId: string) {
     }
   }, [notes, setNotes]);
 
+  const handleRenameTag = useCallback(async (oldTag: string, newTag: string) => {
+    const normalized = newTag.trim();
+    if (!normalized) throw new Error('Nazwa tagu nie może być pusta.');
+    const changed = notes.filter(note => note.tags.includes(oldTag));
+    for (const note of changed) {
+      const tags = [...new Set(note.tags.map(tag => tag === oldTag ? normalized : tag))];
+      await updateNoteApi(note.id, { tags, updated_at: new Date().toISOString() });
+    }
+    setNotes(previous => previous.map(note => note.tags.includes(oldTag) ? {
+      ...note,
+      tags: [...new Set(note.tags.map(tag => tag === oldTag ? normalized : tag))],
+    } : note));
+  }, [notes, setNotes]);
+
   const handleReorder = useCallback((dragId: string, overId: string) => {
     setNotes((prev) => {
       const arr = [...prev];
@@ -197,21 +227,72 @@ export function useNotesData(userId: string) {
   }, [queryClient, userId]);
 
   const handleDiscardEmpty = useCallback(async (id: string) => {
+    const [hasAttachments, hasDrawing] = await Promise.all([
+      hasNoteAttachments(id),
+      hasNoteDrawing(id),
+    ]);
+    if (!shouldDiscardEmptyNote({ hasText: false, hasAttachments, hasDrawing })) return;
     await moveNoteToTrashApi(id);
     setNotes(previous => previous.filter(note => note.id !== id));
     await queryClient.invalidateQueries({ queryKey: notesKeys.trash(userId) });
   }, [queryClient, setNotes, userId]);
 
-  const handleCreateFolder = useCallback(async (name: string) => {
-    await createNoteFolder(userId, name);
+  const handleCreateFolder = useCallback(async (name: string, parentId: string | null = null) => {
+    await createNoteFolder(userId, name, parentId);
     await queryClient.invalidateQueries({ queryKey: notesKeys.folders(userId) });
   }, [queryClient, userId]);
+
+  const handleRenameFolder = useCallback(async (id: string, name: string) => {
+    await renameNoteFolder(id, name);
+    await queryClient.invalidateQueries({ queryKey: notesKeys.folders(userId) });
+  }, [queryClient, userId]);
+
+  const handleMoveFolder = useCallback(async (id: string, parentId: string | null) => {
+    const siblings = folders.filter(folder => folder.parent_id === parentId);
+    await moveNoteFolder(folders, id, parentId, siblings.length);
+    await queryClient.invalidateQueries({ queryKey: notesKeys.folders(userId) });
+  }, [folders, queryClient, userId]);
+
+  const handleReorderFolder = useCallback(async (id: string, direction: 'up' | 'down') => {
+    const folder = folders.find(item => item.id === id);
+    if (!folder) return;
+    const siblings = folders
+      .filter(item => item.parent_id === folder.parent_id)
+      .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name, 'pl'));
+    const index = siblings.findIndex(item => item.id === id);
+    const target = siblings[direction === 'up' ? index - 1 : index + 1];
+    if (!target) return;
+    await Promise.all([
+      moveNoteFolder(folders, folder.id, folder.parent_id, target.position),
+      moveNoteFolder(folders, target.id, target.parent_id, folder.position),
+    ]);
+    await queryClient.invalidateQueries({ queryKey: notesKeys.folders(userId) });
+  }, [folders, queryClient, userId]);
 
   const handleDeleteFolder = useCallback(async (id: string) => {
     await deleteNoteFolder(id);
     await queryClient.invalidateQueries({ queryKey: notesKeys.all });
     notify('Folder usunięty; notatki pozostały w Wszystkich', 'info');
   }, [queryClient]);
+
+  const refreshSmartFolders = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: ['notes', 'smart-folders', userId] });
+  }, [queryClient, userId]);
+
+  const handleCreateSmartFolder = useCallback(async (name: string, rule: SmartFolderRuleV1) => {
+    await createNoteSmartFolder(userId, name, rule);
+    await refreshSmartFolders();
+  }, [refreshSmartFolders, userId]);
+
+  const handleUpdateSmartFolder = useCallback(async (id: string, name: string, rule: SmartFolderRuleV1) => {
+    await updateNoteSmartFolder(id, { name, rule });
+    await refreshSmartFolders();
+  }, [refreshSmartFolders]);
+
+  const handleDeleteSmartFolder = useCallback(async (id: string) => {
+    await deleteNoteSmartFolder(id);
+    await refreshSmartFolders();
+  }, [refreshSmartFolders]);
 
   const handleLockNote = useCallback(async (note: Note, passphrase: string) => {
     const blockReason = getNoteLockBlockReason(note);
@@ -257,10 +338,12 @@ export function useNotesData(userId: string) {
     notes,
     trashedNotes,
     folders,
+    smartFolders,
     setNotes,
     loading,
     trashLoading,
     foldersLoading,
+    smartFoldersLoading,
     error,
     setError,
     busy,
@@ -272,12 +355,19 @@ export function useNotesData(userId: string) {
     handleTogglePin,
     handleNewNote,
     handleDeleteTag,
+    handleRenameTag,
     handleReorder,
     handleRestore,
     handlePermanentDelete,
     handleDiscardEmpty,
     handleCreateFolder,
+    handleRenameFolder,
+    handleMoveFolder,
+    handleReorderFolder,
     handleDeleteFolder,
+    handleCreateSmartFolder,
+    handleUpdateSmartFolder,
+    handleDeleteSmartFolder,
     handleLockNote,
     handleUnlockNote,
     lockNow,

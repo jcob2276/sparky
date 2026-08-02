@@ -22,7 +22,17 @@ describe('Button', () => {
     render(<Button loading>Submit</Button>);
     const btn = screen.getByRole('button');
     expect(btn).toBeDisabled();
+    expect(btn).toHaveAttribute('aria-busy', 'true');
     expect(screen.getByRole('status')).toBeInTheDocument(); // Spinner has role="status"
+  });
+
+  it('exposes stable semantic variant and size state', () => {
+    render(<Button variant="secondary" size="sm">Continue</Button>);
+    const btn = screen.getByRole('button', { name: 'Continue' });
+    expect(btn).toHaveAttribute('data-ui', 'button');
+    expect(btn).toHaveAttribute('data-variant', 'secondary');
+    expect(btn).toHaveAttribute('data-size', 'sm');
+    expect(btn).toHaveClass('ui-button');
   });
 
   it('applies variant classes', () => {

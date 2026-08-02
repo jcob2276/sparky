@@ -7,6 +7,10 @@ import {
   undoAction,
 } from '../../../lib/actionHistory';
 
+// Rich-text placeholder: accepted by persistence, rendered as an empty editor,
+// and discarded by the existing empty-note cleanup when the user closes it.
+export const NEW_NOTE_DRAFT_CONTENT = '<p><br></p>';
+
 async function createNoteAction(
   userId: string,
   partial: Partial<Note>,
@@ -163,7 +167,7 @@ async function newNoteAction(
 ): Promise<string> {
   setBusy(true);
   setError(null);
-  const empty = { title: '', content: '', color: 'default', is_pinned: false, is_archived: false, tags: [] as string[] };
+  const empty = { title: '', content: NEW_NOTE_DRAFT_CONTENT, color: 'default', is_pinned: false, is_archived: false, tags: [] as string[] };
   try {
     const data = await createNoteApi(userId, empty);
     setNotes((prev) => sortNotes([data, ...prev]));

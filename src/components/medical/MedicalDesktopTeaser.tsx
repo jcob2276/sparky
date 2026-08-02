@@ -1,4 +1,4 @@
-import { FlaskConical } from 'lucide-react';import { useMedicalData } from './hooks/useMedicalData';
+import { FolderHeart } from 'lucide-react';import { useMedicalData } from './hooks/useMedicalData';
 import {
   buildMarkerSeries,
   diffDaysFromToday,
@@ -23,7 +23,7 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-text-muted">
-            <FlaskConical size={12} /> Badania laboratoryjne
+            <FolderHeart size={12} /> Kartoteka
           </p>
           {latestDate && !loading && (
             <p className="text-xs text-text-secondary mt-1">

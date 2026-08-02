@@ -1,4 +1,4 @@
-export type OuraMissingSource = 'oura_daily_summary' | 'oura_enhanced';
+type OuraMissingSource = 'oura_daily_summary' | 'oura_enhanced';
 
 type DatedRow = { date: string | null };
 

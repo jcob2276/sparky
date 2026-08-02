@@ -42,7 +42,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right' }: SheetPro
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[var(--z-overlay)] bg-black/40 dark:bg-black/70 backdrop-blur-[20px] saturate(180%)"
+          className="ui-floating-scrim fixed inset-0 z-[var(--z-overlay)]"
           role="presentation"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) {
@@ -56,10 +56,11 @@ function Sheet({ open, onOpenChange, title, children, side = 'right' }: SheetPro
         >
           <motion.section
             ref={panelRef}
-            className={`absolute flex flex-col overflow-hidden bg-surface-1 dark:bg-surface-solid shadow-2xl ${placement}`}
+            className={`ui-floating-layer absolute flex flex-col overflow-hidden ${placement}`}
             role="dialog"
             aria-modal="true"
             aria-label={typeof title === 'string' ? title : undefined}
+            data-material="floating"
             initial={reduceMotion ? { opacity: 0 } : initial}
             animate={reduceMotion ? { opacity: 1 } : { x: 0, y: 0 }}
             exit={reduceMotion ? { opacity: 0 } : exit}

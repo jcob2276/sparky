@@ -7,6 +7,7 @@ import { Pressable } from '../ui/ControlPrimitives';
 import { useRef } from 'react';
 import { Archive, ListTodo, LockKeyhole, Pin, Trash2 } from 'lucide-react';
 import { getColor, relativeDate, sanitizeHtml, Note, highlightHtml } from './keepUtils';
+import { getPlainText } from '../../lib/noteText';
 
 export default function NoteCard({
   note,
@@ -118,6 +119,9 @@ export default function NoteCard({
             }
           }}
         />
+      )}
+      {!note.title && !getPlainText(note.content) && note.drawing_preview_path && (
+        <div className="keep-card-content" style={{ color: c.textSub }}>Rysunek</div>
       )}
       {note.tags.length > 0 && (
         <div className="keep-card-tags">

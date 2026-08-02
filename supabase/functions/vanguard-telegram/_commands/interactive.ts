@@ -84,13 +84,6 @@ export async function handleInteractivePromptCommand(
           [
             { text: "🛋️ Lenie", callback_data: "more_action:lenie" },
             { text: "⏳ Post", callback_data: "more_action:post" }
-          ],
-          [
-            { text: "🍽️ Dieta", callback_data: "more_action:dieta" },
-            { text: "💬 Wywiad", callback_data: "more_action:wywiad" }
-          ],
-          [
-            { text: "🔚 Koniec dnia", callback_data: "more_action:koniec" }
           ]
         ]
       }

@@ -20,6 +20,192 @@ Ten plik (`BACKLOG.md`) to kolejka — rzeczy jeszcze nierozpoczęte albo wstrzy
 
 ---
 
+# Część 0 — Audyt produktu Shape Up: jedna aplikacja, jeden kręgosłup
+
+> Ten audyt jest nakładką produktową na techniczne priorytety poniżej. Nie zmienia P0
+> bezpieczeństwa ani konstytucji. Odpowiada na inne pytanie: **które elementy pomagają
+> Jakubowi podjąć decyzję lub wykonać ruch, a które tylko pokazują, że system ma dane?**
+>
+> Zasada Shape Up: najpierw problem i apetyt, potem rozwiązanie. Czas jest stały, zakres
+> zmienny. Każdy zakład musi mieć konsumenta i ostatnią milę.
+
+## North Star i granice produktu
+
+Vanguard ma być osobistym systemem operacyjnym z jednym codziennym wejściem:
+
+```text
+złap sygnał → zrozum stan → wybierz ruch → wykonaj → rozlicz → zachowaj wiedzę
+```
+
+Główny interfejs ma odpowiadać kolejno na cztery pytania:
+
+1. **Co jest prawdą teraz?** — Dziś: stan, zobowiązania, pojemność.
+2. **Co robię dalej?** — jeden rekomendowany ruch i jawne alternatywy.
+3. **Czy utrzymuję kierunek?** — Tydzień/Kierunek, nie drugi planer.
+4. **Czego system się nauczył?** — Historia z decyzjami i zmianami, nie magazyn wykresów.
+
+Nie budujemy osobnych „aplikacji w aplikacji” dla każdej domeny. Dane specjalistyczne
+mogą być głębokie, ale wejście do nich ma prowadzić z powyższego kręgosłupa.
+
+## Decyzja dla każdej powierzchni
+
+| Domena / obecne wejścia | Realny problem i konsument | Stan ostatniej mili | Decyzja |
+|---|---|---|---|
+| **Dziś / główny Dashboard** | Mobilna, szybka orientacja i wybór następnego ruchu | To jest operacyjny rdzeń używany w ruchu | **Wzmacniać.** Domyślny start mobile: capture, decyzja i wykonanie |
+| **Tydzień + Kierunek + Projekty + Todo** | Zamiana celów na wykonalny tydzień i zadania | Wiele modeli planowania, niejasne właścicielstwo decyzji „co dziś” | **Scalić.** Kierunek wybiera, Tydzień negocjuje zakres, Todo wykonuje |
+| **Fundament / tożsamość** | Zachować świadomie przyjęte zasady i skonfrontować je z zachowaniem | Wartościowa warstwa odniesienia, lecz nie powinna być kolejnym planerem ani automatycznym sędzią | **Zostawić jako kontekst.** Odczyt dla Kierunku i refleksji; zapis tylko świadomy |
+| **Historia + tygodniowe/miesięczne rozliczenia** | Zobaczyć zmianę i wyciągnąć konsekwencję na przyszłość | Dane są, lecz historia łatwo kończy się na retrospekcji | **Wzmacniać.** Każdy ważny wniosek kończy się decyzją, korektą planu albo świadomym „bez zmian” |
+| **Stream + Notatki + Pocket + Wiki + Graf** | Szybko złapać materiał i odzyskać z niego użyteczną wiedzę | Dobra rura wejściowa, zbyt wiele magazynów i kolejek | **Scalić przepływ.** Jedno capture, jedna kolejka decyzji; graf/wiki pozostają warstwą pochodną |
+| **Oracle: Telegram + Czat w aplikacji** | Rozmowa ze wspólną pamięcią i możliwość wykonania działania | Dwa kanały są uzasadnione, jeśli współdzielą historię, możliwości i reguły | **Ujednolicić kontrakt, nie kanał.** Telegram = szybki kontakt; aplikacja = praca z artefaktami |
+| **Zdrowie: Oura + Trening + Żywienie + Sauna + Kartoteka + Optyka** | Jedna odpowiedź: co dziś wspiera zdrowie i co wymaga uwagi | Bogate źródła, ale rozproszone ekrany i powtórzone podsumowania | **Scalić w Zdrowie.** Kartoteka jest osią kliniczną; Oura/trening/żywienie są przebiegiem bieżącym |
+| **Korelacje / analityka / predykcje** | Sprawdzić hipotezę i zmienić zachowanie | Silnik istnieje, ale wykres bez decyzji jest ślepą uliczką | **Ukryć jako narzędzie dowodowe.** Pokazywać tylko w kontekście decyzji, z jakością danych i możliwością odrzucenia |
+| **Terminy + Kalendarz** | Nie przegapić zdarzenia, obowiązku, badania lub odnowienia | Czytelny problem; terminy mogą zasilać plan dnia i Kartotekę | **Wzmacniać i podłączyć.** Bez osobnego rytuału obsługi |
+| **Finanse** | Widzieć zobowiązania i wykonać następną decyzję finansową | Rozbudowany interfejs wyprzedza realne użycie | **Zamrozić szerokość.** Zostawić cashflow, stałe koszty i jeden cel; resztę odsłaniać dopiero po użyciu |
+| **Rozwój / Nauka** | Wybrać umiejętność i wykonać konkretną sesję | Osobny system priorytetów konkuruje z Kierunkiem i Todo | **Scalić z Kierunkiem.** Umiejętność jest typem projektu, nie kolejnym systemem operacyjnym |
+| **Budzik / misje / natywne sensory** | Uruchomić poranny ruch i zapewnić wiarygodne powiadomienie | Funkcja peryferyjna; eksperymentalne sensory nie domykają głównej pętli | **Zamrozić poza niezawodnym budzikiem.** Zero nowych misji i sensorów przed dowodem regularnego użycia |
+| **Desktop Dashboard / Scoreboard** | Rozszerzone centrum dowodzenia do spokojnej pracy na komputerze | Intencjonalnie szerszy od mobile: synteza między domenami, analityka, diagnostyka i sterowanie | **Wzmacniać jako osobny tryb pracy.** Współdzielić dane i logikę z mobile, ale nie wymuszać tego samego układu |
+| **Ustawienia / stan systemu / Design System** | Konfiguracja, uprawnienia i diagnostyka | Potrzebne, ale nie są produktem codziennym | **Zostawić narzędziowo.** Bez ekspozycji jako równorzędny filar |
+
+## Ukształtowane zakłady — kolejność po blokadach P0
+
+### Zakład A — Jeden system, dwa świadome tryby pracy
+
+**Problem:** mobile i desktop mają różne zadania, ale bez jawnego kontraktu mogą
+powielać logikę, rozjechać nazwy oraz pokazywać sprzeczne interpretacje tych samych danych.
+
+**Apetyt:** maksymalnie 1 tydzień.
+**Pitch:** mobile pozostaje trybem operacyjnym (capture, Dziś, szybka decyzja i
+wykonanie), a Desktop Scoreboard pozostaje rozszerzonym centrum dowodzenia (synteza,
+analiza, planowanie i stan systemu). Oba tryby używają tych samych API, definicji metryk,
+statusów i akcji.
+
+**Breadboard:**
+
+```text
+Mobile:  sygnał ──► decyzja ──► szybka akcja ──► powrót do Dziś
+                         │
+                         └──────── wspólny stan ────────┐
+                                                        ▼
+Desktop: przekrój domen ──► analiza ──► sterowanie/plan ──► zapis decyzji
+```
+
+**Rabbit holes:** robienie responsywnego klona mobile na desktopie, ujednolicanie
+layoutów na siłę albo przepisywanie wszystkich paneli.
+**No-go:** osobne wzory metryk, osobne API lub sprzeczne statusy dla mobile i desktopu;
+żadnej karty bez właściciela i decyzji, której służy.
+
+**Done:** istnieje jawna odpowiedzialność każdej powierzchni; ten sam stan i ta sama
+akcja dają zgodny rezultat w obu trybach, a przejście mobile ↔ desktop zachowuje kontekst.
+
+### Zakład B — Planowanie bez konkurujących prawd
+
+**Problem:** Dziś, Tydzień, Kierunek, Projekty i Todo potrafią równolegle mówić, co jest
+ważne, bez jawnej reguły rozstrzygającej.
+
+**Apetyt:** maksymalnie 2 tygodnie.
+**Pitch:** Kierunek przechowuje wybory długoterminowe; Tydzień ustala ograniczony zakres;
+Todo jest jedyną kolejką wykonawczą; Dziś wybiera z niej według pojemności. Refleksja
+zmienia jedną z tych warstw albo jawnie niczego nie zmienia.
+
+**Rabbit holes:** automatyczny „idealny plan”, przebudowa wszystkich tabel, rozbudowane
+estymacje czasu.
+**No-go:** nowy byt zadaniowy lub kolejny rytuał planowania.
+
+**Done:** jedno zadanie ma jedno źródło prawdy, a decyzja tygodniowa jest widoczna w Dziś
+bez ręcznego przepisywania.
+
+### Zakład C — Zdrowie jako odpowiedź, nie zbiór dashboardów
+
+**Problem:** dane kliniczne, regeneracja, trening, żywienie, sauna i optyka są bogate,
+ale użytkownik musi sam sklejać ich znaczenie.
+
+**Apetyt:** maksymalnie 2 tygodnie po domknięciu Kartoteki.
+**Pitch:** wejście Zdrowie pokazuje: stan dzisiaj, aktywne zalecenia, nadchodzące terminy
+i historię. Szczegóły źródeł pozostają niżej. Propozycja profilaktyki zawsze pokazuje
+podstawę, termin i możliwość odroczenia/odrzucenia.
+
+**Rabbit holes:** diagnozowanie, lista „obowiązkowych” badań bez źródła, generowanie
+alarmów z każdej odchyłki.
+**No-go:** medyczna pewność, automatyczna diagnoza, zalecenia bez pochodzenia i daty.
+
+**Done:** z ekranu Zdrowie da się w mniej niż minutę odpowiedzieć „czy coś wymaga mojego
+ruchu?” i wykonać ten ruch.
+
+### Zakład D — Metabolizm wiedzy
+
+**Problem:** system umie przechowywać więcej niż użytkownik jest w stanie przejrzeć.
+
+**Apetyt:** maksymalnie 1 tydzień na domknięcie, bez nowego silnika AI.
+**Pitch:** każdy materiał ma jeden stan: inbox, przyjęty do wiedzy, zamieniony w działanie
+albo odrzucony. Kompilowana wiedza i niepewne twierdzenia trafiają do istniejącej bramki
+potwierdzenia, a nie do kolejnego feedu.
+
+**Rabbit holes:** nowa ontologia, nowy inbox, autonomiczne przepisywanie pamięci.
+**No-go:** zapis „prawdy o użytkowniku” bez dowodu lub potwierdzenia.
+
+**Done:** żadna aktywna kolejka nie ma producenta bez konsumenta; każda pozycja może
+zniknąć przez decyzję użytkownika.
+
+## Reguły odcinania zakresu
+
+- Najpierw przenosimy unikalną wartość, dopiero potem usuwamy duplikujący shell.
+- Moduł bez regularnego użycia nie dostaje nowych funkcji; dostaje jedno małe
+  doświadczenie walidujące albo freeze.
+- Wykres bez wskazania decyzji, jakości danych i następnego ruchu nie trafia na ekran główny.
+- Jedna nowa powierzchnia wymaga usunięcia albo wchłonięcia jednej starej.
+- Backendowy silnik może pozostać rozbudowany; frontend pokazuje tylko wynik potrzebny
+  do bieżącej decyzji.
+- Po każdym zakładzie następuje cooldown: pomiar użycia, usunięcie martwych ścieżek,
+  aktualizacja rejestru funkcji i dopiero kolejny pitch.
+
+## Blokery porządkowe ujawnione przez audyt
+
+Te punkty nie są osobnymi feature'ami; trzeba je zamknąć przed lub w trakcie Zakładu A:
+
+- [ ] Dopisać brakującą funkcję `analyze-physique` do kanonicznego rejestru funkcji.
+- [ ] Naprawić kontrakty danych w nagłówkach `vanguard-nightly` i `vanguard-telegram`,
+  żeby deklarowane odczyty odpowiadały rzeczywistości.
+- [ ] Usunąć trzy potwierdzone martwe pliki wymienione w Ponytail audit.
+- [ ] Zweryfikować tabele widoczne wyłącznie po stronie odczytu: każda ma dostać
+  kanonicznego writera albo trafić do graveyard; nie budować UI na osieroconym kontrakcie.
+- [ ] Dodać pomiar wejść do domen i wykonanych akcji przed zamrażaniem kolejnych modułów.
+  Bez tego decyzje produktowe pozostają opinią zamiast obserwacją.
+
+## Ponytail audit — cięcia bez utraty produktu
+
+Ranking od największej bezpiecznej redukcji:
+
+1. `shrink:` pozostawić odrębny układ `src/components/desktop/**`, ale usunąć z niego
+   zduplikowane pobieranie, obliczenia i mutacje na rzecz wspólnych API oraz logiki domenowej.
+2. `delete:` usunąć nieużywane
+   `biometrics/oura/hooks/useScreenTimeCorrelation.ts`,
+   `core/morningPlan/MorningPlanStep1Review.tsx` i `lib/native/emfSensor.ts`.
+3. `yagni:` nie rozwijać Finance, Growth, misji budzika ani nowych sensorów przed
+   potwierdzonym regularnym użyciem istniejącego minimum.
+4. `shrink:` zastąpić równoległe skróty i katalogi wejść jednym katalogiem nawigacji
+   używanym przez mobile, desktop i Command Center.
+5. `delete:` wyczyścić nieużywane eksporty i typy wskazane przez Knip; zależności
+   build-time weryfikować przed usunięciem, nie ufać ślepo raportowi.
+6. `native:` nie znaleziono uzasadnionego przypadku zastąpienia zależności samą
+   platformą; nie wykonywać pozornego cięcia.
+
+`net: -280 lines, -0 deps` jest bezpieczne natychmiast dla trzech potwierdzonych martwych
+plików. Większa redukcja po wchłonięciu desktopowego shella musi wynikać z rzeczywistego
+diffu, nie z deklaracji.
+
+## Warunki przyjęcia kolejnych pomysłów
+
+Nowy pitch przechodzi do budowy tylko jeśli ma:
+
+- konkretny problem obserwowany w użyciu, nie samą możliwość techniczną;
+- jednego nazwanego konsumenta wyniku;
+- apetyt i elementy do odcięcia, gdy czas się kończy;
+- breadboard pokazujący wejście, decyzję, zapis i powrót do głównej pętli;
+- odpowiedź „co zastępuje lub upraszcza?”;
+- test ostatniej mili: gdzie wynik pojawi się w Dziś, Tygodniu, Historii albo rozmowie.
+
+---
+
 # Część I — Audyt architektury 2026-07 (sekwencja z zależnościami)
 
 > Zebrane z sesji audytowej 2026-07-07. Kolejność = graf zależności, nie ranking ważności. Sekcje "Część II" niżej to pełny opis pozycji z Fazy 1.5–5.

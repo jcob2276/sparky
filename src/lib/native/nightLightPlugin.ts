@@ -1,6 +1,6 @@
 import { registerPlugin } from '@capacitor/core';
 
-export interface NightLightNativePlugin {
+interface NightLightNativePlugin {
   hasSecureSettingsPermission(): Promise<{ granted: boolean }>;
   setSystemNightLight(options: { enabled: boolean }): Promise<{ success: boolean }>;
   setSystemOverlayFilter(options: { enabled: boolean; color?: string; alpha?: number }): Promise<{ success: boolean }>;
@@ -38,7 +38,7 @@ export async function toggleSystemOverlayFilter(enabled: boolean, color: string 
   }
 }
 
-export async function checkOverlayPermission(): Promise<boolean> {
+async function checkOverlayPermission(): Promise<boolean> {
   try {
     const res = await NightLightNative.hasOverlayPermission();
     return res.granted;
@@ -47,7 +47,7 @@ export async function checkOverlayPermission(): Promise<boolean> {
   }
 }
 
-export async function requestOverlayPermission(): Promise<void> {
+async function requestOverlayPermission(): Promise<void> {
   try {
     await NightLightNative.requestOverlayPermission();
   } catch {

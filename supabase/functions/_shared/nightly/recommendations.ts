@@ -1,4 +1,5 @@
 import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { shouldEvaluateRecommendation } from '@vanguard/domain';
 
 interface RecommendationRow {
   id: string;
@@ -6,6 +7,8 @@ interface RecommendationRow {
   related_metric: string;
   success_threshold: number | null;
   evaluation_window_days: number;
+  status: string;
+  decision_status: string | null;
 }
 
 export async function resolveOracleRecommendations(
@@ -17,7 +20,7 @@ export async function resolveOracleRecommendations(
 
   const { data: pendingRecs, error: fetchErr } = await supabase
     .from('oracle_recommendations')
-    .select('id, created_at, related_metric, success_threshold, evaluation_window_days')
+    .select('id, created_at, related_metric, success_threshold, evaluation_window_days, status, decision_status')
     .eq('user_id', userId)
     .eq('status', 'pending');
 
@@ -26,7 +29,11 @@ export async function resolveOracleRecommendations(
     return { resolved: 0, successes: 0, fails: 0, no_data: 0 };
   }
 
-  if (!pendingRecs || pendingRecs.length === 0) {
+  const eligibleRecs = (pendingRecs ?? []).filter((recommendation) => (
+    shouldEvaluateRecommendation(recommendation.status, recommendation.decision_status)
+  ));
+
+  if (eligibleRecs.length === 0) {
     console.log('[recommendations] No pending recommendations to evaluate.');
     return { resolved: 0, successes: 0, fails: 0, no_data: 0 };
   }
@@ -36,7 +43,7 @@ export async function resolveOracleRecommendations(
   let fails = 0;
   let no_data = 0;
 
-  for (const rec of pendingRecs as RecommendationRow[]) {
+  for (const rec of eligibleRecs as RecommendationRow[]) {
     const createdDate = new Date(rec.created_at);
     
     // Evaluation window: starts the day after creation, ends created_at + evaluation_window_days

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { format, parseISO } from 'date-fns';
 import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
+import { isLogWellness, sessionVol } from '../../biometrics/workout/workoutUtils';
 
 interface ExerciseLog {
   exercise_name: string;
@@ -43,7 +44,34 @@ interface HeatmapProps {
   strava: StravaActivity[];
 }
 
-import { isLogWellness, sessionVol } from '../../biometrics/workout/workoutUtils';
+function getRunColor(km: number): string {
+  if (km < 5)  return 'bg-warning/40';
+  if (km < 12) return 'bg-warning/60';
+  return 'bg-warning/80';
+}
+
+function getGymColor(vol: number): string {
+  if (vol < 3000)  return 'bg-primary/30';
+  if (vol < 8000)  return 'bg-primary/55';
+  if (vol < 15000) return 'bg-primary/80';
+  return 'bg-primary';
+}
+
+function getDayColors(day: HeatmapDay, kmRun: number): string[] {
+  if (day.future) return ['bg-transparent border border-border-custom/20'];
+  const hasRun = kmRun > 0;
+  const data = day.data;
+  const hasGym = !!data && !data.wellness;
+  const hasWellness = !!data && data.wellness;
+
+  const categories: string[] = [];
+  if (hasRun) categories.push(getRunColor(kmRun));
+  if (hasGym) categories.push(getGymColor(data.vol));
+  if (hasWellness) categories.push('bg-info/50');
+
+  if (categories.length === 0) return ['bg-border-custom'];
+  return categories;
+}
 
 export default function Heatmap({ sessions, strava = [] }: HeatmapProps) {
   const [tooltip, setTooltip] = useState<{
@@ -87,27 +115,6 @@ export default function Heatmap({ sessions, strava = [] }: HeatmapProps) {
     weeks.push(week);
   }
 
-  const cellColor = ({ future, date, data }: HeatmapDay) => {
-    if (future) return 'bg-transparent border border-border-custom/20';
-    const hasRun = !!runMap[date];
-    const hasGym = !!data;
-    if (!hasRun && !hasGym) return 'bg-border-custom';
-    if (data?.wellness && !hasRun) return 'bg-info/50';
-    if (hasRun && !hasGym) {
-      const km = runMap[date];
-      if (km < 5)  return 'bg-warning/40';
-      if (km < 12) return 'bg-warning/60';
-      return 'bg-warning/80';
-    }
-    // both gym + run
-    if (hasRun && hasGym) return 'bg-primary/70';
-    const v = data!.vol;
-    if (v < 3000)  return 'bg-primary/30';
-    if (v < 8000)  return 'bg-primary/55';
-    if (v < 15000) return 'bg-primary/80';
-    return 'bg-primary';
-  };
-
   const DAYS = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
 
   return (
@@ -123,15 +130,39 @@ export default function Heatmap({ sessions, strava = [] }: HeatmapProps) {
                 {wi % 3 === 0 ? format(parseISO(week[0].date), 'dd.MM') : ''}
               </div>
               {week.map((day, di) => {
-                const hasActivity = !!day.data || !!runMap[day.date];
+                const kmRun = runMap[day.date] || 0;
+                const colors = getDayColors(day, kmRun);
+                const hasActivity = !!day.data || kmRun > 0;
+
+                const onEnter = hasActivity ? (e: React.MouseEvent<HTMLDivElement>) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  setTooltip({ day, kmRun, rect });
+                } : undefined;
+
+                if (colors.length > 1) {
+                  return (
+                    <div
+                      key={di}
+                      className={`h-3.5 rounded-sm overflow-hidden flex transition-opacity ${
+                        hasActivity ? 'cursor-pointer hover:opacity-[var(--opacity-70)]' : 'cursor-default'
+                      }`}
+                      onMouseEnter={onEnter}
+                      onMouseLeave={() => setTooltip(null)}
+                    >
+                      {colors.map((c, idx) => (
+                        <div key={idx} className={`h-full flex-1 ${c}`} />
+                      ))}
+                    </div>
+                  );
+                }
+
                 return (
                   <div
                     key={di}
-                    className={`h-3.5 rounded-sm transition-opacity ${hasActivity ? 'cursor-pointer hover:opacity-[var(--opacity-70)]' : 'cursor-default'} ${cellColor({ ...day, date: day.date })}`}
-                    onMouseEnter={hasActivity ? (e) => {
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      setTooltip({ day, kmRun: runMap[day.date] || 0, rect });
-                    } : undefined}
+                    className={`h-3.5 rounded-sm transition-opacity ${
+                      hasActivity ? 'cursor-pointer hover:opacity-[var(--opacity-70)]' : 'cursor-default'
+                    } ${colors[0]}`}
+                    onMouseEnter={onEnter}
                     onMouseLeave={() => setTooltip(null)}
                   />
                 );
@@ -176,23 +207,30 @@ export default function Heatmap({ sessions, strava = [] }: HeatmapProps) {
         document.body
       )}
 
-      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border-custom">
+      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border-custom flex-wrap">
         <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">Legenda:</span>
         {[
           { color: 'bg-border-custom',  label: 'Odpoczynek' },
-          { color: 'bg-info/50',    label: 'Wellness' },
-          { color: 'bg-warning/40',   label: 'Bieg <5km' },
-          { color: 'bg-warning/60',   label: 'Bieg 5-12km' },
-          { color: 'bg-warning/80',   label: 'Bieg >12km' },
-          { color: 'bg-primary/30',  label: '<3 Mg' },
-          { color: 'bg-primary/55',  label: '3–8 Mg' },
-          { color: 'bg-primary/80',  label: '8–15 Mg' },
-          { color: 'bg-primary',     label: '>15 Mg' },
-          { color: 'bg-primary/70',  label: 'Bieg+Siłownia' },
-        ].map(({ color, label }) => (
-          <div key={label} className="flex items-center gap-1.5">
-            <div className={`w-3 h-3 rounded-sm ${color}`} />
-            <span className="text-2xs text-text-muted">{label}</span>
+          { color: 'bg-info/50',        label: 'Wellness' },
+          { color: 'bg-warning/40',     label: 'Bieg <5km' },
+          { color: 'bg-warning/60',     label: 'Bieg 5-12km' },
+          { color: 'bg-warning/80',     label: 'Bieg >12km' },
+          { color: 'bg-primary/30',     label: '<3 Mg' },
+          { color: 'bg-primary/55',     label: '3–8 Mg' },
+          { color: 'bg-primary/80',     label: '8–15 Mg' },
+          { color: 'bg-primary',        label: '>15 Mg' },
+          { split: ['bg-warning/60', 'bg-info/50'], label: 'Łączony' },
+        ].map((item) => (
+          <div key={item.label} className="flex items-center gap-1.5">
+            {item.split ? (
+              <div className="w-3 h-3 rounded-sm overflow-hidden flex">
+                <div className={`h-full flex-1 ${item.split[0]}`} />
+                <div className={`h-full flex-1 ${item.split[1]}`} />
+              </div>
+            ) : (
+              <div className={`w-3 h-3 rounded-sm ${item.color}`} />
+            )}
+            <span className="text-2xs text-text-muted">{item.label}</span>
           </div>
         ))}
       </div>

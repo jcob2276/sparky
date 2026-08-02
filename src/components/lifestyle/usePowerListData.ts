@@ -15,6 +15,9 @@ import {
 } from './usePowerListTypes';
 import { type PillarProjectBinding, type DirectionProjectSummary } from '../../lib/dailyPlanProposal';
 import type { LifeGoalDisplayRow } from '../../lib/projects/lifeGoals';
+import { updateDailyWinTaskDone } from '../../lib/goal/goalSpine';
+import { notify } from '../../lib/notify';
+import { applyYesterdayTaskToggle } from './powerList/morningReflectionModel';
 
 export type { TaskSlot, UsePowerListDataProps, ProjectOption, DailyWinWithTasks } from './usePowerListTypes';
 
@@ -103,9 +106,6 @@ export function usePowerListData({
     }
   }, [todaySlotKpis, userId, today]);
   const occupiedSlots = useMemo(() => newTaskForm.map((s) => !!s.task.trim()), [newTaskForm]);
-  const [aiQuestions, setAiQuestions] = useState<string>('');
-  const [aiLoading, setAiLoading] = useState(false);
-
   const queries = usePowerListEffects({
     userId,
     today,
@@ -121,7 +121,46 @@ export function usePowerListData({
     directionLoading: direction.loading,
   });
 
-  const yesterdayNoteRequired = !!queries.yesterdayWin && !queries.yesterdayWin.day_note;
+  const [correctedYesterdayWin, setCorrectedYesterdayWin] = useState<DailyWinWithTasks | null>(null);
+  const [savingYesterdayTaskIds, setSavingYesterdayTaskIds] = useState<Set<string>>(() => new Set());
+  const yesterdayWin = correctedYesterdayWin?.id === queries.yesterdayWin?.id
+    ? correctedYesterdayWin
+    : queries.yesterdayWin;
+
+  const toggleYesterdayTask = async (taskId: string) => {
+    if (!yesterdayWin || savingYesterdayTaskIds.has(taskId)) return;
+    const task = yesterdayWin.daily_win_tasks?.find((candidate) => candidate.id === taskId);
+    if (!task) return;
+
+    const done = !task.done;
+    const completedAt = done ? new Date().toISOString() : null;
+    const previousWin = yesterdayWin;
+    setCorrectedYesterdayWin(applyYesterdayTaskToggle(previousWin, taskId, done, completedAt));
+    setSavingYesterdayTaskIds((previous) => new Set(previous).add(taskId));
+
+    try {
+      await updateDailyWinTaskDone(userId, taskId, done, completedAt);
+      if (done) haptics.success(); else haptics.light();
+    } catch (error: unknown) {
+      console.error('[PowerList] yesterday task correction failed', error);
+      setCorrectedYesterdayWin((current) => applyYesterdayTaskToggle(
+        current?.id === previousWin.id ? current : previousWin,
+        taskId,
+        task.done ?? false,
+        task.completed_at,
+      ));
+      haptics.error();
+      notify('Nie udało się zapisać zmiany zadania z wczoraj.', 'error');
+    } finally {
+      setSavingYesterdayTaskIds((previous) => {
+        const next = new Set(previous);
+        next.delete(taskId);
+        return next;
+      });
+    }
+  };
+
+  const yesterdayNoteRequired = !!yesterdayWin && !yesterdayWin.day_note;
 
   const actions = usePowerListActions({
     userId,
@@ -133,7 +172,7 @@ export function usePowerListData({
     checkpointPrompt,
     setCheckpointPrompt,
     setMarkingCheckpoint,
-    yesterdayWin: queries.yesterdayWin,
+    yesterdayWin,
     yesterdayNote,
     yesterdayDayScore,
     yesterdayMoodScore,
@@ -144,10 +183,7 @@ export function usePowerListData({
     savingEvening,
     setSavingEvening,
     todaySlotKpis,
-    setAiQuestions,
-    setAiLoading,
     onUpdate,
-    session,
     setTodaySlotKpis,
     allProjectOptions,
   });
@@ -164,7 +200,7 @@ export function usePowerListData({
     checkpointPrompt,
     setCheckpointPrompt,
     markingCheckpoint,
-    yesterdayWin: queries.yesterdayWin,
+    yesterdayWin,
     yesterdayNote,
     setYesterdayNote,
     yesterdayDayScore,
@@ -172,6 +208,8 @@ export function usePowerListData({
     yesterdayMoodScore,
     setYesterdayMoodScore,
     yesterdayNoteRequired,
+    toggleYesterdayTask,
+    savingYesterdayTaskIds,
     newTaskForm,
     setNewTaskForm,
     todoItems: queries.todoItems,
@@ -183,13 +221,10 @@ export function usePowerListData({
     savingEvening,
     pickerRef,
     todaySlotKpis,
-    aiQuestions,
-    aiLoading,
     occupiedSlots,
     eveningCloseDue,
     fillSlotFromCheckpoint: actions.fillSlotFromCheckpoint,
     confirmCheckpointDone: actions.confirmCheckpointDone,
-    generateQuestions: actions.generateQuestions,
     saveEveningClose: () => actions.saveEveningClose(todayWin),
     toggleTask: (idx: number) => actions.toggleTask(idx, todayWin),
     startNewDay: actions.startNewDay,

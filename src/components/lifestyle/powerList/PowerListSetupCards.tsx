@@ -1,12 +1,13 @@
-import { CheckCircle2, MessageCircleQuestion, Sparkles } from 'lucide-react';
-import { Card } from '../../ui/Card';
+import { Check, CheckCircle2, LoaderCircle, MessageCircleQuestion } from 'lucide-react';
 import { ControlTextarea, Pressable } from '../../ui/ControlPrimitives';
+import { GroupedList, GroupedListRow } from '../../ui/GroupedList';
+import DailyScorePicker from '../../shared/DailyScorePicker';
 import type { Tables } from '../../../lib/database.types';
-import type { DailyWinWithTasks } from '../usePowerListData';
-import ShutdownScoreSliders from '../../core/shutdown/ShutdownScoreSliders';
+
+type YesterdayRecapTask = Pick<Tables<'daily_win_tasks'>, 'id' | 'title' | 'done'>;
 
 interface RecapProps {
-  yesterdayWin: DailyWinWithTasks | null;
+  yesterdayWin: { date: string | null; daily_win_tasks?: YesterdayRecapTask[] } | null;
   yesterdayNote: string;
   setYesterdayNote: (value: string) => void;
   yesterdayNoteRequired: boolean;
@@ -14,6 +15,8 @@ interface RecapProps {
   setDayScore: (value: number) => void;
   moodScore: number;
   setMoodScore: (value: number) => void;
+  onToggleYesterdayTask: (taskId: string) => void;
+  savingYesterdayTaskIds: ReadonlySet<string>;
 }
 
 export function YesterdayRecap({
@@ -25,59 +28,79 @@ export function YesterdayRecap({
   setDayScore,
   moodScore,
   setMoodScore,
+  onToggleYesterdayTask,
+  savingYesterdayTaskIds,
 }: RecapProps) {
   if (!yesterdayWin) return null;
   const ready = !yesterdayNoteRequired || Boolean(yesterdayNote.trim());
+
   return (
-    <Card variant={ready ? 'surface' : 'notice'} padding="1rem" className={`space-y-3 ${ready ? 'border-success/20' : ''}`}>
-      <div className="flex items-start justify-between gap-3">
+    <section className="space-y-3" aria-labelledby="yesterday-recap-title">
+      <header className="flex items-start justify-between gap-3 px-1">
         <div>
-          <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Refleksja · {yesterdayWin.date}</p>
-          <h4 className="mt-1 font-display text-sm font-black text-text-primary">Co zadziałało, a co przeszkodziło?</h4>
+          <p className="ios-section-label">Refleksja · {yesterdayWin.date}</p>
+          <h3 id="yesterday-recap-title" className="mt-1 text-lg font-semibold tracking-tight text-text-primary">
+            Co zadziałało, a co przeszkodziło?
+          </h3>
         </div>
-        {ready ? <CheckCircle2 size={18} className="shrink-0 text-success" /> : <MessageCircleQuestion size={18} className="shrink-0 text-warning" />}
-      </div>
-      <ul className="space-y-1.5 rounded-xl bg-surface-tonal p-3">
-        {(yesterdayWin.daily_win_tasks || []).map((task: Tables<'daily_win_tasks'>) => (
-          <li key={task.id} className="flex items-center gap-2 text-xs font-medium">
-            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${task.done ? 'bg-success' : 'bg-text-muted/30'}`} />
-            <span className={task.done ? 'text-text-secondary line-through opacity-[var(--opacity-70)]' : 'text-text-primary'}>{task.title}</span>
-          </li>
-        ))}
-      </ul>
-      <div>
-        <label htmlFor="yesterday-reflection" className="text-xs font-semibold leading-relaxed text-text-secondary">
-          Jedno szczere zdanie wystarczy.
-          {yesterdayNoteRequired ? <span className="ml-1 font-bold text-warning">Wymagane</span> : null}
-        </label>
-        <ControlTextarea id="yesterday-reflection" value={yesterdayNote} onChange={(event) => setYesterdayNote(event.target.value)} placeholder="Co pomogło lub zatrzymało realizację?" rows={3} className="mt-2 min-h-20 w-full resize-y rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted focus:border-primary/50" />
-      </div>
-      <ShutdownScoreSliders
-        dayScore={dayScore}
-        setDayScore={setDayScore}
-        moodScore={moodScore}
-        setMoodScore={setMoodScore}
-      />
-    </Card>
-  );
-}
+        {ready ? (
+          <CheckCircle2 size={19} className="shrink-0 text-success" aria-hidden="true" />
+        ) : (
+          <MessageCircleQuestion size={19} className="shrink-0 text-direction" aria-hidden="true" />
+        )}
+      </header>
 
-interface AiProps { aiLoading: boolean; aiQuestions: string | null; generateQuestions: () => void; }
+      <GroupedList aria-label="Zadania z wczoraj">
+        {(yesterdayWin.daily_win_tasks || []).map((task) => {
+          const saving = savingYesterdayTaskIds.has(task.id);
+          return (
+            <GroupedListRow key={task.id} className="p-0">
+              <Pressable
+                aria-label={`${task.done ? 'Oznacz jako niewykonane' : 'Oznacz jako wykonane'}: ${task.title}`}
+                aria-pressed={Boolean(task.done)}
+                disabled={saving}
+                onClick={() => onToggleYesterdayTask(task.id)}
+                className="group flex min-h-12 w-full items-center gap-3 px-4 text-left text-sm font-medium"
+              >
+                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors ${task.done ? 'border-success bg-success text-on-accent' : 'border-text-muted bg-surface-solid text-transparent group-hover:border-primary'}`}>
+                  {saving ? (
+                    <LoaderCircle size={13} className="animate-spin text-text-muted" />
+                  ) : task.done ? (
+                    <Check size={13} strokeWidth={3} />
+                  ) : null}
+                </span>
+                <span className={task.done ? 'text-text-secondary line-through' : 'text-text-primary'}>
+                  {task.title}
+                </span>
+              </Pressable>
+            </GroupedListRow>
+          );
+        })}
 
-export function AiHelper({ aiLoading, aiQuestions, generateQuestions }: AiProps) {
-  return (
-    <Card variant="accent" padding="0.875rem" className="space-y-3">
-      <div className="flex items-center justify-between gap-3">
-        <span className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-primary"><Sparkles size={12} /> Pytania pomocnicze</span>
-        <Pressable onClick={generateQuestions} disabled={aiLoading} className="shrink-0 rounded-full border border-primary/20 bg-surface-solid px-3 py-1.5 text-2xs font-black text-primary hover:bg-primary/10">
-          {aiLoading ? 'Analizuję…' : aiQuestions ? 'Zapytaj inaczej' : 'Pomóż mi pomyśleć'}
-        </Pressable>
-      </div>
-      {aiQuestions ? (
-        <div className="animate-in fade-in rounded-xl border border-border-custom bg-surface-solid p-3 text-xs font-semibold leading-relaxed text-text-primary whitespace-pre-line">{aiQuestions}</div>
-      ) : (
-        <p className="text-xs leading-relaxed text-text-secondary">Bez gotowych poleceń — tylko pytania, które pomagają nazwać własne priorytety.</p>
-      )}
-    </Card>
+        <GroupedListRow className="py-4">
+          <label htmlFor="yesterday-reflection" className="block text-sm font-medium text-text-secondary">
+            Jedno szczere zdanie wystarczy.
+            {yesterdayNoteRequired && <span className="ml-1 font-semibold text-direction">Wymagane</span>}
+          </label>
+          <ControlTextarea
+            id="yesterday-reflection"
+            value={yesterdayNote}
+            onChange={(event) => setYesterdayNote(event.target.value)}
+            placeholder="Co pomogło lub zatrzymało realizację?"
+            rows={3}
+            className="ui-input mt-3 min-h-24 w-full resize-y px-3 py-2.5 text-sm text-text-primary placeholder:text-text-muted"
+          />
+        </GroupedListRow>
+
+        <GroupedListRow className="ui-recap-score-row" inset={false}>
+          <DailyScorePicker
+            dayScore={dayScore}
+            setDayScore={setDayScore}
+            moodScore={moodScore}
+            setMoodScore={setMoodScore}
+          />
+        </GroupedListRow>
+      </GroupedList>
+    </section>
   );
 }

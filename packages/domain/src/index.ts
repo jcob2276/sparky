@@ -22,4 +22,8 @@ export * from './finance/snowballEngine.ts';
 export * from './lifeObligations.ts';
 export * from './phoneUsage.ts';
 export * from './location.ts';
+export * from './synthesis.ts';
+export * from './healthspan.ts';
+export * from './healthspanMethodology.ts';
+export * from './healthspanTrend.ts';
 

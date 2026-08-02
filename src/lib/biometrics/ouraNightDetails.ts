@@ -1,17 +1,17 @@
-export type OuraSeriesStatus = 'available' | 'unavailable';
+type OuraSeriesStatus = 'available' | 'unavailable';
 
-export interface OuraPhasePoint {
+interface OuraPhasePoint {
   ts: string;
   phase: string | null;
   phase_code: number | null;
 }
 
-export interface OuraHeartRatePoint {
+interface OuraHeartRatePoint {
   ts: string;
   bpm: number | null;
 }
 
-export interface OuraHrvPoint {
+interface OuraHrvPoint {
   ts: string;
   hrv: number | null;
 }

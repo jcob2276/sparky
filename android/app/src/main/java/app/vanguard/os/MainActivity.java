@@ -2,12 +2,14 @@ package app.vanguard.os;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MotionEvent;
 
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
 
     private ShareIntentPlugin shareIntentPlugin;
+    private StylusInputPlugin stylusInputPlugin;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -17,6 +19,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(WidgetBridgePlugin.class);
         registerPlugin(BleProbePlugin.class);
         registerPlugin(NightLightPlugin.class);
+        registerPlugin(StylusInputPlugin.class);
         super.onCreate(savedInstanceState);
 
         if (this.bridge != null && this.bridge.getWebView() != null) {
@@ -27,6 +30,13 @@ public class MainActivity extends BridgeActivity {
                 }
             });
         }
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        StylusInputPlugin plugin = getStylusInputPlugin();
+        if (plugin != null && plugin.handleMotionEvent(event)) return true;
+        return super.dispatchTouchEvent(event);
     }
 
     @Override
@@ -46,5 +56,12 @@ public class MainActivity extends BridgeActivity {
             shareIntentPlugin = (ShareIntentPlugin) getBridge().getPlugin("ShareIntent").getInstance();
         }
         return shareIntentPlugin;
+    }
+
+    private StylusInputPlugin getStylusInputPlugin() {
+        if (stylusInputPlugin == null && getBridge() != null && getBridge().getPlugin("StylusInput") != null) {
+            stylusInputPlugin = (StylusInputPlugin) getBridge().getPlugin("StylusInput").getInstance();
+        }
+        return stylusInputPlugin;
     }
 }

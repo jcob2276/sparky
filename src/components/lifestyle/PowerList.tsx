@@ -43,18 +43,17 @@ export default function PowerList({
     yesterdayMoodScore,
     setYesterdayMoodScore,
     yesterdayNoteRequired,
+    toggleYesterdayTask,
+    savingYesterdayTaskIds,
     newTaskForm,
     todoItems,
     pickerSlot,
     setPickerSlot,
     submitting,
     pickerRef,
-    aiQuestions,
-    aiLoading,
     occupiedSlots,
     fillSlotFromCheckpoint,
     confirmCheckpointDone,
-    generateQuestions,
     updateSlot,
     eveningCloseDue,
     toggleTask,
@@ -75,9 +74,9 @@ export default function PowerList({
 
   return (
     <section className="space-y-4">
-      <div className="flex items-end justify-between">
-        <h3 className="flex items-center gap-2 font-display text-xs font-bold uppercase tracking-wider text-text-muted">
-          <Target size={13} className="text-primary" /> 5 zwycięstw
+      <div className="flex items-end justify-between px-1">
+        <h3 className="flex items-center gap-2 text-sm font-semibold text-text-secondary">
+          <Target size={15} className="text-direction" /> Pięć zwycięstw
         </h3>
         {todayWin?.result === 'Z' ? (
           <div className="rounded-full border border-dayC/15 bg-dayC/10 px-2.5 py-0.5 font-display text-2xs font-bold text-dayC">
@@ -117,12 +116,11 @@ export default function PowerList({
           yesterdayMoodScore={yesterdayMoodScore}
           setYesterdayMoodScore={setYesterdayMoodScore}
           yesterdayNoteRequired={yesterdayNoteRequired}
+          toggleYesterdayTask={toggleYesterdayTask}
+          savingYesterdayTaskIds={savingYesterdayTaskIds}
           direction={direction}
           fillSlotFromCheckpoint={fillSlotFromCheckpoint}
           occupiedSlots={occupiedSlots}
-          aiQuestions={aiQuestions}
-          aiLoading={aiLoading}
-          generateQuestions={generateQuestions}
           newTaskForm={newTaskForm}
           updateSlot={updateSlot}
           todoItems={todoItems}

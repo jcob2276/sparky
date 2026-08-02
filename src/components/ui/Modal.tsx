@@ -119,7 +119,7 @@ export default function Modal({
         <motion.div
           ref={backdropRef}
           onClick={handleBackdropClick}
-          className={`fixed inset-0 z-[var(--z-overlay)] flex bg-black/40 dark:bg-black/70 backdrop-blur-[20px] saturate(180%) ${backdropPadding} ${verticalAlignClass} ${justifyClass} ${flexDirClass} ${overlayClassName}`}
+          className={`ui-floating-scrim fixed inset-0 z-[var(--z-overlay)] flex ${backdropPadding} ${verticalAlignClass} ${justifyClass} ${flexDirClass} ${overlayClassName}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -133,8 +133,9 @@ export default function Modal({
             role="dialog"
             aria-modal="true"
             aria-label={typeof title === 'string' ? title : undefined}
+            data-material="floating"
             tabIndex={-1}
-            className={`w-full ${sizeClasses[size]} bg-surface-1 dark:bg-surface-solid border border-black/10 dark:border-white/12 rounded-[24px] shadow-2xl ${padding} ${overflowY ? 'max-h-[88vh] overflow-y-auto' : ''} ${className}`}
+            className={`ui-floating-layer w-full ${sizeClasses[size]} ${padding} ${overflowY ? 'max-h-[88vh] overflow-y-auto' : ''} ${className}`}
             initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.97 }}

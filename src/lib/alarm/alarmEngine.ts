@@ -19,7 +19,7 @@ function getAudioContext(): AudioContext {
   return audioCtx;
 }
 
-export function playBeepSequence(type: string, targetVolume: number) {
+function playBeepSequence(type: string, targetVolume: number) {
   const ctx = getAudioContext();
   const now = ctx.currentTime;
 

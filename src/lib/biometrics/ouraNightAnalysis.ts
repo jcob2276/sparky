@@ -4,7 +4,7 @@ export interface OuraNightAnalysisDay {
   readiness_contributors: unknown;
 }
 
-export interface OuraNightDriver {
+interface OuraNightDriver {
   key: string;
   label: string;
   score: number;
@@ -12,7 +12,7 @@ export interface OuraNightDriver {
   source: 'Oura';
 }
 
-export interface OuraRecoveryForecast {
+interface OuraRecoveryForecast {
   state: 'estimated' | 'calibrating';
   estimate: number | null;
   low: number | null;

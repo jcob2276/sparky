@@ -1,4 +1,4 @@
-# Vanguard OS — Design System
+# SPARKY — Functional iOS Design System
 
 > **Cel tego pliku:** jedno miejsce które agent (AI lub człowiek) czyta PRZED dotknięciem kodu UI.
 > Zawiera twarde reguły, kompletną listę tokenów i komponentów z propami.
@@ -24,7 +24,7 @@
 | ❌ Nie rób tego | ✅ Zamiast tego |
 |---|---|
 | `<button className="bg-rose-500 ...">` | `<Button variant="danger">` |
-| `<div className="rounded-2xl border ... shadow">` (karta) | `<Card variant="glass">` |
+| `<div className="rounded-2xl border ... shadow">` (karta) | `<Card variant="surface">` lub `<Card variant="grouped">` |
 | `<div className="fixed inset-0 z-50 ...">` (modal) | `<Modal isOpen={...} onClose={...}>` |
 | `<div className="animate-spin rounded-full ...">` | `<Spinner size="md" />` |
 | `<div className="animate-pulse ...">` (ładowanie) | `<Skeleton variant="text" />` |
@@ -37,17 +37,30 @@
 
 ## 1. Filozofia
 
-- **Pixel/Material jako baza**: tonal surfaces, czytelna hierarchia kontenerów, promienie 8–16px i spokojny emphasized motion.
-- **iOS tylko dla gestów i sheetów**: płynność, interruptibility i większy promień 28px zostają tam, gdzie wynikają z fizyki interakcji.
-- **Zero dekoracji dla dekoracji.** Gęstość danych > efekciarstwo.
+- **Functional iOS jako baza:** SPARKY ma wyglądać jak aplikacja systemowa iOS,
+  której Apple nie stworzyło — neutralny canvas, czyste powierzchnie, typografia
+  systemowa i precyzyjna geometria.
+- **Jedna nasycona powierzchnia prowadząca:** widok może mieć najwyżej jedną kartę
+  `hero`, która pokazuje najważniejszy bieżący kontekst lub następny ruch.
+- **Grouped list zamiast stosu kart:** elementy jednej domeny współdzielą powierzchnię
+  i są rozdzielone cienkim separatorem. Nie tworzymy kart wewnątrz kart.
+- **Kolor oznacza rolę:** niebieski to akcja, pomarańczowy kierunek, zielony wykonanie,
+  fioletowy skupienie, czerwony błąd/destrukcja/stan krytyczny.
+- **Zero dekoracji dla dekoracji:** materiał, cień, kolor i ruch muszą wyjaśniać
+  hierarchię albo stan.
 
 ### 1.1 Zasady projektowania komponentów
 
-Siedem reguł, które decydują "jak wygląda dobry komponent w Vanguardzie" — niezależnie kto go pisze. Nowy komponent w `ui/` sprawdzany jest względem tej listy, nie tylko względem tego czy działa.
+Siedem reguł, które decydują „jak wygląda dobry komponent w SPARKY” — niezależnie
+kto go pisze. Nowy komponent w `ui/` sprawdzany jest względem tej listy, nie tylko
+względem tego, czy działa.
 
 1. **Materialna uczciwość.** Afordancja klikalności przez kolor/kontrast/typografię, nie przez fałszywą głębię. Karty różnicują się przez `border` + przesunięcie tła (`--surface-2/3`), nie przez `box-shadow` na każdej z osobna. Cień/blur (`--shadow-float`, `.ios-glass-*`) zarezerwowany **tylko** dla naprawdę pływających warstw (modal, FAB, toast, sheet, sticky nav) — nigdy dla zwykłej karty w liście.
-2. **Kształt jest funkcją rozmiaru, nie wyborem.** Promień wynika z tego, czym jest element (§2.4), nikt nie wpisuje dowolnego `rounded-[13px]`. Egzekwowane przez guard, ale to jest w pierwszej kolejności zasada projektowa.
-3. **Dyscyplina stanu.** Każdy interaktywny element ma te same 4 stany zdefiniowane raz na poziomie prymitywu (`ControlPrimitives`/`Button`), nie per-komponent: hover (kolor), active (`scale(0.97)`, 0ms opóźnienia), focus (widoczny ring), disabled (opacity 0.4–0.5 + `cursor-not-allowed`).
+2. **Kształt jest funkcją roli, nie wyborem.** Grouped list ma 14px, hero 22px,
+   sheet 28px. Pill jest tylko przełącznikiem, filtrem, statusem lub krótką akcją.
+3. **Dyscyplina stanu.** Każdy interaktywny element ma stany zdefiniowane raz na
+   poziomie prymitywu (`ControlPrimitives`/`Button`): default, hover, pressed
+   (`scale(0.96)`, 0ms opóźnienia), focus, selected, loading, disabled i error.
 4. **Treść jest bohaterem, chrome jest tłem.** Komponent wyświetlający dane (liczba, status, wykres) maksymalizuje wizualny ciężar danych i minimalizuje ozdobniki wokół nich — patrz `.stat-hero-number` / `ui/StatHero`. Dotyczy nie tylko statystyk: też np. jak `Badge` pokazuje status, jak `Card` pokazuje nagłówek.
 5. **Ikony jako jeden system.** Jedna grubość obrysu w `lucide-react`, jeden rozmiar powiązany ze skalą tekstu obok (nie `size={13}` w jednym miejscu i `size={16}` dla tej samej hierarchii gdzie indziej), nigdy filled+outline zmieszane na tym samym poziomie hierarchii.
 6. **Ruch ma znaczenie, nie dekorację.** Przed dodaniem animacji: *jak często użytkownik to zobaczy?* Element używany dziesiątki razy dziennie (checkbox w Todo, tab switch) — animacja prawie niewidoczna (100–150ms) albo żadna. Element rzadki (onboarding, pierwsza konfiguracja, pusty stan) — może mieć charakter. Nie każdy nowy komponent dostaje "fajną" animację niezależnie od kontekstu użycia.
@@ -59,34 +72,36 @@ Siedem reguł, które decydują "jak wygląda dobry komponent w Vanguardzie" —
 
 Źródło prawdy: `src/index.css` → `:root`, `.dark`, `@theme`. Nie twórz nowych tokenów bez uzasadnienia.
 
-### 2.1 Semantic status tokens
+### 2.1 Semantic color roles
 
 Tailwind klasy: `bg-success`, `text-danger`, `border-warning`, `bg-info` itd.
 
-| Token (light) | Wartość | Kiedy używać |
+| Token (light) | Wartość | Rola |
 |---|---|---|
-| `--color-success` | `#10B981` | Pozytywny wynik, gotowe, OK |
-| `--color-success-hover` | `#059669` | Hover na success |
-| `--color-warning` | `#F59E0B` | Uwaga, pośredni stan, pending |
-| `--color-warning-hover` | `#d97706` | Hover na warning |
-| `--color-danger` | `#F43F5E` | Błąd, krytyczne, usuwanie |
-| `--color-danger-hover` | `#e11d48` | Hover na danger |
-| `--color-info` | `#3b82f6` | Inforamcja, neutralny akcent |
-| `--color-info-hover` | `#2563eb` | Hover na info |
+| `--primary` | `#007AFF` | Interakcja, link, focus, główna akcja |
+| `--direction` / `--color-warning` | `#FF9500` | Aktualny kierunek, najbliższy ruch, ostrzeżenie |
+| `--color-success` | `#34C759` | Wykonanie, sukces, pozytywne potwierdzenie |
+| `--attention` | `#5856D6` | Skupienie i tryb uwagi |
+| `--color-danger` | `#FF3B30` | Błąd, destrukcja albo stan krytyczny |
+| `--color-info` | `var(--primary)` | Informacja i neutralny akcent interaktywny |
 
-Dark mode: `info → #6366f1`, `success-hover → #34d399`, `warning-hover → #fbbf24`, `danger-hover → #fb7185`, `info-hover → #818cf8`.
+Dark mode używa dynamicznych odpowiedników iOS: blue `#0A84FF`, orange `#FF9F0A`,
+green `#30D158`, purple `#5E5CE6`, red `#FF453A`.
 
 ### 2.2 Surface tokens
 
 | Token (light) | Wartość | Kiedy używać |
 |---|---|---|
-| `--surface-1` | `var(--surface)` = `#ffffff` | Baza — karty, panele (to samo co `--surface`) |
-| `--surface-2` | `#f1f5fb` | Lekko podniesiona — hover, inset sections |
-| `--surface-3` | `#e8eef8` | Najbardziej podniesiona — aktywne/selected |
-| `--surface-tonal` | jasny niebieski container | Aktywne taby, nawigacja, tonal CTA |
-| `--surface-tonal-strong` | mocniejszy niebieski container | Hover na tonal surface |
+| `--background` | `#F2F2F7` | Systemowy canvas aplikacji |
+| `--surface-1` | `#FFFFFF` | Grouped list, karta i podstawowa powierzchnia |
+| `--surface-2` | `#F2F2F7` | Inset i spokojne tło sekcji |
+| `--surface-3` | `#E5E5EA` | Selected, kontrolka drugorzędna, separatorowa głębia |
+| `--surface-tonal` | jasny niebieski | Tonalna powierzchnia akcji |
+| `--material-floating` | translucent surface | Wyłącznie modal, sheet, popover, toolbar i tab bar |
+| `--separator` | `rgb(60 60 67 / 29%)` | Separator wierszy i subtelna granica |
 
-Dark mode: `surface-2 → rgba(255,255,255,0.03)`, `surface-3 → rgba(255,255,255,0.06)`.
+Dark mode: canvas `#000000`, powierzchnia `#1C1C1E`, podniesiona powierzchnia
+`#2C2C2E`. Nie odwracamy mechanicznie jasnego motywu.
 
 Tailwind: `bg-surface-1`, `bg-surface-2`, `bg-surface-3`.
 
@@ -94,9 +109,9 @@ Tailwind: `bg-surface-1`, `bg-surface-2`, `bg-surface-3`.
 
 | Token | Wartość | Kiedy używać |
 |---|---|---|
-| `--text-primary` | light: `#0f172a`, dark: `#f9fafb` | Główny tekst, nagłówki |
-| `--text-secondary` | light: `#475569`, dark: `#9ca3af` | Opisy,wtórne info |
-| `--text-muted` | light: `#94a3b8`, dark: `#818999` | Metadata, hinty, timestampy |
+| `--text-primary` | light: `#000000`, dark: `#FFFFFF` | Główny tekst, nagłówki |
+| `--text-secondary` | system label secondary | Opisy i wtórne informacje |
+| `--text-muted` | system label tertiary | Metadata, hinty, timestampy |
 | `--text-tertiary` | `#99A1AF` | Najbardziej wyblakły tekst |
 
 Tailwind: `text-text-primary`, `text-text-secondary`, `text-text-muted`, `text-text-tertiary`.
@@ -107,30 +122,31 @@ Tailwind: `text-text-primary`, `text-text-secondary`, `text-text-muted`, `text-t
 |---|---|---|
 | `--radius-sm` | `8px` | Tagi, chipy, badge |
 | `--radius-md` | `12px` | Przyciski, inputy |
-| `--radius-lg` | `16px` | Karty, panele |
-| `--radius-xl` | `28px` | Modale, sheety |
+| `--radius-grouped` / `--radius-lg` | `14px` | Grouped list, zwykła powierzchnia |
+| `--radius-hero` | `22px` | Pojedyncza nasycona karta prowadząca |
+| `--radius-sheet` / `--radius-xl` | `28px` | Modale, sheety i duże warstwy pływające |
 | `--radius-full` | `9999px` | Pill shape |
 
 ### 2.5 Shadow tokens
 
 | Token | Do czego |
 |---|---|
-| `--shadow-card` | Baza cienia kart |
-| `--shadow-card-hover` | Cień karty na hover |
+| `--shadow-card` | `none` — zwykłe powierzchnie nie udają unoszenia |
+| `--shadow-card-hover` | Subtelny feedback tylko dla rzeczywiście interaktywnej powierzchni |
 | `--shadow-card-accent` | Akcentowany cień karty |
 | `--shadow-event-card` | Karty wydarzeń |
 | `--shadow-float` | Unoszące się elementy (modale, FAB) |
 | `--shadow-nav` | Nawigacja (sticky headers) |
 | `--shadow-back-btn` | Przycisk wstecz |
 | `--shadow-focus` | Focus ring na inputach (0 0 0 3px primary) |
-| `--shadow-glow-primary` | Glow aktywnej zakładki/CTA |
+| `--shadow-glow-primary` | Legacy; nie używać do nowego CTA ani aktywnej zakładki |
 | `--shadow-accent-active` | Cień aktywnego panelu/strefy |
 
 ### 2.6 Motion tokens
 
 | Token | Wartość | Kiedy |
 |---|---|---|
-| `--spring` | `cubic-bezier(0.2, 0, 0, 1)` | Pixel emphasized motion bez dekoracyjnego overshootu |
+| `--spring` | `cubic-bezier(0.2, 0, 0, 1)` | Spokojny ruch bez dekoracyjnego overshootu |
 | `--ease-out` | `cubic-bezier(0, 0, 0, 1)` | Press, hover i krótkie wyjścia |
 | `--motion-fast` | `120ms` | Press i hover |
 | `--motion-medium` | `200ms` | Tab, karta, search |
@@ -140,50 +156,45 @@ Tailwind: `text-text-primary`, `text-text-secondary`, `text-text-muted`, `text-t
 
 | Token | Font | Do czego |
 |---|---|---|
-| `--font-sans` | Plus Jakarta Sans, Inter, system-ui | Body, UI tekst |
-| `--font-display` | Cabinet Grotesk, Outfit, system-ui | Nagłówki, labelki |
+| `--font-sans` | `-apple-system`, BlinkMacSystemFont, SF Pro, system-ui | Body i UI |
+| `--font-display` | ten sam stos systemowy | Nagłówki; hierarchię buduje rozmiar i waga |
 | `--font-mono` | Geist Mono, JetBrains Mono | Dane liczbowe, timery |
 
 ### 2.8 Typography scale
 
-Nigdy nie pisz `text-[10px]` — używaj tokenu. Skala poniżej definiuje **kiedy哪.rozmiar**:
+Nigdy nie pisz `text-[10px]` — używaj tokenu. Tracking i leading zależą od rozmiaru:
+duże tytuły są ciaśniejsze, body pozostaje blisko `0`.
 
 | Token | Size | Kiedy używać |
 |---|---|---|
-| `text-3xs` | 7px | Progress bar annotations, micro-labels |
-| `text-2xs` | 9px | Status badges, uppercase metadata, pixel-label, flagi |
-| `text-xs` | 11px | Labels, secondary metadata, list items, form labels |
-| `text-sm` | 13px | Form inputs, descriptions, body text |
-| `text-base` | 15px | Section headers, primary body |
-| `text-lg` | 18px | Headings, card titles |
-| `text-xl` | 20px | Large headings |
-| `text-2xl` | 24px | Display numbers, hero text |
-| `text-3xl` | 30px | Hero headings |
+| `text-3xs` | 9px | Wyłącznie skrajnie ograniczone statusy techniczne |
+| `text-2xs` | 11px | Badge i metadata drugiego poziomu |
+| `text-xs` | 13px | Labels i secondary metadata |
+| `text-sm` | 15px | Form inputs, descriptions, body text |
+| `text-base` | 17px | Primary body i wiersze list |
+| `text-lg` | 20px | Nagłówki sekcji i kart |
+| `text-xl` | 22px | Duże nagłówki |
+| `text-2xl` | 28px | Display i hero text |
+| `text-3xl` / `--text-screen-title` | 34px | Duży tytuł ekranu, waga 700, tracking `-0.022em` |
 | `text-4xl` | 36px | Hero large |
 | `text-5xl` | 48px | Splash |
 | `text-6xl` | 56px | Splash large |
 
-**Zasada:** 80% przypadków to `text-2xs`–`text-sm` (dane, dashboardy, KPI). Większe rozmiary tylko dla nagłówków i hero.
+**Zasada:** body i wiersze mają czytać się jak systemowy iOS. Uppercase i mikroetykieta
+nie mogą zastępować prawdziwej hierarchii.
 
-### 2.9 Glass Material Hierarchy
+### 2.9 Floating material
 
-Trzy poziomy szkła, każdy z własnymi tokenami blur/saturate/bg/border:
+Szkło jest materiałem funkcjonalnym, nie stylem całej aplikacji.
 
-| Level | Klasa | Blur | Saturate | BG opacity | Border | Do czego |
-|-------|-------|------|----------|------------|--------|----------|
-| 1 — Structural | `.glass-structural` | 24px | 160% | 85% surface | full border | Sidebar, bottom-nav |
-| 2 — Elevated | `.glass-elevated` | 16px | 180% | 75% surface | 60% border | Header, toolbar, sticky |
-| 3 — Floating | `.glass-floating` | 12px | 200% | 65% surface | 40% border | Modal, sheet, popover |
+| Powierzchnia | Materiał | Do czego |
+|---|---|---|
+| Zwykła / grouped | nieprzezroczysta `--surface-1` | Karty, listy, wiersze, formularze |
+| Floating | `--material-floating` + blur + `--shadow-float` | Modal, sheet, popover, toolbar, tab bar |
 
-**Tokeny:** `--glass-blur-{1,2,3}`, `--glass-saturate-{1,2,3}`, `--glass-bg-{1,2,3}`, `--glass-border-{1,2,3}`
-
-**Drzewo decyzyjne:**
-- Element jest **stale widoczny** (sidebar, bottom-nav) → `glass-structural`
-- Element jest **przyklejony** (header, toolbar) → `glass-elevated`
-- Element **pojawia się nad treścią** (modal, sheet, dropdown) → `glass-floating`
-- Zwykła karta w liście → **nie używaj glass**, użyj `Card variant="surface"`
-
-**Kiedy NIE używać glass:** karty w listach, elementy inline, elementy bez tła za sobą (glass wymaga contentu pod spodem żeby działał blur).
+Nie używaj szkła na karcie w przepływie treści, panelu formularza ani powierzchni,
+która nie unosi się nad contentem. `prefers-reduced-transparency` i
+`prefers-contrast: more` zawsze zamieniają materiał na pełne `--surface-solid`.
 
 ---
 

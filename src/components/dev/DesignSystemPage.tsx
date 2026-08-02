@@ -20,6 +20,7 @@ import {
   CssVariablesReference,
 } from './DesignSystemGalleries';
 import { ControlPrimitivesGallery, LayoutPrimitivesGallery } from './CentralControlGalleries';
+import FunctionalIosPilotGallery from './FunctionalIosPilotGallery';
 
 import { BorderBeamGallery, ThinkingOrbGallery } from './AntalikEffectsGalleries';
 
@@ -63,6 +64,8 @@ export default function DesignSystemPage() {
       <DesignSystemHeader onBack={() => navigate(-1)} dark={dark} onToggleTheme={() => setDark((value) => !value)} />
 
       <div className="max-w-3xl mx-auto px-4 py-8 space-y-10">
+        <FunctionalIosPilotGallery />
+        <Divider />
         <ColorTokensSection />
         <Divider />
         <TypographyScaleSection />

@@ -1519,6 +1519,54 @@ export type Database = {
         }
         Relationships: []
       }
+      finance_dividends: {
+        Row: {
+          amount_per_share: number
+          company_name: string
+          created_at: string
+          currency: string
+          ex_date: string
+          id: string
+          pay_date: string
+          shares_count: number
+          status: string
+          ticker: string
+          total_amount: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_per_share?: number
+          company_name: string
+          created_at?: string
+          currency?: string
+          ex_date: string
+          id?: string
+          pay_date: string
+          shares_count?: number
+          status?: string
+          ticker: string
+          total_amount?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_per_share?: number
+          company_name?: string
+          created_at?: string
+          currency?: string
+          ex_date?: string
+          id?: string
+          pay_date?: string
+          shares_count?: number
+          status?: string
+          ticker?: string
+          total_amount?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       finance_goals: {
         Row: {
           auto_save_monthly: number
@@ -1551,6 +1599,39 @@ export type Database = {
           name?: string
           priority?: number
           target_amount?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      finance_holding_targets: {
+        Row: {
+          asset_category: string
+          created_at: string
+          id: string
+          name: string
+          target_pct: number
+          ticker: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset_category?: string
+          created_at?: string
+          id?: string
+          name: string
+          target_pct?: number
+          ticker: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset_category?: string
+          created_at?: string
+          id?: string
+          name?: string
+          target_pct?: number
+          ticker?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -2198,6 +2279,135 @@ export type Database = {
         }
         Relationships: []
       }
+      healthspan_checkins: {
+        Row: {
+          checkin_date: string
+          created_at: string
+          id: string
+          payload: Json
+          period: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          checkin_date: string
+          created_at?: string
+          id?: string
+          payload?: Json
+          period: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          checkin_date?: string
+          created_at?: string
+          id?: string
+          payload?: Json
+          period?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      healthspan_levers: {
+        Row: {
+          actual_score: number | null
+          baseline_score: number | null
+          contributor_key: string
+          created_at: string
+          decided_at: string | null
+          evaluated_at: string | null
+          id: string
+          outcome: string | null
+          status: string
+          target_label: string
+          target_score: number | null
+          title: string
+          updated_at: string
+          user_id: string
+          week_start: string
+        }
+        Insert: {
+          actual_score?: number | null
+          baseline_score?: number | null
+          contributor_key: string
+          created_at?: string
+          decided_at?: string | null
+          evaluated_at?: string | null
+          id?: string
+          outcome?: string | null
+          status?: string
+          target_label: string
+          target_score?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+          week_start: string
+        }
+        Update: {
+          actual_score?: number | null
+          baseline_score?: number | null
+          contributor_key?: string
+          created_at?: string
+          decided_at?: string | null
+          evaluated_at?: string | null
+          id?: string
+          outcome?: string | null
+          status?: string
+          target_label?: string
+          target_score?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+          week_start?: string
+        }
+        Relationships: []
+      }
+      healthspan_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          evidence_summary: Json
+          input_summary: Json
+          coverage: number | null
+          methodology_version: string | null
+          model_version: string
+          pace: Json
+          profile: Json
+          snapshot_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          evidence_summary?: Json
+          input_summary?: Json
+          coverage?: number | null
+          methodology_version?: string | null
+          model_version: string
+          pace: Json
+          profile: Json
+          snapshot_date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          evidence_summary?: Json
+          input_summary?: Json
+          coverage?: number | null
+          methodology_version?: string | null
+          model_version?: string
+          pace?: Json
+          profile?: Json
+          snapshot_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       intervals_tokens: {
         Row: {
           api_key: string
@@ -2742,6 +2952,57 @@ export type Database = {
         }
         Relationships: []
       }
+      medical_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          follow_up_on: string | null
+          id: string
+          occurred_on: string
+          provider: string | null
+          reason: string | null
+          recommendations: string | null
+          source_text: string | null
+          specialty: string | null
+          summary: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          follow_up_on?: string | null
+          id?: string
+          occurred_on: string
+          provider?: string | null
+          reason?: string | null
+          recommendations?: string | null
+          source_text?: string | null
+          specialty?: string | null
+          summary?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          follow_up_on?: string | null
+          id?: string
+          occurred_on?: string
+          provider?: string | null
+          reason?: string | null
+          recommendations?: string | null
+          source_text?: string | null
+          specialty?: string | null
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       medical_lab_results: {
         Row: {
           category: string | null
@@ -2802,6 +3063,39 @@ export type Database = {
         }
         Relationships: []
       }
+      medical_prevention_actions: {
+        Row: {
+          decided_at: string
+          id: string
+          rule_version: string
+          snoozed_until: string | null
+          source_url: string
+          status: string
+          suggestion_key: string
+          user_id: string
+        }
+        Insert: {
+          decided_at?: string
+          id?: string
+          rule_version: string
+          snoozed_until?: string | null
+          source_url: string
+          status: string
+          suggestion_key: string
+          user_id: string
+        }
+        Update: {
+          decided_at?: string
+          id?: string
+          rule_version?: string
+          snoozed_until?: string | null
+          source_url?: string
+          status?: string
+          suggestion_key?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       monthly_reviews: {
         Row: {
           ai_recap: Json | null
@@ -2846,30 +3140,6 @@ export type Database = {
           pattern_note?: string | null
           ritual_stats?: Json | null
           updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      note_folders: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -2920,6 +3190,104 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      note_folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      note_drawings: {
+        Row: {
+          created_at: string
+          document: Json
+          height: number
+          id: string
+          note_id: string
+          ocr_text: string | null
+          preview_storage_path: string | null
+          schema_version: number
+          updated_at: string
+          user_id: string
+          width: number
+        }
+        Insert: {
+          created_at?: string
+          document: Json
+          height: number
+          id?: string
+          note_id: string
+          ocr_text?: string | null
+          preview_storage_path?: string | null
+          schema_version?: number
+          updated_at?: string
+          user_id: string
+          width: number
+        }
+        Update: {
+          document?: Json
+          height?: number
+          ocr_text?: string | null
+          preview_storage_path?: string | null
+          schema_version?: number
+          updated_at?: string
+          width?: number
+        }
+        Relationships: []
+      }
+      note_smart_folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          position: number
+          rule: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          position?: number
+          rule: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+          rule?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       nutrition_profile: {
         Row: {
@@ -3133,6 +3501,8 @@ export type Database = {
           actual_value: number | null
           baseline_value: number | null
           created_at: string
+          decision_at: string | null
+          decision_status: string
           evaluated_at: string | null
           evaluation_window_days: number
           id: string
@@ -3140,14 +3510,18 @@ export type Database = {
           outcome: string | null
           recommendation_text: string
           related_metric: string
+          scheduled_for: string | null
           status: string
           success_threshold: number | null
           user_id: string
+          user_note: string | null
         }
         Insert: {
           actual_value?: number | null
           baseline_value?: number | null
           created_at?: string
+          decision_at?: string | null
+          decision_status?: string
           evaluated_at?: string | null
           evaluation_window_days?: number
           id?: string
@@ -3155,14 +3529,18 @@ export type Database = {
           outcome?: string | null
           recommendation_text: string
           related_metric: string
+          scheduled_for?: string | null
           status?: string
           success_threshold?: number | null
           user_id: string
+          user_note?: string | null
         }
         Update: {
           actual_value?: number | null
           baseline_value?: number | null
           created_at?: string
+          decision_at?: string | null
+          decision_status?: string
           evaluated_at?: string | null
           evaluation_window_days?: number
           id?: string
@@ -3170,9 +3548,11 @@ export type Database = {
           outcome?: string | null
           recommendation_text?: string
           related_metric?: string
+          scheduled_for?: string | null
           status?: string
           success_threshold?: number | null
           user_id?: string
+          user_note?: string | null
         }
         Relationships: [
           {
@@ -3283,11 +3663,14 @@ export type Database = {
           deep_sleep_hours: number | null
           equivalent_walking_distance: number | null
           high_activity_minutes: number | null
+          hr_items: number[] | null
+          hrv_items: number[] | null
           id: string
           inactivity_alerts: number | null
           light_sleep_hours: number | null
           low_activity_minutes: number | null
           medium_activity_minutes: number | null
+          movement_items: string | null
           non_wear_minutes: number | null
           raw: Json | null
           readiness_contributors: Json | null
@@ -3307,11 +3690,7 @@ export type Database = {
           sleep_latency_minutes: number | null
           sleep_lowest_heart_rate: number | null
           sleep_phase_5_min: string | null
-          hr_items: (number | null)[] | null
-          hrv_items: (number | null)[] | null
-          movement_items: string | null
           sleep_score: number | null
-
           spo2_percentage: number | null
           steps: number | null
           stress_day_summary: string | null
@@ -3342,11 +3721,14 @@ export type Database = {
           deep_sleep_hours?: number | null
           equivalent_walking_distance?: number | null
           high_activity_minutes?: number | null
+          hr_items?: number[] | null
+          hrv_items?: number[] | null
           id?: string
           inactivity_alerts?: number | null
           light_sleep_hours?: number | null
           low_activity_minutes?: number | null
           medium_activity_minutes?: number | null
+          movement_items?: string | null
           non_wear_minutes?: number | null
           raw?: Json | null
           readiness_contributors?: Json | null
@@ -3365,6 +3747,7 @@ export type Database = {
           sleep_efficiency?: number | null
           sleep_latency_minutes?: number | null
           sleep_lowest_heart_rate?: number | null
+          sleep_phase_5_min?: string | null
           sleep_score?: number | null
           spo2_percentage?: number | null
           steps?: number | null
@@ -3396,11 +3779,14 @@ export type Database = {
           deep_sleep_hours?: number | null
           equivalent_walking_distance?: number | null
           high_activity_minutes?: number | null
+          hr_items?: number[] | null
+          hrv_items?: number[] | null
           id?: string
           inactivity_alerts?: number | null
           light_sleep_hours?: number | null
           low_activity_minutes?: number | null
           medium_activity_minutes?: number | null
+          movement_items?: string | null
           non_wear_minutes?: number | null
           raw?: Json | null
           readiness_contributors?: Json | null
@@ -3419,6 +3805,7 @@ export type Database = {
           sleep_efficiency?: number | null
           sleep_latency_minutes?: number | null
           sleep_lowest_heart_rate?: number | null
+          sleep_phase_5_min?: string | null
           sleep_score?: number | null
           spo2_percentage?: number | null
           steps?: number | null
@@ -4551,6 +4938,7 @@ export type Database = {
           disciplined_streak: number | null
           home_lat: number | null
           home_lng: number | null
+          notes_view_preferences: Json
           oura_token: string | null
           todoist_project_id: string | null
           total_disciplined_days: number | null
@@ -4564,6 +4952,7 @@ export type Database = {
           disciplined_streak?: number | null
           home_lat?: number | null
           home_lng?: number | null
+          notes_view_preferences?: Json
           oura_token?: string | null
           todoist_project_id?: string | null
           total_disciplined_days?: number | null
@@ -4577,6 +4966,7 @@ export type Database = {
           disciplined_streak?: number | null
           home_lat?: number | null
           home_lng?: number | null
+          notes_view_preferences?: Json
           oura_token?: string | null
           todoist_project_id?: string | null
           total_disciplined_days?: number | null

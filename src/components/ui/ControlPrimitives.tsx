@@ -19,28 +19,28 @@ export const Pressable = forwardRef<HTMLButtonElement, PressableProps>(
     if (usesButtonContract) {
       return <Button ref={ref} type={type} variant={variant} size={size} loading={loading} icon={icon} iconPosition={iconPosition} className={className} {...props} />;
     }
-    return <button ref={ref} type={type} data-ui="pressable" className={`${CONTROL_MOTION} active:scale-97 cursor-pointer ${className}`} {...props} />;
+    return <button ref={ref} type={type} data-ui="pressable" className={`ui-pressable ${CONTROL_MOTION} cursor-pointer ${className}`} {...props} />;
   },
 );
 Pressable.displayName = 'Pressable';
 
 export const ControlInput = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputElement>>(
   ({ className = '', ...props }, ref) => (
-    <input ref={ref} data-ui="control-input" className={`${CONTROL_MOTION} font-inherit text-inherit outline-none focus-visible:shadow-focus ${className}`} {...props} />
+    <input ref={ref} data-ui="control-input" className={`ui-control ${CONTROL_MOTION} font-inherit text-inherit outline-none ${className}`} {...props} />
   ),
 );
 ControlInput.displayName = 'ControlInput';
 
 export const ControlSelect = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSelectElement>>(
   ({ className = '', ...props }, ref) => (
-    <select ref={ref} data-ui="control-select" className={`${CONTROL_MOTION} font-inherit text-inherit outline-none focus-visible:shadow-focus ${className}`} {...props} />
+    <select ref={ref} data-ui="control-select" className={`ui-control ${CONTROL_MOTION} font-inherit text-inherit outline-none ${className}`} {...props} />
   ),
 );
 ControlSelect.displayName = 'ControlSelect';
 
 export const ControlTextarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement>>(
   ({ className = '', ...props }, ref) => (
-    <textarea ref={ref} data-ui="control-textarea" className={`${CONTROL_MOTION} font-inherit text-inherit outline-none focus-visible:shadow-focus ${className}`} {...props} />
+    <textarea ref={ref} data-ui="control-textarea" className={`ui-control ${CONTROL_MOTION} font-inherit text-inherit outline-none ${className}`} {...props} />
   ),
 );
 ControlTextarea.displayName = 'ControlTextarea';

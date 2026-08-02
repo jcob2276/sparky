@@ -8,7 +8,7 @@ import { ControlInput, ControlTextarea } from '../ui/ControlPrimitives';
 import Modal from '../ui/Modal';
 import Spinner from '../ui/Spinner';
 import { useShutdownData } from './shutdown/useShutdownData';
-import ShutdownScoreSliders from './shutdown/ShutdownScoreSliders';
+import DailyScorePicker from '../shared/DailyScorePicker';
 import ShutdownChecklist from './shutdown/ShutdownChecklist';
 import ShutdownFoodReview from './shutdown/ShutdownFoodReview';
 
@@ -107,7 +107,7 @@ export default function DailyShutdownModal({
             />
           </section>
 
-          <ShutdownScoreSliders
+          <DailyScorePicker
             dayScore={data.dayScore}
             setDayScore={data.setDayScore}
             moodScore={data.moodScore}

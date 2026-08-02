@@ -1,6 +1,6 @@
-export type MovementTimelineStatus = 'available' | 'unavailable' | 'invalid';
+type MovementTimelineStatus = 'available' | 'unavailable' | 'invalid';
 
-export interface MovementSample {
+interface MovementSample {
   index: number;
   intensity: number;
 }

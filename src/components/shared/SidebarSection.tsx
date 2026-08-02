@@ -42,6 +42,7 @@ export interface SidebarSectionProps {
   bordered?: boolean;
   isLoading?: boolean;
   className?: string;
+  children?: ReactNode;
 }
 
 function CollapsedSidebarItems({ items, bordered, className }: Pick<SidebarSectionProps, 'items' | 'bordered' | 'className'>) {
@@ -82,6 +83,7 @@ export default function SidebarSection({
   bordered = false,
   isLoading = false,
   className = '',
+  children,
 }: SidebarSectionProps) {
   const [open, setOpen] = useState(defaultOpen);
   const showItems = !collapsible || open;
@@ -150,6 +152,7 @@ export default function SidebarSection({
 
       {showItems && (
         <div className="flex flex-col gap-0.5 overflow-y-auto">
+          {children}
           {items.map((item) => (
             <div key={item.id} className="flex flex-col">
               <div className="group/sec relative flex items-center">
@@ -196,7 +199,7 @@ export default function SidebarSection({
             </div>
           ))}
 
-          {items.length === 0 && emptyLabel && (
+          {items.length === 0 && !children && emptyLabel && (
             <p className="px-2.5 py-1.5 text-xs italic text-text-muted/40">{emptyLabel}</p>
           )}
 

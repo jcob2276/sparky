@@ -14,6 +14,10 @@ export interface OracleRecommendation {
   actual_value: number | null;
   created_at: string;
   evaluated_at: string | null;
+  decision_status: 'proposed' | 'accepted' | 'rejected';
+  decision_at: string | null;
+  scheduled_for: string | null;
+  user_note: string | null;
 }
 
 export async function fetchOracleRecommendations(userId: string): Promise<OracleRecommendation[]> {

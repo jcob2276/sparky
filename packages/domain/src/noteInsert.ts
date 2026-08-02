@@ -15,7 +15,9 @@ export function buildNoteInsertRow(input: BuildNoteInsertInput): Record<string, 
   const content = input.content.trim();
   if (!content) throw new Error('Pusta notatka.');
 
-  const title = (input.title?.trim() || firstLineTitle(content) || 'Notatka').slice(0, 200);
+  const title = (input.title !== undefined && input.title !== null
+    ? input.title.trim()
+    : firstLineTitle(content) || 'Notatka').slice(0, 200);
 
   const row: Record<string, unknown> = {
     user_id: input.user_id,

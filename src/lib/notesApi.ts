@@ -22,18 +22,29 @@ export interface Note {
   lock_iv: string | null;
   attachment_names?: string[];
   attachment_text?: string;
+  drawing_preview_path?: string | null;
 }
 
 type NoteQueryRow = Omit<Note, 'attachment_names' | 'attachment_text'> & {
-  note_attachments: Array<{ file_name: string; ocr_text: string | null }>;
+  note_attachments: Array<{ file_name: string; ocr_text: string | null; transcript: string | null }>;
+  note_drawings: Array<{ ocr_text: string | null; preview_storage_path: string | null }>
+    | { ocr_text: string | null; preview_storage_path: string | null }
+    | null;
 };
 
-const mapNoteRows = (rows: unknown[] | null): Note[] => (
-  ((rows ?? []) as Partial<NoteQueryRow>[]).map(({ note_attachments, ...note }) => ({
-    ...(note as Note),
-    attachment_names: note.is_locked ? [] : (note_attachments ?? []).map(item => item.file_name),
-    attachment_text: note.is_locked ? '' : (note_attachments ?? []).map(item => item.ocr_text ?? '').join(' '),
-  }))
+export const mapNoteRows = (rows: unknown[] | null): Note[] => (
+  ((rows ?? []) as Partial<NoteQueryRow>[]).map(({ note_attachments, note_drawings, ...note }) => {
+    const drawings = Array.isArray(note_drawings) ? note_drawings : note_drawings ? [note_drawings] : [];
+    return {
+      ...(note as Note),
+      attachment_names: note.is_locked ? [] : (note_attachments ?? []).map(item => item.file_name),
+      attachment_text: note.is_locked ? '' : [
+        ...(note_attachments ?? []).flatMap(item => [item.ocr_text, item.transcript]),
+        ...drawings.map(item => item.ocr_text),
+      ].filter(Boolean).join(' '),
+      drawing_preview_path: note.is_locked ? null : drawings[0]?.preview_storage_path ?? null,
+    };
+  })
 );
 
 // ── QUERIES ──
@@ -45,7 +56,7 @@ export function useNotes(userId: string) {
       // Primary query trying note_attachments and deleted_at filter
       const primaryRes = await supabase
         .from('vanguard_notes')
-        .select('*, note_attachments(file_name, ocr_text)')
+        .select('*, note_attachments(file_name, ocr_text, transcript), note_drawings(ocr_text, preview_storage_path)')
         .eq('user_id', userId)
         .is('deleted_at', null)
         .order('is_pinned', { ascending: false })
@@ -93,7 +104,7 @@ export async function createNoteApi(userId: string, partial: Partial<Note>): Pro
   return data as Note;
 }
 export async function updateNoteApi(id: string, patch: Partial<Note>): Promise<void> {
-  const { attachment_names: _attachmentNames, attachment_text: _attachmentText, ...dbPatch } = patch;
+  const { attachment_names: _attachmentNames, attachment_text: _attachmentText, drawing_preview_path: _drawingPreviewPath, ...dbPatch } = patch;
   const { error } = await supabase
     .from('vanguard_notes')
     .update(dbPatch)
@@ -127,7 +138,7 @@ export function useTrashedNotes(userId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('vanguard_notes')
-        .select('*, note_attachments(file_name, ocr_text)')
+        .select('*, note_attachments(file_name, ocr_text, transcript), note_drawings(ocr_text, preview_storage_path)')
         .eq('user_id', userId)
         .not('deleted_at', 'is', null)
         .order('deleted_at', { ascending: false });
