@@ -52,11 +52,13 @@ export default function Modal({
   const reduceMotion = useReducedMotion();
   const { light } = useHaptics();
 
+  const onCloseRef = useRef(onClose);
   useLayoutEffect(() => {
-    if (!isOpen) {
-      restoreFocusRef.current?.focus();
-      return;
-    }
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
 
     light();
     restoreFocusRef.current = document.activeElement as HTMLElement | null;
@@ -66,7 +68,7 @@ export default function Modal({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         light();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (e.key !== 'Tab' || !dialogRef.current) return;
@@ -91,15 +93,22 @@ export default function Modal({
 
     window.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
-    const first = dialogRef.current?.querySelector<HTMLElement>(focusableSelector);
-    (first ?? dialogRef.current)?.focus();
+
+    // Set focus only if current focus is outside the modal container
+    const isFocusInside = dialogRef.current && document.activeElement && dialogRef.current.contains(document.activeElement);
+    if (!isFocusInside) {
+      const first = dialogRef.current?.querySelector<HTMLElement>(focusableSelector);
+      (first ?? dialogRef.current)?.focus();
+    }
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
-      restoreFocusRef.current?.focus();
+      if (restoreFocusRef.current && typeof restoreFocusRef.current.focus === 'function') {
+        restoreFocusRef.current.focus();
+      }
     };
-  }, [isOpen, onClose, light]);
+  }, [isOpen, light]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (closeOnBackdropClick && e.target === backdropRef.current) {
