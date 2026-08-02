@@ -8,6 +8,7 @@ import type { CalRow } from '../calendarHelpers';
 import type { CalendarTodo } from '../hooks/useCalendarTodos';
 import type { WeatherState } from '../hooks/useCalendarWeather';
 import type { GoalChip } from './types';
+import { useWeekDayScores } from '../hooks/useWeekDayScores';
 
 interface CalendarWeekViewProps {
   weekStart: string;
@@ -43,6 +44,7 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
 }) => {
   const topScrollRef = React.useRef<HTMLDivElement>(null);
   const untimedByDay = weekDays.map(day => todosForDay(day).filter(todo => !todo.scheduled_time));
+  const dayScores = useWeekDayScores(weekDays);
 
   const moveWeek = (offset: number) => {
     const week = addDays(weekStart, offset);
@@ -92,6 +94,8 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
             {weekDays.map(day => {
               const isToday = day === today;
               const forecast = weather?.daily?.[day];
+              const score = dayScores[day];
+              const isPast = day < today;
               return (
                 <div key={day} className="calendar-week-column flex flex-col items-center justify-center py-1.5 text-center">
                   <p className={`text-xs font-black uppercase tracking-wider ${isToday ? 'text-primary' : 'text-text-secondary'}`}>
@@ -106,6 +110,20 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
                   <span className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-black ${isToday ? 'bg-primary text-on-accent' : 'text-text-primary'}`}>
                     {parseInt(day.split('-')[2])}
                   </span>
+                  {isPast && score != null && (
+                    <span
+                      title={`Ocena dnia: ${score}/10`}
+                      className={`mt-1 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-3xs font-black tabular-nums border ${
+                        score >= 8
+                          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/40'
+                          : score >= 5
+                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/40'
+                          : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/40'
+                      }`}
+                    >
+                      {score}/10
+                    </span>
+                  )}
                 </div>
               );
             })}
