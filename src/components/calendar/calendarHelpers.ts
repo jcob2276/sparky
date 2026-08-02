@@ -203,6 +203,8 @@ export function eventColor(ev: CalRow) {
   }
 
   const categoryMap: Record<string, string> = {
+    brak: 'bg-slate-500/15 dark:bg-slate-500/25 text-slate-700 dark:text-slate-300 border border-slate-400/50 font-bold',
+    none: 'bg-slate-500/15 dark:bg-slate-500/25 text-slate-700 dark:text-slate-300 border border-slate-400/50 font-bold',
     praca: 'bg-info/22 dark:bg-info/25 text-info-hover dark:text-info-hover border border-info/50 font-bold',
     work: 'bg-info/22 dark:bg-info/25 text-info-hover dark:text-info-hover border border-info/50 font-bold',
     cialo_trening: 'bg-success/22 dark:bg-success/25 text-success-hover dark:text-success-hover border border-success/50 font-bold',
@@ -223,10 +225,13 @@ export function eventColor(ev: CalRow) {
   }
 
   // 2. Keyword-based fallbacks for uncategorized events
+  if (summaryLower.includes('work block') || summaryLower.includes('kodowan') || summaryLower.includes('dev') || summaryLower.includes('praca')) {
+    return categoryMap['praca'];
+  }
   if (summaryLower.includes('sen') || summaryLower.includes('sleep') || summaryLower.includes('sauna')) {
     return categoryMap['odpoczynek_regeneracja'];
   }
-  if (summaryLower.includes('bieg') || summaryLower.includes('trening') || summaryLower.includes('siłownia') || summaryLower.includes('run') || summaryLower.includes('gym') || summaryLower.includes('workout')) {
+  if (summaryLower.includes('bieg') || summaryLower.includes('trening') || summaryLower.includes('siłownia') || summaryLower.includes('run') || summaryLower.includes('gym') || summaryLower.includes('workout') || summaryLower.includes('tenis') || summaryLower.includes('logopeda')) {
     return categoryMap['cialo_trening'];
   }
   if (summaryLower.includes('medyt') || summaryLower.includes('reflek') || summaryLower.includes('cich') || summaryLower.includes('silent') || summaryLower.includes('mindful')) {
@@ -235,13 +240,13 @@ export function eventColor(ev: CalRow) {
   if (summaryLower.includes('budżet') || summaryLower.includes('finans') || summaryLower.includes('money') || summaryLower.includes('invest') || summaryLower.includes('giełd')) {
     return categoryMap['finanse'];
   }
-  if (summaryLower.includes('rodzin') || summaryLower.includes('randk') || summaryLower.includes('spotkan') || summaryLower.includes('koleg') || summaryLower.includes('znajom') || summaryLower.includes('dinner') || summaryLower.includes('date') || summaryLower.includes('urodzin') || summaryLower.includes('babcia') || summaryLower.includes('piłka') || summaryLower.includes('pilka')) {
+  if (summaryLower.includes('rodzin') || summaryLower.includes('randk') || summaryLower.includes('spotkan') || summaryLower.includes('koleg') || summaryLower.includes('znajom') || summaryLower.includes('dinner') || summaryLower.includes('date') || summaryLower.includes('urodzin') || summaryLower.includes('babcia') || summaryLower.includes('piłka') || summaryLower.includes('pilka') || summaryLower.includes('wypad')) {
     if (!summaryLower.includes('pracy') && !summaryLower.includes('work') && !summaryLower.includes('daily') && !summaryLower.includes('sync')) {
       return categoryMap['relacje_rodzina'];
     }
   }
 
-  return categoryMap['praca'];
+  return categoryMap['brak'];
 }
 
 export interface MonthDayInfo {
