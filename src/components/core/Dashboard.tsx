@@ -178,7 +178,7 @@ export default function Dashboard({ session }: { session: Session }) {
           />
 
           <main
-            className="flex-1 overflow-hidden vt-tab-main touch-pan-y"
+            className="flex-1 overflow-y-auto touch-pan-y"
             onTouchStart={showLock ? undefined : s.handleMainTouchStart}
             onTouchMove={showLock ? undefined : s.handleMainTouchMove}
             onTouchEnd={showLock ? undefined : s.handleMainTouchEnd}
@@ -203,12 +203,12 @@ export default function Dashboard({ session }: { session: Session }) {
             ) : (
               <>
                 <ErrorBoundary>
-                  <div className={s.view === 'dzis' ? 'block min-h-full' : 'hidden'}>
+                  <div className={s.view === 'dzis' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
                     <DashboardDzisTab />
                   </div>
                 </ErrorBoundary>
                 <ErrorBoundary>
-                  <div className={s.view === 'tydzien' ? 'block min-h-full' : 'hidden'}>
+                  <div className={s.view === 'tydzien' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
                     <DashboardTydzienTab
                       weeklyCalories={s.weeklyCalories}
                       nutritionKey={s.nutritionKey}
@@ -217,7 +217,7 @@ export default function Dashboard({ session }: { session: Session }) {
                   </div>
                 </ErrorBoundary>
                 <ErrorBoundary>
-                  <div className={s.view === 'historia' ? 'block min-h-full' : 'hidden'}>
+                  <div className={s.view === 'historia' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
                     <DashboardHistoriaTab
                       historySubTab={s.historySubTab}
                       onSetSubTab={s.setHistorySubTab}
@@ -227,7 +227,7 @@ export default function Dashboard({ session }: { session: Session }) {
                   </div>
                 </ErrorBoundary>
                 <ErrorBoundary>
-                  <div className={s.view === 'projekty' ? 'block min-h-full' : 'hidden'}>
+                  <div className={s.view === 'projekty' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
                     <DashboardProjektyTab />
                   </div>
                 </ErrorBoundary>
@@ -236,13 +236,11 @@ export default function Dashboard({ session }: { session: Session }) {
           </main>
         </div>
 
-        {!showLock && (
-          <>
-            <DashboardFastCaptureMenu show={s.showFastCapture} onClose={() => s.setShowFastCapture(false)} items={fastCaptureItems} tools={workspaceTools} />
-            <DashboardNavBar view={s.view} navigateTo={s.navigateTo} urgentTodoCount={s.urgentTodoCount} navItems={navItems} tabOrder={TAB_ORDER} />
-            <DashboardFastCaptureFAB active={s.showFastCapture} onToggle={() => s.setShowFastCapture(v => !v)} />
-          </>
-        )}
+        <DashboardFastCaptureMenu show={!showLock && s.showFastCapture} onClose={() => s.setShowFastCapture(false)} items={fastCaptureItems} tools={workspaceTools} />
+        <div className={showLock ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100'} style={{ transition: 'opacity 0.15s' }}>
+          <DashboardNavBar view={s.view} navigateTo={s.navigateTo} urgentTodoCount={s.urgentTodoCount} navItems={navItems} tabOrder={TAB_ORDER} />
+          <DashboardFastCaptureFAB active={s.showFastCapture} onToggle={() => s.setShowFastCapture(v => !v)} />
+        </div>
 
         <DashboardModals
           showMorningPlan={s.showMorningPlan} setShowMorningPlan={s.setShowMorningPlan}

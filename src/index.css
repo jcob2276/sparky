@@ -1380,62 +1380,34 @@
 .bg-dayC { background-color: #10b981; }
 .bg-dayD { background-color: #f59e0b; }
 
-/* ── View Transitions API — iOS/Pixel tab swipe ── */
-@keyframes vt-enter-right {
-  from { transform: translateX(48px) scale(0.97); opacity: 0; }
-  to   { transform: translateX(0)    scale(1);    opacity: 1; }
-}
-@keyframes vt-exit-left {
-  from { transform: translateX(0)     scale(1);    opacity: 1; }
-  to   { transform: translateX(-28px) scale(0.97); opacity: 0; }
-}
-@keyframes vt-enter-left {
-  from { transform: translateX(-48px) scale(0.97); opacity: 0; }
-  to   { transform: translateX(0)     scale(1);    opacity: 1; }
-}
-@keyframes vt-exit-right {
-  from { transform: translateX(0)    scale(1);    opacity: 1; }
-  to   { transform: translateX(28px) scale(0.97); opacity: 0; }
+/* ── Tab panels: keepAlive with instant hide, animated show ── */
+.tab-panel {
+  display: none;
 }
 
-:root[data-slide="right"]::view-transition-old(tab-content) {
-  animation: 0.22s ease-out vt-exit-left both;
-}
-:root[data-slide="right"]::view-transition-new(tab-content) {
-  animation: 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) vt-enter-right both;
-}
-:root[data-slide="left"]::view-transition-old(tab-content) {
-  animation: 0.22s ease-out vt-exit-right both;
-}
-:root[data-slide="left"]::view-transition-new(tab-content) {
-  animation: 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) vt-enter-left both;
+.tab-panel--active {
+  display: block;
+  min-height: 100%;
 }
 
-/* Suppress default full-page fade — only tab-content animates */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
+/* Slide-in from right (navigating forward) */
+:root[data-slide="right"] .tab-panel--active {
+  animation: tab-enter-right 0.26s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
-/* Assigns view-transition-name without TS CSSProperties conflict */
-.vt-tab-main {
-  view-transition-name: tab-content;
+/* Slide-in from left (navigating backward) */
+:root[data-slide="left"] .tab-panel--active {
+  animation: tab-enter-left 0.26s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
-/* ── Fallback (przeglądarki bez VT) ── */
-@keyframes spring-slide-right {
-  from { transform: translateX(40px) scale(0.97); opacity: 0; }
-  to   { transform: translateX(0)    scale(1);    opacity: 1; }
+@keyframes tab-enter-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
-@keyframes spring-slide-left {
-  from { transform: translateX(-40px) scale(0.97); opacity: 0; }
-  to   { transform: translateX(0)     scale(1);    opacity: 1; }
-}
-.animate-spring-right {
-  animation: spring-slide-right 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-}
-.animate-spring-left {
-  animation: spring-slide-left 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+
+@keyframes tab-enter-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
 /* ── iOS modal slide-up ── */

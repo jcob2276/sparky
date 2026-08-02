@@ -314,17 +314,8 @@ export function useDashboardState(session: Session) {
     const fromIdx = TAB_ORDER.indexOf(view);
     const toIdx   = TAB_ORDER.indexOf(newView);
     document.documentElement.dataset.slide = toIdx >= fromIdx ? 'right' : 'left';
-    const path = '/' + newView;
-    if (supportsVT) {
-      (document as unknown as { startViewTransition: (cb: () => void) => void })
-        .startViewTransition(() => {
-          flushSync(() => navigate(path));
-          scrollToTop();
-        });
-    } else {
-      navigate(path);
-      scrollToTop();
-    }
+    navigate('/' + newView);
+    scrollToTop();
   }, [view, haptics, navigate]);
 
   const {
