@@ -33,7 +33,7 @@ export function Sidebar({
       ? collapsible === 'icon'
         ? 'w-16 px-1'
         : 'w-0 overflow-hidden px-0 py-0 border-r-0'
-      : 'w-64 px-2';
+      : 'w-72 px-2';
 
   const variantClass =
     variant === 'floating'
