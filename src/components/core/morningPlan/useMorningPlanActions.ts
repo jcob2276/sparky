@@ -6,7 +6,7 @@ import {
 import { useCalendarWrite } from '../../calendar/hooks/useCalendarWrite';
 import { combineDateTimeWarsawISO } from '../../../lib/date';
 import { notify } from '../../../lib/notify';
-import { addMinutes, isoDateStr, isoDurationMin, isoMinutesOfDay } from './morningPlanHelpers';
+import { addMinutes, getDaytimeOverlapMinutes, isoDateStr, isoDurationMin, isoMinutesOfDay } from './morningPlanHelpers';
 import { TodoSlot, CalEvent } from './types';
 import { CAPACITY_HOURS } from './useMorningPlanData';
 import { TimelineBlock } from '../../shared/DayTimeline';
@@ -106,7 +106,11 @@ export function useMorningPlanActions({
   );
 
   const calendarMeetingMinutes = useMemo(
-    () => dayCalendarEvents.reduce((sum, e) => sum + (e.end_time ? isoDurationMin(e.start_time, e.end_time) : 0), 0),
+    () =>
+      dayCalendarEvents.reduce(
+        (sum, e) => sum + (e.start_time && e.end_time ? getDaytimeOverlapMinutes(e.start_time, e.end_time) : 0),
+        0,
+      ),
     [dayCalendarEvents],
   );
 
@@ -127,13 +131,18 @@ export function useMorningPlanActions({
   const isOverloaded = capacityHoursPlanned > CAPACITY_HOURS;
 
   const timelineBlocks: TimelineBlock[] = useMemo(() => {
-    const existing: TimelineBlock[] = dayCalendarEvents.map((e, i) => ({
-      id: `existing-${i}`,
-      startMin: isoMinutesOfDay(e.start_time),
-      durationMin: e.end_time ? isoDurationMin(e.start_time, e.end_time) : 30,
-      label: e.summary || 'Wydarzenie',
-      variant: 'existing',
-    }));
+    const existing: TimelineBlock[] = dayCalendarEvents
+      .filter((e) => {
+        const dur = e.start_time && e.end_time ? isoDurationMin(e.start_time, e.end_time) : 30;
+        return dur < 720; // Ignore all-day/multi-day banners from day timeline block grid
+      })
+      .map((e, i) => ({
+        id: `existing-${i}`,
+        startMin: e.start_time ? isoMinutesOfDay(e.start_time) : 480,
+        durationMin: e.start_time && e.end_time ? isoDurationMin(e.start_time, e.end_time) : 30,
+        label: e.summary || 'Wydarzenie',
+        variant: 'existing' as const,
+      }));
     const uniqueTasks = powerList.filter(Boolean).filter(
       (t, idx, self): t is TodoSlot => !!t && self.findIndex((x) => x?.id === t?.id) === idx,
     );

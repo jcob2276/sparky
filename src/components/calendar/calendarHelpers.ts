@@ -1,5 +1,7 @@
 import { getTodayWarsaw, shiftDateStr, TIMEZONE } from '../../lib/date';
-import { CATEGORY_COLORS } from '../../lib/projects/lifeSpheres';
+import type { CalRow } from '../../lib/appleCalendar/types';
+
+export type { CalRow } from '../../lib/appleCalendar/types';
 
 export * from '../../lib/appleCalendar/appleDateInterval';
 export * from '../../lib/appleCalendar/appleRecurrenceEngine';
@@ -37,20 +39,6 @@ export const minutesLabel = (minutes: number) => (
   `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
 );
 
-export interface CalRow {
-  id: string;
-  event_id: string | null;
-  summary: string | null;
-  start_time: string | null;
-  end_time: string | null;
-  category: string | null;
-  description?: string | null;
-  location?: string | null;
-  is_all_day?: boolean | null;
-  reminder_minutes?: number | null;
-  recurrence?: string[] | null;
-  series_id?: string | null;
-}
 export function toLocalISO(date: Date) {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;

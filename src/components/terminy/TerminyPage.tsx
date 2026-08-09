@@ -4,71 +4,68 @@
  * @usedBy Dashboard (/terminy)
  */
 import { useMemo, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { getTodayWarsaw, type LifeObligationKind } from '@vanguard/domain';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { useReducedMotion } from 'framer-motion';
+import { getTodayWarsaw, nextOccurrence, type LifeObligationKind } from '@vanguard/domain';
 import { useStore } from '../../store/useStore';
-import ContentContainer from '../shared/ContentContainer';
-import Tabs from '../ui/Tabs';
-import Spinner from '../ui/Spinner';
-import { Pressable } from '../ui/ControlPrimitives';
 import { confirmDialog, notify } from '../../lib/notify';
+import { formatLongDateWarsaw } from '../../lib/date';
+import { createTodoItem } from '../../lib/todo/todo';
 import {
   useLifeObligationMutations,
   useLifeObligations,
   type LifeObligation,
   type LifeObligationInput,
 } from '../../lib/lifeObligationsApi';
-import { TerminyHorizon } from './TerminyHorizon';
-import { TerminyVault } from './TerminyVault';
 import TerminyAddSheet from './TerminyAddSheet';
 import TerminySidebar from './TerminySidebar';
-import { deriveAll, type StarterTemplate } from './terminyDerived';
+import TerminyPageContent, {
+  type FilterMode,
+  type TerminyTabKey,
+} from './TerminyPageContent';
+import { deriveAll, type StarterTemplate, type DerivedObligation } from './terminyDerived';
 
-export type TerminyTabKey = 'horizon' | 'people' | 'vehicle' | 'document';
-
-const TABS = [
-  { key: 'horizon', label: 'Nadchodzące' },
-  { key: 'people', label: 'Ludzie' },
-  { key: 'vehicle', label: 'Pojazd' },
-  { key: 'document', label: 'Dokumenty' },
-] as const;
+export type { FilterMode, TerminyTabKey } from './TerminyPageContent';
 
 interface Props {
   onBack: () => void;
   onNavigateTo?: (dest: string) => void;
 }
 
-function TerminyHeader({ onBack, onAdd }: { onBack: () => void; onAdd: () => void }) {
-  return (
-    <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border-custom/25 bg-background/85 backdrop-blur-[var(--blur-md)]">
-      <div className="mx-auto flex max-w-[var(--content-wide)] items-center gap-3 px-[var(--space-4)] py-4 md:px-[var(--space-8)]">
-        <Pressable onClick={onBack} aria-label="Wróć" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary hover:bg-surface-2 hover:text-text-primary">
-          <ArrowLeft size={20} strokeWidth={1.75} />
-        </Pressable>
-        <div className="min-w-0 flex-1"><h1 className="text-xl font-semibold tracking-tight">Terminy</h1><p className="text-xs text-text-muted">Urodziny, przeglądy, polisy</p></div>
-        <Pressable onClick={onAdd} aria-label="Dodaj termin" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-on-accent hover:opacity-[var(--opacity-90)]">
-          <Plus size={20} strokeWidth={2.25} />
-        </Pressable>
-      </div>
-    </header>
-  );
+function filterObligations(rows: DerivedObligation[], query: string, mode: FilterMode) {
+  const normalizedQuery = query.toLowerCase().trim();
+  return rows.filter((row) => {
+    if (normalizedQuery) {
+      const matches = row.item.title.toLowerCase().includes(normalizedQuery)
+        || (row.item.related_name?.toLowerCase().includes(normalizedQuery) ?? false)
+        || (row.item.notes?.toLowerCase().includes(normalizedQuery) ?? false);
+      if (!matches) return false;
+    }
+    if (mode === 'urgent') return row.daysLeft <= 7;
+    if (mode === 'notes') return Boolean(row.item.notes);
+    return true;
+  });
 }
 
 export default function TerminyPage({ onBack, onNavigateTo }: Props) {
-  const userId = useStore((s) => s.session?.user?.id);
+  const userId = useStore((state) => state.session?.user?.id);
   const today = getTodayWarsaw();
   const { data: items = [], isLoading, error } = useLifeObligations(userId);
   const { add, remove, update } = useLifeObligationMutations(userId);
   const reduceMotion = useReducedMotion();
-
   const [tab, setTab] = useState<TerminyTabKey>('horizon');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterMode, setFilterMode] = useState<FilterMode>('all');
   const [addOpen, setAddOpen] = useState(false);
   const [seedTemplate, setSeedTemplate] = useState<StarterTemplate | null>(null);
   const [editing, setEditing] = useState<LifeObligation | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  const rows = useMemo(() => deriveAll(items, today), [items, today]);
+  const allRows = useMemo(() => deriveAll(items, today), [items, today]);
+  const filteredRows = useMemo(
+    () => filterObligations(allRows, searchQuery, filterMode),
+    [allRows, searchQuery, filterMode],
+  );
+  const urgentCount = useMemo(() => allRows.filter((row) => row.daysLeft <= 7).length, [allRows]);
+  const notesCount = useMemo(() => allRows.filter((row) => Boolean(row.item.notes)).length, [allRows]);
 
   const openAdd = (template?: StarterTemplate | null, kind?: LifeObligationKind) => {
     setEditing(null);
@@ -101,8 +98,8 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
         notify('Dodano termin', 'success');
       }
       closeAdd();
-    } catch (e: unknown) {
-      notify(e instanceof Error ? e.message : 'Nie udało się zapisać', 'error');
+    } catch (caught: unknown) {
+      notify(caught instanceof Error ? caught.message : 'Nie udało się zapisać', 'error');
     }
   };
 
@@ -111,94 +108,72 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
     try {
       await remove.mutateAsync(id);
       notify('Usunięto', 'success');
-    } catch (e: unknown) {
-      notify(e instanceof Error ? e.message : 'Nie udało się usunąć', 'error');
+    } catch (caught: unknown) {
+      notify(caught instanceof Error ? caught.message : 'Nie udało się usunąć', 'error');
     }
   };
 
-  const initialKind: LifeObligationKind = tab === 'horizon' ? 'people' : tab;
+  const handleComplete = async (row: DerivedObligation) => {
+    try {
+      if (row.item.recurrence === 'once') {
+        await remove.mutateAsync(row.item.id);
+        notify(`Zrealizowano: „${row.item.title}”`, 'success');
+      } else {
+        const nextDate = nextOccurrence(row.item.anchor_date, row.item.recurrence, today) ?? today;
+        await update.mutateAsync({ id: row.item.id, anchor_date: nextDate });
+        notify(`Zrealizowano! Odnowiono termin „${row.item.title}” na ${formatLongDateWarsaw(nextDate)}`, 'success');
+      }
+    } catch (caught: unknown) {
+      notify(caught instanceof Error ? caught.message : 'Nie udało się zaktualizować', 'error');
+    }
+  };
+
+  const handleConvertToTodo = async (row: DerivedObligation) => {
+    if (!userId) return;
+    try {
+      await createTodoItem(userId, {
+        title: `Termin: ${row.item.title}${row.item.related_name ? ` (${row.item.related_name})` : ''}`,
+        due_date: row.nextDate,
+        notes: row.item.notes ? `Wpis z Terminów: ${row.item.notes}` : `Termin: ${row.nextDate}`,
+      });
+      notify(`Utworzono zadanie w Todo: „${row.item.title}”`, 'success');
+    } catch (caught: unknown) {
+      notify(caught instanceof Error ? caught.message : 'Nie udało się utworzyć zadania', 'error');
+    }
+  };
 
   if (!userId) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background px-6 text-center text-text-muted">
-        Zaloguj się, żeby otworzyć Terminy.
-      </div>
-    );
+    return <div className="flex min-h-screen items-center justify-center bg-background px-6 text-center text-text-muted">Zaloguj się, żeby otworzyć Terminy.</div>;
   }
 
+  const initialKind: LifeObligationKind = tab === 'horizon' ? 'people' : tab;
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-text-primary">
-      <TerminySidebar
+      <TerminySidebar tab={tab} setTab={setTab} rows={allRows} onNavigateTo={onNavigateTo} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
+      <TerminyPageContent
+        onBack={onBack}
+        onAdd={() => openAdd(null)}
+        onOpenTemplate={(template) => openAdd(template ?? null)}
+        onOpenKind={(kind) => openAdd(null, kind)}
+        rows={allRows}
+        filteredRows={filteredRows}
+        isLoading={isLoading}
+        error={error instanceof Error ? error : null}
+        urgentCount={urgentCount}
+        notesCount={notesCount}
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        filterMode={filterMode}
+        onFilterChange={setFilterMode}
         tab={tab}
-        setTab={setTab}
-        rows={rows}
-        onNavigateTo={onNavigateTo}
-        collapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        onTabChange={setTab}
+        reduceMotion={reduceMotion}
+        onDelete={onDelete}
+        onEdit={openEdit}
+        onComplete={handleComplete}
+        onConvertToTodo={handleConvertToTodo}
       />
-
-      <div className="flex flex-1 flex-col min-w-0 h-full overflow-y-auto">
-        <TerminyHeader onBack={onBack} onAdd={() => openAdd(null)} />
-
-        <ContentContainer width="default" className="space-y-6 pb-16 pt-6 flex-1">
-          {isLoading && (
-            <div className="flex justify-center py-16"><Spinner /></div>
-          )}
-          {error && (
-            <p className="rounded-2xl bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/20">
-              {(error as Error).message}
-            </p>
-          )}
-
-          {!isLoading && !error && (
-            <>
-              <Tabs
-                tabs={[...TABS]}
-                active={tab}
-                onChange={(k) => setTab(k as TerminyTabKey)}
-                className="rounded-2xl bg-surface-2/80 p-1 ring-1 ring-border-custom/20 [&_button]:rounded-xl [&_button]:py-2.5 [&_button]:text-sm [&_button]:font-medium"
-              />
-
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.div
-                  key={tab}
-                  initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
-                  transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
-                >
-                  {tab === 'horizon' ? (
-                    <TerminyHorizon
-                      rows={rows}
-                      onDelete={onDelete}
-                      onEdit={openEdit}
-                      onOpenAdd={(tpl) => openAdd(tpl ?? null)}
-                    />
-                  ) : (
-                    <TerminyVault
-                      kind={tab}
-                      rows={rows}
-                      onDelete={onDelete}
-                      onEdit={openEdit}
-                      onOpenAdd={() => openAdd(null, tab)}
-                    />
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </>
-          )}
-        </ContentContainer>
-      </div>
-
-      <TerminyAddSheet
-        open={addOpen}
-        onClose={closeAdd}
-        onSubmit={submit}
-        pending={add.isPending || update.isPending}
-        initialTemplate={seedTemplate}
-        initialKind={initialKind}
-        editing={editing}
-      />
+      <TerminyAddSheet open={addOpen} onClose={closeAdd} onSubmit={submit} pending={add.isPending || update.isPending} initialTemplate={seedTemplate} initialKind={initialKind} editing={editing} />
     </div>
   );
 }

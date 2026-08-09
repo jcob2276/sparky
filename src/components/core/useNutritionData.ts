@@ -1,13 +1,13 @@
 import { notify } from '../../lib/notify';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../../lib/supabase';
 import { getTodayWarsaw, shiftDateStr } from '../../lib/date';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useUserId } from '../../store/useStore';
 import type { Database } from '../../lib/database.types';
 import { auditNutritionDay } from '../../lib/health/nutritionAudit';
 import { calibrateNutrition } from '../../lib/health/nutritionCalibration';
+import { fetchNutritionDashboardData, removeNutritionEntry } from '../../lib/health/nutritionDashboardApi';
 
 export type TodayEntry = Database['public']['Tables']['daily_food_entries']['Row'];
 export type DailyNutritionRow = Database['public']['Tables']['daily_nutrition']['Row'];
@@ -42,32 +42,10 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
       if (!userId) return null;
       const since = shiftDateStr(todayRaw, -6);
       const calibrationSince = shiftDateStr(todayRaw, -27);
-      const [targetRes, nutritionRes, entriesRes, calibrationRes, weightsRes] = await Promise.all([
-        supabase
-          .from('nutrition_targets')
-          .select('target_kcal, protein_floor_g, verdict, forecast_30d_weight_kg, forecast_60d_weight_kg, forecast_90d_weight_kg, forecast_30d_bf_pct, forecast_60d_bf_pct, forecast_90d_bf_pct, days_to_goal_est, adaptive_correction_kcal')
-          .eq('user_id', userId)
-          .order('date', { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-        supabase
-          .from('daily_nutrition')
-          .select('date, protein, calories, carbs, fat, fiber, sugar, food_quality_analysis, insulin_load, avg_food_quality')
-          .eq('user_id', userId)
-          .gte('date', since)
-          .order('date', { ascending: true }),
-        supabase
-          .from('daily_food_entries')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('date', todayRaw)
-          .order('logged_at', { ascending: true, nullsFirst: false })
-          .order('created_at', { ascending: true }),
-        supabase.from('daily_nutrition').select('date,calories').eq('user_id', userId)
-          .gte('date', calibrationSince).order('date', { ascending: true }),
-        supabase.from('body_metrics').select('date,weight').eq('user_id', userId)
-          .gte('date', calibrationSince).not('weight', 'is', null).order('date', { ascending: true }),
-      ]);
+      const { targetRes, nutritionRes, entriesRes, calibrationRes, weightsRes, dayReviews } =
+        await fetchNutritionDashboardData({
+          userId, today: todayRaw, since, calibrationSince,
+        });
 
       const targetRow = targetRes.data;
       const rows = nutritionRes.data || [];
@@ -126,6 +104,7 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
           (weightsRes.data ?? [])
             .filter((point): point is typeof point & { date: string } => typeof point.date === 'string')
             .map((point) => ({ date: point.date, weight_kg: point.weight })),
+          dayReviews,
         ),
       };
     },
@@ -165,8 +144,7 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       if (!userId) throw new Error('User ID is required');
-      const { error } = await supabase.rpc('remove_food_entry', { p_user_id: userId, p_entry_id: id });
-      if (error) throw new Error(error.message);
+      await removeNutritionEntry(userId, id);
     },
     onMutate: (id) => {
       setDeletingId(id);

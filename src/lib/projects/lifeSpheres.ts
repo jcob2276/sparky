@@ -39,15 +39,6 @@ export const LIFE_SPHERES: LifeSphere[] = [
   { id: 'odpoczynek_regeneracja', label: 'Odpoczynek / Regeneracja', dot: 'bg-rose-500', bar: 'bg-rose-500', text: 'text-rose-600 dark:text-rose-400', border: 'border-rose-500/20', bgSoft: 'bg-rose-500/8', calClass: 'bg-rose-500 dark:bg-rose-600 text-white font-black border border-rose-500/20 shadow-sm' },
 ];
 
-export const CATEGORY_COLORS: Record<string, string> = {
-  ...Object.fromEntries(LIFE_SPHERES.map((s) => [s.id, s.calClass])),
-  work: LIFE_SPHERES.find((s) => s.id === 'praca')!.calClass,
-  health: LIFE_SPHERES.find((s) => s.id === 'cialo_trening')!.calClass,
-  sport: LIFE_SPHERES.find((s) => s.id === 'cialo_trening')!.calClass,
-  personal: LIFE_SPHERES.find((s) => s.id === 'relacje_rodzina')!.calClass,
-  study: LIFE_SPHERES.find((s) => s.id === 'duch_refleksja')!.calClass,
-};
-
 /** Pre-2026-07-04 category values, kept only for reference — do not write these anymore. */
 export const LEGACY_CATEGORY_TO_SPHERE: Record<string, LifeSphereId> = {
   work: 'praca',

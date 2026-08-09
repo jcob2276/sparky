@@ -1,9 +1,8 @@
 import { getWarsawHour } from '../../lib/date';
 import { supabase } from '../supabase'
 import { invokeEdge } from '../supabase'
-import { scheduleStrainRecompute } from './strainRefresh'
 import { TIMEOUTS } from '../constants'
-import type { Json } from '../database.types'
+import { confirmMealCapture } from './nutritionTrackerApi'
 
 export const MEAL_TYPES = [
   { id: 'breakfast', label: 'Śniadanie' },
@@ -53,28 +52,6 @@ export interface TodayNutritionSnapshot {
 
 export * from './foodFavorites'
 
-const qualityTimers = new Map<string, ReturnType<typeof setTimeout>>()
-
-async function runFoodQualityAnalysis(userId: string, date: string): Promise<void> {
-  try {
-    await invokeEdge('analyze-food-quality', {
-      body: { userId, date },
-      signal: AbortSignal.timeout(TIMEOUTS.heavy),
-    })
-  } catch (e: unknown) { console.warn('[foodLogging] Failed to run food quality analysis:', e); }
-}
-
-/** Debounced background quality score — call after any food log for that date. */
-export function scheduleFoodQualityAnalysis(userId: string, date: string): void {
-  const key = `${userId}:${date}`
-  const existing = qualityTimers.get(key)
-  if (existing) clearTimeout(existing)
-  qualityTimers.set(key, setTimeout(() => {
-    qualityTimers.delete(key)
-    void runFoodQualityAnalysis(userId, date)
-  }, 2500))
-}
-
 export function defaultMealType(): MealTypeId {
   const hour = getWarsawHour()
   if (hour < 11) return 'breakfast'
@@ -110,43 +87,14 @@ export async function saveParsedFoodItems(
   items: ParsedFoodItem[],
   opts: { date: string; mealType: string; mealGroupId?: string },
 ): Promise<void> {
-  const groupId = opts.mealGroupId ?? (items.length > 1 ? crypto.randomUUID() : undefined)
-  for (const item of items) {
-    const grams = Math.max(1, Math.round(item.grams || 100))
-    const scale100 = 100 / grams
-    const { error } = await supabase.rpc('add_food_entry', {
-      p_user_id: userId,
-      p_date: opts.date,
-      p_grams: grams,
-      p_entry: {
-        name: item.name,
-        brand: null,
-        barcode: null,
-        calories: Math.round((item.calories || 0) * scale100),
-        protein: Math.round((item.protein || 0) * scale100 * 10) / 10,
-        carbs: item.carbs != null ? Math.round(item.carbs * scale100 * 10) / 10 : null,
-        fat: item.fat != null ? Math.round(item.fat * scale100 * 10) / 10 : null,
-        fiber: item.fiber != null ? Math.round(item.fiber * scale100 * 10) / 10 : null,
-        sugar: item.sugar != null ? Math.round(item.sugar * scale100 * 10) / 10 : null,
-        meal_type: opts.mealType,
-        meal_group_id: groupId ?? null,
-        request_id: crypto.randomUUID(),
-        parse_meta: ({
-          ...(item.parseMeta ?? {}),
-          source: item.parseMeta?.macroSource ?? (item.source === 'library' ? 'confirmed' : 'estimated'),
-          trust_level: item.source === 'library' || item.parseMeta?.macroSource === 'user_correction'
-            ? 'confirmed'
-            : item.parseMeta?.macroSource === 'off' || item.parseMeta?.macroSource === 'reference_pl'
-              ? 'reference' : 'estimated',
-          uncertainty_pct: item.confidence === 'high' ? 10 : item.confidence === 'medium' ? 20 : 30,
-        }) as Json,
-      },
-    })
-    if (error) throw error
-  }
-
-  scheduleFoodQualityAnalysis(userId, opts.date)
-  scheduleStrainRecompute(userId)
+  await confirmMealCapture({
+    userId,
+    date: opts.date,
+    mealType: opts.mealType,
+    source: 'text',
+    items: items.map((item, index) => ({ ...item, id: `text-${index + 1}` })),
+    captureId: opts.mealGroupId,
+  })
 }
 
 export async function saveFoodCorrection(

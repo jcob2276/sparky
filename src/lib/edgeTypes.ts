@@ -96,6 +96,31 @@ export interface KeepTriageResponse {
   totalStale: number;
 }
 
+export interface MealPhotoResponse {
+  parserVersion: 'meal-photo-v1';
+  estimate: { calories: number; minKcal: number; maxKcal: number };
+  questions: Array<{
+    id: string; itemId: string; prompt: string; impactKcal: number;
+    options: Array<{
+      id: string; label: string; grams?: number; calories?: number;
+      protein?: number; carbs?: number; fat?: number; fiber?: number; sugar?: number;
+    }>;
+  }>;
+  items: Array<{
+    id: string; name: string; grams: number; calories: number; protein: number; carbs: number; fat: number;
+    fiber?: number; sugar?: number; confidence: 'high' | 'medium' | 'low'; source: 'llm' | 'database' | 'library';
+    assumptions?: string[]; portionRange: { minGrams: number; maxGrams: number };
+    questionCandidates: MealPhotoResponse['questions'];
+    parseMeta?: {
+      macroSource: 'library' | 'generic' | 'reference_pl' | 'off' | 'llm_estimate' | 'user_correction';
+      parserVersion: string; matchScore?: number; matchedName?: string; dataSource?: string;
+      quantity?: number; unit?: string; explicitGrams?: boolean; warnings?: string[];
+      validationStatus?: 'accepted' | 'review';
+      [key: string]: unknown;
+    };
+  }>;
+}
+
 interface ParseFoodNLResponse {
   items?: Array<{
     name: string; grams: number; calories: number; protein: number; carbs: number; fat: number;
@@ -109,6 +134,7 @@ interface ParseFoodNLResponse {
     fiber: number | null; sugar: number | null; defaultGrams: number;
     source: 'label_ocr'; confidence: 'high' | 'medium' | 'low';
   };
+  meal?: MealPhotoResponse;
 }
 
 interface CaptureVaultResponse { ok?: boolean; success?: boolean; chunks: number; triads: number; message: string; }

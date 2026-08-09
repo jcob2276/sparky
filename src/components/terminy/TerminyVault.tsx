@@ -10,10 +10,20 @@ interface Props {
   rows: DerivedObligation[];
   onDelete: (id: string, title: string) => void;
   onEdit: (id: string) => void;
+  onComplete: (row: DerivedObligation) => void;
+  onConvertToTodo: (row: DerivedObligation) => void;
   onOpenAdd: () => void;
 }
 
-export function TerminyVault({ kind, rows, onDelete, onEdit, onOpenAdd }: Props) {
+export function TerminyVault({
+  kind,
+  rows,
+  onDelete,
+  onEdit,
+  onComplete,
+  onConvertToTodo,
+  onOpenAdd,
+}: Props) {
   const reduceMotion = useReducedMotion();
   const filtered = filterByKind(rows, kind);
 
@@ -33,25 +43,30 @@ export function TerminyVault({ kind, rows, onDelete, onEdit, onOpenAdd }: Props)
   }
 
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-2.5">
       {filtered.map((row, index) => (
         <motion.li
           key={row.item.id}
           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{
-            duration: 0.22,
+            duration: 0.2,
             delay: reduceMotion ? 0 : Math.min(index, 8) * 0.035,
-            ease: [0.23, 1, 0.32, 1],
+            ease: [0.25, 0.1, 0.25, 1],
           }}
         >
           <TerminyObligationCard
             row={row}
             onDelete={() => onDelete(row.item.id, row.item.title)}
             onEdit={() => onEdit(row.item.id)}
+            onComplete={() => onComplete(row)}
+            onConvertToTodo={() => onConvertToTodo(row)}
           />
         </motion.li>
       ))}
     </ul>
   );
 }
+
+
+

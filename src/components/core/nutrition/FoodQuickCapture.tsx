@@ -5,6 +5,9 @@ import { getTodayWarsaw, getYesterdayWarsaw } from '../../../lib/date';
 import { useQuickCaptureData } from './hooks/useQuickCaptureData';
 import { useSession } from '../../../store/useStore';
 import Spinner from '../../ui/Spinner';
+import MealPhotoCapture from './MealPhotoCapture';
+import NutritionRunway from './NutritionRunway';
+import NutritionDayReview from './NutritionDayReview';
 
 export default function FoodQuickCapture({ onSaved, onOpenFullModal, refreshSignal = 0 }: {
   onSaved?: () => void;
@@ -106,6 +109,25 @@ export default function FoodQuickCapture({ onSaved, onOpenFullModal, refreshSign
           );
         })}
       </div>
+
+      <NutritionRunway
+        userId={session.user.id}
+        currentCalories={d.totals.calories}
+        targetCalories={d.totals.targetKcal ?? 2000}
+        currentProtein={d.totals.protein}
+        targetProtein={d.totals.targetProtein ?? 0}
+        mealType={d.mealType}
+        date={d.logDate}
+        onSaved={onSaved}
+        refreshSignal={refreshSignal}
+      />
+
+      <MealPhotoCapture
+        userId={session.user.id}
+        date={d.logDate}
+        mealType={d.mealType}
+        onSaved={onSaved}
+      />
 
       {/* Direct Quick Input Field + AI Sparkles Button */}
       <div className="flex items-center gap-2 pt-1">
@@ -219,6 +241,8 @@ export default function FoodQuickCapture({ onSaved, onOpenFullModal, refreshSign
           </button>
         </div>
       )}
+
+      <NutritionDayReview userId={session.user.id} date={d.logDate} />
     </Card>
   );
 }

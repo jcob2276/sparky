@@ -73,6 +73,7 @@ android/app/google-services.json
 
 # Session debug artifacts
 .playwright-mcp/
+.superpowers/
 .tmp-get-based/
 screen-*.png
 screeny/

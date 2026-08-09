@@ -3,6 +3,7 @@ import {
   applyDeclaredPieceCount,
   parseDeclaredPieceCount,
   pieceGramsForName,
+  tryParseSimpleStaple,
 } from './foodParseCore.ts'
 
 Deno.test('parseDeclaredPieceCount — 4 naleśniki', () => {
@@ -26,4 +27,20 @@ Deno.test('applyDeclaredPieceCount — skaluje 200g → 300g dla 4 naleśników'
 
 Deno.test('pieceGramsForName — naleśnik', () => {
   assertEquals(pieceGramsForName('naleśnik z serem'), 75)
+})
+
+Deno.test('tryParseSimpleStaple — omija model dla pojedynczego banana', () => {
+  const items = tryParseSimpleStaple('banan')
+  assertEquals(items?.[0].name, 'Banan')
+  assertEquals(items?.[0].grams, 120)
+})
+
+Deno.test('tryParseSimpleStaple — respektuje jawną gramaturę produktu bazowego', () => {
+  const items = tryParseSimpleStaple('twaróg półtłusty 150g')
+  assertEquals(items?.[0].name, 'Twaróg półtłusty')
+  assertEquals(items?.[0].grams, 150)
+})
+
+Deno.test('tryParseSimpleStaple — nie zgaduje złożonego posiłku', () => {
+  assertEquals(tryParseSimpleStaple('banan z masłem orzechowym'), null)
 })

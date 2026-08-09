@@ -2,6 +2,9 @@ import {
   applyDeclaredPieceCount,
   applyHomemadeAdjustment,
   isComplexMeal,
+  normalizePl,
+  parseDeclaredPieceCount,
+  pieceGramsForName,
   recoverUnitCountFromText,
 } from "./foodParse/matching.ts";
 import {
@@ -19,6 +22,7 @@ import {
 } from "./foodParse/reconcile.ts";
 import { buildSystemPrompt } from "./foodParse/prompts.ts";
 import { validateParsedItems } from "./foodParse/semanticValidation.ts";
+import { lookupGenericFood, scoreFoodNameMatch } from "./foodGeneric.ts";
 
 export {
   applyDeclaredPieceCount,
@@ -88,6 +92,45 @@ export interface FinalizeFoodParseOpts {
   parseContext?: UserParseContext
 }
 
+const SIMPLE_PORTION_GRAMS: Record<string, number> = {
+  banan: 120,
+  jablko: 180,
+  awokado: 150,
+};
+
+/** Fast, deterministic path for one unambiguous staple; complex descriptions still go to the model. */
+export function tryParseSimpleStaple(text: string): ParsedFoodItem[] | null {
+  const trimmed = text.trim();
+  if (!trimmed || trimmed.length > 100 || /[,;+]|\s+(?:z|ze)\s+/i.test(trimmed)) return null;
+
+  const gramsMatch = trimmed.match(/\b(\d+(?:[.,]\d+)?)\s*(kg|g|ml)\b/i);
+  const explicitGrams = gramsMatch
+    ? Math.max(1, Math.round(Number(gramsMatch[1].replace(',', '.')) * (gramsMatch[2].toLowerCase() === 'kg' ? 1000 : 1)))
+    : null;
+  const count = parseDeclaredPieceCount(trimmed);
+  let query = trimmed
+    .replace(/\b\d+(?:[.,]\d+)?\s*(?:kg|g|ml|szt\.?|x)?\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const normalizedQuery = normalizePl(query);
+  if (/^jaj\w*$/.test(normalizedQuery)) query = 'jajko';
+
+  const match = lookupGenericFood(query);
+  if (!match || scoreFoodNameMatch(query, match.name) < 0.78) return null;
+  const perPiece = count ? pieceGramsForName(match.name) : null;
+  const defaultGrams = SIMPLE_PORTION_GRAMS[normalizePl(match.name)];
+  const grams = explicitGrams ?? (count && perPiece ? count * perPiece : defaultGrams);
+  if (!grams) return null;
+
+  return normalizeGramOnlyItems({ items: [{
+    name: match.name,
+    grams,
+    confidence: explicitGrams || count ? 'high' : 'medium',
+    explicitGrams: explicitGrams != null,
+    assumptions: explicitGrams || count ? [] : [`standardowa porcja ~${grams}g`],
+  }] });
+}
+
 export async function parseMealText(
   apiKey: string,
   text: string,
@@ -95,6 +138,8 @@ export async function parseMealText(
 ): Promise<ParsedFoodItem[]> {
   const trimmed = text.trim()
   if (!trimmed) return []
+  const simpleStaple = tryParseSimpleStaple(trimmed)
+  if (simpleStaple) return simpleStaple
 
   // LLM: name + grams only. Makro liczy kod z bazy (RAG), nie model.
   const gramsRaw = await callParseLLM(

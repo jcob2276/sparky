@@ -1,6 +1,5 @@
 import { supabase } from '../supabase'
-import { scheduleStrainRecompute } from './strainRefresh'
-import { scheduleFoodQualityAnalysis } from './foodLogging'
+import { scheduleNutritionRefresh } from './nutritionSideEffects'
 
 export interface FoodFavoriteRow {
   id: string
@@ -94,8 +93,7 @@ export async function quickAddFavorite(
     },
   })
   if (error) throw error
-  scheduleFoodQualityAnalysis(userId, date)
-  scheduleStrainRecompute(userId)
+  scheduleNutritionRefresh(userId, date)
 }
 
 

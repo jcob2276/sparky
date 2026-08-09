@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfWeek } from 'date-fns';
 import type { FunctionalAgeProfile, HealthspanContributorKey } from '@vanguard/domain';
 import type { Json } from './database.types';
@@ -166,7 +166,7 @@ async function evaluatePreviousHealthspanLevers(userId: string, profile: Functio
   }
 }
 
-export async function fetchHealthspanLevers(userId: string) {
+async function fetchHealthspanLevers(userId: string) {
   const { data, error } = await supabase.from('healthspan_levers')
     .select('id, contributor_key, title, target_label, baseline_score, target_score, actual_score, status, outcome, week_start')
     .eq('user_id', userId)
@@ -176,7 +176,7 @@ export async function fetchHealthspanLevers(userId: string) {
   return (data ?? []) as HealthspanLeverRow[];
 }
 
-export async function decideHealthspanLever(
+async function decideHealthspanLever(
   userId: string,
   id: string,
   status: 'accepted' | 'completed' | 'dismissed',
@@ -206,14 +206,6 @@ export function useSaveHealthspanOnboarding(userId: string | undefined) {
       saveHealthspanOnboarding(userId!, input)
     ),
     onSuccess: () => client.invalidateQueries({ queryKey: healthspanKeys.all }),
-  });
-}
-
-function useHealthspanLevers(userId: string | undefined) {
-  return useQuery({
-    queryKey: [...healthspanKeys.all, 'levers', userId],
-    queryFn: () => fetchHealthspanLevers(userId!),
-    enabled: Boolean(userId),
   });
 }
 

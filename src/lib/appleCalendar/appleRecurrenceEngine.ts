@@ -7,13 +7,13 @@
  */
 
 import { DateInterval, intervalsIntersect } from './appleDateInterval';
-import type { CalRow } from '../../components/calendar/calendarHelpers';
+import type { CalRow } from './types';
 
-export type EKRecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
+type EKRecurrenceFrequency = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
-export type EKWeekday = 'SU' | 'MO' | 'TU' | 'WE' | 'TH' | 'FR' | 'SA';
+type EKWeekday = 'SU' | 'MO' | 'TU' | 'WE' | 'TH' | 'FR' | 'SA';
 
-export interface EKRecurrenceEnd {
+interface EKRecurrenceEnd {
   type: 'never' | 'endDate' | 'occurrenceCount';
   endDate?: string; // YYYY-MM-DD
   occurrenceCount?: number;
@@ -26,16 +26,6 @@ export interface EKRecurrenceRule {
   dayOfMonth?: number;
   end: EKRecurrenceEnd;
 }
-
-const WEEKDAY_INDEX_MAP: Record<EKWeekday, number> = {
-  SU: 0,
-  MO: 1,
-  TU: 2,
-  WE: 3,
-  TH: 4,
-  FR: 5,
-  SA: 6,
-};
 
 const INDEX_WEEKDAY_MAP: EKWeekday[] = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 

@@ -3,9 +3,7 @@ import { supabase } from '../../../../lib/supabase';
 import { getTodayWarsaw } from '../../../../lib/date';
 import { rpcWithOfflineFallback } from '../../../../lib/offlineQueue';
 import { notify } from '../../../../lib/notify';
-import {
-  scheduleFoodQualityAnalysis,
-} from '../../../../lib/health/foodLogging';
+import { scheduleFoodQualityAnalysis } from '../../../../lib/health/nutritionSideEffects';
 import { foodTrustMeta } from '../../../../lib/health/foodTrust';
 import {
   type FoodBase,

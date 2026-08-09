@@ -16,10 +16,11 @@ export async function fetchNutritionData(supabase: any, userId: string, today: s
   const { data: profile } = await supabase.from("nutrition_profile").select("*").eq("user_id", userId).maybeSingle();
   if (!profile) throw new Error("Brak nutrition_profile.");
 
-  const [bmRes, ouraRes, nutrRes, runsRes, gymRes, todayOuraRes, todayNutrRes, medicalContext] = await Promise.all([
+  const [bmRes, ouraRes, nutrRes, dayReviewsRes, runsRes, gymRes, todayOuraRes, todayNutrRes, medicalContext] = await Promise.all([
     supabase.from("body_metrics").select("date, weight, waist, belly, body_fat").eq("user_id", userId).gte("date", d45).order("date", { ascending: true }),
     supabase.from("oura_daily_summary").select("date, total_calories, active_calories, steps, total_sleep_hours, readiness_score, hrv_avg, rhr_avg, deep_sleep_hours").eq("user_id", userId).gte("date", d30).order("date", { ascending: false }),
     supabase.from("daily_nutrition").select("date, calories, protein, carbs, fat, fiber").eq("user_id", userId).gte("date", d30).order("date", { ascending: false }),
+    supabase.from("nutrition_day_reviews").select("date, completeness").eq("user_id", userId).gte("date", d30).eq("completeness", "complete"),
     supabase.from("strava_activities_clean").select("start_date, sport_type, distance").eq("user_id", userId).eq("is_oura", false).gte("start_date", getWarsawDayBoundaries(d30).start).ilike("sport_type", "%run%"),
     supabase.from("workout_sessions").select("date, workout_day").eq("user_id", userId).gte("date", d30),
     supabase.from("oura_daily_summary").select("total_calories, active_calories, steps").eq("user_id", userId).eq("date", today).maybeSingle(),
@@ -27,11 +28,11 @@ export async function fetchNutritionData(supabase: any, userId: string, today: s
     fetchMedicalContext(supabase, userId, today),
   ]);
 
-  return { profile, bm: bmRes.data || [], oura: ouraRes.data || [], nutr: nutrRes.data || [], runs: runsRes.data || [], gym: gymRes.data || [], todayOura: todayOuraRes.data, todayNutr: todayNutrRes.data, medicalContext, today, targetDate, d30 };
+  return { profile, bm: bmRes.data || [], oura: ouraRes.data || [], nutr: nutrRes.data || [], dayReviews: dayReviewsRes.data || [], runs: runsRes.data || [], gym: gymRes.data || [], todayOura: todayOuraRes.data, todayNutr: todayNutrRes.data, medicalContext, today, targetDate, d30 };
 }
 
 export function computeNutritionSignals(data: Awaited<ReturnType<typeof fetchNutritionData>>) {
-  const { profile, bm, oura, nutr, runs, gym, todayOura, todayNutr, medicalContext, today, targetDate, d30 } = data;
+  const { profile, bm, oura, nutr, dayReviews, runs, gym, todayOura, todayNutr, medicalContext, today, targetDate, d30 } = data;
 
   const weights = bm.filter((r: any) => num(r.weight) != null);
   const latestWeight = weights.length ? num(weights[weights.length - 1].weight)! : null;
@@ -62,9 +63,11 @@ export function computeNutritionSignals(data: Awaited<ReturnType<typeof fetchNut
   const avgReadiness = Math.round(mean(clean(oura, "readiness_score")) ?? 0);
   const avgHrv = Math.round(mean(clean(oura, "hrv_avg")) ?? 0), avgRhr = Math.round(mean(clean(oura, "rhr_avg")) ?? 0);
 
-  const intakeArr = clean(nutr, "calories"), avgIntake = Math.round(mean(intakeArr) ?? 0), daysLogged = intakeArr.length;
-  const avgProtein = Math.round(mean(clean(nutr, "protein")) ?? 0), avgCarbs = Math.round(mean(clean(nutr, "carbs")) ?? 0), avgFat = Math.round(mean(clean(nutr, "fat")) ?? 0);
-  const avgFiberRaw = mean(clean(nutr, "fiber")), avgFiber = avgFiberRaw != null ? +avgFiberRaw.toFixed(1) : null;
+  const completeDates = new Set((dayReviews || []).map((review: any) => review.date));
+  const completeNutr = nutr.filter((row: any) => completeDates.has(row.date));
+  const intakeArr = clean(completeNutr, "calories"), avgIntake = Math.round(mean(intakeArr) ?? 0), daysLogged = intakeArr.length;
+  const avgProtein = Math.round(mean(clean(completeNutr, "protein")) ?? 0), avgCarbs = Math.round(mean(clean(completeNutr, "carbs")) ?? 0), avgFat = Math.round(mean(clean(completeNutr, "fat")) ?? 0);
+  const avgFiberRaw = mean(clean(completeNutr, "fiber")), avgFiber = avgFiberRaw != null ? +avgFiberRaw.toFixed(1) : null;
   const intakeStd = intakeArr.length ? Math.sqrt(mean(intakeArr.map((x) => (x - (avgIntake || 0)) ** 2)) ?? 0) : 0;
   const intakeCv = avgIntake ? +(intakeStd / avgIntake).toFixed(2) : 0;
 

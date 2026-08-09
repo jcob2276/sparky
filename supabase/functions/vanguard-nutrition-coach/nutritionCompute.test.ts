@@ -23,6 +23,10 @@ Deno.test('computeNutritionSignals — standard stable inputs', () => {
       { date: '2026-06-14', calories: 2000, protein: 160, carbs: 200, fat: 70, fiber: 30 },
       { date: '2026-06-15', calories: 2000, protein: 160, carbs: 200, fat: 70, fiber: 30 },
     ],
+    dayReviews: [
+      { date: '2026-06-14', completeness: 'complete' },
+      { date: '2026-06-15', completeness: 'complete' },
+    ],
     runs: [],
     gym: [],
     todayOura: { total_calories: 2500, active_calories: 400, steps: 8000 },
@@ -73,6 +77,7 @@ Deno.test('computeNutritionSignals — weight loss trend and goal estimation', (
     ],
     oura: [],
     nutr: [],
+    dayReviews: [],
     runs: [],
     gym: [],
     todayOura: null,

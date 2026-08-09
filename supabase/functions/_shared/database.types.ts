@@ -3280,6 +3280,122 @@ export type Database = {
         }
         Relationships: []
       }
+      nutrition_day_reviews: {
+        Row: {
+          completeness: string
+          confirmed_at: string
+          date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completeness: string
+          confirmed_at?: string
+          date: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completeness?: string
+          confirmed_at?: string
+          date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nutrition_meal_captures: {
+        Row: {
+          confirmed_at: string
+          created_at: string
+          date: string
+          estimate_max_kcal: number | null
+          estimate_min_kcal: number | null
+          id: string
+          meal_type: string
+          parse_summary: Json
+          source: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          confirmed_at?: string
+          created_at?: string
+          date: string
+          estimate_max_kcal?: number | null
+          estimate_min_kcal?: number | null
+          id: string
+          meal_type: string
+          parse_summary?: Json
+          source: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          confirmed_at?: string
+          created_at?: string
+          date?: string
+          estimate_max_kcal?: number | null
+          estimate_min_kcal?: number | null
+          id?: string
+          meal_type?: string
+          parse_summary?: Json
+          source?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      nutrition_meal_memories: {
+        Row: {
+          confirmed_count: number
+          created_at: string
+          fingerprint: string
+          id: string
+          items: Json
+          last_confirmed_at: string
+          meal_type: string
+          name: string | null
+          source_capture_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          confirmed_count?: number
+          created_at?: string
+          fingerprint: string
+          id?: string
+          items: Json
+          last_confirmed_at?: string
+          meal_type: string
+          name?: string | null
+          source_capture_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          confirmed_count?: number
+          created_at?: string
+          fingerprint?: string
+          id?: string
+          items?: Json
+          last_confirmed_at?: string
+          meal_type?: string
+          name?: string | null
+          source_capture_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nutrition_meal_memories_source_capture_id_fkey"
+            columns: ["source_capture_id"]
+            isOneToOne: false
+            referencedRelation: "nutrition_meal_captures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       nutrition_profile: {
         Row: {
           birth_date: string | null
@@ -6919,6 +7035,19 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      confirm_nutrition_meal_capture: {
+        Args: {
+          p_capture_id: string
+          p_date: string
+          p_items: Json
+          p_meal_type: string
+          p_memory?: Json
+          p_parse_summary: Json
+          p_source: string
+          p_user_id: string
+        }
+        Returns: Json
       }
       cache_food_to_library: {
         Args: {

@@ -1,5 +1,6 @@
 interface IntakeDay { date: string; calories: number | null }
 interface WeightPoint { date: string; weight_kg: number | null }
+interface DayReview { date: string; completeness: 'complete' | 'partial' | 'unknown' }
 
 export interface NutritionCalibration {
   status: 'ready' | 'collecting';
@@ -9,8 +10,15 @@ export interface NutritionCalibration {
   message: string;
 }
 
-export function calibrateNutrition(intake: IntakeDay[], weights: WeightPoint[]): NutritionCalibration {
-  const validDays = intake.filter((day) => day.calories != null && day.calories > 500);
+export function calibrateNutrition(
+  intake: IntakeDay[],
+  weights: WeightPoint[],
+  reviews: DayReview[] = [],
+): NutritionCalibration {
+  const completeDates = new Set(
+    reviews.filter((review) => review.completeness === 'complete').map((review) => review.date),
+  );
+  const validDays = intake.filter((day) => day.calories != null && completeDates.has(day.date));
   const validWeights = weights.filter((point) => point.weight_kg != null).sort((a, b) => a.date.localeCompare(b.date));
   const averageCalories = validDays.length
     ? Math.round(validDays.reduce((sum, day) => sum + Number(day.calories), 0) / validDays.length) : null;
@@ -31,4 +39,3 @@ export function calibrateNutrition(intake: IntakeDay[], weights: WeightPoint[]):
     message: `Przy średnio ${averageCalories} kcal masa ${direction} ${Math.abs(weeklyWeightChangeKg)} kg/tydz.`,
   };
 }
-

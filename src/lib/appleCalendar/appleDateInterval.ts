@@ -94,50 +94,6 @@ export function dateIntervalOfWeekend(date: Date | string): DateInterval {
 }
 
 /**
- * Returns the DateInterval of the next weekend strictly after the given date.
- * (Apple `Calendar.nextWeekend`).
- */
-export function nextWeekend(startingAfter: Date | string): DateInterval {
-  const d = typeof startingAfter === 'string' ? new Date(startingAfter) : new Date(startingAfter);
-  const nextSat = new Date(d);
-
-  let daysToAdd = (6 - d.getDay() + 7) % 7;
-  if (daysToAdd === 0) daysToAdd = 7;
-
-  nextSat.setDate(d.getDate() + daysToAdd);
-  nextSat.setHours(0, 0, 0, 0);
-
-  const nextSunEnd = new Date(nextSat);
-  nextSunEnd.setDate(nextSat.getDate() + 1);
-  nextSunEnd.setHours(23, 59, 59, 999);
-
-  return { start: nextSat, end: nextSunEnd };
-}
-
-/**
- * Calculates the ordinality of a smaller calendar component within a larger component.
- * (Apple `Calendar.ordinality(of:in:for:)`).
- * E.g., ordinality of weekday in month (e.g. 1st Monday, 3rd Tuesday of month).
- */
-export function ordinalityInMonth(date: Date | string): { occurrenceInMonth: number; totalOccurrencesInMonth: number } {
-  const d = typeof date === 'string' ? new Date(date) : new Date(date);
-  const targetDayOfWeek = d.getDay();
-  const dayOfMonth = d.getDate();
-
-  const occurrenceInMonth = Math.ceil(dayOfMonth / 7);
-
-  // Total occurrences of this weekday in the month
-  const lastDayOfMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
-  let count = 0;
-  for (let day = 1; day <= lastDayOfMonth; day++) {
-    const cur = new Date(d.getFullYear(), d.getMonth(), day);
-    if (cur.getDay() === targetDayOfWeek) count++;
-  }
-
-  return { occurrenceInMonth, totalOccurrencesInMonth: count };
-}
-
-/**
  * Calculates date component differences between two dates.
  * (Apple `Calendar.dateComponents(from:to:)`).
  */

@@ -228,6 +228,23 @@ Deno.serve(serveJson(async (_req, ctx) => {
           url: "/terminy",
           tag: `obligation-${raw.id}-${hit.key}`,
         });
+
+        // Also queue Telegram Oracle Ping for urgent obligations (<= 7 days)
+        if (hit.offset >= -7 && hit.offset <= 0) {
+          const isToday = hit.offset === 0;
+          const tgText = isToday
+            ? `🚨 *DZISIAJ UPŁYWA TERMIN:* ${raw.title}${who}\nZaloguj zrealizowanie w aplikacji!`
+            : `⚠️ *TERMIN ZA ${Math.abs(hit.offset)} DNI:* ${raw.title}${who} (${hit.occurrence})`;
+
+          const { error: tgErr } = await supabase.from("outbound_messages").insert({
+            user_id: raw.user_id,
+            content: tgText,
+            priority: "high",
+            status: "pending",
+          });
+          if (tgErr) console.error("[push-reminder] telegram outbox insert failed", raw.id, tgErr);
+        }
+
         if (!result.delivered) continue;
 
         const nextSent = [...parseSentReminders(raw.sent_reminders), hit.key];
@@ -240,6 +257,7 @@ Deno.serve(serveJson(async (_req, ctx) => {
       }
     }
   }
+
 
   return {
     sent_todos: sentTodos,

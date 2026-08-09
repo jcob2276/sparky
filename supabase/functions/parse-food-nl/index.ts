@@ -2,9 +2,9 @@
  * @function parse-food-nl
  * @trigger HTTP POST / Frontend NL meal parser
  * @role Parser posiłków z języka naturalnego na struktury danych z uwzględnieniem kontekstu użytkownika.
- * @reads daily_food_entries, user_settings, food_library, nutrition_profile, nutrition_targets, body_metrics, food_favorites, food_corrections, user_portions
+ * @reads daily_food_entries, user_settings, food_library, nutrition_profile, nutrition_targets, body_metrics, food_favorites, food_corrections, user_portions, nutrition_meal_memories
  * @writes —
- * @calls deepseek-chat (w foodParseCore.ts)
+ * @calls deepseek-chat (text, w foodParseCore.ts), OpenAI gpt-4o-mini (meal photo and label vision)
  * @consumer Zapis posiłków w aplikacji frontendowej i Telegramie
  * @status active
  */
@@ -17,6 +17,10 @@ import {
   type UserParseContext,
   type FoodCorrection,
 } from '../_shared/foodParseCore.ts'
+import {
+  normalizeMealPhotoResponse,
+  type MealPhotoDraft,
+} from '../_shared/foodParse/mealPhoto.ts'
 
 function validMacro(value: unknown, max = 100): number | null {
   if (value == null) return null
@@ -69,6 +73,95 @@ async function parseNutritionLabel(imageBase64: string, mimeType: string, userId
   }
 }
 
+function validateMealImage(imageBase64: string, mimeType: string) {
+  if (!/^image\/(jpeg|png|webp)$/.test(mimeType)) throw new Error('Unsupported image type')
+  if (!imageBase64 || imageBase64.length > 8_000_000) throw new Error('Image is missing or too large')
+}
+
+function withFinalizedNutrition(
+  draft: MealPhotoDraft,
+  finalized: Awaited<ReturnType<typeof finalizeParsedItems>>,
+): MealPhotoDraft {
+  const items = draft.items.map((item, index) => {
+    const finalizedItem = finalized[index]
+    const parseMeta = finalizedItem?.parseMeta ?? item.parseMeta
+    return {
+      ...item,
+      ...(finalizedItem ?? {}),
+      id: item.id,
+      portionRange: item.portionRange,
+      questionCandidates: item.questionCandidates,
+      parseMeta: {
+        ...parseMeta,
+        macroSource: parseMeta?.macroSource ?? 'llm_estimate' as const,
+        parserVersion: 'meal-photo-v1',
+        validationStatus: 'review' as const,
+      },
+    }
+  })
+  const calories = items.reduce((sum, item) => sum + item.calories, 0)
+  const minKcal = items.reduce(
+    (sum, item) => sum + item.calories * item.portionRange.minGrams / item.grams,
+    0,
+  )
+  const maxKcal = items.reduce(
+    (sum, item) => sum + item.calories * item.portionRange.maxGrams / item.grams,
+    0,
+  )
+  return {
+    ...draft,
+    items,
+    estimate: {
+      calories: Math.round(calories),
+      minKcal: Math.max(0, Math.round(minKcal)),
+      maxKcal: Math.max(Math.round(calories), Math.round(maxKcal)),
+    },
+  }
+}
+
+async function parseMealPhoto(
+  imageBase64: string,
+  mimeType: string,
+  userId: string | undefined,
+  ctx: UserParseContext,
+  corrections: FoodCorrection[],
+  db: ReturnType<typeof createServiceClient>,
+  supabaseUrl: string,
+  serviceKey: string,
+) {
+  validateMealImage(imageBase64, mimeType)
+  const apiKey = Deno.env.get('OPENAI_API_KEY') || ''
+  if (!apiKey) throw new Error('Missing OPENAI_API_KEY')
+  const { content } = await openaiChat({
+    apiKey,
+    model: 'gpt-4o-mini',
+    temperature: 0.1,
+    maxTokens: 1800,
+    responseFormat: { type: 'json_object' },
+    userId,
+    feature: 'nutrition-meal-photo',
+    messages: [{
+      role: 'user',
+      content: [
+        { type: 'text', text: `Przeanalizuj zdjęcie całego posiłku. Zwróć wyłącznie JSON: {"items":[{"id":string,"name":string,"grams":number,"minGrams":number,"maxGrams":number,"calories":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"sugar":number|null,"confidence":"high"|"medium"|"low","assumptions":string[],"questions":[{"id":string,"prompt":string,"impactKcal":number,"options":[{"id":string,"label":string,"grams":number|null,"calories":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null}]}]}]}. Makra dotyczą całej oszacowanej porcji, nie 100 g. Każda opcja odpowiedzi ma zawierać skorygowane gramy, kalorie i makra całego składnika po wybraniu tej opcji. Rozdziel widoczne składniki. Uwzględnij możliwy olej, sos i ukryte dodatki, ale nie udawaj pomiaru: podaj realistyczny zakres minGrams/maxGrams. Pytania twórz tylko wtedy, gdy odpowiedź może istotnie zmienić kalorie; maksymalnie 3 kandydatów na składnik. Krótkie etykiety i pytania po polsku. Kontekst użytkownika: ${ctx.profileLine}. Najczęstsze wybory: ${ctx.historyBlock || 'brak'}.` },
+        { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
+      ],
+    }],
+  })
+  const draft = normalizeMealPhotoResponse(JSON.parse(content || '{}'))
+  const finalized = await finalizeParsedItems(draft.items, {
+    originalText: draft.items.map((item) => `${item.name} ${item.grams}g`).join(', '),
+    corrections,
+    supabaseUrl,
+    serviceKey,
+    userId,
+    db,
+    apiKey,
+    parseContext: ctx,
+  })
+  return withFinalizedNutrition(draft, finalized)
+}
+
 async function loadUserContext(
   userId: string,
   db: ReturnType<typeof createServiceClient>,
@@ -77,7 +170,7 @@ async function loadUserContext(
   const cutoff = new Date()
   cutoff.setUTCDate(cutoff.getUTCDate() - 120)
 
-  const [profileRes, targetRes, weightRes, favRes, corrRes, historyRes, portionsRes] = await Promise.all([
+  const [profileRes, targetRes, weightRes, favRes, corrRes, historyRes, portionsRes, memoriesRes] = await Promise.all([
     db.from('nutrition_profile').select('height_cm, sex, birth_date').eq('user_id', userId).maybeSingle(),
     db.from('nutrition_targets').select('target_kcal, protein_floor_g').eq('user_id', userId).order('date', { ascending: false }).limit(1).maybeSingle(),
     db.from('body_metrics').select('weight_kg').eq('user_id', userId).order('date', { ascending: false }).limit(1).maybeSingle(),
@@ -85,6 +178,8 @@ async function loadUserContext(
     db.from('food_corrections').select('query_name, corrected_name, corrected_grams').eq('user_id', userId).order('updated_at', { ascending: false }).limit(10),
     db.from('daily_food_entries').select('name, logged_at').eq('user_id', userId).gte('date', cutoff.toISOString().slice(0, 10)).order('logged_at', { ascending: false }).limit(400),
     db.from('user_portions').select('name, grams').eq('user_id', userId),
+    db.from('nutrition_meal_memories').select('name, meal_type, items, confirmed_count')
+      .eq('user_id', userId).order('last_confirmed_at', { ascending: false }).limit(8),
   ])
 
   const profile = profileRes.data as { height_cm?: number; sex?: string; birth_date?: string } | null
@@ -138,6 +233,25 @@ async function loadUserContext(
     .slice(0, 18)
     .map(([name, count]) => `- ${name} (×${count})`)
     .join('\n')
+  const memories = memoriesRes.error ? [] : (memoriesRes.data ?? []) as Array<{
+    name: string | null
+    meal_type: string
+    items: unknown
+    confirmed_count: number
+  }>
+  const memoryBlock = memories.flatMap((memory) => {
+    if (!Array.isArray(memory.items)) return []
+    const items = memory.items.flatMap((raw) => {
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return []
+      const item = raw as Record<string, unknown>
+      const name = typeof item.name === 'string' ? item.name : ''
+      const grams = Number(item.grams)
+      return name && Number.isFinite(grams) ? [`${name} ${Math.round(grams)}g`] : []
+    })
+    return items.length
+      ? [`- potwierdzone ${memory.confirmed_count}×: ${memory.name ?? memory.meal_type} = ${items.join(', ')}`]
+      : []
+  }).join('\n')
 
   return {
     ctx: {
@@ -146,7 +260,7 @@ async function loadUserContext(
       targetProtein: target?.protein_floor_g ?? null,
       favoritesBlock,
       correctionsBlock,
-      historyBlock,
+      historyBlock: [memoryBlock, historyBlock].filter(Boolean).join('\n'),
       portionsBlock,
     },
     corrections,
@@ -161,16 +275,12 @@ Deno.serve(serveJson(async (req, auth) => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 
-  const userId = auth.userId ?? body.userId ?? undefined
+  const userId = auth.userId ?? undefined
 
   if (body.mode === 'label') {
     const label = await parseNutritionLabel(String(body.imageBase64 || ''), String(body.mimeType || ''), userId)
     return { label }
   }
-
-  if (!text) throw new Error('Missing text')
-  const apiKey = Deno.env.get('DEEPSEEK_API_KEY') || Deno.env.get('OPENAI_API_KEY') || ''
-  if (!apiKey) throw new Error('Missing DEEPSEEK_API_KEY / OPENAI_API_KEY')
 
   const db = createServiceClient()
   let ctx: UserParseContext
@@ -198,6 +308,25 @@ Deno.serve(serveJson(async (req, auth) => {
     }
   }
 
+  if (body.mode === 'meal_photo') {
+    const meal = await parseMealPhoto(
+      String(body.imageBase64 || ''),
+      String(body.mimeType || ''),
+      userId,
+      ctx,
+      corrections,
+      db,
+      supabaseUrl,
+      serviceKey,
+    )
+    console.log(`[parse-food-nl] photo -> ${meal.items.length} items (user=${userId ?? 'anon'})`)
+    return { meal }
+  }
+
+  if (!text) throw new Error('Missing text')
+  const apiKey = Deno.env.get('DEEPSEEK_API_KEY') || Deno.env.get('OPENAI_API_KEY') || ''
+  if (!apiKey) throw new Error('Missing DEEPSEEK_API_KEY / OPENAI_API_KEY')
+
   let items = await parseMealText(apiKey, text, ctx)
 
   items = await finalizeParsedItems(items, {
@@ -214,4 +343,4 @@ Deno.serve(serveJson(async (req, auth) => {
   console.log(`[parse-food-nl] "${text.slice(0, 60)}" → ${items.length} items (user=${userId ?? 'anon'})`)
 
   return { items }
-}, { auth: 'none' }))
+}, { auth: 'user' }))

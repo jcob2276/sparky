@@ -58,7 +58,13 @@ export default function Modal({
   }, [onClose]);
 
   useLayoutEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      document.body.style.overflow = '';
+      if (restoreFocusRef.current && typeof restoreFocusRef.current.focus === 'function') {
+        restoreFocusRef.current.focus();
+      }
+      return;
+    }
 
     light();
     restoreFocusRef.current = document.activeElement as HTMLElement | null;

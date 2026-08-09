@@ -1,11 +1,6 @@
-/**
- * @component DashboardDzisTab
- * @role Zakładka DZIŚ — PowerList, DailyStrainCard, DailySnapshotCard, TodayEventsCard, FoodQuickCapture.
- * @usedBy Dashboard
- */
 import { Pressable } from '../ui/ControlPrimitives';
 import { TIMEZONE } from '../../lib/date';
-import { Suspense, lazy } from 'react';
+import { Suspense } from 'react';
 import { Play } from 'lucide-react';
 import { useSession } from '../../store/useStore';
 import OrientationFooter from './OrientationFooter';
@@ -19,6 +14,7 @@ import TodayStatusStrip from './TodayStatusStrip';
 import DailyStrainCard from '../biometrics/DailyStrainCard';
 import DailySnapshotCard from './DailySnapshotCard';
 import TodayRunwayCard from './TodayRunwayCard';
+import { UrgentObligationsBanner } from '../terminy/UrgentObligationsBanner';
 
 function ViewFallback() {
   return (
@@ -65,6 +61,10 @@ export function DashboardDzisTab() {
           icon={Play}
         />
         <TodayStatusStrip />
+        <UrgentObligationsBanner
+          userId={session.user.id}
+          onNavigateToTerminy={() => s.navigate('/terminy')}
+        />
         <OrientationFooter />
       </div>
       <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0">
@@ -105,3 +105,4 @@ export function DashboardDzisTab() {
     </div>
   );
 }
+
