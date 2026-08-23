@@ -1,6 +1,6 @@
 /**
  * @component RunningPerformancePage
- * @role Dedykowana podstrona /trening — Centrum Analityki Biegowej Vanguard 10/10 zasilane z API Intervals.icu & Garmin.
+ * @role Dedykowana podstrona /bieganie — Centrum Analityki Biegowej Vanguard 10/10 zasilane z API Intervals.icu & Garmin.
  *       Zawiera pełny rozkład 7 Stref Tętna (Z1-Z7), HR Recovery 60s, Model Banistera (CTL/ATL/TSB),
  *       Grade Adjusted Pace (GAP), Próg Mleczanowy LTHR (175 bpm), Kadencję i Przewyższenia.
  */

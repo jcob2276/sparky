@@ -1,4 +1,4 @@
-import { Award, Smile } from 'lucide-react';
+import { Award } from 'lucide-react';
 import DiscreteRating, { type RatingOption, type RatingTone } from '../ui/DiscreteRating';
 
 const DAY_BANDS = [
@@ -38,19 +38,11 @@ const DAY_OPTIONS: readonly RatingOption[] = Array.from({ length: 10 }, (_, inde
   return { value, label: String(value), tone: band?.tone ?? 'neutral' };
 });
 
-const MOOD_OPTIONS: readonly RatingOption[] = [
-  { value: 1, label: 'Ciężko', tone: 'critical' },
-  { value: 2, label: 'Słabo', tone: 'warning' },
-  { value: 3, label: 'Neutralnie', tone: 'neutral' },
-  { value: 4, label: 'Dobrze', tone: 'info' },
-  { value: 5, label: 'Świetnie', tone: 'success' },
-];
-
 interface DailyScorePickerProps {
   dayScore: number;
   setDayScore: (value: number) => void;
-  moodScore: number;
-  setMoodScore: (value: number) => void;
+  moodScore?: number;
+  setMoodScore?: (value: number) => void;
 }
 
 function rangeLabel(min: number, max: number) {
@@ -60,8 +52,6 @@ function rangeLabel(min: number, max: number) {
 export default function DailyScorePicker({
   dayScore,
   setDayScore,
-  moodScore,
-  setMoodScore,
 }: DailyScorePickerProps) {
   const selectedBand = DAY_BANDS.find(
     (band) => dayScore >= band.min && dayScore <= band.max,
@@ -93,20 +83,7 @@ export default function DailyScorePicker({
           <span>{selectedBand.description}</span>
         </p>
       </div>
-
-      <div className="ui-daily-score-picker__section">
-        <div className="ui-daily-score-picker__title ui-daily-score-picker__title--mood">
-          <Smile size={16} aria-hidden="true" />
-          Samopoczucie
-        </div>
-        <DiscreteRating
-          label="Samopoczucie"
-          value={moodScore}
-          max={5}
-          options={MOOD_OPTIONS}
-          onChange={setMoodScore}
-        />
-      </div>
     </div>
   );
 }
+

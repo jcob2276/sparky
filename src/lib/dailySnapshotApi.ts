@@ -18,6 +18,7 @@ export interface DailySnapshotData {
   strainState: { daily_status: string | null; main_limiter: string | null } | null;
   midday: { status: string | null; blocker: string | null } | null;
   rescueStreak: number;
+  eveningExtraction: string | null;
 }
 
 const dailySnapshotKeys = {
@@ -32,7 +33,7 @@ async function fetchDailySnapshot(userId: string, today: string): Promise<DailyS
   const [recRes, strainRes, historyRes] = await Promise.all([
     supabase
       .from('daily_reconciliations')
-      .select('date, planning_summary, day_score, midday_status, midday_blocker')
+      .select('date, planning_summary, day_score, midday_status, midday_blocker, evening_extraction')
       .eq('user_id', userId)
       .in('date', [today, yesterday])
       .order('date', { ascending: false })
@@ -72,7 +73,9 @@ async function fetchDailySnapshot(userId: string, today: string): Promise<DailyS
     else break;
   }
 
-  return { snap, dayScore, strainState, midday, rescueStreak };
+  const eveningExtraction = rec?.evening_extraction ?? null;
+
+  return { snap, dayScore, strainState, midday, rescueStreak, eveningExtraction };
 }
 
 export function useDailySnapshotQuery(userId: string | undefined, today: string) {

@@ -3997,6 +3997,9 @@
     "https://esm.sh/yazio": "https://esm.sh/yazio@1.1.3"
   },
   "remote": {
+    "https://deno.land/std@0.167.0/dotenv/load.ts": "9adeb1fb395f991f958a06c8b3adafdcbac0056e7a6a35bf9d33eab6347ef63c",
+    "https://deno.land/std@0.167.0/dotenv/mod.ts": "9846f28b263c0c793345d74939f69bf34b46446aa2450e070c10a2140064165a",
+    "https://deno.land/std@0.167.0/dotenv/util.ts": "6cc392f087577a26a27f0463f77cc0c31a390aa055917099935b36eb2454592d",
     "https://deno.land/std@0.168.0/async/abortable.ts": "80b2ac399f142cc528f95a037a7d0e653296352d95c681e284533765961de409",
     "https://deno.land/std@0.168.0/async/deadline.ts": "2c2deb53c7c28ca1dda7a3ad81e70508b1ebc25db52559de6b8636c9278fd41f",
     "https://deno.land/std@0.168.0/async/debounce.ts": "60301ffb37e730cd2d6f9dadfd0ecb2a38857681bd7aaf6b0a106b06e5210a98",

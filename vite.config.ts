@@ -115,7 +115,7 @@ export default defineConfig(({ mode }) => {
       // click into them doesn't pay a cold multi-file dev-server waterfall.
       warmup: {
         clientFiles: [
-          './src/components/projects/Projects.tsx',
+          './src/components/core/DashboardProjektyTab.tsx',
           './src/components/core/DashboardHistoriaTab.tsx',
           './src/components/core/DashboardTydzienTab.tsx',
           './src/components/calendar/CalendarView.tsx',

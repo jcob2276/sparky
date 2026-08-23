@@ -39,6 +39,62 @@ function compactRows(rows: StreamRow[], limit = 12): string {
   }).join("\n");
 }
 
+async function generateDayNarrative(apiKey: string, params: {
+  voiceRows: StreamRow[];
+  streamRows: StreamRow[];
+  frictionRows: any[];
+  wins: any;
+  todos: any[];
+  agg: any;
+}): Promise<string | null> {
+  const voiceBlock = params.voiceRows.length
+    ? compactRows(params.voiceRows, 15)
+    : "Brak glosowek w ostatnich 24h.";
+
+  const streamBlock = params.streamRows.length
+    ? compactRows(params.streamRows, 15)
+    : "Brak zapisow streamu w ostatnich 24h.";
+
+  const frictionBlock = params.frictionRows.length
+    ? params.frictionRows.map((e: any, i: number) => `${i + 1}. [${e.friction_type}] ${e.actual_behavior || ""}`).join("\n")
+    : "Brak tarć.";
+
+  let metrics = "Brak danych z Oura/agregatów.";
+  if (params.agg) {
+    metrics = `Sen: ${params.agg.sleep_hours}h | HRV: ${params.agg.hrv_avg} | Readiness: ${params.agg.readiness_score} | Exec: ${params.agg.execution_score} | Stan: ${params.agg.final_state}`;
+  }
+
+  let tasks = "PowerList: brak. Zadania: brak.";
+  if (params.wins) {
+    tasks = `PowerList: 1. ${params.wins.task_1} (${params.wins.done_1 ? 'V' : 'X'}) 2. ${params.wins.task_2} (${params.wins.done_2 ? 'V' : 'X'}) 3. ${params.wins.task_3} (${params.wins.done_3 ? 'V' : 'X'})\n`;
+  }
+  if (params.todos && params.todos.length > 0) {
+    tasks += `Zrobione zadania z listy: ${params.todos.map((t: any) => t.title).join(", ")}`;
+  }
+
+  try {
+    const { content } = await deepseekChat({
+      apiKey,
+      ...LLM_TASKS.synthesis,
+      temperature: 0.35,
+      messages: [
+        {
+          role: "system",
+          content: "Jesteś analitycznym kronikarzem Vanguard. Twoim zadaniem jest napisanie zwięzłej i obiektywnej Kroniki Dnia na bazie podanych danych. Bądź bezpośredni, zwięzły, nie używaj ozdobników ani patetycznego coachingu. Skup się na faktach: jak fizjologicznie rozpoczął się dzień, co zostało dowiezione (PowerList, zadania), a z czym był problem (Friction, Stream). Utwórz 2-3 zwięzłe paragrafy."
+        },
+        {
+          role: "user",
+          content: `METRYKI FIZJOLOGICZNE I STAN:\n${metrics}\n\nDOWIEZIONE ZADANIA:\n${tasks}\n\nSTRUMIEŃ MYŚLI:\n${streamBlock}\n\nGŁOSÓWKI:\n${voiceBlock}\n\nTARCIA I PROBLEMY:\n${frictionBlock}\n\nNapisz Kronikę Dnia na bazie powyższych faktów. Zwróć sam tekst markdown bez żadnych wstępów i podsumowań.`
+        }
+      ]
+    });
+    return content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim() || null;
+  } catch (err) {
+    console.error('[generateDayNarrative] Error:', err);
+    return null;
+  }
+}
+
 async function buildReflectionPrompt(apiKey: string, params: {
   voiceRows: StreamRow[];
   streamRows: StreamRow[];
@@ -154,7 +210,7 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
     const sevenDaysAgo = new Date(dayStart);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const [streamData, frictionRes, auditRes] = await Promise.all([
+    const [streamData, frictionRes, auditRes, winsRes, todosRes, aggRes] = await Promise.all([
       getStreamForDailyReconciliation(
         supabase,
         VANGUARD_USER_ID,
@@ -177,6 +233,25 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
         .in("severity", ["error", "critical"])
         .order("created_at", { ascending: false })
         .limit(100),
+      supabase
+        .from("daily_wins")
+        .select("task_1, task_2, task_3, done_1, done_2, done_3")
+        .eq("user_id", VANGUARD_USER_ID)
+        .eq("date", todayStr)
+        .maybeSingle(),
+      supabase
+        .from("todo_items")
+        .select("title")
+        .eq("user_id", VANGUARD_USER_ID)
+        .eq("status", "done")
+        .gte("completed_at", dayStart)
+        .lt("completed_at", dayEnd),
+      supabase
+        .from("vanguard_daily_aggregates")
+        .select("execution_score, sleep_hours, hrv_avg, readiness_score, final_state")
+        .eq("user_id", VANGUARD_USER_ID)
+        .eq("date", todayStr)
+        .maybeSingle()
     ]);
 
     if (frictionRes.error) console.error("[reconciliation] friction query error:", frictionRes.error);
@@ -244,6 +319,15 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
       if (mid) messageId = mid;
     }
 
+    const eveningExtraction = await generateDayNarrative(DEEPSEEK_API_KEY, {
+      voiceRows,
+      streamRows,
+      frictionRows,
+      wins: winsRes?.data || null,
+      todos: todosRes?.data || [],
+      agg: aggRes?.data || null,
+    });
+
     const { data: row, error: upsertErr } = await supabase.from("daily_reconciliations").upsert({
       user_id: VANGUARD_USER_ID,
       date: todayStr,
@@ -267,6 +351,7 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
       answered_at: null,
       planning_status: null,
       planning_history: null,
+      evening_extraction: eveningExtraction,
     }, { onConflict: "user_id,date" }).select("id").single();
 
     if (upsertErr) throw upsertErr;

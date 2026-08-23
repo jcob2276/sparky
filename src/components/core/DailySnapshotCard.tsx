@@ -113,6 +113,18 @@ export default function DailySnapshotCard() {
         </div>
       )}
 
+      {/* Evening Extraction (Kronika) */}
+      {data?.eveningExtraction && (
+        <div className="rounded-2xl border border-[var(--color-neutral-custom-20)] bg-[var(--color-neutral-custom-10)] px-4 py-3">
+          <p className="text-2xs font-black uppercase tracking-widest text-text-muted mb-1.5">
+            Kronika Dnia
+          </p>
+          <div className="text-sm leading-snug text-text-secondary whitespace-pre-wrap">
+            {data.eveningExtraction}
+          </div>
+        </div>
+      )}
+
       {/* Strain state badge */}
       {strainState?.daily_status && (
         <div className="flex items-center gap-2 pt-1 border-t border-border-custom">
