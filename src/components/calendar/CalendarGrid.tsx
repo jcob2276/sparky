@@ -63,11 +63,111 @@ function useInitialGridScroll(gridRef: React.RefObject<HTMLDivElement | null>, c
   }, [calendarView, gridRef]);
 }
 
+type GridViewProps = {
+  calView: ReturnType<typeof useCalendarData>['calView'];
+  selectedDay: string;
+  setSelectedDay: (day: string) => void;
+  weekStart: string;
+  setWeekStart: (start: string) => void;
+  setCalView: ReturnType<typeof useCalendarData>['setCalView'];
+  weather: ReturnType<typeof useCalendarData>['weather'];
+  today: string;
+  nowMin: number;
+  weekDays: string[];
+  dragSelect: ReturnType<typeof useCalendarDragSelect>['dragSelect'];
+  goalChipFor: (sectionId: string | null) => GoalChip;
+  completedTodoIds: Set<string>;
+  getEventsForDay: (day: string) => CalRow[];
+  todosForDay: (day: string) => CalendarTodo[];
+  handleColumnMouseDown: (day: string, e: React.MouseEvent) => void;
+  handleColumnMouseMove: (day: string, e: React.MouseEvent) => void;
+  handleColumnClick: (day: string, e: React.MouseEvent) => void;
+  handleEventMouseDown: ReturnType<typeof useCalendarData>['handleEventMouseDown'];
+  handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
+  handleToggleTodo: (id: string) => void;
+  setEditingTodo: ReturnType<typeof useCalendarData>['setEditingTodo'];
+  setEditingTodoTitle: ReturnType<typeof useCalendarData>['setEditingTodoTitle'];
+  setToastMessage: ReturnType<typeof useCalendarData>['setToastMessage'];
+  setSaving: ReturnType<typeof useCalendarData>['setSaving'];
+  scheduleTodoAt: (todo: { id: string }, day: string, startMin: number, duration: number) => Promise<unknown>;
+  handleEventClick: (ev: CalRow) => void;
+  setQuickCreate: ReturnType<typeof useCalendarData>['setQuickCreate'];
+  gridRef: React.RefObject<HTMLDivElement | null>;
+};
+
+function CalendarGridViews(p: GridViewProps) {
+  const column = {
+    today: p.today,
+    nowMin: p.nowMin,
+    dragSelect: p.dragSelect,
+    goalChipFor: p.goalChipFor,
+    completedTodoIds: p.completedTodoIds,
+    getEventsForDay: p.getEventsForDay,
+    todosForDay: p.todosForDay,
+    handleColumnMouseDown: p.handleColumnMouseDown,
+    handleColumnMouseMove: p.handleColumnMouseMove,
+    handleColumnClick: p.handleColumnClick,
+    handleEventMouseDown: p.handleEventMouseDown,
+    handleEventContextMenu: p.handleEventContextMenu,
+    handleToggleTodo: p.handleToggleTodo,
+    setEditingTodo: p.setEditingTodo,
+    setEditingTodoTitle: p.setEditingTodoTitle,
+    setToastMessage: p.setToastMessage,
+    setSaving: p.setSaving,
+    scheduleTodoAt: p.scheduleTodoAt,
+    gridRef: p.gridRef,
+  };
+
+  if (p.calView === 'dzien') {
+    return (
+      <CalendarDayView
+        selectedDay={p.selectedDay}
+        setSelectedDay={p.setSelectedDay}
+        setWeekStart={p.setWeekStart}
+        weather={p.weather}
+        {...column}
+      />
+    );
+  }
+  if (p.calView === '3dni') {
+    return (
+      <Calendar3DayView
+        selectedDay={p.selectedDay}
+        setSelectedDay={p.setSelectedDay}
+        setWeekStart={p.setWeekStart}
+        weather={p.weather}
+        {...column}
+      />
+    );
+  }
+  if (p.calView === 'tydzien') {
+    return (
+      <CalendarWeekView
+        weekStart={p.weekStart}
+        setWeekStart={p.setWeekStart}
+        setSelectedDay={p.setSelectedDay}
+        weather={p.weather}
+        weekDays={p.weekDays}
+        {...column}
+      />
+    );
+  }
+  return (
+    <CalendarMonthView
+      selectedDay={p.selectedDay}
+      setSelectedDay={p.setSelectedDay}
+      setCalView={p.setCalView}
+      getEventsForDay={p.getEventsForDay}
+      todosForDay={p.todosForDay}
+      handleEventClick={p.handleEventClick}
+      setQuickCreate={p.setQuickCreate}
+      today={p.today}
+    />
+  );
+}
+
 export const CalendarGrid: React.FC<CalendarGridProps> = ({
   calData,
-  userId: _userId,
-  onSyncCalendar: _onSyncCalendar,
-  isSyncing: _isSyncing,
   handleToggleTodo,
   completedTodoIds,
   todosForDay,
@@ -76,153 +176,65 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   handleEventContextMenu,
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
-
   const {
-    calView, setCalView,
-    selectedDay, setSelectedDay,
-    weekStart, setWeekStart,
-    displayEvents: events,
-    weather,
-    nowMin,
-    setQuickCreate,
-    setQuickDuration,
-    setEditingTodo,
-    setEditingTodoTitle,
-    setToastMessage,
-    setSaving,
-    handleEventMouseDown,
-    handleEventClick,
+    calView, setCalView, selectedDay, setSelectedDay, weekStart, setWeekStart,
+    displayEvents: events, weather, nowMin, setQuickCreate, setQuickDuration,
+    setEditingTodo, setEditingTodoTitle, setToastMessage, setSaving,
+    handleEventMouseDown, handleEventClick,
   } = calData;
 
-  const { dragSelect, handleColumnMouseDown, handleColumnMouseMove } = useCalendarDragSelect({
-    setQuickDuration,
-    setQuickCreate,
+  const { onTouchStart, onTouchEnd, consumeSwipe } = useCalendarGridSwipe({
+    calView, selectedDay, weekStart, setSelectedDay, setWeekStart,
   });
-
+  const { dragSelect, handleColumnMouseDown, handleColumnMouseMove, handleColumnClick } = useCalendarDragSelect({
+    setQuickDuration, setQuickCreate, consumeSwipe,
+  });
   useInitialGridScroll(gridRef, calView);
 
   const today = useMemo(() => todayStr(), []);
   const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-
   const eventsByDay = useMemo(() => groupEventsByDay(events), [events]);
-
   const getEventsForDay = (day: string) => eventsByDay[day] || [];
-
-  const { onTouchStart, onTouchEnd } = useCalendarGridSwipe({
-    calView,
-    selectedDay,
-    weekStart,
-    setSelectedDay,
-    setWeekStart,
-  });
-
-  const renderContent = () => {
-    switch (calView) {
-      case 'dzien':
-        return (
-          <CalendarDayView
-            selectedDay={selectedDay}
-            setSelectedDay={setSelectedDay}
-            setWeekStart={setWeekStart}
-            weather={weather}
-            today={today}
-            nowMin={nowMin}
-            dragSelect={dragSelect}
-            goalChipFor={goalChipFor}
-            completedTodoIds={completedTodoIds}
-            getEventsForDay={getEventsForDay}
-            todosForDay={todosForDay}
-            handleColumnMouseDown={handleColumnMouseDown}
-            handleColumnMouseMove={handleColumnMouseMove}
-            handleEventMouseDown={handleEventMouseDown}
-            handleEventContextMenu={handleEventContextMenu}
-            handleToggleTodo={handleToggleTodo}
-            setEditingTodo={setEditingTodo}
-            setEditingTodoTitle={setEditingTodoTitle}
-            setToastMessage={setToastMessage}
-            setSaving={setSaving}
-            scheduleTodoAt={scheduleTodoAt}
-            gridRef={gridRef}
-          />
-        );
-      case '3dni':
-        return (
-          <Calendar3DayView
-            selectedDay={selectedDay}
-            setSelectedDay={setSelectedDay}
-            setWeekStart={setWeekStart}
-            weather={weather}
-            today={today}
-            nowMin={nowMin}
-            dragSelect={dragSelect}
-            goalChipFor={goalChipFor}
-            completedTodoIds={completedTodoIds}
-            getEventsForDay={getEventsForDay}
-            todosForDay={todosForDay}
-            handleColumnMouseDown={handleColumnMouseDown}
-            handleColumnMouseMove={handleColumnMouseMove}
-            handleEventMouseDown={handleEventMouseDown}
-            handleEventContextMenu={handleEventContextMenu}
-            handleToggleTodo={handleToggleTodo}
-            setEditingTodo={setEditingTodo}
-            setEditingTodoTitle={setEditingTodoTitle}
-            setToastMessage={setToastMessage}
-            setSaving={setSaving}
-            scheduleTodoAt={scheduleTodoAt}
-            gridRef={gridRef}
-          />
-        );
-      case 'tydzien':
-        return (
-          <CalendarWeekView
-            weekStart={weekStart}
-            setWeekStart={setWeekStart}
-            setSelectedDay={setSelectedDay}
-            weather={weather}
-            today={today}
-            nowMin={nowMin}
-            weekDays={weekDays}
-            dragSelect={dragSelect}
-            goalChipFor={goalChipFor}
-            completedTodoIds={completedTodoIds}
-            getEventsForDay={getEventsForDay}
-            todosForDay={todosForDay}
-            handleColumnMouseDown={handleColumnMouseDown}
-            handleColumnMouseMove={handleColumnMouseMove}
-            handleEventMouseDown={handleEventMouseDown}
-            handleEventContextMenu={handleEventContextMenu}
-            handleToggleTodo={handleToggleTodo}
-            setEditingTodo={setEditingTodo}
-            setEditingTodoTitle={setEditingTodoTitle}
-            setToastMessage={setToastMessage}
-            setSaving={setSaving}
-            scheduleTodoAt={scheduleTodoAt}
-            gridRef={gridRef}
-          />
-        );
-      case 'miesiac':
-        return (
-          <CalendarMonthView
-            selectedDay={selectedDay}
-            setSelectedDay={setSelectedDay}
-            setCalView={setCalView}
-            getEventsForDay={getEventsForDay}
-            todosForDay={todosForDay}
-            handleEventClick={handleEventClick}
-            setQuickCreate={setQuickCreate}
-            today={today}
-          />
-        );
-    }
-  };
 
   return (
     <div
-      className="flex-1 flex flex-col min-h-0 overflow-hidden"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      {renderContent()}
+      <CalendarGridViews
+        calView={calView}
+        selectedDay={selectedDay}
+        setSelectedDay={setSelectedDay}
+        weekStart={weekStart}
+        setWeekStart={setWeekStart}
+        setCalView={setCalView}
+        weather={weather}
+        today={today}
+        nowMin={nowMin}
+        weekDays={weekDays}
+        dragSelect={dragSelect}
+        goalChipFor={goalChipFor}
+        completedTodoIds={completedTodoIds}
+        getEventsForDay={getEventsForDay}
+        todosForDay={todosForDay}
+        handleColumnMouseDown={handleColumnMouseDown}
+        handleColumnMouseMove={handleColumnMouseMove}
+        handleColumnClick={handleColumnClick}
+        handleEventMouseDown={handleEventMouseDown}
+        handleEventContextMenu={handleEventContextMenu}
+        handleToggleTodo={handleToggleTodo}
+        setEditingTodo={setEditingTodo}
+        setEditingTodoTitle={setEditingTodoTitle}
+        setToastMessage={setToastMessage}
+        setSaving={setSaving}
+        scheduleTodoAt={scheduleTodoAt}
+        handleEventClick={handleEventClick}
+        setQuickCreate={setQuickCreate}
+        gridRef={gridRef}
+      />
     </div>
   );
 };
+
+

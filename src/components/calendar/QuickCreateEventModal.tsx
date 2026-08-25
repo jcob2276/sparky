@@ -97,7 +97,7 @@ export const QuickCreateEventModal: React.FC<QuickCreateEventModalProps> = ({ ca
                   key={d}
                   type="button"
                   onClick={() => setQuickDuration(d)}
-                  className={`flex-1 text-xs font-bold py-1.5 rounded-lg border transition-all ${
+                  className={`flex-1 min-h-11 text-xs font-bold py-1.5 rounded-lg border transition-all ${
                     quickDuration === d
                       ? 'bg-primary/15 border-primary/40 text-primary font-black shadow-sm'
                       : 'border-border-custom/30 bg-surface-solid/30 text-text-muted hover:text-text-primary'

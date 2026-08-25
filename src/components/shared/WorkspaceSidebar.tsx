@@ -8,6 +8,8 @@ export interface WorkspaceSidebarProps {
   onCollapse?: () => void;
   collapsible?: 'offcanvas' | 'icon' | 'none';
   variant?: 'sidebar' | 'floating' | 'inset';
+  /** When false, parent must wrap with SidebarProvider (e.g. calendar mobile trigger in header). */
+  provideContext?: boolean;
 }
 
 function WorkspaceSidebarInner({
@@ -19,16 +21,20 @@ function WorkspaceSidebarInner({
   className?: string;
   onCollapse?: () => void;
 }) {
-  const { state } = useSidebar();
+  const { state, isMobile } = useSidebar();
   const isCollapsed = state === 'collapsed';
 
   return (
-    <Sidebar className={className}>
+    <Sidebar className={className} mobileTitle="Kalendarz">
       <SidebarHeader className={`flex items-center py-2 px-3 border-b border-border-custom/20 mb-1.5 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
         {!isCollapsed && (
           <span className="pixel-label text-text-muted/60 tracking-wider">Workspace</span>
         )}
-        <SidebarTrigger onClick={onCollapse} className="hover:bg-surface-2 rounded-lg" />
+        {/* Mobile: toggle sheet via context. Desktop: sync external collapsed flag. */}
+        <SidebarTrigger
+          onClick={isMobile ? undefined : onCollapse}
+          className="hover:bg-surface-2 rounded-lg"
+        />
       </SidebarHeader>
       {children}
       <SidebarRail />
@@ -43,7 +49,16 @@ export default function WorkspaceSidebar({
   onCollapse,
   collapsible = 'icon',
   variant = 'sidebar',
+  provideContext = true,
 }: WorkspaceSidebarProps) {
+  const inner = (
+    <WorkspaceSidebarInner className={className} onCollapse={onCollapse}>
+      {children}
+    </WorkspaceSidebarInner>
+  );
+
+  if (!provideContext) return inner;
+
   return (
     <SidebarProvider
       defaultOpen={collapsed !== undefined ? !collapsed : true}
@@ -56,9 +71,7 @@ export default function WorkspaceSidebar({
       collapsible={collapsible}
       variant={variant}
     >
-      <WorkspaceSidebarInner className={className} onCollapse={onCollapse}>
-        {children}
-      </WorkspaceSidebarInner>
+      {inner}
     </SidebarProvider>
   );
 }

@@ -33,6 +33,7 @@ interface CalendarDayViewProps {
   todosForDay: (day: string) => CalendarTodo[];
   handleColumnMouseDown: (day: string, e: React.MouseEvent) => void;
   handleColumnMouseMove: (day: string, e: React.MouseEvent) => void;
+  handleColumnClick?: (day: string, e: React.MouseEvent) => void;
   handleEventMouseDown: (ev: CalRow, e: React.MouseEvent<HTMLDivElement>, action: 'move' | 'resize') => void;
   handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
   handleToggleTodo: (id: string) => void;
@@ -58,6 +59,7 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
   todosForDay,
   handleColumnMouseDown,
   handleColumnMouseMove,
+  handleColumnClick,
   handleEventMouseDown,
   handleEventContextMenu,
   handleToggleTodo,
@@ -82,10 +84,10 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
           }}
           icon={<ChevronLeft size={18} className="text-text-muted" />}
           aria-label="Poprzedni dzień"
-          className="p-2 min-w-0 rounded-full"
+          className="min-h-11 min-w-11 p-2 rounded-full"
         />
         <div className="text-center flex flex-col items-center">
-          <p className="text-base font-bold text-text-primary">{monthLabel(selectedDay)}</p>
+          <p className="hidden text-base font-bold text-text-primary md:block">{monthLabel(selectedDay)}</p>
           {weather?.daily?.[selectedDay] && (
             <div className="flex items-center gap-1 mt-0.5 text-xs font-bold text-text-muted cursor-help" title={WMO_WEATHER_DESC[weather.daily[selectedDay].weatherCode]}>
               {getWMOWeatherIcon(weather.daily[selectedDay].weatherCode, 13)}
@@ -114,7 +116,7 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
           }}
           icon={<ChevronRight size={18} className="text-text-muted" />}
           aria-label="Następny dzień"
-          className="p-2 min-w-0 rounded-full"
+          className="min-h-11 min-w-11 p-2 rounded-full"
         />
       </div>
       {renderAllDayTodos({
@@ -142,6 +144,7 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
               completedTodoIds,
               handleColumnMouseDown,
               handleColumnMouseMove,
+              handleColumnClick,
               handleEventMouseDown,
               handleEventContextMenu,
               handleToggleTodo,

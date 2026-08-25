@@ -4,10 +4,10 @@ import { ChevronLeft } from 'lucide-react';
 import PageToolbar from './PageToolbar';
 import Tabs from '../ui/Tabs';
 
-interface WorkspaceHeaderTab { key: string; label: string; icon?: ReactNode }
+interface WorkspaceHeaderTab { key: string; label: ReactNode; icon?: ReactNode }
 
 interface WorkspaceHeaderProps {
-  title: string;
+  title: ReactNode;
   subtitle?: string;
   onBack: () => void;
   leading?: ReactNode;

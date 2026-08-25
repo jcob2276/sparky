@@ -176,6 +176,7 @@ const NO_COLOR_GUARD_EXCEPTIONS = [
 // toLocaleDateString('pl-PL', ...) inside them is correct, not debt. Permanent, not a ratchet.
 const CANONICAL_DATE_FORMATTERS = [
   'src/components/calendar/calendarHelpers.ts',
+  'src/components/calendar/calendarRangeLabel.ts',
   'src/components/notes/keepUtils.ts',
   'src/components/todo/weekly/weeklyHelpers.ts',
   'src/components/todo/todoUtils.ts',

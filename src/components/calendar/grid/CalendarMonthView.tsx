@@ -1,10 +1,12 @@
 import { Pressable } from '../../ui/ControlPrimitives';
 import React, { useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
-import { getMonthGridDays, eventColor, formatRangeLabel, formatTime } from '../calendarHelpers';
+import { getMonthGridDays, eventColor, formatTime } from '../calendarHelpers';
+import { formatRangeLabel } from '../calendarRangeLabel';
 import type { CalRow } from '../calendarHelpers';
 import type { CalendarTodo } from '../hooks/useCalendarTodos';
 import { getPolishHolidayForDate } from '../../../lib/holidays';
+import { LIFE_SPHERES } from '../../../lib/projects/lifeSpheres';
 
 interface CalendarMonthViewProps {
   selectedDay: string;
@@ -17,7 +19,164 @@ interface CalendarMonthViewProps {
   today: string;
 }
 
-const WEEKDAY_NAMES = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Niedz'];
+const WEEKDAY_NAMES = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'];
+
+function categoryDotClass(category: string): string {
+  const normalized = category.replace('ciało_', 'cialo_');
+  const sphere = LIFE_SPHERES.find((s) => s.id === normalized);
+  return sphere?.dot ?? 'bg-primary';
+}
+
+function CategoryDots({ categories, className }: { categories: string[]; className?: string }) {
+  if (categories.length === 0) return null;
+  return (
+    <div className={className}>
+      {categories.map((cat) => (
+        <span key={cat} className={`h-1.5 w-1.5 rounded-full ${categoryDotClass(cat)}`} />
+      ))}
+    </div>
+  );
+}
+
+interface MonthDayCellProps {
+  dateStr: string;
+  dayNumber: number;
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  isSelected: boolean;
+  dayEvents: CalRow[];
+  dayTodos: CalendarTodo[];
+  onOpenDay: (dateStr: string) => void;
+  onQuickCreate: (dateStr: string) => void;
+  onEventClick: (ev: CalRow) => void;
+}
+
+function MonthDayCell({
+  dateStr,
+  dayNumber,
+  isCurrentMonth,
+  isToday,
+  isSelected,
+  dayEvents,
+  dayTodos,
+  onOpenDay,
+  onQuickCreate,
+  onEventClick,
+}: MonthDayCellProps) {
+  const holiday = getPolishHolidayForDate(dateStr);
+  const maxVisible = holiday ? 2 : 3;
+  const overflowCount = Math.max(0, dayEvents.length + dayTodos.length - maxVisible);
+  const categories = Array.from(new Set(dayEvents.map((e) => e.category || 'default'))).slice(0, 3);
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpenDay(dateStr)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onOpenDay(dateStr);
+        }
+      }}
+      className={`calendar-month-cell group relative flex min-h-[var(--ds-h-90px)] cursor-pointer flex-col p-1.5 transition-colors hover:bg-surface-solid/40 ${
+        !isCurrentMonth ? 'bg-surface-solid/10 text-text-muted/40' : ''
+      } ${isToday ? 'bg-primary/[0.04]' : ''} ${isSelected ? 'ring-1 ring-inset ring-primary/40' : ''}`}
+    >
+      <div className="mb-1 flex items-center justify-between">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <span
+            className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black transition-transform ${
+              isToday
+                ? 'bg-primary text-on-accent shadow-md scale-105'
+                : isCurrentMonth
+                  ? 'text-text-primary'
+                  : 'text-text-muted/40'
+            }`}
+          >
+            {dayNumber}
+          </span>
+
+          {(dayEvents.length > 0 || dayTodos.length > 0) && (
+            <div className="calendar-month-dots flex items-center gap-0.5 md:hidden">
+              {categories.length > 0 ? (
+                <CategoryDots categories={categories} className="flex items-center gap-0.5" />
+              ) : (
+                <span className="h-1.5 w-1.5 rounded-full bg-text-muted" />
+              )}
+              {overflowCount > 0 && categories.length >= 3 && (
+                <span className="text-3xs font-bold text-text-muted">+</span>
+              )}
+            </div>
+          )}
+
+          <CategoryDots categories={categories} className="hidden items-center gap-1 md:flex" />
+        </div>
+
+        <Pressable
+          onClick={(e) => {
+            e.stopPropagation();
+            onQuickCreate(dateStr);
+          }}
+          className="hidden min-h-9 min-w-9 rounded-full p-1.5 text-text-muted opacity-100 transition-opacity hover:bg-surface-solid md:flex md:opacity-0 md:group-hover:opacity-100"
+          title="Dodaj wydarzenie"
+          aria-label={`Dodaj wydarzenie ${dateStr}`}
+        >
+          <Plus size={12} />
+        </Pressable>
+      </div>
+
+      {holiday && (
+        <div
+          className="mb-0.5 shrink-0 truncate rounded border border-warning/20 bg-warning/10 px-1 py-0.5 text-3xs font-black text-warning select-none"
+          title={holiday.name}
+        >
+          {holiday.name}
+        </div>
+      )}
+
+      <div className="calendar-month-event-pill flex-1 space-y-1 overflow-hidden md:!block">
+        {dayEvents.slice(0, maxVisible).map((ev) => (
+          <div
+            key={ev.id}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEventClick(ev);
+            }}
+            className={`cursor-pointer truncate rounded px-1.5 py-0.5 text-3xs font-medium transition-transform hover:scale-[var(--scale-hover)] ${eventColor(ev)}`}
+            title={`${ev.summary} (${ev.start_time ? formatTime(ev.start_time) : ''})`}
+          >
+            {ev.start_time && <span className="mr-1 font-bold">{formatTime(ev.start_time)}</span>}
+            {ev.summary}
+          </div>
+        ))}
+
+        {dayEvents.length < maxVisible &&
+          dayTodos.slice(0, maxVisible - dayEvents.length).map((todo) => (
+            <div
+              key={todo.id}
+              className="truncate rounded border border-border-custom/50 bg-surface-solid/80 px-1.5 py-0.5 text-3xs font-medium text-text-secondary"
+              title={todo.title}
+            >
+              ✓ {todo.title}
+            </div>
+          ))}
+
+        {overflowCount > 0 && (
+          <Pressable
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenDay(dateStr);
+            }}
+            className="w-full pt-0.5 text-left text-3xs font-bold text-primary hover:underline"
+          >
+            +{overflowCount} więcej…
+          </Pressable>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
   selectedDay,
@@ -40,156 +199,49 @@ export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
     setSelectedDay(`${y}-${m}-01`);
   };
 
+  const openDay = (dateStr: string) => {
+    setSelectedDay(dateStr);
+    setCalView('dzien');
+  };
+
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-background select-none">
-      {/* Month Navigation Bar */}
-      <div className="flex items-center justify-between border-b border-border-custom/40 px-4 py-3 bg-surface-solid/20">
-        <div className="flex items-center gap-2">
-          <Pressable onClick={() => changeMonth(-1)} className="rounded-full p-2 hover:bg-surface-solid">
+    <div className="flex min-h-0 flex-1 flex-col bg-background select-none">
+      <div className="calendar-period-header flex items-center justify-between border-b border-border-custom/40 bg-surface-solid/20 px-3 py-2">
+        <div className="flex items-center gap-1">
+          <Pressable onClick={() => changeMonth(-1)} className="min-h-11 min-w-11 rounded-full p-2 hover:bg-surface-solid" aria-label="Poprzedni miesiąc">
             <ChevronLeft size={18} className="text-text-muted" />
           </Pressable>
           <p className="text-sm font-black uppercase tracking-wider text-text-primary">
             {formatRangeLabel('miesiac', selectedDay, selectedDay)}
           </p>
         </div>
-        <Pressable onClick={() => changeMonth(1)} className="rounded-full p-2 hover:bg-surface-solid">
+        <Pressable onClick={() => changeMonth(1)} className="min-h-11 min-w-11 rounded-full p-2 hover:bg-surface-solid" aria-label="Następny miesiąc">
           <ChevronRight size={18} className="text-text-muted" />
         </Pressable>
       </div>
 
-      {/* Weekday Columns Header */}
-      <div className="grid grid-cols-7 border-b border-border-custom/40 bg-surface-solid/30 py-2 text-center text-xs font-black uppercase tracking-wider text-text-muted">
+      <div className="calendar-month-weekday grid grid-cols-7 border-b border-border-custom/40 bg-surface-solid/30 py-2 text-center text-xs font-black uppercase tracking-wider text-text-muted">
         {WEEKDAY_NAMES.map((name) => (
           <div key={name}>{name}</div>
         ))}
       </div>
 
-      {/* Month Cells Grid */}
-      <div className="grid flex-1 grid-cols-7 grid-rows-5 md:grid-rows-6 divide-x divide-y divide-border-custom/30 overflow-y-auto">
-        {gridDays.map((cell) => {
-          const dayEvents = getEventsForDay(cell.dateStr);
-          const dayTodos = todosForDay(cell.dateStr);
-          const holiday = getPolishHolidayForDate(cell.dateStr);
-          const maxVisible = holiday ? 2 : 3;
-          const overflowCount = Math.max(0, dayEvents.length + dayTodos.length - maxVisible);
-
-          return (
-            <div
-              key={cell.dateStr}
-              onClick={() => {
-                setSelectedDay(cell.dateStr);
-              }}
-              className={`group relative flex flex-col p-1.5 transition-colors hover:bg-surface-solid/40 min-h-[var(--ds-h-90px)] ${
-                !cell.isCurrentMonth ? 'bg-surface-solid/10 text-text-muted/40' : ''
-              } ${cell.isToday ? 'bg-primary/[0.04]' : ''}`}
-            >
-              {/* Day Header inside Cell */}
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5">
-                  <span
-                    className={`flex h-6.5 w-6.5 items-center justify-center rounded-full text-xs font-black transition-transform ${
-                      cell.isToday
-                        ? 'bg-primary text-on-accent shadow-md scale-105'
-                        : cell.isCurrentMonth
-                        ? 'text-text-primary'
-                        : 'text-text-muted/40'
-                    }`}
-                  >
-                    {cell.dayNumber}
-                  </span>
-
-                  {/* FSCalendar Category Dots */}
-                  {dayEvents.length > 0 && (
-                    <div className="flex items-center gap-1">
-                      {Array.from(new Set(dayEvents.map((e) => e.category || 'default'))).slice(0, 3).map((cat) => (
-                        <span
-                          key={cat}
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            cat === 'ciało_trening'
-                              ? 'bg-success'
-                              : cat === 'praca'
-                              ? 'bg-primary'
-                              : cat === 'finanse'
-                              ? 'bg-warning'
-                              : cat === 'relacje_rodzina'
-                              ? 'bg-purple-500'
-                              : cat === 'duch_refleksja'
-                              ? 'bg-indigo-500'
-                              : 'bg-primary'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                <Pressable
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setQuickCreate({ date: cell.dateStr, startMin: 540 });
-                  }}
-                  className="opacity-0 group-hover:opacity-100 p-1 rounded-full hover:bg-surface-solid text-text-muted transition-opacity"
-                  title="Dodaj wydarzenie"
-                >
-                  <Plus size={12} />
-                </Pressable>
-              </div>
-
-              {holiday && (
-                <div
-                  className="truncate text-3xs font-black text-warning bg-warning/10 px-1 py-0.5 rounded border border-warning/20 mb-0.5 shrink-0 select-none"
-                  title={holiday.name}
-                >
-                  🇵🇱 {holiday.name}
-                </div>
-              )}
-
-              {/* Event & Task Pills */}
-              <div className="flex-1 space-y-1 overflow-hidden">
-                {dayEvents.slice(0, maxVisible).map((ev) => (
-                  <div
-                    key={ev.id}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEventClick(ev);
-                    }}
-                    className={`truncate rounded px-1.5 py-0.5 text-3xs font-medium cursor-pointer transition-transform hover:scale-[var(--scale-hover)] ${eventColor(
-                      ev
-                    )}`}
-                    title={`${ev.summary} (${ev.start_time ? formatTime(ev.start_time) : ''})`}
-                  >
-                    {ev.start_time && <span className="font-bold mr-1">{formatTime(ev.start_time)}</span>}
-                    {ev.summary}
-                  </div>
-                ))}
-
-                {dayEvents.length < maxVisible &&
-                  dayTodos.slice(0, maxVisible - dayEvents.length).map((todo) => (
-                    <div
-                      key={todo.id}
-                      className="truncate rounded bg-surface-solid/80 border border-border-custom/50 px-1.5 py-0.5 text-3xs font-medium text-text-secondary"
-                      title={todo.title}
-                    >
-                      ✓ {todo.title}
-                    </div>
-                  ))}
-
-                {overflowCount > 0 && (
-                  <Pressable
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedDay(cell.dateStr);
-                      setCalView('dzien');
-                    }}
-                    className="w-full text-left text-3xs font-bold text-primary hover:underline pt-0.5"
-                  >
-                    +{overflowCount} więcej…
-                  </Pressable>
-                )}
-              </div>
-            </div>
-          );
-        })}
+      <div className="grid flex-1 grid-cols-7 grid-rows-5 divide-x divide-y divide-border-custom/30 overflow-y-auto md:grid-rows-6">
+        {gridDays.map((cell) => (
+          <MonthDayCell
+            key={cell.dateStr}
+            dateStr={cell.dateStr}
+            dayNumber={cell.dayNumber}
+            isCurrentMonth={cell.isCurrentMonth}
+            isToday={cell.isToday}
+            isSelected={cell.dateStr === selectedDay}
+            dayEvents={getEventsForDay(cell.dateStr)}
+            dayTodos={todosForDay(cell.dateStr)}
+            onOpenDay={openDay}
+            onQuickCreate={(d) => setQuickCreate({ date: d, startMin: 540 })}
+            onEventClick={handleEventClick}
+          />
+        ))}
       </div>
     </div>
   );

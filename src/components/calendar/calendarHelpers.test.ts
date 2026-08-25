@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getWarsawOffset } from './calendarHelpers';
+import { formatRangeLabel } from './calendarRangeLabel';
 
 describe('getWarsawOffset', () => {
   it('returns +01:00 for winter standard time (January)', () => {
@@ -38,5 +39,18 @@ describe('getWarsawOffset', () => {
 
   it('throws an error if an invalid date is passed', () => {
     expect(() => getWarsawOffset('invalid-date-string')).toThrow();
+  });
+});
+
+describe('formatRangeLabel', () => {
+  it('returns a short day label in compact mode', () => {
+    const label = formatRangeLabel('dzien', '2026-08-25', '2026-08-24', true);
+    expect(label).toMatch(/25/);
+    expect(label).not.toMatch(/2026/);
+    expect(label.length).toBeLessThan(24);
+  });
+
+  it('returns week number in compact week mode', () => {
+    expect(formatRangeLabel('tydzien', '2026-08-25', '2026-08-24', true)).toBe('Tydz. 35');
   });
 });

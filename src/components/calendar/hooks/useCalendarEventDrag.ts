@@ -42,6 +42,10 @@ export function useCalendarEventDrag({
     e.preventDefault();
 
     if (!ev.start_time || !ev.end_time) return;
+    if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) {
+      onEventClick(ev);
+      return;
+    }
     if (ev.series_id) {
       onEventClick(ev);
       setToastMessage('Cykliczne wydarzenie zmienisz bezpiecznie w edycji całej serii.');

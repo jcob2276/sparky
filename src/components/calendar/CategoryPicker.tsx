@@ -17,7 +17,7 @@ export default function CategoryPicker({ selected, onSelect }: CategoryPickerPro
             key={cat.id || 'none'}
             type="button"
             onClick={() => onSelect(cat.id)}
-            className={`flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-lg border transition-all duration-[var(--motion-fast)] select-none ${
+            className={`flex items-center gap-1.5 text-xs font-bold px-3 min-h-11 rounded-lg border transition-all duration-[var(--motion-fast)] select-none ${
               isSelected
                 ? cat.id
                   ? 'bg-primary/15 border-primary/40 text-text-primary shadow-sm font-black'

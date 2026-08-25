@@ -25,6 +25,7 @@ interface CalendarWeekViewProps {
   todosForDay: (day: string) => CalendarTodo[];
   handleColumnMouseDown: (day: string, e: React.MouseEvent) => void;
   handleColumnMouseMove: (day: string, e: React.MouseEvent) => void;
+  handleColumnClick?: (day: string, e: React.MouseEvent) => void;
   handleEventMouseDown: (ev: CalRow, e: React.MouseEvent<HTMLDivElement>, action: 'move' | 'resize') => void;
   handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
   handleToggleTodo: (id: string) => void;
@@ -39,7 +40,7 @@ interface CalendarWeekViewProps {
 export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
   weekStart, setWeekStart, setSelectedDay, weather, today, nowMin, weekDays, dragSelect,
   goalChipFor, completedTodoIds, getEventsForDay, todosForDay, handleColumnMouseDown,
-  handleColumnMouseMove, handleEventMouseDown, handleEventContextMenu, handleToggleTodo,
+  handleColumnMouseMove, handleColumnClick, handleEventMouseDown, handleEventContextMenu, handleToggleTodo,
   setEditingTodo, setEditingTodoTitle, setToastMessage, setSaving, scheduleTodoAt, gridRef,
 }) => {
   const topScrollRef = React.useRef<HTMLDivElement>(null);
@@ -57,12 +58,12 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="calendar-period-header flex items-center justify-between border-b border-border-custom/20 px-4 py-2 select-none">
-        <Pressable onClick={() => moveWeek(-7)} className="rounded-full p-2 hover:bg-surface-solid">
+        <Pressable onClick={() => moveWeek(-7)} className="rounded-full p-2 min-h-11 min-w-11 hover:bg-surface-solid" aria-label="Poprzedni tydzień">
           <ChevronLeft size={18} className="text-text-muted" />
         </Pressable>
-        <div className="text-center flex flex-col items-center">
+        <div className="text-center flex flex-col items-center min-w-0 px-1">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-bold text-text-primary">{dayLabel(weekStart)} – {dayLabel(addDays(weekStart, 6))}</p>
+            <p className="hidden text-sm font-bold text-text-primary md:block">{dayLabel(weekStart)} – {dayLabel(addDays(weekStart, 6))}</p>
             <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary font-black text-xs border border-primary/30">
               Tydz. {currentWeekNumber}
             </span>
@@ -77,7 +78,7 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
             </Pressable>
           )}
         </div>
-        <Pressable onClick={() => moveWeek(7)} className="rounded-full p-2 hover:bg-surface-solid">
+        <Pressable onClick={() => moveWeek(7)} className="rounded-full p-2 min-h-11 min-w-11 hover:bg-surface-solid" aria-label="Następny tydzień">
           <ChevronRight size={18} className="text-text-muted" />
         </Pressable>
       </div>
@@ -102,7 +103,7 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
                     {formatWeekdayShort(day)}
                   </p>
                   {forecast && (
-                    <div className="mt-0.5 flex items-center gap-1" title={`${WMO_WEATHER_DESC[forecast.weatherCode]}: ${forecast.tempMax}°C / ${forecast.tempMin}°C`}>
+                    <div className="mt-0.5 hidden items-center gap-1 md:flex" title={`${WMO_WEATHER_DESC[forecast.weatherCode]}: ${forecast.tempMax}°C / ${forecast.tempMin}°C`}>
                       {getWMOWeatherIcon(forecast.weatherCode, 12)}
                       <span className="text-3xs font-bold text-text-muted">{forecast.tempMax}°</span>
                     </div>
@@ -113,12 +114,12 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
                   {isPast && score != null && (
                     <span
                       title={`Ocena dnia: ${score}/10`}
-                      className={`mt-1 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-3xs font-black tabular-nums border ${
+                      className={`mt-1 hidden md:inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-3xs font-black tabular-nums border ${
                         score >= 8
-                          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/40'
+                          ? 'bg-success/15 text-success border-success/40'
                           : score >= 5
-                          ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/40'
-                          : 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-500/40'
+                          ? 'bg-warning/15 text-warning border-warning/40'
+                          : 'bg-danger/15 text-danger border-danger/40'
                       }`}
                     >
                       {score}
@@ -152,7 +153,7 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
                 day, today, nowMin, dayEvents: getEventsForDay(day),
                 dayTodos: todosForDay(day).filter(todo => todo.scheduled_time), dragSelect,
                 goalChipFor, completedTodoIds, handleColumnMouseDown, handleColumnMouseMove,
-                handleEventMouseDown, handleEventContextMenu, handleToggleTodo, setEditingTodo, setEditingTodoTitle,
+                handleColumnClick, handleEventMouseDown, handleEventContextMenu, handleToggleTodo, setEditingTodo, setEditingTodoTitle,
                 setToastMessage, setSaving, scheduleTodoAt,
               })}
             </div>

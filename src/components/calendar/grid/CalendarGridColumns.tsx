@@ -90,6 +90,7 @@ export const renderDayColumn = ({
   completedTodoIds,
   handleColumnMouseDown,
   handleColumnMouseMove,
+  handleColumnClick,
   handleEventMouseDown,
   handleEventContextMenu,
   handleToggleTodo,
@@ -115,6 +116,7 @@ export const renderDayColumn = ({
       style={{ height: HOURS * PX_PER_HOUR }}
       onMouseDown={(e) => handleColumnMouseDown(day, e)}
       onMouseMove={(e) => handleColumnMouseMove(day, e)}
+      onClick={(e) => handleColumnClick?.(day, e)}
       onDragOver={(e) => {
         e.preventDefault();
         e.currentTarget.classList.add('bg-primary/5');

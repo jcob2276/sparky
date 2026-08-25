@@ -57,8 +57,8 @@ function Field({
         {label}
       </label>
       <ControlInput
-        type="number" step="0.1" value={value}
-        onChange={(e) => onChange(e.target.value)}
+        type="text" inputMode="decimal" value={value}
+        onChange={(e) => onChange(e.target.value.replace(',', '.'))}
         placeholder={placeholder ?? '--'}
         className="w-full rounded-xl border border-border-custom bg-surface p-3 text-base font-black text-text-primary outline-none transition-all placeholder:text-text-muted focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
       />
@@ -116,8 +116,8 @@ export function BodyMetricsSection({
               <TrendArrow current={trends.weight?.cur} previous={trends.weight?.prev} better="down" />
             </label>
             <ControlInput
-              type="number" step="0.1" value={newMetric.weight}
-              onChange={(e) => setNewMetric({ ...newMetric, weight: e.target.value })}
+              type="text" inputMode="decimal" value={newMetric.weight}
+              onChange={(e) => setNewMetric({ ...newMetric, weight: e.target.value.replace(',', '.') })}
               className="w-full rounded-xl border border-border-custom bg-surface p-3.5 text-lg font-black text-text-primary outline-none transition-all placeholder:text-text-muted focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
               placeholder={latestBody?.weight ? String(latestBody.weight) : '--'}
             />
@@ -128,8 +128,8 @@ export function BodyMetricsSection({
               <TrendArrow current={trends.waist?.cur} previous={trends.waist?.prev} better="down" />
             </label>
             <ControlInput
-              type="number" step="0.1" value={newMetric.waist}
-              onChange={(e) => setNewMetric({ ...newMetric, waist: e.target.value })}
+              type="text" inputMode="decimal" value={newMetric.waist}
+              onChange={(e) => setNewMetric({ ...newMetric, waist: e.target.value.replace(',', '.') })}
               className="w-full rounded-xl border border-border-custom bg-surface p-3.5 text-lg font-black text-text-primary outline-none transition-all placeholder:text-text-muted focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
               placeholder={latestBody?.waist ? String(latestBody.waist) : '--'}
             />

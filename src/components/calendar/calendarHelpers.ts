@@ -312,37 +312,3 @@ export function getISOWeekNumber(dateStr: string): number {
   return 1 + Math.round(dayDiff / 7);
 }
 
-export function formatRangeLabel(calView: string, selectedDay: string, weekStart: string): string {
-  const [y, m, d] = selectedDay.split('-').map(Number);
-  const selDate = new Date(y, m - 1, d);
-  const weekNum = getISOWeekNumber(selectedDay);
-
-  if (calView === 'dzien') {
-    return `${selDate.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })} (Tydz. ${weekNum})`;
-  }
-  if (calView === '3dni') {
-    const endStr = addDays(selectedDay, 2);
-    const [ey, em, ed] = endStr.split('-').map(Number);
-    const endDate = new Date(ey, em - 1, ed);
-    if (m === em) {
-      return `${d}–${ed} ${selDate.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })} (Tydz. ${weekNum})`;
-    }
-    return `${d} ${selDate.toLocaleDateString('pl-PL', { month: 'short' })} – ${ed} ${endDate.toLocaleDateString('pl-PL', { month: 'short', year: 'numeric' })} (Tydz. ${weekNum})`;
-  }
-  if (calView === 'tydzien') {
-    const weekEnd = addDays(weekStart, 6);
-    const [sy, sm, sd] = weekStart.split('-').map(Number);
-    const [ey, em, ed] = weekEnd.split('-').map(Number);
-    const sDate = new Date(sy, sm - 1, sd);
-    const eDate = new Date(ey, em - 1, ed);
-    const wNum = getISOWeekNumber(weekStart);
-    if (sm === em) {
-      return `${sd}–${ed} ${sDate.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })} (Tydz. ${wNum})`;
-    }
-    return `${sd} ${sDate.toLocaleDateString('pl-PL', { month: 'short' })} – ${ed} ${eDate.toLocaleDateString('pl-PL', { month: 'short', year: 'numeric' })} (Tydz. ${wNum})`;
-  }
-  if (calView === 'miesiac') {
-    return selDate.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
-  }
-  return selDate.toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' });
-}

@@ -36,7 +36,12 @@ export interface QuickCreateState {
 export function useCalendarData(userId: string | undefined, accessToken: string | undefined) {
   const queryClient = useQueryClient();
   const today = todayStr();
-  const [calView, setCalView] = useState<'dzien' | '3dni' | 'tydzien' | 'miesiac'>('tydzien');
+  const [calView, setCalView] = useState<'dzien' | '3dni' | 'tydzien' | 'miesiac'>(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches) {
+      return 'dzien';
+    }
+    return 'tydzien';
+  });
   const [selectedDay, setSelectedDay] = useState(today);
   const [weekStart, setWeekStart] = useState(() => weekMon(today));
 

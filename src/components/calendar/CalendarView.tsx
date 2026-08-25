@@ -24,13 +24,12 @@ import CalendarSidebar from './components/CalendarSidebar';
 import CalendarHeader from './components/CalendarHeader';
 import CalendarTodoModal from './components/CalendarTodoModal';
 import CalendarBudgetModal from './components/CalendarBudgetModal';
-import Fab from '../ui/Fab';
+import CalendarShell from './components/CalendarShell';
 
 import { calculateWeeklyTotals } from './calendarView/calendarViewHelpers';
 import { useCalendarActions } from './calendarView/hooks/useCalendarActions';
 import { useCalendarIntegrations } from './calendarView/hooks/useCalendarIntegrations';
 import { useCalendarEffects } from './calendarView/hooks/useCalendarEffects';
-import WorkspaceNavigation from '../shared/WorkspaceNavigation';
 import './calendar.css';
 
 interface Props {
@@ -263,32 +262,34 @@ export default function CalendarView({
 
   return (
     <CalendarContext.Provider value={contextValue}>
-      <div className="calendar-shell flex h-screen bg-background overflow-hidden relative font-sans">
-        <CalendarSidebar
-          onBack={onBack}
-          onNavigateTo={onNavigateTo}
-          collapsed={calData.sidebarCollapsed}
-          onToggleCollapse={calData.toggleSidebar}
-        />
-
-        <div className="flex-1 flex flex-col min-w-0 bg-surface/5">
-          <CalendarHeader onBack={onBack} />
-
-          <CalendarGrid
-            calData={calData}
-            userId={userId}
-            onSyncCalendar={onSyncCalendar}
-            isSyncing={isSyncing}
-            handleToggleTodo={calTodos.handleToggleTodo}
-            completedTodoIds={calTodos.completedTodoIds}
-            todosForDay={calTodos.todosForDay}
-            goalChipFor={calTodos.goalChipFor}
-            scheduleTodoAt={calTodos.scheduleTodoAt}
-            handleEventContextMenu={handleEventContextMenu}
+      <CalendarShell
+        sidebarCollapsed={calData.sidebarCollapsed}
+        onToggleCollapse={calData.toggleSidebar}
+        onNavigateTo={onNavigateTo}
+        onQuickCreate={() => calData.setQuickCreate({ date: calData.selectedDay, startMin: 540 })}
+        toastMessage={calData.toastMessage}
+        sidebar={
+          <CalendarSidebar
+            onBack={onBack}
+            onNavigateTo={onNavigateTo}
+            collapsed={calData.sidebarCollapsed}
+            onToggleCollapse={calData.toggleSidebar}
           />
-        </div>
-
-        {/* Apple Calendar Glassmorphic Context Menu */}
+        }
+      >
+        <CalendarHeader onBack={onBack} />
+        <CalendarGrid
+          calData={calData}
+          userId={userId}
+          onSyncCalendar={onSyncCalendar}
+          isSyncing={isSyncing}
+          handleToggleTodo={calTodos.handleToggleTodo}
+          completedTodoIds={calTodos.completedTodoIds}
+          todosForDay={calTodos.todosForDay}
+          goalChipFor={calTodos.goalChipFor}
+          scheduleTodoAt={calTodos.scheduleTodoAt}
+          handleEventContextMenu={handleEventContextMenu}
+        />
         <CalendarContextMenu
           menu={contextMenu}
           onClose={() => setContextMenu(null)}
@@ -301,18 +302,6 @@ export default function CalendarView({
           onMoveToDate={handleContextMenuMoveToDate}
           today={today}
         />
-
-        {/* Mobile Quick Create Floating Action Button (FAB) */}
-        <Fab
-          position="custom"
-          size="lg"
-          onClick={() => calData.setQuickCreate({ date: calData.selectedDay, startMin: 540 })}
-          className="fixed right-5 bottom-20 z-[var(--z-sticky)] flex h-14 w-14 items-center justify-center rounded-full bg-primary text-on-accent shadow-2xl transition-transform active:scale-95 md:hidden"
-          title="Dodaj nowe wydarzenie"
-        >
-          <span className="text-2xl font-bold">+</span>
-        </Fab>
-
         <CalendarEventModal
           calData={calData}
           handleQuickSave={actions.handleQuickSave}
@@ -320,18 +309,7 @@ export default function CalendarView({
         />
         <CalendarTodoModal />
         <CalendarBudgetModal />
-        <WorkspaceNavigation
-          active="kalendarz"
-          orientation="horizontal"
-          onNavigate={onNavigateTo}
-          className="fixed inset-x-0 bottom-0 z-[var(--z-overlay)] border-t border-border-custom bg-background/95 backdrop-blur-[var(--blur-xl)] md:hidden"
-        />
-        {calData.toastMessage && (
-          <div className="fixed bottom-4 right-4 z-[var(--z-emergency)] bg-text-primary text-background text-xs font-black uppercase tracking-wider px-4 py-3 rounded-xl shadow-lg animate-in slide-in-from-bottom duration-[var(--motion-medium)]">
-            {calData.toastMessage}
-          </div>
-        )}
-      </div>
+      </CalendarShell>
     </CalendarContext.Provider>
   );
 }

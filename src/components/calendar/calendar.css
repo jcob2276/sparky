@@ -18,6 +18,16 @@
   display: none;
 }
 
+.calendar-3day-canvas {
+  width: 100%;
+  min-width: 100%;
+}
+
+.calendar-3day-canvas .calendar-week-column {
+  min-width: 0;
+  flex: 1 1 0;
+}
+
 /* Glassmorphic Apple Event Cards */
 .apple-event-card {
   border-radius: 14px;
@@ -50,14 +60,36 @@
 @media (max-width: 767px) {
   .calendar-shell {
     background: var(--background);
+    padding-top: env(safe-area-inset-top);
+    box-sizing: border-box;
+  }
+
+  .calendar-main {
+    padding-bottom: var(--calendar-mobile-bottom-pad);
+  }
+
+  .calendar-fab {
+    bottom: var(--calendar-mobile-fab-bottom);
+  }
+
+  .calendar-toast {
+    bottom: var(--calendar-mobile-toast-bottom);
+    max-width: calc(100vw - 2rem);
+  }
+
+  .calendar-sync-button,
+  .calendar-icon-action,
+  .calendar-today-button {
+    min-width: var(--touch-target);
+    width: var(--touch-target);
+    min-height: var(--touch-target);
+    padding-inline: 0;
+    gap: 0;
+    overflow: hidden;
+    justify-content: center;
   }
 
   .calendar-sync-button {
-    min-width: var(--calendar-mobile-sync-size);
-    width: var(--calendar-mobile-sync-size);
-    padding-inline: var(--central-padding-inline-add84322);
-    gap: 0;
-    overflow: hidden;
     font-size: var(--value-zero);
   }
 
@@ -75,14 +107,25 @@
     background: var(--background);
   }
 
+  /* Fit 7 (or 3) columns in the viewport — no 884px canvas */
   .calendar-week-canvas {
-    width: var(--calendar-mobile-canvas-width);
-    min-width: var(--calendar-mobile-canvas-width);
+    width: 100%;
+    min-width: 100%;
   }
 
-  .calendar-week-column {
-    min-width: var(--calendar-mobile-column-width);
-    flex-basis: var(--calendar-mobile-column-width);
+  .calendar-week-canvas .calendar-week-column {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .calendar-3day-canvas {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .calendar-3day-canvas .calendar-week-column {
+    min-width: 0;
+    flex: 1 1 0;
   }
 
   .calendar-week-grid {
@@ -90,6 +133,35 @@
     scroll-behavior: smooth;
     overscroll-behavior-y: contain;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .calendar-month-weekday {
+    font-size: 0.65rem;
+    letter-spacing: 0.02em;
+  }
+
+  .calendar-month-cell {
+    min-height: var(--calendar-mobile-month-cell-min);
+    padding: 4px;
+  }
+
+  .calendar-month-event-pill {
+    display: none;
+  }
+
+  .calendar-month-dots {
+    display: flex;
+  }
+}
+
+@media (min-width: 768px) {
+  .calendar-month-dots {
+    display: flex;
+  }
+
+  .calendar-fab,
+  .calendar-toast {
+    bottom: 1rem;
   }
 }
 
@@ -107,5 +179,9 @@
   .apple-event-card {
     scroll-behavior: auto;
     transition: none;
+  }
+
+  .apple-now-dot {
+    animation: none;
   }
 }

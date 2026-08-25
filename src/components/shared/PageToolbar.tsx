@@ -14,8 +14,8 @@ function PageToolbar({ title, description, leading, center, actions, navigation 
     <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border-custom/40 bg-background/75 glass-elevated">
       <div className="flex min-h-[var(--toolbar-height)] items-center gap-[var(--space-3)] px-[var(--space-4)] md:px-[var(--space-6)]">
         {leading}
-        <div className="min-w-0 shrink-0 md:w-44">
-          <h1 className="truncate text-xl font-bold tracking-tight text-text-primary">{title}</h1>
+        <div className="min-w-0 shrink md:w-44">
+          <h1 className="truncate text-base font-bold tracking-tight text-text-primary md:text-xl">{title}</h1>
           {description && <p className="truncate text-xs text-text-muted">{description}</p>}
         </div>
         <div className="min-w-0 flex-1">{center}</div>

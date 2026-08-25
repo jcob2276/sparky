@@ -23,6 +23,7 @@ interface Calendar3DayViewProps {
   todosForDay: (day: string) => CalendarTodo[];
   handleColumnMouseDown: (day: string, e: React.MouseEvent) => void;
   handleColumnMouseMove: (day: string, e: React.MouseEvent) => void;
+  handleColumnClick?: (day: string, e: React.MouseEvent) => void;
   handleEventMouseDown: (ev: CalRow, e: React.MouseEvent<HTMLDivElement>, action: 'move' | 'resize') => void;
   handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
   handleToggleTodo: (id: string) => void;
@@ -37,7 +38,7 @@ interface Calendar3DayViewProps {
 export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
   selectedDay, setSelectedDay, setWeekStart, weather, today, nowMin, dragSelect,
   goalChipFor, completedTodoIds, getEventsForDay, todosForDay, handleColumnMouseDown,
-  handleColumnMouseMove, handleEventMouseDown, handleEventContextMenu, handleToggleTodo,
+  handleColumnMouseMove, handleColumnClick, handleEventMouseDown, handleEventContextMenu, handleToggleTodo,
   setEditingTodo, setEditingTodoTitle, setToastMessage, setSaving, scheduleTodoAt, gridRef,
 }) => {
   const topScrollRef = React.useRef<HTMLDivElement>(null);
@@ -53,18 +54,21 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="calendar-period-header flex items-center justify-between border-b border-border-custom/20 px-4 py-2">
-        <Pressable onClick={() => movePeriod(-3)} className="rounded-full p-2 hover:bg-surface-solid">
+        <Pressable onClick={() => movePeriod(-3)} className="rounded-full p-2 min-h-11 min-w-11 hover:bg-surface-solid" aria-label="Poprzednie 3 dni">
           <ChevronLeft size={18} className="text-text-muted" />
         </Pressable>
-        <div className="text-center">
-          <p className="text-sm font-bold text-text-primary">{dayLabel(selectedDay)} – {dayLabel(days[2])}</p>
+        <div className="min-w-0 px-1 text-center">
+          <p className="hidden text-sm font-bold text-text-primary md:block">{dayLabel(selectedDay)} – {dayLabel(days[2])}</p>
           {!days.includes(today) && (
-            <Pressable onClick={() => movePeriod(0)} className="text-xs font-semibold text-primary">
+            <Pressable onClick={() => {
+              setSelectedDay(today);
+              setWeekStart(today);
+            }} className="text-xs font-semibold text-primary min-h-11 px-2">
               Dzisiaj
             </Pressable>
           )}
         </div>
-        <Pressable onClick={() => movePeriod(3)} className="rounded-full p-2 hover:bg-surface-solid">
+        <Pressable onClick={() => movePeriod(3)} className="rounded-full p-2 min-h-11 min-w-11 hover:bg-surface-solid" aria-label="Następne 3 dni">
           <ChevronRight size={18} className="text-text-muted" />
         </Pressable>
       </div>
@@ -76,7 +80,7 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
           if (gridRef.current) gridRef.current.scrollLeft = event.currentTarget.scrollLeft;
         }}
       >
-        <div className="calendar-week-canvas">
+        <div className="calendar-week-canvas calendar-3day-canvas">
           <div className="calendar-week-strip flex border-b border-border-custom/70 pl-11">
             {days.map(day => {
               const isToday = day === today;
@@ -113,7 +117,7 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
           if (topScrollRef.current) topScrollRef.current.scrollLeft = event.currentTarget.scrollLeft;
         }}
       >
-        <div className="calendar-week-canvas flex pt-3" style={{ minHeight: HOURS * PX_PER_HOUR + 40 }}>
+        <div className="calendar-week-canvas calendar-3day-canvas flex pt-3" style={{ minHeight: HOURS * PX_PER_HOUR + 40 }}>
           <div className="calendar-week-time-gutter sticky left-0 z-[var(--z-sticky)] bg-background">
             {renderTimeGutter({ dayKey: undefined, weather: undefined })}
           </div>
@@ -123,7 +127,7 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
                 day, today, nowMin, dayEvents: getEventsForDay(day),
                 dayTodos: todosForDay(day).filter(todo => todo.scheduled_time), dragSelect,
                 goalChipFor, completedTodoIds, handleColumnMouseDown, handleColumnMouseMove,
-                handleEventMouseDown, handleEventContextMenu, handleToggleTodo, setEditingTodo, setEditingTodoTitle,
+                handleColumnClick, handleEventMouseDown, handleEventContextMenu, handleToggleTodo, setEditingTodo, setEditingTodoTitle,
                 setToastMessage, setSaving, scheduleTodoAt,
               })}
             </div>

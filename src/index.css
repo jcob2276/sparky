@@ -693,10 +693,14 @@
   --shadow-warm-soft: rgb(38 32 27 / 8%);
   --value-zero: 0;
   --calendar-mobile-sync-size: 42px;
-  --calendar-mobile-header-height: 62px;
-  --calendar-mobile-header-padding: 9px 14px;
+  --calendar-mobile-header-height: 52px;
+  --calendar-mobile-header-padding: 6px 10px;
   --calendar-mobile-canvas-width: 884px;
   --calendar-mobile-column-width: 120px;
+  --calendar-mobile-bottom-pad: calc(5.5rem + env(safe-area-inset-bottom));
+  --calendar-mobile-fab-bottom: calc(4.75rem + env(safe-area-inset-bottom));
+  --calendar-mobile-toast-bottom: calc(6.5rem + env(safe-area-inset-bottom));
+  --calendar-mobile-month-cell-min: 64px;
   --filter-hover-brightness: brightness(1.08);
   --notes-control-transition: background-color 0.2s cubic-bezier(0.23, 1, 0.32, 1), border-color 0.2s cubic-bezier(0.23, 1, 0.32, 1);
   --notes-button-radius: 19px;

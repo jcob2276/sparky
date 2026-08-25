@@ -34,7 +34,7 @@ export function QuickScheduleFields({ calData, conflicts, budgets }: Props) {
         <div className="grid gap-2 sm:grid-cols-3">
           <label className="space-y-1 text-xs font-bold text-text-secondary">
             <span className="flex items-center gap-1 text-text-muted"><CalendarDays size={12} /> Data</span>
-            <ControlInput type="date" value={quickCreate.date} onChange={(event) => event.target.value && setQuickCreate({ ...quickCreate, date: event.target.value })} className="h-9 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-xs font-semibold" />
+            <ControlInput type="date" value={quickCreate.date} onChange={(event) => event.target.value && setQuickCreate({ ...quickCreate, date: event.target.value })} className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold" />
           </label>
           <label className="space-y-1 text-xs font-bold text-text-secondary">
             <span className="text-text-muted">Od</span>
@@ -47,7 +47,7 @@ export function QuickScheduleFields({ calData, conflicts, budgets }: Props) {
                 const [hours, minutes] = event.target.value.split(':').map(Number);
                 setQuickCreate({ ...quickCreate, startMin: hours * 60 + minutes });
               }}
-              className="h-9 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-xs font-semibold disabled:opacity-[var(--opacity-dimmed)]"
+              className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold disabled:opacity-[var(--opacity-dimmed)]"
             />
           </label>
           <label className="space-y-1 text-xs font-bold text-text-secondary">
@@ -62,14 +62,14 @@ export function QuickScheduleFields({ calData, conflicts, budgets }: Props) {
                 const duration = hours * 60 + minutes - quickCreate.startMin;
                 if (duration > 0) setQuickDuration(duration);
               }}
-              className="h-9 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-xs font-semibold disabled:opacity-[var(--opacity-dimmed)]"
+              className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold disabled:opacity-[var(--opacity-dimmed)]"
             />
           </label>
         </div>
       </div>
       <div className="relative flex items-center">
         <MapPin size={14} className="pointer-events-none absolute left-3.5 text-text-muted" />
-        <ControlInput value={quickLocation} onChange={(event) => setQuickLocation(event.target.value)} placeholder="Lokalizacja (opcjonalnie)…" className="w-full rounded-xl border border-border-custom/40 bg-surface-solid/30 py-2 pl-9 pr-3 text-xs" />
+        <ControlInput value={quickLocation} onChange={(event) => setQuickLocation(event.target.value)} placeholder="Lokalizacja (opcjonalnie)…" className="w-full rounded-xl border border-border-custom/40 bg-surface-solid/30 py-3 pl-9 pr-3 text-base" />
       </div>
       <div className="relative flex items-start">
         <AlignLeft size={14} className="pointer-events-none absolute left-3.5 top-3 text-text-muted" />

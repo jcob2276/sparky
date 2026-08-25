@@ -75,15 +75,15 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
             <div className="grid gap-2 sm:grid-cols-3">
               <label className="space-y-1 text-xs font-bold text-text-secondary">
                 <span className="flex items-center gap-1 text-text-muted"><CalendarDays size={12} /> Data</span>
-                <ControlInput type="date" value={editDate} onChange={(event) => setEditDate(event.target.value)} className="h-9 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-xs font-semibold text-text-primary" />
+                <ControlInput type="date" value={editDate} onChange={(event) => setEditDate(event.target.value)} className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold text-text-primary" />
               </label>
               <label className="space-y-1 text-xs font-bold text-text-secondary">
                 <span className="text-text-muted">Od</span>
-                <ControlInput type="time" disabled={editAllDay} value={editStart} onChange={(event) => setEditStart(event.target.value)} className="h-9 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-xs font-semibold text-text-primary disabled:opacity-[var(--opacity-dimmed)]" />
+                <ControlInput type="time" disabled={editAllDay} value={editStart} onChange={(event) => setEditStart(event.target.value)} className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold text-text-primary disabled:opacity-[var(--opacity-dimmed)]" />
               </label>
               <label className="space-y-1 text-xs font-bold text-text-secondary">
                 <span className="text-text-muted">Do</span>
-                <ControlInput type="time" disabled={editAllDay} value={editEnd} onChange={(event) => setEditEnd(event.target.value)} className="h-9 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-xs font-semibold text-text-primary disabled:opacity-[var(--opacity-dimmed)]" />
+                <ControlInput type="time" disabled={editAllDay} value={editEnd} onChange={(event) => setEditEnd(event.target.value)} className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold text-text-primary disabled:opacity-[var(--opacity-dimmed)]" />
               </label>
             </div>
           </div>
@@ -96,7 +96,7 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
               value={editLocation}
               onChange={(event) => setEditLocation(event.target.value)}
               placeholder="Lokalizacja / Miejsce (opcjonalnie)…"
-              className="w-full rounded-xl border border-border-custom/40 bg-surface-solid/30 pl-9 pr-3 py-2 text-xs font-medium text-text-primary placeholder:text-text-muted/50"
+              className="w-full rounded-xl border border-border-custom/40 bg-surface-solid/30 pl-9 pr-3 py-3 text-base font-medium text-text-primary placeholder:text-text-muted/50"
             />
           </div>
 

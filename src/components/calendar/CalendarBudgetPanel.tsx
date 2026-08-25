@@ -76,8 +76,18 @@ export default function CalendarBudgetPanel({
 
   if (isMobile) {
     return (
-      <div className="px-4 pb-3.5 pt-1 grid grid-cols-2 gap-2">
-        {BUDGET_CATEGORIES.map(renderCategory)}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-4 pt-1">
+          <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Budżety czasu</span>
+          {onConfigure && (
+            <Button variant="ghost" size="sm" onClick={onConfigure} className="text-xs font-black hover:underline min-h-11">
+              Konfiguruj
+            </Button>
+          )}
+        </div>
+        <div className="px-4 pb-3.5 grid grid-cols-2 gap-2">
+          {BUDGET_CATEGORIES.map(renderCategory)}
+        </div>
       </div>
     );
   }

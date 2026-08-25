@@ -65,6 +65,17 @@ export function DashboardDzisTab() {
           userId={session.user.id}
           onNavigateToTerminy={() => s.navigate('/terminy')}
         />
+        {(() => {
+          const m = new Date('2026-10-04T00:00:00');
+          const d = Math.ceil((m.getTime() - new Date().getTime()) / 86400000);
+          if (d < 0) return null;
+          return (
+            <div className="rounded-xl border border-border bg-surface-elevated p-4">
+              <div className="text-xs font-black text-text-tertiary uppercase tracking-wider">Cel: Maraton w Koszycach (4.10)</div>
+              <div className="text-base font-semibold text-text-primary mt-0.5">Zostało {d} dni ({Math.floor(d/7)} tyg. {d%7} dni)</div>
+            </div>
+          );
+        })()}
         <OrientationFooter />
       </div>
       <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0">
