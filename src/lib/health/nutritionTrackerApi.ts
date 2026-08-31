@@ -62,6 +62,7 @@ export async function confirmMealCapture(input: {
   estimate?: { calories: number; minKcal: number; maxKcal: number };
   memoryName?: string;
   captureId?: string;
+  loggedAt?: string;
 }): Promise<void> {
   if (!input.items.length) throw new Error('Posiłek nie zawiera żadnych pozycji');
   const captureId = input.captureId ?? crypto.randomUUID();
@@ -85,6 +86,16 @@ export async function confirmMealCapture(input: {
     } : undefined,
   });
   if (error) throw error;
+
+  if (input.loggedAt) {
+    const { error: timeError } = await supabase
+      .from('daily_food_entries')
+      .update({ logged_at: input.loggedAt })
+      .eq('user_id', input.userId)
+      .eq('meal_group_id', captureId);
+    if (timeError) throw timeError;
+  }
+
   scheduleNutritionRefresh(input.userId, input.date);
 }
 

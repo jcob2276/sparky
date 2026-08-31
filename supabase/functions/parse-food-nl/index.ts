@@ -288,7 +288,10 @@ Deno.serve(serveJson(async (req, auth) => {
 
   if (userId) {
     let timeOfDay: 'morning' | 'afternoon' | 'evening' | undefined
-    const h = clientTime ? (new Date(clientTime).getUTCHours() + 2) : (new Date().getUTCHours() + 2)
+    // BUG 6: new Date("invalid").getUTCHours() = NaN → NaN+2=NaN → zawsze 'evening'
+    const parsedClientTime = clientTime ? new Date(clientTime) : new Date()
+    const clientDate = isNaN(parsedClientTime.getTime()) ? new Date() : parsedClientTime
+    const h = clientDate.getUTCHours() + 2
     if (h >= 5 && h < 12) timeOfDay = 'morning'
     else if (h >= 12 && h < 17) timeOfDay = 'afternoon'
     else timeOfDay = 'evening'

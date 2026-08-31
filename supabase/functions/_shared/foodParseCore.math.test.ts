@@ -8,7 +8,7 @@ import {
   type ParsedFoodItem,
 } from './foodParseCore.ts'
 import { lookupGenericFood, scoreFoodNameMatch } from './foodGeneric.ts'
-import { applyPhysiologicalGuardrails } from './foodParse/normalize.ts'
+import { applyPhysiologicalGuardrails, normalizeGramOnlyItems } from './foodParse/normalize.ts'
 
 const llmItem = (overrides: Partial<ParsedFoodItem> = {}): ParsedFoodItem => ({
   name: 'test',
@@ -95,4 +95,26 @@ Deno.test('guardrail nie traktuje rosołu jak soli', () => {
 Deno.test('scoreFoodNameMatch — nie myli bułki z bułką tartą', () => {
   assertEquals(scoreFoodNameMatch('bułka pszenna', 'Bułka tarta pszenna'), 0)
   assertEquals(scoreFoodNameMatch('bułka pszenna', 'Bułka pszenna burger'), 0)
+})
+
+Deno.test('guardrail maslo orzechowe wygrywa z ogólnym maslo', () => {
+  const [result] = applyPhysiologicalGuardrails([llmItem({
+    name: 'Masło orzechowe 100% z kawałkami orzechów',
+    grams: 80,
+    calories: 480,
+    protein: 20,
+    carbs: 15,
+    fat: 40,
+    confidence: 'high',
+    source: 'library',
+  })], 'kanapka, masło orzechowe')
+
+  assertEquals(result.grams, 20) // Powinno przyciąć do 20g (default dla masła orzechowego), a nie do 10g (default dla masła)
+  assertEquals(result.calories, 120) // Przeskalowane proporcjonalnie
+})
+
+Deno.test('normalizeGramOnlyItems — jawnie traktuje grams: 0 jako brak danych i fallback do 100', () => {
+  const result = normalizeGramOnlyItems([{ name: 'Kawa', grams: 0, confidence: 'high' }])
+  assertEquals(result[0].grams, 100)
+  assertEquals(result[0].assumptions?.includes('gramatura nieznana — przyjęto domyślne 100g'), true)
 })

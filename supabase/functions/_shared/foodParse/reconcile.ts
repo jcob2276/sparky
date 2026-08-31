@@ -82,6 +82,10 @@ export async function tryExpandCompoundItems(items: ParsedFoodItem[], opts: Reco
 }
 
 function recalcFromPer100g(grams: number, per100: Per100gFood) {
+  if (grams <= 0) {
+    // Defensywny guard — grams=0 byłby dzieleniem przez 0 i zerował wszystkie makra w ciszy.
+    return { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: undefined, sugar: undefined };
+  }
   const f = grams / 100, r = (n: number) => Math.round(n * 10) / 10;
   return { calories: Math.round(Number(per100.calories) * f), protein: r(Number(per100.protein ?? 0) * f), carbs: r(Number(per100.carbs ?? 0) * f), fat: r(Number(per100.fat ?? 0) * f), fiber: per100.fiber != null ? r(Number(per100.fiber) * f) : undefined, sugar: per100.sugar != null ? r(Number(per100.sugar) * f) : undefined };
 }

@@ -2,13 +2,7 @@ import { Pressable, ControlInput } from '../../../ui/ControlPrimitives';
 import { Card } from '../../../ui/Card';
 import type { FoodBase } from '../hooks/useFoodEntryData';
 import { calorieRange, deriveFoodTrust } from '../../../../lib/health/foodTrust';
-
-const MEAL_TYPES = [
-  { id: 'breakfast', label: 'Śniadanie' },
-  { id: 'lunch', label: 'Obiad' },
-  { id: 'dinner', label: 'Kolacja' },
-  { id: 'snack', label: 'Przekąska' },
-];
+import { MEAL_TYPES } from '../../../../lib/health/foodLogging';
 
 interface PortionScreenProps {
   selected: FoodBase;

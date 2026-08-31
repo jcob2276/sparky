@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Check, HelpCircle } from 'lucide-react';
+import { getWarsawHour } from '../../../lib/date';
 import type { NutritionDayCompleteness } from '../../../lib/health/nutritionTracker';
 import { fetchNutritionDayReview, upsertNutritionDayReview } from '../../../lib/health/nutritionTrackerApi';
 import { Pressable } from '../../ui/ControlPrimitives';
@@ -10,7 +11,15 @@ const LABELS: Record<NutritionDayCompleteness, string> = {
   unknown: 'Nie wiem',
 };
 
-export default function NutritionDayReview({ userId, date }: { userId: string; date: string }) {
+export default function NutritionDayReview({
+  userId,
+  date,
+  hasEntries = false,
+}: {
+  userId: string;
+  date: string;
+  hasEntries?: boolean;
+}) {
   const [status, setStatus] = useState<NutritionDayCompleteness | null>(null);
   const [saving, setSaving] = useState<NutritionDayCompleteness | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +31,8 @@ export default function NutritionDayReview({ userId, date }: { userId: string; d
       .catch(() => { if (active) setStatus(null); });
     return () => { active = false; };
   }, [date, userId]);
+
+  if (!hasEntries || getWarsawHour() < 18) return null;
 
   async function choose(next: NutritionDayCompleteness) {
     setSaving(next);

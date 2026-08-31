@@ -87,20 +87,23 @@ Zwróć poprawny JSON (wyłącznie JSON, bez markdownu):
     // Update logic
     let factor = 1
     let newGrams = entry.amount ? parseInt(entry.amount, 10) : 100
-    if (isNaN(newGrams)) newGrams = 100
+    if (isNaN(newGrams) || newGrams <= 0) newGrams = 100
 
-    if (parsed.corrected_grams) {
+    // BUG 5: null-check zamiast truthy — corrected_grams=0 jest falsy i pomijałoby gałąź
+    if (parsed.corrected_grams != null && parsed.corrected_grams > 0) {
       factor = parsed.corrected_grams / newGrams
       newGrams = parsed.corrected_grams
     }
 
     let newCalories = entry.calories
-    if (parsed.corrected_calories) {
-      if (!parsed.corrected_grams) {
-        factor = parsed.corrected_calories / entry.calories
+    // BUG 5: null-check dla corrected_calories z tego samego powodu
+    if (parsed.corrected_calories != null && parsed.corrected_calories > 0) {
+      if (parsed.corrected_grams == null || parsed.corrected_grams <= 0) {
+        // BUG 4: entry.calories=0 (np. woda, herbata) dałoby Infinity → NaN w bazie
+        factor = entry.calories > 0 ? parsed.corrected_calories / entry.calories : 1
       }
       newCalories = parsed.corrected_calories
-    } else if (parsed.corrected_grams) {
+    } else if (parsed.corrected_grams != null && parsed.corrected_grams > 0) {
       newCalories = Math.round(entry.calories * factor)
     }
 

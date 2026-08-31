@@ -1,12 +1,6 @@
 import { Pressable, ControlInput } from '../../../ui/ControlPrimitives';
 import type { RecentEntry } from '../hooks/useFoodEntryData';
-
-const MEAL_TYPES = [
-  { id: 'breakfast', label: 'Śniadanie' },
-  { id: 'lunch', label: 'Obiad' },
-  { id: 'dinner', label: 'Kolacja' },
-  { id: 'snack', label: 'Przekąska' },
-];
+import { MEAL_TYPES } from '../../../../lib/health/foodLogging';
 
 interface EditScreenProps {
   editingEntry: RecentEntry;

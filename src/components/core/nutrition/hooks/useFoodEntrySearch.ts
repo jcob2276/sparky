@@ -8,9 +8,10 @@ interface UseFoodEntrySearchOptions {
   userId: string | undefined;
   setError: (msg: string | null) => void;
   searchInputRef: React.RefObject<HTMLInputElement | null>;
+  onBarcodePicked?: (food: FoodBase) => void;
 }
 
-export function useFoodEntrySearch({ userId, setError, searchInputRef }: UseFoodEntrySearchOptions) {
+export function useFoodEntrySearch({ userId, setError, searchInputRef, onBarcodePicked }: UseFoodEntrySearchOptions) {
   const haptics = useHaptics();
   const [query, setQueryState] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -59,6 +60,10 @@ export function useFoodEntrySearch({ userId, setError, searchInputRef }: UseFood
     onSuccess: (result) => {
       setScannerOpen(false);
       if (result) {
+        if (onBarcodePicked) {
+          onBarcodePicked(result);
+          return;
+        }
         setSelected(result);
         setGrams(String(result.defaultGrams ?? 100));
         return;

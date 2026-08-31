@@ -22,6 +22,7 @@ interface FoodParseMeta {
   quantity?: number
   unit?: string
   explicitGrams?: boolean
+  defaultGrams?: number
   warnings?: string[]
   validationStatus?: 'accepted' | 'review'
 }

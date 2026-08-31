@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation, type NavigateOptions, type To } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
-import { flushSync } from 'react-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
 import { useStore } from '../../../store/useStore';
@@ -24,7 +23,6 @@ import type { RecentEntry } from '../nutrition/hooks/useFoodEntryData';
 import type { SpineGuideTarget } from '../../../lib/goal/goalSpineGuide';
 
 const TAB_ORDER = ['dzis', 'tydzien', 'projekty', 'historia'];
-const supportsVT = typeof document !== 'undefined' && 'startViewTransition' in document;
 
 const normalizeView = (view: string | null | undefined) => {
   if (!view || view === 'workout' || view === 'mentor' || view === 'mirror' || view === 'body') return 'dzis';
@@ -171,13 +169,13 @@ export function useDashboardState(session: Session) {
         setShowFastCapture(true);
       } else if (key === 'f' && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
-        setShowQuickFoodEntry(true);
+        navigate('/dzis');
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [openModal]);
+  }, [openModal, navigate]);
 
   // View event tracking
   // Note: viewEventMutation identity changes on every status transition (idle/pending/success).
@@ -218,7 +216,7 @@ export function useDashboardState(session: Session) {
   useEffect(() => {
     if (new URLSearchParams(location.search).get('meal') === 'new') {
       navigate('/', { replace: true });
-      window.setTimeout(() => setShowQuickFoodEntry(true), 0);
+      window.setTimeout(() => navigate('/dzis', { replace: true }), 0);
     }
   }, [location.search, navigate]);
 
@@ -243,9 +241,9 @@ export function useDashboardState(session: Session) {
     logoLongPressTimer.current = window.setTimeout(() => {
       logoLongPressFired.current = true;
       haptics.medium();
-      setShowQuickFoodEntry(true);
+      navigate('/dzis');
     }, 550);
-  }, [haptics]);
+  }, [haptics, navigate]);
   const handleLogoPressEnd = useCallback(() => {
     if (logoLongPressTimer.current) {
       clearTimeout(logoLongPressTimer.current);

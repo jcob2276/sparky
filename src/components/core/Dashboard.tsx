@@ -140,7 +140,7 @@ export default function Dashboard({ session }: { session: Session }) {
 
   const fastCaptureItems = [
 
-    { label: 'Dodaj Jedzenie', emoji: '🍎', icon: Apple, color: 'var(--color-success)', action: () => s.setShowQuickFoodEntry(true) },
+    { label: 'Dodaj Jedzenie', emoji: '🍎', icon: Apple, color: 'var(--color-success)', action: () => s.navigate('/dzis') },
     { label: 'Zaloguj Trening', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => { s.openWorkout(); } },
     { label: 'Zaloguj Saunę', emoji: '🧖', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna') },
     { label: 'Zmierz Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-theme-hex-14b8a6)', action: () => s.navigate('/optics') },
@@ -192,7 +192,6 @@ export default function Dashboard({ session }: { session: Session }) {
                 <FoodQuickCapture
                   refreshSignal={s.nutritionKey}
                   onSaved={() => { s.refresh(); s.setNutritionKey(k => k + 1); }}
-                  onOpenFullModal={() => s.setShowQuickFoodEntry(true)}
                 />
                 {s.todayWin && isAfter20() && (
                   <Pressable onClick={() => s.setShowShutdown(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm font-black uppercase tracking-wider text-primary hover:bg-primary/20 active:scale-95 transition-all shadow-sm mt-4">

@@ -26,6 +26,11 @@ function normalizeUnit(value: unknown): string | undefined {
   if (/^(kromka|kromki|kromek|plaster|plasterek|plastry|plasterki)$/.test(unit)) return 'slice';
   if (/^(porcja|porcje|porcji)$/.test(unit)) return 'portion';
   if (/^(opakowanie|opakowania|opakowan)$/.test(unit)) return 'package';
+  if (/^(szklanka|szklanki|szklanek)$/.test(unit)) return 'glass';
+  if (/^(kubek|kubki|kubkow)$/.test(unit)) return 'cup';
+  if (/^(garsc|garsci|garscy)$/.test(unit)) return 'handful';
+  if (/^(lyzka|lyzki|lyzeczka|lyzeczki)$/.test(unit)) return 'tsp';
+  if (/^(lyzka\s*stolowa|lyzki\s*stolowe)$/.test(unit)) return 'tbsp';
   return unit.slice(0, 32);
 }
 
@@ -48,8 +53,12 @@ export function normalizeGramOnlyItems(raw: unknown): ParsedFoodItem[] {
       const name = String(item.name || '').trim();
       if (!name) return null;
 
-      let grams = Math.max(1, Math.round(Number(item.grams) || 100));
+      const rawGrams = Number(item.grams);
+      let grams = rawGrams > 0 ? Math.max(1, Math.round(rawGrams)) : 100;
       const assumptions = [...(parseAssumptions(item.assumptions) ?? [])];
+      if (!(rawGrams > 0)) {
+        assumptions.push('gramatura nieznana — przyjęto domyślne 100g');
+      }
       const quantity = Number.isFinite(Number(item.quantity))
         ? Math.max(0, Number(item.quantity))
         : undefined;
@@ -156,12 +165,13 @@ interface GuardrailRule {
 }
 
 const NUTRITION_GUARDRAILS: GuardrailRule[] = [
+  // Bardziej specyficzne reguły muszą być wyżej — iteracja jest sekwencyjna i first-match wygrywa.
+  { keywords: ['maslo orzechowe', 'masla orzechowego'], maxGrams: 60, defaultGrams: 20 },
   { keywords: ['maslo', 'masla'], maxGrams: 35, defaultGrams: 10 },
   { keywords: ['olej', 'oleju', 'rzepakow', 'slonecznik'], maxGrams: 35, defaultGrams: 10 },
   { keywords: ['oliwa', 'oliwy'], maxGrams: 35, defaultGrams: 10 },
   { keywords: ['sol', 'soli'], maxGrams: 10, defaultGrams: 2 },
   { keywords: ['cukier', 'cukru'], maxGrams: 50, defaultGrams: 10 },
-  { keywords: ['maslo orzechowe', 'masla orzechowego'], maxGrams: 60, defaultGrams: 20 },
 ];
 
 export function applyPhysiologicalGuardrails(items: ParsedFoodItem[], originalText: string): ParsedFoodItem[] {

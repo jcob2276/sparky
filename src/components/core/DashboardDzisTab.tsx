@@ -86,7 +86,6 @@ export function DashboardDzisTab() {
           <FoodQuickCapture
             refreshSignal={s.nutritionKey}
             onSaved={() => { s.refresh(); s.setNutritionKey(k => k + 1); }}
-            onOpenFullModal={() => s.setShowQuickFoodEntry(true)}
           />
           <Suspense fallback={null}>
             <TodayRunwayCard />

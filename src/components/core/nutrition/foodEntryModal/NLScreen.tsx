@@ -1,15 +1,8 @@
 import { Pressable, ControlTextarea } from '../../../ui/ControlPrimitives';
 import type { Dispatch, SetStateAction } from 'react';
 import { Sparkles, Trash2, Check } from 'lucide-react';
-import { confidenceLabel } from '../../../../lib/health/foodLogging';
+import { confidenceLabel, MEAL_TYPES } from '../../../../lib/health/foodLogging';
 import type { ParsedFoodItem } from '../../../../lib/health/foodLogging';
-
-const MEAL_TYPES = [
-  { id: 'breakfast', label: 'Śniadanie' },
-  { id: 'lunch', label: 'Obiad' },
-  { id: 'dinner', label: 'Kolacja' },
-  { id: 'snack', label: 'Przekąska' },
-];
 
 interface NLScreenProps {
   setNlMode: (v: boolean) => void;

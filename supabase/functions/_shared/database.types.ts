@@ -3182,36 +3182,6 @@ export type Database = {
           },
         ]
       }
-      note_folders: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-          parent_id: string | null
-          position: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-          parent_id?: string | null
-          position?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-          parent_id?: string | null
-          position?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       note_drawings: {
         Row: {
           created_at: string
@@ -3240,15 +3210,65 @@ export type Database = {
           width: number
         }
         Update: {
+          created_at?: string
           document?: Json
           height?: number
+          id?: string
+          note_id?: string
           ocr_text?: string | null
           preview_storage_path?: string | null
           schema_version?: number
           updated_at?: string
+          user_id?: string
           width?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "note_drawings_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: true
+            referencedRelation: "vanguard_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      note_folders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          position: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          position?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          position?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_folders_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "note_folders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       note_smart_folders: {
         Row: {
@@ -5037,6 +5057,33 @@ export type Database = {
           user_id?: string
           vision?: string | null
           work_edu?: string | null
+        }
+        Relationships: []
+      }
+      user_portions: {
+        Row: {
+          grams: number
+          id: string
+          name: string
+          unit: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          grams: number
+          id?: string
+          name: string
+          unit?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          grams?: number
+          id?: string
+          name?: string
+          unit?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -7036,19 +7083,6 @@ export type Database = {
         }
         Returns: string
       }
-      confirm_nutrition_meal_capture: {
-        Args: {
-          p_capture_id: string
-          p_date: string
-          p_items: Json
-          p_meal_type: string
-          p_memory?: Json
-          p_parse_summary: Json
-          p_source: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
       cache_food_to_library: {
         Args: {
           p_barcode: string
@@ -7070,6 +7104,53 @@ export type Database = {
         Returns: string
       }
       cleanup_old_logs: { Args: never; Returns: undefined }
+      confirm_nutrition_meal_capture: {
+        Args: {
+          p_capture_id: string
+          p_date: string
+          p_items: Json
+          p_meal_type: string
+          p_memory?: Json
+          p_parse_summary: Json
+          p_source: string
+          p_user_id: string
+        }
+        Returns: {
+          amount: string | null
+          brand: string | null
+          calories: number | null
+          carbs: number | null
+          created_at: string | null
+          date: string
+          fat: number | null
+          fiber: number | null
+          food_quality_score: number | null
+          id: string
+          insulin_load: number | null
+          logged_at: string | null
+          meal_group_id: string | null
+          meal_type: string | null
+          name: string
+          parse_meta: Json | null
+          protein: number | null
+          quality_reason: string | null
+          request_id: string | null
+          salt: number | null
+          saturated_fat: number | null
+          sugar: number | null
+          user_id: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "daily_food_entries"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      delete_note_folder_hierarchy: {
+        Args: { folder_id: string }
+        Returns: undefined
+      }
       deprecate_superseded_facts: {
         Args: {
           p_new_confidence: number
