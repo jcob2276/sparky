@@ -31,6 +31,7 @@ export interface LifeObligationInput {
   recurrence?: LifeObligationRecurrence;
   lead_offsets?: number[];
   notes?: string | null;
+  sent_reminders?: string[];
 }
 
 function normalizeRow(row: Record<string, unknown>): LifeObligation {
@@ -132,6 +133,7 @@ export function useLifeObligationMutations(userId: string | undefined) {
           ...(input.recurrence != null ? { recurrence: input.recurrence } : {}),
           ...(input.lead_offsets != null ? { lead_offsets: input.lead_offsets } : {}),
           ...(input.notes !== undefined ? { notes: input.notes?.trim() || null } : {}),
+          ...(input.sent_reminders !== undefined ? { sent_reminders: input.sent_reminders } : {}),
           updated_at: new Date().toISOString(),
         })
         .eq('id', input.id)

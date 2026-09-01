@@ -74,18 +74,22 @@ describe('terminyDerived', () => {
   it('initials and countdown labels', () => {
     expect(initialsFrom('Urodziny Mama', 'Anna Kowalska')).toBe('AK');
     expect(initialsFrom('OC', null)).toBe('OC');
+    expect(countdownLabel(-3)).toBe('Przeterminowany');
     expect(countdownLabel(0)).toBe('Dziś');
     expect(countdownLabel(1)).toBe('Jutro');
     expect(countdownLabel(12)).toBe('12 dni');
   });
 
-  it('returns null for expired once', () => {
-    expect(deriveObligation(obl({
+  it('returns overdue obligation for expired once', () => {
+    const expired = deriveObligation(obl({
       id: 'x',
       title: 'Old',
       kind: 'document',
       anchor_date: '2026-01-01',
       recurrence: 'once',
-    }), today)).toBeNull();
+    }), today);
+    expect(expired).not.toBeNull();
+    expect(expired!.bucket).toBe('today');
+    expect(expired!.daysLeft).toBeLessThan(0);
   });
 });

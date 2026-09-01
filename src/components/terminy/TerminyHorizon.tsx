@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { LIFE_OBLIGATION_KIND_LABELS } from '@vanguard/domain';
 import { Sparkles, Calendar, Plus } from 'lucide-react';
 import Button from '../ui/Button';
@@ -144,26 +144,29 @@ export function TerminyHorizon({
               </span>
             </div>
             <ul className="space-y-2.5">
-              {list.map((row, index) => (
-                <motion.li
-                  key={row.item.id}
-                  initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: 0.2,
-                    delay: reduceMotion ? 0 : Math.min(index, 8) * 0.03,
-                    ease: [0.25, 0.1, 0.25, 1],
-                  }}
-                >
-                  <TerminyObligationCard
-                    row={row}
-                    onDelete={() => onDelete(row.item.id, row.item.title)}
-                    onEdit={() => onEdit(row.item.id)}
-                    onComplete={() => onComplete(row)}
-                    onConvertToTodo={() => onConvertToTodo(row)}
-                  />
-                </motion.li>
-              ))}
+              <AnimatePresence initial={false}>
+                {list.map((row, index) => (
+                  <motion.li
+                    key={row.item.id}
+                    initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={reduceMotion ? undefined : { opacity: 0, y: -6, scale: 0.97 }}
+                    transition={{
+                      duration: 0.2,
+                      delay: reduceMotion ? 0 : Math.min(index, 8) * 0.03,
+                      ease: [0.25, 0.1, 0.25, 1],
+                    }}
+                  >
+                    <TerminyObligationCard
+                      row={row}
+                      onDelete={() => onDelete(row.item.id, row.item.title)}
+                      onEdit={() => onEdit(row.item.id)}
+                      onComplete={() => onComplete(row)}
+                      onConvertToTodo={() => onConvertToTodo(row)}
+                    />
+                  </motion.li>
+                ))}
+              </AnimatePresence>
             </ul>
           </section>
         );

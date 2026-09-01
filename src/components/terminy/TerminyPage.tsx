@@ -5,7 +5,7 @@
  */
 import { useMemo, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
-import { getTodayWarsaw, nextOccurrence, type LifeObligationKind } from '@vanguard/domain';
+import { getTodayWarsaw, nextOccurrence, shiftDateStr, type LifeObligationKind } from '@vanguard/domain';
 import { useStore } from '../../store/useStore';
 import { confirmDialog, notify } from '../../lib/notify';
 import { formatLongDateWarsaw } from '../../lib/date';
@@ -67,6 +67,12 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
   const urgentCount = useMemo(() => allRows.filter((row) => row.daysLeft <= 7).length, [allRows]);
   const notesCount = useMemo(() => allRows.filter((row) => Boolean(row.item.notes)).length, [allRows]);
 
+  const changeTab = (next: TerminyTabKey) => {
+    setTab(next);
+    setSearchQuery('');
+    setFilterMode('all');
+  };
+
   const openAdd = (template?: StarterTemplate | null, kind?: LifeObligationKind) => {
     setEditing(null);
     setSeedTemplate(template ?? null);
@@ -119,8 +125,10 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
         await remove.mutateAsync(row.item.id);
         notify(`Zrealizowano: „${row.item.title}”`, 'success');
       } else {
-        const nextDate = nextOccurrence(row.item.anchor_date, row.item.recurrence, today) ?? today;
-        await update.mutateAsync({ id: row.item.id, anchor_date: nextDate });
+        const currentOccurrence = row.nextDate;
+        const dayAfter = shiftDateStr(currentOccurrence, 1);
+        const nextDate = nextOccurrence(row.item.anchor_date, row.item.recurrence, dayAfter) ?? dayAfter;
+        await update.mutateAsync({ id: row.item.id, anchor_date: nextDate, sent_reminders: [] });
         notify(`Zrealizowano! Odnowiono termin „${row.item.title}” na ${formatLongDateWarsaw(nextDate)}`, 'success');
       }
     } catch (caught: unknown) {
@@ -149,7 +157,7 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
   const initialKind: LifeObligationKind = tab === 'horizon' ? 'people' : tab;
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-text-primary">
-      <TerminySidebar tab={tab} setTab={setTab} rows={allRows} onNavigateTo={onNavigateTo} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
+      <TerminySidebar tab={tab} setTab={changeTab} rows={allRows} onNavigateTo={onNavigateTo} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
       <TerminyPageContent
         onBack={onBack}
         onAdd={() => openAdd(null)}
@@ -166,7 +174,7 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
         filterMode={filterMode}
         onFilterChange={setFilterMode}
         tab={tab}
-        onTabChange={setTab}
+        onTabChange={changeTab}
         reduceMotion={reduceMotion}
         onDelete={onDelete}
         onEdit={openEdit}

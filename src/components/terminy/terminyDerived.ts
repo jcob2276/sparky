@@ -39,7 +39,16 @@ export function ringProgress(daysLeft: number, horizonDays = RING_HORIZON_DAYS):
 }
 
 export function deriveObligation(item: LifeObligation, today: string): DerivedObligation | null {
-  const nextDate = nextOccurrence(item.anchor_date, item.recurrence, today);
+  let nextDate: string | null;
+  
+  if (item.recurrence === 'once') {
+    nextDate = item.anchor_date;
+  } else if (item.kind === 'people') {
+    nextDate = nextOccurrence(item.anchor_date, item.recurrence, today);
+  } else {
+    nextDate = item.anchor_date;
+  }
+
   if (!nextDate) return null;
   const daysLeft = daysUntil(nextDate, today);
   return {
@@ -82,7 +91,8 @@ export function initialsFrom(title: string, relatedName: string | null): string 
 }
 
 export function countdownLabel(daysLeft: number): string {
-  if (daysLeft <= 0) return 'Dziś';
+  if (daysLeft < 0) return 'Przeterminowany';
+  if (daysLeft === 0) return 'Dziś';
   if (daysLeft === 1) return 'Jutro';
   return `${daysLeft} dni`;
 }

@@ -213,6 +213,7 @@ Deno.serve(serveJson(async (_req, ctx) => {
   if (warsawMinutes >= OBLIGATION_REMINDER_AFTER_MINUTES) {
     for (const raw of (obligations ?? []) as LifeObligationRow[]) {
       const due = dueLeadOffsetsToday({
+        kind: raw.kind,
         anchor_date: raw.anchor_date,
         recurrence: raw.recurrence,
         lead_offsets: raw.lead_offsets ?? [],

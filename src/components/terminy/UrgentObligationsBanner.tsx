@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { getTodayWarsaw, nextOccurrence } from '@vanguard/domain';
+import { getTodayWarsaw, nextOccurrence, shiftDateStr } from '@vanguard/domain';
 import { AlertTriangle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
 import { formatLongDateWarsaw } from '../../lib/date';
@@ -35,8 +35,10 @@ export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) 
         await remove.mutateAsync(row.item.id);
         notify(`Zrealizowano: „${row.item.title}”`, 'success');
       } else {
-        const nextDate = nextOccurrence(row.item.anchor_date, row.item.recurrence, today) ?? today;
-        await update.mutateAsync({ id: row.item.id, anchor_date: nextDate });
+        const currentOccurrence = row.nextDate;
+        const dayAfter = shiftDateStr(currentOccurrence, 1);
+        const nextDate = nextOccurrence(row.item.anchor_date, row.item.recurrence, dayAfter) ?? dayAfter;
+        await update.mutateAsync({ id: row.item.id, anchor_date: nextDate, sent_reminders: [] });
         notify(`Zrealizowano! Odnowiono termin „${row.item.title}” na ${formatLongDateWarsaw(nextDate)}`, 'success');
       }
     } catch (e: unknown) {
@@ -44,7 +46,12 @@ export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) 
     }
   };
 
+  const isOverdue = topUrgent.daysLeft < 0;
   const isToday = topUrgent.daysLeft === 0;
+
+  let bannerMessage = '⚠️ Jutro upływa termin!';
+  if (isOverdue) bannerMessage = '🚨 Termin minął!';
+  else if (isToday) bannerMessage = '🚨 Dzisiaj upływa termin!';
 
   return (
     <div className="relative overflow-hidden rounded-[22px] border border-danger/30 bg-gradient-to-r from-danger/15 via-surface-solid to-surface-2 p-4 shadow-sm backdrop-blur-md">
@@ -57,7 +64,7 @@ export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="text-2xs font-bold uppercase tracking-wider text-danger">
-                {isToday ? '🚨 Dzisiaj upływa termin!' : '⚠️ Jutro upływa termin!'}
+                {bannerMessage}
               </span>
               {urgentRows.length > 1 && (
                 <span className="rounded-full bg-danger/20 px-2 py-0.5 text-3xs font-semibold text-danger">

@@ -96,10 +96,13 @@ export function TerminyObligationCard({
   const kind = (['people', 'vehicle', 'document'].includes(row.item.kind)
     ? row.item.kind
     : 'document') as 'people' | 'vehicle' | 'document';
+  const isOverdue = row.daysLeft < 0;
   const isUrgent = row.daysLeft <= 3;
   const isToday = row.daysLeft === 0;
 
-  const badgeClass = isToday
+  const badgeClass = isOverdue
+    ? 'bg-danger/20 text-danger ring-1 ring-danger/40'
+    : isToday
     ? 'bg-danger/15 text-danger ring-1 ring-danger/30'
     : isUrgent
     ? 'bg-warning/15 text-warning ring-1 ring-warning/30'

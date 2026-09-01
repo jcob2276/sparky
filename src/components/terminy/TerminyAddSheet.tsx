@@ -44,6 +44,7 @@ interface FormSeed {
   relatedName: string;
   anchorDate: string;
   typeId: string | null;
+  notes: string;
 }
 
 function buildSeed(
@@ -60,6 +61,7 @@ function buildSeed(
       relatedName: editing.related_name ?? '',
       anchorDate: editing.anchor_date,
       typeId: null,
+      notes: editing.notes ?? '',
     };
   }
   const nextKind = initialTemplate?.kind ?? initialKind;
@@ -72,6 +74,7 @@ function buildSeed(
     relatedName: '',
     anchorDate: picked ? monthsAheadDate(today, picked.monthsAhead) : today,
     typeId: picked?.id ?? null,
+    notes: '',
   };
 }
 
@@ -122,6 +125,7 @@ function TerminyAddForm({ seed, isEdit, today, pending, onClose, onSubmit }: For
   const [relatedName, setRelatedName] = useState(seed.relatedName);
   const [anchorDate, setAnchorDate] = useState(seed.anchorDate);
   const [typeId, setTypeId] = useState(seed.typeId);
+  const [notes, setNotes] = useState(seed.notes);
 
   const typeOptions = useMemo(() => templatesForKind(kind), [kind]);
   const activeType = typeOptions.find((t) => t.id === typeId) ?? typeOptions[0] ?? null;
@@ -149,6 +153,11 @@ function TerminyAddForm({ seed, isEdit, today, pending, onClose, onSubmit }: For
 
   const handleSubmit = async () => {
     if (!title.trim() || !isYmd(anchorDate)) return;
+    
+    // Jeśli użytkownik ręcznie przesuwa datę podczas edycji, 
+    // resetujemy historię przypomnień, żeby mogły przyjść od nowa.
+    const dateChanged = isEdit && anchorDate !== seed.anchorDate;
+    
     await onSubmit({
       title: title.trim(),
       kind,
@@ -156,6 +165,8 @@ function TerminyAddForm({ seed, isEdit, today, pending, onClose, onSubmit }: For
       anchor_date: anchorDate,
       recurrence,
       lead_offsets: leads,
+      notes: notes.trim() || null,
+      ...(dateChanged ? { sent_reminders: [] } : {}),
     });
   };
 
@@ -240,6 +251,17 @@ function TerminyAddForm({ seed, isEdit, today, pending, onClose, onSubmit }: For
           value={isYmd(anchorDate) ? anchorDate : today}
           onChange={(e) => setAnchorDate(e.target.value)}
           className="mt-1"
+        />
+      </label>
+
+      <label className="block text-xs font-semibold text-text-muted">
+        Notatka (opcjonalnie)
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder="Numer polisy, kontakt, szczegóły…"
+          rows={2}
+          className="mt-1 w-full resize-none rounded-[12px] border border-border-custom/40 bg-surface-2/60 px-3 py-2 text-xs text-text-primary placeholder:text-text-muted focus:border-primary/60 focus:bg-surface-solid focus:outline-none"
         />
       </label>
 

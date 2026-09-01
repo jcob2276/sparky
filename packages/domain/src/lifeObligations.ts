@@ -50,6 +50,7 @@ export const DEFAULT_LEAD_OFFSETS: Record<LifeObligationKind, number[]> = {
 };
 
 export interface LifeObligationLike {
+  kind?: LifeObligationKind | string;
   anchor_date: string;
   recurrence: LifeObligationRecurrence | string;
   lead_offsets: number[];
@@ -76,7 +77,7 @@ export function nextOccurrence(
   const now = parseYmd(today);
 
   if (recurrence === 'once') {
-    return anchorDate >= today ? anchorDate : null;
+    return anchorDate;
   }
 
   if (recurrence === 'monthly') {
@@ -124,7 +125,15 @@ export function dueLeadOffsetsToday(
   obligation: LifeObligationLike,
   today: string,
 ): { occurrence: string; offset: number; key: string }[] {
-  const occurrence = nextOccurrence(obligation.anchor_date, obligation.recurrence, today);
+  let occurrence: string | null;
+  if (obligation.recurrence === 'once') {
+    occurrence = obligation.anchor_date;
+  } else if (obligation.kind === 'people') {
+    occurrence = nextOccurrence(obligation.anchor_date, obligation.recurrence, today);
+  } else {
+    occurrence = obligation.anchor_date;
+  }
+  
   if (!occurrence) return [];
 
   const sent = new Set(parseSentReminders(obligation.sent_reminders));
