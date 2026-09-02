@@ -1,5 +1,5 @@
 /** Target ~1.1 MB JPEG so base64 JSON stays under edge gateway limits. */
-export const VISION_UPLOAD_MAX_BYTES = 1_100_000;
+const VISION_UPLOAD_MAX_BYTES = 1_100_000;
 
 /** Downscales an image client-side (canvas) so galleries don't pull multi-MB originals for small thumbnails. */
 export async function generateThumbnail(file: File, maxDim = 320, quality = 0.75): Promise<Blob> {
