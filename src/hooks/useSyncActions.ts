@@ -8,6 +8,36 @@ import { calendarKeys, biometricsKeys } from '../lib/queryKeys';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
 const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 
+const SYNC_SERVICES = ['calendar', 'oura', 'strava'] as const;
+type SyncService = (typeof SYNC_SERVICES)[number];
+
+async function runUnifiedSync(
+  callFn: (fn: string, body?: Record<string, unknown>) => Promise<void>,
+  userId: string | undefined,
+): Promise<{ succeeded: SyncService[]; failed: Array<{ service: SyncService; reason: string }> }> {
+  const results = await Promise.allSettled(
+    SYNC_SERVICES.map(async (service) => {
+      await callFn(`sync?service=${service}`, { userId });
+      return service;
+    }),
+  );
+
+  const succeeded: SyncService[] = [];
+  const failed: Array<{ service: SyncService; reason: string }> = [];
+
+  results.forEach((result, index) => {
+    const service = SYNC_SERVICES[index];
+    if (result.status === 'fulfilled') {
+      succeeded.push(service);
+      return;
+    }
+    const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
+    failed.push({ service, reason });
+  });
+
+  return { succeeded, failed };
+}
+
 /**
  * Redirects the browser to Google OAuth consent screen.
  * Standalone so both useSyncActions and DesktopDashboard can use the same implementation.
@@ -46,20 +76,19 @@ export function useSyncActions({
   }, []);
 
   const syncCalendarSilent = useCallback(async () => {
-    try {
-      await Promise.all([
-        callFn('sync?service=calendar', { userId }),
-        callFn('sync?service=oura', { userId }),
-        callFn('sync?service=strava', { userId }),
-      ]);
-      if (userId) {
-        await queryClient.invalidateQueries({ queryKey: calendarKeys.all });
-        await queryClient.invalidateQueries({ queryKey: biometricsKeys.all });
-      }
-      onRefresh();
-    } catch (err: unknown) {
-      console.warn('[Auto Sync Error]', err);
+    const { succeeded, failed } = await runUnifiedSync(callFn, userId);
+    if (succeeded.length === 0) {
+      console.warn('[Auto Sync Error]', failed);
+      return;
     }
+    if (failed.length > 0) {
+      console.info('[Auto Sync] Partial:', { succeeded, failed });
+    }
+    if (userId) {
+      await queryClient.invalidateQueries({ queryKey: calendarKeys.all });
+      await queryClient.invalidateQueries({ queryKey: biometricsKeys.all });
+    }
+    onRefresh();
   }, [callFn, userId, onRefresh, queryClient]);
 
   useEffect(() => {
@@ -85,21 +114,27 @@ export function useSyncActions({
     setSyncing(true);
     notify('Pobieram dane: Google Calendar, Oura i Strava… 🔄', 'info');
     try {
-      await Promise.all([
-        callFn('sync?service=calendar', { userId }),
-        callFn('sync?service=oura', { userId }),
-        callFn('sync?service=strava', { userId }),
-      ]);
+      const { succeeded, failed } = await runUnifiedSync(callFn, userId);
       const LAST_SYNC_KEY = 'vanguard_last_unified_sync_time';
       try {
         localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
       } catch { /* local storage can be unavailable */ }
+      if (succeeded.length === 0) {
+        throw new Error(failed.map((f) => `${f.service}: ${f.reason}`).join('; '));
+      }
       if (userId) {
         await queryClient.invalidateQueries({ queryKey: calendarKeys.all });
         await queryClient.invalidateQueries({ queryKey: biometricsKeys.all });
       }
       onRefresh();
-      notify('Synchronizacja zakończona pomyślnie! 🛌🏃🗓️', 'success');
+      if (failed.length > 0) {
+        notify(
+          `Zsynchronizowano: ${succeeded.join(', ')}. Pominięto: ${failed.map((f) => f.service).join(', ')}.`,
+          'info',
+        );
+      } else {
+        notify('Synchronizacja zakończona pomyślnie! 🛌🏃🗓️', 'success');
+      }
     } catch (err: unknown) {
       console.error('[Action Error]', err);
       notify(err instanceof Error ? err.message : 'Wystąpił błąd podczas synchronizacji', 'error');

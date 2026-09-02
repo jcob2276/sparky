@@ -51,7 +51,9 @@ export async function runCalendarSync(req: Request): Promise<unknown> {
         .maybeSingle()
     )
 
-    if (!tokenData) throw new Error('No token')
+    if (!tokenData) {
+      return { ok: true, skipped: true, reason: 'calendar_not_configured' }
+    }
 
     // Google's token endpoint occasionally 500s transiently (seen 2026-07-15) — plain fetch
     // had zero retry, so every cron-driven calendar sync failed outright on that blip.

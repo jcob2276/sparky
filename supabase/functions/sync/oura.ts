@@ -22,7 +22,9 @@ export async function runOuraSync(req: Request): Promise<unknown> {
         .eq('user_id', userId)
         .single()
     )
-    if (!settings?.oura_token) throw new Error('Oura token not found')
+    if (!settings?.oura_token) {
+      return { ok: true, skipped: true, reason: 'oura_not_configured' }
+    }
 
     const token = settings.oura_token
     const headers = { 'Authorization': `Bearer ${token}` }

@@ -21,8 +21,8 @@ export async function runStravaSync(req: Request): Promise<unknown> {
     }
 
     if (!tokenRow?.api_key || !tokenRow?.athlete_id) {
-      console.error('[sync-intervals] No credentials found in intervals_tokens table.');
-      throw new Error('No intervals.icu credentials found in database configuration.');
+      console.info('[sync-intervals] No credentials — skipping sync.');
+      return { ok: true, skipped: true, reason: 'intervals_not_configured' };
     }
 
     // 2. Determine date range for sync

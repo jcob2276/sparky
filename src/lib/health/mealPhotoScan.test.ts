@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { invokeEdge, generateThumbnail, blobToBase64 } = vi.hoisted(() => ({
+const { invokeEdge, prepareVisionUpload, blobToBase64 } = vi.hoisted(() => ({
   invokeEdge: vi.fn(),
-  generateThumbnail: vi.fn(),
+  prepareVisionUpload: vi.fn(),
   blobToBase64: vi.fn(),
 }));
 
 vi.mock('../supabase', () => ({ invokeEdge }));
-vi.mock('../imageThumbnail', () => ({ generateThumbnail }));
+vi.mock('../imageThumbnail', () => ({ prepareVisionUpload }));
 vi.mock('../imageEncoding', () => ({ blobToBase64 }));
 
 import { scanMealPhoto } from './mealPhotoScan';
@@ -15,7 +15,7 @@ import { scanMealPhoto } from './mealPhotoScan';
 describe('scanMealPhoto', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    generateThumbnail.mockResolvedValue(new Blob(['small'], { type: 'image/jpeg' }));
+    prepareVisionUpload.mockResolvedValue(new Blob(['small'], { type: 'image/jpeg' }));
     blobToBase64.mockResolvedValue('encoded');
   });
 
@@ -29,7 +29,7 @@ describe('scanMealPhoto', () => {
     invokeEdge.mockResolvedValue({ meal });
 
     await expect(scanMealPhoto(new File(['photo'], 'meal.png'), 'user-1')).resolves.toBe(meal);
-    expect(generateThumbnail).toHaveBeenCalledWith(expect.any(File), 1800, 0.84);
+    expect(prepareVisionUpload).toHaveBeenCalledWith(expect.any(File));
     expect(invokeEdge).toHaveBeenCalledWith('parse-food-nl', expect.objectContaining({
       body: expect.objectContaining({ mode: 'meal_photo', userId: 'user-1', imageBase64: 'encoded' }),
     }));
@@ -39,5 +39,11 @@ describe('scanMealPhoto', () => {
     invokeEdge.mockResolvedValue({ meal: { items: [] } });
     await expect(scanMealPhoto(new File(['photo'], 'meal.png'), 'user-1'))
       .rejects.toThrow('Nie udało się rozpoznać posiłku');
+  });
+
+  it('maps edge transport errors to a clearer message', async () => {
+    invokeEdge.mockRejectedValue(new Error('Failed to send a request to the Edge Function'));
+    await expect(scanMealPhoto(new File(['photo'], 'meal.png'), 'user-1'))
+      .rejects.toThrow('Nie udało się wysłać zdjęcia do serwera');
   });
 });
