@@ -6,15 +6,21 @@
  * @usedBy DashboardHistoriaTab
  */
 import type { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { WorkoutHistorySection } from './stats/WorkoutHistorySection';
+import { ExerciseIndexSection } from './stats/ExerciseIndexSection';
 import { DataExportSection } from './stats/DataExportSection';
+import { TrainingLoadPanel } from './stats/TrainingLoadPanel';
+import { MuscleHardSetsSection } from './stats/MuscleHardSetsSection';
 import { useStatsData } from './hooks/useStatsData';
 
 export default function Stats({ topSlot = null, runningSlot = null }: { topSlot?: ReactNode; runningSlot?: ReactNode }) {
+  const navigate = useNavigate();
   const {
     userId,
     loading,
     recentSessions,
+    strainRows,
     dateRange, setDateRange,
     isExporting,
     includeNutrition, setIncludeNutrition,
@@ -54,6 +60,15 @@ export default function Stats({ topSlot = null, runningSlot = null }: { topSlot?
       </section>
 
       {topSlot}
+
+      <TrainingLoadPanel strainRows={strainRows} />
+
+      <MuscleHardSetsSection recentSessions={recentSessions} />
+
+      <ExerciseIndexSection
+        recentSessions={recentSessions}
+        onOpenExercise={(name) => navigate(`/cwiczenie?n=${encodeURIComponent(name)}`)}
+      />
 
       <WorkoutHistorySection
 

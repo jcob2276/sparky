@@ -4,105 +4,56 @@ export function normalize(s: string): string {
     .replace(/ń/g,'n').replace(/ó/g,'o').replace(/ś/g,'s').replace(/ź/g,'z').replace(/ż/g,'z');
 }
 
+export { rirEffectiveness } from '@vanguard/domain';
+
+/**
+ * Autocomplete — tylko ćwiczenia z logu (kanoniczne nazwy).
+ * Wolny tekst nadal działa; tagi z tagsForExercise / exerciseStimulus.
+ */
 export const EXERCISES = [
   // Klatka
-  { name: 'Wyciskanie sztangi na ławce', tags: ['klatka', 'triceps', 'barki'] },
   { name: 'Wyciskanie płaskie', tags: ['klatka', 'triceps', 'barki'] },
   { name: 'Wyciskanie hantli na ławce', tags: ['klatka', 'triceps', 'barki'] },
-  { name: 'Wyciskanie na skosie', tags: ['klatka', 'barki'] },
   { name: 'Wyciskanie skośne', tags: ['klatka', 'barki'] },
-  { name: 'Rozpiętki', tags: ['klatka'] },
-  { name: 'Pompki', tags: ['klatka', 'triceps'] },
   { name: 'Dipy', tags: ['triceps', 'klatka'] },
-  { name: 'Cable crossover', tags: ['klatka'] },
+  { name: 'Rozpiętki', tags: ['klatka'] },
   // Plecy
   { name: 'Martwy ciąg', tags: ['dwugłowe ud', 'pośladki', 'plecy'] },
   { name: 'Martwy ciąg rumuński', tags: ['dwugłowe ud', 'pośladki', 'plecy'] },
-  { name: 'RDL', tags: ['dwugłowe ud', 'pośladki', 'plecy'] },
   { name: 'Podciąganie nachwytem', tags: ['plecy', 'biceps'] },
   { name: 'Podciąganie podchwytem', tags: ['biceps', 'plecy'] },
   { name: 'Lat Pulldown', tags: ['plecy', 'biceps'] },
   { name: 'Wiosłowanie sztangą', tags: ['plecy', 'biceps'] },
-  { name: 'Wiosłowanie hantlem', tags: ['plecy', 'biceps'] },
   { name: 'Wiosłowanie jedną ręką', tags: ['plecy', 'biceps'] },
-  { name: 'Ściąganie drążka', tags: ['plecy', 'biceps'] },
-  { name: 'Face pull', tags: ['plecy', 'barki'] },
   { name: 'Odwrotne rozpiętki', tags: ['barki'] },
-  { name: 'Leaning cable lateral raise', tags: ['barki'] },
-  { name: 'Wznosy bokiem dropset', tags: ['barki'] },
-  { name: 'Seal row', tags: ['plecy'] },
-  { name: 'Chest-supported row', tags: ['plecy', 'biceps'] },
   // Barki
   { name: 'OHP sztangą', tags: ['barki', 'triceps'] },
-  { name: 'OHP hantlami', tags: ['barki', 'triceps'] },
-  { name: 'Unoszenie boczne', tags: ['barki'] },
-  { name: 'Unoszenie przednie', tags: ['barki'] },
-  { name: 'Arnold press', tags: ['barki'] },
+  { name: 'Wznosy bokiem dropset', tags: ['barki'] },
+  { name: 'Leaning cable lateral raise', tags: ['barki'] },
   // Biceps
-  { name: 'Uginanie ze sztangą', tags: ['biceps', 'przedramiona'] },
-  { name: 'Uginanie sztangi stojąc', tags: ['biceps'] },
   { name: 'Uginanie z hantlami', tags: ['biceps'] },
   { name: 'Uginanie hantli (ławka skośna)', tags: ['biceps'] },
-  { name: 'Uginanie młotkowe', tags: ['biceps', 'przedramiona'] },
-  { name: 'Uginanie na modlitewniku', tags: ['biceps'] },
-  { name: 'Uginanie na lince', tags: ['biceps'] },
+  { name: 'Uginanie sztangi stojąc', tags: ['biceps'] },
   // Triceps
-  { name: 'Wyciskanie wąskim chwytem', tags: ['triceps', 'klatka'] },
   { name: 'Pushdown na lince', tags: ['triceps'] },
-  { name: 'French press', tags: ['triceps'] },
-  { name: 'Skull crushers', tags: ['triceps'] },
-  { name: 'Overhead triceps extension', tags: ['triceps'] },
   { name: 'Overh. triceps ext. (linka)', tags: ['triceps'] },
   { name: 'Prostowanie łokci (wyciąg)', tags: ['triceps'] },
   // Nogi
   { name: 'Przysiad ze sztangą', tags: ['czworogłowe', 'pośladki', 'dwugłowe ud'] },
-  { name: 'Bułgarski przysiad', tags: ['czworogłowe', 'pośladki'] },
-  { name: 'Hack squat', tags: ['czworogłowe'] },
-  { name: 'Leg press', tags: ['czworogłowe', 'pośladki'] },
-  { name: 'Wykroki', tags: ['czworogłowe', 'pośladki'] },
-  { name: 'Prostowanie nóg', tags: ['czworogłowe'] },
-  { name: 'Zginanie nóg', tags: ['dwugłowe ud'] },
+  { name: 'Wykroki (miejsce/bułgar)', tags: ['czworogłowe', 'pośladki'] },
   { name: 'Leg Curl', tags: ['dwugłowe ud'] },
   { name: 'Hip thrust', tags: ['pośladki', 'dwugłowe ud'] },
   { name: 'Wspięcia na łydki', tags: ['łydki'] },
-  { name: 'Wspięcia na palce', tags: ['łydki'] },
-  { name: 'Good morning', tags: ['dwugłowe ud', 'pośladki', 'plecy'] },
-  // Plajometria / moc reaktywna (pod biegacza)
+  // Plyo (z logu)
   { name: 'Box jump', tags: ['plyo', 'czworogłowe', 'pośladki'] },
-  { name: 'Box jump continuous', tags: ['plyo', 'czworogłowe', 'pośladki'] },
-  { name: 'Depth jump', tags: ['plyo', 'czworogłowe', 'łydki'] },
-  { name: 'Single-leg hop', tags: ['plyo', 'łydki', 'pośladki'] },
-  { name: 'Single-leg box jump', tags: ['plyo', 'czworogłowe', 'pośladki'] },
-  { name: 'Bounding', tags: ['plyo', 'pośladki', 'dwugłowe ud'] },
-  { name: 'Split squat jump', tags: ['plyo', 'czworogłowe', 'pośladki'] },
-  { name: 'Lateral bound', tags: ['plyo', 'pośladki', 'czworogłowe'] },
-  { name: 'Tuck jump', tags: ['plyo', 'czworogłowe', 'łydki'] },
-  { name: 'Pogo hop', tags: ['plyo', 'łydki'] },
-  { name: 'Pogo hop jednonóż', tags: ['plyo', 'łydki'] },
-  { name: 'Skater', tags: ['plyo', 'pośladki', 'czworogłowe'] },
-  { name: 'Broad jump', tags: ['plyo', 'pośladki', 'dwugłowe ud'] },
-  { name: 'Box jump lateral', tags: ['plyo', 'czworogłowe', 'pośladki'] },
   { name: 'Box step-off', tags: ['plyo', 'czworogłowe', 'łydki'] },
-  { name: 'Alternating jump lunge', tags: ['plyo', 'czworogłowe', 'pośladki'] },
-  { name: 'Skip A/B drill', tags: ['plyo', 'łydki', 'czworogłowe'] },
+  { name: 'Single-leg hop', tags: ['plyo', 'łydki', 'pośladki'] },
+  { name: 'Split squat jump', tags: ['plyo', 'czworogłowe', 'pośladki'] },
+  { name: 'Pogo hop', tags: ['plyo', 'łydki'] },
   // Brzuch
-  { name: 'Plank', tags: ['brzuch'] },
-  { name: 'Crunch', tags: ['brzuch'] },
-  { name: 'Hanging leg raise', tags: ['brzuch'] },
-  { name: 'Ab rollout', tags: ['brzuch'] },
   { name: 'Ab wheel rollout', tags: ['brzuch'] },
-  { name: 'Dragon flag', tags: ['brzuch'] },
-  // Cardio
-  { name: 'Bieżnia', tags: ['cardio'] },
-  { name: 'Rower stacjonarny', tags: ['cardio', 'nogi'] },
-  { name: 'Wioślarze (ergometr)', tags: ['cardio', 'plecy'] },
-  { name: 'Kettlebell swing', tags: ['pośladki', 'plecy', 'cardio'] },
   // Wellness
   { name: 'Sauna', tags: ['wellness'] },
-  { name: 'Lodowata kąpiel', tags: ['wellness'] },
-  { name: 'Zimny prysznic', tags: ['wellness'] },
-  { name: 'Stretching', tags: ['wellness'] },
-  { name: 'Foam rolling', tags: ['wellness'] },
 ];
 
 // Exercise name → tags lookup (normalized keys)
@@ -131,14 +82,7 @@ export * from './exerciseStimulus'
  * less than one taken close to failure, even at identical kg×reps. No RIR
  * logged → assume the set counted (don't punish missing data).
  */
-export function rirEffectiveness(rir: number | null | undefined): number {
-  if (rir == null || Number.isNaN(rir)) return 1;
-  if (rir <= 1) return 1;
-  if (rir <= 2) return 0.9;
-  if (rir <= 4) return 0.7;
-  if (rir <= 6) return 0.45;
-  return 0.25;
-}
+// rirEffectiveness re-exported above from @vanguard/domain
 
 const TAG_COLOR: Record<string, string> = {
   klatka:        'bg-blue-500/15 text-blue-300 border-blue-500/25',

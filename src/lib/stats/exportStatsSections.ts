@@ -1,6 +1,7 @@
 import { TIMEZONE } from '../../lib/date';
 import type { Tables } from '../database.types';
 import type { AwAppEntry, PhoneTopApp } from './exportStatsTypes';
+import { breakdownPhoneUsageDaily, formatPhoneUsagePct } from './phoneUsageSummary';
 
 interface OURASectionParams {
   dayOura: Tables<'oura_daily_summary'>;
@@ -9,7 +10,7 @@ interface OURASectionParams {
 }
 
 export function renderOuraSection({ dayOura, dayOuraEnhanced, dayOuraDerived }: OURASectionParams): string {
-  let md = `### 💍 Oura Ring\n`;
+  let md = `#### 💍 Oura Ring\n`;
   md += `- **Readiness:** ${dayOura.readiness_score || '--'} | **Sleep Score:** ${dayOuraEnhanced?.sleep_score || '--'} | **Activity Score:** ${dayOuraEnhanced?.activity_score || '--'}\n`;
 
   if (dayOuraEnhanced?.bedtime_start || dayOuraEnhanced?.bedtime_end) {
@@ -72,6 +73,7 @@ interface PhoneSectionParams {
     social_minutes: number | null;
     messaging_minutes: number | null;
     ai_minutes: number | null;
+    browser_minutes: number | null;
     unlocks: number | null;
     late_night_minutes: number | null;
     total_minutes: number | null;
@@ -80,21 +82,43 @@ interface PhoneSectionParams {
 }
 
 export function renderPhoneSection({ dayPhone }: PhoneSectionParams): string {
-  let md = '';
-  const parts = [
-    (dayPhone.entertainment_minutes ?? 0) > 0 ? `🎬 ${dayPhone.entertainment_minutes}m` : null,
-    (dayPhone.social_minutes ?? 0) > 0        ? `📲 soc: ${dayPhone.social_minutes}m` : null,
-    (dayPhone.messaging_minutes ?? 0) > 0     ? `💬 msg: ${dayPhone.messaging_minutes}m` : null,
-    (dayPhone.ai_minutes ?? 0) > 0            ? `🤖 AI: ${dayPhone.ai_minutes}m` : null,
-    (dayPhone.unlocks ?? 0) > 0               ? `🔓 ${dayPhone.unlocks}x` : null,
-  ].filter(Boolean).join(' | ');
-  const lnAlert = (dayPhone.late_night_minutes ?? 0) > 60 ? ` 🌙 PO 23:00: **${dayPhone.late_night_minutes}m** ⚠️` : (dayPhone.late_night_minutes ?? 0) > 0 ? ` 🌙 ${dayPhone.late_night_minutes}m` : '';
-  md += `### 📱 Telefon (AW)\n`;
-  md += `- **Łącznie:** ${dayPhone.total_minutes}min | ${parts}${lnAlert}\n`;
+  const breakdown = breakdownPhoneUsageDaily(dayPhone);
+  if (breakdown.total <= 0) return '';
+
+  const categoryParts = [
+    breakdown.entertainment > 0 ? `🎬 ${breakdown.entertainment}m` : null,
+    breakdown.social > 0 ? `📲 soc: ${breakdown.social}m` : null,
+    breakdown.messaging > 0 ? `💬 msg: ${breakdown.messaging}m` : null,
+    breakdown.ai > 0 ? `🤖 AI: ${breakdown.ai}m` : null,
+    breakdown.browser > 0 ? `🌐 www: ${breakdown.browser}m` : null,
+    breakdown.other > 0 ? `📦 inne: ${breakdown.other}m` : null,
+  ].filter(Boolean).join(' · ');
+
+  const lnAlert =
+    breakdown.lateNight > 60
+      ? ` · 🌙 po 23:00: **${breakdown.lateNight}m** ⚠️`
+      : breakdown.lateNight > 0
+        ? ` · 🌙 ${breakdown.lateNight}m`
+        : '';
+
+  let md = `#### 📱 Telefon\n`;
+  md += `- **Aktywny ekran:** ${breakdown.total} min`;
+  if (categoryParts) md += ` (${categoryParts})`;
+  md += `${lnAlert}\n`;
+  md += `- **Odblokowania:** ${breakdown.unlocks}\n`;
+
   if (dayPhone.top_apps?.length) {
-    const top3 = ((dayPhone.top_apps ?? []) as PhoneTopApp[]).slice(0, 3).map(a => `${a.app} (${a.min}m)`).join(', ');
-    md += `- **Top:** ${top3}\n`;
+    const topApps = (dayPhone.top_apps as PhoneTopApp[]).slice(0, 5);
+    const topSum = topApps.reduce((sum, app) => sum + (app.min ?? 0), 0);
+    const topLine = topApps
+      .map((app) => `${app.app} (${app.min}m, ${formatPhoneUsagePct(app.min, breakdown.total)})`)
+      .join(' · ');
+    md += `- **Top aplikacje:** ${topLine}\n`;
+    if (topSum < breakdown.total) {
+      md += `- _Pozostałe aplikacje: ${breakdown.total - topSum} min_\n`;
+    }
   }
+
   md += `\n`;
   return md;
 }
@@ -129,7 +153,7 @@ export function renderAwSection({ dayAw }: AwSectionParams): string {
     return '`[' + '█'.repeat(dots) + '░'.repeat(emptyDots) + ']`';
   };
 
-  md += `### 💻 Aktywność na komputerze (ActivityWatch)\n`;
+  md += `#### 💻 Komputer (ActivityWatch)\n`;
   md += `- **Czas aktywności (PC):** ${fmtSeconds(dayAw.total_active_seconds ?? 0)} (AFK: ${fmtSeconds(dayAw.total_afk_seconds ?? 0)})\n`;
   if (dayAw.phone_active_seconds) {
     md += `- **Czas aktywności (telefon):** ${fmtSeconds(dayAw.phone_active_seconds)}\n`;
@@ -170,13 +194,13 @@ interface NutritionSectionParams {
 export function renderNutritionSection({ dayFood, dayNutrition, foodError }: NutritionSectionParams): string {
   let md = '';
   if (dayFood.length > 0) {
-    md += `### 🥗 Dieta (Sparky)\n`;
+    md += `#### 🥗 Posiłki\n`;
     const meals = { breakfast: 'Śniadanie', lunch: 'Obiad', dinner: 'Kolacja', snack: 'Przekąski' };
 
     Object.entries(meals).forEach(([key, label]) => {
       const mealItems = dayFood.filter(f => f.meal_type === key);
       if (mealItems.length > 0) {
-        md += `#### ${label}\n`;
+        md += `##### ${label}\n`;
         mealItems.forEach(item => {
           const extras = [
             item.fiber != null ? `Bł: ${item.fiber}g` : null,
@@ -213,7 +237,7 @@ export function renderNutritionSection({ dayFood, dayNutrition, foodError }: Nut
     md += `\n**Suma dnia: ${totalCal} kcal | B: ${totalProt.toFixed(1)}g | W: ${totalCarb.toFixed(1)}g | T: ${totalFat.toFixed(1)}g${fiberSugarStr ? ' | ' + fiberSugarStr : ''}**\n`;
     md += `_Gęstość białka: ${proteinDensity}g / 100 kcal | IL_est: ${totalIL.toFixed(1)} — ${ilLabel}_\n\n`;
   } else if (dayNutrition) {
-    md += `### 🥗 Dieta (Sparky)\n`;
+    md += `#### 🥗 Posiłki\n`;
     md += foodError
       ? `Nie udało się pobrać szczegółowych produktów z \`daily_food_entries\`: ${foodError.message}\n\n`
       : `Brak szczegółowych produktów w \`daily_food_entries\`, ale dzienna suma makro jest zapisana.\n\n`;

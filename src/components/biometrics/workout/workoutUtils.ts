@@ -9,7 +9,6 @@ export {
   newExercise,
   epley,
   formatLastSession,
-  getSuggestion,
   isLogWellness,
   sessionVol,
 } from '../../../lib/health/workout';

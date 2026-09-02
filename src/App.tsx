@@ -126,6 +126,7 @@ function AppRoutes() {
       <Route path="/links" element={<Screen kind="list"><Dashboard session={session} /></Screen>} />
       <Route path="/fundament" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
       <Route path="/trening" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
+      <Route path="/cwiczenie" element={<Screen kind="list"><Dashboard session={session} /></Screen>} />
       <Route path="/bieganie" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="dashboard"><RunningPerformancePage /></Screen>

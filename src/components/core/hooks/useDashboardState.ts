@@ -296,7 +296,8 @@ export function useDashboardState(session: Session) {
 
   // Navigation
   useWorkoutResume(userId, useCallback(() => {
-    if (location.pathname !== '/trening') { navigate('/trening'); }
+    if (location.pathname === '/trening' || location.pathname === '/cwiczenie') return;
+    navigate('/trening?mode=log');
   }, [location.pathname, navigate]));
 
   const navigateTo = useCallback((newView: string) => {

@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Tables } from '../database.types';
+import { warsawDayBoundsISO } from '../date';
 import type { ExportStatsMarkdownParams } from './exportStatsTypes';
-import { emptyRes, parseLocalDateToIso } from './exportStatsHelpers';
+import { emptyRes } from './exportStatsHelpers';
 
 export interface ExportData {
   sessions: Tables<'workout_sessions'>[];
@@ -34,8 +35,8 @@ export async function fetchExportData(
   flags: Pick<ExportStatsMarkdownParams, 'includeNutrition' | 'includeJournal' | 'includeOura' | 'includeHabits' | 'includeWorkouts' | 'includeBody' | 'includeActivityWatch'>
 ): Promise<ExportData> {
   const { includeNutrition, includeJournal, includeOura, includeHabits, includeWorkouts, includeBody, includeActivityWatch } = flags;
-  const exportStartIso = parseLocalDateToIso(dateRange.from, '00:00:00');
-  const exportEndIso = parseLocalDateToIso(dateRange.to, '23:59:59.999');
+  const { fromISO: exportStartIso } = warsawDayBoundsISO(dateRange.from);
+  const { toISO: exportEndIso } = warsawDayBoundsISO(dateRange.to);
 
   const [
     { data: sessions },
@@ -59,7 +60,7 @@ export async function fetchExportData(
     { data: awSummary },
     { data: phoneUsageData }
   ] = await Promise.all([
-    includeWorkouts ? supabase.from('workout_sessions').select('*, exercise_logs(*)').eq('user_id', session.user.id).gte('date', dateRange.from).lte('date', dateRange.to).order('date', { ascending: true }) : Promise.resolve(emptyRes()),
+    includeWorkouts ? supabase.from('workout_sessions').select('*, exercise_logs(*)').eq('user_id', session.user.id).or(`and(date.gte.${dateRange.from},date.lte.${dateRange.to}),and(start_time.gte.${exportStartIso},start_time.lte.${exportEndIso})`).order('date', { ascending: true }) : Promise.resolve(emptyRes()),
     includeBody ? supabase.from('body_metrics').select('*').eq('user_id', session.user.id).gte('date', dateRange.from).lte('date', dateRange.to).order('date', { ascending: true }) : Promise.resolve(emptyRes()),
     includeNutrition ? supabase.from('daily_food_entries').select('*').eq('user_id', session.user.id).gte('date', dateRange.from).lte('date', dateRange.to).order('date', { ascending: true }) : Promise.resolve(emptyRes()),
     includeNutrition ? supabase.from('daily_nutrition').select('*').eq('user_id', session.user.id).gte('date', dateRange.from).lte('date', dateRange.to).order('date', { ascending: true }) : Promise.resolve(emptyRes()),

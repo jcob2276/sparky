@@ -12,6 +12,8 @@ import {
   type WorkoutActivity,
   type WorkoutExercise,
 } from './workout'
+import { canonicalExerciseName } from './exerciseHistoryAliases'
+import { sessionRpeRirMismatch } from '@vanguard/domain'
 
 export * from './workoutDraft'
 
@@ -153,7 +155,7 @@ export async function saveWorkoutSession(
     endTimeManual: string
     plyoLogs?: PlyoSetLog[]
   },
-): Promise<{ queued: boolean }> {
+): Promise<{ queued: boolean; rpeMismatch: string | null }> {
   const validEx = opts.exercises.filter((e) => e.name.trim())
   const validAc = opts.activities.filter((a) => a.name.trim())
   const plyoLogs = opts.plyoLogs ?? []
@@ -165,7 +167,7 @@ export async function saveWorkoutSession(
     (ex.sets ?? [])
       .filter((s) => s.kg.trim() !== '' || s.reps.trim() !== '')
       .map((s, i) => ({
-        exercise_name: ex.name.trim(),
+        exercise_name: canonicalExerciseName(ex.name),
         set_number: i + 1,
         weight: parseFloat(s.kg) || 0,
         reps: parseInt(s.reps, 10) || 0,
@@ -239,7 +241,16 @@ export async function saveWorkoutSession(
     scheduleTrainingLoadAnalysis(userId, opts.workoutDate)
     scheduleStrainRecompute(userId)
   }
-  return { queued }
+
+  const mismatch = sessionRpeRirMismatch(
+    opts.sessionRpe,
+    exLogs.map((l) => ({ reps: l.reps, rir: l.rir })),
+  )
+
+  return {
+    queued,
+    rpeMismatch: mismatch?.flagged ? mismatch.message : null,
+  }
 }
 
 async function runTrainingLoadAnalysis(userId: string, date: string): Promise<void> {

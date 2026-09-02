@@ -2,7 +2,7 @@ import type { Tables } from '../database.types';
 import { toWarsawTime } from './exportStatsHelpers';
 
 interface RenderJournalParams {
-  dayJournal: Tables<'daily_wins'>;
+  dayJournal: Tables<'daily_wins'> | undefined;
   dayTelegramLogs: Tables<'vanguard_stream'>[];
   dayHabitLogs: Tables<'habit_logs'>[];
   habits: Tables<'habits'>[];
@@ -18,27 +18,17 @@ export function renderJournalAndHabits({
   includeJournal,
   includeHabits,
 }: RenderJournalParams): string {
-  let md = '';
-
-  if (includeJournal && dayTelegramLogs.length > 0) {
-    md += `### Notatnik (Telegram)\n`;
-    md += `#### Logi z Telegrama\n`;
-    dayTelegramLogs.forEach((log) => {
-      const meta = log.metadata as Record<string, unknown> | null;
-      const mode = meta?.mode ? ` [${meta.mode}]` : '';
-      const content = (log.content || '').trim().replace(/\n/g, '\n  ');
-      if (content) {
-        md += `- **${toWarsawTime(log.created_at ?? '')}**${mode}: ${content}\n`;
-      }
-    });
-    md += `\n`;
+  if (!includeJournal && !includeHabits) return '';
+  if (!dayJournal && dayTelegramLogs.length === 0 && !(includeHabits && dayHabitLogs?.length > 0)) {
+    return '';
   }
 
-  if (includeJournal && dayJournal) {
-    md += `### 📓 Notatnik & Plan dnia\n`;
-    md += `**Wynik Dnia:** ${dayJournal.result === 'Z' ? 'WYGRANA (Z)' : 'PORAŻKA (P)'}\n\n`;
+  let md = `### 📓 Dzień, plan i nawyki\n\n`;
 
-    md += `#### Plan dnia:\n`;
+  if (includeJournal && dayJournal) {
+    md += `#### Wynik i plan\n`;
+    md += `**Wynik dnia:** ${dayJournal.result === 'Z' ? 'WYGRANA (Z)' : 'PORAŻKA (P)'}\n\n`;
+    md += `**Plan dnia:**\n`;
     for (let i = 1; i <= 5; i++) {
       const task = dayJournal[`task_${i}` as keyof Tables<'daily_wins'>];
       const cat = dayJournal[`category_${i}` as keyof Tables<'daily_wins'>];
@@ -62,8 +52,21 @@ export function renderJournalAndHabits({
     md += `\n`;
   }
 
+  if (includeJournal && dayTelegramLogs.length > 0) {
+    md += `#### Logi z Telegrama\n`;
+    dayTelegramLogs.forEach((log) => {
+      const meta = log.metadata as Record<string, unknown> | null;
+      const mode = meta?.mode ? ` [${meta.mode}]` : '';
+      const content = (log.content || '').trim().replace(/\n/g, '\n  ');
+      if (content) {
+        md += `- **${toWarsawTime(log.created_at ?? '')}**${mode}: ${content}\n`;
+      }
+    });
+    md += `\n`;
+  }
+
   if (includeHabits && dayHabitLogs?.length > 0) {
-    md += `### ✅ Nawyki Dnia\n`;
+    md += `#### Nawyki\n`;
     dayHabitLogs.forEach((log) => {
       const habit = (habits ?? []).find((h) => h.id === log.habit_id);
       if (habit) {

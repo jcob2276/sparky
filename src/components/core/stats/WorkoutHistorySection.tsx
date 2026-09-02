@@ -1,7 +1,8 @@
 import Button from '../../ui/Button';
-import { ControlInput } from '../../ui/ControlPrimitives';
+import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
 import { format, parseISO } from 'date-fns';
 import { Trash2, Zap } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { WorkoutSessionRow, EditFormState, EditableExerciseLog } from '../hooks/useStatsData';
 
 export function WorkoutHistorySection({
@@ -29,6 +30,7 @@ export function WorkoutHistorySection({
   deleteLog: (id: string) => void;
   setEditingSession: React.Dispatch<React.SetStateAction<string | null>>;
 }) {
+  const navigate = useNavigate();
   return (
     <section className="space-y-3">
       <p className="text-2xs font-bold uppercase tracking-[var(--ds-arbitrary-0-15em)] text-text-muted font-display">Siłownia</p>
@@ -79,7 +81,12 @@ export function WorkoutHistorySection({
                         };
                         return (
                         <div key={log.id} className="flex items-center gap-2 bg-surface/50 p-2 rounded-lg border border-border-custom">
-                          <span className="text-2xs w-12 truncate text-text-secondary">{log.exercise_name}</span>
+                          <Pressable
+                            onClick={() => navigate(`/cwiczenie?n=${encodeURIComponent(log.exercise_name)}`)}
+                            className="text-2xs w-20 truncate text-left font-bold text-primary hover:underline cursor-pointer"
+                          >
+                            {log.exercise_name}
+                          </Pressable>
                           {isWellness ? (
                             <>
                               <ControlInput

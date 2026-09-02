@@ -1,4 +1,5 @@
 import type { Tables } from '../database.types';
+import { computeWeightSuggestion } from './progression';
 
 export interface WorkoutSet {
   id: number;
@@ -22,7 +23,7 @@ export interface WorkoutActivity {
   note: string;
 }
 
-export type ExerciseHistoryRow = Pick<Tables<'exercise_logs'>, 'weight' | 'reps' | 'rir' | 'set_number' | 'session_id'> & {
+export type ExerciseHistoryRow = Pick<Tables<'exercise_logs'>, 'weight' | 'reps' | 'rir' | 'set_number' | 'session_id' | 'muscle_tags' | 'exercise_name'> & {
   workout_sessions?: Pick<Tables<'workout_sessions'>, 'date'> | null;
 };
 
@@ -59,31 +60,21 @@ export function epley(
   return r === 1 ? k : k * (1 + r / 30);
 }
 
-export function formatLastSession(sets: ExerciseHistoryRow[] | null | undefined): string | null {
-  if (!sets?.length) return null;
-  const ws = [...new Set(sets.map((s) => s.weight))];
-  const rs = [...new Set(sets.map((s) => s.reps))];
-  if (ws.length === 1 && rs.length === 1) return `${ws[0]}kg × ${rs[0]} × ${sets.length} ser.`;
-  return sets.map((s) => `${s.weight}×${s.reps}`).join(' · ');
+function formatWeightLabel(weight: number | string | null | undefined): string {
+  const w = Number(weight);
+  if (Number.isNaN(w)) return '—';
+  return w === 0 ? 'BW' : `${w}kg`;
 }
 
-export function getSuggestion(lastSession: ExerciseHistoryRow[] | null | undefined): number | null {
-  if (!lastSession?.length) return null;
-  const maxW = Math.max(...lastSession.map((s) => Number(s.weight || 0)));
-  if (!maxW) return null;
-  const minReps = Math.min(...lastSession.map((s) => Number(s.reps || 0)));
-  const maxReps = Math.max(...lastSession.map((s) => Number(s.reps || 0)));
-  const repsConsistent = maxReps - minReps <= 1;
-  const increment = maxW >= 40 ? 2.5 : 1.25;
-
-  if (!repsConsistent) return maxW;
-
-  const rirValues = lastSession.map((s) => s.rir).filter((r): r is number => r != null);
-  const avgRir = rirValues.length > 0 ? rirValues.reduce((a, b) => a + b, 0) / rirValues.length : null;
-
-  // RIR 0 — failed/near-failure, don't increase
-  if (avgRir !== null && avgRir < 1) return maxW;
-  return maxW + increment;
+export function formatLastSession(sets: ExerciseHistoryRow[] | null | undefined): string | null {
+  if (!sets?.length) return null;
+  const sorted = [...sets].sort((a, b) => (a.set_number ?? 0) - (b.set_number ?? 0));
+  const ws = [...new Set(sorted.map((s) => Number(s.weight)))];
+  const rs = [...new Set(sorted.map((s) => s.reps))];
+  if (ws.length === 1 && rs.length === 1) {
+    return `${formatWeightLabel(ws[0])} × ${rs[0]} × ${sorted.length} ser.`;
+  }
+  return sorted.map((s) => `${formatWeightLabel(s.weight)}×${s.reps}`).join(' · ');
 }
 
 const WELLNESS_NAMES = ['sauna', 'lodowata', 'zimny prysznic', 'stretching', 'foam rolling'];

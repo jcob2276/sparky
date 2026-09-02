@@ -29,6 +29,7 @@ import {
   applyInsightCardsMutation,
 } from "./mutations.ts";
 import { buildSqlTool } from "./sqlTool.ts";
+import { extractAllSqlFromDsml, containsDsmlToolMarkup, stripDsmlMarkup } from "./dsmlSqlExtract.ts";
 import { OracleResponseSchema, extractAnswer } from "./responseExtract.ts";
 import { handleStreamingResponse } from "./streamHandler.ts";
 import { handleNoteSummary, handleExtractTasks } from "../handlers/noteOps.ts";
@@ -168,26 +169,26 @@ export async function runOracleQuery(
         continue;
       }
 
-      // Check for DSML XML tool call in content
-      const dsmlRegex = /<\s*\|\s*\|\s*DSML\s*\|\s*\|\s*parameter\s+name\s*=\s*['"]sql['"]\s+string\s*=\s*['"]true['"]\s*>(.*?)<\s*\/\s*\|\s*\|\s*DSML\s*\|\s*\|\s*parameter\s*>/is;
-      const dsmlMatch = chatRes.content?.match(dsmlRegex);
-      if (offerTools && dsmlMatch) {
+      // v4-flash sometimes emits DSML tool XML in content instead of tool_calls
+      const sqlFromDsml = offerTools ? extractAllSqlFromDsml(chatRes.content || "") : [];
+      if (offerTools && sqlFromDsml.length > 0) {
         iterations++;
-        const sql = dsmlMatch[1].trim();
         toolMessages.push({ role: "assistant", content: chatRes.content || "" });
-        
-        const result = sql
-          ? await runOracleReadonlyQuery(supabase, user_id, sql)
-          : { ok: false as const, error: 'Missing or invalid "sql" argument' };
-        
-        console.log(
-          `[oracle] dsml sql tool call #${iterations}:`, sql.slice(0, 200),
-          "->", result.ok ? `${result.rows.length} rows` : `error: ${result.error}`,
-        );
-        
-        const responseXml = `< | | DSML | | tool_responses>\n< | | DSML | | response name="query_database">\n${JSON.stringify(result.ok ? result.rows : { error: result.error })}\n</ | | DSML | | response>\n</ | | DSML | | tool_responses>`;
-        
-        toolMessages.push({ role: "user", content: responseXml });
+
+        const queryResults = [];
+        for (const sql of sqlFromDsml) {
+          const result = await runOracleReadonlyQuery(supabase, user_id, sql);
+          queryResults.push(result.ok ? result.rows : { error: result.error });
+          console.log(
+            `[oracle] dsml sql tool call #${iterations}:`, sql.slice(0, 200),
+            "->", result.ok ? `${result.rows.length} rows` : `error: ${result.error}`,
+          );
+        }
+
+        toolMessages.push({
+          role: "user",
+          content: `[Wynik query_database]\n${JSON.stringify(queryResults.length === 1 ? queryResults[0] : queryResults)}\n\nKontynuuj odpowiedź po polsku. Nie używaj DSML ani surowego SQL — zwykły tekst lub JSON z polem "answer".`,
+        });
         continue;
       }
 
@@ -207,6 +208,12 @@ export async function runOracleQuery(
       });
     }
     rawOutput = chatRes!.content?.trim() || chatRes!.reasoning_content?.trim() || "";
+    if (containsDsmlToolMarkup(rawOutput)) {
+      const stripped = stripDsmlMarkup(rawOutput);
+      rawOutput = stripped && !/^\s*(SELECT|WITH)\b/i.test(stripped)
+        ? stripped
+        : "Nie udało się wykonać zapytania do bazy. Spróbuj ponownie.";
+    }
     const reasoning_content = chatRes!.reasoning_content;
     console.log(`[oracle] deepseek done`, Date.now() - t0);
 

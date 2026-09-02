@@ -1,4 +1,5 @@
 import { format, parseISO } from 'date-fns';
+import { pl } from 'date-fns/locale';
 import type { Tables } from '../database.types';
 import { formatWarsawDate, shiftDateStr } from '../date';
 import type { ExportStatsMarkdownParams, StravaRawActivity } from './exportStatsTypes';
@@ -80,17 +81,31 @@ export async function exportStatsMarkdown({
   const avgSleep = getAvg(d.ouraData as Record<string, unknown>[] | null, 'total_sleep_hours', 2);
   const avgReadiness = getAvg(d.ouraData as Record<string, unknown>[] | null, 'readiness_score');
 
-  md += `## 📊 PODSUMOWANIE TYGODNIA (DASHBOARD)\n\n`;
-  md += `| Metryka | Średnia Wartość |\n`;
+  const stravaActivities = (d.stravaData ?? []).filter((a) => !a.is_oura);
+  const totalLiftVolume = (sessions ?? []).reduce((acc, session) => {
+    const logs = (session as Tables<'workout_sessions'> & { exercise_logs?: Tables<'exercise_logs'>[] }).exercise_logs ?? [];
+    return acc + logs.reduce((sum, log) => sum + (Number(log.weight) || 0) * (Number(log.reps) || 0), 0);
+  }, 0);
+  const disciplineDays = (d.ouraData ?? []).filter((o) => o.is_disciplined).length;
+  const ouraDays = (d.ouraData ?? []).length;
+  const journalWins = (d.journal ?? []).filter((j) => j.result === 'Z').length;
+  const journalDays = (d.journal ?? []).length;
+
+  md += `## 📊 PODSUMOWANIE OKRESU\n\n`;
+  md += `| Metryka | Wartość |\n`;
   md += `| :--- | :--- |\n`;
   md += `| **Średnia waga** | ${avgWeight} kg |\n`;
   md += `| **Średnia talia** | ${avgWaist} cm |\n`;
   md += `| **Średnie kcal** | ${avgCalories} kcal |\n`;
   md += `| **Średnie białko** | ${avgProtein} g |\n`;
-  md += `| **Treningi (siłowe)** | ${(sessions ?? []).length} |\n`;
+  md += `| **Treningi siłowe** | ${(sessions ?? []).length} |\n`;
+  md += `| **Objętość siłowa (łącznie)** | ${totalLiftVolume > 0 ? `${Math.round(totalLiftVolume).toLocaleString('pl-PL')} kg` : '—'} |\n`;
+  md += `| **Aktywności cardio** | ${stravaActivities.length} |\n`;
   md += `| **Średnie kroki** | ${avgSteps} |\n`;
   md += `| **Średni sen** | ${avgSleep} h |\n`;
-  md += `| **Średni Readiness** | ${avgReadiness} |\n\n`;
+  md += `| **Średni Readiness** | ${avgReadiness} |\n`;
+  md += `| **Dyscyplina (Oura)** | ${ouraDays > 0 ? `${disciplineDays}/${ouraDays} dni` : '—'} |\n`;
+  md += `| **Wygrane dni (plan)** | ${journalDays > 0 ? `${journalWins}/${journalDays}` : '—'} |\n\n`;
 
   if (goalsRow) {
     md += `## 🎯 TWOJE CELE (KONTEKST)\n`;
@@ -100,13 +115,20 @@ export async function exportStatsMarkdown({
   }
 
   // Generate full date range to detect missing days
-  const allDatesInRange = [];
+  const allDatesInRange: string[] = [];
   let current = parseISO(dateRange.from);
   const end = parseISO(dateRange.to);
   while (current <= end) {
     allDatesInRange.push(format(current, 'yyyy-MM-dd'));
     current = new Date(shiftDateStr(format(current, 'yyyy-MM-dd'), 1) + 'T12:00:00Z');
   }
+
+  md += `## 📅 Spis dni\n`;
+  allDatesInRange.forEach((dateStr, idx) => {
+    const label = format(parseISO(dateStr), 'd MMMM yyyy (EEEE)', { locale: pl });
+    md += `${idx + 1}. ${label}\n`;
+  });
+  md += `\n---\n\n# DZIENNIK DNI\n\n`;
 
   allDatesInRange.forEach((dateStr) => {
     md += renderDailySummaryMarkdown({

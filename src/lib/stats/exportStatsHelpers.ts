@@ -33,21 +33,5 @@ export const getAvg = (arr: readonly (Record<string, unknown>)[] | null, key: st
   return decimalPlaces !== null ? avg.toFixed(decimalPlaces) : Math.round(avg);
 };
 
-export const parseLocalDateToIso = (dateStr: string, timeStr: string): string => {
-  const parts = dateStr.split('-');
-  if (parts.length === 3) {
-    const y = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1;
-    const d = parseInt(parts[2], 10);
-    const timeParts = timeStr.split(/[.:]/);
-    const hh = parseInt(timeParts[0] || '0', 10);
-    const mm = parseInt(timeParts[1] || '0', 10);
-    const ss = parseInt(timeParts[2] || '0', 10);
-    const ms = parseInt(timeParts[3] || '0', 10);
-    return new Date(y, m, d, hh, mm, ss, ms).toISOString();
-  }
-  return new Date(`${dateStr}T${timeStr}`).toISOString();
-};
-
 export const toWarsawTime = (value: string | number | Date) =>
   new Date(value).toLocaleTimeString('pl-PL', { timeZone: TIMEZONE, hour: '2-digit', minute: '2-digit' });

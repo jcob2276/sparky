@@ -52,6 +52,7 @@ export interface AwAppEntry {
 
 export interface PhoneTopApp {
   app: string;
+  pkg?: string;
   min: number;
 }
 

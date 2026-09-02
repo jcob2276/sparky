@@ -40,6 +40,9 @@ export function extractAnswer(structuredResponse: any, rawOutput: string): strin
 
   const trimmedRaw = rawOutput?.trim();
   if (trimmedRaw) {
+    if (/^<\s*\|\s*\|\s*DSML\b/i.test(trimmedRaw) || trimmedRaw.includes("| | DSML | |")) {
+      return "Nie udało się wykonać zapytania do bazy. Spróbuj ponownie.";
+    }
     if (trimmedRaw.startsWith('{')) {
       try {
         const parsed = JSON.parse(trimmedRaw);

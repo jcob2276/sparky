@@ -35,79 +35,74 @@ interface RenderDailyParams {
   toWarsawDate: (iso: string | number | Date) => string;
 }
 
-function renderDevicesAndBody({
-  flags,
-  dayOura,
-  dayOuraEnhanced,
-  dayOuraDerived,
-  dayPhone,
-  dayAw,
-  dayPhotos,
-  dayBody,
-}: {
-  flags: RenderDailyParams['flags'];
-  dayOura: Tables<'oura_daily_summary'> | null | undefined;
-  dayOuraEnhanced: Tables<'oura_enhanced'> | undefined;
-  dayOuraDerived: Record<string, unknown> | undefined;
-  dayPhone: Tables<'phone_usage_daily'> | null | undefined;
-  dayAw: Tables<'aw_daily_summary'> | null | undefined;
-  dayPhotos: Tables<'progress_photos'>[];
-  dayBody: Tables<'body_metrics'> | null | undefined;
-}): string {
-  let output = '';
-  if (flags.includeOura && dayOura) {
-    output += renderOuraSection({ dayOura, dayOuraEnhanced, dayOuraDerived });
-  }
-  if (dayPhone) {
-    output += renderPhoneSection({
-      dayPhone: {
-        ...dayPhone,
-        top_apps: dayPhone.top_apps as PhoneTopApp[] | null,
-      },
-    });
-  }
-  if (dayAw) {
-    output += renderAwSection({
-      dayAw: {
-        ...dayAw,
-        top_apps: dayAw.top_apps as AwAppEntry[] | null,
-        web_domains: dayAw.web_domains as AwAppEntry[] | null,
-      },
-    });
-  }
-  if (dayPhotos && dayPhotos.length > 0) {
-    output += `### 📸 Zdjęcia Postępu\n`;
-    dayPhotos.forEach((p: Tables<'progress_photos'>, idx: number) => {
-      output += `![Zdjęcie ${idx + 1}](${p.image_url})\n`;
-    });
-    output += `\n`;
-  }
-  if (flags.includeBody && dayBody) {
-    output += `### ⚖️ Pomiary Ciała\n`;
-    if (dayBody.weight) output += `- **Waga:** ${dayBody.weight} kg\n`;
-    if (dayBody.waist) output += `- **Talia:** ${dayBody.waist} cm\n`;
+function wrapSection(title: string, content: string): string {
+  const trimmed = content.trim();
+  if (!trimmed) return '';
+  return `### ${title}\n\n${trimmed}\n`;
+}
 
-    const extraMetrics = {
-      neck: 'Szyja',
-      chest: 'Klatka',
-      hips: 'Biodra',
-      belly: 'Brzuch',
-      biceps_l: 'Biceps (L)',
-      biceps_r: 'Biceps (P)',
-      forearm: 'Przedramię',
-      thigh: 'Udo',
-      calf: 'Łydka',
-    };
-    Object.entries(extraMetrics).forEach(([key, label]) => {
-      if ((dayBody as Record<string, unknown>)[key]) {
-        output += `- **${label}:** ${(dayBody as Record<string, unknown>)[key]} cm\n`;
-      }
-    });
-    output += `\n`;
-  }
+function renderBodyMetrics(dayBody: Tables<'body_metrics'>): string {
+  let output = `#### ⚖️ Pomiary ciała\n`;
+  if (dayBody.weight) output += `- **Waga:** ${dayBody.weight} kg\n`;
+  if (dayBody.waist) output += `- **Talia:** ${dayBody.waist} cm\n`;
+
+  const extraMetrics = {
+    neck: 'Szyja',
+    chest: 'Klatka',
+    hips: 'Biodra',
+    belly: 'Brzuch',
+    biceps_l: 'Biceps (L)',
+    biceps_r: 'Biceps (P)',
+    forearm: 'Przedramię',
+    thigh: 'Udo',
+    calf: 'Łydka',
+  };
+  Object.entries(extraMetrics).forEach(([key, label]) => {
+    if ((dayBody as Record<string, unknown>)[key]) {
+      output += `- **${label}:** ${(dayBody as Record<string, unknown>)[key]} cm\n`;
+    }
+  });
+  output += `\n`;
   return output;
 }
 
+function renderDaySnapshot({
+  dayOura,
+  dayJournal,
+  daySessions,
+  dayStrava,
+  dayFood,
+  dayNutrition,
+}: {
+  dayOura: Tables<'oura_daily_summary'> | null | undefined;
+  dayJournal: Tables<'daily_wins'> | undefined;
+  daySessions: Tables<'workout_sessions'>[];
+  dayStrava: StravaCleanActivity[];
+  dayFood: Tables<'daily_food_entries'>[];
+  dayNutrition: Tables<'daily_nutrition'> | undefined;
+}): string {
+  const chips: string[] = [];
+
+  if (dayOura?.readiness_score) chips.push(`Readiness **${dayOura.readiness_score}**`);
+  if (dayOura?.total_sleep_hours) chips.push(`Sen **${dayOura.total_sleep_hours}h**`);
+  if (dayOura?.steps) chips.push(`Kroki **${dayOura.steps.toLocaleString('pl-PL')}**`);
+  if (daySessions.length > 0) chips.push(`Siłownia **✓**`);
+  if (dayStrava.length > 0) chips.push(`Kardio **${dayStrava.length}×**`);
+
+  const dayCalories = dayFood.length > 0
+    ? dayFood.reduce((sum, f) => sum + (f.calories || 0), 0)
+    : dayNutrition?.calories;
+  if (dayCalories && dayCalories > 0) chips.push(`**${Math.round(dayCalories)}** kcal`);
+
+  if (dayJournal) {
+    chips.push(dayJournal.result === 'Z' ? 'Dzień **WYGRANY**' : 'Dzień **przegrany**');
+  }
+
+  if (chips.length === 0) return '';
+  return `> ${chips.join(' · ')}\n\n`;
+}
+
+/* eslint-disable max-lines-per-function -- dense daily markdown template */
 export function renderDailySummaryMarkdown({
   dateStr,
   d,
@@ -145,11 +140,15 @@ export function renderDailySummaryMarkdown({
     includeActivityWatch,
   } = flags;
 
-  const daySessions = (sessions ?? []).filter((s: Tables<'workout_sessions'>) => s.date === dateStr);
+  const daySessions = (sessions ?? []).filter((s: Tables<'workout_sessions'>) => {
+    if (s.date === dateStr) return true;
+    if (s.start_time && toWarsawDate(s.start_time) === dateStr) return true;
+    return false;
+  });
   const dayFood = foodEntries.filter((f: Tables<'daily_food_entries'>) => f.date === dateStr);
   const dayNutrition = nutritionEntries.find((n: Tables<'daily_nutrition'>) => n.date === dateStr);
   const dayJournal = journalEntries.find((j: Tables<'daily_wins'>) => j.date === dateStr);
-  const seenContent = new Set();
+  const seenContent = new Set<string>();
   const dayTelegramLogs = telegramEntries
     .filter((t: ExportData['telegramLogs'][number]) => t.created_at && toWarsawDate(t.created_at) === dateStr)
     .filter((t: ExportData['telegramLogs'][number]) => (t.metadata as Record<string, unknown>)?.mode === 'stream')
@@ -166,9 +165,9 @@ export function renderDailySummaryMarkdown({
   const dayPhotos = (photos ?? [])?.filter((p: Tables<'progress_photos'>) => p.date === dateStr);
   const dayStrava = ((stravaData ?? []) as StravaCleanActivity[]).filter((a) => {
     if (!a.start_date) return false;
-    const date = toWarsawDate(a.start_date);
-    return date === dateStr;
+    return toWarsawDate(a.start_date) === dateStr;
   });
+  const dayPhone = (phoneUsageData ?? []).find((p: Tables<'phone_usage_daily'>) => p.date === dateStr);
   const dayAw = includeActivityWatch
     ? (d.awSummary ?? []).find((a: Tables<'aw_daily_summary'>) => a.date === dateStr)
     : null;
@@ -180,31 +179,60 @@ export function renderDailySummaryMarkdown({
     (includeBody && dayBody) ||
     (includeOura && dayOura) ||
     dayPhotos?.length > 0 ||
-    !!dayAw;
+    !!dayAw ||
+    !!dayPhone;
 
-  let md = '';
+  const dayTitle = format(parseISO(dateStr), 'd MMMM yyyy (EEEE)', { locale: pl });
 
   if (!hasAnyData) {
-    md += `## ${format(parseISO(dateStr), 'd MMMM yyyy (EEEE)', { locale: pl })}\n`;
-    md += `### ❌ DZIEŃ PRZEGRANY (Brak Celu)\n`;
-    md += `*„Jeśli nie wypełniłem nawet nie dodałem pięciu zadań jakie są do zrobienia... to i tak wziąć się zalicza jako przegrany bo po prostu no nie zrobiłem niczego w kierunku swoich własnych marzeń więc tak naprawdę żyłem dzisiaj bez celu."*\n\n`;
-    md += `---\n\n`;
-    return md;
+    return `## ${dayTitle}\n### ❌ Brak danych\n*Dzień bez wpisów w wybranych kategoriach.*\n\n---\n\n`;
   }
 
-  md += `## ${format(parseISO(dateStr), 'd MMMM yyyy (EEEE)', { locale: pl })}\n\n`;
-
-  const dayPhone = (phoneUsageData ?? []).find((p: Tables<'phone_usage_daily'>) => p.date === dateStr);
-  md += renderDevicesAndBody({
-    flags,
+  let md = `## ${dayTitle}\n\n`;
+  md += renderDaySnapshot({
     dayOura,
-    dayOuraEnhanced,
-    dayOuraDerived,
-    dayPhone,
-    dayAw,
-    dayPhotos,
-    dayBody,
+    dayJournal,
+    daySessions,
+    dayStrava,
+    dayFood,
+    dayNutrition,
   });
+
+  let bioSection = '';
+  if (flags.includeOura && dayOura) {
+    bioSection += renderOuraSection({ dayOura, dayOuraEnhanced, dayOuraDerived });
+  }
+  if (flags.includeBody && dayBody) {
+    bioSection += renderBodyMetrics(dayBody);
+  }
+  if (dayPhotos && dayPhotos.length > 0) {
+    bioSection += `#### 📸 Zdjęcia postępu\n`;
+    dayPhotos.forEach((p: Tables<'progress_photos'>, idx: number) => {
+      bioSection += `![Zdjęcie ${idx + 1}](${p.image_url})\n`;
+    });
+    bioSection += `\n`;
+  }
+  md += wrapSection('☀️ Regeneracja i ciało', bioSection);
+
+  let digitalSection = '';
+  if (dayPhone) {
+    digitalSection += renderPhoneSection({
+      dayPhone: {
+        ...dayPhone,
+        top_apps: dayPhone.top_apps as PhoneTopApp[] | null,
+      },
+    });
+  }
+  if (dayAw) {
+    digitalSection += renderAwSection({
+      dayAw: {
+        ...dayAw,
+        top_apps: dayAw.top_apps as AwAppEntry[] | null,
+        web_domains: dayAw.web_domains as AwAppEntry[] | null,
+      },
+    });
+  }
+  md += wrapSection('📱 Ekran i produktywność', digitalSection);
 
   const dayLocations = locationHistory?.filter(
     (l: Tables<'location_history'>) => l.created_at && toWarsawDate(l.created_at) === dateStr
@@ -218,27 +246,27 @@ export function renderDailySummaryMarkdown({
   const detectedPlaces = [
     ...new Set(dayLocations?.filter((l: Tables<'location_history'>) => l.place_name).map((l: Tables<'location_history'>) => l.place_name)),
   ];
-
   if (visitedPOIs.length > 0 || detectedPlaces.length > 0) {
-    md += `### 📍 Potwierdzone Lokalizacje\n`;
+    let locSection = `#### 📍 Lokalizacje\n`;
     visitedPOIs.forEach((poi) => {
-      md += `- ✅ Obecność w: **${poi.name}**\n`;
+      locSection += `- ✅ **${poi.name}**\n`;
     });
     detectedPlaces.forEach((place) => {
       if (!visitedPOIs.some((p) => p.name === place)) {
-        md += `- 🤖 Wykryto: **${place}**\n`;
+        locSection += `- 🤖 ${place}\n`;
       }
     });
-    md += `\n`;
+    locSection += `\n`;
+    md += wrapSection('📍 Kontekst miejsca', locSection);
   }
 
+  let activitySection = '';
   if (includeWorkouts) {
-    md += renderWorkoutSessions(daySessions);
+    activitySection += renderWorkoutSessions(daySessions);
   }
-
   if (includeWorkouts && dayStrava.length > 0) {
-    md = renderStravaSection({
-      md,
+    activitySection = renderStravaSection({
+      md: activitySection,
       dayStrava,
       stravaCommentById,
       ouraData: ouraData ?? [],
@@ -246,27 +274,27 @@ export function renderDailySummaryMarkdown({
       toWarsawDate,
     });
   }
+  md += wrapSection('🏃 Aktywność', activitySection);
 
   if (includeNutrition) {
-    const dayFoodData = foodEntries.filter((f: Tables<'daily_food_entries'>) => f.date === dateStr);
-    const dayNutritionData = nutritionEntries.find((n: Tables<'daily_nutrition'>) => n.date === dateStr);
-    md += renderNutritionSection({
-      dayFood: dayFoodData,
-      dayNutrition: dayNutritionData,
+    const nutritionBlock = renderNutritionSection({
+      dayFood,
+      dayNutrition,
       foodError,
       _dayStrava: dayStrava,
     });
+    md += wrapSection('🍽️ Odżywianie', nutritionBlock);
   }
 
-  const dayHabitLogs = (habitLogs ?? []).filter((l: Tables<'habit_logs'>) => l.date === dateStr);
   md += renderJournalAndHabits({
-    dayJournal: dayJournal as Tables<'daily_wins'>,
+    dayJournal,
     dayTelegramLogs: dayTelegramLogs as Tables<'vanguard_stream'>[],
-    dayHabitLogs,
+    dayHabitLogs: (habitLogs ?? []).filter((l: Tables<'habit_logs'>) => l.date === dateStr),
     habits,
     includeJournal,
     includeHabits,
   });
 
+  md += `---\n\n`;
   return md;
 }

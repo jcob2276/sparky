@@ -30,6 +30,7 @@ export function useStatsData() {
   const { data: overview, isLoading: loading } = useStatsOverviewQuery(userId);
   const bodyData = overview?.bodyData ?? [];
   const recentSessions = overview?.recentSessions ?? [];
+  const strainRows = overview?.strainRows ?? [];
   const heightCm = overview?.heightCm ?? null;
   const trends = overview?.trends ?? {};
   const projections = overview?.projections ?? null;
@@ -273,6 +274,7 @@ export function useStatsData() {
     loading,
     bodyData,
     recentSessions,
+    strainRows,
     newMetric, setNewMetric,
     heightCm,
     dateRange, setDateRange,

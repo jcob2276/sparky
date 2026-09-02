@@ -272,7 +272,7 @@ export function useWorkoutLogger({
     setSaving(true);
     try {
       await supabase.auth.getSession();
-      const { queued } = await saveWorkoutSession(userId, {
+      const { queued, rpeMismatch } = await saveWorkoutSession(userId, {
         workoutName,
         exercises,
         activities,
@@ -299,6 +299,8 @@ export function useWorkoutLogger({
           'Brak sieci — trening zapisany lokalnie, zsynchronizuje się automatycznie',
           'info'
         );
+      } else if (rpeMismatch) {
+        notify(rpeMismatch, 'info');
       }
       onSaved?.();
       onBack();

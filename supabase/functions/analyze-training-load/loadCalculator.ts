@@ -1,6 +1,7 @@
 import {
   epley, avg, classifyRun, weekOf, isoDow, DOW_PL, exercisePatterns, ACTIVITY_KW, SAUNA_KW,
 } from '../_shared/trainingHelpers.ts';
+import { canonicalExerciseName, rirAdjustedE1rm } from '@vanguard/domain';
 
 export interface CalculatorInputs {
   strainAll: any[];
@@ -96,14 +97,18 @@ export function computeTrainingMetrics(inputs: CalculatorInputs) {
   const e1RMWeek: Record<string, number[]> = {};
   for (const w of [...workoutsByWeek[3], ...workoutsByWeek[2], ...workoutsByWeek[1]]) {
     for (const l of (w.exercise_logs || []).filter((l: any) => Number(l.weight) > 0 && Number(l.reps) > 0)) {
-      const e = epley(Number(l.weight), Number(l.reps));
-      if (e) { (e1RMBase[l.exercise_name] ??= []).push(e); }
+      const name = canonicalExerciseName(l.exercise_name || '');
+      const e = rirAdjustedE1rm(Number(l.weight), Number(l.reps), l.rir != null ? Number(l.rir) : null)
+        ?? epley(Number(l.weight), Number(l.reps));
+      if (e) { (e1RMBase[name] ??= []).push(e); }
     }
   }
   for (const w of workoutsByWeek[0]) {
     for (const l of (w.exercise_logs || []).filter((l: any) => Number(l.weight) > 0 && Number(l.reps) > 0)) {
-      const e = epley(Number(l.weight), Number(l.reps));
-      if (e) { (e1RMWeek[l.exercise_name] ??= []).push(e); }
+      const name = canonicalExerciseName(l.exercise_name || '');
+      const e = rirAdjustedE1rm(Number(l.weight), Number(l.reps), l.rir != null ? Number(l.rir) : null)
+        ?? epley(Number(l.weight), Number(l.reps));
+      if (e) { (e1RMWeek[name] ??= []).push(e); }
     }
   }
   const progressionLines: string[] = [];
@@ -120,21 +125,25 @@ export function computeTrainingMetrics(inputs: CalculatorInputs) {
   for (const w of allWorkoutsSorted) {
     const logs = (w.exercise_logs || []).filter((l: any) => !ACTIVITY_KW.test(l.exercise_name || '') && l.exercise_name?.trim());
     for (const l of logs) {
-      if (!lastSessionByEx[l.exercise_name]) {
-        const allSetsThisSession = logs.filter((x: any) => x.exercise_name === l.exercise_name);
+      const canon = canonicalExerciseName(l.exercise_name || '');
+      if (!lastSessionByEx[canon]) {
+        const allSetsThisSession = logs.filter((x: any) => canonicalExerciseName(x.exercise_name || '') === canon);
         const bestE1rm = allSetsThisSession.reduce((best: number | null, s: any) => {
-          const e = epley(Number(s.weight), Number(s.reps));
+          const e = rirAdjustedE1rm(Number(s.weight), Number(s.reps), s.rir != null ? Number(s.rir) : null)
+            ?? epley(Number(s.weight), Number(s.reps));
           return e && (best === null || e > best) ? e : best;
         }, null);
-        lastSessionByEx[l.exercise_name] = { date: w.date, sets: allSetsThisSession, e1rm: bestE1rm };
+        lastSessionByEx[canon] = { date: w.date, sets: allSetsThisSession, e1rm: bestE1rm };
       }
     }
   }
   const allTimeE1rm: Record<string, number> = {};
   for (const w of allWorkoutsSorted) {
     for (const l of (w.exercise_logs || []).filter((l: any) => Number(l.weight) > 0 && Number(l.reps) > 0)) {
-      const e = epley(Number(l.weight), Number(l.reps));
-      if (e && (!allTimeE1rm[l.exercise_name] || e > allTimeE1rm[l.exercise_name])) allTimeE1rm[l.exercise_name] = e;
+      const name = canonicalExerciseName(l.exercise_name || '');
+      const e = rirAdjustedE1rm(Number(l.weight), Number(l.reps), l.rir != null ? Number(l.rir) : null)
+        ?? epley(Number(l.weight), Number(l.reps));
+      if (e && (!allTimeE1rm[name] || e > allTimeE1rm[name])) allTimeE1rm[name] = e;
     }
   }
   const exerciseHistoryLines = Object.entries(lastSessionByEx)

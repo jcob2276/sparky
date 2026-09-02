@@ -3,6 +3,8 @@ import { supabase } from './supabase';
 import type { Tables } from './database.types';
 import { calculateProjection } from './stats/statsCalculations';
 import { bodyTrend } from './health/bodyMetrics';
+import { getTodayWarsaw, shiftDateStr } from './date';
+import { statsOverviewKeys } from './queryKeys';
 
 type BodyMetricRow = Tables<'body_metrics'>;
 type ExerciseLogRow = Tables<'exercise_logs'>;
@@ -15,24 +17,26 @@ type ProjectionState = Partial<Record<'weight' | 'waist', ProjectionResult>>;
 export interface StatsOverviewData {
   bodyData: BodyMetricRow[];
   recentSessions: WorkoutSessionRow[];
+  strainRows: Array<{ date: string; strain_score: number | null }>;
   heightCm: number | null;
   trends: TrendsState;
   projections: ProjectionState | null;
 }
 
-import { statsOverviewKeys } from './queryKeys';
-
 async function fetchStatsOverview(userId: string): Promise<StatsOverviewData> {
+  const strainSince = shiftDateStr(getTodayWarsaw(), -27);
   const [
     { data: body },
     { data: sessions },
     { data: oura },
     { data: profile },
+    { data: strain },
   ] = await Promise.all([
     supabase.from('body_metrics').select('*').eq('user_id', userId).order('date', { ascending: true }),
     supabase.from('workout_sessions').select('*, exercise_logs(*)').eq('user_id', userId).order('date', { ascending: false }),
     supabase.from('oura_daily_summary').select('*').eq('user_id', userId).order('date', { ascending: false }).limit(60),
     supabase.from('nutrition_profile').select('height_cm').eq('user_id', userId).maybeSingle(),
+    supabase.from('daily_strain').select('date, strain_score').eq('user_id', userId).gte('date', strainSince).order('date', { ascending: true }),
   ]);
 
   const heightCm = profile?.height_cm != null ? Number(profile.height_cm) : null;
@@ -61,7 +65,17 @@ async function fetchStatsOverview(userId: string): Promise<StatsOverviewData> {
     ? { weight: calculateProjection(bodyData, 'weight'), waist: calculateProjection(bodyData, 'waist') }
     : null;
 
-  return { bodyData, recentSessions, heightCm, trends, projections };
+  return {
+    bodyData,
+    recentSessions,
+    strainRows: (strain ?? []).map((r) => ({
+      date: r.date,
+      strain_score: r.strain_score != null ? Number(r.strain_score) : null,
+    })),
+    heightCm,
+    trends,
+    projections,
+  };
 }
 
 export function useStatsOverviewQuery(userId: string | undefined) {

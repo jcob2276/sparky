@@ -34,7 +34,7 @@ export function renderStravaSection({
     return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
   };
 
-  let out = result + `### 🏃 Bieganie (Strava)\n\n`;
+  let out = result + `#### 🏃 Kardio (Garmin/Strava)\n\n`;
   dayStrava.forEach(a => {
     const startTime = new Date(a.start_date ?? '').toLocaleTimeString('pl-PL', { timeZone: TIMEZONE, hour: '2-digit', minute: '2-digit' });
     const distKm = a.distance ? (a.distance / 1000).toFixed(2) : null;
@@ -51,7 +51,7 @@ export function renderStravaSection({
     const workoutLabels: Record<number, string> = { 1: 'Wyścig 🏁', 2: 'Długi bieg 🏔️', 3: 'Trening / Interwały ⚡' };
     const workoutLabel = a.workout_type != null ? workoutLabels[a.workout_type] || null : null;
 
-    out += `#### ${a.name}${a.has_pr ? ' 🏆 PR' : ''} — ${startTime}${workoutLabel ? ` · ${workoutLabel}` : ''}\n`;
+    out += `##### ${a.name}${a.has_pr ? ' 🏆 PR' : ''} — ${startTime}${workoutLabel ? ` · ${workoutLabel}` : ''}\n`;
     out += `| Dystans | Tempo | Czas ruchu | Kadencja |\n`;
     out += `|---------|-------|------------|----------|\n`;
     out += `| **${distKm ?? '—'} km** | **${paceStr}** | **${movingFmt}** | **${a.cadence_spm ? a.cadence_spm + ' spm' : '—'}** |\n\n`;

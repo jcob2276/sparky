@@ -142,7 +142,21 @@ async function main() {
     }
   }
 
-  // Buduj wiersze
+  // Buduj wiersze (minuty: largest-remainder — suma kategorii + inne = total)
+  function allocateMinutes(totalMin, weights) {
+    const keys = Object.keys(weights);
+    const sum = keys.reduce((acc, key) => acc + weights[key], 0);
+    const out = Object.fromEntries(keys.map((key) => [key, 0]));
+    if (totalMin <= 0 || sum <= 0) return out;
+    const exact = keys.map((key) => ({ key, value: (weights[key] / sum) * totalMin }));
+    const floored = exact.map((e) => ({ key: e.key, min: Math.floor(e.value), frac: e.value - Math.floor(e.value) }));
+    for (const row of floored) out[row.key] = row.min;
+    let remain = totalMin - floored.reduce((acc, row) => acc + row.min, 0);
+    const order = [...floored].sort((a, b) => b.frac - a.frac);
+    for (let i = 0; remain > 0; i++, remain--) out[order[i % order.length].key] += 1;
+    return out;
+  }
+
   const rows = [];
   for (const [date, d] of Object.entries(byDay)) {
     const catSecs = { social: 0, messaging: 0, entertainment: 0, ai: 0, browser: 0 };
@@ -150,6 +164,18 @@ async function main() {
       const cat = categorize(pkg);
       if (cat !== 'inne') catSecs[cat] += info.sec;
     }
+
+    const categorizedSec = Object.values(catSecs).reduce((acc, sec) => acc + sec, 0);
+    const otherSec = Math.max(0, d.total - categorizedSec);
+    const totalMin = Math.round(d.total / 60);
+    const minutes = allocateMinutes(totalMin, {
+      social: catSecs.social,
+      messaging: catSecs.messaging,
+      entertainment: catSecs.entertainment,
+      ai: catSecs.ai,
+      browser: catSecs.browser,
+      other: otherSec,
+    });
 
     const topApps = Object.entries(d.apps)
       .sort((a, b) => b[1].sec - a[1].sec)
@@ -159,13 +185,13 @@ async function main() {
     rows.push({
       user_id:               USER_ID,
       date,
-      total_minutes:         Math.round(d.total / 60),
+      total_minutes:         totalMin,
       late_night_minutes:    Math.round(d.late_total / 60),
-      social_minutes:        Math.round(catSecs.social / 60),
-      messaging_minutes:     Math.round(catSecs.messaging / 60),
-      entertainment_minutes: Math.round(catSecs.entertainment / 60),
-      ai_minutes:            Math.round(catSecs.ai / 60),
-      browser_minutes:       Math.round(catSecs.browser / 60),
+      social_minutes:        minutes.social,
+      messaging_minutes:     minutes.messaging,
+      entertainment_minutes: minutes.entertainment,
+      ai_minutes:            minutes.ai,
+      browser_minutes:       minutes.browser,
       unlocks:               unlocksByDay[date] || 0,
       top_apps:              topApps,
     });
