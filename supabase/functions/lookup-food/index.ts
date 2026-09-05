@@ -1,9 +1,9 @@
-/**
+﻿/**
  * @function lookup-food
  * @trigger HTTP POST / Frontend / manual
- * @role Wyszukiwanie makroskładników produktów spożywczych (baza lokalna + API zewnętrzne jak Open Food Facts).
- * @reads —
- * @writes —
+ * @role Wyszukiwanie makroskĹ‚adnikĂłw produktĂłw spoĹĽywczych (baza lokalna + API zewnÄ™trzne jak Open Food Facts).
+ * @reads â€”
+ * @writes â€”
  * @calls Open Food Facts API (external)
  * @consumer Modal dodawania jedzenia (FoodEntryModal) w aplikacji
  * @status active
@@ -12,7 +12,7 @@ import { serveJson } from '../_shared/http.ts'
 import { GENERIC_FOODS, searchGenericFoods, pickBestGenericMatch } from '../_shared/foodGeneric.ts'
 import { lookupReferencePl } from '../_shared/foodReferencePl.ts'
 
-const OFF_USER_AGENT = 'VanguardOS/1.0 (personal nutrition log)'
+const OFF_USER_AGENT = 'VanguardOS/1.0 (jakub@vanguard.os - personal nutrition log)'
 
 interface FoodResult {
   barcode: string | null
@@ -58,11 +58,11 @@ function searchReferencePl(query: string): FoodResult[] {
   return [toFoodResult(best, 'reference_pl')]
 }
 
-// OFF's `serving_size`/`quantity` are free-text ("250 ml", "1 sztuka (30g)") —
+// OFF's `serving_size`/`quantity` are free-text ("250 ml", "1 sztuka (30g)") â€”
 // pull out the leading number, which is all we need for a sane portion default.
 function parseLeadingGrams(value: unknown): number | null {
   if (typeof value !== 'string') return null
-  // Prefer grams in parentheses: "1 sztuka (30g)" → 30
+  // Prefer grams in parentheses: "1 sztuka (30g)" â†’ 30
   const parenG = value.match(/\((\d+(?:[.,]\d+)?)\s*g\)/i)
   if (parenG) {
     const n = parseFloat(parenG[1].replace(',', '.'))
@@ -75,10 +75,10 @@ function parseLeadingGrams(value: unknown): number | null {
 }
 
 // Prefer the product's stated single serving (what you'd actually eat/drink at
-// once — a 250ml bottle, a 30g serving of cereal) over the whole-package
+// once â€” a 250ml bottle, a 30g serving of cereal) over the whole-package
 // quantity, which is frequently far too large to be a sane logging default
 // (e.g. a 1kg bag of rice). Falls back to package quantity only when OFF has
-// no serving_size at all — better than always defaulting to 100g/ml.
+// no serving_size at all â€” better than always defaulting to 100g/ml.
 function extractDefaultGrams(product: any): number | null {
   const fromServing = parseLeadingGrams(product?.serving_size)
   if (fromServing) return fromServing
@@ -107,7 +107,7 @@ function offProductToResult(product: any, barcode: string | null): FoodResult | 
   }
 }
 
-// OFF is volunteer-run and occasionally throws transient 5xx under load —
+// OFF is volunteer-run and occasionally throws transient 5xx under load â€”
 // one retry after a short backoff smooths that over without masking real failures.
 async function fetchOffWithRetry(url: string): Promise<Response | null> {
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -124,7 +124,7 @@ async function fetchOffWithRetry(url: string): Promise<Response | null> {
 }
 
 async function lookupOneBarcode(barcode: string): Promise<FoodResult | null> {
-  const res = await fetchOffWithRetry(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`)
+  const res = await fetchOffWithRetry(`https://pl.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`)
   if (!res) return null
   const json = await res.json()
   if (json.status !== 1) return null
@@ -132,7 +132,7 @@ async function lookupOneBarcode(barcode: string): Promise<FoodResult | null> {
 }
 
 // Camera scanners sometimes emit UPC-A (12 digits) for a barcode OFF only has
-// indexed as EAN-13 (13 digits, leading 0), or vice versa — a real and common
+// indexed as EAN-13 (13 digits, leading 0), or vice versa - a real and common
 // cause of "scanned but not found" even though the product exists. Try the
 // scanned code first, then the zero-padded/stripped variant before giving up.
 async function lookupByBarcode(barcode: string): Promise<FoodResult[]> {
@@ -153,7 +153,7 @@ async function lookupByBarcode(barcode: string): Promise<FoodResult[]> {
 async function searchOpenFoodFacts(query: string): Promise<{ results: FoodResult[]; status: 'ok' | 'unavailable'; incompleteCount: number }> {
   // Restricting to Polish-language products keeps foreign (often French, since OFF
   // started there) listings out of results for a Polish-only user.
-  const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10&tagtype_0=languages&tag_contains_0=contains&tag_0=polish`
+  const url = `https://pl.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10&tagtype_0=languages&tag_contains_0=contains&tag_0=polish`
   const res = await fetchOffWithRetry(url)
   if (!res) return { results: [], status: 'unavailable', incompleteCount: 0 }
   const json = await res.json()
@@ -184,3 +184,6 @@ Deno.serve(serveJson(async (req) => {
   }
   throw new Error('Provide barcode or q')
 }, { auth: 'none' }))
+
+
+

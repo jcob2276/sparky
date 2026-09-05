@@ -35,7 +35,7 @@ export default function MealComposerQuick({
               type="button"
               disabled={saving}
               onClick={card.onRepeat}
-              className="flex w-full items-center gap-3 rounded-2xl border border-border-custom/70 bg-surface-solid/35 px-3 py-2.5 text-left transition hover:border-primary/35 hover:bg-primary/[0.04] disabled:opacity-50"
+              className="group flex w-full items-center gap-3 rounded-2xl border border-border-custom/70 bg-surface-solid/35 px-3 py-2.5 text-left transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] hover:border-primary/35 hover:bg-primary/[0.04] active:scale-[0.97] disabled:opacity-50"
             >
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                 {card.id.startsWith('gap-') ? <Sparkles size={15} /> : <RotateCcw size={15} />}
@@ -46,7 +46,7 @@ export default function MealComposerQuick({
                   {card.calories} kcal · {card.protein} g B · {card.subtitle}
                 </span>
               </span>
-              <span className="shrink-0 text-2xs font-black uppercase tracking-wide text-primary">Powtórz</span>
+              <span className="shrink-0 text-2xs font-black uppercase tracking-wide text-primary transition-transform duration-200 group-hover:translate-x-1 group-active:translate-x-1">Powtórz</span>
             </Pressable>
           ))}
         </div>
@@ -57,14 +57,14 @@ export default function MealComposerQuick({
           <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-wider text-text-muted">
             <History size={11} /> Szybkie
           </p>
-          <div className="flex gap-1.5 overflow-x-auto pb-0.5">
+          <div className="flex gap-1.5 overflow-x-auto pb-0.5" data-no-swipe-nav="true">
             {chips.map((chip) => (
               <Pressable
                 key={chip.id}
                 type="button"
                 disabled={saving}
                 onClick={() => onChip(chip)}
-                className="shrink-0 rounded-full border border-border-custom bg-surface-solid/40 px-3 py-1.5 text-left hover:border-primary/35 disabled:opacity-50"
+                className="shrink-0 rounded-full border border-border-custom bg-surface-solid/40 px-3 py-1.5 text-left transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] hover:border-primary/35 active:scale-[0.95] disabled:opacity-50"
                 title={chip.detail}
               >
                 <span className="flex items-center gap-1">

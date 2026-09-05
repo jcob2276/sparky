@@ -1,6 +1,9 @@
 import { Camera, ScanLine, Search, Sparkles } from 'lucide-react';
 import type { MealTypeId } from '../../../lib/health/foodLogging';
 import type { FoodBase } from '../../../lib/health/foodTypes';
+import { notify } from '../../../lib/notify';
+import { pickMealPhotoNative } from '../../../lib/native/mealPhotoCapture';
+import { isNativePlatform } from '../../../lib/native/platform';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
 import Spinner from '../../ui/Spinner';
 import FoodRow from './FoodRow';
@@ -27,8 +30,8 @@ export function ComposerHeader({
               key={label}
               type="button"
               onClick={() => setLogDate(date)}
-              className={`rounded-full px-3 py-1 text-2xs font-bold ${
-                logDate === date ? 'bg-primary text-on-accent shadow-sm' : 'border border-border-custom text-text-secondary'
+              className={`rounded-full px-3 py-1 text-2xs font-bold transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] active:scale-[0.95] ${
+                logDate === date ? 'bg-primary text-on-accent shadow-sm' : 'border border-border-custom text-text-secondary hover:bg-surface-solid/50'
               }`}
             >
               {label}
@@ -42,10 +45,10 @@ export function ComposerHeader({
             key={meal.id}
             type="button"
             onClick={() => setMealType(meal.id as MealTypeId)}
-            className={`rounded-full px-3 py-1.5 text-2xs font-black uppercase tracking-wider ${
+            className={`rounded-full px-3 py-1.5 text-2xs font-black uppercase tracking-wider transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] active:scale-[0.95] ${
               mealType === meal.id
                 ? 'bg-primary/20 text-primary border border-primary/40'
-                : 'border border-border-custom text-text-muted'
+                : 'border border-border-custom text-text-muted hover:bg-surface-solid/50'
             }`}
           >
             {meal.label}
@@ -102,7 +105,7 @@ export function ComposerProgress({
       )}
       <div className="h-1.5 overflow-hidden rounded-full bg-border-custom/40">
         <div
-          className={`h-full rounded-full transition-all duration-500 ${
+          className={`h-full rounded-full transition-all duration-500 ease-[var(--ease-out,ease-out)] ${
             totals.targetKcal && totals.calories > totals.targetKcal ? 'bg-warning' : 'bg-primary'
           }`}
           style={{ width: `${Math.min(100, ((totals.calories / (totals.targetKcal || 2000)) * 100))}%` }}
@@ -142,6 +145,21 @@ export function ComposerInput({
   onOpenScanner: () => void;
   photoInputRef: React.RefObject<HTMLInputElement | null>;
 }) {
+  const handlePhotoClick = async () => {
+    if (scanningPhoto || saving) return;
+    try {
+      if (isNativePlatform()) {
+        const file = await pickMealPhotoNative();
+        if (file) onPhotoPick(file);
+        return;
+      }
+      photoInputRef.current?.click();
+    } catch (cause: unknown) {
+      const message = cause instanceof Error ? cause.message : 'Nie udało się otworzyć aparatu';
+      notify(message, 'error');
+    }
+  };
+
   return (
     <div className="space-y-2">
       <div className="flex items-center gap-2">
@@ -155,13 +173,13 @@ export function ComposerInput({
             }
           }}
           placeholder='np. 2 jajka, twaróg 150g, kawa z mlekiem'
-          className="min-w-0 flex-1 rounded-2xl border border-border-custom bg-surface-solid/50 px-4 py-3 text-sm outline-none transition placeholder:text-text-muted/50 focus:border-primary/50"
+          className="min-w-0 flex-1 rounded-2xl border border-border-custom bg-surface-solid/50 px-4 py-3 text-sm outline-none transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] placeholder:text-text-muted/50 focus:border-primary/50 focus:bg-surface focus:shadow-sm"
         />
         <Pressable
           type="button"
           onClick={onParse}
           disabled={!text.trim() || parsing || saving}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-on-accent disabled:opacity-40"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-on-accent transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] active:scale-[0.92] disabled:opacity-40"
           title="Parsuj posiłek"
         >
           {parsing ? <Spinner size="sm" className="!border-on-accent/30 !border-t-on-accent" /> : <Sparkles size={18} />}
@@ -183,7 +201,7 @@ export function ComposerInput({
         <ComposerToolButton
           icon={scanningPhoto ? <Spinner size="sm" /> : <Camera size={15} />}
           label={scanningPhoto ? 'Skanuję…' : 'Zdjęcie'}
-          onClick={() => photoInputRef.current?.click()}
+          onClick={() => void handlePhotoClick()}
           disabled={scanningPhoto || saving}
         />
         <ComposerToolButton icon={<ScanLine size={15} />} label="Kod" onClick={onOpenScanner} disabled={saving} />
@@ -257,8 +275,8 @@ function ComposerToolButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-2xs font-black uppercase tracking-wide ${
-        active ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border-custom text-text-muted'
+      className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-2xs font-black uppercase tracking-wide transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] active:scale-[0.97] ${
+        active ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border-custom text-text-muted hover:bg-surface-solid/70'
       }`}
     >
       {icon}

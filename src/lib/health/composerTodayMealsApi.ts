@@ -9,6 +9,11 @@ export interface ComposerTodayMeal {
   entries: RepeatableFoodEntry[];
 }
 
+export interface TodayFoodEntry extends RepeatableFoodEntry {
+  meal_type: string;
+  date: string;
+}
+
 export async function fetchComposerTodayMeals(
   userId: string,
   date: string,
@@ -38,4 +43,18 @@ export async function fetchComposerTodayMeals(
     protein: Math.round(entries.reduce((sum, entry) => sum + (entry.protein ?? 0), 0) * 10) / 10,
     entries,
   }));
+}
+
+export async function fetchAllTodayEntries(
+  userId: string,
+  date: string,
+): Promise<TodayFoodEntry[]> {
+  const { data, error } = await supabase
+    .from('daily_food_entries')
+    .select('id, name, brand, calories, protein, carbs, fat, fiber, sugar, amount, meal_type')
+    .eq('user_id', userId)
+    .eq('date', date)
+    .order('logged_at', { ascending: true, nullsFirst: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({ ...row, date, meal_type: row.meal_type ?? 'snack' }) as TodayFoodEntry);
 }

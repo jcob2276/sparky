@@ -58,7 +58,7 @@ export default function MealComposerDraftRow({
   };
 
   return (
-    <div className="rounded-xl border border-border-custom/70 bg-surface/80 px-3 py-2.5">
+    <div className="rounded-xl border border-border-custom/70 bg-surface/80 px-3 py-2.5" style={{ animation: 'fadeIn 250ms ease-out forwards' }}>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-text-primary">{item.name}</p>
@@ -93,7 +93,7 @@ export default function MealComposerDraftRow({
             key={chip.label}
             type="button"
             onClick={() => applyPortion(chip.state)}
-            className="rounded-full border border-border-custom px-2 py-0.5 text-2xs font-bold text-text-secondary hover:border-primary/40 hover:text-primary"
+            className="rounded-full border border-border-custom px-2 py-0.5 text-2xs font-bold text-text-secondary transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] hover:border-primary/40 hover:text-primary active:scale-[0.95]"
           >
             {chip.label}
           </Pressable>
@@ -106,8 +106,8 @@ export default function MealComposerDraftRow({
             key={unit}
             type="button"
             onClick={() => onUnitChange(unit)}
-            className={`rounded-full px-2 py-1 text-2xs font-black uppercase tracking-wide ${
-              portion.unit === unit ? 'bg-primary text-on-accent' : 'border border-border-custom text-text-muted'
+            className={`rounded-full px-2 py-1 text-2xs font-black uppercase tracking-wide transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] active:scale-[0.95] ${
+              portion.unit === unit ? 'bg-primary text-on-accent scale-100' : 'border border-border-custom text-text-muted hover:bg-surface-solid/50'
             }`}
           >
             {PORTION_UNIT_LABELS[unit]}

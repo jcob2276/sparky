@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { combineDateTimeWarsawISO, getTodayWarsaw, getYesterdayWarsaw, warsawTimeOfDay } from '../../../../lib/date';
 import { notify } from '../../../../lib/notify';
 import { fetchNutritionDayContext } from '../../../../lib/health/nutritionContext';
-import { fetchComposerTodayMeals } from '../../../../lib/health/composerTodayMealsApi';
+import { fetchComposerTodayMeals, fetchAllTodayEntries } from '../../../../lib/health/composerTodayMealsApi';
 import { buildQuickChips, type QuickChip } from '../../../../lib/health/mealComposerQuick';
 import {
   MEAL_TYPES,
@@ -104,6 +104,12 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     enabled: !!userId,
   });
 
+  const allTodayEntriesQuery = useQuery({
+    queryKey: ['all-today-entries', userId, logDate, refreshSignal],
+    queryFn: () => fetchAllTodayEntries(userId!, logDate),
+    enabled: !!userId,
+  });
+
   const appendFoodToDraft = useCallback((food: Parameters<typeof foodBaseToDraft>[0], grams?: number) => {
     const portions = userPortionsQuery.data;
     const remembered = portions ? lookupUserPortion(portions, food.name) : null;
@@ -167,6 +173,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     void queryClient.invalidateQueries({ queryKey: ['recent-food-products', userId] });
     void queryClient.invalidateQueries({ queryKey: ['user-portions', userId] });
     void queryClient.invalidateQueries({ queryKey: ['composer-today-meals', userId, logDate, mealType] });
+    void queryClient.invalidateQueries({ queryKey: ['all-today-entries', userId, logDate] });
     bumpQualityRefresh();
     onSaved?.();
   }, [bumpQualityRefresh, contextQuery, logDate, mealType, onSaved, queryClient, userId]);
@@ -376,6 +383,9 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     memoryName,
     setMemoryName,
     hasEntries: totals.calories > 0,
+    todayMeals: todayMealsQuery.data ?? [],
+    todayMealsLoading: todayMealsQuery.isLoading,
+    allTodayEntries: allTodayEntriesQuery.data ?? [],
     recentProducts: recentProductsQuery.data ?? [],
     rememberedByName,
     MEAL_TYPES,
@@ -383,5 +393,6 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     today: getTodayWarsaw(),
     yesterday: getYesterdayWarsaw(),
     mealLabelForType,
+    refreshAfterSave,
   };
 }
