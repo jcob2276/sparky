@@ -16,9 +16,9 @@ describe('computeWeightSuggestion', () => {
   it('dodaje 2.5 kg po dobrej sesji bench', () => {
     const s = computeWeightSuggestion(
       [
-        { weight: 100, reps: 8, rir: 2, set_number: 1, session_id: 'a' },
-        { weight: 100, reps: 8, rir: 1, set_number: 2, session_id: 'a' },
-        { weight: 100, reps: 8, rir: 1, set_number: 3, session_id: 'a' },
+        { weight: 100, reps: 8, rir: 2, set_number: 1, session_id: 'a', exercise_name: 'Wyciskanie płaskie', muscle_tags: ['klatka'] },
+        { weight: 100, reps: 8, rir: 1, set_number: 2, session_id: 'a', exercise_name: 'Wyciskanie płaskie', muscle_tags: ['klatka'] },
+        { weight: 100, reps: 8, rir: 1, set_number: 3, session_id: 'a', exercise_name: 'Wyciskanie płaskie', muscle_tags: ['klatka'] },
       ],
       'Wyciskanie płaskie',
       ['klatka'],
@@ -30,8 +30,8 @@ describe('computeWeightSuggestion', () => {
   it('dodaje 5 kg po dobrej sesji przysiadu', () => {
     const s = computeWeightSuggestion(
       [
-        { weight: 100, reps: 5, rir: 2, set_number: 1, session_id: 'a' },
-        { weight: 100, reps: 5, rir: 2, set_number: 2, session_id: 'a' },
+        { weight: 100, reps: 5, rir: 2, set_number: 1, session_id: 'a', exercise_name: 'Przysiad', muscle_tags: ['quady'] },
+        { weight: 100, reps: 5, rir: 2, set_number: 2, session_id: 'a', exercise_name: 'Przysiad', muscle_tags: ['quady'] },
       ],
       'Przysiad',
       ['quady'],
@@ -43,9 +43,9 @@ describe('computeWeightSuggestion', () => {
   it('trzyma ciężar przy nierównych powtórzeniach', () => {
     const s = computeWeightSuggestion(
       [
-        { weight: 100, reps: 8, rir: 2, set_number: 1, session_id: 'a' },
-        { weight: 100, reps: 6, rir: 1, set_number: 2, session_id: 'a' },
-        { weight: 100, reps: 5, rir: 0, set_number: 3, session_id: 'a' },
+        { weight: 100, reps: 8, rir: 2, set_number: 1, session_id: 'a', exercise_name: 'Wyciskanie płaskie', muscle_tags: ['klatka'] },
+        { weight: 100, reps: 6, rir: 1, set_number: 2, session_id: 'a', exercise_name: 'Wyciskanie płaskie', muscle_tags: ['klatka'] },
+        { weight: 100, reps: 5, rir: 0, set_number: 3, session_id: 'a', exercise_name: 'Wyciskanie płaskie', muscle_tags: ['klatka'] },
       ],
       'Wyciskanie płaskie',
     );

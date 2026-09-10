@@ -109,6 +109,11 @@ Every item below comes from a real bug found in this repo. "It probably works" i
    After extracting a component, grep for the old function/class name.
    If nothing imports it → delete it. Dead code is the #1 source of confusion.
    HOW TO CHECK: grep -r "<OldComponentName>" src/
+
+Empirical Research & LaTeX Publishing Invariants (Thesis):
+- Remote Execution Invariant: Never run complex Python inline strings with quotes/commas in Windows PowerShell. Always write a script (.py or .sh), transfer via SCP, and run with ssh -n.
+- Citation Grounding: Every bibliographic entry must use verified primary authors and official peer-reviewed proceedings venues (EMNLP, ACL, IEEE, WWW, AACL), eliminating hallucinated names from working drafts.
+- Zero Overfull Policy: LaTeX manuscripts must compile with exit code 0, without unresolved Overfull \hbox warnings. Variable-width tables must use tabularx with X columns, and long formulas must use align.
 ```
 
 ## Where to read next

@@ -87,7 +87,7 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
           className="min-h-11 min-w-11 p-2 rounded-full"
         />
         <div className="text-center flex flex-col items-center">
-          <p className="hidden text-base font-bold text-text-primary md:block">{monthLabel(selectedDay)}</p>
+          <p className="text-sm md:text-base font-bold text-text-primary">{monthLabel(selectedDay)}</p>
           {weather?.daily?.[selectedDay] && (
             <div className="flex items-center gap-1 mt-0.5 text-xs font-bold text-text-muted cursor-help" title={WMO_WEATHER_DESC[weather.daily[selectedDay].weatherCode]}>
               {getWMOWeatherIcon(weather.daily[selectedDay].weatherCode, 13)}

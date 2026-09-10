@@ -77,7 +77,7 @@ export function nextOccurrence(
   const now = parseYmd(today);
 
   if (recurrence === 'once') {
-    return anchorDate;
+    return anchorDate >= today ? anchorDate : null;
   }
 
   if (recurrence === 'monthly') {

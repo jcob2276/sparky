@@ -62,7 +62,7 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
         .from('todo_items')
         .select(TODO_FIELDS)
         .eq('user_id', userId)
-        .in('status', ['open', 'done'])
+        .eq('status', 'open')
         .gte('due_date', rangeStart)
         .lt('due_date', rangeEnd)
         .not('due_date', 'is', null);
@@ -100,7 +100,7 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
     ]);
   }, [inboxQuery, scheduledQuery]);
 
-  const todosForDay = useCallback((day: string) => scheduledTodos.filter((t) => t.due_date === day), [scheduledTodos]);
+  const todosForDay = useCallback((day: string) => scheduledTodos.filter((t) => t.due_date === day && (t.status !== 'done' || completedTodoIds.has(t.id))), [scheduledTodos, completedTodoIds]);
 
   // Mutations
   const toggleTodoMutation = useMutation({

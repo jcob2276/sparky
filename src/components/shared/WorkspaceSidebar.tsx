@@ -26,14 +26,14 @@ function WorkspaceSidebarInner({
 
   return (
     <Sidebar className={className} mobileTitle="Kalendarz">
-      <SidebarHeader className={`flex items-center py-2 px-3 border-b border-border-custom/20 mb-1.5 ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+      <SidebarHeader className={`flex items-center py-2 px-3 border-b border-border-custom/20 mb-1.5 ${isCollapsed ? 'justify-center px-1' : 'justify-between'}`}>
         {!isCollapsed && (
           <span className="pixel-label text-text-muted/60 tracking-wider">Workspace</span>
         )}
         {/* Mobile: toggle sheet via context. Desktop: sync external collapsed flag. */}
         <SidebarTrigger
           onClick={isMobile ? undefined : onCollapse}
-          className="hover:bg-surface-2 rounded-lg"
+          className="hover:bg-surface-2 rounded-xl"
         />
       </SidebarHeader>
       {children}

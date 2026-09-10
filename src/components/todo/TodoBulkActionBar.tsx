@@ -48,6 +48,7 @@ export function TodoBulkActionBar({
           onClick={onBulkSetToday}
           className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer"
           title="Przesuń na dzisiaj"
+          aria-label="Przesuń zaznaczone zadania na dzisiaj"
         >
           <Calendar size={13} className="text-primary" />
           <span>Dziś</span>
@@ -59,6 +60,7 @@ export function TodoBulkActionBar({
           onClick={onBulkSetTomorrow}
           className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer"
           title="Przesuń na jutro"
+          aria-label="Przesuń zaznaczone zadania na jutro"
         >
           <ArrowRight size={13} className="text-warning" />
           <span>Jutro</span>
@@ -70,6 +72,7 @@ export function TodoBulkActionBar({
           onClick={() => onBulkSetPriority('urgent')}
           className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-danger/40 active:scale-95 transition-all cursor-pointer"
           title="Ustaw wysoki priorytet (P1)"
+          aria-label="Ustaw wysoki priorytet dla zaznaczonych zadań"
         >
           <Flag size={13} className="text-danger" />
           <span>Ważne</span>
@@ -81,6 +84,7 @@ export function TodoBulkActionBar({
           onClick={onBulkComplete}
           className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl bg-success/15 border border-success/30 text-success hover:bg-success/25 active:scale-95 transition-all cursor-pointer"
           title="Oznacz jako ukończone"
+          aria-label="Oznacz zaznaczone zadania jako ukończone"
         >
           <CheckCircle2 size={13} />
           <span>Ukończ</span>
@@ -92,6 +96,7 @@ export function TodoBulkActionBar({
           onClick={onBulkDelete}
           className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl bg-danger/15 border border-danger/30 text-danger hover:bg-danger/25 active:scale-95 transition-all cursor-pointer"
           title="Usuń wybrane zadania"
+          aria-label="Usuń zaznaczone zadania"
         >
           <Trash2 size={13} />
           <span>Usuń</span>
@@ -103,8 +108,9 @@ export function TodoBulkActionBar({
         onClick={onClearSelection}
         className="p-1 rounded-full text-text-muted hover:text-text-primary hover:bg-surface-solid/60 transition-colors ml-1 shrink-0"
         title="Odznacz wszystkie"
+        aria-label="Odznacz wszystkie zadania"
       >
-        <X size={16} />
+        <X size={14} />
       </button>
     </div>
   );

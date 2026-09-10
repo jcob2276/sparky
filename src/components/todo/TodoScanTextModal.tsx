@@ -1,7 +1,7 @@
 import { Pressable, ControlTextarea } from '../ui/ControlPrimitives';
 import { useState } from 'react';
 import { ScanText, Sparkles, Check } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { invokeEdge } from '../../lib/supabase';
 import { createTodoItem } from '../../lib/todo/todo';
 import type { TodoItemRow } from './useTodoData';
 import Modal from '../ui/Modal';
@@ -33,10 +33,10 @@ export default function TodoScanTextModal({ userId, sectionId, onClose, onCreate
     setExtracting(true);
     setError(null);
     try {
-      const { data, error: fnError } = await supabase.functions.invoke('vanguard-auto-classify?action=todo-extract', {
+      const data = await invokeEdge('vanguard-auto-classify', {
         body: { text, userId },
-      });
-      if (fnError) throw fnError;
+        query: { action: 'todo-extract' },
+      }) as { tasks?: Array<{ title: string; due_date?: string | null; priority?: string | null }> };
       const extracted: ExtractedTask[] = (data?.tasks || []).map((t: { title: string; due_date?: string | null; priority?: string | null }) => ({
         title: t.title,
         due_date: t.due_date ?? null,

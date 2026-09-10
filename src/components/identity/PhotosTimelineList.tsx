@@ -29,7 +29,7 @@ export default function PhotosTimelineList({
         </p>
       </div>
 
-      <div className="flex gap-3 overflow-x-auto pb-2 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex gap-3 overflow-x-auto pb-2 snap-x [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" data-no-swipe-nav="true">
         {photos.map((photo) => {
           const isBase = photo.id === baseId;
           const isTarget = photo.id === targetId;

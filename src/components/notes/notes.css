@@ -388,6 +388,13 @@
   transform: var(--ds-local-css-translatey-2px-scale-1-005);
   box-shadow: var(--ds-css-boxshadow-0-8px-24px-rgba-0-0-0-0-12-0-2px-8px-rgba-0-0-0-0-06);
 }
+.keep-card:focus-visible,
+.keep-icon-btn:focus-visible,
+.keep-swatch:focus-visible,
+.keep-menu-item:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-focus);
+}
 .keep-card.editing {
   position: fixed !important;
   top: 50% !important;

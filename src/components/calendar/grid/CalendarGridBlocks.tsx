@@ -1,6 +1,5 @@
-import { Pressable } from '../../ui/ControlPrimitives';
 import React from 'react';
-import { Sparkles, Shield, Check, Video } from 'lucide-react';
+import { Sparkles, Shield, Video } from 'lucide-react';
 import {
   HOUR_START,
   HOUR_END,
@@ -39,19 +38,34 @@ export const renderEventBlock = ({
   const isFocusTime = ev.summary?.includes('Focus Time') || ev.summary?.includes('🛡️');
   const videoCall = detectVideoCallUrl(ev.location) || detectVideoCallUrl(ev.description) || detectVideoCallUrl(ev.summary);
 
+  const startStr = ev.original_start_time ? formatTime(ev.original_start_time) : formatTime(ev.start_time);
+  const endStr = ev.original_end_time ? formatTime(ev.original_end_time) : formatTime(ev.end_time);
+
   let displaySummary = ev.summary;
   if (tooShort) {
     const isSleep = ev.summary?.toLowerCase().includes('sen') || ev.summary?.toLowerCase().includes('sleep');
     if (isSleep) {
-      displaySummary = `${formatTime(ev.start_time)}-${formatTime(ev.end_time)}`;
+      displaySummary = `${startStr}-${endStr}`;
     } else {
-      displaySummary = `${ev.summary} (${formatTime(ev.start_time)}–${formatTime(ev.end_time)})`;
+      displaySummary = `${ev.summary} (${startStr}–${endStr})`;
     }
   }
+
+  const textColor = isFocusTime ? 'text-primary dark:text-primary-hover' : 'text-white';
+  const subtextColor = isFocusTime ? 'text-primary/80 dark:text-primary-hover/80' : 'text-white/90';
 
   return (
     <div
       key={ev.id}
+      role="button"
+      tabIndex={0}
+      aria-label={`${ev.summary || 'Wydarzenie'}: ${startStr}–${endStr}`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleEventMouseDown(ev, e as unknown as React.MouseEvent<HTMLDivElement>, 'move');
+        }
+      }}
       onMouseDown={(e) => handleEventMouseDown(ev, e, 'move')}
       onContextMenu={(e) => {
         e.preventDefault();
@@ -60,7 +74,7 @@ export const renderEventBlock = ({
       }}
       className={`apple-event-card absolute border-l-[3.5px] rounded-r-lg ${
         tooShort ? 'px-2 py-0.5 flex items-center justify-start' : 'px-2 py-1 flex flex-col justify-between'
-      } overflow-hidden cursor-move shadow-xs hover:shadow-md hover:z-[var(--z-popover)] select-none ${eventColor(ev)}`}
+      } overflow-hidden cursor-move shadow-xs hover:shadow-md hover:z-[var(--z-popover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 select-none ${eventColor(ev)}`}
       style={{ top, height, left: `calc(${left} + 1px)`, width: `calc(${width} - 2px)` }}
       title={ev.summary || ''}
     >
@@ -68,15 +82,15 @@ export const renderEventBlock = ({
         {isAIScheduled && !tooShort && <Sparkles size={11} className="shrink-0 animate-pulse text-amber-500 mt-0.5" />}
         {isFocusTime && !tooShort && <Shield size={11} className="shrink-0 text-current mt-0.5" />}
         {videoCall && !tooShort && <Video size={11} className="shrink-0 text-current mt-0.5" />}
-        <p className={`text-white ${tooShort ? 'text-xs truncate font-black' : isMedium ? 'text-xs font-black leading-tight break-words line-clamp-2' : 'text-xs md:text-sm font-black leading-snug break-words line-clamp-4'}`}>
+        <p className={`${textColor} ${tooShort ? 'text-xs truncate font-black' : isMedium ? 'text-xs font-black leading-tight break-words line-clamp-2' : 'text-xs md:text-sm font-black leading-snug break-words line-clamp-4'}`}>
           {displaySummary}
         </p>
       </div>
       {!tooShort && (
-        <div className="mt-0.5 text-3xs font-bold tracking-wider uppercase text-white/90 flex items-center justify-between shrink-0">
-          <span>{formatTime(ev.start_time)}–{formatTime(ev.end_time)}</span>
+        <div className={`mt-0.5 text-2xs font-bold tracking-wider uppercase ${subtextColor} flex items-center justify-between shrink-0`}>
+          <span>{startStr}–{endStr}</span>
           {videoCall && (
-            <span className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded bg-white/25 text-white font-bold text-3xs">
+            <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-white/25 text-white font-bold text-2xs">
               📹 {videoCall.provider}
             </span>
           )}
@@ -84,7 +98,7 @@ export const renderEventBlock = ({
       )}
       <div
         onMouseDown={(e) => handleEventMouseDown(ev, e, 'resize')}
-        className="absolute bottom-0 left-0 right-0 h-2 cursor-s-resize hover:bg-black/10 dark:hover:bg-white/10 z-[var(--z-sticky)]"
+        className="absolute bottom-0 left-0 right-0 h-2.5 cursor-s-resize hover:bg-black/10 dark:hover:bg-white/10 z-[var(--z-sticky)]"
       />
     </div>
   );
@@ -121,9 +135,15 @@ export const renderTodoBlock = ({
       onTouchStart={(e) => {
         e.stopPropagation();
       }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleToggleTodo(todo.id);
+        setToastMessage(isCompleting ? `Zadanie przywrócone: "${todo.title}"` : `Ukończono: "${todo.title}" ✅`);
+      }}
       onDragStart={(e) => {
         e.stopPropagation();
-        e.dataTransfer.setData('text/plain', JSON.stringify({ id: todo.id, title: todo.title, duration_minutes: todo.duration_minutes }));
+        e.dataTransfer.setData('text/plain', JSON.stringify({ id: todo.id, title: todo.title, duration_minutes: todo.duration_minutes || 30 }));
         e.dataTransfer.effectAllowed = 'move';
       }}
       onClick={(e) => {
@@ -131,22 +151,10 @@ export const renderTodoBlock = ({
         setEditingTodo(todo);
         setEditingTodoTitle(todo.title);
       }}
-      className={`absolute rounded-lg border border-primary/40 bg-background/95 shadow-md hover:bg-surface-solid px-2 py-1 overflow-hidden transition-all duration-[var(--motion-fast)] z-[var(--z-popover)] cursor-grab active:cursor-grabbing ${isCompleting ? 'opacity-[var(--opacity-50)]' : ''}`}
-      style={{ top, height, left: 'var(--ds-inline-style-75)', width: 'var(--ds-inline-style-24)' }}
+      className={`absolute right-1 w-[min(180px,calc(100%-8px))] rounded-lg border border-primary/40 bg-background/95 shadow-md hover:bg-surface-solid px-2 py-1 overflow-hidden transition-all duration-[var(--motion-fast)] z-[var(--z-popover)] cursor-grab active:cursor-grabbing ${isCompleting ? 'opacity-[var(--opacity-50)]' : ''}`}
+      style={{ top, height }}
     >
       <div className="flex items-start gap-0.5">
-        <Pressable
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleToggleTodo(todo.id);
-            setToastMessage(`Ukończono: "${todo.title}" ✅`);
-          }}
-          aria-label={`Oznacz zadanie jako wykonane: ${todo.title}`}
-          className={`relative after:absolute after:-inset-2 mt-0.5 h-3.5 w-3.5 shrink-0 rounded border flex items-center justify-center transition-colors ${isCompleting ? 'bg-success border-success' : 'border-primary/50 hover:bg-primary/20'}`}
-        >
-          {isCompleting && <Check size={9} className="text-on-accent" strokeWidth={4} />}
-        </Pressable>
         <p className={`flex items-center gap-1 text-xs font-bold text-primary leading-tight line-clamp-2 ${isCompleting ? 'line-through' : ''}`}>
           {GoalIcon && <GoalIcon size={10} className="shrink-0" />}
           <span className="truncate">{todo.title}</span>

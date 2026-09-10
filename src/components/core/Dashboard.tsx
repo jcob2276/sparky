@@ -151,7 +151,7 @@ export default function Dashboard({ session }: { session: Session }) {
     { label: 'Dodaj Jedzenie', emoji: '🍎', icon: Apple, color: 'var(--color-success)', action: () => s.navigate('/dzis') },
     { label: 'Zaloguj Trening', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => { s.openWorkout(); } },
     { label: 'Zaloguj Saunę', emoji: '🧖', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna') },
-    { label: 'Zmierz Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-theme-hex-14b8a6)', action: () => s.navigate('/optics') },
+    { label: 'Zmierz Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-primary)', action: () => s.navigate('/optics') },
   ];
 
 

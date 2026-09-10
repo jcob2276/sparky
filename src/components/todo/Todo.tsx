@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 import DataStateNotice from '../core/DataStateNotice';
+import Skeleton from '../ui/Skeleton';
 import { createTodoSection, renameTodoSection, archiveTodoSection, setTodoStatus, deleteTodoItem, updateTodoItem } from '../../lib/todo/todo';
 import DragGhost from './DragGhost';
 import TodoSidebar, { type TodoNavDest } from './TodoSidebar';
@@ -148,8 +149,21 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <DataStateNotice tone="loading" title="Zadania się ładują" detail="Pobieram otwarte zadania." />
+      <div className="todoist-theme flex h-screen overflow-hidden bg-background text-text-primary">
+        <div className="w-64 border-r border-border-custom/40 p-4 space-y-4 hidden md:block">
+          <Skeleton lines={4} className="opacity-60" />
+          <Skeleton variant="card" lines={3} className="opacity-40" />
+        </div>
+        <div className="flex-1 p-6 space-y-4 max-w-3xl overflow-y-auto">
+          <div className="h-8 w-48 rounded-xl bg-surface-solid/70 animate-pulse mb-6" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-20 rounded-2xl border border-border-custom/20 bg-surface-solid/40 animate-pulse" />
+            ))}
+          </div>
+          <Skeleton variant="card" lines={4} className="opacity-70" />
+          <Skeleton variant="card" lines={3} className="opacity-50" />
+        </div>
       </div>
     );
   }

@@ -118,7 +118,7 @@ function MonthDayCell({
             e.stopPropagation();
             onQuickCreate(dateStr);
           }}
-          className="hidden min-h-9 min-w-9 rounded-full p-1.5 text-text-muted opacity-100 transition-opacity hover:bg-surface-solid md:flex md:opacity-0 md:group-hover:opacity-100"
+          className="flex min-h-7 min-w-7 items-center justify-center rounded-full p-1 text-text-muted transition-opacity hover:bg-surface-solid opacity-50 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100"
           title="Dodaj wydarzenie"
           aria-label={`Dodaj wydarzenie ${dateStr}`}
         >
@@ -144,9 +144,9 @@ function MonthDayCell({
               onEventClick(ev);
             }}
             className={`cursor-pointer truncate rounded px-1.5 py-0.5 text-3xs font-medium transition-transform hover:scale-[var(--scale-hover)] ${eventColor(ev)}`}
-            title={`${ev.summary} (${ev.start_time ? formatTime(ev.start_time) : ''})`}
+            title={`${ev.summary} (${(ev.original_start_time || ev.start_time) ? formatTime(ev.original_start_time || ev.start_time!) : ''})`}
           >
-            {ev.start_time && <span className="mr-1 font-bold">{formatTime(ev.start_time)}</span>}
+            {(ev.original_start_time || ev.start_time) && <span className="mr-1 font-bold">{formatTime(ev.original_start_time || ev.start_time!)}</span>}
             {ev.summary}
           </div>
         ))}
@@ -226,7 +226,7 @@ export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
         ))}
       </div>
 
-      <div className="grid flex-1 grid-cols-7 grid-rows-5 divide-x divide-y divide-border-custom/30 overflow-y-auto md:grid-rows-6">
+      <div className={`grid flex-1 grid-cols-7 ${gridDays.length > 35 ? 'grid-rows-6' : 'grid-rows-5'} divide-x divide-y divide-border-custom/30 overflow-y-auto`}>
         {gridDays.map((cell) => (
           <MonthDayCell
             key={cell.dateStr}

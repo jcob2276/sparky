@@ -11,6 +11,10 @@ vi.mock('../../../lib/health/nutritionTrackerApi', () => ({
   upsertNutritionDayReview,
 }));
 
+vi.mock('../../../lib/date', () => ({
+  getWarsawHour: () => 20,
+}));
+
 import NutritionDayReview from './NutritionDayReview';
 
 describe('NutritionDayReview', () => {
@@ -21,7 +25,7 @@ describe('NutritionDayReview', () => {
   });
 
   it('marks the day complete only after the explicit user click', async () => {
-    render(<NutritionDayReview userId="user-1" date="2026-08-09" />);
+    render(<NutritionDayReview userId="user-1" date="2026-08-09" hasEntries={true} />);
     expect(upsertNutritionDayReview).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Tak, to wszystko' }));
     await waitFor(() => expect(upsertNutritionDayReview)
@@ -30,7 +34,7 @@ describe('NutritionDayReview', () => {
   });
 
   it('lets the user explicitly declare a partial day', async () => {
-    render(<NutritionDayReview userId="user-1" date="2026-08-09" />);
+    render(<NutritionDayReview userId="user-1" date="2026-08-09" hasEntries={true} />);
     fireEvent.click(screen.getByRole('button', { name: 'Częściowy' }));
     await waitFor(() => expect(upsertNutritionDayReview)
       .toHaveBeenCalledWith('user-1', '2026-08-09', 'partial'));

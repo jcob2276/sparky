@@ -15,7 +15,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import type { CalRow } from './calendarHelpers';
-import { detectVideoCallUrl } from './calendarHelpers';
+import { addDays, detectVideoCallUrl } from './calendarHelpers';
 import { LIFE_SPHERES } from '../../lib/projects/lifeSpheres';
 
 export interface CalendarContextMenuState {
@@ -56,6 +56,10 @@ export function CalendarContextMenu({
       if (e.key === 'Escape') onClose();
     };
 
+    // Auto-focus first focusable item for keyboard users
+    const firstItem = menuRef.current?.querySelector<HTMLElement>('button, a[href]');
+    firstItem?.focus();
+
     window.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -72,14 +76,18 @@ export function CalendarContextMenu({
     detectVideoCallUrl(event.description) ||
     detectVideoCallUrl(event.summary);
 
-  // Position adjustment to avoid overflowing viewport bounds
-  const adjustedX = Math.min(x, window.innerWidth - 220);
-  const adjustedY = Math.min(y, window.innerHeight - 320);
+  // Position adjustment: use actual measured height after render to avoid clipping at viewport edges
+  const menuEl = menuRef.current;
+  const menuH = menuEl ? menuEl.offsetHeight : 340;
+  const adjustedX = Math.min(x, window.innerWidth - 232);
+  const adjustedY = Math.min(y, window.innerHeight - menuH - 8);
 
   return (
     <div
       ref={menuRef}
-      style={{ top: adjustedY, left: adjustedX }}
+      role="menu"
+      aria-label={`Akcje dla: ${event.summary || 'Wydarzenie'}`}
+      style={{ top: Math.max(8, adjustedY), left: Math.max(8, adjustedX) }}
       className="fixed z-[var(--z-emergency)] w-56 rounded-2xl border border-border-custom/50 bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 select-none text-xs font-semibold text-text-primary"
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.preventDefault()}
@@ -91,8 +99,10 @@ export function CalendarContextMenu({
         </span>
         <button
           type="button"
+          role="menuitem"
           onClick={onClose}
-          className="p-1 text-text-muted hover:text-text-primary rounded-full"
+          aria-label="Zamknij menu kontekstowe"
+          className="p-1 text-text-muted hover:text-text-primary rounded-full focus-visible:ring-1 focus-visible:ring-primary outline-none"
         >
           <X size={12} />
         </button>
@@ -104,8 +114,9 @@ export function CalendarContextMenu({
           href={videoCall.url}
           target="_blank"
           rel="noopener noreferrer"
+          role="menuitem"
           onClick={onClose}
-          className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-primary text-on-accent font-bold mb-1 hover:brightness-110 active:scale-98 transition-all"
+          className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-primary text-on-accent font-bold mb-1 hover:brightness-110 active:scale-[0.98] transition-all"
         >
           <Video size={14} />
           <span className="flex-1 truncate">Dołącz do spotkania</span>
@@ -116,11 +127,12 @@ export function CalendarContextMenu({
       {/* Edit */}
       <button
         type="button"
+        role="menuitem"
         onClick={() => {
           onClose();
           onEdit(event);
         }}
-        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-surface-solid text-text-primary active:scale-98 transition-all cursor-pointer"
+        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-surface-solid text-text-primary active:scale-[0.98] transition-all cursor-pointer"
       >
         <Edit3 size={14} className="text-primary" />
         <span>Edytuj wydarzenie</span>
@@ -128,30 +140,30 @@ export function CalendarContextMenu({
 
       {/* Move Date */}
       <div className="my-1 border-t border-border-custom/20 pt-1">
-        <p className="px-2.5 py-0.5 text-3xs font-black uppercase tracking-wider text-text-muted/60">
+        <p className="px-2.5 py-0.5 text-2xs font-black uppercase tracking-wider text-text-muted/70">
           Przełóż termin
         </p>
         <button
           type="button"
+          role="menuitem"
           onClick={() => {
             onClose();
             onMoveToDate(event, today);
           }}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-surface-solid text-text-secondary hover:text-text-primary active:scale-98 transition-all cursor-pointer"
+          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-surface-solid text-text-secondary hover:text-text-primary active:scale-[0.98] transition-all cursor-pointer"
         >
           <Calendar size={13} className="text-primary" />
           <span>Na Dzisiaj</span>
         </button>
         <button
           type="button"
+          role="menuitem"
           onClick={() => {
             onClose();
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const iso = tomorrow.toISOString().slice(0, 10);
-            onMoveToDate(event, iso);
+            const tomorrow = addDays(today, 1);
+            onMoveToDate(event, tomorrow);
           }}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-surface-solid text-text-secondary hover:text-text-primary active:scale-98 transition-all cursor-pointer"
+          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-surface-solid text-text-secondary hover:text-text-primary active:scale-[0.98] transition-all cursor-pointer"
         >
           <ArrowRight size={13} className="text-warning" />
           <span>Na Jutro</span>
@@ -160,7 +172,7 @@ export function CalendarContextMenu({
 
       {/* Change Category / Life Sphere */}
       <div className="my-1 border-t border-border-custom/20 pt-1">
-        <p className="px-2.5 py-0.5 text-3xs font-black uppercase tracking-wider text-text-muted/60 flex items-center gap-1">
+        <p className="px-2.5 py-0.5 text-2xs font-black uppercase tracking-wider text-text-muted/70 flex items-center gap-1">
           <Tag size={10} />
           <span>Kategoria / Sfera</span>
         </p>
@@ -169,11 +181,12 @@ export function CalendarContextMenu({
             <button
               key={sphere.id}
               type="button"
+              role="menuitem"
               onClick={() => {
                 onClose();
                 onChangeCategory(event, sphere.id);
               }}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-3xs font-bold transition-all border ${
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-2xs font-bold transition-all border ${
                 event.category?.toLowerCase() === sphere.id
                   ? 'border-primary bg-primary/10 text-primary font-black'
                   : 'border-border-custom/30 hover:bg-surface-solid text-text-secondary'
@@ -190,11 +203,12 @@ export function CalendarContextMenu({
       <div className="mt-1 border-t border-border-custom/20 pt-1">
         <button
           type="button"
+          role="menuitem"
           onClick={() => {
             onClose();
             onDelete(event);
           }}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-danger/15 text-danger active:scale-98 transition-all cursor-pointer"
+          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-danger/15 text-danger active:scale-[0.98] transition-all cursor-pointer"
         >
           <Trash2 size={14} />
           <span>Usuń wydarzenie</span>

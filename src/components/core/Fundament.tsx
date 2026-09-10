@@ -42,7 +42,7 @@ function TextAreaBlock({ label, value, onChange, placeholder, danger = false, ro
         rows={rows}
         className={`w-full resize-none rounded-2xl border bg-surface p-4 text-sm font-bold leading-relaxed text-text-primary outline-none transition-colors placeholder:text-text-muted/40 ${
           danger
-            ? 'border-dayB/30 focus:border-dayB/60 focus:bg-surface-solid focus:shadow-[var(--ds-shadow-0-0-0-3px-rgba-244-63-94-0-1)]'
+            ? 'border-dayB/30 focus:border-dayB/60 focus:bg-surface-solid focus:ring-2 focus:ring-dayB/20'
             : 'border-border-custom focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus'
         }`}
       />

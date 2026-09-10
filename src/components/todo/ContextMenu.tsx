@@ -61,8 +61,9 @@ export default function ContextMenu({
   }, [onClose]);
 
   // Keep menu inside viewport
-  const left = Math.min(x, window.innerWidth - 240);
-  const top = Math.min(y, window.innerHeight - 380);
+  const isNearRightEdge = typeof window !== 'undefined' && x > window.innerWidth - 440;
+  const left = Math.max(8, Math.min(x, window.innerWidth - 248));
+  const top = Math.max(8, Math.min(y, window.innerHeight - 420));
 
   // Helper for tomorrow
   const getTomorrowDate = () => shiftDateStr(today, 1);
@@ -79,8 +80,9 @@ export default function ContextMenu({
   return (
     <div
       ref={ref}
-      style={{ position: 'fixed', left, top, zIndex: 'var(--ds-inline-style-10000)', minWidth: 'var(--ds-inline-style-230)' }}
-      className="max-h-[var(--ds-h-420px)] w-60 overflow-y-auto rounded-2xl border border-border-custom bg-surface/95 p-1.5 shadow-2xl backdrop-blur-[var(--blur-xl)] flex flex-col gap-0.5 text-sm text-text-secondary select-none"
+      role="menu"
+      style={{ left, top }}
+      className="fixed z-[10000] min-w-[230px] max-h-[420px] w-60 overflow-y-auto rounded-2xl border border-border-custom bg-surface/95 p-1.5 shadow-2xl backdrop-blur-xl flex flex-col gap-0.5 text-sm text-text-secondary select-none"
     >
       {/* 1. Edytuj */}
       <Pressable
@@ -199,7 +201,7 @@ export default function ContextMenu({
         </Pressable>
 
         {/* Submenu for sections picker */}
-        <div className="absolute left-full top-0 ml-1 hidden group-hover/submenu:flex flex-col bg-surface border border-border-custom rounded-2xl p-1 shadow-2xl min-w-[var(--ds-w-160px)] max-h-[var(--ds-h-200px)] overflow-y-auto">
+        <div className={`absolute ${isNearRightEdge ? 'right-full mr-1' : 'left-full ml-1'} top-0 hidden group-hover/submenu:flex flex-col bg-surface border border-border-custom rounded-2xl p-1 shadow-2xl min-w-[160px] max-h-[200px] overflow-y-auto`}>
           <Pressable
             onClick={() => {
               onMoveSection(null);

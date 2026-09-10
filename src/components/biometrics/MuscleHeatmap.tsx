@@ -1,5 +1,6 @@
 import { Pressable } from '../ui/ControlPrimitives';
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Dumbbell } from 'lucide-react';
 import Model, { type IMuscleStats, type Muscle } from 'react-body-highlighter';
 import { supabase } from '../../lib/supabase';
 import { getTodayWarsaw, shiftDateStr } from '../../lib/date';
@@ -192,7 +193,7 @@ export default function MuscleHeatmap({ session }: { session: { user?: { id?: st
             <div className="flex items-center gap-2 rounded-xl border border-border-custom bg-surface px-3 py-2 shadow-sm">
               <span
                 className="h-2 w-2 rounded-full shadow-[var(--ds-shadow-0-0-10px-currentcolor)]"
-                style={{ color: topTag ? tagColor(topTag) : 'var(--color-theme-hex-ba15015015003)', backgroundColor: 'currentColor' }}
+                style={{ color: topTag ? tagColor(topTag) : 'var(--text-muted)', backgroundColor: 'currentColor' }}
               />
               <span className="text-xs font-black uppercase tracking-widest text-text-muted">Top</span>
               <span className="text-xs font-black capitalize text-text-primary">{topTag ?? 'brak'}</span>
@@ -269,8 +270,10 @@ export default function MuscleHeatmap({ session }: { session: { user?: { id?: st
               )}
             </div>
           ) : (
-            <div className="border-t border-border-custom px-5 py-6 text-center text-xs text-text-muted">
-              Brak danych treningowych w tym okresie
+            <div className="border-t border-border-custom px-5 py-8 text-center flex flex-col items-center justify-center gap-2">
+              <Dumbbell size={24} className="text-text-muted/40 animate-pulse" />
+              <p className="text-xs font-bold text-text-muted">Brak zarejestrowanych serii w tym okresie</p>
+              <p className="text-2xs text-text-muted/65">Zaloguj ćwiczenia z tagami partii mięśniowych, aby zobaczyć mapę zaangażowania.</p>
             </div>
           )}
         </>

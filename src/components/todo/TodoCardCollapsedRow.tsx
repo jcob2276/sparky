@@ -87,7 +87,7 @@ export default function TodoCardCollapsedRow({
           className="shrink-0 mt-0.5 btn-press"
         >
           <span
-            className={`flex h-[var(--ds-h-18px)] w-[var(--ds-w-18px)] items-center justify-center text-sm leading-none transition-all ${
+            className={`flex h-[18px] w-[18px] items-center justify-center text-sm leading-none transition-all ${
               isDone ? 'grayscale opacity-[var(--opacity-40)]' : ''
             }`}
           >
@@ -231,7 +231,7 @@ export default function TodoCardCollapsedRow({
                   {GoalIcon && <GoalIcon size={8} />}
                   <span className="uppercase">{sectionName}</span>
                   {dreamTitle && (
-                    <span className="opacity-[var(--opacity-60)] truncate max-w-[var(--ds-maxw-80px)]">· {dreamTitle}</span>
+                    <span className="opacity-[var(--opacity-60)] truncate max-w-[80px]">· {dreamTitle}</span>
                   )}
                 </span>
               );
@@ -249,19 +249,9 @@ export default function TodoCardCollapsedRow({
             }}
             className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer"
             title="Edytuj zadanie (Ctrl E)"
+            aria-label="Edytuj zadanie"
           >
             <Pencil size={13} />
-          </Pressable>
-          <Pressable
-            onClick={e => {
-              e.stopPropagation();
-              const rect = e.currentTarget.getBoundingClientRect();
-              onShowContextMenu(item, rect.left, rect.bottom + 5);
-            }}
-            className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer"
-            title="Ustaw termin (T)"
-          >
-            <Calendar size={13} />
           </Pressable>
           <Pressable
             onClick={e => {
@@ -270,6 +260,7 @@ export default function TodoCardCollapsedRow({
             }}
             className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer"
             title="Szczegóły i komentarze"
+            aria-label="Szczegóły i komentarze"
           >
             <MessageSquare size={13} />
           </Pressable>
@@ -281,6 +272,7 @@ export default function TodoCardCollapsedRow({
             }}
             className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer"
             title="Więcej opcji"
+            aria-label="Więcej opcji"
           >
             <MoreHorizontal size={13} />
           </Pressable>

@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useId, useLayoutEffect, useRef } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import Button from './Button';
@@ -128,6 +128,8 @@ export default function Modal({
   const flexDirClass = overlayClassName.includes('flex-col') ? 'flex-col' : '';
   const backdropPadding = overlayClassName.includes('p-0') ? '' : 'p-3 sm:p-5';
 
+  const titleId = useId();
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -148,6 +150,7 @@ export default function Modal({
             role="dialog"
             aria-modal="true"
             aria-label={typeof title === 'string' ? title : undefined}
+            aria-labelledby={typeof title !== 'string' && title ? titleId : undefined}
             data-material="floating"
             tabIndex={-1}
             className={`ui-floating-layer w-full ${sizeClasses[size]} ${padding} ${overflowY ? 'max-h-[88vh] overflow-y-auto' : ''} ${className}`}
@@ -166,7 +169,7 @@ export default function Modal({
                     </p>
                   )}
                   {title && (
-                    <h3 className="text-lg font-bold text-text-primary leading-tight tracking-tight">
+                    <h3 id={titleId} className="text-lg font-bold text-text-primary leading-tight tracking-tight">
                       {title}
                     </h3>
                   )}

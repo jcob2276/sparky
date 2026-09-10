@@ -4,7 +4,7 @@
  * @composes grid/CalendarDayView, grid/Calendar3DayView, grid/CalendarWeekView, grid/CalendarMonthView, grid/CalendarAgendaView
  * @usedBy CalendarView
  */
-import React, { useRef, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCalendarData } from './hooks/useCalendarData';
 import {
   PX_PER_HOUR,
@@ -46,12 +46,28 @@ function groupEventsByDay(events: CalRow[]): Record<string, CalRow[]> {
     if (!event.start_time) continue;
     const startDay = dateOfISO(event.start_time);
     const endDay = event.end_time ? dateOfISO(event.end_time) : startDay;
+
+    // Preserve original times for display (bedtime etc.)
+    const evtWithOriginals = {
+      ...event,
+      original_start_time: event.original_start_time || event.start_time,
+      original_end_time: event.original_end_time || event.end_time,
+    };
+
     if (startDay === endDay) {
-      add(startDay, event);
+      add(startDay, evtWithOriginals);
     } else {
-      const midnight = `${endDay}T00:00:00${getWarsawOffset(event.start_time)}`;
-      add(startDay, { ...event, end_time: midnight });
-      add(endDay, { ...event, start_time: midnight });
+      // Iterate through ALL days the event spans (fixes 3+ day events disappearing on middle days)
+      const offset = getWarsawOffset(event.start_time);
+      let cursor = startDay;
+      while (cursor <= endDay) {
+        const isFirst = cursor === startDay;
+        const isLast = cursor === endDay;
+        const dayStart = isFirst ? event.start_time : `${cursor}T00:00:00${offset}`;
+        const dayEnd = isLast ? event.end_time : `${addDays(cursor, 1)}T00:00:00${offset}`;
+        add(cursor, { ...evtWithOriginals, start_time: dayStart, end_time: dayEnd ?? null });
+        cursor = addDays(cursor, 1);
+      }
     }
   }
   return grouped;
@@ -191,10 +207,20 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   });
   useInitialGridScroll(gridRef, calView);
 
-  const today = useMemo(() => todayStr(), []);
-  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+  // today refreshes at midnight so the "current day" highlight doesn't go stale
+  const [today, setToday] = useState(() => todayStr());
+  useEffect(() => {
+    const now = new Date();
+    const msToMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1).getTime() - now.getTime();
+    const t = setTimeout(() => {
+      setToday(todayStr());
+    }, msToMidnight + 1000);
+    return () => clearTimeout(t);
+  }, [today]);
+
+  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
   const eventsByDay = useMemo(() => groupEventsByDay(events), [events]);
-  const getEventsForDay = (day: string) => eventsByDay[day] || [];
+  const getEventsForDay = useCallback((day: string) => eventsByDay[day] ?? [], [eventsByDay]);
 
   return (
     <div

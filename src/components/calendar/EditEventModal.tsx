@@ -30,7 +30,9 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
   const isSeries = Boolean(selectedEvent?.series_id || selectedEvent?.recurrence?.length);
   const startMs = new Date(`${editDate}T${editStart || '00:00'}:00`).getTime();
   const endMs = new Date(`${editDate}T${editEnd || '00:00'}:00`).getTime();
-  const conflicts = findCalendarConflicts(calData.events, startMs, endMs, selectedEvent?.id);
+  const conflicts = (!isNaN(startMs) && !isNaN(endMs) && endMs > startMs)
+    ? findCalendarConflicts(calData.events, startMs, endMs, selectedEvent?.id)
+    : [];
 
   return (
     <Modal isOpen={Boolean(selectedEvent)} onClose={() => setSelectedEvent(null)} title="Edytuj wydarzenie" size="md">
@@ -114,7 +116,7 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
           </div>
 
           {/* Reminder Selector */}
-          <div className="flex items-center gap-2 bg-surface-solid/30 border border-border-custom/30 rounded-xl px-3.5 py-2 text-xs font-bold text-text-secondary">
+          <div className="flex items-center gap-2 bg-surface-solid/30 border border-border-custom/30 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/30 transition-all rounded-xl px-3.5 py-2 text-xs font-bold text-text-secondary">
             <Bell size={14} className="text-text-muted shrink-0" />
             <span className="text-text-muted">Przypomnienie:</span>
             <ControlSelect
@@ -123,6 +125,7 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
                 const val = Number(e.target.value);
                 setEditReminder(val < 0 ? null : val);
               }}
+              aria-label="Wybierz czas przypomnienia"
               className="bg-transparent text-text-primary font-bold focus:outline-none cursor-pointer flex-1"
             >
               {ALARM_OPTIONS.map((opt) => (
@@ -150,8 +153,16 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
             minDate={editDate}
           />
 
+          {/* Validation Feedback */}
+          {!editTitle.trim() && (
+            <p className="text-2xs text-danger font-bold">Wpisz tytuł wydarzenia, aby zapisać.</p>
+          )}
+          {!editAllDay && (!editStart || !editEnd) && (
+            <p className="text-2xs text-danger font-bold">Uzupełnij czas rozpoczęcia i zakończenia.</p>
+          )}
+
           {/* Buttons Row */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-1">
             <Button
               variant="outline"
               onClick={handleEditDelete}

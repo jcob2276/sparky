@@ -721,6 +721,7 @@ export default function RichEditor({
         ref={imageInputRef}
         type="file"
         accept="image/*"
+        aria-label="Wstaw obraz do notatki"
         style={{ display: 'none' }}
         onChange={event => { void handleImageFile(event); }}
       />

@@ -76,6 +76,7 @@ function ProjectRowView({ project, pillar }: { project: ProjectRow; pillar: Pill
           <Pressable
             onClick={() => void addToToday()}
             disabled={adding || added}
+            aria-label={added ? `Działanie "${action.title}" zostało dodane do Top 5` : `Dodaj działanie "${action.title}" do Top 5`}
             className={`flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-bold ${PILLAR_META[pillar].bg} ${PILLAR_META[pillar].text}`}
           >
             {added ? <Check size={12} /> : <Plus size={12} />}

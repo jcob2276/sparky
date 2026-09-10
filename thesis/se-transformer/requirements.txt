@@ -1,0 +1,11 @@
+scikit-learn>=1.4
+pandas>=2.2
+numpy>=1.26
+torch>=2.2
+# transformers 5.x needs torch>=2.5; pin for RunPod pytorch 2.4 images
+transformers>=4.44,<5
+datasets>=2.19
+accelerate>=0.30
+evaluate>=0.4
+tqdm>=4.66
+huggingface_hub>=0.23,<1

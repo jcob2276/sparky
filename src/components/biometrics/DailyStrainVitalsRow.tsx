@@ -131,7 +131,7 @@ export default function DailyStrainVitalsRow({
 
       {/* Secondary Vitals Row */}
       <div className="h-px bg-border-custom/30" />
-      <div className="flex items-center justify-between">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 py-1">
         {[
           {
             icon: Wind,
@@ -161,8 +161,8 @@ export default function DailyStrainVitalsRow({
             arrow: renderTrendArrow(oura.latency_minutes, ouraYesterday?.latency_minutes, 'lower'),
             color: 'text-text-secondary'
           },
-        ].map(({ icon: Icon, label, value, arrow, color }, idx) => (
-          <div key={label} className={`flex-1 flex flex-col items-center text-center ${idx > 0 ? 'border-l border-border-custom/30' : ''}`}>
+        ].map(({ icon: Icon, label, value, arrow, color }) => (
+          <div key={label} className="flex flex-col items-center text-center p-1 sm:border-l sm:border-border-custom/30 first:border-0">
             <div className="flex items-center gap-1 mb-0.5 animate-fadeIn">
               <Icon size={10} className="text-text-muted" />
               <span className="text-3xs uppercase tracking-wider text-text-muted font-bold">{label}</span>
@@ -215,33 +215,33 @@ export default function DailyStrainVitalsRow({
       {(enhanced?.vascular_age != null || enhanced?.resilience_level != null || enhanced?.stress_high_minutes != null || enhanced?.vo2_max != null) && (
         <>
           <div className="h-px bg-border-custom/30" />
-          <div className="flex items-center justify-between text-2xs px-1">
+          <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between text-2xs px-1 gap-2 sm:gap-0">
             <div className="flex-1 text-center">
               <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Wiek Naczyniowy</span>
-              <span className="text-xs font-black text-emerald-400 flex items-center justify-center">
+              <span className="text-xs font-black text-success flex items-center justify-center">
                 {enhanced?.vascular_age != null ? `${enhanced.vascular_age > 0 ? '+' : ''}${enhanced.vascular_age} lat` : 'Optymalny'}
               </span>
             </div>
-            <div className="w-px h-6 bg-border-custom/30" />
+            <div className="hidden sm:block w-px h-6 bg-border-custom/30" />
             <div className="flex-1 text-center">
               <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Odporność</span>
-              <span className="text-xs font-black text-teal-300 capitalize flex items-center justify-center">
+              <span className="text-xs font-black text-primary capitalize flex items-center justify-center">
                 {enhanced?.resilience_level || 'Solidna'}
               </span>
             </div>
-            <div className="w-px h-6 bg-border-custom/30" />
+            <div className="hidden sm:block w-px h-6 bg-border-custom/30" />
             <div className="flex-1 text-center">
               <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Stres Dnia</span>
-              <span className="text-xs font-black text-amber-400 flex items-center justify-center">
+              <span className="text-xs font-black text-warning flex items-center justify-center">
                 {enhanced?.stress_high_minutes != null ? `${enhanced.stress_high_minutes}m` : 'Niski'}
               </span>
             </div>
             {enhanced?.vo2_max != null && (
               <>
-                <div className="w-px h-6 bg-border-custom/30" />
+                <div className="hidden sm:block w-px h-6 bg-border-custom/30" />
                 <div className="flex-1 text-center">
                   <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">VO2 Max</span>
-                  <span className="text-xs font-black text-sky-400 flex items-center justify-center">
+                  <span className="text-xs font-black text-info flex items-center justify-center">
                     {enhanced.vo2_max}
                   </span>
                 </div>

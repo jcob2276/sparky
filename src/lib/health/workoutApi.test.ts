@@ -7,6 +7,7 @@ import { supabase } from '../supabase';
 const mockQuery: any = {
   select: vi.fn(),
   eq: vi.fn(),
+  in: vi.fn(),
   limit: vi.fn(),
 };
 
@@ -21,6 +22,7 @@ describe('workoutApi', () => {
     vi.clearAllMocks();
     mockQuery.select.mockReturnValue(mockQuery);
     mockQuery.eq.mockReturnValue(mockQuery);
+    mockQuery.in.mockReturnValue(mockQuery);
   });
 
   describe('fetchExerciseHistory', () => {
@@ -32,13 +34,13 @@ describe('workoutApi', () => {
 
       const result = await fetchExerciseHistory(' Bench Press ', 'user-123');
 
-      // Verify trimmed exercise name is used
+      // Verify trimmed exercise name is used with aliases
       expect(supabase.from).toHaveBeenCalledWith('exercise_logs');
       expect(mockQuery.select).toHaveBeenCalledWith(
-        'weight, reps, rir, set_number, session_id, workout_sessions!inner(date)'
+        'weight, reps, rir, set_number, session_id, muscle_tags, exercise_name, workout_sessions!inner(date)'
       );
       expect(mockQuery.eq).toHaveBeenCalledWith('user_id', 'user-123');
-      expect(mockQuery.eq).toHaveBeenCalledWith('exercise_name', 'Bench Press');
+      expect(mockQuery.in).toHaveBeenCalled();
       expect(mockQuery.limit).toHaveBeenCalledWith(500);
 
       expect(result).toEqual([{ weight: 80, reps: 5, rir: 2, set_number: 1, session_id: 'sess-1' }]);

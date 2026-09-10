@@ -59,27 +59,27 @@ export const useCalendarDragSelect = ({
     };
   }, [dragSelect, setQuickDuration, setQuickCreate]);
 
-  const handleColumnMouseDown = (day: string, e: React.MouseEvent) => {
+  const handleColumnMouseDown = (day: string, e: React.MouseEvent<Element>) => {
     if (e.button !== 0) return;
     if (isCoarsePointer()) return;
     if (isInteractiveTarget(e.target)) return;
 
-    const clickedMin = minutesFromColumnEvent(e.currentTarget, e.clientY);
+    const clickedMin = minutesFromColumnEvent(e.currentTarget as HTMLElement, e.clientY);
     setDragSelect({ day, startMin: clickedMin, currentMin: clickedMin });
   };
 
-  const handleColumnMouseMove = (day: string, e: React.MouseEvent) => {
+  const handleColumnMouseMove = (day: string, e: React.MouseEvent<Element>) => {
     if (!dragSelect || dragSelect.day !== day) return;
-    const currentMin = minutesFromColumnEvent(e.currentTarget, e.clientY);
+    const currentMin = minutesFromColumnEvent(e.currentTarget as HTMLElement, e.clientY);
     setDragSelect({ ...dragSelect, currentMin });
   };
 
-  const handleColumnClick = (day: string, e: React.MouseEvent) => {
+  const handleColumnClick = (day: string, e: React.MouseEvent<Element>) => {
     if (!isCoarsePointer()) return;
     if (consumeSwipe?.()) return;
     if (isInteractiveTarget(e.target)) return;
     setQuickDuration(60);
-    setQuickCreate({ date: day, startMin: minutesFromColumnEvent(e.currentTarget, e.clientY) });
+    setQuickCreate({ date: day, startMin: minutesFromColumnEvent(e.currentTarget as HTMLElement, e.clientY) });
   };
 
   return {

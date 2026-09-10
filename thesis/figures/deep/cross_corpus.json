@@ -1,0 +1,6 @@
+{
+  "mental_to_reament_svm": 0.6298763787104893,
+  "mental_to_reament_bert": 0.6740816707877229,
+  "indomain_svm": 0.6476,
+  "indomain_bert": 0.6784
+}

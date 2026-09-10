@@ -103,7 +103,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
             variant="secondary"
             size="sm"
             icon={<CalendarIcon size={14} />}
-            className={`calendar-today-button h-11 w-11 shrink-0 font-bold text-xs sm:h-9 sm:w-auto ${searchOpen ? 'max-sm:hidden' : ''}`}
+            className={`calendar-today-button h-11 w-11 shrink-0 font-bold text-xs sm:h-9 sm:w-auto sm:px-3.5 ${searchOpen ? 'max-sm:hidden' : ''}`}
             aria-label="Dzisiaj"
           >
             <span className="hidden sm:inline">Dzisiaj</span>
@@ -113,7 +113,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
             variant="secondary"
             size="sm"
             icon={<RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />}
-            className={`calendar-sync-button h-11 w-11 shrink-0 sm:h-9 ${searchOpen ? 'max-sm:hidden' : ''}`}
+            className={`calendar-sync-button h-11 w-11 shrink-0 sm:h-9 md:w-auto md:px-3.5 ${searchOpen ? 'max-sm:hidden' : ''}`}
             aria-label={isSyncing ? 'Synchronizuję' : 'Synchronizuj'}
           >
             <span className="hidden md:inline">{isSyncing ? 'Synchronizuję…' : 'Sync'}</span>

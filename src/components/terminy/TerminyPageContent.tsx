@@ -131,9 +131,9 @@ function TerminyResults(props: Pick<Props, 'tab' | 'filterMode' | 'searchQuery' 
     <AnimatePresence mode="wait" initial={false}>
       <motion.div key={`${props.tab}:${props.filterMode}:${props.searchQuery}`} initial={props.reduceMotion ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={props.reduceMotion ? undefined : { opacity: 0, y: -6 }} transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}>
         {props.tab === 'horizon' ? (
-          <TerminyHorizon rows={props.filteredRows} onDelete={props.onDelete} onEdit={props.onEdit} onComplete={props.onComplete} onConvertToTodo={props.onConvertToTodo} onOpenAdd={props.onOpenTemplate} />
+          <TerminyHorizon rows={props.filteredRows} searchQuery={props.searchQuery} onDelete={props.onDelete} onEdit={props.onEdit} onComplete={props.onComplete} onConvertToTodo={props.onConvertToTodo} onOpenAdd={props.onOpenTemplate} />
         ) : (
-          <TerminyVault kind={props.tab} rows={props.filteredRows} onDelete={props.onDelete} onEdit={props.onEdit} onComplete={props.onComplete} onConvertToTodo={props.onConvertToTodo} onOpenAdd={() => props.onOpenKind(props.tab as Exclude<TerminyTabKey, 'horizon'>)} />
+          <TerminyVault kind={props.tab} rows={props.filteredRows} searchQuery={props.searchQuery} onDelete={props.onDelete} onEdit={props.onEdit} onComplete={props.onComplete} onConvertToTodo={props.onConvertToTodo} onOpenAdd={() => props.onOpenKind(props.tab as Exclude<TerminyTabKey, 'horizon'>)} />
         )}
       </motion.div>
     </AnimatePresence>

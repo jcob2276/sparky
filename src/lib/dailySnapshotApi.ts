@@ -73,7 +73,8 @@ async function fetchDailySnapshot(userId: string, today: string): Promise<DailyS
     else break;
   }
 
-  const eveningExtraction = rec?.evening_extraction ?? null;
+  const raw = rec?.evening_extraction ?? null;
+  const eveningExtraction: string | null = typeof raw === 'string' ? raw : null;
 
   return { snap, dayScore, strainState, midday, rescueStreak, eveningExtraction };
 }

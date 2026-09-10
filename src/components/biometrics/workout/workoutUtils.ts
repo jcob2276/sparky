@@ -3,6 +3,7 @@ import { fetchExerciseHistory } from '../../../lib/health/workoutApi';
 import { epley, type ExerciseHistoryRow } from '../../../lib/health/workout';
 
 export {
+  type WorkoutSet,
   type WorkoutExercise,
   type WorkoutActivity,
   newSet,

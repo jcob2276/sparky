@@ -24,6 +24,7 @@ const EMPTY_STARTERS = ['birthday', 'vehicle-inspection', 'insurance-policy']
 
 interface Props {
   rows: DerivedObligation[];
+  searchQuery?: string;
   onDelete: (id: string, title: string) => void;
   onEdit: (id: string) => void;
   onComplete: (row: DerivedObligation) => void;
@@ -33,6 +34,7 @@ interface Props {
 
 export function TerminyHorizon({
   rows,
+  searchQuery,
   onDelete,
   onEdit,
   onComplete,
@@ -44,6 +46,14 @@ export function TerminyHorizon({
   const next = rows[0] ?? null;
 
   if (rows.length === 0) {
+    if (searchQuery && searchQuery.trim()) {
+      return (
+        <EmptyState
+          icon="🔍"
+          label={`Brak terminów pasujących do frazy "${searchQuery.trim()}".`}
+        />
+      );
+    }
     return (
       <div className="space-y-6">
         <EmptyState
@@ -93,7 +103,7 @@ export function TerminyHorizon({
               onEdit(next.item.id);
             }
           }}
-          className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-white/20 dark:border-white/10 bg-gradient-to-br from-primary/20 via-surface-solid/90 to-surface-2/80 backdrop-blur-xl p-6.5 shadow-lg transition-all duration-200 ease-out active:scale-[0.98] hover:shadow-xl md:p-8"
+          className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-white/20 dark:border-white/10 bg-gradient-to-br from-primary/20 via-surface-solid/90 to-surface-2/80 backdrop-blur-xl p-6.5 shadow-lg transition-all duration-200 ease-out active:scale-[0.98] hover:shadow-xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none md:p-8"
         >
           {/* Subtle Apple gradient ambient highlight */}
           <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />

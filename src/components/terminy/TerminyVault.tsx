@@ -12,12 +12,14 @@ interface Props {
   onEdit: (id: string) => void;
   onComplete: (row: DerivedObligation) => void;
   onConvertToTodo: (row: DerivedObligation) => void;
+  searchQuery?: string;
   onOpenAdd: () => void;
 }
 
 export function TerminyVault({
   kind,
   rows,
+  searchQuery,
   onDelete,
   onEdit,
   onComplete,
@@ -28,6 +30,16 @@ export function TerminyVault({
   const filtered = filterByKind(rows, kind);
 
   if (filtered.length === 0) {
+    if (searchQuery && searchQuery.trim()) {
+      return (
+        <div className="space-y-4">
+          <EmptyState
+            icon="🔍"
+            label={`Brak pozycji w "${LIFE_OBLIGATION_KIND_LABELS[kind]}" pasujących do "${searchQuery.trim()}".`}
+          />
+        </div>
+      );
+    }
     return (
       <div className="space-y-4">
         <EmptyState

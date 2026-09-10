@@ -1,0 +1,12 @@
+{
+  "MentalManip": {
+    "bert_balanced": 0.627039627039627,
+    "bert_original": 0.6458,
+    "delta": -0.01876037296037303
+  },
+  "ReaMent": {
+    "bert_balanced": 0.6675181017922358,
+    "bert_original": 0.6784,
+    "delta": -0.010881898207764196
+  }
+}

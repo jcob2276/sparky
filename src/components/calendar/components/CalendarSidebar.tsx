@@ -3,7 +3,6 @@ import { useCalendar } from '../context/CalendarContext';
 import MiniCalendar from '../MiniCalendar';
 import SolarDayWidget from '../SolarDayWidget';
 import CalendarBudgetPanel from '../CalendarBudgetPanel';
-import CalendarSidebarTodos from '../CalendarSidebarTodos';
 import { LIFE_SPHERES } from '../../../lib/projects/lifeSpheres';
 import { weekMon } from '../calendarHelpers';
 import WorkspaceNavigation from '../../shared/WorkspaceNavigation';
@@ -40,15 +39,6 @@ function CalendarSidebarBody({
       setFrameEndInputs,
       setFrameStrengthInputs,
       setShowBudgetConfig,
-    },
-    calTodos: {
-      inboxTodos,
-      newTodoTitle,
-      setNewTodoTitle,
-      handleQuickAddTodo,
-      handleToggleTodo,
-      completedTodoIds,
-      goalChipFor,
     },
     timeBudgets: {
       budgets,
@@ -114,16 +104,6 @@ function CalendarSidebarBody({
               setFrameStrengthInputs(strengths);
               setShowBudgetConfig(true);
             }}
-          />
-
-          <CalendarSidebarTodos
-            sidebarTodos={inboxTodos}
-            newTodoTitle={newTodoTitle}
-            setNewTodoTitle={setNewTodoTitle}
-            handleQuickAddTodo={handleQuickAddTodo}
-            handleToggleTodo={handleToggleTodo}
-            completedTodoIds={completedTodoIds}
-            goalChipFor={goalChipFor}
           />
         </>
       )}

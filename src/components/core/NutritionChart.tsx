@@ -85,6 +85,9 @@ export default function NutritionChart({
               return (
                 <div key={d.key} className="flex-1 flex flex-col items-center group relative z-[var(--z-raised)] h-full justify-end">
                   <div
+                    role="img"
+                    aria-label={`${weekday}: ${d.calories} kcal`}
+                    title={`${weekday}: ${d.calories} kcal`}
                     className={`w-3.5 rounded-t-md transition-all duration-[var(--motion-long)] cursor-pointer ${
                       isToday
                         ? 'bg-gradient-to-t from-warning to-warning opacity-[var(--opacity-100)] shadow-[var(--ds-shadow-0-0-8px-rgba-245-158-11-0-25)]'
@@ -106,7 +109,7 @@ export default function NutritionChart({
               const isToday = d.key === todayRaw;
               const weekday = getWeekdayAbbr(d.key);
               return (
-                <span key={d.key} className={`flex-1 text-center text-3xs font-black ${isToday ? 'text-primary' : 'text-text-muted'}`}>
+                <span key={d.key} className={`flex-1 text-center text-3xs font-black ${isToday ? 'text-warning' : 'text-text-muted'}`}>
                   {isToday ? 'Dziś' : weekday}
                 </span>
               );
@@ -131,6 +134,9 @@ export default function NutritionChart({
               return (
                 <div key={d.key} className="flex-1 flex flex-col items-center group relative z-[var(--z-raised)] h-full justify-end">
                   <div
+                    role="img"
+                    aria-label={`${weekday}: ${d.protein}g białka`}
+                    title={`${weekday}: ${d.protein}g białka`}
                     className={`w-3.5 rounded-t-md transition-all duration-[var(--motion-long)] cursor-pointer ${
                       isToday
                         ? 'bg-gradient-to-t from-primary to-primary opacity-[var(--opacity-100)] shadow-[0_0_8px_var(--primary-25)]'

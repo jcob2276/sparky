@@ -63,8 +63,8 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
         </Pressable>
         <div className="text-center flex flex-col items-center min-w-0 px-1">
           <div className="flex items-center gap-2">
-            <p className="hidden text-sm font-bold text-text-primary md:block">{dayLabel(weekStart)} – {dayLabel(addDays(weekStart, 6))}</p>
-            <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary font-black text-xs border border-primary/30">
+            <p className="text-xs sm:text-sm font-bold text-text-primary truncate">{dayLabel(weekStart)} – {dayLabel(addDays(weekStart, 6))}</p>
+            <span className="px-2 py-0.5 rounded-full bg-primary/15 text-primary font-black text-xs border border-primary/30 shrink-0">
               Tydz. {currentWeekNumber}
             </span>
           </div>
@@ -73,7 +73,7 @@ export const CalendarWeekView: React.FC<CalendarWeekViewProps> = ({
               const week = weekMon(today);
               setWeekStart(week);
               setSelectedDay(today);
-            }} className="text-xs font-semibold text-primary">
+            }} className="text-xs font-semibold text-primary px-2 py-1 rounded-md hover:bg-primary/10 transition-colors inline-block mt-0.5">
               Bieżący tydzień
             </Pressable>
           )}

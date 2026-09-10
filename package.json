@@ -40,6 +40,7 @@
   },
   "dependencies": {
     "@capacitor/app": "^8.1.1",
+    "@capacitor/camera": "^8.2.4",
     "@capacitor/core": "^8.4.2",
     "@capacitor/geolocation": "^8.2.0",
     "@capacitor/haptics": "^8.0.2",

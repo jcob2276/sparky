@@ -82,6 +82,12 @@ export const QuickCreateEventModal: React.FC<QuickCreateEventModalProps> = ({ ca
             autoFocus
             value={quickTitle}
             onChange={(e) => setQuickTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !saving && quickTitle.trim() && !(quickRecurrence === 'custom' && quickCustomDays.length === 0)) {
+                e.preventDefault();
+                handleQuickSave();
+              }
+            }}
             placeholder="Tytuł wydarzenia lub zadania…"
             className="min-h-12 w-full rounded-xl border border-border-custom/40 bg-surface-solid/40 px-4 text-base font-bold tracking-tight text-text-primary focus:border-primary/50 placeholder:text-text-muted/40 transition-colors"
           />
@@ -103,7 +109,7 @@ export const QuickCreateEventModal: React.FC<QuickCreateEventModalProps> = ({ ca
                       : 'border-border-custom/30 bg-surface-solid/30 text-text-muted hover:text-text-primary'
                   }`}
                 >
-                  {d} min
+                  {d === 60 ? '1 godz.' : d === 90 ? '1.5 godz.' : d === 120 ? '2 godz.' : `${d} min`}
                 </Pressable>
               ))}
             </div>

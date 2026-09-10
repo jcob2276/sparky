@@ -81,3 +81,19 @@ test-results/
 coverage/
 tmp/
 
+# Thesis ML artifacts (raw corpora + checkpoints)
+thesis/se-transformer/data/
+thesis/se-transformer/outputs/
+thesis/se-transformer/models/
+thesis/se-transformer/.venv/
+thesis/*.aux
+thesis/*.lof
+thesis/*.lot
+thesis/*.out
+thesis/*.toc
+thesis/*.pdf
+*.zip
+*.pdf
+scratch_api/
+FLUX_Inpaint_Local.json
+

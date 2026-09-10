@@ -19,7 +19,7 @@ export async function scanMealPhoto(file: File, userId: string): Promise<MealPho
   const image = await prepareVisionUpload(file);
   const imageBase64 = await blobToBase64(image);
 
-  let response: Record<string, unknown>;
+  let response: Awaited<ReturnType<typeof invokeEdge<'parse-food-nl'>>>;
   try {
     response = await invokeEdge('parse-food-nl', {
       body: {
@@ -35,7 +35,7 @@ export async function scanMealPhoto(file: File, userId: string): Promise<MealPho
     throw wrapPhotoUploadError(cause);
   }
 
-  const meal = response.meal as MealPhotoResponse | undefined;
+  const meal = response.meal;
   if (!meal?.items.length) {
     throw new Error('Nie udało się rozpoznać posiłku na zdjęciu');
   }

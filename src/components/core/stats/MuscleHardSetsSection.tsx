@@ -25,11 +25,13 @@ const TAG_LABELS: Record<string, string> = {
 export function MuscleHardSetsSection({ recentSessions }: MuscleHardSetsSectionProps) {
   const buckets = useMemo(
     () => buildHardSetsWeekly(
-      recentSessions.map((s) => ({
-        date: s.date,
-        session_rpe: s.session_rpe,
-        exercise_logs: s.exercise_logs,
-      })),
+      recentSessions
+        .filter((s) => s.date !== null)
+        .map((s) => ({
+          date: s.date as string,
+          session_rpe: s.session_rpe,
+          exercise_logs: s.exercise_logs,
+        })),
       4,
     ),
     [recentSessions],

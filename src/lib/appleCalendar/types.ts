@@ -11,4 +11,6 @@ export interface CalRow {
   reminder_minutes?: number | null;
   recurrence?: string[] | null;
   series_id?: string | null;
+  original_start_time?: string | null;
+  original_end_time?: string | null;
 }

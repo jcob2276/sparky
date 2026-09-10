@@ -24,13 +24,14 @@ export interface SidebarTriggerProps extends React.ButtonHTMLAttributes<HTMLButt
 
 export function SidebarTrigger({ className = '', icon, onClick, ...props }: SidebarTriggerProps) {
   const { toggleSidebar, state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
 
   return (
-    <Pressable
-      variant="ghost"
-      size="sm"
+    <button
+      type="button"
+      data-ui="sidebar-trigger"
       aria-label="Przełącz panel boczny (Ctrl+B)"
-      title={state === 'collapsed' ? 'Rozwiń panel boczny' : 'Zwiń panel boczny'}
+      title={isCollapsed ? 'Rozwiń panel boczny' : 'Zwiń panel boczny'}
       onClick={(e) => {
         if (onClick) {
           onClick(e);
@@ -38,11 +39,18 @@ export function SidebarTrigger({ className = '', icon, onClick, ...props }: Side
           toggleSidebar();
         }
       }}
-      className={`h-8 w-8 p-0 text-text-muted hover:text-text-primary hover:bg-surface-2 rounded-lg flex items-center justify-center transition-all ${className}`}
+      className={`h-9 w-9 rounded-xl text-text-muted hover:text-text-primary hover:bg-surface-2 flex items-center justify-center transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary shrink-0 ${className}`}
       {...props}
     >
-      {icon || <PanelLeft size={16} className={`transition-transform duration-[var(--motion-medium)] ${state === 'collapsed' ? 'rotate-180 text-primary font-bold' : ''}`} />}
-    </Pressable>
+      {icon || (
+        <PanelLeft
+          size={18}
+          className={`shrink-0 transition-transform duration-[var(--motion-medium)] ${
+            isCollapsed ? 'rotate-180 text-primary font-bold' : ''
+          }`}
+        />
+      )}
+    </button>
   );
 }
 

@@ -58,7 +58,7 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
           <ChevronLeft size={18} className="text-text-muted" />
         </Pressable>
         <div className="min-w-0 px-1 text-center">
-          <p className="hidden text-sm font-bold text-text-primary md:block">{dayLabel(selectedDay)} – {dayLabel(days[2])}</p>
+          <p className="text-xs sm:text-sm font-bold text-text-primary truncate">{dayLabel(selectedDay)} – {dayLabel(days[2])}</p>
           {!days.includes(today) && (
             <Pressable onClick={() => {
               setSelectedDay(today);

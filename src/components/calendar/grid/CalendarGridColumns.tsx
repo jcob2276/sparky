@@ -1,7 +1,5 @@
-import { Pressable } from '../../ui/ControlPrimitives';
 import { getTodayWarsaw, formatWarsawDate } from '../../../lib/date';
 import React from 'react';
-import { Check } from 'lucide-react';
 import {
   HOUR_START,
   HOURS,
@@ -49,11 +47,9 @@ export const renderTimeGutter = ({
         return (
           <div
             key={i}
-            className="absolute right-0 flex items-center justify-end"
+            className="absolute right-0 flex items-center justify-end h-5 -translate-y-1/2"
             style={{
               top: i * PX_PER_HOUR,
-              transform: 'var(--ds-inline-style-translatey-50)',
-              height: 'var(--ds-inline-style-20)',
               width: gutterWidth,
             }}
           >
@@ -168,12 +164,18 @@ export const renderDayColumn = ({
         const layouts = layoutDayEvents(dayEvents);
         return dayEvents.map((ev) => {
           const layout = layouts.get(ev.id) || { left: '0%', width: '100%' };
-          return renderEventBlock({ ev, left: layout.left, width: layout.width, handleEventMouseDown, handleEventContextMenu });
+          return (
+            <React.Fragment key={ev.id}>
+              {renderEventBlock({ ev, left: layout.left, width: layout.width, handleEventMouseDown, handleEventContextMenu })}
+            </React.Fragment>
+          );
         });
       })()}
-      {dayTodos.map((todo) =>
-        renderTodoBlock({ todo, goalChipFor, completedTodoIds, handleToggleTodo, setEditingTodo, setEditingTodoTitle, setToastMessage })
-      )}
+      {dayTodos.map((todo) => (
+        <React.Fragment key={`todo-${todo.id}`}>
+          {renderTodoBlock({ todo, goalChipFor, completedTodoIds, handleToggleTodo, setEditingTodo, setEditingTodoTitle, setToastMessage })}
+        </React.Fragment>
+      ))}
       {(() => {
         const sun = getSunTimes(day);
         const sunriseTop = (sun.sunriseMin - HOUR_START * 60) * PX_PER_MIN;
@@ -188,8 +190,8 @@ export const renderDayColumn = ({
                 style={{ top: sunriseTop }}
                 title={`Wschód: ${formatTimeWarsaw(sun.sunrise)}`}
               >
-                <div className="w-full h-[var(--ds-h-1px)] bg-gradient-to-r from-warning/0 via-warning/50 to-warning/0" />
-                <span className="absolute right-1 text-3xs font-bold text-warning/70 select-none">🌅 {formatTimeWarsaw(sun.sunrise)}</span>
+                <div className="w-full h-px bg-gradient-to-r from-warning/0 via-warning/50 to-warning/0" />
+                <span className="absolute right-1 text-2xs font-bold text-warning/70 select-none">🌅 {formatTimeWarsaw(sun.sunrise)}</span>
               </div>
             )}
             {sunsetVisible && (
@@ -198,8 +200,8 @@ export const renderDayColumn = ({
                 style={{ top: sunsetTop }}
                 title={`Zachód: ${formatTimeWarsaw(sun.sunset)}`}
               >
-                <div className="w-full h-[var(--ds-h-1px)] bg-gradient-to-r from-warning/0 via-warning/50 to-warning/0" />
-                <span className="absolute right-1 text-3xs font-bold text-warning/70 select-none">🌇 {formatTimeWarsaw(sun.sunset)}</span>
+                <div className="w-full h-px bg-gradient-to-r from-warning/0 via-warning/50 to-warning/0" />
+                <span className="absolute right-1 text-2xs font-bold text-warning/70 select-none">🌇 {formatTimeWarsaw(sun.sunset)}</span>
               </div>
             )}
           </>
@@ -207,7 +209,7 @@ export const renderDayColumn = ({
       })()}
       {nowLine !== null && nowLine >= 0 && (
         <div className="absolute left-0 right-0 flex items-center pointer-events-none z-[var(--z-popover)]" style={{ top: nowLine }}>
-          <span className="apple-now-dot flex items-center gap-1 rounded-full bg-danger px-1.5 py-0.5 text-3xs font-black text-on-accent shadow-md -ml-2.5 shrink-0 select-none">
+          <span className="apple-now-dot flex items-center gap-1 rounded-full bg-danger px-1.5 py-0.5 text-2xs font-black text-on-accent shadow-md ml-0.5 shrink-0 select-none">
             <span className="w-1.5 h-1.5 rounded-full bg-on-accent animate-pulse" />
             {String(Math.floor(nowMin / 60)).padStart(2, '0')}:{String(nowMin % 60).padStart(2, '0')}
           </span>
@@ -253,6 +255,12 @@ export const renderAllDayTodos = ({
                 key={todo.id}
                 title={todo.title}
                 draggable
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleToggleTodo(todo.id);
+                  setToastMessage(isCompleting ? `Zadanie przywrócone: "${todo.title}"` : `Ukończono: "${todo.title}" ✅`);
+                }}
                 onDragStart={(event) => {
                   event.stopPropagation();
                   event.dataTransfer.setData('text/plain', JSON.stringify({
@@ -269,18 +277,6 @@ export const renderAllDayTodos = ({
                   setEditingTodoTitle(todo.title);
                 }}
               >
-                <Pressable
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleToggleTodo(todo.id);
-                    setToastMessage(`Ukończono: "${todo.title}" ✅`);
-                  }}
-                  aria-label={`Oznacz zadanie jako wykonane: ${todo.title}`}
-                  className={`relative after:absolute after:-inset-2 h-4 w-4 shrink-0 rounded border flex items-center justify-center transition-colors ${isCompleting ? 'bg-success border-success' : 'border-primary/50 hover:bg-primary/20'}`}
-                >
-                  {isCompleting && <Check size={10} className="text-on-accent" strokeWidth={4} />}
-                </Pressable>
                 {GoalIcon && <GoalIcon size={11} className="shrink-0" />}
                 <span className={`truncate ${isCompleting ? 'line-through' : ''}`}>{todo.title}</span>
               </div>
