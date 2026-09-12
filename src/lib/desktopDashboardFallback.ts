@@ -1,25 +1,11 @@
-import { supabase } from '../../../../lib/supabase';
-import { getTodayWarsaw, shiftDateStr } from '../../../../lib/date';
+import { supabase } from './supabase';
+import { getTodayWarsaw, shiftDateStr } from './date';
+import {
+  type DesktopQueryResult,
+  mapTodoToMove,
+} from './desktopDashboardTypes';
 
-function mapTodoToMove(row: {
-  id: string;
-  title: string;
-  status: string;
-  completed_at: string | null;
-  due_date: string | null;
-  project_id: string | null;
-}) {
-  return {
-    id: row.id,
-    title: row.title,
-    status: row.status === 'open' ? 'todo' : row.status,
-    completed_at: row.completed_at,
-    planned_for: row.due_date,
-    project_id: row.project_id,
-  };
-}
-
-export async function fetchDashboardFallback(userId: string) {
+export async function fetchDashboardFallback(userId: string): Promise<DesktopQueryResult> {
   const today = getTodayWarsaw();
   const since60 = shiftDateStr(today, -60);
   const since91 = shiftDateStr(today, -91);
@@ -81,7 +67,6 @@ export async function fetchDashboardFallback(userId: string) {
   const ntRow = nutritionTargetsRes?.data;
   const profileRow = profileRes?.data;
 
-  // Resolve personal targets (same logic as _shared/personalTargets.ts for the edge layer)
   let proteinFloorG = 140;
   if (ntRow?.protein_floor_g != null && Number(ntRow.protein_floor_g) > 0) {
     proteinFloorG = Number(ntRow.protein_floor_g);
@@ -99,14 +84,26 @@ export async function fetchDashboardFallback(userId: string) {
     body: body.data || [],
     heightCm: profileRow?.height_cm != null ? Number(profileRow.height_cm) : null,
     strain: strain.data || null,
-    strava: strava.data || [],
+    strava: (strava.data || []).map((s) => ({
+      ...s,
+      sport_type: s.sport_type ?? 'Workout',
+      start_date: s.start_date ?? '',
+    })),
     habits: habits.data || [],
     habitLogs: habitLogs.data || [],
     projects: projectsRes.data || [],
     moves: (movesRes.data || []).map(mapTodoToMove),
     goals: goalsRes.data || null,
     sprintGoals: sprintGoalsRes.data || [],
-    marathon: marathonRes.data || null,
+    marathon: marathonRes.data
+      ? { ...marathonRes.data, status: marathonRes.data.status ?? '' }
+      : null,
+    stream: [],
+    patterns: [],
+    wins: [],
+    wiki: [],
+    knowledge: [],
+    lenieLogs: [],
     personalTargets: {
       proteinFloorG,
       targetKcal: ntRow?.target_kcal != null ? Number(ntRow.target_kcal) : null,
