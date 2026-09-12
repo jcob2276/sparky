@@ -162,10 +162,10 @@ zniknąć przez decyzję użytkownika.
 
 Te punkty nie są osobnymi feature'ami; trzeba je zamknąć przed lub w trakcie Zakładu A:
 
-- [ ] Dopisać brakującą funkcję `analyze-physique` do kanonicznego rejestru funkcji.
-- [ ] Naprawić kontrakty danych w nagłówkach `vanguard-nightly` i `vanguard-telegram`,
+- [x] Dopisać brakującą funkcję `analyze-physique` do kanonicznego rejestru funkcji.
+- [x] Naprawić kontrakty danych w nagłówkach `vanguard-nightly` i `vanguard-telegram`,
   żeby deklarowane odczyty odpowiadały rzeczywistości.
-- [ ] Usunąć trzy potwierdzone martwe pliki wymienione w Ponytail audit.
+- [x] Usunąć trzy potwierdzone martwe pliki wymienione w Ponytail audit.
 - [ ] Zweryfikować tabele widoczne wyłącznie po stronie odczytu: każda ma dostać
   kanonicznego writera albo trafić do graveyard; nie budować UI na osieroconym kontrakcie.
 - [ ] Dodać pomiar wejść do domen i wykonanych akcji przed zamrażaniem kolejnych modułów.
@@ -253,7 +253,7 @@ Część II §4.1–§4.9, w tej kolejności:
 2. **§4.5** Bitemporalność (`learned_at`) — rób razem z `algo_version` i backfill/replay z Fazy 2.
 3. **§4.1** Warstwa `claims` jako nadrzędna nad graf/wiki/fundament.
 4. **§4.2** Korelacje/patterns emitują claims.
-5. **§4.3 + §4.4** `outcome_metric` per pattern + fix `user_id` w `outcomes.ts`.
+5. **[x] §4.3 + §4.4** `outcome_metric` per pattern + fix `user_id` w `outcomes.ts`.
 6. **§4.7** Dossier celu.
 7. **§4.8** Tygodniowy diff self-modelu.
 8. **§4.9** 4 Lenses do promptu — 15 minut, tylko tekst.

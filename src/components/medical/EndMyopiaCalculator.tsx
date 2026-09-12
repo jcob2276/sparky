@@ -2,17 +2,22 @@ import { Pressable } from '../ui/ControlPrimitives';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useFaceDistance } from './hooks/useFaceDistance';
 import { insertEndmyopiaMeasurement } from '../../lib/endmyopiaApi';
-import { Check, ArrowLeft, Ruler, ZoomIn, ZoomOut, AlertCircle, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Ruler } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import VisionJournal from './VisionJournal';
 import GlassesCabinet from './GlassesCabinet';
-import StabilityRing from './StabilityRing';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useUserId } from '../../store/useStore';
 import { STORAGE_KEYS } from '../../lib/constants';
-import FullscreenExperience from '../ui/FullscreenExperience';
+import {
+  MeasurePhaseOverlay,
+  CapturedPhaseOverlay,
+  SavedPhaseOverlay,
+} from './EndMyopiaMeasureOverlays';
+
 type Eye = 'left' | 'right';
 type Phase = 'calibrate' | 'select-eye' | 'measure' | 'captured' | 'saved';
+
 export default function EndMyopiaCalculator() {
   const haptics = useHaptics();
   const userId = useUserId();
@@ -31,8 +36,6 @@ export default function EndMyopiaCalculator() {
   const [autoCapture, setAutoCapture] = useState(() =>
     localStorage.getItem(STORAGE_KEYS.ENDMYOPIA_AUTO_CAPTURE) !== 'false'
   );
-
-  const FOCUS_SIZES = [1.5, 2.2, 3.2, 4.5, 6.0, 8.0];
 
   const faceDetected = distance !== null;
   const capturedDiopters = capturedDistance ? (-100 / capturedDistance) : null;
@@ -156,160 +159,35 @@ export default function EndMyopiaCalculator() {
           MEASURE PHASE — full-screen, immersive
       ══════════════════════════════════════════════ */}
       {phase === 'measure' && (
-        // NOTE: custom overlay — EndMyopiaCalculator renders full-screen immersive camera measurement phases
-        // (measure / captured / saved). These require full-viewport coverage with camera PIP and focus
-        // target elements. ui/Modal cannot provide this full-screen camera layout.
-        <FullscreenExperience label="Pomiar wzroku" tone="light">
-
-          {/* PIP Camera - top right corner */}
-          <div className="absolute top-4 right-4 w-16 h-20 rounded-xl overflow-hidden border-2 border-border-custom shadow-lg">
-            <video ref={pipVideoRef} autoPlay playsInline muted className="w-full h-full object-cover -scale-x-100" style={{ objectFit: 'cover' }} />
-          </div>
-
-          {/* Back + status bar */}
-          <div className="absolute top-4 left-4 flex items-center gap-3 z-[var(--z-raised)]">
-            <Pressable
-              onClick={() => setPhase('select-eye')}
-              className="p-2 rounded-xl bg-scrim/5 text-text-muted hover:bg-scrim/10 transition-colors"
-            >
-              <ArrowLeft size={18} />
-            </Pressable>
-            <div className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${
-              faceDetected ? 'bg-success text-success' : 'bg-danger text-danger'
-            }`}>
-              <div className={`w-2 h-2 rounded-full ${faceDetected ? 'bg-success' : 'bg-danger animate-pulse'}`} />
-              {faceDetected ? `${distance!.toFixed(1)} cm` : 'Brak twarzy'}
-            </div>
-          </div>
-
-          {/* Stability ring — top center */}
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 z-[var(--z-raised)]">
-            <StabilityRing progress={stability} size={52} />
-          </div>
-
-          {/* FOCUS word — centered */}
-          <div className="flex-1 flex items-center justify-center px-6 pt-20 pb-32">
-            <p
-              className="text-scrim font-black tracking-[var(--ds-arbitrary-0-25em)] text-center leading-none select-none"
-              style={{ fontSize: `${FOCUS_SIZES[sizeLevel - 1]}rem` }}
-            >
-              FOCUS
-            </p>
-          </div>
-
-          {/* Bottom controls */}
-          <div className="absolute bottom-6 left-0 right-0 flex flex-col items-center gap-3 px-8">
-            {/* Zoom + capture row */}
-            <div className="flex items-center justify-between w-full">
-              <Pressable
-                onClick={() => setSizeLevel(l => Math.max(1, l - 1))}
-                className="p-3 rounded-full bg-scrim/5 text-text-muted hover:bg-scrim/10 active:scale-90 transition-all"
-              >
-                <ZoomOut size={20} />
-              </Pressable>
-
-              {autoCapture ? (
-                <div className="flex flex-col items-center text-center">
-                  <p className="text-xs text-text-muted font-medium">Stój na krawędzi rozmycia</p>
-                  <p className="text-xs text-text-muted mt-0.5">Kółko wypełni się samo i zapisze</p>
-                </div>
-              ) : (
-                <Pressable
-                  onClick={handleManualCapture}
-                  disabled={!faceDetected}
-                  className="bg-info text-on-accent font-black px-7 py-3 rounded-2xl text-sm disabled:opacity-[var(--opacity-30)] active:scale-95 transition-all"
-                >
-                  Złap pomiar
-                </Pressable>
-              )}
-
-              <Pressable
-                onClick={() => setSizeLevel(l => Math.min(6, l + 1))}
-                className="p-3 rounded-full bg-scrim/5 text-text-muted hover:bg-scrim/10 active:scale-90 transition-all"
-              >
-                <ZoomIn size={20} />
-              </Pressable>
-            </div>
-
-            {/* Auto/manual toggle */}
-            <Pressable
-              onClick={toggleAutoCapture}
-              className={`text-xs font-black px-3 py-1.5 rounded-full transition-all ${
-                autoCapture
-                  ? 'bg-info text-info border border-info'
-                  : 'bg-surface-2 text-text-muted border border-border-custom'
-              }`}
-            >
-              {autoCapture ? '● Auto-capture' : '○ Ręczne złapanie'}
-            </Pressable>
-          </div>
-        </FullscreenExperience>
+        <MeasurePhaseOverlay
+          pipVideoRef={pipVideoRef}
+          faceDetected={faceDetected}
+          distance={distance}
+          stability={stability}
+          sizeLevel={sizeLevel}
+          autoCapture={autoCapture}
+          onBack={() => setPhase('select-eye')}
+          onZoomOut={() => setSizeLevel((l) => Math.max(1, l - 1))}
+          onZoomIn={() => setSizeLevel((l) => Math.min(6, l + 1))}
+          onManualCapture={handleManualCapture}
+          onToggleAutoCapture={toggleAutoCapture}
+        />
       )}
 
-      {/* ══════════════════════════════════════════════
-          CAPTURED PHASE — result screen
-      ══════════════════════════════════════════════ */}
       {phase === 'captured' && (
-        // NOTE: custom overlay — see 'measure' phase comment above.
-        <FullscreenExperience label="Wynik pomiaru wzroku" className="items-center justify-center gap-8 px-6">
-          <div className="w-full max-w-xs rounded-3xl bg-surface border-2 border-primary/30 p-8 text-center shadow-2xl">
-            <p className="text-xs uppercase tracking-widest text-text-muted mb-5 font-bold">
-              {selectedEye === 'left' ? '👁 Lewe oko' : 'Prawe oko 👁'}
-            </p>
-            <div className="flex items-end justify-center gap-4">
-              <div>
-                <p className="text-6xl font-black font-display tabular-nums">{capturedDistance?.toFixed(1)}</p>
-                <p className="text-sm text-text-muted font-bold mt-1">cm</p>
-              </div>
-              <p className="text-3xl font-black text-text-muted mb-3">=</p>
-              <div>
-                <p className="text-6xl font-black font-display text-primary tabular-nums">{capturedDiopters?.toFixed(2)}</p>
-                <p className="text-sm text-text-muted font-bold mt-1">D</p>
-              </div>
-            </div>
-          </div>
-
-          {saveError && (
-            <div className="w-full max-w-xs flex items-center gap-2 text-xs text-danger bg-danger/10 border border-danger/20 rounded-xl px-4 py-3">
-              <AlertCircle size={14} className="shrink-0" />
-              Błąd zapisu. Spróbuj ponownie.
-            </div>
-          )}
-
-          <div className="w-full max-w-xs flex flex-col gap-3">
-            <Pressable
-              onClick={handleSave}
-              disabled={isSaving}
-              className="w-full py-5 bg-primary text-background font-black uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-[var(--opacity-50)]"
-            >
-              <Check size={18} />
-              {isSaving ? 'Zapisywanie...' : 'Zapisz pomiar'}
-            </Pressable>
-            <Pressable
-              onClick={handleRetry}
-              className="w-full py-3 text-sm text-text-muted flex items-center justify-center gap-1.5 hover:text-text-primary transition-colors"
-            >
-              <RotateCcw size={14} />
-              Zmierz ponownie
-            </Pressable>
-          </div>
-        </FullscreenExperience>
+        <CapturedPhaseOverlay
+          selectedEye={selectedEye}
+          capturedDistance={capturedDistance}
+          capturedDiopters={capturedDiopters}
+          isSaving={isSaving}
+          saveError={saveError}
+          onSave={handleSave}
+          onRetry={handleRetry}
+        />
       )}
 
-      {/* ══════════════════════════════════════════════
-          SAVED PHASE — success flash
-      ══════════════════════════════════════════════ */}
       {phase === 'saved' && (
-        // NOTE: custom overlay — see 'measure' phase comment above.
-        <FullscreenExperience label="Pomiar zapisany" tone="success" className="items-center justify-center gap-4">
-          <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center">
-            <Check size={36} className="text-success" />
-          </div>
-          <p className="text-2xl font-black text-success">Zapisano!</p>
-          <p className="text-sm text-success">
-            {selectedEye === 'left' ? 'Przechodzę do prawego oka...' : 'Pomiary zakończone!'}
-          </p>
-        </FullscreenExperience>
+        <SavedPhaseOverlay selectedEye={selectedEye} />
       )}
 
       {/* ══════════════════════════════════════════════

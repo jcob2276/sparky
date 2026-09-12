@@ -8,8 +8,6 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 const LEGACY_FILES = [
   'src/components/core/DailyShutdownModal.tsx',
   'src/components/core/nutrition/FoodQuickCapture.tsx',
-  'src/components/desktop/fitness/fitnessScoreUtils.ts',
-  'src/components/medical/EndMyopiaCalculator.tsx',
   // EditNoteModal.tsx cleaned 2026-07-16 — raw supabase replaced with invokeEdge/createTodoItem
   'src/components/notes/RichEditor.tsx',
   'src/components/todo/TodoCard.tsx',
@@ -18,6 +16,8 @@ const LEGACY_FILES = [
 ]
 
 const LEGACY_REFACTORED_FILES = [
+  'src/components/desktop/fitness/fitnessScoreUtils.ts',
+  'src/components/medical/EndMyopiaCalculator.tsx',
   'src/components/lifestyle/LinksInbox.tsx',
   'src/components/lifestyle/links/LinksInboxItem.tsx',
   'src/components/todo/TodoCardExpandedPanel.tsx',

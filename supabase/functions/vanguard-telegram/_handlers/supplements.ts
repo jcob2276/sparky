@@ -69,6 +69,8 @@ export async function handleSupplementCallback(
     return;
   }
 
+  const typedSupls = supls as SupplementItem[];
+
   if (data === 'supl_cancel') {
     await answerCallbackQuery(telegramToken, callbackId, { text: 'Anulowano' });
     await editMessageText(telegramToken, chatId, messageId, '• Anulowano wybór suplementów.', []);
@@ -81,13 +83,13 @@ export async function handleSupplementCallback(
   }
 
   const existingKeyboard = callbackQuery?.message?.reply_markup?.inline_keyboard || [];
-  const state = parseStateFromKeyboard(existingKeyboard, supls);
+  const state = parseStateFromKeyboard(existingKeyboard, typedSupls);
 
   if (data === 'supl_reset') {
-    for (const s of supls) state[s.slug] = 0;
+    for (const s of typedSupls) state[s.slug] = 0;
     await answerCallbackQuery(telegramToken, callbackId, { text: 'Wyczyszczono' });
   } else if (data === 'supl_all') {
-    for (const s of supls) state[s.slug] = 1;
+    for (const s of typedSupls) state[s.slug] = 1;
     await answerCallbackQuery(telegramToken, callbackId, { text: 'Zaznaczono wszystkie' });
   } else if (data.startsWith('supl_i:')) {
     const slug = data.split(':')[1];
@@ -108,14 +110,14 @@ export async function handleSupplementCallback(
     }
     await answerCallbackQuery(telegramToken, callbackId);
   } else if (data === 'supl_save') {
-    const itemsToLog = supls.filter(s => (state[s.slug] || 0) > 0);
+    const itemsToLog = typedSupls.filter((s: SupplementItem) => (state[s.slug] || 0) > 0);
     if (itemsToLog.length === 0) {
       await answerCallbackQuery(telegramToken, callbackId, { text: '⚠️ Zaznacz przynajmniej 1 suplement' });
       return;
     }
 
     const today = getWarsawDateString();
-    const rows = itemsToLog.map(s => ({
+    const rows = itemsToLog.map((s: SupplementItem) => ({
       user_id: vanguardUserId,
       supplement_id: s.id,
       quantity: state[s.slug] || 1,
@@ -131,7 +133,7 @@ export async function handleSupplementCallback(
 
     await answerCallbackQuery(telegramToken, callbackId, { text: 'Zapisano!' });
 
-    const summaryLines = itemsToLog.map(s => {
+    const summaryLines = itemsToLog.map((s: SupplementItem) => {
       const qty = state[s.slug] || 1;
       const isSkipQty = s.skip_qty || s.slug === 'kreatyna' || s.name.toLowerCase().includes('kreatyna');
       const unitStr = (s.slug === 'kreatyna' || s.name.toLowerCase().includes('kreatyna')) ? '5g' : (s.unit || 'porcja');
@@ -145,7 +147,7 @@ export async function handleSupplementCallback(
     return;
   }
 
-  const { text, inlineKeyboard } = renderSupplementMenu(supls, state);
+  const { text, inlineKeyboard } = renderSupplementMenu(typedSupls, state);
   await editMessageText(telegramToken, chatId, messageId, text, inlineKeyboard, { direct: true });
 }
 

@@ -11,10 +11,9 @@ import {
   Shield,
   Target,
   UploadCloud,
-  Zap,
   type LucideIcon,
 } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
+import { fetchVanguardIdentity, upsertVanguardIdentity } from '../../lib/identityVaultApi';
 import { notify } from '../../lib/notify';
 import IdentityVault from '../identity/IdentityVault';
 import DataHub from './DataHub';
@@ -62,11 +61,11 @@ export default function Fundament({ onBack, onSyncCalendar, isSyncing }: { onBac
   const [saving, setSaving] = useState(false);
 
   const fetchIdentity = useCallback(async () => {
-    const { data } = await supabase
-      .from('vanguard_identity')
-      .select('*')
-      .eq('user_id', userId!)
-      .maybeSingle();
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+    const data = await fetchVanguardIdentity(userId);
 
     if (data) {
       setIdentity({
@@ -98,16 +97,13 @@ export default function Fundament({ onBack, onSyncCalendar, isSyncing }: { onBac
         }
       }
 
-      const { error } = await supabase.from('vanguard_identity').upsert({
-        user_id: userId!,
+      await upsertVanguardIdentity(userId!, {
         long_term_mission: identity.long_term_mission,
         pillars: identity.pillars,
         avoidance_triggers: identity.avoidance_triggers,
         behavioral_baseline: baselineJson,
-        updated_at: new Date().toISOString(),
       });
 
-      if (error) throw error;
       notify('Fundament zapisany.', 'success');
     } catch (err: unknown) {
       console.error('Save Identity Error:', err);

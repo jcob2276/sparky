@@ -9,9 +9,8 @@
  * @status active
  */
 
-import { serveJson, serveError } from "../_shared/http.ts";
+import { serveJson } from "../_shared/http.ts";
 import { openaiChat } from "../_shared/openai.ts";
-import { createServiceClient } from "../_shared/supabase.ts";
 
 const SYSTEM_PROMPT = `Jesteś zaawansowanym asystentem i ekspertem od fizjoterapii, kulturystyki oraz kompozycji ciała (Computer Vision Physique Analyst).
 Twoim zadaniem jest obiektywna, precyzyjna analiza wizualna zdjęcia sylwetki użytkownika.
@@ -55,21 +54,18 @@ Wymagania:
 - Każda grupa musi mieć score (0-100), status ("strong" | "balanced" | "lagging") i zwięzłą uwagę ("notes") po polsku.
 - Wszystkie oceny i komentarze mają być rzetelne, pełne szacunku i konstruktywne.`;
 
-Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return serveJson({ ok: true });
-  }
-
-  try {
-    const { photoId, imageUrl, userId } = await req.json();
+Deno.serve(
+  serveJson(async (req, ctx) => {
+    const { photoId, imageUrl, userId: bodyUserId } = await req.json();
+    const userId = ctx.userId || bodyUserId;
 
     if (!imageUrl) {
-      return serveError("Brak parametru imageUrl.", 400);
+      throw new Error("Brak parametru imageUrl.");
     }
 
     const openAiKey = Deno.env.get("OPENAI_API_KEY");
     if (!openAiKey) {
-      return serveError("Brak skonfigurowanego klucza OPENAI_API_KEY.", 500);
+      throw new Error("Brak skonfigurowanego klucza OPENAI_API_KEY.");
     }
 
     const { content } = await openaiChat({
@@ -98,22 +94,17 @@ Deno.serve(async (req) => {
     const parsed = JSON.parse(content);
     parsed.analyzed_at = new Date().toISOString();
 
-    // Optionally update DB directly if photoId & userId are supplied
     if (photoId && userId) {
-      const supabase = createServiceClient();
-      await supabase
+      await ctx.supabase
         .from("progress_photos")
         .update({ ai_analysis: parsed })
         .eq("id", photoId)
         .eq("user_id", userId);
     }
 
-    return serveJson({
+    return {
       ok: true,
       analysis: parsed,
-    });
-  } catch (err: any) {
-    console.error("[analyze-physique] Error:", err);
-    return serveError(`Błąd podczas analizy sylwetki: ${err.message}`, 500);
-  }
-});
+    };
+  })
+);

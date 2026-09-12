@@ -12,19 +12,17 @@ import {
   type BodyRow,
 } from '@vanguard/domain';
 import { mergeLatestBodyMetrics } from '../../../lib/health/bodyMetrics';
-import { stravaDay, countQualityStrengthSets, summarizeStravaWindow } from './fitnessScoreHelpers';
+import {
+  stravaDay,
+  countQualityStrengthSets,
+  summarizeStravaWindow,
+  buildFitnessBreakdowns,
+  type ScoreKey,
+} from './fitnessScoreHelpers';
 import type { OuraRow, NutritionDayRow } from '../desktopUtils';
 import type { DesktopSessionRow, StravaActivityRow, HabitRow, HabitLogRow } from '../shell/useDesktopData';
 
-export type ScoreKey = 'consistency' | 'endurance' | 'strength' | 'habits' | 'progress' | 'volume';
-
-type DimensionBreakdown = {
-  key: ScoreKey;
-  label: string;
-  score: number;
-  detail: string;
-  group: 'capability' | 'process';
-};
+export type { ScoreKey };
 
 export function computeFitnessProfile(input: {
   oura: OuraRow[];
@@ -244,75 +242,46 @@ export function computeFitnessProfile(input: {
   const loadSummary =
     loadParts.length > 0 ? loadParts.join(' + ') : 'brak zarejestrowanego obciążenia w tym tygodniu';
 
-  const breakdowns: DimensionBreakdown[] = [
-    {
-      key: 'consistency',
-      label: 'Regularność',
-      score: consistencyScore,
-      group: 'process',
-      detail:
-        `${trainingSessions7d} sesji siłowych + ${strava7d} cardio (7 dni). Nawyki — ${habitSummaryLabel}` +
-        (habitSlotTotal > 0
-          ? ` (łącznie ${habitSuccessTotal}/${habitSlotTotal}, ${Math.round(habitRate * 100)}%).`
-          : '.') +
-        ` Wzór: (trening + cardio) × 1,5 + nawyki × 4.` +
-        (saunaCount7d > 0
-          ? ` Sauna: ${saunaCount7d}× / ${saunaMinutes7d} min — liczy się w „Regeneracja & wellness", nie w regularności.`
-          : ' Sauna/wellness liczy się osobno w „Regeneracja & wellness".'),
-    },
-    {
-      key: 'endurance',
-      label: 'Wydolność',
-      score: enduranceScore,
-      group: 'capability',
-      detail:
-        cooperPts.score > 0
-          ? `Strava 7d → ${aerobicPoints.toFixed(1)} pkt (${cardioSummary}). ${cooperPts.detail} Blend: 55% tyg. + 45% max Cooper.`
-          : `Strava 7d → ${aerobicPoints.toFixed(1)} pkt (${cardioSummary}). Bieg × 0,4/km, marsz × 0,15/km, reszta × 0,05/min.`,
-    },
-    {
-      key: 'strength',
-      label: 'Siła',
-      score: strengthScore,
-      group: 'capability',
-      detail:
-        capacity.score > 0
-          ? `Ostatnie 14 dni: ${workouts14d.length} sesji, ${qualitySets14d} serii jakościowych, śr. RPE ${avgRpe14d.toFixed(1)} → ${recentStrengthScore.toFixed(1)}/10. Kapitał (maxy ×BW, decay do 3 lat): ${capacity.detail} Blend: 40% ostatnie + 60% maxy.`
-          : workouts14d.length > 0
-            ? `${workouts14d.length} sesji (14 dni), ${qualitySets14d} serii blisko max (MSP/PWS lub RIR≤1), śr. RPE ${avgRpe14d.toFixed(1)}. Brak maxów w historii — liczy się tylko ostatnia praca.`
-            : 'Brak sesji siłowych w ostatnich 14 dniach.',
-    },
-    {
-      key: 'habits',
-      label: 'Regeneracja & wellness',
-      score: habitsScore,
-      group: 'process',
-      detail:
-        (bodyBonus.detail
-          ? `${bodyBonus.detail}. `
-          : '') +
-        (saunaCount7d > 0
-          ? `Sen: śr. ${avgSleepScore.toFixed(0)}/100. Białko ≥${resolvedProteinG} g: ${proteinDays}/7 dni (${Math.round(proteinTargetMetRate * 100)}%). Sauna: ${saunaCount7d}× / ${saunaMinutes7d} min → +${saunaPoints.toFixed(1)} pkt.`
-          : `Sen: śr. ${avgSleepScore.toFixed(0)}/100. Białko ≥${resolvedProteinG} g: ${proteinDays}/7 dni (${Math.round(proteinTargetMetRate * 100)}%). Sauna: brak w 7 dniach.`),
-    },
-    {
-      key: 'progress',
-      label: 'Adaptacja',
-      score: progressScore,
-      group: 'process',
-      detail:
-        first7dHRV != null && last7dHRV != null
-          ? `Trendy 7 vs poprzednie 7 dni — HRV: ${last7dHRV.toFixed(0)} vs ${first7dHRV.toFixed(0)} ms (${hrvTrend > 0 ? '+1,5' : '−1'}), readiness: ${avgReadiness7d?.toFixed(0) ?? '—'} vs ${avgReadinessPrev7d?.toFixed(0) ?? '—'} (${readinessTrend >= 0 ? '+' : ''}${readinessTrend}), aktywność: ${activity7d} vs ${activityPrev7d} sesji/cardio (${activityTrend >= 0 ? '+' : ''}${activityTrend}). To nie są zadania kariery — tylko sygnały regeneracji i obciążenia.`
-          : `Aktywność 7d: ${activity7d} vs poprzednie ${activityPrev7d}. Brak pełnych danych HRV do porównania tygodni.`,
-    },
-    {
-      key: 'volume',
-      label: 'Obciążenie tygodnia',
-      score: volumeScore,
-      group: 'process',
-      detail: `Hybrydowe obciążenie bieżącego tygodnia: ${loadSummary}. Wzór: Mg siłowo (max 3,5) + km biegu (max 3,5) + marsz/min inne (max 2) + baza 1.`,
-    },
-  ];
+  const breakdowns = buildFitnessBreakdowns({
+    consistencyScore,
+    trainingSessions7d,
+    strava7d,
+    habitSummaryLabel,
+    habitSlotTotal,
+    habitSuccessTotal,
+    habitRate,
+    saunaCount7d,
+    saunaMinutes7d,
+    enduranceScore,
+    cooperPts,
+    aerobicPoints,
+    cardioSummary,
+    strengthScore,
+    capacity,
+    workouts14d,
+    qualitySets14d,
+    avgRpe14d,
+    recentStrengthScore,
+    habitsScore,
+    bodyBonus,
+    resolvedProteinG,
+    avgSleepScore,
+    proteinDays,
+    proteinTargetMetRate,
+    saunaPoints,
+    progressScore,
+    first7dHRV,
+    last7dHRV,
+    hrvTrend,
+    avgReadiness7d,
+    avgReadinessPrev7d,
+    readinessTrend,
+    activity7d,
+    activityPrev7d,
+    activityTrend,
+    volumeScore,
+    loadSummary,
+  });
 
   return {
     consistency: consistencyScore,

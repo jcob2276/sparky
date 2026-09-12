@@ -1,4 +1,4 @@
-import type { HealthspanContributorKey, HealthspanInput } from './healthspan';
+import type { HealthspanContributorKey, HealthspanInput } from './healthspan.ts';
 
 export const HEALTHSPAN_MODEL_VERSION = 'healthspan-v2' as const;
 
@@ -129,5 +129,7 @@ export function scoreContributorValue(
       const center = context.sex === 'M' ? 17 : 25;
       return clamp(100 - Math.abs(Math.max(5, Math.min(50, value)) - center) * 4);
     }
+    default:
+      return clamp(value);
   }
 }

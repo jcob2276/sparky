@@ -1,4 +1,4 @@
-import type { HealthspanConfounder, HealthspanContributorKey } from './healthspan';
+import type { HealthspanConfounder, HealthspanContributorKey } from './healthspan.ts';
 
 export interface HealthspanTrendSnapshot {
   date: string;

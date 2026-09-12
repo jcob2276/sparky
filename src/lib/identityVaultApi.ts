@@ -22,3 +22,32 @@ export async function upsertUserFundament(userId: string, patch: Record<string, 
     }, { onConflict: 'user_id' });
   if (error) throw error;
 }
+
+export type VanguardIdentityRow = Tables<'vanguard_identity'>;
+
+export async function fetchVanguardIdentity(userId: string): Promise<VanguardIdentityRow | null> {
+  const { data, error } = await supabase
+    .from('vanguard_identity')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function upsertVanguardIdentity(userId: string, payload: {
+  long_term_mission: string;
+  pillars: string[];
+  avoidance_triggers: string;
+  behavioral_baseline: unknown;
+}): Promise<void> {
+  const { error } = await supabase.from('vanguard_identity').upsert({
+    user_id: userId,
+    long_term_mission: payload.long_term_mission,
+    pillars: payload.pillars,
+    avoidance_triggers: payload.avoidance_triggers,
+    behavioral_baseline: payload.behavioral_baseline,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw error;
+}
