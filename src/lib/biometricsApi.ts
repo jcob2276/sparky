@@ -245,7 +245,7 @@ export function useOuraContext(userId: string, contextDate: string | null, bedti
       const [phoneResult, workoutResult, foodResult] = await Promise.all([
         supabase
           .from('phone_usage_daily')
-          .select('total_minutes,late_night_minutes')
+          .select('*')
           .eq('user_id', userId)
           .eq('date', contextDate)
           .maybeSingle(),

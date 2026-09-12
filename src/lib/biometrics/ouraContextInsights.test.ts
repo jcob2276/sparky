@@ -17,7 +17,10 @@ describe('buildOuraContextInsights', () => {
     expect(result.screen).toMatchObject({
       status: 'available',
       source: 'phone_usage_daily',
+      totalMinutes: 214,
+      formattedTotal: '3h 34m',
       lateNightMinutes: 37,
+      lateNightImpact: { tier: 'moderate' },
     });
     expect(result.caffeine).toMatchObject({
       status: 'available',

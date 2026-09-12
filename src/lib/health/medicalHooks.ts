@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchMedicalRecordData } from './medicalRecordsApi';
+import { fetchMedicalRecordData, fetchPreventionActions } from './medicalRecordsApi';
 
 const EMPTY_RECORD = { labs: [], bodyComposition: [], documents: [] };
 
@@ -27,3 +27,15 @@ export function useMedicalRecordData(userId: string | undefined) {
     refresh: query.refetch,
   };
 }
+
+export function useMedicalPreventionActions(userId: string | undefined) {
+  return useQuery({
+    queryKey: ['prevention-actions', userId],
+    queryFn: async () => {
+      if (!userId) return [];
+      return fetchPreventionActions(userId);
+    },
+    enabled: !!userId,
+  });
+}
+

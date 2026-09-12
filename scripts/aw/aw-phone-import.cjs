@@ -34,12 +34,32 @@ if (!SUPABASE_URL || !SUPABASE_KEY || !USER_ID)
 
 // --- Kategorie ----------------------------------------------------------
 const CATEGORIES = {
-  social:        ['musically', 'tiktok', 'twitter', 'xmobile', 'instagram', 'badoo', 'snapchat', 'pinterest'],
-  messaging:     ['orca', 'telegram', 'whatsapp', 'viber', 'signal'],
-  entertainment: ['youtube', 'netflix', 'twitch', 'spotify', 'tidal', 'hbomax', 'prime'],
-  ai:            ['chatgpt', 'grok', 'claude', 'perplexity', 'gemini', 'copilot'],
+  social:        ['musically', 'tiktok', 'twitter', 'x.android', 'instagram', 'badoo', 'snapchat', 'pinterest', 'reddit', 'threads', 'katana', 'linkedin'],
+  messaging:     ['orca', 'telegram', 'whatsapp', 'viber', 'signal', 'discord', 'slack', 'messenger'],
+  entertainment: ['youtube', 'netflix', 'twitch', 'spotify', 'tidal', 'hbomax', 'prime', 'disney', 'game', 'chess', 'lichess', 'clashroyale'],
+  ai:            ['chatgpt', 'grok', 'claude', 'perplexity', 'gemini', 'copilot', 'openai', 'anthropic'],
   browser:       ['chrome', 'brave', 'firefox', 'opera', 'edge', 'duckduckgo'],
 };
+
+const SYSTEM_PACKAGES = new Set([
+  'android',
+  'com.android.systemui',
+  'com.google.android.apps.nexuslauncher',
+  'com.sec.android.app.launcher',
+  'com.google.android.inputmethod.latin',
+  'com.samsung.android.honeyboard',
+  'com.touchtype.swiftkey',
+  'com.android.launcher3',
+  'com.miui.home',
+  'com.huawei.android.launcher',
+  'com.oppo.launcher',
+  'com.oneplus.launcher',
+  'com.android.permissioncontroller',
+]);
+
+function isSystemApp(pkg = '') {
+  return SYSTEM_PACKAGES.has(pkg.toLowerCase());
+}
 
 function categorize(pkg = '') {
   const p = pkg.toLowerCase();
@@ -126,7 +146,7 @@ async function main() {
       const diff = (new Date(appEvents[i+1].timestamp) - new Date(ts)) / 1000;
       dur = Math.min(Math.max(diff, 0), MAX_GAP);
     }
-    if (dur <= 0) continue;
+    if (dur <= 0 || isSystemApp(pkg)) continue;
 
     const date = toWarsawDate(ts);
     if (!byDay[date]) byDay[date] = { apps: {}, late: {}, total: 0, late_total: 0 };

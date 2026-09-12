@@ -5,6 +5,7 @@ import { App } from '@capacitor/app';
 import {
   buildPhoneUsageDailyPayload,
   getWarsawDateString,
+  getWarsawDayBoundaries,
   warsawDayStartUTCMs,
 } from '@vanguard/domain';
 import { upsertPhoneUsageDaily } from '../phoneUsageApi';
@@ -13,7 +14,10 @@ import { supabase } from '../supabase';
 import { isNativePlatform } from './platform';
 import { UsageStats } from './usageStatsPlugin';
 
-const SYNC_THROTTLE_MS = 15 * 60 * 1000;
+import { biometricsKeys } from '../queryKeys';
+import { queryClient } from '../queryClient';
+
+const SYNC_THROTTLE_MS = 2 * 60 * 1000;
 
 let lastSyncAt = 0;
 let activeUserId: string | null = null;
@@ -24,6 +28,56 @@ export interface PhoneUsageSyncResult {
   totalMinutes?: number;
   error?: string;
   skipped?: boolean;
+}
+
+function getYesterdayDateStr(todayStr: string): string {
+  const d = new Date(new Date(`${todayStr}T12:00:00Z`).getTime() - 86400000);
+  return d.toLocaleDateString('en-CA', { timeZone: 'Europe/Warsaw' });
+}
+
+async function syncPhoneUsageForDate(
+  userId: string,
+  dateStr: string,
+): Promise<PhoneUsageSyncResult> {
+  if (!isNativePlatform() || !userId) {
+    return { ok: false, error: 'not_native' };
+  }
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user?.id) {
+      return { ok: false, error: 'not_authenticated' };
+    }
+
+    const access = await UsageStats.hasAccess();
+    if (!access.granted) {
+      return { ok: false, error: 'usage_access_denied' };
+    }
+
+    const beginMs = warsawDayStartUTCMs(dateStr);
+    const dayBoundaries = getWarsawDayBoundaries(dateStr);
+    const dayEndMs = new Date(dayBoundaries.end).getTime();
+    const endMs = Math.min(dayEndMs, Date.now());
+
+    if (endMs <= beginMs) {
+      return { ok: false, error: 'invalid_range' };
+    }
+
+    const snapshot = await UsageStats.getDailySnapshot({ beginMs, endMs });
+    const payload = buildPhoneUsageDailyPayload(session.user.id, dateStr, snapshot);
+    const upsert = await upsertPhoneUsageDaily(payload);
+    if (!upsert.ok) {
+      return { ok: false, error: upsert.error ?? 'upsert_failed' };
+    }
+
+    void queryClient.invalidateQueries({ queryKey: biometricsKeys.all });
+
+    return { ok: true, totalMinutes: payload.total_minutes };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'sync_failed';
+    console.error('[phone-usage] sync for date failed:', dateStr, err);
+    return { ok: false, error: message };
+  }
 }
 
 export async function syncPhoneUsageToday(
@@ -40,42 +94,31 @@ export async function syncPhoneUsageToday(
     return { ok: false, skipped: true };
   }
 
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user?.id) {
-      return { ok: false, error: 'not_authenticated' };
-    }
+  const dateStr = getWarsawDateString();
+  const res = await syncPhoneUsageForDate(userId, dateStr);
 
-    const access = await UsageStats.hasAccess();
-    if (!access.granted) {
-      return { ok: false, error: 'usage_access_denied' };
-    }
-
-    const dateStr = getWarsawDateString();
-    const beginMs = warsawDayStartUTCMs(dateStr);
-    const snapshot = await UsageStats.getDailySnapshot({ beginMs, endMs: now });
-    const payload = buildPhoneUsageDailyPayload(session.user.id, dateStr, snapshot);
-    const upsert = await upsertPhoneUsageDaily(payload);
-    if (!upsert.ok) {
-      return { ok: false, error: upsert.error ?? 'upsert_failed' };
-    }
-
+  if (res.ok) {
     lastSyncAt = now;
 
     if (!options?.silent) {
       const toastKey = `phone-usage-sync-toast-${dateStr}`;
       if (!localStorage.getItem(toastKey)) {
-        notify(`Czas ekranu zapisany (${payload.total_minutes} min)`, 'success');
+        notify(`Czas ekranu zapisany (${res.totalMinutes ?? 0} min)`, 'success');
         localStorage.setItem(toastKey, '1');
       }
     }
 
-    return { ok: true, totalMinutes: payload.total_minutes };
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'sync_failed';
-    console.error('[phone-usage] sync failed:', err);
-    return { ok: false, error: message };
+    // Lock in yesterday's complete 24h once per day so sleep context is accurate
+    const yesterdayStr = getYesterdayDateStr(dateStr);
+    const yesterdayKey = `phone-usage-finalized-${yesterdayStr}`;
+    if (!localStorage.getItem(yesterdayKey)) {
+      void syncPhoneUsageForDate(userId, yesterdayStr).then((yRes) => {
+        if (yRes.ok) localStorage.setItem(yesterdayKey, '1');
+      });
+    }
   }
+
+  return res;
 }
 
 export function initUsageStatsSync(userId: string): () => void {

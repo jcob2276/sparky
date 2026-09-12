@@ -42,4 +42,40 @@ describe('OuraContextSection', () => {
     expect(screen.getByText('18 min późnym wieczorem')).toBeInTheDocument();
     expect(screen.queryByText(/daily_food_entries|workout_sessions|phone_usage_daily/)).not.toBeInTheDocument();
   });
+
+  it('formats mature screen duration and opens ScreenDetailModal on click', async () => {
+    const { fireEvent } = await import('@testing-library/react');
+    const context = buildOuraContextInsights({
+      sleepDate: '2026-09-12',
+      bedtimeStart: '2026-09-11T23:45:00+02:00',
+      phoneUsage: {
+        total_minutes: 205,
+        late_night_minutes: 15,
+        social_minutes: 65,
+        ai_minutes: 50,
+        browser_minutes: 40,
+        messaging_minutes: 30,
+        entertainment_minutes: 20,
+        unlocks: 42,
+        top_apps: [
+          { app: 'ChatGPT', pkg: 'com.openai.chatgpt', min: 50 },
+          { app: 'YouTube', pkg: 'com.google.android.youtube', min: 45 },
+        ],
+      },
+      workouts: [],
+      foodEntries: [],
+    });
+
+    render(<OuraContextSection context={context} />);
+
+    expect(screen.getByText('3h 25m')).toBeInTheDocument();
+    expect(screen.getByText('15 min późnym wieczorem')).toBeInTheDocument();
+
+    const screenButton = screen.getByRole('button', { name: /Ekran/ });
+    fireEvent.click(screenButton);
+
+    expect(screen.getByText('Czas przed ekranem & Rytm biologiczny')).toBeInTheDocument();
+    expect(screen.getByText('Ekspozycja wieczorna & Higiena snu')).toBeInTheDocument();
+    expect(screen.getByText('ChatGPT')).toBeInTheDocument();
+  });
 });

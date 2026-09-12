@@ -1,8 +1,24 @@
+import {
+  evaluateCognitiveProfile,
+  evaluateLateNightImpact,
+  formatPhoneUsageDuration,
+  type LateNightImpact,
+  type PhoneCognitiveProfile,
+} from '@vanguard/domain';
+
 type ContextStatus = 'available' | 'unavailable';
 
 interface PhoneUsageInput {
   total_minutes: number | null;
   late_night_minutes: number | null;
+  social_minutes?: number | null;
+  messaging_minutes?: number | null;
+  entertainment_minutes?: number | null;
+  ai_minutes?: number | null;
+  browser_minutes?: number | null;
+  other_minutes?: number | null;
+  unlocks?: number | null;
+  top_apps?: Array<{ app: string; pkg: string; min: number }> | null | unknown;
 }
 
 interface WorkoutInput {
@@ -71,19 +87,61 @@ export function buildOuraContextInsights(input: OuraContextInput) {
     (workout) => workout.hr_strain_score == null ? [] : [workout.hr_strain_score],
   );
 
+  const phoneUsage = input.phoneUsage;
+  const lateNightImpact: LateNightImpact | null = phoneUsage
+    ? evaluateLateNightImpact(phoneUsage.late_night_minutes)
+    : null;
+  const cognitiveProfile: PhoneCognitiveProfile | null = phoneUsage
+    ? evaluateCognitiveProfile({
+        total_minutes: phoneUsage.total_minutes,
+        social_minutes: phoneUsage.social_minutes,
+        messaging_minutes: phoneUsage.messaging_minutes,
+        entertainment_minutes: phoneUsage.entertainment_minutes,
+        ai_minutes: phoneUsage.ai_minutes,
+        browser_minutes: phoneUsage.browser_minutes,
+        other_minutes: phoneUsage.other_minutes,
+        unlocks: phoneUsage.unlocks,
+      })
+    : null;
+  const topApps = Array.isArray(phoneUsage?.top_apps)
+    ? (phoneUsage.top_apps as Array<{ app: string; pkg: string; min: number }>)
+    : [];
+
   return {
     date: input.sleepDate,
     bedtimeStart: input.bedtimeStart,
-    screen: input.phoneUsage ? {
+    screen: phoneUsage ? {
       status: 'available' as ContextStatus,
       source: 'phone_usage_daily' as const,
-      totalMinutes: input.phoneUsage.total_minutes,
-      lateNightMinutes: input.phoneUsage.late_night_minutes,
+      totalMinutes: phoneUsage.total_minutes,
+      lateNightMinutes: phoneUsage.late_night_minutes,
+      formattedTotal: formatPhoneUsageDuration(phoneUsage.total_minutes),
+      lateNightImpact,
+      cognitiveProfile,
+      topApps,
+      socialMinutes: phoneUsage.social_minutes ?? 0,
+      messagingMinutes: phoneUsage.messaging_minutes ?? 0,
+      entertainmentMinutes: phoneUsage.entertainment_minutes ?? 0,
+      aiMinutes: phoneUsage.ai_minutes ?? 0,
+      browserMinutes: phoneUsage.browser_minutes ?? 0,
+      otherMinutes: phoneUsage.other_minutes ?? 0,
+      unlocks: phoneUsage.unlocks ?? null,
     } : {
       status: 'unavailable' as ContextStatus,
       source: 'phone_usage_daily' as const,
       totalMinutes: null,
       lateNightMinutes: null,
+      formattedTotal: null,
+      lateNightImpact: null,
+      cognitiveProfile: null,
+      topApps: [],
+      socialMinutes: 0,
+      messagingMinutes: 0,
+      entertainmentMinutes: 0,
+      aiMinutes: 0,
+      browserMinutes: 0,
+      otherMinutes: 0,
+      unlocks: null,
     },
     caffeine: lastCaffeine ? {
       status: 'available' as ContextStatus,
