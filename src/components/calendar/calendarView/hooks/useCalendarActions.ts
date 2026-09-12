@@ -1,12 +1,12 @@
 import { useCallback } from 'react';
 import { updateTodoItem, deleteTodoItem } from '../../../../lib/todo/todo';
-import { getWarsawOffset, addDays } from '../../calendarHelpers';
 import { buildRecurrenceRule } from '../calendarViewHelpers';
 import { parseTodoQuickInput } from '../../../../lib/todo/todoParser';
 import type { useCalendarData } from '../../hooks/useCalendarData';
 import type { useCalendarTodos } from '../../hooks/useCalendarTodos';
 import { registerReversibleAction, undoAction } from '../../../../lib/actionHistory';
 import { notify } from '../../../../lib/notify';
+import { buildQuickEventPayload, buildEditEventPayload } from '../eventPayload';
 
 interface UseCalendarActionsOptions {
   userId: string | undefined;
@@ -31,6 +31,9 @@ export function useCalendarActions({
     quickCategory,
     quickType,
     quickDescription,
+    quickLocation,
+    quickAllDay,
+    quickReminder,
     quickRecurrence,
     quickCustomDays,
     quickRecurrenceEndDate,
@@ -42,6 +45,9 @@ export function useCalendarActions({
     editEnd,
     editDate,
     editDescription,
+    editLocation,
+    editAllDay,
+    editReminder,
     editRecurrence,
     editCustomDays,
     editRecurrenceEndDate,
@@ -94,34 +100,23 @@ export function useCalendarActions({
       return;
     }
 
-    const endMin = parsedStartMin + parsedDuration;
-    const [y, m, d] = parsedDate.split('-');
-    const startH = Math.floor(parsedStartMin / 60);
-    const startM = parsedStartMin % 60;
-    const endDate = addDays(parsedDate, Math.floor(endMin / (24 * 60)));
-    const normalizedEndMin = endMin % (24 * 60);
-    const endH = Math.floor(normalizedEndMin / 60);
-    const endM = normalizedEndMin % 60;
-    const pad = (n: number) => String(n).padStart(2, '0');
-    const start = `${y}-${m}-${d}T${pad(startH)}:${pad(startM)}:00${getWarsawOffset(
-      parsedDate
-    )}`;
-    const end = `${endDate}T${pad(endH)}:${pad(
-      endM
-    )}:00${getWarsawOffset(endDate)}`;
     const recurrence = buildRecurrenceRule(
       (parsed.recurrence || quickRecurrence) as typeof quickRecurrence,
       quickCustomDays,
       quickRecurrenceEndDate
     );
-    const ev = {
-      summary: parsedTitle,
-      start,
-      end,
-      category: quickCategory || undefined,
-      description: quickDescription.trim() || undefined,
+    const ev = buildQuickEventPayload({
+      title: parsedTitle,
+      date: parsedDate,
+      startMin: parsedStartMin,
+      durationMin: parsedDuration,
+      allDay: quickAllDay,
+      location: quickLocation,
+      reminderMinutes: quickReminder,
+      category: quickCategory,
+      description: quickDescription,
       recurrence: recurrence ?? null,
-    };
+    });
     try {
       await createEventMutation.mutateAsync({
         userId: userId || '',
@@ -146,6 +141,9 @@ export function useCalendarActions({
     quickType,
     quickDuration,
     quickDescription,
+    quickLocation,
+    quickAllDay,
+    quickReminder,
     quickRecurrence,
     quickRecurrenceEndDate,
     quickCategory,
@@ -163,17 +161,10 @@ export function useCalendarActions({
   ]);
 
   const handleEditSave = useCallback(async () => {
-    if (!selectedEvent || !editTitle.trim() || !editStart || !editEnd || !editDate) return;
+    if (!selectedEvent || !editTitle.trim() || !editDate) return;
+    if (!editAllDay && (!editStart || !editEnd)) return;
     setSaving(true);
 
-    const start = `${editDate}T${editStart}:00${getWarsawOffset(editDate)}`;
-    let endDateStr = editDate;
-
-    if (editEnd < editStart) {
-      endDateStr = addDays(editDate, 1);
-    }
-
-    const end = `${endDateStr}T${editEnd}:00${getWarsawOffset(endDateStr)}`;
     const rawId = selectedEvent.event_id || selectedEvent.id;
     const evId = selectedEvent.series_id || rawId;
     const recurrence = buildRecurrenceRule(
@@ -181,15 +172,19 @@ export function useCalendarActions({
       editCustomDays,
       editRecurrenceEndDate
     );
-    const ev = {
+    const ev = buildEditEventPayload({
       id: evId,
-      summary: editTitle.trim(),
-      start,
-      end,
-      category: editCategory || undefined,
-      description: editDescription.trim() || undefined,
+      title: editTitle,
+      date: editDate,
+      start: editStart,
+      end: editEnd,
+      allDay: editAllDay,
+      location: editLocation,
+      reminderMinutes: editReminder,
+      category: editCategory,
+      description: editDescription,
       recurrence: recurrence ?? null,
-    };
+    });
     try {
       await updateEventMutation.mutateAsync({
         userId: userId || '',
@@ -199,11 +194,14 @@ export function useCalendarActions({
       const originalEvent = {
         id: evId,
         summary: selectedEvent.summary || '',
-        start: selectedEvent.start_time || start,
-        end: selectedEvent.end_time || end,
+        start: selectedEvent.start_time || ev.start,
+        end: selectedEvent.end_time || ev.end,
         category: selectedEvent.category || undefined,
         description: selectedEvent.description || undefined,
         recurrence: selectedEvent.recurrence ?? null,
+        location: selectedEvent.location || undefined,
+        is_all_day: selectedEvent.is_all_day ?? false,
+        reminder_minutes: selectedEvent.reminder_minutes ?? null,
       };
       const actionId = registerReversibleAction({
         label: `Edycja wydarzenia: ${ev.summary}`,
@@ -244,6 +242,9 @@ export function useCalendarActions({
     editEnd,
     editDate,
     editDescription,
+    editLocation,
+    editAllDay,
+    editReminder,
     editRecurrence,
     editCustomDays,
     editRecurrenceEndDate,

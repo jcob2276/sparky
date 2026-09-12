@@ -136,27 +136,42 @@ export default function DreamsPanel({
           </div>
         )}
 
-        {/* Category filter */}
-        <div className="flex gap-1.5 flex-wrap">
-          {DREAM_CATEGORIES.map(cat => (
-            <ToggleChip
-              key={cat}
-              active={dreamFilter === cat}
-              onClick={() => setDreamFilter(cat)}
-              variant="primary"
-            >
-              {DREAM_CAT_LABEL[cat]}
-              {cat !== 'all' && dreams.filter(d => d.category === cat).length > 0 && (
-                <span className="ml-1 opacity-[var(--opacity-60)]">{dreams.filter(d => d.category === cat).length}</span>
-              )}
-            </ToggleChip>
-          ))}
-        </div>
+        {/* Category filter — only when dreams exist */}
+        {dreams.length > 0 && (
+          <div className="flex gap-1.5 flex-wrap">
+            {DREAM_CATEGORIES.map(cat => (
+              <ToggleChip
+                key={cat}
+                active={dreamFilter === cat}
+                onClick={() => setDreamFilter(cat)}
+                variant="primary"
+              >
+                {DREAM_CAT_LABEL[cat]}
+                {cat !== 'all' && dreams.filter(d => d.category === cat).length > 0 && (
+                  <span className="ml-1 opacity-[var(--opacity-60)]">{dreams.filter(d => d.category === cat).length}</span>
+                )}
+              </ToggleChip>
+            ))}
+          </div>
+        )}
 
-        {/* Dreams list */}
-        {filteredDreams.length === 0 ? (
+        {/* Dreams list or empty state */}
+        {dreams.length === 0 && !isAddingDream ? (
+          <div className="py-6 text-center space-y-2.5 rounded-xl border border-dashed border-border-custom/50 bg-surface/30">
+            <p className="text-xs text-text-muted font-medium">Zacznij od zapisania pierwszego marzenia na liście 200 marzeń.</p>
+            <Pressable
+              variant="tonal"
+              size="sm"
+              onClick={() => setIsAddingDream(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/20 bg-primary/10 text-primary text-xs font-bold"
+              icon={<Plus size={12} />}
+            >
+              Dodaj pierwsze marzenie
+            </Pressable>
+          </div>
+        ) : filteredDreams.length === 0 ? (
           <p className="py-6 text-center text-xs text-text-muted/50">
-            {dreams.length === 0 ? 'Zacznij od zapisania pierwszego marzenia' : 'Brak marzeń w tej kategorii'}
+            Brak marzeń w tej kategorii
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-1.5 max-h-[var(--ds-h-480px)] overflow-y-auto pr-1">

@@ -15,6 +15,9 @@ interface NoteCollectionSectionsProps {
   onTogglePin?: (note: Note) => void;
   onMove?: (note: Note) => void;
   onDelete?: (note: Note) => void;
+  isSelectMode?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelectId?: (id: string) => void;
 }
 
 export default function NoteCollectionSections({
@@ -27,6 +30,9 @@ export default function NoteCollectionSections({
   onTogglePin,
   onMove,
   onDelete,
+  isSelectMode = false,
+  selectedIds,
+  onToggleSelectId,
 }: NoteCollectionSectionsProps) {
   return (
     <div className={collectionView === 'gallery' ? 'keep-note-sections gallery' : 'keep-note-sections'}>
@@ -37,7 +43,13 @@ export default function NoteCollectionSections({
             {section.label}
           </h2>
           {collectionView === 'gallery' && gridProps ? (
-            <MasonryGrid notes={section.notes} {...gridProps} />
+            <MasonryGrid
+              notes={section.notes}
+              {...gridProps}
+              isSelectMode={isSelectMode}
+              selectedIds={selectedIds}
+              onToggleSelect={onToggleSelectId}
+            />
           ) : (
             <div className="keep-note-section-surface">
               {section.notes.map((note, index) => (
@@ -53,6 +65,9 @@ export default function NoteCollectionSections({
                       isActive={activeNoteId === note.id}
                       onClick={() => onSelectNote(note.id)}
                       onLongPress={() => onLongPress(note)}
+                      isSelectMode={isSelectMode}
+                      isSelected={selectedIds?.has(note.id)}
+                      onToggleSelect={() => onToggleSelectId?.(note.id)}
                     />
                   </SwipeableNoteRow>
                   {index < section.notes.length - 1 && <div className="keep-note-section-divider" />}

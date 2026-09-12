@@ -12,7 +12,7 @@ import { Pressable } from '../ui/ControlPrimitives';
 import { TIMEZONE } from '../../lib/date';
 import { Suspense, lazy } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { Sun, Calendar, FolderKanban, Clock, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Apple, Dumbbell, Flame, Eye } from 'lucide-react';
+import { Sun, Calendar, FolderKanban, Clock, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Apple, Dumbbell, Flame, Eye, Activity, Mic, HeartPulse, GraduationCap } from 'lucide-react';
 
 import { ErrorBoundary } from './ErrorBoundary';
 import { DashboardHeader } from './DashboardHeader';
@@ -147,14 +147,13 @@ export default function Dashboard({ session }: { session: Session }) {
   const showLock = !s.todayWin;
 
   const fastCaptureItems = [
-
-    { label: 'Dodaj Jedzenie', emoji: '🍎', icon: Apple, color: 'var(--color-success)', action: () => s.navigate('/dzis') },
+    { label: 'Dodaj Jedzenie', emoji: '🍎', icon: Apple, color: 'var(--color-success)', action: () => s.openFoodEntry() },
     { label: 'Zaloguj Trening', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => { s.openWorkout(); } },
     { label: 'Zaloguj Saunę', emoji: '🧖', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna') },
+    { label: 'Sygnał Dnia', emoji: '⚡', icon: Activity, color: 'var(--color-danger)', action: () => {} },
+    { label: 'Zrzut Strumienia', emoji: '🎙️', icon: Mic, color: 'var(--color-primary)', action: () => {} },
     { label: 'Zmierz Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-primary)', action: () => s.navigate('/optics') },
   ];
-
-
 
   const workspaceTools = [
     { label: 'Notatki', icon: StickyNote, action: () => s.navigate('/keep') },
@@ -163,6 +162,10 @@ export default function Dashboard({ session }: { session: Session }) {
     { label: 'Terminy', icon: Bell, action: () => s.navigate('/terminy') },
     { label: 'Pocket', icon: BookOpen, action: () => s.navigate('/links') },
     { label: 'Finanse', icon: WalletCards, action: () => s.navigate('/finanse') },
+    { label: 'Kierunek', icon: FolderKanban, action: () => s.navigate('/projekty') },
+    { label: 'Kartoteka', icon: HeartPulse, action: () => s.navigate('/badania') },
+    { label: 'Nauka', icon: GraduationCap, action: () => s.navigate('/rozwoj') },
+    { label: 'Historia', icon: Clock, action: () => s.navigate('/historia') },
   ];
 
   return (
@@ -243,7 +246,14 @@ export default function Dashboard({ session }: { session: Session }) {
           </main>
         </div>
 
-        <DashboardFastCaptureMenu show={!showLock && s.showFastCapture} onClose={() => s.setShowFastCapture(false)} items={fastCaptureItems} tools={workspaceTools} />
+        <DashboardFastCaptureMenu
+          show={!showLock && s.showFastCapture}
+          onClose={() => s.setShowFastCapture(false)}
+          items={fastCaptureItems}
+          tools={workspaceTools}
+          userId={userId}
+          onRefresh={s.refresh}
+        />
         <div className={showLock ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100'} style={{ transition: 'opacity 0.15s' }}>
           <DashboardNavBar view={s.view} navigateTo={s.navigateTo} urgentTodoCount={s.urgentTodoCount} navItems={navItems} tabOrder={TAB_ORDER} />
           <DashboardFastCaptureFAB active={s.showFastCapture} onToggle={() => s.setShowFastCapture(v => !v)} />

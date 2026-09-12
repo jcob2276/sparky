@@ -4,10 +4,11 @@
  * @usedBy MasonryGrid
  */
 import { Pressable } from '../ui/ControlPrimitives';
-import { useRef } from 'react';
-import { Archive, ListTodo, LockKeyhole, Pin, Trash2 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Archive, Check, ListTodo, LockKeyhole, Palette, Pin, Trash2 } from 'lucide-react';
 import { getColor, relativeDate, sanitizeHtml, Note, highlightHtml } from './keepUtils';
 import { getPlainText } from '../../lib/noteText';
+import NoteColorPicker from './NoteColorPicker';
 
 export default function NoteCard({
   note,
@@ -25,6 +26,9 @@ export default function NoteCard({
   onClickTag,
   onConvertToTodo,
   search = '',
+  isSelectMode = false,
+  isSelected = false,
+  onToggleSelect,
 }: {
   note: Note;
   onDelete: (id: string) => void;
@@ -41,28 +45,61 @@ export default function NoteCard({
   onClickTag?: (tag: string) => void;
   onConvertToTodo?: (note: Note) => void;
   search?: string;
+  isSelectMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [showColorPopover, setShowColorPopover] = useState(false);
   const c = getColor(note.color);
 
   return (
     <div
       ref={ref}
-      className={`keep-card ${note.is_pinned ? 'pinned' : ''} ${isDragOver ? 'drag-over' : ''}`}
+      className={`keep-card ${note.is_pinned ? 'pinned' : ''} ${isDragOver ? 'drag-over' : ''} ${
+        isSelected ? 'ring-2 ring-primary shadow-md !border-primary' : ''
+      }`}
       style={{
         backgroundColor: c.bg,
         borderColor: isDragOver ? 'var(--color-theme-hex-6366f1)' : c.border,
         opacity: 'var(--opacity-100)',
       }}
-      onClick={() => onOpen(note.id)}
-      draggable={!isEditing}
+      onClick={() => {
+        if (isSelectMode) {
+          onToggleSelect?.();
+        } else {
+          onOpen(note.id);
+        }
+      }}
+      draggable={!isEditing && !isSelectMode}
       onDragStart={() => onDragStart(note.id)}
       onDragEnter={() => onDragEnter(note.id)}
       onDragEnd={onDragEnd}
       onDragOver={onDragOver}
     >
+      {/* Select Mode Checkbox */}
+      {isSelectMode && (
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect?.();
+          }}
+          className="absolute top-2.5 left-2.5 z-10 cursor-pointer"
+        >
+          <div
+            className={`h-4 w-4 rounded-md border flex items-center justify-center transition-all ${
+              isSelected
+                ? 'bg-primary border-primary text-on-accent shadow-xs'
+                : 'border-border-custom bg-surface-solid hover:border-primary/50'
+            }`}
+          >
+            {isSelected && <Check size={11} strokeWidth={3} />}
+          </div>
+        </div>
+      )}
+
       {/* Pin badge */}
-      {note.is_pinned && (
+      {note.is_pinned && !isSelectMode && (
         <div className="keep-pin-badge">
           <Pin size={9} fill="currentColor" />
         </div>
@@ -74,11 +111,13 @@ export default function NoteCard({
       )}
 
       {/* Drag handle — shows on hover */}
-      <div className="keep-drag-handle" title="Przeciągnij aby przenieść">
-        <span />
-        <span />
-        <span />
-      </div>
+      {!isSelectMode && (
+        <div className="keep-drag-handle" title="Przeciągnij aby przenieść">
+          <span />
+          <span />
+          <span />
+        </div>
+      )}
 
       {note.title && (
         <h3
@@ -163,6 +202,33 @@ export default function NoteCard({
           >
             <Pin size={14} fill={note.is_pinned ? 'currentColor' : 'none'} />
           </Pressable>
+          <div className="relative">
+            <Pressable
+              type="button"
+              onClick={e => {
+                e.stopPropagation();
+                setShowColorPopover(!showColorPopover);
+              }}
+              className="keep-icon-btn"
+              title="Zmień kolor"
+            >
+              <Palette size={14} />
+            </Pressable>
+            {showColorPopover && (
+              <div
+                className="absolute bottom-full right-0 mb-1 z-30 rounded-xl border border-border-custom bg-background/95 p-1 shadow-xl backdrop-blur-md"
+                onClick={e => e.stopPropagation()}
+              >
+                <NoteColorPicker
+                  currentColor={note.color}
+                  onSelectColor={col => {
+                    onUpdate(note.id, { color: col });
+                    setShowColorPopover(false);
+                  }}
+                />
+              </div>
+            )}
+          </div>
           <Pressable
             type="button"
             onClick={e => { e.stopPropagation(); onUpdate(note.id, { is_archived: !note.is_archived, is_pinned: false }); }}

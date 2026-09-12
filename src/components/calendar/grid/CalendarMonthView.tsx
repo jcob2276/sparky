@@ -86,9 +86,9 @@ function MonthDayCell({
       <div className="mb-1 flex items-center justify-between">
         <div className="flex min-w-0 items-center gap-1.5">
           <span
-            className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black transition-transform ${
+            className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold tabular-nums transition-transform ${
               isToday
-                ? 'bg-primary text-on-accent shadow-md scale-105'
+                ? 'bg-primary text-on-accent shadow-xs font-bold'
                 : isCurrentMonth
                   ? 'text-text-primary'
                   : 'text-text-muted/40'
@@ -105,7 +105,7 @@ function MonthDayCell({
                 <span className="h-1.5 w-1.5 rounded-full bg-text-muted" />
               )}
               {overflowCount > 0 && categories.length >= 3 && (
-                <span className="text-3xs font-bold text-text-muted">+</span>
+                <span className="text-3xs font-semibold text-text-muted">+</span>
               )}
             </div>
           )}
@@ -128,7 +128,7 @@ function MonthDayCell({
 
       {holiday && (
         <div
-          className="mb-0.5 shrink-0 truncate rounded border border-warning/20 bg-warning/10 px-1 py-0.5 text-3xs font-black text-warning select-none"
+          className="mb-0.5 shrink-0 truncate rounded-md border border-warning/20 bg-warning/10 px-1 py-0.5 text-3xs font-semibold text-warning select-none"
           title={holiday.name}
         >
           {holiday.name}
@@ -143,10 +143,10 @@ function MonthDayCell({
               e.stopPropagation();
               onEventClick(ev);
             }}
-            className={`cursor-pointer truncate rounded px-1.5 py-0.5 text-3xs font-medium transition-transform hover:scale-[var(--scale-hover)] ${eventColor(ev)}`}
+            className={`cursor-pointer truncate rounded-md px-1.5 py-0.5 text-3xs font-medium active:scale-[0.98] transition-[transform,opacity] duration-100 ease-out ${eventColor(ev)}`}
             title={`${ev.summary} (${(ev.original_start_time || ev.start_time) ? formatTime(ev.original_start_time || ev.start_time!) : ''})`}
           >
-            {(ev.original_start_time || ev.start_time) && <span className="mr-1 font-bold">{formatTime(ev.original_start_time || ev.start_time!)}</span>}
+            {(ev.original_start_time || ev.start_time) && <span className="mr-1 font-semibold">{formatTime(ev.original_start_time || ev.start_time!)}</span>}
             {ev.summary}
           </div>
         ))}
@@ -155,7 +155,7 @@ function MonthDayCell({
           dayTodos.slice(0, maxVisible - dayEvents.length).map((todo) => (
             <div
               key={todo.id}
-              className="truncate rounded border border-border-custom/50 bg-surface-solid/80 px-1.5 py-0.5 text-3xs font-medium text-text-secondary"
+              className="truncate rounded-md border border-border-custom/40 bg-surface-solid/70 px-1.5 py-0.5 text-3xs font-medium text-text-secondary"
               title={todo.title}
             >
               ✓ {todo.title}
@@ -168,7 +168,7 @@ function MonthDayCell({
               e.stopPropagation();
               onOpenDay(dateStr);
             }}
-            className="w-full pt-0.5 text-left text-3xs font-bold text-primary hover:underline"
+            className="w-full pt-0.5 text-left text-3xs font-semibold text-primary hover:underline"
           >
             +{overflowCount} więcej…
           </Pressable>
@@ -206,21 +206,21 @@ export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background select-none">
-      <div className="calendar-period-header flex items-center justify-between border-b border-border-custom/40 bg-surface-solid/20 px-3 py-2">
+      <div className="calendar-period-header flex items-center justify-between border-b border-border-custom/40 bg-surface-solid/10 px-3 py-1.5 backdrop-blur-xs">
         <div className="flex items-center gap-1">
-          <Pressable onClick={() => changeMonth(-1)} className="min-h-11 min-w-11 rounded-full p-2 hover:bg-surface-solid" aria-label="Poprzedni miesiąc">
-            <ChevronLeft size={18} className="text-text-muted" />
+          <Pressable onClick={() => changeMonth(-1)} className="min-h-9 min-w-9 rounded-full p-2 hover:bg-surface-solid active:scale-[0.96] transition-transform duration-100 ease-out" aria-label="Poprzedni miesiąc">
+            <ChevronLeft size={16} className="text-text-muted" />
           </Pressable>
-          <p className="text-sm font-black uppercase tracking-wider text-text-primary">
+          <p className="text-xs font-semibold uppercase tracking-wider text-text-primary px-1">
             {formatRangeLabel('miesiac', selectedDay, selectedDay)}
           </p>
         </div>
-        <Pressable onClick={() => changeMonth(1)} className="min-h-11 min-w-11 rounded-full p-2 hover:bg-surface-solid" aria-label="Następny miesiąc">
-          <ChevronRight size={18} className="text-text-muted" />
+        <Pressable onClick={() => changeMonth(1)} className="min-h-9 min-w-9 rounded-full p-2 hover:bg-surface-solid active:scale-[0.96] transition-transform duration-100 ease-out" aria-label="Następny miesiąc">
+          <ChevronRight size={16} className="text-text-muted" />
         </Pressable>
       </div>
 
-      <div className="calendar-month-weekday grid grid-cols-7 border-b border-border-custom/40 bg-surface-solid/30 py-2 text-center text-xs font-black uppercase tracking-wider text-text-muted">
+      <div className="calendar-month-weekday grid grid-cols-7 border-b border-border-custom/40 bg-surface-solid/20 py-1.5 text-center text-2xs font-semibold uppercase tracking-wider text-text-muted">
         {WEEKDAY_NAMES.map((name) => (
           <div key={name}>{name}</div>
         ))}

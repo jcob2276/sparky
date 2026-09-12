@@ -33,7 +33,7 @@ export function Sidebar({
       ? collapsible === 'icon'
         ? 'w-16 px-1'
         : 'w-0 overflow-hidden px-0 py-0 border-r-0'
-      : 'w-72 px-2';
+      : 'w-72 md:w-80 px-2';
 
   const variantClass =
     variant === 'floating'
@@ -49,7 +49,7 @@ export function Sidebar({
       data-side={side}
       data-collapsible={collapsible}
       data-variant={variant}
-      className={`relative hidden h-svh shrink-0 flex-col overflow-y-auto py-3 transition-[width,padding,margin,border-color] duration-[var(--motion-medium)] ease-[var(--ease-in-out)] md:flex ${widthClass} ${variantClass} ${className}`}
+      className={`relative hidden h-svh shrink-0 flex-col overflow-y-auto overflow-x-hidden py-3 transition-[width,padding,margin,border-color] duration-[var(--motion-medium)] ease-[var(--ease-in-out)] md:flex ${widthClass} ${variantClass} ${className}`}
       style={style}
       {...props}
     >

@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 
-import DataStateNotice from '../core/DataStateNotice';
 import Skeleton from '../ui/Skeleton';
-import { createTodoSection, renameTodoSection, archiveTodoSection, setTodoStatus, deleteTodoItem, updateTodoItem } from '../../lib/todo/todo';
+import { createTodoSection, renameTodoSection, archiveTodoSection } from '../../lib/todo/todo';
 import DragGhost from './DragGhost';
 import TodoSidebar, { type TodoNavDest } from './TodoSidebar';
 import TodoScanTextModal from './TodoScanTextModal';
 import EisenhowerMatrix from './EisenhowerMatrix';
 import KanbanView from './KanbanView';
 import TodayEventsPanel from './TodayEventsPanel';
-import { useTodoData, type TodoItemRow } from './useTodoData';
+import { useTodoData } from './useTodoData';
+import type { TodoItemRow } from './useTodoData';
 
 import { TodoContext, useTodoContext } from './context/TodoContext';
 import './todo.css';
@@ -20,9 +20,8 @@ import TodoSearchBar from './TodoSearchBar';
 import TodoListView from './TodoListView';
 import WorkspaceNavigation from '../shared/WorkspaceNavigation';
 import { useTodoViewSwipe } from './hooks/useTodoViewSwipe';
-
+import { useTodoBulkActions } from './hooks/useTodoBulkActions';
 import { TodoBulkActionBar } from './TodoBulkActionBar';
-import { addDays } from '../calendar/calendarHelpers';
 
 function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?: (dest: string) => void }) {
   const todoData = useTodoContext();
@@ -34,16 +33,37 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
     draggingItem, dragPosRef,
     today,
     run,
+    isSelectMode, setIsSelectMode,
+    selectedIds, setSelectedIds,
+    selectAll, clearSelection,
   } = todoData;
 
   const [todoView, setTodoView] = useState<TodoViewMode>('lista');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [navDest, setNavDest] = useState<TodoNavDest>('overview');
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [isSelectMode, setIsSelectMode] = useState(false);
-  const [bulkBusy, setBulkBusy] = useState(false);
 
   const viewSwipe = useTodoViewSwipe(todoView, setTodoView);
+
+  const {
+    bulkBusy,
+    handleBulkComplete,
+    handleBulkDelete,
+    handleBulkSetToday,
+    handleBulkSetTomorrow,
+    handleBulkSetPriority,
+  } = useTodoBulkActions({
+    selectedIds,
+    setSelectedIds,
+    setIsSelectMode,
+    setItems: todoData.setItems,
+    today,
+  });
+
+  const {
+    activeAddSectionId, scanTextOpen, setScanTextOpen,
+    openQuickAdd,
+    renderInlineQuickCapture, renderAddTodoButton,
+  } = useTodoQuickAdd();
 
   useEffect(() => {
     const taskId = new URLSearchParams(window.location.search).get('task');
@@ -60,92 +80,34 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
     }, 50);
   }, [todoData.items, setActiveFilterSection, setExpandedId]);
 
-  const {
-    activeAddSectionId, scanTextOpen, setScanTextOpen,
-    openQuickAdd,
-    renderInlineQuickCapture, renderAddTodoButton,
-  } = useTodoQuickAdd();
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable;
+      if (isInput) return;
 
-  const handleBulkComplete = async () => {
-    if (selectedIds.size === 0) return;
-    setBulkBusy(true);
-    try {
-      const ids = Array.from(selectedIds);
-      todoData.setItems((prev) =>
-        prev.map((i) => (selectedIds.has(i.id) ? { ...i, status: 'done', completed_at: new Date().toISOString() } : i))
-      );
-      await Promise.all(ids.map((id) => setTodoStatus({ id }, 'done')));
-      setSelectedIds(new Set());
-      setIsSelectMode(false);
-    } finally {
-      setBulkBusy(false);
-    }
-  };
-
-  const handleBulkDelete = async () => {
-    if (selectedIds.size === 0) return;
-    setBulkBusy(true);
-    try {
-      const ids = Array.from(selectedIds);
-      todoData.setItems((prev) => prev.filter((i) => !selectedIds.has(i.id)));
-      await Promise.all(ids.map((id) => deleteTodoItem(id)));
-      setSelectedIds(new Set());
-      setIsSelectMode(false);
-    } finally {
-      setBulkBusy(false);
-    }
-  };
-
-  const handleBulkSetToday = async () => {
-    if (selectedIds.size === 0) return;
-    setBulkBusy(true);
-    try {
-      const ids = Array.from(selectedIds);
-      const patch = { due_date: today, ai_bucket: 'today' };
-      todoData.setItems((prev) =>
-        prev.map((i) => (selectedIds.has(i.id) ? { ...i, ...patch } : i))
-      );
-      await Promise.all(ids.map((id) => updateTodoItem(id, patch)));
-      setSelectedIds(new Set());
-      setIsSelectMode(false);
-    } finally {
-      setBulkBusy(false);
-    }
-  };
-
-  const handleBulkSetTomorrow = async () => {
-    if (selectedIds.size === 0) return;
-    setBulkBusy(true);
-    try {
-      const ids = Array.from(selectedIds);
-      const tomorrow = addDays(today, 1);
-      const patch = { due_date: tomorrow, ai_bucket: null };
-      todoData.setItems((prev) =>
-        prev.map((i) => (selectedIds.has(i.id) ? { ...i, ...patch } : i))
-      );
-      await Promise.all(ids.map((id) => updateTodoItem(id, patch)));
-      setSelectedIds(new Set());
-      setIsSelectMode(false);
-    } finally {
-      setBulkBusy(false);
-    }
-  };
-
-  const handleBulkSetPriority = async (priority: 'urgent' | 'high' | 'normal' | 'low') => {
-    if (selectedIds.size === 0) return;
-    setBulkBusy(true);
-    try {
-      const ids = Array.from(selectedIds);
-      todoData.setItems((prev) =>
-        prev.map((i) => (selectedIds.has(i.id) ? { ...i, priority } : i))
-      );
-      await Promise.all(ids.map((id) => updateTodoItem(id, { priority })));
-      setSelectedIds(new Set());
-      setIsSelectMode(false);
-    } finally {
-      setBulkBusy(false);
-    }
-  };
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        todoData.setIsExpanded(true);
+        quickCaptureRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => quickCaptureRef.current?.querySelector('input')?.focus(), 50);
+      } else if (e.key === 'Escape') {
+        if (isSelectMode) {
+          clearSelection();
+        } else {
+          setExpandedId(null);
+        }
+      } else if (e.key === '1') {
+        setTodoView('lista');
+      } else if (e.key === '2') {
+        setTodoView('kanban');
+      } else if (e.key === '3') {
+        setTodoView('eisenhower');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [clearSelection, isSelectMode, quickCaptureRef, setExpandedId, todoData]);
 
   if (loading) {
     return (
@@ -239,21 +201,17 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
             onSelectNavDest={(d) => { setNavDest(d); setActiveFilterSection(null); }}
             renderInlineQuickCapture={renderInlineQuickCapture}
             renderAddTodoButton={renderAddTodoButton}
-            isSelectMode={isSelectMode}
-            selectedIds={selectedIds}
-            onToggleId={(id) => {
-              const next = new Set(selectedIds);
-              if (next.has(id)) next.delete(id);
-              else next.add(id);
-              setSelectedIds(next);
-            }}
           />
         )}
       </div>
 
       <TodoBulkActionBar
         selectedCount={selectedIds.size}
-        onClearSelection={() => { setSelectedIds(new Set()); setIsSelectMode(false); }}
+        onClearSelection={clearSelection}
+        onSelectAll={() => {
+          const allOpen = todoData.items.filter((i) => i.status !== 'done').map((i) => i.id);
+          selectAll(allOpen);
+        }}
         onBulkComplete={handleBulkComplete}
         onBulkDelete={handleBulkDelete}
         onBulkSetToday={handleBulkSetToday}

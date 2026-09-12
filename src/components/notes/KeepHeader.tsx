@@ -3,7 +3,7 @@
  * @role Pasek góry: wyszukiwanie + przełącznik widoku siatka/podział.
  * @usedBy Keep
  */
-import { Grid3X3, List, Download, LockKeyhole, Search, SquarePen, X } from 'lucide-react';
+import { Grid3X3, List, Download, LockKeyhole, Search, SquarePen, X, CheckCheck } from 'lucide-react';
 import { WorkspaceHeader } from '../shared/WorkspaceHeader';
 import { ControlInput, Pressable } from '../ui/ControlPrimitives';
 import NoteViewOptions from './NoteViewOptions';
@@ -22,11 +22,13 @@ interface KeepHeaderProps {
   onLockNow?: () => void;
   preferences: NoteCollectionPreferences;
   onPreferencesChange: (value: NoteCollectionPreferences) => void;
+  isSelectMode?: boolean;
+  onToggleSelectMode?: () => void;
 }
 
 export default function KeepHeader({
   onBack, viewMode, setViewMode, search, setSearch, onExport, onNewNote, exporting, showLockNow, onLockNow,
-  preferences, onPreferencesChange,
+  preferences, onPreferencesChange, isSelectMode = false, onToggleSelectMode,
 }: KeepHeaderProps) {
   return (
     <WorkspaceHeader
@@ -51,6 +53,19 @@ export default function KeepHeader({
       )}
       actions={<>
         <NoteViewOptions value={preferences} onChange={onPreferencesChange} />
+        {onToggleSelectMode && (
+          <Pressable
+            variant={isSelectMode ? 'primary' : 'ghost'}
+            size="sm"
+            onClick={onToggleSelectMode}
+            title={isSelectMode ? 'Wyjdź z trybu zaznaczania (Esc)' : 'Zaznacz wiele notatek'}
+            className={isSelectMode ? '!bg-primary/15 !text-primary border border-primary/30' : ''}
+            aria-label={isSelectMode ? 'Zakończ zaznaczanie' : 'Zaznacz notatki'}
+          >
+            <CheckCheck size={15} />
+            <span className="hidden lg:inline">{isSelectMode ? 'Gotowe' : 'Zaznacz'}</span>
+          </Pressable>
+        )}
         <Pressable variant="primary" size="sm" onClick={onNewNote} aria-label="Nowa notatka">
           <SquarePen size={15} />
           <span className="hidden lg:inline">Nowa notatka</span>

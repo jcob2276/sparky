@@ -4,8 +4,8 @@ import type {
   HealthspanContributorKey,
   SynthesisDomain,
 } from '@vanguard/domain';
-import type { PreventionAction, PreventionActionStatus } from './health/medicalRecordsApi';
-import type { PreventionSuggestion } from './health/medicalRecords';
+import type { PreventionAction } from './health/medicalRecordsApi';
+import { filterVisibleSuggestions, type PreventionSuggestion } from './health/medicalRecords';
 import { getTodayWarsaw } from './date';
 import type { HealthspanLeverRow } from './healthspanCheckinsApi';
 
@@ -58,11 +58,15 @@ const freshness = (timestamp: string) => {
 const dueUrgency = (today: string, dueDate: string | null) => {
   if (!dueDate) return 35;
   const days = daysUntil(today, dueDate);
-  if (days <= 0) return 100;
-  if (days <= 2) return 90;
-  if (days <= 7) return 70;
-  if (days <= 30) return 50;
-  return 25;
+  if (days === 0) return 100;
+  if (days > 0 && days <= 2) return 90;
+  if (days > 2 && days <= 7) return 70;
+  if (days > 7 && days <= 30) return 50;
+  if (days > 30) return 25;
+  // Overdue (days < 0):
+  if (days >= -3) return 85;
+  if (days >= -7) return 60;
+  return 30; // Stale overdue (> 7 days): lower urgency, should not override today's priorities
 };
 
 const recommendationDomain = (metric: string): SynthesisDomain => {
@@ -136,7 +140,12 @@ export function projectHealthspanLevers(rows: HealthspanLeverRow[]): DecisionCan
 
 export function projectTodoItems(rows: TodoProjectionRow[], today: string): DecisionCandidate[] {
   return rows
-    .filter((row) => row.status !== 'completed' && row.status !== 'archived')
+    .filter((row) => (
+      row.status !== 'completed'
+      && row.status !== 'done'
+      && row.status !== 'dropped'
+      && row.status !== 'archived'
+    ))
     .map((row) => {
       const dueDate = row.deadline_date ?? row.due_date;
       return {
@@ -163,7 +172,10 @@ export function projectLifeObligations(
   today: string,
 ): DecisionCandidate[] {
   return rows
-    .filter((row) => daysUntil(today, row.anchor_date) <= 30)
+    .filter((row) => {
+      const days = daysUntil(today, row.anchor_date);
+      return days >= 0 && days <= 30;
+    })
     .map((row) => ({
       id: `obligation:${row.id}`,
       source: 'obligation',
@@ -228,28 +240,21 @@ export function projectMedicalSuggestions(
   suggestions: PreventionSuggestion[],
   actions: Array<Pick<PreventionAction, 'suggestionKey' | 'status' | 'snoozedUntil'>>,
 ): DecisionCandidate[] {
-  const actionByKey = new Map(actions.map((action) => [action.suggestionKey, action]));
   const now = getTodayWarsaw();
-  return suggestions.flatMap((suggestion) => {
-    const action = actionByKey.get(suggestion.id);
-    const hiddenStatuses: PreventionActionStatus[] = ['done', 'dismissed'];
-    if (action && hiddenStatuses.includes(action.status)) return [];
-    if (action?.status === 'snoozed' && action.snoozedUntil && action.snoozedUntil > now) return [];
-    return [{
-      id: `medical:${suggestion.id}`,
-      source: 'medical_prevention',
-      sourceId: suggestion.id,
-      domain: 'medical',
-      title: suggestion.title,
-      detail: suggestion.reason,
-      impact: suggestion.confidence === 'high' ? 82 : 65,
-      urgency: dueUrgency(now, suggestion.dueOn),
-      confidence: suggestion.confidence === 'high' ? 90 : 65,
-      effort: 20,
-      freshness: 90,
-      dueDate: suggestion.dueOn,
-      status: 'candidate',
-      conflictsWith: [],
-    }];
-  });
+  return filterVisibleSuggestions(suggestions, actions, now).map((suggestion) => ({
+    id: `medical:${suggestion.id}`,
+    source: 'medical_prevention',
+    sourceId: suggestion.id,
+    domain: 'medical',
+    title: suggestion.title,
+    detail: suggestion.reason,
+    impact: suggestion.confidence === 'high' ? 82 : 65,
+    urgency: dueUrgency(now, suggestion.dueOn),
+    confidence: suggestion.confidence === 'high' ? 90 : 65,
+    effort: 20,
+    freshness: 90,
+    dueDate: suggestion.dueOn,
+    status: 'candidate',
+    conflictsWith: [],
+  }));
 }

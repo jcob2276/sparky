@@ -54,6 +54,9 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
     filtered, pinned, others, sections,
     handleExportChecklists,
     sharedGridProps,
+    bulk,
+    quickFilter, setQuickFilter,
+    quickFilterCounts,
   } = useKeepView({
     userId: userId!, notes, setNotes, busy, setBusy,
     handleCreate, handleUpdate, handleDelete, handleTogglePin, handleReorder,
@@ -188,6 +191,8 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
           setViewMode={changeViewMode}
           preferences={collectionPreferences}
           onPreferencesChange={setCollectionPreferences}
+          isSelectMode={bulk.isSelectMode}
+          onToggleSelectMode={() => bulk.setIsSelectMode(!bulk.isSelectMode)}
         /></div>
         {sidebarTab === 'trash' ? (
           <TrashNotesView
@@ -222,6 +227,10 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
             collectionView={viewMode}
             gridProps={sharedGridProps}
             sections={sections}
+            bulk={bulk}
+            quickFilter={quickFilter}
+            setQuickFilter={setQuickFilter}
+            quickFilterCounts={quickFilterCounts}
           />
         )}
       </div>

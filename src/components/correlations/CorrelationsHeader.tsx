@@ -1,20 +1,25 @@
-import Button from '../ui/Button';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, RefreshCw } from 'lucide-react';
+import { Pressable } from '../ui/ControlPrimitives';
 
 interface CorrelationsHeaderProps {
   loading: boolean;
   onRefresh: () => void;
+  daysOfData?: number;
 }
 
-export default function CorrelationsHeader({ loading, onRefresh }: CorrelationsHeaderProps) {
+export default function CorrelationsHeader({ loading, onRefresh, daysOfData }: CorrelationsHeaderProps) {
+  const subtitle = daysOfData && daysOfData > 0
+    ? `Twoje wzorce · ${daysOfData} dni logowania · obserwacje, nie diagnozy`
+    : 'Skan odkrywczy · obserwacje, nie diagnozy';
+
   return (
     <header className="sticky top-0 z-[var(--z-sticky)] w-full border-b border-border-custom bg-background/95 backdrop-blur-[var(--blur-md)]">
       <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 py-4 flex items-center gap-3">
         <Link
           to="/"
           aria-label="Wróć do widoku głównego"
-          className="rounded-xl border border-border-custom p-2.5 text-text-muted hover:text-text-primary shrink-0"
+          className="rounded-xl border border-border-custom p-2.5 text-text-muted hover:text-text-primary shrink-0 transition-colors"
         >
           <ArrowLeft size={18} />
         </Link>
@@ -22,17 +27,19 @@ export default function CorrelationsHeader({ loading, onRefresh }: CorrelationsH
           <h1 className="font-display text-base font-black tracking-tight text-text-primary">
             Korelacje
           </h1>
-          <p className="text-xs text-text-muted truncate">
-            Skan odkrywczy · 90 dni · obserwacje, nie diagnozy
+          <p className="text-xs text-text-muted truncate mt-0.5">
+            {subtitle}
           </p>
         </div>
-        <Button
+        <Pressable
+          type="button"
           onClick={onRefresh}
-          variant="ghost"
-          icon={<RefreshCw size={16} className={loading ? 'animate-spin' : ''} />}
-          className="rounded-xl p-2.5 text-primary"
-          title="Odśwież"
-        />
+          disabled={loading}
+          className="rounded-xl p-2.5 text-primary border border-transparent hover:border-primary/20 hover:bg-primary/5 transition-all disabled:opacity-50"
+          title="Odśwież analizę"
+        >
+          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+        </Pressable>
       </div>
     </header>
   );

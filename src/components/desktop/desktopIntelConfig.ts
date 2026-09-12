@@ -69,7 +69,13 @@ const LOW_VALUE_INTEL_TEXT = [
 ];
 
 export function cleanIntelText(value: string | null | undefined, max = 260) {
-  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!value) return '';
+  const str = typeof value === 'object' ? JSON.stringify(value) : String(value);
+  const text = str
+    .replace(/events_summary:\s*\[object Object\]/gi, '')
+    .replace(/\[object Object\]/gi, '')
+    .replace(/\s+/g, ' ')
+    .trim();
   return text.length > max ? `${text.slice(0, max).trim()}...` : text;
 }
 

@@ -9,6 +9,7 @@ import {
   DEFAULT_NOTE_COLLECTION_PREFERENCES,
   sortAndGroupNotes,
   type NoteCollectionPreferences,
+  filterNotesByTags,
 } from '../../../lib/noteOrganization';
 import {
   fetchNoteViewPreferences,
@@ -16,10 +17,11 @@ import {
   saveNoteViewPreferences,
   type NoteViewPreferenceMap,
 } from '../../../lib/noteViewPreferences';
-import type { NoteFolder } from '../../../lib/noteFoldersApi';
-import { getFolderDescendantIds } from '../../../lib/noteFoldersApi';
+import { getFolderDescendantIds, type NoteFolder } from '../../../lib/noteFoldersApi';
 import { matchesSmartFolder, type NoteSmartFolder } from '../../../lib/noteSmartFolders';
-import { filterNotesByTags } from '../../../lib/noteOrganization';
+import { useKeepBulkActions } from './useKeepBulkActions';
+import { useKeepKeyboardShortcuts } from './useKeepKeyboardShortcuts';
+import type { KeepQuickFilter } from '../KeepFilterPills';
 
 type KeepViewMode = 'list' | 'gallery';
 
@@ -63,17 +65,11 @@ export function useKeepView({
   const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
   const [activeSmartFolderId, setActiveSmartFolderId] = useState<string | null>(null);
   const [sidebarTab, setSidebarTab] = useState<'notes' | 'archive' | 'trash'>('notes');
+  const [quickFilter, setQuickFilter] = useState<KeepQuickFilter>('all');
   
   const [viewMode, setViewMode] = useState<KeepViewMode>(() => {
-    try {
-      const saved = localStorage.getItem(keepViewStorageKey());
-      if (saved === 'list' || saved === 'gallery') return saved;
-      if (saved === 'grid') return 'gallery';
-      if (saved === 'split') return 'list';
-    } catch {
-      // storage unavailable
-    }
-    return 'list';
+    const saved = (() => { try { return localStorage.getItem(keepViewStorageKey()); } catch { return null; } })();
+    return (saved === 'list' || saved === 'gallery') ? saved : saved === 'grid' ? 'gallery' : 'list';
   });
   const [organizationPreferences, setOrganizationPreferences] = useState<Omit<NoteCollectionPreferences, 'view'>>({
     sortField: DEFAULT_NOTE_COLLECTION_PREFERENCES.sortField,
@@ -136,6 +132,18 @@ export function useKeepView({
     setSearchParams(next, { replace: true });
   }, [editingId, handleDiscardEmpty, searchParams, setSearchParams]);
 
+  const bulk = useKeepBulkActions({ onUpdate: handleUpdate, onDelete: handleDelete });
+
+  useKeepKeyboardShortcuts({
+    onNewNote: () => { void handleNewNote().then(id => { if (id) setEditingId(id); }); },
+    onClearSelection: bulk.clearSelection,
+    isSelectMode: bulk.isSelectMode,
+    setIsSelectMode: bulk.setIsSelectMode,
+    onCloseEditing: () => handleCloseCard(),
+    editingId,
+    onToggleViewMode: () => setViewModeWithPersist(v => (v === 'list' ? 'gallery' : 'list')),
+  });
+
   const handleOpenNote = useCallback(async (id: string) => {
     const note = notes.find(item => item.id === id);
     if (!note) return;
@@ -173,18 +181,28 @@ export function useKeepView({
     const matchSearch = matchesNoteSearch(n, search);
     const matchTag = !activeTag || n.tags.includes(activeTag);
     const matchFolder = !activeFolderId || n.folder_id === activeFolderId;
-    const matchSmartFolder = !activeSmartFolder
-      || matchesSmartFolder(n, activeSmartFolder.rule, smartDescendants);
-    return matchTab && matchSearch && matchTag && matchFolder && matchSmartFolder;
+    const matchSmart = !activeSmartFolder || matchesSmartFolder(n, activeSmartFolder.rule, smartDescendants);
+    if (!matchTab || !matchSearch || !matchTag || !matchFolder || !matchSmart) return false;
+    if (quickFilter === 'pinned') return n.is_pinned;
+    if (quickFilter === 'todos') return n.content?.includes('keep-todo-checkbox');
+    if (quickFilter === 'attachments') return (n.attachment_names && n.attachment_names.length > 0) || !!n.drawing_preview_path;
+    if (quickFilter === 'locked') return n.is_locked;
+    return true;
   });
+
+  const baseNotes = sidebarTab === 'notes' ? notes.filter(n => !n.is_archived) : notes.filter(n => !!n.is_archived);
+  const quickFilterCounts = useMemo(() => ({
+    all: baseNotes.length,
+    pinned: baseNotes.filter(n => n.is_pinned).length,
+    todos: baseNotes.filter(n => n.content?.includes('keep-todo-checkbox')).length,
+    attachments: baseNotes.filter(n => (n.attachment_names && n.attachment_names.length > 0) || !!n.drawing_preview_path).length,
+    locked: baseNotes.filter(n => n.is_locked).length,
+  }), [baseNotes]);
 
   const pinned = sidebarTab === 'notes' ? filtered.filter(n => n.is_pinned) : [];
   const others = sidebarTab === 'notes' ? filtered.filter(n => !n.is_pinned) : filtered;
   const visibleOthers = others.slice(0, visibleCount);
-  const fallbackPreferences: NoteCollectionPreferences = {
-    view: viewMode,
-    ...organizationPreferences,
-  };
+  const fallbackPreferences: NoteCollectionPreferences = { view: viewMode, ...organizationPreferences };
   const preferenceKey = getCollectionPreferenceKey(activeFolderId);
   const collectionPreferences = preferenceMap[preferenceKey] ?? fallbackPreferences;
   const sections = useMemo(() => sortAndGroupNotes(
@@ -194,16 +212,10 @@ export function useKeepView({
 
   const setCollectionPreferences = useCallback((next: NoteCollectionPreferences) => {
     setViewModeWithPersist(next.view);
-    setOrganizationPreferences({
-      sortField: next.sortField,
-      direction: next.direction,
-      groupByDate: next.groupByDate,
-    });
+    setOrganizationPreferences({ sortField: next.sortField, direction: next.direction, groupByDate: next.groupByDate });
     setPreferenceMap(previous => {
       const updated = { ...previous, [preferenceKey]: next };
-      void saveNoteViewPreferences(userId, updated).catch(() => {
-        notify('Nie udało się zapisać ustawień widoku', 'error');
-      });
+      void saveNoteViewPreferences(userId, updated).catch(() => notify('Nie udało się zapisać ustawień widoku', 'error'));
       return updated;
     });
   }, [preferenceKey, setViewModeWithPersist, userId]);
@@ -275,5 +287,8 @@ export function useKeepView({
     filtered, pinned, others, visibleOthers, sections,
     handleExportChecklists,
     sharedGridProps,
+    bulk,
+    quickFilter, setQuickFilter,
+    quickFilterCounts,
   };
 }

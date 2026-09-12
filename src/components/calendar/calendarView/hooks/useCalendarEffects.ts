@@ -12,7 +12,6 @@ interface UseCalendarEffectsOptions {
   setSelectedEvent: (v: CalRow | null) => void;
   showBudgetConfig: boolean;
   setShowBudgetConfig: (v: boolean) => void;
-  setCalView: (v: 'dzien' | '3dni' | 'tydzien' | 'miesiac') => void;
   toastMessage: string | null;
   setToastMessage: (v: string | null) => void;
 }
@@ -26,7 +25,6 @@ export function useCalendarEffects({
   setSelectedEvent,
   showBudgetConfig,
   setShowBudgetConfig,
-  setCalView,
   toastMessage,
   setToastMessage,
 }: UseCalendarEffectsOptions) {
@@ -37,32 +35,16 @@ export function useCalendarEffects({
     }
   }, [toastMessage, setToastMessage]);
 
+  // Wyłącznie Escape do zamykania otwartych warstw. Skróty widoków (d/1/3/w/7/m/t/c)
+  // należą do pojedynczego handlera w CalendarView — tu były duplikowane (konflikt t/w).
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (quickCreate || editingTodo || selectedEvent || showBudgetConfig) {
-          e.preventDefault();
-          closeQuickCreate();
-          setEditingTodo(null);
-          setSelectedEvent(null);
-          setShowBudgetConfig(false);
-        }
-      } else if (
-        e.key.toLowerCase() === 't' &&
-        !(
-          e.target instanceof HTMLInputElement ||
-          e.target instanceof HTMLTextAreaElement
-        )
-      ) {
-        setCalView('dzien');
-      } else if (
-        e.key.toLowerCase() === 'w' &&
-        !(
-          e.target instanceof HTMLInputElement ||
-          e.target instanceof HTMLTextAreaElement
-        )
-      ) {
-        setCalView('tydzien');
+      if (e.key === 'Escape' && (quickCreate || editingTodo || selectedEvent || showBudgetConfig)) {
+        e.preventDefault();
+        closeQuickCreate();
+        setEditingTodo(null);
+        setSelectedEvent(null);
+        setShowBudgetConfig(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -76,6 +58,5 @@ export function useCalendarEffects({
     setEditingTodo,
     setSelectedEvent,
     setShowBudgetConfig,
-    setCalView,
   ]);
 }

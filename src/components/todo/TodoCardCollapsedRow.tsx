@@ -1,6 +1,6 @@
 /* eslint-disable max-lines-per-function */
 import React from 'react';
-import { Check, Repeat2, Link2, Pencil, GripVertical, Clock, Tag, Calendar, MessageSquare, MoreHorizontal } from 'lucide-react';
+import { Check, Repeat2, Link2, Pencil, GripVertical, Clock, Tag, MessageSquare, MoreHorizontal } from 'lucide-react';
 import { Pressable, ControlInput } from '../ui/ControlPrimitives';
 import { GOAL_ICON, RECURRENCE_LABELS } from './todoUtils';
 import type { TodoItemRow } from '../../lib/todo/todo';
@@ -36,6 +36,9 @@ interface TodoCardCollapsedRowProps {
   };
   onShowContextMenu: (item: TodoItemRow, clientX: number, clientY: number) => void;
   onToggleExpand: (id: string) => void;
+  isSelectMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 export default function TodoCardCollapsedRow({
@@ -61,23 +64,47 @@ export default function TodoCardCollapsedRow({
   swipe,
   onShowContextMenu,
   onToggleExpand,
+  isSelectMode,
+  isSelected,
+  onToggleSelect,
 }: TodoCardCollapsedRowProps) {
   return (
     <div className="flex items-start gap-3">
-      {/* Drag grip */}
-      <div
-        data-no-view-swipe
-        onTouchStart={swipe.onGripTouchStart}
-        onTouchEnd={swipe.onGripTouchEnd}
-        onTouchMove={swipe.onGripTouchMove}
-        onMouseDown={swipe.onGripMouseDown}
-        className="mt-0.5 shrink-0 touch-none cursor-grab text-text-muted/40 opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] transition-opacity duration-[var(--motion-medium)] select-none"
-      >
-        <GripVertical size={13} />
-      </div>
+      {/* Drag grip (hidden in select mode) */}
+      {!isSelectMode && (
+        <div
+          data-no-view-swipe
+          onTouchStart={swipe.onGripTouchStart}
+          onTouchEnd={swipe.onGripTouchEnd}
+          onTouchMove={swipe.onGripTouchMove}
+          onMouseDown={swipe.onGripMouseDown}
+          className="mt-0.5 shrink-0 touch-none cursor-grab text-text-muted/40 opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] transition-opacity duration-[var(--motion-medium)] select-none"
+        >
+          <GripVertical size={13} />
+        </div>
+      )}
 
-      {/* Emoji icon OR priority circle checkbox */}
-      {icon ? (
+      {/* Select Mode Checkbox OR Emoji icon OR Priority circle checkbox */}
+      {isSelectMode ? (
+        <Pressable
+          onClick={e => {
+            e.stopPropagation();
+            onToggleSelect?.();
+          }}
+          aria-label={isSelected ? 'Odznacz zadanie' : 'Zaznacz zadanie'}
+          className="mt-0.5 shrink-0 btn-press cursor-pointer"
+        >
+          <div
+            className={`h-4 w-4 rounded-md border flex items-center justify-center transition-all duration-[var(--motion-fast)] ${
+              isSelected
+                ? 'bg-primary border-primary text-on-accent shadow-xs'
+                : 'border-border-custom bg-surface-solid hover:border-primary/50'
+            }`}
+          >
+            {isSelected && <Check size={11} strokeWidth={3} />}
+          </div>
+        </Pressable>
+      ) : icon ? (
         <Pressable
           onClick={e => {
             e.stopPropagation();
@@ -125,7 +152,8 @@ export default function TodoCardCollapsedRow({
       {/* Content */}
       <div
         className="min-w-0 flex-1 cursor-pointer"
-        onMouseDown={swipe.handleContentMouseDown}
+        onClick={isSelectMode ? onToggleSelect : undefined}
+        onMouseDown={!isSelectMode ? swipe.handleContentMouseDown : undefined}
       >
         {isEditing ? (
           <ControlInput
@@ -194,86 +222,52 @@ export default function TodoCardCollapsedRow({
                 : `${item.duration_minutes}m`}
             </span>
           )}
-          {(item.tags || []).map((tag: string) => (
-            <span
-              key={tag}
-              className={`inline-flex items-center gap-1 text-2xs font-medium px-1 py-0.5 rounded bg-on-accent/5 border border-on-accent/5 transition-all opacity-[var(--opacity-70)] ${
-                tag.toLowerCase() === 'finanse' || tag.toLowerCase() === 'zdrowie'
-                  ? 'text-success bg-success/10'
-                  : tag.toLowerCase() === 'projekt'
-                  ? 'text-primary bg-primary/10'
-                  : tag.toLowerCase() === 'egzamin'
-                  ? 'text-primary bg-primary/10'
-                  : 'text-text-muted bg-on-accent/5'
-              }`}
-            >
-              <Tag size={9} className="shrink-0" />
-              <span>{tag}</span>
-            </span>
-          ))}
+          {(item.tags || []).map((tag: string) => {
+            const isGreen = ['finanse', 'zdrowie'].includes(tag.toLowerCase());
+            const isBlue = ['projekt', 'egzamin'].includes(tag.toLowerCase());
+            const tagStyle = isGreen ? 'text-success bg-success/10' : isBlue ? 'text-primary bg-primary/10' : 'text-text-muted bg-on-accent/5';
+            return (
+              <span key={tag} className={`inline-flex items-center gap-1 text-2xs font-medium px-1 py-0.5 rounded border border-on-accent/5 transition-all opacity-[var(--opacity-70)] ${tagStyle}`}>
+                <Tag size={9} className="shrink-0" />
+                <span>{tag}</span>
+              </span>
+            );
+          })}
           {isLinkedToPlan && (
             <span className="flex items-center gap-0.5 text-2xs text-primary/50">
               <Link2 size={7} /> Plan
             </span>
           )}
-          {sectionName &&
-            (() => {
-              const GoalIcon = sectionGoalKey ? GOAL_ICON[sectionGoalKey] : null;
-              const chipBg = sectionGoalKey === 'cialo'
-                ? 'bg-success/8 border-success/15 text-success dark:text-success'
-                : sectionGoalKey === 'duch'
-                ? 'bg-primary/8 border-primary/15 text-primary dark:text-primary'
-                : sectionGoalKey === 'konto'
-                ? 'bg-warning/8 border-warning/15 text-warning dark:text-warning'
-                : 'bg-surface-solid border-border-custom/50 text-text-secondary';
-              return (
-                <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-2xs font-semibold tracking-wide transition-all ${chipBg}`}>
-                  {GoalIcon && <GoalIcon size={8} />}
-                  <span className="uppercase">{sectionName}</span>
-                  {dreamTitle && (
-                    <span className="opacity-[var(--opacity-60)] truncate max-w-[80px]">· {dreamTitle}</span>
-                  )}
-                </span>
-              );
-            })()}
+          {sectionName && (() => {
+            const GoalIcon = sectionGoalKey ? GOAL_ICON[sectionGoalKey] : null;
+            const chipBg = sectionGoalKey === 'cialo'
+              ? 'bg-success/8 border-success/15 text-success'
+              : sectionGoalKey === 'duch'
+              ? 'bg-primary/8 border-primary/15 text-primary'
+              : sectionGoalKey === 'konto'
+              ? 'bg-warning/8 border-warning/15 text-warning'
+              : 'bg-surface-solid border-border-custom/50 text-text-secondary';
+            return (
+              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-2xs font-semibold tracking-wide transition-all ${chipBg}`}>
+                {GoalIcon && <GoalIcon size={8} />}
+                <span className="uppercase">{sectionName}</span>
+                {dreamTitle && <span className="opacity-[var(--opacity-60)] truncate max-w-[80px]">· {dreamTitle}</span>}
+              </span>
+            );
+          })()}
         </div>
       </div>
 
       {/* Hover Quick Actions */}
       {!isDone && (
         <div className="shrink-0 flex items-center gap-1 opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] transition-opacity duration-[var(--motion-medium)] ml-2">
-          <Pressable
-            onClick={e => {
-              e.stopPropagation();
-              onEditStart(item.title);
-            }}
-            className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer"
-            title="Edytuj zadanie (Ctrl E)"
-            aria-label="Edytuj zadanie"
-          >
+          <Pressable onClick={e => { e.stopPropagation(); onEditStart(item.title); }} className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer" title="Edytuj zadanie (Ctrl E)" aria-label="Edytuj zadanie">
             <Pencil size={13} />
           </Pressable>
-          <Pressable
-            onClick={e => {
-              e.stopPropagation();
-              onToggleExpand(item.id);
-            }}
-            className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer"
-            title="Szczegóły i komentarze"
-            aria-label="Szczegóły i komentarze"
-          >
+          <Pressable onClick={e => { e.stopPropagation(); onToggleExpand(item.id); }} className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer" title="Szczegóły i komentarze" aria-label="Szczegóły i komentarze">
             <MessageSquare size={13} />
           </Pressable>
-          <Pressable
-            onClick={e => {
-              e.stopPropagation();
-              const rect = e.currentTarget.getBoundingClientRect();
-              onShowContextMenu(item, rect.left, rect.bottom + 5);
-            }}
-            className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer"
-            title="Więcej opcji"
-            aria-label="Więcej opcji"
-          >
+          <Pressable onClick={e => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); onShowContextMenu(item, rect.left, rect.bottom + 5); }} className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer" title="Więcej opcji" aria-label="Więcej opcji">
             <MoreHorizontal size={13} />
           </Pressable>
         </div>

@@ -22,7 +22,6 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
     setViewingEvent,
     openEditFromPreview,
     selectedEvent,
-    setSelectedEvent,
     showDeleteConfirm,
     setShowDeleteConfirm,
     deleting,
@@ -39,9 +38,7 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
         onEdit={() => viewingEvent && openEditFromPreview(viewingEvent)}
         onDelete={() => {
           if (viewingEvent) {
-            setSelectedEvent(viewingEvent);
-            setViewingEvent(null);
-            setShowDeleteConfirm(true);
+            void calData.deleteEventWithUndo(viewingEvent);
           }
         }}
       />

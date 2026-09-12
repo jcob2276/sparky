@@ -16,6 +16,50 @@ interface Props {
   handleEditSave: () => void;
 }
 
+function EditWhenCard({
+  editDate, setEditDate, editStart, setEditStart, editEnd, setEditEnd, editAllDay, setEditAllDay,
+}: {
+  editDate: string;
+  setEditDate: (v: string) => void;
+  editStart: string;
+  setEditStart: (v: string) => void;
+  editEnd: string;
+  setEditEnd: (v: string) => void;
+  editAllDay: boolean;
+  setEditAllDay: (v: boolean) => void;
+}) {
+  return (
+    <div className="rounded-xl border border-border-custom/30 bg-surface-solid/30 p-3 space-y-2.5">
+      <div className="flex items-center justify-between">
+        <span className="flex items-center gap-1.5 text-xs font-bold text-text-muted"><Clock size={14} /> Kiedy</span>
+        <label className="flex items-center gap-2 text-xs font-bold text-text-muted cursor-pointer select-none">
+          <ControlInput
+            type="checkbox"
+            checked={editAllDay}
+            onChange={(e) => setEditAllDay(e.target.checked)}
+            className="rounded border-border-custom text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
+          />
+          Całodniowe
+        </label>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-3">
+        <label className="space-y-1 text-xs font-bold text-text-secondary">
+          <span className="flex items-center gap-1 text-text-muted"><CalendarDays size={12} /> Data</span>
+          <ControlInput type="date" value={editDate} onChange={(event) => setEditDate(event.target.value)} className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold text-text-primary" />
+        </label>
+        <label className="space-y-1 text-xs font-bold text-text-secondary">
+          <span className="text-text-muted">Od</span>
+          <ControlInput type="time" disabled={editAllDay} value={editStart} onChange={(event) => setEditStart(event.target.value)} className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold text-text-primary disabled:opacity-[var(--opacity-dimmed)]" />
+        </label>
+        <label className="space-y-1 text-xs font-bold text-text-secondary">
+          <span className="text-text-muted">Do</span>
+          <ControlInput type="time" disabled={editAllDay} value={editEnd} onChange={(event) => setEditEnd(event.target.value)} className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold text-text-primary disabled:opacity-[var(--opacity-dimmed)]" />
+        </label>
+      </div>
+    </div>
+  );
+}
+
 export function EditEventModal({ calData, handleEditSave }: Props) {
   const {
     selectedEvent, setSelectedEvent, editTitle, setEditTitle, editCategory, setEditCategory,
@@ -61,34 +105,16 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
           />
 
           {/* Date & Time Picker Card */}
-          <div className="rounded-xl border border-border-custom/30 bg-surface-solid/30 p-3 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-xs font-bold text-text-muted"><Clock size={14} /> Kiedy</span>
-              <label className="flex items-center gap-2 text-xs font-bold text-text-muted cursor-pointer select-none">
-                <ControlInput
-                  type="checkbox"
-                  checked={editAllDay}
-                  onChange={(e) => setEditAllDay(e.target.checked)}
-                  className="rounded border-border-custom text-primary focus:ring-primary h-3.5 w-3.5 cursor-pointer"
-                />
-                Całodniowe
-              </label>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-3">
-              <label className="space-y-1 text-xs font-bold text-text-secondary">
-                <span className="flex items-center gap-1 text-text-muted"><CalendarDays size={12} /> Data</span>
-                <ControlInput type="date" value={editDate} onChange={(event) => setEditDate(event.target.value)} className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold text-text-primary" />
-              </label>
-              <label className="space-y-1 text-xs font-bold text-text-secondary">
-                <span className="text-text-muted">Od</span>
-                <ControlInput type="time" disabled={editAllDay} value={editStart} onChange={(event) => setEditStart(event.target.value)} className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold text-text-primary disabled:opacity-[var(--opacity-dimmed)]" />
-              </label>
-              <label className="space-y-1 text-xs font-bold text-text-secondary">
-                <span className="text-text-muted">Do</span>
-                <ControlInput type="time" disabled={editAllDay} value={editEnd} onChange={(event) => setEditEnd(event.target.value)} className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold text-text-primary disabled:opacity-[var(--opacity-dimmed)]" />
-              </label>
-            </div>
-          </div>
+          <EditWhenCard
+            editDate={editDate}
+            setEditDate={setEditDate}
+            editStart={editStart}
+            setEditStart={setEditStart}
+            editEnd={editEnd}
+            setEditEnd={setEditEnd}
+            editAllDay={editAllDay}
+            setEditAllDay={setEditAllDay}
+          />
 
           {/* Location Input */}
           <div className="relative flex items-center">

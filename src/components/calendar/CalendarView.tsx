@@ -7,7 +7,7 @@
  * @composes CalendarGrid (renderowanie siatki, patrz grid/)
  * @usedBy Dashboard, WeeklyBalanceHexagon
  */
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { Session } from '@supabase/supabase-js';
 
 import { useCalendarData } from './hooks/useCalendarData';
@@ -17,7 +17,7 @@ import { CalendarGrid } from './CalendarGrid';
 import { CalendarEventModal } from './CalendarEventModal';
 import { CalendarContextMenu, type CalendarContextMenuState } from './CalendarContextMenu';
 
-import { todayStr, addDays, weekMon, type CalRow } from './calendarHelpers';
+import { todayStr, type CalRow } from './calendarHelpers';
 
 import { CalendarContext, CalendarContextType } from './context/CalendarContext';
 import CalendarSidebar from './components/CalendarSidebar';
@@ -28,8 +28,10 @@ import CalendarShell from './components/CalendarShell';
 
 import { calculateWeeklyTotals } from './calendarView/calendarViewHelpers';
 import { useCalendarActions } from './calendarView/hooks/useCalendarActions';
+import { useContextMenuActions } from './calendarView/hooks/useContextMenuActions';
 import { useCalendarIntegrations } from './calendarView/hooks/useCalendarIntegrations';
 import { useCalendarEffects } from './calendarView/hooks/useCalendarEffects';
+import { useCalendarKeyboardShortcuts } from './calendarView/hooks/useCalendarKeyboardShortcuts';
 import './calendar.css';
 
 interface Props {
@@ -64,50 +66,17 @@ export default function CalendarView({
     });
   }, []);
 
-  const handleContextMenuChangeCategory = useCallback(async (event: CalRow, category: string) => {
-    try {
-      await calData.updateEventMutation.mutateAsync({
-        userId: userId || '',
-        accessToken: accessToken || '',
-        event: {
-          id: event.event_id || event.id,
-          summary: event.summary || 'Bez tytułu',
-          start: event.start_time || new Date().toISOString(),
-          end: event.end_time || event.start_time || new Date().toISOString(),
-          category,
-          description: event.description || undefined,
-        },
-      });
-      calData.setToastMessage(`Zmieniono sferę na: ${category} 🎨`);
-    } catch (err) {
-      console.error('Failed to change category:', err);
-      calData.setToastMessage('Nie udało się zmienić kategorii.');
-    }
-  }, [calData, userId, accessToken]);
-
-  const handleContextMenuMoveToDate = useCallback(async (event: CalRow, dateStr: string) => {
-    try {
-      const timePart = event.start_time ? event.start_time.split('T')[1] || '09:00:00+02:00' : '09:00:00+02:00';
-      const newStart = `${dateStr}T${timePart}`;
-      const newEnd = event.end_time ? `${dateStr}T${event.end_time.split('T')[1] || '10:00:00+02:00'}` : `${dateStr}T10:00:00+02:00`;
-      await calData.updateEventMutation.mutateAsync({
-        userId: userId || '',
-        accessToken: accessToken || '',
-        event: {
-          id: event.event_id || event.id,
-          summary: event.summary || 'Bez tytułu',
-          start: newStart,
-          end: newEnd,
-          category: event.category || undefined,
-          description: event.description || undefined,
-        },
-      });
-      calData.setToastMessage(`Przełożono wydarzenie na ${dateStr} 📅`);
-    } catch (err) {
-      console.error('Failed to move event date:', err);
-      calData.setToastMessage('Nie udało się przełożyć wydarzenia.');
-    }
-  }, [calData, userId, accessToken]);
+  const {
+    handleChangeCategory: handleContextMenuChangeCategory,
+    handleMoveToDate: handleContextMenuMoveToDate,
+    handleDuplicate: handleContextMenuDuplicate,
+  } = useContextMenuActions({
+    userId,
+    accessToken,
+    createEventMutation: calData.createEventMutation,
+    updateEventMutation: calData.updateEventMutation,
+    setToastMessage: calData.setToastMessage,
+  });
 
   const calTodos = useCalendarTodos({
     userId: userId || '',
@@ -152,92 +121,14 @@ export default function CalendarView({
     setSelectedEvent: calData.setSelectedEvent,
     showBudgetConfig: calData.showBudgetConfig,
     setShowBudgetConfig: calData.setShowBudgetConfig,
-    setCalView: calData.setCalView,
     toastMessage: calData.toastMessage,
     setToastMessage: calData.setToastMessage,
   });
 
-  // Global keyboard navigation listener for shortcuts & arrows
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'INPUT' ||
-        target.tagName === 'TEXTAREA' ||
-        target.tagName === 'SELECT' ||
-        target.isContentEditable
-      ) {
-        return;
-      }
+  // Global keyboard shortcuts (views, arrows, quick create, backspace/delete, edit)
+  useCalendarKeyboardShortcuts({ calData, today });
 
-      const key = e.key.toLowerCase();
-
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        if (calData.calView === 'dzien') {
-          const prev = addDays(calData.selectedDay, -1);
-          calData.setSelectedDay(prev);
-          calData.setWeekStart(weekMon(prev));
-        } else if (calData.calView === '3dni') {
-          const prev = addDays(calData.selectedDay, -3);
-          calData.setSelectedDay(prev);
-          calData.setWeekStart(weekMon(prev));
-        } else if (calData.calView === 'tydzien') {
-          const prev = addDays(calData.weekStart, -7);
-          calData.setSelectedDay(prev);
-          calData.setWeekStart(prev);
-        } else if (calData.calView === 'miesiac') {
-          const [y, m] = calData.selectedDay.split('-').map(Number);
-          const d = new Date(y, m - 2, 1);
-          const newY = d.getFullYear();
-          const newM = String(d.getMonth() + 1).padStart(2, '0');
-          calData.setSelectedDay(`${newY}-${newM}-01`);
-        }
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        if (calData.calView === 'dzien') {
-          const next = addDays(calData.selectedDay, 1);
-          calData.setSelectedDay(next);
-          calData.setWeekStart(weekMon(next));
-        } else if (calData.calView === '3dni') {
-          const next = addDays(calData.selectedDay, 3);
-          calData.setSelectedDay(next);
-          calData.setWeekStart(weekMon(next));
-        } else if (calData.calView === 'tydzien') {
-          const next = addDays(calData.weekStart, 7);
-          calData.setSelectedDay(next);
-          calData.setWeekStart(next);
-        } else if (calData.calView === 'miesiac') {
-          const [y, m] = calData.selectedDay.split('-').map(Number);
-          const d = new Date(y, m, 1);
-          const newY = d.getFullYear();
-          const newM = String(d.getMonth() + 1).padStart(2, '0');
-          calData.setSelectedDay(`${newY}-${newM}-01`);
-        }
-      } else if (key === 'd' || key === '1') {
-        calData.setCalView('dzien');
-      } else if (key === '3') {
-        calData.setCalView('3dni');
-      } else if (key === 'w' || key === '7') {
-        calData.setCalView('tydzien');
-      } else if (key === 'm') {
-        calData.setCalView('miesiac');
-      } else if (key === 't') {
-        calData.setSelectedDay(today);
-        calData.setWeekStart(weekMon(today));
-      } else if (key === 'c') {
-        calData.setQuickCreate({ date: calData.selectedDay, startMin: 540 });
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [calData.calView, calData.selectedDay, calData.weekStart, today]);
-
-  const contextValue: CalendarContextType = {
+  const contextValue: CalendarContextType = useMemo(() => ({
     userId,
     accessToken,
     today,
@@ -258,7 +149,15 @@ export default function CalendarView({
     saveTodoTitle: actions.saveTodoTitle,
     saveTodoChanges: actions.saveTodoChanges,
     deleteTodo: actions.handleDeleteTodo,
-  };
+  }), [
+    userId, accessToken, today, calData, calTodos, timeBudgets,
+    categoryWeeklyTotals, categoryPrevWeeklyTotals, isSyncing,
+    integrations.isSyncingOura, integrations.isSyncingActivities,
+    integrations.syncOura, integrations.syncActivities,
+    onSyncCalendar,
+    actions.handleQuickSave, actions.handleEditSave, actions.closeEditTodoModal,
+    actions.saveTodoTitle, actions.saveTodoChanges, actions.handleDeleteTodo,
+  ]);
 
   return (
     <CalendarContext.Provider value={contextValue}>
@@ -295,11 +194,11 @@ export default function CalendarView({
           onClose={() => setContextMenu(null)}
           onEdit={(event) => calData.openEditFromPreview(event)}
           onDelete={(event) => {
-            calData.setSelectedEvent(event);
-            calData.setShowDeleteConfirm(true);
+            void calData.deleteEventWithUndo(event);
           }}
           onChangeCategory={handleContextMenuChangeCategory}
           onMoveToDate={handleContextMenuMoveToDate}
+          onDuplicate={handleContextMenuDuplicate}
           today={today}
         />
         <CalendarEventModal

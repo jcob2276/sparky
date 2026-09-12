@@ -1,59 +1,34 @@
 import { useState } from 'react';
 import { Card } from '../../ui/Card';
 import Button from '../../ui/Button';
-import { Calendar, Bell, Plus, EyeOff } from 'lucide-react';
-import { notify } from '../../../lib/notify';
-import type { RetestSuggestion } from '../../../lib/health/medicalRetestSuggestions';
+import { Calendar, Bell, EyeOff } from 'lucide-react';
+import {
+  categorizeRetestSuggestions,
+  type RetestSuggestion,
+} from '../../../lib/health/medicalRetestSuggestions';
 import { ControlInput } from '../../ui/ControlPrimitives';
 
 interface MedicalSuggestionsProps {
   suggestions: RetestSuggestion[];
   loading: boolean;
+  busyId?: string | null;
+  onHide: (suggestion: RetestSuggestion) => void;
+  onSnooze: (suggestion: RetestSuggestion) => void;
+  onPlanInCalendar: (suggestion: RetestSuggestion, note: string) => void;
 }
 
-export default function MedicalSuggestions({ suggestions, loading }: MedicalSuggestionsProps) {
-  const [hiddenIds, setHiddenIds] = useState<string[]>([]);
-  const [doctorQuestions, setDoctorQuestions] = useState<Record<string, string>>({});
+export default function MedicalSuggestions({
+  suggestions,
+  loading,
+  busyId,
+  onHide,
+  onSnooze,
+  onPlanInCalendar,
+}: MedicalSuggestionsProps) {
+  // Draft pytania do lekarza — trafia do opisu wydarzenia w kalendarzu przy planowaniu.
+  const [doctorNotes, setDoctorNotes] = useState<Record<string, string>>({});
 
-  const handleAction = (id: string, actionType: string) => {
-    if (actionType === 'hide') {
-      setHiddenIds(prev => [...prev, id]);
-      notify('Sugestia została ukryta.', 'info');
-    } else if (actionType === 'panel') {
-      notify('Dodano marker do planowanego kolejnego panelu.', 'success');
-    } else if (actionType === 'reminder') {
-      notify('Ustawiono przypomnienie o badaniu.', 'success');
-    } else if (actionType === 'calendar') {
-      notify('Dodano termin badania do kalendarza.', 'success');
-    }
-  };
-
-  const handleSaveQuestion = (id: string, text: string) => {
-    setDoctorQuestions(prev => ({ ...prev, [id]: text }));
-    notify('Pytanie do lekarza zostało zapisane.', 'success');
-  };
-
-  // Categorize suggestions
-  const categorized = suggestions
-    .filter(s => !hiddenIds.includes(s.id))
-    .reduce((acc, curr) => {
-      const text = (curr.title + ' ' + curr.reason).toLowerCase();
-      if (text.includes('lekarz') || text.includes('specjalist') || curr.priority === 'high') {
-        acc.toDiscuss.push(curr);
-      } else if (text.includes('odchyle') || text.includes('potwierdz') || text.includes('spade')) {
-        acc.toVerify.push(curr);
-      } else if (text.includes('brak') || text.includes('niekomplet')) {
-        acc.missing.push(curr);
-      } else {
-        acc.toRefresh.push(curr);
-      }
-      return acc;
-    }, {
-      toRefresh: [] as RetestSuggestion[],
-      toVerify: [] as RetestSuggestion[],
-      missing: [] as RetestSuggestion[],
-      toDiscuss: [] as RetestSuggestion[]
-    });
+  const categorized = categorizeRetestSuggestions(suggestions);
 
   const renderCategoryList = (title: string, items: RetestSuggestion[], badgeColor: string) => {
     if (items.length === 0) return null;
@@ -63,7 +38,7 @@ export default function MedicalSuggestions({ suggestions, loading }: MedicalSugg
           {title}
         </span>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {items.map(item => (
+          {items.map((item) => (
             <Card
               key={item.id}
               variant="outline"
@@ -75,32 +50,46 @@ export default function MedicalSuggestions({ suggestions, loading }: MedicalSugg
                 <p className="text-3xs text-text-secondary mt-1.5 leading-relaxed">{item.reason}</p>
               </div>
 
-              {/* Physician questions field if discuss category */}
               {title === 'Do omówienia ze specjalistą' && (
                 <div className="space-y-1.5">
                   <label className="text-2xs font-black uppercase text-text-muted">Notatka do omówienia / Pytanie</label>
                   <ControlInput
                     type="text"
-                    placeholder="Wpisz o co zapytać lekarza..."
-                    defaultValue={doctorQuestions[item.id] || ''}
-                    onBlur={e => handleSaveQuestion(item.id, e.target.value)}
+                    placeholder="Wpisz o co zapytać lekarza (dopisze się do terminu)..."
+                    value={doctorNotes[item.id] ?? ''}
+                    onChange={(e) => setDoctorNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
                     className="w-full bg-background/50 border border-border-custom rounded-lg px-2 py-1 text-3xs focus:outline-none focus:border-primary text-text-primary"
                   />
                 </div>
               )}
 
-              {/* Action Buttons */}
               <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border-custom/40">
-                <Button variant="ghost" size="sm" onClick={() => handleAction(item.id, 'panel')} title="Dodaj do kolejnego panelu">
-                  <Plus size={10} /> Panel
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={busyId === item.id}
+                  onClick={() => onSnooze(item)}
+                  title="Ukryj na 30 dni"
+                >
+                  <Bell size={10} /> Przypomnij później
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => handleAction(item.id, 'reminder')} title="Ustaw przypomnienie">
-                  <Bell size={10} /> Przypomnij
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={busyId === item.id}
+                  onClick={() => onPlanInCalendar(item, doctorNotes[item.id] ?? '')}
+                  title="Dodaj termin badania do kalendarza (za 14 dni, 8:00)"
+                >
+                  <Calendar size={10} /> Zaplanuj badanie
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => handleAction(item.id, 'calendar')} title="Dodaj do kalendarza">
-                  <Calendar size={10} /> Kalendarz
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => handleAction(item.id, 'hide')} className="text-text-muted" title="Ukryj sugestię">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={busyId === item.id}
+                  onClick={() => onHide(item)}
+                  className="text-text-muted"
+                  title="Ukryj na stałe"
+                >
                   <EyeOff size={10} /> Ukryj
                 </Button>
               </div>

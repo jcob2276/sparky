@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Car, FileText, Calendar } from 'lucide-react';
+import { User, Car, FileText, Calendar, Home, CreditCard, HeartPulse } from 'lucide-react';
 import WorkspaceSidebar from '../shared/WorkspaceSidebar';
 import WorkspaceNavigation from '../shared/WorkspaceNavigation';
 import SidebarSection from '../shared/SidebarSection';
@@ -26,6 +26,9 @@ export default function TerminySidebar({
   const peopleCount = rows.filter((r) => r.item.kind === 'people').length;
   const vehicleCount = rows.filter((r) => r.item.kind === 'vehicle').length;
   const documentCount = rows.filter((r) => r.item.kind === 'document').length;
+  const homeCount = rows.filter((r) => r.item.kind === 'home').length;
+  const financeCount = rows.filter((r) => r.item.kind === 'finance').length;
+  const healthCount = rows.filter((r) => r.item.kind === 'health_admin').length;
 
   return (
     <WorkspaceSidebar collapsed={collapsed} onCollapse={onToggleCollapse} className="select-none">
@@ -66,6 +69,30 @@ export default function TerminySidebar({
               count: documentCount,
               active: tab === 'document',
               onClick: () => setTab('document'),
+            },
+            {
+              id: 'home',
+              label: 'Dom i Mieszkanie',
+              icon: <Home size={15} />,
+              count: homeCount,
+              active: tab === 'home',
+              onClick: () => setTab('home'),
+            },
+            {
+              id: 'finance',
+              label: 'Finanse i Podatki',
+              icon: <CreditCard size={15} />,
+              count: financeCount,
+              active: tab === 'finance',
+              onClick: () => setTab('finance'),
+            },
+            {
+              id: 'health_admin',
+              label: 'Zdrowie i Badania',
+              icon: <HeartPulse size={15} />,
+              count: healthCount,
+              active: tab === 'health_admin',
+              onClick: () => setTab('health_admin'),
             },
           ]}
         />

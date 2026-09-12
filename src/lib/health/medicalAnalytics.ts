@@ -83,6 +83,47 @@ export function freshnessLabel(f: LabFreshness): string {
   }
 }
 
+function canonicalCategory(rawCategory: string | null | undefined): string {
+  if (!rawCategory) return 'Inne';
+  const norm = rawCategory.trim().toLowerCase();
+
+  if (norm.includes('żelaz') || norm.includes('zelaz') || norm === 'iron_status' || norm === 'iron') {
+    return 'Gospodarka żelazem';
+  }
+  if (norm.includes('morfolog') || norm.includes('hematolog') || norm === 'hematology') {
+    return 'Morfologia krwi';
+  }
+  if (norm.includes('lipid') || norm === 'lipids') {
+    return 'Lipidogram';
+  }
+  if (norm.includes('glukoz') || norm.includes('cukier') || norm.includes('metabol') || norm === 'metabolic') {
+    return 'Metabolizm i glukoza';
+  }
+  if (norm.includes('tarczyc') || norm === 'thyroid') {
+    return 'Tarczyca';
+  }
+  if (norm.includes('hormon') || norm === 'hormones') {
+    return 'Hormony';
+  }
+  if (norm.includes('witamin') || norm === 'vitamins') {
+    return 'Witaminy';
+  }
+  if (norm.includes('miner') || norm.includes('elektrolit') || norm === 'minerals') {
+    return 'Elektrolity i minerały';
+  }
+  if (norm.includes('wątrob') || norm.includes('watrob') || norm === 'liver') {
+    return 'Próby wątrobowe';
+  }
+  if (norm.includes('nerk') || norm === 'renal' || norm === 'kidney') {
+    return 'Funkcja nerek';
+  }
+  if (norm.includes('mocz') || norm === 'urine') {
+    return 'Badanie moczu';
+  }
+
+  return rawCategory.charAt(0).toUpperCase() + rawCategory.slice(1);
+}
+
 export function formatMedicalDate(dateStr: string): string {
   try {
     return format(new Date(`${dateStr.slice(0, 10)}T12:00:00Z`), 'd MMM yyyy', { locale: pl });
@@ -94,9 +135,11 @@ export function formatMedicalDate(dateStr: string): string {
 export function buildMarkerSeries(rows: MedicalLabRow[]): MarkerSeries[] {
   const byKey = new Map<string, MedicalLabRow[]>();
   for (const row of rows) {
-    const arr = byKey.get(row.marker_key);
-    if (arr) arr.push(row);
-    else byKey.set(row.marker_key, [row]);
+    const canonical = canonicalCategory(row.category);
+    const normalizedRow = { ...row, category: canonical };
+    const arr = byKey.get(normalizedRow.marker_key);
+    if (arr) arr.push(normalizedRow);
+    else byKey.set(normalizedRow.marker_key, [normalizedRow]);
   }
 
   const series: MarkerSeries[] = [];
@@ -106,7 +149,7 @@ export function buildMarkerSeries(rows: MedicalLabRow[]): MarkerSeries[] {
     series.push({
       marker_key,
       marker_name: latest.marker_name,
-      category: latest.category,
+      category: canonicalCategory(latest.category),
       unit: latest.unit,
       ref_low: latest.ref_low,
       ref_high: latest.ref_high,
@@ -118,7 +161,7 @@ export function buildMarkerSeries(rows: MedicalLabRow[]): MarkerSeries[] {
   }
 
   return series.sort((a, b) => {
-    const cat = (a.category ?? 'zzz').localeCompare(b.category ?? 'zzz');
+    const cat = (a.category ?? 'zzz').localeCompare(b.category ?? 'zzz', 'pl');
     if (cat !== 0) return cat;
     return a.marker_name.localeCompare(b.marker_name, 'pl');
   });
@@ -127,14 +170,37 @@ export function buildMarkerSeries(rows: MedicalLabRow[]): MarkerSeries[] {
 export function groupRowsByDate(rows: MedicalLabRow[]): Map<string, MedicalLabRow[]> {
   const map = new Map<string, MedicalLabRow[]>();
   for (const row of rows) {
-    const arr = map.get(row.result_date);
-    if (arr) arr.push(row);
-    else map.set(row.result_date, [row]);
+    const canonical = canonicalCategory(row.category);
+    const normalizedRow = { ...row, category: canonical };
+    const arr = map.get(normalizedRow.result_date);
+    if (arr) arr.push(normalizedRow);
+    else map.set(normalizedRow.result_date, [normalizedRow]);
   }
   for (const [, arr] of map) {
     arr.sort((a, b) => a.marker_name.localeCompare(b.marker_name, 'pl'));
   }
   return new Map([...map.entries()].sort((a, b) => b[0].localeCompare(a[0])));
+}
+
+/**
+ * Klucz markeru z nazwy (ASCII, snake_case). Dzięki lookupowi po istniejących
+ * markerach ręczny wpis „Ferrytyna" spina się z serią `ferritin` i trendy działają.
+ */
+export function deriveMarkerKey(name: string, existingByName?: Map<string, string>): string {
+  const hit = existingByName?.get(name.trim().toLowerCase());
+  if (hit) return hit;
+  const ascii = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const slug = ascii
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return slug || 'unknown';
+}
+
+export function computeLabFlag(value: number, refLow: number | null, refHigh: number | null): 'L' | 'H' | 'N' {
+  if (refLow != null && value < refLow) return 'L';
+  if (refHigh != null && value > refHigh) return 'H';
+  return 'N';
 }
 
 export const PRIORITY_CHART_MARKERS = [

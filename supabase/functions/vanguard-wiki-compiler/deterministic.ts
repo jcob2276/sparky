@@ -56,7 +56,12 @@ export function trimText(text: string | null | undefined, max = 380): string {
 export function compactSources(rows: any[], table: string, fields: string[]) {
   return (rows || []).map((row: any) => {
     const bits = fields
-      .map((field) => row[field] ? `${field}: ${trimText(row[field], 180)}` : "")
+      .map((field) => {
+        const val = row[field];
+        if (!val) return "";
+        const formatted = typeof val === "object" ? JSON.stringify(val) : String(val);
+        return `${field}: ${trimText(formatted, 180)}`;
+      })
       .filter(Boolean)
       .join(" | ");
     return {

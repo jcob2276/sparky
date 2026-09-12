@@ -35,3 +35,12 @@ export function formatLongDateWarsaw(date: Date | string | number): string {
     year: 'numeric',
   });
 }
+
+export function formatWeekdayWarsaw(date: Date | string): string {
+  const d = typeof date === 'string' && date.length === 10 ? new Date(`${date}T12:00:00Z`) : new Date(date);
+  return d.toLocaleDateString('pl-PL', {
+    timeZone: TIMEZONE,
+    weekday: 'long',
+  });
+}
+

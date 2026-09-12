@@ -25,7 +25,14 @@ import {
   type StarterTemplate,
 } from './terminyDerived';
 
-const FORM_KINDS: LifeObligationKind[] = ['people', 'vehicle', 'document'];
+const FORM_KINDS: LifeObligationKind[] = [
+  'people',
+  'vehicle',
+  'document',
+  'home',
+  'finance',
+  'health_admin',
+];
 
 interface Props {
   open: boolean;

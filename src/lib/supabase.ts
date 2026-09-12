@@ -5,7 +5,38 @@ import type { EdgeFunctionResponses } from './edgeTypes';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-export const supabase = createClient<Database>(supabaseUrl || 'https://placeholder.supabase.co', supabaseAnonKey || 'placeholder');
+const resilientFetch: typeof fetch = async (input, init) => {
+  try {
+    return await fetch(input, init);
+  } catch (err) {
+    const urlStr = typeof input === 'string' ? input : input instanceof URL ? input.toString() : (input as Request)?.url ?? '';
+    // Gracefully handle unhandled network fetch failures on auth token refresh (offline, wake-from-sleep, adblockers)
+    if (urlStr.includes('/auth/v1/token') && (err instanceof TypeError || (typeof navigator !== 'undefined' && !navigator.onLine))) {
+      return new Response(
+        JSON.stringify({ error: 'network_unavailable', message: 'Network request failed or device is offline' }),
+        { status: 503, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+    throw err;
+  }
+};
+
+export const supabase = createClient<Database>(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder',
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      // Custom lock prevents navigator.locks deadlock on Chrome during Vite HMR / reload
+      lock: async (_name, _acquireTimeout, fn) => await fn(),
+    },
+    global: {
+      fetch: resilientFetch,
+    },
+  }
+);
 
 /**
  * Invoke a Supabase Edge Function with type-safe responses.

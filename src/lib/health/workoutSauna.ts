@@ -37,8 +37,7 @@ export function sessionDateKey(date: string | null | undefined): string {
   if (!date) return ''
   return date.slice(0, 10)
 }
-
-function isSaunaSession(session: {
+function isSaunaSession(session: {
   workout_day?: string | null
   exercise_logs?: Array<{ exercise_name?: string | null; muscle_tags?: string[] | null; reps?: number | null }> | null
 }): boolean {
@@ -61,6 +60,13 @@ function sumSaunaMinutes(session: {
     .reduce((sum, l) => sum + (Number(l.reps) || 0), 0)
 }
 
+export interface StravaSaunaCandidate {
+  start_date?: string | null
+  name?: string | null
+  sport_type?: string | null
+  elapsed_time?: number | null
+}
+
 export function getSaunaStats(
   sessions: Array<{
     date: string
@@ -68,12 +74,39 @@ export function getSaunaStats(
     exercise_logs?: Array<{ exercise_name?: string | null; muscle_tags?: string[] | null; reps?: number | null }> | null
   }>,
   sinceDate: string,
+  stravaActivities?: StravaSaunaCandidate[] | null,
 ) {
-  const recent = sessions.filter(
+  const manualSaunas = sessions.filter(
     (s) => sessionDateKey(s.date) >= sinceDate && isSaunaSession(s),
   )
-  const sessionsCount = recent.length
-  const totalMinutes = recent.reduce((sum, s) => sum + sumSaunaMinutes(s), 0)
+
+  const saunaDays = new Set<string>()
+  let totalMinutes = 0
+
+  for (const s of manualSaunas) {
+    const dKey = sessionDateKey(s.date)
+    if (dKey) saunaDays.add(dKey)
+    totalMinutes += sumSaunaMinutes(s)
+  }
+
+  // Treat Garmin/Intervals Kardio activities as Sauna (1 day with N sessions = 1 sauna)
+  if (stravaActivities && stravaActivities.length > 0) {
+    const garminSaunas = stravaActivities.filter((a) => {
+      const dKey = sessionDateKey(a.start_date)
+      if (!dKey || dKey < sinceDate) return false
+      const n = (a.name || '').toLowerCase()
+      return n.includes('kardio') || n.includes('cardio') || n.includes('sauna')
+    })
+
+    for (const a of garminSaunas) {
+      const dKey = sessionDateKey(a.start_date)
+      if (dKey) saunaDays.add(dKey)
+      const mins = Math.round((a.elapsed_time || 0) / 60)
+      totalMinutes += mins
+    }
+  }
+
+  const sessionsCount = saunaDays.size
   return { sessionsCount, totalMinutes }
 }
 

@@ -191,19 +191,19 @@ export function eventColor(ev: CalRow) {
   }
 
   const categoryMap: Record<string, string> = {
-    brak: 'bg-slate-600 dark:bg-slate-700 text-white border border-slate-500/50 font-black shadow-xs',
-    none: 'bg-slate-600 dark:bg-slate-700 text-white border border-slate-500/50 font-black shadow-xs',
-    praca: 'bg-blue-600 dark:bg-blue-700 text-white border border-blue-500/50 font-black shadow-xs',
-    work: 'bg-blue-600 dark:bg-blue-700 text-white border border-blue-500/50 font-black shadow-xs',
-    cialo_trening: 'bg-emerald-600 dark:bg-emerald-700 text-white border border-emerald-500/50 font-black shadow-xs',
-    health: 'bg-emerald-600 dark:bg-emerald-700 text-white border border-emerald-500/50 font-black shadow-xs',
-    sport: 'bg-emerald-600 dark:bg-emerald-700 text-white border border-emerald-500/50 font-black shadow-xs',
-    duch_refleksja: 'bg-sky-600 dark:bg-sky-700 text-white border border-sky-500/50 font-black shadow-xs',
-    study: 'bg-sky-600 dark:bg-sky-700 text-white border border-sky-500/50 font-black shadow-xs',
-    finanse: 'bg-amber-600 dark:bg-amber-700 text-white border border-amber-500/50 font-black shadow-xs',
-    relacje_rodzina: 'bg-purple-600 dark:bg-purple-700 text-white border border-purple-500/50 font-black shadow-xs',
-    personal: 'bg-purple-600 dark:bg-purple-700 text-white border border-purple-500/50 font-black shadow-xs',
-    odpoczynek_regeneracja: 'bg-rose-600 dark:bg-rose-700 text-white border border-rose-500/50 font-black shadow-xs',
+    brak: 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-950 dark:text-indigo-100 border border-indigo-200/90 dark:border-indigo-800/70 border-l-[4px] border-l-indigo-600 dark:border-l-indigo-500 shadow-2xs hover:bg-indigo-200/80 dark:hover:bg-indigo-900/80',
+    none: 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-950 dark:text-indigo-100 border border-indigo-200/90 dark:border-indigo-800/70 border-l-[4px] border-l-indigo-600 dark:border-l-indigo-500 shadow-2xs hover:bg-indigo-200/80 dark:hover:bg-indigo-900/80',
+    praca: 'bg-blue-100 dark:bg-blue-950/80 text-blue-950 dark:text-blue-100 border border-blue-200/90 dark:border-blue-800/70 border-l-[4px] border-l-blue-600 dark:border-l-blue-500 shadow-2xs hover:bg-blue-200/80 dark:hover:bg-blue-900/80',
+    work: 'bg-blue-100 dark:bg-blue-950/80 text-blue-950 dark:text-blue-100 border border-blue-200/90 dark:border-blue-800/70 border-l-[4px] border-l-blue-600 dark:border-l-blue-500 shadow-2xs hover:bg-blue-200/80 dark:hover:bg-blue-900/80',
+    cialo_trening: 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-950 dark:text-emerald-100 border border-emerald-200/90 dark:border-emerald-800/70 border-l-[4px] border-l-emerald-600 dark:border-l-emerald-500 shadow-2xs hover:bg-emerald-200/80 dark:hover:bg-emerald-900/80',
+    health: 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-950 dark:text-emerald-100 border border-emerald-200/90 dark:border-emerald-800/70 border-l-[4px] border-l-emerald-600 dark:border-l-emerald-500 shadow-2xs hover:bg-emerald-200/80 dark:hover:bg-emerald-900/80',
+    sport: 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-950 dark:text-emerald-100 border border-emerald-200/90 dark:border-emerald-800/70 border-l-[4px] border-l-emerald-600 dark:border-l-emerald-500 shadow-2xs hover:bg-emerald-200/80 dark:hover:bg-emerald-900/80',
+    duch_refleksja: 'bg-cyan-100 dark:bg-cyan-950/80 text-cyan-950 dark:text-cyan-100 border border-cyan-200/90 dark:border-cyan-800/70 border-l-[4px] border-l-cyan-600 dark:border-l-cyan-500 shadow-2xs hover:bg-cyan-200/80 dark:hover:bg-cyan-900/80',
+    study: 'bg-cyan-100 dark:bg-cyan-950/80 text-cyan-950 dark:text-cyan-100 border border-cyan-200/90 dark:border-cyan-800/70 border-l-[4px] border-l-cyan-600 dark:border-l-cyan-500 shadow-2xs hover:bg-cyan-200/80 dark:hover:bg-cyan-900/80',
+    finanse: 'bg-amber-100 dark:bg-amber-950/80 text-amber-950 dark:text-amber-100 border border-amber-200/90 dark:border-amber-800/70 border-l-[4px] border-l-amber-500 dark:border-l-amber-400 shadow-2xs hover:bg-amber-200/80 dark:hover:bg-amber-900/80',
+    relacje_rodzina: 'bg-purple-100 dark:bg-purple-950/80 text-purple-950 dark:text-purple-100 border border-purple-200/90 dark:border-purple-800/70 border-l-[4px] border-l-purple-600 dark:border-l-purple-500 shadow-2xs hover:bg-purple-200/80 dark:hover:bg-purple-900/80',
+    personal: 'bg-purple-100 dark:bg-purple-950/80 text-purple-950 dark:text-purple-100 border border-purple-200/90 dark:border-purple-800/70 border-l-[4px] border-l-purple-600 dark:border-l-purple-500 shadow-2xs hover:bg-purple-200/80 dark:hover:bg-purple-900/80',
+    odpoczynek_regeneracja: 'bg-rose-100 dark:bg-rose-950/80 text-rose-950 dark:text-rose-100 border border-rose-200/90 dark:border-rose-800/70 border-l-[4px] border-l-rose-600 dark:border-l-rose-500 shadow-2xs hover:bg-rose-200/80 dark:hover:bg-rose-900/80',
   };
 
   // 1. Explicit database category
@@ -213,10 +213,22 @@ export function eventColor(ev: CalRow) {
   }
 
   // 2. Keyword-based fallbacks for uncategorized events
-  if (summaryLower.includes('work block') || summaryLower.includes('kodowan') || summaryLower.includes('dev') || summaryLower.includes('praca')) {
+  if (
+    summaryLower.includes('work block') ||
+    summaryLower.includes('kodowan') ||
+    summaryLower.includes('dev') ||
+    summaryLower.includes('praca') ||
+    summaryLower.includes(' and jakub') ||
+    summaryLower.includes(' i jakub') ||
+    summaryLower.includes('call') ||
+    summaryLower.includes('meeting') ||
+    summaryLower.includes('sync') ||
+    summaryLower.includes('konsultacj') ||
+    summaryLower.startsWith('ns ')
+  ) {
     return categoryMap['praca'];
   }
-  if (summaryLower.includes('sen') || summaryLower.includes('sleep') || summaryLower.includes('sauna')) {
+  if (summaryLower.includes('sen') || summaryLower.includes('sleep') || summaryLower.includes('sauna') || summaryLower.includes('regeneracj')) {
     return categoryMap['odpoczynek_regeneracja'];
   }
   if (summaryLower.includes('bieg') || summaryLower.includes('trening') || summaryLower.includes('siłownia') || summaryLower.includes('run') || summaryLower.includes('gym') || summaryLower.includes('workout') || summaryLower.includes('tenis') || summaryLower.includes('logopeda')) {
@@ -225,7 +237,7 @@ export function eventColor(ev: CalRow) {
   if (summaryLower.includes('medyt') || summaryLower.includes('reflek') || summaryLower.includes('cich') || summaryLower.includes('silent') || summaryLower.includes('mindful')) {
     return categoryMap['duch_refleksja'];
   }
-  if (summaryLower.includes('budżet') || summaryLower.includes('finans') || summaryLower.includes('money') || summaryLower.includes('invest') || summaryLower.includes('giełd')) {
+  if (summaryLower.includes('budżet') || summaryLower.includes('finans') || summaryLower.includes('money') || summaryLower.includes('invest') || summaryLower.includes('giełd') || summaryLower.includes('faktura')) {
     return categoryMap['finanse'];
   }
   if (summaryLower.includes('rodzin') || summaryLower.includes('randk') || summaryLower.includes('spotkan') || summaryLower.includes('koleg') || summaryLower.includes('znajom') || summaryLower.includes('dinner') || summaryLower.includes('date') || summaryLower.includes('urodzin') || summaryLower.includes('babcia') || summaryLower.includes('piłka') || summaryLower.includes('pilka') || summaryLower.includes('wypad')) {
@@ -234,7 +246,7 @@ export function eventColor(ev: CalRow) {
     }
   }
 
-  return categoryMap['brak'];
+  return categoryMap['praca'];
 }
 
 export interface MonthDayInfo {

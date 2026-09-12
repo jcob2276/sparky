@@ -18,16 +18,17 @@ import {
 
 import { useSession } from '../../../store/useStore';
 import { linksKeys } from '../../../lib/queryKeys';
-
-
+import { countFilterBadges, matchesLinkQuickFilter, type LinkQuickFilter } from './linksUtils';
+import { useLinksBulkActions } from './hooks/useLinksBulkActions';
 
 export function useLinksInboxData(haptic: (pattern: number | number[]) => void) {
   const session = useSession();
   const userId = session?.user.id ?? '';
   const queryClient = useQueryClient();
-  const [statusFilter, setStatusFilter] = useState<'all' | 'unread' | 'read'>('unread');
+  const [quickFilter, setQuickFilter] = useState<LinkQuickFilter>('unread');
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [expandedLinkId, setExpandedLinkId] = useState<string | null>(null);
+  const [readerLink, setReaderLink] = useState<SavedLink | null>(null);
   const [sharingStatus, setSharingStatus] = useState<string | null>(null);
   const [notesDrafts, setNotesDrafts] = usePersistentDraft<Record<string, string>>(`vanguard_link_notes_drafts_${userId}`, {});
   const [savedNoteId, setSavedNoteId] = useState<string | null>(null);
@@ -70,8 +71,8 @@ export function useLinksInboxData(haptic: (pattern: number | number[]) => void) 
     }
   }, [invalidate]);
 
-  const handleAddLink = async () => {
-    const raw = addUrl.trim();
+  const handleAddLink = async (targetUrl?: string) => {
+    const raw = (targetUrl ?? addUrl).trim();
     const urlMatch = raw.match(/https?:\/\/[^\s]+/);
     if (!urlMatch) return;
     setAddLoading(true);
@@ -79,6 +80,7 @@ export function useLinksInboxData(haptic: (pattern: number | number[]) => void) 
       await apiAddNewLink(urlMatch[0]);
       setAddUrl('');
       setShowAddForm(false);
+      notify('Zapisano link', 'success');
       invalidate();
     } catch (err: unknown) {
       notify(`Błąd: ${(err as Error).message}`, 'error');
@@ -238,17 +240,27 @@ export function useLinksInboxData(haptic: (pattern: number | number[]) => void) 
     }
   };
 
+  const bulk = useLinksBulkActions({
+    userId,
+    links,
+    onSuccess: invalidate,
+  });
+
+  const filterCounts = useMemo(() => countFilterBadges(links), [links]);
+
   const filteredLinks = useMemo(() => links.filter(link => {
-    const matchesStatus = statusFilter === 'all' || link.status === statusFilter;
+    const matchesQuick = matchesLinkQuickFilter(link, quickFilter);
     const matchesCategory = !categoryFilter || link.category === categoryFilter;
     const q = search.toLowerCase().trim();
     const matchesSearch = !q ||
       (link.title || '').toLowerCase().includes(q) ||
       (link.description || '').toLowerCase().includes(q) ||
       (link.domain || '').toLowerCase().includes(q) ||
-      (link.category || '').toLowerCase().includes(q);
-    return matchesStatus && matchesCategory && matchesSearch;
-  }), [links, statusFilter, categoryFilter, search]);
+      (link.category || '').toLowerCase().includes(q) ||
+      (link.notes || '').toLowerCase().includes(q) ||
+      (link.takeaways || []).some(t => t.toLowerCase().includes(q));
+    return matchesQuick && matchesCategory && matchesSearch;
+  }), [links, quickFilter, categoryFilter, search]);
 
   const unreadCount = useMemo(() => links.filter(l => l.status === 'unread').length, [links]);
 
@@ -257,11 +269,13 @@ export function useLinksInboxData(haptic: (pattern: number | number[]) => void) 
     loading,
     filteredLinks,
     unreadCount,
-    statusFilter, setStatusFilter,
+    quickFilter, setQuickFilter,
+    statusFilter: (quickFilter === 'read' || quickFilter === 'unread' || quickFilter === 'all') ? quickFilter : 'all',
     categoryFilter, setCategoryFilter,
     search, setSearch,
     viewMode, setViewMode,
     expandedLinkId, setExpandedLinkId,
+    readerLink, setReaderLink,
     sharingStatus,
     addUrl, setAddUrl,
     showAddForm, setShowAddForm,
@@ -277,5 +291,7 @@ export function useLinksInboxData(haptic: (pattern: number | number[]) => void) 
     triageLoading, triageSuggestions, setTriageSuggestions,
     showTriagePanel, setShowTriagePanel,
     handleAiTriage, applyTriageSuggestion,
+    bulk,
+    filterCounts,
   };
 }

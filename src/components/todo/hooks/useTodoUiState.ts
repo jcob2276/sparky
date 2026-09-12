@@ -13,10 +13,30 @@ export function useTodoUiState() {
   const [activeFilterSection, setActiveFilterSection] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; item: TodoItemRow } | null>(null);
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const toggleExpand = useCallback((id: string) => setExpandedId(prev => prev === id ? null : id), []);
   const toggleSectionCollapse = useCallback((id: string) => {
     setCollapsedSections(prev => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+
+  const toggleSelectId = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback((ids: string[]) => {
+    setSelectedIds(new Set(ids));
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+    setIsSelectMode(false);
   }, []);
 
   const showContextMenu = useCallback((item: TodoItemRow, x: number, y: number) => {
@@ -34,6 +54,9 @@ export function useTodoUiState() {
     activeFilterSection, setActiveFilterSection,
     contextMenu, setContextMenu,
     collapsedSections, setCollapsedSections,
+    isSelectMode, setIsSelectMode,
+    selectedIds, setSelectedIds,
+    toggleSelectId, selectAll, clearSelection,
     toggleExpand, toggleSectionCollapse,
     showContextMenu,
   };

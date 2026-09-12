@@ -26,17 +26,6 @@ export default function MealComposer({
 
   const repeatCards = useMemo(() => {
     const cards = [];
-    if (c.repeatSuggestions.yesterday) {
-      const meal = c.repeatSuggestions.yesterday;
-      cards.push({
-        id: meal.id,
-        name: meal.name,
-        calories: meal.calories,
-        protein: meal.protein,
-        subtitle: `wczorajsze ${c.mealLabelForType(c.mealType)}`,
-        onRepeat: () => void c.repeatYesterday(),
-      });
-    }
     for (const memory of c.repeatSuggestions.habitual) {
       cards.push({
         id: memory.id,
@@ -59,6 +48,13 @@ export default function MealComposer({
       });
     }
     return cards.slice(0, 2);
+  }, [c]);
+
+  const recentDays = useMemo(() => {
+    return (c.repeatSuggestions.recentDays || []).map(day => ({
+      ...day,
+      onRepeat: () => void c.repeatRecentDay(day.entries, day.date),
+    }));
   }, [c]);
 
   if (!session) return null;
@@ -88,6 +84,7 @@ export default function MealComposer({
         {!c.draftItems?.length && (
           <MealComposerQuick
             repeatCards={repeatCards}
+            recentDays={recentDays}
             chips={c.quickChips}
             saving={c.saving}
             onChip={c.handleQuickChip}

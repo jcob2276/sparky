@@ -20,7 +20,7 @@ import {
   type MealDraftItem,
 } from '../../../../lib/health/nutritionTracker';
 import { confirmMealCapture } from '../../../../lib/health/nutritionTrackerApi';
-import { entriesToDraft, foodBaseToDraft, mealLabelForType, parsedToDraft } from '../../../../lib/health/mealComposerUtils';
+import { entriesToDraft, foodBaseToDraft, mealLabelForType, parsedToDraft, type RepeatableFoodEntry } from '../../../../lib/health/mealComposerUtils';
 import { fetchRecentFoodProducts, recentProductToDraft } from '../../../../lib/health/recentFoodProductsApi';
 import {
   fetchUserPortions,
@@ -267,16 +267,11 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     }
   }, [userId, scanningPhoto, setDraftFromParsed]);
 
-  const repeatYesterday = useCallback(async () => {
-    const entries = repeatSuggestions.yesterday?.entries;
-    if (!entries?.length) return;
-    await saveDraft(
-      entriesToDraft(entries),
-      'repeat',
-      new Set(),
-      { memoryName: `Wczorajsze ${mealLabelForType(mealType)}` },
-    );
-  }, [repeatSuggestions.yesterday, saveDraft, mealType]);
+  const repeatRecentDay = useCallback(async (entries: RepeatableFoodEntry[], dateStr: string) => {
+    const draft = entriesToDraft(entries);
+    if (!draft.length) return;
+    await saveDraft(draft, 'repeat', new Set(), { memoryName: `Z dnia ${dateStr}` });
+  }, [saveDraft]);
 
   const repeatMemory = useCallback(async (items: unknown, name: string) => {
     const draft = mealMemoryToDraft(items);
@@ -371,7 +366,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     addFoodToDraft,
     addRecentProduct,
     scanPhoto,
-    repeatYesterday,
+    repeatRecentDay,
     repeatMemory,
     handleFavorite,
     repeatSuggestions,

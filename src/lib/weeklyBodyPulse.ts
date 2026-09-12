@@ -42,6 +42,8 @@ type StravaRow = {
   start_date: string | null;
   sport_type: string | null;
   distance: number | null;
+  name?: string | null;
+  elapsed_time?: number | null;
 };
 
 export type OuraPulseRow = {
@@ -137,6 +139,7 @@ export function buildWeeklyBodyPulse(input: {
       exercise_logs: s.exercise_logs,
     })),
     since,
+    strava,
   );
 
   const runs = strava.filter((a) => RUN_SPORTS.has(a.sport_type ?? '') && sessionDateKey(a.start_date) >= since);

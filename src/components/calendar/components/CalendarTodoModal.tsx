@@ -1,6 +1,6 @@
 import React from 'react';
 import { CalendarDays, Check, Trash2 } from 'lucide-react';
-import { combineDateTimeWarsawISO } from '../../../lib/date';
+import { combineDateTimeWarsawISO, warsawTimeOfDay } from '../../../lib/date';
 import Button from '../../ui/Button';
 import { ControlInput, ControlTextarea } from '../../ui/ControlPrimitives';
 import Modal from '../../ui/Modal';
@@ -20,7 +20,7 @@ export default function CalendarTodoModal() {
 
   const isTimed = Boolean(editingTodo.scheduled_time);
   const isDone = editingTodo.status === 'done' || completedTodoIds.has(editingTodo.id);
-  const timeValue = editingTodo.scheduled_time?.slice(11, 16) || '09:00';
+  const timeValue = editingTodo.scheduled_time ? warsawTimeOfDay(editingTodo.scheduled_time) : '09:00';
   const setPlacement = (timed: boolean) => {
     setEditingTodo({
       ...editingTodo,

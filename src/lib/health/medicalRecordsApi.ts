@@ -50,6 +50,8 @@ export async function fetchMedicalRecordData(userId: string) {
 export async function importMedicalLabResults(input: {
   userId: string;
   docName: string;
+  resultDate?: string;
+  provider?: string;
   results: Array<{
     marker_key: string;
     marker_name: string;
@@ -61,13 +63,14 @@ export async function importMedicalLabResults(input: {
     category: string | null;
   }>;
 }): Promise<void> {
-  const resultDate = getTodayWarsaw();
+  const resultDate = input.resultDate ?? getTodayWarsaw();
+  const provider = input.provider ?? 'Diagnostyka';
   const { error: documentError } = await supabase.from('medical_documents').insert({
     user_id: input.userId,
     document_date: resultDate,
     document_type: 'processed',
     source_name: input.docName,
-    provider: 'Diagnostyka',
+    provider,
     clinical_validity: 'clinical',
   });
   if (documentError) throw documentError;
@@ -84,7 +87,7 @@ export async function importMedicalLabResults(input: {
       flag: result.flag,
       category: result.category,
       source_name: input.docName,
-      provider: 'Diagnostyka',
+      provider,
     })),
   );
   if (labError) throw labError;

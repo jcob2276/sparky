@@ -11,23 +11,35 @@ const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 const SYNC_SERVICES = ['calendar', 'oura', 'strava'] as const;
 type SyncService = (typeof SYNC_SERVICES)[number];
 
+interface SyncResult {
+  succeeded: SyncService[];
+  failed: Array<{ service: SyncService; reason: string; tokenInvalid?: boolean }>;
+}
+
 async function runUnifiedSync(
-  callFn: (fn: string, body?: Record<string, unknown>) => Promise<void>,
+  callFn: (fn: string, body?: Record<string, unknown>) => Promise<unknown>,
   userId: string | undefined,
-): Promise<{ succeeded: SyncService[]; failed: Array<{ service: SyncService; reason: string }> }> {
+): Promise<SyncResult> {
   const results = await Promise.allSettled(
     SYNC_SERVICES.map(async (service) => {
-      await callFn(`sync?service=${service}`, { userId });
-      return service;
+      const body = await callFn(`sync?service=${service}`, { userId });
+      return { service, body };
     }),
   );
 
   const succeeded: SyncService[] = [];
-  const failed: Array<{ service: SyncService; reason: string }> = [];
+  const failed: Array<{ service: SyncService; reason: string; tokenInvalid?: boolean }> = [];
 
   results.forEach((result, index) => {
     const service = SYNC_SERVICES[index];
     if (result.status === 'fulfilled') {
+      // Sync zwraca HTTP 200 z reason, gdy wymaga interwencji użytkownika
+      // (np. google_token_invalid = odwołany refresh token Google).
+      const reason = (result.value as { reason?: string } | undefined)?.reason;
+      if (reason === 'google_token_invalid') {
+        failed.push({ service, reason, tokenInvalid: true });
+        return;
+      }
       succeeded.push(service);
       return;
     }
@@ -67,16 +79,33 @@ export function useSyncActions({
 }) {
   const queryClient = useQueryClient();
 
+  // Powiadom o wymaganej re-autoryzacji Google max raz na 6h (auto-sync odpala się często).
+  const notifyTokenInvalid = useCallback(() => {
+    const KEY = 'vanguard_gtoken_notice_time';
+    const now = Date.now();
+    try {
+      const last = Number(localStorage.getItem(KEY) || 0);
+      if (now - last < 6 * 60 * 60 * 1000) return;
+      localStorage.setItem(KEY, String(now));
+    } catch { /* local storage can be unavailable */ }
+    notify('Google Calendar rozłączony — wymagane ponowne połączenie, aby kalendarze się synchronizowały.', 'error', {
+      action: { label: 'Połącz ponownie', onClick: () => startGoogleAuth() },
+    });
+  }, []);
+
   const callFn = useCallback(async (fn: string, body: Record<string, unknown> = {}) => {
-    await invokeEdge(fn, {
+    return invokeEdge(fn, {
       method: 'POST',
       body,
       signal: AbortSignal.timeout(NETWORK_TIMEOUT_MS),
-    });
+    }) as Promise<unknown>;
   }, []);
 
   const syncCalendarSilent = useCallback(async () => {
     const { succeeded, failed } = await runUnifiedSync(callFn, userId);
+    if (failed.some((f) => f.tokenInvalid)) {
+      notifyTokenInvalid();
+    }
     if (succeeded.length === 0) {
       console.warn('[Auto Sync Error]', failed);
       return;
@@ -89,7 +118,7 @@ export function useSyncActions({
       await queryClient.invalidateQueries({ queryKey: biometricsKeys.all });
     }
     onRefresh();
-  }, [callFn, userId, onRefresh, queryClient]);
+  }, [callFn, userId, onRefresh, queryClient, notifyTokenInvalid]);
 
   useEffect(() => {
     if (!userId) return;
@@ -120,7 +149,14 @@ export function useSyncActions({
         localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
       } catch { /* local storage can be unavailable */ }
       if (succeeded.length === 0) {
+        if (failed.some((f) => f.tokenInvalid)) {
+          notifyTokenInvalid();
+          return;
+        }
         throw new Error(failed.map((f) => `${f.service}: ${f.reason}`).join('; '));
+      }
+      if (failed.some((f) => f.tokenInvalid)) {
+        notifyTokenInvalid();
       }
       if (userId) {
         await queryClient.invalidateQueries({ queryKey: calendarKeys.all });
@@ -141,7 +177,7 @@ export function useSyncActions({
     } finally {
       setSyncing(false);
     }
-  }, [callFn, userId, onRefresh, setSyncing, queryClient]);
+  }, [callFn, userId, onRefresh, setSyncing, queryClient, notifyTokenInvalid]);
 
   const handleGoogleCallback = useCallback(async (code: string) => {
     setSyncing(true);

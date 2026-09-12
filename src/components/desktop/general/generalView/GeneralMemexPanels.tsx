@@ -1,6 +1,7 @@
 import { Panel } from '../../shell/Panel';
 import ScoreBar from './ScoreBar';
 import { Card } from '../../../ui/Card';
+import { cleanIntelText } from '../../desktopUtils';
 
 import { GeneralViewPattern, GeneralViewCuriosity, GeneralViewWiki } from '../hooks/useGeneralViewData';
 
@@ -75,7 +76,7 @@ export default function GeneralMemexPanels({
                 <span className="px-1 py-0.5 rounded bg-surface-solid text-2xs">{w.page_type}</span>
                 <span>{Math.round((w.confidence || 0) * 100)}%</span>
               </div>
-              {w.summary && <p className="text-2xs text-text-muted mt-1 leading-relaxed line-clamp-2">{w.summary}</p>}
+              {w.summary && <p className="text-2xs text-text-muted mt-1 leading-relaxed line-clamp-2">{cleanIntelText(w.summary, 200)}</p>}
             </Card>
           ))}
           {wiki.length === 0 && <p className="text-text-muted text-xs py-2 col-span-3">Brak stron wiki</p>}

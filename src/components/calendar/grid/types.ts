@@ -10,6 +10,7 @@ export interface CalendarGridEventBlockProps {
   width: string;
   handleEventMouseDown: (ev: CalRow, e: React.MouseEvent<HTMLDivElement>, action: 'move' | 'resize') => void;
   handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
+  handleEventClick?: (ev: CalRow) => void;
 }
 
 export interface CalendarGridTodoBlockProps {
@@ -31,7 +32,6 @@ export interface CalendarGridColumnProps {
   day: string;
   colClass?: string;
   today: string;
-  nowMin: number;
   dayEvents: CalRow[];
   dayTodos: CalendarTodo[];
   dragSelect: {
@@ -46,6 +46,7 @@ export interface CalendarGridColumnProps {
   handleColumnClick?: (day: string, e: React.MouseEvent) => void;
   handleEventMouseDown: (ev: CalRow, e: React.MouseEvent<HTMLDivElement>, action: 'move' | 'resize') => void;
   handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
+  handleEventClick?: (ev: CalRow) => void;
   handleToggleTodo: (id: string) => void;
   setEditingTodo: (todo: CalendarTodo | null) => void;
   setEditingTodoTitle: (title: string) => void;

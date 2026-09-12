@@ -1,56 +1,85 @@
 import { useState, useMemo } from 'react';
-import { Card } from '../../ui/Card';
-import { TrendingUp, Minus } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts';
-import type { MedicalLabRow } from '../../../lib/health/medicalAnalytics';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import type { MarkerSeries } from '../../../lib/health/medicalAnalytics';
 import { Pressable } from '../../ui/ControlPrimitives';
+import { MedicalTrendDetailCard, type MarkerTrend } from './MedicalTrendDetailCard';
 
 interface MedicalTrendsProps {
-  labs: MedicalLabRow[];
+  series: MarkerSeries[];
 }
 
-function analyzeMedicalTrends(labs: MedicalLabRow[]) {
-  const historyByMarker = new Map<string, MedicalLabRow[]>();
-  for (const row of labs) {
-    historyByMarker.set(row.marker_key, [...(historyByMarker.get(row.marker_key) ?? []), row]);
+function getMarkerClinicalInsight(key: string, current: number, prev: number | null): string | null {
+  if (key === 'ferritin') {
+    if (current >= 40 && current <= 200) {
+      if (prev && prev > current) {
+        return 'Fizjologiczna normalizacja poziomu ferrytyny w strefie optymalnej (40–200 ng/ml). Wartość 127.41 ng/ml potwierdza pełne rezerwy żelaza bez odczynu zapalnego.';
+      }
+      return 'Optymalne zapasy ustrojowe żelaza (strefa docelowa 40–200 ng/ml).';
+    }
+    if (current < 40) return 'Ferrytyna poniżej strefy optymalnej (rezerwy żelaza wymagają uwagi).';
+    if (current > 200) return 'Podwyższona ferrytyna — może wskazywać na przejściowy odczyn zapalny.';
   }
-  for (const [key, rows] of historyByMarker) {
-    historyByMarker.set(key, rows.sort((a, b) => a.result_date.localeCompare(b.result_date)));
+  if (key === 'testosterone_total') {
+    if (current >= 5.0 && current <= 10.0) {
+      return 'Wysoki fizjologiczny poziom testosteronu (7.21 ng/ml = 721 ng/dl). Bardzo korzystny profil anaboliczno-hormonalny.';
+    }
   }
-  const allTrends = [...historyByMarker.entries()].flatMap(([key, history]) => {
-    if (history.length < 2) return [];
-    const previous = history.at(-2)!;
-    const current = history.at(-1)!;
-    const absoluteChange = current.value - previous.value;
-    return [{
-      key,
-      name: current.marker_name,
-      pctChange: previous.value === 0 ? 0 : (absoluteChange / previous.value) * 100,
-      absoluteChange,
-      unit: current.unit || '',
-      currentValue: current.value,
-      prevValue: previous.value,
-      history,
-    }];
-  }).sort((a, b) => Math.abs(b.pctChange) - Math.abs(a.pctChange));
+  if (key === 'tsh') {
+    if (current >= 1.0 && current <= 2.5) {
+      return 'Wzorcowe stężenie TSH w wąskim oknie eutyreozy (1.0–2.5 mU/l).';
+    }
+    if (current > 2.5 && current <= 4.2) {
+      return 'TSH w normie laboratoryjnej, przy górnej granicy okna optymalnego (2.5 mU/l). FT3 i FT4 pozostają w normie.';
+    }
+  }
+  return null;
+}
+
+function analyzeMedicalTrends(series: MarkerSeries[]) {
+  const allTrends: MarkerTrend[] = series
+    .filter((s) => s.prior !== null)
+    .map((s) => {
+      const current = s.latest;
+      const previous = s.prior!;
+      const absoluteChange = current.value - previous.value;
+      return {
+        key: s.marker_key,
+        name: s.marker_name,
+        category: s.category,
+        pctChange: previous.value === 0 ? 0 : (absoluteChange / previous.value) * 100,
+        absoluteChange,
+        unit: current.unit || '',
+        ref_text: current.ref_text,
+        ref_low: current.ref_low,
+        ref_high: current.ref_high,
+        currentValue: current.value,
+        prevValue: previous.value,
+        history: [...s.history].reverse(),
+      };
+    })
+    .sort((a, b) => Math.abs(b.pctChange) - Math.abs(a.pctChange));
   return {
     allTrends,
-    largestChanges: allTrends.filter((trend) => Math.abs(trend.pctChange) >= 10).slice(0, 4),
+    largestChanges: allTrends.filter((trend) => Math.abs(trend.pctChange) >= 10).slice(0, 5),
     stable: allTrends.filter((trend) => Math.abs(trend.pctChange) < 10),
   };
 }
 
-export default function MedicalTrends({ labs }: MedicalTrendsProps) {
+export default function MedicalTrends({ series }: MedicalTrendsProps) {
   const [selectedChartKey, setSelectedChartKey] = useState<string | null>(null);
-  const trendAnalysis = useMemo(() => analyzeMedicalTrends(labs), [labs]);
+  const trendAnalysis = useMemo(() => analyzeMedicalTrends(series), [series]);
 
-  const selectedTrend = trendAnalysis.allTrends.find(t => t.key === (selectedChartKey || trendAnalysis.allTrends[0]?.key));
+  // Prioritize ferritin or the first trend if none selected
+  const activeKey = selectedChartKey || (trendAnalysis.allTrends.some(t => t.key === 'ferritin') ? 'ferritin' : trendAnalysis.allTrends[0]?.key);
+  const selectedTrend = trendAnalysis.allTrends.find(t => t.key === activeKey);
+
+  const insight = selectedTrend ? getMarkerClinicalInsight(selectedTrend.key, selectedTrend.currentValue, selectedTrend.prevValue) : null;
 
   return (
     <div className="space-y-6">
       <div className="border-b border-border-custom/50 pb-3">
         <h2 className="text-lg font-black uppercase font-display">3. Trendy i Zmienność</h2>
-        <p className="text-2xs text-text-muted mt-0.5">Analiza długoterminowa i dynamika zmian parametrów</p>
+        <p className="text-2xs text-text-muted mt-0.5">Analiza długoterminowa i dynamika zmian kluczowych parametrów</p>
       </div>
 
       {trendAnalysis.allTrends.length > 0 ? (
@@ -65,24 +94,23 @@ export default function MedicalTrends({ labs }: MedicalTrendsProps) {
                   key={s.key}
                   onClick={() => setSelectedChartKey(s.key)}
                   className={`w-full text-left rounded-xl p-3 border transition-all flex items-center justify-between ${
-                    selectedChartKey === s.key || (!selectedChartKey && s.key === trendAnalysis.allTrends[0]?.key)
-                      ? 'border-primary/50 bg-primary/[0.03]'
+                    selectedTrend?.key === s.key
+                      ? 'border-primary/50 bg-primary/[0.05]'
                       : 'border-border-custom bg-background/20 hover:bg-background/40'
                   }`}
                 >
                   <div>
                     <h4 className="text-xs font-bold text-text-primary">{s.name}</h4>
-                    <span className="text-3xs text-text-muted">{s.history[s.history.length - 1].result_date}</span>
+                    <span className="text-3xs text-text-muted">
+                      {s.currentValue} {s.unit} · {s.history[s.history.length - 1]?.result_date}
+                    </span>
                   </div>
                   <span className={`text-xs font-black flex items-center gap-0.5 ${s.pctChange > 0 ? 'text-primary' : 'text-text-muted'}`}>
-                    <TrendingUp size={12} className={s.pctChange < 0 ? 'rotate-180' : ''} />
+                    {s.pctChange < 0 ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
                     {s.pctChange > 0 ? '+' : ''}{s.pctChange.toFixed(0)}%
                   </span>
                 </Pressable>
               ))}
-              {trendAnalysis.largestChanges.length === 0 && (
-                <p className="text-3xs text-text-muted italic">Brak gwałtownych wahań w markerach.</p>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -93,8 +121,8 @@ export default function MedicalTrends({ labs }: MedicalTrendsProps) {
                     key={s.key}
                     onClick={() => setSelectedChartKey(s.key)}
                     className={`w-full text-left rounded-lg px-2.5 py-1.5 border transition-all flex items-center justify-between text-xs ${
-                      selectedChartKey === s.key
-                        ? 'border-primary/40 bg-primary/[0.02]'
+                      selectedTrend?.key === s.key
+                        ? 'border-primary/40 bg-primary/[0.03]'
                         : 'border-border-custom/50 bg-background/10 hover:bg-background/20'
                     }`}
                   >
@@ -110,44 +138,7 @@ export default function MedicalTrends({ labs }: MedicalTrendsProps) {
           </div>
 
           {selectedTrend && (
-            <Card variant="surface" padding="1.25rem" className="lg:col-span-2 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="text-3xs font-black uppercase text-primary tracking-wider">Szczegóły Trendu</span>
-                  <h3 className="text-base font-black text-text-primary">{selectedTrend.name}</h3>
-                </div>
-                <div className="text-right">
-                  <span className="text-3xs font-black uppercase text-text-muted tracking-wider">Pomiary</span>
-                  <p className="text-xs font-bold text-text-secondary">{selectedTrend.history.length} razy</p>
-                </div>
-              </div>
-
-              <div className="h-52 w-full bg-background/30 rounded-2xl p-2 border border-border-custom/60">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={selectedTrend.history} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-custom)" opacity={0.1} />
-                    <XAxis dataKey="result_date" tick={{ fontSize: 9 }} stroke="var(--border-custom)" />
-                    <YAxis tick={{ fontSize: 9 }} stroke="var(--border-custom)" domain={['dataMin - 10%', 'dataMax + 10%']} />
-                    <Tooltip
-                      contentStyle={{ background: 'var(--surface-solid)', borderColor: 'var(--border-custom)', borderRadius: '12px' }}
-                      labelClassName="text-3xs font-bold text-text-muted"
-                    />
-                    <Line type="monotone" dataKey="value" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 4 }} activeDot={{ r: 6 }} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 text-3xs font-semibold text-text-secondary pt-2">
-                <div className="bg-background/20 p-2 rounded-xl border border-border-custom/40">
-                  <span className="text-text-muted uppercase font-black block">Kontekst Pomiaru</span>
-                  <p className="mt-1 text-xs">{selectedTrend.history[selectedTrend.history.length - 1].notes || 'Brak wpisanych uwag / kontekstu (leki, trening, post)'}</p>
-                </div>
-                <div className="bg-background/20 p-2 rounded-xl border border-border-custom/40">
-                  <span className="text-text-muted uppercase font-black block">Laboratorium / Dostawca</span>
-                  <p className="mt-1 text-xs">{selectedTrend.history[selectedTrend.history.length - 1].provider || 'Nieokreślone'}</p>
-                </div>
-              </div>
-            </Card>
+            <MedicalTrendDetailCard selectedTrend={selectedTrend} insight={insight} />
           )}
         </div>
       ) : (

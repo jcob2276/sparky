@@ -13,4 +13,19 @@ describe('normalizeCalendarEvent', () => {
     expect(() => normalizeCalendarEvent({ ...base, end: base.start })).toThrow('po jego rozpoczęciu');
     expect(() => normalizeCalendarEvent({ ...base, recurrence: ['weekly'] })).toThrow('reguła');
   });
+
+  it('trims location and defaults flags', () => {
+    expect(normalizeCalendarEvent({ ...base, location: '  Kraków  ' })).toMatchObject({
+      location: 'Kraków',
+      is_all_day: false,
+      reminder_minutes: null,
+    });
+    expect(normalizeCalendarEvent({ ...base, location: '   ' })).toMatchObject({ location: undefined });
+  });
+
+  it('rejects invalid reminder_minutes', () => {
+    expect(() => normalizeCalendarEvent({ ...base, reminder_minutes: -5 })).toThrow('przypomnienia');
+    expect(() => normalizeCalendarEvent({ ...base, reminder_minutes: 1.5 })).toThrow('przypomnienia');
+    expect(normalizeCalendarEvent({ ...base, reminder_minutes: 15 })).toMatchObject({ reminder_minutes: 15 });
+  });
 });

@@ -1,6 +1,6 @@
 import { Card } from '../../ui/Card';
 import { Scale, Info, Calendar } from 'lucide-react';
-import type { BodyCompositionRow } from '../../../lib/health/medicalAnalytics';
+import { formatMedicalDate, type BodyCompositionRow } from '../../../lib/health/medicalAnalytics';
 
 interface MedicalBodyCompositionProps {
   rows: BodyCompositionRow[];
@@ -17,6 +17,9 @@ export default function MedicalBodyComposition({ rows }: MedicalBodyCompositionP
     );
   }
 
+  const measuredYear = latest.measured_at ? new Date(latest.measured_at).getFullYear() : null;
+  const isHistorical = measuredYear != null && measuredYear < 2025;
+
   // Calculate trends/averages if multiple points exist
   const avgFat = rows.length > 0 
     ? rows.reduce((acc, curr) => acc + (curr.body_fat_pct || 0), 0) / rows.length
@@ -28,28 +31,40 @@ export default function MedicalBodyComposition({ rows }: MedicalBodyCompositionP
 
   return (
     <div className="space-y-4">
-      <div className="border-b border-border-custom/50 pb-3">
-        <h2 className="text-lg font-black uppercase font-display flex items-center gap-2">
-          <Scale size={18} className="text-primary shrink-0" /> Pomiary Ciała
-        </h2>
-        <p className="text-2xs text-text-muted mt-0.5">Analiza impedancji bioelektrycznej (BIA) i wagi</p>
+      <div className="border-b border-border-custom/50 pb-3 flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-black uppercase font-display flex items-center gap-2">
+            <Scale size={18} className="text-primary shrink-0" /> Skład Ciała (BIA)
+          </h2>
+          <p className="text-2xs text-text-muted mt-0.5">Analiza impedancji bioelektrycznej i dystrybucji tkanek</p>
+        </div>
+        {isHistorical && (
+          <span className="rounded-full bg-warning/10 border border-warning/20 px-2.5 py-0.5 text-3xs font-bold text-warning">
+            Archiwum ({measuredYear})
+          </span>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Latest raw weight card */}
         <Card variant="surface" padding="1.25rem" className="flex flex-col justify-between h-40">
           <div>
-            <span className="text-3xs font-black uppercase text-text-muted tracking-wider">Ostatnia Waga</span>
+            <div className="flex items-center justify-between">
+              <span className="text-3xs font-black uppercase text-text-muted tracking-wider">Waga z pomiaru BIA</span>
+              {isHistorical && (
+                <span className="text-3xs text-warning font-bold">Wpis archiwalny</span>
+              )}
+            </div>
             <p className="text-3xl font-black text-text-primary mt-2">
               {latest.weight_kg ? `${latest.weight_kg.toFixed(1)} kg` : '—'}
             </p>
           </div>
           <div className="flex items-center justify-between text-3xs text-text-secondary border-t border-border-custom/40 pt-2.5">
             <span className="flex items-center gap-1 font-bold">
-              <Calendar size={10} /> {latest.measured_at?.slice(0, 10)}
+              <Calendar size={10} /> {latest.measured_at ? formatMedicalDate(latest.measured_at) : '—'}
             </span>
             <span className="font-bold uppercase bg-border-custom px-1.5 py-0.5 rounded">
-              Wiarygodność: {latest.reliability || 'Średnia'}
+              {latest.source || 'Tanita BIA'}
             </span>
           </div>
         </Card>

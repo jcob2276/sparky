@@ -104,3 +104,42 @@ export async function deleteLink(supabase: SupabaseClient, id: string): Promise<
     .eq('id', id);
   if (error) throw error;
 }
+
+export async function bulkUpdateLinkStatus(
+  supabase: SupabaseClient,
+  ids: string[],
+  status: 'unread' | 'read'
+): Promise<void> {
+  if (ids.length === 0) return;
+  const { error } = await supabase
+    .from('vanguard_links')
+    .update({ status })
+    .in('id', ids);
+  if (error) throw error;
+}
+
+export async function bulkUpdateLinkCategory(
+  supabase: SupabaseClient,
+  ids: string[],
+  category: string
+): Promise<void> {
+  if (ids.length === 0) return;
+  const { error } = await supabase
+    .from('vanguard_links')
+    .update({ category })
+    .in('id', ids);
+  if (error) throw error;
+}
+
+export async function bulkDeleteLinks(
+  supabase: SupabaseClient,
+  ids: string[]
+): Promise<void> {
+  if (ids.length === 0) return;
+  const { error } = await supabase
+    .from('vanguard_links')
+    .delete()
+    .in('id', ids);
+  if (error) throw error;
+}
+

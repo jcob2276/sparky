@@ -5,6 +5,15 @@ import Button from '../ui/Button';
 import { TerminyObligationCard } from './TerminyObligationCard';
 import { filterByKind, type DerivedObligation } from './terminyDerived';
 
+const KIND_EMOJI: Record<LifeObligationKind, string> = {
+  people: '🎂',
+  vehicle: '🚗',
+  document: '📄',
+  home: '🏠',
+  finance: '💳',
+  health_admin: '🩺',
+};
+
 interface Props {
   kind: LifeObligationKind;
   rows: DerivedObligation[];
@@ -12,6 +21,8 @@ interface Props {
   onEdit: (id: string) => void;
   onComplete: (row: DerivedObligation) => void;
   onConvertToTodo: (row: DerivedObligation) => void;
+  onAddToCalendar?: (row: DerivedObligation) => void;
+  onExportICS?: (row: DerivedObligation) => void;
   searchQuery?: string;
   onOpenAdd: () => void;
 }
@@ -24,6 +35,8 @@ export function TerminyVault({
   onEdit,
   onComplete,
   onConvertToTodo,
+  onAddToCalendar,
+  onExportICS,
   onOpenAdd,
 }: Props) {
   const reduceMotion = useReducedMotion();
@@ -43,7 +56,7 @@ export function TerminyVault({
     return (
       <div className="space-y-4">
         <EmptyState
-          icon={kind === 'people' ? '🎂' : kind === 'vehicle' ? '🚗' : '📄'}
+          icon={KIND_EMOJI[kind] || '📄'}
           label={`Brak pozycji w: ${LIFE_OBLIGATION_KIND_LABELS[kind]}`}
           action={{ label: 'Dodaj', onClick: onOpenAdd }}
         />
@@ -75,6 +88,8 @@ export function TerminyVault({
               onEdit={() => onEdit(row.item.id)}
               onComplete={() => onComplete(row)}
               onConvertToTodo={() => onConvertToTodo(row)}
+              onAddToCalendar={onAddToCalendar}
+              onExportICS={onExportICS}
             />
           </motion.li>
         ))}

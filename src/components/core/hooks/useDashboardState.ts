@@ -169,13 +169,19 @@ export function useDashboardState(session: Session) {
         setShowFastCapture(true);
       } else if (key === 'f' && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
-        navigate('/dzis');
+        
+        if (location.pathname === '/dzis') {
+          document.getElementById('meal-composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          navigate('/dzis');
+          setTimeout(() => document.getElementById('meal-composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [openModal, navigate]);
+  }, [openModal, navigate, location.pathname]);
 
   // View event tracking
   // Note: viewEventMutation identity changes on every status transition (idle/pending/success).
@@ -333,6 +339,15 @@ export function useDashboardState(session: Session) {
   const handlePlanDay = useCallback(() => { haptics.light(); setShowMorningPlan(true); setPlanDaySignal(n => n + 1); }, [haptics]);
   const handleFocusPlan = useCallback(() => { haptics.light(); document.getElementById('day-plan')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [haptics]);
 
+  const openFoodEntry = useCallback(() => {
+    if (view === 'dzis') {
+      document.getElementById('meal-composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      navigateTo('dzis');
+      setTimeout(() => document.getElementById('meal-composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+    }
+  }, [view, navigateTo]);
+
   const openWorkout = useCallback(() => {
     setWorkoutInitial(null);
     if (userId) markWorkoutSessionActive(userId);
@@ -430,6 +445,6 @@ export function useDashboardState(session: Session) {
     // handlers
     handleLogoPressStart, handleLogoPressEnd,
     handleSpineGuideNavigate, handlePlanDay, handleFocusPlan,
-    openWorkout,
+    openWorkout, openFoodEntry,
   };
 }

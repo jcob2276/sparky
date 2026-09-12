@@ -239,6 +239,27 @@ export function calculateSynthesisConfidence(input: {
   };
 }
 
+const DOMAIN_LABELS_GENITIVE: Record<string, string> = {
+  recovery: 'regeneracji',
+  training: 'treningu',
+  nutrition: 'żywienia',
+  execution: 'wykonania',
+  medical: 'zdrowia',
+  calendar: 'kalendarza',
+  knowledge: 'wiedzy',
+  finance: 'finansów',
+  growth: 'rozwoju',
+};
+
+function formatDecliningDomains(domains: string[]): string {
+  const mapped = domains.map((d) => DOMAIN_LABELS_GENITIVE[d] ?? d);
+  if (mapped.length === 0) return 'kluczowych obszarów';
+  if (mapped.length === 1) return mapped[0];
+  if (mapped.length === 2) return `${mapped[0]} oraz ${mapped[1]}`;
+  if (mapped.length <= 3) return `${mapped.slice(0, -1).join(', ')} oraz ${mapped[mapped.length - 1]}`;
+  return `${mapped.slice(0, 2).join(', ')} i pozostałych obszarów`;
+}
+
 export function buildSynthesis(input: {
   date: string;
   trajectories: SparkySynthesis['trajectories'];
@@ -263,8 +284,8 @@ export function buildSynthesis(input: {
         ? 'ograniczona pojemność'
         : 'stabilnie';
   const summary = declining.length
-    ? `Największej uwagi wymaga ${declining.join(' i ')}; regeneracja i realna pojemność wyznaczają zakres.`
-    : 'Najważniejsze domeny są stabilne; utrzymaj kierunek bez dokładania zakresu.';
+    ? `Największej uwagi wymaga obszar ${formatDecliningDomains(declining)}; regeneracja i realna pojemność wyznaczają zakres.`
+    : 'Główne obszary są stabilne; utrzymaj kierunek bez dokładania nadmiarowych zadań.';
   const negative = factors.find((factor) => factor.direction === 'negative');
   const positive = factors.find((factor) => factor.direction === 'positive');
 

@@ -17,7 +17,7 @@ interface UseCalendarEventDragParams {
     mutateAsync: (args: {
       userId: string;
       accessToken: string;
-      event: { id: string; summary: string; start: string; end: string; category?: string; description?: string; recurrence?: string[] | null };
+      event: { id: string; summary: string; start: string; end: string; category?: string; description?: string; recurrence?: string[] | null; location?: string; is_all_day?: boolean; reminder_minutes?: number | null };
     }) => Promise<unknown>;
   };
   onEventClick: (ev: CalRow) => void;
@@ -56,15 +56,11 @@ export function useCalendarEventDrag({
       ? (e.currentTarget.parentElement as HTMLDivElement)
       : (e.currentTarget as HTMLDivElement);
 
-    if (cardElement) {
-      cardElement.style.transition = 'none';
-      cardElement.style.zIndex = '50';
-    }
-
     const startMin = parseTime(ev.start_time);
     const endMin = parseTime(ev.end_time);
     const duration = endMin - startMin;
 
+    const startX = e.clientX;
     const startY = e.clientY;
     const initialStartMin = startMin;
     const initialEndMin = endMin;
@@ -73,7 +69,7 @@ export function useCalendarEventDrag({
     // never changes which day the event belongs to.
     let eventDate = originalDate;
 
-    let hasMoved = false;
+    let isDragging = false;
     let lastDiffMins = 0;
     let lastDay = originalDate;
 
@@ -83,8 +79,21 @@ export function useCalendarEventDrag({
     };
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      hasMoved = true;
+      const diffX = moveEvent.clientX - startX;
       const diffY = moveEvent.clientY - startY;
+
+      if (!isDragging) {
+        if (Math.hypot(diffX, diffY) < 5) return;
+        isDragging = true;
+        if (cardElement) {
+          cardElement.style.transition = 'none';
+          cardElement.style.zIndex = '50';
+          cardElement.style.boxShadow = '0 16px 32px -4px rgba(0, 0, 0, 0.4)';
+          cardElement.style.opacity = '0.92';
+        }
+        document.body.style.cursor = action === 'resize' ? 'ns-resize' : 'grabbing';
+      }
+
       const diffMins = Math.round((diffY / PX_PER_MIN) / 15) * 15;
 
       if (action === 'move') {
@@ -130,19 +139,30 @@ export function useCalendarEventDrag({
     const handleMouseUp = async (upEvent: MouseEvent) => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = '';
 
       if (cardElement) {
         cardElement.style.transition = '';
         cardElement.style.zIndex = '';
+        cardElement.style.boxShadow = '';
+        cardElement.style.opacity = '';
       }
 
-      if (!hasMoved) {
+      if (!isDragging) {
         onEventClick(ev);
         return;
       }
 
       const diffY = upEvent.clientY - startY;
       const diffMins = Math.round((diffY / PX_PER_MIN) / 15) * 15;
+
+      if (diffMins === 0 && eventDate === originalDate) {
+        // Returned to exact same position — skip network call, restore cache
+        queryClient.invalidateQueries({
+          queryKey: calendarKeys.events(userId || '', visibleRange.rangeStart, visibleRange.rangeEnd),
+        });
+        return;
+      }
 
       let finalStartMin = initialStartMin;
       let finalEndMin = initialEndMin;
@@ -171,6 +191,9 @@ export function useCalendarEventDrag({
             category: ev.category || undefined,
             description: ev.description || undefined,
             recurrence: ev.recurrence || undefined,
+            location: ev.location || undefined,
+            is_all_day: ev.is_all_day ?? false,
+            reminder_minutes: ev.reminder_minutes ?? null,
           },
         });
         notify('Zaktualizowano czas wydarzenia.', 'success', {
@@ -188,6 +211,9 @@ export function useCalendarEventDrag({
                   category: ev.category || undefined,
                   description: ev.description || undefined,
                   recurrence: ev.recurrence || undefined,
+                  location: ev.location || undefined,
+                  is_all_day: ev.is_all_day ?? false,
+                  reminder_minutes: ev.reminder_minutes ?? null,
                 },
               }).then(() => queryClient.invalidateQueries({
                 queryKey: calendarKeys.events(userId || '', visibleRange.rangeStart, visibleRange.rangeEnd),

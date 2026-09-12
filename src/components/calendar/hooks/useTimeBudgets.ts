@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
 import type { Database } from '../../../lib/database.types';
@@ -23,7 +23,7 @@ export function useTimeBudgets(userId: string) {
     enabled: !!userId,
   });
 
-  const budgets = query.data || [];
+  const budgets = useMemo(() => query.data || [], [query.data]);
   const loading = query.isLoading;
 
   const mutation = useMutation({
@@ -83,5 +83,5 @@ export function useTimeBudgets(userId: string) {
     await query.refetch();
   }, [query]);
 
-  return { budgets, loading, saveBudget, refresh };
+  return useMemo(() => ({ budgets, loading, saveBudget, refresh }), [budgets, loading, saveBudget, refresh]);
 }

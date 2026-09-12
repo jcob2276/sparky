@@ -1,6 +1,6 @@
 import Button from '../../ui/Button';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Moon, Sun, Fingerprint, ShieldCheck, Smartphone } from 'lucide-react';
+import { RefreshCw, Moon, Sun, Fingerprint, ShieldCheck, Smartphone, LayoutGrid } from 'lucide-react';
 import DashboardModuleShortcuts from '../../core/DashboardModuleShortcuts';
 import OuraRingHeaderBadge from '../health/OuraRingHeaderBadge';
 
@@ -13,11 +13,12 @@ interface DesktopHeaderProps {
   syncAll: () => void;
   setShowHealth: (v: boolean) => void;
   setShowFundament: (v: boolean) => void;
+  onOpenTools?: () => void;
 }
 
 export default function DesktopHeader({
   now, syncing, pendingGrowthMustCount, theme,
-  setTheme, syncAll, setShowHealth, setShowFundament,
+  setTheme, syncAll, setShowHealth, setShowFundament, onOpenTools,
 }: DesktopHeaderProps) {
   const navigate = useNavigate();
 
@@ -28,7 +29,7 @@ export default function DesktopHeader({
         <span className="text-2xs font-bold uppercase tracking-wider text-text-muted hidden lg:block">{now}</span>
       </div>
       <div className="hidden xl:flex items-center gap-3 ml-4">
-        {[['S','sync'], ['T','trening'], ['D','dark']].map(([k, l]) => (
+        {[['S','sync'], ['T','trening'], ['W','waga'], ['D','dark']].map(([k, l]) => (
           <span key={k} className="flex items-center gap-1 text-2xs text-text-muted">
             <kbd className="rounded border border-border-custom bg-surface px-1.5 py-0.5 font-mono text-2xs font-black leading-none">{k}</kbd>
             <span>{l}</span>
@@ -38,6 +39,15 @@ export default function DesktopHeader({
       <div className="ml-auto flex items-center gap-2">
         <OuraRingHeaderBadge />
         <DashboardModuleShortcuts naukaBadge={pendingGrowthMustCount} />
+        {onOpenTools && (
+          <Button
+            onClick={onOpenTools}
+            variant="secondary"
+            icon={<LayoutGrid size={14} />}
+            className="rounded-full p-2.5"
+            title="Katalog Narzędzi Vanguard"
+          />
+        )}
         <Button onClick={() => setShowHealth(true)} variant="secondary" icon={<ShieldCheck size={14} />} className="rounded-full p-2.5" title="Status zdrowia systemu" />
         <Button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} variant="secondary" icon={theme === 'light' ? <Moon size={14} /> : <Sun size={14} className="text-warning" />} className="rounded-full p-2.5" aria-label={theme === 'light' ? 'Włącz ciemny motyw' : 'Włącz jasny motyw'} />
         <Button onClick={syncAll} variant="secondary" icon={<RefreshCw size={14} className={syncing ? 'animate-spin text-primary' : ''} />} className="rounded-full p-2.5" disabled={syncing} aria-label="Synchronizuj dane" />

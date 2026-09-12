@@ -17,14 +17,9 @@ void initNativeShell()
 if (import.meta.env.DEV && 'serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then((registrations) => {
     for (const registration of registrations) {
-      registration.unregister().then((success) => {
-        if (success) {
-          console.log('Stale Service Worker unregistered successfully in DEV mode.');
-          window.location.reload();
-        }
-      });
+      void registration.unregister();
     }
-  });
+  }).catch(() => {});
 }
 
 window.onerror = function(msg, _url, line) {

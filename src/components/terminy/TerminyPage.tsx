@@ -5,16 +5,12 @@
  */
 import { useMemo, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
-import { getTodayWarsaw, nextOccurrence, shiftDateStr, type LifeObligationKind } from '@vanguard/domain';
+import { getTodayWarsaw, type LifeObligationKind } from '@vanguard/domain';
 import { useStore } from '../../store/useStore';
-import { confirmDialog, notify } from '../../lib/notify';
-import { formatLongDateWarsaw } from '../../lib/date';
-import { createTodoItem } from '../../lib/todo/todo';
 import {
   useLifeObligationMutations,
   useLifeObligations,
   type LifeObligation,
-  type LifeObligationInput,
 } from '../../lib/lifeObligationsApi';
 import TerminyAddSheet from './TerminyAddSheet';
 import TerminySidebar from './TerminySidebar';
@@ -22,7 +18,12 @@ import TerminyPageContent, {
   type FilterMode,
   type TerminyTabKey,
 } from './TerminyPageContent';
-import { deriveAll, type StarterTemplate, type DerivedObligation } from './terminyDerived';
+import {
+  deriveAll,
+  type StarterTemplate,
+  type DerivedObligation,
+} from './terminyDerived';
+import { useTerminyActions } from './useTerminyActions';
 
 export type { FilterMode, TerminyTabKey } from './TerminyPageContent';
 
@@ -31,9 +32,18 @@ interface Props {
   onNavigateTo?: (dest: string) => void;
 }
 
-function filterObligations(rows: DerivedObligation[], query: string, mode: FilterMode) {
+function filterObligations(
+  rows: DerivedObligation[],
+  query: string,
+  mode: FilterMode,
+  selectedMonth: number | null,
+) {
   const normalizedQuery = query.toLowerCase().trim();
   return rows.filter((row) => {
+    if (selectedMonth !== null) {
+      const m = parseInt(row.nextDate.split('-')[1], 10);
+      if (m !== selectedMonth) return false;
+    }
     if (normalizedQuery) {
       const matches = row.item.title.toLowerCase().includes(normalizedQuery)
         || (row.item.related_name?.toLowerCase().includes(normalizedQuery) ?? false)
@@ -50,19 +60,21 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
   const userId = useStore((state) => state.session?.user?.id);
   const today = getTodayWarsaw();
   const { data: items = [], isLoading, error } = useLifeObligations(userId);
-  const { add, remove, update } = useLifeObligationMutations(userId);
+  const mutations = useLifeObligationMutations(userId);
+  const { add, update } = mutations;
   const reduceMotion = useReducedMotion();
   const [tab, setTab] = useState<TerminyTabKey>('horizon');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMode, setFilterMode] = useState<FilterMode>('all');
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [seedTemplate, setSeedTemplate] = useState<StarterTemplate | null>(null);
   const [editing, setEditing] = useState<LifeObligation | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const allRows = useMemo(() => deriveAll(items, today), [items, today]);
   const filteredRows = useMemo(
-    () => filterObligations(allRows, searchQuery, filterMode),
-    [allRows, searchQuery, filterMode],
+    () => filterObligations(allRows, searchQuery, filterMode, selectedMonth),
+    [allRows, searchQuery, filterMode, selectedMonth],
   );
   const urgentCount = useMemo(() => allRows.filter((row) => row.daysLeft <= 7).length, [allRows]);
   const notesCount = useMemo(() => allRows.filter((row) => Boolean(row.item.notes)).length, [allRows]);
@@ -71,12 +83,13 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
     setTab(next);
     setSearchQuery('');
     setFilterMode('all');
+    setSelectedMonth(null);
   };
 
   const openAdd = (template?: StarterTemplate | null, kind?: LifeObligationKind) => {
     setEditing(null);
     setSeedTemplate(template ?? null);
-    if (kind === 'people' || kind === 'vehicle' || kind === 'document') setTab(kind);
+    if (kind) setTab(kind);
     setAddOpen(true);
   };
 
@@ -94,61 +107,22 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
     setEditing(null);
   };
 
-  const submit = async (input: LifeObligationInput) => {
-    try {
-      if (editing) {
-        await update.mutateAsync({ id: editing.id, ...input });
-        notify('Zapisano zmiany', 'success');
-      } else {
-        await add.mutateAsync(input);
-        notify('Dodano termin', 'success');
-      }
-      closeAdd();
-    } catch (caught: unknown) {
-      notify(caught instanceof Error ? caught.message : 'Nie udało się zapisać', 'error');
-    }
-  };
-
-  const onDelete = async (id: string, title: string) => {
-    if (!(await confirmDialog(`Usunąć „${title}”?`))) return;
-    try {
-      await remove.mutateAsync(id);
-      notify('Usunięto', 'success');
-    } catch (caught: unknown) {
-      notify(caught instanceof Error ? caught.message : 'Nie udało się usunąć', 'error');
-    }
-  };
-
-  const handleComplete = async (row: DerivedObligation) => {
-    try {
-      if (row.item.recurrence === 'once') {
-        await remove.mutateAsync(row.item.id);
-        notify(`Zrealizowano: „${row.item.title}”`, 'success');
-      } else {
-        const currentOccurrence = row.nextDate;
-        const dayAfter = shiftDateStr(currentOccurrence, 1);
-        const nextDate = nextOccurrence(row.item.anchor_date, row.item.recurrence, dayAfter) ?? dayAfter;
-        await update.mutateAsync({ id: row.item.id, anchor_date: nextDate, sent_reminders: [] });
-        notify(`Zrealizowano! Odnowiono termin „${row.item.title}” na ${formatLongDateWarsaw(nextDate)}`, 'success');
-      }
-    } catch (caught: unknown) {
-      notify(caught instanceof Error ? caught.message : 'Nie udało się zaktualizować', 'error');
-    }
-  };
-
-  const handleConvertToTodo = async (row: DerivedObligation) => {
-    if (!userId) return;
-    try {
-      await createTodoItem(userId, {
-        title: `Termin: ${row.item.title}${row.item.related_name ? ` (${row.item.related_name})` : ''}`,
-        due_date: row.nextDate,
-        notes: row.item.notes ? `Wpis z Terminów: ${row.item.notes}` : `Termin: ${row.nextDate}`,
-      });
-      notify(`Utworzono zadanie w Todo: „${row.item.title}”`, 'success');
-    } catch (caught: unknown) {
-      notify(caught instanceof Error ? caught.message : 'Nie udało się utworzyć zadania', 'error');
-    }
-  };
+  const {
+    submit,
+    onDelete,
+    handleComplete,
+    handleConvertToTodo,
+    handleAddToCalendar,
+    handleExportICS,
+    handleExportAllICS,
+  } = useTerminyActions({
+    userId,
+    today,
+    allRows,
+    editing,
+    mutations,
+    onSuccessSave: closeAdd,
+  });
 
   if (!userId) {
     return <div className="flex min-h-screen items-center justify-center bg-background px-6 text-center text-text-muted">Zaloguj się, żeby otworzyć Terminy.</div>;
@@ -161,6 +135,7 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
       <TerminyPageContent
         onBack={onBack}
         onAdd={() => openAdd(null)}
+        onExportAllICS={handleExportAllICS}
         onOpenTemplate={(template) => openAdd(template ?? null)}
         onOpenKind={(kind) => openAdd(null, kind)}
         rows={allRows}
@@ -173,6 +148,8 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
         onSearchChange={setSearchQuery}
         filterMode={filterMode}
         onFilterChange={setFilterMode}
+        selectedMonth={selectedMonth}
+        onSelectMonth={setSelectedMonth}
         tab={tab}
         onTabChange={changeTab}
         reduceMotion={reduceMotion}
@@ -180,6 +157,8 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
         onEdit={openEdit}
         onComplete={handleComplete}
         onConvertToTodo={handleConvertToTodo}
+        onAddToCalendar={handleAddToCalendar}
+        onExportICS={handleExportICS}
       />
       <TerminyAddSheet open={addOpen} onClose={closeAdd} onSubmit={submit} pending={add.isPending || update.isPending} initialTemplate={seedTemplate} initialKind={initialKind} editing={editing} />
     </div>

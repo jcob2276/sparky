@@ -20,9 +20,13 @@ export function useDashboardData(sessionProp?: Session | null) {
       setUserId(sessionProp.user.id);
       return;
     }
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setUserId(session.user.id);
-    });
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        if (data?.session) setUserId(data.session.user.id);
+      })
+      .catch((err: unknown) => {
+        console.warn('[useDashboardData] getSession failed:', err);
+      });
   }, [sessionProp]);
 
   const query = useDashboardQuery(userId);
@@ -52,9 +56,13 @@ export function useDashboardData(sessionProp?: Session | null) {
       if (sessionProp) {
         void autoSyncCalendar(sessionProp);
       } else {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-          if (session) autoSyncCalendar(session);
-        });
+        supabase.auth.getSession()
+          .then(({ data }) => {
+            if (data?.session) void autoSyncCalendar(data.session);
+          })
+          .catch((err: unknown) => {
+            console.warn('[useDashboardData] autoSyncCalendar getSession failed:', err);
+          });
       }
     }
   }, [userId, sessionProp]);

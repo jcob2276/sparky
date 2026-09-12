@@ -1,176 +1,167 @@
 import {
-  ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  ScatterChart, Scatter, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts';
 import type { ImpactFactor } from '@vanguard/domain';
 import { CATEGORY_LABELS, rColor } from '@vanguard/domain';
 import { Card } from '../ui/Card';
-import Button from '../ui/Button';
-import { useNOf1Store } from '../../store/nOf1Store';
-import { notify } from '../../lib/notify';
-import { Play } from 'lucide-react';
 
 interface Props {
   item: ImpactFactor;
-  expanded?: boolean;
-  showExperimentButton?: boolean;
+  /** If true, always show the scatter plot (for confirmed/probable) */
+  showChart?: boolean;
 }
 
-function MiniTip({ active, payload }: { active?: boolean; payload?: { payload: { day: string; x: number; y: number } }[] }) {
+function ScatterTip({ active, payload }: { active?: boolean; payload?: { payload: { day: string; x: number; y: number } }[] }) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (
-    <div className="rounded-lg border border-border-custom bg-surface px-2 py-1 text-xs shadow-md">
-      <p className="text-text-muted">{p.day}</p>
-      <p className="font-semibold text-text-primary">{p.x.toFixed(1)} → {p.y.toFixed(1)}</p>
+    <div className="rounded-lg border border-border-custom bg-surface px-2.5 py-1.5 text-xs shadow-md">
+      <p className="text-text-muted text-2xs">{p.day}</p>
+      <p className="font-bold text-text-primary">{p.x.toFixed(1)} → {p.y.toFixed(1)}</p>
     </div>
   );
 }
 
-export default function CorrelationCard({ item, expanded = false, showExperimentButton = false }: Props) {
+function ConfidenceBadge({ level }: { level: ImpactFactor['evidence_level'] }) {
+  switch (level) {
+    case 'confirmed':
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-3xs font-black uppercase tracking-widest text-success">
+          <span className="h-1.5 w-1.5 rounded-full bg-success inline-block" />
+          Pewny
+        </span>
+      );
+    case 'probable':
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 text-3xs font-black uppercase tracking-widest text-primary">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary inline-block" />
+          Sygnał
+        </span>
+      );
+    case 'hypothesis':
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 border border-warning/20 px-2 py-0.5 text-3xs font-black uppercase tracking-widest text-warning">
+          <span className="h-1.5 w-1.5 rounded-full bg-warning inline-block" />
+          Słaby
+        </span>
+      );
+    default:
+      return null;
+  }
+}
+
+function lagLabel(lag: number): string {
+  if (lag === 0) return 'tego samego dnia';
+  if (lag === 1) return 'następnego dnia';
+  return `+${lag} dni później`;
+}
+
+export default function CorrelationCard({ item, showChart = false }: Props) {
   const color = rColor(item.r);
-  const showChart = item.scatter.length >= 3;
-  const { experiments, startExperiment } = useNOf1Store();
+  const hasEnoughForChart = item.scatter.length >= 5;
+  const displayChart = showChart && hasEnoughForChart;
+  const direction = item.r > 0 ? '↑' : '↓';
+  const directionColor = item.r > 0 ? 'text-success' : 'text-danger';
 
-  const activeExp = experiments.find(
-    (e) => e.factorKey === item.x_metric && e.outcomeKey === item.y_metric && e.status === 'active'
-  );
-
-  const handleStartExperiment = () => {
-    const condition = `Wprowadź/kontroluj czynnik: ${item.x_label} (optymalizacja)`;
-    startExperiment(item.x_metric, item.x_label, item.y_metric, item.y_label, 14, condition);
-    notify(`Uruchomiono eksperyment N-of-1: ${item.x_label} vs ${item.y_label}`, 'success');
-  };
-
-  const getTierConfig = (tier: string) => {
-    switch (tier) {
-      case 'confirmed':
-        return { label: 'Potwierdzony', bg: 'bg-success/10 text-success border-success/20' };
-      case 'probable':
-        return { label: 'Prawdopodobny', bg: 'bg-primary/10 text-primary border-primary/20' };
-      case 'hypothesis':
-        return { label: 'Hipoteza', bg: 'bg-warning/10 text-warning border-warning/20' };
-      default:
-        return { label: 'Brak dowodu', bg: 'bg-surface-solid text-text-muted border-border-custom' };
-    }
-  };
-
-  const tier = getTierConfig(item.evidence_level);
+  // Border color by tier
+  const borderClass =
+    item.evidence_level === 'confirmed'
+      ? 'border-success/20 hover:border-success/30'
+      : item.evidence_level === 'probable'
+      ? 'border-primary/20 hover:border-primary/30'
+      : 'border-border-custom hover:border-border-custom-hover';
 
   return (
     <Card
       variant="surface"
-      padding="1.25rem"
-      className={`border transition-all duration-[var(--motion-medium)] ${
-        item.evidence_level === 'confirmed' ? 'border-success/20 hover:border-success/40' :
-        item.evidence_level === 'probable' ? 'border-primary/20 hover:border-primary/40' :
-        'border-border-custom hover:border-border-custom-hover'
-      }`}
+      padding="0"
+      className={`border transition-colors duration-[var(--motion-fast)] ${borderClass} overflow-hidden`}
     >
-      <div className="flex flex-col gap-2">
-        {/* Badges strip */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-3xs font-black uppercase tracking-widest text-text-muted px-1.5 py-0.5 rounded bg-surface-solid border border-border-custom/50">
+      <div className="p-4 flex flex-col gap-3">
+        {/* Top row: category + badge */}
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-3xs font-bold uppercase tracking-wider text-text-muted">
             {CATEGORY_LABELS[item.category] ?? item.category}
           </span>
-          <span className={`text-3xs font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${tier.bg}`}>
-            {tier.label}
+          <ConfidenceBadge level={item.evidence_level} />
+        </div>
+
+        {/* Main insight: effect first */}
+        <div>
+          <p className="text-xs font-semibold text-text-secondary leading-snug">
+            {item.x_label}
+            {item.lag_days > 0 && (
+              <span className="text-text-muted"> → {lagLabel(item.lag_days)}</span>
+            )}
+          </p>
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className={`text-2xl font-black tabular-nums leading-none ${directionColor}`}>
+              {direction} {item.natural_effect.split(' ')[0]}
+            </span>
+            <span className="text-xs font-semibold text-text-muted">
+              {item.y_label}
+            </span>
+          </div>
+          {/* natural effect detail (everything after first word) */}
+          {item.natural_effect.includes('(') && (
+            <p className="text-2xs text-text-muted mt-0.5">
+              {item.natural_effect.replace(/^[^\s]+\s/, '')}
+            </p>
+          )}
+        </div>
+
+        {/* Scatter chart */}
+        {displayChart && (
+          <div className="h-[120px] w-full -mx-0.5">
+            <ResponsiveContainer width="100%" height="100%">
+              <ScatterChart margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                <XAxis
+                  dataKey="x"
+                  type="number"
+                  name={item.x_label}
+                  tick={{ fontSize: 9, fill: 'var(--color-text-muted)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  dataKey="y"
+                  type="number"
+                  name={item.y_label}
+                  tick={{ fontSize: 9, fill: 'var(--color-text-muted)' }}
+                  width={28}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<ScatterTip />} />
+                <ReferenceLine
+                  x={item.scatter.reduce((s, p) => s + p.x, 0) / item.scatter.length}
+                  stroke="var(--color-border-custom)"
+                  strokeDasharray="3 3"
+                  strokeOpacity={0.5}
+                />
+                <Scatter data={item.scatter} fill={color} fillOpacity={0.7} r={3} />
+              </ScatterChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Footer stats */}
+        <div className="flex items-center gap-3 pt-1 border-t border-border-custom/40">
+          <span className="text-2xs text-text-muted font-medium">
+            N=<span className="font-bold text-text-secondary">{item.n}</span>
           </span>
-          <span className="text-3xs font-black uppercase tracking-widest text-text-muted px-1.5 py-0.5 rounded bg-surface-solid border border-border-custom/50">
-            N={item.n}
+          <span className="text-2xs font-bold tabular-nums" style={{ color }}>
+            r={item.r > 0 ? '+' : ''}{item.r.toFixed(2)}
           </span>
-          {activeExp && (
-            <span className="text-3xs font-black uppercase tracking-widest bg-success/15 text-success px-1.5 py-0.5 rounded border border-success/20 animate-pulse">
-              Eksperyment w toku
+          {item.is_stable && (
+            <span className="text-2xs text-success font-semibold ml-auto">
+              ✓ stabilny
             </span>
           )}
-        </div>
-
-        {/* Title & Natural effect size */}
-        <div className="flex items-start justify-between gap-4 mt-1">
-          <div className="min-w-0 flex-1">
-            <h3 className="text-sm font-bold text-text-primary leading-snug">
-              {item.x_label} ➔ {item.y_label}
-            </h3>
-            <p className="text-xs text-text-secondary mt-1 font-medium">
-              Powiązany z: <span className="text-text-primary font-bold">{item.natural_effect}</span>
-            </p>
-          </div>
-          <div className="text-right shrink-0">
-            <p className="text-2xl font-black tabular-nums leading-none" style={{ color: color }}>
-              {item.r > 0 ? '+' : ''}{item.r.toFixed(2)}
-            </p>
-          </div>
-        </div>
-
-        {/* Notes / Descriptions */}
-        <div className="text-xs text-text-muted leading-relaxed mt-1">
-          {item.evidence_level === 'confirmed' && (
-            <p>Silny i czasowo stabilny wpływ czynnika. Występuje w obu połowach badanego okresu.</p>
-          )}
-          {item.evidence_level === 'probable' && (
-            <p>Spójny kierunek wpływu, lecz wymaga zgromadzenia większej próby dla pełnego potwierdzenia.</p>
-          )}
-          {item.evidence_level === 'hypothesis' && (
-            <p>Dostrzegalny trend w danych. Przetestuj czynnik w kontrolowanym eksperymencie, aby potwierdzić wpływ.</p>
-          )}
-          {item.evidence_level === 'no_evidence' && (
-            <p>Brak jednoznacznego statystycznego dowodu na powiązanie w dotychczasowych logach.</p>
+          {!item.is_stable && item.evidence_level !== 'hypothesis' && (
+            <span className="text-2xs text-text-muted ml-auto">niestabilny</span>
           )}
         </div>
-
-        {/* Hypothesis Call-to-action button */}
-        {showExperimentButton && item.evidence_level === 'hypothesis' && !activeExp && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleStartExperiment}
-            className="flex items-center justify-center gap-1.5 w-full mt-3 text-success hover:bg-success/10 border-success/20"
-          >
-            <Play size={12} className="fill-current animate-pulse" />
-            Sprawdź przez 14 dni
-          </Button>
-        )}
-
-        {/* Details section inside evidence archive */}
-        {expanded && (
-          <div className="mt-4 pt-3 border-t border-border-custom/60 space-y-3">
-            {showChart && (
-              <div className="h-[var(--ds-h-140px)] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <ScatterChart margin={{ top: 4, right: 4, left: -22, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-custom)" opacity={0.4} />
-                    <XAxis
-                      dataKey="x"
-                      type="number"
-                      name={item.x_label}
-                      tick={{ fontSize: 8, fill: 'var(--color-text-muted)' }}
-                    />
-                    <YAxis
-                      dataKey="y"
-                      type="number"
-                      name={item.y_label}
-                      tick={{ fontSize: 8, fill: 'var(--color-text-muted)' }}
-                      width={32}
-                    />
-                    <Tooltip content={<MiniTip />} />
-                    <Scatter data={item.scatter} fill={color} fillOpacity={0.6} />
-                  </ScatterChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-
-            <div className="grid grid-cols-2 gap-2 text-2xs text-text-muted pt-1">
-              <div>
-                <p>Metoda: <span className="font-semibold text-text-secondary">{item.method}</span></p>
-                <p>P-value: <span className="font-semibold text-text-secondary">p={item.p.toFixed(4)}</span></p>
-              </div>
-              <div>
-                <p>Stabilność: <span className={`font-semibold ${item.is_stable ? 'text-success' : 'text-text-muted'}`}>{item.is_stable ? 'Stabilny' : 'Brak stabilności'}</span></p>
-                <p>CI (95%): <span className="font-semibold text-text-secondary">[{item.ci_lower.toFixed(2)}, {item.ci_upper.toFixed(2)}]</span></p>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </Card>
   );

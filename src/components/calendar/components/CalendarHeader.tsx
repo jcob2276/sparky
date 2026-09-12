@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
-import { RefreshCw, Calendar as CalendarIcon, Search, X } from 'lucide-react';
+import { RefreshCw, Calendar as CalendarIcon, Search, X, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useCalendar } from '../context/CalendarContext';
 import { WorkspaceHeader } from '../../shared/WorkspaceHeader';
 import { weekMon } from '../calendarHelpers';
+import { shiftPeriodDates } from '../calendarView/calendarViewHelpers';
 import { formatRangeLabel } from '../calendarRangeLabel';
 import { SidebarTrigger } from '../../ui/sidebar';
 
@@ -31,6 +32,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
       setWeekStart,
       searchQuery,
       setSearchQuery,
+      setQuickCreate,
     },
     isSyncing,
     onSyncCalendar,
@@ -39,6 +41,17 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
   const handleTodayClick = () => {
     setSelectedDay(today);
     setWeekStart(weekMon(today));
+  };
+
+  const handleMovePeriod = (direction: -1 | 1) => {
+    const { nextSelectedDay, nextWeekStart } = shiftPeriodDates(
+      calView,
+      selectedDay,
+      weekStart,
+      direction,
+    );
+    setSelectedDay(nextSelectedDay);
+    setWeekStart(nextWeekStart);
   };
 
   const tabs = CALENDAR_TABS.map((tab) => ({
@@ -98,6 +111,25 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
             />
           )}
 
+          <div className={`flex items-center rounded-lg border border-border-custom/30 bg-surface-1/40 p-0.5 ${searchOpen ? 'max-sm:hidden' : ''}`}>
+            <Pressable
+              onClick={() => handleMovePeriod(-1)}
+              aria-label="Poprzedni okres"
+              title="Poprzedni okres (← / J)"
+              className="h-8 w-8 rounded-md hover:bg-surface-2 active:scale-90 flex items-center justify-center text-text-muted hover:text-text-primary transition-all"
+            >
+              <ChevronLeft size={16} />
+            </Pressable>
+            <Pressable
+              onClick={() => handleMovePeriod(1)}
+              aria-label="Następny okres"
+              title="Następny okres (→ / K)"
+              className="h-8 w-8 rounded-md hover:bg-surface-2 active:scale-90 flex items-center justify-center text-text-muted hover:text-text-primary transition-all"
+            >
+              <ChevronRight size={16} />
+            </Pressable>
+          </div>
+
           <Pressable
             onClick={handleTodayClick}
             variant="secondary"
@@ -105,6 +137,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
             icon={<CalendarIcon size={14} />}
             className={`calendar-today-button h-11 w-11 shrink-0 font-bold text-xs sm:h-9 sm:w-auto sm:px-3.5 ${searchOpen ? 'max-sm:hidden' : ''}`}
             aria-label="Dzisiaj"
+            title="Przejdź do dzisiaj (T)"
           >
             <span className="hidden sm:inline">Dzisiaj</span>
           </Pressable>
@@ -115,8 +148,20 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
             icon={<RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />}
             className={`calendar-sync-button h-11 w-11 shrink-0 sm:h-9 md:w-auto md:px-3.5 ${searchOpen ? 'max-sm:hidden' : ''}`}
             aria-label={isSyncing ? 'Synchronizuję' : 'Synchronizuj'}
+            title="Synchronizuj z Google Calendar"
           >
             <span className="hidden md:inline">{isSyncing ? 'Synchronizuję…' : 'Sync'}</span>
+          </Pressable>
+          <Pressable
+            onClick={() => setQuickCreate({ date: selectedDay, startMin: 540 })}
+            variant="primary"
+            size="sm"
+            icon={<Plus size={15} />}
+            className={`h-9 px-3.5 rounded-xl font-bold text-xs max-md:hidden bg-primary text-on-accent shadow-xs hover:bg-primary-hover active:scale-95 transition-all ${searchOpen ? 'max-lg:hidden' : ''}`}
+            aria-label="Dodaj nowe wydarzenie"
+            title="Dodaj nowe wydarzenie (C)"
+          >
+            <span>Nowe</span>
           </Pressable>
         </div>
       }

@@ -127,6 +127,9 @@ export default function TodoCardConnected({
     addChildTask,
     setItems,
     setError,
+    isSelectMode,
+    selectedIds,
+    toggleSelectId,
   } = useTodoContext();
 
   const handlers = useTodoCardHandlers(item);
@@ -152,7 +155,6 @@ export default function TodoCardConnected({
   return (
     <div data-todo-id={item.id}>
     <TodoCard
-      key={item.id}
       item={item}
       busy={false}
       today={today}
@@ -192,6 +194,9 @@ export default function TodoCardConnected({
       onSetTitle={handlers.onSetTitle}
       onSetNotes={handlers.onSetNotes}
       onAddChildTask={onAddChildTask}
+      isSelectMode={isSelectMode}
+      isSelected={selectedIds.has(item.id)}
+      onToggleSelect={() => toggleSelectId(item.id)}
     />
     </div>
   );

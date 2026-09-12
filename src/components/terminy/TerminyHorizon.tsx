@@ -29,7 +29,113 @@ interface Props {
   onEdit: (id: string) => void;
   onComplete: (row: DerivedObligation) => void;
   onConvertToTodo: (row: DerivedObligation) => void;
+  onAddToCalendar?: (row: DerivedObligation) => void;
+  onExportICS?: (row: DerivedObligation) => void;
   onOpenAdd: (template?: StarterTemplate | null) => void;
+}
+
+function EmptyHorizonView({
+  searchQuery,
+  onOpenAdd,
+}: {
+  searchQuery?: string;
+  onOpenAdd: (template?: StarterTemplate | null) => void;
+}) {
+  if (searchQuery && searchQuery.trim()) {
+    return (
+      <EmptyState
+        icon="🔍"
+        label={`Brak terminów pasujących do frazy "${searchQuery.trim()}".`}
+      />
+    );
+  }
+  return (
+    <div className="space-y-6">
+      <EmptyState
+        icon="📅"
+        label="Brak terminów — dodaj urodziny, przegląd albo polisę."
+        action={{ label: 'Dodaj termin', onClick: () => onOpenAdd(null) }}
+      />
+      <div className="grid gap-3.5 sm:grid-cols-3">
+        {EMPTY_STARTERS.map((tpl) => (
+          <Pressable
+            key={tpl.id}
+            onClick={() => onOpenAdd(tpl)}
+            className="group relative flex flex-col justify-between rounded-[22px] border border-border-custom/30 bg-surface-solid/60 backdrop-blur-md p-4.5 text-left transition-all duration-200 ease-out hover:border-border-custom/60 hover:bg-surface-2/80 hover:shadow-md active:scale-[0.98]"
+          >
+            <div>
+              <span className="block text-3xs font-bold uppercase tracking-wider text-text-muted">
+                {LIFE_OBLIGATION_KIND_LABELS[tpl.kind]}
+              </span>
+              <span className="mt-1 block text-sm font-semibold tracking-tight text-text-primary">
+                {tpl.title}
+              </span>
+              <span className="mt-1 block text-xs leading-relaxed text-text-muted">
+                {tpl.blurb}
+              </span>
+            </div>
+            <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-primary">
+              <Plus size={14} strokeWidth={2.2} />
+              <span>Dodaj ten termin</span>
+            </div>
+          </Pressable>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function NextUrgentBanner({
+  next,
+  onEdit,
+}: {
+  next: DerivedObligation;
+  onEdit: (id: string) => void;
+}) {
+  return (
+    <section
+      role="button"
+      tabIndex={0}
+      onClick={() => onEdit(next.item.id)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onEdit(next.item.id);
+        }
+      }}
+      className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-white/20 dark:border-white/10 bg-gradient-to-br from-primary/20 via-surface-solid/90 to-surface-2/80 backdrop-blur-xl p-6.5 shadow-lg transition-all duration-200 ease-out active:scale-[0.98] hover:shadow-xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none md:p-8"
+    >
+      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
+      <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-1.5">
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary ring-1 ring-primary/30">
+            <Sparkles size={13} strokeWidth={2.2} />
+            Najbliższy termin
+          </p>
+          <h2 className="text-2xl font-bold tracking-tight text-text-primary md:text-3xl">
+            {next.item.title}
+          </h2>
+          <p className="flex items-center gap-2 text-xs font-medium text-text-secondary">
+            <span>{LIFE_OBLIGATION_KIND_LABELS[next.item.kind]}</span>
+            {next.item.related_name && <span>· {next.item.related_name}</span>}
+            <span>·</span>
+            <span className="inline-flex items-center gap-1 text-text-primary">
+              <Calendar size={13} strokeWidth={2} />
+              {formatLongDateWarsaw(next.nextDate)}
+            </span>
+          </p>
+        </div>
+        <div className="shrink-0 text-right md:text-right">
+          <p className="text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
+            {countdownLabel(next.daysLeft)}
+          </p>
+          <p className="mt-0.5 text-2xs font-medium text-text-muted">
+            Kliknij, aby edytować
+          </p>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 export function TerminyHorizon({
@@ -39,6 +145,8 @@ export function TerminyHorizon({
   onEdit,
   onComplete,
   onConvertToTodo,
+  onAddToCalendar,
+  onExportICS,
   onOpenAdd,
 }: Props) {
   const reduceMotion = useReducedMotion();
@@ -46,99 +154,12 @@ export function TerminyHorizon({
   const next = rows[0] ?? null;
 
   if (rows.length === 0) {
-    if (searchQuery && searchQuery.trim()) {
-      return (
-        <EmptyState
-          icon="🔍"
-          label={`Brak terminów pasujących do frazy "${searchQuery.trim()}".`}
-        />
-      );
-    }
-    return (
-      <div className="space-y-6">
-        <EmptyState
-          icon="📅"
-          label="Brak terminów — dodaj urodziny, przegląd albo polisę."
-          action={{ label: 'Dodaj termin', onClick: () => onOpenAdd(null) }}
-        />
-        <div className="grid gap-3.5 sm:grid-cols-3">
-          {EMPTY_STARTERS.map((tpl) => (
-            <Pressable
-              key={tpl.id}
-              onClick={() => onOpenAdd(tpl)}
-              className="group relative flex flex-col justify-between rounded-[22px] border border-border-custom/30 bg-surface-solid/60 backdrop-blur-md p-4.5 text-left transition-all duration-200 ease-out hover:border-border-custom/60 hover:bg-surface-2/80 hover:shadow-md active:scale-[0.98]"
-            >
-              <div>
-                <span className="block text-3xs font-bold uppercase tracking-wider text-text-muted">
-                  {LIFE_OBLIGATION_KIND_LABELS[tpl.kind]}
-                </span>
-                <span className="mt-1 block text-sm font-semibold tracking-tight text-text-primary">
-                  {tpl.title}
-                </span>
-                <span className="mt-1 block text-xs leading-relaxed text-text-muted">
-                  {tpl.blurb}
-                </span>
-              </div>
-              <div className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-primary">
-                <Plus size={14} strokeWidth={2.2} />
-                <span>Dodaj ten termin</span>
-              </div>
-            </Pressable>
-          ))}
-        </div>
-      </div>
-    );
+    return <EmptyHorizonView searchQuery={searchQuery} onOpenAdd={onOpenAdd} />;
   }
 
   return (
     <div className="space-y-8">
-      {next && (
-        <section
-          role="button"
-          tabIndex={0}
-          onClick={() => onEdit(next.item.id)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              onEdit(next.item.id);
-            }
-          }}
-          className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-white/20 dark:border-white/10 bg-gradient-to-br from-primary/20 via-surface-solid/90 to-surface-2/80 backdrop-blur-xl p-6.5 shadow-lg transition-all duration-200 ease-out active:scale-[0.98] hover:shadow-xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none md:p-8"
-        >
-          {/* Subtle Apple gradient ambient highlight */}
-          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
-
-          <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-            <div className="space-y-1.5">
-              <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary ring-1 ring-primary/30">
-                <Sparkles size={13} strokeWidth={2.2} />
-                Najbliższy termin
-              </p>
-              <h2 className="text-2xl font-bold tracking-tight text-text-primary md:text-3xl">
-                {next.item.title}
-              </h2>
-              <p className="flex items-center gap-2 text-xs font-medium text-text-secondary">
-                <span>{LIFE_OBLIGATION_KIND_LABELS[next.item.kind]}</span>
-                {next.item.related_name && <span>· {next.item.related_name}</span>}
-                <span>·</span>
-                <span className="inline-flex items-center gap-1 text-text-primary">
-                  <Calendar size={13} strokeWidth={2} />
-                  {formatLongDateWarsaw(next.nextDate)}
-                </span>
-              </p>
-            </div>
-
-            <div className="shrink-0 text-right md:text-right">
-              <p className="text-3xl font-extrabold tracking-tight text-text-primary md:text-4xl">
-                {countdownLabel(next.daysLeft)}
-              </p>
-              <p className="mt-0.5 text-2xs font-medium text-text-muted">
-                Kliknij, aby edytować
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
+      {next && <NextUrgentBanner next={next} onEdit={onEdit} />}
 
       {BUCKET_ORDER.map((bucket) => {
         const list = buckets[bucket];
@@ -173,6 +194,8 @@ export function TerminyHorizon({
                       onEdit={() => onEdit(row.item.id)}
                       onComplete={() => onComplete(row)}
                       onConvertToTodo={() => onConvertToTodo(row)}
+                      onAddToCalendar={onAddToCalendar}
+                      onExportICS={onExportICS}
                     />
                   </motion.li>
                 ))}

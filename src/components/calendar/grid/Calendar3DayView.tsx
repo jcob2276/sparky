@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { HOURS, PX_PER_HOUR, dayLabel, addDays, formatWeekdayShort } from '../calendarHelpers';
 import { WMO_WEATHER_DESC, getWMOWeatherIcon } from '../CalendarWeather';
 import { renderTimeGutter, renderDayColumn, renderAllDayTodos } from './CalendarGridColumns';
+import { AllDayStrip } from './AllDayStrip';
 import type { CalRow } from '../calendarHelpers';
 import type { CalendarTodo } from '../hooks/useCalendarTodos';
 import type { WeatherState } from '../hooks/useCalendarWeather';
@@ -12,10 +13,10 @@ import type { GoalChip } from './types';
 interface Calendar3DayViewProps {
   selectedDay: string;
   setSelectedDay: (day: string) => void;
+  setCalView: (view: 'dzien' | '3dni' | 'tydzien' | 'miesiac') => void;
   setWeekStart: (start: string) => void;
   weather: WeatherState | null | undefined;
   today: string;
-  nowMin: number;
   dragSelect: { day: string; startMin: number; currentMin: number } | null;
   goalChipFor: (sectionId: string | null) => GoalChip;
   completedTodoIds: Set<string>;
@@ -32,18 +33,20 @@ interface Calendar3DayViewProps {
   setToastMessage: (msg: string) => void;
   setSaving: (saving: boolean) => void;
   scheduleTodoAt: (todo: { id: string }, day: string, startMin: number, duration: number) => Promise<unknown>;
+  handleEventClick?: (ev: CalRow) => void;
   gridRef: React.RefObject<HTMLDivElement | null>;
 }
 
 export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
-  selectedDay, setSelectedDay, setWeekStart, weather, today, nowMin, dragSelect,
+  selectedDay, setSelectedDay, setCalView, setWeekStart, weather, today, dragSelect,
   goalChipFor, completedTodoIds, getEventsForDay, todosForDay, handleColumnMouseDown,
   handleColumnMouseMove, handleColumnClick, handleEventMouseDown, handleEventContextMenu, handleToggleTodo,
-  setEditingTodo, setEditingTodoTitle, setToastMessage, setSaving, scheduleTodoAt, gridRef,
+  setEditingTodo, setEditingTodoTitle, setToastMessage, setSaving, scheduleTodoAt, handleEventClick, gridRef,
 }) => {
   const topScrollRef = React.useRef<HTMLDivElement>(null);
   const days = [selectedDay, addDays(selectedDay, 1), addDays(selectedDay, 2)];
   const untimedByDay = days.map(day => todosForDay(day).filter(todo => !todo.scheduled_time));
+  const allDayByDay = days.map(day => getEventsForDay(day).filter(ev => ev.is_all_day));
 
   const movePeriod = (offset: number) => {
     const next = addDays(selectedDay, offset);
@@ -86,23 +89,46 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
               const isToday = day === today;
               const forecast = weather?.daily?.[day];
               return (
-                <div key={day} className="calendar-week-column flex flex-col items-center justify-center py-1.5 text-center">
-                  <p className={`text-xs font-black uppercase tracking-wider ${isToday ? 'text-primary' : 'text-text-secondary'}`}>
+                <div
+                  key={day}
+                  role="button"
+                  tabIndex={0}
+                  title="Otwórz dzień"
+                  onClick={() => {
+                    setSelectedDay(day);
+                    setCalView('dzien');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedDay(day);
+                      setCalView('dzien');
+                    }
+                  }}
+                  className="calendar-week-column group flex flex-col items-center justify-center py-2 text-center cursor-pointer rounded-xl hover:bg-surface-solid/40 active:scale-[0.98] transition-[transform,background-color] duration-150 ease-out"
+                >
+                  <p className={`text-2xs font-semibold tracking-wider uppercase ${isToday ? 'text-primary font-bold' : 'text-text-muted'}`}>
                     {formatWeekdayShort(day)}
                   </p>
                   {forecast && (
                     <div className="mt-0.5 flex items-center gap-1" title={`${WMO_WEATHER_DESC[forecast.weatherCode]}: ${forecast.tempMax}°C / ${forecast.tempMin}°C`}>
-                      {getWMOWeatherIcon(forecast.weatherCode, 12)}
-                      <span className="text-3xs font-bold text-text-muted">{forecast.tempMax}°</span>
+                      {getWMOWeatherIcon(forecast.weatherCode, 11)}
+                      <span className="text-3xs font-medium text-text-muted">{forecast.tempMax}°</span>
                     </div>
                   )}
-                  <span className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-black ${isToday ? 'bg-primary text-on-accent' : 'text-text-primary'}`}>
+                  <span className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition-all ${isToday ? 'bg-primary text-on-accent shadow-xs' : 'text-text-primary group-hover:bg-surface-solid'}`}>
                     {parseInt(day.split('-')[2])}
                   </span>
                 </div>
               );
             })}
           </div>
+          <AllDayStrip
+            days={days}
+            allDayByDay={allDayByDay}
+            gutterWidth={44}
+            onEventClick={(ev) => handleEventClick?.(ev)}
+          />
           {renderAllDayTodos({
             days, untimedByDay, goalChipFor, completedTodoIds, handleToggleTodo,
             setEditingTodo, setEditingTodoTitle, setToastMessage,
@@ -124,10 +150,10 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
           {days.map(day => (
             <div key={day} data-day-col={day} className={`calendar-week-column relative border-l border-border-custom/50 ${day === today ? 'bg-primary/[0.03]' : ''}`}>
               {renderDayColumn({
-                day, today, nowMin, dayEvents: getEventsForDay(day),
+                day, today, dayEvents: getEventsForDay(day).filter(ev => !ev.is_all_day),
                 dayTodos: todosForDay(day).filter(todo => todo.scheduled_time), dragSelect,
                 goalChipFor, completedTodoIds, handleColumnMouseDown, handleColumnMouseMove,
-                handleColumnClick, handleEventMouseDown, handleEventContextMenu, handleToggleTodo, setEditingTodo, setEditingTodoTitle,
+                handleColumnClick, handleEventMouseDown, handleEventContextMenu, handleEventClick, handleToggleTodo, setEditingTodo, setEditingTodoTitle,
                 setToastMessage, setSaving, scheduleTodoAt,
               })}
             </div>

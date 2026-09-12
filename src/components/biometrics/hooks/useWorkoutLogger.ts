@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '../../../lib/supabase';
 import { getTodayWarsaw } from '../../../lib/date';
 import { useHaptics } from '../../../hooks/useHaptics';
 import { notify, confirmDialog } from '../../../lib/notify';
@@ -271,7 +270,6 @@ export function useWorkoutLogger({
 
     setSaving(true);
     try {
-      await supabase.auth.getSession();
       const { queued, rpeMismatch } = await saveWorkoutSession(userId, {
         workoutName,
         exercises,

@@ -11,6 +11,7 @@ import { GOAL_ICON } from '../../todo/todoUtils';
 import { getSunTimes, formatTimeWarsaw } from '../../../lib/solar';
 import { WMO_WEATHER_DESC, getWMOWeatherIcon } from '../CalendarWeather';
 import { renderEventBlock, renderTodoBlock } from './CalendarGridBlocks';
+import { NowLine } from './NowLine';
 import type {
   CalendarGridTimeGutterProps,
   CalendarGridColumnProps,
@@ -64,7 +65,7 @@ export const renderTimeGutter = ({
                 </span>
               </div>
             )}
-            <span className="text-xs font-black text-text-primary text-right pr-2">
+            <span className="text-2xs font-semibold text-text-muted/80 text-right pr-2 tabular-nums select-none tracking-tight">
               {String(absoluteHour).padStart(2, '0')}:00
             </span>
           </div>
@@ -78,7 +79,6 @@ export const renderDayColumn = ({
   day,
   colClass = '',
   today,
-  nowMin,
   dayEvents,
   dayTodos,
   dragSelect,
@@ -89,6 +89,7 @@ export const renderDayColumn = ({
   handleColumnClick,
   handleEventMouseDown,
   handleEventContextMenu,
+  handleEventClick,
   handleToggleTodo,
   setEditingTodo,
   setEditingTodoTitle,
@@ -96,9 +97,6 @@ export const renderDayColumn = ({
   setSaving,
   scheduleTodoAt,
 }: CalendarGridColumnProps) => {
-  const isToday = day === today;
-  const nowLine = isToday ? (nowMin - HOUR_START * 60) * PX_PER_MIN : null;
-
   const showSelection = dragSelect && dragSelect.day === day;
   const startMin = showSelection ? Math.min(dragSelect!.startMin, dragSelect!.currentMin) : 0;
   const endMin = showSelection ? Math.max(dragSelect!.startMin, dragSelect!.currentMin) : 0;
@@ -108,6 +106,7 @@ export const renderDayColumn = ({
   return (
     <div
       key={day}
+      data-day-col={day}
       className={`relative flex-1 min-w-0 ${colClass}`}
       style={{ height: HOURS * PX_PER_HOUR }}
       onMouseDown={(e) => handleColumnMouseDown(day, e)}
@@ -143,20 +142,25 @@ export const renderDayColumn = ({
       }}
     >
       {Array.from({ length: HOURS }, (_, i) => (
-        <div
-          key={i}
-          className="absolute left-0 right-0 border-b border-border-custom/35 pointer-events-none"
-          style={{ top: i * PX_PER_HOUR, height: PX_PER_HOUR }}
-        />
+        <React.Fragment key={i}>
+          <div
+            className="absolute left-0 right-0 border-b border-border-custom/25 pointer-events-none"
+            style={{ top: i * PX_PER_HOUR, height: PX_PER_HOUR }}
+          />
+          <div
+            className="absolute left-0 right-0 border-b border-border-custom/10 border-dashed pointer-events-none"
+            style={{ top: i * PX_PER_HOUR + PX_PER_HOUR / 2 }}
+          />
+        </React.Fragment>
       ))}
 
       {showSelection && selectionHeight > 0 && (
         <div
-          className="absolute left-0 right-0 bg-primary/20 border border-primary/50 rounded-md pointer-events-none z-[var(--z-sticky)] flex items-center justify-center shadow-lg"
-          style={{ top: selectionTop, height: selectionHeight }}
+          className="absolute left-0.5 right-0.5 bg-primary/12 border border-primary/40 rounded-lg pointer-events-none z-[var(--z-sticky)] flex items-center justify-center shadow-xs backdrop-blur-xs transition-[top,height] duration-75"
+          style={{ top: selectionTop, height: Math.max(18, selectionHeight) }}
         >
-          <span className="text-2xs font-black text-primary bg-background border border-border-custom/40 px-1.5 py-0.5 rounded shadow-md tabular-nums">
-            {Math.floor(startMin / 60)}:{String(startMin % 60).padStart(2, '0')} - {Math.floor(endMin / 60)}:{String(endMin % 60).padStart(2, '0')}
+          <span className="text-2xs font-semibold text-primary bg-background/95 border border-border-custom/50 px-2 py-0.5 rounded-full shadow-2xs tabular-nums">
+            {Math.floor(startMin / 60)}:{String(startMin % 60).padStart(2, '0')} – {Math.floor(endMin / 60)}:{String(endMin % 60).padStart(2, '0')}
           </span>
         </div>
       )}
@@ -166,7 +170,7 @@ export const renderDayColumn = ({
           const layout = layouts.get(ev.id) || { left: '0%', width: '100%' };
           return (
             <React.Fragment key={ev.id}>
-              {renderEventBlock({ ev, left: layout.left, width: layout.width, handleEventMouseDown, handleEventContextMenu })}
+              {renderEventBlock({ ev, left: layout.left, width: layout.width, handleEventMouseDown, handleEventContextMenu, handleEventClick })}
             </React.Fragment>
           );
         });
@@ -207,15 +211,7 @@ export const renderDayColumn = ({
           </>
         );
       })()}
-      {nowLine !== null && nowLine >= 0 && (
-        <div className="absolute left-0 right-0 flex items-center pointer-events-none z-[var(--z-popover)]" style={{ top: nowLine }}>
-          <span className="apple-now-dot flex items-center gap-1 rounded-full bg-danger px-1.5 py-0.5 text-2xs font-black text-on-accent shadow-md ml-0.5 shrink-0 select-none">
-            <span className="w-1.5 h-1.5 rounded-full bg-on-accent animate-pulse" />
-            {String(Math.floor(nowMin / 60)).padStart(2, '0')}:{String(nowMin % 60).padStart(2, '0')}
-          </span>
-          <div className="flex-1 h-[2px] bg-danger shadow-xs shadow-danger/40" />
-        </div>
-      )}
+      <NowLine day={day} today={today} />
     </div>
   );
 };

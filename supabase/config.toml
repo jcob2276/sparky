@@ -120,6 +120,10 @@ verify_jwt = false
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/sync/*.html" ]
 
+[functions.calendar-watch]
+import_map = "./functions/import_map.json"
+verify_jwt = false
+
 [functions.vanguard-backtester]
 import_map = "./functions/import_map.json"
 verify_jwt = false

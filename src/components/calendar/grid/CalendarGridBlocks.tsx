@@ -10,6 +10,7 @@ import {
   detectVideoCallUrl,
 } from '../calendarHelpers';
 import { GOAL_ICON } from '../../todo/todoUtils';
+import { EventQuickActions } from './EventQuickActions';
 import type {
   CalendarGridEventBlockProps,
   CalendarGridTodoBlockProps,
@@ -21,6 +22,7 @@ export const renderEventBlock = ({
   width,
   handleEventMouseDown,
   handleEventContextMenu,
+  handleEventClick,
 }: CalendarGridEventBlockProps) => {
   if (!ev.start_time || !ev.end_time) return null;
   const startMin = parseTime(ev.start_time);
@@ -51,8 +53,8 @@ export const renderEventBlock = ({
     }
   }
 
-  const textColor = isFocusTime ? 'text-primary dark:text-primary-hover' : 'text-white';
-  const subtextColor = isFocusTime ? 'text-primary/80 dark:text-primary-hover/80' : 'text-white/90';
+  const textColor = isFocusTime ? 'text-primary dark:text-primary-hover' : 'text-current';
+  const subtextColor = isFocusTime ? 'text-primary/80 dark:text-primary-hover/80' : 'text-current/75 font-semibold';
 
   return (
     <div
@@ -63,7 +65,7 @@ export const renderEventBlock = ({
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          handleEventMouseDown(ev, e as unknown as React.MouseEvent<HTMLDivElement>, 'move');
+          handleEventClick?.(ev);
         }
       }}
       onMouseDown={(e) => handleEventMouseDown(ev, e, 'move')}
@@ -72,34 +74,45 @@ export const renderEventBlock = ({
         e.stopPropagation();
         handleEventContextMenu?.(ev, e);
       }}
-      className={`apple-event-card absolute border-l-[3.5px] rounded-r-lg ${
-        tooShort ? 'px-2 py-0.5 flex items-center justify-start' : 'px-2 py-1 flex flex-col justify-between'
-      } overflow-hidden cursor-move shadow-xs hover:shadow-md hover:z-[var(--z-popover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 select-none ${eventColor(ev)}`}
+      className={`apple-event-card group absolute border-l-[4px] rounded-lg ${
+        tooShort ? 'px-2 py-0.5 flex items-center justify-start' : 'px-2.5 py-1.5 flex flex-col justify-between'
+      } overflow-hidden cursor-move shadow-2xs hover:shadow-md hover:brightness-[1.02] active:scale-[0.985] transition-[transform,box-shadow,filter] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 select-none ${eventColor(ev)}`}
       style={{ top, height, left: `calc(${left} + 1px)`, width: `calc(${width} - 2px)` }}
       title={ev.summary || ''}
     >
+      {!tooShort && <EventQuickActions ev={ev} />}
       <div className="flex items-start gap-1 min-w-0 w-full justify-start">
-        {isAIScheduled && !tooShort && <Sparkles size={11} className="shrink-0 animate-pulse text-amber-500 mt-0.5" />}
+        {isAIScheduled && !tooShort && <Sparkles size={11} className="shrink-0 animate-pulse text-warning mt-0.5" />}
         {isFocusTime && !tooShort && <Shield size={11} className="shrink-0 text-current mt-0.5" />}
         {videoCall && !tooShort && <Video size={11} className="shrink-0 text-current mt-0.5" />}
-        <p className={`${textColor} ${tooShort ? 'text-xs truncate font-black' : isMedium ? 'text-xs font-black leading-tight break-words line-clamp-2' : 'text-xs md:text-sm font-black leading-snug break-words line-clamp-4'}`}>
+        <p className={`${textColor} ${tooShort ? 'text-xs truncate font-bold' : isMedium ? 'text-xs font-bold leading-snug break-words line-clamp-2' : 'text-xs md:text-sm font-bold leading-snug break-words line-clamp-4'}`}>
           {displaySummary}
         </p>
       </div>
       {!tooShort && (
-        <div className={`mt-0.5 text-2xs font-bold tracking-wider uppercase ${subtextColor} flex items-center justify-between shrink-0`}>
+        <div className={`mt-0.5 text-2xs font-medium tabular-nums ${subtextColor} flex items-center justify-between shrink-0`}>
           <span>{startStr}–{endStr}</span>
           {videoCall && (
-            <span className="inline-flex items-center gap-0.5 px-1 py-0.5 rounded bg-white/25 text-white font-bold text-2xs">
+            <a
+              href={videoCall.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-black/10 dark:bg-white/15 hover:bg-black/20 dark:hover:bg-white/25 text-current font-bold text-3xs cursor-pointer transition-colors shadow-2xs"
+              title={`Dołącz do spotkania (${videoCall.provider}): ${videoCall.url}`}
+            >
               📹 {videoCall.provider}
-            </span>
+            </a>
           )}
         </div>
       )}
       <div
         onMouseDown={(e) => handleEventMouseDown(ev, e, 'resize')}
-        className="absolute bottom-0 left-0 right-0 h-2.5 cursor-s-resize hover:bg-black/10 dark:hover:bg-white/10 z-[var(--z-sticky)]"
-      />
+        className="absolute bottom-0 left-0 right-0 h-2 cursor-s-resize group-hover:bg-current/10 z-[var(--z-sticky)] flex items-center justify-center"
+      >
+        <span className="w-4 h-0.5 rounded-full bg-current/20 group-hover:bg-current/40 opacity-0 group-hover:opacity-100 transition-opacity duration-100" />
+      </div>
     </div>
   );
 };
@@ -151,11 +164,11 @@ export const renderTodoBlock = ({
         setEditingTodo(todo);
         setEditingTodoTitle(todo.title);
       }}
-      className={`absolute right-1 w-[min(180px,calc(100%-8px))] rounded-lg border border-primary/40 bg-background/95 shadow-md hover:bg-surface-solid px-2 py-1 overflow-hidden transition-all duration-[var(--motion-fast)] z-[var(--z-popover)] cursor-grab active:cursor-grabbing ${isCompleting ? 'opacity-[var(--opacity-50)]' : ''}`}
+      className={`absolute right-1 w-[min(180px,calc(100%-8px))] rounded-lg border border-primary/30 bg-surface-solid/90 hover:bg-surface-solid shadow-2xs hover:shadow-md px-2 py-1 overflow-hidden transition-[transform,background-color,border-color] duration-150 ease-out z-[var(--z-popover)] cursor-grab active:cursor-grabbing active:scale-[0.98] ${isCompleting ? 'opacity-[var(--opacity-50)]' : ''}`}
       style={{ top, height }}
     >
       <div className="flex items-start gap-0.5">
-        <p className={`flex items-center gap-1 text-xs font-bold text-primary leading-tight line-clamp-2 ${isCompleting ? 'line-through' : ''}`}>
+        <p className={`flex items-center gap-1 text-xs font-semibold text-primary leading-tight line-clamp-2 ${isCompleting ? 'line-through' : ''}`}>
           {GoalIcon && <GoalIcon size={10} className="shrink-0" />}
           <span className="truncate">{todo.title}</span>
         </p>

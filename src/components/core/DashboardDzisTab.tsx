@@ -83,10 +83,12 @@ export function DashboardDzisTab() {
         <div className="space-y-5">
           {weeklyReviewNudge}
           <PowerList session={session} todayWin={s.todayWin} onUpdate={s.refresh} planDaySignal={s.planDaySignal} />
-          <FoodQuickCapture
-            refreshSignal={s.nutritionKey}
-            onSaved={() => { s.refresh(); s.setNutritionKey(k => k + 1); }}
-          />
+          <div id="meal-composer">
+            <FoodQuickCapture
+              refreshSignal={s.nutritionKey}
+              onSaved={() => { s.refresh(); s.setNutritionKey(k => k + 1); }}
+            />
+          </div>
           <Suspense fallback={null}>
             <TodayRunwayCard />
           </Suspense>

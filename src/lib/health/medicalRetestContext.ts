@@ -37,7 +37,7 @@ export function findLatestFullPanel(
 export const SCORE_MARKER_KEYS: Record<string, string[]> = {
   ironHandling: ['ferritin', 'hemoglobin'],
   lipidPattern: ['hdl_cholesterol', 'ldl_cholesterol_calculated', 'triglycerides', 'cholesterol_total'],
-  thyroidContext: ['tsh'],
+  thyroidContext: ['tsh', 'ft3', 'ft4'],
   vitaminDMineral: ['vitamin_d_25oh', 'magnesium_serum'],
   metabolicGlucose: ['glucose'],
 };

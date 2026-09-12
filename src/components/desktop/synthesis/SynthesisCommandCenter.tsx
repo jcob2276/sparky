@@ -16,6 +16,16 @@ const domainLabel: Partial<Record<SynthesisDomain, string>> = {
   calendar: 'Kalendarz',
 };
 
+const sourceLabel: Partial<Record<string, string>> = {
+  todo: 'Zadanie',
+  obligation: 'Zobowiązanie',
+  training: 'Trening',
+  medical_prevention: 'Zdrowie',
+  oracle_recommendation: 'Rekomendacja',
+  system_proposal: 'Propozycja',
+  healthspan: 'Kondycja',
+};
+
 const trajectoryView: Record<DomainTrajectory, { label: string; tone: string; icon: typeof ArrowRight }> = {
   improving: { label: 'rośnie', tone: 'text-success', icon: ArrowUpRight },
   stable: { label: 'stabilnie', tone: 'text-text-secondary', icon: ArrowRight },
@@ -102,7 +112,7 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
         </div>
 
         <div className="space-y-4">
-          <PanelTitle>Trzy dźwignie</PanelTitle>
+          <PanelTitle>Kluczowe ruchy na dziś</PanelTitle>
           <div className="space-y-2">
             {synthesis.levers.map((lever, index) => (
               <article key={lever.id} className="flex items-center gap-3 rounded-xl border border-border-custom px-3 py-3">
@@ -112,7 +122,7 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold">{lever.title}</p>
                   <p className="text-3xs text-text-muted">
-                    {domainLabel[lever.domain]} · priorytet {lever.score ?? '—'}
+                    {domainLabel[lever.domain]} · {sourceLabel[lever.source] ?? 'Ruch'}{lever.dueDate ? ` · Termin: ${lever.dueDate}` : ''}
                   </p>
                 </div>
                 {supportsDecision(lever) && (
@@ -179,7 +189,18 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
           ))}
         </div>
       </div>
-      <CandidateQueue candidates={synthesis.candidates} />
+      {(() => {
+        const leverTitles = new Set(synthesis.levers.map((l) => l.title.trim().toLowerCase()));
+        const leverIds = new Set(synthesis.levers.map((l) => l.id));
+        const seenTitles = new Set<string>();
+        const queueCandidates = synthesis.candidates.filter((c) => {
+          const norm = c.title.trim().toLowerCase();
+          if (leverIds.has(c.id) || leverTitles.has(norm) || seenTitles.has(norm)) return false;
+          seenTitles.add(norm);
+          return true;
+        });
+        return <CandidateQueue candidates={queueCandidates} />;
+      })()}
       <RecommendationOutcomes outcomes={synthesis.recommendationOutcomes} />
     </section>
   );
@@ -196,12 +217,12 @@ function CandidateQueue({ candidates }: { candidates: DecisionCandidate[] }) {
   if (!candidates.length) return null;
   return (
     <div className="border-t border-border-custom px-5 py-4">
-      <PanelTitle>Jedna kolejka kandydatów</PanelTitle>
+      <PanelTitle>{`Kolejne w kolejce (${candidates.length})`}</PanelTitle>
       <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
         {candidates.slice(0, 8).map((candidate) => (
           <div key={candidate.id} className="min-w-56 rounded-xl border border-border-custom px-3 py-2.5">
             <p className="text-3xs font-bold uppercase tracking-wide text-text-muted">
-              {domainLabel[candidate.domain]} · {candidate.source.replaceAll('_', ' ')}
+              {domainLabel[candidate.domain]} · {sourceLabel[candidate.source] ?? 'Zadanie'}
             </p>
             <p className="mt-1 truncate text-sm font-bold">{candidate.title}</p>
           </div>

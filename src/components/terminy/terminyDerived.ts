@@ -111,82 +111,62 @@ export function isYmd(dateStr: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
 }
 
-export interface StarterTemplate {
-  id: string;
-  kind: LifeObligationKind;
-  /** Domyślna nazwa typu (bez osób / marek). */
-  title: string;
-  related_name: string | null;
-  monthsAhead: number;
-  blurb: string;
-  titlePlaceholder: string;
-  relatedPlaceholder: string;
+export {
+  type StarterTemplate,
+  STARTER_TEMPLATES,
+  templatesForKind,
+} from './terminyTemplates';
+
+export function getMonthlyCounts(rows: DerivedObligation[]): Record<number, number> {
+  const counts: Record<number, number> = {
+    1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0,
+  };
+  for (const row of rows) {
+    if (row.nextDate) {
+      const monthNum = parseInt(row.nextDate.split('-')[1], 10);
+      if (monthNum >= 1 && monthNum <= 12) {
+        counts[monthNum] = (counts[monthNum] || 0) + 1;
+      }
+    }
+  }
+  return counts;
 }
 
-/** Szybkie typy — nie przykłady z życia („Mama”). */
-export const STARTER_TEMPLATES: StarterTemplate[] = [
-  {
-    id: 'birthday',
-    kind: 'people',
-    title: 'Urodziny',
-    related_name: null,
-    monthsAhead: 2,
-    blurb: 'Przypomnienia 14 · 7 · w dniu',
-    titlePlaceholder: 'np. Urodziny',
-    relatedPlaceholder: 'Imię osoby',
-  },
-  {
-    id: 'anniversary',
-    kind: 'people',
-    title: 'Rocznica',
-    related_name: null,
-    monthsAhead: 3,
-    blurb: 'Przypomnienia 14 · 7 · w dniu',
-    titlePlaceholder: 'np. Rocznica',
-    relatedPlaceholder: 'Imię / opis',
-  },
-  {
-    id: 'vehicle-inspection',
-    kind: 'vehicle',
-    title: 'Przegląd techniczny',
-    related_name: null,
-    monthsAhead: 1,
-    blurb: 'Przypomnienia 30 · 14 · 7',
-    titlePlaceholder: 'np. Przegląd techniczny',
-    relatedPlaceholder: 'Marka / rejestracja',
-  },
-  {
-    id: 'vehicle-insurance',
-    kind: 'vehicle',
-    title: 'Ubezpieczenie OC',
-    related_name: null,
-    monthsAhead: 2,
-    blurb: 'Przypomnienia 30 · 14 · 7',
-    titlePlaceholder: 'np. Ubezpieczenie OC',
-    relatedPlaceholder: 'Marka / rejestracja',
-  },
-  {
-    id: 'insurance-policy',
-    kind: 'document',
-    title: 'Polisa',
-    related_name: null,
-    monthsAhead: 3,
-    blurb: 'Przypomnienia 60 · 30 · 14',
-    titlePlaceholder: 'np. Polisa mieszkania',
-    relatedPlaceholder: 'Co obejmuje (opcjonalnie)',
-  },
-  {
-    id: 'passport',
-    kind: 'document',
-    title: 'Paszport / dowód',
-    related_name: null,
-    monthsAhead: 6,
-    blurb: 'Przypomnienia 60 · 30 · 14',
-    titlePlaceholder: 'np. Paszport',
-    relatedPlaceholder: 'Dla kogo (opcjonalnie)',
-  },
-];
+export function buildICSContent(rows: DerivedObligation[]): string {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Sparky OS//Terminy//PL',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+  ];
 
-export function templatesForKind(kind: LifeObligationKind): StarterTemplate[] {
-  return STARTER_TEMPLATES.filter((t) => t.kind === kind);
+  for (const row of rows) {
+    const d = row.nextDate.replace(/-/g, '');
+    lines.push(
+      'BEGIN:VEVENT',
+      `UID:termin-${row.item.id}@sparky.local`,
+      `DTSTAMP:${d}T090000Z`,
+      `DTSTART;VALUE=DATE:${d}`,
+      `SUMMARY:${row.item.title}${row.item.related_name ? ` (${row.item.related_name})` : ''}`,
+      `DESCRIPTION:${(row.item.notes || 'Termin z Vanguard OS').replace(/\n/g, '\\n')}`,
+      'TRANSP:TRANSPARENT',
+      'END:VEVENT',
+    );
+  }
+
+  lines.push('END:VCALENDAR');
+  return lines.join('\r\n');
 }
+
+export function downloadICSFile(filename: string, icsContent: string) {
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = filename.endsWith('.ics') ? filename : `${filename}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+}
+

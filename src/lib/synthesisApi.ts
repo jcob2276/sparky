@@ -9,7 +9,7 @@ import {
   type SynthesisFactor,
 } from '@vanguard/domain';
 import { supabase } from './supabase';
-import { getTodayWarsaw, shiftDateStr } from './date';
+import { formatWarsawDate, getTodayWarsaw, shiftDateStr } from './date';
 import { synthesisKeys } from './queryKeys';
 import {
   projectLifeObligations,
@@ -25,6 +25,7 @@ import {
   savePreventionAction,
 } from './health/medicalRecordsApi';
 import { buildPreventionSuggestions } from './health/medicalRecords';
+import { computeAgeFromBirthDate } from './health/medicalRetestSuggestions';
 import { fetchHealthspanProfile } from './healthspanApi';
 
 const numeric = (value: unknown) => typeof value === 'number' ? value : null;
@@ -38,18 +39,7 @@ const completionRatio = (row: Record<string, unknown>) => {
   return present.filter((index) => row[`done_${index}`]).length / present.length * 100;
 };
 
-const ageFromBirthDate = (birthDate: string | null, today: string) => {
-  if (!birthDate) return null;
-  const birth = new Date(`${birthDate}T12:00:00Z`);
-  const now = new Date(`${today}T12:00:00Z`);
-  let age = now.getUTCFullYear() - birth.getUTCFullYear();
-  if (
-    now.getUTCMonth() < birth.getUTCMonth()
-    || (now.getUTCMonth() === birth.getUTCMonth() && now.getUTCDate() < birth.getUTCDate())
-  ) age--;
-  return age;
-};
-
+// eslint-disable-next-line max-lines-per-function
 async function fetchSynthesis(userId: string, today = getTodayWarsaw()): Promise<SparkySynthesis> {
   const since = shiftDateStr(today, -13);
   const until = shiftDateStr(today, 30);
@@ -67,9 +57,9 @@ async function fetchSynthesis(userId: string, today = getTodayWarsaw()): Promise
     supabase.from('vanguard_calendar').select('id, summary, start_time, end_time')
       .eq('user_id', userId).gte('start_time', `${today}T00:00:00`).lte('start_time', `${until}T23:59:59`).order('start_time'),
     supabase.from('todo_items').select('id, title, priority, due_date, deadline_date, duration_minutes, status, updated_at')
-      .eq('user_id', userId).neq('status', 'completed').order('updated_at', { ascending: false }).limit(80),
+      .eq('user_id', userId).eq('status', 'open').order('updated_at', { ascending: false }).limit(80),
     supabase.from('life_obligations').select('id, title, anchor_date, kind, updated_at')
-      .eq('user_id', userId).eq('is_active', true).lte('anchor_date', until),
+      .eq('user_id', userId).eq('is_active', true).gte('anchor_date', today).lte('anchor_date', until),
     supabase.from('system_proposals').select('id, title, body, proposal_type, status, created_at')
       .eq('user_id', userId).eq('status', 'pending'),
     supabase.from('oracle_recommendations').select('id, recommendation_text, related_metric, status, created_at, evaluation_window_days, outcome, decision_status, baseline_value, actual_value, evaluated_at')
@@ -85,7 +75,7 @@ async function fetchSynthesis(userId: string, today = getTodayWarsaw()): Promise
   const suggestions = buildPreventionSuggestions({
     events: medicalEvents,
     today,
-    age: ageFromBirthDate(profileRes.data?.birth_date ?? null, today),
+    age: computeAgeFromBirthDate(profileRes.data?.birth_date ?? null, today),
   });
   const candidates = [
     ...projectTodoItems(todoRes.data ?? [], today),
@@ -115,7 +105,11 @@ async function fetchSynthesis(userId: string, today = getTodayWarsaw()): Promise
   const strainRows = strainRes.data ?? [];
   const nutritionRows = nutritionRes.data ?? [];
   const winRows = (winsRes.data ?? []) as Array<Record<string, unknown>>;
-  const calendarMinutes = (calendarRes.data ?? []).reduce((sum, row) => {
+  const todayEvents = (calendarRes.data ?? []).filter((row) => {
+    if (!row.start_time) return false;
+    return formatWarsawDate(row.start_time) === today;
+  });
+  const calendarMinutes = todayEvents.reduce((sum, row) => {
     if (!row.start_time) return sum;
     const start = new Date(row.start_time).getTime();
     const end = row.end_time ? new Date(row.end_time).getTime() : start;
@@ -162,7 +156,11 @@ async function fetchSynthesis(userId: string, today = getTodayWarsaw()): Promise
     });
   }
 
-  const plannedMinutes = candidates.reduce((sum, item) => sum + item.effort * 1.2, 0);
+  const todayCandidates = candidates.filter((item) => (
+    item.dueDate === today || item.status === 'accepted'
+  ));
+  const focusCandidates = todayCandidates.length > 0 ? todayCandidates : candidates.slice(0, 3);
+  const plannedMinutes = focusCandidates.reduce((sum, item) => sum + item.effort * 1.2, 0);
   const conflicts = detectConflicts({
     recoveryTrajectory,
     trainingIntensityPlanned: (trainingRes.data ?? []).some((row) => /interval|tempo|vo2|threshold/i.test(`${row.workout_type} ${row.workout_name}`)),
@@ -182,6 +180,13 @@ async function fetchSynthesis(userId: string, today = getTodayWarsaw()): Promise
     freshnessScores: [100, 90, 90, 100, 90].slice(0, Math.max(1, available)),
     evidenceScores: factors.map((factor) => factor.confidence),
   });
+  const formatMetricValue = (value: unknown): string => {
+    if (value == null || value === '') return '—';
+    const num = Number(value);
+    if (!Number.isFinite(num)) return String(value);
+    return num % 1 === 0 ? String(num) : num.toFixed(2);
+  };
+
   const recommendationOutcomes = (recommendationsRes.data ?? [])
     .filter((row) => row.status === 'evaluated' && row.outcome)
     .slice(0, 5)
@@ -191,7 +196,7 @@ async function fetchSynthesis(userId: string, today = getTodayWarsaw()): Promise
       outcome: row.outcome as 'success' | 'fail' | 'inconclusive' | 'no_data',
       explanation: row.outcome === 'no_data'
         ? 'Brak wystarczających danych do uczciwej oceny.'
-        : `Wartość bazowa ${row.baseline_value ?? '—'} → wynik ${row.actual_value ?? '—'}.`,
+        : `Wartość bazowa ${formatMetricValue(row.baseline_value)} → wynik ${formatMetricValue(row.actual_value)}.`,
       evaluatedAt: row.evaluated_at,
     }));
   return buildSynthesis({
@@ -222,7 +227,7 @@ export function useSynthesisDecisionMutation(userId: string | undefined) {
       if (!userId) throw new Error('Brak użytkownika');
       const { candidate, decision } = input;
       if (candidate.source === 'todo' && decision === 'complete') {
-        const { error } = await supabase.from('todo_items').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', candidate.sourceId).eq('user_id', userId);
+        const { error } = await supabase.from('todo_items').update({ status: 'done', completed_at: new Date().toISOString() }).eq('id', candidate.sourceId).eq('user_id', userId);
         if (error) throw error;
       } else if (candidate.source === 'system_proposal') {
         const status = decision === 'dismiss' ? 'dismissed' : 'confirmed';

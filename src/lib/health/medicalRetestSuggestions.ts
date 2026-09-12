@@ -1,5 +1,6 @@
 import { formatMedicalDate, type MarkerSeries } from './medicalAnalytics';
 import { optimalStatus } from '../getBased/markerBridge';
+import { getTodayWarsaw } from '../date';
 import {
   SCORE_MARKER_KEYS,
   scoreHasEvidence,
@@ -21,14 +22,42 @@ export type MedicalUserContext = {
   trainingHint: string | null;
 };
 
-export function computeAgeFromBirthDate(birthDate: string | null | undefined): number | null {
-  if (!birthDate) return null;
-  const born = new Date(`${birthDate.slice(0, 10)}T12:00:00Z`);
-  if (!Number.isFinite(born.getTime())) return null;
-  const now = new Date();
-  let age = now.getFullYear() - born.getFullYear();
-  const m = now.getMonth() - born.getMonth();
-  if (m < 0 || (m === 0 && now.getDate() < born.getDate())) age--;
+type RetestSuggestionCategory = 'toDiscuss' | 'toVerify' | 'missing' | 'toRefresh';
+
+export interface RetestSuggestionGroups {
+  toDiscuss: RetestSuggestion[];
+  toVerify: RetestSuggestion[];
+  missing: RetestSuggestion[];
+  toRefresh: RetestSuggestion[];
+}
+
+export function categorizeRetestSuggestions(suggestions: RetestSuggestion[]): RetestSuggestionGroups {
+  return suggestions.reduce<RetestSuggestionGroups>((acc, curr) => {
+    const text = (curr.title + ' ' + curr.reason).toLowerCase();
+    if (text.includes('lekarz') || text.includes('specjalist') || curr.priority === 'high') {
+      acc.toDiscuss.push(curr);
+    } else if (text.includes('odchyle') || text.includes('potwierdz') || text.includes('spade')) {
+      acc.toVerify.push(curr);
+    } else if (text.includes('brak') || text.includes('niekomplet')) {
+      acc.missing.push(curr);
+    } else {
+      acc.toRefresh.push(curr);
+    }
+    return acc;
+  }, { toDiscuss: [], toVerify: [], missing: [], toRefresh: [] });
+}
+
+/** Wiek w latach na dany dzień, liczony czysto na kluczach dat — bez stref czasowych. */
+export function computeAgeFromBirthDate(
+  birthDate: string | null | undefined,
+  today: string = getTodayWarsaw(),
+): number | null {
+  const birth = birthDate?.slice(0, 10) ?? '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(birth) || !/^\d{4}-\d{2}-\d{2}$/.test(today)) return null;
+  const [birthYear, birthMonth, birthDay] = birth.split('-').map(Number);
+  const [todayYear, todayMonth, todayDay] = today.split('-').map(Number);
+  let age = todayYear - birthYear;
+  if (todayMonth < birthMonth || (todayMonth === birthMonth && todayDay < birthDay)) age--;
   return age >= 0 && age < 120 ? age : null;
 }
 export function buildRetestSuggestions(input: {

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { updateTodoItem } from '../../lib/todo/todo';
 import type { TodoItemUpdate } from '../../lib/todo/todo';
+import { Check } from 'lucide-react';
+import { Pressable } from '../ui/ControlPrimitives';
 
 interface Item {
   id: string;
@@ -93,6 +95,18 @@ export default function EisenhowerMatrix({ items, setItems }: Props) {
     });
   }
 
+  function completeTask(id: string) {
+    const completedAt = new Date().toISOString();
+    setItems((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, status: 'done' } : i)),
+    );
+    updateTodoItem(id, { status: 'done', completed_at: completedAt }).catch(() => {
+      setItems((prev) =>
+        prev.map((i) => (i.id === id ? { ...i, status: 'open' } : i)),
+      );
+    });
+  }
+
   return (
     <div className="p-4 pb-24">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 max-w-[var(--ds-maxw-700px)] mx-auto">
@@ -135,9 +149,20 @@ export default function EisenhowerMatrix({ items, setItems }: Props) {
                     key={item.id}
                     draggable
                     onDragStart={(e) => e.dataTransfer.setData('text/plain', item.id)}
-                    className="group flex items-start gap-2 rounded-xl bg-background/60 border border-border-custom/40 px-3 py-2.5 sm:cursor-grab sm:active:cursor-grabbing hover:border-border-custom transition-colors"
+                    className="group flex items-start gap-2 rounded-xl bg-background/60 border border-border-custom/40 px-3 py-2.5 sm:cursor-grab sm:active:cursor-grabbing hover:border-border-custom transition-colors hover:bg-surface-solid"
                   >
-                    <span className={`mt-1.5 shrink-0 w-1.5 h-1.5 rounded-full ${q.dot}`} />
+                    <Pressable
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        completeTask(item.id);
+                      }}
+                      className="mt-0.5 shrink-0 btn-press cursor-pointer"
+                      aria-label={`Oznacz jako wykonane: ${item.title}`}
+                    >
+                      <div className="h-3.5 w-3.5 rounded-full border border-border-custom hover:border-success hover:bg-success/15 flex items-center justify-center transition-colors">
+                        <Check size={8} className="opacity-0 group-hover:opacity-70 text-success" />
+                      </div>
+                    </Pressable>
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-semibold text-text-primary leading-snug sm:text-xs sm:line-clamp-2">{item.title}</p>
                       <div className="flex items-center gap-2 mt-1">

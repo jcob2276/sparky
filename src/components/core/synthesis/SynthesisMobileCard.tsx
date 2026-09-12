@@ -88,7 +88,7 @@ export default function SynthesisMobileCard({ synthesis, onDecision }: Props) {
       <section aria-labelledby="levers-heading" className="space-y-2">
         <div className="flex items-center justify-between">
           <h3 id="levers-heading" className="text-2xs font-black uppercase tracking-widest text-text-muted">
-            Trzy dźwignie
+            Kluczowe ruchy
           </h3>
           <span className="text-3xs font-semibold text-text-muted">{synthesis.levers.length}/3</span>
         </div>

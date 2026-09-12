@@ -3,7 +3,7 @@
  * @role Apple-style glassmorphic context menu opened on right-click of a calendar event.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Edit3,
   Trash2,
@@ -13,6 +13,7 @@ import {
   Tag,
   X,
   ExternalLink,
+  Copy,
 } from 'lucide-react';
 import type { CalRow } from './calendarHelpers';
 import { addDays, detectVideoCallUrl } from './calendarHelpers';
@@ -29,9 +30,95 @@ interface CalendarContextMenuProps {
   onClose: () => void;
   onEdit: (event: CalRow) => void;
   onDelete: (event: CalRow) => void;
+  onDuplicate: (event: CalRow) => void;
   onChangeCategory: (event: CalRow, category: string) => void;
   onMoveToDate: (event: CalRow, dateStr: string) => void;
   today: string;
+}
+
+function MenuItem({
+  icon,
+  label,
+  danger = false,
+  onClick,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  danger?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onClick}
+      className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl active:scale-[0.97] transition-[transform,background-color,color] duration-150 ease-out cursor-pointer ${
+        danger
+          ? 'hover:bg-danger/15 text-danger'
+          : 'hover:bg-surface-solid text-text-primary'
+      }`}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function CategoryGrid({
+  event,
+  onSelect,
+}: {
+  event: CalRow;
+  onSelect: (category: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-1 px-1 py-0.5">
+      {LIFE_SPHERES.map((sphere) => (
+        <button
+          key={sphere.id}
+          type="button"
+          role="menuitem"
+          onClick={() => onSelect(sphere.id)}
+          className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-2xs font-bold active:scale-[0.97] transition-[transform,background-color,border-color,color] duration-150 ease-out border ${
+            event.category?.toLowerCase() === sphere.id
+              ? 'border-primary bg-primary/10 text-primary font-black'
+              : 'border-border-custom/30 hover:bg-surface-solid text-text-secondary'
+          }`}
+        >
+          <span className={`w-2 h-2 rounded-full ${sphere.dot}`} />
+          <span className="truncate">{sphere.label.split(' ')[0]}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function MoveSection({
+  event,
+  today,
+  onMoveToDate,
+}: {
+  event: CalRow;
+  today: string;
+  onMoveToDate: (event: CalRow, dateStr: string) => void;
+}) {
+  return (
+    <div className="my-1 border-t border-border-custom/20 pt-1">
+      <p className="px-2.5 py-0.5 text-2xs font-black uppercase tracking-wider text-text-muted/70">
+        Przełóż termin
+      </p>
+      <MenuItem
+        icon={<Calendar size={13} className="text-primary" />}
+        label="Na Dzisiaj"
+        onClick={() => onMoveToDate(event, today)}
+      />
+      <MenuItem
+        icon={<ArrowRight size={13} className="text-warning" />}
+        label="Na Jutro"
+        onClick={() => onMoveToDate(event, addDays(today, 1))}
+      />
+    </div>
+  );
 }
 
 export function CalendarContextMenu({
@@ -39,11 +126,14 @@ export function CalendarContextMenu({
   onClose,
   onEdit,
   onDelete,
+  onDuplicate,
   onChangeCategory,
   onMoveToDate,
   today,
 }: CalendarContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  // Pozycja korygowana po pomiarze menu — bez odczytu refa podczas renderu.
+  const [adjusted, setAdjusted] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (!menu) return;
@@ -56,10 +146,6 @@ export function CalendarContextMenu({
       if (e.key === 'Escape') onClose();
     };
 
-    // Auto-focus first focusable item for keyboard users
-    const firstItem = menuRef.current?.querySelector<HTMLElement>('button, a[href]');
-    firstItem?.focus();
-
     window.addEventListener('mousedown', handleClickOutside);
     window.addEventListener('keydown', handleKeyDown);
     return () => {
@@ -68,26 +154,38 @@ export function CalendarContextMenu({
     };
   }, [menu, onClose]);
 
+  useLayoutEffect(() => {
+    if (!menu) return;
+    // Auto-focus first focusable item for keyboard users
+    const firstItem = menuRef.current?.querySelector<HTMLElement>('button, a[href]');
+    firstItem?.focus();
+
+    const el = menuRef.current;
+    if (!el) return;
+    const menuH = el.offsetHeight;
+    setAdjusted({
+      x: Math.max(8, Math.min(menu.x, window.innerWidth - el.offsetWidth - 8)),
+      y: Math.max(8, Math.min(menu.y, window.innerHeight - menuH - 8)),
+    });
+    return () => setAdjusted(null);
+  }, [menu]);
+
   if (!menu) return null;
 
-  const { x, y, event } = menu;
+  const { event } = menu;
   const videoCall =
     detectVideoCallUrl(event.location) ||
     detectVideoCallUrl(event.description) ||
     detectVideoCallUrl(event.summary);
 
-  // Position adjustment: use actual measured height after render to avoid clipping at viewport edges
-  const menuEl = menuRef.current;
-  const menuH = menuEl ? menuEl.offsetHeight : 340;
-  const adjustedX = Math.min(x, window.innerWidth - 232);
-  const adjustedY = Math.min(y, window.innerHeight - menuH - 8);
+  const pos = adjusted ?? { x: menu.x, y: menu.y };
 
   return (
     <div
       ref={menuRef}
       role="menu"
       aria-label={`Akcje dla: ${event.summary || 'Wydarzenie'}`}
-      style={{ top: Math.max(8, adjustedY), left: Math.max(8, adjustedX) }}
+      style={{ top: pos.y, left: pos.x }}
       className="fixed z-[var(--z-emergency)] w-56 rounded-2xl border border-border-custom/50 bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 select-none text-xs font-semibold text-text-primary"
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.preventDefault()}
@@ -124,51 +222,28 @@ export function CalendarContextMenu({
         </a>
       )}
 
-      {/* Edit */}
-      <button
-        type="button"
-        role="menuitem"
+      {/* Edit / Duplicate */}
+      <MenuItem
+        icon={<Edit3 size={14} className="text-primary" />}
+        label="Edytuj wydarzenie"
         onClick={() => {
           onClose();
           onEdit(event);
         }}
-        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-surface-solid text-text-primary active:scale-[0.98] transition-all cursor-pointer"
-      >
-        <Edit3 size={14} className="text-primary" />
-        <span>Edytuj wydarzenie</span>
-      </button>
+      />
+      <MenuItem
+        icon={<Copy size={14} className="text-info" />}
+        label="Duplikuj wydarzenie"
+        onClick={() => {
+          onClose();
+          onDuplicate(event);
+        }}
+      />
 
-      {/* Move Date */}
-      <div className="my-1 border-t border-border-custom/20 pt-1">
-        <p className="px-2.5 py-0.5 text-2xs font-black uppercase tracking-wider text-text-muted/70">
-          Przełóż termin
-        </p>
-        <button
-          type="button"
-          role="menuitem"
-          onClick={() => {
-            onClose();
-            onMoveToDate(event, today);
-          }}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-surface-solid text-text-secondary hover:text-text-primary active:scale-[0.98] transition-all cursor-pointer"
-        >
-          <Calendar size={13} className="text-primary" />
-          <span>Na Dzisiaj</span>
-        </button>
-        <button
-          type="button"
-          role="menuitem"
-          onClick={() => {
-            onClose();
-            const tomorrow = addDays(today, 1);
-            onMoveToDate(event, tomorrow);
-          }}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-surface-solid text-text-secondary hover:text-text-primary active:scale-[0.98] transition-all cursor-pointer"
-        >
-          <ArrowRight size={13} className="text-warning" />
-          <span>Na Jutro</span>
-        </button>
-      </div>
+      <MoveSection event={event} today={today} onMoveToDate={(ev, date) => {
+        onClose();
+        onMoveToDate(ev, date);
+      }} />
 
       {/* Change Category / Life Sphere */}
       <div className="my-1 border-t border-border-custom/20 pt-1">
@@ -176,43 +251,26 @@ export function CalendarContextMenu({
           <Tag size={10} />
           <span>Kategoria / Sfera</span>
         </p>
-        <div className="grid grid-cols-2 gap-1 px-1 py-0.5">
-          {LIFE_SPHERES.map((sphere) => (
-            <button
-              key={sphere.id}
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                onClose();
-                onChangeCategory(event, sphere.id);
-              }}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-2xs font-bold transition-all border ${
-                event.category?.toLowerCase() === sphere.id
-                  ? 'border-primary bg-primary/10 text-primary font-black'
-                  : 'border-border-custom/30 hover:bg-surface-solid text-text-secondary'
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${sphere.dot}`} />
-              <span className="truncate">{sphere.label.split(' ')[0]}</span>
-            </button>
-          ))}
-        </div>
+        <CategoryGrid
+          event={event}
+          onSelect={(category) => {
+            onClose();
+            onChangeCategory(event, category);
+          }}
+        />
       </div>
 
       {/* Delete */}
       <div className="mt-1 border-t border-border-custom/20 pt-1">
-        <button
-          type="button"
-          role="menuitem"
+        <MenuItem
+          icon={<Trash2 size={14} />}
+          label="Usuń wydarzenie"
+          danger
           onClick={() => {
             onClose();
             onDelete(event);
           }}
-          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-danger/15 text-danger active:scale-[0.98] transition-all cursor-pointer"
-        >
-          <Trash2 size={14} />
-          <span>Usuń wydarzenie</span>
-        </button>
+        />
       </div>
     </div>
   );

@@ -58,7 +58,7 @@ function CalendarSidebarBody({
   }, [events]);
 
   return (
-    <div className={`flex-1 overflow-y-auto ${collapsed && !isMobile ? 'px-1 py-2 space-y-4' : 'px-4 pb-4 space-y-6'}`}>
+    <div className={`flex-1 overflow-y-auto overflow-x-hidden ${collapsed && !isMobile ? 'px-1 py-2 space-y-4' : 'px-3 pb-4 space-y-4'}`}>
       {!isMobile && <WorkspaceNavigation active="kalendarz" onNavigate={onNavigateTo} />}
 
       {showPanels && (

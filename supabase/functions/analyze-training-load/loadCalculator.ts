@@ -62,7 +62,21 @@ export function computeTrainingMetrics(inputs: CalculatorInputs) {
     const recovAvg = avg(ouraByWeek[wIdx].map((r: any) => Number(r.readiness_score)).filter(Boolean));
     const hrvAvg = avg(ouraByWeek[wIdx].map((r: any) => Number(r.hrv_avg)).filter(Boolean));
     const sleepAvg = avg(ouraByWeek[wIdx].map((r: any) => Number(r.total_sleep_hours)).filter(Boolean));
-    const saunaCount = workoutsByWeek[wIdx].filter((w: any) => (w.exercise_logs || []).some((l: any) => SAUNA_KW.test(l.exercise_name || ''))).length;
+    const saunaDays = new Set(
+      workoutsByWeek[wIdx]
+        .filter((w: any) => (w.exercise_logs || []).some((l: any) => SAUNA_KW.test(l.exercise_name || '')) || SAUNA_KW.test(w.workout_day || ''))
+        .map((w: any) => (w.date || w.workout_day || '').slice(0, 10))
+        .filter(Boolean)
+    );
+    const stravaSaunas = stravaByWeek[wIdx].filter((a: any) => {
+      const n = (a.name || '').toLowerCase();
+      return n.includes('kardio') || n.includes('cardio') || n.includes('sauna');
+    });
+    for (const s of stravaSaunas) {
+      const d = (s.start_date || '').slice(0, 10);
+      if (d) saunaDays.add(d);
+    }
+    const saunaCount = saunaDays.size;
     const hasLongRun = runs.some((a: any) => classifyRun(a) === 'Długi bieg');
     const maxRunKm = runs.length ? Math.max(...runs.map((a: any) => (a.distance || 0) / 1000)) : 0;
     return { sets, km: +km.toFixed(1), strainAvg, recovAvg, hrvAvg, sleepAvg, saunaCount, hasLongRun, maxRunKm: +maxRunKm.toFixed(1), runCount: runs.length };

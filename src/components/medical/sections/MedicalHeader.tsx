@@ -1,46 +1,43 @@
 import { AlertTriangle, CheckCircle, FilePlus } from 'lucide-react';
-import type { MedicalDocumentRow, MedicalLabRow } from '../../../lib/health/medicalAnalytics';
+import type { MedicalDocumentRow, MarkerSeries } from '../../../lib/health/medicalAnalytics';
+import { diffDaysFromToday } from '../../../lib/health/medicalAnalytics';
 import { Card } from '../../ui/Card';
 import Button from '../../ui/Button';
 
 interface MedicalHeaderProps {
-  labs: MedicalLabRow[];
+  series: MarkerSeries[];
   documents: MedicalDocumentRow[];
   onImportClick: () => void;
   onViewResults: () => void;
   onPlanRetest: () => void;
 }
 
-export default function MedicalHeader({ labs, documents, onImportClick, onViewResults, onPlanRetest }: MedicalHeaderProps) {
-  // Compute documentation status
-  const latestPanel = labs.length > 0 ? labs[0] : null;
-  const latestDateStr = latestPanel ? latestPanel.result_date : null;
-  const daysAgo = latestDateStr 
-    ? Math.round((new Date().getTime() - new Date(latestDateStr).getTime()) / (1000 * 60 * 60 * 24))
-    : null;
+export default function MedicalHeader({ series, documents, onImportClick, onViewResults, onPlanRetest }: MedicalHeaderProps) {
+  const latestDateStr = series.reduce<string | null>(
+    (latest, s) => (s.latest.result_date > (latest ?? '') ? s.latest.result_date : latest),
+    null,
+  );
+  const daysAgo = latestDateStr ? diffDaysFromToday(latestDateStr) : null;
 
-  // Group by marker key to find unique markers
-  const uniqueMarkers = new Set(labs.map(l => l.marker_key));
-  const markerCount = uniqueMarkers.size;
-
-  // Heuristic comparable: markers with >= 2 measurements
-  const countsMap = new Map<string, number>();
-  labs.forEach(l => countsMap.set(l.marker_key, (countsMap.get(l.marker_key) || 0) + 1));
-  const comparableCount = [...countsMap.values()].filter(c => c >= 2).length;
+  const markerCount = series.length;
+  const comparableCount = series.filter((s) => s.history.length >= 2).length;
 
   // Wymaga Uwagi analysis
   const warnings: string[] = [];
 
   // 1. Check for Ferritin consecutive drops
-  const ferritin = labs
-    .filter(l => l.marker_key === 'ferritin' || l.marker_name.toLowerCase().includes('ferryty'))
-    .sort((a, b) => b.result_date.localeCompare(a.result_date));
-  if (ferritin.length >= 3 && ferritin[0].value < ferritin[1].value && ferritin[1].value < ferritin[2].value) {
+  const ferritin = series.find(
+    (s) => s.marker_key === 'ferritin' || s.marker_name.toLowerCase().includes('ferryty'),
+  );
+  const [f0, f1, f2] = ferritin?.history ?? [];
+  if (f0 && f1 && f2 && f0.value < f1.value && f1.value < f2.value) {
     warnings.push('Ferrytyna spadła w trzech kolejnych pomiarach');
   }
 
   // 2. Out of range lab values flag
-  const outOfRange = labs.filter(l => l.flag && l.flag !== 'N' && l.flag !== 'normal');
+  const outOfRange = series
+    .flatMap((s) => s.history)
+    .filter((row) => row.flag && row.flag !== 'N' && row.flag !== 'normal');
   if (outOfRange.length > 0) {
     warnings.push(`${outOfRange.length} wyniki poza zakresem referencyjnym laboratorium`);
   }
@@ -63,7 +60,7 @@ export default function MedicalHeader({ labs, documents, onImportClick, onViewRe
           icon={<FilePlus size={15} />}
           className="self-start sm:self-center uppercase font-black text-xs tracking-wider border-primary/20 bg-primary/[0.02]"
         >
-          Importuj Wyniki
+          Dodaj wyniki
         </Button>
       </div>
 

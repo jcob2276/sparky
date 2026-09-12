@@ -18,8 +18,8 @@ export function useMealComposerRepeats(
     enabled: !!userId,
   });
 
-  const yesterdayQuery = useQuery({
-    queryKey: ['meal-composer-yesterday', userId, mealType],
+  const recentDaysQuery = useQuery({
+    queryKey: ['meal-composer-recent-days', userId, mealType],
     queryFn: async () => {
       const todayStr = getTodayWarsaw();
       const { data: dateData } = await supabase
@@ -29,17 +29,30 @@ export function useMealComposerRepeats(
         .eq('meal_type', mealType)
         .lt('date', todayStr)
         .order('date', { ascending: false })
-        .limit(1);
-      if (!dateData?.length) return { date: null as string | null, entries: [] as RepeatableFoodEntry[] };
-      const targetDate = dateData[0].date;
+        .limit(30);
+      if (!dateData?.length) return [];
+      
+      const distinctDates = [...new Set(dateData.map(d => d.date))].slice(0, 5);
+      if (!distinctDates.length) return [];
+
       const { data } = await supabase
         .from('daily_food_entries')
         .select('id, name, brand, calories, protein, carbs, fat, fiber, sugar, amount, date')
         .eq('user_id', userId!)
-        .eq('date', targetDate)
+        .in('date', distinctDates)
         .eq('meal_type', mealType)
         .order('logged_at', { ascending: true });
-      return { date: targetDate, entries: (data ?? []) as RepeatableFoodEntry[] };
+        
+      const entriesByDate = (data ?? []).reduce((acc, entry) => {
+        if (!acc[entry.date]) acc[entry.date] = [];
+        acc[entry.date].push(entry);
+        return acc;
+      }, {} as Record<string, RepeatableFoodEntry[]>);
+      
+      return distinctDates.map(date => ({
+        date,
+        entries: entriesByDate[date] || []
+      })).filter(d => d.entries.length > 0);
     },
     enabled: !!userId,
   });
@@ -65,17 +78,15 @@ export function useMealComposerRepeats(
         };
       });
     const gap = rankMealMemoriesForGap(memories, { remainingCalories, remainingProtein, mealType })[0] ?? null;
-    const yesterday = yesterdayQuery.data;
-    const yesterdayMeal = yesterday?.entries.length
-      ? {
-          id: `yesterday-${yesterday.date}`,
-          name: yesterday.entries.map((entry) => entry.name).join(' + ').slice(0, 72),
-          calories: Math.round(yesterday.entries.reduce((sum, entry) => sum + (entry.calories ?? 0), 0)),
-          protein: Math.round(yesterday.entries.reduce((sum, entry) => sum + (entry.protein ?? 0), 0) * 10) / 10,
-          entries: yesterday.entries,
-          date: yesterday.date,
-        }
-      : null;
-    return { habitual, gap: gap && gap.mealType === mealType ? gap : null, yesterday: yesterdayMeal };
-  }, [memoriesQuery.data, mealType, totals, yesterdayQuery.data]);
+    const recentDaysData = recentDaysQuery.data ?? [];
+    const recentDays = recentDaysData.map(day => ({
+      id: `recent-day-${day.date}`,
+      name: day.entries.map((entry) => entry.name).join(' + ').slice(0, 72),
+      calories: Math.round(day.entries.reduce((sum, entry) => sum + (entry.calories ?? 0), 0)),
+      protein: Math.round(day.entries.reduce((sum, entry) => sum + (entry.protein ?? 0), 0) * 10) / 10,
+      entries: day.entries,
+      date: day.date,
+    }));
+    return { habitual, gap: gap && gap.mealType === mealType ? gap : null, recentDays };
+  }, [memoriesQuery.data, mealType, totals, recentDaysQuery.data]);
 }

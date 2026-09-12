@@ -1,6 +1,8 @@
 import { updateTodoItem } from '../../lib/todo/todo';
 import { PRIORITY, PRIORITY_ORDER } from './todoUtils';
 import { Card } from '../ui/Card';
+import { Check } from 'lucide-react';
+import { Pressable } from '../ui/ControlPrimitives';
 
 interface Item {
   id: string;
@@ -41,6 +43,18 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
     updateTodoItem(item.id, { section_id: sectionId }).catch(() => {
       setItems((prev) =>
         prev.map((i) => (i.id === item.id ? { ...i, section_id: item.section_id } : i)),
+      );
+    });
+  }
+
+  function completeTask(id: string) {
+    const completedAt = new Date().toISOString();
+    setItems((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, status: 'done' } : i)),
+    );
+    updateTodoItem(id, { status: 'done', completed_at: completedAt }).catch(() => {
+      setItems((prev) =>
+        prev.map((i) => (i.id === id ? { ...i, status: 'open' } : i)),
       );
     });
   }
@@ -97,10 +111,24 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
                     key={item.id}
                     draggable
                     onDragStart={(e) => e.dataTransfer.setData('text/plain', item.id)}
-                    className="rounded-xl border border-border-custom/40 bg-background/70 px-3 py-2.5 cursor-grab active:cursor-grabbing hover:border-border-custom transition-all group"
+                    className="rounded-xl border border-border-custom/40 bg-background/70 px-3 py-2.5 cursor-grab active:cursor-grabbing hover:border-border-custom transition-all group hover:bg-surface-solid"
                   >
-                    <p className="text-xs font-semibold text-text-primary leading-snug line-clamp-3">{item.title}</p>
-                    <div className="flex items-center justify-between mt-2">
+                    <div className="flex items-start gap-2">
+                      <Pressable
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          completeTask(item.id);
+                        }}
+                        className="mt-0.5 shrink-0 btn-press cursor-pointer"
+                        aria-label={`Oznacz jako wykonane: ${item.title}`}
+                      >
+                        <div className="h-3.5 w-3.5 rounded-full border border-border-custom hover:border-success hover:bg-success/15 flex items-center justify-center transition-colors">
+                          <Check size={8} className="opacity-0 group-hover:opacity-70 text-success" />
+                        </div>
+                      </Pressable>
+                      <p className="text-xs font-semibold text-text-primary leading-snug line-clamp-3 flex-1">{item.title}</p>
+                    </div>
+                    <div className="flex items-center justify-between mt-2 pl-5">
                       <span className={`text-2xs font-black px-1.5 py-0.5 rounded-full ${pMeta?.chip ?? 'bg-surface-solid text-text-muted'}`}>
                         {pMeta?.label ?? item.priority}
                       </span>

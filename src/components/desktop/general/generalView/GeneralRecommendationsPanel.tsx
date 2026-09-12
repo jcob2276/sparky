@@ -2,8 +2,9 @@ import React from 'react';
 import { Panel } from '../../shell/Panel';
 import { Card } from '../../../ui/Card';
 import type { OracleRecommendation } from '../../../../lib/recommendationsApi';
-import { Target, CheckCircle2, XCircle, HelpCircle, Calendar } from 'lucide-react';
+import { Target, CheckCircle2, XCircle, HelpCircle, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import { getTodayWarsaw } from '../../../../lib/date';
+import Button from '../../../ui/Button';
 
 interface GeneralRecommendationsPanelProps {
   recommendations: OracleRecommendation[];
@@ -114,6 +115,7 @@ function RecommendationHistoryCard({ rec }: { rec: OracleRecommendation }) {
 export default function GeneralRecommendationsPanel({
   recommendations,
 }: GeneralRecommendationsPanelProps) {
+  const [showAllHistory, setShowAllHistory] = React.useState(false);
   const todayStr = React.useMemo(() => getTodayWarsaw(), []);
   const pending = recommendations.filter((r) => r.status === 'pending');
   const evaluated = recommendations.filter((r) => r.status === 'evaluated');
@@ -124,6 +126,8 @@ export default function GeneralRecommendationsPanel({
   const noData = evaluated.filter((r) => r.outcome === 'no_data').length;
   const totalEvaluated = successes + fails;
   const successRate = totalEvaluated > 0 ? Math.round((successes / totalEvaluated) * 100) : null;
+
+  const displayedEvaluated = showAllHistory ? evaluated : evaluated.slice(0, 3);
 
   return (
     <div className="space-y-5">
@@ -183,11 +187,26 @@ export default function GeneralRecommendationsPanel({
 
       {/* Recommendations History */}
       {evaluated.length > 0 && (
-        <Panel title={`Historia Zaleceń (${evaluated.length})`}>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 max-h-[var(--ds-h-350px)] overflow-y-auto pr-1">
-            {evaluated.map((rec) => (
-              <RecommendationHistoryCard key={rec.id} rec={rec} />
-            ))}
+        <Panel title={`Ostatnie Rozliczone (${displayedEvaluated.length} z ${evaluated.length})`}>
+          <div className="space-y-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 max-h-[var(--ds-h-350px)] overflow-y-auto pr-1">
+              {displayedEvaluated.map((rec) => (
+                <RecommendationHistoryCard key={rec.id} rec={rec} />
+              ))}
+            </div>
+            {evaluated.length > 3 && (
+              <div className="pt-2 flex justify-center border-t border-border-custom/40">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAllHistory((v) => !v)}
+                  icon={showAllHistory ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  className="text-xs font-bold text-text-secondary hover:text-text-primary"
+                >
+                  {showAllHistory ? 'Zwiń do ostatnich 3' : `Pokaż całą historię (${evaluated.length})`}
+                </Button>
+              </div>
+            )}
           </div>
         </Panel>
       )}

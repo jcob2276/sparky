@@ -73,6 +73,26 @@ const VANGUARD_MARKER_BRIDGE: Record<string, MarkerBridgeEntry> = {
     canonicalUnit: 'mU/l',
     toCanonical: (v) => v,
   },
+  ft3: {
+    path: 'thyroid.ft3',
+    canonicalUnit: 'pmol/l',
+    toCanonical: (v, u) => {
+      const unit = (u ?? '').toLowerCase();
+      if (unit.includes('pg/ml')) return v * 1.536;
+      if (unit.includes('pmol/l')) return v;
+      return v * 1.536;
+    },
+  },
+  ft4: {
+    path: 'thyroid.ft4',
+    canonicalUnit: 'pmol/l',
+    toCanonical: (v, u) => {
+      const unit = (u ?? '').toLowerCase();
+      if (unit.includes('ng/dl')) return v * 12.87;
+      if (unit.includes('pmol/l')) return v;
+      return v * 12.87;
+    },
+  },
   vitamin_d_25oh: {
     path: 'vitamins.vitaminD',
     canonicalUnit: 'nmol/l',
@@ -107,6 +127,8 @@ export const GETBASED_OPTIMAL: Record<string, OptimalRange> = {
   'lipids.nonHdl': { optimalMin: 1.8, optimalMax: 2.6 },
   'electrolytes.magnesium': { optimalMin: 0.85, optimalMax: 0.95 },
   'thyroid.tsh': { optimalMin: 1.0, optimalMax: 2.5 },
+  'thyroid.ft3': { optimalMin: 4.0, optimalMax: 6.5 },
+  'thyroid.ft4': { optimalMin: 12.0, optimalMax: 22.0 },
   'vitamins.vitaminD': { optimalMin: 100.0, optimalMax: 200.0 },
   'hematology.hemoglobin': { optimalMin: 140, optimalMax: 170 },
   'hematology.mcv': { optimalMin: 85, optimalMax: 92 },

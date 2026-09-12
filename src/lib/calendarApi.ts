@@ -19,6 +19,9 @@ export interface CalendarEvent {
   description?: string;
   category?: string;
   recurrence?: string[] | null;
+  location?: string;
+  is_all_day?: boolean;
+  reminder_minutes?: number | null;
 }
 import { calendarKeys } from './queryKeys';
 
@@ -93,6 +96,9 @@ export function useCreateCalendarEvent() {
           category: variables.event.category ?? 'vanguard',
           description: variables.event.description ?? null,
           recurrence: variables.event.recurrence ?? null,
+          location: variables.event.location ?? null,
+          is_all_day: variables.event.is_all_day ?? false,
+          reminder_minutes: variables.event.reminder_minutes ?? null,
           series_id: null,
           created_at: new Date().toISOString(),
         };
@@ -154,6 +160,9 @@ export function useUpdateCalendarEvent() {
                 category: variables.event.category ?? e.category,
                 description: variables.event.description ?? null,
                 recurrence: variables.event.recurrence ?? null,
+                location: variables.event.location ?? null,
+                is_all_day: variables.event.is_all_day ?? false,
+                reminder_minutes: variables.event.reminder_minutes ?? null,
               };
             }
             return e;

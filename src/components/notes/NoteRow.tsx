@@ -4,7 +4,7 @@
  * @usedBy SplitNotesView
  */
 import { Pressable } from '../ui/ControlPrimitives';
-import { LockKeyhole, Pin } from 'lucide-react';
+import { Check, LockKeyhole, Pin } from 'lucide-react';
 import { useRef } from 'react';
 import { Note, getColor, relativeDate, getPlainText } from './keepUtils';
 
@@ -13,9 +13,20 @@ interface NoteRowProps {
   isActive: boolean;
   onClick: () => void;
   onLongPress: () => void;
+  isSelectMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
 }
 
-export default function NoteRow({ note, isActive, onClick, onLongPress }: NoteRowProps) {
+export default function NoteRow({
+  note,
+  isActive,
+  onClick,
+  onLongPress,
+  isSelectMode = false,
+  isSelected = false,
+  onToggleSelect,
+}: NoteRowProps) {
   const pressTimer = useRef<number | null>(null);
   const longPressed = useRef(false);
   const plainText = getPlainText(note.content);
@@ -39,27 +50,48 @@ export default function NoteRow({ note, isActive, onClick, onLongPress }: NoteRo
   return (
     <Pressable
       onClick={() => {
-        if (!longPressed.current) onClick();
+        if (isSelectMode) {
+          onToggleSelect?.();
+        } else if (!longPressed.current) {
+          onClick();
+        }
         longPressed.current = false;
       }}
-      onPointerDown={startLongPress}
-      onPointerUp={cancelLongPress}
-      onPointerCancel={cancelLongPress}
-      onPointerLeave={cancelLongPress}
-      onPointerMove={cancelLongPress}
+      onPointerDown={!isSelectMode ? startLongPress : undefined}
+      onPointerUp={!isSelectMode ? cancelLongPress : undefined}
+      onPointerCancel={!isSelectMode ? cancelLongPress : undefined}
+      onPointerLeave={!isSelectMode ? cancelLongPress : undefined}
+      onPointerMove={!isSelectMode ? cancelLongPress : undefined}
       onContextMenu={event => {
         event.preventDefault();
         cancelLongPress();
         onLongPress();
       }}
-      className={`note-list-row relative flex w-full select-none flex-col gap-1 px-4 py-3.5 text-left ${
-        isActive ? 'bg-primary/10 text-text-primary' : 'bg-transparent text-text-primary'
+      className={`note-list-row relative flex w-full select-none flex-col gap-1 px-4 py-3.5 text-left transition-colors ${
+        isSelected
+          ? 'bg-primary/10 ring-1 ring-inset ring-primary/25'
+          : isActive
+          ? 'bg-primary/10 text-text-primary'
+          : 'bg-transparent text-text-primary hover:bg-surface-solid/50'
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="block flex-1 truncate text-sm font-semibold leading-tight tracking-[var(--tracking-note-title)] text-text-primary">
-          {note.title.trim() || 'Bez tytułu'}
-        </span>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {isSelectMode && (
+            <div
+              className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center transition-all ${
+                isSelected
+                  ? 'bg-primary border-primary text-on-accent shadow-xs'
+                  : 'border-border-custom bg-surface-solid'
+              }`}
+            >
+              {isSelected && <Check size={11} strokeWidth={3} />}
+            </div>
+          )}
+          <span className="block flex-1 truncate text-sm font-semibold leading-tight tracking-[var(--tracking-note-title)] text-text-primary">
+            {note.title.trim() || 'Bez tytułu'}
+          </span>
+        </div>
         {note.is_pinned && (
           <span className="text-[var(--color-warning)]">
             <Pin size={12} fill="currentColor" />

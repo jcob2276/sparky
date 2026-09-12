@@ -50,6 +50,9 @@ export interface TodoCardProps {
   childTasks?: TodoItemRow[];
   onAddChildTask?: (title: string) => void;
   onToggleChildTask?: (child: TodoItemRow) => void;
+  isSelectMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 export default function TodoCard({
@@ -84,6 +87,9 @@ export default function TodoCard({
   childTasks = [],
   onAddChildTask,
   onToggleChildTask,
+  isSelectMode,
+  isSelected,
+  onToggleSelect,
 }: TodoCardProps) {
   const { attachments, uploadingFile, fileInputRef, handleFileUpload, handleDeleteAttachment } = useTodoCardAttachments(expanded, item.id, item.user_id);
 
@@ -142,7 +148,9 @@ export default function TodoCard({
           onShowContextMenu(item, e.clientX, e.clientY);
         }}
         onClick={e => e.stopPropagation()}
-        className={`relative border-b border-border-custom/15 pr-2 py-4 pl-1 transition-all duration-[var(--motion-medium)] ease-[var(--ease-out)] group-hover:bg-text-primary/[0.015] ${leftBorder}`}
+        className={`relative border-b border-border-custom/15 pr-2 py-4 pl-1 transition-all duration-[var(--motion-medium)] ease-[var(--ease-out)] group-hover:bg-text-primary/[0.015] ${
+          isSelected ? 'bg-primary/5 rounded-xl ring-1 ring-inset ring-primary/25' : ''
+        } ${leftBorder}`}
       >
         <TodoCardCollapsedRow
           item={item}
@@ -167,6 +175,9 @@ export default function TodoCard({
           swipe={swipe}
           onShowContextMenu={onShowContextMenu}
           onToggleExpand={onToggleExpand}
+          isSelectMode={isSelectMode}
+          isSelected={isSelected}
+          onToggleSelect={onToggleSelect}
         />
 
         {/* Expanded Panel */}

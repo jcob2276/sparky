@@ -1,5 +1,6 @@
-import { History, RotateCcw, Sparkles, Star } from 'lucide-react';
+import { History, RotateCcw, Sparkles, Star, CalendarDays } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
+import { formatWeekdayWarsaw } from '../../../lib/date';
 import type { QuickChip } from '../../../lib/health/mealComposerQuick';
 
 interface RepeatCard {
@@ -11,18 +12,29 @@ interface RepeatCard {
   onRepeat: () => void;
 }
 
+interface RecentDay {
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+  date: string;
+  onRepeat: () => void;
+}
+
 export default function MealComposerQuick({
   repeatCards,
+  recentDays,
   chips,
   saving,
   onChip,
 }: {
   repeatCards: RepeatCard[];
+  recentDays?: RecentDay[];
   chips: QuickChip[];
   saving: boolean;
   onChip: (chip: QuickChip) => void;
 }) {
-  if (!repeatCards.length && !chips.length) return null;
+  if (!repeatCards.length && !chips.length && (!recentDays || !recentDays.length)) return null;
 
   return (
     <div className="space-y-2">
@@ -49,6 +61,35 @@ export default function MealComposerQuick({
               <span className="shrink-0 text-2xs font-black uppercase tracking-wide text-primary transition-transform duration-200 group-hover:translate-x-1 group-active:translate-x-1">Powtórz</span>
             </Pressable>
           ))}
+        </div>
+      )}
+
+      {recentDays && recentDays.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-wider text-text-muted">
+            <CalendarDays size={11} /> Z poprzednich dni
+          </p>
+          <div className="flex gap-2 overflow-x-auto pb-1" data-no-swipe-nav="true">
+            {recentDays.map((day) => {
+              const weekday = formatWeekdayWarsaw(day.date);
+              return (
+                <Pressable
+                  key={day.id}
+                  type="button"
+                  disabled={saving}
+                  onClick={day.onRepeat}
+                  className="shrink-0 w-[140px] flex flex-col gap-1 rounded-xl border border-border-custom bg-surface-solid/40 p-2.5 text-left transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] hover:border-primary/35 hover:bg-primary/[0.04] active:scale-[0.97] disabled:opacity-50"
+                  title={day.name}
+                >
+                  <span className="block text-2xs font-black uppercase tracking-wider text-primary capitalize">{weekday}</span>
+                  <span className="block truncate text-xs font-bold text-text-primary">{day.name}</span>
+                  <span className="block text-2xs font-semibold text-text-muted">
+                    {day.calories} kcal · {day.protein} g B
+                  </span>
+                </Pressable>
+              );
+            })}
+          </div>
         </div>
       )}
 

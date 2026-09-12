@@ -150,6 +150,10 @@ const NO_BUTTON_GUARD_EXCEPTIONS = [
   'src/components/biometrics/oura/OuraCaffeineDecayCard.tsx',
   // Oura Health Page — full-screen biometric hub tab switcher
   'src/components/biometrics/OuraHealthPage.tsx',
+  // Calendar context menu — menu items with rich layouts (video join, category grid)
+  'src/components/calendar/CalendarContextMenu.tsx',
+  // Calendar event hover quick actions — micro icon buttons overlaid on draggable event cards
+  'src/components/calendar/grid/EventQuickActions.tsx',
 ]
 
 const NO_COLOR_GUARD_EXCEPTIONS = [

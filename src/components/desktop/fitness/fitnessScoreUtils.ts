@@ -157,7 +157,7 @@ export function computeFitnessProfile(input: {
   const proteinTargetMetRate = proteinDays / 7;
   const nutritionPoints = proteinTargetMetRate * 4;
 
-  const { sessionsCount: saunaCount7d, totalMinutes: saunaMinutes7d } = getSaunaStats(sessionsForDomain, since7);
+  const { sessionsCount: saunaCount7d, totalMinutes: saunaMinutes7d } = getSaunaStats(sessionsForDomain, since7, strava);
   const saunaPoints = Math.min(
     4,
     parseFloat((saunaCount7d * 1.2 + saunaMinutes7d * 0.06).toFixed(1)),

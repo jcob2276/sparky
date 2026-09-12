@@ -5197,7 +5197,10 @@ export type Database = {
           end_time: string | null
           event_id: string | null
           id: string
+          is_all_day: boolean
+          location: string | null
           recurrence: string[] | null
+          reminder_minutes: number | null
           series_id: string | null
           start_time: string | null
           summary: string | null
@@ -5210,7 +5213,10 @@ export type Database = {
           end_time?: string | null
           event_id?: string | null
           id?: string
+          is_all_day?: boolean
+          location?: string | null
           recurrence?: string[] | null
+          reminder_minutes?: number | null
           series_id?: string | null
           start_time?: string | null
           summary?: string | null
@@ -5223,7 +5229,10 @@ export type Database = {
           end_time?: string | null
           event_id?: string | null
           id?: string
+          is_all_day?: boolean
+          location?: string | null
           recurrence?: string[] | null
+          reminder_minutes?: number | null
           series_id?: string | null
           start_time?: string | null
           summary?: string | null

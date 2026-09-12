@@ -10,49 +10,25 @@
  */
 import { safeExecute, createServiceClient } from '../_shared/supabase.ts'
 import { serveJson } from '../_shared/http.ts'
+import { getGoogleAccessToken } from '../_shared/googleToken.ts'
 
-async function getAccessToken(userId: string): Promise<string | null> {
-  const supabase = createServiceClient()
-  const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
-  const GOOGLE_CLIENT_SECRET = Deno.env.get('GOOGLE_CLIENT_SECRET')
-
-  if (!GOOGLE_CLIENT_ID || !GOOGLE_CLIENT_SECRET) return null
-
-  const tokenData = await safeExecute(
-    supabase
-      .from('vanguard_tokens')
-      .select('refresh_token')
-      .eq('user_id', userId)
-      .eq('provider', 'google')
-      .maybeSingle()
-  )
-  if (!tokenData?.refresh_token) {
-    console.warn('[calendar-write] No Google refresh_token found for user', userId)
-    return null
+function gcalTimePayload(isoStart: string, isoEnd: string, allDay: boolean) {
+  if (allDay) {
+    // Wydarzenia całodniowe w GCal używają wyłącznie daty; koniec jest ekskluzywny.
+    return { start: { date: isoStart.slice(0, 10) }, end: { date: isoEnd.slice(0, 10) } }
   }
-
-  try {
-    const refreshRes = await fetch('https://oauth2.googleapis.com/token', {
-      signal: AbortSignal.timeout(15000),
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        refresh_token: tokenData.refresh_token,
-        client_id: GOOGLE_CLIENT_ID,
-        client_secret: GOOGLE_CLIENT_SECRET,
-        grant_type: 'refresh_token',
-      }),
-    })
-    if (!refreshRes.ok) return null
-    const { access_token } = await refreshRes.json()
-    return access_token ?? null
-  } catch {
-    return null
+  return {
+    start: { dateTime: isoStart, timeZone: 'Europe/Warsaw' },
+    end: { dateTime: isoEnd, timeZone: 'Europe/Warsaw' },
   }
 }
 
-Deno.serve(serveJson(async (req, ctx) => {
-  try {
+function gcalRemindersPayload(reminderMinutes: number | null | undefined) {
+  if (reminderMinutes == null) return null
+  return { useDefault: false, overrides: [{ method: 'popup', minutes: reminderMinutes }] }
+}
+
+Deno.serve(serveJson(async (req, ctx) => {  try {
     const body = await req.clone().json()
     const { action, event, deleteScope } = body
 
@@ -70,9 +46,14 @@ Deno.serve(serveJson(async (req, ctx) => {
     if (event.recurrence != null && (!Array.isArray(event.recurrence) || event.recurrence.some((rule: unknown) => typeof rule !== 'string' || !rule.startsWith('RRULE:')))) {
       throw new Error('Invalid event recurrence')
     }
+    if (event.location != null && typeof event.location !== 'string') throw new Error('Invalid event location')
+    if (event.is_all_day != null && typeof event.is_all_day !== 'boolean') throw new Error('Invalid is_all_day flag')
+    if (event.reminder_minutes != null && (!Number.isInteger(event.reminder_minutes) || event.reminder_minutes < 0)) {
+      throw new Error('Invalid reminder_minutes')
+    }
   }
 
-  const access_token = await getAccessToken(userId)
+  const access_token = await getGoogleAccessToken(userId)
   const supabase = createServiceClient()
 
   const gcalBase = 'https://www.googleapis.com/calendar/v3/calendars/primary/events'
@@ -102,9 +83,12 @@ Deno.serve(serveJson(async (req, ctx) => {
           body: JSON.stringify({
             summary: event.summary,
             description: event.description ?? '',
-            start: { dateTime: event.start, timeZone: 'Europe/Warsaw' },
-            end: { dateTime: event.end, timeZone: 'Europe/Warsaw' },
+            ...(event.location ? { location: event.location } : {}),
+            ...gcalTimePayload(event.start, event.end, event.is_all_day === true),
             ...(event.recurrence?.length ? { recurrence: event.recurrence } : {}),
+            ...(gcalRemindersPayload(event.reminder_minutes)
+              ? { reminders: gcalRemindersPayload(event.reminder_minutes) }
+              : {}),
           }),
         })
         if (gcalRes.ok) {
@@ -134,6 +118,9 @@ Deno.serve(serveJson(async (req, ctx) => {
         recurrence: event.recurrence ?? null,
         series_id: null,
         category: event.category ?? 'vanguard',
+        location: event.location ?? null,
+        is_all_day: event.is_all_day ?? false,
+        reminder_minutes: event.reminder_minutes ?? null,
       }, { onConflict: 'event_id' })
     )
     return { success: true, eventId: createdId, gcalError }
@@ -158,14 +145,19 @@ Deno.serve(serveJson(async (req, ctx) => {
             ...existing,
             summary: event.summary,
             description: event.description ?? existing.description ?? '',
-            start: { dateTime: event.start, timeZone: 'Europe/Warsaw' },
-            end: { dateTime: event.end, timeZone: 'Europe/Warsaw' },
+            location: event.location ?? existing.location ?? '',
+            ...gcalTimePayload(event.start, event.end, event.is_all_day === true),
           }
 
           if (event.recurrence?.length) {
             putBody.recurrence = event.recurrence
           } else if (event.recurrence === null) {
             delete putBody.recurrence
+          }
+
+          const reminders = gcalRemindersPayload(event.reminder_minutes)
+          if (reminders) {
+            putBody.reminders = reminders
           }
 
           const gcalRes = await fetch(`${gcalBase}/${event.id}`, {
@@ -203,6 +195,9 @@ Deno.serve(serveJson(async (req, ctx) => {
         recurrence: gcalRecurrence,
         series_id: null,
         category: event.category ?? 'vanguard',
+        location: event.location ?? null,
+        is_all_day: event.is_all_day ?? false,
+        reminder_minutes: event.reminder_minutes ?? null,
       }, { onConflict: 'event_id' })
     )
     return { success: true, eventId: returnedId }

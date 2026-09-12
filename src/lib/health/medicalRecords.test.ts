@@ -136,4 +136,27 @@ describe('buildPreventionSuggestions', () => {
       dueOn: '2026-10-27',
     });
   });
+
+  it('correctly hides done, dismissed and actively snoozed suggestions', async () => {
+    const { isPreventionActionActive, filterVisibleSuggestions } = await import('./medicalRecords');
+    const today = '2026-09-12';
+
+    expect(isPreventionActionActive({ suggestionKey: 'dental-check', status: 'done', snoozedUntil: null }, today)).toBe(true);
+    expect(isPreventionActionActive({ suggestionKey: 'dental-check', status: 'dismissed', snoozedUntil: null }, today)).toBe(true);
+    expect(isPreventionActionActive({ suggestionKey: 'dental-check', status: 'snoozed', snoozedUntil: '2026-09-20' }, today)).toBe(true);
+    expect(isPreventionActionActive({ suggestionKey: 'dental-check', status: 'snoozed', snoozedUntil: '2026-09-10' }, today)).toBe(false);
+
+    const suggestions = [
+      { id: 'dental-check', title: 'Kontrola stomatologiczna' },
+      { id: 'eye-check', title: 'Kontrola wzroku' },
+    ];
+    const actions = [
+      { suggestionKey: 'dental-check', status: 'done' as const, snoozedUntil: null },
+    ];
+
+    expect(filterVisibleSuggestions(suggestions, actions, today)).toEqual([
+      { id: 'eye-check', title: 'Kontrola wzroku' },
+    ]);
+  });
 });
+

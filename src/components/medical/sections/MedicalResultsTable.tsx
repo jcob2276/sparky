@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { ChevronRight, AlertTriangle, ArrowDown, ArrowUp, Minus } from 'lucide-react';
-import type { MedicalLabRow } from '../../../lib/health/medicalAnalytics';
+import type { MarkerSeries, MedicalLabRow } from '../../../lib/health/medicalAnalytics';
 import { ControlSelect, Pressable } from '../../ui/ControlPrimitives';
 
 interface MedicalResultsTableProps {
-  labs: MedicalLabRow[];
+  series: MarkerSeries[];
   onSelectMarker: (markerKey: string) => void;
 }
 
@@ -15,39 +15,22 @@ const FILTER_TABS = [
   { value: 'new', label: 'Nowe' }
 ];
 
-export default function MedicalResultsTable({ labs, onSelectMarker }: MedicalResultsTableProps) {
+export default function MedicalResultsTable({ series, onSelectMarker }: MedicalResultsTableProps) {
   const [activeTab, setActiveTab] = useState<string>('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const latestMarkers = useMemo(() => {
-    const latestMap = new Map<string, { current: MedicalLabRow; previous: MedicalLabRow | null; count: number }>();
-    
-    const sortedLabs = [...labs].sort((a, b) => a.result_date.localeCompare(b.result_date));
-    
-    sortedLabs.forEach(row => {
-      const existing = latestMap.get(row.marker_key);
-      if (existing) {
-        latestMap.set(row.marker_key, {
-          current: row,
-          previous: existing.current,
-          count: existing.count + 1
-        });
-      } else {
-        latestMap.set(row.marker_key, {
-          current: row,
-          previous: null,
-          count: 1
-        });
-      }
-    });
-
-    return [...latestMap.values()].sort((a, b) => a.current.marker_name.localeCompare(b.current.marker_name));
-  }, [labs]);
+  const latestMarkers = useMemo(
+    () =>
+      series
+        .map((s) => ({ current: s.latest, previous: s.prior, count: s.history.length }))
+        .sort((a, b) => a.current.marker_name.localeCompare(b.current.marker_name)),
+    [series],
+  );
 
   const categories = useMemo(() => {
-    const set = new Set(labs.map(l => l.category).filter(Boolean) as string[]);
-    return ['all', ...set];
-  }, [labs]);
+    const set = new Set(series.map((s) => s.category).filter(Boolean) as string[]);
+    return ['all', ...Array.from(set).sort((a, b) => a.localeCompare(b, 'pl'))];
+  }, [series]);
 
   const filteredMarkers = useMemo(() => {
     return latestMarkers.filter(m => {

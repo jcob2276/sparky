@@ -21,6 +21,9 @@ export default function MasonryGrid({
   onClickTag,
   onConvertToTodo,
   search = '',
+  isSelectMode = false,
+  selectedIds,
+  onToggleSelect,
 }: {
   notes: Note[];
   onDelete: (id: string) => void;
@@ -34,6 +37,9 @@ export default function MasonryGrid({
   onClickTag?: (tag: string) => void;
   onConvertToTodo?: (note: Note) => void;
   search?: string;
+  isSelectMode?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }) {
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
@@ -75,6 +81,9 @@ export default function MasonryGrid({
               onClickTag={onClickTag}
               onConvertToTodo={onConvertToTodo}
               search={search}
+              isSelectMode={isSelectMode}
+              isSelected={selectedIds?.has(note.id)}
+              onToggleSelect={() => onToggleSelect?.(note.id)}
             />
           ))}
         </div>

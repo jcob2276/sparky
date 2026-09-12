@@ -107,9 +107,18 @@ export default function VisionBoardPanel({
 
         {/* Board grid */}
         {visionItems.length === 0 ? (
-          <div className="py-8 text-center space-y-2">
-            <Sparkles size={20} className="mx-auto text-text-muted/30" />
-            <p className="text-xs text-text-muted/50">Dodaj afirmacje, obrazy i słowa które cię inspirują</p>
+          <div className="py-6 text-center space-y-2.5 rounded-xl border border-dashed border-border-custom/50 bg-surface/30">
+            <Sparkles size={18} className="mx-auto text-primary/40" />
+            <p className="text-xs text-text-muted font-medium">Dodaj afirmacje, obrazy i słowa, które cię inspirują.</p>
+            <Pressable
+              variant="tonal"
+              size="sm"
+              onClick={() => setIsAddingVision(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/20 bg-primary/10 text-primary text-xs font-bold"
+              icon={<Plus size={12} />}
+            >
+              Dodaj pierwszy element
+            </Pressable>
           </div>
         ) : (
           <div className="columns-2 gap-2 space-y-0">

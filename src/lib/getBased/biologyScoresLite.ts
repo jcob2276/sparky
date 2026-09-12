@@ -211,17 +211,45 @@ function computeLipidPattern(seriesByKey: Map<string, MarkerSeries>): BiologySco
 
 function computeThyroidContext(seriesByKey: Map<string, MarkerSeries>): BiologyScoreResult | null {
   const tsh = getHit(seriesByKey, 'tsh');
-  if (!tsh) return null;
-  const partial = Math.round(clamp(1 / (1 + Math.abs(tsh.value - 1.5) / 1.2), 0.35, 1) * 100);
+  const ft3 = getHit(seriesByKey, 'ft3');
+  const ft4 = getHit(seriesByKey, 'ft4');
+  if (!tsh && !ft3 && !ft4) return null;
+
+  const parts: { hit: Hit; partial: number; weight: number; core?: boolean }[] = [];
+  const missing: string[] = [];
   const flags: string[] = [];
-  if (tsh.value > 2.5) flags.push('TSH blisko / powyżej górnej granicy optymalnej.');
+
+  if (tsh) {
+    const partial = Math.round(clamp(1 / (1 + Math.abs(tsh.value - 1.5) / 1.2), 0.35, 1) * 100);
+    parts.push({ hit: tsh, partial, weight: 1.2, core: true });
+    if (tsh.value > 2.5) flags.push('TSH blisko górnej granicy optymalnej (2.5 mU/l).');
+  } else {
+    missing.push('TSH');
+  }
+
+  if (ft3) {
+    const partial = scoreAgainstRange(ft3.value, ft3.range) ?? 75;
+    parts.push({ hit: ft3, partial, weight: 1.0, core: true });
+  } else {
+    missing.push('Free T3');
+  }
+
+  if (ft4) {
+    const partial = scoreAgainstRange(ft4.value, ft4.range) ?? 75;
+    parts.push({ hit: ft4, partial, weight: 1.0, core: true });
+  } else {
+    missing.push('Free T4');
+  }
+
+  const isFullPanel = !!(tsh && ft3 && ft4);
+
   return finalizeScore(
     'thyroidContext',
     'Tarczyca',
-    'TSH (uproszczony)',
-    'Pełny Thyroid Coherence w getbased wymaga FT3/FT4.',
-    [{ hit: tsh, partial, weight: 1, core: true }],
-    ['Free T3', 'Free T4'],
+    isFullPanel ? 'TSH · FT3 · FT4 (Pełny panel)' : 'TSH (uproszczony)',
+    isFullPanel ? 'Pełna spójność osi tarczycy wg getbased.' : 'Częściowy profil tarczycy — zalecane uzupełnienie o FT3/FT4.',
+    parts,
+    missing,
     flags,
   );
 }
@@ -271,9 +299,9 @@ function applyScoreEvidenceGate(
     ...score,
     score: null,
     tone: null,
-    toneLabel: 'Brak danych',
+    toneLabel: 'Archiwalny',
     flags: [
-      'Potrzebny świeży panel (<180 dni) albo drugi pomiar tego samego markera.',
+      'Wynik z panelu archiwalnego (>180 dni) — zalecane odświeżenie w kolejnym badaniu.',
       ...score.flags,
     ],
   };

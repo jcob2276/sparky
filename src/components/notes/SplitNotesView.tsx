@@ -14,6 +14,10 @@ import type { NoteFolder } from '../../lib/noteFoldersApi';
 import MasonryGrid from './MasonryGrid';
 import NoteCollectionSections from './NoteCollectionSections';
 import type { NoteSection } from '../../lib/noteOrganization';
+import KeepQuickCapture from './KeepQuickCapture';
+import KeepFilterPills, { KeepQuickFilter } from './KeepFilterPills';
+import KeepBulkActionBar from './KeepBulkActionBar';
+import type { useKeepBulkActions } from './hooks/useKeepBulkActions';
 
 interface SplitNotesViewProps {
   notes: Note[];
@@ -28,7 +32,7 @@ interface SplitNotesViewProps {
   onTogglePin: (note: Note) => void;
   busy: boolean;
   allTags: string[];
-  onCreate: (note: { title: string; content: string; tags?: string[] }) => void;
+  onCreate: (note: { title: string; content: string; tags?: string[]; color?: string; is_pinned?: boolean }) => Promise<string | void> | void;
   search: string;
   activeTag: string | null;
   onExportChecklists?: (note: Note) => void;
@@ -40,12 +44,22 @@ interface SplitNotesViewProps {
   collectionView: 'list' | 'gallery';
   gridProps: Omit<Parameters<typeof MasonryGrid>[0], 'notes'>;
   sections?: NoteSection[];
+  bulk?: ReturnType<typeof useKeepBulkActions>;
+  quickFilter?: KeepQuickFilter;
+  setQuickFilter?: (filter: KeepQuickFilter) => void;
+  quickFilterCounts?: {
+    all: number;
+    pinned: number;
+    todos: number;
+    attachments: number;
+    locked: number;
+  };
 }
 
 export default function SplitNotesView({
   notes, filtered, pinned, others, activeNoteId, onSelectNote, onCloseNote, onUpdate, onDelete, onTogglePin,
-  busy, allTags, onExportChecklists, folders = [], onExportNote, onExportPdf, onShareNote, onLockNote,
-  collectionView, gridProps, sections,
+  busy, allTags, onCreate, onExportChecklists, folders = [], onExportNote, onExportPdf, onShareNote, onLockNote,
+  collectionView, gridProps, sections, bulk, quickFilter, setQuickFilter, quickFilterCounts,
 }: SplitNotesViewProps) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [actionNote, setActionNote] = useState<Note | null>(null);
@@ -87,6 +101,18 @@ export default function SplitNotesView({
           className={`keep-split-list-pane ${galleryMode ? 'gallery' : ''}`}
           aria-label={galleryMode ? 'Galeria notatek' : 'Lista notatek'}
         >
+          {/* Top Quick Actions Bar: Quick capture + Filter pills */}
+          <div className="flex flex-col gap-2 p-3 pb-2 border-b border-border-custom/20 bg-surface-solid/30">
+            <KeepQuickCapture onCreate={onCreate} />
+            {quickFilter && setQuickFilter && (
+              <KeepFilterPills
+                activeFilter={quickFilter}
+                onChangeFilter={setQuickFilter}
+                counts={quickFilterCounts}
+              />
+            )}
+          </div>
+
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-text-muted p-6 text-center">
               <p className="font-bold text-sm">Brak notatek</p>
@@ -105,6 +131,9 @@ export default function SplitNotesView({
               onDelete={note => {
                 void confirmDialog('Czy usunąć tę notatkę?').then(ok => { if (ok) onDelete(note.id); });
               }}
+              isSelectMode={bulk?.isSelectMode}
+              selectedIds={bulk?.selectedIds}
+              onToggleSelectId={bulk?.toggleSelectId}
             />
           )}
         </section>
@@ -154,6 +183,20 @@ export default function SplitNotesView({
             if (await confirmDialog('Czy usunąć tę notatkę?')) onDelete(actionNote.id);
             setActionNote(null);
           }}
+        />
+      )}
+      {bulk && bulk.selectedIds.size > 0 && (
+        <KeepBulkActionBar
+          selectedCount={bulk.selectedIds.size}
+          onClearSelection={bulk.clearSelection}
+          onSelectAll={() => bulk.selectAll(filtered.map(n => n.id))}
+          onBulkPin={() => bulk.handleBulkPin(notes)}
+          onBulkArchive={() => bulk.handleBulkArchive(notes)}
+          onBulkDelete={() => { void bulk.handleBulkDelete(); }}
+          onBulkColor={(col) => bulk.handleBulkColor(col)}
+          onBulkMoveFolder={(folderId) => bulk.handleBulkMoveFolder(folderId)}
+          busy={bulk.bulkBusy}
+          folders={folders}
         />
       )}
     </div>

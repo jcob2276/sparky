@@ -5,7 +5,22 @@ import {
   type LifeObligationKind,
   type LifeObligationRecurrence,
 } from '@vanguard/domain';
-import { Cake, Car, FileText, Trash2, Clock, CheckCircle2, Circle, ListTodo, FileSpreadsheet } from 'lucide-react';
+import {
+  Cake,
+  Car,
+  FileText,
+  Home,
+  CreditCard,
+  HeartPulse,
+  Trash2,
+  Clock,
+  CheckCircle2,
+  Circle,
+  ListTodo,
+  CalendarPlus,
+  Download,
+  FileSpreadsheet,
+} from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
 import { formatLongDateWarsaw } from '../../lib/date';
 import {
@@ -14,22 +29,31 @@ import {
   type DerivedObligation,
 } from './terminyDerived';
 
-const KIND_ICON: Record<'people' | 'vehicle' | 'document', typeof Cake> = {
+const KIND_ICON: Record<LifeObligationKind, typeof Cake> = {
   people: Cake,
   vehicle: Car,
   document: FileText,
+  home: Home,
+  finance: CreditCard,
+  health_admin: HeartPulse,
 };
 
-const KIND_ACCENT: Record<'people' | 'vehicle' | 'document', string> = {
-  people: 'text-primary bg-primary/12 ring-1 ring-primary/25',
-  vehicle: 'text-info bg-info/12 ring-1 ring-info/25',
-  document: 'text-warning bg-warning/12 ring-1 ring-warning/25',
+const KIND_ACCENT: Record<LifeObligationKind, string> = {
+  people: 'text-rose-600 dark:text-rose-400 bg-rose-500/12 ring-1 ring-rose-500/25',
+  vehicle: 'text-blue-600 dark:text-blue-400 bg-blue-500/12 ring-1 ring-blue-500/25',
+  document: 'text-amber-600 dark:text-amber-400 bg-amber-500/12 ring-1 ring-amber-500/25',
+  home: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/12 ring-1 ring-emerald-500/25',
+  finance: 'text-purple-600 dark:text-purple-400 bg-purple-500/12 ring-1 ring-purple-500/25',
+  health_admin: 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/12 ring-1 ring-cyan-500/25',
 };
 
-const RING_ACCENT: Record<'people' | 'vehicle' | 'document', string> = {
-  people: 'stroke-primary',
-  vehicle: 'stroke-info',
-  document: 'stroke-warning',
+const RING_ACCENT: Record<LifeObligationKind, string> = {
+  people: 'stroke-rose-500',
+  vehicle: 'stroke-blue-500',
+  document: 'stroke-amber-500',
+  home: 'stroke-emerald-500',
+  finance: 'stroke-purple-500',
+  health_admin: 'stroke-cyan-500',
 };
 
 interface Props {
@@ -38,6 +62,8 @@ interface Props {
   onEdit?: () => void;
   onComplete?: () => void;
   onConvertToTodo?: () => void;
+  onAddToCalendar?: (row: DerivedObligation) => void;
+  onExportICS?: (row: DerivedObligation) => void;
   compact?: boolean;
 }
 
@@ -48,11 +74,11 @@ function ObligationProgressRing({
   reduceMotion,
 }: {
   row: DerivedObligation;
-  kind: 'people' | 'vehicle' | 'document';
+  kind: LifeObligationKind;
   compact: boolean;
   reduceMotion: boolean | null;
 }) {
-  const Icon = KIND_ICON[kind];
+  const Icon = KIND_ICON[kind] || FileText;
   const ringClass = compact ? 'h-11 w-11' : 'h-13 w-13';
   const r = compact ? 19 : 23;
   const c = 2 * Math.PI * r;
@@ -90,12 +116,12 @@ export function TerminyObligationCard({
   onEdit,
   onComplete,
   onConvertToTodo,
+  onAddToCalendar,
+  onExportICS,
   compact = false,
 }: Props) {
   const reduceMotion = useReducedMotion();
-  const kind = (['people', 'vehicle', 'document'].includes(row.item.kind)
-    ? row.item.kind
-    : 'document') as 'people' | 'vehicle' | 'document';
+  const kind = (row.item.kind in KIND_ICON ? row.item.kind : 'document') as LifeObligationKind;
   const isOverdue = row.daysLeft < 0;
   const isUrgent = row.daysLeft <= 3;
   const isToday = row.daysLeft === 0;
@@ -195,6 +221,34 @@ export function TerminyObligationCard({
             aria-label="Dodaj zadanie do Todo"
           >
             <ListTodo size={15} strokeWidth={2} />
+          </Pressable>
+        )}
+
+        {onAddToCalendar && (
+          <Pressable
+            onClick={(e) => {
+              e.stopPropagation();
+              onAddToCalendar(row);
+            }}
+            className="rounded-full p-2 text-text-muted opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
+            title="Dodaj do Kalendarza Vanguard"
+            aria-label="Dodaj do Kalendarza Vanguard"
+          >
+            <CalendarPlus size={15} strokeWidth={2} />
+          </Pressable>
+        )}
+
+        {onExportICS && (
+          <Pressable
+            onClick={(e) => {
+              e.stopPropagation();
+              onExportICS(row);
+            }}
+            className="rounded-full p-2 text-text-muted opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
+            title="Eksportuj do pliku iCal (.ics)"
+            aria-label="Eksportuj do pliku iCal (.ics)"
+          >
+            <Download size={15} strokeWidth={2} />
           </Pressable>
         )}
 

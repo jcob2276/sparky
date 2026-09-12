@@ -19,6 +19,7 @@ import ActionHistoryController from './components/core/ActionHistoryController';
 const DesktopDashboard = lazy(() => import('./components/desktop/shell/DesktopDashboard'));
 const GrowthView = lazy(() => import('./components/growth/GrowthView'));
 const MedicalStudiesPage = lazy(() => import('./components/medical/MedicalStudiesPage'));
+const MedicalLaboratoryPage = lazy(() => import('./components/medical/MedicalLaboratoryPage'));
 const CorrelationsPage = lazy(() => import('./components/correlations/CorrelationsPage'));
 const EndMyopiaCalculator = lazy(() => import('./components/medical/EndMyopiaCalculator'));
 const FinancePage = lazy(() => import('./components/finance'));
@@ -47,28 +48,59 @@ function Screen({ kind, children }: { kind: PageTemplateKind; children: ReactNod
   return <PageTemplateBoundary kind={kind}>{children}</PageTemplateBoundary>;
 }
 
-function AppRoutes() {
+function useAppAuthSession() {
   const { session, setSession } = useStore();
   const [loading, setLoading] = useState(true);
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const handleNativeNavigate = useCallback((path: string) => {
-    navigate(path, { replace: true });
-  }, [navigate]);
-
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
+    let mounted = true;
+
+    // Safety timeout: never block the user on a loading spinner if auth takes longer than 1.2s
+    const safetyTimer = window.setTimeout(() => {
+      if (mounted) {
+        setLoading(false);
+      }
+    }, 1200);
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      if (!mounted) return;
+      setSession(currentSession);
       setLoading(false);
+      window.clearTimeout(safetyTimer);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-    });
-    return () => subscription.unsubscribe();
+
+    supabase.auth.getSession()
+      .then(({ data, error }) => {
+        if (!mounted) return;
+        if (error) {
+          console.warn('[auth] getSession error:', error.message);
+          setSession(null);
+        } else {
+          setSession(data.session);
+        }
+      })
+      .catch((err: unknown) => {
+        if (!mounted) return;
+        console.warn('[auth] getSession failed:', err instanceof Error ? err.message : err);
+        setSession(null);
+      })
+      .finally(() => {
+        if (!mounted) return;
+        window.clearTimeout(safetyTimer);
+        setLoading(false);
+      });
+
+    return () => {
+      mounted = false;
+      window.clearTimeout(safetyTimer);
+      subscription.unsubscribe();
+    };
   }, [setSession]);
 
+  return { session, loading };
+}
+
+function useNativePlatformSync(userId: string | undefined, handleNativeNavigate: (path: string) => void) {
   useEffect(() => {
     if (!import.meta.env.DEV && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
@@ -84,18 +116,30 @@ function AppRoutes() {
   }, [handleNativeNavigate]);
 
   useEffect(() => {
-    if (!session?.user.id || !isNativePlatform()) return;
-    const stopUsage = initUsageStatsSync(session.user.id);
-    const stopLocation = initLocationSync(session.user.id);
-    const stopBackground = initBackgroundSync(session.user.id);
-    const stopBleSync = setupGlobalBleSync(queryClient, session.user.id);
+    if (!userId || !isNativePlatform()) return;
+    const stopUsage = initUsageStatsSync(userId);
+    const stopLocation = initLocationSync(userId);
+    const stopBackground = initBackgroundSync(userId);
+    const stopBleSync = setupGlobalBleSync(queryClient, userId);
     return () => {
       stopUsage();
       stopLocation();
       stopBackground();
       stopBleSync();
     };
-  }, [session?.user.id]);
+  }, [userId]);
+}
+
+function AppRoutes() {
+  const { session, loading } = useAppAuthSession();
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleNativeNavigate = useCallback((path: string) => {
+    navigate(path, { replace: true });
+  }, [navigate]);
+
+  useNativePlatformSync(session?.user.id, handleNativeNavigate);
 
   if (loading) {
     return FALLBACK_SPINNER;
@@ -153,6 +197,11 @@ function AppRoutes() {
       <Route path="/badania" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="list"><MedicalStudiesPage /></Screen>
+        </Suspense>
+      } />
+      <Route path="/badania/laboratorium" element={
+        <Suspense fallback={FALLBACK_SPINNER}>
+          <Screen kind="list"><MedicalLaboratoryPage /></Screen>
         </Suspense>
       } />
       <Route path="/korelacje" element={

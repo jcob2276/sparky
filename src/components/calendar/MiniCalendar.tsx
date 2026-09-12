@@ -78,36 +78,36 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
   return (
     <Card
       variant="outline"
-      padding="1rem"
-      className="!bg-surface-solid/5 dark:!bg-on-accent/[0.015] !border-border-custom/30 space-y-3.5 shadow-sm select-none"
+      padding="0.75rem"
+      className="!bg-surface-solid/5 dark:!bg-on-accent/[0.015] !border-border-custom/30 space-y-2.5 shadow-sm select-none overflow-hidden"
       style={{ borderRadius: 'var(--radius-md)' }}
     >
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-black text-text-primary tracking-wide">
+      <div className="flex items-center justify-between px-0.5">
+        <span className="text-xs sm:text-sm font-black text-text-primary tracking-wide">
           {monthNames[month]} {year}
         </span>
-        <div className="flex gap-1">
+        <div className="flex gap-1 items-center">
           <Pressable
             onClick={handlePrevMonth}
             aria-label="Poprzedni miesiąc"
-            className="min-h-11 min-w-11 p-1 rounded-lg hover:bg-surface-2 active:scale-90 transition-all duration-[var(--motion-medium)] border border-border-custom/20 hover:scale-[var(--ds-arbitrary-1-05)]"
+            className="h-7 w-7 p-0 rounded-lg hover:bg-surface-2 active:scale-90 transition-all flex items-center justify-center border border-border-custom/20"
           >
             <ChevronLeft size={13} className="text-text-muted hover:text-text-primary" />
           </Pressable>
           <Pressable
             onClick={handleNextMonth}
             aria-label="Następny miesiąc"
-            className="min-h-11 min-w-11 p-1 rounded-lg hover:bg-surface-2 active:scale-90 transition-all duration-[var(--motion-medium)] border border-border-custom/20 hover:scale-[var(--ds-arbitrary-1-05)]"
+            className="h-7 w-7 p-0 rounded-lg hover:bg-surface-2 active:scale-90 transition-all flex items-center justify-center border border-border-custom/20"
           >
             <ChevronRight size={13} className="text-text-muted hover:text-text-primary" />
           </Pressable>
         </div>
       </div>
 
-      <div className="grid grid-cols-[20px_repeat(7,1fr)] gap-y-1.5 text-center">
+      <div className="grid grid-cols-[16px_repeat(7,minmax(0,1fr))] gap-x-0.5 gap-y-1 text-center items-center">
         <span className="text-3xs font-black text-text-muted/40 uppercase self-center">T.</span>
         {['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'].map((d, idx) => (
-          <span key={idx} className="text-2xs font-bold text-text-muted/50 uppercase tracking-wider">
+          <span key={idx} className="text-3xs font-bold text-text-muted/60 uppercase tracking-wider">
             {d}
           </span>
         ))}
@@ -117,7 +117,7 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
 
           return (
             <React.Fragment key={rowIdx}>
-              <span className="text-3xs font-black text-text-muted/40 flex items-center justify-center">
+              <span className="text-3xs font-black text-text-muted/35 flex items-center justify-center tabular-nums">
                 {weekNum}
               </span>
               {rowDays.map((item, idx) => {
@@ -131,29 +131,31 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
                   <div key={idx} className="relative flex flex-col items-center">
                     <Pressable
                       onClick={() => onSelectDay(item.dayStr)}
-                      title={showMoon ? moon.name : undefined}
-                      className={`h-11 w-11 mx-auto rounded-full flex items-center justify-center text-xs transition-all duration-[var(--motion-medium)] active:scale-90 ${
+                      title={showMoon ? `${item.dayStr} · ${moon.name}` : item.dayStr}
+                      className={`h-7 w-7 sm:h-7.5 sm:w-7.5 mx-auto rounded-full flex items-center justify-center text-xs transition-all duration-150 active:scale-90 ${
                         isSelected
-                          ? 'bg-primary text-on-accent font-black shadow-md shadow-[var(--shadow-glow-primary)] scale-[var(--ds-arbitrary-1-08)] hover:scale-[var(--ds-arbitrary-1-12)]'
+                          ? 'bg-primary text-on-accent font-black shadow-xs scale-105'
                           : isToday
-                          ? 'bg-danger/10 text-danger font-black border border-danger/30 hover:scale-[var(--ds-arbitrary-1-08)]'
+                          ? 'border border-primary text-primary font-bold hover:bg-primary/10'
                           : item.isCurrentMonth
-                          ? 'text-text-primary hover:bg-primary/10 hover:text-primary font-semibold hover:scale-[var(--ds-arbitrary-1-08)]'
-                          : 'text-text-muted/30 hover:bg-primary/10 hover:text-primary/70'
+                          ? 'text-text-primary hover:bg-surface-2 font-medium'
+                          : 'text-text-muted/30 hover:bg-surface-2/60'
                       }`}
                     >
                       {item.dayNum}
                     </Pressable>
-                    {showMoon ? (
-                      <span
-                        className="text-3xs leading-none mt-[var(--ds-arbitrary-1px)] opacity-[var(--opacity-80)]"
-                        title={moon.name}
-                      >
-                        {moon.emoji}
-                      </span>
-                    ) : hasEvents ? (
-                      <span className="h-1 w-1 rounded-full bg-primary mt-0.5" />
-                    ) : null}
+                    <div className="h-1.5 flex items-center justify-center mt-0.5">
+                      {showMoon ? (
+                        <span
+                          className="text-3xs leading-none opacity-80"
+                          title={moon.name}
+                        >
+                          {moon.emoji}
+                        </span>
+                      ) : hasEvents ? (
+                        <span className="h-1 w-1 rounded-full bg-primary" />
+                      ) : null}
+                    </div>
                   </div>
                 );
               })}

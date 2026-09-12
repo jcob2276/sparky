@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import { describe, expect, it } from 'vitest';
 import {
   projectLifeObligations,
@@ -127,17 +128,39 @@ describe('synthesis candidate projection', () => {
     });
   });
 
-  it('removes completed and dismissed source records from the active projection', () => {
-    expect(projectTodoItems([{
-      id: 'done',
-      title: 'Gotowe',
-      priority: 'normal',
-      due_date: null,
-      deadline_date: null,
-      duration_minutes: 15,
-      status: 'completed',
-      updated_at: '2026-07-29T08:00:00Z',
-    }], '2026-07-29')).toEqual([]);
+  it('removes completed, done, dropped and dismissed source records from the active projection', () => {
+    expect(projectTodoItems([
+      {
+        id: 'done-1',
+        title: 'Gotowe',
+        priority: 'normal',
+        due_date: null,
+        deadline_date: null,
+        duration_minutes: 15,
+        status: 'completed',
+        updated_at: '2026-07-29T08:00:00Z',
+      },
+      {
+        id: 'done-2',
+        title: 'Zjedz kurczaka',
+        priority: 'urgent',
+        due_date: '2026-08-15',
+        deadline_date: null,
+        duration_minutes: 15,
+        status: 'done',
+        updated_at: '2026-08-16T08:00:00Z',
+      },
+      {
+        id: 'dropped-1',
+        title: 'Porzucone zadanie',
+        priority: 'high',
+        due_date: '2026-08-01',
+        deadline_date: null,
+        duration_minutes: 30,
+        status: 'dropped',
+        updated_at: '2026-08-05T08:00:00Z',
+      },
+    ], '2026-09-12')).toEqual([]);
 
     expect(projectSystemProposals([{
       id: 'dismissed',
@@ -147,5 +170,36 @@ describe('synthesis candidate projection', () => {
       status: 'dismissed',
       created_at: '2026-07-28T12:00:00Z',
     }])).toEqual([]);
+  });
+
+  it('filters out past obligations from previous months', () => {
+    const obligations = projectLifeObligations([
+      {
+        id: 'past-uro',
+        title: 'Urodziny z maja',
+        anchor_date: '2026-05-29',
+        kind: 'people',
+        updated_at: '2026-05-29T12:00:00Z',
+      },
+      {
+        id: 'today-uro',
+        title: 'Urodziny dzisiaj',
+        anchor_date: '2026-09-12',
+        kind: 'people',
+        updated_at: '2026-09-12T12:00:00Z',
+      },
+      {
+        id: 'future-inspection',
+        title: 'Przegląd techniczny',
+        anchor_date: '2026-09-20',
+        kind: 'vehicle',
+        updated_at: '2026-09-12T12:00:00Z',
+      },
+    ], '2026-09-12');
+
+    expect(obligations.map((o) => o.title)).toEqual([
+      'Urodziny dzisiaj',
+      'Przegląd techniczny',
+    ]);
   });
 });

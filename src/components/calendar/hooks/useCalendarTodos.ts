@@ -280,7 +280,7 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
     return { pillar, dreamTitle: goalMaps.sectionDreamMap[sectionId] || null };
   }, [goalMaps]);
 
-  return {
+  return useMemo(() => ({
     inboxTodos,
     scheduledTodos,
     todosForDay,
@@ -293,5 +293,5 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
     createScheduledTodo,
     goalChipFor,
     fetchAllTodos,
-  };
+  }), [inboxTodos, scheduledTodos, todosForDay, newTodoTitle, handleQuickAddTodo, completedTodoIds, handleToggleTodo, scheduleTodoAt, createScheduledTodo, goalChipFor, fetchAllTodos]);
 }

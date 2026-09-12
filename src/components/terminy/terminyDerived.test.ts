@@ -2,12 +2,15 @@ import { describe, expect, it } from 'vitest';
 import type { LifeObligation } from '../../lib/lifeObligationsApi';
 import {
   bucketMap,
+  buildICSContent,
   countdownLabel,
   deriveAll,
   deriveObligation,
   filterByKind,
+  getMonthlyCounts,
   initialsFrom,
   ringProgress,
+  templatesForKind,
   urgencyBucket,
 } from './terminyDerived';
 
@@ -91,5 +94,37 @@ describe('terminyDerived', () => {
     expect(expired).not.toBeNull();
     expect(expired!.bucket).toBe('today');
     expect(expired!.daysLeft).toBeLessThan(0);
+  });
+
+  it('calculates monthly counts correctly', () => {
+    const rows = deriveAll([
+      obl({ id: '1', title: 'Styczeń', kind: 'finance', anchor_date: '2026-01-15' }),
+      obl({ id: '2', title: 'Marzec 1', kind: 'vehicle', anchor_date: '2026-03-10' }),
+      obl({ id: '3', title: 'Marzec 2', kind: 'home', anchor_date: '2026-03-22' }),
+    ], today);
+    const counts = getMonthlyCounts(rows);
+    expect(counts[1]).toBe(1);
+    expect(counts[3]).toBe(2);
+    expect(counts[2]).toBe(0);
+  });
+
+  it('builds valid iCalendar content', () => {
+    const rows = deriveAll([
+      obl({ id: 'ics-1', title: 'Przegląd pieca', kind: 'home', anchor_date: '2026-09-20', notes: 'Nr seryjny 123' }),
+    ], today);
+    const ics = buildICSContent(rows);
+    expect(ics).toContain('BEGIN:VCALENDAR');
+    expect(ics).toContain('SUMMARY:Przegląd pieca');
+    expect(ics).toContain('DESCRIPTION:Nr seryjny 123');
+    expect(ics).toContain('END:VCALENDAR');
+  });
+
+  it('provides starter templates for all 6 life obligation kinds', () => {
+    const kinds = ['people', 'vehicle', 'document', 'home', 'finance', 'health_admin'] as const;
+    for (const kind of kinds) {
+      const templates = templatesForKind(kind);
+      expect(templates.length).toBeGreaterThan(0);
+      expect(templates[0].kind).toBe(kind);
+    }
   });
 });

@@ -106,9 +106,20 @@ export function useSyncActivities({
         }
       }
 
-      // Sync Strava runs
+      // Sync Strava / Garmin activities
       if (strava) {
-        for (const act of strava) {
+        // 1. Separate runs from Kardio/Sauna activities
+        const kardioActs = strava.filter((a) => {
+          const n = (a.name || '').toLowerCase();
+          return n.includes('kardio') || n.includes('cardio') || n.includes('sauna');
+        });
+        const runActs = strava.filter((a) => {
+          const n = (a.name || '').toLowerCase();
+          return !n.includes('kardio') && !n.includes('cardio') && !n.includes('sauna');
+        });
+
+        // 2. Sync runs
+        for (const act of runActs) {
           if (!act.start_date) continue;
 
           const summary = `Bieg 🏃 (${act.name || 'Strava'})`;
@@ -125,6 +136,43 @@ export function useSyncActivities({
             start: startISO,
             end: endISO,
             category: 'cialo_trening',
+          });
+          createdCount++;
+        }
+
+        // 3. Group and sync Kardio as Sauna (1 day = 1 sauna)
+        const kardioByDate = new Map<string, typeof kardioActs>();
+        for (const act of kardioActs) {
+          if (!act.start_date) continue;
+          const dKey = act.start_date.slice(0, 10);
+          const existing = kardioByDate.get(dKey) || [];
+          existing.push(act);
+          kardioByDate.set(dKey, existing);
+        }
+
+        for (const [, dayActs] of kardioByDate) {
+          dayActs.sort((a, b) => (a.start_date || '').localeCompare(b.start_date || ''));
+          const first = dayActs[0];
+          const last = dayActs[dayActs.length - 1];
+          const startISO = new Date(first.start_date!).toISOString();
+          const lastStartMs = new Date(last.start_date!).getTime();
+          const lastDurMs = (last.elapsed_time || 1800) * 1000;
+          const endISO = new Date(lastStartMs + lastDurMs).toISOString();
+
+          if (eventExists(startISO, 'sauna')) {
+            continue;
+          }
+
+          const totalMins = Math.round(dayActs.reduce((s, a) => s + (a.elapsed_time || 0), 0) / 60);
+          const summary = dayActs.length > 1
+            ? `Sauna 🧖 (${dayActs.length} serie · ${totalMins} min)`
+            : `Sauna 🧖 (${totalMins} min)`;
+
+          await createEvent({
+            summary,
+            start: startISO,
+            end: endISO,
+            category: 'odpoczynek_regeneracja',
           });
           createdCount++;
         }

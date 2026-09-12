@@ -1,5 +1,14 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertTriangle, ArrowLeft, Calendar, FileSpreadsheet, Filter, Plus, Search } from 'lucide-react';
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Calendar,
+  Download,
+  FileSpreadsheet,
+  Filter,
+  Plus,
+  Search,
+} from 'lucide-react';
 import type { DerivedObligation, StarterTemplate } from './terminyDerived';
 import ContentContainer from '../shared/ContentContainer';
 import Spinner from '../ui/Spinner';
@@ -7,8 +16,17 @@ import Input from '../ui/Input';
 import { Pressable } from '../ui/ControlPrimitives';
 import { TerminyHorizon } from './TerminyHorizon';
 import { TerminyVault } from './TerminyVault';
+import { TerminyYearDistribution } from './TerminyYearDistribution';
 
-export type TerminyTabKey = 'horizon' | 'people' | 'vehicle' | 'document';
+export type TerminyTabKey =
+  | 'horizon'
+  | 'people'
+  | 'vehicle'
+  | 'document'
+  | 'home'
+  | 'finance'
+  | 'health_admin';
+
 export type FilterMode = 'all' | 'urgent' | 'notes';
 
 const TABS = [
@@ -16,6 +34,9 @@ const TABS = [
   { key: 'people', label: 'Ludzie' },
   { key: 'vehicle', label: 'Pojazd' },
   { key: 'document', label: 'Dokumenty' },
+  { key: 'home', label: 'Dom' },
+  { key: 'finance', label: 'Finanse' },
+  { key: 'health_admin', label: 'Zdrowie' },
 ] as const;
 
 interface RowActions {
@@ -23,11 +44,14 @@ interface RowActions {
   onEdit: (id: string) => void;
   onComplete: (row: DerivedObligation) => Promise<void>;
   onConvertToTodo: (row: DerivedObligation) => Promise<void>;
+  onAddToCalendar?: (row: DerivedObligation) => void;
+  onExportICS?: (row: DerivedObligation) => void;
 }
 
 interface Props extends RowActions {
   onBack: () => void;
   onAdd: () => void;
+  onExportAllICS?: () => void;
   onOpenTemplate: (template?: StarterTemplate | null) => void;
   onOpenKind: (kind: Exclude<TerminyTabKey, 'horizon'>) => void;
   rows: DerivedObligation[];
@@ -40,12 +64,18 @@ interface Props extends RowActions {
   onSearchChange: (value: string) => void;
   filterMode: FilterMode;
   onFilterChange: (value: FilterMode) => void;
+  selectedMonth: number | null;
+  onSelectMonth: (month: number | null) => void;
   tab: TerminyTabKey;
   onTabChange: (value: TerminyTabKey) => void;
   reduceMotion: boolean | null;
 }
 
-function TerminyHeader({ onBack, onAdd }: Pick<Props, 'onBack' | 'onAdd'>) {
+function TerminyHeader({
+  onBack,
+  onAdd,
+  onExportAllICS,
+}: Pick<Props, 'onBack' | 'onAdd' | 'onExportAllICS'>) {
   return (
     <header className="sticky top-0 z-[var(--z-sticky)] border-b border-white/10 bg-background/70 backdrop-blur-xl transition-colors duration-200 dark:border-white/5">
       <div className="mx-auto flex max-w-[var(--content-wide)] items-center gap-3 px-4 py-3.5 md:px-8">
@@ -54,8 +84,19 @@ function TerminyHeader({ onBack, onAdd }: Pick<Props, 'onBack' | 'onAdd'>) {
         </Pressable>
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-bold tracking-tight text-text-primary">Terminy</h1>
-          <p className="text-xs text-text-muted">Urodziny, przeglądy, polisy i przypomnienia</p>
+          <p className="text-xs text-text-muted">Urodziny, przeglądy, polisy, dom, finanse i badania</p>
         </div>
+        {onExportAllICS && (
+          <Pressable
+            onClick={onExportAllICS}
+            title="Eksportuj terminy do pliku .ics (iCal, Apple, Google)"
+            aria-label="Eksportuj do iCal"
+            className="flex h-9.5 items-center gap-1.5 rounded-full border border-border-custom/40 bg-surface-2/60 px-3 text-xs font-semibold text-text-secondary transition-all duration-150 hover:bg-surface-3 hover:text-text-primary active:scale-95"
+          >
+            <Download size={15} strokeWidth={2.2} />
+            <span className="hidden sm:inline">Eksportuj .ics</span>
+          </Pressable>
+        )}
         <Pressable onClick={onAdd} aria-label="Dodaj termin" className="flex h-9.5 items-center gap-1.5 rounded-full bg-primary px-3.5 text-xs font-semibold text-on-accent shadow-xs transition-all duration-150 hover:opacity-90 active:scale-95">
           <Plus size={16} strokeWidth={2.5} />
           <span className="hidden sm:inline">Dodaj</span>
@@ -112,12 +153,24 @@ function TerminyToolbar({ searchQuery, onSearchChange, filterMode, onFilterChang
 
 function TerminyTabs({ tab, onTabChange }: Pick<Props, 'tab' | 'onTabChange'>) {
   return (
-    <div className="relative flex rounded-[16px] bg-surface-2/70 p-1 ring-1 ring-border-custom/20 backdrop-blur-md">
+    <div className="relative flex overflow-x-auto no-scrollbar rounded-[16px] bg-surface-2/70 p-1 ring-1 ring-border-custom/20 backdrop-blur-md">
       {TABS.map((item) => {
         const isActive = tab === item.key;
         return (
-          <Pressable key={item.key} onClick={() => onTabChange(item.key)} className={`relative z-10 flex-1 rounded-[12px] py-2 text-xs font-semibold tracking-tight transition-colors duration-150 ${isActive ? 'text-text-primary' : 'text-text-muted hover:text-text-secondary'}`}>
-            {isActive && <motion.div layoutId="apple-terminy-tab-pill" className="absolute inset-0 rounded-[12px] bg-surface-solid shadow-xs ring-1 ring-black/5 dark:ring-white/10" transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }} />}
+          <Pressable
+            key={item.key}
+            onClick={() => onTabChange(item.key)}
+            className={`relative z-10 flex-1 min-w-[76px] shrink-0 rounded-[12px] py-2 px-2 text-center text-xs font-semibold tracking-tight transition-colors duration-150 ${
+              isActive ? 'text-text-primary' : 'text-text-muted hover:text-text-secondary'
+            }`}
+          >
+            {isActive && (
+              <motion.div
+                layoutId="apple-terminy-tab-pill"
+                className="absolute inset-0 rounded-[12px] bg-surface-solid shadow-xs ring-1 ring-black/5 dark:ring-white/10"
+                transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }}
+              />
+            )}
             <span className="relative z-10">{item.label}</span>
           </Pressable>
         );
@@ -126,14 +179,58 @@ function TerminyTabs({ tab, onTabChange }: Pick<Props, 'tab' | 'onTabChange'>) {
   );
 }
 
-function TerminyResults(props: Pick<Props, 'tab' | 'filterMode' | 'searchQuery' | 'filteredRows' | 'reduceMotion' | 'onDelete' | 'onEdit' | 'onComplete' | 'onConvertToTodo' | 'onOpenTemplate' | 'onOpenKind'>) {
+function TerminyResults(
+  props: Pick<
+    Props,
+    | 'tab'
+    | 'filterMode'
+    | 'searchQuery'
+    | 'filteredRows'
+    | 'reduceMotion'
+    | 'onDelete'
+    | 'onEdit'
+    | 'onComplete'
+    | 'onConvertToTodo'
+    | 'onAddToCalendar'
+    | 'onExportICS'
+    | 'onOpenTemplate'
+    | 'onOpenKind'
+  >,
+) {
   return (
     <AnimatePresence mode="wait" initial={false}>
-      <motion.div key={`${props.tab}:${props.filterMode}:${props.searchQuery}`} initial={props.reduceMotion ? false : { opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={props.reduceMotion ? undefined : { opacity: 0, y: -6 }} transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}>
+      <motion.div
+        key={`${props.tab}:${props.filterMode}:${props.searchQuery}`}
+        initial={props.reduceMotion ? false : { opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={props.reduceMotion ? undefined : { opacity: 0, y: -6 }}
+        transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+      >
         {props.tab === 'horizon' ? (
-          <TerminyHorizon rows={props.filteredRows} searchQuery={props.searchQuery} onDelete={props.onDelete} onEdit={props.onEdit} onComplete={props.onComplete} onConvertToTodo={props.onConvertToTodo} onOpenAdd={props.onOpenTemplate} />
+          <TerminyHorizon
+            rows={props.filteredRows}
+            searchQuery={props.searchQuery}
+            onDelete={props.onDelete}
+            onEdit={props.onEdit}
+            onComplete={props.onComplete}
+            onConvertToTodo={props.onConvertToTodo}
+            onAddToCalendar={props.onAddToCalendar}
+            onExportICS={props.onExportICS}
+            onOpenAdd={props.onOpenTemplate}
+          />
         ) : (
-          <TerminyVault kind={props.tab} rows={props.filteredRows} searchQuery={props.searchQuery} onDelete={props.onDelete} onEdit={props.onEdit} onComplete={props.onComplete} onConvertToTodo={props.onConvertToTodo} onOpenAdd={() => props.onOpenKind(props.tab as Exclude<TerminyTabKey, 'horizon'>)} />
+          <TerminyVault
+            kind={props.tab}
+            rows={props.filteredRows}
+            searchQuery={props.searchQuery}
+            onDelete={props.onDelete}
+            onEdit={props.onEdit}
+            onComplete={props.onComplete}
+            onConvertToTodo={props.onConvertToTodo}
+            onAddToCalendar={props.onAddToCalendar}
+            onExportICS={props.onExportICS}
+            onOpenAdd={() => props.onOpenKind(props.tab as Exclude<TerminyTabKey, 'horizon'>)}
+          />
         )}
       </motion.div>
     </AnimatePresence>
@@ -143,13 +240,18 @@ function TerminyResults(props: Pick<Props, 'tab' | 'filterMode' | 'searchQuery' 
 export default function TerminyPageContent(props: Props) {
   return (
     <div className="flex min-w-0 flex-1 flex-col h-full overflow-y-auto">
-      <TerminyHeader onBack={props.onBack} onAdd={props.onAdd} />
+      <TerminyHeader onBack={props.onBack} onAdd={props.onAdd} onExportAllICS={props.onExportAllICS} />
       <ContentContainer width="default" className="flex-1 space-y-6 pb-16 pt-6">
         {props.isLoading && <div className="flex justify-center py-16"><Spinner /></div>}
         {props.error && <p className="rounded-2xl bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/20">{props.error.message}</p>}
         {!props.isLoading && !props.error && (
           <>
             <TerminyScorecards total={props.rows.length} urgent={props.urgentCount} notes={props.notesCount} />
+            <TerminyYearDistribution
+              rows={props.rows}
+              selectedMonth={props.selectedMonth}
+              onSelectMonth={props.onSelectMonth}
+            />
             <TerminyToolbar {...props} />
             <TerminyTabs {...props} />
             <TerminyResults {...props} />

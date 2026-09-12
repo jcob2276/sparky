@@ -162,6 +162,36 @@ function monthsBetween(older: string, newer: string): number {
   return (newerYear - olderYear) * 12 + newerMonth - olderMonth;
 }
 
+export interface PreventionActionLike {
+  suggestionKey: string;
+  status: 'done' | 'snoozed' | 'dismissed';
+  snoozedUntil: string | null;
+}
+
+/**
+ * Czy decyzja użytkownika o sugestii nadal ją ukrywa.
+ * Snooze kończy się w dniu `snoozedUntil` (sugestia wraca tego dnia).
+ * Pojedyncze źródło prawdy dla Kartoteki i warstwy syntezy.
+ */
+export function isPreventionActionActive(action: PreventionActionLike, today: string): boolean {
+  if (action.status === 'done' || action.status === 'dismissed') return true;
+  if (action.status === 'snoozed' && action.snoozedUntil && action.snoozedUntil > today) return true;
+  return false;
+}
+
+export function filterVisibleSuggestions<T extends { id: string }>(
+  suggestions: T[],
+  actions: PreventionActionLike[],
+  today: string,
+): T[] {
+  const hidden = new Set(
+    actions
+      .filter((action) => isPreventionActionActive(action, today))
+      .map((action) => action.suggestionKey),
+  );
+  return suggestions.filter((suggestion) => !hidden.has(suggestion.id));
+}
+
 export function buildPreventionSuggestions(input: {
   events: MedicalEvent[];
   today: string;

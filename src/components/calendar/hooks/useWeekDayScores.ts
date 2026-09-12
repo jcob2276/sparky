@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
+import { useUserId } from '../../../store/useStore';
 
 /**
  * Fetches day_score (1–10) from daily_reconciliations for each day in a week.
@@ -8,12 +9,11 @@ import { supabase } from '../../../lib/supabase';
 export function useWeekDayScores(weekDays: string[]): Record<string, number | null> {
   const from = weekDays[0];
   const to = weekDays[weekDays.length - 1];
+  const userId = useUserId();
 
   const { data } = useQuery({
-    queryKey: ['week-day-scores', from, to],
+    queryKey: ['week-day-scores', from, to, userId],
     queryFn: async () => {
-      const { data: session } = await supabase.auth.getSession();
-      const userId = session?.session?.user?.id;
       if (!userId) return [];
       const { data: rows } = await supabase
         .from('daily_reconciliations')
@@ -23,7 +23,7 @@ export function useWeekDayScores(weekDays: string[]): Record<string, number | nu
         .lte('date', to);
       return rows ?? [];
     },
-    enabled: weekDays.length > 0,
+    enabled: weekDays.length > 0 && Boolean(userId),
     staleTime: 5 * 60_000,
   });
 

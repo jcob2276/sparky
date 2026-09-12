@@ -1,32 +1,31 @@
 import Sheet from '../../ui/Sheet';
-import type { MedicalLabRow } from '../../../lib/health/medicalAnalytics';
+import type { MarkerSeries } from '../../../lib/health/medicalAnalytics';
 import { Card } from '../../ui/Card';
 import { AlertTriangle, Calendar, FlaskConical } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface MedicalMarkerInspectorProps {
   markerKey: string | null;
-  labs: MedicalLabRow[];
+  series: MarkerSeries[];
   onClose: () => void;
 }
 
-export default function MedicalMarkerInspector({ markerKey, labs, onClose }: MedicalMarkerInspectorProps) {
+export default function MedicalMarkerInspector({ markerKey, series, onClose }: MedicalMarkerInspectorProps) {
   const isOpen = !!markerKey;
 
-  // Filter and sort historical rows for this marker (newest first for table, oldest first for chart)
-  const history = labs
-    .filter(l => l.marker_key === markerKey)
-    .sort((a, b) => b.result_date.localeCompare(a.result_date));
+  const selected = series.find((s) => s.marker_key === markerKey);
+  if (!selected) return null;
 
+  // history: newest first for the table, oldest first for the chart
+  const history = selected.history;
   const chartData = [...history]
-    .sort((a, b) => a.result_date.localeCompare(b.result_date))
-    .map(h => ({
+    .reverse()
+    .map((h) => ({
       date: h.result_date,
       value: h.value
     }));
 
   const latest = history[0];
-  if (!latest) return null;
 
   const hasFlag = latest.flag && latest.flag !== 'N' && latest.flag !== 'normal';
   const normStr = latest.ref_low != null && latest.ref_high != null

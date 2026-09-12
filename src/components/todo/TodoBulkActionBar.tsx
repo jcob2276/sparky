@@ -4,8 +4,8 @@
  */
 
 import React from 'react';
-import { Calendar, CheckCircle2, Trash2, Flag, X, ArrowRight } from 'lucide-react';
-import Button from '../ui/Button';
+import { Calendar, CheckCircle2, Trash2, Flag, X, ArrowRight, CheckCheck } from 'lucide-react';
+import { Pressable } from '../ui/ControlPrimitives';
 
 interface TodoBulkActionBarProps {
   selectedCount: number;
@@ -15,6 +15,7 @@ interface TodoBulkActionBarProps {
   onBulkSetToday: () => void;
   onBulkSetTomorrow: () => void;
   onBulkSetPriority: (priority: 'urgent' | 'high' | 'normal' | 'low') => void;
+  onSelectAll?: () => void;
   busy?: boolean;
 }
 
@@ -26,6 +27,7 @@ export function TodoBulkActionBar({
   onBulkSetToday,
   onBulkSetTomorrow,
   onBulkSetPriority,
+  onSelectAll,
   busy,
 }: TodoBulkActionBarProps) {
   if (selectedCount === 0) return null;
@@ -42,8 +44,20 @@ export function TodoBulkActionBar({
       </div>
 
       <div className="flex items-center gap-1.5 shrink-0">
-        <button
-          type="button"
+        {onSelectAll && (
+          <Pressable
+            disabled={busy}
+            onClick={onSelectAll}
+            className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer"
+            title="Zaznacz wszystkie widoczne zadania"
+            aria-label="Zaznacz wszystkie widoczne zadania"
+          >
+            <CheckCheck size={13} className="text-primary" />
+            <span className="hidden sm:inline">Wszystkie</span>
+          </Pressable>
+        )}
+
+        <Pressable
           disabled={busy}
           onClick={onBulkSetToday}
           className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer"
@@ -52,10 +66,9 @@ export function TodoBulkActionBar({
         >
           <Calendar size={13} className="text-primary" />
           <span>Dziś</span>
-        </button>
+        </Pressable>
 
-        <button
-          type="button"
+        <Pressable
           disabled={busy}
           onClick={onBulkSetTomorrow}
           className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer"
@@ -64,10 +77,9 @@ export function TodoBulkActionBar({
         >
           <ArrowRight size={13} className="text-warning" />
           <span>Jutro</span>
-        </button>
+        </Pressable>
 
-        <button
-          type="button"
+        <Pressable
           disabled={busy}
           onClick={() => onBulkSetPriority('urgent')}
           className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-danger/40 active:scale-95 transition-all cursor-pointer"
@@ -76,10 +88,9 @@ export function TodoBulkActionBar({
         >
           <Flag size={13} className="text-danger" />
           <span>Ważne</span>
-        </button>
+        </Pressable>
 
-        <button
-          type="button"
+        <Pressable
           disabled={busy}
           onClick={onBulkComplete}
           className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl bg-success/15 border border-success/30 text-success hover:bg-success/25 active:scale-95 transition-all cursor-pointer"
@@ -88,10 +99,9 @@ export function TodoBulkActionBar({
         >
           <CheckCircle2 size={13} />
           <span>Ukończ</span>
-        </button>
+        </Pressable>
 
-        <button
-          type="button"
+        <Pressable
           disabled={busy}
           onClick={onBulkDelete}
           className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl bg-danger/15 border border-danger/30 text-danger hover:bg-danger/25 active:scale-95 transition-all cursor-pointer"
@@ -100,18 +110,17 @@ export function TodoBulkActionBar({
         >
           <Trash2 size={13} />
           <span>Usuń</span>
-        </button>
+        </Pressable>
       </div>
 
-      <button
-        type="button"
+      <Pressable
         onClick={onClearSelection}
         className="p-1 rounded-full text-text-muted hover:text-text-primary hover:bg-surface-solid/60 transition-colors ml-1 shrink-0"
         title="Odznacz wszystkie"
         aria-label="Odznacz wszystkie zadania"
       >
         <X size={14} />
-      </button>
+      </Pressable>
     </div>
   );
 }

@@ -7,6 +7,8 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useCalendarData } from './hooks/useCalendarData';
 import {
+  HOUR_START,
+  HOURS,
   PX_PER_HOUR,
   addDays,
   todayStr,
@@ -75,7 +77,12 @@ function groupEventsByDay(events: CalRow[]): Record<string, CalRow[]> {
 
 function useInitialGridScroll(gridRef: React.RefObject<HTMLDivElement | null>, calendarView: string) {
   useEffect(() => {
-    if (gridRef.current) gridRef.current.scrollTop = 7.5 * PX_PER_HOUR;
+    if (!gridRef.current) return;
+    const now = new Date();
+    const currentHour = now.getHours() + now.getMinutes() / 60;
+    const targetHour = Math.max(0, currentHour - HOUR_START - 1.5);
+    const scrollTarget = Math.max(0, Math.min(HOURS * PX_PER_HOUR, targetHour * PX_PER_HOUR));
+    gridRef.current.scrollTop = scrollTarget;
   }, [calendarView, gridRef]);
 }
 
@@ -88,7 +95,6 @@ type GridViewProps = {
   setCalView: ReturnType<typeof useCalendarData>['setCalView'];
   weather: ReturnType<typeof useCalendarData>['weather'];
   today: string;
-  nowMin: number;
   weekDays: string[];
   dragSelect: ReturnType<typeof useCalendarDragSelect>['dragSelect'];
   goalChipFor: (sectionId: string | null) => GoalChip;
@@ -114,7 +120,7 @@ type GridViewProps = {
 function CalendarGridViews(p: GridViewProps) {
   const column = {
     today: p.today,
-    nowMin: p.nowMin,
+    setCalView: p.setCalView,
     dragSelect: p.dragSelect,
     goalChipFor: p.goalChipFor,
     completedTodoIds: p.completedTodoIds,
@@ -131,6 +137,7 @@ function CalendarGridViews(p: GridViewProps) {
     setToastMessage: p.setToastMessage,
     setSaving: p.setSaving,
     scheduleTodoAt: p.scheduleTodoAt,
+    handleEventClick: p.handleEventClick,
     gridRef: p.gridRef,
   };
 
@@ -194,7 +201,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   const gridRef = useRef<HTMLDivElement>(null);
   const {
     calView, setCalView, selectedDay, setSelectedDay, weekStart, setWeekStart,
-    displayEvents: events, weather, nowMin, setQuickCreate, setQuickDuration,
+    displayEvents: events, weather, setQuickCreate, setQuickDuration,
     setEditingTodo, setEditingTodoTitle, setToastMessage, setSaving,
     handleEventMouseDown, handleEventClick,
   } = calData;
@@ -237,7 +244,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
         setCalView={setCalView}
         weather={weather}
         today={today}
-        nowMin={nowMin}
         weekDays={weekDays}
         dragSelect={dragSelect}
         goalChipFor={goalChipFor}

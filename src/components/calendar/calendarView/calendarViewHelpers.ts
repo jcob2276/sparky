@@ -1,5 +1,5 @@
 import { LIFE_SPHERES, LEGACY_CATEGORY_TO_SPHERE } from '../../../lib/projects/lifeSpheres';
-import { addDays, type CalRow } from '../calendarHelpers';
+import { addDays, weekMon, type CalRow } from '../calendarHelpers';
 
 export const buildRecurrenceRule = (
   r: '' | 'daily' | 'weekly' | 'monthly' | 'custom',
@@ -79,3 +79,30 @@ export function calculateWeeklyTotals(events: CalRow[], weekStart: string, offse
   });
   return totals;
 }
+
+export function shiftPeriodDates(
+  calView: 'dzien' | '3dni' | 'tydzien' | 'miesiac',
+  selectedDay: string,
+  weekStart: string,
+  direction: -1 | 1,
+): { nextSelectedDay: string; nextWeekStart: string } {
+  if (calView === 'dzien') {
+    const nextDay = addDays(selectedDay, direction);
+    return { nextSelectedDay: nextDay, nextWeekStart: weekMon(nextDay) };
+  }
+  if (calView === '3dni') {
+    const nextDay = addDays(selectedDay, direction * 3);
+    return { nextSelectedDay: nextDay, nextWeekStart: weekMon(nextDay) };
+  }
+  if (calView === 'tydzien') {
+    const nextWeek = addDays(weekStart, direction * 7);
+    return { nextSelectedDay: nextWeek, nextWeekStart: nextWeek };
+  }
+  const [y, m] = selectedDay.split('-').map(Number);
+  const d = new Date(y, m - 1 + direction, 1);
+  const newY = d.getFullYear();
+  const newM = String(d.getMonth() + 1).padStart(2, '0');
+  const nextMonthDay = `${newY}-${newM}-01`;
+  return { nextSelectedDay: nextMonthDay, nextWeekStart: weekMon(nextMonthDay) };
+}
+

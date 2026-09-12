@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { Calendar, Clock, Inbox, Flag, CheckCircle2 } from 'lucide-react';
+import { Pressable } from '../ui/ControlPrimitives';
 import type { TodoNavDest } from './TodoSidebar';
 
 interface AppleRemindersSmartGridProps {
@@ -77,13 +78,12 @@ export function AppleRemindersSmartGrid({
         const Icon = card.icon;
 
         return (
-          <button
+          <Pressable
             key={card.id}
-            type="button"
             onClick={() => onSelectNavDest(card.id)}
             aria-label={`${card.title}: ${card.count} zadań`}
             aria-pressed={isActive}
-            className={`flex flex-col justify-between p-3 rounded-2xl border transition-all duration-200 cursor-pointer active:scale-95 text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none last:col-span-2 sm:last:col-span-1 ${
+            className={`flex flex-col justify-between p-3 rounded-2xl border transition-all duration-200 cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none last:col-span-2 sm:last:col-span-1 ${
               isActive
                 ? 'border-primary/50 bg-primary/10 shadow-sm ring-2 ring-primary/20'
                 : 'border-border-custom/30 bg-surface-solid/40 hover:bg-surface-solid/70 hover:border-border-custom/60 shadow-xs'
@@ -101,7 +101,7 @@ export function AppleRemindersSmartGrid({
             <span className="text-xs font-bold text-text-secondary tracking-tight">
               {card.title}
             </span>
-          </button>
+          </Pressable>
         );
       })}
     </div>

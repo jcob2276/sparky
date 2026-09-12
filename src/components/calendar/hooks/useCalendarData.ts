@@ -8,6 +8,7 @@ import {
   useUpdateCalendarEvent,
   useDeleteCalendarEvent,
 } from '../../../lib/calendarApi';
+import { notify } from '../../../lib/notify';
 import { calendarKeys } from '../../../lib/queryKeys';
 import { STORAGE_KEYS } from '../../../lib/constants';
 import {
@@ -15,7 +16,6 @@ import {
   weekMon,
   addDays,
   dateOfISO,
-  nowMinutes,
   recurringSeriesBaseId,
   CalRow,
 } from '../calendarHelpers';
@@ -107,10 +107,10 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     return result;
   }, [obligations, today]);
 
-  // Cast events to CalRow[] safely and merge obligation events
-  // Exclude generic Garmin/Intervals "Kardio" / "Cardio" activities to avoid duplication with manual Sauna entries
+  // Cast events to CalRow[] safely and merge obligation events.
+  // Garmin/Intervals "Kardio" / "Cardio" activities represent Sauna sessions.
   const events = useMemo(() => {
-    const raw = (rawEvents as CalRow[]).filter((ev) => {
+    const raw = (rawEvents as CalRow[]).map((ev) => {
       const summaryLower = ev.summary?.toLowerCase() || '';
       if (
         summaryLower === 'kardio' ||
@@ -119,9 +119,13 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
         summaryLower.includes('(cardio)') ||
         summaryLower === 'bieg 🏃 (kardio)'
       ) {
-        return false;
+        return {
+          ...ev,
+          summary: 'Sauna 🧖',
+          category: 'odpoczynek_regeneracja',
+        };
       }
-      return true;
+      return ev;
     });
     return [...raw, ...obligationEvents];
   }, [rawEvents, obligationEvents]);
@@ -231,7 +235,7 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     }
   });
 
-  const toggleSidebar = () => {
+  const toggleSidebar = useCallback(() => {
     setSidebarCollapsed((prev) => {
       const next = !prev;
       try {
@@ -241,7 +245,7 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
       }
       return next;
     });
-  };
+  }, []);
 
   const { data: userSettings } = useUserSettings(userId);
 
@@ -252,14 +256,6 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     rangeStart: visibleRange.rangeStart,
     rangeEnd: visibleRange.rangeEnd,
   });
-
-  const [nowMin, setNowMin] = useState(() => nowMinutes());
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setNowMin(nowMinutes());
-    }, 30000);
-    return () => clearInterval(timer);
-  }, []);
 
   const fetchEvents = useCallback(async () => {
     await queryClient.invalidateQueries({
@@ -291,15 +287,15 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     };
   }, [userId, fetchEvents]);
 
-  const formatTimeOfISO = (iso: string) => {
+  const formatTimeOfISO = useCallback((iso: string) => {
     const parts = iso.split('T')[1]?.split(':');
     if (!parts || parts.length < 2) return '12:00';
     return `${parts[0]}:${parts[1]}`;
-  };
+  }, []);
 
   const [viewingEvent, setViewingEvent] = useState<CalRow | null>(null);
 
-  const openEditFromPreview = (ev: CalRow) => {
+  const openEditFromPreview = useCallback((ev: CalRow) => {
     setViewingEvent(null);
     setSelectedEvent(ev);
     setEditTitle(ev.summary || '');
@@ -319,11 +315,11 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     if (ev.end_time) {
       setEditEnd(formatTimeOfISO(ev.end_time));
     }
-  };
+  }, [formatTimeOfISO]);
 
-  const handleEventClick = (ev: CalRow) => {
+  const handleEventClick = useCallback((ev: CalRow) => {
     setViewingEvent(ev);
-  };
+  }, []);
 
   const { handleEventMouseDown } = useCalendarEventDrag({
     userId,
@@ -335,7 +331,7 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     setToastMessage,
   });
 
-  const executeDelete = async (scope: 'this' | 'all' = 'this') => {
+  const executeDelete = useCallback(async (scope: 'this' | 'all' = 'this') => {
     if (!selectedEvent) return;
     setDeleting(true);
     const instanceId = selectedEvent.event_id || selectedEvent.id;
@@ -357,14 +353,92 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     } finally {
       setDeleting(false);
     }
-  };
+  }, [selectedEvent, userId, accessToken, deleteEventMutation]);
 
-  const handleEditDelete = () => {
+  const handleEditDelete = useCallback(() => {
     if (!selectedEvent) return;
     setShowDeleteConfirm(true);
-  };
+  }, [selectedEvent]);
 
-  return {
+  const [lastDeletedEvent, setLastDeletedEvent] = useState<CalRow | null>(null);
+
+  const restoreLastDeleted = useCallback(async () => {
+    if (!lastDeletedEvent || !lastDeletedEvent.start_time || !lastDeletedEvent.end_time) return;
+    try {
+      await createEventMutation.mutateAsync({
+        userId: userId || '',
+        accessToken: accessToken || '',
+        event: {
+          summary: lastDeletedEvent.summary || 'Wydarzenie',
+          start: lastDeletedEvent.start_time,
+          end: lastDeletedEvent.end_time,
+          category: lastDeletedEvent.category || undefined,
+          description: lastDeletedEvent.description || undefined,
+          location: lastDeletedEvent.location || undefined,
+          is_all_day: lastDeletedEvent.is_all_day ?? false,
+          reminder_minutes: lastDeletedEvent.reminder_minutes ?? null,
+        },
+      });
+      setLastDeletedEvent(null);
+      notify('Przywrócono wydarzenie ↩️', 'success');
+    } catch (err) {
+      console.error('Failed to restore event:', err);
+      notify('Nie udało się przywrócić wydarzenia.', 'error');
+    }
+  }, [lastDeletedEvent, createEventMutation, userId, accessToken]);
+
+  const deleteEventWithUndo = useCallback(async (ev: CalRow) => {
+    const isRecurring = Boolean(
+      ev.series_id ||
+      (ev.recurrence && ev.recurrence.length > 0) ||
+      recurringSeriesBaseId(ev.event_id || ev.id)
+    );
+
+    if (isRecurring) {
+      setSelectedEvent(ev);
+      setShowDeleteConfirm(true);
+      return;
+    }
+
+    const instanceId = ev.event_id || ev.id;
+    try {
+      await deleteEventMutation.mutateAsync({
+        userId: userId || '',
+        accessToken: accessToken || '',
+        eventId: instanceId,
+        deleteScope: 'this',
+      });
+      setLastDeletedEvent(ev);
+      setViewingEvent((curr) => (curr?.id === ev.id ? null : curr));
+      notify(`Usunięto "${ev.summary || 'Wydarzenie'}"`, 'info', {
+        action: {
+          label: 'Cofnij',
+          onClick: () => {
+            void createEventMutation.mutateAsync({
+              userId: userId || '',
+              accessToken: accessToken || '',
+              event: {
+                summary: ev.summary || 'Wydarzenie',
+                start: ev.start_time!,
+                end: ev.end_time!,
+                category: ev.category || undefined,
+                description: ev.description || undefined,
+                location: ev.location || undefined,
+                is_all_day: ev.is_all_day ?? false,
+                reminder_minutes: ev.reminder_minutes ?? null,
+              },
+            });
+          },
+        },
+      });
+    } catch (err) {
+      console.error('Failed to delete event:', err);
+      notify('Nie udało się usunąć wydarzenia.', 'error');
+    }
+  }, [deleteEventMutation, createEventMutation, userId, accessToken]);
+
+   
+  return useMemo(() => ({
     calView, setCalView,
     selectedDay, setSelectedDay,
     weekStart, setWeekStart,
@@ -416,14 +490,28 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     sidebarCollapsed, setSidebarCollapsed,
     toggleSidebar,
     weather, weatherLoading,
-    nowMin,
     fetchEvents,
     handleEventMouseDown,
     handleEventClick,
     executeDelete,
     handleEditDelete,
+    deleteEventWithUndo,
+    restoreLastDeleted,
+    lastDeletedEvent,
     createEventMutation,
     updateEventMutation,
     deleteEventMutation,
-  };
+  }), [
+    budgetMaxInputs, budgetMinInputs, budgetPanelExpanded, calView, closeQuickCreate,
+    createEventMutation, deleteEventMutation, deleteEventWithUndo, deleting, disabledCategories, displayEvents,
+    editAllDay, editCategory, editCustomDays, editDate, editDescription, editEnd, editLocation,
+    editRecurrence, editRecurrenceEndDate, editReminder, editStart, editTitle, editingTodo,
+    editingTodoTitle, events, executeDelete, fetchEvents, frameDaysInputs, frameEndInputs,
+    frameStartInputs, frameStrengthInputs, handleEditDelete, handleEventClick, handleEventMouseDown,
+    lastDeletedEvent, loading, openEditFromPreview, quickAllDay, quickCategory, quickCreate, quickCustomDays,
+    quickDescription, quickDuration, quickLocation, quickRecurrence, quickRecurrenceEndDate,
+    quickReminder, quickTitle, quickType, restoreLastDeleted, saving, searchQuery, selectedDay, selectedEvent,
+    showBudgetConfig, showDeleteConfirm, sidebarCollapsed, toastMessage, toggleCategory,
+    toggleSidebar, updateEventMutation, viewingEvent, visibleRange, weather, weatherLoading, weekStart,
+  ]);
 }

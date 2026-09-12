@@ -1,10 +1,12 @@
 import { safeExecute, createServiceClient, resolveUserScope } from '../_shared/supabase.ts'
 import { fetchWithRetry } from '../_shared/httpClient.ts'
+import { ensureCalendarWatch } from '../_shared/calendarWatch.ts'
 
 export async function runCalendarSync(req: Request): Promise<unknown> {
     const body = await req.json().catch(() => ({}))
     const { code, redirectUri } = body
     const { userId } = await resolveUserScope(req, body.userId ?? null)
+    if (!userId) throw new Error('Missing userId for calendar sync')
     const supabase = createServiceClient()
 
     const GOOGLE_CLIENT_ID = Deno.env.get('GOOGLE_CLIENT_ID')
@@ -38,6 +40,11 @@ export async function runCalendarSync(req: Request): Promise<unknown> {
           })
         )
       }
+      // Świeży token = dobry moment na rejestrację push notifications (webhook).
+      // access_token z code exchange jest od razu dostępny — bez dodatkowego refreshu.
+      await ensureCalendarWatch(userId, tokens.access_token ?? null).catch((err) => {
+        console.warn('[sync-calendar] watch registration after OAuth failed:', err)
+      })
       return { success: true }
     }
 
@@ -68,7 +75,17 @@ export async function runCalendarSync(req: Request): Promise<unknown> {
       })
     }, { timeoutMs: 15000, retries: 2, retryStatusCodes: [429, 500, 502, 503, 504], logTag: 'google.tokenRefresh' })
 
-    if (!refreshRes.ok) throw new Error(`Google token refresh failed: ${refreshRes.status}`);
+    if (!refreshRes.ok) {
+      const errBody = await refreshRes.text().catch(() => '')
+      // 400 invalid_grant = refresh token revoked/expired — jedyną naprawą jest ponowna
+      // autoryzacja w UI. Zwracamy strukturalny reason zamiast rzucać, żeby frontend
+      // mógł pokazać przycisk "Połącz ponownie" zamiast cichego 500.
+      if (refreshRes.status === 400 && errBody.includes('invalid_grant')) {
+        console.warn('[sync-calendar] Google refresh token invalid (invalid_grant) — re-auth required')
+        return { ok: false, skipped: true, reason: 'google_token_invalid' }
+      }
+      throw new Error(`Google token refresh failed: ${refreshRes.status} — ${errBody.substring(0, 200)}`)
+    }
     const { access_token } = await refreshRes.json()
 
     // Helper to get Warsaw offset (e.g. "+02:00" or "+01:00") dynamically
@@ -103,18 +120,20 @@ export async function runCalendarSync(req: Request): Promise<unknown> {
     const daysToMonday = currentDay === 0 ? -6 : 1 - currentDay;
     const monday = new Date(warsawTodayStr + 'T12:00:00');
     monday.setDate(monday.getDate() + daysToMonday);
-    const warsawMondayStr = formatter.format(monday);
-    
-    // Find Sunday of the next week (+13 days from Monday)
-    const sundayNext = new Date(monday);
-    sundayNext.setDate(monday.getDate() + 13);
-    const warsawSundayNextStr = formatter.format(sundayNext);
+    // Okno szersze niż 2 tygodnie: widok miesiąca w UI pokazuje ~-15/+45 dni,
+    // więc syncuje -1 tydzień -> +6 tygodni, żeby poza oknem nie było dziur.
+    const windowStart = new Date(monday);
+    windowStart.setDate(monday.getDate() - 7);
+    const windowEnd = new Date(monday);
+    windowEnd.setDate(monday.getDate() + 41);
+    const warsawWindowStartStr = formatter.format(windowStart);
+    const warsawWindowEndStr = formatter.format(windowEnd);
 
     // Each boundary uses its OWN date's offset, not `now`'s
-    const startOfWeekStr = new Date(`${warsawMondayStr}T00:00:00${getWarsawOffset(monday)}`).toISOString()
-    const endOfNextWeekStr = new Date(`${warsawSundayNextStr}T23:59:59.999${getWarsawOffset(sundayNext)}`).toISOString()
+    const startOfWindowStr = new Date(`${warsawWindowStartStr}T00:00:00${getWarsawOffset(windowStart)}`).toISOString()
+    const endOfWindowStr = new Date(`${warsawWindowEndStr}T23:59:59.999${getWarsawOffset(windowEnd)}`).toISOString()
 
-    const calRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startOfWeekStr}&timeMax=${endOfNextWeekStr}&singleEvents=true&orderBy=startTime`, { signal: AbortSignal.timeout(15000),
+    const calRes = await fetch(`https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${startOfWindowStr}&timeMax=${endOfWindowStr}&singleEvents=true&orderBy=startTime`, { signal: AbortSignal.timeout(15000),
       headers: { 'Authorization': `Bearer ${access_token}` }
     })
     if (!calRes.ok) {
@@ -144,7 +163,13 @@ export async function runCalendarSync(req: Request): Promise<unknown> {
       description: e.description ?? null,
       recurrence: e.recurrence ?? recurrenceBySeries.get(e.recurringEventId) ?? null,
       series_id: e.recurringEventId ?? null,
-      category: 'google_sync'
+      category: 'google_sync',
+      location: e.location ?? null,
+      is_all_day: Boolean(e.start.date && !e.start.dateTime),
+      reminder_minutes: (e.reminders?.overrides || [])
+        .filter((o: any) => o.method === 'popup' && Number.isInteger(o.minutes))
+        .map((o: any) => o.minutes)
+        .sort((a: number, b: number) => a - b)[0] ?? null,
     }))
 
     // Atomic delete+upsert via RPC
@@ -152,11 +177,17 @@ export async function runCalendarSync(req: Request): Promise<unknown> {
       supabase.rpc('replace_calendar_window', {
         p_user_id: userId,
         p_category: 'google_sync',
-        p_start: startOfWeekStr,
-        p_end: endOfNextWeekStr,
+        p_start: startOfWindowStr,
+        p_end: endOfWindowStr,
         p_events: calendarEvents,
       })
     )
+
+    // Bezpiecznik dwukierunkowości: upewnij się, że kanał push notifications żyje
+    // (rejestracja po OAuth mogła się nie powieść; kanał mógł wygasnąć).
+    await ensureCalendarWatch(userId, access_token).catch((err) => {
+      console.warn('[sync-calendar] watch ensure after sync failed:', err)
+    })
 
     return {
       success: true,

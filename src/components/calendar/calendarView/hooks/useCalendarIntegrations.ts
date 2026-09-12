@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useSyncOura } from '../../../../hooks/useSyncOura';
 import { useSyncActivities } from '../../../../hooks/useSyncActivities';
 import type { useCreateCalendarEvent, useUpdateCalendarEvent } from '../../../../lib/calendarApi';
@@ -59,10 +60,10 @@ export function useCalendarIntegrations({
     setToastMessage,
   });
 
-  return {
+  return useMemo(() => ({
     isSyncingOura,
     syncOura,
     isSyncingActivities,
     syncActivities,
-  };
+  }), [isSyncingOura, syncOura, isSyncingActivities, syncActivities]);
 }

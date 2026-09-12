@@ -1,12 +1,18 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUserId } from '../../store/useStore';
-import { useMedicalData } from './hooks/useMedicalData';
 import { useRetestSuggestions } from './hooks/useMedicalRetestContext';
+import { useMedicalRecordData } from '../../lib/health/medicalHooks';
 import { buildMarkerSeries } from '../../lib/health/medicalAnalytics';
+import { savePreventionAction, importMedicalLabResults, type PreventionActionStatus } from '../../lib/health/medicalRecordsApi';
 import { computeBiologyScoresLite } from '../../lib/getBased/biologyScoresLite';
+import { getTodayWarsaw, shiftDateStr, warsawDayBoundsISO } from '../../lib/date';
+import { useCreateCalendarEvent } from '../../lib/calendarApi';
+import { notify } from '../../lib/notify';
 import { ArrowLeft } from 'lucide-react';
 import Button from '../ui/Button';
-import { importMedicalLabResults } from '../../lib/health/medicalRecordsApi';
+import type { RetestSuggestion } from '../../lib/health/medicalRetestSuggestions';
 
 // Subsections Components
 import MedicalHeader from './sections/MedicalHeader';
@@ -18,14 +24,37 @@ import MedicalBiologyScoresSection from './sections/MedicalBiologyScoresSection'
 import MedicalSuggestions from './sections/MedicalSuggestions';
 import MedicalBodyComposition from './sections/MedicalBodyComposition';
 
-// Modals / Overlays
 import MedicalMarkerInspector from './sections/MedicalMarkerInspector';
-import MedicalImport from './sections/MedicalImport';
-import type { ImportedMedicalResult } from './sections/MedicalImport';
+import MedicalImport, { type ImportedMedicalResult, type LabResultEntryMeta } from './sections/MedicalImport';
+
+const SNOOZE_DAYS = 30;
+const CALENDAR_LEAD_DAYS = 14;
+
+function LabHeader({ onBack }: { onBack: () => void }) {
+  return (
+    <header className="sticky top-0 z-[var(--z-sticky)] w-full border-b border-border-custom bg-background/95 backdrop-blur-[var(--blur-md)]">
+      <div className="w-full max-w-[var(--ds-maxw-1600px)] mx-auto px-4 sm:px-6 lg:px-10 py-3 flex items-center gap-4">
+        <Button
+          variant="ghost"
+          aria-label="Wróć do Kartoteki"
+          className="shrink-0 rounded-xl border border-border-custom p-2.5 text-text-muted"
+          onClick={onBack}
+        >
+          <ArrowLeft size={18} />
+        </Button>
+        <div className="flex-1 min-w-0">
+          <h1 className="text-xl font-black font-display uppercase tracking-tight">Laboratorium</h1>
+        </div>
+      </div>
+    </header>
+  );
+}
 
 export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void }) {
   const userId = useUserId();
-  const { labs, bodyComposition, documents, loading, refresh } = useMedicalData(userId!);
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { labs, bodyComposition, documents, loading, refresh } = useMedicalRecordData(userId);
 
   const [selectedMarkerKey, setSelectedMarkerKey] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -35,15 +64,57 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
   const biologyScores = useMemo(() => computeBiologyScoresLite(series), [series]);
 
   const { suggestions, loading: retestLoading } = useRetestSuggestions(
-    userId!,
+    userId,
     series,
     labs,
   );
 
-  const handleConfirmImport = async (results: ImportedMedicalResult[], docName: string) => {
-    if (!userId) return;
+  const persistAction = useMutation({
+    mutationFn: (input: { suggestionKey: string; status: PreventionActionStatus; snoozedUntil?: string | null }) =>
+      savePreventionAction({ userId: userId as string, sourceUrl: '', ...input }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['medical-prevention-actions', userId] });
+    },
+    onError: () => notify('Nie udało się zapisać decyzji.', 'error'),
+  });
 
-    await importMedicalLabResults({ userId, docName, results });
+  const createCalendarEvent = useCreateCalendarEvent();
+
+  const handleHide = (suggestion: RetestSuggestion) =>
+    persistAction.mutate({ suggestionKey: suggestion.id, status: 'dismissed' });
+
+  const handleSnooze = (suggestion: RetestSuggestion) =>
+    persistAction.mutate({
+      suggestionKey: suggestion.id,
+      status: 'snoozed',
+      snoozedUntil: shiftDateStr(getTodayWarsaw(), SNOOZE_DAYS),
+    });
+
+  const handlePlanInCalendar = (suggestion: RetestSuggestion, note: string) => {
+    if (!userId) return;
+    const targetDate = shiftDateStr(getTodayWarsaw(), CALENDAR_LEAD_DAYS);
+    const startMs = new Date(warsawDayBoundsISO(targetDate).fromISO).getTime() + 8 * 3_600_000;
+    createCalendarEvent.mutate(
+      {
+        userId,
+        event: {
+          summary: `Badania: ${suggestion.title}`,
+          start: new Date(startMs).toISOString(),
+          end: new Date(startMs + 30 * 60_000).toISOString(),
+          description: `${suggestion.reason}${note ? `\nPytanie do lekarza: ${note}` : ''}`,
+          category: 'zdrowie',
+        },
+      },
+      {
+        onSuccess: () => notify('Dodano termin badania do kalendarza (za 14 dni, 8:00).', 'success'),
+        onError: () => notify('Nie udało się dodać terminu do kalendarza.', 'error'),
+      },
+    );
+  };
+
+  const handleConfirmImport = async (results: ImportedMedicalResult[], meta: LabResultEntryMeta) => {
+    if (!userId) return;
+    await importMedicalLabResults({ userId, docName: meta.docName, resultDate: meta.resultDate, provider: meta.provider, results });
     await refresh();
   };
 
@@ -53,6 +124,8 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
       el.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  const handleBack = onBack ?? (() => navigate('/badania'));
 
   if (loading) {
     return (
@@ -64,26 +137,12 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
 
   return (
     <div className="min-h-screen w-full bg-background text-text-primary flex flex-col">
-      <header className="sticky top-0 z-[var(--z-sticky)] w-full border-b border-border-custom bg-background/95 backdrop-blur-[var(--blur-md)]">
-        <div className="w-full max-w-[var(--ds-maxw-1600px)] mx-auto px-4 sm:px-6 lg:px-10 py-3 flex items-center gap-4">
-          <Button
-            variant="ghost"
-            aria-label="Wróć do Kartoteki"
-            className="shrink-0 rounded-xl border border-border-custom p-2.5 text-text-muted"
-            onClick={onBack}
-          >
-            <ArrowLeft size={18} />
-          </Button>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-black font-display uppercase tracking-tight">Laboratorium</h1>
-          </div>
-        </div>
-      </header>
+      <LabHeader onBack={handleBack} />
 
       <div className="flex-1 w-full max-w-[var(--ds-maxw-1600px)] mx-auto px-4 sm:px-6 lg:px-10 py-6 pb-16 space-y-10">
         {/* Header block (Completeness, attention and import trigger) */}
         <MedicalHeader
-          labs={labs}
+          series={series}
           documents={documents}
           onImportClick={() => setImportOpen(true)}
           onViewResults={() => scrollToSection('wyniki')}
@@ -101,14 +160,14 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
         {/* Level 2: Wyniki Table */}
         <div id="wyniki">
           <MedicalResultsTable
-            labs={labs}
+            series={series}
             onSelectMarker={setSelectedMarkerKey}
           />
         </div>
 
         {/* Level 3: Trendy */}
         <div id="trendy">
-          <MedicalTrends labs={labs} />
+          <MedicalTrends series={series} />
         </div>
 
         {/* Level 4: Dokumenty history */}
@@ -121,6 +180,10 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
           <MedicalSuggestions
             suggestions={suggestions}
             loading={retestLoading}
+            busyId={persistAction.isPending ? persistAction.variables?.suggestionKey : null}
+            onHide={handleHide}
+            onSnooze={handleSnooze}
+            onPlanInCalendar={handlePlanInCalendar}
           />
         </div>
 
@@ -138,14 +201,15 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
       {/* Marker side drawer details */}
       <MedicalMarkerInspector
         markerKey={selectedMarkerKey}
-        labs={labs}
+        series={series}
         onClose={() => setSelectedMarkerKey(null)}
       />
 
-      {/* Import results wizard */}
+      {/* Add results wizard */}
       <MedicalImport
         isOpen={importOpen}
         onClose={() => setImportOpen(false)}
+        series={series}
         onConfirmImport={handleConfirmImport}
       />
     </div>
