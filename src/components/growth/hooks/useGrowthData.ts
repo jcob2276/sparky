@@ -19,8 +19,8 @@ import {
   type GrowthPrevWeekSummary,
   type PowerListWeekStats,
   type WeekDirectionGoals,
+  fetchGrowthPrevWeekSummary,
 } from '../../../lib/growth/growthWeek';
-import { fetchGrowthPrevWeekSummary } from './useGrowthWeekRecap';
 
 import type { GrowthLinkRow, GrowthWeekNote, GrowthTodoRow, GrowthProjectSummary, VanguardIdentityData } from '../../../lib/growth/growth.types';
 export type { GrowthLinkRow, GrowthWeekNote, GrowthTodoRow, GrowthProjectSummary, VanguardIdentityData } from '../../../lib/growth/growth.types';

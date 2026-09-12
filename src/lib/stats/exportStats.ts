@@ -6,12 +6,13 @@ import type { ExportStatsMarkdownParams, StravaRawActivity } from './exportStats
 import { downloadBlob, getAvg } from './exportStatsHelpers';
 import { fetchExportData } from './exportStatsFetch';
 import { renderDailySummaryMarkdown } from './exportStatsDaily';
+import { supabase as defaultSupabase } from '../supabase';
 
 export type { ExportStatsMarkdownParams } from './exportStatsTypes';
 export { exportOuraCsv } from './exportOuraCsv';
 
 export async function exportStatsMarkdown({
-  supabase,
+  supabase = defaultSupabase,
   session,
   dateRange,
   userSettings,

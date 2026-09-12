@@ -94,7 +94,7 @@ export interface StravaCleanActivity {
 }
 
 export interface ExportStatsMarkdownParams {
-  supabase: import('@supabase/supabase-js').SupabaseClient;
+  supabase?: import('@supabase/supabase-js').SupabaseClient;
   session: { user: { id: string }; access_token: string };
   dateRange: { from: string; to: string };
   userSettings?: { home_lat?: number | null; home_lng?: number | null } | null;
@@ -108,7 +108,7 @@ export interface ExportStatsMarkdownParams {
 }
 
 export interface ExportOuraCsvParams {
-  supabase: import('@supabase/supabase-js').SupabaseClient;
+  supabase?: import('@supabase/supabase-js').SupabaseClient;
   session: { user: { id: string } };
   dateRange: { from: string; to: string };
 }

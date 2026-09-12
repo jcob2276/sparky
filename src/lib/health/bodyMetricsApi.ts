@@ -16,3 +16,10 @@ export async function logWeightMetric(userId: string, weightKg: number, date?: s
     );
   if (error) throw error;
 }
+
+export async function upsertBodyMetrics(payload: TablesInsert<'body_metrics'>): Promise<void> {
+  const { error } = await supabase
+    .from('body_metrics')
+    .upsert(payload, { onConflict: 'user_id,date' });
+  if (error) throw error;
+}

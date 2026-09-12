@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useLocation, type NavigateOptions, type To } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { supabase } from '../../../lib/supabase';
+import { recordViewEvent } from '../../../lib/dashboardApi';
 import { useStore } from '../../../store/useStore';
 import { useDashboardData } from './useDashboardData';
 import { getTodayWarsaw, getWarsawHour } from '../../../lib/date';
@@ -191,8 +191,7 @@ export function useDashboardState(session: Session) {
   const viewEventMutation = useMutation({
     mutationFn: async (viewName: string) => {
       if (!userId) return;
-      const { error } = await supabase.from('view_events').insert({ user_id: userId, view_name: viewName });
-      if (error) throw error;
+      await recordViewEvent(userId, viewName);
     }
   });
   const viewEventMutateRef = useRef(viewEventMutation.mutate);

@@ -11,6 +11,7 @@ import {
   Shield,
   Target,
   UploadCloud,
+  Zap,
   type LucideIcon,
 } from 'lucide-react';
 import { fetchVanguardIdentity, upsertVanguardIdentity } from '../../lib/identityVaultApi';

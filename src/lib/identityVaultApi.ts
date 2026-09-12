@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { Tables } from './database.types';
+import type { Tables, Json } from './database.types';
 
 export type UserFundamentRow = Tables<'user_fundament'>;
 
@@ -39,14 +39,14 @@ export async function upsertVanguardIdentity(userId: string, payload: {
   long_term_mission: string;
   pillars: string[];
   avoidance_triggers: string;
-  behavioral_baseline: unknown;
+  behavioral_baseline?: unknown;
 }): Promise<void> {
   const { error } = await supabase.from('vanguard_identity').upsert({
     user_id: userId,
     long_term_mission: payload.long_term_mission,
     pillars: payload.pillars,
     avoidance_triggers: payload.avoidance_triggers,
-    behavioral_baseline: payload.behavioral_baseline,
+    behavioral_baseline: (payload.behavioral_baseline ?? null) as Json,
     updated_at: new Date().toISOString(),
   });
   if (error) throw error;

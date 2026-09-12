@@ -6,6 +6,7 @@ import {
 } from './todo';
 import { listProjects } from '../projects/projects';
 import { supabase } from '../supabase';
+import type { Tables } from '../database.types';
 
 // Query Keys
 import { todoKeys } from '../queryKeys';
@@ -75,3 +76,31 @@ export function useDailyWins(userId: string, date: string) {
     enabled: !!userId && !!date,
   });
 }
+
+export async function fetchTodoItemsSectionIds(
+  todoIds: string[]
+): Promise<Array<{ id: string; section_id: string | null }>> {
+  if (todoIds.length === 0) return [];
+  const { data, error } = await supabase
+    .from('todo_items')
+    .select('id, section_id')
+    .in('id', todoIds);
+  if (error) throw new Error(error.message);
+  return data || [];
+}
+
+export async function fetchDailyWinWithTasks(
+  userId: string,
+  date: string
+): Promise<(Tables<'daily_wins'> & { daily_win_tasks?: Tables<'daily_win_tasks'>[] }) | null> {
+  const { data, error } = await supabase
+    .from('daily_wins')
+    .select('*, daily_win_tasks(*)')
+    .eq('user_id', userId)
+    .eq('date', date)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return data || null;
+}
+
+

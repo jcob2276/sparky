@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '../../../lib/supabase';
 import { parseDailyWinWithTasks } from '../../../lib/db-json-guards';
 import { listTodoItems, listTodoSections } from '../../../lib/todo/todo';
+import { fetchTodoItemsSectionIds, fetchDailyWinWithTasks } from '../../../lib/todo/todoApi';
 import { listProjects } from '../../../lib/projects/projects';
 import { getYesterdayWarsaw } from '../../../lib/date';
 import { fetchDailyReconciliationScore } from '../../../lib/shutdownApi';
@@ -59,10 +59,8 @@ export function usePowerListEffects({
   const projectMetadataQuery = useQuery<Record<string, { name: string; color: string | null }>>({
     queryKey: ['powerlist-project-metadata', userId, ...todoIds, ...directProjectIds],
     queryFn: async () => {
-      const [{ data: items }, sections, projects] = await Promise.all([
-        todoIds.length > 0
-          ? supabase.from('todo_items').select('id, section_id').in('id', todoIds)
-          : Promise.resolve({ data: [] }),
+      const [items, sections, projects] = await Promise.all([
+        fetchTodoItemsSectionIds(todoIds),
         listTodoSections(userId),
         listProjects(userId),
       ]);
@@ -94,13 +92,8 @@ export function usePowerListEffects({
     queryKey: ['powerlist-yesterday-win', userId],
     queryFn: async () => {
       const yesterday = getYesterdayWarsaw();
-      const [{ data }, dayScore] = await Promise.all([
-        supabase
-          .from('daily_wins')
-          .select('id, date, day_note, mood_score, daily_win_tasks(*)')
-          .eq('user_id', userId)
-          .eq('date', yesterday)
-          .maybeSingle(),
+      const [data, dayScore] = await Promise.all([
+        fetchDailyWinWithTasks(userId, yesterday),
         fetchDailyReconciliationScore(userId, yesterday),
       ]);
       return { win: parseDailyWinWithTasks(data), dayScore };

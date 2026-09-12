@@ -2,8 +2,9 @@ import type { Tables } from '../database.types';
 import { notify } from '../notify';
 import type { OuraDerivedRow, ExportOuraCsvParams } from './exportStatsTypes';
 import { downloadBlob } from './exportStatsHelpers';
+import { supabase as defaultSupabase } from '../supabase';
 
-export async function exportOuraCsv({ supabase, session, dateRange }: ExportOuraCsvParams) {
+export async function exportOuraCsv({ supabase = defaultSupabase, session, dateRange }: ExportOuraCsvParams) {
   // Dzienne agregaty (oura_enhanced)
   const enhancedCols = [
     'sleep_score', 'readiness_score',

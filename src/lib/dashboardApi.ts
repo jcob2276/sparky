@@ -184,3 +184,14 @@ export async function getLastCalendarEventStartTime(userId: string): Promise<str
 export async function syncUserCalendar(userId: string): Promise<void> {
   await syncCalendar(userId);
 }
+
+/**
+ * Record user view navigation event into view_events table
+ */
+export async function recordViewEvent(userId: string, viewName: string): Promise<void> {
+  const { error } = await supabase
+    .from('view_events')
+    .insert({ user_id: userId, view_name: viewName });
+  if (error) throw error;
+}
+

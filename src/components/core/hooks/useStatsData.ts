@@ -1,9 +1,15 @@
 import { useState } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { supabase } from '../../../lib/supabase';
 import { useUserId } from '../../../store/useStore';
 import { useUserSettings } from '../../../hooks/useUserSettings';
 import type { Tables, TablesInsert } from '../../../lib/database.types';
+import { upsertBodyMetrics } from '../../../lib/health/bodyMetricsApi';
+import {
+  deleteWorkoutSession,
+  updateWorkoutSession,
+  updateExerciseLog,
+  deleteExerciseLog,
+} from '../../../lib/health/workoutApi';
 import { analyzeFoodQuality, analyzeTrainingLoad as requestTrainingLoad } from '../stats/statsApi';
 import { exportStatsMarkdown, exportOuraCsv } from '../../../lib/stats/exportStats';
 import { notify, confirmDialog } from '../../../lib/notify';
@@ -65,10 +71,7 @@ export function useStatsData() {
       if (!payload) {
         throw new Error('Podaj przynajmniej jeden pomiar.');
       }
-      const { error } = await supabase
-        .from('body_metrics')
-        .upsert(payload as TablesInsert<'body_metrics'>, { onConflict: 'user_id,date' });
-      if (error) throw error;
+      await upsertBodyMetrics(payload as TablesInsert<'body_metrics'>);
     },
     onSuccess: () => {
       notify('Zapisano!', 'success');
@@ -87,8 +90,7 @@ export function useStatsData() {
 
   const deleteSessionMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('workout_sessions').delete().eq('id', id);
-      if (error) throw error;
+      await deleteWorkoutSession(id);
     },
     onSuccess: () => {
       refetchStats();
@@ -170,11 +172,10 @@ export function useStatsData() {
   const updateSessionMutation = useMutation({
     mutationFn: async () => {
       if (!editingSession) return;
-      const { error: sessionError } = await supabase
-        .from('workout_sessions')
-        .update({ date: editForm.date!, workout_day: editForm.workout_day })
-        .eq('id', editingSession);
-      if (sessionError) throw sessionError;
+      await updateWorkoutSession(editingSession, {
+        date: editForm.date!,
+        workout_day: editForm.workout_day,
+      });
 
       for (const log of editForm.logs) {
         const weight = log.weight === '' || log.weight == null ? null : Number(log.weight);
@@ -185,11 +186,7 @@ export function useStatsData() {
         if (reps == null) {
           throw new Error('Liczba powtórzeń jest wymagana — nie może być puste.');
         }
-        const { error: logError } = await supabase.from('exercise_logs').update({
-          weight,
-          reps
-        }).eq('id', log.id);
-        if (logError) throw logError;
+        await updateExerciseLog(log.id, { weight, reps });
       }
     },
     onSuccess: () => {
@@ -208,8 +205,7 @@ export function useStatsData() {
 
   const deleteLogMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from('exercise_logs').delete().eq('id', id);
-      if (error) throw error;
+      await deleteExerciseLog(id);
       return id;
     },
     onSuccess: (id) => {
@@ -228,7 +224,6 @@ export function useStatsData() {
   const exportDataMutation = useMutation({
     mutationFn: async () => {
       await exportStatsMarkdown({
-        supabase,
         session: { user: { id: userId! }, access_token: '' },
         dateRange,
         userSettings,
@@ -255,7 +250,7 @@ export function useStatsData() {
 
   const exportOuraCSVMutation = useMutation({
     mutationFn: async () => {
-      await exportOuraCsv({ supabase, session: { user: { id: userId! } }, dateRange });
+      await exportOuraCsv({ session: { user: { id: userId! } }, dateRange });
     },
     onError: (err: Error) => {
       console.error('Export Oura CSV error:', err);

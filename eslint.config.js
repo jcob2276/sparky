@@ -6,16 +6,16 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 const LEGACY_FILES = [
-  'src/components/core/DailyShutdownModal.tsx',
-  'src/components/core/nutrition/FoodQuickCapture.tsx',
-  // EditNoteModal.tsx cleaned 2026-07-16 — raw supabase replaced with invokeEdge/createTodoItem
+  // RichEditor.tsx has dense cursor/selection/DOM logic (constitution rule 4 exception)
   'src/components/notes/RichEditor.tsx',
-  'src/components/todo/TodoCard.tsx',
-  'src/components/todo/useTodoCardSwipe.ts',
   'src/lib/database.types.ts',
 ]
 
 const LEGACY_REFACTORED_FILES = [
+  'src/components/core/DailyShutdownModal.tsx',
+  'src/components/core/nutrition/FoodQuickCapture.tsx',
+  'src/components/todo/TodoCard.tsx',
+  'src/components/todo/useTodoCardSwipe.ts',
   'src/components/desktop/fitness/fitnessScoreUtils.ts',
   'src/components/medical/EndMyopiaCalculator.tsx',
   'src/components/lifestyle/LinksInbox.tsx',
@@ -191,7 +191,7 @@ const CANONICAL_DATE_FORMATTERS = [
 
 
 export default defineConfig([
-  globalIgnores(['dist', '.tmp-get-based', 'coverage', 'android/app/build']),
+  globalIgnores(['dist', '.tmp-get-based', 'coverage', 'android/**']),
   {
     files: ['scripts/**/*.{js,cjs,mjs}'],
     extends: [
