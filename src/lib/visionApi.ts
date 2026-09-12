@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from './supabase';
 import type { Tables, TablesInsert } from './database.types';
 
@@ -43,3 +44,12 @@ export async function fetchMeasurements(): Promise<Measurement[]> {
 
   return (data || []) as Measurement[];
 }
+
+export function useVisionMeasurements() {
+  return useQuery({
+    queryKey: ['vision-measurements'],
+    queryFn: () => fetchMeasurements(),
+    staleTime: 1000 * 60 * 10,
+  });
+}
+

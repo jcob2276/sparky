@@ -228,6 +228,10 @@ export default function DesktopDashboard({ session }: { session: Session }) {
                 nutrData={nutrData}
                 volData={volData}
                 refresh={refresh}
+                onOpenWorkout={openWorkout}
+                onOpenSauna={() => setShowSaunaModal(true)}
+                onOpenWeight={() => setShowWeightModal(true)}
+                onOpenOptics={() => navigate('/optics')}
               />
             </div>
           </div>
@@ -263,34 +267,12 @@ export default function DesktopDashboard({ session }: { session: Session }) {
         </Suspense>
       )}
 
-      <DesktopQuickConfounderModal
-        isOpen={showConfounderModal}
-        onClose={() => setShowConfounderModal(false)}
-        userId={userId}
-      />
-
-      <DesktopQuickStreamModal
-        isOpen={showStreamModal}
-        onClose={() => setShowStreamModal(false)}
-        userId={userId}
-        onSaved={refresh}
-      />
-
+      <DesktopQuickConfounderModal isOpen={showConfounderModal} onClose={() => setShowConfounderModal(false)} userId={userId} />
+      <DesktopQuickStreamModal isOpen={showStreamModal} onClose={() => setShowStreamModal(false)} userId={userId} onSaved={refresh} />
       {showWeightModal && (
-        <DesktopQuickWeightModal
-          isOpen={showWeightModal}
-          onClose={() => setShowWeightModal(false)}
-          userId={userId}
-          currentWeight={currentWeight}
-          onSaved={refresh}
-        />
+        <DesktopQuickWeightModal isOpen={showWeightModal} onClose={() => setShowWeightModal(false)} userId={userId} currentWeight={currentWeight} onSaved={refresh} />
       )}
-
-      <DesktopToolsLauncherModal
-        isOpen={showToolsModal}
-        onClose={() => setShowToolsModal(false)}
-        naukaBadge={pendingGrowthMustCount}
-      />
+      <DesktopToolsLauncherModal isOpen={showToolsModal} onClose={() => setShowToolsModal(false)} naukaBadge={pendingGrowthMustCount} />
     </>
   );
 }

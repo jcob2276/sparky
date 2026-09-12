@@ -2,9 +2,10 @@ import HexagonPanel from '../general/HexagonPanel';
 import LeniePanelMini from '../health/LeniePanelMini';
 import HabitsPanel from '../health/HabitsPanel';
 import BehaviorCapturePanel from '../general/BehaviorCapturePanel';
-import SupplementsPanel from '../health/SupplementsPanel';
 import DreamsPanel from '../vision/DreamsPanel';
 import VisionBoardPanel from '../vision/VisionBoardPanel';
+import DesktopProjectsOverview from '../direction/DesktopProjectsOverview';
+import DesktopGoalSpineCard from '../direction/DesktopGoalSpineCard';
 import type { useHabitsData } from '../health/useHabitsData';
 import type { useDreamsData } from '../vision/useDreamsData';
 import type { useDesktopData } from './useDesktopData';
@@ -17,6 +18,10 @@ interface Props {
   lenieLogs: ReturnType<typeof useDesktopData>['lenieLogs'];
   habitsData: ReturnType<typeof useHabitsData>;
   dreamsData: ReturnType<typeof useDreamsData>;
+  projects?: ReturnType<typeof useDesktopData>['projects'];
+  moves?: ReturnType<typeof useDesktopData>['moves'];
+  goals?: ReturnType<typeof useDesktopData>['goals'];
+  sprintGoals?: ReturnType<typeof useDesktopData>['sprintGoals'];
 }
 
 export default function DesktopKierunekSection({
@@ -27,15 +32,26 @@ export default function DesktopKierunekSection({
   lenieLogs,
   habitsData,
   dreamsData,
+  projects = [],
+  moves = [],
+  goals = null,
+  sprintGoals = [],
 }: Props) {
   return (
     <section id="kierunek" className="scroll-mt-28 space-y-5">
       <div className="flex items-center gap-3">
         <div className="h-px flex-1 bg-border-custom" />
-        <span className="pixel-label">Kierunek długoterminowy</span>
+        <span className="pixel-label">Kierunek & Cele</span>
         <div className="h-px flex-1 bg-border-custom" />
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <DesktopProjectsOverview projects={projects} moves={moves} />
+        <DesktopGoalSpineCard goals={goals} sprintGoals={sprintGoals} />
+      </div>
+
       {userId && <HexagonPanel userId={userId} theme={theme} grid={grid} onSaved={refresh} />}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <LeniePanelMini logs={lenieLogs} />
         <HabitsPanel
@@ -50,10 +66,13 @@ export default function DesktopKierunekSection({
           toggleHabit={habitsData.toggleHabit}
         />
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {userId && <BehaviorCapturePanel userId={userId} />}
-        {userId && <SupplementsPanel userId={userId} />}
-      </div>
+
+      {userId && (
+        <div className="grid grid-cols-1 gap-4">
+          <BehaviorCapturePanel userId={userId} />
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <DreamsPanel
           dreams={dreamsData.dreams}

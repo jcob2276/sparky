@@ -39,7 +39,7 @@ export function sessionDateKey(date: string | null | undefined): string {
 }
 function isSaunaSession(session: {
   workout_day?: string | null
-  exercise_logs?: Array<{ exercise_name?: string | null; muscle_tags?: string[] | null; reps?: number | null }> | null
+  exercise_logs?: Array<{ exercise_name?: string | null; muscle_tags?: string[] | null; reps?: number | string | null }> | null
 }): boolean {
   const logs = session.exercise_logs ?? []
   if (logs.some((l) => (l.exercise_name || '').toLowerCase().includes('sauna'))) return true
@@ -53,7 +53,7 @@ export function sessionDateKey(date: string | null | undefined): string {
 }
 
 function sumSaunaMinutes(session: {
-  exercise_logs?: Array<{ exercise_name?: string | null; reps?: number | null }> | null
+  exercise_logs?: Array<{ exercise_name?: string | null; reps?: number | string | null }> | null
 }): number {
   return (session.exercise_logs ?? [])
     .filter((l) => (l.exercise_name || '').toLowerCase().includes('sauna'))
@@ -71,7 +71,7 @@ export function getSaunaStats(
   sessions: Array<{
     date: string
     workout_day?: string | null
-    exercise_logs?: Array<{ exercise_name?: string | null; muscle_tags?: string[] | null; reps?: number | null }> | null
+    exercise_logs?: Array<{ exercise_name?: string | null; muscle_tags?: string[] | null; reps?: number | string | null }> | null
   }>,
   sinceDate: string,
   stravaActivities?: StravaSaunaCandidate[] | null,
