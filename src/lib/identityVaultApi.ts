@@ -1,4 +1,4 @@
-import { supabase } from './supabase';
+import { supabase, invokeEdge } from './supabase';
 import type { Tables, Json } from './database.types';
 
 export type UserFundamentRow = Tables<'user_fundament'>;
@@ -50,4 +50,25 @@ export async function upsertVanguardIdentity(userId: string, payload: {
     updated_at: new Date().toISOString(),
   });
   if (error) throw error;
+}
+
+export async function ingestVaultCategory(
+  userId: string,
+  category: string,
+  text: string
+): Promise<{ chunks?: number; triads?: number }> {
+  const data = await invokeEdge('vanguard-capture', {
+    body: { userId, category, text },
+  });
+  const res = data as { error?: string; chunks?: number; triads?: number } | undefined;
+  if (res?.error) throw new Error(res.error);
+  return {
+    chunks: typeof res?.chunks === 'number' ? res.chunks : 0,
+    triads: typeof res?.triads === 'number' ? res.triads : 0,
+  };
+}
+
+export async function getAuthUserId(): Promise<string | null> {
+  const { data } = await supabase.auth.getUser();
+  return data?.user?.id ?? null;
 }

@@ -1,5 +1,4 @@
 import { useCallback, useMemo, useState } from 'react';
-import { supabase } from '../../../../lib/supabase';
 import { useHaptics } from '../../../../hooks/useHaptics';
 import {
   parseGrams,
@@ -9,6 +8,8 @@ import {
 import {
   saveFoodCorrection,
   defaultMealType,
+  updateFoodEntry,
+  removeFoodEntry,
 } from '../../../../lib/health/foodLogging';
 
 interface UseFoodEntryEditOptions {
@@ -80,19 +81,14 @@ export function useFoodEntryEdit({
     setError(null);
     try {
       const newGrams = parseInt(editGrams, 10) || 100;
-      const { error: updErr } = await supabase.rpc('update_food_entry', {
-        p_user_id: userId,
-        p_entry_id: editingEntry.id,
-        p_entry: {
-          calories: editPreview.calories,
-          protein: editPreview.protein,
-          carbs: editPreview.carbs,
-          fat: editPreview.fat,
-          meal_type: editMealType,
-          amount: `${newGrams} g`,
-        },
+      await updateFoodEntry(userId, editingEntry.id, {
+        calories: editPreview.calories,
+        protein: editPreview.protein,
+        carbs: editPreview.carbs,
+        fat: editPreview.fat,
+        meal_type: editMealType,
+        amount: `${newGrams} g`,
       });
-      if (updErr) throw updErr;
       const origGrams = parseGrams(editingEntry.amount);
       if (Math.abs(newGrams - origGrams) >= 5) {
         saveFoodCorrection(userId, editingEntry.name, newGrams).catch((e) =>
@@ -115,11 +111,7 @@ export function useFoodEntryEdit({
     setEditDeleting(true);
     setError(null);
     try {
-      const { error: rpcError } = await supabase.rpc('remove_food_entry', {
-        p_user_id: userId,
-        p_entry_id: editingEntry.id,
-      });
-      if (rpcError) throw rpcError;
+      await removeFoodEntry(userId, editingEntry.id);
       setEditingEntry(null);
       onSaved?.();
       await loadLists();

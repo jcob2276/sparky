@@ -1,4 +1,15 @@
 /** Shared types for growth domain — used by both lib/ and components/growth/hooks/. */
+import type {
+  LearningSkill,
+  LearningSkillSnapshot,
+  LearningWeekFocus,
+  LearningWeekPin,
+} from './growth';
+import type {
+  GrowthPrevWeekSummary,
+  PowerListWeekStats,
+  WeekDirectionGoals,
+} from './growthWeek';
 
 export interface GrowthLinkRow {
   id: string;
@@ -117,5 +128,47 @@ export interface VanguardIdentityData {
   library_items: LibraryItem[] | null;
   practice_evidences: PracticeEvidence[] | null;
   development_review: DevelopmentReview | null;
+}
+
+export interface GrowthContextData {
+  weekIntention: string | null;
+  weekCommitment: string | null;
+  weekGoals: WeekDirectionGoals;
+  sprintGoal: string | null;
+  sprintLabel: string | null;
+  activeProjectName: string | null;
+  kpiName: string | null;
+  kpiValue: number | null;
+  kpiTarget: number | null;
+  kpiId: string | null;
+}
+
+export interface GrowthCheckpoint {
+  id: string;
+  project_id: string;
+  project_name: string;
+  title: string;
+  due_date: string;
+  status: string;
+  daysOverdue: number; // negative = upcoming, positive = overdue
+}
+
+export interface GrowthDataResult {
+  skills: LearningSkill[];
+  snapshots: LearningSkillSnapshot[];
+  focus: LearningWeekFocus | null;
+  pins: LearningWeekPin[];
+  unreadLinks: GrowthLinkRow[];
+  readLinks: GrowthLinkRow[];
+  openTodos: GrowthTodoRow[];
+  context: GrowthContextData;
+  rozwojNotesCount: number;
+  weekNotes: GrowthWeekNote[];
+  powerListStats: PowerListWeekStats;
+  prevWeekSummary: GrowthPrevWeekSummary | null;
+  weekFocusScore: number | null;
+  activeProjects: GrowthProjectSummary[];
+  upcomingCheckpoints: GrowthCheckpoint[];
+  identity: VanguardIdentityData | null;
 }
 

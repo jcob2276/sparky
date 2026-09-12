@@ -2,9 +2,8 @@ import { Pressable, ControlTextarea } from '../ui/ControlPrimitives';
 import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { ReactNode } from 'react';
-import { supabase } from '../../lib/supabase';
 import { useUserId } from '../../store/useStore';
-import { fetchUserFundament, upsertUserFundament } from '../../lib/identityVaultApi';
+import { fetchUserFundament, upsertUserFundament, ingestVaultCategory, getAuthUserId } from '../../lib/identityVaultApi';
 import { Shield, Save, Heart, Ghost, Briefcase } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { Card } from '../ui/Card';
@@ -102,8 +101,7 @@ export default function IdentityVault() {
   const handleSave = async () => {
     let uid = userId;
     if (!uid) {
-      const { data } = await supabase.auth.getUser();
-      uid = data?.user?.id ?? null;
+      uid = await getAuthUserId();
     }
     if (!uid) return;
     setLoading(true);
@@ -117,13 +115,9 @@ export default function IdentityVault() {
       let totalChunks = 0;
       let totalTriads = 0;
       for (const [category, text] of Object.entries(nonEmpty)) {
-        const { data, error } = await supabase.functions.invoke('vanguard-capture', {
-          body: { userId: uid, category, text }
-        });
-        if (error) throw error;
-        if (data?.error) throw new Error(data.error);
-        totalChunks += data?.chunks ?? 0;
-        totalTriads += data?.triads ?? 0;
+        const result = await ingestVaultCategory(uid, category, text);
+        totalChunks += result.chunks ?? 0;
+        totalTriads += result.triads ?? 0;
       }
       console.debug(`[VAULT] Ingested ${totalChunks} chunks, ${totalTriads} triads`);
 

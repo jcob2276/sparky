@@ -113,6 +113,34 @@ export async function saveFoodCorrection(
   if (error) throw error
 }
 
+export async function updateFoodEntry(
+  userId: string,
+  entryId: string,
+  entry: {
+    calories: number;
+    protein: number;
+    carbs?: number | null;
+    fat?: number | null;
+    meal_type: string;
+    amount: string;
+  }
+): Promise<void> {
+  const { error } = await supabase.rpc('update_food_entry', {
+    p_user_id: userId,
+    p_entry_id: entryId,
+    p_entry: entry,
+  });
+  if (error) throw error;
+}
+
+export async function removeFoodEntry(userId: string, entryId: string): Promise<void> {
+  const { error } = await supabase.rpc('remove_food_entry', {
+    p_user_id: userId,
+    p_entry_id: entryId,
+  });
+  if (error) throw error;
+}
+
 export function confidenceLabel(item: ParsedFoodItem): string | null {
   if (item.source === 'library' || item.source === 'database') return 'baza'
   if (item.confidence === 'high') return 'ok'

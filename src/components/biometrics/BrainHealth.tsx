@@ -1,17 +1,9 @@
 import Button from '../ui/Button';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../../lib/supabase';
-import { unwrapList } from '../../lib/supabaseUtils';
+import { fetchBrainHealthReport, type BrainHealthRow } from '../../lib/biometrics/brainHealthApi';
 import { Activity, Brain, ShieldAlert, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useUserId } from '../../store/useStore';
 import { Card } from '../ui/Card';
-
-interface BrainHealthRow {
-  table_name: string;
-  total_records: number;
-  embedded_records: number;
-  coverage_percent: number;
-}
 
 export default function BrainHealth() {
   const userId = useUserId();
@@ -19,10 +11,7 @@ export default function BrainHealth() {
 
   const reportQuery = useQuery({
     queryKey: ['brain-health', userId],
-    queryFn: async () => {
-      const res = await supabase.rpc('get_brain_health_report', { user_id_param: userId! });
-      return unwrapList(res) as BrainHealthRow[];
-    },
+    queryFn: () => fetchBrainHealthReport(userId!),
     enabled: !!userId,
   });
 

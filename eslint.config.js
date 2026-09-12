@@ -100,7 +100,6 @@ const LEGACY_REFACTORED_FILES = [
   'src/components/calendar/hooks/useCalendarTodos.ts',
   'src/components/lifestyle/direction/hooks/useDirection.ts',
   'src/components/lifestyle/direction/hooks/useDirectionContext.ts',
-  'src/components/growth/hooks/useGrowthData.ts',
   'src/hooks/useSyncActivities.ts',
   'src/lib/aiContext.ts',
   'src/lib/dailyPlanProposal.ts',
