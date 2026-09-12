@@ -23,17 +23,23 @@ export function Tip({ active = false, payload = [], label = '' }: { active?: boo
 
 export interface PanelProps {
   title?: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }
 
-export function Panel({ title, children, className = '' }: PanelProps) {
+export function Panel({ title, action, children, className = '' }: PanelProps) {
   return (
     <Card padding="1.25rem" className={className}>
-      {title && (
-        <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-22em)] text-text-muted mb-4 pb-2.5 border-b border-border-custom">
-          {title}
-        </p>
+      {(title || action) && (
+        <div className="flex items-center justify-between gap-3 mb-4 pb-2.5 border-b border-border-custom">
+          {title ? (
+            <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-22em)] text-text-muted truncate">
+              {title}
+            </p>
+          ) : <div />}
+          {action}
+        </div>
       )}
       {children}
     </Card>
