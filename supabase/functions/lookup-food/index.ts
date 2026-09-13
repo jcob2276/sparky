@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @function lookup-food
  * @trigger HTTP POST / Frontend / manual
  * @role Wyszukiwanie makroskĹ‚adnikĂłw produktĂłw spoĹĽywczych (baza lokalna + API zewnÄ™trzne jak Open Food Facts).
@@ -58,27 +58,29 @@ function searchReferencePl(query: string): FoodResult[] {
   return [toFoodResult(best, 'reference_pl')]
 }
 
-// OFF's `serving_size`/`quantity` are free-text ("250 ml", "1 sztuka (30g)") â€”
+/// OFF's `serving_size`/`quantity` are free-text ("250 ml", "1 sztuka (30g)") —
 // pull out the leading number, which is all we need for a sane portion default.
 function parseLeadingGrams(value: unknown): number | null {
   if (typeof value !== 'string') return null
-  // Prefer grams in parentheses: "1 sztuka (30g)" â†’ 30
+  // Prefer grams in parentheses: "1 sztuka (30g)" → 30
   const parenG = value.match(/\((\d+(?:[.,]\d+)?)\s*g\)/i)
   if (parenG) {
     const n = parseFloat(parenG[1].replace(',', '.'))
     return n > 0 ? Math.round(n) : null
   }
-  const m = value.match(/(\d+(?:[.,]\d+)?)/)
-  if (!m) return null
-  const n = parseFloat(m[1].replace(',', '.'))
-  return n > 0 ? Math.round(n) : null
+  const withUnit = value.match(/(\d+(?:[.,]\d+)?)\s*(?:g|ml|gram)/i)
+  if (withUnit) {
+    const n = parseFloat(withUnit[1].replace(',', '.'))
+    return n > 0 ? Math.round(n) : null
+  }
+  return null
 }
 
 // Prefer the product's stated single serving (what you'd actually eat/drink at
-// once â€” a 250ml bottle, a 30g serving of cereal) over the whole-package
+// once — a 250ml bottle, a 30g serving of cereal) over the whole-package
 // quantity, which is frequently far too large to be a sane logging default
 // (e.g. a 1kg bag of rice). Falls back to package quantity only when OFF has
-// no serving_size at all â€” better than always defaulting to 100g/ml.
+// no serving_size at all — better than always defaulting to 100g/ml.
 function extractDefaultGrams(product: any): number | null {
   const fromServing = parseLeadingGrams(product?.serving_size)
   if (fromServing) return fromServing
@@ -90,11 +92,20 @@ function extractDefaultGrams(product: any): number | null {
 
 function offProductToResult(product: any, barcode: string | null): FoodResult | null {
   const n = product?.nutriments
-  if (!product?.product_name || !n) return null
+  const name = product?.product_name || product?.product_name_pl || product?.product_name_en
+  if (!name || !n) return null
+
+  let brand: string | null = null
+  if (Array.isArray(product?.brands)) {
+    brand = product.brands.filter(Boolean).join(', ') || null
+  } else if (typeof product?.brands === 'string') {
+    brand = product.brands.trim() || null
+  }
+
   return {
-    barcode,
-    name: product.product_name,
-    brand: product.brands || null,
+    barcode: barcode || product?.code || null,
+    name: name.trim(),
+    brand,
     calories: n['energy-kcal_100g'] != null ? Math.round(n['energy-kcal_100g']) : null,
     protein: n['proteins_100g'] ?? null,
     carbs: n['carbohydrates_100g'] ?? null,
@@ -107,7 +118,7 @@ function offProductToResult(product: any, barcode: string | null): FoodResult | 
   }
 }
 
-// OFF is volunteer-run and occasionally throws transient 5xx under load â€”
+// OFF is volunteer-run and occasionally throws transient 5xx under load —
 // one retry after a short backoff smooths that over without masking real failures.
 async function fetchOffWithRetry(url: string): Promise<Response | null> {
   for (let attempt = 0; attempt < 2; attempt++) {
@@ -126,9 +137,13 @@ async function fetchOffWithRetry(url: string): Promise<Response | null> {
 async function lookupOneBarcode(barcode: string): Promise<FoodResult | null> {
   const res = await fetchOffWithRetry(`https://pl.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`)
   if (!res) return null
-  const json = await res.json()
-  if (json.status !== 1) return null
-  return offProductToResult(json.product, barcode)
+  try {
+    const json = await res.json()
+    if (json.status !== 1) return null
+    return offProductToResult(json.product, barcode)
+  } catch {
+    return null
+  }
 }
 
 // Camera scanners sometimes emit UPC-A (12 digits) for a barcode OFF only has
@@ -151,16 +166,42 @@ async function lookupByBarcode(barcode: string): Promise<FoodResult[]> {
 }
 
 async function searchOpenFoodFacts(query: string): Promise<{ results: FoodResult[]; status: 'ok' | 'unavailable'; incompleteCount: number }> {
-  // Restricting to Polish-language products keeps foreign (often French, since OFF
-  // started there) listings out of results for a Polish-only user.
-  const url = `https://pl.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10&tagtype_0=languages&tag_contains_0=contains&tag_0=polish`
-  const res = await fetchOffWithRetry(url)
+  // 1. Primary: Search-a-licious API (modern, dedicated search cluster, fast and resilient)
+  const fields = 'code,product_name,product_name_pl,product_name_en,brands,nutriments,serving_size,quantity,product_quantity'
+  const modernUrl = `https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=15&langs=pl,en&fields=${fields}`
+  try {
+    const res = await fetch(modernUrl, {
+      headers: { 'User-Agent': OFF_USER_AGENT },
+      signal: AbortSignal.timeout(7000),
+    })
+    if (res.ok) {
+      const json = await res.json()
+      const hits = json.hits || []
+      const mapped = hits.map((h: any) => offProductToResult(h, h.code || null)).filter(Boolean) as FoodResult[]
+      const complete = mapped.filter((p) => !p.incomplete)
+      if (complete.length > 0 || mapped.length > 0) {
+        return { results: complete, status: 'ok', incompleteCount: mapped.length - complete.length }
+      }
+    } else {
+      console.warn(`[lookup-food] search.openfoodfacts.org returned ${res.status}`)
+    }
+  } catch (err: unknown) {
+    console.warn('[lookup-food] search.openfoodfacts.org fallback:', err instanceof Error ? err.message : String(err))
+  }
+
+  // 2. Fallback: pl.openfoodfacts.org CGI with countries=poland (avoid deprecated languages=polish which returns 503)
+  const legacyUrl = `https://pl.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10&tagtype_0=countries&tag_contains_0=contains&tag_0=poland`
+  const res = await fetchOffWithRetry(legacyUrl)
   if (!res) return { results: [], status: 'unavailable', incompleteCount: 0 }
-  const json = await res.json()
-  const products = json.products || []
-  const mapped = products.map((p: any) => offProductToResult(p, p.code || null)).filter(Boolean) as FoodResult[]
-  const complete = mapped.filter((product) => !product.incomplete)
-  return { results: complete, status: 'ok', incompleteCount: mapped.length - complete.length }
+  try {
+    const json = await res.json()
+    const products = json.products || []
+    const mapped = products.map((p: any) => offProductToResult(p, p.code || null)).filter(Boolean) as FoodResult[]
+    const complete = mapped.filter((product) => !product.incomplete)
+    return { results: complete, status: 'ok', incompleteCount: mapped.length - complete.length }
+  } catch {
+    return { results: [], status: 'unavailable', incompleteCount: 0 }
+  }
 }
 
 Deno.serve(serveJson(async (req) => {
@@ -176,9 +217,10 @@ Deno.serve(serveJson(async (req) => {
     const refPl = searchReferencePl(q)
     const generic = searchGeneric(q)
     const off = await searchOpenFoodFacts(q)
+    const combined = [...refPl, ...generic, ...off.results]
     return {
-      results: [...refPl, ...generic, ...off.results],
-      status: off.status,
+      results: combined,
+      status: combined.length > 0 ? 'ok' : off.status,
       incompleteCount: off.incompleteCount,
     }
   }

@@ -41,10 +41,14 @@ export function useFoodEntrySearch({ userId, setError, searchInputRef, onBarcode
     mutationFn: () => searchExternalFoods(query),
     onSuccess: (response) => {
       setExternalResults(response.results);
-      if (response.status !== 'ok') {
+      if (response.results.length > 0) {
+        setError(null);
+      } else if (response.status !== 'ok') {
         setError('Baza zewnętrzna jest chwilowo niedostępna. Twoja biblioteka nadal działa.');
-      } else if (response.results.length === 0 && response.incompleteCount > 0) {
+      } else if (response.incompleteCount > 0) {
         setError('Znaleziono produkt, ale bez kalorii na etykiecie. Zeskanuj etykietę, żeby zapisać go bez zgadywania.');
+      } else {
+        setError(null);
       }
     },
     onError: () => setError('Baza zewnętrzna jest chwilowo niedostępna. Twoja biblioteka nadal działa.'),

@@ -133,13 +133,3 @@ export async function fetchNutritionDayReviews(userId: string, since: string) {
   if (error) throw error;
   return (data ?? []) as Array<{ date: string; completeness: NutritionDayCompleteness }>;
 }
-
-export async function fetchNutritionMealMemories(userId: string, limit = 8) {
-  const { data, error } = await supabase.from('nutrition_meal_memories')
-    .select('id,name,meal_type,items,confirmed_count,last_confirmed_at')
-    .eq('user_id', userId)
-    .order('last_confirmed_at', { ascending: false })
-    .limit(limit);
-  if (error) throw error;
-  return data ?? [];
-}

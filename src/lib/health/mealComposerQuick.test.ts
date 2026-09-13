@@ -35,4 +35,42 @@ describe('buildQuickChips', () => {
     expect(chips).toHaveLength(1);
     expect(chips[0]?.kind).toBe('recent');
   });
+
+  it('excludes items specified in excludeNames', () => {
+    const chips = buildQuickChips({
+      excludeNames: ['Kawa domowa', 'Kotlet schabowy'],
+      recentProducts: [
+        {
+          id: '1',
+          name: 'Kawa domowa',
+          brand: null,
+          grams: 400,
+          calories: 204,
+          protein: 10,
+          carbs: 8,
+          fat: 6,
+          fiber: null,
+          sugar: null,
+          loggedAt: null,
+        },
+        {
+          id: '2',
+          name: 'Twaróg chudy',
+          brand: null,
+          grams: 200,
+          calories: 170,
+          protein: 36,
+          carbs: 7,
+          fat: 0.8,
+          fiber: null,
+          sugar: null,
+          loggedAt: null,
+        },
+      ],
+      favorites: [],
+    });
+
+    expect(chips).toHaveLength(1);
+    expect(chips[0]?.name).toBe('Twaróg chudy');
+  });
 });

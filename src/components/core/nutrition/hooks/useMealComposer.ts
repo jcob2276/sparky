@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { combineDateTimeWarsawISO, getTodayWarsaw, getYesterdayWarsaw, warsawTimeOfDay } from '../../../../lib/date';
 import { notify } from '../../../../lib/notify';
 import { fetchNutritionDayContext } from '../../../../lib/health/nutritionContext';
-import { fetchComposerTodayMeals, fetchAllTodayEntries } from '../../../../lib/health/composerTodayMealsApi';
+import { fetchComposerTodayMeals, fetchAllTodayEntries, copyFoodEntriesToDate, deleteFoodEntry } from '../../../../lib/health/composerTodayMealsApi';
 import { buildQuickChips, type QuickChip } from '../../../../lib/health/mealComposerQuick';
 import {
   MEAL_TYPES,
@@ -16,11 +16,10 @@ import {
   type MealTypeId,
 } from '../../../../lib/health/foodLogging';
 import {
-  mealMemoryToDraft,
   type MealDraftItem,
 } from '../../../../lib/health/nutritionTracker';
 import { confirmMealCapture } from '../../../../lib/health/nutritionTrackerApi';
-import { entriesToDraft, foodBaseToDraft, mealLabelForType, parsedToDraft, type RepeatableFoodEntry } from '../../../../lib/health/mealComposerUtils';
+import { entriesToDraft, foodBaseToDraft, mealLabelForType, parsedToDraft } from '../../../../lib/health/mealComposerUtils';
 import { fetchRecentFoodProducts, recentProductToDraft } from '../../../../lib/health/recentFoodProductsApi';
 import {
   fetchUserPortions,
@@ -29,7 +28,6 @@ import {
 } from '../../../../lib/health/userPortionsApi';
 import { scanMealPhoto } from '../../../../lib/health/mealPhotoScan';
 import { useFoodEntrySearch } from './useFoodEntrySearch';
-import { useMealComposerRepeats } from './useMealComposerRepeats';
 import { useSession } from '../../../../store/useStore';
 
 const DEFAULT_TOTALS = {
@@ -83,8 +81,6 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
       foodQualityAnalysis: ctx.foodQualityAnalysis,
     };
   }, [contextQuery.data]);
-
-  const repeatSuggestions = useMealComposerRepeats(userId, mealType, refreshSignal, totals);
 
   const userPortionsQuery = useQuery({
     queryKey: ['user-portions', userId, refreshSignal],
@@ -267,18 +263,6 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     }
   }, [userId, scanningPhoto, setDraftFromParsed]);
 
-  const repeatRecentDay = useCallback(async (entries: RepeatableFoodEntry[], dateStr: string) => {
-    const draft = entriesToDraft(entries);
-    if (!draft.length) return;
-    await saveDraft(draft, 'repeat', new Set(), { memoryName: `Z dnia ${dateStr}` });
-  }, [saveDraft]);
-
-  const repeatMemory = useCallback(async (items: unknown, name: string) => {
-    const draft = mealMemoryToDraft(items);
-    if (!draft.length) return;
-    await saveDraft(draft, 'repeat', new Set(), { memoryName: name });
-  }, [saveDraft]);
-
   const loadTodayMealToDraft = useCallback((mealId: string) => {
     const meal = todayMealsQuery.data?.find((candidate) => candidate.id === mealId);
     if (!meal?.entries.length) return;
@@ -286,11 +270,19 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     setMemoryName(meal.name);
   }, [todayMealsQuery.data]);
 
+  const excludeNames = useMemo(() => {
+    const set = new Set<string>();
+    for (const entry of allTodayEntriesQuery.data ?? []) {
+      set.add(entry.name);
+    }
+    return set;
+  }, [allTodayEntriesQuery.data]);
+
   const quickChips = useMemo(() => buildQuickChips({
-    todayMeals: todayMealsQuery.data ?? [],
     recentProducts: recentProductsQuery.data ?? [],
     favorites: QUICK_CAPTURE_FAVORITES,
-  }), [todayMealsQuery.data, recentProductsQuery.data]);
+    excludeNames,
+  }), [recentProductsQuery.data, excludeNames]);
 
   const handleQuickChip = useCallback((chip: QuickChip) => {
     if (chip.kind === 'today') {
@@ -339,6 +331,87 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     }
   }, [userId, saving, logDate, mealType, refreshAfterSave]);
 
+  const todayStr = useMemo(() => getTodayWarsaw(), []);
+  const yesterdayStr = useMemo(() => getYesterdayWarsaw(), []);
+
+  const yesterdayEntriesQuery = useQuery({
+    queryKey: ['all-today-entries', userId, yesterdayStr, refreshSignal],
+    queryFn: () => fetchAllTodayEntries(userId!, yesterdayStr),
+    enabled: !!userId && logDate === todayStr,
+  });
+
+  const yesterdayMealSuggestion = useMemo(() => {
+    if (logDate !== todayStr || !yesterdayEntriesQuery.data?.length) return null;
+    const todayEntries = allTodayEntriesQuery.data ?? [];
+    const todayHasMeal = todayEntries.some((e) => e.meal_type === mealType);
+    if (todayHasMeal) return null;
+
+    const yesterdayMealEntries = yesterdayEntriesQuery.data.filter((e) => e.meal_type === mealType);
+    if (!yesterdayMealEntries.length) return null;
+
+    const totalCalories = Math.round(yesterdayMealEntries.reduce((sum, e) => sum + (e.calories ?? 0), 0));
+    const totalProtein = Math.round(yesterdayMealEntries.reduce((sum, e) => sum + (e.protein ?? 0), 0) * 10) / 10;
+    const name = yesterdayMealEntries.map((e) => e.name).join(' + ').slice(0, 42);
+
+    return {
+      name,
+      calories: totalCalories,
+      protein: totalProtein,
+      mealLabel: mealLabelForType(mealType),
+      entries: yesterdayMealEntries,
+    };
+  }, [logDate, todayStr, yesterdayEntriesQuery.data, allTodayEntriesQuery.data, mealType]);
+
+  const repeatYesterdayMeal = useCallback(() => {
+    if (!yesterdayMealSuggestion?.entries.length) return;
+    setDraftItems(entriesToDraft(yesterdayMealSuggestion.entries));
+    setMemoryName(`Wczorajszy posiłek (${yesterdayMealSuggestion.mealLabel})`);
+    notify(`Załadowano wczorajszy ${yesterdayMealSuggestion.mealLabel} do edytora!`, 'success');
+  }, [yesterdayMealSuggestion]);
+
+  const copyEntireDayToToday = useCallback(async () => {
+    if (!userId || !allTodayEntriesQuery.data?.length || saving) return;
+    setSaving(true);
+    try {
+      await copyFoodEntriesToDate(userId, allTodayEntriesQuery.data, todayStr);
+      setLogDateAndResetTime(todayStr);
+      await refreshAfterSave();
+      notify('Skopiowano posiłki do dzisiaj!', 'success');
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'Błąd kopiowania', 'error');
+    } finally {
+      setSaving(false);
+    }
+  }, [allTodayEntriesQuery.data, refreshAfterSave, saving, setLogDateAndResetTime, todayStr, userId]);
+
+  const copyMealToToday = useCallback(async (sourceMealType: string) => {
+    if (!userId || !allTodayEntriesQuery.data?.length || saving) return;
+    const mealEntries = allTodayEntriesQuery.data.filter((e) => e.meal_type === sourceMealType);
+    if (!mealEntries.length) return;
+    setSaving(true);
+    try {
+      await copyFoodEntriesToDate(userId, mealEntries, todayStr, sourceMealType);
+      setLogDateAndResetTime(todayStr);
+      await refreshAfterSave();
+      notify(`Skopiowano ${mealLabelForType(sourceMealType)} do dzisiaj!`, 'success');
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'Błąd kopiowania', 'error');
+    } finally {
+      setSaving(false);
+    }
+  }, [allTodayEntriesQuery.data, refreshAfterSave, saving, setLogDateAndResetTime, todayStr, userId]);
+
+  const deleteEntry = useCallback(async (entryId: string) => {
+    if (!userId || saving) return;
+    try {
+      await deleteFoodEntry(userId, entryId);
+      await refreshAfterSave();
+      notify('Usunięto wpis', 'success');
+    } catch (err) {
+      notify(err instanceof Error ? err.message : 'Błąd usuwania', 'error');
+    }
+  }, [userId, saving, refreshAfterSave]);
+
   return {
     userId,
     text,
@@ -366,10 +439,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     addFoodToDraft,
     addRecentProduct,
     scanPhoto,
-    repeatRecentDay,
-    repeatMemory,
     handleFavorite,
-    repeatSuggestions,
     quickChips,
     handleQuickChip,
     saveFromDraft,
@@ -389,5 +459,11 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     yesterday: getYesterdayWarsaw(),
     mealLabelForType,
     refreshAfterSave,
+    copyEntireDayToToday,
+    copyMealToToday,
+    yesterdayMealSuggestion,
+    repeatYesterdayMeal,
+    deleteEntry,
+    isPastDay: logDate !== todayStr,
   };
 }

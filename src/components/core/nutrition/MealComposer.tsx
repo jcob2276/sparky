@@ -1,14 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card } from '../../ui/Card';
 import BarcodeScanner from './BarcodeScanner';
 import MealComposerCustomProduct from './MealComposerCustomProduct';
 import MealComposerDraft from './MealComposerDraft';
-import MealComposerDraftPlaceholder from './MealComposerDraftPlaceholder';
 import MealComposerLoggedItems from './MealComposerLoggedItems';
 import MealComposerQuick from './MealComposerQuick';
 import { ComposerHeader, ComposerInput, ComposerProgress, ComposerSearch } from './MealComposerChrome';
 import NutritionDayReview from './NutritionDayReview';
 import FoodEntryModal from './FoodEntryModal';
+import CopyDayModal from './CopyDayModal';
 import type { RecentEntry } from './hooks/foodEntryUtils';
 import { useMealComposer } from './hooks/useMealComposer';
 import { useSession } from '../../../store/useStore';
@@ -23,45 +23,13 @@ export default function MealComposer({
   const session = useSession();
   const c = useMealComposer(onSaved, refreshSignal);
   const [editEntry, setEditEntry] = useState<RecentEntry | null>(null);
-
-  const repeatCards = useMemo(() => {
-    const cards = [];
-    for (const memory of c.repeatSuggestions.habitual) {
-      cards.push({
-        id: memory.id,
-        name: memory.name,
-        calories: memory.calories,
-        protein: memory.protein,
-        subtitle: `Twoje ${c.mealLabelForType(c.mealType)} · ${memory.confirmedCount}x`,
-        onRepeat: () => void c.repeatMemory(memory.items, memory.name),
-      });
-    }
-    if (c.repeatSuggestions.gap) {
-      const gap = c.repeatSuggestions.gap;
-      cards.push({
-        id: `gap-${gap.id}`,
-        name: gap.name,
-        calories: gap.calories,
-        protein: gap.protein,
-        subtitle: gap.reason,
-        onRepeat: () => void c.repeatMemory(gap.items, gap.name),
-      });
-    }
-    return cards.slice(0, 2);
-  }, [c]);
-
-  const recentDays = useMemo(() => {
-    return (c.repeatSuggestions.recentDays || []).map(day => ({
-      ...day,
-      onRepeat: () => void c.repeatRecentDay(day.entries, day.date),
-    }));
-  }, [c]);
+  const [copyDayOpen, setCopyDayOpen] = useState(false);
 
   if (!session) return null;
 
   return (
     <>
-      <Card className="space-y-3.5 border-border-custom/80 bg-surface p-5 shadow-sm">
+      <Card className="space-y-4 border-border-custom/80 bg-surface p-5 shadow-sm">
         <ComposerHeader
           logDate={c.logDate}
           setLogDate={c.setLogDate}
@@ -72,24 +40,14 @@ export default function MealComposer({
           mealTypes={c.MEAL_TYPES}
         />
 
-        <ComposerProgress totals={c.totals} qualityPending={c.qualityPending} />
-
-        {c.allTodayEntries.length > 0 && !c.draftItems?.length && (
-          <MealComposerLoggedItems
-            entries={c.allTodayEntries}
-            onEditEntry={setEditEntry}
-          />
-        )}
-
-        {!c.draftItems?.length && (
-          <MealComposerQuick
-            repeatCards={repeatCards}
-            recentDays={recentDays}
-            chips={c.quickChips}
-            saving={c.saving}
-            onChip={c.handleQuickChip}
-          />
-        )}
+        <ComposerProgress
+          totals={c.totals}
+          qualityPending={c.qualityPending}
+          macros={{
+            carbs: Math.round(c.allTodayEntries.reduce((s, e) => s + (e.carbs ?? 0), 0)),
+            fat: Math.round(c.allTodayEntries.reduce((s, e) => s + (e.fat ?? 0), 0) * 10) / 10,
+          }}
+        />
 
         <ComposerInput
           text={c.text}
@@ -148,11 +106,39 @@ export default function MealComposer({
             onRemove={(id) => c.setDraftItems((items) => items?.filter((item) => item.id !== id) ?? null)}
             onSave={(rememberIds, name) => c.saveFromDraft(rememberIds, name)}
           />
-        ) : (
-          <MealComposerDraftPlaceholder />
+        ) : null}
+
+        {!c.draftItems?.length && (
+          <MealComposerQuick
+            chips={c.quickChips}
+            saving={c.saving}
+            onChip={c.handleQuickChip}
+            onOpenCopyDay={() => setCopyDayOpen(true)}
+            yesterdayMealSuggestion={c.yesterdayMealSuggestion}
+            onRepeatYesterdayMeal={c.repeatYesterdayMeal}
+          />
         )}
 
-        {c.error && <p role="alert" className="text-xs text-danger">{c.error}</p>}
+        {c.allTodayEntries.length > 0 && (
+          <MealComposerLoggedItems
+            entries={c.allTodayEntries}
+            onEditEntry={setEditEntry}
+            onDeleteEntry={(id) => void c.deleteEntry(id)}
+            isPastDay={c.isPastDay}
+            onCopyEntireDay={c.copyEntireDayToToday}
+            onCopyMeal={c.copyMealToToday}
+            copying={c.saving}
+            dateLabel={
+              c.logDate === c.today
+                ? 'Zjedzone dziś'
+                : c.logDate === c.yesterday
+                ? 'Zjedzone wczoraj'
+                : `Zjedzone (${c.logDate})`
+            }
+          />
+        )}
+
+        {c.error && <p role="alert" className="text-xs text-danger text-center font-medium">{c.error}</p>}
 
         <NutritionDayReview userId={session.user.id} date={c.logDate} hasEntries={c.hasEntries} />
       </Card>
@@ -163,6 +149,19 @@ export default function MealComposer({
           onClose={() => setEditEntry(null)}
           onSaved={() => {
             setEditEntry(null);
+            void c.refreshAfterSave();
+            onSaved?.();
+          }}
+        />
+      )}
+
+      {copyDayOpen && c.userId && (
+        <CopyDayModal
+          isOpen={copyDayOpen}
+          onClose={() => setCopyDayOpen(false)}
+          userId={c.userId}
+          targetDate={c.today}
+          onCopied={() => {
             void c.refreshAfterSave();
             onSaved?.();
           }}

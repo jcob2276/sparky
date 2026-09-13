@@ -16,27 +16,21 @@ function normalizeName(name: string): string {
 }
 
 export function buildQuickChips(input: {
-  todayMeals: ComposerTodayMeal[];
   recentProducts: RecentFoodProduct[];
   favorites: ReadonlyArray<Omit<FoodFavoriteRow, 'barcode'> & { barcode?: string | null }>;
+  todayMeals?: ComposerTodayMeal[];
+  excludeNames?: Iterable<string>;
   max?: number;
 }): QuickChip[] {
   const seen = new Set<string>();
+  if (input.excludeNames) {
+    for (const name of input.excludeNames) {
+      seen.add(normalizeName(name));
+    }
+  }
+
   const chips: QuickChip[] = [];
   const max = input.max ?? 10;
-
-  for (const meal of input.todayMeals) {
-    const key = normalizeName(meal.name);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    chips.push({
-      id: `today-${meal.id}`,
-      kind: 'today',
-      name: meal.name,
-      detail: `${meal.calories} kcal · dziś`,
-    });
-    if (chips.length >= max) return chips;
-  }
 
   for (const product of input.recentProducts) {
     const key = normalizeName(product.name);

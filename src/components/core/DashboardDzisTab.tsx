@@ -52,7 +52,7 @@ export function DashboardDzisTab() {
   );
 
   return (
-    <div className="min-h-full bg-background p-5 pb-8">
+    <div className="min-h-full bg-background p-5 pb-32">
       <div className="mb-5 space-y-4">
         <HorizonHeader
           eyebrow="Sparky"

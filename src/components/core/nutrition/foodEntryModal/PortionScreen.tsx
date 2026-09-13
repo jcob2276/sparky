@@ -1,8 +1,14 @@
-import { Pressable, ControlInput } from '../../../ui/ControlPrimitives';
-import { Card } from '../../../ui/Card';
+import { ArrowLeft } from 'lucide-react';
+import { Pressable } from '../../../ui/ControlPrimitives';
 import type { FoodBase } from '../hooks/useFoodEntryData';
 import { calorieRange, deriveFoodTrust } from '../../../../lib/health/foodTrust';
-import { MEAL_TYPES } from '../../../../lib/health/foodLogging';
+import { useHaptics } from '../../../../hooks/useHaptics';
+import {
+  MacroCardsRow,
+  MealTypeSegmentedPicker,
+  PortionStepper,
+  type MacroPreview,
+} from './FoodEntrySharedComponents';
 
 interface PortionScreenProps {
   selected: FoodBase;
@@ -11,7 +17,7 @@ interface PortionScreenProps {
   setGrams: (v: string) => void;
   mealType: string;
   setMealType: (v: string) => void;
-  preview: { calories: number | null; protein: number | null; carbs: number | null; fat: number | null } | null;
+  preview: MacroPreview | null;
   error: string | null;
   saving: boolean;
   savedFlash: boolean;
@@ -19,71 +25,71 @@ interface PortionScreenProps {
 }
 
 export default function PortionScreen({
-  selected, setSelected,
-  grams, setGrams,
-  mealType, setMealType,
-  preview, error,
-  saving, savedFlash, save,
+  selected,
+  setSelected,
+  grams,
+  setGrams,
+  mealType,
+  setMealType,
+  preview,
+  error,
+  saving,
+  savedFlash,
+  save,
 }: PortionScreenProps) {
+  const haptics = useHaptics();
   const trust = deriveFoodTrust(selected);
   const range = calorieRange(preview?.calories ?? null, trust.uncertaintyPct);
+
   return (
     <div className="space-y-4">
-      <Pressable variant="ghost" size="sm" onClick={() => setSelected(null)} className="px-0 py-0">← Wstecz</Pressable>
+      <div className="flex items-center justify-between">
+        <Pressable
+          variant="ghost"
+          size="sm"
+          onClick={() => setSelected(null)}
+          className="flex items-center gap-1.5 px-0 py-0 text-text-muted hover:text-text-primary transition-colors active:scale-95"
+        >
+          <ArrowLeft size={16} />
+          <span className="text-xs font-bold">Wróć</span>
+        </Pressable>
+      </div>
+
       <div>
-        <p className="text-base font-black text-text-primary leading-tight">{selected.name}</p>
-        {selected.brand && <p className="text-xs text-text-muted">{selected.brand}</p>}
+        <p className="text-lg font-black text-text-primary leading-tight tracking-tight">{selected.name}</p>
+        {selected.brand && (
+          <p className="mt-0.5 text-xs font-medium text-text-muted">{selected.brand}</p>
+        )}
         <p className={`mt-1 text-2xs font-bold uppercase tracking-wider ${trust.level === 'estimated' ? 'text-warning' : trust.level === 'incomplete' ? 'text-danger' : 'text-success'}`}>
           {trust.label}{range && range.min !== range.max ? ` · około ${range.min}–${range.max} kcal` : ''}
         </p>
       </div>
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <ControlInput type="number" inputMode="numeric" autoFocus value={grams} onChange={(e) => setGrams(e.target.value)}
-            className="w-20 rounded-xl border border-border-custom bg-surface-solid/40 px-3 py-2 text-base font-bold text-text-primary text-center outline-none focus:border-primary/40" />
-          <span className="text-sm text-text-muted">gram</span>
-        </div>
-        <div className="flex gap-1.5">
-          {[50, 100, 150, 200, 250].map((g) => (
-            <Pressable key={g} onClick={() => setGrams(String(g))}
-              className={`flex-1 rounded-lg py-1 text-xs font-black transition-all cursor-pointer ${
-                grams === String(g)
-                  ? 'bg-primary text-on-accent'
-                  : 'border border-border-custom text-text-muted hover:border-primary/40 hover:text-primary'
-              }`}
-            >
-              {g}
-            </Pressable>
-          ))}
-        </div>
-      </div>
-      <div className="flex gap-1.5 flex-wrap">
-        {MEAL_TYPES.map((m) => (
-          <Pressable key={m.id} onClick={() => setMealType(m.id)}
-            className={`rounded-full px-3 py-1.5 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${mealType === m.id ? 'bg-primary text-on-accent' : 'border border-border-custom text-text-muted'}`}>
-            {m.label}
-          </Pressable>
-        ))}
-      </div>
-      {preview && (
-        <Card variant="outline" padding="0.75rem" className="grid grid-cols-4 gap-2 text-center">
-          {[['kcal', preview.calories], ['B', preview.protein], ['W', preview.carbs], ['T', preview.fat]].map(([label, val]) => (
-            <div key={String(label)}>
-              <p className="text-sm font-black text-text-primary">{val ?? '–'}</p>
-              <p className="text-2xs uppercase text-text-muted">{label}</p>
-            </div>
-          ))}
-        </Card>
-      )}
-      {error && <p className="text-xs text-danger">{error}</p>}
+
+      <PortionStepper
+        grams={grams}
+        setGrams={setGrams}
+        defaultGrams={selected.defaultGrams}
+        defaultGramsLabel={selected.defaultGrams ? `1 porcja (${selected.defaultGrams}g)` : undefined}
+      />
+
+      <MealTypeSegmentedPicker mealType={mealType} setMealType={setMealType} />
+
+      <MacroCardsRow preview={preview} />
+
+      {error && <p className="text-xs text-danger text-center font-medium">{error}</p>}
+
       <Pressable
+        type="button"
         variant="primary"
-        onClick={save}
-        disabled={saving || trust.level === 'incomplete'}
+        onClick={() => {
+          haptics.success();
+          save();
+        }}
+        disabled={saving || savedFlash}
         loading={saving}
-        className="w-full"
+        className="w-full rounded-2xl py-3 text-sm font-black active:scale-[0.98] transition-all shadow-sm"
       >
-        {savedFlash ? 'Zapisano ✓' : 'Zapisz'}
+        {savedFlash ? 'Zapisano!' : 'Dodaj do dziennika'}
       </Pressable>
     </div>
   );

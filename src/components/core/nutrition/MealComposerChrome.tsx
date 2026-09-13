@@ -1,13 +1,13 @@
-import { Camera, ScanLine, Search, Sparkles } from 'lucide-react';
+import { CalendarDays, Camera, ScanLine, Search, Sparkles } from 'lucide-react';
 import type { MealTypeId } from '../../../lib/health/foodLogging';
-import type { FoodBase } from '../../../lib/health/foodTypes';
 import { notify } from '../../../lib/notify';
 import { pickMealPhotoNative } from '../../../lib/native/mealPhotoCapture';
 import { isNativePlatform } from '../../../lib/native/platform';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
 import Spinner from '../../ui/Spinner';
-import FoodRow from './FoodRow';
-import { scale } from './hooks/foodEntryUtils';
+import { formatShortDateWarsaw } from '../../../lib/date';
+import MacroProgressBar from './MacroProgressBar';
+export { ComposerSearch } from './MealComposerSearch';
 
 export function ComposerHeader({
   logDate, setLogDate, mealType, setMealType, today, yesterday, mealTypes,
@@ -20,35 +20,59 @@ export function ComposerHeader({
   yesterday: string;
   mealTypes: ReadonlyArray<{ id: string; label: string }>;
 }) {
+  const isCustomDate = logDate !== today && logDate !== yesterday;
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-2.5">
       <div className="flex items-center justify-between gap-2">
         <p className="font-display text-xs font-black uppercase tracking-widest text-text-primary">Posiłek</p>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center p-0.5 rounded-full border border-border-custom/60 bg-surface-solid/50">
           {([['Dziś', today], ['Wczoraj', yesterday]] as const).map(([label, date]) => (
             <Pressable
               key={label}
               type="button"
               onClick={() => setLogDate(date)}
-              className={`rounded-full px-3 py-1 text-2xs font-bold transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] active:scale-[0.95] ${
-                logDate === date ? 'bg-primary text-on-accent shadow-sm' : 'border border-border-custom text-text-secondary hover:bg-surface-solid/50'
+              className={`rounded-full px-3 py-1 text-2xs font-bold transition-all duration-150 active:scale-95 ${
+                logDate === date
+                  ? 'bg-primary text-on-accent shadow-xs'
+                  : 'text-text-muted hover:text-text-primary'
               }`}
             >
               {label}
             </Pressable>
           ))}
+          <label
+            className={`relative flex items-center justify-center rounded-full px-2.5 py-1 text-2xs font-bold cursor-pointer transition-all duration-150 active:scale-95 ${
+              isCustomDate
+                ? 'bg-primary text-on-accent shadow-xs'
+                : 'text-text-muted hover:text-text-primary'
+            }`}
+            title="Wybierz inną datę z kalendarza"
+          >
+            <CalendarDays size={11} className="mr-1 inline-block" />
+            <span>{isCustomDate ? formatShortDateWarsaw(logDate) : 'Inna'}</span>
+            <input
+              type="date"
+              max={today}
+              value={logDate}
+              onChange={(e) => {
+                if (e.target.value) setLogDate(e.target.value);
+              }}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+            />
+          </label>
         </div>
       </div>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="grid grid-cols-4 gap-1 p-1 bg-surface-solid/40 rounded-2xl border border-border-custom/50">
         {mealTypes.map((meal) => (
           <Pressable
             key={meal.id}
             type="button"
             onClick={() => setMealType(meal.id as MealTypeId)}
-            className={`rounded-full px-3 py-1.5 text-2xs font-black uppercase tracking-wider transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] active:scale-[0.95] ${
+            className={`rounded-xl py-1.5 text-center text-2xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 ${
               mealType === meal.id
-                ? 'bg-primary/20 text-primary border border-primary/40'
-                : 'border border-border-custom text-text-muted hover:bg-surface-solid/50'
+                ? 'bg-surface text-primary shadow-xs font-black'
+                : 'text-text-muted hover:text-text-secondary'
             }`}
           >
             {meal.label}
@@ -62,6 +86,7 @@ export function ComposerHeader({
 export function ComposerProgress({
   totals,
   qualityPending,
+  macros,
 }: {
   totals: {
     calories: number;
@@ -72,6 +97,7 @@ export function ComposerProgress({
     foodQualityAnalysis: string | null;
   };
   qualityPending: boolean;
+  macros?: { carbs: number; fat: number };
 }) {
   const remainingKcal = Math.max(0, Math.round((totals.targetKcal ?? 2000) - totals.calories));
   const remainingProtein = Math.max(0, Math.round(((totals.targetProtein ?? 0) - totals.protein) * 10) / 10);
@@ -103,27 +129,28 @@ export function ComposerProgress({
           )}
         </p>
       )}
-      <div className="h-1.5 overflow-hidden rounded-full bg-border-custom/40">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ease-[var(--ease-out,ease-out)] ${
-            totals.targetKcal && totals.calories > totals.targetKcal ? 'bg-warning' : 'bg-primary'
-          }`}
-          style={{ width: `${Math.min(100, ((totals.calories / (totals.targetKcal || 2000)) * 100))}%` }}
-        />
-      </div>
+      <MacroProgressBar
+        calories={totals.calories}
+        protein={totals.protein}
+        carbs={macros?.carbs ?? 0}
+        fat={macros?.fat ?? 0}
+        targetKcal={totals.targetKcal ?? 2000}
+      />
       {(qualityPending || totals.avgFoodQuality != null || totals.foodQualityAnalysis) && (
-        <p className="text-xs font-medium leading-relaxed text-text-secondary">
+        <div className="flex items-start gap-2 rounded-xl bg-surface-solid/30 border border-border-custom/40 p-2 text-xs leading-relaxed text-text-secondary">
           {qualityPending && !totals.foodQualityAnalysis ? (
             <span className="animate-pulse italic text-text-muted">Liczenie jakości posiłków…</span>
           ) : totals.avgFoodQuality != null ? (
             <>
-              <span className="mr-1.5 font-display font-black text-warning">
+              <span className="shrink-0 rounded-md bg-warning/15 px-1.5 py-0.5 font-display text-2xs font-black text-warning">
                 Jakość {totals.avgFoodQuality}
               </span>
-              {totals.foodQualityAnalysis ? totals.foodQualityAnalysis.split(/[.!?]/)[0]?.trim() : null}
+              <span className="text-2xs text-text-muted">
+                {totals.foodQualityAnalysis ? totals.foodQualityAnalysis.split(/[.!?]/)[0]?.trim() : null}
+              </span>
             </>
           ) : null}
-        </p>
+        </div>
       )}
     </div>
   );
@@ -212,50 +239,6 @@ export function ComposerInput({
           active={searchOpen}
           disabled={saving}
         />
-      </div>
-    </div>
-  );
-}
-
-export function ComposerSearch({
-  query, setQuery, searching, results, externalSearching, externalSearched, searchExternal, onPick,
-}: {
-  query: string;
-  setQuery: (value: string) => void;
-  searching: boolean;
-  results: FoodBase[];
-  externalSearching: boolean;
-  externalSearched: boolean;
-  searchExternal: () => void;
-  onPick: (food: FoodBase) => void;
-}) {
-  return (
-    <div className="space-y-2 rounded-2xl border border-border-custom/70 bg-surface-solid/30 p-3">
-      <ControlInput
-        autoFocus
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Szukaj produktu…"
-        className="w-full rounded-xl border border-border-custom bg-surface px-3 py-2 text-sm"
-      />
-      {searching && <Spinner size="sm" className="mx-auto" />}
-      {!searching && query.trim().length >= 2 && results.length === 0 && !externalSearched && (
-        <Pressable variant="outline" size="sm" onClick={searchExternal} loading={externalSearching} className="w-full text-xs">
-          Szukaj w bazie zewnętrznej
-        </Pressable>
-      )}
-      <div className="max-h-56 space-y-1 overflow-y-auto">
-        {results.map((food) => (
-          <FoodRow
-            key={`${food.name}-${food.brand ?? ''}`}
-            name={food.name}
-            subtitle={food.brand}
-            calories={scale(food.calories, food.defaultGrams ?? 100)}
-            onTap={() => onPick(food)}
-            onQuickAdd={() => onPick(food)}
-            quickAddIcon={<span className="text-xs font-black">+</span>}
-          />
-        ))}
       </div>
     </div>
   );
