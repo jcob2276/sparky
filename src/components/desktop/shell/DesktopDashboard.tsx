@@ -140,13 +140,6 @@ export default function DesktopDashboard({ session }: { session: Session }) {
     </Suspense>
   );
 
-  if (loading && !oura.length && !sessions.length) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="relative h-16 w-16"><div className="absolute inset-0 rounded-full border-4 border-primary/20" /><Spinner size="lg" /></div>
-      </div>
-    );
-  }
 
   return (
     <>
@@ -172,24 +165,33 @@ export default function DesktopDashboard({ session }: { session: Session }) {
                 onTabChange={setActiveTab}
               />
 
-              <DesktopTabContent
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-                userId={userId}
-                session={session}
-                theme={theme}
-                grid={grid}
-                tick={tick}
-                data={desktopData}
-                habitsData={habitsData}
-                dreamsData={dreamsData}
-                volData={volData}
-                refresh={refresh}
-                onOpenWorkout={openWorkout}
-                onOpenSauna={() => setShowSaunaModal(true)}
-                onOpenWeight={() => setShowWeightModal(true)}
-                onOpenOptics={() => navigate('/optics')}
-              />
+              {loading && !oura.length && !sessions.length ? (
+                <div className="flex min-h-[50vh] items-center justify-center">
+                  <div className="relative h-16 w-16">
+                    <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
+                    <Spinner size="lg" />
+                  </div>
+                </div>
+              ) : (
+                <DesktopTabContent
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  userId={userId}
+                  session={session}
+                  theme={theme}
+                  grid={grid}
+                  tick={tick}
+                  data={desktopData}
+                  habitsData={habitsData}
+                  dreamsData={dreamsData}
+                  volData={volData}
+                  refresh={refresh}
+                  onOpenWorkout={openWorkout}
+                  onOpenSauna={() => setShowSaunaModal(true)}
+                  onOpenWeight={() => setShowWeightModal(true)}
+                  onOpenOptics={() => navigate('/optics')}
+                />
+              )}
             </div>
           </div>
         </main>

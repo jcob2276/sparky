@@ -1,12 +1,15 @@
 import type { Tables } from '../database.types';
 import { computeWeightSuggestion } from './progression';
 
+export type WorkoutSetType = 'working' | 'warmup' | 'drop' | 'failure';
+
 export interface WorkoutSet {
   id: number;
   kg: string;
   reps: string;
   rir: string;
   msp: boolean;
+  type?: WorkoutSetType;
 }
 
 export interface WorkoutExercise {
@@ -27,12 +30,13 @@ export type ExerciseHistoryRow = Pick<Tables<'exercise_logs'>, 'weight' | 'reps'
   workout_sessions?: Pick<Tables<'workout_sessions'>, 'date'> | null;
 };
 
-export const newSet = (): WorkoutSet => ({
+export const newSet = (type: WorkoutSetType = 'working'): WorkoutSet => ({
   id: Date.now() + Math.random(),
   kg: '',
   reps: '',
   rir: '',
   msp: false,
+  type,
 });
 
 export const newExercise = (): WorkoutExercise => ({

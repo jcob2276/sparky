@@ -100,6 +100,10 @@ async function buildReflectionPrompt(apiKey: string, params: {
   streamRows: StreamRow[];
   frictionRows: any[];
   systemHealthBlock: string;
+  tasksBlock: string;
+  phoneBlock: string;
+  dayNoteBlock: string;
+  metricsBlock: string;
   manual: boolean;
 }): Promise<string[]> {
   const voiceBlock = params.voiceRows.length
@@ -127,27 +131,33 @@ async function buildReflectionPrompt(apiKey: string, params: {
         {
           role: "system",
           content:
-            "Jestes wieczornym trenerem refleksji w Vanguard. Nie planujesz jutra w Telegramu. " +
+            "Jestes wieczornym trenerem refleksji w Vanguard. Nie planujesz jutra w Telegramie. " +
             "Masz pomoc uzytkownikowi usiasc spokojnie, nagrac glosowke i przeanalizowac dzien: " +
             "co poszlo dobrze, co poszlo zle, co moglo pojsc lepiej, za co jest wdzieczny, jakie napiecie albo temat warto poglebic. " +
+            "Konfrontuj wykonanie konkretnych zadan z Power Listy (z nazwy!). " +
+            "Pamietaj: zeby zamknac dzien w systemie, wymagana jest krótka notatka Jakuba. " +
             "Pisz po polsku, krotko, konkretnie, bez coachingu motywacyjnego. Nie udawaj pewnosci, jesli dane sa slabe."
         },
         {
           role: "user",
           content:
             `Tryb: ${params.manual ? "manualny /koniec" : "cron 21:30"}\n\n` +
+            `DOWIEZIENIE I POWERLISTA DZISIAJ:\n${params.tasksBlock}\n\n` +
+            `NOTATKA ZAMKNIĘCIA DNIA:\n${params.dayNoteBlock}\n\n` +
+            `TELEFON I CZAS EKRANU:\n${params.phoneBlock}\n\n` +
+            `METRYKI SNU / BIO:\n${params.metricsBlock}\n\n` +
             `GLOSOWKI 24H:\n${voiceBlock}\n\n` +
             `STREAM 24H:\n${streamBlock}\n\n` +
             `FRICTION 24H:\n${frictionBlock}\n\n` +
             `SYSTEM HEALTH:\n${params.systemHealthBlock}\n\n` +
             "Napisz dwie osobne wiadomosci oddzielone ciagiem znakow '===DELIMITER==='.\n" +
             "Wiadomosc 1 (Podsumowanie):\n" +
-            "- 3-5 punktow: co slychac w ostatnich 24h z glosowek/streamu.\n" +
-            "- Jesli sa bledy krytyczne w system health, dodaj 1 krotki punkt o stanie systemu (co sie psuje, ile razy).\n\n" +
+            "- 3-5 punktow: co slychac w ostatnich 24h z glosowek/streamu, jak poszly zadania z nazwy i czy byl screen time w nocy.\n" +
+            "- Jesli sa bledy krytyczne w system health, dodaj 1 krotki punkt o stanie systemu.\n\n" +
             "===DELIMITER===\n\n" +
             "Wiadomosc 2 (Pytania i Instrukcja):\n" +
-            "- 2-4 pytania poglebiajace, bardzo konkretne.\n" +
-            "- Instrukcja: nagraj spokojna glosowke refleksyjna.\n\n" +
+            "- 2-4 pytania poglebiajace, bezposrednio dotykajace omijanych zadan i tarcia.\n" +
+            "- Przypomnienie: nagraj glosowke lub zostaw krotka notatke, zeby zamknac dzien.\n\n" +
             "Nie pytaj o plan jutra. Nie generuj zadan na jutro."
         }
       ]
@@ -210,7 +220,7 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
     const sevenDaysAgo = new Date(dayStart);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const [streamData, frictionRes, auditRes, winsRes, todosRes, aggRes] = await Promise.all([
+    const [streamData, frictionRes, auditRes, winsRes, todosRes, aggRes, phoneRes] = await Promise.all([
       getStreamForDailyReconciliation(
         supabase,
         VANGUARD_USER_ID,
@@ -235,7 +245,7 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
         .limit(100),
       supabase
         .from("daily_wins")
-        .select("task_1, task_2, task_3, done_1, done_2, done_3")
+        .select("task_1, task_2, task_3, task_4, task_5, done_1, done_2, done_3, done_4, done_5, day_note, result")
         .eq("user_id", VANGUARD_USER_ID)
         .eq("date", todayStr)
         .maybeSingle(),
@@ -251,7 +261,13 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
         .select("execution_score, sleep_hours, hrv_avg, readiness_score, final_state")
         .eq("user_id", VANGUARD_USER_ID)
         .eq("date", todayStr)
-        .maybeSingle()
+        .maybeSingle(),
+      supabase
+        .from("phone_usage_daily")
+        .select("total_minutes, late_night_minutes, social_minutes, unlocks")
+        .eq("user_id", VANGUARD_USER_ID)
+        .eq("date", todayStr)
+        .maybeSingle(),
     ]);
 
     if (frictionRes.error) console.error("[reconciliation] friction query error:", frictionRes.error);
@@ -262,6 +278,38 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
       return typeof metadata.voice_duration_seconds === "number" || typeof metadata.voice_wpm === "number";
     });
     const frictionRows = frictionRes.data || [];
+
+    // Format tasks and execution
+    const winsData = winsRes.data as any;
+    const taskParts: string[] = [];
+    if (winsData) {
+      for (let i = 1; i <= 5; i++) {
+        const task = winsData[`task_${i}`];
+        if (task && String(task).trim()) {
+          const done = !!winsData[`done_${i}`];
+          taskParts.push(`${i}. ${task.trim()}: ${done ? "✓ ZROBIONE" : "✗ NIEZROBIONE"}`);
+        }
+      }
+    }
+    const tasksBlock = taskParts.length > 0
+      ? `PowerList:\n${taskParts.join("\n")}`
+      : "PowerList: brak zaplanowanych zadań.";
+
+    const dayNoteBlock = winsData?.day_note?.trim()
+      ? `Zapisana notatka Jakuba: „${winsData.day_note.trim()}” (status: ${winsData.result ?? "w toku"})`
+      : "Brak notatki zamykającej (wymagana do formalnego zamknięcia dnia Z/P!)";
+
+    // Format phone telemetry
+    const phoneData = phoneRes.data as any;
+    const phoneBlock = phoneData
+      ? `Łączny czas: ${phoneData.total_minutes ?? 0}m, Noc: ${phoneData.late_night_minutes ?? 0}m, Social: ${phoneData.social_minutes ?? 0}m, Odblokowania: ${phoneData.unlocks ?? 0}`
+      : "Brak danych z phone_usage_daily.";
+
+    // Format sleep metrics
+    const aggData = aggRes.data as any;
+    const metricsBlock = aggData
+      ? `Sen: ${aggData.sleep_hours ?? "brak"}h | HRV: ${aggData.hrv_avg ?? "brak"} | Readiness: ${aggData.readiness_score ?? "brak"} | Exec score: ${aggData.execution_score ?? "brak"}`
+      : "Brak agregatów biometrycznych.";
 
     // Aggregate system health from audit_events (last 7 days)
     const auditRows = (auditRes.data || []) as { event_type: string; severity: string; message: string; created_at: string }[];
@@ -286,6 +334,10 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
       streamRows,
       frictionRows,
       systemHealthBlock,
+      tasksBlock,
+      phoneBlock,
+      dayNoteBlock,
+      metricsBlock,
       manual,
     });
 

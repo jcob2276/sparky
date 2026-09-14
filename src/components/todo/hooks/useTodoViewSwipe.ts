@@ -1,5 +1,6 @@
 import { useCallback, useRef } from 'react';
 import type { TodoViewMode } from '../TodoHeader';
+import { shouldBlockSwipeNav } from '../../../lib/motion/iosMotion';
 
 const VIEW_ORDER: TodoViewMode[] = ['lista', 'eisenhower', 'kanban'];
 
@@ -16,7 +17,7 @@ export function useTodoViewSwipe(
     start.current = {
       x: touch.clientX,
       y: touch.clientY,
-      blocked: Boolean(target.closest('input, textarea, select, button, [data-no-view-swipe]')),
+      blocked: shouldBlockSwipeNav(target),
     };
   }, []);
 
@@ -28,7 +29,7 @@ export function useTodoViewSwipe(
 
     const deltaX = touch.clientX - gesture.x;
     const deltaY = touch.clientY - gesture.y;
-    if (Math.abs(deltaX) < 55 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.25) return;
+    if (Math.abs(deltaX) < 70 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.75) return;
 
     const currentIndex = VIEW_ORDER.indexOf(currentView);
     const nextIndex = deltaX < 0 ? currentIndex + 1 : currentIndex - 1;

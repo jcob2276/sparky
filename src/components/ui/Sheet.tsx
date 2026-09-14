@@ -53,6 +53,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right' }: SheetPro
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.16, ease: 'easeOut' }}
         >
           <motion.section
             ref={panelRef}
@@ -61,6 +62,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right' }: SheetPro
             aria-modal="true"
             aria-label={typeof title === 'string' ? title : undefined}
             data-material="floating"
+            style={{ willChange: 'transform' }}
             initial={reduceMotion ? { opacity: 0 } : initial}
             animate={reduceMotion ? { opacity: 1 } : { x: 0, y: 0 }}
             exit={reduceMotion ? { opacity: 0 } : exit}

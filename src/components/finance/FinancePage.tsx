@@ -88,13 +88,14 @@ function FinancePage() {
               className="rounded-2xl bg-surface-2/80 p-1 ring-1 ring-border-custom/20 [&_button]:rounded-xl [&_button]:py-2.5 [&_button]:text-sm [&_button]:font-medium"
             />
 
-            <AnimatePresence mode="wait" initial={false}>
+            <AnimatePresence initial={false}>
               <motion.div
                 key={tab}
-                initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={reduceMotion ? undefined : { opacity: 0, y: -6 }}
-                transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+                exit={reduceMotion ? undefined : { opacity: 0 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                style={{ willChange: 'transform, opacity' }}
               >
                 <FinanceTabContent
                   tab={tab}

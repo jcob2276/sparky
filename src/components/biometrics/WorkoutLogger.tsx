@@ -7,14 +7,18 @@
  *          core/hooks/useDashboardState (auto-resume na poziomie Dashboard, nie tego komponentu)
  * @usedBy Dashboard (lazy)
  */
+import { useState } from 'react';
 import { Pressable, ControlInput, ControlTextarea } from '../ui/ControlPrimitives';
-import { ChevronLeft, Save, Dumbbell, Clock, Play, Square, Plus } from 'lucide-react';
+import { ChevronLeft, Save, Dumbbell, Clock, Play, Square, Plus, Timer, Sparkles } from 'lucide-react';
 import { useWorkoutLogger } from './hooks/useWorkoutLogger';
 import { Card } from '../ui/Card';
 import { type WorkoutLoggerInitial } from '../../lib/health/workoutLogging';
 import ExerciseCard from './workout/ExerciseCard';
 import VolumeBar from './workout/VolumeBar';
 import PlyoBlock from './workout/PlyoBlock';
+import PlateCalculatorModal from './workout/PlateCalculatorModal';
+import RestTimerBar from './workout/RestTimerBar';
+import WorkoutNlCaptureModal from './workout/WorkoutNlCaptureModal';
 import { useUserId } from '../../store/useStore';
 import { isPlyoSessionComplete } from '../../lib/health/plyoMarathonProgram';
 
@@ -89,6 +93,13 @@ export default function WorkoutLogger({
 }) {
   const userId = useUserId();
   const logger = useWorkoutLogger({ initial, onSaved, onBack });
+  const [showRestTimer, setShowRestTimer] = useState(false);
+  const [showNlCapture, setShowNlCapture] = useState(false);
+  const [plateCalcState, setPlateCalcState] = useState<{
+    isOpen: boolean;
+    initialKg: number;
+    onApply?: (kg: number) => void;
+  }>({ isOpen: false, initialKg: 60 });
 
   return (
     <div className="flex-grow bg-background flex flex-col min-h-screen pb-32 transition-colors duration-[var(--motion-slow)]">
@@ -97,6 +108,17 @@ export default function WorkoutLogger({
           <ChevronLeft size={20} />
         </Pressable>
         <h1 className="text-xs font-black uppercase tracking-[var(--ds-arbitrary-0-2em)] text-text-primary flex-1 font-display">Zaloguj Trening</h1>
+        <Pressable
+          onClick={() => setShowRestTimer((prev) => !prev)}
+          className={`p-1.5 rounded-lg border transition-colors cursor-pointer ${
+            showRestTimer
+              ? 'bg-primary/20 text-primary border-primary/40'
+              : 'text-text-muted hover:text-text-primary border-border-custom'
+          }`}
+          title="Stoper przerw (Rest Timer)"
+        >
+          <Timer size={14} />
+        </Pressable>
         {logger.timerStart ? (
           <Pressable onClick={() => logger.setTimerStart(null)} className="flex items-center gap-1.5 text-primary hover:text-primary-hover transition-colors cursor-pointer">
             <span className="text-xs font-black tabular-nums">{logger.elapsed}</span>
@@ -130,17 +152,43 @@ export default function WorkoutLogger({
         </div>
 
         <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Dumbbell size={12} className="text-text-muted" />
-            <span className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted">Ćwiczenia</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Dumbbell size={12} className="text-text-muted" />
+              <span className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted">Ćwiczenia</span>
+            </div>
+            <Pressable
+              onClick={() => setShowNlCapture(true)}
+              className="flex items-center gap-1 text-3xs font-black uppercase tracking-wider text-primary hover:text-primary-hover transition-colors cursor-pointer"
+            >
+              <Sparkles size={11} /> AI Zrzut
+            </Pressable>
           </div>
           {logger.exercises.map(ex => (
-            <ExerciseCard key={ex.id} exercise={ex} onChange={logger.updateExercise} onRemove={() => logger.removeExercise(ex.id)} userId={userId} />
+            <ExerciseCard
+              key={ex.id}
+              exercise={ex}
+              onChange={logger.updateExercise}
+              onRemove={() => logger.removeExercise(ex.id)}
+              userId={userId}
+              onOpenPlateCalc={(kg, onApply) => setPlateCalcState({ isOpen: true, initialKg: kg, onApply })}
+            />
           ))}
-          <Pressable onClick={logger.addExercise}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl border border-dashed border-border-custom bg-surface hover:bg-surface-solid hover:border-primary/45 p-3.5 text-xs font-black uppercase tracking-widest text-text-secondary transition-all cursor-pointer">
-            <Plus size={13} /> Dodaj ćwiczenie
-          </Pressable>
+          <div className="flex gap-2">
+            <Pressable
+              onClick={logger.addExercise}
+              className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-border-custom bg-surface hover:bg-surface-solid hover:border-primary/45 p-3.5 text-xs font-black uppercase tracking-widest text-text-secondary transition-all cursor-pointer"
+            >
+              <Plus size={13} /> Dodaj ćwiczenie
+            </Pressable>
+            <Pressable
+              onClick={() => setShowNlCapture(true)}
+              className="flex items-center justify-center gap-1.5 px-3.5 rounded-2xl border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+              title="Zrzut notatki z siłowni przez AI"
+            >
+              <Sparkles size={13} /> AI Zrzut
+            </Pressable>
+          </div>
           <VolumeBar exercises={logger.exercises} />
         </div>
 
@@ -204,6 +252,38 @@ export default function WorkoutLogger({
           </Pressable>
         </div>
       </footer>
+
+      {showRestTimer && (
+        <RestTimerBar onDismiss={() => setShowRestTimer(false)} />
+      )}
+
+      {plateCalcState.isOpen && (
+        <PlateCalculatorModal
+          isOpen={plateCalcState.isOpen}
+          initialWeight={plateCalcState.initialKg}
+          onClose={() => setPlateCalcState((prev) => ({ ...prev, isOpen: false }))}
+          onApplyWeight={plateCalcState.onApply}
+        />
+      )}
+
+      {showNlCapture && (
+        <WorkoutNlCaptureModal
+          isOpen={showNlCapture}
+          onClose={() => setShowNlCapture(false)}
+          onApplyParsed={(parsed) => {
+            if (parsed.workoutName && !logger.workoutName) {
+              logger.setWorkoutName(parsed.workoutName);
+            }
+            logger.setExercises((prev) => {
+              const cleaned = prev.filter((e) => e.name.trim());
+              return [...cleaned, ...parsed.exercises];
+            });
+            if (parsed.activities.length) {
+              logger.setActivities((prev) => [...prev, ...parsed.activities]);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

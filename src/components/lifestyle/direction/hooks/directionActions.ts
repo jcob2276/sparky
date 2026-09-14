@@ -2,7 +2,6 @@
  * Async action handlers for useDirection.
  * All "write" operations live here — separated from state management.
  */
-import { getWarsawHour } from '../../../../lib/date';
 import type { Session } from '@supabase/supabase-js';
 import type { Tables, TablesUpdate } from '../../../../lib/database.types';
 import type { Json } from '../../../../lib/database.types';
@@ -137,12 +136,12 @@ export function createDirectionActions(params: {
       return slotDone(dayWin, i);
     });
 
+    const hasNote = Boolean(dayWin.day_note?.trim());
     const resultPatch: TablesUpdate<'daily_wins'> = {};
-    if (allDone) resultPatch.result = 'Z';
-    else {
-      if (dayWin.result === 'Z') resultPatch.result = null;
-      const isPastDeadline = getWarsawHour() >= 23;
-      if (isPastDeadline && !allDone) resultPatch.result = 'P';
+    if (allDone && hasNote) {
+      resultPatch.result = 'Z';
+    } else if (!allDone && dayWin.result === 'Z') {
+      resultPatch.result = null;
     }
 
     try {

@@ -185,6 +185,27 @@ interface LookupFoodResponse {
   incompleteCount: number;
 }
 
+export interface ParseWorkoutNLResponse {
+  workout_name?: string;
+  exercises: Array<{
+    name: string;
+    tags?: string[];
+    sets: Array<{
+      kg: number;
+      reps: number;
+      rir?: number | null;
+      count?: number;
+    }>;
+    confidence: 'high' | 'medium' | 'low';
+    assumptions?: string[];
+  }>;
+  activities: Array<{
+    name: string;
+    minutes: number;
+    note?: string;
+  }>;
+}
+
 // ── Registry ─────────────────────────────────────────────────────────
 
 export interface EdgeFunctionResponses {
@@ -195,6 +216,7 @@ export interface EdgeFunctionResponses {
   'calendar-write': CalendarWriteResponse;
   'vanguard-keep-triage': KeepTriageResponse;
   'parse-food-nl': ParseFoodNLResponse;
+  'parse-workout-nl': ParseWorkoutNLResponse;
   'vanguard-capture': CaptureResponse;
   'vanguard-nightly': NightlyResponse;
   'vanguard-nutrition-coach': NutritionCoachResponse;

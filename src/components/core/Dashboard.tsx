@@ -10,24 +10,25 @@
  */
 import { Pressable } from '../ui/ControlPrimitives';
 import { TIMEZONE } from '../../lib/date';
-import { Suspense, lazy } from 'react';
+import { Suspense, lazy, useMemo } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { Sun, Calendar, FolderKanban, Clock, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Apple, Dumbbell, Flame, Eye, Activity, Mic, HeartPulse, GraduationCap } from 'lucide-react';
+import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Apple, Dumbbell, Flame, Eye } from 'lucide-react';
 
 import { ErrorBoundary } from './ErrorBoundary';
 import { DashboardHeader } from './DashboardHeader';
 import { DashboardNavBar } from './DashboardNavBar';
 import { DashboardModals } from './DashboardModals';
-import { DashboardFastCaptureMenu, DashboardFastCaptureFAB } from './DashboardFastCapture';
+import { DashboardFastCaptureMenu } from './DashboardFastCapture';
 import OrientationFooter from './OrientationFooter';
 import PowerList from '../lifestyle/PowerList';
 import FoodQuickCapture from './nutrition/FoodQuickCapture';
 import SearchModal from './SearchModal';
 import { useDashboardState } from './hooks/useDashboardState';
+import { useDashboardPrefetch } from './hooks/useDashboardPrefetch';
 import Spinner from '../ui/Spinner';
 import { DashboardContext } from './context/DashboardContext';
 
-const WorkoutLogger   = lazy(() => import('../biometrics/WorkoutLogger'));
+const TrainingRoute   = lazy(() => import('../biometrics/TrainingRoute'));
 const ExerciseProgressRoute = lazy(() => import('../biometrics/ExerciseProgressRoute'));
 const SaunaLoggerModal = lazy(() => import('../biometrics/SaunaLoggerModal'));
 const Fundament       = lazy(() => import('./Fundament'));
@@ -62,6 +63,23 @@ function isAfter20(): boolean {
 export default function Dashboard({ session }: { session: Session }) {
   const s = useDashboardState(session);
   const userId = session?.user?.id;
+  useDashboardPrefetch(userId);
+
+  const fastCaptureItems = useMemo(() => [
+    { label: 'Dodaj Jedzenie', emoji: '🍎', icon: Apple, color: 'var(--color-success)', action: () => s.openFoodEntry() },
+    { label: 'Zaloguj Trening', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => { s.openWorkout(); } },
+    { label: 'Zaloguj Saunę', emoji: '🧖', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna') },
+    { label: 'Zmierz Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-primary)', action: () => s.navigate('/optics') },
+  ], [s]);
+
+  const workspaceTools = useMemo(() => [
+    { label: 'Notatki', icon: StickyNote, action: () => s.navigate('/keep') },
+    { label: 'Zadania', icon: ListTodo, action: () => s.navigate('/todo') },
+    { label: 'Kalendarz', icon: Calendar, action: () => s.navigate('/kalendarz') },
+    { label: 'Terminy', icon: Bell, action: () => s.navigate('/terminy') },
+    { label: 'Pocket', icon: BookOpen, action: () => s.navigate('/links') },
+    { label: 'Finanse', icon: WalletCards, action: () => s.navigate('/finanse') },
+  ], [s]);
 
   // ── Full-screen route views ──
   if (s.view === 'fundament') return (
@@ -104,7 +122,7 @@ export default function Dashboard({ session }: { session: Session }) {
   if (s.view === 'trening') return (
     <div className="animate-ios-modal flex-1 flex flex-col min-h-screen">
       <Suspense fallback={<ViewFallback />}>
-        <WorkoutLogger initial={s.workoutInitial} onSaved={() => { s.refresh(); s.setWorkoutKey(k => k + 1); s.navigate('/dzis'); }} onBack={() => { s.setWorkoutInitial(null); s.refresh(); s.navigate('/dzis'); }} />
+        <TrainingRoute initial={s.workoutInitial} onSaved={() => { s.refresh(); s.setWorkoutKey(k => k + 1); s.navigate('/dzis'); }} onBack={() => { s.setWorkoutInitial(null); s.refresh(); s.navigate('/dzis'); }} />
       </Suspense>
     </div>
   );
@@ -144,29 +162,6 @@ export default function Dashboard({ session }: { session: Session }) {
   );
 
   const showLock = !s.todayWin;
-
-  const fastCaptureItems = [
-    { label: 'Dodaj Jedzenie', emoji: '🍎', icon: Apple, color: 'var(--color-success)', action: () => s.openFoodEntry() },
-    { label: 'Zaloguj Trening', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => { s.openWorkout(); } },
-    { label: 'Zaloguj Saunę', emoji: '🧖', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna') },
-    { label: 'Sygnał Dnia', emoji: '⚡', icon: Activity, color: 'var(--color-danger)', action: () => {} },
-    { label: 'Zrzut Strumienia', emoji: '🎙️', icon: Mic, color: 'var(--color-primary)', action: () => {} },
-    { label: 'Zmierz Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-primary)', action: () => s.navigate('/optics') },
-  ];
-
-  const workspaceTools = [
-    { label: 'Notatki', icon: StickyNote, action: () => s.navigate('/keep') },
-    { label: 'Zadania', icon: ListTodo, action: () => s.navigate('/todo') },
-    { label: 'Kalendarz', icon: Calendar, action: () => s.navigate('/kalendarz') },
-    { label: 'Terminy', icon: Bell, action: () => s.navigate('/terminy') },
-    { label: 'Pocket', icon: BookOpen, action: () => s.navigate('/links') },
-    { label: 'Finanse', icon: WalletCards, action: () => s.navigate('/finanse') },
-    { label: 'Kierunek', icon: FolderKanban, action: () => s.navigate('/projekty') },
-    { label: 'Kartoteka', icon: HeartPulse, action: () => s.navigate('/badania') },
-    { label: 'Nauka', icon: GraduationCap, action: () => s.navigate('/rozwoj') },
-    { label: 'Kronika', icon: Sparkles, action: () => s.navigate('/historia') },
-  ];
-
   return (
     <DashboardContext.Provider value={s}>
       <div className="min-h-screen bg-background text-text-primary selection:bg-primary/10 font-sans transition-colors duration-[var(--motion-slow)]">
@@ -248,16 +243,16 @@ export default function Dashboard({ session }: { session: Session }) {
           userId={userId}
           onRefresh={s.refresh}
         />
-        <div className={showLock ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100'} style={{ transition: 'opacity 0.15s' }}>
-          <DashboardFastCaptureFAB active={s.showFastCapture} onToggle={() => s.setShowFastCapture(v => !v)} />
-          <DashboardNavBar
-            view={s.view}
-            navigateTo={s.navigateTo}
-            urgentTodoCount={s.urgentTodoCount}
-            navItems={navItems}
-            tabOrder={TAB_ORDER}
-          />
-        </div>
+        <DashboardNavBar
+          view={s.view}
+          navigateTo={s.navigateTo}
+          urgentTodoCount={s.urgentTodoCount}
+          navItems={navItems}
+          tabOrder={TAB_ORDER}
+          fastCaptureActive={s.showFastCapture}
+          onFastCaptureToggle={() => s.setShowFastCapture(v => !v)}
+          hidden={showLock}
+        />
 
         <DashboardModals
           showMorningPlan={s.showMorningPlan} setShowMorningPlan={s.setShowMorningPlan}

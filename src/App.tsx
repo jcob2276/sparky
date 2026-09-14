@@ -1,6 +1,5 @@
 import { useState, useEffect, lazy, Suspense, type ReactNode, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import { supabase } from './lib/supabase';
 import { useStore } from './store/useStore';
 import { isNativePlatform } from './lib/native/platform';
@@ -155,28 +154,8 @@ function AppRoutes() {
 
   if (!session) return <Auth />;
 
-  const DASHBOARD_ROUTES = new Set([
-    '/',
-    '/dzis',
-    '/tydzien',
-    '/projekty',
-    '/historia',
-    '/keep',
-    '/todo',
-    '/kalendarz',
-    '/terminy',
-    '/links',
-    '/fundament',
-    '/trening',
-    '/cwiczenie',
-    '/sauna',
-  ]);
-
-  const routeKey = DASHBOARD_ROUTES.has(location.pathname) ? 'dashboard-shell' : location.pathname;
-
   return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={routeKey}>
+    <Routes>
       <Route path="/" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
       <Route path="/dzis" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
       <Route path="/tydzien" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
@@ -257,7 +236,6 @@ function AppRoutes() {
       } />
       <Route path="*" element={<Navigate to="/dzis" replace />} />
       </Routes>
-    </AnimatePresence>
   );
 }
 

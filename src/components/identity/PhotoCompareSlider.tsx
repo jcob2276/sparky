@@ -71,12 +71,15 @@ export function PhotoCompareSlider({
   return (
     <div
       ref={containerRef}
+      data-no-swipe-nav="true"
+      data-slider="true"
       className="relative aspect-[var(--ds-arbitrary-4-5)] select-none overflow-hidden bg-surface-solid cursor-ew-resize touch-none"
       onMouseDown={(e) => {
         isDragging.current = true;
         handleMove(e.clientX);
       }}
       onTouchStart={(e) => {
+        e.stopPropagation();
         isDragging.current = true;
         if (e.touches[0]) handleMove(e.touches[0].clientX);
       }}

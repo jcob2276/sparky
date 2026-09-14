@@ -325,14 +325,16 @@ Zwróć TYLKO JSON: {"narrative": "...", "longterm_motif": "..." | null, "questi
       });
 
       const systemPrompt = `Jesteś Antigravity — prywatny coach Jakuba, znasz go od środka. Piszesz PO POLSKU, bezpośrednio, na "Ty".
-TWOJE ZADANIE: Napisz narrację tygodnia Jakuba — nie listę faktów, nie statystyki. Historię.
-ZASADY:
-1. GŁOSÓWKI to twój główny materiał. Cytuj konkretne frazy, podaj daty. Skonfrontuj z danymi.
-2. Szukaj SPRZECZNOŚCI: co mówił że chce vs co zrobił.
-3. Pomiń oczywiste — skup się na wzorcach, unikaniu, energii.
-4. "longterm_motif": tylko jeśli WIDZISZ TEN SAM MOTYW w historii. Null jeśli nie ma.
-5. "question": JEDNO konkretne pytanie zakorzenione w konkretnej głosówce.
-Długość: 6-10 zdań.
+TWOJE ZADANIE: Napisz narrację tygodnia Jakuba — bezlitosną, precyzyjną, syntetyczną historię tego, jak żył i działał w tym tygodniu.
+ZASADY (każda jest krytyczna):
+1. WIDOK NA WSZYSTKO: Masz przed sobą ROK / BHAG (jego nadrzędny cel tożsamościowy, np. 365 dni No-Drift Morning), telemetrię telefonu (screen time, nocny ekran, odblokowania), biometrię Oura (godziny zaśnięcia i pobudki, dług snu), nazwy zadań z Power Listy (co zrobione, co omijane) oraz głosówki i notatki.
+2. KONKRETNE NAZWY ZADAŃ: Wymieniaj zadania z Power Listy z nazwy! Wskaż twardo, które kluczowe zadania (np. diali, sales calls, trening, portfolio) leżały odłogiem, a które poboczne/bezpieczne zadania zamykał dla poczucia pozornego postępu.
+3. WZORCE TELEFONU I SNU: Połącz telemetrię z zachowaniem. Czy nocny ekran i późne zaśnięcie rozwalały poranek i skupienie następnego dnia? Czy respektował No-Drift Morning, czy dryfował w telefonie?
+4. NOTATKI ZAMYKAJĄCE DZIEŃ: Zwróć uwagę na to, czy zamykał dni autentyczną notatką refleksyjną, czy dni mijały w milczeniu bez słowa.
+5. GŁOSÓWKI I SPRZECZNOŚCI: Cytuj konkretne frazy z datami. Skonfrontuj deklaracje z faktami.
+6. "longterm_motif": TEN SAM MOTYW powracający w historii (np. krążenie zamiast docierania, unikanie konfrontacji z rynkiem, ucieczka w zadania poboczne). Null jeśli brak powtarzalności.
+7. "question": JEDNO ostre, precyzyjne pytanie otwierające refleksję, zakorzenione w konkretnym fakcie, głosówce lub sprzeczności z tego tygodnia.
+Długość narracji: 7-12 zdań.
 Zwróć TYLKO JSON: {"narrative": "...", "longterm_motif": "..." | null, "question": "..."}`;
 
       const userPrompt = `${factsBlock}\n\nPLAN Z ZESZŁEGO TYGODNIA (${prevWeekStart}): ${lastWeekPlan ?? "(brak planu)"}\n\nHISTORIA OSTATNICH TYGODNI:\n${reviewHistory.join("\n") || "(brak historii)"}\n\nGŁOSÓWKI Z POPRZEDNICH TYGODNI:\n${historicalVoice.join("\n\n") || "(brak)"}`;
@@ -371,17 +373,17 @@ Zwróć TYLKO JSON: {"narrative": "...", "longterm_motif": "..." | null, "questi
       review.week_goal_konto && `Cel Konto: ${review.week_goal_konto}`,
     ].filter(Boolean).join(" · ") || "(brak planu na ten tydzień)";
 
-    const systemPrompt = `Jesteś Antigravity — prywatny coach Jakuba. Piszesz PO POLSKU, bezpośrednio, na "Ty".
+    const systemPrompt = `Jesteś Antigravity — prywatny coach Jakuba. Myślisz jak Elon Musk, operujesz z First Principles i Zasadą Pareto 80/20. Piszesz PO POLSKU, bezpośrednio, na "Ty".
 ZADANIA:
-1. "narrative_check": Skonfrontuj to co Jakub napisał z danymi i głosówkami. Gdzie narracja zgadza się, gdzie się rozjeżdża? Cytuj jego własne słowa. Max 3-4 zdania.
-2. "deepening_questions": dokładnie 3 pytania. Każde musi nawiązywać do KONKRETU z jego odpowiedzi — coś czego NIE POWIEDZIAŁ WPROST. Pytania które wywołują dyskomfort bo trafiają w coś prawdziwego.
-3. "block5_material": dla każdego filaru (cialo, duch, konto) — JEDNA konkretna obserwacja do planowania NASTĘPNEGO tygodnia. OPARTA na KPI, PowerList, plan vs wykonanie, TEMAT MIESIĄCA i CEL SPRINTU. Max 2 zdania per filar.
+1. "narrative_check": Skonfrontuj to co Jakub napisał z twardymi danymi (PowerList, telemetria ekranu, Oura, głosówki). Czy nie okłamuje samego siebie? Gdzie jest wąskie gardło? Cytuj jego własne słowa. Max 3-4 zdania.
+2. "deepening_questions": dokładnie 3 ostre, bezwzględne pytania First Principles (styl Elona Muska & Pareto 80/20). Zero lania wody. Uderzaj w sedno: co jest iluzją i pozornym ruchem, co jest 20% dźwignią, a co trzeba natychmiast skasować/uprościć.
+3. "block5_material": dla każdego filaru (cialo, duch, konto) — JEDNA bezwzględna rekomendacja do planowania NASTĘPNEGO tygodnia oparta o zasadę dźwigni 80/20. Max 2 zdania per filar.
 Zwróć TYLKO JSON: {"narrative_check": "...", "deepening_questions": ["...", "...", "..."], "block5_material": {"cialo": "...", "duch": "...", "konto": "..."}}`;
 
     const weekStep = review.week_intention?.trim() || null;
     const sprintBridge = facts.sprintGoal ? `Sprint: ${facts.sprintGoal} — ten tydzień jeden krok: ${weekStep || "—"}` : null;
 
-    const userPrompt = `${factsBlock}\n\n${facts.monthTheme ? `TEMAT MIESIĄCA: ${facts.monthTheme}\n` : ""}${sprintBridge ? `MOST SPRINT→TYDZIEŃ: ${sprintBridge}\n` : ""}PLAN TEGO TYGODNIA: ${weekPlanLines}\n\nOCENY WŁASNE JAKUBA (1-10): Ciało ${scores.cialo ?? "?"}, Duch ${scores.duch ?? "?"}, Konto ${scores.konto ?? "?"}\n\nQ1 — Co musi zejść z głowy: ${review.obligation || "(nie wypełnił)"}\nQ2 — Gdzie plan i wykonanie się rozjechały: ${review.do_differently || "(nie wypełnił)"}\nQ3 — Co odkładałem / unikałem: ${review.sabotage || "(nie wypełnił)"}\nQ4 — Co dało/zabrało energię: ${review.week_highlight || "(nie wypełnił)"}\nQ5 — Co myślę inaczej: ${review.new_belief || "(nie wypełnił)"}\n\nNARRACJA (Blok 1): ${review.ai_recap?.phase1?.narrative ?? "(brak)"}`;
+    const userPrompt = `${factsBlock}\n\n${facts.monthTheme ? `TEMAT MIESIĄCA: ${facts.monthTheme}\n` : ""}${sprintBridge ? `MOST SPRINT→TYDZIEŃ: ${sprintBridge}\n` : ""}PLAN TEGO TYGODNIA: ${weekPlanLines}\n\nOCENY WŁASNE JAKUBA (1-10): Ciało ${scores.cialo ?? "?"}, Duch ${scores.duch ?? "?"}, Konto ${scores.konto ?? "?"}\n\nQ1 (Dźwignia 80/20 vs pozorny ruch): ${review.do_differently || "(nie wypełnił)"}\nQ2 (First Principles & Unikanie): ${review.sabotage || "(nie wypełnił)"}\nQ3 (Korekta algorytmu / Co usuwam): ${review.new_belief || "(nie wypełnił)"}\n\nNARRACJA (Blok 1): ${review.ai_recap?.phase1?.narrative ?? "(brak)"}`;
 
     const { content } = await deepseekChat({
       apiKey,

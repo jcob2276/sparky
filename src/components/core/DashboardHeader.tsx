@@ -11,6 +11,9 @@ import { isNativePlatform } from '../../lib/native/platform';
 import { BrandTitle } from '../ui/BrandTitle';
 import { useHaptics } from '../../hooks/useHaptics';
 import OuraRingHeaderBadge from '../desktop/health/OuraRingHeaderBadge';
+import { queryClient } from '../../lib/queryClient';
+import { desktopKeys } from '../../lib/queryKeys';
+import { fetchDesktopDashboardData } from '../../lib/desktopDashboardApi';
 
 
 interface DashboardHeaderProps {
@@ -45,6 +48,17 @@ export function DashboardHeader({
   handleLogoPressEnd,
 }: DashboardHeaderProps) {
   const { medium, selection } = useHaptics();
+
+  const handlePrefetchDashboard = () => {
+    void import('../desktop/shell/DesktopDashboard');
+    if (_userId) {
+      void queryClient.prefetchQuery({
+        queryKey: desktopKeys.dashboard(_userId),
+        queryFn: () => fetchDesktopDashboardData(_userId),
+        staleTime: 1000 * 60 * 5,
+      });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-[var(--z-sticky)] pt-safe-top h-14 flex items-center justify-between gap-4 border-b border-border-custom/50 bg-background/80 px-4 sm:px-5 backdrop-blur-xs shadow-2xs transition-colors">
@@ -105,6 +119,9 @@ export function DashboardHeader({
             <Link
               to="/dashboard"
               onClick={() => selection()}
+              onMouseEnter={handlePrefetchDashboard}
+              onTouchStart={handlePrefetchDashboard}
+              onFocus={handlePrefetchDashboard}
               className="h-9 w-9 shrink-0 rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 transition-all flex items-center justify-center shadow-xs"
               title="Desktop dashboard"
             >

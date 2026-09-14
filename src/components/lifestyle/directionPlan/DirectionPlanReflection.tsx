@@ -57,10 +57,10 @@ function PillarScoreRow({ label, current, prev, onChange }: { label: string; cur
 }
 
 interface DirectionPlanReflectionProps {
-  obligation: string; setObligation: (v: string) => void;
+  obligation?: string; setObligation?: (v: string) => void;
   doDifferently: string; setDoDifferently: (v: string) => void;
   sabotage: string; setSabotage: (v: string) => void;
-  weekHighlight: string; setWeekHighlight: (v: string) => void;
+  weekHighlight?: string; setWeekHighlight?: (v: string) => void;
   newBelief: string; setNewBelief: (v: string) => void;
   pillarScores: { cialo: number | null; duch: number | null; konto: number | null };
   setPillarScores: (s: { cialo: number | null; duch: number | null; konto: number | null }) => void;
@@ -74,12 +74,28 @@ interface DirectionPlanReflectionProps {
 export default function DirectionPlanReflection(props: DirectionPlanReflectionProps) {
   return (
     <div className="space-y-4">
-      <Divider title="Refleksja" />
-      <Q num={1} label="Co musi zejść z głowy — zanim zacznę nowy tydzień?" value={props.obligation} onChange={props.setObligation} placeholder="Coś co ciągnie mnie w dół, wisi niedomknięte…" />
-      <Q num={2} label="Gdzie plan i wykonanie się rozjechały?" value={props.doDifferently} onChange={props.setDoDifferently} placeholder="Konkret: co było w planie vs co zrobiłeś…" />
-      <Q num={3} label="Co odkładałem / unikałem?" value={props.sabotage} onChange={props.setSabotage} placeholder="Co odkładałem, od czego uciekałem…" />
-      <Q num={4} label="Co dało mi energię / co zabrało?" value={props.weekHighlight} onChange={props.setWeekHighlight} placeholder="Momenty szczytowe i dolne tego tygodnia…" />
-      <Q num={5} label="Co myślę inaczej niż tydzień temu?" value={props.newBelief} onChange={props.setNewBelief} placeholder="Nowe przekonanie, zmiana perspektywy…" />
+      <Divider title="Refleksja — 3 Pytania (Pareto 80/20 & First Principles)" />
+      <Q
+        num={1}
+        label="Dźwignia 80/20: Co było jedyną rzeczą, która realnie przesuwała cel, a co było tylko krążeniem i pozornym ruchem (busywork)?"
+        value={props.doDifferently}
+        onChange={props.setDoDifferently}
+        placeholder="Konkret: 20% działań, które dałyby 80% rezultatu vs krążenie w kółko i zadania poboczne…"
+      />
+      <Q
+        num={2}
+        label="First Principles & Unikanie: Przed jaką bezwzględną prawdą uciekałem w telefon, nocny ekran i bezpieczne zadania?"
+        value={props.sabotage}
+        onChange={props.setSabotage}
+        placeholder="Czego unikałem (diale, closing, portfolio, konfrontacja z rynkiem) i jaka niewygodna prawda za tym stoi…"
+      />
+      <Q
+        num={3}
+        label="Korekta algorytmu (Musk): Co bezlitośnie kasuję, upraszczam lub zmieniam, aby nie powtórzyć tego samego błędu?"
+        value={props.newBelief}
+        onChange={props.setNewBelief}
+        placeholder="Jedna twarda reguła na nowy tydzień: co usuwam, co upraszczam, gdzie wstawiam twardy limit…"
+      />
       <div className="pt-3 space-y-4 border-t border-border-custom">
         <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Oceny tygodnia (1–10)</p>
         <PillarScoreRow label="Ciało" current={props.pillarScores.cialo} prev={props.prevWeekScores?.cialo} onChange={(v) => props.setPillarScores({ ...props.pillarScores, cialo: v })} />

@@ -151,19 +151,6 @@ export default function WeekHub({
         </section>
       )}
 
-      {magazineView && <MagazineBar view={magazineView} />}
-
-      <WeeklyBalanceHexagon userId={userId} />
-
-      {direction.weekStart && (direction.activeProjects?.length ?? 0) > 0 && (
-        <ProjectWeekKpis
-          userId={userId}
-          projects={direction.activeProjects!}
-          weekStart={direction.weekStart}
-          focusProjectIds={direction.sprintFocusProjectIds ?? []}
-        />
-      )}
-
       {direction.weekStart && (
         <WeekLoopSummary
           ctx={{
@@ -175,26 +162,41 @@ export default function WeekHub({
             monthLabel: direction.monthLabel ?? null,
             bhagLine: direction.bhagLine ?? null,
           }}
+          onStartWeeklyReview={onStartWeeklyReview}
         />
       )}
 
       {openMust.length > 0 && (
         <section className="space-y-2">
           <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[var(--ds-arbitrary-0-14em)] text-text-muted">
-            <Target size={12} /> Must tygodnia ({openMust.length})
+            <Target size={12} className="text-primary" /> Must tygodnia ({openMust.length})
           </p>
-          <ul className="space-y-2">
+          <ul className="grid gap-2 sm:grid-cols-2">
             {openMust.map((pin) => (
               <li
                 key={pin.id}
-                className="rounded-xl border border-primary/20 bg-primary/[0.04] px-3 py-2.5 text-sm font-semibold text-text-primary"
+                className="flex items-center gap-2.5 rounded-2xl border border-primary/25 bg-primary/[0.04] p-3 text-xs font-bold text-text-primary shadow-xs"
               >
-                {pin.title}
+                <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
+                <span className="truncate">{pin.title}</span>
               </li>
             ))}
           </ul>
         </section>
       )}
+
+      {direction.weekStart && (direction.activeProjects?.length ?? 0) > 0 && (
+        <ProjectWeekKpis
+          userId={userId}
+          projects={direction.activeProjects!}
+          weekStart={direction.weekStart}
+          focusProjectIds={direction.sprintFocusProjectIds ?? []}
+        />
+      )}
+
+      <WeeklyBalanceHexagon userId={userId} />
+
+      {magazineView && <MagazineBar view={magazineView} />}
     </div>
   );
 }

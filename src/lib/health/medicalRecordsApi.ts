@@ -158,6 +158,15 @@ export async function createMedicalEvent(userId: string, draft: MedicalEventDraf
   return mapEvent(data);
 }
 
+export async function deleteMedicalEvent(userId: string, eventId: string): Promise<void> {
+  const { error } = await supabase
+    .from('medical_events')
+    .delete()
+    .eq('id', eventId)
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
 export async function fetchPreventionActions(userId: string): Promise<PreventionAction[]> {
   const { data, error } = await supabase
     .from('medical_prevention_actions')

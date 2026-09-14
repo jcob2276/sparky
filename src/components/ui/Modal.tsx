@@ -104,7 +104,7 @@ export default function Modal({
     const isFocusInside = dialogRef.current && document.activeElement && dialogRef.current.contains(document.activeElement);
     if (!isFocusInside) {
       const first = dialogRef.current?.querySelector<HTMLElement>(focusableSelector);
-      (first ?? dialogRef.current)?.focus();
+      (first ?? dialogRef.current)?.focus({ preventScroll: true });
     }
 
     return () => {
@@ -140,7 +140,7 @@ export default function Modal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: reduceMotion ? 0.12 : 0.2 }}
+          transition={{ duration: reduceMotion ? 0.12 : 0.16, ease: 'easeOut' }}
         >
           <motion.div
             ref={(node) => {
@@ -153,10 +153,11 @@ export default function Modal({
             aria-labelledby={typeof title !== 'string' && title ? titleId : undefined}
             data-material="floating"
             tabIndex={-1}
+            style={{ willChange: 'transform, opacity' }}
             className={`ui-floating-layer w-full ${sizeClasses[size]} ${padding} ${overflowY ? 'max-h-[88vh] overflow-y-auto' : ''} ${className}`}
-            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 20, scale: 0.96 }}
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.97 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
             transition={reduceMotion ? { duration: 0.12 } : IOS_SPRING.default}
           >
 
@@ -187,7 +188,7 @@ export default function Modal({
                 )}
               </div>
             )}
-            <div className="outline-none">{children}</div>
+            <div className="outline-none min-h-0 flex-1 flex flex-col">{children}</div>
           </motion.div>
         </motion.div>
       )}

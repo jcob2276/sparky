@@ -64,6 +64,14 @@ export default function SwipeableNoteRow({
     <div
       className="keep-swipe-row"
       data-testid="swipeable-note-row"
+      data-no-swipe-nav="true"
+      data-swipeable="true"
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => {
+        if (axis.current === 'horizontal') {
+          e.stopPropagation();
+        }
+      }}
       onPointerDown={pointerDown}
       onPointerMove={pointerMove}
       onPointerUp={pointerUp}

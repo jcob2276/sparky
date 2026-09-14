@@ -14,6 +14,7 @@ interface StrengthSetRowProps {
   onFillSet: (setId: number, row: ExerciseHistoryRow) => void;
   updateSet: (id: number, field: string, value: string | boolean) => void;
   removeSet: (id: number) => void;
+  onOpenPlateCalc?: (initialKg: number, onApply: (kg: number) => void) => void;
 }
 
 export function StrengthSetRow({
@@ -25,10 +26,39 @@ export function StrengthSetRow({
   onFillSet,
   updateSet,
   removeSet,
+  onOpenPlateCalc,
 }: StrengthSetRowProps) {
   const set1RM = epley(set.kg, set.reps);
   const isPR = set1RM && allTimeBest1RM && set1RM > allTimeBest1RM;
   const empty = isSetEmpty(set);
+
+  const setType = set.type || (set.msp ? 'failure' : 'working');
+  const badgeLabel = setType === 'warmup' ? 'W' : setType === 'drop' ? 'D' : setType === 'failure' ? '★' : idx + 1;
+  const badgeStyle =
+    setType === 'warmup'
+      ? 'text-amber-400 bg-amber-400/15 border border-amber-400/40 font-black'
+      : setType === 'drop'
+        ? 'text-purple-400 bg-purple-400/15 border border-purple-400/40 font-black'
+        : setType === 'failure'
+          ? 'text-warning bg-warning/20 border border-warning/50 font-black scale-105'
+          : 'text-text-secondary hover:text-text-primary';
+
+  const cycleType = () => {
+    haptics.light();
+    if (setType === 'working') {
+      updateSet(set.id, 'type', 'warmup');
+      updateSet(set.id, 'msp', false);
+    } else if (setType === 'warmup') {
+      updateSet(set.id, 'type', 'drop');
+      updateSet(set.id, 'msp', false);
+    } else if (setType === 'drop') {
+      updateSet(set.id, 'type', 'failure');
+      updateSet(set.id, 'msp', true);
+    } else {
+      updateSet(set.id, 'type', 'working');
+      updateSet(set.id, 'msp', false);
+    }
+  };
 
   const adjustValue = (field: 'kg' | 'reps' | 'rir', step: number, isInt = false) => {
     haptics.light();
@@ -49,25 +79,37 @@ export function StrengthSetRow({
     <div className="space-y-1">
       <div className="grid grid-cols-[var(--ds-arbitrary-20px-1fr-1fr-1fr-60px)] gap-1.5 items-center rounded-xl">
         <Pressable
-          onClick={() => { haptics.light(); updateSet(set.id, 'msp', !set.msp); }}
-          title="Oznacz jako MSP (kluczowy set)"
-          className={`text-xs font-black text-center w-5 h-5 rounded-full transition-colors cursor-pointer ${
-            set.msp ? 'text-warning' : 'text-text-secondary hover:text-text-primary'
-          }`}
+          onClick={cycleType}
+          title={`Typ serii: ${setType} (Kliknij, aby zmienić: Zwykła -> Rozgrzewka W -> Drop D -> Do załamania ★)`}
+          className={`text-xs font-black text-center w-5 h-5 rounded-full transition-all cursor-pointer flex items-center justify-center ${badgeStyle}`}
         >
-          {set.msp ? '★' : idx + 1}
+          {badgeLabel}
         </Pressable>
 
         <div className="flex flex-col gap-1">
-          <ControlInput
-            type="number"
-            min={0}
-            step={0.5}
-            value={set.kg}
-            onChange={(e) => updateSet(set.id, 'kg', e.target.value)}
-            placeholder="—"
-            className={numInput}
-          />
+          <div className="relative">
+            <ControlInput
+              type="number"
+              min={0}
+              step={0.5}
+              value={set.kg}
+              onChange={(e) => updateSet(set.id, 'kg', e.target.value)}
+              placeholder="—"
+              className={numInput}
+            />
+            {onOpenPlateCalc && (
+              <Pressable
+                type="button"
+                onClick={() =>
+                  onOpenPlateCalc(parseFloat(set.kg) || 60, (w) => updateSet(set.id, 'kg', String(w)))
+                }
+                title="Kalkulator talerzy na gryf"
+                className="absolute top-1 right-1 px-1 py-0.5 rounded text-3xs font-mono font-bold text-text-muted hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+              >
+                ⚖
+              </Pressable>
+            )}
+          </div>
           <div className="flex gap-1 justify-center">
             <Pressable
               onClick={() => adjustValue('kg', -2.5)}

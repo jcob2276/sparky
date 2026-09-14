@@ -19,7 +19,7 @@ const visionItemsKeys = {
 
 const sprintReviewKeys = {
   all: ['sprintReview'] as const,
-  forUser: (userId: string, loading: boolean) => [...sprintReviewKeys.all, userId, loading] as const,
+  forUser: (userId: string) => [...sprintReviewKeys.all, userId] as const,
 };
 
 // ── QUERIES ──
@@ -50,11 +50,11 @@ export function useVisionItemsQuery(userId: string) {
   });
 }
 
-export function useSprintReviewQuery(userId: string, loading: boolean) {
+export function useSprintReviewQuery(userId: string, loading?: boolean) {
   return useQuery<SprintReview | null>({
-    queryKey: sprintReviewKeys.forUser(userId, loading),
+    queryKey: sprintReviewKeys.forUser(userId),
     queryFn: () => fetchSprintReview(userId),
-    enabled: !!userId,
+    enabled: !!userId && !loading,
   });
 }
 

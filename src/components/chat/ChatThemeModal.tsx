@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Palette, MessageSquare, Moon, Sun, Check } from 'lucide-react';
 import { useChatThemeStore, type AccentColor, type BubbleStyle, type BgMode } from '../../store/useChatThemeStore';
+import { IOS_SPRING } from '../../lib/motion/iosMotion';
 
 interface Props {
   open: boolean;
@@ -34,11 +35,20 @@ export default function ChatThemeModal({ open, onClose }: Props) {
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md font-sans">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.16, ease: 'easeOut' }}
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-sans"
+          onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+        >
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+            initial={{ opacity: 0, scale: 0.98, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            exit={{ opacity: 0, scale: 0.98, y: 12 }}
+            transition={IOS_SPRING.default}
+            style={{ willChange: 'transform, opacity' }}
             className="w-full max-w-md bg-[#1C1C1E] text-white border border-[#38383A] rounded-3xl p-6 shadow-2xl space-y-5"
           >
             {/* Header */}
@@ -144,7 +154,7 @@ export default function ChatThemeModal({ open, onClose }: Props) {
               </button>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

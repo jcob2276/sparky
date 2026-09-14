@@ -1397,51 +1397,56 @@
 
 /* Slide-in from right (navigating forward) */
 :root[data-slide="right"] .tab-panel--active {
+  will-change: transform, opacity;
   animation: tab-enter-right 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Slide-in from left (navigating backward) */
 :root[data-slide="left"] .tab-panel--active {
+  will-change: transform, opacity;
   animation: tab-enter-left 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes tab-enter-right {
-  from { opacity: 0; transform: translateX(12px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translate3d(12px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 @keyframes tab-enter-left {
-  from { opacity: 0; transform: translateX(-12px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translate3d(-12px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 /* ── iOS modal slide-up ── */
 @keyframes ios-modal-slide-up {
-  from { transform: translateY(48px) scale(0.97); opacity: 0; }
-  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+  from { transform: translate3d(0, 20px, 0) scale(0.98); opacity: 0; }
+  to   { transform: translate3d(0, 0, 0)    scale(1);    opacity: 1; }
 }
 .animate-ios-modal {
-  animation: ios-modal-slide-up 0.38s cubic-bezier(0.32, 0.94, 0.6, 1) forwards;
+  will-change: transform, opacity;
+  animation: ios-modal-slide-up 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ── Spring scale-up entrance (used by modals) ── */
 @keyframes scale-up-spring {
-  from { transform: scale(0.95); opacity: 0; }
+  from { transform: scale(0.96); opacity: 0; }
   to   { transform: scale(1);    opacity: 1; }
 }
 .animate-scaleUp,
 .animate-scale-up {
-  animation: scale-up-spring 0.34s var(--spring) forwards;
+  will-change: transform, opacity;
+  animation: scale-up-spring 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ── Generic fade-up entrance (used by modals/cards via `animate-fadeIn`) ── */
 @keyframes fade-in-up {
-  from { transform: translateY(10px); opacity: 0; }
-  to   { transform: translateY(0);    opacity: 1; }
+  from { transform: translate3d(0, 8px, 0); opacity: 0; }
+  to   { transform: translate3d(0, 0, 0);    opacity: 1; }
 }
 .animate-fadeIn,
 .animate-fade-in {
-  animation: fade-in-up 0.28s cubic-bezier(0.32, 0.94, 0.6, 1) forwards;
+  will-change: transform, opacity;
+  animation: fade-in-up 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 /* Fast Capture Button & Menu Styles */
 .fast-capture-btn {
@@ -1934,9 +1939,9 @@ body {
   }
 
   .ui-floating-scrim {
-    background: color-mix(in srgb, black 42%, transparent);
-    backdrop-filter: blur(12px) saturate(140%);
-    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    background: color-mix(in srgb, black 50%, transparent);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
   }
 
   .ui-floating-layer,
@@ -1946,6 +1951,7 @@ body {
     box-shadow: var(--shadow-float);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
+    transform: translateZ(0);
   }
 
   .ui-floating-layer {

@@ -1,12 +1,9 @@
-import { useState } from 'react';
+import { memo } from 'react';
 import { Pressable } from '../ui/ControlPrimitives';
 import { Plus } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import Fab from '../ui/Fab';
 import Sheet from '../ui/Sheet';
 import { useHaptics } from '../../hooks/useHaptics';
-import DesktopQuickConfounderModal from '../desktop/shell/DesktopQuickConfounderModal';
-import DesktopQuickStreamModal from '../desktop/shell/DesktopQuickStreamModal';
 
 export interface FastCaptureItem {
   label: string;
@@ -32,23 +29,11 @@ interface Props {
   onRefresh?: () => void;
 }
 
-export function DashboardFastCaptureMenu({ show, onClose, items, tools, userId, onRefresh }: Props) {
+export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools }: Props) {
   const { selection } = useHaptics();
-  const [showConfounder, setShowConfounder] = useState(false);
-  const [showStream, setShowStream] = useState(false);
 
   const run = (item: FastCaptureItem) => {
     selection();
-    if (item.label === 'Sygnał Dnia') {
-      setShowConfounder(true);
-      onClose();
-      return;
-    }
-    if (item.label === 'Zrzut Strumienia') {
-      setShowStream(true);
-      onClose();
-      return;
-    }
     item.action();
     onClose();
   };
@@ -59,13 +44,10 @@ export function DashboardFastCaptureMenu({ show, onClose, items, tools, userId, 
     'Wpisz Wagę': 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
     'Zaloguj Saunę': 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
     'Zmierz Wzrok': 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
-    'Sygnał Dnia': 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
-    'Zrzut Strumienia': 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20',
   };
 
   return (
-    <>
-      <Sheet
+    <Sheet
         open={show}
         onOpenChange={(open) => {
           if (!open) onClose();
@@ -125,26 +107,8 @@ export function DashboardFastCaptureMenu({ show, onClose, items, tools, userId, 
           </div>
         </div>
       </Sheet>
-
-      {showConfounder && (
-        <DesktopQuickConfounderModal
-          isOpen={showConfounder}
-          onClose={() => setShowConfounder(false)}
-          userId={userId}
-        />
-      )}
-
-      {showStream && (
-        <DesktopQuickStreamModal
-          isOpen={showStream}
-          onClose={() => setShowStream(false)}
-          userId={userId}
-          onSaved={onRefresh}
-        />
-      )}
-    </>
   );
-}
+});
 
 interface FabProps {
   active: boolean;

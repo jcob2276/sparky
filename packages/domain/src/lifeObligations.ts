@@ -74,26 +74,28 @@ export function nextOccurrence(
 ): string | null {
   if (!anchorDate || !today) return null;
   const anchor = parseYmd(anchorDate);
-  const now = parseYmd(today);
 
   if (recurrence === 'once') {
     return anchorDate >= today ? anchorDate : null;
   }
 
+  const minDate = anchorDate > today ? anchorDate : today;
+  const ref = parseYmd(minDate);
+
   if (recurrence === 'monthly') {
-    let candidate = ymd(now.y, now.m, Math.min(anchor.d, daysInMonth(now.y, now.m)));
-    if (candidate < today) {
-      const nextM = now.m === 12 ? 1 : now.m + 1;
-      const nextY = now.m === 12 ? now.y + 1 : now.y;
+    let candidate = ymd(ref.y, ref.m, Math.min(anchor.d, daysInMonth(ref.y, ref.m)));
+    if (candidate < minDate) {
+      const nextM = ref.m === 12 ? 1 : ref.m + 1;
+      const nextY = ref.m === 12 ? ref.y + 1 : ref.y;
       candidate = ymd(nextY, nextM, Math.min(anchor.d, daysInMonth(nextY, nextM)));
     }
     return candidate;
   }
 
   // yearly (default)
-  let candidate = ymd(now.y, anchor.m, Math.min(anchor.d, daysInMonth(now.y, anchor.m)));
-  if (candidate < today) {
-    candidate = ymd(now.y + 1, anchor.m, Math.min(anchor.d, daysInMonth(now.y + 1, anchor.m)));
+  let candidate = ymd(ref.y, anchor.m, Math.min(anchor.d, daysInMonth(ref.y, anchor.m)));
+  if (candidate < minDate) {
+    candidate = ymd(ref.y + 1, anchor.m, Math.min(anchor.d, daysInMonth(ref.y + 1, anchor.m)));
   }
   return candidate;
 }

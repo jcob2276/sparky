@@ -15,40 +15,14 @@ import {
 import { getWeekStartWarsaw, shiftWeekStart, formatWeekRange, isCurrentWeek } from '../../lib/growth/growth';
 import { getTodayWarsaw } from '../../lib/date';
 import { listTodoItems, updateTodoItem } from '../../lib/todo/todo';
-import type { Database } from '../../lib/database.types';
+import {
+  WeeklyBalanceRadarSvg,
+  polygonPoints,
+  emptyBudgetMap,
+  type BudgetBounds,
+} from './WeeklyBalanceRadarSvg';
 
-type TodoItemRow = Database['public']['Tables']['todo_items']['Row'];
-type BudgetBounds = { min: number | null; max: number | null };
-
-function emptyBudgetMap(): Record<LifeSphereId, BudgetBounds> {
-  return Object.fromEntries(LIFE_SPHERES.map((s) => [s.id, { min: null, max: null }])) as Record<LifeSphereId, BudgetBounds>;
-}
-
-const SIZE = 280;
-const CENTER = SIZE / 2;
-const RADIUS = 100;
-
-function polarPoint(index: number, radiusFraction: number) {
-  const angle = index * ((2 * Math.PI) / 6) - Math.PI / 2;
-  const r = RADIUS * Math.max(0, Math.min(1, radiusFraction));
-  return { x: CENTER + r * Math.cos(angle), y: CENTER + r * Math.sin(angle) };
-}
-
-function polygonPoints(values: number[], scale: number) {
-  return values.map((v, i) => {
-    const p = polarPoint(i, scale > 0 ? v / scale : 0);
-    return `${p.x},${p.y}`;
-  }).join(' ');
-}
-
-/**
- * "Architektura Tygodnia" — budget (target hours) vs actual hours per life
- * sphere, on the same 6-axis hexagon shape as HexagonPanel's self-rating
- * "Heksagon życia", but a different tool: this one plots real hours from
- * vanguard_calendar + completed todo_items against vanguard_time_budgets,
- * not a subjective 1-10 score. Budgets read/write the same table CalendarView's
- * budget bars use, so the two views can never drift apart.
- */
+/** Architektura Tygodnia — budget vs actual hours per life sphere */
 export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
   const queryClient = useQueryClient();
   const [weekStart, setWeekStart] = useState(() => getWeekStartWarsaw(getTodayWarsaw()));
@@ -111,15 +85,12 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
       const hours = draftHours.trim() === '' ? null : Number(draftHours);
       const currentMin = budgets[editingSphere]?.min ?? null;
       await saveSphereBudget(userId, editingSphere, currentMin, hours);
-      queryClient.setQueryData(
-        ['weekly-balance-hexagon', userId, weekStart],
-        (old: { budgets: Record<LifeSphereId, BudgetBounds>; actuals: SphereHours | null; tasks: TodoItemRow[] } | undefined) => {
-          if (!old) return old;
-          return { ...old, budgets: { ...old.budgets, [editingSphere]: { min: currentMin, max: hours } } };
-        }
-      );
+      await queryClient.invalidateQueries({ queryKey: ['weekly-balance-hexagon', userId] });
       setEditingSphere(null);
-    } catch (err: unknown) { notify('Nie udało się zapisać budżetu.', 'error'); console.warn('[WeeklyBalanceHexagon] Failed to save sphere budget:', err); } finally {
+    } catch (err: unknown) {
+      notify('Nie udało się zapisać budżetu.', 'error');
+      console.warn('[WeeklyBalanceHexagon] Failed to save sphere budget:', err);
+    } finally {
       setSaving(false);
     }
   };
@@ -128,112 +99,127 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
     if (!selectedTaskId || assigning) return;
     setAssigning(true);
     const taskId = selectedTaskId;
-    queryClient.setQueryData(
-      ['weekly-balance-hexagon', userId, weekStart],
-      (old: { budgets: Record<LifeSphereId, BudgetBounds>; actuals: SphereHours | null; tasks: TodoItemRow[] } | undefined) => {
-        if (!old) return old;
-        return { ...old, tasks: old.tasks.map((t) => (t.id === taskId ? { ...t, category: sphere } : t)) };
-      }
-    );
     try {
       await updateTodoItem(taskId, { category: sphere });
-    } catch (err: unknown) { notify('Nie udało się przypisać zadania do obszaru.', 'error'); console.warn('[WeeklyBalanceHexagon] Failed to update todo category:', err); } finally {
+      await queryClient.invalidateQueries({ queryKey: ['weekly-balance-hexagon', userId] });
+    } catch (err: unknown) {
+      notify('Nie udało się przypisać zadania do obszaru.', 'error');
+      console.warn('[WeeklyBalanceHexagon] Failed to update todo category:', err);
+    } finally {
       setSelectedTaskId(null);
       setAssigning(false);
     }
   };
 
+  const [viewMode, setViewMode] = useState<'bars' | 'radar'>('bars');
+
   return (
     <Card padding="1rem" className="space-y-4" style={{ background: 'var(--color-theme-hex-ba17243902)' }}>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-xs font-black uppercase tracking-wider text-text-primary">Architektura Tygodnia</p>
-          <p className="text-xs text-text-muted">Budżet (kontur) vs realny czas (wypełnienie) per sfera</p>
+          <p className="text-xs text-text-muted">Budżet (cel) vs realny czas per sfera życia</p>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Pressable
-            type="button"
-            onClick={() => setWeekStart((w) => shiftWeekStart(w, -1))}
-            className="p-1.5 rounded-lg border border-border-custom/50 text-text-muted hover:text-text-primary transition-colors btn-press"
-          >
-            <ChevronLeft size={14} />
-          </Pressable>
-          <span className="text-xs font-bold text-text-secondary min-w-[var(--ds-w-80px)] text-center">
-            {formatWeekRange(weekStart)}{isCurrentWeek(weekStart) ? ' • dziś' : ''}
-          </span>
-          <Pressable
-            type="button"
-            onClick={() => setWeekStart((w) => shiftWeekStart(w, 1))}
-            className="p-1.5 rounded-lg border border-border-custom/50 text-text-muted hover:text-text-primary transition-colors btn-press"
-          >
-            <ChevronRight size={14} />
-          </Pressable>
+        <div className="flex items-center gap-2">
+          {/* View toggle */}
+          <div className="flex rounded-lg border border-border-custom/40 bg-surface/60 p-0.5 text-3xs font-black uppercase">
+            <button
+              type="button"
+              onClick={() => setViewMode('bars')}
+              className={`px-2 py-1 rounded-md transition-all ${
+                viewMode === 'bars' ? 'bg-primary text-on-primary' : 'text-text-muted hover:text-text-primary'
+              }`}
+            >
+              Paski
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('radar')}
+              className={`px-2 py-1 rounded-md transition-all ${
+                viewMode === 'radar' ? 'bg-primary text-on-primary' : 'text-text-muted hover:text-text-primary'
+              }`}
+            >
+              Heksagon
+            </button>
+          </div>
+
+          <div className="flex items-center gap-1">
+            <Pressable
+              type="button"
+              onClick={() => setWeekStart((w) => shiftWeekStart(w, -1))}
+              className="p-1 rounded-lg border border-border-custom/50 text-text-muted hover:text-text-primary transition-colors btn-press"
+            >
+              <ChevronLeft size={13} />
+            </Pressable>
+            <span className="text-2xs font-bold text-text-secondary min-w-[70px] text-center">
+              {formatWeekRange(weekStart)}{isCurrentWeek(weekStart) ? ' • dziś' : ''}
+            </span>
+            <Pressable
+              type="button"
+              onClick={() => setWeekStart((w) => shiftWeekStart(w, 1))}
+              className="p-1 rounded-lg border border-border-custom/50 text-text-muted hover:text-text-primary transition-colors btn-press"
+            >
+              <ChevronRight size={13} />
+            </Pressable>
+          </div>
         </div>
       </div>
 
-      <div className="flex justify-center">
-        {loading ? (
-          <div className="h-[var(--ds-h-280px)] w-[var(--ds-w-280px)] animate-pulse rounded-full bg-surface border border-border-custom" />
-        ) : (
-          <svg width={SIZE} height={SIZE} className="overflow-visible">
-            {[0.25, 0.5, 0.75, 1].map((k) => (
-              <polygon
-                key={k}
-                points={LIFE_SPHERES.map((_, i) => { const p = polarPoint(i, k); return `${p.x},${p.y}`; }).join(' ')}
-                fill="none"
-                stroke="currentColor"
-                className="text-border-custom"
-                strokeWidth={1}
-                strokeDasharray={k === 1 ? 'none' : '2,3'}
-              />
-            ))}
-            {LIFE_SPHERES.map((_, i) => {
-              const p = polarPoint(i, 1);
-              return <line key={i} x1={CENTER} y1={CENTER} x2={p.x} y2={p.y} stroke="currentColor" className="text-border-custom" strokeWidth={1} />;
-            })}
+      {loading ? (
+        <div className="h-44 w-full animate-pulse rounded-2xl bg-surface border border-border-custom/40" />
+      ) : viewMode === 'bars' ? (
+        /* Practical Bars View */
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {LIFE_SPHERES.map((s) => {
+            const actual = actuals?.[s.id] ?? 0;
+            const target = targetFor(s.id);
+            const pct = target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : 0;
+            const isAssigned = selectedTaskId != null;
 
-            <polygon points={budgetPoints} fill="none" stroke="var(--primary)" strokeWidth={2} strokeDasharray="4,3" />
-            <polygon points={actualPoints} fill="var(--primary-18)" stroke="var(--primary-80)" strokeWidth={2} />
+            return (
+              <div
+                key={s.id}
+                onClick={() => (isAssigned ? assignSelectedTask(s.id) : startEditing(s.id))}
+                className={`cursor-pointer rounded-2xl border p-3 transition-all ${
+                  isAssigned
+                    ? `${s.border} ${s.bgSoft} hover:scale-[1.01]`
+                    : 'border-border-custom/40 bg-surface/50 hover:border-border-custom/80'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-1 mb-1.5">
+                  <span className="flex items-center gap-1.5 text-xs font-bold text-text-primary truncate">
+                    <span className={`h-2 w-2 rounded-full shrink-0 ${s.dot}`} />
+                    {s.label}
+                  </span>
+                  <span className="text-2xs font-black text-text-secondary shrink-0">
+                    {actual.toFixed(1)}h{target > 0 ? ` / ${target}h` : ''}
+                  </span>
+                </div>
 
-            {LIFE_SPHERES.map((s, i) => {
-              const p = polarPoint(i, 1.28);
-              return (
-                <text
-                  key={s.id}
-                  x={p.x}
-                  y={p.y}
-                  textAnchor="middle"
-                  className="text-2xs font-black uppercase tracking-wider fill-text-primary cursor-pointer"
-                  onClick={() => (selectedTaskId ? assignSelectedTask(s.id) : startEditing(s.id))}
-                >
-                  {s.label}
-                </text>
-              );
-            })}
-          </svg>
-        )}
-      </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/30">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${s.dot}`}
+                    style={{ width: `${target > 0 ? pct : actual > 0 ? 100 : 0}%` }}
+                  />
+                </div>
 
-      <div className="grid grid-cols-2 gap-1.5">
-        {LIFE_SPHERES.map((s) => (
-          <Pressable
-            key={s.id}
-            type="button"
-            onClick={() => (selectedTaskId ? assignSelectedTask(s.id) : startEditing(s.id))}
-            className={`flex items-center justify-between gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-colors btn-press ${
-              selectedTaskId ? `${s.border} ${s.bgSoft} ${s.text}` : 'border-border-custom/40 text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            <span className="flex items-center gap-1.5 truncate">
-              <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${s.dot}`} />
-              {s.label}
-            </span>
-            <span className="text-text-muted shrink-0">
-              {(actuals?.[s.id] ?? 0).toFixed(1)}h{targetFor(s.id) > 0 ? ` / ${targetFor(s.id)}h` : ''}
-            </span>
-          </Pressable>
-        ))}
-      </div>
+                <div className="mt-1.5 flex items-center justify-between text-3xs text-text-muted">
+                  <span>{target > 0 ? `${pct}% celu` : 'Brak celu'}</span>
+                  <span className="hover:text-primary transition-colors">Edytuj cel</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <WeeklyBalanceRadarSvg
+          budgetPoints={budgetPoints}
+          actualPoints={actualPoints}
+          selectedTaskId={selectedTaskId}
+          onAssignTask={assignSelectedTask}
+          onStartEditing={startEditing}
+        />
+      )}
 
       {editingSphere && (
         <div className="flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 p-2.5">

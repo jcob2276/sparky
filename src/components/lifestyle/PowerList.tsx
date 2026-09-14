@@ -56,6 +56,10 @@ export default function PowerList({
     confirmCheckpointDone,
     updateSlot,
     eveningCloseDue,
+    eveningNote,
+    setEveningNote,
+    savingEvening,
+    saveEveningClose,
     toggleTask,
     startNewDay,
   } = usePowerListData({ session, todayWin, onUpdate, planDaySignal });
@@ -140,6 +144,10 @@ export default function PowerList({
           projectMap={projectMap}
           toggleTask={toggleTask}
           eveningCloseDue={eveningCloseDue}
+          eveningNote={eveningNote}
+          setEveningNote={setEveningNote}
+          savingEvening={savingEvening}
+          saveEveningClose={saveEveningClose}
         />
       )}
     </section>

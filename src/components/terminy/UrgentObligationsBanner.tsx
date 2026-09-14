@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { getTodayWarsaw, nextOccurrence, shiftDateStr } from '@vanguard/domain';
 import { AlertTriangle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
@@ -17,19 +17,21 @@ interface Props {
 
 export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) {
   const today = getTodayWarsaw();
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const { data: items = [] } = useLifeObligations(userId);
   const { remove, update } = useLifeObligationMutations(userId);
 
   const urgentRows = useMemo(() => {
     const all = deriveAll(items, today);
-    return all.filter((r) => r.daysLeft <= 1);
-  }, [items, today]);
+    return all.filter((r) => r.daysLeft <= 1 && !completedIds.has(r.item.id));
+  }, [items, today, completedIds]);
 
   if (urgentRows.length === 0) return null;
 
   const topUrgent = urgentRows[0];
 
   const handleComplete = async (row: DerivedObligation) => {
+    setCompletedIds((prev) => new Set(prev).add(row.item.id));
     try {
       if (row.item.recurrence === 'once') {
         await remove.mutateAsync(row.item.id);
@@ -42,6 +44,11 @@ export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) 
         notify(`Zrealizowano! Odnowiono termin „${row.item.title}” na ${formatLongDateWarsaw(nextDate)}`, 'success');
       }
     } catch (e: unknown) {
+      setCompletedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(row.item.id);
+        return next;
+      });
       notify(e instanceof Error ? e.message : 'Błąd aktualizacji', 'error');
     }
   };
@@ -52,6 +59,8 @@ export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) 
   let bannerMessage = '⚠️ Jutro upływa termin!';
   if (isOverdue) bannerMessage = '🚨 Termin minął!';
   else if (isToday) bannerMessage = '🚨 Dzisiaj upływa termin!';
+
+  const isPending = completedIds.has(topUrgent.item.id) || update.isPending || remove.isPending;
 
   return (
     <div className="relative overflow-hidden rounded-[22px] border border-danger/30 bg-gradient-to-r from-danger/15 via-surface-solid to-surface-2 p-4 shadow-sm backdrop-blur-md">
@@ -87,7 +96,8 @@ export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) 
         <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
           <Pressable
             onClick={() => void handleComplete(topUrgent)}
-            className="flex items-center gap-1.5 rounded-full bg-danger text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-all active:scale-95 hover:opacity-90"
+            disabled={isPending}
+            className="flex items-center gap-1.5 rounded-full bg-danger text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-all active:scale-95 hover:opacity-90 disabled:opacity-60"
           >
             <CheckCircle2 size={14} strokeWidth={2.2} />
             <span>Zrealizowano</span>

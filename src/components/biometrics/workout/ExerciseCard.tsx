@@ -34,16 +34,10 @@ import {
 } from '../../../lib/health/workoutSetFill';
 import type { ExerciseHistoryRow } from '../../../lib/health/workout';
 
-function openExerciseProgress(
-  navigate: ReturnType<typeof useNavigate>,
-  exerciseName: string,
-) {
+function openExerciseProgress(navigate: ReturnType<typeof useNavigate>, exerciseName: string) {
   const trimmed = exerciseName.trim();
   if (!trimmed) return;
-  navigate(
-    { pathname: '/cwiczenie', search: `?n=${encodeURIComponent(trimmed)}` },
-    { state: { exerciseName: trimmed } },
-  );
+  navigate({ pathname: '/cwiczenie', search: `?n=${encodeURIComponent(trimmed)}` }, { state: { exerciseName: trimmed } });
 }
 
 interface ExerciseCardProps {
@@ -51,6 +45,7 @@ interface ExerciseCardProps {
   onChange: (ex: WorkoutExercise) => void;
   onRemove: () => void;
   userId: string | undefined;
+  onOpenPlateCalc?: (initialKg: number, onApply: (kg: number) => void) => void;
 }
 
 export default function ExerciseCard({
@@ -58,6 +53,7 @@ export default function ExerciseCard({
   onChange,
   onRemove,
   userId,
+  onOpenPlateCalc,
 }: ExerciseCardProps) {
   const [collapsed, setCollapsed] = useState(false);
   const haptics = useHaptics();
@@ -251,6 +247,7 @@ export default function ExerciseCard({
               onFillSet={fillSet}
               updateSet={updateSet}
               removeSet={removeSet}
+              onOpenPlateCalc={onOpenPlateCalc}
             />
           )}
 

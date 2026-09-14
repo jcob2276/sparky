@@ -18,18 +18,33 @@ export default function MorningPlanFooterActions({
 }: Props) {
   return (
     <div className="p-4 border-t border-border-custom/20 flex items-center justify-between">
-      {step === 2 && (
+      {!planningTomorrow && step === 2 && (
         <Button variant="outline" size="sm" icon={<ChevronLeft size={16} />} onClick={() => setStep(1)}>
           Wróć
         </Button>
       )}
-      {step === 1 ? (
-        <Button className="ml-auto" size="sm" icon={<ChevronRight size={16} />} iconPosition="right" onClick={() => setStep(2)}>
-          Ułóż godziny
+      {planningTomorrow ? (
+        <Button className="ml-auto" size="sm" icon={<Send size={14} />} loading={sending} onClick={onSubmit}>
+          {sending ? 'Zapisuję plan…' : 'Zatwierdź plan na jutro'}
         </Button>
+      ) : step === 1 ? (
+        <div className="ml-auto flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<ChevronRight size={16} />}
+            iconPosition="right"
+            onClick={() => setStep(2)}
+          >
+            Ułóż godziny
+          </Button>
+          <Button size="sm" icon={<Send size={14} />} loading={sending} onClick={onSubmit}>
+            {sending ? 'Zapisuję plan…' : 'Zatwierdź plan'}
+          </Button>
+        </div>
       ) : (
         <Button className="ml-auto" size="sm" icon={<Send size={14} />} loading={sending} onClick={onSubmit}>
-          {sending ? 'Zapisuję plan…' : planningTomorrow ? 'Zatwierdź plan na jutro' : 'Zatwierdź plan'}
+          {sending ? 'Zapisuję plan…' : 'Zatwierdź plan'}
         </Button>
       )}
     </div>

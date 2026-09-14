@@ -133,7 +133,7 @@ export default function WeeklyNutritionPulse({
       </div>
 
       {/* Macros grid */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <MacroChip label="Jakość" value={pulse.avgQuality == null ? '—' : `${pulse.avgQuality}/100`} />
         <MacroChip label="Węgle" value={formatGrams(pulse.avgCarbs)} />
         <MacroChip label="Tłuszcze" value={formatGrams(pulse.avgFat)} />
@@ -159,8 +159,8 @@ export default function WeeklyNutritionPulse({
 
 function MacroChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2 text-center">
-      <p className="text-3xs font-bold uppercase tracking-wider text-text-muted">{label}</p>
+    <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2 text-center min-w-0">
+      <p className="text-3xs font-bold uppercase tracking-wider text-text-muted truncate">{label}</p>
       <p className="mt-0.5 text-xs font-black text-text-primary truncate">{value}</p>
     </div>
   );

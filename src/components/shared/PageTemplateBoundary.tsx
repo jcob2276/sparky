@@ -16,28 +16,28 @@ const reducedTransition = { duration: 0.2 };
 
 const kindVariants = {
   list: {
-    initial: { opacity: 0, x: 40 },
+    initial: { opacity: 0, x: 16 },
     animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -40 },
+    exit: { opacity: 0, x: -16 },
   },
   timeline: {
-    initial: { opacity: 0, x: 40 },
+    initial: { opacity: 0, x: 16 },
     animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -40 },
+    exit: { opacity: 0, x: -16 },
   },
   dashboard: {
-    initial: { opacity: 0, scale: 0.98 },
-    animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.98 },
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
   },
   grid: {
-    initial: { opacity: 0, scale: 0.98 },
-    animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.98 },
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
   },
 } as const;
 
-const spring = { type: 'spring' as const, bounce: 0, duration: 0.35 };
+const spring = { type: 'spring' as const, damping: 30, stiffness: 360, mass: 0.7 };
 
 /** Route-level design contract. The wrapper is a real element (not display:contents)
  * so framer-motion can animate transform/opacity. Children inherit the selected

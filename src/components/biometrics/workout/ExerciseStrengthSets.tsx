@@ -10,6 +10,7 @@ interface ExerciseStrengthSetsProps {
   onFillSet: (setId: number, row: ExerciseHistoryRow) => void;
   updateSet: (id: number, field: string, value: string | boolean) => void;
   removeSet: (id: number) => void;
+  onOpenPlateCalc?: (initialKg: number, onApply: (kg: number) => void) => void;
 }
 
 export default function ExerciseStrengthSets({
@@ -20,6 +21,7 @@ export default function ExerciseStrengthSets({
   onFillSet,
   updateSet,
   removeSet,
+  onOpenPlateCalc,
 }: ExerciseStrengthSetsProps) {
   return (
     <>
@@ -47,6 +49,7 @@ export default function ExerciseStrengthSets({
           onFillSet={onFillSet}
           updateSet={updateSet}
           removeSet={removeSet}
+          onOpenPlateCalc={onOpenPlateCalc}
         />
       ))}
     </>

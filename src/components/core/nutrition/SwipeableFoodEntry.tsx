@@ -108,7 +108,15 @@ export default function SwipeableFoodEntry({ children, onDelete }: SwipeableFood
 
   return (
     <div
+      data-no-swipe-nav="true"
+      data-swipeable="true"
       className="relative overflow-hidden touch-pan-y select-none"
+      onTouchStart={(e) => e.stopPropagation()}
+      onTouchMove={(e) => {
+        if (axis.current === 'horizontal') {
+          e.stopPropagation();
+        }
+      }}
       onPointerDown={pointerDown}
       onPointerMove={pointerMove}
       onPointerUp={pointerUp}

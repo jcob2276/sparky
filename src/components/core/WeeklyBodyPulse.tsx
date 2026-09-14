@@ -110,30 +110,30 @@ export default function WeeklyBodyPulse() {
         </div>
 
         {/* Deep/REM + Efficiency */}
-        <div className="grid grid-cols-3 gap-2 border-t border-border-custom/30 pt-2.5 text-xs">
-          <div className="col-span-2 flex items-center justify-between rounded-xl bg-surface/50 px-2.5 py-1.5">
-            <span className="text-text-muted font-medium">Głęboki / REM</span>
-            <span className="font-bold text-text-primary">
+        <div className="flex items-center justify-between gap-2 border-t border-border-custom/30 pt-2.5 text-xs">
+          <div className="flex-1 min-w-0 flex items-center justify-between rounded-xl bg-surface/50 px-2.5 py-1.5 gap-1.5">
+            <span className="text-text-muted font-medium text-2xs truncate">Głęboki / REM</span>
+            <span className="font-bold text-text-primary shrink-0 text-xs">
               {formatDurationHours(data?.avgDeepHours)} / {formatDurationHours(data?.avgRemHours)}
             </span>
           </div>
-          <div className="flex items-center justify-between rounded-xl bg-surface/50 px-2.5 py-1.5">
-            <span className="text-text-muted font-medium">Eff.</span>
-            <span className="font-bold text-text-primary">
+          <div className="flex items-center justify-between rounded-xl bg-surface/50 px-2.5 py-1.5 gap-1.5 shrink-0">
+            <span className="text-text-muted font-medium text-2xs">Eff.</span>
+            <span className="font-bold text-text-primary text-xs">
               {data?.avgEfficiency == null ? '—' : `${data.avgEfficiency}%`}
             </span>
           </div>
         </div>
 
         {/* Best / Worst */}
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="flex items-center justify-between rounded-xl bg-surface/50 px-2.5 py-1.5">
-            <span className="text-text-muted font-medium">Najlepszy</span>
-            <span className="font-bold text-success">{formatSleepDayLabel(data?.sleepBest ?? null, today)}</span>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          <div className="flex items-center justify-between rounded-xl bg-surface/50 px-2.5 py-1.5 min-w-0 gap-1.5">
+            <span className="text-text-muted font-medium text-2xs shrink-0">Najlepszy</span>
+            <span className="font-bold text-success text-2xs sm:text-xs truncate">{formatSleepDayLabel(data?.sleepBest ?? null, today)}</span>
           </div>
-          <div className="flex items-center justify-between rounded-xl bg-surface/50 px-2.5 py-1.5">
-            <span className="text-text-muted font-medium">Najgorszy</span>
-            <span className="font-bold text-warning">{formatSleepDayLabel(data?.sleepWorst ?? null, today)}</span>
+          <div className="flex items-center justify-between rounded-xl bg-surface/50 px-2.5 py-1.5 min-w-0 gap-1.5">
+            <span className="text-text-muted font-medium text-2xs shrink-0">Najgorszy</span>
+            <span className="font-bold text-warning text-2xs sm:text-xs truncate">{formatSleepDayLabel(data?.sleepWorst ?? null, today)}</span>
           </div>
         </div>
       </div>
@@ -183,14 +183,14 @@ function ScoreCell({
 function ActivityChip({ label, value, active }: { label: string; value: string; active: boolean }) {
   return (
     <div
-      className={`rounded-xl px-2.5 py-2.5 transition-all ${
+      className={`rounded-xl px-2.5 py-2 transition-all min-w-0 ${
         active
           ? 'bg-primary/10 border border-primary/20'
           : 'bg-surface/50 border border-border-custom/30'
       }`}
     >
-      <p className="text-3xs font-bold uppercase tracking-wider text-text-muted">{label}</p>
-      <p className={`mt-0.5 text-sm font-black ${active ? 'text-text-primary' : 'text-text-muted'}`}>{value}</p>
+      <p className="text-3xs font-bold uppercase tracking-wider text-text-muted truncate">{label}</p>
+      <p className={`mt-0.5 text-xs sm:text-sm font-black truncate ${active ? 'text-text-primary' : 'text-text-muted'}`}>{value}</p>
     </div>
   );
 }

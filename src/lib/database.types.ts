@@ -39,6 +39,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      closer_daily_logs: {
+        Row: {
+          appointments: number
+          created_at: string
+          date: string
+          dials: number
+          id: string
+          notes: string | null
+          sales_calls: number
+          updated_at: string
+          user_id: string
+          work_hours: number
+        }
+        Insert: {
+          appointments?: number
+          created_at?: string
+          date: string
+          dials?: number
+          id?: string
+          notes?: string | null
+          sales_calls?: number
+          updated_at?: string
+          user_id: string
+          work_hours?: number
+        }
+        Update: {
+          appointments?: number
+          created_at?: string
+          date?: string
+          dials?: number
+          id?: string
+          notes?: string | null
+          sales_calls?: number
+          updated_at?: string
+          user_id?: string
+          work_hours?: number
+        }
+        Relationships: []
+      }
       _trigger_secrets: {
         Row: {
           name: string

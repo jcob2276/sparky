@@ -75,19 +75,29 @@ function buildMagazineFromDirection(ctx: DirectionContextData): ScheduleViewData
     itemsByDay.get(dayDate)!.push(item);
   };
 
+  const horizonEnd = shiftDateStr(today, 6);
+
   for (const cp of ctx.checkpoints.upcoming.slice(0, 12)) {
-    pushItem(cp.due_date, {
-      id: `cp-${cp.id}`,
-      kind: 'event',
-      title: cp.title,
-      dueAt: cp.due_date,
-      color: cp.project.color ?? undefined,
-      sourceFact: cp.project.name,
-    });
+    // Only map checkpoints that fall within the current week horizon
+    if (cp.due_date >= today && cp.due_date <= horizonEnd) {
+      pushItem(cp.due_date, {
+        id: `cp-${cp.id}`,
+        kind: 'event',
+        title: cp.title,
+        dueAt: cp.due_date,
+        color: cp.project.color ?? undefined,
+        sourceFact: cp.project.name,
+      });
+    }
   }
 
   for (const todo of ctx.urgentTodos.slice(0, 10)) {
-    const dayDate = todo.due_date ?? today;
+    // Overdue items belong to 'today' as active tasks; future items only within horizon
+    let dayDate = today;
+    if (todo.due_date) {
+      if (todo.due_date > horizonEnd) continue;
+      if (todo.due_date >= today) dayDate = todo.due_date;
+    }
     pushItem(dayDate, {
       id: `todo-${todo.id}`,
       kind: 'todo',
@@ -103,6 +113,7 @@ function buildMagazineFromDirection(ctx: DirectionContextData): ScheduleViewData
   }
 
   const timeline = [...itemsByDay.entries()]
+    .filter(([dayDate]) => dayDate >= today && dayDate <= horizonEnd)
     .sort(([a], [b]) => a.localeCompare(b))
     .slice(0, 7)
     .map(([dayDate, items]) => ({

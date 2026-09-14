@@ -14,6 +14,9 @@ import WeeklyWinsMap from './WeeklyWinsMap';
 
 import Direction from '../lifestyle/Direction';
 
+import { getTodayWarsaw } from '../../lib/date';
+import { getWeekStartWarsaw, formatWeekRange } from '../../lib/growth/growth';
+
 function ViewFallback() {
   return (
     <div className="flex min-h-[var(--ds-h-220px)] items-center justify-center rounded-lg border border-on-accent/[0.06] bg-on-accent/[0.02]">
@@ -31,6 +34,11 @@ interface Props {
 export function DashboardTydzienTab({ weeklyCalories, nutritionKey, onOpenActionCenter }: Props) {
   const session = useSession();
   if (!session) return null;
+
+  const today = getTodayWarsaw();
+  const weekStart = getWeekStartWarsaw(today);
+  const weekRange = formatWeekRange(weekStart);
+
   return (
     <div className="p-5 pb-8">
       <div className="mb-5 space-y-4">
@@ -38,12 +46,19 @@ export function DashboardTydzienTab({ weeklyCalories, nutritionKey, onOpenAction
           eyebrow="Reguluję"
           title="Tydzień"
           icon={SlidersHorizontal}
+          badge={
+            <span className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-primary">
+              {weekRange}
+            </span>
+          }
         />
-        <div className="grid gap-3 lg:grid-cols-2">
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
           <WeeklyBodyPulse />
           <WeeklyNutritionPulse weeklyCalories={weeklyCalories} refreshSignal={nutritionKey} />
+          <div className="lg:col-span-2">
+            <WeeklyWinsMap />
+          </div>
         </div>
-        <WeeklyWinsMap />
       </div>
       <Suspense fallback={<ViewFallback />}>
         <Direction session={session} onOpenActionCenter={onOpenActionCenter} />

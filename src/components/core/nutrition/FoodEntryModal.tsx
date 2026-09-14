@@ -49,8 +49,15 @@ export default function FoodEntryModal({ onClose, onSaved, initialEditEntry, ini
     const update = () => {
       const el = sheetRef.current;
       if (!el) return;
-      const offsetBottom = Math.max(0, window.innerHeight - vv.offsetTop - vv.height);
-      el.style.marginBottom = `${offsetBottom}px`;
+      // On desktop / tablet (sm+), modal is vertically centered. Don't push with bottom margin.
+      if (window.innerWidth >= 640) {
+        el.style.marginBottom = '';
+        el.style.maxHeight = '';
+        return;
+      }
+      const keyboardOpen = vv.height < window.innerHeight * 0.85;
+      const offsetBottom = keyboardOpen ? Math.max(0, window.innerHeight - vv.offsetTop - vv.height) : 0;
+      el.style.marginBottom = offsetBottom > 0 ? `${offsetBottom}px` : '';
       el.style.maxHeight = `${Math.floor(vv.height * 0.94)}px`;
     };
     vv.addEventListener('resize', update);
@@ -96,7 +103,7 @@ export default function FoodEntryModal({ onClose, onSaved, initialEditEntry, ini
       size="sm"
       overlayClassName="z-[var(--z-floating)]"
       containerRef={sheetRef}
-      className="max-h-[var(--ds-h-94dvh)] flex flex-col"
+      className="max-h-[var(--ds-h-94dvh)] sm:max-h-[88vh] flex flex-col overflow-hidden"
     >
       <FoodEntryHeader
         headerTitle={headerTitle}

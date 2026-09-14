@@ -62,6 +62,12 @@ export const nudgeKeys = {
   counts: (userId: string) => [...nudgeKeys.all, 'counts', userId] as const,
 };
 
+// ── CLOSER KEYS ──
+export const closerKeys = {
+  all: ['closer'] as const,
+  week: (userId: string, weekStart: string) => [...closerKeys.all, 'week', userId, weekStart] as const,
+};
+
 // ── TODO KEYS ──
 export const todoKeys = {
   all: ['todo'] as const,

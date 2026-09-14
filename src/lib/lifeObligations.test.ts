@@ -11,6 +11,14 @@ describe('lifeObligations', () => {
     expect(nextOccurrence('1990-03-15', 'yearly', '2026-03-01')).toBe('2026-03-15');
     expect(nextOccurrence('1990-03-15', 'yearly', '2026-03-15')).toBe('2026-03-15');
     expect(nextOccurrence('1990-03-15', 'yearly', '2026-03-16')).toBe('2027-03-15');
+    // When completed today and renewed to next year, nextOccurrence on today must not return today
+    expect(nextOccurrence('2027-09-14', 'yearly', '2026-09-14')).toBe('2027-09-14');
+  });
+
+  it('computes next monthly occurrence', () => {
+    expect(nextOccurrence('2026-01-15', 'monthly', '2026-09-14')).toBe('2026-09-15');
+    expect(nextOccurrence('2026-01-15', 'monthly', '2026-09-16')).toBe('2026-10-15');
+    expect(nextOccurrence('2026-10-14', 'monthly', '2026-09-14')).toBe('2026-10-14');
   });
 
   it('handles once recurrence', () => {

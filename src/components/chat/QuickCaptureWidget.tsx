@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Mic, Send, X, Radio, Utensils, CheckSquare, FileText, Zap, Pill } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { IOS_SPRING } from '../../lib/motion/iosMotion';
 import { captureEntry } from '../../lib/chatApi';
 import { notify } from '../../lib/notify';
 import FoodQuickCapture from '../core/nutrition/FoodQuickCapture';
@@ -155,9 +156,11 @@ export default function QuickCaptureWidget() {
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
+            initial={{ opacity: 0, scale: 0.98, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
+            exit={{ opacity: 0, scale: 0.98, y: 10 }}
+            transition={IOS_SPRING.interactive}
+            style={{ willChange: 'transform, opacity' }}
             className={`fixed bottom-24 right-6 z-50 ${
               activeCategory === 'food' ? 'w-[90vw] sm:w-[460px]' : 'w-80 sm:w-96'
             } bg-card/95 backdrop-blur-md border border-border/80 rounded-2xl p-4 shadow-2xl space-y-3 max-h-[85vh] overflow-y-auto`}

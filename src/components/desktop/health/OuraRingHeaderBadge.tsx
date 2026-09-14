@@ -95,7 +95,7 @@ export default function OuraRingHeaderBadge() {
 
       {/* Modal Dialog */}
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pt-safe pb-safe bg-black/80 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pt-safe pb-safe bg-black/80 backdrop-blur-xs animate-fadeIn">
           {/* Click outside to close */}
           <div
             className="fixed inset-0"
@@ -104,7 +104,7 @@ export default function OuraRingHeaderBadge() {
           />
 
           {/* Modal Content */}
-          <div className="relative w-full max-w-lg z-10 max-h-[85vh] overflow-y-auto rounded-3xl border border-white/15 bg-slate-950/95 p-5 sm:p-6 shadow-2xl backdrop-blur-2xl animate-scaleUp my-auto">
+          <div className="relative w-full max-w-lg z-10 max-h-[85vh] overflow-y-auto rounded-3xl border border-white/15 bg-slate-950/95 p-5 sm:p-6 shadow-2xl animate-scaleUp my-auto">
             {/* Header bar */}
             <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/10">
               <div className="flex items-center gap-2.5">

@@ -8,8 +8,10 @@ import {
   fetchProjectWeekKpis,
   setProjectKpiTarget,
 } from '../../lib/goal/goalSpine';
+import { applyKpiRollup } from '../../lib/goal/goalSpineKpi.mutations';
 import { PILLARS, PILLAR_META } from '../../lib/projects/pillars';
 import { projectWeekKpisKeys } from '../../lib/queryKeys';
+import CloserWeekTracker from './closer/CloserWeekTracker';
 
 const PILLAR_OPTIONS = PILLARS.map((id) => ({ id, label: PILLAR_META[id].label }));
 
@@ -79,6 +81,17 @@ export default function ProjectWeekKpis({
       </p>
       <div className="space-y-2.5">
         {projects.map((project) => {
+          if (project.name.toLowerCase().includes('closer')) {
+            return (
+              <CloserWeekTracker
+                key={project.id}
+                userId={userId}
+                weekStart={weekStart}
+                projectName={project.name}
+                isFocusSprint={focusProjectIds.includes(project.id)}
+              />
+            );
+          }
           const kpis = byProject[project.id] ?? [];
           return (
             <Card key={project.id} padding="0.75rem 0.875rem" className="space-y-2">
@@ -92,31 +105,77 @@ export default function ProjectWeekKpis({
               </p>
 
               {kpis.map(({ kpi, thisWeekValue }) => {
-                const pct = kpi.target ? Math.min(100, Math.round(((thisWeekValue ?? 0) / kpi.target) * 100)) : null;
+                const val = thisWeekValue ?? 0;
+                const hasTarget = kpi.target != null && kpi.target > 0;
+                const pct = hasTarget ? Math.min(100, Math.round((val / kpi.target!) * 100)) : null;
+                const isComplete = hasTarget && val >= kpi.target!;
+
                 return (
-                  <div key={kpi.id} className="space-y-1">
+                  <div key={kpi.id} className="rounded-xl border border-border-custom/25 bg-surface/40 p-2.5 space-y-2">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-semibold text-text-secondary">{kpi.name}</span>
-                      <span className="text-xs font-bold text-text-primary">
-                        {thisWeekValue ?? 0}
-                        {kpi.unit ? ` ${kpi.unit}` : ''} /{' '}
-                        {readOnly ? (
-                          <span>{kpi.target ?? '—'}</span>
-                        ) : (
-                          <ControlInput
-                            type="number"
-                            inputMode="decimal"
-                            defaultValue={kpi.target ?? ''}
-                            placeholder="cel?"
-                            onBlur={(e) => saveTarget(kpi.id, e.target.value)}
-                            className="w-14 rounded-md border border-border-custom bg-surface-solid px-1.5 py-0.5 text-xs font-bold text-text-primary outline-none focus:border-primary/40"
-                          />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-bold text-text-primary block truncate">{kpi.name}</span>
+                        {kpi.unit && (
+                          <span className="text-3xs uppercase tracking-wider text-text-muted">{kpi.unit}</span>
                         )}
-                      </span>
+                      </div>
+
+                      {/* Value + Quick +1 button + Target */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1">
+                          <span className={`text-sm font-black ${isComplete ? 'text-success' : 'text-text-primary'}`}>
+                            {val}
+                          </span>
+                          {!readOnly && (
+                            <button
+                              type="button"
+                              title="Dodaj +1"
+                              onClick={async () => {
+                                await applyKpiRollup(userId, kpi.id, weekStart, 1);
+                                invalidate();
+                              }}
+                              className="flex h-5 w-5 items-center justify-center rounded-md border border-primary/30 bg-primary/10 text-2xs font-extrabold text-primary hover:bg-primary/20 active:scale-95 transition-all"
+                            >
+                              +1
+                            </button>
+                          )}
+                        </div>
+
+                        <span className="text-xs text-text-muted font-bold">/</span>
+
+                        {readOnly ? (
+                          <span className="text-xs font-semibold text-text-muted">{kpi.target ?? '—'}</span>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <ControlInput
+                              type="number"
+                              inputMode="decimal"
+                              defaultValue={kpi.target ?? ''}
+                              placeholder="cel"
+                              onBlur={(e) => saveTarget(kpi.id, e.target.value)}
+                              className="w-12 rounded-lg border border-border-custom/40 bg-surface px-1.5 py-0.5 text-xs font-bold text-text-primary text-center outline-none focus:border-primary/40"
+                            />
+                            {hasTarget && pct !== null && (
+                              <span className={`text-3xs font-extrabold px-1.5 py-0.5 rounded-full ${
+                                isComplete ? 'bg-success/15 text-success' : 'bg-surface-raised text-text-muted'
+                              }`}>
+                                {pct}%
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
+
+                    {/* Progress bar */}
                     {pct !== null && (
-                      <div className="h-1 w-full overflow-hidden rounded-full bg-border-custom/40">
-                        <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/30">
+                        <div
+                          className={`h-full rounded-full transition-all duration-300 ${
+                            isComplete ? 'bg-success' : 'bg-primary'
+                          }`}
+                          style={{ width: `${pct}%` }}
+                        />
                       </div>
                     )}
                   </div>

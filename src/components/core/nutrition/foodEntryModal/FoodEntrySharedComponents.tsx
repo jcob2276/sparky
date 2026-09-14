@@ -114,7 +114,6 @@ export function PortionStepper({
           <input
             type="number"
             inputMode="numeric"
-            autoFocus
             value={grams}
             onChange={(e) => setGrams(e.target.value)}
             className="w-20 bg-transparent text-center font-display text-3xl font-black text-text-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"

@@ -1,6 +1,7 @@
 import { FileText, Download } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import type { MedicalDocumentRow } from '../../../lib/health/medicalAnalytics';
+import { formatMedicalDocumentType } from '../../../lib/health/medicalRecords';
 
 interface MedicalDocHistoryProps {
   documents: MedicalDocumentRow[];
@@ -16,28 +17,25 @@ export default function MedicalDocHistory({ documents }: MedicalDocHistoryProps)
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {documents.map(doc => {
-          // Status indicators
-          const isProcessed = doc.document_type === 'processed' || doc.clinical_validity === 'clinical';
+          const typeInfo = formatMedicalDocumentType(doc.document_type);
           
           return (
             <Card
               key={doc.id}
               variant="outline"
               padding="1rem"
-              className="bg-background/25 border-border-custom hover:bg-background/40 transition-all flex flex-col justify-between h-40"
+              className="bg-background/25 border-border-custom hover:bg-background/40 transition-all flex flex-col justify-between min-h-[160px]"
             >
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-text-primary min-w-0 flex-1">
                     <FileText size={14} className="text-text-muted shrink-0" />
-                    <span className="truncate max-w-[var(--ds-maxw-180px)]" title={doc.source_name}>
+                    <span className="truncate" title={doc.source_name}>
                       {doc.source_name}
                     </span>
                   </div>
-                  <span className={`text-3xs font-black uppercase tracking-wider px-2 py-0.5 rounded ${
-                    isProcessed ? 'bg-success/10 text-success' : 'bg-warning/10 text-warning'
-                  }`}>
-                    {isProcessed ? 'Zaimportowany' : 'Weryfikacja'}
+                  <span className={`text-3xs font-black uppercase tracking-wider px-2 py-0.5 rounded border shrink-0 ${typeInfo.badgeColor}`}>
+                    {typeInfo.label}
                   </span>
                 </div>
 
@@ -46,7 +44,7 @@ export default function MedicalDocHistory({ documents }: MedicalDocHistoryProps)
                     <span className="text-text-muted uppercase font-black">Data badania:</span> {doc.document_date}
                   </p>
                   <p>
-                    <span className="text-text-muted uppercase font-black">Laboratorium:</span> {doc.provider || 'Nieznane'}
+                    <span className="text-text-muted uppercase font-black">Laboratorium / Źródło:</span> {doc.provider || 'Nieznane'}
                   </p>
                   {doc.summary && (
                     <p className="text-text-muted italic truncate mt-1">
@@ -61,14 +59,18 @@ export default function MedicalDocHistory({ documents }: MedicalDocHistoryProps)
                   Dodano: {doc.created_at?.slice(0, 10)}
                 </span>
                 
-                <a
-                  href={doc.source_path || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 font-black uppercase text-primary hover:underline cursor-pointer"
-                >
-                  <Download size={10} /> Pobierz źródło
-                </a>
+                {doc.source_path ? (
+                  <a
+                    href={doc.source_path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 font-black uppercase text-primary hover:underline cursor-pointer"
+                  >
+                    <Download size={10} /> Pobierz źródło
+                  </a>
+                ) : (
+                  <span className="text-text-muted italic">Raport cyfrowy</span>
+                )}
               </div>
             </Card>
           );

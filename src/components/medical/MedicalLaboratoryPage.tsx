@@ -26,6 +26,7 @@ import MedicalBodyComposition from './sections/MedicalBodyComposition';
 
 import MedicalMarkerInspector from './sections/MedicalMarkerInspector';
 import MedicalImport, { type ImportedMedicalResult, type LabResultEntryMeta } from './sections/MedicalImport';
+import MedicalLabNav from './sections/MedicalLabNav';
 
 const SNOOZE_DAYS = 30;
 const CALENDAR_LEAD_DAYS = 14;
@@ -148,6 +149,9 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
           onViewResults={() => scrollToSection('wyniki')}
           onPlanRetest={() => scrollToSection('sugestie')}
         />
+
+        {/* Quick section navigation pills */}
+        <MedicalLabNav onSelectSection={scrollToSection} />
 
         {/* Level 1: Przegląd */}
         <div id="przeglad">

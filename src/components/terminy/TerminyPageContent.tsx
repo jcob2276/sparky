@@ -198,13 +198,14 @@ function TerminyResults(
   >,
 ) {
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence initial={false}>
       <motion.div
-        key={`${props.tab}:${props.filterMode}:${props.searchQuery}`}
-        initial={props.reduceMotion ? false : { opacity: 0, y: 10 }}
+        key={props.tab}
+        initial={props.reduceMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={props.reduceMotion ? undefined : { opacity: 0, y: -6 }}
-        transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+        exit={props.reduceMotion ? undefined : { opacity: 0 }}
+        transition={{ duration: 0.15, ease: 'easeOut' }}
+        style={{ willChange: 'transform, opacity' }}
       >
         {props.tab === 'horizon' ? (
           <TerminyHorizon

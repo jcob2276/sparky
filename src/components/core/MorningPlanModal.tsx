@@ -77,7 +77,9 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
             </h2>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="text-xs font-semibold text-text-muted">{planningDate}</span>
-              <span className="text-2xs font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">Krok {step} z 2</span>
+              {!planningTomorrow && (
+                <span className="text-2xs font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary">Krok {step} z 2</span>
+              )}
             </div>
           </div>
           <Button onClick={onClose} variant="ghost" icon={<X size={18} />} />
@@ -91,13 +93,15 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
           weekTaskCounts={data.weekTaskCounts}
         />
 
-        <div className="grid grid-cols-2 h-1 bg-border-custom/20">
-          <div className="h-full bg-primary" />
-          <div className={`h-full ${step === 2 ? 'bg-primary' : 'bg-transparent'}`} />
-        </div>
+        {!planningTomorrow && (
+          <div className="grid grid-cols-2 h-1 bg-border-custom/20">
+            <div className="h-full bg-primary" />
+            <div className={`h-full ${step === 2 ? 'bg-primary' : 'bg-transparent'}`} />
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto p-5">
-          {step === 1 ? (
+          {step === 1 || planningTomorrow ? (
             <MorningPlanStep2PowerList
               powerList={data.powerList}
               suggestions={suggestions}

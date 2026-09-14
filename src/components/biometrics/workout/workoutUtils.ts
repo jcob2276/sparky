@@ -4,6 +4,7 @@ import { epley, type ExerciseHistoryRow } from '../../../lib/health/workout';
 
 export {
   type WorkoutSet,
+  type WorkoutSetType,
   type WorkoutExercise,
   type WorkoutActivity,
   newSet,

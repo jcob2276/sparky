@@ -1,4 +1,3 @@
-import { getWarsawHour } from '../../../lib/date';
 import { useHaptics } from '../../../hooks/useHaptics';
 import { notify } from '../../../lib/notify';
 import { markCheckpointDone } from '../../../lib/checkpoints';
@@ -127,14 +126,27 @@ async function saveEveningCloseHelper(args: UsePowerListActionsArgs, todayWin: D
   args.setSavingEvening(true);
   try {
     const note = args.eveningNote.trim();
-    const data = await updateDailyWin(args.userId, todayWin.id, { day_note: note });
+    const winRecord = todayWin as unknown as DailyWinRecord;
+    const tasks = todayWin.daily_win_tasks || [];
+    const allDone = tasks.length > 0
+      ? tasks.every((t) => t.done)
+      : [1, 2, 3, 4, 5].every((i) => {
+          if (!winRecord[`task_${i}`]) return true;
+          return winRecord[`done_${i}`];
+        });
+    const result: 'Z' | 'P' = allDone ? 'Z' : 'P';
+    const data = await updateDailyWin(args.userId, todayWin.id, {
+      day_note: note,
+      result,
+    });
     void appendStreamEntry({
       userId: args.userId,
       source: 'powerlist',
-      content: `Domknięcie dnia: ${note}`,
-      metadata: { kind: 'day_close', date: args.today },
+      content: `Domknięcie dnia (${result === 'Z' ? 'WYGRANA Z' : 'P'}): ${note}`,
+      metadata: { kind: 'day_close', date: args.today, result },
     });
-    haptics.light();
+    haptics.success();
+    notify(result === 'Z' ? 'Dzień zamknięty z wygraną (Z)!' : 'Dzień domknięty notatką.', 'success');
     if (args.onUpdate) args.onUpdate(data);
   } catch (err: unknown) {
     console.error('[saveEveningClose]', err);
@@ -162,12 +174,13 @@ async function toggleTaskHelper(args: UsePowerListActionsArgs, index: number, to
     return todayWin[`done_${i}`];
   });
 
+  const hasNote = Boolean(todayWin.day_note?.trim());
   const resultPatch: TablesUpdate<'daily_wins'> = {};
-  if (allDone) resultPatch.result = 'Z';
-  else {
-    if (todayWin.result === 'Z') resultPatch.result = null;
-    const warsawHour = getWarsawHour();
-    if (warsawHour >= 23 && !allDone) resultPatch.result = 'P';
+  // Rule: day is only closed as 'Z' if all tasks are done AND the user provided a day note!
+  if (allDone && hasNote) {
+    resultPatch.result = 'Z';
+  } else if (!allDone && todayWin.result === 'Z') {
+    resultPatch.result = null;
   }
 
   try {

@@ -1,5 +1,5 @@
 import { useCallback, useRef } from 'react';
-import { rubberBand, shouldCommitGesture } from '../../../lib/motion/iosMotion';
+import { rubberBand, shouldBlockSwipeNav, shouldCommitGesture } from '../../../lib/motion/iosMotion';
 
 interface UseDashboardSwipeNavProps {
   view: string;
@@ -32,7 +32,7 @@ export function useDashboardSwipeNav({
       t: Date.now(),
       lastX: touch.clientX,
       lastT: Date.now(),
-      blocksNavigation: Boolean(target.closest('[data-no-swipe-nav]')),
+      blocksNavigation: shouldBlockSwipeNav(target),
     };
   }, []);
 
@@ -42,8 +42,8 @@ export function useDashboardSwipeNav({
     if (!start || !touch || start.blocksNavigation) return;
     const deltaX = touch.clientX - start.x;
     const deltaY = touch.clientY - start.y;
-    if (!start.axis && Math.max(Math.abs(deltaX), Math.abs(deltaY)) > 10) {
-      start.axis = Math.abs(deltaX) > Math.abs(deltaY) * 1.15 ? 'x' : 'y';
+    if (!start.axis && Math.max(Math.abs(deltaX), Math.abs(deltaY)) > 16) {
+      start.axis = Math.abs(deltaX) > Math.abs(deltaY) * 1.75 ? 'x' : 'y';
     }
     if (start.axis !== 'x') return;
 
@@ -60,8 +60,7 @@ export function useDashboardSwipeNav({
   const handleMainTouchEnd = useCallback((e: React.TouchEvent) => {
     const start = swipeStart.current;
     swipeStart.current = null;
-    if (!start) return;
-    if (start.blocksNavigation) return;
+    if (!start || start.blocksNavigation) return;
 
     const touch = e.changedTouches[0];
     if (!touch) return;
@@ -74,14 +73,14 @@ export function useDashboardSwipeNav({
     element.style.transition = 'transform var(--motion-medium) var(--ease-out)';
     element.style.transform = 'translate3d(0, 0, 0)';
 
-    const isHorizontalEnough = Math.abs(deltaX) > Math.abs(deltaY);
-    const isFastEnough = deltaT < 1000;
+    const isHorizontalEnough = Math.abs(deltaX) > Math.abs(deltaY) * 1.75;
+    const isFastEnough = deltaT < 650;
     const commits = shouldCommitGesture({
       distance: deltaX,
       velocity: velocityX,
       dimension: element.clientWidth || window.innerWidth,
-      distanceRatio: 0.12,
-      velocityThreshold: 350,
+      distanceRatio: 0.25,
+      velocityThreshold: 550,
     });
     if (!isHorizontalEnough || !commits || !isFastEnough) return;
 

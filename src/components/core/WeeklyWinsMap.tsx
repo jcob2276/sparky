@@ -14,31 +14,54 @@ export default function WeeklyWinsMap() {
   const winPct = Math.round((wins / 7) * 100);
 
   return (
-    <section className="rounded-3xl border border-border-custom/60 bg-surface/70 p-4">
-      <div className="flex items-start justify-between gap-3 mb-4">
+    <section className="rounded-3xl border border-border-custom/60 bg-surface/70 p-4.5 space-y-4 flex flex-col justify-between">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="flex items-center gap-2 text-2xs font-black uppercase tracking-widest text-text-muted">
-            <CheckSquare size={12} /> Power list · 7 dni
+          <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-widest text-text-muted">
+            <CheckSquare size={12} className="text-primary" /> Dyscyplina · 7 dni
           </p>
-          <p className="mt-1 text-base font-bold text-text-primary">
-            {isLoading ? 'Ładuję mapkę…' : `${wins}/7 dni z 5/5`}
-          </p>
-          {!isLoading && (
-            <p className="mt-0.5 text-xs text-text-muted">
-              {tasksDone}/{tasksSet || '?'} zadań · {daysActive}d aktywnych
-            </p>
-          )}
+          <h3 className="mt-1 text-base font-bold text-text-primary">
+            {isLoading ? 'Ładuję przebieg…' : `${wins}/7 dni z 5/5`}
+          </h3>
         </div>
-        {!isLoading && wins > 0 && (
-          <div className="flex flex-col items-end shrink-0">
-            <span className="text-2xl font-black text-text-primary leading-none">{winPct}%</span>
-            <span className="text-2xs font-bold text-text-muted uppercase tracking-wide">tygodnia</span>
-          </div>
-        )}
+        <span
+          className={`shrink-0 rounded-full px-2.5 py-0.5 text-2xs font-black uppercase tracking-wider ${
+            winPct >= 70
+              ? 'bg-success/15 text-success'
+              : winPct >= 40
+                ? 'bg-primary/15 text-primary'
+                : 'bg-warning/15 text-warning'
+          }`}
+        >
+          {winPct}% wygranych
+        </span>
+      </div>
+
+      {/* Hero Stats */}
+      <div className="rounded-2xl border border-border-custom/40 bg-surface/50 p-3 space-y-2">
+        <div className="flex items-baseline justify-between">
+          <p className="text-2xl font-black tracking-tight text-text-primary">
+            {tasksDone}
+            <span className="text-xs font-bold text-text-muted ml-1">/ {tasksSet || 35} zadań</span>
+          </p>
+          <span className="text-xs font-semibold text-text-secondary">
+            {daysActive}/7 dni aktywnych
+          </span>
+        </div>
+
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/30">
+          <div
+            className={`h-full rounded-full transition-all duration-300 ${
+              winPct >= 70 ? 'bg-success' : 'bg-primary'
+            }`}
+            style={{ width: `${winPct}%` }}
+          />
+        </div>
       </div>
 
       {/* Day cells */}
-      <div className="grid grid-cols-7 gap-1.5">
+      <div className="grid grid-cols-7 gap-1">
         {(data ??
           Array.from({ length: 7 }, (_, i) => ({
             date: `p-${i}`,

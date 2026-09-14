@@ -129,6 +129,7 @@ export default function TodoCard({
 
   return (
     <div
+      data-no-swipe-nav="true"
       className={`group relative ${isDone ? 'opacity-[var(--opacity-40)]' : ''} ${isDragging ? 'opacity-[var(--opacity-0)] pointer-events-none' : ''}`}
       style={
         swipe.completingOut

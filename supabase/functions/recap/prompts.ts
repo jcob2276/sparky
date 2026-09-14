@@ -65,16 +65,54 @@ export function factsToPrompt(f: any): string {
     ? f.claims.map((c: any) => `- [${c.epistemic_status}][${c.status}] ${c.fact_text} (${new Date(c.learned_at).toLocaleDateString("pl-PL", { timeZone: "Europe/Warsaw" })})`).join("\n")
     : "(brak)";
 
+  const phoneBlock = f.phoneStats?.daysWithData
+    ? `Śr. czas ekranu: ${f.phoneStats.avgPhoneMin ? `${f.phoneStats.avgPhoneMin}m (${(f.phoneStats.avgPhoneMin / 60).toFixed(1)}h)` : "brak"}\n` +
+      `Śr. nocny ekran (late night): ${f.phoneStats.avgLateNightMin ? `${f.phoneStats.avgLateNightMin}m` : "0m"} | Social media: ${f.phoneStats.avgSocialMin ? `${f.phoneStats.avgSocialMin}m` : "brak"} | Odblokowania: ${f.phoneStats.avgUnlocks ?? "brak"}/dzień\n` +
+      `Dni telemetrii telefonu:\n${f.phoneStats.dailyLines?.join("\n") || "(brak)"}`
+    : "(brak danych ActivityWatch / phone_usage_daily w tym tygodniu)";
+
+  const sleepDetailsBlock = f.sleepDetails?.dailyLines?.length
+    ? `Śr. sen: ${f.sleepHrs != null ? f.sleepHrs.toFixed(1) + "h" : "brak"}, śr. zaśnięcie: ${f.bedtime ?? "brak"}, śr. sleep score: ${f.sleepDetails.avgSleepScore ?? "brak"}, głęboki: ${f.sleepDetails.avgDeepSleep != null ? f.sleepDetails.avgDeepSleep + "h" : "brak"}\n` +
+      `Dni z deficytem snu (<6h): ${f.sleepDetails.daysUnder6h}\n` +
+      `Dni po kolei (sen/zaśnięcie/pobudka):\n${f.sleepDetails.dailyLines.join("\n")}`
+    : `SEN: śr. ${f.sleepHrs != null ? f.sleepHrs.toFixed(1) + "h" : "brak"}, śr. zaśnięcie ${f.bedtime ?? "brak"}`;
+
+  const taskRecurrenceBlock = f.taskRecurrence?.length
+    ? f.taskRecurrence.map((t: any) => `- "${t.title}": ${t.done}/${t.total} zrobione (${t.rate}%) · ${t.history}`).join("\n")
+    : "(brak powtarzających się zadań)";
+
+  const dayNotesBlock = f.dayNotes?.length
+    ? f.dayNotes.map((n: any) => `- ${n.date}: "${n.note}"`).join("\n")
+    : "(zero notatek zamykających dzień w tym tygodniu!)";
+  const daysWithoutNoteStr = f.daysWithoutNote?.length
+    ? `Dni ZAMKNIĘTE BEZ NOTATKI: ${f.daysWithoutNote.join(", ")}`
+    : "Wszystkie dni miały notatki";
+
+  const bhagBlock = f.bhagLine
+    ? `ROK / BHAG (Najwyższy cel tożsamościowy): ${f.bhagLine}${f.antiGoals?.length ? `\nAnty-cele: ${f.antiGoals.join(" · ")}` : ""}`
+    : "";
+
   return `Tydzień: ${f.weekStart} – ${f.weekEnd}
 
-${f.monthTheme ? `TEMAT MIESIĄCA (horyzont 4 tyg.): ${f.monthTheme}\n` : ""}${f.sprintGoal ? `CEL SPRINTU (12 tyg.): ${f.sprintGoal}\n` : ""}
-POWERLIST per dzień:
+${bhagBlock ? `${bhagBlock}\n` : ""}${f.monthTheme ? `TEMAT MIESIĄCA (horyzont 4 tyg.): ${f.monthTheme}\n` : ""}${f.sprintGoal ? `CEL SPRINTU (12 tyg.): ${f.sprintGoal}\n` : ""}
+POWERLIST — SKUTECZNOŚĆ KONKRETNYCH ZADAŃ (z nazwy):
+${taskRecurrenceBlock}
+
+POWERLIST per dzień (stan faktyczny):
 ${f.dayLines.join("\n") || "(brak)"}
 
 POWERLIST per filar:
 ${pillarLines}
 
-SEN: śr. ${f.sleepHrs != null ? f.sleepHrs.toFixed(1) + "h" : "brak"}, śr. zaśnięcie ${f.bedtime ?? "brak"}
+NOTATKI ZAMYKAJĄCE DZIEŃ (jakubowe zamknięcia dnia):
+${dayNotesBlock}
+${daysWithoutNoteStr}
+
+TELEFON I EKRAN (ActivityWatch / phone_usage_daily):
+${phoneBlock}
+
+SEN I BIOMETRIA (Oura Ring):
+${sleepDetailsBlock}
 READINESS (Oura): ${readinessLine}
 
 JEDZENIE: śr. ${f.avgKcal != null ? Math.round(f.avgKcal) + " kcal" : "brak"}${f.targetKcal ? ` (cel ${f.targetKcal})` : ""}, białko śr. ${f.avgProtein != null ? Math.round(f.avgProtein) + "g" : "brak"}, dni z logiem: ${f.nutritionDays}
