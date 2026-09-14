@@ -133,7 +133,7 @@ export default function Direction({
             showSprintMode
               ? 'Zamknięcie sprintu'
               : showMonthlyMode && !monthlyComplete
-                ? 'Przegląd miasta'
+                ? 'Przegląd miesiąca'
                 : showWeeklyPlanning
                   ? 'Plan następnego tygodnia'
                   : 'Radar tygodnia'

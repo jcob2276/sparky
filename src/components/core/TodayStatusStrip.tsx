@@ -1,14 +1,12 @@
-import { Activity, Beef, CheckCircle2, Dumbbell, Sparkles } from 'lucide-react';
+import { Activity, Beef, CheckCircle2, Dumbbell } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
-import { getTodayStateCopy } from '../../lib/horizonSignals';
 import { useDashboardContext } from './context/DashboardContext';
 import { useHaptics } from '../../hooks/useHaptics';
 
 export default function TodayStatusStrip() {
-  const { readiness, proteinToday, hasWorkoutToday, navigate } = useDashboardContext();
+  const { readiness, proteinToday, proteinTarget = 150, hasWorkoutToday, navigate } = useDashboardContext();
   const haptics = useHaptics();
 
-  const proteinTarget = 150;
   const proteinPct = Math.min(100, Math.round((proteinToday / proteinTarget) * 100));
 
   const readinessScore = Math.round(readiness);
@@ -39,17 +37,7 @@ export default function TodayStatusStrip() {
   };
 
   return (
-    <section className="space-y-2.5" aria-labelledby="today-state-title">
-      {/* Insight banner */}
-      <div className="flex items-center gap-2.5 rounded-2xl border border-border-custom/70 bg-surface-solid/30 px-3.5 py-2.5 shadow-2xs backdrop-blur-xs">
-        <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Sparkles size={13} />
-        </div>
-        <p id="today-state-title" className="text-xs font-medium leading-snug text-text-secondary">
-          {getTodayStateCopy(readiness)}
-        </p>
-      </div>
-
+    <section className="space-y-2.5" aria-label="Status dnia">
       {/* 3 Glanceable Metric Cards */}
       <div className="grid grid-cols-3 gap-2.5">
         {/* Gotowość */}

@@ -73,6 +73,7 @@ export function useDashboardData(sessionProp?: Session | null) {
     weeklyCalories: 0,
     todayWin: null,
     proteinToday: 0,
+    proteinTarget: 150,
     hasWorkoutToday: false,
     ouraToday: [],
     readiness: 0,

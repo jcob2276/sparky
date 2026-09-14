@@ -26,6 +26,7 @@ export async function fetchDashboardFallback(userId: string): Promise<DesktopQue
     marathonRes,
     nutritionTargetsRes,
     profileRes,
+    phoneUsageRes,
   ] = await Promise.all([
     supabase.from('oura_daily_summary').select('date, hrv_avg, rhr_avg, total_sleep_hours, readiness_score, sleep_score')
       .eq('user_id', userId).gte('date', since60).order('date', { ascending: true }),
@@ -37,7 +38,7 @@ export async function fetchDashboardFallback(userId: string): Promise<DesktopQue
       .eq('user_id', userId).gte('date', since91).order('date', { ascending: true }),
     supabase.from('daily_strain').select('daily_status, main_limiter, strain_score, recovery_score, fueling_score, fueling_provisional')
       .eq('user_id', userId).order('date', { ascending: false }).limit(1).maybeSingle(),
-    supabase.from('strava_activities_clean').select('sport_type, distance, moving_time, start_date, best_efforts')
+    supabase.from('strava_activities_clean').select('name, sport_type, distance, moving_time, elapsed_time, start_date, best_efforts, hr_avg')
       .eq('user_id', userId).gte('start_date', since91 + 'T00:00:00').order('start_date', { ascending: true }),
     supabase.from('habits').select('*').eq('user_id', userId).order('created_at', { ascending: true }),
     supabase.from('habit_logs').select('*').eq('user_id', userId).gte('date', since60),
@@ -62,6 +63,11 @@ export async function fetchDashboardFallback(userId: string): Promise<DesktopQue
       .select('height_cm, sleep_target_hours, protein_g_per_kg')
       .eq('user_id', userId)
       .maybeSingle(),
+    supabase.from('phone_usage_daily')
+      .select('date, total_minutes, late_night_minutes, social_minutes, messaging_minutes, entertainment_minutes, browser_minutes, unlocks, top_apps')
+      .eq('user_id', userId)
+      .gte('date', since60)
+      .order('date', { ascending: true }),
   ]);
 
   const ntRow = nutritionTargetsRes?.data;
@@ -104,6 +110,17 @@ export async function fetchDashboardFallback(userId: string): Promise<DesktopQue
     wiki: [],
     knowledge: [],
     lenieLogs: [],
+    phoneUsage: (phoneUsageRes?.data || []).map((p) => ({
+      date: p.date,
+      total_minutes: Number(p.total_minutes) || 0,
+      late_night_minutes: Number(p.late_night_minutes) || 0,
+      social_minutes: p.social_minutes != null ? Number(p.social_minutes) : null,
+      messaging_minutes: p.messaging_minutes != null ? Number(p.messaging_minutes) : null,
+      entertainment_minutes: p.entertainment_minutes != null ? Number(p.entertainment_minutes) : null,
+      browser_minutes: p.browser_minutes != null ? Number(p.browser_minutes) : null,
+      unlocks: p.unlocks != null ? Number(p.unlocks) : null,
+      top_apps: (p.top_apps as Record<string, number> | null) ?? null,
+    })),
     personalTargets: {
       proteinFloorG,
       targetKcal: ntRow?.target_kcal != null ? Number(ntRow.target_kcal) : null,

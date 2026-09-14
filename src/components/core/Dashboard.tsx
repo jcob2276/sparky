@@ -12,7 +12,7 @@ import { Pressable } from '../ui/ControlPrimitives';
 import { TIMEZONE } from '../../lib/date';
 import { Suspense, lazy } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { Sun, Calendar, FolderKanban, Clock, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Apple, Dumbbell, Flame, Eye, Activity, Mic, HeartPulse, GraduationCap } from 'lucide-react';
+import { Sun, Calendar, FolderKanban, Clock, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Apple, Dumbbell, Flame, Eye, Activity, Mic, HeartPulse, GraduationCap } from 'lucide-react';
 
 import { ErrorBoundary } from './ErrorBoundary';
 import { DashboardHeader } from './DashboardHeader';
@@ -42,7 +42,7 @@ import { DashboardTydzienTab } from './DashboardTydzienTab';
 import { DashboardHistoriaTab } from './DashboardHistoriaTab';
 import { DashboardProjektyTab } from './DashboardProjektyTab';
 
-const TAB_ORDER = ['dzis', 'tydzien', 'projekty', 'historia'];
+const TAB_ORDER = ['dzis', 'tydzien', 'historia'];
 
 function ViewFallback() {
   return (
@@ -128,8 +128,7 @@ export default function Dashboard({ session }: { session: Session }) {
   const navItems = [
     { id: 'dzis', icon: Sun, label: 'Dziś' },
     { id: 'tydzien', icon: Calendar, label: 'Tydzień' },
-    { id: 'projekty', icon: FolderKanban, label: 'Kierunek' },
-    { id: 'historia', icon: Clock, label: 'Historia' },
+    { id: 'historia', icon: Sparkles, label: 'Kronika' },
   ];
 
   const weeklyReviewNudge = new Date().getDay() === 0 && !s.taskReviewDoneThisWeek && (
@@ -165,7 +164,7 @@ export default function Dashboard({ session }: { session: Session }) {
     { label: 'Kierunek', icon: FolderKanban, action: () => s.navigate('/projekty') },
     { label: 'Kartoteka', icon: HeartPulse, action: () => s.navigate('/badania') },
     { label: 'Nauka', icon: GraduationCap, action: () => s.navigate('/rozwoj') },
-    { label: 'Historia', icon: Clock, action: () => s.navigate('/historia') },
+    { label: 'Kronika', icon: Sparkles, action: () => s.navigate('/historia') },
   ];
 
   return (
@@ -228,12 +227,7 @@ export default function Dashboard({ session }: { session: Session }) {
                 </ErrorBoundary>
                 <ErrorBoundary>
                   <div className={s.view === 'historia' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
-                    <DashboardHistoriaTab
-                      historySubTab={s.historySubTab}
-                      onSetSubTab={s.setHistorySubTab}
-                      weeklyCalories={s.weeklyCalories}
-                      nutritionKey={s.nutritionKey}
-                    />
+                    <DashboardHistoriaTab />
                   </div>
                 </ErrorBoundary>
                 <ErrorBoundary>
@@ -255,8 +249,14 @@ export default function Dashboard({ session }: { session: Session }) {
           onRefresh={s.refresh}
         />
         <div className={showLock ? 'pointer-events-none opacity-0' : 'pointer-events-auto opacity-100'} style={{ transition: 'opacity 0.15s' }}>
-          <DashboardNavBar view={s.view} navigateTo={s.navigateTo} urgentTodoCount={s.urgentTodoCount} navItems={navItems} tabOrder={TAB_ORDER} />
           <DashboardFastCaptureFAB active={s.showFastCapture} onToggle={() => s.setShowFastCapture(v => !v)} />
+          <DashboardNavBar
+            view={s.view}
+            navigateTo={s.navigateTo}
+            urgentTodoCount={s.urgentTodoCount}
+            navItems={navItems}
+            tabOrder={TAB_ORDER}
+          />
         </div>
 
         <DashboardModals

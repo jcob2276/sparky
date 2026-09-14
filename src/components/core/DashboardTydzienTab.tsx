@@ -37,7 +37,6 @@ export function DashboardTydzienTab({ weeklyCalories, nutritionKey, onOpenAction
         <HorizonHeader
           eyebrow="Reguluję"
           title="Tydzień"
-          description="Sprawdź przebieg, zobacz tylko istotne odchylenia i popraw pozostałą część tygodnia."
           icon={SlidersHorizontal}
         />
         <div className="grid gap-3 lg:grid-cols-2">

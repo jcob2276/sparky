@@ -3,6 +3,7 @@ import type { OuraHealthHubData } from './types';
 import { OuraContextSection } from './OuraContextSection';
 import Button from '../../ui/Button';
 import { OuraNightExplanation } from './OuraNightExplanation';
+import { getTodayWarsaw } from '../../../lib/date';
 
 interface OuraTodayViewProps {
   data: OuraHealthHubData;
@@ -56,7 +57,9 @@ export function OuraTodayView({ data, onOpenSleep }: OuraTodayViewProps) {
             <p className="relative mt-2 text-xs font-semibold uppercase tracking-widest text-info">Gotowość na dziś</p>
             <h2 className="relative mt-6 text-4xl font-light text-text-primary">{scoreStatus(readiness)}</h2>
             <p className="relative mx-auto mt-3 max-w-lg text-sm leading-6 text-text-secondary">
-              Wynik pochodzi z pomiarów Oura dla {data.date ?? 'wybranego dnia'}.
+              {data.date === getTodayWarsaw()
+                ? `Wynik pochodzi z pomiarów Oura dla ${data.date}.`
+                : `Wynik pochodzi z pomiarów Oura dla ${data.date ?? 'poprzedniego dnia'}. Użyj przycisku odświeżenia w nagłówku, aby pobrać dzisiejsze pomiary.`}
             </p>
           </>
         ) : (

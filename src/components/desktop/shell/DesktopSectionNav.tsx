@@ -1,17 +1,16 @@
 import { Link } from 'react-router-dom';
 import type { DesktopTabType } from './DesktopQuickActionsBar';
 import { Pressable } from '../../ui/ControlPrimitives';
+import Badge from '../../ui/Badge';
 import {
-  Zap,
   Dumbbell,
-  Target,
   HeartPulse,
   Brain,
   Layers,
   Sparkles,
-  AlarmClock,
   TrendingUp,
   Eye,
+  AlarmClock,
   GraduationCap,
 } from 'lucide-react';
 
@@ -19,12 +18,11 @@ interface Props {
   activeTab: DesktopTabType;
   onTabChange: (tab: DesktopTabType) => void;
   dailyStatus?: string;
+  naukaBadge?: number;
 }
 
-const TABS: { id: DesktopTabType; label: string; icon: typeof Zap }[] = [
-  { id: 'cockpit', label: 'Dziś', icon: Zap },
+const TABS: { id: DesktopTabType; label: string; icon: typeof Dumbbell }[] = [
   { id: 'training', label: 'Trening', icon: Dumbbell },
-  { id: 'direction', label: 'Kierunek', icon: Target },
   { id: 'health', label: 'Zdrowie', icon: HeartPulse },
   { id: 'intel', label: 'Pamięć', icon: Brain },
   { id: 'all', label: 'Wszystko', icon: Layers },
@@ -38,7 +36,7 @@ const SHORTCUTS = [
   { label: 'Nauka & Skill', href: '/rozwoj', icon: GraduationCap },
 ];
 
-export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus }: Props) {
+export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus, naukaBadge }: Props) {
   const statusColor =
     dailyStatus === 'green'
       ? 'bg-success'
@@ -70,7 +68,7 @@ export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus 
                   icon={<Icon size={14} className={isActive ? 'text-primary' : 'text-text-muted'} />}
                 >
                   <span className="flex-1 truncate">{label}</span>
-                  {id === 'cockpit' && statusColor && (
+                  {id === 'training' && statusColor && (
                     <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${statusColor}`} />
                   )}
                 </Pressable>
@@ -89,10 +87,15 @@ export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus 
             <li key={href}>
               <Link
                 to={href}
-                className="flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-xs font-semibold text-text-muted hover:text-text-primary hover:bg-surface-solid/10 transition-all"
+                className="flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-text-muted hover:text-text-primary hover:bg-surface-solid/10 transition-all"
               >
-                <Icon size={14} />
-                <span>{label}</span>
+                <div className="flex items-center gap-2.5 min-w-0 truncate">
+                  <Icon size={14} className="shrink-0" />
+                  <span className="truncate">{label}</span>
+                </div>
+                {href === '/rozwoj' && naukaBadge != null && naukaBadge > 0 && (
+                  <Badge count={naukaBadge} color="var(--color-danger)" />
+                )}
               </Link>
             </li>
           ))}

@@ -55,6 +55,7 @@ export function useStatsData() {
   const [includeWorkouts, setIncludeWorkouts] = useState(true);
   const [includeBody, setIncludeBody] = useState(true);
   const [includeActivityWatch, setIncludeActivityWatch] = useState(true);
+  const [includeFundament, setIncludeFundament] = useState(true);
   const [analyzeDate, setAnalyzeDate] = useState(() => getTodayWarsaw());
   const [analyzePeriod, setAnalyzePeriod] = useState(1);
   const [analyzeResult, setAnalyzeResult] = useState<FoodAnalysisResult | null>(null);
@@ -234,6 +235,7 @@ export function useStatsData() {
         includeWorkouts,
         includeBody,
         includeActivityWatch,
+        includeFundament,
       });
     },
     onError: (err: Error) => {
@@ -242,10 +244,7 @@ export function useStatsData() {
     }
   });
 
-  const exportData = () => {
-    exportDataMutation.mutate();
-  };
-
+  const exportData = () => { exportDataMutation.mutate(); };
   const isExporting = exportDataMutation.isPending;
 
   const exportOuraCSVMutation = useMutation({
@@ -258,23 +257,14 @@ export function useStatsData() {
     }
   });
 
-  const exportOuraCSV = () => {
-    exportOuraCSVMutation.mutate();
-  };
-
+  const exportOuraCSV = () => { exportOuraCSVMutation.mutate(); };
   const isExportingOura = exportOuraCSVMutation.isPending;
 
   return {
-    userId,
-    loading,
-    bodyData,
-    recentSessions,
-    strainRows,
+    userId, loading, bodyData, recentSessions, strainRows, heightCm, trends, projections,
     newMetric, setNewMetric,
-    heightCm,
     dateRange, setDateRange,
-    isExporting,
-    isExportingOura,
+    isExporting, isExportingOura,
     includeNutrition, setIncludeNutrition,
     includeJournal, setIncludeJournal,
     includeOura, setIncludeOura,
@@ -282,25 +272,16 @@ export function useStatsData() {
     includeWorkouts, setIncludeWorkouts,
     includeBody, setIncludeBody,
     includeActivityWatch, setIncludeActivityWatch,
-    isAnalyzing,
+    includeFundament, setIncludeFundament,
+    isAnalyzing, isAnalyzingTraining,
     analyzeDate, setAnalyzeDate,
     analyzePeriod, setAnalyzePeriod,
     analyzeResult, setAnalyzeResult,
     editingSession, setEditingSession,
     showAllSessions, setShowAllSessions,
     editForm, setEditForm,
-    trends,
-    projections,
-    isAnalyzingTraining,
     trainingAnalysis,
-    saveMetrics,
-    deleteSession,
-    analyzeFood,
-    analyzeTrainingLoad,
-    startEditing,
-    updateSession,
-    deleteLog,
-    exportData,
-    exportOuraCSV,
+    saveMetrics, deleteSession, analyzeFood, analyzeTrainingLoad,
+    startEditing, updateSession, deleteLog, exportData, exportOuraCSV,
   };
 }

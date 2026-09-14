@@ -105,6 +105,8 @@ export interface ExportStatsMarkdownParams {
   includeWorkouts: boolean;
   includeBody: boolean;
   includeActivityWatch: boolean;
+  includeLenie?: boolean;
+  includeFundament?: boolean;
 }
 
 export interface ExportOuraCsvParams {

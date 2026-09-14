@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { getTodayStateCopy, needsNutritionCorrection, needsRecoveryCorrection } from './horizonSignals';
+import { needsNutritionCorrection, needsRecoveryCorrection } from './horizonSignals';
 
 describe('horizon signals', () => {
-  it('keeps missing readiness neutral and under user control', () => {
-    expect(getTodayStateCopy(0)).toContain('synchronizuje');
-  });
 
   it('flags nutrition only when a real weekly deviation exists', () => {
     expect(needsNutritionCorrection({ loggedDays: 7, averageProtein: 140, proteinGoal: 150, caloriesDeltaPct: 2 })).toBe(false);

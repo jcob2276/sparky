@@ -18,7 +18,7 @@ function isEveningSupplementName(name: string): boolean {
   return /pyłek|pylek|pollen/i.test(name);
 }
 
-export function useSupplementsData(userId: string) {
+function useSupplementFormState() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('💊');
@@ -33,6 +33,25 @@ export function useSupplementsData(userId: string) {
   const [hasReminder, setHasReminder] = useState(defaultHasReminder);
   const [reminderTime, setReminderTime] = useState(defaultReminderTime);
   const [submitting, setSubmitting] = useState(false);
+
+  const resetForm = () => {
+    setName(''); setEmoji('💊'); setUnit('porcja'); setSkipQty(false); setReverseLogic(false);
+    setHasCycle(false); setStartDate(''); setEndDate('');
+    setHasReminder(false); setReminderTime(MORNING_REMINDER_DEFAULT); setShowAddForm(false);
+  };
+
+  return {
+    showAddForm, setShowAddForm,
+    name, setName, emoji, setEmoji, unit, setUnit, skipQty, setSkipQty,
+    reverseLogic, setReverseLogic,
+    hasCycle, setHasCycle, startDate, setStartDate, endDate, setEndDate,
+    hasReminder, setHasReminder, reminderTime, setReminderTime,
+    submitting, setSubmitting, resetForm,
+  };
+}
+
+export function useSupplementsData(userId: string) {
+  const form = useSupplementFormState();
 
   const today = getTodayWarsaw();
   const sinceDate = shiftDateStr(today, -14);
@@ -83,33 +102,31 @@ export function useSupplementsData(userId: string) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
-    setSubmitting(true);
+    if (!form.name.trim()) return;
+    form.setSubmitting(true);
     try {
-      const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'sup_' + Date.now();
+      const slug = form.name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'sup_' + Date.now();
       await saveMutation.mutateAsync({
         userId,
         supplement: {
           slug,
-          name: name.trim(),
-          emoji: emoji.trim() || '💊',
-          unit: unit.trim() || 'kapsułka',
-          dose_per_unit: { reverse_logic: reverseLogic },
+          name: form.name.trim(),
+          emoji: form.emoji.trim() || '💊',
+          unit: form.unit.trim() || 'kapsułka',
+          dose_per_unit: { reverse_logic: form.reverseLogic },
           sort_order: supplements.length + 1,
           active: true,
-          start_date: hasCycle && startDate ? startDate : null,
-          end_date: hasCycle && endDate ? endDate : null,
-          reminder_time: hasReminder && reminderTime ? reminderTime : null,
-          skip_qty: skipQty,
+          start_date: form.hasCycle && form.startDate ? form.startDate : null,
+          end_date: form.hasCycle && form.endDate ? form.endDate : null,
+          reminder_time: form.hasReminder && form.reminderTime ? form.reminderTime : null,
+          skip_qty: form.skipQty,
         },
       });
-      setName(''); setEmoji('💊'); setUnit('porcja'); setSkipQty(false); setReverseLogic(false);
-      setHasCycle(false); setStartDate(''); setEndDate('');
-      setHasReminder(false); setReminderTime(MORNING_REMINDER_DEFAULT); setShowAddForm(false);
+      form.resetForm();
     } catch (err: unknown) {
       console.error('[supplements] Save failed:', err);
       notify('Wystąpił błąd podczas zapisywania suplementu.', 'error');
-    } finally { setSubmitting(false); }
+    } finally { form.setSubmitting(false); }
   }
 
   function isLogged(supplementId: string, date: string): boolean {
@@ -133,16 +150,60 @@ export function useSupplementsData(userId: string) {
     }
   }
 
+  async function handleLogAllToday() {
+    const unloggedSups = activeSups.filter(sup => {
+      const isReverse = sup.name.toLowerCase().includes('pyłek') || sup.name.toLowerCase().includes('pollen') || sup.dose_per_unit?.['reverse_logic'] === true;
+      const takenToday = isReverse ? !isLogged(sup.id, today) : isLogged(sup.id, today);
+      return !takenToday;
+    });
+    if (unloggedSups.length === 0) {
+      notify('Wszystkie suplementy na dziś są już zalogowane!', 'info');
+      return;
+    }
+    try {
+      for (const sup of unloggedSups) {
+        const existingLog = logs.find(l => l.supplement_id === sup.id && l.date === today);
+        await toggleMutation.mutateAsync({
+          userId,
+          supplementId: sup.id,
+          date: today,
+          sinceDate,
+          existingLog,
+        });
+      }
+      notify(`Zalogowano ${unloggedSups.length} suplementów na dziś!`, 'success');
+    } catch (err: unknown) {
+      notify('Wystąpił błąd podczas masowego logowania.', 'error');
+      console.warn('[SupplementsPanel] Failed to batch log:', err);
+    }
+  }
+
+  async function handleRenewCycle(sup: Supplement, days: number = 30) {
+    try {
+      const newStart = today;
+      const newEnd = shiftDateStr(today, days);
+      await saveMutation.mutateAsync({
+        userId,
+        supplement: {
+          ...sup,
+          start_date: newStart,
+          end_date: newEnd,
+        },
+      });
+      notify(`Odnowiono cykl "${sup.name}" na kolejne ${days} dni.`, 'success');
+    } catch (err: unknown) {
+      notify('Nie udało się odnowić cyklu.', 'error');
+      console.warn('[SupplementsPanel] Failed to renew cycle:', err);
+    }
+  }
+
   const activeSups = supplements.filter(s => s.active);
 
   return {
     supplements, logs, loading, error, activeSups,
-    showAddForm, setShowAddForm,
-    name, setName, emoji, setEmoji, unit, setUnit, skipQty, setSkipQty,
-    reverseLogic, setReverseLogic,
-    hasCycle, setHasCycle, startDate, setStartDate, endDate, setEndDate,
-    hasReminder, setHasReminder, reminderTime, setReminderTime,
-    submitting, today, last7Days,
+    ...form,
+    today, last7Days,
     handleToggle, handleDeactivate, handleSubmit, handleUpdateReminder, isLogged,
+    handleLogAllToday, handleRenewCycle,
   };
 }

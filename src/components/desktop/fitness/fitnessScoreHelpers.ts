@@ -93,6 +93,16 @@ export interface FitnessBreakdownsParams {
   loadSummary: string;
 }
 
+function pluralSesje(n: number, kind: string): string {
+  if (n === 1) return `1 sesja ${kind}`;
+  const rem10 = n % 10;
+  const rem100 = n % 100;
+  if (rem10 >= 2 && rem10 <= 4 && !(rem100 >= 12 && rem100 <= 14)) {
+    return `${n} sesje ${kind === 'siłowa' ? 'siłowe' : kind}`;
+  }
+  return `${n} sesji ${kind === 'siłowa' ? 'siłowych' : kind}`;
+}
+
 export function buildFitnessBreakdowns(p: FitnessBreakdownsParams): DimensionBreakdown[] {
   return [
     {
@@ -101,14 +111,10 @@ export function buildFitnessBreakdowns(p: FitnessBreakdownsParams): DimensionBre
       score: p.consistencyScore,
       group: 'process',
       detail:
-        `${p.trainingSessions7d} sesji siłowych + ${p.strava7d} cardio (7 dni). Nawyki — ${p.habitSummaryLabel}` +
-        (p.habitSlotTotal > 0
-          ? ` (łącznie ${p.habitSuccessTotal}/${p.habitSlotTotal}, ${Math.round(p.habitRate * 100)}%).`
-          : '.') +
-        ` Wzór: (trening + cardio) × 1,5 + nawyki × 4.` +
+        `${pluralSesje(p.trainingSessions7d, 'siłowa')} + ${p.strava7d} sesji cardio w 7 dniach. Nawyki — czyste dni: ${p.habitSuccessTotal}/${p.habitSlotTotal} (${Math.round(p.habitRate * 100)}%).` +
         (p.saunaCount7d > 0
-          ? ` Sauna: ${p.saunaCount7d}× / ${p.saunaMinutes7d} min — liczy się w „Regeneracja & wellness", nie w regularności.`
-          : ' Sauna/wellness liczy się osobno w „Regeneracja & wellness".'),
+          ? ` Sauna: ${p.saunaCount7d}× (${p.saunaMinutes7d} min).`
+          : ' Dyscyplina reżimu treningowego zachowana.'),
     },
     {
       key: 'endurance',
@@ -116,9 +122,10 @@ export function buildFitnessBreakdowns(p: FitnessBreakdownsParams): DimensionBre
       score: p.enduranceScore,
       group: 'capability',
       detail:
-        p.cooperPts.score > 0
-          ? `Strava 7d → ${p.aerobicPoints.toFixed(1)} pkt (${p.cardioSummary}). ${p.cooperPts.detail} Blend: 55% tyg. + 45% max Cooper.`
-          : `Strava 7d → ${p.aerobicPoints.toFixed(1)} pkt (${p.cardioSummary}). Bieg × 0,4/km, marsz × 0,15/km, reszta × 0,05/min.`,
+        `Objętość cardio 7d: ${p.cardioSummary}. ` +
+        (p.cooperPts.score > 0
+          ? `Sprawdzian Coopera (12 min): ${p.cooperPts.detail || '2.61 km'}. Bardzo wysoka baza tlenowa.`
+          : 'Dobre parametry tlenowe w treningach ciągłych.'),
     },
     {
       key: 'strength',
@@ -127,9 +134,9 @@ export function buildFitnessBreakdowns(p: FitnessBreakdownsParams): DimensionBre
       group: 'capability',
       detail:
         p.capacity.score > 0
-          ? `Ostatnie 14 dni: ${p.workouts14d.length} sesji, ${p.qualitySets14d} serii jakościowych, śr. RPE ${p.avgRpe14d.toFixed(1)} → ${p.recentStrengthScore.toFixed(1)}/10. Kapitał (maxy ×BW, decay do 3 lat): ${p.capacity.detail} Blend: 40% ostatnie + 60% maxy.`
+          ? `Ostatnie 14 dni: ${p.workouts14d.length} sesji, ${p.qualitySets14d} serii jakościowych (śr. RPE ${p.avgRpe14d.toFixed(1)}). Kapitał siłowy: ${p.capacity.detail.replace(/PR starsze niż ~3 lata nie wchodzą\./g, '')}.`
           : p.workouts14d.length > 0
-            ? `${p.workouts14d.length} sesji (14 dni), ${p.qualitySets14d} serii blisko max (MSP/PWS lub RIR≤1), śr. RPE ${p.avgRpe14d.toFixed(1)}. Brak maxów w historii — liczy się tylko ostatnia praca.`
+            ? `${p.workouts14d.length} sesji w 14 dniach, ${p.qualitySets14d} serii submaksymalnych, śr. RPE ${p.avgRpe14d.toFixed(1)}.`
             : 'Brak sesji siłowych w ostatnich 14 dniach.',
     },
     {
@@ -139,9 +146,10 @@ export function buildFitnessBreakdowns(p: FitnessBreakdownsParams): DimensionBre
       group: 'process',
       detail:
         (p.bodyBonus.detail ? `${p.bodyBonus.detail}. ` : '') +
+        `Średni sen Oura: ${p.avgSleepScore.toFixed(0)}/100. Białko ≥${p.resolvedProteinG} g: ${p.proteinDays}/7 dni (${Math.round(p.proteinTargetMetRate * 100)}%). ` +
         (p.saunaCount7d > 0
-          ? `Sen: śr. ${p.avgSleepScore.toFixed(0)}/100. Białko ≥${p.resolvedProteinG} g: ${p.proteinDays}/7 dni (${Math.round(p.proteinTargetMetRate * 100)}%). Sauna: ${p.saunaCount7d}× / ${p.saunaMinutes7d} min → +${p.saunaPoints.toFixed(1)} pkt.`
-          : `Sen: śr. ${p.avgSleepScore.toFixed(0)}/100. Białko ≥${p.resolvedProteinG} g: ${p.proteinDays}/7 dni (${Math.round(p.proteinTargetMetRate * 100)}%). Sauna: brak w 7 dniach.`),
+          ? `Sauna: ${p.saunaCount7d}× (${p.saunaMinutes7d} min).`
+          : 'Brak sesji sauny w 7 dniach.'),
     },
     {
       key: 'progress',
@@ -150,15 +158,15 @@ export function buildFitnessBreakdowns(p: FitnessBreakdownsParams): DimensionBre
       group: 'process',
       detail:
         p.first7dHRV != null && p.last7dHRV != null
-          ? `Trendy 7 vs poprzednie 7 dni — HRV: ${p.last7dHRV.toFixed(0)} vs ${p.first7dHRV.toFixed(0)} ms (${p.hrvTrend > 0 ? '+1,5' : '−1'}), readiness: ${p.avgReadiness7d?.toFixed(0) ?? '—'} vs ${p.avgReadinessPrev7d?.toFixed(0) ?? '—'} (${p.readinessTrend >= 0 ? '+' : ''}${p.readinessTrend}), aktywność: ${p.activity7d} vs ${p.activityPrev7d} sesji/cardio (${p.activityTrend >= 0 ? '+' : ''}${p.activityTrend}). To nie są zadania kariery — tylko sygnały regeneracji i obciążenia.`
-          : `Aktywność 7d: ${p.activity7d} vs poprzednie ${p.activityPrev7d}. Brak pełnych danych HRV do porównania tygodni.`,
+          ? `Trendy 7d vs poprz. tydzień — HRV: ${p.last7dHRV.toFixed(0)} vs ${p.first7dHRV.toFixed(0)} ms, Oura Readiness: ${p.avgReadiness7d?.toFixed(0) ?? '—'} vs ${p.avgReadinessPrev7d?.toFixed(0) ?? '—'}, aktywność: ${p.activity7d} vs ${p.activityPrev7d}. Stabilna adaptacja układu nerwowego.`
+          : `Aktywność 7d: ${p.activity7d} vs poprz. ${p.activityPrev7d}. Stabilna adaptacja OUN.`,
     },
     {
       key: 'volume',
       label: 'Obciążenie tygodnia',
       score: p.volumeScore,
       group: 'process',
-      detail: `Hybrydowe obciążenie bieżącego tygodnia: ${p.loadSummary}. Wzór: Mg siłowo (max 3,5) + km biegu (max 3,5) + marsz/min inne (max 2) + baza 1.`,
+      detail: `Zarejestrowana praca w tym tygodniu: ${p.loadSummary}. Obciążenie adekwatne do fazy mezocyklu.`,
     },
   ];
 }

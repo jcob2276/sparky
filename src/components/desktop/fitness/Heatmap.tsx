@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { format, parseISO } from 'date-fns';
 import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 import { isLogWellness, sessionVol } from '../../biometrics/workout/workoutUtils';
+import { isGarminSaunaActivity } from '../../../lib/health/workoutSauna';
+import { HeatmapTooltip, type HeatmapCellData, type HeatmapDay, type HeatmapTooltipState } from './HeatmapTooltip';
 
 interface ExerciseLog {
   exercise_name: string;
@@ -19,21 +20,8 @@ interface SessionItem {
   exercise_logs: ExerciseLog[];
 }
 
-interface HeatmapCellData {
-  vol: number;
-  wellness: boolean;
-  name: string | null;
-  exercises: string[];
-  rpe: number | null;
-}
-
-interface HeatmapDay {
-  date: string;
-  future: boolean;
-  data: HeatmapCellData | null;
-}
-
 interface StravaActivity {
+  name?: string | null;
   sport_type: string | null;
   distance: number | null;
   start_date: string | null;
@@ -74,11 +62,7 @@ function getDayColors(day: HeatmapDay, kmRun: number): string[] {
 }
 
 export default function Heatmap({ sessions, strava = [] }: HeatmapProps) {
-  const [tooltip, setTooltip] = useState<{
-    day: HeatmapDay;
-    kmRun: number;
-    rect: DOMRect;
-  } | null>(null);
+  const [tooltip, setTooltip] = useState<HeatmapTooltipState | null>(null);
 
   const todayStr = getTodayWarsaw();
 
@@ -93,10 +77,27 @@ export default function Heatmap({ sessions, strava = [] }: HeatmapProps) {
 
   const runMap: Record<string, number> = {};
   for (const a of strava) {
-    if (!a.sport_type || !a.start_date || !a.distance) continue;
-    if (!['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type)) continue;
+    if (!a.sport_type || !a.start_date) continue;
     const d = a.start_date.slice(0, 10);
-    runMap[d] = (runMap[d] || 0) + (Number(a.distance) || 0) / 1000;
+    if (['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type) && a.distance) {
+      runMap[d] = (runMap[d] || 0) + (Number(a.distance) || 0) / 1000;
+    }
+    if (isGarminSaunaActivity(a)) {
+      if (!dateMap[d]) {
+        dateMap[d] = {
+          vol: 0,
+          wellness: true,
+          name: a.name || 'Sauna (Garmin Kardio)',
+          exercises: ['Sauna (regeneracja ciepłem)'],
+          rpe: null,
+        };
+      } else {
+        dateMap[d].wellness = true;
+        if (!dateMap[d].exercises.some(e => e.toLowerCase().includes('sauna'))) {
+          dateMap[d].exercises.push('Sauna (Garmin Kardio)');
+        }
+      }
+    }
   }
 
   const dow = new Date(todayStr + 'T12:00:00Z').getUTCDay();
@@ -117,8 +118,57 @@ export default function Heatmap({ sessions, strava = [] }: HeatmapProps) {
 
   const DAYS = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
 
+  // Adherence & discipline statistics for 13 weeks
+  const nonFutureDays = weeks.flatMap((w) => w).filter((d) => !d.future);
+  const totalDays = nonFutureDays.length || 1;
+  let activeDays = 0;
+  let runCount = 0;
+  let gymCount = 0;
+  let wellnessCount = 0;
+
+  for (const day of nonFutureDays) {
+    const km = runMap[day.date] || 0;
+    const hasGym = day.data && !day.data.wellness;
+    const hasWellness = day.data && day.data.wellness;
+    if (km > 0 || hasGym || hasWellness) {
+      activeDays++;
+      if (km > 0) runCount++;
+      if (hasGym) gymCount++;
+      if (hasWellness) wellnessCount++;
+    }
+  }
+
+  const adherencePct = Math.round((activeDays / totalDays) * 100);
+  const weeksCount = Math.max(1, Math.round(totalDays / 7));
+  const avgUnitsPerWeek = (activeDays / weeksCount).toFixed(1);
+  const totalEvents = (runCount + gymCount + wellnessCount) || 1;
+  const runPct = Math.round((runCount / totalEvents) * 100);
+  const gymPct = Math.round((gymCount / totalEvents) * 100);
+  const wellPct = Math.round((wellnessCount / totalEvents) * 100);
+
   return (
     <div>
+      {/* ── Summary Strip: Adherence, weekly rhythm, discipline balance ── */}
+      <div className="flex flex-wrap items-center justify-between gap-3 px-3 py-1.5 rounded-lg bg-surface-2/40 border border-border-custom/50 text-2xs mb-3.5">
+        <div className="flex items-center gap-1.5">
+          <span className="text-text-muted">Konsekwencja:</span>
+          <span className="font-bold text-text-primary">{activeDays}/{totalDays} dni</span>
+          <span className={`font-mono font-bold ${adherencePct >= 75 ? 'text-success' : 'text-warning'}`}>({adherencePct}% spójności)</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-text-muted">Rytm:</span>
+          <span className="font-bold text-text-primary">{avgUnitsPerWeek} jedn./tydzień</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-3xs text-text-muted">
+          <span>Balans:</span>
+          <span className="text-warning font-semibold">{runPct}% bieg</span>
+          <span>·</span>
+          <span className="text-primary font-semibold">{gymPct}% siła</span>
+          <span>·</span>
+          <span className="text-info font-semibold">{wellPct}% wellness</span>
+        </div>
+      </div>
+
       <div className="flex gap-1.5 items-start">
         <div className="flex flex-col gap-[var(--ds-arbitrary-5px-coll-2)] pt-7 mr-1">
           {DAYS.map(d => <div key={d} className="text-2xs text-text-muted w-4 h-3.5 flex items-center">{d}</div>)}
@@ -172,40 +222,7 @@ export default function Heatmap({ sessions, strava = [] }: HeatmapProps) {
         </div>
       </div>
 
-      {tooltip && createPortal(
-        <div
-          style={{
-            position: 'fixed',
-            left: Math.min(tooltip.rect.right + 10, window.innerWidth - 190),
-            top: Math.max(8, tooltip.rect.top - 36),
-            zIndex: 'var(--ds-inline-style-9999)',
-            pointerEvents: 'none',
-          }}
-          className="rounded-[var(--radius-md)] border border-border-custom bg-surface shadow-xl px-3.5 py-2.5 min-w-[var(--ds-w-160px)]"
-        >
-          <p className="text-2xs font-black text-text-muted mb-1">{tooltip.day.date}</p>
-          {tooltip.kmRun > 0 && (
-            <p className="text-xs font-bold text-warning mt-0.5">{tooltip.kmRun.toFixed(1)} km biegu</p>
-          )}
-          {tooltip.day.data && (
-            <>
-              {tooltip.day.data.name && <p className="text-sm font-black text-text-primary leading-tight">{tooltip.day.data.name}</p>}
-              {tooltip.day.data.wellness ? (
-                <p className="text-xs text-info font-bold mt-0.5">Wellness</p>
-              ) : (
-                <>
-                  {tooltip.day.data.vol > 0 && <p className="text-xs font-bold text-primary mt-0.5">{(tooltip.day.data.vol / 1000).toFixed(1)} Mg</p>}
-                  {tooltip.day.data.rpe && <p className="text-2xs text-text-muted mt-0.5">RPE <span className="font-black">{tooltip.day.data.rpe}</span></p>}
-                </>
-              )}
-              {tooltip.day.data.exercises?.length > 0 && (
-                <p className="text-2xs text-text-muted mt-1 leading-relaxed">{tooltip.day.data.exercises.join(' · ')}</p>
-              )}
-            </>
-          )}
-        </div>,
-        document.body
-      )}
+      <HeatmapTooltip tooltip={tooltip} />
 
       <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border-custom flex-wrap">
         <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">Legenda:</span>

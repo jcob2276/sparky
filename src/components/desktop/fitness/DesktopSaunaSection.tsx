@@ -1,7 +1,7 @@
 import { Flame, Clock, Calendar, Zap, Plus } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import { Pressable } from '../../ui/ControlPrimitives';
-import { getSaunaStats, sessionDateKey } from '../../../lib/health/workoutSauna';
+import { getSaunaStats, isGarminSaunaActivity, sessionDateKey } from '../../../lib/health/workoutSauna';
 import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 import type { DesktopSessionRow, StravaActivityRow } from '../shell/useDesktopData';
 
@@ -19,8 +19,8 @@ export default function DesktopSaunaSection({ sessions, strava, onOpenSauna }: P
   const weekStats = getSaunaStats(validSessions, sevenDaysAgo, strava);
   const monthStats = getSaunaStats(validSessions, thirtyDaysAgo, strava);
 
-  // Find latest sauna session
-  const latestSauna = validSessions
+  // Find latest sauna from manual workout sessions
+  const latestManual = validSessions
     .filter((s) => {
       const name = (s.workout_day || '').toLowerCase();
       const logs = s.exercise_logs ?? [];
@@ -28,11 +28,25 @@ export default function DesktopSaunaSection({ sessions, strava, onOpenSauna }: P
     })
     .sort((a, b) => (sessionDateKey(b.date) || '').localeCompare(sessionDateKey(a.date) || ''))[0];
 
-  const latestMins = latestSauna
-    ? (latestSauna.exercise_logs ?? [])
+  const manualDate = latestManual ? sessionDateKey(latestManual.date) : '';
+  const manualMins = latestManual
+    ? (latestManual.exercise_logs ?? [])
         .filter((l) => (l.exercise_name || '').toLowerCase().includes('sauna'))
         .reduce((sum, l) => sum + (Number(l.reps) || 0), 0)
     : 0;
+
+  // Find latest sauna from Garmin / Strava
+  const garminSaunas = (strava || []).filter(isGarminSaunaActivity);
+  const latestGarmin = garminSaunas.sort((a, b) => (sessionDateKey(b.start_date) || '').localeCompare(sessionDateKey(a.start_date) || ''))[0];
+  const garminDate = latestGarmin ? sessionDateKey(latestGarmin.start_date) : '';
+  const garminMins = latestGarmin
+    ? Math.round((latestGarmin.elapsed_time || latestGarmin.moving_time || 0) / 60)
+    : 0;
+
+  const isGarminNewer = !!garminDate && (!manualDate || garminDate >= manualDate);
+  const latestDateStr = isGarminNewer ? garminDate : manualDate;
+  const latestMinutes = isGarminNewer ? (garminMins || 20) : manualMins;
+  const latestSource = isGarminNewer ? 'Garmin Kardio' : 'Wpis';
 
   const targetSessionsPerWeek = 2;
   const isTargetMet = weekStats.sessionsCount >= targetSessionsPerWeek;
@@ -93,10 +107,10 @@ export default function DesktopSaunaSection({ sessions, strava, onOpenSauna }: P
             <Calendar size={11} /> Ostatnia sesja
           </p>
           <p className="mt-1 text-sm font-semibold text-text-primary">
-            {latestSauna ? sessionDateKey(latestSauna.date) : 'Brak w bazie'}
+            {latestDateStr || 'Brak w bazie'}
           </p>
           <p className="mt-0.5 text-2xs text-text-muted">
-            {latestMins > 0 ? `${latestMins} min` : latestSauna ? 'sesja zapisana' : 'zaplanuj sesję'}
+            {latestMinutes > 0 ? `${latestMinutes} min (${latestSource})` : latestDateStr ? 'sesja zapisana' : 'zaplanuj sesję'}
           </p>
         </div>
       </div>
@@ -105,13 +119,13 @@ export default function DesktopSaunaSection({ sessions, strava, onOpenSauna }: P
         <div className="flex items-center gap-2">
           <Zap size={14} className="text-warning shrink-0" />
           <span className="text-text-secondary">
-            Zalecany protokół: <strong>2–3 sesje tygodniowo</strong> po 15–20 minut dla optymalnej ekspresji białek HSP70 i wyrzutu GH.
+            Zalecany protokół: <strong>2–3 sesje tygodniowo</strong> po 15–20 minut (białka szoku cieplnego HSP70, +15–25 min głębokiego snu Oura, aklimatyzacja osocza).
           </span>
         </div>
         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-3xs font-bold uppercase tracking-widest ${
           isTargetMet ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
         }`}>
-          {isTargetMet ? 'Cel zrealizowany' : 'Wymaga domknięcia'}
+          {isTargetMet ? 'Cel zrealizowany' : `Brakuje ${targetSessionsPerWeek - weekStats.sessionsCount} sesji`}
         </span>
       </div>
     </Card>

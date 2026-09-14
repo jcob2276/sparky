@@ -1,14 +1,12 @@
-import { Pressable } from '../ui/ControlPrimitives';
-import { formatShortDateWarsaw } from '../../lib/date';
 import { useCallback, useEffect, useState } from 'react';
-import { Activity, AlertTriangle, Clock, HeartPulse, RefreshCw, Route } from 'lucide-react';
+import { Activity, AlertTriangle, Clock, HeartPulse, RefreshCw, Route, Mountain, Trophy } from 'lucide-react';
+import { format, parseISO } from 'date-fns';
+import type { Session } from '@supabase/supabase-js';
 import { supabase, invokeEdge } from '../../lib/supabase';
 import { unwrapList } from '../../lib/supabaseUtils';
 import { TIMEOUTS } from '../../lib/constants';
 import Spinner from '../ui/Spinner';
-import Badge from '../ui/Badge';
-import { Card } from '../ui/Card';
-import type { Session } from '@supabase/supabase-js';
+import { Pressable } from '../ui/ControlPrimitives';
 
 interface StravaActivityItem {
   strava_id: number | null;
@@ -29,7 +27,7 @@ function fmtPace(secPerKm: number | null | undefined) {
   if (!secPerKm) return '--';
   const minutes = Math.floor(secPerKm / 60);
   const seconds = Math.round(secPerKm % 60);
-  return `${minutes}:${String(seconds).padStart(2, '0')}/km`;
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
 function fmtTime(seconds: number | null | undefined) {
@@ -40,9 +38,23 @@ function fmtTime(seconds: number | null | undefined) {
   return `${minutes}m`;
 }
 
-function fmtDate(iso: string | null | undefined) {
+function fmtDateWithWeekday(iso: string | null | undefined) {
   if (!iso) return '--';
-  return formatShortDateWarsaw(iso);
+  try {
+    const d = parseISO(iso);
+    const day = format(d, 'dd.MM');
+    const weekdays = ['Nd', 'Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb'];
+    return `${day} · ${weekdays[d.getDay()]}`;
+  } catch {
+    return '--';
+  }
+}
+
+function getHrZone(hr: number) {
+  if (hr < 135) return { label: 'Strefa 2 (Tlenowa)', color: 'text-success bg-success/10 border-success/20' };
+  if (hr < 155) return { label: 'Strefa 3 (Aerobowa)', color: 'text-primary bg-primary/10 border-primary/20' };
+  if (hr < 172) return { label: 'Strefa 4 (Próg)', color: 'text-warning bg-warning/10 border-warning/20' };
+  return { label: 'Strefa 5 (Maks)', color: 'text-danger bg-danger/10 border-danger/20' };
 }
 
 function isRun(activity: StravaActivityItem) {
@@ -50,53 +62,106 @@ function isRun(activity: StravaActivityItem) {
   return text.includes('run') || text.includes('bieg');
 }
 
-function RunRow({ activity }: { activity: StravaActivityItem }) {
+function RunCard({ activity }: { activity: StravaActivityItem }) {
   const distance = activity.distance ? (Number(activity.distance) / 1000).toFixed(2) : '--';
   const hrAvg = activity.hr_avg ? Math.round(activity.hr_avg) : null;
+  const hrZone = hrAvg ? getHrZone(hrAvg) : null;
+  const elevation = activity.total_elevation_gain != null ? Math.round(activity.total_elevation_gain) : null;
 
   return (
-    <Card padding="1rem">
-      <div className="flex items-start justify-between gap-3">
+    <div className="rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm transition-all hover:border-border-custom/80 space-y-3">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
-          <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted">
-            {fmtDate(activity.start_date)}
-          </p>
-          <h3 className="mt-1 truncate text-sm font-black uppercase tracking-tight text-text-primary font-display">
-            {activity.name || 'Run'}
+          <div className="flex items-center gap-2">
+            <span className="text-3xs font-mono font-bold text-text-muted uppercase tracking-wider">
+              {fmtDateWithWeekday(activity.start_date)}
+            </span>
+            {activity.has_pr && (
+              <span className="inline-flex items-center gap-1 text-3xs font-black px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-500 border border-amber-500/30">
+                <Trophy size={10} /> PR
+              </span>
+            )}
+          </div>
+          <h3 className="mt-0.5 truncate text-xs font-black uppercase tracking-tight text-text-primary font-display">
+            {activity.name || 'Trening biegowy'}
           </h3>
         </div>
-        {activity.has_pr && (
-          <Badge variant="tag" color="var(--color-warning)">PR</Badge>
-        )}
+
+        {/* Small Strava/Garmin indicator */}
+        <span className="text-3xs font-mono font-bold text-text-muted/60 px-1.5 py-0.5 rounded bg-surface-2/40 border border-border-custom/40">
+          Garmin
+        </span>
       </div>
 
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        <div className="rounded-xl bg-surface border border-border-custom p-2.5 shadow-sm">
-          <Route size={11} className="mb-1 text-primary/70" />
-          <p className="text-xs font-black text-text-primary">{distance} km</p>
+      {/* 4 Telemetry Metrics */}
+      <div className="grid grid-cols-4 gap-1.5">
+        {/* Dystans */}
+        <div className="rounded-lg bg-surface-2/50 border border-border-custom/50 p-2 text-center">
+          <div className="flex items-center justify-center gap-1 text-3xs text-text-muted uppercase">
+            <Route size={10} className="text-warning" />
+            <span>Dystans</span>
+          </div>
+          <p className="text-sm font-black text-text-primary font-display mt-0.5">
+            {distance} <span className="text-3xs font-bold text-text-muted">km</span>
+          </p>
         </div>
-        <div className="rounded-xl bg-surface border border-border-custom p-2.5 shadow-sm">
-          <Activity size={11} className="mb-1 text-warning/80" />
-          <p className="text-xs font-black text-text-primary">{fmtPace(activity.pace_sec_per_km)}</p>
+
+        {/* Tempo */}
+        <div className="rounded-lg bg-surface-2/50 border border-border-custom/50 p-2 text-center">
+          <div className="flex items-center justify-center gap-1 text-3xs text-text-muted uppercase">
+            <Activity size={10} className="text-primary" />
+            <span>Tempo</span>
+          </div>
+          <p className="text-sm font-black text-text-primary font-display mt-0.5">
+            {fmtPace(activity.pace_sec_per_km)} <span className="text-3xs font-bold text-text-muted">/km</span>
+          </p>
         </div>
-        <div className="rounded-xl bg-surface border border-border-custom p-2.5 shadow-sm">
-          <Clock size={11} className="mb-1 text-text-muted" />
-          <p className="text-xs font-black text-text-primary">{fmtTime(activity.moving_time)}</p>
+
+        {/* Czas */}
+        <div className="rounded-lg bg-surface-2/50 border border-border-custom/50 p-2 text-center">
+          <div className="flex items-center justify-center gap-1 text-3xs text-text-muted uppercase">
+            <Clock size={10} className="text-text-muted" />
+            <span>Czas</span>
+          </div>
+          <p className="text-sm font-black text-text-primary font-display mt-0.5">
+            {fmtTime(activity.moving_time)}
+          </p>
+        </div>
+
+        {/* Wznios */}
+        <div className="rounded-lg bg-surface-2/50 border border-border-custom/50 p-2 text-center">
+          <div className="flex items-center justify-center gap-1 text-3xs text-text-muted uppercase">
+            <Mountain size={10} className="text-text-muted" />
+            <span>Wznios</span>
+          </div>
+          <p className="text-sm font-black text-text-primary font-display mt-0.5">
+            {elevation != null ? `+${elevation}m` : '--'}
+          </p>
         </div>
       </div>
 
-      {(hrAvg || activity.perceived_exertion || activity.total_elevation_gain != null) && (
-        <div className="mt-2 flex flex-wrap items-center gap-3 text-2xs font-bold uppercase tracking-widest text-text-muted">
-          {hrAvg && (
-            <span className="inline-flex items-center gap-1 text-danger/80">
-              <HeartPulse size={10} /> {hrAvg} bpm
+      {/* Physiological Footer */}
+      {(hrAvg || activity.perceived_exertion) && (
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border-custom/40 text-3xs font-bold">
+          {hrAvg && hrZone && (
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1 text-danger font-mono font-black">
+                <HeartPulse size={11} /> {hrAvg} bpm
+              </span>
+              <span className={`px-1.5 py-0.2 rounded border font-sans ${hrZone.color}`}>
+                {hrZone.label}
+              </span>
+            </div>
+          )}
+          {activity.perceived_exertion && (
+            <span className="text-text-muted">
+              Wysiłek RPE <span className="text-text-primary font-black">{activity.perceived_exertion}/10</span>
             </span>
           )}
-          {activity.perceived_exertion && <span>RPE {activity.perceived_exertion}</span>}
-          {activity.total_elevation_gain != null && <span>+{Math.round(activity.total_elevation_gain)}m</span>}
         </div>
       )}
-    </Card>
+    </div>
   );
 }
 
@@ -144,47 +209,61 @@ export default function StravaWidget({ session }: { session: Session }) {
       });
       setLoading(true);
       await fetchActivities();
-    } catch (e: unknown) { console.error('[StravaWidget] sync error:', e); setError(e instanceof Error ? (e as Error).message : String(e)); } finally {
+    } catch (e: unknown) {
+      console.error('[StravaWidget] sync error:', e);
+      setError(e instanceof Error ? (e as Error).message : String(e));
+    } finally {
       setSyncing(false);
     }
   }
 
   return (
-    <section className="space-y-3">
-      <header className="flex items-end justify-between gap-3">
+    <section id="kronika-bieganie" className="rounded-2xl border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
+      <header className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-22em)] text-warning font-display">Bieganie</p>
-          <h2 className="mt-1 text-lg font-black uppercase tracking-tight text-text-primary font-display">Ostatnie 3 biegi</h2>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-warning" />
+            <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-22em)] text-warning font-display">
+              Bieganie & Telemetria
+            </p>
+          </div>
+          <h2 className="mt-0.5 text-lg font-black uppercase tracking-tight text-text-primary font-display flex items-center gap-2">
+            Ostatnie 3 biegi
+            <span className="text-xs font-mono font-bold text-text-muted">· Garmin / Strava</span>
+          </h2>
         </div>
         <Pressable
           onClick={handleSync}
           disabled={syncing}
-          className="rounded-xl border border-border-custom bg-surface p-2.5 text-text-secondary transition-all hover:bg-surface-solid hover:text-text-primary active:scale-95 shadow-sm cursor-pointer"
-          title="Sync Garmin"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-custom bg-surface text-text-secondary transition-all hover:bg-surface-solid hover:text-text-primary active:scale-95 shadow-sm cursor-pointer"
+          title="Synchronizuj z Garmin / Strava"
         >
-          <RefreshCw size={15} className={syncing ? 'animate-spin' : ''} />
+          <RefreshCw size={13} className={syncing ? 'animate-spin text-warning' : ''} />
+          <span className="text-3xs font-bold uppercase tracking-wider hidden sm:inline">
+            {syncing ? 'Synchronizacja...' : 'Sync'}
+          </span>
         </Pressable>
       </header>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-xl border border-danger/20 bg-danger/10 px-3 py-2 text-xs font-bold text-danger dark:text-danger">
-          <AlertTriangle size={12} />
+        <div className="flex items-center gap-2 rounded-xl border border-danger/20 bg-danger/10 px-3 py-2 text-xs font-bold text-danger">
+          <AlertTriangle size={13} />
           {error}
         </div>
       )}
 
       {loading ? (
-        <Card padding="1.5rem">
-          <Spinner size="sm" className="!border-text-primary/10 !border-t-orange-500" />
-        </Card>
+        <div className="p-8 text-center rounded-xl bg-surface border border-border-custom">
+          <Spinner size="sm" className="!border-text-primary/10 !border-t-warning" />
+        </div>
       ) : activities.length === 0 ? (
-        <Card className="text-center" padding="1.25rem">
+        <div className="p-6 text-center rounded-xl bg-surface border border-border-custom">
           <p className="text-xs font-black uppercase tracking-widest text-text-muted">Brak biegów w feedzie</p>
-        </Card>
+        </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {activities.map((activity) => (
-            <RunRow key={activity.strava_id || activity.start_date} activity={activity} />
+            <RunCard key={activity.strava_id || activity.start_date} activity={activity} />
           ))}
         </div>
       )}

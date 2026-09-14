@@ -197,6 +197,7 @@ export interface PhoneCognitiveProfile {
   entertainmentRatio: number;
   unlocks: number | null;
   unlockIntervalMinutes: number | null;
+  avgSessionMinutes: number | null;
   attentionLabel: string;
   attentionTier: 'focused' | 'normal' | 'elevated' | 'fragmented' | 'unknown';
 }
@@ -229,11 +230,14 @@ export function evaluateCognitiveProfile(input: {
 
   const unlocks = input.unlocks ?? null;
   let unlockIntervalMinutes: number | null = null;
+  let avgSessionMinutes: number | null = null;
   let attentionLabel = 'Brak danych o odblokowaniach';
   let attentionTier: PhoneCognitiveProfile['attentionTier'] = 'unknown';
 
   if (unlocks != null && unlocks > 0) {
-    // Use actual screen-on minutes as the denominator for realistic interval
+    // Average screen duration per unlock session
+    avgSessionMinutes = total > 0 ? Math.max(1, Math.round(total / unlocks)) : 1;
+    // Window-based interval (e.g. within screen time window or waking window)
     const windowMinutes = total > 10 ? total : 960;
     unlockIntervalMinutes = Math.max(1, Math.round(windowMinutes / unlocks));
     if (unlocks <= 30) {
@@ -262,6 +266,7 @@ export function evaluateCognitiveProfile(input: {
     entertainmentRatio,
     unlocks,
     unlockIntervalMinutes,
+    avgSessionMinutes,
     attentionLabel,
     attentionTier,
   };

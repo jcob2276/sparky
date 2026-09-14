@@ -1,7 +1,5 @@
 import HexagonPanel from '../general/HexagonPanel';
-import LeniePanelMini from '../health/LeniePanelMini';
 import HabitsPanel from '../health/HabitsPanel';
-import BehaviorCapturePanel from '../general/BehaviorCapturePanel';
 import DreamsPanel from '../vision/DreamsPanel';
 import VisionBoardPanel from '../vision/VisionBoardPanel';
 import DesktopProjectsOverview from '../direction/DesktopProjectsOverview';
@@ -15,7 +13,6 @@ interface Props {
   theme: string;
   grid: string;
   refresh: () => void;
-  lenieLogs: ReturnType<typeof useDesktopData>['lenieLogs'];
   habitsData: ReturnType<typeof useHabitsData>;
   dreamsData: ReturnType<typeof useDreamsData>;
   projects?: ReturnType<typeof useDesktopData>['projects'];
@@ -29,7 +26,6 @@ export default function DesktopKierunekSection({
   theme,
   grid,
   refresh,
-  lenieLogs,
   habitsData,
   dreamsData,
   projects = [],
@@ -52,8 +48,7 @@ export default function DesktopKierunekSection({
 
       {userId && <HexagonPanel userId={userId} theme={theme} grid={grid} onSaved={refresh} />}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <LeniePanelMini logs={lenieLogs} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <HabitsPanel
           habits={habitsData.habits}
           habitLogs={habitsData.habitLogs}
@@ -65,15 +60,6 @@ export default function DesktopKierunekSection({
           deleteHabit={habitsData.deleteHabit}
           toggleHabit={habitsData.toggleHabit}
         />
-      </div>
-
-      {userId && (
-        <div className="grid grid-cols-1 gap-4">
-          <BehaviorCapturePanel userId={userId} />
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
         <DreamsPanel
           dreams={dreamsData.dreams}
           doneDreams={dreamsData.doneDreams}

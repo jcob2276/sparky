@@ -21,7 +21,7 @@ import type { SprintFacts } from '../../../../lib/growth/sprintReview';
 type DailyWinRow = Tables<'daily_wins'>;
 type CalendarEventRow = DirectionRawData['calData'] extends (infer T)[] | null ? T : never;
 type WeeklyReviewRow = Tables<'weekly_reviews'>;
-type Phase1Recap = { narrative: string; longterm_motif: string | null; question: string };
+type Phase1Recap = { narrative: string; longterm_motif: string | null; question: string; theme_suggestion?: string | null };
 type MonthRecap = Phase1Recap;
 type Phase2Recap = { narrative_check: string; deepening_questions?: string[]; block5_material?: { cialo: string; duch: string; konto: string } };
 type PillarScores = { cialo: number | null; duch: number | null; konto: number | null };
@@ -250,7 +250,16 @@ export function useDirection(session: Session, _onOpenActionCenter?: () => void)
     void (() => {
       setMonthRecapLoading(true);
       actions.callMonthRecap()
-        .then(data => { if (data && 'phase1' in data) setMonthRecap(data.phase1); })
+        .then(data => {
+          if (data && 'phase1' in data) {
+            setMonthRecap(data.phase1);
+            // Auto-fill theme only when field is still empty
+            const suggestion = (data.phase1 as MonthRecap)?.theme_suggestion;
+            if (suggestion && !monthTheme.trim()) {
+              setMonthTheme(suggestion);
+            }
+          }
+        })
         .catch(err => console.error('Month recap failed:', err))
         .finally(() => setMonthRecapLoading(false));
     })();

@@ -25,6 +25,7 @@ export interface StravaActivitySummary {
   start_date: string;
   sport_type: string;
   distance: number | string | null;
+  hr_avg?: number | null;
 }
 
 export interface NutritionDayRow {

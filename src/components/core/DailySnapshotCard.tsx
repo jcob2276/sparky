@@ -23,7 +23,6 @@ export default function DailySnapshotCard() {
   const saveScoreMutation = useSaveDayScoreMutation(userId, today);
 
   const snap = data?.snap ?? null;
-  const strainState = data?.strainState ?? null;
   const midday = data?.midday ?? null;
   const dayScore = data?.dayScore ?? null;
   const rescueStreak = data?.rescueStreak ?? 0;
@@ -131,20 +130,7 @@ export default function DailySnapshotCard() {
         </div>
       )}
 
-      {/* Strain state badge */}
-      {strainState?.daily_status && (
-        <div className="flex items-center gap-2 pt-2 border-t border-border-custom/40">
-          <div className={`h-2 w-2 rounded-full ${
-            strainState.daily_status === 'green' ? 'bg-success' :
-            strainState.daily_status === 'yellow' ? 'bg-warning' : 'bg-danger'
-          }`} />
-          <span className="text-3xs font-black text-text-muted uppercase tracking-wider">
-            {strainState.daily_status === 'green' ? 'Dobra kondycja' :
-             strainState.daily_status === 'yellow' ? 'Umiarkowane zmęczenie' : 'Wysokie obciążenie'}
-            {strainState.main_limiter && strainState.main_limiter !== 'recovery_ok' && ` · limiter: ${strainState.main_limiter}`}
-          </span>
-        </div>
-      )}
+
 
       {/* Quick day score — shows after 17:00 if not yet scored */}
       {showScorePicker && (

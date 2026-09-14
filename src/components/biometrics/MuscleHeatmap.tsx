@@ -1,14 +1,16 @@
 import { Pressable } from '../ui/ControlPrimitives';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Dumbbell } from 'lucide-react';
-import Model, { type IMuscleStats, type Muscle } from 'react-body-highlighter';
+import { Dumbbell, Activity } from 'lucide-react';
+import type { IMuscleStats, Muscle } from 'react-body-highlighter';
 import { supabase } from '../../lib/supabase';
 import { getTodayWarsaw, shiftDateStr } from '../../lib/date';
 import { notify } from '../../lib/notify';
 import { unwrapList } from '../../lib/supabaseUtils';
 import { MUSCLE_TAGS, rirEffectiveness, stimulusForExercise, tagsForExercise } from '../../data/exercises';
-import { BODY_BASE, HEAT_SCALE, RB_MUSCLE_TO_TAGS, buildHighlighterData } from '../../lib/health/muscleMapData';
+import { RB_MUSCLE_TO_TAGS, applyRunningStimulus } from '../../lib/health/muscleMapData';
 import { Card } from '../ui/Card';
+import BodyModel from './BodyModel';
+import type { StravaActivityRow } from '../desktop/shell/useDesktopData';
 import './workout/muscleHeatmap.css';
 
 const PERIODS = [
@@ -42,32 +44,15 @@ function tagColor(tag: string) {
   return TAG_COLORS[tag] ?? 'var(--color-theme-hex-22d3ee)';
 }
 
-function BodyModel({
-  view,
-  loadByTag,
-  onMuscleClick,
+export default function MuscleHeatmap({
+  session,
+  strava,
 }: {
-  view: 'anterior' | 'posterior';
-  loadByTag: Record<string, number>;
-  onMuscleClick: (stats: IMuscleStats) => void;
+  session: { user?: { id?: string } } | null;
+  strava?: StravaActivityRow[];
 }) {
-  const data = useMemo(() => buildHighlighterData(loadByTag, view), [loadByTag, view]);
-
-  return (
-    <Model
-      type={view}
-      data={data}
-      bodyColor={BODY_BASE}
-      highlightedColors={[...HEAT_SCALE]}
-      onClick={onMuscleClick}
-      style={{ width: 'var(--ds-inline-style-100)', padding: 'var(--ds-inline-style-0-5rem-0-25rem-0)' }}
-      svgStyle={{ display: 'block', overflow: 'visible' }}
-    />
-  );
-}
-
-export default function MuscleHeatmap({ session }: { session: { user?: { id?: string } } | null }) {
   const [period, setPeriod] = useState(30);
+  const [includeRunning, setIncludeRunning] = useState(true);
   const [setsByTag, setSetsByTag] = useState<Record<string, number>>({});
   const [directByTag, setDirectByTag] = useState<Record<string, number>>({});
   const [indirectByTag, setIndirectByTag] = useState<Record<string, number>>({});
@@ -75,6 +60,14 @@ export default function MuscleHeatmap({ session }: { session: { user?: { id?: st
   const [exercisesByTag, setExercisesByTag] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
   const userId = session?.user?.id;
+
+  const runKmPeriod = useMemo(() => {
+    if (!strava?.length) return 0;
+    const dateLimit = shiftDateStr(getTodayWarsaw(), -period);
+    return strava
+      .filter((a) => ['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type || '') && (a.start_date || '') >= dateLimit)
+      .reduce((sum, a) => sum + (Number(a.distance) || 0) / 1000, 0);
+  }, [strava, period]);
 
   useEffect(() => {
     if (!userId) return;
@@ -118,6 +111,16 @@ export default function MuscleHeatmap({ session }: { session: { user?: { id?: st
           });
         });
 
+        // Factor in running volume into legs and core
+        if (includeRunning && strava?.length) {
+          const runActivities = strava.filter((a) => {
+            const isRun = ['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type || '');
+            return isRun && (a.start_date || '') >= dateLimit;
+          });
+          const totalRunKm = runActivities.reduce((sum, a) => sum + (Number(a.distance) || 0) / 1000, 0);
+          applyRunningStimulus(totalRunKm, directSets, indirectSets, effectiveSets, exerciseSets);
+        }
+
         setSetsByTag(effectiveSets);
         setDirectByTag(directSets);
         setIndirectByTag(indirectSets);
@@ -128,15 +131,15 @@ export default function MuscleHeatmap({ session }: { session: { user?: { id?: st
           ),
         );
       } catch (err: unknown) {
-      console.error('[Action Error]', err);
-      notify(err instanceof Error ? err.message : 'Wystąpił błąd', 'error');
-    } finally {
+        console.error('[Action Error]', err);
+        notify(err instanceof Error ? err.message : 'Wystąpił błąd', 'error');
+      } finally {
         setLoading(false);
       }
     };
 
     void fetchLogs();
-  }, [userId, period]);
+  }, [userId, period, strava, includeRunning]);
 
   const ranked = Object.entries(loadByTag)
     .sort((a, b) => b[1] - a[1])
@@ -171,20 +174,36 @@ export default function MuscleHeatmap({ session }: { session: { user?: { id?: st
             <p className="text-2xs font-bold uppercase tracking-[var(--ds-arbitrary-0-15em)] text-text-muted font-display">Mapa mięśni</p>
             <h2 className="mt-1 font-display text-lg font-black tracking-tight text-text-primary">Co trenowałeś</h2>
           </div>
-          <div className="flex shrink-0 gap-1">
-            {PERIODS.map((p) => (
+          <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+            {runKmPeriod > 0 && (
               <Pressable
-                key={p.days}
-                onClick={() => setPeriod(p.days)}
-                className={`h-9 min-w-12 rounded-xl border px-3 text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${
-                  period === p.days
-                    ? 'border-info/40 bg-info/15 text-info dark:text-info shadow-[var(--ds-shadow-0-0-12px-rgba-56-189-248-0-1)]'
-                    : 'border-border-custom bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-solid'
+                onClick={() => setIncludeRunning((v) => !v)}
+                className={`h-9 flex items-center gap-1.5 px-3 rounded-xl border text-2xs font-bold transition-all cursor-pointer ${
+                  includeRunning
+                    ? 'border-warning/40 bg-warning/15 text-warning shadow-sm'
+                    : 'border-border-custom bg-surface text-text-muted hover:text-text-primary'
                 }`}
+                title={includeRunning ? 'Bieganie wliczone w bodziec mięśniowy nóg i core. Kliknij, aby wyłączyć.' : 'Kliknij, aby doliczyć bieganie.'}
               >
-                {p.label.toUpperCase()}
+                <Activity size={13} />
+                <span>{includeRunning ? `Bieg: +${Math.round(runKmPeriod)} km` : '+ Dolicz bieg'}</span>
               </Pressable>
-            ))}
+            )}
+            <div className="flex gap-1">
+              {PERIODS.map((p) => (
+                <Pressable
+                  key={p.days}
+                  onClick={() => setPeriod(p.days)}
+                  className={`h-9 min-w-12 rounded-xl border px-3 text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${
+                    period === p.days
+                      ? 'border-info/40 bg-info/15 text-info dark:text-info shadow-[var(--ds-shadow-0-0-12px-rgba-56-189-248-0-1)]'
+                      : 'border-border-custom bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-solid'
+                  }`}
+                >
+                  {p.label.toUpperCase()}
+                </Pressable>
+              ))}
+            </div>
           </div>
         </div>
 

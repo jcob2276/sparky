@@ -18,7 +18,6 @@ export { daysBefore, avg } from './desktopMath';
 export {
   weeklyVolume,
   weeklyRunKm,
-  computeAlerts,
   SPRINT_SEASON,
   getSprintInfo,
   sprintMetrics,
@@ -33,4 +32,12 @@ export {
   intelScore,
 } from './desktopIntelConfig';
 
-export { computeLenieInsight, type LenieLogRow } from './desktopLenieInsight';
+export {
+  computeLenieInsight,
+  computeLenieStats,
+  type LenieLogRow,
+  type LenieStatsResult,
+  type LenieHour24Slot,
+  type LeniePatternInsight,
+  type LenieRecentLogDisplay,
+} from './desktopLenieInsight';

@@ -61,7 +61,7 @@ export default function DailyStrainMetricsRow({
         <div>
           <StatHero
             value={Math.abs(sleepDebtH) < 0.05 ? '–' : formatSleepDebt(sleepDebtH)}
-            label={sleepDebtH < 0 ? 'Dług snu' : 'Nadwyżka'}
+            label={sleepDebtH < 0 ? 'Deficyt snu' : 'Nadwyżka snu'}
             color={sleepDebtH < -0.5 ? 'text-danger' : sleepDebtH > 0.5 ? 'text-success' : 'text-text-primary'}
             size="sm"
           />

@@ -6,6 +6,7 @@ import { ScreenDetailModal } from './ScreenDetailModal';
 interface OuraContextSectionProps {
   context: OuraContextInsights | null | undefined;
   title?: string;
+  subtitle?: string;
 }
 
 interface ContextCardItem {
@@ -22,6 +23,7 @@ interface ContextCardItem {
 export function OuraContextSection({
   context,
   title = 'Kontekst przed snem',
+  subtitle,
 }: OuraContextSectionProps) {
   const [screenModalOpen, setScreenModalOpen] = useState(false);
 
@@ -69,8 +71,8 @@ export function OuraContextSection({
           {context.screen.unlocks != null && context.screen.unlocks > 0 && (
             <span className="text-xs text-text-muted">
               {context.screen.unlocks} odblokowań
-              {context.screen.cognitiveProfile?.unlockIntervalMinutes
-                ? ` · co ~${context.screen.cognitiveProfile.unlockIntervalMinutes} min`
+              {(context.screen.cognitiveProfile?.avgSessionMinutes ?? context.screen.cognitiveProfile?.unlockIntervalMinutes)
+                ? ` · śr. ~${context.screen.cognitiveProfile?.avgSessionMinutes ?? context.screen.cognitiveProfile?.unlockIntervalMinutes} min / sesja`
                 : ''}
             </span>
           )}
@@ -125,13 +127,17 @@ export function OuraContextSection({
     },
   ];
 
+  const resolvedSubtitle = subtitle ?? (
+    title.toLowerCase().includes('dnia')
+      ? `Fakty z dnia ${context.date}. To kontekst, nie dowód przyczynowości.`
+      : `Fakty z dnia poprzedzającego sen ${context.date}. To kontekst, nie dowód przyczynowości.`
+  );
+
   return (
     <section className="space-y-3">
       <div>
         <h2 className="text-2xl font-light text-white">{title}</h2>
-        <p className="mt-1 text-sm text-text-muted">
-          Fakty z dnia poprzedzającego sen {context.date}. To kontekst, nie dowód przyczynowości.
-        </p>
+        <p className="mt-1 text-sm text-text-muted">{resolvedSubtitle}</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         {cards.map(({ color, detail, extra, icon: Icon, interactive, label, onClick, value }) => {

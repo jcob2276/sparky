@@ -1,9 +1,3 @@
-export function getTodayStateCopy(readiness: number): string {
-  if (readiness >= 75) return 'Organizm daje dziś przestrzeń na wymagające działania.';
-  if (readiness >= 55) return 'Działaj normalnie, ale zostaw margines na regenerację.';
-  if (readiness > 0) return 'Energia jest ograniczona — chroń najważniejszy ruch dnia.';
-  return 'Stan organizmu jeszcze się synchronizuje. Plan pozostaje pod Twoją kontrolą.';
-}
 
 export function needsNutritionCorrection(input: {
   loggedDays: number;

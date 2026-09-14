@@ -57,13 +57,22 @@ export function renderOuraSection({ dayOura, dayOuraEnhanced, dayOuraDerived }: 
     const resilience = dayOuraEnhanced.resilience_level || '--';
     md += `- **Stres i Regeneracja:** Stres (wysoki): ${stressMin} min | Regeneracja: ${recovMin} min | Odporność (Resilience): ${resilience}\n`;
 
-    const tempDev = dayOuraEnhanced.temperature_deviation != null ? `${dayOuraEnhanced.temperature_deviation > 0 ? '+' : ''}${dayOuraEnhanced.temperature_deviation.toFixed(2)}°C` : '--';
-    const vo2 = dayOuraEnhanced.vo2_max || '--';
-    const breathDisturb = dayOuraEnhanced.breathing_disturbance_index || '--';
-    md += `- **Biomarkery:** Temp: ${tempDev} | VO2 Max: ${vo2} | Zaburzenia oddychania: ${breathDisturb}\n`;
+    const biomarkerParts: string[] = [];
+    if (dayOuraEnhanced.temperature_deviation != null) {
+      biomarkerParts.push(`Odchylenie temp: ${dayOuraEnhanced.temperature_deviation > 0 ? '+' : ''}${dayOuraEnhanced.temperature_deviation.toFixed(2)}°C`);
+    }
+    if (dayOuraEnhanced.vo2_max) {
+      biomarkerParts.push(`VO2 Max: ${dayOuraEnhanced.vo2_max}`);
+    }
+    if (dayOuraEnhanced.breathing_disturbance_index) {
+      biomarkerParts.push(`Zaburzenia oddychania: ${dayOuraEnhanced.breathing_disturbance_index}`);
+    }
+    if (biomarkerParts.length > 0) {
+      md += `- **Biomarkery:** ${biomarkerParts.join(' | ')}\n`;
+    }
   }
 
-  md += `- **Dyscyplina:** ${dayOura.is_disciplined ? 'TAK' : 'NIE'}\n\n`;
+  md += `- **Dyscyplina (Oura):** ${dayOura.is_disciplined ? '✅ Czysty dzień (Standard zachowany)' : '⚠️ Dzień z zakłóceniami / wpadką'}\n\n`;
   return md;
 }
 

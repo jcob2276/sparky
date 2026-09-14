@@ -2,8 +2,7 @@ import { formatWarsawDate } from '../../lib/date';
 import { format, startOfWeek } from 'date-fns';
 import { sessionVol } from '../biometrics/workout/workoutUtils';
 import { avg } from './desktopMath';
-import type { OuraRow, WorkoutSessionSummary, StravaActivitySummary, NutritionDayRow } from './desktopDataTypes';
-import { HEALTH_THRESHOLDS } from '@vanguard/domain';
+import type { OuraRow, WorkoutSessionSummary, StravaActivitySummary } from './desktopDataTypes';
 
 export function weeklyVolume(sessions: WorkoutSessionSummary[]) {
   const map: Record<string, number> = {};
@@ -36,21 +35,6 @@ export function weeklyRunKm(strava: StravaActivitySummary[]) {
     .map(([k, v]) => ({ week: format(dates[k], 'dd.MM'), km: Math.round(v / 100) / 10 }));
 }
 
-interface Alert {
-  type: 'warn' | 'ok';
-  msg: string;
-}
-
-export function computeAlerts(oura: OuraRow[], _sessions: WorkoutSessionSummary[], _nutrition: NutritionDayRow[]) {
-  const alerts: Alert[] = [];
-  const lat = oura[oura.length - 1];
-  const avg7HRV = avg(oura.slice(-8, -1).map((o) => o.hrv_avg).filter((v): v is number => v != null));
-  if (lat?.hrv_avg && avg7HRV && (avg7HRV - lat.hrv_avg) / avg7HRV > 0.12)
-    alerts.push({ type: 'warn', msg: `HRV o ${Math.round(avg7HRV - lat.hrv_avg)}ms poniżej 7-dniowej średniej` });
-  if (!alerts.length && (lat?.readiness_score ?? 0) >= HEALTH_THRESHOLDS.READINESS_GREEN)
-    alerts.push({ type: 'ok', msg: 'Sygnały OK — dobry dzień na ciśnięcie' });
-  return alerts;
-}
 
 export { SPRINT_SEASON, getSprintInfo } from '../../lib/growth/sprintUtils';
 

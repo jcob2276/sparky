@@ -22,7 +22,7 @@ import { markWorkoutSessionActive } from '../../../lib/health/workoutLogging';
 import type { RecentEntry } from '../nutrition/hooks/useFoodEntryData';
 import type { SpineGuideTarget } from '../../../lib/goal/goalSpineGuide';
 
-const TAB_ORDER = ['dzis', 'tydzien', 'projekty', 'historia'];
+const TAB_ORDER = ['dzis', 'tydzien', 'historia'];
 
 const normalizeView = (view: string | null | undefined) => {
   if (!view || view === 'workout' || view === 'mentor' || view === 'mirror' || view === 'body') return 'dzis';
@@ -259,7 +259,7 @@ export function useDashboardState(session: Session) {
   // Data
   const { count: pendingActionCount, reload: reloadPendingActions } = usePendingActionCount();
   const { isSyncing, setSyncing } = useStore();
-  const { weeklyCalories, todayWin, proteinToday, hasWorkoutToday, readiness, loading, refresh } = useDashboardData(session);
+  const { weeklyCalories, todayWin, proteinToday, proteinTarget, hasWorkoutToday, readiness, loading, refresh } = useDashboardData(session);
   const { guidance: spineGuidance, loading: spineGuidanceLoading } = useSpineGuidance(userId, todayWin);
   const { syncCalendar, startGoogleAuth } = useSyncActions({ userId, accessToken, onRefresh: refresh, setSyncing });
   const { reviewOverdueDays, urgentTodoCount, staleNoteCount, refresh: refreshNudge } = useNudgeData(userId);
@@ -419,7 +419,7 @@ export function useDashboardState(session: Session) {
     view, navigate, goBack, navigateTo,
     location, handleMainTouchStart, handleMainTouchMove, handleMainTouchEnd, handleMainTouchCancel,
     // data
-    weeklyCalories, todayWin, proteinToday, hasWorkoutToday, readiness, loading, refresh,
+    weeklyCalories, todayWin, proteinToday, proteinTarget, hasWorkoutToday, readiness, loading, refresh,
     spineGuidance, spineGuidanceLoading,
     reviewOverdueDays, urgentTodoCount, staleNoteCount, refreshNudge,
     pendingActionCount, reloadPendingActions,

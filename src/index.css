@@ -1397,21 +1397,21 @@
 
 /* Slide-in from right (navigating forward) */
 :root[data-slide="right"] .tab-panel--active {
-  animation: tab-enter-right 0.26s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation: tab-enter-right 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Slide-in from left (navigating backward) */
 :root[data-slide="left"] .tab-panel--active {
-  animation: tab-enter-left 0.26s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation: tab-enter-left 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes tab-enter-right {
-  from { opacity: 0; transform: translateX(20px); }
+  from { opacity: 0; transform: translateX(12px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes tab-enter-left {
-  from { opacity: 0; transform: translateX(-20px); }
+  from { opacity: 0; transform: translateX(-12px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 

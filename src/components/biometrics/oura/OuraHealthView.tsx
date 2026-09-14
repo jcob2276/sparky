@@ -1,4 +1,4 @@
-import { Activity, ArrowLeft, HeartPulse, Sparkles } from 'lucide-react';
+import { Activity, ArrowLeft, HeartPulse, RefreshCw, Sparkles } from 'lucide-react';
 import { OuraLongTermView } from './OuraLongTermView';
 import { OuraTodayView } from './OuraTodayView';
 import { OuraVitalsView } from './OuraVitalsView';
@@ -15,10 +15,12 @@ interface OuraHealthViewProps {
   activeSection: OuraSection;
   data: OuraHealthHubData;
   isLoading?: boolean;
+  isSyncing?: boolean;
   onExit?: () => void;
   onOpenSleep: () => void;
   onSectionChange: (section: OuraSection) => void;
   onSleepClose?: () => void;
+  onSync?: () => void;
   sleepOpen?: boolean;
 }
 
@@ -32,10 +34,12 @@ export function OuraHealthView({
   activeSection,
   data,
   isLoading = false,
+  isSyncing = false,
   onExit,
   onOpenSleep,
   onSectionChange,
   onSleepClose,
+  onSync,
   sleepOpen = false,
 }: OuraHealthViewProps) {
   if (sleepOpen) {
@@ -67,7 +71,16 @@ export function OuraHealthView({
           onClick={onExit}
         />
         <p className="text-sm font-light tracking-wide text-text-secondary">Sparky</p>
-        <span className="h-11 w-11" aria-hidden="true" />
+        {onSync ? (
+          <IconButton
+            label="Synchronizuj z Oura"
+            icon={<RefreshCw size={19} className={isSyncing ? 'animate-spin text-info' : ''} />}
+            onClick={onSync}
+            disabled={isSyncing}
+          />
+        ) : (
+          <span className="h-11 w-11" aria-hidden="true" />
+        )}
       </header>
       <main
         data-testid="oura-content"

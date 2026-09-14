@@ -7,7 +7,8 @@ export function estimateCaffeineMg(name: string): number {
   if (
     n.includes('kawa') || n.includes('coffee') || n.includes('americano') ||
     n.includes('cappuccino') || n.includes('latte') || n.includes('flat white') ||
-    n.includes('cortado') || n.includes('macchiato') || n.includes('cold brew')
+    n.includes('cortado') || n.includes('macchiato') || n.includes('cold brew') ||
+    n.includes('starbucks')
   ) return 95
   if (n.includes('matcha') || n.includes('green tea')) return 30
   if (n.includes('herbata') || n.includes('tea')) return 47

@@ -4,12 +4,14 @@ import React from 'react';
 import type { Session } from '@supabase/supabase-js';
 import Spinner from '../ui/Spinner';
 import { Card } from '../ui/Card';
+import { TrendingUp, Zap, RotateCcw, Lightbulb, AlertCircle } from 'lucide-react';
 import type { MonthFacts } from '../../lib/growth/monthReview';
 
 type MonthRecap = {
   narrative: string;
   longterm_motif: string | null;
   question: string;
+  theme_suggestion?: string | null;
 };
 
 interface Props {
@@ -30,25 +32,6 @@ interface Props {
   completing: boolean;
 }
 
-function Divider({ title }: { title: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <div className="h-px flex-1 bg-border-custom" />
-      <span className="text-2xs uppercase tracking-widest text-text-muted font-black">{title}</span>
-      <div className="h-px flex-1 bg-border-custom" />
-    </div>
-  );
-}
-
-function StatCard({ value, label }: { value: string; label: string }) {
-  return (
-    <Card padding="0.625rem 0.75rem">
-      <div className="text-xl font-bold text-text-primary">{value}</div>
-      <div className="text-xs text-text-muted mt-0.5">{label}</div>
-    </Card>
-  );
-}
-
 function Textarea({
   value, onChange, placeholder, rows = 3,
 }: { value: string; onChange: (v: string) => void; placeholder?: string; rows?: number }) {
@@ -58,19 +41,49 @@ function Textarea({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full bg-surface border border-border-custom rounded-xl px-3 py-2 text-sm
-        text-text-primary placeholder-text-muted resize-y min-h-[var(--ds-h-72px)] focus:outline-none
-        focus:border-primary/50 transition-colors"
+      className="w-full bg-surface/60 border border-border-custom/60 rounded-2xl px-4 py-3 text-sm
+        text-text-primary placeholder-text-muted/60 resize-none focus:outline-none
+        focus:border-primary/50 focus:bg-surface transition-colors leading-relaxed"
     />
   );
 }
 
-function Q({ num, label, value, onChange, placeholder }: {
-  num: number; label: string; value: string; onChange: (v: string) => void; placeholder?: string;
+function StatPill({ value, label, highlight }: { value: string; label: string; highlight?: 'good' | 'bad' | 'neutral' }) {
+  const color = highlight === 'good'
+    ? 'text-success'
+    : highlight === 'bad'
+      ? 'text-warning'
+      : 'text-text-primary';
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-border-custom/50 bg-surface/60 px-3 py-3 gap-0.5 text-center">
+      <span className={`text-2xl font-black tracking-tight leading-none ${color}`}>{value}</span>
+      <span className="text-2xs font-bold uppercase tracking-wide text-text-muted mt-1 leading-tight">{label}</span>
+    </div>
+  );
+}
+
+function ReflectionInput({
+  icon: Icon,
+  label,
+  hint,
+  value,
+  onChange,
+  placeholder,
+}: {
+  icon: React.ElementType;
+  label: string;
+  hint: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
 }) {
   return (
-    <div className="space-y-1">
-      <p className="text-xs text-text-secondary font-semibold">{num}. {label}</p>
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <Icon size={13} className="text-primary shrink-0" />
+        <span className="text-xs font-black uppercase tracking-widest text-text-primary">{label}</span>
+      </div>
+      <p className="text-xs text-text-muted pl-5">{hint}</p>
       <Textarea value={value} onChange={onChange} placeholder={placeholder} />
     </div>
   );
@@ -98,114 +111,156 @@ export default function DirectionMonthlyMode({
     monthTheme.trim().length > 0;
 
   const pillarLine = [
-    monthFacts.pillarAverages.cialo != null && `Ciało ${monthFacts.pillarAverages.cialo}`,
-    monthFacts.pillarAverages.duch != null && `Duch ${monthFacts.pillarAverages.duch}`,
-    monthFacts.pillarAverages.konto != null && `Konto ${monthFacts.pillarAverages.konto}`,
+    monthFacts.pillarAverages.cialo != null && `C${monthFacts.pillarAverages.cialo}`,
+    monthFacts.pillarAverages.duch != null && `D${monthFacts.pillarAverages.duch}`,
+    monthFacts.pillarAverages.konto != null && `K${monthFacts.pillarAverages.konto}`,
   ].filter(Boolean).join(' · ');
+
+  const winRate = monthFacts.powerListZ + monthFacts.powerListP > 0
+    ? Math.round((monthFacts.powerListZ / (monthFacts.powerListZ + monthFacts.powerListP)) * 100)
+    : null;
 
   return (
     <div className="space-y-6 pb-6 border-b border-border-custom mb-6">
-      <Card padding="0.75rem 1rem" style={{ background: 'var(--color-theme-hex-ba24515811005)' }}>
-        <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-2em)] text-warning">Przegląd miesiąca</p>
-        <p className="mt-1 text-sm font-semibold text-text-primary capitalize">{monthFacts.monthLabel}</p>
-        <p className="mt-1 text-xs text-text-secondary">
+
+      {/* Header strip */}
+      <div className="rounded-2xl border border-warning/20 bg-warning/[0.06] px-4 py-3.5">
+        <p className="text-2xs font-black uppercase tracking-[0.2em] text-warning">Przegląd miesiąca</p>
+        <p className="mt-1 text-base font-bold text-text-primary capitalize">{monthFacts.monthLabel}</p>
+        <p className="mt-1 text-xs text-text-secondary leading-relaxed">
           Warstwa między sprintem a tygodniem — zamknij miesiąc, potem planuj tydzień.
         </p>
-      </Card>
+      </div>
 
-      {/* Blok 0: miesiąc w liczbach */}
-      <div className="space-y-3">
-        <Divider title="Miesiąc w liczbach" />
-        <div className="grid grid-cols-2 gap-2">
-          <StatCard
+      {/* Stats grid — numbers are the hero */}
+      <div className="space-y-2">
+        <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Miesiąc w liczbach</p>
+        <div className="grid grid-cols-3 gap-2">
+          <StatPill
             value={`${monthFacts.weeksReviewed}/${monthFacts.weeksInMonth}`}
-            label="tygodni z refleksją"
+            label="tyg. z refleksją"
+            highlight={monthFacts.weeksReviewed === 0 ? 'bad' : monthFacts.weeksReviewed >= monthFacts.weeksInMonth - 1 ? 'good' : 'neutral'}
           />
-          <StatCard value={String(monthFacts.powerListZ)} label="dni Z (PowerList)" />
-          <StatCard value={String(monthFacts.powerListP)} label="dni P" />
-          <StatCard
+          <StatPill
+            value={String(monthFacts.powerListZ)}
+            label="dni Z"
+            highlight={monthFacts.powerListZ >= 15 ? 'good' : monthFacts.powerListZ <= 3 ? 'bad' : 'neutral'}
+          />
+          <StatPill
+            value={winRate != null ? `${winRate}%` : '—'}
+            label="win rate"
+            highlight={winRate != null && winRate >= 60 ? 'good' : winRate != null && winRate <= 20 ? 'bad' : 'neutral'}
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          <StatPill
             value={`${monthFacts.powerListDone}/${monthFacts.powerListPlanned}`}
-            label="zwycięstw zrobionych"
+            label="zadań done"
           />
-          <StatCard value={String(monthFacts.kpiWeeksLogged)} label="tygodni z KPI" />
-          <StatCard value={String(monthFacts.activeProjectCount)} label="aktywnych projektów" />
+          <StatPill value={String(monthFacts.kpiWeeksLogged)} label="tyg. z KPI" />
+          <StatPill value={String(monthFacts.activeProjectCount)} label="projektów" />
         </div>
         {pillarLine && (
-          <p className="text-xs text-text-muted">Średnie filarów z tygodni: {pillarLine}</p>
+          <p className="text-2xs text-text-muted text-center pt-1">
+            Filary: {pillarLine}
+          </p>
         )}
       </div>
 
-      {/* Blok 1: AI narracja */}
-      <div className="space-y-3">
-        <Divider title="Jak wyglądał twój miesiąc" />
+      {/* AI Narrative — full-width feature block */}
+      <div className="rounded-2xl border border-border-custom/60 bg-surface/40 overflow-hidden">
+        <div className="px-4 pt-4 pb-3 border-b border-border-custom/40">
+          <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Jak wyglądał twój miesiąc</p>
+        </div>
+
         {recapLoading && (
-          <div className="flex items-center gap-2 py-3 text-text-muted text-sm">
+          <div className="flex items-center gap-3 px-4 py-5 text-text-muted">
             <Spinner size="sm" />
-            AI analizuje miesiąc…
+            <span className="text-sm">AI analizuje miesiąc — głosówki, sen, PowerList…</span>
           </div>
         )}
+
         {recap && (
-          <div className="space-y-3">
-            <p className="text-sm text-text-primary leading-relaxed">{recap.narrative}</p>
+          <div className="divide-y divide-border-custom/30">
+            {/* Narrative */}
+            <div className="px-4 py-4">
+              <p className="text-sm text-text-primary leading-[1.7]">{recap.narrative}</p>
+            </div>
+
+            {/* Motif — only if present */}
             {recap.longterm_motif && (
-              <div className="border-l-2 border-warning pl-3 py-1">
-                <p className="text-xs text-warning font-bold uppercase tracking-wider mb-1">
-                  Motyw powtarzający się
-                </p>
-                <p className="text-sm text-text-primary leading-relaxed">{recap.longterm_motif}</p>
+              <div className="px-4 py-3 bg-warning/[0.05]">
+                <p className="text-2xs font-black uppercase tracking-widest text-warning mb-1.5">Motyw powtarzający się</p>
+                <p className="text-sm font-semibold text-text-primary">{recap.longterm_motif}</p>
               </div>
             )}
+
+            {/* Question */}
             {recap.question && (
-              <div className="bg-surface border border-border-custom rounded-xl px-3 py-2.5">
-                <p className="text-xs text-text-muted font-bold uppercase tracking-wider mb-1">
-                  Pytanie otwierające
-                </p>
-                <p className="text-sm text-text-secondary italic">„{recap.question}"</p>
+              <div className="px-4 py-3">
+                <p className="text-2xs font-black uppercase tracking-widest text-text-muted mb-2">Pytanie otwierające</p>
+                <p className="text-sm text-text-secondary italic leading-relaxed">„{recap.question}”</p>
               </div>
             )}
           </div>
         )}
+
         {!recapLoading && !recap && (
-          <p className="text-sm text-text-muted italic">Podsumowanie AI pojawi się za chwilę…</p>
+          <div className="px-4 py-5 text-sm text-text-muted italic">Podsumowanie AI pojawi się za chwilę…</div>
         )}
       </div>
 
-      {/* Blok 2: trzy pytania */}
-      <div className="space-y-4">
-        <Divider title="Refleksja miesiąca" />
-        <Q
-          num={1}
-          label="Jaki wzorzec wracał przez cały miesiąc?"
+      {/* Reflection questions */}
+      <div className="space-y-5">
+        <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Refleksja miesiąca</p>
+        <ReflectionInput
+          icon={AlertCircle}
+          label="Wzorzec miesiąca"
+          hint="Co się powtarzało — w działaniu, unikaniu, energii…"
           value={patternNote}
           onChange={setPatternNote}
-          placeholder="Co się powtarzało — w działaniu, unikaniu, energii…"
+          placeholder="Jaki wzorzec wracał przez cały miesiąc?"
         />
-        <Q
-          num={2}
-          label="Co było największą dźwignią?"
+        <ReflectionInput
+          icon={Zap}
+          label="Największa dźwignia"
+          hint="Jedna rzecz, która ciągnęła resztę do przodu."
           value={leverageNote}
           onChange={setLeverageNote}
-          placeholder="Jedna rzecz, która ciągnęła resztę do przodu."
+          placeholder="Co było największą dźwignią?"
         />
-        <Q
-          num={3}
-          label="Co koryguję w następnym miesiącu?"
+        <ReflectionInput
+          icon={RotateCcw}
+          label="Korekta na następny miesiąc"
+          hint="Jedna korekta — nie plan 4 tygodni."
           value={correctionNote}
           onChange={setCorrectionNote}
-          placeholder="Jedna korekta — nie plan 4 tygodni."
+          placeholder="Co koryguję?"
         />
       </div>
 
-      {/* Blok 3: temat miesiąca */}
+      {/* Theme — single bold input */}
       <div className="space-y-2">
-        <Divider title="Temat miesiąca" />
-        <p className="text-xs text-text-muted">
-          Jedna linia — horyzont na 4 tygodnie. Szczegóły zostają w planowaniu tygodniowym.
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <Lightbulb size={13} className="text-primary shrink-0" />
+            <p className="text-xs font-black uppercase tracking-widest text-text-primary">Temat miesiąca</p>
+          </div>
+          {recap?.theme_suggestion && (
+            <span className="text-2xs font-bold text-primary/70 bg-primary/10 rounded-full px-2 py-0.5">
+              AI zaproponowało ↓
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-text-muted pl-5">
+          {recap?.theme_suggestion
+            ? 'Propozycja AI na podstawie danych miesiąca — możesz ją zmienić.'
+            : 'Jedna linia — horyzont na 4 tygodnie. Szczegóły zostają w planowaniu tygodniowym.'}
         </p>
         <Textarea
           value={monthTheme}
           onChange={setMonthTheme}
-          placeholder="Np. „Pipeline przed perfekcją” albo „Ciało jako fundament”"
+          placeholder='np. "Pipeline przed perfekcją" albo "Ciało jako fundament"'
           rows={2}
         />
       </div>
@@ -217,7 +272,7 @@ export default function DirectionMonthlyMode({
         onClick={onComplete}
         disabled={!questionsOk || completing}
         loading={completing}
-        className="w-full rounded-xl"
+        className="w-full rounded-2xl"
       >
         {completing ? 'Zapisuję…' : 'Zamknij miesiąc → przejdź do tygodnia'}
       </Button>

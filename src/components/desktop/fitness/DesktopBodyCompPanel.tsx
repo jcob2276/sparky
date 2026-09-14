@@ -128,10 +128,28 @@ export default function DesktopBodyCompPanel({ body, heightCm, onOpenWeight }: P
                     style={{ height: `${heightPct}%` }}
                   />
                   <span className="text-3xs text-text-muted font-mono">{m.weight}</span>
+                  {m.date && (
+                    <span className="text-3xs text-text-muted/50 font-mono scale-90">{m.date.slice(5)}</span>
+                  )}
                 </div>
               );
             })}
           </div>
+        </div>
+      )}
+
+      {/* Running Power-to-Weight telemetry */}
+      {curWeight != null && (
+        <div className="flex items-center justify-between gap-3 px-3 py-2 rounded-xl bg-info/5 border border-info/20 text-2xs text-text-secondary">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-info">Ekonomia biegu:</span>
+            <span>
+              {toTarget != null && toTarget > 0
+                ? `Redukcja ${toTarget} kg do celu (75.5 kg) = zysk ok. ${(toTarget * 2.5).toFixed(0)}s/km (~${Math.round((toTarget * 2.5 * 42.195) / 60)} min na dystansie maratonu)`
+                : 'Masa startowa w strefie optymalnej ekonomii biegu'}
+            </span>
+          </div>
+          <span className="text-3xs text-text-muted font-mono shrink-0">~2.5s/km per kg</span>
         </div>
       )}
     </Card>

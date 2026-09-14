@@ -89,6 +89,7 @@ export function useGeneralViewData({ userId, ouraProp }: UseGeneralViewDataOptio
           )
           .eq('user_id', userId)
           .in('status', ['active', 'candidate'])
+          .order('occurrence_count', { ascending: false })
           .order('confidence', { ascending: false })
           .limit(20),
         supabase
@@ -96,6 +97,7 @@ export function useGeneralViewData({ userId, ouraProp }: UseGeneralViewDataOptio
           .select('title, page_type, status, confidence, summary, tags, last_seen_at')
           .eq('user_id', userId)
           .in('status', ['active', 'needs_review'])
+          .order('confidence', { ascending: false })
           .order('last_seen_at', { ascending: false })
           .limit(30),
         supabase
@@ -106,7 +108,7 @@ export function useGeneralViewData({ userId, ouraProp }: UseGeneralViewDataOptio
           .eq('user_id', userId)
           .eq('status', 'pending')
           .order('confidence_score', { ascending: false })
-          .limit(15),
+          .limit(20),
         supabase
           .from('confirmed_friction_events')
           .select(

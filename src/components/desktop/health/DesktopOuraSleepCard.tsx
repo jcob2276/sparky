@@ -189,6 +189,43 @@ export default function DesktopOuraSleepCard({ userId }: { userId: string }) {
             totalBar={totalBar}
             latencyMins={latencyMins}
           />
+
+          {/* Biologiczna synteza odnowy nocnej */}
+          {totalSleepMins != null && (
+            <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-border-custom/50 bg-surface-2/30 px-3.5 py-2.5 text-2xs">
+              <div className="flex items-center gap-2">
+                <span className={`inline-block w-2 h-2 rounded-full ${
+                  (sleepScore ?? 0) >= 80 ? 'bg-success' : (sleepScore ?? 0) >= 70 ? 'bg-primary' : 'bg-warning'
+                }`} />
+                <span className="text-text-secondary leading-relaxed">
+                  {totalSleepMins < 390 ? (
+                    <>
+                      Deficyt snu: <strong>-{Math.round((480 - totalSleepMins) / 60 * 10) / 10}h</strong> poniżej 8h. Udział Deep (<strong>{deepMins ?? 0}m</strong>) chroni układ nerwowy, ale skrócona faza REM (<strong>{remMins ?? 0}m</strong>) obniża konsolidację pamięci.
+                    </>
+                  ) : (
+                    <>
+                      Optymalna regeneracja: <strong>{formatMinsToHours(totalSleepMins)}</strong> snu, wysoka efektywność i zbalansowane fazy Deep/REM.
+                    </>
+                  )}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0 text-3xs font-medium text-text-muted">
+                {totalBar > 0 && (
+                  <span>
+                    Efektywność: <strong className="text-text-primary">{Math.round(((totalSleepMins ?? 0) / totalBar) * 100)}%</strong>
+                  </span>
+                )}
+                {latencyMins != null && (
+                  <span>
+                    Zasypianie: <strong className={latencyMins <= 20 ? 'text-success' : 'text-warning'}>
+                      {latencyMins <= 20 ? 'w normie' : 'wydłużone'}
+                    </strong>
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </>
       )}
     </Card>

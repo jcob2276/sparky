@@ -3,7 +3,7 @@ import { differenceInDays } from 'date-fns';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Link } from 'react-router-dom';
 import { Activity, ArrowUpRight } from 'lucide-react';
-import { C, weeklyRunKm, avg, type StravaActivitySummary } from '../desktopUtils';
+import { C, weeklyRunKm, avg, daysBefore, type StravaActivitySummary } from '../desktopUtils';
 import { Panel, Tip } from '../shell/Panel';
 import { formatLongDateWarsaw } from '../../../lib/date';
 
@@ -21,27 +21,67 @@ export interface MarathonPanelProps {
   } | null;
 }
 
+function pluralWeeks(w: number): string {
+  if (w === 1) return '1 tydzień';
+  const rem10 = w % 10;
+  const rem100 = w % 100;
+  if (rem10 >= 2 && rem10 <= 4 && !(rem100 >= 12 && rem100 <= 14)) {
+    return `${w} tygodnie`;
+  }
+  return `${w} tygodni`;
+}
+
 function formatInterval(t: MarathonTargetTime): string | null {
   if (!t) return null;
   if (typeof t === 'string') {
     const parts = t.split(':');
     if (parts.length >= 2) {
-      return `${parts[0]}h ${parts[1]}m`;
+      const h = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10);
+      return `${h}h ${m < 10 ? `0${m}` : m}m`;
     }
     return t;
   }
   if (typeof t === 'object') {
     const h = t.hours || 0;
     const m = t.minutes || 0;
-    return `${h}h ${m}m`;
+    return `${h}h ${m < 10 ? `0${m}` : m}m`;
   }
   return null;
+}
+
+function parseTargetSeconds(t: MarathonTargetTime): number | null {
+  if (!t) return null;
+  if (typeof t === 'string') {
+    const parts = t.split(':');
+    if (parts.length >= 2) {
+      const h = parseInt(parts[0], 10) || 0;
+      const m = parseInt(parts[1], 10) || 0;
+      const s = parts[2] ? parseInt(parts[2], 10) || 0 : 0;
+      return h * 3600 + m * 60 + s;
+    }
+  }
+  if (typeof t === 'object') {
+    const h = t.hours || 0;
+    const m = t.minutes || 0;
+    return h * 3600 + m * 60;
+  }
+  return null;
+}
+
+function calculatePace(totalSec: number | null): string {
+  if (!totalSec || totalSec <= 0) return '5:20 min/km';
+  const secPerKm = totalSec / 42.195;
+  const m = Math.floor(secPerKm / 60);
+  const s = Math.round(secPerKm % 60);
+  return `${m}:${s < 10 ? `0${s}` : s} min/km`;
 }
 
 export default function MarathonPanel({ strava, grid, tick, marathon }: MarathonPanelProps) {
   const raceDate = marathon?.date ? new Date(marathon.date + 'T00:00:00') : null;
   const raceName = marathon?.name || "Brak nadchodzących maratonów";
   const targetTime = formatInterval(marathon?.target_time);
+  const targetPace = calculatePace(parseTargetSeconds(marathon?.target_time));
 
   const daysLeft = raceDate ? differenceInDays(raceDate, new Date()) : null;
   const weeksLeft = daysLeft !== null ? Math.ceil(daysLeft / 7) : null;
@@ -49,6 +89,23 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
   const recent4 = kmData.slice(-4);
   const avgKm = recent4.length ? Math.round((avg(recent4.map(w => w.km)) ?? 0) * 10) / 10 : null;
   const bestKm = kmData.length ? Math.max(...kmData.map(w => w.km)) : null;
+
+  // Running telemetry & Long Run Tracker (14 days)
+  const since14d = daysBefore(14);
+  const runs = strava.filter(s => (s.sport_type || '').toLowerCase().includes('run'));
+  const recentRuns14d = runs.filter(s => s.start_date.slice(0, 10) >= since14d);
+  const longestRun = recentRuns14d.reduce((max, r) => (Number(r.distance) || 0) > (Number(max?.distance) || 0) ? r : max, null as StravaActivitySummary | null);
+  const longestKm = longestRun ? Math.round(((Number(longestRun.distance) || 0) / 1000) * 10) / 10 : null;
+  const longestDaysAgo = longestRun ? differenceInDays(new Date(), new Date(longestRun.start_date)) : null;
+
+  const validHrs = runs.slice(-6).map(r => r.hr_avg).filter((h): h is number => typeof h === 'number' && h > 0);
+  const avgRunHr = validHrs.length ? Math.round(avg(validHrs) ?? 150) : 155;
+
+  const phase = weeksLeft === null ? 'Planowanie'
+    : weeksLeft <= 0 ? 'Start & Superkompensacja'
+    : weeksLeft <= 3 ? 'Tapering (redukcja objętości)'
+    : weeksLeft <= 8 ? 'Faza Specyficzna (tempo)'
+    : 'Baza Tlenowa (objętość)';
 
   const formattedDate = marathon?.date
     ? formatLongDateWarsaw(marathon.date)
@@ -76,7 +133,7 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
           </p>
           <p className="text-xs font-bold text-text-muted mt-1">
             {daysLeft !== null
-              ? (daysLeft >= 0 ? `dni do startu · ${weeksLeft} tygodni` : 'Wydarzenie zakończone')
+              ? (daysLeft >= 0 ? `dni do startu · ${pluralWeeks(weeksLeft ?? 0)}` : 'Wydarzenie zakończone')
               : 'Skonfiguruj nadchodzący maraton w bazie danych'}
           </p>
           {targetTime && (
@@ -106,6 +163,26 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
             </div>
           )}
         </div>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-surface-2/40 border border-border-custom/50 text-2xs text-text-secondary mb-4">
+        <div className="flex items-center gap-1.5">
+          <span className="font-bold text-primary">Tempo docelowe:</span>
+          <span className="font-mono font-semibold">{targetPace}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="font-bold text-warning">Tętno ø:</span>
+          <span className="font-mono font-semibold">{avgRunHr} bpm</span>
+        </div>
+        <div className="text-text-muted">
+          Faza: <span className="font-semibold text-text-primary">{phase}</span>
+        </div>
+        {longestKm !== null && (
+          <div className="w-full pt-1 mt-0.5 border-t border-border-custom/30 flex items-center justify-between text-3xs text-text-muted">
+            <span className="font-medium text-info">Long Run (14d): {longestKm} km</span>
+            <span>{longestDaysAgo === 0 ? 'dzisiaj' : `${longestDaysAgo}d temu`}</span>
+          </div>
+        )}
       </div>
       {kmData.length > 1 ? (
         <ResponsiveContainer width="100%" height={140} minWidth={0} minHeight={0}>

@@ -5,27 +5,14 @@ import { getSprintInfo, SPRINT_SEASON } from '../../lib/growth/sprintUtils';
 import { useUserId } from '../../store/useStore';
 import { Card } from '../ui/Card';
 
-const BORN = new Date('2002-07-06');
+import { getDailyFuelQuote } from '../../lib/dailyFuelQuotes';
 
-const FUEL = [
-  'Przyszłe ty ma nadzieję,\nże dzisiejsze ty nie odpuści.',
-  'Nie żałujesz decyzji które podjąłeś.\nTylko tych których nie podjąłeś.',
-  'Za rok będziesz tu\nalbo znacznie dalej.\nTy decydujesz dziś.',
-  'Każda wielka zmiana zaczęła się\nod jednego zwykłego dnia.',
-  'Entuzjazm to nie nastrój.\nTo decyzja którą podejmujesz rano.',
-  'Dyskomfort który czujesz\nto dowód że rośniesz.',
-  'Nie musisz mieć ochoty.\nMusisz tylko zacząć.',
-  'Jedyne o czym będziesz żałować\nto że nie zacząłeś wcześniej.',
-  'Twoje najlepsze lata\nnie są za tobą.',
-  'Za 5 lat docenisz\nkażdą decyzję którą podjąłeś dziś.',
-  'To nie jest próba.\nTo jest twoje życie.',
-  'Nikt za ciebie nie będzie żałował\nże nie spróbowałeś.',
-];
+const BORN = new Date('2002-07-06');
 
 export default function OrientationFooter() {
   const userId = useUserId();
   const [lived] = useState(() => Math.floor((Date.now() - BORN.getTime()) / 86400000));
-  const quote = FUEL[lived % FUEL.length];
+  const fuel = getDailyFuelQuote(lived);
   const sprint = getSprintInfo();
   const [sprintGoal, setSprintGoal] = useState<string | null>(null);
   const loadRef = useRef(() => {
@@ -44,7 +31,7 @@ export default function OrientationFooter() {
   return (
     <Card
       variant="outline"
-      className="animate-fadeIn mt-4"
+      className="animate-fadeIn"
       style={{
         border: 'var(--border-orientation-footer)',
         background: 'var(--surface-orientation-footer)',
@@ -53,8 +40,13 @@ export default function OrientationFooter() {
     >
       <div className="px-5 py-4 border-l-4 border-primary/40">
         <p className="font-display text-base font-medium leading-relaxed text-text-primary italic whitespace-pre-line">
-          {quote}
+          „{fuel.text}”
         </p>
+        {fuel.author && (
+          <p className="mt-1 text-2xs font-bold text-text-muted">
+            — {fuel.author}{fuel.source ? `, ${fuel.source}` : ''}
+          </p>
+        )}
       </div>
 
       <div className="px-5 py-3.5 border-t border-primary/10 space-y-2.5">
@@ -80,7 +72,7 @@ export default function OrientationFooter() {
         </div>
 
         <p className="text-2xs font-bold uppercase tracking-[var(--ds-arbitrary-0-18em)] text-primary/40">
-          Dzień {lived.toLocaleString('pl-PL')}
+          Dzień {lived.toLocaleString('pl-PL')} życia
         </p>
       </div>
     </Card>

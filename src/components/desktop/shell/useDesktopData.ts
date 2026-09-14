@@ -1,13 +1,34 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Tables } from '../../../lib/database.types';
 import type { OuraRow, NutritionDayRow, LenieLogRow } from '../desktopUtils';
-import type { PatternRow, WikiRow, KnowledgeRow } from '../general/IntelligencePanel';
 import type { StrainData } from '../hero/CockpitBanner';
+
+export interface PatternRow {
+  confidence?: number | null;
+  title: string;
+  evidence_text?: string | null;
+  occurrence_count?: number | null;
+  last_seen?: string | null;
+}
+
+export interface WikiRow {
+  summary?: string | null;
+  title: string;
+  page_type?: string | null;
+}
+
+export interface KnowledgeRow {
+  importance_score?: number | null;
+  title: string;
+  content?: string | null;
+  category?: string | null;
+}
 import {
   fetchDesktopDashboardData,
   type DesktopQueryResult,
   type DesktopSessionRow,
   type StravaActivityRow,
+  type PhoneUsageRow,
 } from '../../../lib/desktopDashboardApi';
 
 export type { DesktopSessionRow, StravaActivityRow };
@@ -81,6 +102,7 @@ interface DesktopDashboardData {
   wiki: WikiRow[];
   knowledge: KnowledgeRow[];
   lenieLogs: LenieLogRow[];
+  phoneUsage: PhoneUsageRow[];
   habits: HabitRow[];
   habitLogs: HabitLogRow[];
   marathon: MarathonRow | null;
@@ -126,6 +148,7 @@ export function useDesktopData(userId: string | undefined): DesktopDashboardData
     wiki: [],
     knowledge: [],
     lenieLogs: [],
+    phoneUsage: [],
     habits: [],
     habitLogs: [],
     marathon: null,

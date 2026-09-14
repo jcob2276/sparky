@@ -67,6 +67,18 @@ export interface StravaSaunaCandidate {
   elapsed_time?: number | null
 }
 
+export function isGarminSaunaActivity(a: { name?: string | null; sport_type?: string | null }): boolean {
+  const sType = (a.sport_type || '').toLowerCase();
+  const n = (a.name || '').toLowerCase();
+  return (
+    sType.includes('cardio') ||
+    sType === 'sauna' ||
+    n.includes('kardio') ||
+    n.includes('cardio') ||
+    n.includes('sauna')
+  );
+}
+
 export function getSaunaStats(
   sessions: Array<{
     date: string
@@ -94,8 +106,7 @@ export function getSaunaStats(
     const garminSaunas = stravaActivities.filter((a) => {
       const dKey = sessionDateKey(a.start_date)
       if (!dKey || dKey < sinceDate) return false
-      const n = (a.name || '').toLowerCase()
-      return n.includes('kardio') || n.includes('cardio') || n.includes('sauna')
+      return isGarminSaunaActivity(a)
     })
 
     for (const a of garminSaunas) {

@@ -219,7 +219,7 @@ export default function DailyStrainVitalsRow({
             <div className="flex-1 text-center">
               <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Wiek Naczyniowy</span>
               <span className="text-xs font-black text-success flex items-center justify-center">
-                {enhanced?.vascular_age != null ? `${enhanced.vascular_age > 0 ? '+' : ''}${enhanced.vascular_age} lat` : 'Optymalny'}
+                {enhanced?.vascular_age != null ? `${Math.round(enhanced.vascular_age)} lat` : 'Optymalny'}
               </span>
             </div>
             <div className="hidden sm:block w-px h-6 bg-border-custom/30" />

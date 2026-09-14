@@ -6,7 +6,6 @@ import MealComposerDraft from './MealComposerDraft';
 import MealComposerLoggedItems from './MealComposerLoggedItems';
 import MealComposerQuick from './MealComposerQuick';
 import { ComposerHeader, ComposerInput, ComposerProgress, ComposerSearch } from './MealComposerChrome';
-import NutritionDayReview from './NutritionDayReview';
 import FoodEntryModal from './FoodEntryModal';
 import CopyDayModal from './CopyDayModal';
 import type { RecentEntry } from './hooks/foodEntryUtils';
@@ -140,7 +139,6 @@ export default function MealComposer({
 
         {c.error && <p role="alert" className="text-xs text-danger text-center font-medium">{c.error}</p>}
 
-        <NutritionDayReview userId={session.user.id} date={c.logDate} hasEntries={c.hasEntries} />
       </Card>
 
       {editEntry && (

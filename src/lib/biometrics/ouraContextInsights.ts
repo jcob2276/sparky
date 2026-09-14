@@ -1,4 +1,5 @@
 import {
+  estimateCaffeineMg,
   evaluateCognitiveProfile,
   evaluateLateNightImpact,
   formatPhoneUsageDuration,
@@ -55,21 +56,9 @@ function formatTimestamp(timestamp: string | null): string | null {
   return Number.isNaN(date.getTime()) ? null : WARSAW_TIME.format(date);
 }
 
-function estimateCaffeine(name: string): number {
-  const lower = name.toLowerCase();
-  const explicit = lower.match(/(\d{1,4})\s*mg/);
-  if (explicit) return Number(explicit[1]);
-  if (lower.includes('espresso')) return 63;
-  if (lower.includes('kawa') || lower.includes('coffee')) return 95;
-  if (lower.includes('matcha')) return 30;
-  if (lower.includes('herbata') || lower.includes('tea')) return 47;
-  if (lower.includes('energy drink')) return 80;
-  return 0;
-}
-
 export function buildOuraContextInsights(input: OuraContextInput) {
   const caffeineEntries = input.foodEntries
-    .map((entry) => ({ ...entry, caffeineMg: estimateCaffeine(entry.name) }))
+    .map((entry) => ({ ...entry, caffeineMg: estimateCaffeineMg(entry.name) }))
     .filter((entry) => entry.caffeineMg > 0)
     .sort((left, right) => (left.logged_at ?? '').localeCompare(right.logged_at ?? ''));
   const foodWithTimestamps = input.foodEntries

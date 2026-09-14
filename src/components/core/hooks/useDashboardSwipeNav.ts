@@ -74,12 +74,14 @@ export function useDashboardSwipeNav({
     element.style.transition = 'transform var(--motion-medium) var(--ease-out)';
     element.style.transform = 'translate3d(0, 0, 0)';
 
-    const isHorizontalEnough = Math.abs(deltaX) > Math.abs(deltaY) * 1.2;
+    const isHorizontalEnough = Math.abs(deltaX) > Math.abs(deltaY);
     const isFastEnough = deltaT < 1000;
     const commits = shouldCommitGesture({
       distance: deltaX,
       velocity: velocityX,
       dimension: element.clientWidth || window.innerWidth,
+      distanceRatio: 0.12,
+      velocityThreshold: 350,
     });
     if (!isHorizontalEnough || !commits || !isFastEnough) return;
 

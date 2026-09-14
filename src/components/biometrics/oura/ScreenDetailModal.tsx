@@ -169,9 +169,9 @@ export function ScreenDetailModal({ isOpen, onClose, screen, date }: ScreenDetai
           </div>
           {hasUnlocks && (
             <div className="rounded-xl border border-border-subtle bg-surface-2 p-3 text-center">
-              <p className="text-xs text-text-muted">Odblokowania</p>
-              <p className="mt-1 text-xl font-light text-text-primary">{cognitive!.unlocks}x</p>
-              <p className="text-xs text-text-muted">co ~{cognitive!.unlockIntervalMinutes} min</p>
+              <p className="text-xs text-text-muted">
+                śr. ~{cognitive!.avgSessionMinutes ?? cognitive!.unlockIntervalMinutes} min / sesja
+              </p>
             </div>
           )}
         </div>

@@ -27,4 +27,5 @@ export * from './healthspan.ts';
 export * from './healthspanMethodology.ts';
 export * from './healthspanTrend.ts';
 export * from './training/index.ts';
+export * from './caffeine.ts';
 

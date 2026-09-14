@@ -2,25 +2,31 @@ import { Dumbbell, Plus, ChevronRight, Activity, History, BookOpen } from 'lucid
 import { Link } from 'react-router-dom';
 import { Card } from '../../ui/Card';
 import { Pressable } from '../../ui/ControlPrimitives';
-import type { DesktopSessionRow } from '../shell/useDesktopData';
+import type { DesktopSessionRow, StravaActivityRow } from '../shell/useDesktopData';
 import { sessionDateKey } from '../../../lib/health/workoutSauna';
+import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 
 interface Props {
   sessions: DesktopSessionRow[];
+  strava?: StravaActivityRow[];
   onOpenWorkout?: () => void;
 }
 
-export default function DesktopWorkoutProgressPanel({ sessions, onOpenWorkout }: Props) {
+export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWorkout }: Props) {
   // Filter out wellness/sauna only sessions to show real gym workouts
   const strengthSessions = sessions.filter((s) => {
     const name = (s.workout_day || '').toLowerCase();
     return !name.includes('sauna') && !name.includes('wellness');
   });
 
-  const latest = strengthSessions[0] ?? null;
+  const sortedStrength = [...strengthSessions].sort((a, b) =>
+    (b.date || '').localeCompare(a.date || '')
+  );
 
-  // Calculate total tonnage for recent 30 days
-  const totalTonnageKg = strengthSessions.slice(0, 20).reduce((acc, s) => {
+  const latest = sortedStrength[0] ?? null;
+
+  // Calculate total tonnage for recent 30 sessions
+  const totalTonnageKg = sortedStrength.slice(0, 30).reduce((acc, s) => {
     const exercises = s.exercise_logs ?? [];
     const sessionKg = exercises.reduce((eAcc, ex) => {
       const w = Number(ex.weight) || 0;
@@ -31,6 +37,17 @@ export default function DesktopWorkoutProgressPanel({ sessions, onOpenWorkout }:
   }, 0);
 
   const tonnageMg = Math.round((totalTonnageKg / 1000) * 10) / 10;
+
+  // Calculate 30-day running volume & heart rate
+  const thirtyDaysAgo = shiftDateStr(getTodayWarsaw(), -30);
+  const runs30d = (strava || []).filter((a) => {
+    const isRun = ['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type || '');
+    return isRun && (a.start_date || '') >= thirtyDaysAgo;
+  });
+
+  const totalRunKm30d = runs30d.reduce((sum, a) => sum + (Number(a.distance) || 0) / 1000, 0);
+  const validHrs = runs30d.map((a) => a.hr_avg).filter((h): h is number => h != null && h > 60);
+  const avgRunHr30d = validHrs.length ? Math.round(validHrs.reduce((s, h) => s + h, 0) / validHrs.length) : null;
 
   return (
     <Card variant="surface" padding="1.25rem" className="space-y-4 border-border-custom bg-surface/30">
@@ -74,15 +91,23 @@ export default function DesktopWorkoutProgressPanel({ sessions, onOpenWorkout }:
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Sesje siłowe (30d)</p>
-          <p className="mt-1 text-2xl font-light text-text-primary">{strengthSessions.slice(0, 30).length}×</p>
-          <p className="mt-0.5 text-2xs text-text-muted">regularny bodziec</p>
+          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Jednostki (30d)</p>
+          <p className="mt-1 text-2xl font-light text-text-primary">
+            {sortedStrength.slice(0, 30).length + runs30d.length}×
+          </p>
+          <p className="mt-0.5 text-2xs text-text-muted">
+            {sortedStrength.slice(0, 30).length}× siła · {runs30d.length}× bieg
+          </p>
         </div>
 
         <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Objętość (Tonaż)</p>
+          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Objętość hybrydowa (30d)</p>
           <p className="mt-1 text-2xl font-light text-text-primary">{tonnageMg > 0 ? `${tonnageMg} Mg` : '—'}</p>
-          <p className="mt-0.5 text-2xs text-text-muted">{Math.round(totalTonnageKg).toLocaleString()} kg przerzucone</p>
+          <p className="mt-0.5 text-2xs text-text-muted">
+            {totalRunKm30d > 0
+              ? `+ ${totalRunKm30d.toFixed(1)} km bieg ${avgRunHr30d ? `(ø ${avgRunHr30d} bpm)` : ''}`
+              : `${Math.round(totalTonnageKg).toLocaleString()} kg przerzucone`}
+          </p>
         </div>
 
         <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
@@ -92,7 +117,19 @@ export default function DesktopWorkoutProgressPanel({ sessions, onOpenWorkout }:
           <p className="mt-1 text-2xl font-light text-text-primary">
             {latest?.session_rpe != null ? `@${latest.session_rpe}` : '@8'}
           </p>
-          <p className="mt-0.5 text-2xs text-text-muted">rezerwa 1–2 powtórzeń</p>
+          <p className="mt-0.5 text-2xs text-text-muted">
+            {latest?.session_rpe != null
+              ? latest.session_rpe >= 9.5
+                ? 'upadek mięśniowy (RIR 0)'
+                : latest.session_rpe >= 9
+                ? 'rezerwa 1 powtórzenie (RIR 1)'
+                : latest.session_rpe >= 8
+                ? 'rezerwa 2 powtórzenia (RIR 2)'
+                : latest.session_rpe >= 7
+                ? 'rezerwa ~3 powtórzenia (RIR 3)'
+                : 'praca submaksymalna / deload'
+              : 'rezerwa 2 powtórzenia'}
+          </p>
         </div>
 
         <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
@@ -106,29 +143,85 @@ export default function DesktopWorkoutProgressPanel({ sessions, onOpenWorkout }:
         </div>
       </div>
 
-      {/* Ostatnie sesje lista */}
-      {strengthSessions.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Ostatnie sesje treningowe</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {strengthSessions.slice(0, 3).map((session, idx) => {
-              const exCount = (session.exercise_logs ?? []).length;
-              return (
-                <div key={session.id || idx} className="rounded-xl border border-border-custom/60 bg-surface-2/40 p-2.5 flex items-center justify-between">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-text-primary truncate">{session.workout_day || 'Trening'}</p>
-                    <p className="text-3xs text-text-muted">
-                      {sessionDateKey(session.date)} · {exCount} ćwiczeń
-                      {session.session_rpe ? ` · RPE ${session.session_rpe}` : ''}
-                    </p>
-                  </div>
-                  <ChevronRight size={14} className="text-text-muted shrink-0" />
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      {totalRunKm30d > 0 && (
+        <HybridSummaryBanner
+          tonnageMg={tonnageMg}
+          totalTonnageKg={totalTonnageKg}
+          totalRunKm30d={totalRunKm30d}
+          avgRunHr30d={avgRunHr30d}
+        />
+      )}
+
+      {sortedStrength.length > 0 && (
+        <RecentSessionsList sortedStrength={sortedStrength} onOpenWorkout={onOpenWorkout} />
       )}
     </Card>
+  );
+}
+
+function HybridSummaryBanner({
+  tonnageMg,
+  totalTonnageKg,
+  totalRunKm30d,
+  avgRunHr30d,
+}: {
+  tonnageMg: number;
+  totalTonnageKg: number;
+  totalRunKm30d: number;
+  avgRunHr30d: number | null;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-custom/50 bg-surface-2/40 px-3.5 py-2 text-2xs text-text-secondary">
+      <div className="flex items-center gap-1.5">
+        <span className="font-bold text-primary">Tonaż siłowy:</span>
+        <span className="font-mono font-semibold">{tonnageMg} Mg</span>
+        <span className="text-text-muted">({Math.round(totalTonnageKg).toLocaleString()} kg)</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        <span className="font-bold text-warning">Dystans biegowy:</span>
+        <span className="font-mono font-semibold">{totalRunKm30d.toFixed(1)} km</span>
+        {avgRunHr30d && (
+          <span className="text-text-muted">· śr. tętno <strong>{avgRunHr30d} bpm</strong></span>
+        )}
+      </div>
+      <div className="text-text-muted">
+        Profil: <span className="font-bold text-text-primary">Hybrydowy (Siła + Bieganie)</span>
+      </div>
+    </div>
+  );
+}
+
+function RecentSessionsList({
+  sortedStrength,
+  onOpenWorkout,
+}: {
+  sortedStrength: DesktopSessionRow[];
+  onOpenWorkout?: () => void;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Ostatnie sesje treningowe</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        {sortedStrength.slice(0, 3).map((session, idx) => {
+          const exCount = (session.exercise_logs ?? []).length;
+          return (
+            <div
+              key={session.id || idx}
+              onClick={onOpenWorkout}
+              className="rounded-xl border border-border-custom/60 bg-surface-2/40 p-2.5 flex items-center justify-between cursor-pointer hover:border-primary/40 hover:bg-surface-2/70 transition-colors"
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold text-text-primary truncate">{session.workout_day || 'Trening'}</p>
+                <p className="text-3xs text-text-muted">
+                  {sessionDateKey(session.date)} · {exCount} ćwiczeń
+                  {session.session_rpe ? ` · RPE ${session.session_rpe}` : ''}
+                </p>
+              </div>
+              <ChevronRight size={14} className="text-text-muted shrink-0" />
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

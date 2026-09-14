@@ -4,7 +4,7 @@ import type { LucideIcon } from 'lucide-react';
 interface HorizonHeaderProps {
   eyebrow: string;
   title: string;
-  description: string;
+  description?: ReactNode;
   icon: LucideIcon;
   badge?: ReactNode;
 }
@@ -21,7 +21,7 @@ export default function HorizonHeader({ eyebrow, title, description, icon: Icon,
       <h1 className="ui-screen-title mt-2 text-text-primary">
         {title}
       </h1>
-      <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-secondary">{description}</p>
+      {description && <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-secondary">{description}</p>}
     </header>
   );
 }

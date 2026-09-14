@@ -1,10 +1,11 @@
-import { Pressable, ControlInput } from '../../ui/ControlPrimitives';
 import { useState } from 'react';
-import { Activity, ChevronDown, ChevronUp } from 'lucide-react';
-import { Card } from '../../ui/Card';
-import { TrendArrow } from './TrendArrow';
+import { Activity, Scale, Ruler, Check } from 'lucide-react';
+import Button from '../../ui/Button';
+import { ControlInput } from '../../ui/ControlPrimitives';
 import { computeBmi, effectiveWaistForNavy, navyBodyFatPct } from '../../../lib/health/bodyMetrics';
 import { BMI_NORMAL_LOW, BMI_NORMAL_HIGH } from '../../../lib/constants';
+import { BodyCircumferencesDrawer } from './BodyCircumferencesDrawer';
+import { BodyMetricsKpis } from './BodyMetricsKpis';
 
 interface TrendPoint {
   cur: number | null;
@@ -46,25 +47,26 @@ interface BodyMetricsSectionProps {
   saveMetrics: (e: React.FormEvent) => void;
 }
 
-function Field({
-  label, value, onChange, placeholder,
-}: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string;
-}) {
+function TrendPill({ cur, prev, unit, better = 'down' }: { cur?: number | null; prev?: number | null; unit: string; better?: 'up' | 'down' }) {
+  if (cur == null || prev == null) return null;
+  const diff = Math.round((cur - prev) * 10) / 10;
+  if (Math.abs(diff) < 0.05) {
+    return <span className="text-3xs font-mono font-bold text-text-muted px-1.5 py-0.5 rounded bg-surface-2/60">0.0 {unit}</span>;
+  }
+  const isBetter = better === 'down' ? diff < 0 : diff > 0;
   return (
-    <div className="space-y-1.5">
-      <label className="text-xs font-bold uppercase tracking-wider text-text-muted font-display block">
-        {label}
-      </label>
-      <ControlInput
-        type="text" inputMode="decimal" value={value}
-        onChange={(e) => onChange(e.target.value.replace(',', '.'))}
-        placeholder={placeholder ?? '--'}
-        className="w-full rounded-xl border border-border-custom bg-surface p-3 text-base font-black text-text-primary outline-none transition-all placeholder:text-text-muted focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
-      />
-    </div>
+    <span
+      className={`text-3xs font-mono font-bold px-1.5 py-0.5 rounded border ${
+        isBetter
+          ? 'bg-success/10 text-success border-success/20'
+          : 'bg-warning/10 text-warning border-warning/20'
+      }`}
+    >
+      {diff > 0 ? `+${diff}` : `${diff}`} {unit}
+    </span>
   );
 }
+
 
 export function BodyMetricsSection({
   trends, newMetric, setNewMetric, latestBody, heightCm, saveMetrics,
@@ -73,7 +75,6 @@ export function BodyMetricsSection({
 
   const set = (key: keyof NewMetricState) => (v: string) => setNewMetric({ ...newMetric, [key]: v });
 
-  // Live calculators — prefer typed value, fall back to latest
   const w = parseFloat(newMetric.weight) || latestBody?.weight || null;
   const waist = parseFloat(newMetric.waist) || latestBody?.waist || null;
   const belly = parseFloat(newMetric.belly) || latestBody?.belly || null;
@@ -89,119 +90,106 @@ export function BodyMetricsSection({
   });
   const bf = waistNavy && neck && heightCm ? navyBodyFatPct(waistNavy, neck, heightCm) : null;
 
-  const bfColor = bf == null ? '' : bf < 12 ? 'text-warning' : bf < 18 ? 'text-success dark:text-success' : bf < 25 ? 'text-text-primary' : 'text-danger';
-  const bmiColor = bmi == null ? '' : bmi < BMI_NORMAL_LOW ? 'text-warning' : bmi < BMI_NORMAL_HIGH ? 'text-success dark:text-success' : bmi < 30 ? 'text-warning' : 'text-danger';
+  const bmiLabel = bmi == null ? null : bmi < BMI_NORMAL_LOW ? 'Niedowaga' : bmi < BMI_NORMAL_HIGH ? 'Norma' : bmi < 30 ? 'Nadwaga' : 'Otyłość';
+  const bmiBadgeColor = bmi == null ? '' : bmi < BMI_NORMAL_LOW ? 'text-warning bg-warning/10 border-warning/20' : bmi < BMI_NORMAL_HIGH ? 'text-success bg-success/10 border-success/20' : 'text-danger bg-danger/10 border-danger/20';
+
+  const bfLabel = bf == null ? null : bf < 10 ? 'Wyżyłowany' : bf < 16 ? 'Atletyczny' : bf < 22 ? 'Zdrowy' : 'Podwyższony';
+  const bfBadgeColor = bf == null ? '' : bf < 10 ? 'text-warning bg-warning/10 border-warning/20' : bf < 16 ? 'text-success bg-success/10 border-success/20' : bf < 22 ? 'text-primary bg-primary/10 border-primary/20' : 'text-danger bg-danger/10 border-danger/20';
 
   return (
-    <section className="card !p-0">
+    <section id="kronika-pomiary" className="rounded-2xl border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 pt-5 pb-4">
+      <div className="flex items-center justify-between">
         <div>
-          <p className="text-2xs font-bold uppercase tracking-[var(--ds-arbitrary-0-15em)] text-text-muted font-display">
-            Pomiary ciała
-          </p>
-          <h2 className="mt-1 font-display text-lg font-black tracking-tight text-text-primary">
-            Waga · talia
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted font-display">
+              Pomiary ciała & Skład
+            </p>
+          </div>
+          <h2 className="mt-0.5 font-display text-lg font-black tracking-tight text-text-primary flex items-center gap-2">
+            Waga & Talia
+            <span className="text-xs font-normal text-text-muted">· Telemetria</span>
           </h2>
         </div>
-        <Activity className="text-primary/30 dark:text-primary/45" size={18} />
+        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 text-primary border border-primary/20">
+          <Activity size={16} />
+        </div>
       </div>
 
-      <div className="space-y-3 px-5 pb-5">
-        {/* Main inputs: weight + waist */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-text-muted font-display">
-              Waga (kg)
-              <TrendArrow current={trends.weight?.cur} previous={trends.weight?.prev} better="down" />
+      {/* Hero Inputs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Waga */}
+        <div className="relative rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm transition-all focus-within:border-primary/60 focus-within:shadow-focus">
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text-muted font-display">
+              <Scale size={13} className="text-primary" />
+              Waga
             </label>
+            <TrendPill cur={trends.weight?.cur} prev={trends.weight?.prev} unit="kg" better="down" />
+          </div>
+          <div className="flex items-baseline gap-2">
             <ControlInput
               type="text" inputMode="decimal" value={newMetric.weight}
               onChange={(e) => setNewMetric({ ...newMetric, weight: e.target.value.replace(',', '.') })}
-              className="w-full rounded-xl border border-border-custom bg-surface p-3.5 text-lg font-black text-text-primary outline-none transition-all placeholder:text-text-muted focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
+              className="w-full bg-transparent text-2xl font-black text-text-primary outline-none placeholder:text-text-muted/40 font-display"
               placeholder={latestBody?.weight ? String(latestBody.weight) : '--'}
             />
-          </div>
-          <div className="space-y-1.5">
-            <label className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-text-muted font-display">
-              Talia (cm)
-              <TrendArrow current={trends.waist?.cur} previous={trends.waist?.prev} better="down" />
-            </label>
-            <ControlInput
-              type="text" inputMode="decimal" value={newMetric.waist}
-              onChange={(e) => setNewMetric({ ...newMetric, waist: e.target.value.replace(',', '.') })}
-              className="w-full rounded-xl border border-border-custom bg-surface p-3.5 text-lg font-black text-text-primary outline-none transition-all placeholder:text-text-muted focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
-              placeholder={latestBody?.waist ? String(latestBody.waist) : '--'}
-            />
+            <span className="text-xs font-bold text-text-muted uppercase">kg</span>
           </div>
         </div>
 
-        {/* Expand toggle */}
-        <Pressable
-          type="button"
-          onClick={() => setExpanded(v => !v)}
-          className="flex w-full items-center justify-between rounded-xl border border-border-custom bg-surface-solid/60 px-3.5 py-2.5 text-xs font-bold text-text-muted transition-all hover:text-text-primary hover:bg-surface-solid"
-        >
-          <span>Szczegółowe pomiary · BMI · BF% · WHR</span>
-          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        </Pressable>
-
-        {/* Expandable panel */}
-        {expanded && (
-          <Card className="space-y-4">
-            {/* Live indicators */}
-            {(bmi != null || bf != null || whr != null) && (
-              <div className="flex flex-wrap gap-2 pb-1">
-                {bmi != null && (
-                  <span className={`inline-flex items-center gap-1.5 rounded-full border border-border-custom bg-surface px-3 py-1 text-xs font-black ${bmiColor}`}>
-                    BMI <span>{bmi}</span>
-                  </span>
-                )}
-                {bf != null && (
-                  <span className={`inline-flex items-center gap-1.5 rounded-full border border-border-custom bg-surface px-3 py-1 text-xs font-black ${bfColor}`}>
-                    BF% <span>{bf}%</span>
-                    <span className="text-2xs font-normal text-text-muted">Navy</span>
-                  </span>
-                )}
-                {whr != null && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border-custom bg-surface px-3 py-1 text-xs font-black text-text-primary">
-                    WHR <span>{whr}</span>
-                  </span>
-                )}
-                {bf == null && latestBody?.body_fat != null && (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-border-custom bg-surface px-3 py-1 text-xs font-bold text-text-muted">
-                    ostatni BF {latestBody.body_fat}%
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Circumference inputs */}
-            <div className="grid grid-cols-3 gap-2.5">
-              <Field label="Szyja (cm)"        value={newMetric.neck}     onChange={set('neck')}     placeholder={latestBody?.neck    ? String(latestBody.neck)    : '~37'} />
-              <Field label="Klatka (cm)"        value={newMetric.chest}    onChange={set('chest')}    placeholder={latestBody?.chest   ? String(latestBody.chest)   : '--'} />
-              <Field label="Brzuch (cm)"        value={newMetric.belly}    onChange={set('belly')}    placeholder={latestBody?.belly   ? String(latestBody.belly)   : '--'} />
-              <Field label="Biodra (cm)"        value={newMetric.hips}     onChange={set('hips')}     placeholder={latestBody?.hips    ? String(latestBody.hips)    : '--'} />
-              <Field label="Udo (cm)"           value={newMetric.thigh}    onChange={set('thigh')}    placeholder={latestBody?.thigh   ? String(latestBody.thigh)   : '--'} />
-              <Field label="Biceps L (cm)"      value={newMetric.biceps_l} onChange={set('biceps_l')} placeholder={latestBody?.biceps_l ? String(latestBody.biceps_l) : '--'} />
-            </div>
-
-            <p className="text-2xs text-text-muted leading-relaxed">
-              Mierz rano, na czczo, na rozluźnionych mięśniach. Talia = najwęższe miejsce tułowia.
-              Brzuch = na poziomie pępka. Biodra = najszerszy punkt pośladków.
-              BF% obliczany metodą US Navy (brzuch/talia − szyja → log₁₀).
-            </p>
-          </Card>
-        )}
-
-        <Pressable
-          variant="primary"
-          onClick={saveMetrics}
-          className="w-full"
-        >
-          Zapisz pomiary
-        </Pressable>
+        {/* Talia */}
+        <div className="relative rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm transition-all focus-within:border-primary/60 focus-within:shadow-focus">
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text-muted font-display">
+              <Ruler size={13} className="text-warning" />
+              Talia
+            </label>
+            <TrendPill cur={trends.waist?.cur} prev={trends.waist?.prev} unit="cm" better="down" />
+          </div>
+          <div className="flex items-baseline gap-2">
+            <ControlInput
+              type="text" inputMode="decimal" value={newMetric.waist}
+              onChange={(e) => setNewMetric({ ...newMetric, waist: e.target.value.replace(',', '.') })}
+              className="w-full bg-transparent text-2xl font-black text-text-primary outline-none placeholder:text-text-muted/40 font-display"
+              placeholder={latestBody?.waist ? String(latestBody.waist) : '--'}
+            />
+            <span className="text-xs font-bold text-text-muted uppercase">cm</span>
+          </div>
+        </div>
       </div>
+
+      {/* Live Calculated KPI Badges */}
+      <BodyMetricsKpis
+        bmi={bmi}
+        bmiLabel={bmiLabel}
+        bmiBadgeColor={bmiBadgeColor}
+        bf={bf}
+        bfLabel={bfLabel}
+        bfBadgeColor={bfBadgeColor}
+        latestBodyFat={latestBody?.body_fat}
+        whr={whr}
+      />
+
+      {/* Expandable detailed circumferences */}
+      <BodyCircumferencesDrawer
+        expanded={expanded}
+        onToggle={() => setExpanded((v) => !v)}
+        newMetric={newMetric}
+        set={set}
+        latestBody={latestBody}
+      />
+
+      {/* Save Button */}
+      <Button
+        variant="primary"
+        onClick={saveMetrics}
+        className="w-full flex items-center justify-center gap-2 py-3"
+      >
+        <Check size={14} />
+        Zapisz pomiary
+      </Button>
     </section>
   );
 }

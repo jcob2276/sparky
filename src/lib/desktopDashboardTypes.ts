@@ -32,11 +32,14 @@ export type DesktopSessionRow = {
 };
 
 export type StravaActivityRow = {
+  name?: string | null;
   sport_type: string;
   distance: number | null;
   moving_time: number | null;
+  elapsed_time?: number | null;
   start_date: string;
   best_efforts: import('./database.types').Json;
+  hr_avg?: number | null;
 };
 
 export type ProjectRow = {
@@ -112,6 +115,7 @@ export type KnowledgeRow = {
 
 export type LenieLogRow = {
   date: string;
+  logged_at?: string | null; // ISO timestamp of last log that day (Warsaw ≈ UTC+2)
   final_stimulus?: string | null;
   context_note?: string | null;
 };
@@ -135,6 +139,18 @@ export type BodyMetricRow = {
   body_fat: number | null;
 };
 
+export type PhoneUsageRow = {
+  date: string;
+  total_minutes: number;
+  late_night_minutes: number;
+  social_minutes?: number | null;
+  messaging_minutes?: number | null;
+  entertainment_minutes?: number | null;
+  browser_minutes?: number | null;
+  unlocks?: number | null;
+  top_apps?: Record<string, number> | null;
+};
+
 export interface DesktopQueryResult {
   oura: OuraRow[];
   nutrition: NutritionDayRow[];
@@ -153,6 +169,7 @@ export interface DesktopQueryResult {
   wiki: WikiRow[];
   knowledge: KnowledgeRow[];
   lenieLogs: LenieLogRow[];
+  phoneUsage: PhoneUsageRow[];
   habits: HabitRow[];
   habitLogs: HabitLogRow[];
   marathon: MarathonRow | null;

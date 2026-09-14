@@ -7,13 +7,11 @@
 import { Suspense, lazy, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
-import { format, parseISO } from 'date-fns';
 import Button from '../../ui/Button';
 import Spinner from '../../ui/Spinner';
 import { notify } from '../../../lib/notify';
 import { STORAGE_KEYS } from '../../../lib/constants';
-import { getTodayWarsaw, formatDashboardDate } from '../../../lib/date';
-import { mergeLatestBodyMetrics } from '../../../lib/health/bodyMetrics';
+import { formatDashboardDate } from '../../../lib/date';
 import { syncOura, syncCalendar, syncStrava, computeDailyStrain } from '../../../lib/syncApi';
 import { loadWorkoutTemplate, markWorkoutSessionActive, purgeStaleWorkoutDraft, shouldAutoResumeWorkout, type WorkoutLoggerInitial } from '../../../lib/health/workoutLogging';
 import { startGoogleAuth } from '../../../hooks/useSyncActions';
@@ -21,13 +19,11 @@ import { useNudgeData } from '../../core/hooks/useNudgeData';
 import { useDesktopData } from './useDesktopData';
 import { useHabitsData } from '../health/useHabitsData';
 import { useDreamsData } from '../vision/useDreamsData';
-import { getSprintInfo, sprintMetrics, computeAlerts, daysBefore, weeklyVolume } from '../desktopUtils';
+import { weeklyVolume } from '../desktopUtils';
 import DesktopHeader from './DesktopHeader';
 import DesktopSectionNav from './DesktopSectionNav';
 import DesktopQuickActionsBar, { type DesktopTabType } from './DesktopQuickActionsBar';
 import DesktopTabContent from './DesktopTabContent';
-import DesktopQuickConfounderModal from './DesktopQuickConfounderModal';
-import DesktopQuickStreamModal from './DesktopQuickStreamModal';
 import DesktopQuickWeightModal from './DesktopQuickWeightModal';
 import DesktopToolsLauncherModal from './DesktopToolsLauncherModal';
 import DreamEditModal from '../vision/DreamEditModal';
@@ -35,7 +31,6 @@ import DreamEditModal from '../vision/DreamEditModal';
 const WorkoutLogger = lazy(() => import('../../biometrics/WorkoutLogger'));
 const Fundament = lazy(() => import('../../core/Fundament'));
 const SystemHealth = lazy(() => import('../health/SystemHealth'));
-const FoodEntryModal = lazy(() => import('../../core/nutrition/FoodEntryModal'));
 const SaunaLoggerModal = lazy(() => import('../../biometrics/SaunaLoggerModal'));
 
 export default function DesktopDashboard({ session }: { session: Session }) {
@@ -43,19 +38,16 @@ export default function DesktopDashboard({ session }: { session: Session }) {
   const navigate = useNavigate();
   const { pendingGrowthMustCount } = useNudgeData(userId);
   const desktopData = useDesktopData(userId);
-  const { loading, oura, nutrition, sessions, body, strain, strava, projects, moves, goals, sprintGoals, refresh } = desktopData;
+  const { loading, oura, sessions, strain, refresh } = desktopData;
 
   const habitsData = useHabitsData({ userId });
   const dreamsData = useDreamsData({ userId, loading });
 
-  const [activeTab, setActiveTab] = useState<DesktopTabType>('cockpit');
+  const [activeTab, setActiveTab] = useState<DesktopTabType>('training');
   const [syncing, setSyncing] = useState(false);
   const [showWorkout, setShowWorkout] = useState(false);
   const [workoutInitial, setWorkoutInitial] = useState<WorkoutLoggerInitial | null>(null);
-  const [showFoodModal, setShowFoodModal] = useState(false);
   const [showSaunaModal, setShowSaunaModal] = useState(false);
-  const [showConfounderModal, setShowConfounderModal] = useState(false);
-  const [showStreamModal, setShowStreamModal] = useState(false);
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [showToolsModal, setShowToolsModal] = useState(false);
   const [showFundament, setShowFundament] = useState(false);
@@ -119,26 +111,7 @@ export default function DesktopDashboard({ session }: { session: Session }) {
     return () => window.removeEventListener('keydown', handler);
   }, [syncAll, openWorkout]);
 
-  const oura14 = useMemo(() => oura.slice(-14), [oura]);
-  const alerts = useMemo(() => computeAlerts(oura, sessions, nutrition), [oura, sessions, nutrition]);
-  const mergedBodySnapshot = useMemo(() => mergeLatestBodyMetrics(body), [body]);
-  const currentWeight = mergedBodySnapshot?.weight ?? null;
-  const weight30ago = currentWeight ? +([...body].reverse().find(b => (b.date ?? '') <= daysBefore(28))?.weight || 0) || null : null;
-
-  const sprint = useMemo(() => getSprintInfo(), []);
-  const sprintGoal = useMemo(() => sprintGoals.find(g => g.personal_year === sprint.personalYear && g.sprint_number === sprint.sprintNumber) ?? null, [sprintGoals, sprint]);
-  const currMetrics = useMemo(() => sprintMetrics(oura, sessions, strava, sprint.sprintStart, sprint.sprintEnd), [oura, sessions, strava, sprint]);
-  const prevMetrics = useMemo(() => sprint.prevStart ? sprintMetrics(oura, sessions, strava, sprint.prevStart, sprint.prevEnd) : null, [oura, sessions, strava, sprint]);
-
-  const projectMetrics = useMemo(() => ({
-    doneInSprint: (moves || []).filter(m => m.status === 'done' && (m.completed_at || '').slice(0, 10) >= sprint.sprintStart).length,
-    inProgress: (moves || []).filter(m => m.status === 'todo' || m.status === 'open').length,
-    blocked: (moves || []).filter(m => m.status === 'blocked' || ((m.status === 'todo' || m.status === 'open') && m.planned_for && m.planned_for < getTodayWarsaw())).length,
-    activeProjects: (projects || []).filter(p => p.status === 'active' || (p.sense_status && p.sense_status !== 'cut' && p.sense_status !== 'completed')).length,
-  }), [moves, sprint.sprintStart, projects]);
-
-  const sleepData = useMemo(() => oura14.map(r => ({ d: format(parseISO(r.date), 'dd.MM'), Sen: r.total_sleep_hours ? +r.total_sleep_hours.toFixed(1) : null, HRV: r.hrv_avg || null })), [oura14]);
-  const nutrData = useMemo(() => nutrition.map(r => ({ d: format(parseISO(r.date), 'dd.MM'), Kcal: r.calories || 0, Białko: r.protein || 0 })), [nutrition]);
+  const currentWeight = desktopData.body[desktopData.body.length - 1]?.weight ?? null;
   const volData = useMemo(() => weeklyVolume(sessions), [sessions]);
   const now = useMemo(() => formatDashboardDate(), []);
 
@@ -175,16 +148,11 @@ export default function DesktopDashboard({ session }: { session: Session }) {
     );
   }
 
-  const heroProps = {
-    strain, oura: oura14, sprint, sprintGoal, sprintReview: dreamsData.sprintReview,
-    metrics: currMetrics, prevMetrics, projectMetrics, goals, currentWeight, weight30ago,
-  };
-
   return (
     <>
       <div className="min-h-screen bg-background text-text-primary transition-colors duration-[var(--motion-slow)]">
         <DesktopHeader
-          now={now} syncing={syncing} pendingGrowthMustCount={pendingGrowthMustCount}
+          now={now} syncing={syncing}
           theme={theme} setTheme={setTheme} syncAll={syncAll}
           setShowHealth={setShowHealth} setShowFundament={setShowFundament}
           onOpenTools={() => setShowToolsModal(true)}
@@ -196,24 +164,17 @@ export default function DesktopDashboard({ session }: { session: Session }) {
               activeTab={activeTab}
               onTabChange={setActiveTab}
               dailyStatus={strain?.daily_status || 'unknown'}
+              naukaBadge={pendingGrowthMustCount}
             />
-            <div className="flex-1 min-w-0 space-y-4">
+            <div className="flex-1 min-w-0 flex flex-col gap-4">
               <DesktopQuickActionsBar
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
-                onOpenFood={() => setShowFoodModal(true)}
-                onOpenWorkout={openWorkout}
-                onOpenWeight={() => setShowWeightModal(true)}
-                onOpenSauna={() => setShowSaunaModal(true)}
-                onOpenConfounder={() => setShowConfounderModal(true)}
-                onOpenStream={() => setShowStreamModal(true)}
-                onOpenOptics={() => navigate('/optics')}
-                onOpenTools={() => setShowToolsModal(true)}
-                naukaBadge={pendingGrowthMustCount}
               />
 
               <DesktopTabContent
                 activeTab={activeTab}
+                onTabChange={setActiveTab}
                 userId={userId}
                 session={session}
                 theme={theme}
@@ -222,10 +183,6 @@ export default function DesktopDashboard({ session }: { session: Session }) {
                 data={desktopData}
                 habitsData={habitsData}
                 dreamsData={dreamsData}
-                heroProps={heroProps}
-                alerts={alerts}
-                sleepData={sleepData}
-                nutrData={nutrData}
                 volData={volData}
                 refresh={refresh}
                 onOpenWorkout={openWorkout}
@@ -249,15 +206,6 @@ export default function DesktopDashboard({ session }: { session: Session }) {
         DREAM_CATEGORIES={dreamsData.DREAM_CATEGORIES} DREAM_CAT_LABEL={dreamsData.DREAM_CAT_LABEL}
       />
 
-      {showFoodModal && (
-        <Suspense fallback={null}>
-          <FoodEntryModal
-            onClose={() => setShowFoodModal(false)}
-            onSaved={() => { setShowFoodModal(false); refresh(); }}
-          />
-        </Suspense>
-      )}
-
       {showSaunaModal && (
         <Suspense fallback={null}>
           <SaunaLoggerModal
@@ -266,9 +214,6 @@ export default function DesktopDashboard({ session }: { session: Session }) {
           />
         </Suspense>
       )}
-
-      <DesktopQuickConfounderModal isOpen={showConfounderModal} onClose={() => setShowConfounderModal(false)} userId={userId} />
-      <DesktopQuickStreamModal isOpen={showStreamModal} onClose={() => setShowStreamModal(false)} userId={userId} onSaved={refresh} />
       {showWeightModal && (
         <DesktopQuickWeightModal isOpen={showWeightModal} onClose={() => setShowWeightModal(false)} userId={userId} currentWeight={currentWeight} onSaved={refresh} />
       )}

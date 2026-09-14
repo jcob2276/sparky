@@ -1,21 +1,17 @@
 /**
  * @component DashboardHistoriaTab
- * @role Zakładka HISTORIA — Stats (ciało/treningi/dieta), InsightsDashboard, StravaWidget, Photos.
+ * @role Zakładka KRONIKA — Pomiary, Sylwetka, Siłownia, Bieganie (Strava) i Eksport danych.
  * @usedBy Dashboard
  */
-import { Suspense, lazy } from 'react';
-import { Archive, History, Sparkles } from 'lucide-react';
+import { Suspense } from 'react';
+import { Sparkles } from 'lucide-react';
 import { useSession } from '../../store/useStore';
+import { Pressable } from '../ui/ControlPrimitives';
 import Spinner from '../ui/Spinner';
-import Tabs from '../ui/Tabs';
 import HorizonHeader from './HorizonHeader';
-
 import Stats from './Stats';
-import StandaloneBodyMetricsCard from './stats/StandaloneBodyMetricsCard';
-import { InsightsDashboard } from '../insights/InsightsDashboard';
 import StravaWidget from '../integrations/StravaWidget';
 import Photos from '../identity/Photos';
-import NutritionCard from './NutritionCard';
 
 function ViewFallback() {
   return (
@@ -25,51 +21,56 @@ function ViewFallback() {
   );
 }
 
-interface Props {
-  historySubTab: 'chronicle' | 'archive';
-  onSetSubTab: (tab: 'chronicle' | 'archive') => void;
-  weeklyCalories: number;
-  nutritionKey: number;
-}
+const QUICK_ANCHORS = [
+  { label: 'Pomiary', id: 'kronika-pomiary', icon: '📏' },
+  { label: 'Sylwetka', id: 'kronika-sylwetka', icon: '📸' },
+  { label: 'Siłownia', id: 'kronika-silownia', icon: '🏋️' },
+  { label: 'Biegi', id: 'kronika-bieganie', icon: '🏃' },
+  { label: 'Eksport', id: 'kronika-eksport', icon: '📦' },
+];
 
-export function DashboardHistoriaTab({ historySubTab, onSetSubTab, weeklyCalories, nutritionKey }: Props) {
+export function DashboardHistoriaTab() {
   const session = useSession();
   if (!session) return null;
 
-  const tabs = [
-    { key: 'chronicle', label: 'Kronika', icon: <Sparkles size={14} /> },
-    { key: 'archive', label: 'Archiwum', icon: <Archive size={14} /> },
-  ];
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
-    <div className="p-5 pb-8">
-      <div className="mb-5">
+    <div className="p-4 sm:p-5 pb-8 space-y-4">
+      {/* Header */}
+      <div>
         <HorizonHeader
           eyebrow="Uczę się"
-          title="Historia"
-          description="Znaczące zdarzenia, pełne dane źródłowe i statystyki — każdy poziom osobno."
-          icon={History}
+          title="Kronika"
+          icon={Sparkles}
+          description="Kompletny dziennik transformacji ciała, siły, wydolności i telemetrii."
         />
-      </div>
-      <Suspense fallback={<ViewFallback />}>
-        <div className="space-y-6">
-          <div className="px-1">
-            <Tabs tabs={tabs} active={historySubTab} onChange={onSetSubTab as (key: string) => void} />
-          </div>
 
-          <div className={historySubTab === 'chronicle' ? 'space-y-7' : 'hidden'}>
-            <StandaloneBodyMetricsCard />
-            <InsightsDashboard mode="chronicle" />
-            <Photos />
-          </div>
-
-          <div className={historySubTab === 'archive' ? '' : 'hidden'}>
-            <div className="mb-6">
-              <NutritionCard weeklyCalories={weeklyCalories} refreshSignal={nutritionKey} />
-            </div>
-            <Stats runningSlot={<StravaWidget session={session} />} />
-          </div>
+        {/* Quick Anchor Navigation */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pt-2 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {QUICK_ANCHORS.map((a) => (
+            <Pressable
+              key={a.id}
+              onClick={() => scrollTo(a.id)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-border-custom/80 bg-surface/70 hover:bg-surface hover:border-primary/40 text-3xs font-bold text-text-muted hover:text-text-primary transition-all active:scale-95 shadow-2xs whitespace-nowrap cursor-pointer"
+            >
+              <span>{a.icon}</span>
+              <span>{a.label}</span>
+            </Pressable>
+          ))}
         </div>
+      </div>
+
+      <Suspense fallback={<ViewFallback />}>
+        <Stats
+          photosSlot={<Photos />}
+          runningSlot={<StravaWidget session={session} />}
+        />
       </Suspense>
     </div>
   );

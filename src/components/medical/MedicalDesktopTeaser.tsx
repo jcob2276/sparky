@@ -12,6 +12,50 @@ import {
 import { ValueCell } from './MedicalLabSections';
 import { Card } from '../ui/Card';
 
+interface FlaggedAlertProps {
+  flaggedMarkers: ReturnType<typeof buildMarkerSeries>;
+}
+
+function FlaggedMarkersAlert({ flaggedMarkers }: FlaggedAlertProps) {
+  if (flaggedMarkers.length === 0) return null;
+  return (
+    <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 space-y-2">
+      <div className="flex items-center justify-between text-2xs">
+        <span className="font-bold text-warning flex items-center gap-1.5">
+          <AlertTriangle size={13} />
+          <span>Markery poza zakresem referencyjnym ({flaggedMarkers.length}):</span>
+        </span>
+        <Link to="/badania/laboratorium" className="text-3xs font-semibold text-primary hover:underline">
+          Otwórz laboratorium →
+        </Link>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {flaggedMarkers.slice(0, 7).map((s) => (
+          <span
+            key={s.marker_key}
+            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-surface border border-warning/30 text-2xs text-text-primary shadow-2xs"
+          >
+            <span className="font-medium truncate max-w-[130px]">{s.marker_name}</span>
+            <strong className="text-warning">
+              {s.latest.value} {s.latest.unit}
+            </strong>
+            {s.latest.flag && (
+              <span className="text-3xs font-semibold px-1 rounded bg-warning/20 text-warning">
+                {s.latest.flag === 'H' ? '↑ wysoki' : s.latest.flag === 'L' ? '↓ niski' : s.latest.flag}
+              </span>
+            )}
+          </span>
+        ))}
+        {flaggedMarkers.length > 7 && (
+          <span className="text-2xs text-text-muted self-center font-medium pl-1">
+            +{flaggedMarkers.length - 7} kolejnych
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
   const { labs, documents, loading } = useMedicalData(userId);
   const series = buildMarkerSeries(labs);
@@ -111,19 +155,35 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
             <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
               <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Status panelu</p>
               <p className="mt-1 text-sm font-semibold text-text-primary truncate">
-                {freshnessLabel(labFreshness(diffDaysFromToday(latestDate)))}
+                {latestDate ? freshnessLabel(labFreshness(diffDaysFromToday(latestDate))) : 'brak danych'}
               </p>
-              <p className="mt-0.5 text-2xs text-text-muted">retest co 6 miesięcy</p>
+              <p className="mt-0.5 text-2xs text-text-muted">
+                {latestDate && diffDaysFromToday(latestDate) != null
+                  ? `kolejny za ok. ${Math.max(0, 180 - (diffDaysFromToday(latestDate) ?? 0))} dni`
+                  : 'retest co 6 mies.'}
+              </p>
             </div>
           </div>
 
+          <FlaggedMarkersAlert flaggedMarkers={flaggedMarkers} />
+
           {/* Siatka kluczowych markerów */}
           <div className="space-y-2">
-            <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Kluczowe markery laboratoryjne</p>
+            <div className="flex items-center justify-between">
+              <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Kluczowe markery laboratoryjne</p>
+              <Link to="/badania/laboratorium" className="text-2xs text-text-muted hover:text-primary transition-colors">
+                Wszystkie 35 markerów →
+              </Link>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
               {preview.map((s) => (
-                <div key={s!.marker_key} className="rounded-xl border border-border-custom bg-background/40 px-3 py-2.5 flex flex-col justify-between">
-                  <p className="text-2xs font-semibold text-text-secondary truncate">{s!.marker_name}</p>
+                <div
+                  key={s!.marker_key}
+                  className="rounded-xl border border-border-custom bg-background/40 px-3 py-2.5 flex flex-col justify-between hover:border-border-focus transition-colors"
+                >
+                  <p className="text-2xs font-semibold text-text-secondary truncate" title={s!.marker_name}>
+                    {s!.marker_name}
+                  </p>
                   <div className="mt-1.5">
                     <ValueCell row={s!.latest} />
                   </div>

@@ -155,28 +155,47 @@ function AppRoutes() {
 
   if (!session) return <Auth />;
 
+  const DASHBOARD_ROUTES = new Set([
+    '/',
+    '/dzis',
+    '/tydzien',
+    '/projekty',
+    '/historia',
+    '/keep',
+    '/todo',
+    '/kalendarz',
+    '/terminy',
+    '/links',
+    '/fundament',
+    '/trening',
+    '/cwiczenie',
+    '/sauna',
+  ]);
+
+  const routeKey = DASHBOARD_ROUTES.has(location.pathname) ? 'dashboard-shell' : location.pathname;
+
   return (
     <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
+      <Routes location={location} key={routeKey}>
       <Route path="/" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
       <Route path="/dzis" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
       <Route path="/tydzien" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/projekty" element={<Screen kind="grid"><Dashboard session={session} /></Screen>} />
-      <Route path="/historia" element={<Screen kind="list"><Dashboard session={session} /></Screen>} />
-      <Route path="/keep" element={<Screen kind="grid"><Dashboard session={session} /></Screen>} />
-      <Route path="/todo" element={<Screen kind="list"><Dashboard session={session} /></Screen>} />
-      <Route path="/kalendarz" element={<Screen kind="timeline"><Dashboard session={session} /></Screen>} />
-      <Route path="/terminy" element={<Screen kind="list"><Dashboard session={session} /></Screen>} />
-      <Route path="/links" element={<Screen kind="list"><Dashboard session={session} /></Screen>} />
+      <Route path="/projekty" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
+      <Route path="/historia" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
+      <Route path="/keep" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
+      <Route path="/todo" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
+      <Route path="/kalendarz" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
+      <Route path="/terminy" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
+      <Route path="/links" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
       <Route path="/fundament" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
       <Route path="/trening" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/cwiczenie" element={<Screen kind="list"><Dashboard session={session} /></Screen>} />
+      <Route path="/cwiczenie" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
       <Route path="/bieganie" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="dashboard"><RunningPerformancePage /></Screen>
         </Suspense>
       } />
-      <Route path="/sauna" element={<Screen kind="list"><Dashboard session={session} /></Screen>} />
+      <Route path="/sauna" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
 
       <Route path="/dashboard" element={
         <Suspense fallback={FALLBACK_SPINNER}>

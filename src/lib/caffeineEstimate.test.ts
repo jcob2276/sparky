@@ -8,6 +8,9 @@ describe('estimateCaffeineMg', () => {
 
   it('falls back to heuristics', () => {
     expect(estimateCaffeineMg('latte')).toBe(95)
+    expect(estimateCaffeineMg('Barista Style Latte Caramel')).toBe(95)
+    expect(estimateCaffeineMg('Ice Latte Caramel')).toBe(95)
+    expect(estimateCaffeineMg('starbucks grand cup')).toBe(95)
     expect(estimateCaffeineMg('herbata')).toBe(47)
   })
 })

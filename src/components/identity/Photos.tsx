@@ -2,7 +2,7 @@ import { ControlInput } from '../ui/ControlPrimitives';
 import { getTodayWarsaw } from '../../lib/date';
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Camera, Sparkles } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import exifr from 'exifr';
 import { notify, confirmDialog } from '../../lib/notify';
@@ -21,6 +21,7 @@ import {
 import { requestPhysiqueAnalysis, type PhysiqueAnalysisResult } from '../../lib/physiqueApi';
 import PhysiqueAnalysisModal from './PhysiqueAnalysisModal';
 import PhotosTimelineList from './PhotosTimelineList';
+import { PhotoComparisonCard } from './PhotoComparisonCard';
 
 export default function Photos() {
   const userId = useUserId();
@@ -191,80 +192,17 @@ export default function Photos() {
   }
 
   return (
-    <div className="space-y-4 text-text-primary">
+    <div id="kronika-sylwetka" className="space-y-4 text-text-primary">
 
-      {/* Card: Header + Comparison */}
-      <Card padding="0">
-        <div className="flex items-start justify-between px-5 pt-5 pb-4">
-          <div>
-            <p className="text-2xs font-bold uppercase tracking-[var(--ds-arbitrary-0-15em)] text-text-muted font-display">Postęp sylwetki</p>
-            <h2 className="mt-1 font-display text-lg font-black tracking-tight text-text-primary">Transformacja</h2>
-          </div>
-          <div className="flex items-center gap-2">
-            {targetPhoto && (
-              <button
-                onClick={() => handleAnalyze(targetPhoto)}
-                disabled={analyzingId === targetPhoto.id}
-                className="flex items-center gap-1.5 px-3 py-2.5 rounded-2xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary hover:text-on-accent font-display text-xs font-bold uppercase tracking-wider transition-all"
-              >
-                {analyzingId === targetPhoto.id ? <Spinner size="sm" /> : <Sparkles size={15} />}
-                <span>{targetPhoto.ai_analysis ? 'Wynik AI' : 'Analizuj AI'}</span>
-              </button>
-            )}
-            <label className="cursor-pointer flex h-11 w-11 items-center justify-center rounded-2xl border border-border-custom bg-surface text-text-secondary transition-all hover:bg-primary hover:border-primary hover:text-on-accent shadow-sm">
-              {uploading ? <Spinner size="sm" /> : <Camera size={17} />}
-              <ControlInput type="file" accept="image/*" className="hidden" onChange={uploadPhoto} disabled={uploading} />
-            </label>
-          </div>
-        </div>
-
-        {/* Comparison */}
-        <div className="relative aspect-[var(--ds-arbitrary-4-5)] bg-surface-solid border-t border-border-custom overflow-hidden">
-          <div className="absolute inset-0 flex">
-            {/* Baza (Left) */}
-            <div className="relative flex-1 border-r border-border-custom overflow-hidden">
-              {basePhoto ? (
-                <>
-                  <img src={basePhoto.image_url} alt="Zdjęcie bazowe sylwetki" className="absolute inset-0 w-full h-full object-cover" />
-                  <div className="absolute top-4 left-4 bg-surface/80 backdrop-blur-[var(--blur-md)] px-3 py-1 rounded-full border border-border-custom shadow-sm">
-                    <p className="text-2xs font-black text-text-secondary uppercase tracking-widest">Baza: {format(parseISO(basePhoto.date!), 'dd.MM.yy')}</p>
-                  </div>
-                </>
-              ) : (
-                <div className="flex items-center justify-center h-full text-xs font-black text-text-muted uppercase">Wybierz bazę</div>
-              )}
-            </div>
-
-            {/* Cel (Right) */}
-            <div className="relative flex-1 overflow-hidden">
-              {targetPhoto ? (
-                <>
-                  <img src={targetPhoto.image_url} alt="Zdjęcie docelowe sylwetki" className="absolute inset-0 w-full h-full object-cover" />
-                  <div className="absolute top-4 right-4 bg-primary/10 backdrop-blur-[var(--blur-md)] px-3 py-1 rounded-full border border-primary/25">
-                    <p className="text-2xs font-black text-primary uppercase tracking-widest">Cel: {format(parseISO(targetPhoto.date!), 'dd.MM.yy')}</p>
-                  </div>
-                </>
-              ) : (
-                <div className="flex items-center justify-center h-full text-xs font-black text-text-muted uppercase">Wybierz cel</div>
-              )}
-            </div>
-          </div>
-
-          {/* VS Badge */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-            <div className="bg-surface/90 backdrop-blur-[var(--blur-xl)] border border-border-custom w-11 h-11 rounded-full flex items-center justify-center shadow-md">
-              <span className="text-xs font-black text-text-primary">VS</span>
-            </div>
-          </div>
-
-          {/* Dni Progresu Badge */}
-          {daysDiff > 0 && (
-            <div className="absolute bottom-5 left-1/2 -translate-x-1/2 bg-primary text-on-accent px-5 py-1.5 rounded-full shadow-lg shadow-primary/25">
-              <p className="text-xs font-black uppercase tracking-[var(--ds-arbitrary-0-15em)] whitespace-nowrap">+{daysDiff} dni postępu</p>
-            </div>
-          )}
-        </div>
-      </Card>
+      <PhotoComparisonCard
+        basePhoto={basePhoto}
+        targetPhoto={targetPhoto}
+        daysDiff={daysDiff}
+        onAnalyze={handleAnalyze}
+        analyzingId={analyzingId}
+        onUpload={uploadPhoto}
+        uploading={uploading}
+      />
 
       {/* Oś czasu List */}
       <PhotosTimelineList

@@ -3,6 +3,8 @@ import type { StravaCleanActivity, StravaSplit, StravaBestEffort, GcHrZone } fro
 import type { Tables as DatabaseTables } from '../database.types';
 import { parseGcHrZones, parseStravaSplits, parseStravaBestEfforts } from '../db-json-guards';
 
+import { isGarminSaunaActivity } from '../health/workoutSauna';
+
 interface StravaSectionParams {
   md: string;
   dayStrava: StravaCleanActivity[];
@@ -34,16 +36,25 @@ export function renderStravaSection({
     return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
   };
 
-  let out = result + `#### 🏃 Kardio (Garmin/Strava)\n\n`;
+  let out = result + `#### 🏃 Kardio & Aktywności (Garmin/Strava)\n\n`;
   dayStrava.forEach(a => {
     const startTime = new Date(a.start_date ?? '').toLocaleTimeString('pl-PL', { timeZone: TIMEZONE, hour: '2-digit', minute: '2-digit' });
+    const movingFmt = fmtTimeMd(a.moving_time ?? a.elapsed_time ?? 0);
+    const hrAvg = a.hr_avg ? Math.round(a.hr_avg) : null;
+    const hrMax = a.hr_max ? Math.round(a.hr_max) : null;
+
+    if (isGarminSaunaActivity(a)) {
+      out += `##### 🧘 Sauna & Wellness (Garmin Kardio) — ${startTime}\n`;
+      out += `- **Czas w saunie:** ${movingFmt}\n`;
+      if (hrAvg) out += `- **Tętno:** ${hrAvg}${hrMax ? `/${hrMax}` : ''} BPM\n`;
+      out += `- **Wpływ biologiczny:** Stymulacja białek szoku cieplnego (HSP70), wyrzut tlenku azotu i regeneracja powysiłkowa.\n\n`;
+      return;
+    }
+
     const distKm = a.distance ? (a.distance / 1000).toFixed(2) : null;
     const paceStr = a.pace_sec_per_km
       ? fmtPaceMd(a.pace_sec_per_km)
       : (a.moving_time && a.distance ? fmtPaceMd(Math.round(a.moving_time / (a.distance / 1000))) : '—');
-    const movingFmt = fmtTimeMd(a.moving_time ?? 0);
-    const hrAvg = a.hr_avg ? Math.round(a.hr_avg) : null;
-    const hrMax = a.hr_max ? Math.round(a.hr_max) : null;
     const hrSrc = a.hr_source === 'oura' ? 'Oura Ring' : a.hr_source === 'strava' ? 'Strava/GPS' : null;
     const frozen = a.hr_frozen;
     const paused = (a.pause_seconds || 0) > 30;

@@ -139,8 +139,9 @@ test('evaluateCognitiveProfile — rozbicie na narzędzia vs rozrywkę i impulsy
   expect(profile.toolRatio).toBe(50);
   expect(profile.entertainmentRatio).toBe(15);
   expect(profile.unlocks).toBe(40);
-  // Interval should use actual screen minutes (200), not fixed 960
+  // Interval and session length
   expect(profile.unlockIntervalMinutes).toBe(5); // 200 / 40 = 5
+  expect(profile.avgSessionMinutes).toBe(5);
   expect(profile.attentionTier).toBe('normal'); // 40 unlocks is in 31–60 range
 });
 

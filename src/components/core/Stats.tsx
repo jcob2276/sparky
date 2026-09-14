@@ -1,32 +1,36 @@
 /**
  * @component Stats
- * @role Hub zakładki Historia → Stats: ciało, treningi, dieta, eksport danych.
- * @folders stats/ = sekcje (TrainingAnalysisSection, WorkoutHistorySection, BodyMetricsSection,
- *          DataExportSection, FoodAnalysisSection -> stats/foodAnalysis/{Range,Single})
+ * @role Hub zakładki Kronika: pomiary ciała, zdjęcia, siłownia, bieganie (Strava), eksport danych.
  * @usedBy DashboardHistoriaTab
  */
 import type { ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { BodyMetricsSection } from './stats/BodyMetricsSection';
 import { WorkoutHistorySection } from './stats/WorkoutHistorySection';
-import { ExerciseIndexSection } from './stats/ExerciseIndexSection';
 import { DataExportSection } from './stats/DataExportSection';
-import { TrainingLoadPanel } from './stats/TrainingLoadPanel';
-import { MuscleHardSetsSection } from './stats/MuscleHardSetsSection';
 import { useStatsData } from './hooks/useStatsData';
+import { mergeLatestBodyMetrics } from '../../lib/health/bodyMetrics';
 
-export default function Stats({ topSlot = null, runningSlot = null }: { topSlot?: ReactNode; runningSlot?: ReactNode }) {
-  const navigate = useNavigate();
+export default function Stats({ runningSlot = null, photosSlot = null }: { runningSlot?: ReactNode; photosSlot?: ReactNode }) {
   const {
     userId,
     loading,
+    bodyData,
+    newMetric,
+    setNewMetric,
+    heightCm,
+    trends,
+    saveMetrics,
     recentSessions,
-    strainRows,
     dateRange, setDateRange,
     isExporting,
     includeNutrition, setIncludeNutrition,
     includeJournal, setIncludeJournal,
     includeWorkouts, setIncludeWorkouts,
     includeBody, setIncludeBody,
+    includeOura, setIncludeOura,
+    includeHabits, setIncludeHabits,
+    includeActivityWatch, setIncludeActivityWatch,
+    includeFundament, setIncludeFundament,
     editingSession, setEditingSession,
     showAllSessions, setShowAllSessions,
     editForm, setEditForm,
@@ -40,38 +44,36 @@ export default function Stats({ topSlot = null, runningSlot = null }: { topSlot?
   if (!userId) return null;
   if (loading) return <div className="p-8 text-center text-text-muted uppercase font-black animate-pulse tracking-widest">Wczytywanie...</div>;
 
+  const mergedBody = mergeLatestBodyMetrics(bodyData);
+  const latestBody = mergedBody
+    ? {
+        weight: mergedBody.weight,
+        waist: mergedBody.waist,
+        neck: mergedBody.neck,
+        belly: mergedBody.belly,
+        hips: mergedBody.hips,
+        chest: mergedBody.chest,
+        thigh: mergedBody.thigh,
+        biceps_l: mergedBody.biceps_l,
+        calf: mergedBody.calf,
+        body_fat: mergedBody.body_fat,
+      }
+    : null;
+
   return (
     <div className="space-y-6 pb-4">
-      <section className="card p-5 space-y-4">
-        <DataExportSection
-          dateRange={dateRange}
-          setDateRange={setDateRange}
-          includeWorkouts={includeWorkouts}
-          setIncludeWorkouts={setIncludeWorkouts}
-          includeBody={includeBody}
-          setIncludeBody={setIncludeBody}
-          includeNutrition={includeNutrition}
-          setIncludeNutrition={setIncludeNutrition}
-          includeJournal={includeJournal}
-          setIncludeJournal={setIncludeJournal}
-          exportData={exportData}
-          isExporting={isExporting}
-        />
-      </section>
-
-      {topSlot}
-
-      <TrainingLoadPanel strainRows={strainRows} />
-
-      <MuscleHardSetsSection recentSessions={recentSessions} />
-
-      <ExerciseIndexSection
-        recentSessions={recentSessions}
-        onOpenExercise={(name) => navigate(`/cwiczenie?n=${encodeURIComponent(name)}`)}
+      <BodyMetricsSection
+        trends={trends}
+        newMetric={newMetric}
+        setNewMetric={setNewMetric}
+        latestBody={latestBody}
+        heightCm={heightCm}
+        saveMetrics={saveMetrics}
       />
 
-      <WorkoutHistorySection
+      {photosSlot}
 
+      <WorkoutHistorySection
         recentSessions={recentSessions}
         showAllSessions={showAllSessions}
         setShowAllSessions={setShowAllSessions}
@@ -86,6 +88,29 @@ export default function Stats({ topSlot = null, runningSlot = null }: { topSlot?
       />
 
       {runningSlot}
+
+      <DataExportSection
+        dateRange={dateRange}
+        setDateRange={setDateRange}
+        includeWorkouts={includeWorkouts}
+        setIncludeWorkouts={setIncludeWorkouts}
+        includeBody={includeBody}
+        setIncludeBody={setIncludeBody}
+        includeNutrition={includeNutrition}
+        setIncludeNutrition={setIncludeNutrition}
+        includeJournal={includeJournal}
+        setIncludeJournal={setIncludeJournal}
+        includeOura={includeOura}
+        setIncludeOura={setIncludeOura}
+        includeHabits={includeHabits}
+        setIncludeHabits={setIncludeHabits}
+        includeActivityWatch={includeActivityWatch}
+        setIncludeActivityWatch={setIncludeActivityWatch}
+        includeFundament={includeFundament}
+        setIncludeFundament={setIncludeFundament}
+        exportData={exportData}
+        isExporting={isExporting}
+      />
     </div>
   );
 }

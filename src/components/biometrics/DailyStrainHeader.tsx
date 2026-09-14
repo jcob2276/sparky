@@ -49,13 +49,13 @@ export default function DailyStrainHeader({
           </span>
         )}
         {strConf && (
-          <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-2xs font-bold uppercase tracking-wider ${CONF_PILL[strConf]}`}>
+          <span title="Pewność pomiaru obciążenia na podstawie danych" className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-2xs font-bold uppercase tracking-wider ${CONF_PILL[strConf]}`}>
             Strain · {CONF_LABEL[strConf]}
           </span>
         )}
         {recConf && (
-          <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-2xs font-bold uppercase tracking-wider ${CONF_PILL[recConf]}`}>
-            Recovery · {CONF_LABEL[recConf]}
+          <span title="Pewność modelu na podstawie historii danych bazowych" className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-2xs font-bold uppercase tracking-wider ${CONF_PILL[recConf]}`}>
+            Model · {CONF_LABEL[recConf]}
           </span>
         )}
       </div>

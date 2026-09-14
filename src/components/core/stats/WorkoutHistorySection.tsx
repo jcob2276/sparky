@@ -1,9 +1,28 @@
-import Button from '../../ui/Button';
-import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
+import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { Trash2, Zap } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import type { WorkoutSessionRow, EditFormState, EditableExerciseLog } from '../hooks/useStatsData';
+import { Dumbbell, Trash2, ChevronDown, ChevronUp, Flame, Zap } from 'lucide-react';
+import type { WorkoutSessionRow, EditFormState } from '../hooks/useStatsData';
+import { WorkoutSessionEditor } from './WorkoutSessionEditor';
+
+const POLISH_DAYS: Record<number, string> = {
+  0: 'Niedziela',
+  1: 'Poniedziałek',
+  2: 'Wtorek',
+  3: 'Środa',
+  4: 'Czwartek',
+  5: 'Piątek',
+  6: 'Sobota',
+};
+
+function getPolishWeekday(isoDate?: string | null): string {
+  if (!isoDate) return '';
+  try {
+    const d = parseISO(isoDate);
+    return POLISH_DAYS[d.getDay()] || '';
+  } catch {
+    return '';
+  }
+}
 
 export function WorkoutHistorySection({
   recentSessions,
@@ -30,167 +49,193 @@ export function WorkoutHistorySection({
   deleteLog: (id: string) => void;
   setEditingSession: React.Dispatch<React.SetStateAction<string | null>>;
 }) {
-  const navigate = useNavigate();
+  const [expandedSummaryId, setExpandedSummaryId] = useState<string | null>(null);
+
+  const displayedSessions = recentSessions.slice(0, showAllSessions ? 16 : 4);
+
   return (
-    <section className="space-y-3">
-      <p className="text-2xs font-bold uppercase tracking-[var(--ds-arbitrary-0-15em)] text-text-muted font-display">Siłownia</p>
-      <h2 className="mt-0.5 font-display text-lg font-black tracking-tight text-text-primary">Historia treningów</h2>
-      <div className="overflow-hidden card !p-0">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-text-primary/[0.02] text-2xs font-black uppercase tracking-widest text-text-secondary">
-              <th className="p-3">Data</th>
-              <th className="p-3 text-center">Dzień</th>
-              <th className="p-3 text-right">Akcja</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-custom text-xs font-semibold text-text-primary">
-            {recentSessions.slice(0, showAllSessions ? 12 : 4).map((s) => (
-              <tr key={s.id} className="transition-colors hover:bg-primary/[0.02] dark:hover:bg-on-accent/[0.02]">
-                <td className="p-3">
-                  {editingSession === s.id ? (
-                    <ControlInput
-                      type="date"
-                      value={editForm.date ?? ""}
-                      onChange={e => setEditForm({...editForm, date: e.target.value})}
-                      className="bg-surface border border-border-custom rounded-lg p-1.5 text-xs text-text-primary outline-none focus:border-primary/50"
-                    />
-                  ) : (
-                    format(parseISO(s.date ?? ""), 'dd.MM')
-                  )}
-                </td>
-                <td className="p-3 text-center text-text-secondary">
-                  {editingSession === s.id ? (
-                    <div className="space-y-2 text-left">
-                      <ControlInput
-                        type="text"
-                        value={editForm.workout_day ?? ''}
-                        onChange={e => setEditForm({...editForm, workout_day: e.target.value})}
-                        placeholder="Nazwa treningu..."
-                        className="w-full bg-surface border border-border-custom rounded-lg p-1.5 text-xs font-bold text-text-primary outline-none focus:border-primary/50"
-                      />
-                      {editForm.logs.map((log, idx) => {
-                        const isWellness = log.muscle_tags?.includes('wellness') ||
-                          ['sauna', 'lodowata', 'zimny prysznic', 'stretching', 'foam rolling'].some(
-                            w => (log.exercise_name || '').toLowerCase().startsWith(w)
-                          );
-                        const updateLog = (field: keyof EditableExerciseLog, value: string) => {
-                          const newLogs = [...editForm.logs];
-                          newLogs[idx] = { ...newLogs[idx], [field]: value };
-                          setEditForm({...editForm, logs: newLogs});
-                        };
-                        return (
-                        <div key={log.id} className="flex items-center gap-2 bg-surface/50 p-2 rounded-lg border border-border-custom">
-                          <Pressable
-                            onClick={() => navigate(`/cwiczenie?n=${encodeURIComponent(log.exercise_name)}`)}
-                            className="text-2xs w-20 truncate text-left font-bold text-primary hover:underline cursor-pointer"
-                          >
-                            {log.exercise_name}
-                          </Pressable>
-                          {isWellness ? (
-                            <>
-                              <ControlInput
-                                type="number"
-                                value={log.reps ?? ""}
-                                onChange={e => updateLog('reps', e.target.value)}
-                                className="w-12 bg-surface border border-border-custom rounded p-1 text-xs text-text-primary outline-none focus:border-primary/50"
-                              />
-                              <span className="text-2xs text-text-muted">min</span>
-                              <ControlInput
-                                type="number"
-                                value={log.weight ?? ""}
-                                onChange={e => updateLog('weight', e.target.value)}
-                                className="w-10 bg-surface border border-border-custom rounded p-1 text-xs text-text-primary outline-none focus:border-primary/50"
-                              />
-                              <span className="text-2xs text-text-muted">°C</span>
-                            </>
-                          ) : (
-                            <>
-                              <ControlInput
-                                type="number"
-                                step="0.5"
-                                value={log.weight ?? ""}
-                                onChange={e => updateLog('weight', e.target.value)}
-                                className="w-12 bg-surface border border-border-custom rounded p-1 text-xs text-text-primary outline-none focus:border-primary/50"
-                              />
-                              <span className="text-2xs text-text-muted">kg x</span>
-                              <ControlInput
-                                type="number"
-                                value={log.reps ?? ""}
-                                onChange={e => updateLog('reps', e.target.value)}
-                                className="w-10 bg-surface border border-border-custom rounded p-1 text-xs text-text-primary outline-none focus:border-primary/50"
-                              />
-                            </>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteLog(log.id)}
-                            className="ml-auto p-1 text-danger/70 hover:text-danger hover:bg-danger/10"
-                          >
-                            <Trash2 size={10} />
-                          </Button>
-                        </div>
-                        );
-                      })}
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={updateSession}
-                        className="w-full"
-                      >
-                        Zapisz Zmiany
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingSession(null)}
-                        className="w-full"
-                      >
-                        Anuluj
-                      </Button>
+    <section id="kronika-silownia" className="rounded-2xl border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-warning" />
+            <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted font-display">
+              Siłownia & Jednostki
+            </p>
+          </div>
+          <h2 className="mt-0.5 font-display text-lg font-black tracking-tight text-text-primary flex items-center gap-2">
+            Historia treningów
+            <span className="text-xs font-mono font-bold text-text-muted">
+              ({recentSessions.length})
+            </span>
+          </h2>
+        </div>
+        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-warning/10 text-warning border border-warning/20">
+          <Dumbbell size={16} />
+        </div>
+      </div>
+
+      {/* Session Stream Cards */}
+      <div className="space-y-2.5">
+        {displayedSessions.length === 0 ? (
+          <div className="p-6 text-center text-xs font-bold text-text-muted bg-surface rounded-xl border border-border-custom">
+            Brak zarejestrowanych sesji siłowych
+          </div>
+        ) : (
+          displayedSessions.map((s) => {
+            const isEditing = editingSession === s.id;
+            const weekday = getPolishWeekday(s.date);
+            const dateFormatted = s.date ? format(parseISO(s.date), 'dd.MM') : '--';
+            const logs = s.exercise_logs || [];
+            const isWellness = logs.length > 0 && logs.every((l) =>
+              (l.muscle_tags || []).includes('wellness') ||
+              ['sauna', 'lodowata', 'zimny prysznic', 'stretching', 'foam rolling'].some(w => (l.exercise_name || '').toLowerCase().startsWith(w))
+            );
+
+            // Compute tonnage
+            const totalTonnageKg = logs.reduce((acc, l) => {
+              const w = Number(l.weight) || 0;
+              const r = Number(l.reps) || 0;
+              return acc + (w > 0 && r > 0 ? w * r : 0);
+            }, 0);
+
+            if (isEditing) {
+              return (
+                <WorkoutSessionEditor
+                  key={s.id}
+                  editForm={editForm}
+                  setEditForm={setEditForm}
+                  updateSession={updateSession}
+                  deleteLog={deleteLog}
+                  onCancel={() => setEditingSession(null)}
+                />
+              );
+            }
+
+            const isSummaryExpanded = expandedSummaryId === s.id;
+
+            return (
+              <div
+                key={s.id}
+                className="rounded-xl border border-border-custom bg-surface p-3 transition-all hover:border-border-custom/80 shadow-sm"
+              >
+                <div className="flex items-center justify-between gap-2.5">
+                  {/* Left: Date + Weekday badge */}
+                  <div className="flex items-center gap-3">
+                    <div className="flex flex-col items-center justify-center w-12 h-11 rounded-lg bg-surface-2/60 border border-border-custom/60 text-center">
+                      <span className="text-xs font-black text-text-primary font-mono leading-none">
+                        {dateFormatted}
+                      </span>
+                      <span className="text-3xs font-semibold text-text-muted uppercase mt-0.5 leading-none">
+                        {weekday.slice(0, 3)}
+                      </span>
                     </div>
-                  ) : (
-                    s.workout_day
-                  )}
-                </td>
-                <td className="p-3 text-right">
-                  {editingSession !== s.id && (
-                    <div className="flex justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => startEditing(s)}
-                        className="p-2 rounded-full"
-                      >
-                        <Zap size={12} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteSession(s.id)}
-                        className="p-2 rounded-full text-danger/70 hover:text-danger hover:bg-danger/5"
-                      >
-                        <Trash2 size={12} />
-                      </Button>
+
+                    {/* Center info */}
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <h4 className="text-xs font-black uppercase tracking-tight text-text-primary truncate">
+                          {s.workout_day || 'Trening'}
+                        </h4>
+                        {isWellness && (
+                          <span className="inline-flex items-center gap-0.5 text-3xs font-bold text-info bg-info/10 border border-info/20 px-1.5 py-0.2 rounded">
+                            <Flame size={9} /> Wellness
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2 mt-1 text-3xs font-medium text-text-muted">
+                        {logs.length > 0 && <span>{logs.length} ćwiczeń</span>}
+                        {totalTonnageKg > 0 && (
+                          <>
+                            <span>·</span>
+                            <span className="font-bold text-primary">{(totalTonnageKg / 1000).toFixed(1)} Mg tonażu</span>
+                          </>
+                        )}
+                        {s.session_rpe != null && (
+                          <>
+                            <span>·</span>
+                            <span className="font-semibold text-text-secondary">RPE {s.session_rpe}</span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {recentSessions.length > 4 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowAllSessions(v => !v)}
-            className="w-full py-3 rounded-none border-t border-border-custom text-2xs"
-          >
-            {showAllSessions ? 'Zwiń ↑' : `Pokaż więcej (${recentSessions.length - 4}) ↓`}
-          </Button>
+                  </div>
+
+                  {/* Right actions */}
+                  <div className="flex items-center gap-1">
+                    {logs.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setExpandedSummaryId(isSummaryExpanded ? null : s.id)}
+                        className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer"
+                        title={isSummaryExpanded ? 'Zwiń ćwiczenia' : 'Pokaż ćwiczenia'}
+                      >
+                        {isSummaryExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => startEditing(s)}
+                      className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                      title="Edytuj"
+                    >
+                      <Zap size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteSession(s.id)}
+                      className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer"
+                      title="Usuń"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Expanded exercise chips preview */}
+                {isSummaryExpanded && logs.length > 0 && (
+                  <div className="mt-2.5 pt-2.5 border-t border-border-custom/50 flex flex-wrap gap-1.5">
+                    {logs.map((l) => (
+                      <span
+                        key={l.id}
+                        className="inline-flex items-center gap-1 text-3xs font-medium bg-surface-2/60 border border-border-custom/50 px-2 py-1 rounded-md text-text-secondary"
+                      >
+                        <span className="font-bold text-text-primary">{l.exercise_name}</span>
+                        {l.weight != null && l.reps != null && (
+                          <span className="text-text-muted">({l.weight}kg × {l.reps})</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })
         )}
       </div>
+
+      {/* Show more toggle */}
+      {recentSessions.length > 4 && (
+        <button
+          type="button"
+          onClick={() => setShowAllSessions((v) => !v)}
+          className="w-full py-2 rounded-xl border border-border-custom bg-surface text-2xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-solid transition-all cursor-pointer flex items-center justify-center gap-1.5"
+        >
+          {showAllSessions ? (
+            <>
+              <ChevronUp size={13} />
+              Zwiń historię
+            </>
+          ) : (
+            <>
+              <ChevronDown size={13} />
+              Pokaż więcej ({recentSessions.length - 4} sesji)
+            </>
+          )}
+        </button>
+      )}
     </section>
   );
 }

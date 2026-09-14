@@ -153,21 +153,29 @@ interface FabProps {
 
 export function DashboardFastCaptureFAB({ active, onToggle }: FabProps) {
   const { selection } = useHaptics();
-  if (active) return null;
 
   return (
-    <Fab
-      position="bottom-center"
-      size="sm"
+    <button
+      type="button"
       onClick={() => {
         selection();
         onToggle();
       }}
       title="Otwórz akcje i narzędzia"
-      className="fast-capture-btn shadow-lg"
-      style={{ bottom: 'max(24px, env(safe-area-inset-bottom))' }}
+      aria-label="Otwórz akcje i narzędzia"
+      className="fixed left-1/2 -translate-x-1/2 z-[var(--z-modal)] group flex items-center justify-center w-12 h-12 rounded-full cursor-pointer transition-transform duration-200 ease-out active:scale-90 hover:scale-105"
+      style={{ bottom: 'max(76px, calc(env(safe-area-inset-bottom) + 76px))' }}
     >
-      <Plus size={20} strokeWidth={2.5} />
-    </Fab>
+      <div className="absolute inset-0 rounded-full bg-primary/35 blur-md -z-10 group-hover:bg-primary/55 transition-all duration-300" />
+      <div className="relative flex items-center justify-center w-full h-full rounded-full bg-gradient-to-tr from-blue-600 via-primary to-indigo-500 shadow-lg shadow-primary/30 ring-1 ring-white/40 before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-b before:from-white/30 before:to-transparent before:pointer-events-none">
+        <Plus
+          size={22}
+          strokeWidth={2.5}
+          className={`text-white drop-shadow-xs transition-transform duration-300 ease-out ${
+            active ? 'rotate-45' : 'rotate-0'
+          }`}
+        />
+      </div>
+    </button>
   );
 }

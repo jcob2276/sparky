@@ -1,3 +1,4 @@
+import { Trophy } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import { SPHERE_SLOTS } from './powerListConstants';
 import PowerListTask from '../PowerListTask';
@@ -26,6 +27,8 @@ export default function PowerListActive({
   toggleTask,
   eveningCloseDue,
 }: PowerListActiveProps) {
+  const tasks = todayWin.daily_win_tasks || [];
+  const allDone = tasks.length > 0 && tasks.every((t: Tables<'daily_win_tasks'>) => t.done);
   return (
     <div className="space-y-2.5">
       {checkpointPrompt && (
@@ -49,6 +52,22 @@ export default function PowerListActive({
             >
               Nie
             </Pressable>
+          </div>
+        </div>
+      )}
+
+      {allDone && (
+        <div className="flex items-center gap-3 rounded-2xl border border-success/30 bg-gradient-to-r from-success/15 via-surface to-success/5 p-4 shadow-2xs animate-fadeIn">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-success/20 text-success border border-success/30 shadow-xs">
+            <Trophy size={18} />
+          </div>
+          <div className="min-w-0">
+            <h4 className="text-xs font-black uppercase tracking-wider text-success">
+              Wszystkie 5 zwycięstw zdobyte!
+            </h4>
+            <p className="text-xs text-text-secondary mt-0.5">
+              Dzień domknięty na 100%. Świetna robota — odpocznij i zregeneruj siły.
+            </p>
           </div>
         </div>
       )}

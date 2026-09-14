@@ -73,9 +73,13 @@ export default function FitnessScorePanel({
               </p>
             </div>
           </div>
-          <p className="text-xs text-text-secondary mt-5 max-w-[var(--ds-maxw-280px)] text-center leading-relaxed">
-            Capability = siła + wydolność (realna zdolność). Process = regularność + regeneracja + adaptacja + obciążenie (dyscyplina, nie zdolność) — liczone osobno, żeby jedno nie maskowało drugiego.
-          </p>
+          <div className="flex items-center gap-2 mt-4 px-3 py-1.5 rounded-lg bg-surface-2/40 border border-border-custom/50 text-2xs text-text-muted">
+            <span className="inline-block w-2 h-2 rounded-full bg-primary shrink-0" />
+            <span>Capability: siła & tlen</span>
+            <span className="text-border-custom">|</span>
+            <span className="inline-block w-2 h-2 rounded-full bg-text-muted shrink-0" />
+            <span>Process: dyscyplina & regeneracja</span>
+          </div>
         </div>
 
         <FitnessRadarChart profile={profile} theme={theme} grid={grid} />
@@ -83,7 +87,7 @@ export default function FitnessScorePanel({
 
       <div className="mt-5 pt-5 border-t border-border-custom">
         <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-22em)] text-text-muted mb-3">
-          Skąd te oceny?
+          Rozbicie filarów formy
         </p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {profile.breakdowns.map((item) => (
@@ -102,13 +106,24 @@ export default function FitnessScorePanel({
                   {item.score.toFixed(1)}/10
                 </span>
               </div>
+              <div className="w-full bg-surface-3 h-1.5 rounded-full overflow-hidden mb-2">
+                <div
+                  className={`h-full rounded-full ${item.group === 'capability' ? 'bg-primary' : 'bg-text-secondary'}`}
+                  style={{ width: `${Math.min(100, Math.max(5, item.score * 10))}%` }}
+                />
+              </div>
               <p className="text-xs leading-relaxed text-text-secondary">{item.detail}</p>
             </Card>
           ))}
         </div>
-        <p className="text-xs text-text-muted mt-3 leading-relaxed">
-          Niebieskie wyniki (Wydolność, Siła) wchodzą do Capability. Szare (Regularność, Regeneracja, Adaptacja, Obciążenie) wchodzą do Process. Siła i wydolność łączą ostatnią pracę z maxami (wycisk / przysiad / martwy, Cooper) względem masy ciała — PR starsze niż ~3 lata wypadają. Regeneracja uwzględnia BMI, WHR i BF%.
-        </p>
+        <details className="mt-3 group">
+          <summary className="text-2xs text-text-muted cursor-pointer hover:text-text-primary transition-colors flex items-center gap-1.5">
+            <span>ℹ️ Metodyka wyliczeń (Capability vs Process)</span>
+          </summary>
+          <p className="mt-2 text-2xs text-text-muted leading-relaxed pl-3 border-l border-border-custom">
+            Capability (niebieskie) = Siła + Wydolność (realne możliwości atletyczne, 1RM / masa ciała, Cooper). Process (szare) = Regularność + Regeneracja + Adaptacja + Obciążenie (nawyki, tonaż, sen, HRV). Osobna punktacja zapobiega maskowaniu zaniedbań regeneracji przez samą siłę.
+          </p>
+        </details>
       </div>
     </Panel>
   );

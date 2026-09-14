@@ -1,13 +1,11 @@
 import Button from '../../ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw, Moon, Sun, Fingerprint, ShieldCheck, Smartphone, LayoutGrid } from 'lucide-react';
-import DashboardModuleShortcuts from '../../core/DashboardModuleShortcuts';
 import OuraRingHeaderBadge from '../health/OuraRingHeaderBadge';
 
 interface DesktopHeaderProps {
   now: string;
   syncing: boolean;
-  pendingGrowthMustCount: number;
   theme: string;
   setTheme: React.Dispatch<React.SetStateAction<string>>;
   syncAll: () => void;
@@ -17,7 +15,7 @@ interface DesktopHeaderProps {
 }
 
 export default function DesktopHeader({
-  now, syncing, pendingGrowthMustCount, theme,
+  now, syncing, theme,
   setTheme, syncAll, setShowHealth, setShowFundament, onOpenTools,
 }: DesktopHeaderProps) {
   const navigate = useNavigate();
@@ -37,8 +35,8 @@ export default function DesktopHeader({
         ))}
       </div>
       <div className="ml-auto flex items-center gap-2">
-        <OuraRingHeaderBadge />
-        <DashboardModuleShortcuts naukaBadge={pendingGrowthMustCount} />
+        {/* Oura ring badge retained in code per architecture, hidden from header UI */}
+        {(false as boolean) && <OuraRingHeaderBadge />}
         {onOpenTools && (
           <Button
             onClick={onOpenTools}

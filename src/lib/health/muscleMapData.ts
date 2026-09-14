@@ -86,3 +86,31 @@ export const RB_MUSCLE_TO_TAGS: Partial<Record<Muscle, string[]>> = {
   gluteal: ['pośladki'],
   calves: ['łydki'],
 };
+
+export const RUNNING_STIMULUS_PER_KM: Record<string, { direct: number; indirect: number }> = {
+  łydki: { direct: 0.20, indirect: 0 },
+  czworogłowe: { direct: 0.16, indirect: 0 },
+  'dwugłowe ud': { direct: 0, indirect: 0.12 },
+  pośladki: { direct: 0, indirect: 0.12 },
+  brzuch: { direct: 0, indirect: 0.08 },
+};
+
+export function applyRunningStimulus(
+  runKm: number,
+  directSets: Record<string, number>,
+  indirectSets: Record<string, number>,
+  effectiveSets: Record<string, number>,
+  exerciseSets: Record<string, Set<string>>,
+) {
+  if (runKm <= 0) return;
+  const label = `Bieganie Strava (${runKm.toFixed(0)} km)`;
+  Object.entries(RUNNING_STIMULUS_PER_KM).forEach(([tag, stim]) => {
+    if (effectiveSets[tag] === undefined) return;
+    const direct = runKm * stim.direct;
+    const indirect = runKm * stim.indirect;
+    directSets[tag] = (directSets[tag] || 0) + direct;
+    indirectSets[tag] = (indirectSets[tag] || 0) + indirect;
+    effectiveSets[tag] = (effectiveSets[tag] || 0) + direct + indirect;
+    exerciseSets[tag].add(label);
+  });
+}

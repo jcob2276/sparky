@@ -26,6 +26,13 @@ export default function DesktopOpticsCard({ onOpenOptics }: Props) {
     ? Math.round(((latestLeft.diopters + latestRight.diopters) / 2) * 100) / 100
     : latestLeft?.diopters ?? latestRight?.diopters ?? null;
 
+  const anisometropia = latestLeft && latestRight
+    ? Math.round(Math.abs(latestLeft.diopters - latestRight.diopters) * 100) / 100
+    : null;
+
+  const diffDiffLeft = latestLeft ? (Math.round((latestLeft.diopters + 1.5) * 4) / 4).toFixed(2) : null;
+  const diffDiffRight = latestRight ? (Math.round((latestRight.diopters + 1.5) * 4) / 4).toFixed(2) : null;
+
   return (
     <Card variant="surface" padding="1.25rem" className="space-y-4 border-border-custom bg-surface/30">
       <div className="flex items-start justify-between gap-3">
@@ -105,16 +112,33 @@ export default function DesktopOpticsCard({ onOpenOptics }: Props) {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-custom/50 bg-surface-2/40 px-3.5 py-2 text-xs">
-            <div className="flex items-center gap-2">
-              <Sparkles size={14} className="text-info shrink-0" />
-              <span className="text-text-secondary">
-                Zasada <strong>20-20-20</strong>: Co 20 minut spójrz na odległość 6 metrów przez 20 sekund, aby zresetować skurcz rzęskowy.
+          {/* Anizometropia & Rekomendacja szkieł do ekranu (Differentials) */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-xl border border-border-custom/50 bg-surface-2/30 px-3.5 py-2.5 text-2xs">
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <Sparkles size={13} className="text-info shrink-0" />
+                <span className="font-semibold text-text-primary">
+                  {anisometropia != null && anisometropia >= 1.0 ? (
+                    <>
+                      Anizometropia: <strong className="text-warning">{anisometropia} D</strong> różnicy (priorytet aktywnego skupienia na słabszym oku OS).
+                    </>
+                  ) : (
+                    'Zbalansowana refrakcja obu oczu.'
+                  )}
+                </span>
+              </div>
+              {diffDiffLeft && diffDiffRight && (
+                <p className="text-3xs text-text-muted pl-5">
+                  Szkła robocze do komputera (65cm): <strong className="text-text-secondary">OS {diffDiffLeft} D / OD {diffDiffRight} D</strong> (+1.50D redukcji hiperopii).
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="inline-flex items-center gap-1 text-3xs font-bold uppercase tracking-widest text-success">
+                <CheckCircle2 size={12} /> Aktywne skupienie
               </span>
             </div>
-            <span className="inline-flex items-center gap-1 text-3xs font-bold uppercase tracking-widest text-success">
-              <CheckCircle2 size={12} /> Aktywne skupienie
-            </span>
           </div>
         </>
       )}
