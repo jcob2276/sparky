@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export type IconTileTone = 'action' | 'direction' | 'success' | 'attention';
+type IconTileTone = 'action' | 'direction' | 'success' | 'attention';
 
 interface IconTileProps {
   icon: ReactNode;

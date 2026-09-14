@@ -1,7 +1,7 @@
 import { Pressable } from '../ui/ControlPrimitives';
-import { TIMEZONE } from '../../lib/date';
+import { TIMEZONE, formatDashboardDate } from '../../lib/date';
 import { Suspense } from 'react';
-import { Play } from 'lucide-react';
+import { Calendar, Moon, Play } from 'lucide-react';
 import { useSession } from '../../store/useStore';
 import OrientationFooter from './OrientationFooter';
 import PowerList from '../lifestyle/PowerList';
@@ -10,6 +10,7 @@ import Spinner from '../ui/Spinner';
 import { useDashboardContext } from './context/DashboardContext';
 import HorizonHeader from './HorizonHeader';
 import TodayStatusStrip from './TodayStatusStrip';
+import MarathonCountdownCard from './MarathonCountdownCard';
 
 import DailyStrainCard from '../biometrics/DailyStrainCard';
 import DailySnapshotCard from './DailySnapshotCard';
@@ -40,12 +41,12 @@ export function DashboardDzisTab() {
   if (!session) return null;
 
   const weeklyReviewNudge = new Date().getDay() === 0 && !s.taskReviewDoneThisWeek && (
-    <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 flex items-center justify-between gap-4">
+    <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 flex items-center justify-between gap-4 shadow-2xs">
       <div className="min-w-0">
         <h4 className="text-sm font-black text-primary uppercase tracking-wider">Tygodniowy Przegląd Zadań</h4>
         <p className="text-xs text-text-secondary mt-0.5 break-words">Niedziela to czas na oczyszczenie skrzynki i audyt projektów.</p>
       </div>
-      <Pressable onClick={() => s.setShowWeeklyReview(true)} className="shrink-0 px-3.5 py-2 bg-primary hover:bg-primary-hover text-on-accent rounded-xl text-xs font-black transition-colors btn-press shadow-sm">
+      <Pressable onClick={() => s.setShowWeeklyReview(true)} className="shrink-0 px-3.5 py-2 bg-primary hover:bg-primary-hover text-on-accent rounded-xl text-xs font-black transition-all active:scale-95 shadow-sm cursor-pointer">
         Rozpocznij
       </Pressable>
     </div>
@@ -59,23 +60,19 @@ export function DashboardDzisTab() {
           title="Dzisiaj"
           description="Stan, najważniejszy ruch i najbliższa rzecz do zrobienia. Reszta systemu pracuje w tle."
           icon={Play}
+          badge={
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-border-custom/80 bg-surface-solid/50 px-3 py-1 text-2xs font-bold text-text-secondary capitalize shadow-2xs backdrop-blur-xs">
+              <Calendar size={12} className="text-primary" />
+              {formatDashboardDate()}
+            </span>
+          }
         />
         <TodayStatusStrip />
         <UrgentObligationsBanner
           userId={session.user.id}
           onNavigateToTerminy={() => s.navigate('/terminy')}
         />
-        {(() => {
-          const m = new Date('2026-10-04T00:00:00');
-          const d = Math.ceil((m.getTime() - new Date().getTime()) / 86400000);
-          if (d < 0) return null;
-          return (
-            <div className="rounded-xl border border-border bg-surface-elevated p-4">
-              <div className="text-xs font-black text-text-tertiary uppercase tracking-wider">Cel: Maraton w Koszycach (4.10)</div>
-              <div className="text-base font-semibold text-text-primary mt-0.5">Zostało {d} dni ({Math.floor(d/7)} tyg. {d%7} dni)</div>
-            </div>
-          );
-        })()}
+        <MarathonCountdownCard />
         <OrientationFooter />
       </div>
       <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0">
@@ -93,14 +90,25 @@ export function DashboardDzisTab() {
             <TodayRunwayCard />
           </Suspense>
           {s.todayWin && isAfter20() && (
-            <Pressable
-              onClick={() => s.setShowShutdown(true)}
-              variant="tonal"
-              size="lg"
-              className="w-full !text-primary dark:!text-primary !border-primary/20 !bg-primary/5 hover:!bg-primary/10 text-xs font-black uppercase tracking-wider shadow-sm"
-            >
-              Domknij Dzień (Rytuał Wieczorny)
-            </Pressable>
+            <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-surface-solid to-primary/5 p-4 shadow-sm backdrop-blur-xs">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25">
+                    <Moon size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-primary">Rytuał Wieczorny</h4>
+                    <p className="text-xs text-text-secondary mt-0.5 truncate">Czas na podsumowanie i domknięcie pętli dnia.</p>
+                  </div>
+                </div>
+                <Pressable
+                  onClick={() => s.setShowShutdown(true)}
+                  className="shrink-0 rounded-xl bg-primary px-3.5 py-2 text-xs font-black text-on-accent transition-all hover:bg-primary-hover active:scale-95 shadow-xs cursor-pointer"
+                >
+                  Domknij
+                </Pressable>
+              </div>
+            </div>
           )}
         </div>
 

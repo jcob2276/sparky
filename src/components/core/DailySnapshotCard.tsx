@@ -73,9 +73,9 @@ export default function DailySnapshotCard() {
 
       {/* One clear move */}
       {snap.one_clear_move && (
-        <div className="rounded-2xl border border-primary/15 bg-primary/[0.04] px-4 py-3">
-          <p className="text-2xs font-black uppercase tracking-widest text-primary/60 mb-1.5 flex items-center gap-1">
-            <Target size={10} /> Główny ruch
+        <div className="rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 shadow-2xs">
+          <p className="text-3xs font-black uppercase tracking-widest text-primary mb-1.5 flex items-center gap-1.5">
+            <Target size={12} /> Główny ruch dnia
           </p>
           <p className="text-sm font-bold leading-snug text-text-primary">
             {snap.one_clear_move}
@@ -85,13 +85,13 @@ export default function DailySnapshotCard() {
 
       {/* Top 3 */}
       {snap.top3 && snap.top3.length > 0 && snap.top3[0] !== snap.one_clear_move && (
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           {snap.top3.slice(0, 3).map((item: string, i: number) => (
-            <div key={i} className="flex items-start gap-2.5">
-              <div className="mt-0.5 flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-2xs font-black text-primary">
+            <div key={i} className="flex items-start gap-3 rounded-xl border border-border-custom/40 bg-surface-solid/20 p-2.5">
+              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-3xs font-black text-primary">
                 {i + 1}
               </div>
-              <p className="text-sm leading-snug text-text-secondary">{item}</p>
+              <p className="text-xs font-semibold leading-snug text-text-secondary pt-0.5">{item}</p>
             </div>
           ))}
         </div>
@@ -99,27 +99,33 @@ export default function DailySnapshotCard() {
 
       {/* Tension action */}
       {snap.tension_action?.action && snap.tension_action.action !== 'Zdefiniuj ruch napięciowy' && (
-        <div className="flex items-start gap-2 rounded-xl border border-warning/15 bg-warning/[0.04] px-3 py-2">
-          <Zap size={10} className="mt-0.5 shrink-0 text-warning" />
-          <p className="text-xs leading-snug text-text-secondary">{snap.tension_action.action}</p>
+        <div className="flex items-start gap-2.5 rounded-xl border border-warning/20 bg-warning/5 px-3.5 py-2.5">
+          <Zap size={13} className="mt-0.5 shrink-0 text-warning" />
+          <div>
+            <span className="block text-3xs font-black uppercase tracking-wider text-warning">Działanie napięciowe</span>
+            <p className="text-xs font-medium leading-snug text-text-secondary mt-0.5">{snap.tension_action.action}</p>
+          </div>
         </div>
       )}
 
       {/* Midday blocker */}
       {midday?.blocker && (
-        <div className="flex items-start gap-2 rounded-xl border border-danger/15 bg-danger/[0.04] px-3 py-2">
-          <CheckCircle2 size={10} className="mt-0.5 shrink-0 text-danger" />
-          <p className="text-xs leading-snug text-text-secondary">Bloker: {midday.blocker}</p>
+        <div className="flex items-start gap-2.5 rounded-xl border border-danger/20 bg-danger/5 px-3.5 py-2.5">
+          <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-danger" />
+          <div>
+            <span className="block text-3xs font-black uppercase tracking-wider text-danger">Bloker południowy</span>
+            <p className="text-xs font-medium leading-snug text-text-secondary mt-0.5">{midday.blocker}</p>
+          </div>
         </div>
       )}
 
       {/* Evening Extraction (Kronika) */}
       {data?.eveningExtraction && (
-        <div className="rounded-2xl border border-[var(--color-neutral-custom-20)] bg-[var(--color-neutral-custom-10)] px-4 py-3">
-          <p className="text-2xs font-black uppercase tracking-widest text-text-muted mb-1.5">
+        <div className="rounded-2xl border border-border-custom/50 bg-surface-solid/30 p-4">
+          <p className="text-3xs font-black uppercase tracking-widest text-text-muted mb-1.5">
             Kronika Dnia
           </p>
-          <div className="text-sm leading-snug text-text-secondary whitespace-pre-wrap">
+          <div className="text-xs leading-relaxed text-text-secondary whitespace-pre-wrap">
             {data.eveningExtraction}
           </div>
         </div>
@@ -127,12 +133,12 @@ export default function DailySnapshotCard() {
 
       {/* Strain state badge */}
       {strainState?.daily_status && (
-        <div className="flex items-center gap-2 pt-1 border-t border-border-custom">
+        <div className="flex items-center gap-2 pt-2 border-t border-border-custom/40">
           <div className={`h-2 w-2 rounded-full ${
             strainState.daily_status === 'green' ? 'bg-success' :
             strainState.daily_status === 'yellow' ? 'bg-warning' : 'bg-danger'
           }`} />
-          <span className="text-xs font-bold text-text-muted uppercase tracking-wider">
+          <span className="text-3xs font-black text-text-muted uppercase tracking-wider">
             {strainState.daily_status === 'green' ? 'Dobra kondycja' :
              strainState.daily_status === 'yellow' ? 'Umiarkowane zmęczenie' : 'Wysokie obciążenie'}
             {strainState.main_limiter && strainState.main_limiter !== 'recovery_ok' && ` · limiter: ${strainState.main_limiter}`}
@@ -142,18 +148,24 @@ export default function DailySnapshotCard() {
 
       {/* Quick day score — shows after 17:00 if not yet scored */}
       {showScorePicker && (
-        <div className="pt-1 border-t border-border-custom space-y-2">
-          <p className="text-2xs font-black uppercase tracking-wider text-text-muted">Jak był dzień? (1–10)</p>
-          <div className="flex gap-1.5 flex-wrap">
+        <div className="pt-2 border-t border-border-custom/50 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-3xs font-black uppercase tracking-wider text-text-muted">Ocena Dnia (1–10)</p>
+            <span className="text-3xs text-text-muted">Jak podsumowujesz dzisiejszy dzień?</span>
+          </div>
+          <div className="grid grid-cols-10 gap-1">
             {SCORES.map(s => (
               <Pressable
                 key={s}
                 onClick={() => saveScore(s)}
                 disabled={savingScore}
-                className={`h-8 w-8 rounded-xl text-xs font-black transition-all active:scale-90 cursor-pointer disabled:opacity-[var(--opacity-40)]
-                  ${s <= 3 ? 'bg-danger/10 text-danger hover:bg-danger/20' :
-                    s <= 6 ? 'bg-warning/10 text-warning hover:bg-warning/20' :
-                             'bg-success/10 text-success hover:bg-success/20'}`}
+                className={`flex h-9 items-center justify-center rounded-xl text-xs font-black transition-all active:scale-90 cursor-pointer disabled:opacity-[var(--opacity-40)] ${
+                  s <= 3
+                    ? 'bg-danger/10 text-danger hover:bg-danger/25 border border-danger/20'
+                    : s <= 6
+                    ? 'bg-warning/10 text-warning hover:bg-warning/25 border border-warning/20'
+                    : 'bg-success/10 text-success hover:bg-success/25 border border-success/20'
+                }`}
               >
                 {s}
               </Pressable>
