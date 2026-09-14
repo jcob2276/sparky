@@ -1,16 +1,13 @@
 import Button from '../ui/Button';
-import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { Session } from '@supabase/supabase-js';
 import { CalendarDays, Target, AlertCircle, ChevronRight } from 'lucide-react';
-import { MagazineBar } from '../shared/MagazineBar';
 import WeekLoopSummary from '../shared/WeekLoopSummary';
 import ProjectWeekKpis from './ProjectWeekKpis';
 import WeeklyBalanceHexagon from './WeeklyBalanceHexagon';
 import { SystemProposalCard } from '../shared/SystemProposalCard';
 import { useDirectionContext } from './direction/hooks/useDirectionContext';
 import { useSpineGuidance } from '../growth/hooks/useSpineGuidance';
-import { mergeMagazineView, loadOracleScheduleOverride } from '../../lib/magazineBar';
 import {
   fetchPendingProposals,
   resolveProposal,
@@ -41,31 +38,6 @@ export default function WeekHub({
   const showReviewCta = Boolean(weekReflectionPending && onStartWeeklyReview);
   const sundayReviewCta = showReviewCta && isSunday;
   const overdueReviewCue = showReviewCta && !isSunday;
-
-  const magazineView = useMemo(() => {
-    if (!direction.weekStart || direction.loading) return null;
-    const ctx = {
-      weekStart: direction.weekStart,
-      weekGoals: direction.weekGoals ?? { intention: null, commitment: null, cialo: null, duch: null, konto: null },
-      checkpoints: direction.checkpoints ?? { all: [], overdue: [], upcoming: [] },
-      mustPins: direction.mustPins ?? [],
-      openMustPins: direction.openMustPins ?? [],
-      urgentTodos: direction.urgentTodos ?? [],
-      activeProjects: direction.activeProjects ?? [],
-      powerListStats: direction.powerListStats ?? { daysLogged: 0, daysWithWins: 0, tasksDone: 0, tasksSet: 0 },
-      sprintGoal: direction.sprintGoal ?? null,
-      sprintLabel: direction.sprintLabel ?? null,
-      sprintFocusProjectIds: direction.sprintFocusProjectIds ?? [],
-      monthTheme: direction.monthTheme ?? null,
-      monthLabel: direction.monthLabel ?? null,
-      bhagLine: direction.bhagLine ?? null,
-      focus: direction.focus ?? { skillId: null, skillLabel: null, subskillLabel: null, targetLevel: null },
-      weekCheckpointsDone: direction.weekCheckpointsDone ?? 0,
-      weekCheckpointsDue: direction.weekCheckpointsDue ?? 0,
-      skills: direction.skills ?? [],
-    };
-    return mergeMagazineView(ctx, loadOracleScheduleOverride());
-  }, [direction]);
 
   const proposalsQuery = useQuery({
     queryKey: ['system-proposals', userId],
@@ -195,8 +167,6 @@ export default function WeekHub({
       )}
 
       <WeeklyBalanceHexagon userId={userId} />
-
-      {magazineView && <MagazineBar view={magazineView} />}
     </div>
   );
 }
