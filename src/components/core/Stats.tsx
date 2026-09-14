@@ -35,10 +35,12 @@ export default function Stats({ runningSlot = null, photosSlot = null }: { runni
     showAllSessions, setShowAllSessions,
     editForm, setEditForm,
     deleteSession,
+    deleteLog,
     startEditing,
     updateSession,
-    deleteLog,
     exportData,
+    copyData,
+    isCopying,
   } = useStatsData();
 
   if (!userId) return null;
@@ -110,6 +112,8 @@ export default function Stats({ runningSlot = null, photosSlot = null }: { runni
         setIncludeFundament={setIncludeFundament}
         exportData={exportData}
         isExporting={isExporting}
+        copyData={copyData}
+        isCopying={isCopying}
       />
     </div>
   );
