@@ -15,6 +15,7 @@ import { duplicateElements, getElementsBounds, replaceSelectionWithText, transfo
 import { Pressable } from '../../ui/ControlPrimitives';
 import DrawingLayers from './DrawingLayers';
 import { notesKeys } from '../../../lib/queryKeys';
+import { downloadBlob } from '../../../lib/download';
 
 interface DrawingEditorProps {
   userId: string;
@@ -24,15 +25,6 @@ interface DrawingEditorProps {
 }
 
 const draftKey = (noteId: string) => `vanguard_note_drawing_draft_${noteId}`;
-
-const downloadBlob = (blob: Blob, name: string) => {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = name;
-  anchor.click();
-  URL.revokeObjectURL(url);
-};
 
 export default function DrawingEditor({ userId, noteId, onClose, onInsertText }: DrawingEditorProps) {
   const { data: savedDrawing, isLoading } = useNoteDrawing(noteId);

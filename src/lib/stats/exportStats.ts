@@ -25,6 +25,7 @@ export async function exportStatsMarkdown({
   includeActivityWatch,
   includeLenie = true,
   includeFundament = true,
+  skipDownload = false,
 }: ExportStatsMarkdownParams) {
   const d = await fetchExportData(supabase, session, dateRange, {
     includeNutrition,
@@ -200,6 +201,10 @@ export async function exportStatsMarkdown({
     });
   }
 
-  const blob = new Blob(['\uFEFF' + md], { type: 'text/markdown;charset=utf-8' });
-  downloadBlob(blob, `raport_kuba_${dateRange.from}.md`);
+  const filename = `raport_kuba_${dateRange.from}.md`;
+  if (!skipDownload) {
+    const blob = new Blob(['\uFEFF' + md], { type: 'text/markdown;charset=utf-8' });
+    await downloadBlob(blob, filename);
+  }
+  return { markdown: md, filename };
 }

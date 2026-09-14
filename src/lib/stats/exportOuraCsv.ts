@@ -77,5 +77,5 @@ export async function exportOuraCsv({ supabase = defaultSupabase, session, dateR
   const csv = '\uFEFF' + [headerRow, ...rows].join('\n'); // BOM dla poprawnego UTF-8 w Excelu
 
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  downloadBlob(blob, `oura_${dateRange.from}_${dateRange.to}.csv`);
+  await downloadBlob(blob, `oura_${dateRange.from}_${dateRange.to}.csv`);
 }

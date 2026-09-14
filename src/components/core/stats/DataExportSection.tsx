@@ -1,4 +1,4 @@
-import { Calendar, Download, FileText } from 'lucide-react';
+import { Calendar, Copy, Download, FileText } from 'lucide-react';
 import Button from '../../ui/Button';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
 import Spinner from '../../ui/Spinner';
@@ -26,6 +26,8 @@ interface DataExportSectionProps {
   setIncludeFundament: (v: boolean) => void;
   exportData: () => void;
   isExporting: boolean;
+  copyData?: () => void;
+  isCopying?: boolean;
 }
 
 export function DataExportSection({
@@ -49,6 +51,8 @@ export function DataExportSection({
   setIncludeFundament,
   exportData,
   isExporting,
+  copyData,
+  isCopying = false,
 }: DataExportSectionProps) {
   const today = getTodayWarsaw();
 
@@ -143,25 +147,39 @@ export function DataExportSection({
         setIncludeFundament={setIncludeFundament}
       />
 
-      {/* Action Download Button */}
-      <Button
-        variant="primary"
-        onClick={exportData}
-        disabled={isExporting}
-        className="w-full flex items-center justify-center gap-2 py-3"
-      >
-        {isExporting ? (
-          <>
-            <Spinner size="sm" className="!border-on-accent/30 !border-t-on-accent" />
-            <span>Generowanie raportu Markdown...</span>
-          </>
-        ) : (
-          <>
-            <Download size={14} />
-            <span>Pobierz Raport (.md)</span>
-          </>
+      {/* Action Download & Copy Buttons */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant="primary"
+          onClick={exportData}
+          disabled={isExporting || isCopying}
+          className="flex-1 flex items-center justify-center gap-2 py-3"
+        >
+          {isExporting ? (
+            <>
+              <Spinner size="sm" className="!border-on-accent/30 !border-t-on-accent" />
+              <span>Generowanie raportu Markdown...</span>
+            </>
+          ) : (
+            <>
+              <Download size={14} />
+              <span>Pobierz Raport (.md)</span>
+            </>
+          )}
+        </Button>
+        {copyData && (
+          <Button
+            variant="secondary"
+            onClick={copyData}
+            disabled={isExporting || isCopying}
+            className="flex items-center justify-center gap-2 py-3 px-4"
+            title="Kopiuj zawartość raportu Markdown do schowka"
+          >
+            {isCopying ? <Spinner size="sm" /> : <Copy size={14} />}
+            <span className="hidden sm:inline">Kopiuj</span>
+          </Button>
         )}
-      </Button>
+      </div>
     </section>
   );
 }

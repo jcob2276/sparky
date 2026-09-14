@@ -222,35 +222,40 @@ export function useStatsData() {
     deleteLogMutation.mutate(id);
   };
 
+  const exportParams = {
+    session: { user: { id: userId! }, access_token: '' },
+    dateRange, userSettings,
+    includeNutrition, includeJournal, includeOura, includeHabits,
+    includeWorkouts, includeBody, includeActivityWatch, includeFundament,
+  };
+
   const exportDataMutation = useMutation({
-    mutationFn: async () => {
-      await exportStatsMarkdown({
-        session: { user: { id: userId! }, access_token: '' },
-        dateRange,
-        userSettings,
-        includeNutrition,
-        includeJournal,
-        includeOura,
-        includeHabits,
-        includeWorkouts,
-        includeBody,
-        includeActivityWatch,
-        includeFundament,
-      });
-    },
+    mutationFn: () => exportStatsMarkdown(exportParams),
+    onSuccess: () => { notify('Raport wygenerowany', 'success'); },
     onError: (err: Error) => {
       console.error('Export markdown error:', err);
-      notify('Błąd podczas generowania raportu: ' + (err.message || String(err)), 'error');
-    }
+      notify('Błąd generowania raportu: ' + (err.message || String(err)), 'error');
+    },
+  });
+
+  const copyDataMutation = useMutation({
+    mutationFn: async () => {
+      const res = await exportStatsMarkdown({ ...exportParams, skipDownload: true });
+      if (res?.markdown && typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(res.markdown);
+      }
+    },
+    onSuccess: () => { notify('Skopiowano treść raportu do schowka', 'success'); },
+    onError: (err: Error) => { notify('Błąd kopiowania: ' + (err.message || String(err)), 'error'); },
   });
 
   const exportData = () => { exportDataMutation.mutate(); };
   const isExporting = exportDataMutation.isPending;
+  const copyData = () => { copyDataMutation.mutate(); };
+  const isCopying = copyDataMutation.isPending;
 
   const exportOuraCSVMutation = useMutation({
-    mutationFn: async () => {
-      await exportOuraCsv({ session: { user: { id: userId! } }, dateRange });
-    },
+    mutationFn: () => exportOuraCsv({ session: { user: { id: userId! } }, dateRange }),
     onError: (err: Error) => {
       console.error('Export Oura CSV error:', err);
       notify('Błąd podczas generowania CSV Oura: ' + (err.message || String(err)), 'error');
@@ -282,6 +287,6 @@ export function useStatsData() {
     editForm, setEditForm,
     trainingAnalysis,
     saveMetrics, deleteSession, analyzeFood, analyzeTrainingLoad,
-    startEditing, updateSession, deleteLog, exportData, exportOuraCSV,
+    startEditing, updateSession, deleteLog, exportData, copyData, isCopying, exportOuraCSV,
   };
 }

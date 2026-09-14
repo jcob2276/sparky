@@ -5,6 +5,7 @@ import { downloadNoteAttachmentFile, listUserNoteAttachments } from './noteAttac
 import { getPlainText } from './noteText';
 import { getTodayWarsaw } from './date';
 import { downloadNoteDrawingPreview } from './noteDrawingsApi';
+import { downloadBlob } from './download';
 
 const safeName = (value: string) => (
   value.normalize('NFKD').replace(/[^\w.-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80) || 'notatka'
@@ -33,14 +34,6 @@ export const noteAsMarkdown = (note: Note, folderName?: string, drawingPath?: st
   drawingPath ? `\n![Rysunek](${drawingPath})` : null,
 ].filter(line => line !== null).join('\n');
 
-function downloadBlob(blob: Blob, fileName: string): void {
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement('a');
-  anchor.href = url;
-  anchor.download = fileName;
-  anchor.click();
-  URL.revokeObjectURL(url);
-}
 
 const blobAsDataUrl = (blob: Blob): Promise<string> => new Promise((resolve, reject) => {
   const reader = new FileReader();

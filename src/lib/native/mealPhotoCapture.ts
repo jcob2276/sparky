@@ -13,8 +13,8 @@ function isUserCancel(error: unknown): boolean {
   return /cancel|dismiss|no image/i.test(msg);
 }
 
-/** APK: system picker (aparat lub galeria). Web/PWA: null — użyj `<input type="file">`. */
-export async function pickMealPhotoNative(): Promise<File | null> {
+/** APK: bezpośredni aparat ('camera') lub galeria ('photos'). Web/PWA: null — użyj `<input type="file">`. */
+export async function pickMealPhotoNative(sourceType: 'camera' | 'photos' = 'camera'): Promise<File | null> {
   if (!isNativePlatform()) return null;
 
   try {
@@ -22,7 +22,7 @@ export async function pickMealPhotoNative(): Promise<File | null> {
       quality: 85,
       allowEditing: false,
       resultType: CameraResultType.Uri,
-      source: CameraSource.Prompt,
+      source: sourceType === 'camera' ? CameraSource.Camera : CameraSource.Photos,
       correctOrientation: true,
       saveToGallery: false,
     });

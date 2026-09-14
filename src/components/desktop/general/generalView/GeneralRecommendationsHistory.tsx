@@ -96,7 +96,7 @@ export function MetricGroupHeader({ metric, count, color, icon }: { metric: stri
         {metric}
       </span>
       <span className="text-2xs text-text-muted bg-surface-solid px-1.5 py-0.5 rounded-full font-bold">{count}</span>
-      <div className="h-px flex-1" style={{ backgroundColor: `${color}33` }} />
+      <div className="h-px flex-1 bg-border-custom" />
     </div>
   );
 }

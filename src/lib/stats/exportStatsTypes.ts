@@ -107,6 +107,7 @@ export interface ExportStatsMarkdownParams {
   includeActivityWatch: boolean;
   includeLenie?: boolean;
   includeFundament?: boolean;
+  skipDownload?: boolean;
 }
 
 export interface ExportOuraCsvParams {
