@@ -6,6 +6,7 @@ import { getPlainText } from './noteText';
 import { getTodayWarsaw } from './date';
 import { downloadNoteDrawingPreview } from './noteDrawingsApi';
 import { downloadBlob } from './download';
+import { isNativePlatform } from './native/platform';
 
 const safeName = (value: string) => (
   value.normalize('NFKD').replace(/[^\w.-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80) || 'notatka'
@@ -57,9 +58,16 @@ const escapeHtml = (value: string): string => value.replace(/[&<>"']/g, characte
 }[character]!));
 
 export async function exportSingleNotePdf(note: Note, folder?: NoteFolder): Promise<void> {
+  if (isNativePlatform()) {
+    await shareNoteCopy(note, folder);
+    return;
+  }
   const preview = await drawingDataUrl(note);
   const printable = window.open('', '_blank', 'noopener,noreferrer');
-  if (!printable) throw new Error('Przeglądarka zablokowała okno eksportu PDF.');
+  if (!printable) {
+    await shareNoteCopy(note, folder);
+    return;
+  }
   printable.document.write(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>${escapeHtml(note.title)}</title><style>body{font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;max-width:760px;margin:48px auto;padding:0 24px;color:#111}h1{font-size:32px}.meta{color:#666;font-size:13px;margin-bottom:28px}.content{white-space:pre-wrap}</style></head><body><h1>${escapeHtml(note.title || 'Bez tytułu')}</h1><div class="meta">${folder ? `Folder: ${escapeHtml(folder.name)} · ` : ''}${note.tags.map(tag => `#${escapeHtml(tag)}`).join(' ')}</div><div class="content">${escapeHtml(getPlainText(note.content))}</div><script>addEventListener('load',()=>{print();setTimeout(()=>close(),500)})</script></body></html>`);
   if (preview) {
     const image = printable.document.createElement('img');

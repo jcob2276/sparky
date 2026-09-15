@@ -113,18 +113,18 @@ export function useTerminyActions({
     }
   };
 
-  const handleExportICS = (row: DerivedObligation) => {
+  const handleExportICS = async (row: DerivedObligation) => {
     try {
       const ics = buildICSContent([row]);
       const filename = `${row.item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${row.nextDate}.ics`;
-      downloadICSFile(filename, ics);
+      await downloadICSFile(filename, ics);
       notify(`Pobrano plik iCal: ${filename}`, 'success');
     } catch (caught: unknown) {
       notify(caught instanceof Error ? caught.message : 'Błąd generowania pliku iCal', 'error');
     }
   };
 
-  const handleExportAllICS = () => {
+  const handleExportAllICS = async () => {
     if (allRows.length === 0) {
       notify('Brak terminów do wyeksportowania', 'info');
       return;
@@ -132,7 +132,7 @@ export function useTerminyActions({
     try {
       const ics = buildICSContent(allRows);
       const filename = `terminy-vanguard-${today}.ics`;
-      downloadICSFile(filename, ics);
+      await downloadICSFile(filename, ics);
       notify(`Wyeksportowano ${allRows.length} terminów do ${filename}`, 'success');
     } catch (caught: unknown) {
       notify(caught instanceof Error ? caught.message : 'Błąd generowania pliku iCal', 'error');

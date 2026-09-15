@@ -7,6 +7,7 @@ import { Pressable } from '../ui/ControlPrimitives';
 import { Check, LockKeyhole, Pin } from 'lucide-react';
 import { useRef } from 'react';
 import { Note, getColor, relativeDate, getPlainText } from './keepUtils';
+import { useHaptics } from '../../hooks/useHaptics';
 
 interface NoteRowProps {
   note: Note;
@@ -33,6 +34,7 @@ export default function NoteRow({
   const snippet = note.is_locked ? 'Wymaga hasła' : plainText ? plainText.slice(0, 110) : 'Brak dodatkowej treści';
   const dateStr = relativeDate(note.updated_at || note.created_at);
   const color = getColor(note.color);
+  const { light } = useHaptics();
   const cancelLongPress = () => {
     if (pressTimer.current) window.clearTimeout(pressTimer.current);
     pressTimer.current = null;
@@ -42,7 +44,7 @@ export default function NoteRow({
     longPressed.current = false;
     pressTimer.current = window.setTimeout(() => {
       longPressed.current = true;
-      navigator.vibrate?.(10);
+      light();
       onLongPress();
     }, 500);
   };

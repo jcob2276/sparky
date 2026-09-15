@@ -171,7 +171,7 @@ export default function CzatView() {
               key={msg.id}
               message={msg}
               copiedId={copiedId}
-              onCopy={(id, text) => { void triggerHaptic(); navigator.clipboard.writeText(text); setCopiedId(id); setTimeout(() => setCopiedId(null), 2000); }}
+              onCopy={(id, text) => { void triggerHaptic(); void navigator.clipboard?.writeText(text).then(() => { setCopiedId(id); setTimeout(() => setCopiedId(null), 2000); }).catch(() => notify('Nie udało się skopiować wiadomości', 'error')); }}
               onDelete={handleDeleteMessage}
             />
           ))}

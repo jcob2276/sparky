@@ -4,6 +4,7 @@ import {
   type LifeObligationKind,
 } from '@vanguard/domain';
 import type { LifeObligation } from '../../lib/lifeObligationsApi';
+import { downloadBlob } from '../../lib/download';
 
 export type UrgencyBucket = 'today' | 'week' | 'month' | 'later';
 
@@ -159,14 +160,9 @@ export function buildICSContent(rows: DerivedObligation[]): string {
   return lines.join('\r\n');
 }
 
-export function downloadICSFile(filename: string, icsContent: string) {
+export async function downloadICSFile(filename: string, icsContent: string): Promise<void> {
+  const safeFilename = filename.endsWith('.ics') ? filename : `${filename}.ics`;
   const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = filename.endsWith('.ics') ? filename : `${filename}.ics`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(link.href);
+  await downloadBlob(blob, safeFilename);
 }
 

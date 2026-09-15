@@ -108,8 +108,7 @@ export default function Photos() {
           occurredDate = format(new Date(dateObj), 'yyyy-MM-dd');
         }
       } catch (exifErr: unknown) {
-        console.error('[Action Error]', exifErr);
-        notify(exifErr instanceof Error ? exifErr.message : 'Wystąpił błąd', 'error');
+        console.warn('[Photos] EXIF date extraction skipped/failed, using selected date', exifErr);
       }
 
       const stamp = Date.now();

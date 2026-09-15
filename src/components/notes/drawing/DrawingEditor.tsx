@@ -16,6 +16,7 @@ import { Pressable } from '../../ui/ControlPrimitives';
 import DrawingLayers from './DrawingLayers';
 import { notesKeys } from '../../../lib/queryKeys';
 import { downloadBlob } from '../../../lib/download';
+import { isNativePlatform } from '../../../lib/native/platform';
 
 interface DrawingEditorProps {
   userId: string;
@@ -119,9 +120,17 @@ export default function DrawingEditor({ userId, noteId, onClose, onInsertText }:
   const exportPdf = async () => {
     if (!canvasRef.current) return;
     const png = await canvasToPng(canvasRef.current);
+    if (isNativePlatform()) {
+      await downloadBlob(png, 'rysunek.png');
+      notify('Udostępniono rysunek', 'success');
+      return;
+    }
     const url = URL.createObjectURL(png);
     const printable = window.open('', '_blank', 'noopener,noreferrer');
-    if (!printable) throw new Error('Przeglądarka zablokowała eksport PDF.');
+    if (!printable) {
+      await downloadBlob(png, 'rysunek.png');
+      return;
+    }
     printable.document.write(`<img src="${url}" style="display:block;max-width:100%;margin:auto"><script>addEventListener('load',()=>{print();setTimeout(()=>close(),500)})</script>`);
     printable.document.close();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);

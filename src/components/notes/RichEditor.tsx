@@ -9,6 +9,7 @@ import { SLASH_COMMANDS } from './richEditorCommands';
 import { uploadNoteAttachment } from '../../lib/noteAttachmentsApi';
 import { useQueryClient } from '@tanstack/react-query';
 import { notesKeys } from '../../lib/queryKeys';
+import { downloadBlob } from '../../lib/download';
 export default function RichEditor({
   value,
   onChange,
@@ -471,12 +472,15 @@ export default function RichEditor({
     if (target.classList.contains('keep-inline-img')) {
       e.preventDefault();
       const src = (target as HTMLImageElement).src;
-      const a = document.createElement('a');
-      a.href = src;
-      a.download = `zdjecie-${Date.now()}.png`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      void (async () => {
+        try {
+          const res = await fetch(src);
+          const blob = await res.blob();
+          await downloadBlob(blob, `zdjecie-${Date.now()}.png`);
+        } catch {
+          window.open(src, '_blank');
+        }
+      })();
       return;
     }
     if (target.classList.contains('keep-todo-checkbox')) {
