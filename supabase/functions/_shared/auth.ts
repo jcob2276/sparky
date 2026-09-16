@@ -1,4 +1,4 @@
-import { corsHeadersFor } from "./supabase.ts";
+import { corsHeadersFor, getServiceRoleKey } from "./supabase.ts";
 
 /**
  * Validates that the request has a valid Service Role authorization header.
@@ -9,7 +9,7 @@ export function requireServiceRole(req: Request): Response | null {
   const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
   const apiKey = req.headers.get("apikey") || "";
   const token = bearerToken || apiKey;
-  const serviceRoleKey = Deno.env.get("SB_SECRET_KEY") || Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+  const serviceRoleKey = getServiceRoleKey();
   
   if (!serviceRoleKey || token !== serviceRoleKey) {
     return new Response(JSON.stringify({ error: "Unauthorized" }), {

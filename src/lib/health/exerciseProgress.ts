@@ -263,23 +263,3 @@ export function buildExerciseProgress(
 }
 
 export { TREND_LABEL_PL };
-
-export function collectRecentExerciseNames(
-  sessions: Array<{ exercise_logs?: Array<{ exercise_name: string; muscle_tags?: string[] | null }> }>,
-  limit = 12,
-): string[] {
-  const seen = new Set<string>();
-  const names: string[] = [];
-  for (const session of sessions) {
-    for (const log of session.exercise_logs ?? []) {
-      const name = log.exercise_name?.trim();
-      if (!name) continue;
-      const tags = log.muscle_tags ?? [];
-      if (tags.includes('wellness') || tags.includes('activity')) continue;
-      if (seen.has(name)) continue;
-      seen.add(name);
-      names.push(name);
-    }
-  }
-  return names.slice(0, limit);
-}

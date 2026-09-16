@@ -153,17 +153,34 @@ async function lookupViaLibraryRaw(name: string, userId: string, db: any): Promi
   return merged.length ? merged : null;
 }
 
+/**
+ * Potrawy złożone — ich makra już zawierają tłuszcz ze smażenia.
+ * Nie mapujemy ich na surowe składniki z generic/reference (np. jajecznica → jajko ugotowane).
+ */
+const COMPOSED_DISHES_RE = /\b(jajecznica|omlet|nalesnik|racuch|placek ziemniaczan|kotlet|schabowy|gulasz|bigos|gołąbk|pierogi|lazani|spaghetti|pizza|kebab|tortilla wrap|burrito|taco)\b/i;
+
 async function reconcileOne(item: ParsedFoodItem, opts: ReconcileOpts): Promise<ParsedFoodItem> {
+  // Potrawy złożone: nie próbuj dopasowywać do surowych składników — zostawiamy LLM-estimate lub reference_pl.
+  const isComposedDish = COMPOSED_DISHES_RE.test(normalizePl(item.name));
+
   let match: Per100gFood | null = null;
   let source: ParsedFoodItem['source'] = 'llm';
   let macroSource: any = 'llm_estimate';
   let matchScore: number | undefined;
   let matchedName: string | undefined;
 
+  // Krok 1: Osobista biblioteka/ulubione użytkownika — zawsze sprawdzamy (własne wpisy mają priorytet).
   if (opts.userId && opts.db) { const lib = pickBestMatchScored(item.name, (await lookupViaLibraryRaw(item.name, opts.userId, opts.db)) ?? []); if (lib) { match = lib.match; source = 'library'; macroSource = 'library'; matchScore = lib.score; matchedName = lib.match.name; } }
+
+  // Krok 2: Polska baza referencyjna (PZH-style złożone potrawy) — zawsze sprawdzamy.
   if (!match?.calories) { const ref = lookupReferencePl(item.name); if (ref) { match = ref; source = 'database'; macroSource = 'reference_pl'; matchedName = ref.name; matchScore = scoreFoodNameMatch(item.name, ref.name); } }
-  if (!match?.calories) { const local = lookupGenericFood(item.name); if (local) { match = local; source = 'database'; macroSource = 'generic'; matchedName = local.name; matchScore = scoreFoodNameMatch(item.name, local.name); } }
-  if (!match?.calories) { const remote = await lookupOffFast(item.name); if (remote?.match.calories != null) { match = remote.match; source = 'database'; macroSource = remote.macroSource; matchScore = remote.score; matchedName = remote.match.name; } }
+
+  // Krok 3: Generic staples — TYLKO jeśli to NIE jest potrawa złożona.
+  if (!match?.calories && !isComposedDish) { const local = lookupGenericFood(item.name); if (local) { match = local; source = 'database'; macroSource = 'generic'; matchedName = local.name; matchScore = scoreFoodNameMatch(item.name, local.name); } }
+
+  // Krok 4: OpenFoodFacts — TYLKO jeśli to NIE jest potrawa złożona.
+  if (!match?.calories && !isComposedDish) { const remote = await lookupOffFast(item.name); if (remote?.match.calories != null) { match = remote.match; source = 'database'; macroSource = remote.macroSource; matchScore = remote.score; matchedName = remote.match.name; } }
+
   if (matchScore != null && matchScore >= 0.50 && matchScore <= 0.72 && opts.apiKey && matchedName) { const ok = await verifyMatchWithLLM(item.name, matchedName, opts.apiKey); if (!ok) { match = null; source = 'llm'; macroSource = 'llm_estimate'; matchScore = undefined; matchedName = undefined; } }
   if (match?.calories != null && source !== 'llm') { return { ...item, ...recalcFromPer100g(item.grams, match), name: match.name || item.name, confidence: 'high', source, assumptions: item.assumptions, parseMeta: { ...item.parseMeta, macroSource, matchScore, matchedName, dataSource: match.source ?? macroSource, parserVersion: PARSER_VERSION } }; }
   return item;

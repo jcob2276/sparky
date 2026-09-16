@@ -22,7 +22,8 @@ const REFERENCE_PL_FOODS: GenericFoodPer100g[] = [
   { name: 'Barszcz czerwony', calories: 40, protein: 1.5, carbs: 6, fat: 1 },
   { name: 'Karkówka domowa duszona', calories: 250, protein: 24, carbs: 0, fat: 17 },
   { name: 'Naleśniki z serem', calories: 174, protein: 7, carbs: 22, fat: 6.5 },
-  { name: 'Jajecznica', calories: 154, protein: 11, carbs: 1.5, fat: 12 },
+  { name: 'Jajecznica', calories: 196, protein: 12, carbs: 1.2, fat: 16 },
+  { name: 'Omlet', calories: 185, protein: 12, carbs: 1, fat: 14 },
   { name: 'Owsianka na mleku', calories: 88, protein: 3.5, carbs: 12, fat: 3 },
 ]
 

@@ -25,10 +25,11 @@ export function detectSpirals(biometrics: any[], frictionEvents: any[]) {
     }
   }
 
-  const threeDaysAgoStr = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  const threeDaysAgoMs = Date.now() - 3 * 24 * 60 * 60 * 1000;
   const recentFrictions = frictionEvents.filter(f => {
-    const dateStr = typeof f.occurred_at === 'string' ? f.occurred_at.split('T')[0] : '';
-    return dateStr >= threeDaysAgoStr;
+    if (!f.occurred_at) return false;
+    const time = new Date(f.occurred_at).getTime();
+    return !isNaN(time) && time >= threeDaysAgoMs;
   });
 
   if (readinessDeclining && (executionLow || recentFrictions.length >= 2)) {

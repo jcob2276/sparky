@@ -39,21 +39,21 @@ const KIND_ICON: Record<LifeObligationKind, typeof Cake> = {
 };
 
 const KIND_ACCENT: Record<LifeObligationKind, string> = {
-  people: 'text-rose-600 dark:text-rose-400 bg-rose-500/12 ring-1 ring-rose-500/25',
-  vehicle: 'text-blue-600 dark:text-blue-400 bg-blue-500/12 ring-1 ring-blue-500/25',
-  document: 'text-amber-600 dark:text-amber-400 bg-amber-500/12 ring-1 ring-amber-500/25',
-  home: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/12 ring-1 ring-emerald-500/25',
-  finance: 'text-purple-600 dark:text-purple-400 bg-purple-500/12 ring-1 ring-purple-500/25',
-  health_admin: 'text-cyan-600 dark:text-cyan-400 bg-cyan-500/12 ring-1 ring-cyan-500/25',
+  people: 'text-danger bg-danger/12 ring-1 ring-danger/25',
+  vehicle: 'text-info bg-info/12 ring-1 ring-info/25',
+  document: 'text-warning bg-warning/12 ring-1 ring-warning/25',
+  home: 'text-success bg-success/12 ring-1 ring-success/25',
+  finance: 'text-primary bg-primary/12 ring-1 ring-primary/25',
+  health_admin: 'text-info bg-info/12 ring-1 ring-info/25',
 };
 
 const RING_ACCENT: Record<LifeObligationKind, string> = {
-  people: 'stroke-rose-500',
-  vehicle: 'stroke-blue-500',
-  document: 'stroke-amber-500',
-  home: 'stroke-emerald-500',
-  finance: 'stroke-purple-500',
-  health_admin: 'stroke-cyan-500',
+  people: 'stroke-danger',
+  vehicle: 'stroke-info',
+  document: 'stroke-warning',
+  home: 'stroke-success',
+  finance: 'stroke-primary',
+  health_admin: 'stroke-info',
 };
 
 interface Props {

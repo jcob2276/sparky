@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useUserId } from '../../store/useStore';
+import { useQueryClient } from '@tanstack/react-query';
 import { getTodayWarsaw, getYesterdayWarsaw, getWarsawHour } from '../../lib/date';
 import { useHaptics } from '../../hooks/useHaptics';
 import { useLifeGoals } from '../projects/hooks/useLifeGoals';
@@ -14,55 +16,39 @@ import {
   type ProjectOption,
 } from './usePowerListTypes';
 import { type PillarProjectBinding, type DirectionProjectSummary } from '../../lib/dailyPlanProposal';
-import type { LifeGoalDisplayRow } from '../../lib/projects/lifeGoals';
+import { type LifeGoalDisplayRow } from '../../lib/projects/lifeGoals';
 import { updateDailyWinTaskDone } from '../../lib/goal/goalSpine';
 import { notify } from '../../lib/notify';
-import { applyYesterdayTaskToggle } from './powerList/morningReflectionModel';
+import { applyYesterdayTaskToggle, applyTodayTaskToggle } from './powerList/morningReflectionModel';
+import { dashboardKeys } from '../../lib/queryKeys';
 
 export type { TaskSlot, UsePowerListDataProps, ProjectOption, DailyWinWithTasks } from './usePowerListTypes';
 
-function getPillarProjects(lifeGoalRows: LifeGoalDisplayRow[]): PillarProjectBinding[] {
-  return lifeGoalRows
-    .filter((r) => r.projectId)
-    .map((r) => ({
-      pillar: r.id as 'cialo' | 'duch' | 'konto',
-      projectId: r.projectId!,
-      name: r.subtitle || r.title,
-      kpis: (r.kpis ?? []).map((k) => ({
-        id: k.id,
-        name: k.name,
-        current: k.current,
-        target: k.target,
-      })),
-    }));
-}
+const getPillarProjects = (rows: LifeGoalDisplayRow[]): PillarProjectBinding[] =>
+  rows.filter((r) => r.projectId).map((r) => ({
+    pillar: r.id as 'cialo' | 'duch' | 'konto',
+    projectId: r.projectId!,
+    name: r.subtitle || r.title,
+    kpis: (r.kpis ?? []).map((k) => ({ id: k.id, name: k.name, current: k.current, target: k.target })),
+  }));
 
-function getAllProjectOptions(activeProjects: DirectionProjectSummary[] | undefined): ProjectOption[] {
-  return activeProjects?.map((p) => ({
-    id: p.id,
-    name: p.name,
-    kpis: p.kpis ?? [],
-  })) ?? [];
-}
+const getAllProjectOptions = (active?: DirectionProjectSummary[]): ProjectOption[] =>
+  active?.map((p) => ({ id: p.id, name: p.name, kpis: p.kpis ?? [] })) ?? [];
 
 function getEveningCloseDue(todayWin: DailyWinWithTasks | null): boolean {
-  if (!todayWin) return false;
-  if (todayWin.day_note?.trim()) return false;
-  if (!todayWin.task_1?.trim()) return false;
-  if (todayWin.result === 'Z' || todayWin.result === 'P') return true;
-  const h = getWarsawHour();
-  return h >= 20;
+  if (!todayWin || todayWin.day_note?.trim() || !todayWin.task_1?.trim()) return false;
+  return todayWin.result === 'Z' || todayWin.result === 'P' || getWarsawHour() >= 20;
 }
 
 const getInitialTaskForm = () => Array.from({ length: 5 }, () => ({ ...EMPTY_SLOT }));
 
 export function usePowerListData({
-  session,
   todayWin,
   onUpdate,
   planDaySignal,
 }: UsePowerListDataProps) {
-  const userId = session.user.id;
+  const storeUserId = useUserId();
+  const userId = storeUserId ?? '';
   const { displayRows: lifeGoalRows, refresh: refreshLifeGoals } = useLifeGoals(userId);
   const direction = useDirectionContext(userId);
   const today = getTodayWarsaw();
@@ -90,20 +76,13 @@ export function usePowerListData({
     try {
       const raw = localStorage.getItem(powerListKpiKey(userId, today));
       return raw ? (JSON.parse(raw) as Record<number, string>) : {};
-    } catch {
-      return {};
-    }
+    } catch { return {}; }
   });
   useEffect(() => {
     try {
-      if (Object.keys(todaySlotKpis).length === 0) {
-        localStorage.removeItem(powerListKpiKey(userId, today));
-      } else {
-        localStorage.setItem(powerListKpiKey(userId, today), JSON.stringify(todaySlotKpis));
-      }
-    } catch {
-      /* ignore */
-    }
+      if (Object.keys(todaySlotKpis).length === 0) localStorage.removeItem(powerListKpiKey(userId, today));
+      else localStorage.setItem(powerListKpiKey(userId, today), JSON.stringify(todaySlotKpis));
+    } catch { /* ignore */ }
   }, [todaySlotKpis, userId, today]);
   const occupiedSlots = useMemo(() => newTaskForm.map((s) => !!s.task.trim()), [newTaskForm]);
   const queries = usePowerListEffects({
@@ -162,6 +141,20 @@ export function usePowerListData({
 
   const yesterdayNoteRequired = !!yesterdayWin && !yesterdayWin.day_note;
 
+  const queryClient = useQueryClient();
+  const [optimisticToggles, setOptimisticToggles] = useState<Record<number, { done: boolean; completedAt: string | null }>>({});
+  const [savingTodayTaskIndices, setSavingTodayTaskIndices] = useState<Set<number>>(() => new Set());
+
+  const effectiveTodayWin = useMemo(() => {
+    if (!todayWin) return null;
+    let win = todayWin;
+    for (const [slotStr, patch] of Object.entries(optimisticToggles)) {
+      const slot = Number(slotStr);
+      win = applyTodayTaskToggle(win, slot, patch.done, patch.completedAt);
+    }
+    return win;
+  }, [todayWin, optimisticToggles]);
+
   const actions = usePowerListActions({
     userId,
     today,
@@ -187,7 +180,75 @@ export function usePowerListData({
     setTodaySlotKpis,
     allProjectOptions,
   });
-  const eveningCloseDue = useMemo(() => getEveningCloseDue(todayWin), [todayWin]);
+
+  const inFlightSlotsRef = useRef<Record<number, boolean>>({});
+  const targetDoneRef = useRef<Record<number, boolean>>({});
+
+  const toggleTask = async (index: number) => {
+    if (!effectiveTodayWin) return;
+    const slot = index + 1;
+    const taskRow = (effectiveTodayWin.daily_win_tasks ?? []).find((t) => t.slot === slot);
+    const field = `done_${slot}` as keyof DailyWinWithTasks;
+    const currentDone = taskRow ? Boolean(taskRow.done) : Boolean(effectiveTodayWin[field]);
+    const nextDone = !currentDone;
+    const timestamp = nextDone ? new Date().toISOString() : null;
+
+    targetDoneRef.current[slot] = nextDone;
+    setOptimisticToggles((prev) => ({ ...prev, [slot]: { done: nextDone, completedAt: timestamp } }));
+    if (nextDone) haptics.success(); else haptics.light();
+
+    const previousWin = effectiveTodayWin;
+    const optimisticWin = applyTodayTaskToggle(previousWin, slot, nextDone, timestamp);
+
+    queryClient.setQueryData(dashboardKeys.main(userId), (old: unknown) => {
+      if (!old || typeof old !== 'object') return old;
+      return { ...(old as Record<string, unknown>), todayWin: optimisticWin };
+    });
+
+    if (inFlightSlotsRef.current[slot]) return;
+    inFlightSlotsRef.current[slot] = true;
+    setSavingTodayTaskIndices((prev) => new Set(prev).add(index));
+
+    try {
+      while (targetDoneRef.current[slot] !== undefined) {
+        const desiredDone = targetDoneRef.current[slot];
+        delete targetDoneRef.current[slot];
+        const desiredTimestamp = desiredDone ? new Date().toISOString() : null;
+
+        const currentBaseWin = queryClient.getQueryData<{ todayWin?: DailyWinWithTasks }>(dashboardKeys.main(userId))?.todayWin ?? previousWin;
+        const mergedWin = await actions.toggleTask(index, currentBaseWin, desiredDone, desiredTimestamp);
+        if (mergedWin) {
+          queryClient.setQueryData(dashboardKeys.main(userId), (old: unknown) => {
+            if (!old || typeof old !== 'object') return old;
+            return { ...(old as Record<string, unknown>), todayWin: mergedWin };
+          });
+        }
+      }
+    } catch (error: unknown) {
+      console.error('[PowerList] toggleTask failed', error);
+      queryClient.setQueryData(dashboardKeys.main(userId), (old: unknown) => {
+        if (!old || typeof old !== 'object') return old;
+        return { ...(old as Record<string, unknown>), todayWin: previousWin };
+      });
+      haptics.error();
+      notify('Nie udało się zapisać zadania.', 'error');
+    } finally {
+      delete inFlightSlotsRef.current[slot];
+      delete targetDoneRef.current[slot];
+      setOptimisticToggles((prev) => {
+        const next = { ...prev };
+        delete next[slot];
+        return next;
+      });
+      setSavingTodayTaskIndices((prev) => {
+        const next = new Set(prev);
+        next.delete(index);
+        return next;
+      });
+    }
+  };
+
+  const eveningCloseDue = useMemo(() => getEveningCloseDue(effectiveTodayWin), [effectiveTodayWin]);
   return {
     userId,
     today,
@@ -222,11 +283,12 @@ export function usePowerListData({
     pickerRef,
     todaySlotKpis,
     occupiedSlots,
+    todayWin: effectiveTodayWin,
     eveningCloseDue,
     fillSlotFromCheckpoint: actions.fillSlotFromCheckpoint,
     confirmCheckpointDone: actions.confirmCheckpointDone,
-    saveEveningClose: () => actions.saveEveningClose(todayWin),
-    toggleTask: (idx: number) => actions.toggleTask(idx, todayWin),
+    saveEveningClose: () => actions.saveEveningClose(effectiveTodayWin),
+    toggleTask,
     startNewDay: actions.startNewDay,
     updateSlot: actions.updateSlot,
     projectOptionsForSlot: actions.projectOptionsForSlot,

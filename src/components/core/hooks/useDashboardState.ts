@@ -11,7 +11,7 @@ import { STORAGE_KEYS } from '../../../lib/constants';
 import { useHaptics } from '../../../hooks/useHaptics';
 import { useNudgeData } from './useNudgeData';
 import { useSyncActions } from '../../../hooks/useSyncActions';
-import { useSpineGuidance } from '../../growth/hooks/useSpineGuidance';
+import { useSpineGuidance } from '../../../hooks/useSpineGuidance';
 import { usePendingActionCount } from '../../../components/shared/ActionCenterSheet';
 import { useWorkoutResume } from '../../biometrics/hooks/useWorkoutResume';
 import { useDashboardSwipeNav } from './useDashboardSwipeNav';
@@ -259,7 +259,8 @@ export function useDashboardState(session: Session) {
   // Data
   const { count: pendingActionCount, reload: reloadPendingActions } = usePendingActionCount();
   const { isSyncing, setSyncing } = useStore();
-  const { weeklyCalories, todayWin, proteinToday, proteinTarget, hasWorkoutToday, readiness, loading, refresh } = useDashboardData(session);
+  const isDashboardView = ['dzis', 'tydzien', 'projekty', 'historia'].includes(view);
+  const { weeklyCalories, todayWin, proteinToday, proteinTarget, hasWorkoutToday, readiness, loading, refresh } = useDashboardData(session, isDashboardView);
   const { guidance: spineGuidance, loading: spineGuidanceLoading } = useSpineGuidance(userId, todayWin);
   const { syncCalendar, startGoogleAuth } = useSyncActions({ userId, accessToken, onRefresh: refresh, setSyncing });
   const { reviewOverdueDays, urgentTodoCount, staleNoteCount, refresh: refreshNudge } = useNudgeData(userId);
@@ -320,6 +321,9 @@ export function useDashboardState(session: Session) {
     document.documentElement.dataset.slide = toIdx >= fromIdx ? 'right' : 'left';
     navigate('/' + newView);
     scrollToTop();
+    setTimeout(() => {
+      delete document.documentElement.dataset.slide;
+    }, 250);
   }, [view, haptics, navigate]);
 
   const {
@@ -339,11 +343,18 @@ export function useDashboardState(session: Session) {
   const handleFocusPlan = useCallback(() => { haptics.light(); document.getElementById('day-plan')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [haptics]);
 
   const openFoodEntry = useCallback(() => {
+    const scrollToComposer = () => {
+      const el = document.getElementById('meal-composer');
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+
     if (view === 'dzis') {
-      document.getElementById('meal-composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(scrollToComposer, 80);
     } else {
       navigateTo('dzis');
-      setTimeout(() => document.getElementById('meal-composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+      setTimeout(scrollToComposer, 350);
     }
   }, [view, navigateTo]);
 

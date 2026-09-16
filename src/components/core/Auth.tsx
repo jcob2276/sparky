@@ -61,6 +61,11 @@ export default function Auth() {
 
     try {
       localStorage.setItem(EMAIL_CACHE_KEY, trimmedEmail);
+    } catch {
+      /* ignore quota errors in Safari Private mode */
+    }
+
+    try {
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: trimmedEmail,
         password,

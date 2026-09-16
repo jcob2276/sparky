@@ -1,5 +1,5 @@
 import { CalendarDays } from 'lucide-react';
-import { Pressable } from '../../../ui/ControlPrimitives';
+import { Pressable, ControlInput } from '../../../ui/ControlPrimitives';
 import { useHaptics } from '../../../../hooks/useHaptics';
 import { formatWeekdayWarsaw, formatShortDateWarsaw } from '../../../../lib/date';
 
@@ -51,7 +51,7 @@ export default function DayDatePills({
                 haptics.selection();
                 onSelectDate(date);
               }}
-              className={`shrink-0 min-w-[80px] flex flex-col items-center justify-center rounded-2xl px-3 py-2 transition-all active:scale-95 ${
+              className={`touch-manipulation shrink-0 min-w-[80px] flex flex-col items-center justify-center rounded-2xl px-3 py-2 transition-all active:scale-95 ${
                 isSelected
                   ? 'bg-primary text-on-accent shadow-sm ring-2 ring-primary/20'
                   : 'border border-border-custom/80 bg-surface-solid/40 text-text-secondary hover:border-primary/40 hover:bg-surface-solid/70 hover:text-text-primary'
@@ -89,7 +89,7 @@ export default function DayDatePills({
           <CalendarDays size={14} className="mb-0.5" />
           <span className="text-xs font-bold leading-tight">Kalendarz</span>
           <span className="text-2xs font-medium opacity-70">Wybierz</span>
-          <input
+          <ControlInput
             type="date"
             max={targetDate}
             value={selectedDate}

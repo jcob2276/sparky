@@ -1,4 +1,3 @@
-import type { Session } from '@supabase/supabase-js';
 import type { Tables } from '../../lib/database.types';
 
 export interface TaskSlot {
@@ -14,8 +13,9 @@ export interface TaskSlot {
 
 export interface PowerListDraft {
   tasks: TaskSlot[];
-  yesterdayNote: string;
-  savedAt: number;
+  yesterdayNote?: string;
+  savedAt?: number;
+  updatedAt?: string;
 }
 
 export const EMPTY_SLOT: TaskSlot = {
@@ -24,8 +24,9 @@ export const EMPTY_SLOT: TaskSlot = {
   checkpointId: null,
   projectId: null,
   pinId: null,
+  kpiId: null,
   targetValue: '',
-  timeSlot: 'morning',
+  timeSlot: undefined,
 };
 
 export function powerListDraftKey(userId: string, date: string) {
@@ -37,7 +38,6 @@ export function powerListKpiKey(userId: string, date: string) {
 }
 
 export interface UsePowerListDataProps {
-  session: Session;
   todayWin: DailyWinWithTasks | null;
   onUpdate?: (data: Record<string, unknown>) => void;
   planDaySignal?: number;

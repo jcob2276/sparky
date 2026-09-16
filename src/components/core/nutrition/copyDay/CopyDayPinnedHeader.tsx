@@ -70,7 +70,7 @@ export default function CopyDayPinnedHeader({
             haptics.light();
             onClose();
           }}
-          className="h-8 w-8 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-solid/80 transition-all active:scale-90"
+          className="touch-manipulation h-8 w-8 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-solid/80 transition-all active:scale-90"
           title="Zamknij"
         >
           <X size={18} />

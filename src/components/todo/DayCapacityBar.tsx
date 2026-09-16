@@ -22,7 +22,13 @@ export default function DayCapacityBar({ userId, today, plannedMinutes }: Props)
   const over = plannedMinutes > available;
   const pct = available > 0 ? Math.min(100, Math.round((plannedMinutes / available) * 100)) : 100;
 
-  useEffect(() => { localStorage.setItem(storageKey, JSON.stringify(settings)); }, [settings, storageKey]);
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(settings));
+    } catch {
+      /* quota exceeded in Safari Private mode */
+    }
+  }, [settings, storageKey]);
 
   const update = (patch: Partial<DayCapacitySettings>) => setSettings((current) => ({ ...current, ...patch }));
 

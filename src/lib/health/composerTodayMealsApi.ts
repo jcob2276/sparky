@@ -174,10 +174,16 @@ export async function copyFoodEntriesToDate(
 }
 
 export async function deleteFoodEntry(userId: string, entryId: string): Promise<void> {
-  const { error } = await supabase
-    .from('daily_food_entries')
-    .delete()
-    .eq('id', entryId)
-    .eq('user_id', userId);
-  if (error) throw error;
+  const { error: rpcError } = await supabase.rpc('remove_food_entry', {
+    p_user_id: userId,
+    p_entry_id: entryId,
+  });
+  if (rpcError) {
+    const { error } = await supabase
+      .from('daily_food_entries')
+      .delete()
+      .eq('id', entryId)
+      .eq('user_id', userId);
+    if (error) throw error;
+  }
 }

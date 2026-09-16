@@ -8,7 +8,7 @@
  */
 
 import { DateInterval, createDateInterval, intervalsIntersect } from './appleDateInterval';
-import { parseTime, type CalRow } from '../../components/calendar/calendarHelpers';
+import { parseTime, type CalRow } from '../calendar/calendarHelpers';
 
 export interface PositionedCalRow extends CalRow {
   columnIndex: number;

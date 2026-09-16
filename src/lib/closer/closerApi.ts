@@ -62,7 +62,7 @@ export async function upsertCloserDailyLog(
   return data as CloserDailyLogRow;
 }
 
-export async function syncCloserWeeklyRollups(userId: string, weekStart: string): Promise<void> {
+async function syncCloserWeeklyRollups(userId: string, weekStart: string): Promise<void> {
   const logs = await fetchCloserWeekLogs(userId, weekStart);
 
   const sumAppointments = logs.reduce((acc, l) => acc + (l.appointments || 0), 0);

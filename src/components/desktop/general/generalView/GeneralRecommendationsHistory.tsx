@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { METRIC_META, getMetaMeta } from './recommendationConfig';
 
-export function OutcomeBadge({ outcome }: { outcome: string | null }) {
+function OutcomeBadge({ outcome }: { outcome: string | null }) {
   switch (outcome) {
     case 'success':
       return (

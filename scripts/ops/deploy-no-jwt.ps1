@@ -8,6 +8,7 @@ Set-Location (Resolve-Path (Join-Path $PSScriptRoot "..\.."))
 $all = @(
   "analyze-food-quality",
   "analyze-training-load",
+  "calendar-watch",
   "calendar-write",
   "compute-behavior-effects",
   "parse-food-nl",

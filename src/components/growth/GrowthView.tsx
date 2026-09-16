@@ -1,174 +1,170 @@
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft, GraduationCap, RefreshCw } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
-import { useGrowthData } from './hooks/useGrowthData';
-import { useGrowthViewDerived } from './useGrowthViewDerived';
-import { updateVanguardIdentity } from '../../lib/growth/growthIdentityApi';
-import { notify } from '../../lib/notify';
-import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
-import { getTodayWarsaw } from '../../lib/date';
+import { useSession } from '../../store/useStore';
+import { fetchGrowthDashboardData } from '../../lib/growth/growthApi';
+import Spinner from '../ui/Spinner';
+import { Pressable } from '../ui/ControlPrimitives';
+import { GrowthHeaderSection } from './GrowthHeaderSection';
+import { GrowthProjectsSection } from './GrowthProjectsSection';
+import { GrowthTasksSection } from './GrowthTasksSection';
+import { GrowthLibrarySection } from './GrowthLibrarySection';
+import { GrowthPracticeSection } from './GrowthPracticeSection';
+import { GrowthModals } from './GrowthModals';
 
-// New Sections
-import GrowthHeaderSection from './sections/GrowthHeaderSection';
-import GrowthIdentitySection from './sections/GrowthIdentitySection';
-import GrowthCapacityMapSection from './sections/GrowthCapacityMapSection';
-import GrowthActivePathSection from './sections/GrowthActivePathSection';
-import GrowthLibrarySection from './sections/GrowthLibrarySection';
-import GrowthPracticeSection from './sections/GrowthPracticeSection';
-import GrowthReviewSection from './sections/GrowthReviewSection';
-import GrowthModals from './sections/GrowthModals';
+interface Props {
+  session?: Session;
+  onBack?: () => void;
+  onNavigateTo?: (dest: string) => void;
+}
 
-import type { DevelopmentReview, LibraryItem, PracticeEvidence, VanguardIdentityData } from '../../lib/growth/growth.types';
+export default function GrowthView({ session: propSession, onBack, onNavigateTo }: Props) {
+  const storeSession = useSession();
+  const session = propSession || storeSession;
+  const userId = session?.user?.id;
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [, startTransition] = useTransition();
 
-export default function GrowthView({ session }: { session: Session }) {
-  const userId = session.user.id;
-  const [weekStart] = useState(() => getTodayWarsaw()); // Fixed reference date context
-  const data = useGrowthData(userId, weekStart);
-  
-  const { skills, snapshots, focus, pins, unreadLinks, readLinks, openTodos, activeProjects, weekNotes, loading, refresh } = data;
+  const [activeModal, setActiveModal] = useState<'theme' | 'library' | 'evidence' | null>(null);
 
-  const derived = useGrowthViewDerived({
-    weekStart,
-    skills,
-    snapshots,
-    focus,
-    pins,
-    unreadLinks,
-    readLinks,
-    openTodos,
-    activeProjects,
-    weekNotes,
+  const queryKey = ['growth-dashboard-data', userId];
+  const { data, isLoading, refetch } = useQuery({
+    queryKey,
+    queryFn: () => (userId ? fetchGrowthDashboardData(userId) : null),
+    enabled: !!userId,
   });
 
-  const { skillInventory } = derived;
-  const identity = data.identity;
-
-  // Modals state
-  const [activeModal, setActiveModal] = useState<'direction' | 'identity' | 'library' | 'practice' | null>(null);
-  const [selectedLibraryItem, setSelectedLibraryItem] = useState<LibraryItem | null>(null);
-  const [selectedPracticeItem, setSelectedPracticeItem] = useState<PracticeEvidence | null>(null);
-
-  const handleSaveIdentity = async (updates: Partial<VanguardIdentityData>) => {
-    try {
-      await updateVanguardIdentity(userId, updates);
-      notify('Zapisano pomyślnie!', 'success');
-      await refresh();
-    } catch (e: unknown) {
-      console.error(e);
-      notify('Wystąpił błąd podczas zapisu', 'error');
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      navigate(-1);
     }
   };
 
-  const handleSaveReview = async (reviewData: DevelopmentReview) => {
-    await handleSaveIdentity({
-      development_review: reviewData
+  const handleNavigate = (path: string) => {
+    if (onNavigateTo) {
+      onNavigateTo(path.replace(/^\//, ''));
+    } else {
+      navigate(path);
+    }
+  };
+
+  const handleRefresh = () => {
+    startTransition(() => {
+      void queryClient.invalidateQueries({ queryKey });
+      void refetch();
     });
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary" />
+        <Spinner size="lg" />
       </div>
     );
   }
 
+  const identity = data?.identity ?? null;
+  const projects = data?.projects ?? [];
+  const tasks = data?.tasks ?? [];
+  const libraryItems = data?.libraryItems ?? [];
+  const practiceEvidences = data?.practiceEvidences ?? [];
+
   return (
-    <div className="min-h-screen w-full bg-background text-text-primary flex flex-col">
+    <div className="min-h-screen w-full bg-background text-text-primary pb-20">
+      {/* Top Header */}
       <header className="sticky top-0 z-[var(--z-sticky)] w-full border-b border-border-custom bg-background/95 backdrop-blur-[var(--blur-md)]">
-        <div className="w-full max-w-[var(--ds-maxw-1600px)] mx-auto px-4 sm:px-6 lg:px-10 py-3 flex items-center gap-4">
-          <Link
-            to="/"
-            aria-label="Wróć do widoku głównego"
-            className="rounded-xl border border-border-custom p-2.5 text-text-muted hover:text-text-primary shrink-0"
-          >
-            <ArrowLeft size={18} />
-          </Link>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-black font-display uppercase tracking-tight">Zoom-out Rozwoju</h1>
+        <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Pressable
+              onClick={handleBack}
+              aria-label="Wróć"
+              className="rounded-xl border border-border-custom p-2 text-text-muted hover:text-text-primary transition-colors"
+            >
+              <ArrowLeft size={18} />
+            </Pressable>
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <GraduationCap size={16} />
+              </div>
+              <div>
+                <h1 className="text-base font-bold tracking-tight text-text-primary">Rozwój & Nauka</h1>
+                <p className="text-3xs font-semibold text-text-muted">Kompas, projekty, praktyka i biblioteka wiedzy</p>
+              </div>
+            </div>
           </div>
+
+          <Pressable
+            onClick={handleRefresh}
+            aria-label="Odśwież"
+            className="rounded-xl border border-border-custom p-2 text-text-muted hover:text-text-primary transition-colors"
+          >
+            <RefreshCw size={15} />
+          </Pressable>
         </div>
       </header>
 
-      <div className="flex-1 w-full max-w-[var(--ds-maxw-1600px)] mx-auto px-4 sm:px-6 lg:px-10 py-6 pb-16 space-y-6">
-        {/* Section 1: Header */}
-        <GrowthHeaderSection 
-          identity={identity} 
-          skills={skills} 
-          onEdit={() => setActiveModal('direction')} 
+      {/* Main Content Body */}
+      <main className="mx-auto w-full max-w-4xl space-y-5 px-4 pt-5">
+        {/* 1. Kompas Rozwoju (Główny motyw, luka, docelowa rola) */}
+        <GrowthHeaderSection
+          identity={identity}
+          onEdit={() => setActiveModal('theme')}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Section 2: Identity */}
-          <GrowthIdentitySection 
-            identity={identity} 
-            onEdit={() => setActiveModal('identity')} 
+        {/* 2. Aktywne Projekty Rozwojowe (SSOT z Kierunkiem) */}
+        <GrowthProjectsSection
+          projects={projects}
+          onNavigateToProjects={() => handleNavigate('/projekty')}
+        />
+
+        {/* 3. Następne Zadania & Działania (SSOT z Todo + Top 5) */}
+        {userId && (
+          <GrowthTasksSection
+            userId={userId}
+            tasks={tasks}
+            onRefresh={handleRefresh}
+            onNavigateToTodo={() => handleNavigate('/todo')}
           />
+        )}
 
-          {/* Section 4: Active Path */}
-          <GrowthActivePathSection 
-            identity={identity} 
-            skills={skills} 
-            onEdit={() => setActiveModal('direction')} 
+        {/* 4. Biblioteka Wiedzy (Książki / Kursy / Artykuły) */}
+        {userId && (
+          <GrowthLibrarySection
+            userId={userId}
+            items={libraryItems}
+            onRefresh={handleRefresh}
+            onOpenAddModal={() => setActiveModal('library')}
           />
-        </div>
+        )}
 
-        {/* Section 3: Capacity Map */}
-        <GrowthCapacityMapSection 
-          skillInventory={skillInventory} 
-          onEdit={() => {
-            // Re-uses standard skills assessment or opens evaluation
-            notify('Użyj przycisku w prawym górnym rogu na Dziś/Tydzień aby oceniać pojedyncze skille.', 'info');
-          }}
+        {/* 5. Dowody Wdrożenia w Praktyce (Zasada: Przeczytane ≠ Opanowane) */}
+        {userId && (
+          <GrowthPracticeSection
+            userId={userId}
+            evidences={practiceEvidences}
+            onRefresh={handleRefresh}
+            onOpenAddModal={() => setActiveModal('evidence')}
+          />
+        )}
+      </main>
+
+      {/* Modale akcji */}
+      {userId && (
+        <GrowthModals
+          userId={userId}
+          identity={identity}
+          libraryItems={libraryItems}
+          practiceEvidences={practiceEvidences}
+          activeModal={activeModal}
+          onClose={() => setActiveModal(null)}
+          onRefresh={handleRefresh}
         />
-
-        {/* Section 5: Knowledge Library */}
-        <GrowthLibrarySection 
-          items={identity?.library_items || []} 
-          onAdd={() => {
-            setSelectedLibraryItem(null);
-            setActiveModal('library');
-          }}
-          onEditItem={(item) => {
-            setSelectedLibraryItem(item);
-            setActiveModal('library');
-          }}
-        />
-
-        {/* Section 6: Practice & Evidence */}
-        <GrowthPracticeSection 
-          evidences={identity?.practice_evidences || []} 
-          skills={skills} 
-          onAdd={() => {
-            setSelectedPracticeItem(null);
-            setActiveModal('practice');
-          }}
-          onEditItem={(item) => {
-            setSelectedPracticeItem(item);
-            setActiveModal('practice');
-          }}
-        />
-
-        {/* Section 7: Review */}
-        <GrowthReviewSection 
-          currentReview={identity?.development_review ?? null}
-          onSaveReview={handleSaveReview} 
-        />
-      </div>
-
-      <GrowthModals
-        activeModal={activeModal}
-        onClose={() => {
-          setActiveModal(null);
-          setSelectedLibraryItem(null);
-          setSelectedPracticeItem(null);
-        }}
-        identity={identity}
-        skills={skills}
-        editingLibraryItem={selectedLibraryItem}
-        editingPracticeItem={selectedPracticeItem}
-        onSaveIdentity={handleSaveIdentity}
-      />
+      )}
     </div>
   );
 }

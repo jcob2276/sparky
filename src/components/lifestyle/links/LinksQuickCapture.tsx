@@ -16,6 +16,10 @@ export function LinksQuickCapture({ onAddLink, loading }: LinksQuickCaptureProps
   const [selectedCategory, setSelectedCategory] = useState<string>('Inne');
 
   const handlePasteClipboard = async () => {
+    if (!navigator.clipboard?.readText) {
+      notify('Schowek jest niedostępny na tym urządzeniu.', 'error');
+      return;
+    }
     try {
       const text = await navigator.clipboard.readText();
       const match = text.match(/https?:\/\/[^\s]+/);

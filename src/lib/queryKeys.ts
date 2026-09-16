@@ -46,11 +46,6 @@ export const dashboardKeys = {
   main: (userId: string) => [...dashboardKeys.all, 'main', userId] as const,
 };
 
-export const synthesisKeys = {
-  all: ['sparky-synthesis'] as const,
-  today: (userId: string, date: string) => [...synthesisKeys.all, userId, date] as const,
-};
-
 export const healthspanKeys = {
   all: ['healthspan'] as const,
   profile: (userId: string, date: string) => [...healthspanKeys.all, userId, date] as const,
@@ -97,18 +92,6 @@ export const notesKeys = {
 export const statsOverviewKeys = {
   all: ['statsOverview'] as const,
   forUser: (userId: string) => [...statsOverviewKeys.all, userId] as const,
-};
-
-// ── INSIGHT CARDS KEYS ──
-export const insightCardsKeys = {
-  all: ['insight-cards'] as const,
-  list: (userId: string) => [...insightCardsKeys.all, userId] as const,
-};
-
-// ── PATTERNS KEYS ──
-export const patternsKeys = {
-  all: ['patterns'] as const,
-  list: (userId: string) => [...patternsKeys.all, userId] as const,
 };
 
 // ── PROJECT WEEK KPIS KEYS ──
@@ -166,12 +149,6 @@ export const userSettingsKeys = {
 export const shutdownKeys = {
   all: ['shutdown'] as const,
   data: (userId: string, date: string) => [...shutdownKeys.all, 'data', userId, date] as const,
-};
-
-// ── USER STATS KEYS ──
-export const userStatsKeys = {
-  all: ['userStats'] as const,
-  snapshot: (userId: string) => [...userStatsKeys.all, 'snapshot', userId] as const,
 };
 
 // ── FINANCE KEYS ──

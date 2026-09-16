@@ -2,6 +2,7 @@ import { Mic, Square } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { notify } from '../../lib/notify';
 import { Pressable } from '../ui/ControlPrimitives';
+import { getSupportedAudioMimeType, getAudioFileExtension } from '../../lib/audioRecorder';
 
 export default function NoteAudioRecorder({
   disabled,
@@ -18,7 +19,8 @@ export default function NoteAudioRecorder({
   const start = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const mimeType = getSupportedAudioMimeType();
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
       streamRef.current = stream;
       recorderRef.current = recorder;
       chunksRef.current = [];
@@ -26,8 +28,8 @@ export default function NoteAudioRecorder({
         if (event.data.size) chunksRef.current.push(event.data);
       };
       recorder.onstop = () => {
-        const mime = recorder.mimeType || 'audio/webm';
-        const extension = mime.includes('ogg') ? 'ogg' : 'webm';
+        const mime = recorder.mimeType || mimeType || 'audio/webm';
+        const extension = getAudioFileExtension(mime);
         const file = new File(chunksRef.current, `nagranie-${Date.now()}.${extension}`, { type: mime });
         stream.getTracks().forEach(track => track.stop());
         streamRef.current = null;

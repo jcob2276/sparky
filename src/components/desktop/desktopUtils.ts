@@ -7,10 +7,8 @@ export { C } from './desktopColors';
 
 export type {
   OuraRow,
-  WorkoutSessionSummary,
   StravaActivitySummary,
   NutritionDayRow,
-  IntelCard,
 } from './desktopDataTypes';
 
 export { daysBefore, avg } from './desktopMath';
@@ -18,18 +16,10 @@ export { daysBefore, avg } from './desktopMath';
 export {
   weeklyVolume,
   weeklyRunKm,
-  SPRINT_SEASON,
-  getSprintInfo,
-  sprintMetrics,
 } from './desktopMetrics';
 
-export { computeNarrativeInsights } from './desktopNarrativeInsights';
-
 export {
-  INTEL_CFG,
   cleanIntelText,
-  isUsefulIntelCard,
-  intelScore,
 } from './desktopIntelConfig';
 
 export {
@@ -38,6 +28,4 @@ export {
   type LenieLogRow,
   type LenieStatsResult,
   type LenieHour24Slot,
-  type LeniePatternInsight,
-  type LenieRecentLogDisplay,
 } from './desktopLenieInsight';

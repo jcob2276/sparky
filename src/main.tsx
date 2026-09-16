@@ -13,6 +13,10 @@ initOfflineSync()
 // Capacitor APK shell (no-op on Vercel PWA).
 void initNativeShell()
 
+if (typeof window !== 'undefined' && 'scrollRestoration' in window.history) {
+  window.history.scrollRestoration = 'manual';
+}
+
 // Auto-unregister service workers in development mode to prevent stale cache issues on localhost
 if (import.meta.env.DEV && 'serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then((registrations) => {

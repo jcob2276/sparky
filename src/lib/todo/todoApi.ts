@@ -18,6 +18,8 @@ export function useTodoSections(userId: string) {
     queryKey: todoKeys.sections(userId),
     queryFn: () => listTodoSections(userId),
     enabled: !!userId,
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 }
 
@@ -26,6 +28,8 @@ export function useTodoItems(userId: string) {
     queryKey: todoKeys.items(userId),
     queryFn: () => listTodoItems(userId),
     enabled: !!userId,
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 }
 
@@ -34,6 +38,8 @@ export function useProjects(userId: string) {
     queryKey: todoKeys.projects(userId),
     queryFn: () => listProjects(userId),
     enabled: !!userId,
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 }
 
@@ -49,6 +55,8 @@ export function useDreams(userId: string) {
       return data || [];
     },
     enabled: !!userId,
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 }
 
@@ -57,6 +65,8 @@ export function useSmartLists(userId: string) {
     queryKey: todoKeys.smartLists(userId),
     queryFn: () => listSmartLists(userId),
     enabled: !!userId,
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 }
 

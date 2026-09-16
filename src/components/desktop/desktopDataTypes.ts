@@ -33,21 +33,3 @@ export interface NutritionDayRow {
   calories?: number | null;
   protein?: number | null;
 }
-
-export interface NarrativeInsight {
-  type: 'data';
-  urgency: 'high' | 'medium';
-  headline: string;
-  evidence: string;
-}
-
-export interface IntelCard {
-  type: 'data' | 'pattern' | 'wiki' | 'knowledge';
-  urgency?: 'high' | 'medium' | 'low';
-  headline?: string | null;
-  evidence?: string | null;
-  meta?: string | null;
-  count?: number;
-  importance?: number;
-  importance_score?: number | null;
-}

@@ -2324,3 +2324,23 @@ body {
     transform: translateY(0);
   }
 }
+
+@media print {
+  .medical-doc-print {
+    color: #000 !important;
+    background: #fff !important;
+  }
+  .medical-doc-print * {
+    border-color: #e5e7eb !important;
+  }
+  .medical-doc-print [class*="bg-surface"] {
+    background: #fff !important;
+  }
+  .medical-doc-print thead tr {
+    background: #f3f4f6 !important;
+    color: #4b5563 !important;
+  }
+  .medical-doc-print .text-text-muted {
+    color: #4b5563 !important;
+  }
+}

@@ -1,16 +1,13 @@
 import { Link } from 'react-router-dom';
 import type { DesktopTabType } from './DesktopQuickActionsBar';
 import { Pressable } from '../../ui/ControlPrimitives';
-import Badge from '../../ui/Badge';
 import {
   Dumbbell,
   HeartPulse,
   Brain,
   Layers,
-  Sparkles,
   TrendingUp,
   Eye,
-  AlarmClock,
   GraduationCap,
 } from 'lucide-react';
 
@@ -18,7 +15,6 @@ interface Props {
   activeTab: DesktopTabType;
   onTabChange: (tab: DesktopTabType) => void;
   dailyStatus?: string;
-  naukaBadge?: number;
 }
 
 const TABS: { id: DesktopTabType; label: string; icon: typeof Dumbbell }[] = [
@@ -29,14 +25,12 @@ const TABS: { id: DesktopTabType; label: string; icon: typeof Dumbbell }[] = [
 ];
 
 const SHORTCUTS = [
-  { label: 'Oracle Czat', href: '/czat', icon: Sparkles },
+  { label: 'Rozwój & Nauka', href: '/rozwoj', icon: GraduationCap },
   { label: 'Korelacje', href: '/korelacje', icon: TrendingUp },
   { label: 'Wzrok & Wizja', href: '/optics', icon: Eye },
-  { label: 'Budzik', href: '/budzik', icon: AlarmClock },
-  { label: 'Nauka & Skill', href: '/rozwoj', icon: GraduationCap },
 ];
 
-export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus, naukaBadge }: Props) {
+export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus }: Props) {
   const statusColor =
     dailyStatus === 'green'
       ? 'bg-success'
@@ -93,9 +87,6 @@ export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus,
                   <Icon size={14} className="shrink-0" />
                   <span className="truncate">{label}</span>
                 </div>
-                {href === '/rozwoj' && naukaBadge != null && naukaBadge > 0 && (
-                  <Badge count={naukaBadge} color="var(--color-danger)" />
-                )}
               </Link>
             </li>
           ))}

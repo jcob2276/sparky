@@ -7,10 +7,9 @@ import { WORKSPACE_TOOLS, type WorkspaceToolDef } from '../../shared/UnifiedTool
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  naukaBadge?: number;
 }
 
-export default function DesktopToolsLauncherModal({ isOpen, onClose, naukaBadge }: Props) {
+export default function DesktopToolsLauncherModal({ isOpen, onClose }: Props) {
   const navigate = useNavigate();
 
   const handleSelect = (tool: WorkspaceToolDef) => {
@@ -82,7 +81,6 @@ export default function DesktopToolsLauncherModal({ isOpen, onClose, naukaBadge 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             {strategia.map((tool) => {
               const Icon = tool.icon;
-              const hasBadge = tool.badgeKey === 'naukaBadge' && (naukaBadge ?? 0) > 0;
               return (
                 <Pressable
                   key={tool.id}
@@ -94,13 +92,7 @@ export default function DesktopToolsLauncherModal({ isOpen, onClose, naukaBadge 
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-sm group-hover:scale-105 transition-transform">
                       <Icon size={18} />
                     </div>
-                    {hasBadge ? (
-                      <span className="h-4 min-w-4 rounded-full bg-danger text-on-accent px-1 text-3xs font-bold leading-4">
-                        {naukaBadge}
-                      </span>
-                    ) : (
-                      <ChevronRight size={14} className="text-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
-                    )}
+                    <ChevronRight size={14} className="text-text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
                   </div>
                   <span className="text-xs font-bold text-text-primary group-hover:text-primary transition-colors">
                     {tool.label}

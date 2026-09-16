@@ -173,7 +173,7 @@ Tekst: "${cleanText}"`;
   // Save proposed claims
   if (data?.claims && Array.isArray(data.claims) && data.claims.length > 0) {
     const pendingClaimsList: { id: string; text: string }[] = [];
-    const messageId = (ctx as any).messageId || null;
+    const messageId = ctx.messageId || null;
     for (const claim of data.claims) {
       if (claim && claim.text) {
         const { data: auditEvent, error: auditError } = await supabase.from("audit_events").insert({

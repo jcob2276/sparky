@@ -15,3 +15,5 @@ export { handleKeepCommand } from "../_commands/keep.ts";
 export { handlePostCommand } from "../_commands/post.ts";
 export { handlePosilekCommand } from "../_commands/posilek.ts";
 export { handleLenieCommand } from "../_commands/lenie.ts";
+export { handleWalenieCommand } from "../_commands/walenie.ts";
+

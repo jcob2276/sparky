@@ -1,5 +1,5 @@
 import { Trophy } from 'lucide-react';
-import { Pressable } from '../../ui/ControlPrimitives';
+import { Pressable, ControlTextarea } from '../../ui/ControlPrimitives';
 import { SPHERE_SLOTS } from './powerListConstants';
 import PowerListTask from '../PowerListTask';
 
@@ -120,7 +120,7 @@ export default function PowerListActive({
               ? 'Wszystkie zadania dowiezione! Aby formalnie zamknąć i zapisać wygrany dzień (Z), dodaj krótką notatkę.'
               : 'Dzień nie zamyka się samoczynnie — wpisz krótką notatkę refleksyjną, aby zapisać domknięcie.'}
           </p>
-          <textarea
+          <ControlTextarea
             value={eveningNote}
             onChange={(e) => setEveningNote(e.target.value)}
             placeholder="Krótka notatka ze strony Jakuba (fakty, tarcie, co poszło dobrze)..."

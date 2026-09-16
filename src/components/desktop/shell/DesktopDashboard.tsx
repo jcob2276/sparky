@@ -6,7 +6,7 @@
  */
 import { Suspense, lazy, useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { Session } from '@supabase/supabase-js';
+import { useUserId } from '../../../store/useStore';
 import Button from '../../ui/Button';
 import Spinner from '../../ui/Spinner';
 import { notify } from '../../../lib/notify';
@@ -15,7 +15,6 @@ import { formatDashboardDate } from '../../../lib/date';
 import { syncOura, syncCalendar, syncStrava, computeDailyStrain } from '../../../lib/syncApi';
 import { loadWorkoutTemplate, markWorkoutSessionActive, purgeStaleWorkoutDraft, shouldAutoResumeWorkout, type WorkoutLoggerInitial } from '../../../lib/health/workoutLogging';
 import { startGoogleAuth } from '../../../hooks/useSyncActions';
-import { useNudgeData } from '../../core/hooks/useNudgeData';
 import { useDesktopData } from './useDesktopData';
 import { useHabitsData } from '../health/useHabitsData';
 import { useDreamsData } from '../vision/useDreamsData';
@@ -33,10 +32,9 @@ const Fundament = lazy(() => import('../../core/Fundament'));
 const SystemHealth = lazy(() => import('../health/SystemHealth'));
 const SaunaLoggerModal = lazy(() => import('../../biometrics/SaunaLoggerModal'));
 
-export default function DesktopDashboard({ session }: { session: Session }) {
-  const userId = session?.user?.id;
+export default function DesktopDashboard() {
+  const userId = useUserId() ?? '';
   const navigate = useNavigate();
-  const { pendingGrowthMustCount } = useNudgeData(userId);
   const desktopData = useDesktopData(userId);
   const { loading, oura, sessions, strain, refresh } = desktopData;
 
@@ -157,7 +155,6 @@ export default function DesktopDashboard({ session }: { session: Session }) {
               activeTab={activeTab}
               onTabChange={setActiveTab}
               dailyStatus={strain?.daily_status || 'unknown'}
-              naukaBadge={pendingGrowthMustCount}
             />
             <div className="flex-1 min-w-0 flex flex-col gap-4">
               <DesktopQuickActionsBar
@@ -177,7 +174,6 @@ export default function DesktopDashboard({ session }: { session: Session }) {
                   activeTab={activeTab}
                   onTabChange={setActiveTab}
                   userId={userId}
-                  session={session}
                   theme={theme}
                   grid={grid}
                   tick={tick}
@@ -219,7 +215,7 @@ export default function DesktopDashboard({ session }: { session: Session }) {
       {showWeightModal && (
         <DesktopQuickWeightModal isOpen={showWeightModal} onClose={() => setShowWeightModal(false)} userId={userId} currentWeight={currentWeight} onSaved={refresh} />
       )}
-      <DesktopToolsLauncherModal isOpen={showToolsModal} onClose={() => setShowToolsModal(false)} naukaBadge={pendingGrowthMustCount} />
+      <DesktopToolsLauncherModal isOpen={showToolsModal} onClose={() => setShowToolsModal(false)} />
     </>
   );
 }

@@ -3,6 +3,7 @@ import { pl } from 'date-fns/locale';
 import { useHaptics } from '../../../hooks/useHaptics';
 import type { CloserDailyLogRow } from '../../../lib/closer/closerApi';
 import { getTodayWarsaw } from '../../../lib/date';
+import { Pressable } from '../../ui/ControlPrimitives';
 
 interface Props {
   weekStart: string;
@@ -46,7 +47,7 @@ export default function CloserDayStrip({
   return (
     <div className="grid grid-cols-7 gap-1.5 p-1 rounded-2xl bg-surface-raised/40 border border-border-custom/25">
       {days.map((d) => (
-        <button
+        <Pressable
           key={d.dateStr}
           type="button"
           onClick={() => {
@@ -55,7 +56,7 @@ export default function CloserDayStrip({
           }}
           className={`relative flex flex-col items-center py-2 px-1 rounded-xl transition-all active:scale-95 ${
             d.isSelected
-              ? 'bg-primary text-white shadow-sm font-bold'
+              ? 'bg-primary text-primary-foreground shadow-sm font-bold'
               : 'hover:bg-surface-solid/10 text-text-muted hover:text-text-primary'
           }`}
         >
@@ -71,7 +72,7 @@ export default function CloserDayStrip({
             />
           )}
           {!d.hasData && <span className="mt-1 h-1.5 w-1.5" />}
-        </button>
+        </Pressable>
       ))}
     </div>
   );

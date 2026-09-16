@@ -49,7 +49,11 @@ export default function ShutdownChecklist({ userId, date }: Props) {
 
   const persistCustomItems = (items: ShutdownChecklistItem[]) => {
     setCustomItems(items);
-    localStorage.setItem(customKey, JSON.stringify(items));
+    try {
+      localStorage.setItem(customKey, JSON.stringify(items));
+    } catch {
+      /* quota exceeded in Safari Private mode */
+    }
   };
 
   const toggleRitual = (id: string) => {
@@ -57,7 +61,11 @@ export default function ShutdownChecklist({ userId, date }: Props) {
       const next = new Set(current);
       if (next.has(id)) next.delete(id);
       else next.add(id);
-      localStorage.setItem(checkedKey, JSON.stringify([...next]));
+      try {
+        localStorage.setItem(checkedKey, JSON.stringify([...next]));
+      } catch {
+        /* quota exceeded in Safari Private mode */
+      }
       return next;
     });
   };

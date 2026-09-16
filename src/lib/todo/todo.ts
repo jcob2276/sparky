@@ -24,15 +24,26 @@ export async function listTodoSections(userId: string): Promise<TodoSectionRow[]
 }
 
 export async function listTodoItems(userId: string): Promise<TodoItemRow[]> {
-  return unwrapList(
-    await supabase
+  const [openRes, doneRes] = await Promise.all([
+    supabase
       .from('todo_items')
       .select('*')
       .eq('user_id', userId)
-      .order('status', { ascending: true })
+      .neq('status', 'done')
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false }),
-  );
+    supabase
+      .from('todo_items')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('status', 'done')
+      .order('created_at', { ascending: false })
+      .limit(60),
+  ]);
+
+  const openItems = unwrapList(openRes);
+  const doneItems = unwrapList(doneRes);
+  return [...openItems, ...doneItems];
 }
 
 export async function createTodoSection(userId: string, name: string, sortOrder = 999): Promise<TodoSectionRow> {

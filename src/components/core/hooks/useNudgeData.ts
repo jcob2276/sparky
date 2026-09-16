@@ -17,7 +17,6 @@ export function useNudgeData(userId: string | undefined) {
     urgentTodoCount: data?.urgentTodoCount ?? 0,
     unreadLinkCount: data?.unreadLinkCount ?? 0,
     staleNoteCount: data?.staleNoteCount ?? 0,
-    pendingGrowthMustCount: data?.pendingGrowthMustCount ?? 0,
     refresh,
   };
 }

@@ -99,32 +99,6 @@ export async function confirmMealCapture(input: {
   scheduleNutritionRefresh(input.userId, input.date);
 }
 
-export async function upsertNutritionDayReview(
-  userId: string,
-  date: string,
-  completeness: NutritionDayCompleteness,
-): Promise<void> {
-  const now = new Date().toISOString();
-  const { error } = await supabase.from('nutrition_day_reviews').upsert({
-    user_id: userId,
-    date,
-    completeness,
-    confirmed_at: now,
-    updated_at: now,
-  }, { onConflict: 'user_id,date' });
-  if (error) throw error;
-}
-
-export async function fetchNutritionDayReview(userId: string, date: string) {
-  const { data, error } = await supabase.from('nutrition_day_reviews')
-    .select('completeness,confirmed_at')
-    .eq('user_id', userId)
-    .eq('date', date)
-    .maybeSingle();
-  if (error) throw error;
-  return data as { completeness: NutritionDayCompleteness; confirmed_at: string } | null;
-}
-
 export async function fetchNutritionDayReviews(userId: string, since: string) {
   const { data, error } = await supabase.from('nutrition_day_reviews')
     .select('date,completeness')

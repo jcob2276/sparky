@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createServiceClient } from "../../_shared/supabase.ts";
+import { createServiceClient, getServiceRoleKey } from "../../_shared/supabase.ts";
 import { getVanguardUserId } from "../../_shared/constants.ts";
 
 export type TelegramRouterContext = {
@@ -12,6 +12,7 @@ export type TelegramRouterContext = {
   supabaseUrl: string;
   supabaseServiceRoleKey: string;
   inboxRecordId?: string;
+  messageId?: number | null;
 };
 
 export function createTelegramContext(): TelegramRouterContext {
@@ -23,6 +24,6 @@ export function createTelegramContext(): TelegramRouterContext {
     vanguardUserId: getVanguardUserId(),
     authorizedChatId: parseInt(Deno.env.get("TELEGRAM_CHAT_ID") || "0"),
     supabaseUrl: Deno.env.get("SUPABASE_URL") ?? "",
-    supabaseServiceRoleKey: Deno.env.get("SB_SECRET_KEY") ?? "",
+    supabaseServiceRoleKey: getServiceRoleKey(),
   };
 }

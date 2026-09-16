@@ -1,6 +1,4 @@
-import type { LearningSkill, LearningWeekFocus } from './growth';
-import { shiftWeekStart, partitionSkillTree } from './growth';
-import { supabase } from '../supabase';
+import { shiftWeekStart } from '../date';
 
 export interface WeekDirectionGoals {
   intention: string | null;
@@ -15,15 +13,6 @@ export interface PowerListWeekStats {
   daysWithWins: number;
   tasksDone: number;
   tasksSet: number;
-}
-
-export interface GrowthPrevWeekSummary {
-  weekStart: string;
-  focusLabel: string | null;
-  focusTarget: number | null;
-  mustDone: number;
-  mustTotal: number;
-  focusScore: number | null;
 }
 
 export function getWeekEndExclusive(weekStart: string): string {
@@ -78,85 +67,3 @@ export function computePowerListWeekStats(
 
   return { daysLogged: rows.length, daysWithWins, tasksDone, tasksSet };
 }
-
-/** Najbliższy snapshot w obrębie tygodnia (date >= weekStart, < weekEnd). */
-function pickSnapshotInWeek(
-  snapshots: { snapshot_date: string; scores: Record<string, number> }[],
-  weekStart: string,
-): { snapshot_date: string; scores: Record<string, number> } | null {
-  const weekEnd = getWeekEndExclusive(weekStart);
-  const inWeek = snapshots
-    .filter((s) => s.snapshot_date >= weekStart && s.snapshot_date < weekEnd)
-    .sort((a, b) => b.snapshot_date.localeCompare(a.snapshot_date));
-  return inWeek[0] ?? null;
-}
-
-export function focusScoreForWeek(
-  parents: LearningSkill[],
-  snapshots: { snapshot_date: string; scores: Record<string, number> }[],
-  weekStart: string,
-  focus: Pick<LearningWeekFocus, 'skill_id'> | null,
-): number | null {
-  if (!focus?.skill_id) return null;
-  const skill = parents.find((s) => s.id === focus.skill_id);
-  if (!skill) return null;
-  const snap = pickSnapshotInWeek(snapshots, weekStart);
-  return snap?.scores[skill.key] ?? null;
-}
-
-function summarizePins(pins: Array<{ slot: string; done: boolean }>) {
-  return {
-    mustDone: pins.filter((p) => p.slot === 'must' && p.done).length,
-    mustTotal: pins.filter((p) => p.slot === 'must').length,
-    activeDone: pins.filter((p) => p.slot === 'active' && p.done).length,
-    activeTotal: pins.filter((p) => p.slot === 'active').length,
-  };
-}
-
-export async function fetchGrowthPrevWeekSummary(
-  userId: string,
-  weekStart: string,
-): Promise<GrowthPrevWeekSummary | null> {
-  const prevStart = shiftWeekStart(weekStart, -1);
-  const [skillsRes, focusRes, pinsRes, snapshotsRes] = await Promise.all([
-    supabase.from('learning_skills').select('*').eq('user_id', userId).eq('active', true),
-    supabase
-      .from('learning_week_focus')
-      .select('skill_id, target_level')
-      .eq('user_id', userId)
-      .eq('week_start', prevStart)
-      .maybeSingle(),
-    supabase.from('learning_week_pins').select('slot, done').eq('user_id', userId).eq('week_start', prevStart),
-    supabase
-      .from('learning_skill_snapshots')
-      .select('snapshot_date, scores')
-      .eq('user_id', userId)
-      .order('snapshot_date', { ascending: false })
-      .limit(12),
-  ]);
-
-  const skills = ((skillsRes.data ?? []) as LearningSkill[]).map((s) => ({
-    ...s,
-    parent_id: s.parent_id ?? null,
-  }));
-  const { parents } = partitionSkillTree(skills);
-  const focus = focusRes.data;
-  const focusSkill = parents.find((s) => s.id === focus?.skill_id);
-  const pinStats = summarizePins((pinsRes.data ?? []) as { slot: string; done: boolean }[]);
-  const snapshots = (snapshotsRes.data ?? []).map((s) => ({
-    snapshot_date: s.snapshot_date as string,
-    scores: (s.scores as Record<string, number>) ?? {},
-  }));
-
-  if (!focusSkill && pinStats.mustTotal === 0) return null;
-
-  return {
-    weekStart: prevStart,
-    focusLabel: focusSkill?.label ?? null,
-    focusTarget: focus?.target_level ?? null,
-    mustDone: pinStats.mustDone,
-    mustTotal: pinStats.mustTotal,
-    focusScore: focusScoreForWeek(parents, snapshots, prevStart, focus),
-  };
-}
-

@@ -130,7 +130,7 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
 
   const initialKind: LifeObligationKind = tab === 'horizon' ? 'people' : tab;
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-background text-text-primary">
+    <div className="flex h-dvh w-full overflow-hidden bg-background text-text-primary">
       <TerminySidebar tab={tab} setTab={changeTab} rows={allRows} onNavigateTo={onNavigateTo} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
       <TerminyPageContent
         onBack={onBack}

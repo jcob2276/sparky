@@ -75,6 +75,7 @@ android/app/google-services.json
 .playwright-mcp/
 .superpowers/
 .tmp-get-based/
+vanguard-docs/
 screen-*.png
 screeny/
 test-results/

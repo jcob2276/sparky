@@ -1,6 +1,6 @@
 import { ReactNode, CSSProperties, ElementType, ComponentPropsWithoutRef } from 'react';
 
-export type CardVariant = 'surface' | 'grouped' | 'hero' | 'floating' | 'glass' | 'immersive' | 'canvas' | 'receipt' | 'outline' | 'notice' | 'danger' | 'accent';
+type CardVariant = 'surface' | 'grouped' | 'hero' | 'floating' | 'glass' | 'immersive' | 'canvas' | 'receipt' | 'outline' | 'notice' | 'danger' | 'accent';
 
 type CardOwnProps = {
   variant?: CardVariant;

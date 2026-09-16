@@ -8,10 +8,9 @@ import {
   WalletCards,
   FolderKanban,
   HeartPulse,
-  GraduationCap,
   Clock,
-  Sparkles,
   TrendingUp,
+  GraduationCap,
 } from 'lucide-react';
 
 export interface WorkspaceToolDef {
@@ -85,6 +84,14 @@ export const WORKSPACE_TOOLS: WorkspaceToolDef[] = [
     description: 'Cele długoterminowe, sprinty, projekty',
   },
   {
+    id: 'rozwoj',
+    label: 'Nauka & Rozwój',
+    icon: GraduationCap,
+    path: '/rozwoj',
+    category: 'strategia_zdrowie',
+    description: 'Kompas rozwoju, książki, projekty i praktyka',
+  },
+  {
     id: 'badania',
     label: 'Kartoteka',
     icon: HeartPulse,
@@ -93,29 +100,12 @@ export const WORKSPACE_TOOLS: WorkspaceToolDef[] = [
     description: 'Wyniki krwi, badania laboratoryjne, profil',
   },
   {
-    id: 'rozwoj',
-    label: 'Nauka',
-    icon: GraduationCap,
-    path: '/rozwoj',
-    category: 'strategia_zdrowie',
-    badgeKey: 'naukaBadge',
-    description: 'Skill Tree, GrowthVault, eksperymenty',
-  },
-  {
     id: 'historia',
     label: 'Historia',
     icon: Clock,
     path: '/historia',
     category: 'strategia_zdrowie',
     description: 'Przeglądy dzienne i tygodniowe, trajektoria',
-  },
-  {
-    id: 'czat',
-    label: 'Oracle Czat',
-    icon: Sparkles,
-    path: '/czat',
-    category: 'strategia_zdrowie',
-    description: 'Rozmowa z pamięcią Vanguard i asystentem',
   },
   {
     id: 'korelacje',

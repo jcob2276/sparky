@@ -87,7 +87,7 @@ export const RB_MUSCLE_TO_TAGS: Partial<Record<Muscle, string[]>> = {
   calves: ['łydki'],
 };
 
-export const RUNNING_STIMULUS_PER_KM: Record<string, { direct: number; indirect: number }> = {
+const RUNNING_STIMULUS_PER_KM: Record<string, { direct: number; indirect: number }> = {
   łydki: { direct: 0.20, indirect: 0 },
   czworogłowe: { direct: 0.16, indirect: 0 },
   'dwugłowe ud': { direct: 0, indirect: 0.12 },

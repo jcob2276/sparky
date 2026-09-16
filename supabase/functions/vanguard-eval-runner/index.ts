@@ -163,7 +163,7 @@ Deno.serve(serveJson(async (req, ctx) => {
     if (!qs || qs.length === 0) throw new Error(`No active questions in suite: ${suite}`);
     allQuestions = qs;
 
-    const { data: runData, error: runErr } = await supabase.from('vanguard_eval_runs').insert({ user_id, suite, model, oracle_version, status: 'running', started_at: new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Warsaw' })).toISOString() }).select('id').single();
+    const { data: runData, error: runErr } = await supabase.from('vanguard_eval_runs').insert({ user_id, suite, model, oracle_version, status: 'running', started_at: new Date().toISOString() }).select('id').single();
     if (runErr) throw new Error(`Failed to create run: ${runErr.message}`);
     run_id = runData.id;
   }

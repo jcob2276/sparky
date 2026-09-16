@@ -49,3 +49,42 @@ export function applyYesterdayTaskToggle<
     )),
   };
 }
+
+export function applyTodayTaskToggle<TWin extends Record<string, unknown>>(
+  win: TWin,
+  slot: number,
+  done: boolean,
+  completedAt: string | null,
+): TWin {
+  const field = `done_${slot}`;
+  const timeField = `completed_at_${slot}`;
+  const rawTasks = Array.isArray(win.daily_win_tasks) ? win.daily_win_tasks : [];
+  const tasks = rawTasks.map((task: unknown) =>
+    (task as { slot?: number }).slot === slot
+      ? { ...(task as Record<string, unknown>), done, completed_at: completedAt }
+      : task,
+  );
+
+  const allDone = [1, 2, 3, 4, 5].every((i) => {
+    if (i === slot) return done;
+    const task = tasks.find((t: unknown) => (t as { slot?: number }).slot === i);
+    if (task) return Boolean((task as { done?: boolean }).done);
+    return Boolean(win[`done_${i}`]);
+  });
+
+  const hasNote = Boolean((win.day_note as string | undefined)?.trim());
+  let result = win.result;
+  if (allDone && hasNote) {
+    result = 'Z';
+  } else if (!allDone && win.result === 'Z') {
+    result = null;
+  }
+
+  return {
+    ...win,
+    result,
+    [field]: done,
+    [timeField]: completedAt,
+    daily_win_tasks: tasks,
+  };
+}

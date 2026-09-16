@@ -4,9 +4,7 @@ import { getTodayWarsaw, shiftDateStr } from '../../../../lib/date';
 import { fetchOracleRecommendations } from '../../../../lib/recommendationsApi';
 import { OuraRow } from '../../desktopUtils';
 
-export type GeneralViewOura = OuraRow;
-
-export interface GeneralViewStrain {
+interface GeneralViewStrain {
   date: string;
   recovery_score: number | null;
   strain_score: number | null;
@@ -125,7 +123,7 @@ export function useGeneralViewData({ userId, ouraProp }: UseGeneralViewDataOptio
 
       return {
         strain: s.data || [],
-        oura: (o.data || []) as GeneralViewOura[],
+        oura: (o.data || []) as OuraRow[],
         patterns: p.data || [],
         wiki: w.data || [],
         curiosity: c.data || [],

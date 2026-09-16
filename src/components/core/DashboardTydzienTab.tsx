@@ -61,7 +61,7 @@ export function DashboardTydzienTab({ weeklyCalories, nutritionKey, onOpenAction
         </div>
       </div>
       <Suspense fallback={<ViewFallback />}>
-        <Direction session={session} onOpenActionCenter={onOpenActionCenter} />
+        <Direction onOpenActionCenter={onOpenActionCenter} />
       </Suspense>
     </div>
   );

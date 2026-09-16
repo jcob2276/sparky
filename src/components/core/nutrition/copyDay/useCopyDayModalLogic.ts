@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useHaptics } from '../../../../hooks/useHaptics';
 import { notify } from '../../../../lib/notify';
@@ -71,10 +71,21 @@ export function useCopyDayModalLogic({
   const [deselectedIds, setDeselectedIds] = useState<Set<string>>(new Set());
   const [copying, setCopying] = useState(false);
 
-  const handleSelectDate = (date: string) => {
+  // Reset state each time the modal is opened so re-opening always starts fresh
+  const wasOpenRef = useRef(false);
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      setSelectedDate(yesterday);
+      setDeselectedIds(new Set());
+      setTargetMealType(null);
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen, yesterday]);
+
+  const handleSelectDate = useCallback((date: string) => {
     setSelectedDate(date);
     setDeselectedIds(new Set());
-  };
+  }, []);
 
   const entriesQuery = useQuery({
     queryKey: ['day-entries-for-copy', userId, selectedDate],
@@ -92,20 +103,27 @@ export function useCopyDayModalLogic({
     () => new Set(selectedEntries.map((e) => e.id)),
     [selectedEntries]
   );
-  const selectedKcal = Math.round(selectedEntries.reduce((sum, e) => sum + (e.calories ?? 0), 0));
-  const selectedProtein = Math.round(selectedEntries.reduce((sum, e) => sum + (e.protein ?? 0), 0) * 10) / 10;
+  const selectedKcal = useMemo(
+    () => Math.round(selectedEntries.reduce((sum, e) => sum + (e.calories ?? 0), 0)),
+    [selectedEntries]
+  );
+  const selectedProtein = useMemo(
+    () => Math.round(selectedEntries.reduce((sum, e) => sum + (e.protein ?? 0), 0) * 10) / 10,
+    [selectedEntries]
+  );
   const groupedEntries = useMemo(() => groupEntriesByMeal(entries), [entries]);
 
-  const handleToggleItem = (id: string) => {
+
+  const handleToggleItem = useCallback((id: string) => {
     setDeselectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
 
-  const handleToggleMeal = (mealType: MealTypeId) => {
+  const handleToggleMeal = useCallback((mealType: MealTypeId) => {
     const mealItems = groupedEntries.get(mealType) ?? [];
     if (!mealItems.length) return;
     const allInMealSelected = mealItems.every((item) => !deselectedIds.has(item.id));
@@ -117,15 +135,15 @@ export function useCopyDayModalLogic({
       }
       return next;
     });
-  };
+  }, [groupedEntries, deselectedIds]);
 
-  const handleToggleSelectAll = () => {
+  const handleToggleSelectAll = useCallback(() => {
     haptics.selection();
     if (deselectedIds.size === 0) setDeselectedIds(new Set(entries.map((e) => e.id)));
     else setDeselectedIds(new Set());
-  };
+  }, [haptics, deselectedIds, entries]);
 
-  const handleCopySelected = async () => {
+  const handleCopySelected = useCallback(async () => {
     if (!selectedEntries.length || copying) return;
     setCopying(true);
     try {
@@ -143,9 +161,9 @@ export function useCopyDayModalLogic({
     } finally {
       setCopying(false);
     }
-  };
+  }, [selectedEntries, copying, userId, entries, targetDate, targetMealType, selectedItemIds, haptics, selectedKcal, onCopied, onClose]);
 
-  const handleCopyMeal = async (type: MealTypeId) => {
+  const handleCopyMeal = useCallback(async (type: MealTypeId) => {
     const mealEntries = groupedEntries.get(type) ?? [];
     const mealSelected = mealEntries.filter((e) => !deselectedIds.has(e.id));
     const itemsToCopy = mealSelected.length > 0 ? mealSelected : mealEntries;
@@ -163,7 +181,7 @@ export function useCopyDayModalLogic({
     } finally {
       setCopying(false);
     }
-  };
+  }, [groupedEntries, deselectedIds, copying, targetMealType, userId, targetDate, haptics, onCopied, onClose]);
 
   return {
     yesterday,

@@ -30,6 +30,7 @@ export const NO_VERIFY_JWT_FUNCTIONS = [
   "vanguard-outbox-sender",
   "vanguard-metabolism",
   "analyze-food-quality",
+  "calendar-watch",
   "calendar-write",
   "compute-behavior-effects",
   "parse-food-nl",

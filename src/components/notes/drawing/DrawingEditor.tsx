@@ -197,7 +197,20 @@ export default function DrawingEditor({ userId, noteId, onClose, onInsertText }:
         </div>}
         {ocrText && <div className="drawing-ocr-result">
           <p>{ocrText}</p>
-          <Pressable type="button" onClick={() => { void navigator.clipboard?.writeText(ocrText); }}>Kopiuj</Pressable>
+          <Pressable
+            type="button"
+            onClick={() => {
+              if (!navigator.clipboard?.writeText) {
+                notify('Schowek nie jest dostępny.', 'error');
+                return;
+              }
+              navigator.clipboard.writeText(ocrText)
+                .then(() => notify('Skopiowano do schowka', 'success'))
+                .catch(() => notify('Nie udało się skopiować', 'error'));
+            }}
+          >
+            Kopiuj
+          </Pressable>
           {selectedIds.size > 0 && <Pressable type="button" onClick={() => {
             commit({ ...document, elements: replaceSelectionWithText(document.elements, selectedIds, ocrText) });
             setSelectedIds(new Set());

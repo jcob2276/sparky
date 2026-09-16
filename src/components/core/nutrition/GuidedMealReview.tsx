@@ -1,5 +1,5 @@
 import type { MealPhotoResponse } from '../../../lib/edgeTypes';
-import { Pressable } from '../../ui/ControlPrimitives';
+import { Pressable, ControlInput } from '../../ui/ControlPrimitives';
 import Spinner from '../../ui/Spinner';
 
 export default function GuidedMealReview({
@@ -47,7 +47,7 @@ export default function GuidedMealReview({
               <p className="text-2xs text-text-muted">{item.calories} kcal · {item.protein} g białka</p>
             </div>
             <label className="flex items-center gap-1 text-2xs font-bold text-text-muted">
-              <input
+              <ControlInput
                 type="number"
                 min={1}
                 value={item.grams}

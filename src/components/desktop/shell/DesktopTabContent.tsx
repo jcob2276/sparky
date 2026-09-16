@@ -1,4 +1,3 @@
-import type { Session } from '@supabase/supabase-js';
 import GeneralView from '../general/GeneralView';
 import MarathonPanel from '../fitness/MarathonPanel';
 import SupplementsPanel from '../health/SupplementsPanel';
@@ -21,7 +20,6 @@ import type { useDreamsData } from '../vision/useDreamsData';
 interface Props {
   activeTab: DesktopTabType;
   userId?: string;
-  session: Session;
   theme: string;
   grid: string;
   tick: string;
@@ -83,7 +81,6 @@ function renderIntelTab(
 export default function DesktopTabContent({
   activeTab,
   userId,
-  session,
   theme,
   grid,
   tick,
@@ -148,7 +145,6 @@ export default function DesktopTabContent({
       theme={theme}
       grid={grid}
       personalTargets={personalTargets}
-      session={session}
       onOpenMatrix={handleOpenMatrix}
       lenieLogs={lenieLogs}
       phoneUsage={phoneUsage}

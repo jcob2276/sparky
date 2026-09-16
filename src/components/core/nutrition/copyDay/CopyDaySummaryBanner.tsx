@@ -53,7 +53,7 @@ export default function CopyDaySummaryBanner({
           <Pressable
             type="button"
             onClick={onToggleSelectAll}
-            className="flex items-center gap-1 font-bold text-primary hover:underline cursor-pointer"
+            className="touch-manipulation flex items-center gap-1 font-bold text-primary hover:underline cursor-pointer"
           >
             {allSelected ? (
               <>
@@ -75,7 +75,7 @@ export default function CopyDaySummaryBanner({
         variant="primary"
         onClick={onCopySelected}
         disabled={copying || noneSelected}
-        className="shrink-0 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black shadow-sm active:scale-95 disabled:opacity-40"
+        className="touch-manipulation shrink-0 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black shadow-sm active:scale-95 disabled:opacity-40"
       >
         {copying ? (
           <>

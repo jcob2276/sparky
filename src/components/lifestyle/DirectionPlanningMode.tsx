@@ -5,7 +5,7 @@
  *          DirectionPlanDeepening, DirectionPlanWeekPlan
  * @usedBy Direction
  */
-import type { Session } from "@supabase/supabase-js";
+import { useUserId } from "../../store/useStore";
 import { useDirectionContext } from "./direction/hooks/useDirectionContext";
 import WeekPlanningRecap from "./WeekPlanningRecap";
 import { Block1Narrative } from "./directionPlan/DirectionPlanBlocks";
@@ -21,7 +21,6 @@ type Phase2Recap = {
 };
 
 interface Props {
-  session: Session;
   weekStart: string;
   planWeekStart: string;
   phase1: Phase1Recap | null;
@@ -53,7 +52,7 @@ interface Props {
 }
 
 export default function DirectionPlanningMode({
-  session, weekStart, planWeekStart,
+  weekStart, planWeekStart,
   phase1, phase1Loading, phase2, phase2Loading,
   prevWeekScores, pillarScores, setPillarScores,
   obligation, setObligation, doDifferently, setDoDifferently,
@@ -67,7 +66,8 @@ export default function DirectionPlanningMode({
   reflectionSaved,
   intentionFromMonth = false, planCarriedFromMonth = false,
 }: Props) {
-  const direction = useDirectionContext(session.user.id, weekStart);
+  const currentUserId = useUserId();
+  const direction = useDirectionContext(currentUserId ?? '', weekStart);
   const deepeningQuestions = phase2?.deepening_questions ?? [];
   const deepeningComplete =
     !phase2Loading &&
@@ -77,7 +77,7 @@ export default function DirectionPlanningMode({
 
   return (
     <div className="space-y-6 pb-8">
-      <WeekPlanningRecap userId={session.user.id} weekStart={weekStart} />
+      <WeekPlanningRecap userId={currentUserId ?? ''} weekStart={weekStart} />
       <Block1Narrative phase1={phase1} phase1Loading={phase1Loading} />
 
       <DirectionPlanReflection

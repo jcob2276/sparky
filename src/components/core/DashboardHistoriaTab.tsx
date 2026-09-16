@@ -69,7 +69,7 @@ export function DashboardHistoriaTab() {
       <Suspense fallback={<ViewFallback />}>
         <Stats
           photosSlot={<Photos />}
-          runningSlot={<StravaWidget session={session} />}
+          runningSlot={<StravaWidget />}
         />
       </Suspense>
     </div>

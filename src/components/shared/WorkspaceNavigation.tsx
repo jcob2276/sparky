@@ -1,7 +1,10 @@
+import { useCallback } from 'react';
 import { Pressable } from '../ui/ControlPrimitives';
 import { Bell, BookOpen, Calendar, ListTodo, StickyNote } from 'lucide-react';
 import WorkspaceToolsLauncher from './WorkspaceToolsLauncher';
 import { useSidebar } from '../ui/sidebar';
+import { useUserId } from '../../store/useStore';
+import { prefetchWorkspaceRoute } from '../../lib/workspacePrefetch';
 
 export type WorkspaceDestination = 'keep' | 'todo' | 'kalendarz' | 'links' | 'projekty' | 'terminy';
 
@@ -29,6 +32,11 @@ export default function WorkspaceNavigation({
   primaryAction,
 }: WorkspaceNavigationProps) {
   const horizontal = orientation === 'horizontal';
+  const userId = useUserId();
+
+  const handlePrefetch = useCallback((id: string) => {
+    prefetchWorkspaceRoute(userId ?? undefined, id);
+  }, [userId]);
 
   let isCollapsedIcon = false;
   try {
@@ -75,6 +83,8 @@ export default function WorkspaceNavigation({
             <Pressable
               key={id}
               onClick={() => onNavigate?.(id)}
+              onMouseEnter={() => handlePrefetch(id)}
+              onTouchStart={() => handlePrefetch(id)}
               aria-current={isActive ? 'page' : undefined}
               title={label}
               aria-label={label}
@@ -102,6 +112,8 @@ export default function WorkspaceNavigation({
             variant="ghost"
             size="sm"
             onClick={() => onNavigate?.(id)}
+            onMouseEnter={() => handlePrefetch(id)}
+            onTouchStart={() => handlePrefetch(id)}
             aria-current={isActive ? 'page' : undefined}
             className={`w-full justify-start gap-2.5 slate-nav px-3 py-2 text-xs font-medium tracking-tight ${
               isActive

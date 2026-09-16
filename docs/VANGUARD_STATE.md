@@ -374,25 +374,10 @@ Połączenia:
 - Oracle używa ich jako hipotez, nie diagnoz;
 - działanie powinno trafić do Tygodnia lub Todo.
 
-### `/czat` — Oracle w aplikacji
+### Oracle — wyłącznie w Telegramie (`vanguard-telegram`)
 
-**Cel:** rozmowa z systemem przy zachowaniu artefaktów i akcji w aplikacji.
-
-Funkcje:
-
-- historia rozmowy;
-- Oracle RAG;
-- tekst, głos i zdjęcie;
-- szybki zapis jedzenia;
-- skróty Wywiad/Koniec dnia;
-- kopiowanie i usuwanie wiadomości.
-
-Połączenia:
-
-- `vanguard-oracle` czyta bieżący stan, wiedzę, projekty, zdrowie i historię;
-- `vanguard-capture` obsługuje głos/plik;
-- Telegram jest drugim klientem tej samej warstwy rozumowania;
-- pending actions wymagają potwierdzenia przed wykonaniem.
+**Cel:** cała interakcja konwersacyjna z Oracle (pamięć, stream, kontekst, pending actions) odbywa się wyłącznie przez Telegram bota.
+Interfejs webowy/mobilny skupia się wyłącznie na widokach operacyjnych (Dashboard, Notatnik, Todo, Zdrowie, Trening) bez emulacji czatu wewnątrz aplikacji.
 
 ### Warstwa wiedzy bez osobnej głównej trasy
 
@@ -449,24 +434,6 @@ Połączenia:
 - konkretna praktyka trafia do Todo/Tygodnia;
 - dowody trafiają do Historii;
 - Fundament dostarcza świadomy kontekst.
-
-### `/budzik` — Budzik
-
-**Cel:** lokalnie uruchomić alarm i wymusić świadome wyłączenie.
-
-Funkcje:
-
-- wiele alarmów;
-- harmonogram i drzemki;
-- test alarmu;
-- misje: ruch, kod, matematyka lub pamięć;
-- lokalny ekran dzwonienia.
-
-Połączenia:
-
-- stan jest lokalny w store;
-- nie jest obecnie niezawodnym serwerowym reminderem;
-- serwerowe przypomnienia Todo/Terminy obsługuje osobno `vanguard-push-reminder`.
 
 ### `/settings` — Ustawienia
 

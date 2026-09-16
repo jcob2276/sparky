@@ -1,6 +1,7 @@
 import React from 'react';
 import { Panel } from '../../shell/Panel';
 import { Card } from '../../../ui/Card';
+import { Pressable } from '../../../ui/ControlPrimitives';
 import { cleanIntelText } from '../../desktopUtils';
 import { ChevronDown, ChevronUp, BookOpen, Brain, Lightbulb, Activity, User, Heart, Zap } from 'lucide-react';
 
@@ -240,7 +241,7 @@ export default function GeneralMemexPanels({
             {/* Weak — collapsed by default */}
             {weakCuriosity.length > 0 && (
               <>
-                <button
+                <Pressable
                   onClick={() => setShowWeak((v) => !v)}
                   className="w-full flex items-center gap-2 py-1.5 text-2xs text-text-muted hover:text-text-secondary transition-colors"
                 >
@@ -250,7 +251,7 @@ export default function GeneralMemexPanels({
                     Mniej pewne ({weakCuriosity.length})
                   </span>
                   <div className="h-px flex-1 bg-border-custom/30" />
-                </button>
+                </Pressable>
                 {showWeak &&
                   weakCuriosity.map((c, i) => (
                     <CuriosityCard key={`w${i}`} c={c} tier={WEAK} />

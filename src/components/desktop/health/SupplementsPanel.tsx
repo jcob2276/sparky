@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Button from '../../ui/Button';
+import { Pressable } from '../../ui/ControlPrimitives';
 import { Pill, Plus, X, AlertCircle, Check } from 'lucide-react';
 import Spinner from '../../ui/Spinner';
 import EmptyState from '../../ui/EmptyState';
@@ -47,7 +48,7 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
 
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1 bg-surface-2/60 p-0.5 rounded-lg border border-border-custom/40 text-2xs">
-            <button
+            <Pressable
               type="button"
               onClick={() => setFilter('all')}
               className={`px-2 py-0.5 rounded font-semibold transition-colors cursor-pointer ${
@@ -55,8 +56,8 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
               }`}
             >
               Wszystkie ({data.activeSups.length})
-            </button>
-            <button
+            </Pressable>
+            <Pressable
               type="button"
               onClick={() => setFilter('daily')}
               className={`px-2 py-0.5 rounded font-semibold transition-colors cursor-pointer ${
@@ -64,8 +65,8 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
               }`}
             >
               Stałe
-            </button>
-            <button
+            </Pressable>
+            <Pressable
               type="button"
               onClick={() => setFilter('cycles')}
               className={`px-2 py-0.5 rounded font-semibold transition-colors cursor-pointer ${
@@ -73,7 +74,7 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
               }`}
             >
               Cykle
-            </button>
+            </Pressable>
           </div>
 
           <Button

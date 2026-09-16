@@ -30,13 +30,37 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
     let rafId: number;
     (async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: 'environment',
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+        });
         if (stopped) { stream.getTracks().forEach((t) => t.stop()); return; }
+        const track = stream.getVideoTracks()[0];
+        if (track && 'applyConstraints' in track) {
+          try {
+            // @ts-expect-error advanced focusMode is supported on Chromium mobile
+            await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+          } catch {
+            // Not supported on all devices, safe to ignore
+          }
+        }
         if (videoRef.current) { videoRef.current.srcObject = stream; await videoRef.current.play(); }
         const detector = new window.BarcodeDetector!({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] });
         const scan = async () => {
           if (stopped || !videoRef.current) return;
-          try { const codes = await detector.detect(videoRef.current); if (codes.length > 0) { onDetected(codes[0].rawValue); return; } } catch { /* ignore mid-frame decode errors */ }
+          try {
+            const codes = await detector.detect(videoRef.current);
+            if (codes.length > 0) {
+              const raw = codes[0].rawValue.replace(/[\s-]+/g, '').trim();
+              if (raw) {
+                onDetected(raw);
+                return;
+              }
+            }
+          } catch { /* ignore mid-frame decode errors */ }
           rafId = requestAnimationFrame(() => { scan(); });
         };
         scan();
@@ -48,9 +72,14 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
     return () => { stopped = true; if (rafId) cancelAnimationFrame(rafId); stream?.getTracks().forEach((t) => t.stop()); };
   }, [detectorSupported, onDetected]);
 
+  const handleManualSubmit = () => {
+    const clean = manualCode.replace(/[\s-]+/g, '').trim();
+    if (clean) onDetected(clean);
+  };
+
   return (
     <div className="space-y-3">
-      <Pressable onClick={onClose} className="text-xs font-bold text-text-muted hover:text-text-primary cursor-pointer">← Wstecz</Pressable>
+      <Pressable onClick={onClose} className="touch-manipulation text-xs font-bold text-text-muted hover:text-text-primary cursor-pointer">← Wstecz</Pressable>
       {detectorSupported && !cameraError ? (
         <div className="relative rounded-2xl overflow-hidden bg-scrim aspect-square">
           <video ref={videoRef} muted playsInline className="w-full h-full object-cover" />
@@ -64,11 +93,11 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
         <div className="relative flex-1">
           <Keyboard size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <ControlInput value={manualCode} onChange={(e) => setManualCode(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && manualCode.trim()) onDetected(manualCode.trim()); }}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleManualSubmit(); }}
             inputMode="numeric" placeholder="Wpisz kod kreskowy..."
             className="w-full rounded-xl border border-border-custom bg-surface-solid/40 pl-9 pr-2 py-2.5 text-sm text-text-primary outline-none focus:border-primary/40 placeholder:text-text-muted/40" />
         </div>
-        <Pressable onClick={() => manualCode.trim() && onDetected(manualCode.trim())} disabled={!manualCode.trim() || loading} size="sm">Szukaj</Pressable>
+        <Pressable onClick={handleManualSubmit} disabled={!manualCode.replace(/[\s-]+/g, '').trim() || loading} size="sm" className="touch-manipulation">Szukaj</Pressable>
       </div>
     </div>
   );

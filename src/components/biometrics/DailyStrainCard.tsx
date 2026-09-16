@@ -91,7 +91,7 @@ export default function DailyStrainCard({
   const readinessLevel = row.readiness_level;
 
   return (
-    <div className={`animate-fadeIn relative overflow-hidden card ${STATUS_RING[statusKey] || STATUS_RING.green} p-3.5 space-y-3`}>
+    <div className={`relative overflow-hidden card ${STATUS_RING[statusKey] || STATUS_RING.green} p-3.5 space-y-3`}>
       <div className={`absolute right-0 top-0 h-16 w-16 blur-[var(--blur-3xl)] ${STATUS_GLOW[statusKey] || STATUS_GLOW.green}`} />
 
       <DailyStrainHeader

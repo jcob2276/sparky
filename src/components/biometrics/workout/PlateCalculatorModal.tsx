@@ -12,13 +12,13 @@ interface PlateCalculatorModalProps {
 }
 
 const PLATE_COLORS: Record<number, string> = {
-  25: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
-  20: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
-  15: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-  10: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-  5: 'bg-slate-500/20 text-slate-300 border-slate-500/40',
-  2.5: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-  1.25: 'bg-zinc-500/20 text-zinc-300 border-zinc-500/40',
+  25: 'bg-danger/20 text-danger border-danger/40',
+  20: 'bg-info/20 text-info border-info/40',
+  15: 'bg-warning/20 text-warning border-warning/40',
+  10: 'bg-success/20 text-success border-success/40',
+  5: 'bg-surface-2 text-text-primary border-border-custom',
+  2.5: 'bg-surface-3 text-text-secondary border-border-custom',
+  1.25: 'bg-surface-1 text-text-muted border-border-custom',
 };
 
 export default function PlateCalculatorModal({

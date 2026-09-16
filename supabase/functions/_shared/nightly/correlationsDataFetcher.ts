@@ -27,7 +27,7 @@ async function fetchRawCorrelationData(supabase: any, userId: string, start90: s
     supabase.from('daily_nutrition').select('date, calories, protein, carbs, fat, sugar, fiber, insulin_load, avg_food_quality').eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('vanguard_daily_aggregates').select('date, execution_score, identity_score, dopamine_load_index, screen_time_min, fragmentation_index').eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('friction_events').select('occurred_at, friction_type').eq('user_id', userId).gte('occurred_at', start90 + 'T00:00:00Z'),
-    supabase.from('daily_food_entries').select('date, name, logged_at, calories').eq('user_id', userId).gte('date', start90).order('date'),
+    supabase.from('daily_food_entries').select('date, name, logged_at, calories, carbs, fat, protein, meal_type').eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('vanguard_consolidated_activities').select('event_date, source_type, category, label, metric_value, metadata').eq('user_id', userId).gte('event_date', start90),
     supabase.from('daily_wins').select('date, mood_score, daily_rpe, done_1, done_2, done_3, done_4, done_5, task_1, task_2, task_3, task_4, task_5').eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('daily_reconciliations').select('date, day_score, phone_drift_morning').eq('user_id', userId).gte('date', start90),

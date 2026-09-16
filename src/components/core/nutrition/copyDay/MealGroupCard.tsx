@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Check, Copy } from 'lucide-react';
 import { Pressable } from '../../../ui/ControlPrimitives';
 import { useHaptics } from '../../../../hooks/useHaptics';
@@ -11,10 +12,10 @@ interface MealGroupCardProps {
   onToggleItem: (id: string) => void;
   onToggleMeal: (mealType: MealTypeId) => void;
   copying: boolean;
-  onCopyMeal: () => void;
+  onCopyMeal: (mealType: MealTypeId) => void;
 }
 
-export default function MealGroupCard({
+export default memo(function MealGroupCard({
   mealType,
   entries,
   selectedIds,
@@ -48,7 +49,7 @@ export default function MealGroupCard({
             haptics.selection();
             onToggleMeal(mealType);
           }}
-          className="flex items-center gap-2.5 text-left group"
+          className="touch-manipulation flex items-center gap-2.5 text-left group"
         >
           <div
             className={`flex h-4 w-4 items-center justify-center rounded-md border transition-all ${
@@ -78,9 +79,9 @@ export default function MealGroupCard({
 
         <Pressable
           type="button"
-          onClick={onCopyMeal}
+          onClick={() => onCopyMeal(mealType)}
           disabled={copying || mealSelectedEntries.length === 0}
-          className="flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary transition-all hover:bg-primary/20 active:scale-95 disabled:opacity-40"
+          className="touch-manipulation flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary transition-all hover:bg-primary/20 active:scale-95 disabled:opacity-40"
           title={`Kopiuj ${mealSelectedEntries.length} poz.`}
         >
           <Copy size={12} />
@@ -101,7 +102,7 @@ export default function MealGroupCard({
                 haptics.selection();
                 onToggleItem(item.id);
               }}
-              className={`flex w-full items-center justify-between py-2 text-xs text-left transition-all rounded-lg px-1.5 ${
+              className={`touch-manipulation flex w-full items-center justify-between py-2 text-xs text-left transition-all rounded-lg px-1.5 ${
                 isChecked
                   ? 'text-text-primary hover:bg-surface-solid/40'
                   : 'text-text-muted/60 opacity-60 hover:opacity-90 hover:bg-surface-solid/20'
@@ -142,4 +143,5 @@ export default function MealGroupCard({
       </div>
     </div>
   );
-}
+});
+

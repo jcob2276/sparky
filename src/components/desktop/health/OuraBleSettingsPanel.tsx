@@ -2,6 +2,7 @@ import { Bluetooth, RefreshCw, ShieldCheck } from 'lucide-react';
 import { OuraBleConnectedView } from './OuraBleConnectedView';
 import { OuraBleDeviceLists } from './OuraBleDeviceLists';
 import { useOuraBleSettings } from './useOuraBleSettings';
+import { Pressable } from '../../ui/ControlPrimitives';
 
 export default function OuraBleSettingsPanel() {
   const model = useOuraBleSettings();
@@ -9,31 +10,31 @@ export default function OuraBleSettingsPanel() {
   const isBusy = model.state === 'scanning' || model.state === 'connecting';
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-slate-900/90 p-5 text-white shadow-2xl backdrop-blur-xl space-y-4 animate-fadeIn">
-      <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-3">
+    <div className="rounded-3xl border border-border-custom bg-surface-solid p-5 text-text-primary shadow-2xl backdrop-blur-xl space-y-4 animate-fadeIn">
+      <div className="flex items-center justify-between gap-2 border-b border-border-custom pb-3">
         <div className="flex items-center gap-2.5">
           <div className={`h-8 w-8 rounded-xl flex items-center justify-center border ${
             model.state === 'connected'
-              ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400'
+              ? 'bg-status-success/20 border-status-success/30 text-status-success'
               : isBusy
-                ? 'bg-teal-500/20 border-teal-500/30 text-teal-400 animate-pulse'
-                : 'bg-teal-500/20 border-teal-500/30 text-teal-400'
+                ? 'bg-primary/20 border-primary/30 text-primary animate-pulse'
+                : 'bg-primary/20 border-primary/30 text-primary'
           }`}>
             <Bluetooth size={18} />
           </div>
           <div>
-            <h3 className="text-xs font-bold tracking-tight text-white">Oura Ring Gen 3 Direct BLE</h3>
-            <p className="text-3xs text-slate-400">Bezpośrednia synchronizacja bez chmury Oury</p>
+            <h3 className="text-xs font-bold tracking-tight text-text-primary">Oura Ring Gen 3 Direct BLE</h3>
+            <p className="text-3xs text-text-muted">Bezpośrednia synchronizacja bez chmury Oury</p>
           </div>
         </div>
         <span className={`text-3xs font-extrabold uppercase tracking-widest px-2.5 py-1 rounded-full border ${
           model.state === 'connected'
-            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+            ? 'bg-status-success/10 text-status-success border-status-success/30'
             : model.state === 'connecting'
-              ? 'bg-amber-500/10 text-amber-300 border-amber-500/30 animate-pulse'
+              ? 'bg-status-warning/10 text-status-warning border-status-warning/30 animate-pulse'
               : model.state === 'scanning'
-                ? 'bg-teal-500/10 text-teal-300 border-teal-500/30 animate-pulse'
-                : 'bg-white/5 text-slate-400 border-white/10'
+                ? 'bg-primary/10 text-primary border-primary/30 animate-pulse'
+                : 'bg-surface-2/40 text-text-muted border-border-custom'
         }`}>
           {model.state === 'connected' ? '● Live BLE'
             : model.state === 'connecting' ? '● Łączenie...'
@@ -43,7 +44,7 @@ export default function OuraBleSettingsPanel() {
         </span>
       </div>
 
-      <p className="text-2xs text-slate-400 font-medium">{model.statusMsg}</p>
+      <p className="text-2xs text-text-muted font-medium">{model.statusMsg}</p>
 
       {model.state === 'connected' && (
         <OuraBleConnectedView
@@ -66,8 +67,8 @@ export default function OuraBleSettingsPanel() {
 
       {model.state === 'found' && model.devices.length === 0 && (
         <div className="py-4 text-center space-y-1">
-          <p className="text-sm font-bold text-slate-400">Nie znaleziono urządzeń</p>
-          <p className="text-3xs text-slate-500">
+          <p className="text-sm font-bold text-text-muted">Nie znaleziono urządzeń</p>
+          <p className="text-3xs text-text-muted">
             Upewnij się, że pierścień jest blisko i nie łączy się z inną aplikacją.
           </p>
         </div>
@@ -75,25 +76,25 @@ export default function OuraBleSettingsPanel() {
 
       {model.state !== 'connected' && (
         model.needsAdoption ? (
-          <button
+          <Pressable
             type="button"
             onClick={model.adopt}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 font-extrabold text-xs uppercase tracking-widest"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-status-warning/30 bg-status-warning/10 hover:bg-status-warning/20 text-status-warning font-extrabold text-xs uppercase tracking-widest"
           >
             <ShieldCheck size={14} /> Świadomie sparuj ponownie
-          </button>
+          </Pressable>
         ) : (
-          <button
+          <Pressable
             type="button"
             onClick={model.scan}
             disabled={isBusy}
-            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 disabled:opacity-50 text-teal-300 font-extrabold text-xs uppercase tracking-widest"
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-2xl border border-primary/30 bg-primary/10 hover:bg-primary/20 disabled:opacity-50 text-primary font-extrabold text-xs uppercase tracking-widest"
           >
             <RefreshCw size={14} className={model.state === 'scanning' ? 'animate-spin' : ''} />
             {model.state === 'scanning' ? 'Skanowanie BLE...'
               : model.state === 'found' ? 'Szukaj ponownie'
                 : 'Szukaj Oura Ring'}
-          </button>
+          </Pressable>
         )
       )}
     </div>

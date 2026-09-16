@@ -44,7 +44,7 @@ export function isInterestingCorrelation(r: CorrelationLike & { x_metric?: strin
   const privatePair = (r.x_metric && isPrivateBehaviorMetric(r.x_metric))
     || (r.y_metric && isPrivateBehaviorMetric(r.y_metric))
   if (privatePair) {
-    return !!(r.significant && r.n >= 10 && r.r_abs >= 0.35)
+    return !!((r.significant || r.r_abs >= 0.25) && r.n >= 6)
   }
 
   if (r.significant && r.n >= 8) return true
@@ -63,8 +63,8 @@ export function isInterestingBehaviorEffect(
 
   const privateKey = isPrivateBehaviorKey(b.behavior_key)
   if (privateKey) {
-    if (!opts?.includePrivate) return false
-    return !!(b.significant && minGroup >= 6 && Math.abs(b.cohens_d ?? 0) >= 0.5)
+    if (opts?.includePrivate === false) return false
+    return !!((b.significant || Math.abs(b.cohens_d ?? 0) >= 0.35) && minGroup >= 4)
   }
 
   if (b.significant && minGroup >= 5) return true

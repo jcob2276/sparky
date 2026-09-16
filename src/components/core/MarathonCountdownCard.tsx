@@ -1,7 +1,4 @@
-import { useNavigate } from 'react-router-dom';
-import { ChevronRight, Flame, Trophy } from 'lucide-react';
-import { Pressable } from '../ui/ControlPrimitives';
-import { useHaptics } from '../../hooks/useHaptics';
+import { Flame, Trophy } from 'lucide-react';
 
 interface MarathonCountdownCardProps {
   raceDate?: string;
@@ -16,9 +13,6 @@ export default function MarathonCountdownCard({
   raceDate = RACE_DATE_DEFAULT,
   raceName = RACE_NAME_DEFAULT,
 }: MarathonCountdownCardProps) {
-  const navigate = useNavigate();
-  const haptics = useHaptics();
-
   const now = new Date().getTime();
   const target = new Date(raceDate).getTime();
   const start = new Date(PREP_START_DATE).getTime();
@@ -33,16 +27,8 @@ export default function MarathonCountdownCard({
   const weeksLeft = Math.floor(daysLeft / 7);
   const remainingDays = daysLeft % 7;
 
-  const handleClick = () => {
-    haptics.selection();
-    navigate('/bieganie');
-  };
-
   return (
-    <Pressable
-      onClick={handleClick}
-      className="group relative overflow-hidden rounded-2xl border border-border-custom/80 bg-surface-solid/35 p-4 text-left shadow-2xs transition-all hover:border-primary/40 hover:bg-surface-solid/50 active:scale-95 cursor-pointer"
-    >
+    <div className="relative overflow-hidden rounded-2xl border border-border-custom/80 bg-surface-solid/35 p-4 text-left shadow-2xs">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-xs">
@@ -63,16 +49,13 @@ export default function MarathonCountdownCard({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="text-right">
-            <div className="text-base font-black tabular-nums text-text-primary leading-tight">
-              {daysLeft} <span className="text-2xs font-normal text-text-muted">dni</span>
-            </div>
-            <div className="text-3xs font-semibold text-text-muted">
-              {weeksLeft > 0 ? `${weeksLeft} tyg. ${remainingDays} dni` : 'Ostatnia prosta!'}
-            </div>
+        <div className="text-right shrink-0">
+          <div className="text-base font-black tabular-nums text-text-primary leading-tight">
+            {daysLeft} <span className="text-2xs font-normal text-text-muted">dni</span>
           </div>
-          <ChevronRight size={16} className="text-text-muted/40 transition-transform group-hover:translate-x-0.5" />
+          <div className="text-3xs font-semibold text-text-muted">
+            {weeksLeft > 0 ? `${weeksLeft} tyg. ${remainingDays} dni` : 'Ostatnia prosta!'}
+          </div>
         </div>
       </div>
 
@@ -85,6 +68,6 @@ export default function MarathonCountdownCard({
           />
         </div>
       </div>
-    </Pressable>
+    </div>
   );
 }

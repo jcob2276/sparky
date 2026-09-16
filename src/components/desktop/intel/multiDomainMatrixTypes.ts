@@ -19,7 +19,7 @@ export interface MatrixLayerConfig {
   description: string;
 }
 
-export interface DayPowerTask {
+interface DayPowerTask {
   title: string;
   done: boolean;
 }

@@ -21,6 +21,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(NightLightPlugin.class);
         registerPlugin(StylusInputPlugin.class);
         super.onCreate(savedInstanceState);
+        android.webkit.WebView.setWebContentsDebuggingEnabled(true);
 
         if (this.bridge != null && this.bridge.getWebView() != null) {
             this.bridge.getWebView().setWebChromeClient(new com.getcapacitor.BridgeWebChromeClient(this.bridge) {

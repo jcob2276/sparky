@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Sparkles, Activity, Dumbbell, ShieldCheck, AlertCircle, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import type { PhysiqueAnalysisResult, MuscleGroupAnalysis } from '../../lib/physiqueApi';
 import { Pressable } from '../ui/ControlPrimitives';
@@ -13,12 +14,21 @@ interface Props {
 export default function PhysiqueAnalysisModal({ analysis, photoDate, onClose }: Props) {
   const [showAllMuscles, setShowAllMuscles] = useState(false);
 
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
+
   const displayedMuscles = showAllMuscles
     ? analysis.muscle_groups
     : analysis.muscle_groups.slice(0, 6);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-scrim/60 backdrop-blur-[var(--blur-md)] animate-fadeIn">
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[var(--z-overlay,50)] flex items-center justify-center p-4 bg-scrim/60 backdrop-blur-[var(--blur-md)] animate-fadeIn">
       <div className="relative w-full max-w-2xl max-h-[90vh] bg-surface border border-border-custom rounded-3xl shadow-2xl overflow-hidden flex flex-col">
         
         {/* Header */}
@@ -111,13 +121,13 @@ export default function PhysiqueAnalysisModal({ analysis, photoDate, onClose }: 
                 <h3 className="text-xs font-black uppercase tracking-wider text-text-muted font-display">
                   Rozbicie Grup Mięśniowych ({analysis.muscle_groups.length})
                 </h3>
-                <button
+                <Pressable
                   onClick={() => setShowAllMuscles(!showAllMuscles)}
                   className="text-2xs font-bold uppercase tracking-wider text-primary flex items-center gap-1 hover:underline"
                 >
                   <span>{showAllMuscles ? 'Pokaż mniej' : `Pokaż wszystkie (${analysis.muscle_groups.length})`}</span>
                   {showAllMuscles ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                </button>
+                </Pressable>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -142,7 +152,8 @@ export default function PhysiqueAnalysisModal({ analysis, photoDate, onClose }: 
         </div>
 
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

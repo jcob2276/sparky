@@ -2,6 +2,7 @@ import { Camera, File as FileIcon, Paperclip, PencilLine, Trash2 } from 'lucide-
 import { useRef, useState } from 'react';
 import type { NoteAttachment } from '../../lib/noteAttachmentsApi';
 import { confirmDialog } from '../../lib/notify';
+import { downloadFromUrl } from '../../lib/download';
 import { ControlInput, Pressable } from '../ui/ControlPrimitives';
 import NoteAudioRecorder from './NoteAudioRecorder';
 import DocumentScanner from './DocumentScanner';
@@ -99,13 +100,19 @@ export default function NoteAttachmentsView({
                 <audio controls preload="metadata" src={attachment.signed_url} className="max-w-40" />
               )}
               <a
-                className="min-w-0 flex-1"
+                className="min-w-0 flex-1 cursor-pointer group"
                 href={attachment.signed_url}
                 download={attachment.file_name}
                 target="_blank"
                 rel="noreferrer"
+                onClick={(e) => {
+                  if (attachment.signed_url) {
+                    e.preventDefault();
+                    void downloadFromUrl(attachment.signed_url, attachment.file_name);
+                  }
+                }}
               >
-                <span className="block truncate text-xs font-semibold">{attachment.file_name}</span>
+                <span className="block truncate text-xs font-semibold group-hover:underline">{attachment.file_name}</span>
                 <span className="text-4xs text-text-muted">{formatSize(attachment.size_bytes)}</span>
               </a>
               <Pressable

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Activity, AlertTriangle, Clock, HeartPulse, RefreshCw, Route, Mountain, Trophy } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import type { Session } from '@supabase/supabase-js';
+import { useSession } from '../../store/useStore';
 import { supabase, invokeEdge } from '../../lib/supabase';
 import { unwrapList } from '../../lib/supabaseUtils';
 import { TIMEOUTS } from '../../lib/constants';
@@ -165,7 +165,8 @@ function RunCard({ activity }: { activity: StravaActivityItem }) {
   );
 }
 
-export default function StravaWidget({ session }: { session: Session }) {
+export default function StravaWidget() {
+  const session = useSession();
   const [activities, setActivities] = useState<StravaActivityItem[]>([]);
   const [syncing, setSyncing] = useState(false);
   const [loading, setLoading] = useState(true);

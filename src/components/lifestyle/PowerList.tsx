@@ -8,7 +8,6 @@
 import { useEffect } from 'react';
 import { Target } from 'lucide-react';
 import { usePowerListData } from './usePowerListData';
-import type { Session } from '@supabase/supabase-js';
 
 import PowerListSetup from './powerList/PowerListSetup';
 import PowerListActive from './powerList/PowerListActive';
@@ -17,14 +16,12 @@ import { type DailyWinWithTasks } from './usePowerListData';
 import type { Tables } from '../../lib/database.types';
 
 export interface PowerListProps {
-  session: Session;
   todayWin: DailyWinWithTasks | null;
   onUpdate?: (data: Record<string, unknown>) => void;
   planDaySignal?: number;
 }
 
 export default function PowerList({
-  session,
   todayWin,
   onUpdate,
   planDaySignal,
@@ -62,7 +59,8 @@ export default function PowerList({
     saveEveningClose,
     toggleTask,
     startNewDay,
-  } = usePowerListData({ session, todayWin, onUpdate, planDaySignal });
+    todayWin: effectiveTodayWin,
+  } = usePowerListData({ todayWin, onUpdate, planDaySignal });
 
   // Escape key for picker slot
   useEffect(() => {
@@ -76,18 +74,20 @@ export default function PowerList({
     return () => document.removeEventListener('mousedown', handler);
   }, [pickerSlot, pickerRef, setPickerSlot]);
 
+  const activeWin = effectiveTodayWin ?? todayWin;
+
   return (
     <section className="space-y-4">
       <div className="flex items-end justify-between px-1">
         <h3 className="flex items-center gap-2 text-sm font-semibold text-text-secondary">
           <Target size={15} className="text-direction" /> Pięć zwycięstw
         </h3>
-        {todayWin?.result === 'Z' ? (
+        {activeWin?.result === 'Z' ? (
           <div className="rounded-full border border-dayC/15 bg-dayC/10 px-2.5 py-0.5 font-display text-2xs font-bold text-dayC">
             Dzień wygrany
           </div>
-        ) : todayWin && (() => {
-          const tasks = todayWin.daily_win_tasks || [];
+        ) : activeWin && (() => {
+          const tasks = activeWin.daily_win_tasks || [];
           const total = tasks.length;
           const doneCount = tasks.filter((t: Tables<'daily_win_tasks'>) => t.done).length;
           return total > 0 ? (
@@ -110,7 +110,7 @@ export default function PowerList({
         })()}
       </div>
 
-      {!todayWin ? (
+      {!activeWin ? (
         <PowerListSetup
           yesterdayWin={yesterdayWin}
           yesterdayNote={yesterdayNote}
@@ -140,7 +140,7 @@ export default function PowerList({
           setCheckpointPrompt={setCheckpointPrompt}
           markingCheckpoint={markingCheckpoint}
           confirmCheckpointDone={confirmCheckpointDone}
-          todayWin={todayWin}
+          todayWin={activeWin}
           projectMap={projectMap}
           toggleTask={toggleTask}
           eveningCloseDue={eveningCloseDue}

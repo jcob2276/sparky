@@ -10,16 +10,13 @@ import {
   updateExerciseLog,
   deleteExerciseLog,
 } from '../../../lib/health/workoutApi';
-import { analyzeFoodQuality, analyzeTrainingLoad as requestTrainingLoad } from '../stats/statsApi';
 import { exportStatsMarkdown, exportOuraCsv } from '../../../lib/stats/exportStats';
 import { notify, confirmDialog } from '../../../lib/notify';
 import type { NewMetricState } from '../stats/BodyMetricsSection';
 import { mergeBodyMetricSavePayload } from '../../../lib/health/bodyMetrics';
-import type { FoodAnalysisResult } from '../stats/FoodAnalysisSection';
 import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 import { useStatsOverviewQuery } from '../../../lib/statsOverviewApi';
 import { statsOverviewKeys } from '../../../lib/queryKeys';
-import type { TrainingAnalysis } from '../stats/TrainingAnalysisSection';
 
 type ExerciseLogRow = Tables<'exercise_logs'>;
 export type EditableExerciseLog = Omit<ExerciseLogRow, 'weight' | 'reps'> & {
@@ -56,13 +53,9 @@ export function useStatsData() {
   const [includeBody, setIncludeBody] = useState(true);
   const [includeActivityWatch, setIncludeActivityWatch] = useState(true);
   const [includeFundament, setIncludeFundament] = useState(true);
-  const [analyzeDate, setAnalyzeDate] = useState(() => getTodayWarsaw());
-  const [analyzePeriod, setAnalyzePeriod] = useState(1);
-  const [analyzeResult, setAnalyzeResult] = useState<FoodAnalysisResult | null>(null);
   const [editingSession, setEditingSession] = useState<string | null>(null);
   const [showAllSessions, setShowAllSessions] = useState(false);
   const [editForm, setEditForm] = useState<EditFormState>({ date: '', workout_day: '', logs: [] });
-  const [trainingAnalysis, setTrainingAnalysis] = useState<TrainingAnalysis | null>(null);
 
   const saveMetricsMutation = useMutation({
     mutationFn: async () => {
@@ -105,60 +98,6 @@ export function useStatsData() {
     if (!(await confirmDialog('Usunąć trening?'))) return;
     deleteSessionMutation.mutate(id);
   };
-
-  const analyzeFoodMutation = useMutation({
-    mutationFn: async () => {
-      setAnalyzeResult(null);
-      const res = await analyzeFoodQuality({
-        userId: userId!,
-        analyzeDate,
-        analyzePeriod
-      });
-      if (!res.success || 'error' in res) {
-        throw new Error(('error' in res ? res.error : null) || 'Nieznany błąd');
-      }
-      return res;
-    },
-    onSuccess: (res) => {
-      setAnalyzeResult(res as FoodAnalysisResult);
-    },
-    onError: (err: Error) => {
-      notify('Błąd analizy: ' + err.message, 'error');
-    }
-  });
-
-  const analyzeFood = () => {
-    analyzeFoodMutation.mutate();
-  };
-
-  const isAnalyzing = analyzeFoodMutation.isPending;
-
-  const analyzeTrainingLoadMutation = useMutation({
-    mutationFn: async () => {
-      setTrainingAnalysis(null);
-      const res = await requestTrainingLoad({
-        userId: userId!,
-        from: dateRange.from,
-        to: dateRange.to
-      });
-      if (!res.success) {
-        throw new Error(res.error || 'Nieznany błąd');
-      }
-      return res;
-    },
-    onSuccess: (res) => {
-      setTrainingAnalysis(res);
-    },
-    onError: (err: Error) => {
-      notify('Błąd analizy treningu: ' + err.message, 'error');
-    }
-  });
-
-  const analyzeTrainingLoad = () => {
-    analyzeTrainingLoadMutation.mutate();
-  };
-
-  const isAnalyzingTraining = analyzeTrainingLoadMutation.isPending;
 
   const startEditing = async (session: WorkoutSessionRow) => {
     if (!session) return;
@@ -278,15 +217,10 @@ export function useStatsData() {
     includeBody, setIncludeBody,
     includeActivityWatch, setIncludeActivityWatch,
     includeFundament, setIncludeFundament,
-    isAnalyzing, isAnalyzingTraining,
-    analyzeDate, setAnalyzeDate,
-    analyzePeriod, setAnalyzePeriod,
-    analyzeResult, setAnalyzeResult,
     editingSession, setEditingSession,
     showAllSessions, setShowAllSessions,
     editForm, setEditForm,
-    trainingAnalysis,
-    saveMetrics, deleteSession, analyzeFood, analyzeTrainingLoad,
+    saveMetrics, deleteSession,
     startEditing, updateSession, deleteLog, exportData, copyData, isCopying, exportOuraCSV,
   };
 }

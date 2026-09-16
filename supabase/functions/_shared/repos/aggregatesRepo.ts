@@ -60,14 +60,14 @@ export async function updateAggregate(
   userId: string,
   date: string,
   updates: AggregateUpdate,
-): Promise<AggregateRow> {
+): Promise<AggregateRow | null> {
   const { data, error } = await db
     .from("vanguard_daily_aggregates")
     .update(updates)
     .eq("user_id", userId)
     .eq("date", date)
     .select()
-    .single();
+    .maybeSingle();
   if (error) throw error;
   return data;
 }

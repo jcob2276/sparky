@@ -3,6 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { lookupFoodBarcode, searchExternalFoods, searchPrivateFoodLibrary } from '../../../../lib/health/foodSearch';
 import { type FoodBase, scale } from './foodEntryUtils';
 import { useHaptics } from '../../../../hooks/useHaptics';
+import { notify } from '../../../../lib/notify';
 
 interface UseFoodEntrySearchOptions {
   userId: string | undefined;
@@ -64,6 +65,8 @@ export function useFoodEntrySearch({ userId, setError, searchInputRef, onBarcode
     onSuccess: (result) => {
       setScannerOpen(false);
       if (result) {
+        haptics.success();
+        notify(`Znaleziono: ${result.name}`, 'success');
         if (onBarcodePicked) {
           onBarcodePicked(result);
           return;
@@ -73,11 +76,13 @@ export function useFoodEntrySearch({ userId, setError, searchInputRef, onBarcode
         return;
       }
       haptics.error();
+      notify('Nie znaleziono kodu kreskowego — wpisz nazwę w wyszukiwarce', 'error');
       setError('Nie znaleziono kodu — wpisz nazwę lub zeskanuj etykietę');
       setTimeout(() => searchInputRef.current?.focus(), 50);
     },
     onError: () => {
       haptics.error();
+      notify('Błąd wyszukiwania kodu kreskowego', 'error');
       setError('Wyszukiwanie po kodzie nie powiodło się');
     },
   });

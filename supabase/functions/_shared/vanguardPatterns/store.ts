@@ -175,7 +175,7 @@ export async function updatePatternFeedback(
           ...(current?.metadata || {}),
           ...extraMetadata,
         },
-        updated_at: new Date(new Date().toLocaleString('en-US', { timeZone: 'Europe/Warsaw' })).toISOString(),
+        updated_at: new Date().toISOString(),
       })
       .eq('id', patternId)
       .eq('user_id', userId);

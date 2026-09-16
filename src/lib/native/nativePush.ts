@@ -4,6 +4,7 @@
 import { PushNotifications } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
 import { hasFcmToken, upsertFcmToken } from '../push/fcmTokensApi';
+import { dispatchNativeNavigate } from './initNativeIntents';
 
 let listenersAttachedForUser: string | null = null;
 
@@ -33,8 +34,7 @@ export async function registerNativePush(userId: string): Promise<boolean> {
       await PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
         const url = action.notification.data?.url;
         if (typeof url === 'string' && url.length > 0) {
-          window.history.pushState({}, '', url);
-          window.dispatchEvent(new PopStateEvent('popstate'));
+          dispatchNativeNavigate(url);
         }
       });
       listenersAttachedForUser = userId;

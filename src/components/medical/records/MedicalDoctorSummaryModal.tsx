@@ -16,10 +16,10 @@ interface MedicalDoctorSummaryModalProps {
 
 function KeyMarkersTable({ markers }: { markers: MarkerSeries[] }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-border-custom bg-surface-1 print:border-neutral-300 print:bg-white">
+    <div className="overflow-x-auto rounded-xl border border-border-custom bg-surface-1">
       <table className="w-full text-left text-xs border-collapse">
         <thead>
-          <tr className="border-b border-border-custom text-3xs font-black uppercase text-text-muted bg-surface-2 print:bg-neutral-100 print:text-neutral-600">
+          <tr className="border-b border-border-custom text-3xs font-black uppercase text-text-muted bg-surface-2">
             <th className="p-2.5">Parametr</th>
             <th className="p-2.5">Ostatni Wynik</th>
             <th className="p-2.5">Zakres Normy</th>
@@ -27,7 +27,7 @@ function KeyMarkersTable({ markers }: { markers: MarkerSeries[] }) {
             <th className="p-2.5">Status</th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-border-custom/40 print:divide-neutral-200">
+        <tbody className="divide-y divide-border-custom/40">
           {markers.map((m) => {
             const row = m.latest;
             const isAlert = row.flag && row.flag !== 'N' && row.flag !== 'normal';
@@ -41,8 +41,8 @@ function KeyMarkersTable({ markers }: { markers: MarkerSeries[] }) {
                 <td className={`p-2.5 font-mono font-extrabold ${isAlert ? 'text-warning font-black' : ''}`}>
                   {row.value} {row.unit}
                 </td>
-                <td className="p-2.5 font-mono text-text-muted print:text-neutral-600">{normStr}</td>
-                <td className="p-2.5 text-text-muted print:text-neutral-600">{row.result_date}</td>
+                <td className="p-2.5 font-mono text-text-muted">{normStr}</td>
+                <td className="p-2.5 text-text-muted">{row.result_date}</td>
                 <td className="p-2.5">
                   {isAlert ? (
                     <span className="inline-flex items-center gap-1 rounded bg-warning/10 px-1.5 py-0.5 text-3xs font-bold text-warning">
@@ -92,7 +92,7 @@ export default function MedicalDoctorSummaryModal({
       subtitle="Zestawienie kliniczne do konsultacji lekarskiej"
       size="xl"
     >
-      <div className="space-y-6 text-text-primary print:text-black">
+      <div className="medical-doc-print space-y-6 text-text-primary">
         <div className="flex items-center justify-between border-b border-border-custom pb-3 print:hidden">
           <p className="text-xs text-text-muted">
             Wygenerowano na podstawie bazy Vanguard OS: <span className="font-bold text-text-primary">{today}</span>
@@ -103,25 +103,25 @@ export default function MedicalDoctorSummaryModal({
         </div>
 
         <div className="space-y-6 text-xs">
-          <div className="rounded-xl border border-border-custom bg-surface-1 p-4 print:border-neutral-300 print:bg-white">
+          <div className="rounded-xl border border-border-custom bg-surface-1 p-4">
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="text-base font-bold uppercase tracking-tight">Karta Podsumowania Medycznego</h3>
-                <p className="text-3xs text-text-muted print:text-neutral-600 mt-0.5">
+                <p className="text-3xs text-text-muted mt-0.5">
                   Vanguard Health Hub · Dane pacjenta do wglądu diagnostycznego
                 </p>
               </div>
-              <div className="text-right text-3xs text-text-muted print:text-neutral-600">
-                <p>Data raportu: <span className="font-bold text-text-primary print:text-black">{today}</span></p>
-                {userAge != null && <p>Wiek pacjenta: <span className="font-bold text-text-primary print:text-black">{userAge} lat</span></p>}
-                <p>Ostatnie badanie: <span className="font-bold text-text-primary print:text-black">{summary.latestOn ?? '—'}</span></p>
+              <div className="text-right text-3xs text-text-muted">
+                <p>Data raportu: <span className="font-bold text-text-primary">{today}</span></p>
+                {userAge != null && <p>Wiek pacjenta: <span className="font-bold text-text-primary">{userAge} lat</span></p>}
+                <p>Ostatnie badanie: <span className="font-bold text-text-primary">{summary.latestOn ?? '—'}</span></p>
               </div>
             </div>
 
             <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border-custom/50 pt-2.5">
               <span className="text-3xs font-bold text-text-muted uppercase mr-1">Obszary opieki:</span>
               {summary.specialties.map((s) => (
-                <span key={s} className="rounded-md bg-surface-2 px-2 py-0.5 text-3xs font-semibold print:bg-neutral-100">
+                <span key={s} className="rounded-md bg-surface-2 px-2 py-0.5 text-3xs font-semibold">
                   {s}
                 </span>
               ))}
@@ -129,8 +129,8 @@ export default function MedicalDoctorSummaryModal({
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-2xs font-black uppercase tracking-wider text-text-muted print:text-neutral-700 flex items-center gap-1.5">
-              <FileText size={13} className="text-primary print:text-neutral-800" />
+            <h4 className="text-2xs font-black uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+              <FileText size={13} className="text-primary" />
               Ostatnie Wyniki Kluczowych Markerów Laboratoryjnych
             </h4>
             <KeyMarkersTable markers={keyMarkers} />
@@ -142,13 +142,13 @@ export default function MedicalDoctorSummaryModal({
                 <AlertTriangle size={13} />
                 Zarejestrowane Odchylenia w Historii Badań ({outOfRange.length})
               </h4>
-              <div className="rounded-xl border border-warning/20 bg-warning/[0.03] p-3 text-xs space-y-1.5 print:border-neutral-300 print:bg-white">
+              <div className="rounded-xl border border-warning/20 bg-warning/[0.03] p-3 text-xs space-y-1.5">
                 {outOfRange.slice(0, 6).map((row, idx) => (
                   <div key={idx} className="flex items-center justify-between text-3xs">
-                    <span className="font-bold text-text-primary print:text-black">
+                    <span className="font-bold text-text-primary">
                       {row.marker_name}: <span className="font-mono text-warning font-black">{row.value} {row.unit}</span>
                     </span>
-                    <span className="text-text-muted print:text-neutral-600">
+                    <span className="text-text-muted">
                       {row.result_date} · Norma: {row.ref_low != null && row.ref_high != null ? `${row.ref_low} – ${row.ref_high}` : row.ref_text || '—'}
                     </span>
                   </div>
@@ -159,20 +159,20 @@ export default function MedicalDoctorSummaryModal({
 
           {recentVisits.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-2xs font-black uppercase tracking-wider text-text-muted print:text-neutral-700">
+              <h4 className="text-2xs font-black uppercase tracking-wider text-text-muted">
                 Ostatnie Wizyty i Zalecenia Specjalistyczne
               </h4>
               <div className="space-y-2">
                 {recentVisits.map((item) => (
-                  <div key={item.id} className="rounded-xl border border-border-custom bg-surface-1 p-3 space-y-1 print:border-neutral-300 print:bg-white">
+                  <div key={item.id} className="rounded-xl border border-border-custom bg-surface-1 p-3 space-y-1">
                     <div className="flex justify-between items-baseline">
-                      <span className="font-bold text-text-primary print:text-black">{item.title}</span>
-                      <span className="text-3xs text-text-muted print:text-neutral-600">{item.occurredOn}</span>
+                      <span className="font-bold text-text-primary">{item.title}</span>
+                      <span className="text-3xs text-text-muted">{item.occurredOn}</span>
                     </div>
                     {item.specialty && <span className="text-3xs text-primary font-bold">{item.specialty}</span>}
-                    {item.summary && <p className="text-3xs text-text-secondary print:text-neutral-700">{item.summary}</p>}
+                    {item.summary && <p className="text-3xs text-text-secondary">{item.summary}</p>}
                     {item.recommendations && (
-                      <p className="text-3xs font-semibold text-text-primary print:text-black mt-1">
+                      <p className="text-3xs font-semibold text-text-primary mt-1">
                         Zalecenia: {item.recommendations}
                       </p>
                     )}

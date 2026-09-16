@@ -68,15 +68,18 @@ produktu — [`docs/PRODUCT_LANGUAGE.md`](./docs/PRODUCT_LANGUAGE.md).
 | `/terminy` | obowiązki życiowe z wyprzedzeniem przypomnień |
 | `/links` | inbox zapisanych linków |
 | `/fundament` | fundament i kontekst tożsamości |
-| `/trening`, `/sauna` | dedykowane rejestratory aktywności |
+| `/trening`, `/cwiczenie`, `/sauna` | dedykowane rejestratory i widoki aktywności |
 | `/dashboard` | rozbudowany kokpit desktopowy |
 | `/finanse` | FIRE, runway, portfel i przepływy |
 | `/rozwoj` | umiejętności, eksperymenty i rozwój |
 | `/badania` | wyniki badań i trendy medyczne |
+| `/badania/laboratorium` | widok szczegółowych wyników badań laboratoryjnych |
 | `/korelacje` | zależności między zachowaniem a wynikami |
 | `/korealcje` | historyczna literówka przekierowywana do `/korelacje` |
+| `/oura` | pulpit biometrii i parametrów pierścienia Oura |
 | `/optics` | narzędzia związane ze wzrokiem |
 | `/settings` | konto, integracje, powiadomienia i konfiguracja |
+| `/czat` | alias przekierowujący do `/dzis` |
 | `/dev/design-system` | deweloperski podgląd design systemu, dostępny bez sesji tylko w trybie DEV |
 
 <!-- README_SYNC_ROUTES_END -->
@@ -86,7 +89,7 @@ Supabase Auth.
 
 ### Zdrowie i aktywność
 
-- synchronizacja danych Oura i Garmin;
+- synchronizacja danych Oura, Strava i Garmin;
 - własne logowanie treningów siłowych, sauny, posiłków, kofeiny i suplementów;
 - dzienne agregaty snu, gotowości, obciążenia i regeneracji;
 - historia pomiarów ciała i wyników badań;
@@ -197,7 +200,7 @@ Aktualne tryby wejścia, przepływy oraz mapę handlerów opisują
 | Backend | Supabase PostgreSQL, Auth, RLS, Storage, Edge Functions, pg_cron |
 | Funkcje | TypeScript uruchamiany w Deno |
 | Modele | DeepSeek, OpenAI Whisper, OpenAI embeddings |
-| Integracje | Telegram Bot API, Oura, Garmin, Google Calendar, ActivityWatch |
+| Integracje | Telegram Bot API, Oura, Strava, Garmin, Google Calendar, ActivityWatch |
 | Testy i jakość | Vitest, Testing Library, ESLint, TypeScript, Knip, własne ratchety i smoke testy |
 | Hosting | Vercel dla PWA, Supabase dla backendu |
 

@@ -61,7 +61,7 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
   });
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-text-primary">
+    <div className="flex h-dvh overflow-hidden bg-background text-text-primary">
       <style>{`
         @keyframes pop-check {
           0%   { transform: scale(1); }

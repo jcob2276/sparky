@@ -7,7 +7,6 @@
  * @usedBy DashboardTydzienTab (lazy)
  */
 import type { ReactNode } from 'react';
-import type { Session } from '@supabase/supabase-js';
 import { Calendar } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import DirectionMonthlyMode from './DirectionMonthlyMode';
@@ -31,12 +30,10 @@ function SectionTitle({ icon: Icon, title, detail, action }: { icon: LucideIcon;
 }
 
 export default function Direction({
-  session,
   onOpenActionCenter,
 }: {
-  session: Session;
   onOpenActionCenter?: () => void;
-}) {
+} = {}) {
   const {
     loading,
     currentReview,
@@ -107,7 +104,7 @@ export default function Direction({
     closingMonthStart,
     planTargetWeekStart,
     currentWeekStart,
-  } = useDirection(session, onOpenActionCenter);
+  } = useDirection(undefined, onOpenActionCenter);
 
   if (loading) {
     return <div className="p-8 text-center text-text-muted uppercase font-black animate-pulse tracking-widest">Wczytywanie Kierunku...</div>;
@@ -175,7 +172,6 @@ export default function Direction({
 
         {showMonthlyMode && closingMonthStart && monthFacts && (
           <DirectionMonthlyMode
-            session={session}
             monthStart={closingMonthStart}
             monthFacts={monthFacts}
             recap={monthRecap}
@@ -195,7 +191,6 @@ export default function Direction({
 
         {showWeeklyPlanning ? (
           <DirectionPlanningMode
-            session={session}
             weekStart={currentWeekStart}
             planWeekStart={planTargetWeekStart}
             phase1={phase1}
@@ -237,7 +232,6 @@ export default function Direction({
           />
         ) : (!showMonthlyMode || monthlyComplete) ? (
           <WeekHub
-            session={session}
             onOpenActionCenter={onOpenActionCenter}
             onStartWeeklyReview={() => setForceWeeklyReview(true)}
           />

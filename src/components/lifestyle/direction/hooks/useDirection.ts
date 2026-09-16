@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { Session } from '@supabase/supabase-js';
 import type { Tables, Json } from '../../../../lib/database.types';
 import { monthCarryToWeekPlan } from '../../../../lib/growth/monthCarry';
 import { getSprintInfo } from '../../../../lib/growth/sprintUtils';
+import { useUserId } from '../../../../store/useStore';
 import { useHaptics } from '../../../../hooks/useHaptics';
 import { usePersistentDraft } from '../../../../hooks/usePersistentDraft';
 import { useWarsawDayChange } from '../../../../hooks/useWarsawDayChange';
@@ -26,11 +26,10 @@ type MonthRecap = Phase1Recap;
 type Phase2Recap = { narrative_check: string; deepening_questions?: string[]; block5_material?: { cialo: string; duch: string; konto: string } };
 type PillarScores = { cialo: number | null; duch: number | null; konto: number | null };
 
-
-
-export function useDirection(session: Session, _onOpenActionCenter?: () => void) {
+export function useDirection(_session?: unknown, _onOpenActionCenter?: () => void) {
   const haptics = useHaptics();
-  const userId = session.user.id;
+  const currentUserId = useUserId();
+  const userId = currentUserId ?? '';
 
   // ── Derived date constants + draft keys (pure — see directionKeys.ts) ────
   const { currentWeekStart, isSunday, planWeekStart, planWeekEnd, planWeekLabel,
@@ -221,7 +220,7 @@ export function useDirection(session: Session, _onOpenActionCenter?: () => void)
 
   // ── Actions (bound to current state) ────────────────────────────────────
   const actions = createDirectionActions({
-    userId, session, haptics,
+    userId, haptics,
     closingWeekStart, closingMonthStart, isSunday, planTargetWeekStart,
     setHistory,
     setCurrentReview, setReflectionPersisted,

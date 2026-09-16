@@ -21,6 +21,7 @@ const SEN_METRICS = new Set([
 const ZYW_METRICS = new Set([
   'calories', 'protein', 'carbs', 'fat', 'sugar', 'fiber', 'insulin_load', 'food_quality', 'fueling',
   'caffeine_mg', 'caffeine_late_mg', 'last_coffee_hour', 'last_meal_hour', 'calories_late', 'alcohol_units',
+  'dinner_hour', 'dinner_calories', 'dinner_carbs', 'dinner_fat', 'dinner_to_bed_gap_h',
 ])
 
 const TRENING_METRICS = new Set([
@@ -136,6 +137,10 @@ export function shouldSkipDiscoveryPair(x: string, y: string, lagDays: number): 
   if (isSleepOrRecovery) {
     if (lagDays !== 1) return true;
   } else {
+    const allowsLag1 = x.startsWith('behav__') || x.startsWith('habit__') || x.includes('dinner') || x === 'alcohol_units';
+    if (lagDays === 1 && allowsLag1) {
+      return false;
+    }
     if (lagDays !== 0) return true;
   }
   return false

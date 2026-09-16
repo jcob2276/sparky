@@ -1,9 +1,11 @@
 import React, { useId, useLayoutEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import Button from './Button';
 import { IOS_SPRING } from '../../lib/motion/iosMotion';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useBackHandler } from '../../lib/native/backStack';
 
 export interface ModalProps {
   isOpen: boolean;
@@ -56,6 +58,11 @@ export default function Modal({
   useLayoutEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
+
+  useBackHandler(() => {
+    light();
+    onCloseRef.current();
+  }, isOpen);
 
   useLayoutEffect(() => {
     if (!isOpen) {
@@ -130,7 +137,9 @@ export default function Modal({
 
   const titleId = useId();
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {isOpen && (
         <motion.div
@@ -192,7 +201,8 @@ export default function Modal({
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
 

@@ -50,6 +50,8 @@ export function useCalendarEvents(
       return data || [];
     },
     enabled: !!userId && !!rangeStart && !!rangeEnd,
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 }
 

@@ -3,6 +3,8 @@ import type { UserParseContext } from "../foodParseCore.ts";
 // Per-100g reference so DeepSeek anchors to the same values as our generic list.
 const FOOD_REF = `Per 100g (kcal / B g / W g / T g):
 jajko ugotowane: 155/13/1.1/11
+jajecznica (z masłem, bez dodatków): 196/12/1.2/16
+omlet (z masłem): 185/12/1/14
 kurczak pierś pieczona: 165/31/0/3.6
 kurczak pierś surowa: 110/22/0/1.2
 indyk pierś: 135/29/0/1
@@ -33,6 +35,9 @@ ryż biały gotowany: 130/2.7/28.2/0.3
 kasza gryczana gotowana: 92/3.4/19.9/0.6
 makaron gotowany: 131/5/25/1.1
 ziemniaki gotowane: 80/2/16.5/0.3
+tortilla pszenna (1 placek ~60g): 195/5.5/30/5
+tortilla pełnoziarnista (1 placek ~60g): 185/6/27/5
+wrap (pszenny, 1 szt. ~60g): 195/5.5/30/5
 banan: 89/1.1/22.8/0.3
 jabłko: 52/0.3/13.8/0.2
 truskawki: 32/0.7/7.7/0.3
@@ -92,6 +97,8 @@ Jeśli podaje "porcja", "standardowa porcja", lub nie podaje gramatury wcale, za
 - Warzywa gotowane / surówka / sałata ze śmietaną: 120g - 150g (np. 1 porcja sałaty = 120g)
 - Talerz zupy: 300g (300ml)
 - Jedno jajko (rozmiar M): 55g, rozmiar L: 65g
+- JAJECZNICA z N jaj: oblicz grams = N × 55g (jajka) + masło do smażenia. Przykład: "jajecznica z 3 jaj" → jajecznica 165g (bez osobnego masła, bo wartości FOOD_REF już uwzględniają tłuszcz). NIE zamieniaj jajecznicy na "jajko ugotowane" — to inna potrawa.
+- TORTILLA / WRAP: 1 placek = 60g. "tortilla" lub "w tortilli" bez liczby = 1 placek = 60g. "2 tortille" = 120g. Nie bierz wartości z opakowania producenta (często 2 szt.).
 - Jedna kromka chleba: pszenny/żytni = 35g, tostowy = 25g
 - Bułka: kajzerka = 50g, grahamka = 70g
 - Jedna sztuka owocu: średni banan = 100g, średnie jabłko = 150g
@@ -128,8 +135,9 @@ function rawVsCookedBlock(): string {
 
 function hiddenFatBlock(): string {
   return `ZASADA UKRYTEGO TŁUSZCZU (BARDZO WAŻNE):
-- Jeśli potrawa jest smażona (np. "jajecznica", "smażona pierś z kurczaka", "schabowy") i użytkownik nie napisał wprost "bez tłuszczu" oraz nie wyszczególnił oleju/masła:
-  - Dodaj do kalkulacji tłuszcz użyty do przygotowania (np. 5g masła na każde 2 jajka w jajecznicy, 5g oleju rzepakowego na porcję mięsa). Zwróć go jako osobny produkt (np. "masło do smażenia" / "olej do smażenia") lub uwzględnij w wartościach dania głównego.`
+- JAJECZNICA: wartości w FOOD_REF (196 kcal/100g) JUŻ zawierają masło. NIE dodawaj osobno "masło do smażenia" dla jajecznicy. Oblicz grams = liczba_jaj × 55g, następnie użyj wartości na 100g z FOOD_REF.
+- INNE potrawy smażone (np. "smażona pierś z kurczaka", "schabowy") — jeśli użytkownik nie napisał wprost "bez tłuszczu" oraz nie wyszczególnił oleju/masła:
+  - Dodaj do kalkulacji tłuszcz użyty do przygotowania (np. 5g oleju rzepakowego na porcję mięsa). Zwróć go jako osobny produkt (np. "olej do smażenia") lub uwzględnij w wartościach dania głównego.`
 }
 
 function confidenceRulesBlock(): string {

@@ -1,8 +1,7 @@
 import { formatWarsawDate } from '../../lib/date';
 import { format, startOfWeek } from 'date-fns';
 import { sessionVol } from '../biometrics/workout/workoutUtils';
-import { avg } from './desktopMath';
-import type { OuraRow, WorkoutSessionSummary, StravaActivitySummary } from './desktopDataTypes';
+import type { WorkoutSessionSummary, StravaActivitySummary } from './desktopDataTypes';
 
 export function weeklyVolume(sessions: WorkoutSessionSummary[]) {
   const map: Record<string, number> = {};
@@ -33,25 +32,4 @@ export function weeklyRunKm(strava: StravaActivitySummary[]) {
     .sort(([a], [b]) => a.localeCompare(b))
     .slice(-12)
     .map(([k, v]) => ({ week: format(dates[k], 'dd.MM'), km: Math.round(v / 100) / 10 }));
-}
-
-
-export { SPRINT_SEASON, getSprintInfo } from '../../lib/growth/sprintUtils';
-
-export function sprintMetrics(oura: OuraRow[], sessions: WorkoutSessionSummary[], strava: StravaActivitySummary[], start: string | null, end: string | null) {
-  if (!start || !end) return null;
-  const o = oura.filter((r) => r.date >= start && r.date <= end);
-  const s = sessions.filter((r) => (r.date ?? '') >= start && (r.date ?? '') <= end);
-  const runs = strava.filter((a) => {
-    const d = a.start_date.slice(0, 10);
-    return d >= start && d <= end && ['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type);
-  });
-  return {
-    avgReadiness: avg(o.map((r) => r.readiness_score).filter((v): v is number => v != null)),
-    avgSleep: avg(o.map((r) => r.total_sleep_hours).filter((v): v is number => v != null)),
-    avgHRV: avg(o.map((r) => r.hrv_avg).filter((v): v is number => v != null)),
-    totalVol: s.reduce((sum, sess) => sum + sessionVol(sess), 0),
-    trainDays: s.filter((sess) => sessionVol(sess) > 0).length,
-    kmRun: runs.reduce((sum, a) => sum + (parseFloat(String(a.distance)) || 0), 0) / 1000
-  };
 }

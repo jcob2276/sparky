@@ -2,7 +2,6 @@
  * Async action handlers for useDirection.
  * All "write" operations live here — separated from state management.
  */
-import type { Session } from '@supabase/supabase-js';
 import type { Tables, TablesUpdate } from '../../../../lib/database.types';
 import type { Json } from '../../../../lib/database.types';
 
@@ -67,7 +66,6 @@ export interface SprintPayload {
 /** Returns action handlers bound to the provided state + setters. */
 export function createDirectionActions(params: {
   userId: string;
-  session: Session;
   haptics: ReturnType<typeof useHaptics>;
   closingWeekStart: string;
   closingMonthStart: string | null;

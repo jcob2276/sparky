@@ -59,7 +59,7 @@ export default function CopyDayModal({
       />
 
       {/* Scrollable Meals Content */}
-      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3.5 [-ms-overflow-style:none] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border-custom/50">
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-5 py-4 space-y-3.5 [-ms-overflow-style:none] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-border-custom/50">
         <CopyDayMealsList
           isLoading={c.entriesLoading}
           hasEntries={c.entries.length > 0}
@@ -68,7 +68,7 @@ export default function CopyDayModal({
           onToggleItem={c.handleToggleItem}
           onToggleMeal={c.handleToggleMeal}
           copying={c.copying}
-          onCopyMeal={(type) => void c.handleCopyMeal(type)}
+          onCopyMeal={c.handleCopyMeal}
         />
       </div>
     </Modal>

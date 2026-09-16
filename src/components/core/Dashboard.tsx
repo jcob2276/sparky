@@ -11,8 +11,10 @@
 import { Pressable } from '../ui/ControlPrimitives';
 import { TIMEZONE } from '../../lib/date';
 import { Suspense, lazy, useMemo } from 'react';
-import type { Session } from '@supabase/supabase-js';
-import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Apple, Dumbbell, Flame, Eye } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { useSession } from '../../store/useStore';
+import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Apple, Dumbbell, Flame, Eye, GraduationCap } from 'lucide-react';
+import { dashboardKeys } from '../../lib/queryKeys';
 
 import { ErrorBoundary } from './ErrorBoundary';
 import { DashboardHeader } from './DashboardHeader';
@@ -37,6 +39,7 @@ const Todo            = lazy(() => import('../todo/Todo'));
 const LinksInbox      = lazy(() => import('../lifestyle/LinksInbox'));
 const CalendarView    = lazy(() => import('../calendar/CalendarView'));
 const TerminyPage     = lazy(() => import('../terminy/TerminyPage'));
+const GrowthView      = lazy(() => import('../growth/GrowthView'));
 
 import { DashboardDzisTab } from './DashboardDzisTab';
 import { DashboardTydzienTab } from './DashboardTydzienTab';
@@ -60,8 +63,11 @@ function isAfter20(): boolean {
   } catch { return new Date().getHours() >= 20; }
 }
 
-export default function Dashboard({ session }: { session: Session }) {
+export default function Dashboard() {
+  const session = useSession();
+  if (!session) return null;
   const s = useDashboardState(session);
+  const queryClient = useQueryClient();
   const userId = session?.user?.id;
   useDashboardPrefetch(userId);
 
@@ -73,12 +79,13 @@ export default function Dashboard({ session }: { session: Session }) {
   ], [s]);
 
   const workspaceTools = useMemo(() => [
-    { label: 'Notatki', icon: StickyNote, action: () => s.navigate('/keep') },
-    { label: 'Zadania', icon: ListTodo, action: () => s.navigate('/todo') },
-    { label: 'Kalendarz', icon: Calendar, action: () => s.navigate('/kalendarz') },
-    { label: 'Terminy', icon: Bell, action: () => s.navigate('/terminy') },
-    { label: 'Pocket', icon: BookOpen, action: () => s.navigate('/links') },
-    { label: 'Finanse', icon: WalletCards, action: () => s.navigate('/finanse') },
+    { label: 'Notatki', icon: StickyNote, action: () => s.navigate('/keep'), route: 'keep' },
+    { label: 'Zadania', icon: ListTodo, action: () => s.navigate('/todo'), route: 'todo' },
+    { label: 'Kalendarz', icon: Calendar, action: () => s.navigate('/kalendarz'), route: 'kalendarz' },
+    { label: 'Terminy', icon: Bell, action: () => s.navigate('/terminy'), route: 'terminy' },
+    { label: 'Rozwój', icon: GraduationCap, action: () => s.navigate('/rozwoj'), route: 'rozwoj' },
+    { label: 'Pocket', icon: BookOpen, action: () => s.navigate('/links'), route: 'links' },
+    { label: 'Finanse', icon: WalletCards, action: () => s.navigate('/finanse'), route: 'finanse' },
   ], [s]);
 
   // ── Full-screen route views ──
@@ -104,12 +111,17 @@ export default function Dashboard({ session }: { session: Session }) {
   );
   if (s.view === 'kalendarz') return (
     <Suspense fallback={<ViewFallback />}>
-      <CalendarView session={session} onBack={s.goBack} onSyncCalendar={s.startGoogleAuth} onResyncCalendar={s.syncCalendar} isSyncing={s.isSyncing} onNavigateTo={dest => s.navigate('/' + dest)} />
+      <CalendarView onBack={s.goBack} onSyncCalendar={s.startGoogleAuth} onResyncCalendar={s.syncCalendar} isSyncing={s.isSyncing} onNavigateTo={dest => s.navigate('/' + dest)} />
     </Suspense>
   );
   if (s.view === 'terminy') return (
     <Suspense fallback={<ViewFallback />}>
       <TerminyPage onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} />
+    </Suspense>
+  );
+  if (s.view === 'rozwoj') return (
+    <Suspense fallback={<ViewFallback />}>
+      <GrowthView session={session} onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} />
     </Suspense>
   );
   if (s.view === 'sauna') return (
@@ -193,7 +205,20 @@ export default function Dashboard({ session }: { session: Session }) {
               <div className="p-5 pb-8 space-y-7 overflow-y-auto h-full">
                 <OrientationFooter />
                 {weeklyReviewNudge}
-                <PowerList session={session} todayWin={s.todayWin} onUpdate={s.refresh} planDaySignal={s.planDaySignal} />
+                <PowerList
+                  todayWin={s.todayWin}
+                  onUpdate={(data) => {
+                    if (session?.user?.id && data && 'id' in data) {
+                      queryClient.setQueryData(dashboardKeys.main(session.user.id), (old: unknown) => {
+                        if (!old || typeof old !== 'object') return old;
+                        return { ...(old as Record<string, unknown>), todayWin: data };
+                      });
+                    } else {
+                      void s.refresh();
+                    }
+                  }}
+                  planDaySignal={s.planDaySignal}
+                />
                 <FoodQuickCapture
                   refreshSignal={s.nutritionKey}
                   onSaved={() => { s.refresh(); s.setNutritionKey(k => k + 1); }}

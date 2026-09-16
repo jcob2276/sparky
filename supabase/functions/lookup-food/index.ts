@@ -82,6 +82,9 @@ function parseLeadingGrams(value: unknown): number | null {
 // (e.g. a 1kg bag of rice). Falls back to package quantity only when OFF has
 // no serving_size at all — better than always defaulting to 100g/ml.
 function extractDefaultGrams(product: any): number | null {
+  if (typeof product?.serving_quantity === 'number' && product.serving_quantity > 0) {
+    return Math.round(product.serving_quantity)
+  }
   const fromServing = parseLeadingGrams(product?.serving_size)
   if (fromServing) return fromServing
   if (typeof product?.product_quantity === 'number' && product.product_quantity > 0) {
@@ -206,14 +209,30 @@ async function searchOpenFoodFacts(query: string): Promise<{ results: FoodResult
 
 Deno.serve(serveJson(async (req) => {
   const url = new URL(req.url)
-  const barcode = url.searchParams.get('barcode')
-  const q = url.searchParams.get('q')
+  const rawBarcode = url.searchParams.get('barcode')
+  const rawQ = url.searchParams.get('q')
+
+  const barcode = rawBarcode ? rawBarcode.replace(/[\s-]+/g, '') : null
 
   if (barcode) {
     const results = await lookupByBarcode(barcode)
     return { results, status: 'ok', incompleteCount: results.filter((item) => item.incomplete).length }
   }
-  if (q) {
+  if (rawQ) {
+    const q = rawQ.trim()
+    const cleanDigits = q.replace(/[\s-]+/g, '')
+    // If query is an 8-14 digit barcode, check direct barcode lookup first
+    if (/^\d{8,14}$/.test(cleanDigits)) {
+      const barcodeResults = await lookupByBarcode(cleanDigits)
+      if (barcodeResults.length > 0) {
+        return {
+          results: barcodeResults,
+          status: 'ok',
+          incompleteCount: barcodeResults.filter((item) => item.incomplete).length,
+        }
+      }
+    }
+
     const refPl = searchReferencePl(q)
     const generic = searchGeneric(q)
     const off = await searchOpenFoodFacts(q)

@@ -123,7 +123,7 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
         <div className="flex items-center gap-2">
           {/* View toggle */}
           <div className="flex rounded-lg border border-border-custom/40 bg-surface/60 p-0.5 text-3xs font-black uppercase">
-            <button
+            <Pressable
               type="button"
               onClick={() => setViewMode('bars')}
               className={`px-2 py-1 rounded-md transition-all ${
@@ -131,8 +131,8 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
               }`}
             >
               Paski
-            </button>
-            <button
+            </Pressable>
+            <Pressable
               type="button"
               onClick={() => setViewMode('radar')}
               className={`px-2 py-1 rounded-md transition-all ${
@@ -140,7 +140,7 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
               }`}
             >
               Heksagon
-            </button>
+            </Pressable>
           </div>
 
           <div className="flex items-center gap-1">

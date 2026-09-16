@@ -1,9 +1,11 @@
 import { useEffect, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { X } from 'lucide-react';
 import IconButton from './IconButton';
 import { IOS_SPRING, shouldCommitGesture } from '../../lib/motion/iosMotion';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useBackHandler } from '../../lib/native/backStack';
 
 interface SheetProps {
   open: boolean;
@@ -18,6 +20,16 @@ function Sheet({ open, onOpenChange, title, children, side = 'right' }: SheetPro
   const reduceMotion = useReducedMotion();
   const { light } = useHaptics();
 
+  const onOpenChangeRef = useRef(onOpenChange);
+  useEffect(() => {
+    onOpenChangeRef.current = onOpenChange;
+  }, [onOpenChange]);
+
+  useBackHandler(() => {
+    light();
+    onOpenChangeRef.current(false);
+  }, open);
+
   useEffect(() => {
     if (!open) return;
     light();
@@ -28,17 +40,23 @@ function Sheet({ open, onOpenChange, title, children, side = 'right' }: SheetPro
       }
     };
     window.addEventListener('keydown', close);
-    return () => window.removeEventListener('keydown', close);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('keydown', close);
+      document.body.style.overflow = '';
+    };
   }, [open, onOpenChange, light]);
 
   const placement = side === 'bottom'
-    ? 'inset-x-0 bottom-0 max-h-[85svh] rounded-t-[28px] border-t border-black/10 dark:border-white/12'
+    ? 'inset-x-0 bottom-0 max-h-[85svh] rounded-t-[28px] border-t border-black/10 dark:border-white/12 pb-[max(1.25rem,env(safe-area-inset-bottom))]'
     : `${side === 'left' ? 'left-0' : 'right-0'} inset-y-0 w-full max-w-md border-x border-black/10 dark:border-white/10`;
 
   const initial = side === 'bottom' ? { y: '100%' } : { x: side === 'left' ? '-100%' : '100%' };
   const exit = initial;
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {open && (
         <motion.div
@@ -96,11 +114,10 @@ function Sheet({ open, onOpenChange, title, children, side = 'right' }: SheetPro
           </motion.section>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
-
 }
-
 
 export default Sheet;
 

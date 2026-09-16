@@ -69,7 +69,8 @@ export function usePowerListActions(args: UsePowerListActionsArgs) {
       fillSlotFromCheckpointHelper(payload, slotIndex, args.newTaskForm, args.setNewTaskForm, haptics),
     confirmCheckpointDone: () => confirmCheckpointDoneHelper(args),
     saveEveningClose: (win: DailyWinWithTasks | null) => saveEveningCloseHelper(args, win, haptics),
-    toggleTask: (idx: number, win: DailyWinWithTasks | null) => toggleTaskHelper(args, idx, win, haptics),
+    toggleTask: (idx: number, win: DailyWinWithTasks | null, explicitDone?: boolean, explicitTimestamp?: string | null): Promise<DailyWinWithTasks | undefined> =>
+      toggleTaskHelper(args, idx, win, haptics, explicitDone, explicitTimestamp),
     startNewDay: () => startNewDayHelper(args, haptics),
     updateSlot: (i: number, patch: Partial<TaskSlot>) => updateSlotHelper(args, i, patch),
     projectOptionsForSlot: (slotIndex: number) =>
@@ -156,7 +157,14 @@ async function saveEveningCloseHelper(args: UsePowerListActionsArgs, todayWin: D
   }
 }
 
-async function toggleTaskHelper(args: UsePowerListActionsArgs, index: number, todayWinInput: DailyWinWithTasks | null, haptics: ReturnType<typeof useHaptics>) {
+async function toggleTaskHelper(
+  args: UsePowerListActionsArgs,
+  index: number,
+  todayWinInput: DailyWinWithTasks | null,
+  haptics: ReturnType<typeof useHaptics>,
+  explicitDone?: boolean,
+  explicitTimestamp?: string | null,
+) {
   if (!todayWinInput) return;
   const todayWin = todayWinInput as DailyWinRecord;
   const slot = index + 1;
@@ -165,8 +173,8 @@ async function toggleTaskHelper(args: UsePowerListActionsArgs, index: number, to
   const todoIdField = `task_${slot}_todo_id`;
   const checkpointIdField = `task_${slot}_checkpoint_id`;
   const taskRow = (todayWin.daily_win_tasks ?? []).find((t) => t.slot === slot);
-  const newValue = taskRow ? !taskRow.done : !todayWin[field];
-  const timestamp = newValue ? new Date().toISOString() : null;
+  const newValue = explicitDone !== undefined ? explicitDone : (taskRow ? !taskRow.done : !todayWin[field]);
+  const timestamp = explicitTimestamp !== undefined ? explicitTimestamp : (newValue ? new Date().toISOString() : null);
 
   const allDone = [1, 2, 3, 4, 5].every((i) => {
     if (!todayWin[`task_${i}`]) return true;
@@ -211,7 +219,6 @@ async function toggleTaskHelper(args: UsePowerListActionsArgs, index: number, to
       ),
     };
 
-    if (newValue) haptics.success(); else haptics.light();
     if (args.onUpdate) args.onUpdate(merged as typeof data);
 
     if (newValue) {
@@ -267,9 +274,11 @@ async function toggleTaskHelper(args: UsePowerListActionsArgs, index: number, to
       })();
     }
     // todo_items sync: DB trigger sync_daily_win_tasks_to_todo (when todo_id set)
+    return merged as DailyWinWithTasks;
   } catch (err: unknown) {
     console.error('[PowerList] toggleTask failed', err);
     notify('Nie udało się zapisać zadania.', 'error');
+    throw err;
   }
 }
 

@@ -47,20 +47,24 @@ export function getFolderDescendantIds(folders: NoteFolder[], rootId: string): S
   return descendants;
 }
 
+export async function fetchNoteFolders(userId: string): Promise<NoteFolder[]> {
+  const { data, error } = await supabase
+    .from('note_folders')
+    .select('*')
+    .eq('user_id', userId)
+    .order('position')
+    .order('name');
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
 export function useNoteFolders(userId: string) {
   return useQuery({
     queryKey: notesKeys.folders(userId),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('note_folders')
-        .select('*')
-        .eq('user_id', userId)
-        .order('position')
-        .order('name');
-      if (error) throw new Error(error.message);
-      return data ?? [];
-    },
+    queryFn: () => fetchNoteFolders(userId),
     enabled: !!userId,
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 }
 

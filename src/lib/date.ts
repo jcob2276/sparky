@@ -44,3 +44,30 @@ export function formatWeekdayWarsaw(date: Date | string): string {
   });
 }
 
+import { addWeeks, format, startOfWeek, subWeeks } from 'date-fns';
+import { pl } from 'date-fns/locale';
+import { getTodayWarsaw, shiftDateStr } from '@vanguard/domain';
+
+export function getWeekStartWarsaw(dateStr: string): string {
+  const d = new Date(`${dateStr.slice(0, 10)}T12:00:00Z`);
+  return format(startOfWeek(d, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+}
+
+export function shiftWeekStart(weekStart: string, deltaWeeks: number): string {
+  const d = new Date(`${weekStart.slice(0, 10)}T12:00:00Z`);
+  const next = deltaWeeks >= 0 ? addWeeks(d, deltaWeeks) : subWeeks(d, Math.abs(deltaWeeks));
+  return format(startOfWeek(next, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+}
+
+export function formatWeekRange(weekStart: string): string {
+  const start = new Date(`${weekStart.slice(0, 10)}T12:00:00Z`);
+  const end = new Date(shiftDateStr(weekStart, 6) + 'T12:00:00Z');
+  const a = format(start, 'd MMM', { locale: pl });
+  const b = format(end, 'd MMM', { locale: pl });
+  return `${a} – ${b}`;
+}
+
+export function isCurrentWeek(weekStart: string): boolean {
+  return weekStart === getWeekStartWarsaw(getTodayWarsaw());
+}
+

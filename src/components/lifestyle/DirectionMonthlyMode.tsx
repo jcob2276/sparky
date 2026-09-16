@@ -1,7 +1,6 @@
 import Button from '../ui/Button';
 import { ControlTextarea } from '../ui/ControlPrimitives';
 import React from 'react';
-import type { Session } from '@supabase/supabase-js';
 import Spinner from '../ui/Spinner';
 import { Card } from '../ui/Card';
 import { TrendingUp, Zap, RotateCcw, Lightbulb, AlertCircle } from 'lucide-react';
@@ -15,7 +14,6 @@ type MonthRecap = {
 };
 
 interface Props {
-  session: Session;
   monthStart: string;
   monthFacts: MonthFacts;
   recap: MonthRecap | null;

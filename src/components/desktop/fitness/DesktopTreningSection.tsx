@@ -1,5 +1,4 @@
 import { Suspense, lazy } from 'react';
-import type { Session } from '@supabase/supabase-js';
 import { Layers } from 'lucide-react';
 import Skeleton from '../../ui/Skeleton';
 import Button from '../../ui/Button';
@@ -26,7 +25,6 @@ interface Props {
   theme: string;
   grid: string;
   personalTargets: ReturnType<typeof useDesktopData>['personalTargets'];
-  session: Session;
   onOpenMatrix?: () => void;
   lenieLogs?: ReturnType<typeof useDesktopData>['lenieLogs'];
   phoneUsage?: ReturnType<typeof useDesktopData>['phoneUsage'];
@@ -47,7 +45,6 @@ export default function DesktopTreningSection({
   theme,
   grid,
   personalTargets,
-  session,
   onOpenMatrix,
   lenieLogs,
   phoneUsage,
@@ -103,7 +100,7 @@ export default function DesktopTreningSection({
             personalTargets={personalTargets}
           />
           <Suspense fallback={<Skeleton variant="card" className="h-[var(--ds-h-450px)] rounded-[var(--radius-xl)]" />}>
-            <MuscleHeatmap session={session} strava={strava} />
+            <MuscleHeatmap strava={strava} />
           </Suspense>
         </div>
       </div>

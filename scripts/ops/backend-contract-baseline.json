@@ -1,12 +1,10 @@
 {
   "patternCount_rawCreateClient": 0,
   "patternCount_rawProviderFetch": 4,
-  "patternCount_inlineWarsawDate": 9,
+  "patternCount_inlineWarsawDate": 7,
   "patternCount_asAnyFunctions": 0,
   "patternCount_rawJsonResponse": 4,
-  "patternCount_secretKeyOutsideKernel": 4,
+  "patternCount_secretKeyOutsideKernel": 0,
   "patternCount_committedSecrets": 0,
-  "legacyLines": {
-    "supabase/functions/recap/daily.ts": 306
-  }
+  "legacyLines": {}
 }

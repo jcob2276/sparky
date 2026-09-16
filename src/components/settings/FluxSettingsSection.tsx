@@ -2,7 +2,7 @@ import { Moon, Sun, Clock, Flame, PauseCircle, Check } from 'lucide-react';
 import { useFluxStore } from '../../lib/nightShift/useFluxStore';
 import { Card } from '../ui/Card';
 import Button from '../ui/Button';
-import { ControlInput } from '../ui/ControlPrimitives';
+import { Pressable, ControlInput } from '../ui/ControlPrimitives';
 import { notify } from '../../lib/notify';
 
 import { isNativePlatform } from '../../lib/native/platform';
@@ -62,7 +62,7 @@ export default function FluxSettingsSection() {
             </p>
           </div>
         </div>
-        <button
+        <Pressable
           type="button"
           onClick={() => {
             setEnabled(!enabled);
@@ -77,7 +77,7 @@ export default function FluxSettingsSection() {
               enabled ? 'translate-x-6' : 'translate-x-1'
             }`}
           />
-        </button>
+        </Pressable>
       </div>
 
       {enabled && (
@@ -96,13 +96,13 @@ export default function FluxSettingsSection() {
           ) : (
             <div className="flex items-center justify-between text-xs text-text-muted">
               <span>Potrzebujesz precyzji kolorów?</span>
-              <button
+              <Pressable
                 type="button"
                 onClick={() => handlePause(60)}
                 className="text-amber-400 font-bold hover:underline"
               >
                 Wstrzymaj na 1 godz.
-              </button>
+              </Pressable>
             </div>
           )}
 
@@ -142,7 +142,7 @@ export default function FluxSettingsSection() {
               {KELVIN_PRESETS.map((preset) => {
                 const isSelected = targetTemperature === preset.kelvin;
                 return (
-                  <button
+                  <Pressable
                     key={preset.kelvin}
                     type="button"
                     onClick={() => setTargetTemperature(preset.kelvin)}
@@ -157,7 +157,7 @@ export default function FluxSettingsSection() {
                       <div className="text-[10px] opacity-75">{preset.name}</div>
                     </div>
                     {isSelected && <Check size={14} className="text-amber-400" />}
-                  </button>
+                  </Pressable>
                 );
               })}
             </div>
@@ -165,7 +165,7 @@ export default function FluxSettingsSection() {
 
           {/* Adaptacja płynna (30-min ramping) */}
           <label className="flex items-center gap-3 cursor-pointer pt-1">
-            <input
+            <ControlInput
               type="checkbox"
               checked={gradualTransition}
               onChange={(e) => setGradualTransition(e.target.checked)}

@@ -99,14 +99,14 @@ export interface LenieHour24Slot {
   isDangerZone: boolean; // 20..01 or 13..17
 }
 
-export interface LeniePatternInsight {
+interface LeniePatternInsight {
   title: string;
   badge: string;
   badgeType: 'danger' | 'warning' | 'info';
   description: string;
 }
 
-export interface LenieRecentLogDisplay {
+interface LenieRecentLogDisplay {
   date: string;
   timeStr: string | null;
   stimulus: string;
@@ -135,7 +135,7 @@ export interface LenieStatsResult {
   recentLogs: LenieRecentLogDisplay[];
 }
 
-export function warsawHourAndMinute(isoStr: string): { hour: number; minute: number; timeStr: string } {
+function warsawHourAndMinute(isoStr: string): { hour: number; minute: number; timeStr: string } {
   const d = new Date(isoStr);
   const parts = new Intl.DateTimeFormat('pl-PL', {
     timeZone: 'Europe/Warsaw',

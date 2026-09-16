@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 
-export interface MatrixNutritionRow {
+interface MatrixNutritionRow {
   date: string;
   calories: number | null;
   protein: number | null;
@@ -8,7 +8,7 @@ export interface MatrixNutritionRow {
   fat: number | null;
 }
 
-export interface MatrixOuraRow {
+interface MatrixOuraRow {
   date: string;
   sleep_score: number | null;
   total_sleep_hours: number | null;
@@ -16,7 +16,7 @@ export interface MatrixOuraRow {
   readiness_score: number | null;
 }
 
-export interface MatrixDailyWinRow {
+interface MatrixDailyWinRow {
   date: string;
   task_1: string | null;
   task_2: string | null;
@@ -31,7 +31,7 @@ export interface MatrixDailyWinRow {
   result: string | null;
 }
 
-export interface MatrixHabitLogRow {
+interface MatrixHabitLogRow {
   id: string;
   habit_id: string;
   date: string;

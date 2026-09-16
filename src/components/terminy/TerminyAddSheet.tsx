@@ -15,7 +15,7 @@ import {
 import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
-import { Pressable } from '../ui/ControlPrimitives';
+import { Pressable, ControlTextarea } from '../ui/ControlPrimitives';
 import type { LifeObligation, LifeObligationInput } from '../../lib/lifeObligationsApi';
 import { formatLongDateWarsaw } from '../../lib/date';
 import {
@@ -263,7 +263,7 @@ function TerminyAddForm({ seed, isEdit, today, pending, onClose, onSubmit }: For
 
       <label className="block text-xs font-semibold text-text-muted">
         Notatka (opcjonalnie)
-        <textarea
+        <ControlTextarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Numer polisy, kontakt, szczegóły…"

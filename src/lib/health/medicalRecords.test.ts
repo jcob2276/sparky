@@ -50,7 +50,7 @@ describe('buildMedicalTimeline', () => {
       ],
     })).toEqual([
       expect.objectContaining({ id: 'event:event-1', kind: 'visit', occurredOn: '2026-07-27' }),
-      expect.objectContaining({ id: 'lab:2026-07-20:panel-lipiec', kind: 'lab', detail: '2 wyniki' }),
+      expect.objectContaining({ id: 'lab:2026-07-20:panel-lipiec', kind: 'lab', detail: '2 markery (TSH, Glukoza)' }),
     ]);
   });
 });

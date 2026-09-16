@@ -106,7 +106,7 @@ Jeśli potrawa jest wysoce niestandardowa, spróbuj oszacować makro bazując na
   // 3. Save to food_library
   for (const r of results) {
     // Actually we need to fetch user_id in the first query to do this properly
-    const { data: userEntry } = await db.from('daily_food_entries').select('user_id').eq('name', r.name).limit(1).single()
+    const { data: userEntry } = await db.from('daily_food_entries').select('user_id').eq('name', r.name).limit(1).maybeSingle()
     if (userEntry?.user_id) {
       r.macro.user_id = userEntry.user_id
       await db.from('food_library').insert(r.macro)

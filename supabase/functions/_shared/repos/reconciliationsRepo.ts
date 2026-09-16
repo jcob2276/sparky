@@ -60,14 +60,14 @@ export async function updateReconciliation(
   userId: string,
   date: string,
   updates: ReconciliationUpdate,
-): Promise<ReconciliationRow> {
+): Promise<ReconciliationRow | null> {
   const { data, error } = await db
     .from("daily_reconciliations")
     .update(updates)
     .eq("user_id", userId)
     .eq("date", date)
     .select()
-    .single();
+    .maybeSingle();
   if (error) throw error;
   return data;
 }

@@ -16,7 +16,6 @@ import PageTemplateBoundary, { type PageTemplateKind } from './components/shared
 import ActionHistoryController from './components/core/ActionHistoryController';
 
 const DesktopDashboard = lazy(() => import('./components/desktop/shell/DesktopDashboard'));
-const GrowthView = lazy(() => import('./components/growth/GrowthView'));
 const MedicalStudiesPage = lazy(() => import('./components/medical/MedicalStudiesPage'));
 const MedicalLaboratoryPage = lazy(() => import('./components/medical/MedicalLaboratoryPage'));
 const CorrelationsPage = lazy(() => import('./components/correlations/CorrelationsPage'));
@@ -24,12 +23,9 @@ const EndMyopiaCalculator = lazy(() => import('./components/medical/EndMyopiaCal
 const FinancePage = lazy(() => import('./components/finance'));
 const DesignSystemPage = lazy(() => import('./components/dev/DesignSystemPage'));
 const OuraHealthPage = lazy(() => import('./components/biometrics/OuraHealthPage'));
-const RunningPerformancePage = lazy(() => import('./components/biometrics/RunningPerformancePage'));
-const CzatView = lazy(() => import('./components/chat/CzatView'));
-const AlarmView = lazy(() => import('./components/lifestyle/alarm/AlarmView'));
+const GrowthView = lazy(() => import('./components/growth/GrowthView'));
 import { queryClient } from './lib/queryClient';
 import { setupGlobalBleSync } from './lib/biometrics/ouraBleSync';
-import QuickCaptureWidget from './components/chat/QuickCaptureWidget';
 import FluxOverlay from './components/nightShift/FluxOverlay';
 
 
@@ -156,32 +152,27 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/dzis" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/tydzien" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/projekty" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/historia" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/keep" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/todo" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/kalendarz" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/terminy" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/links" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/fundament" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/trening" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/cwiczenie" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
-      <Route path="/bieganie" element={
-        <Suspense fallback={FALLBACK_SPINNER}>
-          <Screen kind="dashboard"><RunningPerformancePage /></Screen>
-        </Suspense>
-      } />
-      <Route path="/sauna" element={<Screen kind="dashboard"><Dashboard session={session} /></Screen>} />
+      <Route path="/" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/dzis" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/tydzien" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/projekty" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/historia" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/keep" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/todo" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/kalendarz" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/terminy" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/links" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/fundament" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/trening" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/cwiczenie" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
+      <Route path="/sauna" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
 
       <Route path="/dashboard" element={
         <Suspense fallback={FALLBACK_SPINNER}>
-          <Screen kind="dashboard"><DesktopDashboard session={session} /></Screen>
+          <Screen kind="dashboard"><DesktopDashboard /></Screen>
         </Suspense>
       } />
-      <Route path="/settings" element={<Screen kind="list"><SettingsView session={session} /></Screen>} />
+      <Route path="/settings" element={<Screen kind="list"><SettingsView /></Screen>} />
       <Route path="/finanse" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="dashboard"><FinancePage /></Screen>
@@ -224,16 +215,7 @@ function AppRoutes() {
           <Screen kind="grid"><DesignSystemPage /></Screen>
         </Suspense>
       } />
-      <Route path="/czat" element={
-        <Suspense fallback={FALLBACK_SPINNER}>
-          <Screen kind="dashboard"><CzatView /></Screen>
-        </Suspense>
-      } />
-      <Route path="/budzik" element={
-        <Suspense fallback={FALLBACK_SPINNER}>
-          <Screen kind="dashboard"><AlarmView /></Screen>
-        </Suspense>
-      } />
+      <Route path="/czat" element={<Navigate to="/dzis" replace />} />
       <Route path="*" element={<Navigate to="/dzis" replace />} />
       </Routes>
   );
@@ -247,7 +229,6 @@ function App() {
         <AppRoutes />
         <ActionHistoryController />
         <ToastHost />
-        <QuickCaptureWidget />
       </BrowserRouter>
     </ErrorBoundary>
   );

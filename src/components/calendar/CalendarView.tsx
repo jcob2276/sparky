@@ -8,7 +8,7 @@
  * @usedBy Dashboard, WeeklyBalanceHexagon
  */
 import { useState, useCallback, useMemo } from 'react';
-import type { Session } from '@supabase/supabase-js';
+import { useSession } from '../../store/useStore';
 
 import { useCalendarData } from './hooks/useCalendarData';
 import { useTimeBudgets } from './hooks/useTimeBudgets';
@@ -35,7 +35,6 @@ import { useCalendarKeyboardShortcuts } from './calendarView/hooks/useCalendarKe
 import './calendar.css';
 
 interface Props {
-  session: Session;
   onBack: () => void;
   onSyncCalendar: () => void;
   onResyncCalendar?: () => Promise<void> | void;
@@ -44,13 +43,13 @@ interface Props {
 }
 
 export default function CalendarView({
-  session,
   onBack,
   onSyncCalendar,
   onResyncCalendar,
   isSyncing,
   onNavigateTo,
 }: Props) {
+  const session = useSession();
   const userId = session?.user?.id as string | undefined;
   const accessToken = session?.access_token as string | undefined;
 

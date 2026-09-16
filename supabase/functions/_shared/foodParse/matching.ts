@@ -1,6 +1,8 @@
 import type { ParsedFoodItem } from "../foodParseCore.ts";
 
 const COMPLEX_MEAL_RE = /\b(obiad|restaurac|u mamy|potrawa domow|karkowka domow|bigos domow)\b/i;
+/** „jajecznica w tortilli", „ryż w wrapie" → potrawa złożona. */
+const COMPOUND_CONTAINER_RE = /\b\w+\s+w\s+(tortill|wrap|burrito|tacos?|lavash|picie|pita)\b/i;
 
 /** Waga 1 szt. — do przeliczania "4 naleśniki" → grams łącznie. */
 const PIECE_GRAMS_RULES: Array<{ test: (n: string) => boolean; grams: number; label: string }> = [
@@ -10,6 +12,8 @@ const PIECE_GRAMS_RULES: Array<{ test: (n: string) => boolean; grams: number; la
   { test: (n) => /kromk/.test(n), grams: 35, label: 'kromka chleba' },
   { test: (n) => /\bbul/.test(n), grams: 55, label: 'bułka' },
   { test: (n) => /plaster/.test(n), grams: 18, label: 'plasterek' },
+  // 1 placek tortilli/wrapa = ~60g (rozmiar 25cm)
+  { test: (n) => /tortill|wrap\b/.test(n), grams: 60, label: 'tortilla/wrap' },
 ];
 
 export function normalizePl(s: string): string {
@@ -27,15 +31,24 @@ export function pieceGramsForName(name: string): number | null {
   return null;
 }
 
-/** "4 naleśniki", "3 jajka", "2x pieróg" → liczba sztuk z tekstu użytkownika. */
+/** "4 naleśniki", "3 jajka", "2x pieróg", "jajecznica z 3 jaj" → liczba sztuk z tekstu użytkownika. */
 export function parseDeclaredPieceCount(text: string): number | null {
   const n = normalizePl(text);
-  const m = n.match(
-    /\b(\d{1,2})\s*(?:x\s*)?(?:szt\.?\s*)?(?:nalesnik\w*|placek\w*|racuch\w*|jaj\w*|pierog\w*|kromk\w*|bul\w*|plaster\w*)/,
+  // Standardowe: "3 jajka", "4 naleśniki", "2x tortilla"
+  const mDirect = n.match(
+    /\b(\d{1,2})\s*(?:x\s*)?(?:szt\.?\s*)?(?:nalesnik\w*|placek\w*|racuch\w*|jaj\w*|pierog\w*|kromk\w*|bul\w*|plaster\w*|tortill\w*|wrap\w*)/,
   );
-  if (!m) return null;
-  const count = parseInt(m[1], 10);
-  return count >= 2 && count <= 24 ? count : null;
+  if (mDirect) {
+    const count = parseInt(mDirect[1], 10);
+    if (count >= 2 && count <= 24) return count;
+  }
+  // Preposition pattern: "jajecznica z 3 jaj", "omlet z 4 jajek"
+  const mPrep = n.match(/\bz\s+(\d{1,2})\s+jaj\w*/);
+  if (mPrep) {
+    const count = parseInt(mPrep[1], 10);
+    if (count >= 1 && count <= 12) return count;
+  }
+  return null;
 }
 
 export function scaleParsedItem(item: ParsedFoodItem, factor: number): ParsedFoodItem {
@@ -151,7 +164,8 @@ export function applyHomemadeAdjustment(text: string, items: ParsedFoodItem[]): 
 
 export function isComplexMeal(text: string): boolean {
   if (text.length > 120) return true;
-  if (COMPLEX_MEAL_RE.test(text)) return true;
+  if (COMPLEX_MEAL_RE.test(normalizePl(text))) return true;
+  if (COMPOUND_CONTAINER_RE.test(normalizePl(text))) return true;
   const parts = text.split(',').map((p) => p.trim()).filter(Boolean);
   return parts.length >= 4;
 }

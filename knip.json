@@ -12,14 +12,6 @@
     "supabase/functions/**/*.test.ts",
     "src/sw.ts",
     "src/lib/database.types.ts",
-    "src/components/projects/HealthScore.tsx",
-    "src/components/projects/ProjectCard.tsx",
-    "src/components/projects/ProjectCardCollapsed.tsx",
-    "src/components/projects/ProjectCardExpanded.tsx",
-    "src/components/projects/ProjectCardWrapper.tsx",
-    "src/components/projects/ProjectEvidenceStrip.tsx",
-    "src/lib/projects/projectEvidence.ts",
-    "src/components/desktop/health/OuraBleSettingsPanel.tsx",
     "supabase/functions/_shared/database.types.ts",
     "supabase/functions/_shared/repos/**"
   ],
@@ -45,5 +37,8 @@
   },
   "ignoreDependencies": [
     "npm"
+  ],
+  "ignoreBinaries": [
+    "powershell"
   ]
 }

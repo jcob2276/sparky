@@ -1,13 +1,13 @@
 import Button from '../ui/Button';
 import { useQuery } from '@tanstack/react-query';
-import type { Session } from '@supabase/supabase-js';
+import { useUserId } from '../../store/useStore';
 import { CalendarDays, Target, AlertCircle, ChevronRight } from 'lucide-react';
 import WeekLoopSummary from '../shared/WeekLoopSummary';
 import ProjectWeekKpis from './ProjectWeekKpis';
 import WeeklyBalanceHexagon from './WeeklyBalanceHexagon';
 import { SystemProposalCard } from '../shared/SystemProposalCard';
 import { useDirectionContext } from './direction/hooks/useDirectionContext';
-import { useSpineGuidance } from '../growth/hooks/useSpineGuidance';
+import { useSpineGuidance } from '../../hooks/useSpineGuidance';
 import {
   fetchPendingProposals,
   resolveProposal,
@@ -17,15 +17,13 @@ import { getTodayWarsaw } from '../../lib/date';
 import { getWeekStartWarsaw } from '../../lib/growth/growth';
 
 export default function WeekHub({
-  session,
   onOpenActionCenter,
   onStartWeeklyReview,
 }: {
-  session: Session;
   onOpenActionCenter?: () => void;
   onStartWeeklyReview?: () => void;
 }) {
-  const userId = session.user.id;
+  const userId = useUserId() ?? '';
   const weekStart = getWeekStartWarsaw(getTodayWarsaw());
   const today = getTodayWarsaw();
   const isSunday = new Date(`${today}T12:00:00Z`).getUTCDay() === 0;
@@ -33,7 +31,7 @@ export default function WeekHub({
   const { guidance } = useSpineGuidance(userId);
 
   const weekReflectionPending = guidance?.steps.some(
-    (s) => s.id === 'week_reflection' && s.status !== 'done',
+    (s: { id: string; status: string }) => s.id === 'week_reflection' && s.status !== 'done',
   );
   const showReviewCta = Boolean(weekReflectionPending && onStartWeeklyReview);
   const sundayReviewCta = showReviewCta && isSunday;

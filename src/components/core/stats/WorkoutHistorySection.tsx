@@ -3,6 +3,7 @@ import { format, parseISO } from 'date-fns';
 import { Dumbbell, Trash2, ChevronDown, ChevronUp, Flame, Zap } from 'lucide-react';
 import type { WorkoutSessionRow, EditFormState } from '../hooks/useStatsData';
 import { WorkoutSessionEditor } from './WorkoutSessionEditor';
+import { Pressable } from '../../ui/ControlPrimitives';
 
 const POLISH_DAYS: Record<number, string> = {
   0: 'Niedziela',
@@ -166,31 +167,31 @@ export function WorkoutHistorySection({
                   {/* Right actions */}
                   <div className="flex items-center gap-1">
                     {logs.length > 0 && (
-                      <button
+                      <Pressable
                         type="button"
                         onClick={() => setExpandedSummaryId(isSummaryExpanded ? null : s.id)}
                         className="p-1.5 rounded-lg text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer"
                         title={isSummaryExpanded ? 'Zwiń ćwiczenia' : 'Pokaż ćwiczenia'}
                       >
                         {isSummaryExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                      </button>
+                      </Pressable>
                     )}
-                    <button
+                    <Pressable
                       type="button"
                       onClick={() => startEditing(s)}
                       className="p-1.5 rounded-lg text-text-muted hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
                       title="Edytuj"
                     >
                       <Zap size={13} />
-                    </button>
-                    <button
+                    </Pressable>
+                    <Pressable
                       type="button"
                       onClick={() => deleteSession(s.id)}
                       className="p-1.5 rounded-lg text-text-muted hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer"
                       title="Usuń"
                     >
                       <Trash2 size={13} />
-                    </button>
+                    </Pressable>
                   </div>
                 </div>
 
@@ -218,7 +219,7 @@ export function WorkoutHistorySection({
 
       {/* Show more toggle */}
       {recentSessions.length > 4 && (
-        <button
+        <Pressable
           type="button"
           onClick={() => setShowAllSessions((v) => !v)}
           className="w-full py-2 rounded-xl border border-border-custom bg-surface text-2xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-solid transition-all cursor-pointer flex items-center justify-center gap-1.5"
@@ -234,7 +235,7 @@ export function WorkoutHistorySection({
               Pokaż więcej ({recentSessions.length - 4} sesji)
             </>
           )}
-        </button>
+        </Pressable>
       )}
     </section>
   );

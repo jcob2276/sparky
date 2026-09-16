@@ -2,25 +2,43 @@ import { useEffect } from 'react';
 import { queryClient } from '../../../lib/queryClient';
 import { desktopKeys } from '../../../lib/queryKeys';
 import { fetchDesktopDashboardData } from '../../../lib/desktopDashboardApi';
+import {
+  prefetchCalendarData,
+  prefetchTodoData,
+  prefetchKeepData,
+  prefetchTerminyData,
+} from '../../../lib/workspacePrefetch';
 
 /**
- * Silently warms up DesktopDashboard JS bundle and RPC query cache in the background
- * after the main mobile dashboard has settled. This guarantees 0ms navigation
- * when user transitions from /dzis to /dashboard.
+ * Progressively warms up Workspace modules and queries in the background
+ * after the main dashboard has settled. Guarantees near-instant transitions
+ * to /kalendarz, /todo, /keep, /terminy, and /dashboard.
  */
 export function useDashboardPrefetch(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
 
-    const timer = window.setTimeout(() => {
+    // Stage 1: High-priority workspace tools (Kalendarz & To Do)
+    const stage1Timer = window.setTimeout(() => {
+      void prefetchCalendarData(queryClient, userId);
+      void prefetchTodoData(queryClient, userId);
+    }, 600);
+
+    // Stage 2: Secondary tools & desktop dashboard
+    const stage2Timer = window.setTimeout(() => {
+      void prefetchKeepData(queryClient, userId);
+      void prefetchTerminyData(queryClient, userId);
       void import('../../desktop/shell/DesktopDashboard');
       void queryClient.prefetchQuery({
         queryKey: desktopKeys.dashboard(userId),
         queryFn: () => fetchDesktopDashboardData(userId),
         staleTime: 1000 * 60 * 5,
       });
-    }, 1500);
+    }, 1600);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(stage1Timer);
+      window.clearTimeout(stage2Timer);
+    };
   }, [userId]);
 }

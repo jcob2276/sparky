@@ -11,7 +11,7 @@
  * Ping zawiera `?token=<uuid>` dopasowywany do vanguard_calendar_watch.
  */
 import { serveJson } from '../_shared/http.ts'
-import { safeExecute, createServiceClient } from '../_shared/supabase.ts'
+import { safeExecute, createServiceClient, getServiceRoleKey } from '../_shared/supabase.ts'
 import { ensureCalendarWatch, renewExpiringWatches } from '../_shared/calendarWatch.ts'
 import { runCalendarSync } from '../sync/calendar.ts'
 
@@ -34,7 +34,7 @@ async function handleWebhook(req: Request): Promise<Response> {
   // Synchronny sync przed odpowiedzią: EdgeRuntime.waitUntil nie utrzymuje
   // funkcji po odpowiedzi HTTP, więc praca musi się zakończyć przed 200.
   // resolveUserScope wymaga Bearer — wstrzykujemy service role klucz serwera.
-  const secretKey = Deno.env.get('SB_SECRET_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
+  const secretKey = getServiceRoleKey()
   await runCalendarSync(
     new Request(req.url, {
       method: 'POST',

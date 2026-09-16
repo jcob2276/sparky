@@ -11,6 +11,7 @@ import { RB_MUSCLE_TO_TAGS, applyRunningStimulus } from '../../lib/health/muscle
 import { Card } from '../ui/Card';
 import BodyModel from './BodyModel';
 import type { StravaActivityRow } from '../desktop/shell/useDesktopData';
+import { useUserId } from '../../store/useStore';
 import './workout/muscleHeatmap.css';
 
 const PERIODS = [
@@ -45,12 +46,12 @@ function tagColor(tag: string) {
 }
 
 export default function MuscleHeatmap({
-  session,
+  userId: propUserId,
   strava,
 }: {
-  session: { user?: { id?: string } } | null;
+  userId?: string;
   strava?: StravaActivityRow[];
-}) {
+} = {}) {
   const [period, setPeriod] = useState(30);
   const [includeRunning, setIncludeRunning] = useState(true);
   const [setsByTag, setSetsByTag] = useState<Record<string, number>>({});
@@ -59,7 +60,8 @@ export default function MuscleHeatmap({
   const [loadByTag, setLoadByTag] = useState<Record<string, number>>({});
   const [exercisesByTag, setExercisesByTag] = useState<Record<string, string[]>>({});
   const [loading, setLoading] = useState(true);
-  const userId = session?.user?.id;
+  const storeUserId = useUserId();
+  const userId = propUserId ?? storeUserId;
 
   const runKmPeriod = useMemo(() => {
     if (!strava?.length) return 0;

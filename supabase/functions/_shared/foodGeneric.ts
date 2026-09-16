@@ -64,6 +64,10 @@ export const GENERIC_FOODS: GenericFoodPer100g[] = [
   { name: 'Miód', calories: 304, protein: 0.3, carbs: 82, fat: 0, fiber: 0.2, sugar: 82 },
   { name: 'Pierogi ruskie gotowane', calories: 200, protein: 6, carbs: 35, fat: 4, fiber: 2, sugar: 1 },
   { name: 'Kotlet schabowy smażony', calories: 270, protein: 17, carbs: 8, fat: 19, fiber: 0.5, sugar: 0 },
+  // Płaskie pieczywo
+  { name: 'Tortilla pszenna', calories: 320, protein: 8.5, carbs: 52, fat: 8, fiber: 2.5, sugar: 2 },
+  { name: 'Tortilla pełnoziarnista', calories: 300, protein: 9, carbs: 46, fat: 7.5, fiber: 5, sugar: 1.5 },
+  { name: 'Wrap pszenny', calories: 320, protein: 8.5, carbs: 52, fat: 8, fiber: 2.5, sugar: 2 },
 ]
 
 function normalizePlFood(s: string): string {

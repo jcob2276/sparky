@@ -56,13 +56,12 @@ mogą być głębokie, ale wejście do nich ma prowadzić z powyższego kręgos�
 | **Fundament / tożsamość** | Zachować świadomie przyjęte zasady i skonfrontować je z zachowaniem | Wartościowa warstwa odniesienia, lecz nie powinna być kolejnym planerem ani automatycznym sędzią | **Zostawić jako kontekst.** Odczyt dla Kierunku i refleksji; zapis tylko świadomy |
 | **Historia + tygodniowe/miesięczne rozliczenia** | Zobaczyć zmianę i wyciągnąć konsekwencję na przyszłość | Dane są, lecz historia łatwo kończy się na retrospekcji | **Wzmacniać.** Każdy ważny wniosek kończy się decyzją, korektą planu albo świadomym „bez zmian” |
 | **Stream + Notatki + Pocket + Wiki + Graf** | Szybko złapać materiał i odzyskać z niego użyteczną wiedzę | Dobra rura wejściowa, zbyt wiele magazynów i kolejek | **Scalić przepływ.** Jedno capture, jedna kolejka decyzji; graf/wiki pozostają warstwą pochodną |
-| **Oracle: Telegram + Czat w aplikacji** | Rozmowa ze wspólną pamięcią i możliwość wykonania działania | Dwa kanały są uzasadnione, jeśli współdzielą historię, możliwości i reguły | **Ujednolicić kontrakt, nie kanał.** Telegram = szybki kontakt; aplikacja = praca z artefaktami |
+| **Oracle: Telegram** | Rozmowa ze wspólną pamięcią i możliwość wykonania działania | Telegram jako jedyny kanał konwersacyjny; aplikacja skupia się na pracy z danymi/artefaktami | **Telegram SSOT.** Brak emulacji czatu w aplikacji |
 | **Zdrowie: Oura + Trening + Żywienie + Sauna + Kartoteka + Optyka** | Jedna odpowiedź: co dziś wspiera zdrowie i co wymaga uwagi | Bogate źródła, ale rozproszone ekrany i powtórzone podsumowania | **Scalić w Zdrowie.** Kartoteka jest osią kliniczną; Oura/trening/żywienie są przebiegiem bieżącym |
 | **Korelacje / analityka / predykcje** | Sprawdzić hipotezę i zmienić zachowanie | Silnik istnieje, ale wykres bez decyzji jest ślepą uliczką | **Ukryć jako narzędzie dowodowe.** Pokazywać tylko w kontekście decyzji, z jakością danych i możliwością odrzucenia |
 | **Terminy + Kalendarz** | Nie przegapić zdarzenia, obowiązku, badania lub odnowienia | Czytelny problem; terminy mogą zasilać plan dnia i Kartotekę | **Wzmacniać i podłączyć.** Bez osobnego rytuału obsługi |
 | **Finanse** | Widzieć zobowiązania i wykonać następną decyzję finansową | Rozbudowany interfejs wyprzedza realne użycie | **Zamrozić szerokość.** Zostawić cashflow, stałe koszty i jeden cel; resztę odsłaniać dopiero po użyciu |
 | **Rozwój / Nauka** | Wybrać umiejętność i wykonać konkretną sesję | Osobny system priorytetów konkuruje z Kierunkiem i Todo | **Scalić z Kierunkiem.** Umiejętność jest typem projektu, nie kolejnym systemem operacyjnym |
-| **Budzik / misje / natywne sensory** | Uruchomić poranny ruch i zapewnić wiarygodne powiadomienie | Funkcja peryferyjna; eksperymentalne sensory nie domykają głównej pętli | **Zamrozić poza niezawodnym budzikiem.** Zero nowych misji i sensorów przed dowodem regularnego użycia |
 | **Desktop Dashboard / Scoreboard** | Rozszerzone centrum dowodzenia do spokojnej pracy na komputerze | Intencjonalnie szerszy od mobile: synteza między domenami, analityka, diagnostyka i sterowanie | **Wzmacniać jako osobny tryb pracy.** Współdzielić dane i logikę z mobile, ale nie wymuszać tego samego układu |
 | **Ustawienia / stan systemu / Design System** | Konfiguracja, uprawnienia i diagnostyka | Potrzebne, ale nie są produktem codziennym | **Zostawić narzędziowo.** Bez ekspozycji jako równorzędny filar |
 
@@ -180,7 +179,7 @@ Ranking od największej bezpiecznej redukcji:
 2. `delete:` usunąć nieużywane
    `biometrics/oura/hooks/useScreenTimeCorrelation.ts`,
    `core/morningPlan/MorningPlanStep1Review.tsx` i `lib/native/emfSensor.ts`.
-3. `yagni:` nie rozwijać Finance, Growth, misji budzika ani nowych sensorów przed
+3. `yagni:` nie rozwijać Finance, Growth ani nowych sensorów przed
    potwierdzonym regularnym użyciem istniejącego minimum.
 4. `shrink:` zastąpić równoległe skróty i katalogi wejść jednym katalogiem nawigacji
    używanym przez mobile, desktop i Command Center.

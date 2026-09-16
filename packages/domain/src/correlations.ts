@@ -274,12 +274,14 @@ export const ALLOWED_OUTCOMES = new Set([
   'sleep_h', 'sleep_score', 'sleep_efficiency', 'deep_sleep_h', 'rem_sleep_h',
   'sleep_hrv', 'hrv', 'sleep_lowest_hr', 'rhr', 'readiness', 'recovery',
   'plan_done_pct', 'execution_score', 'day_score', 'mood_score', 'weight_kg',
-  'workout_strain', 'strain', 'cns_load'
+  'workout_strain', 'strain', 'cns_load',
+  'screen_time_min', 'phone_drift', 'dopamine_load_index'
 ]);
 
 export const ALLOWED_INPUTS = new Set([
   'caffeine_mg', 'caffeine_late_mg', 'last_coffee_hour', 'alcohol_units',
   'bedtime_hour', 'calories', 'calories_late', 'last_meal_hour', 'food_quality',
+  'dinner_hour', 'dinner_calories', 'dinner_carbs', 'dinner_fat', 'dinner_to_bed_gap_h',
   'insulin_load', 'steps', 'workout_strain', 'strain', 'screen_time_min',
   'fragmentation_index', 'phone_drift', 'phone_active_h', 'creatine_taken',
   'omega3_taken', 'lions_mane_taken', 'd3_taken', 'habit_count'
@@ -289,7 +291,9 @@ export const REDUNDANT_GROUPS = [
   ['sleep_h', 'sleep_score', 'sleep_efficiency', 'deep_sleep_h', 'rem_sleep_h', 'light_sleep_h', 'sleep_latency', 'sleep_hr', 'sleep_hrv', 'sleep_lowest_hr', 'restless_periods', 'temp_deviation'],
   ['readiness', 'recovery'],
   ['calories', 'protein', 'carbs', 'fat', 'sugar', 'fiber', 'insulin_load'],
-  ['workout_strain', 'strain', 'cns_load', 'leg_load', 'cardio', 'strength', 'workout_hr_avg', 'workout_hr_peak']
+  ['workout_strain', 'strain', 'cns_load', 'leg_load', 'cardio', 'strength', 'workout_hr_avg', 'workout_hr_peak'],
+  ['screen_time_min', 'fragmentation_index', 'phone_active_h', 'dopamine_load_index'],
+  ['dinner_calories', 'dinner_carbs', 'dinner_fat']
 ];
 
 export function isAllowedInput(metric: string): boolean {
@@ -362,6 +366,7 @@ export function getControllability(metric: string): number {
     m.includes('caffeine') || m.includes('coffee') ||
     m.includes('alcohol') || m.includes('alkohol') ||
     m.includes('meal') || m.includes('calories_late') ||
+    m.includes('dinner') || m.includes('walenie') || m.includes('pmo') || m.includes('masturb') ||
     m.includes('bedtime') || m.includes('screen') ||
     m.includes('phone_drift') || m.includes('phone_active') ||
     m.includes('creatine') || m.includes('omega3') || m.includes('lions_mane') ||
@@ -422,6 +427,12 @@ export function computeNaturalEffect(
     formattedDelta = `${delta > 0 ? '+' : ''}${delta.toFixed(1)} bpm`;
   } else if (yMetric === 'plan_done_pct') {
     formattedDelta = `${delta > 0 ? '+' : ''}${Math.round(delta)}%`;
+  } else if (yMetric === 'screen_time_min') {
+    formattedDelta = `${delta > 0 ? '+' : ''}${Math.round(delta)} min`;
+  } else if (yMetric === 'phone_drift') {
+    formattedDelta = `${delta > 0 ? '+' : ''}${Math.round(delta * 100)}% szans`;
+  } else if (yMetric === 'weight_kg') {
+    formattedDelta = `${delta > 0 ? '+' : ''}${delta.toFixed(1)} kg`;
   } else {
     formattedDelta = `${delta > 0 ? '+' : ''}${delta.toFixed(1)}`;
   }

@@ -1,4 +1,4 @@
-import { Pressable, ControlInput } from '../ui/ControlPrimitives';
+import { Pressable, ControlInput, ControlTextarea } from '../ui/ControlPrimitives';
 import { CheckSquare, Palette, Plus, SquarePen } from 'lucide-react';
 import NoteColorPicker from './NoteColorPicker';
 import { getColor } from './keepUtils';
@@ -66,7 +66,7 @@ export default function KeepQuickCapture({ onCreate }: KeepQuickCaptureProps) {
             }}
           />
 
-          <textarea
+          <ControlTextarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={isChecklist ? 'Wpisz pozycje listy (każda w nowej linii)...' : 'Treść notatki...'}

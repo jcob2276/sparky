@@ -1,12 +1,14 @@
 import { Pressable } from '../ui/ControlPrimitives';
 import { TIMEZONE } from '../../lib/date';
 import { Suspense, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Moon } from 'lucide-react';
 import { useSession } from '../../store/useStore';
 import PowerList from '../lifestyle/PowerList';
 import FoodQuickCapture from './nutrition/FoodQuickCapture';
 import Spinner from '../ui/Spinner';
 import { useDashboardContext } from './context/DashboardContext';
+import { dashboardKeys } from '../../lib/queryKeys';
 import TodayStatusStrip from './TodayStatusStrip';
 import MarathonCountdownCard from './MarathonCountdownCard';
 import { getSprintInfo, SPRINT_SEASON } from '../../lib/growth/sprintUtils';
@@ -38,6 +40,7 @@ function isAfter20(): boolean {
 export function DashboardDzisTab() {
   const session = useSession();
   const s = useDashboardContext();
+  const queryClient = useQueryClient();
 
   const [lived] = useState(() => Math.floor((Date.now() - BORN.getTime()) / 86400000));
   const [sprint] = useState(() => getSprintInfo());
@@ -102,7 +105,20 @@ export function DashboardDzisTab() {
         {/* Lewa kolumna: Planowanie, zadania i szybki Posiłek */}
         <div className="space-y-5">
           {weeklyReviewNudge}
-          <PowerList session={session} todayWin={s.todayWin} onUpdate={s.refresh} planDaySignal={s.planDaySignal} />
+          <PowerList
+            todayWin={s.todayWin}
+            onUpdate={(data) => {
+              if (data && 'id' in data) {
+                queryClient.setQueryData(dashboardKeys.main(session.user.id), (old: unknown) => {
+                  if (!old || typeof old !== 'object') return old;
+                  return { ...(old as Record<string, unknown>), todayWin: data };
+                });
+              } else {
+                void s.refresh();
+              }
+            }}
+            planDaySignal={s.planDaySignal}
+          />
           <div id="meal-composer">
             <FoodQuickCapture
               refreshSignal={s.nutritionKey}

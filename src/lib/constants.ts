@@ -13,17 +13,6 @@ export const TIMEOUTS = {
 export const BMI_NORMAL_LOW = 18.5;
 export const BMI_NORMAL_HIGH = 25;
 
-export const LIMITER_PL: Record<string, string> = {
-  sleep: 'sen',
-  calories: 'kalorie',
-  carbs: 'węgle',
-  cardio_load: 'koszt cardio',
-  strength_load: 'siłownia',
-  mental_load: 'głowa',
-  recovery_ok: 'OK',
-};
-
-
 /** Fixed (non-parameterized) localStorage keys shared across components. */
 export const STORAGE_KEYS = {
   THEME: 'vanguard_theme',

@@ -1,4 +1,5 @@
 import { logCriticalError } from "../../_shared/errorLogging.ts";
+import { mintRecordFactId } from "../../_shared/mintRecordFactId.ts";
 
 export async function logOracleRun(supabase: any, params: {
   user_id: string;
@@ -164,4 +165,56 @@ export async function applyInsightCardsMutation(supabase: any, user_id: string, 
   } catch (e: any) {
     console.warn('[oracle] insight_cards_mutation failed (non-fatal):', e.message);
   }
+}
+
+export async function processOracleMutations(
+  supabase: any,
+  user_id: string,
+  structuredResponse: Record<string, any>,
+  agent_run_mode?: string,
+): Promise<any> {
+  if (structuredResponse.clarification_request) {
+    await saveClarificationRequest(supabase, user_id, structuredResponse.clarification_request);
+  }
+  if (structuredResponse.schedule_mutation) {
+    console.log("[oracle] schedule_mutation emitted:", (structuredResponse.schedule_mutation as Record<string, unknown>)?.action);
+  }
+
+  if (structuredResponse.mint_fact_id) {
+    try {
+      const factId = await mintRecordFactId(user_id);
+      console.log("[oracle] minted fact_id:", factId);
+      structuredResponse._minted_fact_id = factId;
+    } catch (e: unknown) {
+      console.warn("[oracle] mintRecordFactId failed (non-fatal):", (e as Error).message);
+    }
+  }
+
+  let pendingAction = null;
+  if (agent_run_mode === "confirm") {
+    if (structuredResponse.insight_cards_mutation || structuredResponse.schedule_mutation) {
+      pendingAction = await createPendingAction(
+        supabase, user_id,
+        structuredResponse.insight_cards_mutation ? "insight_cards_mutation" : "schedule_mutation",
+        {
+          insight_cards_mutation: structuredResponse.insight_cards_mutation || null,
+          schedule_mutation: structuredResponse.schedule_mutation || null,
+        },
+      );
+      delete structuredResponse.insight_cards_mutation;
+      delete structuredResponse.schedule_mutation;
+    }
+  } else if (agent_run_mode === "readOnly") {
+    if (structuredResponse.insight_cards_mutation || structuredResponse.schedule_mutation) {
+      console.log("[oracle] readOnly mode: ignoring mutations");
+      delete structuredResponse.insight_cards_mutation;
+      delete structuredResponse.schedule_mutation;
+    }
+  }
+
+  if (structuredResponse.insight_cards_mutation) {
+    await applyInsightCardsMutation(supabase, user_id, structuredResponse.insight_cards_mutation);
+  }
+
+  return pendingAction;
 }

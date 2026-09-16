@@ -49,35 +49,39 @@ export const mapNoteRows = (rows: unknown[] | null): Note[] => (
 
 // ── QUERIES ──
 
+export async function fetchNotesList(userId: string): Promise<Note[]> {
+  // Primary query trying note_attachments and deleted_at filter
+  const primaryRes = await supabase
+    .from('vanguard_notes')
+    .select('*, note_attachments(file_name, ocr_text, transcript), note_drawings(ocr_text, preview_storage_path)')
+    .eq('user_id', userId)
+    .is('deleted_at', null)
+    .order('is_pinned', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (!primaryRes.error && primaryRes.data) {
+    return mapNoteRows(primaryRes.data);
+  }
+
+  // Safe fallback query if DB schema lacks deleted_at column or note_attachments table
+  const fallbackRes = await supabase
+    .from('vanguard_notes')
+    .select('*')
+    .eq('user_id', userId)
+    .order('is_pinned', { ascending: false })
+    .order('created_at', { ascending: false });
+
+  if (fallbackRes.error) throw new Error(fallbackRes.error.message);
+  return mapNoteRows(fallbackRes.data);
+}
+
 export function useNotes(userId: string) {
   return useQuery({
     queryKey: notesKeys.list(userId),
-    queryFn: async () => {
-      // Primary query trying note_attachments and deleted_at filter
-      const primaryRes = await supabase
-        .from('vanguard_notes')
-        .select('*, note_attachments(file_name, ocr_text, transcript), note_drawings(ocr_text, preview_storage_path)')
-        .eq('user_id', userId)
-        .is('deleted_at', null)
-        .order('is_pinned', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (!primaryRes.error && primaryRes.data) {
-        return mapNoteRows(primaryRes.data);
-      }
-
-      // Safe fallback query if DB schema lacks deleted_at column or note_attachments table
-      const fallbackRes = await supabase
-        .from('vanguard_notes')
-        .select('*')
-        .eq('user_id', userId)
-        .order('is_pinned', { ascending: false })
-        .order('created_at', { ascending: false });
-
-      if (fallbackRes.error) throw new Error(fallbackRes.error.message);
-      return mapNoteRows(fallbackRes.data);
-    },
+    queryFn: () => fetchNotesList(userId),
     enabled: !!userId,
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 }
 

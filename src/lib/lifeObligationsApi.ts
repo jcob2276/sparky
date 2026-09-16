@@ -57,7 +57,7 @@ function normalizeRow(row: Record<string, unknown>): LifeObligation {
   };
 }
 
-async function fetchLifeObligations(userId: string): Promise<LifeObligation[]> {
+export async function fetchLifeObligations(userId: string): Promise<LifeObligation[]> {
   const { data, error } = await supabase
     .from('life_obligations')
     .select('*')
@@ -74,6 +74,8 @@ export function useLifeObligations(userId: string | undefined) {
     queryKey: lifeObligationKeys.list(userId ?? ''),
     queryFn: () => fetchLifeObligations(userId!),
     enabled: Boolean(userId),
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 }
 

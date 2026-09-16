@@ -1,174 +1,72 @@
-/** Shared types for growth domain — used by both lib/ and components/growth/hooks/. */
-import type {
-  LearningSkill,
-  LearningSkillSnapshot,
-  LearningWeekFocus,
-  LearningWeekPin,
-} from './growth';
-import type {
-  GrowthPrevWeekSummary,
-  PowerListWeekStats,
-  WeekDirectionGoals,
-} from './growthWeek';
-
-export interface GrowthLinkRow {
-  id: string;
-  url: string;
-  title: string;
-  status: string;
-  category: string;
-  resource_type: string | null;
-  thumbnail_url: string | null;
-  domain: string;
-  updated_at?: string | null;
-}
-
-export interface GrowthWeekNote {
-  id: string;
-  title: string;
-  created_at: string;
-}
-
-export interface GrowthTodoRow {
-  id: string;
-  title: string;
-  status: string;
-}
-
-export interface GrowthProjectSummary {
-  id: string;
-  name: string;
-  goal: string | null;
-  status: string;
-  primarySkillId: string | null;
-  kpis: { id: string; name: string; current: number | null; target: number | null }[];
-}
+export type LibraryItemType = 'book' | 'course' | 'article' | 'podcast' | 'video' | 'note' | 'experiment';
+export type LibraryItemStatus = 'want_to_learn' | 'in_progress' | 'processed' | 'applied';
 
 export interface LibraryItem {
   id: string;
   title: string;
-  type: 'book' | 'article' | 'podcast' | 'video' | 'course' | 'note' | 'mentor' | 'experiment';
-  status: 'inbox' | 'want_to_learn' | 'in_progress' | 'processed' | 'applied' | 'deferred';
+  type: LibraryItemType;
+  status: LibraryItemStatus;
   url?: string;
-  connectedNotes?: string;
-  connectedSkill?: string;
-  connectedDecision?: string;
-  connectedPractice?: string;
+  note?: string;
+  connectedProjectId?: string;
   createdAt: string;
 }
+
+export type PracticeCompetenceLevel = 'try' | 'can_do' | 'apply_regularly';
 
 export interface PracticeEvidence {
   id: string;
   title: string;
-  type: 'task' | 'project' | 'talk' | 'material' | 'feature' | 'workout' | 'problem' | 'feedback' | 'result';
   date: string;
-  skillId?: string;
-  projectId?: string;
-  competenceLevel: 'consume' | 'understand' | 'try' | 'can_do' | 'apply_regularly';
+  competenceLevel: PracticeCompetenceLevel;
   details: string;
+  projectId?: string;
 }
 
-export interface DevelopmentReview {
+interface DevelopmentReview {
   learned: string;
   applied: string;
   results: string;
-  consumedOnly: string;
-  abandoned: string;
-  newGap: string;
-  nextPractice: string;
+  abandoned?: string;
+  nextPractice?: string;
   updatedAt?: string;
 }
 
-interface ActivePath {
-  mainSkillId?: string;
-  mainSkillWhy?: string;
-  mainSkillDefinition?: string;
-  mainSkillMaterials?: string[];
-  mainSkillExercises?: string[];
-  mainSkillTasks?: string[];
-  mainSkillEvidences?: string[];
-  mainSkillReviewDate?: string;
-
-  subSkillId?: string;
-  subSkillWhy?: string;
-  subSkillDefinition?: string;
-  subSkillMaterials?: string[];
-  subSkillExercises?: string[];
-  subSkillTasks?: string[];
-  subSkillEvidences?: string[];
-  subSkillReviewDate?: string;
-
-  experimentTitle?: string;
-  experimentWhy?: string;
-  experimentDefinition?: string;
-  experimentMaterials?: string[];
-  experimentExercises?: string[];
-  experimentTasks?: string[];
-  experimentEvidences?: string[];
-  experimentReviewDate?: string;
-}
-
 export interface VanguardIdentityData {
-  long_term_mission: string | null;
-  pillars: unknown | null;
-  avoidance_triggers: unknown | null;
-  behavioral_baseline: unknown | null;
-  updated_at: string | null;
   user_id: string;
-
-  // New fields
   development_theme: string | null;
   development_gap: string | null;
   current_role: string | null;
   developed_role: string | null;
-  values_standards: string[] | null;
-  confirming_behaviors: string[] | null;
-  conflicting_behaviors: string[] | null;
-  active_path: ActivePath | null;
   library_items: LibraryItem[] | null;
   practice_evidences: PracticeEvidence[] | null;
   development_review: DevelopmentReview | null;
+  updated_at: string | null;
 }
 
-export interface GrowthContextData {
-  weekIntention: string | null;
-  weekCommitment: string | null;
-  weekGoals: WeekDirectionGoals;
-  sprintGoal: string | null;
-  sprintLabel: string | null;
-  activeProjectName: string | null;
-  kpiName: string | null;
-  kpiValue: number | null;
-  kpiTarget: number | null;
-  kpiId: string | null;
-}
-
-export interface GrowthCheckpoint {
+export interface GrowthTaskItem {
   id: string;
-  project_id: string;
-  project_name: string;
   title: string;
-  due_date: string;
+  project_id: string | null;
   status: string;
-  daysOverdue: number; // negative = upcoming, positive = overdue
+  due_date: string | null;
+  priority: string | null;
 }
 
-export interface GrowthDataResult {
-  skills: LearningSkill[];
-  snapshots: LearningSkillSnapshot[];
-  focus: LearningWeekFocus | null;
-  pins: LearningWeekPin[];
-  unreadLinks: GrowthLinkRow[];
-  readLinks: GrowthLinkRow[];
-  openTodos: GrowthTodoRow[];
-  context: GrowthContextData;
-  rozwojNotesCount: number;
-  weekNotes: GrowthWeekNote[];
-  powerListStats: PowerListWeekStats;
-  prevWeekSummary: GrowthPrevWeekSummary | null;
-  weekFocusScore: number | null;
-  activeProjects: GrowthProjectSummary[];
-  upcomingCheckpoints: GrowthCheckpoint[];
+export interface GrowthProjectItem {
+  id: string;
+  name: string;
+  goal: string | null;
+  pillar: string | null;
+  status: string;
+  deadline: string | null;
+  openTasksCount: number;
+}
+
+export interface GrowthDashboardData {
   identity: VanguardIdentityData | null;
+  projects: GrowthProjectItem[];
+  tasks: GrowthTaskItem[];
+  libraryItems: LibraryItem[];
+  practiceEvidences: PracticeEvidence[];
 }
-

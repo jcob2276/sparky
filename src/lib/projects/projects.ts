@@ -208,16 +208,8 @@ export async function listDreams(userId: string) {
   return data || [];
 }
 
-export async function listActiveParentLearningSkills(userId: string) {
-  const { data, error } = await supabase
-    .from('learning_skills')
-    .select('id, label')
-    .eq('user_id', userId)
-    .eq('active', true)
-    .is('parent_id', null)
-    .order('sort_order');
-  if (error) throw error;
-  return data || [];
+export async function listActiveParentLearningSkills(_userId: string): Promise<{ id: string; label: string }[]> {
+  return [];
 }
 
 export async function listGoalKpis(userId: string) {

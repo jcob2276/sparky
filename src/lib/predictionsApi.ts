@@ -53,11 +53,14 @@ export async function resolveCustomPrediction(
     .from('vanguard_predictions')
     .select('predicted_value')
     .eq('id', predictionId)
-    .single();
+    .maybeSingle();
 
   if (selectErr) {
     console.error('[predictionsApi] fetch prediction for resolution failed:', selectErr.message);
     throw new Error(selectErr.message);
+  }
+  if (!pred) {
+    throw new Error('Nie znaleziono prognozy o podanym identyfikatorze.');
   }
 
   const brierScore = Math.pow((pred?.predicted_value || 0) - actualValue, 2);

@@ -33,12 +33,12 @@ export default function FoodSearchResults(props: FoodSearchResultsProps) {
           </p>
           {!externalSearched && (
             <Pressable variant="outline" size="sm" onClick={searchExternal} loading={externalSearching}
-              icon={<Globe2 size={13} />} className="inline-flex">
+              icon={<Globe2 size={13} />} className="touch-manipulation inline-flex">
               Szukaj w bazie produktów
             </Pressable>
           )}
           <Pressable variant="tonal" size="sm" onClick={() => openNaturalLanguage(query)}
-            icon={<Sparkles size={13} />} className="inline-flex">
+            icon={<Sparkles size={13} />} className="touch-manipulation inline-flex">
             Opisz posiłek słowami
           </Pressable>
         </div>

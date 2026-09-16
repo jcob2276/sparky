@@ -20,8 +20,8 @@ describe('DrawingToolbar', () => {
       ruler={false}
       onRulerChange={vi.fn()}
     />);
-    fireEvent.click(screen.getByRole('button', { name: 'Ołówek' }));
-    expect(onToolChange).toHaveBeenCalledWith('pencil');
+    fireEvent.click(screen.getByRole('button', { name: 'Zakreślacz' }));
+    expect(onToolChange).toHaveBeenCalledWith('highlighter');
     expect(screen.getByRole('button', { name: 'Lasso' })).toBeVisible();
     expect(screen.getByRole('button', { name: 'Gumka obiektowa' })).toBeVisible();
   });

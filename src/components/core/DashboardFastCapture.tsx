@@ -4,8 +4,9 @@ import { Plus } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Sheet from '../ui/Sheet';
 import { useHaptics } from '../../hooks/useHaptics';
+import { prefetchWorkspaceRoute } from '../../lib/workspacePrefetch';
 
-export interface FastCaptureItem {
+interface FastCaptureItem {
   label: string;
   emoji: string;
   color: string;
@@ -17,6 +18,7 @@ interface ToolItem {
   label: string;
   icon: LucideIcon;
   action: () => void;
+  route?: string;
   category?: 'operacje' | 'strategia_zdrowie';
 }
 
@@ -29,7 +31,7 @@ interface Props {
   onRefresh?: () => void;
 }
 
-export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools }: Props) {
+export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools, userId }: Props) {
   const { selection } = useHaptics();
 
   const run = (item: FastCaptureItem) => {
@@ -39,11 +41,11 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
   };
 
   const itemStyles: Record<string, string> = {
-    'Dodaj Jedzenie': 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
-    'Zaloguj Trening': 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
-    'Wpisz Wagę': 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/20',
-    'Zaloguj Saunę': 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border-orange-500/20',
-    'Zmierz Wzrok': 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20',
+    'Dodaj Jedzenie': 'bg-status-success/10 text-status-success border-status-success/20',
+    'Zaloguj Trening': 'bg-status-warning/10 text-status-warning border-status-warning/20',
+    'Wpisz Wagę': 'bg-primary/10 text-primary border-primary/20',
+    'Zaloguj Saunę': 'bg-status-warning/10 text-status-warning border-status-warning/20',
+    'Zmierz Wzrok': 'bg-primary/10 text-primary border-primary/20',
   };
 
   return (
@@ -62,7 +64,7 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
             <div className="grid grid-cols-3 gap-2.5">
               {items.map((item) => {
                 const { label, icon: Icon } = item;
-                const style = itemStyles[label] || 'bg-black/5 dark:bg-white/5 text-primary border-black/8 dark:border-white/10';
+                const style = itemStyles[label] || 'bg-surface-2/60 text-primary border-border-custom/40';
                 return (
                   <Pressable
                     key={label}
@@ -80,13 +82,13 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
             </div>
           </div>
 
-          <div className="h-px bg-black/8 dark:bg-white/10" />
+          <div className="h-px bg-border-custom/40" />
 
           {/* Narzędzia */}
           <div>
             <p className="ios-section-label mb-2 px-1">Narzędzia</p>
             <div className="grid grid-cols-3 gap-2.5 max-h-[38vh] overflow-y-auto pr-0.5">
-              {tools.map(({ label, icon: Icon, action }) => (
+              {tools.map(({ label, icon: Icon, action, route }) => (
                 <Pressable
                   key={label}
                   variant="ghost"
@@ -95,9 +97,15 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
                     action();
                     onClose();
                   }}
+                  onMouseEnter={() => {
+                    if (route) prefetchWorkspaceRoute(userId, route);
+                  }}
+                  onTouchStart={() => {
+                    if (route) prefetchWorkspaceRoute(userId, route);
+                  }}
                   className="flex flex-col items-center gap-1.5 rounded-2xl p-2.5 text-center active:scale-95 transition-transform"
                 >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-black/8 dark:border-white/10 bg-black/5 dark:bg-white/5 text-text-primary shadow-sm hover:border-primary/30 transition-colors">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border-custom/40 bg-surface-2/60 text-text-primary shadow-sm hover:border-primary/30 transition-colors">
                     <Icon size={19} />
                   </div>
                   <span className="text-2xs font-semibold tracking-tight text-text-primary truncate w-full">{label}</span>
@@ -109,37 +117,3 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
       </Sheet>
   );
 });
-
-interface FabProps {
-  active: boolean;
-  onToggle: () => void;
-}
-
-export function DashboardFastCaptureFAB({ active, onToggle }: FabProps) {
-  const { selection } = useHaptics();
-
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        selection();
-        onToggle();
-      }}
-      title="Otwórz akcje i narzędzia"
-      aria-label="Otwórz akcje i narzędzia"
-      className="fixed left-1/2 -translate-x-1/2 z-[var(--z-modal)] group flex items-center justify-center w-12 h-12 rounded-full cursor-pointer transition-transform duration-200 ease-out active:scale-90 hover:scale-105"
-      style={{ bottom: 'max(76px, calc(env(safe-area-inset-bottom) + 76px))' }}
-    >
-      <div className="absolute inset-0 rounded-full bg-primary/35 blur-md -z-10 group-hover:bg-primary/55 transition-all duration-300" />
-      <div className="relative flex items-center justify-center w-full h-full rounded-full bg-gradient-to-tr from-blue-600 via-primary to-indigo-500 shadow-lg shadow-primary/30 ring-1 ring-white/40 before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-b before:from-white/30 before:to-transparent before:pointer-events-none">
-        <Plus
-          size={22}
-          strokeWidth={2.5}
-          className={`text-white drop-shadow-xs transition-transform duration-300 ease-out ${
-            active ? 'rotate-45' : 'rotate-0'
-          }`}
-        />
-      </div>
-    </button>
-  );
-}

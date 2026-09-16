@@ -1,7 +1,6 @@
 import Button from '../ui/Button';
 import { ControlInput, ControlSelect } from '../ui/ControlPrimitives';
 import { useEffect, useState } from 'react';
-import type { Session } from '@supabase/supabase-js';
 import { Link } from 'react-router-dom';
 import { Save, MapPin, Watch, Calendar, ArrowLeft, User } from 'lucide-react';
 import { isNativePlatform } from '../../lib/native/platform';
@@ -14,24 +13,28 @@ import { useUserSettings, useUpdateUserSettings } from '../../hooks/useUserSetti
 import { useQueryClient } from '@tanstack/react-query';
 import { userSettingsKeys } from '../../lib/queryKeys';
 import { useSyncActions } from '../../hooks/useSyncActions';
+import { useSession } from '../../store/useStore';
 import { notify } from '../../lib/notify';
 import type { Tables } from '../../lib/database.types';
 import { Card } from '../ui/Card';
 import AiContextSettings from './AiContextSettings';
 import FluxSettingsSection from './FluxSettingsSection';
 
-export default function SettingsView({ session }: { session: Session }) {
+export default function SettingsView() {
+  const session = useSession();
   const queryClient = useQueryClient();
-  const { data: userSettings } = useUserSettings(session.user.id);
+  const userId = session?.user?.id ?? '';
+  const { data: userSettings } = useUserSettings(userId);
   const updateSettingsMutation = useUpdateUserSettings();
   const [form, setForm] = useState<Partial<Tables<'user_settings'>>>({});
   const [profile, setProfile] = useState<Partial<Tables<'nutrition_profile'>>>({});
   const [saving, setSaving] = useState(false);
 
   const { syncCalendar, startGoogleAuth } = useSyncActions({
-    userId: session.user.id,
-    accessToken: session.access_token,
+    userId: session?.user?.id ?? '',
+    accessToken: session?.access_token ?? '',
     onRefresh: () => {
+      if (!session?.user?.id) return;
       void queryClient.invalidateQueries({
         queryKey: userSettingsKeys.detail(session.user.id),
       });
@@ -46,20 +49,23 @@ export default function SettingsView({ session }: { session: Session }) {
   useEffect(() => {
     async function loadProfile() {
       try {
-        const data = await fetchNutritionProfile(session.user.id);
+        const data = await fetchNutritionProfile(userId);
         if (data) setProfile(data);
       } catch (err: unknown) {
         console.error('[SettingsView] Failed to load profile:', err);
       }
     }
-    void loadProfile();
-  }, [session.user.id]);
+    if (userId) {
+      void loadProfile();
+    }
+  }, [userId]);
 
   const save = async () => {
+    if (!userId) return;
     setSaving(true);
     try {
       await updateSettingsMutation.mutateAsync({
-        user_id: session.user.id,
+        user_id: userId,
         oura_token: form.oura_token || null,
         home_lat: form.home_lat ?? null,
         home_lng: form.home_lng ?? null,
@@ -67,7 +73,7 @@ export default function SettingsView({ session }: { session: Session }) {
       });
 
       await upsertNutritionProfile({
-        user_id: session.user.id,
+        user_id: userId,
         birth_date: profile.birth_date || null,
         sex: profile.sex || null,
         height_cm: profile.height_cm ? Number(profile.height_cm) : null,
@@ -85,6 +91,8 @@ export default function SettingsView({ session }: { session: Session }) {
       setSaving(false);
     }
   };
+
+  if (!session) return null;
 
   return (
     <div className="min-h-screen bg-background p-5 pb-24 max-w-lg mx-auto space-y-6">

@@ -6,7 +6,7 @@
  *       - Upcoming alarm trigger calculations
  */
 
-import type { CalRow } from '../../components/calendar/calendarHelpers';
+import type { CalRow } from '../calendar/calendarHelpers';
 
 export interface EKAlarmOption {
   minutes: number;

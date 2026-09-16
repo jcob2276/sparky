@@ -1,6 +1,5 @@
 import {
   aggregateHardSetsByWeek,
-  computeAcwr,
   creditHardSetToTags,
   type HardSetsWeekBucket,
   type SessionLogLike,
@@ -41,38 +40,4 @@ export function buildHardSetsWeekly(
   const weekStarts = lastNWeekStarts(weeks);
   const nextMonday = shiftDateStr(weekStarts[weekStarts.length - 1], 7);
   return aggregateHardSetsByWeek(sessions, [...weekStarts, nextMonday], creditForLog);
-}
-
-export function topMuscleHardSets(
-  buckets: HardSetsWeekBucket[],
-  limit = 6,
-): Array<{ tag: string; total: number; lastWeek: number }> {
-  const totals = new Map<string, { total: number; lastWeek: number }>();
-  const last = buckets[buckets.length - 1];
-
-  for (const bucket of buckets) {
-    for (const [tag, n] of Object.entries(bucket.byTag)) {
-      const cur = totals.get(tag) ?? { total: 0, lastWeek: 0 };
-      cur.total += n;
-      totals.set(tag, cur);
-    }
-  }
-  if (last) {
-    for (const [tag, n] of Object.entries(last.byTag)) {
-      const cur = totals.get(tag) ?? { total: 0, lastWeek: 0 };
-      cur.lastWeek = n;
-      totals.set(tag, cur);
-    }
-  }
-
-  return [...totals.entries()]
-    .map(([tag, v]) => ({ tag, ...v }))
-    .sort((a, b) => b.lastWeek - a.lastWeek || b.total - a.total)
-    .slice(0, limit);
-}
-
-export function buildAcwrFromStrain(
-  strainRows: Array<{ date: string; strain_score?: number | null }>,
-) {
-  return computeAcwr(strainRows);
 }

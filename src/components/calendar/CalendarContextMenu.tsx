@@ -18,6 +18,7 @@ import {
 import type { CalRow } from './calendarHelpers';
 import { addDays, detectVideoCallUrl } from './calendarHelpers';
 import { LIFE_SPHERES } from '../../lib/projects/lifeSpheres';
+import { Pressable } from '../ui/ControlPrimitives';
 
 export interface CalendarContextMenuState {
   x: number;
@@ -48,7 +49,7 @@ function MenuItem({
   onClick: () => void;
 }) {
   return (
-    <button
+    <Pressable
       type="button"
       role="menuitem"
       onClick={onClick}
@@ -60,7 +61,7 @@ function MenuItem({
     >
       {icon}
       <span>{label}</span>
-    </button>
+    </Pressable>
   );
 }
 
@@ -74,7 +75,7 @@ function CategoryGrid({
   return (
     <div className="grid grid-cols-2 gap-1 px-1 py-0.5">
       {LIFE_SPHERES.map((sphere) => (
-        <button
+        <Pressable
           key={sphere.id}
           type="button"
           role="menuitem"
@@ -87,7 +88,7 @@ function CategoryGrid({
         >
           <span className={`w-2 h-2 rounded-full ${sphere.dot}`} />
           <span className="truncate">{sphere.label.split(' ')[0]}</span>
-        </button>
+        </Pressable>
       ))}
     </div>
   );
@@ -195,7 +196,7 @@ export function CalendarContextMenu({
         <span className="truncate font-bold text-text-primary max-w-[160px]">
           {event.summary || 'Bez tytułu'}
         </span>
-        <button
+        <Pressable
           type="button"
           role="menuitem"
           onClick={onClose}
@@ -203,7 +204,7 @@ export function CalendarContextMenu({
           className="p-1 text-text-muted hover:text-text-primary rounded-full focus-visible:ring-1 focus-visible:ring-primary outline-none"
         >
           <X size={12} />
-        </button>
+        </Pressable>
       </div>
 
       {/* Video Call Quick Join Button if available */}

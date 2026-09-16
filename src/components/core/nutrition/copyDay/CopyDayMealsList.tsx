@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Spinner from '../../../ui/Spinner';
 import { MEAL_TYPES, type MealTypeId } from '../../../../lib/health/foodLogging';
 import type { TodayFoodEntry } from '../../../../lib/health/composerTodayMealsApi';
@@ -14,7 +15,7 @@ interface CopyDayMealsListProps {
   onCopyMeal: (type: MealTypeId) => void;
 }
 
-export default function CopyDayMealsList({
+export default memo(function CopyDayMealsList({
   isLoading,
   hasEntries,
   groupedEntries,
@@ -56,11 +57,11 @@ export default function CopyDayMealsList({
             onToggleItem={onToggleItem}
             onToggleMeal={onToggleMeal}
             copying={copying}
-            onCopyMeal={() => onCopyMeal(m.id)}
+            onCopyMeal={onCopyMeal}
           />
         );
       })}
     </div>
   );
-}
+});
 

@@ -34,7 +34,7 @@ interface AnalyzeFoodQualityError {
   error?: string;
 }
 
-export type AnalyzeFoodQualityResponse = AnalyzeFoodQualitySingle | AnalyzeFoodQualityRange | AnalyzeFoodQualityError;
+type AnalyzeFoodQualityResponse = AnalyzeFoodQualitySingle | AnalyzeFoodQualityRange | AnalyzeFoodQualityError;
 
 export interface AnalyzeTrainingLoadResponse {
   success?: boolean;
@@ -143,7 +143,7 @@ interface CaptureStreamResponse { ok: boolean; type: 'stream'; data: Record<stri
 interface CaptureTranscriptionResponse { ok: boolean; type: 'transcription'; transcript: string; }
 interface CaptureOcrResponse { ok: boolean; type: 'ocr'; text: string; }
 
-export type CaptureResponse = CaptureVaultResponse | CaptureLinkResponse | CaptureStreamResponse | CaptureTranscriptionResponse | CaptureOcrResponse;
+type CaptureResponse = CaptureVaultResponse | CaptureLinkResponse | CaptureStreamResponse | CaptureTranscriptionResponse | CaptureOcrResponse;
 
 interface NightlyResponse {
   success: boolean; run_id: string;
@@ -185,7 +185,7 @@ interface LookupFoodResponse {
   incompleteCount: number;
 }
 
-export interface ParseWorkoutNLResponse {
+interface ParseWorkoutNLResponse {
   workout_name?: string;
   exercises: Array<{
     name: string;

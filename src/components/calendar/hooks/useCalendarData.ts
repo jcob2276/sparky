@@ -253,8 +253,6 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     today,
     homeLat: userSettings?.home_lat,
     homeLng: userSettings?.home_lng,
-    rangeStart: visibleRange.rangeStart,
-    rangeEnd: visibleRange.rangeEnd,
   });
 
   const fetchEvents = useCallback(async () => {

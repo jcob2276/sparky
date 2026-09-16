@@ -1,5 +1,7 @@
 import { FileText, Download } from 'lucide-react';
 import { Card } from '../../ui/Card';
+import { Pressable } from '../../ui/ControlPrimitives';
+import { downloadFromUrl } from '../../../lib/download';
 import type { MedicalDocumentRow } from '../../../lib/health/medicalAnalytics';
 import { formatMedicalDocumentType } from '../../../lib/health/medicalRecords';
 
@@ -60,14 +62,16 @@ export default function MedicalDocHistory({ documents }: MedicalDocHistoryProps)
                 </span>
                 
                 {doc.source_path ? (
-                  <a
-                    href={doc.source_path}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Pressable
+                    type="button"
+                    onClick={() => {
+                      const filename = doc.source_name || 'dokument-medyczny.pdf';
+                      void downloadFromUrl(doc.source_path!, filename);
+                    }}
                     className="flex items-center gap-1 font-black uppercase text-primary hover:underline cursor-pointer"
                   >
                     <Download size={10} /> Pobierz źródło
-                  </a>
+                  </Pressable>
                 ) : (
                   <span className="text-text-muted italic">Raport cyfrowy</span>
                 )}

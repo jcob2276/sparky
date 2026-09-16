@@ -42,7 +42,7 @@ export default function DailySnapshotCard() {
   const showScorePicker = hourNum >= 17 && dayScore == null && !isYesterday;
 
   return (
-    <section className="animate-fadeIn card p-5 space-y-4">
+    <section className="card p-5 space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Brain size={13} className="text-primary" />

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { Minus, Plus } from 'lucide-react';
-import { Pressable } from '../../../ui/ControlPrimitives';
+import { Pressable, ControlInput } from '../../../ui/ControlPrimitives';
 import { MEAL_TYPES } from '../../../../lib/health/foodLogging';
 import { useHaptics } from '../../../../hooks/useHaptics';
 
@@ -111,7 +111,7 @@ export function PortionStepper({
           <Minus size={18} />
         </Pressable>
         <div className="flex items-baseline justify-center gap-1 min-w-[130px] rounded-2xl border border-border-custom/80 bg-surface-solid/30 px-4 py-2 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
-          <input
+          <ControlInput
             type="number"
             inputMode="numeric"
             value={grams}

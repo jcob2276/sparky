@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { BookOpen, Calendar, LayoutGrid, ListTodo, Bell, Sparkles, StickyNote, X } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
+import { useUserId } from '../../store/useStore';
+import { prefetchWorkspaceRoute } from '../../lib/workspacePrefetch';
 import './workspaceToolsLauncher.css';
 
 const TOOLS = [
@@ -22,6 +24,11 @@ interface Props {
 
 export default function WorkspaceToolsLauncher({ active, onNavigate, placement = 'bottom', badgeCount = 0 }: Props) {
   const [open, setOpen] = useState(false);
+  const userId = useUserId();
+
+  const handlePrefetch = useCallback((id: string) => {
+    prefetchWorkspaceRoute(userId ?? undefined, id);
+  }, [userId]);
 
   useEffect(() => {
     if (!open) return;
@@ -67,6 +74,8 @@ export default function WorkspaceToolsLauncher({ active, onNavigate, placement =
                 <Pressable
                   key={id}
                   onClick={() => { setOpen(false); onNavigate?.(id); }}
+                  onMouseEnter={() => handlePrefetch(id)}
+                  onTouchStart={() => handlePrefetch(id)}
                   className={`workspace-tool-tile flex-col gap-2 ${active === id ? 'is-active' : ''}`}
                   icon={<Icon size={22} />}
                 >

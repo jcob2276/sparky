@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 
 import Skeleton from '../ui/Skeleton';
+import Spinner from '../ui/Spinner';
 import { createTodoSection, renameTodoSection, archiveTodoSection } from '../../lib/todo/todo';
 import DragGhost from './DragGhost';
 import TodoSidebar, { type TodoNavDest } from './TodoSidebar';
 import TodoScanTextModal from './TodoScanTextModal';
-import EisenhowerMatrix from './EisenhowerMatrix';
-import KanbanView from './KanbanView';
+const EisenhowerMatrix = lazy(() => import('./EisenhowerMatrix'));
+const KanbanView = lazy(() => import('./KanbanView'));
 import TodayEventsPanel from './TodayEventsPanel';
 import { useTodoData } from './useTodoData';
 import type { TodoItemRow } from './useTodoData';
@@ -111,7 +112,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
 
   if (loading) {
     return (
-      <div className="todoist-theme flex h-screen overflow-hidden bg-background text-text-primary">
+      <div className="todoist-theme flex h-dvh overflow-hidden bg-background text-text-primary">
         <div className="w-64 border-r border-border-custom/40 p-4 space-y-4 hidden md:block">
           <Skeleton lines={4} className="opacity-60" />
           <Skeleton variant="card" lines={3} className="opacity-40" />
@@ -131,7 +132,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
   }
 
   return (
-    <div className="todoist-theme flex h-screen overflow-hidden bg-background text-text-primary">
+    <div className="todoist-theme flex h-dvh overflow-hidden bg-background text-text-primary">
       {draggingItem && <DragGhost item={draggingItem} posRef={dragPosRef} />}
 
       <TodoContextMenuConnected />
@@ -180,18 +181,22 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
 
         {todoView === 'eisenhower' && (
           <main className="flex-1 overflow-y-auto" onClick={() => setExpandedId(null)}>
-            <EisenhowerMatrix items={todoData.items} setItems={(fn) => todoData.setItems((prev) => fn(prev) as TodoItemRow[])} />
+            <Suspense fallback={<div className="flex h-64 items-center justify-center"><Spinner size="md" /></div>}>
+              <EisenhowerMatrix items={todoData.items} setItems={(fn) => todoData.setItems((prev) => fn(prev) as TodoItemRow[])} />
+            </Suspense>
           </main>
         )}
 
         {todoView === 'kanban' && (
           <main className="flex-1 overflow-hidden">
-            <KanbanView
-              items={todoData.items}
-              sections={todoData.sections}
-              setItems={(fn) => todoData.setItems((prev) => fn(prev) as TodoItemRow[])}
-              today={today}
-            />
+            <Suspense fallback={<div className="flex h-64 items-center justify-center"><Spinner size="md" /></div>}>
+              <KanbanView
+                items={todoData.items}
+                sections={todoData.sections}
+                setItems={(fn) => todoData.setItems((prev) => fn(prev) as TodoItemRow[])}
+                today={today}
+              />
+            </Suspense>
           </main>
         )}
 

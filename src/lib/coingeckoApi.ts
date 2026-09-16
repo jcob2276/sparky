@@ -27,7 +27,9 @@ async function fetchCoinPricesPln(coinIds: string[]): Promise<CoinPriceMap> {
     include_24hr_change: 'true',
   });
 
-  const res = await fetch(`${COINGECKO_BASE}/simple/price?${params.toString()}`);
+  const res = await fetch(`${COINGECKO_BASE}/simple/price?${params.toString()}`, {
+    signal: AbortSignal.timeout(10_000),
+  });
   if (!res.ok) {
     throw new Error(`CoinGecko: ${res.status} ${res.statusText}`);
   }

@@ -24,6 +24,7 @@ async function fetchYahooQuote(ticker: string): Promise<YahooQuoteData | null> {
       headers: {
         'Accept': 'application/json',
       },
+      signal: AbortSignal.timeout(10_000),
     });
 
     if (!res.ok) return null;

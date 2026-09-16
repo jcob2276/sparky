@@ -6,6 +6,7 @@ import { App as CapApp } from '@capacitor/app';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { isNativePlatform } from './platform';
+import { handleNativeBack } from './backStack';
 
 function cssColor(varName: string, fallback: string): string {
   const raw = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
@@ -34,9 +35,11 @@ export async function initNativeShell(): Promise<void> {
   } catch {
     /* Splash already auto-hidden */
   }
-
-  // Android hardware back: leave the WebView instead of blank history traps.
+  // Android hardware back: close modals/overlays first, then history back, then exitApp.
   await CapApp.addListener('backButton', ({ canGoBack }) => {
+    if (handleNativeBack()) {
+      return;
+    }
     if (canGoBack) {
       window.history.back();
     } else {

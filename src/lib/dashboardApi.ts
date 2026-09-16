@@ -200,11 +200,12 @@ async function fetchDashboardData(userId: string): Promise<DashboardData> {
 /**
  * Custom React Query hook for accessing dashboard data
  */
-export function useDashboardQuery(userId: string | null) {
+export function useDashboardQuery(userId: string | null, enabled = true) {
   return useQuery({
     queryKey: dashboardKeys.main(userId || ''),
     queryFn: () => fetchDashboardData(userId || ''),
-    enabled: !!userId,
+    enabled: !!userId && enabled,
+    staleTime: 1000 * 30,
   });
 }
 

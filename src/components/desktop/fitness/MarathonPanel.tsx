@@ -1,8 +1,6 @@
 import React from 'react';
 import { differenceInDays } from 'date-fns';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Link } from 'react-router-dom';
-import { Activity, ArrowUpRight } from 'lucide-react';
 import { C, weeklyRunKm, avg, daysBefore, type StravaActivitySummary } from '../desktopUtils';
 import { Panel, Tip } from '../shell/Panel';
 import { formatLongDateWarsaw } from '../../../lib/date';
@@ -114,17 +112,6 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
   return (
     <Panel
       title={formattedDate ? `${raceName} — ${formattedDate}` : raceName}
-      action={
-        <Link
-          to="/bieganie"
-          className="flex items-center gap-1 rounded-lg border border-border-custom bg-surface-2/60 px-2 py-1 text-2xs font-semibold text-text-muted hover:text-primary hover:border-primary/30 transition-colors"
-          title="Przejdź do Centrum Analityki Biegowej"
-        >
-          <Activity size={12} className="text-primary" />
-          <span>Running Performance</span>
-          <ArrowUpRight size={12} />
-        </Link>
-      }
     >
       <div className="flex items-start justify-between mb-5">
         <div>
@@ -207,9 +194,6 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
       )}
       <div className="mt-3 pt-2.5 border-t border-border-custom flex items-center justify-between text-2xs text-text-muted">
         <span>Integracja Strava & Garmin</span>
-        <Link to="/bieganie" className="text-primary hover:underline flex items-center gap-1 font-medium">
-          Strefy HR, tempo i kadencja →
-        </Link>
       </div>
     </Panel>
   );

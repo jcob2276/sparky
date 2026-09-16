@@ -15,8 +15,32 @@ export function registerNativeNavigate(handler: NavigateFn | null): void {
   navigateHandler = handler;
 }
 
+export function dispatchNativeNavigate(target: string): void {
+  if (!target) return;
+  let path = target;
+  try {
+    if (target.startsWith('http://') || target.startsWith('https://')) {
+      const parsed = new URL(target);
+      path = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+  } catch {
+    /* ignore */
+  }
+
+  if (navigateHandler) {
+    navigateHandler(path);
+  } else {
+    try {
+      window.history.pushState({}, '', path);
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 function navigateFromNativeTarget(target: string): void {
-  navigateHandler?.(target);
+  dispatchNativeNavigate(target);
 }
 
 function navigateFromUrl(url: string): void {

@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../../lib/supabase';
-import { useGoalSpineInvalidation } from '../../../hooks/useGoalSpineInvalidation';
 import type { Session } from '@supabase/supabase-js';
 import {
   useDashboardQuery,
@@ -10,7 +9,7 @@ import {
 } from '../../../lib/dashboardApi';
 import { dashboardKeys } from '../../../lib/queryKeys';
 
-export function useDashboardData(sessionProp?: Session | null) {
+export function useDashboardData(sessionProp?: Session | null, enabled = true) {
   const queryClient = useQueryClient();
   const [userId, setUserId] = useState<string | null>(sessionProp?.user.id ?? null);
 
@@ -29,7 +28,7 @@ export function useDashboardData(sessionProp?: Session | null) {
       });
   }, [sessionProp]);
 
-  const query = useDashboardQuery(userId);
+  const query = useDashboardQuery(userId, enabled);
 
   const refresh = useCallback(async () => {
     if (userId) {
@@ -52,7 +51,7 @@ export function useDashboardData(sessionProp?: Session | null) {
   };
 
   useEffect(() => {
-    if (userId) {
+    if (userId && enabled) {
       if (sessionProp) {
         void autoSyncCalendar(sessionProp);
       } else {
@@ -65,9 +64,8 @@ export function useDashboardData(sessionProp?: Session | null) {
           });
       }
     }
-  }, [userId, sessionProp]);
+  }, [userId, sessionProp, enabled]);
 
-  useGoalSpineInvalidation(refresh);
 
   const fallbackData = {
     weeklyCalories: 0,
@@ -83,7 +81,7 @@ export function useDashboardData(sessionProp?: Session | null) {
 
   return {
     ...d,
-    loading: query.isLoading,
+    loading: query.isLoading && !query.data,
     refresh,
   };
 }

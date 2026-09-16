@@ -15,7 +15,7 @@ export async function gatherWeekFacts(db: SupabaseClient<Database>, userId: stri
     winsRes, ouraRes, nutrRes, targetRes, runsRes, habitLogsRes,
     staleHighRes, linksRes, thisWeekStreamRes, sectionsRes, doneTasksRes, projectsRes,
     kpisRes, kpiEntriesRes, reconciliationsRes, behavioralPatternsRes, curiosityQueueRes,
-    claimsRes,
+    claimsRes, phoneUsageRes, lifeGoalsRes,
   ] = await Promise.all([
     db.from("daily_wins").select("date, result, task_1, task_2, task_3, task_4, task_5, category_1, category_2, category_3, category_4, category_5, done_1, done_2, done_3, done_4, done_5, day_note, task_1_project_id, task_2_project_id, task_3_project_id, task_4_project_id, task_5_project_id, task_1_target_value, task_2_target_value, task_3_target_value, task_4_target_value, task_5_target_value").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd).order("date"),
     db.from("oura_daily_summary").select("date, total_sleep_hours, bedtime_timestamp, bedtime_end_timestamp, readiness_score, sleep_score, deep_sleep_hours, rem_sleep_hours, latency_minutes").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd),

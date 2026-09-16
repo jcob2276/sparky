@@ -17,17 +17,10 @@ import { runOracleReadonlyQuery } from "../../_shared/oracleSql.ts";
 import { sanitizeStateVector, sanitizeUserConf, sanitizeUserQuery, todayPlanFromWorldState } from "../../_shared/promptSanitize.ts";
 import { getStreamCutoffs, getWarsawDateString } from "../../_shared/time.ts";
 import { compressHistoryIfNeeded } from "../../_shared/contextCompression.ts";
-import { mintRecordFactId } from "../../_shared/mintRecordFactId.ts";
-
 import { retrieveRagContext } from "./rag.ts";
 import { buildSystemPrompt } from "./systemPrompt.ts";
 import { fetchWorldState } from "../../_shared/worldState.ts";
-import {
-  logOracleRun,
-  saveClarificationRequest,
-  createPendingAction,
-  applyInsightCardsMutation,
-} from "./mutations.ts";
+import { logOracleRun, processOracleMutations } from "./mutations.ts";
 import { buildSqlTool } from "./sqlTool.ts";
 import { extractAllSqlFromDsml, containsDsmlToolMarkup, stripDsmlMarkup } from "./dsmlSqlExtract.ts";
 import { OracleResponseSchema, extractAnswer } from "./responseExtract.ts";
@@ -249,48 +242,12 @@ export async function runOracleQuery(
     state_vector: safeStateVector,
   });
 
-  if (structuredResponse.clarification_request) {
-    await saveClarificationRequest(supabase, user_id, structuredResponse.clarification_request);
-  }
-  if (structuredResponse.schedule_mutation) {
-    console.log("[oracle] schedule_mutation emitted:", (structuredResponse.schedule_mutation as Record<string, unknown>)?.action);
-  }
-
-  if (structuredResponse.mint_fact_id) {
-    try {
-      const factId = await mintRecordFactId(user_id);
-      console.log("[oracle] minted fact_id:", factId);
-      structuredResponse._minted_fact_id = factId;
-    } catch (e: unknown) {
-      console.warn("[oracle] mintRecordFactId failed (non-fatal):", (e as Error).message);
-    }
-  }
-
-  let pendingAction = null;
-  if (agent_run_mode === "confirm") {
-    if (structuredResponse.insight_cards_mutation || structuredResponse.schedule_mutation) {
-      pendingAction = await createPendingAction(
-        supabase, user_id,
-        structuredResponse.insight_cards_mutation ? "insight_cards_mutation" : "schedule_mutation",
-        {
-          insight_cards_mutation: structuredResponse.insight_cards_mutation || null,
-          schedule_mutation: structuredResponse.schedule_mutation || null,
-        },
-      );
-      delete structuredResponse.insight_cards_mutation;
-      delete structuredResponse.schedule_mutation;
-    }
-  } else if (agent_run_mode === "readOnly") {
-    if (structuredResponse.insight_cards_mutation || structuredResponse.schedule_mutation) {
-      console.log("[oracle] readOnly mode: ignoring mutations");
-      delete structuredResponse.insight_cards_mutation;
-      delete structuredResponse.schedule_mutation;
-    }
-  }
-
-  if (structuredResponse.insight_cards_mutation) {
-    await applyInsightCardsMutation(supabase, user_id, structuredResponse.insight_cards_mutation);
-  }
+  const pendingAction = await processOracleMutations(
+    supabase,
+    user_id,
+    structuredResponse,
+    agent_run_mode,
+  );
 
   console.log(`[oracle] response returned`, Date.now() - t0);
   return {

@@ -42,3 +42,26 @@ export async function downloadBlob(blob: Blob, filename: string): Promise<void> 
   document.body.removeChild(anchor);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
+
+/**
+ * Downloads a file from an HTTP/HTTPS URL.
+ * Fetches the URL into a Blob and delegates to `downloadBlob` so native mobile / PWA devices
+ * can save/share properly, falling back to a direct anchor click on fetch error.
+ */
+export async function downloadFromUrl(url: string, filename: string): Promise<void> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    await downloadBlob(blob, filename);
+  } catch {
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = filename;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  }
+}

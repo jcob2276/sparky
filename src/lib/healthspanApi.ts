@@ -64,7 +64,7 @@ async function persistHealthspanSnapshot(userId: string, today: string, profile:
   if (snapshotError) console.warn('[healthspan] snapshot write failed', snapshotError.message);
 }
 
-export async function fetchHealthspanProfile(userId: string, today = getTodayWarsaw()) {
+async function fetchHealthspanProfile(userId: string, today = getTodayWarsaw()) {
   const since90 = shiftDateStr(today, -89);
   const since45 = shiftDateStr(today, -44);
   const [

@@ -4,7 +4,7 @@
  * Dostępne nominały olimpijskie: 25, 20, 15, 10, 5, 2.5, 1.25 kg.
  */
 
-export interface PlateBreakdown {
+interface PlateBreakdown {
   plate: number;
   count: number;
 }
@@ -17,7 +17,7 @@ export interface PlateCalculationResult {
   remainder: number;
 }
 
-export const STANDARD_PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
+const STANDARD_PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
 
 export function calculatePlates(
   totalWeight: number,

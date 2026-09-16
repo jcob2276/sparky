@@ -45,8 +45,9 @@ export async function searchExternalFoods(query: string): Promise<ExternalFoodSe
 }
 
 export async function lookupFoodBarcode(code: string): Promise<FoodBase | null> {
+  const cleanCode = code.replace(/[\s-]+/g, '').trim();
   const response = await invokeEdge('lookup-food', {
-    method: 'GET', query: { barcode: code }, signal: AbortSignal.timeout(NETWORK_TIMEOUT_MS),
+    method: 'GET', query: { barcode: cleanCode }, signal: AbortSignal.timeout(NETWORK_TIMEOUT_MS),
   });
   return response.results[0] ?? null;
 }

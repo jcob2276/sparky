@@ -155,7 +155,7 @@ export function ComposerInput({
         </Pressable>
       </div>
       <div className="flex items-center gap-1.5">
-        <input
+        <ControlInput
           ref={photoInputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
@@ -167,7 +167,7 @@ export function ComposerInput({
             event.target.value = '';
           }}
         />
-        <input
+        <ControlInput
           ref={galleryInputRef}
           type="file"
           accept="image/jpeg,image/png,image/webp"
@@ -217,7 +217,7 @@ function ComposerToolButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-2xs font-black uppercase tracking-wide transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] active:scale-[0.97] ${
+      className={`touch-manipulation flex flex-1 items-center justify-center gap-1.5 rounded-xl border px-2 py-2 text-2xs font-black uppercase tracking-wide transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] active:scale-[0.97] ${
         active ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border-custom text-text-muted hover:bg-surface-solid/70'
       }`}
     >

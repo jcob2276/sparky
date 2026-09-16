@@ -11,6 +11,7 @@ import {
   handleTodoCommand,
   handleKeepCommand,
   handlePosilekCommand,
+  handleWalenieCommand,
 } from "../commands.ts";
 import { MessageContext, MessageInterceptor, looksLikeTodoCapture } from "../interceptors.ts";
 
@@ -79,6 +80,10 @@ export class CommandRouterInterceptor implements MessageInterceptor {
     }
     if (lowerText.startsWith("/lenie")) {
       await handleLenieCommand(ctx.text, ctx.chatId, ctx.telegramToken, ctx.supabase, ctx.vanguardUserId);
+      return true;
+    }
+    if (lowerText.startsWith("/walenie") || lowerText.startsWith("/pmo") || lowerText === "/w" || lowerText.startsWith("/w ")) {
+      await handleWalenieCommand(ctx.text, ctx.chatId, ctx.telegramToken, ctx.supabase, ctx.vanguardUserId);
       return true;
     }
     if (lowerText.startsWith("/todo")) {

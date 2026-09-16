@@ -2,14 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from './supabase';
 import { fetchLatestCompletedWeeklyReviewDate } from './goal/goalSpine';
 import { getTodayWarsaw } from './date';
-import { getWeekStartWarsaw } from './growth/growth';
 
 export interface NudgeCounts {
   reviewOverdueDays: number | null;
   urgentTodoCount: number;
   unreadLinkCount: number;
   staleNoteCount: number;
-  pendingGrowthMustCount: number;
 }
 
 import { nudgeKeys } from './queryKeys';
@@ -18,7 +16,6 @@ import { nudgeKeys } from './queryKeys';
 
 async function fetchNudgeCounts(userId: string): Promise<NudgeCounts> {
   const today = getTodayWarsaw();
-  const weekStart = getWeekStartWarsaw(today);
   const staleCutoff = new Date(Date.now() - 30 * 86400000).toISOString();
 
   const [
@@ -26,19 +23,11 @@ async function fetchNudgeCounts(userId: string): Promise<NudgeCounts> {
     { count: urgentCount },
     { count: unreadCount },
     { count: staleCount },
-    { count: growthMustCount },
   ] = await Promise.all([
     fetchLatestCompletedWeeklyReviewDate(userId),
     supabase.from('todo_items').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'open').or(`priority.eq.urgent,and(due_date.lte.${today},due_date.not.is.null)`),
     supabase.from('vanguard_links').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('status', 'unread'),
     supabase.from('vanguard_notes').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_archived', false).lt('updated_at', staleCutoff),
-    supabase
-      .from('learning_week_pins')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('week_start', weekStart)
-      .eq('slot', 'must')
-      .eq('done', false),
   ]);
 
   let reviewOverdueDays: number;
@@ -55,7 +44,6 @@ async function fetchNudgeCounts(userId: string): Promise<NudgeCounts> {
     urgentTodoCount: urgentCount ?? 0,
     unreadLinkCount: unreadCount ?? 0,
     staleNoteCount: staleCount ?? 0,
-    pendingGrowthMustCount: growthMustCount ?? 0,
   };
 }
 

@@ -12,7 +12,7 @@ import { createTelegramContext } from "./_router/config.ts";
 import { handleCallbackQuery } from "./_router/callbacks.ts";
 import { handleIncomingMessage } from "./_router/messages.ts";
 import { logCriticalError } from "../_shared/errorLogging.ts";
-import { resolveUserScope } from "../_shared/supabase.ts";
+import { resolveUserScope, getServiceRoleKey } from "../_shared/supabase.ts";
 import { serveJson } from "../_shared/http.ts";
 
 function verifyTelegramSecret(req: Request): boolean | "missing_config" {
@@ -51,7 +51,7 @@ Deno.serve(serveJson(async (req, jsonCtx) => {
     }
 
     if (payload.setup_commands) {
-      const setupSecret = Deno.env.get("TELEGRAM_SETUP_SECRET") || Deno.env.get("SB_SECRET_KEY") || "";
+      const setupSecret = Deno.env.get("TELEGRAM_SETUP_SECRET") || getServiceRoleKey();
       const auth = req.headers.get("Authorization") || "";
       const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
       if (!setupSecret || token !== setupSecret) throw new Error("Unauthorized");
@@ -77,7 +77,7 @@ Deno.serve(serveJson(async (req, jsonCtx) => {
     }
 
     if (payload.fix_webhook) {
-      const setupSecret = Deno.env.get("TELEGRAM_SETUP_SECRET") || Deno.env.get("SB_SECRET_KEY") || "";
+      const setupSecret = Deno.env.get("TELEGRAM_SETUP_SECRET") || getServiceRoleKey();
       const auth = req.headers.get("Authorization") || "";
       const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
       if (!setupSecret || token !== setupSecret) throw new Error("Unauthorized");

@@ -3,7 +3,7 @@ import type { Tables } from '../../../lib/database.types';
 import type { OuraRow, NutritionDayRow, LenieLogRow } from '../desktopUtils';
 import type { StrainData } from '../hero/CockpitBanner';
 
-export interface PatternRow {
+interface PatternRow {
   confidence?: number | null;
   title: string;
   evidence_text?: string | null;
@@ -11,13 +11,13 @@ export interface PatternRow {
   last_seen?: string | null;
 }
 
-export interface WikiRow {
+interface WikiRow {
   summary?: string | null;
   title: string;
   page_type?: string | null;
 }
 
-export interface KnowledgeRow {
+interface KnowledgeRow {
   importance_score?: number | null;
   title: string;
   content?: string | null;

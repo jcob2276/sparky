@@ -51,6 +51,8 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
       return (data as CalendarTodo[]) || [];
     },
     enabled: !!userId,
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 
   // 2. Scheduled query
@@ -70,6 +72,8 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
       return (data as CalendarTodo[]) || [];
     },
     enabled: !!userId,
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 
   // 3. Goal Lineage query
@@ -80,6 +84,8 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
       return fetchGoalLineage(userId);
     },
     enabled: !!userId,
+    staleTime: 60_000,
+    gcTime: 600_000,
   });
 
   const inboxTodos = useMemo(() => inboxQuery.data || [], [inboxQuery.data]);

@@ -1,4 +1,4 @@
-import { getTodayWarsaw } from '../date';
+import { getDaysAgoWarsaw } from '../date';
 import { supabase } from '../supabase';
 import type { MealDraftItem } from './nutritionTracker';
 import { parseAmountGrams } from './mealComposerUtils';
@@ -22,10 +22,7 @@ function normalizeName(name: string): string {
 }
 
 export async function fetchRecentFoodProducts(userId: string, limit = 8): Promise<RecentFoodProduct[]> {
-  const today = getTodayWarsaw();
-  const since = new Date(`${today}T12:00:00`);
-  since.setDate(since.getDate() - 14);
-  const sinceDate = since.toISOString().slice(0, 10);
+  const sinceDate = getDaysAgoWarsaw(14);
 
   const { data, error } = await supabase
     .from('daily_food_entries')

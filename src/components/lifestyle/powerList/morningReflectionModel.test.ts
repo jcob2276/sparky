@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applyYesterdayTaskToggle, buildMorningReflectionRecord } from './morningReflectionModel';
+import { applyYesterdayTaskToggle, applyTodayTaskToggle, buildMorningReflectionRecord } from './morningReflectionModel';
 
 describe('buildMorningReflectionRecord', () => {
   it('targets the reviewed day and writes the same two scores as evening shutdown', () => {
@@ -48,5 +48,25 @@ describe('buildMorningReflectionRecord', () => {
       expect.objectContaining({ id: 'task-2', done: true, completed_at: '2026-07-31T18:00:00Z' }),
     ]);
     expect(win.daily_win_tasks?.[0].done).toBe(false);
+  });
+
+  it('updates selected slot immediately and sets wide fields in today state', () => {
+    const win = {
+      id: 'win-today',
+      date: '2026-09-15',
+      done_1: false,
+      completed_at_1: null,
+      daily_win_tasks: [
+        { id: 't-1', slot: 1, title: 'Trening', done: false, completed_at: null },
+        { id: 't-2', slot: 2, title: 'Dykcja', done: false, completed_at: null },
+      ],
+    };
+
+    const updated = applyTodayTaskToggle(win, 1, true, '2026-09-15T11:00:00Z');
+
+    expect(updated.done_1).toBe(true);
+    expect(updated.completed_at_1).toBe('2026-09-15T11:00:00Z');
+    expect(updated.daily_win_tasks?.[0].done).toBe(true);
+    expect(updated.daily_win_tasks?.[1].done).toBe(false);
   });
 });

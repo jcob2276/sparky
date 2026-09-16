@@ -127,7 +127,7 @@ export default function ProjectWeekKpis({
                             {val}
                           </span>
                           {!readOnly && (
-                            <button
+                            <Pressable
                               type="button"
                               title="Dodaj +1"
                               onClick={async () => {
@@ -137,7 +137,7 @@ export default function ProjectWeekKpis({
                               className="flex h-5 w-5 items-center justify-center rounded-md border border-primary/30 bg-primary/10 text-2xs font-extrabold text-primary hover:bg-primary/20 active:scale-95 transition-all"
                             >
                               +1
-                            </button>
+                            </Pressable>
                           )}
                         </div>
 

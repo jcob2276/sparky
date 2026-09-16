@@ -1,53 +1,20 @@
 import type { SeriesPoint } from './correlationEngine.ts'
 import { estimateCaffeineMg } from './caffeineEstimate.ts'
 import { getWarsawDateString } from './time.ts'
+import {
+  emptySeries,
+  type SeriesBuildInput,
+  aggregateStravaRuns,
+} from './correlationSeriesHelpers.ts'
+
+export type { SeriesBuildInput }
+export { aggregateStravaRuns }
 
 function warsawHour(iso: string): number {
   return parseInt(
     new Date(iso).toLocaleTimeString('en-CA', { timeZone: 'Europe/Warsaw', hour: 'numeric', hour12: false }),
     10
   )
-}
-
-function emptySeries(): Record<string, SeriesPoint[]> {
-  return {
-    strain: [], recovery: [], fueling: [], cardio: [], strength: [], cns_load: [], leg_load: [], mental_load: [],
-    illness_score: [], hrv: [], rhr: [], readiness: [], sleep_h: [], sleep_score: [],
-    sleep_efficiency: [], sleep_latency: [], deep_sleep_h: [], rem_sleep_h: [], light_sleep_h: [],
-    sleep_hr: [], sleep_hrv: [], sleep_lowest_hr: [], restless_periods: [], temp_deviation: [],
-    spo2: [], vo2max: [], stress_high_min: [], met_avg: [], sedentary_min: [], bedtime_hour: [],
-    calories: [], protein: [], carbs: [], fat: [], sugar: [], fiber: [], insulin_load: [], food_quality: [],
-    steps: [], caffeine_mg: [], caffeine_late_mg: [], last_coffee_hour: [], last_meal_hour: [], calories_late: [],
-    workout_hr_peak: [], workout_hr_avg: [], workout_strain: [],
-    run_hr: [], run_rpe: [], run_cadence: [], run_suffer: [], run_distance_km: [],
-    mood_score: [], daily_rpe: [], plan_done_pct: [], day_score: [], phone_drift: [],
-    execution_score: [], identity_score: [], dopamine_load_index: [],
-    screen_time_min: [], fragmentation_index: [], productivity_ratio: [], phone_active_h: [],
-    friction_count: [], avoidance_count: [], procrastination_count: [],
-    alcohol_units: [], travel_day: [], illness_day: [], stress_manual: [],
-    creatine_taken: [], omega3_taken: [], lions_mane_taken: [], d3_taken: [],
-    habit_count: [], weight_kg: [],
-  }
-}
-
-export interface SeriesBuildInput {
-  todayWarsaw: string
-  strainRows: Record<string, unknown>[]
-  ouraRows: Record<string, unknown>[]
-  ouraEnhRows: Record<string, unknown>[]
-  nutrRows: Record<string, unknown>[]
-  aggregateRows: Record<string, unknown>[]
-  frictionRows: { occurred_at: string | null; friction_type: string | null }[]
-  foodRows: { date: string; name: string | null; logged_at: string | null; calories: number | null }[]
-  workoutRows: { workout_day: string | null; hr_avg_bpm: number | null; hr_peak_bpm: number | null; hr_strain_score: number | null }[]
-  winsRows: Record<string, unknown>[]
-  reconRows: { date: string; day_score: number | null; phone_drift_morning: boolean | null }[]
-  behaviorRows: { date: string; behavior_key: string; value: number | null }[]
-  supplementRows: { date: string; slug: string }[]
-  stravaRows: { day: string; hr_avg: number | null; perceived_exertion: number | null; cadence_spm: number | null; suffer_score: number | null; distance: number | null }[]
-  awRows: { date: string; productivity_ratio: number | null; phone_active_seconds: number | null }[]
-  habitRows: Record<string, unknown>[]
-  bodyRows: { date: string; weight: number | null }[]
 }
 
 export function buildMetricSeries(input: SeriesBuildInput): Record<string, SeriesPoint[]> {
@@ -132,11 +99,20 @@ export function buildMetricSeries(input: SeriesBuildInput): Record<string, Serie
   for (const [day, entries] of Object.entries(foodByDay)) {
     let caffeineMg = 0, caffeineLateMg = 0, caloriesLate = 0
     let lastMealHour: number | null = null, lastCoffeeHour: number | null = null
+    let dinnerCalories = 0, dinnerCarbs = 0, dinnerFat = 0, dinnerHour: number | null = null
+
     for (const e of entries) {
       const mg = estimateCaffeineMg(e.name ?? '')
+      const isDinner = e.meal_type === 'dinner' || (e.logged_at && warsawHour(e.logged_at) >= 17)
+      if (isDinner) {
+        dinnerCalories += Number(e.calories ?? 0)
+        dinnerCarbs += Number(e.carbs ?? 0)
+        dinnerFat += Number(e.fat ?? 0)
+      }
       if (e.logged_at) {
         const hour = warsawHour(e.logged_at)
         if (hour > (lastMealHour ?? -1)) lastMealHour = hour
+        if (isDinner && hour > (dinnerHour ?? -1)) dinnerHour = hour
         if (mg > 0) {
           caffeineMg += mg
           if (hour >= 15) caffeineLateMg += mg
@@ -150,6 +126,21 @@ export function buildMetricSeries(input: SeriesBuildInput): Record<string, Serie
     if (lastCoffeeHour != null) series.last_coffee_hour.push({ day, value: lastCoffeeHour })
     if (lastMealHour != null) series.last_meal_hour.push({ day, value: lastMealHour })
     if (caloriesLate > 0) series.calories_late.push({ day, value: caloriesLate })
+
+    if (dinnerCalories > 0) {
+      series.dinner_calories.push({ day, value: Math.round(dinnerCalories) })
+      series.dinner_carbs.push({ day, value: Math.round(dinnerCarbs * 10) / 10 })
+      series.dinner_fat.push({ day, value: Math.round(dinnerFat * 10) / 10 })
+      if (dinnerHour != null) {
+        series.dinner_hour.push({ day, value: dinnerHour })
+        const bedPoint = series.bedtime_hour.find(p => p.day === day)
+        if (bedPoint != null) {
+          const bedHour = bedPoint.value
+          const gap = bedHour >= dinnerHour ? bedHour - dinnerHour : (bedHour + 24) - dinnerHour
+          series.dinner_to_bed_gap_h.push({ day, value: Math.round(gap * 10) / 10 })
+        }
+      }
+    }
   }
 
   // Workouts
@@ -261,35 +252,4 @@ export function buildMetricSeries(input: SeriesBuildInput): Record<string, Serie
   }
 
   return series
-}
-
-export function aggregateStravaRuns(
-  rows: Record<string, unknown>[],
-  todayWarsaw: string,
-  start90: string
-): SeriesBuildInput['stravaRows'] {
-  const byDay: Record<string, { hr: number[]; rpe: number[]; cadence: number[]; suffer: number[]; dist: number[] }> = {}
-  for (const r of rows) {
-    const start = r.start_date as string | null
-    if (!start) continue
-    const day = getWarsawDateString(new Date(start))
-    if (day < start90 || day > todayWarsaw) continue
-    if (r.is_oura === true) continue
-    const sport = String(r.sport_type ?? '').toLowerCase()
-    if (!sport.includes('run')) continue
-    (byDay[day] ||= { hr: [], rpe: [], cadence: [], suffer: [], dist: [] })
-    if (r.hr_avg != null) byDay[day].hr.push(Number(r.hr_avg))
-    if (r.perceived_exertion != null) byDay[day].rpe.push(Number(r.perceived_exertion))
-    if (r.cadence_spm != null) byDay[day].cadence.push(Number(r.cadence_spm))
-    if (r.suffer_score != null) byDay[day].suffer.push(Number(r.suffer_score))
-    if (r.distance != null) byDay[day].dist.push(Number(r.distance))
-  }
-  return Object.entries(byDay).map(([day, v]) => ({
-    day,
-    hr_avg: v.hr.length ? v.hr.reduce((a, b) => a + b, 0) / v.hr.length : null,
-    perceived_exertion: v.rpe.length ? Math.max(...v.rpe) : null,
-    cadence_spm: v.cadence.length ? v.cadence.reduce((a, b) => a + b, 0) / v.cadence.length : null,
-    suffer_score: v.suffer.length ? Math.max(...v.suffer) : null,
-    distance: v.dist.length ? v.dist.reduce((a, b) => a + b, 0) : null,
-  }))
 }

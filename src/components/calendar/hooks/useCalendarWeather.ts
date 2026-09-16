@@ -6,8 +6,8 @@ interface UseCalendarWeatherParams {
   today: string;
   homeLat: number | null | undefined;
   homeLng: number | null | undefined;
-  rangeStart: string;
-  rangeEnd: string;
+  rangeStart?: string;
+  rangeEnd?: string;
 }
 
 interface WeatherCurrent {
@@ -76,19 +76,21 @@ function getWMOWeatherDescription(code: number) {
   }
 }
 
-export function useCalendarWeather({ today, homeLat, homeLng, rangeStart, rangeEnd }: UseCalendarWeatherParams) {
+export function useCalendarWeather({ today, homeLat, homeLng }: UseCalendarWeatherParams) {
+  const lat = homeLat ?? 49.6950;
+  const lng = homeLng ?? 21.7225;
+
   const query = useQuery<WeatherState | null>({
-    queryKey: ['calendar-weather', rangeStart, rangeEnd],
-    queryFn: async () => {
-      const lat = homeLat ?? 49.6950;
-      const lng = homeLng ?? 21.7225;
+    queryKey: ['calendar-weather', lat, lng, today],
+    queryFn: async ({ signal }) => {
       const apiKey = import.meta.env.VITE_OPENWEATHERMAP_API_KEY;
 
       let currentData = null;
       if (apiKey) {
         try {
           const owmRes = await fetch(
-            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric&lang=pl`
+            `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${apiKey}&units=metric&lang=pl`,
+            { signal }
           );
           if (owmRes.ok) {
             const owmData = await owmRes.json();
@@ -108,14 +110,16 @@ export function useCalendarWeather({ today, homeLat, homeLng, rangeStart, rangeE
         }
       }
 
-      const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&start_date=${rangeStart}&end_date=${rangeEnd}&daily=weather_code,temperature_2m_max,temperature_2m_min&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m&timezone=Europe/Warsaw`;
-      const res = await fetch(openMeteoUrl);
+      const forecastStart = addDays(today, -7);
+      const forecastEnd = addDays(today, 14);
+      const openMeteoUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&start_date=${forecastStart}&end_date=${forecastEnd}&daily=weather_code,temperature_2m_max,temperature_2m_min&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m&timezone=Europe/Warsaw`;
+      const res = await fetch(openMeteoUrl, { signal });
       if (!res.ok) throw new Error('Failed to fetch Open-Meteo');
       const data = await res.json();
 
       const tomorrowDate = addDays(today, 1);
       const hourlyUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&start_date=${today}&end_date=${tomorrowDate}&hourly=temperature_2m,weather_code,precipitation_probability&timezone=Europe/Warsaw`;
-      const hourlyRes = await fetch(hourlyUrl);
+      const hourlyRes = await fetch(hourlyUrl, { signal });
       const hourlyData: Record<string, WeatherHourlyPoint[]> = {};
       if (hourlyRes.ok) {
         const hd = await hourlyRes.json();

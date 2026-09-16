@@ -1,7 +1,7 @@
-
 import { Compass, Sparkles, Target, Award } from 'lucide-react';
 import type { DirectionContextData } from '../../lib/dailyPlanProposal';
 import { Card } from '../ui/Card';
+import { Pressable } from '../ui/ControlPrimitives';
 
 function norm(text: string | null | undefined): string {
   return (text ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -120,13 +120,13 @@ export default function WeekLoopSummary({
               Nie określono jeszcze głównej intencji na ten tydzień.
             </p>
             {onStartWeeklyReview && (
-              <button
+              <Pressable
                 type="button"
                 onClick={onStartWeeklyReview}
                 className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-on-primary transition-all hover:opacity-90 active:scale-95 shrink-0"
               >
                 <Award size={12} /> Ustal intencję tygodnia
-              </button>
+              </Pressable>
             )}
           </div>
         )}

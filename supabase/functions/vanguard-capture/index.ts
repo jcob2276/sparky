@@ -70,7 +70,16 @@ Deno.serve(serveJson(async (req, ctx) => {
         });
         return { ok: true, type: "ocr", text: result.content.trim() };
       }
-      content = await transcribeBlob(file, openAiKey, { filename: file.name || "audio.webm" });
+      const mime = file.type || "audio/webm";
+      const fallbackExt = (mime.includes("mp4") || mime.includes("m4a") || mime.includes("aac"))
+        ? "mp4"
+        : mime.includes("ogg")
+        ? "ogg"
+        : mime.includes("wav")
+        ? "wav"
+        : "webm";
+      const resolvedFilename = file.name && file.name.includes(".") ? file.name : `audio.${fallbackExt}`;
+      content = await transcribeBlob(file, openAiKey, { filename: resolvedFilename });
       if (action === "transcribe_only") {
         return { ok: true, type: "transcription", transcript: content };
       }
