@@ -168,8 +168,11 @@ export async function runOuraSync(req: Request): Promise<unknown> {
             supabase.from('oura_daily_summary').upsert(upsertData, { onConflict: 'user_id,date' })
           )
           
-          // Proactive low biometrics push alert
+          // Proactive low biometrics push alert (only for real sleep sessions >= 3h, never for charging ring or 0.02h artifacts)
           for (const row of upsertData) {
+            const hasRealSleep = typeof row.total_sleep_hours === "number" && row.total_sleep_hours >= 3.0;
+            if (!hasRealSleep) continue;
+
             const lowReadiness = row.readiness_score && row.readiness_score < 40;
             const lowEfficiency = row.sleep_efficiency && row.sleep_efficiency < 75;
             if (lowReadiness || lowEfficiency) {

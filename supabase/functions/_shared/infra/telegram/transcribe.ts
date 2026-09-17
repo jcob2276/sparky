@@ -22,11 +22,9 @@ export function telegramFileUrl(token: string, filePath: string): string {
   return `https://api.telegram.org/file/bot${token}/${filePath}`;
 }
 
-// Download i transkrypcja mają osobne budżety: pobranie małego pliku z Telegrama jest zawsze
-// szybkie (stały limit wystarcza), a Whisper dla dłuższej głosówki realnie potrzebuje więcej
-// czasu niż na pobranie — jeden wspólny timeout (dawniej 30s na oba) ucinał transkrypcję
-// dłuższych nagrań, mimo że samo pobranie już dawno się skończyło.
-const VOICE_DOWNLOAD_TIMEOUT_MS = 15000;
+// Download i transkrypcja mają osobne budżety: pobranie pliku z Telegrama dla dłuższych
+// nagrań (np. 3-4 min / kilkanaście MB) wymaga odpowiedniego czasu, zwłaszcza na wolniejszych łączach.
+const VOICE_DOWNLOAD_TIMEOUT_MS = 60000;
 
 export async function transcribeAudio(
   fileId: string,
@@ -34,7 +32,7 @@ export async function transcribeAudio(
   openAiKey: string,
   options?: { timeoutMs?: number },
 ): Promise<string> {
-  const transcribeTimeoutMs = options?.timeoutMs ?? 30000;
+  const transcribeTimeoutMs = options?.timeoutMs ?? 45000;
   const filePath = await getTelegramFilePath(telegramToken, fileId);
   const fileUrl = telegramFileUrl(telegramToken, filePath);
 
@@ -47,10 +45,21 @@ export async function transcribeAudio(
   let audioBlob: Blob;
   try {
     const audioRes = await fetch(fileUrl, { signal: downloadController.signal });
+    if (!audioRes.ok) {
+      throw new Error(`Błąd pobierania audio z Telegrama: HTTP ${audioRes.status}`);
+    }
     audioBlob = await audioRes.blob();
   } finally {
     clearTimeout(downloadTimeoutId);
   }
 
-  return transcribeBlob(audioBlob, openAiKey, { filename: "voice.ogg", timeoutMs: transcribeTimeoutMs });
+  const rawExt = filePath.split(".").pop()?.toLowerCase() || "oga";
+  const ext = (rawExt === "oga" || rawExt === "opus") ? "ogg" : rawExt;
+  const mime = ext === "ogg" ? "audio/ogg" : ext === "mp3" ? "audio/mpeg" : ext === "m4a" ? "audio/mp4" : "audio/ogg";
+  const typedBlob = audioBlob.type ? audioBlob : new Blob([audioBlob], { type: mime });
+
+  return transcribeBlob(typedBlob, openAiKey, {
+    filename: `voice.${ext}`,
+    timeoutMs: transcribeTimeoutMs,
+  });
 }

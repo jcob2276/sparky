@@ -6,12 +6,36 @@
  */
 import { logAuditEvent } from "./audit.ts";
 
+const KNOWN_VANGUARD_TABLES = [
+  "daily_nutrition", "daily_food_entries", "food_library", "nutrition_targets", "nutrition_profile",
+  "fasting_logs", "workout_sessions", "exercise_logs", "strava_activities", "strava_activities_clean",
+  "oura_daily_summary", "daily_strain", "body_metrics", "body_composition_measurements",
+  "projects", "todo_sections", "todo_items", "daily_wins", "habits", "habit_logs",
+  "weekly_reviews", "monthly_reviews", "daily_reconciliations", "life_goals", "goal_kpis",
+  "kpi_entries", "sprint_goals", "learning_skills", "learning_week_focus", "medical_lab_results",
+  "medical_documents", "supplements", "supplement_logs", "endmyopia_measurements", "endmyopia_prescriptions",
+  "phone_usage_daily", "vanguard_calendar", "location_history", "vanguard_stream", "vanguard_notes",
+  "friction_events", "confirmed_friction_events", "claims", "entities", "audit_events"
+];
+
+export function qualifySqlTables(sql: string): string {
+  let rewritten = sql;
+  for (const table of KNOWN_VANGUARD_TABLES) {
+    const fromJoinRegex = new RegExp(`(\\b(?:from|join)\\s+)(?!public\\.)(\\b${table}\\b)`, "gi");
+    rewritten = rewritten.replace(fromJoinRegex, `$1public.$2`);
+    const commaRegex = new RegExp(`(,\\s*)(?!public\\.)(\\b${table}\\b)`, "gi");
+    rewritten = rewritten.replace(commaRegex, `$1public.$2`);
+  }
+  return rewritten;
+}
+
 export async function runOracleReadonlyQuery(
   supabase: any,
   userId: string,
   sql: string,
 ): Promise<{ ok: true; rows: unknown[] } | { ok: false; error: string }> {
-  const { data, error } = await supabase.rpc("oracle_readonly_query", { query_text: sql });
+  const qualifiedSql = qualifySqlTables(sql);
+  const { data, error } = await supabase.rpc("oracle_readonly_query", { query_text: qualifiedSql });
 
   if (error) {
     await logAuditEvent({

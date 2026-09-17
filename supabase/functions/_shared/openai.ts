@@ -100,26 +100,58 @@ export async function openaiChat(params: OpenAIChatParams): Promise<OpenAIChatRe
 export async function transcribeBlob(
   audioBlob: Blob,
   apiKey: string,
-  opts?: { filename?: string; language?: string; timeoutMs?: number },
+  opts?: { filename?: string; language?: string; prompt?: string; timeoutMs?: number },
 ): Promise<string> {
-  const formData = new FormData();
-  formData.append("file", audioBlob, opts?.filename ?? "audio.ogg");
-  formData.append("model", "whisper-1");
-  formData.append("language", opts?.language ?? "pl");
+  const defaultPrompt = "Jakub, Vanguard, Oura, Garmin, Strava, diale, setting, no-showy, Transerfing, Cooper, Krosno, suplementy, zadania, trening";
+  const filename = opts?.filename ?? "audio.ogg";
+  const language = opts?.language ?? "pl";
+  const prompt = opts?.prompt ?? defaultPrompt;
+  const timeoutMs = opts?.timeoutMs ?? 45000;
 
-  const res = await fetchWithRetry("https://api.openai.com/v1/audio/transcriptions", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}` },
-    body: formData,
-  }, { timeoutMs: opts?.timeoutMs ?? 30000, retries: 1, logTag: "openai.transcribe" });
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const formData = new FormData();
+    formData.append("file", audioBlob, filename);
+    formData.append("model", "whisper-1");
+    formData.append("language", language);
+    formData.append("prompt", prompt);
 
-  if (!res.ok) {
-    const errText = await res.text().catch(() => "unknown");
-    throw new Error(`Whisper HTTP error (${res.status}): ${errText.slice(0, 200)}`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${apiKey}` },
+        body: formData,
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "unknown");
+        if ((res.status === 429 || res.status >= 500) && attempt === 0) {
+          console.warn(`[openai.transcribe] HTTP ${res.status}: ${errText.slice(0, 100)}, retrying in 1s...`);
+          await new Promise((r) => setTimeout(r, 1000));
+          continue;
+        }
+        throw new Error(`Whisper HTTP error (${res.status}): ${errText.slice(0, 200)}`);
+      }
+
+      const data = await res.json();
+      if (data.error) throw new Error(`Whisper Error: ${data.error.message}`);
+      return data.text || "";
+    } catch (err) {
+      clearTimeout(timeoutId);
+      lastError = err;
+      if (attempt === 0) {
+        console.warn(`[openai.transcribe] attempt 1 failed: ${err}, retrying...`);
+        await new Promise((r) => setTimeout(r, 1000));
+        continue;
+      }
+    }
   }
-  const data = await res.json();
-  if (data.error) throw new Error(`Whisper Error: ${data.error.message}`);
-  return data.text || "";
+
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
 export async function getEmbedding(text: string | string[], apiKey: string): Promise<number[] | number[][] | null> {

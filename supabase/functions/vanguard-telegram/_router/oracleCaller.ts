@@ -187,6 +187,39 @@ Tekst: "${cleanText}"`;
     if (pendingClaimsList.length > 0) (ctx as Record<string, unknown>).resolvedClaims = pendingClaimsList;
   }
 
+  // Auto-schedule proactive poke if Oracle detected a time commitment (OpenPoke pattern)
+  if (data?.schedule_poke && typeof data.schedule_poke === "object") {
+    const poke = data.schedule_poke as { time_str?: string; message?: string };
+    if (poke.time_str && poke.message) {
+      try {
+        const { parsePokeTime } = await import("../_commands/poke.ts");
+        const parsed = parsePokeTime(poke.time_str);
+        if (parsed) {
+          const { error: pokeErr } = await supabase.from("outbound_messages").insert({
+            user_id: vanguardUserId,
+            chat_id: chatId,
+            payload: {
+              method: "sendMessage",
+              body: {
+                chat_id: chatId,
+                text: `🔔 POKE: ${poke.message}`,
+              },
+            },
+            send_after: parsed.date.toISOString(),
+            status: "pending",
+            priority: 10,
+            dedupe_key: `poke_auto_${chatId}_${parsed.date.toISOString().slice(0, 16)}`,
+          });
+          if (!pokeErr) {
+            console.log(`[oracleCaller] auto-scheduled poke for ${parsed.display}: ${poke.message}`);
+          }
+        }
+      } catch (err) {
+        console.error("[oracleCaller] failed to schedule auto poke:", err);
+      }
+    }
+  }
+
   // Save chat messages
   const chatInsertRes = await supabase.from('ai_chat_messages').insert([
     { user_id: vanguardUserId, role: 'user', content: cleanText },

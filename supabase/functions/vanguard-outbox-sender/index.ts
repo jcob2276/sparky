@@ -29,6 +29,16 @@ Deno.serve(serveJson(async (req, ctx) => {
     }
 
     recordId = record.id;
+
+    // If message is scheduled for the future, keep it pending for vanguard-push-reminder to deliver
+    if (record.send_after) {
+      const sendAfterTime = new Date(record.send_after).getTime();
+      if (sendAfterTime > Date.now() + 5000) {
+        console.log(`[outbox-sender] message ${recordId} scheduled for future (${record.send_after}), keeping pending`);
+        return { ok: true, scheduled: true };
+      }
+    }
+
     const token = Deno.env.get("TELEGRAM_BOT_TOKEN") || "";
     if (!token) {
       throw new Error("TELEGRAM_BOT_TOKEN is not configured");

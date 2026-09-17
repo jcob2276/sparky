@@ -2,6 +2,7 @@ import type { DeepSeekTool } from "../../_shared/deepseek.ts";
 
 const SQL_TOOL_SCHEMA_HINT = `
 To jednoużytkownikowa baza (wszystkie wiersze należą do Jakuba) — nie musisz filtrować po user_id.
+WAŻNE: Zawsze używaj prefiksu schematu "public.", np. "SELECT ... FROM public.vanguard_calendar" lub "SELECT ... FROM public.strava_activities".
 Klucz główny każdej tabeli to "id" (uuid), chyba że zaznaczono inaczej. "→" pokazuje po czym łączyć (JOIN).
 
 DIETA:

@@ -68,10 +68,27 @@ export class TranscriptionInterceptor implements MessageInterceptor {
         { timeoutMs: transcriptionTimeoutFor(ctx.voiceAttachment?.duration ?? 0) },
       );
     } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
       console.error("[telegram] transcription failed:", err);
+      try {
+        await ctx.supabase.from("audit_events").insert({
+          user_id: ctx.vanguardUserId,
+          event_type: "voice_transcription_failed",
+          severity: "error",
+          message: `Transcription error: ${errMsg}`,
+          metadata: {
+            duration_sec: ctx.voiceAttachment?.duration,
+            file_id: ctx.voiceAttachment?.file_id,
+            stack: err instanceof Error ? err.stack : undefined,
+          },
+        });
+      } catch (dbErr) {
+        console.error("[telegram] failed to log transcription audit event:", dbErr);
+      }
+
       await safeSendTelegram(
         ctx.chatId,
-        "⚠️ Nie udało się przetworzyć głosówki (transkrypcja nie powiodła się — spróbuj nagrać ponownie albo napisz tekstem).",
+        `⚠️ Nie udało się przetworzyć głosówki (${errMsg.slice(0, 100)}). Spróbuj nagrać ponownie lub napisz tekstem.`,
         ctx.telegramToken,
       );
       return true;

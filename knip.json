@@ -31,6 +31,8 @@
     "src/components/core/useNutritionData.ts": ["exports", "types"],
     "supabase/functions/_shared/foodParseCore.ts": ["exports"],
     "supabase/functions/_shared/foodParse/matching.ts": ["exports"],
+    "supabase/functions/vanguard-telegram/_utils/helpers.ts": ["exports"],
+    "supabase/functions/_shared/oracleSql.ts": ["exports"],
     "src/lib/phoneUsageApi.ts": ["exports"],
     "src/components/biometrics/oura/OuraCaffeineDecayCard.tsx": ["exports"],
     "src/lib/native/bleProbePlugin.ts": ["exports", "types"]

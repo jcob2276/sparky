@@ -39,16 +39,27 @@ function chunkText(text: string): string[] {
   return chunks;
 }
 
+export function cleanLanguageGlitches(text: string): string {
+  if (!text) return text;
+  return text
+    // Replace common DeepSeek Chinese token bleeds
+    .replace(/会话/g, "callami/sesjami")
+    .replace(/对话/g, "rozmową")
+    // Strip any other accidental CJK ideographs
+    .replace(/[\u4e00-\u9fa5\u3040-\u30ff]/g, "");
+}
+
 export async function safeSendTelegram(
   chatId: number,
   text: string,
   token: string,
   options: { reply_markup?: unknown; disable_notification?: boolean; parse_mode?: string } = {},
 ): Promise<boolean> {
+  const sanitized = cleanLanguageGlitches(text);
   // Safe SPLIT: only split on [SPLIT] that is surrounded by whitespace (or at string edges).
   // This prevents accidentally splitting inside Markdown links or URLs
   // where [SPLIT] would never appear with surrounding spaces.
-  const parts = text.split(/[ \t]*\[SPLIT\][ \t]*/).map(p => p.trim()).filter(Boolean);
+  const parts = sanitized.split(/[ \t]*\[SPLIT\][ \t]*/).map(p => p.trim()).filter(Boolean);
   let allOk = true;
 
   for (let pIdx = 0; pIdx < parts.length; pIdx++) {

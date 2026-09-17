@@ -12,6 +12,7 @@ import {
   handleKeepCommand,
   handlePosilekCommand,
   handleWalenieCommand,
+  handlePokeCommand,
 } from "../commands.ts";
 import { MessageContext, MessageInterceptor, looksLikeTodoCapture } from "../interceptors.ts";
 
@@ -97,6 +98,10 @@ export class CommandRouterInterceptor implements MessageInterceptor {
     if (lowerText.startsWith("/keep") || lowerText.startsWith("/notatka")) {
       const sliceLen = lowerText.startsWith("/keep") ? 5 : 8;
       await handleKeepCommand(ctx.text.slice(sliceLen).trim(), ctx.chatId, ctx.telegramToken, ctx.supabase, ctx.vanguardUserId, false);
+      return true;
+    }
+    if (lowerText.startsWith("/poke") || lowerText.startsWith("/remind") || lowerText.startsWith("/przypomnij")) {
+      await handlePokeCommand(ctx.text, ctx.chatId, ctx.telegramToken, ctx.supabase, ctx.vanguardUserId);
       return true;
     }
     if (lowerText.startsWith("/librarian")) {
