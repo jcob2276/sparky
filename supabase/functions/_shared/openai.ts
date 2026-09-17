@@ -1,5 +1,6 @@
 import { createServiceClient } from "./supabase.ts";
 import { fetchWithRetry } from "./httpClient.ts";
+import { geminiChat, geminiEmbedding, geminiTranscribe } from "./gemini.ts";
 
 type OpenAIMessageContent =
   | string
@@ -30,10 +31,19 @@ export interface OpenAIChatResult {
   raw: unknown;
 }
 
-/** Centralized OpenAI chat-completions call (text or vision) — mirrors deepseekChat's shape. */
+/** Centralized chat-completions call (text or vision) — uses Gemini when available or OpenAI fallback. */
 export async function openaiChat(params: OpenAIChatParams): Promise<OpenAIChatResult> {
-  const timeoutMs = params.timeoutMs ?? 45000;
+  const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  if (geminiKey) {
+    try {
+      return await geminiChat(params);
+    } catch (err) {
+      console.warn("[openaiChat] Gemini failed, checking OpenAI fallback:", err);
+      if (!params.apiKey) throw err;
+    }
+  }
 
+  const timeoutMs = params.timeoutMs ?? 45000;
   const res = await fetchWithRetry("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -93,15 +103,22 @@ export async function openaiChat(params: OpenAIChatParams): Promise<OpenAIChatRe
   return { content, raw };
 }
 
-/** Centralized Whisper transcription — takes a raw audio Blob (already fetched/uploaded).
- *  Callers that need to fetch audio from Telegram first (transcribeAudio in
- *  _shared/infra/telegram/send.ts) or receive a File from a form upload
- *  (vanguard-capture) both delegate the actual OpenAI call here. */
+/** Centralized audio transcription — delegates to Gemini 3 Flash when GEMINI_API_KEY is present, or Whisper fallback. */
 export async function transcribeBlob(
   audioBlob: Blob,
   apiKey: string,
   opts?: { filename?: string; language?: string; prompt?: string; timeoutMs?: number },
 ): Promise<string> {
+  const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  if (geminiKey) {
+    try {
+      return await geminiTranscribe(audioBlob, geminiKey, opts);
+    } catch (err) {
+      console.warn("[transcribeBlob] Gemini audio transcription failed, checking OpenAI fallback:", err);
+      if (!apiKey) throw err;
+    }
+  }
+
   const defaultPrompt = "Jakub, Vanguard, Oura, Garmin, Strava, diale, setting, no-showy, Transerfing, Cooper, Krosno, suplementy, zadania, trening";
   const filename = opts?.filename ?? "audio.ogg";
   const language = opts?.language ?? "pl";
@@ -154,7 +171,15 @@ export async function transcribeBlob(
   throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 
+/** Centralized 1536d embeddings — delegates to Gemini gemini-embedding-001 or OpenAI fallback. */
 export async function getEmbedding(text: string | string[], apiKey: string): Promise<number[] | number[][] | null> {
+  const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  if (geminiKey) {
+    const geminiRes = await geminiEmbedding(text, geminiKey);
+    if (geminiRes) return geminiRes;
+    console.warn("[getEmbedding] Gemini embedding returned null, trying OpenAI fallback...");
+  }
+
   if (!apiKey) {
     console.error("[OpenAI] Missing API key for embedding generation.");
     return null;
@@ -178,9 +203,10 @@ export async function getEmbedding(text: string | string[], apiKey: string): Pro
     }
     const data = await res.json();
     if (Array.isArray(text)) {
-      return data.data?.map((d: any) => d.embedding) ?? null;
+      const items = (data.data as Array<{ embedding?: number[] }>) ?? [];
+      return items.map((d) => d.embedding ?? []);
     }
-    return data.data?.[0]?.embedding ?? null;
+    return (data.data as Array<{ embedding?: number[] }>)?.[0]?.embedding ?? null;
   } catch (err) {
     console.error("[OpenAI] Embedding exception caught:", err);
     return null;

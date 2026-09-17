@@ -63,14 +63,14 @@ Deno.serve(
       throw new Error("Brak parametru imageUrl.");
     }
 
-    const openAiKey = Deno.env.get("OPENAI_API_KEY");
+    const openAiKey = Deno.env.get("GEMINI_API_KEY") || Deno.env.get("OPENAI_API_KEY");
     if (!openAiKey) {
-      throw new Error("Brak skonfigurowanego klucza OPENAI_API_KEY.");
+      throw new Error("Brak skonfigurowanego klucza GEMINI_API_KEY ani OPENAI_API_KEY.");
     }
 
     const { content } = await openaiChat({
       apiKey: openAiKey,
-      model: "gpt-4o",
+      model: "gemini-3-flash-preview",
       temperature: 0.2,
       maxTokens: 1200,
       responseFormat: { type: "json_object" },

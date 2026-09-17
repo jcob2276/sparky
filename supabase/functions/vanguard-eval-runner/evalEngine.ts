@@ -1,6 +1,6 @@
 import { openaiChat } from "../_shared/openai.ts";
 
-const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY') ?? '';
+const OPENAI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? Deno.env.get('OPENAI_API_KEY') ?? '';
 
 export interface Assertion {
   type: 'contains' | 'not_contains' | 'regex' | 'contains_all' | 'contains_any' | 'length_min' | 'length_max' | 'llm' | 'llm_judge';

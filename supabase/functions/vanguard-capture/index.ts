@@ -18,7 +18,7 @@ import { insertStreamRecord } from "../_shared/repos/streamRepo.ts";
 
 Deno.serve(serveJson(async (req, ctx) => {
     const db = ctx.supabase;
-    const openAiKey = Deno.env.get("OPENAI_API_KEY") || "";
+    const openAiKey = Deno.env.get("GEMINI_API_KEY") || Deno.env.get("OPENAI_API_KEY") || "";
     const deepseekApiKey = Deno.env.get("DEEPSEEK_API_KEY") || "";
 
     const contentType = req.headers.get("content-type") || "";
@@ -49,7 +49,7 @@ Deno.serve(serveJson(async (req, ctx) => {
         try { metadata = JSON.parse(String(declaredMeta)); } catch (err) { console.debug("[vanguard-capture] Failed to parse declaredMeta json:", err); }
       }
 
-      if (!openAiKey) throw new Error("OPENAI_API_KEY is not configured");
+      if (!openAiKey) throw new Error("GEMINI_API_KEY / OPENAI_API_KEY is not configured");
       if (action === "ocr_only") {
         if (!file.type.startsWith("image/")) throw new Error("OCR requires an image file");
         const imageBase64 = encodeBase64(new Uint8Array(await file.arrayBuffer()));
