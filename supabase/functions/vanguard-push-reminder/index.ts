@@ -2,7 +2,7 @@
  * @function vanguard-push-reminder
  * @trigger pg_cron co minutę
  * @role Niezawodne, serwerowe przypomnienia: Web Push (PWA) + FCM (Capacitor APK).
- * @reads todo_items, supplements, life_obligations, push_subscriptions, push_fcm_tokens, outbound_messages
+ * @reads todo_items, supplements, life_obligations, push_subscriptions, push_fcm_tokens, outbound_messages, vanguard_calendar, vanguard_stream
  * @writes todo_items, supplements, life_obligations, push_subscriptions, push_fcm_tokens, outbound_messages
  * @consumer Service Worker (PWA) / FCM (Android APK)
  * @status active
@@ -20,6 +20,7 @@ import {
   type LifeObligationKind,
 } from "@vanguard/domain";
 import { dispatchDueOutboundMessages } from "./outbound.ts";
+import { processAmbientSignals } from "./ambient.ts";
 
 const CONTACT_EMAIL = "mailto:newsletter.jakub@gmail.com";
 /** Morning window start (Warsaw) for life-admin obligation pushes. */
@@ -261,6 +262,7 @@ Deno.serve(serveJson(async (_req, ctx) => {
   }
 
 
+  const ambientResults = await processAmbientSignals(supabase, now);
   const sentOutbound = await dispatchDueOutboundMessages(supabase, nowIso);
 
   return {
@@ -268,6 +270,8 @@ Deno.serve(serveJson(async (_req, ctx) => {
     sent_supplements: sentSupplements,
     sent_obligations: sentObligations,
     sent_outbound: sentOutbound,
+    ambient_briefs: ambientResults.meeting_briefs,
+    ambient_interventions: ambientResults.pattern_interventions,
     fcm_configured: fcmReady,
   };
 }, { auth: "service" }));

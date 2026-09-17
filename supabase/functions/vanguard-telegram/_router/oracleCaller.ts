@@ -168,6 +168,16 @@ Tekst: "${cleanText}"`;
 
   let raw = (data?.text || "") as string;
   raw = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+
+  // Noise filter (Poke pattern): if model determined no response is needed, stay silent
+  if (data?.should_respond === false || (!raw && data?.answer === "")) {
+    console.log("[oracleCaller] should_respond is false, staying silent without sending message");
+    await supabase.from('ai_chat_messages').insert([
+      { user_id: vanguardUserId, role: 'user', content: cleanText }
+    ]);
+    return "";
+  }
+
   if (!raw) return "⚠️ Oracle: pusta odpowiedź modelu. Spróbuj jeszcze raz.";
 
   // Save proposed claims

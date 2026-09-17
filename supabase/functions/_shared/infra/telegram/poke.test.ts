@@ -47,3 +47,10 @@ Deno.test("cleanLanguageGlitches — cleans Chinese token slips and preserves Po
   assertEquals(cleaned.includes("会话"), false);
   assertEquals(cleaned.includes("callami/sesjami"), true);
 });
+
+Deno.test("extractAnswer — returns empty string when should_respond is false (Poke noise filter)", async () => {
+  const { extractAnswer } = await import("../../../vanguard-oracle/oracle/responseExtract.ts");
+  const res = extractAnswer({ should_respond: false, answer: "Nie ma sprawy!" }, "Nie ma sprawy!");
+  assertEquals(res, "");
+});
+

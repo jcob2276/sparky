@@ -3,6 +3,7 @@ import { z } from "npm:zod";
 export const OracleResponseSchema = z.object({
   answer: z.string().optional(),
   text: z.string().optional(),
+  should_respond: z.boolean().optional(),
   odpowiedz: z.string().optional(),
   odpowiedź: z.string().optional(),
   response: z.string().optional(),
@@ -18,6 +19,10 @@ export const OracleResponseSchema = z.object({
 }).catchall(z.any());
 
 export function extractAnswer(structuredResponse: any, rawOutput: string): string {
+  if (structuredResponse && structuredResponse.should_respond === false) {
+    return "";
+  }
+
   const answer = 
     structuredResponse.answer || 
     structuredResponse.text || 

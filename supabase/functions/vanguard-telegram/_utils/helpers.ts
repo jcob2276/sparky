@@ -2,7 +2,7 @@
  * helpers.ts — Drobne utility functions dla vanguard-telegram.
  */
 
-import { sendMessageParsed } from "../../_shared/telegram.ts";
+import { sendMessageParsed, sendChatAction } from "../../_shared/telegram.ts";
 
 export function inferVaultCategory(text: string): string {
   const head = text.slice(0, 700).toLowerCase();
@@ -64,6 +64,14 @@ export async function safeSendTelegram(
 
   for (let pIdx = 0; pIdx < parts.length; pIdx++) {
     const partText = parts[pIdx];
+
+    if (pIdx > 0) {
+      await sendChatAction(token, chatId, "typing", { direct: true }).catch(() => {});
+      // Natural human texting cadence between bubble splits (Poke pattern): ~20ms per char, bounded between 350ms and 1200ms
+      const delayMs = Math.min(1200, Math.max(350, partText.length * 20));
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+
     const isLastPart = pIdx === parts.length - 1;
     const chunks = chunkText(partText);
 
