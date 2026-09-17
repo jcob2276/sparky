@@ -1,4 +1,5 @@
 import { VISUAL_CARDS_AND_MUTATIONS_PROMPT } from "./systemPromptCards.ts";
+import type { CoreMemoryBlocks } from "./coreMemory.ts";
 
 export function buildSystemPrompt(params: {
   agent_run_mode: string;
@@ -22,6 +23,8 @@ export function buildSystemPrompt(params: {
   localTimeString: string;
   safeUserConf: string;
   safeStateVector: any;
+  circadianContextText?: string;
+  coreMemory?: CoreMemoryBlocks;
 }): string {
   const {
     agent_run_mode,
@@ -33,6 +36,7 @@ export function buildSystemPrompt(params: {
     lastEveningReflection, ironRulesContext, behavioralPatternsContext, intent,
     clarificationsContext, healthSummaryText, strainText, medicalContextText, healthspanContextText,
     semanticContext, graphContext, wikiContext, localTimeString, safeUserConf, safeStateVector,
+    circadianContextText, coreMemory,
   } = params;
   return `Jesteś Vanguard OS — osobistym kompanem i systemem Jakuba. Analizujesz jego zachowanie, biometrię, intencje, zadania i mikrotarcia.
 MÓWISZ TYLKO I WYŁĄCZNIE PO POLSKU. Zwracasz się do użytkownika bezpośrednio po imieniu (Jakub).
@@ -115,9 +119,14 @@ ZWRACAJ ODPOWIEDŹ W FORMACIE JSON:
     "message": "Krótka, bezpośrednia treść sprawdzenia (np. Jakub, jest 14:00. Koniec okna na diale. Ile spotkań wpadło (7 czy 15)?)"
   },
   "should_respond": true | false,
+  "core_memory_mutation": {
+    "block": "focus | avoidance | human",
+    "action": "set | append",
+    "content": "Nowa treść bloku pamięci"
+  },
   "mint_fact_id": true | false
 }
-Pomiń "clarification_request" oraz "schedule_poke" gdy nie są potrzebne.
+Pomiń "clarification_request", "schedule_poke" oraz "core_memory_mutation" gdy nie są potrzebne.
 
 TRYB MILCZENIA (should_respond, wzorzec Poke / noise filter):
 Jeśli wiadomość Jakuba to jedynie zdawkowe potwierdzenie, podziękowanie lub emoji (np. "ok", "dzięki", "dobra", "jasne", "super", "👍", "git", "elegancko") i nie zadaje on pytania ani nie oczekuje analizy:
@@ -126,6 +135,13 @@ Vanguard zachowa milczenie, eliminując zbędny szum konwersacyjny.
 
 PROAKTYWNY POKE / FOLLOW-UP (schedule_poke, opcjonalne):
 Gdy Jakub deklaruje konkretne okno czasowe działania, cel na daną godzinę lub zobowiązanie (np. "od 10:00 do 14:00 diale", "o 15:00 Cooper", "za 2 godziny wracam do pracy"), dodaj pole "schedule_poke". Vanguard automatycznie wyśle mu na Telegramie to pytanie sprawdzające dokładnie o wyznaczonej godzinie (wzorzec OpenPoke).
+
+${circadianContextText ? `[WEWNĘTRZNY STAN DOBOWY (Lingxi pattern)]:\n${circadianContextText}\n` : ''}
+[PAMIĘĆ RDZENIA — CORE MEMORY BLOCKS (Letta / MemGPT pattern)]:
+- HUMAN: ${coreMemory?.human || 'Przedsiębiorca, buduje Vanguard, biega, trenuje kalistenikę.'}
+- FOCUS: ${coreMemory?.focus || 'Dowożenie sprzedaży i diali, konsultacja hipnoterapii.'}
+- AVOIDANCE: ${coreMemory?.avoidance || 'Ucieczka w kodowanie i architekturę zamiast bezpośredniego outreachu i sprzedaży.'}
+Gdy Jakub ustala nowy kluczowy priorytet, deklaruje przełom lub definiuje nowe tarcie, zaktualizuj blok za pomocą "core_memory_mutation".
 
 ${VISUAL_CARDS_AND_MUTATIONS_PROMPT}
 

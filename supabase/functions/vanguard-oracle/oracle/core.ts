@@ -26,6 +26,8 @@ import { extractAllSqlFromDsml, containsDsmlToolMarkup, stripDsmlMarkup } from "
 import { OracleResponseSchema, extractAnswer } from "./responseExtract.ts";
 import { handleStreamingResponse } from "./streamHandler.ts";
 import { handleNoteSummary, handleExtractTasks } from "../handlers/noteOps.ts";
+import { getCircadianStance } from "./circadian.ts";
+import { fetchCoreMemory, applyCoreMemoryMutation } from "./coreMemory.ts";
 
 const MAX_SQL_TOOL_ITERATIONS = 3;
 
@@ -83,6 +85,23 @@ export async function runOracleQuery(
   console.log(`[oracle] start | user: ${user_id} | query: "${current_query?.substring(0, 50)}..."`);
 
   const rag = await retrieveRagContext(supabase, user_id, current_query, todayDate, fourteenDaysAgoDate, mode, cutoff72h);
+  const coreMemory = await fetchCoreMemory(supabase, user_id);
+
+  const stateVectorObj = typeof safeStateVector === "object" && safeStateVector !== null
+    ? (safeStateVector as Record<string, unknown>)
+    : undefined;
+  const biometricsObj = typeof stateVectorObj?.biometrics === "object" && stateVectorObj.biometrics !== null
+    ? (stateVectorObj.biometrics as Record<string, unknown>)
+    : undefined;
+  const ouraInfo = typeof biometricsObj?.oura_last_night === "object" && biometricsObj.oura_last_night !== null
+    ? (biometricsObj.oura_last_night as Record<string, unknown>)
+    : undefined;
+  const readinessScore = typeof ouraInfo?.readiness === "number" ? ouraInfo.readiness : undefined;
+  const sleepHours = typeof ouraInfo?.sleep_hours === "number" ? ouraInfo.sleep_hours : undefined;
+
+  const warsawHour = parseInt(localTimeString.slice(11, 13), 10) || new Date().getUTCHours() + 2;
+  const circadian = getCircadianStance(warsawHour, readinessScore, sleepHours);
+  const circadianContextText = `${circadian.headline}\n${circadian.instructions}${circadian.biometricWarning ? '\n' + circadian.biometricWarning : ''}`;
 
   const systemPrompt = buildSystemPrompt({
     agent_run_mode, mode, fundament: rag.fundament, responsePrefs: rag.responsePrefs,
@@ -95,6 +114,7 @@ export async function runOracleQuery(
     healthspanContextText: rag.healthspanContextText,
     graphContext: resolved_claims ? `${resolved_claims}\n\n${rag.graphContext}` : rag.graphContext,
     wikiContext: rag.wikiContext, localTimeString, safeUserConf, safeStateVector,
+    circadianContextText, coreMemory,
   });
 
   const compressedHistory = await compressHistoryIfNeeded(history || []);
@@ -248,6 +268,12 @@ export async function runOracleQuery(
     structuredResponse,
     agent_run_mode,
   );
+
+  if (structuredResponse.core_memory_mutation && agent_run_mode !== 'readOnly') {
+    await applyCoreMemoryMutation(supabase, user_id, structuredResponse.core_memory_mutation).catch((e) => {
+      console.error("[oracle] core_memory_mutation failed:", e);
+    });
+  }
 
   console.log(`[oracle] response returned`, Date.now() - t0);
   return {

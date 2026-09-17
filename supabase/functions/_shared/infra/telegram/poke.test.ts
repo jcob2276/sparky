@@ -54,3 +54,25 @@ Deno.test("extractAnswer — returns empty string when should_respond is false (
   assertEquals(res, "");
 });
 
+Deno.test("getCircadianStance — adapts agent posture by diurnal phase (Lingxi pattern)", async () => {
+  const { getCircadianStance } = await import("../../../vanguard-oracle/oracle/circadian.ts");
+  
+  // Morning phase
+  const morning = getCircadianStance(9, 85, 7.5);
+  assertEquals(morning.phase, "MORNING_FIRST_MOVE");
+  assertEquals(morning.biometricWarning, undefined);
+
+  // Execution / deep work phase
+  const midday = getCircadianStance(13, 75, 7.0);
+  assertEquals(midday.phase, "DEEP_WORK_MOMENTUM");
+
+  // Night shutdown phase
+  const night = getCircadianStance(23, 80, 8.0);
+  assertEquals(night.phase, "NIGHT_SHUTDOWN");
+
+  // Oura low readiness alert
+  const alert = getCircadianStance(8, 55, 6.0);
+  assertEquals(alert.biometricWarning?.includes("OURA ALERT"), true);
+});
+
+

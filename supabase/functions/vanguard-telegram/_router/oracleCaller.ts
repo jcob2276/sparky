@@ -75,7 +75,7 @@ Tekst: "${cleanText}"`;
       if (parsed && Array.isArray(parsed.entities)) extractedEntities = parsed.entities.slice(0, 3);
     }
 
-    const allResolvedClaims: string[] = [];
+    const resolvedEntityIds: string[] = [];
     for (const entity of extractedEntities) {
       let resolvedEntityId: string | null = null;
       let resolvedEntityName: string | null = null;
@@ -119,17 +119,13 @@ Tekst: "${cleanText}"`;
       }
 
       if (resolvedEntityId) {
-        const { data: claimsData } = await supabase.from('claims')
-          .select('fact_text, weight, evidence_count, learned_at')
-          .eq('user_id', vanguardUserId).eq('status', 'active')
-          .or(`subject_id.eq.${resolvedEntityId},object_id.eq.${resolvedEntityId}`)
-          .order('weight', { ascending: false }).limit(10);
-        if (claimsData && claimsData.length > 0) {
-          allResolvedClaims.push(`[ZWIĄZANE AKTYWNE CELE I FAKTY DLA ENCI: ${resolvedEntityName}]:\n` + claimsData.map((c: any) => `- ${c.fact_text} (waga: ${c.weight || 1.0}, dowody: ${c.evidence_count || 1})`).join('\n'));
-        }
+        resolvedEntityIds.push(resolvedEntityId);
       }
     }
-    if (allResolvedClaims.length > 0) resolvedClaimsContext = allResolvedClaims.join('\n\n');
+    if (resolvedEntityIds.length > 0) {
+      const { fetchAssociativeGraphContext } = await import("./associativeGraph.ts");
+      resolvedClaimsContext = await fetchAssociativeGraphContext(supabase, vanguardUserId, resolvedEntityIds);
+    }
   } catch (err) { console.error('[telegram] Entity resolution failed:', err); }
 
   // Oracle call
