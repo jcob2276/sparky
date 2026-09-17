@@ -67,6 +67,16 @@ export async function callTelegramMethod(
   return data;
 }
 
+export function sanitizeOutboundText(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(/会话/g, "callami/sesjami")
+    .replace(/对话/g, "rozmową")
+    .replace(/[\u4e00-\u9fa5\u3040-\u30ff]/g, "")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*\*/g, "");
+}
+
 /** sendMessage + parse Telegram JSON (for message_id / error handling). */
 export async function sendMessageParsed(
   token: string,
@@ -74,13 +84,14 @@ export async function sendMessageParsed(
   text: string,
   options: SendMessageOptions = {},
 ): Promise<TelegramSendResult> {
+  const cleanText = sanitizeOutboundText(text);
   if (options.direct) {
-    let res = await sendMessage(token, chatId, text, options);
+    let res = await sendMessage(token, chatId, cleanText, options);
     let data = await res.json().catch(() => ({}));
     if (!res.ok || !data.ok) {
       if (options.parseMode) {
         console.warn("[telegram] send failed with parseMode, retrying as plain text...");
-        res = await sendMessage(token, chatId, text, { ...options, parseMode: undefined });
+        res = await sendMessage(token, chatId, cleanText, { ...options, parseMode: undefined });
         data = await res.json().catch(() => ({}));
       }
     }
@@ -95,7 +106,7 @@ export async function sendMessageParsed(
   // Outbox path
   const queued = await queueOutbox("sendMessage", {
     chat_id: chatId,
-    text,
+    text: cleanText,
     parse_mode: options.parseMode,
     disable_notification: options.disableNotification,
     reply_markup: options.replyMarkup,
@@ -110,9 +121,10 @@ export async function sendMessage(
   text: string,
   options: SendMessageOptions = {},
 ): Promise<Response> {
+  const cleanText = sanitizeOutboundText(text);
   const body: Record<string, unknown> = {
     chat_id: chatId,
-    text,
+    text: cleanText,
   };
 
   if (options.parseMode) body.parse_mode = options.parseMode;
@@ -225,7 +237,7 @@ export async function editMessageText(
   inlineKeyboard?: object[][],
   options: { direct?: boolean } = {},
 ): Promise<void> {
-  const body: Record<string, unknown> = { chat_id: chatId, message_id: messageId, text };
+  const body: Record<string, unknown> = { chat_id: chatId, message_id: messageId, text: sanitizeOutboundText(text) };
   body.reply_markup = { inline_keyboard: inlineKeyboard ?? [] };
 
   if (options.direct) {

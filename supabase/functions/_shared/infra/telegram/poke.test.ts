@@ -41,11 +41,22 @@ Deno.test("qualifySqlTables — auto prefixes public schema for known Vanguard t
   assertEquals(qualifySqlTables(q3), "SELECT * FROM public.vanguard_calendar");
 });
 
-Deno.test("cleanLanguageGlitches — cleans Chinese token slips and preserves Polish text", () => {
-  const raw = "Dlatego ustal teraz, co z会话 w trakcie wyjazdu.";
+Deno.test("cleanLanguageGlitches — cleans Chinese token slips and strips fake ** bolding", () => {
+  const raw = "**Ale najważniejszy ruch dnia to nie praca.**\nDlatego ustal teraz, co z会话 w trakcie wyjazdu.";
   const cleaned = cleanLanguageGlitches(raw);
   assertEquals(cleaned.includes("会话"), false);
   assertEquals(cleaned.includes("callami/sesjami"), true);
+  assertEquals(cleaned.includes("**"), false);
+  assertEquals(cleaned.startsWith("Ale najważniejszy ruch dnia to nie praca."), true);
+});
+
+Deno.test("sanitizeOutboundText — sanitizes outbound message text and eliminates **", async () => {
+  const { sanitizeOutboundText } = await import("./send.ts");
+  const raw = "• **Zapis Lenie** z 会话 oraz **Tytuł:** test";
+  const cleaned = sanitizeOutboundText(raw);
+  assertEquals(cleaned.includes("**"), false);
+  assertEquals(cleaned.includes("会话"), false);
+  assertEquals(cleaned, "• Zapis Lenie z callami/sesjami oraz Tytuł: test");
 });
 
 Deno.test("extractAnswer — returns empty string when should_respond is false (Poke noise filter)", async () => {

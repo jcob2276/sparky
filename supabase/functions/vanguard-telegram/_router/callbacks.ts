@@ -217,7 +217,7 @@ export async function handleCallbackQuery(
   if (data.startsWith("oracle_clarify:")) {
     const msgId = parseInt(data.split(":")[1], 10);
     await answerCallbackQuery(telegramToken, callbackId);
-    await safeSendTelegram(chatId, "• **Zadaj pytanie Wyroczni**\nNapisz swoje pytanie do Vanguard Oracle:", telegramToken, {
+    await safeSendTelegram(chatId, "• Zadaj pytanie Wyroczni\nNapisz swoje pytanie do Vanguard Oracle:", telegramToken, {
       parse_mode: 'Markdown',
       reply_markup: {
         force_reply: true,

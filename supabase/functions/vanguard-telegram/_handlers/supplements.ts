@@ -138,11 +138,11 @@ export async function handleSupplementCallback(
       const isSkipQty = s.skip_qty || s.slug === 'kreatyna' || s.name.toLowerCase().includes('kreatyna');
       const unitStr = (s.slug === 'kreatyna' || s.name.toLowerCase().includes('kreatyna')) ? '5g' : (s.unit || 'porcja');
       return isSkipQty
-        ? `• ${s.emoji || '💊'} **${s.name}**: ${unitStr}`
-        : `• ${s.emoji || '💊'} **${s.name}**: ${qty}x ${unitStr}`;
+        ? `• ${s.emoji || '💊'} ${s.name}: ${unitStr}`
+        : `• ${s.emoji || '💊'} ${s.name}: ${qty}x ${unitStr}`;
     });
 
-    const summaryText = `✓ **Zapisano suplementy** (${today})\n\n${summaryLines.join('\n')}`;
+    const summaryText = `✓ Zapisano suplementy (${today})\n\n${summaryLines.join('\n')}`;
     await editMessageText(telegramToken, chatId, messageId, summaryText, [], { direct: true });
     return;
   }
@@ -190,9 +190,9 @@ function renderSupplementMenu(supls: SupplementItem[], state: Record<string, num
 
     if (isSelected) {
       if (isSkipQty) {
-        selectedSummary.push(`• ${emoji} **${s.name}**: ${unitStr}`);
+        selectedSummary.push(`• ${emoji} ${s.name}: ${unitStr}`);
       } else {
-        selectedSummary.push(`• ${emoji} **${s.name}**: ${qty}x ${unitStr}`);
+        selectedSummary.push(`• ${emoji} ${s.name}: ${qty}x ${unitStr}`);
       }
     }
 
@@ -230,13 +230,13 @@ function renderSupplementMenu(supls: SupplementItem[], state: Record<string, num
     { text: '❌ Anuluj', callback_data: 'supl_cancel' },
   ]);
 
-  let text = `💊 **Zaloguj suplementy**\n\n`;
+  let text = `💊 Zaloguj suplementy\n\n`;
   if (selectedSummary.length > 0) {
-    text += `**Do zapisania:**\n${selectedSummary.join('\n')}\n\n`;
+    text += `Do zapisania:\n${selectedSummary.join('\n')}\n\n`;
   } else {
-    text += `_Brak zaznaczonych suplementów (wybierz dawkę poniżej)._\n\n`;
+    text += `Brak zaznaczonych suplementów (wybierz dawkę poniżej).\n\n`;
   }
-  text += `_Zaznacz suplementy i kliknij Zapisz:_`;
+  text += `Zaznacz suplementy i kliknij Zapisz:`;
 
   return { text, inlineKeyboard: keyboard };
 }

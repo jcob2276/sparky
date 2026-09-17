@@ -226,7 +226,7 @@ export async function handleSavedLink(
   }
 
   // 1. Send processing indicator
-  await safeSendTelegram(chatId, "📥 **Przetwarzam link i generuję podsumowanie...**", telegramToken);
+  await safeSendTelegram(chatId, "📥 Przetwarzam link i generuję podsumowanie...", telegramToken);
 
   const { title: cleanTitle, description: pageDescription, domain, thumbnailUrl, channelName } = await fetchUrlMetadata(url);
   const { takeaways, category } = await generateLinkAnalysis(cleanTitle, pageDescription, url, deepseekApiKey);
@@ -249,10 +249,10 @@ export async function handleSavedLink(
     if (insertErr) throw insertErr;
 
     // 5. Send Telegram confirmation message
-    const confirmText = `🔖 **Zapisano w skrzynce linków!**\n\n` +
-      `**Tytuł:** ${cleanTitle}\n` +
-      `**Domena:** 🌐 ${domain}\n\n` +
-      `Link czeka na Ciebie w zakładce **Zapisane linki** w aplikacji.`;
+    const confirmText = `🔖 Zapisano w skrzynce linków!\n\n` +
+      `Tytuł: ${cleanTitle}\n` +
+      `Domena: 🌐 ${domain}\n\n` +
+      `Link czeka na Ciebie w zakładce Zapisane linki w aplikacji.`;
 
     await safeSendTelegram(chatId, confirmText, telegramToken);
     return true;

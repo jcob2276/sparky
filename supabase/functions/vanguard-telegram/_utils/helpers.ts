@@ -46,7 +46,10 @@ export function cleanLanguageGlitches(text: string): string {
     .replace(/会话/g, "callami/sesjami")
     .replace(/对话/g, "rozmową")
     // Strip any other accidental CJK ideographs
-    .replace(/[\u4e00-\u9fa5\u3040-\u30ff]/g, "");
+    .replace(/[\u4e00-\u9fa5\u3040-\u30ff]/g, "")
+    // Strip fake double-asterisk bolding that leaks into Telegram plain text / broken markdown
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*\*/g, "");
 }
 
 export async function safeSendTelegram(

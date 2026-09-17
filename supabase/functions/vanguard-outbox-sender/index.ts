@@ -9,7 +9,7 @@
  */
 import { serveJson } from "../_shared/http.ts";
 import { logCriticalError } from "../_shared/errorLogging.ts";
-import { callTelegramMethod } from "../_shared/telegram.ts";
+import { callTelegramMethod, sanitizeOutboundText } from "../_shared/telegram.ts";
 // Force upload of domain package for shared dependencies
 import type {} from "@vanguard/domain";
 
@@ -59,7 +59,10 @@ Deno.serve(serveJson(async (req, ctx) => {
 
     // 2. Call Telegram Bot API
     const method = record.payload.method || "sendMessage";
-    const body = record.payload.body || {};
+    const body = { ...(record.payload.body || {}) };
+    if (typeof body.text === "string") {
+      body.text = sanitizeOutboundText(body.text);
+    }
 
     let responseData = await callTelegramMethod(token, method, body);
 

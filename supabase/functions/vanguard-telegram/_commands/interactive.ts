@@ -6,7 +6,7 @@ export async function handleInteractivePromptCommand(
   telegramToken: string,
 ): Promise<boolean> {
   if (lowerText === '🛋️ lenie' || lowerText === '/lenie') {
-    await safeSendTelegram(chatId, "• **Zapis Lenie**\nPodaj bodziec i kontekst (np. `scrollowanie | zmęczenie`):", telegramToken, {
+    await safeSendTelegram(chatId, "• Zapis Lenie\nPodaj bodziec i kontekst (np. `scrollowanie | zmęczenie`):", telegramToken, {
       parse_mode: 'Markdown',
       reply_markup: {
         force_reply: true,
@@ -18,7 +18,7 @@ export async function handleInteractivePromptCommand(
   }
 
   if (lowerText === '⏳ post' || lowerText === '/post') {
-    await safeSendTelegram(chatId, "• **Zapis postu**\nWpisz opis postu (lub `wczoraj opis` / zostaw puste):", telegramToken, {
+    await safeSendTelegram(chatId, "• Zapis postu\nWpisz opis postu (lub `wczoraj opis` / zostaw puste):", telegramToken, {
       parse_mode: 'Markdown',
       reply_markup: {
         force_reply: true,
@@ -30,7 +30,7 @@ export async function handleInteractivePromptCommand(
   }
 
   if (lowerText === '❓ wyrocznia') {
-    await safeSendTelegram(chatId, "• **Zadaj pytanie Wyroczni**\nNapisz swoje pytanie do Vanguard Oracle:", telegramToken, {
+    await safeSendTelegram(chatId, "• Zadaj pytanie Wyroczni\nNapisz swoje pytanie do Vanguard Oracle:", telegramToken, {
       parse_mode: 'Markdown',
       reply_markup: {
         force_reply: true,
@@ -42,7 +42,7 @@ export async function handleInteractivePromptCommand(
   }
 
   if (lowerText === '📝 todo' || lowerText === '/todo' || lowerText === '＋ zadanie' || lowerText === '+ zadanie') {
-    await safeSendTelegram(chatId, "• **Nowe zadanie**\nWpisz co masz do zrobienia (opcjonalnie: `+jutro` `+tydzień` `!high`):", telegramToken, {
+    await safeSendTelegram(chatId, "• Nowe zadanie\nWpisz co masz do zrobienia (opcjonalnie: `+jutro` `+tydzień` `!high`):", telegramToken, {
       parse_mode: 'Markdown',
       reply_markup: {
         force_reply: true,
@@ -54,7 +54,7 @@ export async function handleInteractivePromptCommand(
   }
 
   if (lowerText === '🍴 posiłek' || lowerText === '🍽 posiłek' || lowerText === '🍽 posilek' || lowerText === '/posilek' || lowerText === '/posiłek') {
-    await safeSendTelegram(chatId, "• **Co zjadłeś?**\nOpisz posiłek (np. `makaron z serkiem tłustym piątnica`):", telegramToken, {
+    await safeSendTelegram(chatId, "• Co zjadłeś?\nOpisz posiłek (np. `makaron z serkiem tłustym piątnica`):", telegramToken, {
       parse_mode: 'Markdown',
       reply_markup: {
         force_reply: true,
@@ -66,7 +66,7 @@ export async function handleInteractivePromptCommand(
   }
 
   if (lowerText === '📒 keep' || lowerText === '📝 notatka' || lowerText === '/keep' || lowerText === '/notatka') {
-    await safeSendTelegram(chatId, "• **Notatka**\nWpisz notatkę lub nagraj głosówkę:", telegramToken, {
+    await safeSendTelegram(chatId, "• Notatka\nWpisz notatkę lub nagraj głosówkę:", telegramToken, {
       parse_mode: 'Markdown',
       reply_markup: {
         force_reply: true,
