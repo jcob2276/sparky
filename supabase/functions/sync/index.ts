@@ -1,7 +1,7 @@
 /**
  * @function sync
  * @trigger HTTP POST / manual / cron
- * @role Router dla synchronizacji zewnętrznych API: Oura, Strava, Google Calendar.
+ * @role Router dla synchronizacji zewnętrznych API: Oura, Strava, Google Calendar, NextDNS.
  * @reads oura_daily_summary, strava_activities, vanguard_calendar, user_settings, vanguard_tokens, oura_enhanced, strava_tokens, intervals_tokens, oura_heartrate, oura_sleep_hr_timeline, oura_sleep_hrv_timeline, oura_sleep_phase_timeline
  * @writes oura_daily_summary, strava_activities, vanguard_calendar, audit_events, oura_enhanced, oura_heartrate, oura_sleep_phase_timeline, strava_tokens, vanguard_tokens
  * @calls ouraring.com, strava.com, googleapis.com/calendar, api.telegram.org (poprzez send.ts)
@@ -13,6 +13,7 @@ import { serveJson } from '../_shared/http.ts'
 import { runOuraSync } from './oura.ts'
 import { runStravaSync } from './strava.ts'
 import { runCalendarSync } from './calendar.ts'
+import { runNextDnsSync } from './nextdns.ts'
 
 Deno.serve(serveJson(async (req) => {
   const url = new URL(req.url)
@@ -38,6 +39,8 @@ Deno.serve(serveJson(async (req) => {
     return await runStravaSync(req)
   } else if (service === 'calendar') {
     return await runCalendarSync(req)
+  } else if (service === 'nextdns') {
+    return await runNextDnsSync(req)
   } else {
     throw new Error(`Unknown or missing service parameter: ${service}`)
   }

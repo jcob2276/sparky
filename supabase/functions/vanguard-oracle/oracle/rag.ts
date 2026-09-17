@@ -1,10 +1,11 @@
 import { getPlanQualitySignal } from "../../_shared/planQuality.ts";
 import { getRecentStrongBehavioralPatterns } from "../../_shared/vanguardPatterns.ts";
-import { fetchMedicalContext, formatMedicalContextBlock } from "../../_shared/medicalContext.ts";
-import { avg, classifyIntentSafe } from "./ragHelpers.ts";
+import { fetchMedicalContext, formatMedicalContextBlock, formatFlaggedMedicalSummary } from "../../_shared/medicalContext.ts";
+import { classifyIntentSafe } from "./ragHelpers.ts";
 import { runRagPipeline } from "./ragPipeline.ts";
 import { fetchHealthspanContext } from "./healthspanContext.ts";
-import { formatHealthSummary, formatStrainContext } from "./healthContextFormatters.ts";
+import { computeHealthSummary, formatStrainContext } from "./healthContextFormatters.ts";
+import { fetchDeviceUsageContext, fetchProjectsAndGoalsContext } from "./deviceContext.ts";
 export async function retrieveRagContext(
   supabase: any,
   user_id: string,
@@ -50,13 +51,13 @@ export async function retrieveRagContext(
   const intent = classifyIntentSafe(current_query || '');
   const wantsFullBiometrics = intent === 'biometric';
   const wantsMedical = wantsFullBiometrics ||
-    /\b(badani|krew|lab|marker|cholesterol|ferrytyn|witamin|morpholog|glukoz|hemoglob)\w*/i.test(current_query || '');
+    /\b(badani|krew|lab|marker|cholesterol|ferrytyn|witamin|morpholog|glukoz|hemoglob|zdrow|tsh|ft3|leukocyt|erytrocyt|żelazo|zelazo)\w*/i.test(current_query || '');
   const wantsClarifications = intent === 'identity' ||
     /\b(pamiętasz|pamietasz|mówiłeś|mowiles|odpowiadałeś|pytałeś|preferenc)\w*/i.test(current_query || '');
 
   const [
     fundamentRes, preferencesRes, oura14dRes, nutrition14dRes, foodEntries14dRes,
-    strainRes, dailyWinsRes, proposalsRes, medicalContext,
+    strainRes, dailyWinsRes, proposalsRes, medicalContext, deviceUsageContext, projectsGoalsContext,
   ] = await Promise.all([
     supabase.from('user_fundament')
       .select('identity, philosophy, vision')
@@ -96,9 +97,9 @@ export async function retrieveRagContext(
       .eq('user_id', user_id)
       .eq('status', 'pending')
       .limit(5),
-    wantsMedical
-      ? fetchMedicalContext(supabase, user_id, todayDate)
-      : Promise.resolve(null),
+    fetchMedicalContext(supabase, user_id, todayDate).catch(() => null),
+    fetchDeviceUsageContext(supabase, user_id),
+    fetchProjectsAndGoalsContext(supabase, user_id),
   ]);
 
   if (fundamentRes.error) console.error('[oracle] user_fundament query error:', fundamentRes.error);
@@ -111,47 +112,20 @@ export async function retrieveRagContext(
   if (proposalsRes.error) console.error('[oracle] system_proposals query error:', proposalsRes.error);
 
   const responsePrefs = preferencesRes.data?.map((p: any) => `- ${p.value}`).join('\n') || '';
-  const oura14d = oura14dRes.data || [];
-  const nutrition14d = nutrition14dRes.data || [];
-  const foodEntries14d = foodEntries14dRes.data || [];
-  const rawDayLimit = wantsFullBiometrics ? 14 : 5;
-  const ouraRaw = oura14d.slice(0, rawDayLimit);
-  const nutritionRaw = nutrition14d.slice(0, rawDayLimit);
-  const foodByDate: Record<string, any[]> = {};
-  const rawDates = new Set(ouraRaw.map((d: { date: string }) => d.date).concat(nutritionRaw.map((d: { date: string }) => d.date)));
-  for (const e of foodEntries14d) {
-    if (!wantsFullBiometrics && !rawDates.has(e.date)) continue;
-    if (!foodByDate[e.date]) foodByDate[e.date] = [];
-    foodByDate[e.date].push({ meal: e.meal_type, name: e.name, kcal: e.calories, B: e.protein, W: e.carbs, T: e.fat, Bl: e.fiber ?? undefined, Cuk: e.sugar ?? undefined, q: e.food_quality_score ?? undefined });
-  }
+  const { healthSummary14d, healthSummaryText } = computeHealthSummary(
+    oura14dRes.data || [],
+    nutrition14dRes.data || [],
+    foodEntries14dRes.data || [],
+    fourteenDaysAgoDate,
+    todayDate,
+    wantsFullBiometrics,
+  );
 
-  const healthSummary14d = {
-    date_from: fourteenDaysAgoDate,
-    date_to: todayDate,
-    oura_days_logged: oura14d.length,
-    nutrition_days_logged: nutrition14d.length,
-    avg_steps: avg(oura14d, 'steps'),
-    avg_active_calories: avg(oura14d, 'active_calories'),
-    avg_total_calories_burned: avg(oura14d, 'total_calories'),
-    avg_food_calories: avg(nutrition14d, 'calories'),
-    avg_protein: avg(nutrition14d, 'protein'),
-    avg_carbs: avg(nutrition14d, 'carbs'),
-    avg_fat: avg(nutrition14d, 'fat'),
-    avg_fiber: avg(nutrition14d, 'fiber'),
-    avg_sugar: avg(nutrition14d, 'sugar'),
-    avg_sleep_hours: avg(oura14d, 'total_sleep_hours'),
-    avg_hrv: avg(oura14d, 'hrv_avg'),
-    avg_readiness: avg(oura14d, 'readiness_score'),
-    oura_daily: ouraRaw,
-    nutrition_daily: nutritionRaw,
-  };
-
-  const healthSummaryText = formatHealthSummary(healthSummary14d, foodByDate, rawDayLimit);
   const strain14dAll = strainRes.data || [];
   const strainText = formatStrainContext(strain14dAll, wantsFullBiometrics);
 
   const medicalContextText = medicalContext
-    ? formatMedicalContextBlock(medicalContext)
+    ? (wantsMedical ? formatMedicalContextBlock(medicalContext) : formatFlaggedMedicalSummary(medicalContext))
     : '';
   const healthspanContextText = await fetchHealthspanContext(supabase, user_id);
   // DYNAMIC CONTEXT (RAG) - DETERMINISTIC 3-STEP PIPELINE
@@ -294,6 +268,8 @@ export async function retrieveRagContext(
     intent,
     recentPlanQuality,
     lastEveningReflection,
+    deviceUsageContext,
+    projectsGoalsContext,
     fundament: fundamentRes.data || { identity: '', philosophy: '', vision: '' }
   };
 }

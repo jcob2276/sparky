@@ -190,3 +190,12 @@ ${bodyLines.length ? bodyLines.join("\n") : "- brak pomiarow"}
 Dokumenty zrodlowe:
 ${docLines.length ? docLines.join("\n") : "- brak dokumentow"}`;
 }
+
+export function formatFlaggedMedicalSummary(ctx: Awaited<ReturnType<typeof fetchMedicalContext>>): string {
+  const flagged = ctx.latest_labs.filter((l) => Boolean(l.flag));
+  if (!flagged.length) return "";
+  const lines = flagged.map(
+    (r) => `- ${r.marker_name}: ${r.value} ${r.unit || ""} (flaga=${r.flag}, ref=${r.ref_text || "brak"}, data: ${r.date}, ${r.age_days} dni temu)`
+  );
+  return `[BADANIA KRWI - AKTYWNE ODCHYLENIA / BAZA BIOLOGICZNA]:\n${lines.join("\n")}`;
+}

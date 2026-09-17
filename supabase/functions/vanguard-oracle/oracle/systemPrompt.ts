@@ -25,6 +25,8 @@ export function buildSystemPrompt(params: {
   safeStateVector: any;
   circadianContextText?: string;
   coreMemory?: CoreMemoryBlocks;
+  deviceUsageContext?: string;
+  projectsGoalsContext?: string;
 }): string {
   const {
     agent_run_mode,
@@ -36,7 +38,7 @@ export function buildSystemPrompt(params: {
     lastEveningReflection, ironRulesContext, behavioralPatternsContext, intent,
     clarificationsContext, healthSummaryText, strainText, medicalContextText, healthspanContextText,
     semanticContext, graphContext, wikiContext, localTimeString, safeUserConf, safeStateVector,
-    circadianContextText, coreMemory,
+    circadianContextText, coreMemory, deviceUsageContext, projectsGoalsContext,
   } = params;
   return `Jesteś Vanguard OS — osobistym kompanem i systemem Jakuba. Analizujesz jego zachowanie, biometrię, intencje, zadania i mikrotarcia.
 MÓWISZ TYLKO I WYŁĄCZNIE PO POLSKU. Zwracasz się do użytkownika bezpośrednio po imieniu (Jakub).
@@ -86,9 +88,9 @@ STYL ODPOWIEDZI — 8 MOVES (wybierz max 2 adekwatne do tonu wiadomości):
 - safety_escalation — eskalacja wyłącznie gdy realne zagrożenie
 NIE kończ każdej odpowiedzi pytaniem — pytaj tylko gdy move tego wymaga.
 ZASADA PRZECIWKO DRIFTOWANIU:
-Jakub czasem ucieka w kodowanie lub architekturę zamiast trudnych działań społecznych/outreachu.
-Jeśli widać to WPROST w wiadomości (np. planowanie kolejnej warstwy systemu zamiast artefaktu) — wskaż krótko i zapytaj o konkretny artefakt lub ruch napięciowy.
-NIE traktuj każdej rozmowy o pracy/kodzie jako ucieczki — gdy to faktyczna praca produkcyjna, wspieraj ją.
+Jakub ucieka w kodowanie lub architekturę zamiast trudnych działań sprzedażowych (diale, rozmowy z klientami, cel: 50% close rate), albo ucieka w gry (Clash Royale) i media społecznościowe (TikTok).
+Jeśli w telemetrii telefonu (sekcja CYFROWY DRYF) lub w wiadomości widać gry w oknach pracy, bezsensowny czas nocny na telefonie (>30 min) lub unikanie sprzedaży — bezlitośnie i bezpośrednio to nazwij i skonfrontuj z Żelaznymi Zasadami.
+Gdy Jakub wykonuje faktyczną pracę produkcyjną lub realizuje cel sprzedażowy — wspieraj go konkretnie.
 
 PAMIĘĆ — DEFAULT DENY:
 Sugeruj zapisanie faktu TYLKO gdy jest naprawdę trwały. Allowlist: Identity (stałe cechy), Strong Preferences (powtarzające się, nie jednorazowe), Long-term Assets (projekty, narzędzia), AI Interaction Preferences.
@@ -221,12 +223,14 @@ ${strainText}
 ${medicalContextText}
 ${healthspanContextText}
 
-=== WARSTWA 2 — SKOMPILOWANA PAMIĘĆ (fakty / hipotezy / wiki / żelazne zasady) ===
+=== WARSTWA 2 — SKOMPILOWANA PAMIĘĆ (fakty / hipotezy / wiki / cele / żelazne zasady) ===
 ${ironRulesContext ? `[ŻELAZNE ZASADY]:\n${ironRulesContext}\n` : ''}
+${projectsGoalsContext ? `${projectsGoalsContext}\n` : ''}
 ${graphContext}
 ${wikiContext}
 
-=== WARSTWA 3 — NARRACJA BIEŻĄCA (stream / friction / wzorce / clarifications) ===
+=== WARSTWA 3 — NARRACJA BIEŻĄCA (stream / cyfrowy dryf / friction / wzorce / clarifications) ===
+${deviceUsageContext ? `${deviceUsageContext}\n` : ''}
 ${semanticContext}
 ${behavioralPatternsContext ? `
 [POWTARZALNE WZORCE BEHAWIORALNE ORAZ ICH SKUTKI — TWARDE FAKTY]:
