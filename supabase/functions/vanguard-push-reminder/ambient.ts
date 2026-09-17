@@ -25,6 +25,35 @@ export async function processAmbientSignals(
   const warsawDate = getWarsawDateString(now);
   const warsawMinutes = getWarsawClockMinutes(now);
 
+  // ─── Attention Budget & Cooldown (JITAI framework) ───
+  // Max 3 proactive ambient interruptions per day.
+  // Minimum 90 minutes cooldown between proactive ambient interruptions to prevent attention fatigue.
+  try {
+    const todayStartIso = `${warsawDate}T00:00:00.000Z`;
+    const { data: recentAmbient } = await supabase
+      .from("outbound_messages")
+      .select("send_after")
+      .gte("send_after", todayStartIso)
+      .not("dedupe_key", "is", null)
+      .order("send_after", { ascending: false })
+      .limit(5);
+
+    if (recentAmbient && recentAmbient.length >= 3) {
+      // Attention budget reached — respect user focus and remain silent
+      return { meeting_briefs: 0, pattern_interventions: 0 };
+    }
+
+    if (recentAmbient && recentAmbient.length > 0) {
+      const lastSentMs = new Date(recentAmbient[0].send_after).getTime();
+      if (nowMs - lastSentMs < 90 * 60 * 1000) {
+        // Cooldown active (<90 mins) — do not disturb
+        return { meeting_briefs: 0, pattern_interventions: 0 };
+      }
+    }
+  } catch (err) {
+    console.error("[ambient] attention budget check error:", err);
+  }
+
   // ─── 1. Before-Meeting Brief (Limitless pattern) ───
   // Scans for upcoming calendar events starting between 3 and 25 minutes from now.
   try {
@@ -122,7 +151,7 @@ export async function processAmbientSignals(
         if (latestStream && latestStream.created_at) {
           const hoursSinceLast = (nowMs - new Date(latestStream.created_at).getTime()) / (3600 * 1000);
           if (hoursSinceLast >= 48) {
-            const text = `Jakub. Ponad 48 godzin ciszy w Strumieniu.\nZ danych wynika, że przedłużająca się cisza to zwykle unikanie (avoidance) albo dryf.\n\nZatrzymaj się na 30 sekund: co jest teraz Twoim realnym tarciem? Zaloguj jedno zdanie prawdy.`;
+            const text = `Jakub, od 48 godzin brak nowych wpisów w Strumieniu.\nCzy pojawiło się tarcie lub bloker, czy działasz poza systemem?`;
 
             const { error: silenceErr } = await supabase.from("outbound_messages").insert({
               user_id: latestStream.user_id,

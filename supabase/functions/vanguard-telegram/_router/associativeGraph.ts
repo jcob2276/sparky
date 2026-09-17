@@ -58,9 +58,10 @@ export async function fetchAssociativeGraphContext(
         .limit(4);
 
       if (hop2Claims && hop2Claims.length > 0) {
-        lines.push("\n[POWIĄZANIA ASOCJACYJNE (2-hop Graph)]: ");
+        lines.push("\n[ASOCJACJE TEMATYCZNE W HISTORII (Skojarzenia z grafu — NIE ciąg przyczynowy)]:");
+        lines.push("(Zakaz traktowania poniższych jako przyczynowości bez potwierdzenia w danych):");
         for (const c of hop2Claims) {
-          lines.push(`• Relacja: ${c.fact_text}`);
+          lines.push(`• Wzmianka: ${c.fact_text}`);
         }
       }
     }

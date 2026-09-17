@@ -32,6 +32,24 @@ export async function dispatchDueOutboundMessages(
   let sentCount = 0;
   for (const item of dueOutbound as OutboundMessageRow[]) {
     try {
+      // Atomic lease: transition row from 'pending' to 'processing' before dispatching.
+      // If another concurrent cron execution already grabbed it, leased is null and we skip.
+      const { data: leased } = await supabase
+        .from("outbound_messages")
+        .update({
+          status: "processing",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", item.id)
+        .eq("status", "pending")
+        .select("id")
+        .maybeSingle();
+
+      if (!leased) {
+        // Row already acquired by concurrent worker
+        continue;
+      }
+
       const method = item.payload?.method || "sendMessage";
       const body = item.payload?.body || { chat_id: item.chat_id, text: item.content || "" };
       const res = await callTelegramMethod(telegramToken, method, body);
@@ -51,6 +69,15 @@ export async function dispatchDueOutboundMessages(
       }
     } catch (err: unknown) {
       console.error(`[push-reminder] outbound send exception for ${item.id}:`, err);
+      try {
+        await supabase.from("outbound_messages").update({
+          status: "failed",
+          error_log: String(err),
+          updated_at: new Date().toISOString(),
+        }).eq("id", item.id);
+      } catch {
+        // ignore secondary error
+      }
     }
   }
 

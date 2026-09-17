@@ -55,6 +55,46 @@ export async function handleCallbackQuery(
   const messageId = message.message_id;
   const { supabase, telegramToken, vanguardUserId } = ctx;
 
+  if (data.startsWith("contract_")) {
+    const { answerCallbackQuery, editMessageText } = await import("../../_shared/infra/telegram/send.ts");
+    if (data === "contract_done") {
+      await answerCallbackQuery(telegramToken, callbackId, { text: "✅ Odnotowano wykonanie!" });
+      await editMessageText(telegramToken, chatId, messageId, "🎯 Zobowiązanie: Wykonano pomyślnie. Czyste zamknięcie.");
+    } else if (data === "contract_snooze_60") {
+      await answerCallbackQuery(telegramToken, callbackId, { text: "⏳ Przełożono o 1h" });
+      await editMessageText(telegramToken, chatId, messageId, "🎯 Zobowiązanie: Przełożone o 1 godzinę.");
+      const snoozeTarget = new Date(Date.now() + 60 * 60 * 1000);
+      await supabase.from("outbound_messages").insert({
+        user_id: vanguardUserId,
+        chat_id: chatId,
+        payload: {
+          method: "sendMessage",
+          body: {
+            chat_id: chatId,
+            text: "🎯 Zobowiązanie (po przełożeniu):\nStatus wykonania:",
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  { text: "✅ Zrobione", callback_data: "contract_done" },
+                  { text: "⏳ +1h", callback_data: "contract_snooze_60" },
+                  { text: "🛑 Odpuść świadomie", callback_data: "contract_drop" }
+                ]
+              ]
+            }
+          }
+        },
+        send_after: snoozeTarget.toISOString(),
+        status: "pending",
+        priority: 10,
+        dedupe_key: `contract_snooze_${chatId}_${Date.now()}`
+      });
+    } else if (data === "contract_drop") {
+      await answerCallbackQuery(telegramToken, callbackId, { text: "🛑 Świadomie odpuszczone" });
+      await editMessageText(telegramToken, chatId, messageId, "🎯 Zobowiązanie: Świadomie odpuszczone. Zero poczucia winy.");
+    }
+    return;
+  }
+
   if (isTodoCaptureCallback(data)) {
     await handleTodoCaptureCallback(data, chatId, messageId, callbackId, supabase, telegramToken, vanguardUserId);
     return;

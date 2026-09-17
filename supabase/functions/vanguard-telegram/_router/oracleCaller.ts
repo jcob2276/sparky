@@ -208,7 +208,16 @@ Tekst: "${cleanText}"`;
               method: "sendMessage",
               body: {
                 chat_id: chatId,
-                text: `🔔 POKE: ${poke.message}`,
+                text: `🎯 Zobowiązanie: ${poke.message}\nStatus wykonania:`,
+                reply_markup: {
+                  inline_keyboard: [
+                    [
+                      { text: "✅ Zrobione", callback_data: "contract_done" },
+                      { text: "⏳ +1h", callback_data: "contract_snooze_60" },
+                      { text: "🛑 Odpuść świadomie", callback_data: "contract_drop" }
+                    ]
+                  ]
+                }
               },
             },
             send_after: parsed.date.toISOString(),
