@@ -43,7 +43,7 @@ export default function TodayStatusStrip() {
         {/* Gotowość */}
         <Pressable
           onClick={goToBiometrics}
-          className={`flex flex-col justify-between rounded-2xl border p-3 text-left transition-all active:scale-95 ${readinessTone}`}
+          className={`flex flex-col justify-between rounded-2xl border p-3 text-left ui-interactive active:scale-95 ${readinessTone}`}
         >
           <div className="flex items-center justify-between">
             <span className="text-3xs font-black uppercase tracking-wider">Gotowość</span>
@@ -63,7 +63,7 @@ export default function TodayStatusStrip() {
         {/* Białko */}
         <Pressable
           onClick={scrollToMeals}
-          className="flex flex-col justify-between rounded-2xl border border-border-custom/70 bg-surface-solid/30 p-3 text-left transition-all hover:border-primary/40 active:scale-95"
+          className="flex flex-col justify-between rounded-2xl border border-border-custom/70 bg-surface-solid/30 p-3 text-left ui-interactive hover:border-primary/40 active:scale-95"
         >
           <div className="flex items-center justify-between text-text-muted">
             <span className="text-3xs font-black uppercase tracking-wider">Białko</span>
@@ -78,7 +78,7 @@ export default function TodayStatusStrip() {
           <div className="mt-1 space-y-1">
             <div className="h-1 w-full overflow-hidden rounded-full bg-border-custom/50">
               <div
-                className="h-full rounded-full bg-primary transition-all"
+                className="h-full rounded-full bg-primary ui-interactive"
                 style={{ width: `${proteinPct}%` }}
               />
             </div>
@@ -89,7 +89,7 @@ export default function TodayStatusStrip() {
         {/* Trening */}
         <Pressable
           onClick={goToTraining}
-          className={`flex flex-col justify-between rounded-2xl border p-3 text-left transition-all active:scale-95 ${
+          className={`flex flex-col justify-between rounded-2xl border p-3 text-left ui-interactive active:scale-95 ${
             hasWorkoutToday
               ? 'border-success/30 bg-success/5 text-success'
               : 'border-border-custom/70 bg-surface-solid/30 text-text-primary hover:border-border-custom'

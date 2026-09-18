@@ -30,11 +30,11 @@ export default function TodoCardSubtasks({ childTasks, onAddChildTask, onToggleC
           {childTasks.map((child) => (
             <div
               key={child.id}
-              className="flex items-center gap-2 rounded-xl border border-border-custom/20 bg-surface-solid/30 px-3 py-1.5 transition-all hover:bg-surface-solid/50"
+              className="flex items-center gap-2 rounded-xl border border-border-custom/20 bg-surface-solid/30 px-3 py-1.5 ui-interactive hover:bg-surface-solid/50"
             >
               <Pressable onClick={() => onToggleChildTask?.(child)} className="shrink-0 btn-press">
                 <div
-                  className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                  className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ui-interactive ${
                     child.status === 'done' ? 'bg-success border-success scale-105' : 'border-border-custom hover:border-primary'
                   }`}
                 >

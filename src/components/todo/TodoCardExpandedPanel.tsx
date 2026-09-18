@@ -145,7 +145,7 @@ export default function TodoCardExpandedPanel({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploadingFile}
-            className="flex items-center gap-1.5 rounded-lg border border-border-custom/80 px-2.5 py-1 text-xs font-semibold text-text-secondary hover:bg-text-primary/[0.04] transition-all disabled:opacity-[var(--opacity-40)]"
+            className="flex items-center gap-1.5 rounded-lg border border-border-custom/80 px-2.5 py-1 text-xs font-semibold text-text-secondary hover:bg-text-primary/[0.04] ui-interactive disabled:opacity-[var(--opacity-40)]"
           >
             <Paperclip size={12} className="text-text-muted/60" />
             <span>{uploadingFile ? 'Wysyłanie…' : 'Załącznik'}</span>
@@ -166,7 +166,7 @@ export default function TodoCardExpandedPanel({
           </ControlSelect>
           <Pressable
             type="button"
-            className="flex items-center gap-1.5 rounded-lg border border-border-custom/80 px-2.5 py-1 text-xs font-semibold text-text-secondary hover:bg-text-primary/[0.04] transition-all"
+            className="flex items-center gap-1.5 rounded-lg border border-border-custom/80 px-2.5 py-1 text-xs font-semibold text-text-secondary hover:bg-text-primary/[0.04] ui-interactive"
           >
             <Flag size={12} className={item.priority === 'urgent' ? 'text-danger' : item.priority === 'high' ? 'text-warning' : item.priority === 'normal' ? 'text-info' : 'text-text-muted/60'} />
             <span>
@@ -227,7 +227,7 @@ export default function TodoCardExpandedPanel({
           </ControlSelect>
           <Pressable
             type="button"
-            className="flex items-center gap-1 px-2.5 py-1 text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-all"
+            className="flex items-center gap-1 px-2.5 py-1 text-sm font-semibold text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg ui-interactive"
           >
             <Folder size={13} className="text-text-muted/60" />
             <span>

@@ -141,7 +141,7 @@ export default function DesktopDashboard() {
 
   return (
     <>
-      <div className="min-h-screen bg-background text-text-primary transition-colors duration-[var(--motion-slow)]">
+      <div className="min-h-screen bg-background text-text-primary transition-colors duration-[var(--motion-slow)] overflow-x-hidden">
         <DesktopHeader
           now={now} syncing={syncing}
           theme={theme} setTheme={setTheme} syncAll={syncAll}
@@ -149,7 +149,7 @@ export default function DesktopDashboard() {
           onOpenTools={() => setShowToolsModal(true)}
         />
 
-        <main className="px-8 py-6 max-w-[var(--ds-maxw-1600px)] mx-auto">
+        <main className="px-4 sm:px-8 py-4 sm:py-6 max-w-[var(--ds-maxw-1600px)] mx-auto w-full overflow-x-hidden">
           <div className="flex gap-8 items-start">
             <DesktopSectionNav
               activeTab={activeTab}

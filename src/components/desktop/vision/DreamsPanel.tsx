@@ -70,7 +70,7 @@ export default function DreamsPanel({
             variant="tonal"
             size="sm"
             onClick={() => setIsAddingDream(p => !p)}
-            className="flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-2xs font-black uppercase tracking-widest text-primary hover:bg-primary/10 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-2xs font-black uppercase tracking-widest text-primary hover:bg-primary/10 ui-interactive cursor-pointer"
             icon={<Plus size={11} />}
           >
             Dodaj marzenie
@@ -98,7 +98,7 @@ export default function DreamsPanel({
                   <option key={c} value={c}>{DREAM_CAT_LABEL[c]}</option>
                 ))}
               </ControlSelect>
-              <Pressable variant="primary" size="sm" onClick={addDream} className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all cursor-pointer">
+              <Pressable variant="primary" size="sm" onClick={addDream} className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-primary/90 ui-interactive cursor-pointer">
                 Dodaj
               </Pressable>
               <Pressable variant="ghost" size="sm" onClick={() => setIsAddingDream(false)} className="rounded-xl border border-border-custom px-3 py-2 text-text-muted hover:text-text-primary cursor-pointer" icon={<X size={11} />} />
@@ -180,7 +180,7 @@ export default function DreamsPanel({
                 key={dream.id}
                 variant="surface"
                 padding="0.625rem 0.875rem"
-                className={`rounded-xl group flex items-center gap-2.5 transition-all duration-[var(--motion-medium)] cursor-pointer ${
+                className={`rounded-xl group flex items-center gap-2.5 ui-interactive duration-[var(--motion-medium)] cursor-pointer ${
                   dream.is_done
                     ? 'opacity-[var(--opacity-60)]'
                     : 'hover:-translate-y-0.5'
@@ -196,7 +196,7 @@ export default function DreamsPanel({
               >
                 <Pressable
                   onClick={e => { e.stopPropagation(); toggleDream(dream); }}
-                  className={`shrink-0 flex h-4.5 w-4.5 items-center justify-center rounded-full border-2 transition-all cursor-pointer ${
+                  className={`shrink-0 flex h-4.5 w-4.5 items-center justify-center rounded-full border-2 ui-interactive cursor-pointer ${
                     dream.is_done
                       ? 'border-success bg-success text-on-accent'
                       : 'border-border-custom hover:border-primary'
@@ -217,7 +217,7 @@ export default function DreamsPanel({
                     variant="ghost"
                     size="sm"
                     onClick={e => { e.stopPropagation(); deleteDream(dream.id); }}
-                    className="opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] p-0.5 text-text-muted/40 hover:text-danger transition-all cursor-pointer"
+                    className="opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] p-0.5 text-text-muted/40 hover:text-danger ui-interactive cursor-pointer"
                     icon={<Trash2 size={11} />}
                   />
                 </div>
@@ -235,7 +235,7 @@ export default function DreamsPanel({
             </div>
             <div className="h-1.5 w-full rounded-full bg-border-custom overflow-hidden">
               <div
-                className="h-full rounded-full bg-primary transition-all duration-[var(--motion-long)]"
+                className="h-full rounded-full bg-primary ui-interactive duration-[var(--motion-long)]"
                 style={{ width: `${Math.min((dreams.length / 200) * 100, 100)}%` }}
               />
             </div>

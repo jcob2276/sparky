@@ -215,7 +215,7 @@ export function CalendarContextMenu({
           rel="noopener noreferrer"
           role="menuitem"
           onClick={onClose}
-          className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-primary text-on-accent font-bold mb-1 hover:brightness-110 active:scale-[0.98] transition-all"
+          className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-primary text-on-accent font-bold mb-1 hover:brightness-110 active:scale-[0.98] ui-interactive"
         >
           <Video size={14} />
           <span className="flex-1 truncate">Dołącz do spotkania</span>

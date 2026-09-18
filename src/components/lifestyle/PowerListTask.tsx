@@ -50,7 +50,7 @@ export default function PowerListTask({
   return (
     <Pressable
       onClick={() => toggleTask(index)}
-      className={`group flex w-full cursor-pointer items-start gap-3 rounded-2xl border px-3.5 py-3 text-left transition-all active:scale-95 shadow-2xs ${
+      className={`group flex w-full cursor-pointer items-start gap-3 rounded-2xl border px-3.5 py-3 text-left ui-interactive active:scale-95 shadow-2xs ${
         done
           ? 'border-border-custom/50 bg-surface/20 opacity-[var(--opacity-60)] shadow-none'
           : 'border-border-custom/80 bg-surface hover:border-primary/30 hover:bg-surface-solid/80 hover:shadow-xs'
@@ -58,7 +58,7 @@ export default function PowerListTask({
     >
       <div className="pt-0.5 shrink-0">
         <div
-          className={`flex h-5.5 w-5.5 items-center justify-center rounded-full border transition-all ${
+          className={`flex h-5.5 w-5.5 items-center justify-center rounded-full border ui-interactive ${
             done
               ? 'border-dayC bg-dayC text-on-accent shadow-2xs scale-100'
               : 'border-border-custom bg-surface-solid/80 text-transparent scale-95 group-hover:border-primary/50 group-active:scale-90'
@@ -83,7 +83,7 @@ export default function PowerListTask({
             </span>
           )}
           <span
-            className={`text-sm font-semibold tracking-normal transition-all ${
+            className={`text-sm font-semibold tracking-normal ui-interactive ${
               done ? 'text-text-muted line-through opacity-[var(--opacity-70)]' : 'text-text-primary'
             }`}
           >

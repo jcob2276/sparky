@@ -68,7 +68,7 @@ export default function OrientationFooter() {
         )}
 
         <div className="h-1.5 bg-border-custom rounded-full overflow-hidden">
-          <div className="h-full rounded-full bg-primary/80 transition-all" style={{ width: `${sprint.pct}%` }} />
+          <div className="h-full rounded-full bg-primary/80 ui-interactive" style={{ width: `${sprint.pct}%` }} />
         </div>
 
         <p className="text-2xs font-bold uppercase tracking-[var(--ds-arbitrary-0-18em)] text-primary/40">

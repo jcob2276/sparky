@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from 'react';
+import { useState, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { WorkoutLoggerInitial } from '../../lib/health/workoutLogging';
 import { isWorkoutSessionActive, markWorkoutSessionActive, endWorkoutSession } from '../../lib/health/workoutLogging';
@@ -25,12 +25,14 @@ export default function TrainingRoute({ initial, onSaved, onBack }: TrainingRout
     return false;
   });
 
-  useEffect(() => {
+  const [prevInitial, setPrevInitial] = useState(initial);
+  if (initial !== prevInitial) {
+    setPrevInitial(initial);
     if (initial) {
       setCurrentInitial(initial);
       setIsLive(true);
     }
-  }, [initial]);
+  }
 
   const handleStartWorkout = (init?: WorkoutLoggerInitial | null) => {
     if (userId) markWorkoutSessionActive(userId);

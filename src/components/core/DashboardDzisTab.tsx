@@ -1,6 +1,6 @@
 import { Pressable } from '../ui/ControlPrimitives';
 import { TIMEZONE } from '../../lib/date';
-import { Suspense, useState } from 'react';
+import { Suspense, useState, memo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Moon } from 'lucide-react';
 import { useSession } from '../../store/useStore';
@@ -37,7 +37,7 @@ function isAfter20(): boolean {
   }
 }
 
-export function DashboardDzisTab() {
+export const DashboardDzisTab = memo(function DashboardDzisTab() {
   const session = useSession();
   const s = useDashboardContext();
   const queryClient = useQueryClient();
@@ -54,7 +54,7 @@ export function DashboardDzisTab() {
         <h4 className="text-sm font-black text-primary uppercase tracking-wider">Tygodniowy Przegląd Zadań</h4>
         <p className="text-xs text-text-secondary mt-0.5 break-words">Niedziela to czas na oczyszczenie skrzynki i audyt projektów.</p>
       </div>
-      <Pressable onClick={() => s.setShowWeeklyReview(true)} className="shrink-0 px-3.5 py-2 bg-primary hover:bg-primary-hover text-on-accent rounded-xl text-xs font-black transition-all active:scale-95 shadow-sm cursor-pointer">
+      <Pressable onClick={() => s.setShowWeeklyReview(true)} className="shrink-0 px-3.5 py-2 bg-primary hover:bg-primary-hover text-on-accent rounded-xl text-xs font-black ui-interactive active:scale-95 shadow-sm cursor-pointer">
         Rozpocznij
       </Pressable>
     </div>
@@ -142,7 +142,7 @@ export function DashboardDzisTab() {
                 </div>
                 <Pressable
                   onClick={() => s.setShowShutdown(true)}
-                  className="shrink-0 rounded-xl bg-primary px-3.5 py-2 text-xs font-black text-on-accent transition-all hover:bg-primary-hover active:scale-95 shadow-xs cursor-pointer"
+                  className="shrink-0 rounded-xl bg-primary px-3.5 py-2 text-xs font-black text-on-accent ui-interactive hover:bg-primary-hover active:scale-95 shadow-xs cursor-pointer"
                 >
                   Domknij
                 </Pressable>
@@ -163,5 +163,5 @@ export function DashboardDzisTab() {
       </div>
     </div>
   );
-}
+});
 

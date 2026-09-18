@@ -142,7 +142,7 @@ function TerminyToolbar({ searchQuery, onSearchChange, filterMode, onFilterChang
       <div className="flex shrink-0 items-center gap-1.5">
         <Filter size={13} className="mr-1 text-text-muted" />
         {filters.map((filter) => (
-          <Pressable key={filter.key} onClick={() => onFilterChange(filter.key)} className={`rounded-full px-3 py-1 text-2xs font-semibold transition-all ${filterMode === filter.key ? `${filter.active} text-on-accent` : 'bg-surface-2 text-text-secondary'}`}>
+          <Pressable key={filter.key} onClick={() => onFilterChange(filter.key)} className={`rounded-full px-3 py-1 text-2xs font-semibold ui-interactive ${filterMode === filter.key ? `${filter.active} text-on-accent` : 'bg-surface-2 text-text-secondary'}`}>
             {filter.label}
           </Pressable>
         ))}
@@ -201,8 +201,8 @@ function TerminyResults(
     <AnimatePresence initial={false}>
       <motion.div
         key={props.tab}
-        initial={props.reduceMotion ? false : { opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={props.reduceMotion ? false : { opacity: 0, transform: 'translateY(8px)' }}
+        animate={{ opacity: 1, transform: 'translateY(0px)' }}
         exit={props.reduceMotion ? undefined : { opacity: 0 }}
         transition={{ duration: 0.15, ease: 'easeOut' }}
         style={{ willChange: 'transform, opacity' }}

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Target, TrendingUp, PhoneCall, Clock, CalendarCheck, UserCheck } from 'lucide-react';
+import { Target, PhoneCall, Clock, CalendarCheck, UserCheck } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import {
   fetchCloserWeekLogs,
@@ -19,6 +19,114 @@ interface Props {
   isFocusSprint?: boolean;
 }
 
+interface CloserKpiCardsProps {
+  sumAppointments: number;
+  targetAppointments: number;
+  pctAppointments: number;
+  sumSalesCalls: number;
+  targetSalesCalls: number;
+  pctSalesCalls: number;
+  sumDials: number;
+  sumWorkHours: number;
+}
+
+function CloserKpiCards({
+  sumAppointments,
+  targetAppointments,
+  pctAppointments,
+  sumSalesCalls,
+  targetSalesCalls,
+  pctSalesCalls,
+  sumDials,
+  sumWorkHours,
+}: CloserKpiCardsProps) {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      {/* Umówienia */}
+      <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
+        <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
+          <span className="flex items-center gap-1">
+            <CalendarCheck size={11} className="text-success" /> Umówienia
+          </span>
+          <span className={pctAppointments >= 100 ? 'text-success font-black' : ''}>
+            {pctAppointments}%
+          </span>
+        </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-lg font-black text-text-primary">{sumAppointments}</span>
+          <span className="text-xs font-semibold text-text-muted">/ {targetAppointments}</span>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/25">
+          <div
+            className={`h-full rounded-full transition-all duration-300 ${
+              pctAppointments >= 100 ? 'bg-success' : 'bg-primary'
+            }`}
+            style={{ width: `${pctAppointments}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Sales calle */}
+      <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
+        <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
+          <span className="flex items-center gap-1">
+            <UserCheck size={11} className="text-primary" /> Sales calle
+          </span>
+          <span className={pctSalesCalls >= 100 ? 'text-success font-black' : ''}>
+            {pctSalesCalls}%
+          </span>
+        </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-lg font-black text-text-primary">{sumSalesCalls}</span>
+          <span className="text-xs font-semibold text-text-muted">/ {targetSalesCalls}</span>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/25">
+          <div
+            className={`h-full rounded-full transition-all duration-300 ${
+              pctSalesCalls >= 100 ? 'bg-success' : 'bg-primary'
+            }`}
+            style={{ width: `${pctSalesCalls}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Diale */}
+      <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
+        <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
+          <span className="flex items-center gap-1">
+            <PhoneCall size={11} className="text-primary" /> Diale
+          </span>
+          <span>Tydzień</span>
+        </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-lg font-black text-primary">{sumDials}</span>
+          <span className="text-3xs text-text-muted">łączna liczba</span>
+        </div>
+        <p className="text-3xs text-text-muted truncate">
+          śr. {Math.round(sumDials / 7)} / dzień
+        </p>
+      </div>
+
+      {/* Godziny pracy */}
+      <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
+        <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
+          <span className="flex items-center gap-1">
+            <Clock size={11} className="text-warning" /> Czas pracy
+          </span>
+          <span>Tydzień</span>
+        </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-lg font-black text-text-primary">{sumWorkHours}</span>
+          <span className="text-xs font-bold text-text-muted">godzin</span>
+        </div>
+        <p className="text-3xs text-text-muted truncate">
+          śr. {Math.round((sumWorkHours / 7) * 10) / 10}h / dzień
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function CloserWeekTracker({
   userId,
   weekStart,
@@ -35,7 +143,7 @@ export default function CloserWeekTracker({
     enabled: !!userId && !!weekStart,
   });
 
-  const logs = logsQuery.data ?? [];
+  const logs = useMemo(() => logsQuery.data ?? [], [logsQuery.data]);
   const logsByDate = useMemo(() => {
     const map: Record<string, CloserDailyLogRow> = {};
     for (const l of logs) {
@@ -118,89 +226,16 @@ export default function CloserWeekTracker({
       </div>
 
       {/* 4 Weekly KPI Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {/* Umówienia */}
-        <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-          <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
-            <span className="flex items-center gap-1">
-              <CalendarCheck size={11} className="text-emerald-500" /> Umówienia
-            </span>
-            <span className={pctAppointments >= 100 ? 'text-success font-black' : ''}>
-              {pctAppointments}%
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg font-black text-text-primary">{sumAppointments}</span>
-            <span className="text-xs font-semibold text-text-muted">/ {targetAppointments}</span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/25">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${
-                pctAppointments >= 100 ? 'bg-success' : 'bg-primary'
-              }`}
-              style={{ width: `${pctAppointments}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Sales calle */}
-        <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-          <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
-            <span className="flex items-center gap-1">
-              <UserCheck size={11} className="text-indigo-500" /> Sales calle
-            </span>
-            <span className={pctSalesCalls >= 100 ? 'text-success font-black' : ''}>
-              {pctSalesCalls}%
-            </span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg font-black text-text-primary">{sumSalesCalls}</span>
-            <span className="text-xs font-semibold text-text-muted">/ {targetSalesCalls}</span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/25">
-            <div
-              className={`h-full rounded-full transition-all duration-300 ${
-                pctSalesCalls >= 100 ? 'bg-success' : 'bg-indigo-500'
-              }`}
-              style={{ width: `${pctSalesCalls}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Diale */}
-        <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-          <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
-            <span className="flex items-center gap-1">
-              <PhoneCall size={11} className="text-primary" /> Diale
-            </span>
-            <span>Tydzień</span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg font-black text-primary">{sumDials}</span>
-            <span className="text-3xs text-text-muted">łączna liczba</span>
-          </div>
-          <p className="text-3xs text-text-muted truncate">
-            śr. {Math.round(sumDials / 7)} / dzień
-          </p>
-        </div>
-
-        {/* Godziny pracy */}
-        <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-          <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
-            <span className="flex items-center gap-1">
-              <Clock size={11} className="text-amber-500" /> Czas pracy
-            </span>
-            <span>Tydzień</span>
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg font-black text-text-primary">{sumWorkHours}</span>
-            <span className="text-xs font-bold text-text-muted">godzin</span>
-          </div>
-          <p className="text-3xs text-text-muted truncate">
-            śr. {Math.round((sumWorkHours / 7) * 10) / 10}h / dzień
-          </p>
-        </div>
-      </div>
+      <CloserKpiCards
+        sumAppointments={sumAppointments}
+        targetAppointments={targetAppointments}
+        pctAppointments={pctAppointments}
+        sumSalesCalls={sumSalesCalls}
+        targetSalesCalls={targetSalesCalls}
+        pctSalesCalls={pctSalesCalls}
+        sumDials={sumDials}
+        sumWorkHours={sumWorkHours}
+      />
 
       {/* 7-Day Picker Strip */}
       <div className="space-y-1.5">

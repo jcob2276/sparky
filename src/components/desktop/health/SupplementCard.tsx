@@ -82,7 +82,7 @@ function History7dStrip({ last7Days, today, sup, isLogged, isReverse, isExpired,
             return (
               <div
                 key={date}
-                className={`w-4 h-4 rounded flex items-center justify-center text-3xs font-mono font-bold transition-all ${
+                className={`w-4 h-4 rounded flex items-center justify-center text-3xs font-mono font-bold ui-interactive ${
                   taken
                     ? 'bg-success/20 text-success border border-success/40'
                     : !inCycle
@@ -164,7 +164,7 @@ export default function SupplementCard({
     <Card
       variant="outline"
       padding="0.875rem"
-      className="space-y-2.5 transition-all border-border-custom bg-surface/40 hover:bg-surface/60"
+      className="space-y-2.5 ui-interactive border-border-custom bg-surface/40 hover:bg-surface/60"
     >
       <div className="flex items-start justify-between gap-2.5">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
@@ -218,7 +218,7 @@ export default function SupplementCard({
             size="sm"
             type="button"
             onClick={onToggle}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-2xs font-bold uppercase tracking-wider transition-all active:scale-95 cursor-pointer ${
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-2xs font-bold uppercase tracking-wider ui-interactive active:scale-95 cursor-pointer ${
               takenToday
                 ? 'border-success/40 bg-success/15 text-success hover:bg-success/25'
                 : 'border-border-custom bg-surface hover:text-text-primary hover:border-border-custom/80'
@@ -264,7 +264,7 @@ export default function SupplementCard({
           </div>
           <div className="h-1 w-full bg-border-custom/50 rounded-full overflow-hidden">
             <div
-              className={`h-full rounded-full transition-all ${isExpired ? 'bg-warning' : 'bg-success'}`}
+              className={`h-full rounded-full ui-interactive ${isExpired ? 'bg-warning' : 'bg-success'}`}
               style={{ width: `${cycleProgress}%` }}
             />
           </div>

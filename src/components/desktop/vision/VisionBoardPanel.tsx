@@ -55,7 +55,7 @@ export default function VisionBoardPanel({
             variant="tonal"
             size="sm"
             onClick={() => setIsAddingVision(p => !p)}
-            className="flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-2xs font-black uppercase tracking-widest text-primary hover:bg-primary/10 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-2xs font-black uppercase tracking-widest text-primary hover:bg-primary/10 ui-interactive cursor-pointer"
             icon={<Plus size={11} />}
           >
             Dodaj
@@ -84,7 +84,7 @@ export default function VisionBoardPanel({
                 <Pressable
                   key={c}
                   onClick={() => setNewVisionColor(c)}
-                  className={`w-5 h-5 rounded-full border-2 transition-all cursor-pointer ${VB_COLORS[c].bg} ${newVisionColor === c ? 'border-primary scale-125' : 'border-transparent hover:scale-110'}`}
+                  className={`w-5 h-5 rounded-full border-2 ui-interactive cursor-pointer ${VB_COLORS[c].bg} ${newVisionColor === c ? 'border-primary scale-125' : 'border-transparent hover:scale-110'}`}
                 />
               ))}
             </div>
@@ -97,7 +97,7 @@ export default function VisionBoardPanel({
                 placeholder={newVisionType === 'image' ? 'URL obrazka...' : newVisionType === 'word' ? 'Jedno słowo...' : 'Afirmacja: Jestem...'}
                 className="flex-1 rounded-xl border border-border-custom bg-surface px-3.5 py-2 text-sm font-semibold text-text-primary outline-none focus:border-primary placeholder:text-text-muted/40"
               />
-              <Pressable variant="primary" size="sm" onClick={addVisionItem} className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-primary/90 transition-all cursor-pointer">
+              <Pressable variant="primary" size="sm" onClick={addVisionItem} className="rounded-xl px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-primary/90 ui-interactive cursor-pointer">
                 Dodaj
               </Pressable>
               <Pressable variant="ghost" size="sm" onClick={() => setIsAddingVision(false)} className="rounded-xl border border-border-custom px-3 py-2 text-text-muted hover:text-text-primary cursor-pointer" icon={<X size={11} />} />
@@ -138,7 +138,7 @@ export default function VisionBoardPanel({
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteVisionItem(item.id)}
-                        className="absolute top-2 right-2 opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] flex h-6 w-6 items-center justify-center rounded-full bg-scrim/50 text-on-accent transition-all cursor-pointer"
+                        className="absolute top-2 right-2 opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] flex h-6 w-6 items-center justify-center rounded-full bg-scrim/50 text-on-accent ui-interactive cursor-pointer"
                         icon={<X size={11} />}
                       />
                     </Card>
@@ -149,7 +149,7 @@ export default function VisionBoardPanel({
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteVisionItem(item.id)}
-                        className="absolute top-2 right-2 opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] p-0.5 text-text-muted/40 hover:text-danger transition-all cursor-pointer"
+                        className="absolute top-2 right-2 opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] p-0.5 text-text-muted/40 hover:text-danger ui-interactive cursor-pointer"
                         icon={<X size={11} />}
                       />
                     </Card>
@@ -160,7 +160,7 @@ export default function VisionBoardPanel({
                         variant="ghost"
                         size="sm"
                         onClick={() => deleteVisionItem(item.id)}
-                        className="absolute top-2 right-2 opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] p-0.5 text-text-muted/40 hover:text-danger transition-all cursor-pointer"
+                        className="absolute top-2 right-2 opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] p-0.5 text-text-muted/40 hover:text-danger ui-interactive cursor-pointer"
                         icon={<X size={11} />}
                       />
                     </Card>

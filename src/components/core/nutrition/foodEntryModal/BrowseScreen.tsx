@@ -55,7 +55,7 @@ export default function BrowseScreen(props: BrowseScreenProps) {
 
   return (
     <>
-      <div className="group mb-3.5 flex items-center gap-1 rounded-2xl border border-border-custom bg-surface-solid/40 px-1 shadow-sm transition-all focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/10">
+      <div className="group mb-3.5 flex items-center gap-1 rounded-2xl border border-border-custom bg-surface-solid/40 px-1 shadow-sm ui-interactive focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary/10">
         <div className="relative flex-1">
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted group-focus-within:text-primary" />
           <ControlInput ref={searchInputRef} autoFocus value={query} onChange={(event) => setQuery(event.target.value)}

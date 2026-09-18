@@ -81,7 +81,7 @@ export default function NoteRow({
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {isSelectMode && (
             <div
-              className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center transition-all ${
+              className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center ui-interactive ${
                 isSelected
                   ? 'bg-primary border-primary text-on-accent shadow-xs'
                   : 'border-border-custom bg-surface-solid'

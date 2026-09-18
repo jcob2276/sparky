@@ -35,6 +35,49 @@ export async function saveWeeklyReviewReflection(
   return data;
 }
 
+export async function saveWeekIntention(
+  userId: string,
+  weekStart: string,
+  intention: string,
+): Promise<WeeklyReviewRow | null> {
+  const { data, error } = await supabase
+    .from('weekly_reviews')
+    .upsert(
+      { user_id: userId, week_start: weekStart, week_intention: intention.trim() || null },
+      { onConflict: 'user_id,week_start' },
+    )
+    .select()
+    .maybeSingle();
+  if (error) throw error;
+  invalidateGoalSpineCache(userId);
+  return data;
+}
+
+export async function quickCompleteOverdueWeeklyReview(
+  userId: string,
+  closingWeekStart: string,
+  note?: string,
+): Promise<WeeklyReviewRow | null> {
+  const completedAt = new Date().toISOString();
+  const trimmed = note?.trim() || null;
+  const { data, error } = await supabase
+    .from('weekly_reviews')
+    .upsert(
+      {
+        user_id: userId,
+        week_start: closingWeekStart,
+        week_highlight: trimmed,
+        review_completed_at: completedAt,
+      },
+      { onConflict: 'user_id,week_start' },
+    )
+    .select()
+    .maybeSingle();
+  if (error) throw error;
+  invalidateGoalSpineCache(userId);
+  return data;
+}
+
 export async function completeWeeklyReview(
   userId: string,
   closingWeekStart: string,

@@ -58,7 +58,7 @@ export function GrowthProjectsSection({ projects, onNavigateToProjects }: Props)
               <div
                 key={p.id}
                 onClick={onNavigateToProjects}
-                className="cursor-pointer rounded-2xl border border-border-custom/60 bg-background/50 p-4 hover:border-primary/40 hover:bg-background/80 transition-all flex flex-col justify-between space-y-3"
+                className="cursor-pointer rounded-2xl border border-border-custom/60 bg-background/50 p-4 hover:border-primary/40 hover:bg-background/80 ui-interactive flex flex-col justify-between space-y-3"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">

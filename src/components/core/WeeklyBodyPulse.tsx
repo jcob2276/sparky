@@ -183,7 +183,7 @@ function ScoreCell({
 function ActivityChip({ label, value, active }: { label: string; value: string; active: boolean }) {
   return (
     <div
-      className={`rounded-xl px-2.5 py-2 transition-all min-w-0 ${
+      className={`rounded-xl px-2.5 py-2 ui-interactive min-w-0 ${
         active
           ? 'bg-primary/10 border border-primary/20'
           : 'bg-surface/50 border border-border-custom/30'

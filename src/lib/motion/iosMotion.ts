@@ -64,6 +64,11 @@ export function shouldBlockSwipeNav(target: EventTarget | null): boolean {
     return true;
   }
 
+  // Fast-path: horizontally scrollable classes
+  if (target.closest('.overflow-x-auto, .overflow-x-scroll, [data-scroll-x]')) {
+    return true;
+  }
+
   // Horizontally scrollable containers (carousels, chips, table rows)
   let curr: HTMLElement | null = target;
   while (curr && curr !== document.body && curr !== document.documentElement) {

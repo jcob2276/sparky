@@ -110,7 +110,7 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
 
             <div className="w-28 bg-surface-3 h-1.5 rounded-full overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${
+                className={`h-full rounded-full ui-interactive ${
                   takenCount === totalCount ? 'bg-success' : 'bg-primary'
                 }`}
                 style={{ width: `${adherencePct}%` }}
@@ -124,7 +124,7 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
               size="sm"
               type="button"
               onClick={() => void data.handleLogAllToday()}
-              className="h-7 px-2.5 text-2xs font-bold uppercase tracking-wider text-success bg-success/10 border border-success/30 hover:bg-success/20 transition-all cursor-pointer"
+              className="h-7 px-2.5 text-2xs font-bold uppercase tracking-wider text-success bg-success/10 border border-success/30 hover:bg-success/20 ui-interactive cursor-pointer"
               icon={<Check size={12} className="stroke-[var(--ds-arbitrary-3px)]" />}
             >
               <span>Zaloguj wszystkie na dziś ({pendingCount})</span>

@@ -61,7 +61,7 @@ export default function RecurrencePicker({
             key={option || 'once'}
             type="button"
             onClick={() => setRecurrence(option)}
-            className={`px-2.5 min-h-11 rounded-lg border text-xs font-bold transition-all select-none ${
+            className={`px-2.5 min-h-11 rounded-lg border text-xs font-bold ui-interactive select-none ${
               recurrence === option
                 ? 'border-primary/40 bg-primary/15 text-primary font-black shadow-sm'
                 : 'border-border-custom/30 bg-surface-solid/40 text-text-muted hover:text-text-primary'
@@ -85,7 +85,7 @@ export default function RecurrencePicker({
                     selected ? current.filter((key) => key !== day.key) : [...current, day.key]
                   )
                 }
-                className={`flex-1 min-h-11 py-1 rounded-md border text-2xs font-black transition-all ${
+                className={`flex-1 min-h-11 py-1 rounded-md border text-2xs font-black ui-interactive ${
                   selected
                     ? 'border-primary/40 bg-primary/20 text-primary'
                     : 'border-border-custom/30 bg-surface-solid/40 text-text-muted hover:text-text-primary'

@@ -153,7 +153,7 @@ export default function DesktopTabContent({
     />
   );
 
-  const kierunekEl = (
+  const _kierunekEl = (
     <DesktopKierunekSection
       userId={userId}
       theme={theme}
@@ -201,9 +201,6 @@ export default function DesktopTabContent({
   if (activeTab === 'training') {
     return renderTrainingTab(treningEl, disciplinesGrid, recoveryBodyGrid);
   }
-  if (activeTab === 'direction') {
-    return <div className="space-y-5 animate-in fade-in duration-200">{kierunekEl}</div>;
-  }
   if (activeTab === 'health') {
     return renderHealthTab(kartotekaEl, healthCards, userId);
   }
@@ -211,19 +208,5 @@ export default function DesktopTabContent({
     return renderIntelTab(intelCards, userId, oura, matrixEl);
   }
 
-  // activeTab === 'all'
-  return (
-    <div className="space-y-5 animate-in fade-in duration-200">
-      {treningEl}
-      {disciplinesGrid}
-      {recoveryBodyGrid}
-      {kartotekaEl}
-      {healthCards}
-      {userId && <SupplementsPanel userId={userId} />}
-      {kierunekEl}
-      {matrixEl}
-      {intelCards}
-      {userId && <GeneralView userId={userId} oura={oura} />}
-    </div>
-  );
+  return renderTrainingTab(treningEl, disciplinesGrid, recoveryBodyGrid);
 }

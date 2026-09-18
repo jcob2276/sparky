@@ -90,14 +90,14 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
           <Pressable
             onClick={handlePrevMonth}
             aria-label="Poprzedni miesiąc"
-            className="h-7 w-7 p-0 rounded-lg hover:bg-surface-2 active:scale-90 transition-all flex items-center justify-center border border-border-custom/20"
+            className="h-7 w-7 p-0 rounded-lg hover:bg-surface-2 active:scale-90 ui-interactive flex items-center justify-center border border-border-custom/20"
           >
             <ChevronLeft size={13} className="text-text-muted hover:text-text-primary" />
           </Pressable>
           <Pressable
             onClick={handleNextMonth}
             aria-label="Następny miesiąc"
-            className="h-7 w-7 p-0 rounded-lg hover:bg-surface-2 active:scale-90 transition-all flex items-center justify-center border border-border-custom/20"
+            className="h-7 w-7 p-0 rounded-lg hover:bg-surface-2 active:scale-90 ui-interactive flex items-center justify-center border border-border-custom/20"
           >
             <ChevronRight size={13} className="text-text-muted hover:text-text-primary" />
           </Pressable>

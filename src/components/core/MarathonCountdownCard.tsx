@@ -63,7 +63,7 @@ export default function MarathonCountdownCard({
       <div className="mt-3">
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/50">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-primary/70 via-primary to-success transition-all"
+            className="h-full rounded-full bg-gradient-to-r from-primary/70 via-primary to-success ui-interactive"
             style={{ width: `${progressPct}%` }}
           />
         </div>

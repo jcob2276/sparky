@@ -120,7 +120,7 @@ export function BodyMetricsSection({
       {/* Hero Inputs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Waga */}
-        <div className="relative rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm transition-all focus-within:border-primary/60 focus-within:shadow-focus">
+        <div className="relative rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm ui-interactive focus-within:border-primary/60 focus-within:shadow-focus">
           <div className="flex items-center justify-between mb-1.5">
             <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text-muted font-display">
               <Scale size={13} className="text-primary" />
@@ -140,7 +140,7 @@ export function BodyMetricsSection({
         </div>
 
         {/* Talia */}
-        <div className="relative rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm transition-all focus-within:border-primary/60 focus-within:shadow-focus">
+        <div className="relative rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm ui-interactive focus-within:border-primary/60 focus-within:shadow-focus">
           <div className="flex items-center justify-between mb-1.5">
             <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text-muted font-display">
               <Ruler size={13} className="text-warning" />

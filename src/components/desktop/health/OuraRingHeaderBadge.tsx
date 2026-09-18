@@ -59,7 +59,7 @@ export default function OuraRingHeaderBadge() {
       <Pressable
         type="button"
         onClick={() => setIsOpen(true)}
-        className={`group relative flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all active:scale-95 cursor-pointer select-none ${
+        className={`group relative flex items-center gap-1.5 px-3 py-1.5 rounded-full border ui-interactive active:scale-95 cursor-pointer select-none ${
           isConnected
             ? 'border-status-success/30 bg-status-success/10 hover:bg-status-success/20 text-status-success shadow-sm shadow-status-success/10'
             : 'border-border-custom bg-surface-2/40 hover:bg-surface-2 text-text-secondary'

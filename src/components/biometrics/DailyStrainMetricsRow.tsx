@@ -37,14 +37,14 @@ export default function DailyStrainMetricsRow({
       <div>
         <StatHero value={strainScore ?? '--'} label="Strain" suffix="/21" color={strainTone} size="sm" />
         <div className="mt-1.5 h-[var(--ds-h-2px)] bg-border-custom/40 rounded-full">
-          <div className="h-[var(--ds-h-2px)] rounded-full bg-warning transition-all" style={{ width: `${Math.min(100, (strainScore / 21) * 100)}%` }} />
+          <div className="h-[var(--ds-h-2px)] rounded-full bg-warning ui-interactive" style={{ width: `${Math.min(100, (strainScore / 21) * 100)}%` }} />
         </div>
       </div>
 
       <div>
         <StatHero value={recoveryScore ?? '--'} label="Recovery" suffix="/100" color={recovTone} size="sm" />
         <div className="mt-1.5 h-[var(--ds-h-2px)] bg-border-custom/40 rounded-full">
-          <div className={`h-[var(--ds-h-2px)] rounded-full transition-all ${recoveryScore >= 75 ? 'bg-success' : recoveryScore >= 55 ? 'bg-warning' : 'bg-danger'}`} style={{ width: `${Math.min(100, recoveryScore)}%` }} />
+          <div className={`h-[var(--ds-h-2px)] rounded-full ui-interactive ${recoveryScore >= 75 ? 'bg-success' : recoveryScore >= 55 ? 'bg-warning' : 'bg-danger'}`} style={{ width: `${Math.min(100, recoveryScore)}%` }} />
         </div>
       </div>
 
@@ -52,7 +52,7 @@ export default function DailyStrainMetricsRow({
         <div>
           <StatHero value={fuelingScore} label="Fueling" suffix="/100" color={fuelingScore >= 70 ? 'text-success' : 'text-warning'} size="sm" />
           <div className="mt-1.5 h-[var(--ds-h-2px)] bg-border-custom/40 rounded-full">
-            <div className={`h-[var(--ds-h-2px)] rounded-full transition-all ${fuelingScore >= 70 ? 'bg-success' : 'bg-warning'}`} style={{ width: `${Math.min(100, fuelingScore)}%` }} />
+            <div className={`h-[var(--ds-h-2px)] rounded-full ui-interactive ${fuelingScore >= 70 ? 'bg-success' : 'bg-warning'}`} style={{ width: `${Math.min(100, fuelingScore)}%` }} />
           </div>
         </div>
       )}

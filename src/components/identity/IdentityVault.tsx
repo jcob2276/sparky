@@ -52,7 +52,7 @@ function Section({ title, icon: Icon, value, onChange, placeholder, description,
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-surface-solid border border-border-custom rounded-2xl p-4 text-sm font-bold text-text-primary min-h-[var(--ds-h-120px)] focus:border-primary/50 focus:shadow-focus outline-none transition-all placeholder:text-text-muted/40"
+        className="w-full bg-surface-solid border border-border-custom rounded-2xl p-4 text-sm font-bold text-text-primary min-h-[var(--ds-h-120px)] focus:border-primary/50 focus:shadow-focus outline-none ui-interactive placeholder:text-text-muted/40"
       />
     </Card>
   );
@@ -150,7 +150,7 @@ export default function IdentityVault() {
         <Pressable
           onClick={handleSave}
           disabled={loading}
-          className={`px-8 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:scale-[var(--ds-arbitrary-1-01)] active:scale-[var(--ds-arbitrary-0-99)] transition-all shadow-md disabled:opacity-[var(--opacity-50)] font-display cursor-pointer ${
+          className={`px-8 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:scale-[var(--ds-arbitrary-1-01)] active:scale-[var(--ds-arbitrary-0-99)] ui-interactive shadow-md disabled:opacity-[var(--opacity-50)] font-display cursor-pointer ${
             saveStatus === 'success'
               ? 'bg-success text-on-accent shadow-success/20'
               : 'bg-primary text-on-accent hover:bg-primary-hover shadow-primary/20'

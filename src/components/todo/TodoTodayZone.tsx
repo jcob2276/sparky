@@ -21,7 +21,7 @@ export default function TodoTodayZone({ renderInlineQuickCapture, renderAddTodoB
   return (
     <div
       ref={todayZoneRef}
-      className={`rounded-2xl p-2 transition-all duration-[var(--motion-medium)] ${
+      className={`rounded-2xl p-2 ui-interactive duration-[var(--motion-medium)] ${
         draggingItem !== null
           ? dragTarget === 'today'
             ? 'border border-warning/40 bg-warning/10 scale-[var(--ds-arbitrary-1-01)] shadow-[var(--shadow-accent-active)]'

@@ -111,7 +111,7 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
                 setSelectedDay(today);
                 setWeekStart(weekMon(today));
               }}
-              className="text-2xs text-primary font-semibold mt-0.5 px-2 py-0.5 rounded-full bg-primary/10 hover:bg-primary/15 active:scale-[0.96] transition-all"
+              className="text-2xs text-primary font-semibold mt-0.5 px-2 py-0.5 rounded-full bg-primary/10 hover:bg-primary/15 active:scale-[0.96] ui-interactive"
             >
               Wróć do dziś
             </Button>

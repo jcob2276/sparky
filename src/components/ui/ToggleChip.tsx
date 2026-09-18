@@ -47,7 +47,7 @@ export function ToggleChip({
 }: ToggleChipProps) {
   return (
     <Pressable
-      className={`flex items-center gap-1 rounded-lg border font-black uppercase tracking-widest transition-all cursor-pointer disabled:opacity-[var(--opacity-60)] ${
+      className={`flex items-center gap-1 rounded-lg border font-black uppercase tracking-widest ui-interactive cursor-pointer disabled:opacity-[var(--opacity-60)] ${
         active ? variantStyles[variant].active : variantStyles[variant].inactive
       } ${sizeStyles[size]} ${className ?? ''}`}
       onClick={onClick}

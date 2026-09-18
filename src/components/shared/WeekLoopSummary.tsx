@@ -1,28 +1,111 @@
-import { Compass, Sparkles, Target, Award } from 'lucide-react';
+import { useState } from 'react';
+import { Compass, Target } from 'lucide-react';
 import type { DirectionContextData } from '../../lib/dailyPlanProposal';
 import { Card } from '../ui/Card';
-import { Pressable } from '../ui/ControlPrimitives';
+import { useUserId } from '../../store/useStore';
+import { saveWeekIntention } from '../../lib/goal/goalSpine';
+import { notify } from '../../lib/notify';
+import { getTodayWarsaw } from '../../lib/date';
+import { invokeEdge } from '../../lib/supabase';
 
-function norm(text: string | null | undefined): string {
-  return (text ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+const norm = (t: string | null | undefined) => (t ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+const sameText = (a: string | null | undefined, b: string | null | undefined) => { const na = norm(a); return na.length > 0 && na === norm(b); };
+const truncate = (t: string, max = 110) => t.trim().length <= max ? t.trim() : `${t.trim().slice(0, max - 1)}…`;
+
+function getDynamicIntentionPrompt(): string {
+  const day = new Date(`${getTodayWarsaw()}T12:00:00Z`).getUTCDay();
+  if (day === 1 || day === 2) return 'Jaka jedna rzecz sprawi, że w niedzielę powiesz: to był wygrany tydzień?';
+  if (day === 3 || day === 4) return 'Półmetek tygodnia. Na czym musisz utrzymać bezwzględny fokus do niedzieli?';
+  if (day === 5 || day === 6) return 'Finisz tygodnia (ostatnie 48–72h). Co musi się wydarzyć, żeby zamknąć go z tarczą?';
+  return 'Jaka jest główna intencja i tożsamość na nadchodzący tydzień?';
 }
 
-function sameText(a: string | null | undefined, b: string | null | undefined): boolean {
-  const na = norm(a);
-  const nb = norm(b);
-  return na.length > 0 && na === nb;
+interface StrategicLineageProps {
+  bhag: string | null;
+  month: string | null;
+  sprint: string | null;
+  monthLabel?: string | null;
+  showSprint: boolean;
 }
 
-function truncate(text: string, max = 110): string {
-  const t = text.trim();
-  if (t.length <= max) return t;
-  return `${t.slice(0, max - 1)}…`;
+function StrategicLineage({ bhag, month, sprint, monthLabel, showSprint }: StrategicLineageProps) {
+  return (
+    <div className="rounded-xl border border-border-custom/30 bg-surface/40 p-2.5 space-y-2 text-xs">
+      {bhag && (
+        <div className="flex items-start gap-2">
+          <span className="text-3xs font-black uppercase tracking-widest text-text-muted shrink-0 w-14 pt-0.5">
+            Rok
+          </span>
+          <p className="text-text-secondary leading-snug font-medium flex-1">
+            {truncate(bhag, 120)}
+          </p>
+        </div>
+      )}
+
+      {month && (
+        <div className="flex items-start gap-2">
+          <span className="text-3xs font-black uppercase tracking-widest text-primary shrink-0 w-14 pt-0.5">
+            {monthLabel ? monthLabel : 'Miesiąc'}
+          </span>
+          <p className="text-text-primary font-semibold leading-snug flex-1">
+            {month}
+          </p>
+        </div>
+      )}
+
+      {showSprint && (
+        <div className="flex items-start gap-2">
+          <span className="text-3xs font-black uppercase tracking-widest text-primary shrink-0 w-14 pt-0.5">
+            Sprint
+          </span>
+          <p className="text-text-primary font-semibold leading-snug flex-1">
+            {sprint}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+import { WeekIntentionBox } from './WeekIntentionBox';
+
+interface ThreePillarsProps {
+  cialo?: string | null;
+  duch?: string | null;
+  konto?: string | null;
+}
+
+function ThreePillars({ cialo, duch, konto }: ThreePillarsProps) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-3 pt-1 border-t border-border-custom/30">
+      {cialo && (
+        <div className="rounded-xl border border-success/20 bg-success/[0.04] p-2">
+          <span className="text-3xs font-black uppercase tracking-wider text-success block">Ciało</span>
+          <p className="mt-0.5 text-xs font-semibold text-text-primary leading-tight truncate">{cialo}</p>
+        </div>
+      )}
+      {duch && (
+        <div className="rounded-xl border border-primary/20 bg-primary/[0.04] p-2">
+          <span className="text-3xs font-black uppercase tracking-wider text-primary block">Duch</span>
+          <p className="mt-0.5 text-xs font-semibold text-text-primary leading-tight truncate">{duch}</p>
+        </div>
+      )}
+      {konto && (
+        <div className="rounded-xl border border-warning/20 bg-warning/[0.04] p-2">
+          <span className="text-3xs font-black uppercase tracking-wider text-warning block">Konto</span>
+          <p className="mt-0.5 text-xs font-semibold text-text-primary leading-tight truncate">{konto}</p>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function WeekLoopSummary({
   ctx,
   compact = false,
   onStartWeeklyReview,
+  weekStart,
+  onIntentionSaved,
 }: {
   ctx: Pick<
     DirectionContextData,
@@ -36,16 +119,66 @@ export default function WeekLoopSummary({
   >;
   compact?: boolean;
   onStartWeeklyReview?: () => void;
+  weekStart?: string;
+  onIntentionSaved?: () => void;
 }) {
+  const userId = useUserId() ?? '';
   const intention = (ctx.weekGoals.intention || ctx.weekGoals.commitment)?.trim() || null;
   const bhag = ctx.bhagLine?.trim() || null;
   const month = ctx.monthTheme?.trim() || null;
   const sprint = ctx.sprintGoal?.trim() || null;
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftIntention, setDraftIntention] = useState(intention ?? '');
+  const [saving, setSaving] = useState(false);
+  const [aiSuggesting, setAiSuggesting] = useState(false);
+
   const showSprint = Boolean(sprint && !sameText(sprint, month) && !sameText(sprint, bhag));
   const showWeek = Boolean(
     intention && !sameText(intention, month) && !sameText(intention, sprint) && !sameText(intention, bhag),
   );
+
+  const handleAiSuggest = async () => {
+    setAiSuggesting(true);
+    try {
+      const prompt = `Zaproponuj jedno zwięzłe, motywujące zdanie intencji na ten tydzień w Vanguard OS.
+Kontekst: Rok: ${bhag || 'brak'}, Miesiąc: ${month || 'brak'}, Sprint: ${sprint || 'brak'}.
+Zwróć TYLKO 1 konkretne zdanie w języku polskim, bez cudzysłowów.`;
+      const res = (await invokeEdge('vanguard-oracle', {
+        body: { query: prompt, question: prompt },
+      })) as { answer?: string; text?: string; response?: string; content?: string };
+      const raw = (res?.answer || res?.text || res?.response || res?.content || '').trim();
+      const firstLine = raw.split('\n')[0].replace(/^["'„”]|["'„”]$/g, '').trim();
+      const suggestion = firstLine || (month ? `Fokus na: ${month}` : 'Ochronić regenerację i dowieźć priorytety.');
+      setDraftIntention(suggestion);
+      setIsEditing(true);
+      notify('AI przygotowało intencję tygodnia', 'success');
+    } catch {
+      const fallback = month ? `Fokus na: ${month}` : 'Ochronić regenerację i dowieźć priorytety.';
+      setDraftIntention(fallback);
+      setIsEditing(true);
+    } finally {
+      setAiSuggesting(false);
+    }
+  };
+
+  const handleSaveIntention = async () => {
+    if (!userId || !weekStart) return;
+    setSaving(true);
+    try {
+      await saveWeekIntention(userId, weekStart, draftIntention);
+      notify('Zapisano intencję tygodnia', 'success');
+      setIsEditing(false);
+      onIntentionSaved?.();
+    } catch (err) {
+      notify('Nie udało się zapisać intencji.', 'error');
+      console.warn('[WeekLoopSummary] saveWeekIntention error:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const hasPillars = Boolean(ctx.weekGoals.cialo || ctx.weekGoals.duch || ctx.weekGoals.konto);
 
   return (
     <Card className={compact ? 'space-y-3' : 'space-y-4'} padding={compact ? '0.875rem' : '1.25rem'}>
@@ -61,99 +194,37 @@ export default function WeekLoopSummary({
         )}
       </div>
 
-      {/* Strategic Lineage chain: Rok -> Miesiąc -> Sprint */}
-      <div className="rounded-xl border border-border-custom/30 bg-surface/40 p-2.5 space-y-2 text-xs">
-        {bhag && (
-          <div className="flex items-start gap-2">
-            <span className="text-3xs font-black uppercase tracking-widest text-text-muted shrink-0 w-14 pt-0.5">
-              Rok
-            </span>
-            <p className="text-text-secondary leading-snug font-medium flex-1">
-              {truncate(bhag, 120)}
-            </p>
-          </div>
-        )}
+      <StrategicLineage
+        bhag={bhag}
+        month={month}
+        sprint={sprint}
+        monthLabel={ctx.monthLabel}
+        showSprint={showSprint}
+      />
 
-        {month && (
-          <div className="flex items-start gap-2">
-            <span className="text-3xs font-black uppercase tracking-widest text-primary shrink-0 w-14 pt-0.5">
-              {ctx.monthLabel ? ctx.monthLabel : 'Miesiąc'}
-            </span>
-            <p className="text-text-primary font-semibold leading-snug flex-1">
-              {month}
-            </p>
-          </div>
-        )}
+      <WeekIntentionBox
+        intention={intention}
+        showWeek={showWeek}
+        isEditing={isEditing}
+        setIsEditing={setIsEditing}
+        draftIntention={draftIntention}
+        setDraftIntention={setDraftIntention}
+        saving={saving}
+        aiSuggesting={aiSuggesting}
+        handleAiSuggest={() => void handleAiSuggest()}
+        handleSaveIntention={() => void handleSaveIntention()}
+        onStartWeeklyReview={onStartWeeklyReview}
+        weekStart={weekStart}
+        sourceFallback={ctx.weekGoalsMeta?.source === 'fallback'}
+        promptText={getDynamicIntentionPrompt()}
+      />
 
-        {showSprint && (
-          <div className="flex items-start gap-2">
-            <span className="text-3xs font-black uppercase tracking-widest text-primary shrink-0 w-14 pt-0.5">
-              Sprint
-            </span>
-            <p className="text-text-primary font-semibold leading-snug flex-1">
-              {sprint}
-            </p>
-          </div>
-        )}
-      </div>
-
-      {/* Hero: Ten Tydzień */}
-      <div className="rounded-2xl border border-primary/25 bg-primary/[0.05] p-3.5 space-y-2">
-        <div className="flex items-center justify-between">
-          <span className="text-3xs font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
-            <Sparkles size={11} /> Intencja bieżącego tygodnia
-          </span>
-          {ctx.weekGoalsMeta?.source === 'fallback' && (
-            <span className="text-3xs font-extrabold text-warning bg-warning/10 px-2 py-0.5 rounded-full">
-              Z poprzedniego tyg.
-            </span>
-          )}
-        </div>
-
-        {showWeek ? (
-          <p className="text-sm font-bold text-text-primary leading-snug">
-            {intention}
-          </p>
-        ) : (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
-            <p className="text-xs text-text-muted">
-              Nie określono jeszcze głównej intencji na ten tydzień.
-            </p>
-            {onStartWeeklyReview && (
-              <Pressable
-                type="button"
-                onClick={onStartWeeklyReview}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-1.5 text-xs font-bold text-on-primary transition-all hover:opacity-90 active:scale-95 shrink-0"
-              >
-                <Award size={12} /> Ustal intencję tygodnia
-              </Pressable>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* 3 Pillars */}
-      {(ctx.weekGoals.cialo || ctx.weekGoals.duch || ctx.weekGoals.konto) && !compact && (
-        <div className="grid gap-2 sm:grid-cols-3 pt-1 border-t border-border-custom/30">
-          {ctx.weekGoals.cialo && (
-            <div className="rounded-xl border border-success/20 bg-success/[0.04] p-2">
-              <span className="text-3xs font-black uppercase tracking-wider text-success block">Ciało</span>
-              <p className="mt-0.5 text-xs font-semibold text-text-primary leading-tight truncate">{ctx.weekGoals.cialo}</p>
-            </div>
-          )}
-          {ctx.weekGoals.duch && (
-            <div className="rounded-xl border border-primary/20 bg-primary/[0.04] p-2">
-              <span className="text-3xs font-black uppercase tracking-wider text-primary block">Duch</span>
-              <p className="mt-0.5 text-xs font-semibold text-text-primary leading-tight truncate">{ctx.weekGoals.duch}</p>
-            </div>
-          )}
-          {ctx.weekGoals.konto && (
-            <div className="rounded-xl border border-warning/20 bg-warning/[0.04] p-2">
-              <span className="text-3xs font-black uppercase tracking-wider text-warning block">Konto</span>
-              <p className="mt-0.5 text-xs font-semibold text-text-primary leading-tight truncate">{ctx.weekGoals.konto}</p>
-            </div>
-          )}
-        </div>
+      {hasPillars && !compact && (
+        <ThreePillars
+          cialo={ctx.weekGoals.cialo}
+          duch={ctx.weekGoals.duch}
+          konto={ctx.weekGoals.konto}
+        />
       )}
     </Card>
   );

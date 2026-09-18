@@ -143,7 +143,6 @@ export function usePowerListData({
 
   const queryClient = useQueryClient();
   const [optimisticToggles, setOptimisticToggles] = useState<Record<number, { done: boolean; completedAt: string | null }>>({});
-  const [savingTodayTaskIndices, setSavingTodayTaskIndices] = useState<Set<number>>(() => new Set());
 
   const effectiveTodayWin = useMemo(() => {
     if (!todayWin) return null;
@@ -207,7 +206,6 @@ export function usePowerListData({
 
     if (inFlightSlotsRef.current[slot]) return;
     inFlightSlotsRef.current[slot] = true;
-    setSavingTodayTaskIndices((prev) => new Set(prev).add(index));
 
     try {
       while (targetDoneRef.current[slot] !== undefined) {
@@ -238,11 +236,6 @@ export function usePowerListData({
       setOptimisticToggles((prev) => {
         const next = { ...prev };
         delete next[slot];
-        return next;
-      });
-      setSavingTodayTaskIndices((prev) => {
-        const next = new Set(prev);
-        next.delete(index);
         return next;
       });
     }

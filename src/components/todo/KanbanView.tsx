@@ -111,7 +111,7 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
                     key={item.id}
                     draggable
                     onDragStart={(e) => e.dataTransfer.setData('text/plain', item.id)}
-                    className="rounded-xl border border-border-custom/40 bg-background/70 px-3 py-2.5 cursor-grab active:cursor-grabbing hover:border-border-custom transition-all group hover:bg-surface-solid"
+                    className="rounded-xl border border-border-custom/40 bg-background/70 px-3 py-2.5 cursor-grab active:cursor-grabbing hover:border-border-custom ui-interactive group hover:bg-surface-solid"
                   >
                     <div className="flex items-start gap-2">
                       <Pressable

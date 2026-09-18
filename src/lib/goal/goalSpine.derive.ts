@@ -90,7 +90,7 @@ export function isSprintClosingWeek(sprint: Pick<SprintContext, 'weekInSprint'>)
   return sprint.weekInSprint === 12;
 }
 
-function goalSpineAiSnapshot(spine: GoalSpine): GoalSpineAiSnapshot {
+function _goalSpineAiSnapshot(spine: GoalSpine): GoalSpineAiSnapshot {
   return {
     week_start: spine.weekStart,
     week_goals: {

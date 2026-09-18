@@ -1,4 +1,4 @@
-import { CheckCircle2, Dumbbell, Clock, Flame, ChevronRight } from 'lucide-react';
+import { CheckCircle2, Dumbbell, Clock, Flame } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { TodayWorkoutDetails } from '../../../lib/health/workoutApi';
@@ -103,14 +103,14 @@ export default function TrainingTodayCard({
       <div className="flex gap-2 pt-2">
         <Pressable
           onClick={onStartAnother}
-          className="flex-1 py-2.5 px-3 rounded-xl border border-border-custom bg-surface hover:bg-surface-solid text-text-primary text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          className="flex-1 py-2.5 px-3 rounded-xl border border-border-custom bg-surface hover:bg-surface-solid text-text-primary text-xs font-black uppercase tracking-wider ui-interactive flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <Dumbbell size={13} /> Kolejna sesja
         </Pressable>
         {onLogSauna && (
           <Pressable
             onClick={onLogSauna}
-            className="py-2.5 px-3 rounded-xl border border-warning/30 bg-warning/10 hover:bg-warning/20 text-warning text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+            className="py-2.5 px-3 rounded-xl border border-warning/30 bg-warning/10 hover:bg-warning/20 text-warning text-xs font-black uppercase tracking-wider ui-interactive flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Flame size={13} /> Sauna / Reg.
           </Pressable>

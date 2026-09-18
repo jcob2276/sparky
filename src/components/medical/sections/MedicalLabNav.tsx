@@ -24,7 +24,7 @@ export default function MedicalLabNav({ onSelectSection }: MedicalLabNavProps) {
           <Pressable
             key={sec.id}
             onClick={() => onSelectSection(sec.id)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-custom bg-surface-1 hover:bg-surface-2 hover:border-border-custom text-2xs font-bold text-text-secondary whitespace-nowrap transition-all active:scale-95 cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-custom bg-surface-1 hover:bg-surface-2 hover:border-border-custom text-2xs font-bold text-text-secondary whitespace-nowrap ui-interactive active:scale-95 cursor-pointer shrink-0"
           >
             <Icon size={12} className="text-primary shrink-0" />
             <span>{sec.label}</span>

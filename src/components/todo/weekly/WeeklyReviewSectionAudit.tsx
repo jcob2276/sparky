@@ -39,7 +39,7 @@ export default function WeeklyReviewSectionAudit() {
               <Pressable
                 key={sec.id}
                 onClick={() => setCurrentSectionIdx(idx)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-bold border ui-interactive ${
                   idx === currentSectionIdx
                     ? 'bg-primary border-transparent text-on-accent'
                     : 'border-border-custom/60 text-text-muted bg-surface-solid/20'

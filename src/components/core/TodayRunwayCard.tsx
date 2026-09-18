@@ -71,7 +71,7 @@ export default function TodayRunwayCard() {
           </div>
           <Pressable
             onClick={() => navigate('/kalendarz')}
-            className="flex items-center gap-1 rounded-xl border border-border-custom/60 bg-surface px-2.5 py-1.5 text-2xs font-bold text-text-secondary hover:border-primary/40 hover:text-primary transition-all active:scale-95 cursor-pointer"
+            className="flex items-center gap-1 rounded-xl border border-border-custom/60 bg-surface px-2.5 py-1.5 text-2xs font-bold text-text-secondary hover:border-primary/40 hover:text-primary ui-interactive active:scale-95 cursor-pointer"
           >
             <Plus size={12} />
             <span>Blok</span>

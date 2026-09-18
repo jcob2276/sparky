@@ -61,7 +61,7 @@ export default function MedicalRangeGauge({
 
         {/* Current Value Marker Pin */}
         <div
-          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full border shadow-xs transition-all ${dotColor}`}
+          className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full border shadow-xs ui-interactive ${dotColor}`}
           style={{ left: `${positionPct}%` }}
         />
       </div>

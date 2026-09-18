@@ -82,7 +82,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right' }: SheetPro
             data-material="floating"
             style={{ willChange: 'transform' }}
             initial={reduceMotion ? { opacity: 0 } : initial}
-            animate={reduceMotion ? { opacity: 1 } : { x: 0, y: 0 }}
+            animate={reduceMotion ? { opacity: 1 } : { transform: 'translate(0px, 0px)' }}
             exit={reduceMotion ? { opacity: 0 } : exit}
             transition={reduceMotion ? { duration: 0.12 } : IOS_SPRING.sheet}
             drag={side === 'bottom' && !reduceMotion ? 'y' : false}

@@ -16,24 +16,24 @@ const reducedTransition = { duration: 0.2 };
 
 const kindVariants = {
   list: {
-    initial: { opacity: 0, x: 16 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -16 },
+    initial: { opacity: 0, transform: 'translateX(14px)' },
+    animate: { opacity: 1, transform: 'translateX(0px)' },
+    exit:    { opacity: 0, transform: 'translateX(-14px)' },
   },
   timeline: {
-    initial: { opacity: 0, x: 16 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -16 },
+    initial: { opacity: 0, transform: 'translateX(14px)' },
+    animate: { opacity: 1, transform: 'translateX(0px)' },
+    exit:    { opacity: 0, transform: 'translateX(-14px)' },
   },
   dashboard: {
     initial: { opacity: 0 },
     animate: { opacity: 1 },
-    exit: { opacity: 0 },
+    exit:    { opacity: 0 },
   },
   grid: {
     initial: { opacity: 0 },
     animate: { opacity: 1 },
-    exit: { opacity: 0 },
+    exit:    { opacity: 0 },
   },
 } as const;
 

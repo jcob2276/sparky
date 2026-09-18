@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo, startTransition } from 'react';
 import { useNavigate, useLocation, type NavigateOptions, type To } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -22,7 +22,7 @@ import { markWorkoutSessionActive } from '../../../lib/health/workoutLogging';
 import type { RecentEntry } from '../nutrition/hooks/useFoodEntryData';
 import type { SpineGuideTarget } from '../../../lib/goal/goalSpineGuide';
 
-const TAB_ORDER = ['dzis', 'tydzien', 'historia'];
+const TAB_ORDER = ['dzis', 'tydzien', 'projekty', 'historia'];
 
 const normalizeView = (view: string | null | undefined) => {
   if (!view || view === 'workout' || view === 'mentor' || view === 'mirror' || view === 'body') return 'dzis';
@@ -44,12 +44,14 @@ export function useDashboardState(session: Session) {
 
   const navigate = useCallback((to: To | number, options?: NavigateOptions) => {
     isNavigatingRef.current = true;
-    if (typeof to === 'number') {
-      rawNavigate(to);
-    } else {
-      const shouldReplace = !!window.history.state?.modal;
-      rawNavigate(to, { replace: shouldReplace, ...options });
-    }
+    startTransition(() => {
+      if (typeof to === 'number') {
+        rawNavigate(to);
+      } else {
+        const shouldReplace = !!window.history.state?.modal;
+        rawNavigate(to, { replace: shouldReplace, ...options });
+      }
+    });
   }, [rawNavigate]);
 
   const rawView = location.pathname === '/' ? 'dzis' : location.pathname.substring(1);
@@ -309,6 +311,8 @@ export function useDashboardState(session: Session) {
   const navigateTo = useCallback((newView: string) => {
     const scrollToTop = () => {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      const mainEl = document.querySelector('main');
+      if (mainEl) mainEl.scrollTop = 0;
     };
 
     if (newView === view) {
@@ -318,7 +322,9 @@ export function useDashboardState(session: Session) {
     haptics.light();
     const fromIdx = TAB_ORDER.indexOf(view);
     const toIdx   = TAB_ORDER.indexOf(newView);
-    document.documentElement.dataset.slide = toIdx >= fromIdx ? 'right' : 'left';
+    if (fromIdx !== -1 && toIdx !== -1) {
+      document.documentElement.dataset.slide = toIdx >= fromIdx ? 'right' : 'left';
+    }
     navigate('/' + newView);
     scrollToTop();
     setTimeout(() => {
@@ -425,7 +431,7 @@ export function useDashboardState(session: Session) {
     lastOpenModalRef.current = curr;
   }, [openModal]);
 
-  return {
+  return useMemo(() => ({
     // routing
     view, navigate, goBack, navigateTo,
     location, handleMainTouchStart, handleMainTouchMove, handleMainTouchEnd, handleMainTouchCancel,
@@ -456,5 +462,32 @@ export function useDashboardState(session: Session) {
     handleLogoPressStart, handleLogoPressEnd,
     handleSpineGuideNavigate, handlePlanDay, handleFocusPlan,
     openWorkout, openFoodEntry,
-  };
+  }), [
+    view, navigate, goBack, navigateTo,
+    location, handleMainTouchStart, handleMainTouchMove, handleMainTouchEnd, handleMainTouchCancel,
+    weeklyCalories, todayWin, proteinToday, proteinTarget, hasWorkoutToday, readiness, loading, refresh,
+    spineGuidance, spineGuidanceLoading,
+    reviewOverdueDays, urgentTodoCount, staleNoteCount, refreshNudge,
+    pendingActionCount, reloadPendingActions,
+    isSyncing, syncCalendar, startGoogleAuth,
+    theme,
+    actionCenterOpen,
+    historySubTab,
+    workoutInitial, workoutKey,
+    showMorningPlan,
+    morningPlanTargetDate,
+    showShutdown,
+    gapLastLoggedDate,
+    showWeeklyReview,
+    taskReviewDoneThisWeek,
+    showSearch,
+    showQuickFoodEntry,
+    showFastCapture,
+    nutritionKey,
+    foodEditEntry,
+    planDaySignal,
+    handleLogoPressStart, handleLogoPressEnd,
+    handleSpineGuideNavigate, handlePlanDay, handleFocusPlan,
+    openWorkout, openFoodEntry,
+  ]);
 }

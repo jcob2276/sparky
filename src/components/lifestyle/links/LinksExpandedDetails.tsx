@@ -101,7 +101,7 @@ export function LinksExpandedDetails({
               <Pressable
                 key={cat}
                 onClick={() => onUpdateCategory(link.id, cat)}
-                className={`rounded-full px-2 py-0.5 text-2xs font-semibold border transition-all btn-press ${
+                className={`rounded-full px-2 py-0.5 text-2xs font-semibold border ui-interactive btn-press ${
                   isActive
                     ? `${cStyle.pill} border-current ring-1 ring-current`
                     : 'border-border-custom/40 bg-surface-solid/40 text-text-muted hover:text-text-primary'

@@ -41,7 +41,7 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
             href={videoCall.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between p-3.5 rounded-2xl bg-primary text-on-accent font-bold shadow-lg hover:brightness-110 active:scale-98 transition-all cursor-pointer"
+            className="flex items-center justify-between p-3.5 rounded-2xl bg-primary text-on-accent font-bold shadow-lg hover:brightness-110 active:scale-98 ui-interactive cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
               <Video size={18} strokeWidth={2.5} />

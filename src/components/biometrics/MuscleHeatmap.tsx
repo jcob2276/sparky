@@ -180,7 +180,7 @@ export default function MuscleHeatmap({
             {runKmPeriod > 0 && (
               <Pressable
                 onClick={() => setIncludeRunning((v) => !v)}
-                className={`h-9 flex items-center gap-1.5 px-3 rounded-xl border text-2xs font-bold transition-all cursor-pointer ${
+                className={`h-9 flex items-center gap-1.5 px-3 rounded-xl border text-2xs font-bold ui-interactive cursor-pointer ${
                   includeRunning
                     ? 'border-warning/40 bg-warning/15 text-warning shadow-sm'
                     : 'border-border-custom bg-surface text-text-muted hover:text-text-primary'
@@ -196,7 +196,7 @@ export default function MuscleHeatmap({
                 <Pressable
                   key={p.days}
                   onClick={() => setPeriod(p.days)}
-                  className={`h-9 min-w-12 rounded-xl border px-3 text-xs font-black uppercase tracking-widest transition-all cursor-pointer ${
+                  className={`h-9 min-w-12 rounded-xl border px-3 text-xs font-black uppercase tracking-widest ui-interactive cursor-pointer ${
                     period === p.days
                       ? 'border-info/40 bg-info/15 text-info dark:text-info shadow-[var(--ds-shadow-0-0-12px-rgba-56-189-248-0-1)]'
                       : 'border-border-custom bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-solid'
@@ -261,7 +261,7 @@ export default function MuscleHeatmap({
                   </span>
                   <div className="h-1.5 overflow-hidden rounded-full bg-text-primary/10">
                     <div
-                      className="h-full rounded-full transition-all duration-[var(--motion-deliberate)]"
+                      className="h-full rounded-full ui-interactive duration-[var(--motion-deliberate)]"
                       style={{
                         width: `${(count / maxLoad) * 100}%`,
                         background: `linear-gradient(90deg, ${tagColor(tag)}, var(--color-theme-hex-ba255255255082))`,

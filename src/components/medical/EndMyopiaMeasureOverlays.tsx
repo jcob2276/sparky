@@ -80,7 +80,7 @@ export function MeasurePhaseOverlay({
         <div className="flex items-center justify-between w-full">
           <Pressable
             onClick={onZoomOut}
-            className="p-3 rounded-full bg-scrim/5 text-text-muted hover:bg-scrim/10 active:scale-90 transition-all"
+            className="p-3 rounded-full bg-scrim/5 text-text-muted hover:bg-scrim/10 active:scale-90 ui-interactive"
           >
             <ZoomOut size={20} />
           </Pressable>
@@ -94,7 +94,7 @@ export function MeasurePhaseOverlay({
             <Pressable
               onClick={onManualCapture}
               disabled={!faceDetected}
-              className="bg-info text-on-accent font-black px-7 py-3 rounded-2xl text-sm disabled:opacity-[var(--opacity-30)] active:scale-95 transition-all"
+              className="bg-info text-on-accent font-black px-7 py-3 rounded-2xl text-sm disabled:opacity-[var(--opacity-30)] active:scale-95 ui-interactive"
             >
               Złap pomiar
             </Pressable>
@@ -102,7 +102,7 @@ export function MeasurePhaseOverlay({
 
           <Pressable
             onClick={onZoomIn}
-            className="p-3 rounded-full bg-scrim/5 text-text-muted hover:bg-scrim/10 active:scale-90 transition-all"
+            className="p-3 rounded-full bg-scrim/5 text-text-muted hover:bg-scrim/10 active:scale-90 ui-interactive"
           >
             <ZoomIn size={20} />
           </Pressable>
@@ -110,7 +110,7 @@ export function MeasurePhaseOverlay({
 
         <Pressable
           onClick={onToggleAutoCapture}
-          className={`text-xs font-black px-3 py-1.5 rounded-full transition-all ${
+          className={`text-xs font-black px-3 py-1.5 rounded-full ui-interactive ${
             autoCapture
               ? 'bg-info text-info border border-info'
               : 'bg-surface-2 text-text-muted border border-border-custom'
@@ -172,7 +172,7 @@ export function CapturedPhaseOverlay({
         <Pressable
           onClick={onSave}
           disabled={isSaving}
-          className="w-full py-5 bg-primary text-background font-black uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-[var(--opacity-50)]"
+          className="w-full py-5 bg-primary text-background font-black uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 active:scale-95 ui-interactive disabled:opacity-[var(--opacity-50)]"
         >
           <Check size={18} />
           {isSaving ? 'Zapisywanie...' : 'Zapisz pomiar'}

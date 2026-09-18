@@ -111,7 +111,7 @@ export function DataExportSection({
               value={dateRange.from}
               onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
               onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
-              className="w-full rounded-xl border border-border-custom bg-surface py-2.5 pl-8 pr-2.5 text-xs font-mono font-bold text-text-primary outline-none transition-all focus:border-primary"
+              className="w-full rounded-xl border border-border-custom bg-surface py-2.5 pl-8 pr-2.5 text-xs font-mono font-bold text-text-primary outline-none ui-interactive focus:border-primary"
             />
           </div>
           <div className="relative">
@@ -121,7 +121,7 @@ export function DataExportSection({
               value={dateRange.to}
               onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
               onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
-              className="w-full rounded-xl border border-border-custom bg-surface py-2.5 pl-8 pr-2.5 text-xs font-mono font-bold text-text-primary outline-none transition-all focus:border-primary"
+              className="w-full rounded-xl border border-border-custom bg-surface py-2.5 pl-8 pr-2.5 text-xs font-mono font-bold text-text-primary outline-none ui-interactive focus:border-primary"
             />
           </div>
         </div>

@@ -50,13 +50,13 @@ export default function ExerciseWellnessSets({ exercise, haptics, updateSet, rem
               <div className="flex gap-1 justify-center">
                 <Pressable
                   onClick={() => adjustWellness('reps', -5)}
-                  className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
+                  className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center ui-interactive cursor-pointer"
                 >
                   -5
                 </Pressable>
                 <Pressable
                   onClick={() => adjustWellness('reps', 5)}
-                  className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
+                  className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center ui-interactive cursor-pointer"
                 >
                   +5
                 </Pressable>
@@ -76,13 +76,13 @@ export default function ExerciseWellnessSets({ exercise, haptics, updateSet, rem
               <div className="flex gap-1 justify-center">
                 <Pressable
                   onClick={() => adjustWellness('kg', -5)}
-                  className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
+                  className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center ui-interactive cursor-pointer"
                 >
                   -5
                 </Pressable>
                 <Pressable
                   onClick={() => adjustWellness('kg', 5)}
-                  className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
+                  className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center ui-interactive cursor-pointer"
                 >
                   +5
                 </Pressable>
@@ -90,7 +90,7 @@ export default function ExerciseWellnessSets({ exercise, haptics, updateSet, rem
             </div>
             <Pressable
               onClick={() => removeSet(set.id)}
-              className="flex items-center justify-center text-text-muted/60 hover:text-danger active:scale-[var(--ds-arbitrary-0-9)] transition-all cursor-pointer"
+              className="flex items-center justify-center text-text-muted/60 hover:text-danger active:scale-[var(--ds-arbitrary-0-9)] ui-interactive cursor-pointer"
             >
               <Trash2 size={12} />
             </Pressable>

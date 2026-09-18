@@ -12,13 +12,13 @@ export function useOuraBleSettings() {
     savedDevice ? { address: savedDevice.address, name: savedDevice.name, rssi: 0, ouraLike: true } : null
   );
   const [state, setState] = useState<OuraConnectionState>(() =>
-    isOuraBleModeEnabled() && savedDevice ? 'connected' : 'idle'
+    isOuraBleModeEnabled() && savedDevice ? 'connecting' : 'idle'
   );
   const [devices, setDevices] = useState<BleDeviceHit[]>([]);
   const [batteryLevel, setBatteryLevel] = useState<number | null>(null);
   const [statusMsg, setStatusMsg] = useState(() =>
     isOuraBleModeEnabled() && savedDevice
-      ? `Połączono z ${savedDevice.name}`
+      ? `Automatyczne łączenie z ${savedDevice.name}...`
       : 'Kliknij „Szukaj”, aby znaleźć Oura Ring'
   );
   const [currentBpm, setCurrentBpm] = useState<number | null>(null);
@@ -54,14 +54,10 @@ export function useOuraBleSettings() {
     });
     subscriptions.current.push(connection, battery, error);
 
-    const saved = getSavedOuraDevice();
-    if (saved && isOuraBleModeEnabled()) {
-      setConnectedDevice({ address: saved.address, name: saved.name, rssi: 0, ouraLike: true });
-      setState('connecting');
-      setStatusMsg(`Automatyczne łączenie z ${saved.name}...`);
-      BleProbe.connectDevice({ address: saved.address }).catch(() => setState('idle'));
+    if (savedDevice && isOuraBleModeEnabled()) {
+      BleProbe.connectDevice({ address: savedDevice.address }).catch(() => setState('idle'));
     }
-  }, []);
+  }, [savedDevice]);
 
   useEffect(() => {
     if (!isNativePlatform()) return;
@@ -95,9 +91,10 @@ export function useOuraBleSettings() {
     try {
       await BleProbe.requestPermissions();
       await BleProbe.startScan({ durationMs: 10_000 });
-    } catch (error: any) {
+    } catch (error: unknown) {
       setState('error');
-      setStatusMsg(`Błąd skanowania: ${error?.message || 'Brak uprawnień Bluetooth'}`);
+      const msg = error instanceof Error ? error.message : 'Brak uprawnień Bluetooth';
+      setStatusMsg(`Błąd skanowania: ${msg}`);
     }
   };
 
@@ -109,9 +106,10 @@ export function useOuraBleSettings() {
     setStatusMsg(`Łączenie z ${device.name || device.address}...`);
     try {
       await BleProbe.connectDevice({ address: device.address });
-    } catch (error: any) {
+    } catch (error: unknown) {
       setState('error');
-      setStatusMsg(`Błąd połączenia: ${error?.message || 'Nieznany błąd'}`);
+      const msg = error instanceof Error ? error.message : 'Nieznany błąd';
+      setStatusMsg(`Błąd połączenia: ${msg}`);
     }
   };
 
@@ -127,9 +125,10 @@ export function useOuraBleSettings() {
     setStatusMsg('Bezpieczne ponowne parowanie pierścienia...');
     try {
       await BleProbe.adoptDevice({ address });
-    } catch (error: any) {
+    } catch (error: unknown) {
       setState('error');
-      setStatusMsg(`Błąd ponownego parowania: ${error?.message || 'Nieznany błąd'}`);
+      const msg = error instanceof Error ? error.message : 'Nieznany błąd';
+      setStatusMsg(`Błąd ponownego parowania: ${msg}`);
     }
   };
 

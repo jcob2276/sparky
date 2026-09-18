@@ -45,7 +45,7 @@ export default function NLScreen({
       <div className="flex gap-1.5 flex-wrap mb-1">
         {MEAL_TYPES.map((m) => (
           <Pressable key={m.id} onClick={() => setMealType(m.id)}
-            className={`rounded-full px-3 py-1.5 text-xs font-black uppercase tracking-wider transition-all cursor-pointer ${mealType === m.id ? 'bg-primary text-on-accent' : 'border border-border-custom text-text-muted'}`}>
+            className={`rounded-full px-3 py-1.5 text-xs font-black uppercase tracking-wider ui-interactive cursor-pointer ${mealType === m.id ? 'bg-primary text-on-accent' : 'border border-border-custom text-text-muted'}`}>
             {m.label}
           </Pressable>
         ))}
@@ -85,7 +85,7 @@ export default function NLScreen({
           {nlItems.map((item, i) => {
             const removed = nlRemovedIdx.has(i);
             return (
-              <div key={i} className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition-all ${removed ? 'opacity-[var(--opacity-30)] border-border-custom/30 bg-transparent' : 'border-border-custom bg-surface-solid/20'}`}>
+              <div key={i} className={`flex items-center gap-2 rounded-xl border px-3 py-2 ui-interactive ${removed ? 'opacity-[var(--opacity-30)] border-border-custom/30 bg-transparent' : 'border-border-custom bg-surface-solid/20'}`}>
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-semibold truncate ${removed ? 'line-through text-text-muted' : 'text-text-primary'}`}>{item.name}</p>
                   <p className="text-2xs text-text-muted flex items-center gap-1.5">
@@ -117,7 +117,7 @@ export default function NLScreen({
                     if (next.has(i)) next.delete(i); else next.add(i);
                     return next;
                   })}
-                  className="shrink-0 rounded-full p-1 text-text-muted hover:text-danger hover:bg-danger/10 active:scale-95 transition-all"
+                  className="shrink-0 rounded-full p-1 text-text-muted hover:text-danger hover:bg-danger/10 active:scale-95 ui-interactive"
                 >
                   {removed ? <Check size={13} className="text-success" /> : <Trash2 size={13} />}
                 </Pressable>

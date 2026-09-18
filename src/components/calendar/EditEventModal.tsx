@@ -142,7 +142,7 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
           </div>
 
           {/* Reminder Selector */}
-          <div className="flex items-center gap-2 bg-surface-solid/30 border border-border-custom/30 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/30 transition-all rounded-xl px-3.5 py-2 text-xs font-bold text-text-secondary">
+          <div className="flex items-center gap-2 bg-surface-solid/30 border border-border-custom/30 focus-within:border-primary/50 focus-within:ring-1 focus-within:ring-primary/30 ui-interactive rounded-xl px-3.5 py-2 text-xs font-bold text-text-secondary">
             <Bell size={14} className="text-text-muted shrink-0" />
             <span className="text-text-muted">Przypomnienie:</span>
             <ControlSelect

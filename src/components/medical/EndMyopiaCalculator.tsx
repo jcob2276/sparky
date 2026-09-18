@@ -234,7 +234,7 @@ export default function EndMyopiaCalculator() {
                 <Pressable
                   onClick={handleCalibrate}
                   disabled={!isReady || !faceDetected}
-                  className="w-full bg-primary text-background font-bold py-4 rounded-2xl disabled:opacity-[var(--opacity-30)] active:scale-95 transition-all"
+                  className="w-full bg-primary text-background font-bold py-4 rounded-2xl disabled:opacity-[var(--opacity-30)] active:scale-95 ui-interactive"
                 >
                   {!isReady ? 'Ładowanie AI...' : 'Skalibruj na 40 cm'}
                 </Pressable>
@@ -252,14 +252,14 @@ export default function EndMyopiaCalculator() {
                 <div className="w-full max-w-sm grid grid-cols-2 gap-4">
                   <Pressable
                     onClick={() => startMeasure('left')}
-                    className="aspect-square bg-surface border border-border-custom rounded-3xl flex flex-col items-center justify-center gap-3 active:scale-95 transition-all hover:border-primary/50 hover:bg-primary/5"
+                    className="aspect-square bg-surface border border-border-custom rounded-3xl flex flex-col items-center justify-center gap-3 active:scale-95 ui-interactive hover:border-primary/50 hover:bg-primary/5"
                   >
                     <span className="text-5xl">👁</span>
                     <span className="font-black text-lg">Lewe</span>
                   </Pressable>
                   <Pressable
                     onClick={() => startMeasure('right')}
-                    className="aspect-square bg-surface border border-border-custom rounded-3xl flex flex-col items-center justify-center gap-3 active:scale-95 transition-all hover:border-primary/50 hover:bg-primary/5"
+                    className="aspect-square bg-surface border border-border-custom rounded-3xl flex flex-col items-center justify-center gap-3 active:scale-95 ui-interactive hover:border-primary/50 hover:bg-primary/5"
                   >
                     <span className="text-5xl">👁</span>
                     <span className="font-black text-lg">Prawe</span>

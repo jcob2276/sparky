@@ -22,8 +22,6 @@ export type MedicalUserContext = {
   trainingHint: string | null;
 };
 
-type RetestSuggestionCategory = 'toDiscuss' | 'toVerify' | 'missing' | 'toRefresh';
-
 export interface RetestSuggestionGroups {
   toDiscuss: RetestSuggestion[];
   toVerify: RetestSuggestion[];

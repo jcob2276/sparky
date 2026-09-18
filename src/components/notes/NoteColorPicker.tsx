@@ -25,7 +25,7 @@ export default function NoteColorPicker({ currentColor, onSelectColor, className
               e.stopPropagation();
               onSelectColor(c.id);
             }}
-            className="h-5 w-5 rounded-full border border-border-custom/40 flex items-center justify-center transition-all hover:scale-110 active:scale-95 cursor-pointer shadow-2xs"
+            className="h-5 w-5 rounded-full border border-border-custom/40 flex items-center justify-center ui-interactive hover:scale-110 active:scale-95 cursor-pointer shadow-2xs"
             style={{ backgroundColor: c.dot }}
           >
             {isSelected && (

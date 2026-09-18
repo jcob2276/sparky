@@ -62,7 +62,7 @@ export default function DayTimeline({
               <div
                 key={b.id}
                 title={b.label}
-                className={`absolute left-0 right-0 rounded-lg px-2 py-0.5 overflow-hidden whitespace-nowrap text-2xs font-bold leading-tight flex items-center transition-all ${
+                className={`absolute left-0 right-0 rounded-lg px-2 py-0.5 overflow-hidden whitespace-nowrap text-2xs font-bold leading-tight flex items-center ui-interactive ${
                   isExisting
                     ? 'bg-surface-3 text-text-primary border border-border-custom/60 border-l-3 border-l-primary/80 shadow-2xs'
                     : 'bg-primary text-on-accent font-black shadow-md border border-primary-hover z-[var(--z-raised)]'

@@ -50,7 +50,7 @@ export function LinksFilterPills({
             role="tab"
             aria-selected={isActive}
             onClick={() => onChangeFilter(pill.id)}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-[var(--motion-fast)] btn-press cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ui-interactive duration-[var(--motion-fast)] btn-press cursor-pointer ${
               isActive
                 ? 'bg-primary text-on-accent shadow-xs'
                 : 'bg-surface-solid/80 hover:bg-surface-solid border border-border-custom/30 text-text-secondary hover:text-text-primary'

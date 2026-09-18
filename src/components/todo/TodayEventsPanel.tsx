@@ -37,7 +37,7 @@ export default function TodayEventsPanel({ userId, today }: { userId: string; to
           return (
             <div
               key={ev.id}
-              className={`flex items-start gap-2.5 rounded-xl px-2.5 py-2 transition-all ${
+              className={`flex items-start gap-2.5 rounded-xl px-2.5 py-2 ui-interactive ${
                 active
                   ? 'bg-primary/8 border border-primary/20'
                   : past

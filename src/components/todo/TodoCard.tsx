@@ -149,7 +149,7 @@ export default function TodoCard({
           onShowContextMenu(item, e.clientX, e.clientY);
         }}
         onClick={e => e.stopPropagation()}
-        className={`relative border-b border-border-custom/15 pr-2 py-4 pl-1 transition-all duration-[var(--motion-medium)] ease-[var(--ease-out)] group-hover:bg-text-primary/[0.015] ${
+        className={`relative border-b border-border-custom/15 pr-2 py-4 pl-1 ui-interactive duration-[var(--motion-medium)] ease-[var(--ease-out)] group-hover:bg-text-primary/[0.015] ${
           isSelected ? 'bg-primary/5 rounded-xl ring-1 ring-inset ring-primary/25' : ''
         } ${leftBorder}`}
       >

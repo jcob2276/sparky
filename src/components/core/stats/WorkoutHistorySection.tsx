@@ -119,7 +119,7 @@ export function WorkoutHistorySection({
             return (
               <div
                 key={s.id}
-                className="rounded-xl border border-border-custom bg-surface p-3 transition-all hover:border-border-custom/80 shadow-sm"
+                className="rounded-xl border border-border-custom bg-surface p-3 ui-interactive hover:border-border-custom/80 shadow-sm"
               >
                 <div className="flex items-center justify-between gap-2.5">
                   {/* Left: Date + Weekday badge */}
@@ -222,7 +222,7 @@ export function WorkoutHistorySection({
         <Pressable
           type="button"
           onClick={() => setShowAllSessions((v) => !v)}
-          className="w-full py-2 rounded-xl border border-border-custom bg-surface text-2xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-solid transition-all cursor-pointer flex items-center justify-center gap-1.5"
+          className="w-full py-2 rounded-xl border border-border-custom bg-surface text-2xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-solid ui-interactive cursor-pointer flex items-center justify-center gap-1.5"
         >
           {showAllSessions ? (
             <>

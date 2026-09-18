@@ -17,4 +17,5 @@ export { handlePosilekCommand } from "../_commands/posilek.ts";
 export { handleLenieCommand } from "../_commands/lenie.ts";
 export { handleWalenieCommand } from "../_commands/walenie.ts";
 export { handlePokeCommand } from "../_commands/poke.ts";
+export { handleTerazCommand } from "../_commands/teraz.ts";
 

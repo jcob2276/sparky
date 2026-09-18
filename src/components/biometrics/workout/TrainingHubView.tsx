@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, Dumbbell, TrendingUp, AlertCircle, RotateCcw, Sparkles } from 'lucide-react';
+import { ChevronLeft, TrendingUp, AlertCircle, RotateCcw } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import Spinner from '../../ui/Spinner';
 import { getTodayWarsaw } from '../../../lib/date';
@@ -22,6 +22,43 @@ import TrainingTodayCard from './TrainingTodayCard';
 import TrainingTemplatesSection from './TrainingTemplatesSection';
 import WorkoutNlCaptureModal from './WorkoutNlCaptureModal';
 
+function ActiveDraftBanner({
+  onResume,
+  onDiscard,
+}: {
+  onResume: () => void;
+  onDiscard: () => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-warning/40 bg-warning/10 p-4 space-y-3 animate-in fade-in">
+      <div className="flex items-center gap-2 text-warning">
+        <AlertCircle size={16} />
+        <span className="text-xs font-black uppercase tracking-wider">
+          Niezapisany trening w toku
+        </span>
+      </div>
+      <p className="text-xs text-text-secondary">
+        Masz rozpoczętą sesję z zapisanymi seriami w pamięci podręcznej.
+      </p>
+      <div className="flex gap-2 pt-1">
+        <Pressable
+          onClick={onResume}
+          className="flex-1 py-2.5 rounded-xl bg-primary text-on-accent text-xs font-black uppercase tracking-wider shadow-md hover:bg-primary-hover ui-interactive text-center cursor-pointer"
+        >
+          Wznów sesję
+        </Pressable>
+        <Pressable
+          onClick={onDiscard}
+          className="py-2.5 px-3 rounded-xl border border-border-custom bg-surface text-text-muted hover:text-danger text-xs font-bold ui-interactive cursor-pointer"
+          title="Odrzuć szkic"
+        >
+          <RotateCcw size={14} />
+        </Pressable>
+      </div>
+    </div>
+  );
+}
+
 interface TrainingHubViewProps {
   userId: string | undefined;
   onStartWorkout: (initial?: WorkoutLoggerInitial | null) => void;
@@ -35,7 +72,7 @@ export default function TrainingHubView({
   onBack,
   onNavigate,
 }: TrainingHubViewProps) {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(Boolean(userId));
   const [todaySession, setTodaySession] = useState<TodayWorkoutDetails | null>(null);
   const [templates, setTemplates] = useState<WorkoutTemplateSummary[]>([]);
   const [hasDraft, setHasDraft] = useState(false);
@@ -45,10 +82,7 @@ export default function TrainingHubView({
   const todayStr = getTodayWarsaw();
 
   useEffect(() => {
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
+    if (!userId) return;
 
     let isMounted = true;
     void (async () => {
@@ -126,7 +160,7 @@ export default function TrainingHubView({
 
         <Pressable
           onClick={() => onNavigate('/cwiczenie')}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-custom bg-surface hover:border-primary/40 text-text-secondary hover:text-primary text-xs font-bold transition-all cursor-pointer shadow-sm"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-custom bg-surface hover:border-primary/40 text-text-secondary hover:text-primary text-xs font-bold ui-interactive cursor-pointer shadow-sm"
         >
           <TrendingUp size={13} />
           <span className="text-2xs font-black uppercase tracking-wider">Baza & PR</span>
@@ -146,32 +180,10 @@ export default function TrainingHubView({
           <>
             {/* Active Draft Banner */}
             {hasDraft && (
-              <div className="rounded-2xl border border-warning/40 bg-warning/10 p-4 space-y-3 animate-in fade-in">
-                <div className="flex items-center gap-2 text-warning">
-                  <AlertCircle size={16} />
-                  <span className="text-xs font-black uppercase tracking-wider">
-                    Niezapisany trening w toku
-                  </span>
-                </div>
-                <p className="text-xs text-text-secondary">
-                  Masz rozpoczętą sesję z zapisanymi seriami w pamięci podręcznej.
-                </p>
-                <div className="flex gap-2 pt-1">
-                  <Pressable
-                    onClick={handleResumeDraft}
-                    className="flex-1 py-2.5 rounded-xl bg-primary text-on-accent text-xs font-black uppercase tracking-wider shadow-md hover:bg-primary-hover transition-all text-center cursor-pointer"
-                  >
-                    Wznów sesję
-                  </Pressable>
-                  <Pressable
-                    onClick={handleDiscardDraft}
-                    className="py-2.5 px-3 rounded-xl border border-border-custom bg-surface text-text-muted hover:text-danger text-xs font-bold transition-all cursor-pointer"
-                    title="Odrzuć szkic"
-                  >
-                    <RotateCcw size={14} />
-                  </Pressable>
-                </div>
-              </div>
+              <ActiveDraftBanner
+                onResume={handleResumeDraft}
+                onDiscard={handleDiscardDraft}
+              />
             )}
 
             {/* Today's Completed Workout */}

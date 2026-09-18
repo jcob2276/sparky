@@ -35,7 +35,7 @@ export default function CorrelationsHeader({ loading, onRefresh, daysOfData }: C
           type="button"
           onClick={onRefresh}
           disabled={loading}
-          className="rounded-xl p-2.5 text-primary border border-transparent hover:border-primary/20 hover:bg-primary/5 transition-all disabled:opacity-50"
+          className="rounded-xl p-2.5 text-primary border border-transparent hover:border-primary/20 hover:bg-primary/5 ui-interactive disabled:opacity-50"
           title="Odśwież analizę"
         >
           <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />

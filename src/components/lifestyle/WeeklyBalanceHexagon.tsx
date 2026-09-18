@@ -9,18 +9,13 @@ import {
   fetchSphereBudgets,
   saveSphereBudget,
   fetchWeeklySphereActuals,
-  type SphereHours,
   type LifeSphereId,
 } from '../../lib/projects/lifeSpheres';
 import { getWeekStartWarsaw, shiftWeekStart, formatWeekRange, isCurrentWeek } from '../../lib/growth/growth';
 import { getTodayWarsaw } from '../../lib/date';
 import { listTodoItems, updateTodoItem } from '../../lib/todo/todo';
-import {
-  WeeklyBalanceRadarSvg,
-  polygonPoints,
-  emptyBudgetMap,
-  type BudgetBounds,
-} from './WeeklyBalanceRadarSvg';
+import { WeeklyBalanceRadarSvg } from './WeeklyBalanceRadarSvg';
+import { polygonPoints, emptyBudgetMap } from './weeklyBalanceRadar';
 
 /** Architektura Tygodnia — budget vs actual hours per life sphere */
 export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
@@ -31,6 +26,7 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
   const [saving, setSaving] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [assigning, setAssigning] = useState(false);
+  const [showAllSpheres, setShowAllSpheres] = useState(false);
 
   const dataQuery = useQuery({
     queryKey: ['weekly-balance-hexagon', userId, weekStart],
@@ -59,19 +55,19 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
     [budgets],
   );
 
+  const activeSpheres = useMemo(
+    () => LIFE_SPHERES.filter((s) => (actuals?.[s.id] ?? 0) > 0 || targetFor(s.id) > 0),
+    [actuals, targetFor],
+  );
+  const displayedSpheres = showAllSpheres || activeSpheres.length === 0 ? LIFE_SPHERES : activeSpheres;
+
   const axisScale = useMemo(() => {
     const values = LIFE_SPHERES.flatMap((s) => [targetFor(s.id), actuals?.[s.id] ?? 0]);
     return Math.max(6, ...values) * 1.15;
   }, [targetFor, actuals]);
 
-  const budgetPoints = useMemo(
-    () => polygonPoints(LIFE_SPHERES.map((s) => targetFor(s.id)), axisScale),
-    [targetFor, axisScale],
-  );
-  const actualPoints = useMemo(
-    () => polygonPoints(LIFE_SPHERES.map((s) => actuals?.[s.id] ?? 0), axisScale),
-    [actuals, axisScale],
-  );
+  const budgetPoints = useMemo(() => polygonPoints(LIFE_SPHERES.map((s) => targetFor(s.id)), axisScale), [targetFor, axisScale]);
+  const actualPoints = useMemo(() => polygonPoints(LIFE_SPHERES.map((s) => actuals?.[s.id] ?? 0), axisScale), [actuals, axisScale]);
 
   const startEditing = (sphere: LifeSphereId) => {
     setEditingSphere(sphere);
@@ -126,7 +122,7 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
             <Pressable
               type="button"
               onClick={() => setViewMode('bars')}
-              className={`px-2 py-1 rounded-md transition-all ${
+              className={`px-2 py-1 rounded-md ui-interactive ${
                 viewMode === 'bars' ? 'bg-primary text-on-primary' : 'text-text-muted hover:text-text-primary'
               }`}
             >
@@ -135,7 +131,7 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
             <Pressable
               type="button"
               onClick={() => setViewMode('radar')}
-              className={`px-2 py-1 rounded-md transition-all ${
+              className={`px-2 py-1 rounded-md ui-interactive ${
                 viewMode === 'radar' ? 'bg-primary text-on-primary' : 'text-text-muted hover:text-text-primary'
               }`}
             >
@@ -170,7 +166,7 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
       ) : viewMode === 'bars' ? (
         /* Practical Bars View */
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {LIFE_SPHERES.map((s) => {
+          {displayedSpheres.map((s) => {
             const actual = actuals?.[s.id] ?? 0;
             const target = targetFor(s.id);
             const pct = target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : 0;
@@ -180,10 +176,8 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
               <div
                 key={s.id}
                 onClick={() => (isAssigned ? assignSelectedTask(s.id) : startEditing(s.id))}
-                className={`cursor-pointer rounded-2xl border p-3 transition-all ${
-                  isAssigned
-                    ? `${s.border} ${s.bgSoft} hover:scale-[1.01]`
-                    : 'border-border-custom/40 bg-surface/50 hover:border-border-custom/80'
+                className={`cursor-pointer rounded-2xl border p-3 ui-interactive ${
+                  isAssigned ? `${s.border} ${s.bgSoft} hover:scale-[1.01]` : 'border-border-custom/40 bg-surface/50 hover:border-border-custom/80'
                 }`}
               >
                 <div className="flex items-center justify-between gap-1 mb-1.5">
@@ -210,6 +204,15 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
               </div>
             );
           })}
+          {activeSpheres.length > 0 && activeSpheres.length < LIFE_SPHERES.length && (
+            <Pressable
+              type="button"
+              onClick={() => setShowAllSpheres((v) => !v)}
+              className="col-span-full py-1 text-center text-3xs font-bold uppercase tracking-wider text-text-muted hover:text-primary transition-colors"
+            >
+              {showAllSpheres ? 'Zwiń do aktywnych sfer' : `+ Pokaż pozostałe sfery (${LIFE_SPHERES.length - activeSpheres.length})`}
+            </Pressable>
+          )}
         </div>
       ) : (
         <WeeklyBalanceRadarSvg
@@ -236,24 +239,10 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
             onKeyDown={(e) => { if (e.key === 'Enter') void saveTarget(); }}
             className="w-16 rounded-lg border border-border-custom/50 bg-surface-solid/60 px-2 py-1 text-xs text-text-primary outline-none focus:border-primary/30"
           />
-          <Pressable
-            variant="primary"
-            size="sm"
-            type="button"
-            onClick={() => void saveTarget()}
-            disabled={saving}
-            loading={saving}
-            className="rounded-lg px-2.5 py-1 text-xs font-black btn-press"
-          >
+          <Pressable variant="primary" size="sm" type="button" onClick={() => void saveTarget()} disabled={saving} loading={saving} className="rounded-lg px-2.5 py-1 text-xs font-black btn-press">
             Zapisz
           </Pressable>
-          <Pressable
-            variant="ghost"
-            size="sm"
-            type="button"
-            onClick={() => setEditingSphere(null)}
-            className="text-xs font-semibold text-text-muted hover:text-text-primary"
-          >
+          <Pressable variant="ghost" size="sm" type="button" onClick={() => setEditingSphere(null)} className="text-xs font-semibold text-text-muted hover:text-text-primary">
             Anuluj
           </Pressable>
         </div>

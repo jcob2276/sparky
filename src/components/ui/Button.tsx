@@ -21,7 +21,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   type = 'button',
   ...props
 }, ref) {
-  const baseClass = 'ui-button inline-flex items-center justify-center font-semibold touch-manipulation disabled:pointer-events-none cursor-pointer focus-visible:outline-none';
+  const hasDisplayOverride = /\b(hidden|block|inline-block|flex|grid)\b/.test(className);
+  const baseClass = `ui-button ${hasDisplayOverride ? '' : 'inline-flex '}items-center justify-center font-semibold touch-manipulation disabled:pointer-events-none cursor-pointer focus-visible:outline-none`;
 
   const sizeClasses = {
     sm: 'ui-button--sm px-3.5 text-xs gap-1.5',

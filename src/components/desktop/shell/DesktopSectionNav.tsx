@@ -5,7 +5,6 @@ import {
   Dumbbell,
   HeartPulse,
   Brain,
-  Layers,
   TrendingUp,
   Eye,
   GraduationCap,
@@ -21,7 +20,6 @@ const TABS: { id: DesktopTabType; label: string; icon: typeof Dumbbell }[] = [
   { id: 'training', label: 'Trening', icon: Dumbbell },
   { id: 'health', label: 'Zdrowie', icon: HeartPulse },
   { id: 'intel', label: 'Pamięć', icon: Brain },
-  { id: 'all', label: 'Wszystko', icon: Layers },
 ];
 
 const SHORTCUTS = [
@@ -54,7 +52,7 @@ export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus 
                 <Pressable
                   variant="ghost"
                   onClick={() => onTabChange(id)}
-                  className={`w-full flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-xs font-bold transition-all text-left ${
+                  className={`w-full flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-xs font-bold ui-interactive text-left ${
                     isActive
                       ? 'bg-primary/10 text-primary font-black border border-primary/20 shadow-xs'
                       : 'text-text-muted hover:text-text-primary hover:bg-surface-solid/10'
@@ -81,7 +79,7 @@ export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus 
             <li key={href}>
               <Link
                 to={href}
-                className="flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-text-muted hover:text-text-primary hover:bg-surface-solid/10 transition-all"
+                className="flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-text-muted hover:text-text-primary hover:bg-surface-solid/10 ui-interactive"
               >
                 <div className="flex items-center gap-2.5 min-w-0 truncate">
                   <Icon size={14} className="shrink-0" />

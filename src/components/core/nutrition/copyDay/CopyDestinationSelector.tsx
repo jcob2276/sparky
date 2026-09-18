@@ -47,7 +47,7 @@ export default function CopyDestinationSelector({
             haptics.selection();
             onSelectDestination(null);
           }}
-          className={`touch-manipulation shrink-0 flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-bold transition-all active:scale-95 ${
+          className={`touch-manipulation shrink-0 flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-bold ui-interactive active:scale-95 ${
             selectedDestination === null
               ? 'bg-primary/15 text-primary border border-primary/30 ring-1 ring-primary/20'
               : 'border border-border-custom/70 bg-surface-solid/30 text-text-secondary hover:text-text-primary hover:bg-surface-solid/60'
@@ -68,7 +68,7 @@ export default function CopyDestinationSelector({
                 haptics.selection();
                 onSelectDestination(m.id);
               }}
-              className={`touch-manipulation shrink-0 rounded-xl px-2.5 py-1.5 text-xs font-bold transition-all active:scale-95 ${
+              className={`touch-manipulation shrink-0 rounded-xl px-2.5 py-1.5 text-xs font-bold ui-interactive active:scale-95 ${
                 isSelected
                   ? 'bg-primary text-on-accent shadow-2xs ring-1 ring-primary/30 font-black'
                   : 'border border-border-custom/70 bg-surface-solid/30 text-text-secondary hover:text-text-primary hover:bg-surface-solid/60'

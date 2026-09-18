@@ -55,12 +55,18 @@ export function getCircadianStance(
       "Krótki, uspokajający komunikat kierujący do odłożenia telefonu i snu.";
   }
 
-  let biometricWarning: string | undefined;
+  const warnings: string[] = [];
   if (typeof readinessScore === "number" && readinessScore > 0 && readinessScore < 65) {
-    biometricWarning = `⚠️ OURA ALERT: Niski wskaźnik readiness (${readinessScore}). Obniżona rezerwa adaptacyjna. Nie forsuj wielkich obciążeń ani 12h sesji — skup się wyłącznie na 1 kluczowym ruchu.`;
-  } else if (typeof sleepHours === "number" && sleepHours > 0 && sleepHours < 5.5) {
-    biometricWarning = `⚠️ OURA ALERT: Krótki sen (${sleepHours.toFixed(1)}h). Zmniejszona kontrola impulsów i podwyższone ryzyko avoidance. Upraszczaj decyzje do minimum.`;
+    warnings.push(`⚠️ OURA ALERT: Niski wskaźnik readiness (${readinessScore}). Obniżona rezerwa adaptacyjna. Nie forsuj wielkich obciążeń ani 12h sesji — skup się wyłącznie na 1 kluczowym ruchu.`);
   }
+  if (typeof sleepHours === "number" && sleepHours > 0 && sleepHours < 6.5) {
+    warnings.push(`⚠️ STATYSTYKA EGZEKUCJI: Sen ${sleepHours.toFixed(1)}h (< 6.5h). W 80% przypadków egzekucja spada do <= 0.50. Zmniejszona kontrola impulsów — uprość plan do 1 rzeczy.`);
+  }
+  if (warsawHour >= 10 && warsawHour < 12) {
+    warnings.push(`⚡ OKNO RYZYKA IMPULSU (10:00–11:30): Najwyższa podatność na ucieczkę w architekturę lub social media (opóźnienie zadań o 4-10h). Zero nowych wątków.`);
+  }
+
+  const biometricWarning = warnings.length > 0 ? warnings.join("\n") : undefined;
 
   return {
     phase,

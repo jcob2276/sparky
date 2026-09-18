@@ -21,8 +21,8 @@ export default function DesktopHeader({
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border-custom bg-background/95 backdrop-blur-[var(--blur-md)] px-8 py-3.5 flex items-center gap-4">
-      <div className="flex items-center gap-4">
+    <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border-custom bg-background/95 backdrop-blur-[var(--blur-md)] px-4 sm:px-8 py-3.5 flex items-center gap-2 sm:gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         <span className="font-display text-sm font-black uppercase tracking-[var(--ds-arbitrary-0-3em)] text-primary">Sparky</span>
         <span className="text-2xs font-bold uppercase tracking-wider text-text-muted hidden lg:block">{now}</span>
       </div>
@@ -34,7 +34,7 @@ export default function DesktopHeader({
           </span>
         ))}
       </div>
-      <div className="ml-auto flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-1.5 sm:gap-2 shrink-0">
         {/* Oura ring badge retained in code per architecture, hidden from header UI */}
         {(false as boolean) && <OuraRingHeaderBadge />}
         {onOpenTools && (
@@ -42,15 +42,19 @@ export default function DesktopHeader({
             onClick={onOpenTools}
             variant="secondary"
             icon={<LayoutGrid size={14} />}
-            className="rounded-full p-2.5"
+            className="rounded-full p-2 sm:p-2.5"
             title="Katalog Narzędzi Vanguard"
           />
         )}
-        <Button onClick={() => setShowHealth(true)} variant="secondary" icon={<ShieldCheck size={14} />} className="rounded-full p-2.5" title="Status zdrowia systemu" />
-        <Button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} variant="secondary" icon={theme === 'light' ? <Moon size={14} /> : <Sun size={14} className="text-warning" />} className="rounded-full p-2.5" aria-label={theme === 'light' ? 'Włącz ciemny motyw' : 'Włącz jasny motyw'} />
-        <Button onClick={syncAll} variant="secondary" icon={<RefreshCw size={14} className={syncing ? 'animate-spin text-primary' : ''} />} className="rounded-full p-2.5" disabled={syncing} aria-label="Synchronizuj dane" />
-        <Button onClick={() => setShowFundament(true)} variant="secondary" icon={<Fingerprint size={14} />} className="rounded-full p-2.5" title="Fundament" />
-        <Button onClick={() => navigate('/')} variant="outline" size="sm" icon={<Smartphone size={12} />}>Mobile</Button>
+        <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">
+          <Button onClick={() => setShowHealth(true)} variant="secondary" icon={<ShieldCheck size={14} />} className="rounded-full p-2.5" title="Status zdrowia systemu" />
+          <Button onClick={() => setShowFundament(true)} variant="secondary" icon={<Fingerprint size={14} />} className="rounded-full p-2.5" title="Fundament" />
+        </div>
+        <Button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} variant="secondary" icon={theme === 'light' ? <Moon size={14} /> : <Sun size={14} className="text-warning" />} className="rounded-full p-2 sm:p-2.5" aria-label={theme === 'light' ? 'Włącz ciemny motyw' : 'Włącz jasny motyw'} />
+        <Button onClick={syncAll} variant="secondary" icon={<RefreshCw size={14} className={syncing ? 'animate-spin text-primary' : ''} />} className="rounded-full p-2 sm:p-2.5" disabled={syncing} aria-label="Synchronizuj dane" />
+        <Button onClick={() => navigate('/')} variant="outline" size="sm" icon={<Smartphone size={12} />} className="px-2.5 py-1 text-xs">
+          <span className="hidden sm:inline">Mobile</span>
+        </Button>
       </div>
     </header>
   );

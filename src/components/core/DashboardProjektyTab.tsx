@@ -4,6 +4,7 @@
  * @composes projects/DirectionView
  * @usedBy Dashboard
  */
+import { memo } from 'react';
 import Spinner from '../ui/Spinner';
 import { useSession } from '../../store/useStore';
 import { ProjectsProvider } from '../projects/context/ProjectsContext';
@@ -25,7 +26,7 @@ function DashboardProjektyContent() {
   return <DirectionView />;
 }
 
-export function DashboardProjektyTab() {
+export const DashboardProjektyTab = memo(function DashboardProjektyTab() {
   const session = useSession();
 
   if (!session) return null;
@@ -35,4 +36,4 @@ export function DashboardProjektyTab() {
       <DashboardProjektyContent />
     </ProjectsProvider>
   );
-}
+});

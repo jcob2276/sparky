@@ -66,7 +66,7 @@ export default function FoodEntryHeader({
           {targets?.target_kcal ? (
             <div className="h-1 rounded-full bg-border-custom overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-[var(--motion-long)] ${todayTotals.calories > targets.target_kcal ? 'bg-warning' : 'bg-primary'}`}
+                className={`h-full rounded-full ui-interactive duration-[var(--motion-long)] ${todayTotals.calories > targets.target_kcal ? 'bg-warning' : 'bg-primary'}`}
                 style={{ width: `${Math.min(100, (todayTotals.calories / targets.target_kcal) * 100)}%` }}
               />
             </div>

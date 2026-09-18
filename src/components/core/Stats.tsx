@@ -6,11 +6,32 @@
 import type { ReactNode } from 'react';
 import { BodyMetricsSection } from './stats/BodyMetricsSection';
 import { WorkoutHistorySection } from './stats/WorkoutHistorySection';
-import { DataExportSection } from './stats/DataExportSection';
+import { ChronicleMilestonesBar } from './stats/ChronicleMilestonesBar';
+import { ChronicleExportModal } from './stats/ChronicleExportModal';
 import { useStatsData } from './hooks/useStatsData';
 import { mergeLatestBodyMetrics } from '../../lib/health/bodyMetrics';
+import { FileDown } from 'lucide-react';
+import Button from '../ui/Button';
 
-export default function Stats({ runningSlot = null, photosSlot = null }: { runningSlot?: ReactNode; photosSlot?: ReactNode }) {
+export type ChronicleDomain = 'body' | 'gym' | 'running' | 'all';
+
+interface StatsProps {
+  domain?: ChronicleDomain;
+  runningSlot?: ReactNode;
+  photosSlot?: ReactNode;
+  isExportOpen?: boolean;
+  onCloseExport?: () => void;
+  onOpenExport?: () => void;
+}
+
+export default function Stats({
+  domain = 'body',
+  runningSlot = null,
+  photosSlot = null,
+  isExportOpen = false,
+  onCloseExport = () => {},
+  onOpenExport = () => {},
+}: StatsProps) {
   const {
     userId,
     loading,
@@ -62,36 +83,71 @@ export default function Stats({ runningSlot = null, photosSlot = null }: { runni
       }
     : null;
 
+  const showBody = domain === 'body' || domain === 'all';
+  const showGym = domain === 'gym' || domain === 'all';
+  const showRunning = domain === 'running' || domain === 'all';
+
   return (
-    <div className="space-y-6 pb-4">
-      <BodyMetricsSection
-        trends={trends}
-        newMetric={newMetric}
-        setNewMetric={setNewMetric}
-        latestBody={latestBody}
-        heightCm={heightCm}
-        saveMetrics={saveMetrics}
-      />
-
-      {photosSlot}
-
-      <WorkoutHistorySection
+    <div className="space-y-5 pb-6">
+      {/* Milestone / Big Picture Bar */}
+      <ChronicleMilestonesBar
+        bodyData={bodyData}
         recentSessions={recentSessions}
-        showAllSessions={showAllSessions}
-        setShowAllSessions={setShowAllSessions}
-        editingSession={editingSession}
-        editForm={editForm}
-        setEditForm={setEditForm}
-        startEditing={startEditing}
-        updateSession={updateSession}
-        deleteSession={deleteSession}
-        deleteLog={deleteLog}
-        setEditingSession={setEditingSession}
+        latestBody={latestBody}
       />
 
-      {runningSlot}
+      {/* Body & Physique Section */}
+      {showBody && (
+        <div className="space-y-5">
+          <BodyMetricsSection
+            trends={trends}
+            newMetric={newMetric}
+            setNewMetric={setNewMetric}
+            latestBody={latestBody}
+            heightCm={heightCm}
+            saveMetrics={saveMetrics}
+          />
+          {photosSlot}
+        </div>
+      )}
 
-      <DataExportSection
+      {/* Strength & Gym Section */}
+      {showGym && (
+        <WorkoutHistorySection
+          recentSessions={recentSessions}
+          showAllSessions={showAllSessions}
+          setShowAllSessions={setShowAllSessions}
+          editingSession={editingSession}
+          editForm={editForm}
+          setEditForm={setEditForm}
+          startEditing={startEditing}
+          updateSession={updateSession}
+          deleteSession={deleteSession}
+          deleteLog={deleteLog}
+          setEditingSession={setEditingSession}
+        />
+      )}
+
+      {/* Running / Endurance Section */}
+      {showRunning && runningSlot}
+
+      {/* Subtle Export Trigger at bottom */}
+      <div className="pt-2 flex justify-center">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpenExport}
+          icon={<FileDown size={14} />}
+          className="text-xs font-bold text-text-muted hover:text-text-primary rounded-xl"
+        >
+          Eksportuj dane (.md)
+        </Button>
+      </div>
+
+      {/* Export Modal / Sheet */}
+      <ChronicleExportModal
+        isOpen={isExportOpen}
+        onClose={onCloseExport}
         dateRange={dateRange}
         setDateRange={setDateRange}
         includeWorkouts={includeWorkouts}

@@ -114,7 +114,7 @@ export default function ContextMenu({
               onSetDueDate(today);
               onClose();
             }}
-            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 transition-all cursor-pointer"
+            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 ui-interactive cursor-pointer"
             title="Dziś"
           >
             <Calendar size={14} className="text-success" />
@@ -125,7 +125,7 @@ export default function ContextMenu({
               onSetDueDate(getTomorrowDate());
               onClose();
             }}
-            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 transition-all cursor-pointer"
+            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 ui-interactive cursor-pointer"
             title="Jutro"
           >
             <Sun size={14} className="text-warning" />
@@ -136,7 +136,7 @@ export default function ContextMenu({
               onSetDueDate(getNextWeekend());
               onClose();
             }}
-            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 transition-all cursor-pointer"
+            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 ui-interactive cursor-pointer"
             title="Następny weekend"
           >
             <CalendarDays size={14} className="text-info" />
@@ -147,7 +147,7 @@ export default function ContextMenu({
               onSetDueDate(null);
               onClose();
             }}
-            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 transition-all cursor-pointer"
+            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 ui-interactive cursor-pointer"
             title="Brak terminu"
           >
             <MoreHorizontal size={14} className="text-text-muted/60" />
@@ -175,7 +175,7 @@ export default function ContextMenu({
                   onSetPriority(p);
                   onClose();
                 }}
-                className={`flex-1 h-8 rounded-lg border ${borderActive} flex items-center justify-center hover:bg-text-primary/[0.04] hover:border-text-primary/10 transition-all cursor-pointer`}
+                className={`flex-1 h-8 rounded-lg border ${borderActive} flex items-center justify-center hover:bg-text-primary/[0.04] hover:border-text-primary/10 ui-interactive cursor-pointer`}
                 title={p === 'urgent' ? 'P1' : p === 'high' ? 'P2' : p === 'normal' ? 'P3' : 'P4'}
               >
                 <Flag size={14} className={flagColor} />

@@ -87,7 +87,7 @@ export default function PortionScreen({
         }}
         disabled={saving || savedFlash}
         loading={saving}
-        className="w-full rounded-2xl py-3 text-sm font-black active:scale-[0.98] transition-all shadow-sm"
+        className="w-full rounded-2xl py-3 text-sm font-black active:scale-[0.98] ui-interactive shadow-sm"
       >
         {savedFlash ? 'Zapisano!' : 'Dodaj do dziennika'}
       </Pressable>

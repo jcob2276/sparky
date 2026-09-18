@@ -33,7 +33,7 @@ function Field({
           type="text" inputMode="decimal" value={value}
           onChange={(e) => onChange(e.target.value.replace(',', '.'))}
           placeholder={placeholder ?? '--'}
-          className="w-full rounded-xl border border-border-custom bg-surface px-3 py-2 text-sm font-black text-text-primary outline-none transition-all placeholder:text-text-muted/60 focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
+          className="w-full rounded-xl border border-border-custom bg-surface px-3 py-2 text-sm font-black text-text-primary outline-none ui-interactive placeholder:text-text-muted/60 focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
         />
         <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-3xs font-bold text-text-muted pointer-events-none">
           cm
@@ -55,7 +55,7 @@ export function BodyCircumferencesDrawer({
       <Pressable
         type="button"
         onClick={onToggle}
-        className="flex w-full items-center justify-between rounded-xl border border-border-custom bg-surface/60 px-3.5 py-2.5 text-xs font-bold text-text-muted transition-all hover:text-text-primary hover:bg-surface cursor-pointer"
+        className="flex w-full items-center justify-between rounded-xl border border-border-custom bg-surface/60 px-3.5 py-2.5 text-xs font-bold text-text-muted ui-interactive hover:text-text-primary hover:bg-surface cursor-pointer"
       >
         <span className="flex items-center gap-1.5">
           <Sparkles size={13} className="text-primary/70" />

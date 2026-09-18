@@ -264,11 +264,11 @@ export default function WeeklyReviewModal({ onClose, onFinished }: Props) {
 
         {step < 6 && (
           <div className="grid grid-cols-5 h-1 bg-border-custom/20 shrink-0">
-            <div className={`h-full transition-all duration-[var(--motion-slow)] ${step >= 1 ? 'bg-primary' : 'bg-transparent'}`} />
-            <div className={`h-full transition-all duration-[var(--motion-slow)] ${step >= 2 ? 'bg-primary' : 'bg-transparent'}`} />
-            <div className={`h-full transition-all duration-[var(--motion-slow)] ${step >= 3 ? 'bg-primary' : 'bg-transparent'}`} />
-            <div className={`h-full transition-all duration-[var(--motion-slow)] ${step >= 4 ? 'bg-primary' : 'bg-transparent'}`} />
-            <div className={`h-full transition-all duration-[var(--motion-slow)] ${step >= 5 ? 'bg-primary' : 'bg-transparent'}`} />
+            <div className={`h-full ui-interactive duration-[var(--motion-slow)] ${step >= 1 ? 'bg-primary' : 'bg-transparent'}`} />
+            <div className={`h-full ui-interactive duration-[var(--motion-slow)] ${step >= 2 ? 'bg-primary' : 'bg-transparent'}`} />
+            <div className={`h-full ui-interactive duration-[var(--motion-slow)] ${step >= 3 ? 'bg-primary' : 'bg-transparent'}`} />
+            <div className={`h-full ui-interactive duration-[var(--motion-slow)] ${step >= 4 ? 'bg-primary' : 'bg-transparent'}`} />
+            <div className={`h-full ui-interactive duration-[var(--motion-slow)] ${step >= 5 ? 'bg-primary' : 'bg-transparent'}`} />
           </div>
         )}
 

@@ -40,7 +40,7 @@ export default memo(function MealGroupCard({
   ) / 10;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border-custom/80 bg-surface-solid/35 shadow-2xs transition-all hover:border-primary/30">
+    <div className="overflow-hidden rounded-2xl border border-border-custom/80 bg-surface-solid/35 shadow-2xs ui-interactive hover:border-primary/30">
       {/* Header with Master Meal Toggle & Copy Action */}
       <div className="flex items-center justify-between border-b border-border-custom/40 bg-surface-solid/60 px-3.5 py-2.5">
         <Pressable
@@ -52,7 +52,7 @@ export default memo(function MealGroupCard({
           className="touch-manipulation flex items-center gap-2.5 text-left group"
         >
           <div
-            className={`flex h-4 w-4 items-center justify-center rounded-md border transition-all ${
+            className={`flex h-4 w-4 items-center justify-center rounded-md border ui-interactive ${
               allSelected
                 ? 'border-primary bg-primary text-on-accent shadow-xs'
                 : someSelected
@@ -81,7 +81,7 @@ export default memo(function MealGroupCard({
           type="button"
           onClick={() => onCopyMeal(mealType)}
           disabled={copying || mealSelectedEntries.length === 0}
-          className="touch-manipulation flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary transition-all hover:bg-primary/20 active:scale-95 disabled:opacity-40"
+          className="touch-manipulation flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary ui-interactive hover:bg-primary/20 active:scale-95 disabled:opacity-40"
           title={`Kopiuj ${mealSelectedEntries.length} poz.`}
         >
           <Copy size={12} />
@@ -102,7 +102,7 @@ export default memo(function MealGroupCard({
                 haptics.selection();
                 onToggleItem(item.id);
               }}
-              className={`touch-manipulation flex w-full items-center justify-between py-2 text-xs text-left transition-all rounded-lg px-1.5 ${
+              className={`touch-manipulation flex w-full items-center justify-between py-2 text-xs text-left ui-interactive rounded-lg px-1.5 ${
                 isChecked
                   ? 'text-text-primary hover:bg-surface-solid/40'
                   : 'text-text-muted/60 opacity-60 hover:opacity-90 hover:bg-surface-solid/20'
@@ -110,7 +110,7 @@ export default memo(function MealGroupCard({
             >
               <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-3">
                 <div
-                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-md border transition-all ${
+                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-md border ui-interactive ${
                     isChecked
                       ? 'border-primary bg-primary text-on-accent shadow-xs'
                       : 'border-border-custom bg-surface-solid/50'

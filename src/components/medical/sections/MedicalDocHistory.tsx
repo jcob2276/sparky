@@ -26,7 +26,7 @@ export default function MedicalDocHistory({ documents }: MedicalDocHistoryProps)
               key={doc.id}
               variant="outline"
               padding="1rem"
-              className="bg-background/25 border-border-custom hover:bg-background/40 transition-all flex flex-col justify-between min-h-[160px]"
+              className="bg-background/25 border-border-custom hover:bg-background/40 ui-interactive flex flex-col justify-between min-h-[160px]"
             >
               <div>
                 <div className="flex items-center justify-between gap-2">

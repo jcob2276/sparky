@@ -82,7 +82,7 @@ export default function WeeklyNutritionPulse({
 
       {/* Protein spotlight */}
       <div
-        className={`rounded-2xl border p-3.5 space-y-2.5 transition-all ${
+        className={`rounded-2xl border p-3.5 space-y-2.5 ui-interactive ${
           !pulse.proteinOnTrack ? 'border-warning/30 bg-warning/10' : 'border-success/30 bg-success/10'
         }`}
       >
@@ -124,7 +124,7 @@ export default function WeeklyNutritionPulse({
         {/* Progress bar */}
         <div className="h-1.5 w-full rounded-full bg-surface-raised/60 overflow-hidden">
           <div
-            className={`h-full transition-all rounded-full ${
+            className={`h-full ui-interactive rounded-full ${
               !pulse.proteinOnTrack ? 'bg-warning' : 'bg-success'
             }`}
             style={{ width: `${proteinPct}%` }}

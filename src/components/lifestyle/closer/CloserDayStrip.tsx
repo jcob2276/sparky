@@ -1,5 +1,4 @@
 import { format, addDays } from 'date-fns';
-import { pl } from 'date-fns/locale';
 import { useHaptics } from '../../../hooks/useHaptics';
 import type { CloserDailyLogRow } from '../../../lib/closer/closerApi';
 import { getTodayWarsaw } from '../../../lib/date';
@@ -31,7 +30,7 @@ export default function CloserDayStrip({
     const log = logsByDate[dateStr];
     const isToday = dateStr === today;
     const isSelected = dateStr === selectedDate;
-    const hasData = (log?.dials ?? 0) > 0 || (Number(log?.work_hours) ?? 0) > 0 || (log?.appointments ?? 0) > 0 || (log?.sales_calls ?? 0) > 0;
+    const hasData = (log?.dials ?? 0) > 0 || (Number(log?.work_hours) || 0) > 0 || (log?.appointments ?? 0) > 0 || (log?.sales_calls ?? 0) > 0;
 
     return {
       dateStr,
@@ -54,7 +53,7 @@ export default function CloserDayStrip({
             haptics.selection();
             onSelectDate(d.dateStr);
           }}
-          className={`relative flex flex-col items-center py-2 px-1 rounded-xl transition-all active:scale-95 ${
+          className={`relative flex flex-col items-center py-2 px-1 rounded-xl ui-interactive active:scale-95 ${
             d.isSelected
               ? 'bg-primary text-primary-foreground shadow-sm font-bold'
               : 'hover:bg-surface-solid/10 text-text-muted hover:text-text-primary'

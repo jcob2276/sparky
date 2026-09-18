@@ -19,7 +19,7 @@ export default function TodoInboxZone({ renderInlineQuickCapture, renderAddTodoB
   return (
     <div
       ref={inboxZoneRef}
-      className={`rounded-2xl p-2 transition-all duration-[var(--motion-medium)] ${
+      className={`rounded-2xl p-2 ui-interactive duration-[var(--motion-medium)] ${
         draggingItem !== null
           ? dragTarget === 'inbox'
             ? 'border border-primary/40 bg-primary/10 scale-[var(--ds-arbitrary-1-01)] shadow-[var(--shadow-accent-active)]'

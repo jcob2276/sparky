@@ -17,6 +17,68 @@ interface StrengthSetRowProps {
   onOpenPlateCalc?: (initialKg: number, onApply: (kg: number) => void) => void;
 }
 
+function StepperButtons({
+  onDecrement,
+  onIncrement,
+}: {
+  onDecrement: () => void;
+  onIncrement: () => void;
+}) {
+  return (
+    <div className="flex gap-1 justify-center">
+      <Pressable
+        onClick={onDecrement}
+        className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center ui-interactive cursor-pointer"
+      >
+        -
+      </Pressable>
+      <Pressable
+        onClick={onIncrement}
+        className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center ui-interactive cursor-pointer"
+      >
+        +
+      </Pressable>
+    </div>
+  );
+}
+
+function getSetBadgeInfo(setType: string, idx: number) {
+  const badgeLabel = setType === 'warmup' ? 'W' : setType === 'drop' ? 'D' : setType === 'failure' ? '★' : idx + 1;
+  const badgeStyle =
+    setType === 'warmup'
+      ? 'text-amber-400 bg-amber-400/15 border border-amber-400/40 font-black'
+      : setType === 'drop'
+        ? 'text-purple-400 bg-purple-400/15 border border-purple-400/40 font-black'
+        : setType === 'failure'
+          ? 'text-warning bg-warning/20 border border-warning/50 font-black scale-105'
+          : 'text-text-secondary hover:text-text-primary';
+  return { badgeLabel, badgeStyle };
+}
+
+function HistoryFillButton({
+  empty,
+  historyRow,
+  onFill,
+}: {
+  empty: boolean;
+  historyRow?: ExerciseHistoryRow;
+  onFill: () => void;
+}) {
+  if (!empty || !historyRow) return null;
+  return (
+    <Pressable
+      type="button"
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onFill();
+      }}
+      className="ml-7 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-2 py-1 text-left text-2xs font-bold text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+    >
+      Wstaw z ostatniej: {formatHistorySetLabel(historyRow)}
+    </Pressable>
+  );
+}
+
 export function StrengthSetRow({
   set,
   idx,
@@ -33,15 +95,7 @@ export function StrengthSetRow({
   const empty = isSetEmpty(set);
 
   const setType = set.type || (set.msp ? 'failure' : 'working');
-  const badgeLabel = setType === 'warmup' ? 'W' : setType === 'drop' ? 'D' : setType === 'failure' ? '★' : idx + 1;
-  const badgeStyle =
-    setType === 'warmup'
-      ? 'text-amber-400 bg-amber-400/15 border border-amber-400/40 font-black'
-      : setType === 'drop'
-        ? 'text-purple-400 bg-purple-400/15 border border-purple-400/40 font-black'
-        : setType === 'failure'
-          ? 'text-warning bg-warning/20 border border-warning/50 font-black scale-105'
-          : 'text-text-secondary hover:text-text-primary';
+  const { badgeLabel, badgeStyle } = getSetBadgeInfo(setType, idx);
 
   const cycleType = () => {
     haptics.light();
@@ -81,7 +135,7 @@ export function StrengthSetRow({
         <Pressable
           onClick={cycleType}
           title={`Typ serii: ${setType} (Kliknij, aby zmienić: Zwykła -> Rozgrzewka W -> Drop D -> Do załamania ★)`}
-          className={`text-xs font-black text-center w-5 h-5 rounded-full transition-all cursor-pointer flex items-center justify-center ${badgeStyle}`}
+          className={`text-xs font-black text-center w-5 h-5 rounded-full ui-interactive cursor-pointer flex items-center justify-center ${badgeStyle}`}
         >
           {badgeLabel}
         </Pressable>
@@ -110,20 +164,10 @@ export function StrengthSetRow({
               </Pressable>
             )}
           </div>
-          <div className="flex gap-1 justify-center">
-            <Pressable
-              onClick={() => adjustValue('kg', -2.5)}
-              className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
-            >
-              -
-            </Pressable>
-            <Pressable
-              onClick={() => adjustValue('kg', 2.5)}
-              className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
-            >
-              +
-            </Pressable>
-          </div>
+          <StepperButtons
+            onDecrement={() => adjustValue('kg', -2.5)}
+            onIncrement={() => adjustValue('kg', 2.5)}
+          />
         </div>
 
         <div className="flex flex-col gap-1">
@@ -143,20 +187,10 @@ export function StrengthSetRow({
               </div>
             )}
           </div>
-          <div className="flex gap-1 justify-center">
-            <Pressable
-              onClick={() => adjustValue('reps', -1, true)}
-              className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
-            >
-              -
-            </Pressable>
-            <Pressable
-              onClick={() => adjustValue('reps', 1, true)}
-              className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
-            >
-              +
-            </Pressable>
-          </div>
+          <StepperButtons
+            onDecrement={() => adjustValue('reps', -1, true)}
+            onIncrement={() => adjustValue('reps', 1, true)}
+          />
         </div>
 
         <div className="flex flex-col gap-1">
@@ -170,43 +204,28 @@ export function StrengthSetRow({
             placeholder="—"
             className={numInput}
           />
-          <div className="flex gap-1 justify-center">
-            <Pressable
-              onClick={() => adjustValue('rir', -0.5)}
-              className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
-            >
-              -
-            </Pressable>
-            <Pressable
-              onClick={() => adjustValue('rir', 0.5)}
-              className="text-xs font-bold bg-surface active:bg-surface-solid active:scale-90 text-text-secondary border border-border-custom hover:text-text-primary w-9 h-7 rounded-lg flex items-center justify-center transition-all cursor-pointer"
-            >
-              +
-            </Pressable>
-          </div>
+          <StepperButtons
+            onDecrement={() => adjustValue('rir', -0.5)}
+            onIncrement={() => adjustValue('rir', 0.5)}
+          />
         </div>
 
         <Pressable
           onClick={() => removeSet(set.id)}
-          className="flex items-center justify-center text-text-muted/60 hover:text-danger active:scale-[var(--ds-arbitrary-0-9)] transition-all cursor-pointer"
+          className="flex items-center justify-center text-text-muted/60 hover:text-danger active:scale-[var(--ds-arbitrary-0-9)] ui-interactive cursor-pointer"
         >
           <Trash2 size={12} />
         </Pressable>
       </div>
 
-      {empty && historyRow && (
-        <Pressable
-          type="button"
-          onMouseDown={(e) => {
-            e.preventDefault();
-            haptics.light();
-            onFillSet(set.id, historyRow);
-          }}
-          className="ml-7 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-2 py-1 text-left text-2xs font-bold text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-        >
-          Wstaw z ostatniej: {formatHistorySetLabel(historyRow)}
-        </Pressable>
-      )}
+      <HistoryFillButton
+        empty={empty}
+        historyRow={historyRow}
+        onFill={() => {
+          haptics.light();
+          if (historyRow) onFillSet(set.id, historyRow);
+        }}
+      />
     </div>
   );
 }

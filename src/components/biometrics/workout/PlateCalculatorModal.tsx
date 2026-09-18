@@ -75,7 +75,7 @@ export default function PlateCalculatorModal({
                     haptics.light();
                     setBarWeight(b);
                   }}
-                  className={`px-2.5 py-2 text-xs font-black rounded-xl border transition-all cursor-pointer ${
+                  className={`px-2.5 py-2 text-xs font-black rounded-xl border ui-interactive cursor-pointer ${
                     barWeight === b
                       ? 'border-primary bg-primary/15 text-primary'
                       : 'border-border-custom bg-surface text-text-secondary hover:text-text-primary'
@@ -94,7 +94,7 @@ export default function PlateCalculatorModal({
             <Pressable
               key={step}
               onClick={() => handleAdjust(step)}
-              className="px-2 py-1 text-2xs font-bold rounded-lg border border-border-custom bg-surface text-text-secondary hover:text-text-primary active:scale-95 transition-all cursor-pointer"
+              className="px-2 py-1 text-2xs font-bold rounded-lg border border-border-custom bg-surface text-text-secondary hover:text-text-primary active:scale-95 ui-interactive cursor-pointer"
             >
               {step > 0 ? `+${step}` : step}
             </Pressable>
@@ -139,14 +139,14 @@ export default function PlateCalculatorModal({
         <div className="flex gap-2 pt-1">
           <Pressable
             onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl border border-border-custom bg-surface text-text-secondary text-xs font-bold hover:text-text-primary transition-all text-center cursor-pointer"
+            className="flex-1 py-2.5 rounded-xl border border-border-custom bg-surface text-text-secondary text-xs font-bold hover:text-text-primary ui-interactive text-center cursor-pointer"
           >
             Anuluj
           </Pressable>
           {onApplyWeight && (
             <Pressable
               onClick={handleApply}
-              className="flex-1 py-2.5 rounded-xl bg-primary text-on-accent text-xs font-black uppercase tracking-wider shadow-md hover:bg-primary-hover transition-all text-center cursor-pointer"
+              className="flex-1 py-2.5 rounded-xl bg-primary text-on-accent text-xs font-black uppercase tracking-wider shadow-md hover:bg-primary-hover ui-interactive text-center cursor-pointer"
             >
               Zastosuj {totalWeight} kg
             </Pressable>

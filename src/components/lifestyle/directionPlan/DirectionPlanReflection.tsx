@@ -34,7 +34,7 @@ function ScoreButton({ value, current, onClick }: { value: number; current: numb
   const activeColor = value <= 3 ? "bg-danger text-on-accent border-danger" : value <= 6 ? "bg-warning text-scrim border-warning" : "bg-success text-on-accent border-success";
   return (
     <Pressable onClick={onClick}
-      className={`w-8 h-8 rounded-full text-xs font-semibold border transition-all ${active ? `${activeColor} ring-2 ring-offset-1 ring-offset-surface-solid scale-110` : "border-border-custom bg-surface text-text-muted hover:bg-surface-solid"}`}>
+      className={`w-8 h-8 rounded-full text-xs font-semibold border ui-interactive ${active ? `${activeColor} ring-2 ring-offset-1 ring-offset-surface-solid scale-110` : "border-border-custom bg-surface text-text-muted hover:bg-surface-solid"}`}>
       {value}
     </Pressable>
   );
@@ -104,7 +104,7 @@ export default function DirectionPlanReflection(props: DirectionPlanReflectionPr
       </div>
       {!props.reflectionSaved ? (
         <Pressable onClick={props.saveReflection} disabled={props.savingReflection}
-          className="w-full py-2.5 rounded-xl border border-border-custom bg-surface hover:bg-surface-solid text-text-primary text-sm font-semibold transition-all disabled:opacity-[var(--opacity-40)]">
+          className="w-full py-2.5 rounded-xl border border-border-custom bg-surface hover:bg-surface-solid text-text-primary text-sm font-semibold ui-interactive disabled:opacity-[var(--opacity-40)]">
           {props.savingReflection ? "Zapisuję…" : "Zapisz refleksję →"}
         </Pressable>
       ) : (

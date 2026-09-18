@@ -68,7 +68,7 @@ export default function HabitsPanel({
           const today = getTodayWarsaw();
           const doneToday = habitLogs.some(l => l.habit_id === habit.id && l.date === today);
           return (
-            <div key={habit.id} className="group rounded-[var(--radius-md)] border border-border-custom bg-surface p-3 hover:border-primary/25 transition-all duration-[var(--motion-medium)]">
+            <div key={habit.id} className="group rounded-[var(--radius-md)] border border-border-custom bg-surface p-3 hover:border-primary/25 ui-interactive duration-[var(--motion-medium)]">
               <div className="flex items-center justify-between gap-2 mb-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-base shrink-0">{habit.icon || '✅'}</span>

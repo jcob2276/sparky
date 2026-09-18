@@ -116,7 +116,7 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
                       <span className="text-3xs font-medium text-text-muted">{forecast.tempMax}°</span>
                     </div>
                   )}
-                  <span className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition-all ${isToday ? 'bg-primary text-on-accent shadow-xs' : 'text-text-primary group-hover:bg-surface-solid'}`}>
+                  <span className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ui-interactive ${isToday ? 'bg-primary text-on-accent shadow-xs' : 'text-text-primary group-hover:bg-surface-solid'}`}>
                     {parseInt(day.split('-')[2])}
                   </span>
                 </div>

@@ -104,7 +104,7 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
         {/* Next Step / Action Card */}
         <Pressable
           onClick={() => onActionClick('retest')}
-          className="rounded-2xl border border-dashed border-primary/30 hover:border-primary/60 bg-primary/[0.02] hover:bg-primary/[0.04] p-4 text-left transition-all cursor-pointer flex flex-col justify-between h-36"
+          className="rounded-2xl border border-dashed border-primary/30 hover:border-primary/60 bg-primary/[0.02] hover:bg-primary/[0.04] p-4 text-left ui-interactive cursor-pointer flex flex-col justify-between h-36"
         >
           <div>
             <div className="flex items-center gap-1.5 text-2xs font-black uppercase text-primary tracking-wider">

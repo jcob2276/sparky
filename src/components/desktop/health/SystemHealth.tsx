@@ -68,7 +68,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
     };
 
     return (
-      <Card padding="1rem" className="space-y-3.5 transition-all duration-[var(--motion-medium)] hover:border-border-custom">
+      <Card padding="1rem" className="space-y-3.5 ui-interactive duration-[var(--motion-medium)] hover:border-border-custom">
         <div className="flex items-center justify-between">
           <span className="text-sm font-black text-text-secondary">{title}</span>
           <div className={`${colorClass} opacity-[var(--opacity-80)]`}>{icon}</div>
@@ -82,7 +82,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
               <span className={getStatusColor(pct30)}>{pct30}%</span>
             </div>
             <div className="h-1.5 w-full bg-surface-2 dark:bg-on-accent/[0.04] rounded-full overflow-hidden">
-              <div className={`h-full ${getBarColor(pct30)} transition-all duration-[var(--motion-long)]`} style={{ width: `${pct30}%` }} />
+              <div className={`h-full ${getBarColor(pct30)} ui-interactive duration-[var(--motion-long)]`} style={{ width: `${pct30}%` }} />
             </div>
           </div>
 
@@ -93,7 +93,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
               <span className={getStatusColor(pct90)}>{pct90}%</span>
             </div>
             <div className="h-1.5 w-full bg-surface-2 dark:bg-on-accent/[0.04] rounded-full overflow-hidden">
-              <div className={`h-full ${getBarColor(pct90)} transition-all duration-[var(--motion-long)]`} style={{ width: `${pct90}%` }} />
+              <div className={`h-full ${getBarColor(pct90)} ui-interactive duration-[var(--motion-long)]`} style={{ width: `${pct90}%` }} />
             </div>
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
           </div>
 
           <div className="grid grid-cols-3 gap-4">
-            <Card padding="1rem" className="flex flex-col justify-between space-y-1.5 transition-all duration-[var(--motion-medium)] hover:border-border-custom">
+            <Card padding="1rem" className="flex flex-col justify-between space-y-1.5 ui-interactive duration-[var(--motion-medium)] hover:border-border-custom">
               <span className="text-2xs font-black text-text-muted uppercase tracking-wider">Błąd Snu</span>
               <span className="text-lg font-black text-primary">
                 {healthQuery.data.calibrationSummary.sleep_mae !== null
@@ -149,7 +149,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
               <span className="text-2xs text-text-muted leading-snug">Średni błąd (MAE) snu</span>
             </Card>
 
-            <Card padding="1rem" className="flex flex-col justify-between space-y-1.5 transition-all duration-[var(--motion-medium)] hover:border-border-custom">
+            <Card padding="1rem" className="flex flex-col justify-between space-y-1.5 ui-interactive duration-[var(--motion-medium)] hover:border-border-custom">
               <span className="text-2xs font-black text-text-muted uppercase tracking-wider">Błąd Gotowości</span>
               <span className="text-lg font-black text-primary">
                 {healthQuery.data.calibrationSummary.readiness_mae !== null
@@ -159,7 +159,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
               <span className="text-2xs text-text-muted leading-snug">Średni błąd (MAE) gotowości</span>
             </Card>
 
-            <Card padding="1rem" className="flex flex-col justify-between space-y-1.5 transition-all duration-[var(--motion-medium)] hover:border-border-custom">
+            <Card padding="1rem" className="flex flex-col justify-between space-y-1.5 ui-interactive duration-[var(--motion-medium)] hover:border-border-custom">
               <span className="text-2xs font-black text-text-muted uppercase tracking-wider">Błąd Wykonania</span>
               <span className="text-lg font-black text-primary">
                 {healthQuery.data.calibrationSummary.execution_mae !== null
@@ -248,7 +248,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
             return (
               <div
                 key={ev.id}
-                className="bg-surface border border-border-custom/50 rounded-2xl overflow-hidden transition-all duration-[var(--motion-medium)]"
+                className="bg-surface border border-border-custom/50 rounded-2xl overflow-hidden ui-interactive duration-[var(--motion-medium)]"
               >
                 {/* Header Row */}
                 <div

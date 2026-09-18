@@ -93,7 +93,7 @@ export function DashboardHeader({
         <Pressable
           onClick={() => { selection(); toggleTheme(); }}
           variant="ghost"
-          className="!h-9 !w-9 !p-0 !rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 transition-all flex items-center justify-center shadow-xs"
+          className="!h-9 !w-9 !p-0 !rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
           title={theme === 'light' ? 'Przełącz na tryb ciemny' : 'Przełącz na tryb jasny'}
         >
           {theme === 'light' ? (
@@ -109,7 +109,7 @@ export function DashboardHeader({
               <Link
                 to="/settings"
                 onClick={() => selection()}
-                className="h-9 w-9 shrink-0 rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 transition-all flex items-center justify-center shadow-xs"
+                className="h-9 w-9 shrink-0 rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
                 title="Ustawienia APK"
               >
                 <Settings size={15} strokeWidth={1.8} />
@@ -122,7 +122,7 @@ export function DashboardHeader({
               onMouseEnter={handlePrefetchDashboard}
               onTouchStart={handlePrefetchDashboard}
               onFocus={handlePrefetchDashboard}
-              className="h-9 w-9 shrink-0 rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 transition-all flex items-center justify-center shadow-xs"
+              className="h-9 w-9 shrink-0 rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
               title="Desktop dashboard"
             >
               <LayoutDashboard size={15} strokeWidth={1.8} />

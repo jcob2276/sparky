@@ -77,7 +77,7 @@ export default function WeeklyWinsMap() {
               title={`${day.date}: ${day.doneCount}/${day.plannedCount || 5}${
                 day.result ? ` · ${day.result}` : ''
               }`}
-              className={`flex aspect-square w-full max-w-11 items-center justify-center rounded-xl border text-xs font-black transition-all ${
+              className={`flex aspect-square w-full max-w-11 items-center justify-center rounded-xl border text-xs font-black ui-interactive ${
                 cellClass(day.status)
               }`}
             >

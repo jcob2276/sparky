@@ -68,7 +68,7 @@ export default function MorningPlanStep3TimeBox({
         </div>
         <div className="h-2 rounded-full bg-border-custom/30 overflow-hidden">
           <div
-            className={`h-full rounded-full transition-all duration-[var(--motion-slow)] ${
+            className={`h-full rounded-full ui-interactive duration-[var(--motion-slow)] ${
               isOverloaded ? 'bg-danger' : capacityPct > 75 ? 'bg-warning' : 'bg-success'
             }`}
             style={{ width: `${capacityPct}%` }}

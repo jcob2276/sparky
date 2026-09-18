@@ -10,7 +10,7 @@
  */
 import { Pressable } from '../ui/ControlPrimitives';
 import { TIMEZONE } from '../../lib/date';
-import { Suspense, lazy, useMemo } from 'react';
+import { Suspense, lazy, useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '../../store/useStore';
 import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Apple, Dumbbell, Flame, Eye, GraduationCap } from 'lucide-react';
@@ -46,7 +46,7 @@ import { DashboardTydzienTab } from './DashboardTydzienTab';
 import { DashboardHistoriaTab } from './DashboardHistoriaTab';
 import { DashboardProjektyTab } from './DashboardProjektyTab';
 
-const TAB_ORDER = ['dzis', 'tydzien', 'historia'];
+const TAB_ORDER = ['dzis', 'tydzien', 'projekty', 'historia'];
 
 function ViewFallback() {
   return (
@@ -63,13 +63,21 @@ function isAfter20(): boolean {
   } catch { return new Date().getHours() >= 20; }
 }
 
-export default function Dashboard() {
-  const session = useSession();
-  if (!session) return null;
+function DashboardContent() {
+  const session = useSession()!;
   const s = useDashboardState(session);
   const queryClient = useQueryClient();
-  const userId = session?.user?.id;
+  const userId = session.user.id;
   useDashboardPrefetch(userId);
+
+  const [visitedTabs, setVisitedTabs] = useState<string[]>(() => [s.view]);
+  if (['dzis', 'tydzien', 'historia', 'projekty'].includes(s.view) && !visitedTabs.includes(s.view)) {
+    setVisitedTabs(prev => [...prev, s.view]);
+  }
+
+  const handleOpenActionCenter = useCallback(() => {
+    s.setActionCenterOpen(true);
+  }, [s]);
 
   const fastCaptureItems = useMemo(() => [
     { label: 'Dodaj Jedzenie', emoji: '🍎', icon: Apple, color: 'var(--color-success)', action: () => s.openFoodEntry() },
@@ -89,60 +97,26 @@ export default function Dashboard() {
   ], [s]);
 
   // ── Full-screen route views ──
-  if (s.view === 'fundament') return (
-    <Suspense fallback={<ViewFallback />}>
-      <Fundament onBack={s.goBack} onSyncCalendar={s.startGoogleAuth} isSyncing={s.isSyncing} />
-    </Suspense>
-  );
-  if (s.view === 'keep') return (
-    <Suspense fallback={<ViewFallback />}>
-      <Keep onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} />
-    </Suspense>
-  );
-  if (s.view === 'todo') return (
-    <Suspense fallback={<ViewFallback />}>
-      <Todo onBack={() => { s.refreshNudge(); s.goBack(); }} onNavigateTo={dest => s.navigate('/' + dest)} />
-    </Suspense>
-  );
-  if (s.view === 'links') return (
-    <Suspense fallback={<ViewFallback />}>
-      <LinksInbox onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} />
-    </Suspense>
-  );
-  if (s.view === 'kalendarz') return (
-    <Suspense fallback={<ViewFallback />}>
-      <CalendarView onBack={s.goBack} onSyncCalendar={s.startGoogleAuth} onResyncCalendar={s.syncCalendar} isSyncing={s.isSyncing} onNavigateTo={dest => s.navigate('/' + dest)} />
-    </Suspense>
-  );
-  if (s.view === 'terminy') return (
-    <Suspense fallback={<ViewFallback />}>
-      <TerminyPage onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} />
-    </Suspense>
-  );
-  if (s.view === 'rozwoj') return (
-    <Suspense fallback={<ViewFallback />}>
-      <GrowthView session={session} onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} />
-    </Suspense>
-  );
+  if (s.view === 'fundament') return <Suspense fallback={<ViewFallback />}><Fundament onBack={s.goBack} onSyncCalendar={s.startGoogleAuth} isSyncing={s.isSyncing} /></Suspense>;
+  if (s.view === 'keep') return <Suspense fallback={<ViewFallback />}><Keep onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} /></Suspense>;
+  if (s.view === 'todo') return <Suspense fallback={<ViewFallback />}><Todo onBack={() => { s.refreshNudge(); s.goBack(); }} onNavigateTo={dest => s.navigate('/' + dest)} /></Suspense>;
+  if (s.view === 'links') return <Suspense fallback={<ViewFallback />}><LinksInbox onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} /></Suspense>;
+  if (s.view === 'kalendarz') return <Suspense fallback={<ViewFallback />}><CalendarView onBack={s.goBack} onSyncCalendar={s.startGoogleAuth} onResyncCalendar={s.syncCalendar} isSyncing={s.isSyncing} onNavigateTo={dest => s.navigate('/' + dest)} /></Suspense>;
+  if (s.view === 'terminy') return <Suspense fallback={<ViewFallback />}><TerminyPage onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} /></Suspense>;
+  if (s.view === 'rozwoj') return <Suspense fallback={<ViewFallback />}><GrowthView session={session} onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} /></Suspense>;
   if (s.view === 'sauna') return (
     <div className="animate-ios-modal flex-1 flex flex-col min-h-screen">
-      <Suspense fallback={<ViewFallback />}>
-        <SaunaLoggerModal onSaved={() => { s.refresh(); s.setWorkoutKey(k => k + 1); s.navigate('/dzis'); }} onBack={() => { s.refresh(); s.navigate('/dzis'); }} />
-      </Suspense>
+      <Suspense fallback={<ViewFallback />}><SaunaLoggerModal onSaved={() => { s.refresh(); s.setWorkoutKey(k => k + 1); s.navigate('/dzis'); }} onBack={() => { s.refresh(); s.navigate('/dzis'); }} /></Suspense>
     </div>
   );
   if (s.view === 'trening') return (
     <div className="animate-ios-modal flex-1 flex flex-col min-h-screen">
-      <Suspense fallback={<ViewFallback />}>
-        <TrainingRoute initial={s.workoutInitial} onSaved={() => { s.refresh(); s.setWorkoutKey(k => k + 1); s.navigate('/dzis'); }} onBack={() => { s.setWorkoutInitial(null); s.refresh(); s.navigate('/dzis'); }} />
-      </Suspense>
+      <Suspense fallback={<ViewFallback />}><TrainingRoute initial={s.workoutInitial} onSaved={() => { s.refresh(); s.setWorkoutKey(k => k + 1); s.navigate('/dzis'); }} onBack={() => { s.setWorkoutInitial(null); s.refresh(); s.navigate('/dzis'); }} /></Suspense>
     </div>
   );
   if (s.view === 'cwiczenie') return (
     <div className="animate-ios-modal flex-1 flex flex-col min-h-screen">
-      <Suspense fallback={<ViewFallback />}>
-        <ExerciseProgressRoute onBack={() => s.navigate(-1)} />
-      </Suspense>
+      <Suspense fallback={<ViewFallback />}><ExerciseProgressRoute onBack={() => s.navigate(-1)} /></Suspense>
     </div>
   );
 
@@ -177,7 +151,7 @@ export default function Dashboard() {
   return (
     <DashboardContext.Provider value={s}>
       <div className="min-h-screen bg-background text-text-primary selection:bg-primary/10 font-sans transition-colors duration-[var(--motion-slow)]">
-        <div className="mx-auto flex min-h-screen w-full max-w-md lg:max-w-4xl flex-col overflow-x-hidden border-x border-border-custom bg-background/40 backdrop-blur-[var(--blur-3xl)] shadow-sm" style={{ paddingBottom: showLock ? 'var(--dashboard-padding-locked)' : 'var(--dashboard-padding-navigation)' }}>
+        <div className="mx-auto flex min-h-screen w-full max-w-md lg:max-w-4xl flex-col overflow-x-hidden border-x border-border-custom bg-background shadow-sm" style={{ paddingBottom: showLock ? 'var(--dashboard-padding-locked)' : 'var(--dashboard-padding-navigation)' }}>
           <DashboardHeader
             userId={userId}
             unreadCount={s.pendingActionCount}
@@ -224,7 +198,7 @@ export default function Dashboard() {
                   onSaved={() => { s.refresh(); s.setNutritionKey(k => k + 1); }}
                 />
                 {s.todayWin && isAfter20() && (
-                  <Pressable onClick={() => s.setShowShutdown(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm font-black uppercase tracking-wider text-primary hover:bg-primary/20 active:scale-95 transition-all shadow-sm mt-4">
+                  <Pressable onClick={() => s.setShowShutdown(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm font-black uppercase tracking-wider text-primary hover:bg-primary/20 active:scale-95 ui-interactive shadow-sm mt-4">
                     Domknij Dzień (Rytuał Wieczorny)
                   </Pressable>
                 )}
@@ -233,26 +207,28 @@ export default function Dashboard() {
               <>
                 <ErrorBoundary>
                   <div className={s.view === 'dzis' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
-                    <DashboardDzisTab />
+                    {visitedTabs.includes('dzis') && <DashboardDzisTab />}
                   </div>
                 </ErrorBoundary>
                 <ErrorBoundary>
                   <div className={s.view === 'tydzien' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
-                    <DashboardTydzienTab
-                      weeklyCalories={s.weeklyCalories}
-                      nutritionKey={s.nutritionKey}
-                      onOpenActionCenter={() => s.setActionCenterOpen(true)}
-                    />
+                    {visitedTabs.includes('tydzien') && (
+                      <DashboardTydzienTab
+                        weeklyCalories={s.weeklyCalories}
+                        nutritionKey={s.nutritionKey}
+                        onOpenActionCenter={handleOpenActionCenter}
+                      />
+                    )}
                   </div>
                 </ErrorBoundary>
                 <ErrorBoundary>
                   <div className={s.view === 'historia' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
-                    <DashboardHistoriaTab />
+                    {visitedTabs.includes('historia') && <DashboardHistoriaTab />}
                   </div>
                 </ErrorBoundary>
                 <ErrorBoundary>
                   <div className={s.view === 'projekty' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
-                    <DashboardProjektyTab />
+                    {visitedTabs.includes('projekty') && <DashboardProjektyTab />}
                   </div>
                 </ErrorBoundary>
               </>
@@ -298,4 +274,10 @@ export default function Dashboard() {
       </div>
     </DashboardContext.Provider>
   );
+}
+
+export default function Dashboard() {
+  const session = useSession();
+  if (!session) return null;
+  return <DashboardContent />;
 }

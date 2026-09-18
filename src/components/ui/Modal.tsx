@@ -33,28 +33,67 @@ const sizeClasses = {
   full: 'max-w-full m-4',
 };
 
-export default function Modal({
-  isOpen,
-  onClose,
+interface ModalHeaderProps {
+  title?: React.ReactNode;
+  subtitle?: React.ReactNode;
+  titleId: string;
+  showCloseButton: boolean;
+  onClose: () => void;
+  onLight: () => void;
+}
+
+function ModalHeader({
   title,
   subtitle,
-  children,
-  size = 'md',
-  showCloseButton = true,
-  closeOnBackdropClick = true,
-  padding = 'p-5',
-  overflowY = true,
-  className = '',
-  overlayClassName = '',
-  containerRef,
-}: ModalProps) {
-  const backdropRef = useRef<HTMLDivElement>(null);
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const restoreFocusRef = useRef<HTMLElement | null>(null);
-  const reduceMotion = useReducedMotion();
-  const { light } = useHaptics();
+  titleId,
+  showCloseButton,
+  onClose,
+  onLight,
+}: ModalHeaderProps) {
+  if (!title && !subtitle && !showCloseButton) return null;
 
+  return (
+    <div className="flex items-start justify-between gap-4 mb-3">
+      <div className="min-w-0">
+        {subtitle && <p className="ios-section-label mb-1">{subtitle}</p>}
+        {title && (
+          <h3 id={titleId} className="text-lg font-bold text-text-primary leading-tight tracking-tight">
+            {title}
+          </h3>
+        )}
+      </div>
+      {showCloseButton && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => {
+            onLight();
+            onClose();
+          }}
+          className="h-8 w-8 flex-shrink-0 rounded-full p-0 text-text-muted hover:bg-white/10"
+          aria-label="Zamknij"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  );
+}
+
+function useModalA11y({
+  isOpen,
+  onClose,
+  dialogRef,
+  light,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  dialogRef: React.RefObject<HTMLDivElement | null>;
+  light: () => void;
+}) {
+  const restoreFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
+
   useLayoutEffect(() => {
     onCloseRef.current = onClose;
   }, [onClose]);
@@ -107,8 +146,8 @@ export default function Modal({
     window.addEventListener('keydown', handleKeyDown);
     document.body.style.overflow = 'hidden';
 
-    // Set focus only if current focus is outside the modal container
-    const isFocusInside = dialogRef.current && document.activeElement && dialogRef.current.contains(document.activeElement);
+    const isFocusInside =
+      dialogRef.current && document.activeElement && dialogRef.current.contains(document.activeElement);
     if (!isFocusInside) {
       const first = dialogRef.current?.querySelector<HTMLElement>(focusableSelector);
       (first ?? dialogRef.current)?.focus({ preventScroll: true });
@@ -121,7 +160,31 @@ export default function Modal({
         restoreFocusRef.current.focus();
       }
     };
-  }, [isOpen, light]);
+  }, [isOpen, light, dialogRef]);
+}
+
+export default function Modal({
+  isOpen,
+  onClose,
+  title,
+  subtitle,
+  children,
+  size = 'md',
+  showCloseButton = true,
+  closeOnBackdropClick = true,
+  padding = 'p-5',
+  overflowY = true,
+  className = '',
+  overlayClassName = '',
+  containerRef,
+}: ModalProps) {
+  const backdropRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+  const { light } = useHaptics();
+  const titleId = useId();
+
+  useModalA11y({ isOpen, onClose, dialogRef, light });
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (closeOnBackdropClick && e.target === backdropRef.current) {
@@ -134,8 +197,6 @@ export default function Modal({
   const justifyClass = overlayClassName.includes('justify-') ? '' : 'justify-center';
   const flexDirClass = overlayClassName.includes('flex-col') ? 'flex-col' : '';
   const backdropPadding = overlayClassName.includes('p-0') ? '' : 'p-3 sm:p-5';
-
-  const titleId = useId();
 
   if (typeof document === 'undefined') return null;
 
@@ -164,45 +225,25 @@ export default function Modal({
             tabIndex={-1}
             style={{ willChange: 'transform, opacity' }}
             className={`ui-floating-layer w-full ${sizeClasses[size]} ${padding} ${overflowY ? 'max-h-[88vh] overflow-y-auto' : ''} ${className}`}
-            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 14, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.98 }}
+            initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: 'translateY(14px) scale(0.98)' }}
+            animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: 'translateY(12px) scale(0.98)' }}
             transition={reduceMotion ? { duration: 0.12 } : IOS_SPRING.default}
           >
-
-            {(title || subtitle || showCloseButton) && (
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div className="min-w-0">
-                  {subtitle && (
-                    <p className="ios-section-label mb-1">
-                      {subtitle}
-                    </p>
-                  )}
-                  {title && (
-                    <h3 id={titleId} className="text-lg font-bold text-text-primary leading-tight tracking-tight">
-                      {title}
-                    </h3>
-                  )}
-                </div>
-                {showCloseButton && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => { light(); onClose(); }}
-                    className="h-8 w-8 flex-shrink-0 rounded-full p-0 text-text-muted hover:bg-white/10"
-                    aria-label="Zamknij"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            )}
+            <ModalHeader
+              title={title}
+              subtitle={subtitle}
+              titleId={titleId}
+              showCloseButton={showCloseButton}
+              onClose={onClose}
+              onLight={light}
+            />
             <div className="outline-none min-h-0 flex-1 flex flex-col">{children}</div>
           </motion.div>
         </motion.div>
       )}
     </AnimatePresence>,
-    document.body
+    document.body,
   );
 }
 

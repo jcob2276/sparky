@@ -40,7 +40,7 @@ export function LinksInboxRow({
 
   return (
     <div
-      className={`flex items-center justify-between gap-3 border rounded-2xl px-4 py-3 transition-all duration-[var(--motion-medium)] select-none ${
+      className={`flex items-center justify-between gap-3 border rounded-2xl px-4 py-3 ui-interactive duration-[var(--motion-medium)] select-none ${
         isSelected
           ? 'bg-primary/10 border-primary/40 ring-1 ring-primary/30'
           : link.status === 'read'
@@ -52,7 +52,7 @@ export function LinksInboxRow({
       {isSelectMode && (
         <Pressable
           onClick={onToggleSelect}
-          className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center transition-all cursor-pointer ${
+          className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center ui-interactive cursor-pointer ${
             isSelected
               ? 'bg-primary border-primary text-on-accent shadow-xs'
               : 'border-border-custom bg-surface-solid'
@@ -105,7 +105,7 @@ export function LinksInboxRow({
 
         <Pressable
           onClick={onToggleRead}
-          className={`btn-press rounded-full p-1.5 transition-all cursor-pointer ${
+          className={`btn-press rounded-full p-1.5 ui-interactive cursor-pointer ${
             link.status === 'read'
               ? 'bg-success/15 text-success'
               : 'text-text-muted/50 hover:text-text-primary hover:bg-surface-solid/60'

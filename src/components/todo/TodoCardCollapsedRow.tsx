@@ -95,7 +95,7 @@ export default function TodoCardCollapsedRow({
           className="mt-0.5 shrink-0 btn-press cursor-pointer"
         >
           <div
-            className={`h-4 w-4 rounded-md border flex items-center justify-center transition-all duration-[var(--motion-fast)] ${
+            className={`h-4 w-4 rounded-md border flex items-center justify-center ui-interactive duration-[var(--motion-fast)] ${
               isSelected
                 ? 'bg-primary border-primary text-on-accent shadow-xs'
                 : 'border-border-custom bg-surface-solid hover:border-primary/50'
@@ -114,7 +114,7 @@ export default function TodoCardCollapsedRow({
           className="shrink-0 mt-0.5 btn-press"
         >
           <span
-            className={`flex h-[18px] w-[18px] items-center justify-center text-sm leading-none transition-all ${
+            className={`flex h-[18px] w-[18px] items-center justify-center text-sm leading-none ui-interactive ${
               isDone ? 'grayscale opacity-[var(--opacity-40)]' : ''
             }`}
           >
@@ -132,7 +132,7 @@ export default function TodoCardCollapsedRow({
           className="mt-0.5 shrink-0 btn-press cursor-pointer"
         >
           <div
-            className={`h-4 w-4 rounded-full border-2 flex items-center justify-center transition-all duration-[var(--motion-medium)] ${
+            className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ui-interactive duration-[var(--motion-medium)] ${
               swipe.completing || isDone
                 ? 'bg-success border-success scale-100'
                 : item.priority === 'urgent'
@@ -227,7 +227,7 @@ export default function TodoCardCollapsedRow({
             const isBlue = ['projekt', 'egzamin'].includes(tag.toLowerCase());
             const tagStyle = isGreen ? 'text-success bg-success/10' : isBlue ? 'text-primary bg-primary/10' : 'text-text-muted bg-on-accent/5';
             return (
-              <span key={tag} className={`inline-flex items-center gap-1 text-2xs font-medium px-1 py-0.5 rounded border border-on-accent/5 transition-all opacity-[var(--opacity-70)] ${tagStyle}`}>
+              <span key={tag} className={`inline-flex items-center gap-1 text-2xs font-medium px-1 py-0.5 rounded border border-on-accent/5 ui-interactive opacity-[var(--opacity-70)] ${tagStyle}`}>
                 <Tag size={9} className="shrink-0" />
                 <span>{tag}</span>
               </span>
@@ -248,7 +248,7 @@ export default function TodoCardCollapsedRow({
               ? 'bg-warning/8 border-warning/15 text-warning'
               : 'bg-surface-solid border-border-custom/50 text-text-secondary';
             return (
-              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-2xs font-semibold tracking-wide transition-all ${chipBg}`}>
+              <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-2xs font-semibold tracking-wide ui-interactive ${chipBg}`}>
                 {GoalIcon && <GoalIcon size={8} />}
                 <span className="uppercase">{sectionName}</span>
                 {dreamTitle && <span className="opacity-[var(--opacity-60)] truncate max-w-[80px]">· {dreamTitle}</span>}

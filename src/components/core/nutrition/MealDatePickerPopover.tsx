@@ -81,7 +81,7 @@ function PopoverHeader({
         <Pressable
           type="button"
           onClick={onPrev}
-          className="flex h-7 w-7 items-center justify-center rounded-lg border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer"
+          className="flex h-7 w-7 items-center justify-center rounded-lg border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 ui-interactive cursor-pointer"
           aria-label="Poprzedni miesiąc"
         >
           <ChevronLeft size={14} />
@@ -90,7 +90,7 @@ function PopoverHeader({
           type="button"
           onClick={onNext}
           disabled={nextDisabled}
-          className="flex h-7 w-7 items-center justify-center rounded-lg border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 disabled:opacity-[var(--opacity-40)] disabled:cursor-not-allowed transition-all cursor-pointer"
+          className="flex h-7 w-7 items-center justify-center rounded-lg border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 disabled:opacity-[var(--opacity-40)] disabled:cursor-not-allowed ui-interactive cursor-pointer"
           aria-label="Następny miesiąc"
         >
           <ChevronRight size={14} />
@@ -117,7 +117,7 @@ function PopoverShortcuts({
       <Pressable
         type="button"
         onClick={() => onPick(twoDaysAgo)}
-        className={`flex items-center justify-center gap-1 rounded-xl border px-2 py-1.5 text-2xs font-bold transition-all active:scale-95 cursor-pointer ${
+        className={`flex items-center justify-center gap-1 rounded-xl border px-2 py-1.5 text-2xs font-bold ui-interactive active:scale-95 cursor-pointer ${
           logDate === twoDaysAgo
             ? 'border-primary bg-primary/10 text-primary'
             : 'border-border-custom/60 bg-surface-solid/30 text-text-secondary hover:border-primary/30'
@@ -129,7 +129,7 @@ function PopoverShortcuts({
       <Pressable
         type="button"
         onClick={() => onPick(threeDaysAgo)}
-        className={`flex items-center justify-center gap-1 rounded-xl border px-2 py-1.5 text-2xs font-bold transition-all active:scale-95 cursor-pointer ${
+        className={`flex items-center justify-center gap-1 rounded-xl border px-2 py-1.5 text-2xs font-bold ui-interactive active:scale-95 cursor-pointer ${
           logDate === threeDaysAgo
             ? 'border-primary bg-primary/10 text-primary'
             : 'border-border-custom/60 bg-surface-solid/30 text-text-secondary hover:border-primary/30'
@@ -256,7 +256,7 @@ export default function MealDatePickerPopover({
               type="button"
               disabled={isFuture}
               onClick={() => handlePickDate(key)}
-              className={`flex h-8 w-8 items-center justify-center mx-auto rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              className={`flex h-8 w-8 items-center justify-center mx-auto rounded-xl text-xs font-bold ui-interactive cursor-pointer ${
                 isSelected
                   ? 'bg-primary text-on-accent shadow-xs font-black'
                   : isFuture

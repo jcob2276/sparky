@@ -48,7 +48,7 @@ export function TodoBulkActionBar({
           <Pressable
             disabled={busy}
             onClick={onSelectAll}
-            className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer"
+            className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 ui-interactive cursor-pointer"
             title="Zaznacz wszystkie widoczne zadania"
             aria-label="Zaznacz wszystkie widoczne zadania"
           >
@@ -60,7 +60,7 @@ export function TodoBulkActionBar({
         <Pressable
           disabled={busy}
           onClick={onBulkSetToday}
-          className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer"
+          className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 ui-interactive cursor-pointer"
           title="Przesuń na dzisiaj"
           aria-label="Przesuń zaznaczone zadania na dzisiaj"
         >
@@ -71,7 +71,7 @@ export function TodoBulkActionBar({
         <Pressable
           disabled={busy}
           onClick={onBulkSetTomorrow}
-          className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 transition-all cursor-pointer"
+          className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-95 ui-interactive cursor-pointer"
           title="Przesuń na jutro"
           aria-label="Przesuń zaznaczone zadania na jutro"
         >
@@ -82,7 +82,7 @@ export function TodoBulkActionBar({
         <Pressable
           disabled={busy}
           onClick={() => onBulkSetPriority('urgent')}
-          className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-danger/40 active:scale-95 transition-all cursor-pointer"
+          className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl border border-border-custom/40 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-danger/40 active:scale-95 ui-interactive cursor-pointer"
           title="Ustaw wysoki priorytet (P1)"
           aria-label="Ustaw wysoki priorytet dla zaznaczonych zadań"
         >
@@ -93,7 +93,7 @@ export function TodoBulkActionBar({
         <Pressable
           disabled={busy}
           onClick={onBulkComplete}
-          className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl bg-success/15 border border-success/30 text-success hover:bg-success/25 active:scale-95 transition-all cursor-pointer"
+          className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl bg-success/15 border border-success/30 text-success hover:bg-success/25 active:scale-95 ui-interactive cursor-pointer"
           title="Oznacz jako ukończone"
           aria-label="Oznacz zaznaczone zadania jako ukończone"
         >
@@ -104,7 +104,7 @@ export function TodoBulkActionBar({
         <Pressable
           disabled={busy}
           onClick={onBulkDelete}
-          className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl bg-danger/15 border border-danger/30 text-danger hover:bg-danger/25 active:scale-95 transition-all cursor-pointer"
+          className="flex items-center gap-1 text-2xs font-bold px-2.5 py-1.5 rounded-xl bg-danger/15 border border-danger/30 text-danger hover:bg-danger/25 active:scale-95 ui-interactive cursor-pointer"
           title="Usuń wybrane zadania"
           aria-label="Usuń zaznaczone zadania"
         >

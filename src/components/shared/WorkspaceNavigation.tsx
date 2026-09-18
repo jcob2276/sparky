@@ -88,7 +88,7 @@ export default function WorkspaceNavigation({
               aria-current={isActive ? 'page' : undefined}
               title={label}
               aria-label={label}
-              className={`flex h-9 w-9 items-center justify-center rounded-xl transition-all ${
+              className={`flex h-9 w-9 items-center justify-center rounded-xl ui-interactive ${
                 isActive
                   ? 'bg-primary/20 text-primary font-bold shadow-xs'
                   : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary'

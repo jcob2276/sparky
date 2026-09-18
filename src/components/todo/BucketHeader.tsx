@@ -52,7 +52,7 @@ export default function BucketHeader({
 
   return (
     <div
-      className={`relative flex w-full items-center gap-2 py-1.5 transition-all duration-[var(--motion-medium)] group/hdr ${
+      className={`relative flex w-full items-center gap-2 py-1.5 ui-interactive duration-[var(--motion-medium)] group/hdr ${
         isDropTarget ? 'text-primary' : 'text-text-primary'
       }`}
     >
@@ -80,7 +80,7 @@ export default function BucketHeader({
       ) : (
         <Pressable
           onClick={onToggle}
-          className="flex flex-1 min-w-0 items-center gap-2 text-left transition-all duration-[var(--motion-medium)] cursor-pointer"
+          className="flex flex-1 min-w-0 items-center gap-2 text-left ui-interactive duration-[var(--motion-medium)] cursor-pointer"
         >
           <ChevronRight
             size={12}

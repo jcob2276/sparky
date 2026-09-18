@@ -50,7 +50,7 @@ export default function DesktopToolsLauncherModal({ isOpen, onClose }: Props) {
                   key={tool.id}
                   variant="ghost"
                   onClick={() => handleSelect(tool)}
-                  className="flex flex-col items-start p-3 rounded-2xl border border-border-custom/60 bg-surface-solid/5 hover:bg-surface-solid/15 hover:border-primary/40 active:scale-[0.98] transition-all text-left group"
+                  className="flex flex-col items-start p-3 rounded-2xl border border-border-custom/60 bg-surface-solid/5 hover:bg-surface-solid/15 hover:border-primary/40 active:scale-[0.98] ui-interactive text-left group"
                 >
                   <div className="flex items-center justify-between w-full mb-2">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-sm group-hover:scale-105 transition-transform">
@@ -86,7 +86,7 @@ export default function DesktopToolsLauncherModal({ isOpen, onClose }: Props) {
                   key={tool.id}
                   variant="ghost"
                   onClick={() => handleSelect(tool)}
-                  className="flex flex-col items-start p-3 rounded-2xl border border-border-custom/60 bg-surface-solid/5 hover:bg-surface-solid/15 hover:border-primary/40 active:scale-[0.98] transition-all text-left group relative"
+                  className="flex flex-col items-start p-3 rounded-2xl border border-border-custom/60 bg-surface-solid/5 hover:bg-surface-solid/15 hover:border-primary/40 active:scale-[0.98] ui-interactive text-left group relative"
                 >
                   <div className="flex items-center justify-between w-full mb-2">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20 shadow-sm group-hover:scale-105 transition-transform">

@@ -87,7 +87,7 @@ export default function NoteCard({
           className="absolute top-2.5 left-2.5 z-10 cursor-pointer"
         >
           <div
-            className={`h-4 w-4 rounded-md border flex items-center justify-center transition-all ${
+            className={`h-4 w-4 rounded-md border flex items-center justify-center ui-interactive ${
               isSelected
                 ? 'bg-primary border-primary text-on-accent shadow-xs'
                 : 'border-border-custom bg-surface-solid hover:border-primary/50'
@@ -171,7 +171,7 @@ export default function NoteCard({
                 e.stopPropagation();
                 onClickTag?.(t);
               }}
-              className="keep-tag cursor-pointer hover:opacity-[var(--opacity-80)] active:scale-95 transition-all"
+              className="keep-tag cursor-pointer hover:opacity-[var(--opacity-80)] active:scale-95 ui-interactive"
               style={{ background: c.tagBg, color: c.tagText, borderColor: 'transparent' }}
             >
               {t}

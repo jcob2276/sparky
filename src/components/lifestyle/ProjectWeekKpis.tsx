@@ -134,7 +134,7 @@ export default function ProjectWeekKpis({
                                 await applyKpiRollup(userId, kpi.id, weekStart, 1);
                                 invalidate();
                               }}
-                              className="flex h-5 w-5 items-center justify-center rounded-md border border-primary/30 bg-primary/10 text-2xs font-extrabold text-primary hover:bg-primary/20 active:scale-95 transition-all"
+                              className="flex h-5 w-5 items-center justify-center rounded-md border border-primary/30 bg-primary/10 text-2xs font-extrabold text-primary hover:bg-primary/20 active:scale-95 ui-interactive"
                             >
                               +1
                             </Pressable>

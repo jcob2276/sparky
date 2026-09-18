@@ -97,7 +97,7 @@ export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) 
           <Pressable
             onClick={() => void handleComplete(topUrgent)}
             disabled={isPending}
-            className="flex items-center gap-1.5 rounded-full bg-danger text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-all active:scale-95 hover:opacity-90 disabled:opacity-60"
+            className="flex items-center gap-1.5 rounded-full bg-danger text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs ui-interactive active:scale-95 hover:opacity-90 disabled:opacity-60"
           >
             <CheckCircle2 size={14} strokeWidth={2.2} />
             <span>Zrealizowano</span>
@@ -105,7 +105,7 @@ export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) 
 
           <Pressable
             onClick={onNavigateToTerminy}
-            className="flex items-center gap-1 rounded-full bg-surface-3/80 px-3 py-1.5 text-xs font-semibold text-text-primary transition-all active:scale-95 hover:bg-surface-3"
+            className="flex items-center gap-1 rounded-full bg-surface-3/80 px-3 py-1.5 text-xs font-semibold text-text-primary ui-interactive active:scale-95 hover:bg-surface-3"
           >
             <span>Terminy</span>
             <ArrowRight size={13} strokeWidth={2.2} />

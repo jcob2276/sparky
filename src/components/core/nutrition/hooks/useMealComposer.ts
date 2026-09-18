@@ -29,16 +29,6 @@ import {
 import { scanMealPhoto } from '../../../../lib/health/mealPhotoScan';
 import { useFoodEntrySearch } from './useFoodEntrySearch';
 import { useSession } from '../../../../store/useStore';
-
-const DEFAULT_TOTALS = {
-  calories: 0,
-  protein: 0,
-  targetKcal: null as number | null,
-  targetProtein: null as number | null,
-  avgFoodQuality: null as number | null,
-  foodQualityAnalysis: null as string | null,
-};
-
 export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   const session = useSession();
   const userId = session?.user.id;

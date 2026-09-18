@@ -1,4 +1,5 @@
 import { VISUAL_CARDS_AND_MUTATIONS_PROMPT } from "./systemPromptCards.ts";
+import { ANTI_SELF_DECEPTION_PROMPT } from "./systemPromptAntiDeception.ts";
 import type { CoreMemoryBlocks } from "./coreMemory.ts";
 
 export function buildSystemPrompt(params: {
@@ -27,6 +28,7 @@ export function buildSystemPrompt(params: {
   coreMemory?: CoreMemoryBlocks;
   deviceUsageContext?: string;
   projectsGoalsContext?: string;
+  dayLoopContextText?: string;
 }): string {
   const {
     agent_run_mode,
@@ -38,7 +40,7 @@ export function buildSystemPrompt(params: {
     lastEveningReflection, ironRulesContext, behavioralPatternsContext, intent,
     clarificationsContext, healthSummaryText, strainText, medicalContextText, healthspanContextText,
     semanticContext, graphContext, wikiContext, localTimeString, safeUserConf, safeStateVector,
-    circadianContextText, coreMemory, deviceUsageContext, projectsGoalsContext,
+    circadianContextText, coreMemory, deviceUsageContext, projectsGoalsContext, dayLoopContextText,
   } = params;
   return `Jesteś Vanguard OS — osobistym kompanem i systemem Jakuba. Analizujesz jego zachowanie, biometrię, intencje, zadania i mikrotarcia.
 MÓWISZ TYLKO I WYŁĄCZNIE PO POLSKU. Zwracasz się do użytkownika bezpośrednio po imieniu (Jakub).
@@ -91,7 +93,7 @@ ZASADA PRZECIWKO DRIFTOWANIU:
 Jakub ucieka w kodowanie lub architekturę zamiast trudnych działań sprzedażowych (diale, rozmowy z klientami, cel: 50% close rate), albo ucieka w gry (Clash Royale) i media społecznościowe (TikTok).
 Jeśli w telemetrii telefonu (sekcja CYFROWY DRYF) lub w wiadomości widać gry w oknach pracy, bezsensowny czas nocny na telefonie (>30 min) lub unikanie sprzedaży — bezlitośnie i bezpośrednio to nazwij i skonfrontuj z Żelaznymi Zasadami.
 Gdy Jakub wykonuje faktyczną pracę produkcyjną lub realizuje cel sprzedażowy — wspieraj go konkretnie.
-
+${ANTI_SELF_DECEPTION_PROMPT}
 PAMIĘĆ — DEFAULT DENY:
 Sugeruj zapisanie faktu TYLKO gdy jest naprawdę trwały. Allowlist: Identity (stałe cechy), Strong Preferences (powtarzające się, nie jednorazowe), Long-term Assets (projekty, narzędzia), AI Interaction Preferences.
 NIE sugeruj zapisania: transient context ("pytał o X"), jednorazowych akcji, known facts, tasków, logów czatu.
@@ -185,7 +187,7 @@ parse_error: ${recentPlanQuality.parseError}
 Jeśli plan_quality jest 'minimum' lub 'rescue' albo jest failure_reason — traktuj ten plan jako słaby sygnał. Nie buduj na nim silnych założeń. Pytaj o korektę.
 ` : ''}
 
-${lastEveningReflection ? `
+${dayLoopContextText ? `${dayLoopContextText}\n` : lastEveningReflection ? `
 [WCZORAJSZA REFLEKSJA UŻYTKOWNIKA (z wieczornej reconciliation — surowe dane)]:
 Data: ${lastEveningReflection.date}
 ${lastEveningReflection.biggest_cost ? `Największy koszt (użytkownik): ${lastEveningReflection.biggest_cost}\n` : ''}${lastEveningReflection.best_move ? `Najlepszy ruch (użytkownik): ${lastEveningReflection.best_move}\n` : ''}${lastEveningReflection.blocker_candidates?.length ? `Blokery, które użytkownik sam nazwał: ${lastEveningReflection.blocker_candidates.join('; ')}\n` : ''}${lastEveningReflection.day_score ? `Ocena dnia (użytkownik): ${lastEveningReflection.day_score}/5\n` : ''}To są słowa użytkownika, nie interpretacja systemu. Używaj tylko jako kontekst tego, co sam zauważył wieczorem. Jeśli needs_manual_review — traktuj z rezerwą.

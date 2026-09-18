@@ -28,7 +28,7 @@ export default function KeepQuickCapture({ onCreate }: KeepQuickCaptureProps) {
     <div
       ref={containerRef}
       style={{ backgroundColor: c.bg, borderColor: c.border }}
-      className={`mx-auto w-full max-w-2xl rounded-2xl border transition-all duration-[var(--motion-medium)] shadow-sm ${
+      className={`mx-auto w-full max-w-2xl rounded-2xl border ui-interactive duration-[var(--motion-medium)] shadow-sm ${
         expanded ? 'p-4 shadow-md' : 'px-4 py-2.5 hover:border-border-custom'
       }`}
     >

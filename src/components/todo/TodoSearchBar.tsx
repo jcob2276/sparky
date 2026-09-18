@@ -54,7 +54,7 @@ export default function TodoSearchBar() {
               if (ok) removeSmartList(smartList.id);
             });
           }}
-          className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold transition-all ${
+          className={`flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-bold ui-interactive ${
             activeSmartListId === smartList.id
               ? 'border-primary/30 bg-primary/15 text-primary'
               : 'border-border-custom/50 text-text-muted hover:bg-surface-solid/40 hover:text-text-primary'
@@ -84,7 +84,7 @@ export default function TodoSearchBar() {
         ) : (
           <Pressable
             onClick={() => setShowSaveSmartList(true)}
-            className="flex items-center gap-1 rounded-full border border-dashed border-border-custom/60 px-2.5 py-1 text-xs font-bold text-text-muted transition-all hover:border-primary/40 hover:text-primary"
+            className="flex items-center gap-1 rounded-full border border-dashed border-border-custom/60 px-2.5 py-1 text-xs font-bold text-text-muted ui-interactive hover:border-primary/40 hover:text-primary"
           >
             <Bookmark size={10} /> Zapisz jako Smart Listę
           </Pressable>

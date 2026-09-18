@@ -115,7 +115,7 @@ export default function EisenhowerMatrix({ items, setItems }: Props) {
           return (
             <div
               key={q.key}
-              className={`rounded-2xl border p-3 sm:min-h-[var(--ds-h-180px)] transition-all duration-[var(--motion-medium)] ${q.color} ${dragOverQ === q.key ? 'scale-[var(--ds-arbitrary-1-01)] border-primary/50 shadow-md ring-2 ring-primary/10' : ''}`}
+              className={`rounded-2xl border p-3 sm:min-h-[var(--ds-h-180px)] ui-interactive duration-[var(--motion-medium)] ${q.color} ${dragOverQ === q.key ? 'scale-[var(--ds-arbitrary-1-01)] border-primary/50 shadow-md ring-2 ring-primary/10' : ''}`}
               onDragOver={(e) => {
                 e.preventDefault();
                 setDragOverQ(q.key);

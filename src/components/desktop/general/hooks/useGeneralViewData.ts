@@ -4,14 +4,6 @@ import { getTodayWarsaw, shiftDateStr } from '../../../../lib/date';
 import { fetchOracleRecommendations } from '../../../../lib/recommendationsApi';
 import { OuraRow } from '../../desktopUtils';
 
-interface GeneralViewStrain {
-  date: string;
-  recovery_score: number | null;
-  strain_score: number | null;
-  readiness_level: string | null;
-  components: unknown;
-}
-
 export interface GeneralViewPattern {
   pattern_type: string;
   title: string | null;

@@ -58,7 +58,7 @@ export function PhotoComparisonCard({
             <div className="flex items-center rounded-xl bg-surface border border-border-custom p-0.5">
               <Pressable
                 onClick={() => setMode('side')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-2xs font-bold transition-all ${
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-2xs font-bold ui-interactive ${
                   mode === 'side'
                     ? 'bg-primary text-on-accent shadow-sm'
                     : 'text-text-muted hover:text-text-primary'
@@ -70,7 +70,7 @@ export function PhotoComparisonCard({
               </Pressable>
               <Pressable
                 onClick={() => setMode('slider')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-2xs font-bold transition-all ${
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-2xs font-bold ui-interactive ${
                   mode === 'slider'
                     ? 'bg-primary text-on-accent shadow-sm'
                     : 'text-text-muted hover:text-text-primary'
@@ -87,14 +87,14 @@ export function PhotoComparisonCard({
             <Pressable
               onClick={() => onAnalyze(targetPhoto)}
               disabled={analyzingId === targetPhoto.id}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary hover:text-on-accent font-display text-xs font-bold uppercase tracking-wider transition-all cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary hover:text-on-accent font-display text-xs font-bold uppercase tracking-wider ui-interactive cursor-pointer shadow-sm"
             >
               {analyzingId === targetPhoto.id ? <Spinner size="sm" /> : <Sparkles size={14} />}
               <span>{targetPhoto.ai_analysis ? 'Wynik AI' : 'Analizuj AI'}</span>
             </Pressable>
           )}
 
-          <label className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-xl border border-border-custom bg-surface text-text-secondary transition-all hover:bg-primary hover:border-primary hover:text-on-accent shadow-sm active:scale-95">
+          <label className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-xl border border-border-custom bg-surface text-text-secondary ui-interactive hover:bg-primary hover:border-primary hover:text-on-accent shadow-sm active:scale-95">
             {uploading ? <Spinner size="sm" /> : <Camera size={15} />}
             <ControlInput type="file" accept="image/*" className="hidden" onChange={onUpload} disabled={uploading} />
           </label>

@@ -160,7 +160,7 @@ export default function DailyStrainCard({
       {/* Oura Health Hub Launcher Button */}
       <Link
         to="/oura"
-        className="w-full flex items-center justify-center gap-2 rounded-2xl py-2.5 px-4 text-xs font-bold text-primary border border-primary/20 bg-primary/[0.04] hover:bg-primary/[0.08] transition-all active:scale-[0.98] relative z-[var(--z-raised)]"
+        className="w-full flex items-center justify-center gap-2 rounded-2xl py-2.5 px-4 text-xs font-bold text-primary border border-primary/20 bg-primary/[0.04] hover:bg-primary/[0.08] ui-interactive active:scale-[0.98] relative z-[var(--z-raised)]"
       >
         <Sparkles size={14} className="text-primary animate-pulse" />
         Pełny wgląd w sen i biometrię →

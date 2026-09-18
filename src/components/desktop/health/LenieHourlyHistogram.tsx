@@ -62,7 +62,7 @@ export default function LenieHourlyHistogram({
 
               {/* Bar */}
               <div
-                className={`w-full rounded-t-xs transition-all ${barBg}`}
+                className={`w-full rounded-t-xs ui-interactive ${barBg}`}
                 style={{ height: `${barHeightPct}%` }}
               />
             </div>

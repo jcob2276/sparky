@@ -51,7 +51,7 @@ export default function DayDatePills({
                 haptics.selection();
                 onSelectDate(date);
               }}
-              className={`touch-manipulation shrink-0 min-w-[80px] flex flex-col items-center justify-center rounded-2xl px-3 py-2 transition-all active:scale-95 ${
+              className={`touch-manipulation shrink-0 min-w-[80px] flex flex-col items-center justify-center rounded-2xl px-3 py-2 ui-interactive active:scale-95 ${
                 isSelected
                   ? 'bg-primary text-on-accent shadow-sm ring-2 ring-primary/20'
                   : 'border border-border-custom/80 bg-surface-solid/40 text-text-secondary hover:border-primary/40 hover:bg-surface-solid/70 hover:text-text-primary'
@@ -79,7 +79,7 @@ export default function DayDatePills({
         })}
 
         <label
-          className={`shrink-0 min-w-[78px] relative flex flex-col items-center justify-center rounded-2xl px-3 py-2 border border-dashed transition-all cursor-pointer active:scale-95 ${
+          className={`shrink-0 min-w-[78px] relative flex flex-col items-center justify-center rounded-2xl px-3 py-2 border border-dashed ui-interactive cursor-pointer active:scale-95 ${
             !dates.includes(selectedDate)
               ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/20 font-black'
               : 'border-border-custom/80 bg-surface-solid/20 text-text-muted hover:border-primary/40 hover:text-text-secondary'

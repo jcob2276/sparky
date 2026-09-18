@@ -45,7 +45,7 @@ function ResultsTableRow({
   return (
     <tr
       onClick={onSelect}
-      className="border-b border-border-custom/50 hover:bg-background/50 transition-all cursor-pointer last:border-0"
+      className="border-b border-border-custom/50 hover:bg-background/50 ui-interactive cursor-pointer last:border-0"
     >
       <td className="px-4 py-3 font-bold text-text-primary">
         <div className="flex items-center gap-1.5">
@@ -141,7 +141,7 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
               placeholder="Szukaj markeru…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-7 pr-7 py-1.5 text-xs rounded-xl border border-border-custom bg-background w-36 sm:w-44 focus:w-56 transition-all"
+              className="pl-7 pr-7 py-1.5 text-xs rounded-xl border border-border-custom bg-background w-36 sm:w-44 focus:w-56 ui-interactive"
             />
             {searchQuery && (
               <Pressable
@@ -171,7 +171,7 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
           <Pressable
             key={tab.value}
             onClick={() => setActiveTab(tab.value)}
-            className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+            className={`rounded-lg px-3 py-1 text-xs font-bold ui-interactive cursor-pointer ${
               activeTab === tab.value 
                 ? 'bg-primary/10 text-primary border border-primary/20' 
                 : 'text-text-muted hover:text-text-primary'

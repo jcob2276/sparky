@@ -105,12 +105,12 @@ export function PortionStepper({
         <Pressable
           type="button"
           onClick={() => adjustGrams(-10)}
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border-custom/80 bg-surface-solid/40 text-text-secondary hover:bg-surface-solid hover:text-text-primary active:scale-90 transition-all shadow-2xs"
+          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border-custom/80 bg-surface-solid/40 text-text-secondary hover:bg-surface-solid hover:text-text-primary active:scale-90 ui-interactive shadow-2xs"
           title="-10g"
         >
           <Minus size={18} />
         </Pressable>
-        <div className="flex items-baseline justify-center gap-1 min-w-[130px] rounded-2xl border border-border-custom/80 bg-surface-solid/30 px-4 py-2 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/10 transition-all">
+        <div className="flex items-baseline justify-center gap-1 min-w-[130px] rounded-2xl border border-border-custom/80 bg-surface-solid/30 px-4 py-2 focus-within:border-primary/60 focus-within:ring-2 focus-within:ring-primary/10 ui-interactive">
           <ControlInput
             type="number"
             inputMode="numeric"
@@ -123,7 +123,7 @@ export function PortionStepper({
         <Pressable
           type="button"
           onClick={() => adjustGrams(10)}
-          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border-custom/80 bg-surface-solid/40 text-text-secondary hover:bg-surface-solid hover:text-text-primary active:scale-90 transition-all shadow-2xs"
+          className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border-custom/80 bg-surface-solid/40 text-text-secondary hover:bg-surface-solid hover:text-text-primary active:scale-90 ui-interactive shadow-2xs"
           title="+10g"
         >
           <Plus size={18} />
@@ -142,7 +142,7 @@ export function PortionStepper({
               haptics.selection();
               setGrams(String(defaultGrams));
             }}
-            className={`shrink-0 rounded-full px-3 py-1 text-2xs font-bold transition-all active:scale-95 ${
+            className={`shrink-0 rounded-full px-3 py-1 text-2xs font-bold ui-interactive active:scale-95 ${
               grams === String(defaultGrams)
                 ? 'bg-primary text-on-accent shadow-xs'
                 : 'border border-primary/40 bg-primary/[0.06] text-primary hover:bg-primary/10'
@@ -156,7 +156,7 @@ export function PortionStepper({
             key={delta}
             type="button"
             onClick={() => adjustGrams(delta)}
-            className="shrink-0 rounded-full border border-border-custom/70 bg-surface-solid/40 px-3 py-1 text-2xs font-bold text-text-secondary hover:border-primary/40 hover:text-primary active:scale-95 transition-all"
+            className="shrink-0 rounded-full border border-border-custom/70 bg-surface-solid/40 px-3 py-1 text-2xs font-bold text-text-secondary hover:border-primary/40 hover:text-primary active:scale-95 ui-interactive"
           >
             {delta > 0 ? `+${delta}g` : `${delta}g`}
           </Pressable>
@@ -169,7 +169,7 @@ export function PortionStepper({
               haptics.selection();
               setGrams(String(g));
             }}
-            className={`shrink-0 rounded-full px-3 py-1 text-2xs font-bold transition-all active:scale-95 ${
+            className={`shrink-0 rounded-full px-3 py-1 text-2xs font-bold ui-interactive active:scale-95 ${
               grams === String(g)
                 ? 'bg-primary text-on-accent shadow-xs'
                 : 'border border-border-custom/70 text-text-muted hover:border-primary/40 hover:text-primary'

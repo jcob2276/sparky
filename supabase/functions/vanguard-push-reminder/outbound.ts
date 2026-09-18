@@ -18,11 +18,15 @@ export async function dispatchDueOutboundMessages(
   const telegramToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
   if (!telegramToken) return 0;
 
+  // Give pg_net outbox-sender a 10s window to deliver immediate messages in real time.
+  // Push-reminder acts strictly as a sweep for scheduled messages or delayed fallbacks.
+  const sweepThresholdIso = new Date(Date.now() - 10000).toISOString();
+
   const { data: dueOutbound } = await supabase
     .from("outbound_messages")
     .select("*")
     .eq("status", "pending")
-    .lte("send_after", nowIso)
+    .lte("send_after", sweepThresholdIso)
     .order("priority", { ascending: false })
     .order("send_after", { ascending: true })
     .limit(10);

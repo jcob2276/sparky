@@ -1,7 +1,6 @@
 import React from 'react';
 import { PanelLeft } from 'lucide-react';
 import { useSidebar } from './sidebarContextState';
-import { Pressable } from '../ControlPrimitives';
 
 export interface SidebarHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
   children?: React.ReactNode;
@@ -39,7 +38,7 @@ export function SidebarTrigger({ className = '', icon, onClick, ...props }: Side
           toggleSidebar();
         }
       }}
-      className={`h-9 w-9 rounded-xl text-text-muted hover:text-text-primary hover:bg-surface-2 flex items-center justify-center transition-all cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary shrink-0 ${className}`}
+      className={`h-9 w-9 rounded-xl text-text-muted hover:text-text-primary hover:bg-surface-2 flex items-center justify-center ui-interactive cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary shrink-0 ${className}`}
       {...props}
     >
       {icon || (
@@ -71,7 +70,7 @@ export function SidebarRail({ className = '', onClick, ...props }: SidebarRailPr
         }
       }}
       title="Zwiń / Rozwiń panel (Ctrl+B)"
-      className={`absolute inset-y-0 right-0 z-[var(--z-popover)] hidden w-2 -translate-x-1/2 cursor-col-resize hover:after:bg-primary/50 transition-all after:absolute after:inset-y-0 after:left-1/2 after:w-[var(--ds-w-2px)] sm:flex ${className}`}
+      className={`absolute inset-y-0 right-0 z-[var(--z-popover)] hidden w-2 -translate-x-1/2 cursor-col-resize hover:after:bg-primary/50 ui-interactive after:absolute after:inset-y-0 after:left-1/2 after:w-[var(--ds-w-2px)] sm:flex ${className}`}
       {...props}
     />
   );

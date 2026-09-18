@@ -175,7 +175,7 @@ export default function Fundament({ onBack, onSyncCalendar, isSyncing }: { onBac
                     setIdentity({ ...identity, pillars: next });
                   }}
                   placeholder={`Filar ${index + 1}`}
-                  className="w-full rounded-2xl border border-border-custom bg-surface p-3.5 text-sm font-bold text-text-primary outline-none transition-all placeholder:text-text-muted/40 focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
+                  className="w-full rounded-2xl border border-border-custom bg-surface p-3.5 text-sm font-bold text-text-primary outline-none ui-interactive placeholder:text-text-muted/40 focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
                 />
               ))}
             </div>
@@ -199,7 +199,7 @@ export default function Fundament({ onBack, onSyncCalendar, isSyncing }: { onBac
               <Pressable
                 onClick={onSyncCalendar}
                 disabled={isSyncing}
-                className="flex w-full items-center justify-between rounded-2xl border border-border-custom bg-surface/50 p-4 text-left transition-all hover:bg-surface hover:border-primary/35 disabled:opacity-[var(--opacity-50)] shadow-sm"
+                className="flex w-full items-center justify-between rounded-2xl border border-border-custom bg-surface/50 p-4 text-left ui-interactive hover:bg-surface hover:border-primary/35 disabled:opacity-[var(--opacity-50)] shadow-sm"
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-text-primary/[0.03] text-text-secondary">

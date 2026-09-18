@@ -8,16 +8,15 @@ export function useTodoViewSwipe(
   currentView: TodoViewMode,
   setCurrentView: (view: TodoViewMode) => void,
 ) {
-  const start = useRef<{ x: number; y: number; blocked: boolean } | null>(null);
+  const start = useRef<{ x: number; y: number; target: EventTarget | null } | null>(null);
 
   const onTouchStart = useCallback((event: React.TouchEvent) => {
     const touch = event.touches[0];
     if (!touch) return;
-    const target = event.target as HTMLElement;
     start.current = {
       x: touch.clientX,
       y: touch.clientY,
-      blocked: shouldBlockSwipeNav(target),
+      target: event.target,
     };
   }, []);
 
@@ -25,11 +24,12 @@ export function useTodoViewSwipe(
     const gesture = start.current;
     start.current = null;
     const touch = event.changedTouches[0];
-    if (!gesture || gesture.blocked || !touch) return;
+    if (!gesture || !touch) return;
 
     const deltaX = touch.clientX - gesture.x;
     const deltaY = touch.clientY - gesture.y;
     if (Math.abs(deltaX) < 70 || Math.abs(deltaX) <= Math.abs(deltaY) * 1.75) return;
+    if (shouldBlockSwipeNav(gesture.target)) return;
 
     const currentIndex = VIEW_ORDER.indexOf(currentView);
     const nextIndex = deltaX < 0 ? currentIndex + 1 : currentIndex - 1;

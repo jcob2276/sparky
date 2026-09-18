@@ -67,7 +67,7 @@ export function HistoryTimelineItem({ rec }: { rec: OracleRecommendation }) {
       {/* Content */}
       <div className="flex-1 min-w-0 pb-3">
         <div className="flex items-start justify-between gap-2 mb-0.5">
-          <p className={`text-2xs leading-snug ${expanded ? 'text-text-secondary' : 'text-text-muted line-clamp-1'} font-medium transition-all`}>
+          <p className={`text-2xs leading-snug ${expanded ? 'text-text-secondary' : 'text-text-muted line-clamp-1'} font-medium ui-interactive`}>
             {rec.recommendation_text}
           </p>
           <div className="shrink-0">

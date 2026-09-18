@@ -145,7 +145,7 @@ export default function DailySnapshotCard() {
                 key={s}
                 onClick={() => saveScore(s)}
                 disabled={savingScore}
-                className={`flex h-9 items-center justify-center rounded-xl text-xs font-black transition-all active:scale-90 cursor-pointer disabled:opacity-[var(--opacity-40)] ${
+                className={`flex h-9 items-center justify-center rounded-xl text-xs font-black ui-interactive active:scale-90 cursor-pointer disabled:opacity-[var(--opacity-40)] ${
                   s <= 3
                     ? 'bg-danger/10 text-danger hover:bg-danger/25 border border-danger/20'
                     : s <= 6

@@ -713,8 +713,8 @@
   --notes-editor-font-size: 16px;
   --notes-mobile-radius: 14px;
   --notes-compact-radius: 12px;
-  --workspace-action-transition: transform 140ms ease, filter 140ms ease;
-  --workspace-trigger-transition: transform 140ms ease, background-color 140ms ease;
+  --workspace-action-transition: transform 140ms var(--ease-out), filter 140ms var(--ease-out);
+  --workspace-trigger-transition: transform 140ms var(--ease-out), background-color 140ms var(--ease-out);
   --workspace-tools-fade: workspace-tools-fade 160ms ease-out;
   --workspace-sheet-radius: 28px;
   --workspace-sheet-shadow: 0 24px 80px var(--shadow-deep);
@@ -936,7 +936,7 @@
   /* iOS-style spring easing */
   --spring: cubic-bezier(0.2, 0, 0, 1);
   --ease-out: cubic-bezier(0, 0, 0, 1);
-  --ease-in-out: cubic-bezier(0.42, 0, 0.58, 1);
+  --ease-in-out: cubic-bezier(0.2, 0, 0, 1);
   --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
   --motion-fast: 120ms;
   --motion-medium: 200ms;
@@ -1397,24 +1397,29 @@
 
 /* Slide-in from right (navigating forward) */
 :root[data-slide="right"] .tab-panel--active {
-  will-change: transform, opacity;
-  animation: tab-enter-right 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: tab-enter-right 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Slide-in from left (navigating backward) */
 :root[data-slide="left"] .tab-panel--active {
-  will-change: transform, opacity;
-  animation: tab-enter-left 0.18s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation: tab-enter-left 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes tab-enter-right {
-  from { opacity: 0; transform: translate3d(12px, 0, 0); }
+  from { opacity: 0; transform: translate3d(10px, 0, 0); }
   to   { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 @keyframes tab-enter-left {
-  from { opacity: 0; transform: translate3d(-12px, 0, 0); }
+  from { opacity: 0; transform: translate3d(-10px, 0, 0); }
   to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-slide="right"] .tab-panel--active,
+  :root[data-slide="left"] .tab-panel--active {
+    animation: none;
+  }
 }
 
 /* ── iOS modal slide-up ── */
@@ -1625,8 +1630,8 @@ body {
 @keyframes ios-popover-materialize {
   from {
     opacity: 0;
-    transform: scale(0.92);
-    filter: blur(6px);
+    transform: scale(0.95);
+    filter: blur(2px);
   }
   to {
     opacity: 1;
@@ -1940,8 +1945,6 @@ body {
 
   .ui-floating-scrim {
     background: color-mix(in srgb, black 50%, transparent);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
   }
 
   .ui-floating-layer,
@@ -2323,6 +2326,34 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ─── ui-interactive: replaces transition-all across the codebase ─── */
+/* GPU-only properties only. No layout-triggering transitions. */
+@layer utilities {
+  .ui-interactive {
+    transition:
+      transform var(--motion-fast) var(--ease-out),
+      background-color var(--motion-fast) var(--ease-out),
+      border-color var(--motion-fast) var(--ease-out),
+      box-shadow var(--motion-fast) var(--ease-out),
+      opacity var(--motion-fast) var(--ease-out),
+      color var(--motion-fast) var(--ease-out);
+    touch-action: manipulation;
+  }
+
+  .ui-interactive:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+}
+
+/* touch-action: manipulation on all primitives — eliminates 300ms tap delay */
+.ui-button,
+[data-ui="pressable"],
+[data-ui="control-input"],
+[data-ui="control-select"],
+[data-ui="control-textarea"] {
+  touch-action: manipulation;
 }
 
 @media print {

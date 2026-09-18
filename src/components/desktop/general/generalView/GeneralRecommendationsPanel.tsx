@@ -43,7 +43,7 @@ function RecommendationPendingCard({ rec, todayStr }: { rec: OracleRecommendatio
   const isExpiring = daysLeft <= 2;
 
   return (
-    <Card padding="0.75rem" className="hover:border-primary/20 hover:shadow-sm transition-all duration-[var(--motion-medium)] space-y-2">
+    <Card padding="0.75rem" className="hover:border-primary/20 hover:shadow-sm ui-interactive duration-[var(--motion-medium)] space-y-2">
       <p className="text-xs font-semibold text-text-primary leading-relaxed">{rec.recommendation_text}</p>
       <div className="space-y-1.5">
         {/* Time progress bar */}
@@ -56,7 +56,7 @@ function RecommendationPendingCard({ rec, todayStr }: { rec: OracleRecommendatio
         </div>
         <div className="h-1 w-full rounded-full bg-surface-solid overflow-hidden">
           <div
-            className="h-full rounded-full transition-all"
+            className="h-full rounded-full ui-interactive"
             style={{
               width: `${progress * 100}%`,
               backgroundColor: isExpiring ? 'var(--color-warning)' : 'var(--color-primary)',

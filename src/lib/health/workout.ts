@@ -1,5 +1,4 @@
 import type { Tables } from '../database.types';
-import { computeWeightSuggestion } from './progression';
 
 export type WorkoutSetType = 'working' | 'warmup' | 'drop' | 'failure';
 

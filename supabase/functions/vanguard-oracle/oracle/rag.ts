@@ -1,4 +1,3 @@
-import { getPlanQualitySignal } from "../../_shared/planQuality.ts";
 import { getRecentStrongBehavioralPatterns } from "../../_shared/vanguardPatterns.ts";
 import { fetchMedicalContext, formatMedicalContextBlock, formatFlaggedMedicalSummary } from "../../_shared/medicalContext.ts";
 import { classifyIntentSafe } from "./ragHelpers.ts";
@@ -6,6 +5,7 @@ import { runRagPipeline } from "./ragPipeline.ts";
 import { fetchHealthspanContext } from "./healthspanContext.ts";
 import { computeHealthSummary, formatStrainContext } from "./healthContextFormatters.ts";
 import { fetchDeviceUsageContext, fetchProjectsAndGoalsContext } from "./deviceContext.ts";
+import { fetchDayLoopContext } from "./dayLoopContext.ts";
 export async function retrieveRagContext(
   supabase: any,
   user_id: string,
@@ -15,39 +15,9 @@ export async function retrieveRagContext(
   mode: string,
   cutoff72h: string,
 ) {
-  let recentPlanQuality: any = null;
-  let lastEveningReflection: any = null;
-  if (mode === 'planning' || classifyIntentSafe(current_query || '').includes('recent')) {
-    const { data: recentPlan } = await supabase
-      .from('daily_reconciliations')
-      .select('planning_summary, p2_parsed, date')
-      .eq('user_id', user_id)
-      .not('planning_summary', 'is', null)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (recentPlan?.planning_summary) {
-      const signal = getPlanQualitySignal(recentPlan.planning_summary);
-      recentPlanQuality = {
-        ...signal,
-        target_date: (recentPlan.planning_summary as Record<string, unknown>)?.target_date || null,
-      };
-    }
-    if (recentPlan?.p2_parsed) {
-      const p2 = recentPlan.p2_parsed as Record<string, unknown>;
-      if (Number(p2.parse_confidence) >= 0.4 && (p2.biggest_cost || p2.best_move || (p2.blocker_candidates as unknown[] | undefined)?.length)) {
-        lastEveningReflection = {
-          date: recentPlan.date,
-          biggest_cost: p2.biggest_cost,
-          best_move: p2.best_move,
-          blocker_candidates: (p2.blocker_candidates as unknown[] | undefined)?.slice(0, 3) || [],
-          day_score: p2.day_score,
-          needs_manual_review: !!p2.needs_manual_review,
-        };
-      }
-    }
-  }
+  const dayLoop = await fetchDayLoopContext(supabase, user_id, todayDate);
+  const recentPlanQuality = dayLoop.recentPlanQuality;
+  const lastEveningReflection = dayLoop.lastEveningReflection;
   const intent = classifyIntentSafe(current_query || '');
   const wantsFullBiometrics = intent === 'biometric';
   const wantsMedical = wantsFullBiometrics ||
@@ -57,7 +27,7 @@ export async function retrieveRagContext(
 
   const [
     fundamentRes, preferencesRes, oura14dRes, nutrition14dRes, foodEntries14dRes,
-    strainRes, dailyWinsRes, proposalsRes, medicalContext, deviceUsageContext, projectsGoalsContext,
+    strainRes, proposalsRes, medicalContext, deviceUsageContext, projectsGoalsContext,
   ] = await Promise.all([
     supabase.from('user_fundament')
       .select('identity, philosophy, vision')
@@ -87,11 +57,6 @@ export async function retrieveRagContext(
       .eq('user_id', user_id)
       .gte('date', fourteenDaysAgoDate)
       .order('date', { ascending: false }),
-    supabase.from('daily_wins')
-      .select('task_1, done_1, category_1, task_2, done_2, category_2, task_3, done_3, category_3, task_4, done_4, category_4, task_5, done_5, category_5, importance_score, daily_rpe, day_note, gratitude_entry, mood_score')
-      .eq('user_id', user_id)
-      .eq('date', todayDate)
-      .maybeSingle(),
     supabase.from('system_proposals')
       .select('title, description, category')
       .eq('user_id', user_id)
@@ -108,7 +73,6 @@ export async function retrieveRagContext(
   if (nutrition14dRes.error) console.error('[oracle] daily_nutrition query error:', nutrition14dRes.error);
   if (foodEntries14dRes.error) console.error('[oracle] daily_food_entries query error:', foodEntries14dRes.error);
   if (strainRes.error) console.error('[oracle] daily_strain query error:', strainRes.error);
-  if (dailyWinsRes.error) console.error('[oracle] daily_wins query error:', dailyWinsRes.error);
   if (proposalsRes.error) console.error('[oracle] system_proposals query error:', proposalsRes.error);
 
   const responsePrefs = preferencesRes.data?.map((p: any) => `- ${p.value}`).join('\n') || '';
@@ -270,6 +234,7 @@ export async function retrieveRagContext(
     lastEveningReflection,
     deviceUsageContext,
     projectsGoalsContext,
+    dayLoopContextText: dayLoop.dayLoopContextText,
     fundament: fundamentRes.data || { identity: '', philosophy: '', vision: '' }
   };
 }

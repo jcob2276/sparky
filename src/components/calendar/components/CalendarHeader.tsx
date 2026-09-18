@@ -116,7 +116,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
               onClick={() => handleMovePeriod(-1)}
               aria-label="Poprzedni okres"
               title="Poprzedni okres (← / J)"
-              className="h-8 w-8 rounded-md hover:bg-surface-2 active:scale-90 flex items-center justify-center text-text-muted hover:text-text-primary transition-all"
+              className="h-8 w-8 rounded-md hover:bg-surface-2 active:scale-90 flex items-center justify-center text-text-muted hover:text-text-primary ui-interactive"
             >
               <ChevronLeft size={16} />
             </Pressable>
@@ -124,7 +124,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
               onClick={() => handleMovePeriod(1)}
               aria-label="Następny okres"
               title="Następny okres (→ / K)"
-              className="h-8 w-8 rounded-md hover:bg-surface-2 active:scale-90 flex items-center justify-center text-text-muted hover:text-text-primary transition-all"
+              className="h-8 w-8 rounded-md hover:bg-surface-2 active:scale-90 flex items-center justify-center text-text-muted hover:text-text-primary ui-interactive"
             >
               <ChevronRight size={16} />
             </Pressable>
@@ -157,7 +157,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
             variant="primary"
             size="sm"
             icon={<Plus size={15} />}
-            className={`h-9 px-3.5 rounded-xl font-bold text-xs max-md:hidden bg-primary text-on-accent shadow-xs hover:bg-primary-hover active:scale-95 transition-all ${searchOpen ? 'max-lg:hidden' : ''}`}
+            className={`h-9 px-3.5 rounded-xl font-bold text-xs max-md:hidden bg-primary text-on-accent shadow-xs hover:bg-primary-hover active:scale-95 ui-interactive ${searchOpen ? 'max-lg:hidden' : ''}`}
             aria-label="Dodaj nowe wydarzenie"
             title="Dodaj nowe wydarzenie (C)"
           >

@@ -1,5 +1,4 @@
-import { Play, Sparkles, Plus, Dumbbell, History, ArrowRight } from 'lucide-react';
-import { Card } from '../../ui/Card';
+import { Play, Sparkles, Plus, History } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { WorkoutTemplateSummary } from '../../../lib/health/workoutApi';
 
@@ -35,7 +34,7 @@ export default function TrainingTemplatesSection({
                 <Pressable
                   key={tpl.sessionId}
                   onClick={() => onSelectTemplate(tpl)}
-                  className="rounded-2xl border border-border-custom bg-surface hover:border-primary/50 p-3.5 text-left transition-all active:scale-[0.98] group cursor-pointer space-y-2 shadow-sm"
+                  className="rounded-2xl border border-border-custom bg-surface hover:border-primary/50 p-3.5 text-left ui-interactive active:scale-[0.98] group cursor-pointer space-y-2 shadow-sm"
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-black text-text-primary font-display group-hover:text-primary transition-colors">
@@ -76,7 +75,7 @@ export default function TrainingTemplatesSection({
       <div className="grid grid-cols-2 gap-2.5 pt-1">
         <Pressable
           onClick={onStartBlank}
-          className="rounded-2xl border border-dashed border-border-custom bg-surface/50 hover:bg-surface hover:border-primary/45 p-4 text-center transition-all active:scale-[0.98] cursor-pointer space-y-1.5"
+          className="rounded-2xl border border-dashed border-border-custom bg-surface/50 hover:bg-surface hover:border-primary/45 p-4 text-center ui-interactive active:scale-[0.98] cursor-pointer space-y-1.5"
         >
           <div className="mx-auto w-8 h-8 rounded-xl bg-surface border border-border-custom flex items-center justify-center text-text-secondary">
             <Plus size={16} />
@@ -89,7 +88,7 @@ export default function TrainingTemplatesSection({
 
         <Pressable
           onClick={onOpenNlCapture}
-          className="rounded-2xl border border-primary/30 bg-primary/10 hover:bg-primary/15 p-4 text-center transition-all active:scale-[0.98] cursor-pointer space-y-1.5 shadow-sm"
+          className="rounded-2xl border border-primary/30 bg-primary/10 hover:bg-primary/15 p-4 text-center ui-interactive active:scale-[0.98] cursor-pointer space-y-1.5 shadow-sm"
         >
           <div className="mx-auto w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center">
             <Sparkles size={16} />

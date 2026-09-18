@@ -41,7 +41,7 @@ export function LinksInboxCard({
 
   return (
     <div
-      className={`pocket-card group relative transition-all duration-[var(--motion-medium)] select-none ${
+      className={`pocket-card group relative ui-interactive duration-[var(--motion-medium)] select-none ${
         isSelected
           ? 'bg-primary/10 border-primary/40 ring-1 ring-primary/30'
           : link.status === 'read'
@@ -61,7 +61,7 @@ export function LinksInboxCard({
           {isSelectMode && (
             <Pressable
               onClick={onToggleSelect}
-              className={`absolute top-3 left-3 h-5 w-5 rounded-md border flex items-center justify-center transition-all cursor-pointer backdrop-blur-md ${
+              className={`absolute top-3 left-3 h-5 w-5 rounded-md border flex items-center justify-center ui-interactive cursor-pointer backdrop-blur-md ${
                 isSelected
                   ? 'bg-primary border-primary text-on-accent shadow-xs'
                   : 'border-border-custom bg-background/80 text-transparent'
@@ -80,7 +80,7 @@ export function LinksInboxCard({
             {isSelectMode && !link.thumbnail_url && (
               <Pressable
                 onClick={onToggleSelect}
-                className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center transition-all cursor-pointer ${
+                className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center ui-interactive cursor-pointer ${
                   isSelected
                     ? 'bg-primary border-primary text-on-accent shadow-xs'
                     : 'border-border-custom bg-surface-solid'
@@ -145,7 +145,7 @@ export function LinksInboxCard({
 
           <Pressable
             onClick={onToggleRead}
-            className={`btn-press rounded-full p-1.5 transition-all cursor-pointer ${
+            className={`btn-press rounded-full p-1.5 ui-interactive cursor-pointer ${
               link.status === 'read'
                 ? 'bg-success/15 text-success'
                 : 'text-text-muted/50 hover:text-text-primary hover:bg-surface-solid/60'

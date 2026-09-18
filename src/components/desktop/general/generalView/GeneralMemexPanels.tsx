@@ -92,7 +92,7 @@ function PatternCard({ p }: { p: GeneralViewPattern }) {
   const conf = p.confidence ?? 0;
   const confPct = Math.round(conf * 100);
   return (
-    <Card variant="outline" padding="0.75rem" className="hover:border-primary/20 hover:shadow-sm transition-all duration-[var(--motion-medium)]">
+    <Card variant="outline" padding="0.75rem" className="hover:border-primary/20 hover:shadow-sm ui-interactive duration-[var(--motion-medium)]">
       <div className="flex items-start justify-between gap-2 mb-1.5">
         <span className="text-xs font-bold text-text-primary leading-tight">{p.title || p.pattern_type}</span>
         <span className={`text-2xs px-1.5 py-0.5 rounded-full border font-bold shrink-0 ${p.status === 'active' ? 'bg-success/15 text-success border-success/25' : 'bg-warning/15 text-warning border-warning/25'}`}>
@@ -111,7 +111,7 @@ function PatternCard({ p }: { p: GeneralViewPattern }) {
       </div>
       <div className="mt-2 h-1 w-full rounded-full bg-surface-solid overflow-hidden">
         <div
-          className="h-full rounded-full transition-all"
+          className="h-full rounded-full ui-interactive"
           style={{ width: `${confPct}%`, backgroundColor: conf >= 0.8 ? 'var(--color-success)' : 'var(--color-warning)' }}
         />
       </div>
@@ -129,7 +129,7 @@ interface TierLabel {
 function CuriosityCard({ c, tier }: { c: GeneralViewCuriosity; tier: TierLabel }) {
   const confPct = Math.round((c.confidence_score ?? 0) * 100);
   return (
-    <Card variant="outline" padding="0.75rem" className="hover:border-primary/20 hover:shadow-sm transition-all duration-[var(--motion-medium)]">
+    <Card variant="outline" padding="0.75rem" className="hover:border-primary/20 hover:shadow-sm ui-interactive duration-[var(--motion-medium)]">
       <div className="flex items-start gap-2 mb-1.5">
         <span className={`shrink-0 text-2xs px-1.5 py-0.5 rounded-full border font-bold mt-0.5 ${tier.className}`}>
           {tier.label}

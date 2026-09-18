@@ -125,7 +125,7 @@ export default function VisionJournal({ refreshTrigger = 0 }: { refreshTrigger?:
         <div className="flex bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/60 rounded-xl p-0.5">
           <Pressable
             onClick={() => setViewMode('daily')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-lg text-xs font-bold ui-interactive cursor-pointer ${
               viewMode === 'daily'
                 ? 'bg-primary text-on-accent font-black'
                 : 'text-text-muted hover:text-text-primary'
@@ -135,7 +135,7 @@ export default function VisionJournal({ refreshTrigger = 0 }: { refreshTrigger?:
           </Pressable>
           <Pressable
             onClick={() => setViewMode('monthly')}
-            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-lg text-xs font-bold ui-interactive cursor-pointer ${
               viewMode === 'monthly'
                 ? 'bg-primary text-on-accent font-black'
                 : 'text-text-muted hover:text-text-primary'

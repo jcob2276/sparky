@@ -66,7 +66,7 @@ export default function HealthspanTrajectoryPanel({
               key={value}
               type="button"
               onClick={() => setRange(value)}
-              className={`h-8 rounded-md px-2 text-2xs font-bold transition-all ${
+              className={`h-8 rounded-md px-2 text-2xs font-bold ui-interactive ${
                 range === value ? 'bg-primary/15 text-primary font-black shadow-xs' : 'text-text-muted hover:text-text-primary'
               }`}
             >

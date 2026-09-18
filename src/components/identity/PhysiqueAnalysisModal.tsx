@@ -145,7 +145,7 @@ export default function PhysiqueAnalysisModal({ analysis, photoDate, onClose }: 
           <Pressable
             onClick={onClose}
             variant="ghost"
-            className="px-6 py-2 bg-primary text-on-accent font-display font-bold text-xs uppercase rounded-xl hover:bg-primary-hover transition-all"
+            className="px-6 py-2 bg-primary text-on-accent font-display font-bold text-xs uppercase rounded-xl hover:bg-primary-hover ui-interactive"
           >
             Zamknij
           </Pressable>

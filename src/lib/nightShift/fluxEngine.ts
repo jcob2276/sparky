@@ -3,11 +3,6 @@
  * Calculates color temperature matrices and time schedule intensity.
  */
 
-interface FluxSchedule {
-  startTime: string; // "HH:MM" e.g. "21:00"
-  endTime: string;   // "HH:MM" e.g. "07:00"
-  gradualRampMinutes?: number; // default 30 mins
-}
 
 export interface RGBMatrix {
   r: number;
@@ -107,25 +102,17 @@ export function calculateFluxIntensity(
   const endMins = parseTimeToMinutes(endTime);
   const rampMins = Math.max(0, gradualRampMinutes);
 
-  let isNightWindow = false;
-  if (startMins > endMins) {
-    // Spans midnight (e.g. 21:00 to 07:00)
-    isNightWindow = currentMinutes >= startMins || currentMinutes < endMins;
-  } else {
-    // Same day window (e.g. 20:00 to 23:00)
-    isNightWindow = currentMinutes >= startMins && currentMinutes < endMins;
-  }
+  const isNightWindow = startMins > endMins
+    ? (currentMinutes >= startMins || currentMinutes < endMins)
+    : (currentMinutes >= startMins && currentMinutes < endMins);
 
   if (isNightWindow) {
     // Check if we are in the initial ramping phase right after startTime
-    let minutesIntoPeriod = 0;
-    if (startMins > endMins) {
-      minutesIntoPeriod = currentMinutes >= startMins
-        ? currentMinutes - startMins
-        : (24 * 60 - startMins) + currentMinutes;
-    } else {
-      minutesIntoPeriod = currentMinutes - startMins;
-    }
+    const minutesIntoPeriod = startMins > endMins
+      ? (currentMinutes >= startMins
+          ? currentMinutes - startMins
+          : (24 * 60 - startMins) + currentMinutes)
+      : currentMinutes - startMins;
 
     if (rampMins > 0 && minutesIntoPeriod < rampMins) {
       const intensity = Math.min(1.0, minutesIntoPeriod / rampMins);
@@ -138,12 +125,9 @@ export function calculateFluxIntensity(
   // Check pre-ramp phase before startTime if gradual transition is enabled
   if (rampMins > 0) {
     const preRampStartMins = (startMins - rampMins + 24 * 60) % (24 * 60);
-    let isInPreRamp = false;
-    if (preRampStartMins < startMins) {
-      isInPreRamp = currentMinutes >= preRampStartMins && currentMinutes < startMins;
-    } else {
-      isInPreRamp = currentMinutes >= preRampStartMins || currentMinutes < startMins;
-    }
+    const isInPreRamp = preRampStartMins < startMins
+      ? (currentMinutes >= preRampStartMins && currentMinutes < startMins)
+      : (currentMinutes >= preRampStartMins || currentMinutes < startMins);
 
     if (isInPreRamp) {
       const minutesInPreRamp = currentMinutes >= preRampStartMins

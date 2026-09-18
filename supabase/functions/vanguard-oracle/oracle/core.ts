@@ -110,12 +110,13 @@ export async function runOracleQuery(
     ironRulesContext: rag.ironRulesContext, behavioralPatternsContext: rag.behavioralPatternsContext,
     intent: rag.intent, clarificationsContext: rag.clarificationsContext,
     healthSummaryText: rag.healthSummaryText, strainText: rag.strainText,
-    medicalContextText: rag.medicalContextText, semanticContext: rag.semanticContext,
+    medicalContextText: rag.medicalContextText, healthspanContextText: rag.healthspanContextText, semanticContext: rag.semanticContext,
     graphContext: resolved_claims ? `${resolved_claims}\n\n${rag.graphContext}` : rag.graphContext,
     wikiContext: rag.wikiContext, localTimeString, safeUserConf, safeStateVector,
     circadianContextText, coreMemory,
     deviceUsageContext: rag.deviceUsageContext,
     projectsGoalsContext: rag.projectsGoalsContext,
+    dayLoopContextText: rag.dayLoopContextText,
   });
 
   const compressedHistory = await compressHistoryIfNeeded(history || []);

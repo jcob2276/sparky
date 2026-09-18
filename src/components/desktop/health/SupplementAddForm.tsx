@@ -26,7 +26,7 @@ export default function SupplementAddForm({
 }: SupplementAddFormProps) {
   return (
     <Card padding="1rem">
-    <form onSubmit={onSubmit} className="space-y-3.5 transition-all">
+    <form onSubmit={onSubmit} className="space-y-3.5 ui-interactive">
       <div className="grid grid-cols-3 gap-3">
         <div className="col-span-2 space-y-1">
           <label className="text-2xs font-bold uppercase tracking-wider text-text-muted">Nazwa Suplementu</label>
@@ -65,7 +65,7 @@ export default function SupplementAddForm({
           <label htmlFor="hasCycle" className="text-xs font-bold uppercase tracking-wider text-text-muted select-none cursor-pointer">Określony cykl brania (np. 3 tygodnie)</label>
         </div>
         {hasCycle && (
-          <div className="grid grid-cols-2 gap-3 pl-5 transition-all">
+          <div className="grid grid-cols-2 gap-3 pl-5 ui-interactive">
             <div className="space-y-1">
               <label className="text-2xs font-bold uppercase tracking-wider text-text-muted">Data rozpoczęcia</label>
               <ControlInput type="date" required={hasCycle} value={startDate} onChange={e => setStartDate(e.target.value)}
@@ -86,7 +86,7 @@ export default function SupplementAddForm({
           <label htmlFor="hasReminder" className="text-xs font-bold uppercase tracking-wider text-text-muted select-none cursor-pointer">Ustaw codzienne przypomnienie push/Telegram</label>
         </div>
         {hasReminder && (
-          <div className="pl-5 transition-all">
+          <div className="pl-5 ui-interactive">
             <div className="w-1/2 space-y-1">
               <label className="text-2xs font-bold uppercase tracking-wider text-text-muted">Godzina</label>
               <ControlInput type="time" required={hasReminder} value={reminderTime} onChange={e => setReminderTime(e.target.value)}

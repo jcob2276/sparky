@@ -40,7 +40,7 @@ export default function MealComposerQuick({
             type="button"
             onClick={onRepeatYesterdayMeal}
             disabled={saving}
-            className="shrink-0 flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3.5 py-1.5 text-xs font-black text-primary transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] hover:bg-primary/20 active:scale-95 disabled:opacity-50 shadow-2xs"
+            className="shrink-0 flex items-center gap-1.5 rounded-full border border-primary/40 bg-primary/10 px-3.5 py-1.5 text-xs font-black text-primary ui-interactive duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] hover:bg-primary/20 active:scale-95 disabled:opacity-50 shadow-2xs"
             title={`Powtórz wczorajszy posiłek: ${yesterdayMealSuggestion.name}`}
           >
             <RotateCcw size={13} className="shrink-0" />
@@ -54,7 +54,7 @@ export default function MealComposerQuick({
           type="button"
           onClick={onOpenCopyDay}
           disabled={saving}
-          className="shrink-0 flex items-center gap-1.5 rounded-full border border-border-custom bg-surface-solid/50 px-3.5 py-1.5 text-xs font-bold text-text-secondary transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] hover:border-primary/40 hover:text-text-primary hover:bg-surface-solid/80 active:scale-95 disabled:opacity-50 shadow-2xs"
+          className="shrink-0 flex items-center gap-1.5 rounded-full border border-border-custom bg-surface-solid/50 px-3.5 py-1.5 text-xs font-bold text-text-secondary ui-interactive duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] hover:border-primary/40 hover:text-text-primary hover:bg-surface-solid/80 active:scale-95 disabled:opacity-50 shadow-2xs"
           title="Przeglądaj historię i skopiuj posiłki"
         >
           <Copy size={13} />
@@ -67,7 +67,7 @@ export default function MealComposerQuick({
             type="button"
             disabled={saving}
             onClick={() => onChip(chip)}
-            className="shrink-0 rounded-full border border-border-custom bg-surface-solid/40 px-3 py-1.5 text-left transition-all duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] hover:border-primary/35 active:scale-[0.95] disabled:opacity-50"
+            className="shrink-0 rounded-full border border-border-custom bg-surface-solid/40 px-3 py-1.5 text-left ui-interactive duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] hover:border-primary/35 active:scale-[0.95] disabled:opacity-50"
             title={chip.detail}
           >
             <span className="flex items-center gap-1">

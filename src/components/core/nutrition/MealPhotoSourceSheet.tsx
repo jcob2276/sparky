@@ -47,7 +47,7 @@ export function MealPhotoSourceSheet({
           <Pressable
             type="button"
             onClick={handleCamera}
-            className="touch-manipulation flex items-center gap-3.5 rounded-2xl border border-border-custom bg-surface-solid/70 p-3.5 text-left transition-all duration-[var(--motion-fast)] ease-[var(--ease-out)] hover:border-primary/50 hover:bg-surface-2 active:scale-[0.98]"
+            className="touch-manipulation flex items-center gap-3.5 rounded-2xl border border-border-custom bg-surface-solid/70 p-3.5 text-left ui-interactive duration-[var(--motion-fast)] ease-[var(--ease-out)] hover:border-primary/50 hover:bg-surface-2 active:scale-[0.98]"
           >
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25">
               <Camera size={20} />
@@ -61,7 +61,7 @@ export function MealPhotoSourceSheet({
           <Pressable
             type="button"
             onClick={handleGallery}
-            className="touch-manipulation flex items-center gap-3.5 rounded-2xl border border-border-custom bg-surface-solid/70 p-3.5 text-left transition-all duration-[var(--motion-fast)] ease-[var(--ease-out)] hover:border-primary/50 hover:bg-surface-2 active:scale-[0.98]"
+            className="touch-manipulation flex items-center gap-3.5 rounded-2xl border border-border-custom bg-surface-solid/70 p-3.5 text-left ui-interactive duration-[var(--motion-fast)] ease-[var(--ease-out)] hover:border-primary/50 hover:bg-surface-2 active:scale-[0.98]"
           >
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent/15 text-accent border border-accent/25">
               <ImageIcon size={20} />

@@ -133,11 +133,11 @@ export default function TodoScanTextModal({ userId, sectionId, onClose, onCreate
                 key={idx}
                 type="button"
                 onClick={() => toggleTask(idx)}
-                className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition-all ${
+                className={`flex w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left ui-interactive ${
                   t.selected ? 'border-primary/30 bg-primary/5' : 'border-border-custom/40 bg-surface-solid/20 opacity-[var(--opacity-50)]'
                 }`}
               >
-                <div className={`h-4 w-4 rounded-md border-2 flex items-center justify-center shrink-0 transition-all ${t.selected ? 'bg-primary border-primary' : 'border-border-custom'}`}>
+                <div className={`h-4 w-4 rounded-md border-2 flex items-center justify-center shrink-0 ui-interactive ${t.selected ? 'bg-primary border-primary' : 'border-border-custom'}`}>
                   {t.selected && <Check size={10} className="text-on-accent" strokeWidth={3} />}
                 </div>
                 <span className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">{t.title}</span>

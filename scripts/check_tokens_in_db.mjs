@@ -15,11 +15,11 @@ const key = env.SB_SECRET_KEY || env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(url, key);
 
 async function main() {
-  const { data: vt, error: e1 } = await supabase.from('vanguard_tokens').select('*');
+  const { data: vt, error: _e1 } = await supabase.from('vanguard_tokens').select('*');
   console.log("=== vanguard_tokens ===");
   if (vt) console.log(JSON.stringify(vt, null, 2));
 
-  const { data: us, error: e2 } = await supabase.from('user_settings').select('*');
+  const { data: us, error: _e2 } = await supabase.from('user_settings').select('*');
   console.log("=== user_settings keys ===");
   if (us && us[0]) console.log(Object.keys(us[0]));
 }

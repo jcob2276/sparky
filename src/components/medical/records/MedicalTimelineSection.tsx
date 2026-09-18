@@ -51,7 +51,7 @@ function TimelineCardRow({
   return (
     <article
       onClick={() => onSelectItem(item)}
-      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-border-custom bg-surface-1 p-3.5 sm:p-4 hover:border-primary/40 hover:bg-surface-2 transition-all cursor-pointer"
+      className="group flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-border-custom bg-surface-1 p-3.5 sm:p-4 hover:border-primary/40 hover:bg-surface-2 ui-interactive cursor-pointer"
     >
       <div className="flex items-start gap-3 min-w-0 flex-1">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-105 transition-transform">
@@ -212,7 +212,7 @@ export default function MedicalTimelineSection({
             placeholder="Szukaj w historii…"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-7 pr-7 py-1.5 text-xs rounded-xl border border-border-custom bg-background w-44 sm:w-56 focus:border-primary transition-all"
+            className="pl-7 pr-7 py-1.5 text-xs rounded-xl border border-border-custom bg-background w-44 sm:w-56 focus:border-primary ui-interactive"
           />
           {searchQuery && (
             <Pressable
@@ -235,7 +235,7 @@ export default function MedicalTimelineSection({
           <Pressable
             key={tab.id}
             onClick={() => setActiveFilter(tab.id)}
-            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+            className={`rounded-xl px-3 py-1.5 text-xs font-bold ui-interactive cursor-pointer ${
               activeFilter === tab.id
                 ? 'bg-primary/10 text-primary border border-primary/20'
                 : 'text-text-muted hover:text-text-primary border border-transparent'

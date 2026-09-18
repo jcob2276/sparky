@@ -1,31 +1,5 @@
 import { LIFE_SPHERES, type LifeSphereId } from '../../lib/projects/lifeSpheres';
-
-const SIZE = 280;
-const CENTER = SIZE / 2;
-const RADIUS = 100;
-
-function polarPoint(index: number, radiusFraction: number) {
-  const angle = index * ((2 * Math.PI) / 6) - Math.PI / 2;
-  const r = RADIUS * Math.max(0, Math.min(1, radiusFraction));
-  return { x: CENTER + r * Math.cos(angle), y: CENTER + r * Math.sin(angle) };
-}
-
-export type BudgetBounds = { min: number | null; max: number | null };
-
-export function emptyBudgetMap(): Record<LifeSphereId, BudgetBounds> {
-  return Object.fromEntries(
-    LIFE_SPHERES.map((s) => [s.id, { min: null, max: null }]),
-  ) as Record<LifeSphereId, BudgetBounds>;
-}
-
-export function polygonPoints(values: number[], scale: number) {
-  return values
-    .map((v, i) => {
-      const p = polarPoint(i, scale > 0 ? v / scale : 0);
-      return `${p.x},${p.y}`;
-    })
-    .join(' ');
-}
+import { RADAR_SIZE as SIZE, RADAR_CENTER as CENTER, polarPoint } from './weeklyBalanceRadar';
 
 export function WeeklyBalanceRadarSvg({
   budgetPoints,

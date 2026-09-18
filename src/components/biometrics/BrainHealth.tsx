@@ -71,7 +71,7 @@ export default function BrainHealth() {
                 </div>
                 <div className="w-full h-1 bg-text-primary/10 rounded-full overflow-hidden">
                   <div
-                    className={`h-full transition-all duration-[var(--motion-ambient)] ${row.coverage_percent < 50 ? 'bg-danger' : 'bg-primary'}`}
+                    className={`h-full ui-interactive duration-[var(--motion-ambient)] ${row.coverage_percent < 50 ? 'bg-danger' : 'bg-primary'}`}
                     style={{ width: `${row.coverage_percent}%` }}
                   />
                 </div>

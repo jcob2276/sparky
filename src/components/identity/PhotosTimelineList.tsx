@@ -58,7 +58,7 @@ export default function PhotosTimelineList({
                 <img
                   src={photo.thumbnail_url || photo.image_url}
                   alt={`Zdjęcie sylwetki z ${photo.date ? format(parseISO(photo.date), 'dd.MM.yyyy') : ''}`}
-                  className={`w-full h-full object-cover transition-all ${
+                  className={`w-full h-full object-cover ui-interactive ${
                     !isSelected ? 'grayscale-[0.35]' : ''
                   }`}
                   loading="lazy"

@@ -3,7 +3,7 @@
  * @role Zakładka TYDZIEŃ — Direction (review/KPI/sprint) + NutritionCard.
  * @usedBy Dashboard
  */
-import { Suspense, lazy } from 'react';
+import { Suspense, memo } from 'react';
 import { useSession } from '../../store/useStore';
 import Spinner from '../ui/Spinner';
 import { SlidersHorizontal } from 'lucide-react';
@@ -11,6 +11,7 @@ import HorizonHeader from './HorizonHeader';
 import WeeklyNutritionPulse from './WeeklyNutritionPulse';
 import WeeklyBodyPulse from './WeeklyBodyPulse';
 import WeeklyWinsMap from './WeeklyWinsMap';
+import WeeklyPulseDiagnostic from './WeeklyPulseDiagnostic';
 
 import Direction from '../lifestyle/Direction';
 
@@ -31,7 +32,7 @@ interface Props {
   onOpenActionCenter: () => void;
 }
 
-export function DashboardTydzienTab({ weeklyCalories, nutritionKey, onOpenActionCenter }: Props) {
+export const DashboardTydzienTab = memo(function DashboardTydzienTab({ weeklyCalories, nutritionKey, onOpenActionCenter }: Props) {
   const session = useSession();
   if (!session) return null;
 
@@ -52,6 +53,7 @@ export function DashboardTydzienTab({ weeklyCalories, nutritionKey, onOpenAction
             </span>
           }
         />
+        <WeeklyPulseDiagnostic />
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
           <WeeklyBodyPulse />
           <WeeklyNutritionPulse weeklyCalories={weeklyCalories} refreshSignal={nutritionKey} />
@@ -65,4 +67,4 @@ export function DashboardTydzienTab({ weeklyCalories, nutritionKey, onOpenAction
       </Suspense>
     </div>
   );
-}
+});

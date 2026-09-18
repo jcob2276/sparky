@@ -89,7 +89,7 @@ export function GrowthLibrarySection({ userId, items, onRefresh, onOpenAddModal 
           <Pressable
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`rounded-xl px-3 py-1 text-xs font-bold transition-all ${
+            className={`rounded-xl px-3 py-1 text-xs font-bold ui-interactive ${
               activeTab === tab.id
                 ? 'bg-primary/15 text-primary border border-primary/30'
                 : 'text-text-muted hover:text-text-primary hover:bg-background/40'

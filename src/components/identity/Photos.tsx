@@ -167,7 +167,7 @@ export default function Photos() {
           </p>
         </div>
         <div className="pt-2">
-          <label className="inline-flex items-center gap-2 cursor-pointer bg-primary text-on-accent font-display font-bold text-xs uppercase tracking-wider px-5 py-3 rounded-xl hover:bg-primary-hover transition-all active:scale-95 shadow-md shadow-primary/20 cursor-pointer">
+          <label className="inline-flex items-center gap-2 cursor-pointer bg-primary text-on-accent font-display font-bold text-xs uppercase tracking-wider px-5 py-3 rounded-xl hover:bg-primary-hover ui-interactive active:scale-95 shadow-md shadow-primary/20 cursor-pointer">
             {uploading ? (
               <Spinner size="sm" className="!border-on-accent/30 !border-t-on-accent" />
             ) : (

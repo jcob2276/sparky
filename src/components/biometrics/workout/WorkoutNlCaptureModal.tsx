@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mic, Sparkles, Send } from 'lucide-react';
+import { Mic, Sparkles } from 'lucide-react';
 import Modal from '../../ui/Modal';
 import { Pressable, ControlTextarea } from '../../ui/ControlPrimitives';
 import Spinner from '../../ui/Spinner';
@@ -125,12 +125,12 @@ export default function WorkoutNlCaptureModal({
             onChange={(e) => setText(e.target.value)}
             placeholder="np. Wyciskanie sztangi 80kg x 8, 85kg x 6, potem rozpiętki 16kg 3x12..."
             rows={4}
-            className="w-full bg-surface-solid border border-border-custom rounded-2xl p-3.5 text-xs text-text-primary outline-none focus:border-primary/50 focus:shadow-focus transition-all resize-none"
+            className="w-full bg-surface-solid border border-border-custom rounded-2xl p-3.5 text-xs text-text-primary outline-none focus:border-primary/50 focus:shadow-focus ui-interactive resize-none"
           />
 
           <Pressable
             onClick={handleSpeechToggle}
-            className={`absolute bottom-3 right-3 p-2 rounded-xl transition-all cursor-pointer ${
+            className={`absolute bottom-3 right-3 p-2 rounded-xl ui-interactive cursor-pointer ${
               isListening
                 ? 'bg-danger text-on-accent animate-pulse shadow-md'
                 : 'bg-surface border border-border-custom text-text-secondary hover:text-text-primary'
@@ -164,14 +164,14 @@ export default function WorkoutNlCaptureModal({
         <div className="flex gap-2 pt-2">
           <Pressable
             onClick={onClose}
-            className="flex-1 py-3 rounded-xl border border-border-custom bg-surface text-text-secondary text-xs font-bold hover:text-text-primary transition-all text-center cursor-pointer"
+            className="flex-1 py-3 rounded-xl border border-border-custom bg-surface text-text-secondary text-xs font-bold hover:text-text-primary ui-interactive text-center cursor-pointer"
           >
             Anuluj
           </Pressable>
           <Pressable
             onClick={handleSubmit}
             disabled={isSubmitting || !text.trim()}
-            className="flex-1 py-3 rounded-xl bg-primary text-on-accent text-xs font-black uppercase tracking-wider shadow-md hover:bg-primary-hover disabled:opacity-50 transition-all flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-3 rounded-xl bg-primary text-on-accent text-xs font-black uppercase tracking-wider shadow-md hover:bg-primary-hover disabled:opacity-50 ui-interactive flex items-center justify-center gap-2 cursor-pointer"
           >
             {isSubmitting ? (
               <Spinner size="sm" />

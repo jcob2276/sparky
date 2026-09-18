@@ -62,7 +62,7 @@ export default function HexagonPanel({
             type="button"
             onClick={startEdit}
             disabled={loading}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/25 bg-primary/[0.06] px-3 py-1.5 text-xs font-black uppercase tracking-wider text-primary hover:bg-primary/10 transition-all cursor-pointer disabled:opacity-[var(--opacity-40)]"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-primary/25 bg-primary/[0.06] px-3 py-1.5 text-xs font-black uppercase tracking-wider text-primary hover:bg-primary/10 ui-interactive cursor-pointer disabled:opacity-[var(--opacity-40)]"
             icon={<Pencil size={11} />}
           >
             Edytuj
@@ -102,7 +102,7 @@ export default function HexagonPanel({
                   />
                 ) : (
                   <div className="h-1 rounded-full bg-border-custom overflow-hidden">
-                    <div className="h-full rounded-full bg-primary/70 transition-all" style={{ width: `${val * 10}%` }} />
+                    <div className="h-full rounded-full bg-primary/70 ui-interactive" style={{ width: `${val * 10}%` }} />
                   </div>
                 )}
               </div>
@@ -118,7 +118,7 @@ export default function HexagonPanel({
                 onClick={() => void saveScores()}
                 disabled={saving}
                 loading={saving}
-                className="flex-1 rounded-xl py-2.5 text-xs font-black uppercase tracking-wider hover:bg-primary-hover active:scale-95 transition-all cursor-pointer"
+                className="flex-1 rounded-xl py-2.5 text-xs font-black uppercase tracking-wider hover:bg-primary-hover active:scale-95 ui-interactive cursor-pointer"
               >
                 {saving ? 'Zapisywanie…' : 'Zapisz'}
               </Button>

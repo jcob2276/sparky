@@ -148,7 +148,7 @@ export default function WorkoutLogger({
           <label className="text-2xs font-black uppercase tracking-widest text-text-secondary">Nazwa (opcjonalnie)</label>
           <ControlInput type="text" value={logger.workoutName} onChange={e => logger.setWorkoutName(e.target.value)}
             placeholder="np. Push, Nogi, Plecy/Bicep..."
-            className="w-full bg-surface-solid border border-border-custom rounded-2xl px-4 py-3 text-sm font-bold text-text-primary outline-none focus:bg-surface-solid focus:border-primary/50 focus:shadow-focus transition-all placeholder:text-text-muted/40" />
+            className="w-full bg-surface-solid border border-border-custom rounded-2xl px-4 py-3 text-sm font-bold text-text-primary outline-none focus:bg-surface-solid focus:border-primary/50 focus:shadow-focus ui-interactive placeholder:text-text-muted/40" />
         </div>
 
         <div className="space-y-3">
@@ -177,13 +177,13 @@ export default function WorkoutLogger({
           <div className="flex gap-2">
             <Pressable
               onClick={logger.addExercise}
-              className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-border-custom bg-surface hover:bg-surface-solid hover:border-primary/45 p-3.5 text-xs font-black uppercase tracking-widest text-text-secondary transition-all cursor-pointer"
+              className="flex-1 flex items-center justify-center gap-2 rounded-2xl border border-dashed border-border-custom bg-surface hover:bg-surface-solid hover:border-primary/45 p-3.5 text-xs font-black uppercase tracking-widest text-text-secondary ui-interactive cursor-pointer"
             >
               <Plus size={13} /> Dodaj ćwiczenie
             </Pressable>
             <Pressable
               onClick={() => setShowNlCapture(true)}
-              className="flex items-center justify-center gap-1.5 px-3.5 rounded-2xl border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+              className="flex items-center justify-center gap-1.5 px-3.5 rounded-2xl border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-black uppercase tracking-wider ui-interactive cursor-pointer"
               title="Zrzut notatki z siłowni przez AI"
             >
               <Sparkles size={13} /> AI Zrzut
@@ -195,7 +195,7 @@ export default function WorkoutLogger({
         <div className="space-y-2">
           <label className="text-2xs font-black uppercase tracking-widest text-text-secondary">Notatki</label>
           <ControlTextarea value={logger.notes} onChange={e => logger.setNotes(e.target.value)} placeholder="Jak poszło?..."
-            className="w-full bg-surface-solid border border-border-custom rounded-2xl px-4 py-3 text-sm text-text-primary min-h-[var(--ds-h-100px)] outline-none focus:bg-surface-solid focus:border-primary/50 focus:shadow-focus transition-all resize-none placeholder:text-text-muted/40" />
+            className="w-full bg-surface-solid border border-border-custom rounded-2xl px-4 py-3 text-sm text-text-primary min-h-[var(--ds-h-100px)] outline-none focus:bg-surface-solid focus:border-primary/50 focus:shadow-focus ui-interactive resize-none placeholder:text-text-muted/40" />
         </div>
 
         <div className="space-y-2">
@@ -214,7 +214,7 @@ export default function WorkoutLogger({
               const active = logger.sessionRpe === n ? 'ring-2 ring-primary ring-offset-2 ring-offset-background opacity-[var(--opacity-100)] scale-105 shadow-sm' : 'opacity-[var(--opacity-80)] hover:opacity-[var(--opacity-100)]';
               return (
                 <Pressable key={n} onClick={() => logger.setSessionRpe(logger.sessionRpe === n ? null : n)}
-                  className={`rounded-lg border py-2 text-xs font-black transition-all cursor-pointer ${color} ${active}`}>
+                  className={`rounded-lg border py-2 text-xs font-black ui-interactive cursor-pointer ${color} ${active}`}>
                   {n}
                 </Pressable>
               );

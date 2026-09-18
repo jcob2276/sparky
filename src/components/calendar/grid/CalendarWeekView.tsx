@@ -77,7 +77,7 @@ function CalendarWeekPeriodHeader({
           </span>
         )}
         {showCurrentWeekBtn && (
-          <Pressable onClick={onGoToToday} className="text-2xs font-semibold text-primary px-2 py-0.5 rounded-full bg-primary/10 hover:bg-primary/15 active:scale-[0.96] transition-all shrink-0">
+          <Pressable onClick={onGoToToday} className="text-2xs font-semibold text-primary px-2 py-0.5 rounded-full bg-primary/10 hover:bg-primary/15 active:scale-[0.96] ui-interactive shrink-0">
             Dziś
           </Pressable>
         )}
@@ -131,7 +131,7 @@ function WeekDayHeaderCell({
           <span className="text-3xs font-medium text-text-muted">{forecast.tempMax}°</span>
         </div>
       )}
-      <span className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold transition-all ${isToday ? 'bg-primary text-on-accent shadow-xs' : 'text-text-primary group-hover:bg-surface-solid'}`}>
+      <span className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ui-interactive ${isToday ? 'bg-primary text-on-accent shadow-xs' : 'text-text-primary group-hover:bg-surface-solid'}`}>
         {parseInt(day.split('-')[2])}
       </span>
       {score != null && (

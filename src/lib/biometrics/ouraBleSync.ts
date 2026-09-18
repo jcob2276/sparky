@@ -15,6 +15,8 @@
  * @usedBy App.tsx (setupGlobalBleSync)
  */
 
+import type { QueryClient } from '@tanstack/react-query';
+
 const BLE_MODE_KEY        = 'vanguard_oura_ble_mode_enabled';
 const DEVICE_ADDRESS_KEY  = 'vanguard_oura_device_address';
 const DEVICE_NAME_KEY     = 'vanguard_oura_device_name';
@@ -77,7 +79,7 @@ export function setOuraBleModeEnabled(enabled: boolean): void {
  *
  * Returns a cleanup function (call on unmount / app background).
  */
-export function setupGlobalBleSync(queryClient: any, _userId: string): () => void {
+export function setupGlobalBleSync(queryClient: QueryClient, _userId: string): () => void {
   if (typeof window === 'undefined') return () => {};
   if (!isOuraBleModeEnabled()) {
     console.log('[OuraBleSync] BLE mode is disabled — using Oura Cloud API sync.');
@@ -106,7 +108,7 @@ export function setupGlobalBleSync(queryClient: any, _userId: string): () => voi
     });
 
     return () => {
-      sub.then((s: any) => s.remove()).catch(() => {});
+      sub.then((s: { remove: () => void }) => s.remove()).catch(() => {});
     };
   }).catch(() => {});
 

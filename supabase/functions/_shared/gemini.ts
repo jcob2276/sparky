@@ -3,7 +3,7 @@ import { fetchWithRetry } from "./httpClient.ts";
 import type { OpenAIChatParams, OpenAIChatResult } from "./openai.ts";
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta";
-const DEFAULT_GEMINI_MODEL = "gemini-3-flash-preview";
+const DEFAULT_GEMINI_MODEL = "gemini-3.6-flash";
 const DEFAULT_EMBEDDING_MODEL = "gemini-embedding-001";
 
 interface GeminiPart {
@@ -159,7 +159,11 @@ export async function geminiTranscribe(
 
   const raw = (await res.json()) as GeminiApiResponse;
   if (raw.error) throw new Error(`Gemini transcribe error (${raw.error.code}): ${raw.error.message}`);
-  const transcribed = raw.candidates?.[0]?.content?.parts?.find((p) => typeof p.text === "string")?.text ?? "";
+  const parts = raw.candidates?.[0]?.content?.parts ?? [];
+  const textParts = parts
+    .filter((p) => typeof p.text === "string" && p.text.trim())
+    .map((p) => p.text!.trim());
+  const transcribed = textParts.join(" ");
   return transcribed.trim();
 }
 

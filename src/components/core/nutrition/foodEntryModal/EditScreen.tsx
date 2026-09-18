@@ -78,7 +78,7 @@ export default function EditScreen({
             deleteEntry();
           }}
           loading={editDeleting}
-          className="flex items-center gap-1.5 rounded-2xl border border-danger/30 bg-danger/10 px-4 text-xs font-black text-danger hover:bg-danger/20 active:scale-95 transition-all shadow-none"
+          className="flex items-center gap-1.5 rounded-2xl border border-danger/30 bg-danger/10 px-4 text-xs font-black text-danger hover:bg-danger/20 active:scale-95 ui-interactive shadow-none"
         >
           <Trash2 size={15} />
           <span>Usuń</span>
@@ -91,7 +91,7 @@ export default function EditScreen({
             saveEntryEdit();
           }}
           loading={editSaving}
-          className="flex-1 rounded-2xl py-3 text-sm font-black active:scale-[0.98] transition-all shadow-sm"
+          className="flex-1 rounded-2xl py-3 text-sm font-black active:scale-[0.98] ui-interactive shadow-sm"
         >
           Zapisz zmiany
         </Pressable>

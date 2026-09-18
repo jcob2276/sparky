@@ -44,15 +44,23 @@ Deno.serve(serveJson(async (req, ctx) => {
       throw new Error("TELEGRAM_BOT_TOKEN is not configured");
     }
 
-    // 1. Mark status as 'processing'
-    const { error: startError } = await supabase
+    // 1. Mark status as 'processing' (atomic lease to prevent race condition with cron)
+    const { data: leased, error: startError } = await supabase
       .from("outbound_messages")
       .update({ status: "processing", attempts: (record.attempts || 0) + 1, updated_at: new Date().toISOString() })
-      .eq("id", recordId);
+      .eq("id", recordId)
+      .eq("status", "pending")
+      .select("id")
+      .maybeSingle();
 
     if (startError) {
       console.error(`[outbox-sender] failed to set processing status for ${recordId}:`, startError);
       return { error: startError.message };
+    }
+
+    if (!leased) {
+      console.log(`[outbox-sender] message ${recordId} already claimed or sent by another process, skipping duplicate`);
+      return { ok: true, skipped: true };
     }
 
     console.log(`[outbox-sender] sending outbox item: ${recordId}, method: ${record.payload.method}`);

@@ -31,22 +31,17 @@ function groupEntriesByMeal(entries: TodayFoodEntry[]): Map<MealTypeId, TodayFoo
   return map;
 }
 
-export function useCopyDayModalLogic({
+function useCopyDayDates({
   isOpen,
-  onClose,
   userId,
   targetDate,
-  onCopied,
+  yesterday,
 }: {
   isOpen: boolean;
-  onClose: () => void;
   userId: string;
   targetDate: string;
-  onCopied: () => void;
+  yesterday: string;
 }) {
-  const haptics = useHaptics();
-  const yesterday = useMemo(() => getYesterdayWarsaw(), []);
-
   const datesQuery = useQuery({
     queryKey: ['recent-logged-dates', userId, targetDate],
     queryFn: () => fetchRecentLoggedDates(userId, targetDate, 12),
@@ -65,6 +60,85 @@ export function useCopyDayModalLogic({
     const fetched = datesQuery.data ?? [];
     return fetched.includes(yesterday) ? fetched : [yesterday, ...fetched];
   }, [datesQuery.data, yesterday]);
+
+  return {
+    availableDates,
+    summariesRecord,
+    summariesLoading: summariesQuery.isLoading,
+  };
+}
+
+function useCopyDayEntries({
+  isOpen,
+  userId,
+  selectedDate,
+  deselectedIds,
+}: {
+  isOpen: boolean;
+  userId: string;
+  selectedDate: string;
+  deselectedIds: Set<string>;
+}) {
+  const entriesQuery = useQuery({
+    queryKey: ['day-entries-for-copy', userId, selectedDate],
+    queryFn: () => fetchAllTodayEntries(userId, selectedDate),
+    enabled: isOpen && !!userId && !!selectedDate,
+    placeholderData: (prev) => prev,
+  });
+
+  const entries = useMemo(() => entriesQuery.data ?? [], [entriesQuery.data]);
+  const selectedEntries = useMemo(
+    () => entries.filter((e) => !deselectedIds.has(e.id)),
+    [entries, deselectedIds],
+  );
+  const selectedItemIds = useMemo(
+    () => new Set(selectedEntries.map((e) => e.id)),
+    [selectedEntries],
+  );
+  const selectedKcal = useMemo(
+    () => Math.round(selectedEntries.reduce((sum, e) => sum + (e.calories ?? 0), 0)),
+    [selectedEntries],
+  );
+  const selectedProtein = useMemo(
+    () => Math.round(selectedEntries.reduce((sum, e) => sum + (e.protein ?? 0), 0) * 10) / 10,
+    [selectedEntries],
+  );
+  const groupedEntries = useMemo(() => groupEntriesByMeal(entries), [entries]);
+
+  return {
+    entries,
+    entriesLoading: entriesQuery.isLoading,
+    entriesFetching: entriesQuery.isFetching,
+    selectedEntries,
+    selectedItemIds,
+    selectedKcal,
+    selectedProtein,
+    groupedEntries,
+  };
+}
+
+export function useCopyDayModalLogic({
+  isOpen,
+  onClose,
+  userId,
+  targetDate,
+  onCopied,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  userId: string;
+  targetDate: string;
+  onCopied: () => void;
+}) {
+  const haptics = useHaptics();
+  const yesterday = useMemo(() => getYesterdayWarsaw(), []);
+
+  const { availableDates, summariesRecord, summariesLoading } = useCopyDayDates({
+    isOpen,
+    userId,
+    targetDate,
+    yesterday,
+  });
 
   const [selectedDate, setSelectedDate] = useState<string>(yesterday);
   const [targetMealType, setTargetMealType] = useState<MealTypeId | null>(null);
@@ -87,31 +161,21 @@ export function useCopyDayModalLogic({
     setDeselectedIds(new Set());
   }, []);
 
-  const entriesQuery = useQuery({
-    queryKey: ['day-entries-for-copy', userId, selectedDate],
-    queryFn: () => fetchAllTodayEntries(userId, selectedDate),
-    enabled: isOpen && !!userId && !!selectedDate,
-    placeholderData: (prev) => prev,
+  const {
+    entries,
+    entriesLoading,
+    entriesFetching,
+    selectedEntries,
+    selectedItemIds,
+    selectedKcal,
+    selectedProtein,
+    groupedEntries,
+  } = useCopyDayEntries({
+    isOpen,
+    userId,
+    selectedDate,
+    deselectedIds,
   });
-
-  const entries = useMemo(() => entriesQuery.data ?? [], [entriesQuery.data]);
-  const selectedEntries = useMemo(
-    () => entries.filter((e) => !deselectedIds.has(e.id)),
-    [entries, deselectedIds]
-  );
-  const selectedItemIds = useMemo(
-    () => new Set(selectedEntries.map((e) => e.id)),
-    [selectedEntries]
-  );
-  const selectedKcal = useMemo(
-    () => Math.round(selectedEntries.reduce((sum, e) => sum + (e.calories ?? 0), 0)),
-    [selectedEntries]
-  );
-  const selectedProtein = useMemo(
-    () => Math.round(selectedEntries.reduce((sum, e) => sum + (e.protein ?? 0), 0) * 10) / 10,
-    [selectedEntries]
-  );
-  const groupedEntries = useMemo(() => groupEntriesByMeal(entries), [entries]);
 
 
   const handleToggleItem = useCallback((id: string) => {
@@ -189,10 +253,10 @@ export function useCopyDayModalLogic({
     selectedDate,
     handleSelectDate,
     summariesRecord,
-    summariesLoading: summariesQuery.isLoading,
+    summariesLoading,
     entries,
-    entriesLoading: entriesQuery.isLoading,
-    entriesFetching: entriesQuery.isFetching,
+    entriesLoading,
+    entriesFetching,
     selectedItemIds,
     selectedKcal,
     selectedProtein,

@@ -2,8 +2,7 @@ import Button from '../ui/Button';
 import { ControlTextarea } from '../ui/ControlPrimitives';
 import React from 'react';
 import Spinner from '../ui/Spinner';
-import { Card } from '../ui/Card';
-import { TrendingUp, Zap, RotateCcw, Lightbulb, AlertCircle } from 'lucide-react';
+import { Zap, RotateCcw, Lightbulb, AlertCircle } from 'lucide-react';
 import type { MonthFacts } from '../../lib/growth/monthReview';
 
 type MonthRecap = {
@@ -87,6 +86,108 @@ function ReflectionInput({
   );
 }
 
+function MonthStatsGrid({ monthFacts }: { monthFacts: MonthFacts }) {
+  const pillarLine = [
+    monthFacts.pillarAverages.cialo != null && `C${monthFacts.pillarAverages.cialo}`,
+    monthFacts.pillarAverages.duch != null && `D${monthFacts.pillarAverages.duch}`,
+    monthFacts.pillarAverages.konto != null && `K${monthFacts.pillarAverages.konto}`,
+  ].filter(Boolean).join(' · ');
+
+  const winRate =
+    monthFacts.powerListZ + monthFacts.powerListP > 0
+      ? Math.round((monthFacts.powerListZ / (monthFacts.powerListZ + monthFacts.powerListP)) * 100)
+      : null;
+
+  return (
+    <div className="space-y-2">
+      <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Miesiąc w liczbach</p>
+      <div className="grid grid-cols-3 gap-2">
+        <StatPill
+          value={`${monthFacts.weeksReviewed}/${monthFacts.weeksInMonth}`}
+          label="tyg. z refleksją"
+          highlight={
+            monthFacts.weeksReviewed === 0
+              ? 'bad'
+              : monthFacts.weeksReviewed >= monthFacts.weeksInMonth - 1
+                ? 'good'
+                : 'neutral'
+          }
+        />
+        <StatPill
+          value={String(monthFacts.powerListZ)}
+          label="dni Z"
+          highlight={monthFacts.powerListZ >= 15 ? 'good' : monthFacts.powerListZ <= 3 ? 'bad' : 'neutral'}
+        />
+        <StatPill
+          value={winRate != null ? `${winRate}%` : '—'}
+          label="win rate"
+          highlight={winRate != null && winRate >= 60 ? 'good' : winRate != null && winRate <= 20 ? 'bad' : 'neutral'}
+        />
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <StatPill
+          value={`${monthFacts.powerListDone}/${monthFacts.powerListPlanned}`}
+          label="zadań done"
+        />
+        <StatPill value={String(monthFacts.kpiWeeksLogged)} label="tyg. z KPI" />
+        <StatPill value={String(monthFacts.activeProjectCount)} label="projektów" />
+      </div>
+      {pillarLine && (
+        <p className="text-2xs text-text-muted text-center pt-1">Filary: {pillarLine}</p>
+      )}
+    </div>
+  );
+}
+
+function MonthAiRecapCard({
+  recap,
+  recapLoading,
+}: {
+  recap: MonthRecap | null;
+  recapLoading: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-border-custom/60 bg-surface/40 overflow-hidden">
+      <div className="px-4 pt-4 pb-3 border-b border-border-custom/40">
+        <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Jak wyglądał twój miesiąc</p>
+      </div>
+
+      {recapLoading && (
+        <div className="flex items-center gap-3 px-4 py-5 text-text-muted">
+          <Spinner size="sm" />
+          <span className="text-sm">AI analizuje miesiąc — głosówki, sen, PowerList…</span>
+        </div>
+      )}
+
+      {recap && (
+        <div className="divide-y divide-border-custom/30">
+          <div className="px-4 py-4">
+            <p className="text-sm text-text-primary leading-[1.7]">{recap.narrative}</p>
+          </div>
+
+          {recap.longterm_motif && (
+            <div className="px-4 py-3 bg-warning/[0.05]">
+              <p className="text-2xs font-black uppercase tracking-widest text-warning mb-1.5">Motyw powtarzający się</p>
+              <p className="text-sm font-semibold text-text-primary">{recap.longterm_motif}</p>
+            </div>
+          )}
+
+          {recap.question && (
+            <div className="px-4 py-3">
+              <p className="text-2xs font-black uppercase tracking-widest text-text-muted mb-2">Pytanie otwierające</p>
+              <p className="text-sm text-text-secondary italic leading-relaxed">„{recap.question}”</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {!recapLoading && !recap && (
+        <div className="px-4 py-5 text-sm text-text-muted italic">Podsumowanie AI pojawi się za chwilę…</div>
+      )}
+    </div>
+  );
+}
+
 export default function DirectionMonthlyMode({
   monthFacts,
   recap,
@@ -108,19 +209,8 @@ export default function DirectionMonthlyMode({
     correctionNote.trim().length > 0 &&
     monthTheme.trim().length > 0;
 
-  const pillarLine = [
-    monthFacts.pillarAverages.cialo != null && `C${monthFacts.pillarAverages.cialo}`,
-    monthFacts.pillarAverages.duch != null && `D${monthFacts.pillarAverages.duch}`,
-    monthFacts.pillarAverages.konto != null && `K${monthFacts.pillarAverages.konto}`,
-  ].filter(Boolean).join(' · ');
-
-  const winRate = monthFacts.powerListZ + monthFacts.powerListP > 0
-    ? Math.round((monthFacts.powerListZ / (monthFacts.powerListZ + monthFacts.powerListP)) * 100)
-    : null;
-
   return (
     <div className="space-y-6 pb-6 border-b border-border-custom mb-6">
-
       {/* Header strip */}
       <div className="rounded-2xl border border-warning/20 bg-warning/[0.06] px-4 py-3.5">
         <p className="text-2xs font-black uppercase tracking-[0.2em] text-warning">Przegląd miesiąca</p>
@@ -131,82 +221,10 @@ export default function DirectionMonthlyMode({
       </div>
 
       {/* Stats grid — numbers are the hero */}
-      <div className="space-y-2">
-        <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Miesiąc w liczbach</p>
-        <div className="grid grid-cols-3 gap-2">
-          <StatPill
-            value={`${monthFacts.weeksReviewed}/${monthFacts.weeksInMonth}`}
-            label="tyg. z refleksją"
-            highlight={monthFacts.weeksReviewed === 0 ? 'bad' : monthFacts.weeksReviewed >= monthFacts.weeksInMonth - 1 ? 'good' : 'neutral'}
-          />
-          <StatPill
-            value={String(monthFacts.powerListZ)}
-            label="dni Z"
-            highlight={monthFacts.powerListZ >= 15 ? 'good' : monthFacts.powerListZ <= 3 ? 'bad' : 'neutral'}
-          />
-          <StatPill
-            value={winRate != null ? `${winRate}%` : '—'}
-            label="win rate"
-            highlight={winRate != null && winRate >= 60 ? 'good' : winRate != null && winRate <= 20 ? 'bad' : 'neutral'}
-          />
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          <StatPill
-            value={`${monthFacts.powerListDone}/${monthFacts.powerListPlanned}`}
-            label="zadań done"
-          />
-          <StatPill value={String(monthFacts.kpiWeeksLogged)} label="tyg. z KPI" />
-          <StatPill value={String(monthFacts.activeProjectCount)} label="projektów" />
-        </div>
-        {pillarLine && (
-          <p className="text-2xs text-text-muted text-center pt-1">
-            Filary: {pillarLine}
-          </p>
-        )}
-      </div>
+      <MonthStatsGrid monthFacts={monthFacts} />
 
       {/* AI Narrative — full-width feature block */}
-      <div className="rounded-2xl border border-border-custom/60 bg-surface/40 overflow-hidden">
-        <div className="px-4 pt-4 pb-3 border-b border-border-custom/40">
-          <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Jak wyglądał twój miesiąc</p>
-        </div>
-
-        {recapLoading && (
-          <div className="flex items-center gap-3 px-4 py-5 text-text-muted">
-            <Spinner size="sm" />
-            <span className="text-sm">AI analizuje miesiąc — głosówki, sen, PowerList…</span>
-          </div>
-        )}
-
-        {recap && (
-          <div className="divide-y divide-border-custom/30">
-            {/* Narrative */}
-            <div className="px-4 py-4">
-              <p className="text-sm text-text-primary leading-[1.7]">{recap.narrative}</p>
-            </div>
-
-            {/* Motif — only if present */}
-            {recap.longterm_motif && (
-              <div className="px-4 py-3 bg-warning/[0.05]">
-                <p className="text-2xs font-black uppercase tracking-widest text-warning mb-1.5">Motyw powtarzający się</p>
-                <p className="text-sm font-semibold text-text-primary">{recap.longterm_motif}</p>
-              </div>
-            )}
-
-            {/* Question */}
-            {recap.question && (
-              <div className="px-4 py-3">
-                <p className="text-2xs font-black uppercase tracking-widest text-text-muted mb-2">Pytanie otwierające</p>
-                <p className="text-sm text-text-secondary italic leading-relaxed">„{recap.question}”</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {!recapLoading && !recap && (
-          <div className="px-4 py-5 text-sm text-text-muted italic">Podsumowanie AI pojawi się za chwilę…</div>
-        )}
-      </div>
+      <MonthAiRecapCard recap={recap} recapLoading={recapLoading} />
 
       {/* Reflection questions */}
       <div className="space-y-5">
