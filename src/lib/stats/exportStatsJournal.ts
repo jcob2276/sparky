@@ -10,6 +10,13 @@ interface RenderJournalParams {
   includeHabits: boolean;
 }
 
+function cleanTranscript(raw: string): string {
+  return raw
+    .replace(/^Transkrypcja nagrania:\s*/i, '')
+    .replace(/^Oto dokładna transkrypcja Twojego nagrania:\s*/i, '')
+    .trim();
+}
+
 export function renderJournalAndHabits({
   dayJournal,
   dayTelegramLogs,
@@ -53,16 +60,17 @@ export function renderJournalAndHabits({
   }
 
   if (includeJournal && dayTelegramLogs.length > 0) {
-    md += `#### Logi z Telegrama\n`;
+    md += `#### 🎙️ Strumień Myśli & Logi z Telegrama\n`;
     dayTelegramLogs.forEach((log) => {
       const meta = log.metadata as Record<string, unknown> | null;
       const mode = meta?.mode ? ` [${meta.mode}]` : '';
-      const content = (log.content || '').trim().replace(/\n/g, '\n  ');
-      if (content) {
-        md += `- **${toWarsawTime(log.created_at ?? '')}**${mode}: ${content}\n`;
+      const cleaned = cleanTranscript(log.content || '');
+      if (cleaned) {
+        md += `- **${toWarsawTime(log.created_at ?? '')}**${mode}:\n`;
+        const quoted = cleaned.split('\n').map((line) => `  > ${line}`).join('\n');
+        md += `${quoted}\n\n`;
       }
     });
-    md += `\n`;
   }
 
   if (includeHabits && dayHabitLogs?.length > 0) {

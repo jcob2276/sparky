@@ -60,10 +60,21 @@ export async function fetchTriageSuggestions(
   userId: string
 ): Promise<TriageSuggestion[]> {
   const data = await invokeEdge('vanguard-keep-triage', {
-    body: { user_id: userId },
+    body: { userId },
     signal: AbortSignal.timeout(TIMEOUTS.default),
   }) as KeepTriageResponse;
   return data?.suggestions || [];
+}
+
+export async function summarizeLinkWithSpheres(
+  userId: string,
+  linkId: string
+): Promise<TriageSuggestion | null> {
+  const data = await invokeEdge('vanguard-keep-triage', {
+    body: { userId, linkId },
+    signal: AbortSignal.timeout(TIMEOUTS.default),
+  }) as KeepTriageResponse;
+  return data?.suggestions?.[0] || null;
 }
 
 export async function updateLinkTriage(

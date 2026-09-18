@@ -163,7 +163,6 @@ export default function CalendarView({
       <CalendarShell
         sidebarCollapsed={calData.sidebarCollapsed}
         onToggleCollapse={calData.toggleSidebar}
-        onNavigateTo={onNavigateTo}
         onQuickCreate={() => calData.setQuickCreate({ date: calData.selectedDay, startMin: 540 })}
         toastMessage={calData.toastMessage}
         sidebar={

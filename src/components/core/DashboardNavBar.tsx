@@ -114,18 +114,17 @@ export function DashboardNavBar({
             haptics.selection();
             onFastCaptureToggle();
           }}
-          className="relative z-10 flex flex-1 flex-col items-center justify-center gap-0.5 rounded-full py-1.5 px-0 min-w-0 h-auto transition-[transform,color] duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-95 hover:bg-transparent text-primary"
+          className="relative z-10 flex flex-1 flex-col items-center justify-center rounded-full py-1 px-0 min-w-0 h-auto transition-[transform,color] duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-90 hover:bg-transparent text-primary"
         >
-          <div className="relative flex h-6 w-6 items-center justify-center rounded-full bg-primary/15 dark:bg-primary/25 text-primary">
+          <div className="relative flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 dark:bg-primary/30 text-primary shadow-xs border border-primary/25">
             <Plus
-              size={16}
-              strokeWidth={3}
+              size={18}
+              strokeWidth={2.6}
               className={`text-primary transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)] ${
                 fastCaptureActive ? 'rotate-45 scale-110' : 'scale-100 rotate-0'
               }`}
             />
           </div>
-          <span className="text-3xs font-bold tracking-tight text-primary">Dodaj</span>
         </Button>
       )}
     </nav>

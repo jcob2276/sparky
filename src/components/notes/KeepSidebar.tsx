@@ -33,7 +33,7 @@ interface KeepSidebarProps {
   setSearch: (v: string) => void;
   activeFolderId: string | null;
   setActiveFolderId: (id: string | null) => void;
-  onCreateFolder: (name: string, parentId?: string | null) => Promise<void>;
+  onCreateFolder: (name: string, parentId?: string | null) => Promise<unknown>;
   onRenameFolder: (id: string, name: string) => Promise<void>;
   onMoveFolder: (id: string, parentId: string | null) => Promise<void>;
   onReorderFolder: (id: string, direction: 'up' | 'down') => Promise<void>;

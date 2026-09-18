@@ -1,5 +1,5 @@
 import { Pressable } from '../ui/ControlPrimitives';
-import { Bell, Kanban, LayoutGrid, ListTodo, PanelLeft } from 'lucide-react';
+import { Bell, Kanban, LayoutGrid, ListTodo, PanelLeft, Plus } from 'lucide-react';
 import { WorkspaceHeader } from '../shared/WorkspaceHeader';
 import { useTodoContext } from './context/TodoContext';
 
@@ -19,6 +19,7 @@ interface TodoHeaderProps {
   setSidebarCollapsed: (value: boolean) => void;
   isSelectMode?: boolean;
   onToggleSelectMode?: () => void;
+  onQuickAdd?: () => void;
 }
 
 export default function TodoHeader({
@@ -29,6 +30,7 @@ export default function TodoHeader({
   setSidebarCollapsed,
   isSelectMode,
   onToggleSelectMode,
+  onQuickAdd,
 }: TodoHeaderProps) {
   const { push, pushSubscribed, setPushSubscribed } = useTodoContext();
 
@@ -44,6 +46,19 @@ export default function TodoHeader({
         )}
         actions={
           <div className="flex items-center gap-2">
+            {onQuickAdd && (
+              <Pressable
+                variant="primary"
+                size="sm"
+                onClick={onQuickAdd}
+                aria-label="Nowe zadanie"
+                className="text-xs font-bold"
+              >
+                <Plus size={15} />
+                <span className="hidden sm:inline">Nowe zadanie</span>
+              </Pressable>
+            )}
+
             {onToggleSelectMode && (
               <Pressable
                 variant={isSelectMode ? 'primary' : 'ghost'}

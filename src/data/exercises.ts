@@ -28,6 +28,7 @@ export const EXERCISES = [
   { name: 'Odwrotne rozpiętki', tags: ['barki'] },
   // Barki
   { name: 'OHP sztangą', tags: ['barki', 'triceps'] },
+  { name: 'Wznosy bokiem', tags: ['barki'] },
   { name: 'Wznosy bokiem dropset', tags: ['barki'] },
   { name: 'Leaning cable lateral raise', tags: ['barki'] },
   // Biceps

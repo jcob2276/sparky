@@ -19,7 +19,6 @@ import TodoContextMenuConnected from './TodoContextMenuConnected';
 import TodoHeader, { type TodoViewMode } from './TodoHeader';
 import TodoSearchBar from './TodoSearchBar';
 import TodoListView from './TodoListView';
-import WorkspaceNavigation from '../shared/WorkspaceNavigation';
 import { useTodoViewSwipe } from './hooks/useTodoViewSwipe';
 import { useTodoBulkActions } from './hooks/useTodoBulkActions';
 import { TodoBulkActionBar } from './TodoBulkActionBar';
@@ -175,6 +174,12 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
             setIsSelectMode(!isSelectMode);
             if (isSelectMode) setSelectedIds(new Set());
           }}
+          onQuickAdd={() => {
+            setTodoView('lista');
+            setNavDest('overview');
+            setActiveFilterSection(null);
+            openQuickAdd('today');
+          }}
         />
 
         <TodoSearchBar />
@@ -228,19 +233,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
       {/* Desktop: today's calendar events panel */}
       <TodayEventsPanel userId={userId} today={today} />
 
-      {/* Mobile bottom nav */}
-      <WorkspaceNavigation
-        active="todo"
-        orientation="horizontal"
-        onNavigate={onNavigateTo}
-        primaryAction={{ label: 'Zadanie', onClick: () => {
-          setTodoView('lista');
-          setNavDest('overview');
-          setActiveFilterSection(null);
-          openQuickAdd('today');
-        } }}
-        className="md:hidden fixed bottom-0 inset-x-0 z-[var(--z-overlay)] border-t border-border-custom bg-background/95 backdrop-blur-[var(--blur-xl)]"
-      />
+
 
       {scanTextOpen && (
         <TodoScanTextModal

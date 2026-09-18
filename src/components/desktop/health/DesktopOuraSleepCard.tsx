@@ -96,8 +96,8 @@ export default function DesktopOuraSleepCard({ userId }: { userId: string }) {
     ? Math.round(Number(oura.rem_sleep_hours) * 60)
     : null;
 
-  const awakeMins = enhanced?.awake_time_minutes ?? null;
-  const latencyMins = enhanced?.sleep_latency_minutes ?? null;
+  const awakeMins = enhanced?.awake_time_minutes != null ? Math.round(Number(enhanced.awake_time_minutes)) : null;
+  const latencyMins = enhanced?.sleep_latency_minutes != null ? Math.round(Number(enhanced.sleep_latency_minutes)) : null;
   const lowestHr = enhanced?.sleep_lowest_heart_rate ?? oura?.rhr_avg ?? null;
   const hrvAvg = enhanced?.sleep_average_hrv ?? oura?.hrv_avg ?? null;
   const sleepScore = enhanced?.sleep_score ?? oura?.sleep_score ?? null;

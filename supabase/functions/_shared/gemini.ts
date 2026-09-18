@@ -43,7 +43,7 @@ export async function geminiChat(params: OpenAIChatParams): Promise<OpenAIChatRe
   const apiKey = params.apiKey || Deno.env.get("GEMINI_API_KEY") || "";
   if (!apiKey) throw new Error("[geminiChat] Missing GEMINI_API_KEY");
 
-  const model = DEFAULT_GEMINI_MODEL;
+  const model = (params.model && params.model.startsWith("gemini-")) ? params.model : DEFAULT_GEMINI_MODEL;
   let systemInstructionText = "";
   const contents: GeminiContent[] = [];
 
@@ -63,8 +63,25 @@ export async function geminiChat(params: OpenAIChatParams): Promise<OpenAIChatRe
         if (part.type === "text" && part.text) {
           parts.push({ text: part.text });
         } else if (part.type === "image_url" && part.image_url?.url) {
-          const match = part.image_url.url.match(/^data:([^;]+);base64,(.+)$/);
-          if (match) parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+          const url = part.image_url.url;
+          const match = url.match(/^data:([^;]+);base64,(.+)$/);
+          if (match) {
+            parts.push({ inlineData: { mimeType: match[1], data: match[2] } });
+          } else if (url.startsWith("http://") || url.startsWith("https://")) {
+            try {
+              const imgRes = await fetchWithRetry(url, { method: "GET" }, { timeoutMs: 20000, retries: 1, logTag: "gemini.fetchImage" });
+              if (imgRes.ok) {
+                const mimeType = imgRes.headers.get("content-type")?.split(";")[0]?.trim() || "image/jpeg";
+                const arrayBuffer = await imgRes.arrayBuffer();
+                const base64Data = uint8ToBase64(new Uint8Array(arrayBuffer));
+                parts.push({ inlineData: { mimeType, data: base64Data } });
+              } else {
+                console.warn(`[geminiChat] Failed to fetch image from URL (${imgRes.status}): ${url.slice(0, 100)}`);
+              }
+            } catch (fetchErr) {
+              console.warn("[geminiChat] Error downloading image:", fetchErr);
+            }
+          }
         }
       }
     }
@@ -78,6 +95,12 @@ export async function geminiChat(params: OpenAIChatParams): Promise<OpenAIChatRe
       ...(params.maxTokens ? { maxOutputTokens: params.maxTokens } : {}),
       ...(params.responseFormat?.type === "json_object" ? { responseMimeType: "application/json" } : {}),
     },
+    safetySettings: [
+      { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+      { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+      { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+      { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" },
+    ],
   };
   if (systemInstructionText.trim()) {
     reqBody.systemInstruction = { parts: [{ text: systemInstructionText }] };

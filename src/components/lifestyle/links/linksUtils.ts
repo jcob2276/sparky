@@ -2,9 +2,12 @@ import type { SavedLink } from '../../../lib/linksApi';
 
 export type LinkQuickFilter = 'all' | 'unread' | 'read' | 'videos' | 'with_notes' | 'with_takeaways';
 
-export const CATEGORIES = ['Kariera', 'Zdrowie', 'Technologia', 'Biznes', 'Inne'] as const;
+export const CATEGORIES = ['Ciało', 'Duch', 'Konto', 'Kariera', 'Zdrowie', 'Technologia', 'Biznes', 'Inne'] as const;
 
 export const CATEGORY_COLORS: Record<string, { pill: string; border: string }> = {
+  Ciało:       { pill: 'bg-success/15 text-success', border: 'border-success/40' },
+  Duch:        { pill: 'bg-info/15 text-info', border: 'border-info/40' },
+  Konto:       { pill: 'bg-warning/15 text-warning', border: 'border-warning/40' },
   Kariera:     { pill: 'bg-primary/10 text-primary', border: 'border-primary/30' },
   Zdrowie:     { pill: 'bg-success/10 text-success', border: 'border-success/30' },
   Technologia: { pill: 'bg-info/10 text-info', border: 'border-info/30' },
@@ -13,6 +16,9 @@ export const CATEGORY_COLORS: Record<string, { pill: string; border: string }> =
 };
 
 export const CATEGORY_DOTS: Record<string, string> = {
+  Ciało: 'var(--color-success)',
+  Duch: 'var(--color-info)',
+  Konto: 'var(--color-warning)',
   Kariera: 'var(--color-primary)',
   Zdrowie: 'var(--color-success)',
   Technologia: 'var(--color-info)',

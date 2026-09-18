@@ -275,7 +275,7 @@ export const ALLOWED_OUTCOMES = new Set([
   'sleep_hrv', 'hrv', 'sleep_lowest_hr', 'rhr', 'readiness', 'recovery',
   'plan_done_pct', 'execution_score', 'day_score', 'mood_score', 'weight_kg',
   'workout_strain', 'strain', 'cns_load',
-  'screen_time_min', 'phone_drift', 'dopamine_load_index'
+  'screen_time_min', 'phone_drift', 'dopamine_load_index', 'friction_count'
 ]);
 
 export const ALLOWED_INPUTS = new Set([
@@ -283,6 +283,7 @@ export const ALLOWED_INPUTS = new Set([
   'bedtime_hour', 'calories', 'calories_late', 'last_meal_hour', 'food_quality',
   'dinner_hour', 'dinner_calories', 'dinner_carbs', 'dinner_fat', 'dinner_to_bed_gap_h',
   'insulin_load', 'steps', 'workout_strain', 'strain', 'screen_time_min',
+  'night_screen_min', 'planned_blocks_count', 'gym_tonnage_mg', 'sauna_min',
   'fragmentation_index', 'phone_drift', 'phone_active_h', 'creatine_taken',
   'omega3_taken', 'lions_mane_taken', 'd3_taken', 'habit_count'
 ]);
@@ -291,7 +292,7 @@ export const REDUNDANT_GROUPS = [
   ['sleep_h', 'sleep_score', 'sleep_efficiency', 'deep_sleep_h', 'rem_sleep_h', 'light_sleep_h', 'sleep_latency', 'sleep_hr', 'sleep_hrv', 'sleep_lowest_hr', 'restless_periods', 'temp_deviation'],
   ['readiness', 'recovery'],
   ['calories', 'protein', 'carbs', 'fat', 'sugar', 'fiber', 'insulin_load'],
-  ['workout_strain', 'strain', 'cns_load', 'leg_load', 'cardio', 'strength', 'workout_hr_avg', 'workout_hr_peak'],
+  ['steps', 'workout_strain', 'strain', 'cns_load', 'leg_load', 'cardio', 'strength', 'workout_hr_avg', 'workout_hr_peak'],
   ['screen_time_min', 'fragmentation_index', 'phone_active_h', 'dopamine_load_index'],
   ['dinner_calories', 'dinner_carbs', 'dinner_fat']
 ];
@@ -481,6 +482,21 @@ export function classifyImpactFactors(results: CorrelationResult[]): ImpactFacto
   const filtered = results.filter(r => {
     if (!isAllowedInput(r.x_metric) || !ALLOWED_OUTCOMES.has(r.y_metric)) return false;
     if (areMetricsRedundant(r.x_metric, r.y_metric)) return false;
+
+    // Jev-curated statistical hygiene filters:
+    // 1. Food quality negatively predicting plan execution (spurious artifact)
+    if (r.x_metric === 'food_quality' && (r.y_metric === 'plan_done_pct' || r.y_metric === 'execution_score') && r.r < 0) {
+      return false;
+    }
+    // 2. Bedtime hour linearly predicting sleep score (circular/modulo hour artifact)
+    if (r.x_metric === 'bedtime_hour' && r.y_metric === 'sleep_score' && r.r > 0) {
+      return false;
+    }
+    // 3. Late night calories claiming to improve plan execution (working late confounder)
+    if (r.x_metric === 'calories_late' && (r.y_metric === 'execution_score' || r.y_metric === 'plan_done_pct') && r.r > 0) {
+      return false;
+    }
+
     return true;
   });
 

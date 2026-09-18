@@ -1,106 +1,20 @@
+import { useState } from 'react';
 import Modal from '../../ui/Modal';
 import { Pressable, ControlTextarea } from '../../ui/ControlPrimitives';
+import Button from '../../ui/Button';
 import {
   BookOpen,
-  Check,
-  Copy,
-  ExternalLink,
   ListTodo,
   PenLine,
-  Share2,
   Sparkles,
   StickyNote,
 } from 'lucide-react';
 import type { SavedLink } from '../../../lib/linksApi';
-import { formatDomainName, estimateReadingTime, getYouTubeId } from './linksUtils';
+import { estimateReadingTime, getYouTubeId } from './linksUtils';
+import { ReaderHeader } from './ReaderHeader';
+import { useUserId } from '../../../store/useStore';
+import { summarizeLinkWithSpheres } from '../../../lib/linksApi';
 import { notify } from '../../../lib/notify';
-
-interface ReaderHeaderProps {
-  link: SavedLink;
-  readingTime: number;
-  onToggleRead: (id: string, status: 'unread' | 'read') => void;
-}
-
-function ReaderHeader({ link, readingTime, onToggleRead }: ReaderHeaderProps) {
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(link.url);
-      notify('Skopiowano link do schowka', 'success');
-    } catch {
-      notify('Nie udało się skopiować linku', 'error');
-    }
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: link.title, url: link.url });
-      } catch {
-        // Ignored if user dismissed
-      }
-    } else {
-      void handleCopyLink();
-    }
-  };
-
-  return (
-    <div className="space-y-1.5 border-b border-border-custom/30 pb-3">
-      <div className="flex items-center gap-2 text-xs text-text-muted">
-        <span className="font-semibold text-primary">{formatDomainName(link.domain)}</span>
-        <span>·</span>
-        <span>~{readingTime} min czytania</span>
-        <span>·</span>
-        <span>{link.category}</span>
-      </div>
-
-      <h2 className="text-xl font-bold leading-snug text-text-primary tracking-tight">
-        {link.title}
-      </h2>
-
-      <div className="flex items-center gap-2 pt-1">
-        <Pressable
-          variant={link.status === 'read' ? 'tonal' : 'primary'}
-          size="sm"
-          onClick={() => onToggleRead(link.id, link.status)}
-          className="btn-press text-xs font-semibold"
-        >
-          <Check size={13} />
-          <span>{link.status === 'read' ? 'Przeczytane' : 'Oznacz jako przeczytane'}</span>
-        </Pressable>
-
-        <Pressable
-          variant="outline"
-          size="sm"
-          onClick={handleCopyLink}
-          className="btn-press text-xs"
-          title="Kopiuj link"
-        >
-          <Copy size={13} />
-        </Pressable>
-
-        <Pressable
-          variant="outline"
-          size="sm"
-          onClick={handleShare}
-          className="btn-press text-xs"
-          title="Udostępnij"
-        >
-          <Share2 size={13} />
-        </Pressable>
-
-        <a
-          href={link.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-xl border border-border-custom bg-surface-solid/50 text-text-primary hover:bg-surface-solid transition-colors"
-        >
-          <ExternalLink size={13} />
-          <span>Oryginał</span>
-        </a>
-      </div>
-    </div>
-  );
-}
 
 interface ReaderBodyProps {
   link: SavedLink;
@@ -108,6 +22,8 @@ interface ReaderBodyProps {
   onSaveNotes: (id: string, notes: string) => void;
   onConvertToTodo: (link: SavedLink) => void;
   onConvertToNote: (link: SavedLink) => void;
+  onGenerateAi: () => void;
+  isAnalyzing: boolean;
 }
 
 function ReaderBody({
@@ -116,6 +32,8 @@ function ReaderBody({
   onSaveNotes,
   onConvertToTodo,
   onConvertToNote,
+  onGenerateAi,
+  isAnalyzing,
 }: ReaderBodyProps) {
   return (
     <>
@@ -137,24 +55,58 @@ function ReaderBody({
         </div>
       )}
 
-      {link.takeaways && link.takeaways.length > 0 && (
-        <div className="space-y-2 rounded-2xl border border-primary/20 bg-primary/5 p-4">
-          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-primary">
+      {/* 3 Spheres AI Synthesis Section */}
+      <div className="space-y-2.5 rounded-2xl border border-primary/20 bg-primary/5 p-4">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-primary">
             <Sparkles size={14} />
-            <span>Główne wnioski AI</span>
+            <span>Wnioski AI · 3 Sfery</span>
           </div>
-          <ul className="space-y-2">
+          {link.category && (
+            <span className={`px-2.5 py-0.5 rounded-full text-3xs font-black uppercase tracking-wider border ${
+              link.category === 'Ciało'
+                ? 'bg-success/15 text-success border-success/30'
+                : link.category === 'Duch'
+                ? 'bg-info/15 text-info border-info/30'
+                : link.category === 'Konto'
+                ? 'bg-warning/15 text-warning border-warning/30'
+                : 'bg-primary/10 text-primary border-primary/20'
+            }`}>
+              {link.category}
+            </span>
+          )}
+        </div>
+
+        {link.takeaways && link.takeaways.length > 0 ? (
+          <ul className="space-y-2 pt-1">
             {link.takeaways.map((t, idx) => (
-              <li key={idx} className="flex items-start gap-2.5 text-xs leading-relaxed text-text-primary">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-3xs font-black text-primary">
+              <li key={idx} className="flex items-start gap-2 text-xs leading-relaxed text-text-primary">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-3xs font-black text-primary mt-0.5">
                   {idx + 1}
                 </span>
                 <span>{t}</span>
               </li>
             ))}
           </ul>
+        ) : (
+          <p className="text-xs text-text-muted">
+            Brak przetworzonych wniosków pod kątem Ciała, Ducha i Konta.
+          </p>
+        )}
+
+        <div className="pt-2">
+          <Button
+            variant={link.takeaways?.length ? 'outline' : 'primary'}
+            size="sm"
+            onClick={onGenerateAi}
+            loading={isAnalyzing}
+            icon={!isAnalyzing ? <Sparkles size={13} /> : undefined}
+            className="w-full text-2xs font-black uppercase tracking-wider"
+          >
+            {isAnalyzing ? 'Analizowanie materiału...' : link.takeaways?.length ? 'Przelicz wnioski (3 Sfery)' : 'Wygeneruj wnioski AI (3 Sfery)'}
+          </Button>
         </div>
-      )}
+      </div>
 
       <div className="flex items-center gap-2 pt-1 border-t border-border-custom/20">
         <Pressable
@@ -200,6 +152,7 @@ interface LinkReaderModalProps {
   onSaveNotes: (id: string, notes: string) => void;
   onConvertToTodo: (link: SavedLink) => void;
   onConvertToNote: (link: SavedLink) => void;
+  onUpdateLink?: (id: string, updates: Partial<SavedLink>) => void;
 }
 
 export function LinkReaderModal({
@@ -209,11 +162,36 @@ export function LinkReaderModal({
   onSaveNotes,
   onConvertToTodo,
   onConvertToNote,
+  onUpdateLink,
 }: LinkReaderModalProps) {
+  const userId = useUserId();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
   if (!link) return null;
 
   const readingTime = estimateReadingTime(link.description + ' ' + (link.takeaways || []).join(' '));
   const youtubeId = getYouTubeId(link.url);
+
+  const handleGenerateAi = async () => {
+    if (!userId || !link) return;
+    setIsAnalyzing(true);
+    try {
+      const res = await summarizeLinkWithSpheres(userId, link.id);
+      if (res) {
+        onUpdateLink?.(link.id, {
+          category: res.category,
+          takeaways: res.takeaways,
+        });
+        notify(`Wygenerowano wnioski dla sfery: ${res.category}`, 'success');
+      } else {
+        notify('Nie udało się wygenerować wniosków', 'error');
+      }
+    } catch {
+      notify('Błąd podczas generowania wniosków AI', 'error');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   return (
     <Modal
@@ -238,6 +216,8 @@ export function LinkReaderModal({
           onSaveNotes={onSaveNotes}
           onConvertToTodo={onConvertToTodo}
           onConvertToNote={onConvertToNote}
+          onGenerateAi={handleGenerateAi}
+          isAnalyzing={isAnalyzing}
         />
       </div>
     </Modal>

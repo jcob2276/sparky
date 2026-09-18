@@ -65,9 +65,10 @@ interface HistoryStripProps {
   isReverse: boolean;
   isExpired: boolean;
   onRenewCycle?: (days: number) => void;
+  onToggleDate?: (date: string) => void;
 }
 
-function History7dStrip({ last7Days, today, sup, isLogged, isReverse, isExpired, onRenewCycle }: HistoryStripProps) {
+function History7dStrip({ last7Days, today, sup, isLogged, isReverse, isExpired, onRenewCycle, onToggleDate }: HistoryStripProps) {
   return (
     <div className="border-t border-border-custom/40 pt-2 flex items-center justify-between gap-2 text-2xs">
       <div className="flex items-center gap-1.5 text-text-muted">
@@ -80,9 +81,11 @@ function History7dStrip({ last7Days, today, sup, isLogged, isReverse, isExpired,
             const taken = isReverse ? (inCycle ? !logged : false) : logged;
             const dayNum = date.split('-')[2];
             return (
-              <div
+              <Pressable
                 key={date}
-                className={`w-4 h-4 rounded flex items-center justify-center text-3xs font-mono font-bold ui-interactive ${
+                type="button"
+                onClick={() => onToggleDate?.(date)}
+                className={`w-5 h-5 rounded flex items-center justify-center text-3xs font-mono font-bold ui-interactive cursor-pointer hover:scale-110 active:scale-95 transition-transform ${
                   taken
                     ? 'bg-success/20 text-success border border-success/40'
                     : !inCycle
@@ -91,10 +94,10 @@ function History7dStrip({ last7Days, today, sup, isLogged, isReverse, isExpired,
                     ? 'bg-primary/20 text-primary border border-primary/50'
                     : 'bg-surface-2/40 text-text-muted/50 border border-border-custom/40'
                 }`}
-                title={`${date} (${dayNum}): ${taken ? 'Zażyto' : !inCycle ? 'Poza cyklem' : 'Pominięto'}`}
+                title={`${date} (${dayNum}): ${taken ? 'Zażyto (kliknij aby zmienić)' : 'Pominięto (kliknij aby zmienić)'}`}
               >
                 {taken ? '✓' : dayNum}
-              </div>
+              </Pressable>
             );
           })}
         </div>
@@ -105,7 +108,7 @@ function History7dStrip({ last7Days, today, sup, isLogged, isReverse, isExpired,
           variant="ghost"
           size="sm"
           onClick={() => onRenewCycle(30)}
-          className="text-3xs font-semibold text-warning hover:underline py-0 h-auto"
+          className="text-3xs font-semibold text-warning hover:underline py-0 h-auto cursor-pointer"
         >
           + Odnów na 30 dni
         </Pressable>
@@ -120,6 +123,7 @@ interface SupplementCardProps {
   last7Days: string[];
   today: string;
   onToggle: () => void;
+  onToggleDate?: (date: string) => void;
   onDeactivate: () => void;
   onUpdateReminder: (reminderTime: string | null) => void;
   isLogged: (id: string, date: string) => boolean;
@@ -127,7 +131,7 @@ interface SupplementCardProps {
 }
 
 export default function SupplementCard({
-  sup, takenToday, last7Days, today, onToggle, onDeactivate, onUpdateReminder, isLogged, onRenewCycle,
+  sup, takenToday, last7Days, today, onToggle, onToggleDate, onDeactivate, onUpdateReminder, isLogged, onRenewCycle,
 }: SupplementCardProps) {
   const [editingReminder, setEditingReminder] = useState(false);
   const [draftReminder, setDraftReminder] = useState(formatReminderInputValue(sup.reminder_time));
@@ -279,6 +283,7 @@ export default function SupplementCard({
         isReverse={isReverse}
         isExpired={isExpired}
         onRenewCycle={onRenewCycle}
+        onToggleDate={onToggleDate}
       />
     </Card>
   );

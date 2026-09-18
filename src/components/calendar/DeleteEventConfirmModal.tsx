@@ -11,7 +11,11 @@ interface DeleteEventConfirmModalProps {
 }
 
 export default function DeleteEventConfirmModal({ selectedEvent, deleting, onClose, executeDelete }: DeleteEventConfirmModalProps) {
-  const isRecurringInstance = !!recurringSeriesBaseId(selectedEvent?.event_id || selectedEvent?.id);
+  const isRecurringInstance = Boolean(
+    selectedEvent?.series_id ||
+    (selectedEvent?.recurrence && selectedEvent.recurrence.length > 0) ||
+    recurringSeriesBaseId(selectedEvent?.event_id || selectedEvent?.id)
+  );
 
   return (
     <Modal isOpen onClose={onClose} showCloseButton={false} size="xs">

@@ -25,15 +25,18 @@ export default function ExerciseStrengthSets({
 }: ExerciseStrengthSetsProps) {
   return (
     <>
-      <div className="grid grid-cols-[var(--ds-arbitrary-28px-1fr-1fr-1fr-60px)] gap-2 px-0.5">
-        <span />
-        <span className="text-2xs font-black uppercase tracking-widest text-text-muted text-center">
+      <div className="grid grid-cols-[24px_minmax(64px,74px)_minmax(60px,1fr)_minmax(54px,1fr)_minmax(46px,1fr)_24px] gap-1.5 px-0.5 mb-0.5">
+        <span className="text-3xs font-black uppercase text-text-muted/60 text-center">#</span>
+        <span className="text-3xs font-black uppercase tracking-wider text-text-muted text-center truncate">
+          Ostatnio
+        </span>
+        <span className="text-3xs font-black uppercase tracking-wider text-text-muted text-center">
           KG
         </span>
-        <span className="text-2xs font-black uppercase tracking-widest text-text-muted text-center">
+        <span className="text-3xs font-black uppercase tracking-wider text-text-muted text-center">
           Pow.
         </span>
-        <span className="text-2xs font-black uppercase tracking-widest text-text-muted text-center">
+        <span className="text-3xs font-black uppercase tracking-wider text-text-muted text-center">
           RIR
         </span>
         <span />

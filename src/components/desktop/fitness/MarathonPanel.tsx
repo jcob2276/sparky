@@ -171,6 +171,13 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
           </div>
         )}
       </div>
+
+      {avgKm !== null && avgKm < 35 && (
+        <div className="mb-4 px-3 py-1.5 rounded-lg bg-warning/10 border border-warning/20 text-3xs text-warning flex items-center gap-1.5 leading-tight">
+          <span>⚠️</span>
+          <span>Niski 4-tyg. kilometraż ({avgKm} km/tyg vs optymalne 45–55 km pod cel 3h 45m). Kluczowa ostrożna taktyka pierwszych 25 km.</span>
+        </div>
+      )}
       {kmData.length > 1 ? (
         <ResponsiveContainer width="100%" height={140} minWidth={0} minHeight={0}>
           <AreaChart data={kmData} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>

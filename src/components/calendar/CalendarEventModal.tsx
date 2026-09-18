@@ -44,9 +44,12 @@ export const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
       />
       {showDeleteConfirm && (
         <DeleteEventConfirmModal
-          selectedEvent={selectedEvent}
+          selectedEvent={calData.eventToDelete || selectedEvent}
           deleting={deleting}
-          onClose={() => setShowDeleteConfirm(false)}
+          onClose={() => {
+            setShowDeleteConfirm(false);
+            calData.setEventToDelete(null);
+          }}
           executeDelete={executeDelete}
         />
       )}

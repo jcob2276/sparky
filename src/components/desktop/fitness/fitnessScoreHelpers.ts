@@ -111,10 +111,12 @@ export function buildFitnessBreakdowns(p: FitnessBreakdownsParams): DimensionBre
       score: p.consistencyScore,
       group: 'process',
       detail:
-        `${pluralSesje(p.trainingSessions7d, 'siłowa')} + ${p.strava7d} sesji cardio w 7 dniach. Nawyki — czyste dni: ${p.habitSuccessTotal}/${p.habitSlotTotal} (${Math.round(p.habitRate * 100)}%).` +
-        (p.saunaCount7d > 0
-          ? ` Sauna: ${p.saunaCount7d}× (${p.saunaMinutes7d} min).`
-          : ' Dyscyplina reżimu treningowego zachowana.'),
+        p.trainingSessions7d === 0 && p.strava7d > 0
+          ? `Asymetria bodźca: ${p.strava7d} sesji cardio, ale 0 sesji siłowych w 7 dniach. Nawyki — czyste dni: ${p.habitSuccessTotal}/${p.habitSlotTotal} (${Math.round(p.habitRate * 100)}%). Brak treningu oporowego obniża spójność.`
+          : `${pluralSesje(p.trainingSessions7d, 'siłowa')} + ${p.strava7d} sesji cardio w 7 dniach. Nawyki — czyste dni: ${p.habitSuccessTotal}/${p.habitSlotTotal} (${Math.round(p.habitRate * 100)}%).` +
+            (p.saunaCount7d > 0
+              ? ` Sauna: ${p.saunaCount7d}× (${p.saunaMinutes7d} min).`
+              : ' Dyscyplina reżimu treningowego zachowana.'),
     },
     {
       key: 'endurance',
@@ -145,11 +147,13 @@ export function buildFitnessBreakdowns(p: FitnessBreakdownsParams): DimensionBre
       score: p.habitsScore,
       group: 'process',
       detail:
-        (p.bodyBonus.detail ? `${p.bodyBonus.detail}. ` : '') +
-        `Średni sen Oura: ${p.avgSleepScore.toFixed(0)}/100. Białko ≥${p.resolvedProteinG} g: ${p.proteinDays}/7 dni (${Math.round(p.proteinTargetMetRate * 100)}%). ` +
-        (p.saunaCount7d > 0
-          ? `Sauna: ${p.saunaCount7d}× (${p.saunaMinutes7d} min).`
-          : 'Brak sesji sauny w 7 dniach.'),
+        p.avgSleepScore < 75 || p.proteinTargetMetRate < 0.3
+          ? `Niedobór regeneracji: sen Oura ${p.avgSleepScore.toFixed(0)}/100, krytyczny deficyt białka (${p.proteinDays}/7 dni z normą ≥${p.resolvedProteinG} g) oraz straty dopaminowe (${Math.round(p.habitRate * 100)}% czystych dni). ${p.saunaCount7d > 0 ? `Sauna: ${p.saunaCount7d}× (${p.saunaMinutes7d} min).` : 'Brak sauny.'}`
+          : (p.bodyBonus.detail ? `${p.bodyBonus.detail}. ` : '') +
+            `Średni sen Oura: ${p.avgSleepScore.toFixed(0)}/100. Białko ≥${p.resolvedProteinG} g: ${p.proteinDays}/7 dni (${Math.round(p.proteinTargetMetRate * 100)}%). ` +
+            (p.saunaCount7d > 0
+              ? `Sauna: ${p.saunaCount7d}× (${p.saunaMinutes7d} min).`
+              : 'Brak sesji sauny w 7 dniach.'),
     },
     {
       key: 'progress',

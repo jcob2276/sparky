@@ -54,6 +54,7 @@ export function useSupplementsData(userId: string) {
   const form = useSupplementFormState();
 
   const today = getTodayWarsaw();
+  const [selectedDate, setSelectedDate] = useState(today);
   const sinceDate = shiftDateStr(today, -14);
 
   const last7Days = (() => {
@@ -71,13 +72,14 @@ export function useSupplementsData(userId: string) {
   const toggleMutation = useToggleSupplement();
   const saveMutation = useSaveSupplement();
 
-  async function handleToggle(sup: Supplement) {
-    const existingLog = logs.find(l => l.supplement_id === sup.id && l.date === today);
+  async function handleToggle(sup: Supplement, targetDate?: string) {
+    const dateToUse = targetDate || selectedDate;
+    const existingLog = logs.find(l => l.supplement_id === sup.id && l.date === dateToUse);
     try {
       await toggleMutation.mutateAsync({
         userId,
         supplementId: sup.id,
-        date: today,
+        date: dateToUse,
         sinceDate,
         existingLog,
       });
@@ -151,27 +153,28 @@ export function useSupplementsData(userId: string) {
   }
 
   async function handleLogAllToday() {
+    const targetDate = selectedDate;
     const unloggedSups = activeSups.filter(sup => {
       const isReverse = sup.name.toLowerCase().includes('pyłek') || sup.name.toLowerCase().includes('pollen') || sup.dose_per_unit?.['reverse_logic'] === true;
-      const takenToday = isReverse ? !isLogged(sup.id, today) : isLogged(sup.id, today);
+      const takenToday = isReverse ? !isLogged(sup.id, targetDate) : isLogged(sup.id, targetDate);
       return !takenToday;
     });
     if (unloggedSups.length === 0) {
-      notify('Wszystkie suplementy na dziś są już zalogowane!', 'info');
+      notify(`Wszystkie suplementy na ${targetDate} są już zalogowane!`, 'info');
       return;
     }
     try {
       for (const sup of unloggedSups) {
-        const existingLog = logs.find(l => l.supplement_id === sup.id && l.date === today);
+        const existingLog = logs.find(l => l.supplement_id === sup.id && l.date === targetDate);
         await toggleMutation.mutateAsync({
           userId,
           supplementId: sup.id,
-          date: today,
+          date: targetDate,
           sinceDate,
           existingLog,
         });
       }
-      notify(`Zalogowano ${unloggedSups.length} suplementów na dziś!`, 'success');
+      notify(`Zalogowano ${unloggedSups.length} suplementów na ${targetDate}!`, 'success');
     } catch (err: unknown) {
       notify('Wystąpił błąd podczas masowego logowania.', 'error');
       console.warn('[SupplementsPanel] Failed to batch log:', err);
@@ -202,8 +205,9 @@ export function useSupplementsData(userId: string) {
   return {
     supplements, logs, loading, error, activeSups,
     ...form,
-    today, last7Days,
+    today, selectedDate, setSelectedDate, last7Days,
     handleToggle, handleDeactivate, handleSubmit, handleUpdateReminder, isLogged,
     handleLogAllToday, handleRenewCycle,
   };
 }
+

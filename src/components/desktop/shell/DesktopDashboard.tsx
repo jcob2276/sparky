@@ -5,7 +5,7 @@
  * @usedBy App.tsx (trasa /dashboard)
  */
 import { Suspense, lazy, useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useUserId } from '../../../store/useStore';
 import Button from '../../ui/Button';
 import Spinner from '../../ui/Spinner';
@@ -41,7 +41,11 @@ export default function DesktopDashboard() {
   const habitsData = useHabitsData({ userId });
   const dreamsData = useDreamsData({ userId, loading });
 
-  const [activeTab, setActiveTab] = useState<DesktopTabType>('training');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab') as DesktopTabType | null;
+  const [activeTab, setActiveTab] = useState<DesktopTabType>(
+    urlTab && ['training', 'health', 'intel'].includes(urlTab) ? urlTab : 'training',
+  );
   const [syncing, setSyncing] = useState(false);
   const [showWorkout, setShowWorkout] = useState(false);
   const [workoutInitial, setWorkoutInitial] = useState<WorkoutLoggerInitial | null>(null);

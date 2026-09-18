@@ -67,9 +67,16 @@ export function computeFitnessProfile(input: {
   const habitConsistency = computeHabitConsistency(habits, habitLogs, today);
   const { habitRate, successTotal: habitSuccessTotal, slotTotal: habitSlotTotal, summaryLabel: habitSummaryLabel } =
     habitConsistency;
+
+  // Balanced hybrid consistency (Cardio max 4.0, Strength max 3.5, Habits max 2.5):
+  // Prevents deceptive 10/10 scores when strength is completely abandoned and habits are low.
+  const runConsistency = Math.min(4.0, strava7d * 0.7);
+  const strengthConsistency = Math.min(3.5, trainingSessions7d * 1.75);
+  const habitConsistencyPts = habitRate * 2.5;
+  const rawConsistency = runConsistency + strengthConsistency + habitConsistencyPts;
   const consistencyScore = Math.min(
     10,
-    Math.max(1, parseFloat(((trainingSessions7d + strava7d) * 1.5 + habitRate * 4).toFixed(1))),
+    Math.max(1, parseFloat(rawConsistency.toFixed(1))),
   );
 
   const aerobicPoints = Math.min(
@@ -148,26 +155,30 @@ export function computeFitnessProfile(input: {
           return sum + sleepScore;
         }, 0) / oura7d.length
       : 70;
-  const sleepPoints = (avgSleepScore - 50) / 5;
+  // Biological recovery weighting (Sleep 45%, Protein 30%, Habit/Dopamine 15%, Sauna 10%):
+  // Eliminates additive inflation where static body composition bonus masked acute sleep debt and zero protein.
+  const sleepPoints = (Math.max(0, avgSleepScore - 40) / 60) * 4.5;
 
   const nutr7d = nutrition.filter((n) => n.date >= since7);
   const proteinDays = nutr7d.filter((n) => (n.protein ?? 0) >= resolvedProteinG).length;
   const proteinTargetMetRate = proteinDays / 7;
-  const nutritionPoints = proteinTargetMetRate * 4;
+  const nutritionPoints = proteinTargetMetRate * 3.0;
 
   const { sessionsCount: saunaCount7d, totalMinutes: saunaMinutes7d } = getSaunaStats(sessionsForDomain, since7, strava);
   const saunaPoints = Math.min(
-    4,
-    parseFloat((saunaCount7d * 1.2 + saunaMinutes7d * 0.06).toFixed(1)),
+    1.0,
+    parseFloat((saunaCount7d * 0.5 + saunaMinutes7d * 0.02).toFixed(1)),
   );
 
   const bodyBonus = bodyCompositionBonus(body, heightCm);
+  const habitRecoveryPts = habitRate * 1.5;
 
+  const rawHabitsScore = sleepPoints + nutritionPoints + habitRecoveryPts + saunaPoints;
   const habitsScore = Math.min(
     10,
     Math.max(
       1,
-      parseFloat((sleepPoints + nutritionPoints + saunaPoints + bodyBonus.score).toFixed(1)),
+      parseFloat(rawHabitsScore.toFixed(1)),
     ),
   );
 

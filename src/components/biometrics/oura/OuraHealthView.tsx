@@ -1,15 +1,17 @@
-import { Activity, ArrowLeft, HeartPulse, RefreshCw, Sparkles } from 'lucide-react';
-import { OuraLongTermView } from './OuraLongTermView';
-import { OuraTodayView } from './OuraTodayView';
+import { Activity, ArrowLeft, Flame, Moon, RefreshCw, Utensils } from 'lucide-react';
+import { OuraGarminTrainingView } from './OuraGarminTrainingView';
+import { OuraNutritionFuelingView } from './OuraNutritionFuelingView';
 import { OuraVitalsView } from './OuraVitalsView';
+import { SleepIntelligenceView } from './SleepIntelligenceView';
 import type { OuraHealthHubData } from './types';
 import { OuraSleepTab } from './OuraSleepTab';
 import Button from '../../ui/Button';
 import IconButton from '../../ui/IconButton';
 import './ouraTheme.css';
 import HealthspanExperienceContainer from '../healthspan/HealthspanExperienceContainer';
+import { OuraLongTermView } from './OuraLongTermView';
 
-export type OuraSection = 'today' | 'vitals' | 'health';
+export type OuraSection = 'sleep' | 'training' | 'fueling' | 'vitals';
 
 interface OuraHealthViewProps {
   activeSection: OuraSection;
@@ -25,9 +27,10 @@ interface OuraHealthViewProps {
 }
 
 const NAV_ITEMS = [
-  { id: 'today' as const, label: 'Dzisiaj', icon: Sparkles },
-  { id: 'vitals' as const, label: 'Parametry', icon: Activity },
-  { id: 'health' as const, label: 'Moje zdrowie', icon: HeartPulse },
+  { id: 'sleep' as const, label: 'Sen', icon: Moon },
+  { id: 'training' as const, label: 'Garmin', icon: Flame },
+  { id: 'fueling' as const, label: 'Paliwo', icon: Utensils },
+  { id: 'vitals' as const, label: 'Witalność', icon: Activity },
 ];
 
 export function OuraHealthView({
@@ -55,7 +58,7 @@ export function OuraHealthView({
             Sen
           </Button>
         </div>
-        <main className="mx-auto max-w-3xl px-4 pb-24 pt-5 sm:px-6">
+        <main className="mx-auto max-w-3xl px-4 pb-36 pt-5 sm:px-6">
           <OuraSleepTab {...data} />
         </main>
       </div>
@@ -70,7 +73,7 @@ export function OuraHealthView({
           icon={<ArrowLeft size={22} />}
           onClick={onExit}
         />
-        <p className="text-sm font-light tracking-wide text-text-secondary">Sparky</p>
+        <p className="text-sm font-light tracking-wide text-text-secondary">Sparky Biometrics</p>
         {onSync ? (
           <IconButton
             label="Synchronizuj z Oura"
@@ -84,7 +87,7 @@ export function OuraHealthView({
       </header>
       <main
         data-testid="oura-content"
-        className="mx-auto w-full max-w-3xl px-4 pb-32 pt-7 sm:px-6"
+        className="mx-auto w-full max-w-3xl px-4 pb-36 pt-7 sm:px-6"
       >
         {isLoading ? (
           <div className="grid min-h-96 place-items-center text-sm text-text-muted">
@@ -92,10 +95,12 @@ export function OuraHealthView({
           </div>
         ) : (
           <>
-            {activeSection === 'today' && <OuraTodayView data={data} onOpenSleep={onOpenSleep} />}
-            {activeSection === 'vitals' && <OuraVitalsView data={data} onOpenSleep={onOpenSleep} />}
-            {activeSection === 'health' && (
+            {activeSection === 'sleep' && <SleepIntelligenceView data={data} />}
+            {activeSection === 'training' && <OuraGarminTrainingView data={data} />}
+            {activeSection === 'fueling' && <OuraNutritionFuelingView data={data} />}
+            {activeSection === 'vitals' && (
               <div className="space-y-8">
+                <OuraVitalsView data={data} onOpenSleep={onOpenSleep} />
                 <HealthspanExperienceContainer />
                 <OuraLongTermView data={data} />
               </div>
@@ -115,13 +120,13 @@ export function OuraHealthView({
               key={id}
               aria-label={label}
               aria-pressed={active}
-              className={`!min-h-12 !min-w-20 !flex-col !gap-1 !rounded-full !px-3 !text-xs ${
+              className={`!min-h-12 !min-w-16 sm:!min-w-20 !flex-col !gap-1 !rounded-full !px-2.5 !text-xs ${
                 active ? '!bg-white/10 !text-white' : '!text-text-muted'
               }`}
               onClick={() => onSectionChange(id)}
               variant="ghost"
             >
-              <Icon size={19} strokeWidth={active ? 2.2 : 1.7} />
+              <Icon size={18} strokeWidth={active ? 2.2 : 1.7} />
               <span>{label}</span>
             </Button>
           );

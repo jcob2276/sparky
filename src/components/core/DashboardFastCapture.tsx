@@ -1,6 +1,6 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { Pressable } from '../ui/ControlPrimitives';
-import { Plus } from 'lucide-react';
+import { Plus, Shield, Zap, Wallet } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Sheet from '../ui/Sheet';
 import { useHaptics } from '../../hooks/useHaptics';
@@ -31,89 +31,167 @@ interface Props {
   onRefresh?: () => void;
 }
 
+interface ActionTile {
+  label: string;
+  icon?: LucideIcon;
+  action: () => void;
+  route?: string;
+  colorClass: string;
+}
+
 export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools, userId }: Props) {
   const { selection } = useHaptics();
 
-  const run = (item: FastCaptureItem) => {
+  const handleAction = (act: () => void) => {
     selection();
-    item.action();
+    act();
     onClose();
   };
 
-  const itemStyles: Record<string, string> = {
-    'Dodaj Jedzenie': 'bg-status-success/10 text-status-success border-status-success/20',
-    'Zaloguj Trening': 'bg-status-warning/10 text-status-warning border-status-warning/20',
-    'Wpisz Wagę': 'bg-primary/10 text-primary border-primary/20',
-    'Zaloguj Saunę': 'bg-status-warning/10 text-status-warning border-status-warning/20',
-    'Zmierz Wzrok': 'bg-primary/10 text-primary border-primary/20',
-  };
+  const sections = useMemo(() => {
+    // Categorize items & tools
+    const cialoActions: ActionTile[] = [];
+    const kontoActions: ActionTile[] = [];
+    const duchActions: ActionTile[] = [];
+    const otherActions: ActionTile[] = [];
+
+    items.forEach((item) => {
+      const lower = item.label.toLowerCase();
+      if (lower.includes('trening') || lower.includes('saun') || lower.includes('wzrok') || lower.includes('wag') || lower.includes('jedzenie')) {
+        cialoActions.push({
+          label: item.label,
+          icon: item.icon,
+          action: item.action,
+          colorClass: 'bg-success/10 text-success border-success/20 hover:border-success/40',
+        });
+      } else {
+        cialoActions.push({
+          label: item.label,
+          icon: item.icon,
+          action: item.action,
+          colorClass: 'bg-primary/10 text-primary border-primary/20 hover:border-primary/40',
+        });
+      }
+    });
+
+    tools.forEach((tool) => {
+      const lower = tool.label.toLowerCase();
+      if (lower.includes('zadani') || lower.includes('kalendarz') || lower.includes('finans')) {
+        kontoActions.push({
+          label: tool.label,
+          icon: tool.icon,
+          action: tool.action,
+          route: tool.route,
+          colorClass: 'bg-warning/10 text-warning border-warning/20 hover:border-warning/40',
+        });
+      } else if (lower.includes('notatk') || lower.includes('pocket') || lower.includes('termin') || lower.includes('rozwój') || lower.includes('keep')) {
+        duchActions.push({
+          label: tool.label,
+          icon: tool.icon,
+          action: tool.action,
+          route: tool.route,
+          colorClass: 'bg-primary/10 text-primary border-primary/20 hover:border-primary/40',
+        });
+      } else {
+        otherActions.push({
+          label: tool.label,
+          icon: tool.icon,
+          action: tool.action,
+          route: tool.route,
+          colorClass: 'bg-surface-2/70 text-text-primary border-border-custom/40 hover:border-primary/30',
+        });
+      }
+    });
+
+    return [
+      {
+        id: 'cialo',
+        title: 'Ciało & Biometria',
+        icon: Shield,
+        accent: 'text-success',
+        tiles: cialoActions,
+      },
+      {
+        id: 'konto',
+        title: 'Konto & Działanie',
+        icon: Wallet,
+        accent: 'text-warning',
+        tiles: kontoActions,
+      },
+      {
+        id: 'duch',
+        title: 'Duch & Wiedza',
+        icon: Zap,
+        accent: 'text-primary',
+        tiles: duchActions,
+      },
+      ...(otherActions.length > 0 ? [{
+        id: 'inne',
+        title: 'Pozostałe narzędzia',
+        icon: Plus,
+        accent: 'text-text-muted',
+        tiles: otherActions,
+      }] : []),
+    ];
+
+  }, [items, tools]);
 
   return (
     <Sheet
-        open={show}
-        onOpenChange={(open) => {
-          if (!open) onClose();
-        }}
-        side="bottom"
-        title="Szybkie akcje"
-      >
-        <div className="mx-auto max-w-md space-y-5 pb-4">
-          {/* Szybkie dodawanie */}
-          <div>
-            <p className="ios-section-label mb-2 px-1">Dodaj wpis</p>
-            <div className="grid grid-cols-3 gap-2.5">
-              {items.map((item) => {
-                const { label, icon: Icon } = item;
-                const style = itemStyles[label] || 'bg-surface-2/60 text-primary border-border-custom/40';
-                return (
-                  <Pressable
-                    key={label}
-                    variant="ghost"
-                    onClick={() => run(item)}
-                    className="flex flex-col items-center gap-1.5 rounded-2xl p-2.5 text-center active:scale-95 transition-transform"
-                  >
-                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl border shadow-sm ${style}`}>
-                      {Icon ? <Icon size={22} /> : <Plus size={22} />}
-                    </div>
-                    <span className="text-2xs font-semibold tracking-tight text-text-primary line-clamp-2">{label}</span>
-                  </Pressable>
-                );
-              })}
-            </div>
-          </div>
+      open={show}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+      side="bottom"
+      title="Szybkie akcje"
+    >
+      <div className="mx-auto max-w-md space-y-4 pb-6 pt-1 max-h-[72vh] overflow-y-auto pr-0.5">
+        {sections.map((sec) => {
+          if (sec.tiles.length === 0) return null;
+          const SecIcon = sec.icon;
 
-          <div className="h-px bg-border-custom/40" />
+          return (
+            <div key={sec.id} className="rounded-2xl border border-border-custom/40 bg-surface/30 p-3 space-y-2.5">
+              <div className="flex items-center gap-1.5 px-1">
+                <SecIcon size={13} className={sec.accent} />
+                <span className={`text-2xs font-black uppercase tracking-widest ${sec.accent}`}>
+                  {sec.title}
+                </span>
+              </div>
 
-          {/* Narzędzia */}
-          <div>
-            <p className="ios-section-label mb-2 px-1">Narzędzia</p>
-            <div className="grid grid-cols-3 gap-2.5 max-h-[38vh] overflow-y-auto pr-0.5">
-              {tools.map(({ label, icon: Icon, action, route }) => (
-                <Pressable
-                  key={label}
-                  variant="ghost"
-                  onClick={() => {
-                    selection();
-                    action();
-                    onClose();
-                  }}
-                  onMouseEnter={() => {
-                    if (route) prefetchWorkspaceRoute(userId, route);
-                  }}
-                  onTouchStart={() => {
-                    if (route) prefetchWorkspaceRoute(userId, route);
-                  }}
-                  className="flex flex-col items-center gap-1.5 rounded-2xl p-2.5 text-center active:scale-95 transition-transform"
-                >
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-border-custom/40 bg-surface-2/60 text-text-primary shadow-sm hover:border-primary/30 transition-colors">
-                    <Icon size={19} />
-                  </div>
-                  <span className="text-2xs font-semibold tracking-tight text-text-primary truncate w-full">{label}</span>
-                </Pressable>
-              ))}
+              <div className="grid grid-cols-3 gap-2">
+                {sec.tiles.map((tile) => {
+                  const Icon = tile.icon;
+
+                  return (
+                    <Pressable
+                      key={tile.label}
+                      variant="ghost"
+                      aria-label={tile.label}
+                      onClick={() => handleAction(tile.action)}
+                      onMouseEnter={() => {
+                        if (tile.route && userId) prefetchWorkspaceRoute(userId, tile.route);
+                      }}
+                      onTouchStart={() => {
+                        if (tile.route && userId) prefetchWorkspaceRoute(userId, tile.route);
+                      }}
+                      className="flex flex-col items-center gap-1.5 rounded-xl p-2 text-center active:scale-95 transition-transform cursor-pointer"
+                    >
+                      <div className={`flex h-11 w-11 items-center justify-center rounded-2xl border shadow-xs transition-colors ${tile.colorClass}`}>
+                        {Icon ? <Icon size={20} /> : <Plus size={20} />}
+                      </div>
+                      <span className="text-2xs font-bold tracking-tight text-text-primary line-clamp-1 w-full text-center">
+                        {tile.label}
+                      </span>
+                    </Pressable>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        </div>
-      </Sheet>
+          );
+        })}
+      </div>
+    </Sheet>
   );
 });
+

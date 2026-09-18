@@ -190,6 +190,7 @@ export function TerminyHorizon({
                   >
                     <TerminyObligationCard
                       row={row}
+                      compact={rows.length > 6}
                       onDelete={() => onDelete(row.item.id, row.item.title)}
                       onEdit={() => onEdit(row.item.id)}
                       onComplete={() => onComplete(row)}

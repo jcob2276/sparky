@@ -9,6 +9,7 @@ import { getWarsawDateString } from "../../_shared/time.ts";
 import { CLASSIFY_SYSTEM, FRICTION_SYSTEM } from "../prompts.ts";
 import { normalizeClassification, normalizeFriction } from "./normalize.ts";
 import { handleClosureProposals } from "./closures.ts";
+import { runJevTriage } from "./jevTriage.ts";
 
 export async function handleStreamRecord(record: any, supabase: any): Promise<unknown> {
   if (!record || !record.content || !record.user_id) {
@@ -41,29 +42,36 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
 
   const apiKey = Deno.env.get('DEEPSEEK_API_KEY') || '';
 
+  // === KROK 0: Szybki triage System 1 (Jev) jeśli dostępny ===
+  const jevTriage = await runJevTriage(record.content);
+  const skipFrictionLlm = jevTriage?.skipFrictionLlm ?? false;
+
   // === KROK 1: Klasyfikacja i KROK 2: Friction detection (równolegle) ===
   let classifyRes, frictionRes;
   try {
-    [classifyRes, frictionRes] = await Promise.all([
-      deepseekChat({
-        apiKey,
-        ...LLM_TASKS.classify,
-        messages: [
-          { role: 'system', content: CLASSIFY_SYSTEM },
-          { role: 'user', content: `KONTEKST: ${contextStr}\nNOTATKA: ${record.content}` },
-        ],
-        maxTokens: null,
-      }),
-      deepseekChat({
-        apiKey,
-        ...LLM_TASKS.classify,
-        messages: [
-          { role: 'system', content: FRICTION_SYSTEM },
-          { role: 'user', content: record.content },
-        ],
-        maxTokens: null,
-      }),
-    ]);
+    const classifyPromise = deepseekChat({
+      apiKey,
+      ...LLM_TASKS.classify,
+      messages: [
+        { role: 'system', content: CLASSIFY_SYSTEM },
+        { role: 'user', content: `KONTEKST: ${contextStr}\nNOTATKA: ${record.content}` },
+      ],
+      maxTokens: null,
+    });
+
+    const frictionPromise = skipFrictionLlm
+      ? Promise.resolve({ content: '{"is_relevant":false,"event_kind":null,"friction_type":null}' })
+      : deepseekChat({
+          apiKey,
+          ...LLM_TASKS.classify,
+          messages: [
+            { role: 'system', content: FRICTION_SYSTEM },
+            { role: 'user', content: record.content },
+          ],
+          maxTokens: null,
+        });
+
+    [classifyRes, frictionRes] = await Promise.all([classifyPromise, frictionPromise]);
   } catch (err: any) {
     console.error(`[auto-classify] DeepSeek error:`, err);
     throw new Error(`DeepSeek upstream error (record_id=${record.id}): ${err.message}`);
@@ -76,17 +84,17 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
     await logAuditEvent({
       eventType: 'classify_parse_fallback',
       severity: 'warning',
-      message: 'auto-classify: classify JSON parse failed, used Chaos fallback',
+      message: 'auto-classify: classify JSON parse failed, used fallback',
       userId: record.user_id,
       relatedTable: 'vanguard_stream',
       relatedId: record.id,
-      metadata: { raw_response: (classifyRes.content || '').slice(0, 500) },
+      metadata: { raw_response: (classifyRes.content || '').slice(0, 500), jev_used: Boolean(jevTriage) },
     });
     classificationRaw = {
-      importance_score: 5,
-      category: 'Chaos',
+      importance_score: jevTriage?.importanceScore ?? 5,
+      category: jevTriage?.category ?? 'Chaos',
       tags: [],
-      temporality: 'tymczasowe',
+      temporality: jevTriage?.temporality ?? 'tymczasowe',
       fingerprint_text: null,
       is_closure: false,
       closed_topic_description: null,
@@ -240,5 +248,11 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
     event_kind: friction.event_kind || null,
     friction_type: friction.friction_type || null,
     extraction_quality: extractionQuality,
+    jev_triage: jevTriage ? {
+      used: true,
+      category: jevTriage.category,
+      is_friction_prob: jevTriage.isFrictionProb,
+      skipped_friction_llm: skipFrictionLlm,
+    } : null,
   };
 }

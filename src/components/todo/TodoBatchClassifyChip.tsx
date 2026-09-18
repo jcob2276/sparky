@@ -12,24 +12,19 @@ export default function TodoBatchClassifyChip() {
     <Pressable
       onClick={batchClassify}
       disabled={batchClassifying}
-      className="relative overflow-hidden w-full flex items-center justify-between rounded-2xl bg-gradient-to-r from-primary/10 via-primary/10 to-primary/10 border border-primary/20 px-4 py-3 text-left ui-interactive hover:scale-[var(--ds-arbitrary-1-01)] hover:border-primary/30 hover:shadow-[0_0_20px_var(--primary-15)] active:scale-[var(--ds-arbitrary-0-99)] disabled:opacity-[var(--opacity-50)] cursor-pointer group animate-[var(--ds-arbitrary-pulse-4s-infinite)] shadow-[0_0_12px_var(--primary-5)]"
+      className="w-full flex items-center justify-between rounded-xl bg-surface-solid/80 border border-border-custom/50 px-3 py-2 text-left ui-interactive hover:border-primary/40 active:scale-[var(--ds-arbitrary-0-99)] disabled:opacity-[var(--opacity-50)] cursor-pointer shadow-xs mb-1"
     >
-      <div className="flex items-center gap-2.5">
-        <div className="relative flex items-center justify-center w-7 h-7 rounded-lg bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
-          <Sparkles size={14} className={`${batchClassifying ? 'animate-spin' : 'animate-pulse group-hover:scale-110 transition-transform'}`} />
+      <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-primary/10 text-primary shrink-0">
+          <Sparkles size={13} className={batchClassifying ? 'animate-spin' : ''} />
         </div>
-        <div className="flex flex-col">
-          <span className="text-sm font-bold text-text-primary">
-            {batchClassifying ? 'Porządkowanie zadań...' : 'Szybka klasyfikacja z AI'}
-          </span>
-          <span className="text-xs text-text-muted">
-            {batchClassifying ? 'Analizuję treść przez DeepSeek' : `${unclassifiedCount} zadań czeka na automatyczne przypisanie`}
-          </span>
-        </div>
+        <span className="text-xs font-semibold text-text-primary truncate">
+          {batchClassifying ? 'Porządkowanie zadań...' : `${unclassifiedCount} zadań do przypisania przez AI`}
+        </span>
       </div>
-      <div className="text-xs font-bold bg-primary/20 text-primary px-3 py-1 rounded-full uppercase tracking-wider scale-90 group-hover:scale-95 transition-transform">
-        Start
-      </div>
+      <span className="text-3xs font-bold bg-primary/15 text-primary px-2.5 py-1 rounded-md uppercase tracking-wider shrink-0">
+        Klasyfikuj
+      </span>
     </Pressable>
   );
 }

@@ -17,6 +17,7 @@ import DailyStrainCard from '../biometrics/DailyStrainCard';
 import DailySnapshotCard from './DailySnapshotCard';
 import TodayRunwayCard from './TodayRunwayCard';
 import { UrgentObligationsBanner } from '../terminy/UrgentObligationsBanner';
+import { ThreeSpheresGoalsCard } from './ThreeSpheresGoalsCard';
 
 const BORN = new Date('2002-07-06');
 
@@ -64,7 +65,16 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
     <div className="min-h-full bg-background p-5 pb-32">
       <div className="mb-5 space-y-4">
         <div className="rounded-2xl border border-border-custom/70 bg-surface-solid/30 p-4 shadow-2xs backdrop-blur-xs">
-          <div>
+          <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-border-custom/40">
+            <span className="text-2xs font-black uppercase tracking-wider text-primary">
+              ⏳ Memento Mori · Dzień {lived.toLocaleString('pl-PL')} życia
+            </span>
+            <span className="text-3xs font-bold text-text-muted">
+              Sprint {sprint.sprintNumber} · Tydz. {sprint.weekInSprint}/12 ({sprint.pct}%)
+            </span>
+          </div>
+
+          <div className="pt-2.5">
             <p className="font-display text-sm md:text-base font-semibold italic text-text-primary whitespace-pre-line leading-relaxed">
               „{fuel.text}”
             </p>
@@ -76,25 +86,15 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
             )}
           </div>
 
-          <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-border-custom/40 pt-2.5 text-2xs font-semibold text-text-muted">
-            <span className="font-black uppercase tracking-[var(--ds-arbitrary-0-15em)] text-text-primary">
-              PY{sprint.personalYear}
-            </span>
-            <span className="text-text-muted/40">·</span>
-            <span className="font-bold text-primary">
-              Sprint {sprint.sprintNumber} · {SPRINT_SEASON[sprint.sprintNumber]}
-            </span>
-            <span className="text-text-muted/40">·</span>
-            <span>
-              tydz. {sprint.weekInSprint}/12 · {sprint.pct}%
-            </span>
-            <span className="text-text-muted/40">·</span>
-            <span className="font-bold text-primary/70">
-              Dzień {lived.toLocaleString('pl-PL')} życia
-            </span>
+          <div className="mt-2.5 flex items-center justify-between border-t border-border-custom/30 pt-2 text-3xs font-bold text-text-muted">
+            <span className="text-text-secondary">Czas nieustannie płynie — wykorzystaj dzisiejszy dzień w 100%.</span>
+            <span className="text-primary font-black uppercase tracking-wider">{SPRINT_SEASON[sprint.sprintNumber]}</span>
           </div>
         </div>
+
+        <ThreeSpheresGoalsCard />
         <TodayStatusStrip />
+
         <UrgentObligationsBanner
           userId={session.user.id}
           onNavigateToTerminy={() => s.navigate('/terminy')}

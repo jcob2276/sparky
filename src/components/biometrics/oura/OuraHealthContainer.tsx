@@ -19,7 +19,7 @@ export function OuraHealthContainer() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const userId = useUserId();
-  const [activeSection, setActiveSection] = useState<OuraSection>('today');
+  const [activeSection, setActiveSection] = useState<OuraSection>('sleep');
   const [sleepOpen, setSleepOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -79,6 +79,7 @@ export function OuraHealthContainer() {
     todayContext: todayContextQuery.data ?? null,
     nightContext: nightContextQuery.data ?? null,
     correlations: correlationsQuery.data ?? null,
+    stravaActivities: dailyQuery.data?.stravaRows ?? [],
   };
 
   return (

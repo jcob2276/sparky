@@ -1,19 +1,27 @@
+import React from 'react';
 import { BarChart2, ArrowUpRight, TrendingDown, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card } from '../../ui/Card';
 import { useCorrelationsQuery } from '../../../lib/correlationsApi';
-import { rColor } from '@vanguard/domain';
+import { classifyImpactFactors, rColor } from '@vanguard/domain';
 
 export default function DesktopCorrelationsSummary({ userId }: { userId: string }) {
   const { data, isLoading } = useCorrelationsQuery(userId, false);
 
   const correlations = data?.correlations ?? [];
 
-  // Filter significant correlations (r >= 0.25 or r <= -0.25)
-  const topCorrelations = [...correlations]
-    .filter((c) => Math.abs(c.r) >= 0.2)
-    .sort((a, b) => Math.abs(b.r) - Math.abs(a.r))
-    .slice(0, 4);
+  // Filter vetted causal factors using domain classifier (eliminates collinear and artifact pairs)
+  const topCorrelations = React.useMemo(() => {
+    if (!correlations.length) return [];
+    const classified = classifyImpactFactors(correlations);
+    const vetted = classified.filter(
+      (f) => f.evidence_level === 'confirmed' || f.evidence_level === 'probable'
+    );
+    const candidates = vetted.length >= 2
+      ? vetted
+      : classified.filter((f) => f.evidence_level !== 'no_evidence' && f.is_stable);
+    return candidates.slice(0, 4);
+  }, [correlations]);
 
   return (
     <Card variant="surface" padding="1.25rem" className="space-y-4 border-border-custom bg-surface/30">
@@ -64,7 +72,7 @@ export default function DesktopCorrelationsSummary({ userId }: { userId: string 
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-text-primary leading-snug">
-                      {item.x_label || item.label} → {item.y_label}
+                      {item.x_label} → {item.y_label}
                     </p>
                     <p className="text-3xs text-text-muted mt-0.5">
                       lag: {item.lag_days === 0 ? 'ten sam dzień' : `${item.lag_days}d opóźnienia`} · N={item.n}
@@ -81,15 +89,15 @@ export default function DesktopCorrelationsSummary({ userId }: { userId: string 
                 </div>
 
                 <div className="flex items-center justify-between border-t border-border-custom/40 pt-1.5 text-2xs">
-                  <span className="text-text-secondary flex items-center gap-1">
+                  <span className="text-text-secondary flex items-center gap-1 font-medium truncate">
                     {isNegative ? (
-                      <span className="flex items-center text-error"><TrendingDown size={12} className="mr-0.5" /> Ujemny wpływ</span>
+                      <span className="flex items-center text-error"><TrendingDown size={12} className="mr-0.5 shrink-0" /> {item.natural_effect || 'Ujemny wpływ'}</span>
                     ) : (
-                      <span className="flex items-center text-success"><TrendingUp size={12} className="mr-0.5" /> Dodatni wpływ</span>
+                      <span className="flex items-center text-success"><TrendingUp size={12} className="mr-0.5 shrink-0" /> {item.natural_effect || 'Dodatni wpływ'}</span>
                     )}
                   </span>
-                  <span className="rounded-full bg-surface-solid px-2 py-0.5 text-3xs font-semibold text-text-muted">
-                    {item.confidence === 'solid' ? 'Pewny' : item.confidence === 'building' ? 'Sygnał' : 'Hipoteza'}
+                  <span className="rounded-full bg-surface-solid px-2 py-0.5 text-3xs font-semibold text-text-muted shrink-0">
+                    {item.evidence_level === 'confirmed' ? 'Pewny' : item.evidence_level === 'probable' ? 'Prawdopodobny' : 'Hipoteza'}
                   </span>
                 </div>
               </div>

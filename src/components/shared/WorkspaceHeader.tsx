@@ -13,12 +13,14 @@ interface WorkspaceHeaderProps {
   leading?: ReactNode;
   center?: ReactNode;
   actions?: ReactNode;
-  tabs?: { items: WorkspaceHeaderTab[]; active: string; onChange: (key: string) => void };
+  tabs?: { items: WorkspaceHeaderTab[]; active: string; onChange: (key: string) => void; hideOnMobile?: boolean };
   navigation?: ReactNode;
   secondaryRow?: ReactNode;
+  hideNavigationOnMobile?: boolean;
 }
 
-export function WorkspaceHeader({ title, subtitle, onBack, leading, center, actions, tabs, navigation, secondaryRow }: WorkspaceHeaderProps) {
+export function WorkspaceHeader({ title, subtitle, onBack, leading, center, actions, tabs, navigation, secondaryRow, hideNavigationOnMobile }: WorkspaceHeaderProps) {
+  const shouldHideNavOnMobile = hideNavigationOnMobile || Boolean(tabs?.hideOnMobile);
   return (
     <>
       <PageToolbar
@@ -34,6 +36,7 @@ export function WorkspaceHeader({ title, subtitle, onBack, leading, center, acti
         }
         center={center}
         actions={actions}
+        hideNavigationOnMobile={shouldHideNavOnMobile}
         navigation={tabs ? <Tabs tabs={tabs.items} active={tabs.active} onChange={tabs.onChange} /> : navigation}
       />
       {secondaryRow}

@@ -79,12 +79,12 @@ function TerminyHeader({
   return (
     <header className="sticky top-0 z-[var(--z-sticky)] border-b border-white/10 bg-background/70 backdrop-blur-xl transition-colors duration-200 dark:border-white/5">
       <div className="mx-auto flex max-w-[var(--content-wide)] items-center gap-3 px-4 py-3.5 md:px-8">
-        <Pressable onClick={onBack} aria-label="Wróć" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-2/60 text-text-secondary transition-all duration-150 hover:bg-surface-3 hover:text-text-primary active:scale-90">
+        <Pressable onClick={onBack} aria-label="Wróć" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-2/60 text-text-secondary transition-all duration-150 hover:bg-surface-3 hover:text-text-primary active:scale-90 cursor-pointer">
           <ArrowLeft size={18} strokeWidth={2.2} />
         </Pressable>
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-bold tracking-tight text-text-primary">Terminy</h1>
-          <p className="text-xs text-text-muted">Urodziny, przeglądy, polisy, dom, finanse i badania</p>
+          <p className="text-xs text-text-muted truncate">Urodziny, przeglądy, polisy, dom i finanse</p>
         </div>
         {onExportAllICS && (
           <Pressable

@@ -30,3 +30,36 @@ export const COLOR_TO_PILLAR: Record<string, PillarId> = {
   indigo: 'duch', violet: 'duch', purple: 'duch', sky: 'duch',
   amber: 'konto', yellow: 'konto', orange: 'konto', rose: 'konto',
 };
+
+export interface NorthStarGoal {
+  pillar: PillarId;
+  title: string;
+  affirmation: string;
+  why: string;
+  metric: string;
+}
+
+export const NORTH_STAR_SPHERES: Record<PillarId, NorthStarGoal> = {
+  konto: {
+    pillar: 'konto',
+    title: 'Konto',
+    affirmation: 'Ja Jakub zarabiam z łatwością i luzem 15 tysięcy złotych netto miesięcznie',
+    why: 'Bo chcę mieć luz z kasą i kupować co tylko chcę',
+    metric: '15 000 zł netto / msc',
+  },
+  duch: {
+    pillar: 'duch',
+    title: 'Duch',
+    affirmation: 'Ja Jakub z łatwością buduję nowe relacje i mam ogromne powodzenie wśród kobiet',
+    why: 'Bo chcę mieć kobitę i sex i dzieci',
+    metric: 'Głębokie relacje i powodzenie',
+  },
+  cialo: {
+    pillar: 'cialo',
+    title: 'Ciało',
+    affirmation: 'Ja Jakub buduję codziennie swoje ciało, 15% BF i 100 kg bench press',
+    why: 'Bo chcę wyglądać pociągająco',
+    metric: '15% BF · 100 kg bench press',
+  },
+};
+

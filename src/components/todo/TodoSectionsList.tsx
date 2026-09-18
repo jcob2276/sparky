@@ -62,26 +62,29 @@ export default function TodoSectionsList({ renderInlineQuickCapture, renderAddTo
 
             <div
               ref={el => { sectionRefs.current[sec.id] = el; }}
-              className={`rounded-2xl p-2 ui-interactive duration-[var(--motion-medium)] ${
+              className={`todo-grouped-surface mb-4 ui-interactive duration-[var(--motion-medium)] ${
                 draggingItem !== null
                   ? dragTarget === sec.id
-                    ? 'border border-primary/40 bg-primary/10 scale-[var(--ds-arbitrary-1-01)] shadow-[var(--shadow-accent-active)]'
-                    : 'border border-dashed border-primary/20 bg-primary/5'
-                  : 'border border-transparent bg-transparent'
+                    ? 'ring-2 ring-primary/60 shadow-[var(--shadow-accent-active)]'
+                    : 'border-dashed border-primary/40'
+                  : ''
               }`}
             >
-              <BucketHeader
-                icon="📂"
-                title={sec.name}
-                count={sec.items.length}
-                collapsed={isCollapsed}
-                onToggle={() => toggleSectionCollapse(sec.id)}
-                isDropTarget={dragTarget === sec.id}
-                onRename={(name) => run(() => renameTodoSection(sec.id, name))}
-                onDelete={() => run(() => archiveTodoSection(sec.id))}
-              />
+              <div className="todo-grouped-header">
+                <BucketHeader
+                  icon="📂"
+                  title={sec.name}
+                  count={sec.items.length}
+                  collapsed={isCollapsed}
+                  onToggle={() => toggleSectionCollapse(sec.id)}
+                  isDropTarget={dragTarget === sec.id}
+                  onRename={(name) => run(() => renameTodoSection(sec.id, name))}
+                  onDelete={() => run(() => archiveTodoSection(sec.id))}
+                />
+              </div>
+
               {!isCollapsed && (
-                <div className="pt-1">
+                <div className="todo-grouped-body">
                   {sec.items.length === 0 ? (
                     <EmptyState
                       icon="📂"
@@ -90,10 +93,14 @@ export default function TodoSectionsList({ renderInlineQuickCapture, renderAddTo
                       dragColor="primary"
                     />
                   ) : (
-                    sec.items.map((i) => <TodoCardConnected key={i.id} item={i} hideSectionChip />)
+                    <div className="divide-y divide-border-custom/30">
+                      {sec.items.map((i) => <TodoCardConnected key={i.id} item={i} hideSectionChip />)}
+                    </div>
                   )}
-                  {renderInlineQuickCapture(sec.id)}
-                  {renderAddTodoButton(sec.id)}
+                  <div className="pt-2 px-1">
+                    {renderInlineQuickCapture(sec.id)}
+                    {renderAddTodoButton(sec.id)}
+                  </div>
                 </div>
               )}
             </div>

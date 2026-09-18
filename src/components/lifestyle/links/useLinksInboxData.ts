@@ -240,11 +240,14 @@ export function useLinksInboxData(haptic: (pattern: number | number[]) => void) 
     }
   };
 
-  const bulk = useLinksBulkActions({
-    userId,
-    links,
-    onSuccess: invalidate,
-  });
+  const bulk = useLinksBulkActions({ userId, links, onSuccess: invalidate });
+
+  const updateLinkData = (id: string, updates: Partial<SavedLink>) => {
+    queryClient.setQueryData<SavedLink[]>(linksKeys.list(userId), (prev) =>
+      (prev ?? []).map((l) => (l.id === id ? { ...l, ...updates } : l))
+    );
+    setReaderLink((prev) => (prev && prev.id === id ? { ...prev, ...updates } : prev));
+  };
 
   const filterCounts = useMemo(() => countFilterBadges(links), [links]);
 
@@ -276,6 +279,7 @@ export function useLinksInboxData(haptic: (pattern: number | number[]) => void) 
     viewMode, setViewMode,
     expandedLinkId, setExpandedLinkId,
     readerLink, setReaderLink,
+    updateLinkData,
     sharingStatus,
     addUrl, setAddUrl,
     showAddForm, setShowAddForm,

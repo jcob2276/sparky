@@ -81,9 +81,9 @@ export function formatMedicalDocumentType(documentType?: string | null): { label
       };
     case 'non_clinical_analysis_report':
       return {
-        label: 'Raport analityczny',
-        badgeColor: 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20',
-        description: 'Parametry analityczne i raport uzupełniający',
+        label: 'Raport nielaboratoryjny / Biorezonans',
+        badgeColor: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+        description: 'Pomiary z analizatorów pozamedycznych (spoza diagnostyki laboratoryjnej EBM)',
       };
     default:
       return {
@@ -217,6 +217,7 @@ export function buildPreventionSuggestions(input: {
   events: MedicalEvent[];
   today: string;
   age: number | null;
+  labs?: Array<{ marker_key?: string; marker_name?: string; result_date?: string; flag?: string | null }>;
 }): PreventionSuggestion[] {
   const followUps = input.events
     .filter((event) => event.followUpOn && event.followUpOn >= input.today)
@@ -234,6 +235,37 @@ export function buildPreventionSuggestions(input: {
     event.specialty?.toLocaleLowerCase('pl-PL').includes('stomatolog'));
   const dentalIsRecent = latestDental && monthsBetween(latestDental.occurredOn, input.today) < 12;
   const preventive: PreventionSuggestion[] = [];
+
+  // Lab-driven preventive alerts (Lipids & CBC outdated check)
+  if (input.labs && input.labs.length > 0) {
+    const lipidLabs = input.labs.filter((l) => /cholesterol|ldl|hdl|triglycer/i.test(l.marker_key || l.marker_name || ''));
+    const latestLipid = lipidLabs.sort((a, b) => (b.result_date || '').localeCompare(a.result_date || ''))[0];
+    if (latestLipid?.result_date && monthsBetween(latestLipid.result_date, input.today) >= 12) {
+      preventive.push({
+        id: 'lipid-panel-check',
+        title: 'Kontrola profilu lipidowego (ApoB / Lipidogram)',
+        reason: `Ostatni pełny lipidogram wykonano ${latestLipid.result_date} (${monthsBetween(latestLipid.result_date, input.today)} mies. temu). Poprzednie wartości LDL/Nie-HDL przekraczały cele prewencji sercowo-naczyniowej.`,
+        dueOn: null,
+        confidence: 'high',
+        sourceLabel: 'Wytyczne PTL/ESC — prewencja kardiologiczna',
+        sourceUrl: 'https://ptlipid.pl/',
+      });
+    }
+
+    const cbcLabs = input.labs.filter((l) => /neutro|limfo|leuko|morfolog|pdw/i.test(l.marker_key || l.marker_name || ''));
+    const latestCbc = cbcLabs.sort((a, b) => (b.result_date || '').localeCompare(a.result_date || ''))[0];
+    if (latestCbc?.result_date && monthsBetween(latestCbc.result_date, input.today) >= 12) {
+      preventive.push({
+        id: 'cbc-morphology-check',
+        title: 'Morfologia krwi obwodowej z rozmazem (5-diff)',
+        reason: `Ostatnia pełna morfologia pochodzi z ${latestCbc.result_date}. Badania z sierpnia 2026 obejmowały wyłącznie hormony i ferrytynę.`,
+        dueOn: null,
+        confidence: 'medium',
+        sourceLabel: 'Profilaktyka laboratoryjna',
+        sourceUrl: 'https://pacjent.gov.pl/',
+      });
+    }
+  }
 
   if (!dentalIsRecent) {
     preventive.push({

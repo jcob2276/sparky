@@ -31,7 +31,11 @@ export default function NoteRow({
   const pressTimer = useRef<number | null>(null);
   const longPressed = useRef(false);
   const plainText = getPlainText(note.content);
-  const snippet = note.is_locked ? 'Wymaga hasła' : plainText ? plainText.slice(0, 110) : 'Brak dodatkowej treści';
+  const trimmedTitle = note.title.trim();
+  const bodyText = (trimmedTitle && plainText.startsWith(trimmedTitle))
+    ? plainText.slice(trimmedTitle.length).trim()
+    : plainText;
+  const snippet = note.is_locked ? 'Wymaga hasła' : bodyText ? bodyText.slice(0, 180) : 'Brak dodatkowej treści';
   const dateStr = relativeDate(note.updated_at || note.created_at);
   const color = getColor(note.color);
   const { light } = useHaptics();
@@ -77,11 +81,11 @@ export default function NoteRow({
           : 'bg-transparent text-text-primary hover:bg-surface-solid/50'
       }`}
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start gap-2 flex-1 min-w-0">
           {isSelectMode && (
             <div
-              className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center ui-interactive ${
+              className={`h-4 w-4 rounded-md border shrink-0 mt-0.5 flex items-center justify-center ui-interactive ${
                 isSelected
                   ? 'bg-primary border-primary text-on-accent shadow-xs'
                   : 'border-border-custom bg-surface-solid'
@@ -90,22 +94,28 @@ export default function NoteRow({
               {isSelected && <Check size={11} strokeWidth={3} />}
             </div>
           )}
-          <span className="block flex-1 truncate text-sm font-semibold leading-tight tracking-[var(--tracking-note-title)] text-text-primary">
+          <span className="block flex-1 line-clamp-3 break-words [overflow-wrap:anywhere] text-sm font-semibold leading-snug tracking-[var(--tracking-note-title)] text-text-primary">
             {note.title.trim() || 'Bez tytułu'}
           </span>
         </div>
-        {note.is_pinned && (
-          <span className="text-[var(--color-warning)]">
-            <Pin size={12} fill="currentColor" />
-          </span>
-        )}
-        {note.is_locked && <LockKeyhole size={12} className="text-text-muted" />}
+        <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
+          {note.is_pinned && (
+            <span className="text-[var(--color-warning)]" title="Przypięta">
+              <Pin size={12} fill="currentColor" />
+            </span>
+          )}
+          {note.is_locked && (
+            <span className="text-text-muted" title="Zablokowana">
+              <LockKeyhole size={12} />
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="flex items-center gap-1.5 truncate text-xs leading-[var(--line-height-note)] text-text-muted">
+      <div className="flex items-baseline gap-1.5 text-xs leading-relaxed text-text-muted">
         <span className="shrink-0 font-medium text-text-secondary">{dateStr}</span>
-        <span aria-hidden="true">·</span>
-        <span className="flex-1 truncate">{snippet}</span>
+        <span aria-hidden="true" className="shrink-0 opacity-60">·</span>
+        <span className="flex-1 line-clamp-2 break-words [overflow-wrap:anywhere]">{snippet}</span>
       </div>
 
       {note.tags.length > 0 && (

@@ -40,6 +40,13 @@
   transform: scale(0.985);
 }
 
+.apple-event-card p {
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+  text-overflow: ellipsis;
+}
+
 /* Apple Current Time Indicator (Now Line) */
 .apple-now-dot {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-danger, #ef4444) 25%, transparent);
@@ -107,31 +114,35 @@
     background: var(--background);
   }
 
-  /* Fit 7 (or 3) columns in the viewport — no 884px canvas */
-  .calendar-week-canvas {
-    width: 100%;
-    min-width: 100%;
+  /* Week view on mobile: 7 readable columns with horizontal touch scrolling (~110px per column + 44px gutter = 814px) */
+  .calendar-week-canvas:not(.calendar-3day-canvas) {
+    width: max-content;
+    min-width: 814px;
   }
 
-  .calendar-week-canvas .calendar-week-column {
-    min-width: 0;
-    flex: 1 1 0;
+  .calendar-week-canvas:not(.calendar-3day-canvas) .calendar-week-column {
+    min-width: 110px;
+    width: 110px;
+    flex: 0 0 110px;
   }
 
+  /* 3-day view fits in the mobile viewport without horizontal scrolling */
   .calendar-3day-canvas {
-    width: 100%;
-    min-width: 100%;
+    width: 100% !important;
+    min-width: 100% !important;
   }
 
   .calendar-3day-canvas .calendar-week-column {
-    min-width: 0;
-    flex: 1 1 0;
+    min-width: 0 !important;
+    width: auto !important;
+    flex: 1 1 0 !important;
   }
 
+  .calendar-week-top-scroll,
   .calendar-week-grid {
     padding-bottom: 4rem;
     scroll-behavior: smooth;
-    overscroll-behavior-y: contain;
+    overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
   }
 

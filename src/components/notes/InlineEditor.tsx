@@ -4,13 +4,14 @@
  * @composes RichEditor
  * @usedBy SplitNotesView
  */
-import { ControlSelect, Pressable } from '../ui/ControlPrimitives';
+import { Pressable } from '../ui/ControlPrimitives';
 import { useState } from 'react';
 import { ChevronLeft, X } from 'lucide-react';
 import RichEditor from './RichEditor';
 import { getColor, Note, getPlainText, relativeDate } from './keepUtils';
 import { invokeEdge } from '../../lib/supabase';
 import { notify, confirmDialog } from '../../lib/notify';
+import NoteFolderPicker from './NoteFolderPicker';
 import { useUserId } from '../../store/useStore';
 import { createSourceTodos } from '../../lib/behavior/captureBridge';
 import { useNoteDraftAutosave } from './useNoteDraftAutosave';
@@ -32,6 +33,7 @@ interface InlineEditorProps {
   onExportChecklists?: (note: Note) => void;
   isMobile: boolean;
   folders?: NoteFolder[];
+  onCreateFolder?: (name: string, parentId?: string | null) => Promise<NoteFolder | null | void>;
   onExportNote?: (note: Note) => void;
   onExportPdf?: (note: Note) => void;
   onShareNote?: (note: Note) => void;
@@ -42,7 +44,7 @@ interface InlineEditorProps {
 
 
 export default function InlineEditor({
-  note, onClose, onUpdate, onDelete, onTogglePin, busy: _busy, allTags: _allTags = [], allNotes = [], onExportChecklists: _onExportChecklists, isMobile, folders = [], onExportNote, onExportPdf, onShareNote, onNavigateToNote, onLockNote,
+  note, onClose, onUpdate, onDelete, onTogglePin, busy: _busy, allTags: _allTags = [], allNotes = [], onExportChecklists: _onExportChecklists, isMobile, folders = [], onCreateFolder, onExportNote, onExportPdf, onShareNote, onNavigateToNote, onLockNote,
 }: InlineEditorProps) {
   const userId = useUserId();
   const {
@@ -129,11 +131,14 @@ export default function InlineEditor({
             onDelete={() => { void confirmDialog('Czy usunąć tę notatkę?').then(confirmed => { if (confirmed) { onDelete(note.id); onClose(); } }); }}
             onSummarize={() => { void aiSummarize(); }}
             onExtractTasks={() => { void aiExtractTasks(); }}
-            onColor={setColor}
+            onColor={(newColor) => {
+              setColor(newColor);
+              onUpdate(note.id, { color: newColor });
+            }}
           />
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3 max-w-3xl mx-auto w-full">
+      <div className="flex-1 overflow-y-auto px-4 py-3 md:px-6 md:py-4 flex flex-col gap-3 max-w-3xl mx-auto w-full">
         <div className="text-4xs text-text-muted/65 font-bold text-center block tracking-wider uppercase">{noteDateStr}</div>
         <NoteSaveIndicator status={saveStatus} onRetry={retrySave} className="text-4xs text-center opacity-[var(--opacity-55)]" />
         {aiResult && (
@@ -145,20 +150,37 @@ export default function InlineEditor({
             <p className="whitespace-pre-wrap">{aiResult.text}</p>
           </div>
         )}
-        <div className={`relative mt-2 min-h-[var(--ios-editor-min-height)] select-text ${isMobile ? 'flex-none' : 'flex-1'}`}>
-          <RichEditor value={content} onChange={setContent} placeholder="Zacznij pisać..."
-            showStaticBar allNotes={allNotes} noteId={note.id} userId={userId || undefined}
-            onNavigateToNote={id => { flushSave(); onNavigateToNote?.(id); }} />
-        </div>
-        <ControlSelect
-          value={folder_id || ''}
-          onChange={event => setFolderId(event.target.value || null)}
-          className="w-fit rounded-lg border border-border-custom/20 bg-transparent px-2 py-1 text-3xs"
-          aria-label="Folder notatki"
+        <div 
+          className={`relative mt-2 min-h-[300px] ${isMobile ? 'flex-none' : 'flex-1'} select-text flex flex-col cursor-text`}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              const editorEl = e.currentTarget.querySelector<HTMLElement>('.keep-rich-editor');
+              if (editorEl && document.activeElement !== editorEl) {
+                editorEl.focus();
+              }
+            }
+          }}
         >
-          <option value="">Bez folderu</option>
-          {folders.map(folder => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
-        </ControlSelect>
+          <RichEditor 
+            value={content} 
+            onChange={setContent} 
+            placeholder="Zacznij pisać..."
+            className={isMobile ? 'keep-ios-editor flex-1' : 'flex-1'}
+            allNotes={allNotes} 
+            noteId={note.id} 
+            userId={userId || undefined}
+            onNavigateToNote={id => { flushSave(); onNavigateToNote?.(id); }} 
+          />
+        </div>
+        <NoteFolderPicker
+          folderId={folder_id}
+          folders={folders}
+          onCreateFolder={onCreateFolder}
+          onSelectFolder={(nextId) => {
+            setFolderId(nextId);
+            onUpdate(note.id, { folder_id: nextId });
+          }}
+        />
         <NoteAttachments noteId={note.id} onInsertText={text => {
           const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           setContent(`${content}<p>${escaped.replace(/\n/g, '<br>')}</p>`);

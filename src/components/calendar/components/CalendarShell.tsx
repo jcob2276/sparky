@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react';
 import { SidebarProvider } from '../../ui/sidebar';
 import Fab from '../../ui/Fab';
-import WorkspaceNavigation from '../../shared/WorkspaceNavigation';
+
 
 interface CalendarShellProps {
   sidebarCollapsed: boolean;
   onToggleCollapse: () => void;
-  onNavigateTo?: (dest: string) => void;
   onQuickCreate: () => void;
   toastMessage: string | null;
   sidebar: ReactNode;
@@ -17,7 +16,6 @@ interface CalendarShellProps {
 export default function CalendarShell({
   sidebarCollapsed,
   onToggleCollapse,
-  onNavigateTo,
   onQuickCreate,
   toastMessage,
   sidebar,
@@ -49,12 +47,7 @@ export default function CalendarShell({
           <span className="text-2xl font-bold">+</span>
         </Fab>
 
-        <WorkspaceNavigation
-          active="kalendarz"
-          orientation="horizontal"
-          onNavigate={onNavigateTo}
-          className="md:hidden z-[var(--z-overlay)]"
-        />
+
 
         {toastMessage && (
           <div className="calendar-toast fixed left-1/2 z-[var(--z-emergency)] -translate-x-1/2 rounded-xl bg-text-primary px-4 py-3 text-xs font-black uppercase tracking-wider text-background shadow-lg animate-in slide-in-from-bottom duration-[var(--motion-medium)] md:left-auto md:right-4 md:translate-x-0">

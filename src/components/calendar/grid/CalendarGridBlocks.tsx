@@ -43,13 +43,14 @@ export const renderEventBlock = ({
   const startStr = ev.original_start_time ? formatTime(ev.original_start_time) : formatTime(ev.start_time);
   const endStr = ev.original_end_time ? formatTime(ev.original_end_time) : formatTime(ev.end_time);
 
-  let displaySummary = ev.summary;
+  const rawSummary = ev.summary && ev.summary.trim() ? ev.summary.trim() : 'Wydarzenie';
+  let displaySummary = rawSummary;
   if (tooShort) {
-    const isSleep = ev.summary?.toLowerCase().includes('sen') || ev.summary?.toLowerCase().includes('sleep');
+    const isSleep = rawSummary.toLowerCase().includes('sen') || rawSummary.toLowerCase().includes('sleep');
     if (isSleep) {
       displaySummary = `${startStr}-${endStr}`;
     } else {
-      displaySummary = `${ev.summary} (${startStr}–${endStr})`;
+      displaySummary = `${rawSummary} (${startStr}–${endStr})`;
     }
   }
 
@@ -61,7 +62,7 @@ export const renderEventBlock = ({
       key={ev.id}
       role="button"
       tabIndex={0}
-      aria-label={`${ev.summary || 'Wydarzenie'}: ${startStr}–${endStr}`}
+      aria-label={`${rawSummary}: ${startStr}–${endStr}`}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -75,22 +76,22 @@ export const renderEventBlock = ({
         handleEventContextMenu?.(ev, e);
       }}
       className={`apple-event-card group absolute border-l-[4px] rounded-lg ${
-        tooShort ? 'px-2 py-0.5 flex items-center justify-start' : 'px-2.5 py-1.5 flex flex-col justify-between'
+        tooShort ? 'px-2 py-0.5 flex items-center justify-start' : 'px-2.5 py-1.5 flex flex-col justify-start gap-0.5'
       } overflow-hidden cursor-move shadow-2xs hover:shadow-md hover:brightness-[1.02] active:scale-[0.985] transition-[transform,box-shadow,filter] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 select-none ${eventColor(ev)}`}
       style={{ top, height, left: `calc(${left} + 1px)`, width: `calc(${width} - 2px)` }}
-      title={ev.summary || ''}
+      title={rawSummary}
     >
       {!tooShort && <EventQuickActions ev={ev} />}
       <div className="flex items-start gap-1 min-w-0 w-full justify-start">
         {isAIScheduled && !tooShort && <Sparkles size={11} className="shrink-0 animate-pulse text-warning mt-0.5" />}
         {isFocusTime && !tooShort && <Shield size={11} className="shrink-0 text-current mt-0.5" />}
         {videoCall && !tooShort && <Video size={11} className="shrink-0 text-current mt-0.5" />}
-        <p className={`${textColor} ${tooShort ? 'text-xs truncate font-bold' : isMedium ? 'text-xs font-bold leading-snug break-words line-clamp-2' : 'text-xs md:text-sm font-bold leading-snug break-words line-clamp-4'}`}>
+        <p className={`${textColor} ${tooShort ? 'text-xs truncate font-bold' : isMedium ? 'text-xs font-bold leading-snug break-normal line-clamp-2' : 'text-xs md:text-sm font-bold leading-snug break-normal line-clamp-3'} hyphens-none`}>
           {displaySummary}
         </p>
       </div>
       {!tooShort && (
-        <div className={`mt-0.5 text-2xs font-medium tabular-nums ${subtextColor} flex items-center justify-between shrink-0`}>
+        <div className={`text-2xs font-medium tabular-nums ${subtextColor} flex items-center justify-between shrink-0`}>
           <span>{startStr}–{endStr}</span>
           {videoCall && (
             <a

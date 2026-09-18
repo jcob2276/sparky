@@ -7,6 +7,7 @@ import {
   useCreateCalendarEvent,
   useUpdateCalendarEvent,
   useDeleteCalendarEvent,
+  type VanguardCalendarRow,
 } from '../../../lib/calendarApi';
 import { notify } from '../../../lib/notify';
 import { calendarKeys } from '../../../lib/queryKeys';
@@ -110,24 +111,35 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
   // Cast events to CalRow[] safely and merge obligation events.
   // Garmin/Intervals "Kardio" / "Cardio" activities represent Sauna sessions.
   const events = useMemo(() => {
-    const raw = (rawEvents as CalRow[]).map((ev) => {
-      const summaryLower = ev.summary?.toLowerCase() || '';
-      if (
-        summaryLower === 'kardio' ||
-        summaryLower === 'cardio' ||
-        summaryLower.includes('(kardio)') ||
-        summaryLower.includes('(cardio)') ||
-        summaryLower === 'bieg 🏃 (kardio)'
-      ) {
-        return {
-          ...ev,
-          summary: 'Sauna 🧖',
-          category: 'odpoczynek_regeneracja',
-        };
-      }
-      return ev;
-    });
-    return [...raw, ...obligationEvents];
+    const raw = (rawEvents as CalRow[])
+      .filter((ev) => Boolean(ev.summary?.trim() || ev.description?.trim()))
+      .map((ev) => {
+        const summaryLower = ev.summary?.toLowerCase() || '';
+        if (
+          summaryLower === 'kardio' ||
+          summaryLower === 'cardio' ||
+          summaryLower.includes('(kardio)') ||
+          summaryLower.includes('(cardio)') ||
+          summaryLower === 'bieg 🏃 (kardio)'
+        ) {
+          return {
+            ...ev,
+            summary: 'Sauna 🧖',
+            category: 'odpoczynek_regeneracja',
+          };
+        }
+        return ev;
+      });
+
+    const seen = new Set<string>();
+    const deduped: CalRow[] = [];
+    for (const ev of [...raw, ...obligationEvents]) {
+      const key = ev.event_id || ev.id;
+      if (key && seen.has(key)) continue;
+      if (key) seen.add(key);
+      deduped.push(ev);
+    }
+    return deduped;
   }, [rawEvents, obligationEvents]);
   const [searchQuery, setSearchQuery] = useState('');
   const [disabledCategories, setDisabledCategories] = useState<Set<string>>(() => new Set());
@@ -225,6 +237,7 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
   const [frameStrengthInputs, setFrameStrengthInputs] = useState<Record<string, 'prefer' | 'only'>>({});
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [eventToDelete, setEventToDelete] = useState<CalRow | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -330,31 +343,57 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
   });
 
   const executeDelete = useCallback(async (scope: 'this' | 'all' = 'this') => {
-    if (!selectedEvent) return;
+    const target = eventToDelete || selectedEvent;
+    if (!target) return;
     setDeleting(true);
-    const instanceId = selectedEvent.event_id || selectedEvent.id;
-    const seriesBaseId = selectedEvent.series_id || recurringSeriesBaseId(instanceId);
+    const instanceId = target.event_id || target.id;
+    const seriesBaseId = target.series_id || recurringSeriesBaseId(instanceId);
     const evId = scope === 'all' && seriesBaseId ? seriesBaseId : instanceId;
     try {
+      // Optimistic cache eviction
+      queryClient.setQueriesData<VanguardCalendarRow[]>(
+        { queryKey: ['calendar', 'events'] },
+        (prev) => {
+          if (!prev) return [];
+          const baseId = evId.includes('_') ? evId.split('_')[0] : evId;
+          return prev.filter(e => {
+            const rowEvId = e.event_id || e.id;
+            if (scope === 'all') {
+              const seriesId = e.series_id || (e.event_id ? e.event_id.split('_')[0] : null);
+              if (seriesId && seriesId === baseId) return false;
+              if (rowEvId === baseId || rowEvId === evId) return false;
+              if (e.event_id && e.event_id.startsWith(baseId + '_')) return false;
+              return true;
+            }
+            return rowEvId !== instanceId && e.id !== instanceId;
+          });
+        }
+      );
+
       await deleteEventMutation.mutateAsync({
         userId: userId || '',
         accessToken: accessToken || '',
         eventId: evId,
         deleteScope: scope,
       });
+      setEventToDelete(null);
       setSelectedEvent(null);
+      setViewingEvent(null);
       setShowDeleteConfirm(false);
       setToastMessage('Wydarzenie zostało usunięte. 🗑️');
     } catch (err) {
       console.error('delete event error:', err);
       setToastMessage('Nie udało się usunąć wydarzenia.');
+      queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     } finally {
       setDeleting(false);
     }
-  }, [selectedEvent, userId, accessToken, deleteEventMutation]);
+  }, [eventToDelete, selectedEvent, userId, accessToken, deleteEventMutation, queryClient]);
 
   const handleEditDelete = useCallback(() => {
     if (!selectedEvent) return;
+    setEventToDelete(selectedEvent);
+    setSelectedEvent(null);
     setShowDeleteConfirm(true);
   }, [selectedEvent]);
 
@@ -393,13 +432,23 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     );
 
     if (isRecurring) {
-      setSelectedEvent(ev);
+      setViewingEvent(null);
+      setEventToDelete(ev);
       setShowDeleteConfirm(true);
       return;
     }
 
     const instanceId = ev.event_id || ev.id;
     try {
+      // Optimistic cache eviction
+      queryClient.setQueriesData<VanguardCalendarRow[]>(
+        { queryKey: ['calendar', 'events'] },
+        (prev) => {
+          if (!prev) return [];
+          return prev.filter(e => (e.event_id || e.id) !== instanceId && e.id !== instanceId);
+        }
+      );
+
       await deleteEventMutation.mutateAsync({
         userId: userId || '',
         accessToken: accessToken || '',
@@ -407,7 +456,7 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
         deleteScope: 'this',
       });
       setLastDeletedEvent(ev);
-      setViewingEvent((curr) => (curr?.id === ev.id ? null : curr));
+      setViewingEvent(null);
       notify(`Usunięto "${ev.summary || 'Wydarzenie'}"`, 'info', {
         action: {
           label: 'Cofnij',
@@ -432,8 +481,9 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     } catch (err) {
       console.error('Failed to delete event:', err);
       notify('Nie udało się usunąć wydarzenia.', 'error');
+      queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     }
-  }, [deleteEventMutation, createEventMutation, userId, accessToken]);
+  }, [deleteEventMutation, createEventMutation, userId, accessToken, queryClient]);
 
    
   return useMemo(() => ({
@@ -484,6 +534,7 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     frameEndInputs, setFrameEndInputs,
     frameStrengthInputs, setFrameStrengthInputs,
     showDeleteConfirm, setShowDeleteConfirm,
+    eventToDelete, setEventToDelete,
     toastMessage, setToastMessage,
     sidebarCollapsed, setSidebarCollapsed,
     toggleSidebar,
@@ -504,7 +555,7 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     createEventMutation, deleteEventMutation, deleteEventWithUndo, deleting, disabledCategories, displayEvents,
     editAllDay, editCategory, editCustomDays, editDate, editDescription, editEnd, editLocation,
     editRecurrence, editRecurrenceEndDate, editReminder, editStart, editTitle, editingTodo,
-    editingTodoTitle, events, executeDelete, fetchEvents, frameDaysInputs, frameEndInputs,
+    editingTodoTitle, eventToDelete, events, executeDelete, fetchEvents, frameDaysInputs, frameEndInputs,
     frameStartInputs, frameStrengthInputs, handleEditDelete, handleEventClick, handleEventMouseDown,
     lastDeletedEvent, loading, openEditFromPreview, quickAllDay, quickCategory, quickCreate, quickCustomDays,
     quickDescription, quickDuration, quickLocation, quickRecurrence, quickRecurrenceEndDate,

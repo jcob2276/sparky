@@ -8,6 +8,7 @@ const AUTO_CAPTURE_DURATION_MS = 1500;  // hold still for 1.5s to auto-capture
 
 export function useFaceDistance(videoRef: React.RefObject<HTMLVideoElement | null>) {
   const [distance, setDistance] = useState<number | null>(null);
+  const [faceDetected, setFaceDetected] = useState(false);
   const [stability, setStability] = useState(0); // 0–1, how close to auto-capture
   const [calibrationFactor, setCalibrationFactor] = useState<number | null>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.ENDMYOPIA_CALIBRATION);
@@ -99,52 +100,54 @@ export function useFaceDistance(videoRef: React.RefObject<HTMLVideoElement | nul
       if (video.readyState >= 2 && landmarkerRef.current) {
         try {
           const results = landmarkerRef.current.detectForVideo(video, performance.now());
-          if (results.faceLandmarks?.length > 0 && calibrationFactor) {
-            const pixelDist = measurePixelDist(results.faceLandmarks[0]);
-            const raw = calibrationFactor / pixelDist;
+            const hasFace = Boolean(results.faceLandmarks && results.faceLandmarks.length > 0);
+            setFaceDetected(hasFace);
+            if (hasFace && calibrationFactor) {
+              const pixelDist = measurePixelDist(results.faceLandmarks[0]);
+              const raw = calibrationFactor / pixelDist;
 
-            // Smoothing
-            bufferRef.current.push(raw);
-            if (bufferRef.current.length > SMOOTHING_FRAMES) bufferRef.current.shift();
-            const avg = bufferRef.current.reduce((a, b) => a + b, 0) / bufferRef.current.length;
-            setDistance(avg);
+              // Smoothing
+              bufferRef.current.push(raw);
+              if (bufferRef.current.length > SMOOTHING_FRAMES) bufferRef.current.shift();
+              const avg = bufferRef.current.reduce((a, b) => a + b, 0) / bufferRef.current.length;
+              setDistance(avg);
 
-            // Stability tracking
-            const now = performance.now();
-            if (lastStableValueRef.current !== null && Math.abs(avg - lastStableValueRef.current) < AUTO_CAPTURE_THRESHOLD_CM) {
-              // Still within threshold — accumulate stable time
-              if (stableStartRef.current === null) stableStartRef.current = now;
-              const elapsed = now - stableStartRef.current;
-              setStability(Math.min(1, elapsed / AUTO_CAPTURE_DURATION_MS));
-            } else {
-              // Moved — reset stability
-              lastStableValueRef.current = avg;
-              stableStartRef.current = now;
+              // Stability tracking
+              const now = performance.now();
+              if (lastStableValueRef.current !== null && Math.abs(avg - lastStableValueRef.current) < AUTO_CAPTURE_THRESHOLD_CM) {
+                // Still within threshold — accumulate stable time
+                if (stableStartRef.current === null) stableStartRef.current = now;
+                const elapsed = now - stableStartRef.current;
+                setStability(Math.min(1, elapsed / AUTO_CAPTURE_DURATION_MS));
+              } else {
+                // Moved — reset stability
+                lastStableValueRef.current = avg;
+                stableStartRef.current = now;
+                setStability(0);
+              }
+            } else if (!hasFace) {
+              bufferRef.current = [];
+              stableStartRef.current = null;
+              lastStableValueRef.current = null;
+              setDistance(null);
               setStability(0);
             }
-          } else if (!results.faceLandmarks?.length) {
-            bufferRef.current = [];
-            stableStartRef.current = null;
-            lastStableValueRef.current = null;
-            setDistance(null);
-            setStability(0);
+          } catch {
+            console.debug('MediaPipe detection skipped during unmount');
           }
-        } catch {
-          console.debug('MediaPipe detection skipped during unmount');
         }
+        requestRef.current = requestAnimationFrame(processFrame);
       }
-      requestRef.current = requestAnimationFrame(processFrame);
-    }
 
-    const onPlay = () => { requestRef.current = requestAnimationFrame(processFrame); };
-    video.addEventListener('play', onPlay);
-    if (!video.paused) onPlay();
+      const onPlay = () => { requestRef.current = requestAnimationFrame(processFrame); };
+      video.addEventListener('play', onPlay);
+      if (!video.paused) onPlay();
 
-    return () => {
-      video.removeEventListener('play', onPlay);
-      if (requestRef.current) cancelAnimationFrame(requestRef.current);
-    };
-  }, [isReady, videoRef, calibrationFactor]);
+      return () => {
+        video.removeEventListener('play', onPlay);
+        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+      };
+    }, [isReady, videoRef, calibrationFactor]);
 
-  return { distance, stability, isReady, calibrationFactor, calibrate, resetCalibration, resetStability };
-}
+    return { distance, stability, isReady, calibrationFactor, calibrate, resetCalibration, resetStability, faceDetected };
+  }

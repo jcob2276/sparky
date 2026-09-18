@@ -102,8 +102,21 @@ export function computeEventColumns(events: CalRow[]): PositionedCalRow[] {
 
     columns.forEach((colEvents, colIdx) => {
       colEvents.forEach((ev) => {
+        const evInterval = intervalsMap.get(ev.id)!;
+        let colSpan = 1;
+
+        // Expand into unoccupied subsequent columns to the right
+        for (let targetCol = colIdx + 1; targetCol < totalColumns; targetCol++) {
+          const hasConflict = columns[targetCol].some((otherEv) => {
+            const otherInterval = intervalsMap.get(otherEv.id)!;
+            return intervalsIntersect(evInterval, otherInterval);
+          });
+          if (hasConflict) break;
+          colSpan++;
+        }
+
         const leftPercent = (colIdx / totalColumns) * 100;
-        const widthPercent = (1 / totalColumns) * 100;
+        const widthPercent = (colSpan / totalColumns) * 100;
 
         result.push({
           ...ev,

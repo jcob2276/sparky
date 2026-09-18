@@ -10,8 +10,6 @@ import { ChronicleMilestonesBar } from './stats/ChronicleMilestonesBar';
 import { ChronicleExportModal } from './stats/ChronicleExportModal';
 import { useStatsData } from './hooks/useStatsData';
 import { mergeLatestBodyMetrics } from '../../lib/health/bodyMetrics';
-import { FileDown } from 'lucide-react';
-import Button from '../ui/Button';
 
 export type ChronicleDomain = 'body' | 'gym' | 'running' | 'all';
 
@@ -30,7 +28,7 @@ export default function Stats({
   photosSlot = null,
   isExportOpen = false,
   onCloseExport = () => {},
-  onOpenExport = () => {},
+  onOpenExport: _onOpenExport = () => {},
 }: StatsProps) {
   const {
     userId,
@@ -130,19 +128,6 @@ export default function Stats({
 
       {/* Running / Endurance Section */}
       {showRunning && runningSlot}
-
-      {/* Subtle Export Trigger at bottom */}
-      <div className="pt-2 flex justify-center">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onOpenExport}
-          icon={<FileDown size={14} />}
-          className="text-xs font-bold text-text-muted hover:text-text-primary rounded-xl"
-        >
-          Eksportuj dane (.md)
-        </Button>
-      </div>
 
       {/* Export Modal / Sheet */}
       <ChronicleExportModal

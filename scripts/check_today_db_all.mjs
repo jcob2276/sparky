@@ -33,7 +33,7 @@ async function main() {
   }
 
   // 2. workout_sessions
-  const { data: ws, error: e2 } = await supabase
+  const { data: ws, error: _e2 } = await supabase
     .from('workout_sessions')
     .select('*')
     .gte('start_time', `${today}T00:00:00`);
@@ -44,7 +44,7 @@ async function main() {
   }
 
   // 3. Oura / HR tables
-  const { data: oura5, error: e3 } = await supabase
+  const { data: oura5, error: _e3 } = await supabase
     .from('oura_hr_5min')
     .select('*')
     .eq('day', today);
@@ -55,7 +55,7 @@ async function main() {
   }
 
   // 4. oura_enhanced
-  const { data: ouraEnh, error: e4 } = await supabase
+  const { data: ouraEnh, error: _e4 } = await supabase
     .from('oura_enhanced')
     .select('*')
     .eq('day', today);

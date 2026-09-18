@@ -45,13 +45,13 @@ export default function FitnessScorePanel({
   );
 
   return (
-    <Panel title="Hybrydowy Profil & Fitness Score" className="h-full flex flex-col">
+    <Panel title="Forma Fizyczna & Balans Treningowy" className="h-full flex flex-col">
       <div className="grid grid-cols-1 xl:grid-cols-[var(--ds-arbitrary-minmax-0-1fr-minmax-0-1-15fr)] gap-6 items-center flex-1">
         <div className="flex flex-col items-center justify-center py-4 xl:py-8 xl:min-h-[var(--ds-h-280px)] border-b xl:border-b-0 xl:border-r border-border-custom">
           <div className="flex items-center gap-1.5 mb-3 text-primary">
             <Activity size={16} className="animate-pulse" />
             <span className="text-xs font-black uppercase tracking-[var(--ds-arbitrary-0-2em)] text-text-secondary">
-              Hybrydowy profil
+              Kondycja & Sprawność
             </span>
           </div>
           <div className="flex items-stretch gap-6">

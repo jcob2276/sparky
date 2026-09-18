@@ -86,12 +86,16 @@ async function updateNoteAction(
     });
     return;
   }
+  const original = notes.find((n) => n.id === id);
+  setNotes((prev) => {
+    return sortNotes(prev.map((n) => (n.id === id ? { ...n, ...patch, updated_at: updatedAt } : n)));
+  });
   try {
     await updateNoteApi(id, { ...patch, updated_at: updatedAt });
-    setNotes((prev) => {
-      return sortNotes(prev.map((n) => (n.id === id ? { ...n, ...patch, updated_at: updatedAt } : n)));
-    });
   } catch (err) {
+    if (original) {
+      setNotes((prev) => sortNotes(prev.map((n) => (n.id === id ? original : n))));
+    }
     setError('Nie zapisano w chmurze. Szkic pozostał na tym urządzeniu.');
     throw err;
   }
@@ -149,12 +153,15 @@ async function togglePinAction(
   setError: (err: string | null) => void
 ) {
   const next = !note.is_pinned;
+  setNotes((prev) => {
+    return sortNotes(prev.map((n) => (n.id === note.id ? { ...n, is_pinned: next } : n)));
+  });
   try {
     await updateNoteApi(note.id, { is_pinned: next });
-    setNotes((prev) => {
-      return sortNotes(prev.map((n) => (n.id === note.id ? { ...n, is_pinned: next } : n)));
-    });
   } catch (err) {
+    setNotes((prev) => {
+      return sortNotes(prev.map((n) => (n.id === note.id ? { ...n, is_pinned: note.is_pinned } : n)));
+    });
     setError(err instanceof Error ? err.message : 'Nie zapisano przypięcia w chmurze.');
   }
 }

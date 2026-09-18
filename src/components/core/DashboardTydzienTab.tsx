@@ -12,6 +12,7 @@ import WeeklyNutritionPulse from './WeeklyNutritionPulse';
 import WeeklyBodyPulse from './WeeklyBodyPulse';
 import WeeklyWinsMap from './WeeklyWinsMap';
 import WeeklyPulseDiagnostic from './WeeklyPulseDiagnostic';
+import { WeeklySpheresOverviewCard } from './WeeklySpheresOverviewCard';
 
 import Direction from '../lifestyle/Direction';
 
@@ -54,6 +55,7 @@ export const DashboardTydzienTab = memo(function DashboardTydzienTab({ weeklyCal
           }
         />
         <WeeklyPulseDiagnostic />
+        <WeeklySpheresOverviewCard />
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
           <WeeklyBodyPulse />
           <WeeklyNutritionPulse weeklyCalories={weeklyCalories} refreshSignal={nutritionKey} />

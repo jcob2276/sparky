@@ -44,6 +44,11 @@ function FlaggedMarkersAlert({ flaggedMarkers }: FlaggedAlertProps) {
                 {s.latest.flag === 'H' ? '↑ wysoki' : s.latest.flag === 'L' ? '↓ niski' : s.latest.flag}
               </span>
             )}
+            {s.latest.result_date && (
+              <span className="text-3xs text-text-muted font-mono" title={`Data pomiaru: ${s.latest.result_date}`}>
+                {s.latest.result_date.slice(0, 7)}
+              </span>
+            )}
           </span>
         ))}
         {flaggedMarkers.length > 7 && (
@@ -84,8 +89,8 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
             <h3 className="text-sm font-bold tracking-tight text-text-primary">Centrum Badań & Laboratorium</h3>
             {latestDate && !loading ? (
               <p className="text-xs text-text-muted">
-                Ostatni panel: <strong className="text-text-secondary">{formatMedicalDate(latestDate)}</strong> ·{' '}
-                {freshnessLabel(labFreshness(diffDaysFromToday(latestDate)))} · {documents.length} plików PDF
+                Ostatni panel: <strong className="text-text-secondary">{formatMedicalDate(latestDate)}</strong> (hormony/żelazo) ·{' '}
+                <span className="text-warning font-medium">lipidy & CBC do retestu (z 2025-04)</span> · {documents.length} plików PDF
               </p>
             ) : (
               <p className="text-xs text-text-muted">Kartoteka medyczna, morfologia i panele diagnostyczne</p>

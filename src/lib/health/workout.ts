@@ -59,7 +59,7 @@ export function epley(
   if (kg === null || kg === undefined || reps === null || reps === undefined) return null;
   const k = typeof kg === 'number' ? kg : parseFloat(kg);
   const r = typeof reps === 'number' ? reps : parseInt(reps);
-  if (!k || !r || r <= 0) return null;
+  if (!k || !r || r <= 0 || r > 30) return null;
   return r === 1 ? k : k * (1 + r / 30);
 }
 
@@ -92,3 +92,40 @@ export function sessionVol(s: { exercise_logs: { exercise_name: string; weight: 
     return sum + (Number(l.weight) || 0) * (Number(l.reps) || 0);
   }, 0);
 }
+
+export interface SessionVolumeStats {
+  tonnage: number;
+  bwReps: number;
+  completedSets: number;
+}
+
+export function computeSessionStats(
+  exercises: {
+    tags?: string[];
+    name?: string;
+    sets?: { kg: string | number; reps: string | number }[];
+  }[]
+): SessionVolumeStats {
+  let tonnage = 0;
+  let bwReps = 0;
+  let completedSets = 0;
+
+  for (const ex of exercises) {
+    if ((ex.tags || []).includes('wellness')) continue;
+    for (const s of ex.sets || []) {
+      const reps = parseInt(String(s.reps), 10) || 0;
+      const kg = parseFloat(String(s.kg)) || 0;
+      if (reps > 0) {
+        completedSets++;
+        if (kg > 0) {
+          tonnage += kg * reps;
+        } else {
+          bwReps += reps;
+        }
+      }
+    }
+  }
+
+  return { tonnage, bwReps, completedSets };
+}
+

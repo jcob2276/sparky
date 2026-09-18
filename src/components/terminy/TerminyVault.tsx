@@ -84,6 +84,7 @@ export function TerminyVault({
           >
             <TerminyObligationCard
               row={row}
+              compact={filtered.length > 6}
               onDelete={() => onDelete(row.item.id, row.item.title)}
               onEdit={() => onEdit(row.item.id)}
               onComplete={() => onComplete(row)}

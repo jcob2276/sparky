@@ -1,6 +1,5 @@
-import { Flame, Clock, Calendar, Zap, Plus } from 'lucide-react';
+import { Flame, Clock, Calendar, Zap } from 'lucide-react';
 import { Card } from '../../ui/Card';
-import { Pressable } from '../../ui/ControlPrimitives';
 import { getSaunaStats, isGarminSaunaActivity, sessionDateKey } from '../../../lib/health/workoutSauna';
 import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 import type { DesktopSessionRow, StravaActivityRow } from '../shell/useDesktopData';
@@ -11,7 +10,7 @@ interface Props {
   onOpenSauna?: () => void;
 }
 
-export default function DesktopSaunaSection({ sessions, strava, onOpenSauna }: Props) {
+export default function DesktopSaunaSection({ sessions, strava }: Props) {
   const sevenDaysAgo = shiftDateStr(getTodayWarsaw(), -7);
   const thirtyDaysAgo = shiftDateStr(getTodayWarsaw(), -30);
 
@@ -65,13 +64,6 @@ export default function DesktopSaunaSection({ sessions, strava, onOpenSauna }: P
             </p>
           </div>
         </div>
-        <Pressable
-          onClick={onOpenSauna}
-          className="flex items-center gap-1.5 rounded-xl border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs font-semibold text-warning hover:bg-warning/20 transition-colors"
-        >
-          <Plus size={14} />
-          <span>Zaloguj saunę</span>
-        </Pressable>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

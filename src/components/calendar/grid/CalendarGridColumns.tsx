@@ -38,25 +38,22 @@ export const renderTimeGutter = ({
     }
   }
 
-  const gutterWidth = showHourlyWeather ? 72 : 44;
+  const gutterWidthClass = showHourlyWeather ? 'w-11 sm:w-[72px]' : 'w-11';
 
   return (
-    <div className="flex flex-col shrink-0 relative" style={{ width: gutterWidth }}>
+    <div className={`flex flex-col shrink-0 relative ${gutterWidthClass}`}>
       {Array.from({ length: HOURS + 1 }, (_, i) => {
         const absoluteHour = HOUR_START + i;
         const hw = hourlyByHour[absoluteHour];
         return (
           <div
             key={i}
-            className="absolute right-0 flex items-center justify-end h-5 -translate-y-1/2"
-            style={{
-              top: i * PX_PER_HOUR,
-              width: gutterWidth,
-            }}
+            className={`absolute right-0 flex items-center justify-end h-5 -translate-y-1/2 ${gutterWidthClass}`}
+            style={{ top: i * PX_PER_HOUR }}
           >
             {hw && showHourlyWeather && (
               <div
-                className="flex items-center gap-0.5 mr-1"
+                className="hidden sm:flex items-center gap-0.5 mr-1"
                 title={`${WMO_WEATHER_DESC[hw.weatherCode]}${hw.precipProb > 0 ? ` · opady ${hw.precipProb}%` : ''}`}
               >
                 {getWMOWeatherIcon(hw.weatherCode, 12, absoluteHour < 6 || absoluteHour >= 20)}
@@ -186,6 +183,7 @@ export const renderDayColumn = ({
         const sunsetTop  = (sun.sunsetMin  - HOUR_START * 60) * PX_PER_MIN;
         const sunriseVisible = sunriseTop >= 0 && sunriseTop <= HOURS * PX_PER_HOUR;
         const sunsetVisible  = sunsetTop  >= 0 && sunsetTop  <= HOURS * PX_PER_HOUR;
+        const isMultiCol = colClass.includes('calendar-week-column');
         return (
           <>
             {sunriseVisible && (
@@ -195,7 +193,9 @@ export const renderDayColumn = ({
                 title={`Wschód: ${formatTimeWarsaw(sun.sunrise)}`}
               >
                 <div className="w-full h-px bg-gradient-to-r from-warning/0 via-warning/50 to-warning/0" />
-                <span className="absolute right-1 text-2xs font-bold text-warning/70 select-none">🌅 {formatTimeWarsaw(sun.sunrise)}</span>
+                {!isMultiCol && (
+                  <span className="absolute right-1 text-2xs font-bold text-warning/70 select-none">🌅 {formatTimeWarsaw(sun.sunrise)}</span>
+                )}
               </div>
             )}
             {sunsetVisible && (
@@ -205,7 +205,9 @@ export const renderDayColumn = ({
                 title={`Zachód: ${formatTimeWarsaw(sun.sunset)}`}
               >
                 <div className="w-full h-px bg-gradient-to-r from-warning/0 via-warning/50 to-warning/0" />
-                <span className="absolute right-1 text-2xs font-bold text-warning/70 select-none">🌇 {formatTimeWarsaw(sun.sunset)}</span>
+                {!isMultiCol && (
+                  <span className="absolute right-1 text-2xs font-bold text-warning/70 select-none">🌇 {formatTimeWarsaw(sun.sunset)}</span>
+                )}
               </div>
             )}
           </>
@@ -236,10 +238,10 @@ export const renderAllDayTodos = ({
   })();
   const isDayView = days.length === 1;
   const showHourlyWeather = isDayView && (days[0] === today || days[0] === tomorrow);
-  const gutterWidth = showHourlyWeather ? 72 : 44;
+  const gutterPadClass = showHourlyWeather ? 'pl-11 sm:pl-[72px]' : 'pl-11';
 
   return (
-    <div className="flex border-b border-border-custom/40 bg-surface-solid/10" style={{ paddingLeft: gutterWidth }}>
+    <div className={`flex border-b border-border-custom/40 bg-surface-solid/10 ${gutterPadClass}`}>
       {days.map((day, idx) => (
         <div key={day} className="flex-1 min-w-0 p-1 space-y-1 border-l border-border-custom/10 first:border-l-0">
           {untimedByDay[idx].map((todo) => {

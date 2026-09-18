@@ -111,7 +111,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
             />
           )}
 
-          <div className={`flex items-center rounded-lg border border-border-custom/30 bg-surface-1/40 p-0.5 ${searchOpen ? 'max-sm:hidden' : ''}`}>
+          <div className={`hidden sm:flex items-center rounded-lg border border-border-custom/30 bg-surface-1/40 p-0.5 ${searchOpen ? 'sm:hidden' : ''}`}>
             <Pressable
               onClick={() => handleMovePeriod(-1)}
               aria-label="Poprzedni okres"

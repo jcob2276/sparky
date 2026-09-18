@@ -21,42 +21,47 @@ export default function TodoTodayZone({ renderInlineQuickCapture, renderAddTodoB
   return (
     <div
       ref={todayZoneRef}
-      className={`rounded-2xl p-2 ui-interactive duration-[var(--motion-medium)] ${
+      className={`todo-grouped-surface mb-4 ui-interactive duration-[var(--motion-medium)] ${
         draggingItem !== null
           ? dragTarget === 'today'
-            ? 'border border-warning/40 bg-warning/10 scale-[var(--ds-arbitrary-1-01)] shadow-[var(--shadow-accent-active)]'
-            : 'border border-dashed border-warning/20 bg-warning/5'
-          : 'border border-transparent bg-transparent'
+            ? 'ring-2 ring-warning/60 shadow-[var(--shadow-accent-active)]'
+            : 'border-dashed border-warning/40'
+          : ''
       }`}
     >
-      <BucketHeader
-        icon="🔥"
-        title="Na dziś / Aktywne"
-        count={todayItems.length}
-        collapsed={!!collapsedSections['today']}
-        onToggle={() => toggleSectionCollapse('today')}
-        isDropTarget={dragTarget === 'today'}
-      />
-      <DayCapacityBar userId={userId} today={today} plannedMinutes={totalMin} />
+      <div className="todo-grouped-header">
+        <BucketHeader
+          icon="🔥"
+          title="Na dziś / Aktywne"
+          count={todayItems.length}
+          collapsed={!!collapsedSections['today']}
+          onToggle={() => toggleSectionCollapse('today')}
+          isDropTarget={dragTarget === 'today'}
+        />
+        <DayCapacityBar userId={userId} today={today} plannedMinutes={totalMin} />
+      </div>
+
       {!collapsedSections['today'] && (
-        <div className="pt-1">
+        <div className="todo-grouped-body">
           <TodayRunway />
           {todayItems.length === 0 ? (
             <EmptyState
               icon="🔥"
-              label="Upuść tutaj, aby zaplanować na dziś"
+              label="Brak zadań na dziś — upuść tutaj lub dodaj pierwsze"
               isDragOver={dragTarget === 'today'}
               dragColor="orange"
             />
           ) : (
-            <>
+            <div className="divide-y divide-border-custom/30">
               {todayItems.map((i) => (
                 <TodoCardConnected key={i.id} item={i} inToday />
               ))}
-            </>
+            </div>
           )}
-          {renderInlineQuickCapture('today')}
-          {renderAddTodoButton('today')}
+          <div className="pt-2 px-1">
+            {renderInlineQuickCapture('today')}
+            {renderAddTodoButton('today')}
+          </div>
         </div>
       )}
     </div>

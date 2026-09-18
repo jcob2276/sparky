@@ -18,7 +18,7 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
   const latestOutOfRange = latestPanelRows.filter(l => l.flag && l.flag !== 'N' && l.flag !== 'normal').length;
   const totalOutOfRange = labs.filter(l => l.flag && l.flag !== 'N' && l.flag !== 'normal').length;
 
-  // Panel completeness logic (check if basic markers exist across user tests)
+  // Panel completeness logic (check if basic markers exist across user tests AND their freshness)
   const requiredBasicKeys = ['hemoglobin', 'wbc', 'rbc', 'platelets', 'ferritin', 'tsh', 'glucose'];
   const userKeys = new Set(labs.map(l => l.marker_key));
   const hasMarker = (k: string) => {
@@ -26,7 +26,31 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
     return userKeys.has(k);
   };
   const missingKeys = requiredBasicKeys.filter(k => !hasMarker(k));
-  const completeness = missingKeys.length === 0 ? 'Kompletna' : missingKeys.length <= 2 ? 'Dobra' : 'Wymaga uzupełnienia';
+
+  // Freshness check: when was the full morphology/glucose tested?
+  const oldestCoreLab = labs.find(l => ['hemoglobin', 'glucose', 'wbc'].includes(l.marker_key || ''));
+  const daysSinceCore = oldestCoreLab?.result_date ? diffDaysFromToday(oldestCoreLab.result_date) : null;
+  const isCoreOutdated = daysSinceCore != null && daysSinceCore > 365;
+
+  const completeness = isCoreOutdated
+    ? 'Wygasła / Do odświeżenia'
+    : missingKeys.length === 0
+    ? 'Kompletna'
+    : missingKeys.length <= 2
+    ? 'Dobra'
+    : 'Wymaga uzupełnienia';
+
+  const completenessDetail = isCoreOutdated
+    ? `Morfologia i biochemia: ${daysSinceCore} dni (${oldestCoreLab?.result_date})`
+    : missingKeys.length === 0
+    ? 'Wszystkie kluczowe markery zbadane'
+    : `Brakujące: ${missingKeys.length}`;
+
+  const completenessSubtext = isCoreOutdated
+    ? 'Wymagany retest morfologii i lipidogramu (brak ApoB/HbA1c)'
+    : missingKeys.length === 0
+    ? 'Baza danych pokrywa pełną morfologię i biochem'
+    : 'Zalecane uzupełnienie w kolejnym panelu';
 
   return (
     <div className="space-y-6">
@@ -62,15 +86,15 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
               <HelpCircle size={12} className="text-primary" />
               Kompletność profilu
             </div>
-            <p className="text-sm font-bold text-text-primary mt-2">
-              Poziom: {completeness}
+            <p className={`text-sm font-bold mt-2 ${isCoreOutdated ? 'text-warning' : 'text-text-primary'}`}>
+              {completeness}
             </p>
             <p className="text-xs text-text-muted font-medium mt-0.5">
-              {missingKeys.length === 0 ? 'Wszystkie kluczowe markery zbadane' : `Brakujące: ${missingKeys.length}`}
+              {completenessDetail}
             </p>
           </div>
           <p className="text-3xs text-text-muted">
-            {missingKeys.length === 0 ? 'Baza danych pokrywa pełną morfologię i biochem' : 'Zalecane uzupełnienie w kolejnym panelu'}
+            {completenessSubtext}
           </p>
         </Card>
 
@@ -87,7 +111,7 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
             </div>
             <p className="text-sm font-bold text-text-primary mt-2">
               {latestOutOfRange === 0 ? (
-                <span className="text-primary">Najnowszy panel: 100% w normie</span>
+                <span className="text-primary">Najnowszy panel: {latestPanelRows.length}/{latestPanelRows.length} w normie</span>
               ) : (
                 <span>{latestOutOfRange} poza zakresem</span>
               )}
@@ -97,7 +121,9 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
             </p>
           </div>
           <p className="text-3xs text-text-muted">
-            {latestOutOfRange === 0 ? 'Ostatni panel bez żadnych flag ostrzegawczych' : 'Sprawdź wyniki oznaczone flagą'}
+            {latestOutOfRange === 0
+              ? `Ostatni panel badał tylko ${latestPanelRows.length} markerów (7 odchyleń z 2025 czeka na retest)`
+              : 'Sprawdź wyniki oznaczone flagą'}
           </p>
         </Card>
 

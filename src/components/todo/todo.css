@@ -82,3 +82,27 @@
 .todoist-checkbox-low:hover {
   background-color: var(--color-priority-low-hover) !important;
 }
+
+/* Tactile Grouped Surfaces (Apple Reminders / Notes pattern) */
+.todo-grouped-surface {
+  background: color-mix(in srgb, var(--surface-solid, var(--surface)) 86%, var(--background));
+  border-radius: 1.25rem;
+  border: 1.5px solid color-mix(in srgb, var(--border-custom) 70%, transparent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.todo-grouped-header {
+  padding: 0.75rem 1rem 0.5rem;
+  border-bottom: 1.5px solid color-mix(in srgb, var(--border-custom) 45%, transparent);
+  background: color-mix(in srgb, var(--surface-solid, var(--surface)) 94%, var(--background));
+}
+
+.todo-grouped-body {
+  padding: 0.35rem 0.75rem 0.75rem;
+}
+
+.todo-grouped-divider {
+  border-bottom: 1px solid color-mix(in srgb, var(--border-custom) 45%, transparent);
+}
+

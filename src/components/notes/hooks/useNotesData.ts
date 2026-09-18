@@ -238,8 +238,9 @@ export function useNotesData(userId: string) {
   }, [queryClient, setNotes, userId]);
 
   const handleCreateFolder = useCallback(async (name: string, parentId: string | null = null) => {
-    await createNoteFolder(userId, name, parentId);
+    const created = await createNoteFolder(userId, name, parentId);
     await queryClient.invalidateQueries({ queryKey: notesKeys.folders(userId) });
+    return created;
   }, [queryClient, userId]);
 
   const handleRenameFolder = useCallback(async (id: string, name: string) => {

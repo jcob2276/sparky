@@ -12,7 +12,6 @@ import { useUserId } from '../../store/useStore';
 import { useNotesData } from './hooks/useNotesData';
 import { useKeepView } from './hooks/useKeepView';
 import './notes.css';
-import WorkspaceNavigation from '../shared/WorkspaceNavigation';
 import TrashNotesView from './TrashNotesView';
 import { useEffect, useState } from 'react';
 import {
@@ -220,6 +219,7 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
             activeTag={activeTag}
             onExportChecklists={handleExportChecklists}
             folders={folders}
+            onCreateFolder={handleCreateFolder}
             onExportNote={handleExportNote}
             onExportPdf={handleExportPdf}
             onShareNote={handleShareNote}
@@ -235,14 +235,6 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
         )}
       </div>
 
-      {/* Mobile bottom nav */}
-      <WorkspaceNavigation
-        active="keep"
-        orientation="horizontal"
-        onNavigate={goTo}
-        primaryAction={{ label: 'Notatka', onClick: createNewNote }}
-        className="keep-mobile-navigation md:hidden fixed bottom-0 inset-x-0 z-[var(--z-overlay)] border-t border-border-custom bg-background/95 backdrop-blur-[var(--blur-xl)]"
-      />
     </div>
   );
 }

@@ -25,5 +25,14 @@ export interface OuraHealthHubData {
   todayContext?: OuraContextInsights | null;
   nightContext?: OuraContextInsights | null;
   correlations?: CorrelationsData | null;
+  stravaActivities?: Array<{
+    name?: string | null;
+    distance?: number | null;
+    moving_time?: number | null;
+    start_date?: string | null;
+    average_heartrate?: number | null;
+    gc_vo2max?: number | null;
+    raw_data?: unknown;
+  }> | null;
 }
 

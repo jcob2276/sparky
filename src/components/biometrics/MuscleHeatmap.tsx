@@ -52,7 +52,7 @@ export default function MuscleHeatmap({
   userId?: string;
   strava?: StravaActivityRow[];
 } = {}) {
-  const [period, setPeriod] = useState(30);
+  const [period, setPeriod] = useState(7);
   const [includeRunning, setIncludeRunning] = useState(true);
   const [setsByTag, setSetsByTag] = useState<Record<string, number>>({});
   const [directByTag, setDirectByTag] = useState<Record<string, number>>({});

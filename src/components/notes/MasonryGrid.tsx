@@ -60,9 +60,9 @@ export default function MasonryGrid({
   const handleDragOver = (e: React.DragEvent) => e.preventDefault();
 
   return (
-    <div className="keep-masonry" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
+    <div className="keep-masonry" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
       {cols.map((col, ci) => (
-        <div key={ci} className="keep-masonry-col">
+        <div key={ci} className="keep-masonry-col min-w-0">
           {col.map(note => (
             <NoteCard
               key={note.id}

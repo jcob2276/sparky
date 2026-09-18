@@ -8,14 +8,9 @@
  */
 import { useGeneralViewData } from './hooks/useGeneralViewData';
 import Skeleton from '../../ui/Skeleton';
-import { FRICTION_COLOR as FRICTION_COLOR_TYPED } from '../../../lib/frictionColors';
 import { C, OuraRow } from '../desktopUtils';
-
-import GeneralFrictionPanels from './generalView/GeneralFrictionPanels';
 import GeneralMemexPanels from './generalView/GeneralMemexPanels';
 import GeneralRecommendationsPanel from './generalView/GeneralRecommendationsPanel';
-
-const FRICTION_COLOR: Record<string, string> = FRICTION_COLOR_TYPED;
 
 export default function GeneralView({
   userId,
@@ -28,7 +23,6 @@ export default function GeneralView({
     patterns,
     wiki,
     curiosity,
-    friction,
     recommendations,
     loading,
   } = useGeneralViewData({ userId, ouraProp });
@@ -43,42 +37,10 @@ export default function GeneralView({
     );
   }
 
-  // Friction by type — last 90d counts
-  const frictionCounts: Record<string, number> = {};
-  friction.forEach((f) => {
-    const t = f.friction_type || 'other';
-    frictionCounts[t] = (frictionCounts[t] || 0) + 1;
-  });
-  const frictionBar = Object.entries(frictionCounts)
-    .map(([type, count]) => ({
-      type: type.replace(/_/g, ' '),
-      count,
-      color: FRICTION_COLOR[type] || 'var(--color-text-muted)',
-    }))
-    .sort((a, b) => b.count - a.count);
-
-  const tick = 'var(--color-text-muted)';
-
   return (
     <div className="space-y-5">
-      {/* ── SEKCJA: TARCIA ── */}
-      <div className="flex items-center gap-3">
-        <div className="h-px flex-1 bg-border-custom" />
-        <span className="text-xs font-black uppercase tracking-widest text-text-muted">
-          Tarcia — 90 dni ({friction.length} zdarzeń)
-        </span>
-        <div className="h-px flex-1 bg-border-custom" />
-      </div>
-
-      <GeneralFrictionPanels
-        frictionBar={frictionBar}
-        friction={friction}
-        frictionColor={FRICTION_COLOR}
-        tick={tick}
-      />
-
       {/* ── SEKCJA: MEMEX ── */}
-      <div id="pamiec" className="scroll-mt-28 flex items-center gap-3 mt-2">
+      <div id="pamiec" className="scroll-mt-28 flex items-center gap-3">
         <div className="h-px flex-1 bg-border-custom" />
         <span className="text-xs font-black uppercase tracking-widest text-text-muted">
           Memex — Pamięć systemu

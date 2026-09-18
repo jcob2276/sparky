@@ -72,7 +72,7 @@ export function useWorkoutLogger({
     clearPlyoCheckoff(userId);
   }, [userId]);
 
-  const [plyoSkipped, setPlyoSkipped] = useState(false);
+  const [plyoSkipped, setPlyoSkipped] = useState(true);
   const plyoSession = userId ? resolvePlyoSession(workoutDate, userId) : null;
   const [plyoDone, setPlyoDone] = useState<boolean[][]>(() =>
     plyoSession && userId ? initPlyoCheckoff(userId, plyoSession) : []

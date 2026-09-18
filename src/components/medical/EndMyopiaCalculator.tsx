@@ -3,7 +3,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { useFaceDistance } from './hooks/useFaceDistance';
 import { insertEndmyopiaMeasurement } from '../../lib/endmyopiaApi';
 import { ArrowLeft, Ruler } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import VisionJournal from './VisionJournal';
 import GlassesCabinet from './GlassesCabinet';
 import { useHaptics } from '../../hooks/useHaptics';
@@ -19,12 +19,13 @@ type Eye = 'left' | 'right';
 type Phase = 'calibrate' | 'select-eye' | 'measure' | 'captured' | 'saved';
 
 export default function EndMyopiaCalculator() {
+  const navigate = useNavigate();
   const haptics = useHaptics();
   const userId = useUserId();
   const videoRef = useRef<HTMLVideoElement>(null);
   const pipVideoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const { distance, stability, isReady, calibrationFactor, calibrate, resetCalibration, resetStability } = useFaceDistance(videoRef);
+  const { distance, stability, isReady, calibrationFactor, calibrate, resetCalibration, resetStability, faceDetected } = useFaceDistance(videoRef);
 
   const [phase, setPhase] = useState<Phase>('calibrate');
   const [selectedEye, setSelectedEye] = useState<Eye>('left');
@@ -37,7 +38,6 @@ export default function EndMyopiaCalculator() {
     localStorage.getItem(STORAGE_KEYS.ENDMYOPIA_AUTO_CAPTURE) !== 'false'
   );
 
-  const faceDetected = distance !== null;
   const capturedDiopters = capturedDistance ? (-100 / capturedDistance) : null;
 
   const startMeasure = useCallback((eye: Eye) => {
@@ -196,9 +196,19 @@ export default function EndMyopiaCalculator() {
       {(phase === 'calibrate' || phase === 'select-eye') && (
         <>
           <header className="sticky top-0 z-[var(--z-modal)] w-full px-4 py-3 flex items-center gap-3 border-b border-border-custom bg-background/90 backdrop-blur-[var(--blur-md)]">
-            <Link to="/badania" aria-label="Wróć do badań" className="rounded-xl border border-border-custom p-2 text-text-muted hover:text-text-primary bg-surface transition-colors">
+            <Pressable
+              onClick={() => {
+                if (window.history.length > 1) {
+                  navigate(-1);
+                } else {
+                  navigate('/dzis');
+                }
+              }}
+              aria-label="Wróć"
+              className="rounded-xl border border-border-custom p-2 text-text-muted hover:text-text-primary bg-surface transition-colors cursor-pointer"
+            >
               <ArrowLeft size={18} />
-            </Link>
+            </Pressable>
             <div>
               <h1 className="text-base font-black uppercase tracking-tight leading-none">Sparky Optics</h1>
               <p className="text-xs text-text-muted mt-0.5">

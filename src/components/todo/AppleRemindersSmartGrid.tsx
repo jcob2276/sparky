@@ -72,7 +72,7 @@ export function AppleRemindersSmartGrid({
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 p-3 mb-2 select-none">
+    <div className="flex items-stretch gap-2 px-1 py-1 mb-2 select-none overflow-x-auto no-scrollbar sm:grid sm:grid-cols-3 lg:grid-cols-5">
       {cards.map((card) => {
         const isActive = navDest === card.id;
         const Icon = card.icon;
@@ -83,24 +83,23 @@ export function AppleRemindersSmartGrid({
             onClick={() => onSelectNavDest(card.id)}
             aria-label={`${card.title}: ${card.count} zadań`}
             aria-pressed={isActive}
-            className={`flex flex-col justify-between p-3 rounded-2xl border transition-all duration-200 cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none last:col-span-2 sm:last:col-span-1 ${
+            className={`flex-1 min-w-[96px] sm:min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-xl border transition-all duration-200 cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
               isActive
-                ? 'border-primary/50 bg-primary/10 shadow-sm ring-2 ring-primary/20'
-                : 'border-border-custom/30 bg-surface-solid/40 hover:bg-surface-solid/70 hover:border-border-custom/60 shadow-xs'
+                ? 'border-primary/50 bg-primary/15 shadow-sm ring-2 ring-primary/20'
+                : 'border-border-custom/40 bg-surface-solid/80 hover:bg-surface-solid hover:border-border-custom/60 shadow-xs'
             }`}
           >
-            <div className="flex items-center justify-between w-full mb-2">
-              <div className={`w-8 h-8 rounded-full ${card.bgColor} text-on-accent flex items-center justify-center shadow-xs`}>
-                <Icon size={16} strokeWidth={2.5} />
-              </div>
-              <span className={`text-xl font-black tabular-nums tracking-tight ${card.textColor}`}>
+            <div className={`w-7 h-7 shrink-0 rounded-full ${card.bgColor} text-on-accent flex items-center justify-center shadow-xs`}>
+              <Icon size={14} strokeWidth={2.5} />
+            </div>
+            <div className="min-w-0 flex flex-col leading-none justify-center">
+              <span className={`text-sm font-black tabular-nums tracking-tight ${card.textColor}`}>
                 {card.count}
               </span>
+              <span className="text-3xs font-semibold text-text-secondary tracking-tight truncate mt-0.5">
+                {card.title}
+              </span>
             </div>
-
-            <span className="text-xs font-bold text-text-secondary tracking-tight">
-              {card.title}
-            </span>
           </Pressable>
         );
       })}

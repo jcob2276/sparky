@@ -1,4 +1,4 @@
-﻿import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { ControlInput } from '../ui/ControlPrimitives';
 import FloatingToolbar from './FloatingToolbar';
 import RichEditorStaticBar from './RichEditorStaticBar';
@@ -115,8 +115,10 @@ export default function RichEditor({
     });
   };
 
+  const isTextEmpty = !value || !value.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+
   return (
-    <div className="relative w-full">
+    <div className="relative w-full flex-1 flex flex-col">
       <ControlInput
         ref={imageInputRef}
         type="file"
@@ -155,8 +157,8 @@ export default function RichEditor({
         onSelectSlashCommand={triggers.executeSlashCommand}
         onSelectWikiNote={triggers.executeWikiLink}
       />
-      {(!value || value === '<br>' || value === '') && (
-        <span className="absolute left-0 top-0 pointer-events-none text-text-muted opacity-[var(--opacity-50)] text-sm select-none">
+      {isTextEmpty && (
+        <span className="absolute left-0 top-0 pointer-events-none text-text-muted/75 text-base font-normal select-none">
           {placeholder}
         </span>
       )}

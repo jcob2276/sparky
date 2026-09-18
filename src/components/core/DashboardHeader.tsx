@@ -5,9 +5,7 @@ import {
   Moon,
   Sun,
   LayoutDashboard,
-  Settings,
 } from 'lucide-react';
-import { isNativePlatform } from '../../lib/native/platform';
 import { BrandTitle } from '../ui/BrandTitle';
 import { useHaptics } from '../../hooks/useHaptics';
 import OuraRingHeaderBadge from '../desktop/health/OuraRingHeaderBadge';
@@ -104,30 +102,17 @@ export function DashboardHeader({
         </Pressable>
 
         {!showLock && (
-          <>
-            {isNativePlatform() && (
-              <Link
-                to="/settings"
-                onClick={() => selection()}
-                className="h-9 w-9 shrink-0 rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
-                title="Ustawienia APK"
-              >
-                <Settings size={15} strokeWidth={1.8} />
-              </Link>
-            )}
-
-            <Link
-              to="/dashboard"
-              onClick={() => selection()}
-              onMouseEnter={handlePrefetchDashboard}
-              onTouchStart={handlePrefetchDashboard}
-              onFocus={handlePrefetchDashboard}
-              className="h-9 w-9 shrink-0 rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
-              title="Desktop dashboard"
-            >
-              <LayoutDashboard size={15} strokeWidth={1.8} />
-            </Link>
-          </>
+          <Link
+            to="/dashboard"
+            onClick={() => selection()}
+            onMouseEnter={handlePrefetchDashboard}
+            onTouchStart={handlePrefetchDashboard}
+            onFocus={handlePrefetchDashboard}
+            className="h-9 w-9 shrink-0 rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
+            title="Desktop dashboard"
+          >
+            <LayoutDashboard size={15} strokeWidth={1.8} />
+          </Link>
         )}
       </div>
     </header>

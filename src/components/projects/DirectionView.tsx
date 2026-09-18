@@ -3,7 +3,7 @@ import { ArrowRight, CalendarDays, Check, Gauge, Plus, Target } from 'lucide-rea
 import { getTodayWarsaw } from '../../lib/date';
 import { addProjectActionToTopFive } from '../../lib/dailyTopFive';
 import { notify } from '../../lib/notify';
-import { PILLARS, PILLAR_META, type PillarId } from '../../lib/projects/pillars';
+import { PILLARS, PILLAR_META, NORTH_STAR_SPHERES, type PillarId } from '../../lib/projects/pillars';
 import { Pressable } from '../ui/ControlPrimitives';
 import { useDashboardContext } from '../core/context/DashboardContext';
 import { useProjectsContext } from './context/projectsContextStore';
@@ -98,7 +98,8 @@ function PillarSection({ pillar }: { pillar: PillarId }) {
   const meta = PILLAR_META[pillar];
   const Icon = meta.icon;
   const keys = GOAL_KEYS[pillar];
-  const direction = lifeGoals?.[keys.goal] ?? null;
+  const northStar = NORTH_STAR_SPHERES[pillar];
+  const direction = lifeGoals?.[keys.goal] || northStar.affirmation;
   const targetDays = daysUntil(lifeGoals?.[keys.date]);
   const projects = activeProjects
     .filter((project) => projectPillar(project) === pillar)
@@ -116,8 +117,12 @@ function PillarSection({ pillar }: { pillar: PillarId }) {
             <h3 className={`text-xs font-black uppercase tracking-widest ${meta.text}`}>{meta.label}</h3>
             {targetDays !== null && <span className="text-xs font-semibold text-text-muted">{targetDays} dni do celu</span>}
           </div>
-          <p className="mt-1 text-base font-semibold leading-snug text-text-primary">
-            {direction || 'Ustal kierunek dla tej sfery'}
+          <p className="mt-1 text-sm font-bold leading-snug text-text-primary">
+            {direction}
+          </p>
+          <p className="mt-0.5 text-2xs italic text-text-secondary">
+            <span className="not-italic font-bold text-text-muted">Dlaczego: </span>
+            {northStar.why}
           </p>
         </div>
       </div>

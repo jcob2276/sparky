@@ -1,8 +1,24 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { buildOuraContextInsights } from '../../../lib/biometrics/ouraContextInsights';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OuraHealthView } from './OuraHealthView';
 import type { OuraHealthHubData } from './types';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
+
+function renderWithClient(ui: React.ReactElement) {
+  return render(
+    <QueryClientProvider client={queryClient}>
+      {ui}
+    </QueryClientProvider>,
+  );
+}
 
 const data: OuraHealthHubData = {
   date: '2026-07-28',
@@ -20,9 +36,9 @@ const data: OuraHealthHubData = {
 
 describe('OuraHealthView', () => {
   it('isolates the Oura-first dark theme and app-width content', () => {
-    const { container } = render(
+    const { container } = renderWithClient(
       <OuraHealthView
-        activeSection="today"
+        activeSection="sleep"
         data={data}
         onOpenSleep={vi.fn()}
         onSectionChange={vi.fn()}
@@ -33,86 +49,40 @@ describe('OuraHealthView', () => {
     expect(screen.getByTestId('oura-content')).toHaveClass('max-w-3xl');
   });
 
-  it('shows the three primary health sections', () => {
-    render(
+  it('shows the four primary health sections', () => {
+    renderWithClient(
       <OuraHealthView
-        activeSection="today"
+        activeSection="sleep"
         data={data}
         onOpenSleep={vi.fn()}
         onSectionChange={vi.fn()}
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Dzisiaj' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Parametry' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Moje zdrowie' })).toBeInTheDocument();
-    expect(screen.getByText('Gotowość na dziś')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sen' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Garmin' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Paliwo' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Witalność' })).toBeInTheDocument();
+    expect(screen.getByText('Gotowość')).toBeInTheDocument();
   });
 
   it('requests the selected section', () => {
     const onSectionChange = vi.fn();
-    render(
+    renderWithClient(
       <OuraHealthView
-        activeSection="today"
+        activeSection="sleep"
         data={data}
         onOpenSleep={vi.fn()}
         onSectionChange={onSectionChange}
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Parametry' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Witalność' }));
     expect(onSectionChange).toHaveBeenCalledWith('vitals');
   });
 
-  it('names missing measurements', () => {
-    render(
-      <OuraHealthView
-        activeSection="today"
-        data={{ ...data, oura: null, enhanced: null }}
-        onOpenSleep={vi.fn()}
-        onSectionChange={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByText('Brak wyniku gotowości dla tego dnia')).toBeInTheDocument();
-  });
-  it('shows current-day caffeine on Dzisiaj instead of the previous-night context', () => {
-    const todayContext = buildOuraContextInsights({
-      sleepDate: '2026-07-28',
-      bedtimeStart: null,
-      phoneUsage: null,
-      workouts: [],
-      foodEntries: [{
-        name: 'Kawa domowa',
-        calories: 5,
-        food_quality_score: null,
-        logged_at: '2026-07-28T11:44:00+02:00',
-      }],
-    });
-    const nightContext = buildOuraContextInsights({
-      sleepDate: '2026-07-28',
-      bedtimeStart: '2026-07-27T23:31:00+02:00',
-      phoneUsage: null,
-      workouts: [],
-      foodEntries: [],
-    });
-
-    render(
-      <OuraHealthView
-        activeSection="today"
-        data={{ ...data, todayContext, nightContext } as OuraHealthHubData}
-        onOpenSleep={vi.fn()}
-        onSectionChange={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByRole('heading', { name: 'Kontekst dnia' })).toBeInTheDocument();
-    expect(screen.getByText('95 mg')).toBeInTheDocument();
-    expect(screen.queryByText('Nie zapisano kofeiny')).not.toBeInTheDocument();
-  });
-
   it('shows practical sleep and heart metrics in Parametry', () => {
-    render(
+    renderWithClient(
       <OuraHealthView
         activeSection="vitals"
         data={{

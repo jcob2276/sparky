@@ -141,7 +141,16 @@ export async function runCalendarSync(req: Request): Promise<unknown> {
       throw new Error(`[sync-calendar] Calendar API error ${calRes.status}: ${errBody.substring(0, 200)}`);
     }
     const calData = await calRes.json()
-    const recurringIds = [...new Set((calData.items || [])
+    const activeItems = (calData.items || []).filter((e: any) => {
+      if (e.status === 'cancelled') return false;
+      const start = e.start?.dateTime || e.start?.date;
+      const end = e.end?.dateTime || e.end?.date;
+      if (!start || !end) return false;
+      if (!e.summary && !e.description) return false;
+      return true;
+    });
+
+    const recurringIds = [...new Set(activeItems
       .map((event: any) => event.recurringEventId)
       .filter(Boolean))] as string[]
     const recurrenceBySeries = new Map<string, string[]>()
@@ -154,10 +163,10 @@ export async function runCalendarSync(req: Request): Promise<unknown> {
       const series = await seriesRes.json()
       if (series.recurrence?.length) recurrenceBySeries.set(seriesId, series.recurrence)
     }))
-    const calendarEvents = (calData.items || []).map((e: any) => ({
+    const calendarEvents = activeItems.map((e: any) => ({
       user_id: userId,
       event_id: e.id,
-      summary: e.summary,
+      summary: e.summary || 'Wydarzenie',
       start_time: e.start.dateTime || e.start.date,
       end_time: e.end.dateTime || e.end.date,
       description: e.description ?? null,

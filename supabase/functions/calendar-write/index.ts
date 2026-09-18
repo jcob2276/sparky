@@ -206,15 +206,34 @@ Deno.serve(serveJson(async (req, ctx) => {  try {
   if (action === 'delete') {
     if (!event.id) throw new Error('Missing event.id for delete')
 
+    const baseId = event.id.includes('_') ? event.id.split('_')[0] : event.id
+    const targetGcalId = deleteScope === 'all' ? baseId : event.id
+
     if (headers) {
       try {
-        await fetch(`${gcalBase}/${event.id}`, {
+        const delRes = await fetch(`${gcalBase}/${targetGcalId}`, {
           signal: AbortSignal.timeout(15000),
           method: 'DELETE',
           headers,
         })
+        if (!delRes.ok && delRes.status !== 404 && delRes.status !== 410) {
+          console.warn(`GCal delete for ${targetGcalId} returned status ${delRes.status}`)
+        }
       } catch (gcalErr) {
         console.warn('GCal delete skipped:', gcalErr)
+      }
+
+      // If deleting all, also make sure the instance itself is cleaned up in GCal if it had an exception
+      if (deleteScope === 'all' && event.id !== baseId) {
+        try {
+          await fetch(`${gcalBase}/${event.id}`, {
+            signal: AbortSignal.timeout(10000),
+            method: 'DELETE',
+            headers,
+          })
+        } catch (_) {
+          // ignore
+        }
       }
     }
 
@@ -223,7 +242,7 @@ Deno.serve(serveJson(async (req, ctx) => {  try {
         .from('vanguard_calendar')
         .delete()
         .eq('user_id', userId)
-        .eq('event_id', event.id)
+        .or(`event_id.eq.${event.id},id.eq.${event.id}`)
     )
 
     if (deleteScope === 'all') {
@@ -232,7 +251,7 @@ Deno.serve(serveJson(async (req, ctx) => {  try {
           .from('vanguard_calendar')
           .delete()
           .eq('user_id', userId)
-          .like('event_id', `${event.id}_%`)
+          .or(`event_id.eq.${baseId},id.eq.${baseId},series_id.eq.${baseId},series_id.eq.${event.id},event_id.like.${baseId}_%`)
       )
     }
 

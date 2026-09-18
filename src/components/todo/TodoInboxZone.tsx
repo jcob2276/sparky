@@ -19,36 +19,43 @@ export default function TodoInboxZone({ renderInlineQuickCapture, renderAddTodoB
   return (
     <div
       ref={inboxZoneRef}
-      className={`rounded-2xl p-2 ui-interactive duration-[var(--motion-medium)] ${
+      className={`todo-grouped-surface mb-4 ui-interactive duration-[var(--motion-medium)] ${
         draggingItem !== null
           ? dragTarget === 'inbox'
-            ? 'border border-primary/40 bg-primary/10 scale-[var(--ds-arbitrary-1-01)] shadow-[var(--shadow-accent-active)]'
-            : 'border border-dashed border-primary/20 bg-primary/5'
-          : 'border border-transparent bg-transparent'
+            ? 'ring-2 ring-primary/60 shadow-[var(--shadow-accent-active)]'
+            : 'border-dashed border-primary/40'
+          : ''
       }`}
     >
-      <BucketHeader
-        icon="📥"
-        title="Skrzynka / Inbox"
-        count={inboxItems.length}
-        collapsed={!!collapsedSections['inbox']}
-        onToggle={() => toggleSectionCollapse('inbox')}
-        isDropTarget={dragTarget === 'inbox'}
-      />
+      <div className="todo-grouped-header">
+        <BucketHeader
+          icon="📥"
+          title="Skrzynka / Inbox"
+          count={inboxItems.length}
+          collapsed={!!collapsedSections['inbox']}
+          onToggle={() => toggleSectionCollapse('inbox')}
+          isDropTarget={dragTarget === 'inbox'}
+        />
+      </div>
+
       {!collapsedSections['inbox'] && (
-        <div className="pt-1">
+        <div className="todo-grouped-body">
           {inboxItems.length === 0 ? (
             <EmptyState
               icon="📥"
-              label="Upuść tutaj, aby przenieść do skrzynki"
+              label="Skrzynka jest pusta"
               isDragOver={dragTarget === 'inbox'}
               dragColor="primary"
             />
           ) : (
-            inboxItems.map((i) => <TodoCardConnected key={i.id} item={i} />)
+            <div className="divide-y divide-border-custom/30">
+              {inboxItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}
+            </div>
           )}
-          {renderInlineQuickCapture('inbox')}
-          {renderAddTodoButton('inbox')}
+          <div className="pt-2 px-1">
+            {renderInlineQuickCapture('inbox')}
+            {renderAddTodoButton('inbox')}
+          </div>
         </div>
       )}
     </div>

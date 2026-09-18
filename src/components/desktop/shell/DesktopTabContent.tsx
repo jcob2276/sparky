@@ -185,16 +185,16 @@ export default function DesktopTabContent({
   );
 
   const healthCards = (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {userId && <DesktopHealthspanSection userId={userId} />}
       {userId && <DesktopOuraSleepCard userId={userId} />}
       <DesktopOpticsCard onOpenOptics={onOpenOptics} />
     </div>
   );
 
   const intelCards = (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4">
       {userId && <DesktopCorrelationsSummary userId={userId} />}
-      {userId && <DesktopHealthspanSection userId={userId} />}
     </div>
   );
 

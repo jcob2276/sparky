@@ -6,6 +6,7 @@ import type { ExportStatsMarkdownParams, StravaRawActivity } from './exportStats
 import { downloadBlob, getAvg } from './exportStatsHelpers';
 import { fetchExportData } from './exportStatsFetch';
 import { renderDailySummaryMarkdown } from './exportStatsDaily';
+import { renderMacroAnalytics } from './exportStatsMacroAnalytics';
 import { supabase as defaultSupabase } from '../supabase';
 
 export type { ExportStatsMarkdownParams } from './exportStatsTypes';
@@ -153,6 +154,20 @@ export async function exportStatsMarkdown({
     md += `- **Duch:** ${goalsRow.goal_duch}\n`;
     md += `- **Konto:** ${goalsRow.goal_konto}\n\n`;
   }
+
+  md += renderMacroAnalytics({
+    d,
+    dateRange,
+    avgSleep,
+    avgReadiness,
+    avgHrv,
+    avgRhr,
+    avgCalories,
+    avgProtein,
+    avgPhoneMinutes,
+    avgLateNight,
+    totalCardioKm,
+  });
 
   // Generate full date range to detect missing days
   const allDatesInRange: string[] = [];

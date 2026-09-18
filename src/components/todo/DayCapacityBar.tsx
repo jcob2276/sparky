@@ -32,8 +32,12 @@ export default function DayCapacityBar({ userId, today, plannedMinutes }: Props)
 
   const update = (patch: Partial<DayCapacitySettings>) => setSettings((current) => ({ ...current, ...patch }));
 
+  if (plannedMinutes === 0 && !editing) {
+    return null;
+  }
+
   return (
-    <div className="mb-3 rounded-xl bg-surface-solid/20 px-3 py-2.5">
+    <div className="mb-2.5 rounded-xl bg-surface-solid/30 px-3 py-2 border border-border-custom/30">
       <div className="flex items-center justify-between gap-2">
         <span className="text-2xs font-semibold uppercase tracking-wider text-text-muted/45">Pojemność dnia</span>
         <Pressable onClick={() => setEditing((value) => !value)} className="flex items-center gap-1 rounded-lg px-1.5 py-1 text-2xs font-bold tabular-nums text-text-muted hover:bg-surface-solid/50">

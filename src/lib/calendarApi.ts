@@ -5,7 +5,7 @@ import { isOfflineError, queueOfflineWrite } from './offlineQueue';
 import type { Database } from './database.types';
 import { normalizeCalendarEvent } from './calendarIntegrity';
 
-type VanguardCalendarRow = Database['public']['Tables']['vanguard_calendar']['Row'] & {
+export type VanguardCalendarRow = Database['public']['Tables']['vanguard_calendar']['Row'] & {
   description?: string | null;
   recurrence?: string[] | null;
   series_id?: string | null;
@@ -219,14 +219,17 @@ export function useDeleteCalendarEvent() {
         { queryKey: ['calendar', 'events'] },
         (prev) => {
           if (!prev) return [];
-          const baseId = variables.eventId;
+          const baseId = variables.eventId.includes('_') ? variables.eventId.split('_')[0] : variables.eventId;
           return prev.filter(e => {
             const evId = e.event_id || e.id;
             if (variables.deleteScope === 'all') {
-              const seriesId = e.series_id || evId.split('_')[0];
-              return seriesId !== baseId;
+              const seriesId = e.series_id || (e.event_id ? e.event_id.split('_')[0] : null);
+              if (seriesId && seriesId === baseId) return false;
+              if (evId === baseId || evId === variables.eventId) return false;
+              if (e.event_id && e.event_id.startsWith(baseId + '_')) return false;
+              return true;
             }
-            return evId !== baseId;
+            return evId !== variables.eventId && e.id !== variables.eventId;
           });
         }
       );

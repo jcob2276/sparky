@@ -1,7 +1,7 @@
 import { useState, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { WorkoutLoggerInitial } from '../../lib/health/workoutLogging';
-import { isWorkoutSessionActive, markWorkoutSessionActive, endWorkoutSession } from '../../lib/health/workoutLogging';
+import { markWorkoutSessionActive, endWorkoutSession } from '../../lib/health/workoutLogging';
 import { useUserId } from '../../store/useStore';
 import Spinner from '../ui/Spinner';
 
@@ -19,11 +19,7 @@ export default function TrainingRoute({ initial, onSaved, onBack }: TrainingRout
   const navigate = useNavigate();
 
   const [currentInitial, setCurrentInitial] = useState<WorkoutLoggerInitial | null | undefined>(initial);
-  const [isLive, setIsLive] = useState<boolean>(() => {
-    if (initial) return true;
-    if (userId && isWorkoutSessionActive(userId)) return true;
-    return false;
-  });
+  const [isLive, setIsLive] = useState<boolean>(true);
 
   const [prevInitial, setPrevInitial] = useState(initial);
   if (initial !== prevInitial) {
@@ -43,6 +39,8 @@ export default function TrainingRoute({ initial, onSaved, onBack }: TrainingRout
   const handleLoggerBack = () => {
     setIsLive(false);
     setCurrentInitial(null);
+    if (onBack) onBack();
+    else navigate('/dzis');
   };
 
   const handleHubBack = () => {
@@ -54,7 +52,8 @@ export default function TrainingRoute({ initial, onSaved, onBack }: TrainingRout
     if (userId) endWorkoutSession(userId);
     setIsLive(false);
     setCurrentInitial(null);
-    onSaved?.();
+    if (onSaved) onSaved();
+    else navigate('/dzis');
   };
 
   return (

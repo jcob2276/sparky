@@ -25,11 +25,14 @@ interface AllDayStripProps {
 export function AllDayStrip({ days, allDayByDay, gutterWidth, onEventClick }: AllDayStripProps) {
   if (!allDayByDay.some((list) => list.length > 0)) return null;
 
+  const isDayView = days.length === 1;
+  const padClass = isDayView && gutterWidth > 44 ? 'pl-11 sm:pl-[72px]' : 'pl-11';
+  const iconWidthClass = isDayView && gutterWidth > 44 ? 'w-11 sm:w-[72px]' : 'w-11';
+
   return (
-    <div className="relative flex border-b border-border-custom/30 bg-surface-solid/15 backdrop-blur-xs items-center" style={{ paddingLeft: gutterWidth }}>
+    <div className={`relative flex border-b border-border-custom/30 bg-surface-solid/15 backdrop-blur-xs items-center ${padClass}`}>
       <div
-        className="absolute left-0 top-0 bottom-0 flex items-center justify-center text-text-muted/60"
-        style={{ width: gutterWidth }}
+        className={`absolute left-0 top-0 bottom-0 flex items-center justify-center text-text-muted/60 ${iconWidthClass}`}
         title="Wydarzenia całodniowe"
       >
         <Sun size={12} />

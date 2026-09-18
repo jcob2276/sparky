@@ -14,7 +14,6 @@ import type { NoteFolder } from '../../lib/noteFoldersApi';
 import MasonryGrid from './MasonryGrid';
 import NoteCollectionSections from './NoteCollectionSections';
 import type { NoteSection } from '../../lib/noteOrganization';
-import KeepQuickCapture from './KeepQuickCapture';
 import KeepFilterPills, { KeepQuickFilter } from './KeepFilterPills';
 import KeepBulkActionBar from './KeepBulkActionBar';
 import type { useKeepBulkActions } from './hooks/useKeepBulkActions';
@@ -37,6 +36,7 @@ interface SplitNotesViewProps {
   activeTag: string | null;
   onExportChecklists?: (note: Note) => void;
   folders?: NoteFolder[];
+  onCreateFolder?: (name: string, parentId?: string | null) => Promise<NoteFolder | null | void>;
   onExportNote?: (note: Note) => void;
   onExportPdf?: (note: Note) => void;
   onShareNote?: (note: Note) => void;
@@ -58,7 +58,7 @@ interface SplitNotesViewProps {
 
 export default function SplitNotesView({
   notes, filtered, pinned, others, activeNoteId, onSelectNote, onCloseNote, onUpdate, onDelete, onTogglePin,
-  busy, allTags, onCreate, onExportChecklists, folders = [], onExportNote, onExportPdf, onShareNote, onLockNote,
+  busy, allTags, onCreate: _onCreate, onExportChecklists, folders = [], onCreateFolder, onExportNote, onExportPdf, onShareNote, onLockNote,
   collectionView, gridProps, sections, bulk, quickFilter, setQuickFilter, quickFilterCounts,
 }: SplitNotesViewProps) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -101,17 +101,16 @@ export default function SplitNotesView({
           className={`keep-split-list-pane ${galleryMode ? 'gallery' : ''}`}
           aria-label={galleryMode ? 'Galeria notatek' : 'Lista notatek'}
         >
-          {/* Top Quick Actions Bar: Quick capture + Filter pills */}
-          <div className="flex flex-col gap-2 p-3 pb-2 border-b border-border-custom/20 bg-surface-solid/30">
-            <KeepQuickCapture onCreate={onCreate} />
-            {quickFilter && setQuickFilter && (
+          {/* Top Quick Actions Bar: Filter pills */}
+          {quickFilter && setQuickFilter && (
+            <div className="p-3 pb-2 border-b border-border-custom/20 bg-surface-solid/30">
               <KeepFilterPills
                 activeFilter={quickFilter}
                 onChangeFilter={setQuickFilter}
                 counts={quickFilterCounts}
               />
-            )}
-          </div>
+            </div>
+          )}
 
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-text-muted p-6 text-center">
@@ -155,6 +154,7 @@ export default function SplitNotesView({
               onExportChecklists={onExportChecklists}
               isMobile={isMobile}
               folders={folders}
+              onCreateFolder={onCreateFolder}
               onExportNote={onExportNote}
               onExportPdf={onExportPdf}
               onShareNote={onShareNote}

@@ -45,6 +45,18 @@ export default function MedicalBodyComposition({ rows }: MedicalBodyCompositionP
         )}
       </div>
 
+      {isHistorical && (
+        <div className="rounded-xl border border-warning/30 bg-warning/10 p-3 flex items-start gap-2.5 text-xs text-warning leading-relaxed">
+          <span className="text-base leading-none">⚠️</span>
+          <div>
+            <strong>Pomiar archiwalny z {measuredYear} roku (przy wadze {latest.weight_kg?.toFixed(1) ?? '66.8'} kg).</strong>
+            <p className="text-2xs text-text-muted mt-0.5">
+              Twoja obecna masa ciała wynosi ok. 76 kg (+9 kg różnicy). Wskaźnik tkanki tłuszczowej ({latest.body_fat_pct?.toFixed(1)}%) i masy mięśniowej nie odzwierciedla obecnej kompozycji ciała. Wymagane powtórzenie analizy BIA lub skanu DEXA.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Latest raw weight card */}
         <Card variant="surface" padding="1.25rem" className="flex flex-col justify-between h-40">

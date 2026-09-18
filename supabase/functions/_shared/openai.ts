@@ -38,20 +38,26 @@ export async function openaiChat(params: OpenAIChatParams): Promise<OpenAIChatRe
     try {
       return await geminiChat(params);
     } catch (err) {
-      console.warn("[openaiChat] Gemini failed, checking OpenAI fallback:", err);
-      if (!params.apiKey) throw err;
+      console.error("[openaiChat] Gemini failed:", err);
+      throw err;
     }
   }
 
+  const openaiApiKey = Deno.env.get("OPENAI_API_KEY") || (params.apiKey?.startsWith("sk-") ? params.apiKey : "");
+  if (!openaiApiKey) {
+    throw new Error("[openaiChat] Missing valid OPENAI_API_KEY for fallback");
+  }
+
   const timeoutMs = params.timeoutMs ?? 45000;
+  const fallbackModel = (params.model && !params.model.startsWith("gemini-")) ? params.model : "gpt-4o-mini";
   const res = await fetchWithRetry("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${params.apiKey}`,
+      Authorization: `Bearer ${openaiApiKey}`,
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: params.model ?? "gpt-4o-mini",
+      model: fallbackModel,
       messages: params.messages,
       ...(params.maxTokens === null ? {} : { max_tokens: params.maxTokens ?? 500 }),
       ...(params.temperature === null ? {} : { temperature: params.temperature ?? 0.2 }),

@@ -54,6 +54,21 @@ Wymagania:
 - Każda grupa musi mieć score (0-100), status ("strong" | "balanced" | "lagging") i zwięzłą uwagę ("notes") po polsku.
 - Wszystkie oceny i komentarze mają być rzetelne, pełne szacunku i konstruktywne.`;
 
+function extractJson<T = Record<string, unknown>>(raw: string): T {
+  let cleaned = raw.trim();
+  if (cleaned.startsWith("```json")) {
+    cleaned = cleaned.replace(/^```json\s*/, "").replace(/```\s*$/, "");
+  } else if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```\s*/, "").replace(/```\s*$/, "");
+  }
+  const start = cleaned.indexOf("{");
+  const end = cleaned.lastIndexOf("}");
+  if (start !== -1 && end !== -1 && end > start) {
+    cleaned = cleaned.slice(start, end + 1);
+  }
+  return JSON.parse(cleaned) as T;
+}
+
 Deno.serve(
   serveJson(async (req, ctx) => {
     const { photoId, imageUrl, userId: bodyUserId } = await req.json();
@@ -70,9 +85,9 @@ Deno.serve(
 
     const { content } = await openaiChat({
       apiKey: openAiKey,
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.6-flash",
       temperature: 0.2,
-      maxTokens: 1200,
+      maxTokens: 3500,
       responseFormat: { type: "json_object" },
       userId: userId || undefined,
       feature: "physique-vision-analysis",
@@ -88,10 +103,17 @@ Deno.serve(
     });
 
     if (!content) {
-      throw new Error("OpenAI returned empty analysis content.");
+      throw new Error("Model zwrócił pustą odpowiedź analizy.");
     }
 
-    const parsed = JSON.parse(content);
+    let parsed: Record<string, unknown>;
+    try {
+      parsed = extractJson<Record<string, unknown>>(content);
+    } catch (parseErr) {
+      console.error("[analyze-physique] Failed to parse JSON response:", content);
+      throw new Error(`Błąd parsowania odpowiedzi AI: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`);
+    }
+
     parsed.analyzed_at = new Date().toISOString();
 
     if (photoId && userId) {

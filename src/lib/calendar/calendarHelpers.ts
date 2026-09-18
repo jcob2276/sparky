@@ -30,7 +30,7 @@ export function getWarsawOffset(date?: string | Date): string {
   return sign + String(hour).padStart(2, '0') + ':00';
 }
 export const HOUR_START = 5;
-export const HOUR_END = 23;
+export const HOUR_END = 24;
 export const HOURS = HOUR_END - HOUR_START;
 export const PX_PER_HOUR = 54;
 export const PX_PER_MIN = PX_PER_HOUR / 60;
@@ -72,6 +72,14 @@ export function formatWeekdayShort(dateStr: string) {
 export function monthLabel(dateStr: string) {
   const [y, m, d] = dateStr.split('-').map(Number);
   return new Date(y, m - 1, d).toLocaleDateString('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+export function formatQuickDateLabel(dateStr: string) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d);
+  const weekday = dt.toLocaleDateString('pl-PL', { weekday: 'short' });
+  const dayMonth = dt.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
+  return `${weekday}, ${dayMonth}`;
 }
 
 const warsawPartsFormatter = new Intl.DateTimeFormat('en-US', {

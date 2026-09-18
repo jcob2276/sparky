@@ -95,6 +95,7 @@ export function useMedicalRecordsHub(
       events,
       today: getTodayWarsaw(),
       age: userContext?.age ?? null,
+      labs,
     });
     const hidden = new Set(
       (actionsQuery.data ?? [])

@@ -132,19 +132,19 @@ export default function TodoCardCollapsedRow({
           className="mt-0.5 shrink-0 btn-press cursor-pointer"
         >
           <div
-            className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ui-interactive duration-[var(--motion-medium)] ${
+            className={`h-[18px] w-[18px] rounded-full border-2 flex items-center justify-center ui-interactive duration-[var(--motion-medium)] ${
               swipe.completing || isDone
-                ? 'bg-success border-success scale-100'
+                ? 'bg-success border-success scale-100 shadow-xs'
                 : item.priority === 'urgent'
-                ? 'border-danger hover:bg-danger/10'
+                ? 'border-danger hover:bg-danger/15'
                 : item.priority === 'high'
-                ? 'border-warning hover:bg-warning/10'
+                ? 'border-warning hover:bg-warning/15'
                 : item.priority === 'normal'
-                ? 'border-info hover:bg-info/10'
-                : 'border-border-custom hover:bg-surface-2/10'
+                ? 'border-info hover:bg-info/15'
+                : 'border-border-custom/80 hover:border-primary/50'
             }`}
           >
-            {(swipe.completing || isDone) && <Check size={9} className="text-on-accent" strokeWidth={3.5} />}
+            {(swipe.completing || isDone) && <Check size={10} className="text-on-accent" strokeWidth={3.5} />}
           </div>
         </Pressable>
       )}

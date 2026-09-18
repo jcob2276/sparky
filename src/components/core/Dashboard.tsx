@@ -13,7 +13,7 @@ import { TIMEZONE } from '../../lib/date';
 import { Suspense, lazy, useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '../../store/useStore';
-import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Apple, Dumbbell, Flame, Eye, GraduationCap } from 'lucide-react';
+import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Flame, Eye, GraduationCap } from 'lucide-react';
 import { dashboardKeys } from '../../lib/queryKeys';
 
 import { ErrorBoundary } from './ErrorBoundary';
@@ -46,7 +46,7 @@ import { DashboardTydzienTab } from './DashboardTydzienTab';
 import { DashboardHistoriaTab } from './DashboardHistoriaTab';
 import { DashboardProjektyTab } from './DashboardProjektyTab';
 
-const TAB_ORDER = ['dzis', 'tydzien', 'projekty', 'historia'];
+const TAB_ORDER = ['dzis', 'tydzien', 'historia'];
 
 function ViewFallback() {
   return (
@@ -80,7 +80,6 @@ function DashboardContent() {
   }, [s]);
 
   const fastCaptureItems = useMemo(() => [
-    { label: 'Dodaj Jedzenie', emoji: '🍎', icon: Apple, color: 'var(--color-success)', action: () => s.openFoodEntry() },
     { label: 'Zaloguj Trening', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => { s.openWorkout(); } },
     { label: 'Zaloguj Saunę', emoji: '🧖', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna') },
     { label: 'Zmierz Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-primary)', action: () => s.navigate('/optics') },

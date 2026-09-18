@@ -141,7 +141,7 @@ export function useNoteDraftAutosave({
 
   const updateDraft = useCallback((patch: Partial<DraftState>) => {
     draftRef.current = { ...draftRef.current, ...patch };
-    setDraft(draftRef.current);
+    setDraft({ ...draftRef.current });
     schedule();
   }, [schedule]);
 

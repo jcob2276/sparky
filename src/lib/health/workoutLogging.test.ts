@@ -5,6 +5,7 @@ import {
   hasResumableWorkoutDraftContent,
 } from './workoutLogging';
 import { supabase } from '../supabase';
+import { computeSessionStats } from './workout';
 import { rirEffectiveness, stimulusForExercise } from '../../data/exercises';
 
 // Mock localStorage for Node environment in Vitest
@@ -194,4 +195,41 @@ describe('workoutLogging', () => {
       expect(rirEffectiveness(undefined)).toBe(1);
     });
   });
+
+  describe('computeSessionStats', () => {
+    it('accurately computes external tonnage and bodyweight reps separately', () => {
+      const exercises = [
+        {
+          name: 'Wyciskanie płaskie',
+          tags: ['klatka'],
+          sets: [
+            { kg: '80', reps: '8' },
+            { kg: '82.5', reps: '6' },
+          ],
+        },
+        {
+          name: 'Podciąganie nachwytem',
+          tags: ['plecy'],
+          sets: [
+            { kg: '0', reps: '10' },
+            { kg: '', reps: '8' },
+          ],
+        },
+        {
+          name: 'Sauna',
+          tags: ['wellness'],
+          sets: [{ kg: '0', reps: '1' }],
+        },
+      ];
+
+      const stats = computeSessionStats(exercises);
+      // Wyciskanie: 80*8 = 640, 82.5*6 = 495 -> 1135 kg tonnage
+      expect(stats.tonnage).toBe(1135);
+      // Podciąganie: 10 + 8 = 18 bw reps
+      expect(stats.bwReps).toBe(18);
+      // 2 sets bench + 2 sets pullups = 4 completed working sets (sauna ignored)
+      expect(stats.completedSets).toBe(4);
+    });
+  });
 });
+

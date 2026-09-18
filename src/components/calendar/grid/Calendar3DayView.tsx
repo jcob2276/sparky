@@ -138,23 +138,38 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
 
       <div
         ref={gridRef}
-        className="calendar-week-grid flex-1 overflow-auto"
+        className="calendar-week-grid flex-1 overflow-auto pb-20 sm:pb-8"
         onScroll={event => {
           if (topScrollRef.current) topScrollRef.current.scrollLeft = event.currentTarget.scrollLeft;
         }}
       >
-        <div className="calendar-week-canvas calendar-3day-canvas flex pt-3" style={{ minHeight: HOURS * PX_PER_HOUR + 40 }}>
+        <div className="calendar-week-canvas calendar-3day-canvas flex pt-3 pb-24" style={{ minHeight: HOURS * PX_PER_HOUR + 100 }}>
           <div className="calendar-week-time-gutter sticky left-0 z-[var(--z-sticky)] bg-background">
             {renderTimeGutter({ dayKey: undefined, weather: undefined })}
           </div>
           {days.map(day => (
             <div key={day} data-day-col={day} className={`calendar-week-column relative border-l border-border-custom/50 ${day === today ? 'bg-primary/[0.03]' : ''}`}>
               {renderDayColumn({
-                day, today, dayEvents: getEventsForDay(day).filter(ev => !ev.is_all_day),
-                dayTodos: todosForDay(day).filter(todo => todo.scheduled_time), dragSelect,
-                goalChipFor, completedTodoIds, handleColumnMouseDown, handleColumnMouseMove,
-                handleColumnClick, handleEventMouseDown, handleEventContextMenu, handleEventClick, handleToggleTodo, setEditingTodo, setEditingTodoTitle,
-                setToastMessage, setSaving, scheduleTodoAt,
+                day,
+                colClass: 'calendar-week-column',
+                today,
+                dayEvents: getEventsForDay(day).filter(ev => !ev.is_all_day),
+                dayTodos: todosForDay(day).filter(todo => todo.scheduled_time),
+                dragSelect,
+                goalChipFor,
+                completedTodoIds,
+                handleColumnMouseDown,
+                handleColumnMouseMove,
+                handleColumnClick,
+                handleEventMouseDown,
+                handleEventContextMenu,
+                handleEventClick,
+                handleToggleTodo,
+                setEditingTodo,
+                setEditingTodoTitle,
+                setToastMessage,
+                setSaving,
+                scheduleTodoAt,
               })}
             </div>
           ))}

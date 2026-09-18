@@ -258,15 +258,9 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
         onSaveNotes={d.saveNotes}
         onConvertToTodo={d.handleLinkToTodo}
         onConvertToNote={d.handleLinkToNote}
+        onUpdateLink={d.updateLinkData}
       />
 
-      {/* Mobile bottom nav */}
-      <WorkspaceNavigation
-        active="links"
-        orientation="horizontal"
-        onNavigate={(destination) => { haptic([4]); onNavigateTo?.(destination); }}
-        className="md:hidden fixed bottom-0 inset-x-0 z-[var(--z-overlay)] border-t border-border-custom bg-background/95 backdrop-blur-[var(--blur-xl)]"
-      />
 
       {/* AI Triage Suggestions Modal */}
       <LinksTriagePanel

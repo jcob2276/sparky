@@ -1,70 +1,23 @@
+import React, { useState, useMemo } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import Button from '../ui/Button';
 import { ControlInput, Pressable } from '../ui/ControlPrimitives';
-import React, { useState, useMemo } from 'react';
-import { Clock, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
-import { useCalendarData } from './hooks/useCalendarData';
-
 import Modal from '../ui/Modal';
 import CategoryPicker from './CategoryPicker';
 import RecurrencePicker from './RecurrencePicker';
-import { findCalendarConflicts } from '../../lib/calendarConflicts';
-import { useCalendar } from './context/CalendarContext';
+import CalendarConflictNotice from './CalendarConflictNotice';
 import { QuickScheduleFields } from './QuickScheduleFields';
+import { QuickTypeSwitcher } from './components/QuickTypeSwitcher';
+import { QuickTimeStrip } from './components/QuickTimeStrip';
+import { useCalendarData } from './hooks/useCalendarData';
+import { useCalendar } from './context/CalendarContext';
+import { findCalendarConflicts } from '../../lib/calendarConflicts';
 import { minutesLabel } from './calendarHelpers';
 import { parseTodoQuickInput } from '../../lib/todo/todoParser';
 
 interface QuickCreateEventModalProps {
   calData: ReturnType<typeof useCalendarData>;
   handleQuickSave: () => void;
-}
-
-const DURATION_PRESETS = [
-  { mins: 15, label: '15m' },
-  { mins: 30, label: '30m' },
-  { mins: 45, label: '45m' },
-  { mins: 60, label: '1h' },
-  { mins: 90, label: '1.5h' },
-  { mins: 120, label: '2h' },
-];
-
-function QuickTimeStrip({
-  date,
-  startTimeStr,
-  endTimeStr,
-  quickDuration,
-  setQuickDuration,
-}: {
-  date: string;
-  startTimeStr: string;
-  endTimeStr: string;
-  quickDuration: number;
-  setQuickDuration: (d: number) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-surface-solid/30 border border-border-custom/25">
-      <div className="flex items-center gap-1.5 text-2xs font-semibold text-text-secondary tabular-nums pl-1">
-        <Clock size={12} className="text-primary" />
-        <span>{date}</span>
-        <span className="text-text-muted">·</span>
-        <span className="font-bold text-text-primary">{startTimeStr} – {endTimeStr}</span>
-      </div>
-      <div className="flex items-center gap-1">
-        {DURATION_PRESETS.map((p) => (
-          <Pressable
-            key={p.mins}
-            onClick={() => setQuickDuration(p.mins)}
-            className={`px-2 py-1 rounded-md text-2xs font-semibold active:scale-[0.96] transition-[background-color,border-color,color,transform] duration-100 ease-out border ${
-              quickDuration === p.mins
-                ? 'border-primary/40 bg-primary/15 text-primary font-bold shadow-2xs'
-                : 'border-transparent text-text-muted hover:text-text-primary hover:bg-surface-solid'
-            }`}
-          >
-            {p.label}
-          </Pressable>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 function QuickCreateFooter({
@@ -79,7 +32,7 @@ function QuickCreateFooter({
   disabled: boolean;
 }) {
   return (
-    <div className="flex items-center justify-between pt-2 border-t border-border-custom/25">
+    <div className="flex items-center justify-between pt-2.5 border-t border-border-custom/25 mt-1">
       <span className="text-2xs text-text-muted hidden sm:inline">
         Naciśnij <kbd className="px-1.5 py-0.5 rounded bg-surface-solid border border-border-custom/40 font-mono text-3xs">Enter ↵</kbd> aby zapisać
       </span>
@@ -88,7 +41,7 @@ function QuickCreateFooter({
           variant="secondary"
           size="sm"
           onClick={onClose}
-          className="flex-1 sm:flex-none text-xs"
+          className="flex-1 sm:flex-none text-xs min-h-10 sm:min-h-8"
         >
           Anuluj
         </Button>
@@ -98,50 +51,11 @@ function QuickCreateFooter({
           onClick={onSave}
           disabled={disabled}
           loading={saving}
-          className="flex-1 sm:flex-none px-5 text-xs font-semibold active:scale-[0.98]"
+          className="flex-1 sm:flex-none px-6 text-xs font-bold active:scale-[0.98] min-h-10 sm:min-h-8"
         >
           {saving ? 'Zapisywanie…' : 'Zapisz'}
         </Button>
       </div>
-    </div>
-  );
-}
-
-function QuickTypeSwitcher({
-  quickType,
-  onSelectEvent,
-  onSelectTask,
-}: {
-  quickType: 'event' | 'task';
-  onSelectEvent: () => void;
-  onSelectTask: () => void;
-}) {
-  return (
-    <div className="flex p-1 rounded-xl bg-surface-solid/60 border border-border-custom/30">
-      <Pressable
-        type="button"
-        onClick={onSelectEvent}
-        className={`flex-1 flex items-center justify-center gap-2 text-xs font-semibold py-1.5 rounded-lg active:scale-[0.98] transition-[background-color,color,transform] duration-150 ease-out ${
-          quickType === 'event'
-            ? 'bg-background text-primary shadow-xs font-bold'
-            : 'text-text-muted hover:text-text-primary'
-        }`}
-      >
-        <Calendar size={13} />
-        Wydarzenie
-      </Pressable>
-      <Pressable
-        type="button"
-        onClick={onSelectTask}
-        className={`flex-1 flex items-center justify-center gap-2 text-xs font-semibold py-1.5 rounded-lg active:scale-[0.98] transition-[background-color,color,transform] duration-150 ease-out ${
-          quickType === 'task'
-            ? 'bg-background text-primary shadow-xs font-bold'
-            : 'text-text-muted hover:text-text-primary'
-        }`}
-      >
-        <Clock size={13} />
-        Zadanie
-      </Pressable>
     </div>
   );
 }
@@ -182,8 +96,7 @@ export const QuickCreateEventModal: React.FC<QuickCreateEventModalProps> = ({ ca
     calData.quickLocation ||
     calData.quickDescription ||
     calData.quickReminder != null ||
-    quickRecurrence ||
-    conflicts.length > 0
+    quickRecurrence
   );
 
   const isAdvancedOpen = showMore || hasAdvancedContent;
@@ -197,10 +110,10 @@ export const QuickCreateEventModal: React.FC<QuickCreateEventModalProps> = ({ ca
       onClose={closeQuickCreate}
       size="md"
       title={quickType === 'task' ? 'Nowe zadanie' : 'Nowe wydarzenie'}
-      overlayClassName="bg-black/30 dark:bg-black/50 backdrop-blur-xs"
+      overlayClassName="bg-black/35 dark:bg-black/60 backdrop-blur-xs"
     >
       {quickCreate && (
-        <div className="space-y-3.5 select-none">
+        <div className="space-y-3 select-none">
           <QuickTypeSwitcher
             quickType={quickType}
             onSelectEvent={() => setQuickType('event')}
@@ -211,7 +124,7 @@ export const QuickCreateEventModal: React.FC<QuickCreateEventModalProps> = ({ ca
           />
 
           {/* Hero Title Input with NLP parser tags */}
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             <ControlInput
               autoFocus
               value={quickTitle}
@@ -222,8 +135,8 @@ export const QuickCreateEventModal: React.FC<QuickCreateEventModalProps> = ({ ca
                   handleQuickSave();
                 }
               }}
-              placeholder={quickType === 'task' ? 'Co jest do zrobienia? (np. 15:30 Przygotować raport 45m)…' : 'Tytuł wydarzenia (np. 15:30 Spotkanie 45m)…'}
-              className="min-h-11 w-full rounded-xl border border-border-custom/50 bg-surface-solid/40 px-3.5 text-base font-semibold tracking-tight text-text-primary focus:border-primary focus:bg-background placeholder:text-text-muted/50 transition-colors shadow-2xs"
+              placeholder={quickType === 'task' ? 'Co jest do zrobienia? (np. Raport 45m)…' : 'Tytuł wydarzenia (np. Trening 45m)…'}
+              className="min-h-11 sm:min-h-10 w-full rounded-xl border border-border-custom/50 bg-surface-solid/60 px-3.5 text-sm font-semibold tracking-tight text-text-primary focus:border-primary focus:bg-background placeholder:text-text-muted/75 transition-colors shadow-2xs"
             />
             {nlpParsed.tokens.length > 0 && (
               <div className="flex flex-wrap gap-1 px-1 py-0.5 animate-in fade-in duration-100">
@@ -245,7 +158,7 @@ export const QuickCreateEventModal: React.FC<QuickCreateEventModalProps> = ({ ca
             )}
           </div>
 
-          {/* Time & Duration Presets Strip */}
+          {/* Time & Duration Presets */}
           <QuickTimeStrip
             date={quickCreate.date}
             startTimeStr={startTimeStr}
@@ -254,14 +167,20 @@ export const QuickCreateEventModal: React.FC<QuickCreateEventModalProps> = ({ ca
             setQuickDuration={setQuickDuration}
           />
 
+          {/* Conflict Notice if any (shown cleanly without opening full advanced form) */}
+          {conflicts.length > 0 && !isAdvancedOpen && (
+            <CalendarConflictNotice titles={conflicts.map((event) => event.summary || 'Wydarzenie')} />
+          )}
+
           {/* Category / Sphere Selection */}
           <div className="space-y-1">
-            <span className="text-2xs text-text-muted/70 font-semibold uppercase tracking-wider px-1">Obszar życia</span>
+            <span className="text-2xs text-text-muted/70 font-bold uppercase tracking-wider px-1">Obszar życia</span>
             <CategoryPicker selected={quickCategory} onSelect={setQuickCategory} />
           </div>
 
           {/* Expandable Advanced Options Toggle */}
           <Pressable
+            type="button"
             onClick={() => setShowMore((prev) => !prev)}
             className="flex items-center justify-between w-full px-2 py-1.5 text-2xs font-semibold text-text-muted hover:text-text-primary rounded-lg hover:bg-surface-solid/40 transition-colors"
           >
@@ -271,7 +190,7 @@ export const QuickCreateEventModal: React.FC<QuickCreateEventModalProps> = ({ ca
 
           {/* Collapsible Advanced Section */}
           {isAdvancedOpen && (
-            <div className="space-y-3 pt-1 animate-in fade-in slide-in-from-top-1 duration-150">
+            <div className="space-y-2.5 pt-0.5 animate-in fade-in slide-in-from-top-1 duration-150">
               <QuickScheduleFields calData={calData} conflicts={conflicts} budgets={budgets} />
 
               <RecurrencePicker
