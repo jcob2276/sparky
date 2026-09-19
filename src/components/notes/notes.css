@@ -1973,7 +1973,7 @@
   position: absolute;
   right: 0;
   top: calc(100% + 0.5rem);
-  z-index: var(--z-popover);
+  z-index: var(--z-floating);
 }
 
 .keep-view-options-label {
