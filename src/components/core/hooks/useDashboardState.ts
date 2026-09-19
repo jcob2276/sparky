@@ -22,7 +22,7 @@ import { markWorkoutSessionActive } from '../../../lib/health/workoutLogging';
 import type { RecentEntry } from '../nutrition/hooks/useFoodEntryData';
 import type { SpineGuideTarget } from '../../../lib/goal/goalSpineGuide';
 
-const TAB_ORDER = ['dzis', 'tydzien', 'projekty', 'historia'];
+const TAB_ORDER = ['dzis', 'tydzien', 'historia'];
 
 const normalizeView = (view: string | null | undefined) => {
   if (!view || view === 'workout' || view === 'mentor' || view === 'mirror' || view === 'body') return 'dzis';
