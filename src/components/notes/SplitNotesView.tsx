@@ -17,6 +17,7 @@ import type { NoteSection } from '../../lib/noteOrganization';
 import KeepFilterPills, { KeepQuickFilter } from './KeepFilterPills';
 import KeepBulkActionBar from './KeepBulkActionBar';
 import type { useKeepBulkActions } from './hooks/useKeepBulkActions';
+import { useBackHandler } from '../../lib/native/backStack';
 
 interface SplitNotesViewProps {
   notes: Note[];
@@ -69,6 +70,13 @@ export default function SplitNotesView({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  useBackHandler(() => {
+    if (activeNoteId) {
+      onCloseNote(false);
+      return true;
+    }
+  }, !!activeNoteId && isMobile);
 
   const activeNote = notes.find(n => n.id === activeNoteId) || null;
   const galleryMode = collectionView === 'gallery';
