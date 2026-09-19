@@ -13,10 +13,78 @@ import { LLM_TASKS } from "../_shared/llm/tasks.ts";
 import { serveJson } from "../_shared/http.ts";
 import { getVanguardUserId } from "../_shared/constants.ts";
 import { getWarsawDateString } from "../_shared/time.ts";
+import { checkRedundancyWithJev } from "../_shared/jevCompactor.ts";
 
 Deno.serve(serveJson(async (_req, ctx) => {
   const supabase = ctx.supabase;
   const userId = getVanguardUserId();
+
+  const body = await _req.clone().json().catch(() => ({}));
+  const action = body.action || new URL(_req.url).searchParams.get("action");
+
+  // === VACUUM MODE (Jev Odkurzacz Bazy Wiedzy) ===
+  if (action === "vacuum") {
+    const limit = Math.min(body.limit ? Number(body.limit) : 40, 60);
+    const { data: records, error: streamErr } = await supabase
+      .from('vanguard_stream')
+      .select('id, content, created_at, metadata, classification')
+      .eq('user_id', userId)
+      .neq('classification', 'redundant')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (streamErr) throw streamErr;
+    if (!records || records.length <= 1) {
+      return { status: "Not enough records to vacuum", duplicates_removed: 0 };
+    }
+
+    let duplicatesFound = 0;
+    const processedIds = new Set<string>();
+
+    for (let i = 0; i < records.length; i++) {
+      const current = records[i];
+      if (processedIds.has(current.id) || !current.content || current.content.length < 5) continue;
+
+      const candidates = records
+        .slice(i + 1)
+        .filter((r: any) => !processedIds.has(r.id) && r.content && r.content.length >= 5)
+        .map((r: any) => ({ id: r.id, content: r.content, created_at: r.created_at }));
+
+      if (candidates.length === 0) break;
+
+      const result = await checkRedundancyWithJev(current.content, candidates, 0.95);
+      if (result.isRedundant && result.redundantWithId) {
+        duplicatesFound++;
+        processedIds.add(current.id);
+
+        console.log(`[metabolism/vacuum] Jev duplicate detected: ${current.id} matches ${result.redundantWithId} (prob=${result.probability})`);
+
+        const existingMeta = (current.metadata && typeof current.metadata === 'object') ? current.metadata : {};
+        await supabase
+          .from('vanguard_stream')
+          .update({
+            metadata: {
+              ...existingMeta,
+              is_redundant: true,
+              redundant_of: result.redundantWithId,
+              jev_prob: result.probability,
+              vacuumed_at: new Date().toISOString(),
+            },
+            importance_score: 1,
+            classification: 'redundant',
+          })
+          .eq('id', current.id);
+      }
+    }
+
+    return {
+      status: "Vacuum completed",
+      checked_entries: records.length,
+      duplicates_removed: duplicatesFound,
+      saved_estimated_tokens: duplicatesFound * 180,
+    };
+  }
+
   const now = new Date();
   // 90 days ago
   const cutoffDate = getWarsawDateString(new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000));

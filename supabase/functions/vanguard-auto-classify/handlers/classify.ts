@@ -10,6 +10,7 @@ import { CLASSIFY_SYSTEM, FRICTION_SYSTEM } from "../prompts.ts";
 import { normalizeClassification, normalizeFriction } from "./normalize.ts";
 import { handleClosureProposals } from "./closures.ts";
 import { runJevTriage } from "./jevTriage.ts";
+import { checkRedundancyWithJev } from "../../_shared/jevCompactor.ts";
 
 export async function handleStreamRecord(record: any, supabase: any): Promise<unknown> {
   if (!record || !record.content || !record.user_id) {
@@ -31,6 +32,50 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
   }
 
   console.log(`[auto-classify] start for record: ${record.id}`);
+
+  // === KROK -1: Instant Compaction / Deduplication (Jev Odkurzacz) ===
+  try {
+    const { data: recentCandidates } = await supabase
+      .from('vanguard_stream')
+      .select('id, content, created_at')
+      .eq('user_id', record.user_id)
+      .neq('id', record.id)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    const redundancyResult = await checkRedundancyWithJev(
+      record.content,
+      recentCandidates || [],
+      0.95
+    );
+
+    if (redundancyResult.isRedundant) {
+      console.log(`[auto-classify] Jev Compactor: duplicate detected (prob=${redundancyResult.probability}) against record ${redundancyResult.redundantWithId}`);
+      
+      const existingMeta = (record.metadata && typeof record.metadata === 'object') ? record.metadata : {};
+      await supabase.from('vanguard_stream').update({
+        metadata: {
+          ...existingMeta,
+          is_redundant: true,
+          redundant_of: redundancyResult.redundantWithId,
+          jev_prob: redundancyResult.probability,
+        },
+        importance_score: 1,
+        category: 'Chaos',
+        tags: ['duplikat', 'redundant'],
+        classification: 'redundant',
+      }).eq('id', record.id);
+
+      return {
+        message: 'duplicate detected and compacted by Jev',
+        duplicate: true,
+        redundant_of: redundancyResult.redundantWithId,
+        probability: redundancyResult.probability,
+      };
+    }
+  } catch (compactorErr) {
+    console.warn('[auto-classify] Jev Compactor check failed, proceeding:', compactorErr);
+  }
 
   const today = getWarsawDateString();
 
