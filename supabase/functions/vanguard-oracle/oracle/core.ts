@@ -209,7 +209,7 @@ export async function runOracleQuery(
     compressedHistory.length > 0 &&
     compressedHistory[0].role === "system" &&
     compressedHistory[0].content.startsWith("[SKOMPRESOWANA HISTORIA]");
-  if (jevIntervention) current_query += jevIntervention;
+  const finalQuery = (current_query ?? "") + (jevIntervention ? jevIntervention : "");
   const messages: DeepSeekMessage[] = [
     { role: "system", content: systemPrompt },
     ...compressedHistory.map((m) => ({
@@ -218,8 +218,8 @@ export async function runOracleQuery(
     })),
   ];
 
-  if (current_query) {
-    messages.push({ role: "user", content: sanitizeUserQuery(current_query) });
+  if (finalQuery) {
+    messages.push({ role: "user", content: sanitizeUserQuery(finalQuery) });
   }
 
   if (stream) {

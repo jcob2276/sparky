@@ -1,4 +1,4 @@
-﻿import { isJevAvailable, jevDecide, type JevAnswerNoul, type JevAnswerChoice } from "./jev.ts";
+import { isJevAvailable, jevDecide, type JevAnswerNoul, type JevAnswerChoice } from "./jev.ts";
 
 interface DataVerificationParams {
   task: string;
@@ -33,7 +33,7 @@ export async function verifyDataSufficiencyWithJev(
       questions: {
         is_data_sufficient: {
           type: "noul",
-          instructions: Czy zgromadzone dane telemetryczne i behawioralne sa wystarczajace do przeprowadzenia wartosciowej analizy zadania: '' bez halucynowania brakujacych faktow?,
+          instructions: `Czy zgromadzone dane telemetryczne i behawioralne sa wystarczajace do przeprowadzenia wartosciowej analizy zadania: '${params.task}' bez halucynowania brakujacych faktow?`,
         },
         missing_dimension: {
           type: "choice",
@@ -65,7 +65,7 @@ export async function verifyDataSufficiencyWithJev(
       missingDimensions: missing,
       reason: isSufficient
         ? "Wystarczajace dane"
-        : Niewystarczajace dane (prob=%, glowny brak: ),
+        : `Niewystarczajace dane (prob=${Math.round(prob * 100)}%, glowny brak: ${choiceAns?.choice ?? "nieznany"})`,
     };
   } catch (err) {
     console.warn("[jevVerifier] Verification failed, defaulting to sufficient:", err);

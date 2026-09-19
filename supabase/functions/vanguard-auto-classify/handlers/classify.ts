@@ -118,7 +118,7 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
           ...LLM_TASKS.classify,
           messages: [
             { role: 'system', content: CLASSIFY_SYSTEM },
-            { role: 'user', content: \KONTEKST: \\nNOTATKA: \\ },
+            { role: 'user', content: `KONTEKST: ${contextStr}\nNOTATKA: ${record.content}` },
           ],
           maxTokens: null,
         });
@@ -132,18 +132,6 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
             description: record.content
           })
         })
-      : deepseekChat({
-          apiKey,
-          ...LLM_TASKS.classify,
-          messages: [
-            { role: 'system', content: FRICTION_SYSTEM },
-            { role: 'user', content: record.content },
-          ],
-          maxTokens: null,
-        });
-
-    const frictionPromise = skipFrictionLlm
-      ? Promise.resolve({ content: '{"is_relevant":false,"event_kind":null,"friction_type":null}' })
       : deepseekChat({
           apiKey,
           ...LLM_TASKS.classify,
@@ -334,7 +322,8 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
     jev_triage: jevTriage ? {
       used: true,
       category: jevTriage.category,
-      is_friction_prob: jevTriage.isFrictionProb,
+      event_kind: jevTriage.eventKind,
+      min_confidence: jevTriage.minConfidence,
       skipped_friction_llm: skipFrictionLlm,
     } : null,
   };
