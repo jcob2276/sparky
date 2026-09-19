@@ -1,4 +1,4 @@
-import { isJevAvailable, jevDecide } from "../../_shared/jev.ts";
+import { isJevAvailable, jevDecide, type JevAnswerNoul } from "../../_shared/jev.ts";
 /**
  * Oracle core logic — no Deno.serve() side-effect, safe to import.
  *
@@ -122,7 +122,7 @@ export async function runOracleQuery(
       });
 
       const ansIntent = jevResult.answers.intent;
-      const ansLying = jevResult.answers.is_lying_about_execution;
+      const ansLying = jevResult.answers.is_lying_about_execution as JevAnswerNoul;
 
       if (
         ansIntent?.type === 'choice' &&
@@ -371,4 +371,6 @@ export async function runOracleQuery(
     pending_action: pendingAction || undefined,
   };
 }
+
+
 

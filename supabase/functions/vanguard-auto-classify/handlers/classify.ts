@@ -42,22 +42,60 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
 
   const apiKey = Deno.env.get('DEEPSEEK_API_KEY') || '';
 
-  // === KROK 0: Szybki triage System 1 (Jev) jeśli dostępny ===
+  // === KROK 0: Szybki triage System 1 (Jev) jeli dostpny ===
   const jevTriage = await runJevTriage(record.content);
-  const skipFrictionLlm = jevTriage?.skipFrictionLlm ?? false;
+  
+  const JEV_CONFIDENCE_THRESHOLD = 0.85;
+  const skipClassifyLlm = jevTriage && jevTriage.minConfidence > JEV_CONFIDENCE_THRESHOLD;
+  const skipFrictionLlm = skipClassifyLlm && (jevTriage.eventKind === 'none' || jevTriage.eventKind === 'state_observation');
 
-  // === KROK 1: Klasyfikacja i KROK 2: Friction detection (równolegle) ===
+  if (skipClassifyLlm) console.log('[auto-classify] JEV High Confidence (' + jevTriage.minConfidence + ') - skipping DeepSeek classify');
+  if (skipFrictionLlm) console.log('[auto-classify] JEV determined no deep friction logic needed - skipping DeepSeek friction');
+
+  // === KROK 1: Klasyfikacja i KROK 2: Friction detection ===
   let classifyRes, frictionRes;
   try {
-    const classifyPromise = deepseekChat({
-      apiKey,
-      ...LLM_TASKS.classify,
-      messages: [
-        { role: 'system', content: CLASSIFY_SYSTEM },
-        { role: 'user', content: `KONTEKST: ${contextStr}\nNOTATKA: ${record.content}` },
-      ],
-      maxTokens: null,
-    });
+    const classifyPromise = skipClassifyLlm
+      ? Promise.resolve({
+          content: JSON.stringify({
+            importance_score: jevTriage!.importanceScore,
+            category: jevTriage!.category,
+            tags: [],
+            temporality: jevTriage!.temporality,
+            fingerprint_text: null,
+            is_closure: false,
+            closed_topic_description: null,
+            expiration_date: null
+          })
+        })
+      : deepseekChat({
+          apiKey,
+          ...LLM_TASKS.classify,
+          messages: [
+            { role: 'system', content: CLASSIFY_SYSTEM },
+            { role: 'user', content: \KONTEKST: \\nNOTATKA: \\ },
+          ],
+          maxTokens: null,
+        });
+
+    const frictionPromise = skipFrictionLlm
+      ? Promise.resolve({
+          content: JSON.stringify({
+            is_relevant: jevTriage!.eventKind !== 'none',
+            event_kind: jevTriage!.eventKind === 'none' ? null : jevTriage!.eventKind,
+            friction_type: jevTriage!.frictionType,
+            description: record.content
+          })
+        })
+      : deepseekChat({
+          apiKey,
+          ...LLM_TASKS.classify,
+          messages: [
+            { role: 'system', content: FRICTION_SYSTEM },
+            { role: 'user', content: record.content },
+          ],
+          maxTokens: null,
+        });
 
     const frictionPromise = skipFrictionLlm
       ? Promise.resolve({ content: '{"is_relevant":false,"event_kind":null,"friction_type":null}' })
@@ -256,3 +294,5 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
     } : null,
   };
 }
+
+

@@ -1,9 +1,8 @@
-import {
+﻿import {
   isJevAvailable,
   jevDecide,
   type JevDecisionResult,
   type JevAnswerChoice,
-  type JevAnswerNoul,
   type JevAnswerScore,
 } from "../../_shared/jev.ts";
 
@@ -11,8 +10,9 @@ export interface JevTriageResult {
   category: string;
   temporality: string;
   importanceScore: number;
-  isFrictionProb: number;
-  skipFrictionLlm: boolean;
+  eventKind: string;
+  frictionType: string | null;
+  minConfidence: number;
   decision: JevDecisionResult;
 }
 
@@ -57,29 +57,63 @@ export async function runJevTriage(content: string): Promise<JevTriageResult | n
             "10: Przełomowe zdarzenie życiowe lub krytyczny wgląd",
           ],
         },
-        is_friction_or_behavior: {
-          type: "noul",
-          instructions:
-            "Czy ten tekst opisuje jakiekolwiek tarcie behawioralne (opór, prokrastynacja, zmęczenie, zły nawyk), powrót do pionu (recovery) lub mikrogest?",
+        event_kind: {
+          type: "choice",
+          instructions: "Sklasyfikuj typ zdarzenia behawioralnego w tekście.",
+          criteria: {
+            "friction_event": "Wyraźne odchylenie od intencji (miałem zrobić, a nie zrobiłem).",
+            "positive_micro_action": "Dobry mikrogest, małe działanie na plus.",
+            "recovery_event": "Powrót do pionu po tarciu, przełamanie oporu.",
+            "state_observation": "Czysty stan fizyczny/emocjonalny (ból, zmęczenie) bez złamanej intencji.",
+            "micro_behavior_observation": "Nawykowe zachowanie bez intencji w danym momencie.",
+            "reflection": "Refleksja, wnioski, generalizacja.",
+            "none": "Brak jakichkolwiek elementów behawioralnych, suchy fakt lub pytanie."
+          }
         },
+        friction_type: {
+          type: "choice",
+          instructions: "Jeśli to friction_event lub recovery, jakiego obszaru dotyczy?",
+          criteria: {
+            "avoidance": "Unikanie sytuacji/zadania/konfrontacji.",
+            "procrastination": "Odkładanie w czasie bez racjonalnego powodu.",
+            "habit_break": "Przerwanie rutyny (np. dieta, trening).",
+            "sleep_disruption": "Późne spanie, zaspanie, problem ze snem.",
+            "other": "Inne tarcie lub brak tarcia."
+          }
+        }
       },
     });
 
-    const isFrictionNoul = (decision.answers.is_friction_or_behavior as JevAnswerNoul)?.noul ?? 0.5;
-    const categoryChoice = (decision.answers.category as JevAnswerChoice)?.choice ?? "Chaos";
-    const temporalityChoice = (decision.answers.temporality as JevAnswerChoice)?.choice ?? "tymczasowe";
-    const scoreVal = (decision.answers.importance_score as JevAnswerScore)?.score ?? 2.5;
+    const categoryAns = decision.answers.category as JevAnswerChoice;
+    const temporalityAns = decision.answers.temporality as JevAnswerChoice;
+    const scoreAns = decision.answers.importance_score as JevAnswerScore;
+    const eventKindAns = decision.answers.event_kind as JevAnswerChoice;
+    const frictionTypeAns = decision.answers.friction_type as JevAnswerChoice;
 
-    // Map Jev score (1..5 indices) to Vanguard 1..10 scale
+    const categoryChoice = categoryAns?.choice ?? "Chaos";
+    const temporalityChoice = temporalityAns?.choice ?? "tymczasowe";
+    const scoreVal = scoreAns?.score ?? 2.5;
+    const eventKindChoice = eventKindAns?.choice ?? "none";
+    const frictionTypeChoice = frictionTypeAns?.choice === "other" ? null : (frictionTypeAns?.choice ?? null);
+
+    const confidences = [
+      categoryAns?.confidence ?? 0,
+      temporalityAns?.confidence ?? 0,
+      scoreAns?.confidence ?? 0,
+      eventKindAns?.confidence ?? 0,
+      frictionTypeAns?.confidence ?? 0,
+    ];
+    const minConfidence = Math.min(...confidences);
+
     const importanceScore = Math.max(1, Math.min(10, Math.round(scoreVal * 2)));
-    const skipFrictionLlm = isFrictionNoul < 0.20;
 
     return {
       category: categoryChoice,
       temporality: temporalityChoice,
       importanceScore,
-      isFrictionProb: isFrictionNoul,
-      skipFrictionLlm,
+      eventKind: eventKindChoice,
+      frictionType: frictionTypeChoice,
+      minConfidence,
       decision,
     };
   } catch (err) {
