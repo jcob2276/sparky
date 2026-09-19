@@ -113,7 +113,7 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
       if (!bar) return;
       const keyboardH = window.innerHeight - (vv.offsetTop + vv.height);
       if (keyboardH > 50) {
-        bar.style.cssText = `position:fixed;bottom:${keyboardH}px;left:var(--ds-inline-css-0-coll-2);right:var(--ds-inline-css-0-coll-5);z-index:var(--ds-inline-css-99999);margin:var(--ds-inline-css-0-coll-3);border-radius:var(--ds-inline-css-0);width:var(--ds-inline-css-100);padding:var(--ds-inline-css-0-12px);`;
+        bar.style.cssText = `position:fixed;bottom:${keyboardH}px;left:0;right:0;z-index:99999;margin:0;border-radius:0;width:100%;padding:0 12px;`;
         bar.classList.add('kb-open');
       } else {
         bar.style.cssText = '';

@@ -23,11 +23,11 @@
   "patternCount_localCssVisualDeclarations": 116,
   "patternCount_untemplatedRouteScreens": 0,
   "patternCount_localColorLiterals": 124,
-  "patternCount_namedPaletteUtilities": 179,
+  "patternCount_namedPaletteUtilities": 166,
   "patternCount_hardcodedMotionUtilities": 103,
-  "patternCount_uncontrolledVisualUtilities": 158,
+  "patternCount_uncontrolledVisualUtilities": 157,
   "patternCount_staticInlineStyleValues": 11,
-  "patternCount_embeddedCssVisualValues": 14,
+  "patternCount_embeddedCssVisualValues": 21,
   "patternCount_localCssNumericValues": 318,
   "patternCount_undefinedCssVariables": 9
 }

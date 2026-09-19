@@ -160,7 +160,7 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
           className="flex items-center justify-center gap-2 rounded-2xl border border-primary/25 bg-primary/10 px-3 py-3 text-xs font-black uppercase tracking-wider text-primary hover:bg-primary/20 active:scale-95 ui-interactive shadow-xs cursor-pointer text-center"
         >
           <SunMedium size={16} className="shrink-0" />
-          <span className="truncate">Zaplanuj dziś</span>
+          <span className="truncate">Zaplanuj</span>
         </Pressable>
 
         <Pressable
@@ -170,7 +170,7 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
           className="flex items-center justify-center gap-2 rounded-2xl border border-border-custom bg-surface-2/70 px-3 py-3 text-xs font-black uppercase tracking-wider text-text-primary hover:bg-surface-2 active:scale-95 ui-interactive shadow-xs cursor-pointer text-center"
         >
           <Moon size={16} className="shrink-0 text-text-muted" />
-          <span className="truncate">Podsumuj dzień</span>
+          <span className="truncate">Podsumuj</span>
         </Pressable>
       </div>
     </section>

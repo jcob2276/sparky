@@ -1047,15 +1047,18 @@
 /* ── Static formatting bar — Apple Notes style ───────────────── */
 
 .keep-static-bar {
+  position: sticky;
+  bottom: 16px;
+  z-index: 30;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 4px;
-  margin: 0;
+  margin: 12px auto 0;
   padding: 0 8px;
   height: 44px;
   width: max-content;
-  max-width: calc(100vw - 24px);
+  max-width: min(calc(100% - 24px), 680px);
   background: var(--material-light-65, rgba(255, 255, 255, 0.7));
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);

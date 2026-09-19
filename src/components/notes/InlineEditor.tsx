@@ -166,6 +166,7 @@ export default function InlineEditor({
             onChange={setContent} 
             placeholder="Zacznij pisać..."
             className={isMobile ? 'keep-ios-editor flex-1' : 'flex-1'}
+            showStaticBar={true}
             allNotes={allNotes} 
             noteId={note.id} 
             userId={userId || undefined}

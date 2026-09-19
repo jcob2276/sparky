@@ -1,4 +1,4 @@
-﻿import { useState, useRef, RefObject } from 'react';
+import { useState, useRef, RefObject } from 'react';
 import { ActiveState } from '../richEditorTypes';
 import { promptDialog } from '../../../lib/notify';
 
@@ -31,27 +31,33 @@ export function useRichEditorFormatting({
 
   const handleSelection = () => {
     const selection = window.getSelection();
-    if (!selection || selection.isCollapsed || !selection.rangeCount) {
+    if (!selection || !selection.rangeCount) {
       setToolbarRange(null);
       return;
     }
     const range = selection.getRangeAt(0);
-    if (editorRef.current && editorRef.current.contains(range.commonAncestorContainer)) {
-      setToolbarRange(range);
-      savedSelectionRef.current = { range: range.cloneRange() };
-      setActiveState({
-        bold: document.queryCommandState('bold'),
-        italic: document.queryCommandState('italic'),
-        h1: document.queryCommandValue('formatBlock') === 'h1',
-        h2: document.queryCommandValue('formatBlock') === 'h2',
-        list: document.queryCommandState('insertUnorderedList'),
-        numList: document.queryCommandState('insertOrderedList'),
-        underline: document.queryCommandState('underline'),
-        strikethrough: document.queryCommandState('strikeThrough'),
-        blockquote: document.queryCommandValue('formatBlock') === 'blockquote',
-      });
-    } else {
+    if (!editorRef.current || !editorRef.current.contains(range.commonAncestorContainer)) {
       setToolbarRange(null);
+      return;
+    }
+
+    savedSelectionRef.current = { range: range.cloneRange() };
+    setActiveState({
+      bold: document.queryCommandState('bold'),
+      italic: document.queryCommandState('italic'),
+      h1: document.queryCommandValue('formatBlock') === 'h1',
+      h2: document.queryCommandValue('formatBlock') === 'h2',
+      list: document.queryCommandState('insertUnorderedList'),
+      numList: document.queryCommandState('insertOrderedList'),
+      underline: document.queryCommandState('underline'),
+      strikethrough: document.queryCommandState('strikeThrough'),
+      blockquote: document.queryCommandValue('formatBlock') === 'blockquote',
+    });
+
+    if (selection.isCollapsed) {
+      setToolbarRange(null);
+    } else {
+      setToolbarRange(range);
     }
   };
 
