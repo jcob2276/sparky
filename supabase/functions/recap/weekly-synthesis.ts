@@ -6,6 +6,7 @@ import { deepseekChat } from "../_shared/deepseek.ts";
 import { LLM_TASKS } from "../_shared/llm/tasks.ts";
 import { getWarsawDateString } from "../_shared/time.ts";
 import { getStreamForWeeklySynthesis, insertStreamRecord } from "../_shared/repos/streamRepo.ts";
+import { verifyDataSufficiencyWithJev } from "../_shared/jevVerifier.ts";
 
 export async function runWeeklySynthesis(req: Request): Promise<unknown> {
   const VANGUARD_USER_ID = getVanguardUserId();
@@ -156,6 +157,34 @@ export async function runWeeklySynthesis(req: Request): Promise<unknown> {
     const streamText = (stream || [])
       .map((s: any) => `[${s.created_at?.split('T')[0]}][${s.category || '—'}] ${s.content}`)
       .join('\n');
+
+    // --- Universal Verifier (System One Gate) ---
+    const verification = await verifyDataSufficiencyWithJev({
+      task: "weekly_synthesis",
+      dataSummary: {
+        period: `${weekStart} – ${weekEnd}`,
+        days_with_biometrics: sleepDays.length,
+        friction_events_count: frictionEvents?.length || 0,
+        plannings_count: plannings?.length || 0,
+        reflections_count: (dailyReflections || []).length,
+        has_weekly_reflection: Boolean(weeklyReflection),
+        stream_count: (stream || []).length,
+      },
+      minThreshold: 0.60,
+    });
+
+    if (!verification.isSufficient) {
+      console.log(`[weekly-synthesis] Jev Universal Verifier BLOCKED synthesis: ${verification.reason}`);
+      const missingLabel = verification.missingDimensions[0] || "kluczowych danych";
+      const alertMsg = `⚠️ <b>[SYNTEZA TYGODNIA WSTRZYMANA]</b>\n\nJev Universal Verifier ocenił kompletność danych na zaledwie ${Math.round(verification.sufficiencyScore * 100)}%.\nGłówny brak: <code>${missingLabel}</code>.\n\nGenerowanie raportu zostało wstrzymane, aby nie generować pustych halucynacji ani nie spalać tokenów. Uzupełnij zaległe dni w aplikacji, a synteza zostanie wygenerowana poprawnie.`;
+
+      const TELEGRAM_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN') || '';
+      const TELEGRAM_CHAT_ID = parseInt(Deno.env.get('TELEGRAM_CHAT_ID') || '0', 10);
+      if (TELEGRAM_TOKEN && TELEGRAM_CHAT_ID) {
+        await sendMessageParsed(TELEGRAM_TOKEN, TELEGRAM_CHAT_ID, alertMsg);
+      }
+      return { ok: false, skipped: true, reason: verification.reason };
+    }
 
     // --- LLM synthesis ---
     const { content: synthesisText } = await deepseekChat({

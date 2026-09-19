@@ -15,6 +15,7 @@ import { LLM_TASKS } from "../_shared/llm/tasks.ts"
 import { logAuditEvent } from "../_shared/audit.ts"
 import { checkProactiveAlert } from "./proactiveAlert.ts"
 import { detectSpirals } from "./detectSpirals.ts"
+import { verifyDataSufficiencyWithJev } from "../_shared/jevVerifier.ts"
 
 Deno.serve(serveJson(async (_req, ctx) => {
   const supabase = ctx.supabase
@@ -79,6 +80,34 @@ Deno.serve(serveJson(async (_req, ctx) => {
 
     const spiral = detectSpirals(biometrics.data || [], frictionRecent.data || [])
     const spiralText = spiral ? `🚨 ${spiral.reason}` : 'Stan trajektorii stabilny — brak wyraźnych spiral/trendów gwałtownych w danych.'
+
+    // --- Universal Verifier (System One Gate) ---
+    const verification = await verifyDataSufficiencyWithJev({
+      task: "nightly_analyst",
+      dataSummary: {
+        stream_72h_count: (stream72h.data || []).length,
+        friction_14d_count: (frictionRecent.data || []).length,
+        biometrics_days: (biometrics.data || []).length,
+        pending_hypotheses_count: (pendingHypotheses.data || []).length,
+        has_spiral: Boolean(spiral),
+      },
+      minThreshold: 0.50,
+    });
+
+    if (!verification.isSufficient) {
+      console.log(`[analyst] Jev Universal Verifier SKIPPED deep reasoning: ${verification.reason}`);
+      await logAuditEvent({
+        eventType: "analyst_insufficient_data",
+        severity: "info",
+        message: `Analyst deep reasoning skipped by Jev verifier: ${verification.reason}`,
+        userId: user_id,
+        metadata: {
+          sufficiencyScore: verification.sufficiencyScore,
+          missing: verification.missingDimensions,
+        },
+      });
+      return { status: "skipped", reason: verification.reason };
+    }
 
     // LLM analysis
     const { content: rawContentParsed } = await deepseekChat({
