@@ -1,3 +1,4 @@
+import { isJevAvailable, jevDecide } from "../../_shared/jev.ts";
 /**
  * Oracle core logic — no Deno.serve() side-effect, safe to import.
  *
@@ -84,6 +85,90 @@ export async function runOracleQuery(
   const safeUserConf = sanitizeUserConf(user_conf);
   console.log(`[oracle] start | user: ${user_id} | query: "${current_query?.substring(0, 50)}..."`);
 
+  // --- SYSTEM ONE MIDDLEWARE (JEV-1.13.0 DECISION GATE) ---
+  let jevIntervention = "";
+  if (isJevAvailable() && mode === "chat" && current_query && current_query.length > 15) {
+    try {
+      const jevState = {
+        user_query: sanitizeUserQuery(current_query),
+        today_plan: todayPlan,
+        friction_events: (safeStateVector as any)?.friction_events_72h || [],
+        oura_readiness: (safeStateVector as any)?.biometrics?.oura_last_night?.score || null,
+      };
+
+      const jevResult = await jevDecide({
+        state: jevState,
+        questions: {
+          intent: {
+            type: "choice",
+            instructions: "Sklasyfikuj główną intencję użytkownika.",
+            criteria: {
+              information_request: "Użytkownik pyta o fakty, analizy, wiedzę lub podsumowanie.",
+              planning: "Użytkownik ustala plan na dzisiaj/jutro.",
+              avoidance_rationalization: "Użytkownik racjonalizuje nierobienie zadań, ucieka przed pracą (np. porno, lenie) lub zgłasza status, który budzi podejrzenia (fałszywe logi).",
+              day_closure: "Użytkownik robi wieczorne podsumowanie dnia."
+            }
+          },
+          is_lying_about_execution: {
+            type: "noul",
+            instructions: "Prawdopodobieństwo, że użytkownik twierdzi, że wykonał ciężką pracę/trening, ale dane obiektywne (np. 1300 kroków z Oury) temu przeczą."
+          },
+          friction_level: {
+            type: "score",
+            instructions: "Oceń poziom tarcia/unikania w wiadomości użytkownika (1 - luz, 5 - twardy sabotaż).",
+            criteria: ["1", "2", "3", "4", "5"]
+          }
+        }
+      });
+
+      const ansIntent = jevResult.answers.intent;
+      const ansLying = jevResult.answers.is_lying_about_execution;
+
+      if (
+        ansIntent?.type === 'choice' &&
+        ansLying?.type === 'noul' &&
+        ansIntent.choice === 'avoidance_rationalization' &&
+        ansLying.noul > 0.85
+      ) {
+        console.log(`[oracle] JEV GATE TRIGGERED: avoidance_rationalization + lie_probability=${ansLying.noul}`);
+        
+        const shortMsg = `🔴 **[SYSTEM ONE OVERRIDE]**\n\nSystem wykrył racjonalizację i próbę zafałszowania stanu (prawdopodobieństwo: ${Math.round(ansLying.noul * 100)}%).\nZablokowano generowanie wypracowania i warstwę psychologiczną.\n\nMasz przed sobą jeden konkretny mikrokrok. Wykonaj go i zamelduj. Koniec dyskusji.`;
+        
+        if (stream) {
+          const streamObj = new ReadableStream({
+            start(controller) {
+              const encoder = new TextEncoder();
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ t: shortMsg })}\n\n`));
+              const finalData = {
+                answer: shortMsg,
+                intent_confirmed: 'avoidance_confrontation',
+                should_respond: true,
+                oracle_system_proposals: []
+              };
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ _final: finalData })}\n\n`));
+              controller.enqueue(encoder.encode(`data: [DONE]\n\n`));
+              controller.close();
+            }
+          });
+          return new Response(streamObj, { headers: { "Content-Type": "text/event-stream" } });
+        } else {
+          return {
+            answer: shortMsg,
+            intent_confirmed: 'avoidance_confrontation',
+            oracle_system_proposals: []
+          };
+        }
+      }
+      
+      if (ansIntent?.type === 'choice') {
+        jevIntervention = `\n\n[SYSTEM ONE JEV CLASSIFICATION]\nIntent: ${ansIntent.choice}\nLying Probability: ${ansLying?.type === 'noul' ? ansLying.noul : 'N/A'}`;
+      }
+    } catch (err) {
+      console.warn("[oracle] Jev middleware failed or timed out:", err);
+    }
+  }
+  // --- END SYSTEM ONE MIDDLEWARE ---
+
   const rag = await retrieveRagContext(supabase, user_id, current_query, todayDate, fourteenDaysAgoDate, mode, cutoff72h);
   const coreMemory = await fetchCoreMemory(supabase, user_id);
 
@@ -124,6 +209,7 @@ export async function runOracleQuery(
     compressedHistory.length > 0 &&
     compressedHistory[0].role === "system" &&
     compressedHistory[0].content.startsWith("[SKOMPRESOWANA HISTORIA]");
+  if (jevIntervention) current_query += jevIntervention;
   const messages: DeepSeekMessage[] = [
     { role: "system", content: systemPrompt },
     ...compressedHistory.map((m) => ({
@@ -285,3 +371,4 @@ export async function runOracleQuery(
     pending_action: pendingAction || undefined,
   };
 }
+
