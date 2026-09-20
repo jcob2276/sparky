@@ -86,13 +86,13 @@ function DashboardContent() {
   ], [s]);
 
   const workspaceTools = useMemo(() => [
-    { label: 'Notatki', icon: StickyNote, action: () => s.navigate('/keep'), route: 'keep' },
     { label: 'Zadania', icon: ListTodo, action: () => s.navigate('/todo'), route: 'todo' },
     { label: 'Kalendarz', icon: Calendar, action: () => s.navigate('/kalendarz'), route: 'kalendarz' },
+    { label: 'Notatki', icon: StickyNote, action: () => s.navigate('/keep'), route: 'keep' },
+    { label: 'Finanse', icon: WalletCards, action: () => s.navigate('/finanse'), route: 'finanse' },
     { label: 'Terminy', icon: Bell, action: () => s.navigate('/terminy'), route: 'terminy' },
     { label: 'Rozwój', icon: GraduationCap, action: () => s.navigate('/rozwoj'), route: 'rozwoj' },
     { label: 'Pocket', icon: BookOpen, action: () => s.navigate('/links'), route: 'links' },
-    { label: 'Finanse', icon: WalletCards, action: () => s.navigate('/finanse'), route: 'finanse' },
   ], [s]);
 
   // ── Full-screen route views ──

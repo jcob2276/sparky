@@ -39,6 +39,106 @@ interface ActionTile {
   colorClass: string;
 }
 
+function buildFastCaptureSections(items: FastCaptureItem[], tools: ToolItem[]) {
+  const cialoActions: ActionTile[] = [];
+  const kontoActions: ActionTile[] = [];
+  const duchActions: ActionTile[] = [];
+  const otherActions: ActionTile[] = [];
+
+  items.forEach((item) => {
+    const lower = item.label.toLowerCase();
+    if (lower.includes('trening') || lower.includes('saun') || lower.includes('wzrok') || lower.includes('wag') || lower.includes('jedzenie')) {
+      cialoActions.push({
+        label: item.label,
+        icon: item.icon,
+        action: item.action,
+        colorClass: 'bg-success/10 text-success border-success/20 hover:border-success/40',
+      });
+    } else {
+      cialoActions.push({
+        label: item.label,
+        icon: item.icon,
+        action: item.action,
+        colorClass: 'bg-primary/10 text-primary border-primary/20 hover:border-primary/40',
+      });
+    }
+  });
+
+  tools.forEach((tool) => {
+    const lower = tool.label.toLowerCase();
+    if (lower.includes('zadani') || lower.includes('kalendarz') || lower.includes('notatk') || lower.includes('keep')) {
+      kontoActions.push({
+        label: tool.label,
+        icon: tool.icon,
+        action: tool.action,
+        route: tool.route,
+        colorClass: 'bg-warning/10 text-warning border-warning/20 hover:border-warning/40',
+      });
+    } else if (lower.includes('finans') || lower.includes('pocket') || lower.includes('termin') || lower.includes('rozwój') || lower.includes('rozwoj')) {
+      duchActions.push({
+        label: tool.label,
+        icon: tool.icon,
+        action: tool.action,
+        route: tool.route,
+        colorClass: 'bg-primary/10 text-primary border-primary/20 hover:border-primary/40',
+      });
+    } else {
+      otherActions.push({
+        label: tool.label,
+        icon: tool.icon,
+        action: tool.action,
+        route: tool.route,
+        colorClass: 'bg-surface-2/70 text-text-primary border-border-custom/40 hover:border-primary/30',
+      });
+    }
+  });
+
+  const kontoPriority = ['zadani', 'kalendarz', 'notatk', 'keep'];
+  kontoActions.sort((a, b) => {
+    const idxA = kontoPriority.findIndex(k => a.label.toLowerCase().includes(k));
+    const idxB = kontoPriority.findIndex(k => b.label.toLowerCase().includes(k));
+    return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+  });
+
+  const duchPriority = ['finans', 'termin', 'rozwój', 'rozwoj', 'pocket'];
+  duchActions.sort((a, b) => {
+    const idxA = duchPriority.findIndex(k => a.label.toLowerCase().includes(k));
+    const idxB = duchPriority.findIndex(k => b.label.toLowerCase().includes(k));
+    return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+  });
+
+  return [
+    {
+      id: 'cialo',
+      title: 'Ciało & Biometria',
+      icon: Shield,
+      accent: 'text-success',
+      tiles: cialoActions,
+    },
+    {
+      id: 'konto',
+      title: 'Konto & Działanie',
+      icon: Wallet,
+      accent: 'text-warning',
+      tiles: kontoActions,
+    },
+    {
+      id: 'duch',
+      title: 'Duch & Wiedza',
+      icon: Zap,
+      accent: 'text-primary',
+      tiles: duchActions,
+    },
+    ...(otherActions.length > 0 ? [{
+      id: 'inne',
+      title: 'Pozostałe narzędzia',
+      icon: Plus,
+      accent: 'text-text-muted',
+      tiles: otherActions,
+    }] : []),
+  ];
+}
+
 export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools, userId }: Props) {
   const { selection } = useHaptics();
 
@@ -48,93 +148,7 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
     onClose();
   };
 
-  const sections = useMemo(() => {
-    // Categorize items & tools
-    const cialoActions: ActionTile[] = [];
-    const kontoActions: ActionTile[] = [];
-    const duchActions: ActionTile[] = [];
-    const otherActions: ActionTile[] = [];
-
-    items.forEach((item) => {
-      const lower = item.label.toLowerCase();
-      if (lower.includes('trening') || lower.includes('saun') || lower.includes('wzrok') || lower.includes('wag') || lower.includes('jedzenie')) {
-        cialoActions.push({
-          label: item.label,
-          icon: item.icon,
-          action: item.action,
-          colorClass: 'bg-success/10 text-success border-success/20 hover:border-success/40',
-        });
-      } else {
-        cialoActions.push({
-          label: item.label,
-          icon: item.icon,
-          action: item.action,
-          colorClass: 'bg-primary/10 text-primary border-primary/20 hover:border-primary/40',
-        });
-      }
-    });
-
-    tools.forEach((tool) => {
-      const lower = tool.label.toLowerCase();
-      if (lower.includes('zadani') || lower.includes('kalendarz') || lower.includes('finans')) {
-        kontoActions.push({
-          label: tool.label,
-          icon: tool.icon,
-          action: tool.action,
-          route: tool.route,
-          colorClass: 'bg-warning/10 text-warning border-warning/20 hover:border-warning/40',
-        });
-      } else if (lower.includes('notatk') || lower.includes('pocket') || lower.includes('termin') || lower.includes('rozwój') || lower.includes('keep')) {
-        duchActions.push({
-          label: tool.label,
-          icon: tool.icon,
-          action: tool.action,
-          route: tool.route,
-          colorClass: 'bg-primary/10 text-primary border-primary/20 hover:border-primary/40',
-        });
-      } else {
-        otherActions.push({
-          label: tool.label,
-          icon: tool.icon,
-          action: tool.action,
-          route: tool.route,
-          colorClass: 'bg-surface-2/70 text-text-primary border-border-custom/40 hover:border-primary/30',
-        });
-      }
-    });
-
-    return [
-      {
-        id: 'cialo',
-        title: 'Ciało & Biometria',
-        icon: Shield,
-        accent: 'text-success',
-        tiles: cialoActions,
-      },
-      {
-        id: 'konto',
-        title: 'Konto & Działanie',
-        icon: Wallet,
-        accent: 'text-warning',
-        tiles: kontoActions,
-      },
-      {
-        id: 'duch',
-        title: 'Duch & Wiedza',
-        icon: Zap,
-        accent: 'text-primary',
-        tiles: duchActions,
-      },
-      ...(otherActions.length > 0 ? [{
-        id: 'inne',
-        title: 'Pozostałe narzędzia',
-        icon: Plus,
-        accent: 'text-text-muted',
-        tiles: otherActions,
-      }] : []),
-    ];
-
-  }, [items, tools]);
+  const sections = useMemo(() => buildFastCaptureSections(items, tools), [items, tools]);
 
   return (
     <Sheet

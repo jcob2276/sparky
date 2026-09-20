@@ -20,7 +20,7 @@ const MedicalStudiesPage = lazy(() => import('./components/medical/MedicalStudie
 const MedicalLaboratoryPage = lazy(() => import('./components/medical/MedicalLaboratoryPage'));
 const CorrelationsPage = lazy(() => import('./components/correlations/CorrelationsPage'));
 const EndMyopiaCalculator = lazy(() => import('./components/medical/EndMyopiaCalculator'));
-const FinancePage = lazy(() => import('./components/finance'));
+const FinancePage = lazy(() => import('./components/finance/FinancePage'));
 const DesignSystemPage = lazy(() => import('./components/dev/DesignSystemPage'));
 const OuraHealthPage = lazy(() => import('./components/biometrics/OuraHealthPage'));
 const GrowthView = lazy(() => import('./components/growth/GrowthView'));
