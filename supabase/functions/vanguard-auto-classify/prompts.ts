@@ -77,6 +77,7 @@ W przeciwnym wypadku set \`is_relevant = true\`.
 - \`friction_event\` tylko gdy w tekście jest **jawna lub jasno implikowana intencja** + **odchylenie od niej**.
 - Czysty stan (ból, zmęczenie, stres) bez odchylenia → \`state_observation\`.
 - Zaobserwowane nawykowe zachowanie bez intencji w momencie → \`micro_behavior_observation\`.
+- ZASADA WEEKENDU (SOBOTA/NIEDZIELA): Odpoczynek, brak pracy zawodowej, brak diali/sprzedaży, czas wolny i regeneracja w weekend są naturalne i NIE stanowią tarcia (\`friction_event\`), chyba że użytkownik sam jawnie zadeklarował na ten konkretny dzień obowiązek pracy i go zignorował. Jeśli opisuje odpoczynek lub brak pracy w weekend → \`state_observation\` lub \`reflection\`.
 
 SŁOWNIK friction_type (dla wszystkich typów oprócz 'reflection' i neutralnych, jeśli pasuje):
 - sleep_disruption: późne spanie, zaspanie, nocny ekran zamiast snu

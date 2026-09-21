@@ -34,7 +34,7 @@ export default function ExerciseStrengthSets({
           KG
         </span>
         <span className="text-3xs font-black uppercase tracking-wider text-text-muted text-center">
-          Pow.
+          {exercise.mode === 'timed' ? 'Czas' : 'Pow.'}
         </span>
         <span className="text-3xs font-black uppercase tracking-wider text-text-muted text-center">
           RIR
@@ -53,6 +53,7 @@ export default function ExerciseStrengthSets({
           updateSet={updateSet}
           removeSet={removeSet}
           onOpenPlateCalc={onOpenPlateCalc}
+          isTimed={exercise.mode === 'timed'}
         />
       ))}
     </>

@@ -53,7 +53,7 @@ export default function WeeklyPulseDiagnostic() {
     setLoadingAi(true);
     setShowAi(true);
     try {
-      const prompt = `Przeanalizuj w 2 konkretnych, ostrych zdaniach stan tego tygodnia w Vanguard OS:
+      const prompt = `Przeanalizuj w 2 konkretnych, ostrych zdaniach stan tego tygodnia w Sparky:
 - Średni sen: ${data?.sleepAvgHours?.toFixed(1) ?? '—'}h (${data?.warningDays ?? 0} dni poniżej normy)
 - Bieganie: ${data?.runKm ?? 0} km (${data?.runCount ?? 0} treningów), Siłownia: ${data?.gymCount ?? 0}
 - Średnia regeneracja: ${data?.averageRecovery ?? '—'}
@@ -105,7 +105,7 @@ Zwróć 2 zdania syntezy behawioralnej: co jest wzorcem tygodnia i jaka jest dź
       {showAi && aiAnalysis && (
         <div className="rounded-xl border border-primary/20 bg-surface/90 p-2.5 text-xs leading-relaxed space-y-1">
           <p className="flex items-center gap-1.5 text-3xs font-black uppercase tracking-wider text-primary">
-            <Sparkles size={10} /> Vanguard AI Insight
+            <Sparkles size={10} /> Sparky AI Insight
           </p>
           <p className="font-medium text-text-primary">{aiAnalysis}</p>
         </div>

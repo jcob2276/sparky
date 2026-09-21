@@ -32,7 +32,7 @@ interface DevelopmentReview {
   updatedAt?: string;
 }
 
-export interface VanguardIdentityData {
+export interface SparkyIdentityData {
   user_id: string;
   development_theme: string | null;
   development_gap: string | null;
@@ -43,6 +43,8 @@ export interface VanguardIdentityData {
   development_review: DevelopmentReview | null;
   updated_at: string | null;
 }
+
+export type VanguardIdentityData = SparkyIdentityData;
 
 export interface GrowthTaskItem {
   id: string;
@@ -64,7 +66,7 @@ export interface GrowthProjectItem {
 }
 
 export interface GrowthDashboardData {
-  identity: VanguardIdentityData | null;
+  identity: SparkyIdentityData | null;
   projects: GrowthProjectItem[];
   tasks: GrowthTaskItem[];
   libraryItems: LibraryItem[];

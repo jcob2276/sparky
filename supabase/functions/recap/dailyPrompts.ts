@@ -1,5 +1,6 @@
 import { deepseekChat } from "../_shared/deepseek.ts";
 import { LLM_TASKS } from "../_shared/llm/tasks.ts";
+import { getWarsawDayOfWeek, isWarsawWeekend } from "../_shared/time.ts";
 import type { StreamRow, DailyWinsRow, DailyAggregateRow } from "./recapTypes.ts";
 
 function compactRows(rows: StreamRow[], limit = 12): string {
@@ -15,6 +16,7 @@ function compactRows(rows: StreamRow[], limit = 12): string {
 }
 
 export async function generateDayNarrative(apiKey: string, params: {
+  date?: string;
   voiceRows: StreamRow[];
   streamRows: StreamRow[];
   frictionRows: Array<Record<string, unknown>>;
@@ -22,6 +24,13 @@ export async function generateDayNarrative(apiKey: string, params: {
   todos: Array<{ title?: string | null }> | null;
   agg: DailyAggregateRow | null;
 }): Promise<string | null> {
+  const dateStr = params.date || "dziś";
+  const dayOfWeek = params.date ? getWarsawDayOfWeek(params.date) : "dzień bieżący";
+  const isWeekend = params.date ? isWarsawWeekend(params.date) : false;
+  const dayContextLabel = isWeekend
+    ? `${dayOfWeek.toUpperCase()} (WEEKEND / CZAS REGENERACJI I RESETU)`
+    : `${dayOfWeek.toUpperCase()} (DZIEŃ ROBOCZY)`;
+
   const voiceBlock = params.voiceRows.length
     ? compactRows(params.voiceRows, 15)
     : "Brak glosowek w ostatnich 24h.";
@@ -55,11 +64,11 @@ export async function generateDayNarrative(apiKey: string, params: {
       messages: [
         {
           role: "system",
-          content: "Jesteś analitycznym kronikarzem Vanguard. Twoim zadaniem jest napisanie zwięzłej i obiektywnej Kroniki Dnia na bazie podanych danych. Bądź bezpośredni, zwięzły, nie używaj ozdobników ani patetycznego coachingu. Skup się na faktach: jak fizjologicznie rozpoczął się dzień, co zostało dowiezione (PowerList, zadania), a z czym był problem (Friction, Stream). Utwórz 2-3 zwięzłe paragrafy."
+          content: "Jesteś analitycznym kronikarzem Vanguard. Twoim zadaniem jest napisanie zwięzłej i obiektywnej Kroniki Dnia na bazie podanych danych. Bądź bezpośredni, zwięzły, nie używaj ozdobników ani patetycznego coachingu. Pamiętaj jaki to dzień tygodnia: weekend (sobota, niedziela) to inny rytm niż standardowy tydzień roboczy. Skup się na faktach: jak fizjologicznie rozpoczął się dzień, co zostało dowiezione (PowerList, zadania), a z czym był problem (Friction, Stream). Utwórz 2-3 zwięzłe paragrafy."
         },
         {
           role: "user",
-          content: `METRYKI FIZJOLOGICZNE I STAN:\n${metrics}\n\nDOWIEZIONE ZADANIA:\n${tasks}\n\nSTRUMIEŃ MYŚLI:\n${streamBlock}\n\nGŁOSÓWKI:\n${voiceBlock}\n\nTARCIA I PROBLEMY:\n${frictionBlock}\n\nNapisz Kronikę Dnia na bazie powyższych faktów. Zwróć sam tekst markdown bez żadnych wstępów i podsumowań.`
+          content: `DATA I DZIEŃ TYGODNIA: ${dateStr} — ${dayContextLabel}\n\nMETRYKI FIZJOLOGICZNE I STAN:\n${metrics}\n\nDOWIEZIONE ZADANIA:\n${tasks}\n\nSTRUMIEŃ MYŚLI:\n${streamBlock}\n\nGŁOSÓWKI:\n${voiceBlock}\n\nTARCIA I PROBLEMY:\n${frictionBlock}\n\nNapisz Kronikę Dnia na bazie powyższych faktów. Zwróć sam tekst markdown bez żadnych wstępów i podsumowań.`
         }
       ]
     });
@@ -71,6 +80,7 @@ export async function generateDayNarrative(apiKey: string, params: {
 }
 
 export async function buildReflectionPrompt(apiKey: string, params: {
+  date?: string;
   voiceRows: StreamRow[];
   streamRows: StreamRow[];
   frictionRows: Array<Record<string, unknown>>;
@@ -81,6 +91,13 @@ export async function buildReflectionPrompt(apiKey: string, params: {
   metricsBlock: string;
   manual: boolean;
 }): Promise<string[]> {
+  const dateStr = params.date || "dziś";
+  const dayOfWeek = params.date ? getWarsawDayOfWeek(params.date) : "dzień bieżący";
+  const isWeekend = params.date ? isWarsawWeekend(params.date) : false;
+  const dayContextLabel = isWeekend
+    ? `${dayOfWeek.toUpperCase()} (WEEKEND / CZAS REGENERACJI, SPORTU I RESETU)`
+    : `${dayOfWeek.toUpperCase()} (DZIEŃ ROBOCZY)`;
+
   const voiceBlock = params.voiceRows.length
     ? compactRows(params.voiceRows, 10)
     : "Brak glosowek w ostatnich 24h.";
@@ -106,16 +123,24 @@ export async function buildReflectionPrompt(apiKey: string, params: {
         {
           role: "system",
           content:
-            "Jestes wieczornym trenerem refleksji w Vanguard. Nie planujesz jutra w Telegramie. " +
-            "Masz pomoc uzytkownikowi usiasc spokojnie, nagrac glosowke i przeanalizowac dzien: " +
-            "co poszlo dobrze, co poszlo zle, co moglo pojsc lepiej, za co jest wdzieczny, jakie napiecie albo temat warto poglebic. " +
+            "Jestes wieczornym partnerem refleksji w Vanguard. Nie planujesz jutra w Telegramie. " +
+            "ZASADA SOKRATEJSKIEGO ZWIERCIADŁA: Twoim celem nie jest prawienie morałów, dawanie życiowych rad ani wymądrzanie się — model nie zna odpowiedzi na życie Jakuba. " +
+            "Twoim zadaniem jest BARDZO DOBRZE SŁUCHAĆ i ZADAWAĆ PRECYZYJNE, TRAFIAJĄCE W SEDNO PYTANIA. " +
+            "Wyłapuj urwane myśli ze streamu, momenty wahania (np. przy zakupach lub decyzjach), sprzeczności między deklaracjami a faktami. " +
+            "Nie rozpisuj się. Formułuj pytania, które rozbrajają mgłę i nakierowują Jakuba na jego własne, lepsze odpowiedzi i klarowny kolejny ruch. " +
             "Konfrontuj wykonanie konkretnych zadan z Power Listy (z nazwy!). " +
+            "ŚWIADOMOŚĆ DNIA TYGODNIA (KRYTYCZNA ZASADA): Bezwzględnie bierz pod uwagę, jaki jest dziś dzień tygodnia. " +
+            "Weekend (sobota, niedziela) to czas regeneracji, resetu, sportu, spraw osobistych, a nie standardowy dzień korporacyjny/outboundowy. " +
+            "NIGDY nie oceniaj niedzieli tak, jakby to był poniedziałek rano! Jeśli w niedzielę nie było diali/calli B2B ani korporacyjnych zadań z tygodnia, " +
+            "nie traktuj tego jako unikania ani ucieczki — chyba że Jakub sam wyznaczył sobie wprost taki cel na ten konkretny dzień. " +
+            "W weekend pytaj o jakość odpoczynku, regenerację, domknięcie tygodnia i gotowość na kolejny tydzień. " +
             "Pamietaj: zeby zamknac dzien w systemie, wymagana jest krótka notatka Jakuba. " +
             "Pisz po polsku, krotko, konkretnie, bez coachingu motywacyjnego. Nie udawaj pewnosci, jesli dane sa slabe."
         },
         {
           role: "user",
           content:
+            `DATA I DZIEŃ TYGODNIA: ${dateStr} — ${dayContextLabel}\n` +
             `Tryb: ${params.manual ? "manualny /koniec" : "cron 21:30"}\n\n` +
             `DOWIEZIENIE I POWERLISTA DZISIAJ:\n${params.tasksBlock}\n\n` +
             `NOTATKA ZAMKNIĘCIA DNIA:\n${params.dayNoteBlock}\n\n` +
@@ -127,16 +152,17 @@ export async function buildReflectionPrompt(apiKey: string, params: {
             `SYSTEM HEALTH:\n${params.systemHealthBlock}\n\n` +
             "Napisz dwie osobne wiadomosci oddzielone ciagiem znakow '===DELIMITER==='.\n" +
             "Wiadomosc 1 (Podsumowanie):\n" +
-            "- 3-5 punktow: co slychac w ostatnich 24h z glosowek/streamu, jak poszly zadania z nazwy i czy byl screen time w nocy.\n" +
+            "- 3-5 punktow: co slychac w ostatnich 24h z glosowek/streamu, jak poszly zadania z nazwy (z uwzględnieniem, czy to weekend czy dzień roboczy!) i czy byl screen time w nocy.\n" +
             "- Jesli sa bledy krytyczne w system health, dodaj 1 krotki punkt o stanie systemu.\n\n" +
             "===DELIMITER===\n\n" +
             "Wiadomosc 2 (Pytania i Instrukcja):\n" +
-            "- 2-4 pytania poglebiajace, bezposrednio dotykajace omijanych zadan i tarcia.\n" +
+            "- 2-4 pytania poglebiajace, bezposrednio dotykajace dnia i kluczowego tarcia, uwzględniające kontekst dnia tygodnia (w weekend nie grilluj za brak działań biznesowych/diali, które naturalnie należą do tygodnia roboczego).\n" +
             "- Przypomnienie: nagraj glosowke lub zostaw krotka notatke, zeby zamknac dzien.\n\n" +
             "Nie pytaj o plan jutra. Nie generuj zadan na jutro."
         }
       ]
     });
+
 
     const cleaned = content.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
     if (cleaned) {

@@ -46,7 +46,7 @@ async function run() {
 
   const editorInfo = await page.evaluate(() => {
     const editor = document.querySelector('.keep-rich-editor');
-    const placeholder = document.querySelector('.keep-rich-editor + span');
+    const _placeholder = document.querySelector('.keep-rich-editor + span');
     const editorContainer = editor?.parentElement;
     const inlineEditor = document.querySelector('.keep-inline-editor');
 

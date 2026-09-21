@@ -80,6 +80,21 @@ function ModalHeader({
   );
 }
 
+let activeModalCount = 0;
+
+function registerModalOpen(): () => void {
+  activeModalCount += 1;
+  if (activeModalCount === 1 && typeof document !== 'undefined') {
+    document.documentElement.classList.add('ios-sheet-active');
+  }
+  return () => {
+    activeModalCount = Math.max(0, activeModalCount - 1);
+    if (activeModalCount === 0 && typeof document !== 'undefined') {
+      document.documentElement.classList.remove('ios-sheet-active');
+    }
+  };
+}
+
 function useModalA11y({
   isOpen,
   onClose,
@@ -102,6 +117,11 @@ function useModalA11y({
     light();
     onCloseRef.current();
   }, isOpen);
+
+  useLayoutEffect(() => {
+    if (!isOpen) return;
+    return registerModalOpen();
+  }, [isOpen]);
 
   useLayoutEffect(() => {
     if (!isOpen) {

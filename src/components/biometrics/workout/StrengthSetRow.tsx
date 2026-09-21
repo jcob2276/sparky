@@ -4,6 +4,7 @@ import type { WorkoutSet } from './workoutUtils';
 import { epley } from './workoutUtils';
 import type { ExerciseHistoryRow } from '../../../lib/health/workout';
 import { isSetEmpty } from '../../../lib/health/workoutSetFill';
+import { getEffortBand } from '../../../lib/health/effortScale';
 
 interface StrengthSetRowProps {
   set: WorkoutSet;
@@ -15,19 +16,30 @@ interface StrengthSetRowProps {
   updateSet: (id: number, field: string, value: string | boolean) => void;
   removeSet: (id: number) => void;
   onOpenPlateCalc?: (initialKg: number, onApply: (kg: number) => void) => void;
+  isTimed?: boolean;
 }
 
 function getSetBadgeInfo(setType: string, idx: number) {
   const badgeLabel =
-    setType === 'warmup' ? 'W' : setType === 'drop' ? 'D' : setType === 'failure' ? '★' : idx + 1;
+    setType === 'warmup'
+      ? 'W'
+      : setType === 'drop'
+        ? 'D'
+        : setType === 'cluster'
+          ? 'RP'
+          : setType === 'failure'
+            ? '★'
+            : idx + 1;
   const badgeStyle =
     setType === 'warmup'
       ? 'text-amber-400 bg-amber-400/15 border border-amber-400/40 font-black'
       : setType === 'drop'
         ? 'text-purple-400 bg-purple-400/15 border border-purple-400/40 font-black'
-        : setType === 'failure'
-          ? 'text-warning bg-warning/20 border border-warning/50 font-black scale-105'
-          : 'text-text-secondary bg-surface border border-border-custom hover:text-text-primary hover:border-primary/40';
+        : setType === 'cluster'
+          ? 'text-cyan-400 bg-cyan-400/15 border border-cyan-400/40 font-black'
+          : setType === 'failure'
+            ? 'text-warning bg-warning/20 border border-warning/50 font-black scale-105'
+            : 'text-text-secondary bg-surface border border-border-custom hover:text-text-primary hover:border-primary/40';
   return { badgeLabel, badgeStyle };
 }
 
@@ -38,9 +50,24 @@ function formatPrevPill(row: ExerciseHistoryRow | undefined): string {
   return `${wLabel}×${row.reps ?? '—'}`;
 }
 
+function getRirStyle(rirVal: string): string {
+  if (!rirVal || rirVal.trim() === '') return '';
+  const n = parseFloat(rirVal);
+  if (isNaN(n)) return '';
+  const band = getEffortBand(n);
+  if (!band) return '';
+  if (band.rir === 0) return '!border-purple-500/50 !text-purple-600 dark:!text-purple-400 !bg-purple-500/10';
+  if (band.rir === 0.5) return '!border-rose-500/50 !text-rose-600 dark:!text-rose-400 !bg-rose-500/10';
+  if (band.rir === 1) return '!border-orange-500/50 !text-orange-600 dark:!text-orange-400 !bg-orange-500/10';
+  if (band.rir === 2) return '!border-yellow-500/50 !text-yellow-600 dark:!text-yellow-400 !bg-yellow-500/10';
+  if (band.rir === 3) return '!border-emerald-500/50 !text-emerald-600 dark:!text-emerald-400 !bg-emerald-500/10';
+  return '!border-cyan-500/50 !text-cyan-600 dark:!text-cyan-400 !bg-cyan-500/10';
+}
+
 const compactNumInput =
   'h-9 w-full bg-surface-solid border border-border-custom rounded-lg text-xs font-bold text-text-primary text-center outline-none focus:border-primary/60 focus:bg-surface-solid focus:shadow-[0_0_0_2px_var(--color-theme-hex-ba7970229008)] ui-interactive placeholder:text-text-muted/40 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none';
 
+// eslint-disable-next-line max-lines-per-function
 export function StrengthSetRow({
   set,
   idx,
@@ -51,6 +78,7 @@ export function StrengthSetRow({
   updateSet,
   removeSet,
   onOpenPlateCalc,
+  isTimed,
 }: StrengthSetRowProps) {
   const set1RM = epley(set.kg, set.reps);
   const isPR = Boolean(set1RM && allTimeBest1RM && set1RM > allTimeBest1RM);
@@ -68,6 +96,9 @@ export function StrengthSetRow({
       updateSet(set.id, 'type', 'drop');
       updateSet(set.id, 'msp', false);
     } else if (setType === 'drop') {
+      updateSet(set.id, 'type', 'cluster');
+      updateSet(set.id, 'msp', false);
+    } else if (setType === 'cluster') {
       updateSet(set.id, 'type', 'failure');
       updateSet(set.id, 'msp', true);
     } else {
@@ -145,7 +176,7 @@ export function StrengthSetRow({
         )}
       </div>
 
-      {/* Reps Input */}
+      {/* Reps / Time Input */}
       <div className="relative">
         <ControlInput
           type="number"
@@ -154,10 +185,11 @@ export function StrengthSetRow({
           step={1}
           value={set.reps}
           onChange={(e) => updateSet(set.id, 'reps', e.target.value)}
-          placeholder={ghostReps}
+          placeholder={isTimed ? (ghostReps !== '—' ? `${ghostReps}s` : 'sek') : ghostReps}
+          title={isTimed ? 'Czas trwania serii (sekundy)' : 'Liczba powtórzeń'}
           className={compactNumInput}
         />
-        {isPR && (
+        {isPR && !isTimed && (
           <div
             className="absolute -top-1.5 -right-1.5 bg-warning text-scrim rounded-full p-0.5 pointer-events-none shadow-xs animate-bounce"
             title="Nowy szacowany 1RM (PR)!"
@@ -178,7 +210,7 @@ export function StrengthSetRow({
           value={set.rir}
           onChange={(e) => updateSet(set.id, 'rir', e.target.value)}
           placeholder={ghostRir}
-          className={compactNumInput}
+          className={`${compactNumInput} ${getRirStyle(set.rir)}`}
         />
       </div>
 
@@ -190,6 +222,27 @@ export function StrengthSetRow({
       >
         <Trash2 size={13} />
       </Pressable>
+
+      {/* Advanced Set Tags: Drops, Clusters, Sides */}
+      {((set.drops && set.drops.length > 0) || (set.clusters && set.clusters.length > 0) || set.sides) && (
+        <div className="col-span-6 flex items-center gap-1.5 px-1 py-0.5 text-3xs font-mono">
+          {set.drops && set.drops.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded bg-primary/15 text-primary border border-primary/30">
+              +{set.drops.length} drop ({set.drops.map((d) => `${d.kg}k×${d.reps}`).join(', ')})
+            </span>
+          )}
+          {set.clusters && set.clusters.length > 0 && (
+            <span className="px-1.5 py-0.2 rounded bg-warning/15 text-warning border border-warning/30">
+              klastry: [{set.clusters.map((c) => c.reps).join('+')}]
+            </span>
+          )}
+          {set.sides && (
+            <span className="px-1.5 py-0.2 rounded bg-info/15 text-info border border-info/30">
+              L: {set.sides.L.kg}k×{set.sides.L.reps} · R: {set.sides.R.kg}k×{set.sides.R.reps}
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }

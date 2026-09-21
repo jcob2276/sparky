@@ -106,7 +106,7 @@ export function useMedicalRecordsHub(
         .map((action) => action.suggestionKey),
     );
     return all.filter((suggestion) => !hidden.has(suggestion.id));
-  }, [actionsQuery.data, events, userContext?.age]);
+  }, [actionsQuery.data, events, labs, userContext?.age]);
 
   const summary = useMemo(
     () =>

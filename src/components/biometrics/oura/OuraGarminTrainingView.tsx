@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, Flame, Gauge, Zap, TrendingUp, Calendar, Heart, Award } from 'lucide-react';
+import { Activity, Gauge, TrendingUp, Calendar, Heart, Award } from 'lucide-react';
 import type { OuraHealthHubData } from './types';
 
 function formatPace(movingSeconds: number, distanceMeters: number): string {
@@ -27,7 +27,6 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
   const activities = data.stravaActivities ?? [];
   const vo2 = data.garminVo2Max ?? 47.1;
   const cardioStrain = strainRow?.cardio_load ?? 10;
-  const totalStrain = strainRow?.strain_score ?? 1.6;
   const fitnessAge = comp?.fitness_age ?? 20;
 
   return (

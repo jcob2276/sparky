@@ -1,6 +1,6 @@
 import { Pressable } from '../ui/ControlPrimitives';
 import { TIMEZONE } from '../../lib/date';
-import { Suspense, useState, memo } from 'react';
+import { Suspense, memo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Moon } from 'lucide-react';
 import { useSession } from '../../store/useStore';
@@ -11,15 +11,12 @@ import { useDashboardContext } from './context/DashboardContext';
 import { dashboardKeys } from '../../lib/queryKeys';
 import TodayStatusStrip from './TodayStatusStrip';
 import MarathonCountdownCard from './MarathonCountdownCard';
-import { getSprintInfo, SPRINT_SEASON } from '../../lib/growth/sprintUtils';
-import { getDailyFuelQuote } from '../../lib/dailyFuelQuotes';
 import DailyStrainCard from '../biometrics/DailyStrainCard';
 import DailySnapshotCard from './DailySnapshotCard';
 import TodayRunwayCard from './TodayRunwayCard';
 import { UrgentObligationsBanner } from '../terminy/UrgentObligationsBanner';
 import { ThreeSpheresGoalsCard } from './ThreeSpheresGoalsCard';
-
-const BORN = new Date('2002-07-06');
+import VisionHeroCard from './VisionHeroCard';
 
 function ViewFallback() {
   return (
@@ -43,10 +40,6 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
   const s = useDashboardContext();
   const queryClient = useQueryClient();
 
-  const [lived] = useState(() => Math.floor((Date.now() - BORN.getTime()) / 86400000));
-  const [sprint] = useState(() => getSprintInfo());
-  const fuel = getDailyFuelQuote(lived);
-
   if (!session) return null;
 
   const weeklyReviewNudge = new Date().getDay() === 0 && !s.taskReviewDoneThisWeek && (
@@ -64,33 +57,7 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
   return (
     <div className="min-h-full bg-background p-5 pb-32">
       <div className="mb-5 space-y-4">
-        <div className="rounded-2xl border border-border-custom/70 bg-surface-solid/30 p-4 shadow-2xs backdrop-blur-xs">
-          <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-border-custom/40">
-            <span className="text-2xs font-black uppercase tracking-wider text-primary">
-              ⏳ Memento Mori · Dzień {lived.toLocaleString('pl-PL')} życia
-            </span>
-            <span className="text-3xs font-bold text-text-muted">
-              Sprint {sprint.sprintNumber} · Tydz. {sprint.weekInSprint}/12 ({sprint.pct}%)
-            </span>
-          </div>
-
-          <div className="pt-2.5">
-            <p className="font-display text-sm md:text-base font-semibold italic text-text-primary whitespace-pre-line leading-relaxed">
-              „{fuel.text}”
-            </p>
-            {fuel.author && (
-              <p className="mt-1 text-2xs font-bold text-text-muted">
-                — {fuel.author}
-                {fuel.source ? <span className="font-normal italic">, {fuel.source}</span> : null}
-              </p>
-            )}
-          </div>
-
-          <div className="mt-2.5 flex items-center justify-between border-t border-border-custom/30 pt-2 text-3xs font-bold text-text-muted">
-            <span className="text-text-secondary">Czas nieustannie płynie — wykorzystaj dzisiejszy dzień w 100%.</span>
-            <span className="text-primary font-black uppercase tracking-wider">{SPRINT_SEASON[sprint.sprintNumber]}</span>
-          </div>
-        </div>
+        <VisionHeroCard />
 
         <ThreeSpheresGoalsCard />
         <TodayStatusStrip />

@@ -23,9 +23,10 @@ export async function upsertUserFundament(userId: string, patch: Record<string, 
   if (error) throw error;
 }
 
-export type VanguardIdentityRow = Tables<'vanguard_identity'>;
+export type SparkyIdentityRow = Tables<'vanguard_identity'>;
+export type VanguardIdentityRow = SparkyIdentityRow;
 
-export async function fetchVanguardIdentity(userId: string): Promise<VanguardIdentityRow | null> {
+export async function fetchSparkyIdentity(userId: string): Promise<SparkyIdentityRow | null> {
   const { data, error } = await supabase
     .from('vanguard_identity')
     .select('*')
@@ -34,8 +35,9 @@ export async function fetchVanguardIdentity(userId: string): Promise<VanguardIde
   if (error) throw error;
   return data;
 }
+export const fetchVanguardIdentity = fetchSparkyIdentity;
 
-export async function upsertVanguardIdentity(userId: string, payload: {
+export async function upsertSparkyIdentity(userId: string, payload: {
   long_term_mission: string;
   pillars: string[];
   avoidance_triggers: string;
@@ -51,6 +53,7 @@ export async function upsertVanguardIdentity(userId: string, payload: {
   });
   if (error) throw error;
 }
+export const upsertVanguardIdentity = upsertSparkyIdentity;
 
 export async function ingestVaultCategory(
   userId: string,

@@ -1,6 +1,6 @@
 import type { IExerciseData, Muscle } from 'react-body-highlighter';
 
-/** Mapowanie tagów Vanguard → mięśnie react-body-highlighter (widok przód/tył). */
+/** Mapowanie tagów Sparky → mięśnie react-body-highlighter (widok przód/tył). */
 const ANTERIOR: Record<string, Muscle[]> = {
   klatka: ['chest'],
   plecy: ['upper-back'],
@@ -68,7 +68,7 @@ export function buildHighlighterData(
     });
 }
 
-/** Klik na SVG → tagi Vanguard (PL). */
+/** Klik na SVG → tagi Sparky (PL). */
 export const RB_MUSCLE_TO_TAGS: Partial<Record<Muscle, string[]>> = {
   chest: ['klatka'],
   'upper-back': ['plecy'],

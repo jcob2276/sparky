@@ -1526,7 +1526,7 @@
   --ios-material-thin: color-mix(in srgb, var(--surface) 72%, transparent);
   --ios-material-regular: color-mix(in srgb, var(--surface) 84%, transparent);
   --ios-separator: color-mix(in srgb, var(--text-primary) 14%, transparent);
-  --ios-press-scale: 0.96;
+  --ios-press-scale: 0.965;
   --ios-metadata-tracking: 0.01em;
   --ios-icon-radius: 15px;
   --ios-document-editor-height: 80vh;
@@ -1540,17 +1540,25 @@
   --ios-scanner-selection-fill: rgb(255 204 0 / 12%);
 }
 
+*, *::before, *::after {
+  -webkit-tap-highlight-color: transparent !important;
+}
+
 html {
   font-size: 100%;
   font-optical-sizing: auto;
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent !important;
 }
 
 body {
   font-size: var(--text-base);
   line-height: 1.47;
   letter-spacing: 0;
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none;
+  overscroll-behavior-y: none;
 }
 
 .text-xs { letter-spacing: 0.01em; }
@@ -1598,6 +1606,36 @@ body {
 .capacitor-native .sticky.top-0,
 .capacitor-native .pt-safe-top {
   padding-top: max(env(safe-area-inset-top), 2.25rem);
+}
+
+/* Performance optimization for Capacitor Native WebView (Android / iOS):
+   Neutralize continuous GPU composite readbacks caused by CSS backdrop-blur during scrolling */
+.capacitor-native [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* iOS 18 Sheet Background Scale Depth Effect (Vaul / Apple Design) */
+#root {
+  transform-origin: top center;
+  transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1), filter 280ms ease-out, border-radius 280ms ease-out;
+}
+
+html.ios-sheet-active #root {
+  transform: scale(0.965) translateY(-4px);
+  border-radius: 18px;
+  overflow: hidden;
+  filter: brightness(0.85);
+  pointer-events: none;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.ios-sheet-active #root {
+    transform: none !important;
+    border-radius: 0 !important;
+    filter: none !important;
+  }
 }
 
 .ios-fullscreen-experience-light {
@@ -1917,6 +1955,17 @@ body {
   .ui-card--surface {
     border: 0.5px solid var(--separator);
     border-radius: var(--radius-grouped);
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.04),
+      0 4px 12px -2px rgba(0, 0, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .dark .ui-card--surface {
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.25),
+      0 8px 24px -4px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.09);
   }
 
   .ui-card--grouped,
@@ -1925,20 +1974,27 @@ body {
     border: 0.5px solid color-mix(in srgb, var(--separator) 70%, transparent);
     border-radius: var(--radius-grouped);
     background: var(--surface-1);
+    box-shadow:
+      0 1px 3px rgba(0, 0, 0, 0.03),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
   }
 
   .ui-card--hero {
     border-radius: var(--radius-hero);
     background: var(--direction);
     color: var(--on-accent);
-    box-shadow: 0 12px 28px color-mix(in srgb, var(--direction) 22%, transparent);
+    box-shadow:
+      0 12px 28px color-mix(in srgb, var(--direction) 22%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.22);
   }
 
   .ui-card--floating {
     border: 0.5px solid var(--separator);
     border-radius: var(--radius-sheet);
     background: var(--material-floating);
-    box-shadow: var(--shadow-float);
+    box-shadow:
+      var(--shadow-float),
+      inset 0 1px 0 rgba(255, 255, 255, 0.14);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
   }
@@ -1951,7 +2007,10 @@ body {
   .ui-floating-nav {
     border: 0.5px solid var(--separator);
     background: var(--material-floating);
-    box-shadow: var(--shadow-float);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.18),
+      0 20px 50px -8px rgba(0, 0, 0, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.16);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     transform: translateZ(0);
@@ -1967,6 +2026,22 @@ body {
 
   .ui-floating-nav [aria-current='page'] {
     color: var(--primary);
+  }
+
+  [data-ui="button"][data-variant="primary"], .btn-primary {
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.12),
+      0 4px 14px -2px color-mix(in srgb, var(--primary) 35%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+
+  h1, h2, h3, h4, .font-display, [role="heading"] {
+    text-wrap: balance;
+    letter-spacing: -0.018em;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   .ui-card--interactive:active {
@@ -2065,6 +2140,7 @@ body {
   .ui-button:active:not(:disabled),
   .ui-pressable:active:not(:disabled) {
     transform: scale(var(--ios-press-scale));
+    transition: transform 60ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .ui-button:disabled,
@@ -2120,6 +2196,7 @@ body {
 
   .ui-tab:active {
     transform: scale(var(--ios-press-scale));
+    transition: transform 60ms cubic-bezier(0.2, 0, 0, 1);
   }
 
   .ui-tab[aria-selected='true'] {
@@ -2349,11 +2426,28 @@ body {
 
 /* touch-action: manipulation on all primitives — eliminates 300ms tap delay */
 .ui-button,
+.ui-pressable,
+.ui-card--interactive,
 [data-ui="pressable"],
 [data-ui="control-input"],
 [data-ui="control-select"],
-[data-ui="control-textarea"] {
+[data-ui="control-textarea"],
+button,
+a,
+[role="button"] {
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+.ui-card--interactive {
+  transition: transform 120ms cubic-bezier(0.2, 0, 0, 1), box-shadow 150ms ease, border-color 150ms ease;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.ui-card--interactive:active {
+  transform: scale(0.98);
+  transition: transform 60ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 @media print {

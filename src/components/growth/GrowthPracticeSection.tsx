@@ -57,7 +57,7 @@ export function GrowthPracticeSection({ userId, evidences, onRefresh, onOpenAddM
       <div className="flex items-start gap-2.5 rounded-2xl border border-primary/20 bg-primary/[0.04] p-3 text-2xs text-text-secondary leading-relaxed">
         <ShieldAlert size={15} className="text-primary shrink-0 mt-0.5" />
         <div>
-          <span className="font-bold text-text-primary">Zasada Vanguard:</span> Teoria bez wdrożenia to tylko rozrywka. Zapisuj tutaj konkretne sytuacje, w których wiedza zmieniła Twoje zachowanie, decyzję lub wynik w projekcie.
+          <span className="font-bold text-text-primary">Zasada Sparky:</span> Teoria bez wdrożenia to tylko rozrywka. Zapisuj tutaj konkretne sytuacje, w których wiedza zmieniła Twoje zachowanie, decyzję lub wynik w projekcie.
         </div>
       </div>
 

@@ -22,6 +22,7 @@ Entry point for AI agents working in this repository.
 5. **Do not build:** shadow engine, psychoanalytic coaching, undeclared “digital twin” certainty, **ani mechanizmu, w którym system autonomicznie orzeka, że „manifestacja/intencja zadziałała”** (metafizyczna pewność). Deklarowane intencje (modlitwy, afirmacje, cele) są DOZWOLONE jako warstwa **deklaracji** do konfrontacji z zachowaniem (Outcome Continuity). Wiążący jest „Transurfing Layer Guardrail” w [`docs/PRODUCT_PRINCIPLES.md`](docs/PRODUCT_PRINCIPLES.md), nie blankietowy zakaz.
 6. **Problem ostatniej mili:** Feature jest skończony, gdy jego wynik ktoś konsumuje — inaczej nie istnieje. Nie zostawiaj rozgrzebanych kabli i wpięć bez podłączenia do UI/Bota.
 7. **Metabolizm, nie hoarding:** System gromadzi dane po to, by je trawić i kondensować (wyciągać beliefs i narrację), a nie archiwizować w nieskończoność szum.
+8. **Kanoniczna nazwa to SPARKY:** Produkt, system i interfejs użytkownika to **Sparky**. Agenci MUSZĄ używać nazwy **Sparky** w komunikacji z użytkownikiem oraz w dokumentacji i interfejsie. Nazwa „Vanguard” to wyłącznie techniczny identyfikator legacy w backendzie/Edge Functions (`vanguard-*`).
 
 Full guardrails: [`docs/PRODUCT_PRINCIPLES.md`](docs/PRODUCT_PRINCIPLES.md)
 
@@ -29,7 +30,7 @@ Full guardrails: [`docs/PRODUCT_PRINCIPLES.md`](docs/PRODUCT_PRINCIPLES.md)
 
 ## What this repo is
 
-Monorepo for **Vanguard** (personal OS) on a Supabase project configured through environment variables.
+Monorepo for **Sparky** (personal OS; backend services use legacy `vanguard-*` prefix) on a Supabase project configured through environment variables.
 
 Local/Supabase sync: edge functions (+ `_shared/`) — exact count and last-verified date live only in [`supabase/functions/README.md`](supabase/functions/README.md) (the registry), not here. Do not copy the number into this file — it goes stale and this file has no mechanism to catch it.
 

@@ -2,13 +2,13 @@ import { useState } from 'react';
 import Modal from '../../ui/Modal';
 import Button from '../../ui/Button';
 import { ControlInput } from '../../ui/ControlPrimitives';
-import type { VanguardIdentityData } from '../../../lib/growth/growth.types';
-import { updateVanguardIdentity } from '../../../lib/growth/growthApi';
+import type { SparkyIdentityData } from '../../../lib/growth/growth.types';
+import { updateSparkyIdentity } from '../../../lib/growth/growthApi';
 import { notify } from '../../../lib/notify';
 
 interface Props {
   userId: string;
-  identity: VanguardIdentityData | null;
+  identity: SparkyIdentityData | null;
   isOpen: boolean;
   onClose: () => void;
   onSaved: () => void;
@@ -23,7 +23,7 @@ export function EditThemeModal({ userId, identity, isOpen, onClose, onSaved }: P
   async function handleSave() {
     setSaving(true);
     try {
-      await updateVanguardIdentity(userId, {
+      await updateSparkyIdentity(userId, {
         development_theme: theme.trim() || null,
         development_gap: gap.trim() || null,
         developed_role: role.trim() || null,

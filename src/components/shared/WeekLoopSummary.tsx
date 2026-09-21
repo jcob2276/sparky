@@ -141,7 +141,7 @@ export default function WeekLoopSummary({
   const handleAiSuggest = async () => {
     setAiSuggesting(true);
     try {
-      const prompt = `Zaproponuj jedno zwięzłe, motywujące zdanie intencji na ten tydzień w Vanguard OS.
+      const prompt = `Zaproponuj jedno zwięzłe, motywujące zdanie intencji na ten tydzień w Sparky.
 Kontekst: Rok: ${bhag || 'brak'}, Miesiąc: ${month || 'brak'}, Sprint: ${sprint || 'brak'}.
 Zwróć TYLKO 1 konkretne zdanie w języku polskim, bez cudzysłowów.`;
       const res = (await invokeEdge('vanguard-oracle', {

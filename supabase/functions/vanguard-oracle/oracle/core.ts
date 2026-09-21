@@ -16,7 +16,7 @@ import type { DeepSeekMessage } from "../../_shared/deepseek.ts";
 import { z } from "npm:zod";
 import { runOracleReadonlyQuery } from "../../_shared/oracleSql.ts";
 import { sanitizeStateVector, sanitizeUserConf, sanitizeUserQuery, todayPlanFromWorldState } from "../../_shared/promptSanitize.ts";
-import { getStreamCutoffs, getWarsawDateString } from "../../_shared/time.ts";
+import { getStreamCutoffs, getWarsawDateString, getWarsawDayOfWeek, isWarsawWeekend } from "../../_shared/time.ts";
 import { compressHistoryIfNeeded } from "../../_shared/contextCompression.ts";
 import { retrieveRagContext } from "./rag.ts";
 import { buildSystemPrompt } from "./systemPrompt.ts";
@@ -72,9 +72,11 @@ export async function runOracleQuery(
   if (mode === "extract_tasks") return await handleExtractTasks(user_id, noteTitle, noteContent);
 
   const now = override_date ? new Date(`${override_date}T12:00:00Z`) : new Date();
+  const dayOfWeek = getWarsawDayOfWeek(now);
+  const isWeekend = isWarsawWeekend(now);
   const localTimeString = override_date
-    ? `${override_date} 12:00:00 (BACKTEST)`
-    : now.toLocaleString("pl-PL", { timeZone: "Europe/Warsaw" });
+    ? `${override_date} 12:00:00 (${dayOfWeek.toUpperCase()}, BACKTEST)`
+    : `${dayOfWeek.toUpperCase()}, ${now.toLocaleString("pl-PL", { timeZone: "Europe/Warsaw" })}`;
   const { cut72h: cutoff72h } = getStreamCutoffs(now);
   const fourteenDaysAgoDate = getWarsawDateString(new Date(now.getTime() - 13 * 24 * 60 * 60 * 1000));
   const todayDate = getWarsawDateString(now);
@@ -202,6 +204,8 @@ export async function runOracleQuery(
     deviceUsageContext: rag.deviceUsageContext,
     projectsGoalsContext: rag.projectsGoalsContext,
     dayLoopContextText: rag.dayLoopContextText,
+    dayOfWeek,
+    isWeekend,
   });
 
   const compressedHistory = await compressHistoryIfNeeded(history || []);

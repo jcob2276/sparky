@@ -14,7 +14,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
-import { fetchVanguardIdentity, upsertVanguardIdentity } from '../../lib/identityVaultApi';
+import { fetchSparkyIdentity, upsertSparkyIdentity } from '../../lib/identityVaultApi';
 import { notify } from '../../lib/notify';
 import IdentityVault from '../identity/IdentityVault';
 import DataHub from './DataHub';
@@ -66,7 +66,7 @@ export default function Fundament({ onBack, onSyncCalendar, isSyncing }: { onBac
       setLoading(false);
       return;
     }
-    const data = await fetchVanguardIdentity(userId);
+    const data = await fetchSparkyIdentity(userId);
 
     if (data) {
       setIdentity({
@@ -98,7 +98,7 @@ export default function Fundament({ onBack, onSyncCalendar, isSyncing }: { onBac
         }
       }
 
-      await upsertVanguardIdentity(userId!, {
+      await upsertSparkyIdentity(userId!, {
         long_term_mission: identity.long_term_mission,
         pillars: identity.pillars,
         avoidance_triggers: identity.avoidance_triggers,

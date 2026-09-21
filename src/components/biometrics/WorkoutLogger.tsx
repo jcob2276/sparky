@@ -9,7 +9,7 @@
  */
 import { useState } from 'react';
 import { Pressable, ControlInput, ControlTextarea } from '../ui/ControlPrimitives';
-import { ChevronLeft, Dumbbell, Play, Square, Plus, Timer, Sparkles, LayoutGrid, Flame, RotateCcw } from 'lucide-react';
+import { ChevronLeft, Dumbbell, Plus, LayoutGrid, Flame, Upload, Activity } from 'lucide-react';
 import { useWorkoutLogger } from './hooks/useWorkoutLogger';
 import { type WorkoutLoggerInitial } from '../../lib/health/workoutLogging';
 import ExerciseCard from './workout/ExerciseCard';
@@ -17,17 +17,17 @@ import VolumeBar from './workout/VolumeBar';
 import PlyoBlock from './workout/PlyoBlock';
 import PlateCalculatorModal from './workout/PlateCalculatorModal';
 import RestTimerBar from './workout/RestTimerBar';
-import WorkoutNlCaptureModal from './workout/WorkoutNlCaptureModal';
 import WorkoutPresetsModal from './workout/WorkoutPresetsModal';
+import WorkoutImportModal from './workout/WorkoutImportModal';
+import BodyMapModal from './workout/BodyMapModal';
 import WorkoutLiveHud from './workout/WorkoutLiveHud';
 import { presetToWorkoutExercises, type WorkoutPreset } from './workout/workoutPresets';
-import { computeSessionStats } from './workout/workoutUtils';
+import { computeSessionStats, type WorkoutExercise } from './workout/workoutUtils';
 import ManualTimePicker from './workout/ManualTimePicker';
 import WorkoutLoggerFooter from './workout/WorkoutLoggerFooter';
 import { useUserId } from '../../store/useStore';
 import { isPlyoSessionComplete } from '../../lib/health/plyoMarathonProgram';
-import { useQuery } from '@tanstack/react-query';
-import { fetchRecentWorkoutTemplates } from '../../lib/health/workoutApi';
+import { useBackHandler } from '../../lib/native/backStack';
 
 export default function WorkoutLogger({
   onBack,
@@ -40,23 +40,19 @@ export default function WorkoutLogger({
 }) {
   const userId = useUserId();
   const logger = useWorkoutLogger({ initial, onSaved, onBack });
+  useBackHandler(() => {
+    void logger.handleBack();
+    return true;
+  });
   const [showRestTimer, setShowRestTimer] = useState(false);
-  const [showNlCapture, setShowNlCapture] = useState(false);
   const [showPresets, setShowPresets] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [showBodyMap, setShowBodyMap] = useState(false);
   const [plateCalcState, setPlateCalcState] = useState<{
     isOpen: boolean;
     initialKg: number;
     onApply?: (kg: number) => void;
   }>({ isOpen: false, initialKg: 60 });
-
-  const { data: recentTemplates } = useQuery({
-    queryKey: ['recent-workout-templates', userId],
-    queryFn: () => (userId ? fetchRecentWorkoutTemplates(userId) : Promise.resolve([])),
-    enabled: Boolean(userId),
-    staleTime: 1000 * 60 * 5,
-  });
-
-  const recentTemplate = recentTemplates?.[0];
 
   const handleApplyPreset = (preset: WorkoutPreset) => {
     if (!logger.workoutName) {
@@ -69,24 +65,13 @@ export default function WorkoutLogger({
     });
   };
 
-  const handleRepeatRecent = () => {
-    if (!recentTemplate) return;
-    if (!logger.workoutName) {
-      logger.setWorkoutName(recentTemplate.workoutDay);
+  const handleImportWorkouts = (newExs: WorkoutExercise[], importedName?: string) => {
+    if (importedName && !logger.workoutName) {
+      logger.setWorkoutName(importedName);
     }
-    const repeatExercises = recentTemplate.exercises.map((name) => ({
-      id: Date.now() + Math.random(),
-      name,
-      tags: [],
-      sets: [
-        { id: Date.now() + Math.random(), kg: '', reps: '', rir: '', msp: false },
-        { id: Date.now() + Math.random() + 1, kg: '', reps: '', rir: '', msp: false },
-        { id: Date.now() + Math.random() + 2, kg: '', reps: '', rir: '', msp: false },
-      ],
-    }));
     logger.setExercises((prev) => {
       const hasEmptyOnly = prev.length === 1 && !prev[0].name.trim();
-      return hasEmptyOnly ? repeatExercises : [...prev, ...repeatExercises];
+      return hasEmptyOnly ? newExs : [...prev, ...newExs];
     });
   };
 
@@ -101,16 +86,32 @@ export default function WorkoutLogger({
           </Pressable>
           <h1 className="text-xs font-black uppercase tracking-[var(--ds-arbitrary-0-2em)] text-text-primary font-display">Zaloguj Trening</h1>
         </div>
-        {recentTemplate && logger.exercises.length <= 1 && !logger.exercises[0]?.name.trim() && (
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={handleRepeatRecent}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-primary/30 bg-primary/10 text-primary text-3xs font-black uppercase tracking-wider hover:bg-primary/20 transition-colors cursor-pointer"
-            title="Powtórz ostatni trening"
+            onClick={() => setShowBodyMap(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border-custom bg-surface text-text-secondary hover:text-text-primary text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer"
+            title="Pokaż mapę zmęczenia mięśniowego"
           >
-            <RotateCcw size={10} /> Powtórz
+            <Activity size={11} className="text-emerald-500" /> Anatomia
           </button>
-        )}
+          <button
+            type="button"
+            onClick={() => setShowImport(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border-custom bg-surface text-text-secondary hover:text-text-primary text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer"
+            title="Importuj sesję ze Strong CSV, Hevy lub FitNotes"
+          >
+            <Upload size={11} className="text-text-muted" /> Importuj
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowPresets(true)}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-primary/30 bg-primary/10 text-primary text-3xs font-black uppercase tracking-wider hover:bg-primary/20 transition-colors cursor-pointer"
+            title="Wybierz gotowy zestaw treningowy"
+          >
+            <LayoutGrid size={11} className="text-primary" /> Zestawy
+          </button>
+        </div>
       </header>
 
       <main className="flex-1 p-4 space-y-4 max-w-md mx-auto w-full">
@@ -157,22 +158,13 @@ export default function WorkoutLogger({
               <Dumbbell size={12} className="text-text-muted" />
               <span className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted">Ćwiczenia</span>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowPresets(true)}
-                className="flex items-center gap-1 text-3xs font-black uppercase tracking-wider text-text-secondary hover:text-primary transition-colors cursor-pointer"
-              >
-                <LayoutGrid size={11} className="text-primary" /> Zestawy
-              </button>
-              <span className="text-border-custom">|</span>
-              <Pressable
-                onClick={() => setShowNlCapture(true)}
-                className="flex items-center gap-1 text-3xs font-black uppercase tracking-wider text-primary hover:text-primary-hover transition-colors cursor-pointer"
-              >
-                <Sparkles size={11} /> AI Zrzut
-              </Pressable>
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowPresets(true)}
+              className="flex items-center gap-1 text-3xs font-black uppercase tracking-wider text-text-secondary hover:text-primary transition-colors cursor-pointer"
+            >
+              <LayoutGrid size={11} className="text-primary" /> Zestawy
+            </button>
           </div>
           {logger.exercises.map(ex => (
             <ExerciseCard
@@ -184,28 +176,12 @@ export default function WorkoutLogger({
               onOpenPlateCalc={(kg, onApply) => setPlateCalcState({ isOpen: true, initialKg: kg, onApply })}
             />
           ))}
-          <div className="flex gap-2">
-            <Pressable
-              onClick={logger.addExercise}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded-2xl border border-dashed border-border-custom bg-surface hover:bg-surface-solid hover:border-primary/45 p-3 text-xs font-black uppercase tracking-widest text-text-secondary ui-interactive cursor-pointer"
-            >
-              <Plus size={13} /> Dodaj ćwiczenie
-            </Pressable>
-            <Pressable
-              onClick={() => setShowPresets(true)}
-              className="flex items-center justify-center gap-1.5 px-3.5 rounded-2xl border border-border-custom bg-surface-solid hover:border-primary/45 text-text-primary text-xs font-black uppercase tracking-wider ui-interactive cursor-pointer"
-              title="Wybierz gotowy zestaw (Wertykalne / Horyzontalne)"
-            >
-              <LayoutGrid size={13} className="text-primary" /> Zestawy
-            </Pressable>
-            <Pressable
-              onClick={() => setShowNlCapture(true)}
-              className="flex items-center justify-center gap-1.5 px-3 rounded-2xl border border-primary/30 bg-primary/10 hover:bg-primary/20 text-primary text-xs font-black uppercase tracking-wider ui-interactive cursor-pointer"
-              title="Zrzut notatki z siłowni przez AI"
-            >
-              <Sparkles size={13} /> AI
-            </Pressable>
-          </div>
+          <Pressable
+            onClick={logger.addExercise}
+            className="w-full flex items-center justify-center gap-1.5 rounded-2xl border border-dashed border-border-custom bg-surface hover:bg-surface-solid hover:border-primary/45 p-3 text-xs font-black uppercase tracking-widest text-text-secondary ui-interactive cursor-pointer"
+          >
+            <Plus size={13} /> Dodaj ćwiczenie
+          </Pressable>
           <VolumeBar exercises={logger.exercises} />
         </div>
 
@@ -223,11 +199,25 @@ export default function WorkoutLogger({
             )}
           </div>
           <div className="grid grid-cols-10 gap-1">
-            {[1,2,3,4,5,6,7,8,9,10].map(n => {
-              const active = logger.sessionRpe === n ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-105 shadow-sm' : 'opacity-[var(--opacity-80)] hover:opacity-[var(--opacity-100)]';
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => {
+              const color =
+                n <= 4
+                  ? 'border-emerald-500/35 dark:border-emerald-500/40 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 hover:bg-emerald-500/25'
+                  : n <= 6
+                    ? 'border-yellow-500/35 dark:border-yellow-500/40 text-yellow-600 dark:text-yellow-400 bg-yellow-500/10 dark:bg-yellow-500/20 hover:bg-yellow-500/25'
+                    : n <= 8
+                      ? 'border-orange-500/35 dark:border-orange-500/40 text-orange-600 dark:text-orange-400 bg-orange-500/10 dark:bg-orange-500/20 hover:bg-orange-500/25'
+                      : 'border-rose-500/35 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 bg-rose-500/10 dark:bg-rose-500/20 hover:bg-rose-500/25';
+              const active =
+                logger.sessionRpe === n
+                  ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-105 shadow-sm opacity-100 font-black'
+                  : 'opacity-85 hover:opacity-100';
               return (
-                <Pressable key={n} onClick={() => logger.setSessionRpe(logger.sessionRpe === n ? null : n)}
-                  className={`rounded-lg border border-border-custom bg-surface-solid/50 py-2 text-xs font-black ui-interactive cursor-pointer ${active}`}>
+                <Pressable
+                  key={n}
+                  onClick={() => logger.setSessionRpe(logger.sessionRpe === n ? null : n)}
+                  className={`rounded-lg border py-2 text-xs font-black ui-interactive cursor-pointer transition-all ${color} ${active}`}
+                >
                   {n}
                 </Pressable>
               );
@@ -254,19 +244,9 @@ export default function WorkoutLogger({
         />
       )}
 
-      {showNlCapture && (
-        <WorkoutNlCaptureModal
-          isOpen={showNlCapture}
-          onClose={() => setShowNlCapture(false)}
-          onApplyParsed={(parsed) => {
-            if (parsed.workoutName && !logger.workoutName) logger.setWorkoutName(parsed.workoutName);
-            logger.setExercises((prev) => [...prev.filter((e) => e.name.trim()), ...parsed.exercises]);
-            if (parsed.activities.length) logger.setActivities((prev) => [...prev, ...parsed.activities]);
-          }}
-        />
-      )}
-
       <WorkoutPresetsModal isOpen={showPresets} onClose={() => setShowPresets(false)} onApplyPreset={handleApplyPreset} />
+      <WorkoutImportModal isOpen={showImport} onClose={() => setShowImport(false)} onImport={handleImportWorkouts} />
+      <BodyMapModal isOpen={showBodyMap} onClose={() => setShowBodyMap(false)} exercises={logger.exercises} />
     </div>
   );
 }

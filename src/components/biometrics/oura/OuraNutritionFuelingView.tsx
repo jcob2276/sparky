@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utensils, Coffee, Droplet, AlertCircle, Clock, CheckCircle2, Flame } from 'lucide-react';
+import { Utensils, Coffee, Droplet, AlertCircle, Clock, Flame } from 'lucide-react';
 import type { OuraHealthHubData } from './types';
 
 export function OuraNutritionFuelingView({ data }: { data: OuraHealthHubData }) {

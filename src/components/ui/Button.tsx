@@ -1,5 +1,6 @@
 import React, { forwardRef } from 'react';
 import Spinner from './Spinner';
+import { haptics } from '../../hooks/useHaptics';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'tonal';
@@ -7,6 +8,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   loading?: boolean;
   icon?: React.ReactNode;
   iconPosition?: 'left' | 'right';
+  haptic?: 'selection' | 'light' | 'medium' | 'none';
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
@@ -15,14 +17,16 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
   loading = false,
   icon,
   iconPosition = 'left',
+  haptic = 'selection',
   children,
   className = '',
   disabled,
   type = 'button',
+  onClick,
   ...props
 }, ref) {
   const hasDisplayOverride = /\b(hidden|block|inline-block|flex|grid)\b/.test(className);
-  const baseClass = `ui-button ${hasDisplayOverride ? '' : 'inline-flex '}items-center justify-center font-semibold touch-manipulation disabled:pointer-events-none cursor-pointer focus-visible:outline-none`;
+  const baseClass = `ui-button ${hasDisplayOverride ? '' : 'inline-flex '}items-center justify-center font-semibold touch-manipulation select-none disabled:pointer-events-none cursor-pointer focus-visible:outline-none`;
 
   const sizeClasses = {
     sm: 'ui-button--sm px-3.5 text-xs gap-1.5',
@@ -39,11 +43,21 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
     tonal: 'ui-button--tonal bg-primary/10 text-primary',
   };
 
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!disabled && !loading && haptic !== 'none') {
+      if (haptic === 'light') haptics.light();
+      else if (haptic === 'medium') haptics.medium();
+      else haptics.selection();
+    }
+    onClick?.(e);
+  };
+
   return (
     <button
       ref={ref}
       type={type}
       {...props}
+      onClick={handleClick}
       data-ui="button"
       data-variant={variant}
       data-size={size}

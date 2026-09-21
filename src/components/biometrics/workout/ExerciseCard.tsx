@@ -8,11 +8,12 @@ import {
   useExerciseHistory,
   newSet,
   epley,
-  formatLastSession,
 } from './workoutUtils';
 import ExerciseNameInput from './ExerciseNameInput';
 import ExerciseWellnessSets from './ExerciseWellnessSets';
 import ExerciseStrengthSets from './ExerciseStrengthSets';
+import { ExerciseCardSubheader } from './ExerciseCardSubheader';
+import { ExerciseCardToolbar } from './ExerciseCardToolbar';
 import { useHaptics } from '../../../hooks/useHaptics';
 import { getTodayWarsaw } from '../../../lib/date';
 import { confirmDialog } from '../../../lib/notify';
@@ -20,11 +21,7 @@ import { matchedHistoryAlias } from '../../../lib/health/exerciseHistoryAliases'
 import { intraSessionFatigueIndex } from '@vanguard/domain';
 import {
   computeExerciseSuggestion,
-  formatSuggestionShort,
   isBodyweightExercise,
-  suggestionProgressed,
-  suggestionReason,
-  suggestionRegressed,
 } from '../../../lib/health/exerciseSuggestion';
 import {
   applySuggestionToSets,
@@ -150,8 +147,33 @@ export default function ExerciseCard({
       )
     : null;
 
+  const cycleSupersetGroup = () => {
+    haptics.light();
+    const next = !exercise.supersetGroup
+      ? 'A'
+      : exercise.supersetGroup === 'A'
+        ? 'B'
+        : exercise.supersetGroup === 'B'
+          ? 'C'
+          : undefined;
+    onChange({ ...exercise, supersetGroup: next });
+  };
+
+  const toggleMode = () => {
+    haptics.light();
+    onChange({ ...exercise, mode: exercise.mode === 'timed' ? 'reps' : 'timed' });
+  };
+
   return (
-    <Card variant="surface" className="border border-border-custom" padding="0">
+    <Card
+      variant="surface"
+      className={`border transition-all ${
+        exercise.supersetGroup
+          ? 'border-l-4 border-l-primary border-border-custom bg-primary/[0.01]'
+          : 'border-border-custom'
+      }`}
+      padding="0"
+    >
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border-custom bg-text-primary/[0.01]">
         <ExerciseNameInput
           value={exercise.name}
@@ -187,51 +209,26 @@ export default function ExerciseCard({
         </Pressable>
       </div>
 
-      {lastSession && !isSaunaMode && (
-        <div className="flex items-center gap-2 border-t border-border-custom bg-text-primary/[0.01] px-4 py-2">
-          <Pressable
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              fillFromHistory();
-            }}
-            className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg py-0.5 cursor-pointer hover:bg-primary/5 transition-colors"
-            title="Wstaw wszystkie serie z ostatniej sesji"
-          >
-            <span className="text-2xs font-black uppercase tracking-widest text-text-muted shrink-0">Ostatnio</span>
-            <span className="text-xs font-bold text-text-secondary truncate">{formatLastSession(lastSession)}</span>
-            {daysAgo != null && (
-              <span className="text-2xs font-bold text-text-muted/50 shrink-0">
-                {daysAgo === 0 ? '(dziś)' : daysAgo === 1 ? '(1d temu)' : `(${daysAgo}d temu)`}
-                {historyAlias ? ` · jako ${historyAlias}` : ''}
-              </span>
-            )}
-          </Pressable>
-          {suggestion && (
-            <Pressable
-              type="button"
-              onMouseDown={(e) => {
-                e.preventDefault();
-                fillFromSuggestion();
-              }}
-              className={`shrink-0 text-xs font-black rounded-lg px-2 py-1 ${
-                suggestionProgressed(suggestion)
-                  ? 'text-success bg-success/10'
-                  : suggestionRegressed(suggestion)
-                    ? 'text-warning bg-warning/10'
-                    : 'text-text-secondary bg-surface'
-              }`}
-              title={suggestionReason(suggestion)}
-            >
-              {formatSuggestionShort(suggestion)}
-            </Pressable>
-          )}
-          {lastFatigue && lastFatigue.repDropPct >= 5 && (
-            <span className="text-2xs font-bold text-warning shrink-0" title={lastFatigue.message}>
-              ↓{lastFatigue.repDropPct}%
-            </span>
-          )}
-        </div>
+      {!isSaunaMode && (
+        <ExerciseCardToolbar
+          supersetGroup={exercise.supersetGroup}
+          mode={exercise.mode}
+          daysAgo={daysAgo}
+          onCycleSuperset={cycleSupersetGroup}
+          onToggleMode={toggleMode}
+        />
+      )}
+
+      {!isSaunaMode && (
+        <ExerciseCardSubheader
+          lastSession={lastSession}
+          daysAgo={daysAgo}
+          historyAlias={historyAlias}
+          suggestion={suggestion}
+          lastFatigue={lastFatigue}
+          onFillHistory={fillFromHistory}
+          onFillSuggestion={fillFromSuggestion}
+        />
       )}
 
       {!collapsed && (

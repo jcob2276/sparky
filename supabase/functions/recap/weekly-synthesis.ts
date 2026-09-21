@@ -33,7 +33,16 @@ export async function runWeeklySynthesis(req: Request): Promise<unknown> {
 
     const biometrics = await safeExecute(supabase.from('vanguard_daily_aggregates').select('date, sleep_hours, hrv_avg, readiness_score, execution_score, final_state').eq('user_id', VANGUARD_USER_ID).gte('date', weekStart).order('date', { ascending: false }));
     const plannings = await safeExecute(supabase.from('daily_reconciliations').select('date, planning_summary, p2_parsed').eq('user_id', VANGUARD_USER_ID).gte('date', weekStart).not('planning_summary', 'is', null).order('date', { ascending: false }));
-    const dailyReflections = await safeExecute(supabase.from('daily_wins').select('date, day_note, journal_entry, result').eq('user_id', VANGUARD_USER_ID).gte('date', weekStart).or('day_note.not.is.null,journal_entry.not.is.null').order('date', { ascending: true }));
+    const dailyWinsRows = await safeExecute(
+      supabase.from('daily_wins')
+        .select('date, task_1, task_2, task_3, task_4, task_5, done_1, done_2, done_3, done_4, done_5, day_note, journal_entry, result')
+        .eq('user_id', VANGUARD_USER_ID)
+        .gte('date', weekStart)
+        .order('date', { ascending: false }),
+    );
+    const dailyReflections = (dailyWinsRows || []).filter((d: any) =>
+      (d.day_note && d.day_note.trim()) || (d.journal_entry && d.journal_entry.trim())
+    );
     const weeklyReflectionRows = await safeExecute(
       supabase.from('weekly_reviews')
         .select('week_start, proud_of, do_differently, sabotage, obligation, week_highlight, week_regret, new_belief, bottleneck, review_completed_at')
@@ -110,17 +119,57 @@ export async function runWeeklySynthesis(req: Request): Promise<unknown> {
       `Wykonanie Top3: ${avgExec != null ? avgExec + '%' : 'brak'} (${execDays.length} dni)`,
     ].join(' | ');
 
-    const planningsText = (plannings || []).map((p: any) => {
-      const plan = p.planning_summary || {};
-      const prodArtifact = plan.production_artifact?.artifact || plan.one_clear_move || '—';
-      const minViable = plan.minimum_viable_day || '—';
-      
-      const p2 = p.p2_parsed || {};
-      const biggestCost = p2.biggest_cost || '—';
-      const blockers = p2.blocker_candidates?.join('; ') || '—';
-      
-      return `[Data: ${p.date}]\n- Plan (artefakt): ${prodArtifact} | Minimum: ${minViable}\n- Rzeczywistość (koszt): ${biggestCost} | Nazwane blokery: ${blockers}`;
-    }).join('\n\n');
+    // Build unified plannings context: Power List (daily_wins) + daily_reconciliations planning
+    const daysWithTasks = (dailyWinsRows || []).filter((w: any) =>
+      [w.task_1, w.task_2, w.task_3, w.task_4, w.task_5].some((t: any) => t && String(t).trim().length > 0)
+    );
+    const plannedDatesSet = new Set([
+      ...(plannings || []).map((p: any) => p.date),
+      ...daysWithTasks.map((w: any) => w.date),
+    ]);
+    const planningsCount = plannedDatesSet.size;
+
+    const datesMap = new Map<string, { powerListTasks: string[]; legacyPlan?: any }>();
+    for (const w of (dailyWinsRows || [])) {
+      const tasks: string[] = [];
+      for (let i = 1; i <= 5; i++) {
+        const t = w[`task_${i}`];
+        const done = Boolean(w[`done_${i}`]);
+        if (t && String(t).trim()) {
+          tasks.push(`- ${String(t).trim()} -> ${done ? '[WYKONANE]' : '[NIEWYKONANE]'}`);
+        }
+      }
+      if (tasks.length > 0) {
+        datesMap.set(w.date, { powerListTasks: tasks });
+      }
+    }
+
+    for (const p of (plannings || [])) {
+      const existing = datesMap.get(p.date) || { powerListTasks: [] };
+      existing.legacyPlan = p;
+      datesMap.set(p.date, existing);
+    }
+
+    const sortedDates = Array.from(datesMap.keys()).sort().reverse();
+    const planningsText = sortedDates.length > 0
+      ? sortedDates.map((date) => {
+          const entry = datesMap.get(date)!;
+          const parts: string[] = [`[Data: ${date}]`];
+          if (entry.powerListTasks.length > 0) {
+            parts.push(`Power List (5 zadań dnia):\n${entry.powerListTasks.join('\n')}`);
+          }
+          if (entry.legacyPlan?.planning_summary) {
+            const plan = entry.legacyPlan.planning_summary;
+            const prodArtifact = plan.production_artifact?.artifact || plan.one_clear_move || '—';
+            const minViable = plan.minimum_viable_day || '—';
+            const p2 = entry.legacyPlan.p2_parsed || {};
+            const biggestCost = p2.biggest_cost || '—';
+            const blockers = p2.blocker_candidates?.join('; ') || '—';
+            parts.push(`Plan wieczorny: ${prodArtifact} | Minimum: ${minViable}\nKoszt: ${biggestCost} | Blokery: ${blockers}`);
+          }
+          return parts.join('\n');
+        }).join('\n\n')
+      : '';
 
     const dailyReflectionsText = (dailyReflections || []).length > 0
       ? (dailyReflections || []).map((d: any) => {
@@ -163,11 +212,10 @@ export async function runWeeklySynthesis(req: Request): Promise<unknown> {
       task: "weekly_synthesis",
       dataSummary: {
         period: `${weekStart} – ${weekEnd}`,
-        days_with_biometrics: sleepDays.length,
+        days_with_biometrics: `${sleepDays.length} / 7 dni`,
+        days_with_plans_or_powerlist: `${planningsCount} / 7 dni`,
+        days_with_daily_reflections: `${dailyReflections.length} / 7 dni`,
         friction_events_count: frictionEvents?.length || 0,
-        plannings_count: plannings?.length || 0,
-        reflections_count: (dailyReflections || []).length,
-        has_weekly_reflection: Boolean(weeklyReflection),
         stream_count: (stream || []).length,
       },
       minThreshold: 0.60,
@@ -187,11 +235,11 @@ export async function runWeeklySynthesis(req: Request): Promise<unknown> {
     }
 
     // --- LLM synthesis ---
-    const { content: synthesisText } = await deepseekChat({
+    const chatResult = await deepseekChat({
       apiKey: Deno.env.get('DEEPSEEK_API_KEY') ?? '',
       ...LLM_TASKS.synthesis,
-      temperature: 0.4,
-      maxTokens: 700,
+      temperature: 0.3,
+      maxTokens: 2500,
       messages: [
         {
           role: 'system',
@@ -243,7 +291,7 @@ ${frictionDetails || 'brak'}
 PLANY I DEKLARACJE VS RZECZYWISTOŚĆ KOŃCA DNIA:
 ${planningsText || 'brak danych o planach'}
  
-SESJE PLANOWANIA WIECZORNEGO: ${(plannings || []).length} z 7 dni
+SESJE PLANOWANIA / POWER LISTA: ${planningsCount} z 7 dni
  
 REFLEKSJE WIECZORNE (Domknięcie Dnia — dzień po dniu):
 ${dailyReflectionsText}
@@ -263,6 +311,7 @@ ${streamText || 'brak wpisów'}`
       ],
     });
 
+    const synthesisText = chatResult.content?.trim() || chatResult.reasoning_content?.trim() || '';
     if (!synthesisText) throw new Error('LLM returned empty synthesis');
 
     // --- Send to Telegram ---

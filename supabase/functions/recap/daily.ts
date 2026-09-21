@@ -171,6 +171,7 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
       : "SYSTEM HEALTH: Brak błędów krytycznych w ostatnich 7 dniach.";
 
     let messageTexts = await buildReflectionPrompt(DEEPSEEK_API_KEY, {
+      date: todayStr,
       voiceRows,
       streamRows,
       frictionRows,
@@ -213,6 +214,7 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
     }
 
     const eveningExtraction = await generateDayNarrative(DEEPSEEK_API_KEY, {
+      date: todayStr,
       voiceRows,
       streamRows,
       frictionRows,

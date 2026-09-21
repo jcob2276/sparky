@@ -1,5 +1,5 @@
 import { useState, Suspense, lazy } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { WorkoutLoggerInitial } from '../../lib/health/workoutLogging';
 import { markWorkoutSessionActive, endWorkoutSession } from '../../lib/health/workoutLogging';
 import { useUserId } from '../../store/useStore';
@@ -17,9 +17,11 @@ interface TrainingRouteProps {
 export default function TrainingRoute({ initial, onSaved, onBack }: TrainingRouteProps) {
   const userId = useUserId();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const isDirectLive = params.get('live') === '1' || params.get('nowy') === '1' || Boolean(initial);
 
   const [currentInitial, setCurrentInitial] = useState<WorkoutLoggerInitial | null | undefined>(initial);
-  const [isLive, setIsLive] = useState<boolean>(true);
+  const [isLive, setIsLive] = useState<boolean>(isDirectLive);
 
   const [prevInitial, setPrevInitial] = useState(initial);
   if (initial !== prevInitial) {
@@ -39,8 +41,6 @@ export default function TrainingRoute({ initial, onSaved, onBack }: TrainingRout
   const handleLoggerBack = () => {
     setIsLive(false);
     setCurrentInitial(null);
-    if (onBack) onBack();
-    else navigate('/dzis');
   };
 
   const handleHubBack = () => {

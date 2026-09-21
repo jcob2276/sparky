@@ -1,10 +1,9 @@
 import { Suspense, memo, useState } from 'react';
-import { Sparkles, FileDown } from 'lucide-react';
+import { FileDown } from 'lucide-react';
 import { useSession } from '../../store/useStore';
 import { Pressable } from '../ui/ControlPrimitives';
 import Button from '../ui/Button';
 import Spinner from '../ui/Spinner';
-import HorizonHeader from './HorizonHeader';
 import Stats, { type ChronicleDomain } from './Stats';
 import StravaWidget from '../integrations/StravaWidget';
 import Photos from '../identity/Photos';
@@ -35,29 +34,10 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
 
   return (
     <div className="p-4 sm:p-5 pb-8 space-y-4">
-      {/* Header with Export Action */}
-      <div>
-        <HorizonHeader
-          eyebrow="Uczę się"
-          title="Kronika"
-          icon={Sparkles}
-          description="Kompletny dziennik transformacji ciała, siły, wydolności i telemetrii."
-          badge={
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsExportOpen(true)}
-              icon={<FileDown size={13} />}
-              className="!h-7 !px-2.5 !text-3xs font-black uppercase tracking-wider text-primary border-primary/25 bg-primary/10 hover:bg-primary/20 rounded-full"
-            >
-              Eksport
-            </Button>
-          }
-        />
-
-        {/* Segmented Domain Tabs */}
+      {/* Segmented Domain Tabs + Compact Export Button */}
+      <div className="flex items-center justify-between gap-2 pt-1 pb-1">
         <div
-          className="flex items-center gap-1.5 overflow-x-auto pt-3 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           role="tablist"
           aria-label="Domeny kroniki"
         >
@@ -84,6 +64,15 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
             );
           })}
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setIsExportOpen(true)}
+          icon={<FileDown size={12} />}
+          className="!h-7 !px-2.5 !text-3xs font-black uppercase tracking-wider text-primary border-primary/25 bg-primary/10 hover:bg-primary/20 rounded-full shrink-0"
+        >
+          Eksport
+        </Button>
       </div>
 
       <Suspense fallback={<ViewFallback />}>

@@ -1,9 +1,9 @@
 import { Sparkles, Target, Compass, Edit3 } from 'lucide-react';
-import type { VanguardIdentityData } from '../../lib/growth/growth.types';
+import type { SparkyIdentityData } from '../../lib/growth/growth.types';
 import { Pressable } from '../ui/ControlPrimitives';
 
 interface Props {
-  identity: VanguardIdentityData | null;
+  identity: SparkyIdentityData | null;
   onEdit: () => void;
 }
 

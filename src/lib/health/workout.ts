@@ -1,6 +1,6 @@
 import type { Tables } from '../database.types';
 
-export type WorkoutSetType = 'working' | 'warmup' | 'drop' | 'failure';
+export type WorkoutSetType = 'working' | 'warmup' | 'drop' | 'failure' | 'cluster';
 
 export interface WorkoutSet {
   id: number;
@@ -9,6 +9,14 @@ export interface WorkoutSet {
   rir: string;
   msp: boolean;
   type?: WorkoutSetType;
+  rpe?: string;
+  durationSec?: number;
+  drops?: Array<{ kg: number; reps: number }>;
+  clusters?: Array<{ reps: number; restSec: number }>;
+  sides?: {
+    L: { kg: number; reps: number; done: boolean; rir?: number | null };
+    R: { kg: number; reps: number; done: boolean; rir?: number | null };
+  };
 }
 
 export interface WorkoutExercise {
@@ -16,6 +24,8 @@ export interface WorkoutExercise {
   name: string;
   tags: string[];
   sets: WorkoutSet[];
+  supersetGroup?: string;
+  mode?: 'reps' | 'timed';
 }
 
 export interface WorkoutActivity {

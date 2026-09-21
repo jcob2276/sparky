@@ -150,7 +150,7 @@ export function buildICSContent(rows: DerivedObligation[]): string {
       `DTSTAMP:${d}T090000Z`,
       `DTSTART;VALUE=DATE:${d}`,
       `SUMMARY:${row.item.title}${row.item.related_name ? ` (${row.item.related_name})` : ''}`,
-      `DESCRIPTION:${(row.item.notes || 'Termin z Vanguard OS').replace(/\n/g, '\\n')}`,
+      `DESCRIPTION:${(row.item.notes || 'Termin ze Sparky').replace(/\n/g, '\\n')}`,
       'TRANSP:TRANSPARENT',
       'END:VEVENT',
     );

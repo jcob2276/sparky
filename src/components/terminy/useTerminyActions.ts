@@ -107,7 +107,7 @@ export function useTerminyActions({
           category: 'terminy',
         },
       });
-      notify(`Dodano do Kalendarza Vanguard: „${row.item.title}” (${formatLongDateWarsaw(row.nextDate)})`, 'success');
+      notify(`Dodano do Kalendarza Sparky: „${row.item.title}” (${formatLongDateWarsaw(row.nextDate)})`, 'success');
     } catch (caught: unknown) {
       notify(caught instanceof Error ? caught.message : 'Nie udało się dodać do kalendarza', 'error');
     }

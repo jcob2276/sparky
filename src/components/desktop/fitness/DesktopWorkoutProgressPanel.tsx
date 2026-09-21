@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { Dumbbell, Plus, ChevronRight, Activity, History, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card } from '../../ui/Card';
@@ -5,6 +6,7 @@ import { Pressable } from '../../ui/ControlPrimitives';
 import type { DesktopSessionRow, StravaActivityRow } from '../shell/useDesktopData';
 import { sessionDateKey } from '../../../lib/health/workoutSauna';
 import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
+import WorkoutActivityHeatmap from '../../biometrics/workout/WorkoutActivityHeatmap';
 
 interface Props {
   sessions: DesktopSessionRow[];
@@ -12,7 +14,10 @@ interface Props {
   onOpenWorkout?: () => void;
 }
 
+// eslint-disable-next-line max-lines-per-function
 export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWorkout }: Props) {
+  const [showHeatmap, setShowHeatmap] = useState(false);
+
   // Filter out wellness/sauna only sessions to show real gym workouts
   const strengthSessions = sessions.filter((s) => {
     const name = (s.workout_day || '').toLowerCase();
@@ -24,6 +29,24 @@ export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWo
   );
 
   const latest = sortedStrength[0] ?? null;
+
+  const heatmapWorkouts = useMemo(() => {
+    return sessions
+      .map((s) => {
+        const exercises = s.exercise_logs ?? [];
+        const tonnage = exercises.reduce((acc, ex) => {
+          const w = Number(ex.weight) || 0;
+          const r = Number(ex.reps) || 0;
+          return acc + (w * r);
+        }, 0);
+        return {
+          date: s.date || '',
+          durationMinutes: 45,
+          totalTonnage: tonnage,
+        };
+      })
+      .filter((w) => Boolean(w.date));
+  }, [sessions]);
 
   // Calculate total tonnage for recent 30 sessions
   const totalTonnageKg = sortedStrength.slice(0, 30).reduce((acc, s) => {
@@ -65,6 +88,19 @@ export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWo
         </div>
 
         <div className="flex items-center gap-2">
+          <Pressable
+            type="button"
+            onClick={() => setShowHeatmap((prev) => !prev)}
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+              showHeatmap
+                ? 'border-primary/40 bg-primary/20 text-primary'
+                : 'border-border-custom bg-background/50 text-text-secondary hover:text-text-primary hover:bg-surface-2'
+            }`}
+            title="Przełącz widok 52-tygodniowej matrycy aktywności (GitHub-style)"
+          >
+            <Activity size={13} />
+            <span>{showHeatmap ? 'Ukryj matrycę' : 'Matryca 52 tyg.'}</span>
+          </Pressable>
           <Link
             to="/cwiczenie"
             className="flex items-center gap-1.5 rounded-xl border border-border-custom bg-background/50 px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors"
@@ -142,6 +178,12 @@ export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWo
           </p>
         </div>
       </div>
+
+      {showHeatmap && (
+        <div className="rounded-2xl border border-border-custom bg-background/40 p-3 animate-in fade-in">
+          <WorkoutActivityHeatmap workouts={heatmapWorkouts} />
+        </div>
+      )}
 
       {totalRunKm30d > 0 && (
         <HybridSummaryBanner

@@ -7,7 +7,7 @@ import {
   useCreateCalendarEvent,
   useUpdateCalendarEvent,
   useDeleteCalendarEvent,
-  type VanguardCalendarRow,
+  type SparkyCalendarRow,
 } from '../../../lib/calendarApi';
 import { notify } from '../../../lib/notify';
 import { calendarKeys } from '../../../lib/queryKeys';
@@ -351,7 +351,7 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     const evId = scope === 'all' && seriesBaseId ? seriesBaseId : instanceId;
     try {
       // Optimistic cache eviction
-      queryClient.setQueriesData<VanguardCalendarRow[]>(
+      queryClient.setQueriesData<SparkyCalendarRow[]>(
         { queryKey: ['calendar', 'events'] },
         (prev) => {
           if (!prev) return [];
@@ -441,7 +441,7 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     const instanceId = ev.event_id || ev.id;
     try {
       // Optimistic cache eviction
-      queryClient.setQueriesData<VanguardCalendarRow[]>(
+      queryClient.setQueriesData<SparkyCalendarRow[]>(
         { queryKey: ['calendar', 'events'] },
         (prev) => {
           if (!prev) return [];

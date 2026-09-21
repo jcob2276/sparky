@@ -4,12 +4,12 @@ import { AddPracticeEvidenceModal } from './modals/AddPracticeEvidenceModal';
 import type {
   LibraryItem,
   PracticeEvidence,
-  VanguardIdentityData,
+  SparkyIdentityData,
 } from '../../lib/growth/growth.types';
 
 interface Props {
   userId: string;
-  identity: VanguardIdentityData | null;
+  identity: SparkyIdentityData | null;
   libraryItems: LibraryItem[];
   practiceEvidences: PracticeEvidence[];
   activeModal: 'theme' | 'library' | 'evidence' | null;

@@ -35,7 +35,27 @@
     "supabase/functions/_shared/oracleSql.ts": ["exports"],
     "src/lib/phoneUsageApi.ts": ["exports"],
     "src/components/biometrics/oura/OuraCaffeineDecayCard.tsx": ["exports"],
-    "src/lib/native/bleProbePlugin.ts": ["exports", "types"]
+    "src/lib/native/bleProbePlugin.ts": ["exports", "types"],
+    "src/data/openGymCatalog.ts": ["exports"],
+    "src/components/core/OfflineStatusBanner.tsx": ["exports"],
+    "src/lib/health/bodyMuscles.ts": ["exports"],
+    "src/lib/health/muscleRecovery.ts": ["exports", "types"],
+    "src/lib/health/progressionEngine.ts": ["exports", "types"],
+    "src/lib/health/workoutPlateCalculator.ts": ["exports", "types"],
+    "src/lib/health/workoutSetModel.ts": ["exports", "types"],
+    "src/lib/health/workoutCoachEngine.ts": ["types"],
+    "src/lib/health/workoutImporters.ts": ["types"],
+    "src/lib/growth/growthApi.ts": ["exports"],
+    "src/lib/growth/growth.types.ts": ["types"],
+    "src/lib/vanguardCore.ts": ["exports"],
+    "src/lib/identityVaultApi.ts": ["exports", "types"],
+    "src/lib/shutdownApi.ts": ["exports"],
+    "src/store/useStore.ts": ["types"],
+    "src/lib/calendarApi.ts": ["types"],
+    "src/components/core/commandCenter/commandCatalog.ts": ["types"],
+    "src/components/biometrics/workout/WorkoutActivityHeatmap.tsx": ["types"],
+    "src/components/desktop/general/hooks/useGeneralViewData.ts": ["types"],
+    "src/components/desktop/general/generalView/GeneralRecommendationsHistory.tsx": ["exports"]
   },
   "ignoreDependencies": [
     "npm"

@@ -13,6 +13,15 @@ function cssColor(varName: string, fallback: string): string {
   return raw || fallback;
 }
 
+export async function hideSplashScreen(): Promise<void> {
+  if (!isNativePlatform()) return;
+  try {
+    await SplashScreen.hide();
+  } catch {
+    /* Splash already auto-hidden */
+  }
+}
+
 export async function initNativeShell(): Promise<void> {
   if (!isNativePlatform()) return;
 
@@ -30,11 +39,10 @@ export async function initNativeShell(): Promise<void> {
     /* StatusBar unsupported on some WebView builds */
   }
 
-  try {
-    await SplashScreen.hide();
-  } catch {
-    /* Splash already auto-hidden */
-  }
+  // Fallback safety: ensure splash screen doesn't hang indefinitely if app fails to render
+  window.setTimeout(() => {
+    void hideSplashScreen();
+  }, 3500);
   // Android hardware back: close modals/overlays first, then history back, then exitApp.
   await CapApp.addListener('backButton', ({ canGoBack }) => {
     if (handleNativeBack()) {

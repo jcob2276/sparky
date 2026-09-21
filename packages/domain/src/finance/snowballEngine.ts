@@ -1,5 +1,5 @@
 /**
- * Snowball Analytics Engine for Vanguard OS.
+ * Snowball Analytics Engine for Sparky OS.
  * Core algorithms: XIRR, Dividend Forecasting, ETF X-Ray, Rebalancing, Dividend Safety Rating, Tax Adjuster & Backtesting.
  */
 

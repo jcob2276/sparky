@@ -43,7 +43,7 @@ export default function DesktopHeader({
             variant="secondary"
             icon={<LayoutGrid size={14} />}
             className="rounded-full p-2 sm:p-2.5"
-            title="Katalog Narzędzi Vanguard"
+            title="Katalog Narzędzi Sparky"
           />
         )}
         <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">

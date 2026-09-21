@@ -27,7 +27,7 @@ export default function DesktopToolsLauncherModal({ isOpen, onClose }: Props) {
       title={
         <div className="flex items-center gap-2">
           <LayoutGrid size={18} className="text-primary" />
-          <span>Katalog Narzędzi Vanguard OS</span>
+          <span>Katalog Narzędzi Sparky OS</span>
         </div>
       }
       subtitle="Zintegrowany dostęp do wszystkich modułów i aplikacji systemu."

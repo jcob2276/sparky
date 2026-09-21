@@ -1,4 +1,4 @@
-# Vanguard OS — Backlog
+# Sparky OS — Backlog
 
 Jedyny backlog w repo. Wszystko odłożone, nieukończone lub zaplanowane żyje tutaj —
 nie w osobnych plikach per temat. Gdy plan/sesja się kończy, otwarte punkty lądują
@@ -31,7 +31,7 @@ Ten plik (`BACKLOG.md`) to kolejka — rzeczy jeszcze nierozpoczęte albo wstrzy
 
 ## North Star i granice produktu
 
-Vanguard ma być osobistym systemem operacyjnym z jednym codziennym wejściem:
+Sparky ma być osobistym systemem operacyjnym z jednym codziennym wejściem:
 
 ```text
 złap sygnał → zrozum stan → wybierz ruch → wykonaj → rozlicz → zachowaj wiedzę
@@ -503,9 +503,9 @@ Kontekst: VO2max 47.1, cel sub-4h Koszyce 2026-10-04, trener Igor, gap +2.9 do c
 
 **Co zbudować:** dossier wyścigu (instancja §4.7). Krok w nightly: prognoza czasu maratonu z ostatnich biegów (formuła Riegela), planned-vs-executed treningu, countdown do 2026-10-04.
 
-### §6.2 Vanguard jest single-player, cel #1 ma drugiego gracza
+### §6.2 Sparky jest single-player, cel #1 ma drugiego gracza
 
-Zero interfejsu dla trenera. Igor programuje trening na ślepo/ustnie, podczas gdy Vanguard codziennie liczy strain/recovery/illness/RPE.
+Zero interfejsu dla trenera. Igor programuje trening na ślepo/ustnie, podczas gdy Sparky codziennie liczy strain/recovery/illness/RPE.
 
 **Co zbudować:** cotygodniowy raport dla trenera (link/PDF/Telegram-forward): trend objętości, recovery, flagi choroby/przemęczenia, RPE rzeczywiste vs zaplanowane. Zero nowego inputu od Jakuba.
 

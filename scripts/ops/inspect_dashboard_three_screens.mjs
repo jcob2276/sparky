@@ -62,7 +62,7 @@ async function run() {
       await xIcon.click();
       await page.waitForTimeout(1000);
     }
-  } catch (e) {
+  } catch (_e) {
     console.log('No modal overlay found or already closed.');
   }
 

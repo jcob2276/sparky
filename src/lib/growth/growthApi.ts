@@ -6,7 +6,7 @@ import type {
   GrowthTaskItem,
   LibraryItem,
   PracticeEvidence,
-  VanguardIdentityData,
+  SparkyIdentityData,
 } from './growth.types';
 import { COLOR_TO_PILLAR } from '../projects/pillars';
 
@@ -76,7 +76,7 @@ export async function fetchGrowthDashboardData(userId: string): Promise<GrowthDa
     return lower.includes('książk') || lower.includes('kurs') || lower.includes('nauka') || lower.includes('czyta') || lower.includes('angiel');
   });
 
-  const identity: VanguardIdentityData | null = rawIdentity
+  const identity: SparkyIdentityData | null = rawIdentity
     ? {
         user_id: rawIdentity.user_id,
         development_theme: rawIdentity.development_theme,
@@ -85,7 +85,7 @@ export async function fetchGrowthDashboardData(userId: string): Promise<GrowthDa
         developed_role: rawIdentity.developed_role,
         library_items: libraryItems,
         practice_evidences: practiceEvidences,
-        development_review: (rawIdentity.development_review as unknown as VanguardIdentityData['development_review']) ?? null,
+        development_review: (rawIdentity.development_review as unknown as SparkyIdentityData['development_review']) ?? null,
         updated_at: rawIdentity.updated_at,
       }
     : null;
@@ -99,9 +99,9 @@ export async function fetchGrowthDashboardData(userId: string): Promise<GrowthDa
   };
 }
 
-export async function updateVanguardIdentity(
+export async function updateSparkyIdentity(
   userId: string,
-  updates: Partial<VanguardIdentityData>,
+  updates: Partial<SparkyIdentityData>,
 ): Promise<void> {
   const insertData = {
     user_id: userId,
@@ -113,10 +113,12 @@ export async function updateVanguardIdentity(
   if (error) throw error;
 }
 
+export const updateVanguardIdentity = updateSparkyIdentity;
+
 export async function saveLibraryItems(userId: string, items: LibraryItem[]): Promise<void> {
-  await updateVanguardIdentity(userId, { library_items: items });
+  await updateSparkyIdentity(userId, { library_items: items });
 }
 
 export async function savePracticeEvidences(userId: string, evidences: PracticeEvidence[]): Promise<void> {
-  await updateVanguardIdentity(userId, { practice_evidences: evidences });
+  await updateSparkyIdentity(userId, { practice_evidences: evidences });
 }

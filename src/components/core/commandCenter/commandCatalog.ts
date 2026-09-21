@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { redoLastAction, undoLastAction } from '../../../lib/actionHistory';
 
-export interface VanguardCommand {
+export interface SparkyCommand {
   id: string;
   title: string;
   subtitle: string;
@@ -23,12 +23,14 @@ export interface VanguardCommand {
   run: () => Promise<unknown> | unknown;
 }
 
+export type VanguardCommand = SparkyCommand;
+
 interface CommandCatalogOptions {
   navigate: (path: string) => void;
   close: () => void;
 }
 
-export function createCommandCatalog({ navigate, close }: CommandCatalogOptions): VanguardCommand[] {
+export function createCommandCatalog({ navigate, close }: CommandCatalogOptions): SparkyCommand[] {
   const go = (path: string) => () => {
     navigate(path);
     close();
@@ -48,7 +50,7 @@ export function createCommandCatalog({ navigate, close }: CommandCatalogOptions)
   ];
 }
 
-export function filterCommands(commands: VanguardCommand[], query: string): VanguardCommand[] {
+export function filterCommands(commands: SparkyCommand[], query: string): SparkyCommand[] {
   const normalized = query.trim().toLocaleLowerCase('pl-PL');
   if (!normalized) return commands.slice(0, 6);
   const words = normalized.split(/\s+/);

@@ -116,12 +116,14 @@ export async function transcribeBlob(
   opts?: { filename?: string; language?: string; prompt?: string; timeoutMs?: number },
 ): Promise<string> {
   const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  let geminiErr: unknown = null;
   if (geminiKey) {
     try {
       return await geminiTranscribe(audioBlob, geminiKey, opts);
     } catch (err) {
+      geminiErr = err;
       console.warn("[transcribeBlob] Gemini audio transcription failed, checking OpenAI fallback:", err);
-      if (!apiKey) throw err;
+      if (!apiKey || !apiKey.startsWith("sk-")) throw err;
     }
   }
 
@@ -172,6 +174,12 @@ export async function transcribeBlob(
         continue;
       }
     }
+  }
+
+  if (geminiErr) {
+    const gMsg = geminiErr instanceof Error ? geminiErr.message : String(geminiErr);
+    const wMsg = lastError instanceof Error ? lastError.message : String(lastError);
+    throw new Error(`Transkrypcja nie powiodła się: [Gemini: ${gMsg}] [Whisper: ${wMsg}]`);
   }
 
   throw lastError instanceof Error ? lastError : new Error(String(lastError));

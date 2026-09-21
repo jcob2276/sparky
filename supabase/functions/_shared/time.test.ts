@@ -1,5 +1,5 @@
 import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts'
-import { getStreamCutoffs, getWarsawDateString, getWarsawDayBoundaries } from './time.ts'
+import { getStreamCutoffs, getWarsawDateString, getWarsawDayBoundaries, getWarsawDayOfWeek, isWarsawWeekend } from './time.ts'
 
 // 2026 Europe/Warsaw DST transitions (verified via Intl): spring-forward 2026-03-29
 // (GMT+1 -> GMT+2), fall-back 2026-10-25 (GMT+2 -> GMT+1). Several bugs in this repo
@@ -63,4 +63,18 @@ Deno.test('getStreamCutoffs — returns 24h/72h/21d windows before now', () => {
   assertEquals(cutoffs.cut24h, '2026-06-14T12:00:00.000Z')
   assertEquals(cutoffs.cut72h, '2026-06-12T12:00:00.000Z')
   assertEquals(cutoffs.cut21d, '2026-05-25T12:00:00.000Z')
+})
+
+Deno.test('getWarsawDayOfWeek — correctly returns Polish day name', () => {
+  assertEquals(getWarsawDayOfWeek('2026-09-20'), 'niedziela')
+  assertEquals(getWarsawDayOfWeek('2026-09-21'), 'poniedziałek')
+  assertEquals(getWarsawDayOfWeek('2026-09-19'), 'sobota')
+  assertEquals(getWarsawDayOfWeek('2026-09-18'), 'piątek')
+})
+
+Deno.test('isWarsawWeekend — correctly identifies Saturday and Sunday', () => {
+  assertEquals(isWarsawWeekend('2026-09-20'), true)  // niedziela
+  assertEquals(isWarsawWeekend('2026-09-19'), true)  // sobota
+  assertEquals(isWarsawWeekend('2026-09-21'), false) // poniedziałek
+  assertEquals(isWarsawWeekend('2026-09-18'), false) // piątek
 })

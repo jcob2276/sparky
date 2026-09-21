@@ -1,4 +1,4 @@
-# Vanguard OS — stan aplikacji
+# Sparky OS — stan aplikacji
 
 Dokument opisuje aktualne powierzchnie produktu, ich przeznaczenie i połączenia.
 Stan backendu jest generowany z kodu w

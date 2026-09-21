@@ -10,7 +10,7 @@ import {
   fetchDailyWin,
   fetchDailyReconciliationScore,
   upsertDailyReconciliationScore,
-  insertVanguardStream,
+  insertSparkyStream,
 } from '../../../lib/shutdownApi';
 import { buildShutdownRecord } from './shutdownModel';
 
@@ -119,7 +119,7 @@ export function useShutdownData() {
 
       await updateDailyWin(userId, todayWin.id, record.dailyWinPatch);
       await upsertDailyReconciliationScore(userId, today, dayScore);
-      await insertVanguardStream({
+      await insertSparkyStream({
         user_id: userId,
         source: 'daily_shutdown',
         content: record.streamContent,

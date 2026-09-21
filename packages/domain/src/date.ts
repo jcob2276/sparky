@@ -132,6 +132,25 @@ export function getWarsawDateString(now: Date = new Date()): string {
   return formatWarsawDate(now);
 }
 
+/**
+ * Returns the Polish day of week in lowercase ('poniedziałek', 'wtorek', ..., 'niedziela')
+ * for a given Date or YYYY-MM-DD string in Europe/Warsaw timezone.
+ */
+export function getWarsawDayOfWeek(date: Date | string = new Date()): string {
+  const d = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)
+    ? new Date(`${date}T12:00:00Z`)
+    : new Date(date);
+  return d.toLocaleDateString('pl-PL', { timeZone: WARSAW_TZ, weekday: 'long' });
+}
+
+/**
+ * Returns true if the day is Saturday or Sunday in Europe/Warsaw timezone.
+ */
+export function isWarsawWeekend(date: Date | string = new Date()): boolean {
+  const day = getWarsawDayOfWeek(date).toLowerCase();
+  return day.startsWith('so') || day.startsWith('nie');
+}
+
 export function warsawDayStartUTCMs(dateStr: string): number {
   const [year, month, day] = dateStr.split("-").map(Number);
   const t22 = Date.UTC(year, month - 1, day - 1, 22, 0, 0);

@@ -89,21 +89,23 @@ export default function FluxOverlay() {
         </defs>
       </svg>
 
-      {/* GPU Accelerated SVG Backdrop Filter Overlay */}
-      <div
-        className="pointer-events-none fixed inset-0 z-[999999] transition-all duration-1000 ease-out"
-        style={{
-          backdropFilter: 'url(#vanguard-flux-filter)',
-          WebkitBackdropFilter: 'url(#vanguard-flux-filter)',
-        }}
-      />
+      {/* GPU Accelerated SVG Backdrop Filter Overlay (Web only - Android WebView collapses composite FPS with SVG backdropFilter) */}
+      {!isNativePlatform() && (
+        <div
+          className="pointer-events-none fixed inset-0 z-[999999] transition-all duration-1000 ease-out"
+          style={{
+            backdropFilter: 'url(#vanguard-flux-filter)',
+            WebkitBackdropFilter: 'url(#vanguard-flux-filter)',
+          }}
+        />
+      )}
 
-      {/* Secondary Warm Amber Color Blend Layer */}
+      {/* Warm Amber Color Blend Layer (lightweight on mobile WebView) */}
       <div
         className="pointer-events-none fixed inset-0 z-[999998] transition-opacity duration-1000 ease-out"
         style={{
           backgroundColor: `rgba(255, 130, 0, ${amberOpacity})`,
-          mixBlendMode: 'multiply',
+          ...(isNativePlatform() ? {} : { mixBlendMode: 'multiply' }),
         }}
       />
     </>

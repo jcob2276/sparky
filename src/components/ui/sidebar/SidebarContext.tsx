@@ -8,7 +8,7 @@ import {
 } from './sidebarContextState';
 
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
-const STORAGE_KEY = 'vanguard:sidebar:state';
+const STORAGE_KEY = 'sparky:sidebar:state';
 export interface SidebarProviderProps {
   defaultOpen?: boolean;
   open?: boolean;

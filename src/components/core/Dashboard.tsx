@@ -22,6 +22,7 @@ import { DashboardNavBar } from './DashboardNavBar';
 import { DashboardModals } from './DashboardModals';
 import { DashboardFastCaptureMenu } from './DashboardFastCapture';
 import OrientationFooter from './OrientationFooter';
+import DreamBoardBanner from './DreamBoardBanner';
 import PowerList from '../lifestyle/PowerList';
 import FoodQuickCapture from './nutrition/FoodQuickCapture';
 import SearchModal from './SearchModal';
@@ -176,6 +177,7 @@ function DashboardContent() {
           >
             {showLock ? (
               <div className="p-5 pb-8 space-y-7 overflow-y-auto h-full">
+                <DreamBoardBanner />
                 <OrientationFooter />
                 {weeklyReviewNudge}
                 <PowerList
@@ -204,12 +206,12 @@ function DashboardContent() {
               </div>
             ) : (
               <>
-                <ErrorBoundary>
+                <ErrorBoundary inline>
                   <div className={s.view === 'dzis' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
                     {visitedTabs.includes('dzis') && <DashboardDzisTab />}
                   </div>
                 </ErrorBoundary>
-                <ErrorBoundary>
+                <ErrorBoundary inline>
                   <div className={s.view === 'tydzien' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
                     {visitedTabs.includes('tydzien') && (
                       <DashboardTydzienTab
@@ -220,12 +222,12 @@ function DashboardContent() {
                     )}
                   </div>
                 </ErrorBoundary>
-                <ErrorBoundary>
+                <ErrorBoundary inline>
                   <div className={s.view === 'historia' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
                     {visitedTabs.includes('historia') && <DashboardHistoriaTab />}
                   </div>
                 </ErrorBoundary>
-                <ErrorBoundary>
+                <ErrorBoundary inline>
                   <div className={s.view === 'projekty' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
                     {visitedTabs.includes('projekty') && <DashboardProjektyTab />}
                   </div>

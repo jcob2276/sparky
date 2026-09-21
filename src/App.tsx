@@ -7,13 +7,17 @@ import { initUsageStatsSync } from './lib/native/usageStatsSync';
 import { initLocationSync } from './lib/native/locationSync';
 import { initBackgroundSync } from './lib/native/backgroundSync';
 import { initNativeIntents, registerNativeNavigate } from './lib/native/initNativeIntents';
+import { hideSplashScreen } from './lib/native/initNativeShell';
 import Auth from './components/core/Auth';
 import Dashboard from './components/core/Dashboard';
 import { ErrorBoundary } from './components/core/ErrorBoundary';
+import { OfflineStatusBanner } from './components/core/OfflineStatusBanner';
 import { ToastHost } from './components/ui/ToastHost';
+import Spinner from './components/ui/Spinner';
 import SettingsView from './components/settings/SettingsView';
 import PageTemplateBoundary, { type PageTemplateKind } from './components/shared/PageTemplateBoundary';
 import ActionHistoryController from './components/core/ActionHistoryController';
+import { QueryErrorResetBoundary } from '@tanstack/react-query';
 
 const DesktopDashboard = lazy(() => import('./components/desktop/shell/DesktopDashboard'));
 const MedicalStudiesPage = lazy(() => import('./components/medical/MedicalStudiesPage'));
@@ -28,10 +32,9 @@ import { queryClient } from './lib/queryClient';
 import { setupGlobalBleSync } from './lib/biometrics/ouraBleSync';
 import FluxOverlay from './components/nightShift/FluxOverlay';
 
-
 const FALLBACK_SPINNER = (
   <div className="min-h-screen bg-background flex items-center justify-center">
-    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary" />
+    <Spinner size="lg" />
   </div>
 );
 
@@ -136,6 +139,12 @@ function AppRoutes() {
 
   useNativePlatformSync(session?.user.id, handleNativeNavigate);
 
+  useEffect(() => {
+    if (!loading) {
+      void hideSplashScreen();
+    }
+  }, [loading]);
+
   if (loading) {
     return FALLBACK_SPINNER;
   }
@@ -223,14 +232,19 @@ function AppRoutes() {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <BrowserRouter>
-        <FluxOverlay />
-        <AppRoutes />
-        <ActionHistoryController />
-        <ToastHost />
-      </BrowserRouter>
-    </ErrorBoundary>
+    <QueryErrorResetBoundary>
+      {({ reset }) => (
+        <ErrorBoundary onReset={reset}>
+          <BrowserRouter>
+            <FluxOverlay />
+            <OfflineStatusBanner />
+            <AppRoutes />
+            <ActionHistoryController />
+            <ToastHost />
+          </BrowserRouter>
+        </ErrorBoundary>
+      )}
+    </QueryErrorResetBoundary>
   );
 }
 

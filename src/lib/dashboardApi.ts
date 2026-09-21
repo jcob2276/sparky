@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from './supabase';
 import { getTodayWarsaw, getDaysAgoWarsaw, warsawDayBoundsISO } from './date';
-import { VanguardCore, computeSignals } from './vanguardCore';
+import { SparkyCore, computeSignals } from './vanguardCore';
 import { syncCalendar } from './syncApi';
 import { parseWorldState } from './db-json-guards';
 import type { Tables } from './database.types';
@@ -174,8 +174,8 @@ async function fetchDashboardData(userId: string): Promise<DashboardData> {
 
   const totalCal = nutrition?.reduce((sum, n) => sum + (n.calories || 0), 0) || 0;
 
-  // --- NEW VANGUARD CORE ENGINE ---
-  const core = new VanguardCore(userId, supabase);
+  // --- SPARKY CORE ENGINE ---
+  const core = new SparkyCore(userId, supabase);
 
   const signals = computeSignals(
     ouraData?.[0] || null,

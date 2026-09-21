@@ -8,7 +8,7 @@ import { classifyImpactFactors, rColor } from '@vanguard/domain';
 export default function DesktopCorrelationsSummary({ userId }: { userId: string }) {
   const { data, isLoading } = useCorrelationsQuery(userId, false);
 
-  const correlations = data?.correlations ?? [];
+  const correlations = React.useMemo(() => data?.correlations ?? [], [data?.correlations]);
 
   // Filter vetted causal factors using domain classifier (eliminates collinear and artifact pairs)
   const topCorrelations = React.useMemo(() => {

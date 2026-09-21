@@ -11,21 +11,12 @@ import SplitNotesView from './SplitNotesView';
 import { useUserId } from '../../store/useStore';
 import { useNotesData } from './hooks/useNotesData';
 import { useKeepView } from './hooks/useKeepView';
+import { useKeepActions } from './hooks/useKeepActions';
 import './notes.css';
 import TrashNotesView from './TrashNotesView';
-import { useEffect, useState } from 'react';
-import {
-  exportNotesArchive,
-  exportSingleNote,
-  exportSingleNotePdf,
-  shareNoteCopy,
-} from '../../lib/notesExport';
-import { notify, promptDialog } from '../../lib/notify';
-import { getPlainText } from '../../lib/noteText';
 
 export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; onNavigateTo?: (dest: string) => void }) {
   const userId = useUserId();
-  const [exporting, setExporting] = useState(false);
 
   const {
     notes, trashedNotes, folders, smartFolders, setNotes, trashLoading, foldersLoading, smartFoldersLoading, busy, setBusy,
@@ -64,84 +55,32 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
     onBack, onNavigateTo,
   });
 
-  useEffect(() => {
-    const locked = notes.find(note => note.id === editingId && note.is_locked && !unlockedNoteIds.has(note.id));
-    if (!locked) return;
-    setEditingId(null);
-    void handleOpenNote(locked.id);
-  }, [editingId, handleOpenNote, notes, setEditingId, unlockedNoteIds]);
+  const {
+    exporting,
+    handleExportArchive,
+    handleExportNote,
+    handleRequestLock,
+    handleSelectNote,
+    handleExportPdf,
+    handleShareNote,
+    createNewNote,
+    changeViewMode,
+  } = useKeepActions({
+    userId: userId!,
+    notes,
+    trashedNotes,
+    folders,
+    editingId,
+    setEditingId,
+    unlockedNoteIds,
+    handleOpenNote,
+    handleLockNote,
+    handleDiscardEmpty,
+    handleNewNote,
+    setViewMode,
+  });
 
   if (!userId) return null;
-
-  const handleExportArchive = async () => {
-    setExporting(true);
-    try {
-      await exportNotesArchive(userId, [...notes, ...trashedNotes], folders);
-      notify('Archiwum notatek zostało przygotowane', 'success');
-    } catch (error) {
-      notify(error instanceof Error ? error.message : 'Eksport nie powiódł się', 'error');
-    } finally {
-      setExporting(false);
-    }
-  };
-
-  const handleExportNote = (note: (typeof notes)[number]) => {
-    void exportSingleNote(note, folders.find(folder => folder.id === note.folder_id)).catch(error => {
-      notify(error instanceof Error ? error.message : 'Eksport nie powiódł się', 'error');
-    });
-  };
-
-  const handleRequestLock = async (note: (typeof notes)[number]) => {
-    const passphrase = await promptDialog('Ustaw hasło do notatki (minimum 6 znaków)');
-    if (passphrase === null) return;
-    const repeated = await promptDialog('Powtórz hasło do notatki');
-    if (repeated !== passphrase) {
-      notify('Hasła nie są takie same.', 'error');
-      return;
-    }
-    try {
-      await handleLockNote(note, passphrase);
-      setEditingId(null);
-      notify('Notatka została zaszyfrowana i zablokowana', 'success');
-    } catch (error) {
-      notify(error instanceof Error ? error.message : 'Nie udało się zablokować notatki', 'error');
-    }
-  };
-
-  const handleSelectNote = (id: string | null) => {
-    if (!id) {
-      setEditingId(null);
-      return;
-    }
-    const current = notes.find(note => note.id === editingId);
-    if (current && !current.title.trim() && !getPlainText(current.content)) {
-      void handleDiscardEmpty(current.id);
-    }
-    void handleOpenNote(id);
-  };
-
-  const handleExportPdf = (note: (typeof notes)[number]) => {
-    void exportSingleNotePdf(note, folders.find(folder => folder.id === note.folder_id)).catch(error => {
-      notify(error instanceof Error ? error.message : 'Eksport PDF nie powiódł się', 'error');
-    });
-  };
-
-  const handleShareNote = (note: (typeof notes)[number]) => {
-    void shareNoteCopy(note, folders.find(folder => folder.id === note.folder_id)).catch(error => {
-      notify(error instanceof Error ? error.message : 'Udostępnianie nie powiodło się', 'error');
-    });
-  };
-
-  const createNewNote = () => {
-    void handleNewNote().then((id) => {
-      if (id) setEditingId(id);
-    });
-  };
-
-  const changeViewMode = (mode: 'list' | 'gallery') => {
-    setEditingId(null);
-    setViewMode(mode);
-  };
 
   return (
     <div className={`keep-root ${editingId ? 'keep-mobile-note-open' : ''}`}>

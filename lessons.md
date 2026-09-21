@@ -1,4 +1,4 @@
-# Vanguard Agent Lessons
+# Sparky Agent Lessons
 
 Pamięć agenta o napotkanych problemach i ich rozwiązaniach między sesjami. Przed rozpoczęciem każdego zadania sprawdź te wpisy, aby nie powtarzać błędów.
 

@@ -54,7 +54,7 @@ async function run() {
   await page.waitForLoadState('networkidle');
   await page.waitForTimeout(2000);
 
-  const info = await page.evaluate(() => {
+  const _info = await page.evaluate(() => {
     const el = document.querySelector('header');
     const html = document.documentElement;
     const body = document.body;

@@ -13,7 +13,7 @@ export function Block1Narrative({ phase1, phase1Loading }: { phase1: Phase1Recap
           </div>
           <div>
             <h3 className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-2em)] text-primary">
-              Vanguard Intelligence · Zoom-out Tygodnia
+              Sparky Intelligence · Zoom-out Tygodnia
             </h3>
             <p className="text-3xs font-semibold text-text-muted">
               Synteza zachowań, telemetrii i autentycznego głosu
@@ -31,7 +31,7 @@ export function Block1Narrative({ phase1, phase1Loading }: { phase1: Phase1Recap
       {phase1Loading && (
         <div className="flex items-center gap-3 py-6 justify-center text-text-muted text-sm animate-pulse">
           <Spinner size="sm" />
-          <span>Vanguard AI krzyżuje telemetrię, głosówki i historię Power Listy…</span>
+          <span>Sparky AI krzyżuje telemetrię, głosówki i historię Power Listy…</span>
         </div>
       )}
 

@@ -7,7 +7,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  */
 const config: CapacitorConfig = {
   appId: 'app.vanguard.os',
-  appName: 'Vanguard',
+  appName: 'Sparky',
   webDir: 'dist',
   server: {
     // Prefer HTTPS assets from the bundled dist; no live reload in production APK.

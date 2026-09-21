@@ -23,7 +23,7 @@ self.addEventListener('push', (event) => {
       body: data.body || '',
       icon: '/favicon.png',
       badge: '/favicon.png',
-      tag: data.tag || 'vanguard-notification',
+      tag: data.tag || 'sparky-notification',
       data: {
         url: data.url || '/'
       }

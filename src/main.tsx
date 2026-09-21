@@ -31,6 +31,10 @@ window.onerror = function(msg, _url, line) {
   console.error(errorMsg);
 };
 
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('[Sparky Unhandled Rejection]', event.reason);
+});
+
 try {
   const container = document.getElementById('root');
   if (!container) {

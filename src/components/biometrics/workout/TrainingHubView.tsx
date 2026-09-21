@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, TrendingUp, AlertCircle, RotateCcw } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import Spinner from '../../ui/Spinner';
@@ -21,6 +21,8 @@ import {
 import TrainingTodayCard from './TrainingTodayCard';
 import TrainingTemplatesSection from './TrainingTemplatesSection';
 import WorkoutNlCaptureModal from './WorkoutNlCaptureModal';
+import BodyMap from './BodyMap';
+import WorkoutActivityHeatmap from './WorkoutActivityHeatmap';
 
 function ActiveDraftBanner({
   onResume,
@@ -66,6 +68,7 @@ interface TrainingHubViewProps {
   onNavigate: (path: string) => void;
 }
 
+// eslint-disable-next-line max-lines-per-function
 export default function TrainingHubView({
   userId,
   onStartWorkout,
@@ -73,6 +76,7 @@ export default function TrainingHubView({
   onNavigate,
 }: TrainingHubViewProps) {
   const [loading, setLoading] = useState(Boolean(userId));
+  const [activeTab, setActiveTab] = useState<'hub' | 'anatomy' | 'heatmap'>('hub');
   const [todaySession, setTodaySession] = useState<TodayWorkoutDetails | null>(null);
   const [templates, setTemplates] = useState<WorkoutTemplateSummary[]>([]);
   const [hasDraft, setHasDraft] = useState(false);
@@ -80,6 +84,11 @@ export default function TrainingHubView({
   const haptics = useHaptics();
 
   const todayStr = getTodayWarsaw();
+
+  const heatmapWorkouts = useMemo(
+    () => templates.map((t) => ({ date: t.date, totalTonnage: t.totalTonnageKg, durationMinutes: 50 })),
+    [templates]
+  );
 
   useEffect(() => {
     if (!userId) return;
@@ -168,13 +177,52 @@ export default function TrainingHubView({
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 p-4 sm:p-5 space-y-6 max-w-md mx-auto w-full">
+      <main className="flex-1 p-4 sm:p-5 space-y-5 max-w-md mx-auto w-full">
+        {/* Navigation Tabs */}
+        <div className="flex items-center gap-1 p-1 bg-surface-2/60 rounded-xl border border-border-custom w-full">
+          <Pressable
+            type="button"
+            onClick={() => setActiveTab('hub')}
+            className={`flex-1 py-1.5 rounded-lg text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer ${
+              activeTab === 'hub' ? 'bg-primary text-on-accent shadow-sm' : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            Start & Plany
+          </Pressable>
+          <Pressable
+            type="button"
+            onClick={() => setActiveTab('anatomy')}
+            className={`flex-1 py-1.5 rounded-lg text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer ${
+              activeTab === 'anatomy' ? 'bg-primary text-on-accent shadow-sm' : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            Mapa Mięśni
+          </Pressable>
+          <Pressable
+            type="button"
+            onClick={() => setActiveTab('heatmap')}
+            className={`flex-1 py-1.5 rounded-lg text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer ${
+              activeTab === 'heatmap' ? 'bg-primary text-on-accent shadow-sm' : 'text-text-muted hover:text-text-primary'
+            }`}
+          >
+            Matryca 52 tyg.
+          </Pressable>
+        </div>
+
         {loading ? (
           <div className="py-16 flex flex-col items-center justify-center gap-3">
             <Spinner size="md" />
             <span className="text-2xs font-black uppercase tracking-widest text-text-muted">
               Wczytywanie jednostek...
             </span>
+          </div>
+        ) : activeTab === 'anatomy' ? (
+          <div className="space-y-4 animate-in fade-in">
+            <BodyMap />
+          </div>
+        ) : activeTab === 'heatmap' ? (
+          <div className="space-y-4 animate-in fade-in">
+            <WorkoutActivityHeatmap workouts={heatmapWorkouts} />
           </div>
         ) : (
           <>

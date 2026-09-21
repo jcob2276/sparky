@@ -95,7 +95,7 @@ export default function MedicalDoctorSummaryModal({
       <div className="medical-doc-print space-y-6 text-text-primary">
         <div className="flex items-center justify-between border-b border-border-custom pb-3 print:hidden">
           <p className="text-xs text-text-muted">
-            Wygenerowano na podstawie bazy Vanguard OS: <span className="font-bold text-text-primary">{today}</span>
+            Wygenerowano na podstawie bazy Sparky OS: <span className="font-bold text-text-primary">{today}</span>
           </p>
           <Button icon={<Printer size={15} />} onClick={() => window.print()} size="sm">
             Drukuj / Zapisz jako PDF
@@ -108,7 +108,7 @@ export default function MedicalDoctorSummaryModal({
               <div>
                 <h3 className="text-base font-bold uppercase tracking-tight">Karta Podsumowania Medycznego</h3>
                 <p className="text-3xs text-text-muted mt-0.5">
-                  Vanguard Health Hub · Dane pacjenta do wglądu diagnostycznego
+                  Sparky Health Hub · Dane pacjenta do wglądu diagnostycznego
                 </p>
               </div>
               <div className="text-right text-3xs text-text-muted">

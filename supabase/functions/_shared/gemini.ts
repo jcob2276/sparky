@@ -148,7 +148,9 @@ export async function geminiChat(params: OpenAIChatParams): Promise<OpenAIChatRe
   return { content, raw };
 }
 
-/** Transcribe audio blob via Gemini 3 Flash */
+const FALLBACK_GEMINI_MODELS = ["gemini-2.5-flash", "gemini-1.5-flash"];
+
+/** Transcribe audio blob via Gemini Flash (with model fallback) */
 export async function geminiTranscribe(
   audioBlob: Blob,
   apiKey: string,
@@ -166,28 +168,55 @@ export async function geminiTranscribe(
     "Dokonaj wiernej, dokładnej transkrypcji mowy z tego nagrania audio na tekst w języku polskim. Zwróć wyłącznie sam tekst wypowiedzi, bez żadnych wstępów, cudzysłowów ani komentarzy. Jeśli nagranie zawiera tylko ciszę lub szum, zwróć pusty ciąg znaków.";
   const prompt = opts?.prompt ? `${defaultPrompt}\nKontekst / słowa kluczowe: ${opts.prompt}` : defaultPrompt;
 
-  const url = `${GEMINI_API_URL}/models/${DEFAULT_GEMINI_MODEL}:generateContent?key=${geminiKey}`;
-  const res = await fetchWithRetry(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ inlineData: { mimeType, data: base64Audio } }, { text: prompt }] }],
-    }),
-  }, { timeoutMs: opts?.timeoutMs ?? 45000, retries: 1, logTag: "gemini.transcribe" });
+  const candidateModels = [DEFAULT_GEMINI_MODEL, ...FALLBACK_GEMINI_MODELS];
+  let lastErr: unknown;
 
-  if (!res.ok) {
-    const errText = await res.text().catch(() => "");
-    throw new Error(`Gemini transcribe HTTP error (${res.status}): ${errText.slice(0, 300)}`);
+  for (const model of candidateModels) {
+    const url = `${GEMINI_API_URL}/models/${model}:generateContent?key=${geminiKey}`;
+    try {
+      const res = await fetchWithRetry(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ inlineData: { mimeType, data: base64Audio } }, { text: prompt }] }],
+        }),
+      }, { timeoutMs: opts?.timeoutMs ?? 45000, retries: 1, logTag: `gemini.transcribe.${model}` });
+
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        if (res.status === 404 && model !== candidateModels[candidateModels.length - 1]) {
+          console.warn(`[geminiTranscribe] Model ${model} returned 404, falling back...`);
+          continue;
+        }
+        throw new Error(`Gemini transcribe HTTP error (${res.status}): ${errText.slice(0, 300)}`);
+      }
+
+      const raw = (await res.json()) as GeminiApiResponse;
+      if (raw.error) {
+        if (raw.error.code === 404 && model !== candidateModels[candidateModels.length - 1]) {
+          console.warn(`[geminiTranscribe] Model ${model} returned 404 in body, falling back...`);
+          continue;
+        }
+        throw new Error(`Gemini transcribe error (${raw.error.code}): ${raw.error.message}`);
+      }
+      const parts = raw.candidates?.[0]?.content?.parts ?? [];
+      const textParts = parts
+        .filter((p) => typeof p.text === "string" && p.text.trim())
+        .map((p) => p.text!.trim());
+      const transcribed = textParts.join(" ");
+      return transcribed.trim();
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      if ((msg.includes("404") || msg.includes("not found")) && model !== candidateModels[candidateModels.length - 1]) {
+        console.warn(`[geminiTranscribe] Model ${model} error (${msg}), trying fallback...`);
+        continue;
+      }
+      throw err;
+    }
   }
 
-  const raw = (await res.json()) as GeminiApiResponse;
-  if (raw.error) throw new Error(`Gemini transcribe error (${raw.error.code}): ${raw.error.message}`);
-  const parts = raw.candidates?.[0]?.content?.parts ?? [];
-  const textParts = parts
-    .filter((p) => typeof p.text === "string" && p.text.trim())
-    .map((p) => p.text!.trim());
-  const transcribed = textParts.join(" ");
-  return transcribed.trim();
+  throw lastErr instanceof Error ? lastErr : new Error(String(lastErr));
 }
 
 /** Generate 1536-dimensional embedding via Gemini gemini-embedding-001 */

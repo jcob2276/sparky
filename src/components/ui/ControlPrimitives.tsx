@@ -6,20 +6,29 @@ import {
   type TextareaHTMLAttributes,
 } from 'react';
 import Button, { type ButtonProps } from './Button';
+import { haptics } from '../../hooks/useHaptics';
 
 const CONTROL_MOTION = 'transition-[color,background-color,border-color,box-shadow,opacity,transform] duration-[var(--motion-fast)] ease-[var(--ease-out)] disabled:cursor-not-allowed disabled:opacity-[var(--opacity-disabled)]';
 
 /** Semantic low-level interaction target for complex widgets.
  * Use Button for ordinary actions; Pressable exists for calendars, cards and drag handles. */
-export type PressableProps = ButtonHTMLAttributes<HTMLButtonElement> & Partial<Pick<ButtonProps, 'variant' | 'size' | 'loading' | 'icon' | 'iconPosition'>>;
+export type PressableProps = ButtonHTMLAttributes<HTMLButtonElement> & Partial<Pick<ButtonProps, 'variant' | 'size' | 'loading' | 'icon' | 'iconPosition' | 'haptic'>>;
 
 export const Pressable = forwardRef<HTMLButtonElement, PressableProps>(
-  ({ className = '', type = 'button', variant, size, loading, icon, iconPosition, ...props }, ref) => {
+  ({ className = '', type = 'button', variant, size, loading, icon, iconPosition, haptic = 'selection', onClick, ...props }, ref) => {
     const usesButtonContract = variant !== undefined || size !== undefined || loading !== undefined || icon !== undefined || iconPosition !== undefined;
     if (usesButtonContract) {
-      return <Button ref={ref} type={type} variant={variant} size={size} loading={loading} icon={icon} iconPosition={iconPosition} className={className} {...props} />;
+      return <Button ref={ref} type={type} variant={variant} size={size} loading={loading} icon={icon} iconPosition={iconPosition} haptic={haptic} onClick={onClick} className={className} {...props} />;
     }
-    return <button ref={ref} type={type} data-ui="pressable" className={`ui-pressable ${CONTROL_MOTION} cursor-pointer ${className}`} {...props} />;
+    const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (!props.disabled && haptic !== 'none') {
+        if (haptic === 'light') haptics.light();
+        else if (haptic === 'medium') haptics.medium();
+        else haptics.selection();
+      }
+      onClick?.(e);
+    };
+    return <button ref={ref} type={type} data-ui="pressable" onClick={handleClick} className={`ui-pressable ${CONTROL_MOTION} cursor-pointer select-none active:scale-[0.965] ${className}`} {...props} />;
   },
 );
 Pressable.displayName = 'Pressable';

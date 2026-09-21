@@ -107,7 +107,7 @@ export default function Auth() {
             </div>
           </div>
           <h1 className="auth-title font-display text-text-primary tracking-tight">
-            Vanguard
+            Sparky
           </h1>
           <p className="auth-subtitle">
             Wpisz dane, aby wejść do systemu.

@@ -68,7 +68,7 @@ function getDomainsList(p: DataExportDomainGridProps): DomainItem[] {
     { label: 'Sen & Regeneracja', sub: 'Oura: sen, gotowość, HRV, tętno', icon: Moon, active: p.includeOura, toggle: () => p.setIncludeOura(!p.includeOura) },
     { label: 'Screen Time & Cyfrowy Ślad', sub: 'Telefon, nocne użycie, sesje PC', icon: Smartphone, active: p.includeActivityWatch, toggle: () => p.setIncludeActivityWatch(!p.includeActivityWatch) },
     { label: 'Dyscyplina & Lenie', sub: 'Streak, wpadki, godziny, triggery', icon: ShieldCheck, active: p.includeHabits, toggle: () => p.setIncludeHabits(!p.includeHabits) },
-    { label: 'Notatnik & Telegram', sub: 'Zapiski, strumień Vanguard, refleksje', icon: BookOpen, active: p.includeJournal, toggle: () => p.setIncludeJournal(!p.includeJournal) },
+    { label: 'Notatnik & Telegram', sub: 'Zapiski, strumień Sparky, refleksje', icon: BookOpen, active: p.includeJournal, toggle: () => p.setIncludeJournal(!p.includeJournal) },
     { label: 'Fundament & Wizja', sub: 'Tożsamość, zasady, cele życiowe', icon: Compass, active: p.includeFundament, toggle: () => p.setIncludeFundament(!p.includeFundament) },
   ];
 }

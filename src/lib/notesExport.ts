@@ -134,5 +134,5 @@ export async function exportNotesArchive(
   folders: NoteFolder[],
 ): Promise<void> {
   const blob = await buildNotesArchive(userId, notes, folders);
-  downloadBlob(blob, `vanguard-notatki-${getTodayWarsaw()}.zip`);
+  downloadBlob(blob, `sparky-notatki-${getTodayWarsaw()}.zip`);
 }

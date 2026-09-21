@@ -1,9 +1,10 @@
 # Product Language
 
-This is the canonical vocabulary for Vanguard UI, docs, and agent-facing work. Code may keep legacy component/table names when renaming would create churn, but user-facing copy and new docs should use these terms.
+This is the canonical vocabulary for Sparky UI, docs, and agent-facing work. Code may keep legacy component/table names (`vanguard-*`) when renaming would create churn, but user-facing copy, docs, and agent responses must use **Sparky**.
 
 | Canonical term | Polish UI label | Meaning | Replaces / avoid |
 |---|---|---|---|
+| Sparky | Sparky | Canonical product, OS, and assistant name. | Vanguard (legacy technical ID) |
 | Plan | Plan | A bounded commitment for a day or week. Plans contain selected tasks/moves, not every possible intention. | Power List as a product name |
 | Move | Ruch | A concrete next action that can be started and completed. | vague task, idea, intention |
 | Artifact | Artefakt | A real output in the world: call made, message sent, shipped file, decision delivered. | "progress" without output |
@@ -17,6 +18,7 @@ This is the canonical vocabulary for Vanguard UI, docs, and agent-facing work. C
 
 ## UI Rules
 
+- Always name the application **Sparky** (never Vanguard in user copy).
 - Use `Plan dnia` instead of `Power List` in visible copy.
 - Use `Zadania` instead of `Todo` in visible copy, unless referring to a technical integration/history.
 - Use `Notatki` instead of `Keep` in visible copy.

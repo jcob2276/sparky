@@ -141,7 +141,7 @@ export async function rpcWithOfflineFallback(
 
 let flushing = false;
 
-async function flushOfflineQueue(): Promise<void> {
+export async function flushOfflineQueue(): Promise<void> {
   if (flushing) return;
   if (typeof navigator !== 'undefined' && !navigator.onLine) return;
   flushing = true;

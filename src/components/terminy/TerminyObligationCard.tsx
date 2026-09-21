@@ -233,8 +233,8 @@ export function TerminyObligationCard({
               onAddToCalendar(row);
             }}
             className="rounded-full p-2 text-text-muted opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
-            title="Dodaj do Kalendarza Vanguard"
-            aria-label="Dodaj do Kalendarza Vanguard"
+            title="Dodaj do Kalendarza Sparky"
+            aria-label="Dodaj do Kalendarza Sparky"
           >
             <CalendarPlus size={15} strokeWidth={2} />
           </Pressable>

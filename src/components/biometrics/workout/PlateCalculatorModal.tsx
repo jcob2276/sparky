@@ -1,7 +1,12 @@
 import { useState, useId } from 'react';
 import Modal from '../../ui/Modal';
 import { Pressable, ControlInput } from '../../ui/ControlPrimitives';
-import { calculatePlates } from '../../../lib/health/workoutPlateCalculator';
+import NumberTicker from '../../ui/NumberTicker';
+import {
+  calculatePlates,
+  BAR_PRESETS,
+  type BarType,
+} from '../../../lib/health/workoutPlateCalculator';
 import { useHaptics } from '../../../hooks/useHaptics';
 
 interface PlateCalculatorModalProps {
@@ -21,14 +26,17 @@ const PLATE_COLORS: Record<number, string> = {
   1.25: 'bg-surface-1 text-text-muted border-border-custom',
 };
 
+const BAR_OPTIONS: BarType[] = ['olympic', 'ez', 'smith', 'smith_counterbalanced', 'trap'];
+
 export default function PlateCalculatorModal({
   isOpen,
   onClose,
   initialWeight = 60,
   onApplyWeight,
 }: PlateCalculatorModalProps) {
+  const [selectedBar, setSelectedBar] = useState<BarType>('olympic');
+  const barWeight = BAR_PRESETS[selectedBar]?.weightKg ?? 20;
   const [totalWeight, setTotalWeight] = useState<number>(initialWeight > 0 ? initialWeight : 60);
-  const [barWeight, setBarWeight] = useState<number>(20);
   const haptics = useHaptics();
   const weightInputId = useId();
 
@@ -66,24 +74,27 @@ export default function PlateCalculatorModal({
           </div>
 
           <div className="space-y-1 shrink-0">
-            <label className="text-3xs font-black uppercase tracking-wider text-text-muted">Gryf</label>
-            <div className="flex gap-1">
-              {[20, 15, 10].map((b) => (
-                <Pressable
-                  key={b}
-                  onClick={() => {
-                    haptics.light();
-                    setBarWeight(b);
-                  }}
-                  className={`px-2.5 py-2 text-xs font-black rounded-xl border ui-interactive cursor-pointer ${
-                    barWeight === b
-                      ? 'border-primary bg-primary/15 text-primary'
-                      : 'border-border-custom bg-surface text-text-secondary hover:text-text-primary'
-                  }`}
-                >
-                  {b}k
-                </Pressable>
-              ))}
+            <label className="text-3xs font-black uppercase tracking-wider text-text-muted">Gryf / Sprzęt</label>
+            <div className="flex flex-wrap gap-1 max-w-[200px]">
+              {BAR_OPTIONS.map((type) => {
+                const preset = BAR_PRESETS[type];
+                return (
+                  <Pressable
+                    key={type}
+                    onClick={() => {
+                      haptics.light();
+                      setSelectedBar(type);
+                    }}
+                    className={`px-2 py-1.5 text-3xs font-black rounded-lg border ui-interactive cursor-pointer ${
+                      selectedBar === type
+                        ? 'border-primary bg-primary/15 text-primary'
+                        : 'border-border-custom bg-surface text-text-secondary hover:text-text-primary'
+                    }`}
+                  >
+                    {preset.weightKg > 0 ? `${preset.weightKg}k` : '0k'} {type === 'smith' ? 'Smith' : type === 'smith_counterbalanced' ? 'Smith CB' : type === 'ez' ? 'EZ' : type === 'trap' ? 'Trap' : 'Olimp'}
+                  </Pressable>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -105,7 +116,9 @@ export default function PlateCalculatorModal({
         <div className="rounded-2xl border border-border-custom bg-surface/50 p-4 space-y-3">
           <div className="flex items-center justify-between text-xs">
             <span className="font-bold text-text-muted uppercase tracking-wider">Na jedną stronę:</span>
-            <span className="font-black text-base text-primary font-mono">{calc.weightPerSide} kg</span>
+            <span className="font-black text-base text-primary font-mono">
+              <NumberTicker value={calc.weightPerSide} /> kg
+            </span>
           </div>
 
           {/* Plates visual breakdown */}

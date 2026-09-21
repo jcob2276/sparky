@@ -41,7 +41,7 @@ function OutcomeBadge({ outcome }: { outcome: string | null }) {
   }
 }
 
-function HistoryTimelineItem({ rec }: { rec: OracleRecommendation }) {
+export function HistoryTimelineItem({ rec }: { rec: OracleRecommendation }) {
   const [expanded, setExpanded] = React.useState(false);
   const baselineVal = rec.baseline_value !== null ? rec.baseline_value.toFixed(1) : '—';
   const actualVal = rec.actual_value !== null ? rec.actual_value.toFixed(1) : '—';
@@ -101,7 +101,7 @@ export function MetricGroupHeader({ metric, count, color, icon }: { metric: stri
   );
 }
 
-function OracleStats({ evaluated }: { evaluated: OracleRecommendation[] }) {
+export function OracleStats({ evaluated }: { evaluated: OracleRecommendation[] }) {
   const successes = evaluated.filter((r) => r.outcome === 'success').length;
   const fails = evaluated.filter((r) => r.outcome === 'fail').length;
   const noData = evaluated.filter((r) => r.outcome === 'no_data').length;

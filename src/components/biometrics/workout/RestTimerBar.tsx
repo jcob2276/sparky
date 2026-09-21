@@ -2,11 +2,34 @@ import { useState, useEffect, useRef } from 'react';
 import { Timer, X, Plus, RotateCcw } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import { useHaptics } from '../../../hooks/useHaptics';
+import NumberTicker from '../../ui/NumberTicker';
 
 interface RestTimerBarProps {
   initialSeconds?: number;
   onFinish?: () => void;
   onDismiss?: () => void;
+}
+
+function playTimerBeep() {
+  try {
+    const AudioCtx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.25);
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+  } catch {
+    // ignore audio policy restrictions
+  }
 }
 
 export default function RestTimerBar({
@@ -17,6 +40,7 @@ export default function RestTimerBar({
   const [totalSeconds, setTotalSeconds] = useState(initialSeconds);
   const [remaining, setRemaining] = useState(initialSeconds);
   const [isRunning, setIsRunning] = useState(true);
+  const [isFlashing, setIsFlashing] = useState(false);
   const haptics = useHaptics();
   const finishedRef = useRef(false);
 
@@ -31,6 +55,9 @@ export default function RestTimerBar({
           if (!finishedRef.current) {
             finishedRef.current = true;
             haptics.success();
+            playTimerBeep();
+            setIsFlashing(true);
+            setTimeout(() => setIsFlashing(false), 2500);
             onFinish?.();
           }
           return 0;
@@ -70,10 +97,12 @@ export default function RestTimerBar({
   return (
     <div className="fixed bottom-24 left-4 right-4 max-w-md mx-auto z-30 animate-in fade-in slide-in-from-bottom-3 duration-200">
       <div
-        className={`rounded-2xl border shadow-xl backdrop-blur-md p-3 transition-colors ${
-          isDone
-            ? 'bg-success/15 border-success/40 text-success'
-            : 'bg-surface-solid/95 border-primary/30 text-text-primary'
+        className={`rounded-2xl border shadow-xl backdrop-blur-md p-3 transition-all duration-300 ${
+          isFlashing
+            ? 'bg-success/30 border-success ring-4 ring-success/50 animate-pulse text-success shadow-[0_0_30px_rgba(34,197,94,0.4)]'
+            : isDone
+              ? 'bg-success/15 border-success/40 text-success'
+              : 'bg-surface-solid/95 border-primary/30 text-text-primary'
         }`}
       >
         <div className="flex items-center justify-between gap-3">
@@ -85,7 +114,7 @@ export default function RestTimerBar({
             <div>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-base font-black font-mono tracking-tight tabular-nums">
-                  {isDone ? 'Koniec przerwy!' : formatTime(remaining)}
+                  {isDone ? 'Koniec przerwy!' : <NumberTicker value={formatTime(remaining)} />}
                 </span>
                 <span className="text-3xs font-bold uppercase tracking-wider text-text-muted">
                   {isDone ? 'Czas na serię' : 'Odpoczynek'}

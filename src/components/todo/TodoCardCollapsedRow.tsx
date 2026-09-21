@@ -260,14 +260,35 @@ export default function TodoCardCollapsedRow({
 
       {/* Hover Quick Actions */}
       {!isDone && (
-        <div className="shrink-0 flex items-center gap-1 opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] transition-opacity duration-[var(--motion-medium)] ml-2">
-          <Pressable onClick={e => { e.stopPropagation(); onEditStart(item.title); }} className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer" title="Edytuj zadanie (Ctrl E)" aria-label="Edytuj zadanie">
+        <div className="shrink-0 flex items-center gap-0.5 opacity-[var(--opacity-0)] group-hover:opacity-[var(--opacity-100)] focus-within:opacity-[var(--opacity-100)] transition-opacity duration-[var(--motion-medium)] ml-2 relative z-10">
+          <Pressable
+            haptic="none"
+            onMouseDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onEditStart(item.title); }}
+            className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.08] active:bg-text-primary/[0.12] rounded-lg transition-colors cursor-pointer"
+            title="Edytuj zadanie (Ctrl E)"
+            aria-label="Edytuj zadanie"
+          >
             <Pencil size={13} />
           </Pressable>
-          <Pressable onClick={e => { e.stopPropagation(); onToggleExpand(item.id); }} className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer" title="Szczegóły i komentarze" aria-label="Szczegóły i komentarze">
+          <Pressable
+            haptic="none"
+            onMouseDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onToggleExpand(item.id); }}
+            className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.08] active:bg-text-primary/[0.12] rounded-lg transition-colors cursor-pointer"
+            title="Szczegóły i komentarze"
+            aria-label="Szczegóły i komentarze"
+          >
             <MessageSquare size={13} />
           </Pressable>
-          <Pressable onClick={e => { e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect(); onShowContextMenu(item, rect.left, rect.bottom + 5); }} className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer" title="Więcej opcji" aria-label="Więcej opcji">
+          <Pressable
+            haptic="none"
+            onMouseDown={e => e.stopPropagation()}
+            onClick={e => { e.stopPropagation(); onShowContextMenu(item, e.currentTarget.getBoundingClientRect().left, e.currentTarget.getBoundingClientRect().bottom + 5); }}
+            className="p-1 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.08] active:bg-text-primary/[0.12] rounded-lg transition-colors cursor-pointer"
+            title="Więcej opcji"
+            aria-label="Więcej opcji"
+          >
             <MoreHorizontal size={13} />
           </Pressable>
         </div>

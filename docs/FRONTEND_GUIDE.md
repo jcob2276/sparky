@@ -1,4 +1,4 @@
-# Vanguard OS — Frontend Guide
+# Sparky OS — Frontend Guide
 
 > Przewodnik deweloperski oraz zasady projektowe (UX/UI) dla katalogu `src/` (React SPA).
 >

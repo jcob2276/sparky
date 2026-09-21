@@ -1,4 +1,5 @@
 import { ReactNode, CSSProperties, ElementType, ComponentPropsWithoutRef } from 'react';
+import { haptics } from '../../hooks/useHaptics';
 
 type CardVariant = 'surface' | 'grouped' | 'hero' | 'floating' | 'glass' | 'immersive' | 'canvas' | 'receipt' | 'outline' | 'notice' | 'danger' | 'accent';
 
@@ -76,14 +77,20 @@ const VARIANTS: Record<CardVariant, { style: CSSProperties; className: string }>
 
 export function Card({ variant = 'surface', children, className = '', style, onClick, padding, as: Tag = 'div', ...props }: CardProps) {
   const v = VARIANTS[variant];
+  const handleClick = onClick
+    ? () => {
+        haptics.selection();
+        onClick();
+      }
+    : undefined;
   return (
     <Tag
       {...props}
       data-ui="card"
       data-variant={variant}
-      className={`${v.className} ${onClick ? 'ui-card--interactive cursor-pointer touch-manipulation' : ''} ${className}`}
+      className={`${v.className} ${onClick ? 'ui-card--interactive cursor-pointer touch-manipulation select-none' : ''} ${className}`}
       style={{ padding: padding ?? '1rem', ...v.style, ...style }}
-      onClick={onClick}
+      onClick={handleClick}
     >
       {children}
     </Tag>

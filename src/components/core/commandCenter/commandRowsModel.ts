@@ -1,5 +1,5 @@
 import { Bookmark, CheckCircle2, Folder, Sparkles } from 'lucide-react';
-import type { VanguardCommand } from './commandCatalog';
+import type { SparkyCommand } from './commandCatalog';
 
 export interface SearchResults {
   graph: Array<{ source_entity: string; relation: string; target_entity: string; fact_text: string | null }>;
@@ -17,7 +17,7 @@ export interface CommandRowItem {
   run: () => Promise<unknown> | unknown;
 }
 
-export function commandsToRows(commands: VanguardCommand[]): CommandRowItem[] {
+export function commandsToRows(commands: SparkyCommand[]): CommandRowItem[] {
   return commands.map((command) => ({
     id: `command-${command.id}`,
     title: command.title,

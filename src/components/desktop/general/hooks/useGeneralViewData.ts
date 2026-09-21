@@ -33,7 +33,7 @@ export interface GeneralViewCuriosity {
   created_at: string | null;
 }
 
-interface GeneralViewFriction {
+export interface GeneralViewFriction {
   occurred_at: string | null;
   friction_type: string | null;
   actual_behavior: string | null;

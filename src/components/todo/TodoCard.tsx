@@ -190,7 +190,7 @@ export default function TodoCard({
             overflow: transitionCompleted ? 'visible' : 'hidden'
           }}
         >
-          <div style={{ overflow: transitionCompleted ? 'visible' : 'hidden' }}>
+          <div className="min-h-0" style={{ overflow: transitionCompleted ? 'visible' : 'hidden' }}>
             {expandMounted && (
               <TodoCardExpandedPanel
                 item={item}

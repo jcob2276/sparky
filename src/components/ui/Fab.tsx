@@ -1,4 +1,5 @@
 import React from 'react';
+import { haptics } from '../../hooks/useHaptics';
 
 export interface FabProps {
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
@@ -36,15 +37,22 @@ export default function Fab({
   type = 'button',
 }: FabProps) {
   // scale-108 hover, scale-93 active for iOS physical feel (from keep-fab and design system)
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!disabled) {
+      haptics.medium();
+    }
+    onClick?.(e);
+  };
+
   return (
     <button
       type={type}
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       style={style}
       title={title}
       aria-label={title}
-      className={`flex items-center justify-center rounded-full bg-primary text-on-accent shadow-lg shadow-primary/25 ui-interactive duration-[var(--motion-medium)] active:scale-93 hover:scale-105 disabled:opacity-[var(--opacity-50)] disabled:pointer-events-none cursor-pointer ${positionClasses[position]} ${sizeClasses[size]} ${className}`}
+      className={`flex items-center justify-center rounded-full bg-primary text-on-accent shadow-lg shadow-primary/25 ui-interactive duration-[var(--motion-medium)] active:scale-93 hover:scale-105 disabled:opacity-[var(--opacity-50)] disabled:pointer-events-none cursor-pointer select-none touch-manipulation ${positionClasses[position]} ${sizeClasses[size]} ${className}`}
     >
       {children}
     </button>

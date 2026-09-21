@@ -1,14 +1,16 @@
 import { create } from 'zustand';
 import type { Session } from '@supabase/supabase-js';
 
-type VanguardStore = {
+type SparkyStore = {
   session: Session | null;
   isSyncing: boolean;
   setSession: (session: Session | null) => void;
   setSyncing: (isSyncing: boolean) => void;
 };
 
-export const useStore = create<VanguardStore>((set) => ({
+export type VanguardStore = SparkyStore;
+
+export const useStore = create<SparkyStore>((set) => ({
   session: null,
   isSyncing: false,
 

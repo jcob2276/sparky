@@ -5,11 +5,13 @@ import { isOfflineError, queueOfflineWrite } from './offlineQueue';
 import type { Database } from './database.types';
 import { normalizeCalendarEvent } from './calendarIntegrity';
 
-export type VanguardCalendarRow = Database['public']['Tables']['vanguard_calendar']['Row'] & {
+export type SparkyCalendarRow = Database['public']['Tables']['vanguard_calendar']['Row'] & {
   description?: string | null;
   recurrence?: string[] | null;
   series_id?: string | null;
 };
+
+export type VanguardCalendarRow = SparkyCalendarRow;
 
 export interface CalendarEvent {
   id?: string;
@@ -88,7 +90,7 @@ export function useCreateCalendarEvent() {
     },
     onSuccess: (data, variables) => {
       if (data && data.eventId) {
-        const localEvent: VanguardCalendarRow = {
+        const localEvent: SparkyCalendarRow = {
           id: data.eventId,
           event_id: data.eventId,
           user_id: variables.userId,
@@ -104,7 +106,7 @@ export function useCreateCalendarEvent() {
           series_id: null,
           created_at: new Date().toISOString(),
         };
-        queryClient.setQueriesData<VanguardCalendarRow[]>(
+        queryClient.setQueriesData<SparkyCalendarRow[]>(
           { queryKey: ['calendar', 'events'] },
           (prev) => {
             if (!prev) return [localEvent];
@@ -147,7 +149,7 @@ export function useUpdateCalendarEvent() {
     },
 
     onSuccess: (_data, variables) => {
-      queryClient.setQueriesData<VanguardCalendarRow[]>(
+      queryClient.setQueriesData<SparkyCalendarRow[]>(
         { queryKey: ['calendar', 'events'] },
         (prev) => {
           if (!prev) return [];
@@ -215,7 +217,7 @@ export function useDeleteCalendarEvent() {
       }
     },
     onSuccess: (_data, variables) => {
-      queryClient.setQueriesData<VanguardCalendarRow[]>(
+      queryClient.setQueriesData<SparkyCalendarRow[]>(
         { queryKey: ['calendar', 'events'] },
         (prev) => {
           if (!prev) return [];

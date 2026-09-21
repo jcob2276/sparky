@@ -5,7 +5,7 @@ import { logAuditEvent } from "../../_shared/audit.ts";
 import { updateStreamClassification } from "../../_shared/repos/streamRepo.ts";
 import { deepseekChat, parseJsonFromContent } from "../../_shared/deepseek.ts";
 import { LLM_TASKS } from "../../_shared/llm/tasks.ts";
-import { getWarsawDateString } from "../../_shared/time.ts";
+import { getWarsawDateString, getWarsawDayOfWeek, isWarsawWeekend } from "../../_shared/time.ts";
 import { CLASSIFY_SYSTEM, FRICTION_SYSTEM } from "../prompts.ts";
 import { normalizeClassification, normalizeFriction } from "./normalize.ts";
 import { handleClosureProposals } from "./closures.ts";
@@ -78,12 +78,15 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
   }
 
   const today = getWarsawDateString();
+  const dayOfWeek = getWarsawDayOfWeek(today);
+  const isWeekend = isWarsawWeekend(today);
 
   const aggregate = await getAggregateByDate(supabase, record.user_id, today);
 
-  const contextStr = aggregate
+  const timeContext = `DATA I DZIEŃ TYGODNIA: ${today}, ${dayOfWeek.toUpperCase()} (${isWeekend ? 'WEEKEND / CZAS REGENERACJI' : 'DZIEŃ ROBOCZY'}).`;
+  const contextStr = `${timeContext} ` + (aggregate
     ? `BIOMETRIA DZIŚ: HRV ${aggregate.hrv_avg}, Sen ${aggregate.sleep_hours}h, Stan: ${aggregate.final_state}.`
-    : 'BIOMETRIA DZIŚ: Brak danych.';
+    : 'BIOMETRIA DZIŚ: Brak danych.');
 
   const apiKey = Deno.env.get('DEEPSEEK_API_KEY') || '';
 
@@ -137,7 +140,7 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
           ...LLM_TASKS.classify,
           messages: [
             { role: 'system', content: FRICTION_SYSTEM },
-            { role: 'user', content: record.content },
+            { role: 'user', content: `${timeContext}\nTREŚĆ: ${record.content}` },
           ],
           maxTokens: null,
         });

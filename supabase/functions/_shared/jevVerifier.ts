@@ -40,10 +40,10 @@ export async function verifyDataSufficiencyWithJev(
           instructions: "Jaki jest glowny brak w danych, uniemozliwiajacy rzetelna analize?",
           criteria: {
             none: "Dane sa kompletne lub wystarczajace do rzetelnego raportu.",
-            biometrics_missing: "Brak danych biometrycznych (sen, HRV, aktywnosc) z kluczowych dni.",
-            reflections_missing: "Brak notatek, dziennika lub wieczornych refleksji uzytkownika.",
-            plans_missing: "Brak zadeklarowanych planow lub celow w analizowanym oknie.",
-            stream_empty: "Brak wpisow w strumieniu biezacym.",
+            biometrics_missing: "Prawie calkowity brak danych biometrycznych (mniej niz 3 dni ze snem/HRV w oknie 7 dni).",
+            reflections_missing: "Calkowity brak notatek, dziennika ani refleksji uzytkownika (mniej niz 3 dni z wpisem w oknie 7 dni).",
+            plans_missing: "Calkowity brak zadeklarowanych planow, zadan Power Listy ani celow (mniej niz 3 dni z planem w oknie 7 dni).",
+            stream_empty: "Brak jakichkolwiek wpisow w strumieniu biezacym (stream_count = 0).",
           },
         },
       },
@@ -55,13 +55,15 @@ export async function verifyDataSufficiencyWithJev(
 
     const prob = noulAns?.noul ?? 0.5;
     const threshold = params.minThreshold ?? 0.65;
-    const isSufficient = prob >= threshold;
+    const isNoneMissing = choiceAns?.choice === "none";
+    const isSufficient = isNoneMissing || prob >= threshold;
+    const sufficiencyScore = isNoneMissing ? Math.max(prob, 0.95) : prob;
 
     const missing = choiceAns?.choice && choiceAns.choice !== "none" ? [choiceAns.choice] : [];
 
     return {
       isSufficient,
-      sufficiencyScore: prob,
+      sufficiencyScore,
       missingDimensions: missing,
       reason: isSufficient
         ? "Wystarczajace dane"

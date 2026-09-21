@@ -51,12 +51,13 @@ export async function upsertDailyReconciliationScore(userId: string, date: strin
   }
 }
 
-export async function insertVanguardStream(entry: TablesInsert<'vanguard_stream'>): Promise<void> {
+export async function insertSparkyStream(entry: TablesInsert<'vanguard_stream'>): Promise<void> {
   const { error } = await supabase
     .from('vanguard_stream')
     .insert(entry);
   if (error) throw error;
 }
+export const insertVanguardStream = insertSparkyStream;
 
 export async function fetchShutdownFoodEntries(
   userId: string,

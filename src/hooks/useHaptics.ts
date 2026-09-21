@@ -37,6 +37,8 @@ const haptics = {
   vibrate: (pattern: number | number[]) => vibrate(pattern),
 };
 
+export { haptics };
+
 export function useHaptics() {
   return haptics;
 }
