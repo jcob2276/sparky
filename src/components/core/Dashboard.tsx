@@ -21,8 +21,7 @@ import { DashboardHeader } from './DashboardHeader';
 import { DashboardNavBar } from './DashboardNavBar';
 import { DashboardModals } from './DashboardModals';
 import { DashboardFastCaptureMenu } from './DashboardFastCapture';
-import OrientationFooter from './OrientationFooter';
-import DreamBoardBanner from './DreamBoardBanner';
+import VisionHeroCard from './VisionHeroCard';
 import PowerList from '../lifestyle/PowerList';
 import FoodQuickCapture from './nutrition/FoodQuickCapture';
 import SearchModal from './SearchModal';
@@ -176,9 +175,8 @@ function DashboardContent() {
             onTouchCancel={showLock ? undefined : s.handleMainTouchCancel}
           >
             {showLock ? (
-              <div className="p-5 pb-8 space-y-7 overflow-y-auto h-full">
-                <DreamBoardBanner />
-                <OrientationFooter />
+              <div className="p-5 pb-8 space-y-5 overflow-y-auto h-full">
+                <VisionHeroCard />
                 {weeklyReviewNudge}
                 <PowerList
                   todayWin={s.todayWin}

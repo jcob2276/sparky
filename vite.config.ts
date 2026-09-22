@@ -121,7 +121,7 @@ export default defineConfig(({ mode }) => {
           './src/components/calendar/CalendarView.tsx',
           './src/components/todo/Todo.tsx',
           './src/components/desktop/shell/DesktopDashboard.tsx',
-          './src/components/finance/index.tsx',
+          './src/components/finance/FinancePage.tsx',
           './src/components/growth/GrowthView.tsx',
           './src/components/biometrics/OuraHealthPage.tsx',
         ]
