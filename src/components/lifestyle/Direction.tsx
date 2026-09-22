@@ -124,25 +124,25 @@ export default function Direction({
 
       {/* ── Tydzień ── */}
       <section className="space-y-3">
-        <SectionTitle
-          icon={Calendar}
-          title={
-            showSprintMode
-              ? 'Zamknięcie sprintu'
-              : showMonthlyMode && !monthlyComplete
-                ? 'Przegląd miesiąca'
-                : showWeeklyPlanning
-                  ? 'Plan następnego tygodnia'
-                  : 'Radar tygodnia'
-          }
-          detail={
-            showSprintMode && sprintFacts
-              ? `${sprintFacts.sprintLabel} · 12/12`
-              : showMonthlyMode && !monthlyComplete && monthFacts
-                ? monthFacts.monthLabel
-                : planWeekLabel
-          }
-        />
+        {(showSprintMode || (showMonthlyMode && !monthlyComplete) || showWeeklyPlanning) && (
+          <SectionTitle
+            icon={Calendar}
+            title={
+              showSprintMode
+                ? 'Zamknięcie sprintu'
+                : showMonthlyMode && !monthlyComplete
+                  ? 'Przegląd miesiąca'
+                  : 'Plan następnego tygodnia'
+            }
+            detail={
+              showSprintMode && sprintFacts
+                ? `${sprintFacts.sprintLabel} · 12/12`
+                : showMonthlyMode && !monthlyComplete && monthFacts
+                  ? monthFacts.monthLabel
+                  : planWeekLabel
+            }
+          />
+        )}
 
         {showSprintMode && !sprintFacts && (
           <div className="py-6 text-center text-sm text-text-muted animate-pulse">

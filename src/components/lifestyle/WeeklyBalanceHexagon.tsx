@@ -59,7 +59,8 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
     () => LIFE_SPHERES.filter((s) => (actuals?.[s.id] ?? 0) > 0 || targetFor(s.id) > 0),
     [actuals, targetFor],
   );
-  const displayedSpheres = showAllSpheres || activeSpheres.length === 0 ? LIFE_SPHERES : activeSpheres;
+  const hasConfiguredSpheres = activeSpheres.length > 0;
+  const displayedSpheres = showAllSpheres ? LIFE_SPHERES : activeSpheres;
 
   const axisScale = useMemo(() => {
     const values = LIFE_SPHERES.flatMap((s) => [targetFor(s.id), actuals?.[s.id] ?? 0]);
@@ -117,24 +118,11 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
           <p className="text-xs text-text-muted">Budżet (cel) vs realny czas per sfera życia</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* View toggle */}
           <div className="flex rounded-lg border border-border-custom/40 bg-surface/60 p-0.5 text-3xs font-black uppercase">
-            <Pressable
-              type="button"
-              onClick={() => setViewMode('bars')}
-              className={`px-2 py-1 rounded-md ui-interactive ${
-                viewMode === 'bars' ? 'bg-primary text-on-primary' : 'text-text-muted hover:text-text-primary'
-              }`}
-            >
+            <Pressable type="button" onClick={() => setViewMode('bars')} className={`px-2 py-1 rounded-md ui-interactive ${viewMode === 'bars' ? 'bg-primary text-on-primary' : 'text-text-muted hover:text-text-primary'}`}>
               Paski
             </Pressable>
-            <Pressable
-              type="button"
-              onClick={() => setViewMode('radar')}
-              className={`px-2 py-1 rounded-md ui-interactive ${
-                viewMode === 'radar' ? 'bg-primary text-on-primary' : 'text-text-muted hover:text-text-primary'
-              }`}
-            >
+            <Pressable type="button" onClick={() => setViewMode('radar')} className={`px-2 py-1 rounded-md ui-interactive ${viewMode === 'radar' ? 'bg-primary text-on-primary' : 'text-text-muted hover:text-text-primary'}`}>
               Heksagon
             </Pressable>
           </div>
@@ -165,55 +153,70 @@ export default function WeeklyBalanceHexagon({ userId }: { userId: string }) {
         <div className="h-44 w-full animate-pulse rounded-2xl bg-surface border border-border-custom/40" />
       ) : viewMode === 'bars' ? (
         /* Practical Bars View */
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {displayedSpheres.map((s) => {
-            const actual = actuals?.[s.id] ?? 0;
-            const target = targetFor(s.id);
-            const pct = target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : 0;
-            const isAssigned = selectedTaskId != null;
-
-            return (
-              <div
-                key={s.id}
-                onClick={() => (isAssigned ? assignSelectedTask(s.id) : startEditing(s.id))}
-                className={`cursor-pointer rounded-2xl border p-3 ui-interactive ${
-                  isAssigned ? `${s.border} ${s.bgSoft} hover:scale-[1.01]` : 'border-border-custom/40 bg-surface/50 hover:border-border-custom/80'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1 mb-1.5">
-                  <span className="flex items-center gap-1.5 text-xs font-bold text-text-primary truncate">
-                    <span className={`h-2 w-2 rounded-full shrink-0 ${s.dot}`} />
-                    {s.label}
-                  </span>
-                  <span className="text-2xs font-black text-text-secondary shrink-0">
-                    {actual.toFixed(1)}h{target > 0 ? ` / ${target}h` : ''}
-                  </span>
-                </div>
-
-                <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/30">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${s.dot}`}
-                    style={{ width: `${target > 0 ? pct : actual > 0 ? 100 : 0}%` }}
-                  />
-                </div>
-
-                <div className="mt-1.5 flex items-center justify-between text-3xs text-text-muted">
-                  <span>{target > 0 ? `${pct}% celu` : 'Brak celu'}</span>
-                  <span className="hover:text-primary transition-colors">Edytuj cel</span>
-                </div>
-              </div>
-            );
-          })}
-          {activeSpheres.length > 0 && activeSpheres.length < LIFE_SPHERES.length && (
+        !hasConfiguredSpheres && !showAllSpheres ? (
+          <div className="rounded-2xl border border-dashed border-border-custom/60 bg-surface/30 p-4 text-center space-y-2">
+            <p className="text-xs font-semibold text-text-muted">
+              Brak zdefiniowanych celów godzinowych na ten tydzień.
+            </p>
             <Pressable
               type="button"
-              onClick={() => setShowAllSpheres((v) => !v)}
-              className="col-span-full py-1 text-center text-3xs font-bold uppercase tracking-wider text-text-muted hover:text-primary transition-colors"
+              onClick={() => setShowAllSpheres(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-primary/30 bg-primary/10 text-2xs font-bold text-primary hover:bg-primary/20 transition-colors cursor-pointer"
             >
-              {showAllSpheres ? 'Zwiń do aktywnych sfer' : `+ Pokaż pozostałe sfery (${LIFE_SPHERES.length - activeSpheres.length})`}
+              + Skonfiguruj budżety sfer
             </Pressable>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {displayedSpheres.map((s) => {
+              const actual = actuals?.[s.id] ?? 0;
+              const target = targetFor(s.id);
+              const pct = target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : 0;
+              const isAssigned = selectedTaskId != null;
+
+              return (
+                <div
+                  key={s.id}
+                  onClick={() => (isAssigned ? assignSelectedTask(s.id) : startEditing(s.id))}
+                  className={`cursor-pointer rounded-2xl border p-3 ui-interactive ${
+                    isAssigned ? `${s.border} ${s.bgSoft} hover:scale-[1.01]` : 'border-border-custom/40 bg-surface/50 hover:border-border-custom/80'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1 mb-1.5">
+                    <span className="flex items-center gap-1.5 text-xs font-bold text-text-primary truncate">
+                      <span className={`h-2 w-2 rounded-full shrink-0 ${s.dot}`} />
+                      {s.label}
+                    </span>
+                    <span className="text-2xs font-black text-text-secondary shrink-0">
+                      {actual.toFixed(1)}h{target > 0 ? ` / ${target}h` : ''}
+                    </span>
+                  </div>
+
+                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/30">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${s.dot}`}
+                      style={{ width: `${target > 0 ? pct : actual > 0 ? 100 : 0}%` }}
+                    />
+                  </div>
+
+                  <div className="mt-1.5 flex items-center justify-between text-3xs text-text-muted">
+                    <span>{target > 0 ? `${pct}% celu` : 'Brak celu'}</span>
+                    <span className="hover:text-primary transition-colors">Edytuj cel</span>
+                  </div>
+                </div>
+              );
+            })}
+            {(!hasConfiguredSpheres || activeSpheres.length < LIFE_SPHERES.length) && (
+              <Pressable
+                type="button"
+                onClick={() => setShowAllSpheres((v) => !v)}
+                className="col-span-full py-1 text-center text-3xs font-bold uppercase tracking-wider text-text-muted hover:text-primary transition-colors"
+              >
+                {showAllSpheres ? 'Zwiń do aktywnych sfer' : `+ Pokaż pozostałe sfery (${LIFE_SPHERES.length - activeSpheres.length})`}
+              </Pressable>
+            )}
+          </div>
+        )
       ) : (
         <WeeklyBalanceRadarSvg
           budgetPoints={budgetPoints}
