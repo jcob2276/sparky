@@ -1,5 +1,5 @@
 import { useState, memo } from 'react';
-import { Sparkles, Compass, SunMedium, Moon, ImageIcon, Shield, Zap, Wallet } from 'lucide-react';
+import { Sparkles, Compass, ImageIcon, Shield, Zap, Wallet } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
 import { NORTH_STAR_SPHERES, type PillarId } from '../../lib/projects/pillars';
 import { useVisionItemsQuery, type VisionBoardItemRow } from '../../lib/dreamsApi';
@@ -149,29 +149,6 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
             </div>
           );
         })}
-      </div>
-
-      {/* Zaplanuj dziś & Podsumuj dzień Actions */}
-      <div className="grid grid-cols-2 gap-2.5 pt-1">
-        <Pressable
-          onClick={() => {
-            s.setShowMorningPlan(true);
-          }}
-          className="flex items-center justify-center gap-2 rounded-2xl border border-primary/25 bg-primary/10 px-3 py-3 text-xs font-black uppercase tracking-wider text-primary hover:bg-primary/20 active:scale-95 ui-interactive shadow-xs cursor-pointer text-center"
-        >
-          <SunMedium size={16} className="shrink-0" />
-          <span className="truncate">Zaplanuj</span>
-        </Pressable>
-
-        <Pressable
-          onClick={() => {
-            s.setShowShutdown(true);
-          }}
-          className="flex items-center justify-center gap-2 rounded-2xl border border-border-custom bg-surface-2/70 px-3 py-3 text-xs font-black uppercase tracking-wider text-text-primary hover:bg-surface-2 active:scale-95 ui-interactive shadow-xs cursor-pointer text-center"
-        >
-          <Moon size={16} className="shrink-0 text-text-muted" />
-          <span className="truncate">Podsumuj</span>
-        </Pressable>
       </div>
     </section>
   );
