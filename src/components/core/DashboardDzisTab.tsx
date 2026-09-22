@@ -10,7 +10,6 @@ import Spinner from '../ui/Spinner';
 import { useDashboardContext } from './context/DashboardContext';
 import { dashboardKeys } from '../../lib/queryKeys';
 import TodayStatusStrip from './TodayStatusStrip';
-import MarathonCountdownCard from './MarathonCountdownCard';
 import DailyStrainCard from '../biometrics/DailyStrainCard';
 import DailySnapshotCard from './DailySnapshotCard';
 import TodayRunwayCard from './TodayRunwayCard';
@@ -66,7 +65,6 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
           userId={session.user.id}
           onNavigateToTerminy={() => s.navigate('/terminy')}
         />
-        <MarathonCountdownCard />
       </div>
       <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0">
         {/* Lewa kolumna: Planowanie, zadania i szybki Posiłek */}

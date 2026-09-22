@@ -3,8 +3,9 @@
  * @role Wiersz witalności (HRV/RHR/sen/temp/kroki) z kolorowaniem z-score oraz wierszem zaawansowanych parametrów (oddech, SpO2, efektywność, zasypianie) i rekomendacją pór snu.
  * @usedBy DailyStrainCard
  */
-import React from 'react';
-import { Zap, Activity, Moon, Thermometer, Footprints } from 'lucide-react';
+import React, { useState } from 'react';
+import { Zap, Activity, Moon, Thermometer, Footprints, ChevronDown } from 'lucide-react';
+import { Pressable } from '../ui/ControlPrimitives';
 import type { Tables } from '../../lib/database.types';
 import { StatHero } from '../ui/StatHero';
 import { zToVitalColor } from './dailyStrainCardStyles';
@@ -63,6 +64,8 @@ export default function DailyStrainVitalsRow({
   sleepZ,
   sleepScoreToday,
 }: DailyStrainVitalsRowProps) {
+  const [showTelemetry, setShowTelemetry] = useState(false);
+
   const sleepRawVal =
     sleepScoreToday != null
       ? `${sleepScoreToday}pts`
@@ -141,23 +144,37 @@ export default function DailyStrainVitalsRow({
         ))}
       </div>
 
-      <SecondaryVitalsRow
-        oura={oura}
-        ouraYesterday={ouraYesterday}
-        enhanced={enhanced}
-        enhancedYesterday={enhancedYesterday}
-      />
-
-      <SleepStagesRow
-        oura={oura}
-        ouraYesterday={ouraYesterday}
-        enhanced={enhanced}
-        enhancedYesterday={enhancedYesterday}
-      />
-
-      <CardiovascularRow enhanced={enhanced} />
-
       <BedtimeAdviceBanner advice={bedtimeAdvice} />
+
+      <div className="pt-0.5">
+        <Pressable
+          onClick={() => setShowTelemetry(!showTelemetry)}
+          className="w-full flex items-center justify-between py-1.5 px-3 rounded-xl border border-border-custom/40 bg-surface-solid/30 hover:bg-surface-solid/60 text-3xs font-bold text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+        >
+          <span>{showTelemetry ? 'Zwiń szczegóły biometryczne' : 'Szczegóły biometrii (fazy snu, SpO₂, naczynia)'}</span>
+          <ChevronDown size={12} className={`transition-transform duration-[var(--motion-fast)] ${showTelemetry ? 'rotate-180' : ''}`} />
+        </Pressable>
+
+        {showTelemetry && (
+          <div className="mt-3 space-y-3">
+            <SecondaryVitalsRow
+              oura={oura}
+              ouraYesterday={ouraYesterday}
+              enhanced={enhanced}
+              enhancedYesterday={enhancedYesterday}
+            />
+
+            <SleepStagesRow
+              oura={oura}
+              ouraYesterday={ouraYesterday}
+              enhanced={enhanced}
+              enhancedYesterday={enhancedYesterday}
+            />
+
+            <CardiovascularRow enhanced={enhanced} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
