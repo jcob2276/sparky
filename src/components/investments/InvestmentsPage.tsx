@@ -9,6 +9,7 @@ import { PoliticiansView } from './PoliticiansView';
 import { StocksHoldingView } from './StocksHoldingView';
 import { GpwShortsView } from './GpwShortsView';
 import { MethodologyView } from './MethodologyView';
+import { PlansAndLimitsView } from './PlansAndLimitsView';
 import { GpwPortfolioView } from './GpwPortfolioView';
 import { LiveTradesView } from './LiveTradesView';
 import Button from '../ui/Button';
@@ -19,6 +20,7 @@ export type MainTabType =
   | 'politicians'
   | 'stocks'
   | 'gpw_shorts'
+  | 'plans'
   | 'methodology'
   | 'gpw_mar'
   | 'live';
@@ -106,6 +108,15 @@ export const InvestmentsPage: FC = () => {
 
           <Button
             size="sm"
+            variant={activeTab === 'plans' ? 'primary' : 'secondary'}
+            onClick={() => setActiveTab('plans')}
+            className="rounded-xl shrink-0"
+          >
+            💳 Plan i limity
+          </Button>
+
+          <Button
+            size="sm"
             variant={activeTab === 'methodology' ? 'primary' : 'secondary'}
             onClick={() => setActiveTab('methodology')}
             className="rounded-xl shrink-0"
@@ -145,6 +156,8 @@ export const InvestmentsPage: FC = () => {
           <StocksHoldingView allCongressTrades={trades} />
         ) : activeTab === 'gpw_shorts' ? (
           <GpwShortsView />
+        ) : activeTab === 'plans' ? (
+          <PlansAndLimitsView />
         ) : activeTab === 'methodology' ? (
           <MethodologyView />
         ) : activeTab === 'gpw_mar' ? (
