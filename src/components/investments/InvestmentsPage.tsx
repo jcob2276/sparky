@@ -3,6 +3,7 @@ import { useInvestmentsData } from './useInvestmentsData';
 import { InvestmentsTopNav } from './InvestmentsTopNav';
 import { InvestmentsHeader } from './InvestmentsHeader';
 import { CopycatPlaybookModal } from './CopycatPlaybookModal';
+import { OrcaDashboardView } from './OrcaDashboardView';
 import { Investors13FView } from './Investors13FView';
 import { PoliticiansView } from './PoliticiansView';
 import { StocksHoldingView } from './StocksHoldingView';
@@ -13,6 +14,7 @@ import { LiveTradesView } from './LiveTradesView';
 import Button from '../ui/Button';
 
 export type MainTabType =
+  | 'dashboard'
   | 'investors'
   | 'politicians'
   | 'stocks'
@@ -22,7 +24,7 @@ export type MainTabType =
   | 'live';
 
 export const InvestmentsPage: FC = () => {
-  const [activeTab, setActiveTab] = useState<MainTabType>('investors');
+  const [activeTab, setActiveTab] = useState<MainTabType>('dashboard');
   const [isPlaybookOpen, setIsPlaybookOpen] = useState(false);
 
   const {
@@ -46,15 +48,26 @@ export const InvestmentsPage: FC = () => {
           syncing={syncing}
         />
 
-        <InvestmentsHeader
-          stats={stats}
-          syncing={syncing}
-          onRefresh={handleRefresh}
-          onOpenPlaybook={() => setIsPlaybookOpen(true)}
-        />
+        {activeTab !== 'dashboard' && (
+          <InvestmentsHeader
+            stats={stats}
+            syncing={syncing}
+            onRefresh={handleRefresh}
+            onOpenPlaybook={() => setIsPlaybookOpen(true)}
+          />
+        )}
 
         {/* Master Navigation Tabs — 1:1 OrcaFolio Architecture */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 border-b border-border-custom/50">
+          <Button
+            size="sm"
+            variant={activeTab === 'dashboard' ? 'primary' : 'secondary'}
+            onClick={() => setActiveTab('dashboard')}
+            className="rounded-xl shrink-0 font-bold"
+          >
+            📊 Pulpit
+          </Button>
+
           <Button
             size="sm"
             variant={activeTab === 'investors' ? 'primary' : 'secondary'}
@@ -122,7 +135,9 @@ export const InvestmentsPage: FC = () => {
         </div>
 
         {/* Tab Contents */}
-        {activeTab === 'investors' ? (
+        {activeTab === 'dashboard' ? (
+          <OrcaDashboardView onNavigateTab={(t) => setActiveTab(t)} />
+        ) : activeTab === 'investors' ? (
           <Investors13FView />
         ) : activeTab === 'politicians' ? (
           <PoliticiansView trades={trades} />
