@@ -1,6 +1,6 @@
 import { FC, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useInvestmentsData } from './useInvestmentsData';
+import { InvestmentsTopNav } from './InvestmentsTopNav';
 import { InvestmentsHeader } from './InvestmentsHeader';
 import { CopycatPlaybookModal } from './CopycatPlaybookModal';
 import { Investors13FView } from './Investors13FView';
@@ -22,7 +22,6 @@ export type MainTabType =
   | 'live';
 
 export const InvestmentsPage: FC = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<MainTabType>('investors');
   const [isPlaybookOpen, setIsPlaybookOpen] = useState(false);
 
@@ -40,21 +39,12 @@ export const InvestmentsPage: FC = () => {
   return (
     <div className="min-h-screen bg-background text-text-primary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Navigation back bar */}
-        <div className="mb-6 flex items-center justify-between">
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => navigate(-1)}
-            className="text-xs text-text-secondary hover:text-text-primary"
-          >
-            ← Wróć do aplikacji
-          </Button>
-
-          <span className="text-xs font-mono text-text-muted">
-            Sparky OS · Moduł Inwestorzy & Krótka Sprzedaż
-          </span>
-        </div>
+        {/* Connected Top Navigation Bar */}
+        <InvestmentsTopNav
+          onOpenPlaybook={() => setIsPlaybookOpen(true)}
+          onRefresh={handleRefresh}
+          syncing={syncing}
+        />
 
         <InvestmentsHeader
           stats={stats}

@@ -73,6 +73,14 @@ export const WORKSPACE_TOOLS: WorkspaceToolDef[] = [
     category: 'operacje',
     description: 'Cashflow, koszty stałe, pasywa, runway',
   },
+  {
+    id: 'inwestycje',
+    label: 'Inwestycje 13F (OrcaFolio)',
+    icon: TrendingUp,
+    path: '/inwestycje',
+    category: 'operacje',
+    description: 'Portfele 13F, szorty GPW, politycy USA',
+  },
 
   // Strategia, Zdrowie i Pamięć
   {

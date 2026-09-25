@@ -8,6 +8,7 @@ import {
   TrendingUp,
   Eye,
   GraduationCap,
+  LineChart,
 } from 'lucide-react';
 
 interface Props {
@@ -23,6 +24,7 @@ const TABS: { id: DesktopTabType; label: string; icon: typeof Dumbbell }[] = [
 ];
 
 const SHORTCUTS = [
+  { label: 'Inwestycje 13F', href: '/inwestycje', icon: LineChart },
   { label: 'Rozwój & Nauka', href: '/rozwoj', icon: GraduationCap },
   { label: 'Korelacje', href: '/korelacje', icon: TrendingUp },
   { label: 'Wzrok & Wizja', href: '/optics', icon: Eye },
