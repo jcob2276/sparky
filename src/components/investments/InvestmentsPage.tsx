@@ -4,6 +4,7 @@ import {
   fetchInsiderTrades,
   fetchInvestmentStats,
   syncInsiderTradesDirect,
+  detectClusterTickers,
   InsiderTradeItem,
   InvestmentFilters,
   InvestmentStats,
@@ -12,6 +13,7 @@ import { notify } from '../../lib/notify';
 import { InvestmentsHeader } from './InvestmentsHeader';
 import { InvestmentsFilters } from './InvestmentsFilters';
 import { InvestmentsCard } from './InvestmentsCard';
+import { CopycatPlaybookModal } from './CopycatPlaybookModal';
 import Button from '../ui/Button';
 
 export const InvestmentsPage: FC = () => {
@@ -20,6 +22,7 @@ export const InvestmentsPage: FC = () => {
   const [stats, setStats] = useState<InvestmentStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [isPlaybookOpen, setIsPlaybookOpen] = useState(false);
   const [filters, setFilters] = useState<InvestmentFilters>({ limit: 60 });
 
   useEffect(() => {
@@ -32,7 +35,7 @@ export const InvestmentsPage: FC = () => {
         ]);
         if (!active) return;
 
-        if (items.length === 0 && !filters.query && !filters.filerName && !filters.ticker) {
+        if (items.length === 0 && !filters.query && !filters.filerName && !filters.ticker && !filters.market) {
           setSyncing(true);
           await syncInsiderTradesDirect(300);
           if (!active) return;
@@ -67,7 +70,7 @@ export const InvestmentsPage: FC = () => {
   const handleRefresh = async () => {
     try {
       setSyncing(true);
-      notify('Pobieram najnowsze zawiadomienia ze źródeł rządowych USA...', 'info');
+      notify('Pobieram najnowsze zawiadomienia ze źródeł rządowych USA & GPW MAR...', 'info');
       const res = await syncInsiderTradesDirect(400);
       const [items, statsData] = await Promise.all([
         fetchInsiderTrades(filters),
@@ -88,6 +91,8 @@ export const InvestmentsPage: FC = () => {
     setFilters((prev) => ({ ...prev, ...updated }));
   };
 
+  const clusterTickers = detectClusterTickers(trades);
+
   return (
     <div className="min-h-screen bg-background text-text-primary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -103,11 +108,16 @@ export const InvestmentsPage: FC = () => {
           </Button>
 
           <span className="text-xs font-mono text-text-muted">
-            Sparky OS · Moduł Finansowy
+            Sparky OS · Moduł Finansowy (USA & GPW)
           </span>
         </div>
 
-        <InvestmentsHeader stats={stats} syncing={syncing} onRefresh={handleRefresh} />
+        <InvestmentsHeader
+          stats={stats}
+          syncing={syncing}
+          onRefresh={handleRefresh}
+          onOpenPlaybook={() => setIsPlaybookOpen(true)}
+        />
 
         <InvestmentsFilters
           filters={filters}
@@ -118,13 +128,13 @@ export const InvestmentsPage: FC = () => {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
             {Array.from({ length: 9 }).map((_, i) => (
-              <div key={i} className="h-44 rounded-xl bg-card border border-border-custom/30" />
+              <div key={i} className="h-44 rounded-2xl bg-surface border border-border-custom/50 shadow-xs" />
             ))}
           </div>
         ) : trades.length === 0 ? (
-          <div className="p-12 text-center rounded-2xl bg-card border border-border-custom/50 my-8">
+          <div className="p-12 text-center rounded-2xl bg-surface border border-border-custom/60 shadow-xs my-8">
             <div className="text-3xl mb-3">🔍</div>
-            <h3 className="text-base font-semibold text-text-primary">Brak transakcji dla wybranych kryteriów</h3>
+            <h3 className="text-base font-bold text-text-primary">Brak transakcji dla wybranych kryteriów</h3>
             <p className="text-sm text-text-secondary mt-1 max-w-md mx-auto">
               Spróbuj zmienić filtry, wyczyścić wyszukiwanie lub kliknąć przycisk „Odśwież feed”.
             </p>
@@ -140,11 +150,20 @@ export const InvestmentsPage: FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {trades.map((trade) => (
-              <InvestmentsCard key={trade.id} trade={trade} />
+              <InvestmentsCard
+                key={trade.id}
+                trade={trade}
+                isCluster={Boolean(trade.ticker && clusterTickers.has(trade.ticker))}
+              />
             ))}
           </div>
         )}
       </div>
+
+      <CopycatPlaybookModal
+        isOpen={isPlaybookOpen}
+        onClose={() => setIsPlaybookOpen(false)}
+      />
     </div>
   );
 };

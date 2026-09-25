@@ -15,10 +15,13 @@ export const InvestmentsFilters: FC<Props> = ({ filters, onChange, resultCount }
   const isBigMoney = (filters.minAmount || 0) >= 100000;
   const isBuys = filters.transactionType === 'purchase';
   const isSales = filters.transactionType === 'sale';
-  const isAll = !filters.filerName && !filters.ticker && !filters.minAmount && (!filters.transactionType || filters.transactionType === 'all');
+  const isGpw = filters.market === 'gpw';
+  const isUs = filters.market === 'us';
+  const isCluster = Boolean(filters.clusterOnly);
+  const isAll = !filters.filerName && !filters.ticker && !filters.minAmount && (!filters.transactionType || filters.transactionType === 'all') && !filters.market && !filters.clusterOnly;
 
   return (
-    <div className="space-y-3 mb-6">
+    <div className="space-y-3.5 mb-6">
       {/* Search Input Bar */}
       <div className="relative">
         <Input
@@ -26,7 +29,7 @@ export const InvestmentsFilters: FC<Props> = ({ filters, onChange, resultCount }
           size="md"
           value={filters.query || ''}
           onChange={(e) => onChange({ query: e.target.value })}
-          placeholder="Szukaj polityka, tickera (np. NVDA, AAPL) lub spółki..."
+          placeholder="Szukaj polityka, spółki (np. NVDA, CDR, Dino, Allegro, AAPL) lub tickera..."
           icon={<span>🔍</span>}
         />
         {filters.query && (
@@ -41,40 +44,67 @@ export const InvestmentsFilters: FC<Props> = ({ filters, onChange, resultCount }
         )}
       </div>
 
-      {/* Preset Pills */}
+      {/* Market & Filter Pills */}
       <div className="flex flex-wrap items-center gap-2">
         <Button
           size="sm"
           variant={isAll ? 'primary' : 'secondary'}
-          onClick={() => onChange({ filerName: undefined, ticker: undefined, minAmount: undefined, transactionType: 'all' })}
-          className="rounded-lg"
+          onClick={() => onChange({ filerName: undefined, ticker: undefined, minAmount: undefined, transactionType: 'all', market: undefined, clusterOnly: undefined })}
+          className="rounded-xl"
         >
           Wszystko
         </Button>
 
         <Button
           size="sm"
-          variant={isTrump ? 'primary' : 'secondary'}
-          onClick={() => onChange({ filerName: isTrump ? undefined : 'Trump' })}
-          className="rounded-lg"
+          variant={isUs ? 'primary' : 'secondary'}
+          onClick={() => onChange({ market: isUs ? undefined : 'us' })}
+          className="rounded-xl"
         >
-          🇺🇸 Donald Trump
+          🇺🇸 USA (Kongres)
+        </Button>
+
+        <Button
+          size="sm"
+          variant={isGpw ? 'primary' : 'secondary'}
+          onClick={() => onChange({ market: isGpw ? undefined : 'gpw' })}
+          className="rounded-xl"
+        >
+          🇵🇱 GPW (Warszawa)
+        </Button>
+
+        <Button
+          size="sm"
+          variant={isTrump ? 'primary' : 'secondary'}
+          onClick={() => onChange({ filerName: isTrump ? undefined : 'Trump', market: undefined })}
+          className="rounded-xl"
+        >
+          🦅 Donald Trump
         </Button>
 
         <Button
           size="sm"
           variant={isPelosi ? 'primary' : 'secondary'}
-          onClick={() => onChange({ filerName: isPelosi ? undefined : 'Pelosi' })}
-          className="rounded-lg"
+          onClick={() => onChange({ filerName: isPelosi ? undefined : 'Pelosi', market: undefined })}
+          className="rounded-xl"
         >
           🏛 Nancy Pelosi
         </Button>
 
         <Button
           size="sm"
+          variant={isCluster ? 'primary' : 'secondary'}
+          onClick={() => onChange({ clusterOnly: isCluster ? undefined : true })}
+          className="rounded-xl"
+        >
+          🔥 Klastry Zakupowe
+        </Button>
+
+        <Button
+          size="sm"
           variant={isBuys ? 'primary' : 'secondary'}
           onClick={() => onChange({ transactionType: isBuys ? 'all' : 'purchase' })}
-          className="rounded-lg"
+          className="rounded-xl"
         >
           🟢 Tylko Kupna
         </Button>
@@ -83,7 +113,7 @@ export const InvestmentsFilters: FC<Props> = ({ filters, onChange, resultCount }
           size="sm"
           variant={isSales ? 'primary' : 'secondary'}
           onClick={() => onChange({ transactionType: isSales ? 'all' : 'sale' })}
-          className="rounded-lg"
+          className="rounded-xl"
         >
           🔴 Tylko Sprzedaże
         </Button>
@@ -92,13 +122,13 @@ export const InvestmentsFilters: FC<Props> = ({ filters, onChange, resultCount }
           size="sm"
           variant={isBigMoney ? 'primary' : 'secondary'}
           onClick={() => onChange({ minAmount: isBigMoney ? undefined : 100000 })}
-          className="rounded-lg"
+          className="rounded-xl"
         >
-          💎 Duże (&gt; $100k)
+          🐋 Duże ($100k+)
         </Button>
 
-        <div className="ml-auto text-xs text-text-secondary font-mono">
-          Znaleziono: <strong className="text-text-primary">{resultCount}</strong>
+        <div className="ml-auto text-xs text-text-secondary font-mono tabular-nums">
+          Znaleziono: <strong className="text-text-primary font-bold">{resultCount}</strong>
         </div>
       </div>
     </div>

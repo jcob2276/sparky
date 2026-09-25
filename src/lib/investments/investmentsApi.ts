@@ -6,6 +6,7 @@
 import { supabase } from '../supabase';
 import type { Json } from '../database.types';
 import { getTodayWarsaw, shiftDateStr } from '../date';
+import { GPW_INSIDER_TRADES_SEED } from './gpwTradesSeed';
 
 export interface InsiderTradeItem {
   id: string;
@@ -37,6 +38,8 @@ export interface InvestmentFilters {
   party?: string;
   transactionType?: 'all' | 'purchase' | 'sale';
   minAmount?: number;
+  market?: 'all' | 'us' | 'gpw';
+  clusterOnly?: boolean;
   limit?: number;
 }
 
@@ -74,6 +77,12 @@ export async function fetchInsiderTrades(filters: InvestmentFilters = {}): Promi
     q = q.eq('party', filters.party.trim().toUpperCase());
   }
 
+  if (filters.market === 'gpw') {
+    q = q.eq('state', 'PL');
+  } else if (filters.market === 'us') {
+    q = q.neq('state', 'PL');
+  }
+
   if (filters.transactionType && filters.transactionType !== 'all') {
     if (filters.transactionType === 'purchase') {
       q = q.or('transaction_type.ilike.%Purchase%,transaction_type.ilike.%Buy%');
@@ -86,7 +95,7 @@ export async function fetchInsiderTrades(filters: InvestmentFilters = {}): Promi
     q = q.gte('amount_high', filters.minAmount);
   }
 
-  const limit = filters.limit ?? 50;
+  const limit = filters.limit ?? 60;
   q = q.limit(limit);
 
   const { data, error } = await q;
@@ -95,7 +104,30 @@ export async function fetchInsiderTrades(filters: InvestmentFilters = {}): Promi
     throw error;
   }
 
-  return (data as InsiderTradeItem[]) || [];
+  const items = (data as InsiderTradeItem[]) || [];
+
+  if (filters.clusterOnly) {
+    const clusterTickers = detectClusterTickers(items);
+    return items.filter((t) => t.ticker && clusterTickers.has(t.ticker));
+  }
+
+  return items;
+}
+
+export function detectClusterTickers(trades: InsiderTradeItem[]): Set<string> {
+  const counts = new Map<string, number>();
+  for (const t of trades) {
+    if (!t.ticker) continue;
+    const isBuy = (t.transaction_type || '').toLowerCase().includes('buy') || (t.transaction_type || '').toLowerCase().includes('purchase');
+    if (isBuy) {
+      counts.set(t.ticker, (counts.get(t.ticker) || 0) + 1);
+    }
+  }
+  const clusterSet = new Set<string>();
+  for (const [ticker, count] of counts.entries()) {
+    if (count >= 2) clusterSet.add(ticker);
+  }
+  return clusterSet;
 }
 
 export async function fetchInvestmentStats(): Promise<InvestmentStats> {
@@ -193,5 +225,9 @@ interface RawTradeJson {
     if (error) throw error;
   }
 
-  return { count: records.length };
+  // Also sync Polish GPW MAR trades
+  const { error: gpwErr } = await supabase.from('insider_trades').upsert(GPW_INSIDER_TRADES_SEED, { onConflict: 'id' });
+  if (gpwErr) console.warn('[investmentsApi] GPW seed warning:', gpwErr.message);
+
+  return { count: records.length + GPW_INSIDER_TRADES_SEED.length };
 }
