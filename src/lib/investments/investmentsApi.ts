@@ -7,6 +7,8 @@ import { supabase } from '../supabase';
 import type { Json } from '../database.types';
 import { getTodayWarsaw, shiftDateStr } from '../date';
 import { GPW_INSIDER_TRADES_SEED } from './gpwTradesSeed';
+import { PELOSI_TRADES_SEED } from './pelosiTradesSeed';
+import { TRUMP_TRADES_SEED } from './trumpTradesSeed';
 
 export interface InsiderTradeItem {
   id: string;
@@ -225,9 +227,12 @@ interface RawTradeJson {
     if (error) throw error;
   }
 
-  // Also sync Polish GPW MAR trades
-  const { error: gpwErr } = await supabase.from('insider_trades').upsert(GPW_INSIDER_TRADES_SEED, { onConflict: 'id' });
-  if (gpwErr) console.warn('[investmentsApi] GPW seed warning:', gpwErr.message);
+  // Also sync Polish GPW MAR trades, Pelosi trades and Trump disclosures
+  await Promise.all([
+    supabase.from('insider_trades').upsert(GPW_INSIDER_TRADES_SEED, { onConflict: 'id' }),
+    supabase.from('insider_trades').upsert(PELOSI_TRADES_SEED, { onConflict: 'id' }),
+    supabase.from('insider_trades').upsert(TRUMP_TRADES_SEED, { onConflict: 'id' }),
+  ]);
 
-  return { count: records.length + GPW_INSIDER_TRADES_SEED.length };
+  return { count: records.length + GPW_INSIDER_TRADES_SEED.length + PELOSI_TRADES_SEED.length + TRUMP_TRADES_SEED.length };
 }
