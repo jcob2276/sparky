@@ -26,7 +26,6 @@ capture → Dziś → wykonanie → refleksja → Historia/Wiedza → korekta Ty
 | Fast Capture | Jedzenie, trening, sauna i pomiar wzroku | Żywienie, trening, Kartoteka/Historia |
 | Action Center | Decyzja „Istotne / Olej” dla propozycji systemu | `vanguard-analyst` → `system_proposals` → Tydzień |
 | Wyszukiwanie/Command Center | Przejście do głównych narzędzi oraz undo/redo | Router, historia odwracalnych akcji |
-| Flux Overlay | Globalne ocieplenie ekranu według ustawień | Ustawienia, lokalny harmonogram |
 | Service Worker / APK | PWA, powiadomienia, natywne intencje i synchronizacja | Push, lokalizacja, Usage Stats, Oura BLE |
 
 ## Główny shell
@@ -446,7 +445,6 @@ Funkcje:
 - Google Calendar;
 - strefa/cel zdrowotny i ustawienia domenowe;
 - kontekst AI;
-- Flux;
 - uprawnienia APK: powiadomienia, Usage Stats, lokalizacja i praca w tle.
 
 Połączenia:

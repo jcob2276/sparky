@@ -31,7 +31,6 @@ const GrowthView = lazy(() => import('./components/growth/GrowthView'));
 const InvestmentsPage = lazy(() => import('./components/investments/InvestmentsPage'));
 import { queryClient } from './lib/queryClient';
 import { setupGlobalBleSync } from './lib/biometrics/ouraBleSync';
-import FluxOverlay from './components/nightShift/FluxOverlay';
 
 const FALLBACK_SPINNER = (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -255,7 +254,6 @@ function App() {
       {({ reset }) => (
         <ErrorBoundary onReset={reset}>
           <BrowserRouter>
-            <FluxOverlay />
             <OfflineStatusBanner />
             <AppRoutes />
             <ActionHistoryController />

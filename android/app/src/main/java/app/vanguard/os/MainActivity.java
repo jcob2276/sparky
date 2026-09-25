@@ -18,7 +18,6 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(ShareIntentPlugin.class);
         registerPlugin(WidgetBridgePlugin.class);
         registerPlugin(BleProbePlugin.class);
-        registerPlugin(NightLightPlugin.class);
         registerPlugin(StylusInputPlugin.class);
         super.onCreate(savedInstanceState);
         android.webkit.WebView.setWebContentsDebuggingEnabled(true);

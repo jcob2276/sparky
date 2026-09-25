@@ -63,10 +63,37 @@ export async function runNextDnsSync(req: Request): Promise<unknown> {
       .maybeSingle()
 
     if (existing) {
+      const existingDomains = Array.isArray(existing.web_domains) ? existing.web_domains : [];
+      
+      // Merge logic: match by domain
+      const mergedMap = new Map();
+      
+      // Add existing (from ActivityWatch or previous NextDNS syncs)
+      for (const ed of existingDomains) {
+        if (ed && ed.domain) {
+          mergedMap.set(ed.domain, { ...ed });
+        }
+      }
+      
+      // Add/Update with new NextDNS data
+      for (const nd of webDomains) {
+        if (mergedMap.has(nd.domain)) {
+          const current = mergedMap.get(nd.domain);
+          current.queries = (current.queries || 0) + nd.queries;
+          mergedMap.set(nd.domain, current);
+        } else {
+          mergedMap.set(nd.domain, { ...nd });
+        }
+      }
+
+      const finalWebDomains = Array.from(mergedMap.values())
+        .sort((a, b) => ((b.seconds || 0) + (b.queries || 0)) - ((a.seconds || 0) + (a.queries || 0)))
+        .slice(0, 50);
+
       await supabase
         .from('aw_daily_summary')
         .update({
-          web_domains: webDomains,
+          web_domains: finalWebDomains,
           created_at: new Date().toISOString(),
         })
         .eq('id', existing.id)

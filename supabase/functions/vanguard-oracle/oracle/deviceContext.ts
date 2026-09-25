@@ -22,7 +22,7 @@ export async function fetchDeviceUsageContext(
         .select("date, total_active_seconds, top_apps, web_domains, productivity_ratio")
         .eq("user_id", userId)
         .order("date", { ascending: false })
-        .limit(2),
+        .limit(5),
     ]);
 
     const phoneRows = phoneRes.data || [];
@@ -30,20 +30,26 @@ export async function fetchDeviceUsageContext(
 
     if (!phoneRows.length && !awRows.length) return "";
 
-    const lines: string[] = ["[CYFROWY DRYF I UŻYCIE URZĄDZEŃ (ANDROID & EKRAN)]:"];
-    for (const row of phoneRows) {
-      const apps = Array.isArray(row.top_apps)
-        ? row.top_apps.slice(0, 5).map((a: { app: string; min: number }) => `${a.app} ${a.min}m`).join(", ")
-        : "brak";
-      lines.push(
-        `- ${row.date} (Android): ${row.total_minutes} min (odblokowań: ${row.unlocks ?? "?"}, noc >23: ${row.late_night_minutes ?? 0} min). Top: ${apps}`
-      );
-    }
+    const dates = new Set([...phoneRows.map((r: any) => r.date), ...awRows.map((r: any) => r.date)]);
+    const sortedDates = Array.from(dates).sort().reverse().slice(0, 5);
 
-    for (const row of awRows) {
-      if (Array.isArray(row.web_domains) && row.web_domains.length > 0) {
-        const topDomains = row.web_domains.slice(0, 6).map((d: { domain: string; queries?: number }) => d.domain).join(", ");
-        lines.push(`- ${row.date} (Web/DNS domeny): ${topDomains}`);
+    const lines: string[] = ["[CYFROWY DRYF I UŻYCIE URZĄDZEŃ (ANDROID & EKRAN)]:"];
+    for (const d of sortedDates) {
+      const pRow = phoneRows.find((r: any) => r.date === d);
+      const aRow = awRows.find((r: any) => r.date === d);
+      
+      lines.push(`- ${d}:`);
+      
+      if (pRow) {
+        const apps = Array.isArray(pRow.top_apps)
+          ? pRow.top_apps.slice(0, 5).map((a: { app: string; min: number }) => `${a.app} ${a.min}m`).join(", ")
+          : "brak";
+        lines.push(`  * Czas ekranowy Android: ${pRow.total_minutes} min (odblokowań: ${pRow.unlocks ?? "?"}, w nocy >23: ${pRow.late_night_minutes ?? 0} min). Top apki: ${apps}`);
+      }
+      
+      if (aRow && Array.isArray(aRow.web_domains) && aRow.web_domains.length > 0) {
+        const topDomains = aRow.web_domains.slice(0, 8).map((d: { domain: string; queries?: number }) => d.domain).join(", ");
+        lines.push(`  * Ukryty ruch w tle i domeny (DNS): ${topDomains}`);
       }
     }
 
