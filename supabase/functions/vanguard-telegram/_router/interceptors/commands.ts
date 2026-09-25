@@ -14,6 +14,7 @@ import {
   handleWalenieCommand,
   handlePokeCommand,
   handleTerazCommand,
+  handleInwestycjeCommand,
 } from "../commands.ts";
 import { MessageContext, MessageInterceptor, looksLikeTodoCapture } from "../interceptors.ts";
 
@@ -115,6 +116,10 @@ export class CommandRouterInterceptor implements MessageInterceptor {
         method: "POST",
         headers: { "Authorization": `Bearer ${ctx.supabaseServiceRoleKey}` },
       }).catch((err) => console.error("[telegram] /librarian invoke failed:", err));
+      return true;
+    }
+    if (lowerText.startsWith("/inwestycje") || lowerText.startsWith("/insiderzy") || lowerText.startsWith("/stocks") || lowerText === "📈 inwestycje") {
+      await handleInwestycjeCommand(ctx.text, ctx.chatId, ctx.telegramToken, ctx.supabase);
       return true;
     }
 

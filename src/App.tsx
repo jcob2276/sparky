@@ -28,6 +28,7 @@ const FinancePage = lazy(() => import('./components/finance/FinancePage'));
 const DesignSystemPage = lazy(() => import('./components/dev/DesignSystemPage'));
 const OuraHealthPage = lazy(() => import('./components/biometrics/OuraHealthPage'));
 const GrowthView = lazy(() => import('./components/growth/GrowthView'));
+const InvestmentsPage = lazy(() => import('./components/investments/InvestmentsPage'));
 import { queryClient } from './lib/queryClient';
 import { setupGlobalBleSync } from './lib/biometrics/ouraBleSync';
 import FluxOverlay from './components/nightShift/FluxOverlay';
@@ -157,10 +158,28 @@ function AppRoutes() {
     );
   }
 
+  if (location.pathname === '/inwestycje' || location.pathname === '/insiderzy' || location.pathname === '/stocks') {
+    return (
+      <Suspense fallback={FALLBACK_SPINNER}>
+        <InvestmentsPage />
+      </Suspense>
+    );
+  }
+
   if (!session) return <Auth />;
 
   return (
     <Routes>
+      <Route path="/inwestycje" element={
+        <Suspense fallback={FALLBACK_SPINNER}>
+          <Screen kind="dashboard"><InvestmentsPage /></Screen>
+        </Suspense>
+      } />
+      <Route path="/insiderzy" element={
+        <Suspense fallback={FALLBACK_SPINNER}>
+          <Screen kind="dashboard"><InvestmentsPage /></Screen>
+        </Suspense>
+      } />
       <Route path="/" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/dzis" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/tydzien" element={<Screen kind="dashboard"><Dashboard /></Screen>} />

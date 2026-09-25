@@ -51,6 +51,9 @@ NAWYKI CYFROWE / KONTEKST:
 - vanguard_stream(source, content, category, timestamp) — surowy log rozmów/notatek, dobre do wyszukiwania kontekstu
 - vanguard_notes(title, content, tags, is_pinned)
 - friction_events(occurred_at, friction_type, declared_intention, actual_behavior, deviation) — rozjazd deklaracja vs zachowanie
+
+INWESTYCJE / KONGRES / INSIDERZY:
+- insider_trades(filer_name, chamber, party, state, ticker, asset_name, transaction_type, amount_label, amount_low, amount_high, transaction_date, filing_date, days_to_file, doc_url) — transakcje polityków USA (Kongres, Senat, Donald Trump) i insiderów ze STOCK Act.
 `.trim();
 
 export function buildSqlTool(): DeepSeekTool {

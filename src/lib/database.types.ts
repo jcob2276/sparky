@@ -39,6 +39,78 @@ export type Database = {
   }
   public: {
     Tables: {
+      insider_trades: {
+        Row: {
+          amount_high: number | null
+          amount_label: string | null
+          amount_low: number | null
+          asset_name: string | null
+          asset_type: string | null
+          branch: string | null
+          chamber: string | null
+          created_at: string
+          days_to_file: number | null
+          doc_url: string | null
+          filer_id: string | null
+          filer_name: string
+          filing_date: string | null
+          id: string
+          party: string | null
+          raw_data: Json | null
+          source_id: string | null
+          state: string | null
+          ticker: string | null
+          transaction_date: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount_high?: number | null
+          amount_label?: string | null
+          amount_low?: number | null
+          asset_name?: string | null
+          asset_type?: string | null
+          branch?: string | null
+          chamber?: string | null
+          created_at?: string
+          days_to_file?: number | null
+          doc_url?: string | null
+          filer_id?: string | null
+          filer_name: string
+          filing_date?: string | null
+          id: string
+          party?: string | null
+          raw_data?: Json | null
+          source_id?: string | null
+          state?: string | null
+          ticker?: string | null
+          transaction_date?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount_high?: number | null
+          amount_label?: string | null
+          amount_low?: number | null
+          asset_name?: string | null
+          asset_type?: string | null
+          branch?: string | null
+          chamber?: string | null
+          created_at?: string
+          days_to_file?: number | null
+          doc_url?: string | null
+          filer_id?: string | null
+          filer_name?: string
+          filing_date?: string | null
+          id?: string
+          party?: string | null
+          raw_data?: Json | null
+          source_id?: string | null
+          state?: string | null
+          ticker?: string | null
+          transaction_date?: string | null
+          transaction_type?: string
+        }
+        Relationships: []
+      }
       closer_daily_logs: {
         Row: {
           appointments: number

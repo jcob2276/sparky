@@ -7,7 +7,8 @@ import { ewmaBaseline } from './baselines.ts'
 
 
 const SIGMA = 1.253
-const Z_THRESHOLD = 2.0, K_Z_TO_SCORE = 22.0, PER_SIGNAL_CAP = 40.0
+const Z_ACUTE_THRESHOLD = 2.0, Z_EARLY_THRESHOLD = 1.0, K_Z_TO_SCORE = 25.0, PER_SIGNAL_CAP = 40.0
+const Z_THRESHOLD = Z_EARLY_THRESHOLD
 const CONFOUNDER_DAMPEN = 0.45
 const RAISE_THRESHOLD = 50.0, MILD_THRESHOLD = 25.0
 

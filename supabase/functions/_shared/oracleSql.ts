@@ -15,7 +15,7 @@ const KNOWN_VANGUARD_TABLES = [
   "kpi_entries", "sprint_goals", "learning_skills", "learning_week_focus", "medical_lab_results",
   "medical_documents", "supplements", "supplement_logs", "endmyopia_measurements", "endmyopia_prescriptions",
   "phone_usage_daily", "vanguard_calendar", "location_history", "vanguard_stream", "vanguard_notes",
-  "friction_events", "confirmed_friction_events", "claims", "entities", "audit_events"
+  "friction_events", "confirmed_friction_events", "claims", "entities", "audit_events", "insider_trades"
 ];
 
 export function qualifySqlTables(sql: string): string {
