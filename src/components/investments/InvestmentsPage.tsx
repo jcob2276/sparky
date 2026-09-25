@@ -4,23 +4,23 @@ import { InvestmentsTopNav } from './InvestmentsTopNav';
 import { InvestmentsHeader } from './InvestmentsHeader';
 import { CopycatPlaybookModal } from './CopycatPlaybookModal';
 import { OrcaDashboardView } from './OrcaDashboardView';
+import { ConvergenceView } from './ConvergenceView';
 import { Investors13FView } from './Investors13FView';
 import { PoliticiansView } from './PoliticiansView';
 import { StocksHoldingView } from './StocksHoldingView';
 import { GpwShortsView } from './GpwShortsView';
 import { MethodologyView } from './MethodologyView';
-import { PlansAndLimitsView } from './PlansAndLimitsView';
 import { GpwPortfolioView } from './GpwPortfolioView';
 import { LiveTradesView } from './LiveTradesView';
 import Button from '../ui/Button';
 
 export type MainTabType =
   | 'dashboard'
+  | 'convergence'
   | 'investors'
   | 'politicians'
   | 'stocks'
   | 'gpw_shorts'
-  | 'plans'
   | 'methodology'
   | 'gpw_mar'
   | 'live';
@@ -59,7 +59,7 @@ export const InvestmentsPage: FC = () => {
           />
         )}
 
-        {/* Master Navigation Tabs — 1:1 OrcaFolio Architecture */}
+        {/* Master Navigation Tabs — Practical Investor Architecture */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 border-b border-border-custom/50">
           <Button
             size="sm"
@@ -68,6 +68,15 @@ export const InvestmentsPage: FC = () => {
             className="rounded-xl shrink-0 font-bold"
           >
             📊 Pulpit
+          </Button>
+
+          <Button
+            size="sm"
+            variant={activeTab === 'convergence' ? 'primary' : 'secondary'}
+            onClick={() => setActiveTab('convergence')}
+            className="rounded-xl shrink-0 font-bold text-primary"
+          >
+            🔥 Zbieżność (Konsensus)
           </Button>
 
           <Button
@@ -108,15 +117,6 @@ export const InvestmentsPage: FC = () => {
 
           <Button
             size="sm"
-            variant={activeTab === 'plans' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('plans')}
-            className="rounded-xl shrink-0"
-          >
-            💳 Plan i limity
-          </Button>
-
-          <Button
-            size="sm"
             variant={activeTab === 'methodology' ? 'primary' : 'secondary'}
             onClick={() => setActiveTab('methodology')}
             className="rounded-xl shrink-0"
@@ -148,6 +148,8 @@ export const InvestmentsPage: FC = () => {
         {/* Tab Contents */}
         {activeTab === 'dashboard' ? (
           <OrcaDashboardView onNavigateTab={(t) => setActiveTab(t)} />
+        ) : activeTab === 'convergence' ? (
+          <ConvergenceView />
         ) : activeTab === 'investors' ? (
           <Investors13FView />
         ) : activeTab === 'politicians' ? (
@@ -156,8 +158,6 @@ export const InvestmentsPage: FC = () => {
           <StocksHoldingView allCongressTrades={trades} />
         ) : activeTab === 'gpw_shorts' ? (
           <GpwShortsView />
-        ) : activeTab === 'plans' ? (
-          <PlansAndLimitsView />
         ) : activeTab === 'methodology' ? (
           <MethodologyView />
         ) : activeTab === 'gpw_mar' ? (
