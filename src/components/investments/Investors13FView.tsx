@@ -1,6 +1,8 @@
 import { FC, useState } from 'react';
 import { INVESTORS_13F_DATA, Investor13F, Holding13F } from '../../lib/investments/investors13FData';
 import Button from '../ui/Button';
+import { notify } from '../../lib/notify';
+import { Download } from 'lucide-react';
 
 interface HoldingRowProps {
   holding: Holding13F;
@@ -76,6 +78,25 @@ export const Investors13FView: FC = () => {
 
   const currentInvestor: Investor13F =
     INVESTORS_13F_DATA.find((inv) => inv.id === selectedInvestorId) || INVESTORS_13F_DATA[0];
+
+  const handleExportCsv = () => {
+    const inv = currentInvestor;
+    const headers = 'Ticker,Spółka,Sektor,Udział_%,Wartość_USD,Liczba_akcji,Zmiana_QoQ\n';
+    const rows = inv.holdings
+      .map(
+        (h) =>
+          `"${h.ticker}","${h.name}","${h.sector}","${h.weightPercent.toFixed(2)}","${h.valueUsd}","${h.shares}","${h.changeType}"`
+      )
+      .join('\n');
+    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `portfel_13F_${inv.id}_${inv.periodEnded ?? 'Q3'}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    notify(`Wyeksportowano portfel ${inv.name} do CSV!`, 'success');
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -153,13 +174,29 @@ export const Investors13FView: FC = () => {
 
       {/* Holdings Table — OrcaFolio 1:1 format */}
       <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
-        <div className="p-4 sm:p-5 border-b border-border-custom/50 flex items-center justify-between">
+        <div className="p-4 sm:p-5 border-b border-border-custom/50 flex items-center justify-between gap-3">
           <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
             <span>📊</span> Pozycje w portfelu 13F ({currentInvestor.holdings.length})
           </h3>
-          <span className="text-xs text-text-secondary font-mono">
-            Wagi liczone w relacji do wartości koszyka
-          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href={`https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${currentInvestor.cik}&type=13F&dateb=&owner=include&count=10`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold text-primary hover:underline"
+            >
+              SEC EDGAR ↗
+            </a>
+            <Button
+              size="sm"
+              variant="secondary"
+              icon={<Download size={13} />}
+              onClick={handleExportCsv}
+              className="rounded-xl text-xs font-semibold"
+            >
+              Eksportuj CSV
+            </Button>
+          </div>
         </div>
 
         <div className="overflow-x-auto">

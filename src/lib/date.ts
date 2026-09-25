@@ -71,3 +71,17 @@ export function isCurrentWeek(weekStart: string): boolean {
   return weekStart === getWeekStartWarsaw(getTodayWarsaw());
 }
 
+/** Returns a date label like "25 WRZ" — day + short month in uppercase Polish, Warsaw timezone.
+ *  Pass a Date, ISO string, or timestamp. */
+export function formatShortMonthLabel(date: Date | string | number): string {
+  return new Date(date).toLocaleDateString('pl-PL', {
+    timeZone: TIMEZONE,
+    day: 'numeric',
+    month: 'short',
+  }).toUpperCase();
+}
+
+/** Returns the current year in Warsaw timezone as a number. */
+export function getCurrentYear(): number {
+  return Number(new Date().toLocaleDateString('pl-PL', { timeZone: TIMEZONE, year: 'numeric' }));
+}

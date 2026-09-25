@@ -1,19 +1,39 @@
-import { FC, useState } from 'react';
+import { FC, useState, useCallback } from 'react';
 import { WatchlistBuilder, SourceActivityCard, DisclosureStreamWidget } from './OrcaDashboardWidgets';
+import { formatShortMonthLabel, formatDashboardDate, getCurrentYear } from '../../lib/date';
 import Button from '../ui/Button';
 
 interface Props {
   onNavigateTab: (tab: 'investors' | 'politicians' | 'stocks' | 'gpw_shorts' | 'live') => void;
 }
 
-export const OrcaDashboardView: FC<Props> = ({ onNavigateTab }) => {
-  const [watchlist, setWatchlist] = useState<string[]>(['AMZN', 'NVDA']);
+const LS_KEY = 'sparky_investments_watchlist';
 
-  const handleToggleWatchlist = (ticker: string) => {
-    setWatchlist((prev) =>
-      prev.includes(ticker) ? prev.filter((t) => t !== ticker) : [...prev, ticker]
-    );
-  };
+function loadWatchlist(): string[] {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return ['AMZN', 'NVDA'];
+    return JSON.parse(raw) as string[];
+  } catch {
+    return ['AMZN', 'NVDA'];
+  }
+}
+
+// Computed once at module level (deterministic per session, no re-render issues)
+const TODAY_LABEL = formatDashboardDate().toUpperCase();
+const YEAR = getCurrentYear();
+const LATEST_DATE_LABEL = formatShortMonthLabel(new Date().setDate(new Date().getDate() - 3));
+
+export const OrcaDashboardView: FC<Props> = ({ onNavigateTab }) => {
+  const [watchlist, setWatchlist] = useState<string[]>(loadWatchlist);
+
+  const handleToggleWatchlist = useCallback((ticker: string) => {
+    setWatchlist((prev) => {
+      const next = prev.includes(ticker) ? prev.filter((t) => t !== ticker) : [...prev, ticker];
+      try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
 
   return (
     <div className="space-y-6 animate-fade-in text-text-primary">
@@ -24,7 +44,7 @@ export const OrcaDashboardView: FC<Props> = ({ onNavigateTab }) => {
           <span className="text-2xs font-mono font-bold uppercase tracking-wider text-success">
             ● Live · Dane aktualne
           </span>
-          <span className="text-3xs font-mono text-text-muted">PT, 25 WRZ 2026 · CEST</span>
+          <span className="text-3xs font-mono text-text-muted">{TODAY_LABEL} · CEST</span>
         </div>
         <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-text-primary">
           Dziś w skrócie
@@ -149,17 +169,17 @@ export const OrcaDashboardView: FC<Props> = ({ onNavigateTab }) => {
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="p-3.5 rounded-2xl bg-surface border border-border-custom/60">
-            <div className="text-xs font-bold font-mono text-primary">14 LIS</div>
+            <div className="text-xs font-bold font-mono text-primary">14 LIS {new Date().getFullYear()}</div>
             <div className="text-xs font-semibold text-text-primary mt-1">Fundusze 13F (SEC)</div>
             <div className="text-3xs text-text-secondary mt-0.5">Nieprzekraczalny termin zgłoszenia raportów za Q3.</div>
           </div>
           <div className="p-3.5 rounded-2xl bg-surface border border-border-custom/60">
-            <div className="text-xs font-bold font-mono text-primary">9 LIS</div>
+            <div className="text-xs font-bold font-mono text-primary">9 LIS {YEAR}</div>
             <div className="text-xs font-semibold text-text-primary mt-1">Kongres (STOCK Act)</div>
             <div className="text-3xs text-text-secondary mt-0.5">Maksymalny termin ujawnienia transakcji zawartych w październiku.</div>
           </div>
           <div className="p-3.5 rounded-2xl bg-surface border border-border-custom/60">
-            <div className="text-xs font-bold font-mono text-success">22 WRZ</div>
+            <div className="text-xs font-bold font-mono text-success">{LATEST_DATE_LABEL}</div>
             <div className="text-xs font-semibold text-text-primary mt-1">Najnowsze dane</div>
             <div className="text-3xs text-text-secondary mt-0.5">Richard W. Allen · kupno Broadcom ($AVGO).</div>
           </div>

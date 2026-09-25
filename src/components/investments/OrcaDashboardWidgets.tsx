@@ -1,7 +1,14 @@
 import { FC } from 'react';
 import { DISCLOSURE_STREAM_ITEMS } from '../../lib/investments/disclosuresFeedData';
+import { formatShortMonthLabel } from '../../lib/date';
 import { Pressable } from '../ui/ControlPrimitives';
 import Button from '../ui/Button';
+
+// Computed once at module level — avoids impure calls inside JSX
+const _now = new Date();
+const _14dAgo = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate() - 14);
+const DATE_RANGE_START = formatShortMonthLabel(_14dAgo);
+const DATE_RANGE_END = formatShortMonthLabel(_now);
 
 export const WatchlistBuilder: FC<{
   watchlist: string[];
@@ -64,7 +71,7 @@ export const SourceActivityCard: FC = () => {
           <p className="text-3xs text-text-secondary">Ze wszystkich źródeł · szczyt 15 wrz</p>
         </div>
         <span className="px-2.5 py-1 rounded-xl bg-surface border border-border-custom text-2xs font-mono text-text-secondary">
-          12 WRZ — 25 WRZ
+          {DATE_RANGE_START} — {DATE_RANGE_END}
         </span>
       </div>
 
