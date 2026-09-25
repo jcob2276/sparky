@@ -3,18 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import { useInvestmentsData } from './useInvestmentsData';
 import { InvestmentsHeader } from './InvestmentsHeader';
 import { CopycatPlaybookModal } from './CopycatPlaybookModal';
-import { PelosiPortfolioView } from './PelosiPortfolioView';
-import { TrumpPortfolioView } from './TrumpPortfolioView';
-import { ClustersRankingView } from './ClustersRankingView';
+import { Investors13FView } from './Investors13FView';
+import { PoliticiansView } from './PoliticiansView';
+import { StocksHoldingView } from './StocksHoldingView';
+import { GpwShortsView } from './GpwShortsView';
+import { MethodologyView } from './MethodologyView';
 import { GpwPortfolioView } from './GpwPortfolioView';
 import { LiveTradesView } from './LiveTradesView';
 import Button from '../ui/Button';
 
-export type MainTabType = 'pelosi' | 'clusters' | 'gpw' | 'trump' | 'live';
+export type MainTabType =
+  | 'investors'
+  | 'politicians'
+  | 'stocks'
+  | 'gpw_shorts'
+  | 'methodology'
+  | 'gpw_mar'
+  | 'live';
 
 export const InvestmentsPage: FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<MainTabType>('pelosi');
+  const [activeTab, setActiveTab] = useState<MainTabType>('investors');
   const [isPlaybookOpen, setIsPlaybookOpen] = useState(false);
 
   const {
@@ -43,7 +52,7 @@ export const InvestmentsPage: FC = () => {
           </Button>
 
           <span className="text-xs font-mono text-text-muted">
-            Sparky OS · Moduł Finansowy (USA & GPW)
+            Sparky OS · Moduł Inwestorzy & Krótka Sprzedaż
           </span>
         </div>
 
@@ -54,63 +63,87 @@ export const InvestmentsPage: FC = () => {
           onOpenPlaybook={() => setIsPlaybookOpen(true)}
         />
 
-        {/* Master Navigation Tabs — Quiver Quantitative & Bloomberg Grade */}
+        {/* Master Navigation Tabs — 1:1 OrcaFolio Architecture */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 border-b border-border-custom/50">
           <Button
             size="sm"
-            variant={activeTab === 'pelosi' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('pelosi')}
+            variant={activeTab === 'investors' ? 'primary' : 'secondary'}
+            onClick={() => setActiveTab('investors')}
             className="rounded-xl shrink-0"
           >
-            🏛 Nancy Pelosi (Deep Dive)
+            👔 Inwestorzy 13F
           </Button>
 
           <Button
             size="sm"
-            variant={activeTab === 'clusters' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('clusters')}
+            variant={activeTab === 'politicians' ? 'primary' : 'secondary'}
+            onClick={() => setActiveTab('politicians')}
             className="rounded-xl shrink-0"
           >
-            🔥 Klastry & Top Tickers
+            🏛 Politycy (STOCK Act)
           </Button>
 
           <Button
             size="sm"
-            variant={activeTab === 'gpw' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('gpw')}
+            variant={activeTab === 'stocks' ? 'primary' : 'secondary'}
+            onClick={() => setActiveTab('stocks')}
             className="rounded-xl shrink-0"
           >
-            🇵🇱 GPW Warszawa (MAR)
+            🏢 Spółki
           </Button>
 
           <Button
             size="sm"
-            variant={activeTab === 'trump' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('trump')}
+            variant={activeTab === 'gpw_shorts' ? 'primary' : 'secondary'}
+            onClick={() => setActiveTab('gpw_shorts')}
             className="rounded-xl shrink-0"
           >
-            🦅 Donald Trump
+            📉 Krótka sprzedaż GPW
+          </Button>
+
+          <Button
+            size="sm"
+            variant={activeTab === 'methodology' ? 'primary' : 'secondary'}
+            onClick={() => setActiveTab('methodology')}
+            className="rounded-xl shrink-0"
+          >
+            📖 Metodologia
+          </Button>
+
+          <div className="h-5 w-px bg-border-custom/60 shrink-0 mx-1" />
+
+          <Button
+            size="sm"
+            variant={activeTab === 'gpw_mar' ? 'primary' : 'secondary'}
+            onClick={() => setActiveTab('gpw_mar')}
+            className="rounded-xl shrink-0 text-text-secondary"
+          >
+            🇵🇱 GPW Insiderzy (MAR)
           </Button>
 
           <Button
             size="sm"
             variant={activeTab === 'live' ? 'primary' : 'secondary'}
             onClick={() => setActiveTab('live')}
-            className="rounded-xl shrink-0"
+            className="rounded-xl shrink-0 text-text-secondary"
           >
-            ⚡ Wszystkie transakcje Live ({trades.length})
+            ⚡ Live ({trades.length})
           </Button>
         </div>
 
         {/* Tab Contents */}
-        {activeTab === 'pelosi' ? (
-          <PelosiPortfolioView />
-        ) : activeTab === 'clusters' ? (
-          <ClustersRankingView allTrades={trades} />
-        ) : activeTab === 'gpw' ? (
+        {activeTab === 'investors' ? (
+          <Investors13FView />
+        ) : activeTab === 'politicians' ? (
+          <PoliticiansView trades={trades} />
+        ) : activeTab === 'stocks' ? (
+          <StocksHoldingView allCongressTrades={trades} />
+        ) : activeTab === 'gpw_shorts' ? (
+          <GpwShortsView />
+        ) : activeTab === 'methodology' ? (
+          <MethodologyView />
+        ) : activeTab === 'gpw_mar' ? (
           <GpwPortfolioView />
-        ) : activeTab === 'trump' ? (
-          <TrumpPortfolioView />
         ) : (
           <LiveTradesView
             trades={trades}
