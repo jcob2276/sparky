@@ -78,7 +78,13 @@ export const InvestmentsTabRenderer: FC<Props> = ({
     case 'gpw_mar':
       return <GpwPortfolioView />;
     case 'methodology':
-      return <GpwScreenerView />;
+      return (
+        <GpwScreenerView
+          onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)}
+          watchlist={watchlist}
+          onToggleWatchlist={onToggleWatchlist}
+        />
+      );
     case 'live':
     default:
       return <LiveTradesView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
