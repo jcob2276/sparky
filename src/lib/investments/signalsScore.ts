@@ -21,7 +21,7 @@ export interface SignalRow extends SignalMetrics {
 const WITH_INSIDERS = { funds: 0.4, polNet: 0.24, polBuyers: 0.16, insiders: 0.2 };
 const WITHOUT_INSIDERS = { funds: 0.5, polNet: 0.3, polBuyers: 0.2, insiders: 0 };
 
-function polishCount(n: number, one: string, few: string, many: string): string {
+export function polishCount(n: number, one: string, few: string, many: string): string {
   const abs = Math.abs(n);
   const mod10 = abs % 10;
   const mod100 = abs % 100;

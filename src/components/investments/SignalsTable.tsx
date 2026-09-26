@@ -1,12 +1,12 @@
 import { FC, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { SignalRow } from '../../lib/investments/signalsApi';
-import { formatShortDateWarsaw } from '../../lib/date';
+import { polishCount } from '../../lib/investments/signalsScore';
 import { SignalEvidence } from './SignalEvidence';
+import { CompanyLogo } from './CompanyLogo';
 
 interface Props {
-  title: string;
-  windowLabel: string;
+  title?: string;
   rows: SignalRow[];
 }
 
@@ -19,17 +19,14 @@ function formatVolume(value: number): string {
   }).format(value);
 }
 
-function formatWhen(value: string | null): string {
-  if (!value) return '—';
-  return formatShortDateWarsaw(`${value}T12:00:00Z`);
-}
-
 const SignalRowView: FC<{ row: SignalRow }> = ({ row }) => {
   const [open, setOpen] = useState(false);
+  const fundLabel = polishCount(row.holders, 'fundusz', 'fundusze', 'funduszy');
+
   return (
     <>
       <tr
-        className="border-b border-border-custom/40 cursor-pointer hover:bg-surface/80"
+        className="border-b border-border-custom/40 cursor-pointer hover:bg-surface-elevated/60 transition-colors"
         role="button"
         tabIndex={0}
         aria-expanded={open}
@@ -41,43 +38,65 @@ const SignalRowView: FC<{ row: SignalRow }> = ({ row }) => {
           }
         }}
       >
-        <td className="py-3 pr-3">
-          <div className="flex items-center gap-2">
-            <span className="w-7 font-mono font-bold text-primary tabular-nums">{row.score}</span>
-            <span className="h-1.5 w-14 rounded-full bg-border-custom overflow-hidden">
-              <span className="block h-1.5 bg-primary" style={{ width: `${row.score}%` }} />
-            </span>
+        <td className="py-3.5 px-4">
+          <div className="flex items-center gap-3">
+            <CompanyLogo ticker={row.ticker} name={row.companyName} size={32} />
+            <div className="min-w-0">
+              <div className="font-mono font-bold text-sm text-text-primary">
+                {row.ticker}
+              </div>
+              <div className="text-3xs text-text-muted truncate max-w-56 sm:max-w-xs">
+                {row.companyName} {row.holders > 0 ? `· ${row.holders} ${fundLabel}` : ''}
+              </div>
+            </div>
           </div>
         </td>
-        <td className="py-3 pr-3 min-w-36">
-          <div className="font-mono font-bold text-sm text-text-primary">{row.ticker}</div>
-          <div className="text-3xs text-text-muted truncate max-w-48">{row.companyName}</div>
+
+        <td className="py-3.5 px-4 text-center font-mono text-sm font-bold tabular-nums">
+          <span
+            className={
+              row.fundNetBuyers > 0
+                ? 'text-success'
+                : row.fundNetBuyers < 0
+                ? 'text-danger'
+                : 'text-text-secondary'
+            }
+          >
+            {row.fundNetBuyers > 0 ? `+${row.fundNetBuyers}` : row.fundNetBuyers}
+          </span>
         </td>
-        <td className="py-3 pr-3 text-xs text-text-secondary max-w-72">{row.summary}</td>
-        <td className={`py-3 pr-3 text-right font-mono text-sm tabular-nums ${row.fundNetBuyers > 0 ? 'text-success' : row.fundNetBuyers < 0 ? 'text-danger' : 'text-text-secondary'}`}>
-          {row.fundNetBuyers > 0 ? '+' : ''}
-          {row.fundNetBuyers}
-        </td>
-        <td className="py-3 pr-3 text-right font-mono text-sm tabular-nums">
-          <span className="text-success">{row.polBuys}</span>
+
+        <td className="py-3.5 px-4 text-center font-mono text-xs tabular-nums">
+          <span className={row.polBuys > 0 ? 'text-success font-bold' : 'text-text-muted'}>
+            {row.polBuys}
+          </span>
           <span className="text-text-muted"> / </span>
-          <span className={row.polSells > 0 ? 'text-danger' : 'text-text-muted'}>{row.polSells}</span>
+          <span className={row.polSells > 0 ? 'text-danger font-bold' : 'text-text-muted'}>
+            {row.polSells}
+          </span>
         </td>
-        <td className={`py-3 pr-3 text-right font-mono text-sm tabular-nums ${row.insiderBuys > 0 ? 'text-success' : 'text-text-muted'}`}>
-          {row.insiderBuys > 0 ? row.insiderBuys : '—'}
-        </td>
-        <td className="py-3 pr-3 text-right font-mono text-xs tabular-nums text-text-primary">
+
+        <td className="py-3.5 px-4 text-right font-mono text-xs tabular-nums text-text-primary">
           {formatVolume(row.buyVolumeMid)}
         </td>
-        <td className="py-3 pr-2 text-right font-mono text-xs text-text-muted">{formatWhen(row.lastTradeDate)}</td>
-        <td className="py-3 text-text-muted">
-          <ChevronDown size={14} className={open ? 'rotate-180 transition-transform' : 'transition-transform'} />
+
+        <td className="py-3.5 px-4 text-right">
+          <div className="flex items-center justify-end gap-2">
+            <span className="font-mono font-bold text-xs tabular-nums px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20">
+              {row.score}
+            </span>
+            <ChevronDown
+              size={14}
+              className={`text-text-muted transition-transform ${open ? 'rotate-180' : ''}`}
+            />
+          </div>
         </td>
       </tr>
+
       {open && (
-        <tr className="bg-surface/60">
-          <td colSpan={9} className="p-0 border-b border-border-custom/40">
-            <div className="sticky left-0 w-full max-w-full px-4 py-4">
+        <tr className="bg-surface/50 border-b border-border-custom/40">
+          <td colSpan={5} className="p-0">
+            <div className="px-4 py-4">
               <SignalEvidence ticker={row.ticker} companyName={row.companyName} />
             </div>
           </td>
@@ -87,24 +106,22 @@ const SignalRowView: FC<{ row: SignalRow }> = ({ row }) => {
   );
 };
 
-export const SignalsTable: FC<Props> = ({ title, windowLabel, rows }) => (
+export const SignalsTable: FC<Props> = ({ title, rows }) => (
   <div className="rounded-3xl bg-surface border border-border-custom shadow-xs overflow-hidden">
-    <div className="px-4 py-3 border-b border-border-custom/50 text-xs font-black uppercase tracking-wider text-text-secondary">
-      {title}
-    </div>
+    {title && (
+      <div className="px-4 py-3 border-b border-border-custom/50 text-xs font-black uppercase tracking-wider text-text-secondary">
+        {title}
+      </div>
+    )}
     <div className="overflow-x-auto">
       <table className="w-full text-left min-w-full">
         <thead>
-          <tr className="text-3xs font-bold uppercase tracking-wide text-text-muted border-b border-border-custom/40">
-            <th className="py-2 px-3 font-bold">Ocena</th>
-            <th className="py-2 pr-3 font-bold">Spółka</th>
-            <th className="py-2 pr-3 font-bold">Dowody · {windowLabel}</th>
-            <th className="py-2 pr-3 font-bold text-right">Fundusze</th>
-            <th className="py-2 pr-3 font-bold text-right">Pol. K/S</th>
-            <th className="py-2 pr-3 font-bold text-right">Insiderzy</th>
-            <th className="py-2 pr-3 font-bold text-right">Wolumen ≈</th>
-            <th className="py-2 pr-3 font-bold text-right">Ostatnia</th>
-            <th className="py-2 w-6" />
+          <tr className="text-3xs font-bold uppercase tracking-wider text-text-muted border-b border-border-custom/40 bg-surface/40">
+            <th className="py-3 px-4 font-bold">Spółka</th>
+            <th className="py-3 px-4 font-bold text-center">Fundusze netto</th>
+            <th className="py-3 px-4 font-bold text-center">Politycy (k/s)</th>
+            <th className="py-3 px-4 font-bold text-right">Wolumen ≈</th>
+            <th className="py-3 px-4 font-bold text-right">Zbieżność</th>
           </tr>
         </thead>
         <tbody>

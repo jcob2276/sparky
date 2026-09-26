@@ -50,7 +50,7 @@ export const InvestmentsTabRenderer: FC<Props> = ({
     case 'watchlist':
       return <InvestmentsWatchlistView watchlist={watchlist} onToggle={onToggleWatchlist} />;
     case 'convergence':
-      return <ConvergenceView watchlist={watchlist} />;
+      return <ConvergenceView watchlist={watchlist} onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
     case 'screener':
       return <StocksConsensusView watchlist={watchlist} onToggleWatchlist={onToggleWatchlist} />;
     case 'investors':
