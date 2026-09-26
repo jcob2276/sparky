@@ -76,7 +76,13 @@ export const InvestmentsTabRenderer: FC<Props> = ({
     case 'gpw_shorts':
       return <GpwShortsView />;
     case 'gpw_mar':
-      return <GpwPortfolioView />;
+      return (
+        <GpwPortfolioView
+          watchlist={watchlist}
+          onToggleWatchlist={onToggleWatchlist}
+          onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)}
+        />
+      );
     case 'methodology':
       return (
         <GpwScreenerView
