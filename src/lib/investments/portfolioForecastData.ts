@@ -1,6 +1,13 @@
 /**
  * portfolioForecastData.ts — Baza wiedzy konsensusu analityków Wall Street i GPW.
+ * Wszystkie pozycje zawierają bezpośrednie źródła danych, linki zewnętrzne i powiązania z bazą Sparky.
  */
+
+export interface EvidenceLink {
+  label: string;
+  url: string;
+  isExternal?: boolean;
+}
 
 export interface TickerAnalystData {
   base12mUpside: number;
@@ -9,6 +16,9 @@ export interface TickerAnalystData {
   rating: 'Strong Buy' | 'Buy' | 'Hold' | 'Speculative Buy';
   numAnalysts: number;
   source: string;
+  sourceUrl: string;
+  internalSparkyTab?: 'screener' | 'gpw_mar' | 'gpw_shorts' | 'investors';
+  evidenceLinks: EvidenceLink[];
   keyCatalyst: string;
   whatMustHappen: {
     bull: string[];
@@ -25,6 +35,13 @@ export const TICKER_ANALYST_DATABASE: Record<string, TickerAnalystData> = {
     rating: 'Speculative Buy',
     numAnalysts: 14,
     source: 'Morgan Stanley Space Index / FactSet',
+    sourceUrl: 'https://www.vaneck.com/ucits/etf/equity/jedi/overview/',
+    internalSparkyTab: 'screener',
+    evidenceLinks: [
+      { label: 'Prospekt VanEck JEDI', url: 'https://www.vaneck.com/ucits/etf/equity/jedi/overview/', isExternal: true },
+      { label: 'Holdings Yahoo Finance', url: 'https://finance.yahoo.com/quote/JEDI.DE/holdings/', isExternal: true },
+      { label: 'Karta w Sparky', url: '/inwestycje?tab=screener&q=JEDI', isExternal: false },
+    ],
     keyCatalyst: 'Komercjalizacja sieci Direct-to-Device (AST SpaceMobile) i loty Starship v3',
     whatMustHappen: {
       bull: [
@@ -49,6 +66,14 @@ export const TICKER_ANALYST_DATABASE: Record<string, TickerAnalystData> = {
     rating: 'Strong Buy',
     numAnalysts: 31,
     source: 'Wall Street Consensus (Morgan Stanley, Goldman Sachs)',
+    sourceUrl: 'https://www.marketwatch.com/investing/stock/mrvl/analystestimates',
+    internalSparkyTab: 'screener',
+    evidenceLinks: [
+      { label: 'Konsensus MarketWatch', url: 'https://www.marketwatch.com/investing/stock/mrvl/analystestimates', isExternal: true },
+      { label: 'Analiza Yahoo Finance', url: 'https://finance.yahoo.com/quote/MRVL/analysis/', isExternal: true },
+      { label: 'SEC Edgar Raporty', url: 'https://www.sec.gov/edgar/searchedgar/companysearch?companyName=MRVL', isExternal: true },
+      { label: 'Karta w Sparky', url: '/inwestycje?tab=screener&q=MRVL', isExternal: false },
+    ],
     keyCatalyst: 'Układy optyczne electro-optics PAM4 800G/1.6T oraz custom ASIC dla hiperskalerów AI',
     whatMustHappen: {
       bull: [
@@ -73,6 +98,14 @@ export const TICKER_ANALYST_DATABASE: Record<string, TickerAnalystData> = {
     rating: 'Buy',
     numAnalysts: 12,
     source: 'Domy Maklerskie GPW (BM mBank, Trigon, Noble)',
+    sourceUrl: 'https://www.bankier.pl/gielda/notowania/akcje/CDPROJEKT/rekomendacje',
+    internalSparkyTab: 'gpw_mar',
+    evidenceLinks: [
+      { label: 'Rekomendacje Bankier.pl', url: 'https://www.bankier.pl/gielda/notowania/akcje/CDPROJEKT/rekomendacje', isExternal: true },
+      { label: 'Wyceny BiznesRadar', url: 'https://www.biznesradar.pl/rekomendacje/CD-PROJEKT', isExternal: true },
+      { label: 'Rejestr szortów KNF', url: '/inwestycje?tab=gpw_shorts', isExternal: false },
+      { label: 'Profil GPW w Sparky', url: '/inwestycje?tab=gpw_mar&q=CDR', isExternal: false },
+    ],
     keyCatalyst: 'Kampania marketingowa i zwiastun Polaris (Wiedźmin 4) na silniku UE5',
     whatMustHappen: {
       bull: [
@@ -97,6 +130,14 @@ export const TICKER_ANALYST_DATABASE: Record<string, TickerAnalystData> = {
     rating: 'Buy',
     numAnalysts: 25,
     source: 'FactSet S&P 500 Consensus / Goldman Sachs Research',
+    sourceUrl: 'https://www.ishares.com/uk/individual/en/products/253743/ishares-sp-500-ucits-etf-inc-fund',
+    internalSparkyTab: 'screener',
+    evidenceLinks: [
+      { label: 'Prospekt iShares S&P500', url: 'https://www.ishares.com/uk/individual/en/products/253743/ishares-sp-500-ucits-etf-inc-fund', isExternal: true },
+      { label: 'FactSet Raport Zysków', url: 'https://insight.factset.com/topic/earnings', isExternal: true },
+      { label: 'Notowania Yahoo Finance', url: 'https://finance.yahoo.com/quote/SXR8.DE/', isExternal: true },
+      { label: 'ETF w Sparky', url: '/inwestycje?tab=screener&q=SXR8', isExternal: false },
+    ],
     keyCatalyst: 'Cykl obniżek stóp procentowych Fed i wzrost zysków spółek S&P 500 (EPS > 275 USD)',
     whatMustHappen: {
       bull: [
@@ -119,6 +160,13 @@ export const TICKER_ANALYST_DATABASE: Record<string, TickerAnalystData> = {
     rating: 'Strong Buy',
     numAnalysts: 42,
     source: 'Wall Street Consensus',
+    sourceUrl: 'https://www.marketwatch.com/investing/stock/nvda/analystestimates',
+    internalSparkyTab: 'investors',
+    evidenceLinks: [
+      { label: 'Konsensus MarketWatch', url: 'https://www.marketwatch.com/investing/stock/nvda/analystestimates', isExternal: true },
+      { label: 'SEC Form 4 Insiderzy', url: 'https://www.sec.gov/edgar/searchedgar/companysearch?companyName=NVDA', isExternal: true },
+      { label: '13F w Sparky', url: '/inwestycje?tab=investors&q=NVDA', isExternal: false },
+    ],
     keyCatalyst: 'Masowe dostawy platformy Blackwell B200 i premiera architektury Rubin',
     whatMustHappen: {
       bull: ['Popyt na Blackwell przekracza podaż o >100%, marże brutto >75%.'],
@@ -133,6 +181,12 @@ export const TICKER_ANALYST_DATABASE: Record<string, TickerAnalystData> = {
     rating: 'Speculative Buy',
     numAnalysts: 8,
     source: 'Tech Infrastructure Analysts',
+    sourceUrl: 'https://finance.yahoo.com/quote/NBIS/analysis/',
+    internalSparkyTab: 'screener',
+    evidenceLinks: [
+      { label: 'Konsensus Yahoo Finance', url: 'https://finance.yahoo.com/quote/NBIS/analysis/', isExternal: true },
+      { label: 'Karta w Sparky', url: '/inwestycje?tab=screener&q=NBIS', isExternal: false },
+    ],
     keyCatalyst: 'Ekspansja europejskich i amerykańskich klastrów GPU Neocloud',
     whatMustHappen: {
       bull: ['Duże wieloletnie kontrakty chmurowe z europejskimi laboratoriami AI i startupami LLM.'],
@@ -147,6 +201,12 @@ export const TICKER_ANALYST_DATABASE: Record<string, TickerAnalystData> = {
     rating: 'Buy',
     numAnalysts: 16,
     source: 'Energy Transition Consensus',
+    sourceUrl: 'https://www.marketwatch.com/investing/stock/be/analystestimates',
+    internalSparkyTab: 'screener',
+    evidenceLinks: [
+      { label: 'Konsensus MarketWatch', url: 'https://www.marketwatch.com/investing/stock/be/analystestimates', isExternal: true },
+      { label: 'Karta w Sparky', url: '/inwestycje?tab=screener&q=BE', isExternal: false },
+    ],
     keyCatalyst: 'Zasilanie centrów danych AI ogniwami paliwowymi off-grid (Solid Oxide)',
     whatMustHappen: {
       bull: ['Podpisanie wielomegawatowych umów z hiperskalerami na zasilanie bez czekania na przyłącze do sieci energetycznej.'],

@@ -6,6 +6,7 @@
 import { askInvestmentsAnalyst } from './investmentsAiService';
 import type { JakubPortfolioData } from './jakubPortfolioStorage';
 import type { KondzioPortfolioData } from './kondzioPortfolioStorage';
+import { TICKER_ANALYST_DATABASE, type EvidenceLink } from './portfolioForecastData';
 
 export type ForecastHorizon = 6 | 12 | 24;
 export type ScenarioType = 'bull' | 'base' | 'bear';
@@ -19,6 +20,9 @@ export interface PositionAnalystTarget {
   rating: 'Strong Buy' | 'Buy' | 'Hold' | 'Speculative Buy';
   numAnalysts: number;
   source: string;
+  sourceUrl: string;
+  internalSparkyTab?: string;
+  evidenceLinks: EvidenceLink[];
   keyCatalyst: string;
   bullTargetPln: number;
   bullReturnPct: number;
@@ -68,8 +72,6 @@ export interface PortfolioForecastModel {
   };
 }
 
-import { TICKER_ANALYST_DATABASE } from './portfolioForecastData';
-
 function getHorizonMultiplier(horizon: ForecastHorizon): number {
   if (horizon === 6) return 0.55;
   if (horizon === 24) return 1.75;
@@ -115,6 +117,9 @@ export function calculatePortfolioForecast(
       rating: db.rating,
       numAnalysts: db.numAnalysts,
       source: db.source,
+      sourceUrl: db.sourceUrl || 'https://finance.yahoo.com/',
+      internalSparkyTab: db.internalSparkyTab,
+      evidenceLinks: db.evidenceLinks || [],
       keyCatalyst: db.keyCatalyst,
       bullTargetPln: bullTarget,
       bullReturnPct: bullUpside,
@@ -254,7 +259,12 @@ WYMAGANIA DO TWOJEJ ANALIZY (Bądź precyzyjny, nie oszczędzaj słów ani głę
 3. ### 3. DETALE 3 SCENARIUSZY (CO KONKRETNIE MUSI SIĘ WYDARZYĆ)
    Wypisz bezwzględne warunki brzegowe: co musi osiągnąć każda ze spółek, aby portfel zrealizował zysk +${model.scenarios.bull.simulatedRoiPct.toFixed(0)}%, a jakie sygnały ostrzegawcze zwiastują scenariusz Bear.
 4. ### 4. REKOMENDACJA ZAGOSPODAROWANIA WOLNYCH ŚRODKÓW (${portfolio.freeCashPln.toFixed(2)} PLN)
-   Gdzie ulokować wolną gotówkę: czy uśredniać w dół, czekać na breakout, czy dokupić szeroki rynek?`;
+   Gdzie ulokować wolną gotówkę: czy uśredniać w dół, czekać na breakout, czy dokupić szeroki rynek?
+5. ### 5. BEZWZGLĘDNE ŹRÓDŁA I LINKI (EVIDENCE & CITATIONS)
+   Każdy wniosek, założenie i liczba MUSI zawierać klikalny link w formacie Markdown:
+   - Do bazy danych Sparky: np. [Karta spółki w Sparky](/inwestycje?tab=screener&q=MRVL), [Transakcje Kongresu](/inwestycje?tab=politicians), [Rejestr szortów KNF](/inwestycje?tab=gpw_shorts).
+   - Do oficjalnych źródeł: np. [SEC EDGAR 13F / Form 4](https://www.sec.gov/edgar/searchedgar/companysearch?companyName=MRVL), [Rekomendacje Bankier.pl](https://www.bankier.pl/gielda/notowania/akcje/CDPROJEKT/rekomendacje), [KNF Rejestr Szortów](https://rss.knf.gov.pl/), [MarketWatch Analyst Consensus](https://www.marketwatch.com/investing/stock/mrvl/analystestimates), [FactSet Earnings](https://insight.factset.com/topic/earnings), [Prospekt VanEck](https://www.vaneck.com/ucits/etf/equity/jedi/overview/).
+   Żadne założenie nie może wisieć w próżni bez odnośnika do twardych danych!`;
 
   const answer = await askInvestmentsAnalyst([{ role: 'user', content: prompt }]);
   return answer.content;

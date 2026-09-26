@@ -1,6 +1,6 @@
 import { FC } from 'react';
 import type { PositionAnalystTarget } from '../../../lib/investments/portfolioForecastService';
-import { Target, TrendingUp, Sparkles } from 'lucide-react';
+import { Target, TrendingUp, Sparkles, ExternalLink, Database } from 'lucide-react';
 
 interface Props {
   positions: PositionAnalystTarget[];
@@ -10,28 +10,43 @@ interface Props {
 export const PortfolioAnalystTargetsTable: FC<Props> = ({ positions, horizonMonths }) => {
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between px-1">
+      {/* 1. Header with verified sources */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
         <div className="flex items-center gap-2">
           <Target size={15} className="text-primary" />
           <h4 className="text-xs sm:text-sm font-bold text-text-primary tracking-tight">
             Wyceny docelowe konsensusu Wall Street & GPW ({horizonMonths}M)
           </h4>
         </div>
-        <span className="text-3xs font-mono text-text-muted">
-          Źródła: FactSet · Bloomberg · Domy Maklerskie
-        </span>
+
+        <div className="flex items-center gap-2 text-3xs font-mono text-text-muted flex-wrap">
+          <span className="flex items-center gap-1 text-text-secondary font-semibold">
+            <Database size={11} className="text-primary" />
+            <span>Źródła danych:</span>
+          </span>
+          <span className="px-1.5 py-0.2 rounded-md bg-surface border border-border-custom">
+            FactSet / Wall St
+          </span>
+          <span className="px-1.5 py-0.2 rounded-md bg-surface border border-border-custom">
+            GPW Domy Maklerskie
+          </span>
+          <span className="px-1.5 py-0.2 rounded-md bg-surface border border-border-custom">
+            SEC EDGAR
+          </span>
+        </div>
       </div>
 
+      {/* 2. Responsive Table with Direct Evidence Links */}
       <div className="overflow-x-auto rounded-2xl border border-border-custom bg-surface-elevated/40">
         <table className="w-full text-left text-xs font-mono">
           <thead className="text-3xs uppercase text-text-muted border-b border-border-custom/80 bg-surface-elevated/80">
             <tr>
-              <th className="px-3 py-2.5">Walor</th>
+              <th className="px-3 py-2.5">Walor & Baza</th>
               <th className="px-3 py-2.5 text-right">Cena bieżąca</th>
               <th className="px-3 py-2.5 text-right">Cena docelowa</th>
               <th className="px-3 py-2.5 text-right">Potencjał</th>
               <th className="px-3 py-2.5 text-center">Rekomendacja</th>
-              <th className="px-3 py-2.5 hidden md:table-cell">Główny katalizator analityków</th>
+              <th className="px-3 py-2.5 hidden md:table-cell">Główny katalizator & Źródła</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border-custom/50">
@@ -42,9 +57,29 @@ export const PortfolioAnalystTargetsTable: FC<Props> = ({ positions, horizonMont
                   <td className="px-3 py-3">
                     <div className="flex items-center gap-1.5 font-bold text-text-primary">
                       <span className="text-primary font-black">${pos.ticker}</span>
+                      <a
+                        href={pos.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-text-muted hover:text-primary transition-colors"
+                        title={`Otwórz analizę analityków dla ${pos.ticker}`}
+                      >
+                        <ExternalLink size={11} />
+                      </a>
                     </div>
                     <div className="text-4xs text-text-muted font-sans truncate max-w-xs">
                       {pos.name}
+                    </div>
+                    <div className="mt-1">
+                      <a
+                        href={pos.sourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-4xs font-sans text-primary hover:underline flex items-center gap-0.5"
+                      >
+                        <span>{pos.source}</span>
+                        <ExternalLink size={8} />
+                      </a>
                     </div>
                   </td>
 
@@ -84,11 +119,29 @@ export const PortfolioAnalystTargetsTable: FC<Props> = ({ positions, horizonMont
                     </span>
                   </td>
 
-                  <td className="px-3 py-3 hidden md:table-cell font-sans text-3xs text-text-secondary max-w-sm">
+                  <td className="px-3 py-3 hidden md:table-cell font-sans text-3xs text-text-secondary max-w-md">
                     <div className="flex items-start gap-1">
                       <Sparkles size={11} className="text-primary shrink-0 mt-0.5" />
                       <span>{pos.keyCatalyst}</span>
                     </div>
+
+                    {/* Verified Evidence Links for this company */}
+                    {pos.evidenceLinks && pos.evidenceLinks.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                        {pos.evidenceLinks.map((link) => (
+                          <a
+                            key={link.label}
+                            href={link.url}
+                            target={link.isExternal ? '_blank' : undefined}
+                            rel={link.isExternal ? 'noopener noreferrer' : undefined}
+                            className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-4xs font-mono font-bold bg-surface border border-border-custom text-text-secondary hover:text-primary hover:border-primary/40 transition-colors"
+                          >
+                            <span>{link.label}</span>
+                            {link.isExternal && <ExternalLink size={8} />}
+                          </a>
+                        ))}
+                      </div>
+                    )}
                   </td>
                 </tr>
               );

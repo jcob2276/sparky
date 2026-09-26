@@ -1,7 +1,7 @@
 import React, { FC, useMemo } from 'react';
 import { AnalystTable } from './AnalystTable';
 import { AnalystTradeCard, type TradeItemData } from './AnalystTradeCard';
-import { Landmark, BarChart3, Sparkles, ShieldCheck, ShieldAlert, ArrowRight } from 'lucide-react';
+import { Landmark, BarChart3, Sparkles, ShieldCheck, ShieldAlert, ArrowRight, ExternalLink } from 'lucide-react';
 
 interface Props {
   content: string;
@@ -136,12 +136,31 @@ function parseBlocks(raw: string): ParsedBlock[] {
 }
 
 function renderFormattedLine(text: string): React.ReactNode {
-  // Replace **bold** with styled strong and $TICKER with badge
-  const parts = text.split(/(\*\*[^*]+\*\*|\$[A-Z0-9.]+)/g);
+  // Replace [label](url) with link, **bold** with styled strong and $TICKER with badge
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|\$[A-Z0-9.]+)/g);
 
   return (
     <>
       {parts.map((part, idx) => {
+        if (part.startsWith('[') && part.includes('](') && part.endsWith(')')) {
+          const match = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+          if (match) {
+            const [, label, url] = match;
+            const isExternal = url.startsWith('http://') || url.startsWith('https://');
+            return (
+              <a
+                key={idx}
+                href={url}
+                target={isExternal ? '_blank' : undefined}
+                rel={isExternal ? 'noopener noreferrer' : undefined}
+                className="text-primary hover:underline font-semibold inline-flex items-center gap-0.5 mx-0.5"
+              >
+                <span>{label}</span>
+                {isExternal && <ExternalLink size={10} className="inline ml-0.5 shrink-0" />}
+              </a>
+            );
+          }
+        }
         if (part.startsWith('**') && part.endsWith('**')) {
           return (
             <strong key={idx} className="font-bold text-text-primary">

@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { Zap, RefreshCw, X, CheckCircle2 } from 'lucide-react';
 import Button from '../../ui/Button';
+import { AnalystMessageRenderer } from '../AnalystMessageRenderer';
 
 interface Props {
   reportText: string | null;
@@ -80,8 +81,8 @@ export const PortfolioAiForecastReport: FC<Props> = ({
             <span>Prognoza wygenerowana w czasie rzeczywistym</span>
           </div>
 
-          <div className="prose prose-invert max-w-none text-xs leading-relaxed text-text-secondary whitespace-pre-wrap font-sans bg-surface/50 p-4 rounded-xl border border-border-custom/50 max-h-96 overflow-y-auto">
-            {reportText}
+          <div className="bg-surface/50 p-4 rounded-xl border border-border-custom/50 max-h-96 overflow-y-auto">
+            {reportText && <AnalystMessageRenderer content={reportText} />}
           </div>
         </div>
       )}
