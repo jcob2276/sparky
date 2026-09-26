@@ -5,6 +5,7 @@ import Button from '../../ui/Button';
 import Input from '../../ui/Input';
 import { X, Plus, Wallet } from 'lucide-react';
 import { notify } from '../../../lib/notify';
+import { useModalBackHandler } from '../../../lib/investments/useModalBackHandler';
 
 interface Props {
   isOpen: boolean;
@@ -20,6 +21,8 @@ export const JakubAddPositionModal: FC<Props> = ({
   onSave,
 }) => {
   const [cash, setCash] = useState(portfolio.freeCashPln.toString());
+
+  useModalBackHandler('jakubAddPosition', isOpen, onClose);
 
   if (!isOpen) return null;
 

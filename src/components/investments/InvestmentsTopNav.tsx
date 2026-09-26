@@ -1,14 +1,17 @@
 import { FC, useState, useEffect } from 'react';
 import Button from '../ui/Button';
-import { Search, RefreshCw, BookOpen, Menu } from 'lucide-react';
+import { Search, RefreshCw, BookOpen, Menu, ArrowLeft } from 'lucide-react';
 import { TickerSearchModal } from './TickerSearchModal';
 import { MarketStatusBadge } from './MarketStatusBadge';
+import type { MainTabType } from './InvestmentsPage';
 
 interface Props {
   onOpenPlaybook: () => void;
   onRefresh: () => void;
   syncing: boolean;
   onOpenMobileMenu?: () => void;
+  activeTab?: MainTabType;
+  onBack?: () => void;
 }
 
 export const InvestmentsTopNav: FC<Props> = ({
@@ -16,6 +19,8 @@ export const InvestmentsTopNav: FC<Props> = ({
   onRefresh,
   syncing,
   onOpenMobileMenu,
+  activeTab,
+  onBack,
 }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
@@ -34,8 +39,20 @@ export const InvestmentsTopNav: FC<Props> = ({
   return (
     <div className="relative mb-6 border-b border-border-custom/50 pb-4">
       <div className="flex items-center justify-between gap-4">
-        {/* Left: Mobile Toggle + Brand */}
-        <div className="flex items-center gap-3">
+        {/* Left: Back + Mobile Toggle + Brand */}
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          {onBack && (
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={<ArrowLeft size={18} />}
+              onClick={onBack}
+              className="rounded-xl p-2 text-text-secondary hover:text-text-primary"
+              aria-label={activeTab === 'dashboard' ? 'Wróć do Sparky' : 'Wróć do pulpitu'}
+              title={activeTab === 'dashboard' ? 'Wróć do Sparky' : 'Wróć do pulpitu'}
+            />
+          )}
+
           {onOpenMobileMenu && (
             <Button
               size="sm"

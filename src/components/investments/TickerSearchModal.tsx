@@ -8,6 +8,7 @@ import { searchDisclosures, type DisclosureSearchHit, type SearchSource } from '
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { X, Search } from 'lucide-react';
+import { useModalBackHandler } from '../../lib/investments/useModalBackHandler';
 
 const SOURCE_STYLE: Record<SearchSource, string> = {
   '13F': 'bg-primary/10 text-primary border-primary/20',
@@ -68,6 +69,8 @@ export const TickerSearchModal: FC<Props> = ({ isOpen, onClose }) => {
   const [results, setResults] = useState<DisclosureSearchHit[]>([]);
   const [settledQuery, setSettledQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useModalBackHandler('tickerSearch', isOpen, onClose);
 
   useEffect(() => {
     if (isOpen) {
