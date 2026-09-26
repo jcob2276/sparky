@@ -16,8 +16,8 @@ export const AnalystInputBar: FC<Props> = ({
   onInputChange,
   onSend,
 }) => (
-  <div className="p-4 rounded-3xl bg-surface border border-border-custom shadow-xs flex items-center gap-3">
-    <div className="flex-1">
+  <div className="p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-surface border border-border-custom shadow-xs flex items-center gap-2 sm:gap-3">
+    <div className="flex-1 min-w-0">
       <Input
         type="text"
         size="md"
@@ -26,7 +26,7 @@ export const AnalystInputBar: FC<Props> = ({
         onKeyDown={(e) => {
           if (e.key === 'Enter') onSend();
         }}
-        placeholder="Zadaj pytanie analitykowi: np. 'Kto kupował akcje NVDA?', 'Jakie szorty ma Dino?'..."
+        placeholder="Zadaj pytanie analitykowi: np. 'Kto kupował NVDA?', 'Szorty Dino'..."
         disabled={loading}
       />
     </div>
@@ -36,9 +36,9 @@ export const AnalystInputBar: FC<Props> = ({
       icon={<Send size={15} />}
       onClick={onSend}
       disabled={loading || !inputVal.trim()}
-      className="rounded-xl font-bold shrink-0"
+      className="rounded-xl font-bold shrink-0 px-3 sm:px-4"
     >
-      Wyślij ↵
+      <span className="hidden sm:inline">Wyślij ↵</span>
     </Button>
   </div>
 );

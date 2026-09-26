@@ -12,6 +12,7 @@ import { AnalystHeaderBanner } from './AnalystHeaderBanner';
 import { AnalystThread } from './AnalystThread';
 import { AnalystInputBar } from './AnalystInputBar';
 import { AiAnalystPrompts } from './AiAnalystPrompts';
+import { AnalystMobileHistoryDrawer } from './AnalystMobileHistoryDrawer';
 import { notify, confirmDialog } from '../../lib/notify';
 import { analystQuota, consumeAnalystQuota } from '../../lib/investments/analystQuota';
 
@@ -23,6 +24,7 @@ export const InvestmentsAnalystView: FC = () => {
   const [loading, setLoading] = useState(false);
   const [quota, setQuota] = useState(() => analystQuota());
   const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false);
+  const [isMobileHistoryOpen, setIsMobileHistoryOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,12 +35,14 @@ export const InvestmentsAnalystView: FC = () => {
     setActiveId(conv.id);
     setMessages(conv.messages);
     setInputVal('');
+    setIsMobileHistoryOpen(false);
   }, []);
 
   const handleNewChat = useCallback(() => {
     setActiveId(null);
     setMessages([]);
     setInputVal('');
+    setIsMobileHistoryOpen(false);
   }, []);
 
   const handleDeleteConversation = useCallback(
@@ -109,40 +113,66 @@ export const InvestmentsAnalystView: FC = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in text-text-primary">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in text-text-primary">
+      {/* 1. Header Banner */}
       <AnalystHeaderBanner
         remaining={quota.remaining}
         limit={quota.limit}
         hasMessages={messages.length > 0}
         onNewChat={handleNewChat}
+        conversationCount={conversations.length}
+        onOpenMobileHistory={() => setIsMobileHistoryOpen(true)}
       />
 
+      {/* 2. Main Layout (Sidebar on desktop, Chat on mobile & desktop) */}
       <div className="flex flex-col lg:flex-row gap-5 items-start">
-        <AnalystHistorySidebar
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:block shrink-0">
+          <AnalystHistorySidebar
+            conversations={conversations}
+            activeId={activeId}
+            onSelectConversation={handleSelectConversation}
+            onNewChat={handleNewChat}
+            onDeleteConversation={handleDeleteConversation}
+            isCollapsed={isHistoryCollapsed}
+            onToggleCollapse={() => setIsHistoryCollapsed((prev) => !prev)}
+          />
+        </div>
+
+        {/* Mobile History Drawer */}
+        <AnalystMobileHistoryDrawer
+          isOpen={isMobileHistoryOpen}
+          onClose={() => setIsMobileHistoryOpen(false)}
           conversations={conversations}
           activeId={activeId}
           onSelectConversation={handleSelectConversation}
           onNewChat={handleNewChat}
           onDeleteConversation={handleDeleteConversation}
-          isCollapsed={isHistoryCollapsed}
-          onToggleCollapse={() => setIsHistoryCollapsed((prev) => !prev)}
         />
 
-        <div className="flex-1 w-full min-w-0 space-y-5">
-          {messages.length === 0 && (
-            <AiAnalystPrompts onSelectPrompt={(prompt) => handleSend(prompt)} />
+        {/* Chat Area */}
+        <div className="flex-1 w-full min-w-0 space-y-4 sm:space-y-5">
+          {messages.length === 0 ? (
+            <>
+              <AnalystInputBar
+                inputVal={inputVal}
+                loading={loading}
+                onInputChange={setInputVal}
+                onSend={() => handleSend()}
+              />
+              <AiAnalystPrompts onSelectPrompt={(prompt) => handleSend(prompt)} />
+            </>
+          ) : (
+            <>
+              <AnalystThread messages={messages} loading={loading} scrollRef={scrollRef} />
+              <AnalystInputBar
+                inputVal={inputVal}
+                loading={loading}
+                onInputChange={setInputVal}
+                onSend={() => handleSend()}
+              />
+            </>
           )}
-
-          {messages.length > 0 && (
-            <AnalystThread messages={messages} loading={loading} scrollRef={scrollRef} />
-          )}
-
-          <AnalystInputBar
-            inputVal={inputVal}
-            loading={loading}
-            onInputChange={setInputVal}
-            onSend={() => handleSend()}
-          />
         </div>
       </div>
     </div>

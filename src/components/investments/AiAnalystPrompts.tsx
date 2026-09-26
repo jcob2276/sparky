@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import Button from '../ui/Button';
 
 interface Props {
   onSelectPrompt: (prompt: string) => void;
@@ -40,44 +39,43 @@ const PRESET_QUESTIONS = [
 
 export const AiAnalystPrompts: FC<Props> = ({ onSelectPrompt }) => {
   return (
-    <div className="p-6 rounded-3xl bg-surface border border-border-custom shadow-xs space-y-4">
+    <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-surface border border-border-custom shadow-xs space-y-3">
       <div>
-        <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+        <h3 className="text-sm sm:text-base font-bold text-text-primary flex items-center gap-2">
           <span>💡</span> O co zapytać Analityka AI?
         </h3>
-        <p className="text-xs text-text-secondary mt-1">
+        <p className="text-3xs sm:text-xs text-text-secondary mt-0.5">
           Odpowiada na podstawie danych 13F, transakcji Kongresu USA, szortów KNF oraz raportów GPW.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
         {PRESET_QUESTIONS.map((q) => (
           <div
             key={q.title}
+            role="button"
+            tabIndex={0}
             onClick={() => onSelectPrompt(q.prompt)}
-            className="p-4 rounded-2xl bg-surface border border-border-custom/70 hover:border-primary/50 transition-all flex flex-col justify-between gap-3 shadow-xs group cursor-pointer"
+            onKeyDown={(e) => e.key === 'Enter' && onSelectPrompt(q.prompt)}
+            className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-surface border border-border-custom/70 hover:border-primary/50 transition-all flex flex-col justify-between gap-2 shadow-2xs group cursor-pointer active:scale-98"
           >
             <div>
-              <div className="flex items-center justify-between gap-2 mb-1.5">
+              <div className="flex items-center justify-between gap-1.5 mb-1">
                 <span className="text-xs font-bold text-text-primary group-hover:text-primary transition-colors">
                   {q.title}
                 </span>
-                <span className="px-2 py-0.5 rounded-md text-3xs font-mono font-bold bg-primary/10 text-primary border border-primary/20">
+                <span className="px-1.5 py-0.2 rounded-md text-3xs font-mono font-bold bg-primary/10 text-primary border border-primary/20 shrink-0">
                   {q.tag}
                 </span>
               </div>
-              <p className="text-xs text-text-secondary leading-relaxed line-clamp-3">
+              <p className="text-3xs sm:text-xs text-text-secondary leading-relaxed line-clamp-2 sm:line-clamp-3">
                 {q.prompt}
               </p>
             </div>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => onSelectPrompt(q.prompt)}
-              className="w-full text-xs font-semibold rounded-xl"
-            >
-              Zapytaj →
-            </Button>
+            <div className="text-3xs font-mono font-semibold text-primary group-hover:underline flex items-center gap-1">
+              <span>Zapytaj</span>
+              <span>→</span>
+            </div>
           </div>
         ))}
       </div>
