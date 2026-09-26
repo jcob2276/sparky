@@ -7,12 +7,17 @@ export function loadStoredWatchlist(): string[] {
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    const tickers = parsed.filter((item): item is string => typeof item === 'string' && item.trim().length > 0);
+    const tickers = parsed
+      .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+      .map((t) => {
+        const clean = t.replace(/[$]/g, '').trim().toUpperCase();
+        return clean === 'NEBIUS' ? 'NBIS' : clean;
+      });
     if (SEEDED_LISTS.has(tickers.join(','))) {
       localStorage.setItem(LS_KEY, '[]');
       return [];
     }
-    return tickers;
+    return Array.from(new Set(tickers));
   } catch {
     return [];
   }

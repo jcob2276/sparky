@@ -1,16 +1,9 @@
 import { FC } from 'react';
 import Button from '../ui/Button';
 import { Star, TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react';
+import type { WatchlistItem } from '../../lib/investments/watchlistService';
 
-export interface WatchlistItem {
-  ticker: string;
-  name: string;
-  market: 'USA' | 'GPW';
-  price: string;
-  changePercent: number | null;
-  signalsCount: number;
-  lastSignal: string;
-}
+export type { WatchlistItem };
 
 interface Props {
   items: WatchlistItem[];
@@ -46,8 +39,10 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
           <tbody className="divide-y divide-border-custom/40">
             {items.map((item) => {
               const rawTicker = item.ticker.replace('.WA', '');
+              const targetTicker = watchlist.includes(item.ticker) ? item.ticker : rawTicker;
               const isAdded = watchlist.includes(rawTicker) || watchlist.includes(item.ticker);
               const isPositive = item.changePercent != null && item.changePercent >= 0;
+              const isUnknown = item.name === item.ticker && item.price === '—';
 
               return (
                 <tr
@@ -60,7 +55,7 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => onToggle(rawTicker)}
+                      onClick={() => onToggle(targetTicker)}
                       className={`p-1 h-auto text-base hover:scale-125 ${
                         isAdded ? 'text-primary' : 'text-text-muted hover:text-text-primary'
                       }`}
@@ -74,9 +69,15 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
                       <span className="px-2 py-0.5 rounded-md bg-surface border border-border-custom shadow-xs">
                         ${item.ticker}
                       </span>
-                      <span className="font-sans font-semibold text-text-secondary truncate max-w-[180px]">
-                        {item.name}
-                      </span>
+                      {isUnknown ? (
+                        <span className="text-2xs text-text-muted italic px-1.5 py-0.5 rounded bg-surface border border-border-custom">
+                          Niezweryfikowany
+                        </span>
+                      ) : (
+                        <span className="font-sans font-semibold text-text-secondary truncate max-w-[180px]">
+                          {item.name}
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="py-3.5 px-4 text-center">
