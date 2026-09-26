@@ -2,6 +2,7 @@ import { FC, useState, useEffect } from 'react';
 import Button from '../ui/Button';
 import { Search, RefreshCw, BookOpen, Menu } from 'lucide-react';
 import { TickerSearchModal } from './TickerSearchModal';
+import { MarketStatusBadge } from './MarketStatusBadge';
 
 interface Props {
   onOpenPlaybook: () => void;
@@ -75,6 +76,8 @@ export const InvestmentsTopNav: FC<Props> = ({
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          <MarketStatusBadge />
+
           <Button
             size="sm"
             variant="secondary"

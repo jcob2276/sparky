@@ -14,6 +14,7 @@ export interface WatchlistItem {
   changePercent: number | null;
   signalsCount: number;
   lastSignal: string;
+  sparkline?: number[];
 }
 
 export interface SearchCompanyResult {
@@ -195,7 +196,7 @@ export async function fetchWatchlistDetails(tickers: string[]): Promise<Watchlis
         `gpw_fin_public_teaser?ticker=in.(${encTickers})&select=ticker,name,sector&limit=${rawTickers.length + 5}`
       ).catch(() => []),
       orcaSelect<RawDailyPrice>(
-        `prices_daily?ticker=in.(${encPriceSymbols})&order=date.desc&limit=${priceSymbols.length * 4}`
+        `prices_daily?ticker=in.(${encPriceSymbols})&order=date.desc&limit=${priceSymbols.length * 25}`
       ).catch(() => []),
       orcaSelect<RawConsensus>(
         `vw_consensus?ticker=in.(${encTickers})&select=ticker,company_name,net_buyers,holders&limit=${rawTickers.length + 5}`
@@ -210,13 +211,13 @@ export async function fetchWatchlistDetails(tickers: string[]): Promise<Watchlis
     const consensusMap = new Map(consensusRows.map((c) => [c.ticker?.toUpperCase() ?? '', c]));
     const shortMap = new Map(shortRows.map((s) => [s.ticker?.toUpperCase() ?? '', s]));
 
-    // Grupuj notowania po tickerze (max 2 ostatnie dni, aby policzyć zmianę %)
+    // Grupuj notowania po tickerze (do 20 ostatnich dni dla sparkline i wyliczenia zmiany)
     const pricesBySymbol = new Map<string, RawDailyPrice[]>();
     for (const p of priceRows) {
       const sym = p.ticker?.toUpperCase();
       if (!sym) continue;
       const list = pricesBySymbol.get(sym) || [];
-      if (list.length < 2) {
+      if (list.length < 20) {
         list.push(p);
         pricesBySymbol.set(sym, list);
       }
@@ -263,6 +264,11 @@ export async function fetchWatchlistDetails(tickers: string[]): Promise<Watchlis
         signalsCount = Math.abs(net);
       }
 
+      const sparkline = symbolPrices
+        .map((p) => p.close_raw ?? null)
+        .filter((v): v is number => v != null && v > 0)
+        .reverse();
+
       return {
         ticker: raw,
         name,
@@ -271,6 +277,7 @@ export async function fetchWatchlistDetails(tickers: string[]): Promise<Watchlis
         changePercent,
         signalsCount,
         lastSignal,
+        sparkline,
       };
     });
   } catch (err) {
@@ -283,6 +290,7 @@ export async function fetchWatchlistDetails(tickers: string[]): Promise<Watchlis
       changePercent: null,
       signalsCount: 0,
       lastSignal: 'Błąd ładowania danych',
+      sparkline: [],
     }));
   }
 }

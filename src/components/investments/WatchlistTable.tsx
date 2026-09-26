@@ -1,7 +1,9 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import Button from '../ui/Button';
-import { Star, TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react';
+import { Star, TrendingUp, TrendingDown, LineChart } from 'lucide-react';
 import type { WatchlistItem } from '../../lib/investments/watchlistService';
+import { MiniSparkline } from './MiniSparkline';
+import { TradingViewChartModal } from './TradingViewChartModal';
 
 export type { WatchlistItem };
 
@@ -12,31 +14,35 @@ interface Props {
 }
 
 export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
-  return (
-    <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
-      <div className="p-4 sm:p-5 border-b border-border-custom/50 flex items-center justify-between">
-        <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-          <span>📋</span> Spółki na Twoim radarze ({items.length})
-        </h3>
-        <span className="text-xs text-text-secondary font-mono">
-          Kliknij gwiazdkę, aby włączyć lub wyłączyć alerty
-        </span>
-      </div>
+  const [selectedChartItem, setSelectedChartItem] = useState<WatchlistItem | null>(null);
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-surface border-b border-border-custom/50 text-2xs text-text-secondary uppercase font-semibold">
-            <tr>
-              <th className="py-3 px-4 w-12 text-center">Alert</th>
-              <th className="py-3 px-4">Spółka & Ticker</th>
-              <th className="py-3 px-4 text-center">Rynek</th>
-              <th className="py-3 px-4 text-right">Kurs</th>
-              <th className="py-3 px-4 text-right">Zmiana Dziś</th>
-              <th className="py-3 px-4">Ostatnie zdarzenie</th>
-              <th className="py-3 px-4 text-right">Wykres</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border-custom/40">
+  return (
+    <>
+      <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
+        <div className="p-4 sm:p-5 border-b border-border-custom/50 flex items-center justify-between">
+          <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+            <span>📋</span> Spółki na Twoim radarze ({items.length})
+          </h3>
+          <span className="text-xs text-text-secondary font-mono">
+            Kliknij gwiazdkę, aby włączyć lub wyłączyć alerty
+          </span>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm">
+            <thead className="bg-surface border-b border-border-custom/50 text-2xs text-text-secondary uppercase font-semibold">
+              <tr>
+                <th className="py-3 px-4 w-12 text-center">Alert</th>
+                <th className="py-3 px-4">Spółka & Ticker</th>
+                <th className="py-3 px-4 text-center">Rynek</th>
+                <th className="py-3 px-4 text-right">Kurs</th>
+                <th className="py-3 px-4 text-right">Zmiana Dziś</th>
+                <th className="py-3 px-4 text-center">Trend (20d)</th>
+                <th className="py-3 px-4">Ostatnie zdarzenie</th>
+                <th className="py-3 px-4 text-right">Wykres</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border-custom/40">
             {items.map((item) => {
               const rawTicker = item.ticker.replace('.WA', '');
               const targetTicker = watchlist.includes(item.ticker) ? item.ticker : rawTicker;
@@ -102,32 +108,45 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
                       </span>
                     )}
                   </td>
-                  <td className="py-3.5 px-4 text-xs text-text-secondary">
-                    <span className="px-2 py-0.5 rounded-md bg-surface border border-border-custom font-mono text-2xs">
-                      {item.lastSignal}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right">
-                    <a
-                      href={
-                        item.market === 'GPW'
-                          ? `https://stooq.pl/q/?s=${rawTicker.toLowerCase()}`
-                          : `https://www.tradingview.com/symbols/${rawTicker}/`
-                      }
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-semibold text-primary hover:underline inline-flex items-center gap-0.5"
-                    >
-                      <span>Otwórz</span>
-                      <ArrowUpRight size={12} />
-                    </a>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    <td className="py-3.5 px-4 text-center">
+                      <div className="flex justify-center">
+                        <MiniSparkline data={item.sparkline} width={70} height={22} />
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 text-xs text-text-secondary">
+                      <span className="px-2 py-0.5 rounded-md bg-surface border border-border-custom font-mono text-2xs">
+                        {item.lastSignal}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        icon={<LineChart size={13} className="text-primary" />}
+                        onClick={() => setSelectedChartItem(item)}
+                        className="rounded-xl text-2xs font-semibold py-1 px-2.5 inline-flex items-center gap-1"
+                        title="Otwórz interaktywny wykres TradingView"
+                      >
+                        Wykres
+                      </Button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+
+      {selectedChartItem && (
+        <TradingViewChartModal
+          isOpen={true}
+          onClose={() => setSelectedChartItem(null)}
+          ticker={selectedChartItem.ticker}
+          companyName={selectedChartItem.name}
+          market={selectedChartItem.market}
+        />
+      )}
+    </>
   );
 };

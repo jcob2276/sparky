@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { EspiReport, GpwPeriod } from '../../lib/investments/publicMarket';
 import { GpwYear } from '../../lib/investments/gpwStatements';
+import { getMarketLinks } from '../../lib/investments/marketLinks';
 
 interface Props {
   forecasts: EspiReport[];
@@ -28,7 +29,22 @@ export const GpwCompanyDetail: FC<Props> = ({ forecasts, ticker, periods, years,
     )}
     {ticker && (
       <div className="border border-border-custom bg-surface p-3">
-        <div className="text-xs font-mono font-bold mb-2">{ticker} · okresy ze źródła</div>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <div className="text-xs font-mono font-bold">{ticker} · okresy ze źródła</div>
+          <div className="flex items-center gap-1.5">
+            {getMarketLinks(ticker, 'GPW').map((link) => (
+              <a
+                key={link.provider}
+                href={link.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2 py-0.5 rounded text-3xs font-mono font-medium bg-surface border border-border-custom text-text-secondary hover:text-text-primary hover:border-primary/40 transition-colors"
+              >
+                {link.label} ↗
+              </a>
+            ))}
+          </div>
+        </div>
         {!ready ? (
           <p className="text-xs font-mono text-text-muted">Pobieram rachunek wyników…</p>
         ) : periods.length === 0 ? (
