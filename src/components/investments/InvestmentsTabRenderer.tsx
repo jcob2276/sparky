@@ -62,7 +62,13 @@ export const InvestmentsTabRenderer: FC<Props> = ({
     case 'investors':
       return <Investors13FView />;
     case 'politicians':
-      return <PoliticiansView />;
+      return (
+        <PoliticiansView
+          watchlist={watchlist}
+          onToggleWatchlist={onToggleWatchlist}
+          onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)}
+        />
+      );
     case 'simulation':
       return <BasketSimulationView />;
     case 'stocks':

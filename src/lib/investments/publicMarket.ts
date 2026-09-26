@@ -170,43 +170,4 @@ export async function fetchQuote(ticker: string, from: string): Promise<QuotePoi
   });
 }
 
-export interface AlphaPrint {
-  ticker: string;
-  tradeDate: string;
-  side: string;
-  stockPct: number | null;
-  spyPct: number | null;
-}
 
-function closeOnOrAfter(series: QuotePoint[], day: string): number | null {
-  const hit = series.find((point) => point.date >= day);
-  return hit?.close ?? series.at(-1)?.close ?? null;
-}
-
-export async function alphaForTrades(
-  trades: { ticker: string | null; transaction_date: string | null; transaction_type: string | null }[],
-): Promise<AlphaPrint[]> {
-  const picked = trades.filter((trade) => trade.ticker && trade.transaction_date).slice(0, 8);
-  const earliest = picked.map((trade) => trade.transaction_date ?? '').sort()[0];
-  if (!earliest) return [];
-  const tickers = [...new Set(picked.map((trade) => (trade.ticker ?? '').toUpperCase()))];
-  const seriesList = await Promise.all(tickers.map((ticker) => fetchQuote(ticker, earliest)));
-  const spy = await fetchQuote('SPY', earliest);
-  const byTicker = new Map(tickers.map((ticker, index) => [ticker, seriesList[index] ?? []]));
-  const spyLast = spy.at(-1)?.close ?? null;
-  return picked.map((trade) => {
-    const ticker = (trade.ticker ?? '').toUpperCase();
-    const series = byTicker.get(ticker) ?? [];
-    const day = trade.transaction_date ?? '';
-    const entry = closeOnOrAfter(series, day);
-    const last = series.at(-1)?.close ?? null;
-    const spyEntry = closeOnOrAfter(spy, day);
-    return {
-      ticker,
-      tradeDate: day,
-      side: trade.transaction_type || '',
-      stockPct: entry && last ? ((last - entry) / entry) * 100 : null,
-      spyPct: spyEntry && spyLast ? ((spyLast - spyEntry) / spyEntry) * 100 : null,
-    };
-  });
-}
