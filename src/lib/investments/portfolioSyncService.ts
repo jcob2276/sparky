@@ -1,46 +1,40 @@
 /**
- * portfolioSyncService.ts — Synchronizacja wycen portfela IKE Jakuba z rynkiem.
+ * portfolioSyncService.ts — Synchronizacja wycen portfela (Jakub IKE & Kondzio XTB) z rynkiem.
  * Pobiera bieżące notowania z giełd (GPW, Nasdaq, Xetra) oraz oficjalne kursy walut z NBP.
  */
 
 import { invokeEdge } from '../supabase';
 import { getTodayWarsaw } from '../date';
 import type { SyncQuotesResponse } from '../edgeTypes';
-import { loadJakubPortfolio, saveJakubPortfolio, type JakubPortfolioData } from './jakubPortfolioStorage';
+import {
+  loadJakubPortfolio,
+  saveJakubPortfolio,
+  type JakubPortfolioData,
+} from './jakubPortfolioStorage';
+import {
+  loadKondzioPortfolio,
+  saveKondzioPortfolio,
+  type KondzioPortfolioData,
+} from './kondzioPortfolioStorage';
 
-export interface SyncPortfolioResult {
-  portfolio: JakubPortfolioData;
+export interface SyncPortfolioResult<T = JakubPortfolioData> {
+  portfolio: T;
   rates: { usdPln: number; eurPln: number; date: string };
   syncedCount: number;
   timestamp: string;
 }
 
-export async function syncPortfolioMarketPrices(): Promise<SyncPortfolioResult> {
-  const current = loadJakubPortfolio();
-  const tickers = current.positions.map((p) => p.ticker);
-
-  const res = (await invokeEdge('sync', {
-    query: { service: 'quotes', tickers: tickers.join(',') },
-    body: { tickers },
-  })) as SyncQuotesResponse;
-
-  if (!res?.ok || !res?.quotes) {
-    throw new Error(res?.error || 'Nie udało się pobrać aktualnych kursów rynkowych');
-  }
-
-  const rates = res.rates ?? {
-    usdPln: 3.8404,
-    eurPln: 4.375,
-    date: getTodayWarsaw(),
-  };
-
+function updatePositionsWithQuotes<T extends JakubPortfolioData | KondzioPortfolioData>(
+  current: T,
+  quotes: NonNullable<SyncQuotesResponse['quotes']>
+): { updated: T; syncedCount: number } {
   let syncedCount = 0;
 
   const updatedPositions = current.positions.map((pos) => {
     const q =
-      res.quotes?.[pos.ticker] ||
-      res.quotes?.[`${pos.ticker}.WA`] ||
-      res.quotes?.[`${pos.ticker}.DE`];
+      quotes[pos.ticker] ||
+      quotes[`${pos.ticker}.WA`] ||
+      quotes[`${pos.ticker}.DE`];
 
     if (!q || q.pricePln == null) return pos;
 
@@ -71,7 +65,7 @@ export async function syncPortfolioMarketPrices(): Promise<SyncPortfolioResult> 
   const totalPnlPct =
     totalCost > 0 ? Math.round((totalPnlPln / totalCost) * 10000) / 100 : 0;
 
-  const updatedPortfolio: JakubPortfolioData = {
+  const updated = {
     ...current,
     marketValuePln,
     totalValuePln,
@@ -79,12 +73,65 @@ export async function syncPortfolioMarketPrices(): Promise<SyncPortfolioResult> 
     totalPnlPct,
     lastUpdated: new Date().toISOString(),
     positions: updatedPositions,
+  } as T;
+
+  return { updated, syncedCount };
+}
+
+export async function syncPortfolioMarketPrices(): Promise<SyncPortfolioResult<JakubPortfolioData>> {
+  const current = loadJakubPortfolio();
+  const tickers = current.positions.map((p) => p.ticker);
+
+  const res = (await invokeEdge('sync', {
+    query: { service: 'quotes', tickers: tickers.join(',') },
+    body: { tickers },
+  })) as SyncQuotesResponse;
+
+  if (!res?.ok || !res?.quotes) {
+    throw new Error(res?.error || 'Nie udało się pobrać aktualnych kursów rynkowych');
+  }
+
+  const rates = res.rates ?? {
+    usdPln: 3.8404,
+    eurPln: 4.375,
+    date: getTodayWarsaw(),
   };
 
-  saveJakubPortfolio(updatedPortfolio);
+  const { updated, syncedCount } = updatePositionsWithQuotes(current, res.quotes);
+  saveJakubPortfolio(updated);
 
   return {
-    portfolio: updatedPortfolio,
+    portfolio: updated,
+    rates,
+    syncedCount,
+    timestamp: res.timestamp || new Date().toISOString(),
+  };
+}
+
+export async function syncKondzioMarketPrices(): Promise<SyncPortfolioResult<KondzioPortfolioData>> {
+  const current = loadKondzioPortfolio();
+  const tickers = current.positions.map((p) => p.ticker);
+
+  const res = (await invokeEdge('sync', {
+    query: { service: 'quotes', tickers: tickers.join(',') },
+    body: { tickers },
+  })) as SyncQuotesResponse;
+
+  if (!res?.ok || !res?.quotes) {
+    throw new Error(res?.error || 'Nie udało się pobrać aktualnych kursów rynkowych');
+  }
+
+  const rates = res.rates ?? {
+    usdPln: 3.8404,
+    eurPln: 4.375,
+    date: getTodayWarsaw(),
+  };
+
+  const { updated, syncedCount } = updatePositionsWithQuotes(current, res.quotes);
+  saveKondzioPortfolio(updated);
+
+  return {
+    portfolio: updated,
     rates,
     syncedCount,
     timestamp: res.timestamp || new Date().toISOString(),

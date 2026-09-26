@@ -10,6 +10,7 @@ import { JakubPortfolioSummaryCard } from './JakubPortfolioSummaryCard';
 import { JakubHoldingsList } from './JakubHoldingsList';
 import { JakubSmartMoneyDiagnosis } from './JakubSmartMoneyDiagnosis';
 import { JakubAddPositionModal } from './JakubAddPositionModal';
+import { KondzioPortfolioSection } from './KondzioPortfolioSection';
 import { confirmDialog, notify } from '../../../lib/notify';
 import { formatShortDateWarsaw } from '../../../lib/date';
 import type { MainTabType } from '../InvestmentsPage';
@@ -64,9 +65,11 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
     onNavigateTab('analyst', prompt);
   };
 
-  const handleDiagnoseAI = () => {
-    notify('Przekierowano do Analityka AI w celu diagnozy całego portfela', 'info');
-    const prompt = `Przeprowadź dogłębną diagnozę mojego portfela IKE ($JEDI, $MRVL, $CDR, $VWCE) pod kątem zbieżności Smart Money, ekspozycji sektorowej, asymetrii zysku do ryzyka oraz rekomendacji dalszej alokacji wolnych środków.`;
+  const handleDiagnoseAI = (customPrompt?: string) => {
+    notify('Przekierowano do Analityka AI w celu diagnozy portfela', 'info');
+    const prompt =
+      customPrompt ||
+      `Przeprowadź dogłębną diagnozę mojego portfela IKE ($JEDI, $MRVL, $CDR, $SXR8) pod kątem zbieżności Smart Money, ekspozycji sektorowej, asymetrii zysku do ryzyka oraz rekomendacji dalszej alokacji wolnych środków.`;
     onNavigateTab('analyst', prompt);
   };
 
@@ -102,6 +105,12 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
           onAskAnalyst={handleAskAnalyst}
         />
       </div>
+
+      {/* 4. Portfel Kondzia (Rachunek XTB) */}
+      <KondzioPortfolioSection
+        onAskAnalyst={handleAskAnalyst}
+        onDiagnoseAI={handleDiagnoseAI}
+      />
 
       {/* Management Modal */}
       <JakubAddPositionModal

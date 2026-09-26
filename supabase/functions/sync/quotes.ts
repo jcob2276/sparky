@@ -49,9 +49,18 @@ async function fetchNbpFxRates(): Promise<FxRates> {
 function normalizeTickerToYahoo(raw: string): { ticker: string; symbol: string } {
   const t = raw.trim().toUpperCase();
   if (t === 'CDR' || t === 'CDR.WA') return { ticker: 'CDR', symbol: 'CDR.WA' };
+  if (t === 'ASB' || t === 'ASB.WA') return { ticker: 'ASB', symbol: 'ASB.WA' };
+  if (t === 'ALE' || t === 'ALE.WA') return { ticker: 'ALE', symbol: 'ALE.WA' };
+  if (t === 'XTB' || t === 'XTB.WA') return { ticker: 'XTB', symbol: 'XTB.WA' };
   if (t === 'JEDI' || t === 'JEDI.DE') return { ticker: 'JEDI', symbol: 'JEDI.DE' };
   if (t === 'SXR8' || t === 'SXR8.DE') return { ticker: 'SXR8', symbol: 'SXR8.DE' };
+  if (t === 'ISAC' || t === 'SSAC' || t === 'IUSQ' || t === 'IUSQ.DE') return { ticker: 'ISAC', symbol: 'IUSQ.DE' };
   if (t === 'MRVL' || t === 'MRVL.US') return { ticker: 'MRVL', symbol: 'MRVL' };
+  if (t === 'NVDA' || t === 'NVDA.US') return { ticker: 'NVDA', symbol: 'NVDA' };
+  if (t === 'INTC' || t === 'INTC.US') return { ticker: 'INTC', symbol: 'INTC' };
+  if (t === 'BE' || t === 'BE.US') return { ticker: 'BE', symbol: 'BE' };
+  if (t === 'NBIS' || t === 'NBIS.US') return { ticker: 'NBIS', symbol: 'NBIS' };
+  if (t === 'MU' || t === 'MU.US') return { ticker: 'MU', symbol: 'MU' };
   return { ticker: t.replace(/\.(WA|DE|AS|US)$/, ''), symbol: t };
 }
 
