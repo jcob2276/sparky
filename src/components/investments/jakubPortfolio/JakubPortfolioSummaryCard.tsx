@@ -8,6 +8,9 @@ interface Props {
   onOpenAddModal: () => void;
   onReset: () => void;
   onDiagnoseAI: () => void;
+  onSyncMarket: () => void;
+  isSyncing: boolean;
+  lastSyncRates?: { usdPln: number; eurPln: number; date: string } | null;
 }
 
 export const JakubPortfolioSummaryCard: FC<Props> = ({
@@ -15,6 +18,9 @@ export const JakubPortfolioSummaryCard: FC<Props> = ({
   onOpenAddModal,
   onReset,
   onDiagnoseAI,
+  onSyncMarket,
+  isSyncing,
+  lastSyncRates,
 }) => {
   const isLoss = portfolio.totalPnlPln < 0;
 
@@ -38,13 +44,29 @@ export const JakubPortfolioSummaryCard: FC<Props> = ({
                 Rachunek Emerytalny IKE
               </span>
             </div>
-            <p className="text-3xs text-text-muted mt-0.5">
-              Konto maklerskie IKE Jakuba • Zwolnienie z podatku Belki (19%)
-            </p>
+            <div className="flex items-center gap-2 flex-wrap text-3xs text-text-muted mt-0.5">
+              <span>Konto maklerskie IKE Jakuba • Zwolnienie z podatku Belki (19%)</span>
+              {lastSyncRates && (
+                <span className="text-4xs font-mono font-bold px-1.5 py-0.2 rounded-md bg-success/10 text-success border border-success/25">
+                  NBP {lastSyncRates.date}: USD {lastSyncRates.usdPln.toFixed(2)} zł • EUR {lastSyncRates.eurPln.toFixed(2)} zł
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onSyncMarket}
+            disabled={isSyncing}
+            className="rounded-xl text-xs gap-1.5 border-success/40 text-success hover:bg-success/10"
+          >
+            <RefreshCw size={13} className={isSyncing ? 'animate-spin' : ''} />
+            <span>{isSyncing ? 'Pobieranie kursów...' : 'Zsynchronizuj z rynkiem'}</span>
+          </Button>
+
           <Button
             size="sm"
             variant="outline"
@@ -69,7 +91,7 @@ export const JakubPortfolioSummaryCard: FC<Props> = ({
             size="sm"
             variant="ghost"
             onClick={onReset}
-            title="Przywróć stan z rachunku IKE"
+            title="Przywróć stan początkowy rachunku IKE"
             className="rounded-xl text-text-muted hover:text-text-primary px-2"
           >
             <RefreshCw size={14} />

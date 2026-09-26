@@ -57,12 +57,14 @@ export const JakubHoldingItem: FC<Props> = ({
               </span>
             </div>
 
-            <div className="text-3xs font-mono text-text-muted flex items-center gap-2">
-              <span>
-                {pos.shares} @ {pos.avgBuyPrice.toFixed(2)}
-              </span>
+            <div className="text-3xs font-mono text-text-muted flex items-center gap-1.5 flex-wrap">
+              <span>{pos.shares} szt.</span>
               <span>•</span>
-              <span>{weightPct.toFixed(1)}% portfela</span>
+              <span>zakup: {pos.avgBuyPrice.toFixed(2)} zł</span>
+              <span>•</span>
+              <span className="text-text-primary font-semibold">kurs: {pos.currentPrice.toFixed(2)} zł</span>
+              <span>•</span>
+              <span>{weightPct.toFixed(1)}%</span>
             </div>
           </div>
         </div>

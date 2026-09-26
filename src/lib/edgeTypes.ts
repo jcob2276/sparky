@@ -170,8 +170,23 @@ interface NutritionCoachResponse {
 interface SyncOuraResponse { success: true; total_upserted: number; batches: number; warnings?: string[]; }
 interface SyncStravaResponse { ok: true; synced: number; primary: number; oura_duplicates: number; paired: number; rate_limited: boolean; }
 interface SyncCalendarResponse { success: true; calendarCount?: number; }
+export interface SyncQuotesResponse {
+  ok: boolean;
+  rates?: { usdPln: number; eurPln: number; date: string };
+  quotes?: Record<string, {
+    ticker: string;
+    symbol: string;
+    price: number;
+    prevClose: number;
+    changePct: number;
+    currency: string;
+    pricePln: number;
+  }>;
+  timestamp?: string;
+  error?: string;
+}
 
-type SyncResponse = SyncOuraResponse | SyncStravaResponse | SyncCalendarResponse;
+type SyncResponse = SyncOuraResponse | SyncStravaResponse | SyncCalendarResponse | SyncQuotesResponse;
 
 interface LookupFoodResponse {
   results: Array<{

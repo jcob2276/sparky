@@ -14,16 +14,13 @@ import { runOuraSync } from './oura.ts'
 import { runStravaSync } from './strava.ts'
 import { runCalendarSync } from './calendar.ts'
 import { runNextDnsSync } from './nextdns.ts'
+import { runQuotesSync } from './quotes.ts'
 
 Deno.serve(serveJson(async (req) => {
   const url = new URL(req.url)
   const body = (req.method === 'POST' || req.method === 'PUT')
     ? await req.clone().json().catch(() => ({}))
     : {}
-  const userId = url.searchParams.get('userId') || body.userId
-
-  await resolveUserScope(req, userId ?? null)
-
   // Check searchParams first, then fall back to body JSON if request has payload
   let service = url.searchParams.get('service')
 
@@ -31,6 +28,10 @@ Deno.serve(serveJson(async (req) => {
     // Clone req to allow body parsing without consuming the stream for downstream handlers
     const body = await req.clone().json().catch(() => ({}))
     service = body.service
+  }
+
+  if (service !== 'quotes') {
+    await resolveUserScope(req, userId ?? null)
   }
 
   if (service === 'oura') {
@@ -41,6 +42,8 @@ Deno.serve(serveJson(async (req) => {
     return await runCalendarSync(req)
   } else if (service === 'nextdns') {
     return await runNextDnsSync(req)
+  } else if (service === 'quotes') {
+    return await runQuotesSync(req)
   } else {
     throw new Error(`Unknown or missing service parameter: ${service}`)
   }

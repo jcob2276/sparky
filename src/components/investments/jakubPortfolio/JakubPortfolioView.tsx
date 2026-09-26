@@ -5,6 +5,7 @@ import {
   saveJakubPortfolio,
   resetJakubPortfolio,
 } from '../../../lib/investments/jakubPortfolioStorage';
+import { syncPortfolioMarketPrices } from '../../../lib/investments/portfolioSyncService';
 import { JakubPortfolioSummaryCard } from './JakubPortfolioSummaryCard';
 import { JakubHoldingsList } from './JakubHoldingsList';
 import { JakubSmartMoneyDiagnosis } from './JakubSmartMoneyDiagnosis';
@@ -20,10 +21,30 @@ interface Props {
 export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
   const [portfolio, setPortfolio] = useState<JakubPortfolioData>(loadJakubPortfolio);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncRates, setLastSyncRates] = useState<{ usdPln: number; eurPln: number; date: string } | null>(null);
 
   const handleSavePortfolio = (updated: JakubPortfolioData) => {
     setPortfolio(updated);
     saveJakubPortfolio(updated);
+  };
+
+  const handleSyncMarket = async () => {
+    try {
+      setIsSyncing(true);
+      const res = await syncPortfolioMarketPrices();
+      setPortfolio(res.portfolio);
+      setLastSyncRates(res.rates);
+      notify(
+        `Zaktualizowano kursy (${res.syncedCount} pozycji). NBP: USD ${res.rates.usdPln.toFixed(2)} zł, EUR ${res.rates.eurPln.toFixed(2)} zł`,
+        'success'
+      );
+    } catch (err) {
+      console.error('[JakubPortfolioView] sync error:', err);
+      notify('Nie udało się pobrać aktualnych kursów rynkowych', 'error');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleReset = async () => {
@@ -33,6 +54,7 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
     if (!confirmed) return;
     const initial = resetJakubPortfolio();
     setPortfolio(initial);
+    setLastSyncRates(null);
     notify('Przywrócono stan początkowy portfela IKE', 'info');
   };
 
@@ -56,6 +78,9 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
         onOpenAddModal={() => setIsAddModalOpen(true)}
         onReset={handleReset}
         onDiagnoseAI={handleDiagnoseAI}
+        onSyncMarket={handleSyncMarket}
+        isSyncing={isSyncing}
+        lastSyncRates={lastSyncRates}
       />
 
       {/* 2. Smart Money & Jev System-1 Diagnosis */}
