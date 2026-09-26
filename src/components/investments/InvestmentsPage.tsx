@@ -22,7 +22,7 @@ export type MainTabType =
   | 'methodology';
 
 export const InvestmentsPage: FC = () => {
-  const [activeTab, setActiveTab] = useState<MainTabType>('convergence');
+  const [activeTab, setActiveTab] = useState<MainTabType>('dashboard');
   const [isPlaybookOpen, setIsPlaybookOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [watchlist, setWatchlist] = useState<string[]>(loadStoredWatchlist);

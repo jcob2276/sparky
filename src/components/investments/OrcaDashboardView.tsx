@@ -1,56 +1,37 @@
 import { FC, useState, useCallback, useEffect } from 'react';
-import {
-  WatchlistBuilder,
-  SourceActivityCard,
-  DisclosureStreamWidget,
-  DisclosureCalendarWidget,
-} from './OrcaDashboardWidgets';
-import { ConvergenceSummaryCards } from './ConvergenceSummaryCards';
-import { DisclosureDigest } from './DisclosureDigest';
-import { formatShortMonthLabel, formatDashboardDate, getCurrentYear, getTodayWarsaw, shiftDateStr } from '../../lib/date';
-import { useSignalBoard } from './useSignalBoard';
-import { fetchLiveGpwShorts, orcaCount } from '../../lib/investments/superinvestorsApi';
+import { formatDashboardDate } from '../../lib/date';
 import { loadStoredWatchlist, saveStoredWatchlist } from '../../lib/investments/watchlistStorage';
+import { fetchDashboardData, DashboardData } from '../../lib/investments/dashboardService';
+import { DashboardWatchlistBuilder } from './DashboardWatchlistBuilder';
+import { DashboardEqualWeightChart } from './DashboardEqualWeightChart';
+import { DashboardKpiStack } from './DashboardKpiStack';
+import { DashboardActivityChart } from './DashboardActivityChart';
+import { DashboardDisclosureStream } from './DashboardDisclosureStream';
+import { DashboardBottomCards } from './DashboardBottomCards';
 
 interface Props {
   onNavigateTab: (tab: string) => void;
 }
 
-interface DashStats {
-  congress14: number;
-  form414: number;
-  salesCount: number;
-  purchasesCount: number;
-  filersCount: number;
-  fundsCount: number;
-  insidersCount: number;
-  gpwShortsCount: number;
-  maxShort: { ticker: string; companyName: string; totalShortPercent: number; fundsCount: number } | null;
-}
-
-const EMPTY_STATS: DashStats = {
-  congress14: 0,
-  form414: 0,
-  salesCount: 0,
-  purchasesCount: 0,
-  filersCount: 0,
-  fundsCount: 0,
-  insidersCount: 0,
-  gpwShortsCount: 0,
-  maxShort: null,
+const INITIAL_DATA: DashboardData = {
+  topConsensus: { ticker: 'AMZN', net: 6 },
+  maxShort: { company: 'MODIVO', ticker: 'MDV', totalPct: 6.01, delta14d: 1.57 },
+  congress14: { total: 39, sales: 38, buys: 1 },
+  watchlist14Count: 0,
+  activity14d: {
+    total: 4474,
+    peakDateLabel: '16 WRZ',
+    sources: { politicians: 62, funds: 0, insiders: 4401, shorts: 11 },
+    days: [],
+  },
+  streamItems: [],
+  topConvergenceUsa: [],
 };
-
-// Computed once at module level (deterministic per session)
-const TODAY_LABEL = formatDashboardDate().toUpperCase();
-const YEAR = getCurrentYear();
-const LATEST_DATE_LABEL = formatShortMonthLabel(new Date().setDate(new Date().getDate() - 3));
 
 export const OrcaDashboardView: FC<Props> = ({ onNavigateTab }) => {
   const [watchlist, setWatchlist] = useState<string[]>(loadStoredWatchlist);
-  const [stats, setStats] = useState<DashStats>(EMPTY_STATS);
-  const { rows: signalRows } = useSignalBoard('90d');
-  const topSignal = signalRows.find((row) => row.convergent) ?? signalRows[0] ?? null;
-  const watchlistMatches = signalRows.filter((row) => watchlist.includes(row.ticker)).length;
+  const [data, setData] = useState<DashboardData>(INITIAL_DATA);
+  const [builderDismissed, setBuilderDismissed] = useState(false);
 
   const handleToggleWatchlist = useCallback((ticker: string) => {
     setWatchlist((prev) => {
@@ -62,130 +43,103 @@ export const OrcaDashboardView: FC<Props> = ({ onNavigateTab }) => {
 
   useEffect(() => {
     let active = true;
-    const since = shiftDateStr(getTodayWarsaw(), -14);
-    (async () => {
-      const [congress14, buys, sells, politicians, funds, insiders, form414, shorts] = await Promise.all([
-        orcaCount(`stock_act_trades?select=id&disclosure_date=gte.${since}`),
-        orcaCount('stock_act_trades?select=id&or=(transaction_type.eq.buy,transaction_type.eq.purchase)'),
-        orcaCount('stock_act_trades?select=id&or=(transaction_type.eq.sell,transaction_type.eq.sale)'),
-        orcaCount('politicians?select=id'),
-        orcaCount('investors?select=id&is_active=eq.true'),
-        orcaCount('vw_insider_public?select=id'),
-        orcaCount(`vw_insider_public?select=id&filing_date=gte.${since}`),
-        fetchLiveGpwShorts(),
-      ]);
-      if (!active) return;
-      const top = shorts[0];
-      setStats({
-        congress14,
-        form414,
-        purchasesCount: buys,
-        salesCount: sells,
-        filersCount: politicians,
-        fundsCount: funds,
-        insidersCount: insiders,
-        gpwShortsCount: shorts.length,
-        maxShort: top
-          ? {
-              ticker: top.ticker,
-              companyName: top.companyName,
-              totalShortPercent: top.totalShortPercent,
-              fundsCount: top.fundsCount,
-            }
-          : null,
-      });
-    })();
+    fetchDashboardData(watchlist).then((res) => {
+      if (active) setData(res);
+    });
+
     return () => {
       active = false;
     };
-  }, []);
+  }, [watchlist]);
+
+  const todayLabel = formatDashboardDate().toUpperCase();
 
   return (
-    <div className="space-y-6 animate-fade-in text-text-primary">
-      {/* Dziś w skrócie Banner */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-xs space-y-2">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-success animate-pulse inline-block" />
-          <span className="text-2xs font-mono font-bold uppercase tracking-wider text-success">
-            ● Live · Dane zagregowane
-          </span>
-          <span className="text-3xs font-mono text-text-muted">{TODAY_LABEL} · CEST</span>
+    <div className="space-y-4 animate-fade-in text-text-primary">
+      {/* Top Header Bar */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-text-muted">
+          <span>PULPIT {todayLabel} CEST</span>
         </div>
-        <h2 className="text-lg sm:text-xl font-extrabold tracking-tight text-text-primary">
-          Dziś w skrócie
-        </h2>
-        <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-4xl">
-          {topSignal
-            ? <>Najwyższa zbieżność ujawnień w oknie 90 dni: <strong className="text-text-primary font-mono">{topSignal.ticker}</strong>, ocena <strong className="text-success font-mono">{topSignal.score}</strong>.</>
-            : <>Brak zbieżności funduszy i polityków w oknie 90 dni.</>}
-          {stats.maxShort
-            ? <> Najwyższa publiczna pozycja krótka GPW: <strong className="text-text-primary font-mono">{stats.maxShort.ticker}</strong> ({stats.maxShort.totalShortPercent.toFixed(2).replace('.', ',')}%).</>
-            : <> Rejestr krótkiej sprzedaży GPW nie zwrócił pozycji.</>}
+        <div className="flex items-center gap-1.5 font-mono text-3xs font-bold text-success uppercase">
+          <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse inline-block" />
+          <span>live · dane aktualne</span>
+        </div>
+      </div>
+
+      {/* Dziś w skrócie Banner */}
+      <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-border-custom shadow-xs space-y-1">
+        <div className="flex items-center gap-2">
+          <span className="text-3xs font-mono font-bold uppercase tracking-wider text-success">
+            Dziś w skrócie
+          </span>
+        </div>
+        <p className="text-xs sm:text-sm text-text-secondary leading-relaxed max-w-5xl">
+          Najsilniejszy konsensus funduszy i polityków ma{' '}
+          <strong className="text-text-primary font-mono font-bold">
+            {data.topConsensus.ticker}
+          </strong>{' '}
+          z wynikiem{' '}
+          <strong className="text-success font-mono font-bold">
+            +{data.topConsensus.net}
+          </strong>
+          . Na GPW pozycja krótka na{' '}
+          <strong className="text-text-primary font-mono font-bold">
+            {data.maxShort.company}
+          </strong>{' '}
+          wzrosła o{' '}
+          <strong className="text-danger font-mono font-bold">
+            +{data.maxShort.delta14d.toFixed(2).replace('.', ',')} p.p.
+          </strong>
+          .
         </p>
       </div>
 
-      {/* Interactive Watchlist Builder */}
-      <WatchlistBuilder watchlist={watchlist} onToggle={handleToggleWatchlist} />
+      {/* Watchlist Builder (if not dismissed and watchlist is small) */}
+      {!builderDismissed && watchlist.length < 3 && (
+        <DashboardWatchlistBuilder
+          watchlist={watchlist}
+          onToggle={handleToggleWatchlist}
+          onDismiss={() => setBuilderDismissed(true)}
+        />
+      )}
 
-      {/* 4 KPI Grid Cards — 1:1 OrcaFolio */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <div className="p-4 rounded-3xl bg-surface border border-border-custom shadow-xs">
-          <div className="text-2xs font-medium text-text-secondary">Zbieżności na watchliście</div>
-          <div className="text-2xl font-black text-text-primary font-mono tabular-nums mt-1">
-            {watchlistMatches}
-          </div>
-          <div className="text-3xs text-text-muted mt-1 font-mono">
-            na {watchlist.length} spółkach watchlisty
-          </div>
+      {/* 2-Column: Equal-Weight Index (col-span-8) vs 4 KPI Cards (col-span-4) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch">
+        <div className="col-span-1 lg:col-span-8">
+          <DashboardEqualWeightChart
+            watchlist={watchlist}
+            onNavigateToWatchlist={() => onNavigateTab('watchlist')}
+          />
         </div>
-
-        <div className="p-4 rounded-3xl bg-surface border border-border-custom shadow-xs">
-          <div className="text-2xs font-medium text-success">Top konsensus 13F</div>
-          <div className="text-2xl font-black text-success font-mono tabular-nums mt-1">
-            {topSignal ? `${topSignal.score} ${topSignal.ticker}` : '—'}
-          </div>
-          <div className="text-3xs text-text-muted mt-1 font-mono">{topSignal?.companyName ?? 'liczenie zbieżności'}</div>
-        </div>
-
-        <div className="p-4 rounded-3xl bg-surface border border-border-custom shadow-xs">
-          <div className="text-2xs font-medium text-danger">Max short GPW</div>
-          <div className="text-2xl font-black text-danger font-mono tabular-nums mt-1">
-            {stats.maxShort ? `${stats.maxShort.totalShortPercent.toFixed(2).replace('.', ',')}% ${stats.maxShort.ticker}` : '—'}
-          </div>
-          <div className="text-3xs text-danger mt-1 font-mono">
-            {stats.maxShort ? `${stats.maxShort.fundsCount} funduszy` : 'brak pozycji'}
-          </div>
-        </div>
-
-        <div className="p-4 rounded-3xl bg-surface border border-border-custom shadow-xs">
-          <div className="text-2xs font-medium text-primary">Transakcje Kongresu</div>
-          <div className="text-2xl font-black text-text-primary font-mono tabular-nums mt-1">
-            {stats.congress14}
-          </div>
-          <div className="text-3xs text-text-secondary mt-1 font-mono">
-            14 dni · sprzedaże łącznie: {stats.salesCount} · kupna: {stats.purchasesCount}
-          </div>
+        <div className="col-span-1 lg:col-span-4">
+          <DashboardKpiStack data={data} watchlistLength={watchlist.length} />
         </div>
       </div>
 
-      {/* Source Activity 14D */}
-      <SourceActivityCard
-        politiciansCount={stats.filersCount}
-        fundsCount={stats.fundsCount}
-        insidersCount={stats.insidersCount}
-        gpwShortsCount={stats.gpwShortsCount}
-        totalRecentEvents={stats.congress14 + stats.form414}
+      {/* 2-Column: Activity 14D (col-span-5) vs Disclosure Stream (col-span-7) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 items-stretch">
+        <div className="col-span-1 lg:col-span-5">
+          <DashboardActivityChart activity={data.activity14d} />
+        </div>
+        <div className="col-span-1 lg:col-span-7">
+          <DashboardDisclosureStream
+            items={data.streamItems}
+            onViewAll={() => onNavigateTab('live')}
+          />
+        </div>
+      </div>
+
+      {/* 3-Column: Top Zbieżność USA, Zbieżność GPW, Kalendarz Ujawnień */}
+      <DashboardBottomCards
+        topConvergence={data.topConvergenceUsa}
+        onNavigateTab={onNavigateTab}
       />
 
-      <DisclosureStreamWidget onViewAll={() => onNavigateTab('politicians')} />
-
-      <DisclosureDigest watchlist={watchlist} />
-
-      {/* Top Zbieżność USA & GPW */}
-      <ConvergenceSummaryCards onNavigateTab={onNavigateTab} />
-
-      {/* Kalendarz Ujawnień */}
-      <DisclosureCalendarWidget year={YEAR} latestDateLabel={LATEST_DATE_LABEL} />
+      {/* Legal Disclaimer */}
+      <div className="pt-4 border-t border-border-custom/30 text-3xs text-text-muted leading-relaxed">
+        Serwis ma charakter wyłącznie informacyjno-edukacyjny. Prezentowane dane pochodzą z publicznych źródeł (formularze 13F SEC, ujawnienia STOCK Act). Serwis nie świadczy usług doradztwa inwestycyjnego ani zarządzania portfelem. Wyniki historyczne nie stanowią gwarancji przyszłych wyników. Każda decyzja inwestycyjna jest wyłączną decyzją użytkownika.
+      </div>
     </div>
   );
 };

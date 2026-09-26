@@ -11,12 +11,20 @@ export function formatDayLabel(dateStr: string, todayStr: string, yesterdayStr?:
 }
 
 export function formatDashboardDate(): string {
-  return new Date().toLocaleDateString('pl-PL', {
-    weekday: 'long',
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('pl-PL', {
+    weekday: 'short',
     day: 'numeric',
-    month: 'long',
+    month: 'short',
+    year: 'numeric',
     timeZone: TIMEZONE,
   });
+  const timeStr = now.toLocaleTimeString('pl-PL', {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: TIMEZONE,
+  });
+  return `${dateStr} · ${timeStr}`;
 }
 
 export function formatShortDateWarsaw(date: Date | string | number): string {
@@ -83,7 +91,3 @@ export function formatShortMonthLabel(date: Date | string | number): string {
   }).toUpperCase();
 }
 
-/** Returns the current year in Warsaw timezone as a number. */
-export function getCurrentYear(): number {
-  return Number(new Date().toLocaleDateString('pl-PL', { timeZone: TIMEZONE, year: 'numeric' }));
-}
