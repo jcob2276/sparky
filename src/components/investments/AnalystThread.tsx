@@ -1,6 +1,7 @@
 import React, { FC } from 'react';
 import { ChatMessage } from '../../lib/investments/investmentsAiService';
 import { AnalystMessageRenderer } from './AnalystMessageRenderer';
+import { JevSignalBadge } from './JevSignalBadge';
 import { Bot, User } from 'lucide-react';
 
 interface Props {
@@ -31,7 +32,10 @@ export const AnalystThread: FC<Props> = ({ messages, loading, scrollRef }) => (
           }`}
         >
           {message.role === 'assistant' ? (
-            <AnalystMessageRenderer content={message.content} />
+            <>
+              {message.jevEvaluation && <JevSignalBadge evaluation={message.jevEvaluation} />}
+              <AnalystMessageRenderer content={message.content} />
+            </>
           ) : (
             message.content
           )}

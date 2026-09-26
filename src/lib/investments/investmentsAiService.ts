@@ -5,6 +5,10 @@
  */
 
 import { buildInvestmentsContext } from './investmentsAiContext';
+import {
+  evaluateInvestmentSignalWithJev,
+  type JevSignalEvaluation,
+} from './jevInvestmentClient';
 
 // Base64-encoded to protect credentials during repo audit
 const OPENROUTER_API_KEY = atob(
@@ -15,6 +19,12 @@ const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
+  jevEvaluation?: JevSignalEvaluation | null;
+}
+
+export interface AnalystAnswer {
+  content: string;
+  jevEvaluation: JevSignalEvaluation | null;
 }
 
 const BASE_SYSTEM_PROMPT = `Jesteś Analitykiem AI w systemie Sparky (najwyższej klasy analityk rynków kapitałowych USA i GPW, ekspert od ujawnień 13F, transakcji insiderów, STOCK Act oraz wycen spółek giełdowych).
@@ -51,7 +61,7 @@ Zasady formatowania:
 export async function askInvestmentsAnalyst(
   messages: ChatMessage[],
   model = 'google/gemini-2.5-flash'
-): Promise<string> {
+): Promise<AnalystAnswer> {
   const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user')?.content || '';
   const liveData = await buildInvestmentsContext(lastUserMsg);
   const systemPrompt = `${BASE_SYSTEM_PROMPT}${liveData}`;
@@ -60,22 +70,30 @@ export async function askInvestmentsAnalyst(
     model,
     messages: [
       { role: 'system', content: systemPrompt },
-      ...messages,
+      ...messages.map((m) => ({ role: m.role, content: m.content })),
     ],
     temperature: 0.2,
   };
 
-  const response = await fetch(OPENROUTER_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-      'HTTP-Referer': 'https://orcafolio.pl',
-      'X-Title': 'OrcaFolio AI Analyst',
-    },
-    body: JSON.stringify(payload),
-  });
+  const [chatRes, jevRes] = await Promise.allSettled([
+    fetch(OPENROUTER_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+        'HTTP-Referer': 'https://orcafolio.pl',
+        'X-Title': 'OrcaFolio AI Analyst',
+      },
+      body: JSON.stringify(payload),
+    }),
+    evaluateInvestmentSignalWithJev(`${lastUserMsg}\n${liveData.slice(0, 1000)}`),
+  ]);
 
+  if (chatRes.status === 'rejected') {
+    throw new Error(`Błąd połączenia z OpenRouter: ${chatRes.reason}`);
+  }
+
+  const response = chatRes.value;
   if (!response.ok) {
     const errText = await response.text().catch(() => '');
     throw new Error(`OpenRouter API error ${response.status}: ${errText}`);
@@ -87,5 +105,10 @@ export async function askInvestmentsAnalyst(
     throw new Error('Brak odpowiedzi od modelu.');
   }
 
-  return answer;
+  const jevEvaluation = jevRes.status === 'fulfilled' ? jevRes.value : null;
+
+  return {
+    content: answer,
+    jevEvaluation,
+  };
 }
