@@ -62,18 +62,50 @@ function fmtMoney(low?: number | null, high?: number | null): string {
 
 async function getPoliticianTargetedContext(query: string): Promise<string> {
   const q = query.toLowerCase();
+
+  // Donald Trump - status specjalny (prezydent / kandydat, nie Kongres)
+  if (q.includes('trump')) {
+    return `[SPECJALNY STATUS PRAWNY: DONALD TRUMP]:
+• Status formalny: Donald Trump nie jest i nie był członkiem Izby Reprezentantów ani Senatu USA, dlatego NIE podlega pod ustawę Congressional STOCK Act (która obejmuje wyłącznie kongresmenów i senatorów).
+• Rejestr majątkowy: Jako były prezydent i kandydat składa sprawozdania majątkowe do Federalnej Komisji Wyborczej (FEC) / Office of Government Ethics (formularz OGE Form 278e).
+• Główne aktywa rynkowe i spółki giełdowe:
+  - $DJT (Trump Media & Technology Group Corp.): Spółka-matka platformy Truth Social notowana na NASDAQ. Donald Trump jest akcjonariuszem większościowym (posiada ok. 114,75 mln akcji o wartości miliardów USD).
+  - Portfel kryptowalutowy: W oficjalnym sprawozdaniu FEC ujawnił portfel Ethereum (ETH) z tantiem licencyjnych z kolekcji NFT wyceniany na $1M – $5M.
+  - Płynność: Posiada pakiety obligacji skarbowych USA (Treasury bills) oraz fundusze rynku pieniężnego.
+• Kontekst STOCK Act: Jeśli inwestor szuka transakcji na akcjach w ramach STOCK Act na Kapitolu, najaktywniejszymi politykami są m.in. Nancy Pelosi ($BE, $NVDA), Tommy Tuberville, Michael Guest czy Ro Khanna.\n\n`;
+  }
+
+  // Ro Khanna - reprezentant Doliny Krzemowej (CA-17)
+  if (q.includes('khanna') || q.includes('rokhanna')) {
+    return `[PROFIL POLITYKA STOCK ACT: RO KHANNA]:
+• Funkcja: Członek Izby Reprezentantów USA (Demokrata, Kalifornia CA-17, Dolina Krzemowa).
+• Styl inwestycyjny: Jeden z najbardziej aktywnych i płodnych inwestorów na Kapitolu. Zgłoszenia transakcji są realizowane głównie przez jego małżonkę (Ritu Khanna) oraz niezależne fundusze powiernicze (family trusts).
+• Koncentracja portfela: Zdominowany przez amerykański Big Tech i półprzewodniki ($MSFT, $NVDA, $AAPL, $GOOGL, $AMZN, $META, $INTC, $AVGO).
+• Statystyka ujawnień: Raportuje setki transakcji rocznie w przedziałach od $1 000 do $250 000 na platformach zgłoszeniowych Izby Reprezentantów (House Financial Disclosures).\n\n`;
+  }
+
   let nameFilter = '';
   if (q.includes('pelosi')) nameFilter = 'pelosi';
-  else if (q.includes('trump')) nameFilter = 'trump';
   else if (q.includes('tuberville')) nameFilter = 'tuberville';
   else if (q.includes('greene')) nameFilter = 'greene';
   else if (q.includes('mccaul')) nameFilter = 'mccaul';
+  else if (q.includes('donalds')) nameFilter = 'donalds';
+  else if (q.includes('gottheimer')) nameFilter = 'gottheimer';
+  else if (q.includes('sessions')) nameFilter = 'sessions';
+  else {
+    const words = q.replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter((w) => w.length >= 4);
+    for (const w of words) {
+      if (['jakie', 'ruchy', 'kiedy', 'pokaz', 'kupil', 'sprzedal', 'transakcje', 'ostatnio'].includes(w)) continue;
+      nameFilter = w;
+      break;
+    }
+  }
 
   if (!nameFilter) return '';
 
   try {
     const rows = await orcaSelect<RawPoliticianTrade>(
-      `stock_act_trades?select=ticker,asset_description,transaction_date,disclosure_date,transaction_type,amount_low,amount_high,politicians!inner(display_name,chamber,party)&politicians.display_name=ilike.*${nameFilter}*&order=disclosure_date.desc.nullslast&limit=12`
+      `stock_act_trades?select=ticker,asset_description,transaction_date,disclosure_date,transaction_type,amount_low,amount_high,politicians!inner(display_name,chamber,party)&politicians.display_name=ilike.*${encodeURIComponent(nameFilter)}*&order=disclosure_date.desc.nullslast&limit=12`
     );
     if (!rows.length) return '';
     const polName = rows[0]?.politicians?.display_name || nameFilter;
