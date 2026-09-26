@@ -12,6 +12,7 @@ import { LiveTradesView } from './LiveTradesView';
 import { InvestmentsAnalystView } from './InvestmentsAnalystView';
 import { InvestmentsWatchlistView } from './InvestmentsWatchlistView';
 import { JakubPortfolioView } from './jakubPortfolio/JakubPortfolioView';
+import { KondzioPortfolioView } from './jakubPortfolio/KondzioPortfolioView';
 import { StocksConsensusView } from './StocksConsensusView';
 import { BasketSimulationView } from './BasketSimulationView';
 import { InsiderTradeItem, InvestmentFilters } from '../../lib/investments/investmentsApi';
@@ -48,6 +49,8 @@ export const InvestmentsTabRenderer: FC<Props> = ({
       );
     case 'jakub_portfolio':
       return <JakubPortfolioView onNavigateTab={onNavigateTab} />;
+    case 'kondzio_portfolio':
+      return <KondzioPortfolioView onNavigateTab={onNavigateTab} />;
     case 'analyst':
       return <InvestmentsAnalystView />;
     case 'watchlist':

@@ -11,6 +11,7 @@ import { useBackHandler } from '../../lib/native/backStack';
 export type MainTabType =
   | 'dashboard'
   | 'jakub_portfolio'
+  | 'kondzio_portfolio'
   | 'analyst'
   | 'watchlist'
   | 'convergence'
@@ -27,6 +28,7 @@ export type MainTabType =
 const VALID_TABS: ReadonlySet<MainTabType> = new Set([
   'dashboard',
   'jakub_portfolio',
+  'kondzio_portfolio',
   'analyst',
   'watchlist',
   'convergence',

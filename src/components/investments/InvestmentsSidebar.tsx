@@ -4,7 +4,6 @@ import Button from '../ui/Button';
 import { useModalBackHandler } from '../../lib/investments/useModalBackHandler';
 import {
   CircleDot,
-  Wallet,
   MessageSquare,
   Diamond,
   Target,
@@ -12,6 +11,7 @@ import {
   Landmark,
   Share2,
   User,
+  Users,
   BarChart3,
   TrendingDown,
   Building2,
@@ -34,9 +34,13 @@ interface NavItem {
 
 const NAV_CENTRUM: NavItem[] = [
   { id: 'dashboard', label: 'Pulpit', icon: <CircleDot size={16} /> },
-  { id: 'jakub_portfolio', label: 'Portfele', icon: <Wallet size={16} /> },
   { id: 'analyst', label: 'Analityk AI', icon: <MessageSquare size={16} /> },
   { id: 'watchlist', label: 'Watchlista', icon: <Diamond size={16} /> },
+];
+
+const NAV_PORTFELE: NavItem[] = [
+  { id: 'jakub_portfolio', label: 'Portfel Jakuba', icon: <User size={16} /> },
+  { id: 'kondzio_portfolio', label: 'Portfel Kondzia', icon: <Users size={16} /> },
 ];
 
 const NAV_RYNEK_USA: NavItem[] = [
@@ -131,6 +135,7 @@ export const InvestmentsSidebar: FC<Props> = ({
         {/* Groups */}
         <div className="space-y-5">
           {renderNavGroup('CENTRUM', NAV_CENTRUM)}
+          {renderNavGroup('PORTFELE', NAV_PORTFELE)}
           {renderNavGroup('RYNEK USA', NAV_RYNEK_USA)}
           {renderNavGroup('RYNEK POLSKI', NAV_RYNEK_POLSKI)}
         </div>

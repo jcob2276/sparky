@@ -8,15 +8,16 @@ import {
 import { syncKondzioMarketPrices } from '../../../lib/investments/portfolioSyncService';
 import { KondzioPortfolioSummaryCard } from './KondzioPortfolioSummaryCard';
 import { JakubHoldingItem } from './JakubHoldingItem';
+import { PortfolioSubNav } from './PortfolioSubNav';
 import { confirmDialog, notify } from '../../../lib/notify';
 import { formatShortDateWarsaw } from '../../../lib/date';
+import type { MainTabType } from '../InvestmentsPage';
 
 interface Props {
-  onAskAnalyst: (ticker: string, companyName: string) => void;
-  onDiagnoseAI: (prompt: string) => void;
+  onNavigateTab: (tab: MainTabType, prompt?: string) => void;
 }
 
-export const KondzioPortfolioSection: FC<Props> = ({ onAskAnalyst, onDiagnoseAI }) => {
+export const KondzioPortfolioView: FC<Props> = ({ onNavigateTab }) => {
   const [portfolio, setPortfolio] = useState<KondzioPortfolioData>(loadKondzioPortfolio);
   const [isSyncing, setIsSyncing] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export const KondzioPortfolioSection: FC<Props> = ({ onAskAnalyst, onDiagnoseAI 
         'success'
       );
     } catch (err) {
-      console.error('[KondzioPortfolioSection] sync error:', err);
+      console.error('[KondzioPortfolioView] sync error:', err);
       notify('Nie udało się pobrać aktualnych kursów rynkowych', 'error');
     } finally {
       setIsSyncing(false);
@@ -52,11 +53,17 @@ export const KondzioPortfolioSection: FC<Props> = ({ onAskAnalyst, onDiagnoseAI 
     notify('Przywrócono stan początkowy portfela Kondzia', 'info');
   };
 
+  const handleAskAnalyst = (ticker: string, companyName: string) => {
+    notify(`Przekierowano do Analityka AI dla waloru $${ticker}`, 'info');
+    const prompt = `Przeanalizuj pozycję $${ticker} (${companyName}) z portfela Kondzia: jaki jest sentyment Smart Money, czy fundusze 13F lub insiderzy akumulują ten walor oraz jakie są perspektywy i ryzyka?`;
+    onNavigateTab('analyst', prompt);
+  };
+
   const handleDiagnose = () => {
     notify('Przekierowano do Analityka AI w celu diagnozy portfela Kondzia', 'info');
     const tickers = portfolio.positions.map((p) => `$${p.ticker}`).join(', ');
     const prompt = `Przeprowadź dogłębną diagnozę portfela Kondzia z rachunku XTB (${tickers}): portfel ma stopę zwrotu +${portfolio.totalPnlPct.toFixed(1)}% i silną ekspozycję na tech/AI (Nvidia, Nebius, Bloom Energy, Intel, Micron, Marvell) oraz GPW (Asbis, XTB, Allegro). Jakie są główne czynniki ryzyka, korelacje i czy warto zrealizować część zysków?`;
-    onDiagnoseAI(prompt);
+    onNavigateTab('analyst', prompt);
   };
 
   const toggleExpand = (id: string) => {
@@ -64,7 +71,10 @@ export const KondzioPortfolioSection: FC<Props> = ({ onAskAnalyst, onDiagnoseAI 
   };
 
   return (
-    <div className="space-y-4 pt-6 border-t border-border-custom/80">
+    <div className="space-y-6 animate-fade-in max-w-6xl mx-auto pb-8">
+      {/* 0. Top Portfolio Sub Navigation */}
+      <PortfolioSubNav activeTab="kondzio_portfolio" onSelectTab={onNavigateTab} />
+
       {/* 1. Header Card (Portfel Kondzia) */}
       <KondzioPortfolioSummaryCard
         portfolio={portfolio}
@@ -79,7 +89,7 @@ export const KondzioPortfolioSection: FC<Props> = ({ onAskAnalyst, onDiagnoseAI 
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-sm sm:text-base font-black text-text-primary tracking-tight">
-            Otwarte pozycje na rachunku Kondzia
+            Otwarte pozycje w portfelu Kondzia
           </h3>
           <span className="text-3xs font-mono text-text-muted">
             Aktualizacja: {formatShortDateWarsaw(portfolio.lastUpdated)}
@@ -94,7 +104,7 @@ export const KondzioPortfolioSection: FC<Props> = ({ onAskAnalyst, onDiagnoseAI 
               totalValue={portfolio.marketValuePln}
               isExpanded={expandedId === pos.id}
               onToggleExpand={() => toggleExpand(pos.id)}
-              onAskAnalyst={onAskAnalyst}
+              onAskAnalyst={handleAskAnalyst}
             />
           ))}
         </div>

@@ -10,7 +10,7 @@ import { JakubPortfolioSummaryCard } from './JakubPortfolioSummaryCard';
 import { JakubHoldingsList } from './JakubHoldingsList';
 import { JakubSmartMoneyDiagnosis } from './JakubSmartMoneyDiagnosis';
 import { JakubAddPositionModal } from './JakubAddPositionModal';
-import { KondzioPortfolioSection } from './KondzioPortfolioSection';
+import { PortfolioSubNav } from './PortfolioSubNav';
 import { confirmDialog, notify } from '../../../lib/notify';
 import { formatShortDateWarsaw } from '../../../lib/date';
 import type { MainTabType } from '../InvestmentsPage';
@@ -75,6 +75,9 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-6xl mx-auto pb-8">
+      {/* 0. Top Portfolio Sub Navigation */}
+      <PortfolioSubNav activeTab="jakub_portfolio" onSelectTab={onNavigateTab} />
+
       {/* 1. Hero Summary Card (Portfel Jakuba) */}
       <JakubPortfolioSummaryCard
         portfolio={portfolio}
@@ -105,12 +108,6 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
           onAskAnalyst={handleAskAnalyst}
         />
       </div>
-
-      {/* 4. Portfel Kondzia (Rachunek XTB) */}
-      <KondzioPortfolioSection
-        onAskAnalyst={handleAskAnalyst}
-        onDiagnoseAI={handleDiagnoseAI}
-      />
 
       {/* Management Modal */}
       <JakubAddPositionModal
