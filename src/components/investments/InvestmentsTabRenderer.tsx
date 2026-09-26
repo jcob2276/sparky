@@ -72,7 +72,7 @@ export const InvestmentsTabRenderer: FC<Props> = ({
     case 'simulation':
       return <BasketSimulationView />;
     case 'stocks':
-      return <EspiFeedView />;
+      return <EspiFeedView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
     case 'gpw_shorts':
       return <GpwShortsView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
     case 'gpw_mar':
