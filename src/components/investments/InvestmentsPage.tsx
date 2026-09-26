@@ -1,9 +1,8 @@
 import { FC, useState, useCallback } from 'react';
 import { useInvestmentsData } from './useInvestmentsData';
 import { InvestmentsTopNav } from './InvestmentsTopNav';
-import { InvestmentsHeader } from './InvestmentsHeader';
+import { InvestmentsSidebar } from './InvestmentsSidebar';
 import { CopycatPlaybookModal } from './CopycatPlaybookModal';
-import { InvestmentsTabsBar } from './InvestmentsTabsBar';
 import { InvestmentsTabRenderer } from './InvestmentsTabRenderer';
 
 export type MainTabType =
@@ -36,6 +35,7 @@ function loadWatchlist(): string[] {
 export const InvestmentsPage: FC = () => {
   const [activeTab, setActiveTab] = useState<MainTabType>('dashboard');
   const [isPlaybookOpen, setIsPlaybookOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [watchlist, setWatchlist] = useState<string[]>(loadWatchlist);
 
   const handleToggleWatchlist = useCallback((ticker: string) => {
@@ -48,7 +48,6 @@ export const InvestmentsPage: FC = () => {
 
   const {
     trades,
-    stats,
     loading,
     syncing,
     filters,
@@ -58,43 +57,42 @@ export const InvestmentsPage: FC = () => {
   } = useInvestmentsData();
 
   return (
-    <div className="min-h-screen bg-background text-text-primary">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Connected Top Navigation Bar */}
-        <InvestmentsTopNav
-          onOpenPlaybook={() => setIsPlaybookOpen(true)}
-          onRefresh={handleRefresh}
-          syncing={syncing}
-        />
+    <div className="min-h-screen bg-background text-text-primary flex">
+      {/* 1:1 OrcaFolio Left Sidebar */}
+      <InvestmentsSidebar
+        activeTab={activeTab}
+        onSelectTab={(tab) => setActiveTab(tab)}
+        liveCount={trades.length}
+        isOpenMobile={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
+      />
 
-        {activeTab !== 'dashboard' && (
-          <InvestmentsHeader
-            stats={stats}
-            syncing={syncing}
-            onRefresh={handleRefresh}
+      {/* Main Content Area */}
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
+        <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-2">
+          {/* Connected Top Navigation Bar */}
+          <InvestmentsTopNav
             onOpenPlaybook={() => setIsPlaybookOpen(true)}
+            onRefresh={handleRefresh}
+            syncing={syncing}
+            onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
           />
-        )}
-
-        {/* Master Navigation Tabs — 1:1 OrcaFolio Full Suite */}
-        <InvestmentsTabsBar
-          activeTab={activeTab}
-          onSelectTab={(tab) => setActiveTab(tab)}
-          liveCount={trades.length}
-        />
+        </div>
 
         {/* Tab Contents View */}
-        <InvestmentsTabRenderer
-          activeTab={activeTab}
-          onNavigateTab={(tab) => setActiveTab(tab as MainTabType)}
-          trades={trades}
-          loading={loading}
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          clusterTickers={clusterTickers}
-          watchlist={watchlist}
-          onToggleWatchlist={handleToggleWatchlist}
-        />
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-12 w-full">
+          <InvestmentsTabRenderer
+            activeTab={activeTab}
+            onNavigateTab={(tab) => setActiveTab(tab as MainTabType)}
+            trades={trades}
+            loading={loading}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            clusterTickers={clusterTickers}
+            watchlist={watchlist}
+            onToggleWatchlist={handleToggleWatchlist}
+          />
+        </main>
       </div>
 
       <CopycatPlaybookModal

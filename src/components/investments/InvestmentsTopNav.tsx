@@ -1,15 +1,21 @@
 import { FC, useState, useEffect } from 'react';
 import Button from '../ui/Button';
-import { Search, RefreshCw, BookOpen } from 'lucide-react';
+import { Search, RefreshCw, BookOpen, Menu } from 'lucide-react';
 import { TickerSearchModal } from './TickerSearchModal';
 
 interface Props {
   onOpenPlaybook: () => void;
   onRefresh: () => void;
   syncing: boolean;
+  onOpenMobileMenu?: () => void;
 }
 
-export const InvestmentsTopNav: FC<Props> = ({ onOpenPlaybook, onRefresh, syncing }) => {
+export const InvestmentsTopNav: FC<Props> = ({
+  onOpenPlaybook,
+  onRefresh,
+  syncing,
+  onOpenMobileMenu,
+}) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   // Open search on Cmd/Ctrl+K
@@ -27,8 +33,19 @@ export const InvestmentsTopNav: FC<Props> = ({ onOpenPlaybook, onRefresh, syncin
   return (
     <div className="relative mb-6 border-b border-border-custom/50 pb-4">
       <div className="flex items-center justify-between gap-4">
-        {/* Brand */}
+        {/* Left: Mobile Toggle + Brand */}
         <div className="flex items-center gap-3">
+          {onOpenMobileMenu && (
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={<Menu size={18} />}
+              onClick={onOpenMobileMenu}
+              className="lg:hidden rounded-xl p-2 text-text-secondary hover:text-text-primary"
+              aria-label="Otwórz menu nawigacji"
+            />
+          )}
+
           <div className="flex items-center gap-2.5">
             <span className="text-2xl" role="img" aria-label="OrcaFolio">
               🐋
