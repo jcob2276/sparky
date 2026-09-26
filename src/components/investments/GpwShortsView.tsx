@@ -1,5 +1,6 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import { getGroupedCompanyShorts, CompanyShortSummary } from '../../lib/investments/knfShortsData';
+import { fetchLiveGpwShorts } from '../../lib/investments/superinvestorsApi';
 import { GpwShortsBreakdownModal } from './GpwShortsBreakdownModal';
 import { GpwShortsHeaderBanner } from './GpwShortsHeaderBanner';
 import Button from '../ui/Button';
@@ -8,11 +9,23 @@ import { Download } from 'lucide-react';
 
 export const GpwShortsView: FC = () => {
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
-  const grouped = getGroupedCompanyShorts();
+  const [shorts, setShorts] = useState<CompanyShortSummary[]>(getGroupedCompanyShorts);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const live = await fetchLiveGpwShorts();
+      if (!active || live.length === 0) return;
+      setShorts(live);
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const handleExportCsv = () => {
     const headers = 'Ticker,Spółka,Łączny_Short_%,Liczba_Funduszy,Trend_14D_pp,Fundusze\n';
-    const rows = grouped
+    const rows = shorts
       .map(
         (g) =>
           `"${g.ticker}","${g.companyName}","${g.totalShortPercent.toFixed(2)}","${g.fundsCount}","${g.netChange14d > 0 ? '+' : ''}${g.netChange14d.toFixed(2)}","${g.positions.map((p) => `${p.holderName} (${p.shortPercent}%)`).join('; ')}"`
@@ -28,12 +41,12 @@ export const GpwShortsView: FC = () => {
     notify('Wyeksportowano rejestr krótkiej sprzedaży KNF do CSV!', 'success');
   };
 
-  const activeCompany = selectedTicker ? grouped.find((g) => g.ticker === selectedTicker) : null;
+  const activeCompany = selectedTicker ? shorts.find((g) => g.ticker === selectedTicker) : null;
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header Info Banner */}
-      <GpwShortsHeaderBanner grouped={grouped} />
+      <GpwShortsHeaderBanner grouped={shorts} />
 
       {/* Main Shorts Table */}
       <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
@@ -70,7 +83,7 @@ export const GpwShortsView: FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border-custom/40">
-              {grouped.map((g: CompanyShortSummary) => {
+              {shorts.map((g: CompanyShortSummary) => {
                 const isSelected = selectedTicker === g.ticker;
                 return (
                   <tr

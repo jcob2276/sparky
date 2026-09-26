@@ -4,6 +4,7 @@
  */
 
 import { INVESTORS_13F_DATA, Holding13F } from './investors13FData';
+import type { CompanyShortSummary } from './knfShortsData';
 
 const ORCA_SUPABASE_URL = 'https://rtnehnbvteuipkoatdlz.supabase.co/rest/v1';
 const ORCA_ANON_KEY =
@@ -204,4 +205,50 @@ export async function fetchLiveConsensus(): Promise<LiveConsensusItem[]> {
     return [];
   }
 }
+
+export async function fetchLiveGpwShorts(): Promise<CompanyShortSummary[]> {
+  try {
+    const res = await fetch(
+      `${ORCA_SUPABASE_URL}/vw_gpw_shorts_agg?total_pct=gt.0&order=total_pct.desc`,
+      { headers: HEADERS }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) return [];
+
+    interface RawShortAgg {
+      company?: string;
+      ticker?: string;
+      total_pct?: number;
+      public_holders?: number;
+      last_change?: string;
+      top_holder?: string;
+      top_holder_pct?: number;
+    }
+
+    return data.map((d: RawShortAgg) => ({
+      ticker: d.ticker || d.company || 'GPW',
+      companyName: d.company || d.ticker || 'Spółka GPW',
+      totalShortPercent: typeof d.total_pct === 'number' ? d.total_pct : 0,
+      fundsCount: typeof d.public_holders === 'number' ? d.public_holders : 1,
+      netChange14d: 0,
+      positions: d.top_holder
+        ? [
+            {
+              id: `${d.ticker}_${d.top_holder}`,
+              ticker: d.ticker || '',
+              companyName: d.company || '',
+              holderName: d.top_holder,
+              shortPercent: d.top_holder_pct || d.total_pct || 0,
+              positionDate: d.last_change || '2026-09-20',
+            },
+          ]
+        : [],
+    }));
+  } catch (err) {
+    console.warn('[superinvestorsApi] fetchLiveGpwShorts error:', err);
+    return [];
+  }
+}
+
 
