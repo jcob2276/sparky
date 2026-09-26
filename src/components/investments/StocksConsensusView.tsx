@@ -1,11 +1,12 @@
-import { FC, useState } from 'react';
+import { FC, useState, useEffect } from 'react';
 import Button from '../ui/Button';
 import { Download } from 'lucide-react';
 import { notify } from '../../lib/notify';
 import { StocksConsensusTable, StockConsensusItem } from './StocksConsensusTable';
+import { fetchLiveConsensus } from '../../lib/investments/superinvestorsApi';
 
 const STOCKS_13F_CONSENSUS: StockConsensusItem[] = [
-  { ticker: 'AMZN', name: 'Amazon.com Inc.', sector: 'Dobra konsumpcyjne', priceUsd: 249.38, changeToday: 0.04, fundsBuying: 12, fundsSelling: 8, totalFunds: 20, totalValueUsd: '$16.7 mld', netScore: 4, movementType: 'accumulation' },
+  { ticker: 'AMZN', name: 'Amazon.com Inc.', sector: 'Dobra konsumpcyjne', priceUsd: 249.38, changeToday: 0.04, fundsBuying: 13, fundsSelling: 7, totalFunds: 20, totalValueUsd: '$16.7 mld', netScore: 6, movementType: 'accumulation' },
   { ticker: 'NVDA', name: 'NVIDIA Corp.', sector: 'Technologia', priceUsd: 224.58, changeToday: -0.41, fundsBuying: 4, fundsSelling: 6, totalFunds: 10, totalValueUsd: '$99.6 mld', netScore: -2, movementType: 'distribution' },
   { ticker: 'AAPL', name: 'Apple Inc.', sector: 'Technologia', priceUsd: 335.92, changeToday: -0.33, fundsBuying: 2, fundsSelling: 1, totalFunds: 3, totalValueUsd: '$51.4 mld', netScore: 1, movementType: 'accumulation' },
   { ticker: 'GOOGL', name: 'Alphabet Inc. Class A', sector: 'Technologia', priceUsd: 342.36, changeToday: 1.34, fundsBuying: 3, fundsSelling: 8, totalFunds: 11, totalValueUsd: '$33.9 mld', netScore: -5, movementType: 'distribution' },
@@ -23,8 +24,34 @@ const STOCKS_13F_CONSENSUS: StockConsensusItem[] = [
 
 export const StocksConsensusView: FC = () => {
   const [filterType, setFilterType] = useState<'all' | 'accumulation' | 'distribution'>('all');
+  const [consensusList, setConsensusList] = useState<StockConsensusItem[]>(STOCKS_13F_CONSENSUS);
 
-  const filtered = STOCKS_13F_CONSENSUS.filter((item) => {
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const live = await fetchLiveConsensus();
+      if (!active || live.length === 0) return;
+      const mapped: StockConsensusItem[] = live.map((item) => ({
+        ticker: item.ticker,
+        name: item.name,
+        sector: 'SEC 13F',
+        priceUsd: 0,
+        changeToday: 0,
+        fundsBuying: item.buyers,
+        fundsSelling: item.sellers,
+        totalFunds: item.totalFunds,
+        totalValueUsd: '—',
+        netScore: item.netScore,
+        movementType: item.movementType,
+      }));
+      setConsensusList(mapped);
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const filtered = consensusList.filter((item) => {
     if (filterType === 'accumulation') return item.netScore > 0;
     if (filterType === 'distribution') return item.netScore < 0;
     return true;

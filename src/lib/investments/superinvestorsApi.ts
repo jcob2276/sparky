@@ -157,3 +157,51 @@ function fallbackHoldings(investorId: string): LiveHoldingItem[] {
     sector: h.sector,
   }));
 }
+
+export interface LiveConsensusItem {
+  ticker: string;
+  name: string;
+  buyers: number;
+  sellers: number;
+  totalFunds: number;
+  netScore: number;
+  movementType: 'accumulation' | 'distribution';
+}
+
+export async function fetchLiveConsensus(): Promise<LiveConsensusItem[]> {
+  try {
+    const res = await fetch(`${ORCA_SUPABASE_URL}/vw_consensus?order=net_buyers.desc&limit=60`, {
+      headers: HEADERS,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+
+    interface RawConsensus {
+      ticker?: string;
+      company_name?: string;
+      buyers?: number;
+      sellers?: number;
+      net_buyers?: number;
+    }
+
+    return data
+      .filter((d: RawConsensus) => Boolean(d.ticker))
+      .map((d: RawConsensus) => {
+        const net = d.net_buyers || 0;
+        return {
+          ticker: d.ticker || '—',
+          name: d.company_name || 'Spółka',
+          buyers: d.buyers || 0,
+          sellers: d.sellers || 0,
+          totalFunds: (d.buyers || 0) + (d.sellers || 0),
+          netScore: net,
+          movementType: net >= 0 ? 'accumulation' : 'distribution',
+        };
+      });
+  } catch (err) {
+    console.warn('[superinvestorsApi] fetchLiveConsensus error:', err);
+    return [];
+  }
+}
+
