@@ -161,10 +161,7 @@ export const StocksConsensusToolbar: FC<Props> = ({
             onClick={onExportCsv}
             className="rounded-xl text-xs font-semibold"
           >
-            <span>Eksport CSV</span>
-            <span className="ml-1 px-1 py-0.2 rounded text-3xs font-mono font-bold bg-warning/20 text-warning border border-warning/30">
-              PRO
-            </span>
+            Eksport CSV
           </Button>
         </div>
       </div>

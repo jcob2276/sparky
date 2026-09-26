@@ -27,30 +27,28 @@ interface NavItem {
   id: MainTabType;
   label: string;
   icon: React.ReactNode;
-  badge?: string;
-  badgeType?: 'nowe' | 'pro';
 }
 
 const NAV_CENTRUM: NavItem[] = [
   { id: 'dashboard', label: 'Pulpit', icon: <CircleDot size={16} /> },
-  { id: 'analyst', label: 'Analityk AI', icon: <MessageSquare size={16} />, badge: 'NOWE', badgeType: 'nowe' },
-  { id: 'watchlist', label: 'Watchlista', icon: <Diamond size={16} />, badge: 'PRO', badgeType: 'pro' },
+  { id: 'analyst', label: 'Analityk AI', icon: <MessageSquare size={16} /> },
+  { id: 'watchlist', label: 'Watchlista', icon: <Diamond size={16} /> },
 ];
 
 const NAV_RYNEK_USA: NavItem[] = [
-  { id: 'convergence', label: 'Zbieżność', icon: <Target size={16} />, badge: 'PRO', badgeType: 'pro' },
+  { id: 'convergence', label: 'Zbieżność', icon: <Target size={16} /> },
   { id: 'screener', label: 'Spółki', icon: <TrendingUp size={16} /> },
   { id: 'politicians', label: 'Kongres', icon: <Landmark size={16} /> },
   { id: 'investors', label: 'Superinwestorzy', icon: <Share2 size={16} /> },
-  { id: 'live', label: 'Insiderzy', icon: <User size={16} />, badge: 'PRO', badgeType: 'pro' },
+  { id: 'live', label: 'Insiderzy', icon: <User size={16} /> },
   { id: 'simulation', label: 'Symulacja', icon: <BarChart3 size={16} /> },
 ];
 
 const NAV_RYNEK_POLSKI: NavItem[] = [
   { id: 'gpw_mar', label: 'Spółki GPW', icon: <Building2 size={16} /> },
-  { id: 'methodology', label: 'Fundamenty', icon: <BarChart3 size={16} />, badge: 'NOWE', badgeType: 'nowe' },
+  { id: 'methodology', label: 'Fundamenty', icon: <BarChart3 size={16} /> },
   { id: 'gpw_shorts', label: 'Krótka sprzedaż', icon: <TrendingDown size={16} /> },
-  { id: 'stocks', label: 'Insiderzy ESPI', icon: <User size={16} />, badge: 'PRO', badgeType: 'pro' },
+  { id: 'stocks', label: 'Insiderzy ESPI', icon: <User size={16} /> },
 ];
 
 export const InvestmentsSidebar: FC<Props> = ({
@@ -76,7 +74,7 @@ export const InvestmentsSidebar: FC<Props> = ({
               onSelectTab(item.id);
               onCloseMobile();
             }}
-            className={`w-full justify-between rounded-xl px-3 py-2 text-xs transition-all ${
+            className={`w-full justify-start rounded-xl px-3 py-2 text-xs transition-all ${
               isSelected
                 ? 'border-l-4 border-primary font-bold shadow-xs'
                 : 'text-text-secondary hover:text-text-primary hover:bg-surface border-l-4 border-transparent font-medium'
@@ -88,17 +86,6 @@ export const InvestmentsSidebar: FC<Props> = ({
               </span>
               <span className="truncate">{item.label}</span>
             </div>
-            {item.badge && (
-              <span
-                className={`font-mono font-black text-3xs uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
-                  item.badgeType === 'nowe'
-                    ? 'bg-success text-text-on-primary'
-                    : 'border border-warning/60 text-warning'
-                }`}
-              >
-                {item.badge}
-              </span>
-            )}
           </Button>
         );
       })}
