@@ -2,19 +2,17 @@ import { FC } from 'react';
 import { MainTabType } from './InvestmentsPage';
 import Button from '../ui/Button';
 import {
-  LayoutDashboard,
-  Bot,
-  Star,
-  Flame,
-  Search,
+  CircleDot,
+  MessageSquare,
+  Diamond,
+  Target,
+  TrendingUp,
   Landmark,
-  Users,
-  LineChart,
-  ShieldAlert,
+  Share2,
+  User,
+  BarChart3,
+  TrendingDown,
   Building2,
-  FileText,
-  BookOpen,
-  Zap,
 } from 'lucide-react';
 
 interface Props {
@@ -30,29 +28,29 @@ interface NavItem {
   label: string;
   icon: React.ReactNode;
   badge?: string;
-  badgeColor?: 'primary' | 'success' | 'danger';
+  badgeType?: 'nowe' | 'pro';
 }
 
 const NAV_CENTRUM: NavItem[] = [
-  { id: 'dashboard', label: 'Pulpit', icon: <LayoutDashboard size={16} /> },
-  { id: 'analyst', label: 'Analityk AI', icon: <Bot size={16} /> },
-  { id: 'watchlist', label: 'Watchlista', icon: <Star size={16} /> },
+  { id: 'dashboard', label: 'Pulpit', icon: <CircleDot size={16} /> },
+  { id: 'analyst', label: 'Analityk AI', icon: <MessageSquare size={16} />, badge: 'NOWE', badgeType: 'nowe' },
+  { id: 'watchlist', label: 'Watchlista', icon: <Diamond size={16} />, badge: 'PRO', badgeType: 'pro' },
 ];
 
 const NAV_RYNEK_USA: NavItem[] = [
-  { id: 'convergence', label: 'Sygnały', icon: <Flame size={16} /> },
-  { id: 'screener', label: 'Spółki (13F)', icon: <Search size={16} /> },
+  { id: 'convergence', label: 'Zbieżność', icon: <Target size={16} />, badge: 'PRO', badgeType: 'pro' },
+  { id: 'screener', label: 'Spółki', icon: <TrendingUp size={16} /> },
   { id: 'politicians', label: 'Kongres', icon: <Landmark size={16} /> },
-  { id: 'investors', label: 'Superinwestorzy', icon: <Users size={16} /> },
-  { id: 'live', label: 'Insiderzy Form 4', icon: <Zap size={16} /> },
-  { id: 'simulation', label: 'Symulacja', icon: <LineChart size={16} /> },
+  { id: 'investors', label: 'Superinwestorzy', icon: <Share2 size={16} /> },
+  { id: 'live', label: 'Insiderzy', icon: <User size={16} />, badge: 'PRO', badgeType: 'pro' },
+  { id: 'simulation', label: 'Symulacja', icon: <BarChart3 size={16} /> },
 ];
 
 const NAV_RYNEK_POLSKI: NavItem[] = [
-  { id: 'gpw_shorts', label: 'Krótka sprzedaż', icon: <ShieldAlert size={16} /> },
   { id: 'gpw_mar', label: 'Spółki GPW', icon: <Building2 size={16} /> },
-  { id: 'stocks', label: 'Insiderzy ESPI', icon: <FileText size={16} /> },
-  { id: 'methodology', label: 'Fundamenty', icon: <BookOpen size={16} /> },
+  { id: 'methodology', label: 'Fundamenty', icon: <BarChart3 size={16} />, badge: 'NOWE', badgeType: 'nowe' },
+  { id: 'gpw_shorts', label: 'Krótka sprzedaż', icon: <TrendingDown size={16} /> },
+  { id: 'stocks', label: 'Insiderzy ESPI', icon: <User size={16} />, badge: 'PRO', badgeType: 'pro' },
 ];
 
 export const InvestmentsSidebar: FC<Props> = ({
@@ -73,33 +71,29 @@ export const InvestmentsSidebar: FC<Props> = ({
           <Button
             key={item.id}
             size="sm"
-            variant={isSelected ? 'primary' : 'ghost'}
+            variant={isSelected ? 'tonal' : 'ghost'}
             onClick={() => {
               onSelectTab(item.id);
               onCloseMobile();
             }}
-            className={`w-full justify-between rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+            className={`w-full justify-between rounded-xl px-3 py-2 text-xs transition-all ${
               isSelected
-                ? 'shadow-xs'
-                : 'text-text-secondary hover:text-text-primary hover:bg-surface'
+                ? 'border-l-4 border-primary font-bold shadow-xs'
+                : 'text-text-secondary hover:text-text-primary hover:bg-surface border-l-4 border-transparent font-medium'
             }`}
           >
             <div className="flex items-center gap-2.5 truncate">
-              <span className={isSelected ? 'text-text-on-primary' : 'text-text-muted'}>
+              <span className={isSelected ? 'text-primary' : 'text-text-muted'}>
                 {item.icon}
               </span>
               <span className="truncate">{item.label}</span>
             </div>
             {item.badge && (
               <span
-                className={`px-1.5 py-0.2 rounded text-3xs font-mono font-bold ${
-                  isSelected
-                    ? 'bg-surface/30 text-text-on-primary'
-                    : item.badgeColor === 'danger'
-                    ? 'bg-danger/10 text-danger border border-danger/20'
-                    : item.badgeColor === 'success'
-                    ? 'bg-success/10 text-success border border-success/20'
-                    : 'bg-primary/10 text-primary border border-primary/20'
+                className={`font-mono font-black text-3xs uppercase tracking-wider px-1.5 py-0.5 rounded-md ${
+                  item.badgeType === 'nowe'
+                    ? 'bg-success text-text-on-primary'
+                    : 'border border-warning/60 text-warning'
                 }`}
               >
                 {item.badge}
@@ -114,7 +108,7 @@ export const InvestmentsSidebar: FC<Props> = ({
   const sidebarContent = (
     <div className="h-full flex flex-col justify-between py-5 px-3 space-y-6 overflow-y-auto">
       <div className="space-y-6">
-        {/* Brand */}
+        {/* Brand Header */}
         <div className="px-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="font-mono text-xs font-bold text-primary">SP</span>
