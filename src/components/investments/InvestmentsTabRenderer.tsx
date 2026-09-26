@@ -52,7 +52,7 @@ export const InvestmentsTabRenderer: FC<Props> = ({
     case 'convergence':
       return <ConvergenceView watchlist={watchlist} />;
     case 'screener':
-      return <StocksConsensusView />;
+      return <StocksConsensusView watchlist={watchlist} onToggleWatchlist={onToggleWatchlist} />;
     case 'investors':
       return <Investors13FView />;
     case 'politicians':

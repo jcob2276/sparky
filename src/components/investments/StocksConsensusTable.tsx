@@ -1,24 +1,21 @@
 import { FC } from 'react';
+import { EnrichedStockConsensus } from '../../lib/investments/consensusService';
+import { StocksConsensusRow } from './StocksConsensusRow';
 
-export interface StockConsensusItem {
-  ticker: string;
-  name: string;
-  sector: string;
-  priceUsd: number | null;
-  changeToday: number | null;
-  fundsBuying: number;
-  fundsSelling: number;
-  totalFunds: number;
-  totalValueUsd: string;
-  netScore: number;
-  movementType: 'accumulation' | 'distribution' | 'neutral';
-}
 
 interface Props {
-  stocks: StockConsensusItem[];
+  stocks: EnrichedStockConsensus[];
+  watchlist: string[];
+  onToggleWatchlist: (ticker: string) => void;
+  onSelectStockForChart: (ticker: string, name: string) => void;
 }
 
-export const StocksConsensusTable: FC<Props> = ({ stocks }) => {
+export const StocksConsensusTable: FC<Props> = ({
+  stocks,
+  watchlist,
+  onToggleWatchlist,
+  onSelectStockForChart,
+}) => {
   return (
     <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
       <div className="overflow-x-auto">
@@ -29,65 +26,24 @@ export const StocksConsensusTable: FC<Props> = ({ stocks }) => {
               <th className="py-3 px-4">Sektor</th>
               <th className="py-3 px-4 text-right">Kurs USD</th>
               <th className="py-3 px-4 text-right">Dziś</th>
-              <th className="py-3 px-4 text-center">Kupują vs Sprzedają</th>
-              <th className="py-3 px-4 text-right">Łączna wartość</th>
-              <th className="py-3 px-4 text-center">Wynik Netto</th>
+              <th className="py-3 px-4 text-center min-w-32">Kupują · Sprzedają</th>
+              <th className="py-3 px-4 text-center">Fund.</th>
+              <th className="py-3 px-4 text-right">Wartość</th>
+              <th className="py-3 px-2 text-center w-10">⭐</th>
+              <th className="py-3 px-3 text-center">Netto</th>
+              <th className="py-3 px-4 text-center w-24">12M</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border-custom/40">
-            {stocks.map((stock) => {
-              const isNetPositive = stock.netScore > 0;
-              const isNetNegative = stock.netScore < 0;
-
-              return (
-                <tr key={stock.ticker} className="hover:bg-primary/5 transition-colors">
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2 py-0.5 rounded-md bg-surface border border-border-custom text-text-primary font-mono font-bold text-xs shadow-xs">
-                        ${stock.ticker}
-                      </span>
-                      <span className="font-semibold text-text-primary">{stock.name}</span>
-                    </div>
-                  </td>
-                  <td className="py-3.5 px-4 text-xs text-text-secondary">
-                    {stock.sector}
-                  </td>
-                  <td className="py-3.5 px-4 text-right font-mono font-bold text-text-primary tabular-nums">
-                    {stock.priceUsd == null ? '—' : `$${stock.priceUsd.toFixed(2)}`}
-                  </td>
-                  <td className="py-3.5 px-4 text-right font-mono text-xs tabular-nums">
-                    {stock.changeToday == null ? (
-                      <span className="text-text-muted">—</span>
-                    ) : (
-                      <span className={stock.changeToday >= 0 ? 'text-success font-semibold' : 'text-danger font-semibold'}>
-                        {stock.changeToday >= 0 ? `+${stock.changeToday.toFixed(2)}%` : `${stock.changeToday.toFixed(2)}%`}
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-3.5 px-4 text-center text-xs font-mono">
-                    <span className="text-success font-bold">{stock.fundsBuying} kupuje</span>
-                    <span className="text-text-muted mx-1">·</span>
-                    <span className="text-danger font-bold">{stock.fundsSelling} sprzedaje</span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right font-mono text-xs text-text-primary tabular-nums">
-                    {stock.totalValueUsd}
-                  </td>
-                  <td className="py-3.5 px-4 text-center">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-md text-xs font-mono font-black border ${
-                        isNetPositive
-                          ? 'bg-success/15 text-success border-success/30'
-                          : isNetNegative
-                          ? 'bg-danger/15 text-danger border-danger/30'
-                          : 'bg-surface text-text-muted border-border-custom'
-                      }`}
-                    >
-                      {stock.netScore > 0 ? `+${stock.netScore}` : stock.netScore}
-                    </span>
-                  </td>
-                </tr>
-              );
-            })}
+          <tbody className="divide-y divide-border-custom/30 text-xs">
+            {stocks.map((stock) => (
+              <StocksConsensusRow
+                key={stock.ticker}
+                stock={stock}
+                isWatched={watchlist.includes(stock.ticker)}
+                onToggleWatchlist={onToggleWatchlist}
+                onSelectStockForChart={onSelectStockForChart}
+              />
+            ))}
           </tbody>
         </table>
       </div>

@@ -1,36 +1,54 @@
-import { FC, useState, useEffect } from 'react';
-import Button from '../ui/Button';
-import { Download } from 'lucide-react';
+import { FC, useState, useEffect, useMemo } from 'react';
+import { getTodayWarsaw } from '../../lib/date';
 import { notify } from '../../lib/notify';
-import { StocksConsensusTable, StockConsensusItem } from './StocksConsensusTable';
-import { fetchLiveConsensus } from '../../lib/investments/superinvestorsApi';
+import { StocksConsensusCards } from './StocksConsensusCards';
+import {
+  StocksConsensusToolbar,
+  FilterType,
+  SortOption,
+} from './StocksConsensusToolbar';
+import { StocksConsensusTable } from './StocksConsensusTable';
+import { TradingViewChartModal } from './TradingViewChartModal';
+import {
+  fetchEnrichedConsensus,
+  EnrichedStockConsensus,
+  ConsensusStats,
+} from '../../lib/investments/consensusService';
 
-export const StocksConsensusView: FC = () => {
-  const [filterType, setFilterType] = useState<'all' | 'accumulation' | 'distribution'>('all');
-  const [consensusList, setConsensusList] = useState<StockConsensusItem[]>([]);
+interface Props {
+  watchlist?: string[];
+  onToggleWatchlist?: (ticker: string) => void;
+}
+
+export const StocksConsensusView: FC<Props> = ({
+  watchlist = [],
+  onToggleWatchlist = () => {},
+}) => {
+  const [filterType, setFilterType] = useState<FilterType>('all');
+  const [sortOption, setSortOption] = useState<SortOption>('capitalization');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [consensusList, setConsensusList] = useState<EnrichedStockConsensus[]>([]);
+  const [stats, setStats] = useState<ConsensusStats>({
+    totalCompanies: 0,
+    totalMoves: 0,
+    topBoughtTicker: '—',
+    topBoughtNet: 0,
+    topSoldTicker: '—',
+    topSoldNet: 0,
+    mostActiveTicker: '—',
+    mostActiveMoves: 0,
+  });
   const [loading, setLoading] = useState(true);
+  const [chartStock, setChartStock] = useState<{ ticker: string; name: string } | null>(null);
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const live = await fetchLiveConsensus();
+        const { items, stats: computedStats } = await fetchEnrichedConsensus();
         if (!active) return;
-        setConsensusList(live.map((item) => ({
-          ticker: item.ticker,
-          name: item.name,
-          sector: 'SEC 13F',
-          priceUsd: null,
-          changeToday: null,
-          fundsBuying: item.buyers,
-          fundsSelling: item.sellers,
-          totalFunds: item.totalFunds,
-          totalValueUsd: item.totalValueUsd,
-          netScore: item.netScore,
-          movementType: item.movementType,
-        })));
-      } catch {
-        if (active) setConsensusList([]);
+        setConsensusList(items);
+        setStats(computedStats);
       } finally {
         if (active) setLoading(false);
       }
@@ -40,115 +58,102 @@ export const StocksConsensusView: FC = () => {
     };
   }, []);
 
-  const filtered = consensusList.filter((item) => {
-    if (filterType === 'accumulation') return item.netScore > 0;
-    if (filterType === 'distribution') return item.netScore < 0;
-    return true;
-  });
+  const processedList = useMemo(() => {
+    let result = [...consensusList];
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter(
+        (s) => s.ticker.toLowerCase().includes(q) || s.name.toLowerCase().includes(q)
+      );
+    }
+
+    if (filterType === 'accumulation') {
+      result = result.filter((s) => s.netScore > 0);
+    } else if (filterType === 'distribution') {
+      result = result.filter((s) => s.netScore < 0);
+    } else if (filterType === 'active') {
+      result = result.filter((s) => s.fundsBuying + s.fundsSelling >= 8);
+    }
+
+    result.sort((a, b) => {
+      switch (sortOption) {
+        case 'net':
+          return b.netScore - a.netScore;
+        case 'buyers':
+          return b.fundsBuying - a.fundsBuying;
+        case 'sellers':
+          return b.fundsSelling - a.fundsSelling;
+        case 'holders':
+          return b.totalFunds - a.totalFunds;
+        case 'value':
+        case 'capitalization':
+          return b.totalValueRaw - a.totalValueRaw;
+        case 'ticker':
+          return a.ticker.localeCompare(b.ticker);
+        default:
+          return 0;
+      }
+    });
+
+    return result;
+  }, [consensusList, searchQuery, filterType, sortOption]);
 
   const handleExportCsv = () => {
     const headers = 'Ticker,Spółka,Sektor,Kurs_USD,Zmiana_Dziś_%,Kupuje_Funduszy,Sprzedaje_Funduszy,Wartość_USD,Wynik_Netto\n';
-    const rows = filtered
+    const rows = processedList
       .map(
         (s) =>
-          `"${s.ticker}","${s.name}","${s.sector}","${s.priceUsd}","${s.changeToday}","${s.fundsBuying}","${s.fundsSelling}","${s.totalValueUsd}","${s.netScore}"`
+          `"${s.ticker}","${s.name}","${s.sector}","${s.priceUsd ?? ''}","${s.changeToday ?? ''}","${s.fundsBuying}","${s.fundsSelling}","${s.totalValueUsd}","${s.netScore}"`
       )
       .join('\n');
     const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `screener_13f_konsensus_${new Date().getFullYear()}.csv`;
+    link.download = `screener_13f_${getTodayWarsaw()}.csv`;
     link.click();
     URL.revokeObjectURL(url);
-    notify('Wyeksportowano screener 13F do CSV!', 'success');
+    notify(`Wyeksportowano ${processedList.length} spółek do CSV!`, 'success');
   };
 
   return (
-    <div className="space-y-6 animate-fade-in text-text-primary">
-      {/* Header */}
-      <div className="p-6 rounded-3xl bg-surface border border-border-custom shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-border-custom/50">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-2 py-0.5 rounded-md text-2xs font-bold bg-primary/10 text-primary border border-primary/20">
-                Konsensus Instytucjonalny 13F
-              </span>
-              <span className="text-2xs font-mono text-text-secondary">
-                Kwartał Q3 · SEC EDGAR
-              </span>
-            </div>
-            <h2 className="text-2xl font-extrabold text-text-primary tracking-tight">
-              Screener Spółek: Akumulacja vs Dystrybucja
-            </h2>
-            <p className="text-xs text-text-secondary mt-1.5 max-w-3xl leading-relaxed">
-              Ranking tickera po tickerze: kto dokupuje, kto redukuje, ile funduszy trzyma pozycję i gdzie pojawia się nietypowa aktywność w najnowszych formularzach SEC 13F.
-            </p>
-          </div>
+    <div className="space-y-4 animate-fade-in text-text-primary">
+      {/* 4 Top Metric Cards */}
+      <StocksConsensusCards stats={stats} loading={loading} />
 
-          <div className="grid grid-cols-2 gap-2 shrink-0">
-            <div className="p-3.5 rounded-2xl bg-surface border border-border-custom/70 text-right shadow-xs">
-              <div className="text-2xs text-success font-medium">Top Akumulacja</div>
-              <div className="text-lg font-black text-success font-mono mt-0.5">
-                {consensusList.find((item) => item.netScore > 0)
-                  ? `${[...consensusList].sort((a, b) => b.netScore - a.netScore)[0]?.ticker} (${[...consensusList].sort((a, b) => b.netScore - a.netScore)[0]?.netScore})`
-                  : '—'}
-              </div>
-            </div>
-            <div className="p-3.5 rounded-2xl bg-surface border border-border-custom/70 text-right shadow-xs">
-              <div className="text-2xs text-danger font-medium">Top Dystrybucja</div>
-              <div className="text-lg font-black text-danger font-mono mt-0.5">
-                {consensusList.some((item) => item.netScore < 0)
-                  ? `${[...consensusList].sort((a, b) => a.netScore - b.netScore)[0]?.ticker} (${[...consensusList].sort((a, b) => a.netScore - b.netScore)[0]?.netScore})`
-                  : '—'}
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Filter, Sort & Search Toolbar */}
+      <StocksConsensusToolbar
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        filterType={filterType}
+        onFilterChange={setFilterType}
+        sortOption={sortOption}
+        onSortChange={setSortOption}
+        totalFilteredCount={processedList.length}
+        onExportCsv={handleExportCsv}
+        mostActiveTicker={stats.mostActiveTicker}
+        mostActiveMoves={stats.mostActiveMoves}
+      />
 
-        {/* Filters */}
-        <div className="flex items-center justify-between gap-2 mt-4 flex-wrap">
-          <div className="flex items-center gap-1.5">
-            <Button
-              size="sm"
-              variant={filterType === 'all' ? 'primary' : 'secondary'}
-              onClick={() => setFilterType('all')}
-              className="rounded-xl text-xs"
-            >
-              Wszystkie ({loading ? '…' : consensusList.length})
-            </Button>
-            <Button
-              size="sm"
-              variant={filterType === 'accumulation' ? 'primary' : 'secondary'}
-              onClick={() => setFilterType('accumulation')}
-              className="rounded-xl text-xs"
-            >
-              🟢 Akumulacja (Kupowane)
-            </Button>
-            <Button
-              size="sm"
-              variant={filterType === 'distribution' ? 'primary' : 'secondary'}
-              onClick={() => setFilterType('distribution')}
-              className="rounded-xl text-xs"
-            >
-              🔴 Dystrybucja (Sprzedawane)
-            </Button>
-          </div>
+      {/* Consensus Table */}
+      <StocksConsensusTable
+        stocks={processedList}
+        watchlist={watchlist}
+        onToggleWatchlist={onToggleWatchlist}
+        onSelectStockForChart={(ticker, name) => setChartStock({ ticker, name })}
+      />
 
-          <Button
-            size="sm"
-            variant="secondary"
-            icon={<Download size={13} />}
-            onClick={handleExportCsv}
-            className="rounded-xl text-xs font-semibold"
-          >
-            Eksportuj CSV
-          </Button>
-        </div>
-      </div>
-
-      {/* Screener Table Subcomponent */}
-      <StocksConsensusTable stocks={filtered} />
+      {/* Interactive TradingView Chart Modal */}
+      {chartStock && (
+        <TradingViewChartModal
+          isOpen={true}
+          onClose={() => setChartStock(null)}
+          ticker={chartStock.ticker}
+          companyName={chartStock.name}
+          market="USA"
+        />
+      )}
     </div>
   );
 };
