@@ -106,43 +106,26 @@ export const CongressSummaryCards: FC<Props> = ({
 
       {/* 4. Średni zwrot 1Y po ujawnieniu */}
       <div className="bg-surface-elevated border border-border-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between space-y-3">
-        <div className="text-3xs font-black uppercase tracking-wider text-text-primary">
+        <div className="text-xs sm:text-sm font-bold text-text-primary tracking-tight">
           Średni zwrot 1Y po ujawnieniu
         </div>
-        <div className="space-y-3.5 my-auto">
+        <div className="space-y-2.5 my-auto">
           {/* Demokraci */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-2xs font-bold">
-              <span className="text-text-primary">Demokraci</span>
-              <span className="font-mono text-primary font-bold">
-                +{data.partyReturns.democrats.pct.toFixed(1).replace('.', ',')}%
-              </span>
-            </div>
-            <div className="w-full h-5 rounded-lg bg-surface-subtle overflow-hidden border border-border-custom/50 flex">
-              <div
-                className="bg-primary h-full flex items-center justify-end px-2 text-3xs font-mono font-bold text-surface transition-all"
-                style={{ width: `${Math.min(100, data.partyReturns.democrats.pct * 4)}%` }}
-              >
-                +{data.partyReturns.democrats.pct}%
-              </div>
-            </div>
+          <div className="w-full h-9 rounded-xl bg-primary text-text-on-primary flex items-center justify-between px-3.5 shadow-2xs font-bold text-xs sm:text-sm">
+            <span>Demokraci</span>
+            <span className="font-mono">+{data.partyReturns.democrats.pct.toFixed(1).replace('.', ',')}%</span>
           </div>
 
           {/* Republikanie */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between text-2xs font-bold">
-              <span className="text-text-primary">Republikanie</span>
-              <span className="font-mono text-danger font-bold">
-                +{data.partyReturns.republicans.pct.toFixed(1).replace('.', ',')}%
-              </span>
-            </div>
-            <div className="w-full h-5 rounded-lg bg-surface-subtle overflow-hidden border border-border-custom/50 flex">
-              <div
-                className="bg-danger h-full flex items-center justify-end px-2 text-3xs font-mono font-bold text-surface transition-all"
-                style={{ width: `${Math.min(100, data.partyReturns.republicans.pct * 4)}%` }}
-              >
-                +{data.partyReturns.republicans.pct}%
-              </div>
+          <div className="flex">
+            <div
+              className="h-9 rounded-xl bg-danger text-text-on-primary flex items-center justify-between px-3.5 shadow-2xs font-bold text-xs sm:text-sm whitespace-nowrap"
+              style={{
+                width: `${Math.max(48, Math.min(100, (data.partyReturns.republicans.pct / data.partyReturns.democrats.pct) * 100))}%`,
+              }}
+            >
+              <span className="mr-2">Republikanie</span>
+              <span className="font-mono">+{data.partyReturns.republicans.pct.toFixed(1).replace('.', ',')}%</span>
             </div>
           </div>
         </div>

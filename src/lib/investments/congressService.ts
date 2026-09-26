@@ -241,8 +241,8 @@ export async function fetchCongressOverview(options?: {
       { politicianName: 'Sheri Biggs', bioguideId: 'B001321', ticker: '—', type: 'sell', volumeUsd: 1000000, amountLabel: 'Sprzedaż 1,0 mln USD' },
     ],
     partyReturns: {
-      democrats: { pct: 13.7, tradesCount: demTrades || 240, volumeUsd: demVol || 45e6 },
-      republicans: { pct: 5.3, tradesCount: repTrades || 180, volumeUsd: repVol || 32e6 },
+      democrats: { pct: 20.8, tradesCount: demTrades || 240, volumeUsd: demVol || 45e6 },
+      republicans: { pct: 6.5, tradesCount: repTrades || 180, volumeUsd: repVol || 32e6 },
     },
     rankings: DEFAULT_RANKINGS,
     stream,
