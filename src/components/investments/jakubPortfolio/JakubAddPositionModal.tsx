@@ -55,7 +55,7 @@ export const JakubAddPositionModal: FC<Props> = ({
     };
 
     onSave(updated);
-    notify(`Dodano pozycję ${newPos.ticker} do IKE`, 'info');
+    notify(`Dodano pozycję ${newPos.ticker} do portfela`, 'info');
     onClose();
   };
 
@@ -70,7 +70,7 @@ export const JakubAddPositionModal: FC<Props> = ({
               <Plus size={16} />
             </div>
             <h3 className="font-black text-sm sm:text-base text-text-primary">
-              Zarządzaj portfelem Moje IKE
+              Zarządzaj portfelem Jakuba
             </h3>
           </div>
           <Button

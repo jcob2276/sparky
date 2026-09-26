@@ -50,18 +50,18 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
 
   const handleReset = async () => {
     const confirmed = await confirmDialog(
-      'Czy na pewno chcesz przywrócić pierwotny stan portfela ze zrzutu ekranu IKE?'
+      'Czy na pewno chcesz przywrócić pierwotny stan portfela?'
     );
     if (!confirmed) return;
     const initial = resetJakubPortfolio();
     setPortfolio(initial);
     setLastSyncRates(null);
-    notify('Przywrócono stan początkowy portfela IKE', 'info');
+    notify('Przywrócono stan początkowy portfela', 'info');
   };
 
   const handleAskAnalyst = (ticker: string, companyName: string) => {
     notify(`Przekierowano do Analityka AI dla waloru $${ticker}`, 'info');
-    const prompt = `Przeanalizuj pozycję $${ticker} (${companyName}) z mojego portfela IKE: jaki jest sentyment Smart Money, czy fundusze 13F lub insiderzy akumulują ten walor oraz jakie są perspektywy i ryzyka?`;
+    const prompt = `Przeanalizuj pozycję $${ticker} (${companyName}) z mojego portfela: jaki jest sentyment Smart Money, czy fundusze 13F lub insiderzy akumulują ten walor oraz jakie są perspektywy i ryzyka?`;
     onNavigateTab('analyst', prompt);
   };
 
@@ -69,13 +69,13 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
     notify('Przekierowano do Analityka AI w celu diagnozy portfela', 'info');
     const prompt =
       customPrompt ||
-      `Przeprowadź dogłębną diagnozę mojego portfela IKE ($JEDI, $MRVL, $CDR, $SXR8) pod kątem zbieżności Smart Money, ekspozycji sektorowej, asymetrii zysku do ryzyka oraz rekomendacji dalszej alokacji wolnych środków.`;
+      `Przeprowadź dogłębną diagnozę mojego portfela ($JEDI, $MRVL, $CDR, $SXR8) pod kątem zbieżności Smart Money, ekspozycji sektorowej, asymetrii zysku do ryzyka oraz rekomendacji dalszej alokacji wolnych środków.`;
     onNavigateTab('analyst', prompt);
   };
 
   return (
     <div className="space-y-6 animate-fade-in max-w-6xl mx-auto pb-8">
-      {/* 1. Hero Summary Card (Moje IKE) */}
+      {/* 1. Hero Summary Card (Portfel Jakuba) */}
       <JakubPortfolioSummaryCard
         portfolio={portfolio}
         onOpenAddModal={() => setIsAddModalOpen(true)}
@@ -93,7 +93,7 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-sm sm:text-base font-black text-text-primary tracking-tight">
-            Otwarte pozycje na rachunku IKE
+            Otwarte pozycje w portfelu Jakuba
           </h3>
           <span className="text-3xs font-mono text-text-muted">
             Aktualizacja: {formatShortDateWarsaw(portfolio.lastUpdated)}

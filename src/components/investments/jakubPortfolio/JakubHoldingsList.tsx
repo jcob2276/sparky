@@ -99,10 +99,9 @@ export const JakubHoldingsList: FC<Props> = ({ positions, onAskAnalyst }) => {
         </div>
       ) : activeSubTab === 'operacje' ? (
         <div className="p-6 rounded-2xl bg-surface border border-border-custom text-center space-y-2">
-          <div className="font-bold text-xs text-text-primary">Historia zasileń rachunku IKE</div>
+          <div className="font-bold text-xs text-text-primary">Operacje gotówkowe portfela</div>
           <p className="text-3xs text-text-muted max-w-md mx-auto">
-            Wpłaty z rachunku bankowego na rachunek maklerski IKE. Limit roczny na 2026 r. wynosi 25 500 PLN.
-            Wykorzystano dotychczas ~1 500,99 PLN, pozostało 23 999,01 PLN.
+            Wpłaty, wypłaty oraz rozliczenia transakcji giełdowych. Środki gotówkowe gotowe do kolejnych inwestycji.
           </p>
         </div>
       ) : (

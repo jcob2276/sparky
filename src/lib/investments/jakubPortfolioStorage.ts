@@ -1,6 +1,6 @@
 /**
- * jakubPortfolioStorage.ts — Zarządzanie danymi portfela IKE Jakuba w /inwestycje.
- * Domyślny seed pochodzi z rachunku maklerskiego IKE.
+ * jakubPortfolioStorage.ts — Zarządzanie danymi portfela Jakuba w /inwestycje.
+ * Domyślny seed pochodzi ze zweryfikowanego rachunku maklerskiego.
  */
 
 export interface PortfolioPosition {
@@ -26,23 +26,19 @@ export interface JakubPortfolioData {
   totalPnlPct: number;
   marketValuePln: number;
   freeCashPln: number;
-  remainingIkeLimitPln: number;
-  annualIkeLimitPln: number;
   lastUpdated: string;
   positions: PortfolioPosition[];
 }
 
-const STORAGE_KEY = 'sparky_jakub_ike_portfolio_v1';
+const STORAGE_KEY = 'sparky_jakub_portfolio_v2';
 
 const INITIAL_JAKUB_PORTFOLIO: JakubPortfolioData = {
-  accountName: 'Moje IKE',
+  accountName: 'Portfel Jakuba',
   totalValuePln: 7050.45,
   totalPnlPln: -1526.31,
   totalPnlPct: -19.16,
   marketValuePln: 6441.74,
   freeCashPln: 608.71,
-  remainingIkeLimitPln: 23999.01,
-  annualIkeLimitPln: 25500.0,
   lastUpdated: new Date().toISOString(),
   positions: [
     {

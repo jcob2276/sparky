@@ -227,14 +227,14 @@ function getJakubPortfolioTargetedContext(query: string): string {
   const hasMatch = p.positions.some(
     (pos) => q.includes(pos.ticker.toLowerCase()) || q.includes(pos.name.toLowerCase())
   );
-  if (!hasMatch && !q.includes('portfel') && !q.includes('ike') && !q.includes('moje') && !q.includes('jakub')) {
+  if (!hasMatch && !q.includes('portfel') && !q.includes('moje') && !q.includes('jakub')) {
     return '';
   }
   const posLines = p.positions.map(
     (pos) => `  - ${pos.name} ($${pos.ticker}): ${pos.shares} szt., wycena ${pos.currentValue.toFixed(2)} PLN, PnL: ${pos.pnlPln > 0 ? '+' : ''}${pos.pnlPln.toFixed(2)} PLN (${pos.pnlPct.toFixed(1)}%) | Smart Money: ${pos.smartMoneySignal || 'Brak'}`
   );
-  return `[PORTFEL IKE JAKUBA (DANE LIVE)]:
-Łączna wartość: ${p.totalValuePln.toFixed(2)} PLN | PnL: ${p.totalPnlPln.toFixed(2)} PLN (${p.totalPnlPct.toFixed(1)}%) | Wolne środki: ${p.freeCashPln.toFixed(2)} PLN | Pozostały limit IKE: ${p.remainingIkeLimitPln.toFixed(2)} PLN
+  return `[PORTFEL JAKUBA (DANE LIVE)]:
+Łączna wartość: ${p.totalValuePln.toFixed(2)} PLN | PnL: ${p.totalPnlPln.toFixed(2)} PLN (${p.totalPnlPct.toFixed(1)}%) | Wolne środki: ${p.freeCashPln.toFixed(2)} PLN
 Pozycje:
 ${posLines.join('\n')}\n\n`;
 }

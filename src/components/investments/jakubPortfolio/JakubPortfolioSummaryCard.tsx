@@ -41,11 +41,11 @@ export const JakubPortfolioSummaryCard: FC<Props> = ({
                 {portfolio.accountName}
               </h2>
               <span className="px-2 py-0.5 rounded-full text-4xs font-mono font-bold bg-primary/10 text-primary border border-primary/25 uppercase">
-                Rachunek Emerytalny IKE
+                Rachunek maklerski • {portfolio.positions.length} pozycje
               </span>
             </div>
             <div className="flex items-center gap-2 flex-wrap text-3xs text-text-muted mt-0.5">
-              <span>Konto maklerskie IKE Jakuba • Zwolnienie z podatku Belki (19%)</span>
+              <span>Portfel inwestycyjny Jakuba • Akcje & ETF</span>
               {lastSyncRates && (
                 <span className="text-4xs font-mono font-bold px-1.5 py-0.2 rounded-md bg-success/10 text-success border border-success/25">
                   NBP {lastSyncRates.date}: USD {lastSyncRates.usdPln.toFixed(2)} zł • EUR {lastSyncRates.eurPln.toFixed(2)} zł
@@ -91,7 +91,7 @@ export const JakubPortfolioSummaryCard: FC<Props> = ({
             size="sm"
             variant="ghost"
             onClick={onReset}
-            title="Przywróć stan początkowy rachunku IKE"
+            title="Przywróć stan początkowy portfela"
             className="rounded-xl text-text-muted hover:text-text-primary px-2"
           >
             <RefreshCw size={14} />
@@ -138,7 +138,7 @@ export const JakubPortfolioSummaryCard: FC<Props> = ({
             {portfolio.marketValuePln.toLocaleString('pl-PL', { minimumFractionDigits: 2 })}{' '}
             <span className="text-2xs font-normal text-text-muted">PLN</span>
           </div>
-          <div className="text-4xs text-text-muted">Wycena 4 otwartych pozycji</div>
+          <div className="text-4xs text-text-muted">Wycena {portfolio.positions.length} otwartych pozycji</div>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-surface-elevated/40 border border-border-custom/60 space-y-1">
@@ -147,16 +147,17 @@ export const JakubPortfolioSummaryCard: FC<Props> = ({
             {portfolio.freeCashPln.toLocaleString('pl-PL', { minimumFractionDigits: 2 })}{' '}
             <span className="text-2xs font-normal text-text-muted">PLN</span>
           </div>
-          <div className="text-4xs text-text-muted">Gotówka gotowa do alokacji (8.6%)</div>
+          <div className="text-4xs text-text-muted">
+            Gotówka gotowa do alokacji ({((portfolio.freeCashPln / (portfolio.totalValuePln || 1)) * 100).toFixed(1)}%)
+          </div>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-surface-elevated/40 border border-border-custom/60 space-y-1">
-          <div className="text-3xs font-mono text-text-muted uppercase">Pozostały limit IKE</div>
+          <div className="text-3xs font-mono text-text-muted uppercase">Alokacja kapitału</div>
           <div className="text-base sm:text-lg font-black font-mono text-primary">
-            {portfolio.remainingIkeLimitPln.toLocaleString('pl-PL', { minimumFractionDigits: 2 })}{' '}
-            <span className="text-2xs font-normal text-text-muted">PLN</span>
+            {((portfolio.marketValuePln / (portfolio.totalValuePln || 1)) * 100).toFixed(1)}% / {((portfolio.freeCashPln / (portfolio.totalValuePln || 1)) * 100).toFixed(1)}%
           </div>
-          <div className="text-4xs text-text-muted">Limit roczny 2026: 25 500,00 PLN</div>
+          <div className="text-4xs text-text-muted">Akcje & ETF / Gotówka</div>
         </div>
       </div>
     </div>

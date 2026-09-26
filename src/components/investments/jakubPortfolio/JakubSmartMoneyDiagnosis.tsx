@@ -40,7 +40,7 @@ export const JakubSmartMoneyDiagnosis: FC<Props> = ({ portfolio }) => {
         </div>
 
         <span className="px-2 py-0.5 rounded-full text-4xs font-mono font-bold uppercase bg-primary/10 text-primary border border-primary/20">
-          Analiza IKE
+          Analiza portfela
         </span>
       </div>
 
@@ -137,7 +137,7 @@ export const JakubSmartMoneyDiagnosis: FC<Props> = ({ portfolio }) => {
       <div className="p-3 rounded-2xl bg-surface-2/60 border border-border-custom flex items-center gap-2 text-3xs font-mono text-text-muted">
         <PieChart size={14} className="text-primary shrink-0" />
         <span>
-          Do wykorzystania w IKE pozostało <strong>23 999 PLN</strong> limitu bez podatku Belki.
+          Dostępne wolne środki: <strong className="text-success">{portfolio.freeCashPln.toFixed(2)} PLN</strong> gotowe do alokacji.
         </span>
       </div>
     </div>

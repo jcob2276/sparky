@@ -1,5 +1,5 @@
 /**
- * portfolioSyncService.ts — Synchronizacja wycen portfela (Jakub IKE & Kondzio XTB) z rynkiem.
+ * portfolioSyncService.ts — Synchronizacja wycen portfela (Portfel Jakuba & Kondzia) z rynkiem.
  * Pobiera bieżące notowania z giełd (GPW, Nasdaq, Xetra) oraz oficjalne kursy walut z NBP.
  */
 
