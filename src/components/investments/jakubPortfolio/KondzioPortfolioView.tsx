@@ -9,6 +9,7 @@ import { syncKondzioMarketPrices } from '../../../lib/investments/portfolioSyncS
 import { KondzioPortfolioSummaryCard } from './KondzioPortfolioSummaryCard';
 import { JakubHoldingItem } from './JakubHoldingItem';
 import { PortfolioSubNav } from './PortfolioSubNav';
+import { PortfolioForecastCard } from './PortfolioForecastCard';
 import { confirmDialog, notify } from '../../../lib/notify';
 import { formatShortDateWarsaw } from '../../../lib/date';
 import type { MainTabType } from '../InvestmentsPage';
@@ -109,6 +110,9 @@ export const KondzioPortfolioView: FC<Props> = ({ onNavigateTab }) => {
           ))}
         </div>
       </div>
+
+      {/* 3. Analyst Predictions & Scenario Forecast */}
+      <PortfolioForecastCard portfolio={portfolio} />
     </div>
   );
 };

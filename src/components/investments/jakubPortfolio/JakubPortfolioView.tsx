@@ -10,6 +10,7 @@ import { JakubPortfolioSummaryCard } from './JakubPortfolioSummaryCard';
 import { JakubHoldingsList } from './JakubHoldingsList';
 import { JakubAddPositionModal } from './JakubAddPositionModal';
 import { PortfolioSubNav } from './PortfolioSubNav';
+import { PortfolioForecastCard } from './PortfolioForecastCard';
 import { confirmDialog, notify } from '../../../lib/notify';
 import { formatShortDateWarsaw } from '../../../lib/date';
 import type { MainTabType } from '../InvestmentsPage';
@@ -104,6 +105,9 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
           onAskAnalyst={handleAskAnalyst}
         />
       </div>
+
+      {/* 3. Analyst Predictions & Scenario Forecast */}
+      <PortfolioForecastCard portfolio={portfolio} />
 
       {/* Management Modal */}
       <JakubAddPositionModal
