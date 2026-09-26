@@ -7,24 +7,36 @@ import { notify } from '../../lib/notify';
 import { analystQuota, consumeAnalystQuota } from '../../lib/investments/analystQuota';
 import { Send, Bot, User, Sparkles, RefreshCw } from 'lucide-react';
 
+import { AnalystMessageRenderer } from './AnalystMessageRenderer';
+
 const AnalystThread: FC<{ messages: ChatMessage[]; loading: boolean; scrollRef: React.RefObject<HTMLDivElement | null> }> = ({
   messages,
   loading,
   scrollRef,
 }) => (
-  <div className="bg-surface border border-border-custom rounded-3xl p-4 sm:p-6 shadow-xs space-y-4 max-h-[600px] overflow-y-auto">
+  <div className="bg-surface border border-border-custom rounded-3xl p-4 sm:p-6 shadow-xs space-y-5 max-h-[700px] overflow-y-auto">
     {messages.map((message, index) => (
       <div key={index} className={`flex gap-3 text-sm leading-relaxed ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
         {message.role === 'assistant' && (
-          <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary border border-primary/25 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary border border-primary/25 flex items-center justify-center shrink-0 mt-1 shadow-2xs">
             <Bot size={16} />
           </div>
         )}
-        <div className={`p-4 rounded-2xl max-w-2xl text-xs sm:text-sm shadow-xs whitespace-pre-wrap ${message.role === 'user' ? 'bg-primary text-text-on-primary font-medium' : 'bg-surface border border-border-custom text-text-primary'}`}>
-          {message.content}
+        <div
+          className={`rounded-2xl text-xs sm:text-sm shadow-xs transition-all ${
+            message.role === 'user'
+              ? 'p-4 max-w-xl bg-primary text-text-on-primary font-medium whitespace-pre-wrap'
+              : 'p-5 w-full max-w-4xl bg-surface border border-border-custom text-text-primary shadow-xs'
+          }`}
+        >
+          {message.role === 'assistant' ? (
+            <AnalystMessageRenderer content={message.content} />
+          ) : (
+            message.content
+          )}
         </div>
         {message.role === 'user' && (
-          <div className="w-8 h-8 rounded-xl bg-surface border border-border-custom text-text-secondary flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-surface border border-border-custom text-text-secondary flex items-center justify-center shrink-0 mt-1 shadow-2xs">
             <User size={16} />
           </div>
         )}

@@ -26,11 +26,17 @@ Twoim zadaniem jest precyzyjne odpowiadanie na pytania inwestora na podstawie of
 5. Komunikaty ESPI / MAR art. 19 (transakcje członków zarządów i rad nadzorczych).
 6. Zasada Zbieżności (Convergence): najsilniejszy sygnał to sytuacja, w której fundusze 13F i politycy kupują jednocześnie dany ticker, lub na GPW insider kupuje a szort KNF maleje.
 
-Zasady odpowiedzi:
-- Odpowiadaj konkretnie, podając dokładne liczby, procenty, nazwiska funduszy/polityków, tickery oraz daty ze wstrzykniętych danych live.
-- Jeśli w danych widzisz konkretne transakcje (np. zakupy Nancy Pelosi w BE i INTC, szorty Qube na Dino czy Wellington na Żabce), wymień je precyzyjnie.
-- Formatuj odpowiedź czytelnie w Markdown (nagłówki, listy punktowane, pogrubienia).
-- Na końcu dodaj krótką notę, że analizy mają charakter informacyjny i nie stanowią rekomendacji inwestycyjnej.`;
+Zasady formatowania (odpowiedź jest renderowana jako interaktywne kafelki, wykresy i tabele):
+- Transakcje polityków (STOCK Act) oraz insiderów podawaj w formacie kart transakcyjnych:
+  * **BUY: TICKER** (Pełna nazwa spółki)
+    * Kwota: $X – $Y
+    * Data transakcji: YYYY-MM-DD
+    * Ujawnienie: YYYY-MM-DD
+  (w przypadku braku tickera użyj '—', a dla sprzedaży 'SELL: TICKER').
+- Zestawienia spółek i wskaźników (np. Dino vs Żabka, C/Z, marże, wyceny, szorty) ZAWSZE prezentuj w tabeli Markdown (| Wskaźnik | Spółka A | Spółka B |).
+- Używaj symboli tickera z dolarem (np. $BE, $INTC, $DNP, $ZAB, $NVDA).
+- Dziel wypowiedź na logiczne sekcje z nagłówkami (### ...).
+- Na końcu dodaj notę: *Analizy mają charakter informacyjny i nie stanowią rekomendacji inwestycyjnej.*`;
 
 export async function askInvestmentsAnalyst(
   messages: ChatMessage[],
