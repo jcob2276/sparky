@@ -9,10 +9,7 @@ interface Props {
   onAskAnalyst: (ticker: string, companyName: string) => void;
 }
 
-type SubTab = 'otwarte' | 'oczekujace' | 'zamkniete' | 'operacje';
-
 export const JakubHoldingsList: FC<Props> = ({ positions, onAskAnalyst }) => {
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>('otwarte');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [sortDesc, setSortDesc] = useState(true);
 
@@ -23,47 +20,8 @@ export const JakubHoldingsList: FC<Props> = ({ positions, onAskAnalyst }) => {
   const totalValue = positions.reduce((acc, p) => acc + p.currentValue, 0);
 
   return (
-    <div className="space-y-4">
-      {/* 1. Sub-Tabs matching mobile app */}
-      <div className="flex items-center gap-1 sm:gap-2 border-b border-border-custom overflow-x-auto pb-1 scrollbar-none">
-        <Button
-          size="sm"
-          variant={activeSubTab === 'otwarte' ? 'tonal' : 'ghost'}
-          onClick={() => setActiveSubTab('otwarte')}
-          className="rounded-xl text-xs font-bold"
-        >
-          Otwarte ({positions.length})
-        </Button>
-
-        <Button
-          size="sm"
-          variant={activeSubTab === 'oczekujace' ? 'tonal' : 'ghost'}
-          onClick={() => setActiveSubTab('oczekujace')}
-          className="rounded-xl text-xs font-bold text-text-muted"
-        >
-          Oczekujące (0)
-        </Button>
-
-        <Button
-          size="sm"
-          variant={activeSubTab === 'zamkniete' ? 'tonal' : 'ghost'}
-          onClick={() => setActiveSubTab('zamkniete')}
-          className="rounded-xl text-xs font-bold text-text-muted"
-        >
-          Zamknięte (0)
-        </Button>
-
-        <Button
-          size="sm"
-          variant={activeSubTab === 'operacje' ? 'tonal' : 'ghost'}
-          onClick={() => setActiveSubTab('operacje')}
-          className="rounded-xl text-xs font-bold text-text-muted"
-        >
-          Operacje gotówkowe
-        </Button>
-      </div>
-
-      {/* 2. Sort Bar */}
+    <div className="space-y-3">
+      {/* 1. Sort Bar */}
       <div className="flex items-center justify-between px-1">
         <Button
           size="sm"
@@ -83,8 +41,8 @@ export const JakubHoldingsList: FC<Props> = ({ positions, onAskAnalyst }) => {
         </span>
       </div>
 
-      {/* 3. Tab Contents */}
-      {activeSubTab === 'otwarte' ? (
+      {/* 2. Holdings List */}
+      {sortedPositions.length > 0 ? (
         <div className="space-y-2.5">
           {sortedPositions.map((pos) => (
             <JakubHoldingItem
@@ -97,16 +55,9 @@ export const JakubHoldingsList: FC<Props> = ({ positions, onAskAnalyst }) => {
             />
           ))}
         </div>
-      ) : activeSubTab === 'operacje' ? (
-        <div className="p-6 rounded-2xl bg-surface border border-border-custom text-center space-y-2">
-          <div className="font-bold text-xs text-text-primary">Operacje gotówkowe portfela</div>
-          <p className="text-3xs text-text-muted max-w-md mx-auto">
-            Wpłaty, wypłaty oraz rozliczenia transakcji giełdowych. Środki gotówkowe gotowe do kolejnych inwestycji.
-          </p>
-        </div>
       ) : (
         <div className="p-8 rounded-2xl bg-surface border border-border-custom text-center text-xs text-text-muted font-mono">
-          Brak pozycji w tej zakładce.
+          Brak otwartych pozycji w portfelu.
         </div>
       )}
     </div>
