@@ -75,6 +75,7 @@ android/app/google-services.json
 # Session debug artifacts
 .playwright-mcp/
 .superpowers/
+.worktrees/
 .tmp-get-based/
 vanguard-docs/
 screen-*.png
