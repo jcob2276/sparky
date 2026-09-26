@@ -8,7 +8,6 @@ import {
   removeConversation,
 } from './analystHistoryService';
 import { notify, confirmDialog } from '../notify';
-import { analystQuota, consumeAnalystQuota } from './analystQuota';
 
 export function useAnalystChat() {
   const [conversations, setConversations] = useState<AnalystConversation[]>(loadAnalystConversations);
@@ -16,7 +15,6 @@ export function useAnalystChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputVal, setInputVal] = useState('');
   const [loading, setLoading] = useState(false);
-  const [quota, setQuota] = useState(() => analystQuota());
   const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false);
   const [isMobileHistoryOpen, setIsMobileHistoryOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -58,11 +56,6 @@ export function useAnalystChat() {
   const handleSend = async (textToSend?: string) => {
     const text = (textToSend || inputVal).trim();
     if (!text || loading) return;
-    if (analystQuota().remaining <= 0) {
-      notify('Limit 120 pytań w tym miesiącu jest wyczerpany.', 'error');
-      setQuota(analystQuota());
-      return;
-    }
 
     const userMsg: ChatMessage = { role: 'user', content: text };
     let currentConvId = activeId;
@@ -86,12 +79,6 @@ export function useAnalystChat() {
 
     try {
       const { content: reply, jevEvaluation } = await askInvestmentsAnalyst(nextMessages);
-      if (!consumeAnalystQuota()) {
-        notify('Limit 120 pytań w tym miesiącu jest wyczerpany.', 'error');
-        setQuota(analystQuota());
-        return;
-      }
-      setQuota(analystQuota());
 
       const assistantMsg: ChatMessage = {
         role: 'assistant',
@@ -116,7 +103,6 @@ export function useAnalystChat() {
     messages,
     inputVal,
     loading,
-    quota,
     isHistoryCollapsed,
     isMobileHistoryOpen,
     scrollRef,

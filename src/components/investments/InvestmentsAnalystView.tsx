@@ -23,7 +23,6 @@ export const InvestmentsAnalystView: FC<Props> = ({ initialPrompt }) => {
     messages,
     inputVal,
     loading,
-    quota,
     isHistoryCollapsed,
     isMobileHistoryOpen,
     scrollRef,
@@ -53,8 +52,6 @@ export const InvestmentsAnalystView: FC<Props> = ({ initialPrompt }) => {
     <div className="space-y-4 sm:space-y-5 animate-fade-in text-text-primary">
       {/* 1. Header Banner */}
       <AnalystHeaderBanner
-        remaining={quota.remaining}
-        limit={quota.limit}
         hasMessages={messages.length > 0}
         onNewChat={handleNewChat}
         conversationCount={conversations.length}

@@ -3,8 +3,6 @@ import Button from '../ui/Button';
 import { Sparkles, RefreshCw, History } from 'lucide-react';
 
 interface Props {
-  remaining: number;
-  limit: number;
   hasMessages: boolean;
   onNewChat: () => void;
   conversationCount?: number;
@@ -12,8 +10,6 @@ interface Props {
 }
 
 export const AnalystHeaderBanner: FC<Props> = ({
-  remaining,
-  limit,
   hasMessages,
   onNewChat,
   conversationCount = 0,
@@ -35,7 +31,7 @@ export const AnalystHeaderBanner: FC<Props> = ({
           Analityk AI
         </h2>
         <p className="text-xs text-text-secondary mt-0.5 sm:mt-1 max-w-3xl leading-relaxed">
-          Rozmawiasz z asystentem na danych ujawnień. Limit tego miesiąca: <span className="font-mono font-bold text-text-primary">{remaining} z {limit}</span> pytań.
+          Rozmawiasz z asystentem na danych ujawnień (SEC 13F, transakcje Kongresu USA, rejestr szortów KNF, ESPI).
         </p>
       </div>
 
