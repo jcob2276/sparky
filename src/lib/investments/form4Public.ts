@@ -75,18 +75,27 @@ export function fetchNamedForm4(): Promise<InsiderTradeItem[]> {
   return readTable('/openinsider/latest-insider-trading');
 }
 
-export async function fetchForm4History(query: string): Promise<InsiderTradeItem[]> {
+export const FORM4_HISTORY_PAGE_CAP = 8;
+
+export interface Form4HistoryPage {
+  rows: InsiderTradeItem[];
+  truncated: boolean;
+}
+
+export async function fetchForm4History(query: string): Promise<Form4HistoryPage> {
   const needle = query.replace(/[%_]/g, '').trim();
-  if (needle.length < 2) return [];
+  if (needle.length < 2) return { rows: [], truncated: false };
   const param = needle.includes(' ')
     ? `o=${encodeURIComponent(needle)}`
     : `s=${encodeURIComponent(needle.toUpperCase())}`;
-  const all: InsiderTradeItem[] = [];
-  for (let page = 1; page <= 8; page += 1) {
+  const rows: InsiderTradeItem[] = [];
+  let truncated = false;
+  for (let page = 1; page <= FORM4_HISTORY_PAGE_CAP; page += 1) {
     const batch = await readTable(`/openinsider/screener?${param}&fd=0&td=0&cnt=100&page=${page}`);
     if (batch.length === 0) break;
-    all.push(...batch);
+    rows.push(...batch);
     if (batch.length < 50) break;
+    if (page === FORM4_HISTORY_PAGE_CAP) truncated = true;
   }
-  return all;
+  return { rows, truncated };
 }

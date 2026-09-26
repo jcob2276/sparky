@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { InsiderTradeItem, InvestmentFilters } from '../../lib/investments/investmentsApi';
+import { FORM4_HISTORY_PAGE_CAP } from '../../lib/investments/form4Public';
 import { InvestmentsFilters } from './InvestmentsFilters';
 import { InvestmentsCard } from './InvestmentsCard';
 import Button from '../ui/Button';
@@ -10,6 +11,7 @@ interface Props {
   filters: InvestmentFilters;
   onFilterChange: (updated: Partial<InvestmentFilters>) => void;
   clusterTickers: Set<string>;
+  historyTruncated?: boolean;
 }
 
 export const LiveTradesView: FC<Props> = ({
@@ -18,6 +20,7 @@ export const LiveTradesView: FC<Props> = ({
   filters,
   onFilterChange,
   clusterTickers,
+  historyTruncated = false,
 }) => {
   return (
     <div>
@@ -26,6 +29,11 @@ export const LiveTradesView: FC<Props> = ({
         onChange={onFilterChange}
         resultCount={trades.length}
       />
+      {historyTruncated && (
+        <p className="mb-3 text-xs text-text-secondary">
+          Wyszukiwanie Form 4 kończy się na {FORM4_HISTORY_PAGE_CAP} stronach OpenInsider. Dalsze strony nie wchodzą do tego widoku.
+        </p>
+      )}
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
@@ -43,7 +51,15 @@ export const LiveTradesView: FC<Props> = ({
           <Button
             size="sm"
             variant="secondary"
-            onClick={() => onFilterChange({ limit: 60 })}
+            onClick={() => onFilterChange({
+              query: '',
+              filerName: undefined,
+              ticker: undefined,
+              minAmount: undefined,
+              transactionType: 'all',
+              market: undefined,
+              clusterOnly: undefined,
+            })}
             className="mt-4 rounded-xl"
           >
             Wyczyść filtry

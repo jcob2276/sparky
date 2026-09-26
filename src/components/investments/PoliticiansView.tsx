@@ -1,8 +1,10 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useState } from 'react';
 import { InsiderTradeItem } from '../../lib/investments/investmentsApi';
-import { fetchCongressTrades } from '../../lib/investments/publicDisclosures';
+import { ORCA_SELECT_CAP } from '../../lib/investments/superinvestorsApi';
 import { PoliticiansTable } from './PoliticiansTable';
 import { PoliticianAlpha } from './PoliticianAlpha';
+import { PoliticianDirectory } from './PoliticianDirectory';
+import { useCongressDirectory } from './useCongressDirectory';
 import Button from '../ui/Button';
 
 type PartyFilter = 'all' | 'D' | 'R';
@@ -12,33 +14,18 @@ function isBuy(trade: InsiderTradeItem): boolean {
   return type.includes('buy') || type.includes('purchase');
 }
 
+function capLabel(value: number): string {
+  return new Intl.NumberFormat('pl-PL').format(value);
+}
+
 export const PoliticiansView: FC = () => {
-  const [trades, setTrades] = useState<InsiderTradeItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const directory = useCongressDirectory();
   const [party, setParty] = useState<PartyFilter>('all');
   const [typeFilter, setTypeFilter] = useState<'all' | 'buy' | 'sell'>('all');
   const [visible, setVisible] = useState(120);
   const [selected, setSelected] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const rows = await fetchCongressTrades();
-        if (active) setTrades(rows);
-      } catch (err) {
-        console.warn('[PoliticiansView]', err);
-        if (active) setTrades([]);
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const filtered = trades.filter((trade) => {
+  const filtered = directory.trades.filter((trade) => {
     if (party !== 'all' && trade.party !== party) return false;
     if (typeFilter === 'buy' && !isBuy(trade)) return false;
     if (typeFilter === 'sell' && isBuy(trade)) return false;
@@ -48,6 +35,7 @@ export const PoliticiansView: FC = () => {
   const buys = filtered.filter(isBuy).length;
   const delays = filtered.map((trade) => trade.days_to_file).filter((days): days is number => days != null);
   const avgDelay = delays.length > 0 ? Math.round(delays.reduce((sum, days) => sum + days, 0) / delays.length) : 0;
+  const windowLabel = capLabel(ORCA_SELECT_CAP);
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -59,15 +47,21 @@ export const PoliticiansView: FC = () => {
                 Ujawnienia STOCK Act
               </span>
               <span className="text-2xs font-mono text-text-secondary">
-                {loading ? 'pobieranie…' : `${trades.length} zgłoszeń`}
+                {directory.loading ? 'pobieranie…' : `${directory.politicians.length} osób w rejestrze`}
               </span>
             </div>
             <h2 className="text-2xl font-extrabold text-text-primary tracking-tight">
               Politycy USA (STOCK Act)
             </h2>
             <p className="text-xs text-text-secondary mt-1.5 max-w-2xl leading-relaxed">
-              Pełna publiczna lista zgłoszeń STOCK Act. Demokraci to partia D, republikanie to partia R.
+              Każda osoba z publicznego rejestru STOCK Act, z wyszukiwarką. Demokraci to partia D, republikanie to partia R.
             </p>
+            {directory.truncated && (
+              <p className="text-xs text-text-secondary mt-2 max-w-2xl leading-relaxed">
+                Rejestr ma {capLabel(directory.tradeTotal)} zgłoszeń. Widok „Wszyscy” pokazuje najnowsze {windowLabel}.
+                Starsze wiersze są poza tym oknem. Wybór osoby pobiera jej zgłoszenia osobno.
+              </p>
+            )}
           </div>
           <div className="grid grid-cols-3 gap-2 shrink-0">
             <div className="p-3 rounded-2xl bg-surface border border-border-custom/70 text-right shadow-xs">
@@ -117,11 +111,21 @@ export const PoliticiansView: FC = () => {
             ))}
           </div>
         </div>
+        <PoliticianDirectory
+          people={directory.politicians}
+          party={party}
+          selectedId={directory.personId}
+          onSelect={(id) => {
+            directory.setPersonId(id);
+            setVisible(120);
+            setSelected(null);
+          }}
+        />
       </div>
       {selected && (
         <PoliticianAlpha
           name={selected}
-          trades={trades.filter((trade) => trade.filer_name === selected)}
+          trades={directory.trades.filter((trade) => trade.filer_name === selected)}
           onClose={() => setSelected(null)}
         />
       )}
@@ -131,7 +135,7 @@ export const PoliticiansView: FC = () => {
             Transakcje ({filtered.length})
           </h3>
         </div>
-        {loading ? (
+        {directory.loading || directory.personLoading ? (
           <p className="p-8 text-center text-xs text-text-secondary">Pobieram zgłoszenia STOCK Act…</p>
         ) : shown.length === 0 ? (
           <p className="p-8 text-center text-xs text-text-secondary">

@@ -105,14 +105,14 @@ export async function searchDisclosures(raw: string): Promise<DisclosureSearchHi
   const listInvestors = isCatalog(q, ['superinwestorzy', 'superinwestor', 'fundusze', '13f']);
 
   const politicianQuery = listPoliticians
-    ? 'politicians?select=display_name,chamber,state,party,slug&order=display_name.asc&limit=40'
+    ? 'politicians?select=display_name,chamber,state,party,slug&order=display_name.asc'
     : party
-      ? `politicians?select=display_name,chamber,state,party,slug&party=eq.${party}&order=display_name.asc&limit=40`
+      ? `politicians?select=display_name,chamber,state,party,slug&party=eq.${party}&order=display_name.asc`
       : `politicians?select=display_name,chamber,state,party,slug&or=(display_name.ilike.*${enc}*,party.ilike.*${enc}*)&order=display_name.asc&limit=12`;
 
   const investorQuery = listInvestors
-    ? 'investors?select=display_name,fund_name,category,cik&is_active=eq.true&order=display_name.asc&limit=80'
-    : `investors?select=display_name,fund_name,category,cik&is_active=eq.true&or=(display_name.ilike.*${enc}*,fund_name.ilike.*${enc}*)&order=display_name.asc&limit=12`;
+    ? 'investors?select=display_name,fund_name,category,cik&order=display_name.asc'
+    : `investors?select=display_name,fund_name,category,cik&or=(display_name.ilike.*${enc}*,fund_name.ilike.*${enc}*)&order=display_name.asc&limit=12`;
 
   const [politicians, investors, tradesByName, tradesByTicker, companies] = await Promise.all([
     safe<PoliticianRaw>(politicianQuery),

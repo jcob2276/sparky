@@ -1,4 +1,4 @@
-import { orcaSelect } from './superinvestorsApi';
+import { orcaCount, orcaSelect } from './superinvestorsApi';
 import type { InsiderTradeItem } from './investmentsApi';
 
 interface PoliticianEmbed {
@@ -71,9 +71,63 @@ function mapStockAct(row: StockActRaw): InsiderTradeItem {
   };
 }
 
-export async function fetchCongressTrades(): Promise<InsiderTradeItem[]> {
+export interface CongressFeed {
+  trades: InsiderTradeItem[];
+  total: number;
+  truncated: boolean;
+}
+
+export interface PublicPolitician {
+  id: string;
+  name: string;
+  party: string | null;
+  chamber: string | null;
+  state: string | null;
+}
+
+interface PoliticianRow {
+  id?: string | null;
+  display_name?: string | null;
+  chamber?: string | null;
+  state?: string | null;
+  party?: string | null;
+}
+
+export async function fetchCongressFeed(): Promise<CongressFeed> {
+  const query = `stock_act_trades?select=${STOCK_ACT_SELECT}&order=disclosure_date.desc.nullslast`;
+  const [rows, total] = await Promise.all([
+    orcaSelect<StockActRaw>(query),
+    orcaCount('stock_act_trades?select=id'),
+  ]);
+  return {
+    trades: rows.map(mapStockAct),
+    total,
+    truncated: total > rows.length,
+  };
+}
+
+export async function fetchPublicPoliticians(): Promise<PublicPolitician[]> {
+  const rows = await orcaSelect<PoliticianRow>(
+    'politicians?select=id,display_name,chamber,state,party&order=display_name.asc',
+  );
+  const people: PublicPolitician[] = [];
+  for (const row of rows) {
+    const name = row.display_name?.trim();
+    if (!row.id || !name) continue;
+    people.push({
+      id: row.id,
+      name,
+      party: row.party ?? null,
+      chamber: row.chamber ?? null,
+      state: row.state ?? null,
+    });
+  }
+  return people;
+}
+
+export async function fetchPoliticianTrades(politicianId: string): Promise<InsiderTradeItem[]> {
   const rows = await orcaSelect<StockActRaw>(
-    `stock_act_trades?select=${STOCK_ACT_SELECT}&order=disclosure_date.desc.nullslast`,
+    `stock_act_trades?select=${STOCK_ACT_SELECT}&politician_id=eq.${encodeURIComponent(politicianId)}&order=disclosure_date.desc.nullslast`,
   );
   return rows.map(mapStockAct);
 }

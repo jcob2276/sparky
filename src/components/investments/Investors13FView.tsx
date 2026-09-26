@@ -109,7 +109,7 @@ export const Investors13FView: FC = () => {
         </div>
 
         {/* 59 Investors Horizontal Pill Selector */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 border-t border-border-custom/40">
+        <div className="flex flex-wrap items-center gap-2 pb-2 pt-1 border-t border-border-custom/40">
           {filteredInvestors.map((inv) => {
             const isSelected = inv.id === currentInvestor?.id;
             return (

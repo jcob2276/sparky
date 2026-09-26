@@ -1,7 +1,11 @@
 import { FC, useEffect, useState } from 'react';
 import { formatShortMonthLabel } from '../../lib/date';
 import { fetchLiveConsensus } from '../../lib/investments/superinvestorsApi';
-import { fetchRecentCongress } from '../../lib/investments/publicDisclosures';
+import {
+  fetchRecentCongress,
+  fetchGpwInsiderTrades,
+  fetchForm4Trades,
+} from '../../lib/investments/publicDisclosures';
 import { Pressable } from '../ui/ControlPrimitives';
 import Button from '../ui/Button';
 
@@ -142,17 +146,61 @@ export const DisclosureStreamWidget: FC<{
 
   useEffect(() => {
     let active = true;
-    fetchRecentCongress(8)
-      .then((trades) => {
+    Promise.all([
+      fetchRecentCongress(6),
+      fetchGpwInsiderTrades(),
+      fetchForm4Trades(),
+    ])
+      .then(([congressTrades, gpwTrades, form4Trades]) => {
         if (!active) return;
-        setDisplayItems(trades.map((trade) => ({
-          id: trade.id,
-          dateLabel: trade.filing_date ? trade.filing_date.slice(5) : '—',
-          sourceType: 'STOCK',
-          ticker: trade.ticker || '—',
-          description: `${trade.filer_name} · ${trade.transaction_type}`,
-          amountOrPercent: trade.amount_label || '—',
-        })));
+        const all: Array<{
+          id: string;
+          rawDate: string;
+          dateLabel: string;
+          sourceType: string;
+          ticker: string;
+          description: string;
+          amountOrPercent: string;
+        }> = [];
+
+        for (const t of congressTrades) {
+          all.push({
+            id: t.id,
+            rawDate: t.filing_date || t.transaction_date || '',
+            dateLabel: t.filing_date ? t.filing_date.slice(5) : '—',
+            sourceType: 'STOCK',
+            ticker: t.ticker || '—',
+            description: `${t.filer_name} · ${t.transaction_type}`,
+            amountOrPercent: t.amount_label || '—',
+          });
+        }
+
+        for (const t of gpwTrades.slice(0, 4)) {
+          all.push({
+            id: t.id,
+            rawDate: t.filing_date || t.transaction_date || '',
+            dateLabel: t.filing_date ? t.filing_date.slice(5) : '—',
+            sourceType: 'GPW',
+            ticker: t.ticker || '—',
+            description: `${t.filer_name} · ${t.transaction_type}`,
+            amountOrPercent: t.amount_label || 'MAR',
+          });
+        }
+
+        for (const t of form4Trades.slice(0, 4)) {
+          all.push({
+            id: t.id,
+            rawDate: t.filing_date || t.transaction_date || '',
+            dateLabel: t.filing_date ? t.filing_date.slice(5) : '—',
+            sourceType: 'FORM 4',
+            ticker: t.ticker || '—',
+            description: `${t.filer_name} · ${t.transaction_type}`,
+            amountOrPercent: 'SEC Form 4',
+          });
+        }
+
+        all.sort((a, b) => b.rawDate.localeCompare(a.rawDate));
+        setDisplayItems(all.slice(0, 8));
       })
       .catch(() => {
         if (active) setDisplayItems([]);

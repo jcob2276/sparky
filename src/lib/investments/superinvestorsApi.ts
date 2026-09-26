@@ -48,10 +48,13 @@ async function orcaGet<T>(pathAndQuery: string): Promise<T[]> {
   return batch as T[];
 }
 
+/** PostgREST pages of 1 000 stop here. Callers must say so when a read hits this cap. */
+export const ORCA_SELECT_CAP = 20_000;
+
 export async function orcaSelect<T>(pathAndQuery: string): Promise<T[]> {
   if (/[?&]limit=/.test(pathAndQuery)) return orcaGet<T>(pathAndQuery);
   const rows: T[] = [];
-  for (let offset = 0; offset < 20_000; offset += 1000) {
+  for (let offset = 0; offset < ORCA_SELECT_CAP; offset += 1000) {
     const joiner = pathAndQuery.includes('?') ? '&' : '?';
     const batch = await orcaGet<T>(`${pathAndQuery}${joiner}limit=1000&offset=${offset}`);
     rows.push(...batch);
@@ -73,7 +76,7 @@ export async function orcaCount(pathAndQuery: string): Promise<number> {
 export async function fetchAllSuperinvestors(): Promise<SuperinvestorItem[]> {
   try {
     const data = await orcaSelect<RawInvestor>(
-      'investors?is_active=eq.true&select=id,slug,display_name,fund_name,cik,description,category,tier,is_active&order=display_name.asc',
+      'investors?select=id,slug,display_name,fund_name,cik,description,category,tier,is_active&order=display_name.asc',
     );
     if (data.length === 0) return [];
 

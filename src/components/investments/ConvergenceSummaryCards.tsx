@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import Button from '../ui/Button';
 import { useSignalBoard } from './useSignalBoard';
+import { ConvergenceGpwCard } from './ConvergenceGpwCard';
 
 interface Props {
   onNavigateTab: (tab: string) => void;
@@ -9,6 +10,7 @@ interface Props {
 export const ConvergenceSummaryCards: FC<Props> = ({ onNavigateTab }) => {
   const { rows, loading } = useSignalBoard('90d');
   const top = rows.filter((row) => row.convergent).slice(0, 3);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Top Zbieżność USA */}
@@ -57,34 +59,7 @@ export const ConvergenceSummaryCards: FC<Props> = ({ onNavigateTab }) => {
       </div>
 
       {/* Zbieżność GPW */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-xs space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-border-custom/40">
-          <div>
-            <div className="text-xs font-black uppercase tracking-wider text-danger">
-              Zbieżność GPW: Insider Kupuje + Short Spada
-            </div>
-            <p className="text-2xs text-text-secondary">
-              Najsilniejszy sygnał akumulacji na polskim rynku:
-            </p>
-          </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => onNavigateTab('gpw_shorts')}
-            className="text-xs text-primary"
-          >
-            Szorty KNF →
-          </Button>
-        </div>
-
-        <div className="p-4 rounded-2xl bg-surface border border-border-custom/50 text-center py-6">
-          <span className="text-2xl block mb-1">🎯</span>
-          <div className="text-xs font-bold text-text-primary">Brak zbieżnego sygnału dziś</div>
-          <p className="text-2xs text-text-secondary max-w-xs mx-auto mt-1">
-            Gdy członek zarządu kupi akcje spółki, na której fundusze redukują krótkie pozycje (np. JSW, ALE, DNP), natychmiast pojawi się tu alert.
-          </p>
-        </div>
-      </div>
+      <ConvergenceGpwCard onNavigateTab={onNavigateTab} />
     </div>
   );
 };

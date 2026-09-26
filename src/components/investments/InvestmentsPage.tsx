@@ -43,6 +43,7 @@ export const InvestmentsPage: FC = () => {
     handleRefresh,
     handleFilterChange,
     clusterTickers,
+    historyTruncated,
   } = useInvestmentsData();
 
   return (
@@ -78,6 +79,7 @@ export const InvestmentsPage: FC = () => {
             filters={filters}
             onFilterChange={handleFilterChange}
             clusterTickers={clusterTickers}
+            historyTruncated={historyTruncated}
             watchlist={watchlist}
             onToggleWatchlist={handleToggleWatchlist}
           />

@@ -23,6 +23,7 @@ interface Props {
   filters: InvestmentFilters;
   onFilterChange: (updated: Partial<InvestmentFilters>) => void;
   clusterTickers: Set<string>;
+  historyTruncated?: boolean;
   watchlist: string[];
   onToggleWatchlist: (ticker: string) => void;
 }
@@ -35,6 +36,7 @@ export const InvestmentsTabRenderer: FC<Props> = ({
   filters,
   onFilterChange,
   clusterTickers,
+  historyTruncated = false,
   watchlist,
   onToggleWatchlist,
 }) => {
@@ -74,6 +76,7 @@ export const InvestmentsTabRenderer: FC<Props> = ({
           filters={filters}
           onFilterChange={onFilterChange}
           clusterTickers={clusterTickers}
+          historyTruncated={historyTruncated}
         />
       );
   }

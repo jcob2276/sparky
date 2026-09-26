@@ -51,14 +51,20 @@ export function useInvestmentsData() {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [filters, setFilters] = useState<InvestmentFilters>({ limit: 60 });
+  const [historyTruncated, setHistoryTruncated] = useState(false);
 
   const load = useCallback(async (query = '') => {
     const needle = query.trim();
-    const items = needle.length >= 2
-      ? await fetchForm4History(needle)
-      : await fetchNamedForm4().catch(() => []);
-    const next = needle.length >= 2 || items.length > 0 ? items : await fetchForm4Trades();
+    if (needle.length >= 2) {
+      const history = await fetchForm4History(needle);
+      setAllTrades(history.rows);
+      setHistoryTruncated(history.truncated);
+      return history.rows.length;
+    }
+    const named = await fetchNamedForm4().catch(() => []);
+    const next = named.length > 0 ? named : await fetchForm4Trades();
     setAllTrades(next);
+    setHistoryTruncated(false);
     return next.length;
   }, []);
 
@@ -99,11 +105,10 @@ export function useInvestmentsData() {
     setFilters((prev) => ({ ...prev, ...updated }));
   };
 
-  const trades = useMemo(() => {
-    const matched = allTrades.filter((trade) => matchesTrade(trade, filters));
-    if (filters.query?.trim()) return matched;
-    return matched.slice(0, filters.limit ?? 60);
-  }, [allTrades, filters]);
+  const trades = useMemo(
+    () => allTrades.filter((trade) => matchesTrade(trade, filters)),
+    [allTrades, filters],
+  );
 
   const stats = useMemo(() => summarize(trades), [trades]);
   const clusterTickers = detectClusterTickers(trades);
@@ -117,5 +122,6 @@ export function useInvestmentsData() {
     handleRefresh,
     handleFilterChange,
     clusterTickers,
+    historyTruncated,
   };
 }

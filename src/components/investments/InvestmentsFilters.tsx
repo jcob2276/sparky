@@ -10,8 +10,6 @@ interface Props {
 }
 
 export const InvestmentsFilters: FC<Props> = ({ filters, onChange, resultCount }) => {
-  const isTrump = (filters.filerName || '').toLowerCase().includes('trump');
-  const isPelosi = (filters.filerName || '').toLowerCase().includes('pelosi');
   const isBigMoney = (filters.minAmount || 0) >= 100000;
   const isBuys = filters.transactionType === 'purchase';
   const isSales = filters.transactionType === 'sale';
@@ -71,24 +69,6 @@ export const InvestmentsFilters: FC<Props> = ({ filters, onChange, resultCount }
           className="rounded-xl"
         >
           🇵🇱 GPW (Warszawa)
-        </Button>
-
-        <Button
-          size="sm"
-          variant={isTrump ? 'primary' : 'secondary'}
-          onClick={() => onChange({ filerName: isTrump ? undefined : 'Trump', market: undefined })}
-          className="rounded-xl"
-        >
-          🦅 Donald Trump
-        </Button>
-
-        <Button
-          size="sm"
-          variant={isPelosi ? 'primary' : 'secondary'}
-          onClick={() => onChange({ filerName: isPelosi ? undefined : 'Pelosi', market: undefined })}
-          className="rounded-xl"
-        >
-          🏛 Nancy Pelosi
         </Button>
 
         <Button
