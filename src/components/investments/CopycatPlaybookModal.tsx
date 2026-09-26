@@ -10,7 +10,7 @@ export const CopycatPlaybookModal: FC<Props> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-scrim/60 backdrop-blur-xs animate-fade-in">
+    <div className="fixed top-0 left-0 right-0 bottom-0 z-50 flex items-center justify-center p-4 bg-scrim/60 backdrop-blur-xs animate-fade-in">
       <div className="bg-surface border border-border-custom rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-screen overflow-y-auto">
         <div className="flex items-center justify-between pb-4 border-b border-border-custom/50 mb-4">
           <div className="flex items-center gap-2">
