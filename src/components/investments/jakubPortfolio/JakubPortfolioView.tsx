@@ -14,7 +14,7 @@ import { formatShortDateWarsaw } from '../../../lib/date';
 import type { MainTabType } from '../InvestmentsPage';
 
 interface Props {
-  onNavigateTab: (tab: MainTabType) => void;
+  onNavigateTab: (tab: MainTabType, prompt?: string) => void;
 }
 
 export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
@@ -36,14 +36,16 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
     notify('Przywrócono stan początkowy portfela IKE', 'info');
   };
 
-  const handleAskAnalyst = (ticker: string, _companyName: string) => {
+  const handleAskAnalyst = (ticker: string, companyName: string) => {
     notify(`Przekierowano do Analityka AI dla waloru $${ticker}`, 'info');
-    onNavigateTab('analyst');
+    const prompt = `Przeanalizuj pozycję $${ticker} (${companyName}) z mojego portfela IKE: jaki jest sentyment Smart Money, czy fundusze 13F lub insiderzy akumulują ten walor oraz jakie są perspektywy i ryzyka?`;
+    onNavigateTab('analyst', prompt);
   };
 
   const handleDiagnoseAI = () => {
     notify('Przekierowano do Analityka AI w celu diagnozy całego portfela', 'info');
-    onNavigateTab('analyst');
+    const prompt = `Przeprowadź dogłębną diagnozę mojego portfela IKE ($JEDI, $MRVL, $CDR, $VWCE) pod kątem zbieżności Smart Money, ekspozycji sektorowej, asymetrii zysku do ryzyka oraz rekomendacji dalszej alokacji wolnych środków.`;
+    onNavigateTab('analyst', prompt);
   };
 
   return (

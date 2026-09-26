@@ -17,11 +17,7 @@ interface RawPoliticianTrade {
   transaction_type?: string | null;
   amount_low?: number | null;
   amount_high?: number | null;
-  politicians?: {
-    display_name?: string | null;
-    party?: string | null;
-    chamber?: string | null;
-  } | null;
+  politicians?: { display_name?: string | null; party?: string | null; chamber?: string | null } | null;
 }
 
 interface RawGpwTeaser {
@@ -30,28 +26,17 @@ interface RawGpwTeaser {
   sector?: string | null;
   mcap?: number | null;
   pe?: number | null;
-  ps?: number | null;
-  pb?: number | null;
-  roe?: number | null;
   net_margin?: number | null;
   revenue_yoy?: number | null;
+  roe?: number | null;
 }
 
 interface RawShortPosition {
-  holder?: string | null;
-  company?: string | null;
-  ticker?: string | null;
-  position_pct?: number | null;
-  position_date?: string | null;
+  holder?: string | null; company?: string | null; ticker?: string | null; position_pct?: number | null; position_date?: string | null;
 }
 
 interface RawGpwInsider {
-  company?: string | null;
-  ticker?: string | null;
-  side?: string | null;
-  transaction_date?: string | null;
-  report_date?: string | null;
-  title?: string | null;
+  company?: string | null; ticker?: string | null; side?: string | null; transaction_date?: string | null; report_date?: string | null; title?: string | null;
 }
 
 function fmtMoney(low?: number | null, high?: number | null): string {
@@ -67,22 +52,16 @@ async function getPoliticianTargetedContext(query: string): Promise<string> {
   // Donald Trump - status specjalny (prezydent / kandydat, nie Kongres)
   if (q.includes('trump')) {
     return `[SPECJALNY STATUS PRAWNY: DONALD TRUMP]:
-• Status formalny: Donald Trump nie jest i nie był członkiem Izby Reprezentantów ani Senatu USA, dlatego NIE podlega pod ustawę Congressional STOCK Act (która obejmuje wyłącznie kongresmenów i senatorów).
-• Rejestr majątkowy: Jako były prezydent i kandydat składa sprawozdania majątkowe do Federalnej Komisji Wyborczej (FEC) / Office of Government Ethics (formularz OGE Form 278e).
-• Główne aktywa rynkowe i spółki giełdowe:
-  - $DJT (Trump Media & Technology Group Corp.): Spółka-matka platformy Truth Social notowana na NASDAQ. Donald Trump jest akcjonariuszem większościowym (posiada ok. 114,75 mln akcji o wartości miliardów USD).
-  - Portfel kryptowalutowy: W oficjalnym sprawozdaniu FEC ujawnił portfel Ethereum (ETH) z tantiem licencyjnych z kolekcji NFT wyceniany na $1M – $5M.
-  - Płynność: Posiada pakiety obligacji skarbowych USA (Treasury bills) oraz fundusze rynku pieniężnego.
-• Kontekst STOCK Act: Jeśli inwestor szuka transakcji na akcjach w ramach STOCK Act na Kapitolu, najaktywniejszymi politykami są m.in. Nancy Pelosi ($BE, $NVDA), Tommy Tuberville, Michael Guest czy Ro Khanna.\n\n`;
+• Status formalny: Nie podlega pod Congressional STOCK Act (obejmuje wyłącznie kongresmenów/senatorów). Składa sprawozdania majątkowe OGE Form 278e do FEC.
+• Główne aktywa: $DJT (Trump Media & Technology Group - NASDAQ, pakiet większościowy ~114,75 mln akcji), portfel krypto ETH ($1M-$5M) oraz obligacje skarbowe USA.
+• Najaktywniejsi w STOCK Act na Kapitolu to m.in. Nancy Pelosi ($BE, $NVDA), Tommy Tuberville, Ro Khanna.\n\n`;
   }
 
   // Ro Khanna - reprezentant Doliny Krzemowej (CA-17)
   if (q.includes('khanna') || q.includes('rokhanna')) {
     return `[PROFIL POLITYKA STOCK ACT: RO KHANNA]:
-• Funkcja: Członek Izby Reprezentantów USA (Demokrata, Kalifornia CA-17, Dolina Krzemowa).
-• Styl inwestycyjny: Jeden z najbardziej aktywnych i płodnych inwestorów na Kapitolu. Zgłoszenia transakcji są realizowane głównie przez jego małżonkę (Ritu Khanna) oraz niezależne fundusze powiernicze (family trusts).
-• Koncentracja portfela: Zdominowany przez amerykański Big Tech i półprzewodniki ($MSFT, $NVDA, $AAPL, $GOOGL, $AMZN, $META, $INTC, $AVGO).
-• Statystyka ujawnień: Raportuje setki transakcji rocznie w przedziałach od $1 000 do $250 000 na platformach zgłoszeniowych Izby Reprezentantów (House Financial Disclosures).\n\n`;
+• Izba Reprezentantów USA (Demokrata, Kalifornia CA-17, Dolina Krzemowa). Zgłoszenia realizowane głównie przez małżonkę i family trusts.
+• Portfel: Amerykański Big Tech i półprzewodniki ($MSFT, $NVDA, $AAPL, $GOOGL, $AMZN, $META, $INTC, $AVGO). Setki transakcji rocznie w przedziałach $1k-$250k.\n\n`;
   }
 
   let nameFilter = '';
@@ -124,9 +103,7 @@ async function getPoliticianTargetedContext(query: string): Promise<string> {
 
 async function getDuopolTargetedContext(query: string): Promise<string> {
   const q = query.toLowerCase();
-  if (!q.includes('dino') && !q.includes('żabk') && !q.includes('zabk') && !q.includes('duopol')) {
-    return '';
-  }
+  if (!q.includes('dino') && !q.includes('żabk') && !q.includes('zabk') && !q.includes('duopol')) return '';
 
   try {
     const [finances, shorts] = await Promise.all([
@@ -140,13 +117,9 @@ async function getDuopolTargetedContext(query: string): Promise<string> {
 
     const finLines = finances.map((f) => {
       const pe = f.pe != null ? f.pe.toFixed(2) : '—';
-      const ps = f.ps != null ? f.ps.toFixed(2) : '—';
-      const pb = f.pb != null ? f.pb.toFixed(2) : '—';
-      const margin = f.net_margin != null ? `${(f.net_margin * 100).toFixed(2)}%` : '—';
-      const growth = f.revenue_yoy != null ? `${(f.revenue_yoy * 100).toFixed(1)}%` : '—';
-      const roe = f.roe != null ? `${(f.roe * 100).toFixed(1)}%` : '—';
-      const mcapMld = f.mcap != null ? `${(f.mcap / 1_000_000_000).toFixed(2)} mld PLN` : '—';
-      return `• ${f.ticker} (${f.name}): Kapitalizacja ${mcapMld}, C/Z (P/E): ${pe}, C/P (P/S): ${ps}, C/WK (P/B): ${pb}, Marża netto: ${margin}, Wzrost przychodów r/r: ${growth}, ROE: ${roe}`;
+      const margin = f.net_margin != null ? `${(f.net_margin * 100).toFixed(1)}%` : '—';
+      const mcapMld = f.mcap != null ? `${(f.mcap / 1e9).toFixed(2)} mld PLN` : '—';
+      return `• ${f.ticker} (${f.name}): MCAP ${mcapMld}, C/Z: ${pe}, Marża: ${margin}, ROE: ${f.roe != null ? (f.roe * 100).toFixed(1) + '%' : '—'}`;
     });
 
     const shortLines = shorts.map(
@@ -218,22 +191,46 @@ ${lines.join('\n')}\n`;
   }
 }
 
-function getJakubPortfolioTargetedContext(query: string): string {
-  const q = query.toLowerCase();
-  if (
-    !q.includes('portfel') &&
-    !q.includes('ike') &&
-    !q.includes('moje') &&
-    !q.includes('moich') &&
-    !q.includes('jakub') &&
-    !q.includes('jedi') &&
-    !q.includes('space')
-  ) {
+async function getSpecificTickerContext(query: string): Promise<string> {
+  const tickerMatches = query.match(/\$([A-Za-z0-9_]+)/g);
+  if (!tickerMatches?.length) return '';
+  const ticker = tickerMatches[0]?.replace('$', '').toUpperCase();
+  if (!ticker) return '';
+
+  try {
+    const [shortRows, congressRows] = await Promise.all([
+      orcaSelect<RawShortPosition>(
+        `gpw_short_positions?ticker=ilike.*${encodeURIComponent(ticker)}*&order=position_date.desc&limit=3`
+      ).catch(() => []),
+      orcaSelect<RawPoliticianTrade>(
+        `stock_act_trades?ticker=ilike.*${encodeURIComponent(ticker)}*&order=disclosure_date.desc.nullslast&limit=4`
+      ).catch(() => []),
+    ]);
+
+    const parts: string[] = [];
+    if (shortRows.length) {
+      parts.push(`Szorty KNF: ` + shortRows.map((s) => `${s.holder}: ${s.position_pct}% (${s.position_date})`).join(', '));
+    }
+    if (congressRows.length) {
+      parts.push(`Kongres USA: ` + congressRows.map((c) => `${c.transaction_type} (${c.transaction_date})`).join(', '));
+    }
+    return parts.length ? `[DANE LIVE DLA $${ticker}]: ${parts.join(' | ')}\n` : '';
+  } catch {
     return '';
   }
+}
+
+function getJakubPortfolioTargetedContext(query: string): string {
+  const q = query.toLowerCase();
   const p = loadJakubPortfolio();
+  const hasMatch = p.positions.some(
+    (pos) => q.includes(pos.ticker.toLowerCase()) || q.includes(pos.name.toLowerCase())
+  );
+  if (!hasMatch && !q.includes('portfel') && !q.includes('ike') && !q.includes('moje') && !q.includes('jakub')) {
+    return '';
+  }
   const posLines = p.positions.map(
-    (pos) => `  - ${pos.name} ($${pos.ticker}): ${pos.shares} szt., wycena ${pos.currentValue.toFixed(2)} PLN, PnL: ${pos.pnlPln > 0 ? '+' : ''}${pos.pnlPln.toFixed(2)} PLN (${pos.pnlPct.toFixed(1)}%)`
+    (pos) => `  - ${pos.name} ($${pos.ticker}): ${pos.shares} szt., wycena ${pos.currentValue.toFixed(2)} PLN, PnL: ${pos.pnlPln > 0 ? '+' : ''}${pos.pnlPln.toFixed(2)} PLN (${pos.pnlPct.toFixed(1)}%) | Smart Money: ${pos.smartMoneySignal || 'Brak'}`
   );
   return `[PORTFEL IKE JAKUBA (DANE LIVE)]:
 Łączna wartość: ${p.totalValuePln.toFixed(2)} PLN | PnL: ${p.totalPnlPln.toFixed(2)} PLN (${p.totalPnlPct.toFixed(1)}%) | Wolne środki: ${p.freeCashPln.toFixed(2)} PLN | Pozostały limit IKE: ${p.remainingIkeLimitPln.toFixed(2)} PLN
@@ -243,8 +240,9 @@ ${posLines.join('\n')}\n\n`;
 
 export async function buildInvestmentsContext(query = ''): Promise<string> {
   try {
-    const [targetedPol, targetedDuopol, targetedBank, targetedScreen, shorts, consensus, congress, gpw] =
+    const [targetedTicker, targetedPol, targetedDuopol, targetedBank, targetedScreen, shorts, consensus, congress, gpw] =
       await Promise.all([
+        getSpecificTickerContext(query),
         getPoliticianTargetedContext(query),
         getDuopolTargetedContext(query),
         getBankTargetedContext(query),
@@ -272,7 +270,7 @@ export async function buildInvestmentsContext(query = ''): Promise<string> {
     );
 
     const targetedJakub = getJakubPortfolioTargetedContext(query);
-    const targetedBlocks = [targetedJakub, targetedPol, targetedDuopol, targetedBank, targetedScreen].filter(Boolean).join('\n');
+    const targetedBlocks = [targetedJakub, targetedTicker, targetedPol, targetedDuopol, targetedBank, targetedScreen].filter(Boolean).join('\n');
 
     return `\n\n[DANE LIVE Z PUBLICZNYCH REJESTRÓW]:
 ${targetedBlocks ? `${targetedBlocks}\n` : ''}REJESTR SZORTÓW KNF (TOP NAJWYŻSZYCH POZYCJI):

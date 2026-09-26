@@ -18,7 +18,7 @@ import { InsiderTradeItem, InvestmentFilters } from '../../lib/investments/inves
 
 interface Props {
   activeTab: MainTabType;
-  onNavigateTab: (tab: MainTabType) => void;
+  onNavigateTab: (tab: MainTabType, prompt?: string) => void;
   trades: InsiderTradeItem[];
   loading: boolean;
   filters: InvestmentFilters;
@@ -47,7 +47,7 @@ export const InvestmentsTabRenderer: FC<Props> = ({
         <OrcaDashboardView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />
       );
     case 'jakub_portfolio':
-      return <JakubPortfolioView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
+      return <JakubPortfolioView onNavigateTab={onNavigateTab} />;
     case 'analyst':
       return <InvestmentsAnalystView />;
     case 'watchlist':
@@ -59,7 +59,7 @@ export const InvestmentsTabRenderer: FC<Props> = ({
         <StocksConsensusView
           watchlist={watchlist}
           onToggleWatchlist={onToggleWatchlist}
-          onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)}
+          onNavigateTab={(tab, prompt) => onNavigateTab(tab as MainTabType, prompt)}
         />
       );
     case 'investors':
@@ -69,7 +69,7 @@ export const InvestmentsTabRenderer: FC<Props> = ({
         <PoliticiansView
           watchlist={watchlist}
           onToggleWatchlist={onToggleWatchlist}
-          onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)}
+          onNavigateTab={(tab, prompt) => onNavigateTab(tab as MainTabType, prompt)}
         />
       );
     case 'simulation':
@@ -83,13 +83,13 @@ export const InvestmentsTabRenderer: FC<Props> = ({
         <GpwPortfolioView
           watchlist={watchlist}
           onToggleWatchlist={onToggleWatchlist}
-          onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)}
+          onNavigateTab={(tab, prompt) => onNavigateTab(tab as MainTabType, prompt)}
         />
       );
     case 'methodology':
       return (
         <GpwScreenerView
-          onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)}
+          onNavigateTab={(tab, prompt) => onNavigateTab(tab as MainTabType, prompt)}
           watchlist={watchlist}
           onToggleWatchlist={onToggleWatchlist}
         />

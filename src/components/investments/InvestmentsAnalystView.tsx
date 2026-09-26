@@ -1,4 +1,5 @@
-import { FC } from 'react';
+import { FC, useRef, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAnalystChat } from '../../lib/investments/useAnalystChat';
 import { AnalystHistorySidebar } from './AnalystHistorySidebar';
 import { AnalystHeaderBanner } from './AnalystHeaderBanner';
@@ -7,7 +8,15 @@ import { AnalystInputBar } from './AnalystInputBar';
 import { AiAnalystPrompts } from './AiAnalystPrompts';
 import { AnalystMobileHistoryDrawer } from './AnalystMobileHistoryDrawer';
 
-export const InvestmentsAnalystView: FC = () => {
+interface Props {
+  initialPrompt?: string;
+}
+
+export const InvestmentsAnalystView: FC<Props> = ({ initialPrompt }) => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const queryPrompt = searchParams.get('q') || initialPrompt;
+  const lastExecutedPromptRef = useRef<string | null>(null);
+
   const {
     conversations,
     activeId,
@@ -26,6 +35,19 @@ export const InvestmentsAnalystView: FC = () => {
     handleDeleteConversation,
     handleSend,
   } = useAnalystChat();
+
+  useEffect(() => {
+    if (queryPrompt && queryPrompt.trim() && queryPrompt !== lastExecutedPromptRef.current) {
+      lastExecutedPromptRef.current = queryPrompt;
+      const textToExecute = queryPrompt.trim();
+      if (searchParams.has('q')) {
+        const next = new URLSearchParams(searchParams);
+        next.delete('q');
+        setSearchParams(next, { replace: true });
+      }
+      handleSend(textToExecute);
+    }
+  }, [queryPrompt, handleSend, searchParams, setSearchParams]);
 
   return (
     <div className="space-y-4 sm:space-y-5 animate-fade-in text-text-primary">

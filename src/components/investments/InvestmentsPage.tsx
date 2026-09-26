@@ -53,13 +53,16 @@ export const InvestmentsPage: FC = () => {
   const [watchlist, setWatchlist] = useState<string[]>(loadStoredWatchlist);
 
   const handleSelectTab = useCallback(
-    (tab: MainTabType) => {
-      if (tab === activeTab) return;
-      if (tab === 'dashboard') {
-        setSearchParams({}, { replace: false });
-      } else {
-        setSearchParams({ tab }, { replace: false });
+    (tab: MainTabType, prompt?: string) => {
+      if (tab === activeTab && !prompt) return;
+      const nextParams: Record<string, string> = {};
+      if (tab !== 'dashboard') {
+        nextParams.tab = tab;
       }
+      if (prompt?.trim()) {
+        nextParams.q = prompt.trim();
+      }
+      setSearchParams(nextParams, { replace: false });
     },
     [activeTab, setSearchParams]
   );
