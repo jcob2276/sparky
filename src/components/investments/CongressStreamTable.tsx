@@ -117,13 +117,30 @@ export const CongressStreamTable: FC<Props> = ({
                       {trade.amountLabel}
                     </td>
 
-                    {/* Opóźnienie */}
-                    <td
-                      className={`py-3 px-4 text-right tabular-nums font-bold ${
-                        isLate ? 'text-danger' : 'text-text-muted'
-                      }`}
-                    >
-                      {trade.delayDays} DNI
+                    {/* Opóźnienie / Status Kopiowania */}
+                    <td className="py-3 px-4 text-right tabular-nums">
+                      <div className="flex flex-col items-end gap-0.5">
+                        <span className={`font-bold ${isLate ? 'text-danger' : 'text-text-muted'}`}>
+                          {trade.delayDays} DNI
+                        </span>
+                        {trade.type === 'buy' && (
+                          <span
+                            className={`px-1.5 py-0.2 rounded-xs text-4xs font-mono font-bold uppercase ${
+                              trade.delayDays <= 14
+                                ? 'bg-success/15 text-success border border-success/30'
+                                : trade.delayDays <= 30
+                                  ? 'bg-primary/10 text-primary border border-primary/20'
+                                  : 'bg-warning/15 text-warning border border-warning/30'
+                            }`}
+                          >
+                            {trade.delayDays <= 14
+                              ? '⚡ Świeże wejście'
+                              : trade.delayDays <= 30
+                                ? 'W strefie'
+                                : 'Opóźnione'}
+                          </span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );

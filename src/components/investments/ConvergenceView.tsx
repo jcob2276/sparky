@@ -6,6 +6,7 @@ import type { SignalRow, SignalWindow } from '../../lib/investments/signalsApi';
 import { useSignalBoard } from './useSignalBoard';
 import { SignalsTable } from './SignalsTable';
 import { ConvergenceHeader } from './ConvergenceHeader';
+import { TripleConfluenceRadar } from './TripleConfluenceRadar';
 
 const PAGE = 50;
 
@@ -127,6 +128,13 @@ export const ConvergenceView: FC<Props> = ({ watchlist, onNavigateTab }) => {
         <p className="text-sm text-text-secondary">
           Brak zbieżności w tym oknie. Poszerz okno do 12 miesięcy albo wróć po najbliższej synchronizacji ujawnień.
         </p>
+      )}
+
+      {!loading && rows.length > 0 && (
+        <TripleConfluenceRadar
+          rows={rows}
+          onSelectTicker={(ticker) => onNavigateTab?.(`company_${ticker}`)}
+        />
       )}
 
       {!loading && paginatedRows.length > 0 && (

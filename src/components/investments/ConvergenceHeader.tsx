@@ -2,6 +2,7 @@ import { FC } from 'react';
 import Button from '../ui/Button';
 import { Download, Copy } from 'lucide-react';
 import type { SignalWindow } from '../../lib/investments/signalsApi';
+import { SignalHorizonBadge } from './SignalHorizonBadge';
 
 interface Props {
   window: SignalWindow;
@@ -59,6 +60,12 @@ export const ConvergenceHeader: FC<Props> = ({
             Zobacz symulację koszyka.
           </span>
         </p>
+
+        <div className="flex flex-wrap items-center gap-2 mt-2 pt-1">
+          <SignalHorizonBadge source="gpw_mar" compact />
+          <SignalHorizonBadge source="congress" compact />
+          <SignalHorizonBadge source="13f" compact />
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">

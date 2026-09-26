@@ -42,8 +42,13 @@ const SignalRowView: FC<{ row: SignalRow }> = ({ row }) => {
           <div className="flex items-center gap-3">
             <CompanyLogo ticker={row.ticker} name={row.companyName} size={32} />
             <div className="min-w-0">
-              <div className="font-mono font-bold text-sm text-text-primary">
-                {row.ticker}
+              <div className="font-mono font-bold text-sm text-text-primary flex items-center gap-1.5">
+                <span>{row.ticker}</span>
+                {row.fundNetBuyers > 0 && row.polBuys > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-xs text-4xs font-mono font-bold uppercase bg-primary/15 text-primary border border-primary/30" title="Potrójna Zbieżność: zakupy 13F oraz Kongresu">
+                    ★ 10/10
+                  </span>
+                )}
               </div>
               <div className="text-3xs text-text-muted truncate max-w-56 sm:max-w-xs">
                 {row.companyName} {row.holders > 0 ? `· ${row.holders} ${fundLabel}` : ''}
