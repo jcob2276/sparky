@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { MainTabType } from './InvestmentsPage';
 import Button from '../ui/Button';
+import { useModalBackHandler } from '../../lib/investments/useModalBackHandler';
 import {
   CircleDot,
   Wallet,
@@ -14,6 +15,7 @@ import {
   BarChart3,
   TrendingDown,
   Building2,
+  X,
 } from 'lucide-react';
 
 interface Props {
@@ -60,6 +62,9 @@ export const InvestmentsSidebar: FC<Props> = ({
   isOpenMobile,
   onCloseMobile,
 }) => {
+  // Obsługa gestu/przycisku 'Wstecz' na telefonie
+  useModalBackHandler('investmentsSidebarMobile', isOpenMobile, onCloseMobile);
+
   const renderNavGroup = (title: string, items: NavItem[]) => (
     <div className="space-y-1">
       <div className="px-3 text-3xs font-black uppercase tracking-wider text-text-muted mb-1.5">
@@ -95,20 +100,32 @@ export const InvestmentsSidebar: FC<Props> = ({
   );
 
   const sidebarContent = (
-    <div className="h-full flex flex-col justify-between py-5 px-3 space-y-6 overflow-y-auto">
+    <div className="h-full flex flex-col justify-between py-5 px-3 space-y-6 overflow-y-auto overflow-x-hidden touch-pan-y">
       <div className="space-y-6">
-        {/* Brand Header */}
-        <div className="px-3 flex items-center justify-between">
+        {/* Brand Header with Close Button on Mobile */}
+        <div className="px-2 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="font-mono text-xs font-bold text-primary">SP</span>
             <div>
               <div className="font-mono text-sm font-bold tracking-tight text-text-primary">
                 Sparky
               </div>
-              <p className="text-3xs font-mono text-text-muted">jeden użytkownik</p>
+              <p className="text-3xs font-mono text-text-muted">Inwestycje • Nawigacja</p>
             </div>
           </div>
-          <span className="w-2 h-2 rounded-full bg-success animate-pulse" title="Feed Live" />
+
+          <div className="flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-success animate-pulse mr-1" title="Feed Live" />
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={<X size={18} />}
+              onClick={onCloseMobile}
+              className="lg:hidden rounded-xl p-1.5 text-text-muted hover:text-text-primary"
+              aria-label="Zamknij menu nawigacji"
+              title="Zamknij menu"
+            />
+          </div>
         </div>
 
         {/* Groups */}
@@ -120,7 +137,7 @@ export const InvestmentsSidebar: FC<Props> = ({
       </div>
 
       {/* Footer Info */}
-      <div className="pt-4 border-t border-border-custom/40 px-3">
+      <div className="pt-4 border-t border-border-custom/40 px-1">
         <div className="p-3 rounded-2xl bg-surface border border-border-custom/50 shadow-xs space-y-1">
           <div className="text-3xs font-mono text-text-muted uppercase">Status synchronizacji</div>
           <div className="text-xs font-bold text-success flex items-center gap-1.5">
@@ -142,12 +159,12 @@ export const InvestmentsSidebar: FC<Props> = ({
 
       {/* Mobile Drawer Overlay */}
       {isOpenMobile && (
-        <div className="lg:hidden fixed top-0 left-0 right-0 bottom-0 z-50 flex">
+        <div className="lg:hidden fixed inset-0 z-50 flex">
           <div
-            className="fixed top-0 left-0 right-0 bottom-0 bg-scrim/60 backdrop-blur-xs"
+            className="fixed inset-0 bg-scrim/60 backdrop-blur-xs transition-opacity"
             onClick={onCloseMobile}
           />
-          <div className="relative w-72 max-w-xs bg-background border-r border-border-custom h-full z-10 shadow-2xl">
+          <div className="relative w-4/5 max-w-xs sm:w-80 bg-background border-r border-border-custom h-full z-10 shadow-2xl flex flex-col animate-in slide-in-from-left duration-200 ease-out">
             {sidebarContent}
           </div>
         </div>
