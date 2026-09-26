@@ -60,7 +60,7 @@ export const InvestmentsTabRenderer: FC<Props> = ({
         />
       );
     case 'investors':
-      return <Investors13FView />;
+      return <Investors13FView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
     case 'politicians':
       return (
         <PoliticiansView

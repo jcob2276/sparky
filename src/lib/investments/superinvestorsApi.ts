@@ -9,31 +9,7 @@ const ORCA_SUPABASE_URL = 'https://rtnehnbvteuipkoatdlz.supabase.co/rest/v1';
 const ORCA_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0bmVobmJ2dGV1aXBrb2F0ZGx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NjQyOTMsImV4cCI6MjA5NjE0MDI5M30.Hy_bqwnNNbp0-h-OSiJ_dITeXPmD47mOyd9xLeFVDHw';
 
-export interface SuperinvestorItem {
-  id: string;
-  slug: string;
-  name: string;
-  fundName: string;
-  cik: string;
-  description: string;
-  category: string;
-  tier: string;
-  isActive: boolean;
-  aumFormatted?: string;
-  periodEnded?: string;
-  filingDate?: string;
-  topHoldingsCount?: number;
-}
 
-export interface LiveHoldingItem {
-  ticker: string;
-  name: string;
-  weightPercent: number;
-  valueUsd: number;
-  changeType: 'new' | 'increased' | 'reduced' | 'unchanged' | 'sold';
-  shares: number;
-  sector: string;
-}
 
 const HEADERS = {
   apikey: ORCA_ANON_KEY,
@@ -65,86 +41,7 @@ export async function orcaSelect<T>(pathAndQuery: string): Promise<T[]> {
 
 
 
-export async function fetchAllSuperinvestors(): Promise<SuperinvestorItem[]> {
-  try {
-    const data = await orcaSelect<RawInvestor>(
-      'investors?select=id,slug,display_name,fund_name,cik,description,category,tier,is_active&order=display_name.asc',
-    );
-    if (data.length === 0) return [];
 
-    interface RawInvestor {
-      id: string;
-      slug: string;
-      display_name: string;
-      fund_name: string;
-      cik: string;
-      description: string;
-      category: string;
-      tier: string;
-      is_active: boolean;
-    }
-
-    return data.map((d: RawInvestor) => ({
-      id: d.id,
-      slug: d.slug,
-      name: d.display_name,
-      fundName: d.fund_name,
-      cik: d.cik || '—',
-      description: d.description || 'Portfel funduszu 13F złożony w SEC.',
-      category: d.category || 'value',
-      tier: d.tier || 'free',
-      isActive: Boolean(d.is_active),
-      aumFormatted: 'Dane 13F',
-      periodEnded: '—',
-      filingDate: '—',
-    }));
-  } catch (err) {
-    console.warn('[superinvestorsApi] fetchAllSuperinvestors:', err);
-    return [];
-  }
-}
-
-export async function fetchInvestorHoldings(investorId: string): Promise<LiveHoldingItem[]> {
-  try {
-    const res = await fetch(
-      `${ORCA_SUPABASE_URL}/vw_holdings_changes?investor_id=eq.${investorId}&order=value_now.desc.nullslast&limit=30`,
-      { headers: HEADERS }
-    );
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (!Array.isArray(data) || data.length === 0) return [];
-
-    interface RawHolding {
-      ticker?: string;
-      company_name?: string;
-      weight_pct?: number;
-      value_now?: number;
-      change_type?: string;
-      shares_now?: number;
-    }
-
-    return data.map((h: RawHolding) => {
-      let mappedChange: LiveHoldingItem['changeType'] = 'unchanged';
-      if (h.change_type === 'new') mappedChange = 'new';
-      else if (h.change_type === 'increased') mappedChange = 'increased';
-      else if (h.change_type === 'decreased') mappedChange = 'reduced';
-      else if (h.change_type === 'sold') mappedChange = 'sold';
-
-      return {
-        ticker: h.ticker || '—',
-        name: h.company_name || 'Spółka publiczna',
-        weightPercent: typeof h.weight_pct === 'number' ? h.weight_pct : 0,
-        valueUsd: typeof h.value_now === 'number' ? h.value_now : 0,
-        changeType: mappedChange,
-        shares: typeof h.shares_now === 'number' ? h.shares_now : 0,
-        sector: 'SEC 13F',
-      };
-    });
-  } catch (err) {
-    console.warn('[superinvestorsApi] fetchInvestorHoldings:', err);
-    return [];
-  }
-}
 
 export interface LiveConsensusItem {
   ticker: string;
