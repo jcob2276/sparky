@@ -40,7 +40,12 @@ export const InvestmentsTabRenderer: FC<Props> = ({
 }) => {
   switch (activeTab) {
     case 'dashboard':
-      return <OrcaDashboardView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
+      return (
+        <OrcaDashboardView
+          onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)}
+          trades={trades}
+        />
+      );
     case 'analyst':
       return <InvestmentsAnalystView />;
     case 'watchlist':

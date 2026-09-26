@@ -164,3 +164,51 @@ export const INVESTORS_13F_DATA: Investor13F[] = [
     ],
   },
 ];
+
+export const INVESTORS_13F = INVESTORS_13F_DATA;
+
+export interface ConvergenceItem {
+  ticker: string;
+  companyName: string;
+  consensusScore: number;
+  superinvestorsCount: number;
+  politiciansCount: number;
+}
+
+export const CONVERGENCE_ITEMS: ConvergenceItem[] = [
+  {
+    ticker: 'AMZN',
+    companyName: 'Amazon.com Inc.',
+    consensusScore: 4,
+    superinvestorsCount: 3,
+    politiciansCount: 1,
+  },
+  {
+    ticker: 'NVDA',
+    companyName: 'NVIDIA Corporation',
+    consensusScore: 3,
+    superinvestorsCount: 2,
+    politiciansCount: 1,
+  },
+  {
+    ticker: 'GOOGL',
+    companyName: 'Alphabet Inc.',
+    consensusScore: 3,
+    superinvestorsCount: 2,
+    politiciansCount: 2,
+  },
+  {
+    ticker: 'AMAT',
+    companyName: 'Applied Materials',
+    consensusScore: 3,
+    superinvestorsCount: 3,
+    politiciansCount: 0,
+  },
+  {
+    ticker: 'CRH',
+    companyName: 'CRH PLC',
+    consensusScore: 3,
+    superinvestorsCount: 3,
+    politiciansCount: 0,
+  },
+];

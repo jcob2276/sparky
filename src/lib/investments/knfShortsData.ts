@@ -3,7 +3,7 @@
  * Oficjalne pozycje krótkie netto >= 0.5% kapitału akcyjnego emitenta.
  */
 
-interface KnfShortPosition {
+export interface KnfShortPosition {
   id: string;
   ticker: string;
   companyName: string;
@@ -22,7 +22,7 @@ export interface CompanyShortSummary {
   positions: KnfShortPosition[];
 }
 
-const KNF_SHORTS_DATA: KnfShortPosition[] = [
+export const KNF_SHORTS_DATA: KnfShortPosition[] = [
   {
     id: 'knf_dnp_aqr_2026',
     ticker: 'DNP',
