@@ -8,7 +8,6 @@ import {
 import { syncPortfolioMarketPrices } from '../../../lib/investments/portfolioSyncService';
 import { JakubPortfolioSummaryCard } from './JakubPortfolioSummaryCard';
 import { JakubHoldingsList } from './JakubHoldingsList';
-import { JakubSmartMoneyDiagnosis } from './JakubSmartMoneyDiagnosis';
 import { JakubAddPositionModal } from './JakubAddPositionModal';
 import { PortfolioSubNav } from './PortfolioSubNav';
 import { confirmDialog, notify } from '../../../lib/notify';
@@ -89,10 +88,7 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
         lastSyncRates={lastSyncRates}
       />
 
-      {/* 2. Smart Money & Jev System-1 Diagnosis */}
-      <JakubSmartMoneyDiagnosis portfolio={portfolio} />
-
-      {/* 3. Holdings List matching Mobile App */}
+      {/* 2. Holdings List matching Mobile App */}
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1">
           <h3 className="text-sm sm:text-base font-black text-text-primary tracking-tight">
