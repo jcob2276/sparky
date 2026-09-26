@@ -9,6 +9,7 @@ import {
 } from './StocksConsensusToolbar';
 import { StocksConsensusTable } from './StocksConsensusTable';
 import { TradingViewChartModal } from './TradingViewChartModal';
+import { CompanyDetailView } from './CompanyDetailView';
 import {
   fetchEnrichedConsensus,
   EnrichedStockConsensus,
@@ -18,11 +19,13 @@ import {
 interface Props {
   watchlist?: string[];
   onToggleWatchlist?: (ticker: string) => void;
+  onNavigateTab?: (tab: string, prefill?: string) => void;
 }
 
 export const StocksConsensusView: FC<Props> = ({
   watchlist = [],
   onToggleWatchlist = () => {},
+  onNavigateTab,
 }) => {
   const [filterType, setFilterType] = useState<FilterType>('all');
   const [sortOption, setSortOption] = useState<SortOption>('capitalization');
@@ -40,6 +43,7 @@ export const StocksConsensusView: FC<Props> = ({
   });
   const [loading, setLoading] = useState(true);
   const [chartStock, setChartStock] = useState<{ ticker: string; name: string } | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<{ ticker: string; name: string } | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -117,6 +121,19 @@ export const StocksConsensusView: FC<Props> = ({
     notify(`Wyeksportowano ${processedList.length} spółek do CSV!`, 'success');
   };
 
+  if (selectedCompany) {
+    return (
+      <CompanyDetailView
+        ticker={selectedCompany.ticker}
+        initialName={selectedCompany.name}
+        onBack={() => setSelectedCompany(null)}
+        onNavigateTab={onNavigateTab}
+        watchlist={watchlist}
+        onToggleWatchlist={onToggleWatchlist}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4 animate-fade-in text-text-primary">
       {/* 4 Top Metric Cards */}
@@ -141,7 +158,7 @@ export const StocksConsensusView: FC<Props> = ({
         stocks={processedList}
         watchlist={watchlist}
         onToggleWatchlist={onToggleWatchlist}
-        onSelectStockForChart={(ticker, name) => setChartStock({ ticker, name })}
+        onSelectStockForChart={(ticker, name) => setSelectedCompany({ ticker, name })}
       />
 
       {/* Interactive TradingView Chart Modal */}
