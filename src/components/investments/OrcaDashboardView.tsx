@@ -4,7 +4,7 @@ import { formatShortMonthLabel, formatDashboardDate, getCurrentYear } from '../.
 import Button from '../ui/Button';
 
 interface Props {
-  onNavigateTab: (tab: 'investors' | 'politicians' | 'stocks' | 'gpw_shorts' | 'live') => void;
+  onNavigateTab: (tab: string) => void;
 }
 
 const LS_KEY = 'sparky_investments_watchlist';

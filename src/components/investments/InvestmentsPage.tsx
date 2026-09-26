@@ -1,33 +1,50 @@
-import { FC, useState } from 'react';
+import { FC, useState, useCallback } from 'react';
 import { useInvestmentsData } from './useInvestmentsData';
 import { InvestmentsTopNav } from './InvestmentsTopNav';
 import { InvestmentsHeader } from './InvestmentsHeader';
 import { CopycatPlaybookModal } from './CopycatPlaybookModal';
-import { OrcaDashboardView } from './OrcaDashboardView';
-import { ConvergenceView } from './ConvergenceView';
-import { Investors13FView } from './Investors13FView';
-import { PoliticiansView } from './PoliticiansView';
-import { StocksHoldingView } from './StocksHoldingView';
-import { GpwShortsView } from './GpwShortsView';
-import { MethodologyView } from './MethodologyView';
-import { GpwPortfolioView } from './GpwPortfolioView';
-import { LiveTradesView } from './LiveTradesView';
-import Button from '../ui/Button';
+import { InvestmentsTabsBar } from './InvestmentsTabsBar';
+import { InvestmentsTabRenderer } from './InvestmentsTabRenderer';
 
 export type MainTabType =
   | 'dashboard'
+  | 'analyst'
+  | 'watchlist'
   | 'convergence'
+  | 'screener'
   | 'investors'
   | 'politicians'
+  | 'simulation'
   | 'stocks'
   | 'gpw_shorts'
-  | 'methodology'
   | 'gpw_mar'
-  | 'live';
+  | 'live'
+  | 'methodology';
+
+const LS_KEY = 'sparky_investments_watchlist';
+
+function loadWatchlist(): string[] {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return ['AMZN', 'NVDA', 'DNP', 'CDR'];
+    return JSON.parse(raw) as string[];
+  } catch {
+    return ['AMZN', 'NVDA', 'DNP', 'CDR'];
+  }
+}
 
 export const InvestmentsPage: FC = () => {
   const [activeTab, setActiveTab] = useState<MainTabType>('dashboard');
   const [isPlaybookOpen, setIsPlaybookOpen] = useState(false);
+  const [watchlist, setWatchlist] = useState<string[]>(loadWatchlist);
+
+  const handleToggleWatchlist = useCallback((ticker: string) => {
+    setWatchlist((prev) => {
+      const next = prev.includes(ticker) ? prev.filter((t) => t !== ticker) : [...prev, ticker];
+      try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
 
   const {
     trades,
@@ -59,118 +76,25 @@ export const InvestmentsPage: FC = () => {
           />
         )}
 
-        {/* Master Navigation Tabs — Practical Investor Architecture */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 border-b border-border-custom/50">
-          <Button
-            size="sm"
-            variant={activeTab === 'dashboard' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('dashboard')}
-            className="rounded-xl shrink-0 font-bold"
-          >
-            📊 Pulpit
-          </Button>
+        {/* Master Navigation Tabs — 1:1 OrcaFolio Full Suite */}
+        <InvestmentsTabsBar
+          activeTab={activeTab}
+          onSelectTab={(tab) => setActiveTab(tab)}
+          liveCount={trades.length}
+        />
 
-          <Button
-            size="sm"
-            variant={activeTab === 'convergence' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('convergence')}
-            className="rounded-xl shrink-0 font-bold text-primary"
-          >
-            🔥 Zbieżność (Konsensus)
-          </Button>
-
-          <Button
-            size="sm"
-            variant={activeTab === 'investors' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('investors')}
-            className="rounded-xl shrink-0"
-          >
-            👔 Inwestorzy 13F
-          </Button>
-
-          <Button
-            size="sm"
-            variant={activeTab === 'politicians' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('politicians')}
-            className="rounded-xl shrink-0"
-          >
-            🏛 Politycy (STOCK Act)
-          </Button>
-
-          <Button
-            size="sm"
-            variant={activeTab === 'stocks' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('stocks')}
-            className="rounded-xl shrink-0"
-          >
-            🏢 Spółki
-          </Button>
-
-          <Button
-            size="sm"
-            variant={activeTab === 'gpw_shorts' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('gpw_shorts')}
-            className="rounded-xl shrink-0"
-          >
-            📉 Krótka sprzedaż GPW
-          </Button>
-
-          <Button
-            size="sm"
-            variant={activeTab === 'methodology' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('methodology')}
-            className="rounded-xl shrink-0"
-          >
-            📖 Metodologia
-          </Button>
-
-          <div className="h-5 w-px bg-border-custom/60 shrink-0 mx-1" />
-
-          <Button
-            size="sm"
-            variant={activeTab === 'gpw_mar' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('gpw_mar')}
-            className="rounded-xl shrink-0 text-text-secondary"
-          >
-            🇵🇱 GPW Insiderzy (MAR)
-          </Button>
-
-          <Button
-            size="sm"
-            variant={activeTab === 'live' ? 'primary' : 'secondary'}
-            onClick={() => setActiveTab('live')}
-            className="rounded-xl shrink-0 text-text-secondary"
-          >
-            ⚡ Live ({trades.length})
-          </Button>
-        </div>
-
-        {/* Tab Contents */}
-        {activeTab === 'dashboard' ? (
-          <OrcaDashboardView onNavigateTab={(t) => setActiveTab(t)} />
-        ) : activeTab === 'convergence' ? (
-          <ConvergenceView />
-        ) : activeTab === 'investors' ? (
-          <Investors13FView />
-        ) : activeTab === 'politicians' ? (
-          <PoliticiansView trades={trades} />
-        ) : activeTab === 'stocks' ? (
-          <StocksHoldingView allCongressTrades={trades} />
-        ) : activeTab === 'gpw_shorts' ? (
-          <GpwShortsView />
-        ) : activeTab === 'methodology' ? (
-          <MethodologyView />
-        ) : activeTab === 'gpw_mar' ? (
-          <GpwPortfolioView />
-        ) : (
-          <LiveTradesView
-            trades={trades}
-            loading={loading}
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            clusterTickers={clusterTickers}
-          />
-        )}
+        {/* Tab Contents View */}
+        <InvestmentsTabRenderer
+          activeTab={activeTab}
+          onNavigateTab={(tab) => setActiveTab(tab as MainTabType)}
+          trades={trades}
+          loading={loading}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          clusterTickers={clusterTickers}
+          watchlist={watchlist}
+          onToggleWatchlist={handleToggleWatchlist}
+        />
       </div>
 
       <CopycatPlaybookModal
