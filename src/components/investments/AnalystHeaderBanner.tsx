@@ -28,7 +28,7 @@ export const AnalystHeaderBanner: FC<Props> = ({
             <span>Analityk AI · OpenRouter</span>
           </span>
           <span className="text-3xs sm:text-2xs font-mono text-text-secondary">
-            Model: Gemini 2.5 Flash / Jev
+            Model: Gemini 2.5 Flash · Live RAG
           </span>
         </div>
         <h2 className="text-lg sm:text-2xl font-extrabold text-text-primary tracking-tight">
