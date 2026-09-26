@@ -145,6 +145,14 @@ function AppRoutes() {
     }
   }, [loading]);
 
+  if (location.pathname === '/inwestycje' || location.pathname === '/insiderzy' || location.pathname === '/stocks') {
+    return (
+      <Suspense fallback={FALLBACK_SPINNER}>
+        <InvestmentsPage />
+      </Suspense>
+    );
+  }
+
   if (loading) {
     return FALLBACK_SPINNER;
   }
@@ -153,14 +161,6 @@ function AppRoutes() {
     return (
       <Suspense fallback={FALLBACK_SPINNER}>
         <DesignSystemPage />
-      </Suspense>
-    );
-  }
-
-  if (location.pathname === '/inwestycje' || location.pathname === '/insiderzy' || location.pathname === '/stocks') {
-    return (
-      <Suspense fallback={FALLBACK_SPINNER}>
-        <InvestmentsPage />
       </Suspense>
     );
   }

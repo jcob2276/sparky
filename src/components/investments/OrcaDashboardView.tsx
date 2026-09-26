@@ -22,7 +22,8 @@ function loadWatchlist(): string[] {
   try {
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return ['AMZN', 'NVDA'];
-    return JSON.parse(raw) as string[];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : ['AMZN', 'NVDA'];
   } catch {
     return ['AMZN', 'NVDA'];
   }
