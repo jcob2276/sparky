@@ -3,111 +3,60 @@
  * Searches 13F holdings, politician STOCK Act trades, and KNF short positions simultaneously.
  * Renders as a floating modal overlay triggered from InvestmentsTopNav.
  */
-import { FC, useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { INVESTORS_13F_DATA } from '../../lib/investments/investors13FData';
-import { PELOSI_TRADES_SEED } from '../../lib/investments/pelosiTradesSeed';
-import { TRUMP_TRADES_SEED } from '../../lib/investments/trumpTradesSeed';
-import { CONGRESS_SEED_EXTRA } from '../../lib/investments/congressSeedData';
-import { getGroupedCompanyShorts } from '../../lib/investments/knfShortsData';
-import { GPW_INSIDER_TRADES_SEED } from '../../lib/investments/gpwTradesSeed';
+import { FC, useState, useEffect, useRef, useCallback } from 'react';
+import { searchDisclosures, type DisclosureSearchHit, type SearchSource } from '../../lib/investments/disclosureSearch';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { X, Search } from 'lucide-react';
 
-const ALL_POLITICIAN_TRADES = [...PELOSI_TRADES_SEED, ...TRUMP_TRADES_SEED, ...CONGRESS_SEED_EXTRA];
-const ALL_KNF_GROUPED = getGroupedCompanyShorts();
-
-interface SearchResult {
-  source: '13F' | 'STOCK Act' | 'KNF Szort' | 'GPW MAR';
-  ticker: string;
-  title: string;
-  detail: string;
-  url?: string;
-}
-
-function runSearch(query: string): SearchResult[] {
-  if (query.length < 2) return [];
-  const q = query.toUpperCase().trim();
-  const results: SearchResult[] = [];
-
-  // 1. 13F institutional holdings
-  for (const inv of INVESTORS_13F_DATA) {
-    for (const h of inv.holdings) {
-      if (h.ticker.toUpperCase().includes(q) || h.name.toUpperCase().includes(q)) {
-        results.push({
-          source: '13F',
-          ticker: h.ticker,
-          title: `${h.ticker} — ${h.name}`,
-          detail: `${inv.name} · waga ${h.weightPercent.toFixed(1)}% · zmiana: ${h.changeType}`,
-          url: `https://www.tradingview.com/symbols/${h.ticker}/`,
-        });
-        if (results.filter((r) => r.source === '13F').length >= 6) break;
-      }
-    }
-  }
-
-  // 2. STOCK Act politician trades
-  for (const t of ALL_POLITICIAN_TRADES) {
-    if (
-      (t.ticker ?? '').toUpperCase().includes(q) ||
-      (t.asset_name ?? '').toUpperCase().includes(q)
-    ) {
-      const isBuy =
-        (t.transaction_type ?? '').toLowerCase().includes('buy') ||
-        (t.transaction_type ?? '').toLowerCase().includes('purchase');
-      results.push({
-        source: 'STOCK Act',
-        ticker: t.ticker ?? '—',
-        title: `${t.ticker} — ${t.filer_name}`,
-        detail: `${isBuy ? '🟢 Kupno' : '🔴 Sprzedaż'} · ${t.amount_label} · ${t.transaction_date}`,
-        url: t.doc_url ?? undefined,
-      });
-    }
-  }
-
-  // 3. KNF short positions
-  for (const g of ALL_KNF_GROUPED) {
-    if (g.ticker.toUpperCase().includes(q) || g.companyName.toUpperCase().includes(q)) {
-      results.push({
-        source: 'KNF Szort',
-        ticker: g.ticker,
-        title: `${g.ticker} — ${g.companyName}`,
-        detail: `Łączna pozycja krótka: ${g.totalShortPercent.toFixed(2)}% · ${g.fundsCount} funduszy`,
-        url: `https://stooq.pl/q/?s=${g.ticker.toLowerCase()}`,
-      });
-    }
-  }
-
-  // 4. GPW MAR insider trades
-  for (const t of GPW_INSIDER_TRADES_SEED) {
-    if (
-      (t.ticker ?? '').toUpperCase().includes(q) ||
-      (t.asset_name ?? '').toUpperCase().includes(q) ||
-      (t.filer_name ?? '').toUpperCase().includes(q)
-    ) {
-      const isBuy =
-        (t.transaction_type ?? '').toLowerCase().includes('buy') ||
-        (t.transaction_type ?? '').toLowerCase().includes('purchase') ||
-        (t.transaction_type ?? '').toLowerCase().includes('nabycie');
-      results.push({
-        source: 'GPW MAR',
-        ticker: t.ticker ?? '—',
-        title: `${t.ticker} — ${t.filer_name}`,
-        detail: `${isBuy ? '🟢 Kupno' : '🔴 Sprzedaż'} · ${t.amount_label} · MAR art. 19`,
-        url: `https://stooq.pl/q/?s=${(t.ticker ?? '').toLowerCase()}`,
-      });
-    }
-  }
-
-  return results.slice(0, 20);
-}
-
-const SOURCE_STYLE: Record<string, string> = {
+const SOURCE_STYLE: Record<SearchSource, string> = {
   '13F': 'bg-primary/10 text-primary border-primary/20',
   'STOCK Act': 'bg-info/10 text-info border-info/20',
-  'KNF Szort': 'bg-danger/10 text-danger border-danger/20',
-  'GPW MAR': 'bg-success/10 text-success border-success/20',
+  Polityk: 'bg-success/10 text-success border-success/20',
+  Superinwestor: 'bg-primary/10 text-primary border-primary/20',
 };
+
+const SearchHits: FC<{ query: string; searching: boolean; results: DisclosureSearchHit[] }> = ({
+  query,
+  searching,
+  results,
+}) => (
+  <div className="max-h-[60vh] overflow-y-auto">
+    {searching ? (
+      <div className="p-8 text-center text-xs text-text-secondary">Szukam w Kongresie, 13F i STOCK Act…</div>
+    ) : results.length === 0 ? (
+      <div className="p-8 text-center text-xs text-text-secondary">
+        Brak wyników dla <strong className="text-text-primary">{query.toUpperCase()}</strong> w politykach, superinwestorach i ujawnieniach.
+      </div>
+    ) : (
+      <div className="divide-y divide-border-custom/40">
+        {results.map((hit, index) => (
+          <div key={`${hit.source}-${hit.title}-${index}`} className="flex items-center justify-between gap-3 p-3.5 hover:bg-primary/5 transition-colors">
+            <div className="flex items-center gap-3 min-w-0">
+              <span className={`shrink-0 px-2 py-0.5 rounded-md text-2xs font-bold border ${SOURCE_STYLE[hit.source]}`}>
+                {hit.source}
+              </span>
+              <div className="min-w-0">
+                <div className="text-xs font-bold text-text-primary truncate">{hit.title}</div>
+                <div className="text-2xs text-text-secondary truncate mt-0.5">{hit.detail}</div>
+              </div>
+            </div>
+            {hit.url && (
+              <a href={hit.url} target="_blank" rel="noopener noreferrer" className="shrink-0 text-xs font-semibold text-primary hover:underline">
+                ↗
+              </a>
+            )}
+          </div>
+        ))}
+      </div>
+    )}
+    {results.length > 0 && !searching && (
+      <div className="p-3 border-t border-border-custom/40 text-center text-2xs text-text-muted">
+        {results.length} wyników · politycy · superinwestorzy · STOCK Act · 13F
+      </div>
+    )}
+  </div>
+);
 
 interface Props {
   isOpen: boolean;
@@ -116,6 +65,8 @@ interface Props {
 
 export const TickerSearchModal: FC<Props> = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
+  const [results, setResults] = useState<DisclosureSearchHit[]>([]);
+  const [settledQuery, setSettledQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -124,7 +75,27 @@ export const TickerSearchModal: FC<Props> = ({ isOpen, onClose }) => {
     }
   }, [isOpen]);
 
-  const results = useMemo(() => runSearch(query), [query]);
+  useEffect(() => {
+    if (query.trim().length < 2) return;
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      searchDisclosures(query)
+        .then((hits) => {
+          if (cancelled) return;
+          setResults(hits);
+          setSettledQuery(query);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setResults([]);
+          setSettledQuery(query);
+        });
+    }, 180);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [query]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -143,7 +114,9 @@ export const TickerSearchModal: FC<Props> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const quickTickers = ['NVDA', 'AAPL', 'GOOGL', 'AMZN', 'AVGO', 'DNP', 'CDR', 'ALE'];
+  const searching = query.trim().length >= 2 && settledQuery !== query;
+  const shown = query.trim().length < 2 ? [] : results;
+  const quickTickers = ['Pelosi', 'Demokraci', 'Republikanie', 'Kongres', 'Superinwestorzy', 'NVDA', 'AAPL'];
 
   return (
     <>
@@ -194,60 +167,15 @@ export const TickerSearchModal: FC<Props> = ({ isOpen, onClose }) => {
                     onClick={() => setQuery(t)}
                     className="px-3 py-1.5 rounded-xl text-xs font-mono font-bold"
                   >
-                    ${t}
+                    {t.length <= 5 && t === t.toUpperCase() ? `$${t}` : t}
                   </Button>
                 ))}
               </div>
             </div>
           )}
 
-          {/* Results */}
           {query.length >= 2 && (
-            <div className="max-h-[60vh] overflow-y-auto">
-              {results.length === 0 ? (
-                <div className="p-8 text-center text-xs text-text-secondary">
-                  Brak wyników dla <strong className="text-text-primary">{query.toUpperCase()}</strong> we wszystkich źródłach.
-                </div>
-              ) : (
-                <div className="divide-y divide-border-custom/40">
-                  {results.map((r, i) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between gap-3 p-3.5 hover:bg-primary/5 transition-colors"
-                    >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <span
-                          className={`shrink-0 px-2 py-0.5 rounded-md text-2xs font-bold border ${SOURCE_STYLE[r.source]}`}
-                        >
-                          {r.source}
-                        </span>
-                        <div className="min-w-0">
-                          <div className="text-xs font-bold text-text-primary truncate">{r.title}</div>
-                          <div className="text-2xs text-text-secondary truncate mt-0.5">{r.detail}</div>
-                        </div>
-                      </div>
-                      {r.url && (
-                        <a
-                          href={r.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="shrink-0 text-xs font-semibold text-primary hover:underline"
-                        >
-                          ↗
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {results.length > 0 && (
-                <div className="p-3 border-t border-border-custom/40 text-center text-2xs text-text-muted">
-                  {results.length} wyników · 13F · STOCK Act · KNF · GPW MAR
-                </div>
-              )}
-            </div>
+            <SearchHits query={query} searching={searching} results={shown} />
           )}
         </div>
       </div>

@@ -54,7 +54,7 @@ export const CopycatPlaybookModal: FC<Props> = ({ isOpen, onClose }) => {
               <span>🇵🇱</span> 3. GPW vs USA: Różnica w motywacjach
             </h4>
             <p className="text-xs">
-              Politycy w USA (Pelosi, Trump, Senat) często handlują wokół <em>ustaw, dotacji i regulacji rządowych</em> (chipy, obronność, zielona energia). Na polskiej GPW transakcje MAR to <strong>członkowie zarządu i założyciele</strong> (Dino, CD Projekt, XTB) wkładający własne miliony w swoje spółki — najsilniejszy sygnał „Skin in the game”.
+              Zgłoszenia STOCK Act opisują transakcje polityków USA. Zawiadomienia MAR na GPW dotyczą osób pełniących obowiązki zarządcze. Kwoty i nazwiska pokazujemy tylko wtedy, gdy publiczne źródło je zawiera.
             </p>
           </div>
 

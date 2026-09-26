@@ -1,9 +1,8 @@
 /**
- * superinvestorsApi.ts — Pobieranie na żywo wszystkich 59 superinwestorów 13F,
+ * superinvestorsApi.ts — Pobieranie na żywo superinwestorów 13F,
  * ich pozycji portfelowych oraz konsensusu rynkowego.
  */
 
-import { INVESTORS_13F_DATA, Holding13F } from './investors13FData';
 import type { CompanyShortSummary } from './knfShortsData';
 
 const ORCA_SUPABASE_URL = 'https://rtnehnbvteuipkoatdlz.supabase.co/rest/v1';
@@ -41,17 +40,42 @@ const HEADERS = {
   Authorization: `Bearer ${ORCA_ANON_KEY}`,
 };
 
+async function orcaGet<T>(pathAndQuery: string): Promise<T[]> {
+  const res = await fetch(`${ORCA_SUPABASE_URL}/${pathAndQuery}`, { headers: HEADERS });
+  if (!res.ok) throw new Error(`Źródło ujawnień odpowiedziało ${res.status}`);
+  const batch: unknown = await res.json();
+  if (!Array.isArray(batch)) throw new Error('Źródło ujawnień zwróciło nieoczekiwany kształt');
+  return batch as T[];
+}
+
+export async function orcaSelect<T>(pathAndQuery: string): Promise<T[]> {
+  if (/[?&]limit=/.test(pathAndQuery)) return orcaGet<T>(pathAndQuery);
+  const rows: T[] = [];
+  for (let offset = 0; offset < 20_000; offset += 1000) {
+    const joiner = pathAndQuery.includes('?') ? '&' : '?';
+    const batch = await orcaGet<T>(`${pathAndQuery}${joiner}limit=1000&offset=${offset}`);
+    rows.push(...batch);
+    if (batch.length < 1000) break;
+  }
+  return rows;
+}
+
+export async function orcaCount(pathAndQuery: string): Promise<number> {
+  const res = await fetch(`${ORCA_SUPABASE_URL}/${pathAndQuery}`, {
+    headers: { ...HEADERS, Prefer: 'count=exact', Range: '0-0' },
+  });
+  if (!res.ok) return 0;
+  const total = (res.headers.get('content-range') ?? '').split('/')[1];
+  const count = Number(total);
+  return Number.isFinite(count) ? count : 0;
+}
+
 export async function fetchAllSuperinvestors(): Promise<SuperinvestorItem[]> {
   try {
-    const res = await fetch(
-      `${ORCA_SUPABASE_URL}/investors?is_active=eq.true&order=display_name.asc`,
-      { headers: HEADERS }
+    const data = await orcaSelect<RawInvestor>(
+      'investors?is_active=eq.true&select=id,slug,display_name,fund_name,cik,description,category,tier,is_active&order=display_name.asc',
     );
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (!Array.isArray(data) || data.length === 0) {
-      return fallbackInvestors();
-    }
+    if (data.length === 0) return [];
 
     interface RawInvestor {
       id: string;
@@ -76,12 +100,12 @@ export async function fetchAllSuperinvestors(): Promise<SuperinvestorItem[]> {
       tier: d.tier || 'free',
       isActive: Boolean(d.is_active),
       aumFormatted: 'Dane 13F',
-      periodEnded: '2026-06-30',
-      filingDate: '2026-08-14',
+      periodEnded: '—',
+      filingDate: '—',
     }));
   } catch (err) {
-    console.warn('[superinvestorsApi] fetchAllSuperinvestors fallback:', err);
-    return fallbackInvestors();
+    console.warn('[superinvestorsApi] fetchAllSuperinvestors:', err);
+    return [];
   }
 }
 
@@ -93,9 +117,7 @@ export async function fetchInvestorHoldings(investorId: string): Promise<LiveHol
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    if (!Array.isArray(data) || data.length === 0) {
-      return fallbackHoldings(investorId);
-    }
+    if (!Array.isArray(data) || data.length === 0) return [];
 
     interface RawHolding {
       ticker?: string;
@@ -124,39 +146,9 @@ export async function fetchInvestorHoldings(investorId: string): Promise<LiveHol
       };
     });
   } catch (err) {
-    console.warn('[superinvestorsApi] fetchInvestorHoldings fallback:', err);
-    return fallbackHoldings(investorId);
+    console.warn('[superinvestorsApi] fetchInvestorHoldings:', err);
+    return [];
   }
-}
-
-function fallbackInvestors(): SuperinvestorItem[] {
-  return INVESTORS_13F_DATA.map((inv) => ({
-    id: inv.id,
-    slug: inv.id,
-    name: inv.name,
-    fundName: inv.fundName,
-    cik: inv.cik,
-    description: inv.description,
-    category: 'value',
-    tier: 'free',
-    isActive: true,
-    aumFormatted: inv.aumFormatted,
-    periodEnded: inv.periodEnded,
-    filingDate: inv.filingDate,
-  }));
-}
-
-function fallbackHoldings(investorId: string): LiveHoldingItem[] {
-  const match = INVESTORS_13F_DATA.find((inv) => inv.id === investorId) || INVESTORS_13F_DATA[0];
-  return match.holdings.map((h: Holding13F) => ({
-    ticker: h.ticker,
-    name: h.name,
-    weightPercent: h.weightPercent,
-    valueUsd: h.valueUsd,
-    changeType: h.changeType === 'sold_out' ? 'sold' : h.changeType,
-    shares: h.shares,
-    sector: h.sector,
-  }));
 }
 
 export interface LiveConsensusItem {
@@ -166,37 +158,36 @@ export interface LiveConsensusItem {
   sellers: number;
   totalFunds: number;
   netScore: number;
+  totalValueUsd: string;
   movementType: 'accumulation' | 'distribution';
+}
+
+function formatUsdCompact(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '—';
+  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)} mld`;
+  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(0)} mln`;
+  return `$${Math.round(value).toLocaleString('pl-PL')}`;
 }
 
 export async function fetchLiveConsensus(): Promise<LiveConsensusItem[]> {
   try {
-    const res = await fetch(`${ORCA_SUPABASE_URL}/vw_consensus?order=net_buyers.desc&limit=60`, {
-      headers: HEADERS,
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (!Array.isArray(data)) return [];
-
-    interface RawConsensus {
-      ticker?: string;
-      company_name?: string;
-      buyers?: number;
-      sellers?: number;
-      net_buyers?: number;
-    }
-
+    const data = await orcaSelect<RawConsensus>(
+      'vw_consensus?select=ticker,company_name,buyers,sellers,holders,net_buyers,total_value&order=net_buyers.desc',
+    );
     return data
-      .filter((d: RawConsensus) => Boolean(d.ticker))
-      .map((d: RawConsensus) => {
+      .filter((d) => Boolean(d.ticker))
+      .map((d) => {
         const net = d.net_buyers || 0;
+        const buyers = d.buyers || 0;
+        const sellers = d.sellers || 0;
         return {
           ticker: d.ticker || '—',
           name: d.company_name || 'Spółka',
-          buyers: d.buyers || 0,
-          sellers: d.sellers || 0,
-          totalFunds: (d.buyers || 0) + (d.sellers || 0),
+          buyers,
+          sellers,
+          totalFunds: d.holders || buyers + sellers,
           netScore: net,
+          totalValueUsd: formatUsdCompact(d.total_value || 0),
           movementType: net >= 0 ? 'accumulation' : 'distribution',
         };
       });
@@ -204,6 +195,16 @@ export async function fetchLiveConsensus(): Promise<LiveConsensusItem[]> {
     console.warn('[superinvestorsApi] fetchLiveConsensus error:', err);
     return [];
   }
+}
+
+interface RawConsensus {
+  ticker?: string;
+  company_name?: string;
+  buyers?: number;
+  sellers?: number;
+  holders?: number;
+  net_buyers?: number;
+  total_value?: number;
 }
 
 export async function fetchLiveGpwShorts(): Promise<CompanyShortSummary[]> {
@@ -231,7 +232,7 @@ export async function fetchLiveGpwShorts(): Promise<CompanyShortSummary[]> {
       companyName: d.company || d.ticker || 'Spółka GPW',
       totalShortPercent: typeof d.total_pct === 'number' ? d.total_pct : 0,
       fundsCount: typeof d.public_holders === 'number' ? d.public_holders : 1,
-      netChange14d: 0,
+      netChange14d: null,
       positions: d.top_holder
         ? [
             {
@@ -240,7 +241,7 @@ export async function fetchLiveGpwShorts(): Promise<CompanyShortSummary[]> {
               companyName: d.company || '',
               holderName: d.top_holder,
               shortPercent: d.top_holder_pct || d.total_pct || 0,
-              positionDate: d.last_change || '2026-09-20',
+              positionDate: d.last_change || '—',
             },
           ]
         : [],

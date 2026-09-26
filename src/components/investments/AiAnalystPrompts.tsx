@@ -23,7 +23,7 @@ const PRESET_QUESTIONS = [
   },
   {
     title: 'Co kupuje Nancy Pelosi?',
-    prompt: 'Jakie są ostatnie transakcje Nancy Pelosi w technologii (NVDA, GOOGL, MSFT, AVGO) i jakie opcje Call LEAPS posiada?',
+    prompt: 'Jakie publiczne zgłoszenia STOCK Act złożyła Nancy Pelosi? Podaj ticker, datę, typ i przedział kwoty ze źródła, bez domysłów.',
     tag: 'STOCK Act',
   },
   {

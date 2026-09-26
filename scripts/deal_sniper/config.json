@@ -1,0 +1,55 @@
+{
+  "search_targets": {
+    "iphone_15_pro_max": {
+      "enabled": true,
+      "name": "iPhone 15 Pro Max",
+      "olx_query": "iphone 15 pro max",
+      "allegro_query": "iphone-15-pro-max",
+      "min_price": 1800,
+      "max_price": 2850,
+      "deal_price_threshold": 2550
+    },
+    "iphone_16_pro": {
+      "enabled": true,
+      "name": "iPhone 16 Pro 256GB",
+      "olx_query": "iphone 16 pro 256gb",
+      "allegro_query": "iphone-16-pro-256gb",
+      "min_price": 2500,
+      "max_price": 3400,
+      "deal_price_threshold": 3050,
+      "min_storage_gb": 256
+    }
+  },
+  "safety_filters": {
+    "require_safe_delivery": false,
+    "min_battery_percent": 80,
+    "title_blacklist": [
+      "etui", "case", "pokrowiec", "szkło", "szklo", "pudełko", "pudelko",
+      "atrapa", "dummy", "wymiana", "serwis", "naprawa", "części", "czesci",
+      "skup", "uszkodzon", "pęknięt", "pekniet", "zbit", "rozbit", "icloud",
+      "blokad", "zablokowan", "na raty", "zamian"
+    ],
+    "desc_blacklist": [
+      "zablokowany icloud", "blokada icloud", "na części", "na czesci",
+      "uszkodzony wyświetlacz", "zbita szybka", "brak face id", "face id nie działa",
+      "telefon zablokowany", "plusgsm", "t-mobile", "orange raty"
+    ]
+  },
+  "notifications": {
+    "console": true,
+    "windows_beep": true,
+    "telegram": {
+      "enabled": false,
+      "bot_token": "",
+      "chat_id": ""
+    },
+    "discord": {
+      "enabled": false,
+      "webhook_url": ""
+    }
+  },
+  "settings": {
+    "interval_seconds": 45,
+    "history_file": "scripts/deal_sniper/seen_deals.json"
+  }
+}

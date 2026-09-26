@@ -4,6 +4,7 @@ import { InvestmentsTopNav } from './InvestmentsTopNav';
 import { InvestmentsSidebar } from './InvestmentsSidebar';
 import { CopycatPlaybookModal } from './CopycatPlaybookModal';
 import { InvestmentsTabRenderer } from './InvestmentsTabRenderer';
+import { loadStoredWatchlist, saveStoredWatchlist } from '../../lib/investments/watchlistStorage';
 
 export type MainTabType =
   | 'dashboard'
@@ -20,29 +21,16 @@ export type MainTabType =
   | 'live'
   | 'methodology';
 
-const LS_KEY = 'sparky_investments_watchlist';
-
-function loadWatchlist(): string[] {
-  try {
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return ['AMZN', 'NVDA', 'DNP', 'CDR'];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : ['AMZN', 'NVDA', 'DNP', 'CDR'];
-  } catch {
-    return ['AMZN', 'NVDA', 'DNP', 'CDR'];
-  }
-}
-
 export const InvestmentsPage: FC = () => {
-  const [activeTab, setActiveTab] = useState<MainTabType>('dashboard');
+  const [activeTab, setActiveTab] = useState<MainTabType>('convergence');
   const [isPlaybookOpen, setIsPlaybookOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [watchlist, setWatchlist] = useState<string[]>(loadWatchlist);
+  const [watchlist, setWatchlist] = useState<string[]>(loadStoredWatchlist);
 
   const handleToggleWatchlist = useCallback((ticker: string) => {
     setWatchlist((prev) => {
       const next = prev.includes(ticker) ? prev.filter((t) => t !== ticker) : [...prev, ticker];
-      try { localStorage.setItem(LS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      saveStoredWatchlist(next);
       return next;
     });
   }, []);

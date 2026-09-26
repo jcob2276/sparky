@@ -4,9 +4,9 @@ import { OrcaDashboardView } from './OrcaDashboardView';
 import { ConvergenceView } from './ConvergenceView';
 import { Investors13FView } from './Investors13FView';
 import { PoliticiansView } from './PoliticiansView';
-import { StocksHoldingView } from './StocksHoldingView';
+import { EspiFeedView } from './EspiFeedView';
 import { GpwShortsView } from './GpwShortsView';
-import { MethodologyView } from './MethodologyView';
+import { GpwScreenerView } from './GpwScreenerView';
 import { GpwPortfolioView } from './GpwPortfolioView';
 import { LiveTradesView } from './LiveTradesView';
 import { InvestmentsAnalystView } from './InvestmentsAnalystView';
@@ -41,33 +41,30 @@ export const InvestmentsTabRenderer: FC<Props> = ({
   switch (activeTab) {
     case 'dashboard':
       return (
-        <OrcaDashboardView
-          onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)}
-          trades={trades}
-        />
+        <OrcaDashboardView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />
       );
     case 'analyst':
       return <InvestmentsAnalystView />;
     case 'watchlist':
       return <InvestmentsWatchlistView watchlist={watchlist} onToggle={onToggleWatchlist} />;
     case 'convergence':
-      return <ConvergenceView />;
+      return <ConvergenceView watchlist={watchlist} />;
     case 'screener':
       return <StocksConsensusView />;
     case 'investors':
       return <Investors13FView />;
     case 'politicians':
-      return <PoliticiansView trades={trades} />;
+      return <PoliticiansView />;
     case 'simulation':
       return <BasketSimulationView />;
     case 'stocks':
-      return <StocksHoldingView allCongressTrades={trades} />;
+      return <EspiFeedView />;
     case 'gpw_shorts':
       return <GpwShortsView />;
     case 'gpw_mar':
       return <GpwPortfolioView />;
     case 'methodology':
-      return <MethodologyView />;
+      return <GpwScreenerView />;
     case 'live':
     default:
       return (

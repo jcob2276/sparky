@@ -35,24 +35,24 @@ interface NavItem {
 
 const NAV_CENTRUM: NavItem[] = [
   { id: 'dashboard', label: 'Pulpit', icon: <LayoutDashboard size={16} /> },
-  { id: 'analyst', label: 'Analityk AI', icon: <Bot size={16} />, badge: 'NOWE', badgeColor: 'primary' },
-  { id: 'watchlist', label: 'Watchlista', icon: <Star size={16} />, badge: 'PRO', badgeColor: 'success' },
+  { id: 'analyst', label: 'Analityk AI', icon: <Bot size={16} /> },
+  { id: 'watchlist', label: 'Watchlista', icon: <Star size={16} /> },
 ];
 
 const NAV_RYNEK_USA: NavItem[] = [
-  { id: 'convergence', label: 'Zbieżność', icon: <Flame size={16} />, badge: 'PRO', badgeColor: 'success' },
+  { id: 'convergence', label: 'Sygnały', icon: <Flame size={16} /> },
   { id: 'screener', label: 'Spółki (13F)', icon: <Search size={16} /> },
   { id: 'politicians', label: 'Kongres', icon: <Landmark size={16} /> },
-  { id: 'investors', label: 'Superinwestorzy', icon: <Users size={16} />, badge: '59', badgeColor: 'primary' },
+  { id: 'investors', label: 'Superinwestorzy', icon: <Users size={16} /> },
   { id: 'live', label: 'Insiderzy Form 4', icon: <Zap size={16} /> },
   { id: 'simulation', label: 'Symulacja', icon: <LineChart size={16} /> },
 ];
 
 const NAV_RYNEK_POLSKI: NavItem[] = [
-  { id: 'gpw_shorts', label: 'Krótka sprzedaż', icon: <ShieldAlert size={16} />, badge: 'KNF', badgeColor: 'danger' },
+  { id: 'gpw_shorts', label: 'Krótka sprzedaż', icon: <ShieldAlert size={16} /> },
   { id: 'gpw_mar', label: 'Spółki GPW', icon: <Building2 size={16} /> },
   { id: 'stocks', label: 'Insiderzy ESPI', icon: <FileText size={16} /> },
-  { id: 'methodology', label: 'Fundamenty', icon: <BookOpen size={16} />, badge: 'NOWE', badgeColor: 'primary' },
+  { id: 'methodology', label: 'Fundamenty', icon: <BookOpen size={16} /> },
 ];
 
 export const InvestmentsSidebar: FC<Props> = ({
@@ -117,19 +117,12 @@ export const InvestmentsSidebar: FC<Props> = ({
         {/* Brand */}
         <div className="px-3 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="text-2xl" role="img" aria-label="OrcaFolio">
-              🐋
-            </span>
+            <span className="font-mono text-xs font-bold text-primary">SP</span>
             <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-black text-base tracking-tight text-text-primary">
-                  OrcaFolio
-                </span>
-                <span className="px-1 py-0.2 rounded text-3xs font-mono font-black bg-success/15 text-success">
-                  FREE
-                </span>
+              <div className="font-mono text-sm font-bold tracking-tight text-text-primary">
+                Sparky
               </div>
-              <p className="text-3xs text-text-muted">Radar 13F & GPW</p>
+              <p className="text-3xs font-mono text-text-muted">jeden użytkownik</p>
             </div>
           </div>
           <span className="w-2 h-2 rounded-full bg-success animate-pulse" title="Feed Live" />

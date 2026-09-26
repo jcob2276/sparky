@@ -29,10 +29,10 @@ export const GpwShortsHeaderBanner: FC<Props> = ({ grouped }) => {
         <div className="p-4 rounded-2xl bg-surface border border-border-custom/70 text-right shrink-0 shadow-xs">
           <div className="text-xs font-medium text-text-secondary">Najbardziej szortowana</div>
           <div className="text-2xl font-black text-danger font-mono mt-0.5">
-            {grouped[0]?.ticker} ({grouped[0]?.totalShortPercent}%)
+            {grouped[0] ? `${grouped[0].ticker} (${grouped[0].totalShortPercent.toFixed(2)}%)` : '—'}
           </div>
           <div className="text-3xs text-text-secondary mt-1">
-            {grouped[0]?.companyName}
+            {grouped[0]?.companyName ?? 'brak pozycji w rejestrze'}
           </div>
         </div>
       </div>

@@ -47,20 +47,13 @@ export const InvestmentsTopNav: FC<Props> = ({
           )}
 
           <div className="flex items-center gap-2.5">
-            <span className="text-2xl" role="img" aria-label="OrcaFolio">
-              🐋
-            </span>
+            <span className="font-mono text-xs font-bold text-primary">SP</span>
             <div className="leading-tight">
-              <div className="flex items-center gap-2">
-                <span className="font-extrabold text-lg tracking-tight text-text-primary">
-                  OrcaFolio
-                </span>
-                <span className="px-1.5 py-0.5 rounded text-3xs font-mono font-bold bg-success/10 text-success border border-success/20">
-                  Otwarte · Bez logowania
-                </span>
+              <div className="font-mono text-sm font-bold tracking-tight text-text-primary">
+                Sparky
               </div>
-              <p className="text-3xs text-text-secondary hidden sm:block">
-                Radar 13F, Kongres USA, KNF Szorty & GPW Insiderzy
+              <p className="text-3xs font-mono text-text-secondary hidden sm:block">
+                13F · Kongres · Form 4 · GPW
               </p>
             </div>
           </div>

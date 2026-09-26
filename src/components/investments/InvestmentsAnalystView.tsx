@@ -1,15 +1,52 @@
-import { FC, useState, useRef, useEffect } from 'react';
+import React, { FC, useState, useRef, useEffect } from 'react';
 import { askInvestmentsAnalyst, ChatMessage } from '../../lib/investments/investmentsAiService';
 import { AiAnalystPrompts } from './AiAnalystPrompts';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { notify } from '../../lib/notify';
+import { analystQuota, consumeAnalystQuota } from '../../lib/investments/analystQuota';
 import { Send, Bot, User, Sparkles, RefreshCw } from 'lucide-react';
+
+const AnalystThread: FC<{ messages: ChatMessage[]; loading: boolean; scrollRef: React.RefObject<HTMLDivElement | null> }> = ({
+  messages,
+  loading,
+  scrollRef,
+}) => (
+  <div className="bg-surface border border-border-custom rounded-3xl p-4 sm:p-6 shadow-xs space-y-4 max-h-[600px] overflow-y-auto">
+    {messages.map((message, index) => (
+      <div key={index} className={`flex gap-3 text-sm leading-relaxed ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+        {message.role === 'assistant' && (
+          <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary border border-primary/25 flex items-center justify-center shrink-0">
+            <Bot size={16} />
+          </div>
+        )}
+        <div className={`p-4 rounded-2xl max-w-2xl text-xs sm:text-sm shadow-xs whitespace-pre-wrap ${message.role === 'user' ? 'bg-primary text-text-on-primary font-medium' : 'bg-surface border border-border-custom text-text-primary'}`}>
+          {message.content}
+        </div>
+        {message.role === 'user' && (
+          <div className="w-8 h-8 rounded-xl bg-surface border border-border-custom text-text-secondary flex items-center justify-center shrink-0">
+            <User size={16} />
+          </div>
+        )}
+      </div>
+    ))}
+    {loading && (
+      <div className="flex gap-3 text-sm items-center text-text-muted">
+        <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary border border-primary/25 flex items-center justify-center shrink-0 animate-pulse">
+          <Bot size={16} />
+        </div>
+        <div className="text-xs font-mono animate-pulse">Analityk AI analizuje dane 13F i KNF...</div>
+      </div>
+    )}
+    <div ref={scrollRef} />
+  </div>
+);
 
 export const InvestmentsAnalystView: FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputVal, setInputVal] = useState('');
   const [loading, setLoading] = useState(false);
+  const [quota, setQuota] = useState(() => analystQuota());
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -19,6 +56,11 @@ export const InvestmentsAnalystView: FC = () => {
   const handleSend = async (textToSend?: string) => {
     const text = (textToSend || inputVal).trim();
     if (!text || loading) return;
+    if (analystQuota().remaining <= 0) {
+      notify('Limit 120 pytań w tym miesiącu jest wyczerpany.', 'error');
+      setQuota(analystQuota());
+      return;
+    }
 
     const userMsg: ChatMessage = { role: 'user', content: text };
     const nextMessages = [...messages, userMsg];
@@ -28,6 +70,12 @@ export const InvestmentsAnalystView: FC = () => {
 
     try {
       const reply = await askInvestmentsAnalyst(nextMessages);
+      if (!consumeAnalystQuota()) {
+        notify('Limit 120 pytań w tym miesiącu jest wyczerpany.', 'error');
+        setQuota(analystQuota());
+        return;
+      }
+      setQuota(analystQuota());
       setMessages([...nextMessages, { role: 'assistant', content: reply }]);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Błąd komunikacji z modelem.';
@@ -57,10 +105,10 @@ export const InvestmentsAnalystView: FC = () => {
               </span>
             </div>
             <h2 className="text-2xl font-extrabold text-text-primary tracking-tight">
-              Analityk AI (OrcaFolio Intelligence)
+              Analityk AI
             </h2>
             <p className="text-xs text-text-secondary mt-1.5 max-w-3xl leading-relaxed">
-              Rozmawiasz z asystentem AI zasilanym danymi OrcaFolio: portfele 13F superinwestorów, transakcje Kongresu USA (STOCK Act), rejestr szortów KNF oraz komunikaty MAR ze spółek GPW. Bez limitów zapytań i bez paywalla.
+              Rozmawiasz z asystentem na danych ujawnień. Limit tego miesiąca: {quota.remaining} z {quota.limit} pytań.
             </p>
           </div>
 
@@ -87,48 +135,7 @@ export const InvestmentsAnalystView: FC = () => {
 
       {/* Chat Messages */}
       {messages.length > 0 && (
-        <div className="bg-surface border border-border-custom rounded-3xl p-4 sm:p-6 shadow-xs space-y-4 max-h-[600px] overflow-y-auto">
-          {messages.map((m, idx) => (
-            <div
-              key={idx}
-              className={`flex gap-3 text-sm leading-relaxed ${
-                m.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
-            >
-              {m.role === 'assistant' && (
-                <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary border border-primary/25 flex items-center justify-center shrink-0">
-                  <Bot size={16} />
-                </div>
-              )}
-              <div
-                className={`p-4 rounded-2xl max-w-2xl text-xs sm:text-sm shadow-xs whitespace-pre-wrap ${
-                  m.role === 'user'
-                    ? 'bg-primary text-text-on-primary font-medium'
-                    : 'bg-surface border border-border-custom text-text-primary'
-                }`}
-              >
-                {m.content}
-              </div>
-              {m.role === 'user' && (
-                <div className="w-8 h-8 rounded-xl bg-surface border border-border-custom text-text-secondary flex items-center justify-center shrink-0">
-                  <User size={16} />
-                </div>
-              )}
-            </div>
-          ))}
-
-          {loading && (
-            <div className="flex gap-3 text-sm items-center text-text-muted">
-              <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary border border-primary/25 flex items-center justify-center shrink-0 animate-pulse">
-                <Bot size={16} />
-              </div>
-              <div className="text-xs font-mono animate-pulse">
-                Analityk AI analizuje dane 13F i KNF...
-              </div>
-            </div>
-          )}
-          <div ref={scrollRef} />
-        </div>
+        <AnalystThread messages={messages} loading={loading} scrollRef={scrollRef} />
       )}
 
       {/* Input Box */}

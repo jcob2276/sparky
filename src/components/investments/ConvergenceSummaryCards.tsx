@@ -1,12 +1,14 @@
 import { FC } from 'react';
-import { CONVERGENCE_ITEMS, ConvergenceItem } from '../../lib/investments/investors13FData';
 import Button from '../ui/Button';
+import { useSignalBoard } from './useSignalBoard';
 
 interface Props {
   onNavigateTab: (tab: string) => void;
 }
 
 export const ConvergenceSummaryCards: FC<Props> = ({ onNavigateTab }) => {
+  const { rows, loading } = useSignalBoard('90d');
+  const top = rows.filter((row) => row.convergent).slice(0, 3);
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Top Zbieżność USA */}
@@ -20,13 +22,17 @@ export const ConvergenceSummaryCards: FC<Props> = ({ onNavigateTab }) => {
               Fundusze i politycy kupują te same akcje:
             </p>
           </div>
-          <span className="px-2 py-0.5 rounded-full text-3xs font-bold bg-success/15 text-success border border-success/30">
-            100% Free
-          </span>
+          <Button size="sm" variant="ghost" onClick={() => onNavigateTab('convergence')} className="text-xs text-primary">
+            Sygnały →
+          </Button>
         </div>
 
         <div className="space-y-2">
-          {CONVERGENCE_ITEMS.slice(0, 3).map((item: ConvergenceItem) => (
+          {loading && <p className="text-xs text-text-muted">Liczenie zbieżności…</p>}
+          {!loading && top.length === 0 && (
+            <p className="text-xs text-text-secondary">Brak zbieżnych kupn funduszy i polityków w oknie 90 dni.</p>
+          )}
+          {top.map((item) => (
             <div
               key={item.ticker}
               className="p-3 rounded-2xl bg-surface border border-border-custom/60 flex items-center justify-between"
@@ -34,16 +40,16 @@ export const ConvergenceSummaryCards: FC<Props> = ({ onNavigateTab }) => {
               <div>
                 <div className="flex items-center gap-1.5">
                   <span className="font-mono font-bold text-xs text-text-primary">
-                    ${item.ticker}
+                    {item.ticker}
                   </span>
                   <span className="text-2xs text-text-secondary">{item.companyName}</span>
                 </div>
                 <div className="text-3xs text-text-muted mt-0.5">
-                  Kupno: {item.superinvestorsCount} funduszy 13F + {item.politiciansCount} polityków
+                  {item.fundNetBuyers} funduszy netto · {item.polBuys} kupn polityków
                 </div>
               </div>
               <span className="font-mono text-sm font-black text-success tabular-nums">
-                +{item.consensusScore}
+                {item.score}
               </span>
             </div>
           ))}

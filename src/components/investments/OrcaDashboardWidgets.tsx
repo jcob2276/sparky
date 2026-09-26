@@ -1,7 +1,7 @@
-import { FC } from 'react';
-import { DISCLOSURE_STREAM_ITEMS } from '../../lib/investments/disclosuresFeedData';
-import { InsiderTradeItem } from '../../lib/investments/investmentsApi';
+import { FC, useEffect, useState } from 'react';
 import { formatShortMonthLabel } from '../../lib/date';
+import { fetchLiveConsensus } from '../../lib/investments/superinvestorsApi';
+import { fetchRecentCongress } from '../../lib/investments/publicDisclosures';
 import { Pressable } from '../ui/ControlPrimitives';
 import Button from '../ui/Button';
 
@@ -15,7 +15,21 @@ export const WatchlistBuilder: FC<{
   watchlist: string[];
   onToggle: (ticker: string) => void;
 }> = ({ watchlist, onToggle }) => {
-  const SUGGESTIONS = ['AMZN', 'AMAT', 'NBIS', 'CRH', 'EA', 'MDLN', 'STX', 'CRWV', 'TMO', 'ALAB'];
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetchLiveConsensus()
+      .then((rows) => {
+        if (active) setSuggestions(rows.slice(0, 10).map((row) => row.ticker));
+      })
+      .catch(() => {
+        if (active) setSuggestions([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-xs space-y-4">
@@ -36,7 +50,7 @@ export const WatchlistBuilder: FC<{
       </div>
 
       <div className="flex flex-wrap gap-2">
-        {SUGGESTIONS.map((t) => {
+        {suggestions.map((t) => {
           const isAdded = watchlist.includes(t);
           return (
             <Pressable
@@ -65,11 +79,11 @@ export const SourceActivityCard: FC<{
   gpwShortsCount?: number;
   totalRecentEvents?: number;
 }> = ({
-  politiciansCount = 70,
-  fundsCount = 5,
-  insidersCount = 4205,
-  gpwShortsCount = 11,
-  totalRecentEvents = 4286,
+  politiciansCount = 0,
+  fundsCount = 0,
+  insidersCount = 0,
+  gpwShortsCount = 0,
+  totalRecentEvents = 0,
 }) => {
   return (
     <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-xs space-y-4">
@@ -115,24 +129,38 @@ export const SourceActivityCard: FC<{
 };
 
 export const DisclosureStreamWidget: FC<{
-  trades?: InsiderTradeItem[];
   onViewAll: () => void;
-}> = ({ trades = [], onViewAll }) => {
-  // If dynamic trades exist, render real live transactions, otherwise fallback to seed feed
-  const displayItems = trades.length > 0
-    ? trades.slice(0, 8).map((t) => {
-        const isPl = t.state === 'PL';
-        const isStock = !isPl && (t.branch === 'senate' || t.branch === 'house' || Boolean(t.chamber));
-        return {
-          id: t.id,
-          dateLabel: t.filing_date ? t.filing_date.slice(5) : 'Dziś',
-          sourceType: isPl ? 'KNF / MAR' : isStock ? 'STOCK' : 'FORM 4',
-          ticker: t.ticker || 'N/A',
-          description: `${t.filer_name} · ${t.transaction_type} ${t.asset_name || ''}`,
-          amountOrPercent: t.amount_label || (t.amount_high ? `$${t.amount_high.toLocaleString()}` : '—'),
-        };
+}> = ({ onViewAll }) => {
+  const [displayItems, setDisplayItems] = useState<Array<{
+    id: string;
+    dateLabel: string;
+    sourceType: string;
+    ticker: string;
+    description: string;
+    amountOrPercent: string;
+  }>>([]);
+
+  useEffect(() => {
+    let active = true;
+    fetchRecentCongress(8)
+      .then((trades) => {
+        if (!active) return;
+        setDisplayItems(trades.map((trade) => ({
+          id: trade.id,
+          dateLabel: trade.filing_date ? trade.filing_date.slice(5) : '—',
+          sourceType: 'STOCK',
+          ticker: trade.ticker || '—',
+          description: `${trade.filer_name} · ${trade.transaction_type}`,
+          amountOrPercent: trade.amount_label || '—',
+        })));
       })
-    : DISCLOSURE_STREAM_ITEMS.slice(0, 8);
+      .catch(() => {
+        if (active) setDisplayItems([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return (
     <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
@@ -141,7 +169,7 @@ export const DisclosureStreamWidget: FC<{
           <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
             <span>⚡</span> Strumień ujawnień (Live Feed)
           </h3>
-          <p className="text-xs text-text-secondary">Form 4, KNF, STOCK Act w czasie rzeczywistym</p>
+          <p className="text-xs text-text-secondary">Ostatnie publiczne zgłoszenia STOCK Act</p>
         </div>
         <Button size="sm" variant="ghost" onClick={onViewAll} className="text-xs font-semibold text-primary">
           Wszystkie →
@@ -149,6 +177,9 @@ export const DisclosureStreamWidget: FC<{
       </div>
 
       <div className="divide-y divide-border-custom/40">
+        {displayItems.length === 0 ? (
+          <p className="p-6 text-center text-xs text-text-secondary">Brak publicznych zgłoszeń STOCK Act.</p>
+        ) : null}
         {displayItems.map((item) => (
           <div key={item.id} className="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-surface transition-colors">
             <div className="flex items-center gap-2.5">

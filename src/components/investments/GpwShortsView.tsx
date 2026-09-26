@@ -1,5 +1,5 @@
 import { FC, useState, useEffect } from 'react';
-import { getGroupedCompanyShorts, CompanyShortSummary } from '../../lib/investments/knfShortsData';
+import { CompanyShortSummary } from '../../lib/investments/knfShortsData';
 import { fetchLiveGpwShorts } from '../../lib/investments/superinvestorsApi';
 import { GpwShortsBreakdownModal } from './GpwShortsBreakdownModal';
 import { GpwShortsHeaderBanner } from './GpwShortsHeaderBanner';
@@ -9,13 +9,13 @@ import { Download } from 'lucide-react';
 
 export const GpwShortsView: FC = () => {
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
-  const [shorts, setShorts] = useState<CompanyShortSummary[]>(getGroupedCompanyShorts);
+  const [shorts, setShorts] = useState<CompanyShortSummary[]>([]);
 
   useEffect(() => {
     let active = true;
     (async () => {
       const live = await fetchLiveGpwShorts();
-      if (!active || live.length === 0) return;
+      if (!active) return;
       setShorts(live);
     })();
     return () => {
@@ -28,7 +28,7 @@ export const GpwShortsView: FC = () => {
     const rows = shorts
       .map(
         (g) =>
-          `"${g.ticker}","${g.companyName}","${g.totalShortPercent.toFixed(2)}","${g.fundsCount}","${g.netChange14d > 0 ? '+' : ''}${g.netChange14d.toFixed(2)}","${g.positions.map((p) => `${p.holderName} (${p.shortPercent}%)`).join('; ')}"`
+          `"${g.ticker}","${g.companyName}","${g.totalShortPercent.toFixed(2)}","${g.fundsCount}","${g.netChange14d == null ? '' : g.netChange14d.toFixed(2)}","${g.positions.map((p) => `${p.holderName} (${p.shortPercent}%)`).join('; ')}"`
       )
       .join('\n');
     const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
@@ -109,18 +109,18 @@ export const GpwShortsView: FC = () => {
                     <td className="py-3.5 px-4 text-center">
                       <span
                         className={`px-2 py-0.5 rounded-md text-2xs font-mono font-bold border ${
-                          g.netChange14d > 0
+                          g.netChange14d != null && g.netChange14d > 0
                             ? 'bg-danger/15 text-danger border-danger/30'
-                            : g.netChange14d < 0
+                            : g.netChange14d != null && g.netChange14d < 0
                             ? 'bg-success/15 text-success border-success/30'
                             : 'bg-surface border-border-custom text-text-muted'
                         }`}
                       >
-                        {g.netChange14d > 0
+                        {g.netChange14d == null
+                          ? '—'
+                          : g.netChange14d > 0
                           ? `+${g.netChange14d.toFixed(2)} p.p.`
-                          : g.netChange14d < 0
-                          ? `${g.netChange14d.toFixed(2)} p.p.`
-                          : '0.00 p.p.'}
+                          : `${g.netChange14d.toFixed(2)} p.p.`}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 text-center font-mono text-text-secondary font-semibold">

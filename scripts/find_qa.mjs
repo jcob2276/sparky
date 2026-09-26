@@ -1,0 +1,11 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+const buf = fs.readFileSync(path.join(os.tmpdir(), 'orca-index.js'), 'utf8');
+const i = buf.indexOf('orca-combined-consensus');
+console.log(buf.slice(Math.max(0, i - 600), i + 400));
+const j = buf.indexOf('function Qa');
+console.log('\nQA', j);
+if (j >= 0) console.log(buf.slice(j, j + 800));
+const k = buf.indexOf('async function Qa');
+console.log('async', k);

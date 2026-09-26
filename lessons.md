@@ -4,6 +4,9 @@ Pamięć agenta o napotkanych problemach i ich rozwiązaniach między sesjami. P
 
 | Data | Zadanie | Problem | Lekcja |
 |---|---|---|---|
+| 2026-09-26 | Form 4 nazwiska | Publiczny widok Orca nie ma kolumny osoby. www.sec.gov z tej sieci odcina automat, także zipy Form 345. | Nazwiska biorę z OpenInsider przez proxy Vite `/openinsider`. Puste pole to ostatnie zgłoszenia; wpisany ticker schodzi przez screener (do 8 stron). To nie jest hurtownia SEC od 2006. |
+| 2026-09-26 | Luki Orcafolio w /inwestycje | Anon nie widzi pełnego skanera GPW ani kolumny `close`. BiznesRadar „Prognozy PREMIUM” jest płatny. | Roczne sprawozdania: publiczny HTML BiznesRadar (`/biznesradar`, od pierwszego roku spółki, PKO od 2007). Prognozy: tytuły ESPI z „prognoz”. Digest mailowy otwiera `mailto:` — w repozytorium nie ma SMTP. |
+| 2026-09-26 | Sygnały /inwestycje | Edge `orca-combined-consensus` wymaga sesji. Stare wiersze zostawały na ekranie po zmianie okna. | Ocenę 0–100 licz lokalnie z publicznych `vw_consensus`, `stock_act_trades` i `vw_insider_public`. Przy zmianie okna ukryj tabelę, dopóki nowy ranking nie wróci. |
 | 2026-07-03 | Faza 3 CalendarView — fetch events | Supabase query builder zwraca `PromiseLike` (brak metody `.catch()`). | Używaj `async/await` z `try/catch` zamiast `.then().catch()` na builderze lub opakuj w `Promise.resolve()`. |
 | 2026-07-03 | SSOT daily_wins + drop project_checkpoints | Zapisy raw do `daily_wins` omijały cache. Brak fizycznego usunięcia tabeli `project_checkpoints`. | Zapisuj tylko przez helpery w `goalSpine.ts`. Ukończ migracje (usunięcie tabel) przed zmianą statusu w dokumentacji. |
 | 2026-06-30 | Rollup target_value → goal_kpis | Równoległe modyfikacje `kpi_entries` z JS powodowały race conditions. | Używaj atomowych RPC (np. `increment_kpi_entry_for_week`). Auto-rollup wymaga, aby projekt miał dokładnie 1 KPI. |

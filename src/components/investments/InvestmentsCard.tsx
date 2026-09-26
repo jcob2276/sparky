@@ -8,6 +8,8 @@ interface Props {
 
 export const InvestmentsCard: FC<Props> = ({ trade, isCluster }) => {
   const isBuy = trade.transaction_type.toLowerCase().includes('purchase') || trade.transaction_type.toLowerCase().includes('buy');
+  const isSell = trade.transaction_type.toLowerCase().includes('sale') || trade.transaction_type.toLowerCase().includes('sell');
+  const isForm4 = trade.branch === 'form4';
   const isPolish = trade.state === 'PL' || trade.branch === 'gpw_mar';
   const isWhale = (trade.amount_high || 0) >= 250000 || (isPolish && (trade.amount_high || 0) >= 1000000);
 
@@ -20,7 +22,9 @@ export const InvestmentsCard: FC<Props> = ({ trade, isCluster }) => {
       ? 'bg-danger/10 text-danger border-danger/20'
       : 'bg-surface text-text-secondary border-border-custom/50';
 
-  const partyName = isPolish
+  const partyName = isForm4
+    ? 'Form 4'
+    : isPolish
     ? 'GPW Warszawa'
     : trade.party === 'D'
     ? 'Demokrata'
@@ -28,7 +32,9 @@ export const InvestmentsCard: FC<Props> = ({ trade, isCluster }) => {
     ? 'Republikanin'
     : trade.party || 'Niezależny';
 
-  const chamberLabel = isPolish
+  const chamberLabel = isForm4
+    ? (trade.chamber || 'SEC')
+    : isPolish
     ? (trade.chamber || 'GPW')
     : trade.chamber === 'house'
     ? 'Izba Reprezentantów'
@@ -76,10 +82,12 @@ export const InvestmentsCard: FC<Props> = ({ trade, isCluster }) => {
             className={`px-2 py-0.5 rounded-md text-2xs font-semibold border ${
               isBuy
                 ? 'bg-success/15 text-success border-success/30'
-                : 'bg-danger/15 text-danger border-danger/30'
+                : isSell
+                ? 'bg-danger/15 text-danger border-danger/30'
+                : 'bg-surface text-text-secondary border-border-custom'
             }`}
           >
-            {isBuy ? '🟢 Kupno' : '🔴 Sprzedaż'}
+            {isBuy ? 'Kupno' : isSell ? 'Sprzedaż' : trade.transaction_type}
           </span>
         </div>
 

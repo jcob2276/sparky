@@ -48,6 +48,8 @@ import { addWeeks, format, startOfWeek, subWeeks } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { getTodayWarsaw, shiftDateStr } from '@vanguard/domain';
 
+export { getTodayWarsaw, shiftDateStr };
+
 export function getWeekStartWarsaw(dateStr: string): string {
   const d = new Date(`${dateStr.slice(0, 10)}T12:00:00Z`);
   return format(startOfWeek(d, { weekStartsOn: 1 }), 'yyyy-MM-dd');

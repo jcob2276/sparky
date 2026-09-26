@@ -1,248 +1,178 @@
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 import Button from '../ui/Button';
 import { notify } from '../../lib/notify';
-import { Download, Copy, TrendingUp, ShieldAlert } from 'lucide-react';
+import { Download, Copy, Bell } from 'lucide-react';
+import type { SignalRow, SignalWindow } from '../../lib/investments/signalsApi';
+import { useSignalBoard } from './useSignalBoard';
+import { SignalsTable } from './SignalsTable';
 
-interface ConvergenceItem {
-  ticker: string;
-  name: string;
-  market: 'USA' | 'GPW';
-  score: number;
-  fundsDetails: string;
-  politiciansDetails: string;
-  shortDetails?: string;
-  tradingviewUrl: string;
+const PAGE = 100;
+
+interface Props {
+  watchlist: string[];
 }
 
-const CONVERGENCE_DATA: ConvergenceItem[] = [
-  {
-    ticker: 'AMZN',
-    name: 'Amazon.com Inc.',
-    market: 'USA',
-    score: 4,
-    fundsDetails: 'Warren Buffett (+5.2%) · Ray Dalio (+12.4%) · Scion Asset Mgmt',
-    politiciansDetails: '1 transakcja kupna w Senacie USA ($250k–$500k)',
-    tradingviewUrl: 'https://www.tradingview.com/symbols/AMZN/',
-  },
-  {
-    ticker: 'NVDA',
-    name: 'NVIDIA Corporation',
-    market: 'USA',
-    score: 3,
-    fundsDetails: 'Bill Ackman (Pershing Square) · Stanley Druckenmiller',
-    politiciansDetails: 'Nancy Pelosi (Opcje Call LEAPS Deep ITM $1M–$5M)',
-    tradingviewUrl: 'https://www.tradingview.com/symbols/NVDA/',
-  },
-  {
-    ticker: 'GOOGL',
-    name: 'Alphabet Inc.',
-    market: 'USA',
-    score: 3,
-    fundsDetails: 'Michael Burry (Scion) · Ray Dalio (Bridgewater)',
-    politiciansDetails: 'Sheri Biggs ($500k–$1M) · Nancy Pelosi ($1M–$5M)',
-    tradingviewUrl: 'https://www.tradingview.com/symbols/GOOGL/',
-  },
-  {
-    ticker: 'AVGO',
-    name: 'Broadcom Inc.',
-    market: 'USA',
-    score: 2,
-    fundsDetails: 'Stanley Druckenmiller (Duquesne Family Office)',
-    politiciansDetails: 'Richard W. Allen (Kongres, kupno 12 sie)',
-    tradingviewUrl: 'https://www.tradingview.com/symbols/AVGO/',
-  },
-  {
-    ticker: 'DNP',
-    name: 'Dino Polska S.A.',
-    market: 'GPW',
-    score: 2,
-    fundsDetails: 'Zwiększenie udziału funduszy emerytalnych OFE',
-    politiciansDetails: 'Zarząd: zgłoszenie MAR art. 19 (akumulacja)',
-    shortDetails: 'KNF: szort Marshall Wace zredukowany z 0.69% do 0.64%',
-    tradingviewUrl: 'https://stooq.pl/q/?s=dnp',
-  },
-  {
-    ticker: 'ALE',
-    name: 'Allegro.eu S.A.',
-    market: 'GPW',
-    score: 2,
-    fundsDetails: 'Qube Research redukuje pozycję krótką o -0,07 p.p. do 3,28%',
-    politiciansDetails: 'Insiderzy: zakupy menedżerskie',
-    shortDetails: 'KNF: zamykanie szortów (potencjał short-squeeze)',
-    tradingviewUrl: 'https://stooq.pl/q/?s=ale',
-  },
-];
+function exportCsv(rows: SignalRow[]) {
+  const header = 'Ticker,Spolka,Ocena,Zbiezne,Fundusze_netto,Kupna_politykow,Sprzedaze_politykow,Kupujacy_politycy,Insiderzy_kupno,Wolumen_srodek_USD,Ostatnia,Dowody\n';
+  const body = rows
+    .map((row) =>
+      [
+        row.ticker,
+        row.companyName,
+        row.score,
+        row.convergent ? 'tak' : 'nie',
+        row.fundNetBuyers,
+        row.polBuys,
+        row.polSells,
+        row.politicianBuyers,
+        row.insiderBuys,
+        Math.round(row.buyVolumeMid),
+        row.lastTradeDate ?? '',
+        row.summary,
+      ]
+        .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+        .join(','),
+    )
+    .join('\n');
+  const blob = new Blob([header + body], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `sygnaly_zbieznosci_${Date.now()}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
 
-const ConvergenceCard: FC<{ item: ConvergenceItem }> = ({ item }) => (
-  <div className="p-5 rounded-3xl bg-surface border border-border-custom shadow-xs space-y-4 hover:border-primary/40 transition-colors">
-    <div className="flex items-center justify-between pb-3 border-b border-border-custom/40">
-      <div className="flex items-center gap-2.5">
-        <span className="px-2.5 py-1 rounded-xl bg-surface border border-border-custom font-mono font-black text-sm text-text-primary shadow-xs">
-          ${item.ticker}
-        </span>
-        <div>
-          <h4 className="font-bold text-sm text-text-primary">{item.name}</h4>
-          <span className="text-3xs text-text-muted font-mono">{item.market}</span>
-        </div>
-      </div>
+export const ConvergenceView: FC<Props> = ({ watchlist }) => {
+  const [window, setWindow] = useState<SignalWindow>('90d');
+  const [watchlistOnly, setWatchlistOnly] = useState(false);
+  const [visibleRest, setVisibleRest] = useState(PAGE);
+  const { rows, alerts, loading, error, dismissAlerts } = useSignalBoard(window);
+  const windowLabel = window === '90d' ? '90 DNI' : '12 MIES.';
 
-      <div className="text-right flex items-center gap-2">
-        <span className="px-2.5 py-1 rounded-xl bg-success/15 border border-success/30 text-success font-mono font-black text-sm tabular-nums">
-          +{item.score} Zbieżność
-        </span>
-      </div>
-    </div>
+  const filtered = useMemo(() => {
+    if (!watchlistOnly) return rows;
+    const wanted = new Set(watchlist.map((ticker) => ticker.replace(/\.WA$/i, '').toUpperCase()));
+    return rows.filter((row) => wanted.has(row.ticker));
+  }, [rows, watchlist, watchlistOnly]);
 
-    <div className="space-y-2 text-xs">
-      <div className="p-3 rounded-2xl bg-surface border border-border-custom/50">
-        <strong className="text-text-primary block text-2xs font-semibold uppercase text-primary mb-0.5">
-          👔 Fundusze 13F:
-        </strong>
-        <p className="text-text-secondary">{item.fundsDetails}</p>
-      </div>
+  const convergent = filtered.filter((row) => row.convergent);
+  const rest = filtered.filter((row) => !row.convergent);
+  const restPage = rest.slice(0, visibleRest);
 
-      <div className="p-3 rounded-2xl bg-surface border border-border-custom/50">
-        <strong className="text-text-primary block text-2xs font-semibold uppercase text-info mb-0.5">
-          🏛 Politycy & Insiderzy:
-        </strong>
-        <p className="text-text-secondary">{item.politiciansDetails}</p>
-      </div>
-
-      {item.shortDetails && (
-        <div className="p-3 rounded-2xl bg-danger/10 border border-danger/20">
-          <strong className="text-danger block text-2xs font-semibold uppercase flex items-center gap-1 mb-0.5">
-            <ShieldAlert size={12} /> Sygnał Short-Squeeze GPW:
-          </strong>
-          <p className="text-text-secondary">{item.shortDetails}</p>
-        </div>
-      )}
-    </div>
-
-    <div className="pt-2 flex items-center justify-end border-t border-border-custom/30">
-      <a
-        href={item.tradingviewUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
-      >
-        Wykres notowań ↗
-      </a>
-    </div>
-  </div>
-);
-
-export const ConvergenceView: FC = () => {
-  const [filterMarket, setFilterMarket] = useState<'all' | 'USA' | 'GPW'>('all');
-
-  const filtered = CONVERGENCE_DATA.filter((item) =>
-    filterMarket === 'all' ? true : item.market === filterMarket
-  );
-
-  const handleExportCsv = () => {
-    const headers = 'Ticker,Spolka,Rynek,Wynik_Zbieznosci,Fundusze_13F,Politycy_Insiderzy,Szorty_KNF\n';
-    const rows = filtered
-      .map(
-        (c) =>
-          `"${c.ticker}","${c.name}","${c.market}","+${c.score}","${c.fundsDetails}","${c.politiciansDetails}","${c.shortDetails || ''}"`
-      )
-      .join('\n');
-    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `zbieznosc_inwestycji_${Date.now()}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-    notify('Wyeksportowano zbieżność do pliku CSV!', 'success');
-  };
-
-  const handleCopyClipboard = () => {
+  const copyRanking = () => {
     const text = filtered
-      .map((c) => `+${c.score} ${c.ticker} (${c.name}): ${c.fundsDetails} | ${c.politiciansDetails}`)
+      .map((row) => `${row.score} ${row.ticker} (${row.companyName}): ${row.summary}`)
       .join('\n');
-    navigator.clipboard.writeText(text);
-    notify('Skopiowano ranking zbieżności do schowka!', 'success');
+    void navigator.clipboard.writeText(text);
+    notify('Skopiowano ranking zbieżności.', 'success');
   };
 
   return (
-    <div className="space-y-6 animate-fade-in text-text-primary">
-      {/* Header Banner */}
-      <div className="p-6 rounded-3xl bg-surface border border-border-custom shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-border-custom/50">
+    <div className="space-y-4 animate-fade-in text-text-primary">
+      <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-xs space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
-                <TrendingUp size={12} /> Silnik Zbieżności (Convergence Engine)
-              </span>
-              <span className="text-2xs font-mono text-text-secondary">
-                13F + STOCK Act + KNF MAR
-              </span>
-            </div>
-            <h2 className="text-2xl font-extrabold tracking-tight">
-              Gdzie spotykają się miliarderzy i politycy?
-            </h2>
+            <div className="text-xs font-black uppercase tracking-wider text-primary">Zbieżność ujawnień</div>
+            <h2 className="text-xl font-extrabold tracking-tight mt-1">Trzy źródła. Jedna tabela.</h2>
             <p className="text-xs text-text-secondary mt-1.5 max-w-2xl leading-relaxed">
-              Najsilniejszy sygnał na rynku: spółki, które w tym samym czasie kupują legendarni zarządzający funduszy 13F (Buffett, Burry, Ackman) oraz kongresmeni USA lub członkowie zarządów na GPW.
+              Spółki kupowane równolegle przez fundusze 13F, polityków i insiderów. Zestawienie opisuje fakt o danych, nie zalecenie.
             </p>
           </div>
-
-          <div className="flex items-center gap-2 shrink-0">
-            <Button
-              size="sm"
-              variant="secondary"
-              icon={<Copy size={13} />}
-              onClick={handleCopyClipboard}
-              className="rounded-xl text-xs font-semibold"
-            >
-              Kopiuj
-            </Button>
-            <Button
-              size="sm"
-              variant="primary"
-              icon={<Download size={13} />}
-              onClick={handleExportCsv}
-              className="rounded-xl text-xs font-bold"
-            >
-              Eksportuj CSV
-            </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-3xs font-mono text-text-muted">3 źródła · okno {windowLabel}</span>
+            {(['90d', '365d'] as const).map((option) => (
+              <Button
+                key={option}
+                size="sm"
+                variant={window === option ? 'primary' : 'secondary'}
+                className="rounded-xl text-xs"
+                onClick={() => {
+                  setWindow(option);
+                  setVisibleRest(PAGE);
+                }}
+              >
+                {option === '90d' ? '90 dni' : '12 mies.'}
+              </Button>
+            ))}
           </div>
         </div>
-
-        {/* Market Filter Switcher */}
-        <div className="flex items-center gap-2 mt-4 pt-1">
+        <div className="flex flex-wrap gap-2">
           <Button
             size="sm"
-            variant={filterMarket === 'all' ? 'primary' : 'secondary'}
-            onClick={() => setFilterMarket('all')}
+            variant={watchlistOnly ? 'primary' : 'secondary'}
             className="rounded-xl text-xs"
+            onClick={() => setWatchlistOnly((prev) => !prev)}
           >
-            Wszystkie rynki ({CONVERGENCE_DATA.length})
+            Watchlista ({watchlist.length})
+          </Button>
+          <Button size="sm" variant="secondary" icon={<Copy size={13} />} className="rounded-xl text-xs" onClick={copyRanking} disabled={filtered.length === 0}>
+            Kopiuj
           </Button>
           <Button
             size="sm"
-            variant={filterMarket === 'USA' ? 'primary' : 'secondary'}
-            onClick={() => setFilterMarket('USA')}
+            variant="primary"
+            icon={<Download size={13} />}
             className="rounded-xl text-xs"
+            disabled={filtered.length === 0}
+            onClick={() => {
+              exportCsv(filtered);
+              notify('Wyeksportowano pełny zbiór CSV.', 'success');
+            }}
           >
-            🇺🇸 Wall Street (USA)
-          </Button>
-          <Button
-            size="sm"
-            variant={filterMarket === 'GPW' ? 'primary' : 'secondary'}
-            onClick={() => setFilterMarket('GPW')}
-            className="rounded-xl text-xs"
-          >
-            🇵🇱 Warszawa (GPW KNF)
+            Eksport CSV
           </Button>
         </div>
       </div>
 
-      {/* Cards List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {filtered.map((item) => (
-          <ConvergenceCard key={item.ticker} item={item} />
-        ))}
-      </div>
+      {alerts.length > 0 && (
+        <div className="p-4 rounded-3xl border border-primary/30 bg-primary/5 flex flex-col sm:flex-row sm:items-center gap-3">
+          <Bell size={16} className="text-primary shrink-0" />
+          <p className="text-xs text-text-secondary flex-1">
+            Nowa zbieżność od ostatniego odczytu: {alerts.map((row) => `${row.ticker} (${row.score})`).join(', ')}.
+          </p>
+          <Button size="sm" variant="secondary" className="rounded-xl text-xs" onClick={dismissAlerts}>
+            Oznacz jako przeczytane
+          </Button>
+        </div>
+      )}
+
+      {loading && <p className="text-sm text-text-secondary">Liczenie zbieżności…</p>}
+      {error && <p className="text-sm text-danger">{error}. Spróbuj ponownie za chwilę.</p>}
+      {!loading && !error && filtered.length === 0 && (
+        <p className="text-sm text-text-secondary">
+          Brak zbieżności w tym oknie. Poszerz okno do 12 miesięcy albo wróć po najbliższej synchronizacji ujawnień.
+        </p>
+      )}
+
+      {!loading && convergent.length > 0 && (
+        <SignalsTable
+          title={`Zbieżne (${convergent.length}): fundusze i politycy kupują`}
+          windowLabel={windowLabel}
+          rows={convergent}
+        />
+      )}
+      {!loading && restPage.length > 0 && (
+        <SignalsTable
+          title={`Pozostała aktywność polityków w spółkach 13F (${rest.length})`}
+          windowLabel={windowLabel}
+          rows={restPage}
+        />
+      )}
+      {!loading && visibleRest < rest.length && (
+        <Button
+          size="sm"
+          variant="secondary"
+          className="w-full rounded-xl text-xs"
+          onClick={() => setVisibleRest((count) => count + PAGE)}
+        >
+          Pokaż kolejne {Math.min(PAGE, rest.length - visibleRest)} z {rest.length - visibleRest}
+        </Button>
+      )}
+
+      <p className="text-3xs font-mono text-text-muted leading-relaxed max-w-4xl">
+        Ocena = pozycja percentylowa ważonych źródeł (40% fundusze 13F netto, 24% netto transakcji polityków, 16% liczby kupujących polityków, 20% insiderzy; bez danych insiderskich 50/30/20) w oknie {windowLabel}. Porządkuje listę, nie jest prognozą ani oceną spółki. Kwoty transakcji polityków to środki widełek z ujawnień STOCK Act.
+      </p>
     </div>
   );
 };

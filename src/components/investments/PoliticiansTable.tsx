@@ -3,13 +3,14 @@
  * Displays chronological STOCK Act transactions per selected politician.
  */
 import { FC } from 'react';
+import Button from '../ui/Button';
 import { InsiderTradeItem } from '../../lib/investments/investmentsApi';
 
 interface TradeRowProps {
   trade: InsiderTradeItem;
 }
 
-const TradeRow: FC<TradeRowProps> = ({ trade: t }) => {
+const TradeRow: FC<TradeRowProps & { onSelect: (name: string) => void }> = ({ trade: t, onSelect }) => {
   const isBuy =
     (t.transaction_type ?? '').toLowerCase().includes('buy') ||
     (t.transaction_type ?? '').toLowerCase().includes('purchase');
@@ -20,6 +21,11 @@ const TradeRow: FC<TradeRowProps> = ({ trade: t }) => {
 
   return (
     <tr className="hover:bg-primary/5 transition-colors">
+      <td className="py-3.5 px-4 whitespace-nowrap">
+        <Button type="button" size="sm" variant="ghost" className="text-xs font-semibold text-primary" onClick={() => onSelect(t.filer_name)}>
+          {t.filer_name}
+        </Button>
+      </td>
       <td className="py-3.5 px-4 whitespace-nowrap">
         <div className="flex items-center gap-1.5">
           <span className="px-2 py-0.5 rounded-md bg-surface border border-border-custom text-text-primary font-mono font-black text-xs shadow-xs">
@@ -67,9 +73,10 @@ const TradeRow: FC<TradeRowProps> = ({ trade: t }) => {
 
 interface PoliticiansTableProps {
   trades: InsiderTradeItem[];
+  onSelect: (name: string) => void;
 }
 
-export const PoliticiansTable: FC<PoliticiansTableProps> = ({ trades }) => {
+export const PoliticiansTable: FC<PoliticiansTableProps> = ({ trades, onSelect }) => {
   if (trades.length === 0) {
     return (
       <div className="p-10 text-center text-xs text-text-secondary">
@@ -83,6 +90,7 @@ export const PoliticiansTable: FC<PoliticiansTableProps> = ({ trades }) => {
       <table className="w-full text-left text-sm">
         <thead className="bg-surface border-b border-border-custom/50 text-2xs text-text-secondary uppercase font-semibold">
           <tr>
+            <th className="py-3 px-4">Osoba</th>
             <th className="py-3 px-4">Ticker &amp; Instrument</th>
             <th className="py-3 px-4">Typ</th>
             <th className="py-3 px-4 text-right">Kwota</th>
@@ -93,7 +101,7 @@ export const PoliticiansTable: FC<PoliticiansTableProps> = ({ trades }) => {
         </thead>
         <tbody className="divide-y divide-border-custom/40">
           {trades.map((t) => (
-            <TradeRow key={t.id} trade={t} />
+            <TradeRow key={t.id} trade={t} onSelect={onSelect} />
           ))}
         </tbody>
       </table>

@@ -4,8 +4,8 @@ export interface StockConsensusItem {
   ticker: string;
   name: string;
   sector: string;
-  priceUsd: number;
-  changeToday: number;
+  priceUsd: number | null;
+  changeToday: number | null;
   fundsBuying: number;
   fundsSelling: number;
   totalFunds: number;
@@ -53,12 +53,16 @@ export const StocksConsensusTable: FC<Props> = ({ stocks }) => {
                     {stock.sector}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono font-bold text-text-primary tabular-nums">
-                    ${stock.priceUsd.toFixed(2)}
+                    {stock.priceUsd == null ? '—' : `$${stock.priceUsd.toFixed(2)}`}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono text-xs tabular-nums">
-                    <span className={stock.changeToday >= 0 ? 'text-success font-semibold' : 'text-danger font-semibold'}>
-                      {stock.changeToday >= 0 ? `+${stock.changeToday.toFixed(2)}%` : `${stock.changeToday.toFixed(2)}%`}
-                    </span>
+                    {stock.changeToday == null ? (
+                      <span className="text-text-muted">—</span>
+                    ) : (
+                      <span className={stock.changeToday >= 0 ? 'text-success font-semibold' : 'text-danger font-semibold'}>
+                        {stock.changeToday >= 0 ? `+${stock.changeToday.toFixed(2)}%` : `${stock.changeToday.toFixed(2)}%`}
+                      </span>
+                    )}
                   </td>
                   <td className="py-3.5 px-4 text-center text-xs font-mono">
                     <span className="text-success font-bold">{stock.fundsBuying} kupuje</span>

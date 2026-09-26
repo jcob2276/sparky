@@ -109,6 +109,16 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/oura-api/, ''),
           secure: false
+        },
+        '/openinsider': {
+          target: 'http://openinsider.com',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/openinsider/, ''),
+        },
+        '/biznesradar': {
+          target: 'https://www.biznesradar.pl',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/biznesradar/, ''),
         }
       },
       // Pre-transform the heavy lazy-loaded routes on server start so the first

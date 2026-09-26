@@ -7,7 +7,7 @@ export interface WatchlistItem {
   name: string;
   market: 'USA' | 'GPW';
   price: string;
-  changePercent: number;
+  changePercent: number | null;
   signalsCount: number;
   lastSignal: string;
 }
@@ -47,7 +47,7 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
             {items.map((item) => {
               const rawTicker = item.ticker.replace('.WA', '');
               const isAdded = watchlist.includes(rawTicker) || watchlist.includes(item.ticker);
-              const isPositive = item.changePercent >= 0;
+              const isPositive = item.changePercent != null && item.changePercent >= 0;
 
               return (
                 <tr
@@ -90,12 +90,16 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
                     {item.price}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono text-xs tabular-nums">
-                    <span className={`inline-flex items-center gap-0.5 font-bold ${
-                      isPositive ? 'text-success' : 'text-danger'
-                    }`}>
-                      {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-                      {isPositive ? `+${item.changePercent.toFixed(2)}%` : `${item.changePercent.toFixed(2)}%`}
-                    </span>
+                    {item.changePercent == null ? (
+                      <span className="text-text-muted">—</span>
+                    ) : (
+                      <span className={`inline-flex items-center gap-0.5 font-bold ${
+                        isPositive ? 'text-success' : 'text-danger'
+                      }`}>
+                        {isPositive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                        {isPositive ? `+${item.changePercent.toFixed(2)}%` : `${item.changePercent.toFixed(2)}%`}
+                      </span>
+                    )}
                   </td>
                   <td className="py-3.5 px-4 text-xs text-text-secondary">
                     <span className="px-2 py-0.5 rounded-md bg-surface border border-border-custom font-mono text-2xs">
