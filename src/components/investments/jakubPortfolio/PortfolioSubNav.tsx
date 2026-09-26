@@ -24,15 +24,6 @@ export const PortfolioSubNav: FC<Props> = ({ activeTab, onSelectTab }) => {
         >
           <Wallet size={15} />
           <span>Portfel Jakuba</span>
-          <span
-            className={`text-4xs font-mono font-normal px-1.5 py-0.5 rounded-md ${
-              activeTab === 'jakub_portfolio'
-                ? 'bg-background/20 text-on-accent'
-                : 'bg-surface text-text-muted border border-border-custom'
-            }`}
-          >
-            Ja
-          </span>
         </Button>
 
         <Button
@@ -47,15 +38,6 @@ export const PortfolioSubNav: FC<Props> = ({ activeTab, onSelectTab }) => {
         >
           <Users size={15} />
           <span>Portfel Kondzia</span>
-          <span
-            className={`text-4xs font-mono font-normal px-1.5 py-0.5 rounded-md ${
-              activeTab === 'kondzio_portfolio'
-                ? 'bg-background/20 text-on-accent'
-                : 'bg-surface text-text-muted border border-border-custom'
-            }`}
-          >
-            Kondzio
-          </span>
         </Button>
       </div>
 
