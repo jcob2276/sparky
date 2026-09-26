@@ -46,16 +46,16 @@ export const MarketStatusBadge: FC = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1 rounded-xl bg-surface border border-border-custom shadow-2xs cursor-pointer select-none hover:border-primary/40 transition-colors"
+        className="flex items-center gap-1 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-xl bg-surface border border-border-custom shadow-2xs cursor-pointer select-none hover:border-primary/40 transition-colors shrink-0"
         onClick={() => setIsOpen((prev) => !prev)}
         title="Kliknij, aby zobaczyć godziny sesji giełdowych"
       >
         <Clock size={12} className="text-text-muted hidden sm:inline" />
 
         {/* GPW Pill */}
-        <div className="flex items-center gap-1.5 font-mono text-2xs">
+        <div className="flex items-center gap-1 sm:gap-1.5 font-mono text-2xs">
           {renderDot(sessions.gpw.badgeVariant, sessions.gpw.state)}
-          <span className="font-bold text-text-primary">GPW</span>
+          <span className="font-bold text-text-primary text-3xs sm:text-2xs">GPW</span>
           <span
             className={`hidden md:inline ${
               sessions.gpw.state === 'open'
@@ -70,9 +70,9 @@ export const MarketStatusBadge: FC = () => {
         <div className="h-3 w-px bg-border-custom/80" />
 
         {/* USA Pill */}
-        <div className="flex items-center gap-1.5 font-mono text-2xs">
+        <div className="flex items-center gap-1 sm:gap-1.5 font-mono text-2xs">
           {renderDot(sessions.usa.badgeVariant, sessions.usa.state)}
-          <span className="font-bold text-text-primary">USA</span>
+          <span className="font-bold text-text-primary text-3xs sm:text-2xs">USA</span>
           <span
             className={`hidden md:inline ${
               sessions.usa.state === 'open'

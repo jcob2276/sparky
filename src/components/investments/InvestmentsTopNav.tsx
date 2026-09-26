@@ -37,17 +37,17 @@ export const InvestmentsTopNav: FC<Props> = ({
   }, []);
 
   return (
-    <div className="relative mb-6 border-b border-border-custom/50 pb-4">
-      <div className="flex items-center justify-between gap-4">
+    <div className="relative mb-6 border-b border-border-custom/50 pb-4 w-full max-w-full overflow-hidden">
+      <div className="flex items-center justify-between gap-2 sm:gap-4 w-full min-w-0">
         {/* Left: Back + Mobile Toggle + Brand */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-3 min-w-0 shrink-0">
           {onBack && (
             <Button
               size="sm"
               variant="ghost"
               icon={<ArrowLeft size={18} />}
               onClick={onBack}
-              className="rounded-xl p-2 text-text-secondary hover:text-text-primary"
+              className="rounded-xl p-2 text-text-secondary hover:text-text-primary shrink-0"
               aria-label={activeTab === 'dashboard' ? 'Wróć do Sparky' : 'Wróć do pulpitu'}
               title={activeTab === 'dashboard' ? 'Wróć do Sparky' : 'Wróć do pulpitu'}
             />
@@ -59,15 +59,16 @@ export const InvestmentsTopNav: FC<Props> = ({
               variant="ghost"
               icon={<Menu size={18} />}
               onClick={onOpenMobileMenu}
-              className="lg:hidden rounded-xl p-2 text-text-secondary hover:text-text-primary"
+              className="lg:hidden rounded-xl p-2 text-text-secondary hover:text-text-primary shrink-0"
               aria-label="Otwórz menu nawigacji"
+              title="Otwórz menu nawigacji"
             />
           )}
 
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             <span className="font-mono text-xs font-bold text-primary">SP</span>
             <div className="leading-tight">
-              <div className="font-mono text-sm font-bold tracking-tight text-text-primary">
+              <div className="font-mono text-xs sm:text-sm font-bold tracking-tight text-text-primary">
                 Sparky
               </div>
               <p className="text-3xs font-mono text-text-secondary hidden sm:block">
@@ -76,23 +77,25 @@ export const InvestmentsTopNav: FC<Props> = ({
             </div>
           </div>
 
-          <div className="h-4 w-px bg-border-custom/60 mx-1 hidden sm:block" />
+          <div className="h-4 w-px bg-border-custom/60 mx-0.5 sm:mx-1 hidden sm:block" />
 
           {/* Global Ticker Search */}
           <Button
             size="sm"
             variant="secondary"
-            icon={<Search size={13} />}
+            icon={<Search size={14} />}
             onClick={() => setIsSearchOpen(true)}
-            className="rounded-xl text-xs font-semibold"
+            className="rounded-xl text-xs font-semibold px-2.5 sm:px-3 shrink-0"
+            aria-label="Szukaj spółki"
+            title="Szukaj spółki (⌘K)"
           >
-            Szukaj spółki
+            <span className="hidden sm:inline">Szukaj spółki</span>
             <span className="ml-1.5 text-3xs font-mono text-text-muted hidden md:inline">⌘K</span>
           </Button>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <MarketStatusBadge />
 
           <Button
@@ -112,9 +115,11 @@ export const InvestmentsTopNav: FC<Props> = ({
             onClick={onRefresh}
             disabled={syncing}
             loading={syncing}
-            className="rounded-xl text-xs font-semibold"
+            className="rounded-xl text-xs font-semibold px-2.5 sm:px-3 shrink-0"
+            aria-label={syncing ? 'Aktualizacja...' : 'Odśwież'}
+            title={syncing ? 'Aktualizacja...' : 'Odśwież'}
           >
-            {syncing ? 'Aktualizacja...' : 'Odśwież'}
+            <span className="hidden sm:inline">{syncing ? 'Aktualizacja...' : 'Odśwież'}</span>
           </Button>
         </div>
       </div>

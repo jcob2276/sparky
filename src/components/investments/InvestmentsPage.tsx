@@ -157,7 +157,7 @@ export const InvestmentsPage: FC = () => {
   } = useInvestmentsData();
 
   return (
-    <div className="min-h-screen bg-background text-text-primary flex">
+    <div className="min-h-screen bg-background text-text-primary flex w-full max-w-full overflow-x-hidden">
       {/* 1:1 OrcaFolio Left Sidebar */}
       <InvestmentsSidebar
         activeTab={activeTab}
@@ -168,8 +168,8 @@ export const InvestmentsPage: FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 min-w-0 flex flex-col min-h-screen">
-        <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-2">
+      <div className="flex-1 min-w-0 flex flex-col min-h-screen w-full max-w-full overflow-x-hidden">
+        <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-2 w-full max-w-full">
           {/* Connected Top Navigation Bar */}
           <InvestmentsTopNav
             activeTab={activeTab}
@@ -182,7 +182,7 @@ export const InvestmentsPage: FC = () => {
         </div>
 
         {/* Tab Contents View */}
-        <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-12 w-full">
+        <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-12 w-full max-w-full min-w-0 overflow-x-hidden">
           <InvestmentsTabRenderer
             activeTab={activeTab}
             onNavigateTab={handleSelectTab}
