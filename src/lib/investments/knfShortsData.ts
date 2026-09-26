@@ -18,6 +18,7 @@ export interface CompanyShortSummary {
   companyName: string;
   totalShortPercent: number;
   fundsCount: number;
+  netChange14d: number;
   positions: KnfShortPosition[];
 }
 
@@ -134,10 +135,15 @@ export function getGroupedCompanyShorts(): CompanyShortSummary[] {
       companyName: pos.companyName,
       totalShortPercent: 0,
       fundsCount: 0,
+      netChange14d: 0,
       positions: [],
     };
     existing.totalShortPercent = Number((existing.totalShortPercent + pos.shortPercent).toFixed(2));
     existing.fundsCount += 1;
+    if (pos.previousPercent !== undefined) {
+      const delta = pos.shortPercent - pos.previousPercent;
+      existing.netChange14d = Number((existing.netChange14d + delta).toFixed(2));
+    }
     existing.positions.push(pos);
     map.set(pos.ticker, existing);
   }

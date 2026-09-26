@@ -1,75 +1,60 @@
 import { FC, useState } from 'react';
 import { getGroupedCompanyShorts, CompanyShortSummary } from '../../lib/investments/knfShortsData';
+import { GpwShortsBreakdownModal } from './GpwShortsBreakdownModal';
+import { GpwShortsHeaderBanner } from './GpwShortsHeaderBanner';
 import Button from '../ui/Button';
+import { notify } from '../../lib/notify';
+import { Download } from 'lucide-react';
 
 export const GpwShortsView: FC = () => {
   const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
   const grouped = getGroupedCompanyShorts();
+
+  const handleExportCsv = () => {
+    const headers = 'Ticker,Spółka,Łączny_Short_%,Liczba_Funduszy,Trend_14D_pp,Fundusze\n';
+    const rows = grouped
+      .map(
+        (g) =>
+          `"${g.ticker}","${g.companyName}","${g.totalShortPercent.toFixed(2)}","${g.fundsCount}","${g.netChange14d > 0 ? '+' : ''}${g.netChange14d.toFixed(2)}","${g.positions.map((p) => `${p.holderName} (${p.shortPercent}%)`).join('; ')}"`
+      )
+      .join('\n');
+    const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `knf_szorty_gpw_${new Date().getFullYear()}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+    notify('Wyeksportowano rejestr krótkiej sprzedaży KNF do CSV!', 'success');
+  };
 
   const activeCompany = selectedTicker ? grouped.find((g) => g.ticker === selectedTicker) : null;
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header Info Banner */}
-      <div className="p-6 rounded-3xl bg-surface border border-border-custom shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-border-custom/50">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-2 py-0.5 rounded-md text-2xs font-bold bg-danger/15 text-danger border border-danger/30">
-                Rejestr Krótkiej Sprzedaży KNF
-              </span>
-              <span className="text-2xs font-mono text-text-secondary">
-                Pozycje krótkie netto &ge; 0.5% akcji
-              </span>
-            </div>
-            <h2 className="text-2xl font-extrabold text-text-primary tracking-tight">
-              Krótka sprzedaż GPW (Szorty na polskich spółkach)
-            </h2>
-            <p className="text-xs text-text-secondary mt-1.5 max-w-3xl leading-relaxed">
-              Oficjalne dane publikowane przez Komisję Nadzoru Finansowego (KNF). Dowiedz się, które polskie spółki z GPW są pod ostrzałem globalnych funduszy hedgingowych (AQR, Marshall Wace, Citadel, Point72) i jaka część akcji jest zaszortowana.
-            </p>
-          </div>
-
-          <div className="p-4 rounded-2xl bg-surface border border-border-custom/70 text-right shrink-0 shadow-xs">
-            <div className="text-xs font-medium text-text-secondary">Najbardziej szortowana</div>
-            <div className="text-2xl font-black text-danger font-mono mt-0.5">
-              {grouped[0]?.ticker} ({grouped[0]?.totalShortPercent}%)
-            </div>
-            <div className="text-3xs text-text-secondary mt-1">
-              {grouped[0]?.companyName}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
-          <div className="p-3.5 rounded-2xl bg-surface border border-border-custom/60 shadow-xs">
-            <div className="text-xs font-medium text-text-secondary">Szortowane spółki</div>
-            <div className="text-xl font-black text-text-primary font-mono mt-1">{grouped.length} emitentów</div>
-          </div>
-          <div className="p-3.5 rounded-2xl bg-surface border border-border-custom/60 shadow-xs">
-            <div className="text-xs font-medium text-danger">Próg raportowania</div>
-            <div className="text-xl font-black text-danger font-mono mt-1">&ge; 0.50%</div>
-          </div>
-          <div className="p-3.5 rounded-2xl bg-surface border border-border-custom/60 shadow-xs">
-            <div className="text-xs font-medium text-primary">Regulacja UE</div>
-            <div className="text-xl font-black text-primary font-mono mt-1">Rozp. 236/2012</div>
-          </div>
-          <div className="p-3.5 rounded-2xl bg-surface border border-border-custom/60 shadow-xs">
-            <div className="text-xs font-medium text-text-secondary">Częstotliwość</div>
-            <div className="text-xl font-black text-text-primary font-mono mt-1">Dzień po sesji</div>
-          </div>
-        </div>
-      </div>
+      <GpwShortsHeaderBanner grouped={grouped} />
 
       {/* Main Shorts Table */}
       <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
-        <div className="p-4 sm:p-5 border-b border-border-custom/50 flex items-center justify-between">
-          <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
-            <span>📉</span> Spółki z ujawnionymi pozycjami krótkimi na GPW
-          </h3>
-          <span className="text-xs text-text-secondary font-mono">
-            Kliknij spółkę, aby zobaczyć pozycje funduszy
-          </span>
+        <div className="p-4 sm:p-5 border-b border-border-custom/50 flex items-center justify-between gap-3">
+          <div>
+            <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
+              <span>📉</span> Spółki z ujawnionymi pozycjami krótkimi na GPW
+            </h3>
+            <span className="text-xs text-text-secondary font-mono">
+              Kliknij spółkę, aby zobaczyć pozycje funduszy
+            </span>
+          </div>
+          <Button
+            size="sm"
+            variant="secondary"
+            icon={<Download size={13} />}
+            onClick={handleExportCsv}
+            className="rounded-xl text-xs font-semibold shrink-0"
+          >
+            Eksportuj CSV
+          </Button>
         </div>
 
         <div className="overflow-x-auto">
@@ -78,6 +63,7 @@ export const GpwShortsView: FC = () => {
               <tr>
                 <th className="py-3 px-4">Spółka</th>
                 <th className="py-3 px-4 text-right">Łączna pozycja krótka</th>
+                <th className="py-3 px-4 text-center">Trend (14 dni)</th>
                 <th className="py-3 px-4 text-center">Liczba funduszy</th>
                 <th className="py-3 px-4">Fundusze z pozycjami</th>
                 <th className="py-3 px-4 text-right">Wykres Stooq</th>
@@ -107,6 +93,23 @@ export const GpwShortsView: FC = () => {
                         {g.totalShortPercent.toFixed(2)}%
                       </span>
                     </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-2xs font-mono font-bold border ${
+                          g.netChange14d > 0
+                            ? 'bg-danger/15 text-danger border-danger/30'
+                            : g.netChange14d < 0
+                            ? 'bg-success/15 text-success border-success/30'
+                            : 'bg-surface border-border-custom text-text-muted'
+                        }`}
+                      >
+                        {g.netChange14d > 0
+                          ? `+${g.netChange14d.toFixed(2)} p.p.`
+                          : g.netChange14d < 0
+                          ? `${g.netChange14d.toFixed(2)} p.p.`
+                          : '0.00 p.p.'}
+                      </span>
+                    </td>
                     <td className="py-3.5 px-4 text-center font-mono text-text-secondary font-semibold">
                       {g.fundsCount}
                     </td>
@@ -134,28 +137,10 @@ export const GpwShortsView: FC = () => {
 
       {/* Selected Company Breakdown */}
       {activeCompany && (
-        <div className="p-6 rounded-3xl bg-surface border border-border-custom shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-border-custom/50">
-            <h4 className="text-base font-bold text-text-primary flex items-center gap-2">
-              <span>🔍</span> Szczegółowy wykaz funduszy szortujących {activeCompany.companyName} ({activeCompany.ticker})
-            </h4>
-            <Button size="sm" variant="ghost" onClick={() => setSelectedTicker(null)} className="text-xs">
-              ✕ Zamknij
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {activeCompany.positions.map((pos) => (
-              <div key={pos.id} className="p-3.5 rounded-2xl bg-surface border border-border-custom shadow-xs">
-                <div className="text-xs font-bold text-text-primary mb-1">{pos.holderName}</div>
-                <div className="flex items-center justify-between mt-2 pt-2 border-t border-border-custom/40">
-                  <span className="text-2xs text-text-secondary font-mono">Data: {pos.positionDate}</span>
-                  <span className="font-mono text-sm font-black text-danger">{pos.shortPercent}%</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <GpwShortsBreakdownModal
+          activeCompany={activeCompany}
+          onClose={() => setSelectedTicker(null)}
+        />
       )}
     </div>
   );
