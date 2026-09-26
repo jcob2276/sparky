@@ -74,7 +74,7 @@ export const InvestmentsTabRenderer: FC<Props> = ({
     case 'stocks':
       return <EspiFeedView />;
     case 'gpw_shorts':
-      return <GpwShortsView />;
+      return <GpwShortsView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
     case 'gpw_mar':
       return (
         <GpwPortfolioView
