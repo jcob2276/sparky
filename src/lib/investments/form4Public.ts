@@ -75,7 +75,7 @@ export function fetchNamedForm4(): Promise<InsiderTradeItem[]> {
   return readTable('/openinsider/latest-insider-trading');
 }
 
-export const FORM4_HISTORY_PAGE_CAP = 8;
+const FORM4_HISTORY_PAGE_CAP = 8;
 
 export interface Form4HistoryPage {
   rows: InsiderTradeItem[];

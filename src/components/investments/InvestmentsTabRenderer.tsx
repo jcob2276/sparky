@@ -31,12 +31,12 @@ interface Props {
 export const InvestmentsTabRenderer: FC<Props> = ({
   activeTab,
   onNavigateTab,
-  trades,
-  loading,
-  filters,
-  onFilterChange,
-  clusterTickers,
-  historyTruncated = false,
+  trades: _trades,
+  loading: _loading,
+  filters: _filters,
+  onFilterChange: _onFilterChange,
+  clusterTickers: _clusterTickers,
+  historyTruncated: _historyTruncated = false,
   watchlist,
   onToggleWatchlist,
 }) => {
@@ -81,15 +81,6 @@ export const InvestmentsTabRenderer: FC<Props> = ({
       return <GpwScreenerView />;
     case 'live':
     default:
-      return (
-        <LiveTradesView
-          trades={trades}
-          loading={loading}
-          filters={filters}
-          onFilterChange={onFilterChange}
-          clusterTickers={clusterTickers}
-          historyTruncated={historyTruncated}
-        />
-      );
+      return <LiveTradesView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
   }
 };
