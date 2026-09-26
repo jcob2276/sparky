@@ -3,6 +3,7 @@ import { MainTabType } from './InvestmentsPage';
 import Button from '../ui/Button';
 import {
   CircleDot,
+  Wallet,
   MessageSquare,
   Diamond,
   Target,
@@ -31,6 +32,7 @@ interface NavItem {
 
 const NAV_CENTRUM: NavItem[] = [
   { id: 'dashboard', label: 'Pulpit', icon: <CircleDot size={16} /> },
+  { id: 'jakub_portfolio', label: 'Jakub Inwestycje', icon: <Wallet size={16} /> },
   { id: 'analyst', label: 'Analityk AI', icon: <MessageSquare size={16} /> },
   { id: 'watchlist', label: 'Watchlista', icon: <Diamond size={16} /> },
 ];

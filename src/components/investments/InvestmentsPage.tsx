@@ -8,6 +8,7 @@ import { loadStoredWatchlist, saveStoredWatchlist } from '../../lib/investments/
 
 export type MainTabType =
   | 'dashboard'
+  | 'jakub_portfolio'
   | 'analyst'
   | 'watchlist'
   | 'convergence'

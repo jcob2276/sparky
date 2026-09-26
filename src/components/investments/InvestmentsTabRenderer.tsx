@@ -11,6 +11,7 @@ import { GpwPortfolioView } from './GpwPortfolioView';
 import { LiveTradesView } from './LiveTradesView';
 import { InvestmentsAnalystView } from './InvestmentsAnalystView';
 import { InvestmentsWatchlistView } from './InvestmentsWatchlistView';
+import { JakubPortfolioView } from './jakubPortfolio/JakubPortfolioView';
 import { StocksConsensusView } from './StocksConsensusView';
 import { BasketSimulationView } from './BasketSimulationView';
 import { InsiderTradeItem, InvestmentFilters } from '../../lib/investments/investmentsApi';
@@ -45,6 +46,8 @@ export const InvestmentsTabRenderer: FC<Props> = ({
       return (
         <OrcaDashboardView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />
       );
+    case 'jakub_portfolio':
+      return <JakubPortfolioView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
     case 'analyst':
       return <InvestmentsAnalystView />;
     case 'watchlist':

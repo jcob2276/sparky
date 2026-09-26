@@ -7,6 +7,7 @@
 import { orcaSelect } from './superinvestorsApi';
 import { fetchLiveGpwShorts, fetchLiveConsensus } from './superinvestorsApi';
 import { fetchRecentCongress, fetchGpwInsiderTrades } from './publicDisclosures';
+import { loadJakubPortfolio } from './jakubPortfolioStorage';
 
 interface RawPoliticianTrade {
   ticker?: string | null;
@@ -217,6 +218,29 @@ ${lines.join('\n')}\n`;
   }
 }
 
+function getJakubPortfolioTargetedContext(query: string): string {
+  const q = query.toLowerCase();
+  if (
+    !q.includes('portfel') &&
+    !q.includes('ike') &&
+    !q.includes('moje') &&
+    !q.includes('moich') &&
+    !q.includes('jakub') &&
+    !q.includes('jedi') &&
+    !q.includes('space')
+  ) {
+    return '';
+  }
+  const p = loadJakubPortfolio();
+  const posLines = p.positions.map(
+    (pos) => `  - ${pos.name} ($${pos.ticker}): ${pos.shares} szt., wycena ${pos.currentValue.toFixed(2)} PLN, PnL: ${pos.pnlPln > 0 ? '+' : ''}${pos.pnlPln.toFixed(2)} PLN (${pos.pnlPct.toFixed(1)}%)`
+  );
+  return `[PORTFEL IKE JAKUBA (DANE LIVE)]:
+Łączna wartość: ${p.totalValuePln.toFixed(2)} PLN | PnL: ${p.totalPnlPln.toFixed(2)} PLN (${p.totalPnlPct.toFixed(1)}%) | Wolne środki: ${p.freeCashPln.toFixed(2)} PLN | Pozostały limit IKE: ${p.remainingIkeLimitPln.toFixed(2)} PLN
+Pozycje:
+${posLines.join('\n')}\n\n`;
+}
+
 export async function buildInvestmentsContext(query = ''): Promise<string> {
   try {
     const [targetedPol, targetedDuopol, targetedBank, targetedScreen, shorts, consensus, congress, gpw] =
@@ -247,7 +271,8 @@ export async function buildInvestmentsContext(query = ''): Promise<string> {
       (g) => `• ${g.ticker || g.filer_name}: ${g.transaction_type}, data: ${g.filing_date || g.transaction_date}`
     );
 
-    const targetedBlocks = [targetedPol, targetedDuopol, targetedBank, targetedScreen].filter(Boolean).join('\n');
+    const targetedJakub = getJakubPortfolioTargetedContext(query);
+    const targetedBlocks = [targetedJakub, targetedPol, targetedDuopol, targetedBank, targetedScreen].filter(Boolean).join('\n');
 
     return `\n\n[DANE LIVE Z PUBLICZNYCH REJESTRÓW]:
 ${targetedBlocks ? `${targetedBlocks}\n` : ''}REJESTR SZORTÓW KNF (TOP NAJWYŻSZYCH POZYCJI):
