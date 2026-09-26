@@ -54,7 +54,8 @@ export const AiAnalystPrompts: FC<Props> = ({ onSelectPrompt }) => {
         {PRESET_QUESTIONS.map((q) => (
           <div
             key={q.title}
-            className="p-4 rounded-2xl bg-surface border border-border-custom/70 hover:border-primary/50 transition-all flex flex-col justify-between gap-3 shadow-xs group"
+            onClick={() => onSelectPrompt(q.prompt)}
+            className="p-4 rounded-2xl bg-surface border border-border-custom/70 hover:border-primary/50 transition-all flex flex-col justify-between gap-3 shadow-xs group cursor-pointer"
           >
             <div>
               <div className="flex items-center justify-between gap-2 mb-1.5">
