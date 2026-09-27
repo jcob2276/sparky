@@ -15,22 +15,23 @@ import { runStravaSync } from './strava.ts'
 import { runCalendarSync } from './calendar.ts'
 import { runNextDnsSync } from './nextdns.ts'
 import { runQuotesSync } from './quotes.ts'
+import { runKnfShortsSync } from './knfShorts.ts'
 
 Deno.serve(serveJson(async (req) => {
   const url = new URL(req.url)
   const body = (req.method === 'POST' || req.method === 'PUT')
     ? await req.clone().json().catch(() => ({}))
     : {}
+  const userId = url.searchParams.get('userId') || body.userId
+
   // Check searchParams first, then fall back to body JSON if request has payload
   let service = url.searchParams.get('service')
 
   if (!service && (req.method === 'POST' || req.method === 'PUT')) {
-    // Clone req to allow body parsing without consuming the stream for downstream handlers
-    const body = await req.clone().json().catch(() => ({}))
     service = body.service
   }
 
-  if (service !== 'quotes') {
+  if (service !== 'quotes' && service !== 'knf_shorts') {
     await resolveUserScope(req, userId ?? null)
   }
 
@@ -44,6 +45,8 @@ Deno.serve(serveJson(async (req) => {
     return await runNextDnsSync(req)
   } else if (service === 'quotes') {
     return await runQuotesSync(req)
+  } else if (service === 'knf_shorts') {
+    return await runKnfShortsSync(req)
   } else {
     throw new Error(`Unknown or missing service parameter: ${service}`)
   }
