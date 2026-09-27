@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import type { PositionAnalystTarget } from '../../../lib/investments/portfolioForecastService';
+import { getPiotroskiScore } from '../../../lib/investments/piotroskiScore';
 import { Target, TrendingUp, Sparkles, ExternalLink, Database } from 'lucide-react';
 
 interface Props {
@@ -52,11 +53,24 @@ export const PortfolioAnalystTargetsTable: FC<Props> = ({ positions, horizonMont
           <tbody className="divide-y divide-border-custom/50">
             {positions.map((pos) => {
               const isPositive = pos.meanUpsidePct >= 0;
+              const fScore = getPiotroskiScore(pos.ticker);
               return (
                 <tr key={pos.ticker} className="hover:bg-surface transition-colors">
                   <td className="px-3 py-3">
-                    <div className="flex items-center gap-1.5 font-bold text-text-primary">
+                    <div className="flex items-center gap-1.5 font-bold text-text-primary flex-wrap">
                       <span className="text-primary font-black">${pos.ticker}</span>
+                      <span
+                        className={`px-1.5 py-0.2 rounded text-4xs font-mono font-bold ${
+                          fScore.score >= 8
+                            ? 'bg-success/15 text-success border border-success/30'
+                            : fScore.score >= 6
+                            ? 'bg-primary/15 text-primary border border-primary/30'
+                            : 'bg-warning/15 text-warning border border-warning/30'
+                        }`}
+                        title={`Piotroski F-Score: ${fScore.score}/9 (${fScore.badgeLabel}) — ${fScore.summary}`}
+                      >
+                        F {fScore.score}/9
+                      </span>
                       <a
                         href={pos.sourceUrl}
                         target="_blank"

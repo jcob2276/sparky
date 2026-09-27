@@ -16,6 +16,7 @@ import { runCalendarSync } from './calendar.ts'
 import { runNextDnsSync } from './nextdns.ts'
 import { runQuotesSync } from './quotes.ts'
 import { runKnfShortsSync } from './knfShorts.ts'
+import { runSenateSync } from './senateTrades.ts'
 
 Deno.serve(serveJson(async (req) => {
   const url = new URL(req.url)
@@ -31,7 +32,7 @@ Deno.serve(serveJson(async (req) => {
     service = body.service
   }
 
-  if (service !== 'quotes' && service !== 'knf_shorts') {
+  if (service !== 'quotes' && service !== 'knf_shorts' && service !== 'senate' && service !== 'congress') {
     await resolveUserScope(req, userId ?? null)
   }
 
@@ -47,6 +48,8 @@ Deno.serve(serveJson(async (req) => {
     return await runQuotesSync(req)
   } else if (service === 'knf_shorts') {
     return await runKnfShortsSync(req)
+  } else if (service === 'senate' || service === 'congress') {
+    return await runSenateSync(req)
   } else {
     throw new Error(`Unknown or missing service parameter: ${service}`)
   }

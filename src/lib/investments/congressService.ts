@@ -6,11 +6,13 @@
 
 import { orcaSelect } from './superinvestorsApi';
 import { getTodayWarsaw, shiftDateStr } from '../date';
+import { detectCongressClusterBuys, type ClusterBuyAlert, type ClusterTradeInput } from './congressClusterService';
 export { fetchPoliticianDetail, type PoliticianDetail } from './politicianDetailService';
 
 export interface CongressOverview {
   topBought: Array<{ ticker: string; companyName: string; count: number; volumeUsd: number }>;
   topSold: Array<{ ticker: string; companyName: string; count: number; volumeUsd: number }>;
+  clusterBuys: ClusterBuyAlert[];
   largestTrades: Array<{
     politicianName: string;
     bioguideId?: string | null;
@@ -131,6 +133,7 @@ export async function fetchCongressOverview(options?: {
   const cutoffDate = daysCutoff ? shiftDateStr(getTodayWarsaw(), daysCutoff) : null;
 
   const stream: CongressOverview['stream'] = [];
+  const clusterTrades: ClusterTradeInput[] = [];
   const boughtStats = new Map<string, { companyName: string; count: number; volumeUsd: number }>();
   const soldStats = new Map<string, { companyName: string; count: number; volumeUsd: number }>();
   let demTrades = 0;
@@ -162,6 +165,22 @@ export async function fetchCongressOverview(options?: {
         cur.count += 1;
         cur.volumeUsd += mid;
         targetMap.set(ticker, cur);
+
+        if (isBuy) {
+          clusterTrades.push({
+            politicianId: pol?.id || t.politician_id,
+            politicianName: name,
+            party: polParty,
+            chamber: polChamber,
+            state: pol?.state,
+            bioguideId: pol?.bioguide_id,
+            ticker,
+            companyName: t.asset_description || ticker,
+            type: 'buy',
+            amountUsd: mid,
+            date: t.transaction_date || t.disclosure_date || '',
+          });
+        }
       }
     }
 
@@ -196,6 +215,8 @@ export async function fetchCongressOverview(options?: {
       delayDays: parseDaysBetween(t.transaction_date, t.disclosure_date),
     });
   }
+
+  const clusterBuys = detectCongressClusterBuys(clusterTrades);
 
   const topBought = Array.from(boughtStats.entries())
     .map(([ticker, val]) => ({ ticker, ...val }))
@@ -235,6 +256,7 @@ export async function fetchCongressOverview(options?: {
       { ticker: 'MSFT', companyName: 'Microsoft Corporation', count: 8, volumeUsd: 2600000 },
       { ticker: 'SCI', companyName: 'Service Corp International', count: 8, volumeUsd: 131000 },
     ],
+    clusterBuys,
     largestTrades: largestTrades.length > 0 ? largestTrades : [
       { politicianName: 'Nancy Pelosi', bioguideId: 'P000197', ticker: 'BE', type: 'buy', volumeUsd: 5000000, amountLabel: 'Kupno 5,0 mln USD' },
       { politicianName: 'Nancy Pelosi', bioguideId: 'P000197', ticker: 'BE', type: 'buy', volumeUsd: 5000000, amountLabel: 'Kupno 5,0 mln USD' },

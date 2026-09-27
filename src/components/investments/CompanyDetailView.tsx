@@ -4,6 +4,7 @@ import { CompanyPriceEventsChart } from './CompanyPriceEventsChart';
 import { CompanyQuarterlyChart } from './CompanyQuarterlyChart';
 import { CompanyKpiGrid } from './CompanyKpiGrid';
 import { CompanyAboutCard } from './CompanyAboutCard';
+import { CompanyPiotroskiCard } from './CompanyPiotroskiCard';
 import { CompanySubTabsView } from './CompanySubTabsView';
 import { fetchCompanyDetailData, CompanyDetailData } from '../../lib/investments/companyDetailService';
 import Button from '../ui/Button';
@@ -135,6 +136,7 @@ export const CompanyDetailView: FC<Props> = ({
           <CompanyPriceEventsChart data={data} />
           <CompanyQuarterlyChart data={data} />
           <CompanyKpiGrid data={data} />
+          <CompanyPiotroskiCard ticker={ticker} />
           <CompanyAboutCard data={data} onAskAnalyst={handleAskAnalyst} />
         </div>
       ) : (

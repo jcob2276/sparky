@@ -10,6 +10,7 @@ import {
   TimeframeFilter,
 } from './CongressFilterToolbar';
 import { CongressSummaryCards } from './CongressSummaryCards';
+import { CongressClusterRadar } from './CongressClusterRadar';
 import { CongressStreamTable } from './CongressStreamTable';
 import { CongressRankingCard } from './CongressRankingCard';
 import { PoliticianDetailView } from './PoliticianDetailView';
@@ -135,6 +136,13 @@ export const PoliticiansView: FC<Props> = ({
           {/* Top 4 Summary Cards */}
           <CongressSummaryCards
             data={overview}
+            onSelectStock={(t) => setSelectedStock(t)}
+            onSelectPolitician={(p) => setSelectedPolitician(p)}
+          />
+
+          {/* Cluster Buy Radar */}
+          <CongressClusterRadar
+            clusterBuys={overview.clusterBuys}
             onSelectStock={(t) => setSelectedStock(t)}
             onSelectPolitician={(p) => setSelectedPolitician(p)}
           />
