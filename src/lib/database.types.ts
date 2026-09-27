@@ -39,117 +39,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      insider_trades: {
-        Row: {
-          amount_high: number | null
-          amount_label: string | null
-          amount_low: number | null
-          asset_name: string | null
-          asset_type: string | null
-          branch: string | null
-          chamber: string | null
-          created_at: string
-          days_to_file: number | null
-          doc_url: string | null
-          filer_id: string | null
-          filer_name: string
-          filing_date: string | null
-          id: string
-          party: string | null
-          raw_data: Json | null
-          source_id: string | null
-          state: string | null
-          ticker: string | null
-          transaction_date: string | null
-          transaction_type: string
-        }
-        Insert: {
-          amount_high?: number | null
-          amount_label?: string | null
-          amount_low?: number | null
-          asset_name?: string | null
-          asset_type?: string | null
-          branch?: string | null
-          chamber?: string | null
-          created_at?: string
-          days_to_file?: number | null
-          doc_url?: string | null
-          filer_id?: string | null
-          filer_name: string
-          filing_date?: string | null
-          id: string
-          party?: string | null
-          raw_data?: Json | null
-          source_id?: string | null
-          state?: string | null
-          ticker?: string | null
-          transaction_date?: string | null
-          transaction_type: string
-        }
-        Update: {
-          amount_high?: number | null
-          amount_label?: string | null
-          amount_low?: number | null
-          asset_name?: string | null
-          asset_type?: string | null
-          branch?: string | null
-          chamber?: string | null
-          created_at?: string
-          days_to_file?: number | null
-          doc_url?: string | null
-          filer_id?: string | null
-          filer_name?: string
-          filing_date?: string | null
-          id?: string
-          party?: string | null
-          raw_data?: Json | null
-          source_id?: string | null
-          state?: string | null
-          ticker?: string | null
-          transaction_date?: string | null
-          transaction_type?: string
-        }
-        Relationships: []
-      }
-      closer_daily_logs: {
-        Row: {
-          appointments: number
-          created_at: string
-          date: string
-          dials: number
-          id: string
-          notes: string | null
-          sales_calls: number
-          updated_at: string
-          user_id: string
-          work_hours: number
-        }
-        Insert: {
-          appointments?: number
-          created_at?: string
-          date: string
-          dials?: number
-          id?: string
-          notes?: string | null
-          sales_calls?: number
-          updated_at?: string
-          user_id: string
-          work_hours?: number
-        }
-        Update: {
-          appointments?: number
-          created_at?: string
-          date?: string
-          dials?: number
-          id?: string
-          notes?: string | null
-          sales_calls?: number
-          updated_at?: string
-          user_id?: string
-          work_hours?: number
-        }
-        Relationships: []
-      }
       _trigger_secrets: {
         Row: {
           name: string
@@ -547,6 +436,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      closer_daily_logs: {
+        Row: {
+          appointments: number
+          created_at: string
+          date: string
+          dials: number
+          id: string
+          notes: string | null
+          sales_calls: number
+          updated_at: string
+          user_id: string
+          work_hours: number
+        }
+        Insert: {
+          appointments?: number
+          created_at?: string
+          date: string
+          dials?: number
+          id?: string
+          notes?: string | null
+          sales_calls?: number
+          updated_at?: string
+          user_id: string
+          work_hours?: number
+        }
+        Update: {
+          appointments?: number
+          created_at?: string
+          date?: string
+          dials?: number
+          id?: string
+          notes?: string | null
+          sales_calls?: number
+          updated_at?: string
+          user_id?: string
+          work_hours?: number
+        }
+        Relationships: []
+      }
+      companies: {
+        Row: {
+          created_at: string
+          industry: string | null
+          market: string | null
+          name: string | null
+          sector: string | null
+          ticker: string
+        }
+        Insert: {
+          created_at?: string
+          industry?: string | null
+          market?: string | null
+          name?: string | null
+          sector?: string | null
+          ticker: string
+        }
+        Update: {
+          created_at?: string
+          industry?: string | null
+          market?: string | null
+          name?: string | null
+          sector?: string | null
+          ticker?: string
+        }
+        Relationships: []
       }
       daily_food_entries: {
         Row: {
@@ -1558,6 +1513,53 @@ export type Database = {
         }
         Relationships: []
       }
+      filings: {
+        Row: {
+          accession_no: string | null
+          created_at: string
+          filing_date: string | null
+          filing_url: string | null
+          id: string
+          investor_id: string | null
+          is_amendment: boolean | null
+          period_of_report: string | null
+          total_positions: number | null
+          total_value: number | null
+        }
+        Insert: {
+          accession_no?: string | null
+          created_at?: string
+          filing_date?: string | null
+          filing_url?: string | null
+          id: string
+          investor_id?: string | null
+          is_amendment?: boolean | null
+          period_of_report?: string | null
+          total_positions?: number | null
+          total_value?: number | null
+        }
+        Update: {
+          accession_no?: string | null
+          created_at?: string
+          filing_date?: string | null
+          filing_url?: string | null
+          id?: string
+          investor_id?: string | null
+          is_amendment?: boolean | null
+          period_of_report?: string | null
+          total_positions?: number | null
+          total_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "filings_investor_id_fkey"
+            columns: ["investor_id"]
+            isOneToOne: false
+            referencedRelation: "investors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       finance_accounts: {
         Row: {
           account_type: string
@@ -2322,6 +2324,78 @@ export type Database = {
           },
         ]
       }
+      gpw_companies: {
+        Row: {
+          created_at: string
+          isin: string
+          name: string
+          ticker: string | null
+        }
+        Insert: {
+          created_at?: string
+          isin: string
+          name: string
+          ticker?: string | null
+        }
+        Update: {
+          created_at?: string
+          isin?: string
+          name?: string
+          ticker?: string | null
+        }
+        Relationships: []
+      }
+      gpw_short_positions: {
+        Row: {
+          below_public_threshold: boolean | null
+          company: string
+          created_at: string
+          external_id: string | null
+          holder: string
+          id: number
+          isin: string | null
+          modify_date: string | null
+          position_date: string | null
+          position_pct: number | null
+          position_pct_raw: string | null
+          source_system: string | null
+          source_url: string | null
+          ticker: string | null
+        }
+        Insert: {
+          below_public_threshold?: boolean | null
+          company: string
+          created_at?: string
+          external_id?: string | null
+          holder: string
+          id: number
+          isin?: string | null
+          modify_date?: string | null
+          position_date?: string | null
+          position_pct?: number | null
+          position_pct_raw?: string | null
+          source_system?: string | null
+          source_url?: string | null
+          ticker?: string | null
+        }
+        Update: {
+          below_public_threshold?: boolean | null
+          company?: string
+          created_at?: string
+          external_id?: string | null
+          holder?: string
+          id?: number
+          isin?: string | null
+          modify_date?: string | null
+          position_date?: string | null
+          position_pct?: number | null
+          position_pct_raw?: string | null
+          source_system?: string | null
+          source_url?: string | null
+          ticker?: string | null
+        }
+        Relationships: []
+      }
       habit_logs: {
         Row: {
           completed: boolean | null
@@ -2510,6 +2584,78 @@ export type Database = {
         }
         Relationships: []
       }
+      insider_trades: {
+        Row: {
+          amount_high: number | null
+          amount_label: string | null
+          amount_low: number | null
+          asset_name: string | null
+          asset_type: string | null
+          branch: string | null
+          chamber: string | null
+          created_at: string
+          days_to_file: number | null
+          doc_url: string | null
+          filer_id: string | null
+          filer_name: string
+          filing_date: string | null
+          id: string
+          party: string | null
+          raw_data: Json | null
+          source_id: string | null
+          state: string | null
+          ticker: string | null
+          transaction_date: string | null
+          transaction_type: string
+        }
+        Insert: {
+          amount_high?: number | null
+          amount_label?: string | null
+          amount_low?: number | null
+          asset_name?: string | null
+          asset_type?: string | null
+          branch?: string | null
+          chamber?: string | null
+          created_at?: string
+          days_to_file?: number | null
+          doc_url?: string | null
+          filer_id?: string | null
+          filer_name: string
+          filing_date?: string | null
+          id: string
+          party?: string | null
+          raw_data?: Json | null
+          source_id?: string | null
+          state?: string | null
+          ticker?: string | null
+          transaction_date?: string | null
+          transaction_type: string
+        }
+        Update: {
+          amount_high?: number | null
+          amount_label?: string | null
+          amount_low?: number | null
+          asset_name?: string | null
+          asset_type?: string | null
+          branch?: string | null
+          chamber?: string | null
+          created_at?: string
+          days_to_file?: number | null
+          doc_url?: string | null
+          filer_id?: string | null
+          filer_name?: string
+          filing_date?: string | null
+          id?: string
+          party?: string | null
+          raw_data?: Json | null
+          source_id?: string | null
+          state?: string | null
+          ticker?: string | null
+          transaction_date?: string | null
+          transaction_type?: string
+        }
+        Relationships: []
+      }
       intervals_tokens: {
         Row: {
           api_key: string
@@ -2531,6 +2677,248 @@ export type Database = {
           created_at?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      investment_documents: {
+        Row: {
+          accession_number: string
+          available_at: string
+          content_hash: string
+          created_at: string
+          document_type: string
+          fetched_at: string
+          filed_at: string
+          id: string
+          issuer_cik: string
+          issuer_ticker: string | null
+          parser_version: string
+          raw_payload: string
+          source: string
+          source_url: string
+        }
+        Insert: {
+          accession_number: string
+          available_at: string
+          content_hash: string
+          created_at?: string
+          document_type: string
+          fetched_at?: string
+          filed_at: string
+          id?: string
+          issuer_cik: string
+          issuer_ticker?: string | null
+          parser_version: string
+          raw_payload: string
+          source: string
+          source_url: string
+        }
+        Update: {
+          accession_number?: string
+          available_at?: string
+          content_hash?: string
+          created_at?: string
+          document_type?: string
+          fetched_at?: string
+          filed_at?: string
+          id?: string
+          issuer_cik?: string
+          issuer_ticker?: string | null
+          parser_version?: string
+          raw_payload?: string
+          source?: string
+          source_url?: string
+        }
+        Relationships: []
+      }
+      investment_form4_transactions: {
+        Row: {
+          created_at: string
+          document_id: string
+          id: string
+          insider_cik: string | null
+          insider_name: string
+          is_derivative: boolean
+          issuer_cik: string
+          issuer_ticker: string | null
+          ownership_nature: string | null
+          price_per_share: number | null
+          row_key: string
+          security_type: string
+          shares: number | null
+          shares_owned_following: number | null
+          transaction_code: string
+          transaction_date: string
+        }
+        Insert: {
+          created_at?: string
+          document_id: string
+          id?: string
+          insider_cik?: string | null
+          insider_name: string
+          is_derivative?: boolean
+          issuer_cik: string
+          issuer_ticker?: string | null
+          ownership_nature?: string | null
+          price_per_share?: number | null
+          row_key: string
+          security_type?: string
+          shares?: number | null
+          shares_owned_following?: number | null
+          transaction_code: string
+          transaction_date: string
+        }
+        Update: {
+          created_at?: string
+          document_id?: string
+          id?: string
+          insider_cik?: string | null
+          insider_name?: string
+          is_derivative?: boolean
+          issuer_cik?: string
+          issuer_ticker?: string | null
+          ownership_nature?: string | null
+          price_per_share?: number | null
+          row_key?: string
+          security_type?: string
+          shares?: number | null
+          shares_owned_following?: number | null
+          transaction_code?: string
+          transaction_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_form4_transactions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "investment_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investment_source_runs: {
+        Row: {
+          as_of: string | null
+          completed_at: string | null
+          documents_imported: number
+          error_message: string | null
+          id: string
+          source: string
+          started_at: string
+          status: string
+          transactions_imported: number
+          user_id: string
+        }
+        Insert: {
+          as_of?: string | null
+          completed_at?: string | null
+          documents_imported?: number
+          error_message?: string | null
+          id?: string
+          source: string
+          started_at?: string
+          status?: string
+          transactions_imported?: number
+          user_id: string
+        }
+        Update: {
+          as_of?: string | null
+          completed_at?: string | null
+          documents_imported?: number
+          error_message?: string | null
+          id?: string
+          source?: string
+          started_at?: string
+          status?: string
+          transactions_imported?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      investment_watchlist: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          issuer_cik: string | null
+          market: string
+          ticker: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          issuer_cik?: string | null
+          market?: string
+          ticker: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          issuer_cik?: string | null
+          market?: string
+          ticker?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      investors: {
+        Row: {
+          bio_md: string | null
+          category: string | null
+          cik: string | null
+          consensus_enabled: boolean | null
+          created_at: string
+          curve_enabled: boolean | null
+          description: string | null
+          display_name: string
+          fund_name: string | null
+          id: string
+          inception_date: string | null
+          is_active: boolean | null
+          slug: string | null
+          tier: string | null
+          updated_at: string
+        }
+        Insert: {
+          bio_md?: string | null
+          category?: string | null
+          cik?: string | null
+          consensus_enabled?: boolean | null
+          created_at?: string
+          curve_enabled?: boolean | null
+          description?: string | null
+          display_name: string
+          fund_name?: string | null
+          id: string
+          inception_date?: string | null
+          is_active?: boolean | null
+          slug?: string | null
+          tier?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bio_md?: string | null
+          category?: string | null
+          cik?: string | null
+          consensus_enabled?: boolean | null
+          created_at?: string
+          curve_enabled?: boolean | null
+          description?: string | null
+          display_name?: string
+          fund_name?: string | null
+          id?: string
+          inception_date?: string | null
+          is_active?: boolean | null
+          slug?: string | null
+          tier?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -4305,6 +4693,45 @@ export type Database = {
         }
         Relationships: []
       }
+      politicians: {
+        Row: {
+          bioguide_id: string | null
+          chamber: string | null
+          created_at: string
+          display_name: string
+          id: string
+          is_active: boolean | null
+          party: string | null
+          slug: string | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          bioguide_id?: string | null
+          chamber?: string | null
+          created_at?: string
+          display_name: string
+          id: string
+          is_active?: boolean | null
+          party?: string | null
+          slug?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bioguide_id?: string | null
+          chamber?: string | null
+          created_at?: string
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          party?: string | null
+          slug?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       progress_photos: {
         Row: {
           ai_analysis: Json | null
@@ -4541,6 +4968,62 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      stock_act_trades: {
+        Row: {
+          amount_high: number | null
+          amount_low: number | null
+          asset_description: string | null
+          created_at: string
+          disclosure_date: string | null
+          external_id: string | null
+          id: string
+          politician_id: string | null
+          source: string | null
+          ticker: string | null
+          transaction_date: string | null
+          transaction_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_high?: number | null
+          amount_low?: number | null
+          asset_description?: string | null
+          created_at?: string
+          disclosure_date?: string | null
+          external_id?: string | null
+          id: string
+          politician_id?: string | null
+          source?: string | null
+          ticker?: string | null
+          transaction_date?: string | null
+          transaction_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_high?: number | null
+          amount_low?: number | null
+          asset_description?: string | null
+          created_at?: string
+          disclosure_date?: string | null
+          external_id?: string | null
+          id?: string
+          politician_id?: string | null
+          source?: string | null
+          ticker?: string | null
+          transaction_date?: string | null
+          transaction_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_act_trades_politician_id_fkey"
+            columns: ["politician_id"]
+            isOneToOne: false
+            referencedRelation: "politicians"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       strava_activities: {
         Row: {
@@ -5348,6 +5831,36 @@ export type Database = {
           start_time?: string | null
           summary?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      vanguard_calendar_watch: {
+        Row: {
+          channel_id: string
+          created_at: string
+          expiration: string | null
+          resource_id: string | null
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string
+          expiration?: string | null
+          resource_id?: string | null
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string
+          expiration?: string | null
+          resource_id?: string | null
+          token?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -6734,6 +7247,195 @@ export type Database = {
         }
         Relationships: []
       }
+      vw_consensus: {
+        Row: {
+          buyer_names: Json | null
+          buyers: number | null
+          company_name: string | null
+          cusip: string | null
+          holders: number | null
+          id: string
+          net_buyers: number | null
+          new_positions: number | null
+          seller_names: Json | null
+          sellers: number | null
+          ticker: string | null
+          total_value: number | null
+        }
+        Insert: {
+          buyer_names?: Json | null
+          buyers?: number | null
+          company_name?: string | null
+          cusip?: string | null
+          holders?: number | null
+          id?: string
+          net_buyers?: number | null
+          new_positions?: number | null
+          seller_names?: Json | null
+          sellers?: number | null
+          ticker?: string | null
+          total_value?: number | null
+        }
+        Update: {
+          buyer_names?: Json | null
+          buyers?: number | null
+          company_name?: string | null
+          cusip?: string | null
+          holders?: number | null
+          id?: string
+          net_buyers?: number | null
+          new_positions?: number | null
+          seller_names?: Json | null
+          sellers?: number | null
+          ticker?: string | null
+          total_value?: number | null
+        }
+        Relationships: []
+      }
+      vw_consensus_ticker: {
+        Row: {
+          buyers: number | null
+          company_name: string | null
+          cusip_count: number | null
+          holders: number | null
+          net_buyers: number | null
+          new_positions: number | null
+          sellers: number | null
+          ticker: string
+          total_value: number | null
+        }
+        Insert: {
+          buyers?: number | null
+          company_name?: string | null
+          cusip_count?: number | null
+          holders?: number | null
+          net_buyers?: number | null
+          new_positions?: number | null
+          sellers?: number | null
+          ticker: string
+          total_value?: number | null
+        }
+        Update: {
+          buyers?: number | null
+          company_name?: string | null
+          cusip_count?: number | null
+          holders?: number | null
+          net_buyers?: number | null
+          new_positions?: number | null
+          sellers?: number | null
+          ticker?: string
+          total_value?: number | null
+        }
+        Relationships: []
+      }
+      vw_gpw_shorts_agg: {
+        Row: {
+          below_threshold: number | null
+          company: string
+          last_change: string | null
+          public_holders: number | null
+          ticker: string | null
+          top_holder: string | null
+          top_holder_pct: number | null
+          total_pct: number | null
+        }
+        Insert: {
+          below_threshold?: number | null
+          company: string
+          last_change?: string | null
+          public_holders?: number | null
+          ticker?: string | null
+          top_holder?: string | null
+          top_holder_pct?: number | null
+          total_pct?: number | null
+        }
+        Update: {
+          below_threshold?: number | null
+          company?: string
+          last_change?: string | null
+          public_holders?: number | null
+          ticker?: string | null
+          top_holder?: string | null
+          top_holder_pct?: number | null
+          total_pct?: number | null
+        }
+        Relationships: []
+      }
+      vw_gpw_shorts_history: {
+        Row: {
+          company: string | null
+          holders: number | null
+          id: string
+          isin: string | null
+          key: string | null
+          position_date: string | null
+          ticker: string | null
+          total_pct: number | null
+        }
+        Insert: {
+          company?: string | null
+          holders?: number | null
+          id?: string
+          isin?: string | null
+          key?: string | null
+          position_date?: string | null
+          ticker?: string | null
+          total_pct?: number | null
+        }
+        Update: {
+          company?: string | null
+          holders?: number | null
+          id?: string
+          isin?: string | null
+          key?: string | null
+          position_date?: string | null
+          ticker?: string | null
+          total_pct?: number | null
+        }
+        Relationships: []
+      }
+      vw_holdings_changes: {
+        Row: {
+          change_type: string | null
+          company_name: string | null
+          cusip: string | null
+          id: string
+          investor_id: string | null
+          shares_delta: number | null
+          shares_now: number | null
+          shares_prev: number | null
+          ticker: string | null
+          value_now: number | null
+          weight_pct: number | null
+        }
+        Insert: {
+          change_type?: string | null
+          company_name?: string | null
+          cusip?: string | null
+          id?: string
+          investor_id?: string | null
+          shares_delta?: number | null
+          shares_now?: number | null
+          shares_prev?: number | null
+          ticker?: string | null
+          value_now?: number | null
+          weight_pct?: number | null
+        }
+        Update: {
+          change_type?: string | null
+          company_name?: string | null
+          cusip?: string | null
+          id?: string
+          investor_id?: string | null
+          shares_delta?: number | null
+          shares_now?: number | null
+          shares_prev?: number | null
+          ticker?: string | null
+          value_now?: number | null
+          weight_pct?: number | null
+        }
+        Relationships: []
+      }
       weekly_reviews: {
         Row: {
           ai_recap: Json | null
@@ -7517,12 +8219,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -7546,11 +8248,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -7571,11 +8273,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -7596,11 +8298,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -7613,11 +8315,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

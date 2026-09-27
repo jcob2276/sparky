@@ -100,3 +100,6 @@ thesis/*.pdf
 scratch_api/
 FLUX_Inpaint_Local.json
 
+
+data/
+scratch_orca_scan/

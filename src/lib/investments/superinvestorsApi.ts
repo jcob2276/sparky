@@ -5,32 +5,29 @@
 
 import type { CompanyShortSummary } from './knfShortsData';
 
-const ORCA_SUPABASE_URL = 'https://rtnehnbvteuipkoatdlz.supabase.co/rest/v1';
-const ORCA_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ0bmVobmJ2dGV1aXBrb2F0ZGx6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NjQyOTMsImV4cCI6MjA5NjE0MDI5M30.Hy_bqwnNNbp0-h-OSiJ_dITeXPmD47mOyd9xLeFVDHw';
-
-
+const SPARKY_SUPABASE_URL = `${(import.meta.env.VITE_SUPABASE_URL || 'https://pdvqkgfsqziqlhptatgf.supabase.co').replace(/\/+$/, '')}/rest/v1`;
+const SPARKY_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 const HEADERS = {
-  apikey: ORCA_ANON_KEY,
-  Authorization: `Bearer ${ORCA_ANON_KEY}`,
+  apikey: SPARKY_ANON_KEY,
+  Authorization: `Bearer ${SPARKY_ANON_KEY}`,
 };
 
 async function orcaGet<T>(pathAndQuery: string): Promise<T[]> {
-  const res = await fetch(`${ORCA_SUPABASE_URL}/${pathAndQuery}`, { headers: HEADERS });
-  if (!res.ok) throw new Error(`Źródło ujawnień odpowiedziało ${res.status}`);
+  const res = await fetch(`${SPARKY_SUPABASE_URL}/${pathAndQuery}`, { headers: HEADERS });
+  if (!res.ok) throw new Error(`Baza Sparky odpowiedziała ${res.status}`);
   const batch: unknown = await res.json();
-  if (!Array.isArray(batch)) throw new Error('Źródło ujawnień zwróciło nieoczekiwany kształt');
+  if (!Array.isArray(batch)) throw new Error('Baza Sparky zwróciła nieoczekiwany kształt');
   return batch as T[];
 }
 
 /** PostgREST pages of 1 000 stop here. Callers must say so when a read hits this cap. */
-const ORCA_SELECT_CAP = 20_000;
+const QUERY_SELECT_CAP = 20_000;
 
 export async function orcaSelect<T>(pathAndQuery: string): Promise<T[]> {
   if (/[?&]limit=/.test(pathAndQuery)) return orcaGet<T>(pathAndQuery);
   const rows: T[] = [];
-  for (let offset = 0; offset < ORCA_SELECT_CAP; offset += 1000) {
+  for (let offset = 0; offset < QUERY_SELECT_CAP; offset += 1000) {
     const joiner = pathAndQuery.includes('?') ? '&' : '?';
     const batch = await orcaGet<T>(`${pathAndQuery}${joiner}limit=1000&offset=${offset}`);
     rows.push(...batch);
@@ -102,7 +99,7 @@ interface RawConsensus {
 export async function fetchLiveGpwShorts(): Promise<CompanyShortSummary[]> {
   try {
     const res = await fetch(
-      `${ORCA_SUPABASE_URL}/vw_gpw_shorts_agg?total_pct=gt.0&order=total_pct.desc`,
+      `${SPARKY_SUPABASE_URL}/vw_gpw_shorts_agg?total_pct=gt.0&order=total_pct.desc`,
       { headers: HEADERS }
     );
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
