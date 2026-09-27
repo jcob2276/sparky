@@ -26,6 +26,7 @@ const INITIAL_DATA: DashboardData = {
   },
   streamItems: [],
   topConvergenceUsa: [],
+  topGpwShorts: [],
 };
 
 export const OrcaDashboardView: FC<Props> = ({ onNavigateTab }) => {
@@ -133,6 +134,7 @@ export const OrcaDashboardView: FC<Props> = ({ onNavigateTab }) => {
       {/* 3-Column: Top Zbieżność USA, Zbieżność GPW, Kalendarz Ujawnień */}
       <DashboardBottomCards
         topConvergence={data.topConvergenceUsa}
+        topGpwShorts={data.topGpwShorts}
         onNavigateTab={onNavigateTab}
       />
 

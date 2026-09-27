@@ -45,68 +45,25 @@ export interface DashboardData {
     fundsNet: number;
     politiciansCount: number;
   }>;
+  topGpwShorts: Array<{
+    ticker: string;
+    company: string;
+    totalPct: number;
+    holders: number;
+  }>;
 }
 
-interface RawConsensus {
-  ticker?: string;
-  company_name?: string;
-  net_buyers?: number;
-  buyers?: number;
-  sellers?: number;
-}
-
-interface RawShortAgg {
-  company?: string;
-  ticker?: string;
-  total_pct?: number;
-  public_holders?: number;
-  last_change?: string;
-}
-
-interface RawShortHist {
-  company?: string;
-  ticker?: string;
-  position_date?: string;
-  total_pct?: number;
-}
-
-interface RawStockAct {
-  id: string;
-  filer_name?: string;
-  ticker?: string;
-  transaction_type?: string;
-  transaction_date?: string;
-  disclosure_date?: string;
-  amount_label?: string;
-}
-
-interface RawInsider {
-  id: string;
-  ticker?: string;
-  company_name?: string;
-  transaction_code?: string;
-  transaction_date?: string;
-  filing_date?: string;
-}
-
-interface RawShortPos {
-  id: number;
-  company?: string;
-  ticker?: string;
-  holder?: string;
-  position_pct?: number;
-  position_date?: string;
-}
+interface RawConsensus { ticker?: string; company_name?: string; net_buyers?: number; }
+interface RawShortAgg { company?: string; ticker?: string; total_pct?: number; }
+interface RawShortHist { total_pct?: number; }
+interface RawStockAct { id: string; filer_name?: string; ticker?: string; transaction_type?: string; transaction_date?: string; disclosure_date?: string; amount_label?: string; }
+interface RawInsider { id: string; ticker?: string; transaction_code?: string; filing_date?: string; transaction_date?: string; }
+interface RawShortPos { id: number; company?: string; ticker?: string; holder?: string; position_pct?: number; position_date?: string; }
 
 function formatDateShort(dateStr: string): string {
   if (!dateStr) return '—';
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    return formatShortMonthLabel(d);
-  } catch {
-    return dateStr;
-  }
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? dateStr : formatShortMonthLabel(d);
 }
 
 function build14DayActivity(
@@ -289,6 +246,13 @@ export async function fetchDashboardData(watchlist: string[] = []): Promise<Dash
 
   const watchlist14Count = streamItems.filter((item) => watchlist.includes(item.ticker)).length;
 
+  const topGpwShorts = shortsAggRows.slice(0, 3).map((s) => ({
+    ticker: s.ticker || 'GPW',
+    company: s.company || s.ticker || 'Spółka',
+    totalPct: s.total_pct || 0,
+    holders: 1,
+  }));
+
   return {
     topConsensus,
     maxShort,
@@ -297,5 +261,6 @@ export async function fetchDashboardData(watchlist: string[] = []): Promise<Dash
     activity14d,
     streamItems,
     topConvergenceUsa,
+    topGpwShorts,
   };
 }
