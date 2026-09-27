@@ -14,11 +14,20 @@ const HEADERS = {
 };
 
 async function orcaGet<T>(pathAndQuery: string): Promise<T[]> {
-  const res = await fetch(`${SPARKY_SUPABASE_URL}/${pathAndQuery}`, { headers: HEADERS });
-  if (!res.ok) throw new Error(`Baza Sparky odpowiedziała ${res.status}`);
-  const batch: unknown = await res.json();
-  if (!Array.isArray(batch)) throw new Error('Baza Sparky zwróciła nieoczekiwany kształt');
-  return batch as T[];
+  try {
+    const res = await fetch(`${SPARKY_SUPABASE_URL}/${pathAndQuery}`, { headers: HEADERS });
+    if (res.status === 404) {
+      console.warn(`[superinvestorsApi] Tabela/widok ${pathAndQuery.split('?')[0]} nie istnieje jeszcze w bazie — zwracam puste dane.`);
+      return [];
+    }
+    if (!res.ok) throw new Error(`Baza Sparky odpowiedziała ${res.status}`);
+    const batch: unknown = await res.json();
+    if (!Array.isArray(batch)) return [];
+    return batch as T[];
+  } catch (err) {
+    console.warn(`[superinvestorsApi] Błąd odczytu ${pathAndQuery}:`, err);
+    return [];
+  }
 }
 
 /** PostgREST pages of 1 000 stop here. Callers must say so when a read hits this cap. */
