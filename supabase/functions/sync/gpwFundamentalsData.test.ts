@@ -38,3 +38,35 @@ Deno.test('missing quarterly periods are not compressed into a fabricated trend'
   const row = buildGpwFundamentalsRows([scanRow({ total_revenue_fq_h: [800, null, 600] })], registered, '2026-10-05')[0];
   if (row.quarters8.length) throw new Error('Dropped missing periods and connected unrelated quarters');
 });
+
+Deno.test('forward valuation uses the real rolling annual EPS consensus when the ratio is absent', () => {
+  const row = buildGpwFundamentalsRows([scanRow({ price_earnings_forward_fy: null,
+    close: 100, earnings_per_share_forecast_next_fy: 5 })], registered, '2026-10-05')[0];
+  if (row.forward_pe !== 20 || row.forward_eps !== 5 || row.forward_pe_basis !== 'rolling_fy')
+    throw new Error('Missing forward valuation from actual annual EPS consensus');
+});
+
+Deno.test('zero or loss forecasts never produce a positive forward valuation', () => {
+  for (const eps of [0, -5, null]) {
+    const row = buildGpwFundamentalsRows([scanRow({ price_earnings_forward_fy: null,
+      close: 100, earnings_per_share_forecast_next_fy: eps })], registered, '2026-10-05')[0];
+    if (row.forward_pe !== null) throw new Error('Invented a valuation for missing or non-positive EPS');
+  }
+});
+
+Deno.test('NBP rates convert market cap and FCF consistently across currencies', () => {
+  const fx = { date: '2026-10-05', rates: new Map([['PLN', 1], ['EUR', 4.4], ['USD', 3.9]]) };
+  const row = buildGpwFundamentalsRows([scanRow({ currency: 'EUR', fundamental_currency_code: 'USD',
+    market_cap_basic: 2000, free_cash_flow_ttm: 100 })], registered, '2026-10-05', fx)[0];
+  if (row.mcap !== 8800 || Math.abs((row.fcf_yield ?? 0) - 390 / 8800) > 1e-12)
+    throw new Error('Missing or inconsistent NBP currency conversion');
+  if (row.fx_date !== '2026-10-05') throw new Error('Missing currency source date');
+});
+
+Deno.test('price and forecast EPS must use the same currency before dividing', () => {
+  const fx = { date: '2026-10-05', rates: new Map([['PLN', 1], ['USD', 4]]) };
+  const row = buildGpwFundamentalsRows([scanRow({ price_earnings_forward_fy: null,
+    close: 100, earnings_per_share_forecast_next_fy: 5, fundamental_currency_code: 'USD' })],
+    registered, '2026-10-05', fx)[0];
+  if (row.forward_pe !== 5) throw new Error('Used mismatched currencies for forward valuation');
+});

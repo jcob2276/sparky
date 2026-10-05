@@ -27,12 +27,16 @@ describe('GPW fundamentals data contract', () => {
       { ticker: 'AAA', sector: 'Finance', mcap: 1234567890, pe: 12.34,
         div_yield: 0.0401, roe: 0.1501, net_margin: 0.12, revenue_yoy: 0.1501,
         fcf_yield: 0.08, net_debt_ebitda: 4.2, forward_pe: 10.3,
+        forward_eps: 1.5, forward_pe_basis: 'rolling_fy', quote_price: 15.45,
+        quote_currency: 'PLN', financial_currency: 'PLN',
         refreshed_at: '2026-10-05T15:00:00Z' },
     ]))));
     const result = await fetchGpwFundamentalsList();
     expect(result.companies[0]).toMatchObject({
       mcapMld: 1.23456789, pe: 12.34, divYieldPct: 4.01,
       fcfYieldPct: 8, debtToEbitda: 4.2, forwardPe: 10.3,
+      forwardEps: 1.5, forwardPeBasis: 'rolling_fy', quotePrice: 15.45,
+      quoteCurrency: 'PLN', financialCurrency: 'PLN',
     });
     expect(result.companies[0].roePct).toBeCloseTo(15.01, 8);
     expect(result.companies[0].revenueYoyPct).toBeCloseTo(15.01, 8);

@@ -20,6 +20,11 @@ export interface GpwCompanyFundamental {
   fcfYieldPct: number | null;
   debtToEbitda: number | null;
   forwardPe: number | null;
+  forwardEps?: number | null;
+  forwardPeBasis?: 'provider_fy' | 'rolling_fy' | null;
+  quotePrice?: number | null;
+  quoteCurrency?: string | null;
+  financialCurrency?: string | null;
   quarters8: number[];
   refreshedAt: string;
 }
@@ -65,6 +70,11 @@ interface RawGpwTeaser {
   fcf_yield?: number | string | null;
   net_debt_ebitda?: number | string | null;
   forward_pe?: number | string | null;
+  forward_eps?: number | string | null;
+  forward_pe_basis?: string | null;
+  quote_price?: number | string | null;
+  quote_currency?: string | null;
+  financial_currency?: string | null;
   quarters8?: Array<{ revenue?: number | string | null }>;
   refreshed_at?: string | null;
 }
@@ -82,7 +92,7 @@ export async function fetchGpwFundamentalsList(): Promise<{
   refreshedDate: string | null;
 }> {
   const raw = await orcaSelect<RawGpwTeaser>(
-    'gpw_fin_public_teaser?select=ticker,name,sector,mcap,pe,pb,div_yield,roe,net_margin,revenue_yoy,fcf_yield,net_debt_ebitda,forward_pe,quarters8,refreshed_at&order=mcap.desc.nullslast',
+    'gpw_fin_public_teaser?select=ticker,name,sector,mcap,pe,pb,div_yield,roe,net_margin,revenue_yoy,fcf_yield,net_debt_ebitda,forward_pe,forward_eps,forward_pe_basis,quote_price,quote_currency,financial_currency,quarters8,refreshed_at&order=mcap.desc.nullslast',
     { strict: true },
   );
 
@@ -131,6 +141,11 @@ export async function fetchGpwFundamentalsList(): Promise<{
       fcfYieldPct: parseNum(r.fcf_yield) != null ? Number(r.fcf_yield) * 100 : null,
       debtToEbitda: parseNum(r.net_debt_ebitda),
       forwardPe: parseNum(r.forward_pe),
+      forwardEps: parseNum(r.forward_eps),
+      forwardPeBasis: r.forward_pe_basis === 'provider_fy' || r.forward_pe_basis === 'rolling_fy' ? r.forward_pe_basis : null,
+      quotePrice: parseNum(r.quote_price),
+      quoteCurrency: r.quote_currency || null,
+      financialCurrency: r.financial_currency || null,
       quarters8: q8,
       refreshedAt: r.refreshed_at || '',
     }];

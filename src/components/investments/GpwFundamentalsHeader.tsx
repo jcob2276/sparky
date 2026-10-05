@@ -3,12 +3,14 @@ import { FC } from 'react';
 interface Props {
   refreshedDate: string | null;
   companyCount: number;
+  forecastCount: number;
   onNavigateTab?: (tab: string) => void;
 }
 
 export const GpwFundamentalsHeader: FC<Props> = ({
   refreshedDate,
   companyCount,
+  forecastCount,
   onNavigateTab,
 }) => {
   return (
@@ -21,7 +23,8 @@ export const GpwFundamentalsHeader: FC<Props> = ({
           </h1>
           <p className="text-xs text-text-secondary mt-1 max-w-3xl leading-relaxed">
             Wskaźniki {companyCount > 0 ? `${companyCount} spółek` : 'spółek'} rynku głównego GPW.
-            {' '}Źródło: TradingView. Brakujące wartości oznaczono „—”.
+            {' '}Dane i prognozy: TradingView. Waluty: NBP. Brakujące wartości oznaczono „—”.
+            {' '}Prognozy forward C/Z: {forecastCount} spółek.
           </p>
         </div>
 

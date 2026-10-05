@@ -4,8 +4,8 @@
  * @role Router synchronizacji biometrii, kalendarza i danych rynkowych; fundamenty GPW tylko dla service role.
  * @reads oura_daily_summary, strava_activities, vanguard_calendar, user_settings, vanguard_tokens, oura_enhanced, strava_tokens, intervals_tokens, oura_heartrate, oura_sleep_hr_timeline, oura_sleep_hrv_timeline, oura_sleep_phase_timeline
  * @writes oura_daily_summary, strava_activities, vanguard_calendar, audit_events, oura_enhanced, oura_heartrate, oura_sleep_phase_timeline, strava_tokens, vanguard_tokens, gpw_fin_public_teaser
- * @calls ouraring.com, strava.com, googleapis.com/calendar, api.telegram.org (poprzez send.ts), scanner.tradingview.com
- * @consumer Zaktualizowane dane biometryczne, treningowe i kalendarza w aplikacji
+ * @calls ouraring.com, strava.com, googleapis.com/calendar, api.telegram.org (poprzez send.ts), scanner.tradingview.com, api.nbp.pl
+ * @consumer Zaktualizowane dane biometryczne, treningowe i kalendarza oraz fundamenty i prognozy GPW w aplikacji
  * @status active
  */
 import { resolveUserScope } from '../_shared/supabase.ts'

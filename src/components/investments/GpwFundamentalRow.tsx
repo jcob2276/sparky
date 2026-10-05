@@ -100,7 +100,12 @@ export const GpwFundamentalRow: FC<Props> = ({ company: c, onSelect }) => {
 
       <td className="py-3 px-3 text-right font-mono text-xs">{fmtVal(c.fcfYieldPct, 1, '%')}</td>
       <td className="py-3 px-3 text-right font-mono text-xs">{fmtVal(c.debtToEbitda, 2, 'x')}</td>
-      <td className="py-3 px-3 text-right font-mono text-xs">{fmtVal(c.forwardPe, 1)}</td>
+      <td className="py-3 px-3 text-right font-mono text-xs"
+        title={c.forwardPeBasis === 'rolling_fy'
+          ? `Kurs: ${fmtVal(c.quotePrice ?? null, 2)} ${c.quoteCurrency ?? ''}. Konsensus EPS: ${fmtVal(c.forwardEps ?? null, 2)} ${c.financialCurrency ?? ''}. Najbliższy niezakończony rok obrotowy; iloraz obliczony po uzgodnieniu walut.`
+          : c.forwardPe != null ? 'Roczny forward C/Z ze źródła TradingView.' : 'Brak dodatniej prognozy EPS w źródle.'}>
+        {fmtVal(c.forwardPe, 1)}
+      </td>
 
       {/* Wyłącznie rzeczywista historia przychodów */}
       <td className="py-3 px-3 text-right">

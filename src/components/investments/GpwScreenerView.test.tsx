@@ -8,6 +8,8 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 const companies = [
   { ticker: 'AAA', name: 'Alpha', sector: 'Finance', mcap: 2e9, pe: 30,
     div_yield: 0, revenue_yoy: 0, fcf_yield: 0.08, net_debt_ebitda: 4, forward_pe: 10,
+    forward_eps: 10, forward_pe_basis: 'rolling_fy', quote_price: 100,
+    quote_currency: 'PLN', financial_currency: 'PLN',
     refreshed_at: '2026-10-05T15:00:00Z' },
   { ticker: 'BBB', name: 'Beta', sector: 'Finance', mcap: 1e9, pe: 5,
     div_yield: 0.03, revenue_yoy: 0.2, fcf_yield: 0.01, net_debt_ebitda: 1, forward_pe: 20,
@@ -57,5 +59,14 @@ describe('GPW screener', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Wyczyść filtry' }));
     expect(screen.queryByText('AAA')).toBeInTheDocument();
     expect(screen.queryByText('BBB')).toBeInTheDocument();
+  });
+
+  it('shows available forecast coverage and the inputs behind the calculated forward ratio', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => new Response(JSON.stringify(companies))));
+    renderScreener();
+    await screen.findByText('AAA');
+    expect(screen.getByText(/Prognozy forward C\/Z: 2 spółek/)).toBeInTheDocument();
+    expect(screen.getByTitle(/Kurs: 100,00 PLN\. Konsensus EPS: 10,00 PLN/)).toHaveTextContent('10,0');
+    expect(screen.getByRole('button', { name: 'Forward C/Z niżej niż C/Z' })).toBeEnabled();
   });
 });

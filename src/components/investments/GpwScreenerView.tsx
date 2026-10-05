@@ -84,6 +84,7 @@ export const GpwScreenerView: FC<Props> = ({
       <GpwFundamentalsHeader
         refreshedDate={refreshedDate}
         companyCount={companies.length}
+        forecastCount={companies.filter((c) => c.forwardPe != null).length}
         onNavigateTab={onNavigateTab}
       />
 
@@ -137,7 +138,7 @@ export const GpwScreenerView: FC<Props> = ({
                 <th className="py-2.5 px-3 text-right">Przych. r/r</th>
                 <th className="py-2.5 px-3 text-right">FCF yield</th>
                 <th className="py-2.5 px-3 text-right">Dług netto/EBITDA</th>
-                <th className="py-2.5 px-3 text-right">Forward C/Z</th>
+                <th className="py-2.5 px-3 text-right" title="Kurs / konsensus prognozy EPS na najbliższy niezakończony rok obrotowy. Prognoza EPS może uwzględniać korekty analityków.">Forward C/Z</th>
                 <th className="py-2.5 px-3 text-right">Przychody 8 kw.</th>
               </tr>
             </thead>
