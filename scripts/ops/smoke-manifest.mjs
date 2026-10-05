@@ -79,6 +79,7 @@ export const SMOKE_TARGETS = [
 
 /** pg_cron jobs defined in repo migrations (verify live DB matches). */
 export const CRON_FROM_MIGRATIONS = [
+  { jobname: "sync-gpw-fundamentals", schedule: "10 16 * * 1-5", target: "sync?service=gpw_fundamentals" },
   { jobname: "vanguard-daily-snapshot", schedule: "0 4 * * *", target: "vanguard-nightly" },
   { jobname: "vanguard-daily-analyst", schedule: "0 3 * * *", target: "vanguard-analyst" },
   { jobname: "vanguard-wiki-compiler", schedule: "20 3 * * *", target: "vanguard-wiki-compiler" },

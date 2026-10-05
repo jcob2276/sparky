@@ -1,18 +1,10 @@
 import { FC } from 'react';
-import { Search, Plus, Columns } from 'lucide-react';
+import { Search } from 'lucide-react';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
 
-export interface GpwPresetFilters {
-  peBelowMedian: boolean;
-  divYieldAbove4: boolean;
-  revenueYoyAbove15: boolean;
-  roeAbove15: boolean;
-  fcfYieldAbove5: boolean;
-  debtToEbitdaAbove3: boolean;
-  forwardPeBelowPe: boolean;
-}
+import type { GpwPresetFilters } from '../../lib/investments/gpwFundamentalsFilters';
 
 interface Props {
   search: string;
@@ -28,11 +20,13 @@ interface Props {
   onTogglePreset: (key: keyof GpwPresetFilters) => void;
   totalFiltered: number;
   totalAll: number;
+  onReset: () => void;
+  availablePresets: Set<keyof GpwPresetFilters>;
 }
 
 const MCAP_OPTIONS = [
   { value: 'all', label: 'dowolna' },
-  { value: 'large', label: 'Duża (> 10 mld zł)' },
+  { value: 'large', label: 'Duża (≥ 10 mld zł)' },
   { value: 'mid', label: 'Średnia (1 - 10 mld zł)' },
   { value: 'small', label: 'Mała (< 1 mld zł)' },
 ];
@@ -61,7 +55,8 @@ const PRESET_BUTTONS: { key: keyof GpwPresetFilters; label: string }[] = [
 const GpwPresetPills: FC<{
   presets: GpwPresetFilters;
   onTogglePreset: (key: keyof GpwPresetFilters) => void;
-}> = ({ presets, onTogglePreset }) => (
+  availablePresets: Set<keyof GpwPresetFilters>;
+}> = ({ presets, onTogglePreset, availablePresets }) => (
   <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
     {PRESET_BUTTONS.map(({ key, label }) => (
       <Button
@@ -69,6 +64,9 @@ const GpwPresetPills: FC<{
         size="sm"
         variant={presets[key] ? 'primary' : 'secondary'}
         onClick={() => onTogglePreset(key)}
+        aria-pressed={presets[key]}
+        disabled={!availablePresets.has(key)}
+        title={availablePresets.has(key) ? label : 'Źródło nie udostępnia tego wskaźnika'}
         className="text-2xs font-medium rounded-xl"
       >
         {label}
@@ -91,6 +89,8 @@ export const GpwFundamentalsFilters: FC<Props> = ({
   onTogglePreset,
   totalFiltered,
   totalAll,
+  onReset,
+  availablePresets,
 }) => {
   return (
     <div className="space-y-3.5">
@@ -153,27 +153,20 @@ export const GpwFundamentalsFilters: FC<Props> = ({
       </div>
 
       {/* Quick Condition Presets */}
-      <GpwPresetPills presets={presets} onTogglePreset={onTogglePreset} />
+      <GpwPresetPills presets={presets} onTogglePreset={onTogglePreset} availablePresets={availablePresets} />
 
       {/* Action buttons row */}
       <div className="flex items-center justify-between pt-1">
         <Button
           size="sm"
-          variant="secondary"
+          variant="ghost"
+          onClick={onReset}
           className="text-2xs font-bold rounded-xl gap-1"
         >
-          <Plus size={12} />
-          Filtr
+          Resetuj filtry
         </Button>
 
-        <Button
-          size="sm"
-          variant="ghost"
-          className="text-2xs font-mono font-bold text-text-secondary hover:text-text-primary rounded-xl gap-1.5"
-        >
-          <Columns size={12} />
-          Kolumny
-        </Button>
+        <span className="text-2xs text-text-muted">Filtry pomijają spółki bez wymaganego wskaźnika.</span>
       </div>
     </div>
   );

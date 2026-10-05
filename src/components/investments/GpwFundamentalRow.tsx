@@ -94,11 +94,15 @@ export const GpwFundamentalRow: FC<Props> = ({ company: c, onSelect }) => {
         }`}
       >
         {c.revenueYoyPct != null
-          ? `${c.revenueYoyPct > 0 ? '+' : ''}${c.revenueYoyPct} %`
+          ? `${c.revenueYoyPct > 0 ? '+' : ''}${fmtVal(c.revenueYoyPct, 1, '%')}`
           : '—'}
       </td>
 
-      {/* Przychody 8 Okr. (Sparkline SVG z kropką końcową) */}
+      <td className="py-3 px-3 text-right font-mono text-xs">{fmtVal(c.fcfYieldPct, 1, '%')}</td>
+      <td className="py-3 px-3 text-right font-mono text-xs">{fmtVal(c.debtToEbitda, 2, 'x')}</td>
+      <td className="py-3 px-3 text-right font-mono text-xs">{fmtVal(c.forwardPe, 1)}</td>
+
+      {/* Wyłącznie rzeczywista historia przychodów */}
       <td className="py-3 px-3 text-right">
         <div className="w-20 h-7 ml-auto shrink-0 flex items-center justify-end">
           {pathPoints ? (

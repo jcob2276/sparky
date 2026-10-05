@@ -13,18 +13,23 @@ const HEADERS = {
   Authorization: `Bearer ${SPARKY_ANON_KEY}`,
 };
 
-async function orcaGet<T>(pathAndQuery: string): Promise<T[]> {
+interface ReadOptions { strict?: boolean }
+
+async function orcaGet<T>(pathAndQuery: string, options: ReadOptions): Promise<T[]> {
   try {
-    const res = await fetch(`${SPARKY_SUPABASE_URL}/${pathAndQuery}`, { headers: HEADERS });
-    if (res.status === 404) {
+    const res = await fetch(`${SPARKY_SUPABASE_URL}/${pathAndQuery}`, {
+      headers: HEADERS, signal: AbortSignal.timeout(15_000),
+    });
+    if (res.status === 404 && !options.strict) {
       console.warn(`[superinvestorsApi] Tabela/widok ${pathAndQuery.split('?')[0]} nie istnieje jeszcze w bazie — zwracam puste dane.`);
       return [];
     }
     if (!res.ok) throw new Error(`Baza Sparky odpowiedziała ${res.status}`);
     const batch: unknown = await res.json();
-    if (!Array.isArray(batch)) return [];
+    if (!Array.isArray(batch)) throw new Error('Nieprawidłowa odpowiedź bazy Sparky');
     return batch as T[];
   } catch (err) {
+    if (options.strict) throw err;
     console.warn(`[superinvestorsApi] Błąd odczytu ${pathAndQuery}:`, err);
     return [];
   }
@@ -33,12 +38,12 @@ async function orcaGet<T>(pathAndQuery: string): Promise<T[]> {
 /** PostgREST pages of 1 000 stop here. Callers must say so when a read hits this cap. */
 const QUERY_SELECT_CAP = 20_000;
 
-export async function orcaSelect<T>(pathAndQuery: string): Promise<T[]> {
-  if (/[?&]limit=/.test(pathAndQuery)) return orcaGet<T>(pathAndQuery);
+export async function orcaSelect<T>(pathAndQuery: string, options: ReadOptions = {}): Promise<T[]> {
+  if (/[?&]limit=/.test(pathAndQuery)) return orcaGet<T>(pathAndQuery, options);
   const rows: T[] = [];
   for (let offset = 0; offset < QUERY_SELECT_CAP; offset += 1000) {
     const joiner = pathAndQuery.includes('?') ? '&' : '?';
-    const batch = await orcaGet<T>(`${pathAndQuery}${joiner}limit=1000&offset=${offset}`);
+    const batch = await orcaGet<T>(`${pathAndQuery}${joiner}limit=1000&offset=${offset}`, options);
     rows.push(...batch);
     if (batch.length < 1000) break;
   }

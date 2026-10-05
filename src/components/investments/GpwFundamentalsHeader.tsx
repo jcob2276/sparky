@@ -1,12 +1,14 @@
 import { FC } from 'react';
 
 interface Props {
-  refreshedDate: string;
+  refreshedDate: string | null;
+  companyCount: number;
   onNavigateTab?: (tab: string) => void;
 }
 
 export const GpwFundamentalsHeader: FC<Props> = ({
   refreshedDate,
+  companyCount,
   onNavigateTab,
 }) => {
   return (
@@ -18,13 +20,13 @@ export const GpwFundamentalsHeader: FC<Props> = ({
             Fundamenty GPW
           </h1>
           <p className="text-xs text-text-secondary mt-1 max-w-3xl leading-relaxed">
-            Wskaźniki z raportów okresowych 385 spółek rynku głównego. Filtry nazwane warunkiem, nie
-            oceną: to, co spełnia próg, jest faktem o danych, nie rekomendacją.
+            Wskaźniki {companyCount > 0 ? `${companyCount} spółek` : 'spółek'} rynku głównego GPW.
+            {' '}Źródło: TradingView. Brakujące wartości oznaczono „—”.
           </p>
         </div>
 
         <div className="text-3xs font-mono font-medium text-text-muted shrink-0">
-          odświeżono {refreshedDate}
+          {refreshedDate ? `odświeżono ${refreshedDate}` : 'Brak daty aktualizacji'}
         </div>
       </div>
 

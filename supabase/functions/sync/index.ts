@@ -1,10 +1,10 @@
 /**
  * @function sync
  * @trigger HTTP POST / manual / cron
- * @role Router dla synchronizacji zewnętrznych API: Oura, Strava, Google Calendar, NextDNS.
+ * @role Router synchronizacji biometrii, kalendarza i danych rynkowych; fundamenty GPW tylko dla service role.
  * @reads oura_daily_summary, strava_activities, vanguard_calendar, user_settings, vanguard_tokens, oura_enhanced, strava_tokens, intervals_tokens, oura_heartrate, oura_sleep_hr_timeline, oura_sleep_hrv_timeline, oura_sleep_phase_timeline
- * @writes oura_daily_summary, strava_activities, vanguard_calendar, audit_events, oura_enhanced, oura_heartrate, oura_sleep_phase_timeline, strava_tokens, vanguard_tokens
- * @calls ouraring.com, strava.com, googleapis.com/calendar, api.telegram.org (poprzez send.ts)
+ * @writes oura_daily_summary, strava_activities, vanguard_calendar, audit_events, oura_enhanced, oura_heartrate, oura_sleep_phase_timeline, strava_tokens, vanguard_tokens, gpw_fin_public_teaser
+ * @calls ouraring.com, strava.com, googleapis.com/calendar, api.telegram.org (poprzez send.ts), scanner.tradingview.com
  * @consumer Zaktualizowane dane biometryczne, treningowe i kalendarza w aplikacji
  * @status active
  */
@@ -17,6 +17,8 @@ import { runNextDnsSync } from './nextdns.ts'
 import { runQuotesSync } from './quotes.ts'
 import { runKnfShortsSync } from './knfShorts.ts'
 import { runSenateSync } from './senateTrades.ts'
+import { requireServiceRole } from '../_shared/auth.ts'
+import { runGpwFundamentalsSync } from './gpwFundamentals.ts'
 
 Deno.serve(serveJson(async (req) => {
   const url = new URL(req.url)
@@ -30,6 +32,12 @@ Deno.serve(serveJson(async (req) => {
 
   if (!service && (req.method === 'POST' || req.method === 'PUT')) {
     service = body.service
+  }
+
+  if (service === 'gpw_fundamentals') {
+    const authError = requireServiceRole(req)
+    if (authError) return authError
+    return await runGpwFundamentalsSync()
   }
 
   if (service !== 'quotes' && service !== 'knf_shorts' && service !== 'senate' && service !== 'congress') {
