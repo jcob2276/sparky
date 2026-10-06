@@ -5,7 +5,7 @@ vi.mock('./superinvestorsApi', () => ({ orcaSelect: vi.fn() }));
 vi.mock('../date', async (original) => ({ ...await original<typeof import('../date')>(), getTodayWarsaw: () => '2026-10-06' }));
 const read = vi.mocked(orcaSelect);
 describe('dashboard evidence', () => {
-  beforeEach(() => read.mockReset().mockResolvedValue([]));
+  beforeEach(() => { read.mockReset().mockResolvedValue([]); });
   it('never invents counts, picks or peaks on an empty successful read', async () => {
     const data = await fetchDashboardData();
     expect(data.topConsensus).toBeNull();
@@ -14,6 +14,14 @@ describe('dashboard evidence', () => {
     expect(data.activity14d.total).toBe(0);
     expect(data.activity14d.peakDateLabel).toBeNull();
     expect(data.topConvergenceUsa).toEqual([]);
+  });
+  it('uses verified 13F changes rather than cached transaction claims', async () => {
+    read.mockImplementation(async path => path.startsWith('vw_sec13f_screener')
+      ? [{ ticker: 'CVNA', net_changes: 14, company_name: 'Carvana' }]
+      : path.startsWith('vw_consensus') ? [{ ticker: 'FAKE', net_buyers: 999 }] : []);
+    const data = await fetchDashboardData();
+    expect(data.topConsensus).toEqual({ ticker: 'CVNA', net: 14 });
+    expect(read.mock.calls.some(([path]) => path.startsWith('vw_consensus'))).toBe(false);
   });
   it('counts all rows in the same 14 calendar days and not just the displayed stream', async () => {
     read.mockImplementation(async (path) => (path ?? "").startsWith('stock_act_trades?') ?

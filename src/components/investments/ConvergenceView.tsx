@@ -24,7 +24,7 @@ function exportCsv(rows: SignalRow[]) {
         row.companyName,
         row.score,
         row.convergent ? 'tak' : 'nie',
-        row.fundNetBuyers,
+        row.fundNetBuyers ?? '',
         row.polBuys,
         row.polSells,
         row.politicianBuyers,
@@ -153,7 +153,7 @@ export const ConvergenceView: FC<Props> = ({ watchlist, onNavigateTab }) => {
       )}
 
       <p className="text-3xs font-mono text-text-muted leading-relaxed max-w-4xl">
-        Ocena = pozycja percentylowa ważonych źródeł (40% fundusze 13F netto, 24% netto transakcji polityków, 16% liczby kupujących polityków, 20% insiderzy; bez danych insiderskich 50/30/20) w oknie {windowLabel}. Porządkuje listę, nie jest prognozą ani oceną spółki. Kwoty transakcji polityków to środki widełek z ujawnień STOCK Act.
+        Ocena = pozycja percentylowa ważonych źródeł (40% bilans zmian pozycji 13F, 24% netto transakcji polityków, 16% liczby kupujących polityków, 20% insiderzy; bez danych insiderskich 50/30/20). Brak porównania 13F nie daje punktów. 13F porównuje dwa ostatnie kwartały, transakcje obejmują okno {windowLabel}. Porządkuje listę, nie jest prognozą ani oceną spółki. Kwoty transakcji polityków to środki widełek z ujawnień STOCK Act.
       </p>
     </div>
   );

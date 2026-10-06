@@ -1,6 +1,7 @@
 import { getTodayWarsaw, shiftDateStr } from '../date';
 import { orcaSelect } from './superinvestorsApi';
 import { rankDisclosureSignals, type SignalMetrics, type SignalRow } from './signalsScore';
+import { fetchSignalInsiderEvidence } from './signalsInsiderEvidence';
 
 export type SignalWindow = '90d' | '365d';
 export type { SignalRow };
@@ -13,12 +14,13 @@ export interface SignalEvidenceItem {
   badge: string;
   tone: 'up' | 'down' | 'flat';
   detail: string;
+  sourceUrls?: string[];
 }
 
 interface ConsensusRaw {
   ticker?: string | null;
   company_name?: string | null;
-  net_buyers?: number | null;
+  net_changes?: number | null;
   holders?: number | null;
 }
 
@@ -27,6 +29,8 @@ interface PoliticianEmbed {
 }
 
 interface TradeRaw {
+  source_url?: string;
+  disclosure_date?: string;
   external_id?: string | null;
   filer_name?: string | null;
   ticker?: string | null;
@@ -44,6 +48,10 @@ interface InsiderRaw {
 }
 
 interface HoldingRaw {
+  period_of_report?: string;
+  previous_period?: string;
+  filing_url?: string;
+  previous_filing_url?: string;
   investor_id?: string | null;
   shares_delta?: number | null;
   value_now?: number | null;
@@ -86,7 +94,7 @@ function laterDate(current: string | null, next: string | null): string | null {
   return current;
 }
 
-function emptyMetric(ticker: string, companyName: string, fundNetBuyers: number, holders: number): SignalMetrics {
+function emptyMetric(ticker: string, companyName: string, fundNetBuyers: number | null, holders: number): SignalMetrics {
   return {
     ticker,
     companyName,
@@ -118,7 +126,7 @@ async function loadSignalBoard(window: SignalWindow): Promise<SignalRow[]> {
   const since = windowStart(window);
   const today = getTodayWarsaw();
   const [consensus, trades, insiders] = await Promise.all([
-    orcaSelect<ConsensusRaw>('vw_consensus?select=ticker,company_name,net_buyers,holders&order=ticker.asc', { strict: true }),
+    orcaSelect<ConsensusRaw>('vw_sec13f_screener?select=ticker,company_name,net_changes,holders&order=ticker.asc', { strict: true }),
     orcaSelect<TradeRaw>(
       `stock_act_trades?select=external_id,ticker,transaction_type,transaction_date,amount_low,amount_high,filer_name,politicians(display_name)&source_url=not.is.null&disclosure_date=not.is.null&transaction_date=gte.${since}&transaction_date=lte.${today}&order=id.asc`,
       { strict: true },
@@ -135,7 +143,7 @@ async function loadSignalBoard(window: SignalWindow): Promise<SignalRow[]> {
     if (!ticker) continue;
     byTicker.set(
       ticker,
-      emptyMetric(ticker, item.company_name?.trim() || ticker, item.net_buyers ?? 0, item.holders ?? 0),
+      emptyMetric(ticker, item.company_name?.trim() || ticker, item.net_changes ?? null, item.holders ?? 0),
     );
   }
 
@@ -145,8 +153,8 @@ async function loadSignalBoard(window: SignalWindow): Promise<SignalRow[]> {
   for (const trade of trades) {
     const ticker = trade.ticker?.trim().toUpperCase();
     if (!ticker) continue;
-    const metric = byTicker.get(ticker);
-    if (!metric) continue;
+    const metric = byTicker.get(ticker) ?? emptyMetric(ticker, ticker, null, 0);
+    byTicker.set(ticker, metric);
     const type = trade.transaction_type ?? '';
     const name = politicianName(trade);
     if (isBuy(type)) {
@@ -177,8 +185,8 @@ async function loadSignalBoard(window: SignalWindow): Promise<SignalRow[]> {
   for (const insider of insiders) {
     const ticker = insider.ticker?.trim().toUpperCase();
     if (!ticker) continue;
-    const metric = byTicker.get(ticker);
-    if (!metric) continue;
+    const metric = byTicker.get(ticker) ?? emptyMetric(ticker, ticker, null, 0);
+    byTicker.set(ticker, metric);
     metric.insiderBuys += 1;
     if (insider.id != null) metric.disclosureIds?.push(`sec:${insider.id}`);
     insiderRows += 1;
@@ -187,7 +195,7 @@ async function loadSignalBoard(window: SignalWindow): Promise<SignalRow[]> {
 
   const active: SignalMetrics[] = [];
   for (const metric of byTicker.values()) {
-    if (metric.polBuys === 0 && metric.polSells === 0) continue;
+    if (metric.polBuys === 0 && metric.polSells === 0 && metric.insiderBuys === 0) continue;
     metric.politicianBuyers = buyerNames.get(metric.ticker)?.size ?? 0;
     metric.politicians = allNames.get(metric.ticker)?.size ?? 0;
     active.push(metric);
@@ -198,10 +206,10 @@ async function loadSignalBoard(window: SignalWindow): Promise<SignalRow[]> {
 }
 
 const FUND_BADGE: Record<string, { badge: string; tone: SignalEvidenceItem['tone'] }> = {
-  new: { badge: 'nowa pozycja', tone: 'up' },
-  increased: { badge: 'dokupił', tone: 'up' },
-  decreased: { badge: 'zredukował', tone: 'down' },
-  sold: { badge: 'wyszedł z pozycji', tone: 'down' },
+  reported_new: { badge: 'nowo wykazana pozycja', tone: 'up' },
+  reported_increase: { badge: 'wzrost raportowanej pozycji', tone: 'up' },
+  reported_decrease: { badge: 'spadek raportowanej pozycji', tone: 'down' },
+  reported_absent: { badge: 'pozycja niewykazana', tone: 'down' },
 };
 
 function formatShares(delta: number): string {
@@ -219,36 +227,38 @@ function formatUsd(value: number): string {
 
 export async function fetchSignalEvidence(ticker: string): Promise<SignalEvidenceItem[]> {
   const symbol = ticker.trim().toUpperCase();
-  const [holdings, trades] = await Promise.all([
+  const [holdings, trades, insiderEvents] = await Promise.all([
     orcaSelect<HoldingRaw>(
-      `vw_holdings_changes?select=investor_id,shares_delta,value_now,change_type&ticker=eq.${encodeURIComponent(symbol)}&change_type=neq.unchanged&order=value_now.desc&limit=40`,
+      `vw_sec13f_verified_changes?select=investor_id,shares_delta,value_now,change_type,period_of_report,previous_period,filing_url,previous_filing_url&ticker=eq.${encodeURIComponent(symbol)}&change_type=neq.reported_unchanged&order=value_now.desc&limit=40`, { strict: true },
     ),
     orcaSelect<TradeRaw>(
-      `stock_act_trades?select=ticker,transaction_type,transaction_date,amount_low,amount_high,politicians(display_name)&ticker=eq.${encodeURIComponent(symbol)}&order=transaction_date.desc&limit=40`,
+      `stock_act_trades?select=external_id,filer_name,ticker,transaction_type,transaction_date,disclosure_date,source_url,amount_low,amount_high,politicians(display_name)&source_url=not.is.null&disclosure_date=not.is.null&ticker=eq.${encodeURIComponent(symbol)}&order=disclosure_date.desc&limit=40`, { strict: true },
     ),
+    fetchSignalInsiderEvidence(symbol),
   ]);
 
   const investorIds = [...new Set(holdings.map((h) => h.investor_id).filter((id): id is string => Boolean(id)))];
   const investors = investorIds.length
     ? await orcaSelect<InvestorRaw>(
-        `investors?select=id,display_name,fund_name&id=in.(${investorIds.join(',')})`,
+        `investors?select=id,display_name,fund_name&id=in.(${investorIds.join(',')})`, { strict: true },
       )
     : [];
   const names = new Map(investors.map((inv) => [inv.id, inv.display_name || inv.fund_name || 'Fundusz']));
 
-  const events: SignalEvidenceItem[] = [];
+  const events: SignalEvidenceItem[] = [...insiderEvents];
   for (const holding of holdings) {
     const kind = FUND_BADGE[holding.change_type ?? ''] ?? { badge: holding.change_type || 'zmiana', tone: 'flat' as const };
     const shares = typeof holding.shares_delta === 'number' ? formatShares(holding.shares_delta) : null;
     const value = typeof holding.value_now === 'number' ? formatUsd(holding.value_now) : null;
     events.push({
       id: `fund-${holding.investor_id ?? events.length}`,
-      date: null,
+      date: holding.period_of_report ?? null,
       actor: 'fund',
       who: names.get(holding.investor_id ?? '') || 'Fundusz',
       badge: kind.badge,
       tone: kind.tone,
-      detail: [shares, value].filter(Boolean).join(' · ') || 'Zgłoszenie 13F',
+      detail: `${holding.previous_period} → ${holding.period_of_report} · ${[shares, value && `wartość pozycji ${value}`].filter(Boolean).join(' · ')}. Zmiana stanu raportowanego, nie potwierdzona transakcja.`,
+      sourceUrls: [holding.previous_filing_url, holding.filing_url].filter((url): url is string => Boolean(url)),
     });
   }
 
@@ -260,12 +270,13 @@ export async function fetchSignalEvidence(ticker: string): Promise<SignalEvidenc
     const range = low != null && high != null ? `${formatUsd(low)} – ${formatUsd(high)}` : 'kwota nieujawniona';
     events.push({
       id: `pol-${trade.transaction_date ?? ''}-${politicianName(trade) ?? events.length}`,
-      date: trade.transaction_date ?? null,
+      date: trade.disclosure_date ?? null,
       actor: 'politician',
       who: politicianName(trade) || 'Polityk',
       badge: isBuy(type) ? 'Kupno' : 'Sprzedaż',
       tone: isBuy(type) ? 'up' : 'down',
-      detail: range,
+      detail: `Transakcja: ${trade.transaction_date ?? 'data nieznana'} · ${range}`,
+      sourceUrls: trade.source_url ? [trade.source_url] : [],
     });
   }
 

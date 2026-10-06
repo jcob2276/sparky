@@ -4,6 +4,7 @@ import { Star } from 'lucide-react';
 import { EnrichedStockConsensus } from '../../lib/investments/consensusService';
 import { CompanyLogo } from './CompanyLogo';
 import { MiniSparkline } from './MiniSparkline';
+import { CompanyListingNotice } from './CompanyListingNotice';
 
 interface Props {
   stock: EnrichedStockConsensus;
@@ -19,15 +20,14 @@ export const StocksConsensusRow: FC<Props> = ({
   onSelectStockForChart,
 }) => {
   const totalMoves = stock.fundsBuying + stock.fundsSelling;
-  const buyPercent = totalMoves > 0 ? (stock.fundsBuying / totalMoves) * 100 : 50;
-  const sellPercent = totalMoves > 0 ? (stock.fundsSelling / totalMoves) * 100 : 50;
+  const buyPercent = totalMoves > 0 ? (stock.fundsBuying / totalMoves) * 100 : 0;
+  const sellPercent = totalMoves > 0 ? (stock.fundsSelling / totalMoves) * 100 : 0;
 
   return (
     <tr
       className="hover:bg-primary/5 transition-colors group cursor-pointer"
       onClick={() => onSelectStockForChart(stock.ticker, stock.name)}
     >
-      {/* Spółka */}
       <td className="py-3 px-4">
         <div className="flex items-center gap-3">
           <CompanyLogo ticker={stock.ticker} name={stock.name} size={34} />
@@ -41,21 +41,20 @@ export const StocksConsensusRow: FC<Props> = ({
             >
               {stock.name}
             </div>
+            <CompanyListingNotice {...stock} />
           </div>
         </div>
       </td>
 
-      {/* Sektor */}
       <td className="py-3 px-4 text-2xs text-text-secondary">
         {stock.sector}
       </td>
 
-      {/* Kurs USD */}
       <td className="py-3 px-4 text-right font-mono font-bold text-text-primary tabular-nums">
         {stock.priceUsd != null ? stock.priceUsd.toFixed(2).replace('.', ',') : '—'}
+        {stock.priceDate && <div className="text-3xs text-text-muted font-normal">{stock.priceDate}</div>}
       </td>
 
-      {/* Dziś */}
       <td className="py-3 px-4 text-right font-mono text-2xs tabular-nums">
         {stock.changeToday == null ? (
           <span className="text-text-muted">—</span>
@@ -74,7 +73,6 @@ export const StocksConsensusRow: FC<Props> = ({
         )}
       </td>
 
-      {/* Kupują · Sprzedają (split progress bar + text) */}
       <td className="py-3 px-4 text-center">
         <div className="flex flex-col items-center justify-center gap-1.5 w-32 mx-auto">
           <div className="w-full h-1.5 bg-border-custom/40 rounded-full overflow-hidden flex shadow-2xs">
@@ -88,24 +86,22 @@ export const StocksConsensusRow: FC<Props> = ({
             />
           </div>
           <div className="font-mono text-3xs text-text-secondary whitespace-nowrap">
-            <span className="font-bold text-text-primary">{stock.fundsBuying} kupuje</span>
+            <span className="font-bold text-text-primary">{stock.comparedFunds ? `${stock.fundsBuying} ↑` : '—'}</span>
             <span className="mx-1 text-text-muted">·</span>
-            <span className="font-bold text-text-primary">{stock.fundsSelling} sprzedaje</span>
+            <span className="font-bold text-text-primary">{stock.comparedFunds ? `${stock.fundsSelling} ↓` : '—'}</span>
           </div>
+          <span className="text-3xs text-text-muted">{stock.comparedFunds ? `${stock.comparedFunds} porównanych` : 'Brak porównania'}</span>
         </div>
       </td>
 
-      {/* Fund. */}
       <td className="py-3 px-4 text-center font-mono text-xs font-semibold text-text-primary tabular-nums">
         {stock.totalFunds}
       </td>
 
-      {/* Wartość */}
       <td className="py-3 px-4 text-right font-mono text-xs text-text-primary tabular-nums">
         {stock.totalValueUsd}
       </td>
 
-      {/* Star Watchlist */}
       <td
         className="py-3 px-2 text-center"
         onClick={(e) => {
@@ -130,7 +126,6 @@ export const StocksConsensusRow: FC<Props> = ({
         </Button>
       </td>
 
-      {/* Netto */}
       <td className="py-3 px-3 text-center">
         <span
           className={`inline-block min-w-8 text-center px-2 py-0.5 rounded-md text-xs font-mono font-black border ${
@@ -141,11 +136,10 @@ export const StocksConsensusRow: FC<Props> = ({
               : 'bg-surface text-text-muted border-border-custom'
           }`}
         >
-          {stock.netScore > 0 ? `+${stock.netScore}` : stock.netScore}
+          {!stock.comparedFunds ? '—' : stock.netScore > 0 ? `+${stock.netScore}` : stock.netScore}
         </span>
       </td>
 
-      {/* 12M Sparkline */}
       <td className="py-3 px-4 text-center">
         <div className="flex justify-center">
           <MiniSparkline
@@ -154,6 +148,14 @@ export const StocksConsensusRow: FC<Props> = ({
             height={20}
           />
         </div>
+      </td>
+      <td className="py-3 px-4 text-xs" onClick={event => event.stopPropagation()}>
+        <details>
+          <summary className="text-primary">SEC ({stock.sourceUrls.length})</summary>
+          <div className="max-h-32 overflow-y-auto min-w-24">
+            {stock.sourceUrls.map((url, index) => <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="block text-primary underline">Dokument {index + 1}</a>)}
+          </div>
+        </details>
       </td>
     </tr>
   );

@@ -2,7 +2,26 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { fetchCompanyDetailData } from './companyDetailService';
 import { orcaSelect } from './superinvestorsApi';
 vi.mock('./superinvestorsApi', () => ({ orcaSelect: vi.fn() }));
-afterEach(() => { vi.resetAllMocks(); vi.unstubAllGlobals(); });
+afterEach(() => { vi.resetAllMocks(); vi.unstubAllGlobals(); vi.useRealTimers(); });
+
+it('preserves historical quotes for a halted security without claiming current returns', async () => {
+  vi.useFakeTimers(); vi.setSystemTime(new Date('2026-10-06T12:00:00Z'));
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }));
+  vi.mocked(orcaSelect).mockImplementation(async path => {
+    if (path.startsWith('companies?')) return [{ listing_status: 'halted',
+      listing_status_date: '2026-10-05', listing_source_url: 'https://issuer.test/closed' }];
+    if (path.startsWith('prices_daily?')) return [
+      { date: '2026-10-05', close_raw: 30, currency: 'USD', source_url: 'https://quotes.test/WBD' },
+      { date: '2026-10-06', close_raw: 31, currency: 'USD', source_url: 'https://quotes.test/WBD' },
+    ];
+    return [];
+  });
+  const data = await fetchCompanyDetailData('WBD');
+  expect(data).toMatchObject({ listingStatus: 'halted', price: 31, priceDate: '2026-10-06',
+    changeTodayPct: null, change1yPct: null });
+  expect(data.prices).toHaveLength(2);
+  expect(vi.mocked(orcaSelect).mock.calls.find(([path]) => path.startsWith('companies?'))?.[0]).toContain('market=eq.us');
+});
 
 it('does not invent metadata, amounts or transaction directions for missing evidence', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }));

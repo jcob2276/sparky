@@ -1,9 +1,13 @@
 /**
  * consensusService.ts — Pobieranie i wzbogacanie konsensusu instytucjonalnego 13F.
- * Łączy dane z `vw_consensus`, sektory z `companies` oraz notowania i sparklines z `prices_daily`.
+ * Wyłącznie zweryfikowane raporty SEC; zmiany stanów nie są dowodem transakcji.
  */
 
 import { orcaSelect } from './superinvestorsApi';
+import { summarizeCompanyPrices, type CompanyPriceRow } from './companyPriceHistory';
+import { getTodayWarsaw, shiftDateStr } from '../date';
+import { usQuoteSymbol } from './marketSymbol';
+import { isListingInactive, type ListingStatus } from './companyListing';
 
 export interface EnrichedStockConsensus {
   ticker: string;
@@ -19,6 +23,14 @@ export interface EnrichedStockConsensus {
   netScore: number;
   movementType: 'accumulation' | 'distribution' | 'neutral';
   sparkline: number[];
+  comparedFunds: number;
+  reportPeriod: string;
+  previousPeriod: string;
+  sourceUrls: string[];
+  priceDate: string | null;
+  listingStatus?: ListingStatus;
+  listingStatusDate?: string;
+  listingSourceUrl?: string;
 }
 
 export interface ConsensusStats {
@@ -30,26 +42,34 @@ export interface ConsensusStats {
   topSoldNet: number;
   mostActiveTicker: string;
   mostActiveMoves: number;
+  reportPeriod: string | null;
+  previousPeriod: string | null;
 }
 
 interface RawConsensusRow {
   ticker?: string;
   company_name?: string;
-  buyers?: number;
-  sellers?: number;
+  reported_increases?: number | null;
+  reported_decreases?: number | null;
   holders?: number;
-  net_buyers?: number;
+  net_changes?: number | null;
   total_value?: number;
+  compared_funds?: number;
+  period_of_report?: string;
+  previous_period?: string;
+  source_urls?: string[];
 }
 
 interface RawCompanyRow {
   ticker?: string;
   sector?: string;
+  listing_status?: ListingStatus;
+  listing_status_date?: string;
+  listing_source_url?: string;
 }
 
-interface RawDailyPriceRow {
+interface RawDailyPriceRow extends CompanyPriceRow {
   ticker?: string;
-  close_raw?: number;
 }
 
 const SECTOR_PL: Record<string, string> = {
@@ -77,67 +97,65 @@ export async function fetchEnrichedConsensus(): Promise<{
   items: EnrichedStockConsensus[];
   stats: ConsensusStats;
 }> {
-  try {
     const rawConsensus = await orcaSelect<RawConsensusRow>(
-      'vw_consensus?select=ticker,company_name,buyers,sellers,holders,net_buyers,total_value&order=total_value.desc.nullslast'
+      'vw_sec13f_screener?select=*&order=total_value.desc,ticker.asc', { strict: true }
     );
 
     const validRows = rawConsensus.filter((r): r is RawConsensusRow & { ticker: string } => Boolean(r.ticker));
     const tickers = validRows.map((r) => r.ticker.toUpperCase());
     const encTickers = tickers.map((t) => encodeURIComponent(t)).join(',');
+    const priceTickers = tickers.map(t => encodeURIComponent(usQuoteSymbol(t))).join(',');
 
     const [companies, prices] = await Promise.all([
-      orcaSelect<RawCompanyRow>(
-        `companies?ticker=in.(${encTickers})&select=ticker,sector&limit=500`
-      ).catch(() => []),
-      orcaSelect<RawDailyPriceRow>(
-        `prices_daily?ticker=in.(${encTickers})&order=date.desc&select=ticker,close_raw&limit=2500`
-      ).catch(() => []),
+      tickers.length ? orcaSelect<RawCompanyRow>(
+        `companies?market=eq.us&ticker=in.(${encTickers})&select=ticker,sector,listing_status,listing_status_date,listing_source_url&limit=500`, { strict: true }
+      ) : Promise.resolve([]),
+      tickers.length ? orcaSelect<RawDailyPriceRow>(
+        `prices_daily?ticker=in.(${priceTickers})&date=gte.${shiftDateStr(getTodayWarsaw(), -45)}&order=date.desc,ticker.asc&select=ticker,date,close_raw,currency,source_url`
+      ) : Promise.resolve([]),
     ]);
 
     const sectorMap = new Map<string, string>();
+    const listingMap = new Map(companies.filter(c => c.ticker).map(c => [c.ticker!.toUpperCase(), c]));
     for (const c of companies) {
       if (c.ticker && c.sector) {
         sectorMap.set(c.ticker.toUpperCase(), SECTOR_PL[c.sector] || c.sector);
       }
     }
 
-    const pricesByTicker = new Map<string, number[]>();
+    const pricesByTicker = new Map<string, CompanyPriceRow[]>();
     for (const p of prices) {
       const sym = p.ticker?.toUpperCase();
-      if (!sym || p.close_raw == null || p.close_raw <= 0) continue;
+      if (!sym) continue;
       const list = pricesByTicker.get(sym) || [];
-      if (list.length < 20) {
-        list.push(p.close_raw);
-        pricesByTicker.set(sym, list);
-      }
+      list.push(p);
+      pricesByTicker.set(sym, list);
     }
 
     let totalMoves = 0;
     const items: EnrichedStockConsensus[] = validRows.map((row) => {
       const ticker = row.ticker.toUpperCase();
-      const buyers = row.buyers || 0;
-      const sellers = row.sellers || 0;
-      const net = row.net_buyers ?? buyers - sellers;
-      const totalFunds = row.holders || buyers + sellers;
+      const buyers = row.reported_increases ?? 0;
+      const sellers = row.reported_decreases ?? 0;
+      const net = row.net_changes ?? 0;
+      const totalFunds = row.holders ?? 0;
       const totalVal = row.total_value || 0;
       totalMoves += buyers + sellers;
 
-      const series = pricesByTicker.get(ticker) || [];
-      const latestPrice = series[0] ?? null;
-      const prevPrice = series[1] ?? null;
-
-      let changeToday: number | null = null;
-      if (latestPrice != null && prevPrice != null && prevPrice > 0) {
-        changeToday = ((latestPrice - prevPrice) / prevPrice) * 100;
-      }
+      const quote = summarizeCompanyPrices(pricesByTicker.get(usQuoteSymbol(ticker)) || []);
+      const listing = listingMap.get(ticker);
+      const usd = quote.priceCurrency === 'USD' && !isListingInactive(listing?.listing_status);
 
       return {
         ticker,
         name: row.company_name || ticker,
-        sector: sectorMap.get(ticker) || 'Technologia',
-        priceUsd: latestPrice,
-        changeToday,
+        sector: sectorMap.get(ticker) || '—',
+        priceUsd: usd ? quote.price : null,
+        priceDate: usd ? quote.priceDate : null,
+        listingStatus: listing?.listing_status ?? 'unknown',
+        listingStatusDate: listing?.listing_status_date,
+        listingSourceUrl: listing?.listing_source_url,
+        changeToday: usd ? quote.changeTodayPct : null,
         fundsBuying: buyers,
         fundsSelling: sellers,
         totalFunds,
@@ -145,18 +163,22 @@ export async function fetchEnrichedConsensus(): Promise<{
         totalValueUsd: formatUsdValue(totalVal),
         netScore: net,
         movementType: net > 0 ? 'accumulation' : net < 0 ? 'distribution' : 'neutral',
-        sparkline: [...series].reverse(),
+        sparkline: usd ? quote.prices.slice(-20).map(p => p.close) : [],
+        comparedFunds: row.compared_funds ?? 0,
+        reportPeriod: row.period_of_report || '—',
+        previousPeriod: row.previous_period || '—',
+        sourceUrls: [...new Set(row.source_urls ?? [])].filter(url => /^https:\/\/www\.sec\.gov\/Archives\//.test(url)),
       };
     });
 
     const sortedByNet = [...items].sort((a, b) => b.netScore - a.netScore);
-    const topBought = sortedByNet[0];
-    const topSold = sortedByNet[sortedByNet.length - 1];
+    const topBought = sortedByNet.find(s => s.netScore > 0);
+    const topSold = [...sortedByNet].reverse().find(s => s.netScore < 0);
 
     const sortedByActivity = [...items].sort(
       (a, b) => b.fundsBuying + b.fundsSelling - (a.fundsBuying + a.fundsSelling)
     );
-    const mostActive = sortedByActivity[0];
+    const mostActive = sortedByActivity.find(s => s.fundsBuying + s.fundsSelling > 0);
 
     const stats: ConsensusStats = {
       totalCompanies: items.length,
@@ -167,23 +189,9 @@ export async function fetchEnrichedConsensus(): Promise<{
       topSoldNet: topSold?.netScore || 0,
       mostActiveTicker: mostActive?.ticker || '—',
       mostActiveMoves: mostActive ? mostActive.fundsBuying + mostActive.fundsSelling : 0,
+      reportPeriod: rawConsensus[0]?.period_of_report ?? null,
+      previousPeriod: rawConsensus[0]?.previous_period ?? null,
     };
 
     return { items, stats };
-  } catch (err) {
-    console.warn('[consensusService] fetchEnrichedConsensus error:', err);
-    return {
-      items: [],
-      stats: {
-        totalCompanies: 0,
-        totalMoves: 0,
-        topBoughtTicker: '—',
-        topBoughtNet: 0,
-        topSoldTicker: '—',
-        topSoldNet: 0,
-        mostActiveTicker: '—',
-        mostActiveMoves: 0,
-      },
-    };
-  }
 }

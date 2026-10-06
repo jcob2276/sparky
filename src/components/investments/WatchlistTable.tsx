@@ -4,6 +4,7 @@ import { Star, TrendingUp, TrendingDown, LineChart } from 'lucide-react';
 import type { WatchlistItem } from '../../lib/investments/watchlistService';
 import { MiniSparkline } from './MiniSparkline';
 import { TradingViewChartModal } from './TradingViewChartModal';
+import { CompanyListingNotice } from './CompanyListingNotice';
 
 export type { WatchlistItem };
 
@@ -24,7 +25,7 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
             <span>📋</span> Spółki na Twoim radarze ({items.length})
           </h3>
           <span className="text-xs text-text-secondary font-mono">
-            Kliknij gwiazdkę, aby włączyć lub wyłączyć alerty
+            Kliknij gwiazdkę, aby usunąć spółkę z watchlisty
           </span>
         </div>
 
@@ -32,13 +33,13 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
           <table className="w-full text-left text-sm">
             <thead className="bg-surface border-b border-border-custom/50 text-2xs text-text-secondary uppercase font-semibold">
               <tr>
-                <th className="py-3 px-4 w-12 text-center">Alert</th>
+                <th className="py-3 px-4 w-12 text-center">Obserwuj</th>
                 <th className="py-3 px-4">Spółka & Ticker</th>
                 <th className="py-3 px-4 text-center">Rynek</th>
                 <th className="py-3 px-4 text-right">Kurs</th>
                 <th className="py-3 px-4 text-right">Zmiana Dziś</th>
-                <th className="py-3 px-4 text-center">Trend (20d)</th>
-                <th className="py-3 px-4">Ostatnie zdarzenie</th>
+                <th className="py-3 px-4 text-center">Do 20 notowań</th>
+                <th className="py-3 px-4">Raportowane pozycje</th>
                 <th className="py-3 px-4 text-right">Wykres</th>
               </tr>
             </thead>
@@ -85,6 +86,7 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
                         </span>
                       )}
                     </div>
+                    <CompanyListingNotice {...item} />
                   </td>
                   <td className="py-3.5 px-4 text-center">
                     <span className={`px-2 py-0.5 rounded-md text-2xs font-bold border ${
@@ -95,6 +97,8 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono font-bold text-text-primary tabular-nums">
                     {item.price}
+                    {item.priceDate && item.priceSourceUrl && <a href={item.priceSourceUrl} target="_blank" rel="noopener noreferrer"
+                      className="block text-3xs font-normal text-primary underline">{item.priceDate}</a>}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono text-xs tabular-nums">
                     {item.changePercent == null ? (
@@ -117,6 +121,8 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
                       <span className="px-2 py-0.5 rounded-md bg-surface border border-border-custom font-mono text-2xs">
                         {item.lastSignal}
                       </span>
+                      {!!item.signalSourceUrls?.length && <a href={item.signalSourceUrls[0]} target="_blank" rel="noopener noreferrer"
+                        className="block mt-1 text-primary underline text-3xs">Dokument SEC</a>}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <Button
@@ -142,7 +148,7 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
         <TradingViewChartModal
           isOpen={true}
           onClose={() => setSelectedChartItem(null)}
-          ticker={selectedChartItem.ticker}
+          ticker={selectedChartItem.ticker.replace(/\.(WA|PL|US)$/, '')}
           companyName={selectedChartItem.name}
           market={selectedChartItem.market}
         />

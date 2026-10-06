@@ -3,6 +3,8 @@ import Button from '../ui/Button';
 import { CompanyLogo } from './CompanyLogo';
 import { ChevronLeft, Star } from 'lucide-react';
 import type { CompanyDetailData } from '../../lib/investments/companyDetailService';
+import { isListingInactive } from '../../lib/investments/companyListing';
+import { CompanyListingNotice } from './CompanyListingNotice';
 
 export type CompanyDetailTab = 'overview' | '13f' | 'politicians' | 'insiders';
 
@@ -25,6 +27,7 @@ export const CompanyDetailHeader: FC<Props> = ({
 }) => {
   const isPosChange = data.changeTodayPct != null && data.changeTodayPct >= 0;
   const isPos1y = data.change1yPct != null && data.change1yPct >= 0;
+  const inactive = isListingInactive(data.listingStatus);
 
   return (
     <div className="space-y-4">
@@ -57,16 +60,18 @@ export const CompanyDetailHeader: FC<Props> = ({
               <span className="mx-1.5">·</span>
               <span>{data.sector}</span>
             </div>
+            <CompanyListingNotice {...data} />
           </div>
         </div>
 
         {/* Right: Price & Watchlist CTA */}
         <div className="flex items-center gap-4">
           <div className="text-right">
+            {inactive && <div className="text-3xs text-text-muted">Ostatnie historyczne notowanie</div>}
             <div className="text-2xl font-black font-mono text-text-primary tabular-nums">
               {data.price != null ? data.price.toFixed(2).replace('.', ',') : '—'} {data.priceCurrency ?? ''}
             </div>
-            <div className="text-3xs font-mono text-text-muted flex items-center justify-end gap-1.5 mt-0.5">
+            {!inactive && <div className="text-3xs font-mono text-text-muted flex items-center justify-end gap-1.5 mt-0.5">
               <span className={data.changeTodayPct == null ? 'text-text-muted' : isPosChange ? 'text-success font-semibold' : 'text-danger font-semibold'}>
                 {data.changeTodayPct == null ? 'Dziś: —' : `${isPosChange ? '+' : ''}${data.changeTodayPct.toFixed(1).replace('.', ',')}%`}
               </span>
@@ -74,7 +79,7 @@ export const CompanyDetailHeader: FC<Props> = ({
               <span className={data.change1yPct == null ? 'text-text-muted' : isPos1y ? 'text-success font-semibold' : 'text-danger font-semibold'}>
                 {data.change1yPct == null ? '—' : `${isPos1y ? '+' : ''}${data.change1yPct.toFixed(1).replace('.', ',')}%`} R/R
               </span>
-            </div>
+            </div>}
             <div className="text-3xs text-text-muted mt-1">
               {data.priceDate && data.priceSourceUrl ? (
                 <a href={data.priceSourceUrl} target="_blank" rel="noreferrer" className="underline">

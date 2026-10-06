@@ -2,9 +2,12 @@ interface Instrument { ticker: string; symbol: string }
 
 export function normalizeMarketSymbol(raw: string): Instrument {
   const t = raw.trim().toUpperCase();
+  if (t.endsWith('.US')) {
+    const ticker = t.slice(0, -3);
+    return { ticker, symbol: ticker.replace(/[/.]/g, '-') };
+  }
   if (['ISAC', 'SSAC', 'IUSQ', 'IUSQ.DE'].includes(t)) return { ticker: 'ISAC', symbol: 'IUSQ.DE' };
-  const symbol = t.endsWith('.US') ? t.slice(0, -3)
-    : t.endsWith('.PL') ? `${t.slice(0, -3)}.WA`
+  const symbol = t.endsWith('.PL') ? `${t.slice(0, -3)}.WA`
     : t.endsWith('.UK') ? `${t.slice(0, -3)}.L`
     : ['CDR', 'ASB', 'ALE', 'XTB'].includes(t) ? `${t}.WA`
     : ['JEDI', 'SXR8'].includes(t) ? `${t}.DE` : t;
@@ -37,21 +40,18 @@ export async function fetchMarketChart(instrument: Instrument, range: string) {
   const currency = divisor === 100 ? 'GBP' : meta.currency.toUpperCase();
   const quoteAsOf = new Date(meta.regularMarketTime * 1000).toISOString();
   const price = meta.regularMarketPrice / divisor;
-  const prevClose = positive(meta.chartPreviousClose) ? meta.chartPreviousClose / divisor : null;
-  const quote = { ...instrument, price, prevClose, currency, quoteAsOf,
-    changePct: prevClose == null ? null : Math.round((price / prevClose - 1) * 10000) / 100,
-    source: 'yahoo_chart', sourceUrl };
+  const source = 'yahoo_chart';
   const values = chart.indicators?.quote?.[0];
   const adjusted = chart.indicators?.adjclose?.[0]?.adjclose;
   const history: Record<string, unknown>[] = [];
   const dates = new Set<string>();
+  const dateFormatter = meta.exchangeTimezoneName
+    ? new Intl.DateTimeFormat('en-CA', { timeZone: meta.exchangeTimezoneName,
+      year: 'numeric', month: '2-digit', day: '2-digit' }) : null;
   for (let i = 0; i < (chart.timestamp?.length ?? 0); i++) {
     if (!positive(chart.timestamp[i]) || !positive(values?.close?.[i])) continue;
     const at = new Date(chart.timestamp[i] * 1000);
-    const date = meta.exchangeTimezoneName
-      ? new Intl.DateTimeFormat('en-CA', { timeZone: meta.exchangeTimezoneName,
-        year: 'numeric', month: '2-digit', day: '2-digit' }).format(at)
-      : at.toISOString().slice(0, 10);
+    const date = dateFormatter ? dateFormatter.format(at) : at.toISOString().slice(0, 10);
     if (dates.has(date)) continue;
     dates.add(date);
     history.push({ ticker: instrument.symbol, date,
@@ -60,8 +60,18 @@ export async function fetchMarketChart(instrument: Instrument, range: string) {
       close_adj: positive(adjusted?.[i]) ? adjusted[i] / divisor : null,
       open: optionalNumber(values?.open?.[i], divisor), high: optionalNumber(values?.high?.[i], divisor),
       low: optionalNumber(values?.low?.[i], divisor), volume: optionalNumber(values?.volume?.[i]),
-      currency, source: quote.source, source_url: sourceUrl, quote_asof: quoteAsOf,
+      currency, source, source_url: sourceUrl, quote_asof: quoteAsOf,
       updated_at: new Date().toISOString() });
   }
+  // chartPreviousClose is the start of the requested range, not the previous session.
+  const sessionDate = dateFormatter ? dateFormatter.format(new Date(quoteAsOf)) : quoteAsOf.slice(0, 10);
+  const previous = history.filter(row => String(row.date) < sessionDate)
+    .sort((a, b) => String(a.date).localeCompare(String(b.date))).at(-1);
+  const prevClose = positive(meta.previousClose) ? meta.previousClose / divisor
+    : previous && Date.parse(`${sessionDate}T00:00:00Z`) - Date.parse(`${previous.date}T00:00:00Z`) <= 7 * 86400000
+      ? Number(previous.close_raw) : null;
+  const quote = { ...instrument, price, prevClose, currency, quoteAsOf,
+    changePct: prevClose == null ? null : Math.round((price / prevClose - 1) * 10000) / 100,
+    source, sourceUrl };
   return { quote, history };
 }

@@ -15,11 +15,11 @@ export type SortOption =
   | 'ticker';
 
 const SORT_LABELS: Record<SortOption, string> = {
-  capitalization: 'Kapitalizacja',
-  net: 'Netto kupujący',
-  buyers: 'Liczba kupujących',
-  sellers: 'Liczba sprzedających',
-  holders: 'Trzymający',
+  capitalization: 'Wartość pozycji',
+  net: 'Zmiany pozycji netto',
+  buyers: 'Liczba wzrostów',
+  sellers: 'Liczba spadków',
+  holders: 'Fundusze z pozycją',
   value: 'Łączna wartość',
   ticker: 'Ticker A→Z',
 };
@@ -95,7 +95,7 @@ export const StocksConsensusToolbar: FC<Props> = ({
               onClick={() => onFilterChange('accumulation')}
               className="rounded-xl text-3xs font-bold uppercase"
             >
-              Akumulacja
+              Wzrosty netto
             </Button>
             <Button
               size="sm"
@@ -103,7 +103,7 @@ export const StocksConsensusToolbar: FC<Props> = ({
               onClick={() => onFilterChange('distribution')}
               className="rounded-xl text-3xs font-bold uppercase"
             >
-              Dystrybucja
+              Spadki netto
             </Button>
             <Button
               size="sm"
@@ -173,7 +173,7 @@ export const StocksConsensusToolbar: FC<Props> = ({
             {mostActiveTicker}
           </span>
           <span className="text-text-primary">
-            Najbardziej aktywny ticker w próbce: {mostActiveMoves} ruchów funduszy.
+            Najwięcej zmienionych pozycji w odczycie: {mostActiveMoves} funduszy.
           </span>
         </div>
       )}

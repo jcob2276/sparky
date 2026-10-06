@@ -1,5 +1,20 @@
 import { runQuotesSync } from './quotes.ts';
 
+Deno.test('large long-history requests stop before exhausting the worker CPU budget', async () => {
+  const original = globalThis.fetch;
+  globalThis.fetch = () => { throw new Error('Validation should run before provider requests'); };
+  try {
+    let message = '';
+    try {
+      await runQuotesSync(new Request('https://sparky.test/sync?service=quotes', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tickers: ['AAPL.US','MSFT.US','NVDA.US','AMZN.US'], range: '2y' }),
+      }));
+    } catch (error) { message = String(error); }
+    if (!message.includes('maksymalnie 3 instrumentów')) throw new Error('Oversized history request reached the providers');
+  } finally { globalThis.fetch = original; }
+});
+
 const sourceTime = Date.parse('2026-10-05T20:00:00Z') / 1000;
 const chart = { chart: { result: [{
   meta: { regularMarketPrice: 100, chartPreviousClose: 90, currency: 'USD', regularMarketTime: sourceTime },

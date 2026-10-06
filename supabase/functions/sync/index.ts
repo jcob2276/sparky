@@ -19,7 +19,6 @@ import { runKnfShortsSync } from './knfShorts.ts'
 import { runSenateSync } from './senateTrades.ts'
 import { requireServiceRole } from '../_shared/auth.ts'
 import { runGpwFundamentalsSync } from './gpwFundamentals.ts'
-import { runHouseDisclosuresSync } from './houseDisclosures.ts'
 import { runInvestmentAi } from './investmentAi.ts'
 import { runSec13fSync } from './sec13f.ts'
 
@@ -43,7 +42,10 @@ Deno.serve(serveJson(async (req) => {
     return await runGpwFundamentalsSync()
   }
 
-  if (service === 'house_disclosures') return await runHouseDisclosuresSync(req)
+  if (service === 'house_disclosures') {
+    const { runHouseDisclosuresSync } = await import('./houseDisclosures.ts')
+    return await runHouseDisclosuresSync(req)
+  }
   if (service === 'sec_13f') return await runSec13fSync(req)
 
   if (service !== 'quotes' && service !== 'knf_shorts' && service !== 'senate' && service !== 'congress') {

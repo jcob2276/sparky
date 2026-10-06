@@ -1,48 +1,25 @@
-import { FC, useEffect, useState } from 'react';
-import { fetchSignalEvidence, type SignalEvidenceItem } from '../../lib/investments/signalsApi';
+import { FC } from 'react';
+import { useSignalEvidence } from '../../lib/investments/useSignalEvidence';
 import { formatShortDateWarsaw } from '../../lib/date';
 import { QuoteChart } from './QuoteChart';
 import { SignalHorizonBadge } from './SignalHorizonBadge';
-import { OpportunityGapBadge } from './OpportunityGapBadge';
 
 interface Props {
   ticker: string;
   companyName: string;
 }
 
-const ACTOR_LABEL = { fund: 'Fundusz 13F', politician: 'Polityk (STOCK Act)', insider: 'Insider (MAR 19)' };
+const ACTOR_LABEL = { fund: 'Fundusz 13F', politician: 'Polityk (STOCK Act)', insider: 'Insider (SEC Form 4)' };
 
 export const SignalEvidence: FC<Props> = ({ ticker, companyName }) => {
-  const [items, setItems] = useState<SignalEvidenceItem[] | null>(null);
-  const [loadedTicker, setLoadedTicker] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetchSignalEvidence(ticker)
-      .then((next) => {
-        if (cancelled) return;
-        setItems(next);
-        setError(null);
-        setLoadedTicker(ticker);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : 'Błąd pobierania');
-        setLoadedTicker(ticker);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [ticker]);
-
-  if (loadedTicker !== ticker) {
+  const { data: items, isPending, error } = useSignalEvidence(ticker);
+  if (isPending) {
     return <p className="text-xs text-text-muted">Pobieranie dowodów…</p>;
   }
   if (error) {
     return (
       <p className="text-xs text-text-secondary">
-        Nie udało się pobrać dowodów dla {ticker}. {error}
+        Nie udało się pobrać dowodów dla {ticker}. {error.message}
       </p>
     );
   }
@@ -59,6 +36,7 @@ export const SignalEvidence: FC<Props> = ({ ticker, companyName }) => {
 
   return (
     <div className="space-y-4">
+      <p className="text-xs text-text-muted">Historyczne dokumenty spółki: do 40 wpisów na źródło, niezależnie od okna rankingu. 13F porównuje dwa ostatnie kwartały.</p>
       {/* Evidence list with timing & lag badges */}
       <ol className="space-y-3">
         {items.map((item) => (
@@ -87,24 +65,18 @@ export const SignalEvidence: FC<Props> = ({ ticker, companyName }) => {
                 </span>
 
                 <SignalHorizonBadge
-                  source={item.actor === 'fund' ? '13f' : item.actor === 'politician' ? 'congress' : 'gpw_mar'}
+                  source={item.actor === 'fund' ? '13f' : item.actor === 'politician' ? 'congress' : 'insider'}
                   compact
                 />
 
-                {item.tone === 'up' && (
-                  <OpportunityGapBadge
-                    entryPrice={100}
-                    currentPrice={94.5}
-                    actorName={item.who}
-                    compact
-                  />
-                )}
-
                 <span className="ml-auto text-xs font-mono text-text-muted">
+                  {item.actor === 'fund' ? 'Stan na: ' : 'Ujawniono: '}
                   {item.date ? formatShortDateWarsaw(`${item.date}T12:00:00Z`) : 'data nieznana'}
                 </span>
               </div>
               <p className="text-xs text-text-secondary mt-1">{item.detail}</p>
+              <div className="flex gap-2 text-xs">{item.sourceUrls?.map((url, index) =>
+                <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="text-primary underline">Dokument {index + 1}</a>)}</div>
             </div>
           </li>
         ))}

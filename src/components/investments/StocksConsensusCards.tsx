@@ -22,7 +22,7 @@ export const StocksConsensusCards: FC<Props> = ({ stats, loading }) => {
       {/* Ruchów łącznie */}
       <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-border-custom shadow-xs flex flex-col justify-between">
         <div className="text-3xs uppercase tracking-wider font-semibold text-text-secondary">
-          Ruchów łącznie
+          Zmienionych pozycji
         </div>
         <div className="text-2xl sm:text-3xl font-black text-text-primary font-mono mt-2">
           {loading ? '…' : stats.totalMoves}
@@ -32,14 +32,14 @@ export const StocksConsensusCards: FC<Props> = ({ stats, loading }) => {
       {/* Najmocniej kupowane */}
       <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-border-custom shadow-xs flex flex-col justify-between">
         <div className="text-3xs uppercase tracking-wider font-semibold text-text-secondary">
-          Najmocniej kupowane
+          Najwięcej wzrostów netto
         </div>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="text-xl sm:text-2xl font-black text-success font-mono">
             {stats.topBoughtTicker}
           </span>
           <span className="text-xs font-mono text-text-secondary">
-            netto +{stats.topBoughtNet}
+            {stats.topBoughtTicker !== '—' ? `netto +${stats.topBoughtNet}` : 'Brak wzrostów netto'}
           </span>
         </div>
       </div>
@@ -47,14 +47,14 @@ export const StocksConsensusCards: FC<Props> = ({ stats, loading }) => {
       {/* Najmocniej sprzedawane */}
       <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-border-custom shadow-xs flex flex-col justify-between">
         <div className="text-3xs uppercase tracking-wider font-semibold text-text-secondary">
-          Najmocniej sprzedawane
+          Najwięcej spadków netto
         </div>
         <div className="mt-2 flex items-baseline gap-2">
           <span className="text-xl sm:text-2xl font-black text-danger font-mono">
             {stats.topSoldTicker}
           </span>
           <span className="text-xs font-mono text-text-secondary">
-            netto {stats.topSoldNet}
+            {stats.topSoldTicker !== '—' ? `netto ${stats.topSoldNet}` : 'Brak spadków netto'}
           </span>
         </div>
       </div>

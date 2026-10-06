@@ -1,7 +1,7 @@
-import { FC, useEffect, useState } from 'react';
-import { WatchlistTable, WatchlistItem } from './WatchlistTable';
+import { FC } from 'react';
+import { WatchlistTable } from './WatchlistTable';
 import { WatchlistAddForm } from './WatchlistAddForm';
-import { fetchWatchlistDetails } from '../../lib/investments/watchlistService';
+import { useWatchlistDetails } from '../../lib/investments/useWatchlistDetails';
 import { Loader2 } from 'lucide-react';
 
 interface Props {
@@ -10,36 +10,9 @@ interface Props {
 }
 
 export const InvestmentsWatchlistView: FC<Props> = ({ watchlist, onToggle }) => {
-  const [loadedItems, setLoadedItems] = useState<WatchlistItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (watchlist.length === 0) return;
-
-    let active = true;
-    const timer = setTimeout(() => {
-      setLoading(true);
-      fetchWatchlistDetails(watchlist)
-        .then((data) => {
-          if (active) {
-            setLoadedItems(data);
-            setLoading(false);
-          }
-        })
-        .catch(() => {
-          if (active) setLoading(false);
-        });
-    }, 0);
-
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, [watchlist]);
-
-  const items = watchlist.length === 0 ? [] : loadedItems;
+  const { data: items = [], isPending: loading } = useWatchlistDetails(watchlist);
   const withConsensus = items.filter(
-    (item) => item.lastSignal.startsWith('Konsensus') || item.lastSignal.startsWith('Szort')
+    (item) => item.lastSignal.startsWith('13F: bilans') || item.lastSignal.startsWith('Szort')
   ).length;
 
   return (
@@ -49,7 +22,7 @@ export const InvestmentsWatchlistView: FC<Props> = ({ watchlist, onToggle }) => 
           <div>
             <h2 className="text-2xl font-extrabold tracking-tight">Watchlista</h2>
             <p className="text-xs text-text-secondary mt-1.5 max-w-3xl">
-              Dodawaj spółki zweryfikowane w bazie notowań (GPW & USA). Kursy i zmiany dzienne są odświeżane z oficjalnych rejestrów giełdowych.
+              Obserwuj spółki GPW i USA dostępne w bazie. Notowania mają datę i źródło; zmiany 13F porównują raportowane pozycje, a KNF pokazuje publicznie ujawnione szorty.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 shrink-0">
@@ -58,7 +31,7 @@ export const InvestmentsWatchlistView: FC<Props> = ({ watchlist, onToggle }) => 
               <div className="text-xl font-black text-primary font-mono mt-0.5">{watchlist.length}</div>
             </div>
             <div className="p-3.5 rounded-2xl border border-border-custom/70 text-right">
-              <div className="text-2xs text-text-secondary">Z alertami / 13F</div>
+              <div className="text-2xs text-text-secondary">Z danymi 13F / KNF</div>
               <div className="text-xl font-black font-mono mt-0.5">{withConsensus}</div>
             </div>
           </div>

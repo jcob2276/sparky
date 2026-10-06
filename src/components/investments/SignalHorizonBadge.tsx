@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { Zap, Clock, Hourglass } from 'lucide-react';
 
-type SignalSourceType = 'gpw_mar' | 'congress' | '13f';
+type SignalSourceType = 'gpw_mar' | 'congress' | '13f' | 'insider';
 
 interface Props {
   source: SignalSourceType;
@@ -14,15 +14,20 @@ export const SignalHorizonBadge: FC<Props> = ({
   className = '',
   compact = false,
 }) => {
+  if (source === 'insider') return <span
+    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-3xs text-text-muted ${className}`}
+    title="Dokument SEC Form 4. Datę transakcji i datę publikacji pokazujemy osobno.">
+    SEC Form 4
+  </span>;
   if (source === 'gpw_mar') {
     return (
       <span
         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-3xs font-semibold bg-success/15 text-success border border-success/30 ${className}`}
-        title="Ujawnienia MAR art. 19 mają zaledwie 2-3 dni robocze opóźnienia. Idealne do natychmiastowej reakcji i swing-tradingu na GPW."
+        title="Ujawnienie MAR art. 19. Sprawdź datę transakcji i datę publikacji dokumentu."
       >
         <Zap size={11} className="shrink-0" />
         <span>
-          {compact ? 'MAR 19 · 2-3 dni' : '⚡ GPW MAR 19 · Opóźnienie 2-3 dni (reakcja na bieżąco)'}
+          {compact ? 'MAR 19' : 'GPW · MAR art. 19'}
         </span>
       </span>
     );
@@ -32,11 +37,11 @@ export const SignalHorizonBadge: FC<Props> = ({
     return (
       <span
         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-3xs font-semibold bg-primary/15 text-primary border border-primary/30 ${className}`}
-        title="STOCK Act nakłada obowiązek zgłoszenia do 45 dni. Dobre do wyłapywania średnioterminowych trendów polityczno-gospodarczych."
+        title="Termin zgłoszenia: 30 dni od uzyskania informacji, najpóźniej 45 dni od transakcji. Rzeczywiste daty pokazujemy osobno."
       >
         <Clock size={11} className="shrink-0" />
         <span>
-          {compact ? 'Kongres · 30-45 dni' : '⏱ Kongres USA · Opóźnienie 30-45 dni (momentum)'}
+          {compact ? 'Kongres · termin do 45 dni' : 'Kongres USA · termin zgłoszenia do 45 dni'}
         </span>
       </span>
     );
@@ -45,11 +50,11 @@ export const SignalHorizonBadge: FC<Props> = ({
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-3xs font-semibold bg-text-muted/15 text-text-secondary border border-border-custom ${className}`}
-      title="Raporty kwartalne 13F składane są do 45 dni po zakończeniu kwartału. To pozycje budowane przez Buffetta i fundusze na 2-5 lat."
+      title="13F pokazuje stan na koniec kwartału. Zmiana między raportami nie ujawnia daty transakcji ani horyzontu inwestora."
     >
       <Hourglass size={11} className="shrink-0" />
       <span>
-        {compact ? '13F · Kwartalne' : '⏳ Superinwestorzy 13F · Opóźnienie kwartalne (horyzont 2-5 lat)'}
+        {compact ? '13F · Kwartalne' : 'Fundusze 13F · stan kwartalny'}
       </span>
     </span>
   );

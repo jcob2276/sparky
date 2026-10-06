@@ -22,7 +22,7 @@ export interface DashboardData {
   issues: string[];
   fetchedAt: string;
 }
-interface Consensus { ticker?: string; company_name?: string; net_buyers?: number | null }
+interface Consensus { ticker?: string; company_name?: string; net_changes?: number | null }
 interface ShortAgg { company?: string; ticker?: string; total_pct?: number | null; public_holders?: number | null }
 interface Trade { id: string; filer_name?: string; ticker?: string; transaction_type?: string; disclosure_date?: string; amount_label?: string }
 interface Insider { id: string; ticker?: string; transaction_code?: string; filing_date?: string }
@@ -45,7 +45,7 @@ export async function fetchDashboardData(watchlist: string[] = []): Promise<Dash
     }
   }
   const [consensus, shorts, trades, insiders, positions, filings, statuses] = await Promise.all([
-    read<Consensus>('13F', 'vw_consensus?select=ticker,company_name,net_buyers&order=net_buyers.desc.nullslast&limit=5'),
+    read<Consensus>('13F', 'vw_sec13f_screener?select=ticker,company_name,net_changes&compared_funds=gt.0&order=net_changes.desc.nullslast&limit=5'),
     read<ShortAgg>('KNF agregaty', 'vw_gpw_shorts_agg?order=total_pct.desc.nullslast&limit=3'),
     read<Trade>('Kongres', `stock_act_trades?disclosure_date=gte.${since}&disclosure_date=lte.${today}&order=disclosure_date.desc,id.asc`),
     read<Insider>('Form 4', `vw_insider_public?filing_date=gte.${since}&filing_date=lte.${today}&order=filing_date.desc,id.asc`),
@@ -67,7 +67,7 @@ export async function fetchDashboardData(watchlist: string[] = []): Promise<Dash
     return { date, label: formatShortMonthLabel(date), politicians, insiders: ins, shorts: short, funds, total: politicians + ins + short + funds };
   });
   const peak = days.reduce((best, day) => day.total > best.total ? day : best, days[0]);
-  const top = (consensus ?? []).find(r => r.ticker && r.net_buyers != null);
+  const top = (consensus ?? []).find(r => r.ticker && r.net_changes != null);
   const max = (shorts ?? []).find(r => r.company && r.total_pct != null);
   const stream: Array<DashboardData['streamItems'][number] & { date: string }> = [
     ...insiderRows.map(r => ({ id: `form4_${r.id}`, date: r.filing_date!, dateLabel: formatShortMonthLabel(r.filing_date!), sourceType: 'FORM 4' as const, ticker: r.ticker ?? '—', description: `Form 4: kod transakcji ${r.transaction_code ?? 'nieznany'}`, amountOrPercent: '—' })),
@@ -76,14 +76,14 @@ export async function fetchDashboardData(watchlist: string[] = []): Promise<Dash
   ];
   const watched = new Set(watchlist.map(t => t.toUpperCase()));
   return {
-    topConsensus: top ? { ticker: top.ticker!, net: top.net_buyers! } : null,
+    topConsensus: top ? { ticker: top.ticker!, net: top.net_changes! } : null,
     maxShort: max ? { company: max.company!, ticker: max.ticker ?? max.company!, totalPct: max.total_pct!, delta14d: null } : null,
     congress14: trades === null ? null : { total: congressRows.length, sales: congressRows.filter(r => /sell|sale/i.test(r.transaction_type ?? '')).length, buys: congressRows.filter(r => /buy|purchase/i.test(r.transaction_type ?? '')).length },
     watchlist14Count: [trades, insiders, positions].some(r => r === null) ? null : stream.filter(r => watched.has(r.ticker.toUpperCase())).length,
     activity14d: { total: days.reduce((sum, d) => sum + d.total, 0), peakDateLabel: peak.total ? peak.label : null, days,
       sources: { politicians: trades === null ? null : congressRows.length, insiders: insiders === null ? null : insiderRows.length, shorts: positions === null ? null : shortRows.length, funds: filings === null ? null : filingRows.length } },
     streamItems: stream.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15),
-    topConvergenceUsa: (consensus ?? []).filter(r => r.ticker && r.net_buyers != null).map(r => ({ ticker: r.ticker!, name: r.company_name ?? r.ticker!, fundsNet: r.net_buyers! })),
+    topConvergenceUsa: (consensus ?? []).filter(r => r.ticker && r.net_changes != null).map(r => ({ ticker: r.ticker!, name: r.company_name ?? r.ticker!, fundsNet: r.net_changes! })),
     topGpwShorts: (shorts ?? []).filter(r => r.company && r.total_pct != null).map(r => ({ ticker: r.ticker ?? r.company!, company: r.company!, totalPct: r.total_pct!, holders: r.public_holders ?? null })),
     sourceStatuses: statuses ?? [], issues, fetchedAt: new Date().toISOString(),
   };

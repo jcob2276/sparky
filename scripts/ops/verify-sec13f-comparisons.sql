@@ -1,4 +1,4 @@
-BEGIN;
+BEGIN ISOLATION LEVEL REPEATABLE READ;
 DO $test$
 DECLARE
   fund text := 'verify-sec13f-' || gen_random_uuid()::text;
@@ -7,12 +7,14 @@ DECLARE
   current_period date;
   previous_period date;
   row_data record;
+  screener_baseline record;
 BEGIN
   SELECT max(period_of_report) INTO current_period FROM public.vw_sec13f_verified_reports;
   previous_period := (date_trunc('quarter',current_period)-interval '1 day')::date;
   IF current_period IS NULL OR NOT EXISTS(SELECT 1 FROM public.vw_consensus WHERE ticker='NVDA' AND upper(cusip)='67066G104') THEN
     RAISE EXCEPTION 'SEC comparison verification requires an imported quarter and NVDA mapping';
   END IF;
+  SELECT * INTO STRICT screener_baseline FROM public.vw_sec13f_screener WHERE ticker='NVDA';
   INSERT INTO public.investors(id,display_name,fund_name,cik) VALUES(fund,'Verification fixture','Verification fixture','0000000001');
   INSERT INTO public.filings(id,investor_id,accession_no,period_of_report,filing_date,filing_url)
   VALUES
@@ -40,6 +42,16 @@ BEGIN
     OR row_data.value_now<>1500 OR row_data.change_type<>'reported_increase'
     OR row_data.previous_filing_url NOT LIKE '%000000000000000001/' THEN
     RAISE EXCEPTION 'SEC comparison included options/bonds or lost source documents';
+  END IF;
+  SELECT * INTO STRICT row_data FROM public.vw_sec13f_screener WHERE ticker='NVDA';
+  IF row_data.holders<>screener_baseline.holders+1
+    OR row_data.total_value<>screener_baseline.total_value+1500
+    OR row_data.compared_funds<>screener_baseline.compared_funds+1
+    OR row_data.reported_increases<>coalesce(screener_baseline.reported_increases,0)+1
+    OR NOT row_data.source_urls @> jsonb_build_array(
+      'https://www.sec.gov/Archives/edgar/data/1/000000000000000001/',
+      'https://www.sec.gov/Archives/edgar/data/1/000000000000000002/') THEN
+    RAISE EXCEPTION 'SEC screener did not preserve verified counts, equity values and sources';
   END IF;
   UPDATE public.filings SET positions_status='error' WHERE id=previous_id;
   IF EXISTS(SELECT 1 FROM public.vw_sec13f_verified_changes WHERE investor_id=fund) THEN

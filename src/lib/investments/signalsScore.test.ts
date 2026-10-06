@@ -42,7 +42,7 @@ describe('rankDisclosureSignals', () => {
     expect(ranked[0]?.ticker).toBe('LOUD');
     expect(ranked[0]?.score).toBeGreaterThan(ranked[1]?.score ?? 0);
     expect(ranked[0]?.convergent).toBe(true);
-    expect(ranked[0]?.summary).toContain('6 funduszy netto kupuje');
+    expect(ranked[0]?.summary).toContain('bilans zwiększeń i redukcji +6');
   });
 
   it('does not mark sales-only politician flow as convergent', () => {
@@ -51,6 +51,6 @@ describe('rankDisclosureSignals', () => {
       false,
     );
     expect(ranked[0]?.convergent).toBe(false);
-    expect(ranked[0]?.summary).toContain('netto sprzedaje');
+    expect(ranked[0]?.summary).toContain('bilans zwiększeń i redukcji -2');
   });
 });

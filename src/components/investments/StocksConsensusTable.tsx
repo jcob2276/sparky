@@ -26,15 +26,17 @@ export const StocksConsensusTable: FC<Props> = ({
               <th className="py-3 px-4">Sektor</th>
               <th className="py-3 px-4 text-right">Kurs USD</th>
               <th className="py-3 px-4 text-right">Dziś</th>
-              <th className="py-3 px-4 text-center min-w-32">Kupują · Sprzedają</th>
+              <th className="py-3 px-4 text-center min-w-32">Wzrost · Spadek pozycji</th>
               <th className="py-3 px-4 text-center">Fund.</th>
-              <th className="py-3 px-4 text-right">Wartość</th>
+              <th className="py-3 px-4 text-right">Wartość pozycji</th>
               <th className="py-3 px-2 text-center w-10">⭐</th>
               <th className="py-3 px-3 text-center">Netto</th>
-              <th className="py-3 px-4 text-center w-24">12M</th>
+              <th className="py-3 px-4 text-center w-24">Do 20 notowań</th>
+              <th className="py-3 px-4">Źródła</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border-custom/30 text-xs">
+            {!stocks.length && <tr><td colSpan={11} className="p-6 text-text-secondary">Brak spółek w tym odczycie lub dla wybranych filtrów.</td></tr>}
             {stocks.map((stock) => (
               <StocksConsensusRow
                 key={stock.ticker}

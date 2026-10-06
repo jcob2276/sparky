@@ -7,8 +7,10 @@
 import { orcaSelect } from './superinvestorsApi';
 import { getTodayWarsaw, shiftDateStr } from '../date';
 import { summarizeCompanyPrices, type CompanyPriceRow } from './companyPriceHistory';
+import { usQuoteSymbol } from './marketSymbol';
+import { fetchCompanyListing, isListingInactive, type CompanyListing } from './companyListing';
 
-export interface CompanyDetailData {
+export interface CompanyDetailData extends CompanyListing {
   fundHistory: CompanyFundHistoryPoint[];
   fundChanges: { period: string; previousPeriod: string; comparedFunds: number; increases: number; decreases: number; newReported: number } | null;
   market: 'us' | 'gpw';
@@ -159,10 +161,10 @@ export async function fetchCompanyDetailData(
   market: 'us' | 'gpw' = 'us',
 ): Promise<CompanyDetailData> {
   const cleanTicker = ticker.trim().toUpperCase();
-  const priceSymbol = market === 'gpw' ? `${cleanTicker.replace(/\.(PL|WA)$/, '')}.WA` : cleanTicker;
+  const priceSymbol = market === 'gpw' ? `${cleanTicker.replace(/\.(PL|WA)$/, '')}.WA` : usQuoteSymbol(cleanTicker);
   const today = getTodayWarsaw();
 
-  const [consensusRows, priceRows, stockActRows, insiderRows, holdingsRows, changeRows, investorRows, fundHistory] =
+  const [consensusRows, priceRows, stockActRows, insiderRows, holdingsRows, changeRows, investorRows, fundHistory, listing] =
     await Promise.all([
       market === 'us' ? orcaSelect<RawConsensus>(`vw_consensus?select=company_name&ticker=eq.${encodeURIComponent(cleanTicker)}&limit=1`, { strict: true }) : Promise.resolve([]),
       orcaSelect<CompanyPriceRow>(
@@ -193,6 +195,7 @@ export async function fetchCompanyDetailData(
         `vw_sec13f_company_history?ticker=eq.${encodeURIComponent(cleanTicker)}&order=period_of_report.desc&limit=40`,
         { strict: true },
       ) : Promise.resolve([]),
+      market === 'us' ? fetchCompanyListing(cleanTicker) : Promise.resolve({} as CompanyListing),
     ]);
 
   const invMap = new Map<string, { displayName: string; fundName: string }>();
@@ -236,6 +239,9 @@ export async function fetchCompanyDetailData(
     exchange: market === 'gpw' ? 'GPW' : '—',
     sector: '—',
     ...priceSummary,
+    ...listing,
+    changeTodayPct: isListingInactive(listing.listingStatus) ? null : priceSummary.changeTodayPct,
+    change1yPct: isListingInactive(listing.listingStatus) ? null : priceSummary.change1yPct,
     politicians: {
       buyersCount: polBuys,
       sellsCount: polSells,

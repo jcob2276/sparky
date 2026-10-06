@@ -37,11 +37,13 @@ export const WatchlistAddForm: FC<Props> = ({ watchlist, onAdd }) => {
       }
 
       setSearching(true);
-      const results = await searchWatchlistCompanies(trimmed);
-      if (active) {
-        setSuggestions(results);
-        setShowDropdown(results.length > 0);
-        setSearching(false);
+      try {
+        const results = await searchWatchlistCompanies(trimmed);
+        if (active) { setSuggestions(results); setShowDropdown(results.length > 0); }
+      } catch {
+        if (active) { setSuggestions([]); setShowDropdown(false); }
+      } finally {
+        if (active) setSearching(false);
       }
     }, 200);
 

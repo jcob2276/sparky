@@ -13,7 +13,7 @@ export const TripleConfluenceRadar: FC<Props> = ({ rows, onSelectTicker }) => {
   const confluentStocks = rows
     .filter(
       (r) =>
-        r.fundNetBuyers > 0 &&
+        (r.fundNetBuyers ?? 0) > 0 &&
         (r.polBuys > 0 || r.politicianBuyers > 0) &&
         r.score >= 70
     )

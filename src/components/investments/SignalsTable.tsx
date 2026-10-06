@@ -44,7 +44,7 @@ const SignalRowView: FC<{ row: SignalRow }> = ({ row }) => {
             <div className="min-w-0">
               <div className="font-mono font-bold text-sm text-text-primary flex items-center gap-1.5">
                 <span>{row.ticker}</span>
-                {row.fundNetBuyers > 0 && row.polBuys > 0 && (
+                {row.convergent && (
                   <span className="px-1.5 py-0.2 rounded-xs text-4xs font-mono font-bold uppercase bg-primary/15 text-primary border border-primary/30" title="Dwa źródła ujawnień: 13F oraz Kongres">
                     2 źródła
                   </span>
@@ -60,14 +60,14 @@ const SignalRowView: FC<{ row: SignalRow }> = ({ row }) => {
         <td className="py-3.5 px-4 text-center font-mono text-sm font-bold tabular-nums">
           <span
             className={
-              row.fundNetBuyers > 0
+              (row.fundNetBuyers ?? 0) > 0
                 ? 'text-success'
-                : row.fundNetBuyers < 0
+                : (row.fundNetBuyers ?? 0) < 0
                 ? 'text-danger'
                 : 'text-text-secondary'
             }
           >
-            {row.fundNetBuyers > 0 ? `+${row.fundNetBuyers}` : row.fundNetBuyers}
+            {row.fundNetBuyers == null ? '—' : row.fundNetBuyers > 0 ? `+${row.fundNetBuyers}` : row.fundNetBuyers}
           </span>
         </td>
 
@@ -123,7 +123,7 @@ export const SignalsTable: FC<Props> = ({ title, rows }) => (
         <thead>
           <tr className="text-3xs font-bold uppercase tracking-wider text-text-muted border-b border-border-custom/40 bg-surface/40">
             <th className="py-3 px-4 font-bold">Spółka</th>
-            <th className="py-3 px-4 font-bold text-center">Fundusze netto</th>
+            <th className="py-3 px-4 font-bold text-center">Bilans zmian 13F</th>
             <th className="py-3 px-4 font-bold text-center">Politycy (k/s)</th>
             <th className="py-3 px-4 font-bold text-right">Wolumen ≈</th>
             <th className="py-3 px-4 font-bold text-right">Zbieżność</th>

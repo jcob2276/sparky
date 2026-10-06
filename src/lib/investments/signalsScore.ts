@@ -1,7 +1,7 @@
 export interface SignalMetrics {
   ticker: string;
   companyName: string;
-  fundNetBuyers: number;
+  fundNetBuyers: number | null;
   holders: number;
   polBuys: number;
   polSells: number;
@@ -44,13 +44,15 @@ function percentile(value: number, sortedAsc: number[]): number {
 
 function evidenceSummary(row: SignalMetrics): string {
   const parts: string[] = [];
-  if (row.fundNetBuyers > 0) {
+  if (row.fundNetBuyers == null) {
+    parts.push('13F: brak porównania');
+  } else if (row.fundNetBuyers > 0) {
     parts.push(
-      `${row.fundNetBuyers} ${polishCount(row.fundNetBuyers, 'fundusz', 'fundusze', 'funduszy')} netto kupuje`,
+      `13F: bilans zwiększeń i redukcji +${row.fundNetBuyers}`,
     );
   } else if (row.fundNetBuyers < 0) {
     const abs = Math.abs(row.fundNetBuyers);
-    parts.push(`${abs} ${polishCount(abs, 'fundusz', 'fundusze', 'funduszy')} netto sprzedaje`);
+    parts.push(`13F: bilans zwiększeń i redukcji -${abs}`);
   }
   if (row.politicians > 0) {
     parts.push(`${row.politicians} ${polishCount(row.politicians, 'polityk', 'polityków', 'polityków')}`);
@@ -64,7 +66,7 @@ function evidenceSummary(row: SignalMetrics): string {
 export function rankDisclosureSignals(metrics: SignalMetrics[], hasInsiderSource: boolean): SignalRow[] {
   if (metrics.length === 0) return [];
   const weights = hasInsiderSource ? WITH_INSIDERS : WITHOUT_INSIDERS;
-  const fundNets = metrics.map((m) => m.fundNetBuyers).sort((a, b) => a - b);
+  const fundNets = metrics.flatMap((m) => m.fundNetBuyers == null ? [] : [m.fundNetBuyers]).sort((a, b) => a - b);
   const polNets = metrics.map((m) => m.polBuys - m.polSells).sort((a, b) => a - b);
   const buyers = metrics.map((m) => m.politicianBuyers).sort((a, b) => a - b);
   const insiders = metrics.map((m) => m.insiderBuys).sort((a, b) => a - b);
@@ -72,7 +74,7 @@ export function rankDisclosureSignals(metrics: SignalMetrics[], hasInsiderSource
   return metrics
     .map((row) => {
       const weighted =
-        weights.funds * percentile(row.fundNetBuyers, fundNets) +
+        weights.funds * (row.fundNetBuyers == null ? 0 : percentile(row.fundNetBuyers, fundNets)) +
         weights.polNet * percentile(row.polBuys - row.polSells, polNets) +
         weights.polBuyers * percentile(row.politicianBuyers, buyers) +
         weights.insiders * percentile(row.insiderBuys, insiders);
@@ -80,7 +82,7 @@ export function rankDisclosureSignals(metrics: SignalMetrics[], hasInsiderSource
       return {
         ...row,
         score,
-        convergent: row.fundNetBuyers > 0 && row.polBuys > 0,
+        convergent: (row.fundNetBuyers ?? 0) > 0 && row.polBuys > 0,
         summary: evidenceSummary(row),
       };
     })
