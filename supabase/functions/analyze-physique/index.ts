@@ -85,7 +85,7 @@ Deno.serve(
 
     const { content } = await openaiChat({
       apiKey: openAiKey,
-      model: "gemini-3.6-flash",
+      model: "gemini-2.5-flash",
       temperature: 0.2,
       maxTokens: 3500,
       responseFormat: { type: "json_object" },

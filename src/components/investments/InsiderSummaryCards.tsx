@@ -36,7 +36,7 @@ export const InsiderSummaryCards: FC<Props> = ({ stats }) => {
             {stats.purchasesCount} <span className="text-text-muted font-light">/</span> {stats.salesCount}
           </div>
           <div className="text-3xs font-mono text-text-secondary pt-0.5">
-            rynek 90d: {stats.marketPurchases90d.toLocaleString('pl-PL')} / {stats.marketSales90d.toLocaleString('pl-PL')} ·{' '}
+            próba 90d: {stats.marketPurchases90d.toLocaleString('pl-PL')} / {stats.marketSales90d.toLocaleString('pl-PL')} ·{' '}
             <span className="text-success font-bold">{stats.marketDeltaPoints}</span>
           </div>
         </div>
@@ -44,7 +44,7 @@ export const InsiderSummaryCards: FC<Props> = ({ stats }) => {
         {/* Card 2: Najaktywniejsza spółka */}
         <div className="p-4 sm:p-5 rounded-3xl bg-surface border border-border-custom shadow-2xs space-y-1">
           <div className="text-3xs uppercase tracking-wider font-semibold text-text-muted font-mono">
-            Najaktywniejsza Spółka
+            Najaktywniejsza spółka w próbie
           </div>
           <div className="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
             {stats.mostActiveTicker}{' '}
@@ -60,7 +60,7 @@ export const InsiderSummaryCards: FC<Props> = ({ stats }) => {
         {/* Card 3: Tempo zgłoszeń */}
         <div className="p-4 sm:p-5 rounded-3xl bg-surface border border-border-custom shadow-2xs space-y-1">
           <div className="text-3xs uppercase tracking-wider font-semibold text-text-muted font-mono">
-            Tempo Zgłoszeń
+            Transakcje w próbie
           </div>
           <div className="text-2xl sm:text-3xl font-black text-text-primary tracking-tight">
             {stats.runRate30d.toLocaleString('pl-PL')}{' '}

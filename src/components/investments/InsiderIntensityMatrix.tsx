@@ -31,7 +31,7 @@ export const InsiderIntensityMatrix: FC<Props> = ({ rows }) => {
               </div>
 
               {/* 12 Weekly Blocks */}
-              <div className="flex-1 grid grid-cols-12 gap-1.5 sm:gap-2">
+              <div className="flex-1 grid grid-cols-[repeat(13,minmax(0,1fr))] gap-1.5 sm:gap-2">
                 {row.weeklyCounts.map((cnt, wIdx) => {
                   let cellBg = 'bg-surface-elevated/40 border-border-custom/40';
                   if (cnt >= 12) cellBg = 'bg-success text-black border-success';
@@ -42,7 +42,7 @@ export const InsiderIntensityMatrix: FC<Props> = ({ rows }) => {
                   return (
                     <div
                       key={wIdx}
-                      title={`Tydzień ${wIdx + 1}: ${cnt} transakcji`}
+                      title={`Tydzień ${wIdx + 1} (najstarszy → bieżący): ${cnt} transakcji`}
                       className={`h-7 sm:h-8 rounded-lg border flex items-center justify-center font-mono text-3xs font-bold transition-all duration-150 hover:scale-105 cursor-pointer shadow-2xs ${cellBg}`}
                     >
                       {cnt > 0 ? cnt : ''}

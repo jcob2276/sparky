@@ -35,20 +35,20 @@ export const TripleConfluenceRadar: FC<Props> = ({ rows, onSelectTicker }) => {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm sm:text-base font-black text-text-primary tracking-tight">
-                Radar Potrójnej Zbieżności (Super-Sygnały 10/10)
+                Zbieżność ujawnień 13F i Kongresu
               </h3>
               <span className="px-2 py-0.5 rounded-full text-4xs font-mono uppercase font-black bg-primary text-text-on-primary">
-                VIP Setup
+                Dane historyczne
               </span>
             </div>
             <p className="text-3xs text-text-muted mt-0.5">
-              Spółki, gdzie jednocześnie kumulują się zakupy Superinwestorów 13F oraz Członków Kongresu USA
+              Zmiany pozycji w raportach 13F i ujawnione zakupy Kongresu. Dokumenty mają różne daty i opóźnienia.
             </p>
           </div>
         </div>
 
         <div className="text-3xs font-mono text-primary font-bold hidden sm:block">
-          Najwyższe prawdopodobieństwo alfy
+          Ranking opisowy, nie prognoza zysku
         </div>
       </div>
 
@@ -79,7 +79,7 @@ export const TripleConfluenceRadar: FC<Props> = ({ rows, onSelectTicker }) => {
                     </div>
                   </div>
                   <span className="px-1.5 py-0.5 rounded-md text-3xs font-mono font-bold bg-primary/10 text-primary border border-primary/20">
-                    Wynik: {item.score}
+                    Ranking: {item.score}/100
                   </span>
                 </div>
 
@@ -87,12 +87,12 @@ export const TripleConfluenceRadar: FC<Props> = ({ rows, onSelectTicker }) => {
                 <div className="space-y-1 text-3xs font-mono text-text-secondary bg-surface-elevated/50 p-2.5 rounded-xl border border-border-custom/40">
                   <div className="flex items-center gap-1.5 text-success">
                     <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
-                    <span>+{item.fundNetBuyers} funduszy 13F netto dokupuje</span>
+                    <span>Bilans zwiększeń i redukcji 13F: +{item.fundNetBuyers}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-primary">
                     <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                     <span>
-                      {item.politicianBuyers > 0 ? item.politicianBuyers : item.polBuys} polityków kupuje (STOCK Act)
+                      {item.polBuys} ujawnionych zakupów (STOCK Act)
                     </span>
                   </div>
                   {item.insiderBuys > 0 && (
@@ -108,7 +108,7 @@ export const TripleConfluenceRadar: FC<Props> = ({ rows, onSelectTicker }) => {
               <div className="pt-2 border-t border-border-custom/40 flex items-center justify-between text-3xs font-mono">
                 <span className="inline-flex items-center gap-1 text-success font-semibold">
                   <Target size={11} />
-                  <span>Strefa wejścia</span>
+                  <span>Zobacz dane</span>
                 </span>
 
                 <span className="text-primary font-bold group-hover:underline flex items-center gap-0.5">

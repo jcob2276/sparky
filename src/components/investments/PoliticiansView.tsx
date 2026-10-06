@@ -1,8 +1,6 @@
-import { FC, useState, useEffect } from 'react';
-import {
-  fetchCongressOverview,
-  CongressOverview,
-} from '../../lib/investments/congressService';
+import { FC, useState } from 'react';
+import Button from '../ui/Button';
+import { useCongressOverview } from '../../lib/investments/useCongressOverview';
 import {
   CongressFilterToolbar,
   ChamberFilter,
@@ -15,6 +13,7 @@ import { CongressStreamTable } from './CongressStreamTable';
 import { CongressRankingCard } from './CongressRankingCard';
 import { PoliticianDetailView } from './PoliticianDetailView';
 import { CompanyDetailView } from './CompanyDetailView';
+import { HouseDisclosureDocuments } from './HouseDisclosureDocuments';
 
 interface Props {
   watchlist?: string[];
@@ -36,31 +35,9 @@ export const PoliticiansView: FC<Props> = ({
   const [selectedPolitician, setSelectedPolitician] = useState<string | null>(null);
   const [selectedStock, setSelectedStock] = useState<string | null>(null);
 
-  const [overview, setOverview] = useState<CongressOverview | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    void (async () => {
-      try {
-        const res = await fetchCongressOverview({
-          chamber,
-          party,
-          timeframe,
-          searchQuery: searchPolitician,
-          tickerQuery: searchTicker,
-        });
-        if (active) setOverview(res);
-      } catch (err: unknown) {
-        console.warn('[PoliticiansView] fetchCongressOverview error', err);
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [chamber, party, timeframe, searchPolitician, searchTicker]);
+  const { overview, loading, error, refresh, sourceStatus, documents } = useCongressOverview({
+    chamber, party, timeframe, searchQuery: searchPolitician, tickerQuery: searchTicker,
+  });
 
   // Politician detail view drilldown
   if (selectedPolitician) {
@@ -119,7 +96,17 @@ export const PoliticiansView: FC<Props> = ({
         onSearchTickerChange={setSearchTicker}
       />
 
-      {loading || !overview ? (
+      <p className="text-xs text-text-muted">
+        House PTR · {sourceStatus ? `ostatnia kontrola: ${new Date(sourceStatus.checked_at).toLocaleString('pl-PL')}` : 'brak potwierdzonej kontroli źródła'}
+        {sourceStatus?.latest_disclosure_date && ` · najnowsza data zgłoszenia: ${sourceStatus.latest_disclosure_date}`}
+        {sourceStatus?.status !== 'ok' && sourceStatus && ' · import wymaga sprawdzenia'}
+      </p>
+      {overview?.coverage.limited && <p className="text-xs text-warning">Załadowano {overview.coverage.fetchedRows} ostatnich rekordów. Zawęź okres, aby podsumowania obejmowały cały wybrany zakres.</p>}
+      {chamber !== 'senate' && !searchTicker && !searchPolitician && party === 'all'
+        && <HouseDisclosureDocuments documents={documents} />}
+      {error ? <div role="alert" className="p-6 text-sm text-danger">
+        Nie udało się odczytać zgłoszeń. <Button variant="ghost" className="underline" onClick={() => { void refresh(); }}>Spróbuj ponownie</Button>
+      </div> : loading || !overview ? (
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             {Array.from({ length: 4 }).map((_, i) => (
@@ -148,9 +135,9 @@ export const PoliticiansView: FC<Props> = ({
           />
 
           {/* Main 2-Column Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
+          <div className="grid grid-cols-1 gap-5 items-start">
             {/* Left: Stream Table (2 cols) */}
-            <div className="lg:col-span-2">
+            <div className="min-w-0">
               <CongressStreamTable
                 stream={overview.stream}
                 onSelectPolitician={(p) => setSelectedPolitician(p)}
@@ -159,7 +146,7 @@ export const PoliticiansView: FC<Props> = ({
             </div>
 
             {/* Right: Ranking Card (1 col) */}
-            <div className="lg:col-span-1">
+            <div className="min-w-0">
               <CongressRankingCard
                 rankings={overview.rankings}
                 onSelectPolitician={(p) => setSelectedPolitician(p)}

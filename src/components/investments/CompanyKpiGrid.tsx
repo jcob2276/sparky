@@ -6,9 +6,10 @@ interface Props {
 }
 
 export const CompanyKpiGrid: FC<Props> = ({ data }) => {
-  const net = data.consensus.buyers - data.consensus.sellers;
-  const netLabel = net > 0 ? `+${net}` : `${net}`;
-  const netColor = net > 0 ? 'text-success' : net < 0 ? 'text-danger' : 'text-text-muted';
+  const latest = data.fundHistory[0];
+  const periodLabel = latest ? `Stan na ${latest.period_of_report}; odczytane raporty SEC` : 'Brak zweryfikowanego okresu raportu';
+  const changes = data.fundChanges;
+  const comparisonLabel = changes ? `${changes.previousPeriod} → ${changes.period}; ${changes.comparedFunds} porównanych funduszy` : 'Wymaga dwóch kolejnych raportów tego samego funduszu';
 
   const formatTotalValue = (val: number) => {
     if (!val || val === 0) return '—';
@@ -19,40 +20,40 @@ export const CompanyKpiGrid: FC<Props> = ({ data }) => {
 
   const kpis = [
     {
-      title: 'KONSENSUS NETTO',
-      value: netLabel,
-      valueClass: netColor,
-      subtitle: `${data.consensus.buyers} kupiło · ${data.consensus.sellers} sprzedało`,
+      title: 'ZMIANA RAPORTOWANYCH AKCJI',
+      value: changes ? `${changes.increases} ↑ / ${changes.decreases} ↓` : '—',
+      valueClass: 'text-text-muted',
+      subtitle: comparisonLabel,
     },
     {
       title: 'FUNDUSZY Z POZYCJĄ',
-      value: `${data.consensus.holders}`,
+      value: latest ? `${latest.reported_holders}` : '—',
       valueClass: 'text-text-primary',
-      subtitle: 'ostatni kwartał 13F',
+      subtitle: periodLabel,
     },
     {
-      title: 'POLITYCY KUPUJĄCY',
+      title: 'KONGRES: TRANSAKCJE ZAKUPU',
       value: `${data.politicians.buyersCount}`,
       valueClass: data.politicians.buyersCount > 0 ? 'text-success' : 'text-text-primary',
-      subtitle: 'ujawnienia z 90 dni',
+      subtitle: 'w odczycie do 50 ostatnich transakcji',
     },
     {
       title: 'INSIDERZY: KUPNA / SPRZEDAŻE',
       value: `${data.insiders.buysCount} / ${data.insiders.sellsCount}`,
       valueClass: 'text-text-primary',
-      subtitle: 'wg formularzy SEC Form 4',
+      subtitle: 'kody P / S; do 50 transakcji, bez instrumentów pochodnych i korekt',
     },
     {
-      title: 'NOWE POZYCJE',
-      value: `${data.consensus.newPositions}`,
-      valueClass: data.consensus.newPositions > 0 ? 'text-success' : 'text-text-primary',
-      subtitle: 'fundusze bez wcześniejszej pozycji',
+      title: 'NOWO WYKAZANE POZYCJE',
+      value: changes ? `${changes.newReported}` : '—',
+      valueClass: 'text-text-muted',
+      subtitle: comparisonLabel,
     },
     {
       title: 'ŁĄCZNA WARTOŚĆ',
-      value: formatTotalValue(data.consensus.totalValueUsd),
+      value: latest ? formatTotalValue(latest.reported_value_usd) : '—',
       valueClass: 'text-text-primary',
-      subtitle: 'suma pozycji 13F w tym tickerze',
+      subtitle: periodLabel,
     },
   ];
 

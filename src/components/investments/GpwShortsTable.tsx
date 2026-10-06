@@ -50,7 +50,7 @@ export const GpwShortsTable: FC<Props> = ({
 
                 {/* Łączny short */}
                 <td className="py-3 px-3 text-right font-black font-mono text-xs sm:text-sm text-danger">
-                  {c.totalPct > 0 ? `${c.totalPct.toFixed(2)}%` : '0.00%'}
+                  {c.isHistorical ? 'Brak publicznej pozycji' : `${c.totalPct.toFixed(2)}%`}
                 </td>
 
                 {/* Pozycje >= 0.5% */}

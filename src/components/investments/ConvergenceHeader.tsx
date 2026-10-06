@@ -44,7 +44,9 @@ export const ConvergenceHeader: FC<Props> = ({
           ZBIEŻNOŚĆ UJAWNIEŃ
         </h1>
         <p className="text-xs text-text-secondary mt-1.5 max-w-2xl leading-relaxed">
-          Spółki kupowane równolegle przez fundusze 13F, polityków i insiderów. Zestawienie opisuje fakt o danych, nie zalecenie.
+          Zmiany pozycji w 13F zestawione z ujawnionymi transakcjami Kongresu i zakupami SEC Form 4.
+          {' '}Okno dotyczy dat transakcji; 13F pochodzi z ostatniego dostępnego porównania raportów.
+          {' '}Ranking 0–100 to względna suma rang liczników, nie prawdopodobieństwo wzrostu.
         </p>
         <p className="text-xs text-text-secondary mt-1.5">
           Wynik symulacji koszyka zbieżności jest dostępny w każdym planie.{' '}
@@ -62,7 +64,6 @@ export const ConvergenceHeader: FC<Props> = ({
         </p>
 
         <div className="flex flex-wrap items-center gap-2 mt-2 pt-1">
-          <SignalHorizonBadge source="gpw_mar" compact />
           <SignalHorizonBadge source="congress" compact />
           <SignalHorizonBadge source="13f" compact />
         </div>

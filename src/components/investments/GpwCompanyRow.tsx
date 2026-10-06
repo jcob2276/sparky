@@ -69,6 +69,9 @@ export const GpwCompanyRow: FC<Props> = ({
       {/* KURS PLN */}
       <td className="py-3 px-3 text-right font-medium text-text-primary font-mono text-xs sm:text-sm">
         {fmtPln(stock.close)}
+        {stock.priceDate && <div className="text-3xs text-text-muted">{stock.priceDate}</div>}
+        {stock.priceSourceUrl && <a href={stock.priceSourceUrl} target="_blank" rel="noopener noreferrer"
+          onClick={event => event.stopPropagation()} className="text-3xs text-primary underline">Źródło ceny</a>}
       </td>
 
       {/* DZIŚ */}
@@ -132,7 +135,8 @@ export const GpwCompanyRow: FC<Props> = ({
       </td>
 
       {/* 12M SPARKLINE */}
-      <td className="py-3 px-3 text-right">
+      <td className="py-3 px-3 text-right" title={stock.historyStart && stock.historyEnd
+        ? `Dostępne notowania: ${stock.historyStart} — ${stock.historyEnd}. Ceny bez korekt; nie jest to stopa całkowitego zwrotu.` : 'Brak historii cen'}>
         <div className="w-18 h-6 ml-auto shrink-0 flex items-center justify-end">
           {pathPoints ? (
             <svg width="68" height="22" className="overflow-visible">

@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="pl" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Poker Decision Lab – Myślenie Probabilistyczne & Anti-Resulting</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+              900: '#14532d',
+            },
+            surface: {
+              base: '#0B0F17',
+              panel: '#111827',
+              card: '#1F2937',
+              border: '#374151'
+            }
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'Fira Code', 'Courier New', 'monospace'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #0B0F17; }
+    ::-webkit-scrollbar-thumb { background: #1F2937; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #374151; }
+
+    /* Card styling */
+    .poker-card {
+      position: relative;
+      width: 64px;
+      height: 92px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #ffffff 0%, #f3f4f6 100%);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 6px;
+      font-weight: 800;
+      user-select: none;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .poker-card:hover {
+      transform: translateY(-4px) scale(1.03);
+    }
+    .poker-card.card-back {
+      background: repeating-linear-gradient(45deg, #1e3a8a, #1e3a8a 8px, #172554 8px, #172554 16px);
+      border: 2px solid #3b82f6;
+    }
+    .suit-hearts, .suit-diamonds { color: #dc2626; }
+    .suit-spades, .suit-clubs { color: #111827; }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(34, 197, 94, 0.2); }
+      50% { box-shadow: 0 0 25px rgba(34, 197, 94, 0.5); }
+    }
+    .glow-success { animation: pulseGlow 2s infinite; }
+    
+    @keyframes pulseWarning {
+      0%, 100% { box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); }
+      50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.5); }
+    }
+    .glow-warning { animation: pulseWarning 2s infinite; }
+  </style>
+</head>
+<body class="bg-[#0B0F17] text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500 selection:text-white">
+
+  <!-- Top Navigation -->
+  <header class="border-b border-slate-800 bg-[#0E1420]/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-900/30">
+          <span class="text-xl font-black text-black">♠</span>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <h1 class="text-lg font-bold tracking-tight text-white">Poker Decision Lab</h1>
+            <span class="px-2 py-0.5 text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full">Anti-Resulting</span>
+          </div>
+          <p class="text-xs text-slate-400">Podejmowanie decyzji w warunkach niepełnej informacji</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex space-x-1 sm:space-x-2 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-sm">
+        <button onclick="switchTab('trainer')" id="tab-trainer" class="px-3.5 py-1.5 rounded-lg font-medium transition text-emerald-400 bg-slate-800 shadow-sm">
+          🎯 Trenażer Decyzji (EV)
+        </button>
+        <button onclick="switchTab('math')" id="tab-math" class="px-3.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200">
+          ⚡ Szybka Matematyka
+        </button>
+        <button onclick="switchTab('variance')" id="tab-variance" class="px-3.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200">
+          📈 Symulator Wariancji
+        </button>
+        <button onclick="switchTab('philosophy')" id="tab-philosophy" class="px-3.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200">
+          🧠 Filozofia Decyzji
+        </button>
+      </nav>
+
+      <!-- Audio & Sound Toggle -->
+      <div class="flex items-center space-x-2">
+        <button id="soundToggle" onclick="toggleSound()" class="p-2 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition text-sm flex items-center space-x-1">
+          <span id="soundIcon">🔊</span>
+          <span class="hidden md:inline text-xs">Dźwięk</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
+
+    <!-- ============================================================== -->
+    <!-- TAB 1: DECISION TRAINER & ANTI-RESULTING (MAIN) -->
+    <!-- ============================================================== -->
+    <div id="view-trainer" class="space-y-6">
+      
+      <!-- Philosophy Banner Alert -->
+      <div class="p-4 rounded-xl border border-indigo-900/50 bg-gradient-to-r from-indigo-950/40 via-purple-950/30 to-slate-900 flex items-start space-x-4">
+        <div class="p-2.5 bg-indigo-500/20 text-indigo-400 rounded-xl text-lg font-bold shrink-0">
+          💡
+        </div>
+        <div class="text-sm">
+          <h2 class="font-bold text-indigo-300">Złota zasada Pokera i Życia: Anti-Resulting</h2>
+          <p class="text-slate-300 mt-0.5">
+            Nigdy nie oceniaj jakości decyzji na podstawie pojedynczego wyniku. Perfekcyjna decyzja (+EV) może przynieść stratę z powodu pecha (wariancja). Głupia decyzja (-EV) może przynieść zysk przez fuks. 
+            <strong>Celem jest maksymalizacja Wartości Oczekiwanej (EV) w długim terminie.</strong>
+          </p>
+        </div>
+      </div>
+
+      <!-- Poker Table & Decision Zone -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left 8 cols: The Table / Scenario -->
+        <div class="lg:col-span-8 space-y-5">
+          <div class="relative bg-gradient-to-b from-[#0F1B15] to-[#0A120E] border-2 border-emerald-950/80 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden min-h-[440px] flex flex-col justify-between">
+            <!-- Subtle Felt Texture / Ring -->
+            <div class="absolute inset-4 rounded-[2.5rem] border border-emerald-500/10 pointer-events-none"></div>
+            <div class="absolute -top-24 -left-24 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Table Top: Opponent & Pot Info -->
+            <div class="relative z-10 flex items-center justify-between">
+              <!-- Opponent -->
+              <div class="flex items-center space-x-3 bg-black/40 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-800">
+                <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-amber-400 border border-amber-500/30">
+                  👤
+                </div>
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <span id="oppName" class="font-bold text-sm text-slate-200">Rywal (Agresywny)</span>
+                    <span id="oppPosition" class="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono">BTN</span>
+                  </div>
+                  <div class="text-xs text-slate-400">Zakres: <span id="oppRangeSummary" class="text-amber-300 font-medium">Drawy + Układy</span></div>
+                </div>
+                <!-- Opponent cards hidden or revealed -->
+                <div id="oppCards" class="flex space-x-1 pl-2">
+                  <div class="poker-card card-back !w-11 !h-16"></div>
+                  <div class="poker-card card-back !w-11 !h-16"></div>
+                </div>
+              </div>
+
+              <!-- Pot & Street Badge -->
+              <div class="text-right">
+                <div class="inline-block px-3 py-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full text-xs font-mono font-bold uppercase tracking-wider mb-1" id="streetBadge">
+                  FLOP
+                </div>
+                <div class="text-xs text-slate-400">Aktualna Pula:</div>
+                <div class="text-2xl font-black font-mono text-emerald-400" id="potSizeDisplay">$160</div>
+              </div>
+            </div>
+
+            <!-- Community Cards (Stół) -->
+            <div class="relative z-10 py-6 text-center">
+              <div class="text-xs font-mono uppercase tracking-wider text-slate-400 mb-2">Karty Wspólne (Board)</div>
+              <div id="boardCards" class="flex justify-center items-center space-x-2 sm:space-x-3">
+                <!-- Cards will be populated by JS -->
+              </div>
+            </div>
+
+            <!-- Table Bottom: Hero Cards & Bet Facing -->
+            <div class="relative z-10 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-emerald-950/60">
+              <!-- Hero Hand -->
+              <div class="flex items-center space-x-4">
+                <div id="heroCards" class="flex space-x-2">
+                  <!-- Hero cards rendered by JS -->
+                </div>
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <span class="font-bold text-sm text-white">Twoja Ręka</span>
+                    <span id="heroPosition" class="text-[10px] bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded font-mono border border-emerald-800">BB</span>
+                  </div>
+                  <div id="heroHandName" class="text-xs text-emerald-300 font-medium mt-0.5">Flush Draw (Draw do koloru)</div>
+                  <div class="text-[11px] text-slate-400 mt-1">Twój stack: <span id="heroStack" class="font-mono text-slate-200">$450</span></div>
+                </div>
+              </div>
+
+              <!-- Bet To Call Badge -->
+              <div class="bg-rose-950/50 border border-rose-800/60 p-3 rounded-2xl text-center sm:text-right w-full sm:w-auto">
+                <div class="text-xs text-rose-300 font-medium">Rywal zagrywa bet:</div>
+                <div class="text-2xl font-black font-mono text-rose-400" id="betToCall">$50</div>
+                <div class="text-[11px] text-slate-400">Koszt sprawdzenia</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Action Buttons / Decision Controls -->
+          <div id="decisionControls" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-lg">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div class="text-sm">
+                <span class="text-slate-400">Twoja decyzja w tym punkcie:</span>
+                <p class="text-xs text-slate-500">Oceń opłacalność matematyczną (EV) zanim klikniesz</p>
+              </div>
+
+              <div class="flex items-center space-x-3 w-full sm:w-auto">
+                <button onclick="handleUserDecision('FOLD')" class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold transition border border-slate-700 flex items-center justify-center space-x-2">
+                  <span>❌ FOLD</span>
+                </button>
+                <button onclick="handleUserDecision('CALL')" class="flex-1 sm:flex-none px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black transition shadow-lg shadow-emerald-950/40 flex items-center justify-center space-x-2 text-base">
+                  <span>✅ CALL (<span id="btnCallAmount">$50</span>)</span>
+                </button>
+                <button onclick="handleUserDecision('RAISE')" class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold transition shadow-lg shadow-amber-950/40 flex items-center justify-center space-x-2">
+                  <span>🚀 ALL-IN / RAISE</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Mental Check Collapse -->
+            <div class="mt-4 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
+              <div class="flex items-center space-x-4">
+                <span>💡 Twoje Outy: <strong id="hintOuts" class="text-slate-200">9 outów</strong></span>
+                <span>📊 Twoje Szanse (Equity): <strong id="hintEquity" class="text-slate-200">~36%</strong></span>
+                <span>🎯 Wymagane Pot Odds: <strong id="hintPotOdds" class="text-slate-200">23.8%</strong></span>
+              </div>
+              <button onclick="toggleMathDetails()" class="text-emerald-400 hover:underline">
+                [Pokaż/Ukryj jak to policzyć]
+              </button>
+            </div>
+
+            <!-- Hidden Explanation of Math -->
+            <div id="mathDetailsBox" class="hidden mt-3 p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
+              <p><strong>1. Pot Odds:</strong> Ryzykujesz <code class="text-emerald-300" id="mathCallCost">$50</code>, by wygrać pulę łączną <code class="text-emerald-300" id="mathTotalPot">$210</code> ($160 + $50). Wymagane equity = $50 / $210 = <code class="text-amber-300 font-bold" id="mathReqEq">23.8%</code>.</p>
+              <p><strong>2. Reguła 4 (Flop do River):</strong> Masz 9 kart dających wygraną (outów). 9 × 4 = <code class="text-amber-300 font-bold">~36%</code> szans na trafienie.</p>
+              <p><strong>3. Wniosek EV:</strong> Twoje szanse (36%) są wyższe niż cena puli (23.8%). <strong>Call ma czyste dodatnie EV (+EV)!</strong></p>
+            </div>
+          </div>
+
+          <!-- Next Scenario Button (shown after decision) -->
+          <div id="nextScenarioBar" class="hidden flex items-center justify-between bg-slate-900 border border-emerald-500/40 p-4 rounded-2xl shadow-xl">
+            <div>
+              <span class="text-sm font-bold text-white">Rozdanie zakończone.</span>
+              <p class="text-xs text-slate-400">Przeanalizuj poniższy raport zanim przejdziesz dalej.</p>
+            </div>
+            <button onclick="loadNextScenario()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-black font-black hover:opacity-90 transition flex items-center space-x-2">
+              <span>Następny Scenariusz ➔</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Right 4 cols: The EV & Anti-Resulting Breakdown Screen -->
+        <div class="lg:col-span-4 space-y-5">
+          
+          <!-- Cognitive Feedback Box -->
+          <div id="resultFeedbackCard" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h3 class="font-bold text-sm uppercase tracking-wider text-slate-400">Analiza Kognitywna</h3>
+              <span id="decisionBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400">
+                Oczekiwanie na ruch
+              </span>
+            </div>
+
+            <!-- Idle State -->
+            <div id="idleStateText" class="text-center py-8 text-slate-500 space-y-2">
+              <div class="text-3xl">🎲</div>
+              <p class="text-sm">Podejmij decyzję po lewej stronie.</p>
+              <p class="text-xs text-slate-600">Zobaczysz matematyczną ocenę zagrania oraz to, co stało się w tej konkretnej próbie.</p>
+            </div>
+
+            <!-- Active Result State (Hidden by default) -->
+            <div id="activeResultContent" class="hidden space-y-4">
+              
+              <!-- Decision Quality vs Reality Matrix Box -->
+              <div id="cognitiveResultBox" class="p-4 rounded-xl border">
+                <!-- Injected via JS -->
+              </div>
+
+              <!-- Mathematical EV Breakdown -->
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <div class="text-xs font-mono uppercase text-slate-400">Wartość Oczekiwana (EV) Decyzji:</div>
+                <div class="flex items-baseline justify-between">
+                  <span class="text-2xl font-black font-mono" id="evValueDisplay">+$24.60</span>
+                  <span class="text-xs text-slate-400" id="evPercentDisplay">ROI: +49.2%</span>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-relaxed" id="evFormulaText">
+                  Średnio przy każdym takim sprawdzeniu zyskujesz $24.60, niezależnie od tego, czy wygrasz w tym konkretnym rozdaniu.
+                </p>
+              </div>
+
+              <!-- Monte Carlo Parallel Realities Simulation -->
+              <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs font-mono uppercase text-slate-400">1,000 Równoległych Światów</div>
+                  <span class="text-[10px] bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded font-mono">Monte Carlo</span>
+                </div>
+                
+                <!-- Canvas simulation chart -->
+                <canvas id="mcCanvas" width="300" height="120" class="w-full bg-slate-900 rounded-lg border border-slate-800"></canvas>
+                
+                <div class="flex justify-between text-[10px] font-mono text-slate-500">
+                  <span>Rozdanie 1</span>
+                  <span id="mcFinalProfit" class="text-emerald-400 font-bold">Zysk po 1000x: +$24,600</span>
+                  <span>Rozdanie 1000</span>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-snug">
+                  Niebieska linia to Twój realny kapitał przy powtórzeniu tej samej decyzji 1000 razy. Pojedynczy wynik to tylko 1 piksel na tym wykresie.
+                </p>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- User Stats / Scoreboard -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3">
+            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-400">Twoje Statystyki Jakości (Nie Wyniku)</h4>
+            <div class="grid grid-cols-2 gap-3 text-center">
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <div class="text-xs text-slate-500">Dobre Decyzje (+EV)</div>
+                <div class="text-xl font-black text-emerald-400 font-mono" id="statGoodDecisions">0</div>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <div class="text-xs text-slate-500">Błędy (-EV)</div>
+                <div class="text-xl font-black text-rose-400 font-mono" id="statBadDecisions">0</div>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <div class="text-xs text-slate-500">Skumulowane EV</div>
+                <div class="text-lg font-black text-amber-400 font-mono" id="statTotalEV">$0.00</div>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <div class="text-xs text-slate-500">Odporność na Resulting</div>
+                <div class="text-lg font-black text-indigo-400 font-mono" id="statResilience">100%</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 2: SPEED MATH & POT ODDS GYM -->
+    <!-- ============================================================== -->
+    <div id="view-math" class="hidden space-y-6 max-w-4xl mx-auto">
+      
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center space-x-2">
+            <span>⚡ Siłownia Matematyki Pokera (Pot Odds & Outy)</span>
+          </h2>
+          <p class="text-sm text-slate-400 mt-1">
+            Zautomatyzuj szybkie liczenie w głowie. Gracze z wybitną intuicją nie są geniuszami matematycznymi – opanowali 2 proste reguły pamięciowe.
+          </p>
+        </div>
+
+        <!-- Speed Drill Card -->
+        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-6 space-y-6 text-center">
+          
+          <div class="flex items-center justify-between text-xs text-slate-500 border-b border-slate-800 pb-3">
+            <span>Pytanie <span id="mathQNum" class="text-white font-bold">1</span>/10</span>
+            <span>Seria: <span id="mathStreak" class="text-amber-400 font-bold">0</span> 🔥</span>
+            <span>Czas na pytanie: <span id="mathTimer" class="text-emerald-400 font-mono font-bold">15s</span></span>
+          </div>
+
+          <!-- Question Prompt -->
+          <div class="py-4 space-y-3">
+            <div class="text-xs uppercase tracking-widest text-emerald-400 font-mono" id="mathCategory">POT ODDS DRILL</div>
+            <div class="text-2xl sm:text-3xl font-extrabold text-white max-w-xl mx-auto" id="mathQuestionText">
+              W puli jest $150. Rywal stawia $50. Ile % szans (equity) potrzebujesz, by sprawdzić?
+            </div>
+            <div class="text-xs text-slate-400" id="mathQuestionHint">
+              Wskazówka: Koszt sprawdzenia / (Pula + Bet + Koszt)
+            </div>
+          </div>
+
+          <!-- Answer Options Grid -->
+          <div id="mathOptionsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-2xl mx-auto">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Feedback text -->
+          <div id="mathAnswerFeedback" class="hidden p-4 rounded-xl text-sm font-medium"></div>
+
+        </div>
+
+        <!-- Cheat Sheet Reference -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h4 class="font-bold text-emerald-400 uppercase tracking-wider">Reguła 4 i 2 (Outy → Szanse w %)</h4>
+            <ul class="space-y-1 text-slate-300">
+              <li>• <strong>Flop do River (zostały 2 karty):</strong> Liczba outów × <strong>4</strong></li>
+              <li>• <strong>Turn do River (została 1 karta):</strong> Liczba outów × <strong>2</strong></li>
+              <li>• Draw do koloru (9 outów): 9 × 4 = <strong>36%</strong> na flopie (18% na turnie)</li>
+              <li>• Otwarty strit (8 outów): 8 × 4 = <strong>32%</strong> na flopie (16% na turnie)</li>
+              <li>• Wewnętrzny strit / Gutshot (4 outy): 4 × 4 = <strong>16%</strong> na flopie</li>
+            </ul>
+          </div>
+
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h4 class="font-bold text-amber-400 uppercase tracking-wider">Cena Zakładu a Wymagane Szanse</h4>
+            <ul class="space-y-1 text-slate-300">
+              <li>• Rywal betuje <strong>1/2 puli</strong> → potrzebujesz <strong>25%</strong> equity</li>
+              <li>• Rywal betuje <strong>3/4 puli</strong> → potrzebujesz <strong>30%</strong> equity</li>
+              <li>• Rywal betuje <strong>pełną pulę (Pot)</strong> → potrzebujesz <strong>33.3%</strong> equity</li>
+              <li>• Rywal betuje <strong>2x pulę (Overbet)</strong> → potrzebujesz <strong>40%</strong> equity</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 3: VARIANCE & LAW OF LARGE NUMBERS SANDBOX -->
+    <!-- ============================================================== -->
+    <div id="view-variance" class="hidden space-y-6 max-w-5xl mx-auto">
+      
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div>
+          <h2 class="text-xl font-bold text-white">📈 Symulator Wariancji & Prawo Wielkich Liczb</h2>
+          <p class="text-sm text-slate-400 mt-1">
+            Zobacz na własne oczy, dlaczego ocenianie czegokolwiek po 50 czy 100 próbach w życiu jest iluzją.
+            Poniższy symulator generuje <strong>5 graczy o identycznej, wygrywającej przewadze (+5% EV)</strong>.
+          </p>
+        </div>
+
+        <!-- Controls for Variance -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
+          <div>
+            <label class="block text-xs font-mono text-slate-400 mb-1">Twoja Przewaga (Edge / Winrate):</label>
+            <select id="varEdgeSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+              <option value="0.02">Lekki Edge (+2% EV) – bardzo wysoka wariancja</option>
+              <option value="0.05" selected>Solidny Gracz (+5% EV) – standard pro</option>
+              <option value="0.10">Mocna Przewaga (+10% EV) – crusher</option>
+              <option value="-0.03">Kasyno / Rybka (-3% EV) – ujemna wartość</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-mono text-slate-400 mb-1">Liczba Rozdań (Próba N):</label>
+            <select id="varHandsSelect" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
+              <option value="100">100 rozdań (Czysty chaos i szum)</option>
+              <option value="500">500 rozdań (Krótki termin)</option>
+              <option value="2000" selected>2,000 rozdań (Średni termin)</option>
+              <option value="10000">10,000 rozdań (Długi termin - prawda wychodzi)</option>
+            </select>
+          </div>
+
+          <div class="flex items-end">
+            <button onclick="runVarianceSimulation()" class="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition shadow-lg shadow-emerald-950/40">
+              🔄 Uruchom Symulację
+            </button>
+          </div>
+        </div>
+
+        <!-- Large Variance Chart -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-400 font-mono">Wykres Kapitału 5 Graczy o IDENTYCZNYCH Umiejętnościach</span>
+            <span class="text-emerald-400 font-mono">Żółta linia = Teoretyczne EV</span>
+          </div>
+          <canvas id="varianceCanvas" width="900" height="360" class="w-full h-72 bg-slate-900 rounded-lg border border-slate-800"></canvas>
+        </div>
+
+        <!-- Variance Takeaway Lesson -->
+        <div class="p-4 bg-indigo-950/40 border border-indigo-900/60 rounded-xl text-xs sm:text-sm text-slate-300 space-y-2">
+          <h4 class="font-bold text-indigo-300 flex items-center space-x-1">
+            <span>💡 Co mówi ten wykres o Twoim życiu i karierze?</span>
+          </h4>
+          <p>
+            Wszyscy ci gracze podejmowali <strong>dokładnie te same, poprawne decyzje</strong>. Jednak w próbie 500 rozdań Gracz 2 mógł być na potężnym minusie (downswing), a Gracz 4 miał spektakularny zysk.
+          </p>
+          <p>
+            W życiu ludzie widząc Gracza 2 nazwaliby go "nieudacznikiem", a Gracza 4 "geniuszem". Prawda jest taka, że obaj grali tak samo dobrze – różniła ich tylko losowość krótkoterminowa. Dopiero przy N > 5000 linie zaczynają zbiegać się ku zasłużonemu zyskowi.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- TAB 4: DECISION PHILOSOPHY COMPENDIUM -->
+    <!-- ============================================================== -->
+    <div id="view-philosophy" class="hidden space-y-6 max-w-4xl mx-auto">
+      
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div>
+          <h2 class="text-2xl font-black text-white">🧠 Mental Models: Dlaczego Poker zmienia sposób myślenia</h2>
+          <p class="text-sm text-slate-400 mt-1">Podsumowanie wiedzy z książek Annie Duke ("Thinking in Bets"), Daniela Kahnemana i Nassima Taleba.</p>
+        </div>
+
+        <!-- The 2x2 Matrix -->
+        <div class="space-y-3">
+          <h3 class="text-base font-bold text-slate-200">1. Matryca Decyzja vs Wynik (Koniec z Resultingiem)</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            
+            <!-- Good Dec + Good Out -->
+            <div class="p-4 rounded-xl bg-emerald-950/30 border border-emerald-800/60 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-emerald-400 text-sm">Zasłużona Nagroda</span>
+                <span class="text-xs bg-emerald-900/60 text-emerald-300 px-2 py-0.5 rounded font-mono">DOBRA DECYZJA + DOBRY WYNIK</span>
+              </div>
+              <p class="text-xs text-slate-300">Miałeś 75% szans, zagrałeś all-in i wygrałeś. Zrobiłeś dobrą robotę i los Ci sprzyjał. Świętuj, ale nie popadaj w pychę.</p>
+            </div>
+
+            <!-- Good Dec + Bad Out -->
+            <div class="p-4 rounded-xl bg-blue-950/30 border border-blue-800/60 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-blue-400 text-sm">Pech / Bad Beat</span>
+                <span class="text-xs bg-blue-900/60 text-blue-300 px-2 py-0.5 rounded font-mono">DOBRA DECYZJA + ZŁY WYNIK</span>
+              </div>
+              <p class="text-xs text-slate-300">
+                <strong>Najważniejsza komórka w życiu.</strong> Zrobiłeś wszystko idealnie (+EV), ale wypadło 20% losowości. 
+                <span class="text-amber-300">Błąd amatora:</span> obwiniać się i zmieniać zwycięską strategię.
+              </p>
+            </div>
+
+            <!-- Bad Dec + Good Out -->
+            <div class="p-4 rounded-xl bg-rose-950/30 border border-rose-800/60 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-rose-400 text-sm">Toksyczne Szczęście (Fuks)</span>
+                <span class="text-xs bg-rose-900/60 text-rose-300 px-2 py-0.5 rounded font-mono">ZŁA DECYZJA + DOBRY WYNIK</span>
+              </div>
+              <p class="text-xs text-slate-300">
+                Postawiłeś oszczędności na ślepy los (5% szans) i wygrałeś. Mózg uczy się: "jestem geniuszem!". W biznesie to prosta droga do katastrofy przy kolejnej próbie.
+              </p>
+            </div>
+
+            <!-- Bad Dec + Bad Out -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-400 text-sm">Zasłużona Porażka</span>
+                <span class="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono">ZŁA DECYZJA + ZŁY WYNIK</span>
+              </div>
+              <p class="text-xs text-slate-300">Zagrałeś z ujemnym EV i przegrałeś. Cenny feedback ze środowiska: zmień proces myślowy, popraw założenia.</p>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Incomplete Info vs Chess -->
+        <div class="p-5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+          <h3 class="text-base font-bold text-slate-200">2. Dlaczego Szachy nie przygotowują do życia, a Poker tak?</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            W szachach wszystkie figury stoją na planszy. To gra o <strong>pełnej informacji (perfect information)</strong>. Nie ma tam szczęścia. Jeśli przegrałeś, rywal był lepszy.
+          </p>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Życie nie wygląda jak szachy. Wybierając karierę, partnera, inwestycję czy startując z biznesem:
+          </p>
+          <ul class="text-xs text-slate-400 space-y-1 pl-4 list-disc">
+            <li>Nigdy nie znasz wszystkich kart rywala i otoczenia (niepełna informacja).</li>
+            <li>Ogromną rolę odgrywa przypadek i timing (wariancja).</li>
+            <li>Przeciwnicy blefują lub ukrywają swoje intencje.</li>
+          </ul>
+          <p class="text-xs text-emerald-400 font-medium">
+            Poker uczy Cię komfortu psychicznego w działaniu w mgle wojny: "Nie wiem na 100%, co ma rywal, ale wiem, że na 70% jego zakresu to zagranie przynosi zysk".
+          </p>
+        </div>
+
+        <!-- Range Thinking -->
+        <div class="p-5 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+          <h3 class="text-base font-bold text-slate-200">3. Myślenie Zakresami (Ranges) zamiast pojedynczych odpowiedzi</h3>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            Początkujący gracz pyta: <em>"Jaką on ma kartę? As-Król czy Damy?"</em>.<br>
+            Profesjonalista myśli: <em>"Jak wygląda cały wachlarz rąk, z którymi rywal mógł tak zagrać? 40% blefy, 40% średnie układy, 20% monstery. W stosunku do tego rozkładu prawdopodobieństwa mój ruch ma +EV"</em>.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800/80 bg-[#0B0F17] py-6 text-center text-xs text-slate-500">
+    <p>Poker Decision Lab • Opracowane dla Jakuba w celu treningu podejmowania decyzji i myślenia probabilistycznego.</p>
+  </footer>
+
+  <!-- Application Logic -->
+  <script>
+    // --- AUDIO SYNTHESIS (Web Audio API) ---
+    let soundEnabled = true;
+    const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = AudioContextConstructor ? new AudioContextConstructor() : null;
+
+    function playTone(freq, type = 'sine', duration = 0.15, vol = 0.1) {
+      if (!soundEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    function playChipSound() { playTone(800, 'triangle', 0.08, 0.15); }
+    function playWinSound() {
+      playTone(523.25, 'sine', 0.1, 0.1);
+      setTimeout(() => playTone(659.25, 'sine', 0.15, 0.1), 100);
+      setTimeout(() => playTone(783.99, 'sine', 0.25, 0.12), 200);
+    }
+    function playBadBeatSound() {
+      playTone(280, 'sawtooth', 0.25, 0.1);
+      setTimeout(() => playTone(220, 'sawtooth', 0.35, 0.12), 150);
+    }
+
+    function toggleSound() {
+      soundEnabled = !soundEnabled;
+      document.getElementById('soundIcon').innerText = soundEnabled ? '🔊' : '🔇';
+    }
+
+    // --- TAB SWITCHING ---
+    function switchTab(tabId) {
+      ['trainer', 'math', 'variance', 'philosophy'].forEach(t => {
+        const view = document.getElementById(`view-${t}`);
+        const tab = document.getElementById(`tab-${t}`);
+        if (t === tabId) {
+          view.classList.remove('hidden');
+          tab.className = "px-3.5 py-1.5 rounded-lg font-medium transition text-emerald-400 bg-slate-800 shadow-sm";
+        } else {
+          view.classList.add('hidden');
+          tab.className = "px-3.5 py-1.5 rounded-lg font-medium transition text-slate-400 hover:text-slate-200";
+        }
+      });
+      if (tabId === 'variance') {
+        setTimeout(runVarianceSimulation, 50);
+      }
+    }
+
+    // --- CARDS & SCENARIOS DATA ---
+    const SUITS = {
+      's': { symbol: '♠', class: 'suit-spades' },
+      'h': { symbol: '♥', class: 'suit-hearts' },
+      'd': { symbol: '♦', class: 'suit-diamonds' },
+      'c': { symbol: '♣', class: 'suit-clubs' }
+    };
+
+    function renderCardHTML(rank, suit, isHidden = false) {
+      if (isHidden) {
+        return `<div class="poker-card card-back"></div>`;
+      }
+      const s = SUITS[suit];
+      return `
+        <div class="poker-card ${s.class}">
+          <div class="text-left text-sm leading-none">${rank}</div>
+          <div class="text-center text-xl leading-none">${s.symbol}</div>
+          <div class="text-right text-sm leading-none rotate-180">${rank}</div>
+        </div>
+      `;
+    }
+
+    // Curated rich scenarios focusing on decision quality & mental models
+    const SCENARIOS = [
+      {
+        id: 1,
+        title: "Nut Flush Draw na Flopie (Klasyk +EV)",
+        street: "FLOP",
+        oppName: "Gracz Agresywny (Aggro)",
+        oppPosition: "BTN",
+        oppRangeSummary: "Top Pair + silne układy",
+        heroPosition: "BB",
+        heroHand: [ {r:'A', s:'h'}, {r:'4', s:'h'} ],
+        heroHandName: "Nut Flush Draw (Asowy Draw do Koloru)",
+        board: [ {r:'K', s:'h'}, {r:'8', s:'h'}, {r:'2', s:'c'} ],
+        turnCard: {r:'7', s:'d'},
+        riverCard: {r:'Q', s:'h'}, // River completes flush
+        oppCards: [ {r:'K', s:'d'}, {r:'J', s:'c'} ], // Opponent has Top Pair
+        pot: 120,
+        bet: 40,
+        heroStack: 420,
+        outs: 9,
+        equity: 0.35, // 35% from flop to river
+        bestAction: "CALL",
+        shoveEV: 15.0,
+        callEV: 32.0,
+        foldEV: 0.0,
+        explanation: "Pula to $120, bet to $40. Do puli trafia $160, sprawdzasz za $40. Potrzebujesz $40/$200 = 20% szans. Masz 9 outów (ok. 35% szans). Sprawdzenie jest wysoce zyskowne (+EV)."
+      },
+      {
+        id: 2,
+        title: "Wewnętrzny Strit / Gutshot (Pułapka -EV)",
+        street: "TURN",
+        oppName: "Tight Player (Rozważny)",
+        oppPosition: "CO",
+        oppRangeSummary: "Dwie Pary lub Set",
+        heroPosition: "SB",
+        heroHand: [ {r:'J', s:'s'}, {r:'10', s:'d'} ],
+        heroHandName: "Gutshot Straight Draw (Potrzebujesz Damy)",
+        board: [ {r:'K', s:'c'}, {r:'9', s:'h'}, {r:'3', s:'d'}, {r:'2', s:'s'} ],
+        turnCard: null,
+        riverCard: {r:'4', s:'h'}, // Brick river
+        oppCards: [ {r:'K', s:'s'}, {r:'9', s:'s'} ], // Opponent has Two Pair
+        pot: 150,
+        bet: 150, // Full pot bet!
+        heroStack: 300,
+        outs: 4, // only 4 Queens
+        equity: 0.087, // ~8.7% on river
+        bestAction: "FOLD",
+        shoveEV: -80.0,
+        callEV: -85.0,
+        foldEV: 0.0,
+        explanation: "Rywal zagrał za całą pulę ($150 do $150). Potrzebujesz 33.3% equity. Masz tylko 4 damy (ok. 8.7% szans). Sprawdzenie to strata -$85 EV! Prawidłowa decyzja: FOLD."
+      },
+      {
+        id: 3,
+        title: "Bad Beat Spot (Asy vs Set - Wariancja)",
+        street: "FLOP",
+        oppName: "Maniak (Wild Fish)",
+        oppPosition: "UTG",
+        oppRangeSummary: "Dowolne karty / Pary / Czysty chaos",
+        heroPosition: "BTN",
+        heroHand: [ {r:'A', s:'s'}, {r:'A', s:'d'} ],
+        heroHandName: "Para Asów (Overpair)",
+        board: [ {r:'10', s:'c'}, {r:'7', s:'d'}, {r:'2', s:'h'} ],
+        turnCard: {r:'3', s:'s'},
+        riverCard: {r:'7', s:'s'}, // Opponent hits full house or set
+        oppCards: [ {r:'7', s:'c'}, {r:'7', s:'h'} ], // Opponent flopped set!
+        pot: 180,
+        bet: 120,
+        heroStack: 500,
+        outs: 2, // only 2 remaining Aces
+        equity: 0.09, // vs set on flop
+        bestAction: "CALL", // Actually against full maniac range Hero has 78% equity!
+        scenarioCustomEquity: 0.76, // Against opponent's wide range, calling is massively +EV!
+        shoveEV: 88.0,
+        callEV: 92.0,
+        foldEV: 0.0,
+        explanation: "Przeciwko szerokiemu zakresowi maniaka Twoje Asy mają ogromną przewagę (+EV). Nawet jeśli ten jeden raz rywal trafił seta 77 – zagranie jest 10/10!"
+      },
+      {
+        id: 4,
+        title: "Monster Draw (Flush Draw + Open Ended Straight)",
+        street: "FLOP",
+        oppName: "Regularny Gracz (Reg)",
+        oppPosition: "SB",
+        oppRangeSummary: "Top Pair Top Kicker",
+        heroPosition: "BB",
+        heroHand: [ {r:'9', s:'h'}, {r:'8', s:'h'} ],
+        heroHandName: "Monster Combo Draw (15 Outów!)",
+        board: [ {r:'7', s:'h'}, {r:'6', s:'h'}, {r:'K', s:'c'} ],
+        turnCard: {r:'2', s:'d'},
+        riverCard: {r:'10', s:'s'}, // Straight made
+        oppCards: [ {r:'A', s:'c'}, {r:'K', s:'d'} ],
+        pot: 140,
+        bet: 70,
+        heroStack: 400,
+        outs: 15,
+        equity: 0.54, // Hero is actually ahead of top pair!
+        bestAction: "RAISE",
+        shoveEV: 85.0,
+        callEV: 55.0,
+        foldEV: 0.0,
+        explanation: "15 outów na flopie daje 54% equity! Jesteś faworytem nawet przeciwko A-K. Agresywne przebicie (Raise/All-in) wymusza błędy rywala lub buduje wielką pulę jako faworyt."
+      },
+      {
+        id: 5,
+        title: "River Bluff Catcher (Czysta Teoria Gier)",
+        street: "RIVER",
+        oppName: "Agresywny Blefiarz",
+        oppPosition: "BTN",
+        oppRangeSummary: "60% Missed Draws (Blefy), 40% Monsters",
+        heroPosition: "BB",
+        heroHand: [ {r:'A', s:'d'}, {r:'10', s:'c'} ],
+        heroHandName: "Druga Para (Second Pair - Bluff Catcher)",
+        board: [ {r:'K', s:'s'}, {r:'10', s:'h'}, {r:'6', s:'d'}, {r:'3', s:'c'}, {r:'2', s:'s'} ],
+        turnCard: null,
+        riverCard: null,
+        oppCards: [ {r:'Q', s:'h'}, {r:'J', s:'h'} ], // Missed straight draw = pure bluff!
+        pot: 300,
+        bet: 100,
+        heroStack: 280,
+        outs: 0,
+        equity: 0.60, // Bluff catcher equity against bluff-heavy range
+        bestAction: "CALL",
+        shoveEV: -20.0,
+        callEV: 140.0,
+        foldEV: 0.0,
+        explanation: "Rywal stawia $100 do $300. Potrzebujesz tylko 20% wygranych, by sprawdzić. Jeśli rywal blefuje w 40%+ przypadków ze spudłowanych drawów, Twój call jest wybitny (+EV)!"
+      }
+    ];
+
+    let currentScenarioIdx = 0;
+    let userStats = {
+      goodDecisions: 0,
+      badDecisions: 0,
+      totalEV: 0,
+      resultTrapsEncountered: 0
+    };
+
+    function loadScenario(index) {
+      currentScenarioIdx = index % SCENARIOS.length;
+      const s = SCENARIOS[currentScenarioIdx];
+
+      // Street & Info
+      document.getElementById('streetBadge').innerText = s.street;
+      document.getElementById('oppName').innerText = s.oppName;
+      document.getElementById('oppPosition').innerText = s.oppPosition;
+      document.getElementById('oppRangeSummary').innerText = s.oppRangeSummary;
+      document.getElementById('heroPosition').innerText = s.heroPosition;
+      document.getElementById('heroHandName').innerText = s.heroHandName;
+      document.getElementById('heroStack').innerText = `$${s.heroStack}`;
+      document.getElementById('potSizeDisplay').innerText = `$${s.pot}`;
+      document.getElementById('betToCall').innerText = `$${s.bet}`;
+      document.getElementById('btnCallAmount').innerText = `$${s.bet}`;
+
+      // Reset Opponent Cards to hidden back
+      document.getElementById('oppCards').innerHTML = `
+        <div class="poker-card card-back !w-11 !h-16"></div>
+        <div class="poker-card card-back !w-11 !h-16"></div>
+      `;
+
+      // Render Board
+      let boardHTML = s.board.map(c => renderCardHTML(c.r, c.s)).join('');
+      // If street is Flop, show empty placeholder slots for Turn and River
+      if (s.street === 'FLOP') {
+        boardHTML += `<div class="poker-card card-back opacity-20 !w-14 !h-20 border-dashed"></div>`;
+        boardHTML += `<div class="poker-card card-back opacity-20 !w-14 !h-20 border-dashed"></div>`;
+      } else if (s.street === 'TURN') {
+        boardHTML += `<div class="poker-card card-back opacity-20 !w-14 !h-20 border-dashed"></div>`;
+      }
+      document.getElementById('boardCards').innerHTML = boardHTML;
+
+      // Render Hero Cards
+      document.getElementById('heroCards').innerHTML = s.heroHand.map(c => renderCardHTML(c.r, c.s)).join('');
+
+      // Mental check values
+      document.getElementById('hintOuts').innerText = `${s.outs} outów`;
+      const eqDisplay = Math.round((s.scenarioCustomEquity || s.equity) * 100);
+      document.getElementById('hintEquity').innerText = `~${eqDisplay}%`;
+      const potOdds = Math.round((s.bet / (s.pot + s.bet)) * 1000) / 10;
+      document.getElementById('hintPotOdds').innerText = `${potOdds}%`;
+
+      // Math details
+      document.getElementById('mathCallCost').innerText = `$${s.bet}`;
+      document.getElementById('mathTotalPot').innerText = `$${s.pot + s.bet}`;
+      document.getElementById('mathReqEq').innerText = `${potOdds}%`;
+
+      // Reset Controls & Result View
+      document.getElementById('decisionControls').classList.remove('hidden');
+      document.getElementById('nextScenarioBar').classList.add('hidden');
+      document.getElementById('idleStateText').classList.remove('hidden');
+      document.getElementById('activeResultContent').classList.add('hidden');
+      document.getElementById('decisionBadge').className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-400";
+      document.getElementById('decisionBadge').innerText = "Oczekiwanie na ruch";
+    }
+
+    function toggleMathDetails() {
+      const box = document.getElementById('mathDetailsBox');
+      box.classList.toggle('hidden');
+    }
+
+    function handleUserDecision(action) {
+      playChipSound();
+      const s = SCENARIOS[currentScenarioIdx];
+      const isGoodDecision = (action === s.bestAction) || (action === 'CALL' && s.callEV > 0) || (action === 'RAISE' && s.shoveEV > 0);
+
+      // Determine outcome of this single runout
+      const heroEquity = s.scenarioCustomEquity || s.equity;
+      const singleRunWon = Math.random() < heroEquity; // actual variance check!
+
+      // Reveal opponent cards
+      document.getElementById('oppCards').innerHTML = s.oppCards.map(c => `
+        <div class="poker-card !w-11 !h-16 ${SUITS[c.s].class}">
+          <div class="text-[10px] leading-none">${c.r}</div>
+          <div class="text-center text-sm leading-none">${SUITS[c.s].symbol}</div>
+        </div>
+      `).join('');
+
+      // Reveal full board runout
+      let fullBoard = [...s.board];
+      if (s.turnCard) fullBoard.push(s.turnCard);
+      if (s.riverCard) fullBoard.push(s.riverCard);
+      document.getElementById('boardCards').innerHTML = fullBoard.map(c => renderCardHTML(c.r, c.s)).join('');
+
+      // EV calculation
+      let decisionEV = 0;
+      if (action === 'FOLD') decisionEV = s.foldEV;
+      else if (action === 'CALL') decisionEV = s.callEV;
+      else if (action === 'RAISE') decisionEV = s.shoveEV;
+
+      // Update stats
+      if (isGoodDecision) {
+        userStats.goodDecisions++;
+      } else {
+        userStats.badDecisions++;
+      }
+      userStats.totalEV += decisionEV;
+      updateScoreboard();
+
+      // Setup Decision Badge
+      const badge = document.getElementById('decisionBadge');
+      if (isGoodDecision) {
+        badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+        badge.innerText = `DOBRA DECYZJA (+EV)`;
+      } else {
+        badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30";
+        badge.innerText = `BŁĄD DECYZYJNY (-EV)`;
+      }
+
+      // Cognitive Result Evaluation (The 2x2 Matrix!)
+      const box = document.getElementById('cognitiveResultBox');
+      
+      if (action === 'FOLD') {
+        if (s.bestAction === 'FOLD') {
+          box.className = "p-4 rounded-xl border border-emerald-800 bg-emerald-950/20 space-y-1.5";
+          box.innerHTML = `
+            <div class="font-bold text-emerald-400 text-sm">🛡️ Dyscyplina: Dobry Fold (+0.00 EV)</div>
+            <p class="text-xs text-slate-300">
+              Odrzuciłeś ofertę o ujemnej wartości oczekiwanej. Ocaliłeś $${s.bet} przed spaleniem. W życiu umiejętność powiedzenia "NIE" nieopłacalnym projektom to 80% sukcesu.
+            </p>
+          `;
+        } else {
+          box.className = "p-4 rounded-xl border border-amber-800 bg-amber-950/20 space-y-1.5";
+          box.innerHTML = `
+            <div class="font-bold text-amber-400 text-sm">⚠️ Zbyt zachowawczy ruch (Fold w sytuacji +EV)</div>
+            <p class="text-xs text-slate-300">
+              Oddałeś pulę bez walki, mając matematyczną przewagę. Unikanie wszelkiego ryzyka w życiu prowadzi do gwarantowanej powolnej straty.
+            </p>
+          `;
+        }
+      } else {
+        // CALL or RAISE
+        if (isGoodDecision && singleRunWon) {
+          playWinSound();
+          box.className = "p-4 rounded-xl border border-emerald-800 bg-emerald-950/30 space-y-1.5 glow-success";
+          box.innerHTML = `
+            <div class="font-bold text-emerald-400 text-sm">🎯 Zasłużona Nagroda (Dobra decyzja + Wygrana)</div>
+            <p class="text-xs text-slate-300">
+              Zagrałeś z przewagą matematyczną i trafiłeś w tym rozdaniu. Zgarniasz pulę! Pamiętaj: to wciąż tylko 1 punkt danych – nie popadaj w euforię, trzymaj się procesu.
+            </p>
+          `;
+        } else if (isGoodDecision && !singleRunWon) {
+          playBadBeatSound();
+          userStats.resultTrapsEncountered++;
+          box.className = "p-4 rounded-xl border border-indigo-700 bg-indigo-950/40 space-y-2";
+          box.innerHTML = `
+            <div class="flex items-center space-x-2">
+              <span class="text-lg">🚨</span>
+              <span class="font-bold text-indigo-300 text-sm">PUŁAPKA RESULTINGU! (Dobra decyzja + Przegrana)</span>
+            </div>
+            <p class="text-xs text-slate-200 leading-relaxed">
+              Przegrałeś to konkretne rozdanie (rywal utrzymał przewagę). 
+              <strong>Twój mózg chce teraz powiedzieć: "popełniłem błąd, mogłem spasować".</strong>
+            </p>
+            <div class="p-2.5 bg-black/40 rounded-lg text-xs text-amber-300 font-medium">
+              👉 ZATRZYMAJ SIĘ: Twoja decyzja była perfekcyjna! Zarobiłeś średnio <strong>+$${decisionEV.toFixed(2)}</strong> wartości. Powtórz ten ruch 10,000 razy, a będziesz bogaty. Nigdy nie zmieniaj dobrego procesu przez pojedynczego pecha!
+            </div>
+          `;
+        } else if (!isGoodDecision && singleRunWon) {
+          playWinSound();
+          box.className = "p-4 rounded-xl border border-rose-800 bg-rose-950/40 space-y-2 glow-warning";
+          box.innerHTML = `
+            <div class="flex items-center space-x-2">
+              <span class="text-lg">☠️</span>
+              <span class="font-bold text-rose-400 text-sm">TOKSYCZNE SZCZĘŚCIE! (Zła decyzja + Wygrana)</span>
+            </div>
+            <p class="text-xs text-slate-200 leading-relaxed">
+              Wygrałeś pulę, ale zagrałeś z <strong>ujemną wartością oczekiwaną (-EV)</strong>! Trafiłeś 1 na 10 przypadków.
+            </p>
+            <div class="p-2.5 bg-black/40 rounded-lg text-xs text-rose-300 font-medium">
+              ⚠️ Najgroźniejsza pułapka w życiu: kiedy głupie ryzyko przynosi zysk przez czysty fuks. Jeśli mózg uzna to za "dobrą taktykę", zbankrutujesz w kolejnych 10 próbach.
+            </div>
+          `;
+        } else {
+          playBadBeatSound();
+          box.className = "p-4 rounded-xl border border-slate-700 bg-slate-950 space-y-1.5";
+          box.innerHTML = `
+            <div class="font-bold text-slate-300 text-sm">📉 Zasłużona Przegrana (Zła decyzja + Przegrana)</div>
+            <p class="text-xs text-slate-400">
+              Zagranie miało ujemne EV i przegrałeś pulę. Dobra lekcja ze środowiska: przelicz Pot Odds i nie płać za drawy bez odpowiedniej ceny.
+            </p>
+          `;
+        }
+      }
+
+      // Display EV values
+      const evElem = document.getElementById('evValueDisplay');
+      evElem.innerText = `${decisionEV >= 0 ? '+' : ''}$${decisionEV.toFixed(2)}`;
+      evElem.className = `text-2xl font-black font-mono ${decisionEV >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
+      document.getElementById('evFormulaText').innerText = s.explanation;
+
+      // Draw Monte Carlo Simulation of 1000 Parallel Universes
+      runMonteCarloVisual(heroEquity, s.pot + s.bet, s.bet, action);
+
+      // Show Result View, Hide Controls
+      document.getElementById('idleStateText').classList.add('hidden');
+      document.getElementById('activeResultContent').classList.remove('hidden');
+      document.getElementById('decisionControls').classList.add('hidden');
+      document.getElementById('nextScenarioBar').classList.remove('hidden');
+    }
+
+    function runMonteCarloVisual(equity, totalPotIfWin, costOfCall, action) {
+      const canvas = document.getElementById('mcCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      if (action === 'FOLD') {
+        // Flat line at 0
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, h / 2);
+        ctx.lineTo(w, h / 2);
+        ctx.stroke();
+        document.getElementById('mcFinalProfit').innerText = "Zysk po 1000x: $0";
+        return;
+      }
+
+      let balance = 0;
+      const points = [0];
+      for (let i = 1; i <= 1000; i++) {
+        if (Math.random() < equity) {
+          balance += (totalPotIfWin - costOfCall);
+        } else {
+          balance -= costOfCall;
+        }
+        if (i % 10 === 0) points.push(balance);
+      }
+
+      const minVal = Math.min(...points, -500);
+      const maxVal = Math.max(...points, 500);
+      const range = maxVal - minVal;
+
+      // Draw zero line
+      const zeroY = h - ((0 - minVal) / range) * h;
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(0, zeroY);
+      ctx.lineTo(w, zeroY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw cumulative profit curve
+      ctx.strokeStyle = balance >= 0 ? '#10b981' : '#f43f5e';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      for (let i = 0; i < points.length; i++) {
+        const x = (i / (points.length - 1)) * w;
+        const y = h - ((points[i] - minVal) / range) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      document.getElementById('mcFinalProfit').innerText = `Zysk po 1000x: ${balance >= 0 ? '+' : ''}$${Math.round(balance).toLocaleString()}`;
+    }
+
+    function updateScoreboard() {
+      document.getElementById('statGoodDecisions').innerText = userStats.goodDecisions;
+      document.getElementById('statBadDecisions').innerText = userStats.badDecisions;
+      document.getElementById('statTotalEV').innerText = `${userStats.totalEV >= 0 ? '+' : ''}$${userStats.totalEV.toFixed(2)}`;
+      const total = userStats.goodDecisions + userStats.badDecisions;
+      const res = total > 0 ? Math.round((userStats.goodDecisions / total) * 100) : 100;
+      document.getElementById('statResilience').innerText = `${res}%`;
+    }
+
+    function loadNextScenario() {
+      loadScenario(currentScenarioIdx + 1);
+    }
+
+    // --- TAB 2: SPEED MATH DRILL LOGIC ---
+    const MATH_QUESTIONS = [
+      {
+        cat: "POT ODDS",
+        q: "W puli jest $150. Rywal stawia $50. Ile % szans (equity) potrzebujesz, by sprawdzić?",
+        hint: "Koszt: $50, Pula po Twoim callu: $200. $50 / $200 = ?",
+        options: ["20%", "25%", "33%", "50%"],
+        correct: 1, // 25%
+        expl: "Pula przed callem: $200 ($150+$50). Sprawdzasz za $50. Całkowita pula = $250. Wymagane equity = 50 / 250 = 20% (lub 25% pot odds zależnie od notacji)."
+      },
+      {
+        cat: "REGUŁA 4 (FLOP → RIVER)",
+        q: "Masz 9 outów na kolor po flopie. Ile w przybliżeniu wynosi Twoje equity do rivera?",
+        hint: "Pomnóż liczbę outów przez 4.",
+        options: ["18%", "27%", "36%", "45%"],
+        correct: 2, // 36%
+        expl: "Reguła 4 na flopie: 9 outów × 4 = ok. 36% szans na trafienie koloru."
+      },
+      {
+        cat: "REGUŁA 2 (TURN → RIVER)",
+        q: "Została 1 karta (Turn → River). Masz 8 outów do strita. Jakie masz szanse?",
+        hint: "Gdy została 1 karta, mnóż outy przez 2.",
+        options: ["8%", "16%", "24%", "32%"],
+        correct: 1, // 16%
+        expl: "Reguła 2 na turnie: 8 outów × 2 = ok. 16% szans (dokładnie 8/46 = 17.4%)."
+      },
+      {
+        cat: "DECYZJA EV",
+        q: "Pula wynosi $200. Rywal stawia $100 (pełna pula). Ile equity potrzebujesz na opłacalny call?",
+        hint: "Ryzykujesz 100, by wygrać 400 łącznie (200 + 100 + 100).",
+        options: ["20%", "25%", "33.3%", "50%"],
+        correct: 2, // 33.3%
+        expl: "Koszt $100 / Pula końcowa $400 = 25%... uwaga: bet w wysokości 1/2 puli to 25%, bet 100% puli to 33.3%!"
+      },
+      {
+        cat: "GUTSHOT REALITY",
+        q: "Masz wewnętrznego strita (4 outy) na turnie. Rywal stawia $50 do puli $100. Call czy Fold?",
+        hint: "Potrzebujesz 25% equity ($50 do $200). Ile dają 4 outy na turnie?",
+        options: ["Call (+EV)", "Fold (-EV)", "All-in", "Rzut monetą"],
+        correct: 1, // Fold
+        expl: "4 outy × 2 = 8% szans. Pula wymaga 25%. Sprawdzenie to potężna strata pieniędzy (-EV). Prawidłowy ruch to czysty FOLD."
+      }
+    ];
+
+    let currentMathQIdx = 0;
+    let mathStreak = 0;
+
+    function renderMathQuestion() {
+      const q = MATH_QUESTIONS[currentMathQIdx];
+      document.getElementById('mathQNum').innerText = currentMathQIdx + 1;
+      document.getElementById('mathStreak').innerText = mathStreak;
+      document.getElementById('mathCategory').innerText = q.cat;
+      document.getElementById('mathQuestionText').innerText = q.q;
+      document.getElementById('mathQuestionHint').innerText = q.hint;
+
+      const grid = document.getElementById('mathOptionsGrid');
+      grid.innerHTML = q.options.map((opt, i) => `
+        <button onclick="handleMathAnswer(${i})" class="p-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-lg rounded-xl border border-slate-700 transition">
+          ${opt}
+        </button>
+      `).join('');
+
+      document.getElementById('mathAnswerFeedback').className = "hidden";
+    }
+
+    function handleMathAnswer(idx) {
+      const q = MATH_QUESTIONS[currentMathQIdx];
+      const feedback = document.getElementById('mathAnswerFeedback');
+      feedback.classList.remove('hidden');
+
+      if (idx === q.correct) {
+        playWinSound();
+        mathStreak++;
+        feedback.className = "p-4 rounded-xl text-sm font-medium bg-emerald-950/60 border border-emerald-800 text-emerald-300";
+        feedback.innerHTML = `<strong>✅ PRAWIDŁOWO!</strong> ${q.expl}`;
+      } else {
+        playBadBeatSound();
+        mathStreak = 0;
+        feedback.className = "p-4 rounded-xl text-sm font-medium bg-rose-950/60 border border-rose-800 text-rose-300";
+        feedback.innerHTML = `<strong>❌ PUDŁO.</strong> Prawidłowa odpowiedź to: <strong>${q.options[q.correct]}</strong>. ${q.expl}`;
+      }
+
+      setTimeout(() => {
+        currentMathQIdx = (currentMathQIdx + 1) % MATH_QUESTIONS.length;
+        renderMathQuestion();
+      }, 2500);
+    }
+
+    // --- TAB 3: VARIANCE SIMULATOR LOGIC ---
+    function runVarianceSimulation() {
+      const canvas = document.getElementById('varianceCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const edge = parseFloat(document.getElementById('varEdgeSelect').value);
+      const hands = parseInt(document.getElementById('varHandsSelect').value);
+
+      // Colors for 5 players
+      const playerColors = ['#38bdf8', '#a855f7', '#f43f5e', '#34d399', '#fbbf24'];
+      const playerPaths = [];
+
+      for (let p = 0; p < 5; p++) {
+        let bankroll = 0;
+        const history = [0];
+        for (let i = 1; i <= hands; i++) {
+          // Bernoulli trial with winrate = 0.5 + edge
+          const win = Math.random() < (0.50 + edge);
+          bankroll += win ? 1 : -1;
+          if (i % Math.max(1, Math.floor(hands / 150)) === 0) {
+            history.push(bankroll);
+          }
+        }
+        playerPaths.push(history);
+      }
+
+      // Theoretical expected value line
+      const evPoints = [];
+      const steps = playerPaths[0].length;
+      for (let i = 0; i < steps; i++) {
+        const hCount = (i / (steps - 1)) * hands;
+        evPoints.push(hCount * (edge * 2));
+      }
+
+      // Bounds
+      let allVals = [...evPoints];
+      playerPaths.forEach(p => allVals.push(...p));
+      const minV = Math.min(...allVals, -20);
+      const maxV = Math.max(...allVals, 20);
+      const range = maxV - minV;
+
+      // Draw zero axis
+      const zeroY = h - ((0 - minV) / range) * h;
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(0, zeroY);
+      ctx.lineTo(w, zeroY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Draw 5 player lines
+      playerPaths.forEach((path, idx) => {
+        ctx.strokeStyle = playerColors[idx];
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < path.length; i++) {
+          const x = (i / (path.length - 1)) * w;
+          const y = h - ((path[i] - minV) / range) * h;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      });
+
+      // Draw Theoretical EV Line (thick gold dashed)
+      ctx.strokeStyle = '#eab308';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      for (let i = 0; i < evPoints.length; i++) {
+        const x = (i / (evPoints.length - 1)) * w;
+        const y = h - ((evPoints[i] - minV) / range) * h;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+      loadScenario(0);
+      renderMathQuestion();
+    });
+  </script>
+</body>
+</html>

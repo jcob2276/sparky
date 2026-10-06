@@ -28,6 +28,7 @@ export const CongressSummaryCards: FC<Props> = ({
           Najczęściej kupowane
         </div>
         <div className="space-y-2.5">
+          {!data.topBought.length && <p className="text-xs text-text-muted">Brak zakupów w wybranym zakresie.</p>}
           {data.topBought.map((item) => (
             <div
               key={item.ticker}
@@ -40,7 +41,7 @@ export const CongressSummaryCards: FC<Props> = ({
                   {item.ticker}
                 </div>
                 <div className="text-3xs text-text-muted truncate">
-                  Kupiono {item.count}× · wolumen {formatVol(item.volumeUsd)}
+                  Kupiono {item.count}× · szacunek {formatVol(item.volumeUsd)}
                 </div>
               </div>
             </div>
@@ -54,6 +55,7 @@ export const CongressSummaryCards: FC<Props> = ({
           Najczęściej sprzedawane
         </div>
         <div className="space-y-2.5">
+          {!data.topSold.length && <p className="text-xs text-text-muted">Brak sprzedaży w wybranym zakresie.</p>}
           {data.topSold.map((item) => (
             <div
               key={item.ticker}
@@ -66,7 +68,7 @@ export const CongressSummaryCards: FC<Props> = ({
                   {item.ticker}
                 </div>
                 <div className="text-3xs text-text-muted truncate">
-                  Sprzedano {item.count}× · wolumen {formatVol(item.volumeUsd)}
+                  Sprzedano {item.count}× · szacunek {formatVol(item.volumeUsd)}
                 </div>
               </div>
             </div>
@@ -80,6 +82,7 @@ export const CongressSummaryCards: FC<Props> = ({
           Największe transakcje
         </div>
         <div className="space-y-2.5">
+          {!data.largestTrades.length && <p className="text-xs text-text-muted">Brak ujawnionych kwot w wybranym zakresie.</p>}
           {data.largestTrades.map((t, idx) => (
             <div
               key={idx}
@@ -109,7 +112,9 @@ export const CongressSummaryCards: FC<Props> = ({
         <div className="text-xs sm:text-sm font-bold text-text-primary tracking-tight">
           Średni zwrot 1Y po ujawnieniu
         </div>
-        <div className="space-y-2.5 my-auto">
+        {data.partyReturns.democrats.pct == null || data.partyReturns.republicans.pct == null ? (
+          <p className="text-xs text-text-muted">Brak zweryfikowanych obliczeń zwrotu po ujawnieniu. Dane transakcji nie określają wyniku portfela.</p>
+        ) : <div className="space-y-2.5 my-auto">
           {/* Demokraci */}
           <div className="w-full h-9 rounded-xl bg-primary text-text-on-primary flex items-center justify-between px-3.5 shadow-2xs font-bold text-xs sm:text-sm">
             <span>Demokraci</span>
@@ -128,7 +133,7 @@ export const CongressSummaryCards: FC<Props> = ({
               <span className="font-mono">+{data.partyReturns.republicans.pct.toFixed(1).replace('.', ',')}%</span>
             </div>
           </div>
-        </div>
+        </div>}
       </div>
     </div>
   );

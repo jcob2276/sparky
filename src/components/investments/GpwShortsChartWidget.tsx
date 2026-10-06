@@ -1,141 +1,69 @@
-import { FC, useMemo } from 'react';
+import { FC } from 'react';
 import { GpwShortChartData } from '../../lib/investments/gpwShortsService';
+import { formatLongDateWarsaw } from '../../lib/date';
 
-interface Props {
-  data: GpwShortChartData;
-  isTopRanked?: boolean;
-}
+interface Props { data: GpwShortChartData; isTopRanked?: boolean }
 
-export const GpwShortsChartWidget: FC<Props> = ({ data, isTopRanked = true }) => {
-  const { shortLinePoints, shortAreaPoints, pricePoints } = useMemo(() => {
-    const pts = data.points;
-    if (!pts || pts.length < 2) {
-      return { shortLinePoints: '', shortAreaPoints: '', pricePoints: '' };
+export const GpwShortsChartWidget: FC<Props> = ({ data, isTopRanked = false }) => {
+  const points = data.points;
+  const first = points[0]?.date;
+  const last = points.at(-1)?.date;
+  const start = first ? Date.parse(first) : 0;
+  const span = last ? Math.max(86400000, Date.parse(last) - start) : 1;
+  const x = (date: string) => 10 + ((Date.parse(date) - start) / span) * 270;
+  const lines = (field: 'shortPct' | 'price', top: number, height: number, step: boolean) => {
+    const known = points.map(p => p[field]).filter((v): v is number => v != null);
+    if (!known.length) return [];
+    const min = Math.min(...known);
+    const range = Math.max(...known) - min || 1;
+    const result: string[] = [];
+    let path = '';
+    let previousY: number | null = null;
+    for (const point of points) {
+      const value = point[field];
+      if (value == null) { if (path) result.push(path); path = ''; previousY = null; continue; }
+      const px = x(point.date);
+      const py = top + height - ((value - min) / range) * height;
+      path += path ? (step ? ` L${px},${previousY} L${px},${py}` : ` L${px},${py}`) : `M${px},${py}`;
+      previousY = py;
     }
-
-    const w = 270;
-    const n = pts.length;
-
-    // Price scaling: Y from 55 to 105
-    const prices = pts.map((p) => p.price);
-    const minP = Math.min(...prices);
-    const maxP = Math.max(...prices);
-    const rangeP = maxP - minP || 1;
-
-    const pCoords = pts.map((p, i) => {
-      const x = (i / (n - 1)) * w + 10;
-      const y = 105 - ((p.price - minP) / rangeP) * 50;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    });
-
-    // Short scaling: Y from 12 to 42
-    const shorts = pts.map((p) => p.shortPct);
-    const minS = Math.min(...shorts);
-    const maxS = Math.max(...shorts);
-    const rangeS = maxS - minS || 1;
-
-    const sCoords = pts.map((p, i) => {
-      const x = (i / (n - 1)) * w + 10;
-      const y = 42 - ((p.shortPct - minS) / rangeS) * 28;
-      return { x, y, str: `${x.toFixed(1)},${y.toFixed(1)}` };
-    });
-
-    const sLine = sCoords.map((c) => c.str).join(' ');
-    const sArea = `10,48 ${sLine} 280,48`;
-
-    return {
-      shortLinePoints: sLine,
-      shortAreaPoints: sArea,
-      pricePoints: pCoords.join(' '),
-    };
-  }, [data.points]);
-
-  return (
-    <div className="bg-surface border border-border-custom/70 rounded-2xl p-4 shadow-2xs space-y-3">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h4 className="text-xs font-bold text-text-primary tracking-tight font-mono">
-          {data.ticker}: short vs kurs
-        </h4>
-        {isTopRanked && (
-          <span className="text-3xs uppercase tracking-wider font-mono text-text-muted">
-            Największy short w rankingu
-          </span>
-        )}
-      </div>
-
-      {/* SVG Dual-Axis Chart */}
-      <div className="w-full relative h-36 bg-surface-subtle/30 rounded-xl overflow-hidden border border-border-custom/30 p-2">
-        <svg viewBox="0 0 320 120" className="w-full h-full overflow-visible">
-          <defs>
-            <linearGradient id="shortGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--color-danger)" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="var(--color-danger)" stopOpacity="0.02" />
-            </linearGradient>
-          </defs>
-
-          {/* Price curve (gray) */}
-          {pricePoints && (
-            <polyline
-              fill="none"
-              stroke="var(--color-text-muted)"
-              strokeWidth="1.2"
-              strokeOpacity="0.6"
-              strokeLinejoin="round"
-              points={pricePoints}
-            />
-          )}
-
-          {/* Short area fill */}
-          {shortAreaPoints && (
-            <polygon fill="url(#shortGradient)" points={shortAreaPoints} />
-          )}
-
-          {/* Short curve (red) */}
-          {shortLinePoints && (
-            <polyline
-              fill="none"
-              stroke="var(--color-danger)"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              points={shortLinePoints}
-            />
-          )}
-
-          {/* Right Y-axis labels */}
-          <text
-            x="315"
-            y="18"
-            textAnchor="end"
-            className="text-3xs font-mono font-bold fill-danger"
-          >
-            {data.shortPct.toFixed(2)}%
-          </text>
-          <text
-            x="315"
-            y="65"
-            textAnchor="end"
-            className="text-3xs font-mono fill-text-muted"
-          >
-            {data.latestPrice.toFixed(2).replace('.', ',')}
-          </text>
-
-          {/* Bottom X-axis date labels */}
-          <text x="10" y="116" className="text-4xs font-mono fill-text-muted">
-            {data.startDateLabel}
-          </text>
-          <text x="280" y="116" textAnchor="end" className="text-4xs font-mono fill-text-muted">
-            {data.endDateLabel}
-          </text>
-        </svg>
-      </div>
-
-      {/* Footer Caption */}
-      <div className="text-2xs font-mono text-text-secondary">
-        {data.ticker}: short {data.shortPct.toFixed(2)}% · kurs{' '}
-        {data.latestPrice.toFixed(2).replace('.', ',')} zł · 90 dni
-      </div>
+    if (path) result.push(path);
+    return result;
+  };
+  const shortPaths = lines('shortPct', 10, 30, true);
+  const pricePaths = lines('price', 60, 35, false);
+  return <div className="bg-surface border border-border-custom/70 rounded-2xl p-4 space-y-3">
+    <div className="flex items-center justify-between gap-2">
+      <h4 className="text-xs font-bold font-mono">{data.ticker}: publiczny short i kurs</h4>
+      {isTopRanked && <span className="text-3xs text-text-muted">Największa ujawniona suma</span>}
     </div>
-  );
+    {!points.length ? <p className="text-xs text-text-secondary">Brak historii wykresu dla tej spółki.</p> :
+      <svg viewBox="0 0 320 120" className="w-full h-36" role="img" aria-label={`Historia ujawnionych pozycji i kursu ${data.ticker}`}>
+        {shortPaths.map((d, i) => <path key={`short-${i}`} d={d} fill="none" stroke="var(--color-danger)" strokeWidth="1.8" />)}
+        {points.filter(p => p.shortPct != null).length === 1 && points.filter(p => p.shortPct != null).map(p =>
+          <circle key={p.date} cx={x(p.date)} cy="40" r="2.5" fill="var(--color-danger)" />)}
+        {pricePaths.map((d, i) => <path key={`price-${i}`} d={d} fill="none" stroke="var(--color-text-muted)" strokeWidth="1.4" />)}
+        <text x="315" y="18" textAnchor="end" className="text-3xs fill-danger">{data.shortPct == null ? '—' : `${data.shortPct.toFixed(2)}%`}</text>
+        <text x="315" y="68" textAnchor="end" className="text-3xs fill-text-muted">{data.latestPrice?.toFixed(2) ?? '—'}</text>
+        <text x="10" y="116" className="text-4xs fill-text-muted">{data.startDateLabel}</text>
+        <text x="280" y="116" textAnchor="end" className="text-4xs fill-text-muted">{data.endDateLabel}</text>
+      </svg>}
+    <div className="text-2xs text-text-secondary space-y-1">
+      <p>Ostatni zapisany stan rejestru: {data.shortPct == null ? 'brak danych' : `${data.shortPct.toFixed(2)}%`}
+        {data.shortDate && ` (${formatLongDateWarsaw(data.shortDate)})`}</p>
+      <p>Notowanie dzienne: {data.latestPrice == null ? 'brak danych' : `${data.latestPrice.toFixed(2)} zł`}
+        {data.priceDate && ` (${formatLongDateWarsaw(data.priceDate)})`}</p>
+      <p>Czerwona linia: suma z zapisanych stanów bieżącego rejestru. Szara: dostępne surowe kursy PLN. Skale są niezależne.</p>
+      <p>Notowanie dla trwającej sesji może się jeszcze zmieniać.</p>
+      {data.priceSourceUrl && <a href={data.priceSourceUrl} target="_blank" rel="noreferrer" className="text-primary underline">Źródło notowania</a>}
+      <p>Zakres: dostępne obserwacje z ostatnich 90 dni. Archiwum pojedynczych zgłoszeń nie dowodzi historycznej sumy pozycji.</p>
+    </div>
+    {data.reportedPositions.length > 0 && <div className="border-t border-border-custom pt-3 space-y-2 text-2xs">
+      <h5 className="font-bold">Ostatnie zgłoszenia pojedynczych pozycji</h5>
+      {data.reportedPositions.map((report, i) => <a key={`${report.holder}-${report.date}-${i}`} href={report.sourceUrl}
+        target="_blank" rel="noreferrer" className="block text-text-secondary hover:text-primary">
+        {report.holder}: {report.pct.toFixed(2)}% · {formatLongDateWarsaw(report.date)}
+      </a>)}
+    </div>}
+  </div>;
 };

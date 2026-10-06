@@ -1,48 +1,21 @@
-import { FC, useState, useMemo } from 'react';
+import { FC } from 'react';
 import type { JakubPortfolioData } from '../../../lib/investments/jakubPortfolioStorage';
 import type { KondzioPortfolioData } from '../../../lib/investments/kondzioPortfolioStorage';
-import {
-  calculatePortfolioForecast,
-  generateLiveAiPortfolioForecast,
-  type ForecastHorizon,
-  type ScenarioType,
-} from '../../../lib/investments/portfolioForecastService';
+import { usePortfolioForecast } from '../../../lib/investments/usePortfolioForecast';
+import type { ForecastHorizon } from '../../../lib/investments/portfolioForecastService';
 import { PortfolioScenarioCards } from './PortfolioScenarioCards';
 import { PortfolioAnalystTargetsTable } from './PortfolioAnalystTargetsTable';
 import { PortfolioAiForecastReport } from './PortfolioAiForecastReport';
 import { Sparkles, ChevronRight, BarChart2 } from 'lucide-react';
 import Button from '../../ui/Button';
-import { notify } from '../../../lib/notify';
+
 
 interface Props {
   portfolio: JakubPortfolioData | KondzioPortfolioData;
 }
 
 export const PortfolioForecastCard: FC<Props> = ({ portfolio }) => {
-  const [horizon, setHorizon] = useState<ForecastHorizon>(12);
-  const [selectedScenario, setSelectedScenario] = useState<ScenarioType>('base');
-  const [aiReport, setAiReport] = useState<string | null>(null);
-  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
-
-  const model = useMemo(
-    () => calculatePortfolioForecast(portfolio, horizon),
-    [portfolio, horizon]
-  );
-
-  const handleRunAiForecast = async () => {
-    try {
-      setIsGeneratingAi(true);
-      notify('Uruchamiam głęboką analizę scenariuszową AI & Jev...', 'info');
-      const res = await generateLiveAiPortfolioForecast(portfolio, horizon);
-      setAiReport(res);
-      notify('Wygenerowano prognozę analityczną AI', 'success');
-    } catch (err) {
-      console.error('[PortfolioForecastCard] AI forecast error:', err);
-      notify('Nie udało się wygenerować raportu AI. Spróbuj ponownie.', 'error');
-    } finally {
-      setIsGeneratingAi(false);
-    }
-  };
+  const { horizon, setHorizon, selectedScenario, setSelectedScenario, model, setAssumption, aiReport, setAiReport, isGeneratingAi, handleRunAiForecast } = usePortfolioForecast(portfolio);
 
   return (
     <div className="rounded-3xl border border-border-custom bg-surface p-5 sm:p-7 shadow-xs space-y-6 relative overflow-hidden">
@@ -55,14 +28,14 @@ export const PortfolioForecastCard: FC<Props> = ({ portfolio }) => {
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-base sm:text-lg font-black text-text-primary tracking-tight">
-                Prognozy analityków & Scenariusze portfela
+                Scenariusze portfela
               </h3>
               <span className="px-2 py-0.5 rounded-full text-4xs font-mono font-bold bg-primary/10 text-primary border border-primary/20 uppercase">
-                Wall Street & GPW
+                Założenia użytkownika
               </span>
             </div>
             <p className="text-3xs text-text-muted mt-0.5">
-              Konsensus wycen docelowych, modelowanie asymetrii oraz katalizatory rynkowe
+              Kalkulator scenariuszy i dostępność danych źródłowych
             </p>
           </div>
         </div>
@@ -90,6 +63,7 @@ export const PortfolioForecastCard: FC<Props> = ({ portfolio }) => {
         model={model}
         selectedScenario={selectedScenario}
         onSelectScenario={setSelectedScenario}
+        onAssumptionChange={setAssumption}
         horizonMonths={horizon}
       />
 
@@ -104,7 +78,7 @@ export const PortfolioForecastCard: FC<Props> = ({ portfolio }) => {
         <div className="flex items-center gap-2 text-3xs text-text-muted">
           <Sparkles size={14} className="text-primary shrink-0" />
           <span>
-            Chcesz zobaczyć analizę kwartał po kwartale i rekomendację dla wolnych środków?
+            Analiza AI publicznych danych instrumentów. Ilości, wyceny pozycji i gotówka pozostają lokalnie.
           </span>
         </div>
 
@@ -118,8 +92,8 @@ export const PortfolioForecastCard: FC<Props> = ({ portfolio }) => {
           <Sparkles size={14} className={isGeneratingAi ? 'animate-spin' : ''} />
           <span>
             {isGeneratingAi
-              ? 'Analizuję portfel w modelu AI...'
-              : 'Generuj pełną prognozę AI & Jev'}
+              ? 'Analizuję publiczne źródła...'
+              : 'Analizuj źródła z AI'}
           </span>
           <ChevronRight size={13} />
         </Button>
@@ -135,3 +109,4 @@ export const PortfolioForecastCard: FC<Props> = ({ portfolio }) => {
     </div>
   );
 };
+

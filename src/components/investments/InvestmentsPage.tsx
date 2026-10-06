@@ -159,6 +159,7 @@ export const InvestmentsPage: FC = () => {
     handleFilterChange,
     clusterTickers,
     historyTruncated,
+    refreshRevision,
   } = useInvestmentsData();
 
   return (
@@ -188,7 +189,7 @@ export const InvestmentsPage: FC = () => {
 
         {/* Tab Contents View */}
         <main className="flex-1 px-4 sm:px-6 lg:px-8 pb-12 w-full max-w-full min-w-0 overflow-x-hidden">
-          <InvestmentsTabRenderer
+          <InvestmentsTabRenderer key={activeTab === 'analyst' ? 'analyst' : refreshRevision}
             activeTab={activeTab}
             onNavigateTab={handleSelectTab}
             trades={trades}

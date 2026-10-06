@@ -74,8 +74,9 @@ function computeChartGeometry(
 
 const PriceChartTooltip: FC<{
   point: ChartPoint;
+  currency: string | null;
   events?: { politicians: CompanyDetailData['politicians']['trades']; insiders: CompanyDetailData['insiders']['trades'] };
-}> = ({ point, events }) => {
+}> = ({ point, events, currency }) => {
   return (
     <div
       className="pointer-events-none absolute top-2 bg-surface-subtle border border-border-custom rounded-xl p-2.5 shadow-lg text-2xs space-y-1"
@@ -83,20 +84,20 @@ const PriceChartTooltip: FC<{
     >
       <div className="font-mono text-text-muted flex justify-between gap-4">
         <span>{point.date}</span>
-        <span className="font-bold text-text-primary font-mono">{point.close.toFixed(2)} USD</span>
+        <span className="font-bold text-text-primary font-mono">{point.close.toFixed(2)} {currency ?? '—'}</span>
       </div>
       {events && (events.politicians.length > 0 || events.insiders.length > 0) && (
         <div className="pt-1 border-t border-border-custom/50 space-y-1">
           {events.politicians.map((p, i) => (
             <div key={i} className="text-3xs text-success font-semibold flex items-center gap-1">
               <span>●</span>
-              <span>Polityk: {p.filerName} ({p.type} {p.amountLabel})</span>
+              <span>Polityk: {p.filerName} ({p.type} {p.amountLabel}); transakcja: {p.transactionDate || '—'}</span>
             </div>
           ))}
           {events.insiders.map((ins, i) => (
             <div key={i} className="text-3xs text-accent font-semibold flex items-center gap-1">
               <span>●</span>
-              <span>Insider: transakcja ({ins.transactionCode})</span>
+              <span>Insider: transakcja ({ins.transactionCode}); data: {ins.transactionDate || '—'}</span>
             </div>
           ))}
         </div>
@@ -113,19 +114,20 @@ export const CompanyPriceEventsChart: FC<Props> = ({ data }) => {
     if (!data.prices || data.prices.length === 0) return [];
     const days = timeframe === '3M' ? -90 : -365;
     const cutoffStr = shiftDateStr(getTodayWarsaw(), days);
-    const slice = data.prices.filter((p) => p.date >= cutoffStr);
-    return slice.length > 5 ? slice : data.prices.slice(timeframe === '3M' ? -65 : -260);
+    return data.prices.filter((p) => p.date >= cutoffStr && p.date <= getTodayWarsaw());
   }, [data.prices, timeframe]);
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, { politicians: typeof data.politicians.trades; insiders: typeof data.insiders.trades }>();
     data.politicians.trades.forEach((t) => {
-      const d = t.transactionDate || t.disclosureDate;
+      const d = t.disclosureDate;
+      if (!d) return;
       if (!map.has(d)) map.set(d, { politicians: [], insiders: [] });
       map.get(d)!.politicians.push(t);
     });
     data.insiders.trades.forEach((t) => {
-      const d = t.transactionDate || t.filingDate;
+      const d = t.filingDate;
+      if (!d) return;
       if (!map.has(d)) map.set(d, { politicians: [], insiders: [] });
       map.get(d)!.insiders.push(t);
     });
@@ -147,7 +149,8 @@ export const CompanyPriceEventsChart: FC<Props> = ({ data }) => {
             Kurs + Zdarzenia Ujawnien
           </h3>
           <p className="text-2xs text-text-muted mt-0.5">
-            Kropki pokazuja transakcje politykow i insiderow na osi czasu kursu
+            Kropki oznaczają daty ujawnień, nie daty transakcji. Ceny surowe,
+            bez dywidend i korekt splitów; zakres zależy od dostępnych notowań.
           </p>
         </div>
 
@@ -240,7 +243,7 @@ export const CompanyPriceEventsChart: FC<Props> = ({ data }) => {
           </div>
         )}
 
-        {activePoint && <PriceChartTooltip point={activePoint} events={eventsByDate.get(activePoint.date)} />}
+        {activePoint && <PriceChartTooltip point={activePoint} currency={data.priceCurrency} events={eventsByDate.get(activePoint.date)} />}
       </div>
 
       {points.length > 0 && (

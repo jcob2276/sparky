@@ -1,17 +1,18 @@
 import { FC, useState } from 'react';
 import {
-  JakubPortfolioData,
+
   loadJakubPortfolio,
   saveJakubPortfolio,
   resetJakubPortfolio,
 } from '../../../lib/investments/jakubPortfolioStorage';
+import { useLocalInvestmentPortfolio } from '../../../lib/investments/useLocalInvestmentPortfolio';
 import { syncPortfolioMarketPrices } from '../../../lib/investments/portfolioSyncService';
 import { JakubPortfolioSummaryCard } from './JakubPortfolioSummaryCard';
 import { JakubHoldingsList } from './JakubHoldingsList';
 import { JakubAddPositionModal } from './JakubAddPositionModal';
 import { PortfolioSubNav } from './PortfolioSubNav';
 import { PortfolioForecastCard } from './PortfolioForecastCard';
-import { confirmDialog, notify } from '../../../lib/notify';
+import { notify } from '../../../lib/notify';
 import { formatShortDateWarsaw } from '../../../lib/date';
 import type { MainTabType } from '../InvestmentsPage';
 
@@ -20,44 +21,8 @@ interface Props {
 }
 
 export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
-  const [portfolio, setPortfolio] = useState<JakubPortfolioData>(loadJakubPortfolio);
+  const { portfolio, valuationAsOf, isSyncing, lastSyncRates, handleSavePortfolio, handleSyncMarket, handleReset } = useLocalInvestmentPortfolio(loadJakubPortfolio, saveJakubPortfolio, resetJakubPortfolio, syncPortfolioMarketPrices, 'Czy na pewno chcesz przywrócić pierwotny stan portfela?');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncRates, setLastSyncRates] = useState<{ usdPln: number; eurPln: number; date: string } | null>(null);
-
-  const handleSavePortfolio = (updated: JakubPortfolioData) => {
-    setPortfolio(updated);
-    saveJakubPortfolio(updated);
-  };
-
-  const handleSyncMarket = async () => {
-    try {
-      setIsSyncing(true);
-      const res = await syncPortfolioMarketPrices();
-      setPortfolio(res.portfolio);
-      setLastSyncRates(res.rates);
-      notify(
-        `Zaktualizowano kursy (${res.syncedCount} pozycji). NBP: USD ${res.rates.usdPln.toFixed(2)} zł, EUR ${res.rates.eurPln.toFixed(2)} zł`,
-        'success'
-      );
-    } catch (err) {
-      console.error('[JakubPortfolioView] sync error:', err);
-      notify('Nie udało się pobrać aktualnych kursów rynkowych', 'error');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const handleReset = async () => {
-    const confirmed = await confirmDialog(
-      'Czy na pewno chcesz przywrócić pierwotny stan portfela?'
-    );
-    if (!confirmed) return;
-    const initial = resetJakubPortfolio();
-    setPortfolio(initial);
-    setLastSyncRates(null);
-    notify('Przywrócono stan początkowy portfela', 'info');
-  };
 
   const handleAskAnalyst = (ticker: string, companyName: string) => {
     notify(`Przekierowano do Analityka AI dla waloru $${ticker}`, 'info');
@@ -69,7 +34,7 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
     notify('Przekierowano do Analityka AI w celu diagnozy portfela', 'info');
     const prompt =
       customPrompt ||
-      `Przeprowadź dogłębną diagnozę mojego portfela ($JEDI, $MRVL, $CDR, $SXR8) pod kątem zbieżności Smart Money, ekspozycji sektorowej, asymetrii zysku do ryzyka oraz rekomendacji dalszej alokacji wolnych środków.`;
+      `Przeprowadź dogłębną diagnozę mojego portfela (${portfolio.positions.map((p) => `$${p.ticker}`).join(', ')}) pod kątem zbieżności Smart Money, ekspozycji sektorowej, asymetrii zysku do ryzyka oraz rekomendacji dalszej alokacji wolnych środków.`;
     onNavigateTab('analyst', prompt);
   };
 
@@ -96,7 +61,7 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
             Otwarte pozycje w portfelu Jakuba
           </h3>
           <span className="text-3xs font-mono text-text-muted">
-            Aktualizacja: {formatShortDateWarsaw(portfolio.lastUpdated)}
+            {valuationAsOf ? `Pełna wycena z dnia: ${formatShortDateWarsaw(valuationAsOf)}` : "Wycena mieszana / ręczna — sprawdź daty pozycji"}
           </span>
         </div>
 

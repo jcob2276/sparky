@@ -1,18 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
-import { Maximize2, X, Sparkles } from 'lucide-react';
-import { Pressable } from '../ui/ControlPrimitives';
+import { Maximize2, Sparkles } from 'lucide-react';
 import { getSprintInfo, SPRINT_SEASON } from '../../lib/growth/sprintUtils';
 import { getDailyFuelQuote } from '../../lib/dailyFuelQuotes';
 import { fetchSprintContext } from '../../lib/goal/goalSpine';
 import { useGoalSpineInvalidation } from '../../hooks/useGoalSpineInvalidation';
 import { useUserId } from '../../store/useStore';
+import LightboxGallery from './LightboxGallery';
 import dreamBoardLandscape from '../../assets/dream_board_landscape.jpg';
+import girlGoal from '../../assets/girl_goal.png';
 
 const BORN = new Date('2002-07-06');
 
 function livedDays(): number {
   return Math.floor((Date.now() - BORN.getTime()) / 86400000);
 }
+
+const IMAGES = [
+  { src: dreamBoardLandscape, alt: 'Mapa Marzeń — Wizja 6 Filarów', title: 'Wizja · 6 Filarów', objectPosition: 'object-center' },
+  { src: girlGoal, alt: 'Cel', title: 'Cel', objectPosition: 'object-[center_25%]' }
+];
 
 /**
  * VisionHeroCard — Zunifikowany moduł tożsamościowy łączący Mapę Marzeń (Wizja 6 Filarów)
@@ -21,8 +27,15 @@ function livedDays(): number {
 export default function VisionHeroCard() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageSrc, setImageSrc] = useState(dreamBoardLandscape);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const userId = useUserId();
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % IMAGES.length);
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
 
   const lived = livedDays();
   const sprint = getSprintInfo();
@@ -57,41 +70,45 @@ export default function VisionHeroCard() {
             </div>
           )}
 
-          <img
-            src={imageSrc}
-            alt="Mapa Marzeń — Wizja 6 Filarów"
-            onLoad={() => setImageLoaded(true)}
-            onError={() => {
-              // Fallback to public path if bundler asset fails
-              if (imageSrc !== '/dream_board_landscape.jpg') {
-                setImageSrc('/dream_board_landscape.jpg');
-              }
-            }}
-            className={`w-full h-full object-cover transition-all group-hover:scale-[1.02] ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
-            draggable={false}
-          />
+          {IMAGES.map((img, idx) => (
+            <img
+              key={img.src}
+              src={img.src}
+              alt={img.alt}
+              onLoad={() => {
+                if (idx === currentImageIndex) setImageLoaded(true);
+              }}
+              onError={(e) => {
+                if (e.currentTarget.src !== '/dream_board_landscape.jpg') {
+                  e.currentTarget.src = '/dream_board_landscape.jpg';
+                }
+              }}
+              className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-in-out group-hover:scale-[1.02] ${
+                idx === currentImageIndex && imageLoaded ? 'opacity-100 z-10' : 'opacity-0 z-0'
+              } ${img.objectPosition || ''}`}
+              draggable={false}
+            />
+          ))}
 
           {/* Subtelny gradient górny */}
           <div className="absolute inset-x-0 top-0 h-11 bg-gradient-to-b from-black/70 via-black/30 to-transparent pointer-events-none" />
 
           {/* Badge lewy górny */}
-          <div className="absolute top-2.5 left-3 flex items-center gap-1.5">
-            <span className="text-3xs font-black uppercase tracking-[0.16em] px-2.5 py-0.5 rounded-full bg-black/50 backdrop-blur-md text-warning border border-white/10 shadow-xs">
-              Wizja · 6 Filarów
+          <div className="absolute top-2.5 left-3 flex items-center gap-1.5 z-20">
+            <span className="text-3xs font-black uppercase tracking-[0.16em] px-2.5 py-0.5 rounded-full bg-black/50 backdrop-blur-md text-warning border border-white/10 shadow-xs transition-opacity duration-300">
+              {IMAGES[currentImageIndex].title}
             </span>
           </div>
 
           {/* Ikona pełnego ekranu prawy górny */}
-          <div className="absolute top-2.5 right-3 opacity-80 group-hover:opacity-100 transition-opacity">
+          <div className="absolute top-2.5 right-3 opacity-80 group-hover:opacity-100 transition-opacity z-20">
             <div className="p-1.5 rounded-lg bg-black/50 backdrop-blur-md text-white/90 border border-white/10 shadow-xs">
               <Maximize2 size={12} />
             </div>
           </div>
 
           {/* Pasek dolny na zdjęciu z hasłem i sezonem */}
-          <div className="absolute inset-x-0 bottom-0 py-1.5 px-3 bg-gradient-to-t from-black/85 via-black/45 to-transparent flex items-center justify-between">
+          <div className="absolute inset-x-0 bottom-0 py-1.5 px-3 bg-gradient-to-t from-black/85 via-black/45 to-transparent flex items-center justify-between z-20">
             <span className="text-3xs font-black uppercase tracking-widest text-white/95 drop-shadow-xs">
               Built Not Wished
             </span>
@@ -150,32 +167,11 @@ export default function VisionHeroCard() {
 
       {/* Lightbox Pełnego Ekranu */}
       {isFullscreen && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setIsFullscreen(false)}
-          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-3 backdrop-blur-md animate-fadeIn cursor-zoom-out"
-        >
-          <div className="relative max-w-4xl w-full" onClick={e => e.stopPropagation()}>
-            <div className="absolute -top-11 right-0 flex items-center gap-2">
-              <Pressable
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsFullscreen(false)}
-                className="rounded-full bg-white/10 hover:bg-white/20 p-2 text-white cursor-pointer"
-                icon={<X size={16} />}
-              />
-            </div>
-            <img
-              src={imageSrc}
-              alt="Pełna Mapa Marzeń"
-              className="w-full h-auto rounded-2xl border border-white/15 shadow-2xl"
-            />
-            <p className="mt-3 text-center text-xs font-semibold text-white/60 tracking-wider uppercase">
-              Dotknij gdziekolwiek aby zamknąć
-            </p>
-          </div>
-        </div>
+        <LightboxGallery
+          images={IMAGES}
+          initialIndex={currentImageIndex}
+          onClose={() => setIsFullscreen(false)}
+        />
       )}
     </>
   );

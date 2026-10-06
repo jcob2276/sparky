@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { GpwShortsKpis } from '../../lib/investments/gpwShortsService';
+import { formatLongDateWarsaw } from '../../lib/date';
 
 interface Props {
   kpis: GpwShortsKpis;
@@ -48,10 +49,10 @@ export const GpwShortsHeader: FC<Props> = ({ kpis, onNavigateTab }) => {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 pt-1">
         <div className="bg-surface border border-border-custom/70 rounded-2xl p-4 shadow-2xs">
           <div className="text-3xs uppercase font-mono tracking-wider text-text-muted">
-            Spółek pod presją shortów
+            Spółek z publicznymi pozycjami
           </div>
           <div className="text-2xl sm:text-3xl font-black font-mono text-text-primary mt-1">
-            {kpis.totalCompanies}
+            {kpis.activeCount}
           </div>
         </div>
 
@@ -69,10 +70,10 @@ export const GpwShortsHeader: FC<Props> = ({ kpis, onNavigateTab }) => {
             Największy łączny short
           </div>
           <div className="text-2xl sm:text-3xl font-black font-mono text-danger mt-1">
-            {kpis.highestShortPct.toFixed(2)}%
+            {kpis.highestShortPct == null ? '—' : `${kpis.highestShortPct.toFixed(2)}%`}
           </div>
           <div className="text-3xs font-mono text-text-muted mt-0.5">
-            {kpis.highestShortTicker}
+            {kpis.highestShortTicker ?? '—'}
           </div>
         </div>
 
@@ -81,7 +82,7 @@ export const GpwShortsHeader: FC<Props> = ({ kpis, onNavigateTab }) => {
             Ostatnia zmiana w rejestrze
           </div>
           <div className="text-xl sm:text-2xl font-black font-mono text-text-primary mt-1.5">
-            {kpis.lastRegisterChange}
+            {kpis.lastRegisterChange ? formatLongDateWarsaw(kpis.lastRegisterChange) : '—'}
           </div>
         </div>
       </div>

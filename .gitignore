@@ -103,3 +103,18 @@ FLUX_Inpaint_Local.json
 
 data/
 scratch_orca_scan/
+
+# Local media & transcripts
+*.vtt
+*.mp4
+*.m4a
+*.mp3
+scripts/*.png
+scratch_voice_dump.json
+transcription_progress.json
+all_voice_transcripts.txt
+all_psychology_context.txt
+deep_voice_entries.txt
+gracjan_videos.txt
+SESJA_HIPNOTERAPIA_*.md
+Obraz ChatGPT*.png

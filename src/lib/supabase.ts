@@ -87,7 +87,22 @@ export async function invokeEdge(
   });
 
   if (error) {
-    throw new Error(error.message || `Edge function ${functionName} failed`);
+    let detail = error.message;
+    try {
+      const ctx = (error as { context?: Response }).context;
+      if (ctx && typeof ctx.json === 'function') {
+        const errJson = await ctx.json();
+        if (errJson && typeof errJson === 'object') {
+          detail = (errJson as { error?: string; message?: string }).error || (errJson as { error?: string; message?: string }).message || detail;
+        }
+      } else if (ctx && typeof ctx.text === 'function') {
+        const errText = await ctx.text();
+        if (errText) detail = errText;
+      }
+    } catch {
+      /* fallback to default error.message */
+    }
+    throw new Error(detail || `Edge function ${functionName} failed`);
   }
   return data as Record<string, unknown>;
 }

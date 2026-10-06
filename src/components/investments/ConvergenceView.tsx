@@ -114,7 +114,7 @@ export const ConvergenceView: FC<Props> = ({ watchlist, onNavigateTab }) => {
         <div className="p-4 rounded-3xl border border-primary/30 bg-primary/5 flex flex-col sm:flex-row sm:items-center gap-3">
           <Bell size={16} className="text-primary shrink-0" />
           <p className="text-xs text-text-secondary flex-1">
-            Nowa zbieżność od ostatniego odczytu: {alerts.map((row) => `${row.ticker} (${row.score})`).join(', ')}.
+            Nowe odczytane dokumenty Kongresu lub SEC dla spółek ze zbieżnością: {alerts.map(row => row.ticker).join(', ')}.
           </p>
           <Button size="sm" variant="secondary" className="rounded-xl text-xs" onClick={dismissAlerts}>
             Oznacz jako przeczytane

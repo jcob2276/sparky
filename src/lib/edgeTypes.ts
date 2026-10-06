@@ -221,6 +221,30 @@ interface ParseWorkoutNLResponse {
   }>;
 }
 
+export interface DailyPlanInterviewResponse {
+  reply: string;
+  is_ready: boolean;
+  slots: Array<{
+    slot: number;
+    category: 'cialo' | 'duch' | 'konto' | 'general';
+    title: string;
+  }>;
+  [key: string]: unknown;
+}
+
+export interface VanguardOracleResponse {
+  answer?: string;
+  subtasks?: string[];
+  reply?: string;
+  is_ready?: boolean;
+  slots?: Array<{
+    slot: number;
+    category: 'cialo' | 'duch' | 'konto' | 'general';
+    title: string;
+  }>;
+  [key: string]: unknown;
+}
+
 // ── Registry ─────────────────────────────────────────────────────────
 
 export interface EdgeFunctionResponses {
@@ -237,4 +261,5 @@ export interface EdgeFunctionResponses {
   'vanguard-nutrition-coach': NutritionCoachResponse;
   'sync': SyncResponse;
   'lookup-food': LookupFoodResponse;
+  'vanguard-oracle': VanguardOracleResponse;
 }

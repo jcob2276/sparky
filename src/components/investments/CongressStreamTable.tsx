@@ -37,7 +37,7 @@ export const CongressStreamTable: FC<Props> = ({
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full min-w-[840px] text-left text-xs">
             <thead className="bg-surface-subtle text-3xs font-black text-text-muted uppercase tracking-wider border-b border-border-custom/40">
               <tr>
                 <th className="py-2.5 px-4">Polityk</th>
@@ -49,7 +49,7 @@ export const CongressStreamTable: FC<Props> = ({
             </thead>
             <tbody className="divide-y divide-border-custom/30 font-mono text-2xs">
               {shown.map((trade) => {
-                const isLate = trade.delayDays >= 30;
+                const isLate = trade.delayDays != null && trade.delayDays >= 30;
 
                 return (
                   <tr
@@ -74,6 +74,7 @@ export const CongressStreamTable: FC<Props> = ({
                             <span>{trade.chamber === 'senate' ? 'SENAT' : 'IZBA'}</span>
                             <span className="mx-1">·</span>
                             <span>{trade.party ? `${trade.party}-` : '—'}{trade.state}</span>
+                            {trade.owner && <span> · {trade.owner === 'spouse' ? 'współmałżonek' : trade.owner === 'joint' ? 'wspólnie' : trade.owner === 'dependent_child' ? 'dziecko' : trade.owner === 'self' ? 'własna' : 'właściciel nieustalony'}</span>}
                           </div>
                         </div>
                       </div>
@@ -97,6 +98,7 @@ export const CongressStreamTable: FC<Props> = ({
                           {trade.ticker}
                         </span>
                       </div>
+                      <div className="text-3xs text-text-muted max-w-48 truncate" title={trade.companyName}>{trade.companyName}</div>
                     </td>
 
                     {/* Typ */}
@@ -108,38 +110,25 @@ export const CongressStreamTable: FC<Props> = ({
                             : 'text-danger bg-surface-subtle'
                         }`}
                       >
-                        {trade.type === 'buy' ? 'Kupno' : 'Sprzedaż'}
+                        {trade.type === 'buy' ? 'Kupno' : trade.type === 'sell' ? 'Sprzedaż' : trade.type === 'exchange' ? 'Zamiana' : 'Inny typ'}
                       </span>
                     </td>
 
                     {/* Kwota */}
-                    <td className="py-3 px-4 text-right text-text-primary font-bold tabular-nums">
+                    <td className="py-3 px-4 text-right text-text-primary font-bold tabular-nums whitespace-nowrap">
                       {trade.amountLabel}
                     </td>
 
                     {/* Opóźnienie / Status Kopiowania */}
-                    <td className="py-3 px-4 text-right tabular-nums">
+                    <td className="py-3 px-4 text-right tabular-nums whitespace-nowrap">
                       <div className="flex flex-col items-end gap-0.5">
                         <span className={`font-bold ${isLate ? 'text-danger' : 'text-text-muted'}`}>
-                          {trade.delayDays} DNI
+                          {trade.delayDays == null ? 'Brak dat' : `${trade.delayDays} DNI`}
                         </span>
-                        {trade.type === 'buy' && (
-                          <span
-                            className={`px-1.5 py-0.2 rounded-xs text-4xs font-mono font-bold uppercase ${
-                              trade.delayDays <= 14
-                                ? 'bg-success/15 text-success border border-success/30'
-                                : trade.delayDays <= 30
-                                  ? 'bg-primary/10 text-primary border border-primary/20'
-                                  : 'bg-warning/15 text-warning border border-warning/30'
-                            }`}
-                          >
-                            {trade.delayDays <= 14
-                              ? '⚡ Świeże wejście'
-                              : trade.delayDays <= 30
-                                ? 'W strefie'
-                                : 'Opóźnione'}
-                          </span>
-                        )}
+                        <span className="text-3xs text-text-muted">Transakcja: {trade.transactionDate || '—'}</span>
+                        <span className="text-3xs text-text-muted">Ujawnienie: {trade.disclosureDate || '—'}</span>
+                        {trade.sourceUrl && <a href={trade.sourceUrl} target="_blank" rel="noopener noreferrer"
+                          className="text-primary underline text-3xs" onClick={(event) => event.stopPropagation()}>Dokument źródłowy</a>}
                       </div>
                     </td>
                   </tr>

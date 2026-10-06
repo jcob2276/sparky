@@ -1,4 +1,4 @@
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Mic, Sparkles } from 'lucide-react';
 import Button from '../../ui/Button';
 import { ControlInput } from '../../ui/ControlPrimitives';
 import type { TodoSlot } from './types';
@@ -11,6 +11,7 @@ interface Props {
   onEditSlot: (index: number, title: string) => void;
   onAssign: (index: number, task: TodoSlot) => void;
   onClear: (index: number) => void;
+  onOpenVoicePlanner?: () => void;
 }
 
 const SLOT_META = [
@@ -28,13 +29,40 @@ export default function MorningPlanStep2PowerList({
   onEditSlot,
   onAssign,
   onClear,
+  onOpenVoicePlanner,
 }: Props) {
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
+      {onOpenVoicePlanner && (
+        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-primary/15 via-primary/5 to-transparent border border-primary/25 shadow-sm">
+          <div className="flex items-center gap-2.5 min-w-0 pr-2">
+            <div className="size-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 shadow-sm">
+              <Mic size={15} />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-xs font-black text-text-primary uppercase tracking-wide">
+                Zaplanuj głosem ze Sparky
+              </h4>
+              <p className="text-2xs text-text-muted truncate">
+                Powiedz co chcesz osiągnąć — Sparky dopyta i ułoży 5 priorytetów
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onOpenVoicePlanner}
+            icon={<Sparkles size={13} />}
+          >
+            Mów
+          </Button>
+        </div>
+      )}
+
       <div>
         <h3 className="text-sm font-black text-text-primary">Co chcesz zrobić {dayWord}?</h3>
         <p className="text-xs text-text-muted mt-0.5">
-          Wpisz własny plan. Zadania z Todo poniżej są tylko sugestiami.
+          Wpisz własny plan lub użyj dyktowania głosem. Zadania z Todo poniżej są tylko sugestiami.
         </p>
       </div>
 

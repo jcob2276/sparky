@@ -59,6 +59,7 @@ export const CongressRankingCard: FC<Props> = ({
 
       {/* Rankings List */}
       <div className="divide-y divide-border-custom/40">
+        {!sortedRankings.length && <p className="text-xs text-text-muted py-4">Ranking będzie dostępny po obliczeniu wyników od dat ujawnienia względem S&amp;P 500.</p>}
         {sortedRankings.map((pol, idx) => {
           const alpha = getAlpha(pol);
           const isPos = alpha >= 0;

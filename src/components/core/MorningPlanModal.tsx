@@ -14,6 +14,7 @@ import MorningPlanFooterActions from './morningPlan/MorningPlanFooterActions';
 import MorningPlanStep2PowerList from './morningPlan/MorningPlanStep2PowerList';
 import MorningPlanStep3TimeBox from './morningPlan/MorningPlanStep3TimeBox';
 import MorningPlanWeekStrip from './morningPlan/MorningPlanWeekStrip';
+import VoicePlanModal from '../lifestyle/voicePlanning/VoicePlanModal';
 import { useMorningPlanActions } from './morningPlan/useMorningPlanActions';
 import { useMorningPlanData } from './morningPlan/useMorningPlanData';
 
@@ -30,6 +31,7 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
   const dayWord = planningTomorrow ? 'jutro' : 'dziś';
   const dayWordGen = planningTomorrow ? 'jutrzejszego' : 'dzisiejszego';
   const [step, setStep] = useState<1 | 2>(1);
+  const [voicePlannerOpen, setVoicePlannerOpen] = useState(false);
   const data = useMorningPlanData({ userId, planningDate, isPlanningTomorrow: planningTomorrow });
   const actions = useMorningPlanActions({
     userId,
@@ -109,6 +111,7 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
               onEditSlot={actions.handleEditSlot}
               onAssign={actions.handleAssignToSlot}
               onClear={actions.handleClearSlot}
+              onOpenVoicePlanner={() => setVoicePlannerOpen(true)}
             />
           ) : (
             <MorningPlanStep3TimeBox
@@ -137,6 +140,24 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
           onSubmit={actions.handleSubmitPlan}
         />
       </div>
+
+      <VoicePlanModal
+        isOpen={voicePlannerOpen}
+        onClose={() => setVoicePlannerOpen(false)}
+        planningDate={planningDate}
+        initialSlots={data.powerList.map((slot, index) => ({
+          slot: index + 1,
+          category: index === 0 ? 'cialo' : index === 1 ? 'duch' : index === 2 ? 'konto' : 'general',
+          title: slot?.title || '',
+        }))}
+        onApplySlots={(appliedSlots) => {
+          appliedSlots.forEach((slot, index) => {
+            if (slot.title.trim()) {
+              actions.handleEditSlot(index, slot.title);
+            }
+          });
+        }}
+      />
     </Modal>
   );
 }

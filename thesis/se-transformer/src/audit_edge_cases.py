@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import json
+import re
+import unicodedata
 from collections import Counter
 
 from sklearn.metrics import f1_score
@@ -48,6 +50,32 @@ def train_test_overlap(split) -> int:
     return len(tr & te)
 
 
+def normalized_overlap_stats(
+    train_texts: list[str],
+    train_labels: list[int],
+    test_texts: list[str],
+    test_labels: list[int],
+) -> dict:
+    """Diagnostic overlap after Unicode/case/punctuation/spacing normalization."""
+    def build_map(texts: list[str], labels: list[int]) -> dict[str, set[int]]:
+        mapped: dict[str, set[int]] = {}
+        for value, label in zip(texts, labels, strict=True):
+            normalized = re.sub(
+                r"\W+", " ", unicodedata.normalize("NFKC", value).casefold()
+            ).strip()
+            mapped.setdefault(normalized, set()).add(label)
+        return mapped
+
+    train = build_map(train_texts, train_labels)
+    test = build_map(test_texts, test_labels)
+    shared = train.keys() & test.keys()
+    return {
+        "cross_split_normalized_values": len(shared),
+        "cross_split_label_conflicts": sum(1 for value in shared if train[value] != test[value]),
+        "normalization": "NFKC + casefold + replace non-word runs with one space",
+    }
+
+
 def scam_keyword_probe(split) -> None:
     # Check if type-specific words separate classes easily
     keywords = {
@@ -68,12 +96,16 @@ def main() -> None:
         bal = Counter(y)
         maj = majority_f1(split.y_test)
         overlap = train_test_overlap(split)
+        normalized_overlap = normalized_overlap_stats(
+            split.texts_train, split.y_train, split.texts_test, split.y_test
+        )
         dups = dup_stats(split.texts_train + split.texts_test)
         lens = len_stats(split.texts_train + split.texts_test)
         print("\n===", task, "===")
         print("class balance all:", dict(bal))
         print("majority baseline on test:", maj)
         print("train/test exact text overlap:", overlap)
+        print("train/test normalized text overlap:", normalized_overlap)
         print("dup stats:", dups)
         print("length:", lens)
         if task == "scam_phone":
@@ -82,6 +114,7 @@ def main() -> None:
             "balance": dict(bal),
             "majority": maj,
             "overlap": overlap,
+            "normalized_overlap": normalized_overlap,
             "dups": dups,
             "length": lens,
         }

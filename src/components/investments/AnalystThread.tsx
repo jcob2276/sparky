@@ -1,7 +1,6 @@
 import React, { FC } from 'react';
 import { ChatMessage } from '../../lib/investments/investmentsAiService';
 import { AnalystMessageRenderer } from './AnalystMessageRenderer';
-import { JevSignalBadge } from './JevSignalBadge';
 import { Bot, User } from 'lucide-react';
 
 interface Props {
@@ -33,7 +32,7 @@ export const AnalystThread: FC<Props> = ({ messages, loading, scrollRef }) => (
         >
           {message.role === 'assistant' ? (
             <>
-              {message.jevEvaluation && <JevSignalBadge evaluation={message.jevEvaluation} />}
+              {message.jevEvaluation && <p className="text-xs text-warning mb-2">Archiwalna analiza zawierała nieskalibrowane oceny AI. Nie traktuj jej jako bieżącej prognozy.</p>}
               <AnalystMessageRenderer content={message.content} />
             </>
           ) : (
@@ -52,7 +51,7 @@ export const AnalystThread: FC<Props> = ({ messages, loading, scrollRef }) => (
         <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary border border-primary/25 flex items-center justify-center shrink-0 animate-pulse">
           <Bot size={16} />
         </div>
-        <div className="text-xs font-mono animate-pulse">Analityk AI analizuje dane 13F i KNF...</div>
+        <div className="text-xs font-mono animate-pulse">Analityk AI analizuje dostępne źródła...</div>
       </div>
     )}
     <div ref={scrollRef} />

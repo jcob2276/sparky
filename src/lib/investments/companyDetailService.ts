@@ -5,25 +5,23 @@
  */
 
 import { orcaSelect } from './superinvestorsApi';
+import { getTodayWarsaw, shiftDateStr } from '../date';
+import { summarizeCompanyPrices, type CompanyPriceRow } from './companyPriceHistory';
 
 export interface CompanyDetailData {
+  fundHistory: CompanyFundHistoryPoint[];
+  fundChanges: { period: string; previousPeriod: string; comparedFunds: number; increases: number; decreases: number; newReported: number } | null;
+  market: 'us' | 'gpw';
   ticker: string;
   name: string;
   exchange: string;
   sector: string;
-  price: number;
-  changeTodayPct: number;
-  change1yPct: number;
-  consensus: {
-    buyers: number;
-    sellers: number;
-    newPositions: number;
-    holders: number;
-    netBuyers: number;
-    totalValueUsd: number;
-    buyerNames: string[];
-    sellerNames: string[];
-  };
+  price: number | null;
+  priceCurrency: string | null;
+  priceDate: string | null;
+  priceSourceUrl: string | null;
+  changeTodayPct: number | null;
+  change1yPct: number | null;
   politicians: {
     buyersCount: number;
     sellsCount: number;
@@ -60,36 +58,28 @@ export interface CompanyDetailData {
     investorName: string;
     fundName: string;
     sharesNow: number;
-    sharesDelta: number;
+    sharesDelta: number | null;
     valueNow: number;
     changeType: string;
-    weightPct: number;
+    period: string;
+    previousPeriod: string | null;
+    sourceUrls: string[];
   }>;
   description: string;
 }
 
-interface RawConsensus {
-  ticker?: string;
-  company_name?: string;
-  buyers?: number;
-  sellers?: number;
-  new_positions?: number;
-  holders?: number;
-  net_buyers?: number;
-  total_value?: number;
-  buyer_names?: string[];
-  seller_names?: string[];
+export interface CompanyFundHistoryPoint {
+  period_of_report: string;
+  reported_holders: number;
+  reported_shares: number;
+  reported_value_usd: number;
+  latest_filing_date: string;
+  source_urls: string[];
+  summary_warnings?: Array<{ source_url: string; reported_total_usd: number; computed_total_usd: number; difference_usd: number }>;
 }
 
-interface RawPrice {
-  ticker?: string;
-  date?: string;
-  close_adj?: number;
-  close_raw?: number;
-  open?: number;
-  high?: number;
-  low?: number;
-  volume?: number;
+interface RawConsensus {
+  company_name?: string;
 }
 
 interface RawStockAct {
@@ -110,12 +100,23 @@ interface RawInsider {
 }
 
 interface RawHolding {
-  investor_id?: string;
-  shares_now?: number;
-  shares_delta?: number;
-  value_now?: number;
-  change_type?: string;
-  weight_pct?: number;
+  investor_id: string;
+  shares: number;
+  value_usd: number;
+  period_of_report: string;
+  filing_url: string;
+}
+
+interface RawHoldingChange {
+  investor_id: string;
+  shares_now: number;
+  shares_delta: number;
+  value_now: number;
+  change_type: string;
+  period_of_report: string;
+  previous_period: string;
+  filing_url: string;
+  previous_filing_url: string;
 }
 
 async function fetchCompanyDescription(ticker: string, companyName: string): Promise<string> {
@@ -132,13 +133,12 @@ async function fetchCompanyDescription(ticker: string, companyName: string): Pro
     upper === 'CRH' ? 'CRH plc' : '',
     upper === 'NTRA' ? 'Natera' : '',
     upper === 'BE' ? 'Bloom Energy' : '',
-    companyName.split(' ')[0],
     companyName,
   ].filter(Boolean);
 
   for (const term of searchTerms) {
     try {
-      const res = await fetch(`https://pl.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`);
+      const res = await fetch(`https://pl.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`, { signal: AbortSignal.timeout(5000) });
       if (res.ok) {
         const data = await res.json();
         if (data.extract && data.type !== 'disambiguation' && data.extract.length > 30) {
@@ -150,33 +150,49 @@ async function fetchCompanyDescription(ticker: string, companyName: string): Pro
     }
   }
 
-  return `${companyName} (${ticker}) – międzynarodowe przedsiębiorstwo notowane na giełdzie amerykańskiej, monitorowane w rejestrach SEC 13F, Form 4 oraz Kongresu USA (STOCK Act).`;
+  return `Brak zweryfikowanego opisu spółki ${companyName} (${ticker}).`;
 }
 
 export async function fetchCompanyDetailData(
   ticker: string,
-  initialName?: string
+  initialName?: string,
+  market: 'us' | 'gpw' = 'us',
 ): Promise<CompanyDetailData> {
   const cleanTicker = ticker.trim().toUpperCase();
+  const priceSymbol = market === 'gpw' ? `${cleanTicker.replace(/\.(PL|WA)$/, '')}.WA` : cleanTicker;
+  const today = getTodayWarsaw();
 
-  const [consensusRows, priceRows, stockActRows, insiderRows, holdingsRows, investorRows] =
+  const [consensusRows, priceRows, stockActRows, insiderRows, holdingsRows, changeRows, investorRows, fundHistory] =
     await Promise.all([
-      orcaSelect<RawConsensus>(`vw_consensus?ticker=eq.${cleanTicker}&limit=1`).catch(() => []),
-      orcaSelect<RawPrice>(
-        `prices_daily?ticker=eq.${cleanTicker}&order=date.asc&limit=365`
-      ).catch(() => []),
-      orcaSelect<RawStockAct>(
-        `stock_act_trades?ticker=eq.${cleanTicker}&order=transaction_date.desc&limit=50`
-      ).catch(() => []),
-      orcaSelect<RawInsider>(
-        `vw_insider_public?ticker=eq.${cleanTicker}&order=transaction_date.desc&limit=50`
-      ).catch(() => []),
-      orcaSelect<RawHolding>(
-        `vw_holdings_changes?ticker=eq.${cleanTicker}&order=value_now.desc.nullslast&limit=30`
-      ).catch(() => []),
-      orcaSelect<{ id: string; display_name?: string; fund_name?: string }>(
-        'investors?select=id,display_name,fund_name'
-      ).catch(() => []),
+      market === 'us' ? orcaSelect<RawConsensus>(`vw_consensus?select=company_name&ticker=eq.${encodeURIComponent(cleanTicker)}&limit=1`, { strict: true }) : Promise.resolve([]),
+      orcaSelect<CompanyPriceRow>(
+        `prices_daily?ticker=eq.${encodeURIComponent(priceSymbol)}&date=gte.${shiftDateStr(today, -375)}&date=lte.${today}&order=date.asc&limit=400`,
+        { strict: true },
+      ),
+      market === 'us' ? orcaSelect<RawStockAct>(
+        `stock_act_trades?ticker=eq.${cleanTicker}&source_url=not.is.null&disclosure_date=not.is.null&order=transaction_date.desc&limit=50`,
+        { strict: true },
+      ) : Promise.resolve([]),
+      market === 'us' ? orcaSelect<RawInsider>(
+        `vw_sec_form4_public?ticker=eq.${cleanTicker}&is_derivative=eq.false&form_type=eq.4&order=transaction_date.desc&limit=50`,
+        { strict: true },
+      ) : Promise.resolve([]),
+      market === 'us' ? orcaSelect<RawHolding>(
+        `vw_sec13f_current_holdings?ticker=eq.${encodeURIComponent(cleanTicker)}&order=value_usd.desc&limit=200`,
+        { strict: true },
+      ) : Promise.resolve([]),
+      market === 'us' ? orcaSelect<RawHoldingChange>(
+        `vw_sec13f_verified_changes?ticker=eq.${encodeURIComponent(cleanTicker)}&order=value_now.desc&limit=200`,
+        { strict: true },
+      ) : Promise.resolve([]),
+      market === 'us' ? orcaSelect<{ id: string; display_name?: string; fund_name?: string }>(
+        'investors?select=id,display_name,fund_name',
+        { strict: true },
+      ) : Promise.resolve([]),
+      market === 'us' ? orcaSelect<CompanyFundHistoryPoint>(
+        `vw_sec13f_company_history?ticker=eq.${encodeURIComponent(cleanTicker)}&order=period_of_report.desc&limit=40`,
+        { strict: true },
+      ) : Promise.resolve([]),
     ]);
 
   const invMap = new Map<string, { displayName: string; fundName: string }>();
@@ -190,53 +206,36 @@ export async function fetchCompanyDetailData(
   const cons = consensusRows[0];
   const name = cons?.company_name || initialName || cleanTicker;
 
-  // Process prices
-  const prices = priceRows
-    .filter((p) => p.date && (p.close_adj != null || p.close_raw != null))
-    .map((p) => ({
-      date: p.date!,
-      close: Number((p.close_adj ?? p.close_raw ?? 0).toFixed(2)),
-      open: p.open,
-      high: p.high,
-      low: p.low,
-      volume: p.volume,
-    }));
-
-  const latestPrice = prices.length > 0 ? prices[prices.length - 1]?.close || 0 : 0;
-  const prevPrice = prices.length > 1 ? prices[prices.length - 2]?.close || latestPrice : latestPrice;
-  const oldestPrice = prices.length > 0 ? prices[0]?.close || latestPrice : latestPrice;
-
-  const changeTodayPct = prevPrice > 0 ? ((latestPrice - prevPrice) / prevPrice) * 100 : 0;
-  const change1yPct = oldestPrice > 0 ? ((latestPrice - oldestPrice) / oldestPrice) * 100 : 0;
+  const priceSummary = summarizeCompanyPrices(priceRows, today);
 
   // Process politicians
-  const polBuys = stockActRows.filter((t) => (t.transaction_type || '').toLowerCase().includes('buy')).length;
-  const polSells = stockActRows.length - polBuys;
+  const polBuys = stockActRows.filter((t) => /buy|purchase/i.test(t.transaction_type || '')).length;
+  const polSells = stockActRows.filter((t) => /sell|sale/i.test(t.transaction_type || '')).length;
 
   // Process insiders
-  const insBuys = insiderRows.filter((t) => (t.transaction_code || '').toUpperCase() === 'P' || (t.transaction_code || '').toUpperCase() === 'A').length;
-  const insSells = insiderRows.length - insBuys;
+  const insBuys = insiderRows.filter((t) => t.transaction_code === 'P').length;
+  const insSells = insiderRows.filter((t) => t.transaction_code === 'S').length;
 
   const description = await fetchCompanyDescription(cleanTicker, name);
+  const changes = new Map(changeRows.map(row => [row.investor_id, row]));
+  const holdings = new Map(holdingsRows.map(row => [row.investor_id, row]));
+  const fundChanges = changeRows.length ? {
+    period: changeRows[0].period_of_report, previousPeriod: changeRows[0].previous_period,
+    comparedFunds: changeRows.length,
+    increases: changeRows.filter(row => row.shares_delta > 0).length,
+    decreases: changeRows.filter(row => row.shares_delta < 0).length,
+    newReported: changeRows.filter(row => row.change_type === 'reported_new').length,
+  } : null;
 
   return {
+    fundHistory,
+    fundChanges,
+    market,
     ticker: cleanTicker,
     name,
-    exchange: 'NasdaqGS',
-    sector: 'Technologia / Półprzewodniki',
-    price: latestPrice,
-    changeTodayPct: Number(changeTodayPct.toFixed(2)),
-    change1yPct: Number(change1yPct.toFixed(1)),
-    consensus: {
-      buyers: cons?.buyers || 0,
-      sellers: cons?.sellers || 0,
-      newPositions: cons?.new_positions || 0,
-      holders: cons?.holders || 0,
-      netBuyers: cons?.net_buyers || 0,
-      totalValueUsd: cons?.total_value || 0,
-      buyerNames: cons?.buyer_names || [],
-      sellerNames: cons?.seller_names || [],
-    },
+    exchange: market === 'gpw' ? 'GPW' : '—',
+    sector: '—',
+    ...priceSummary,
     politicians: {
       buyersCount: polBuys,
       sellsCount: polSells,
@@ -245,8 +244,8 @@ export async function fetchCompanyDetailData(
         filerName: t.filer_name || 'Kongresmen',
         transactionDate: t.transaction_date || '',
         disclosureDate: t.disclosure_date || '',
-        type: t.transaction_type || 'Zakup',
-        amountLabel: t.amount_label || '$1K - $15K',
+        type: t.transaction_type || 'Nieznany typ',
+        amountLabel: t.amount_label || '—',
       })),
     },
     insiders: {
@@ -257,21 +256,24 @@ export async function fetchCompanyDetailData(
         companyName: t.company_name || name,
         transactionDate: t.transaction_date || '',
         filingDate: t.filing_date || '',
-        transactionCode: t.transaction_code || 'S',
+        transactionCode: t.transaction_code || '—',
       })),
     },
-    prices,
-    holdings: holdingsRows.map((h) => {
-      const invInfo = invMap.get(h.investor_id || '');
+    holdings: [...new Set([...holdings.keys(), ...changes.keys()])].map((investorId) => {
+      const h = holdings.get(investorId);
+      const change = changes.get(investorId);
+      const invInfo = invMap.get(investorId);
       return {
-        investorId: h.investor_id || '',
+        investorId,
         investorName: invInfo?.displayName || 'Fundusz 13F',
         fundName: invInfo?.fundName || '',
-        sharesNow: h.shares_now || 0,
-        sharesDelta: h.shares_delta || 0,
-        valueNow: h.value_now || 0,
-        changeType: h.change_type || 'utrzymana',
-        weightPct: h.weight_pct || 0,
+        sharesNow: h?.shares ?? change!.shares_now,
+        sharesDelta: change?.shares_delta ?? null,
+        valueNow: h?.value_usd ?? change!.value_now,
+        changeType: change?.change_type ?? 'uncompared',
+        period: h?.period_of_report ?? change!.period_of_report,
+        previousPeriod: change?.previous_period ?? null,
+        sourceUrls: change ? [change.filing_url, change.previous_filing_url] : [h!.filing_url],
       };
     }),
     description,

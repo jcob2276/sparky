@@ -22,11 +22,19 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         android.webkit.WebView.setWebContentsDebuggingEnabled(true);
 
+        if (androidx.core.content.ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            androidx.core.app.ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.RECORD_AUDIO}, 1002);
+        }
+
         if (this.bridge != null && this.bridge.getWebView() != null) {
             this.bridge.getWebView().setWebChromeClient(new com.getcapacitor.BridgeWebChromeClient(this.bridge) {
                 @Override
                 public void onPermissionRequest(final android.webkit.PermissionRequest request) {
-                    request.grant(request.getResources());
+                    MainActivity.this.runOnUiThread(() -> {
+                        request.grant(request.getResources());
+                    });
                 }
             });
         }

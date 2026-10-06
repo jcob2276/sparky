@@ -18,6 +18,7 @@ import { serveJson } from "../_shared/http.ts";
 import { handleSearch } from "./handlers/search.ts";
 import { handleGoalCreate } from "./handlers/goalCreate.ts";
 import { handleTaskBreakdown } from "./handlers/taskBreakdown.ts";
+import { handleDailyPlanInterview } from "./handlers/dailyPlanInterview.ts";
 import { runOracleQuery } from "./oracle/core.ts";
 
 Deno.serve(serveJson(async (req, ctx) => {
@@ -32,6 +33,7 @@ Deno.serve(serveJson(async (req, ctx) => {
       if (action === "search") return await handleSearch(req, body, db);
       if (action === "goal-create") return await handleGoalCreate(req, body);
       if (action === "task-breakdown") return await handleTaskBreakdown(req, body);
+      if (action === "daily-plan-interview") return await handleDailyPlanInterview(req, body, db);
       throw new Error(`Unknown action: ${action}`);
     }
 

@@ -27,6 +27,9 @@ export interface GpwCompanyFundamental {
   financialCurrency?: string | null;
   quarters8: number[];
   refreshedAt: string;
+  sourceUrl?: string | null;
+  sourceSystem?: string | null;
+  fxDate?: string | null;
 }
 
 const GPW_SECTORS_PL: Record<string, string> = {
@@ -77,6 +80,9 @@ interface RawGpwTeaser {
   financial_currency?: string | null;
   quarters8?: Array<{ revenue?: number | string | null }>;
   refreshed_at?: string | null;
+  source_url?: string | null;
+  source_system?: string | null;
+  fx_date?: string | null;
 }
 
 function parseNum(val: unknown): number | null {
@@ -92,12 +98,13 @@ export async function fetchGpwFundamentalsList(): Promise<{
   refreshedDate: string | null;
 }> {
   const raw = await orcaSelect<RawGpwTeaser>(
-    'gpw_fin_public_teaser?select=ticker,name,sector,mcap,pe,pb,div_yield,roe,net_margin,revenue_yoy,fcf_yield,net_debt_ebitda,forward_pe,forward_eps,forward_pe_basis,quote_price,quote_currency,financial_currency,quarters8,refreshed_at&order=mcap.desc.nullslast',
+    'gpw_fin_public_teaser?select=ticker,name,sector,mcap,pe,pb,div_yield,roe,net_margin,revenue_yoy,fcf_yield,net_debt_ebitda,forward_pe,forward_eps,forward_pe_basis,quote_price,quote_currency,financial_currency,quarters8,refreshed_at,source_url,source_system,fx_date&order=mcap.desc.nullslast',
     { strict: true },
   );
 
   // Oldest row determines freshness of the complete list, not the largest company.
-  const dates = raw.map((r) => r.refreshed_at?.slice(0, 10)).filter((d): d is string => Boolean(d));
+  const dates = raw.map((r) => r.refreshed_at && Number.isFinite(Date.parse(r.refreshed_at))
+    ? r.refreshed_at.slice(0, 10) : null).filter((d): d is string => Boolean(d));
   const refreshedDate = dates.length === raw.length && dates.length ? dates.sort()[0] : null;
 
   const sectorValues = new Map<string, number[]>();
@@ -148,6 +155,9 @@ export async function fetchGpwFundamentalsList(): Promise<{
       financialCurrency: r.financial_currency || null,
       quarters8: q8,
       refreshedAt: r.refreshed_at || '',
+      sourceUrl: r.source_url?.startsWith('https://www.tradingview.com/') ? r.source_url : null,
+      sourceSystem: r.source_system || null,
+      fxDate: r.fx_date || null,
     }];
   });
 

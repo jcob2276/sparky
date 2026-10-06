@@ -12,7 +12,8 @@ export const InsiderFeedRow: FC<Props> = ({ item, onSelectTicker }) => {
     <tr className="hover:bg-surface-elevated/40 transition-colors group">
       {/* Zgłoszenie */}
       <td className="py-3 px-3 text-success font-medium">
-        {item.filingDate}
+        {item.docUrl ? <a href={item.docUrl} target="_blank" rel="noreferrer" className="underline" title={item.accession || 'SEC Form 4'}>{item.filingDate}</a> : item.filingDate}
+        <div className="text-3xs text-text-muted">Transakcja: {item.transactionDate || '—'}{item.formType === '4/A' ? ' · korekta 4/A' : ''}</div>
       </td>
 
       {/* Spółka */}
@@ -43,31 +44,7 @@ export const InsiderFeedRow: FC<Props> = ({ item, onSelectTicker }) => {
 
       {/* Typ Badge */}
       <td className="py-3 px-3 text-center">
-        {item.transactionType === 'purchase' && (
-          <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-success/10 text-success border border-success/20">
-            Kupno
-          </span>
-        )}
-        {item.transactionType === 'sale' && (
-          <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-danger/10 text-danger border border-danger/20">
-            Sprzedaż
-          </span>
-        )}
-        {item.transactionType === 'option' && (
-          <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-surface-elevated text-text-secondary border border-border-custom">
-            Opcje
-          </span>
-        )}
-        {item.transactionType === 'direct' && (
-          <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-surface-elevated text-text-muted border border-border-custom/50">
-            D
-          </span>
-        )}
-        {item.transactionType === 'award' && (
-          <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-primary/10 text-primary border border-primary/20">
-            Nagroda
-          </span>
-        )}
+        <span className="px-2 py-0.5 rounded-md text-3xs border border-border-custom">{item.typeBadgeLabel}</span>
       </td>
 
       {/* Akcje */}

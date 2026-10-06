@@ -19,7 +19,7 @@ export const DashboardDisclosureStream: FC<Props> = ({ items, onViewAll }) => {
             Strumień ujawnień
           </span>
           <p className="text-3xs text-text-secondary mt-0.5">
-            Ostatnie zgłoszenia Form 4, transakcje Kongresu i pozycje KNF
+            Daty zgłoszeń Form 4 i STOCK Act oraz daty pozycji KNF · ostatnie 14 dni
           </p>
         </div>
         <Button
@@ -38,7 +38,7 @@ export const DashboardDisclosureStream: FC<Props> = ({ items, onViewAll }) => {
       <div className="max-h-72 overflow-y-auto divide-y divide-border-custom/30 pr-1">
         {items.length === 0 ? (
           <div className="py-12 text-center text-xs text-text-secondary">
-            Brak najnowszych ujawnień w rejestrze.
+            Brak zgłoszeń w odczytanym oknie 14 dni. Status odczytu i pokrycia źródeł powyżej.
           </div>
         ) : (
           items.map((item) => (

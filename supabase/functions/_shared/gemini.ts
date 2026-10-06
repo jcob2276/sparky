@@ -3,7 +3,8 @@ import { fetchWithRetry } from "./httpClient.ts";
 import type { OpenAIChatParams, OpenAIChatResult } from "./openai.ts";
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta";
-const DEFAULT_GEMINI_MODEL = "gemini-3.6-flash";
+const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
+const FALLBACK_GEMINI_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash"];
 const DEFAULT_EMBEDDING_MODEL = "gemini-embedding-001";
 
 interface GeminiPart {
@@ -106,49 +107,70 @@ export async function geminiChat(params: OpenAIChatParams): Promise<OpenAIChatRe
     reqBody.systemInstruction = { parts: [{ text: systemInstructionText }] };
   }
 
-  const url = `${GEMINI_API_URL}/models/${model}:generateContent?key=${apiKey}`;
-  const res = await fetchWithRetry(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(reqBody),
-  }, { timeoutMs: params.timeoutMs ?? 45000, retries: 1, logTag: "gemini.chat" });
+  const candidateModels = (params.model && params.model.startsWith("gemini-"))
+    ? [params.model, DEFAULT_GEMINI_MODEL, ...FALLBACK_GEMINI_MODELS]
+    : [DEFAULT_GEMINI_MODEL, ...FALLBACK_GEMINI_MODELS];
+  const uniqueModels = [...new Set(candidateModels)];
+  let lastErr: unknown;
 
-  if (!res.ok) {
-    const errText = await res.text().catch(() => "");
-    throw new Error(`Gemini error (${res.status}): ${errText.slice(0, 300)}`);
-  }
+  for (const model of uniqueModels) {
+    const url = `${GEMINI_API_URL}/models/${model}:generateContent?key=${apiKey}`;
+    try {
+      const res = await fetchWithRetry(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(reqBody),
+      }, { timeoutMs: params.timeoutMs ?? 45000, retries: 1, logTag: `gemini.chat.${model}` });
 
-  const raw = (await res.json()) as GeminiApiResponse;
-  if (raw.error) throw new Error(`Gemini API Error (${raw.error.code}): ${raw.error.message}`);
-  const content = raw.candidates?.[0]?.content?.parts?.find((p) => typeof p.text === "string")?.text ?? "";
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        if (res.status === 404 || res.status === 400) {
+          console.warn(`[geminiChat] Model ${model} returned ${res.status}, trying fallback...`);
+          lastErr = new Error(`Gemini error (${res.status}): ${errText.slice(0, 300)}`);
+          continue;
+        }
+        throw new Error(`Gemini error (${res.status}): ${errText.slice(0, 300)}`);
+      }
 
-  try {
-    const usage = raw.usageMetadata;
-    if (usage) {
-      const promptTokens = Number(usage.promptTokenCount ?? 0);
-      const completionTokens = Number(usage.candidatesTokenCount ?? 0);
-      const totalTokens = Number(usage.totalTokenCount ?? 0);
-      const costEst = (promptTokens * 0.10 + completionTokens * 0.40) / 1000000.0;
+      const raw = (await res.json()) as GeminiApiResponse;
+      if (raw.error) {
+        console.warn(`[geminiChat] Model ${model} returned error ${raw.error.code}, trying fallback...`);
+        lastErr = new Error(`Gemini API Error (${raw.error.code}): ${raw.error.message}`);
+        continue;
+      }
+      const content = raw.candidates?.[0]?.content?.parts?.find((p) => typeof p.text === "string")?.text ?? "";
 
-      const supabaseClient = createServiceClient();
-      await supabaseClient.from("vanguard_llm_usage").insert({
-        user_id: params.userId || null,
-        model,
-        prompt_tokens: promptTokens,
-        completion_tokens: completionTokens,
-        total_tokens: totalTokens,
-        cost_est: costEst,
-        feature: params.feature || null,
-      });
+      try {
+        const usage = raw.usageMetadata;
+        if (usage) {
+          const promptTokens = Number(usage.promptTokenCount ?? 0);
+          const completionTokens = Number(usage.candidatesTokenCount ?? 0);
+          const totalTokens = Number(usage.totalTokenCount ?? 0);
+          const costEst = (promptTokens * 0.10 + completionTokens * 0.40) / 1000000.0;
+          const supabaseClient = createServiceClient();
+          await supabaseClient.from("vanguard_llm_usage").insert({
+            user_id: params.userId || null,
+            model,
+            prompt_tokens: promptTokens,
+            completion_tokens: completionTokens,
+            total_tokens: totalTokens,
+            cost_est: costEst,
+            feature: params.feature || null,
+          });
+        }
+      } catch (err) {
+        console.error("[geminiChat] Failed to log token usage:", err);
+      }
+
+      return { content, raw };
+    } catch (err) {
+      console.warn(`[geminiChat] Model ${model} request failed:`, err);
+      lastErr = err;
     }
-  } catch (err) {
-    console.error("[geminiChat] Failed to log token usage:", err);
   }
 
-  return { content, raw };
+  throw lastErr || new Error("[geminiChat] All candidate models failed");
 }
-
-const FALLBACK_GEMINI_MODELS = ["gemini-2.5-flash", "gemini-1.5-flash"];
 
 /** Transcribe audio blob via Gemini Flash (with model fallback) */
 export async function geminiTranscribe(

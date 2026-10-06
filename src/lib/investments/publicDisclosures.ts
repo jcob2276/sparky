@@ -1,4 +1,5 @@
 import { orcaSelect } from './superinvestorsApi';
+import type { RawPublicInsider } from './insidersService';
 import type { InsiderTradeItem } from './investmentsApi';
 
 interface PoliticianEmbed {
@@ -78,14 +79,7 @@ export async function fetchRecentCongress(limit = 12): Promise<InsiderTradeItem[
   return rows.map(mapStockAct);
 }
 
-interface Form4Raw {
-  id?: string | number;
-  ticker?: string | null;
-  company_name?: string | null;
-  transaction_code?: string | null;
-  transaction_date?: string | null;
-  filing_date?: string | null;
-}
+type Form4Raw = RawPublicInsider;
 
 function form4Label(code: string | null): string {
   if (code === 'P') return 'purchase';
@@ -95,13 +89,13 @@ function form4Label(code: string | null): string {
 
 export async function fetchForm4Trades(): Promise<InsiderTradeItem[]> {
   const rows = await orcaSelect<Form4Raw>(
-    'vw_insider_public?select=id,ticker,company_name,transaction_code,transaction_date,filing_date&order=filing_date.desc.nullslast&limit=1000',
+    'vw_sec_form4_public?order=filing_date.desc.nullslast&limit=1000',
   );
   return rows.map((row) => ({
     id: String(row.id ?? `${row.ticker ?? 'form4'}-${row.filing_date ?? ''}`),
-    source_id: null,
-    filer_id: null,
-    filer_name: row.company_name || 'Form 4',
+    source_id: row.accession ?? null,
+    filer_id: row.filer_id ?? null,
+    filer_name: row.filer_name || '—',
     branch: 'form4',
     chamber: null,
     party: null,
@@ -110,13 +104,13 @@ export async function fetchForm4Trades(): Promise<InsiderTradeItem[]> {
     asset_name: row.company_name ?? null,
     asset_type: 'form4',
     transaction_type: form4Label(row.transaction_code ?? null),
-    amount_low: null,
-    amount_high: null,
-    amount_label: null,
+    amount_low: row.value_usd ?? null,
+    amount_high: row.value_usd ?? null,
+    amount_label: money(row.value_usd ?? null),
     transaction_date: row.transaction_date ?? null,
     filing_date: row.filing_date ?? null,
     days_to_file: daysBetween(row.transaction_date ?? null, row.filing_date ?? null),
-    doc_url: null,
+    doc_url: row.doc_url ?? null,
     created_at: row.filing_date || row.transaction_date || '',
   }));
 }

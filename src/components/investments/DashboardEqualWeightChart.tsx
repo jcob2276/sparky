@@ -1,115 +1,21 @@
-import { FC, useEffect, useState, useId } from 'react';
+import { FC, useId } from 'react';
 import Button from '../ui/Button';
 import { ArrowRight, TrendingUp } from 'lucide-react';
-import { orcaSelect } from '../../lib/investments/superinvestorsApi';
+import { useDashboardIndex } from '../../lib/investments/dashboardIndex';
 
 interface Props {
   watchlist: string[];
   onNavigateToWatchlist: () => void;
 }
 
-interface RawDailyPrice {
-  ticker?: string;
-  date?: string;
-  close_raw?: number;
-}
-
-interface IndexResult {
-  dates: string[];
-  values: number[];
-  totalReturn: number;
-}
-
-function computeEqualWeightSeries(
-  watchlist: string[],
-  prices: RawDailyPrice[]
-): IndexResult | null {
-  if (!prices || prices.length === 0) return null;
-
-  const dateMap = new Map<string, Map<string, number>>();
-  for (const p of prices) {
-    if (!p.date || !p.ticker || p.close_raw == null || p.close_raw <= 0) continue;
-    const byTicker = dateMap.get(p.date) || new Map<string, number>();
-    byTicker.set(p.ticker.toUpperCase(), p.close_raw);
-    dateMap.set(p.date, byTicker);
-  }
-
-  const sortedDates = Array.from(dateMap.keys()).sort();
-  if (sortedDates.length < 2) return null;
-
-  const basePrices = new Map<string, number>();
-  for (const ticker of watchlist) {
-    const sym = ticker.toUpperCase();
-    for (const d of sortedDates) {
-      const p = dateMap.get(d)?.get(sym);
-      if (p != null) {
-        basePrices.set(sym, p);
-        break;
-      }
-    }
-  }
-
-  const values = sortedDates.map((d) => {
-    const dayPrices = dateMap.get(d)!;
-    let sumRel = 0;
-    let count = 0;
-    for (const ticker of watchlist) {
-      const sym = ticker.toUpperCase();
-      const curr = dayPrices.get(sym);
-      const base = basePrices.get(sym);
-      if (curr != null && base != null && base > 0) {
-        sumRel += curr / base;
-        count++;
-      }
-    }
-    return count > 0 ? (sumRel / count) * 100 : 100;
-  });
-
-  const startVal = values[0] || 100;
-  const endVal = values[values.length - 1] || 100;
-  const totalReturn = Number((((endVal - startVal) / startVal) * 100).toFixed(2));
-
-  return { dates: sortedDates, values, totalReturn };
-}
-
 export const DashboardEqualWeightChart: FC<Props> = ({
   watchlist,
   onNavigateToWatchlist,
 }) => {
-  const [chartData, setChartData] = useState<IndexResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const query = useDashboardIndex(watchlist);
   const gradientId = useId();
-
-  useEffect(() => {
-    if (watchlist.length === 0) return;
-
-    let active = true;
-    const timer = setTimeout(() => {
-      setLoading(true);
-      const encTickers = watchlist.map((t) => encodeURIComponent(t.toUpperCase())).join(',');
-
-      orcaSelect<RawDailyPrice>(
-        `prices_daily?ticker=in.(${encTickers})&order=date.desc&limit=${watchlist.length * 30}`
-      )
-        .then((prices) => {
-          if (!active) return;
-          setChartData(computeEqualWeightSeries(watchlist, prices));
-        })
-        .catch(() => {
-          if (active) setChartData(null);
-        })
-        .finally(() => {
-          if (active) setLoading(false);
-        });
-    }, 0);
-
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, [watchlist]);
-
-  const effectiveData = watchlist.length === 0 ? null : chartData;
+  const loading = query.isPending && watchlist.length > 0;
+  const effectiveData = query.data ?? null;
   const isEmpty = watchlist.length === 0;
 
   return (
@@ -117,7 +23,7 @@ export const DashboardEqualWeightChart: FC<Props> = ({
       <div className="flex items-center justify-between pb-3 border-b border-border-custom/40">
         <div className="flex items-center gap-2">
           <span className="text-xs font-black uppercase tracking-wider text-text-muted">
-            Watchlista - Indeks równych wag
+            Watchlista · indeks cen równych wag
           </span>
           {effectiveData && (
             <span
@@ -127,7 +33,7 @@ export const DashboardEqualWeightChart: FC<Props> = ({
                   : 'bg-danger/10 text-danger border border-danger/20'
               }`}
             >
-              {effectiveData.totalReturn >= 0 ? `+${effectiveData.totalReturn}%` : `${effectiveData.totalReturn}%`} (30D)
+              {effectiveData.totalReturn >= 0 ? `+${effectiveData.totalReturn}%` : `${effectiveData.totalReturn}%`} (dostępny okres)
             </span>
           )}
         </div>
@@ -143,6 +49,7 @@ export const DashboardEqualWeightChart: FC<Props> = ({
         </Button>
       </div>
 
+      <p className="text-3xs text-text-muted">Ceny surowe w walutach lokalnych, bez dywidend, korekt splitów i przeliczenia FX. Wyłącznie wspólne daty wszystkich spółek; to nie wynik portfela.</p>
       {/* Main Area */}
       {isEmpty ? (
         <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
@@ -212,7 +119,7 @@ export const DashboardEqualWeightChart: FC<Props> = ({
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-xs text-text-secondary">Trwa synchronizacja notowań dla spółek z watchlisty.</p>
+          <p className="text-xs text-text-secondary">{query.error ? "Błąd odczytu cen. Spróbuj odświeżyć." : "Brak dwóch wspólnych dat notowań dla całej watchlisty."}</p>
         </div>
       )}
     </div>

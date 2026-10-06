@@ -25,11 +25,13 @@ export const GpwFundamentalsHeader: FC<Props> = ({
             Wskaźniki {companyCount > 0 ? `${companyCount} spółek` : 'spółek'} rynku głównego GPW.
             {' '}Dane i prognozy: TradingView. Waluty: NBP. Brakujące wartości oznaczono „—”.
             {' '}Prognozy forward C/Z: {forecastCount} spółek.
+            {' '}Data pobrania nie jest datą raportu. Źródło nie podaje tu okresu każdego wskaźnika;
+            przed porównaniem sprawdź raport spółki. Notowania i kapitalizacja mogą być opóźnione.
           </p>
         </div>
 
         <div className="text-3xs font-mono font-medium text-text-muted shrink-0">
-          {refreshedDate ? `odświeżono ${refreshedDate}` : 'Brak daty aktualizacji'}
+          {refreshedDate ? `pobrano ${refreshedDate}` : 'Brak daty pobrania'}
         </div>
       </div>
 

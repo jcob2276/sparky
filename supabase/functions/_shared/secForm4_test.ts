@@ -1,0 +1,17 @@
+import { parseOwnership, parseMasterIndex } from './secForm4.ts';
+function equal(actual: unknown, expected: unknown) { if (JSON.stringify(actual) !== JSON.stringify(expected)) throw new Error(`Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`); }
+const filing = { accession: '0001234567-26-000001', filing_date: '2026-10-05', doc_url: 'https://www.sec.gov/Archives/edgar/data/123/000123456726000001/ownership.xml' };
+const xml = `<ownershipDocument><documentType>4</documentType><issuer><issuerCik>123</issuerCik><issuerName>Example &amp; Co</issuerName><issuerTradingSymbol>XYZ</issuerTradingSymbol></issuer><reportingOwner><reportingOwnerId><rptOwnerCik>456</rptOwnerCik><rptOwnerName>Jane Doe</rptOwnerName></reportingOwnerId><reportingOwnerRelationship><isOfficer>1</isOfficer><officerTitle>CFO</officerTitle></reportingOwnerRelationship></reportingOwner><nonDerivativeTable><nonDerivativeTransaction><securityTitle><value>Common</value></securityTitle><transactionDate><value>2026-10-02</value></transactionDate><transactionCoding><transactionCode>P</transactionCode></transactionCoding><transactionAmounts><transactionShares><value>125.5</value></transactionShares><transactionPricePerShare><value>20</value></transactionPricePerShare><transactionAcquiredDisposedCode><value>A</value></transactionAcquiredDisposedCode></transactionAmounts></nonDerivativeTransaction><nonDerivativeTransaction><transactionCoding><transactionCode>F</transactionCode></transactionCoding><transactionAmounts><transactionShares><value>5</value></transactionShares><transactionPricePerShare><footnoteId id="F1"/></transactionPricePerShare></transactionAmounts></nonDerivativeTransaction></nonDerivativeTable><footnotes><footnote id="F1">Price not reported.</footnote></footnotes></ownershipDocument>`;
+Deno.test('ownership rows retain reported owner, exact decimals, non-market code and unknown price', () => {
+ const rows = parseOwnership(xml, filing);
+ equal(rows.length, 2); equal(rows[0].filer_name, 'Jane Doe'); equal(rows[0].shares, 125.5); equal(rows[0].value_usd, 2510); equal(rows[0].asset_name, 'Example & Co');
+ equal(rows[1].transaction_code, 'F'); equal(rows[1].price_usd, null); equal(rows[1].value_usd, null); equal(rows[1].transaction_date, null);
+});
+Deno.test('joint owners are one transaction, derivative rows have distinct stable identity', () => {
+ const joint = xml.replace('</ownershipDocument>', '<reportingOwner><reportingOwnerId><rptOwnerName>Trust</rptOwnerName></reportingOwnerId></reportingOwner><derivativeTable><derivativeTransaction><transactionCoding><transactionCode>M</transactionCode></transactionCoding></derivativeTransaction></derivativeTable></ownershipDocument>');
+ const rows = parseOwnership(joint, filing); equal(rows.length, 3); equal(rows[0].filer_name, 'Jane Doe; Trust'); equal(rows[2].is_derivative, true); equal(new Set(rows.map(r=>r.id)).size, 3);
+});
+Deno.test('daily index includes all issuers and amendments, excludes other forms and duplicate accession', () => {
+ const rows = parseMasterIndex('CIK|Company Name|Form Type|Date Filed|Filename\n123|Example|4|2026-10-05|edgar/data/123/0001234567-26-000001.txt\n456|Jane|4|2026-10-05|edgar/data/456/0001234567-26-000001.txt\n789|Another|4/A|2026-10-05|edgar/data/789/0001234567-26-000002.txt\n123|Example|10-Q|2026-10-05|edgar/data/123/other.txt');
+ equal(rows.length, 2); equal(rows[1].form_type, '4/A');
+});

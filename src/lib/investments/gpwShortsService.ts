@@ -1,262 +1,92 @@
-/**
- * gpwShortsService.ts — Pobieranie i analityka pozycji krótkich KNF na GPW.
- * Zwraca 66 spółek (37 aktywnych, 29 historycznych), KPI, wykresy dual-axis oraz zmiany 14D.
- */
-
 import { orcaSelect } from './superinvestorsApi';
-import { shiftDateStr, getTodayWarsaw } from '../date';
+import { shiftDateStr, getTodayWarsaw, formatLongDateWarsaw } from '../date';
 
 export interface GpwShortCompany {
-  ticker: string;
-  companyName: string;
-  totalPct: number;
-  publicHoldersCount: number;
-  topHolder: string;
-  lastChange: string;
-  isHistorical: boolean;
-  diff14d: number | null;
+  ticker: string; companyName: string; totalPct: number; publicHoldersCount: number;
+  topHolder: string; lastChange: string; isHistorical: boolean; diff14d: number | null;
 }
-
 export interface GpwShortsKpis {
-  totalCompanies: number;
-  activePositions: number;
-  highestShortPct: number;
-  highestShortTicker: string;
-  lastRegisterChange: string;
-  activeCount: number;
-  historicalCount: number;
+  totalCompanies: number; activePositions: number; highestShortPct: number | null;
+  highestShortTicker: string | null; lastRegisterChange: string | null;
+  activeCount: number; historicalCount: number;
 }
-
-export interface Gpw14dMover {
-  ticker: string;
-  name: string;
-  diff14d: number;
-}
-
+export interface Gpw14dMover { ticker: string; name: string; diff14d: number }
 export interface GpwShortChartData {
-  ticker: string;
-  companyName: string;
-  shortPct: number;
-  latestPrice: number;
-  startDateLabel: string;
-  endDateLabel: string;
-  points: { date: string; shortPct: number; price: number }[];
+  ticker: string; companyName: string; shortPct: number | null; latestPrice: number | null;
+  startDateLabel: string; endDateLabel: string; priceDate: string | null; shortDate: string | null;
+  priceSourceUrl: string | null;
+  points: { date: string; shortPct: number | null; price: number | null }[];
+  reportedPositions: { holder: string; pct: number; date: string; sourceUrl: string }[];
 }
-
 interface RawShortAgg {
-  company?: string;
-  ticker?: string;
-  total_pct?: number | null;
-  public_holders?: number | null;
-  below_threshold?: number | null;
-  last_change?: string | null;
-  top_holder?: string | null;
-  top_holder_pct?: number | null;
+  company: string; ticker?: string | null; total_pct: number; public_holders: number;
+  last_change?: string | null; top_holder?: string | null;
 }
-
 interface RawShortsHistory {
-  ticker?: string | null;
-  company?: string | null;
-  position_date?: string;
-  total_pct?: number | null;
+  ticker?: string | null; company?: string; position_date: string; total_pct: number | null;
+}
+interface RawDailyPrice { date: string; close_raw?: number | null; currency?: string | null; source_url?: string | null }
+interface RawPositionReport { holder: string; position_pct: number; position_date: string; source_url: string }
+
+export async function fetchGpwShortsData() {
+  const [rawAgg, history] = await Promise.all([
+    orcaSelect<RawShortAgg>('vw_gpw_shorts_agg?order=total_pct.desc,company.asc', { strict: true }),
+    orcaSelect<RawShortsHistory>('vw_knf_shorts_baseline_14d?order=company.asc', { strict: true }),
+  ]);
+  if (rawAgg.length >= 20000 || history.length >= 20000) throw new Error('Niepełny odczyt historii KNF');
+  const cutoff = shiftDateStr(getTodayWarsaw(), -14);
+  const companies: GpwShortCompany[] = rawAgg.map((row) => {
+    if (!row.company || !Number.isFinite(row.total_pct) || !Number.isInteger(row.public_holders))
+      throw new Error('Niepełny agregat KNF');
+    const ticker = row.ticker ?? row.company;
+    const baseline = history.filter(h => h.company === row.company || (row.ticker && h.ticker === row.ticker))
+      .filter(h => h.position_date <= cutoff && h.total_pct != null)
+      .sort((a, b) => b.position_date.localeCompare(a.position_date))[0];
+    return { ticker, companyName: row.company, totalPct: row.total_pct, publicHoldersCount: row.public_holders,
+      topHolder: row.top_holder ?? '—', lastChange: row.last_change ? formatLongDateWarsaw(row.last_change) : '—',
+      isHistorical: row.public_holders === 0,
+      diff14d: baseline ? Math.round((row.total_pct - baseline.total_pct!) * 100) / 100 : null };
+  });
+  const active = companies.filter(c => !c.isHistorical);
+  const highest = [...active].sort((a, b) => b.totalPct - a.totalPct)[0];
+  const latestDate = rawAgg.map(r => r.last_change).filter((date): date is string => Boolean(date)).sort().at(-1) ?? null;
+  const movers = companies.filter((c): c is GpwShortCompany & { diff14d: number } => c.diff14d != null)
+    .map(c => ({ ticker: c.ticker, name: c.companyName, diff14d: c.diff14d }));
+  const kpis: GpwShortsKpis = { totalCompanies: companies.length,
+    activePositions: active.reduce((sum, c) => sum + c.publicHoldersCount, 0),
+    highestShortPct: highest?.totalPct ?? null, highestShortTicker: highest?.ticker ?? null,
+    lastRegisterChange: latestDate, activeCount: active.length, historicalCount: companies.length - active.length };
+  return { companies, kpis, increases: movers.filter(m => m.diff14d > 0).sort((a, b) => b.diff14d - a.diff14d).slice(0, 3),
+    decreases: movers.filter(m => m.diff14d < 0).sort((a, b) => a.diff14d - b.diff14d).slice(0, 3) };
 }
 
-interface RawDailyPrice {
-  date?: string;
-  close_adj?: number | null;
-}
-
-function formatPlDate(dStr?: string | null): string {
-  if (!dStr) return '—';
-  const parts = dStr.slice(0, 10).split('-');
-  if (parts.length === 3) {
-    return `${parts[2]}.${parts[1]}.${parts[0]}`;
-  }
-  return dStr;
-}
-
-export async function fetchGpwShortsData(): Promise<{
-  companies: GpwShortCompany[];
-  kpis: GpwShortsKpis;
-  increases: Gpw14dMover[];
-  decreases: Gpw14dMover[];
-}> {
-  try {
-    const [rawAgg, history] = await Promise.all([
-      orcaSelect<RawShortAgg>(
-        'vw_gpw_shorts_agg?order=total_pct.desc&limit=100'
-      ),
-      orcaSelect<RawShortsHistory>(
-        'vw_gpw_shorts_history?order=position_date.desc&limit=1500'
-      ),
-    ]);
-
-    // Mapa historii pozycji dla wyliczenia trendu 14D
-    const historyMap = new Map<string, RawShortsHistory[]>();
-    for (const h of history) {
-      const k = (h.ticker || h.company || '').toUpperCase().trim();
-      if (!k) continue;
-      const list = historyMap.get(k) || [];
-      list.push(h);
-      historyMap.set(k, list);
-    }
-
-    const todayStr = getTodayWarsaw();
-    const fourteenDaysAgo = shiftDateStr(todayStr, -14);
-
-    const companies: GpwShortCompany[] = rawAgg.map((r) => {
-      const ticker = (r.ticker || r.company || 'GPW').toUpperCase().trim();
-      const companyName = r.company || ticker;
-      const totalPct = typeof r.total_pct === 'number' ? Math.round(r.total_pct * 100) / 100 : 0;
-      const publicHoldersCount = typeof r.public_holders === 'number' ? r.public_holders : 0;
-      const topHolder = r.top_holder || '—';
-      const lastChange = formatPlDate(r.last_change);
-      const isHistorical = totalPct === 0;
-
-      // Obliczanie zmiany 14D
-      const hList = historyMap.get(ticker) || historyMap.get(companyName.toUpperCase()) || [];
-      let diff14d: number | null = null;
-      if (totalPct > 0 && hList.length > 0) {
-        hList.sort((a, b) => (b.position_date || '').localeCompare(a.position_date || ''));
-        const latest = hList[0];
-        const old = hList.find((h) => (h.position_date || '') <= fourteenDaysAgo) || hList[hList.length - 1];
-        if (latest && old && latest.total_pct != null && old.total_pct != null) {
-          diff14d = Math.round((latest.total_pct - old.total_pct) * 100) / 100;
-        }
-      }
-
-      return {
-        ticker,
-        companyName,
-        totalPct,
-        publicHoldersCount,
-        topHolder,
-        lastChange,
-        isHistorical,
-        diff14d,
-      };
-    });
-
-    const activeCount = companies.filter((c) => !c.isHistorical).length;
-    const historicalCount = companies.filter((c) => c.isHistorical).length;
-
-    // Najwyższy short
-    const highest = companies[0] || { totalPct: 6.01, ticker: 'MDV' };
-
-    // Najnowsza data w rejestrze
-    let lastDate = '23.09.2026';
-    for (const c of companies) {
-      if (c.lastChange && c.lastChange !== '—' && !c.isHistorical) {
-        lastDate = c.lastChange;
-        break;
-      }
-    }
-
-    const kpis: GpwShortsKpis = {
-      totalCompanies: companies.length || 66,
-      activePositions: 49,
-      highestShortPct: highest.totalPct || 6.01,
-      highestShortTicker: highest.ticker || 'MDV',
-      lastRegisterChange: lastDate,
-      activeCount: activeCount || 37,
-      historicalCount: historicalCount || 29,
-    };
-
-    // 14D Movers
-    const increases: Gpw14dMover[] = [
-      { ticker: 'MDV', name: 'MODIVO', diff14d: 0.64 },
-      { ticker: 'CRI', name: 'CREOTECH', diff14d: 0.52 },
-      { ticker: 'DNP', name: 'DINO POLSKA', diff14d: 0.11 },
-    ];
-
-    const decreases: Gpw14dMover[] = [
-      { ticker: 'ALE', name: 'ALLEGRO', diff14d: -0.31 },
-      { ticker: 'JSW', name: 'JSW', diff14d: -0.13 },
-      { ticker: 'CDR', name: 'CD PROJEKT', diff14d: -0.06 },
-    ];
-
-    return { companies, kpis, increases, decreases };
-  } catch (err) {
-    console.warn('[gpwShortsService] fetchGpwShortsData error:', err);
-    return {
-      companies: [],
-      kpis: {
-        totalCompanies: 66,
-        activePositions: 49,
-        highestShortPct: 6.01,
-        highestShortTicker: 'MDV',
-        lastRegisterChange: '23.09.2026',
-        activeCount: 37,
-        historicalCount: 29,
-      },
-      increases: [
-        { ticker: 'MDV', name: 'MODIVO', diff14d: 0.64 },
-        { ticker: 'CRI', name: 'CREOTECH', diff14d: 0.52 },
-        { ticker: 'DNP', name: 'DINO POLSKA', diff14d: 0.11 },
-      ],
-      decreases: [
-        { ticker: 'ALE', name: 'ALLEGRO', diff14d: -0.31 },
-        { ticker: 'JSW', name: 'JSW', diff14d: -0.13 },
-        { ticker: 'CDR', name: 'CD PROJEKT', diff14d: -0.06 },
-      ],
-    };
-  }
-}
-
-export async function fetchShortVsPriceChart(
-  ticker: string,
-  companyName: string
-): Promise<GpwShortChartData> {
-  const cleanTicker = ticker.toUpperCase().replace('.WA', '').trim();
-  const ninetyDaysAgo = shiftDateStr(getTodayWarsaw(), -90);
-
-  try {
-    const [shortsHist, prices] = await Promise.all([
-      orcaSelect<RawShortsHistory>(
-        `vw_gpw_shorts_history?company=ilike.*${encodeURIComponent(cleanTicker)}*&position_date=gte.${ninetyDaysAgo}&order=position_date.asc`
-      ).catch(() => []),
-      orcaSelect<RawDailyPrice>(
-        `prices_daily?ticker=eq.${cleanTicker}.WA&date=gte.${ninetyDaysAgo}&order=date.asc&select=date,close_adj`
-      ).catch(() => []),
-    ]);
-
-    const latestPrice = prices[prices.length - 1]?.close_adj ?? 92.04;
-    const latestShort = shortsHist[shortsHist.length - 1]?.total_pct ?? 6.01;
-
-    const startDate = prices[0]?.date ? formatPlDate(prices[0].date) : '27.06.2026';
-    const endDate = prices[prices.length - 1]?.date
-      ? formatPlDate(prices[prices.length - 1].date)
-      : '25.09.2026';
-
-    const points = prices.map((p, idx) => {
-      const matchShort = shortsHist.find((s) => s.position_date === p.date);
-      const shortPct = matchShort?.total_pct ?? (idx > 20 ? latestShort : latestShort * 0.85);
-      return {
-        date: p.date || '',
-        shortPct,
-        price: p.close_adj || latestPrice,
-      };
-    });
-
-    return {
-      ticker: cleanTicker,
-      companyName,
-      shortPct: latestShort,
-      latestPrice,
-      startDateLabel: startDate,
-      endDateLabel: endDate,
-      points,
-    };
-  } catch (err) {
-    console.warn('[gpwShortsService] fetchShortVsPriceChart error:', err);
-    return {
-      ticker: cleanTicker,
-      companyName,
-      shortPct: 6.01,
-      latestPrice: 92.04,
-      startDateLabel: '27.06.2026',
-      endDateLabel: '25.09.2026',
-      points: [],
-    };
-  }
+export async function fetchShortVsPriceChart(ticker: string, companyName: string): Promise<GpwShortChartData> {
+  const cleanTicker = ticker.toUpperCase().replace(/\.(WA|PL)$/, '').trim();
+  const today = getTodayWarsaw();
+  const since = shiftDateStr(today, -90);
+  const [history, prices, reports] = await Promise.all([
+    orcaSelect<RawShortsHistory>(`knf_short_snapshots?company=eq.${encodeURIComponent(companyName)}&observed_date=gte.${since}&observed_date=lte.${today}&order=observed_date.asc&select=company,ticker,position_date:observed_date,total_pct`, { strict: true }),
+    orcaSelect<RawDailyPrice>(`prices_daily?or=(ticker.eq.${encodeURIComponent(cleanTicker)},ticker.eq.${encodeURIComponent(cleanTicker)}.WA)&date=gte.${since}&date=lte.${today}&currency=eq.PLN&order=date.asc&select=date,close_raw,currency,source_url`, { strict: true }),
+    orcaSelect<RawPositionReport>(`knf_disclosed_positions?company=eq.${encodeURIComponent(companyName)}&position_date=lte.${today}&order=position_date.desc,modify_date.desc.nullslast,external_id.asc&limit=5&select=holder,position_pct,position_date,source_url`, { strict: true }),
+  ]);
+  if (history.length >= 20000 || prices.length >= 20000) throw new Error('Niepełny odczyt wykresu KNF');
+  const known = history.filter(h => h.total_pct != null && Number.isFinite(h.total_pct))
+    .sort((a, b) => a.position_date.localeCompare(b.position_date));
+  const quoted = prices.filter(p => p.currency === 'PLN' && p.close_raw != null && Number.isFinite(p.close_raw) && p.close_raw > 0)
+    .sort((a, b) => a.date.localeCompare(b.date));
+  const dates = [...new Set([...known.filter(h => h.position_date >= since).map(h => h.position_date), ...quoted.map(p => p.date)])].sort();
+  let cursor = 0;
+  let lastShort: number | null = null;
+  const points = dates.map(date => {
+    while (cursor < known.length && known[cursor].position_date <= date) lastShort = known[cursor++].total_pct;
+    return { date, shortPct: lastShort, price: quoted.find(p => p.date === date)?.close_raw ?? null };
+  });
+  const lastPrice = quoted.at(-1);
+  const lastPosition = known.at(-1);
+  return { ticker: cleanTicker, companyName, shortPct: lastPosition?.total_pct ?? null,
+    latestPrice: lastPrice?.close_raw ?? null, priceDate: lastPrice?.date ?? null, shortDate: lastPosition?.position_date ?? null,
+    priceSourceUrl: lastPrice?.source_url ?? null,
+    startDateLabel: dates[0] ? formatLongDateWarsaw(dates[0]) : '—',
+    endDateLabel: dates.at(-1) ? formatLongDateWarsaw(dates.at(-1)!) : '—', points,
+    reportedPositions: reports.map(r => ({ holder: r.holder, pct: r.position_pct, date: r.position_date, sourceUrl: r.source_url })) };
 }

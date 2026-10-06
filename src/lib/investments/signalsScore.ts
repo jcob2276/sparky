@@ -10,6 +10,7 @@ export interface SignalMetrics {
   insiderBuys: number;
   buyVolumeMid: number;
   lastTradeDate: string | null;
+  disclosureIds?: string[];
 }
 
 export interface SignalRow extends SignalMetrics {

@@ -5,6 +5,24 @@ import { orcaSelect } from './superinvestorsApi';
 afterEach(() => vi.unstubAllGlobals());
 
 describe('GPW fundamentals data contract', () => {
+  it('preserves source provenance and distinguishes fetch time from report time', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify([
+      { ticker: 'XTB', source_system: 'tradingview_scanner',
+        source_url: 'https://www.tradingview.com/symbols/GPW-XTB/financials-overview/',
+        fx_date: '2026-10-05', refreshed_at: '2026-10-06T09:00:00Z' },
+    ]))));
+    const { companies } = await fetchGpwFundamentalsList();
+    expect(companies[0]).toMatchObject({ sourceSystem: 'tradingview_scanner',
+      sourceUrl: 'https://www.tradingview.com/symbols/GPW-XTB/financials-overview/', fxDate: '2026-10-05' });
+  });
+
+  it('does not present malformed refresh dates as verified freshness', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify([
+      { ticker: 'XTB', refreshed_at: 'not-a-date' },
+    ]))));
+    expect((await fetchGpwFundamentalsList()).refreshedDate).toBeNull();
+  });
+
   it('surfaces a schema error instead of reporting a successful empty list', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(
       JSON.stringify({ code: '42703', message: 'column sector does not exist' }),

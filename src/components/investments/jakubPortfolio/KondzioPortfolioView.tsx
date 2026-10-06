@@ -1,16 +1,17 @@
 import { FC, useState } from 'react';
 import {
-  KondzioPortfolioData,
+
   loadKondzioPortfolio,
   saveKondzioPortfolio,
   resetKondzioPortfolio,
 } from '../../../lib/investments/kondzioPortfolioStorage';
+import { useLocalInvestmentPortfolio } from '../../../lib/investments/useLocalInvestmentPortfolio';
 import { syncKondzioMarketPrices } from '../../../lib/investments/portfolioSyncService';
 import { KondzioPortfolioSummaryCard } from './KondzioPortfolioSummaryCard';
 import { JakubHoldingItem } from './JakubHoldingItem';
 import { PortfolioSubNav } from './PortfolioSubNav';
 import { PortfolioForecastCard } from './PortfolioForecastCard';
-import { confirmDialog, notify } from '../../../lib/notify';
+import { notify } from '../../../lib/notify';
 import { formatShortDateWarsaw } from '../../../lib/date';
 import type { MainTabType } from '../InvestmentsPage';
 
@@ -19,40 +20,8 @@ interface Props {
 }
 
 export const KondzioPortfolioView: FC<Props> = ({ onNavigateTab }) => {
-  const [portfolio, setPortfolio] = useState<KondzioPortfolioData>(loadKondzioPortfolio);
-  const [isSyncing, setIsSyncing] = useState(false);
+  const { portfolio, valuationAsOf, isSyncing, lastSyncRates, handleSyncMarket: handleSync, handleReset } = useLocalInvestmentPortfolio(loadKondzioPortfolio, saveKondzioPortfolio, resetKondzioPortfolio, syncKondzioMarketPrices, 'Czy na pewno chcesz przywrócić pierwotny stan portfela Kondzia ze zrzutu ekranu XTB?');
   const [expandedId, setExpandedId] = useState<string | null>(null);
-  const [lastSyncRates, setLastSyncRates] = useState<{ usdPln: number; eurPln: number; date: string } | null>(null);
-
-  const handleSync = async () => {
-    try {
-      setIsSyncing(true);
-      const res = await syncKondzioMarketPrices();
-      setPortfolio(res.portfolio);
-      setLastSyncRates(res.rates);
-      notify(
-        `Zaktualizowano kursy Kondzia (${res.syncedCount} pozycji). NBP: USD ${res.rates.usdPln.toFixed(2)} zł, EUR ${res.rates.eurPln.toFixed(2)} zł`,
-        'success'
-      );
-    } catch (err) {
-      console.error('[KondzioPortfolioView] sync error:', err);
-      notify('Nie udało się pobrać aktualnych kursów rynkowych', 'error');
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const handleReset = async () => {
-    const confirmed = await confirmDialog(
-      'Czy na pewno chcesz przywrócić pierwotny stan portfela Kondzia ze zrzutu ekranu XTB?'
-    );
-    if (!confirmed) return;
-    const initial = resetKondzioPortfolio();
-    setPortfolio(initial);
-    saveKondzioPortfolio(initial);
-    setLastSyncRates(null);
-    notify('Przywrócono stan początkowy portfela Kondzia', 'info');
-  };
 
   const handleAskAnalyst = (ticker: string, companyName: string) => {
     notify(`Przekierowano do Analityka AI dla waloru $${ticker}`, 'info');
@@ -93,7 +62,7 @@ export const KondzioPortfolioView: FC<Props> = ({ onNavigateTab }) => {
             Otwarte pozycje w portfelu Kondzia
           </h3>
           <span className="text-3xs font-mono text-text-muted">
-            Aktualizacja: {formatShortDateWarsaw(portfolio.lastUpdated)}
+            {valuationAsOf ? `Pełna wycena z dnia: ${formatShortDateWarsaw(valuationAsOf)}` : "Wycena mieszana / ręczna — sprawdź daty pozycji"}
           </span>
         </div>
 
@@ -116,3 +85,6 @@ export const KondzioPortfolioView: FC<Props> = ({ onNavigateTab }) => {
     </div>
   );
 };
+
+
+

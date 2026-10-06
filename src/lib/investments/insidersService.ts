@@ -39,6 +39,10 @@ export interface InsiderIntensityRow {
 
 export interface InsiderFeedItem {
   id: string;
+  transactionDate?: string | null;
+  docUrl?: string | null;
+  accession?: string | null;
+  formType?: string | null;
   filingDate: string;
   ticker: string;
   companyName: string;
@@ -55,6 +59,7 @@ export interface InsiderFeedItem {
 }
 
 export interface InsidersPageData {
+  coverage?: string;
   stats: InsiderSummaryStats;
   intensityRows: InsiderIntensityRow[];
   clusters: InsiderClusterItem[];
@@ -62,249 +67,87 @@ export interface InsidersPageData {
   feed: InsiderFeedItem[];
 }
 
-interface RawPublicInsider {
-  id: string;
-  ticker?: string;
-  company_name?: string;
-  transaction_code?: string;
-  transaction_date?: string;
-  filing_date?: string;
+export interface RawPublicInsider {
+  id: string; ticker?: string | null; company_name?: string | null; filer_name?: string | null;
+  filer_id?: string | null; insider_title?: string | null; transaction_code?: string | null;
+  transaction_date?: string | null; filing_date?: string | null; shares?: number | null;
+  price_usd?: number | null; value_usd?: number | null; doc_url?: string | null;
+  accession?: string | null; is_derivative?: boolean | null; form_type?: string | null;
 }
-
-// Zweryfikowane klastry insiderów z ostatnich 90 dni
-const VERIFIED_CLUSTERS: InsiderClusterItem[] = [
-  {
-    id: 'tsm-cluster-1',
-    ticker: 'TSM',
-    companyName: 'TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD',
-    buyersCount: 31,
-    tradesCount: 100,
-    totalValueFormatted: '$18,4 mln USD',
-    dateRange: '29.06.2026 - 19.08.2026',
-    insiderNames: ['C.C. Wei', 'Mark Liu', 'Y.L. Wang', 'Laura Ho', 'J.K. Lin'],
-  },
-  {
-    id: 'tsm-cluster-2',
-    ticker: 'TSM',
-    companyName: 'TAIWAN SEMICONDUCTOR MANUFACTURING CO LTD',
-    buyersCount: 30,
-    tradesCount: 31,
-    totalValueFormatted: '$4,2 mln USD',
-    dateRange: '07.09.2026 - 07.09.2026',
-    insiderNames: ['Sylvia Fang', 'J.K. Lin', 'Kevin Zhang', 'Y.P. Chin'],
-  },
-  {
-    id: 'bbd-cluster',
-    ticker: 'BBD',
-    companyName: 'BANK BRADESCO',
-    buyersCount: 19,
-    tradesCount: 19,
-    totalValueFormatted: '$1,8 mln USD',
-    dateRange: '18.09.2026 - 18.09.2026',
-    insiderNames: ['Octavio de Lazari', 'Marcelo Noronha', 'Cassiano Scarpelli'],
-  },
-  {
-    id: 'clbk-cluster',
-    ticker: 'CLBK',
-    companyName: 'Columbia Financial, Inc./MD/',
-    buyersCount: 16,
-    tradesCount: 30,
-    totalValueFormatted: '$820 tys. USD',
-    dateRange: '20.07.2026 - 20.07.2026',
-    insiderNames: ['Thomas J. Kemly', 'Dennis E. Gibney', 'John E. Kline'],
-  },
-  {
-    id: 'amrz-cluster',
-    ticker: 'AMRZ',
-    companyName: 'Amrize Ltd',
-    buyersCount: 11,
-    tradesCount: 17,
-    totalValueFormatted: '$460 tys. USD',
-    dateRange: '11.08.2026 - 02.09.2026',
-    insiderNames: ['David M. Johnson', 'Sarah Miller', 'Alex Thorne'],
-  },
-  {
-    id: 'sblk-cluster',
-    ticker: 'SBLK',
-    companyName: 'Star Bulk Carriers Corp.',
-    buyersCount: 8,
-    tradesCount: 9,
-    totalValueFormatted: '$1,2 mln USD',
-    dateRange: '15.09.2026 - 15.09.2026',
-    insiderNames: ['Petros Pappas', 'Hamish Norton', 'Simos Spyrou'],
-  },
-  {
-    id: 'none-cluster',
-    ticker: 'NONE',
-    companyName: 'KKR Asset-Based Finance Fund',
-    buyersCount: 8,
-    tradesCount: 9,
-    totalValueFormatted: '$3,1 mln USD',
-    dateRange: '09.07.2026 - 07.08.2026',
-    insiderNames: ['Henry Kravis', 'George Roberts', 'Scott Nuttall'],
-  },
-  {
-    id: 'cdnl-cluster',
-    ticker: 'CDNL',
-    companyName: 'Cardinal Infrastructure Group Inc.',
-    buyersCount: 7,
-    tradesCount: 13,
-    totalValueFormatted: '$540 tys. USD',
-    dateRange: '14.08.2026 - 17.08.2026',
-    insiderNames: ['Robert Sterling', 'Craig Bennett', 'Linda Myers'],
-  },
-];
-
-export async function fetchInsidersPageData(): Promise<InsidersPageData> {
-  try {
-    const rawRows = await orcaSelect<RawPublicInsider>(
-      'vw_insider_public?order=filing_date.desc.nullslast&limit=500'
-    );
-
-    let purchasesCount = 0;
-    let salesCount = 0;
-    const tickerFreq = new Map<string, number>();
-
-    const feed: InsiderFeedItem[] = rawRows.slice(0, 100).map((r, i) => {
-      const code = (r.transaction_code || 'P').toUpperCase();
-      let type: InsiderFeedItem['transactionType'] = 'direct';
-      let typeBadge = code;
-
-      if (code === 'P') {
-        type = 'purchase';
-        typeBadge = 'Kupno';
-        purchasesCount++;
-      } else if (code === 'S') {
-        type = 'sale';
-        typeBadge = 'Sprzedaż';
-        salesCount++;
-      } else if (code === 'M' || code === 'O') {
-        type = 'option';
-        typeBadge = 'Opcje';
-      } else if (code === 'A') {
-        type = 'award';
-        typeBadge = 'Nagroda';
-      } else if (code === 'D') {
-        type = 'direct';
-        typeBadge = 'D';
-      }
-
-      const ticker = r.ticker || '—';
-      tickerFreq.set(ticker, (tickerFreq.get(ticker) || 0) + 1);
-
-      // Format filing date
-      let filingDate = r.filing_date || '—';
-      if (filingDate.includes('-')) {
-        const [y, m, d] = filingDate.split('-');
-        if (y && m && d) filingDate = `${d}.${m}.${y}`;
-      }
-
-      // Synthesize realistic transaction metrics for unblurred display
-      const hash = (ticker.charCodeAt(0) * 31 + i * 17) % 100;
-      const shares = (hash + 10) * 250;
-      const price = Math.round((hash * 1.8 + 12) * 100) / 100;
-      const val = Math.round(shares * price);
-
-      return {
-        id: r.id || `${ticker}-${i}`,
-        filingDate,
-        ticker,
-        companyName: r.company_name || ticker,
-        insiderName: getKnownInsiderName(ticker, i),
-        transactionType: type,
-        typeBadgeLabel: typeBadge,
-        shares,
-        sharesFormatted: `${type === 'sale' ? '-' : '+'}${shares.toLocaleString('pl-PL')}`,
-        priceUsd: price,
-        priceFormatted: `$${price.toFixed(2)}`,
-        valueUsd: val,
-        valueFormatted: `$${val.toLocaleString('pl-PL')}`,
-      };
-    });
-
-    // Find most active ticker
-    let mostActiveTicker = 'DELL';
-    let mostActiveCount = 98;
-    tickerFreq.forEach((cnt, t) => {
-      if (cnt > mostActiveCount) {
-        mostActiveCount = cnt;
-        mostActiveTicker = t;
-      }
-    });
-
-    // Generate weekly intensity rows
-    const intensityTickers = ['TSM', 'BBD', 'CLBK', 'AMRZ', 'SBLK', 'CDNL', 'DELL', 'NVDA'];
-    const intensityRows: InsiderIntensityRow[] = intensityTickers.map((t, idx) => {
-      const baseSeed = (idx * 7 + 13) % 11;
-      const weeklyCounts = Array.from({ length: 12 }, (_, w) => {
-        return Math.max(0, Math.floor(Math.sin((w + baseSeed) * 0.8) * 8 + (idx < 2 ? 10 : 3)));
-      });
-      const total = weeklyCounts.reduce((acc, c) => acc + c, 0);
-      const company = VERIFIED_CLUSTERS.find((c) => c.ticker === t)?.companyName || `${t} Corporation`;
-      return { ticker: t, companyName: company, weeklyCounts, total };
-    });
-
-    return {
-      stats: {
-        purchasesCount: purchasesCount || 92,
-        salesCount: salesCount || 406,
-        marketPurchases90d: 3354,
-        marketSales90d: 20906,
-        marketDeltaPoints: '+4.6 pkt',
-        mostActiveTicker,
-        mostActiveFilingCount: mostActiveCount,
-        medianPerCompany: 2,
-        runRate30d: 8100,
-        avgMonthly90d: 8087,
-        runRateGrowthPct: '+0.2%',
-      },
-      intensityRows,
-      clusters: VERIFIED_CLUSTERS,
-      topSinglePurchases: 'JEF $14,2 mln · JEF $12,8 mln · MAIR $6,1 mln · SCTH $4,5 mln · LEN $3,9 mln',
-      feed,
+const number = (n: number | null | undefined): number | null => n != null && Number.isFinite(Number(n)) ? Number(n) : null;
+const money = (n: number | null): string => n == null ? '—' : `$${n.toLocaleString('pl-PL', { maximumFractionDigits: 2 })}`;
+const ownerKey = (r: RawPublicInsider) => r.filer_id || r.filer_name || r.id;
+export function buildInsidersPageData(rawRows: RawPublicInsider[], now = new Date()): InsidersPageData {
+  const cutoff = now.getTime() - 90 * 86400000;
+  const rows = rawRows.filter(r => r.filing_date && Date.parse(r.filing_date) >= cutoff && Date.parse(r.filing_date) <= now.getTime());
+  const feed: InsiderFeedItem[] = rows.slice(0, 100).map(r => {
+    const code = r.transaction_code || '—';
+    const type: InsiderFeedItem['transactionType'] = code === 'P' ? 'purchase' : code === 'S' ? 'sale' : ['M', 'O'].includes(code) ? 'option' : code === 'A' ? 'award' : 'direct';
+    const shares = number(r.shares); const price = number(r.price_usd); const value = number(r.value_usd);
+    return { id: r.id, ticker: r.ticker || '—', companyName: r.company_name || '—',
+      filingDate: r.filing_date || '—', transactionDate: r.transaction_date ?? null,
+      insiderName: r.filer_name || '—', insiderTitle: r.insider_title || undefined,
+      transactionType: type, typeBadgeLabel: ({ P:'Kupno (P)', S:'Sprzedaż (S)', M:'Wykonanie opcji (M)', A:'Przyznanie (A)' } as Record<string,string>)[code] || code,
+      shares, sharesFormatted: shares == null ? '—' : shares.toLocaleString('pl-PL'), priceUsd: price, priceFormatted: money(price), valueUsd: value, valueFormatted: money(value),
+      docUrl: r.doc_url ?? null, accession: r.accession ?? null, formType: r.form_type ?? null,
     };
-  } catch (err) {
-    console.warn('[insidersService] error:', err);
-    return {
-      stats: {
-        purchasesCount: 92,
-        salesCount: 406,
-        marketPurchases90d: 3354,
-        marketSales90d: 20906,
-        marketDeltaPoints: '+4.6 pkt',
-        mostActiveTicker: 'DELL',
-        mostActiveFilingCount: 98,
-        medianPerCompany: 2,
-        runRate30d: 8100,
-        avgMonthly90d: 8087,
-        runRateGrowthPct: '+0.2%',
-      },
-      intensityRows: [],
-      clusters: VERIFIED_CLUSTERS,
-      topSinglePurchases: 'JEF $14,2 mln · JEF $12,8 mln · MAIR $6,1 mln · SCTH $4,5 mln · LEN $3,9 mln',
-      feed: [],
-    };
+  });
+  // Amendments remain visible as evidence, but are not blindly added to original transactions in aggregates.
+  const measured = rows.filter(r => r.form_type !== '4/A' && !r.is_derivative);
+  const purchases = measured.filter(r => r.transaction_code === 'P');
+  const sales = measured.filter(r => r.transaction_code === 'S');
+  const byTicker = new Map<string, RawPublicInsider[]>();
+  measured.forEach(r => { if (r.ticker) byTicker.set(r.ticker, [...(byTicker.get(r.ticker) || []),r]); });
+  const companies = [...byTicker.entries()].sort((a,b)=>b[1].length-a[1].length);
+  const frequencies = companies.map(([,rs])=>rs.length).sort((a,b)=>a-b);
+  const midpoint = Math.floor(frequencies.length/2);
+  const median = frequencies.length ? (frequencies.length % 2 ? frequencies[midpoint] : (frequencies[midpoint-1]+frequencies[midpoint])/2) : 0;
+  const intensityRows = companies.slice(0,12).map(([ticker, rs]) => {
+    const weeks = Array<number>(13).fill(0);
+    rs.filter(r => r.transaction_code === 'P').forEach(r => {
+      if (!r.transaction_date) return;
+      const age = now.getTime() - Date.parse(r.transaction_date);
+      const bucket = 12 - Math.floor(age / (7 * 86400000));
+      if (age >= 0 && age <= 90 * 86400000 && bucket >= 0 && bucket < 13) weeks[bucket]++;
+    });
+    return { ticker, companyName:rs[0].company_name || ticker, weeklyCounts:weeks, total:weeks.reduce((a,b)=>a+b,0) };
+  }).filter(r=>r.total>0);
+  const clusters: InsiderClusterItem[] = [];
+  for (const [ticker, rs] of companies) {
+    const buys = rs.filter(r=>r.transaction_code==='P' && r.transaction_date && Date.parse(r.transaction_date) >= cutoff).sort((a,b)=>a.transaction_date!.localeCompare(b.transaction_date!));
+    let i=0;
+    while (i < buys.length) {
+      const group = buys.slice(i).filter(r=>Date.parse(r.transaction_date!)-Date.parse(buys[i].transaction_date!) <= 14*86400000);
+      const owners = new Set(group.map(ownerKey));
+      if (owners.size >= 2) {
+        const known = group.map(r=>number(r.value_usd)).filter((v):v is number=>v!=null);
+        clusters.push({ id:`${ticker}:${buys[i].transaction_date}`, ticker, companyName:buys[i].company_name || ticker,
+          buyersCount:owners.size, tradesCount:group.length, totalValueFormatted: known.length ? `${money(known.reduce((a,b)=>a+b,0))}${known.length < group.length ? ' (niepełna)' : ''}` : '—',
+          dateRange:`${group[0].transaction_date} – ${group[group.length-1].transaction_date}`, insiderNames:[...new Set(group.map(r=>r.filer_name || '—'))],
+        });
+        i += group.length;
+      } else i++;
+    }
   }
-}
-
-function getKnownInsiderName(ticker: string, idx: number): string {
-  const NAMES_BY_TICKER: Record<string, string[]> = {
-    ATAI: ['Christian Angermayer', 'Florian Brand', 'Srinivas Rao', 'Rolando Gutierrez'],
-    ETD: ['Farooq Kathwari', 'Amy Franks', 'Corey Whitely'],
-    YEXT: ['Michael Walrath', 'Marc Ferrentino', 'Darryl Bond'],
-    GATX: ['Robert Lyons', 'Thomas Ellman', 'Brian Kenney'],
-    TSM: ['C.C. Wei', 'Mark Liu', 'Y.L. Wang', 'Laura Ho', 'Sylvia Fang'],
-    DELL: ['Michael Dell', 'Jeffrey Clarke', 'Yvonne McGill'],
-    NVDA: ['Jensen Huang', 'Colette Kress', 'Mark Stevens', 'Tench Coxe'],
+  const last30 = measured.filter(r=>Date.parse(r.filing_date!)>=now.getTime()-30*86400000).length;
+  const avgMonthly = measured.length/3;
+  const totalMarket = purchases.length+sales.length;
+  return {
+    stats:{ purchasesCount:purchases.length, salesCount:sales.length, marketPurchases90d:purchases.length, marketSales90d:sales.length,
+      marketDeltaPoints:totalMarket ? `${Math.round(purchases.length/totalMarket*100)}% kupna` : '—', mostActiveTicker:companies[0]?.[0] || '—',
+      mostActiveFilingCount:companies[0]?.[1].length || 0, medianPerCompany:median, runRate30d:last30, avgMonthly90d:Math.round(avgMonthly),
+      runRateGrowthPct:avgMonthly ? `${((last30/avgMonthly-1)*100).toFixed(1)}%` : '—' },
+    clusters, intensityRows, feed,
+    topSinglePurchases:purchases.filter(r=>number(r.value_usd)!=null).sort((a,b)=>Number(b.value_usd)-Number(a.value_usd)).slice(0,5).map(r=>`${r.ticker || '—'} ${money(number(r.value_usd))}`).join(' · ') || 'Brak zakupów z podaną wartością',
   };
-
-  const pool = NAMES_BY_TICKER[ticker] || [
-    'Robert Sterling',
-    'Alexander Wright',
-    'David Miller',
-    'Sarah Jenkins',
-    'Michael Chang',
-    'Elena Rostova',
-  ];
-  return pool[idx % pool.length];
+}
+export async function fetchInsidersPageData(): Promise<InsidersPageData> {
+  const date = new Date(Date.now()-90*86400000).toISOString().slice(0,10);
+  const [rows, statuses] = await Promise.all([
+    orcaSelect<RawPublicInsider>(`vw_sec_form4_public?filing_date=gte.${date}&order=filing_date.desc,id.desc`, { strict:true }),
+    orcaSelect<{ queued_filings: number; failed_filings: number; latest_processed_filing: string | null; last_processed_at: string | null }>('vw_sec_form4_status?limit=1', { strict:true }),
+  ]);
+  const status = statuses[0];
+  const data = buildInsidersPageData(rows);
+  return { ...data, coverage: `SEC Form 4: ${rows.length} zapisanych transakcji w oknie 90 dni. Statystyki dotyczą pobranej próby, nie całego rynku.${rows.length >= 20000 ? ' Osiągnięto limit odczytu 20 000.' : ''} Ostatnie przetworzone zgłoszenie: ${status?.latest_processed_filing || 'brak'}. Synchronizacja: ${status?.last_processed_at || 'brak'}. Kolejka: ${status?.queued_filings ?? '—'}, błędy: ${status?.failed_filings ?? '—'}. Korekty 4/A i instrumenty pochodne są widoczne w tabeli, wyłączone z agregatów.` };
 }

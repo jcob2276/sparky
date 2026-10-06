@@ -1,9 +1,11 @@
-import { ArrowRight, Link2, LockKeyhole, X } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowRight, Link2, LockKeyhole, X, Mic, Sparkles } from 'lucide-react';
 import Button from '../../ui/Button';
 import Badge from '../../ui/Badge';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
 import { GroupedList, GroupedListRow } from '../../ui/GroupedList';
 import PlanningCheckpointsStrip from '../../shared/PlanningCheckpointsStrip';
+import VoicePlanModal from '../voicePlanning/VoicePlanModal';
 import type { TodoItemRow } from '../../../lib/todo/todo';
 import type { useDirectionContext } from '../direction/hooks/useDirectionContext';
 import type { DailyWinWithTasks, TaskSlot } from '../usePowerListData';
@@ -44,6 +46,7 @@ export default function PowerListSetup({
   newTaskForm, updateSlot, todoItems, pickerSlot,
   setPickerSlot, pickerRef, startNewDay, submitting,
 }: Props) {
+  const [voiceModalOpen, setVoiceModalOpen] = useState(false);
   const filledCount = newTaskForm.filter((slot) => slot.task.trim()).length;
   const reflectionReady = !yesterdayNoteRequired || Boolean(yesterdayNote.trim());
   const ready = reflectionReady && filledCount === 5;
@@ -85,12 +88,22 @@ export default function PowerListSetup({
               Pięć dzisiejszych zwycięstw
             </h3>
             <p className="mt-1 text-sm text-text-secondary">
-              Wpisz własne zadania lub połącz je z To-do. Data zadania nie zostanie zmieniona.
+              Wpisz własne zadania lub połącz je z To-do. Możesz też podyktować je głosem.
             </p>
           </div>
-          <span className="shrink-0 text-sm font-semibold text-text-secondary" aria-live="polite">
-            {filledCount}/5
-          </span>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setVoiceModalOpen(true)}
+              icon={<Mic size={13} className="text-primary" />}
+            >
+              Mów
+            </Button>
+            <span className="shrink-0 text-sm font-semibold text-text-secondary" aria-live="polite">
+              {filledCount}/5
+            </span>
+          </div>
         </header>
 
         <div ref={pickerRef}>
@@ -181,6 +194,24 @@ export default function PowerListSetup({
           {submitting ? 'Zapisywanie…' : ready ? 'Zacznij dzień' : 'Dokończ rytuał'}
         </Button>
       </div>
+
+      <VoicePlanModal
+        isOpen={voiceModalOpen}
+        onClose={() => setVoiceModalOpen(false)}
+        initialSlots={newTaskForm.map((slot, index) => ({
+          slot: index + 1,
+          category: index === 0 ? 'cialo' : index === 1 ? 'duch' : index === 2 ? 'konto' : 'general',
+          title: slot.task,
+        }))}
+        onApplySlots={(appliedSlots) => {
+          appliedSlots.forEach((slot, index) => {
+            if (slot.title.trim()) {
+              updateSlot(index, { task: slot.title.trim() });
+            }
+          });
+        }}
+      />
     </div>
   );
 }
+

@@ -1,9 +1,7 @@
-import { FC, useState, useEffect, useMemo } from 'react';
-import {
-  fetchGpwStocksList,
-  GpwStockItem,
-  GpwStocksSummary,
-} from '../../lib/investments/gpwCompaniesService';
+import { FC, useState, useMemo } from 'react';
+import { type GpwStockItem } from '../../lib/investments/gpwCompaniesService';
+import { useGpwCompanies } from '../../hooks/useGpwCompanies';
+import EmptyState from '../ui/EmptyState';
 import { GpwCompaniesHeader } from './GpwCompaniesHeader';
 import { GpwCompanyRow } from './GpwCompanyRow';
 import { CompanyDetailView } from './CompanyDetailView';
@@ -13,13 +11,6 @@ interface Props {
   onToggleWatchlist?: (ticker: string) => void;
   onNavigateTab?: (tab: string, prefill?: string) => void;
 }
-
-const DEFAULT_SUMMARY: GpwStocksSummary = {
-  total: 418,
-  activeShorts: 66,
-  insiderBuys: 72,
-  convergenceSignals: 0,
-};
 
 function applyGpwFilters(
   stocks: GpwStockItem[],
@@ -60,9 +51,7 @@ export const GpwPortfolioView: FC<Props> = ({
   onToggleWatchlist = () => {},
   onNavigateTab,
 }) => {
-  const [stocks, setStocks] = useState<GpwStockItem[]>([]);
-  const [summary, setSummary] = useState<GpwStocksSummary>(DEFAULT_SUMMARY);
-  const [loading, setLoading] = useState(true);
+  const { stocks, summary, loading, error, retry } = useGpwCompanies();
 
   const [search, setSearch] = useState('');
   const [filterSignal, setFilterSignal] = useState(false);
@@ -70,24 +59,6 @@ export const GpwPortfolioView: FC<Props> = ({
   const [filterOnlyBuys, setFilterOnlyBuys] = useState(false);
 
   const [selectedStock, setSelectedStock] = useState<{ ticker: string; name: string } | null>(null);
-
-  useEffect(() => {
-    let active = true;
-    void (async () => {
-      try {
-        const res = await fetchGpwStocksList();
-        if (!active) return;
-        setStocks(res.stocks);
-        setSummary(res.summary);
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const filteredStocks = useMemo(
     () => applyGpwFilters(stocks, search, filterSignal, filterInsiderSort, filterOnlyBuys),
@@ -97,6 +68,7 @@ export const GpwPortfolioView: FC<Props> = ({
   if (selectedStock) {
     return (
       <CompanyDetailView
+        market="gpw"
         ticker={selectedStock.ticker}
         initialName={selectedStock.name}
         onBack={() => setSelectedStock(null)}
@@ -128,6 +100,9 @@ export const GpwPortfolioView: FC<Props> = ({
             <div key={i} className="h-12 w-full bg-surface-subtle animate-pulse rounded-lg" />
           ))}
         </div>
+      ) : error ? (
+        <div role="alert"><EmptyState icon="⚠️" label="Nie udało się odczytać danych GPW."
+          action={{ label: 'Spróbuj ponownie', onClick: retry }} /></div>
       ) : filteredStocks.length === 0 ? (
         <div className="p-8 text-center border border-border-custom/50 rounded-xl bg-surface/30">
           <p className="text-xs text-text-secondary">
@@ -146,7 +121,7 @@ export const GpwPortfolioView: FC<Props> = ({
                 <th className="py-2.5 px-3 text-right">Zm. 14D</th>
                 <th className="py-2.5 px-3 text-right">Zakupy 90D</th>
                 <th className="py-2.5 px-3 text-left">Sygnał</th>
-                <th className="py-2.5 px-3 text-right">12M</th>
+                <th className="py-2.5 px-3 text-right" title="Dostępne rzeczywiste notowania z ostatnich 12 miesięcy; historia może być krótsza.">Historia do 12M</th>
                 <th className="py-2.5 px-2 text-center w-8" />
               </tr>
             </thead>

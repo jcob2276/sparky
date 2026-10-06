@@ -27,6 +27,8 @@ interface PoliticianEmbed {
 }
 
 interface TradeRaw {
+  external_id?: string | null;
+  filer_name?: string | null;
   ticker?: string | null;
   transaction_type?: string | null;
   transaction_date?: string | null;
@@ -36,6 +38,7 @@ interface TradeRaw {
 }
 
 interface InsiderRaw {
+  id?: string | number;
   ticker?: string | null;
   transaction_date?: string | null;
 }
@@ -53,9 +56,7 @@ interface InvestorRaw {
   fund_name?: string | null;
 }
 
-const boardCache = new Map<SignalWindow, { at: number; rows: SignalRow[] }>();
 const inflight = new Map<SignalWindow, Promise<SignalRow[]>>();
-const CACHE_MS = 5 * 60 * 1000;
 
 function windowStart(window: SignalWindow): string {
   const days = window === '90d' ? -90 : -365;
@@ -75,7 +76,7 @@ function isSell(type: string): boolean {
 function politicianName(raw: TradeRaw): string | null {
   const embedded = raw.politicians;
   const person = Array.isArray(embedded) ? embedded[0] : embedded;
-  const name = person?.display_name?.trim();
+  const name = person?.display_name?.trim() || raw.filer_name?.trim();
   return name ? name : null;
 }
 
@@ -98,12 +99,11 @@ function emptyMetric(ticker: string, companyName: string, fundNetBuyers: number,
     insiderBuys: 0,
     buyVolumeMid: 0,
     lastTradeDate: null,
+    disclosureIds: [],
   };
 }
 
 export async function fetchSignalBoard(window: SignalWindow): Promise<SignalRow[]> {
-  const cached = boardCache.get(window);
-  if (cached && Date.now() - cached.at < CACHE_MS) return cached.rows;
   const pending = inflight.get(window);
   if (pending) return pending;
   const job = loadSignalBoard(window).finally(() => {
@@ -116,13 +116,16 @@ export async function fetchSignalBoard(window: SignalWindow): Promise<SignalRow[
 async function loadSignalBoard(window: SignalWindow): Promise<SignalRow[]> {
 
   const since = windowStart(window);
+  const today = getTodayWarsaw();
   const [consensus, trades, insiders] = await Promise.all([
-    orcaSelect<ConsensusRaw>('vw_consensus?select=ticker,company_name,net_buyers,holders&order=ticker.asc'),
+    orcaSelect<ConsensusRaw>('vw_consensus?select=ticker,company_name,net_buyers,holders&order=ticker.asc', { strict: true }),
     orcaSelect<TradeRaw>(
-      `stock_act_trades?select=ticker,transaction_type,transaction_date,amount_low,amount_high,politicians(display_name)&transaction_date=gte.${since}&order=id.asc`,
+      `stock_act_trades?select=external_id,ticker,transaction_type,transaction_date,amount_low,amount_high,filer_name,politicians(display_name)&source_url=not.is.null&disclosure_date=not.is.null&transaction_date=gte.${since}&transaction_date=lte.${today}&order=id.asc`,
+      { strict: true },
     ),
     orcaSelect<InsiderRaw>(
-      `vw_insider_public?select=ticker,transaction_date&transaction_code=eq.P&transaction_date=gte.${since}&order=id.asc`,
+      `vw_sec_form4_public?select=id,ticker,transaction_date&transaction_code=eq.P&is_derivative=eq.false&form_type=eq.4&transaction_date=gte.${since}&transaction_date=lte.${today}&order=transaction_date.asc`,
+      { strict: true },
     ),
   ]);
 
@@ -167,6 +170,7 @@ async function loadSignalBoard(window: SignalWindow): Promise<SignalRow[]> {
       allNames.set(ticker, names);
     }
     metric.lastTradeDate = laterDate(metric.lastTradeDate, trade.transaction_date ?? null);
+    if (trade.external_id) metric.disclosureIds?.push(`stock-act:${trade.external_id}`);
   }
 
   let insiderRows = 0;
@@ -176,6 +180,7 @@ async function loadSignalBoard(window: SignalWindow): Promise<SignalRow[]> {
     const metric = byTicker.get(ticker);
     if (!metric) continue;
     metric.insiderBuys += 1;
+    if (insider.id != null) metric.disclosureIds?.push(`sec:${insider.id}`);
     insiderRows += 1;
     metric.lastTradeDate = laterDate(metric.lastTradeDate, insider.transaction_date ?? null);
   }
@@ -183,13 +188,12 @@ async function loadSignalBoard(window: SignalWindow): Promise<SignalRow[]> {
   const active: SignalMetrics[] = [];
   for (const metric of byTicker.values()) {
     if (metric.polBuys === 0 && metric.polSells === 0) continue;
-    metric.politicianBuyers = buyerNames.get(metric.ticker)?.size ?? (metric.polBuys > 0 ? 1 : 0);
-    metric.politicians = allNames.get(metric.ticker)?.size ?? (metric.polBuys + metric.polSells > 0 ? 1 : 0);
+    metric.politicianBuyers = buyerNames.get(metric.ticker)?.size ?? 0;
+    metric.politicians = allNames.get(metric.ticker)?.size ?? 0;
     active.push(metric);
   }
 
   const rows = rankDisclosureSignals(active, insiderRows > 0);
-  boardCache.set(window, { at: Date.now(), rows });
   return rows;
 }
 
@@ -273,44 +277,4 @@ export async function fetchSignalEvidence(ticker: string): Promise<SignalEvidenc
   });
 }
 
-const ALERT_KEY = 'sparky_signal_alerts_v1';
-
-interface AlertSnapshot {
-  seen: Record<string, number>;
-}
-
-function readSnapshots(): Record<string, AlertSnapshot> {
-  try {
-    const raw = localStorage.getItem(ALERT_KEY);
-    if (!raw) return {};
-    const parsed: unknown = JSON.parse(raw);
-    if (!parsed || typeof parsed !== 'object') return {};
-    return parsed as Record<string, AlertSnapshot>;
-  } catch {
-    return {};
-  }
-}
-
-export function freshSignalAlerts(window: SignalWindow, rows: SignalRow[]): SignalRow[] {
-  const snapshots = readSnapshots();
-  const prior = snapshots[window];
-  if (!prior) {
-    markSignalAlertsSeen(window, rows);
-    return [];
-  }
-  return rows.filter((row) => row.convergent && (prior.seen[row.ticker] ?? -1) < row.score);
-}
-
-export function markSignalAlertsSeen(window: SignalWindow, rows: SignalRow[]): void {
-  const snapshots = readSnapshots();
-  const seen: Record<string, number> = {};
-  for (const row of rows) {
-    if (row.convergent) seen[row.ticker] = row.score;
-  }
-  snapshots[window] = { seen };
-  try {
-    localStorage.setItem(ALERT_KEY, JSON.stringify(snapshots));
-  } catch {
-    /* private mode */
-  }
-}
+export { freshSignalAlerts, markSignalAlertsSeen } from './signalsAlerts';

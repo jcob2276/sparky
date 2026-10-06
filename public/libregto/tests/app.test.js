@@ -1,0 +1,1037 @@
+import { test, expect } from '@playwright/test';
+
+const BASE_URL = 'http://localhost:8080';
+
+test.describe('Stage 1: Foundations', () => {
+  test('home page loads without errors', async ({ page }) => {
+    // Capture console errors
+    const errors = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        errors.push(msg.text());
+      }
+    });
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL);
+
+    // Wait for the page to load
+    await page.waitForTimeout(1000);
+
+    // Log any errors found
+    if (errors.length > 0) {
+      console.log('Console errors found:', errors);
+    }
+
+    // Check for main content
+    const mainContent = await page.locator('#main-content');
+    await expect(mainContent).toBeVisible();
+
+    // Check that there are no errors
+    expect(errors).toHaveLength(0);
+  });
+
+  test('home page shows stage cards', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(500);
+
+    // Check for logo (use first() since there may be multiple)
+    await expect(page.locator('.home__logo, .header__logo').first()).toBeVisible();
+
+    // Check for stage cards
+    const stageCards = page.locator('.stage-card');
+    await expect(stageCards).toHaveCount(4);
+  });
+
+  test('can navigate to foundations', async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(500);
+
+    // Click on Foundations stage card or button
+    await page.click('text=Foundations');
+    await page.waitForTimeout(500);
+
+    // Should be on foundations page
+    await expect(page).toHaveURL(/#\/foundations/);
+  });
+
+  test('foundations page shows modules', async ({ page }) => {
+    await page.goto(BASE_URL + '/#/foundations');
+    await page.waitForTimeout(500);
+
+    // Check for module cards
+    const moduleCards = page.locator('.module-card');
+    await expect(moduleCards).toHaveCount(4);
+  });
+
+  test('can access hand strength module', async ({ page }) => {
+    await page.goto(BASE_URL + '/#/module/hand-strength');
+    await page.waitForTimeout(500);
+
+    // Should show the module content (use page header title for specificity)
+    await expect(page.locator('.page-header__title')).toBeVisible();
+  });
+
+  test('hand strength module quiz works', async ({ page }) => {
+    await page.goto(BASE_URL + '/#/module/hand-strength');
+    await page.waitForTimeout(500);
+
+    // Find and click start quiz button
+    const startButton = page.locator('text=Start Quiz, button:has-text("Start")').first();
+    if (await startButton.isVisible()) {
+      await startButton.click();
+      await page.waitForTimeout(500);
+    }
+  });
+});
+
+test.describe('Stage 2: Drills', () => {
+  test('drills page loads', async ({ page }) => {
+    const errors = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        errors.push(msg.text());
+      }
+    });
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL + '/#/drills');
+    await page.waitForTimeout(1000);
+
+    if (errors.length > 0) {
+      console.log('Drills page errors:', errors);
+    }
+
+    // Check if drills hub loads or shows locked message
+    const content = await page.locator('#main-content').textContent();
+    console.log('Drills page content:', content?.substring(0, 200));
+  });
+
+  test('hand ranking drill loads', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL + '/#/drill/hand-ranking');
+    await page.waitForTimeout(1000);
+
+    if (errors.length > 0) {
+      console.log('Hand ranking drill errors:', errors);
+    }
+  });
+
+  test('hand ranking drill renders cards after starting', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL + '/#/drill/hand-ranking');
+    await page.waitForTimeout(500);
+
+    // Click Start Drill button
+    const startBtn = page.locator('#start-drill-btn');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    // Wait for countdown (3-2-1-GO = ~3.2s) + first question render
+    await page.waitForTimeout(4500);
+
+    // Log any JS errors
+    if (errors.length > 0) {
+      console.log('Card rendering errors:', errors);
+    }
+
+    // Cards should be visible in both left and right containers
+    const leftCards = page.locator('#left-cards .playing-card');
+    const rightCards = page.locator('#right-cards .playing-card');
+
+    const leftCount = await leftCards.count();
+    const rightCount = await rightCards.count();
+    console.log(`Left cards: ${leftCount}, Right cards: ${rightCount}`);
+
+    // Assert no JS errors occurred
+    expect(errors).toHaveLength(0);
+
+    // Assert cards rendered (2 cards per side)
+    await expect(leftCards).toHaveCount(2);
+    await expect(rightCards).toHaveCount(2);
+  });
+
+  test('open-fold drill renders cards after starting', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL);
+    await page.evaluate((drillId) => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: { drills: { unlocked: true, modules: { [drillId]: { unlocked: true } } } }
+      }));
+    }, 'open-fold');
+
+    await page.goto(BASE_URL + '/#/drill/open-fold');
+    await page.waitForTimeout(500);
+
+    const startBtn = page.locator('#start-drill-btn');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    await page.waitForTimeout(4500);
+
+    if (errors.length > 0) {
+      console.log('Open-fold drill errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    const cards = page.locator('#hand-display .playing-card');
+    await expect(cards).toHaveCount(2);
+  });
+
+  test('equity-snap drill renders cards after starting', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL);
+    await page.evaluate((drillId) => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: { drills: { unlocked: true, modules: { [drillId]: { unlocked: true } } } }
+      }));
+    }, 'equity-snap');
+
+    await page.goto(BASE_URL + '/#/drill/equity-snap');
+    await page.waitForTimeout(500);
+
+    const startBtn = page.locator('#start-drill-btn');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    await page.waitForTimeout(4500);
+
+    if (errors.length > 0) {
+      console.log('Equity-snap drill errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    const cards = page.locator('#hand-display .playing-card');
+    await expect(cards).toHaveCount(2);
+  });
+
+  test('range-check drill renders cards after starting', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL);
+    await page.evaluate((drillId) => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: { drills: { unlocked: true, modules: { [drillId]: { unlocked: true } } } }
+      }));
+    }, 'range-check');
+
+    await page.goto(BASE_URL + '/#/drill/range-check');
+    await page.waitForTimeout(500);
+
+    const startBtn = page.locator('#start-drill-btn');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    await page.waitForTimeout(4500);
+
+    if (errors.length > 0) {
+      console.log('Range-check drill errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    const cards = page.locator('#hand-display .playing-card');
+    await expect(cards).toHaveCount(2);
+  });
+
+  test('position-speed drill loads and starts without errors', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL);
+    await page.evaluate((drillId) => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: { drills: { unlocked: true, modules: { [drillId]: { unlocked: true } } } }
+      }));
+    }, 'position-speed');
+
+    await page.goto(BASE_URL + '/#/drill/position-speed');
+    await page.waitForTimeout(500);
+
+    const startBtn = page.locator('#start-drill-btn');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    await page.waitForTimeout(4500);
+
+    if (errors.length > 0) {
+      console.log('Position-speed drill errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    // Position drill shows position option buttons instead of cards
+    const optionBtns = page.locator('.position-options__btn');
+    const count = await optionBtns.count();
+    expect(count).toBeGreaterThanOrEqual(2);
+  });
+});
+
+test.describe('Stage 3: Scenarios', () => {
+  test('scenarios hub page loads', async ({ page }) => {
+    const errors = [];
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        errors.push(msg.text());
+      }
+    });
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    // Unlock scenarios stage
+    await page.goto(BASE_URL);
+    await page.evaluate(() => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          scenarios: {
+            unlocked: true,
+            modules: {
+              'defend-3bet': { unlocked: true },
+              'bb-defense': { unlocked: true },
+              '3bet-value': { unlocked: true },
+              'sb-3bet-fold': { unlocked: true },
+              'cold-4bet': { unlocked: false },
+              'board-texture': { unlocked: true }
+            }
+          }
+        }
+      }));
+    });
+
+    await page.goto(BASE_URL + '/#/scenarios');
+    await page.waitForTimeout(1000);
+
+    if (errors.length > 0) {
+      console.log('Scenarios hub errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    // Check if scenarios hub loads
+    const content = await page.locator('#main-content').textContent();
+    console.log('Scenarios hub content:', content?.substring(0, 200));
+  });
+
+  test('defend-3bet scenario loads and starts', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL);
+    await page.evaluate(() => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          scenarios: {
+            unlocked: true,
+            modules: { 'defend-3bet': { unlocked: true } }
+          }
+        }
+      }));
+    });
+
+    await page.goto(BASE_URL + '/#/scenario/defend-3bet');
+    await page.waitForTimeout(500);
+
+    const startBtn = page.locator('#start-scenario-btn');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    // Wait for countdown (3-2-1-GO = ~3.2s) + first question render
+    await page.waitForTimeout(4500);
+
+    if (errors.length > 0) {
+      console.log('Defend-3bet scenario errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    // Check for decision buttons
+    const decisionBtns = page.locator('.scenario-decision-btn');
+    const count = await decisionBtns.count();
+    expect(count).toBeGreaterThanOrEqual(2);
+  });
+
+  test('bb-defense scenario loads and starts', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL);
+    await page.evaluate(() => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          scenarios: {
+            unlocked: true,
+            modules: { 'bb-defense': { unlocked: true } }
+          }
+        }
+      }));
+    });
+
+    await page.goto(BASE_URL + '/#/scenario/bb-defense');
+    await page.waitForTimeout(500);
+
+    const startBtn = page.locator('#start-scenario-btn');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    await page.waitForTimeout(4500);
+
+    if (errors.length > 0) {
+      console.log('BB-defense scenario errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    const decisionBtns = page.locator('.scenario-decision-btn');
+    const count = await decisionBtns.count();
+    expect(count).toBeGreaterThanOrEqual(2);
+  });
+
+  test('3bet-value scenario loads and starts', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL);
+    await page.evaluate(() => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          scenarios: {
+            unlocked: true,
+            modules: { '3bet-value': { unlocked: true } }
+          }
+        }
+      }));
+    });
+
+    await page.goto(BASE_URL + '/#/scenario/3bet-value');
+    await page.waitForTimeout(500);
+
+    const startBtn = page.locator('#start-scenario-btn');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    await page.waitForTimeout(4500);
+
+    if (errors.length > 0) {
+      console.log('3bet-value scenario errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    const decisionBtns = page.locator('.scenario-decision-btn');
+    const count = await decisionBtns.count();
+    expect(count).toBeGreaterThanOrEqual(2);
+  });
+
+  test('sb-3bet-fold scenario loads and starts', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL);
+    await page.evaluate(() => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          scenarios: {
+            unlocked: true,
+            modules: { 'sb-3bet-fold': { unlocked: true } }
+          }
+        }
+      }));
+    });
+
+    await page.goto(BASE_URL + '/#/scenario/sb-3bet-fold');
+    await page.waitForTimeout(500);
+
+    const startBtn = page.locator('#start-scenario-btn');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    await page.waitForTimeout(4500);
+
+    if (errors.length > 0) {
+      console.log('SB-3bet-fold scenario errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    // SB 3-bet or fold has 2 buttons (binary decision)
+    const decisionBtns = page.locator('.scenario-decision-btn');
+    const count = await decisionBtns.count();
+    expect(count).toBe(2);
+  });
+
+  test('cold-4bet scenario loads and starts', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL);
+    await page.evaluate(() => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          scenarios: {
+            unlocked: true,
+            modules: { 'cold-4bet': { unlocked: true } }
+          }
+        }
+      }));
+    });
+
+    await page.goto(BASE_URL + '/#/scenario/cold-4bet');
+    await page.waitForTimeout(500);
+
+    const startBtn = page.locator('#start-scenario-btn');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    await page.waitForTimeout(4500);
+
+    if (errors.length > 0) {
+      console.log('Cold-4bet scenario errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    // Cold 4-bet has 2 buttons (binary decision: 4-bet or fold)
+    const decisionBtns = page.locator('.scenario-decision-btn');
+    const count = await decisionBtns.count();
+    expect(count).toBe(2);
+  });
+
+  test('board-texture scenario loads and starts', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL);
+    await page.evaluate(() => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          scenarios: {
+            unlocked: true,
+            modules: { 'board-texture': { unlocked: true } }
+          }
+        }
+      }));
+    });
+
+    await page.goto(BASE_URL + '/#/scenario/board-texture');
+    await page.waitForTimeout(500);
+
+    const startBtn = page.locator('#start-scenario-btn');
+    await expect(startBtn).toBeVisible();
+    await startBtn.click();
+
+    await page.waitForTimeout(4500);
+
+    if (errors.length > 0) {
+      console.log('Board-texture scenario errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    // Board texture has 4 texture option buttons
+    const textureOptions = page.locator('.texture-option');
+    const count = await textureOptions.count();
+    expect(count).toBe(4);
+
+    // Board cards should be visible
+    const boardCards = page.locator('#board-cards .playing-card');
+    const cardCount = await boardCards.count();
+    expect(cardCount).toBe(3); // Flop = 3 cards
+  });
+
+  test('methodology page loads', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => {
+      errors.push(err.message);
+    });
+
+    await page.goto(BASE_URL + '/#/methodology');
+    await page.waitForTimeout(500);
+
+    if (errors.length > 0) {
+      console.log('Methodology page errors:', errors);
+    }
+
+    expect(errors).toHaveLength(0);
+
+    // Check for methodology sections
+    const sections = page.locator('.methodology__section');
+    const count = await sections.count();
+    expect(count).toBeGreaterThanOrEqual(5);
+  });
+});
+
+test.describe('Difficulty Modes: Drills', () => {
+  // Helper to set up unlocked drill with completed easy mode
+  async function setupDrillWithHardUnlocked(page, drillId) {
+    await page.goto(BASE_URL);
+    await page.evaluate((id) => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          drills: {
+            unlocked: true,
+            modules: {
+              [id]: {
+                unlocked: true,
+                completed: true,
+                bestScore: 85,
+                bestStreak: 5,
+                attempts: 1
+              }
+            }
+          }
+        }
+      }));
+    }, drillId);
+  }
+
+  const DRILLS = [
+    'hand-ranking',
+    'open-fold',
+    'equity-snap',
+    'range-check',
+    'position-speed'
+  ];
+
+  for (const drillId of DRILLS) {
+    test(`${drillId} drill shows difficulty selector`, async ({ page }) => {
+      const errors = [];
+      page.on('pageerror', err => errors.push(err.message));
+
+      await setupDrillWithHardUnlocked(page, drillId);
+      await page.goto(BASE_URL + `/#/drill/${drillId}`);
+      await page.waitForTimeout(500);
+
+      // Difficulty selector should be visible
+      const selector = page.locator('#difficulty-selector-container');
+      await expect(selector).toBeVisible();
+
+      // Easy button should exist and be selected by default
+      const easyBtn = page.locator('.difficulty-selector__btn[data-difficulty="easy"]');
+      await expect(easyBtn).toBeVisible();
+
+      // Hard button should exist (unlocked since easy is completed)
+      const hardBtn = page.locator('.difficulty-selector__btn[data-difficulty="hard"]');
+      await expect(hardBtn).toBeVisible();
+
+      expect(errors).toHaveLength(0);
+    });
+
+    test(`${drillId} drill loads in easy mode`, async ({ page }) => {
+      const errors = [];
+      page.on('pageerror', err => errors.push(err.message));
+
+      await setupDrillWithHardUnlocked(page, drillId);
+      await page.goto(BASE_URL + `/#/drill/${drillId}`);
+      await page.waitForTimeout(500);
+
+      // Click start in easy mode (default)
+      const startBtn = page.locator('#start-drill-btn');
+      await expect(startBtn).toBeVisible();
+      await startBtn.click();
+
+      // Wait for countdown
+      await page.waitForTimeout(4500);
+
+      // Should not show HARD badge in header
+      const hardBadge = page.locator('.drill-header__difficulty');
+      await expect(hardBadge).not.toBeVisible();
+
+      if (errors.length > 0) {
+        console.log(`${drillId} easy mode errors:`, errors);
+      }
+      expect(errors).toHaveLength(0);
+    });
+
+    test(`${drillId} drill loads in hard mode`, async ({ page }) => {
+      const errors = [];
+      page.on('pageerror', err => errors.push(err.message));
+
+      await setupDrillWithHardUnlocked(page, drillId);
+      await page.goto(BASE_URL + `/#/drill/${drillId}`);
+      await page.waitForTimeout(500);
+
+      // Click hard mode button
+      const hardBtn = page.locator('.difficulty-selector__btn[data-difficulty="hard"]');
+      await expect(hardBtn).toBeVisible();
+      await hardBtn.click();
+      await page.waitForTimeout(200);
+
+      // Click start
+      const startBtn = page.locator('#start-drill-btn');
+      await startBtn.click();
+
+      // Wait for countdown
+      await page.waitForTimeout(4500);
+
+      // Should show HARD badge in header
+      const hardBadge = page.locator('.drill-header__difficulty');
+      await expect(hardBadge).toBeVisible();
+      await expect(hardBadge).toContainText('HARD');
+
+      if (errors.length > 0) {
+        console.log(`${drillId} hard mode errors:`, errors);
+      }
+      expect(errors).toHaveLength(0);
+    });
+  }
+});
+
+test.describe('Difficulty Modes: Scenarios', () => {
+  // Helper to set up unlocked scenario with completed easy mode
+  async function setupScenarioWithHardUnlocked(page, scenarioId) {
+    await page.goto(BASE_URL);
+    await page.evaluate((id) => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          scenarios: {
+            unlocked: true,
+            modules: {
+              [id]: {
+                unlocked: true,
+                completed: true,
+                bestScore: 80,
+                attempts: 1
+              }
+            }
+          }
+        }
+      }));
+    }, scenarioId);
+  }
+
+  // Scenarios that support hard mode
+  const SCENARIOS_WITH_HARD_MODE = [
+    'defend-3bet',
+    'bb-defense',
+    '3bet-value',
+    'sb-3bet-fold'
+  ];
+
+  for (const scenarioId of SCENARIOS_WITH_HARD_MODE) {
+    test(`${scenarioId} scenario shows difficulty selector`, async ({ page }) => {
+      const errors = [];
+      page.on('pageerror', err => errors.push(err.message));
+
+      await setupScenarioWithHardUnlocked(page, scenarioId);
+      await page.goto(BASE_URL + `/#/scenario/${scenarioId}`);
+      await page.waitForTimeout(500);
+
+      // Difficulty selector should be visible
+      const selector = page.locator('#difficulty-selector-container');
+      await expect(selector).toBeVisible();
+
+      // Easy and Hard buttons should exist
+      const easyBtn = page.locator('.difficulty-selector__btn[data-difficulty="easy"]');
+      const hardBtn = page.locator('.difficulty-selector__btn[data-difficulty="hard"]');
+      await expect(easyBtn).toBeVisible();
+      await expect(hardBtn).toBeVisible();
+
+      expect(errors).toHaveLength(0);
+    });
+
+    test(`${scenarioId} scenario loads in easy mode`, async ({ page }) => {
+      const errors = [];
+      page.on('pageerror', err => errors.push(err.message));
+
+      await setupScenarioWithHardUnlocked(page, scenarioId);
+      await page.goto(BASE_URL + `/#/scenario/${scenarioId}`);
+      await page.waitForTimeout(500);
+
+      // Click start in easy mode (default)
+      const startBtn = page.locator('#start-scenario-btn');
+      await expect(startBtn).toBeVisible();
+      await startBtn.click();
+
+      // Wait for countdown
+      await page.waitForTimeout(4500);
+
+      // Should not show HARD badge
+      const hardBadge = page.locator('.drill-header__difficulty');
+      await expect(hardBadge).not.toBeVisible();
+
+      // Scenario should be running (decision buttons visible)
+      const decisionBtns = page.locator('.scenario-decision-btn');
+      const count = await decisionBtns.count();
+      expect(count).toBeGreaterThanOrEqual(2);
+
+      if (errors.length > 0) {
+        console.log(`${scenarioId} easy mode errors:`, errors);
+      }
+      expect(errors).toHaveLength(0);
+    });
+
+    test(`${scenarioId} scenario loads in hard mode`, async ({ page }) => {
+      const errors = [];
+      page.on('pageerror', err => errors.push(err.message));
+
+      await setupScenarioWithHardUnlocked(page, scenarioId);
+      await page.goto(BASE_URL + `/#/scenario/${scenarioId}`);
+      await page.waitForTimeout(500);
+
+      // Click hard mode button
+      const hardBtn = page.locator('.difficulty-selector__btn[data-difficulty="hard"]');
+      await expect(hardBtn).toBeVisible();
+      await hardBtn.click();
+      await page.waitForTimeout(200);
+
+      // Click start
+      const startBtn = page.locator('#start-scenario-btn');
+      await startBtn.click();
+
+      // Wait for countdown
+      await page.waitForTimeout(4500);
+
+      // Should show HARD badge
+      const hardBadge = page.locator('.drill-header__difficulty');
+      await expect(hardBadge).toBeVisible();
+      await expect(hardBadge).toContainText('HARD');
+
+      // Scenario should be running
+      const decisionBtns = page.locator('.scenario-decision-btn');
+      const count = await decisionBtns.count();
+      expect(count).toBeGreaterThanOrEqual(2);
+
+      if (errors.length > 0) {
+        console.log(`${scenarioId} hard mode errors:`, errors);
+      }
+      expect(errors).toHaveLength(0);
+    });
+  }
+
+  // Test that scenarios without hard mode don't show difficulty selector
+  test('cold-4bet scenario does not show difficulty selector (no hard mode)', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => errors.push(err.message));
+
+    await page.goto(BASE_URL);
+    await page.evaluate(() => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          scenarios: {
+            unlocked: true,
+            modules: { 'cold-4bet': { unlocked: true, completed: true } }
+          }
+        }
+      }));
+    });
+
+    await page.goto(BASE_URL + '/#/scenario/cold-4bet');
+    await page.waitForTimeout(500);
+
+    // Difficulty selector should NOT be visible (cold-4bet is easy-only)
+    const selector = page.locator('#difficulty-selector-container');
+    const isVisible = await selector.isVisible().catch(() => false);
+
+    // Either not present or empty
+    if (isVisible) {
+      const children = await selector.locator('*').count();
+      expect(children).toBe(0);
+    }
+
+    expect(errors).toHaveLength(0);
+  });
+
+  test('board-texture scenario does not show difficulty selector (no hard mode)', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => errors.push(err.message));
+
+    await page.goto(BASE_URL);
+    await page.evaluate(() => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          scenarios: {
+            unlocked: true,
+            modules: { 'board-texture': { unlocked: true, completed: true } }
+          }
+        }
+      }));
+    });
+
+    await page.goto(BASE_URL + '/#/scenario/board-texture');
+    await page.waitForTimeout(500);
+
+    // Difficulty selector should NOT be visible (board-texture is easy-only)
+    const selector = page.locator('#difficulty-selector-container');
+    const isVisible = await selector.isVisible().catch(() => false);
+
+    // Either not present or empty
+    if (isVisible) {
+      const children = await selector.locator('*').count();
+      expect(children).toBe(0);
+    }
+
+    expect(errors).toHaveLength(0);
+  });
+});
+
+test.describe('Difficulty Modes: Hard Mode Locking', () => {
+  test('hard mode is locked when easy mode not completed', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => errors.push(err.message));
+
+    await page.goto(BASE_URL);
+    await page.evaluate(() => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          drills: {
+            unlocked: true,
+            modules: {
+              'hand-ranking': {
+                unlocked: true,
+                completed: false,  // Easy not completed
+                bestScore: 50,
+                attempts: 1
+              }
+            }
+          }
+        }
+      }));
+    });
+
+    await page.goto(BASE_URL + '/#/drill/hand-ranking');
+    await page.waitForTimeout(500);
+
+    // Hard button should be disabled/locked
+    const hardBtn = page.locator('.difficulty-selector__btn[data-difficulty="hard"]');
+    await expect(hardBtn).toBeVisible();
+
+    // Check if it's disabled or has locked styling
+    const isDisabled = await hardBtn.isDisabled();
+    const hasLockedClass = await hardBtn.getAttribute('class');
+
+    expect(isDisabled || hasLockedClass?.includes('locked')).toBeTruthy();
+    expect(errors).toHaveLength(0);
+  });
+
+  test('hard mode unlocks after easy mode completed', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', err => errors.push(err.message));
+
+    await page.goto(BASE_URL);
+    await page.evaluate(() => {
+      localStorage.setItem('libregto-progress', JSON.stringify({
+        version: 1,
+        stages: {
+          drills: {
+            unlocked: true,
+            modules: {
+              'hand-ranking': {
+                unlocked: true,
+                completed: true,  // Easy completed
+                bestScore: 80,
+                attempts: 1
+              }
+            }
+          }
+        }
+      }));
+    });
+
+    await page.goto(BASE_URL + '/#/drill/hand-ranking');
+    await page.waitForTimeout(500);
+
+    // Hard button should NOT be disabled
+    const hardBtn = page.locator('.difficulty-selector__btn[data-difficulty="hard"]');
+    await expect(hardBtn).toBeVisible();
+
+    const isDisabled = await hardBtn.isDisabled();
+    expect(isDisabled).toBeFalsy();
+
+    expect(errors).toHaveLength(0);
+  });
+});
+
+test.describe('Debug: Find all errors', () => {
+  test('check home page for JS errors', async ({ page }) => {
+    const errors = [];
+    const warnings = [];
+
+    page.on('console', msg => {
+      if (msg.type() === 'error') {
+        errors.push(`Console error: ${msg.text()}`);
+      }
+    });
+
+    page.on('pageerror', err => {
+      errors.push(`Page error: ${err.message}\n${err.stack}`);
+    });
+
+    // Check for failed network requests
+    page.on('requestfailed', request => {
+      errors.push(`Failed request: ${request.url()} - ${request.failure()?.errorText}`);
+    });
+
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(2000);
+
+    // Print all errors
+    console.log('\n=== ERRORS FOUND ===');
+    errors.forEach((err, i) => {
+      console.log(`${i + 1}. ${err}`);
+    });
+    console.log('===================\n');
+
+    // Take screenshot
+    await page.screenshot({ path: 'tests/home-page.png', fullPage: true });
+
+    if (errors.length > 0) {
+      throw new Error(`Found ${errors.length} errors:\n${errors.join('\n')}`);
+    }
+  });
+});

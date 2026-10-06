@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import Button from '../../ui/Button';
+import { formatShortDateWarsaw } from '../../../lib/date';
 
 interface Props {
   position: PortfolioPosition;
@@ -66,6 +67,10 @@ export const JakubHoldingItem: FC<Props> = ({
               <span>•</span>
               <span>{weightPct.toFixed(1)}%</span>
             </div>
+            <div className="text-4xs text-text-muted">
+              {pos.quoteAsOf ? `Notowanie: ${formatShortDateWarsaw(pos.quoteAsOf)} · ${pos.quoteSource}` : 'Wycena ręczna / zapisany stan — brak datowanego notowania'}
+              {pos.quoteSourceUrl && <a className="ml-1 text-primary" href={pos.quoteSourceUrl} target="_blank" rel="noopener noreferrer">Źródło</a>}
+            </div>
           </div>
         </div>
 
@@ -103,7 +108,7 @@ export const JakubHoldingItem: FC<Props> = ({
             <div className="p-2.5 rounded-xl bg-danger/10 border border-danger/30 text-danger text-3xs font-mono flex items-start gap-2">
               <ShieldAlert size={14} className="shrink-0 mt-0.5" />
               <div>
-                <strong>Rejestr KNF:</strong> {pos.knfShortStatus}
+                <strong>Zapisana notatka KNF (bez bieżącej weryfikacji):</strong> {pos.knfShortStatus}
               </div>
             </div>
           )}
@@ -112,7 +117,7 @@ export const JakubHoldingItem: FC<Props> = ({
             <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/25 text-primary text-3xs font-mono flex items-start gap-2">
               <Sparkles size={14} className="shrink-0 mt-0.5" />
               <div>
-                <strong>Smart Money:</strong> {pos.smartMoneySignal}
+                <strong>Zapisana notatka (bez bieżącej weryfikacji):</strong> {pos.smartMoneySignal}
               </div>
             </div>
           )}
@@ -137,3 +142,4 @@ export const JakubHoldingItem: FC<Props> = ({
     </div>
   );
 };
+

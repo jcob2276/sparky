@@ -13,7 +13,7 @@ interface Props {
   onToggleInsiderSort: () => void;
   filterOnlyBuys: boolean;
   onToggleOnlyBuys: () => void;
-  summary: GpwStocksSummary;
+  summary: GpwStocksSummary | null;
   totalFiltered: number;
 }
 
@@ -36,8 +36,8 @@ export const GpwCompaniesHeader: FC<Props> = ({
           Spółki GPW
         </h1>
         <p className="text-xs text-text-secondary mt-1 max-w-3xl leading-relaxed">
-          418 tickerów .WA · rejestr KNF (krótka sprzedaż) + zawiadomienia MAR 19 (ESPI) + kursy
-          EOD + sygnał zbieżności
+          Rejestr emitentów GPW · publiczne pozycje KNF · zawiadomienia MAR 19 (ESPI).
+          {' '}Przy cenach pokazujemy datę notowania; brak danych oznaczono „—”.
         </p>
       </div>
 
@@ -88,10 +88,8 @@ export const GpwCompaniesHeader: FC<Props> = ({
 
       {/* Stats Counter Line */}
       <div className="text-3xs font-mono font-medium text-text-muted">
-        {summary.total} spółek · {summary.activeShorts} z aktywnym shortem · {summary.insiderBuys} z zakupami insiderów ·{' '}
-        {summary.convergenceSignals > 0
-          ? `${summary.convergenceSignals} sygnałów zbieżności dziś`
-          : 'brak sygnałów zbieżności dziś'}
+        {summary ? `${summary.total} spółek · ${summary.activeShorts} z publicznym shortem · ${summary.insiderBuys} z odczytanymi zakupami insiderów w 90 dni · ${summary.convergenceSignals} zbieżności w danych`
+          : 'Oczekiwanie na dane — statystyki niedostępne'}
       </div>
     </div>
   );

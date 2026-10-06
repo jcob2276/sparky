@@ -33,7 +33,7 @@ async function callVisionLlm({
 }): Promise<string> {
   const geminiKey = Deno.env.get('GEMINI_API_KEY')
   if (geminiKey) {
-    const models = ['gemini-3-flash-preview', 'gemini-3.5-flash']
+    const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']
     for (const model of models) {
       try {
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`

@@ -21,17 +21,17 @@ export const AnalystHeaderBanner: FC<Props> = ({
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
           <span className="px-2 py-0.5 rounded-md text-3xs sm:text-2xs font-bold bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
             <Sparkles size={11} />
-            <span>Analityk AI · OpenRouter</span>
+            <span>Analityk AI · Sparky</span>
           </span>
           <span className="text-3xs sm:text-2xs font-mono text-text-secondary">
-            Model: Gemini 2.5 Flash · Live RAG
+            Sparky · dane publiczne z datą i źródłem
           </span>
         </div>
         <h2 className="text-lg sm:text-2xl font-extrabold text-text-primary tracking-tight">
           Analityk AI
         </h2>
         <p className="text-xs text-text-secondary mt-0.5 sm:mt-1 max-w-3xl leading-relaxed">
-          Rozmawiasz z asystentem na danych ujawnień (SEC 13F, transakcje Kongresu USA, rejestr szortów KNF, ESPI).
+          Analiza dostępnych ujawnień i notowań. Pytania oraz publiczne rekordy analizuje model po stronie serwera. Lokalne portfele nie są automatycznie dołączane.
         </p>
       </div>
 
@@ -63,3 +63,5 @@ export const AnalystHeaderBanner: FC<Props> = ({
     </div>
   </div>
 );
+
+

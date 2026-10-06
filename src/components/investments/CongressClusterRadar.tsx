@@ -40,11 +40,11 @@ export const CongressClusterRadar: FC<Props> = ({
                 Radar Zbieżności Kongresu · Cluster Buys
               </h3>
               <span className="px-1.5 py-0.5 rounded text-4xs font-mono font-bold bg-primary/15 text-primary border border-primary/30">
-                LIVE
+                14 DNI
               </span>
             </div>
             <p className="text-3xs text-text-muted mt-0.5">
-              Spółki kupowane przez ≥2 polityków w tym samym oknie czasowym. Najsilniejsza zbieżność transakcyjna.
+              Zakupy tej samej spółki przez ≥2 polityków ujawnione w ostatnich 14 dniach. Zbieżność zgłoszeń, nie rekomendacja.
             </p>
           </div>
         </div>

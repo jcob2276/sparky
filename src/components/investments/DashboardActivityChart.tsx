@@ -21,7 +21,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
           </span>
         </div>
         <p className="text-3xs text-text-secondary mt-0.5">
-          Zdarzeń ze wszystkich źródeł · szczyt {activity.peakDateLabel}
+          Zgłoszenia w odczytanych danych · {activity.peakDateLabel ? `szczyt ${activity.peakDateLabel}` : "brak zdarzeń"}
         </p>
       </div>
 
@@ -29,7 +29,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
       <div className="pt-4 pb-2">
         <div className="h-32 flex items-end justify-between gap-1.5 sm:gap-2 px-1">
           {activity.days.map((day) => {
-            const heightPct = Math.max((day.total / maxDayTotal) * 100, 6);
+            const heightPct = (day.total / maxDayTotal) * 100;
             const shortH = day.total > 0 ? (day.shorts / day.total) * 100 : 0;
             const insH = day.total > 0 ? (day.insiders / day.total) * 100 : 0;
             const fundH = day.total > 0 ? (day.funds / day.total) * 100 : 0;
@@ -66,9 +66,9 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
 
         {/* Date Axis */}
         <div className="flex justify-between items-center text-3xs font-mono text-text-muted pt-2 px-1 border-t border-border-custom/30">
-          <span>{activity.days[0]?.label || '13 WRZ'}</span>
-          <span>{activity.days[Math.floor(activity.days.length / 2)]?.label || '20 WRZ'}</span>
-          <span>{activity.days[activity.days.length - 1]?.label || '26 WRZ'}</span>
+          <span>{activity.days[0]?.label || '—'}</span>
+          <span>{activity.days[Math.floor(activity.days.length / 2)]?.label || '—'}</span>
+          <span>{activity.days[activity.days.length - 1]?.label || '—'}</span>
         </div>
       </div>
 
@@ -79,7 +79,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
             <span className="w-2.5 h-2.5 rounded-sm bg-primary shrink-0" />
             <span className="text-3xs text-text-secondary">Politycy</span>
           </div>
-          <span className="font-bold text-text-primary text-xs">{activity.sources.politicians}</span>
+          <span className="font-bold text-text-primary text-xs">{activity.sources.politicians ?? '—'}</span>
         </div>
 
         <div className="flex items-center justify-between p-2 rounded-xl bg-surface border border-border-custom/40">
@@ -87,7 +87,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
             <span className="w-2.5 h-2.5 rounded-sm bg-info shrink-0" />
             <span className="text-3xs text-text-secondary">Fundusze 13F</span>
           </div>
-          <span className="font-bold text-text-primary text-xs">{activity.sources.funds}</span>
+          <span className="font-bold text-text-primary text-xs">{activity.sources.funds ?? '—'}</span>
         </div>
 
         <div className="flex items-center justify-between p-2 rounded-xl bg-surface border border-border-custom/40">
@@ -95,7 +95,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
             <span className="w-2.5 h-2.5 rounded-sm bg-warning shrink-0" />
             <span className="text-3xs text-text-secondary">Insiderzy</span>
           </div>
-          <span className="font-bold text-text-primary text-xs">{activity.sources.insiders}</span>
+          <span className="font-bold text-text-primary text-xs">{activity.sources.insiders ?? '—'}</span>
         </div>
 
         <div className="flex items-center justify-between p-2 rounded-xl bg-surface border border-border-custom/40">
@@ -103,7 +103,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
             <span className="w-2.5 h-2.5 rounded-sm bg-danger shrink-0" />
             <span className="text-3xs text-text-secondary">Short GPW</span>
           </div>
-          <span className="font-bold text-danger text-xs">{activity.sources.shorts}</span>
+          <span className="font-bold text-danger text-xs">{activity.sources.shorts ?? '—'}</span>
         </div>
       </div>
     </div>

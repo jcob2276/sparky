@@ -23,8 +23,8 @@ export const CompanyDetailHeader: FC<Props> = ({
   onToggleWatchlist,
   onBack,
 }) => {
-  const isPosChange = data.changeTodayPct >= 0;
-  const isPos1y = data.change1yPct >= 0;
+  const isPosChange = data.changeTodayPct != null && data.changeTodayPct >= 0;
+  const isPos1y = data.change1yPct != null && data.change1yPct >= 0;
 
   return (
     <div className="space-y-4">
@@ -64,16 +64,23 @@ export const CompanyDetailHeader: FC<Props> = ({
         <div className="flex items-center gap-4">
           <div className="text-right">
             <div className="text-2xl font-black font-mono text-text-primary tabular-nums">
-              {data.price > 0 ? data.price.toFixed(2).replace('.', ',') : '—'}
+              {data.price != null ? data.price.toFixed(2).replace('.', ',') : '—'} {data.priceCurrency ?? ''}
             </div>
             <div className="text-3xs font-mono text-text-muted flex items-center justify-end gap-1.5 mt-0.5">
-              <span className={isPosChange ? 'text-success font-semibold' : 'text-danger font-semibold'}>
-                {isPosChange ? `+${data.changeTodayPct.toFixed(1).replace('.', ',')}%` : `${data.changeTodayPct.toFixed(1).replace('.', ',')}%`}
+              <span className={data.changeTodayPct == null ? 'text-text-muted' : isPosChange ? 'text-success font-semibold' : 'text-danger font-semibold'}>
+                {data.changeTodayPct == null ? 'Dziś: —' : `${isPosChange ? '+' : ''}${data.changeTodayPct.toFixed(1).replace('.', ',')}%`}
               </span>
               <span>·</span>
-              <span className={isPos1y ? 'text-success font-semibold' : 'text-danger font-semibold'}>
-                {isPos1y ? `+${data.change1yPct.toFixed(1).replace('.', ',')}%` : `${data.change1yPct.toFixed(1).replace('.', ',')}%`} R/R
+              <span className={data.change1yPct == null ? 'text-text-muted' : isPos1y ? 'text-success font-semibold' : 'text-danger font-semibold'}>
+                {data.change1yPct == null ? '—' : `${isPos1y ? '+' : ''}${data.change1yPct.toFixed(1).replace('.', ',')}%`} R/R
               </span>
+            </div>
+            <div className="text-3xs text-text-muted mt-1">
+              {data.priceDate && data.priceSourceUrl ? (
+                <a href={data.priceSourceUrl} target="_blank" rel="noreferrer" className="underline">
+                  Notowanie: {data.priceDate}
+                </a>
+              ) : 'Brak potwierdzonego notowania'}
             </div>
           </div>
 
@@ -103,7 +110,7 @@ export const CompanyDetailHeader: FC<Props> = ({
         >
           Przegląd
         </Button>
-        <Button
+        {data.market === 'us' && <><Button
           size="sm"
           variant="ghost"
           onClick={() => onTabChange('13f')}
@@ -139,6 +146,7 @@ export const CompanyDetailHeader: FC<Props> = ({
         >
           Insiderzy
         </Button>
+        </>}
       </div>
     </div>
   );

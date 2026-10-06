@@ -58,8 +58,8 @@ export function detectCongressClusterBuys(trades: ClusterTradeInput[]): ClusterB
 
     const polKey = t.politicianId || t.politicianName || 'Kongresmen';
     const polName = t.politicianName || 'Kongresmen';
-    const party = t.party || 'D';
-    const chamber = t.chamber || 'house';
+    const party = t.party || '';
+    const chamber = t.chamber || '';
     const state = t.state || '';
 
     let cluster = buyMap.get(ticker);

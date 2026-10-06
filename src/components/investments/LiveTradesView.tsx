@@ -1,5 +1,5 @@
-import { FC, useState, useEffect } from 'react';
-import { fetchInsidersPageData, InsidersPageData } from '../../lib/investments/insidersService';
+import { FC } from 'react';
+import { useInsidersData } from './useInsidersData';
 import { InsiderSummaryCards } from './InsiderSummaryCards';
 import { InsiderIntensityMatrix } from './InsiderIntensityMatrix';
 import { InsiderClustersTable } from './InsiderClustersTable';
@@ -11,22 +11,7 @@ interface Props {
 }
 
 export const LiveTradesView: FC<Props> = ({ onNavigateTab }) => {
-  const [data, setData] = useState<InsidersPageData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      setLoading(true);
-      const res = await fetchInsidersPageData();
-      if (!active) return;
-      setData(res);
-      setLoading(false);
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { data, loading, error } = useInsidersData();
 
   const handleSelectTicker = (_ticker: string) => {
     if (onNavigateTab) {
@@ -43,13 +28,15 @@ export const LiveTradesView: FC<Props> = ({ onNavigateTab }) => {
     );
   }
 
+  if (error) return <div role="alert" className="p-6 text-danger">{error}</div>;
+
   if (!data) {
     return null;
   }
 
   return (
     <div className="space-y-6 animate-fade-in text-text-primary">
-      {/* 1. Nagłówek i 3 Karty KPI */}
+      <p className="text-xs text-text-muted">{data.coverage}</p>
       <InsiderSummaryCards stats={data.stats} />
 
       {/* 2. Natężenie zakupów insiderów (90 dni) */}

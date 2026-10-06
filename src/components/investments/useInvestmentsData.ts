@@ -8,6 +8,7 @@ import {
 import { fetchForm4History, fetchNamedForm4 } from '../../lib/investments/form4Public';
 import { fetchForm4Trades } from '../../lib/investments/publicDisclosures';
 import { notify } from '../../lib/notify';
+import { useQueryClient } from '@tanstack/react-query';
 
 function matchesTrade(trade: InsiderTradeItem, filters: InvestmentFilters): boolean {
   const query = filters.query?.trim().toLowerCase();
@@ -47,6 +48,8 @@ function summarize(items: InsiderTradeItem[]): InvestmentStats {
 }
 
 export function useInvestmentsData() {
+  const queryClient = useQueryClient();
+  const [refreshRevision, setRefreshRevision] = useState(0);
   const [allTrades, setAllTrades] = useState<InsiderTradeItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -91,8 +94,10 @@ export function useInvestmentsData() {
   const handleRefresh = async () => {
     try {
       setSyncing(true);
-      const count = await load(filters.query ?? '');
-      notify(`Pobrano ${count} publicznych zgłoszeń Form 4.`, 'success');
+      const result = await Promise.allSettled([load(filters.query ?? ''), queryClient.invalidateQueries({ queryKey: ['investments'] })]);
+      setRefreshRevision(revision => revision + 1);
+      const form4 = result[0];
+      notify(form4.status === 'fulfilled' ? `Odczytano ${form4.value} zgłoszeń Form 4; odświeżono cache i ponownie wczytano otwarty moduł. Nie uruchomiono importu źródeł.` : 'Form 4: błąd odczytu. Pozostałe moduły odświeżają się niezależnie; sprawdź ich status.', form4.status === 'fulfilled' ? 'info' : 'error');
     } catch (err: unknown) {
       console.error('[InvestmentsPage] sync error:', err);
       notify('Nie udało się pobrać publicznych zgłoszeń Form 4', 'error');
@@ -123,5 +128,6 @@ export function useInvestmentsData() {
     handleFilterChange,
     clusterTickers,
     historyTruncated,
+    refreshRevision,
   };
 }

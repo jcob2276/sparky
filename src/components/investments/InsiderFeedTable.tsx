@@ -24,7 +24,7 @@ export const InsiderFeedTable: FC<Props> = ({ feed, onSelectTicker }) => {
         <div className="flex items-center gap-2">
           {isOpen ? <ChevronUp size={16} className="text-text-muted" /> : <ChevronDown size={16} className="text-text-muted" />}
           <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono">
-            Pełny feed transakcji ({feed.length})
+            Najnowsze transakcje w próbie ({feed.length})
           </h3>
         </div>
         <span className="text-3xs font-mono font-bold text-text-muted uppercase">

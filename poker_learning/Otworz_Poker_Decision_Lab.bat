@@ -1,0 +1,3 @@
+@echo off
+echo Uruchamianie Poker Decision Lab...
+start "" "%~dp0decision_lab\index.html"

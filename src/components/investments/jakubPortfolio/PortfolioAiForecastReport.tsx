@@ -27,10 +27,10 @@ export const PortfolioAiForecastReport: FC<Props> = ({
           </div>
           <div>
             <h4 className="text-xs sm:text-sm font-black text-text-primary tracking-tight">
-              Głęboki Raport Predykcyjny AI & Jev
+              Analiza źródeł AI
             </h4>
             <p className="text-4xs font-mono text-text-muted">
-              Model: Gemini 2.5 Flash · System Jev · Konsensus 13F & GPW
+              Sparky · dostępne dane publiczne · brak skalibrowanej prognozy
             </p>
           </div>
         </div>
@@ -67,10 +67,10 @@ export const PortfolioAiForecastReport: FC<Props> = ({
           </div>
           <div className="space-y-1">
             <div className="text-xs font-bold text-text-primary">
-              Generowanie prognozy scenariuszowej w toku...
+              Analiza danych źródłowych w toku...
             </div>
             <p className="text-3xs text-text-muted max-w-sm">
-              Analizuję pozycje portfela, harmonogramy premier, sprawozdania finansowe i pozycjonowanie Smart Money.
+              Sprawdzam dostępne notowania i publiczne ujawnienia. Brakujące źródła zostaną wskazane.
             </p>
           </div>
         </div>
@@ -78,7 +78,7 @@ export const PortfolioAiForecastReport: FC<Props> = ({
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-3xs font-mono text-success">
             <CheckCircle2 size={13} />
-            <span>Prognoza wygenerowana w czasie rzeczywistym</span>
+            <span>Analiza AI — daty źródeł wskazane w raporcie</span>
           </div>
 
           <div className="bg-surface/50 p-4 rounded-xl border border-border-custom/50 max-h-96 overflow-y-auto">
@@ -89,3 +89,4 @@ export const PortfolioAiForecastReport: FC<Props> = ({
     </div>
   );
 };
+

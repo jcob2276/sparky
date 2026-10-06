@@ -1,266 +1,90 @@
-/**
- * dashboardService.ts — Usługa agregacji danych na żywo dla Pulpitu inwestycyjnego Sparky.
- * Żadnych mocków ani paywalli: pobiera konsensus 13F, rejestr KNF, STOCK Act oraz Form 4.
- */
-
 import { orcaSelect } from './superinvestorsApi';
 import { getTodayWarsaw, shiftDateStr, formatShortMonthLabel } from '../date';
 
+export interface DashboardSourceStatus {
+  source: string; checked_at: string | null; last_success_at: string | null;
+  latest_disclosure_date: string | null; status: 'ok' | 'partial' | 'error'; error: string | null;
+}
 export interface DashboardData {
-  topConsensus: { ticker: string; net: number };
-  maxShort: { company: string; ticker: string; totalPct: number; delta14d: number };
-  congress14: { total: number; sales: number; buys: number };
-  watchlist14Count: number;
+  topConsensus: { ticker: string; net: number } | null;
+  maxShort: { company: string; ticker: string; totalPct: number; delta14d: number | null } | null;
+  congress14: { total: number; sales: number; buys: number } | null;
+  watchlist14Count: number | null;
   activity14d: {
-    total: number;
-    peakDateLabel: string;
-    sources: {
-      politicians: number;
-      funds: number;
-      insiders: number;
-      shorts: number;
-    };
-    days: Array<{
-      date: string;
-      label: string;
-      politicians: number;
-      funds: number;
-      insiders: number;
-      shorts: number;
-      total: number;
-    }>;
+    total: number; peakDateLabel: string | null;
+    sources: { politicians: number | null; funds: number | null; insiders: number | null; shorts: number | null };
+    days: Array<{ date: string; label: string; politicians: number; funds: number; insiders: number; shorts: number; total: number }>;
   };
-  streamItems: Array<{
-    id: string;
-    dateLabel: string;
-    sourceType: 'FORM 4' | 'KNF' | 'STOCK';
-    ticker: string;
-    description: string;
-    amountOrPercent: string;
-  }>;
-  topConvergenceUsa: Array<{
-    ticker: string;
-    name: string;
-    score: number;
-    fundsNet: number;
-    politiciansCount: number;
-  }>;
-  topGpwShorts: Array<{
-    ticker: string;
-    company: string;
-    totalPct: number;
-    holders: number;
-  }>;
+  streamItems: Array<{ id: string; dateLabel: string; sourceType: 'FORM 4' | 'KNF' | 'STOCK'; ticker: string; description: string; amountOrPercent: string }>;
+  topConvergenceUsa: Array<{ ticker: string; name: string; fundsNet: number }>;
+  topGpwShorts: Array<{ ticker: string; company: string; totalPct: number; holders: number | null }>;
+  sourceStatuses: DashboardSourceStatus[];
+  issues: string[];
+  fetchedAt: string;
 }
+interface Consensus { ticker?: string; company_name?: string; net_buyers?: number | null }
+interface ShortAgg { company?: string; ticker?: string; total_pct?: number | null; public_holders?: number | null }
+interface Trade { id: string; filer_name?: string; ticker?: string; transaction_type?: string; disclosure_date?: string; amount_label?: string }
+interface Insider { id: string; ticker?: string; transaction_code?: string; filing_date?: string }
+interface ShortPosition { external_id: string; company?: string; ticker?: string; holder?: string; position_pct?: number; position_date?: string }
+interface Filing { filing_date?: string }
 
-interface RawConsensus { ticker?: string; company_name?: string; net_buyers?: number; }
-interface RawShortAgg { company?: string; ticker?: string; total_pct?: number; }
-interface RawShortHist { total_pct?: number; }
-interface RawStockAct { id: string; filer_name?: string; ticker?: string; transaction_type?: string; transaction_date?: string; disclosure_date?: string; amount_label?: string; }
-interface RawInsider { id: string; ticker?: string; transaction_code?: string; filing_date?: string; transaction_date?: string; }
-interface RawShortPos { id: number; company?: string; ticker?: string; holder?: string; position_pct?: number; position_date?: string; }
-
-function formatDateShort(dateStr: string): string {
-  if (!dateStr) return '—';
-  const d = new Date(dateStr);
-  return isNaN(d.getTime()) ? dateStr : formatShortMonthLabel(d);
-}
-
-function build14DayActivity(
-  today: string,
-  stockActRows: RawStockAct[],
-  insiderRows: RawInsider[],
-  shortPosRows: RawShortPos[]
-): DashboardData['activity14d'] {
-  const days: DashboardData['activity14d']['days'] = [];
-  let polTotal = 0;
-  let insTotal = 0;
-  let shortTotal = 0;
-
-  for (let i = 13; i >= 0; i--) {
-    const dStr = shiftDateStr(today, -i);
-    const polDay = stockActRows.filter((r) => (r.disclosure_date || r.transaction_date || '').startsWith(dStr)).length;
-    const insDay = insiderRows.filter((r) => (r.filing_date || r.transaction_date || '').startsWith(dStr)).length;
-    const shortDay = shortPosRows.filter((r) => (r.position_date || '').startsWith(dStr)).length;
-
-    polTotal += polDay;
-    insTotal += insDay;
-    shortTotal += shortDay;
-
-    days.push({
-      date: dStr,
-      label: formatDateShort(dStr),
-      politicians: polDay,
-      funds: 0,
-      insiders: insDay,
-      shorts: shortDay,
-      total: polDay + insDay + shortDay,
-    });
-  }
-
-  const polDisp = polTotal || 62;
-  const insDisp = insTotal > 100 ? insTotal : 4401;
-  const shortDisp = shortTotal || 11;
-
-  return {
-    total: polDisp + insDisp + shortDisp,
-    peakDateLabel: '16 WRZ',
-    sources: {
-      politicians: polDisp,
-      funds: 0,
-      insiders: insDisp,
-      shorts: shortDisp,
-    },
-    days,
-  };
-}
-
-function buildStreamItems(
-  today: string,
-  insiderRows: RawInsider[],
-  shortPosRows: RawShortPos[],
-  stockActRows: RawStockAct[]
-): DashboardData['streamItems'] {
-  const streamItems: DashboardData['streamItems'] = [];
-
-  for (const ins of insiderRows.slice(0, 5)) {
-    const isSale = (ins.transaction_code || '').toUpperCase() === 'S';
-    streamItems.push({
-      id: `form4_${ins.id}`,
-      dateLabel: ins.filing_date === shiftDateStr(today, -1) ? 'WCZ.' : formatDateShort(ins.filing_date || ''),
-      sourceType: 'FORM 4',
-      ticker: ins.ticker || '—',
-      description: `Zgłoszenie Form 4: ${isSale ? 'sprzedaż' : 'kupno'} akcji własnych`,
-      amountOrPercent: '—',
-    });
-  }
-
-  for (const sh of shortPosRows.slice(0, 5)) {
-    streamItems.push({
-      id: `knf_${sh.id}`,
-      dateLabel: formatDateShort(sh.position_date || ''),
-      sourceType: 'KNF',
-      ticker: sh.ticker || sh.company || '—',
-      description: `Pozycje krótkie: zgłoszenie podmiotu ${sh.holder || 'KNF'}`,
-      amountOrPercent: `${(sh.position_pct || 0).toFixed(2).replace('.', ',')}%`,
-    });
-  }
-
-  for (const st of stockActRows.slice(0, 5)) {
-    const isSale = (st.transaction_type || '').toLowerCase().includes('sell');
-    streamItems.push({
-      id: `stock_${st.id}`,
-      dateLabel: formatDateShort(st.disclosure_date || st.transaction_date || ''),
-      sourceType: 'STOCK',
-      ticker: st.ticker || '—',
-      description: `${st.filer_name || 'Kongresmen'}, ${isSale ? 'sprzedaż' : 'kupno'} (transakcja)`,
-      amountOrPercent: st.amount_label || '1-15K USD',
-    });
-  }
-
-  return streamItems;
-}
-
+/** A zero means a successful empty read; null means this source could not be read. */
 export async function fetchDashboardData(watchlist: string[] = []): Promise<DashboardData> {
   const today = getTodayWarsaw();
-  const since14 = shiftDateStr(today, -14);
-
-  const [
-    topConsensusRows,
-    shortsAggRows,
-    shortsHistRows,
-    stockActRows,
-    insiderRows,
-    shortPosRows,
-  ] = await Promise.all([
-    orcaSelect<RawConsensus>(
-      'vw_consensus?select=ticker,company_name,net_buyers,buyers,sellers&order=net_buyers.desc&limit=5'
-    ).catch(() => []),
-    orcaSelect<RawShortAgg>(
-      'vw_gpw_shorts_agg?order=total_pct.desc&limit=3'
-    ).catch(() => []),
-    orcaSelect<RawShortHist>(
-      'vw_gpw_shorts_history?company=eq.MODIVO&order=position_date.desc&limit=5'
-    ).catch(() => []),
-    orcaSelect<RawStockAct>(
-      `stock_act_trades?order=disclosure_date.desc.nullslast&limit=30`
-    ).catch(() => []),
-    orcaSelect<RawInsider>(
-      `vw_insider_public?order=filing_date.desc&limit=30`
-    ).catch(() => []),
-    orcaSelect<RawShortPos>(
-      `gpw_short_positions?order=position_date.desc&limit=20`
-    ).catch(() => []),
-  ]);
-
-  const topC = topConsensusRows[0];
-  const topConsensus = {
-    ticker: topC?.ticker || 'AMZN',
-    net: topC?.net_buyers || 6,
-  };
-
-  const topS = shortsAggRows[0];
-  let delta14d = 1.57;
-  if (shortsHistRows.length >= 2) {
-    const latest = shortsHistRows[0]?.total_pct || 0;
-    const prev = shortsHistRows[shortsHistRows.length - 1]?.total_pct || 0;
-    if (latest > 0 && prev > 0) {
-      delta14d = Number((latest - prev).toFixed(2));
+  const since = shiftDateStr(today, -13);
+  const issues: string[] = [];
+  async function read<T>(label: string, query: string): Promise<T[] | null> {
+    try {
+      const rows = await orcaSelect<T>(query, { strict: true });
+      if (rows.length >= 20_000) issues.push(`${label}: limit odczytu 20 000; liczby mogą być niepełne`);
+      return rows;
+    } catch (error) {
+      issues.push(`${label}: ${error instanceof Error ? error.message : 'błąd odczytu'}`);
+      return null;
     }
   }
-
-  const maxShort = {
-    company: topS?.company || 'MODIVO',
-    ticker: topS?.ticker || 'MDV',
-    totalPct: topS?.total_pct || 6.01,
-    delta14d,
-  };
-
-  const congress14Trades = stockActRows.filter((t) => {
-    const d = t.disclosure_date || t.transaction_date || '';
-    return d >= since14;
+  const [consensus, shorts, trades, insiders, positions, filings, statuses] = await Promise.all([
+    read<Consensus>('13F', 'vw_consensus?select=ticker,company_name,net_buyers&order=net_buyers.desc.nullslast&limit=5'),
+    read<ShortAgg>('KNF agregaty', 'vw_gpw_shorts_agg?order=total_pct.desc.nullslast&limit=3'),
+    read<Trade>('Kongres', `stock_act_trades?disclosure_date=gte.${since}&disclosure_date=lte.${today}&order=disclosure_date.desc,id.asc`),
+    read<Insider>('Form 4', `vw_insider_public?filing_date=gte.${since}&filing_date=lte.${today}&order=filing_date.desc,id.asc`),
+    read<ShortPosition>('KNF zdarzenia', `knf_disclosed_positions?position_date=gte.${since}&position_date=lte.${today}&order=position_date.desc,external_id.asc`),
+    read<Filing>('13F zgłoszenia', `filings?filing_date=gte.${since}&filing_date=lte.${today}&order=filing_date.desc,id.asc`),
+    read<DashboardSourceStatus>('Monitor źródeł', 'investment_source_status?order=source.asc'),
+  ]);
+  const inWindow = (date?: string) => Boolean(date && date.slice(0, 10) >= since && date.slice(0, 10) <= today);
+  const congressRows = (trades ?? []).filter(r => inWindow(r.disclosure_date));
+  const insiderRows = (insiders ?? []).filter(r => inWindow(r.filing_date));
+  const shortRows = (positions ?? []).filter(r => inWindow(r.position_date));
+  const filingRows = (filings ?? []).filter(r => inWindow(r.filing_date));
+  const days = Array.from({ length: 14 }, (_, i) => {
+    const date = shiftDateStr(since, i);
+    const politicians = congressRows.filter(r => r.disclosure_date?.slice(0, 10) === date).length;
+    const ins = insiderRows.filter(r => r.filing_date?.slice(0, 10) === date).length;
+    const short = shortRows.filter(r => r.position_date?.slice(0, 10) === date).length;
+    const funds = filingRows.filter(r => r.filing_date?.slice(0, 10) === date).length;
+    return { date, label: formatShortMonthLabel(date), politicians, insiders: ins, shorts: short, funds, total: politicians + ins + short + funds };
   });
-  const salesCount = congress14Trades.filter((t) =>
-    (t.transaction_type || '').toLowerCase().includes('sell') || (t.transaction_type || '').toLowerCase().includes('sale')
-  ).length;
-  const buysCount = congress14Trades.filter((t) =>
-    (t.transaction_type || '').toLowerCase().includes('buy') || (t.transaction_type || '').toLowerCase().includes('purchase')
-  ).length;
-
-  const congress14 = {
-    total: congress14Trades.length || 39,
-    sales: salesCount || 38,
-    buys: buysCount || 1,
-  };
-
-  const activity14d = build14DayActivity(today, stockActRows, insiderRows, shortPosRows);
-  const streamItems = buildStreamItems(today, insiderRows, shortPosRows, stockActRows);
-
-  const topConvergenceUsa = topConsensusRows.slice(0, 4).map((c, idx) => ({
-    ticker: c.ticker || 'AMZN',
-    name: c.company_name || c.ticker || 'Amazon',
-    score: 95 - idx * 3,
-    fundsNet: c.net_buyers || 6,
-    politiciansCount: idx === 0 ? 3 : 1,
-  }));
-
-  const watchlist14Count = streamItems.filter((item) => watchlist.includes(item.ticker)).length;
-
-  const topGpwShorts = shortsAggRows.slice(0, 3).map((s) => ({
-    ticker: s.ticker || 'GPW',
-    company: s.company || s.ticker || 'Spółka',
-    totalPct: s.total_pct || 0,
-    holders: 1,
-  }));
-
+  const peak = days.reduce((best, day) => day.total > best.total ? day : best, days[0]);
+  const top = (consensus ?? []).find(r => r.ticker && r.net_buyers != null);
+  const max = (shorts ?? []).find(r => r.company && r.total_pct != null);
+  const stream: Array<DashboardData['streamItems'][number] & { date: string }> = [
+    ...insiderRows.map(r => ({ id: `form4_${r.id}`, date: r.filing_date!, dateLabel: formatShortMonthLabel(r.filing_date!), sourceType: 'FORM 4' as const, ticker: r.ticker ?? '—', description: `Form 4: kod transakcji ${r.transaction_code ?? 'nieznany'}`, amountOrPercent: '—' })),
+    ...shortRows.map(r => ({ id: `knf_${r.external_id}`, date: r.position_date!, dateLabel: formatShortMonthLabel(r.position_date!), sourceType: 'KNF' as const, ticker: r.ticker ?? r.company ?? '—', description: `Pozycja: ${r.holder ?? 'podmiot nieznany'}`, amountOrPercent: r.position_pct == null ? '—' : `${r.position_pct.toFixed(2)}%` })),
+    ...congressRows.map(r => ({ id: `stock_${r.id}`, date: r.disclosure_date!, dateLabel: formatShortMonthLabel(r.disclosure_date!), sourceType: 'STOCK' as const, ticker: r.ticker ?? '—', description: `${r.filer_name ?? 'Kongres'}: ${r.transaction_type ?? 'typ nieznany'}`, amountOrPercent: r.amount_label ?? '—' })),
+  ];
+  const watched = new Set(watchlist.map(t => t.toUpperCase()));
   return {
-    topConsensus,
-    maxShort,
-    congress14,
-    watchlist14Count,
-    activity14d,
-    streamItems,
-    topConvergenceUsa,
-    topGpwShorts,
+    topConsensus: top ? { ticker: top.ticker!, net: top.net_buyers! } : null,
+    maxShort: max ? { company: max.company!, ticker: max.ticker ?? max.company!, totalPct: max.total_pct!, delta14d: null } : null,
+    congress14: trades === null ? null : { total: congressRows.length, sales: congressRows.filter(r => /sell|sale/i.test(r.transaction_type ?? '')).length, buys: congressRows.filter(r => /buy|purchase/i.test(r.transaction_type ?? '')).length },
+    watchlist14Count: [trades, insiders, positions].some(r => r === null) ? null : stream.filter(r => watched.has(r.ticker.toUpperCase())).length,
+    activity14d: { total: days.reduce((sum, d) => sum + d.total, 0), peakDateLabel: peak.total ? peak.label : null, days,
+      sources: { politicians: trades === null ? null : congressRows.length, insiders: insiders === null ? null : insiderRows.length, shorts: positions === null ? null : shortRows.length, funds: filings === null ? null : filingRows.length } },
+    streamItems: stream.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15),
+    topConvergenceUsa: (consensus ?? []).filter(r => r.ticker && r.net_buyers != null).map(r => ({ ticker: r.ticker!, name: r.company_name ?? r.ticker!, fundsNet: r.net_buyers! })),
+    topGpwShorts: (shorts ?? []).filter(r => r.company && r.total_pct != null).map(r => ({ ticker: r.ticker ?? r.company!, company: r.company!, totalPct: r.total_pct!, holders: r.public_holders ?? null })),
+    sourceStatuses: statuses ?? [], issues, fetchedAt: new Date().toISOString(),
   };
 }

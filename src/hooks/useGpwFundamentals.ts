@@ -6,7 +6,7 @@ const EMPTY_MEDIANS = new Map<string, number>();
 
 export function useGpwFundamentals() {
   const query = useQuery({
-    queryKey: ['gpw-fundamentals'], queryFn: fetchGpwFundamentalsList,
+    queryKey: ['investments', 'gpw-fundamentals'], queryFn: fetchGpwFundamentalsList,
     staleTime: 5 * 60_000, retry: false,
   });
   return {

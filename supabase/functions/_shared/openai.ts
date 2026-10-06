@@ -34,17 +34,19 @@ export interface OpenAIChatResult {
 /** Centralized chat-completions call (text or vision) — uses Gemini when available or OpenAI fallback. */
 export async function openaiChat(params: OpenAIChatParams): Promise<OpenAIChatResult> {
   const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  let geminiErr: unknown = null;
   if (geminiKey) {
     try {
       return await geminiChat(params);
     } catch (err) {
-      console.error("[openaiChat] Gemini failed:", err);
-      throw err;
+      console.warn("[openaiChat] Gemini failed, checking OpenAI fallback:", err);
+      geminiErr = err;
     }
   }
 
   const openaiApiKey = Deno.env.get("OPENAI_API_KEY") || (params.apiKey?.startsWith("sk-") ? params.apiKey : "");
   if (!openaiApiKey) {
+    if (geminiErr) throw geminiErr;
     throw new Error("[openaiChat] Missing valid OPENAI_API_KEY for fallback");
   }
 

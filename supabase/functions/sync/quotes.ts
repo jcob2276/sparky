@@ -1,157 +1,59 @@
-/**
- * quotes.ts — Synchronizacja notowań giełdowych i kursów walut NBP.
- * Pobiera bieżące notowania z Yahoo Finance oraz oficjalne kursy średnie USD/EUR z NBP API.
- */
+import { requireServiceRole } from '../_shared/auth.ts';
+import { createServiceClient } from '../_shared/supabase.ts';
+import { convertCurrency, fetchGpwFxTable } from './gpwFundamentalsFx.ts';
+import { fetchMarketChart, normalizeMarketSymbol } from './marketQuoteData.ts';
 
-interface QuoteItem {
-  ticker: string;
-  symbol: string;
-  price: number;
-  prevClose: number;
-  changePct: number;
-  currency: string;
-  pricePln: number;
-}
-
-interface FxRates {
-  usdPln: number;
-  eurPln: number;
-  date: string;
-}
-
-async function fetchNbpFxRates(): Promise<FxRates> {
-  try {
-    const [usdRes, eurRes] = await Promise.all([
-      fetch('https://api.nbp.pl/api/exchangerates/rates/a/usd/?format=json', {
-        headers: { Accept: 'application/json' },
-        signal: AbortSignal.timeout(6000),
-      }),
-      fetch('https://api.nbp.pl/api/exchangerates/rates/a/eur/?format=json', {
-        headers: { Accept: 'application/json' },
-        signal: AbortSignal.timeout(6000),
-      }),
-    ]);
-
-    const usdData = usdRes.ok ? await usdRes.json() : null;
-    const eurData = eurRes.ok ? await eurRes.json() : null;
-
-    const usdPln = usdData?.rates?.[0]?.mid ?? 3.8404;
-    const eurPln = eurData?.rates?.[0]?.mid ?? 4.375;
-    const date = usdData?.rates?.[0]?.effectiveDate ?? new Date().toISOString().slice(0, 10);
-
-    return { usdPln, eurPln, date };
-  } catch (err) {
-    console.warn('[quotes] NBP API error, using safe fallback rates:', err);
-    return { usdPln: 3.8404, eurPln: 4.375, date: new Date().toISOString().slice(0, 10) };
-  }
-}
-
-function normalizeTickerToYahoo(raw: string): { ticker: string; symbol: string } {
-  const t = raw.trim().toUpperCase();
-  if (t === 'CDR' || t === 'CDR.WA') return { ticker: 'CDR', symbol: 'CDR.WA' };
-  if (t === 'ASB' || t === 'ASB.WA') return { ticker: 'ASB', symbol: 'ASB.WA' };
-  if (t === 'ALE' || t === 'ALE.WA') return { ticker: 'ALE', symbol: 'ALE.WA' };
-  if (t === 'XTB' || t === 'XTB.WA') return { ticker: 'XTB', symbol: 'XTB.WA' };
-  if (t === 'JEDI' || t === 'JEDI.DE') return { ticker: 'JEDI', symbol: 'JEDI.DE' };
-  if (t === 'SXR8' || t === 'SXR8.DE') return { ticker: 'SXR8', symbol: 'SXR8.DE' };
-  if (t === 'ISAC' || t === 'SSAC' || t === 'IUSQ' || t === 'IUSQ.DE') return { ticker: 'ISAC', symbol: 'IUSQ.DE' };
-  if (t === 'MRVL' || t === 'MRVL.US') return { ticker: 'MRVL', symbol: 'MRVL' };
-  if (t === 'NVDA' || t === 'NVDA.US') return { ticker: 'NVDA', symbol: 'NVDA' };
-  if (t === 'INTC' || t === 'INTC.US') return { ticker: 'INTC', symbol: 'INTC' };
-  if (t === 'BE' || t === 'BE.US') return { ticker: 'BE', symbol: 'BE' };
-  if (t === 'NBIS' || t === 'NBIS.US') return { ticker: 'NBIS', symbol: 'NBIS' };
-  if (t === 'MU' || t === 'MU.US') return { ticker: 'MU', symbol: 'MU' };
-  return { ticker: t.replace(/\.(WA|DE|AS|US)$/, ''), symbol: t };
-}
-
-async function fetchYahooQuote(symbol: string): Promise<{ price: number; prevClose: number; currency: string } | null> {
-  try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?interval=1d&range=1d`;
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        Accept: 'application/json',
-      },
-      signal: AbortSignal.timeout(8000),
-    });
-
-    if (!res.ok) return null;
-    const data = await res.json();
-    const meta = data.chart?.result?.[0]?.meta;
-    if (!meta || meta.regularMarketPrice == null) return null;
-
-    return {
-      price: meta.regularMarketPrice,
-      prevClose: meta.chartPreviousClose ?? meta.regularMarketPrice,
-      currency: (meta.currency || 'USD').toUpperCase(),
-    };
-  } catch (err) {
-    console.warn(`[quotes] Error fetching Yahoo quote for ${symbol}:`, err);
-    return null;
-  }
-}
-
+/** Public requests may read quotes; only a service job may change the shared cache. */
 export async function runQuotesSync(req: Request): Promise<unknown> {
   const url = new URL(req.url);
-  const body = (req.method === 'POST' || req.method === 'PUT')
-    ? await req.clone().json().catch(() => ({}))
-    : {};
-
-  const rawTickers: string[] = Array.isArray(body.tickers)
-    ? body.tickers
-    : url.searchParams.get('tickers')
-      ? url.searchParams.get('tickers')!.split(',').filter(Boolean)
-      : ['CDR.WA', 'MRVL', 'JEDI.DE', 'SXR8.DE'];
-
-  // 1. Kursy walut z NBP
-  const rates = await fetchNbpFxRates();
-
-  // 2. Pobieranie notowań z Yahoo Finance
-  const items = rawTickers.map(normalizeTickerToYahoo);
-  const quotesResults = await Promise.all(
-    items.map(async ({ ticker, symbol }) => {
-      const q = await fetchYahooQuote(symbol);
-      if (!q) return null;
-
-      let pricePln = q.price;
-      if (q.currency === 'USD') {
-        pricePln = Math.round(q.price * rates.usdPln * 100) / 100;
-      } else if (q.currency === 'EUR') {
-        pricePln = Math.round(q.price * rates.eurPln * 100) / 100;
-      } else {
-        pricePln = Math.round(q.price * 100) / 100;
-      }
-
-      const changePct = q.prevClose > 0
-        ? Math.round(((q.price - q.prevClose) / q.prevClose) * 10000) / 100
-        : 0;
-
-      const item: QuoteItem = {
-        ticker,
-        symbol,
-        price: Math.round(q.price * 100) / 100,
-        prevClose: Math.round(q.prevClose * 100) / 100,
-        changePct,
-        currency: q.currency,
-        pricePln,
-      };
-
-      return item;
-    })
-  );
-
-  const quotes: Record<string, QuoteItem> = {};
-  for (const item of quotesResults) {
-    if (item) {
-      quotes[item.ticker] = item;
-      quotes[item.symbol] = item;
-    }
+  const body = ['POST', 'PUT'].includes(req.method)
+    ? await req.clone().json().catch(() => ({})) : {};
+  if (body.persist === true) {
+    const denied = requireServiceRole(req);
+    if (denied) return denied;
   }
-
-  return {
-    ok: true,
-    rates,
-    quotes,
-    timestamp: new Date().toISOString(),
-  };
+  const raw = Array.isArray(body.tickers) ? body.tickers
+    : url.searchParams.get('tickers')?.split(',') ?? ['CDR.WA', 'MRVL', 'JEDI.DE', 'SXR8.DE'];
+  if (!raw.length || raw.length > 30 || raw.some((t: unknown) => typeof t !== 'string'
+    || !/^[A-Za-z0-9^][A-Za-z0-9.^=-]{0,24}$/.test(t))) {
+    throw new Error('Podaj od 1 do 30 poprawnych symboli instrumentów');
+  }
+  const range = body.range ?? '1mo';
+  if (!['1d', '5d', '1mo', '3mo', '6mo', '1y', '2y', '5y', '10y', 'max'].includes(range))
+    throw new Error('Niepoprawny zakres historii notowań');
+  const fx = await fetchGpwFxTable();
+  const instruments = Array.from(new Map<string, ReturnType<typeof normalizeMarketSymbol>>(raw.map((t: string) => {
+    const item = normalizeMarketSymbol(t);
+    return [item.symbol, item] as const;
+  })).values());
+  const results = await Promise.allSettled(instruments.map(async (instrument) => {
+    const data = await fetchMarketChart(instrument, range);
+    const pricePln = convertCurrency(data.quote.price, data.quote.currency, 'PLN', fx);
+    if (pricePln == null || !Number.isFinite(pricePln))
+      throw new Error(`NBP nie udostępnia kursu ${data.quote.currency}`);
+    return { ...data, quote: { ...data.quote, pricePln: Math.round(pricePln * 100) / 100 } };
+  }));
+  const successful = results.flatMap((r) => r.status === 'fulfilled' ? [r.value] : []);
+  const errors = results.flatMap((r, i) => r.status === 'rejected'
+    ? [{ symbol: instruments[i].symbol, message: String(r.reason instanceof Error ? r.reason.message : r.reason) }] : []);
+  if (!successful.length) throw new Error(`Nie pobrano notowań: ${errors.map((e) => e.message).join('; ')}`);
+  if (body.persist === true) {
+    const db = createServiceClient();
+    const history = successful.flatMap((r) => r.history);
+    if (history.length) {
+      const { error } = await db.from('prices_daily').upsert(history, { onConflict: 'ticker,date' });
+      if (error) throw new Error(`Zapis historii cen: ${error.message}`);
+    }
+    const { error } = await db.from('market_quotes').upsert(successful.map(({ quote }) => ({
+      symbol: quote.symbol, ticker: quote.ticker, price: quote.price,
+      previous_close: quote.prevClose, currency: quote.currency, quote_asof: quote.quoteAsOf,
+      fetched_at: new Date().toISOString(), source: quote.source, source_url: quote.sourceUrl,
+    })), { onConflict: 'symbol' });
+    if (error) throw new Error(`Zapis notowań: ${error.message}`);
+  }
+  const quotes = Object.fromEntries(successful.flatMap(({ quote }) =>
+    [[quote.ticker, quote], [quote.symbol, quote]]));
+  return { ok: errors.length === 0, partial: errors.length > 0, errors, quotes,
+    rates: { usdPln: fx.rates.get('USD'), eurPln: fx.rates.get('EUR'), date: fx.date },
+    timestamp: new Date().toISOString(), persisted: body.persist === true };
 }

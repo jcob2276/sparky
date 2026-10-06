@@ -29,6 +29,7 @@ const DesignSystemPage = lazy(() => import('./components/dev/DesignSystemPage'))
 const OuraHealthPage = lazy(() => import('./components/biometrics/OuraHealthPage'));
 const GrowthView = lazy(() => import('./components/growth/GrowthView'));
 const InvestmentsPage = lazy(() => import('./components/investments/InvestmentsPage'));
+const PokerDecisionPage = lazy(() => import('./components/poker/PokerDecisionPage'));
 import { queryClient } from './lib/queryClient';
 import { setupGlobalBleSync } from './lib/biometrics/ouraBleSync';
 
@@ -153,6 +154,14 @@ function AppRoutes() {
     );
   }
 
+  if (location.pathname === '/poker' || location.pathname === '/poker-lab') {
+    return (
+      <Suspense fallback={FALLBACK_SPINNER}>
+        <PokerDecisionPage />
+      </Suspense>
+    );
+  }
+
   if (loading) {
     return FALLBACK_SPINNER;
   }
@@ -240,6 +249,16 @@ function AppRoutes() {
       <Route path="/dev/design-system" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="grid"><DesignSystemPage /></Screen>
+        </Suspense>
+      } />
+      <Route path="/poker" element={
+        <Suspense fallback={FALLBACK_SPINNER}>
+          <PokerDecisionPage />
+        </Suspense>
+      } />
+      <Route path="/poker-lab" element={
+        <Suspense fallback={FALLBACK_SPINNER}>
+          <PokerDecisionPage />
         </Suspense>
       } />
       <Route path="/czat" element={<Navigate to="/dzis" replace />} />

@@ -38,7 +38,7 @@ export const CompanyAboutCard: FC<Props> = ({ data, onAskAnalyst }) => {
             </h3>
           </div>
           <p className="text-2xs text-text-muted leading-relaxed">
-            Dowiedz się, dlaczego fundusze 13F i politycy kupują lub sprzedają akcje {data.ticker}, jaki jest sentyment i zbieżność transakcji.
+            Omów dostępne dane o {data.ticker}, ich daty, ograniczenia i ryzyka inwestycji.
           </p>
         </div>
 

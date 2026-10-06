@@ -18,6 +18,8 @@ export const GpwShorts14dWidget: FC<Props> = ({
       <h4 className="text-xs font-bold text-text-primary tracking-tight uppercase font-mono">
         Zmiany 14 dni
       </h4>
+      <p className="text-2xs text-text-secondary">Zmiana sumy publicznych pozycji wobec ostatniego zapisanego stanu bieżącego rejestru sprzed 14 dni.</p>
+      {!increases.length && !decreases.length && <p className="text-xs text-text-muted">Brak udokumentowanych zmian lub danych do porównania.</p>}
 
       {/* WZROSTY */}
       <div className="space-y-1.5">

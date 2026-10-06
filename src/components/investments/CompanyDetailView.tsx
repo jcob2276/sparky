@@ -1,17 +1,18 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useState } from 'react';
 import { CompanyDetailHeader, CompanyDetailTab } from './CompanyDetailHeader';
 import { CompanyPriceEventsChart } from './CompanyPriceEventsChart';
-import { CompanyQuarterlyChart } from './CompanyQuarterlyChart';
+import { CompanyFundDisclosureCard } from './CompanyFundDisclosureCard';
 import { CompanyKpiGrid } from './CompanyKpiGrid';
 import { CompanyAboutCard } from './CompanyAboutCard';
 import { CompanyPiotroskiCard } from './CompanyPiotroskiCard';
 import { CompanySubTabsView } from './CompanySubTabsView';
-import { fetchCompanyDetailData, CompanyDetailData } from '../../lib/investments/companyDetailService';
+import { useCompanyDetail } from '../../hooks/useCompanyDetail';
 import Button from '../ui/Button';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 
 interface Props {
   ticker: string;
+  market?: 'us' | 'gpw';
   initialName?: string;
   onBack: () => void;
   onNavigateTab?: (tab: string, prefill?: string) => void;
@@ -21,46 +22,21 @@ interface Props {
 
 export const CompanyDetailView: FC<Props> = ({
   ticker,
+  market = 'us',
   initialName,
   onBack,
   onNavigateTab,
   watchlist,
   onToggleWatchlist,
 }) => {
-  const [data, setData] = useState<CompanyDetailData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { data, loading, error, retry } = useCompanyDetail(ticker, initialName, market);
   const [activeTab, setActiveTab] = useState<CompanyDetailTab>('overview');
-
-  const [retryCount, setRetryCount] = useState(0);
-
-  useEffect(() => {
-    let active = true;
-    void (async () => {
-      try {
-        const res = await fetchCompanyDetailData(ticker, initialName);
-        if (active) {
-          setData(res);
-          setError(null);
-        }
-      } catch (err: unknown) {
-        if (active) {
-          setError(err instanceof Error ? err.message : 'Nie udało się pobrać danych spółki');
-        }
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [ticker, initialName, retryCount]);
 
   const handleAskAnalyst = (t: string) => {
     if (onNavigateTab) {
       onNavigateTab(
         'analyst',
-        `Przeanalizuj spółkę ${t}: jakie fundusze 13F i politycy w nią inwestują oraz jaki jest sentyment?`
+        `Przeanalizuj spółkę $${t}${market === 'gpw' ? '.PL' : ''}: omów dostępne dane, ich daty i ryzyka inwestycji.`
       );
     }
   };
@@ -106,10 +82,7 @@ export const CompanyDetailView: FC<Props> = ({
             size="sm"
             variant="primary"
             icon={<RefreshCw size={13} />}
-            onClick={() => {
-              setLoading(true);
-              setRetryCount((c) => c + 1);
-            }}
+            onClick={retry}
           >
             Spróbuj ponownie
           </Button>
@@ -131,11 +104,11 @@ export const CompanyDetailView: FC<Props> = ({
       />
 
       {/* Tab Content */}
-      {activeTab === 'overview' ? (
+      {activeTab === 'overview' || market === 'gpw' ? (
         <div className="space-y-6">
           <CompanyPriceEventsChart data={data} />
-          <CompanyQuarterlyChart data={data} />
-          <CompanyKpiGrid data={data} />
+          {market === 'us' && <CompanyFundDisclosureCard ticker={data.ticker} history={data.fundHistory} />}
+          {market === 'us' && <CompanyKpiGrid data={data} />}
           <CompanyPiotroskiCard ticker={ticker} />
           <CompanyAboutCard data={data} onAskAnalyst={handleAskAnalyst} />
         </div>

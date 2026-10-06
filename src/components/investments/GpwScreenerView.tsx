@@ -69,6 +69,7 @@ export const GpwScreenerView: FC<Props> = ({
   if (selectedCompany) {
     return (
       <CompanyDetailView
+        market="gpw"
         ticker={selectedCompany.ticker}
         initialName={selectedCompany.name}
         onBack={() => setSelectedCompany(null)}
