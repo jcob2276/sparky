@@ -6,34 +6,6 @@ function num(value: unknown): number | null {
   return null;
 }
 
-export interface BacktestPoint {
-  asof: string;
-  cumulativePct: number;
-  periodPct: number;
-  funds: number;
-}
-
-export async function fetchBasketBacktest(): Promise<BacktestPoint[]> {
-  const rows = await orcaSelect<{
-    asof?: string;
-    cumulative?: number | string;
-    ret?: number | string;
-    n_funds?: number | string;
-  }>(
-    'convergence_backtest?select=asof,cumulative,ret,n_funds&kind=eq.basket&ticker=eq.__PORTFEL__&order=asof.asc&limit=80',
-  );
-  return rows.flatMap((row) => {
-    const cumulative = num(row.cumulative);
-    if (!row.asof || cumulative == null) return [];
-    return [{
-      asof: row.asof,
-      cumulativePct: cumulative * 100,
-      periodPct: (num(row.ret) ?? 0) * 100,
-      funds: num(row.n_funds) ?? 0,
-    }];
-  });
-}
-
 export interface QuotePoint {
   date: string;
   close: number;

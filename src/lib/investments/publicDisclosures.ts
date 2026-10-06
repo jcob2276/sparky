@@ -152,30 +152,3 @@ export async function fetchGpwInsiderTrades(): Promise<InsiderTradeItem[]> {
     created_at: row.report_date || row.transaction_date || '',
   }));
 }
-
-export interface ConvergenceSnapshot {
-  topN: number;
-  quarterStart: string;
-  valuedTo: string;
-  priced: number;
-  returnPct: number;
-}
-
-export async function fetchConvergenceSnapshot(): Promise<ConvergenceSnapshot | null> {
-  const rows = await orcaSelect<{
-    top_n?: number;
-    quarter_start?: string;
-    valued_to?: string;
-    priced?: number;
-    ret?: number;
-  }>('convergence_live?select=top_n,quarter_start,valued_to,priced,ret&limit=1');
-  const row = rows[0];
-  if (!row || typeof row.ret !== 'number') return null;
-  return {
-    topN: row.top_n ?? 0,
-    quarterStart: row.quarter_start ?? '',
-    valuedTo: row.valued_to ?? '',
-    priced: row.priced ?? 0,
-    returnPct: row.ret * 100,
-  };
-}
