@@ -1,6 +1,7 @@
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { secFetcher } from '../_shared/secForm4Sync.ts';
 import { parseSec13fRecent } from './sec13fData.ts';
+import { describeSec13fError } from './sec13fErrors.ts';
 
 /** Rotating SEC submissions reads replay the recent history, including missed runs. */
 export async function discoverSec13f(db: SupabaseClient, limit: number) {
@@ -42,7 +43,7 @@ export async function discoverSec13f(db: SupabaseClient, limit: number) {
       }
       discovered += missing.length; checked++;
     } catch (cause) {
-      errors.push({ cik: investor.cik, error: cause instanceof Error ? cause.message : String(cause) });
+      errors.push({ cik: investor.cik, error: describeSec13fError(cause) });
     }
   }
   const partial = errors.length > 0 || checked < selected.length;
