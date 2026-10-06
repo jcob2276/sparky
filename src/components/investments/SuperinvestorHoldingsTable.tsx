@@ -6,11 +6,12 @@ import Button from '../ui/Button';
 
 interface Props {
   holdings: HoldingChangeItem[];
-  newCount: number;
-  decreasedCount: number;
-  increasedCount: number;
-  soldCount: number;
+  newCount: number | null;
+  decreasedCount: number | null;
+  increasedCount: number | null;
+  soldCount: number | null;
   filingUrl: string | null;
+  previousFilingUrl: string | null;
   onSelectTicker?: (ticker: string) => void;
 }
 
@@ -23,16 +24,19 @@ export const SuperinvestorHoldingsTable: FC<Props> = ({
   increasedCount,
   soldCount,
   filingUrl,
+  previousFilingUrl,
   onSelectTicker,
 }) => {
   const [activeTab, setActiveTab] = useState<TabKey>('top');
+  const [visibleCount, setVisibleCount] = useState(50);
+  const selectTab = (tab: TabKey) => { setActiveTab(tab); setVisibleCount(50); };
 
   const filteredHoldings = holdings.filter((h) => {
     if (activeTab === 'new') return h.changeType === 'new';
     if (activeTab === 'increased') return h.changeType === 'increased';
     if (activeTab === 'decreased') return h.changeType === 'decreased';
     if (activeTab === 'sold') return h.changeType === 'sold';
-    return true;
+    return (h.sharesNow ?? 0) > 0;
   });
 
   return (
@@ -40,7 +44,7 @@ export const SuperinvestorHoldingsTable: FC<Props> = ({
       {/* Title & Tabs Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-custom/50 pb-3">
         <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono">
-          Top {holdings.length} Pozycji
+          Ujawnione pozycje SH
         </h3>
 
         {filingUrl && (
@@ -55,50 +59,56 @@ export const SuperinvestorHoldingsTable: FC<Props> = ({
           </a>
         )}
       </div>
+      {previousFilingUrl && <a href={previousFilingUrl} target="_blank" rel="noopener noreferrer" className="text-primary text-xs">
+        SEC EDGAR — poprzedni kwartał
+      </a>}
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
         <Button
           size="sm"
           variant={activeTab === 'top' ? 'primary' : 'ghost'}
-          onClick={() => setActiveTab('top')}
+          onClick={() => selectTab('top')}
           className="text-2xs font-bold rounded-xl"
         >
-          Największe {holdings.length}
+          Aktualne {holdings.filter(h => (h.sharesNow ?? 0) > 0).length}
         </Button>
         <Button
           size="sm"
           variant={activeTab === 'new' ? 'primary' : 'ghost'}
-          onClick={() => setActiveTab('new')}
+          onClick={() => selectTab('new')}
           className="text-2xs font-bold rounded-xl"
         >
-          Nowe {newCount}
+          Nowe {newCount ?? '—'}
         </Button>
         <Button
           size="sm"
           variant={activeTab === 'increased' ? 'primary' : 'ghost'}
-          onClick={() => setActiveTab('increased')}
+          onClick={() => selectTab('increased')}
           className="text-2xs font-bold rounded-xl"
         >
-          Dokupione {increasedCount}
+          Więcej akcji {increasedCount ?? '—'}
         </Button>
         <Button
           size="sm"
           variant={activeTab === 'decreased' ? 'primary' : 'ghost'}
-          onClick={() => setActiveTab('decreased')}
+          onClick={() => selectTab('decreased')}
           className="text-2xs font-bold rounded-xl"
         >
-          Zmniejszone {decreasedCount}
+          Mniej akcji {decreasedCount ?? '—'}
         </Button>
         <Button
           size="sm"
           variant={activeTab === 'sold' ? 'primary' : 'ghost'}
-          onClick={() => setActiveTab('sold')}
+          onClick={() => selectTab('sold')}
           className="text-2xs font-bold rounded-xl"
         >
-          Sprzedane {soldCount}
+          Nieobecne {soldCount ?? '—'}
         </Button>
       </div>
+      {filteredHoldings.length === 0 && <p className="text-xs text-text-muted">
+        {newCount === null ? 'Brak zweryfikowanego porównania kwartałów.' : 'Brak pozycji w tej kategorii.'}
+      </p>}
 
       {/* Table */}
       <div className="overflow-x-auto">
@@ -114,9 +124,9 @@ export const SuperinvestorHoldingsTable: FC<Props> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-border-custom/30 text-xs font-mono">
-            {filteredHoldings.map((h, idx) => (
+            {filteredHoldings.slice(0, visibleCount).map((h) => (
               <SuperinvestorHoldingRow
-                key={`${h.ticker}_${idx}`}
+                key={h.cusip}
                 holding={h}
                 onSelectTicker={onSelectTicker}
               />
@@ -124,6 +134,9 @@ export const SuperinvestorHoldingsTable: FC<Props> = ({
           </tbody>
         </table>
       </div>
+      {filteredHoldings.length > visibleCount && <Button variant="secondary" onClick={() => setVisibleCount(count => count + 50)}>
+        Pokaż kolejne — {visibleCount} z {filteredHoldings.length}
+      </Button>}
     </div>
   );
 };

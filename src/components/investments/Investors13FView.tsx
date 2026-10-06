@@ -1,44 +1,28 @@
-import { FC, useState, useEffect, useMemo } from 'react';
-import {
-  fetchSuperinvestorsOverview,
-  SuperinvestorOverviewItem,
-} from '../../lib/investments/superinvestorDetailService';
+import { FC, useState, useMemo } from 'react';
+import { useSuperinvestorsOverview } from '../../lib/investments/useSuperinvestors';
 import { SuperinvestorsHeader, CategoryFilter } from './SuperinvestorsHeader';
 import { SuperinvestorCard } from './SuperinvestorCard';
 import { SuperinvestorDetailView } from './SuperinvestorDetailView';
 import { Loader2 } from 'lucide-react';
+import Button from '../ui/Button';
+import type { SuperinvestorOverviewItem } from '../../lib/investments/superinvestorTypes';
+import { CompanyDetailView } from './CompanyDetailView';
+const EMPTY_INVESTORS: SuperinvestorOverviewItem[] = [];
 
 interface Props {
   onNavigateTab?: (tab: string) => void;
+  watchlist: string[];
+  onToggleWatchlist: (ticker: string) => void;
 }
 
-export const Investors13FView: FC<Props> = ({ onNavigateTab }) => {
-  const [investors, setInvestors] = useState<SuperinvestorOverviewItem[]>([]);
-  const [stats, setStats] = useState({
-    totalActive: 0,
-    curveCount: 0,
-    consensusCount: 0,
-    categoriesCount: 0,
-  });
+export const Investors13FView: FC<Props> = ({ onNavigateTab, watchlist, onToggleWatchlist }) => {
+  const query = useSuperinvestorsOverview();
+  const investors = query.data?.investors ?? EMPTY_INVESTORS;
+  const stats = query.data?.stats ?? { totalActive: 0, verifiedCount: 0, consensusCount: 0, categoriesCount: 0 };
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedTicker, setSelectedTicker] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<CategoryFilter>('all');
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      setLoading(true);
-      const res = await fetchSuperinvestorsOverview();
-      if (!active) return;
-      setInvestors(res.investors);
-      setStats(res.stats);
-      setLoading(false);
-    })();
-    return () => {
-      active = false;
-    };
-  }, []);
 
   const filteredInvestors = useMemo(() => {
     return investors.filter((inv) => {
@@ -67,34 +51,28 @@ export const Investors13FView: FC<Props> = ({ onNavigateTab }) => {
     });
   }, [investors, category, search]);
 
-  const selectedInvestor = useMemo(() => {
-    if (!selectedId) return undefined;
-    return investors.find((inv) => inv.id === selectedId);
-  }, [investors, selectedId]);
 
-  const handleSelectTicker = (_ticker: string) => {
-    if (onNavigateTab) {
-      onNavigateTab('screener');
-    }
-  };
-
-  if (loading) {
+  if (query.isPending) {
     return (
       <div className="flex flex-col items-center justify-center p-20 space-y-3">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <div className="text-xs font-mono text-text-muted">Pobieranie 59 superinwestorów z bazy SEC 13F...</div>
+        <div className="text-xs font-mono text-text-muted">Pobieranie zweryfikowanych raportów SEC 13F...</div>
       </div>
     );
   }
+  if (query.error) return <div role="alert" className="p-8 text-text-secondary">
+    Nie udało się pobrać raportów SEC. <Button variant="ghost" onClick={() => void query.refetch()}>Ponów</Button>
+  </div>;
+  if (selectedTicker) return <CompanyDetailView ticker={selectedTicker} watchlist={watchlist}
+    onToggleWatchlist={onToggleWatchlist} onNavigateTab={onNavigateTab} onBack={() => setSelectedTicker(null)} />;
 
   // Widok szczegółowy wybranego inwestora (media_1790435172046.png)
   if (selectedId) {
     return (
       <SuperinvestorDetailView
         investorId={selectedId}
-        overviewItem={selectedInvestor}
         onBack={() => setSelectedId(null)}
-        onSelectTicker={handleSelectTicker}
+        onSelectTicker={setSelectedTicker}
       />
     );
   }
@@ -104,7 +82,7 @@ export const Investors13FView: FC<Props> = ({ onNavigateTab }) => {
     <div className="space-y-6 animate-fade-in text-text-primary">
       <SuperinvestorsHeader
         totalActive={stats.totalActive}
-        curveCount={stats.curveCount}
+        verifiedCount={stats.verifiedCount}
         consensusCount={stats.consensusCount}
         categoriesCount={stats.categoriesCount}
         search={search}

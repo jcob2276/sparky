@@ -6,8 +6,8 @@ interface Props {
   investor: SuperinvestorOverviewItem;
   basketValueFormatted: string;
   positionsCount: number;
-  newCount: number;
-  soldCount: number;
+  newCount: number | null;
+  soldCount: number | null;
 }
 
 export const SuperinvestorDetailHeader: FC<Props> = ({
@@ -33,7 +33,7 @@ export const SuperinvestorDetailHeader: FC<Props> = ({
               {investor.name}
             </h1>
             <div className="text-3xs uppercase tracking-wider font-mono font-bold text-text-muted mt-0.5">
-              {investor.fundName} · {investor.category} · UJAWNIENIA 13F OD 2023
+              {investor.fundName} · {investor.category} · STAN: {investor.reportPeriod ?? '—'}
             </div>
           </div>
         </div>
@@ -70,16 +70,16 @@ export const SuperinvestorDetailHeader: FC<Props> = ({
             Nowe Pozycje
           </div>
           <div className="text-xl sm:text-2xl font-black text-success tracking-tight mt-1">
-            {newCount}
+            {newCount ?? '—'}
           </div>
         </div>
 
         <div className="p-4 rounded-2xl bg-surface border border-border-custom shadow-2xs">
           <div className="text-3xs uppercase tracking-wider font-semibold text-text-muted font-mono">
-            Sprzedane
+            Nieobecne w raporcie
           </div>
           <div className="text-xl sm:text-2xl font-black text-danger tracking-tight mt-1">
-            {soldCount}
+            {soldCount ?? '—'}
           </div>
         </div>
       </div>

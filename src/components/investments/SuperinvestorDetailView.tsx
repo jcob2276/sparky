@@ -1,47 +1,26 @@
-import { FC, useState, useEffect } from 'react';
+import { FC } from 'react';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import {
-  fetchSuperinvestorDetail,
-  SuperinvestorDetailData,
-  SuperinvestorOverviewItem,
-} from '../../lib/investments/superinvestorDetailService';
 import { SuperinvestorDetailHeader } from './SuperinvestorDetailHeader';
 import { SuperinvestorQuarterChart } from './SuperinvestorQuarterChart';
 import { SuperinvestorHoldingsTable } from './SuperinvestorHoldingsTable';
 import { SuperinvestorSidePanels } from './SuperinvestorSidePanels';
 import Button from '../ui/Button';
+import { useSuperinvestorDetail } from '../../lib/investments/useSuperinvestors';
 
 interface Props {
   investorId: string;
-  overviewItem?: SuperinvestorOverviewItem;
   onBack: () => void;
   onSelectTicker?: (ticker: string) => void;
 }
 
 export const SuperinvestorDetailView: FC<Props> = ({
   investorId,
-  overviewItem,
   onBack,
   onSelectTicker,
 }) => {
-  const [data, setData] = useState<SuperinvestorDetailData | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      setLoading(true);
-      const res = await fetchSuperinvestorDetail(investorId, overviewItem);
-      if (!active) return;
-      setData(res);
-      setLoading(false);
-    })();
-    return () => {
-      active = false;
-    };
-  }, [investorId, overviewItem]);
-
-  if (loading) {
+  const query = useSuperinvestorDetail(investorId);
+  const data = query.data;
+  if (query.isPending) {
     return (
       <div className="flex flex-col items-center justify-center p-16 space-y-3">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -49,6 +28,11 @@ export const SuperinvestorDetailView: FC<Props> = ({
       </div>
     );
   }
+  if (query.error) return <div role="alert" className="p-8 space-y-4">
+    <p>Nie udało się pobrać pozycji SEC. {query.error.message}</p>
+    <Button onClick={() => void query.refetch()}>Ponów</Button>
+    <Button variant="secondary" onClick={onBack}>Powrót do listy</Button>
+  </div>;
 
   if (!data) {
     return (
@@ -90,12 +74,13 @@ export const SuperinvestorDetailView: FC<Props> = ({
       {/* Performance Curve Banner */}
       <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-2xs space-y-1.5">
         <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono">
-          {investor.curveEnabled ? 'Krzywa Wyników Dostępna' : 'Krzywa Wyników Niedostępna'}
+          Stan ujawnionych pozycji · {data.periodQuarter}
         </h3>
         <p className="text-xs text-text-secondary leading-relaxed max-w-4xl">
-          {investor.curveEnabled
-            ? 'Dla tego inwestora publikujemy pełną symulację historycznej stopy zwrotu po ujawnieniach 13F w module Symulacji Koszyka.'
-            : 'Dla tego inwestora nie publikujemy hipotetycznej krzywej wyników, bo formularze 13F nie odzwierciedlają tu pełnego portfela (np. krótkie pozycje, instrumenty pochodne), więc indeks koszyka byłby mylący. Pokazujemy wyłącznie ujawnione pozycje długie w akcjach amerykańskich.'}
+          Tabela obejmuje wszystkie odczytane pozycje długie raportowane w akcjach (SH), bez opcji i pozycji PRN.
+          Wagi odnoszą się do tej części raportu. Zmiana liczby akcji między raportami nie dowodzi wykonania transakcji.
+          {data.previousPeriod ? ` Porównanie ze stanem na ${data.previousPeriod}.` : ' Brak zweryfikowanego poprzedniego kwartału — zmiany pozostają nieznane.'}
+          {investor.reportWarning && ' Suma odczytanych pozycji różni się od podsumowania dokumentu; pokazujemy wartości pozycji.'}
         </p>
       </div>
 
@@ -115,6 +100,7 @@ export const SuperinvestorDetailView: FC<Props> = ({
             increasedCount={data.increasedCount}
             soldCount={data.soldCount}
             filingUrl={data.latestFilingUrl}
+            previousFilingUrl={data.previousFilingUrl}
             onSelectTicker={onSelectTicker}
           />
         </div>

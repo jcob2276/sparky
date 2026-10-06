@@ -13,7 +13,10 @@ export interface SuperinvestorOverviewItem {
   tier: string;
   aumFormatted: string;
   aumRaw: number;
-  positionsCount: number;
+  positionsCount: number | null;
+  reportPeriod: string | null;
+  filingUrl: string | null;
+  reportWarning: boolean;
   filingDate: string;
   sparkline: number[];
   isPositiveTrend: boolean;
@@ -25,7 +28,7 @@ export interface SuperinvestorsOverviewData {
   investors: SuperinvestorOverviewItem[];
   stats: {
     totalActive: number;
-    curveCount: number;
+    verifiedCount: number;
     consensusCount: number;
     categoriesCount: number;
   };
@@ -39,6 +42,8 @@ export interface QuarterHistoryItem {
 }
 
 export interface HoldingChangeItem {
+  cusip: string;
+  tickerMapped: boolean;
   ticker: string;
   companyName: string;
   weightPct: number;
@@ -47,7 +52,7 @@ export interface HoldingChangeItem {
   sharesDeltaPct: number | null;
   valueUsd: number | null;
   valueFormatted: string;
-  changeType: 'new' | 'increased' | 'decreased' | 'sold' | 'unchanged';
+  changeType: 'new' | 'increased' | 'decreased' | 'sold' | 'unchanged' | 'unknown';
   sector: string;
 }
 
@@ -56,15 +61,17 @@ export interface SuperinvestorDetailData {
   basketValueFormatted: string;
   basketValueRaw: number;
   positionsCount: number;
-  newCount: number;
-  decreasedCount: number;
-  increasedCount: number;
-  soldCount: number;
+  newCount: number | null;
+  decreasedCount: number | null;
+  increasedCount: number | null;
+  soldCount: number | null;
   quarters: QuarterHistoryItem[];
   quarterGrowthPct: string;
   holdings: HoldingChangeItem[];
   sectors: { name: string; weightPct: number }[];
   latestFilingUrl: string | null;
+  previousFilingUrl: string | null;
+  previousPeriod: string | null;
   periodQuarter: string;
   recentActivity: { type: string; ticker: string; details: string; isNegative?: boolean }[];
 }

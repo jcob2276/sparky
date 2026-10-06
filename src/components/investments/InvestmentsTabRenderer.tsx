@@ -66,7 +66,8 @@ export const InvestmentsTabRenderer: FC<Props> = ({
         />
       );
     case 'investors':
-      return <Investors13FView onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
+      return <Investors13FView watchlist={watchlist} onToggleWatchlist={onToggleWatchlist}
+        onNavigateTab={(tab) => onNavigateTab(tab as MainTabType)} />;
     case 'politicians':
       return (
         <PoliticiansView

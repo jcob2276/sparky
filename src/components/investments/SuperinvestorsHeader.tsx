@@ -7,7 +7,7 @@ export type CategoryFilter = 'all' | 'value' | 'macro' | 'activist' | 'tech' | '
 
 interface Props {
   totalActive: number;
-  curveCount: number;
+  verifiedCount: number;
   consensusCount: number;
   categoriesCount: number;
   search: string;
@@ -29,7 +29,7 @@ const CATEGORY_TABS: { id: CategoryFilter; label: string }[] = [
 
 export const SuperinvestorsHeader: FC<Props> = ({
   totalActive,
-  curveCount,
+  verifiedCount,
   consensusCount,
   categoriesCount,
   search,
@@ -46,7 +46,7 @@ export const SuperinvestorsHeader: FC<Props> = ({
           SUPERINWESTORZY · 13F
         </h1>
         <p className="text-3xs uppercase tracking-widest text-text-muted mt-1 font-semibold">
-          WARTOŚĆ PORTFELA 13F · ZMIANA OD POPRZEDNIEGO KWARTAŁU
+          WARTOŚCI Z ODCZYTANYCH RAPORTÓW SEC · HISTORIA UJAWNIEŃ, NIE STOPA ZWROTU
         </p>
       </div>
 
@@ -63,10 +63,10 @@ export const SuperinvestorsHeader: FC<Props> = ({
 
         <div className="p-4 rounded-2xl bg-surface border border-border-custom shadow-2xs">
           <div className="text-3xs uppercase tracking-wider font-semibold text-text-muted font-mono">
-            Krzywe Wyników
+            Z odczytanym raportem
           </div>
           <div className="text-2xl sm:text-3xl font-black text-success tracking-tight mt-1">
-            {curveCount}
+            {verifiedCount}
           </div>
         </div>
 

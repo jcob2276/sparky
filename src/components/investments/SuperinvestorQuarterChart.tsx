@@ -27,7 +27,7 @@ export const SuperinvestorQuarterChart: FC<Props> = ({ quarters, quarterGrowthPc
         <div className="flex items-center gap-1.5 text-2xs font-mono font-bold">
           <span className="text-text-muted">{quarters.length} KWARTAŁÓW ·</span>
           <span className="text-text-muted">KONIEC KWARTAŁU</span>
-          <span className="text-success font-black">{quarterGrowthPct}</span>
+          <span className="text-text-secondary font-black">q/q: {quarterGrowthPct}</span>
         </div>
       </div>
 
@@ -35,7 +35,7 @@ export const SuperinvestorQuarterChart: FC<Props> = ({ quarters, quarterGrowthPc
       <div className="pt-8 pb-2">
         <div className="h-44 sm:h-48 flex items-end justify-between gap-2 sm:gap-4 px-2">
           {quarters.map((q, idx) => {
-            const heightPercent = Math.max(12, Math.round((q.rawValue / maxVal) * 100));
+            const heightPercent = Math.max(0, Math.round((q.rawValue / maxVal) * 100));
 
             return (
               <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group">
@@ -67,6 +67,7 @@ export const SuperinvestorQuarterChart: FC<Props> = ({ quarters, quarterGrowthPc
           })}
         </div>
       </div>
+      <p className="text-xs text-text-muted">Wartość odczytanych pozycji 13F obejmuje również opcje i PRN. Jej zmiana nie jest stopą zwrotu funduszu.</p>
     </div>
   );
 };

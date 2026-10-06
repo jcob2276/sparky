@@ -16,13 +16,13 @@ export const SuperinvestorHoldingRow: FC<Props> = ({ holding: h, onSelectTicker 
       {/* Pozycja: Logo + Ticker + Nazwa */}
       <td className="py-3 px-3">
         <div
-          onClick={() => onSelectTicker?.(h.ticker)}
-          className={`flex items-center gap-2.5 ${onSelectTicker ? 'cursor-pointer' : ''}`}
+          onClick={() => h.tickerMapped && onSelectTicker?.(h.ticker)}
+          className={`flex items-center gap-2.5 ${onSelectTicker && h.tickerMapped ? 'cursor-pointer' : ''}`}
         >
           <CompanyLogo ticker={h.ticker} name={h.companyName} size={28} />
           <div className="min-w-0">
             <div className="font-bold text-text-primary group-hover:text-primary transition-colors flex items-center gap-1.5">
-              {h.ticker}
+              {h.tickerMapped ? h.ticker : `CUSIP: ${h.cusip}`}
             </div>
             <div className="text-3xs text-text-muted truncate max-w-36 sm:max-w-44">
               {h.companyName}
@@ -38,7 +38,7 @@ export const SuperinvestorHoldingRow: FC<Props> = ({ holding: h, onSelectTicker 
 
       {/* Akcje */}
       <td className="py-3 px-3 text-right text-text-secondary">
-        {h.sharesNow ? Math.round(h.sharesNow).toLocaleString('pl-PL') : '—'}
+        {h.sharesNow !== null ? Math.round(h.sharesNow).toLocaleString('pl-PL') : '—'}
       </td>
 
       {/* Δ Akcji */}
@@ -47,7 +47,7 @@ export const SuperinvestorHoldingRow: FC<Props> = ({ holding: h, onSelectTicker 
           isPositiveDelta ? 'text-success' : isNegativeDelta ? 'text-danger' : 'text-text-muted'
         }`}
       >
-        {h.sharesDelta
+        {h.sharesDelta !== null
           ? `${isPositiveDelta ? '+' : ''}${Math.round(h.sharesDelta).toLocaleString('pl-PL')}`
           : '—'}
       </td>
@@ -66,17 +66,17 @@ export const SuperinvestorHoldingRow: FC<Props> = ({ holding: h, onSelectTicker 
         )}
         {h.changeType === 'decreased' && (
           <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-danger/10 text-danger border border-danger/20">
-            Zredukowano {h.sharesDeltaPct ? `${h.sharesDeltaPct}%` : ''}
+            Mniej akcji {h.sharesDeltaPct ? `${h.sharesDeltaPct.toFixed(1)}%` : ''}
           </span>
         )}
         {h.changeType === 'increased' && (
           <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-success/10 text-success border border-success/20">
-            Dokupiono {h.sharesDeltaPct ? `+${h.sharesDeltaPct}%` : ''}
+            Więcej akcji {h.sharesDeltaPct ? `+${h.sharesDeltaPct.toFixed(1)}%` : ''}
           </span>
         )}
         {h.changeType === 'sold' && (
           <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-surface-elevated text-text-muted border border-border-custom">
-            Sprzedano
+            Brak w raporcie
           </span>
         )}
         {h.changeType === 'unchanged' && (
@@ -84,6 +84,7 @@ export const SuperinvestorHoldingRow: FC<Props> = ({ holding: h, onSelectTicker 
             Bez zmian
           </span>
         )}
+        {h.changeType === 'unknown' && <span className="text-text-muted text-3xs">Brak porównania</span>}
       </td>
     </tr>
   );

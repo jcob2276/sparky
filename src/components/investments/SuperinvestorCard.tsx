@@ -65,7 +65,7 @@ export const SuperinvestorCard: FC<Props> = ({ investor, onClick }) => {
             </span>
           </div>
           <div className="text-3xs font-mono font-medium text-text-muted uppercase tracking-wider mt-0.5">
-            USD
+            Wartość ujawniona w 13F
           </div>
         </div>
 
@@ -93,10 +93,13 @@ export const SuperinvestorCard: FC<Props> = ({ investor, onClick }) => {
       {/* Bottom Metadata */}
       <div className="pt-2 border-t border-border-custom/50 flex items-center justify-between text-3xs font-mono text-text-secondary">
         <span>
-          {investor.positionsCount} pozycji · {investor.category}
+          {investor.positionsCount ?? '—'} wpisów 13F · {investor.category}
         </span>
         <span className="text-text-muted">{investor.filingDate}</span>
       </div>
+      <p className="text-3xs text-text-muted">
+        {investor.reportPeriod ? `Stan: ${investor.reportPeriod}` : 'Brak zweryfikowanego raportu'}
+      </p>
     </div>
   );
 };
