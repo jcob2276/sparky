@@ -38,6 +38,7 @@ export function parseHouseIndex(xml: string, year: number): HouseDocument[] {
 export function parseHouseTransactionPage(rawItems: PdfTextItem[]) {
   const items = rawItems.map((i) => ({ ...i, text: i.text.replace(/\u0000/g, '').trim() }))
     .filter((i) => i.text);
+  if (!items.length) throw new Error('Skan PDF bez warstwy tekstowej — wymagany OCR');
   const header = (label: string) => items.find((i) => i.text === label);
   const owner = header('Owner'); const asset = header('Asset');
   const type = header('Transaction'); const amount = header('Amount');

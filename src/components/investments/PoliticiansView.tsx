@@ -102,7 +102,7 @@ export const PoliticiansView: FC<Props> = ({
         {sourceStatus?.status !== 'ok' && sourceStatus && ' · import wymaga sprawdzenia'}
       </p>
       {overview?.coverage.limited && <p className="text-xs text-warning">Załadowano {overview.coverage.fetchedRows} ostatnich rekordów. Zawęź okres, aby podsumowania obejmowały cały wybrany zakres.</p>}
-      {chamber !== 'senate' && !searchTicker && !searchPolitician && party === 'all'
+      {chamber !== 'senate'
         && <HouseDisclosureDocuments documents={documents} />}
       {error ? <div role="alert" className="p-6 text-sm text-danger">
         Nie udało się odczytać zgłoszeń. <Button variant="ghost" className="underline" onClick={() => { void refresh(); }}>Spróbuj ponownie</Button>

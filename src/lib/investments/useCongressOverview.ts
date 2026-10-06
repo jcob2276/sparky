@@ -1,14 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchCongressOverview } from './congressService';
 import { orcaSelect } from './superinvestorsApi';
+import { fetchHouseDisclosureDocuments } from './houseDisclosureDocuments';
+export type { HouseDisclosureDocument } from './houseDisclosureDocuments';
 
 interface SourceStatus {
   checked_at: string; last_success_at: string | null; latest_disclosure_date: string | null;
   status: 'ok' | 'partial' | 'error';
-}
-export interface HouseDisclosureDocument {
-  id: string; filer_name: string; filing_date: string; source_url: string;
-  parse_status: 'pending' | 'parsed' | 'error'; transaction_count: number | null;
 }
 
 export function useCongressOverview(options: Parameters<typeof fetchCongressOverview>[0]) {
@@ -18,7 +16,7 @@ export function useCongressOverview(options: Parameters<typeof fetchCongressOver
       const [overview, statuses, documents] = await Promise.all([
         fetchCongressOverview(options),
         orcaSelect<SourceStatus>('investment_source_status?source=eq.house_clerk&limit=1', { strict: true }),
-        orcaSelect<HouseDisclosureDocument>('house_disclosures?select=id,filer_name,filing_date,source_url,parse_status,transaction_count&order=filing_date.desc,doc_id.desc&limit=10', { strict: true }),
+        fetchHouseDisclosureDocuments(options),
       ]);
       return { overview, status: statuses[0] ?? null, documents };
     },

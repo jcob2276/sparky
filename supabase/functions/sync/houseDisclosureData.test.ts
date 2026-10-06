@@ -43,3 +43,10 @@ Deno.test('House source format failure is visible rather than a successful empty
   catch { failed = true; }
   if (!failed) throw new Error('An unreadable disclosure was marked parsed');
 });
+
+Deno.test('House image-only PDF is classified as requiring OCR', () => {
+  let message = '';
+  try { parseHouseTransactionPage([]); }
+  catch (error) { message = error instanceof Error ? error.message : ''; }
+  if (!message.includes('OCR')) throw new Error('Scanned document was not distinguished from a broken table');
+});
