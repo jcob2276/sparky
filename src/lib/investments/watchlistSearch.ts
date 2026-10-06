@@ -1,5 +1,6 @@
 import { orcaSelect } from './superinvestorsApi';
 import type { SearchCompanyResult } from './watchlistService';
+import { isListingInactive, type ListingStatus } from './companyListing';
 
 interface CompanyRow { ticker?: string; name?: string; company_name?: string; sector?: string }
 
@@ -28,4 +29,14 @@ export async function resolveWatchlistTicker(input: string): Promise<SearchCompa
   const results = await searchWatchlistCompanies(input);
   const exact = results.filter(row => row.ticker.replace(/\.(WA|US)$/, '') === needle);
   return exact.length === 1 ? exact[0] : exact.length > 1 ? null : results.length === 1 ? results[0] : null;
+}
+
+export async function fetchWatchlistSuggestions(): Promise<SearchCompanyResult[]> {
+  const [rows, listings] = await Promise.all([
+    orcaSelect<CompanyRow>('vw_sec13f_screener?select=ticker,company_name&compared_funds=gt.0&net_changes=gt.0&order=net_changes.desc,ticker.asc&limit=20', { strict: true }),
+    orcaSelect<{ ticker: string; listing_status: ListingStatus }>('companies?market=eq.us&select=ticker,listing_status&limit=500', { strict: true }),
+  ]);
+  const inactive = new Set(listings.filter(row => isListingInactive(row.listing_status)).map(row => row.ticker));
+  return rows.filter(row => row.ticker && !inactive.has(row.ticker)).slice(0, 10)
+    .map(row => ({ ticker: row.ticker!, name: row.company_name || row.ticker!, market: 'USA' }));
 }

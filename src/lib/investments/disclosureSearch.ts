@@ -25,6 +25,7 @@ interface InvestorRaw {
 }
 
 interface TradeRaw {
+  id?: string; filer_name?: string; disclosure_date?: string; source_url?: string;
   ticker?: string | null;
   transaction_type?: string | null;
   transaction_date?: string | null;
@@ -36,7 +37,8 @@ interface TradeRaw {
 interface ConsensusRaw {
   ticker?: string | null;
   company_name?: string | null;
-  net_buyers?: number | null;
+  net_changes?: number | null;
+  compared_funds?: number; previous_period?: string; period_of_report?: string; source_urls?: string[];
   holders?: number | null;
 }
 
@@ -72,7 +74,7 @@ function partyLabel(party: string | null | undefined): string {
 function politicianName(raw: TradeRaw): string {
   const embedded = raw.politicians;
   const person = Array.isArray(embedded) ? embedded[0] : embedded;
-  return person?.display_name?.trim() || 'Polityk';
+  return raw.filer_name?.trim() || person?.display_name?.trim() || 'Polityk';
 }
 
 function usd(value: number): string {
@@ -85,15 +87,11 @@ function tradeDetail(trade: TradeRaw): string {
   const low = trade.amount_low;
   const high = trade.amount_high;
   const range = low != null && high != null ? `${usd(low)} – ${usd(high)}` : 'kwota nieujawniona';
-  return `${side} · ${range} · ${trade.transaction_date ?? 'data nieznana'}`;
+  return `${side} · ${range} · Ujawniono: ${trade.disclosure_date ?? 'data nieznana'} · Transakcja: ${trade.transaction_date ?? 'data nieznana'}${trade.source_url ? '' : ' · brak dokumentu źródłowego'}`;
 }
 
 async function safe<T>(query: string): Promise<T[]> {
-  try {
-    return await orcaSelect<T>(query);
-  } catch {
-    return [];
-  }
+  return orcaSelect<T>(query, { strict: true });
 }
 
 export async function searchDisclosures(raw: string): Promise<DisclosureSearchHit[]> {
@@ -120,17 +118,17 @@ export async function searchDisclosures(raw: string): Promise<DisclosureSearchHi
     listPoliticians || listInvestors || party
       ? Promise.resolve([] as TradeRaw[])
       : safe<TradeRaw>(
-          `stock_act_trades?select=ticker,transaction_type,transaction_date,amount_low,amount_high,politicians!inner(display_name)&politicians.display_name=ilike.*${enc}*&order=transaction_date.desc&limit=8`,
+          `stock_act_trades?select=id,ticker,filer_name,transaction_type,transaction_date,disclosure_date,source_url,amount_low,amount_high,politicians(display_name)&filer_name=ilike.*${enc}*&order=disclosure_date.desc,id.asc&limit=8`,
         ),
     listPoliticians || listInvestors || party
       ? Promise.resolve([] as TradeRaw[])
       : safe<TradeRaw>(
-          `stock_act_trades?select=ticker,transaction_type,transaction_date,amount_low,amount_high,politicians!inner(display_name)&or=(ticker.ilike.*${enc}*)&order=transaction_date.desc&limit=8`,
+          `stock_act_trades?select=id,ticker,filer_name,transaction_type,transaction_date,disclosure_date,source_url,amount_low,amount_high,politicians(display_name)&ticker=ilike.*${enc}*&order=disclosure_date.desc,id.asc&limit=8`,
         ),
     listPoliticians || listInvestors || party
       ? Promise.resolve([] as ConsensusRaw[])
       : safe<ConsensusRaw>(
-          `vw_consensus?select=ticker,company_name,net_buyers,holders&or=(ticker.ilike.*${enc}*,company_name.ilike.*${enc}*)&limit=8`,
+          `vw_sec13f_screener?select=ticker,company_name,net_changes,holders,compared_funds,previous_period,period_of_report,source_urls&or=(ticker.ilike.*${enc}*,company_name.ilike.*${enc}*)&order=ticker.asc&limit=8`,
         ),
   ]);
 
@@ -157,7 +155,7 @@ export async function searchDisclosures(raw: string): Promise<DisclosureSearchHi
 
   const seenTrades = new Set<string>();
   for (const trade of [...tradesByName, ...tradesByTicker]) {
-    const key = `${trade.ticker}|${trade.transaction_date}|${politicianName(trade)}|${trade.transaction_type}`;
+    const key = trade.id || `${trade.source_url}|${trade.ticker}|${trade.transaction_date}|${politicianName(trade)}|${trade.transaction_type}|${trade.amount_low}|${trade.amount_high}`;
     if (seenTrades.has(key)) continue;
     seenTrades.add(key);
     const ticker = trade.ticker || '—';
@@ -165,18 +163,20 @@ export async function searchDisclosures(raw: string): Promise<DisclosureSearchHi
       source: 'STOCK Act',
       title: `${ticker} — ${politicianName(trade)}`,
       detail: tradeDetail(trade),
-      url: ticker !== '—' ? `https://www.tradingview.com/symbols/${ticker}/` : undefined,
+      url: trade.source_url,
     });
   }
 
   for (const company of companies) {
     if (!company.ticker) continue;
-    const net = company.net_buyers ?? 0;
+    const net = company.net_changes;
+    const comparison = company.compared_funds && net != null
+      ? `bilans zmian ${net > 0 ? '+' : ''}${net} · ${company.previous_period} → ${company.period_of_report}` : 'brak porównania 13F';
     hits.push({
       source: '13F',
       title: `${company.ticker} — ${company.company_name || company.ticker}`,
-      detail: `${net > 0 ? '+' : ''}${net} funduszy netto · ${company.holders ?? 0} posiadaczy`,
-      url: `https://www.tradingview.com/symbols/${company.ticker}/`,
+      detail: `${comparison} · ${company.holders ?? '—'} posiadaczy w odczytanych raportach`,
+      url: company.source_urls?.[0],
     });
   }
 

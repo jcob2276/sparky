@@ -54,62 +54,6 @@ export async function orcaSelect<T>(pathAndQuery: string, options: ReadOptions =
 
 
 
-export interface LiveConsensusItem {
-  ticker: string;
-  name: string;
-  buyers: number;
-  sellers: number;
-  totalFunds: number;
-  netScore: number;
-  totalValueUsd: string;
-  movementType: 'accumulation' | 'distribution';
-}
-
-function formatUsdCompact(value: number): string {
-  if (!Number.isFinite(value) || value <= 0) return '—';
-  if (value >= 1_000_000_000) return `$${(value / 1_000_000_000).toFixed(1)} mld`;
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(0)} mln`;
-  return `$${Math.round(value).toLocaleString('pl-PL')}`;
-}
-
-export async function fetchLiveConsensus(): Promise<LiveConsensusItem[]> {
-  try {
-    const data = await orcaSelect<RawConsensus>(
-      'vw_consensus?select=ticker,company_name,buyers,sellers,holders,net_buyers,total_value&order=net_buyers.desc',
-    );
-    return data
-      .filter((d) => Boolean(d.ticker))
-      .map((d) => {
-        const net = d.net_buyers || 0;
-        const buyers = d.buyers || 0;
-        const sellers = d.sellers || 0;
-        return {
-          ticker: d.ticker || '—',
-          name: d.company_name || 'Spółka',
-          buyers,
-          sellers,
-          totalFunds: d.holders || buyers + sellers,
-          netScore: net,
-          totalValueUsd: formatUsdCompact(d.total_value || 0),
-          movementType: net >= 0 ? 'accumulation' : 'distribution',
-        };
-      });
-  } catch (err) {
-    console.warn('[superinvestorsApi] fetchLiveConsensus error:', err);
-    return [];
-  }
-}
-
-interface RawConsensus {
-  ticker?: string;
-  company_name?: string;
-  buyers?: number;
-  sellers?: number;
-  holders?: number;
-  net_buyers?: number;
-  total_value?: number;
-}
-
 export async function fetchLiveGpwShorts(): Promise<CompanyShortSummary[]> {
   try {
     const res = await fetch(

@@ -4,7 +4,8 @@
  * Renders as a floating modal overlay triggered from InvestmentsTopNav.
  */
 import { FC, useState, useEffect, useRef, useCallback } from 'react';
-import { searchDisclosures, type DisclosureSearchHit, type SearchSource } from '../../lib/investments/disclosureSearch';
+import { type DisclosureSearchHit, type SearchSource } from '../../lib/investments/disclosureSearch';
+import { useDisclosureSearch } from '../../lib/investments/useDisclosureSearch';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { X, Search } from 'lucide-react';
@@ -66,8 +67,7 @@ interface Props {
 
 export const TickerSearchModal: FC<Props> = ({ isOpen, onClose }) => {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<DisclosureSearchHit[]>([]);
-  const [settledQuery, setSettledQuery] = useState('');
+  const { results, searching, error } = useDisclosureSearch(query);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useModalBackHandler('tickerSearch', isOpen, onClose);
@@ -77,28 +77,6 @@ export const TickerSearchModal: FC<Props> = ({ isOpen, onClose }) => {
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
-
-  useEffect(() => {
-    if (query.trim().length < 2) return;
-    let cancelled = false;
-    const timer = setTimeout(() => {
-      searchDisclosures(query)
-        .then((hits) => {
-          if (cancelled) return;
-          setResults(hits);
-          setSettledQuery(query);
-        })
-        .catch(() => {
-          if (cancelled) return;
-          setResults([]);
-          setSettledQuery(query);
-        });
-    }, 180);
-    return () => {
-      cancelled = true;
-      clearTimeout(timer);
-    };
-  }, [query]);
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -117,7 +95,6 @@ export const TickerSearchModal: FC<Props> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const searching = query.trim().length >= 2 && settledQuery !== query;
   const shown = query.trim().length < 2 ? [] : results;
   const quickTickers = ['Pelosi', 'Demokraci', 'Republikanie', 'Kongres', 'Superinwestorzy', 'NVDA', 'AAPL'];
 
@@ -178,7 +155,8 @@ export const TickerSearchModal: FC<Props> = ({ isOpen, onClose }) => {
           )}
 
           {query.length >= 2 && (
-            <SearchHits query={query} searching={searching} results={shown} />
+            error ? <p role="alert" className="p-4 text-sm text-danger">Nie udało się odczytać źródeł wyszukiwania: {error.message}</p>
+              : <SearchHits query={query} searching={searching} results={shown} />
           )}
         </div>
       </div>
