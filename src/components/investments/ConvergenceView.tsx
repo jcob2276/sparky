@@ -7,6 +7,7 @@ import { useSignalBoard } from './useSignalBoard';
 import { SignalsTable } from './SignalsTable';
 import { ConvergenceHeader } from './ConvergenceHeader';
 import { TripleConfluenceRadar } from './TripleConfluenceRadar';
+import { watchlistTickersForMarket } from '../../lib/investments/marketSymbol';
 
 const PAGE = 50;
 
@@ -56,7 +57,7 @@ export const ConvergenceView: FC<Props> = ({ watchlist, onNavigateTab }) => {
 
   const filteredByWatchlist = useMemo(() => {
     if (!watchlistOnly) return rows;
-    const wanted = new Set(watchlist.map((ticker) => ticker.replace(/\.WA$/i, '').toUpperCase()));
+    const wanted = watchlistTickersForMarket(watchlist, 'USA');
     return rows.filter((row) => wanted.has(row.ticker));
   }, [rows, watchlist, watchlistOnly]);
 

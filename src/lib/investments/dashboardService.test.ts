@@ -48,5 +48,24 @@ describe('dashboard evidence', () => {
     expect(data.activity14d.sources.shorts).toBe(1);
     expect(data.streamItems.find(item => item.sourceType === 'KNF')?.id).toBe('knf_knf:official-event');
   });
+  it('matches explicit watchlist markets without confusing identical tickers', async () => {
+    read.mockImplementation(async path => path.startsWith('stock_act_trades?')
+      ? [{ id: 'us', ticker: 'ABC', transaction_type: 'Sale', disclosure_date: '2026-10-01', source_url: 'https://disclosures-clerk.house.gov/example.pdf' }]
+      : path.startsWith('knf_disclosed_positions?')
+        ? [{ external_id: 'gpw', ticker: 'ABC', position_date: '2026-10-01' }] : []);
+    expect((await fetchDashboardData(['ABC.WA'])).watchlist14Count).toBe(1);
+    expect((await fetchDashboardData(['ABC.US'])).watchlist14Count).toBe(1);
+    expect((await fetchDashboardData(['ABC.WA', 'ABC.US'])).watchlist14Count).toBe(2);
+  });
+  it('reads sourced SEC Form 4 rather than the legacy insider cache', async () => {
+    read.mockImplementation(async path => path.startsWith('vw_sec_form4_public?')
+      ? [{ id: 'sec-event', ticker: 'ABC', filer_name: 'Actual filer', transaction_code: 'P', filing_date: '2026-10-01', doc_url: 'https://www.sec.gov/example.xml' }]
+      : path.startsWith('vw_insider_public?') ? [{ id: 'legacy', ticker: 'ABC', filing_date: '2026-10-01' }] : []);
+    const data = await fetchDashboardData();
+    expect(data.streamItems[0]?.id).toBe('form4_sec-event');
+    expect(data.streamItems[0]?.description).toContain('Actual filer');
+    expect(read.mock.calls.some(([path]) => path.startsWith('vw_insider_public?'))).toBe(false);
+    expect(read.mock.calls.find(([path]) => path.startsWith('vw_sec_form4_public?'))?.[0]).toContain('transaction_code=in.(P,S)');
+  });
 });
 

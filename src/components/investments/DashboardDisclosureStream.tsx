@@ -88,6 +88,8 @@ export const DashboardDisclosureStream: FC<Props> = ({ items, onViewAll }) => {
                 >
                   {item.amountOrPercent}
                 </span>
+                {item.sourceUrl && <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"
+                  className="block text-3xs text-primary underline">Dokument źródłowy</a>}
               </div>
             </div>
           ))

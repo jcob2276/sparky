@@ -1,5 +1,6 @@
 import { orcaSelect } from './superinvestorsApi';
 import { getTodayWarsaw, shiftDateStr, formatShortMonthLabel } from '../date';
+import { watchlistTickersForMarket } from './marketSymbol';
 
 export interface DashboardSourceStatus {
   source: string; checked_at: string | null; last_success_at: string | null;
@@ -15,7 +16,7 @@ export interface DashboardData {
     sources: { politicians: number | null; funds: number | null; insiders: number | null; shorts: number | null };
     days: Array<{ date: string; label: string; politicians: number; funds: number; insiders: number; shorts: number; total: number }>;
   };
-  streamItems: Array<{ id: string; dateLabel: string; sourceType: 'FORM 4' | 'KNF' | 'STOCK'; ticker: string; description: string; amountOrPercent: string }>;
+  streamItems: Array<{ id: string; dateLabel: string; sourceType: 'FORM 4' | 'KNF' | 'STOCK'; ticker: string; description: string; amountOrPercent: string; sourceUrl?: string }>;
   topConvergenceUsa: Array<{ ticker: string; name: string; fundsNet: number }>;
   topGpwShorts: Array<{ ticker: string; company: string; totalPct: number; holders: number | null }>;
   sourceStatuses: DashboardSourceStatus[];
@@ -24,8 +25,8 @@ export interface DashboardData {
 }
 interface Consensus { ticker?: string; company_name?: string; net_changes?: number | null }
 interface ShortAgg { company?: string; ticker?: string; total_pct?: number | null; public_holders?: number | null }
-interface Trade { id: string; filer_name?: string; ticker?: string; transaction_type?: string; disclosure_date?: string; amount_label?: string }
-interface Insider { id: string; ticker?: string; transaction_code?: string; filing_date?: string }
+interface Trade { id: string; filer_name?: string; ticker?: string; transaction_type?: string; disclosure_date?: string; amount_label?: string; source_url?: string }
+interface Insider { id: string; ticker?: string; transaction_code?: string; filing_date?: string; filer_name?: string; doc_url?: string }
 interface ShortPosition { external_id: string; company?: string; ticker?: string; holder?: string; position_pct?: number; position_date?: string }
 interface Filing { filing_date?: string }
 
@@ -48,7 +49,7 @@ export async function fetchDashboardData(watchlist: string[] = []): Promise<Dash
     read<Consensus>('13F', 'vw_sec13f_screener?select=ticker,company_name,net_changes&compared_funds=gt.0&order=net_changes.desc.nullslast&limit=5'),
     read<ShortAgg>('KNF agregaty', 'vw_gpw_shorts_agg?order=total_pct.desc.nullslast&limit=3'),
     read<Trade>('Kongres', `stock_act_trades?disclosure_date=gte.${since}&disclosure_date=lte.${today}&order=disclosure_date.desc,id.asc`),
-    read<Insider>('Form 4', `vw_insider_public?filing_date=gte.${since}&filing_date=lte.${today}&order=filing_date.desc,id.asc`),
+    read<Insider>('Form 4', `vw_sec_form4_public?select=id,ticker,transaction_code,filing_date,filer_name,doc_url&is_derivative=eq.false&form_type=eq.4&transaction_code=in.(P,S)&filing_date=gte.${since}&filing_date=lte.${today}&order=filing_date.desc,id.asc`),
     read<ShortPosition>('KNF zdarzenia', `knf_disclosed_positions?position_date=gte.${since}&position_date=lte.${today}&order=position_date.desc,external_id.asc`),
     read<Filing>('13F zgłoszenia', `filings?filing_date=gte.${since}&filing_date=lte.${today}&order=filing_date.desc,id.asc`),
     read<DashboardSourceStatus>('Monitor źródeł', 'investment_source_status?order=source.asc'),
@@ -70,16 +71,17 @@ export async function fetchDashboardData(watchlist: string[] = []): Promise<Dash
   const top = (consensus ?? []).find(r => r.ticker && r.net_changes != null);
   const max = (shorts ?? []).find(r => r.company && r.total_pct != null);
   const stream: Array<DashboardData['streamItems'][number] & { date: string }> = [
-    ...insiderRows.map(r => ({ id: `form4_${r.id}`, date: r.filing_date!, dateLabel: formatShortMonthLabel(r.filing_date!), sourceType: 'FORM 4' as const, ticker: r.ticker ?? '—', description: `Form 4: kod transakcji ${r.transaction_code ?? 'nieznany'}`, amountOrPercent: '—' })),
+    ...insiderRows.map(r => ({ id: `form4_${r.id}`, date: r.filing_date!, dateLabel: formatShortMonthLabel(r.filing_date!), sourceType: 'FORM 4' as const, ticker: r.ticker ?? '—', description: `${r.filer_name ?? 'Insider'}: ${r.transaction_code === 'P' ? 'Kupno (P)' : 'Sprzedaż (S)'}`, amountOrPercent: '—', sourceUrl: r.doc_url })),
     ...shortRows.map(r => ({ id: `knf_${r.external_id}`, date: r.position_date!, dateLabel: formatShortMonthLabel(r.position_date!), sourceType: 'KNF' as const, ticker: r.ticker ?? r.company ?? '—', description: `Pozycja: ${r.holder ?? 'podmiot nieznany'}`, amountOrPercent: r.position_pct == null ? '—' : `${r.position_pct.toFixed(2)}%` })),
-    ...congressRows.map(r => ({ id: `stock_${r.id}`, date: r.disclosure_date!, dateLabel: formatShortMonthLabel(r.disclosure_date!), sourceType: 'STOCK' as const, ticker: r.ticker ?? '—', description: `${r.filer_name ?? 'Kongres'}: ${r.transaction_type ?? 'typ nieznany'}`, amountOrPercent: r.amount_label ?? '—' })),
+    ...congressRows.map(r => ({ id: `stock_${r.id}`, date: r.disclosure_date!, dateLabel: formatShortMonthLabel(r.disclosure_date!), sourceType: 'STOCK' as const, ticker: r.ticker ?? '—', description: `${r.filer_name ?? 'Kongres'}: ${r.transaction_type ?? 'typ nieznany'}`, amountOrPercent: r.amount_label ?? '—', sourceUrl: r.source_url })),
   ];
-  const watched = new Set(watchlist.map(t => t.toUpperCase()));
+  const watchedUs = watchlistTickersForMarket(watchlist, 'USA');
+  const watchedGpw = watchlistTickersForMarket(watchlist, 'GPW');
   return {
     topConsensus: top ? { ticker: top.ticker!, net: top.net_changes! } : null,
     maxShort: max ? { company: max.company!, ticker: max.ticker ?? max.company!, totalPct: max.total_pct!, delta14d: null } : null,
     congress14: trades === null ? null : { total: congressRows.length, sales: congressRows.filter(r => /sell|sale/i.test(r.transaction_type ?? '')).length, buys: congressRows.filter(r => /buy|purchase/i.test(r.transaction_type ?? '')).length },
-    watchlist14Count: [trades, insiders, positions].some(r => r === null) ? null : stream.filter(r => watched.has(r.ticker.toUpperCase())).length,
+    watchlist14Count: [trades, insiders, positions].some(r => r === null) ? null : stream.filter(r => (r.sourceType === 'KNF' ? watchedGpw : watchedUs).has(r.ticker.toUpperCase())).length,
     activity14d: { total: days.reduce((sum, d) => sum + d.total, 0), peakDateLabel: peak.total ? peak.label : null, days,
       sources: { politicians: trades === null ? null : congressRows.length, insiders: insiders === null ? null : insiderRows.length, shorts: positions === null ? null : shortRows.length, funds: filings === null ? null : filingRows.length } },
     streamItems: stream.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15),
