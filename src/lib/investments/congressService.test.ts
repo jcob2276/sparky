@@ -34,4 +34,37 @@ describe('Congress overview uses disclosed evidence', () => {
       disclosureDate: '2026-10-02', transactionDate: '2026-09-08',
       sourceUrl: 'https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/20035553.pdf' });
   });
+
+  it('filters names and tickers in the database before pagination', async () => {
+    vi.mocked(orcaSelect).mockImplementation(async path => path.startsWith('politicians?')
+      ? [{ id: 'nancy', display_name: 'Nancy Pelosi', chamber: 'house', party: 'D' },
+        { id: 'senator', display_name: 'Pelosi Senator', chamber: 'senate', party: 'D' },
+        { id: 'republican', display_name: 'Pelosi Republican', chamber: 'house', party: 'R' }] : []);
+    await fetchCongressOverview({ searchQuery: 'Pelosi', tickerQuery: 'NVDA', party: 'D', chamber: 'house' });
+    const path = decodeURIComponent(vi.mocked(orcaSelect).mock.calls.find(([query]) => query.startsWith('stock_act_trades?'))?.[0] ?? '');
+    expect(path).toContain('politician_id.in.(nancy)');
+    expect(path).not.toContain('senator');
+    expect(path).not.toContain('republican');
+    expect(path).toContain('ticker.ilike.*NVDA*');
+    expect(path).toContain('asset_description.ilike.*NVDA*');
+    expect(path).toContain('disclosure_date=lte.');
+  });
+
+  it('matches unlinked filer names as well as linked politician identities', async () => {
+    vi.mocked(orcaSelect).mockImplementation(async path => path.startsWith('politicians?')
+      ? [{ id: 'nancy', display_name: 'Nancy Pelosi', chamber: 'house', party: 'D' }] : []);
+    await fetchCongressOverview({ searchQuery: 'Pelosi', chamber: 'house' });
+    const path = decodeURIComponent(vi.mocked(orcaSelect).mock.calls.find(([query]) => query.startsWith('stock_act_trades?'))?.[0] ?? '');
+    expect(path).toContain('politician_id.in.(nancy)');
+    expect(path).toContain('politician_id.is.null');
+    expect(path).toContain('filer_name.ilike.*Pelosi*');
+    expect(path).toContain('chamber.eq.house');
+  });
+
+  it('does not read the entire trade catalogue for an unmatched party', async () => {
+    vi.mocked(orcaSelect).mockResolvedValue([]);
+    const data = await fetchCongressOverview({ party: 'D' });
+    expect(data.stream).toEqual([]);
+    expect(vi.mocked(orcaSelect).mock.calls.some(([path]) => path.startsWith('stock_act_trades?'))).toBe(false);
+  });
 });

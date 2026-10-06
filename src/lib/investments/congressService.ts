@@ -108,17 +108,39 @@ function formatRange(low?: number, high?: number): string {
   return '—';
 }
 
+function congressTradeFilters(polRows: RawPolitician[], options?: Parameters<typeof fetchCongressOverview>[0]): string | null {
+  const conditions: string[] = [];
+  const clean = (value?: string) => value?.replace(/[%_,()*"\\]/g, ' ').trim();
+  const name = clean(options?.searchQuery);
+  const party = options?.party && options.party !== 'all' ? options.party : null;
+  const chamber = options?.chamber && options.chamber !== 'all' ? options.chamber : null;
+  if (name || party || chamber) {
+    const matches = polRows.filter(row => (!party || row.party === party) && (!chamber || row.chamber === chamber)
+      && (!name || (row.display_name ?? '').toLowerCase().includes(name.toLowerCase())))
+      .map(row => row.id).filter(id => /^[a-z0-9_-]+$/i.test(id));
+    const branches = matches.length ? [`politician_id.in.(${matches.join(',')})`] : [];
+    if (!party) branches.push(`and(politician_id.is.null${name ? `,filer_name.ilike.*${name}*` : ''}${chamber ? `,chamber.eq.${chamber}` : ''})`);
+    if (!branches.length) return null;
+    conditions.push(branches.length > 1 ? `or(${branches.join(',')})` : branches[0]);
+  }
+  const ticker = clean(options?.tickerQuery);
+  if (ticker) conditions.push(`or(ticker.ilike.*${ticker}*,asset_description.ilike.*${ticker}*)`);
+  return conditions.length ? `&and=${encodeURIComponent(`(${conditions.join(',')})`)}` : '';
+}
+
 export async function fetchCongressOverview(options?: {
   chamber?: 'all' | 'house' | 'senate'; party?: 'all' | 'D' | 'R';
   timeframe?: '90' | '365' | 'all'; searchQuery?: string; tickerQuery?: string;
 }): Promise<CongressOverview> {
   const cutoff = options?.timeframe === '90' ? shiftDateStr(getTodayWarsaw(), -90)
     : options?.timeframe === '365' ? shiftDateStr(getTodayWarsaw(), -365) : null;
-  const [tradeRows, polRows, documents] = await Promise.all([
-    orcaSelect<RawStockAct>(`stock_act_trades?order=disclosure_date.desc.nullslast,id.asc${cutoff ? `&disclosure_date=gte.${cutoff}` : ''}`, { strict: true }),
+  const [polRows, documents] = await Promise.all([
     orcaSelect<RawPolitician>('politicians?select=id,display_name,chamber,party,state,bioguide_id', { strict: true }),
     orcaSelect<{ doc_id: string; source_url: string }>('house_disclosures?select=doc_id,source_url', { strict: true }),
   ]);
+  const filters = congressTradeFilters(polRows, options);
+  const tradeRows = filters === null ? [] : await orcaSelect<RawStockAct>(
+    `stock_act_trades?order=disclosure_date.desc.nullslast,id.asc&disclosure_date=lte.${getTodayWarsaw()}${cutoff ? `&disclosure_date=gte.${cutoff}` : ''}${filters}`, { strict: true });
   const polMap = new Map(polRows.map((p) => [p.id, p]));
   const documentUrls = new Map(documents.map((doc) => [doc.doc_id, doc.source_url]));
   const stream: CongressOverview['stream'] = [];
