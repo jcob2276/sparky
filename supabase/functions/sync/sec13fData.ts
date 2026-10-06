@@ -34,7 +34,18 @@ export function parseSec13fCover(input: string, expected: { accession: string; c
   const reportPeriod = `${parts[3]}-${parts[1]}-${parts[2]}`;
   if (new Date(`${reportPeriod}T00:00:00Z`).toISOString().slice(0, 10) !== reportPeriod) throw new Error('SEC 13F report period invalid');
   const schema = literal(cover, 'schemaVersion');
-  const multiplier = schema?.startsWith('X02') ? 1 : schema?.startsWith('X01') ? 1000 : null;
+  let multiplier = schema?.startsWith('X02') ? 1 : schema?.startsWith('X01') ? 1000 : null;
+  // SEC changed values from thousands to dollars on 2023-01-03. Older XML
+  // omits schemaVersion; use the submission's filing date, never its report period.
+  // https://content.govdelivery.com/accounts/USSEC/bulletins/3401c41
+  if (blocks(cover, 'schemaVersion').length === 0) {
+    const filed = [...input.matchAll(/^FILED AS OF DATE:\s*(\d{8})\s*$/gm)];
+    const stamp = filed.length === 1 ? filed[0][1] : null;
+    const filingDate = stamp ? `${stamp.slice(0, 4)}-${stamp.slice(4, 6)}-${stamp.slice(6)}` : null;
+    if (filingDate && new Date(`${filingDate}T00:00:00Z`).toISOString().slice(0, 10) === filingDate) {
+      multiplier = filingDate < '2023-01-03' ? 1000 : 1;
+    }
+  }
   if (multiplier == null) throw new Error('Unknown SEC 13F value units');
   return { cover, period: reportPeriod, isAmendment: literal(cover, 'submissionType') === '13F-HR/A', multiplier, schema };
 }

@@ -53,3 +53,14 @@ Deno.test('SEC 13F preserves small summary discrepancies without altering report
   assertEquals(result.positions.map(row => row.value_usd), [10, 20]);
   assertThrows(() => parseSec13fSubmission(submission('X0202', '33'), expected));
 });
+
+Deno.test('SEC historical XML without schemaVersion uses filing-date units, not report-period units', () => {
+  const legacy = submission().replace('<schemaVersion>X0202</schemaVersion>', '');
+  const filed = (date: string) => `FILED AS OF DATE: ${date}\n${legacy}`;
+  assertEquals(parseSec13fSubmission(filed('20221114'), expected).totalValueUsd, 30000);
+  assertEquals(parseSec13fSubmission(filed('20230103'), expected).totalValueUsd, 30);
+  assertEquals(parseSec13fSubmission(filed('20230102'), expected).reportedCoverValueUsd, 30000);
+  assertThrows(() => parseSec13fSubmission(legacy, expected));
+  assertThrows(() => parseSec13fSubmission(filed('20220230'), expected));
+  assertThrows(() => parseSec13fSubmission(filed('20221114').replace('<submissionType>', '<schemaVersion>UNKNOWN</schemaVersion><submissionType>'), expected));
+});
