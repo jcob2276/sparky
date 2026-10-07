@@ -1,5 +1,6 @@
 """Official KNF OAM report discovery; names select candidates, never establish LEI."""
 import re
+import unicodedata
 import xml.etree.ElementTree as ET
 from datetime import date
 from html.parser import HTMLParser
@@ -107,6 +108,8 @@ def resolve_package(raw, source):
 
 
 def discover_annual(fetch, search, exact_issuer, min_year=2024):
+    def name(value):
+        return unicodedata.normalize('NFC',' '.join(value.split())).casefold()
     pending, visited, reports = [search_url(search)], set(), {}
     while pending:
         url = pending.pop(0)
@@ -117,7 +120,7 @@ def discover_annual(fetch, search, exact_issuer, min_year=2024):
         visited.add(url)
         page = parse_page(fetch(url))
         for report in page['reports']:
-            if report['issuer_name'] == exact_issuer and report['report_type'] == 'SRR' and int(report['publication_date'][:4]) >= min_year:
+            if name(report['issuer_name']) == name(exact_issuer) and report['report_type'] == 'SRR' and int(report['publication_date'][:4]) >= min_year:
                 reports[report['report_page_url']] = report
         pending.extend(link for link in page['pages'] if link not in visited)
     return sorted(reports.values(), key=lambda report: report['publication_date'], reverse=True)

@@ -1,8 +1,13 @@
 name: Primary GPW annual reports
 on:
   workflow_dispatch:
+    inputs:
+      batch_size:
+        description: Maximum registry securities to check in this run
+        default: '20'
+        required: true
   schedule:
-    - cron: '35 5 * * *'
+    - cron: '35 * * * *'
 permissions:
   contents: read
 concurrency:
@@ -11,7 +16,7 @@ concurrency:
 jobs:
   import:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -21,8 +26,10 @@ jobs:
         run: |
           python scripts/tests/test_gpw_esef.py
           python scripts/tests/test_gpw_oam.py
+          python scripts/tests/test_gpw_issuer_identity.py
       - name: Import primary annual financial reports
         env:
           SUPABASE_URL: ${{ secrets.HOUSE_OCR_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.HOUSE_OCR_SUPABASE_KEY }}
+          GPW_REPORT_BATCH_SIZE: ${{ inputs.batch_size || '20' }}
         run: python scripts/ops/sync-gpw-reports.py
