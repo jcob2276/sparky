@@ -1,0 +1,47 @@
+name: House disclosure OCR recovery
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '25 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: house-disclosure-ocr
+  cancel-in-progress: false
+jobs:
+  recover:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install CPU OCR tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils tesseract-ocr tesseract-ocr-eng
+          python -m pip install 'Pillow==12.3.0' 'numpy==2.3.5'
+      - name: Verify paper form safeguards
+        run: python scripts/tests/test_house_paper_ocr.py
+      - name: Verify native OCR against an official paper disclosure
+        run: |
+          curl --fail --silent --show-error --location https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/9116342.pdf --output /tmp/house-reference.pdf
+          python scripts/ops/house-paper-ocr.py /tmp/house-reference.pdf --disclosure-date 2026-09-23 > /tmp/house-reference.json
+          python - <<'PY'
+          import json
+          with open('/tmp/house-reference.json') as source:
+              rows = json.load(source)
+          assert len(rows) == 1, rows
+          row = rows[0]
+          assert row['type'] == 'sell' and row['ticker'] is None, row
+          assert row['transactionDate'] == '2026-08-05', row
+          assert row['notificationDate'] == '2026-09-22', row
+          assert (row['amountLow'], row['amountHigh']) == (1001, 15000), row
+          assert row['asset'] == 'Redeemed Electronic Arts', row
+          PY
+      - name: Recover official scanned disclosures
+        env:
+          SUPABASE_URL: ${{ secrets.HOUSE_OCR_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.HOUSE_OCR_SUPABASE_KEY }}
+        run: python scripts/ops/sync-house-ocr.py
