@@ -109,6 +109,7 @@ def resolve_package(raw, source):
 
 def discover_annual(fetch, search, exact_issuer, min_year=2024):
     def name(value):
+        value=re.sub('["“”„«»]','',value)
         return unicodedata.normalize('NFC',' '.join(value.split())).casefold()
     pending, visited, reports = [search_url(search)], set(), {}
     while pending:

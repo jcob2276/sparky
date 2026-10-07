@@ -59,6 +59,7 @@ class OAMTests(unittest.TestCase):
         self.assertEqual(len(calls), 6)
         self.assertEqual(discover_annual(fetch, 'TORPOL', 'TORPOL OTHER'), [])
         self.assertEqual(len(discover_annual(fetch,'TORPOL','Torpol Spółka Akcyjna')),1)
+        self.assertEqual(len(discover_annual(fetch,'TORPOL','"TORPOL" SPÓŁKA AKCYJNA')),1)
 
 
 if __name__ == '__main__':

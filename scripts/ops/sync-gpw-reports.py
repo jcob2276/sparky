@@ -71,7 +71,7 @@ def main():
             progress['identity_source_url']=issuer.get('identity_source_url')
             if issuer.get('oam_name'):
                 candidates = discover_annual(lambda url: primary_fetch(url, 2_000_000).decode('utf8'),
-                                             issuer['oam_name'], issuer['oam_name'])
+                                             company['name'], issuer['oam_name'])
                 if not candidates:
                     raise ValueError('No consolidated annual reports in official KNF search')
                 candidate = candidates[0]
