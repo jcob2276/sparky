@@ -61,6 +61,15 @@ class OAMTests(unittest.TestCase):
         self.assertEqual(len(discover_annual(fetch,'TORPOL','Torpol Spółka Akcyjna')),1)
         self.assertEqual(len(discover_annual(fetch,'TORPOL','"TORPOL" SPÓŁKA AKCYJNA')),1)
 
+    def test_latest_annual_does_not_scan_older_history(self):
+        calls=[]
+        def fetch(url):
+            calls.append(url)
+            return DAY
+        reports=discover_annual(fetch,'TORPOL','TORPOL SPÓŁKA AKCYJNA',latest_only=True)
+        self.assertEqual(len(reports),1)
+        self.assertEqual(len(calls),1)
+
 
 if __name__ == '__main__':
     unittest.main()

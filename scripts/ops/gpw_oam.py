@@ -107,7 +107,7 @@ def resolve_package(raw, source):
     return expected
 
 
-def discover_annual(fetch, search, exact_issuer, min_year=2024):
+def discover_annual(fetch, search, exact_issuer, min_year=2024, latest_only=False):
     def name(value):
         value=re.sub('["“”„«»]','',value)
         return unicodedata.normalize('NFC',' '.join(value.split())).casefold()
@@ -120,8 +120,13 @@ def discover_annual(fetch, search, exact_issuer, min_year=2024):
             raise ValueError('OAM search exceeds bounded pagination')
         visited.add(url)
         page = parse_page(fetch(url))
+        dates=[report['publication_date'] for report in page['reports']]
+        if latest_only and dates!=sorted(dates,reverse=True):
+            raise ValueError('Official report search is not ordered by publication date')
         for report in page['reports']:
             if name(report['issuer_name']) == name(exact_issuer) and report['report_type'] == 'SRR' and int(report['publication_date'][:4]) >= min_year:
                 reports[report['report_page_url']] = report
+        if latest_only and (reports or (dates and max(dates)<str(min_year)+'-01-01')):
+            break
         pending.extend(link for link in page['pages'] if link not in visited)
     return sorted(reports.values(), key=lambda report: report['publication_date'], reverse=True)
