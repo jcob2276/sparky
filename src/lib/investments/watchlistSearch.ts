@@ -12,7 +12,7 @@ export async function searchWatchlistCompanies(query: string): Promise<SearchCom
   const usOnly = needle.endsWith('.US');
   const [usRows, gpwRows] = await Promise.all([
     gpwOnly ? Promise.resolve([]) : orcaSelect<CompanyRow>(
-      `vw_sec13f_screener?or=(ticker.ilike.*${enc}*,company_name.ilike.*${enc}*)&select=ticker,company_name&order=ticker.asc&limit=8`, { strict: true }),
+      `us_security_catalogue?or=(ticker.ilike.*${enc}*,name.ilike.*${enc}*)&select=ticker,name&order=ticker.asc&limit=8`, { strict: true }),
     usOnly ? Promise.resolve([]) : orcaSelect<CompanyRow>(
       `gpw_fin_public_teaser?or=(ticker.ilike.*${enc}*,name.ilike.*${enc}*)&select=ticker,name,sector&order=ticker.asc&limit=8`, { strict: true }),
   ]);
@@ -20,7 +20,7 @@ export async function searchWatchlistCompanies(query: string): Promise<SearchCom
     ...gpwRows.filter(row => row.ticker).map(row => ({ ticker: `${row.ticker}.WA`,
       name: row.name || row.ticker!, market: 'GPW' as const, sector: row.sector })),
     ...usRows.filter(row => row.ticker).map(row => ({ ticker: usOnly || gpwRows.some(gpw => gpw.ticker === row.ticker) ? `${row.ticker}.US` : row.ticker!,
-      name: row.company_name || row.ticker!, market: 'USA' as const })),
+      name: row.name || row.ticker!, market: 'USA' as const })),
   ];
 }
 

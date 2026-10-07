@@ -33,18 +33,20 @@ export async function fetchWatchlistDetails(tickers: string[]): Promise<Watchlis
   const encTickers = rawTickers.map(encodeURIComponent).join(',');
   const symbols = [...new Set(rawTickers.flatMap(t => [usQuoteSymbol(t), `${t}.WA`]))];
   const today = getTodayWarsaw();
-  const [companiesRead, gpwRead, pricesRead, consensusRead, shortsRead] = await Promise.allSettled([
+  const [companiesRead, gpwRead, pricesRead, consensusRead, shortsRead, catalogueRead] = await Promise.allSettled([
     orcaSelect<CompanyRow>(`companies?market=eq.us&ticker=in.(${encTickers})&select=ticker,name,listing_status,listing_status_date,listing_source_url`, { strict: true }),
     orcaSelect<CompanyRow>(`gpw_fin_public_teaser?ticker=in.(${encTickers})&select=ticker,name`, { strict: true }),
     orcaSelect<PriceRow>(`prices_daily?ticker=in.(${symbols.map(encodeURIComponent).join(',')})&date=gte.${shiftDateStr(today, -45)}&date=lte.${today}&select=ticker,date,close_raw,currency,source_url&order=ticker.asc,date.asc`, { strict: true }),
     orcaSelect<ConsensusRow>(`vw_sec13f_screener?ticker=in.(${encTickers})&select=ticker,company_name,net_changes,reported_increases,reported_decreases,compared_funds,period_of_report,previous_period,source_urls`, { strict: true }),
     orcaSelect<ShortRow>(`vw_gpw_shorts_agg?ticker=in.(${encTickers})&select=ticker,total_pct,public_holders`, { strict: true }),
+    orcaSelect<CompanyRow>(`us_security_catalogue?ticker=in.(${encTickers})&select=ticker,name`, { strict: true }),
   ]);
   const companies = new Map(companiesRead.status === 'fulfilled' ? companiesRead.value.map(c => [c.ticker.toUpperCase(), c]) : []);
   const gpw = new Map(gpwRead.status === 'fulfilled' ? gpwRead.value.map(c => [c.ticker.toUpperCase(), c]) : []);
   const consensus = new Map(consensusRead.status === 'fulfilled' ? consensusRead.value.map(c => [c.ticker.toUpperCase(), c]) : []);
   const shorts = new Map(shortsRead.status === 'fulfilled' ? shortsRead.value.map(c => [c.ticker.toUpperCase(), c]) : []);
   const prices = pricesRead.status === 'fulfilled' ? pricesRead.value : [];
+  const catalogue = new Map(catalogueRead.status === 'fulfilled' ? catalogueRead.value.map(c => [c.ticker.toUpperCase(), c]) : []);
   return cleanList.map(ticker => {
     const raw = ticker.replace(/\.(WA|PL|US)$/, '');
     const market = /\.(WA|PL)$/.test(ticker) || (!ticker.endsWith('.US') && gpw.has(raw) && !consensus.has(raw)) ? 'GPW' : 'USA';
@@ -67,7 +69,7 @@ export async function fetchWatchlistDetails(tickers: string[]): Promise<Watchlis
     }
     if (pricesRead.status === 'rejected') lastSignal += ' · Błąd odczytu kursu';
     return { ticker, market,
-      name: market === 'GPW' ? gpw.get(raw)?.name || raw : c?.company_name || listing?.name || raw,
+      name: market === 'GPW' ? gpw.get(raw)?.name || raw : c?.company_name || listing?.name || catalogue.get(raw)?.name || raw,
       price: validCurrency && !inactive && quote.price != null ? `${quote.price.toFixed(2)} ${quote.priceCurrency}` : '—',
       priceDate: validCurrency && !inactive ? quote.priceDate : null,
       priceSourceUrl: validCurrency && !inactive ? quote.priceSourceUrl : null,

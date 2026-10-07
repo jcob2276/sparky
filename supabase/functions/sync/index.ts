@@ -47,6 +47,10 @@ Deno.serve(serveJson(async (req) => {
     return await runHouseDisclosuresSync(req)
   }
   if (service === 'sec_13f') return await runSec13fSync(req)
+  if (service === 'us_catalogue') {
+    const { runUsCatalogueSync } = await import('./usCatalogue.ts')
+    return await runUsCatalogueSync(req)
+  }
 
   if (service !== 'quotes' && service !== 'knf_shorts' && service !== 'senate' && service !== 'congress') {
     await resolveUserScope(req, userId ?? null)

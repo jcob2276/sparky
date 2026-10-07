@@ -53,9 +53,20 @@ it('suppresses current prices for halted listings', async () => {
 
 it('preserves explicit market identity and rejects ambiguous bare tickers', async () => {
   read.mockImplementation(async path => path.startsWith('gpw_fin') ? [{ ticker: 'ABC', name: 'GPW company' }]
-    : path.startsWith('vw_sec13f') ? [{ ticker: 'ABC', company_name: 'US company' }] : []);
+    : path.startsWith('us_security_catalogue') ? [{ ticker: 'ABC', name: 'US company' }] : []);
   expect((await searchWatchlistCompanies('ABC')).map(row => row.ticker)).toEqual(['ABC.WA', 'ABC.US']);
   expect(await resolveWatchlistTicker('ABC')).toBeNull();
   expect((await resolveWatchlistTicker('ABC.US'))?.ticker).toBe('ABC.US');
   expect((await resolveWatchlistTicker('ABC.PL'))?.ticker).toBe('ABC.WA');
+});
+
+it('finds SEC catalogue securities without inventing 13F coverage', async () => {
+  read.mockImplementation(async path => path.startsWith('us_security_catalogue')
+    ? [{ ticker: 'NEW', name: 'New SEC registrant' }] : []);
+  expect(await resolveWatchlistTicker('NEW.US')).toEqual({ ticker: 'NEW.US', name: 'New SEC registrant', market: 'USA' });
+  expect(read.mock.calls.some(([path]) => path.startsWith('vw_sec13f_screener'))).toBe(false);
+  const [item] = await fetchWatchlistDetails(['NEW.US']);
+  expect(item.name).toBe('New SEC registrant');
+  expect(item.signalsCount).toBeNull();
+  expect(item.price).toBe('—');
 });
