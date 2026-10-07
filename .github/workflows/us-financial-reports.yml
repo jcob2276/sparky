@@ -1,0 +1,36 @@
+name: Primary USA financial reports
+on:
+  workflow_dispatch:
+    inputs:
+      batch_size:
+        description: Maximum catalogue issuers to check
+        default: '200'
+        required: true
+      ciks:
+        description: Optional comma-separated registry CIKs; blank rotates whole catalogue
+        default: ''
+  schedule:
+    - cron: '20 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: us-primary-financial-reports
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify filing identity and reporting periods
+        run: python scripts/tests/test_us_financial_reports.py
+      - name: Import primary SEC financial facts
+        env:
+          SUPABASE_URL: ${{ secrets.HOUSE_OCR_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.HOUSE_OCR_SUPABASE_KEY }}
+          US_REPORT_BATCH_SIZE: ${{ inputs.batch_size || '200' }}
+          US_REPORT_CIKS: ${{ inputs.ciks || '' }}
+        run: python scripts/ops/sync-us-financial-reports.py

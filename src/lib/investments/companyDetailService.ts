@@ -9,8 +9,10 @@ import { getTodayWarsaw, shiftDateStr } from '../date';
 import { summarizeCompanyPrices, type CompanyPriceRow } from './companyPriceHistory';
 import { usQuoteSymbol } from './marketSymbol';
 import { fetchCompanyListing, isListingInactive, type CompanyListing } from './companyListing';
+import { fetchUsFinancialReports, type UsFinancialReport } from './usFinancialReports';
 
 export interface CompanyDetailData extends CompanyListing {
+  financialReports?: UsFinancialReport[];
   fundHistory: CompanyFundHistoryPoint[];
   fundChanges: { period: string; previousPeriod: string; comparedFunds: number; increases: number; decreases: number; newReported: number } | null;
   market: 'us' | 'gpw';
@@ -166,7 +168,7 @@ export async function fetchCompanyDetailData(
   const priceSymbol = market === 'gpw' ? `${cleanTicker.replace(/\.(PL|WA)$/, '')}.WA` : usQuoteSymbol(cleanTicker);
   const today = getTodayWarsaw();
 
-  const [consensusRows, priceRows, stockActRows, insiderRows, holdingsRows, changeRows, investorRows, fundHistory, listing] =
+  const [consensusRows, priceRows, stockActRows, insiderRows, holdingsRows, changeRows, investorRows, fundHistory, listing, financialReports] =
     await Promise.all([
       market === 'us' ? orcaSelect<RawConsensus>(`vw_consensus?select=company_name&ticker=eq.${encodeURIComponent(cleanTicker)}&limit=1`, { strict: true }) : Promise.resolve([]),
       orcaSelect<CompanyPriceRow>(
@@ -198,6 +200,7 @@ export async function fetchCompanyDetailData(
         { strict: true },
       ) : Promise.resolve([]),
       market === 'us' ? fetchCompanyListing(cleanTicker) : Promise.resolve({} as CompanyListing),
+      market === 'us' ? fetchUsFinancialReports(cleanTicker) : Promise.resolve([]),
     ]);
 
   const invMap = new Map<string, { displayName: string; fundName: string }>();
@@ -233,6 +236,7 @@ export async function fetchCompanyDetailData(
   } : null;
 
   return {
+    financialReports,
     fundHistory,
     fundChanges,
     market,

@@ -5,6 +5,7 @@ import { CompanyFundDisclosureCard } from './CompanyFundDisclosureCard';
 import { CompanyKpiGrid } from './CompanyKpiGrid';
 import { CompanyAboutCard } from './CompanyAboutCard';
 import { CompanyPiotroskiCard } from './CompanyPiotroskiCard';
+import { CompanyFinancialReportsCard } from './CompanyFinancialReportsCard';
 import { CompanySubTabsView } from './CompanySubTabsView';
 import { useCompanyDetail } from '../../hooks/useCompanyDetail';
 import Button from '../ui/Button';
@@ -109,6 +110,7 @@ export const CompanyDetailView: FC<Props> = ({
           <CompanyPriceEventsChart data={data} />
           {market === 'us' && <CompanyFundDisclosureCard ticker={data.ticker} history={data.fundHistory} />}
           {market === 'us' && <CompanyKpiGrid data={data} />}
+          {market === 'us' && <CompanyFinancialReportsCard reports={data.financialReports ?? []} />}
           <CompanyPiotroskiCard ticker={ticker} />
           <CompanyAboutCard data={data} onAskAnalyst={handleAskAnalyst} />
         </div>
