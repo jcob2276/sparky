@@ -78,6 +78,24 @@ class ESEFTests(unittest.TestCase):
         self.assertEqual(reports[-1]['metrics']['net_profit']['value'],'644199000')
         self.assertEqual(reports[-1]['document_member'],'SRR_2025.rap!Attachment/annual.xbri!reports/annual.xhtml')
 
+    def test_unread_pdf_does_not_consume_financial_expansion_budget(self):
+        import io
+        import zipfile
+        buf=io.BytesIO()
+        with zipfile.ZipFile(buf,'w',compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr('presentation.pdf', b'0'*128_000_001)
+            archive.writestr('annual.xhtml',FIXTURE)
+        self.assertEqual(len(parse_package(buf.getvalue(),LEI)),2)
+
+    def test_oversized_financial_archive_still_rejected_before_reading(self):
+        import io
+        import zipfile
+        buf=io.BytesIO()
+        with zipfile.ZipFile(buf,'w',compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr('oversized.xbri',b'0'*128_000_001)
+        with self.assertRaisesRegex(ValueError,'Oversized expanded'):
+            parse_package(buf.getvalue(),LEI)
+
 
 if __name__ == '__main__':
     unittest.main()

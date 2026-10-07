@@ -144,18 +144,23 @@ def parse_package(raw, expected_lei, min_year=2024):
         data = unwrap(data, 128_000_000)
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
             for member in archive.infolist():
-                total_size += member.file_size
-                if total_size > 128_000_000:
-                    raise ValueError('Oversized expanded ESEF package')
                 name = prefix + member.filename
                 # KNF .rap contains gzip-compressed Java form templates named .zip.
                 # Financial reports are attachments, not those application templates.
                 if member.filename.replace('\\', '/').startswith('E-forms/'):
                     continue
                 suffix = member.filename.lower().rsplit('.', 1)[-1]
-                if suffix in ('zip', 'xbri', 'rap'):
+                is_archive = suffix in ('zip', 'xbri', 'rap')
+                is_document = suffix in ('xhtml', 'html') and member.file_size <= 16_000_000
+                if not is_archive and not is_document:
+                    continue
+                # Account for bytes actually read; ignored PDFs remain compressed.
+                total_size += member.file_size
+                if total_size > 128_000_000:
+                    raise ValueError('Oversized expanded ESEF package')
+                if is_archive:
                     visit(archive.read(member), name + '!', depth + 1)
-                elif suffix in ('xhtml', 'html') and member.file_size <= 16_000_000:
+                elif is_document:
                     document = unwrap(archive.read(member), 16_000_000)
                     # Board/audit attachments can have ordinary HTML doctypes.
                     # They contain no financial tags and are never parsed as facts.
