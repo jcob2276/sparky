@@ -9,8 +9,9 @@
  */
 import { useState } from 'react';
 import { Pressable, ControlInput, ControlTextarea } from '../ui/ControlPrimitives';
-import { ChevronLeft, Dumbbell, Plus, LayoutGrid, Flame, Upload, Activity } from 'lucide-react';
+import { Dumbbell, Plus, LayoutGrid, Flame } from 'lucide-react';
 import { useWorkoutLogger } from './hooks/useWorkoutLogger';
+import { useWorkoutEntryFocus } from './hooks/useWorkoutEntryFocus';
 import { type WorkoutLoggerInitial } from '../../lib/health/workoutLogging';
 import ExerciseCard from './workout/ExerciseCard';
 import VolumeBar from './workout/VolumeBar';
@@ -25,6 +26,7 @@ import { presetToWorkoutExercises, type WorkoutPreset } from './workout/workoutP
 import { computeSessionStats, type WorkoutExercise } from './workout/workoutUtils';
 import ManualTimePicker from './workout/ManualTimePicker';
 import WorkoutLoggerFooter from './workout/WorkoutLoggerFooter';
+import WorkoutLoggerHeader from './workout/WorkoutLoggerHeader';
 import { useUserId } from '../../store/useStore';
 import { isPlyoSessionComplete } from '../../lib/health/plyoMarathonProgram';
 import { useBackHandler } from '../../lib/native/backStack';
@@ -40,6 +42,7 @@ export default function WorkoutLogger({
 }) {
   const userId = useUserId();
   const logger = useWorkoutLogger({ initial, onSaved, onBack });
+  const entry = useWorkoutEntryFocus();
   useBackHandler(() => {
     void logger.handleBack();
     return true;
@@ -78,43 +81,13 @@ export default function WorkoutLogger({
   const sessionStats = computeSessionStats(logger.exercises);
 
   return (
-    <div className="flex-grow bg-background flex flex-col min-h-screen pb-32 transition-colors duration-[var(--motion-slow)]">
-      <header className="sticky top-0 z-[var(--z-sticky)] bg-background/85 backdrop-blur-[var(--blur-md)] border-b border-border-custom px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Pressable onClick={logger.handleBack} className="p-1.5 -ml-1.5 text-text-secondary hover:text-text-primary transition-colors cursor-pointer">
-            <ChevronLeft size={20} />
-          </Pressable>
-          <h1 className="text-xs font-black uppercase tracking-[var(--ds-arbitrary-0-2em)] text-text-primary font-display">Zaloguj Trening</h1>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowBodyMap(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border-custom bg-surface text-text-secondary hover:text-text-primary text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer"
-            title="Pokaż mapę zmęczenia mięśniowego"
-          >
-            <Activity size={11} className="text-emerald-500" /> Anatomia
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowImport(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border-custom bg-surface text-text-secondary hover:text-text-primary text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer"
-            title="Importuj sesję ze Strong CSV, Hevy lub FitNotes"
-          >
-            <Upload size={11} className="text-text-muted" /> Importuj
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowPresets(true)}
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-primary/30 bg-primary/10 text-primary text-3xs font-black uppercase tracking-wider hover:bg-primary/20 transition-colors cursor-pointer"
-            title="Wybierz gotowy zestaw treningowy"
-          >
-            <LayoutGrid size={11} className="text-primary" /> Zestawy
-          </button>
-        </div>
-      </header>
+    <div onFocusCapture={entry.onFocusCapture} onBlurCapture={entry.onBlurCapture}
+      className="flex-grow bg-background flex flex-col min-h-screen pb-32 transition-colors duration-[var(--motion-slow)]">
+      <WorkoutLoggerHeader onBack={logger.handleBack} onAnatomy={() => setShowBodyMap(true)}
+        onImport={() => setShowImport(true)} onPresets={() => setShowPresets(true)}
+        isEnteringData={entry.isEnteringData} onFinishEntry={entry.finishEntry} />
 
-      <main className="flex-1 p-4 space-y-4 max-w-md mx-auto w-full">
+      <main className="flex-1 px-2 py-4 space-y-4 max-w-md mx-auto w-full">
         <WorkoutLiveHud
           stats={sessionStats}
           elapsed={logger.elapsed}
@@ -231,7 +204,7 @@ export default function WorkoutLogger({
         <ManualTimePicker logger={logger} />
       </main>
 
-      <WorkoutLoggerFooter exercises={logger.exercises} saving={logger.saving} onSave={logger.save} />
+      <WorkoutLoggerFooter exercises={logger.exercises} saving={logger.saving} onSave={logger.save} isEnteringData={entry.isEnteringData} />
 
       {showRestTimer && <RestTimerBar onDismiss={() => setShowRestTimer(false)} />}
 

@@ -7,13 +7,14 @@ interface WorkoutLoggerFooterProps {
   exercises: WorkoutExercise[];
   saving: boolean;
   onSave: () => void;
+  isEnteringData?: boolean;
 }
 
-export default function WorkoutLoggerFooter({ exercises, saving, onSave }: WorkoutLoggerFooterProps) {
+export default function WorkoutLoggerFooter({ exercises, saving, onSave, isEnteringData = false }: WorkoutLoggerFooterProps) {
   const stats = computeSessionStats(exercises);
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-[var(--blur-sm)] border-t border-border-custom space-y-3 z-[var(--z-sticky)]">
+    <footer className={`${isEnteringData ? 'hidden sm:block' : ''} fixed bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-[var(--blur-sm)] border-t border-border-custom space-y-3 z-[var(--z-sticky)]`}>
       {(stats.tonnage > 0 || stats.bwReps > 0) && (
         <div className="flex justify-between items-center px-1 max-w-md mx-auto w-full">
           <span className="text-xs font-black uppercase tracking-widest text-text-muted">

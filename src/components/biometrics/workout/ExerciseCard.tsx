@@ -167,28 +167,27 @@ export default function ExerciseCard({
   return (
     <Card
       variant="surface"
-      className={`border transition-all ${
+      className={`!overflow-visible border transition-all ${
         exercise.supersetGroup
           ? 'border-l-4 border-l-primary border-border-custom bg-primary/[0.01]'
           : 'border-border-custom'
       }`}
       padding="0"
     >
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-border-custom bg-text-primary/[0.01]">
+      <div className="px-3 py-2 border-b border-border-custom space-y-1">
         <ExerciseNameInput
           value={exercise.name}
           tags={exercise.tags}
           onChange={(name, t) => onChange({ ...exercise, name, tags: t })}
         />
+        <div className="flex items-center justify-end gap-2">
         {exercise.name.trim().length >= 2 && !isSaunaMode && (
           <Pressable
             type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
+            onClick={() => {
               openExerciseProgress(navigate, exercise.name);
             }}
-            className="relative z-10 shrink-0 flex h-9 w-9 items-center justify-center rounded-lg text-text-muted hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer"
+            className="shrink-0 flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary hover:bg-primary/10 hover:text-primary"
             title="Progres ćwiczenia"
             aria-label="Progres ćwiczenia"
           >
@@ -197,16 +196,20 @@ export default function ExerciseCard({
         )}
         <Pressable
           onClick={() => setCollapsed((c) => !c)}
-          className="p-1 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+          aria-label={collapsed ? 'Rozwiń ćwiczenie' : 'Zwiń ćwiczenie'}
+          aria-expanded={!collapsed}
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary hover:text-text-primary"
         >
           {collapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
         </Pressable>
         <Pressable
           onClick={removeExercise}
-          className="p-1 text-text-muted hover:text-danger transition-colors cursor-pointer"
+          aria-label="Usuń ćwiczenie"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary hover:text-danger"
         >
           <Trash2 size={14} />
         </Pressable>
+        </div>
       </div>
 
       {!isSaunaMode && (
@@ -232,7 +235,7 @@ export default function ExerciseCard({
       )}
 
       {!collapsed && (
-        <div className="px-4 pb-3 pt-2 space-y-2">
+        <div className="px-2 pb-3 pt-2 space-y-3">
           {isSaunaMode ? (
             <ExerciseWellnessSets exercise={exercise} haptics={haptics} updateSet={updateSet} removeSet={removeSet} />
           ) : (
@@ -250,9 +253,9 @@ export default function ExerciseCard({
 
           <Pressable
             onClick={addSet}
-            className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-dashed border-border-custom bg-surface/30 py-2 text-xs font-black uppercase tracking-widest text-text-muted hover:border-primary/40 hover:text-primary transition-colors cursor-pointer"
+            className="w-full min-h-11 flex items-center justify-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 text-sm font-semibold text-primary hover:bg-primary/10"
           >
-            <Plus size={11} /> Dodaj serię
+            <Plus size={18} /> Dodaj serię
           </Pressable>
 
           {!isSaunaMode && !bwOnlyExercise && current1RM > 0 && (

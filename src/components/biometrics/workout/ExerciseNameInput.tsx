@@ -1,7 +1,7 @@
 import Button from '../../ui/Button';
 import { ControlInput } from '../../ui/ControlPrimitives';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { EXERCISES, tagClass, normalize } from '../../../data/exercises';
+import { EXERCISES, normalize } from '../../../data/exercises';
 import { searchOpenGymCatalog, preloadOpenGymCatalog, mapTargetToSparkyTags, type OpenGymExercise } from '../../../data/openGymCatalog';
 import { Card } from '../../ui/Card';
 
@@ -25,8 +25,13 @@ export default function ExerciseNameInput({
 }: ExerciseNameInputProps) {
   const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
-  const [rawOpenGymMatches, setRawOpenGymMatches] = useState<MatchItem[]>([]);
-  const ref = useRef<HTMLDivElement | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [rawOpenGymMatches, setRawOpenGymMatches] = useState<{ query: string; matches: MatchItem[] }>({ query: '', matches: [] });
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (editing) inputRef.current?.focus();
+  }, [editing]);
 
   // Sync external value → local query (e.g. on reset)
   useEffect(() => {
@@ -41,7 +46,7 @@ export default function ExerciseNameInput({
       .map((e) => ({ name: e.name, tags: e.tags, source: 'standard' as const }));
   }, [queryTrim]);
 
-  const shouldFetchOpenGym = queryTrim.length >= 2 && standardMatches.length < 8;
+  const shouldFetchOpenGym = open && queryTrim.length >= 2 && standardMatches.length < 8;
 
   useEffect(() => {
     if (!shouldFetchOpenGym) return;
@@ -57,23 +62,25 @@ export default function ExerciseNameInput({
             source: 'opengym' as const,
             equipment: og.equipment,
           }));
-        setRawOpenGymMatches(matches);
+        setRawOpenGymMatches({ query: queryTrim, matches });
       })
       .catch(() => {
-        if (active) setRawOpenGymMatches([]);
+        if (active) setRawOpenGymMatches({ query: queryTrim, matches: [] });
       });
     return () => {
       active = false;
     };
   }, [queryTrim, standardMatches, shouldFetchOpenGym]);
 
-  const openGymMatches = shouldFetchOpenGym ? rawOpenGymMatches : [];
+  const openGymMatches = shouldFetchOpenGym && rawOpenGymMatches.query === queryTrim ? rawOpenGymMatches.matches : [];
   const allMatches: MatchItem[] = [...standardMatches, ...openGymMatches];
 
   function select(item: MatchItem) {
     setQuery(item.name);
     onChange(item.name, item.tags);
     setOpen(false);
+    setEditing(false);
+    inputRef.current?.blur();
   }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -84,24 +91,45 @@ export default function ExerciseNameInput({
   }
 
   return (
-    <div ref={ref} className="relative flex-1 min-w-0">
+    <div className="relative w-full min-w-0"
+      onBlur={event => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setOpen(false);
+          setEditing(false);
+        }
+      }}>
+      {!editing && value.trim() ? (
+        <Button variant="ghost" onClick={() => setEditing(true)} aria-label={`Zmień ćwiczenie: ${value}`}
+          className="w-full !justify-start !px-0 !text-lg !text-text-primary text-left whitespace-normal break-words leading-snug">
+          {value}
+        </Button>
+      ) : (
       <ControlInput
+        ref={inputRef}
         type="text"
+        aria-label="Nazwa ćwiczenia"
         value={query}
         onChange={handleChange}
         onFocus={() => {
+          setEditing(true);
           setOpen(true);
           preloadOpenGymCatalog();
         }}
-        onBlur={() => setTimeout(() => setOpen(false), 150)}
-        placeholder="Nazwa ćwiczenia (np. bench, siad, cable)..."
-        className="w-full bg-transparent text-sm font-bold text-text-primary outline-none placeholder:text-text-muted/40"
+        onKeyDown={event => {
+          if (event.key === 'Escape') setOpen(false);
+          if (event.key === 'Enter') { setOpen(false); event.currentTarget.blur(); }
+        }}
+        placeholder="Szukaj ćwiczenia…"
+        autoComplete="off"
+        enterKeyHint="done"
+        className="w-full rounded-lg bg-surface-solid px-2 text-base font-bold text-text-primary placeholder:text-text-secondary"
       />
+      )}
       {open && allMatches.length > 0 && (
         <Card
           variant="surface"
           padding="0"
-          className="absolute left-0 right-0 top-full mt-2 z-[var(--z-overlay)] border border-border-custom shadow-lg max-h-72 overflow-y-auto"
+          className="absolute left-0 right-0 top-full mt-1 z-[var(--z-overlay)] border border-border-custom shadow-lg max-h-60 overflow-y-auto overscroll-contain"
           style={{ borderRadius: 'var(--ds-inline-style-12px)' }}
         >
           {allMatches.map((item) => (
@@ -109,25 +137,17 @@ export default function ExerciseNameInput({
               key={`${item.name}-${item.source}`}
               type="button"
               variant="ghost"
-              onMouseDown={() => select(item)}
-              className="w-full flex items-center justify-between rounded-none px-3 py-2 text-left hover:bg-text-primary/[0.04] gap-3"
+              onPointerDown={event => event.preventDefault()}
+              onClick={() => select(item)}
+              className="w-full !h-auto flex flex-col !items-start !gap-1 rounded-none !px-3 !py-3 text-left whitespace-normal border-b border-border-custom last:border-b-0 hover:bg-surface-2"
             >
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-semibold text-text-primary truncate">{item.name}</span>
+                <span className="text-base font-semibold text-text-primary whitespace-normal break-words leading-snug">{item.name}</span>
                 {item.equipment && (
-                  <span className="text-3xs text-text-muted truncate capitalize">{item.equipment}</span>
+                  <span className="text-xs text-text-secondary capitalize">{item.equipment}</span>
                 )}
               </div>
-              <div className="flex gap-1 shrink-0">
-                {item.tags.slice(0, 3).map((t) => (
-                  <span
-                    key={t}
-                    className={`text-3xs font-black uppercase px-1.5 py-0.5 rounded-full border ${tagClass(t)}`}
-                  >
-                    {t}
-                  </span>
-                ))}
-              </div>
+              <span className="text-xs text-text-secondary whitespace-normal">{item.tags.slice(0, 3).join(' · ')}</span>
             </Button>
           ))}
         </Card>

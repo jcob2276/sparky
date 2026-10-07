@@ -33,11 +33,11 @@ export function ExerciseCardToolbar({
   })();
 
   return (
-    <div className="flex items-center gap-1.5 px-4 py-1.5 bg-surface/30 border-b border-border-custom/40 flex-wrap">
+    <div className="flex items-center gap-2 px-3 py-1 bg-surface/30 border-b border-border-custom flex-wrap">
       <Pressable
         type="button"
         onClick={onCycleSuperset}
-        className={`px-2 py-0.5 rounded-md text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer border ${
+        className={`min-h-11 px-2 rounded-lg text-xs font-semibold border ${
           supersetGroup
             ? 'bg-primary/20 text-primary border-primary/40'
             : 'text-text-muted hover:text-text-secondary border-border-custom bg-surface/50'
@@ -50,7 +50,7 @@ export function ExerciseCardToolbar({
       <Pressable
         type="button"
         onClick={onToggleMode}
-        className={`px-2 py-0.5 rounded-md text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer border ${
+        className={`min-h-11 px-2 rounded-lg text-xs font-semibold border ${
           mode === 'timed'
             ? 'bg-warning/20 text-warning border-warning/40'
             : 'text-text-muted hover:text-text-secondary border-border-custom bg-surface/50'
@@ -62,7 +62,7 @@ export function ExerciseCardToolbar({
 
       {readinessBadge && (
         <span
-          className={`text-3xs font-bold px-2 py-0.5 rounded-md border ml-auto ${readinessBadge.cls}`}
+          className={`text-xs font-medium px-2 py-1 rounded-md border ${readinessBadge.cls}`}
           title={`Ostatni trening: ${daysAgo}d temu. Biomechaniczny model rozpadu 36h.`}
         >
           {readinessBadge.label}

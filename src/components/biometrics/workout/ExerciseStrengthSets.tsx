@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { ControlSelect } from '../../ui/ControlPrimitives';
 import { WorkoutExercise } from './workoutUtils';
 import type { ExerciseHistoryRow } from '../../../lib/health/workout';
 import { StrengthSetRow } from './StrengthSetRow';
@@ -23,23 +25,19 @@ export default function ExerciseStrengthSets({
   removeSet,
   onOpenPlateCalc,
 }: ExerciseStrengthSetsProps) {
+  const [weightStep, setWeightStep] = useState(2.5);
   return (
     <>
-      <div className="grid grid-cols-[24px_minmax(64px,74px)_minmax(60px,1fr)_minmax(54px,1fr)_minmax(46px,1fr)_24px] gap-1.5 px-0.5 mb-0.5">
-        <span className="text-3xs font-black uppercase text-text-muted/60 text-center">#</span>
-        <span className="text-3xs font-black uppercase tracking-wider text-text-muted text-center truncate">
-          Ostatnio
-        </span>
-        <span className="text-3xs font-black uppercase tracking-wider text-text-muted text-center">
-          KG
-        </span>
-        <span className="text-3xs font-black uppercase tracking-wider text-text-muted text-center">
-          {exercise.mode === 'timed' ? 'Czas' : 'Pow.'}
-        </span>
-        <span className="text-3xs font-black uppercase tracking-wider text-text-muted text-center">
-          RIR
-        </span>
-        <span />
+      <div className="flex items-center justify-between gap-2 pb-1">
+        <span className="text-xs text-text-secondary">Zmiana ciężaru −/+</span>
+        <label className="flex items-center gap-2 text-xs text-text-secondary">
+          Skok
+          <ControlSelect aria-label="Skok ciężaru" value={weightStep}
+            onChange={event => setWeightStep(Number(event.target.value))}
+            className="h-11 rounded-lg border border-border-custom bg-surface-solid px-2 text-base font-semibold text-text-primary">
+            {[0.5, 1, 2.5, 5].map(step => <option key={step} value={step}>{String(step).replace('.', ',')} kg</option>)}
+          </ControlSelect>
+        </label>
       </div>
       {exercise.sets.map((set, idx) => (
         <StrengthSetRow
@@ -54,8 +52,10 @@ export default function ExerciseStrengthSets({
           removeSet={removeSet}
           onOpenPlateCalc={onOpenPlateCalc}
           isTimed={exercise.mode === 'timed'}
+          weightStep={weightStep}
         />
       ))}
+      <p className="text-xs text-text-secondary">Zapas (RIR) = ile powtórzeń zostało w rezerwie.</p>
     </>
   );
 }
