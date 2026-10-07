@@ -1,0 +1,29 @@
+name: Official Senate disclosures
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: senate-official-disclosures
+  cancel-in-progress: false
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: '2.8.2'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify official disclosure safeguards
+        run: deno test --no-config --no-lock --node-modules-dir=none --allow-read --allow-env supabase/functions/sync/senateDisclosureData.test.ts supabase/functions/sync/senateDisclosureClient.test.ts supabase/functions/sync/senateTrades.test.ts
+      - name: Compile shared source adapter
+        run: deno bundle --no-config --no-lock --node-modules-dir=none --platform=browser supabase/functions/sync/senateDisclosureSource.ts --output /tmp/senate-source.mjs
+      - name: Import official disclosures
+        env:
+          SUPABASE_URL: ${{ secrets.HOUSE_OCR_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.HOUSE_OCR_SUPABASE_KEY }}
+        run: node scripts/ops/sync-senate-disclosures.mjs /tmp/senate-source.mjs
