@@ -238,10 +238,13 @@ def read_new_grid(image, disclosure_date, ocr):
         example_label = re.sub(r'[^a-z]', '', asset.lower())
         if row_number == 0 and re.fullmatch(r'ex[a-z]{2,5}meg(?:a)?co[rm]pcommonstock',example_label):
             continue
-        marked_types = [is_framed_checked(ink[top:bottom,columns[i]:columns[i+1]])
-                        for i in range(2,6)]
-        marked_amounts = [is_framed_checked(ink[top:bottom,columns[i]:columns[i+1]])
-                          for i in range(8,19)]
+        try:
+            marked_types = [is_framed_checked(ink[top:bottom,columns[i]:columns[i+1]])
+                            for i in range(2,6)]
+            marked_amounts = [is_framed_checked(ink[top:bottom,columns[i]:columns[i+1]])
+                              for i in range(8,19)]
+        except ValueError as error:
+            raise ValueError(f'Row {row_number} ({asset}): {error}') from None
         if asset_ink.mean() < .002:
             if any(marked_types+marked_amounts):
                 raise ValueError('Marked modern PTR row without description')
