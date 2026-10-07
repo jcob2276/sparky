@@ -40,6 +40,21 @@ jobs:
           assert (row['amountLow'], row['amountHigh']) == (1001, 15000), row
           assert row['asset'] == 'Redeemed Electronic Arts', row
           PY
+      - name: Verify the modern form and its continuation page
+        run: |
+          curl --fail --silent --show-error --location https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/9116331.pdf --output /tmp/house-modern.pdf
+          python scripts/ops/house-paper-ocr.py /tmp/house-modern.pdf --disclosure-date 2026-09-11 > /tmp/house-modern.json
+          python - <<'PY'
+          import json
+          with open('/tmp/house-modern.json') as source:
+              rows = json.load(source)
+          assert len(rows) == 5, rows
+          assert [row['type'] for row in rows] == ['sell','buy','buy','sell','buy'], rows
+          assert [row['transactionDate'] for row in rows] == ['2026-07-30','2026-07-30','2026-08-06','2026-07-30','2026-07-30'], rows
+          assert all(row['notificationDate'] == '2026-08-19' for row in rows), rows
+          assert all(row['amountLow'] == 15001 and row['amountHigh'] == 50000 for row in rows), rows
+          assert all(row['ticker'] is None for row in rows), rows
+          PY
       - name: Recover official scanned disclosures
         env:
           SUPABASE_URL: ${{ secrets.HOUSE_OCR_SUPABASE_URL }}

@@ -1,4 +1,4 @@
-"""Read the House 2012 paper PTR grid; reject unsupported or ambiguous scans.
+"""Read House 2012 and 2020 paper PTR grids; reject ambiguous scans.
 
 CLI requires Pillow, numpy, Poppler and Tesseract. Output is transaction JSON
 for the existing replace_house_disclosure write path, never a guessed ticker.
@@ -12,7 +12,7 @@ import subprocess
 import tempfile
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageOps
 
 
 AMOUNTS = [(1001, 15000), (15001, 50000), (50001, 100000),
@@ -38,6 +38,48 @@ def selected_cell(marks):
     if len(selected) != 1:
         raise ValueError('Missing or ambiguous transaction checkbox')
     return selected[0]
+
+
+def is_framed_checked(pixels):
+    """The modern form has a printed square inside each ruled table cell."""
+    height, width = pixels.shape
+    if min(height, width) < 24:
+        raise ValueError('Framed checkbox cell too small')
+    # Locate the inner square separately from the outer table ruling. Some
+    # photocopies have a double left edge extending well into the table cell.
+    trimmed = pixels[3:-3,3:-3]
+    edges = np.flatnonzero(trimmed.mean(axis=1) > .5)
+    if len(edges) < 2 or edges[-1]-edges[0] < height*.35:
+        raise ValueError('Unrecognised checkbox frame')
+    top_edges = edges[edges < trimmed.shape[0]*.4]
+    bottom_edges = edges[edges > trimmed.shape[0]*.6]
+    if not len(top_edges) or not len(bottom_edges):
+        raise ValueError('Ambiguous horizontal checkbox frame')
+    top,bottom = int(top_edges[-1]),int(bottom_edges[0])
+    ends = np.flatnonzero(trimmed[top+1:bottom].mean(axis=0) > .65)
+    if not len(ends):
+        raise ValueError('Unrecognised checkbox width')
+    left_edges = ends[ends < trimmed.shape[1]*.4]
+    right_edges = ends[ends > trimmed.shape[1]*.6]
+    if not len(left_edges):
+        raise ValueError('Ambiguous vertical checkbox frame')
+    if len(right_edges):
+        right = int(right_edges[0])
+    elif (trimmed[top_edges,-3:].any(axis=0).mean() > .6 and
+          trimmed[bottom_edges,-3:].any(axis=0).mean() > .6):
+        # Some printed squares overlap the table's right rule. Their horizontal
+        # sides must both reach the cell edge before accepting this clipping.
+        right = trimmed.shape[1]-1
+    else:
+        raise ValueError('Missing right checkbox frame')
+    left = int(left_edges[-1])
+    if right-left < width*.4:
+        raise ValueError('Unrecognised checkbox width')
+    inset_x,inset_y = max(2,(right-left)//10),max(2,(bottom-top)//10)
+    inner = trimmed[top+inset_y:bottom-inset_y,left+inset_x:right-inset_x]
+    return bool(inner.mean() > .06 and
+                (inner.mean(axis=0) > .04).mean() > .25 and
+                (inner.mean(axis=1) > .04).mean() > .25)
 
 
 def paper_date(raw, disclosure_date):
@@ -147,8 +189,99 @@ def tesseract_text(image):
         # Padding prevents a ruled edge being interpreted as part of a character.
         image.save(path)
         result = subprocess.run(['tesseract', str(path), 'stdout', '-l', 'eng', '--psm', '6'],
-                                capture_output=True, text=True, check=True, timeout=30)
+                                capture_output=True, text=True, encoding='utf-8', check=True, timeout=30)
         return result.stdout
+
+
+def read_new_grid(image, disclosure_date, ocr):
+    """Read the 2020 form (four transaction choices and eleven amount cells)."""
+    ink = np.asarray(image.convert('L')) < 200
+    height, width = ink.shape
+    horizontal = line_centres(np.flatnonzero(ink.sum(axis=1) > width * .5))
+    layout = None
+    for top, bottom in zip(horizontal, horizontal[1:]):
+        if bottom-top < 24 or bottom-top > height*.08:
+            continue
+        columns = line_centres(np.flatnonzero(
+            ink[top+4:bottom-4].sum(axis=0) > (bottom-top-8) * .9))
+        if len(columns) == 20:
+            layout = (top, columns)
+            break
+    if not layout:
+        raise ValueError('Unsupported modern paper PTR layout')
+    start, columns = layout
+    header = re.sub(r'\s+', ' ', ocr(image.crop((columns[0], max(0,start-height*.2),
+                                              columns[-1], start)))).upper()
+    if 'FULL ASSET NAME' not in header or 'AMOUNT OF TRANSACTION' not in header:
+        raise ValueError('Unsupported modern PTR headers')
+
+    def text(index, top, bottom):
+        crop = image.crop((columns[index]+4,top+4,columns[index+1]-4,bottom-4))
+        if index in [1,6,7]:
+            crop = ImageOps.expand(crop.resize((crop.width*2,crop.height*2)),border=12,fill='white')
+        return re.sub(r'\s+', ' ', ocr(crop)).strip()
+
+    rows = []
+    lines = [y for y in horizontal if y >= start]
+    for row_number, (top,bottom) in enumerate(zip(lines,lines[1:])):
+        if bottom-top < 24:
+            raise ValueError('Modern PTR row too small')
+        # Stop at the blank space separating the transaction grid from notes.
+        structure = [ink[top+4:bottom-4, columns[i]-2:columns[i]+3].mean()
+                     for i in [2,6,8]]
+        if max(structure) < .3:
+            if ink[top+4:bottom-4,columns[0]+4:columns[-1]-4].mean() < .005:
+                break
+            raise ValueError('Broken modern PTR grid')
+        asset_ink = ink[top+4:bottom-4,columns[1]+4:columns[2]-4]
+        asset = text(1,top,bottom) if asset_ink.mean() >= .002 else ''
+        example_label = re.sub(r'[^a-z]', '', asset.lower())
+        if row_number == 0 and re.fullmatch(r'ex[a-z]{2,5}meg(?:a)?co[rm]pcommonstock',example_label):
+            continue
+        marked_types = [is_framed_checked(ink[top:bottom,columns[i]:columns[i+1]])
+                        for i in range(2,6)]
+        marked_amounts = [is_framed_checked(ink[top:bottom,columns[i]:columns[i+1]])
+                          for i in range(8,19)]
+        if asset_ink.mean() < .002:
+            if any(marked_types+marked_amounts):
+                raise ValueError('Marked modern PTR row without description')
+            continue
+        if len(asset) < 4:
+            raise ValueError('Unreadable modern PTR description')
+        owner = text(0,top,bottom)
+        if owner not in ['', 'JT', 'SP', 'DC']:
+            raise ValueError('Unreadable modern PTR owner')
+        transaction_date = paper_date(text(6,top,bottom),disclosure_date)
+        notification_date = paper_date(text(7,top,bottom),disclosure_date)
+        if notification_date < transaction_date:
+            raise ValueError('Notification precedes transaction')
+        transaction = selected_cell(marked_types)
+        amount = selected_cell(marked_amounts)
+        if amount == 10 and owner not in ['SP','DC']:
+            raise ValueError('Spouse/dependent amount category without matching owner')
+        low,high = (AMOUNTS+[ (1000001,None) ])[amount]
+        rows.append({'asset':asset,'ticker':None,
+                     'owner':{'':'self','JT':'joint','SP':'spouse','DC':'dependent_child'}[owner],
+                     'type':['buy','sell','sell','exchange'][transaction],
+                     'transactionDate':transaction_date,'notificationDate':notification_date,
+                     'amountLow':low,'amountHigh':high})
+    if not rows:
+        raise ValueError('No verified transactions in modern paper PTR')
+    return rows
+
+
+def read_paper_grid(image, disclosure_date, ocr):
+    # Route by the grid width, not by an exception from a partially parsed report.
+    ink = np.asarray(image.convert('L')) < 200
+    height,width = ink.shape
+    horizontal = line_centres(np.flatnonzero(ink.sum(axis=1) > width*.5))
+    for top,bottom in zip(horizontal,horizontal[1:]):
+        if bottom-top < 24 or bottom-top > height*.08:
+            continue
+        columns = line_centres(np.flatnonzero(ink[top+4:bottom-4].sum(axis=0) > (bottom-top-8)*.9))
+        if len(columns) == 20:
+            return read_new_grid(image,disclosure_date,ocr)
+    return read_old_grid(image,disclosure_date,ocr)
 
 
 def main():
@@ -165,7 +298,7 @@ def main():
             raise ValueError('Invalid paper PTR page count')
         rows = []
         for page in pages:
-            rows.extend(read_old_grid(Image.open(page), args.disclosure_date, tesseract_text))
+            rows.extend(read_paper_grid(Image.open(page), args.disclosure_date, tesseract_text))
         print(json.dumps(rows))
 
 

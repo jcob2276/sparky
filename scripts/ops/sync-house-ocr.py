@@ -43,11 +43,12 @@ def main():
     now = datetime.now(timezone.utc)
     cutoff = (now - timedelta(days=1)).isoformat()
     query = {'select': 'id,doc_id,year,filer_name,filing_date,source_url',
-             'parse_status': 'eq.error', 'year': f'eq.{now.year}',
+             'year': f'eq.{now.year}',
              'order': 'filing_date.desc,doc_id.desc', 'limit': '10'}
     if args.document_id:
         query['id'] = 'eq.' + args.document_id
     else:
+        query['parse_status'] = 'eq.error'
         query['or'] = f'(ocr_checked_at.is.null,ocr_checked_at.lt.{cutoff})'
     documents = api('house_disclosures?' + urllib.parse.urlencode(query))
     politicians = api('politicians?select=id,display_name&chamber=eq.house')
@@ -62,7 +63,7 @@ def main():
         with tempfile.TemporaryDirectory() as directory:
             cell = Path(directory) / 'cell.png'
             image.save(cell)
-            return subprocess.check_output([*command, str(cell)], text=True, timeout=30)
+            return subprocess.check_output([*command, str(cell)], text=True, encoding='utf-8', timeout=30)
 
     for document in documents:
         identifier = document['id']
@@ -87,7 +88,7 @@ def main():
                     raise ValueError('Unsupported PDF page count')
                 rows = []
                 for page in pages:
-                    rows.extend(reader.read_old_grid(Image.open(page), document['filing_date'], ocr))
+                    rows.extend(reader.read_paper_grid(Image.open(page), document['filing_date'], ocr))
                 payload = []
                 for index, row in enumerate(rows):
                     payload.append({'id': f"house-{document['year']}-{document['doc_id']}-{index}",
