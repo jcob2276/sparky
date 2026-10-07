@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+    <head>             
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />   	 
+	 <base href="https://moam.knf.gov.pl/moam.nsf/"/>
+        <link rel="icon" href="img/favicon.ico" type="image/x-icon"/>
+        <title>Komisja  Nadzoru  Finansowego</title>      
+		
+	<link rel="stylesheet" type="text/css" href="css/jquery-ui.css" />		
+       <link rel="stylesheet" type="text/css" href="css/reset.css" />
+       <link rel="stylesheet" type="text/css" href="css/defaul.css" />
+       <link rel="stylesheet" type="text/css" href="css/contrast.css" />               
+       <link rel="stylesheet" type="text/css" href="css/style.css"/>		
+	<link rel="stylesheet" type="text/css" href="css/wyszukiwanie.css"/>
+	<link rel="stylesheet" type="text/css" href="css/table.css"/>
+        <script type="text/javascript" src="js/jquery-min.js"></script>        
+        <script type="text/javascript" src="js/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="js/jquery.cookie.js"></script>	    
+	 <script type="text/javascript" src="js/index.js"></script>	
+	<script type="text/javascript" src="oamSearchLib?OpenJavascriptLibrary"></script> 
+   </head>    
+   
+   <body class="main_page">           
+   <div class="clearfix"></div>   
+   <div class="header">           
+        <div class="margin">
+			<div class="top">
+	    	<ul> 
+		        <li><span class="smaller_font"></span></li>
+		        <li><span class="bigger_font"></span></li>
+		        <li class="ctrl_text">Zwiększ czcionkę</li>
+		        <li class="to_text_ver">Wersja:</li>
+		        <li class="to_contrast_ver">KONTRASTOWA</li>       
+		        <li class="contact">
+		            <a href="http://www.knf.gov.pl/dane_wspolne/kontakt.html">Kontakt</a>
+		        </li>       
+	    	</ul>
+			</div>
+            <div class="middle">
+                 <div class="left">
+                      <a class="logo" href="http://www.knf.gov.pl">                            
+                          <img src="img/logo_knf.png" border="0" alt="" />                            
+                       </a>
+                       <div class="date"></div>                    
+                  </div>
+                  <div class="right">   						
+			<ul class="clock_cont">
+		    		<li><span class="clock" ><b><span id="currentTime"></span></b></span></li>
+			</ul>					  
+		</div>                    
+            </div>                                    
+	   </div>	        		
+	</div><!--header-->
+<div class="margin">	
+	<div class="cont">	
+
+<div id="main-banner" style="float: left;  padding-top: 8px; width:930px;" >
+	<div id="searchBox" class=" ui-widget">											
+	  	<form  action="search?OpenNavigator"  name = "srchForm"
+			  method="post" onSubmit="if(this.VE_szukaj_a.value=='wpisz słowo ...' | this.VE_szukaj_a.value==''){alert('Wpisz słowa do wyszukiwania.');
+					 return false;}; 		   
+			this.action=this.action + '&amp;Field='+ this.A_szukaj.value + '&amp;Value='+this.VE_szukaj_a.value;">
+	
+		<div id="srch" onmouseout="changeClass(this);" onmouseover="changeClass(this);">
+			<div id="srch_1" class="vis"><span>wg emitenta</span><img src="wListTop_arrow.gif"></div>
+			<div id="srch_2" class="nvis"><span>wg daty odebrania</span><img src="wListTop_arrow.gif"></div>
+			<div id="srch_3" class="nvis"><span>wszystko</span><img src="wListTop_arrow.gif"></div>
+					
+			<ul class="nvis uSrch" id="srchL">
+					
+			<li id="srchL_1" class="nvis" onmouseover="this.style.background='#ececec';" 														onmouseout="this.style.background='none';" 																		onclick="document.srchForm.A_szukaj.value='NazwaPodmiot'; changeSrchClass(1)">wg emitenta</li>
+				<li id="srchL_2" class="vis" onmouseover="this.style.background='#ececec';" 														onmouseout="this.style.background='none';" 																	onclick="document.srchForm.A_szukaj.value='DataOdebrania'; changeSrchClass(2)">wg daty odebrania</li>
+				<li id="srchL_3" class="vis" onmouseover="this.style.background='#ececec';" 													onmouseout="this.style.background='none';" 																		onclick="document.srchForm.A_szukaj.value='all'; changeSrchClass(3)">wszystko</li>				
+			</ul>
+		</div>
+		<div class="kL itxt"><input class="txt" name="VE_szukaj_a" onfocus="if(this.value=='wpisz słowo ...'){this.value='';}" value="wpisz słowo ..." onblur="if(this.value==''){this.value='wpisz słowo ...';}"  type="text"></div>
+			<div class="kL ibtn"><button type="submit" class="stbutton" hidefocus >Szukaj</button></div>
+					<input name="A_szukaj" value="NazwaPodmiot" type="hidden">
+		</form>
+	</div>
+			
+	<div id="datePickerBox">
+			<div  class="kL ibtn">
+				<input  id="datepicker" type="button" class="stbutton" name="data"  value="Wybór daty wpływu" />
+			</div>
+		</div>			
+	</div>
+ <!--JG-->
+<div  id="message"> Liczba raportów za dzień 2026-03-20 wynosi 107 </div><table cellspacing="0px" cellpadding="0px" width="930px" class="edittable"><tr><th>Emitent</th><th>Data wpływu</th><th>Tytuł raportu</th><th>Plik</th></tr><tr class="even"><td  align="center">MOONLIT SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/48855F4A056321E7C1258DC0007E1081>RB_ASO, Rejestracja akcji serii I w KDPW, złożenie wniosku o wprowadzenie akcji serii F, G, H i I do obrotu na rynku NewConnect</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=0ck2jnyus1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">STARWARD INDUSTRIES SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/5EAE51A2BF29BCC4C1258DC00072CDCD>RB_ASO, Zawarcie umów pożyczek z akcjonariuszami Emitenta</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=au61puw5v1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">FOREVER ENTERTAINMENT SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/3AD349989AB9B30CC1258DC0006FFE10>RB-W_ASO, Powiadomienie o nabyciu akcji przez osobę pełniącą obowiązki zarządcze</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=iju0upvrt1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">MONNARI TRADE Spółka Akcyjna</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/8B1FBF935C7CFFC1C1258DC0006FFDC8>RB-W, Zawiadomienie o transakcjach na akcjach Spółki</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=3vyi65ug11_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">TORPOL SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/81295E5EF2EACB00C1258DC0006FF732>SRR, -</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=ancmusuaj1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">FIGENE CAPITAL SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/3236A0DBC3FCAF04C1258DC000678BA3>RB_ASO, Informacja o op&#258;ł&#313;&#351;nieniu publikacji raportu okresowego za 2025 r.  </a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=6p56gbtq21_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">MONNARI TRADE Spółka Akcyjna</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/DC28BA6717631E8DC1258DC000678B79>RB-W, Skup akcji własnych</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=x9npqatbd1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">BANK HANDLOWY W WARSZAWIE SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/1915D9C06FCCDD9DC1258DC000678B3B>RB-W,  Informacja o transakcjach na instrumentach finansowych dokonanych przez osobę pełniącą obowiązki zarządcze</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=fsky5bta21_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">MONNARI TRADE Spółka Akcyjna</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/8349816369054E04C1258DC000678B0D>RB-W, Rezygnacja ze sporządzania raportu ESG za rok 2025 i 2026</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=mx9fzmt7z1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">TORPOL SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/FC078FB926EE2C0EC1258DC00064B489>RR, -</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=su19n0spn1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">FAST FINANCE SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/D816C9914E1CEA21C1258DC00064B452>RB, Otwarcie w stosunku do Emitenta postępowania restrukturyzacyjnego</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=hetnptsoj1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">AQUA SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/24EA82AB37216312C1258DC00061F582>RB_ASO, Wykaz akcjonariuszy posiadających co najmniej 5% liczby głosów na NWZA AQUA S.A.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=s9vouvs9x1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">ASSECO BUSINESS SOLUTIONS SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/58D01CB3DAEC6E75C1258DC00061F500>RB-W, Ogłoszenie zaproszenia do składania ofert sprzedaży akcji Asseco Business Solutions S.A.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=lj88f2rue1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">BENEFIT SYSTEMS SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/DBEC71E09B916A05C1258DC0005F1F63>RB, Zaktualizowana strategia Grupy Kapitałowej Benefit Systems obowiązująca do 2027 roku</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=1cflmxrq41_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">BENEFIT SYSTEMS SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/C069997B6C6B0335C1258DC0005F1F41>RB, Polityka dywidendowa Benefit Systems S.A. na lata 2026?2028</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=b5ilelrec1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">BERG HOLDING SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/17F3556388C4AEFCC1258DC0005F1EB6>RB-W_ASO, Zwo&#313;?anie Nadzwyczajnego Walnego Zgromadzenia na dzie&#313;? 16 kwietnia 2026 r.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=i4w77or8r1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">Arlen Spółka Akcyjna</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/5A5564A30B377BABC1258DC0005C64F6>RB, Zawiadomienie o zawarciu umowy istotnej</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=u4eljjr0y1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">Astarta Holding PLC</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/698110896F6F17F9C1258DC0005C64C7>RB-W, Potential acquisition of operating farming assets</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=2x5lfiqsg1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">BENEFIT SYSTEMS SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/84D5C2EFB973C3B0C1258DC0005C5B95>SRR, -</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=9tu5p4qrc1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">BENEFIT SYSTEMS SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-20</td><td  align="center"><a href=0/44ABE6D9D9369532C1258DC0005C4FA3>RR, -</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260320&amp;plik=6wnnkcqnn1_Raport.zip">otwórz</a></td></tr>
+
+</table><div id="message">liczba odsłon: <strong>22978531</strong></div>	
+	
+	<div id="pages"><span class="all"><span>1</span><span><a
+href="mOAM?readForm&amp;RestrictToCategory=2026-03-20&amp;start=21&amp;count=20">2</a></span><span><a
+href="mOAM?readForm&amp;RestrictToCategory=2026-03-20&amp;start=41&amp;count=20">3</a></span><span><a
+href="mOAM?readForm&amp;RestrictToCategory=2026-03-20&amp;start=61&amp;count=20">4</a></span><span><a
+href="mOAM?readForm&amp;RestrictToCategory=2026-03-20&amp;start=81&amp;count=20">5</a></span><span><a
+href="mOAM?readForm&amp;RestrictToCategory=2026-03-20&amp;start=101&amp;count=7">6</a></span></span></div>
+	
+<div id="message">Strona - 1/6</div>
+</div>          
+</div><!-- mainContent -->
+
+		<div class="clearfix"></div> 
+	 	<div class="footer">
+		    <div class="margin">
+		        <div class="top left">
+		            <a href="#" class="get_top">
+		                 Strona główna 
+		            </a>
+		        </div>
+		        
+		         <div id="finfo_cont" class="bottom left"> 
+					<span>&copy; 2013 <a href="http://www.knf.gov.pl">Komisja Nadzoru Finansowego</a></span>
+					<ul class="right">			    
+					    <li><a href="http://www.knf.gov.pl/dane_wspolne/kontakt.html">Kontakt</a></li>
+					    <li><a href="http://www.knf.gov.pl/dane_wspolne/polityka_prywatnosci.html">Polityka prywatności</a></li>
+					    <li><a href="http://www.knf.gov.pl/nota_prawna/index.html">Notka prawna</a></li>
+					    <li><a href="http://www.knf.gov.pl/PortalMap">Mapa strony</a></li>
+					    <li><a href="http://www.knf.gov.pl/pomoc/index.html">Pomoc</a></li>
+					</ul>
+		        </div>
+		    </div>
+    	<!-- div class="clearfix"></div--> 
+		</div> 
+		<div id="cookies_policy">
+		    <div class="center">
+	        <span class="close_btn"></span>
+	        <span class="policy_text">
+	            UWAGA! Ten serwis używa cookies i podobnych technologii.
+	            Więcej informacji w 
+	            <a href="http://www.knf.gov.pl/dane_wspolne/polityka_prywatnosci.html">
+	                Polityce prywatności
+	            </a>
+	        </span>
+    		</div>
+		</div>
+        
+</body>   

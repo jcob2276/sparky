@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pl">
+    <head>             
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />   	 
+	 <base href="https://moam.knf.gov.pl/moam.nsf/"/>
+        <link rel="icon" href="img/favicon.ico" type="image/x-icon"/>
+        <title>Komisja  Nadzoru  Finansowego</title>      
+		
+	<link rel="stylesheet" type="text/css" href="css/jquery-ui.css" />		
+       <link rel="stylesheet" type="text/css" href="css/reset.css" />
+       <link rel="stylesheet" type="text/css" href="css/defaul.css" />
+       <link rel="stylesheet" type="text/css" href="css/contrast.css" />               
+       <link rel="stylesheet" type="text/css" href="css/style.css"/>		
+	<link rel="stylesheet" type="text/css" href="css/wyszukiwanie.css"/>
+	<link rel="stylesheet" type="text/css" href="css/table.css"/>
+        <script type="text/javascript" src="js/jquery-min.js"></script>        
+        <script type="text/javascript" src="js/jquery-ui.min.js"></script>
+        <script type="text/javascript" src="js/jquery.cookie.js"></script>	    
+	 <script type="text/javascript" src="js/index.js"></script>	
+	<script type="text/javascript" src="oamSearchLib?OpenJavascriptLibrary"></script> 
+   </head>    
+   
+   <body class="main_page">           
+   <div class="clearfix"></div>   
+   <div class="header">           
+        <div class="margin">
+			<div class="top">
+	    	<ul> 
+		        <li><span class="smaller_font"></span></li>
+		        <li><span class="bigger_font"></span></li>
+		        <li class="ctrl_text">Zwiększ czcionkę</li>
+		        <li class="to_text_ver">Wersja:</li>
+		        <li class="to_contrast_ver">KONTRASTOWA</li>       
+		        <li class="contact">
+		            <a href="http://www.knf.gov.pl/dane_wspolne/kontakt.html">Kontakt</a>
+		        </li>       
+	    	</ul>
+			</div>
+            <div class="middle">
+                 <div class="left">
+                      <a class="logo" href="http://www.knf.gov.pl">                            
+                          <img src="img/logo_knf.png" border="0" alt="" />                            
+                       </a>
+                       <div class="date"></div>                    
+                  </div>
+                  <div class="right">   						
+			<ul class="clock_cont">
+		    		<li><span class="clock" ><b><span id="currentTime"></span></b></span></li>
+			</ul>					  
+		</div>                    
+            </div>                                    
+	   </div>	        		
+	</div><!--header-->
+<div class="margin">	
+	<div class="cont">	
+
+<div id="main-banner" style="float: left;  padding-top: 8px; width:930px;" >
+	<div id="searchBox" class=" ui-widget">											
+	  	<form  action="search?OpenNavigator"  name = "srchForm"
+			  method="post" onSubmit="if(this.VE_szukaj_a.value=='wpisz słowo ...' | this.VE_szukaj_a.value==''){alert('Wpisz słowa do wyszukiwania.');
+					 return false;}; 		   
+			this.action=this.action + '&amp;Field='+ this.A_szukaj.value + '&amp;Value='+this.VE_szukaj_a.value;">
+	
+		<div id="srch" onmouseout="changeClass(this);" onmouseover="changeClass(this);">
+			<div id="srch_1" class="vis"><span>wg emitenta</span><img src="wListTop_arrow.gif"></div>
+			<div id="srch_2" class="nvis"><span>wg daty odebrania</span><img src="wListTop_arrow.gif"></div>
+			<div id="srch_3" class="nvis"><span>wszystko</span><img src="wListTop_arrow.gif"></div>
+					
+			<ul class="nvis uSrch" id="srchL">
+					
+			<li id="srchL_1" class="nvis" onmouseover="this.style.background='#ececec';" 														onmouseout="this.style.background='none';" 																		onclick="document.srchForm.A_szukaj.value='NazwaPodmiot'; changeSrchClass(1)">wg emitenta</li>
+				<li id="srchL_2" class="vis" onmouseover="this.style.background='#ececec';" 														onmouseout="this.style.background='none';" 																	onclick="document.srchForm.A_szukaj.value='DataOdebrania'; changeSrchClass(2)">wg daty odebrania</li>
+				<li id="srchL_3" class="vis" onmouseover="this.style.background='#ececec';" 													onmouseout="this.style.background='none';" 																		onclick="document.srchForm.A_szukaj.value='all'; changeSrchClass(3)">wszystko</li>				
+			</ul>
+		</div>
+		<div class="kL itxt"><input class="txt" name="VE_szukaj_a" onfocus="if(this.value=='wpisz słowo ...'){this.value='';}" value="wpisz słowo ..." onblur="if(this.value==''){this.value='wpisz słowo ...';}"  type="text"></div>
+			<div class="kL ibtn"><button type="submit" class="stbutton" hidefocus >Szukaj</button></div>
+					<input name="A_szukaj" value="NazwaPodmiot" type="hidden">
+		</form>
+	</div>
+			
+	<div id="datePickerBox">
+			<div  class="kL ibtn">
+				<input  id="datepicker" type="button" class="stbutton" name="data"  value="Wybór daty wpływu" />
+			</div>
+		</div>			
+	</div>
+ <!--JG-->
+<div id="message"> Znaleziono 176 dokumentów spełniających zadane kryteria</div><table cellspacing="0px" cellpadding="0px" width="930" class="edittable"><tr><th>Emitent</th><th>Data wpływu</th><th>Tytuł raportu</th><th>Plik</th></tr><tr class="even"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-09-07</td><td  align="center"><a href=0/BA69687FA47BCF7BC1258E6B005D920F>RB-W, Zawiadomienie o zmianie udziału w głosach XTB S.A.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260907&amp;plik=p410ta2uq1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-09-07</td><td  align="center"><a href=0/26B6A56E95BA1982C1258E6B005ABA1E>RB-W, Powiadomienie o transakcjach na akcjach XTB S.A.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260907&amp;plik=ww1y2x2841_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-09-02</td><td  align="center"><a href=0/FF08023247D4B5A2C1258E66007A95DE>RB, Zawiadomienie od XX ZW Investment Group S.A. o zakończeniu procesu sprzedaży
+akcji Spółki w ramach przyspieszonej budowy księgi popytu i wynikach tego procesu.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260902&amp;plik=pl6h4gnem1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-09-02</td><td  align="center"><a href=0/B026DD1735111282C1258E660058E4FA>RB, Zawiadomienie od XX ZW Investment Group S.A. o rozpoczęciu procesu sprzedaży
+części posiadanych przez nią akcji Spółki w ramach przyspieszonej budowy księgi popytu.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260902&amp;plik=hlp7ydec61_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-08-28</td><td  align="center"><a href=0/56630A9F51EF6A57C1258E60007AB609>PSr, -</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260828&amp;plik=0b6m3z3zu1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-07-29</td><td  align="center"><a href=0/3A409C719F545368C1258E43005888EC>RB-W, Wstępne wyniki finansowe i operacyjne za I półrocze 2026 roku</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260729&amp;plik=77q5mezug1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-05-22</td><td  align="center"><a href=0/880D7C05F24A293FC1258DFF005090AD>RB-W, Otrzymanie powiadomień o nabyciu akcji w ramach programu motywacyjnego</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260522&amp;plik=quqf8vz6m1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-05-15</td><td  align="center"><a href=0/9652A5EE3B4F6508C1258DF7007D83AA>QSr, -</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260515&amp;plik=4qqxk5w2a1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-05-14</td><td  align="center"><a href=0/9D9B7F9A6FA06BBDC1258DF7003CE163>RB-W, Nabycie akcji własnych</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260514&amp;plik=4vst6afqa1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-05-11</td><td  align="center"><a href=0/DBC9D1C2C0CCC8FCC1258DF4003CCA11>RB, Rozpoczęcie skupu akcji własnych Spółki</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260511&amp;plik=94a0ftnix1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-05-08</td><td  align="center"><a href=0/9854B3DFF4789664C1258DF1004AB59F>RB, Wykaz akcjonariuszy posiadających co najmniej 5% głosów na Zwyczajnym Walnym Zgromadzeniu XTB S.A.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260508&amp;plik=7qr1sozcf1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-05-08</td><td  align="center"><a href=0/62AAC7939B5AF8E3C1258DF1004AB4E0>RB-W, Treść uchwał podjętych przez Zwyczajne Walne Zgromadzenie XTB S.A. w dniu 8 maja 2026 r.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260508&amp;plik=7o2qn8z521_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-05-08</td><td  align="center"><a href=0/B3A5BC31F23B1D2BC1258DF1004AB42B>RB, Informacja o wypłacie dywidendy za rok 2025</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260508&amp;plik=88zflyywm1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-04-28</td><td  align="center"><a href=0/A040487B54B92B6FC1258DE7006C2F0F>RB-W, Wstępne wyniki finansowe i operacyjne za I kwartał 2026 roku</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260428&amp;plik=5kpfu3tfs1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-04-16</td><td  align="center"><a href=0/370F102C698C95CAC1258DDB003762CE>RB-W, Rozszerzenie na wniosek Akcjonariusza porządku obrad Zwyczajnego Walnego Zgromadzenia XTB S.A.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260416&amp;plik=afw929h3x1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-04-09</td><td  align="center"><a href=0/1428EC1E76E8B51FC1258DD40031B68F>RB-W, Aktualizacja projektu uchwały na Zwyczajne Walne Zgromadzenie XTB S.A.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260409&amp;plik=tjljqxym41_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-04-03</td><td  align="center"><a href=0/6F091BF6ED86ED78C1258DCE004D8B10>RB-W, Projekty uchwał Zwyczajnego Walnego Zgromadzenia XTB S.A.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260403&amp;plik=vdem14l4l1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-04-03</td><td  align="center"><a href=0/FC42CE218ABF63DFC1258DCE004D8AC7>RB-W, Zwołanie Zwyczajnego Walnego Zgromadzenia XTB S.A.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260403&amp;plik=hme1val071_Raport.zip">otwórz</a></td></tr>
+
+<tr class="even"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-31</td><td  align="center"><a href=0/644D40FF9A5A5164C1258DCB005E4CFD>RB, Cofni?cie rezygnacji Cz?onka Zarz?du</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260331&amp;plik=8wteidxly1_Raport.zip">otwórz</a></td></tr>
+
+<tr class="odd"><td  align="center">XTB SPÓŁKA AKCYJNA</td><td align="center" width="90px">2026-03-31</td><td  align="center"><a href=0/0C2C9DC82A64003BC1258DCB0055DFDD>RB, Opinia Rady Nadzorczej w sprawie rekomendacji Zarz?du Spó?ki w przedmiocie podzia?u zysku za 2025 r.</a></td><td align ="center"><a href="AppForm?readForm&amp;rok=2026&amp;kat=20260331&amp;plik=qluiwnv4m1_Raport.zip">otwórz</a></td></tr>
+
+</table><div id="message">liczba odsłon: <strong>22978531</strong></div>		
+	<div id="pages"><span class="all"><span>1</span><span><a
+href="search?OpenNavigator&amp;Field=NazwaPodmiot&amp;Value=XTB&amp;start=21&amp;count=20">2</a></span><span><a
+href="search?OpenNavigator&amp;Field=NazwaPodmiot&amp;Value=XTB&amp;start=41&amp;count=20">3</a></span><span><a
+href="search?OpenNavigator&amp;Field=NazwaPodmiot&amp;Value=XTB&amp;start=61&amp;count=20">4</a></span><span><a
+href="search?OpenNavigator&amp;Field=NazwaPodmiot&amp;Value=XTB&amp;start=81&amp;count=20">5</a></span><span><a
+href="search?OpenNavigator&amp;Field=NazwaPodmiot&amp;Value=XTB&amp;start=101&amp;count=20">6</a></span><span><a
+href="search?OpenNavigator&amp;Field=NazwaPodmiot&amp;Value=XTB&amp;start=121&amp;count=20">7</a></span><span><a
+href="search?OpenNavigator&amp;Field=NazwaPodmiot&amp;Value=XTB&amp;start=141&amp;count=20">8</a></span><span><a
+href="search?OpenNavigator&amp;Field=NazwaPodmiot&amp;Value=XTB&amp;start=161&amp;count=16">9</a></span></span></div>
+<div id="message">Strona - 1/9</div>
+</div>          
+</div><!-- mainContent -->
+
+		<div class="clearfix"></div> 
+	 	<div class="footer">
+		    <div class="margin">
+		        <div class="top left">
+		            <a href="#" class="get_top">
+		                 Strona główna 
+		            </a>
+		        </div>
+		        
+		         <div id="finfo_cont" class="bottom left"> 
+					<span>&copy; 2013 <a href="http://www.knf.gov.pl">Komisja Nadzoru Finansowego</a></span>
+					<ul class="right">			    
+					    <li><a href="http://www.knf.gov.pl/dane_wspolne/kontakt.html">Kontakt</a></li>
+					    <li><a href="http://www.knf.gov.pl/dane_wspolne/polityka_prywatnosci.html">Polityka prywatności</a></li>
+					    <li><a href="http://www.knf.gov.pl/nota_prawna/index.html">Notka prawna</a></li>
+					    <li><a href="http://www.knf.gov.pl/PortalMap">Mapa strony</a></li>
+					    <li><a href="http://www.knf.gov.pl/pomoc/index.html">Pomoc</a></li>
+					</ul>
+		        </div>
+		    </div>
+    	<!-- div class="clearfix"></div--> 
+		</div> 
+		<div id="cookies_policy">
+		    <div class="center">
+	        <span class="close_btn"></span>
+	        <span class="policy_text">
+	            UWAGA! Ten serwis używa cookies i podobnych technologii.
+	            Więcej informacji w 
+	            <a href="http://www.knf.gov.pl/dane_wspolne/polityka_prywatnosci.html">
+	                Polityce prywatności
+	            </a>
+	        </span>
+    		</div>
+		</div>
+</body>   

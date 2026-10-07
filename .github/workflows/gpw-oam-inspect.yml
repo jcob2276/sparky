@@ -6,35 +6,41 @@ permissions:
 jobs:
   inspect:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
-      - name: Fetch official public index
-        run: |
-          mkdir -p /tmp/oam
-          curl --fail --silent --show-error --location --max-time 30 https://moam.knf.gov.pl/ --output /tmp/oam/index.html
-          curl --fail --silent --show-error --location --max-time 30 'https://moam.knf.gov.pl/moam.nsf/oamSearchLib?OpenJavascriptLibrary' --output /tmp/oam/search.js
-          curl --fail --silent --show-error --location --max-time 30 --data-urlencode 'VE_szukaj_a=XTB' --data-urlencode 'A_szukaj=NazwaPodmiot' 'https://moam.knf.gov.pl/moam.nsf/search?OpenNavigator&Field=NazwaPodmiot&Value=XTB' --output /tmp/oam/xtb.html
-          curl --fail --silent --show-error --location --max-time 30 'https://moam.knf.gov.pl/moam.nsf/mOAM?readForm&RestrictToCategory=2026-03-20&start=1&count=20' --output /tmp/oam/annual-day.html
-      - name: Inspect public search and pagination contract
+      - uses: actions/checkout@v4
+      - name: Verify official discovery contract
+        run: python scripts/tests/test_gpw_oam.py
+      - name: Discover consolidated annual reports from official KNF
         run: |
           python - <<'PY'
-          from html.parser import HTMLParser
+          import sys, json
           from pathlib import Path
-          import json
-          class Index(HTMLParser):
-              def handle_starttag(self, tag, attrs):
-                  data = dict(attrs)
-                  if tag in ('form', 'input', 'select', 'script'):
-                      print(json.dumps({'tag': tag, 'attrs': data}))
-                  if tag == 'a' and data.get('href', '').startswith('/moam.nsf'):
-                      print(json.dumps({'tag': tag, 'href': data['href']}))
-          for path in Path('/tmp/oam').glob('*'):
-              html = path.read_text(errors='replace')
-              print(json.dumps({'file': path.name, 'responseBytes': len(html)}))
-              Index().feed(html)
+          from urllib.request import Request, urlopen
+          sys.path.insert(0, 'scripts/ops')
+          from gpw_oam import discover_annual
+          from gpw_esef import parse_package
+          def fetch(url):
+              with urlopen(Request(url, headers={'User-Agent': 'Sparky financial report importer'}), timeout=30) as response:
+                  raw=response.read(50_000_001)
+                  if len(raw)>50_000_000:
+                      raise ValueError('Oversized official response')
+                  return raw
+          reports=discover_annual(lambda url: fetch(url).decode('utf8'), 'XTB', 'XTB SPÓŁKA AKCYJNA')
+          print(json.dumps({'annualReports': reports}, ensure_ascii=False))
+          if not reports:
+              raise ValueError('No annual reports discovered')
+          raw=fetch(reports[0]['source_url'])
+          if raw.startswith(b'PK'):
+              print(json.dumps({'financialReports': parse_package(raw, '259400AVUPSABLEXNT19')}, ensure_ascii=False))
+          else:
+              Path('/tmp/oam-package.html').write_bytes(raw)
+              print(json.dumps({'packageResponseBytes': len(raw), 'packagePrefix': raw[:150].decode('utf8', errors='replace')}))
           PY
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: official-oam-index
-          path: /tmp/oam/*
+          name: official-oam-package
+          path: /tmp/oam-package.html
           retention-days: 1
+          if-no-files-found: ignore
