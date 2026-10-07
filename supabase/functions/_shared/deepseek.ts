@@ -32,6 +32,7 @@ export type DeepSeekChatParams = {
   tools?: DeepSeekTool[];
   userId?: string;
   feature?: string;
+  thinking?: 'enabled' | 'disabled';
 } & (
   | {
       model?: 'deepseek-chat';
@@ -46,6 +47,7 @@ export type DeepSeekChatParams = {
 
 export interface DeepSeekChatResult {
   content: string;
+  finishReason?: string;
   reasoning_content?: string;
   tool_calls?: DeepSeekToolCall[];
   raw: unknown;
@@ -66,6 +68,7 @@ export async function deepseekChat(
       body: JSON.stringify({
         model: params.model ?? "deepseek-v4-flash",
         messages: params.messages,
+        ...(params.thinking ? { thinking: { type: params.thinking } } : {}),
         ...(params.maxTokens === null ? {} : { max_tokens: params.maxTokens ?? 500 }),
         ...(params.temperature === null ? {} : { temperature: params.temperature ?? 0.2 }),
         ...(params.responseFormat ? { response_format: params.responseFormat } : {}),
@@ -117,7 +120,9 @@ export async function deepseekChat(
       console.error("[deepseekChat] Failed to log token usage:", err);
     }
 
-    return { content, reasoning_content, tool_calls, raw };
+    const finishReason = (raw.choices as Record<string, unknown>[])?.[0]?.finish_reason;
+    return { content, reasoning_content, tool_calls, raw,
+      ...(typeof finishReason === 'string' ? { finishReason } : {}) };
   }
 }
 
