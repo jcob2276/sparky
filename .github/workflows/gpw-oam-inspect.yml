@@ -1,0 +1,34 @@
+name: Inspect public KNF report index
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Fetch official public index
+        run: curl --fail --silent --show-error --location --max-time 30 https://moam.knf.gov.pl/ --output /tmp/oam-index.html
+      - name: Inspect public search and pagination contract
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import json
+          class Index(HTMLParser):
+              def handle_starttag(self, tag, attrs):
+                  data = dict(attrs)
+                  if tag in ('form', 'input', 'select', 'script'):
+                      print(json.dumps({'tag': tag, 'attrs': data}))
+                  if tag == 'a' and data.get('href', '').startswith('/moam.nsf'):
+                      print(json.dumps({'tag': tag, 'href': data['href']}))
+          html = Path('/tmp/oam-index.html').read_text(errors='replace')
+          print(json.dumps({'responseBytes': len(html)}))
+          Index().feed(html)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: official-oam-index
+          path: /tmp/oam-index.html
+          retention-days: 1
