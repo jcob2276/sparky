@@ -62,6 +62,22 @@ class ESEFTests(unittest.TestCase):
         self.assertEqual(len(reports), 2)
         self.assertEqual(reports[-1]['document_member'], 'financial.xbri!reports/annual.xhtml')
 
+    def test_knf_rap_wrapper_contains_financial_attachment(self):
+        import io
+        import gzip
+        import zipfile
+        def archive(name, data, legacy_form=False):
+            buf=io.BytesIO()
+            with zipfile.ZipFile(buf,'w') as z:
+                z.writestr(name,data)
+                if legacy_form:
+                    z.writestr('E-forms/template.zip',b'\x1f\x8b\x08legacy gzip form')
+            return buf.getvalue()
+        raw=archive('SRR_2025.rap', archive('Attachment/annual.xbri', gzip.compress(archive('reports/annual.xhtml',FIXTURE)),True))
+        reports=parse_package(raw,LEI)
+        self.assertEqual(reports[-1]['metrics']['net_profit']['value'],'644199000')
+        self.assertEqual(reports[-1]['document_member'],'SRR_2025.rap!Attachment/annual.xbri!reports/annual.xhtml')
+
 
 if __name__ == '__main__':
     unittest.main()

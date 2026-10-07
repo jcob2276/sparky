@@ -5,6 +5,7 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin, urlparse
 
 ISSUERS = [{'isin': 'PLXTRDM00011', 'ticker': 'XTB', 'lei': '259400AVUPSABLEXNT19',
+            'oam_name': 'XTB SPÓŁKA AKCYJNA',
             'index_url': 'https://ir.xtb.com/raporty/raporty-okresowe/'}]
 
 

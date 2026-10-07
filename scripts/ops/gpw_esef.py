@@ -1,5 +1,6 @@
 """Compact annual facts from primary ESEF packages; no inferred custom concepts."""
 import io
+import gzip
 import re
 import zipfile
 import xml.etree.ElementTree as ET
@@ -125,21 +126,37 @@ def parse_package(raw, expected_lei, min_year=2024):
     reports = []
     total_size = 0
 
+    def unwrap(data, maximum):
+        nonlocal total_size
+        if not data.startswith(b'\x1f\x8b'):
+            return data
+        with gzip.GzipFile(fileobj=io.BytesIO(data)) as compressed:
+            expanded = compressed.read(min(maximum, 128_000_000 - total_size) + 1)
+        total_size += len(expanded)
+        if len(expanded) > maximum or total_size > 128_000_000:
+            raise ValueError('Oversized gzip report attachment')
+        return expanded
+
     def visit(data, prefix='', depth=0):
         nonlocal total_size
         if depth > 2:
             raise ValueError('Too deeply nested report package')
+        data = unwrap(data, 128_000_000)
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
             for member in archive.infolist():
                 total_size += member.file_size
                 if total_size > 128_000_000:
                     raise ValueError('Oversized expanded ESEF package')
                 name = prefix + member.filename
+                # KNF .rap contains gzip-compressed Java form templates named .zip.
+                # Financial reports are attachments, not those application templates.
+                if member.filename.replace('\\', '/').startswith('E-forms/'):
+                    continue
                 suffix = member.filename.lower().rsplit('.', 1)[-1]
-                if suffix in ('zip', 'xbri'):
+                if suffix in ('zip', 'xbri', 'rap'):
                     visit(archive.read(member), name + '!', depth + 1)
                 elif suffix in ('xhtml', 'html') and member.file_size <= 16_000_000:
-                    document = archive.read(member)
+                    document = unwrap(archive.read(member), 16_000_000)
                     # Board/audit attachments can have ordinary HTML doctypes.
                     # They contain no financial tags and are never parsed as facts.
                     if IX.encode() not in document:

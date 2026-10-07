@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from urllib.request import Request, urlopen, build_opener, HTTPRedirectHandler
 from gpw_esef import parse_package
 from gpw_report_sources import ISSUERS, annual_sources, package_url, primary_url
+from gpw_oam import discover_annual, resolve_package
 
 BASE = os.environ['SUPABASE_URL']
 KEY = os.environ['SUPABASE_SERVICE_ROLE_KEY']
@@ -44,12 +45,23 @@ def main():
     errors = []
     for issuer in ISSUERS:
         try:
-            index = primary_fetch(issuer['index_url'], 2_000_000).decode('utf8')
-            report = annual_sources(index, issuer['index_url'])[0]
-            page = primary_fetch(report['report_page_url'], 2_000_000).decode('utf8')
-            source = package_url(page, report['report_page_url'])
+            if issuer.get('oam_name'):
+                candidates = discover_annual(lambda url: primary_fetch(url, 2_000_000).decode('utf8'),
+                                             issuer['ticker'], issuer['oam_name'])
+                if not candidates:
+                    raise ValueError('No consolidated annual reports in official KNF search')
+                candidate = candidates[0]
+                metadata = primary_fetch(candidate['source_url'], 32_000)
+                source = resolve_package(metadata, candidate['source_url'])
+                report = {key: candidate[key] for key in ('publication_date', 'report_page_url')}
+            else:
+                index = primary_fetch(issuer['index_url'], 2_000_000).decode('utf8')
+                report = annual_sources(index, issuer['index_url'])[0]
+                page = primary_fetch(report['report_page_url'], 2_000_000).decode('utf8')
+                source = package_url(page, report['report_page_url'])
             raw = primary_fetch(source)
             reports = parse_package(raw, issuer['lei'])
+            report.setdefault('report_period_end', max(r['period_end'] for r in reports))
             if max(r['period_end'] for r in reports) != report['report_period_end']:
                 raise ValueError('Package period differs from primary issuer index')
             payload = [{**r, **report, 'isin': issuer['isin'], 'source_url': source,
