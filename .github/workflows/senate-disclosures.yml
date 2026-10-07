@@ -1,6 +1,8 @@
 name: Official Senate disclosures
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '10,40 * * * *'
 permissions:
   contents: read
 concurrency:
