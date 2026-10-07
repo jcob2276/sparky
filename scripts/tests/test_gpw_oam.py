@@ -11,6 +11,23 @@ SEARCH = (FIXTURES / 'knf-oam-xtb-search.html').read_text(encoding='utf8')
 
 
 class OAMTests(unittest.TestCase):
+    def test_standalone_annual_report_is_opt_in_and_keeps_its_type(self):
+        # Real KNF page contains both TORPOL SRR and RR. Remove SRR to model
+        # an issuer that publishes only its own annual financial statement.
+        standalone = DAY.replace('>SRR, -</a>', '>RB, -</a>')
+        def fetch(url):
+            return standalone if url == search_url('TORPOL') else '<html></html>'
+        self.assertEqual(discover_annual(fetch, 'TORPOL', 'TORPOL SPÓŁKA AKCYJNA'), [])
+        reports = discover_annual(fetch, 'TORPOL', 'TORPOL SPÓŁKA AKCYJNA',
+                                  latest_only=True, allow_standalone=True)
+        self.assertEqual(len(reports), 1)
+        self.assertEqual(reports[0]['report_type'], 'RR')
+
+    def test_prefers_consolidated_report_when_both_published_same_day(self):
+        reports = discover_annual(lambda _: DAY, 'TORPOL', 'TORPOL SPÓŁKA AKCYJNA',
+                                  latest_only=True, allow_standalone=True)
+        self.assertEqual(reports[0]['report_type'], 'SRR')
+
     def test_jnlp_is_only_metadata_for_exact_official_zip(self):
         jnlp=(FIXTURES/'knf-oam-xtb-package.jnlp').read_bytes()
         source='https://moam.knf.gov.pl/moam.nsf/AppForm?readForm&rok=2026&kat=20260320&plik=i3d7gs33o1_Raport.zip'

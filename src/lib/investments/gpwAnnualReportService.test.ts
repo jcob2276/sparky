@@ -13,6 +13,10 @@ describe('primary GPW annual facts',()=>{
   it('does not calculate FCF when capex is missing',()=>{
     expect(parseAnnualReport({...raw,metrics:{...raw.metrics,intangible_purchases:null}})?.freeCashFlow).toBeNull();
   });
+  it('preserves standalone scope instead of calling it a group result',()=>{
+    expect(parseAnnualReport({...raw,reporting_scope:'standalone'})?.reportingScope).toBe('standalone');
+    expect(parseAnnualReport({...raw,reporting_scope:'invented'})).toBeNull();
+  });
   it('rejects unsafe links and malformed period metadata',()=>{
     expect(parseAnnualReport({...raw,source_url:'javascript:alert(1)'})).toBeNull();
     expect(parseAnnualReport({...raw,publication_date:'2024-01-01'})).toBeNull();
