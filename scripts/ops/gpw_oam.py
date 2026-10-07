@@ -1,5 +1,6 @@
 """Official KNF OAM report discovery; names select candidates, never establish LEI."""
 import re
+import xml.etree.ElementTree as ET
 from datetime import date
 from html.parser import HTMLParser
 from urllib.parse import parse_qs, urlencode, urljoin, urlparse
@@ -85,6 +86,24 @@ def parse_page(html):
 
 def search_url(issuer):
     return BASE + 'search?OpenNavigator&' + urlencode({'Field': 'NazwaPodmiot', 'Value': issuer})
+
+
+def resolve_package(raw, source):
+    # AppForm returns a legacy Java launcher; read only its report URL, never execute it.
+    if len(raw) > 32_000 or b'<!DOCTYPE' in raw.upper() or b'<!ENTITY' in raw.upper():
+        raise ValueError('Unsafe OAM package metadata')
+    root = ET.fromstring(raw)
+    arguments = [node.text for node in root.findall('./application-desc/argument')]
+    if root.tag != 'jnlp' or arguments.count('-reportPath') != 1:
+        raise ValueError('Missing or ambiguous OAM package URL')
+    offset = arguments.index('-reportPath') + 1
+    if offset >= len(arguments):
+        raise ValueError('Missing OAM package argument')
+    query = parse_qs(urlparse(official_url(source)).query)
+    expected = 'https://moam.knf.gov.pl/mOAM/{}/{}/{}'.format(query['rok'][0], query['kat'][0], query['plik'][0])
+    if arguments[offset] != expected:
+        raise ValueError('OAM download differs from verified report metadata')
+    return expected
 
 
 def discover_annual(fetch, search, exact_issuer, min_year=2024):

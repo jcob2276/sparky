@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parents[1] / 'ops'))
-from gpw_oam import parse_page, search_url, discover_annual
+from gpw_oam import parse_page, search_url, discover_annual, resolve_package
 
 FIXTURES = Path(__file__).parent / 'fixtures'
 DAY = (FIXTURES / 'knf-oam-annual-day.html').read_text(encoding='utf8')
@@ -11,6 +11,15 @@ SEARCH = (FIXTURES / 'knf-oam-xtb-search.html').read_text(encoding='utf8')
 
 
 class OAMTests(unittest.TestCase):
+    def test_jnlp_is_only_metadata_for_exact_official_zip(self):
+        jnlp=(FIXTURES/'knf-oam-xtb-package.jnlp').read_bytes()
+        source='https://moam.knf.gov.pl/moam.nsf/AppForm?readForm&rok=2026&kat=20260320&plik=i3d7gs33o1_Raport.zip'
+        self.assertEqual(resolve_package(jnlp, source), 'https://moam.knf.gov.pl/mOAM/2026/20260320/i3d7gs33o1_Raport.zip')
+        with self.assertRaises(ValueError):
+            resolve_package(jnlp.replace(b'/mOAM/2026/', b'/mOAM/2025/'), source)
+        with self.assertRaises(ValueError):
+            resolve_package(jnlp.replace(b'https://moam.knf.gov.pl/mOAM/', b'https://example.com/mOAM/'), source)
+
     def test_actual_index_rows_dates_and_consolidation(self):
         page = parse_page(DAY)
         self.assertEqual(len(page['reports']), 20)

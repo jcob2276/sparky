@@ -18,7 +18,7 @@ jobs:
           from pathlib import Path
           from urllib.request import Request, urlopen
           sys.path.insert(0, 'scripts/ops')
-          from gpw_oam import discover_annual
+          from gpw_oam import discover_annual, resolve_package
           from gpw_esef import parse_package
           def fetch(url):
               with urlopen(Request(url, headers={'User-Agent': 'Sparky financial report importer'}), timeout=30) as response:
@@ -31,6 +31,10 @@ jobs:
           if not reports:
               raise ValueError('No annual reports discovered')
           raw=fetch(reports[0]['source_url'])
+          if not raw.startswith(b'PK'):
+              download=resolve_package(raw, reports[0]['source_url'])
+              print(json.dumps({'officialPackage': download}))
+              raw=fetch(download)
           if raw.startswith(b'PK'):
               print(json.dumps({'financialReports': parse_package(raw, '259400AVUPSABLEXNT19')}, ensure_ascii=False))
           else:
