@@ -1,6 +1,7 @@
 import { beforeEach, expect, it, vi } from 'vitest';
 import { fetchSuperinvestorDetail, fetchSuperinvestorsOverview } from './superinvestorDetailService';
 import { orcaSelect } from './superinvestorsApi';
+import type { VerifiedFundReport } from './superinvestorOverviewService';
 
 vi.mock('./superinvestorsApi', () => ({ orcaSelect: vi.fn() }));
 const investor = { id: 'fund', slug: 'fund', display_name: 'Real Fund', fund_name: 'Fund LLC', is_active: true };
@@ -10,7 +11,7 @@ const reports = [
   { investor_id: 'fund', period_of_report: '2026-03-31', filing_date: '2026-05-14',
     filing_url: 'https://www.sec.gov/previous', verified_value_usd: 2000, verified_entry_count: 2 },
 ];
-let historical = reports;
+let historical: VerifiedFundReport[] = reports;
 beforeEach(() => {
   historical = reports;
   vi.mocked(orcaSelect).mockImplementation(async path => {
@@ -54,4 +55,12 @@ it('propagates source failure rather than displaying an empty successful catalog
   vi.mocked(orcaSelect).mockRejectedValue(new Error('Source unavailable'));
   await expect(fetchSuperinvestorsOverview()).rejects.toThrow('Source unavailable');
   await expect(fetchSuperinvestorDetail('fund')).rejects.toThrow('Source unavailable');
+});
+
+it('shows top100 holdings without inferring sales or new positions from a censored quarter', async () => {
+  historical = [{ ...reports[0], has_complete_positions: false, stored_entry_count: 100 }, reports[1]];
+  const data = await fetchSuperinvestorDetail('fund');
+  expect(data).toMatchObject({ positionsCount: 80, newCount: null, soldCount: null, holdingsTruncated: true });
+  expect(data?.holdings).toHaveLength(80);
+  expect(data?.holdings.every(row => row.changeType === 'unknown' && row.sharesDelta === null)).toBe(true);
 });

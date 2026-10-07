@@ -75,6 +75,8 @@ export interface SuperinvestorDetailData {
   previousSourceUrls?: string[];
   previousPeriod: string | null;
   periodQuarter: string;
+  holdingsTruncated?: boolean;
+  comparisonTruncated?: boolean;
   recentActivity: { type: string; ticker: string; details: string; isNegative?: boolean }[];
 }
 

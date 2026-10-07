@@ -52,9 +52,11 @@ export async function fetchSuperinvestorDetail(
     orcaSelect<{ ticker: string; sector: string }>('companies?select=ticker,sector&order=ticker.asc', { strict: true }),
   ]);
   if (currentRows.length >= 20_000 || (previousRows?.length ?? 0) >= 20_000) throw new Error('Portfel przekracza limit odczytu; dane są niepełne.');
-  const holdings = fundHoldingChanges(currentRows, previousRows, new Map(companies.map(c => [c.ticker, c.sector])));
+  const comparisonTruncated = latest?.has_complete_positions === false || previous?.has_complete_positions === false;
+  const comparable = previous && !comparisonTruncated;
+  const holdings = fundHoldingChanges(currentRows, comparable ? previousRows : null, new Map(companies.map(c => [c.ticker, c.sector])));
   const basketValueRaw = currentRows.reduce((sum, row) => sum + Number(row.value_usd), 0);
-  const count = (type: HoldingChangeItem['changeType']) => previous ? holdings.filter(h => h.changeType === type).length : null;
+  const count = (type: HoldingChangeItem['changeType']) => comparable ? holdings.filter(h => h.changeType === type).length : null;
   const sectorTotals = new Map<string, number>();
   holdings.forEach(h => sectorTotals.set(h.sector, (sectorTotals.get(h.sector) ?? 0) + (h.valueUsd ?? 0)));
   const sectors = [...sectorTotals].filter(([, value]) => value > 0).map(([name, value]) => ({
@@ -77,6 +79,7 @@ export async function fetchSuperinvestorDetail(
     latestSourceUrls: latest?.source_urls ?? (latest ? [latest.filing_url] : []),
     previousSourceUrls: previous?.source_urls ?? (previous ? [previous.filing_url] : []),
     previousPeriod: previous?.period_of_report ?? null, periodQuarter: latest ? formatQuarterLabel(latest.period_of_report) : '—',
+    holdingsTruncated: latest?.has_complete_positions === false, comparisonTruncated,
     recentActivity: holdings.filter(h => h.changeType !== 'unknown' && h.changeType !== 'unchanged').slice(0, 5).map(h => ({
       type: activityLabels[h.changeType as keyof typeof activityLabels], ticker: h.ticker,
       details: `${h.sharesDelta! > 0 ? '+' : ''}${Math.round(h.sharesDelta!).toLocaleString('pl-PL')} akcji`,

@@ -6,6 +6,7 @@ export interface VerifiedFundReport {
   investor_id: string; period_of_report: string; filing_date: string; filing_url: string;
   verified_value_usd: number; verified_entry_count: number; value_reconciliation?: string;
   source_urls?: string[];
+  has_complete_positions?: boolean; stored_entry_count?: number;
 }
 interface RawInvestor {
   id: string; slug: string; display_name: string; fund_name: string; cik?: string;

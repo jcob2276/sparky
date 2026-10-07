@@ -34,9 +34,10 @@ export async function runSec13fSync(req: Request) {
     || !requestedFiling.length || requestedFiling.length > 200)) throw new Error('SEC 13F filingId must be a nonempty identifier');
   if (requestedPeriod !== undefined && (typeof requestedPeriod !== 'string'
     || !/^20\d{2}-(03-31|06-30|09-30|12-31)$/.test(requestedPeriod)
-    || requestedPeriod > checkedAt.slice(0, 10))) throw new Error('SEC 13F period must be a past quarter end');
+    || requestedPeriod < '2024-01-01'
+    || requestedPeriod > checkedAt.slice(0, 10))) throw new Error('SEC 13F period must be a past quarter end from 2024 onward');
   let pendingQuery = db.from('filings').select('id,investor_id,accession_no,period_of_report,filing_url,is_amendment')
-    .eq('positions_status', 'pending')
+    .eq('positions_status', 'pending').gte('period_of_report', '2024-01-01')
     .order('period_of_report', { ascending: false }).order('filing_date', { ascending: false }).limit(limit);
   if (requestedPeriod) pendingQuery = pendingQuery.eq('period_of_report', requestedPeriod);
   if (requestedFiling) pendingQuery = pendingQuery.eq('id', requestedFiling);

@@ -77,9 +77,13 @@ export const SuperinvestorDetailView: FC<Props> = ({
           Stan ujawnionych pozycji · {data.periodQuarter}
         </h3>
         <p className="text-xs text-text-secondary leading-relaxed max-w-4xl">
-          Tabela obejmuje wszystkie odczytane pozycje długie raportowane w akcjach (SH), bez opcji i pozycji PRN.
+          {data.holdingsTruncated
+            ? 'Tabela obejmuje pozycje SH z TOP 100 największych wpisów każdego dokumentu SEC; pozostałe wpisy nie są przechowywane. '
+            : 'Tabela obejmuje wszystkie odczytane pozycje długie raportowane w akcjach (SH). '}
+          Opcje i pozycje PRN pominięte.
           Wagi odnoszą się do tej części raportu. Zmiana liczby akcji między raportami nie dowodzi wykonania transakcji.
-          {data.previousPeriod ? ` Porównanie ze stanem na ${data.previousPeriod}.` : ' Brak zweryfikowanego poprzedniego kwartału — zmiany pozostają nieznane.'}
+          {data.comparisonTruncated ? ' Zmiany pozycji pozostają nieznane: co najmniej jeden kwartał jest ograniczony do TOP 100. Brak w tabeli nie oznacza sprzedaży.'
+            : data.previousPeriod ? ` Porównanie ze stanem na ${data.previousPeriod}.` : ' Brak zweryfikowanego poprzedniego kwartału — zmiany pozostają nieznane.'}
           {investor.reportWarning && ' Suma odczytanych pozycji różni się od podsumowania dokumentu; pokazujemy wartości pozycji.'}
         </p>
       </div>
