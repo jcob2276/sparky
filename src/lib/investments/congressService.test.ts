@@ -67,4 +67,21 @@ describe('Congress overview uses disclosed evidence', () => {
     expect(data.stream).toEqual([]);
     expect(vi.mocked(orcaSelect).mock.calls.some(([path]) => path.startsWith('stock_act_trades?'))).toBe(false);
   });
+
+  it('shows a paper disclosure without inventing its ticker or including it in ticker rankings', async () => {
+    vi.mocked(orcaSelect).mockImplementation(async path => path.startsWith('stock_act_trades?') ? [{
+      id: 'house-2026-9116342-0', filer_name: 'Harold Dallas Rogers', chamber: 'house',
+      ticker: null, asset_description: 'Redeemed Electronic Arts', transaction_type: 'sell',
+      transaction_date: '2026-08-05', disclosure_date: '2026-09-23',
+      amount_low: 1001, amount_high: 15000, owner: 'self',
+      source_url: 'https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/9116342.pdf',
+    }] : []);
+    const overview = await fetchCongressOverview();
+    expect(overview.stream).toHaveLength(1);
+    expect(overview.stream[0]).toMatchObject({ politicianName: 'Harold Dallas Rogers',
+      ticker: '—', companyName: 'Redeemed Electronic Arts', type: 'sell', owner: 'self',
+      transactionDate: '2026-08-05', disclosureDate: '2026-09-23',
+      sourceUrl: 'https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/9116342.pdf' });
+    expect(overview.topSold).toEqual([]);
+  });
 });
