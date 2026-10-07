@@ -9,6 +9,15 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
 class PaperOcrTest(unittest.TestCase):
+    def test_header_crop_keeps_both_header_bands_on_the_actual_modern_geometry(self):
+        # House 9116361: the fixed 20%-height crop cuts through FULL ASSET NAME.
+        image = Image.new('L', (2200, 1697), 255)
+        ImageDraw.Draw(image).rectangle((200, 800, 600, 820), fill=0)
+        cropped = module.modern_header_crop(image, [190, 2050], 1162,
+                                          [265,384,535,742,894,1162,1210,1286])
+        self.assertEqual(cropped.size, (1860, 420))
+        self.assertEqual(cropped.getpixel((20,70)), 0)
+
     def test_blank_and_checked_cells(self):
         empty = np.zeros((60, 60), dtype=bool)
         checked = empty.copy()

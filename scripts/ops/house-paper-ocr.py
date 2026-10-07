@@ -193,6 +193,14 @@ def tesseract_text(image):
         return result.stdout
 
 
+def modern_header_crop(image, columns, start, horizontal):
+    # Two ruled header bands precede the example/data rows. Page proportions
+    # vary across scanners; a fixed-height crop can cut off both source labels.
+    preceding = [line for line in horizontal if line < start]
+    top = preceding[-2] if len(preceding) >= 2 else max(0, start-image.height*.3)
+    return image.crop((columns[0], top, columns[-1], start))
+
+
 def read_new_grid(image, disclosure_date, ocr):
     """Read the 2020 form (four transaction choices and eleven amount cells)."""
     ink = np.asarray(image.convert('L')) < 200
@@ -210,8 +218,7 @@ def read_new_grid(image, disclosure_date, ocr):
     if not layout:
         raise ValueError('Unsupported modern paper PTR layout')
     start, columns = layout
-    header = re.sub(r'\s+', ' ', ocr(image.crop((columns[0], max(0,start-height*.2),
-                                              columns[-1], start)))).upper()
+    header = re.sub(r'\s+', ' ', ocr(modern_header_crop(image,columns,start,horizontal))).upper()
     if 'FULL ASSET NAME' not in header or 'AMOUNT OF TRANSACTION' not in header:
         raise ValueError('Unsupported modern PTR headers')
 

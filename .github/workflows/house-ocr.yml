@@ -1,6 +1,10 @@
 name: House disclosure OCR recovery
 on:
   workflow_dispatch:
+    inputs:
+      document_id:
+        description: Optional existing House document ID to retry immediately
+        default: ''
   schedule:
     - cron: '25 * * * *'
 permissions:
@@ -55,8 +59,29 @@ jobs:
           assert all(row['amountLow'] == 15001 and row['amountHigh'] == 50000 for row in rows), rows
           assert all(row['ticker'] is None for row in rows), rows
           PY
+      - name: Verify tall table headers on a recent official form
+        run: |
+          curl --fail --silent --show-error --location https://disclosures-clerk.house.gov/public_disc/ptr-pdfs/2026/9116361.pdf --output /tmp/house-tall-header.pdf
+          python scripts/ops/house-paper-ocr.py /tmp/house-tall-header.pdf --disclosure-date 2026-10-02 > /tmp/house-tall-header.json
+          python - <<'PY'
+          import json
+          with open('/tmp/house-tall-header.json') as source:
+              rows = json.load(source)
+          assert len(rows) == 4, rows
+          assert all(row['type'] == 'sell' and row['owner'] == 'joint' and row['ticker'] is None for row in rows), rows
+          assert all(row['transactionDate'] == '2026-09-17' and row['notificationDate'] == '2026-10-02' for row in rows), rows
+          assert [(row['amountLow'],row['amountHigh']) for row in rows] == [(50001,100000),(15001,50000),(15001,50000),(15001,50000)], rows
+          assert rows[0]['asset'].startswith('SERVICENOW'), rows
+          assert rows[1]['asset'].startswith('THE TRADE DESK'), rows
+          PY
       - name: Recover official scanned disclosures
         env:
           SUPABASE_URL: ${{ secrets.HOUSE_OCR_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.HOUSE_OCR_SUPABASE_KEY }}
-        run: python scripts/ops/sync-house-ocr.py
+          HOUSE_OCR_DOCUMENT_ID: ${{ inputs.document_id || '' }}
+        run: |
+          if [ -n "$HOUSE_OCR_DOCUMENT_ID" ]; then
+            python scripts/ops/sync-house-ocr.py --document-id "$HOUSE_OCR_DOCUMENT_ID"
+          else
+            python scripts/ops/sync-house-ocr.py
+          fi
