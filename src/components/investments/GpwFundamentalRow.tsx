@@ -1,6 +1,7 @@
 import { FC, useMemo } from 'react';
 import { GpwCompanyFundamental } from '../../lib/investments/gpwFundamentalsService';
 import { CompanyLogo } from './CompanyLogo';
+import { GpwAnnualReportSummary } from './GpwAnnualReportSummary';
 
 interface Props {
   company: GpwCompanyFundamental;
@@ -61,6 +62,7 @@ export const GpwFundamentalRow: FC<Props> = ({ company: c, onSelect }) => {
                 Źródło wskaźników
               </a>
             )}
+            {c.annualReport && <GpwAnnualReportSummary report={c.annualReport} />}
           </div>
         </div>
       </td>

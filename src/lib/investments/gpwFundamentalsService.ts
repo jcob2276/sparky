@@ -4,6 +4,7 @@
  */
 
 import { orcaSelect } from './superinvestorsApi';
+import { fetchGpwAnnualReports, type GpwAnnualReport } from './gpwAnnualReportService';
 
 export interface GpwCompanyFundamental {
   ticker: string;
@@ -30,6 +31,7 @@ export interface GpwCompanyFundamental {
   sourceUrl?: string | null;
   sourceSystem?: string | null;
   fxDate?: string | null;
+  annualReport?: GpwAnnualReport;
 }
 
 const GPW_SECTORS_PL: Record<string, string> = {
@@ -60,6 +62,7 @@ function getSectorPl(sectorRaw?: string | null): string {
 }
 
 interface RawGpwTeaser {
+  isin?: string;
   ticker?: string;
   name?: string;
   sector?: string;
@@ -97,10 +100,10 @@ export async function fetchGpwFundamentalsList(): Promise<{
   sectorMedians: Map<string, number>;
   refreshedDate: string | null;
 }> {
-  const raw = await orcaSelect<RawGpwTeaser>(
-    'gpw_fin_public_teaser?select=ticker,name,sector,mcap,pe,pb,div_yield,roe,net_margin,revenue_yoy,fcf_yield,net_debt_ebitda,forward_pe,forward_eps,forward_pe_basis,quote_price,quote_currency,financial_currency,quarters8,refreshed_at,source_url,source_system,fx_date&order=mcap.desc.nullslast',
+  const [raw, annualReports] = await Promise.all([orcaSelect<RawGpwTeaser>(
+    'gpw_fin_public_teaser?select=isin,ticker,name,sector,mcap,pe,pb,div_yield,roe,net_margin,revenue_yoy,fcf_yield,net_debt_ebitda,forward_pe,forward_eps,forward_pe_basis,quote_price,quote_currency,financial_currency,quarters8,refreshed_at,source_url,source_system,fx_date&order=mcap.desc.nullslast',
     { strict: true },
-  );
+  ), fetchGpwAnnualReports()]);
 
   // Oldest row determines freshness of the complete list, not the largest company.
   const dates = raw.map((r) => r.refreshed_at && Number.isFinite(Date.parse(r.refreshed_at))
@@ -158,6 +161,7 @@ export async function fetchGpwFundamentalsList(): Promise<{
       sourceUrl: r.source_url?.startsWith('https://www.tradingview.com/') ? r.source_url : null,
       sourceSystem: r.source_system || null,
       fxDate: r.fx_date || null,
+      annualReport: r.isin ? annualReports.get(r.isin) : undefined,
     }];
   });
 
