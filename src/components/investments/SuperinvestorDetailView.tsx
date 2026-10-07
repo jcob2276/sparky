@@ -101,6 +101,8 @@ export const SuperinvestorDetailView: FC<Props> = ({
             soldCount={data.soldCount}
             filingUrl={data.latestFilingUrl}
             previousFilingUrl={data.previousFilingUrl}
+            sourceUrls={data.latestSourceUrls}
+            previousSourceUrls={data.previousSourceUrls}
             onSelectTicker={onSelectTicker}
           />
         </div>

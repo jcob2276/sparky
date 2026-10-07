@@ -74,6 +74,8 @@ export async function fetchSuperinvestorDetail(
     })),
     quarterGrowthPct: growth === null ? '—' : `${growth >= 0 ? '+' : ''}${growth.toFixed(2).replace('.', ',')}%`,
     latestFilingUrl: latest?.filing_url ?? null, previousFilingUrl: previous?.filing_url ?? null,
+    latestSourceUrls: latest?.source_urls ?? (latest ? [latest.filing_url] : []),
+    previousSourceUrls: previous?.source_urls ?? (previous ? [previous.filing_url] : []),
     previousPeriod: previous?.period_of_report ?? null, periodQuarter: latest ? formatQuarterLabel(latest.period_of_report) : '—',
     recentActivity: holdings.filter(h => h.changeType !== 'unknown' && h.changeType !== 'unchanged').slice(0, 5).map(h => ({
       type: activityLabels[h.changeType as keyof typeof activityLabels], ticker: h.ticker,

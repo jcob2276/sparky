@@ -37,6 +37,22 @@ it('does not use reports with a future publication date', async () => {
   reportDate = '2026-10-08';
   await expect(fetchDisclosureBasket()).rejects.toThrow('daty ujawnienia');
 });
+it('keeps every amendment document used in a reconstructed basket', async () => {
+  const original = vi.mocked(orcaSelect).getMockImplementation()!;
+  vi.mocked(orcaSelect).mockImplementation(async path => {
+    const rows = await original(path);
+    if (!path.startsWith('vw_sec13f_verified_reports?')) return rows;
+    return rows.map(row => {
+      if (!row || typeof row !== 'object' || !('filing_url' in row)) throw new Error('Invalid report fixture');
+      return { ...row, source_urls: [row.filing_url, `${row.filing_url}/addition`] };
+    });
+  });
+  const data = await fetchDisclosureBasket(5);
+  expect(data.reportSources.map(r => r.filing_url).sort()).toEqual([
+    'https://www.sec.gov/current', 'https://www.sec.gov/current/addition',
+    'https://www.sec.gov/previous', 'https://www.sec.gov/previous/addition',
+  ]);
+});
 it('does not suppress an API failure as zero return', async () => {
   vi.mocked(orcaSelect).mockRejectedValue(new Error('API unavailable'));
   await expect(fetchDisclosureBasket()).rejects.toThrow('API unavailable');

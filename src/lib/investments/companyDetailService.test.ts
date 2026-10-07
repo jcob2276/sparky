@@ -68,13 +68,14 @@ it('keeps missing quarter comparisons unknown and includes positions no longer r
       investor_id: 'absent', shares_now: 0, shares_delta: -10, value_now: 0, change_type: 'reported_absent',
       period_of_report: '2026-06-30', previous_period: '2026-03-31',
       filing_url: 'https://www.sec.gov/new', previous_filing_url: 'https://www.sec.gov/old',
+      source_urls: ['https://www.sec.gov/new', 'https://www.sec.gov/addition', 'https://www.sec.gov/old'],
     }];
     return [];
   });
   const data = await fetchCompanyDetailData('NVDA');
   expect(data.holdings.find(row => row.investorId === 'unpaired')).toMatchObject({ sharesDelta: null, changeType: 'uncompared' });
   expect(data.holdings.find(row => row.investorId === 'absent')).toMatchObject({ sharesNow: 0, sharesDelta: -10, previousPeriod: '2026-03-31' });
-  expect(data.holdings.find(row => row.investorId === 'absent')?.sourceUrls).toHaveLength(2);
+  expect(data.holdings.find(row => row.investorId === 'absent')?.sourceUrls).toContain('https://www.sec.gov/addition');
   expect(data.fundChanges).toMatchObject({ comparedFunds: 1, decreases: 1, increases: 0 });
   expect(vi.mocked(orcaSelect).mock.calls.some(([path]) => path.startsWith('vw_holdings_changes?'))).toBe(false);
 });

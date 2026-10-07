@@ -35,8 +35,8 @@ export async function runSec13fSync(req: Request) {
   if (requestedPeriod !== undefined && (typeof requestedPeriod !== 'string'
     || !/^20\d{2}-(03-31|06-30|09-30|12-31)$/.test(requestedPeriod)
     || requestedPeriod > checkedAt.slice(0, 10))) throw new Error('SEC 13F period must be a past quarter end');
-  let pendingQuery = db.from('filings').select('id,investor_id,accession_no,period_of_report,filing_url')
-    .eq('positions_status', 'pending').eq('is_amendment', false)
+  let pendingQuery = db.from('filings').select('id,investor_id,accession_no,period_of_report,filing_url,is_amendment')
+    .eq('positions_status', 'pending')
     .order('period_of_report', { ascending: false }).order('filing_date', { ascending: false }).limit(limit);
   if (requestedPeriod) pendingQuery = pendingQuery.eq('period_of_report', requestedPeriod);
   if (requestedFiling) pendingQuery = pendingQuery.eq('id', requestedFiling);
@@ -56,11 +56,12 @@ export async function runSec13fSync(req: Request) {
       if (base !== filing.filing_url) throw new Error('SEC 13F cached URL mismatch');
       const submission = await fetchSec(`${base}${dashed}.txt`);
       if (!submission) throw new Error('SEC 13F document unavailable');
-      const parsed = parseSec13fSubmission(submission, { accession: dashed, cik, period: filing.period_of_report });
-      const { error: saveError } = await db.rpc('replace_sec13f_positions_with_summary', {
+      const parsed = parseSec13fSubmission(submission, { accession: dashed, cik, period: filing.period_of_report, isAmendment: filing.is_amendment });
+      const { error: saveError } = await db.rpc('replace_sec13f_filing', {
         p_filing_id: filing.id, p_positions: parsed.positions,
         p_entry_count: parsed.entryCount, p_total_value_usd: parsed.totalValueUsd,
         p_reported_cover_value_usd: parsed.reportedCoverValueUsd, p_value_unit_usd: parsed.valueUnitUsd,
+        p_amendment_type: parsed.amendmentType, p_amendment_number: parsed.amendmentNumber,
       });
       if (saveError) throw saveError;
       processed++; positions += parsed.entryCount;
@@ -71,10 +72,11 @@ export async function runSec13fSync(req: Request) {
       if (saveError) throw saveError;
     }
   }
-  const { count: queued, error: queueError } = await db.from('filings').select('id', { count: 'exact', head: true }).eq('positions_status', 'pending').eq('is_amendment', false);
+  const { count: queued, error: queueError } = await db.from('filings').select('id', { count: 'exact', head: true }).eq('positions_status', 'pending');
   const { count: failed, error: failedError } = await db.from('filings').select('id', { count: 'exact', head: true }).eq('positions_status', 'error');
   const { count: summaryDifferences, error: differenceError } = await db.from('filings').select('id', { count: 'exact', head: true }).eq('value_reconciliation', 'rounding_difference');
-  const { count: unreconciledAmendments, error: amendmentError } = await db.from('filings').select('id', { count: 'exact', head: true }).eq('is_amendment', true).neq('positions_status', 'parsed');
+  const { data: amendmentCounts, error: amendmentError } = await db.rpc('sec13f_amendment_counts');
+  const unreconciledAmendments = amendmentCounts?.unreconciled ?? 0;
   if (queueError || failedError || differenceError || amendmentError) throw queueError ?? failedError ?? differenceError ?? amendmentError;
   const { data: latest, error: latestError } = await db.from('filings').select('filing_date')
     .eq('positions_status', 'parsed').order('filing_date', { ascending: false }).limit(1).maybeSingle();

@@ -1,4 +1,4 @@
-export interface Sec13fExpected { accession: string; cik: string; period: string }
+export interface Sec13fExpected { accession: string; cik: string; period: string; isAmendment?: boolean }
 function blocks(xml: string, tag: string): string[] {
   const prefix = '(?:[\\w-]+:)?';
   return [...xml.matchAll(new RegExp(`<${prefix}${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${prefix}${tag}>`, 'g'))].map(match => match[1]);
@@ -52,7 +52,18 @@ export function parseSec13fCover(input: string, expected: { accession: string; c
 
 export function parseSec13fSubmission(input: string, expected: Sec13fExpected) {
   const { cover, period, isAmendment, multiplier, schema } = parseSec13fCover(input, expected);
-  if (isAmendment) throw new Error('SEC 13F amendment requires reconciliation');
+  if (expected.isAmendment !== undefined && expected.isAmendment !== isAmendment)
+    throw new Error('SEC 13F amendment identity mismatch');
+  let amendmentType: 'ORIGINAL' | 'RESTATEMENT' | 'NEW HOLDINGS' = 'ORIGINAL';
+  let amendmentNumber: number | null = null;
+  if (isAmendment) {
+    const kind = literal(cover, 'amendmentType');
+    const number = numeric(cover, 'amendmentNo');
+    if (!['RESTATEMENT', 'NEW HOLDINGS'].includes(kind ?? '') || !Number.isSafeInteger(number) || number < 1
+      || literal(cover, 'isAmendment') !== 'true') throw new Error('SEC 13F amendment metadata invalid');
+    amendmentType = kind as 'RESTATEMENT' | 'NEW HOLDINGS';
+    amendmentNumber = number;
+  } else if (literal(cover, 'isAmendment') === 'true') throw new Error('SEC 13F amendment identity mismatch');
   if (period !== expected.period) throw new Error('SEC 13F report period mismatch');
   const table = blocks(input, 'informationTable')[0];
   if (table == null) throw new Error('SEC 13F information table missing');
@@ -75,7 +86,7 @@ export function parseSec13fSubmission(input: string, expected: Sec13fExpected) {
   if (!Number.isInteger(entryCount) || positions.length !== entryCount || !Number.isSafeInteger(totalValueUsd)
     || Math.abs(valueDifferenceUsd) > roundingBoundUsd)
     throw new Error('Incomplete SEC 13F information table');
-  return { positions, entryCount, totalValueUsd, reportedCoverValueUsd, valueDifferenceUsd,
+  return { positions, entryCount, totalValueUsd, reportedCoverValueUsd, valueDifferenceUsd, amendmentType, amendmentNumber,
     valueReconciliation: valueDifferenceUsd === 0 ? 'exact' : 'rounding_difference', valueUnitUsd: multiplier, schemaVersion: schema };
 }
 

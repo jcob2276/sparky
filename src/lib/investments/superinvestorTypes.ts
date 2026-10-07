@@ -71,6 +71,8 @@ export interface SuperinvestorDetailData {
   sectors: { name: string; weightPct: number }[];
   latestFilingUrl: string | null;
   previousFilingUrl: string | null;
+  latestSourceUrls?: string[];
+  previousSourceUrls?: string[];
   previousPeriod: string | null;
   periodQuarter: string;
   recentActivity: { type: string; ticker: string; details: string; isNegative?: boolean }[];

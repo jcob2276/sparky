@@ -64,3 +64,20 @@ Deno.test('SEC historical XML without schemaVersion uses filing-date units, not 
   assertThrows(() => parseSec13fSubmission(filed('20220230'), expected));
   assertThrows(() => parseSec13fSubmission(filed('20221114').replace('<submissionType>', '<schemaVersion>UNKNOWN</schemaVersion><submissionType>'), expected));
 });
+
+Deno.test('SEC amendments preserve document rows and distinguish restatement from additions', () => {
+  const amendment = (kind: string, number = '1') => submission().replaceAll('13F-HR', '13F-HR/A')
+    .replace('<periodOfReport>', `<isAmendment>true</isAmendment><amendmentNo>${number}</amendmentNo><amendmentType>${kind}</amendmentType><periodOfReport>`);
+  const restated = parseSec13fSubmission(amendment('RESTATEMENT'), { ...expected, isAmendment: true });
+  assertEquals(restated.amendmentType, 'RESTATEMENT');
+  assertEquals(restated.amendmentNumber, 1);
+  assertEquals(restated.entryCount, 2);
+  assertEquals(restated.totalValueUsd, 30);
+  assertEquals(parseSec13fSubmission(amendment('NEW HOLDINGS', '2'), expected).amendmentType, 'NEW HOLDINGS');
+  assertEquals(parseSec13fSubmission(submission(), expected).amendmentType, 'ORIGINAL');
+  assertThrows(() => parseSec13fSubmission(amendment('OTHER'), expected));
+  assertThrows(() => parseSec13fSubmission(amendment('RESTATEMENT', '0'), expected));
+  assertThrows(() => parseSec13fSubmission(amendment('RESTATEMENT', '1.5'), expected));
+  assertThrows(() => parseSec13fSubmission(amendment('RESTATEMENT').replace('<isAmendment>true', '<isAmendment>false'), expected));
+  assertThrows(() => parseSec13fSubmission(amendment('RESTATEMENT'), { ...expected, isAmendment: false }));
+});

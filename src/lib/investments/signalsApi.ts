@@ -48,6 +48,7 @@ interface InsiderRaw {
 }
 
 interface HoldingRaw {
+  source_urls?: string[];
   period_of_report?: string;
   previous_period?: string;
   filing_url?: string;
@@ -229,7 +230,7 @@ export async function fetchSignalEvidence(ticker: string): Promise<SignalEvidenc
   const symbol = ticker.trim().toUpperCase();
   const [holdings, trades, insiderEvents] = await Promise.all([
     orcaSelect<HoldingRaw>(
-      `vw_sec13f_verified_changes?select=investor_id,shares_delta,value_now,change_type,period_of_report,previous_period,filing_url,previous_filing_url&ticker=eq.${encodeURIComponent(symbol)}&change_type=neq.reported_unchanged&order=value_now.desc&limit=40`, { strict: true },
+      `vw_sec13f_verified_changes?select=investor_id,shares_delta,value_now,change_type,period_of_report,previous_period,filing_url,previous_filing_url,source_urls&ticker=eq.${encodeURIComponent(symbol)}&change_type=neq.reported_unchanged&order=value_now.desc&limit=40`, { strict: true },
     ),
     orcaSelect<TradeRaw>(
       `stock_act_trades?select=external_id,filer_name,ticker,transaction_type,transaction_date,disclosure_date,source_url,amount_low,amount_high,politicians(display_name)&source_url=not.is.null&disclosure_date=not.is.null&ticker=eq.${encodeURIComponent(symbol)}&order=disclosure_date.desc&limit=40`, { strict: true },
@@ -258,7 +259,7 @@ export async function fetchSignalEvidence(ticker: string): Promise<SignalEvidenc
       badge: kind.badge,
       tone: kind.tone,
       detail: `${holding.previous_period} → ${holding.period_of_report} · ${[shares, value && `wartość pozycji ${value}`].filter(Boolean).join(' · ')}. Zmiana stanu raportowanego, nie potwierdzona transakcja.`,
-      sourceUrls: [holding.previous_filing_url, holding.filing_url].filter((url): url is string => Boolean(url)),
+      sourceUrls: holding.source_urls ?? [holding.previous_filing_url, holding.filing_url].filter((url): url is string => Boolean(url)),
     });
   }
 

@@ -4,12 +4,12 @@ DECLARE differences integer;
 BEGIN
   WITH h AS (
     SELECT ticker,count(DISTINCT investor_id)::integer AS holders,sum(value_usd) AS total_value,
-      jsonb_agg(DISTINCT filing_url) AS urls FROM vw_sec13f_current_holdings GROUP BY ticker
+      jsonb_path_query_array(jsonb_agg(source_urls),'$[*][*]') AS urls FROM vw_sec13f_current_holdings GROUP BY ticker
   ), c AS (
     SELECT ticker,count(DISTINCT investor_id)::integer AS compared_funds,
       count(*) FILTER(WHERE shares_delta>0)::integer AS increases,
       count(*) FILTER(WHERE shares_delta<0)::integer AS decreases,
-      jsonb_agg(DISTINCT filing_url)||jsonb_agg(DISTINCT previous_filing_url) AS urls
+      jsonb_path_query_array(jsonb_agg(source_urls),'$[*][*]') AS urls
     FROM vw_sec13f_verified_changes GROUP BY ticker
   ), expected AS (
     SELECT coalesce(h.ticker,c.ticker) AS ticker,coalesce(h.holders,0) AS holders,

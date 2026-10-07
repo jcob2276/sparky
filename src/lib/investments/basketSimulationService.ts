@@ -12,7 +12,7 @@ interface ComparisonSource {
   ticker: string; investor_id: string; period_of_report: string; previous_period: string;
   filing_url: string; previous_filing_url: string; shares_delta: number;
 }
-interface ReportSource { investor_id: string; period_of_report: string; filing_date: string; filing_url: string }
+interface ReportSource { investor_id: string; period_of_report: string; filing_date: string; filing_url: string; source_urls?: string[] }
 
 export async function fetchDisclosureBasket(size: 5 | 10 | 20 = 10) {
   const today = getTodayWarsaw();
@@ -42,7 +42,7 @@ export async function fetchDisclosureBasket(size: 5 | 10 | 20 = 10) {
       for (const period of [source.period_of_report, source.previous_period]) {
         const report = reportByKey.get(`${source.investor_id}/${period}`);
         if (!report || !report.filing_date || report.filing_date > today) throw new Error('Brak daty ujawnienia raportu koszyka.');
-        usedReports.set(report.filing_url, report);
+        for (const url of report.source_urls ?? [report.filing_url]) usedReports.set(url, { ...report, filing_url: url });
       }
     }
   }

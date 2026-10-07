@@ -12,6 +12,8 @@ interface Props {
   soldCount: number | null;
   filingUrl: string | null;
   previousFilingUrl: string | null;
+  sourceUrls?: string[];
+  previousSourceUrls?: string[];
   onSelectTicker?: (ticker: string) => void;
 }
 
@@ -25,6 +27,8 @@ export const SuperinvestorHoldingsTable: FC<Props> = ({
   soldCount,
   filingUrl,
   previousFilingUrl,
+  sourceUrls,
+  previousSourceUrls,
   onSelectTicker,
 }) => {
   const [activeTab, setActiveTab] = useState<TabKey>('top');
@@ -47,21 +51,23 @@ export const SuperinvestorHoldingsTable: FC<Props> = ({
           Ujawnione pozycje SH
         </h3>
 
-        {filingUrl && (
+        {(sourceUrls ?? (filingUrl ? [filingUrl] : [])).map((url, index) => (
           <a
-            href={filingUrl}
+            key={url}
+            href={url}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-2xs font-mono font-bold text-primary hover:underline"
           >
-            SEC EDGAR
+            SEC EDGAR {index + 1}
             <ExternalLink size={12} />
           </a>
-        )}
+        ))}
       </div>
-      {previousFilingUrl && <a href={previousFilingUrl} target="_blank" rel="noopener noreferrer" className="text-primary text-xs">
-        SEC EDGAR — poprzedni kwartał
-      </a>}
+      {(previousSourceUrls ?? (previousFilingUrl ? [previousFilingUrl] : [])).map((url, index) =>
+        <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="text-primary text-xs">
+          SEC EDGAR — poprzedni kwartał {index + 1}
+        </a>)}
 
       {/* Filter Tabs */}
       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">

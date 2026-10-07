@@ -107,6 +107,7 @@ interface RawHolding {
   value_usd: number;
   period_of_report: string;
   filing_url: string;
+  source_urls?: string[];
 }
 
 interface RawHoldingChange {
@@ -119,6 +120,7 @@ interface RawHoldingChange {
   previous_period: string;
   filing_url: string;
   previous_filing_url: string;
+  source_urls?: string[];
 }
 
 async function fetchCompanyDescription(ticker: string, companyName: string): Promise<string> {
@@ -279,7 +281,7 @@ export async function fetchCompanyDetailData(
         changeType: change?.change_type ?? 'uncompared',
         period: h?.period_of_report ?? change!.period_of_report,
         previousPeriod: change?.previous_period ?? null,
-        sourceUrls: change ? [change.filing_url, change.previous_filing_url] : [h!.filing_url],
+        sourceUrls: change ? change.source_urls ?? [change.filing_url, change.previous_filing_url] : h!.source_urls ?? [h!.filing_url],
       };
     }),
     description,
