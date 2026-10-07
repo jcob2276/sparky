@@ -9,7 +9,12 @@ jobs:
     timeout-minutes: 3
     steps:
       - name: Fetch official public index
-        run: curl --fail --silent --show-error --location --max-time 30 https://moam.knf.gov.pl/ --output /tmp/oam-index.html
+        run: |
+          mkdir -p /tmp/oam
+          curl --fail --silent --show-error --location --max-time 30 https://moam.knf.gov.pl/ --output /tmp/oam/index.html
+          curl --fail --silent --show-error --location --max-time 30 'https://moam.knf.gov.pl/moam.nsf/oamSearchLib?OpenJavascriptLibrary' --output /tmp/oam/search.js
+          curl --fail --silent --show-error --location --max-time 30 --data-urlencode 'VE_szukaj_a=XTB' --data-urlencode 'A_szukaj=NazwaPodmiot' 'https://moam.knf.gov.pl/moam.nsf/search?OpenNavigator&Field=NazwaPodmiot&Value=XTB' --output /tmp/oam/xtb.html
+          curl --fail --silent --show-error --location --max-time 30 'https://moam.knf.gov.pl/moam.nsf/mOAM?readForm&RestrictToCategory=2026-03-20&start=1&count=20' --output /tmp/oam/annual-day.html
       - name: Inspect public search and pagination contract
         run: |
           python - <<'PY'
@@ -23,12 +28,13 @@ jobs:
                       print(json.dumps({'tag': tag, 'attrs': data}))
                   if tag == 'a' and data.get('href', '').startswith('/moam.nsf'):
                       print(json.dumps({'tag': tag, 'href': data['href']}))
-          html = Path('/tmp/oam-index.html').read_text(errors='replace')
-          print(json.dumps({'responseBytes': len(html)}))
-          Index().feed(html)
+          for path in Path('/tmp/oam').glob('*'):
+              html = path.read_text(errors='replace')
+              print(json.dumps({'file': path.name, 'responseBytes': len(html)}))
+              Index().feed(html)
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: official-oam-index
-          path: /tmp/oam-index.html
+          path: /tmp/oam/*
           retention-days: 1
