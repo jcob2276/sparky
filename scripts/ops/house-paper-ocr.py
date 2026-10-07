@@ -236,7 +236,12 @@ def read_new_grid(image, disclosure_date, ocr):
         asset_ink = ink[top+4:bottom-4,columns[1]+4:columns[2]-4]
         asset = text(1,top,bottom) if asset_ink.mean() >= .002 else ''
         example_label = re.sub(r'[^a-z]', '', asset.lower())
-        if row_number == 0 and re.fullmatch(r'ex[a-z]{2,5}meg(?:a)?co[rm]pcommonstock',example_label):
+        # A printed example is shorter than the following checkbox rows. Use
+        # both its fixed fictitious name and this geometry; never skip a normal
+        # transaction merely because its description begins with "Example".
+        short_example = len(lines)>2 and bottom-top < (lines[2]-lines[1])*.75
+        if row_number == 0 and short_example and re.fullmatch(
+                r'ex[a-z]{2,5}meg(?:a)?co[rm]?p?commonstock',example_label):
             continue
         try:
             marked_types = [is_framed_checked(ink[top:bottom,columns[i]:columns[i+1]])
