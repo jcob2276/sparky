@@ -110,10 +110,10 @@ def main():
     db('investment_source_status?on_conflict=source', {'source': 'gpw_reports', 'checked_at': checked,
        'status': 'ok' if covered==len(companies) else 'partial', 'error': json.dumps({'registrySecurities': len(companies),
        'attemptedSecurities':len(queue),'coveredSecurities':covered,'importedSecurities': imported,
-       'fullMarketCoverage':covered==len(companies),'errors': errors}),
+       'fullMarketCoverage':covered==len(companies),'errorCount':len(errors),'errors': errors[:10]}),
        **({'last_success_at': checked, 'latest_disclosure_date': latest_publication} if imported else {})})
     if errors:
-        raise RuntimeError('Primary GPW report import incomplete: ' + json.dumps(errors))
+        raise RuntimeError('Primary GPW report import incomplete: ' + str(len(errors)) + ' errors; details in import coverage')
 
 
 if __name__ == '__main__':
