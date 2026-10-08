@@ -19,7 +19,7 @@ export default function TodoInboxZone({ renderInlineQuickCapture, renderAddTodoB
   return (
     <div
       ref={inboxZoneRef}
-      className={`todo-grouped-surface mb-4 ui-interactive duration-[var(--motion-medium)] ${
+      className={`todo-grouped-surface mb-4 ${
         draggingItem !== null
           ? dragTarget === 'inbox'
             ? 'ring-2 ring-primary/60 shadow-[var(--shadow-accent-active)]'
@@ -48,7 +48,7 @@ export default function TodoInboxZone({ renderInlineQuickCapture, renderAddTodoB
               dragColor="primary"
             />
           ) : (
-            <div className="divide-y divide-border-custom/30">
+            <div className="todo-focus-grid">
               {inboxItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}
             </div>
           )}

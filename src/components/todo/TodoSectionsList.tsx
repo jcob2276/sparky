@@ -1,9 +1,12 @@
 import { Fragment, useState } from 'react';
+import { Pressable } from '../ui/ControlPrimitives';
 import { useTodoContext } from './context/TodoContext';
 import BucketHeader from './BucketHeader';
 import SectionForm from './SectionForm';
 import EmptyState from './EmptyState';
 import TodoCardConnected from './TodoCardConnected';
+import TodoStudySubjects from './TodoStudySubjects';
+import { isStudySubject } from '../../lib/todo/studySubjects';
 import { archiveTodoSection, createTodoSection, renameTodoSection } from '../../lib/todo/todo';
 
 interface TodoSectionsListProps {
@@ -35,20 +38,11 @@ export default function TodoSectionsList({ renderInlineQuickCapture, renderAddTo
       {sectionsWithItems.map((sec, idx) => {
         const isCollapsed = !!collapsedSections[sec.id];
         const hasItems = sec.items.length > 0;
+        const hasSubjects = sec.items.some(isStudySubject);
         if (!hasItems && draggingItem === null) return null;
 
         return (
           <Fragment key={sec.id}>
-            {idx > 0 && (
-              <div
-                onClick={() => {
-                  setAddingSectionIndex(idx);
-                  setNewSectionForm({ name: '', notes: '' });
-                }}
-                className="todoist-section-divider-line animate-fade-in"
-              />
-            )}
-
             {addingSectionIndex === idx && (
               <SectionForm
                 name={newSectionForm.name}
@@ -62,7 +56,7 @@ export default function TodoSectionsList({ renderInlineQuickCapture, renderAddTo
 
             <div
               ref={el => { sectionRefs.current[sec.id] = el; }}
-              className={`todo-grouped-surface mb-4 ui-interactive duration-[var(--motion-medium)] ${
+              className={`todo-grouped-surface mb-4 ${
                 draggingItem !== null
                   ? dragTarget === sec.id
                     ? 'ring-2 ring-primary/60 shadow-[var(--shadow-accent-active)]'
@@ -72,7 +66,7 @@ export default function TodoSectionsList({ renderInlineQuickCapture, renderAddTo
             >
               <div className="todo-grouped-header">
                 <BucketHeader
-                  icon="📂"
+                  icon={hasSubjects ? '🎓' : '📂'}
                   title={sec.name}
                   count={sec.items.length}
                   collapsed={isCollapsed}
@@ -92,9 +86,11 @@ export default function TodoSectionsList({ renderInlineQuickCapture, renderAddTo
                       isDragOver={dragTarget === sec.id}
                       dragColor="primary"
                     />
+                  ) : hasSubjects ? (
+                    <TodoStudySubjects items={sec.items} />
                   ) : (
-                    <div className="divide-y divide-border-custom/30">
-                      {sec.items.map((i) => <TodoCardConnected key={i.id} item={i} hideSectionChip />)}
+                    <div className="todo-focus-grid">
+                      {sec.items.map((i) => <TodoCardConnected key={i.id} item={i} />)}
                     </div>
                   )}
                   <div className="pt-2 px-1">
@@ -108,15 +104,13 @@ export default function TodoSectionsList({ renderInlineQuickCapture, renderAddTo
         );
       })}
 
-      {sectionsWithItems.length > 0 && (
-        <div
+      <Pressable
           onClick={() => {
             setAddingSectionIndex(sectionsWithItems.length);
             setNewSectionForm({ name: '', notes: '' });
           }}
-          className="todoist-section-divider-line animate-fade-in"
-        />
-      )}
+          className="todo-instant flex min-h-11 w-full items-center justify-center rounded-xl border border-dashed border-border-custom text-sm font-medium text-text-secondary hover:bg-surface-solid focus-visible:shadow-focus"
+        >+ Dodaj sekcję</Pressable>
       {addingSectionIndex === sectionsWithItems.length && (
         <SectionForm
           name={newSectionForm.name}

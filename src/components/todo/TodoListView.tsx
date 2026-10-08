@@ -6,6 +6,7 @@ import TodoSmartListView from './TodoSmartListView';
 import TodoDoneHistory from './TodoDoneHistory';
 import { AppleRemindersSmartGrid } from './AppleRemindersSmartGrid';
 import type { TodoNavDest } from './TodoSidebar';
+import { isStudySubject } from '../../lib/todo/studySubjects';
 
 interface TodoListViewProps {
   navDest: TodoNavDest;
@@ -23,9 +24,10 @@ export default function TodoListView({
   const { items, todayItems, upcomingItems, error, setExpandedId, activeFilterSection } = useTodoContext();
   const isSmartView = navDest !== 'overview' || !!activeFilterSection;
 
-  const allCount = items.filter((i) => i.status !== 'done').length;
-  const flaggedCount = items.filter((i) => (i.priority === 'urgent' || i.priority === 'high') && i.status !== 'done').length;
-  const completedCount = items.filter((i) => i.status === 'done').length;
+  const tasks = items.filter(item => !isStudySubject(item));
+  const allCount = tasks.filter((i) => i.status !== 'done').length;
+  const flaggedCount = tasks.filter((i) => (i.priority === 'urgent' || i.priority === 'high') && i.status !== 'done').length;
+  const completedCount = tasks.filter((i) => i.status === 'done').length;
 
   return (
     <main className="flex-1 overflow-y-auto" onClick={() => setExpandedId(null)}>

@@ -7,8 +7,8 @@
 import { useTodoContext } from './context/TodoContext';
 import ContextMenu from './ContextMenu';
 import { applyOptimisticPatch } from './todoOptimistic';
-import { confirmDialog } from '../../lib/notify';
-import { createTodoItem, deleteTodoItem, updateTodoItem } from '../../lib/todo/todo';
+import { createTodoItem, updateTodoItem } from '../../lib/todo/todo';
+import { confirmAndDeleteTodoItem } from './todoDeleteAction';
 
 export default function TodoContextMenuConnected() {
   const {
@@ -29,15 +29,7 @@ export default function TodoContextMenuConnected() {
       onDelete={() => {
         const cm = contextMenu;
         setContextMenu(null);
-        void confirmDialog(`Czy na pewno chcesz usunąć na stałe zadanie "${cm.item.title}"? Tego nie można cofnąć.`).then((ok) => {
-          if (ok) {
-            setItems(prev => prev.filter(i => i.id !== cm.item.id));
-            deleteTodoItem(cm.item.id).catch((err) => {
-              setError(err instanceof Error ? err.message : String(err));
-              setItems(prev => [...prev, cm.item]);
-            });
-          }
-        });
+        void confirmAndDeleteTodoItem(cm.item, setItems, setError);
       }}
       onSetDueDate={(dateStr) => {
         const cm = contextMenu;

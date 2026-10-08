@@ -20,8 +20,7 @@ import TodoHeader, { type TodoViewMode } from './TodoHeader';
 import TodoSearchBar from './TodoSearchBar';
 import TodoListView from './TodoListView';
 import { useTodoViewSwipe } from './hooks/useTodoViewSwipe';
-import { useTodoBulkActions } from './hooks/useTodoBulkActions';
-import { TodoBulkActionBar } from './TodoBulkActionBar';
+import { isStudySubject } from '../../lib/todo/studySubjects';
 
 function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?: (dest: string) => void }) {
   const todoData = useTodoContext();
@@ -33,9 +32,6 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
     draggingItem, dragPosRef,
     today,
     run,
-    isSelectMode, setIsSelectMode,
-    selectedIds, setSelectedIds,
-    selectAll, clearSelection,
   } = todoData;
 
   const [todoView, setTodoView] = useState<TodoViewMode>('lista');
@@ -43,21 +39,6 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
   const [navDest, setNavDest] = useState<TodoNavDest>('overview');
 
   const viewSwipe = useTodoViewSwipe(todoView, setTodoView);
-
-  const {
-    bulkBusy,
-    handleBulkComplete,
-    handleBulkDelete,
-    handleBulkSetToday,
-    handleBulkSetTomorrow,
-    handleBulkSetPriority,
-  } = useTodoBulkActions({
-    selectedIds,
-    setSelectedIds,
-    setIsSelectMode,
-    setItems: todoData.setItems,
-    today,
-  });
 
   const {
     activeAddSectionId, scanTextOpen, setScanTextOpen,
@@ -92,11 +73,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
         quickCaptureRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         setTimeout(() => quickCaptureRef.current?.querySelector('input')?.focus(), 50);
       } else if (e.key === 'Escape') {
-        if (isSelectMode) {
-          clearSelection();
-        } else {
-          setExpandedId(null);
-        }
+        setExpandedId(null);
       } else if (e.key === '1') {
         setTodoView('lista');
       } else if (e.key === '2') {
@@ -107,7 +84,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [clearSelection, isSelectMode, quickCaptureRef, setExpandedId, todoData]);
+  }, [quickCaptureRef, setExpandedId, todoData]);
 
   if (loading) {
     return (
@@ -169,11 +146,6 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
           setTodoView={setTodoView}
           sidebarCollapsed={sidebarCollapsed}
           setSidebarCollapsed={setSidebarCollapsed}
-          isSelectMode={isSelectMode}
-          onToggleSelectMode={() => {
-            setIsSelectMode(!isSelectMode);
-            if (isSelectMode) setSelectedIds(new Set());
-          }}
           onQuickAdd={() => {
             setTodoView('lista');
             setNavDest('overview');
@@ -187,7 +159,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
         {todoView === 'eisenhower' && (
           <main className="flex-1 overflow-y-auto" onClick={() => setExpandedId(null)}>
             <Suspense fallback={<div className="flex h-64 items-center justify-center"><Spinner size="md" /></div>}>
-              <EisenhowerMatrix items={todoData.items} setItems={(fn) => todoData.setItems((prev) => fn(prev) as TodoItemRow[])} />
+              <EisenhowerMatrix items={todoData.items.filter(item => !isStudySubject(item))} setItems={(fn) => todoData.setItems((prev) => fn(prev) as TodoItemRow[])} />
             </Suspense>
           </main>
         )}
@@ -196,7 +168,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
           <main className="flex-1 overflow-hidden">
             <Suspense fallback={<div className="flex h-64 items-center justify-center"><Spinner size="md" /></div>}>
               <KanbanView
-                items={todoData.items}
+                items={todoData.items.filter(item => !isStudySubject(item))}
                 sections={todoData.sections}
                 setItems={(fn) => todoData.setItems((prev) => fn(prev) as TodoItemRow[])}
                 today={today}
@@ -214,21 +186,6 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
           />
         )}
       </div>
-
-      <TodoBulkActionBar
-        selectedCount={selectedIds.size}
-        onClearSelection={clearSelection}
-        onSelectAll={() => {
-          const allOpen = todoData.items.filter((i) => i.status !== 'done').map((i) => i.id);
-          selectAll(allOpen);
-        }}
-        onBulkComplete={handleBulkComplete}
-        onBulkDelete={handleBulkDelete}
-        onBulkSetToday={handleBulkSetToday}
-        onBulkSetTomorrow={handleBulkSetTomorrow}
-        onBulkSetPriority={handleBulkSetPriority}
-        busy={bulkBusy}
-      />
 
       {/* Desktop: today's calendar events panel */}
       <TodayEventsPanel userId={userId} today={today} />

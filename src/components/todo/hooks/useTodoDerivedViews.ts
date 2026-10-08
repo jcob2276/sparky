@@ -3,6 +3,7 @@ import { buildSectionGoalMaps } from '../../../lib/goal/goalLineage';
 import { shiftDateStr } from '../../../lib/date';
 import { matchesSmartQuery, PRIORITY_ORDER } from '../todoUtils';
 import type { TodoItemRow, TodoSectionRow } from '../useTodoData';
+import { isStudySubject } from '../../../lib/todo/studySubjects';
 
 interface UseTodoDerivedViewsProps {
   items: TodoItemRow[];
@@ -31,9 +32,12 @@ export function useTodoDerivedViews({
     [sections, projects, dreams],
   );
 
-  // Nested subtasks (parent_task_id) are rendered under their parent card, not as top-level list rows.
-  const openItems = useMemo(() => items.filter((i) => i.status === 'open' && !i.parent_task_id), [items]);
-  const doneItems = useMemo(() => items.filter((i) => i.status === 'done' && !i.parent_task_id), [items]);
+  const subjectIds = useMemo(() => new Set(items.filter(isStudySubject).map(item => item.id)), [items]);
+  // Study assignments also appear in daily views; ordinary subtasks stay nested.
+  const taskItems = useMemo(() => items.filter(item => !isStudySubject(item)
+    && (!item.parent_task_id || subjectIds.has(item.parent_task_id))), [items, subjectIds]);
+  const openItems = useMemo(() => taskItems.filter(i => i.status === 'open'), [taskItems]);
+  const doneItems = useMemo(() => taskItems.filter(i => i.status === 'done'), [taskItems]);
   const childrenByParentId = useMemo(() => {
     const map: Record<string, TodoItemRow[]> = {};
     for (const i of items) {
@@ -80,7 +84,7 @@ export function useTodoDerivedViews({
 
     const sectionsMap: Record<string, TodoItemRow[]> = {};
     sections.forEach(s => { sectionsMap[s.id] = []; });
-    remainingItems.forEach((i) => {
+    [...remainingItems.filter(i => !i.parent_task_id), ...items.filter(i => isStudySubject(i) && i.status === 'open')].forEach((i) => {
       if (i.section_id && sectionsMap[i.section_id] !== undefined) {
         sectionsMap[i.section_id].push(i);
       }
@@ -95,7 +99,7 @@ export function useTodoDerivedViews({
       upcomingItems: upcoming,
       sectionsWithItems: sectionsList
     };
-  }, [openItems, sections, today, applyFilter]);
+  }, [openItems, items, sections, today, applyFilter]);
 
   return {
     sectionById,

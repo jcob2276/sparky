@@ -5,7 +5,7 @@
  * @composes TodoCardExpandedPanel (renderowany gdy expanded=true)
  * @usedBy TodoCardConnected (jedyny konsument)
  */
-import React, { useState, useEffect } from 'react';
+import React, { useId } from 'react';
 import { splitEmoji, relativeDate } from './todoUtils';
 import TodoCardExpandedPanel from './TodoCardExpandedPanel';
 import TodoCardCollapsedRow from './TodoCardCollapsedRow';
@@ -16,6 +16,7 @@ import type { TodoItemRow } from '../../lib/todo/todo';
 export interface TodoCardProps {
   item: TodoItemRow;
   onToggle: () => void;
+  onDelete: () => void;
   onDrop: () => void;
   onSetPriority: (p: string) => void;
   expanded: boolean;
@@ -31,7 +32,6 @@ export interface TodoCardProps {
   onEditChange: (val: string) => void;
   onEditSave: () => void;
   sectionName?: string | null;
-  sectionGoalKey?: string | null;
   onDragStart?: (item: TodoItemRow, clientX: number, clientY: number) => void;
   isDragging: boolean;
   onShowContextMenu: (item: TodoItemRow, clientX: number, clientY: number) => void;
@@ -50,14 +50,12 @@ export interface TodoCardProps {
   childTasks?: TodoItemRow[];
   onAddChildTask?: (title: string) => void;
   onToggleChildTask?: (child: TodoItemRow) => void;
-  isSelectMode?: boolean;
-  isSelected?: boolean;
-  onToggleSelect?: () => void;
 }
 
 export default function TodoCard({
   item,
   onToggle,
+  onDelete,
   onDrop,
   onSetPriority,
   expanded,
@@ -73,7 +71,6 @@ export default function TodoCard({
   onEditChange,
   onEditSave,
   sectionName,
-  sectionGoalKey,
   onDragStart,
   isDragging,
   onShowContextMenu,
@@ -87,60 +84,27 @@ export default function TodoCard({
   childTasks = [],
   onAddChildTask,
   onToggleChildTask,
-  isSelectMode,
-  isSelected,
-  onToggleSelect,
 }: TodoCardProps) {
   const { attachments, uploadingFile, fileInputRef, handleFileUpload, handleDeleteAttachment } = useTodoCardAttachments(expanded, item.id, item.user_id);
 
   const swipe = useTodoCardSwipe({
-    isDone: item.status === 'done',
     onToggle,
     item,
     onDragStart,
-    expanded,
-    isEditing,
-    onEditStart,
-    onToggleExpand,
   });
 
-  const [transitionCompleted, setTransitionCompleted] = useState(false);
-  const [expandMounted, setExpandMounted] = useState(false);
-
-  useEffect(() => {
-    if (expanded) {
-      void (async () => { setExpandMounted(true); })();
-      const t = setTimeout(() => setTransitionCompleted(true), 300);
-      return () => clearTimeout(t);
-    } else {
-      void (async () => { setTransitionCompleted(false); })();
-      const t = setTimeout(() => setExpandMounted(false), 280);
-      return () => clearTimeout(t);
-    }
-  }, [expanded]);
-
+  const panelId = useId();
   const totalSubtaskCount = childTasks.length;
   const doneSubtaskCount = childTasks.filter((c) => c.status === 'done').length;
   const isDone = item.status === 'done';
 
-  const leftBorder = '';
   const { icon, label } = splitEmoji(item.title);
   const dateInfo = relativeDate(item.due_date, today);
 
   return (
     <div
       data-no-swipe-nav="true"
-      className={`group relative ${isDone ? 'opacity-[var(--opacity-40)]' : ''} ${isDragging ? 'opacity-[var(--opacity-0)] pointer-events-none' : ''}`}
-      style={
-        swipe.completingOut
-          ? {
-              transform: 'translateX(28px)',
-              opacity: 0,
-              pointerEvents: 'none',
-              transition: 'var(--motion-todo-dismiss)'
-            }
-          : { transition: 'opacity 0.15s' }
-      }
+      className={`group relative ${isDragging ? 'opacity-[var(--opacity-0)] pointer-events-none' : ''}`}
     >
       {/* Row */}
       <div
@@ -149,9 +113,7 @@ export default function TodoCard({
           onShowContextMenu(item, e.clientX, e.clientY);
         }}
         onClick={e => e.stopPropagation()}
-        className={`relative py-3 pr-2 pl-1 ui-interactive duration-[var(--motion-medium)] ease-[var(--ease-out)] hover:bg-surface-solid/30 ${
-          isSelected ? 'bg-primary/10 rounded-xl ring-1 ring-inset ring-primary/25' : ''
-        } ${leftBorder}`}
+        className="todo-focus-card"
       >
         <TodoCardCollapsedRow
           item={item}
@@ -166,39 +128,24 @@ export default function TodoCard({
           onEditChange={onEditChange}
           onEditSave={onEditSave}
           expanded={expanded}
-          onEditStart={onEditStart}
           totalSubtaskCount={totalSubtaskCount}
           doneSubtaskCount={doneSubtaskCount}
-          sectionGoalKey={sectionGoalKey}
           isLinkedToPlan={isLinkedToPlan}
           sectionName={sectionName}
           dreamTitle={dreamTitle}
+          onTitlePress={() => expanded ? onEditStart(item.title) : onToggleExpand(item.id)}
+          onEdit={() => onEditStart(item.title)}
+          onDelete={onDelete}
+          panelId={panelId}
           swipe={swipe}
           onShowContextMenu={onShowContextMenu}
-          onToggleExpand={onToggleExpand}
-          isSelectMode={isSelectMode}
-          isSelected={isSelected}
-          onToggleSelect={onToggleSelect}
         />
 
         {/* Expanded Panel */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateRows: expanded ? '1fr' : '0fr',
-            transition: 'var(--ds-inline-style-grid-template-rows-260ms-cubic-bezier-0-4-0-0-2-1)',
-            overflow: transitionCompleted ? 'visible' : 'hidden'
-          }}
-        >
-          <div className="min-h-0" style={{ overflow: transitionCompleted ? 'visible' : 'hidden' }}>
-            {expandMounted && (
-              <TodoCardExpandedPanel
+        {expanded && (
+          <div id={panelId} className="todo-focus-expanded">
+            <TodoCardExpandedPanel
                 item={item}
-                isEditing={isEditing}
-                editingTitle={editingTitle}
-                onEditStart={onEditStart}
-                onEditChange={onEditChange}
-                onEditSave={onEditSave}
                 onSetNotes={onSetNotes}
                 onSetSchedule={onSetSchedule}
                 onSetRecurrence={onSetRecurrence}
@@ -220,9 +167,8 @@ export default function TodoCard({
                 handleFileUpload={handleFileUpload}
                 handleDeleteAttachment={handleDeleteAttachment}
               />
-            )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

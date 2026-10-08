@@ -12,13 +12,13 @@ import { updateTodoItem, setTodoStatus } from '../../lib/todo/todo';
 import { applyOptimisticPatch } from './todoOptimistic';
 import type { Database } from '../../lib/database.types';
 import { combineDateTimeWarsawISO, warsawTimeOfDay } from '../../lib/date';
+import { confirmAndDeleteTodoItem } from './todoDeleteAction';
 
 type TodoItemRow = Database['public']['Tables']['todo_items']['Row'];
 
 interface TodoCardConnectedProps {
   item: TodoItemRow;
   inToday?: boolean;
-  hideSectionChip?: boolean;
 }
 
 function useTodoCardHandlers(item: TodoItemRow) {
@@ -102,7 +102,6 @@ function useTodoCardHandlers(item: TodoItemRow) {
 export default function TodoCardConnected({
   item,
   inToday = false,
-  hideSectionChip = false,
 }: TodoCardConnectedProps) {
   const {
     today,
@@ -117,7 +116,6 @@ export default function TodoCardConnected({
     setEditingTitle,
     saveEditTitle,
     sectionById,
-    sectionGoalMap,
     sectionDreamMap,
     handleDragStart,
     draggingItem,
@@ -127,9 +125,6 @@ export default function TodoCardConnected({
     addChildTask,
     setItems,
     setError,
-    isSelectMode,
-    selectedIds,
-    toggleSelectId,
   } = useTodoContext();
 
   const handlers = useTodoCardHandlers(item);
@@ -161,6 +156,7 @@ export default function TodoCardConnected({
       expanded={expandedId === item.id}
       onToggleExpand={toggleExpand}
       onToggle={() => handleComplete(item)}
+      onDelete={() => void confirmAndDeleteTodoItem(item, setItems, setError)}
       isLinkedToPlan={linkedPlanIds.has(item.id)}
       sections={sections}
       isEditing={editingId === item.id}
@@ -171,8 +167,7 @@ export default function TodoCardConnected({
       }}
       onEditChange={setEditingTitle}
       onEditSave={() => saveEditTitle(item)}
-      sectionName={!hideSectionChip && item.section_id ? sectionById[item.section_id]?.name : null}
-      sectionGoalKey={item.section_id ? sectionGoalMap[item.section_id] ?? null : null}
+      sectionName={item.section_id ? sectionById[item.section_id]?.name : 'Skrzynka'}
       dreamTitle={item.section_id ? sectionDreamMap[item.section_id] ?? null : null}
       onDragStart={handleDragStart}
       isDragging={draggingItem?.id === item.id}
@@ -194,9 +189,6 @@ export default function TodoCardConnected({
       onSetTitle={handlers.onSetTitle}
       onSetNotes={handlers.onSetNotes}
       onAddChildTask={onAddChildTask}
-      isSelectMode={isSelectMode}
-      isSelected={selectedIds.has(item.id)}
-      onToggleSelect={() => toggleSelectId(item.id)}
     />
     </div>
   );

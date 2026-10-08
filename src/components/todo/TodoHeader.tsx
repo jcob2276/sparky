@@ -17,8 +17,6 @@ interface TodoHeaderProps {
   setTodoView: (value: TodoViewMode) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (value: boolean) => void;
-  isSelectMode?: boolean;
-  onToggleSelectMode?: () => void;
   onQuickAdd?: () => void;
 }
 
@@ -28,8 +26,6 @@ export default function TodoHeader({
   setTodoView,
   sidebarCollapsed,
   setSidebarCollapsed,
-  isSelectMode,
-  onToggleSelectMode,
   onQuickAdd,
 }: TodoHeaderProps) {
   const { push, pushSubscribed, setPushSubscribed } = useTodoContext();
@@ -56,17 +52,6 @@ export default function TodoHeader({
               >
                 <Plus size={15} />
                 <span className="hidden sm:inline">Nowe zadanie</span>
-              </Pressable>
-            )}
-
-            {onToggleSelectMode && (
-              <Pressable
-                variant={isSelectMode ? 'primary' : 'ghost'}
-                size="sm"
-                onClick={onToggleSelectMode}
-                className="text-xs font-bold"
-              >
-                {isSelectMode ? 'Gotowe' : 'Zaznacz masowo'}
               </Pressable>
             )}
 

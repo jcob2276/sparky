@@ -950,7 +950,6 @@
   --motion-spin: 700ms;
   --motion-oracle-focus: all 220ms var(--ease-out);
   --motion-oracle-idle: all 0ms var(--ease-out);
-  --motion-todo-dismiss: transform 280ms var(--ease-exit), opacity 220ms var(--ease-out);
   --border-desktop-hero-muted: 1px solid var(--color-theme-hex-ba15316117503);
   --border-html-card-accent: 3px solid var(--color-theme-hex-5b6cff);
   --border-html-card-receipt: 1px dashed var(--color-theme-hex-ba15316117504-coll-2);
@@ -2468,4 +2467,65 @@ a,
   .medical-doc-print .text-text-muted {
     color: #4b5563 !important;
   }
+}
+
+/* Sections organize the card grid without nesting one card inside another. */
+.todo-grouped-surface { margin-bottom: 1rem; }
+.todo-grouped-header { padding: 0.25rem 0 0.75rem; }
+.todo-grouped-body { padding: 0; }
+.todo-focus-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.875rem; align-items: stretch; }
+.todo-focus-grid > * { min-width: 0; }
+.todo-focus-card {
+  height: 100%; min-width: 0; padding: 1.125rem;
+  background: var(--surface-solid, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--border-custom) 75%, transparent);
+  border-radius: 1.125rem;
+  box-shadow: 0 2px 3px rgba(0,0,0,0.025), 0 8px 24px rgba(0,0,0,0.035), inset 0 1px 0 rgba(255,255,255,0.09);
+  display: flex; flex-direction: column;
+}
+.todo-focus-top, .todo-focus-footer, .todo-focus-title-row { display:flex; align-items:center; justify-content:space-between; }
+.todo-focus-top { min-height: 24px; gap: 0.5rem; }
+.todo-focus-date { display: inline-flex; gap: 0.375rem; align-items: center; font-size: 0.75rem; font-weight: 500; white-space: nowrap; }
+.todo-focus-priority { flex-shrink:0; color: var(--text-secondary); font-size: 0.75rem; }
+.todo-focus-important { padding: 0.25rem 0.5rem; border-radius: 0.375rem; color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 9%, transparent); }
+.todo-focus-title-row { justify-content:flex-start; gap: 0.25rem; margin-top: 0.75rem; margin-left: -0.75rem; }
+.todo-focus-check { width: 1.1875rem; height: 1.1875rem; display:flex; align-items:center; justify-content:center; border-radius:50%; border: 2px solid var(--border-custom); }
+.todo-focus-check.is-done { background:var(--color-success); border-color:var(--color-success); color:var(--on-accent); }
+.todo-focus-note { margin: 0.625rem 0 1.125rem 2rem; color: var(--text-secondary); font-size: 0.8125rem; line-height: 1.55; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; text-wrap: pretty; }
+.todo-focus-footer { gap: 0.5rem; margin-top: auto; padding-top: 0.5rem; border-top: 1px solid color-mix(in srgb, var(--border-custom) 35%, transparent); }
+.todo-focus-meta { min-width:0; display:flex; flex-wrap:wrap; gap:0.25rem 0.5rem; color:var(--text-secondary); font-size:0.75rem; line-height:1.35; }
+.todo-focus-meta > span { min-width:0; overflow-wrap:anywhere; display:inline-flex; align-items:center; gap:0.25rem; }
+.todo-focus-actions { flex-shrink:0; display:flex; }
+.todo-focus-grip { cursor: grab; }
+.todo-focus-grip:active { cursor: grabbing; }
+.todo-focus-expanded { margin-top: 0.75rem; }
+.todo-focus-details { min-width:0; display:flex; flex-direction:column; gap:1rem; padding-top:0.75rem; border-top:1px solid color-mix(in srgb, var(--border-custom) 35%, transparent); }
+@media (max-width: 700px) {
+  .todo-focus-grid { grid-template-columns: minmax(0,1fr); gap: 0.75rem; }
+  .todo-focus-card { padding: 1rem; }
+}
+
+/* Functional daily interactions stay stable, even under nested press feedback. */
+.todo-instant,
+.todoist-theme [role="checkbox"],
+.todoist-theme [role="checkbox"] * {
+  transition: none !important;
+  transform: none !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  .todo-task-row:hover { background: color-mix(in srgb, var(--surface-solid) 30%, transparent); }
+}
+/* Origin-aware pointer disclosure. Keyboard and reduced-motion openings are instant. */
+.todo-action-menu { z-index: 10000; width: min(18rem, calc(100vw - 16px)); max-height: calc(100dvh - 16px); }
+@media (min-width: 640px) { .study-assignment-fields { grid-template-columns: minmax(0, 1fr) 10rem; } }
+.todo-action-menu[data-motion="pointer"] {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity var(--motion-medium) var(--ease-out), transform var(--motion-medium) var(--ease-out);
+  @starting-style { opacity: 0; transform: scale(0.95); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .todoist-theme .ui-pressable:active,
+  .todo-action-menu .ui-pressable:active { transform: none !important; }
+  .todo-action-menu[data-motion="pointer"] { transition: none; }
 }

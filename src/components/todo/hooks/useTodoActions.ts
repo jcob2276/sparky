@@ -8,6 +8,7 @@ import { parseTodoQuickInput } from '../../../lib/todo/todoParser';
 import type { TodoItemRow } from '../useTodoData';
 import { notify } from '../../../lib/notify';
 import { registerReversibleAction, undoAction } from '../../../lib/actionHistory';
+import { isStudySubject } from '../../../lib/todo/studySubjects';
 
 interface UseTodoActionsProps {
   userId: string;
@@ -38,7 +39,7 @@ export function useTodoActions({
   const [batchClassifying, setBatchClassifying] = useState(false);
 
   const batchClassify = useCallback(async () => {
-    const unclassified = items.filter((i) => i.status === 'open' && !i.ai_bucket && !i.due_date);
+    const unclassified = items.filter((i) => i.status === 'open' && !isStudySubject(i) && !i.ai_bucket && !i.due_date);
     if (!unclassified.length || batchClassifying) return;
     setBatchClassifying(true);
     await Promise.allSettled(unclassified.map((item) =>

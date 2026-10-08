@@ -1,11 +1,12 @@
 import { Pressable } from '../ui/ControlPrimitives';
 import { Sparkles } from 'lucide-react';
 import { useTodoContext } from './context/TodoContext';
+import { isStudySubject } from '../../lib/todo/studySubjects';
 
 export default function TodoBatchClassifyChip() {
   const { items, batchClassify, batchClassifying } = useTodoContext();
 
-  const unclassifiedCount = items.filter((i) => i.status === 'open' && !i.ai_bucket && !i.due_date).length;
+  const unclassifiedCount = items.filter((i) => i.status === 'open' && !isStudySubject(i) && !i.ai_bucket && !i.due_date).length;
   if (!unclassifiedCount) return null;
 
   return (

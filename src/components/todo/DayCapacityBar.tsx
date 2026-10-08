@@ -45,7 +45,7 @@ export default function DayCapacityBar({ userId, today, plannedMinutes }: Props)
         </Pressable>
       </div>
       <div className="mt-1.5 h-[var(--ds-h-3px)] overflow-hidden rounded-full bg-surface-solid">
-        <div className={`h-full rounded-full transition-[width] duration-[var(--motion-medium)] ${over ? 'bg-danger/75' : 'bg-primary/65'}`} style={{ width: `${pct}%` }} />
+        <div className={`h-full rounded-full w-full origin-left ${over ? 'bg-danger/75' : 'bg-primary/65'}`} style={{ transform: `scaleX(${pct / 100})` }} />
       </div>
       {over && <p className="mt-1.5 text-2xs font-medium text-danger">Za dużo o {formatMinutes(plannedMinutes - available)}. Przenieś albo skróć zadanie.</p>}
       {editing && (

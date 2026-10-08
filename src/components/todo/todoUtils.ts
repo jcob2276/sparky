@@ -1,5 +1,4 @@
-import { format } from 'date-fns';
-import { shiftDateStr } from '../../lib/date';
+import { formatLongDateWarsaw, shiftDateStr } from '../../lib/date';
 import { Shield, Zap, Wallet } from 'lucide-react';
 
 export const RECURRENCE_LABELS: Record<string, string> = {
@@ -79,7 +78,7 @@ export function relativeDate(dateStr: string | null | undefined, today: string) 
   if (diff < 0) return { text: `${Math.abs(diff)}d po terminie`, color: 'text-danger font-black' };
   if (diff === 1) return { text: 'Jutro', color: 'text-info' };
   if (diff <= 7) return { text: `za ${diff} dni`, color: 'text-text-muted' };
-  return { text: format(new Date(dateStr + 'T00:00:00'), 'd MMM'), color: 'text-text-muted' };
+  return { text: formatLongDateWarsaw(dateStr), color: 'text-text-muted' };
 }
 
 // ── Smart query language ──

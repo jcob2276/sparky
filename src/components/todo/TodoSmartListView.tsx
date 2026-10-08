@@ -5,6 +5,7 @@ import EmptyState from './EmptyState';
 import TodoSectionFlatView from './TodoSectionFlatView';
 import type { TodoNavDest } from './TodoSidebar';
 import { formatUpcomingDateHeader } from './todoUtils';
+import { isStudySubject } from '../../lib/todo/studySubjects';
 
 interface TodoSmartListViewProps {
   navDest: TodoNavDest;
@@ -14,7 +15,8 @@ interface TodoSmartListViewProps {
 
 // eslint-disable-next-line max-lines-per-function
 export default function TodoSmartListView({ navDest, renderInlineQuickCapture, renderAddTodoButton }: TodoSmartListViewProps) {
-  const { items, todayItems, inboxItems, upcomingItems, activeFilterSection } = useTodoContext();
+  const { items: allItems, todayItems, inboxItems, upcomingItems, activeFilterSection } = useTodoContext();
+  const items = allItems.filter(item => !isStudySubject(item));
 
   if (navDest === 'today') {
     return (
@@ -29,7 +31,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
             {todayItems.length === 0 ? (
               <EmptyState icon="📅" label="Brak zadań na dziś." />
             ) : (
-              <div className="divide-y divide-border-custom/30">
+              <div className="todo-focus-grid">
                 {todayItems.map((i) => <TodoCardConnected key={i.id} item={i} inToday />)}
               </div>
             )}
@@ -56,7 +58,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
             {inboxItems.length === 0 ? (
               <EmptyState icon="📥" label="Skrzynka pusta." />
             ) : (
-              <div className="divide-y divide-border-custom/30">
+              <div className="todo-focus-grid">
                 {inboxItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}
               </div>
             )}
@@ -83,13 +85,13 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
             {upcomingItems.length === 0 ? (
               <EmptyState icon="🗓️" label="Brak zadań w najbliższych 7 dniach." />
             ) : (
-              <div className="divide-y divide-border-custom/30">
+              <div className="todo-focus-grid">
                 {upcomingItems.map((i, index) => {
                   const showDateHeader = index === 0 || i.due_date !== upcomingItems[index - 1].due_date;
                   return (
                     <Fragment key={i.id}>
                       {showDateHeader && i.due_date && (
-                        <div className="px-3 pt-3 pb-1 text-xs font-black uppercase tracking-wider text-text-muted/50">
+                        <div className="col-span-full px-1 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-text-secondary">
                           {formatUpcomingDateHeader(i.due_date)}
                         </div>
                       )}
@@ -123,7 +125,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
             {activeItems.length === 0 ? (
               <EmptyState icon="📋" label="Brak otwartych zadań." />
             ) : (
-              <div className="divide-y divide-border-custom/30">
+              <div className="todo-focus-grid">
                 {activeItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}
               </div>
             )}
@@ -147,7 +149,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
             {flaggedItems.length === 0 ? (
               <EmptyState icon="🚩" label="Brak oznaczonych zadań." />
             ) : (
-              <div className="divide-y divide-border-custom/30">
+              <div className="todo-focus-grid">
                 {flaggedItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}
               </div>
             )}
@@ -171,7 +173,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
             {doneItems.length === 0 ? (
               <EmptyState icon="✅" label="Brak ukończonych zadań." />
             ) : (
-              <div className="divide-y divide-border-custom/30">
+              <div className="todo-focus-grid">
                 {doneItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}
               </div>
             )}

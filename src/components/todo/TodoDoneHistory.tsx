@@ -59,7 +59,7 @@ export default function TodoDoneHistory() {
         </Button>
       </div>
 
-      <div className="pt-1 space-y-1">
+      <div className="todo-focus-grid pt-1">
         {doneItems.slice(0, visibleDoneCount).map((i) => (
           <TodoCardConnected key={i.id} item={i} />
         ))}

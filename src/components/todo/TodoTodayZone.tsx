@@ -21,7 +21,7 @@ export default function TodoTodayZone({ renderInlineQuickCapture, renderAddTodoB
   return (
     <div
       ref={todayZoneRef}
-      className={`todo-grouped-surface mb-4 ui-interactive duration-[var(--motion-medium)] ${
+      className={`todo-grouped-surface mb-4 ${
         draggingItem !== null
           ? dragTarget === 'today'
             ? 'ring-2 ring-warning/60 shadow-[var(--shadow-accent-active)]'
@@ -52,7 +52,7 @@ export default function TodoTodayZone({ renderInlineQuickCapture, renderAddTodoB
               dragColor="orange"
             />
           ) : (
-            <div className="divide-y divide-border-custom/30">
+            <div className="todo-focus-grid">
               {todayItems.map((i) => (
                 <TodoCardConnected key={i.id} item={i} inToday />
               ))}

@@ -72,7 +72,7 @@ export function AppleRemindersSmartGrid({
   ];
 
   return (
-    <div className="flex items-stretch gap-2 px-1 py-1 mb-2 select-none overflow-x-auto no-scrollbar sm:grid sm:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2 mb-4 select-none sm:grid-cols-3 lg:grid-cols-5">
       {cards.map((card) => {
         const isActive = navDest === card.id;
         const Icon = card.icon;
@@ -83,7 +83,7 @@ export function AppleRemindersSmartGrid({
             onClick={() => onSelectNavDest(card.id)}
             aria-label={`${card.title}: ${card.count} zadań`}
             aria-pressed={isActive}
-            className={`flex-1 min-w-[96px] sm:min-w-0 flex items-center gap-2.5 px-3 py-2 rounded-xl border transition-all duration-200 cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
+            className={`todo-instant min-w-0 flex items-center gap-3 px-3 py-3 rounded-xl border cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
               isActive
                 ? 'border-primary/50 bg-primary/15 shadow-sm ring-2 ring-primary/20'
                 : 'border-border-custom/40 bg-surface-solid/80 hover:bg-surface-solid hover:border-border-custom/60 shadow-xs'
@@ -93,10 +93,10 @@ export function AppleRemindersSmartGrid({
               <Icon size={14} strokeWidth={2.5} />
             </div>
             <div className="min-w-0 flex flex-col leading-none justify-center">
-              <span className={`text-sm font-black tabular-nums tracking-tight ${card.textColor}`}>
+              <span className={`text-xl font-bold tabular-nums tracking-tight ${card.textColor}`}>
                 {card.count}
               </span>
-              <span className="text-3xs font-semibold text-text-secondary tracking-tight truncate mt-0.5">
+              <span className="text-xs font-medium text-text-secondary tracking-tight truncate mt-0.5">
                 {card.title}
               </span>
             </div>

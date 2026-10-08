@@ -1,11 +1,7 @@
-/**
- * @component ContextMenu
- * @role Prezentacyjne menu kontekstowe karty zadania — logikę dostarcza TodoContextMenuConnected.
- * @usedBy TodoContextMenuConnected (jedyny konsument)
- */
-import { Pressable } from '../ui/ControlPrimitives';
-import React, { useEffect, useRef } from 'react';
-import { Pencil, Calendar, Sun, CalendarDays, MoreHorizontal, Flag, FolderInput, Copy, Trash2, ChevronRight } from 'lucide-react';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { Pencil, Calendar, Copy, Trash2 } from 'lucide-react';
+import { Pressable, ControlSelect } from '../ui/ControlPrimitives';
 import { shiftDateStr } from '../../lib/date';
 import type { TodoItemRow } from '../../lib/todo/todo';
 
@@ -24,237 +20,89 @@ export interface ContextMenuProps {
   onDuplicate: () => void;
 }
 
-export default function ContextMenu({
-  x,
-  y,
-  item,
-  today,
-  sections,
-  onClose,
-  onDelete,
-  onSetDueDate,
-  onMoveSection,
-  onEditStart,
-  onSetPriority,
-  onDuplicate,
-}: ContextMenuProps) {
+export default function ContextMenu({ x, y, item, today, sections, onClose, onDelete, onSetDueDate, onMoveSection, onEditStart, onSetPriority, onDuplicate }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
+  // Keyboard openings stay instant; pointer openings communicate the trigger's location.
+  const [pointerOpening] = useState(() => !document.activeElement?.matches(':focus-visible'));
+  const width = Math.min(288, window.innerWidth - 16);
+  const left = Math.max(8, Math.min(x, window.innerWidth - width - 8));
+  const top = Math.max(8, Math.min(y, window.innerHeight - 430));
 
-  useEffect(() => {
-    const close = (e: MouseEvent | TouchEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+  useLayoutEffect(() => {
+    const panel = ref.current;
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    if (panel) {
+      const fittedTop = Math.max(8, Math.min(y, window.innerHeight - panel.offsetHeight - 8));
+      panel.style.top = `${fittedTop}px`;
+      panel.style.transformOrigin = `${Math.max(0, x - left)}px ${Math.max(0, y - fittedTop)}px`;
+    }
+    panel?.querySelector<HTMLButtonElement>('button')?.focus();
+    const closeOutside = (event: PointerEvent) => {
+      if (panel && !panel.contains(event.target as Node)) onClose();
     };
-    const closeKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+    const navigate = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        onClose();
+        return;
+      }
+      if (!(event.target instanceof Node) || !panel?.contains(event.target)) return;
+      const controls = Array.from(panel.querySelectorAll<HTMLElement>('button:not(:disabled), select:not(:disabled)'));
+      const index = controls.indexOf(document.activeElement as HTMLElement);
+      if (event.key === 'Tab') {
+        event.preventDefault();
+        controls[(index + (event.shiftKey ? -1 : 1) + controls.length) % controls.length]?.focus();
+      }
+      // Native selects retain their own arrow-key interaction.
+      if (event.target instanceof HTMLSelectElement) return;
+      if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+        event.preventDefault();
+        const next = event.key === 'Home' ? 0 : event.key === 'End' ? controls.length - 1
+          : (index + (event.key === 'ArrowDown' ? 1 : -1) + controls.length) % controls.length;
+        controls[next]?.focus();
+      }
     };
-    const t = setTimeout(() => {
-      document.addEventListener('mousedown', close);
-      document.addEventListener('touchstart', close);
-      document.addEventListener('keydown', closeKey);
-    }, 10);
+    document.addEventListener('pointerdown', closeOutside);
+    document.addEventListener('keydown', navigate, true);
     return () => {
-      clearTimeout(t);
-      document.removeEventListener('mousedown', close);
-      document.removeEventListener('touchstart', close);
-      document.removeEventListener('keydown', closeKey);
+      document.removeEventListener('pointerdown', closeOutside);
+      document.removeEventListener('keydown', navigate, true);
+      if (document.activeElement === document.body || panel?.contains(document.activeElement)) trigger?.focus();
     };
-  }, [onClose]);
+  }, [onClose, x, y, left]);
 
-  // Keep menu inside viewport
-  const isNearRightEdge = typeof window !== 'undefined' && x > window.innerWidth - 440;
-  const left = Math.max(8, Math.min(x, window.innerWidth - 248));
-  const top = Math.max(8, Math.min(y, window.innerHeight - 420));
+  const act = (action: () => void) => { action(); onClose(); };
+  const rowClass = 'todo-instant flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left font-medium hover:bg-surface-2 focus-visible:shadow-focus';
+  const selectClass = 'todo-instant mt-1 h-11 w-full rounded-lg border border-border-custom bg-surface-solid px-3 text-sm text-text-primary focus-visible:shadow-focus';
 
-  // Helper for tomorrow
-  const getTomorrowDate = () => shiftDateStr(today, 1);
-
-  // Helper for next weekend (Saturday)
-  const getNextWeekend = () => {
-    const [y_val, m_val, d_val] = today.split('-').map(Number);
-    const date = new Date(Date.UTC(y_val, m_val - 1, d_val));
-    const day = date.getUTCDay(); // 0 is Sunday, 6 is Saturday
-    const daysToAdd = day === 0 ? 6 : 6 - day + (day === 6 ? 7 : 0);
-    return shiftDateStr(today, daysToAdd);
-  };
-
-  return (
-    <div
-      ref={ref}
-      role="menu"
-      style={{ left, top }}
-      className="fixed z-[10000] min-w-[230px] max-h-[420px] w-60 overflow-y-auto rounded-2xl border border-border-custom bg-surface/95 p-1.5 shadow-2xl backdrop-blur-xl flex flex-col gap-0.5 text-sm text-text-secondary select-none"
-    >
-      {/* 1. Edytuj */}
-      <Pressable
-        onClick={() => {
-          onEditStart();
-          onClose();
-        }}
-        className="flex w-full items-center justify-between px-3 py-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] transition-colors cursor-pointer font-semibold"
-      >
-        <div className="flex items-center gap-2.5">
-          <Pencil size={14} className="text-text-muted/60" />
-          <span>Edytuj</span>
-        </div>
-        <span className="text-2xs text-text-muted/40 font-mono tracking-wider">Ctrl E</span>
-      </Pressable>
-
-      <div className="mx-2 my-0.5 border-t border-border-custom/40" />
-
-      {/* 2. Termin picker container */}
-      <div className="px-3 py-1.5 flex flex-col gap-1.5">
-        <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-text-muted/50">
-          <span>Termin</span>
-          <span className="font-mono">T</span>
-        </div>
-        <div className="flex gap-1">
-          {/* Dziś */}
-          <Pressable
-            onClick={() => {
-              onSetDueDate(today);
-              onClose();
-            }}
-            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 ui-interactive cursor-pointer"
-            title="Dziś"
-          >
-            <Calendar size={14} className="text-success" />
-          </Pressable>
-          {/* Jutro */}
-          <Pressable
-            onClick={() => {
-              onSetDueDate(getTomorrowDate());
-              onClose();
-            }}
-            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 ui-interactive cursor-pointer"
-            title="Jutro"
-          >
-            <Sun size={14} className="text-warning" />
-          </Pressable>
-          {/* Następny weekend */}
-          <Pressable
-            onClick={() => {
-              onSetDueDate(getNextWeekend());
-              onClose();
-            }}
-            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 ui-interactive cursor-pointer"
-            title="Następny weekend"
-          >
-            <CalendarDays size={14} className="text-info" />
-          </Pressable>
-          {/* Wyczyść termin */}
-          <Pressable
-            onClick={() => {
-              onSetDueDate(null);
-              onClose();
-            }}
-            className="flex-1 h-8 rounded-lg border border-border-custom/80 flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] hover:border-text-primary/10 ui-interactive cursor-pointer"
-            title="Brak terminu"
-          >
-            <MoreHorizontal size={14} className="text-text-muted/60" />
-          </Pressable>
-        </div>
+  return createPortal(
+    <div ref={ref} role="dialog" aria-label={`Opcje zadania: ${item.title}`} data-motion={pointerOpening ? 'pointer' : 'keyboard'}
+      style={{ left, top, transformOrigin: `${Math.max(0, x - left)}px ${Math.max(0, y - top)}px` }}
+      className="todo-action-menu fixed overflow-y-auto rounded-2xl border border-border-custom bg-surface p-2 shadow-xl text-sm text-text-primary">
+      <Pressable onClick={() => act(onEditStart)} className={rowClass}><Pencil size={17} aria-hidden="true" />Edytuj zadanie</Pressable>
+      <div className="my-2 border-t border-border-custom" />
+      <p className="flex items-center gap-2 px-3 text-xs font-medium text-text-secondary"><Calendar size={14} aria-hidden="true" />Termin</p>
+      <div className="mt-1 grid grid-cols-2 gap-1">
+        <Pressable onClick={() => act(() => onSetDueDate(today))} className={rowClass}>Dzisiaj</Pressable>
+        <Pressable onClick={() => act(() => onSetDueDate(shiftDateStr(today, 1)))} className={rowClass}>Jutro</Pressable>
       </div>
-
-      <div className="mx-2 my-0.5 border-t border-border-custom/40" />
-
-      {/* 3. Priorytet picker container */}
-      <div className="px-3 py-1.5 flex flex-col gap-1.5">
-        <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-text-muted/50">
-          <span>Priorytet</span>
-          <span className="font-mono">Y</span>
-        </div>
-        <div className="flex gap-1">
-          {['urgent', 'high', 'normal', 'low'].map((p) => {
-            const active = item.priority === p;
-            const flagColor = p === 'urgent' ? 'text-danger' : p === 'high' ? 'text-warning' : p === 'normal' ? 'text-info' : 'text-text-muted/40';
-            const borderActive = active ? 'border-primary bg-primary/5' : 'border-border-custom/80';
-            return (
-              <Pressable
-                key={p}
-                onClick={() => {
-                  onSetPriority(p);
-                  onClose();
-                }}
-                className={`flex-1 h-8 rounded-lg border ${borderActive} flex items-center justify-center hover:bg-text-primary/[0.04] hover:border-text-primary/10 ui-interactive cursor-pointer`}
-                title={p === 'urgent' ? 'P1' : p === 'high' ? 'P2' : p === 'normal' ? 'P3' : 'P4'}
-              >
-                <Flag size={14} className={flagColor} />
-              </Pressable>
-            );
-          })}
-        </div>
+      <Pressable onClick={() => act(() => onSetDueDate(null))} className={`${rowClass} text-text-secondary`}>Usuń termin</Pressable>
+      <div className="grid gap-3 border-y border-border-custom px-3 py-3 my-2">
+        <label className="text-xs font-medium text-text-secondary">Priorytet
+          <ControlSelect value={item.priority} onChange={e => act(() => onSetPriority(e.target.value))} className={selectClass}>
+            <option value="urgent">P1 · Pilne</option><option value="high">P2 · Ważne</option>
+            <option value="normal">P3 · Normalne</option><option value="low">P4 · Niskie</option>
+          </ControlSelect>
+        </label>
+        <label className="text-xs font-medium text-text-secondary">Przenieś do sekcji
+          <ControlSelect value={item.section_id ?? ''} onChange={e => act(() => onMoveSection(e.target.value || null))} className={selectClass}>
+            <option value="">Skrzynka</option>{sections.map(section => <option key={section.id} value={section.id}>{section.name}</option>)}
+          </ControlSelect>
+        </label>
       </div>
-
-      <div className="mx-2 my-0.5 border-t border-border-custom/40" />
-
-      {/* 4. Przenieś do, Duplikuj */}
-      <div className="relative group/submenu">
-        <Pressable className="flex w-full items-center justify-between px-3 py-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] transition-colors cursor-pointer font-semibold">
-          <div className="flex items-center gap-2.5">
-            <FolderInput size={14} className="text-text-muted/60" />
-            <span>Przenieś do...</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="text-2xs text-text-muted/40 font-mono tracking-wider">V</span>
-            <ChevronRight size={11} className="text-text-muted/45" />
-          </div>
-        </Pressable>
-
-        {/* Submenu for sections picker */}
-        <div className={`absolute ${isNearRightEdge ? 'right-full mr-1' : 'left-full ml-1'} top-0 hidden group-hover/submenu:flex flex-col bg-surface border border-border-custom rounded-2xl p-1 shadow-2xl min-w-[160px] max-h-[200px] overflow-y-auto`}>
-          <Pressable
-            onClick={() => {
-              onMoveSection(null);
-              onClose();
-            }}
-            className="flex w-full items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs font-semibold hover:bg-text-primary/[0.04] text-text-secondary hover:text-text-primary cursor-pointer"
-          >
-            <span>📥 Skrzynka</span>
-          </Pressable>
-          {sections.map((s) => (
-            <Pressable
-              key={s.id}
-              onClick={() => {
-                onMoveSection(s.id);
-                onClose();
-              }}
-              className="flex w-full items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs font-semibold hover:bg-text-primary/[0.04] text-text-secondary hover:text-text-primary cursor-pointer"
-            >
-              <span>📂 {s.name}</span>
-            </Pressable>
-          ))}
-        </div>
-      </div>
-
-      <Pressable
-        onClick={() => {
-          onDuplicate();
-          onClose();
-        }}
-        className="flex w-full items-center justify-between px-3 py-2 rounded-xl text-text-secondary hover:text-text-primary hover:bg-text-primary/[0.04] transition-colors cursor-pointer font-semibold"
-      >
-        <div className="flex items-center gap-2.5">
-          <Copy size={14} className="text-text-muted/60" />
-          <span>Duplikuj zadanie</span>
-        </div>
-      </Pressable>
-
-      <div className="mx-2 my-0.5 border-t border-border-custom/40" />
-
-      {/* 5. Usuń */}
-      <Pressable
-        onClick={() => {
-          onDelete();
-          onClose();
-        }}
-        className="flex w-full items-center justify-between px-3 py-2 rounded-xl text-danger hover:bg-danger/10 transition-colors cursor-pointer font-semibold"
-      >
-        <div className="flex items-center gap-2.5">
-          <Trash2 size={14} className="text-danger" />
-          <span>Usuń</span>
-        </div>
-        <span className="text-2xs text-danger/40 font-mono tracking-wider">↑ Usuń</span>
-      </Pressable>
-    </div>
+      <Pressable onClick={() => act(onDuplicate)} className={rowClass}><Copy size={17} aria-hidden="true" />Duplikuj zadanie</Pressable>
+      <Pressable onClick={() => act(onDelete)} className={`${rowClass} text-danger hover:bg-danger/10`}><Trash2 size={17} aria-hidden="true" />Usuń zadanie</Pressable>
+    </div>, document.body,
   );
 }
