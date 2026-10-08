@@ -5,6 +5,7 @@ import WorkspaceNavigation from '../shared/WorkspaceNavigation';
 import type { WorkspaceDestination } from '../shared/WorkspaceNavigation';
 import WorkspaceSidebar from '../shared/WorkspaceSidebar';
 import SidebarSection from '../shared/SidebarSection';
+import { useSidebar } from '../ui/sidebar';
 
 export type TodoNavDest = 'overview' | 'inbox' | 'today' | 'upcoming' | 'all' | 'flagged' | 'completed';
 
@@ -47,6 +48,17 @@ export default function TodoSidebar({
   const [newName, setNewName] = useState('');
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameVal, setRenameVal] = useState('');
+  const { setOpenMobile } = useSidebar();
+
+  const selectDestination = (destination: TodoNavDest) => {
+    onNavDest(destination);
+    setOpenMobile(false);
+  };
+
+  const selectSection = (id: string) => {
+    onSelectSection(id);
+    setOpenMobile(false);
+  };
 
   const commitAdd = () => {
     const n = newName.trim();
@@ -62,7 +74,7 @@ export default function TodoSidebar({
   };
 
   return (
-    <WorkspaceSidebar collapsed={collapsed} onCollapse={onToggleCollapse} className="gap-3">
+    <WorkspaceSidebar collapsed={collapsed} onCollapse={onToggleCollapse} className="gap-3" provideContext={false} mobileTitle="Zadania">
       {/* Profile Header */}
       <div className="hidden">
         <div className="flex items-center gap-2 cursor-pointer hover:bg-text-primary/[0.04] p-1 rounded-lg transition-colors">
@@ -90,7 +102,8 @@ export default function TodoSidebar({
         <WorkspaceNavigation
           active="todo"
           onNavigate={(destination) => {
-            if (destination === 'todo') onNavDest('overview');
+            if (destination === 'todo') selectDestination('overview');
+            else setOpenMobile(false);
             onNavigateTo?.(destination);
           }}
         />
@@ -106,7 +119,7 @@ export default function TodoSidebar({
             icon: <Inbox size={14} />,
             count: inboxCount,
             active: navDest === 'inbox',
-            onClick: () => onNavDest('inbox'),
+            onClick: () => selectDestination('inbox'),
           },
           {
             id: 'today',
@@ -114,7 +127,7 @@ export default function TodoSidebar({
             icon: <CalendarDays size={14} />,
             count: todayCount,
             active: navDest === 'today',
-            onClick: () => onNavDest('today'),
+            onClick: () => selectDestination('today'),
           },
           {
             id: 'upcoming',
@@ -122,7 +135,7 @@ export default function TodoSidebar({
             icon: <CalendarClock size={14} />,
             count: upcomingCount,
             active: navDest === 'upcoming',
-            onClick: () => onNavDest('upcoming'),
+            onClick: () => selectDestination('upcoming'),
           },
         ]}
       />
@@ -140,7 +153,7 @@ export default function TodoSidebar({
           id: s.id,
           label: s.name,
           active: navDest === 'overview' && activeSectionId === s.id,
-          onClick: () => onSelectSection(s.id),
+          onClick: () => selectSection(s.id),
           editing: renamingId === s.id ? (
             <ControlInput
               autoFocus

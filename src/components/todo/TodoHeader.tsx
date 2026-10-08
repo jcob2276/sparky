@@ -2,6 +2,7 @@ import { Pressable } from '../ui/ControlPrimitives';
 import { Bell, Kanban, LayoutGrid, ListTodo, PanelLeft, Plus } from 'lucide-react';
 import { WorkspaceHeader } from '../shared/WorkspaceHeader';
 import { useTodoContext } from './context/TodoContext';
+import { SidebarTrigger } from '../ui/sidebar';
 
 export type TodoViewMode = 'lista' | 'eisenhower' | 'kanban';
 
@@ -35,11 +36,14 @@ export default function TodoHeader({
       <WorkspaceHeader
         title="Zadania"
         onBack={onBack}
-        leading={sidebarCollapsed && (
-          <Pressable variant="ghost" size="sm" onClick={() => setSidebarCollapsed(false)} aria-label="Rozwiń panel boczny">
-            <PanelLeft size={16} />
-          </Pressable>
-        )}
+        leading={<>
+          <SidebarTrigger className="!h-11 !w-11 md:hidden" aria-label="Otwórz nawigację zadań" />
+          {sidebarCollapsed && (
+            <Pressable variant="ghost" size="sm" onClick={() => setSidebarCollapsed(false)} aria-label="Rozwiń panel boczny" className="hidden md:inline-flex">
+              <PanelLeft size={16} />
+            </Pressable>
+          )}
+        </>}
         actions={
           <div className="flex items-center gap-2">
             {onQuickAdd && (

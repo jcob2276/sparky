@@ -21,6 +21,7 @@ import TodoSearchBar from './TodoSearchBar';
 import TodoListView from './TodoListView';
 import { useTodoViewSwipe } from './hooks/useTodoViewSwipe';
 import { isStudySubject } from '../../lib/todo/studySubjects';
+import { SidebarProvider } from '../ui/sidebar';
 
 function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?: (dest: string) => void }) {
   const todoData = useTodoContext();
@@ -108,6 +109,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
   }
 
   return (
+    <SidebarProvider open={!sidebarCollapsed} onOpenChange={open => setSidebarCollapsed(!open)}>
     <div className="todoist-theme flex h-dvh overflow-hidden bg-background text-text-primary">
       {draggingItem && <DragGhost item={draggingItem} posRef={dragPosRef} />}
 
@@ -201,6 +203,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
         />
       )}
     </div>
+    </SidebarProvider>
   );
 }
 
