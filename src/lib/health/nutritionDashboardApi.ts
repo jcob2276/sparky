@@ -13,7 +13,7 @@ export async function fetchNutritionDashboardData(input: {
       .from('nutrition_targets')
       .select('target_kcal, protein_floor_g, verdict, forecast_30d_weight_kg, forecast_60d_weight_kg, forecast_90d_weight_kg, forecast_30d_bf_pct, forecast_60d_bf_pct, forecast_90d_bf_pct, days_to_goal_est, adaptive_correction_kcal')
       .eq('user_id', userId)
-      .order('date', { ascending: false })
+      .eq('date', today)
       .limit(1)
       .maybeSingle(),
     supabase
@@ -35,6 +35,7 @@ export async function fetchNutritionDashboardData(input: {
       .gte('date', calibrationSince).not('weight', 'is', null).order('date', { ascending: true }),
     fetchNutritionDayReviews(userId, calibrationSince),
   ]);
+  for (const result of [targetRes,nutritionRes,entriesRes,calibrationRes,weightsRes]) if (result.error) throw result.error;
   return { targetRes, nutritionRes, entriesRes, calibrationRes, weightsRes, dayReviews };
 }
 

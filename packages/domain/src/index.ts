@@ -4,6 +4,8 @@ export * from './training/activityProvenance.ts';
 export * from './training/healthGoals.ts';
 export * from './training/planValidation.ts';
 export * from './training/coachDecision.ts';
+export * from './training/nutritionCalibration.ts';
+export * from './training/mealPlan.ts';
 export * from './correlations.ts';
 export * from './fitness.ts';
 export * from './stats.ts';

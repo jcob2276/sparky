@@ -24,8 +24,9 @@ export default function WeeklyNutritionPulse({
         rows: data.rows,
         proteinGoal: data.proteinGoal,
         kcalTarget: data.kcalTarget,
+        completeDates: data.completeDates,
       }),
-    [data.rows, data.proteinGoal, data.kcalTarget],
+    [data.rows, data.proteinGoal, data.kcalTarget, data.completeDates],
   );
 
   const needsAttention =
@@ -38,7 +39,7 @@ export default function WeeklyNutritionPulse({
     (pulse.avgQuality != null && pulse.avgQuality < 50);
 
   const proteinPct =
-    pulse.avgProtein != null && pulse.proteinGoal > 0
+    pulse.avgProtein != null && pulse.proteinGoal != null && pulse.proteinGoal > 0
       ? Math.min(100, Math.round((pulse.avgProtein / pulse.proteinGoal) * 100))
       : 0;
 
@@ -60,7 +61,7 @@ export default function WeeklyNutritionPulse({
           </Badge>
         ) : (
           <Badge variant="tag" color="var(--color-success)" className="shrink-0">
-            <CheckCircle2 size={12} className="mr-1 inline" /> Ok
+            <CheckCircle2 size={12} className="mr-1 inline" /> {pulse.proteinGoal == null || pulse.kcalTarget == null ? 'Brak celu' : 'Ok'}
           </Badge>
         )}
       </div>
@@ -77,7 +78,7 @@ export default function WeeklyNutritionPulse({
             />
           ))}
         </div>
-        <span className="text-2xs font-bold text-text-muted">{pulse.loggedDays}/7 dni</span>
+        <span className="text-2xs font-bold text-text-muted">{pulse.loggedDays}/7 pełnych dni</span>
       </div>
 
       {/* Protein spotlight */}
@@ -96,14 +97,14 @@ export default function WeeklyNutritionPulse({
               !pulse.proteinOnTrack ? 'bg-warning/15 text-warning' : 'bg-success/15 text-success'
             }`}
           >
-            {proteinPct}% celu ({pulse.proteinGoal}g)
+            {pulse.proteinGoal == null ? 'Brak aktualnego celu' : `${proteinPct}% celu (${pulse.proteinGoal}g)`}
           </span>
         </div>
 
         <div className="flex items-baseline justify-between">
           <p className="text-2xl font-black tracking-tight text-text-primary">
             {pulse.avgProtein == null ? '—' : `${pulse.avgProtein}`}
-            <span className="text-sm font-bold text-text-muted ml-1">/ {pulse.proteinGoal} g</span>
+            <span className="text-sm font-bold text-text-muted ml-1">/ {pulse.proteinGoal ?? '—'} g</span>
           </p>
           <div className="text-right">
             <p className="text-3xs font-bold uppercase tracking-wider text-text-muted">Śr. Kcal</p>
@@ -111,11 +112,10 @@ export default function WeeklyNutritionPulse({
               {pulse.avgCalories == null ? '—' : `${pulse.avgCalories} kcal`}
               <span
                 className={`text-2xs font-extrabold ml-1 ${
-                  pulse.caloriesDeltaPct > 0 ? 'text-warning' : 'text-text-muted'
+                  (pulse.caloriesDeltaPct ?? 0) > 0 ? 'text-warning' : 'text-text-muted'
                 }`}
               >
-                ({pulse.caloriesDeltaPct > 0 ? '+' : ''}
-                {pulse.caloriesDeltaPct}%)
+                {pulse.caloriesDeltaPct == null ? ' (brak celu)' : ` (${pulse.caloriesDeltaPct > 0 ? '+' : ''}${pulse.caloriesDeltaPct}%)`}
               </span>
             </p>
           </div>
@@ -145,8 +145,8 @@ export default function WeeklyNutritionPulse({
         <div className="flex items-center gap-2 rounded-xl bg-warning/10 border border-warning/20 px-3 py-2 text-xs font-semibold text-warning">
           <AlertCircle size={13} className="shrink-0" />
           <p className="leading-tight">
-            {!pulse.proteinOnTrack
-              ? `Średnio podaż białka (${pulse.avgProtein ?? 0}g) jest poniżej bezpiecznego celu (${pulse.proteinGoal}g).`
+            {pulse.proteinOnTrack === false
+              ? `Średnia z pełnych dni (${pulse.avgProtein ?? 0}g białka) jest poniżej ustalonego celu (${pulse.proteinGoal}g).`
               : pulse.loggedDays < 5
                 ? 'Uzupełnij brakujące dni w dzienniku żywieniowym.'
                 : 'Skoryguj bilans makro na pozostałą część tygodnia.'}

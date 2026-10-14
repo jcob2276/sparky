@@ -6,6 +6,7 @@ import type { Tables } from '../../../lib/database.types';
 import type { OuraNightDetails } from '../../../lib/biometrics/ouraNightDetails';
 import type { OuraContextInsights } from '../../../lib/biometrics/ouraContextInsights';
 import type { CorrelationsData } from '../../../lib/correlationsApi';
+import type { NutritionDayContext } from '../../../lib/health/nutritionContext';
 
 
 export interface OuraHealthHubData {
@@ -25,6 +26,8 @@ export interface OuraHealthHubData {
   todayContext?: OuraContextInsights | null;
   nightContext?: OuraContextInsights | null;
   correlations?: CorrelationsData | null;
+  nutrition?: NutritionDayContext | null;
+  nutritionError?: string | null;
   stravaActivities?: Array<{
     name?: string | null;
     distance?: number | null;
@@ -33,6 +36,12 @@ export interface OuraHealthHubData {
     average_heartrate?: number | null;
     gc_vo2max?: number | null;
     raw_data?: unknown;
+    source?: string | null;
+    sport_type?: string | null;
+    hr_avg?: number | null;
+    hr_max?: number | null;
+    icu_hr_zone_times?: unknown;
+    gc_hr_zones?: unknown;
   }> | null;
 }
 

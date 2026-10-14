@@ -50,9 +50,12 @@ export function useDailyStrainOura(userId: string) {
           .eq('user_id', userId)
           .maybeSingle(),
         supabase
-          .from('strava_activities')
-          .select('gc_vo2max, icu_activity_id, raw_data, name, start_date, distance, moving_time, average_heartrate')
+          .from('strava_activities_clean')
+          .select('gc_vo2max,source,icu_activity_id,icu_hr_zone_times,gc_hr_zones,name,sport_type,start_date,distance,moving_time,hr_avg,hr_max')
           .eq('user_id', userId)
+          .eq('is_oura',false)
+          .gte('start_date',recentStart)
+          .lte('start_date',new Date().toISOString())
           .order('start_date', { ascending: false })
           .limit(20),
       ]);
@@ -81,31 +84,8 @@ export function useDailyStrainOura(userId: string) {
             externalVo2Source = 'Garmin Connect';
             break;
           }
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const raw = act.raw_data as any;
-          if (raw && typeof raw === 'object') {
-            const v = raw.icu_vo2max ?? raw.vo2max ?? raw.garmin_vo2max ?? raw.vo2_max ?? raw.vo2Max;
-            if (v != null && Number(v) > 0) {
-              garminVo2Max = Number(v);
-              externalVo2Source = act.icu_activity_id ? 'Intervals.icu' : 'Garmin Connect';
-              break;
-            }
-          }
         }
 
-        // If no explicit VO2Max field is stored, estimate from real Intervals.icu running threshold pace/HR (lthr: 175)
-        if (!garminVo2Max) {
-          const runAct = stravaRows.find((a) => a.name?.toLowerCase().includes('bieganie') || // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (a.raw_data as any)?.type === 'Run');
-          if (runAct) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const raw = runAct.raw_data as any;
-            if (raw && raw.lthr) {
-              garminVo2Max = 48.5;
-              externalVo2Source = 'Garmin Connect / Raport Biegowy';
-            }
-          }
-        }
       }
 
       return {

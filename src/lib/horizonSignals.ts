@@ -2,11 +2,11 @@
 export function needsNutritionCorrection(input: {
   loggedDays: number;
   averageProtein: number | null;
-  proteinGoal: number;
-  caloriesDeltaPct: number;
+  proteinGoal: number | null;
+  caloriesDeltaPct: number | null;
 }): boolean {
-  const proteinOnTrack = input.averageProtein !== null && input.averageProtein >= input.proteinGoal * 0.9;
-  return input.loggedDays < 5 || !proteinOnTrack || input.caloriesDeltaPct > 8;
+  const proteinBelow = input.averageProtein != null && input.proteinGoal != null && input.averageProtein < input.proteinGoal * 0.9;
+  return input.loggedDays < 5 || proteinBelow || (input.caloriesDeltaPct != null && input.caloriesDeltaPct > 8);
 }
 
 export function needsRecoveryCorrection(input: {

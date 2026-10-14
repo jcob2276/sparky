@@ -10,6 +10,7 @@ describe('buildWeeklyNutritionPulse', () => {
     const pulse = buildWeeklyNutritionPulse({
       proteinGoal: 150,
       kcalTarget: 1800,
+      completeDates:['2026-07-14','2026-07-16'],
       rows: [
         {
           date: '2026-07-14',

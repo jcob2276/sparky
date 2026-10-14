@@ -20,10 +20,10 @@ export type WeeklyNutritionPulseData = {
   avgSugar: number | null;
   avgQuality: number | null;
   avgInsulin: number | null;
-  caloriesDeltaPct: number;
-  proteinGoal: number;
-  kcalTarget: number;
-  proteinOnTrack: boolean;
+  caloriesDeltaPct: number | null;
+  proteinGoal: number | null;
+  kcalTarget: number | null;
+  proteinOnTrack: boolean | null;
 };
 
 function mean(values: number[]): number | null {
@@ -39,18 +39,16 @@ function round1(value: number | null): number | null {
   return value == null ? null : Math.round(value * 10) / 10;
 }
 
-function isLoggedDay(row: NutritionDayRow): boolean {
-  return (row.calories ?? 0) > 0 || (row.protein ?? 0) > 0;
-}
-
 export function buildWeeklyNutritionPulse(input: {
   rows: NutritionDayRow[];
-  proteinGoal: number;
-  kcalTarget: number;
+  proteinGoal: number | null;
+  kcalTarget: number | null;
+  completeDates: string[];
 }): WeeklyNutritionPulseData {
-  const logged = input.rows.filter(isLoggedDay);
-  const avgCalories = round0(mean(logged.flatMap((r) => (r.calories == null || r.calories <= 0 ? [] : [r.calories]))));
-  const avgProtein = round0(mean(logged.flatMap((r) => (r.protein == null || r.protein <= 0 ? [] : [r.protein]))));
+  const complete = new Set(input.completeDates);
+  const logged = input.rows.filter(row=>complete.has(row.date));
+  const avgCalories = round0(mean(logged.flatMap((r) => (r.calories == null ? [] : [r.calories]))));
+  const avgProtein = round0(mean(logged.flatMap((r) => (r.protein == null ? [] : [r.protein]))));
   const avgCarbs = round0(mean(logged.flatMap((r) => (r.carbs == null ? [] : [r.carbs]))));
   const avgFat = round0(mean(logged.flatMap((r) => (r.fat == null ? [] : [r.fat]))));
   const avgFiber = round1(mean(logged.flatMap((r) => (r.fiber == null ? [] : [r.fiber]))));
@@ -59,11 +57,11 @@ export function buildWeeklyNutritionPulse(input: {
   const avgInsulin = round0(mean(logged.flatMap((r) => (r.insulin_load == null ? [] : [r.insulin_load]))));
 
   const caloriesDeltaPct =
-    avgCalories != null && input.kcalTarget > 0
+    avgCalories != null && input.kcalTarget != null && input.kcalTarget > 0
       ? Math.round(((avgCalories - input.kcalTarget) / input.kcalTarget) * 100)
-      : 0;
+      : null;
 
-  const proteinOnTrack = avgProtein !== null && avgProtein >= input.proteinGoal * 0.9;
+  const proteinOnTrack = avgProtein == null || input.proteinGoal == null ? null : avgProtein >= input.proteinGoal * 0.9;
 
   return {
     loggedDays: logged.length,
@@ -84,9 +82,10 @@ export function buildWeeklyNutritionPulse(input: {
 
 export function nutritionPulseHeadline(data: WeeklyNutritionPulseData): string {
   if (data.loggedDays < 5) return 'Uzupełnij brakujące dni';
-  if (!data.proteinOnTrack) return 'Białko poniżej bezpiecznego zakresu';
-  if (data.caloriesDeltaPct > 8) return 'Budżet kcal przekroczony';
-  if (data.caloriesDeltaPct < -20) return 'Duży deficyt względem celu';
+  if (data.proteinGoal == null || data.kcalTarget == null) return 'Uzupełnij aktualne cele żywienia';
+  if (data.proteinOnTrack === false) return 'Białko poniżej ustalonego celu';
+  if (data.caloriesDeltaPct != null && data.caloriesDeltaPct > 8) return 'Zapisane kcal powyżej celu';
+  if (data.caloriesDeltaPct != null && data.caloriesDeltaPct < -20) return 'Zapisane kcal poniżej celu';
   if (data.avgQuality != null && data.avgQuality < 50) return 'Jakość diety wymaga uwagi';
   return 'Przebieg zgodny z planem';
 }

@@ -7,7 +7,8 @@ import { useUserId } from '../../store/useStore';
 import type { Database } from '../../lib/database.types';
 import { auditNutritionDay } from '../../lib/health/nutritionAudit';
 import { calibrateNutrition } from '../../lib/health/nutritionCalibration';
-import { fetchNutritionDashboardData, removeNutritionEntry } from '../../lib/health/nutritionDashboardApi';
+import { removeNutritionEntry } from '../../lib/health/nutritionDashboardApi';
+import { loadNutritionDashboard } from '../../lib/health/nutritionDashboardData';
 
 export type TodayEntry = Database['public']['Tables']['daily_food_entries']['Row'];
 export type DailyNutritionRow = Database['public']['Tables']['daily_nutrition']['Row'];
@@ -38,76 +39,7 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
 
   const query = useQuery({
     queryKey: ['nutrition-data', userId, weeklyCalories],
-    queryFn: async () => {
-      if (!userId) return null;
-      const since = shiftDateStr(todayRaw, -6);
-      const calibrationSince = shiftDateStr(todayRaw, -27);
-      const { targetRes, nutritionRes, entriesRes, calibrationRes, weightsRes, dayReviews } =
-        await fetchNutritionDashboardData({
-          userId, today: todayRaw, since, calibrationSince,
-        });
-
-      const targetRow = targetRes.data;
-      const rows = nutritionRes.data || [];
-      const todayEntries = entriesRes.data || [];
-
-      let proteinGoal = 150;
-      let kcalTarget = 1800;
-      let weeklyBudget = 12600;
-      let forecast = null;
-      let aiSuggestions: string[] = [];
-      let forecastNote: string | null = null;
-
-      if (targetRow?.target_kcal) {
-        kcalTarget = targetRow.target_kcal;
-        weeklyBudget = targetRow.target_kcal * 7;
-      }
-      if (targetRow?.protein_floor_g) {
-        proteinGoal = targetRow.protein_floor_g;
-      }
-      if (targetRow) {
-        forecast = {
-          forecast_30d_weight_kg: targetRow.forecast_30d_weight_kg,
-          forecast_60d_weight_kg: targetRow.forecast_60d_weight_kg,
-          forecast_90d_weight_kg: targetRow.forecast_90d_weight_kg,
-          forecast_30d_bf_pct: targetRow.forecast_30d_bf_pct,
-          forecast_60d_bf_pct: targetRow.forecast_60d_bf_pct,
-          forecast_90d_bf_pct: targetRow.forecast_90d_bf_pct,
-          days_to_goal_est: targetRow.days_to_goal_est,
-          adaptive_correction_kcal: targetRow.adaptive_correction_kcal,
-        };
-      }
-      const verdict = targetRow?.verdict;
-      const verdictObj = verdict && typeof verdict === 'object' && !Array.isArray(verdict)
-        ? (verdict as Record<string, unknown>)
-        : undefined;
-      const suggestions = verdictObj?.food_suggestions;
-      if (Array.isArray(suggestions)) {
-        aiSuggestions = suggestions.filter((s): s is string => typeof s === 'string').slice(0, 3);
-      }
-      if (typeof verdictObj?.forecast_note === 'string') {
-        forecastNote = verdictObj.forecast_note;
-      }
-
-      return {
-        proteinGoal,
-        kcalTarget,
-        weeklyBudget,
-        rows,
-        todayEntries,
-        forecast,
-        aiSuggestions,
-        forecastNote,
-        dayAudit: auditNutritionDay(todayEntries),
-        calibration: calibrateNutrition(
-          calibrationRes.data ?? [],
-          (weightsRes.data ?? [])
-            .filter((point): point is typeof point & { date: string } => typeof point.date === 'string')
-            .map((point) => ({ date: point.date, weight_kg: point.weight })),
-          dayReviews,
-        ),
-      };
-    },
+    queryFn: () => userId ? loadNutritionDashboard(userId,todayRaw) : null,
     enabled: !!userId,
   });
 
@@ -117,9 +49,9 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
     }
   }, [refreshSignal, userId, query]);
 
-  const proteinGoal = query.data?.proteinGoal ?? 150;
-  const kcalTarget = query.data?.kcalTarget ?? 1800;
-  const weeklyBudget = query.data?.weeklyBudget ?? 12600;
+  const proteinGoal = query.data?.proteinGoal ?? null;
+  const kcalTarget = query.data?.kcalTarget ?? null;
+  const weeklyBudget = query.data?.weeklyBudget ?? null;
   const rows = useMemo(() => query.data?.rows ?? [], [query.data?.rows]);
   const todayEntries = useMemo(() => query.data?.todayEntries ?? [], [query.data?.todayEntries]);
   const aiSuggestions = useMemo(() => query.data?.aiSuggestions ?? [], [query.data?.aiSuggestions]);
@@ -166,7 +98,7 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
     return deleteMutation.mutateAsync(id);
   }, [deleteMutation, haptics]);
 
-  const caloriesProgress = weeklyBudget > 0 ? Math.min((weeklyCalories / weeklyBudget) * 100, 100) : 0;
+  const caloriesProgress = weeklyBudget != null && weeklyBudget > 0 ? Math.min((weeklyCalories / weeklyBudget) * 100, 100) : 0;
 
   const chart = useMemo(() => {
     const byDate = new Map(rows.map((r) => [r.date, r]));
@@ -195,9 +127,9 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
   const todayKcalFromEntries = todayEntries.reduce((s, e) => s + (e.calories ?? 0), 0);
   const todayKcal = todayEntries.length > 0 ? Math.round(todayKcalFromEntries) : (todayRow?.calories ?? 0);
   const todayInsulinLoad = todayRow?.insulin_load ?? null;
-  const proteinPct = Math.min((todayProtein / proteinGoal) * 100, 100);
+  const proteinPct = proteinGoal != null && proteinGoal > 0 ? Math.min((todayProtein / proteinGoal) * 100, 100) : null;
   const todayMissingData = todayKcal === 0 && todayProtein === 0;
-  const remainingKcalToday = kcalTarget - todayKcal;
+  const remainingKcalToday = kcalTarget == null ? null : kcalTarget - todayKcal;
 
   const todayMacros = useMemo(() => {
     let p = 0, c = 0, f = 0;
@@ -256,6 +188,7 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
     userId,
     todayRaw,
     haptics,
+    completeDates: query.data?.completeDates ?? [],
     proteinGoal,
     kcalTarget,
     weeklyBudget,
@@ -298,3 +231,4 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
     loading,
   };
 }
+

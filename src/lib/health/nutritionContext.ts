@@ -28,6 +28,9 @@ export interface NutritionDayContext extends TodayNutritionSnapshot {
   forecastBf90d: number | null;
   daysToGoalEst: number | null;
   maintenanceKcal: number | null;
+  foodDataState: 'missing' | 'logged';
+  foodComplete: boolean;
+  targetUpdatedAt: string | null;
 }
 
 /** Implied goal weight from constant lean mass + target BF% (same model as nutrition-coach). */
@@ -98,7 +101,7 @@ function buildTrainingLabel(runKmToday: number, gymToday: boolean, addBackKcal: 
   if (runKmToday >= 1) return `Bieg · ${runKmToday.toFixed(1)} km`;
   if (gymToday) return 'Siła dziś';
   if (addBackKcal >= 80) return 'Aktywny dzień (Oura)';
-  return 'Dzień lekki — deficyt tu';
+  return 'Brak zapisanego treningu — sprawdź plan dnia';
 }
 
 async function ensureNutritionTargetForDate(
@@ -137,7 +140,7 @@ export async function fetchNutritionDayContext(
 
   const { fromISO: dayStart, toISO: dayEnd } = warsawDayBoundsISO(date);
 
-  const [dayRow, targetRow, profileRow, stravaRes, sessionsRes] = await Promise.all([
+  const [dayRow, targetRow, profileRow, stravaRes, sessionsRes, review] = await Promise.all([
     supabase
       .from('daily_nutrition')
       .select('calories, protein, avg_food_quality, food_quality_analysis')
@@ -147,7 +150,7 @@ export async function fetchNutritionDayContext(
     supabase
       .from('nutrition_targets')
       .select(
-        'target_kcal, protein_floor_g, deficit_kcal, est_maintenance_kcal, weight_trend_kg_per_week, forecast_90d_weight_kg, forecast_90d_bf_pct, days_to_goal_est, inputs, verdict',
+        'target_kcal, protein_floor_g, deficit_kcal, est_maintenance_kcal, weight_trend_kg_per_week, forecast_90d_weight_kg, forecast_90d_bf_pct, days_to_goal_est, inputs, verdict, updated_at',
       )
       .eq('user_id', userId)
       .eq('date', date)
@@ -161,6 +164,7 @@ export async function fetchNutritionDayContext(
       .from('strava_activities_clean')
       .select('sport_type, distance, start_date')
       .eq('user_id', userId)
+      .eq('is_oura', false)
       .gte('start_date', dayStart)
       .lte('start_date', dayEnd),
     supabase
@@ -168,28 +172,17 @@ export async function fetchNutritionDayContext(
       .select('id, exercise_logs(exercise_name, muscle_tags)')
       .eq('user_id', userId)
       .eq('date', date),
+    supabase.from('nutrition_day_reviews').select('completeness').eq('user_id',userId).eq('date',date).maybeSingle(),
   ]);
-
-  let target = targetRow.data;
-  if (!target) {
-    const { data: latest } = await supabase
-      .from('nutrition_targets')
-      .select(
-        'target_kcal, protein_floor_g, deficit_kcal, est_maintenance_kcal, weight_trend_kg_per_week, forecast_90d_weight_kg, forecast_90d_bf_pct, days_to_goal_est, inputs, verdict',
-      )
-      .eq('user_id', userId)
-      .order('date', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    target = latest;
-  }
+  for (const result of [dayRow,targetRow,profileRow,stravaRes,sessionsRes,review]) if (result.error) throw result.error;
+  const target = targetRow.data;
 
   const inputs = (target?.inputs ?? {}) as SignalsInputs;
   const verdictParsed = parseVerdict(target?.verdict);
 
   let runKmToday = 0;
   for (const a of stravaRes.data ?? []) {
-    if (!['Run', 'TrailRun', 'VirtualRun', 'Hike'].includes(a.sport_type ?? '')) continue;
+    if (!['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type ?? '')) continue;
     if (!a.start_date || stravaDay(a.start_date) !== date) continue;
     runKmToday += (Number(a.distance) || 0) / 1000;
   }
@@ -245,6 +238,9 @@ export async function fetchNutritionDayContext(
     forecastBf90d: target?.forecast_90d_bf_pct ?? null,
     daysToGoalEst: target?.days_to_goal_est ?? null,
     maintenanceKcal: target?.est_maintenance_kcal ?? null,
+    foodDataState: dayRow.data ? 'logged' : 'missing',
+    foodComplete: review.data?.completeness === 'complete',
+    targetUpdatedAt: target?.updated_at ?? null,
   };
 }
 

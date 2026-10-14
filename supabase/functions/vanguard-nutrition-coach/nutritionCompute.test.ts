@@ -45,19 +45,15 @@ Deno.test('computeNutritionSignals — standard stable inputs', () => {
   // protein floor: 75kg * 2.0 = 150g
   assertEquals(proteinFloor, 150);
 
-  // ouraAdj = avgTdeeOura * 0.88 = 2500 * 0.88 = 2200
-  // maintFromLog = avgIntake - deficit (0 surplus) = 2000
-  // flat = true, underlogGap = 2200 - 2000 = 200. ouraAdj - maintFromLog = 200
-  // since difference <= 200, estMaintenance = (ouraAdj + maintFromLog) / 2 = 2100
-  assertEquals(estMaintenance, 2100);
+  // Only two complete food days: cannot calibrate maintenance from that intake.
+  assertEquals(estMaintenance, 2500);
 
   // targetKcal = estMaintenance - deficitPerDay - adaptiveCorrection + addBack
   // deficitPerDay = targetWeeklyLossKg * 7700 / 7 = 0.35 * 1100 = 385
-  // targetKcal = 2100 - 385 - 0 + 0 = 1715
-  assertEquals(targetKcal, 1715);
+  assertEquals(targetKcal, 2115);
 
   // remaining calculations
-  assertEquals(signals.today.remaining_kcal, 1715 - 1500); // 215
+  assertEquals(signals.today.remaining_kcal, 2115 - 1500);
   assertEquals(signals.today.remaining_protein, 150 - 120); // 30
 });
 
@@ -96,6 +92,16 @@ Deno.test('computeNutritionSignals — weight loss trend and goal estimation', (
 
   // goal: 18% body fat to 14%.
   // 30d forecast weight: 78 + (-1/7)*30 = 78 - 4.28 = 73.7
-  assertEquals(typeof signals.forecast.days_to_goal_est, 'number');
-  assertEquals(signals.forecast.days_to_goal_est! > 0, true);
+  // Two weight points do not establish future lean/fat partition or a BF goal date.
+  assertEquals(signals.forecast.days_to_goal_est, null);
+});
+
+Deno.test('missing weight, energy and incomplete food remain unknown rather than a fictional target', () => {
+  const result = computeNutritionSignals({profile:{goal_body_fat:13},bm:[],oura:[],nutr:[{date:'2026-10-14',calories:800}],dayReviews:[],runs:[],gym:[],todayOura:null,todayNutr:null,medicalContext:null,today:'2026-10-14',targetDate:new Date('2026-10-14T12:00:00Z'),d30:'2026-09-17'});
+  assertEquals(result.targetKcal,null);
+  assertEquals(result.proteinFloor,null);
+  assertEquals(result.avgIntake,null);
+  assertEquals(result.signals.recovery.avg_readiness,null);
+  assertEquals(result.forecast90.weight,null);
+  assertEquals(result.underlogGap,null);
 });

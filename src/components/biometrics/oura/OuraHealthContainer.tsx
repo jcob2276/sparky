@@ -14,6 +14,7 @@ import { OuraHealthView, type OuraSection } from './OuraHealthView';
 import { syncOura, computeDailyStrain } from '../../../lib/syncApi';
 import { notify } from '../../../lib/notify';
 import { biometricsKeys } from '../../../lib/queryKeys';
+import { useFuelingContext } from './useFuelingContext';
 
 export function OuraHealthContainer() {
   const navigate = useNavigate();
@@ -28,6 +29,7 @@ export function OuraHealthContainer() {
   const historyQuery = useOuraHistory30Days(userId ?? '');
   const correlationsQuery = useCorrelationsQuery(userId, false);
   const selectedDate = dailyQuery.data?.date ?? null;
+  const nutritionQuery = useFuelingContext(userId, selectedDate ?? todayStr);
   const nightQuery = useOuraNightDetails(
     userId ?? '',
     selectedDate,
@@ -80,6 +82,8 @@ export function OuraHealthContainer() {
     nightContext: nightContextQuery.data ?? null,
     correlations: correlationsQuery.data ?? null,
     stravaActivities: dailyQuery.data?.stravaRows ?? [],
+    nutrition: nutritionQuery.data ?? null,
+    nutritionError: nutritionQuery.error?.message ?? null,
   };
 
   return (

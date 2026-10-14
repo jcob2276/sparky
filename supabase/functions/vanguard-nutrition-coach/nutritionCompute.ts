@@ -1,15 +1,14 @@
 import { getWarsawDayBoundaries, getWarsawDateString } from "../_shared/time.ts";
 import { fetchMedicalContext } from "../_shared/medicalContext.ts";
 import { fetchHealthCoachContext } from '../_shared/healthCoachContext.ts';
-import { shiftDateStr, type CoachRow, type HealthCoachSource } from '@vanguard/domain';
+import { shiftDateStr, calibrateNutrition, type CoachRow, type HealthCoachSource } from '@vanguard/domain';
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const KCAL_PER_KG = 7700;
-const OURA_CORRECTION = 0.88;
 
 const num = (v: unknown): number | null => (v == null || isNaN(Number(v)) ? null : Number(v));
 const mean = (xs: number[]): number | null => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
-const clean = (rows: any[] | null, key: string) => (rows || []).map((r) => num(r[key])).filter((v): v is number => v != null && v > 0);
+const clean = (rows: CoachRow[], key: string) => rows.map(r => num(r[key])).filter((v): v is number => v != null && v >= 0);
 
 export async function fetchNutritionData(supabase: SupabaseClient, userId: string, today: string) {
   const targetDate = new Date(today + "T12:00:00Z");
@@ -32,92 +31,63 @@ export async function fetchNutritionData(supabase: SupabaseClient, userId: strin
     medicalContext, today, targetDate, d30, context };
 }
 
-export function computeNutritionSignals(data: Awaited<ReturnType<typeof fetchNutritionData>>) {
-  const { profile, bm, oura, nutr, dayReviews, runs, gym, todayOura, todayNutr, medicalContext, today, targetDate, d30 } = data;
-
-  const weights = bm.filter((r: any) => num(r.weight) != null);
-  const latestWeight = weights.length ? num(weights[weights.length - 1].weight)! : null;
-  let weightTrendPerWeek = 0, weightChangeKg = 0, weightDaysSpan = 0;
-  if (weights.length >= 2) { const first = weights[0], last = weights[weights.length - 1]; weightChangeKg = num(last.weight)! - num(first.weight)!; weightDaysSpan = Math.max(1, (new Date(last.date).getTime() - new Date(first.date).getTime()) / 86400000); weightTrendPerWeek = +(weightChangeKg / (weightDaysSpan / 7)).toFixed(2); }
-  const weightForCalc = latestWeight ?? 74.5;
-  const latestWaist = weights.length ? num(bm[bm.length - 1].waist) : null;
-  const latestBelly = bm.length ? num(bm[bm.length - 1].belly) : null;
-
-  const FAT_LOSS_FRACTION = 0.85;
-  const reliableWeightWindow = weightDaysSpan >= 14;
-  const trendKgPerDay = reliableWeightWindow ? weightTrendPerWeek / 7 : 0;
-  const currentBf = num(profile.current_body_fat_est);
-  const fatMassNow = currentBf != null ? weightForCalc * (currentBf / 100) : null;
-  const leanMassNow = fatMassNow != null ? weightForCalc - fatMassNow : null;
-
-  const forecastAt = (days: number) => { const pw = +(weightForCalc + trendKgPerDay * days).toFixed(1); let pbf: number | null = null; if (fatMassNow != null && leanMassNow != null) { const pfm = fatMassNow + trendKgPerDay * FAT_LOSS_FRACTION * days; pbf = pw > 0 ? +((pfm / pw) * 100).toFixed(1) : null; } return { weight: pw, bf: pbf }; };
-  const forecast30 = forecastAt(30), forecast60 = forecastAt(60), forecast90 = forecastAt(90);
-
-  let daysToGoalEst: number | null = null;
-  const goalBf = num(profile.goal_body_fat);
-  if (currentBf != null && goalBf != null && fatMassNow != null && trendKgPerDay < 0 && currentBf > goalBf) { for (let d = 1; d <= 3650; d++) { const f = forecastAt(d); if (f.bf != null && f.bf <= goalBf) { daysToGoalEst = d; break; } } }
-
-  const tdeeArr = clean(oura, "total_calories"), activeArr = clean(oura, "active_calories");
-  const avgTdeeOura = Math.round(mean(tdeeArr) ?? 0), avgActive = Math.round(mean(activeArr) ?? 0);
-  const avgSteps = Math.round(mean(clean(oura, "steps")) ?? 0);
-  const avgSleepRaw = mean(clean(oura, "total_sleep_hours")), avgSleep = avgSleepRaw != null ? +avgSleepRaw.toFixed(2) : null;
-  const avgReadiness = Math.round(mean(clean(oura, "readiness_score")) ?? 0);
-  const avgHrv = Math.round(mean(clean(oura, "hrv_avg")) ?? 0), avgRhr = Math.round(mean(clean(oura, "rhr_avg")) ?? 0);
-
-  const completeDates = new Set((dayReviews || []).map((review: any) => review.date));
-  const completeNutr = nutr.filter((row: any) => completeDates.has(row.date));
-  const intakeArr = clean(completeNutr, "calories"), avgIntake = Math.round(mean(intakeArr) ?? 0), daysLogged = intakeArr.length;
-  const avgProtein = Math.round(mean(clean(completeNutr, "protein")) ?? 0), avgCarbs = Math.round(mean(clean(completeNutr, "carbs")) ?? 0), avgFat = Math.round(mean(clean(completeNutr, "fat")) ?? 0);
-  const avgFiberRaw = mean(clean(completeNutr, "fiber")), avgFiber = avgFiberRaw != null ? +avgFiberRaw.toFixed(1) : null;
-  const intakeStd = intakeArr.length ? Math.sqrt(mean(intakeArr.map((x) => (x - (avgIntake || 0)) ** 2)) ?? 0) : 0;
-  const intakeCv = avgIntake ? +(intakeStd / avgIntake).toFixed(2) : 0;
-
-  const runKm = +(runs.reduce((s: number, r: any) => s + (num(r.distance) || 0), 0) / 1000).toFixed(1);
-  const gymCount = gym.length;
-
-  const ouraAdj = Math.round(avgTdeeOura * OURA_CORRECTION);
-  const dailyWeightSurplusDeficit = reliableWeightWindow ? (weightChangeKg * KCAL_PER_KG / weightDaysSpan) : 0;
-  const maintFromLog = avgIntake ? Math.round(avgIntake - dailyWeightSurplusDeficit) : ouraAdj;
-  const flat = reliableWeightWindow ? Math.abs(weightTrendPerWeek) < 0.15 : true;
-  const underlogGap = Math.max(0, ouraAdj - avgIntake);
-  let estMaintenance: number;
-  if (flat && ouraAdj - maintFromLog > 200) estMaintenance = ouraAdj; else estMaintenance = Math.round((ouraAdj + maintFromLog) / 2);
-
-  const daysToEvent = typeof profile.event_date === 'string' ? Math.round((new Date(profile.event_date).getTime() - new Date(today).getTime()) / 86400000) : null;
-  const inTaper = daysToEvent != null && daysToEvent >= 0 && daysToEvent <= 21;
-  const targetWeeklyLossKg = num(profile.weekly_loss_kg) ?? 0.35;
-  const deficitPerDay = inTaper ? 0 : Math.round(targetWeeklyLossKg * KCAL_PER_KG / 7);
-
-  let adaptiveCorrectionKcal = 0;
-  if (reliableWeightWindow && !inTaper && daysLogged >= 10) {
-    const observedWeeklyLossKg = -weightTrendPerWeek;
-    const lossGapKgPerWeek = targetWeeklyLossKg - observedWeeklyLossKg;
-    adaptiveCorrectionKcal = Math.max(-150, Math.min(150, Math.round(lossGapKgPerWeek * KCAL_PER_KG / 7 * 0.5)));
-  }
-
-  const todayActive = todayOura ? num(todayOura.active_calories) : null;
-  const addBack = (todayActive != null && avgActive) ? Math.min(500, Math.round(Math.max(0, todayActive - avgActive) * 0.5)) : 0;
-  const targetKcal = estMaintenance - deficitPerDay - adaptiveCorrectionKcal + addBack;
-  const proteinFloor = Math.round(weightForCalc * (num(profile.protein_g_per_kg) ?? 2.0));
-  const age = typeof profile.birth_date === 'string' ? Math.floor((targetDate.getTime() - new Date(profile.birth_date).getTime()) / (365.25 * 86400000)) : null;
-
-  const intakeSoFar = todayNutr ? num(todayNutr.calories) : null;
-  const proteinSoFar = todayNutr ? num(todayNutr.protein) : null;
-  const remainingKcal = intakeSoFar != null ? targetKcal - Math.round(intakeSoFar) : targetKcal;
-  const remainingProtein = Math.max(0, proteinFloor - Math.round(proteinSoFar ?? 0));
-
-  return {
-    signals: {
-      profile: { height_cm: num(profile.height_cm), age, sex: profile.sex, goal_body_fat: num(profile.goal_body_fat), current_body_fat_est: num(profile.current_body_fat_est), event_name: profile.event_name, event_date: profile.event_date, days_to_event: daysToEvent, in_taper: inTaper, weekly_loss_kg: num(profile.weekly_loss_kg) },
-      body: { weight: latestWeight, waist: latestWaist, belly: latestBelly, weight_trend_kg_per_week: weightTrendPerWeek, weight_window_days: Math.round(weightDaysSpan) },
-      forecast: { target_weekly_loss_kg: targetWeeklyLossKg, observed_weekly_loss_kg: reliableWeightWindow ? +(-weightTrendPerWeek).toFixed(2) : null, adaptive_correction_kcal: adaptiveCorrectionKcal, forecast_30d: forecast30, forecast_60d: forecast60, forecast_90d: forecast90, days_to_goal_est: daysToGoalEst },
-      energy: { avg_tdee_oura: avgTdeeOura, oura_adjusted: ouraAdj, avg_active: avgActive, avg_intake_logged: avgIntake, maintenance_from_log: maintFromLog, est_maintenance: estMaintenance, underlog_gap_kcal: underlogGap, days_logged_30: daysLogged },
-      macros: { avg_protein: avgProtein, protein_per_kg: +(avgProtein / weightForCalc).toFixed(2), avg_carbs: avgCarbs, avg_fat: avgFat, avg_fiber: avgFiber, intake_cv: intakeCv },
-      activity: { avg_steps: avgSteps, run_km_30d: runKm, runs_30d: runs.length, gym_30d: gymCount },
-      recovery: { avg_sleep_h: avgSleep, avg_readiness: avgReadiness, avg_hrv: avgHrv, avg_rhr: avgRhr },
-      medical_context: medicalContext,
-      today: { date: today, target_kcal: targetKcal, protein_floor_g: proteinFloor, deficit_kcal: deficitPerDay, add_back_kcal: addBack, intake_so_far: intakeSoFar, protein_so_far: proteinSoFar, remaining_kcal: remainingKcal, remaining_protein: remainingProtein, active_so_far: todayActive, steps_so_far: todayOura ? num(todayOura.steps) : null },
-    },
-    forecast30, forecast60, forecast90, daysToGoalEst, estMaintenance, targetKcal, proteinFloor, deficitPerDay, adaptiveCorrectionKcal, weightTrendPerWeek, underlogGap: underlogGap, avgTdeeOura, avgIntake,
+export function computeNutritionSignals(data: Omit<Awaited<ReturnType<typeof fetchNutritionData>>, 'context'> & Partial<Pick<Awaited<ReturnType<typeof fetchNutritionData>>, 'context'>>) {
+  const { profile, bm, oura, nutr, dayReviews, runs, gym, todayOura, todayNutr, medicalContext, today, targetDate, context } = data;
+  const roundMean = (rows: CoachRow[], key: string) => { const value = mean(clean(rows,key)); return value == null ? null : Math.round(value); };
+  const weights = bm.filter(row => (num(row.weight) ?? 0) > 0).sort((a,b)=>a.date.localeCompare(b.date));
+  const first = weights[0], last = weights.at(-1);
+  const weightFresh = last != null && last.date >= shiftDateStr(today,-30);
+  const latestWeight = weightFresh ? num(last.weight) : null;
+  const weightDaysSpan = first && last ? (Date.parse(last.date)-Date.parse(first.date))/86400000 : 0;
+  const reliableWeightWindow = weightDaysSpan >= 13 && last != null && last.date >= shiftDateStr(today,-7);
+  const weightTrendPerWeek = reliableWeightWindow ? +((Number(last.weight)-Number(first.weight))*7/weightDaysSpan).toFixed(2) : null;
+  const calibration = calibrateNutrition(nutr.map(row=>({date:row.date,calories:num(row.calories)})),
+    weights.map(row=>({date:row.date,weight_kg:num(row.weight)})),dayReviews.map(row=>({date:row.date,completeness:String(row.completeness)})),today);
+  const completeDates = new Set(dayReviews.map(row=>row.date));
+  const completeNutr = nutr.filter(row=>completeDates.has(row.date));
+  const avgIntake = calibration.averageCalories, daysLogged = calibration.loggedDays;
+  const avgProtein = roundMean(completeNutr,'protein'), avgCarbs = roundMean(completeNutr,'carbs'), avgFat = roundMean(completeNutr,'fat');
+  const avgFiber = mean(clean(completeNutr,'fiber'));
+  const energyRecent = oura.some(row=>row.date >= shiftDateStr(today,-7) && (num(row.total_calories) ?? 0) > 0);
+  const avgTdeeOura = energyRecent ? roundMean(oura.filter(row=>(num(row.total_calories) ?? 0)>0),'total_calories') : null;
+  const avgActive = roundMean(oura,'active_calories');
+  const maintFromLog = calibration.maintenanceEstimateKcal;
+  const estMaintenance = maintFromLog != null && maintFromLog > 0 ? maintFromLog : avgTdeeOura;
+  const maintenanceBasis = maintFromLog != null ? 'estimated_energy_balance' : avgTdeeOura != null ? 'estimated_wearable' : 'missing';
+  const todayPlan = context?.sources.training_plan_workouts.value?.find(row=>row.planned_date === today && !row.completed && !row.skipped_at);
+  const prescription = todayPlan?.prescription && typeof todayPlan.prescription === 'object' ? todayPlan.prescription as CoachRow : null;
+  const recentLongEffort = runs.some(row=>(num(row.distance) ?? 0)>=30000 && String(row.start_date)>=shiftDateStr(today,-3));
+  const strain = context?.sources.daily_strain.value?.find(row=>row.date === today);
+  const recoveryHold = recentLongEffort || strain?.illness_level === 'high' || strain?.illness_level === 'moderate'
+    || (num(todayOura?.total_sleep_hours) != null && Number(todayOura?.total_sleep_hours)<6)
+    || (num(todayOura?.readiness_score) != null && Number(todayOura?.readiness_score)<60);
+  const keyTrainingDay = prescription?.intensity === 'hard' || (num(prescription?.durationMinutes) ?? 0)>=90;
+  const daysToEvent = typeof profile.event_date === 'string' ? Math.round((Date.parse(profile.event_date)-Date.parse(today))/86400000) : null;
+  // Event proximity is context, not proof of a marathon taper or training phase.
+  const inTaper = false;
+  const declaredLoss = num(profile.weekly_loss_kg);
+  const targetWeeklyLossKg = declaredLoss != null && declaredLoss >= 0 && declaredLoss <= 1 ? declaredLoss : null;
+  const deficitPerDay = recoveryHold || keyTrainingDay ? 0 : targetWeeklyLossKg == null ? null : Math.round(targetWeeklyLossKg*KCAL_PER_KG/7);
+  // No automatic calorie correction from incomplete logs or partial-day watch calories.
+  const adaptiveCorrectionKcal = 0, addBack = 0, underlogGap = null;
+  const targetKcal = estMaintenance != null && (deficitPerDay ?? 0)<estMaintenance ? estMaintenance-(deficitPerDay ?? 0) : null;
+  const proteinFloor = latestWeight == null ? null : Math.round(latestWeight*(num(profile.protein_g_per_kg) ?? 2));
+  const forecastAt = (days: number) => ({weight: calibration.status === 'ready' && weights.length>=4 && latestWeight != null && weightTrendPerWeek != null
+    ? +(latestWeight+weightTrendPerWeek*days/7).toFixed(1) : null,bf:null});
+  const forecast30 = forecastAt(30), forecast60 = forecastAt(60), forecast90 = forecastAt(90), daysToGoalEst = null;
+  const intakeSoFar = num(todayNutr?.calories), proteinSoFar = num(todayNutr?.protein);
+  const age = typeof profile.birth_date === 'string' ? Math.floor((targetDate.getTime()-Date.parse(profile.birth_date))/(365.25*86400000)) : null;
+  const signals = {
+    as_of:context?.asOf ?? targetDate.toISOString(),window:context?.windowStart ?? data.d30,calibration,
+    profile:{height_cm:num(profile.height_cm),age,sex:profile.sex,goal_body_fat:num(profile.goal_body_fat),current_body_fat_est:num(profile.current_body_fat_est),event_name:profile.event_name,event_date:profile.event_date,days_to_event:daysToEvent,in_taper:inTaper,weekly_loss_kg:targetWeeklyLossKg},
+    body:{weight:latestWeight,weight_date:last?.date ?? null,weight_state:latestWeight == null?'missing_or_stale':'measured',waist:weightFresh?num(last?.waist):null,belly:weightFresh?num(last?.belly):null,weight_trend_kg_per_week:weightTrendPerWeek,weight_window_days:Math.round(weightDaysSpan)},
+    forecast:{kind:'estimated_scenario',assumptions:'Liniowy trend masy wymaga aktualnych pomiarów i pełnych dni; nie przewiduje rozkładu tłuszczu i masy beztłuszczowej.',target_weekly_loss_kg:targetWeeklyLossKg,observed_weekly_loss_kg:weightTrendPerWeek == null?null:-weightTrendPerWeek,adaptive_correction_kcal:adaptiveCorrectionKcal,forecast_30d:forecast30,forecast_60d:forecast60,forecast_90d:forecast90,days_to_goal_est:daysToGoalEst},
+    energy:{avg_tdee_oura:avgTdeeOura,oura_adjusted:avgTdeeOura,avg_active:avgActive,avg_intake_logged:avgIntake,maintenance_from_log:maintFromLog,est_maintenance:estMaintenance,maintenance_basis:maintenanceBasis,underlog_gap_kcal:underlogGap,days_logged_30:daysLogged,wearable_days:clean(oura,'total_calories').length},
+    macros:{avg_protein:avgProtein,protein_per_kg:avgProtein == null || latestWeight == null?null:+(avgProtein/latestWeight).toFixed(2),avg_carbs:avgCarbs,avg_fat:avgFat,avg_fiber:avgFiber,intake_cv:null},
+    activity:{avg_steps:roundMean(oura,'steps'),run_km_30d:+(runs.reduce((sum,row)=>sum+(num(row.distance) ?? 0),0)/1000).toFixed(1),runs_30d:runs.length,gym_30d:gym.length,planned_today:todayPlan ?? null,recovery_hold:recoveryHold,key_training_day:keyTrainingDay},
+    recovery:{avg_sleep_h:mean(clean(oura,'total_sleep_hours')),avg_readiness:roundMean(oura,'readiness_score'),avg_hrv:roundMean(oura,'hrv_avg'),avg_rhr:roundMean(oura,'rhr_avg')},
+    medical_context:medicalContext,
+    today:{date:today,target_kcal:targetKcal,protein_floor_g:proteinFloor,deficit_kcal:deficitPerDay,add_back_kcal:addBack,intake_so_far:intakeSoFar,protein_so_far:proteinSoFar,remaining_kcal:targetKcal == null?null:targetKcal-(intakeSoFar ?? 0),remaining_protein:proteinFloor == null?null:Math.max(0,proteinFloor-(proteinSoFar ?? 0)),active_so_far:num(todayOura?.active_calories),steps_so_far:num(todayOura?.steps),food_complete:completeDates.has(today)},
   };
+  return {signals,forecast30,forecast60,forecast90,daysToGoalEst,estMaintenance,targetKcal,proteinFloor,deficitPerDay,adaptiveCorrectionKcal,weightTrendPerWeek,underlogGap,avgTdeeOura,avgIntake};
 }
