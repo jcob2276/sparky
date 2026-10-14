@@ -127,16 +127,16 @@ export function extractBiometricPBs(records: RawBiometricsForPB[]): BiometricPB[
   let highestStrain: { val: number; date: string } | null = null;
 
   for (const r of records) {
-    if (r.hrv && (highestHrv === null || r.hrv > highestHrv.val)) {
+    if (r.hrv && r.hrv > 0 && r.hrv < 300 && (highestHrv === null || r.hrv > highestHrv.val)) {
       highestHrv = { val: Math.round(r.hrv), date: r.date };
     }
-    if (r.resting_hr && r.resting_hr > 30 && (lowestRhr === null || r.resting_hr < lowestRhr.val)) {
+    if (r.resting_hr && r.resting_hr > 30 && r.resting_hr < 130 && (lowestRhr === null || r.resting_hr < lowestRhr.val)) {
       lowestRhr = { val: Math.round(r.resting_hr), date: r.date };
     }
-    if (r.deep_sleep_minutes && (longestDeep === null || r.deep_sleep_minutes > longestDeep.val)) {
+    if (r.deep_sleep_minutes && r.deep_sleep_minutes > 0 && r.deep_sleep_minutes < 420 && (longestDeep === null || r.deep_sleep_minutes > longestDeep.val)) {
       longestDeep = { val: Math.round(r.deep_sleep_minutes), date: r.date };
     }
-    if (r.strain && (highestStrain === null || r.strain > highestStrain.val)) {
+    if (r.strain && r.strain > 0 && r.strain <= 21 && (highestStrain === null || r.strain > highestStrain.val)) {
       highestStrain = { val: Math.round(r.strain * 10) / 10, date: r.date };
     }
   }

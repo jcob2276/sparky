@@ -47,4 +47,9 @@ describe('CardioDriftCard', () => {
     expect(screen.getByText('+10')).toBeInTheDocument();
     expect(screen.getByText('Zidentyfikowano dryf tętna (6.8%).')).toBeInTheDocument();
   });
+
+  it('renders clean notice when data is null', () => {
+    render(<CardioDriftCard data={null} />);
+    expect(screen.getByText(/Brak zarejestrowanych biegów/i)).toBeInTheDocument();
+  });
 });

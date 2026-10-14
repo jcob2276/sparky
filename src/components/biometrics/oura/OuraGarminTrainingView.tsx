@@ -172,30 +172,51 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
   const strengthSummary = summarizeStrengthProgression(DEFAULT_STRENGTH_LIFTS, 80);
 
   const runningPBs = extractRunningPBs(activities);
-  const biometricPBs = extractBiometricPBs([
-    {
-      date: data.date ?? '2026-10-14',
-      hrv: data.enhanced?.sleep_average_hrv ?? 78,
-      resting_hr: data.enhanced?.sleep_lowest_heart_rate ?? 46,
-      deep_sleep_minutes: data.enhanced?.deep_sleep_hours ? Math.round(data.enhanced.deep_sleep_hours * 60) : 95,
-      strain: data.strainRow?.strain_score ?? 14.2,
-    },
-  ]);
+  const biometricHistorySource = data.enhancedHistory && data.enhancedHistory.length > 0
+    ? data.enhancedHistory.map((day) => ({
+        date: day.date,
+        hrv: day.sleep_average_hrv ?? 0,
+        resting_hr: day.sleep_lowest_heart_rate ?? 0,
+        deep_sleep_minutes: day.deep_sleep_hours ? Math.round(day.deep_sleep_hours * 60) : 0,
+        strain: 0,
+      }))
+    : (data.enhanced
+        ? [
+            {
+              date: data.date ?? 'today',
+              hrv: data.enhanced.sleep_average_hrv ?? 0,
+              resting_hr: data.enhanced.sleep_lowest_heart_rate ?? 0,
+              deep_sleep_minutes: data.enhanced.deep_sleep_hours ? Math.round(data.enhanced.deep_sleep_hours * 60) : 0,
+              strain: data.strainRow?.strain_score ?? 0,
+            },
+          ]
+        : []);
+  const biometricPBs = extractBiometricPBs(biometricHistorySource);
   const pbSummary = buildPersonalBestsSummary(runningPBs, DEFAULT_STRENGTH_PBS, biometricPBs);
 
   const latestRun = runs[0];
-  const cardioDriftResult = calculateCardioDrift({
-    half1SpeedMps:
-      latestRun?.distance && latestRun?.moving_time
-        ? latestRun.distance / 2 / (latestRun.moving_time / 2)
-        : 3.33,
-    half1AvgHr: latestRun?.hr_avg ? latestRun.hr_avg - 2 : 142,
-    half2SpeedMps:
-      latestRun?.distance && latestRun?.moving_time
-        ? latestRun.distance / 2 / (latestRun.moving_time / 2)
-        : 3.33,
-    half2AvgHr: latestRun?.hr_avg ? latestRun.hr_avg + 3 : 147,
-  });
+  const hasRunTelemetry = Boolean(
+    latestRun &&
+    latestRun.distance &&
+    latestRun.distance > 500 &&
+    latestRun.moving_time &&
+    latestRun.moving_time > 300 &&
+    (latestRun.hr_avg || latestRun.average_heartrate)
+  );
+
+  const avgRunHr = latestRun?.hr_avg ?? latestRun?.average_heartrate ?? 0;
+  const runSpeed = (latestRun?.distance && latestRun?.moving_time)
+    ? (latestRun.distance / 2) / (latestRun.moving_time / 2)
+    : 0;
+
+  const cardioDriftResult = hasRunTelemetry
+    ? calculateCardioDrift({
+        half1SpeedMps: runSpeed,
+        half1AvgHr: Math.max(80, avgRunHr - 2),
+        half2SpeedMps: runSpeed,
+        half2AvgHr: Math.max(80, avgRunHr + 3),
+      })
+    : null;
 
   return (
     <div className="space-y-5 pb-12">
@@ -251,9 +272,9 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
 
       {/* Odzyskiwanie tętna po wysiłku HRR (Bevel / ACSM Clinical) */}
       <HeartRateRecoveryCard
-        peakHeartRate={latestRun?.hr_max ?? (latestRun?.hr_avg ? latestRun.hr_avg + 26 : 172)}
-        heartRateAt60s={latestRun?.hr_avg ? latestRun.hr_avg - 4 : 142}
-        workoutName={latestRun?.name ?? 'Ostatnia aktywność'}
+        peakHeartRate={latestRun?.hr_max ?? (latestRun?.hr_avg ? latestRun.hr_avg + 25 : null)}
+        heartRateAt60s={latestRun?.hr_avg ? Math.max(60, latestRun.hr_avg - 4) : null}
+        workoutName={latestRun?.name ?? undefined}
       />
 
       <HeartRateZonesSection zones={zones} totalSeconds={totalSeconds} dateStr={data.date} />

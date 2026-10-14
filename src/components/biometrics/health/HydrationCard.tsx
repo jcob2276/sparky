@@ -12,11 +12,23 @@ import { type HydrationResult } from '@vanguard/domain';
 
 interface HydrationCardProps {
   initialData: HydrationResult;
+  date?: string;
   onAddWater?: (amountMl: number) => void;
 }
 
-export function HydrationCard({ initialData, onAddWater }: HydrationCardProps) {
-  const [loggedIntake, setLoggedIntake] = useState(initialData.loggedIntakeMl);
+export function HydrationCard({ initialData, date, onAddWater }: HydrationCardProps) {
+  const storageKey = `sparky_hydration_${date || 'today'}`;
+  const [loggedIntake, setLoggedIntake] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved && !isNaN(Number(saved))) return Number(saved);
+      } catch {
+        // fallback
+      }
+    }
+    return initialData.loggedIntakeMl;
+  });
 
   const dynamicTarget = initialData.dynamicTargetMl;
   const percentage = dynamicTarget > 0 ? Math.round((loggedIntake / dynamicTarget) * 100) : 0;
@@ -25,6 +37,13 @@ export function HydrationCard({ initialData, onAddWater }: HydrationCardProps) {
   const handleQuickAdd = (deltaMl: number) => {
     const updated = loggedIntake + deltaMl;
     setLoggedIntake(updated);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(storageKey, String(updated));
+      } catch {
+        // ignore
+      }
+    }
     onAddWater?.(deltaMl);
   };
 

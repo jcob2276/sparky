@@ -88,6 +88,34 @@ function buildDefaultSleepBankInputs(totalSleepMinutes: number): SleepBankDayInp
   ];
 }
 
+function extractSleepRecords(data: OuraHealthHubData): DailySleepRecord[] {
+  if (data.enhancedHistory && data.enhancedHistory.length >= 2) {
+    return data.enhancedHistory.map((day) => {
+      const bed = day.bedtime_start
+        ? new Date(day.bedtime_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : '23:00';
+      const wake = day.bedtime_end
+        ? new Date(day.bedtime_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : '07:00';
+      const d = new Date(day.date);
+      const isFreeDay = d.getDay() === 0 || d.getDay() === 6;
+      return { date: day.date, bedtime: bed, wakeTime: wake, isFreeDay };
+    });
+  }
+  return buildDefaultSleepRecords(data.enhanced?.bedtime_start, data.enhanced?.bedtime_end);
+}
+
+function extractSleepBankInputs(data: OuraHealthHubData, totalSleepMinutes: number): SleepBankDayInput[] {
+  if (data.enhancedHistory && data.enhancedHistory.length >= 2) {
+    return data.enhancedHistory.map((day) => ({
+      date: day.date,
+      sleepDurationMinutes: Math.round((day.total_sleep_hours ?? 0) * 60),
+      sleepNeedMinutes: 480,
+    }));
+  }
+  return buildDefaultSleepBankInputs(totalSleepMinutes);
+}
+
 export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
   const enhanced = data.enhanced;
   const oura = data.oura;
@@ -118,11 +146,9 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
     stressHighMinutes: enhanced?.stress_high_minutes,
   });
 
-  const sleepConsistency = calculateSleepConsistency(
-    buildDefaultSleepRecords(enhanced?.bedtime_start, enhanced?.bedtime_end)
-  );
+  const sleepConsistency = calculateSleepConsistency(extractSleepRecords(data));
 
-  const sleepBank = calculateSleepBank(buildDefaultSleepBankInputs(totalSleepMinutes));
+  const sleepBank = calculateSleepBank(extractSleepBankInputs(data, totalSleepMinutes));
 
   const caffeineAmount =
     context?.caffeine?.status === 'available' && typeof context.caffeine.amountMg === 'number'
@@ -137,7 +163,7 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
     activeBurnCalories:
       enhanced?.active_calories ??
       (data.strainRow?.strain_score ? Math.round(data.strainRow.strain_score * 45) : 450),
-    consumedCalories: 1850,
+    consumedCalories: data.nutrition?.calories ?? 0,
     goal: 'maintain',
   });
 
@@ -180,7 +206,11 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
 
       {/* Rekomendacja Pory Snu i Latencja (Bevel Bedtime Engine) */}
       <BedtimeTargetCard
-        targetWakeTime="07:00"
+        targetWakeTime={
+          enhanced?.bedtime_end
+            ? new Date(enhanced.bedtime_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : '07:00'
+        }
         targetSleepMinutes={480}
         sleepEfficiencyPercent={enhanced?.sleep_efficiency ?? 88}
         sleepLatencyMinutes={enhanced?.sleep_latency_minutes ?? 14}

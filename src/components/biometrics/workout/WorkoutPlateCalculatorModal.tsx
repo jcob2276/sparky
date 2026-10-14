@@ -130,6 +130,14 @@ export function WorkoutPlateCalculatorModal({
 }: WorkoutPlateCalculatorModalProps) {
   const [totalWeight, setTotalWeight] = useState<number>(initialWeightKg);
   const [barType, setBarType] = useState<BarType>('olympic');
+  const [prevProps, setPrevProps] = useState({ isOpen, initialWeightKg });
+
+  if (isOpen !== prevProps.isOpen || initialWeightKg !== prevProps.initialWeightKg) {
+    setPrevProps({ isOpen, initialWeightKg });
+    if (isOpen) {
+      setTotalWeight(initialWeightKg);
+    }
+  }
 
   const result: PlateCalculationResult = calculatePlates(totalWeight, barType);
   const bar = BAR_PRESETS[barType];

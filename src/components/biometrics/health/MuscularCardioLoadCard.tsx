@@ -13,6 +13,34 @@ interface MuscularCardioLoadCardProps {
   input: MuscularCardioLoadInput;
 }
 
+function buildMuscleFatigueMap(
+  muscleGroups: ReturnType<typeof computeMuscularCardioLoad>['muscleGroups']
+): Record<string, number> {
+  const map: Record<string, number> = {};
+  for (const m of muscleGroups) {
+    const fatigue = Math.max(0, Math.min(1, (100 - m.readinessPercentage) / 100));
+    if (m.name === 'Nogi') {
+      map.quadriceps = fatigue;
+      map.hamstrings = fatigue;
+      map.calves = fatigue;
+      map.gluteal = fatigue;
+    } else if (m.name === 'Klatka piersiowa') {
+      map.chest = fatigue;
+    } else if (m.name === 'Plecy') {
+      map.lats = fatigue;
+      map.trapezius = fatigue;
+      map['lower-back'] = fatigue;
+    } else if (m.name === 'Ramiona') {
+      map.biceps = fatigue;
+      map.triceps = fatigue;
+      map.shoulders = fatigue;
+    } else if (m.name === 'Brzuch i Core') {
+      map.abs = fatigue;
+    }
+  }
+  return map;
+}
+
 export function MuscularCardioLoadCard({ input }: MuscularCardioLoadCardProps) {
   const [showBodyMap, setShowBodyMap] = useState(false);
   const result = computeMuscularCardioLoad(input);
@@ -35,6 +63,8 @@ export function MuscularCardioLoadCard({ input }: MuscularCardioLoadCardProps) {
         return 'text-danger bg-danger/10 border-danger/30';
     }
   };
+
+  const muscleFatigueMap = buildMuscleFatigueMap(muscleGroups);
 
   return (
     <section className="relative overflow-hidden rounded-3xl border border-border-custom/50 bg-surface-1/90 p-5 shadow-lg backdrop-blur-xl">
@@ -128,7 +158,11 @@ export function MuscularCardioLoadCard({ input }: MuscularCardioLoadCardProps) {
       </div>
 
       {showBodyMap && (
-        <BodyMapModal isOpen={true} onClose={() => setShowBodyMap(false)} />
+        <BodyMapModal
+          isOpen={true}
+          onClose={() => setShowBodyMap(false)}
+          initialFatigue={muscleFatigueMap}
+        />
       )}
     </section>
   );

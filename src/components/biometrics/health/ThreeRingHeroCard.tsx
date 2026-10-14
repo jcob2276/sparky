@@ -34,7 +34,8 @@ function SingleRing({
   const radius = 38;
   const strokeWidth = 8;
   const circumference = 2 * Math.PI * radius;
-  const clampedPct = Math.max(0, Math.min(100, percentage));
+  const validPct = typeof percentage === 'number' && Number.isFinite(percentage) ? percentage : 0;
+  const clampedPct = Math.max(0, Math.min(100, validPct));
   const strokeDashoffset = circumference - (clampedPct / 100) * circumference;
 
   return (

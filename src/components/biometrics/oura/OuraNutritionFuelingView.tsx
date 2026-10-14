@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { OuraHealthHubData } from './types';
 import DataStateNotice from '../../core/DataStateNotice';
 import { MealPlannerContainer } from '../nutrition/MealPlannerContainer';
@@ -5,9 +6,10 @@ import { getTodayWarsaw } from '../../../lib/date';
 import FoodPlanningAssistantContainer from '../nutrition/FoodPlanningAssistantContainer';
 import { HydrationCard } from '../health/HydrationCard';
 import { NetEnergyCard } from '../health/NetEnergyCard';
-import { calculateDynamicHydration } from '@vanguard/domain';
+import { calculateDynamicHydration, type NetEnergyGoal } from '@vanguard/domain';
 
 export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
+  const [netEnergyGoal, setNetEnergyGoal] = useState<NetEnergyGoal>('maintenance');
   const nutrition = data.nutrition;
   const userId = data.userId ?? data.strainRow?.user_id ?? data.oura?.user_id ?? '';
   const date = data.date || nutrition?.date || getTodayWarsaw();
@@ -53,14 +55,15 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
     </section>
 
     {/* Dynamiczne nawodnienie i kompensacja potu */}
-    <HydrationCard initialData={hydrationResult} />
+    <HydrationCard initialData={hydrationResult} date={date} />
 
     {/* Bilans Energetyczny Netto (Bevel Net Energy) */}
     <NetEnergyCard
-      activeCaloriesBurned={data.enhanced?.active_calories ?? 500}
+      activeCaloriesBurned={data.enhanced?.active_calories ?? (data.strainRow?.strain_score ? Math.round(data.strainRow.strain_score * 45) : 500)}
       caloriesConsumed={nutrition.calories}
       weightKg={75}
-      targetGoal="maintenance"
+      targetGoal={netEnergyGoal}
+      onGoalChange={setNetEnergyGoal}
     />
 
     {userId && (

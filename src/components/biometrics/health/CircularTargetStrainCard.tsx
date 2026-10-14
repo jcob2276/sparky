@@ -36,9 +36,11 @@ export function CircularTargetStrainCard({
   const strokeWidth = 12;
   const circumference = 2 * Math.PI * radius;
 
-  const strokeDashoffset = circumference - (Math.min(100, strainPct) / 100) * circumference;
-  const targetArcLength = ((targetMaxPct - targetMinPct) / 100) * circumference;
-  const targetArcOffset = circumference - (targetMinPct / 100) * circumference;
+  const rawDashoffset = circumference - (Math.min(100, Math.max(0, strainPct)) / 100) * circumference;
+  const strokeDashoffset = Number.isFinite(rawDashoffset) ? rawDashoffset : circumference;
+  const safeArcLength = Math.max(0, Math.min(circumference, ((Math.max(0, targetMaxPct - targetMinPct)) / 100) * circumference));
+  const safeArcRest = Math.max(0, circumference - safeArcLength);
+  const targetArcOffset = circumference - (Math.max(0, Math.min(100, targetMinPct)) / 100) * circumference;
 
   const durH = Math.floor((durationMinutes ?? 0) / 60);
   const durM = Math.round((durationMinutes ?? 0) % 60);
@@ -86,7 +88,7 @@ export function CircularTargetStrainCard({
               stroke="var(--color-warning, #f59e0b)"
               strokeOpacity="0.35"
               strokeWidth={strokeWidth + 4}
-              strokeDasharray={`${targetArcLength} ${circumference - targetArcLength}`}
+              strokeDasharray={`${safeArcLength} ${safeArcRest}`}
               strokeDashoffset={targetArcOffset}
               className="transition-all"
             />

@@ -10,7 +10,7 @@ import { Card } from '../../ui/Card';
 import { type CardioDriftResult } from '@vanguard/domain';
 
 interface CardioDriftCardProps {
-  data: CardioDriftResult;
+  data?: CardioDriftResult | null;
   half1Label?: string;
   half2Label?: string;
 }
@@ -20,6 +20,25 @@ export function CardioDriftCard({
   half1Label = '1. połowa sesji',
   half2Label = '2. połowa sesji',
 }: CardioDriftCardProps) {
+  if (!data || data.efHalf1 === 0 || data.ratingLabel === 'Brak danych') {
+    return (
+      <Card className="space-y-3 p-4 text-text-primary">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl border border-border-custom bg-surface-2">
+            <Activity size={16} className="text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold tracking-tight">Dryf Tętna (Aerobic Decoupling)</h3>
+            <p className="text-3xs text-text-muted">Stabilność bazy tlenowej i ekonomii biegu</p>
+          </div>
+        </div>
+        <div className="rounded-xl border border-dashed border-border-custom/60 p-4 text-center">
+          <p className="text-xs text-text-secondary">Brak zarejestrowanych biegów z pomiarem tempa i tętna dla wybranego dnia.</p>
+          <p className="text-3xs text-text-muted mt-1">Wykonaj bieg ciągły (minimum 20 min w stałym tempie), aby ocenić odsprzężenie tlenowe.</p>
+        </div>
+      </Card>
+    );
+  }
   const getBadge = () => {
     switch (data.rating) {
       case 'optimal_coupling':

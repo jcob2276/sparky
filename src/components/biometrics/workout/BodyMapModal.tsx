@@ -10,17 +10,19 @@ interface BodyMapModalProps {
   isOpen: boolean;
   onClose: () => void;
   exercises?: WorkoutExercise[];
+  initialFatigue?: Record<string, number>;
 }
 
 export default function BodyMapModal({
   isOpen,
   onClose,
   exercises = [],
+  initialFatigue,
 }: BodyMapModalProps) {
   const [selectedMuscle, setSelectedMuscle] = useState<SvgMuscle | null>(null);
 
   const { fatigueByTag, tagToExercises } = useMemo(() => {
-    const fatigue: Record<string, number> = {};
+    const fatigue: Record<string, number> = { ...(initialFatigue || {}) };
     const mapping: Record<string, string[]> = {};
 
     for (const ex of exercises) {
@@ -46,7 +48,7 @@ export default function BodyMapModal({
     }
 
     return { fatigueByTag: fatigue, tagToExercises: mapping };
-  }, [exercises]);
+  }, [exercises, initialFatigue]);
 
   if (!isOpen) return null;
 
