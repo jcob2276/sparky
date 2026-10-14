@@ -248,7 +248,14 @@ def read_new_grid(image, disclosure_date, ocr):
         # transaction merely because its description begins with "Example".
         short_example = len(lines)>2 and bottom-top < (lines[2]-lines[1])*.75
         if row_number == 0 and short_example and re.fullmatch(
-                r'ex[a-z]{2,5}meg(?:a)?co[rm]?p?commonstock',example_label):
+                r'ex[a-z]{2,5}meg(?:a)?co[rm]?p?c[o]?mmonstock',example_label):
+            # Faint photocopies can lose the 'o' in Common. The fixed printed
+            # dates independently establish this is the template, not a trade.
+            # Check the template's exact digits even if OCR loses a slash.
+            # This normalization is never applied to real transaction dates.
+            if (re.sub(r'\D','',text(6,top,bottom)) not in ('020520','02052020')
+                    or re.sub(r'\D','',text(7,top,bottom)) not in ('030720','03072020')):
+                raise ValueError('Unverified modern PTR printed example dates')
             continue
         try:
             marked_types = [is_framed_checked(ink[top:bottom,columns[i]:columns[i+1]])

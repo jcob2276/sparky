@@ -9,6 +9,31 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 
 class PaperOcrTest(unittest.TestCase):
+    def test_degraded_printed_example_requires_both_fixed_example_dates(self):
+        image = Image.new('L', (1000, 1200), 255)
+        draw = ImageDraw.Draw(image)
+        columns = [20,60,300,340,380,420,460,540,620,650,680,710,740,770,800,830,860,890,920,950]
+        for x in columns:
+            draw.line((x,270,x,380),fill=0,width=2)
+        for y in [270,300,380]:
+            draw.line((20,y,950,y),fill=0,width=2)
+        draw.rectangle((100,277,200,285),fill=0)
+        draw.rectangle((100,325,200,335),fill=0)
+        for index in [*range(2,6), *range(8,19)]:
+            left,right=columns[index:index+2]
+            draw.rectangle((left+6,310,right-6,370),outline=0,width=2)
+        draw.line((312,325,328,350),fill=0,width=4)
+        draw.line((660,325,670,350),fill=0,width=4)
+        values=iter(['FULL ASSET NAME AMOUNT OF TRANSACTION','Examp! Meg Corp C mmon Stock',
+                     '0205/20','03/07/20','Conroe TX bond','','7/30/26','8/19/26'])
+        rows=module.read_new_grid(image,'2026-10-01',lambda _:next(values))
+        self.assertEqual(len(rows),1)
+        self.assertEqual(rows[0]['asset'],'Conroe TX bond')
+        values=iter(['FULL ASSET NAME AMOUNT OF TRANSACTION','Examp! Meg Corp C mmon Stock',
+                     '02/05/26','03/07/26'])
+        with self.assertRaises(ValueError):
+            module.read_new_grid(image,'2026-10-01',lambda _:next(values))
+
     def test_header_crop_keeps_both_header_bands_on_the_actual_modern_geometry(self):
         # House 9116361: the fixed 20%-height crop cuts through FULL ASSET NAME.
         image = Image.new('L', (2200, 1697), 255)
