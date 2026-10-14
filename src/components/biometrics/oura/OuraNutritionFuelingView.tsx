@@ -2,10 +2,11 @@ import type { OuraHealthHubData } from './types';
 import DataStateNotice from '../../core/DataStateNotice';
 import { MealPlannerContainer } from '../nutrition/MealPlannerContainer';
 import { getTodayWarsaw } from '../../../lib/date';
+import FoodPlanningAssistantContainer from '../nutrition/FoodPlanningAssistantContainer';
 
 export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
   const nutrition = data.nutrition;
-  const userId = data.strainRow?.user_id || data.oura?.user_id || '';
+  const userId = data.userId ?? data.strainRow?.user_id ?? data.oura?.user_id ?? '';
   const date = data.date || nutrition?.date || getTodayWarsaw();
 
   if (data.nutritionError) return <DataStateNotice title="Nie udało się odczytać żywienia" detail={data.nutritionError} />;
@@ -13,12 +14,13 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
     return (
       <div className="space-y-4 pb-8">
         <DataStateNotice title="Brak dziennika jedzenia" detail={`Brak wpisów dla ${data.date ?? 'wybranego dnia'}. Dodaj faktycznie zjedzony posiłek w zakładce Jedzenie.`} />
+        {userId && <FoodPlanningAssistantContainer userId={userId} />}
         {userId && (
           <MealPlannerContainer
             userId={userId}
             date={date}
-            targetKcal={null}
-            targetProtein={null}
+            targetKcal={nutrition?.targetKcal ?? null}
+            targetProtein={nutrition?.targetProtein ?? null}
           />
         )}
       </div>
@@ -46,6 +48,7 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
         targetProtein={nutrition.targetProtein}
       />
     )}
+    {userId && <FoodPlanningAssistantContainer userId={userId} />}
 
     <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-2">
       <h3 className="font-semibold">Źródła i ograniczenia</h3>

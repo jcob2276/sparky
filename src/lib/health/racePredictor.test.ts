@@ -32,25 +32,26 @@ describe('racePredictor model', () => {
     const result = predictRaceTimes(activities, { asOfDate: asOf, goal10kSeconds: 2700 });
     expect(result.state).toBe('insufficient_data');
     expect(result.predictions).toHaveLength(0);
-    expect(result.applicabilityNote).toContain('minimum 3 zarejestrowanych biegów');
+    expect(result.applicabilityNote).toContain('potwierdzony start');
   });
 
   it('ignores activities that are walks or shorter than 3km', () => {
     const activities: RunningActivityInput[] = [
-      { id: 'r1', startDate: '2026-10-10T08:00:00Z', distanceMeters: 5000, movingTimeSeconds: 1400, sportType: 'Run' },
-      { id: 'r2', startDate: '2026-10-08T08:00:00Z', distanceMeters: 2000, movingTimeSeconds: 600, sportType: 'Run' }, // too short
-      { id: 'w1', startDate: '2026-10-06T08:00:00Z', distanceMeters: 6000, movingTimeSeconds: 3600, sportType: 'Walk' }, // walk
+      { id: 'r1', startDate: '2026-10-10T08:00:00Z', distanceMeters: 5000, movingTimeSeconds: 1400, elapsedTimeSeconds: 1400, effort: 'race', sportType: 'Run' },
+      { id: 'r2', startDate: '2026-10-08T08:00:00Z', distanceMeters: 2000, movingTimeSeconds: 600, elapsedTimeSeconds: 600, effort: 'race', sportType: 'Run' }, // too short
+      { id: 'w1', startDate: '2026-10-06T08:00:00Z', distanceMeters: 6000, movingTimeSeconds: 3600, elapsedTimeSeconds: 3600, effort: 'race', sportType: 'Walk' }, // walk
     ];
 
     const result = predictRaceTimes(activities, { asOfDate: asOf });
-    expect(result.state).toBe('insufficient_data');
+    expect(result.basisRunsCount).toBe(1);
+    expect(result.supportingRuns.map(run=>run.id)).toEqual(['r1']);
   });
 
   it('predicts 5k, 10k, half marathon times and compares against sub 45 min goal', () => {
     const activities: RunningActivityInput[] = [
-      { id: 'r1', startDate: '2026-10-12T07:30:00Z', distanceMeters: 5000, movingTimeSeconds: 1380, sportType: 'Run' },
-      { id: 'r2', startDate: '2026-10-05T07:30:00Z', distanceMeters: 8000, movingTimeSeconds: 2250, sportType: 'Run' },
-      { id: 'r3', startDate: '2026-09-28T07:30:00Z', distanceMeters: 10000, movingTimeSeconds: 2820, sportType: 'Run' },
+      { id: 'r1', startDate: '2026-10-12T07:30:00Z', distanceMeters: 5000, movingTimeSeconds: 1380, elapsedTimeSeconds: 1380, effort: 'race', sportType: 'Run' },
+      { id: 'r2', startDate: '2026-10-05T07:30:00Z', distanceMeters: 8000, movingTimeSeconds: 2250, elapsedTimeSeconds: 2250, effort: 'race', sportType: 'Run' },
+      { id: 'r3', startDate: '2026-09-28T07:30:00Z', distanceMeters: 10000, movingTimeSeconds: 2820, elapsedTimeSeconds: 2820, effort: 'race', sportType: 'Run' },
     ];
 
     const result = predictRaceTimes(activities, { asOfDate: asOf, goal10kSeconds: 2700 });
@@ -61,24 +62,24 @@ describe('racePredictor model', () => {
     expect(pred10k).toBeDefined();
     expect(pred10k.predictedSeconds).toBeGreaterThan(2700);
     expect(pred10k.predictedSeconds).toBeLessThan(3000);
-    expect(pred10k.scenarioFastSeconds).toBeLessThan(pred10k.predictedSeconds);
-    expect(pred10k.scenarioSlowSeconds).toBeGreaterThan(pred10k.predictedSeconds);
+    expect(pred10k.scenarioFastSeconds).toBeLessThanOrEqual(pred10k.predictedSeconds);
+    expect(pred10k.scenarioSlowSeconds).toBeGreaterThanOrEqual(pred10k.predictedSeconds);
 
     expect(result.targetGoal10k).toBeDefined();
     expect(result.targetGoal10k?.achieved).toBe(false);
-    expect(result.targetGoal10k?.formattedGap).toContain('Do celu brakuje');
+    expect(result.targetGoal10k?.formattedGap).toContain('Prognoza powyżej celu');
   });
 
-  it('marks goal as achieved when predicted time is faster than 45:00', () => {
+  it('never confirms an actual goal from an extrapolated prediction', () => {
     const activities: RunningActivityInput[] = [
-      { id: 'r1', startDate: '2026-10-12T07:30:00Z', distanceMeters: 5000, movingTimeSeconds: 1260, sportType: 'Run' },
-      { id: 'r2', startDate: '2026-10-05T07:30:00Z', distanceMeters: 8000, movingTimeSeconds: 2040, sportType: 'Run' },
-      { id: 'r3', startDate: '2026-09-28T07:30:00Z', distanceMeters: 10000, movingTimeSeconds: 2610, sportType: 'Run' },
+      { id: 'r1', startDate: '2026-10-12T07:30:00Z', distanceMeters: 5000, movingTimeSeconds: 1260, elapsedTimeSeconds: 1260, effort: 'race', sportType: 'Run' },
+      { id: 'r2', startDate: '2026-10-05T07:30:00Z', distanceMeters: 8000, movingTimeSeconds: 2040, elapsedTimeSeconds: 2040, effort: 'race', sportType: 'Run' },
+      { id: 'r3', startDate: '2026-09-28T07:30:00Z', distanceMeters: 10000, movingTimeSeconds: 2610, elapsedTimeSeconds: 2610, effort: 'race', sportType: 'Run' },
     ];
 
     const result = predictRaceTimes(activities, { asOfDate: asOf, goal10kSeconds: 2700 });
     expect(result.state).toBe('ready');
-    expect(result.targetGoal10k?.achieved).toBe(true);
-    expect(result.targetGoal10k?.formattedGap).toContain('Cel osiągnięty');
+    expect(result.targetGoal10k?.achieved).toBe(false);
+    expect(result.targetGoal10k?.formattedGap).not.toContain('Cel osiągnięty');
   });
 });

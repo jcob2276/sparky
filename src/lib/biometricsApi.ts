@@ -51,13 +51,13 @@ export function useDailyStrainOura(userId: string) {
           .maybeSingle(),
         supabase
           .from('strava_activities_clean')
-          .select('gc_vo2max,source,icu_activity_id,icu_hr_zone_times,gc_hr_zones,name,sport_type,start_date,distance,moving_time,hr_avg,hr_max')
+          .select('gc_vo2max,source,icu_activity_id,icu_hr_zone_times,gc_hr_zones,name,sport_type,start_date,distance,moving_time,elapsed_time,hr_avg,hr_max')
           .eq('user_id', userId)
           .eq('is_oura',false)
-          .gte('start_date',recentStart)
+          .gte('start_date',shiftDateStr(todayStr,-42))
           .lte('start_date',new Date().toISOString())
           .order('start_date', { ascending: false })
-          .limit(20),
+          .limit(120),
       ]);
 
       if (e1) console.warn('[useDailyStrainOura] e1 warning:', e1.message);

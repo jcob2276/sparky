@@ -2,6 +2,8 @@ import { Moon, Activity, Sparkles, CheckCircle2 } from 'lucide-react';
 import type { OuraHealthHubData } from './types';
 import { SleepFactorsSection } from './SleepFactorsSection';
 import { SleepRecoveryArchitecture } from './SleepRecoveryArchitecture';
+import { TargetStrainGaugeCard } from '../health/TargetStrainGaugeCard';
+import { HabitImpactCard } from '../health/HabitImpactCard';
 
 const formatMinutes = (mins: number) => {
   const h = Math.floor(mins / 60);
@@ -29,20 +31,20 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
     if (readinessScore >= 80) {
       return {
         title: 'Wysoka regeneracja i gotowość',
-        desc: 'Układ przywspółczulny w pełni zregenerowany. Optymalny dzień na mocny trening siłowy lub trudne zadania umysłowe.',
+        desc: 'Oura odnotowała wysoki wynik gotowości. To jeden sygnał; decyzja treningowa uwzględnia też plan, ból, chorobę i ostatnie wykonanie.',
         status: 'optimal',
       };
     }
     if (readinessScore >= 65) {
       return {
         title: 'Średnia regeneracja — umiarkowany wysiłek',
-        desc: 'Organizm w normie, ale bez nadwyżki. Wykonaj planowy trening, unikaj bicia rekordów do upadku mięśniowego.',
+        desc: 'Wynik Oury znajduje się w środkowym zakresie. Sprawdź wspólną decyzję treningową i swoje odczucia przed sesją.',
         status: 'moderate',
       };
     }
     return {
-      title: 'Obniżona regeneracja — zalecany lżejszy dzień',
-      desc: 'Obciążenie układu nerwowego lub niedobór snu głębokiego. Dobry dzień na spacer, rozciąganie, saunę lub aktywną regenerację.',
+      title: readinessScore > 0 ? 'Niższy wynik gotowości' : 'Brak aktualnego wyniku gotowości',
+      desc: 'Sam wskaźnik nie ustala przyczyny zmęczenia. Brak danych nie potwierdza gotowości do zwiększenia obciążenia.',
       status: 'low',
     };
   })();
@@ -104,6 +106,13 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
         </div>
       </div>
 
+      {/* Target Strain Range (Whoop / Bevel Engine) */}
+      <TargetStrainGaugeCard
+        recoveryScore={readinessScore}
+        strainScore={data.strainRow?.strain_score}
+        userId={data.oura?.user_id ?? data.strainRow?.user_id}
+      />
+
       {/* Section: Practical Factors We Actually Track */}
       {context && <SleepFactorsSection context={context} />}
 
@@ -118,6 +127,9 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
         hypnogramString={enhanced?.sleep_phase_5_min}
         sleepContributors={enhanced?.sleep_contributors as Record<string, number>}
       />
+
+      {/* Whoop / Bevel Habit Impact Journal */}
+      <HabitImpactCard correlations={data.correlations} />
 
       {/* Practical Evening Action Items */}
       <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-2">

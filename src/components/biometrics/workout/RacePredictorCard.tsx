@@ -1,7 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { ControlSelect } from '../../ui/ControlPrimitives';
 import { Award, Gauge, Info, Timer } from 'lucide-react';
 import {
   predictRaceTimes,
+  formatWarsawDate,
   type RunningActivityInput,
   type RacePredictorResult,
 } from '@vanguard/domain';
@@ -11,6 +13,8 @@ interface RacePredictorCardProps {
     name?: string | null;
     distance?: number | null;
     moving_time?: number | null;
+    elapsed_time?:number|null;
+    hr_avg?:number|null;
     start_date?: string | null;
     average_heartrate?: number | null;
     sport_type?: string | null;
@@ -25,6 +29,7 @@ const DISTANCE_LABELS: Record<string, string> = {
 };
 
 export function RacePredictorCard({ activities }: RacePredictorCardProps) {
+  const [basisDate,setBasisDate] = useState('');
   const result: RacePredictorResult = useMemo(() => {
     const inputs: RunningActivityInput[] = activities
       .filter((a) => a.start_date && a.distance && a.moving_time)
@@ -33,12 +38,14 @@ export function RacePredictorCard({ activities }: RacePredictorCardProps) {
         startDate: a.start_date!,
         distanceMeters: a.distance!,
         movingTimeSeconds: a.moving_time!,
-        averageHeartRate: a.average_heartrate,
+        elapsedTimeSeconds:a.elapsed_time,
+        effort:a.start_date === basisDate ? 'time_trial' : 'training',
+        averageHeartRate: a.hr_avg ?? a.average_heartrate,
         sportType: a.sport_type,
       }));
 
     return predictRaceTimes(inputs, { goal10kSeconds: 2700, cutoffDays: 42 });
-  }, [activities]);
+  }, [activities,basisDate]);
 
   const target = result.targetGoal10k;
 
@@ -59,6 +66,13 @@ export function RacePredictorCard({ activities }: RacePredictorCardProps) {
           {result.basisRunsCount} biegów w bazie
         </span>
       </div>
+
+      <label className="block text-xs space-y-2">Wybierz bieg wykonany na wynik, z pełnym czasem obejmującym postoje
+        <ControlSelect value={basisDate} onChange={event=>setBasisDate(event.target.value)} className="w-full rounded-lg bg-surface-2 p-2">
+          <option value="">Nie potwierdzono próby na wynik</option>
+          {activities.filter(activity=>activity.start_date && activity.elapsed_time && /^(Run|VirtualRun)$/i.test(activity.sport_type ?? '')).map(activity=><option key={activity.start_date} value={activity.start_date!}>{activity.name ?? 'Bieg'} · {formatWarsawDate(activity.start_date!)}</option>)}
+        </ControlSelect>
+      </label>
 
       {/* Target Goal KPI Highlight */}
       {target && (
@@ -116,8 +130,8 @@ export function RacePredictorCard({ activities }: RacePredictorCardProps) {
                   {pred.formattedTime}
                 </p>
                 <div className="flex items-center justify-between text-3xs text-text-muted border-t border-white/5 pt-1">
-                  <span>Szybki: {pred.formattedFastTime}</span>
-                  <span>Wolny: {pred.formattedSlowTime}</span>
+                  <span>Wrażliwość: {pred.formattedFastTime}</span>
+                  <span>– {pred.formattedSlowTime}</span>
                 </div>
               </div>
             ))}
@@ -149,7 +163,8 @@ export function RacePredictorCard({ activities }: RacePredictorCardProps) {
       <div className="flex items-start gap-1.5 pt-1 text-2xs text-text-muted">
         <Info size={13} className="mt-0.5 shrink-0" />
         <p>
-          Formuła Riegela z korektą dyspozycji. Model nie gwarantuje wyniku w konkretnym dniu — dyspozycja startowa zależy od temperatury, profilu trasy i regeneracji.
+          {result.applicabilityNote}
+          {' '}<a href="https://doi.org/10.1186/s13102-016-0052-y" target="_blank" rel="noreferrer" className="underline">Badanie modelu</a>
         </p>
       </div>
     </section>

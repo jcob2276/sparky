@@ -21,7 +21,7 @@ try {
     CREATE POLICY owner_read ON strava_activities FOR SELECT TO authenticated USING(user_id=auth.uid());
     GRANT USAGE ON SCHEMA auth TO authenticated; GRANT SELECT ON strava_activities TO authenticated;
   `);
-  await db.exec(await readFile('supabase/migrations/20261014124913_activity_provenance_intervals.sql','utf8'));
+  await db.exec(await readFile('supabase/migrations/20261014125118_activity_provenance_intervals.sql','utf8'));
   await db.exec(`GRANT SELECT ON strava_activities_clean TO authenticated;
     INSERT INTO strava_activities(strava_id,user_id,name,sport_type,start_date,source,icu_activity_id,icu_hr_zone_times,trimp,hr_avg,hr_source)
     VALUES (1,'11111111-1111-4111-8111-111111111111','Run','Run','2026-10-13T17:00:00Z','garmin_intervals','i1','[304,631,0,764,278,71,35]',100.3,145,'garmin_intervals'),

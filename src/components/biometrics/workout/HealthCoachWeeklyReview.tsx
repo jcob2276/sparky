@@ -49,7 +49,7 @@ export function HealthCoachWeeklyReviewView({ review, isLoading, error }: Props)
         <div className="rounded-xl border border-border-custom bg-surface-subtle p-2.5">
           <div className="text-3xs text-text-muted uppercase">Sesje wykonane</div>
           <div className="text-base font-bold font-mono text-text-primary mt-0.5">
-            {adherence.completedSessionsCount} / {adherence.plannedSessionsCount}
+            {adherence.completedSessionsCount ?? '—'} / {adherence.plannedSessionsCount ?? '—'}
           </div>
           <div className="text-3xs text-text-secondary mt-0.5">
             {adherence.adherenceRate != null ? `${Math.round(adherence.adherenceRate * 100)}% planu` : 'Brak planu'}
@@ -59,15 +59,15 @@ export function HealthCoachWeeklyReviewView({ review, isLoading, error }: Props)
         <div className="rounded-xl border border-border-custom bg-surface-subtle p-2.5">
           <div className="text-3xs text-text-muted uppercase">Bieganie (Garmin)</div>
           <div className="text-base font-bold font-mono text-info mt-0.5">
-            {adherence.cardioKm} km
+            {adherence.cardioKm ?? '—'} km
           </div>
-          <div className="text-3xs text-text-secondary mt-0.5">zweryfikowany dystans</div>
+          <div className="text-3xs text-text-secondary mt-0.5">dystans zapisanych biegów</div>
         </div>
 
         <div className="rounded-xl border border-border-custom bg-surface-subtle p-2.5">
           <div className="text-3xs text-text-muted uppercase">Siła (Serie)</div>
           <div className="text-base font-bold font-mono text-warning mt-0.5">
-            {adherence.strengthSets}
+            {adherence.strengthSets ?? '—'}
           </div>
           <div className="text-3xs text-text-secondary mt-0.5">odnotowanych serii</div>
         </div>
@@ -75,7 +75,7 @@ export function HealthCoachWeeklyReviewView({ review, isLoading, error }: Props)
         <div className="rounded-xl border border-border-custom bg-surface-subtle p-2.5">
           <div className="text-3xs text-text-muted uppercase">Nieodnotowane</div>
           <div className="text-base font-bold font-mono text-text-secondary mt-0.5">
-            {adherence.unrecordedSessionsCount}
+            {adherence.unrecordedSessionsCount ?? '—'}
           </div>
           <div className="text-3xs text-text-secondary mt-0.5">brak wpisu ≠ opuszczenie</div>
         </div>
@@ -102,6 +102,7 @@ export function HealthCoachWeeklyReviewView({ review, isLoading, error }: Props)
                 <div className="space-y-0.5">
                   <div className="font-medium text-text-primary">{g.name}</div>
                   <div className="text-3xs text-text-muted">Standard: {g.standard}</div>
+                  <p className="text-3xs text-text-muted">{g.note}</p>
                 </div>
                 <div className="text-right">
                   <div className="font-mono font-bold text-text-primary">

@@ -1,5 +1,5 @@
 import { sendMessageParsed } from "../_shared/telegram.ts";
-import { createServiceClient } from "../_shared/supabase.ts";
+import { createServiceClient,resolveUserScope } from "../_shared/supabase.ts";
 import { getStreamForDailyReconciliation } from "../_shared/repos/streamRepo.ts";
 import { getVanguardUserId } from "../_shared/constants.ts";
 import { getWarsawDayBoundaries, getWarsawDateString } from "../_shared/time.ts";
@@ -25,6 +25,7 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
   const TELEGRAM_CHAT_ID = parseInt(Deno.env.get("TELEGRAM_CHAT_ID") || "0");
   const DEEPSEEK_API_KEY = Deno.env.get("DEEPSEEK_API_KEY") || "";
   const VANGUARD_USER_ID = getVanguardUserId();
+  await resolveUserScope(req,VANGUARD_USER_ID);
   const supabase = createServiceClient();
 
   try {

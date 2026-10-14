@@ -3,6 +3,8 @@ export interface RunningActivityInput {
   startDate: string;
   distanceMeters: number;
   movingTimeSeconds: number;
+  elapsedTimeSeconds?:number|null;
+  effort?:'race'|'time_trial'|'training';
   averageHeartRate?: number | null;
   sportType?: string | null;
   hrZones?: { z1?: number; z2?: number; z3?: number; z4?: number; z5?: number } | null;
@@ -70,9 +72,9 @@ export function formatRacePace(secondsPerKm: number): string {
  * T2 = T1 * (D2 / D1)^1.06
  *
  * Invariants:
- * - Requires at least 3 qualifying runs (>= 3000 m) in recent window (default 42 days)
+ * - Requires an explicitly selected race/time-trial result with elapsed time.
  * - Returns explicit state 'insufficient_data' when data is lacking
- * - Fast and slow bounds represent cool race day conditions vs warm/fatigued conditions
+ * - Model sensitivity is not a weather forecast or calibrated confidence interval.
  * - Zero hallucinated dates or guaranteed PR claims
  */
 export function predictRaceTimes(
@@ -90,9 +92,10 @@ export function predictRaceTimes(
 
   // Filter to qualifying runs in the last N days
   const qualifying = activities.filter((act) => {
-    const isRun = !act.sportType || /run|bieg/i.test(act.sportType);
+    const isRun = /^(Run|VirtualRun)$/i.test(act.sportType ?? '');
     if (!isRun) return false;
-    if (act.distanceMeters < 3000 || act.movingTimeSeconds < 600) return false;
+    if (!Number.isFinite(act.distanceMeters) || act.distanceMeters < 3000 || !Number.isFinite(act.elapsedTimeSeconds) || Number(act.elapsedTimeSeconds)<600
+      || Number(act.elapsedTimeSeconds)<act.movingTimeSeconds || !['race','time_trial'].includes(act.effort ?? '')) return false;
     const age = asOf - new Date(act.startDate).getTime();
     return age >= 0 && age <= maxAgeMs;
   });
@@ -101,7 +104,7 @@ export function predictRaceTimes(
     .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime())
     .slice(0, 8)
     .map((act) => {
-      const paceSec = act.movingTimeSeconds / (act.distanceMeters / 1000);
+      const paceSec = Number(act.elapsedTimeSeconds) / (act.distanceMeters / 1000);
       return {
         id: act.id,
         date: act.startDate.slice(0, 10),
@@ -111,7 +114,7 @@ export function predictRaceTimes(
       };
     });
 
-  if (qualifying.length < 3) {
+  if (!qualifying.length) {
     return {
       state: 'insufficient_data',
       predictions: [],
@@ -126,7 +129,7 @@ export function predictRaceTimes(
       },
       basisRunsCount: qualifying.length,
       supportingRuns,
-      applicabilityNote: `Model wymaga minimum 3 zarejestrowanych biegów (min. 3 km) w ostatnich ${cutoffDays} dniach. Obecnie: ${qualifying.length}.`,
+      applicabilityNote: `Wybierz potwierdzony start lub próbę na wynik (min. 3 km) z ostatnich ${cutoffDays} dni. Potrzebny jest pełny czas z postojami; zwykłe rozbieganie nie określa możliwości startowych.`,
     };
   }
 
@@ -135,7 +138,7 @@ export function predictRaceTimes(
   let best10kEquivalentSeconds = Infinity;
   for (const run of qualifying) {
     const d1 = run.distanceMeters;
-    const t1 = run.movingTimeSeconds;
+    const t1 = Number(run.elapsedTimeSeconds);
     const riegel10k = t1 * Math.pow(10000 / d1, 1.06);
     if (riegel10k < best10kEquivalentSeconds) {
       best10kEquivalentSeconds = riegel10k;
@@ -151,8 +154,10 @@ export function predictRaceTimes(
   const predictions: RacePrediction[] = distances.map((target) => {
     const predictedSec = Math.round(best10kEquivalentSeconds * Math.pow(target.meters / 10000, 1.06));
     const paceSec = Math.round(predictedSec / (target.meters / 1000));
-    const fastSec = Math.round(predictedSec * 0.97);
-    const slowSec = Math.round(predictedSec * 1.04);
+    const basis = qualifying.reduce((best,run)=>Number(run.elapsedTimeSeconds)*Math.pow(10000/run.distanceMeters,1.06)<Number(best.elapsedTimeSeconds)*Math.pow(10000/best.distanceMeters,1.06)?run:best);
+    const sensitivities = [1.05,1.06,1.08].map(exponent=>Number(basis.elapsedTimeSeconds)*Math.pow(target.meters/basis.distanceMeters,exponent));
+    const fastSec = Math.round(Math.min(...sensitivities));
+    const slowSec = Math.round(Math.max(...sensitivities));
 
     return {
       distanceName: target.name,
@@ -170,7 +175,7 @@ export function predictRaceTimes(
 
   const pred10k = predictions.find((p) => p.distanceName === '10k')?.predictedSeconds ?? best10kEquivalentSeconds;
   const gap = pred10k - goal10k;
-  const achieved = gap <= 0;
+  const predictedWithinGoal = gap <= 0;
 
   return {
     state: 'ready',
@@ -179,15 +184,15 @@ export function predictRaceTimes(
       goalSeconds: goal10k,
       formattedGoalTime: formatRaceTime(goal10k),
       gapSeconds: Math.abs(gap),
-      formattedGap: achieved
-        ? `Cel osiągnięty (zapas ${formatRaceTime(Math.abs(gap))})`
-        : `Do celu brakuje ${formatRaceTime(gap)} (${((gap / 10)).toFixed(1)} s/km)`,
+      formattedGap: predictedWithinGoal
+        ? `Prognoza poniżej celu o ${formatRaceTime(Math.abs(gap))}; cel wymaga rzeczywistego wyniku`
+        : `Prognoza powyżej celu o ${formatRaceTime(gap)} (${((gap / 10)).toFixed(1)} s/km)`,
       targetPaceSecondsPerKm: Math.round(goal10k / 10),
       formattedTargetPace: formatRacePace(goal10k / 10),
-      achieved,
+      achieved:false,
     },
     basisRunsCount: qualifying.length,
     supportingRuns,
-    applicabilityNote: `Prognoza na bazie ${qualifying.length} biegów z ostatnich ${cutoffDays} dni (formuła Riegela z przedziałem warunków startowych).`,
+    applicabilityNote: `Model Riegela na bazie ${qualifying.length} potwierdzonych prób z ostatnich ${cutoffDays} dni. Zakres pokazuje wrażliwość na wykładnik 1.05–1.08, nie przedział ufności ani wpływ pogody. Prognoza nie zalicza celu.`,
   };
 }

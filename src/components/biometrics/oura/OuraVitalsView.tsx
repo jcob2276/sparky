@@ -14,6 +14,7 @@ import {
 import { buildOuraSleepInsights } from '../../../lib/biometrics/ouraSleepInsights';
 import { OuraMetricCard } from './OuraMetricCard';
 import type { OuraHealthHubData } from './types';
+import { HealthMonitorSlidersCard } from '../health/HealthMonitorSlidersCard';
 
 interface OuraVitalsViewProps {
   data: OuraHealthHubData;
@@ -86,6 +87,9 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
         <p className="text-sm text-text-muted">{data.date ?? 'Ostatni dostępny dzień'}</p>
         <h2 className="mt-1 text-3xl font-light text-white">Parametry życiowe</h2>
       </header>
+
+      {/* Bevel / Whoop Health Monitor: 30-dniowe normy bazowe */}
+      <HealthMonitorSlidersCard data={data} />
 
       <section className="space-y-3">
         <h3 className="flex items-center gap-2 text-xl font-light text-text-primary">

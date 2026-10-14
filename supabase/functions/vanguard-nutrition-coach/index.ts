@@ -8,7 +8,7 @@
  * @consumer Powiadomienia Telegram i cele w zakładce diety w aplikacji
  * @status active
  */
-import { serveJson } from "../_shared/http.ts";
+import { serveJson, HttpError } from "../_shared/http.ts";
 import { deepseekChat, parseJsonFromContent } from "../_shared/deepseek.ts";
 import { LLM_TASKS } from "../_shared/llm/tasks.ts";
 import { getVanguardUserId } from "../_shared/constants.ts";
@@ -44,14 +44,15 @@ Deno.serve(serveJson(async (req, ctx) => {
   const today = body.date || getWarsawDateString(new Date());
 
   if (body.action === 'generate_meal_plan') {
-    const targets = Array.isArray(body.targets) && body.targets.length
-      ? body.targets
-      : [{ date: today, calories: Number(body.calories) || 2200, protein: Number(body.protein) || 140 }];
+    if (typeof body.requestKey !== 'string' || !body.requestKey) throw new HttpError(400,'Brak identyfikatora prośby.');
+    const nutrition = computeNutritionSignals(await fetchNutritionData(supabase,userId,today));
+    if (nutrition.targetKcal == null || nutrition.proteinFloor == null) throw new HttpError(400,'Najpierw uzupełnij aktualny pomiar masy i dane do oszacowania energii.');
+    const targets = [{date:today,calories:nutrition.targetKcal,protein:nutrition.proteinFloor}];
     const res = await generateMealPlan({
       supabase,
       userId,
       apiKey,
-      input: { date: today, targets, preferences: body.preferences },
+      input: { date: today, targets, preferences: body.preferences,requestKey:body.requestKey },
     });
     return res;
   }

@@ -22,7 +22,7 @@ import { buildSystemPrompt } from "./systemPrompt.ts";
 import { fetchWorldState } from "../../_shared/worldState.ts";
 import { logOracleRun, processOracleMutations } from "./mutations.ts";
 import { buildSqlTool } from "./sqlTool.ts";
-import { extractAllSqlFromDsml, containsDsmlToolMarkup, stripDsmlMarkup } from "./dsmlSqlExtract.ts";
+import { containsDsmlToolMarkup, stripDsmlMarkup } from "./dsmlSqlExtract.ts";
 import { OracleResponseSchema, extractAnswer } from "./responseExtract.ts";
 import { handleStreamingResponse } from "./streamHandler.ts";
 import { handleNoteSummary, handleExtractTasks } from "../handlers/noteOps.ts";
@@ -176,39 +176,27 @@ export async function runOracleQuery(
         iterations++;
         toolMessages.push({ role: "assistant", content: chatRes.content || "", tool_calls: chatRes.tool_calls });
         for (const tc of chatRes.tool_calls) {
-          let sql = "";
-          try { sql = JSON.parse(tc.function.arguments)?.sql || ""; } catch { /* handled below */ }
-          const result = sql
-            ? await runOracleReadonlyQuery(supabase, user_id, sql)
-            : { ok: false as const, error: 'Missing or invalid "sql" argument' };
+          let query:unknown=null;
+          try { query = JSON.parse(tc.function.arguments); } catch { /* validator handles malformed input */ }
+          const result = tc.function.name === 'query_database'
+            ? await runOracleReadonlyQuery(supabase, user_id, query)
+            : { ok: false as const, error: 'Nieznane narzędzie.' };
           console.log(
-            `[oracle] sql tool call #${iterations}:`, sql.slice(0, 200),
+            `[oracle] data tool call #${iterations}:`,
             "->", result.ok ? `${result.rows.length} rows` : `error: ${result.error}`,
           );
-          toolMessages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result.ok ? result.rows : { error: result.error }) });
+          toolMessages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(result) });
         }
         continue;
       }
 
-      // v4-flash sometimes emits DSML tool XML in content instead of tool_calls
-      const sqlFromDsml = offerTools ? extractAllSqlFromDsml(chatRes.content || "") : [];
-      if (offerTools && sqlFromDsml.length > 0) {
+      // A model-emitted raw SQL/DSML fragment must never reach a privileged RPC.
+      if (offerTools && containsDsmlToolMarkup(chatRes.content || "")) {
         iterations++;
         toolMessages.push({ role: "assistant", content: chatRes.content || "" });
-
-        const queryResults = [];
-        for (const sql of sqlFromDsml) {
-          const result = await runOracleReadonlyQuery(supabase, user_id, sql);
-          queryResults.push(result.ok ? result.rows : { error: result.error });
-          console.log(
-            `[oracle] dsml sql tool call #${iterations}:`, sql.slice(0, 200),
-            "->", result.ok ? `${result.rows.length} rows` : `error: ${result.error}`,
-          );
-        }
-
         toolMessages.push({
           role: "user",
-          content: `[Wynik query_database]\n${JSON.stringify(queryResults.length === 1 ? queryResults[0] : queryResults)}\n\nKontynuuj odpowiedź po polsku. Nie używaj DSML ani surowego SQL — zwykły tekst lub JSON z polem "answer".`,
+          content: 'Nie wykonano zapytania. Użyj formalnego wywołania query_database z table, columns, from, to i opcjonalnymi filters. Surowy SQL i DSML nie są obsługiwane. Nie zgaduj wyniku.',
         });
         continue;
       }

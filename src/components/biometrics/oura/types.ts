@@ -10,6 +10,7 @@ import type { NutritionDayContext } from '../../../lib/health/nutritionContext';
 
 
 export interface OuraHealthHubData {
+  userId?:string;
   date?: string | null;
   strainRow: Tables<'daily_strain'> | null;
   oura: Tables<'oura_daily_summary'> | null;
@@ -32,6 +33,7 @@ export interface OuraHealthHubData {
     name?: string | null;
     distance?: number | null;
     moving_time?: number | null;
+    elapsed_time?:number|null;
     start_date?: string | null;
     average_heartrate?: number | null;
     gc_vo2max?: number | null;

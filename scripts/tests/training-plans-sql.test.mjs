@@ -29,10 +29,10 @@ try {
   const fnStart = baseline.indexOf('CREATE OR REPLACE FUNCTION "public"."save_workout_atomic"');
   const fnEnd = baseline.indexOf('ALTER FUNCTION "public"."save_workout_atomic"',fnStart);
   await db.exec(baseline.slice(fnStart,fnEnd));
-  await db.exec(await readFile('supabase/migrations/20261014115955_health_training_plans.sql','utf8'));
-  const resultMigration = await readFile('supabase/migrations/20261014121430_planned_workout_result_integrity.sql','utf8');
+  await db.exec(await readFile('supabase/migrations/20261014120850_health_training_plans.sql','utf8'));
+  const resultMigration = await readFile('supabase/migrations/20261014121732_planned_workout_result_integrity.sql','utf8');
   await db.exec(resultMigration);
-  await db.exec(await readFile('supabase/migrations/20261014122804_link_planned_running_activity.sql','utf8'));
+  await db.exec(await readFile('supabase/migrations/20261014122932_link_planned_running_activity.sql','utf8'));
   const today = (await db.query("SELECT (now() AT TIME ZONE 'Europe/Warsaw')::date::text AS day")).rows[0].day;
   const enqueue = async key => (await db.query('SELECT enqueue_health_coach_job($1,$2,$3::jsonb) AS id',[owner,key,'{}'])).rows[0].id;
   const job = await enqueue('request-1');

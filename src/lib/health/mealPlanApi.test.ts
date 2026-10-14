@@ -26,6 +26,7 @@ describe('meal planning domain', () => {
     expect(mealShoppingList(result.plan!)).toEqual([{productId:'oats',name:'Płatki',grams:100}]);
     const resized = resizePlannedMeal(result.plan!,'2026-10-14','m1',1.5);
     expect(resized.days[0].totals.calories).toBe(600);
+    expect(resizePlannedMeal(resized,'2026-10-14','m1',1).days[0].totals.calories).toBe(400);
     expect(mealShoppingList(resized)[0].grams).toBe(150);
     expect(result.plan?.days[0].totals.calories).toBe(400);
   });
@@ -74,45 +75,39 @@ describe('mealPlanApi client', () => {
     expect(result[0].name).toBe('Jajko kurze');
     expect(result[0].verified).toBe(true);
     expect(result[1].name).toBe('Oliwa z oliwek');
-    expect(result[1].verified).toBe(true);
+    expect(result[1].verified).toBe(false);
   });
 
-  it('approves a draft plan and updates state revision', async () => {
-    const draftPlan = buildMealPlan(request, products, targets, { maxPrepMinutes: 30, excluded: [] }).plan;
-    let storedMealPlan: unknown = {
-      revision: 1,
-      draft: draftPlan,
-      active: null,
-      checkedProducts: [],
-    };
-
-    vi.mocked(supabase.from).mockImplementation((() => ({
-      select: () => ({
-        eq: () => ({
-          eq: () => ({
-            maybeSingle: () => Promise.resolve({ data: { meal_plan: storedMealPlan }, error: null }),
-          }),
-        }),
-      }),
-      update: (payload: { meal_plan: unknown }) => ({
-        eq: () => ({
-          eq: () => {
-            storedMealPlan = payload.meal_plan;
-            return Promise.resolve({ error: null });
-          },
-        }),
-      }),
-    })) as never);
-
-    const approved = await approveMealPlan('u1', '2026-10-14', 'key-test');
+  it('approves once, preserves revisions on shopping and detects concurrent writes', async () => {
+    const draftPlan = buildMealPlan(request,products,targets,{maxPrepMinutes:30,excluded:[]}).plan;
+    let stored = {revision:1,draft:draftPlan,active:null as typeof draftPlan,checkedProducts:[] as string[],approvalKey:''};
+    let failNextWrite = false, writes = 0;
+    vi.mocked(supabase.from).mockImplementation((() => {
+      const read = {eq:()=>read,maybeSingle:async()=>({data:{meal_plan:structuredClone(stored)},error:null})};
+      return {select:()=>read,update:(payload:{meal_plan:typeof stored})=>{
+        let expected = -1;
+        const write = {eq:()=>write,contains:(_column:string,value:{revision:number})=>{expected=value.revision;return write;},select:()=>write,
+          maybeSingle:async()=>{
+            if (failNextWrite) {stored={...stored,revision:stored.revision+1};failNextWrite=false;}
+            if (stored.revision !== expected) return {data:null,error:null};
+            stored=payload.meal_plan;writes++;return {data:{meal_plan:stored},error:null};
+          }};
+        return write;
+      }};
+    }) as never);
+    const approved = await approveMealPlan('u1','2026-10-14','key-test',1);
     expect(approved.revision).toBe(2);
-    expect(approved.active?.days[0].totals.calories).toBe(400);
-
-    const toggled = await toggleShoppingItem('u1', '2026-10-14', 'oats');
+    expect(approved.draft).toBeNull();
+    expect((await approveMealPlan('u1','2026-10-14','key-test',1)).revision).toBe(2);
+    expect(writes).toBe(1);
+    const toggled = await toggleShoppingItem('u1','2026-10-14','oats');
     expect(toggled.checkedProducts).toContain('oats');
-
-    const resized = await resizeMealInPlanState('u1', '2026-10-14', 'm1', 1.5);
+    expect(toggled.revision).toBe(3);
+    const resized = await resizeMealInPlanState('u1','2026-10-14','m1',1.5);
     expect(resized.active?.days[0].totals.calories).toBe(600);
+    failNextWrite=true;
+    await expect(toggleShoppingItem('u1','2026-10-14','oats')).rejects.toThrow('zmienił się');
+    expect(stored.active?.days[0].totals.calories).toBe(600);
+    expect(stored.checkedProducts).toContain('oats');
   });
 });
-

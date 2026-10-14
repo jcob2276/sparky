@@ -59,7 +59,7 @@ export function warsawDayBoundsISO(dateStr: string): { fromISO: string; toISO: s
   const probe = new Date(`${dateStr}T12:00:00Z`);
   const offset = warsawOffsetSuffix(probe);
   return {
-    fromISO: `${dateStr}T00:00:00${offset}`,
+    fromISO: `${dateStr}T00:00:00${warsawOffsetSuffix(new Date(`${dateStr}T00:00:00Z`))}`,
     toISO: `${dateStr}T23:59:59${offset}`,
   };
 }

@@ -1,6 +1,7 @@
 import { HeartPulse, Moon, Sparkles, TrendingUp } from 'lucide-react';
 import type { OuraHealthHubData } from './types';
 import { OuraPersonalEvidence } from './OuraPersonalEvidence';
+import { HealthChartsContainer } from '../health/HealthChartsContainer';
 
 function average(values: Array<number | null>): number | null {
   const measured = values.filter((entry): entry is number => entry != null);
@@ -47,6 +48,7 @@ export function OuraLongTermView({ data }: { data: OuraHealthHubData }) {
         ))}
       </div>
       <OuraPersonalEvidence data={data} />
+      {data.userId && <HealthChartsContainer userId={data.userId}/>}
     </div>
   );
 }

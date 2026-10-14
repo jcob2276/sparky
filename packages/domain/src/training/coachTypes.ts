@@ -43,12 +43,12 @@ export interface GoalProgressReview {
 }
 
 export interface WeeklyAdherence {
-  plannedSessionsCount: number;
-  completedSessionsCount: number;
-  skippedSessionsCount: number;
-  unrecordedSessionsCount: number;
-  cardioKm: number;
-  strengthSets: number;
+  plannedSessionsCount: number|null;
+  completedSessionsCount: number|null;
+  skippedSessionsCount: number|null;
+  unrecordedSessionsCount: number|null;
+  cardioKm: number|null;
+  strengthSets: number|null;
   adherenceRate: number | null;
   note: string;
 }

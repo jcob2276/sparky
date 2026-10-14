@@ -2,9 +2,9 @@ import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {
   HEALTH_COACH_SOURCES, formatWarsawDate, shiftDateStr, warsawDayBoundsISO,
   type CoachRow, type CoachSignal, type EvidenceKind, type HealthCoachContext, type HealthCoachSource,
-  decideTraining, activitySourceLabel,
+  activitySourceLabel,
 } from '@vanguard/domain';
-import { trainingConstraintsFromContext } from './healthCoachInputs.ts';
+import { dailyTrainingDecision } from './healthCoachInputs.ts';
 
 type SourceData = Partial<Record<HealthCoachSource, CoachRow[]>>;
 type SourceErrors = Partial<Record<HealthCoachSource, string>>;
@@ -129,9 +129,7 @@ export async function fetchHealthCoachContext(input: {
 }
 
 export function formatHealthCoachContext(context: HealthCoachContext): string {
-  let decision;
-  try { decision = decideTraining(context, { constraints: trainingConstraintsFromContext(context) }); }
-  catch { decision = { recommendation: 'unknown', allowIncrease: false, missing: ['Brak potwierdzonych warunków treningu.'] }; }
+  const decision=dailyTrainingDecision(context);
   const sources = Object.fromEntries(HEALTH_COACH_SOURCES.map(source => {
     const signal = context.sources[source];
     const maxRows = source === 'workout_sessions' || source === 'strava_activities_clean' ? 16 : source === 'daily_food_entries' ? 24 : 10;

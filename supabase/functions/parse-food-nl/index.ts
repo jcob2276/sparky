@@ -9,7 +9,7 @@
  * @status active
  */
 import { createServiceClient, getServiceRoleKey } from '../_shared/supabase.ts'
-import { serveJson } from '../_shared/http.ts'
+import { serveJson, HttpError } from '../_shared/http.ts'
 import {
   parseMealText,
   finalizeParsedItems,
@@ -126,7 +126,12 @@ async function loadUserContext(
 
 Deno.serve(serveJson(async (req, auth) => {
   const body = await req.clone().json().catch(() => ({}))
-  const text: string = (body.text || '').trim()
+  const text = typeof body.text === 'string' ? body.text.trim() : ''
+  if (body.mode === 'restaurant_menu' || body.mode === 'fridge_ingredients') {
+    if (!text && !body.imageBase64) throw new HttpError(400,'Dodaj zdjęcie lub opis menu/składników.');
+    if (text.length>8000 || (body.imageBase64 && (typeof body.imageBase64 !== 'string' || body.imageBase64.length>10000000))) throw new HttpError(400,'Za duży załącznik lub opis. Wybierz mniejsze zdjęcie albo krótszy tekst.');
+    if (body.imageBase64 && !/^image\/(jpeg|png|webp)$/.test(String(body.mimeType))) throw new HttpError(400,'Wybierz zdjęcie JPEG, PNG lub WebP.');
+  }
   const clientTime: string | undefined = body.clientTime
 
   const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''

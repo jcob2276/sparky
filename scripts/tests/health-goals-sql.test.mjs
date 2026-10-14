@@ -18,7 +18,7 @@ try {
     CREATE POLICY owner_read ON goal_kpis FOR SELECT TO authenticated USING(user_id=auth.uid());
     GRANT USAGE ON SCHEMA auth TO authenticated; GRANT SELECT ON goal_kpis TO authenticated;
   `);
-  if (!process.env.SPARKY_SKIP_GOAL_MIGRATION) await db.exec(await readFile('supabase/migrations/20261014115309_health_goal_standards.sql','utf8'));
+  if (!process.env.SPARKY_SKIP_GOAL_MIGRATION) await db.exec(await readFile('supabase/migrations/20261014115625_health_goal_standards.sql','utf8'));
   await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)", [owner]);
   const goal = { revision: 0, name: '13% BF', unit: 'percent', target: 13,
     spec: { kind: 'body_fat', variant: null, standard: null, priority: 1, reserveReps: null } };

@@ -2,7 +2,7 @@ export interface MealPlanProduct {
   id:string; name:string; source:string; verified:boolean; calories:number; protein:number; carbs:number; fat:number; fiber:number|null;
 }
 export interface PlannedMacros { calories:number; protein:number; carbs:number; fat:number; fiber:number|null }
-export interface MealIngredient { product:MealPlanProduct; grams:number; macros:PlannedMacros }
+export interface MealIngredient { product:MealPlanProduct; grams:number; baseGrams?:number; macros:PlannedMacros }
 export interface PlannedMeal { key:string; name:string; prepMinutes:number; instructions:string; ingredients:MealIngredient[]; totals:PlannedMacros }
 export interface MealPlanDay { date:string; meals:PlannedMeal[]; totals:PlannedMacros; target:{calories:number;protein:number} }
 export interface MealPlanDraft { notes:string; days:MealPlanDay[]; warnings:string[] }
@@ -62,7 +62,7 @@ export function resizePlannedMeal(plan:MealPlanDraft,date:string,key:string,fact
     if (day.date !== date) return day;
     const meals = day.meals.map(meal=>{
       if (meal.key !== key) return meal;
-      const ingredients = meal.ingredients.map(row=>ingredient(row.product,row.grams*factor));
+      const ingredients = meal.ingredients.map(row=>({...ingredient(row.product,(row.baseGrams ?? row.grams)*factor),baseGrams:row.baseGrams ?? row.grams}));
       return {...meal,ingredients,totals:total(ingredients.map(row=>row.macros))};
     });
     return {...day,meals,totals:total(meals.map(row=>row.totals))};

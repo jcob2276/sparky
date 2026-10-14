@@ -64,7 +64,7 @@ export async function callVisionLlm({
           contents: [{
             parts: [
               { text: prompt },
-              { inlineData: { mimeType, data: imageBase64 } },
+              ...(imageBase64 && mimeType ? [{ inlineData: { mimeType, data: imageBase64 } }] : []),
             ],
           }],
           generationConfig: {

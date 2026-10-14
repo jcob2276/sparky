@@ -1,7 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { getTodayWarsaw, formatWarsawDate } from './date';
+import { getTodayWarsaw, formatWarsawDate, warsawDayBoundsISO } from './date';
 
 describe('date utils (Warsaw timezone safety)', () => {
+  it('keeps the full 23-hour and 25-hour Warsaw days at clock changes',()=>{
+    const spring=warsawDayBoundsISO('2026-03-29'),autumn=warsawDayBoundsISO('2026-10-25');
+    expect(new Date(spring.fromISO).toISOString()).toBe('2026-03-28T23:00:00.000Z');
+    expect((Date.parse(spring.toISO)-Date.parse(spring.fromISO)+1000)/3600000).toBe(23);
+    expect(new Date(autumn.fromISO).toISOString()).toBe('2026-10-24T22:00:00.000Z');
+    expect((Date.parse(autumn.toISO)-Date.parse(autumn.fromISO)+1000)/3600000).toBe(25);
+  });
   beforeEach(() => {
     vi.useFakeTimers();
   });

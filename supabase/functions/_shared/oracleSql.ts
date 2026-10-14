@@ -1,71 +1,36 @@
-/**
- * Read-only SQL tool used by the Oracle. Real safety boundary lives in the
- * `oracle_readonly_query` Postgres function (transaction_read_only, single
- * statement, 5s timeout, outer LIMIT 200) — this is just the calling
- * convention + audit trail.
- */
-import { logAuditEvent } from "./audit.ts";
+import type {SupabaseClient} from 'https://esm.sh/@supabase/supabase-js@2';
+import {ANALYTICS_DATASETS,validateAnalyticsQuery,warsawDayBoundsISO,shiftDateStr,type AnalyticsResult} from '@vanguard/domain';
+import {logAuditEvent} from './audit.ts';
 
-const KNOWN_VANGUARD_TABLES = [
-  "daily_nutrition", "daily_food_entries", "food_library", "nutrition_targets", "nutrition_profile",
-  "fasting_logs", "workout_sessions", "exercise_logs", "strava_activities", "strava_activities_clean",
-  "oura_daily_summary", "daily_strain", "body_metrics", "body_composition_measurements",
-  "projects", "todo_sections", "todo_items", "daily_wins", "habits", "habit_logs",
-  "weekly_reviews", "monthly_reviews", "daily_reconciliations", "life_goals", "goal_kpis",
-  "kpi_entries", "sprint_goals", "learning_skills", "learning_week_focus", "medical_lab_results",
-  "medical_documents", "supplements", "supplement_logs", "endmyopia_measurements", "endmyopia_prescriptions",
-  "phone_usage_daily", "vanguard_calendar", "location_history", "vanguard_stream", "vanguard_notes",
-  "friction_events", "confirmed_friction_events", "claims", "entities", "audit_events", "insider_trades"
-];
-
-export function qualifySqlTables(sql: string): string {
-  let rewritten = sql;
-  for (const table of KNOWN_VANGUARD_TABLES) {
-    const fromJoinRegex = new RegExp(`(\\b(?:from|join)\\s+)(?!public\\.)(\\b${table}\\b)`, "gi");
-    rewritten = rewritten.replace(fromJoinRegex, `$1public.$2`);
-    const commaRegex = new RegExp(`(,\\s*)(?!public\\.)(\\b${table}\\b)`, "gi");
-    rewritten = rewritten.replace(commaRegex, `$1public.$2`);
-  }
-  return rewritten;
-}
-
-export async function runOracleReadonlyQuery(
-  supabase: any,
-  userId: string,
-  sql: string,
-): Promise<{ ok: true; rows: unknown[] } | { ok: false; error: string }> {
-  const qualifiedSql = qualifySqlTables(sql);
-  const { data, error } = await supabase.rpc("oracle_readonly_query", { query_text: qualifiedSql });
-
-  if (error) {
-    await logAuditEvent({
-      eventType: "oracle_sql_tool_call",
-      severity: "warning",
-      message: error.message,
-      userId,
-      metadata: { sql, success: false },
-    });
-    return { ok: false, error: error.message };
-  }
-
-  if (data && typeof data === "object" && !Array.isArray(data) && "error" in data) {
-    const errorMsg = (data as Record<string, unknown>).error as string;
-    await logAuditEvent({
-      eventType: "oracle_sql_tool_call",
-      severity: "warning",
-      message: errorMsg,
-      userId,
-      metadata: { sql, success: false },
-    });
-    return { ok: false, error: errorMsg };
-  }
-
-  await logAuditEvent({
-    eventType: "oracle_sql_tool_call",
-    severity: "info",
-    message: "ok",
-    userId,
-    metadata: { sql, success: true, rowCount: Array.isArray(data) ? data.length : 0 },
-  });
-  return { ok: true, rows: Array.isArray(data) ? data : [] };
+/** Legacy module name; only structured reads are supported. No raw SQL is executed. */
+export async function runOracleReadonlyQuery(supabase:SupabaseClient,userId:string,input:unknown):Promise<
+  ({ok:true}&AnalyticsResult)|{ok:false;error:string}
+> {
+  try {
+    if(!/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/i.test(userId)) throw new Error('Brak uwierzytelnionego właściciela.');
+    const request=validateAnalyticsQuery(input),source=ANALYTICS_DATASETS[request.table];
+    const columns=request.columns.map(column=>column === 'exercise_logs'?'exercise_logs(exercise_name,set_number,reps,weight,rpe,rir)':column).join(',');
+    let query=supabase.from(request.table).select(columns).eq('user_id',userId);
+    if(request.table === 'strava_activities_clean') query=query.eq('is_oura',false);
+    if(source.date) {
+      const isDate=['date','week_start','month_start','result_date','document_date'].includes(source.date);
+      query=query.gte(source.date,isDate?request.from:warsawDayBoundsISO(request.from).fromISO);
+      query=(isDate?query.lte(source.date,request.to):query.lt(source.date,warsawDayBoundsISO(shiftDateStr(request.to,1)).fromISO)).order(source.date);
+    }
+    for(const filter of request.filters ?? []) {
+      if(filter.op === 'eq') query=query.eq(filter.field,filter.value);
+      if(filter.op === 'gte') query=query.gte(filter.field,filter.value);
+      if(filter.op === 'lte') query=query.lte(filter.field,filter.value);
+      if(filter.op === 'ilike') query=query.ilike(filter.field,String(filter.value));
+    }
+    const {data,error}=await query.limit(201);
+    if(error) return {ok:false,error:error.message};
+    const rows:unknown=data;
+    if(!Array.isArray(rows)) return {ok:false,error:'Nieprawidłowa odpowiedź źródła danych.'};
+    if(JSON.stringify(rows).length>100000) return {ok:false,error:'Zbyt dużo treści. Wybierz mniej pól lub krótszy okres.'};
+    const result:AnalyticsResult={rows:rows.slice(0,200) as Record<string,unknown>[],table:request.table,from:request.from,to:request.to,truncated:rows.length>200};
+    await logAuditEvent({eventType:'oracle_data_tool_call',severity:'info',message:'Owner-scoped read',userId,
+      metadata:{table:request.table,columns:request.columns,from:request.from,to:request.to,truncated:result.truncated,rowCount:result.rows.length}});
+    return {ok:true,...result};
+  } catch(error) {return {ok:false,error:error instanceof Error?error.message:'Źródło niedostępne.'};}
 }

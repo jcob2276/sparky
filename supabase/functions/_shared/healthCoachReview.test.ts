@@ -17,10 +17,10 @@ Deno.test("healthCoachReview — unrecorded workout session is not counted as sk
         { id: "pw4", planned_date: "2026-10-17", title: "Podbiegi", completed: false, skipped_at: null }, // no log, no skip
       ],
       workout_sessions: [
-        { id: "ws1", session_date: "2026-10-12", total_sets: 15, duration_seconds: 3600 },
+        { id: "ws1", date: "2026-10-12", exercise_logs:Array.from({length:15},(_,index)=>({id:`set-${index}`,exercise_name:'Bench Press',reps:8,weight:60})) },
       ],
       strava_activities_clean: [
-        { id: "run1", start_date: "2026-10-14T08:00:00Z", distance: 8000, elapsed_time: 2400, source: "garmin_intervals" },
+        { id: "run1", sport_type:'Run', start_date: "2026-10-14T08:00:00Z", distance: 8000, elapsed_time: 2400, source: "garmin_intervals" },
       ],
     },
   });
@@ -65,8 +65,22 @@ Deno.test("healthCoachReview — missing measurement for KPI yields unassessed r
   assertEquals(bench?.currentValue, null);
 
   const run = review.goalProgress.find(g => g.kpiId === "kpi-run");
-  assertEquals(run?.status, "progressing");
-  assertEquals(run?.currentValue, 2850);
+  assertEquals(run?.status, "unassessed");
+  assertEquals(run?.currentValue, null);
+});
+
+Deno.test('weekly review excludes future prescriptions and does not prescribe progression from adherence alone', () => {
+  const context = buildHealthCoachContext({asOf:'2026-10-14T12:00:00Z',data:{
+    training_plan_workouts:[{id:'done',planned_date:'2026-10-12',completed:true},{id:'future',planned_date:'2026-10-18',completed:false}],
+    strava_activities_clean:[{strava_id:1,sport_type:'Ride',distance:50000,start_date:'2026-10-13T10:00:00Z'},
+      {strava_id:2,sport_type:'Run',distance:5000,start_date:'2026-10-11T23:30:00Z'}],
+    daily_strain:[{date:'2026-10-14',illness_level:'high'}],
+  }});
+  const result = buildHealthCoachReview({context,weekStart,weekEnd});
+  assertEquals(result.adherence.plannedSessionsCount,1);
+  assertEquals(result.adherence.unrecordedSessionsCount,0);
+  assertEquals(result.adherence.cardioKm,5);
+  assertEquals(result.nextWeekProposal.action,'deload');
 });
 
 Deno.test("healthCoachReview — separates measured progress from causal claim about coach advice", () => {

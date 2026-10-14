@@ -12,6 +12,7 @@ interface MealPlannerViewProps {
   targetProtein: number | null;
   isGenerating: boolean;
   isApproving: boolean;
+  busy?:boolean;
   onGenerate: () => void;
   onApprove: () => void;
   onResizeMeal: (mealKey: string, factor: number) => void;
@@ -25,6 +26,7 @@ export function MealPlannerView({
   targetProtein,
   isGenerating,
   isApproving,
+  busy=false,
   onGenerate,
   onApprove,
   onResizeMeal,
@@ -34,10 +36,10 @@ export function MealPlannerView({
 
   const activePlan: MealPlanDraft | null = state?.active ?? null;
   const draftPlan: MealPlanDraft | null = state?.draft ?? null;
-  const displayPlan = activePlan ?? draftPlan;
+  const displayPlan = tab === 'shopping' ? activePlan : draftPlan ?? activePlan;
 
   const currentDay = displayPlan?.days.find((d) => d.date === date) ?? displayPlan?.days[0];
-  const isDraftOnly = !activePlan && Boolean(draftPlan);
+  const isDraftOnly = Boolean(draftPlan);
 
   return (
     <div className="rounded-2xl border border-white/5 bg-surface-1 p-4 space-y-4">
@@ -76,7 +78,7 @@ export function MealPlannerView({
             variant="tonal"
             size="sm"
             onClick={onGenerate}
-            disabled={isGenerating}
+            disabled={busy || isGenerating || targetKcal == null || targetProtein == null}
             loading={isGenerating}
             icon={<Sparkles size={14} className={isGenerating ? 'animate-spin' : ''} />}
             className="h-8 border border-primary/30"
@@ -90,7 +92,7 @@ export function MealPlannerView({
         <div className="rounded-xl border border-dashed border-white/10 p-6 text-center space-y-2">
           <p className="text-sm font-medium text-text-primary">Brak zaplanowanego jadłospisu na ten dzień</p>
           <p className="text-xs text-text-muted max-w-md mx-auto">
-            Sparky może ułożyć proste, pełnowartościowe posiłki dopasowane do Twojego celu energii ({targetKcal ?? 2200} kcal) i białka ({targetProtein ?? 140} g) ze zweryfikowanych produktów.
+            {targetKcal == null || targetProtein == null ? 'Najpierw ustal aktualny cel energii i białka na podstawie swoich danych.' : `Propozycje pod cel ${targetKcal} kcal i ${targetProtein} g białka z biblioteki produktów. Sprawdź porcje i etykiety przed zatwierdzeniem.`}
           </p>
         </div>
       ) : tab === 'shopping' ? (
@@ -98,6 +100,7 @@ export function MealPlannerView({
           plan={displayPlan}
           checkedIds={state?.checkedProducts ?? []}
           onToggle={onToggleShoppingItem}
+          disabled={busy}
         />
       ) : (
         <div className="space-y-4">
@@ -111,7 +114,7 @@ export function MealPlannerView({
                 variant="primary"
                 size="sm"
                 onClick={onApprove}
-                disabled={isApproving}
+                disabled={busy || isApproving}
                 loading={isApproving}
                 icon={<Check size={14} />}
                 className="h-7 px-3 text-xs"
@@ -139,6 +142,7 @@ export function MealPlannerView({
                     key={meal.key}
                     meal={meal}
                     onResizeMeal={onResizeMeal}
+                    disabled={busy}
                   />
                 ))}
               </div>

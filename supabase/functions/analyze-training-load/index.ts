@@ -16,7 +16,7 @@ import { runPlanJob } from './planJobs.ts'
 import { generateTrainingPlan, trainingConstraintsFromContext } from './planGenerator.ts'
 import { approvePlan, revertPlan } from './planActions.ts'
 import { HealthPlanInputError } from './planErrors.ts'
-import { decideTraining } from '@vanguard/domain'
+import { dailyTrainingDecision } from '../_shared/healthCoachInputs.ts'
 import { adjustedTrainingPlan } from './dailyDecision.ts'
 import { buildHealthCoachReview } from '../_shared/healthCoachReview.ts'
 
@@ -38,7 +38,7 @@ Deno.serve(serveJson(async (req, ctx) => {
   if (!userId) throw new Error('Missing userId')
   if (body.action === 'coach_decision') {
     const context = await fetchHealthCoachContext({ supabase, userId })
-    return { success: true, decision: decideTraining(context, { constraints: trainingConstraintsFromContext(context) }) }
+    return { success: true, decision: dailyTrainingDecision(context) }
   }
   if (body.action === 'weekly_review') {
     const context = await fetchHealthCoachContext({ supabase, userId, asOf: body.asOf })

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OuraHealthView } from './OuraHealthView';
@@ -118,7 +118,8 @@ describe('OuraHealthView', () => {
     expect(screen.getByText('Bilans snu')).toBeInTheDocument();
     expect(screen.getByText(/Potrzeba 16 h 0 min − sen 15 h 0 min/)).toBeInTheDocument();
     expect(screen.getByText('Wiek sercowo-naczyniowy')).toBeInTheDocument();
-    expect(screen.getByText('Częstotliwość oddechu')).toBeInTheDocument();
-    expect(screen.getByText('13,6/min')).toBeInTheDocument();
+    const breathingCard = screen.getAllByRole('article').find(card => within(card).queryByText('Częstotliwość oddechu'));
+    expect(breathingCard).toBeDefined();
+    expect(within(breathingCard!).getByText('13,6/min')).toBeInTheDocument();
   });
 });

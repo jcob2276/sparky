@@ -1,4 +1,4 @@
-import { validateTrainingConstraints, recentPainReport, type TrainingConstraints, type HealthCoachContext } from '@vanguard/domain';
+import { validateTrainingConstraints, recentPainReport, decideTraining, type CoachDecision, type TrainingConstraints, type HealthCoachContext } from '@vanguard/domain';
 import { HttpError } from './http.ts';
 
 export function trainingConstraintsFromContext(context: HealthCoachContext): TrainingConstraints {
@@ -16,4 +16,14 @@ export function trainingConstraintsFromContext(context: HealthCoachContext): Tra
   const errors = validateTrainingConstraints(constraints);
   if (errors.length) throw new HttpError(400, errors.join(' '));
   return constraints;
+}
+
+/** A read never needs to invent intake values or hide a recovery hold behind a setup error. */
+export function dailyTrainingDecision(context:HealthCoachContext):CoachDecision {
+  try {return decideTraining(context,{constraints:trainingConstraintsFromContext(context)});}
+  catch (error) {
+    const decision=decideTraining(context,{constraints:{revision:0,availability:[],equipment:[],limitations:[]}});
+    return {...decision,recommendation:decision.recommendation === 'recover' ? 'recover' : 'unknown',replacement:null,allowIncrease:false,
+      missing:[...decision.missing,error instanceof HttpError ? error.message : 'Nie udało się odczytać warunków treningu.']};
+  }
 }

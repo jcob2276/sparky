@@ -139,37 +139,8 @@ interface ParseFoodNLResponse {
     source: 'label_ocr'; confidence: 'high' | 'medium' | 'low';
   };
   meal?: MealPhotoResponse;
-  menuAnalysis?: {
-    summary: string;
-    dishes: Array<{
-      id: string;
-      name: string;
-      estimatedKcal: number;
-      estimatedProtein: number;
-      estimatedCarbs: number;
-      estimatedFat: number;
-      whyRecommended: string;
-      waiterTip?: string;
-      confidence: 'high' | 'medium' | 'low';
-    }>;
-    userNotice: string;
-  };
-  fridgeAnalysis?: {
-    detectedIngredients: Array<{ name: string; estimatedGrams?: number | null; confidence: 'high' | 'medium' | 'low' }>;
-    suggestions: Array<{
-      id: string;
-      name: string;
-      prepMinutes: number;
-      ingredientsUsed: string[];
-      missingIngredients: string[];
-      estimatedKcal: number;
-      protein: number;
-      carbs: number;
-      fat: number;
-      instructions: string;
-    }>;
-    uncertaintyNotice: string;
-  };
+  menuAnalysis?: import('@vanguard/domain').RestaurantMenuAnalysis;
+  fridgeAnalysis?: import('@vanguard/domain').FridgeIngredientsAnalysis;
 }
 
 interface CaptureVaultResponse { ok?: boolean; success?: boolean; chunks: number; triads: number; message: string; }
@@ -270,6 +241,7 @@ export interface DailyPlanInterviewResponse {
 }
 
 export interface VanguardOracleResponse {
+  analytics?: import('@vanguard/domain').AnalyticsResult;
   answer?: string;
   subtasks?: string[];
   reply?: string;

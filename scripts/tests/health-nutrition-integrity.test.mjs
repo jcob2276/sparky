@@ -26,7 +26,7 @@ try {
   const start = baseline.indexOf('CREATE OR REPLACE FUNCTION "public"."_recompute_daily_nutrition"');
   const end = baseline.indexOf('ALTER FUNCTION "public"."_recompute_daily_nutrition"', start);
   await db.exec(baseline.slice(start, end));
-  await db.exec(await readFile('supabase/migrations/20261014113835_health_nutrition_totals_integrity.sql', 'utf8'));
+  await db.exec(await readFile('supabase/migrations/20261014115624_health_nutrition_totals_integrity.sql', 'utf8'));
   const owner = '11111111-1111-4111-8111-111111111111';
   const other = '22222222-2222-4222-8222-222222222222';
   await db.query('INSERT INTO daily_food_entries(id,user_id,date,calories,protein) VALUES (1,$1,$2,400,25)', [owner, '2026-10-14']);

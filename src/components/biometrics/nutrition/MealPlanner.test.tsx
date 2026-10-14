@@ -37,6 +37,16 @@ const mockState: MealPlanState = {
 };
 
 describe('MealPlannerView', () => {
+  it('shows a replacement draft while the active menu remains available for shopping', () => {
+    const draft = structuredClone(mockState.active!);
+    draft.days[0].meals[0].name='Nowy szkic';
+    render(<MealPlannerView date="2026-10-14" state={{...mockState,draft}} targetKcal={2000} targetProtein={150}
+      isGenerating={false} isApproving={false} onGenerate={vi.fn()} onApprove={vi.fn()} onResizeMeal={vi.fn()} onToggleShoppingItem={vi.fn()} />);
+    expect(screen.getByText('Nowy szkic')).toBeInTheDocument();
+    expect(screen.getByRole('button',{name:'Zatwierdź menu'})).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button',{name:'Zakupy'}));
+    expect(screen.getByText('180 g')).toBeInTheDocument();
+  });
   it('renders empty prompt when state has no plan', () => {
     const onGenerate = vi.fn();
     render(

@@ -7,9 +7,10 @@ interface MealShoppingListViewProps {
   plan: MealPlanDraft;
   checkedIds: string[];
   onToggle: (productId: string) => void;
+  disabled?:boolean;
 }
 
-export function MealShoppingListView({ plan, checkedIds, onToggle }: MealShoppingListViewProps) {
+export function MealShoppingListView({ plan, checkedIds, onToggle,disabled }: MealShoppingListViewProps) {
   const items = mealShoppingList(plan);
   const checkedSet = new Set(checkedIds);
 
@@ -37,6 +38,7 @@ export function MealShoppingListView({ plan, checkedIds, onToggle }: MealShoppin
               key={item.productId}
               variant="ghost"
               onClick={() => onToggle(item.productId)}
+              disabled={disabled}
               className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-surface-2 px-3 py-2 text-left transition hover:border-white/10 h-auto font-normal"
             >
               <div className="flex items-center gap-2">
@@ -60,6 +62,7 @@ export function MealShoppingListView({ plan, checkedIds, onToggle }: MealShoppin
                     key={item.productId}
                     variant="ghost"
                     onClick={() => onToggle(item.productId)}
+                    disabled={disabled}
                     className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-surface-1 px-3 py-1.5 text-left transition hover:opacity-100 h-auto font-normal"
                   >
                     <div className="flex items-center gap-2 line-through text-text-muted">

@@ -14,7 +14,8 @@
  *     runOracleQuery from ./oracle/core.ts, NOT from this file.
  */
 import { resolveUserScope } from "../_shared/supabase.ts";
-import { serveJson } from "../_shared/http.ts";
+import { serveJson, HttpError } from "../_shared/http.ts";
+import { runOracleReadonlyQuery } from '../_shared/oracleSql.ts';
 import { handleSearch } from "./handlers/search.ts";
 import { handleGoalCreate } from "./handlers/goalCreate.ts";
 import { handleTaskBreakdown } from "./handlers/taskBreakdown.ts";
@@ -30,6 +31,13 @@ Deno.serve(serveJson(async (req, ctx) => {
     const action = url.searchParams.get("action") || body.action;
 
     if (action) {
+      if (action === 'analytics') {
+        const {userId}=await resolveUserScope(req,body.user_id ?? null);
+        if(!userId) throw new Error('Missing user_id');
+        const result=await runOracleReadonlyQuery(db,userId,body.query);
+        if(!result.ok) throw new HttpError(422,result.error);
+        return {success:true,analytics:result};
+      }
       if (action === "search") return await handleSearch(req, body, db);
       if (action === "goal-create") return await handleGoalCreate(req, body);
       if (action === "task-breakdown") return await handleTaskBreakdown(req, body);

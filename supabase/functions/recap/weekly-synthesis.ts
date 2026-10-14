@@ -1,5 +1,5 @@
 import { sendMessageParsed } from "../_shared/telegram.ts";
-import { createServiceClient, safeExecute } from "../_shared/supabase.ts";
+import { createServiceClient, safeExecute,resolveUserScope } from "../_shared/supabase.ts";
 import { getVanguardUserId } from "../_shared/constants.ts";
 import { getRecentStrongBehavioralPatterns } from "../_shared/vanguardPatterns.ts";
 import { deepseekChat } from "../_shared/deepseek.ts";
@@ -18,6 +18,7 @@ import {
 
 export async function runWeeklySynthesis(req: Request): Promise<unknown> {
   const VANGUARD_USER_ID = getVanguardUserId();
+  await resolveUserScope(req,VANGUARD_USER_ID);
   const supabase = createServiceClient();
 
   try {
@@ -210,7 +211,7 @@ PYTANIE NA NASTĘPNE 7 DNI
           role: 'user',
           content: `OKRES: ${weekStart} – ${weekEnd}
  
-BIOMETRIA (${bio.length} dni danych):
+BIOMETRIA (${(biometrics ?? []).length} dni danych):
 ${bioText}
 
 TRENING I CELE ZDROWOTNE (Przegląd wykonania i postępu):

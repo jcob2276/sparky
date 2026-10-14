@@ -5,11 +5,12 @@ import Button from '../../ui/Button';
 interface PlannedMealCardProps {
   meal: PlannedMeal;
   onResizeMeal: (mealKey: string, factor: number) => void;
+  disabled?:boolean;
 }
 
 const SCALE_FACTORS = [0.75, 1, 1.25, 1.5];
 
-export function PlannedMealCard({ meal, onResizeMeal }: PlannedMealCardProps) {
+export function PlannedMealCard({ meal, onResizeMeal,disabled }: PlannedMealCardProps) {
   return (
     <article className="rounded-xl border border-white/5 bg-surface-2 p-3 space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -22,13 +23,14 @@ export function PlannedMealCard({ meal, onResizeMeal }: PlannedMealCardProps) {
 
         <div className="flex items-center gap-1.5">
           <Scale size={13} className="text-text-muted" />
-          <span className="text-2xs text-text-muted mr-1">Porcja:</span>
+          <span className="text-2xs text-text-muted mr-1">Względem porcji bazowej:</span>
           {SCALE_FACTORS.map((factor) => (
             <Button
               key={factor}
               variant="secondary"
               size="sm"
               onClick={() => onResizeMeal(meal.key, factor)}
+              disabled={disabled}
               className="h-6 px-1.5 py-0 text-3xs font-medium bg-surface-1 border border-white/5 text-text-secondary hover:text-text-primary hover:border-primary/40 min-w-0"
             >
               {factor}x

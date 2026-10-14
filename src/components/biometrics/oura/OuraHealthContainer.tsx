@@ -66,6 +66,7 @@ export function OuraHealthContainer() {
   if (!userId) return null;
 
   const data = {
+    userId,
     date: dailyQuery.data?.date ?? null,
     strainRow: dailyQuery.data?.row ?? null,
     oura: dailyQuery.data?.oura ?? null,
