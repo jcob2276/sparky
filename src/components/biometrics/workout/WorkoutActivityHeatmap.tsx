@@ -43,7 +43,7 @@ export default function WorkoutActivityHeatmap({
         agg[d] = { count: 0, minutes: 0, tonnage: 0 };
       }
       agg[d].count += 1;
-      const min = w.durationMinutes || 45;
+      const min = w.durationMinutes ?? 0;
       agg[d].minutes += min;
       minutesSum += min;
       agg[d].tonnage += w.totalTonnage || 0;
@@ -107,7 +107,7 @@ export default function WorkoutActivityHeatmap({
         const iso = dayDate.toISOString().slice(0, 10);
         const entry = aggMap[iso];
 
-        let level = 0;
+        let level = entry?.count ? 1 : 0;
         if (entry && entry.minutes > 0) {
           const ratio = entry.minutes / (maxMinutes || 60);
           if (ratio >= 0.75) level = 4;
@@ -162,7 +162,7 @@ export default function WorkoutActivityHeatmap({
           </span>
           <span className="flex items-center gap-1">
             <Clock size={12} className="text-text-muted" />
-            <strong className="text-text-primary">{Math.round(totalMinutes / 60)}</strong> godz.
+            <strong className="text-text-primary">{totalMinutes ? Math.round(totalMinutes / 60) : '—'}</strong> godz. zapisanych
           </span>
           <span>
             <strong className="text-text-primary">{totalWorkouts}</strong> sesji
@@ -205,7 +205,7 @@ export default function WorkoutActivityHeatmap({
                   const isToday = day.dateStr === todayStr;
                   const isFuture = day.dateStr > todayStr;
                   const tooltip = day.info
-                    ? `${day.dateStr}: ${day.info.count} trening(i) · ${day.info.minutes} min`
+                    ? `${day.dateStr}: ${day.info.count} trening(i) · ${day.info.minutes > 0 ? `${day.info.minutes} min` : 'brak czasu sesji'}`
                     : day.dateStr;
 
                   return (

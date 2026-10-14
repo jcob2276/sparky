@@ -68,3 +68,11 @@ Deno.test('a review confirmed after asOf cannot close a nutrition day in retrosp
   assertEquals(context.sources.daily_nutrition.state, 'provisional');
   assertEquals(context.sources.nutrition_day_reviews.value, null);
 });
+
+Deno.test('expired core memory is excluded while confirmed health constraints do not expire', () => {
+  const context = buildHealthCoachContext({ asOf, data: { vanguard_preferences: [
+    { id: 'expired', key: 'core_memory:focus', value: JSON.stringify({ text: 'old goal', expires_at: '2026-10-01T00:00:00Z' }) },
+    { id: 'constraints', key: 'health_coach:constraints', value: JSON.stringify({ equipment: ['barbell'], revision: 1 }) },
+  ] } });
+  assertEquals(context.sources.vanguard_preferences.value?.map(row => row.id), ['constraints']);
+});

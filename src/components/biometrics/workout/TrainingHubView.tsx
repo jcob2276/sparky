@@ -1,23 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, TrendingUp, AlertCircle, RotateCcw } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import Spinner from '../../ui/Spinner';
-import { getTodayWarsaw } from '../../../lib/date';
-import { useHaptics } from '../../../hooks/useHaptics';
-import { confirmDialog } from '../../../lib/notify';
-import {
-  fetchTodayWorkoutDetails,
-  fetchRecentWorkoutTemplates,
-  type TodayWorkoutDetails,
-  type WorkoutTemplateSummary,
-} from '../../../lib/health/workoutApi';
-import {
-  loadWorkoutDraft,
-  hasResumableWorkoutDraftContent,
-  endWorkoutSession,
-  loadWorkoutTemplate,
-  type WorkoutLoggerInitial,
-} from '../../../lib/health/workoutLogging';
+import type { WorkoutLoggerInitial } from '../../../lib/health/workoutLogging';
+import { useTrainingHub } from './useTrainingHub';
+import HealthGoalEditorContainer from './HealthGoalEditorContainer';
 import TrainingTodayCard from './TrainingTodayCard';
 import TrainingTemplatesSection from './TrainingTemplatesSection';
 import WorkoutNlCaptureModal from './WorkoutNlCaptureModal';
@@ -68,85 +55,16 @@ interface TrainingHubViewProps {
   onNavigate: (path: string) => void;
 }
 
-// eslint-disable-next-line max-lines-per-function
 export default function TrainingHubView({
   userId,
   onStartWorkout,
   onBack,
   onNavigate,
 }: TrainingHubViewProps) {
-  const [loading, setLoading] = useState(Boolean(userId));
+  const { loading, todaySession, templates, hasDraft, heatmapWorkouts, handleResumeDraft,
+    handleDiscardDraft, handleSelectTemplate, handleStartBlank } = useTrainingHub(userId, onStartWorkout);
   const [activeTab, setActiveTab] = useState<'hub' | 'anatomy' | 'heatmap'>('hub');
-  const [todaySession, setTodaySession] = useState<TodayWorkoutDetails | null>(null);
-  const [templates, setTemplates] = useState<WorkoutTemplateSummary[]>([]);
-  const [hasDraft, setHasDraft] = useState(false);
   const [showNlCapture, setShowNlCapture] = useState(false);
-  const haptics = useHaptics();
-
-  const todayStr = getTodayWarsaw();
-
-  const heatmapWorkouts = useMemo(
-    () => templates.map((t) => ({ date: t.date, totalTonnage: t.totalTonnageKg, durationMinutes: 50 })),
-    [templates]
-  );
-
-  useEffect(() => {
-    if (!userId) return;
-
-    let isMounted = true;
-    void (async () => {
-      try {
-        const [todayData, tplData] = await Promise.all([
-          fetchTodayWorkoutDetails(userId, todayStr),
-          fetchRecentWorkoutTemplates(userId),
-        ]);
-        if (!isMounted) return;
-        setTodaySession(todayData);
-        setTemplates(tplData);
-
-        const draft = loadWorkoutDraft(userId);
-        setHasDraft(Boolean(draft && hasResumableWorkoutDraftContent(draft)));
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [userId, todayStr]);
-
-  const handleResumeDraft = () => {
-    haptics.success();
-    onStartWorkout();
-  };
-
-  const handleDiscardDraft = async () => {
-    if (!userId) return;
-    if (await confirmDialog('Czy na pewno chcesz odrzucić niezapisany szkic treningu?')) {
-      endWorkoutSession(userId);
-      setHasDraft(false);
-      haptics.light();
-    }
-  };
-
-  const handleSelectTemplate = async (tpl: WorkoutTemplateSummary) => {
-    if (!userId) return;
-    haptics.light();
-    setLoading(true);
-    try {
-      const initial = await loadWorkoutTemplate(userId, tpl.workoutDay);
-      onStartWorkout(initial);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleStartBlank = () => {
-    haptics.light();
-    if (userId) endWorkoutSession(userId);
-    onStartWorkout(null);
-  };
 
   return (
     <div className="flex-grow bg-background flex flex-col min-h-screen pb-24 transition-colors">
@@ -250,6 +168,10 @@ export default function TrainingHubView({
               onStartBlank={handleStartBlank}
               onOpenNlCapture={() => setShowNlCapture(true)}
             />
+            {userId && <details className="rounded-2xl border border-border-custom p-3">
+              <summary className="cursor-pointer text-sm font-semibold">Cele i warunki treningu</summary>
+              <HealthGoalEditorContainer userId={userId} />
+            </details>}
           </>
         )}
       </main>

@@ -34,6 +34,12 @@ export function buildHealthCoachContext(input: { asOf: string; data: SourceData;
     const rows = (input.data[source] ?? []).filter(row => {
       const observed = rowDate(row);
       if (!available(row)) return false;
+      if (source === 'vanguard_preferences' && String(row.key).startsWith('core_memory:') && typeof row.value === 'string') {
+        try {
+          const envelope = JSON.parse(row.value);
+          if (envelope.expires_at && new Date(envelope.expires_at) <= instant) return false;
+        } catch { /* Legacy plain preference text remains readable. */ }
+      }
       if (DECLARATIONS.has(source)) return true;
       if (!observed) return false;
       return observed.length > 10 ? new Date(observed) <= instant : observed <= localDate;
@@ -80,7 +86,7 @@ export async function fetchHealthCoachContext(input: {
     nutrition_day_reviews: 'date,completeness,confirmed_at',
     body_metrics: 'id,date,weight,waist,belly,body_fat,neck,created_at',
     nutrition_profile: 'height_cm,birth_date,sex,goal_body_fat,current_body_fat_est,goal_target_date,protein_g_per_kg,weekly_loss_kg,event_name,event_date,philosophy_note,sleep_target_hours,updated_at',
-    goal_kpis: 'id,name,unit,target,project_id,goal_id,higher_is_better,created_at',
+    goal_kpis: 'id,name,unit,target,project_id,goal_id,higher_is_better,measurement_spec,revision,created_at',
     vanguard_preferences: 'id,key,value,updated_at',
   };
   const data: SourceData = {};
