@@ -139,6 +139,37 @@ interface ParseFoodNLResponse {
     source: 'label_ocr'; confidence: 'high' | 'medium' | 'low';
   };
   meal?: MealPhotoResponse;
+  menuAnalysis?: {
+    summary: string;
+    dishes: Array<{
+      id: string;
+      name: string;
+      estimatedKcal: number;
+      estimatedProtein: number;
+      estimatedCarbs: number;
+      estimatedFat: number;
+      whyRecommended: string;
+      waiterTip?: string;
+      confidence: 'high' | 'medium' | 'low';
+    }>;
+    userNotice: string;
+  };
+  fridgeAnalysis?: {
+    detectedIngredients: Array<{ name: string; estimatedGrams?: number | null; confidence: 'high' | 'medium' | 'low' }>;
+    suggestions: Array<{
+      id: string;
+      name: string;
+      prepMinutes: number;
+      ingredientsUsed: string[];
+      missingIngredients: string[];
+      estimatedKcal: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      instructions: string;
+    }>;
+    uncertaintyNotice: string;
+  };
 }
 
 interface CaptureVaultResponse { ok?: boolean; success?: boolean; chunks: number; triads: number; message: string; }
@@ -156,19 +187,21 @@ interface NightlyResponse {
 }
 
 interface NutritionCoachResponse {
-  success: boolean; date: string;
-  signals: {
+  success: boolean; date?: string;
+  state?: import('@vanguard/domain').MealPlanState | null;
+  errors?: string[];
+  signals?: {
     today: { target_kcal: number; deficit_kcal: number; protein_floor_g: number; remaining_kcal: number; remaining_protein: number; intake_so_far?: number; };
     energy: { est_maintenance: number; underlog_gap_kcal: number; };
     body: { weight_trend_kg_per_week: number; };
     forecast: { days_to_goal_est: number | null; adaptive_correction_kcal: number | null; [key: string]: unknown; };
     [key: string]: unknown;
   };
-  verdict: {
+  verdict?: {
     summary: string; trajectory: 'on_track' | 'behind' | 'ahead'; trajectory_note: string;
     forecast_note: string; today_focus: string; flags: string[]; protein_note: string; food_suggestions: string[];
   } | null;
-  verdictError: string | null; notified: boolean; persistError: string | null;
+  verdictError?: string | null; notified?: boolean; persistError?: string | null;
 }
 
 interface SyncOuraResponse { success: true; total_upserted: number; batches: number; warnings?: string[]; }

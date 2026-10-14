@@ -2,6 +2,7 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
     "supabase/functions/*/index.ts",
+    "supabase/functions/sync/senateDisclosureSource.ts",
     "scripts/**/*.{mjs,ts,cjs}"
   ],
   "project": [
@@ -10,6 +11,7 @@
   ],
   "ignore": [
     "supabase/functions/**/*.test.ts",
+    "supabase/functions/**/*_test.ts",
     "src/sw.ts",
     "src/lib/database.types.ts",
     "supabase/functions/_shared/database.types.ts",
@@ -55,7 +57,25 @@
     "src/components/core/commandCenter/commandCatalog.ts": ["types"],
     "src/components/biometrics/workout/WorkoutActivityHeatmap.tsx": ["types"],
     "src/components/desktop/general/hooks/useGeneralViewData.ts": ["types"],
-    "src/components/desktop/general/generalView/GeneralRecommendationsHistory.tsx": ["exports"]
+    "src/components/desktop/general/generalView/GeneralRecommendationsHistory.tsx": ["exports"],
+    "src/lib/edgeTypes.ts": ["types"],
+    "src/lib/health/nutritionCalibration.ts": ["types"],
+    "src/lib/health/healthGoals.ts": ["types"],
+    "src/lib/health/healthCoachReviewApi.ts": ["exports"],
+    "supabase/functions/_shared/healthCoachContext.ts": ["exports"],
+    "supabase/functions/sync/investmentAi.ts": ["exports"],
+    "src/lib/investments/superinvestorsApi.ts": ["exports"],
+    "src/lib/investments/superinvestorOverviewService.ts": ["exports"],
+    "src/lib/todo/todoParser.ts": ["exports"],
+    "src/lib/todo/studySubjects.ts": ["exports"],
+    "supabase/functions/sync/sec13fData.ts": ["exports"],
+    "src/lib/investments/publicDisclosures.ts": ["exports"],
+    "supabase/functions/vanguard-telegram/_handlers/trainingPlan.ts": ["exports"],
+    "src/lib/investments/basketSimulation.ts": ["types"],
+    "src/lib/investments/basketSimulationService.ts": ["types"],
+    "supabase/functions/vanguard-oracle/handlers/dailyPlanInterview.ts": ["types"],
+    "src/lib/investments/useCongressOverview.ts": ["types"],
+    "src/components/investments/WatchlistTable.tsx": ["types"]
   },
   "ignoreDependencies": [
     "npm"

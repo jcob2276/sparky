@@ -1,9 +1,30 @@
 import type { OuraHealthHubData } from './types';
 import DataStateNotice from '../../core/DataStateNotice';
+import { MealPlannerContainer } from '../nutrition/MealPlannerContainer';
+import { getTodayWarsaw } from '../../../lib/date';
+
 export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
   const nutrition = data.nutrition;
+  const userId = data.strainRow?.user_id || data.oura?.user_id || '';
+  const date = data.date || nutrition?.date || getTodayWarsaw();
+
   if (data.nutritionError) return <DataStateNotice title="Nie udało się odczytać żywienia" detail={data.nutritionError} />;
-  if (!nutrition || nutrition.foodDataState === 'missing') return <DataStateNotice title="Brak dziennika jedzenia" detail={`Brak wpisów dla ${data.date ?? 'wybranego dnia'}. Dodaj faktycznie zjedzony posiłek w zakładce Jedzenie.`} />;
+  if (!nutrition || nutrition.foodDataState === 'missing') {
+    return (
+      <div className="space-y-4 pb-8">
+        <DataStateNotice title="Brak dziennika jedzenia" detail={`Brak wpisów dla ${data.date ?? 'wybranego dnia'}. Dodaj faktycznie zjedzony posiłek w zakładce Jedzenie.`} />
+        {userId && (
+          <MealPlannerContainer
+            userId={userId}
+            date={date}
+            targetKcal={null}
+            targetProtein={null}
+          />
+        )}
+      </div>
+    );
+  }
+
   const proteinRemaining = nutrition.targetProtein == null ? null : Math.max(0,nutrition.targetProtein-nutrition.protein);
   return <div className="space-y-4 pb-8">
     <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-3">
@@ -16,6 +37,16 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
       {nutrition.todayFocus && <p className="text-sm">{nutrition.todayFocus}</p>}
       <p className="text-xs text-text-secondary">{nutrition.trainingLabel}</p>
     </section>
+
+    {userId && (
+      <MealPlannerContainer
+        userId={userId}
+        date={date}
+        targetKcal={nutrition.targetKcal}
+        targetProtein={nutrition.targetProtein}
+      />
+    )}
+
     <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-2">
       <h3 className="font-semibold">Źródła i ograniczenia</h3>
       <p className="text-xs text-text-secondary">Spożycie pochodzi z dziennika jedzenia, cele z planu żywienia tego samego dnia. Wydatek zegarka i zapotrzebowanie są szacunkami.</p>
@@ -23,3 +54,4 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
     </section>
   </div>;
 }
+

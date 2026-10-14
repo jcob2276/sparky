@@ -16,6 +16,7 @@ import { sendMessage } from "../_shared/telegram.ts";
 import { getWarsawDateString } from "../_shared/time.ts";
 import { fetchNutritionData, computeNutritionSignals } from "./nutritionCompute.ts";
 import { formatHealthCoachContext } from '../_shared/healthCoachContext.ts';
+import { generateMealPlan } from './mealPlanning.ts';
 
 function buildPushMessage(date: string, s: any, verdict: any): string {
   const t = s.today, e = s.energy, b = s.body;
@@ -41,6 +42,19 @@ Deno.serve(serveJson(async (req, ctx) => {
   const notify = body.notify === true;
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY") || "";
   const today = body.date || getWarsawDateString(new Date());
+
+  if (body.action === 'generate_meal_plan') {
+    const targets = Array.isArray(body.targets) && body.targets.length
+      ? body.targets
+      : [{ date: today, calories: Number(body.calories) || 2200, protein: Number(body.protein) || 140 }];
+    const res = await generateMealPlan({
+      supabase,
+      userId,
+      apiKey,
+      input: { date: today, targets, preferences: body.preferences },
+    });
+    return res;
+  }
 
   const data = await fetchNutritionData(supabase, userId, today);
   const { signals, forecast30, forecast60, forecast90, daysToGoalEst, estMaintenance, targetKcal, proteinFloor, deficitPerDay, adaptiveCorrectionKcal, weightTrendPerWeek, underlogGap: underlogGap, avgTdeeOura, avgIntake } = computeNutritionSignals(data);

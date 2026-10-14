@@ -4611,6 +4611,7 @@ export type Database = {
           forecast_90d_weight_kg: number | null
           id: string
           inputs: Json | null
+          meal_plan: Json | null
           protein_floor_g: number | null
           target_kcal: number | null
           underlog_gap_kcal: number | null
@@ -4636,6 +4637,7 @@ export type Database = {
           forecast_90d_weight_kg?: number | null
           id?: string
           inputs?: Json | null
+          meal_plan?: Json | null
           protein_floor_g?: number | null
           target_kcal?: number | null
           underlog_gap_kcal?: number | null
@@ -4661,6 +4663,7 @@ export type Database = {
           forecast_90d_weight_kg?: number | null
           id?: string
           inputs?: Json | null
+          meal_plan?: Json | null
           protein_floor_g?: number | null
           target_kcal?: number | null
           underlog_gap_kcal?: number | null

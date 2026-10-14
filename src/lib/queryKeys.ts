@@ -140,6 +140,13 @@ export const foodEntryListsKeys = {
   targets: (userId: string) => [...foodEntryListsKeys.all, 'targets', userId] as const,
 };
 
+// ── MEAL PLAN KEYS ──
+export const mealPlanKeys = {
+  all: ['meal-plan'] as const,
+  date: (userId: string, date: string) => [...mealPlanKeys.all, userId, date] as const,
+  products: (userId: string) => [...mealPlanKeys.all, 'products', userId] as const,
+};
+
 // ── USER SETTINGS KEYS ──
 export const userSettingsKeys = {
   all: ['user-settings'] as const,

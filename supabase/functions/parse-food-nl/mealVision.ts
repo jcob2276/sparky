@@ -26,7 +26,7 @@ function parseJsonSafe(content: string): Record<string, unknown> {
   }
 }
 
-async function callVisionLlm({
+export async function callVisionLlm({
   prompt,
   imageBase64,
   mimeType,

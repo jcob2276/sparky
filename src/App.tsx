@@ -253,12 +253,12 @@ function AppRoutes() {
       } />
       <Route path="/poker" element={
         <Suspense fallback={FALLBACK_SPINNER}>
-          <PokerDecisionPage />
+          <Screen kind="dashboard"><PokerDecisionPage /></Screen>
         </Suspense>
       } />
       <Route path="/poker-lab" element={
         <Suspense fallback={FALLBACK_SPINNER}>
-          <PokerDecisionPage />
+          <Screen kind="dashboard"><PokerDecisionPage /></Screen>
         </Suspense>
       } />
       <Route path="/czat" element={<Navigate to="/dzis" replace />} />

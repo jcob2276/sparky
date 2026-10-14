@@ -17,6 +17,7 @@ import {
   type FoodCorrection,
 } from '../_shared/foodParseCore.ts'
 import { parseNutritionLabel, parseMealPhoto } from './mealVision.ts'
+import { parseRestaurantMenu, parseFridgeIngredients } from './foodAssistVision.ts'
 
 async function loadUserContext(
   userId: string,
@@ -165,6 +166,28 @@ Deno.serve(serveJson(async (req, auth) => {
       historyBlock: '',
       portionsBlock: '',
     }
+  }
+
+  if (body.mode === 'restaurant_menu') {
+    const menuAnalysis = await parseRestaurantMenu({
+      imageBase64: body.imageBase64 ? String(body.imageBase64) : undefined,
+      mimeType: body.mimeType ? String(body.mimeType) : undefined,
+      text: body.text ? String(body.text) : undefined,
+      ctx,
+      userId,
+    })
+    return { menuAnalysis }
+  }
+
+  if (body.mode === 'fridge_ingredients') {
+    const fridgeAnalysis = await parseFridgeIngredients({
+      imageBase64: body.imageBase64 ? String(body.imageBase64) : undefined,
+      mimeType: body.mimeType ? String(body.mimeType) : undefined,
+      text: body.text ? String(body.text) : undefined,
+      ctx,
+      userId,
+    })
+    return { fridgeAnalysis }
   }
 
   if (body.mode === 'meal_photo') {

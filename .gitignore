@@ -74,6 +74,9 @@ android/app/google-services.json
 
 # Session debug artifacts
 .playwright-mcp/
+.playwright-cli/
+output/
+.codex-remote-attachments/
 .superpowers/
 .worktrees/
 .tmp-get-based/

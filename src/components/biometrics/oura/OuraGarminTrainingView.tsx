@@ -2,6 +2,7 @@ import type { OuraHealthHubData } from './types';
 import { activityHeartRateZones, activitySourceLabel } from '@vanguard/domain';
 import { formatWarsawDate } from '../../../lib/date';
 import DataStateNotice from '../../core/DataStateNotice';
+import { RacePredictorCard } from '../workout/RacePredictorCard';
 function formatPace(movingSeconds: number, distanceMeters: number): string {
   if (!distanceMeters || distanceMeters <= 0) return '—';
   const totalKm = distanceMeters / 1000;
@@ -41,6 +42,7 @@ export function OuraGarminTrainingView({data}:{data:OuraHealthHubData}) {
         <p className="text-xs text-text-secondary">{data.garminVo2Max == null ? 'Brak zapisanej estymacji z urządzenia.' : `${data.externalVo2Source ?? 'Garmin'} · estymacja, nie wynik laboratoryjny.`}</p>
       </section>
     </div>
+    <RacePredictorCard activities={activities} />
     <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-3">
       <h3 className="font-bold">Strefy tętna · {data.date ?? 'brak daty'}</h3>
       {!zones.length ? <DataStateNotice title="Brak danych stref tętna" detail="Źródło nie dostarczyło czasów w strefach dla tego dnia." /> : <>
