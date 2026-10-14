@@ -12,6 +12,7 @@ import { SleepDiagnosisCard } from './SleepDiagnosisCard';
 import { SleepEveningActionCard } from './SleepEveningActionCard';
 import { SleepConsistencyCard } from '../health/SleepConsistencyCard';
 import { SleepBankCard } from '../health/SleepBankCard';
+import { BedtimeTargetCard } from '../health/BedtimeTargetCard';
 import { CaffeineCutoffCard } from '../health/CaffeineCutoffCard';
 import {
   buildDayTimeline,
@@ -176,6 +177,15 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
 
       {/* Bank Snu & Bilans 14 Dni */}
       <SleepBankCard data={sleepBank} />
+
+      {/* Rekomendacja Pory Snu i Latencja (Bevel Bedtime Engine) */}
+      <BedtimeTargetCard
+        targetWakeTime="07:00"
+        targetSleepMinutes={480}
+        sleepEfficiencyPercent={enhanced?.sleep_efficiency ?? 88}
+        sleepLatencyMinutes={enhanced?.sleep_latency_minutes ?? 14}
+        paybackAdjustmentMinutes={sleepBank.recommendedNightlyExtensionMinutes}
+      />
 
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl border border-border-custom bg-surface-solid/50 p-4 shadow-2xs">

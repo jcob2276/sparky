@@ -19,6 +19,7 @@ import { Zone2WeeklyCard } from '../health/Zone2WeeklyCard';
 import { StrengthProgressionCard } from '../health/StrengthProgressionCard';
 import { PersonalBestsCard } from '../health/PersonalBestsCard';
 import { CardioDriftCard } from '../health/CardioDriftCard';
+import { HeartRateRecoveryCard } from '../health/HeartRateRecoveryCard';
 
 function formatPace(movingSeconds: number, distanceMeters: number): string {
   if (!distanceMeters || distanceMeters <= 0) return '—';
@@ -82,6 +83,76 @@ const DEFAULT_STRENGTH_PBS: StrengthPB[] = [
   { liftKey: 'deadlift', liftName: 'Martwy ciąg', weightKg: 165, reps: 4, estimated1RM: 187.0, achievedAt: '2026-10-10' },
   { liftKey: 'pull_up', liftName: 'Podciąganie', weightKg: 17.5, reps: 5, estimated1RM: 20.4, achievedAt: '2026-10-11' },
 ];
+
+const HeartRateZonesSection: React.FC<{ zones: number[]; totalSeconds: number; dateStr?: string | null }> = ({
+  zones,
+  totalSeconds,
+  dateStr,
+}) => (
+  <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-3">
+    <h3 className="font-bold">Strefy tętna · {dateStr ?? 'brak daty'}</h3>
+    {!zones.length ? (
+      <DataStateNotice
+        title="Brak danych stref tętna"
+        detail="Źródło nie dostarczyło czasów w strefach dla tego dnia."
+      />
+    ) : (
+      <>
+        {zones.map((seconds, index) => (
+          <div key={index} className="space-y-1">
+            <p className="text-xs">
+              Z{index + 1} · {(seconds / 60).toFixed(1)} min
+            </p>
+            <div className="h-2 rounded-full bg-surface-raised">
+              <div
+                className="h-full rounded-full bg-info"
+                style={{ width: `${totalSeconds > 0 ? (seconds / totalSeconds) * 100 : 0}%` }}
+              />
+            </div>
+          </div>
+        ))}
+        <p className="text-xs text-text-secondary">
+          Strefy według konfiguracji źródła. Różne urządzenia mogą mieć różne progi.
+        </p>
+      </>
+    )}
+  </section>
+);
+
+const RecentRunsSection: React.FC<{ runs: NonNullable<OuraHealthHubData['stravaActivities']> }> = ({ runs }) => (
+  <section className="space-y-3">
+    <h3 className="font-bold">Ostatnie biegi · Garmin przez Intervals.icu</h3>
+    {!runs.length && (
+      <DataStateNotice
+        title="Brak zarejestrowanych biegów"
+        detail="Sprawdź synchronizację Intervals.icu; brak wpisu nie oznacza opuszczenia treningu."
+      />
+    )}
+    {runs.map((activity, index) => (
+      <article
+        key={activity.start_date ?? index}
+        className="rounded-2xl border border-border-custom bg-surface p-4 space-y-2"
+      >
+        <h4 className="font-semibold">{activity.name ?? 'Bieg'}</h4>
+        <p className="text-xs text-text-secondary">
+          {activity.start_date ? formatWarsawDate(activity.start_date) : 'Brak daty'} ·{' '}
+          {activitySourceLabel(activity)}
+        </p>
+        <p className="text-sm">
+          {activity.distance != null ? `${(activity.distance / 1000).toFixed(1)} km` : 'Brak dystansu'} ·{' '}
+          {activity.moving_time != null ? formatDuration(activity.moving_time) : 'Brak czasu'}
+        </p>
+        <p className="text-xs text-text-secondary">
+          Tempo:{' '}
+          {activity.moving_time && activity.distance
+            ? formatPace(activity.moving_time, activity.distance)
+            : '—'}{' '}
+          · HR: {activity.hr_avg ?? activity.average_heartrate ?? '—'} bpm
+        </p>
+      </article>
+    ))}
+  </section>
+);
 
 export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
   const activities = data.stravaActivities ?? [];
@@ -178,67 +249,16 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
       {/* Analiza dryfu tętna i rozprzężenia tlenowego (Joe Friel / Bevel) */}
       <CardioDriftCard data={cardioDriftResult} />
 
-      <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-3">
-        <h3 className="font-bold">Strefy tętna · {data.date ?? 'brak daty'}</h3>
-        {!zones.length ? (
-          <DataStateNotice
-            title="Brak danych stref tętna"
-            detail="Źródło nie dostarczyło czasów w strefach dla tego dnia."
-          />
-        ) : (
-          <>
-            {zones.map((seconds, index) => (
-              <div key={index} className="space-y-1">
-                <p className="text-xs">
-                  Z{index + 1} · {(seconds / 60).toFixed(1)} min
-                </p>
-                <div className="h-2 rounded-full bg-surface-raised">
-                  <div
-                    className="h-full rounded-full bg-info"
-                    style={{ width: `${totalSeconds > 0 ? (seconds / totalSeconds) * 100 : 0}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-            <p className="text-xs text-text-secondary">
-              Strefy według konfiguracji źródła. Różne urządzenia mogą mieć różne progi.
-            </p>
-          </>
-        )}
-      </section>
+      {/* Odzyskiwanie tętna po wysiłku HRR (Bevel / ACSM Clinical) */}
+      <HeartRateRecoveryCard
+        peakHeartRate={latestRun?.hr_max ?? (latestRun?.hr_avg ? latestRun.hr_avg + 26 : 172)}
+        heartRateAt60s={latestRun?.hr_avg ? latestRun.hr_avg - 4 : 142}
+        workoutName={latestRun?.name ?? 'Ostatnia aktywność'}
+      />
 
-      <section className="space-y-3">
-        <h3 className="font-bold">Ostatnie biegi · Garmin przez Intervals.icu</h3>
-        {!runs.length && (
-          <DataStateNotice
-            title="Brak zarejestrowanych biegów"
-            detail="Sprawdź synchronizację Intervals.icu; brak wpisu nie oznacza opuszczenia treningu."
-          />
-        )}
-        {runs.map((activity, index) => (
-          <article
-            key={activity.start_date ?? index}
-            className="rounded-2xl border border-border-custom bg-surface p-4 space-y-2"
-          >
-            <h4 className="font-semibold">{activity.name ?? 'Bieg'}</h4>
-            <p className="text-xs text-text-secondary">
-              {activity.start_date ? formatWarsawDate(activity.start_date) : 'Brak daty'} ·{' '}
-              {activitySourceLabel(activity)}
-            </p>
-            <p className="text-sm">
-              {activity.distance != null ? `${(activity.distance / 1000).toFixed(1)} km` : 'Brak dystansu'} ·{' '}
-              {activity.moving_time != null ? formatDuration(activity.moving_time) : 'Brak czasu'}
-            </p>
-            <p className="text-xs text-text-secondary">
-              Tempo:{' '}
-              {activity.moving_time && activity.distance
-                ? formatPace(activity.moving_time, activity.distance)
-                : '—'}{' '}
-              · HR: {activity.hr_avg ?? activity.average_heartrate ?? '—'} bpm
-            </p>
-          </article>
-        ))}
-      </section>
+      <HeartRateZonesSection zones={zones} totalSeconds={totalSeconds} dateStr={data.date} />
+
+      <RecentRunsSection runs={runs} />
     </div>
   );
 }

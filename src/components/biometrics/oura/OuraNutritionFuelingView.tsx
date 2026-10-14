@@ -4,6 +4,7 @@ import { MealPlannerContainer } from '../nutrition/MealPlannerContainer';
 import { getTodayWarsaw } from '../../../lib/date';
 import FoodPlanningAssistantContainer from '../nutrition/FoodPlanningAssistantContainer';
 import { HydrationCard } from '../health/HydrationCard';
+import { NetEnergyCard } from '../health/NetEnergyCard';
 import { calculateDynamicHydration } from '@vanguard/domain';
 
 export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
@@ -53,6 +54,14 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
 
     {/* Dynamiczne nawodnienie i kompensacja potu */}
     <HydrationCard initialData={hydrationResult} />
+
+    {/* Bilans Energetyczny Netto (Bevel Net Energy) */}
+    <NetEnergyCard
+      activeCaloriesBurned={data.enhanced?.active_calories ?? 500}
+      caloriesConsumed={nutrition.calories}
+      weightKg={75}
+      targetGoal="maintenance"
+    />
 
     {userId && (
       <MealPlannerContainer

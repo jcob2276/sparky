@@ -15,6 +15,7 @@ import { buildOuraSleepInsights } from '../../../lib/biometrics/ouraSleepInsight
 import { OuraMetricCard } from './OuraMetricCard';
 import type { OuraHealthHubData } from './types';
 import { HealthMonitorSlidersCard } from '../health/HealthMonitorSlidersCard';
+import { BiologicalAgeCard } from '../health/BiologicalAgeCard';
 
 interface OuraVitalsViewProps {
   data: OuraHealthHubData;
@@ -90,6 +91,16 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
 
       {/* Bevel / Whoop Health Monitor: 30-dniowe normy bazowe */}
       <HealthMonitorSlidersCard data={data} />
+
+      {/* Wiek Biologiczny i Naczyniowy (Bevel Biological Age) */}
+      <BiologicalAgeCard
+        chronologicalAge={chronologicalAge ?? 30}
+        vo2Max={data.garminVo2Max}
+        restingHeartRate={data.enhanced?.sleep_lowest_heart_rate ?? 50}
+        hrvBaselineMs={data.enhanced?.sleep_average_hrv ?? data.oura?.hrv_avg}
+        sleepDebtMinutes={sleepInsights.sleepDebtDays > 0 ? Math.abs(sleepInsights.sleepBalanceMinutes ?? 0) : 0}
+        biologicalSex="male"
+      />
 
       <section className="space-y-3">
         <h3 className="flex items-center gap-2 text-xl font-light text-text-primary">
