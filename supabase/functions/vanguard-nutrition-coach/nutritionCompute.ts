@@ -1,5 +1,8 @@
 import { getWarsawDayBoundaries, getWarsawDateString } from "../_shared/time.ts";
 import { fetchMedicalContext } from "../_shared/medicalContext.ts";
+import { fetchHealthCoachContext } from '../_shared/healthCoachContext.ts';
+import { shiftDateStr, type CoachRow, type HealthCoachSource } from '@vanguard/domain';
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const KCAL_PER_KG = 7700;
 const OURA_CORRECTION = 0.88;
@@ -8,27 +11,25 @@ const num = (v: unknown): number | null => (v == null || isNaN(Number(v)) ? null
 const mean = (xs: number[]): number | null => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
 const clean = (rows: any[] | null, key: string) => (rows || []).map((r) => num(r[key])).filter((v): v is number => v != null && v > 0);
 
-export async function fetchNutritionData(supabase: any, userId: string, today: string) {
+export async function fetchNutritionData(supabase: SupabaseClient, userId: string, today: string) {
   const targetDate = new Date(today + "T12:00:00Z");
-  const daysAgo = (n: number) => { const d = new Date(targetDate); d.setUTCDate(d.getUTCDate() - n); return d.toISOString().split("T")[0]; };
-  const d30 = daysAgo(30), d45 = daysAgo(45);
-
-  const { data: profile } = await supabase.from("nutrition_profile").select("*").eq("user_id", userId).maybeSingle();
-  if (!profile) throw new Error("Brak nutrition_profile.");
-
-  const [bmRes, ouraRes, nutrRes, dayReviewsRes, runsRes, gymRes, todayOuraRes, todayNutrRes, medicalContext] = await Promise.all([
-    supabase.from("body_metrics").select("date, weight, waist, belly, body_fat").eq("user_id", userId).gte("date", d45).order("date", { ascending: true }),
-    supabase.from("oura_daily_summary").select("date, total_calories, active_calories, steps, total_sleep_hours, readiness_score, hrv_avg, rhr_avg, deep_sleep_hours").eq("user_id", userId).gte("date", d30).order("date", { ascending: false }),
-    supabase.from("daily_nutrition").select("date, calories, protein, carbs, fat, fiber").eq("user_id", userId).gte("date", d30).order("date", { ascending: false }),
-    supabase.from("nutrition_day_reviews").select("date, completeness").eq("user_id", userId).gte("date", d30).eq("completeness", "complete"),
-    supabase.from("strava_activities_clean").select("start_date, sport_type, distance").eq("user_id", userId).eq("is_oura", false).gte("start_date", getWarsawDayBoundaries(d30).start).ilike("sport_type", "%run%"),
-    supabase.from("workout_sessions").select("date, workout_day").eq("user_id", userId).gte("date", d30),
-    supabase.from("oura_daily_summary").select("total_calories, active_calories, steps").eq("user_id", userId).eq("date", today).maybeSingle(),
-    supabase.from("daily_nutrition").select("calories, protein, carbs, fat, fiber").eq("user_id", userId).eq("date", today).maybeSingle(),
-    fetchMedicalContext(supabase, userId, today),
+  const asOf = new Date(Math.min(Date.now(), new Date(getWarsawDayBoundaries(today).end).getTime())).toISOString();
+  const [context, medicalContext] = await Promise.all([
+    fetchHealthCoachContext({ supabase, userId, asOf }), fetchMedicalContext(supabase, userId, today),
   ]);
-
-  return { profile, bm: bmRes.data || [], oura: ouraRes.data || [], nutr: nutrRes.data || [], dayReviews: dayReviewsRes.data || [], runs: runsRes.data || [], gym: gymRes.data || [], todayOura: todayOuraRes.data, todayNutr: todayNutrRes.data, medicalContext, today, targetDate, d30 };
+  const rows = (source: HealthCoachSource): Array<CoachRow & { date: string }> =>
+    (context.sources[source].value ?? []).map(row => ({ ...row, date: String(row.date ?? '') }));
+  const profile = context.sources.nutrition_profile.value?.[0];
+  if (!profile) throw new Error("Brak nutrition_profile.");
+  const d30 = context.windowStart;
+  const bm = rows('body_metrics').filter(row => row.date >= shiftDateStr(today, -44)).reverse();
+  const oura = rows('oura_daily_summary'), nutr = rows('daily_nutrition');
+  const runs = rows('strava_activities_clean').filter(row => /run/i.test(String(row.sport_type)) && String(row.start_date) >= getWarsawDayBoundaries(d30).start);
+  return { profile, bm, oura, nutr,
+    dayReviews: rows('nutrition_day_reviews').filter(row => row.completeness === 'complete'), runs,
+    gym: rows('workout_sessions').filter(row => row.date >= d30),
+    todayOura: oura.find(row => row.date === today), todayNutr: nutr.find(row => row.date === today),
+    medicalContext, today, targetDate, d30, context };
 }
 
 export function computeNutritionSignals(data: Awaited<ReturnType<typeof fetchNutritionData>>) {
@@ -82,9 +83,9 @@ export function computeNutritionSignals(data: Awaited<ReturnType<typeof fetchNut
   let estMaintenance: number;
   if (flat && ouraAdj - maintFromLog > 200) estMaintenance = ouraAdj; else estMaintenance = Math.round((ouraAdj + maintFromLog) / 2);
 
-  const daysToEvent = profile.event_date ? Math.round((new Date(profile.event_date).getTime() - new Date(today).getTime()) / 86400000) : null;
+  const daysToEvent = typeof profile.event_date === 'string' ? Math.round((new Date(profile.event_date).getTime() - new Date(today).getTime()) / 86400000) : null;
   const inTaper = daysToEvent != null && daysToEvent >= 0 && daysToEvent <= 21;
-  const targetWeeklyLossKg = profile.weekly_loss_kg || 0.35;
+  const targetWeeklyLossKg = num(profile.weekly_loss_kg) ?? 0.35;
   const deficitPerDay = inTaper ? 0 : Math.round(targetWeeklyLossKg * KCAL_PER_KG / 7);
 
   let adaptiveCorrectionKcal = 0;
@@ -97,8 +98,8 @@ export function computeNutritionSignals(data: Awaited<ReturnType<typeof fetchNut
   const todayActive = todayOura ? num(todayOura.active_calories) : null;
   const addBack = (todayActive != null && avgActive) ? Math.min(500, Math.round(Math.max(0, todayActive - avgActive) * 0.5)) : 0;
   const targetKcal = estMaintenance - deficitPerDay - adaptiveCorrectionKcal + addBack;
-  const proteinFloor = Math.round(weightForCalc * (profile.protein_g_per_kg || 2.0));
-  const age = profile.birth_date ? Math.floor((Date.now() - new Date(profile.birth_date).getTime()) / (365.25 * 86400000)) : null;
+  const proteinFloor = Math.round(weightForCalc * (num(profile.protein_g_per_kg) ?? 2.0));
+  const age = typeof profile.birth_date === 'string' ? Math.floor((targetDate.getTime() - new Date(profile.birth_date).getTime()) / (365.25 * 86400000)) : null;
 
   const intakeSoFar = todayNutr ? num(todayNutr.calories) : null;
   const proteinSoFar = todayNutr ? num(todayNutr.protein) : null;

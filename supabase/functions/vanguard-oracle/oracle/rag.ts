@@ -6,6 +6,7 @@ import { fetchHealthspanContext } from "./healthspanContext.ts";
 import { computeHealthSummary, formatStrainContext } from "./healthContextFormatters.ts";
 import { fetchDeviceUsageContext, fetchProjectsAndGoalsContext } from "./deviceContext.ts";
 import { fetchDayLoopContext } from "./dayLoopContext.ts";
+import { fetchHealthCoachContext, formatHealthCoachContext } from '../../_shared/healthCoachContext.ts';
 export async function retrieveRagContext(
   supabase: any,
   user_id: string,
@@ -26,37 +27,13 @@ export async function retrieveRagContext(
     /\b(pamiętasz|pamietasz|mówiłeś|mowiles|odpowiadałeś|pytałeś|preferenc)\w*/i.test(current_query || '');
 
   const [
-    fundamentRes, preferencesRes, oura14dRes, nutrition14dRes, foodEntries14dRes,
-    strainRes, proposalsRes, medicalContext, deviceUsageContext, projectsGoalsContext,
+    fundamentRes, coachContext, proposalsRes, medicalContext, deviceUsageContext, projectsGoalsContext,
   ] = await Promise.all([
     supabase.from('user_fundament')
       .select('identity, philosophy, vision')
       .eq('user_id', user_id)
       .maybeSingle(),
-    supabase.from('vanguard_preferences')
-      .select('value')
-      .eq('user_id', user_id)
-      .eq('is_active', true),
-    supabase.from('oura_daily_summary')
-      .select('date, steps, active_calories, total_calories, total_sleep_hours, bedtime_timestamp, readiness_score, hrv_avg, rhr_avg, deep_sleep_hours, rem_sleep_hours, sleep_efficiency, latency_minutes')
-      .eq('user_id', user_id)
-      .gte('date', fourteenDaysAgoDate)
-      .order('date', { ascending: false }),
-    supabase.from('daily_nutrition')
-      .select('date, calories, protein, carbs, fat, fiber, sugar, avg_food_quality, food_quality_analysis')
-      .eq('user_id', user_id)
-      .gte('date', fourteenDaysAgoDate)
-      .order('date', { ascending: false }),
-    supabase.from('daily_food_entries')
-      .select('date, meal_type, name, brand, calories, protein, carbs, fat, fiber, sugar, saturated_fat, insulin_load, food_quality_score, quality_reason')
-      .eq('user_id', user_id)
-      .gte('date', fourteenDaysAgoDate)
-      .order('date', { ascending: false }),
-    supabase.from('daily_strain')
-      .select('date, strain_score, recovery_score, fueling_score, fueling_provisional, mental_load_score, daily_status, main_limiter, explanation, cardio_load, strength_load, leg_load, cns_load')
-      .eq('user_id', user_id)
-      .gte('date', fourteenDaysAgoDate)
-      .order('date', { ascending: false }),
+    fetchHealthCoachContext({ supabase, userId: user_id }),
     supabase.from('system_proposals')
       .select('title, description:body, category:proposal_type')
       .eq('user_id', user_id)
@@ -68,24 +45,22 @@ export async function retrieveRagContext(
   ]);
 
   if (fundamentRes.error) console.error('[oracle] user_fundament query error:', fundamentRes.error);
-  if (preferencesRes.error) console.error('[oracle] vanguard_preferences query error:', preferencesRes.error);
-  if (oura14dRes.error) console.error('[oracle] oura_daily_summary query error:', oura14dRes.error);
-  if (nutrition14dRes.error) console.error('[oracle] daily_nutrition query error:', nutrition14dRes.error);
-  if (foodEntries14dRes.error) console.error('[oracle] daily_food_entries query error:', foodEntries14dRes.error);
-  if (strainRes.error) console.error('[oracle] daily_strain query error:', strainRes.error);
   if (proposalsRes.error) console.error('[oracle] system_proposals query error:', proposalsRes.error);
 
-  const responsePrefs = preferencesRes.data?.map((p: any) => `- ${p.value}`).join('\n') || '';
-  const { healthSummary14d, healthSummaryText } = computeHealthSummary(
-    oura14dRes.data || [],
-    nutrition14dRes.data || [],
-    foodEntries14dRes.data || [],
+  const sourceRows = (source: keyof typeof coachContext.sources) => coachContext.sources[source].value ?? [];
+  const responsePrefs = sourceRows('vanguard_preferences').map(p => `- ${p.value}`).join('\n');
+  const recentRows = (source: keyof typeof coachContext.sources) => sourceRows(source).filter(row => String(row.date) >= fourteenDaysAgoDate);
+  const { healthSummary14d } = computeHealthSummary(
+    recentRows('oura_daily_summary'),
+    recentRows('daily_nutrition'),
+    recentRows('daily_food_entries'),
     fourteenDaysAgoDate,
     todayDate,
     wantsFullBiometrics,
   );
 
-  const strain14dAll = strainRes.data || [];
+  const healthSummaryText = formatHealthCoachContext(coachContext);
+  const strain14dAll = recentRows('daily_strain');
   const strainText = formatStrainContext(strain14dAll, wantsFullBiometrics, todayDate);
 
   const medicalContextText = medicalContext
