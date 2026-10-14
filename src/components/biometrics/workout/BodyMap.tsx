@@ -47,13 +47,13 @@ function getShadeClass(level: number, isSelected: boolean): string {
   }
   switch (level) {
     case 4:
-      return 'fill-rose-500/85 stroke-rose-500 hover:fill-rose-500';
+      return 'fill-danger/85 stroke-danger hover:fill-danger';
     case 3:
-      return 'fill-orange-500/70 stroke-orange-500 hover:fill-orange-500';
+      return 'fill-warning/75 stroke-warning hover:fill-warning';
     case 2:
-      return 'fill-amber-500/55 stroke-amber-500 hover:fill-amber-500';
+      return 'fill-warning/50 stroke-warning/80 hover:fill-warning/70';
     case 1:
-      return 'fill-emerald-500/40 stroke-emerald-500 hover:fill-emerald-500';
+      return 'fill-success/40 stroke-success hover:fill-success';
     default:
       return 'fill-text-muted/15 stroke-border-custom/50 hover:fill-text-muted/30';
   }

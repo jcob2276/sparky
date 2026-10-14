@@ -3,6 +3,8 @@ import DataStateNotice from '../../core/DataStateNotice';
 import { MealPlannerContainer } from '../nutrition/MealPlannerContainer';
 import { getTodayWarsaw } from '../../../lib/date';
 import FoodPlanningAssistantContainer from '../nutrition/FoodPlanningAssistantContainer';
+import { HydrationCard } from '../health/HydrationCard';
+import { calculateDynamicHydration } from '@vanguard/domain';
 
 export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
   const nutrition = data.nutrition;
@@ -29,6 +31,13 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
   }
 
   const proteinRemaining = nutrition.targetProtein == null ? null : Math.max(0,nutrition.targetProtein-nutrition.protein);
+  const hydrationResult = calculateDynamicHydration({
+    baseTargetMl: 2500,
+    loggedIntakeMl: 1750,
+    activeCalories: data.enhanced?.active_calories ?? 500,
+    workoutDurationMinutes: 60,
+  });
+
   return <div className="space-y-4 pb-8">
     {nutrition.targetError && <DataStateNotice title="Nie udało się odświeżyć celu żywienia" detail={nutrition.targetError}/>}
     <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-3">
@@ -41,6 +50,9 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
       {nutrition.todayFocus && <p className="text-sm">{nutrition.todayFocus}</p>}
       <p className="text-xs text-text-secondary">{nutrition.trainingLabel}</p>
     </section>
+
+    {/* Dynamiczne nawodnienie i kompensacja potu */}
+    <HydrationCard initialData={hydrationResult} />
 
     {userId && (
       <MealPlannerContainer

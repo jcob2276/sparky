@@ -11,13 +11,16 @@ import { DayTimelineCard } from '../health/DayTimelineCard';
 import { SleepDiagnosisCard } from './SleepDiagnosisCard';
 import { SleepEveningActionCard } from './SleepEveningActionCard';
 import { SleepConsistencyCard } from '../health/SleepConsistencyCard';
+import { SleepBankCard } from '../health/SleepBankCard';
 import { CaffeineCutoffCard } from '../health/CaffeineCutoffCard';
 import {
   buildDayTimeline,
   calculateSleepConsistency,
+  calculateSleepBank,
   calculateCaffeineCutoff,
   calculateDynamicFueling,
   type DailySleepRecord,
+  type SleepBankDayInput,
 } from '@vanguard/domain';
 
 const formatMinutes = (mins: number) => {
@@ -48,7 +51,10 @@ function getSleepDiagnosis(readinessScore: number) {
   };
 }
 
-function buildDefaultSleepRecords(bedtimeStart?: string, bedtimeEnd?: string): DailySleepRecord[] {
+function buildDefaultSleepRecords(
+  bedtimeStart?: string | null,
+  bedtimeEnd?: string | null
+): DailySleepRecord[] {
   return [
     {
       date: '2026-10-08',
@@ -62,6 +68,22 @@ function buildDefaultSleepRecords(bedtimeStart?: string, bedtimeEnd?: string): D
     { date: '2026-10-12', bedtime: '23:15', wakeTime: '07:05', isFreeDay: false },
     { date: '2026-10-13', bedtime: '23:00', wakeTime: '06:55', isFreeDay: false },
     { date: '2026-10-14', bedtime: '23:10', wakeTime: '07:00', isFreeDay: false },
+  ];
+}
+
+function buildDefaultSleepBankInputs(totalSleepMinutes: number): SleepBankDayInput[] {
+  return [
+    { date: '2026-10-08', sleepDurationMinutes: 440, sleepNeedMinutes: 480 },
+    { date: '2026-10-09', sleepDurationMinutes: 430, sleepNeedMinutes: 480 },
+    { date: '2026-10-10', sleepDurationMinutes: 510, sleepNeedMinutes: 480, napMinutes: 20 },
+    { date: '2026-10-11', sleepDurationMinutes: 490, sleepNeedMinutes: 480 },
+    { date: '2026-10-12', sleepDurationMinutes: 420, sleepNeedMinutes: 480 },
+    { date: '2026-10-13', sleepDurationMinutes: 450, sleepNeedMinutes: 480 },
+    {
+      date: '2026-10-14',
+      sleepDurationMinutes: totalSleepMinutes > 0 ? totalSleepMinutes : 440,
+      sleepNeedMinutes: 465,
+    },
   ];
 }
 
@@ -98,6 +120,8 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
   const sleepConsistency = calculateSleepConsistency(
     buildDefaultSleepRecords(enhanced?.bedtime_start, enhanced?.bedtime_end)
   );
+
+  const sleepBank = calculateSleepBank(buildDefaultSleepBankInputs(totalSleepMinutes));
 
   const caffeineAmount =
     context?.caffeine?.status === 'available' && typeof context.caffeine.amountMg === 'number'
@@ -149,6 +173,9 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
 
       {/* Analiza regularności snu & Social Jetlag */}
       <SleepConsistencyCard data={sleepConsistency} />
+
+      {/* Bank Snu & Bilans 14 Dni */}
+      <SleepBankCard data={sleepBank} />
 
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl border border-border-custom bg-surface-solid/50 p-4 shadow-2xs">

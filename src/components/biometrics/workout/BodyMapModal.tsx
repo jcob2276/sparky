@@ -9,13 +9,13 @@ import type { WorkoutExercise } from '../../../lib/health/workout';
 interface BodyMapModalProps {
   isOpen: boolean;
   onClose: () => void;
-  exercises: WorkoutExercise[];
+  exercises?: WorkoutExercise[];
 }
 
 export default function BodyMapModal({
   isOpen,
   onClose,
-  exercises,
+  exercises = [],
 }: BodyMapModalProps) {
   const [selectedMuscle, setSelectedMuscle] = useState<SvgMuscle | null>(null);
 

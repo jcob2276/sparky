@@ -3,7 +3,10 @@
  * @role Karta rozbicia obciążenia na Cardio Load vs Muscular Load oraz regeneracji partii mięśniowych w stylu Bevel.
  */
 
-import { Heart, Dumbbell, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
+import { Heart, Dumbbell, ShieldCheck, User } from 'lucide-react';
+import Button from '../../ui/Button';
+import BodyMapModal from '../workout/BodyMapModal';
 import { computeMuscularCardioLoad, type MuscularCardioLoadInput } from '@vanguard/domain';
 
 interface MuscularCardioLoadCardProps {
@@ -11,6 +14,7 @@ interface MuscularCardioLoadCardProps {
 }
 
 export function MuscularCardioLoadCard({ input }: MuscularCardioLoadCardProps) {
+  const [showBodyMap, setShowBodyMap] = useState(false);
   const result = computeMuscularCardioLoad(input);
   const {
     cardioPoints,
@@ -80,9 +84,20 @@ export function MuscularCardioLoadCard({ input }: MuscularCardioLoadCardProps) {
       </p>
 
       <div className="mt-5 border-t border-border-custom/40 pt-4">
-        <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
-          Regeneracja Partii Mięśniowych (Muscle Recovery)
-        </h4>
+        <div className="flex items-center justify-between">
+          <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">
+            Regeneracja Partii Mięśniowych (Muscle Recovery)
+          </h4>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowBodyMap(true)}
+            className="!h-7 !px-2.5 !text-3xs"
+            aria-label="Pokaż mapę anatomiczną"
+          >
+            <User size={12} /> Mapa anatomiczna
+          </Button>
+        </div>
 
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
           {muscleGroups.map((muscle) => (
@@ -111,6 +126,10 @@ export function MuscularCardioLoadCard({ input }: MuscularCardioLoadCardProps) {
           ))}
         </div>
       </div>
+
+      {showBodyMap && (
+        <BodyMapModal isOpen={true} onClose={() => setShowBodyMap(false)} />
+      )}
     </section>
   );
 }

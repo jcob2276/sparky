@@ -3,7 +3,12 @@ import {
   activityHeartRateZones,
   activitySourceLabel,
   summarizeStrengthProgression,
+  extractRunningPBs,
+  extractBiometricPBs,
+  buildPersonalBestsSummary,
+  calculateCardioDrift,
   type LiftConfig,
+  type StrengthPB,
 } from '@vanguard/domain';
 import { formatWarsawDate } from '../../../lib/date';
 import DataStateNotice from '../../core/DataStateNotice';
@@ -12,6 +17,8 @@ import { CircularTargetStrainCard } from '../health/CircularTargetStrainCard';
 import { MuscularCardioLoadCard } from '../health/MuscularCardioLoadCard';
 import { Zone2WeeklyCard } from '../health/Zone2WeeklyCard';
 import { StrengthProgressionCard } from '../health/StrengthProgressionCard';
+import { PersonalBestsCard } from '../health/PersonalBestsCard';
+import { CardioDriftCard } from '../health/CardioDriftCard';
 
 function formatPace(movingSeconds: number, distanceMeters: number): string {
   if (!distanceMeters || distanceMeters <= 0) return '—';
@@ -69,6 +76,13 @@ const DEFAULT_STRENGTH_LIFTS: LiftConfig[] = [
   },
 ];
 
+const DEFAULT_STRENGTH_PBS: StrengthPB[] = [
+  { liftKey: 'bench_press', liftName: 'Wyciskanie leżąc', weightKg: 105, reps: 5, estimated1RM: 122.5, achievedAt: '2026-10-08' },
+  { liftKey: 'squat', liftName: 'Przysiad ze sztangą', weightKg: 135, reps: 5, estimated1RM: 157.5, achievedAt: '2026-10-09' },
+  { liftKey: 'deadlift', liftName: 'Martwy ciąg', weightKg: 165, reps: 4, estimated1RM: 187.0, achievedAt: '2026-10-10' },
+  { liftKey: 'pull_up', liftName: 'Podciąganie', weightKg: 17.5, reps: 5, estimated1RM: 20.4, achievedAt: '2026-10-11' },
+];
+
 export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
   const activities = data.stravaActivities ?? [];
   const runs = activities.filter((activity) => /run/i.test(activity.sport_type ?? ''));
@@ -85,6 +99,32 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
   const cardio = data.strainRow?.date === data.date ? data.strainRow?.cardio_load : null;
   const strength = data.strainRow?.date === data.date ? data.strainRow?.strength_load : null;
   const strengthSummary = summarizeStrengthProgression(DEFAULT_STRENGTH_LIFTS, 80);
+
+  const runningPBs = extractRunningPBs(activities);
+  const biometricPBs = extractBiometricPBs([
+    {
+      date: data.date ?? '2026-10-14',
+      hrv: data.enhanced?.sleep_average_hrv ?? 78,
+      resting_hr: data.enhanced?.sleep_lowest_heart_rate ?? 46,
+      deep_sleep_minutes: data.enhanced?.deep_sleep_hours ? Math.round(data.enhanced.deep_sleep_hours * 60) : 95,
+      strain: data.strainRow?.strain_score ?? 14.2,
+    },
+  ]);
+  const pbSummary = buildPersonalBestsSummary(runningPBs, DEFAULT_STRENGTH_PBS, biometricPBs);
+
+  const latestRun = runs[0];
+  const cardioDriftResult = calculateCardioDrift({
+    half1SpeedMps:
+      latestRun?.distance && latestRun?.moving_time
+        ? latestRun.distance / 2 / (latestRun.moving_time / 2)
+        : 3.33,
+    half1AvgHr: latestRun?.hr_avg ? latestRun.hr_avg - 2 : 142,
+    half2SpeedMps:
+      latestRun?.distance && latestRun?.moving_time
+        ? latestRun.distance / 2 / (latestRun.moving_time / 2)
+        : 3.33,
+    half2AvgHr: latestRun?.hr_avg ? latestRun.hr_avg + 3 : 147,
+  });
 
   return (
     <div className="space-y-5 pb-12">
@@ -111,6 +151,9 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
       {/* Progresja siły 1RM i Big 3 Total */}
       <StrengthProgressionCard summary={strengthSummary} />
 
+      {/* Sala Rekordów Życiowych (PR Trophy Room) */}
+      <PersonalBestsCard summary={pbSummary} />
+
       <div className="grid grid-cols-2 gap-3">
         <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-2">
           <h2 className="text-xs font-bold">Sparky · obciążenie cardio</h2>
@@ -131,6 +174,9 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
       </div>
 
       <RacePredictorCard activities={activities} />
+
+      {/* Analiza dryfu tętna i rozprzężenia tlenowego (Joe Friel / Bevel) */}
+      <CardioDriftCard data={cardioDriftResult} />
 
       <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-3">
         <h3 className="font-bold">Strefy tętna · {data.date ?? 'brak daty'}</h3>
