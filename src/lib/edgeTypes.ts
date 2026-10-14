@@ -37,6 +37,7 @@ interface AnalyzeFoodQualityError {
 type AnalyzeFoodQualityResponse = AnalyzeFoodQualitySingle | AnalyzeFoodQualityRange | AnalyzeFoodQualityError;
 
 export interface AnalyzeTrainingLoadResponse {
+  decision?: import('@vanguard/domain').CoachDecision;
   jobId?: string;
   versionId?: string;
   status?: string;

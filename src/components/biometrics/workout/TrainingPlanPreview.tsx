@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { ControlSelect, ControlTextarea, Pressable } from '../../ui/ControlPrimitives';
-import { readPlanSnapshot, type PlanVersion, type PlannedWorkout, type CoachJobRow } from '../../../lib/health/trainingPlanApi';
+import { readPlanSnapshot, type PlanVersion, type PlannedWorkout, type CoachJobRow, type RunningActivity } from '../../../lib/health/trainingPlanApi';
+import PlannedRunMatch from './PlannedRunMatch';
 
 interface Props {
   versions: PlanVersion[]; sessions: PlannedWorkout[]; jobs: CoachJobRow[]; busy: boolean; error: string | null;
   generate: (weeks: number, instructions: string) => void; approve: (version: PlanVersion) => void;
   revert: (version: PlanVersion) => void; start?: (workout: PlannedWorkout) => void;
+  runs?: RunningActivity[]; match?: (workout: PlannedWorkout, activityId: number) => void;
 }
-export default function TrainingPlanPreview({ versions, sessions, jobs, busy, error, generate, approve, revert, start }: Props) {
+export default function TrainingPlanPreview({ versions, sessions, jobs, busy, error, generate, approve, revert, start, runs = [], match }: Props) {
   const [weeks, setWeeks] = useState(4), [instructions, setInstructions] = useState('');
   const [showAll, setShowAll] = useState(false);
   const active = versions.find(version => version.status === 'active');
@@ -25,12 +27,19 @@ export default function TrainingPlanPreview({ versions, sessions, jobs, busy, er
       <p className="text-xs text-text-secondary">{session.goal}</p>
       <p className="text-xs whitespace-pre-wrap">{session.description}</p>
       {start && <Pressable variant="secondary" size="sm" disabled={busy} onClick={() => start(session)}>Rozpocznij sesję</Pressable>}
+      {match && /run|bieg/i.test(session.workout_type) && <PlannedRunMatch workout={session} runs={runs} busy={busy} match={match} />}
     </article>)}
     {current.length > 3 && <Pressable variant="secondary" size="sm" onClick={() => setShowAll(value => !value)}>{showAll ? 'Pokaż najbliższe sesje' : `Pokaż cały blok (${current.length} sesji)`}</Pressable>}
     {!active && !generating && <p className="text-sm text-text-secondary">Zapisz cele i warunki treningu poniżej. Sparky zaproponuje wspólny blok oparty na Twoich danych.</p>}
     {snapshot && draft && <details open className="space-y-3 rounded-xl bg-surface-2 p-3">
       <summary className="cursor-pointer font-semibold">Propozycja: {snapshot.title}</summary>
       <p className="text-xs whitespace-pre-wrap">{snapshot.progression}</p>
+      {snapshot.changes?.map(change => <div key={change.sessionKey} className="rounded-lg border border-border-custom p-3 text-xs space-y-1">
+        <p className="font-semibold">Co się zmieni</p>
+        <p>Przed: {change.before.name} · {change.before.durationMinutes} min · {change.before.exercises.reduce((sum,exercise)=>sum+exercise.sets,0)} serii</p>
+        <p>Po: {change.after.name} · {change.after.durationMinutes} min · {change.after.exercises.reduce((sum,exercise)=>sum+exercise.sets,0)} serii</p>
+        {change.why.map((reason,index)=><p key={index} className="text-text-secondary">{reason}</p>)}
+      </div>)}
       <ul className="text-xs list-disc pl-4">{snapshot.tradeoffs?.map((note, index) => <li key={index}>{note}</li>)}</ul>
       <p className="text-xs">Lżejsze tygodnie: {snapshot.deloadWeeks?.join(', ') || 'według regeneracji'}</p>
       {snapshot.sessions.map(session => <div key={session.key} className="border-t border-border-custom pt-2 text-xs space-y-1">

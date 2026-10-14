@@ -1,6 +1,6 @@
 # Biometrics Surface Contracts
 
-Small contract for Vanguard biometric surfaces. This is not a product spec.
+Small contract for Sparky biometric surfaces. This is not a product spec.
 It is a regression checklist for claims, empty states, and UI decisions.
 
 ## Global Rule
@@ -45,11 +45,11 @@ Acceptance checks:
 - If `oura_hr_zones_daily` has no rows, show "Brak stref HR" and do not render an empty chart.
 - If correlations are unavailable, show that the view/data is missing.
 - If `n_dni < 60`, show the sample size warning.
-- Correlation rows must include source families such as Oura, food log, Strava, or strain.
+- Correlation rows must include the actual source family such as Oura, food log, Garmin through Intervals.icu, or strain.
 - A hidden chart section must still leave a visible data-state notice.
 - Query errors from `oura_enhanced`, `oura_correlations`, `strain_correlations`, or `oura_hr_zones_daily` must be visible.
 
-## Vanguard Oracle Biometric Context
+## Sparky Oracle Biometric Context
 
 Acceptance checks:
 
@@ -58,8 +58,10 @@ Acceptance checks:
 - If `daily_strain` is missing, Oracle says it is missing instead of inferring form.
 - If the user asks "can I push today?", Oracle should use `daily_strain` first.
 - If data is incomplete, Oracle should name the incomplete input instead of filling the gap narratively.
+- `strava_activities_clean` is a legacy technical name, not an account requirement. Activity `source` and `hr_source` describe different provenance. Garmin through Intervals.icu uses `source=garmin_intervals`.
+- Intervals zone durations and TRIMP remain available through the canonical activity view. Zone seconds do not define BPM thresholds or imply a fixed number of zones.
 
-## Vanguard Analyst
+## Sparky Analyst
 
 Acceptance checks:
 
@@ -75,4 +77,4 @@ Acceptance checks:
 - Sync functions should return which dates were upserted or why none were.
 - Unsupported external endpoints should degrade to empty data, not fail the whole sync.
 - Compute functions should make provisional states explicit when a day is not closed.
-- After Oura/food-log/Strava sync, `compute-daily-strain` should be rerunnable idempotently.
+- After Oura/food-log/Garmin-through-Intervals sync, `compute-daily-strain` should be rerunnable idempotently.

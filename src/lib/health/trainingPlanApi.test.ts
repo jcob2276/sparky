@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { plannedWorkoutInitial } from './trainingPlanApi';
+import { plannedWorkoutInitial, matchingRuns } from './trainingPlanApi';
 describe('planned workout logger handoff', () => {
   it('carries plan identity and targets without recording prescribed sets as actual performance', () => {
     const initial = plannedWorkoutInitial('plan-session', {
@@ -12,5 +12,11 @@ describe('planned workout logger handoff', () => {
     expect(initial.exercises[0].sets[0].reps).toBe('');
     expect(initial.exercises[0].sets[0].kg).toBe('');
     expect(initial.exercises[0].sets[0].prescription?.reps).toBe(8);
+  });
+  it('matches real Intervals runs by Warsaw date and never requires a Strava account', () => {
+    const run = {strava_id:12,name:'Bieg',start_date:'2026-10-13T23:00:00Z',distance:5000,sport_type:'Run',source:'garmin_intervals'};
+    expect(matchingRuns({planned_date:'2026-10-15'},[run])).toEqual([run]);
+    expect(matchingRuns({planned_date:'2026-10-17'},[run])).toEqual([]);
+    expect(matchingRuns({planned_date:'2026-10-15'},[{...run,distance:0},{...run,sport_type:'Ride'}])).toEqual([]);
   });
 });

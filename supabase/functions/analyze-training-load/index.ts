@@ -16,6 +16,8 @@ import { runPlanJob } from './planJobs.ts'
 import { generateTrainingPlan, trainingConstraintsFromContext } from './planGenerator.ts'
 import { approvePlan, revertPlan } from './planActions.ts'
 import { HealthPlanInputError } from './planErrors.ts'
+import { decideTraining } from '@vanguard/domain'
+import { adjustedTrainingPlan } from './dailyDecision.ts'
 
 Deno.serve(serveJson(async (req, ctx) => {
   const { userId, supabase } = ctx
@@ -24,18 +26,27 @@ Deno.serve(serveJson(async (req, ctx) => {
   if (body.action === 'run_job') {
     if (!ctx.isServiceRole) throw new Error('Forbidden: worker requires service role')
     if (typeof body.jobId !== 'string') throw new Error('Missing jobId')
-    if (!apiKey) throw new Error('Missing DEEPSEEK_API_KEY')
     return runPlanJob(body.jobId, { repo: new HealthPlanRepo(supabase),
       context: owner => fetchHealthCoachContext({ supabase, userId: owner }),
-      generate: (context, request) => generateTrainingPlan(context, apiKey, request) })
+      generate: (context, request, owner) => {
+        if (request.kind === 'adapt') return adjustedTrainingPlan(supabase, owner, context)
+        if (!apiKey) throw new Error('Missing DEEPSEEK_API_KEY')
+        return generateTrainingPlan(context, apiKey, request)
+      } })
   }
   if (!userId) throw new Error('Missing userId')
-  if (body.action === 'generate_plan') {
+  if (body.action === 'coach_decision') {
+    const context = await fetchHealthCoachContext({ supabase, userId })
+    return { success: true, decision: decideTraining(context, { constraints: trainingConstraintsFromContext(context) }) }
+  }
+  if (body.action === 'generate_plan' || body.action === 'adapt_plan') {
     if (typeof body.requestKey !== 'string' || !body.requestKey || body.requestKey.length > 120) throw new Error('Missing requestKey')
     const context = await fetchHealthCoachContext({ supabase, userId })
     trainingConstraintsFromContext(context)
     if (!context.sources.goal_kpis.value?.some(row => row.measurement_spec)) throw new HealthPlanInputError('Najpierw zapisz mierzalne cele treningowe.')
-    const jobId = await new HealthPlanRepo(supabase).enqueue(userId, body.requestKey, { weeks: body.weeks ?? 4, instructions: typeof body.instructions === 'string' ? body.instructions.slice(0, 2000) : '' })
+    const jobId = await new HealthPlanRepo(supabase).enqueue(userId, body.requestKey, {
+      kind: body.action === 'adapt_plan' ? 'adapt' : 'generate', weeks: body.weeks ?? 4,
+      instructions: typeof body.instructions === 'string' ? body.instructions.slice(0, 2000) : '' })
     return { success: true, jobId }
   }
   if (body.action === 'approve_plan' || body.action === 'revert_plan') {

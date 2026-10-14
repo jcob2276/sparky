@@ -16,6 +16,7 @@ import TodayRunwayCard from './TodayRunwayCard';
 import { UrgentObligationsBanner } from '../terminy/UrgentObligationsBanner';
 import { ThreeSpheresGoalsCard } from './ThreeSpheresGoalsCard';
 import VisionHeroCard from './VisionHeroCard';
+import CoachDecisionContainer from '../biometrics/workout/CoachDecisionContainer';
 
 function ViewFallback() {
   return (
@@ -118,6 +119,7 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
 
         {/* Prawa kolumna: Telemetria, biometria i wykresy */}
         <div className="space-y-5">
+          <CoachDecisionContainer userId={session.user.id} />
           <Suspense fallback={<ViewFallback />}>
             <DailyStrainCard refreshSignal={s.nutritionKey + s.workoutKey} />
           </Suspense>

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { validateTrainingPlan, type TrainingPlanDraft } from '@vanguard/domain';
+import { validateTrainingPlan, futureTrainingPlan, type TrainingPlanDraft } from '@vanguard/domain';
 import { fetchHealthCoachContext } from '../_shared/healthCoachContext.ts';
 import { HealthPlanRepo } from './planRepo.ts';
 import { trainingConstraintsFromContext } from './planGenerator.ts';
@@ -33,8 +33,7 @@ export async function revertPlan(client: SupabaseClient, owner: string, body: Re
   if (previousError) throw previousError;
   const context = await fetchHealthCoachContext({ supabase: client, userId: owner });
   const snapshot: TrainingPlanDraft = previous.snapshot;
-  const proposal = { ...snapshot, startDate: context.localDate,
-    sessions: snapshot.sessions.filter(session => session.date >= context.localDate) };
+  const proposal = futureTrainingPlan(snapshot, context.localDate);
   const validation = validateTrainingPlan(proposal, context, trainingConstraintsFromContext(context));
   if (!validation.plan) throw new HealthPlanInputError(`Nie można przywrócić dawnego planu: ${validation.errors.join(' ')}`);
   const fingerprint = await new HealthPlanRepo(client).fingerprint(owner);

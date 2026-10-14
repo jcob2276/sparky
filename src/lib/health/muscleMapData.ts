@@ -103,7 +103,7 @@ export function applyRunningStimulus(
   exerciseSets: Record<string, Set<string>>,
 ) {
   if (runKm <= 0) return;
-  const label = `Bieganie Strava (${runKm.toFixed(0)} km)`;
+  const label = `Bieganie z zegarka (${runKm.toFixed(0)} km)`;
   Object.entries(RUNNING_STIMULUS_PER_KM).forEach(([tag, stim]) => {
     if (effectiveSets[tag] === undefined) return;
     const direct = runKm * stim.direct;

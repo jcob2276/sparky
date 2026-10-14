@@ -122,27 +122,23 @@ export function buildCoachBrain(opts: {
   const hasSingleLeg = sessionBlueprint.some(x => x.pattern === 'single_leg');
   const hasPull = sessionBlueprint.some(x => x.pattern === 'pull');
   const hasHeavyLeg = sessionBlueprint.some(x => x.interference_cost === 'high');
-  const criticScores = {
-    hypertrophy_score: Math.min(10, 4 + sessionBlueprint.length + (hasPull ? 1 : 0)),
-    strength_score: Math.min(10, 3 + (sessionBlueprint.some(x => ['hinge', 'squat', 'push', 'pull'].includes(x.pattern)) ? 3 : 0) + (strengthWindow ? 2 : 0)),
-    running_support_score: Math.min(10, 3 + (hasCalf ? 2 : 0) + (hasSingleLeg ? 2 : 0) + (sessionBlueprint.some(x => x.pattern === 'core') ? 1 : 0)),
-    running_support_percentage: Math.min(10, 3 + (hasCalf ? 2 : 0) + (hasSingleLeg ? 2 : 0) + (sessionBlueprint.some(x => x.pattern === 'core') ? 1 : 0)) * 10,
-    injury_prevention_score: Math.min(10, 2 + (hasCalf ? 2 : 0) + (hasSingleLeg ? 2 : 0) + (sessionBlueprint.some(x => x.pattern === 'tibialis') ? 2 : 0)),
+  const sessionReview = {
+    coverage: { calf: hasCalf, single_leg: hasSingleLeg, pull: hasPull },
     interference_risk: hasHeavyLeg && (recentHardRuns >= 2 || hasUpcomingRunPlan) ? 'high' : hasHeavyLeg ? 'medium' : 'low',
     critique: [] as string[],
   };
-  if (!hasCalf) criticScores.critique.push('Brakuje łydki/Achillesa w blueprintcie.');
-  if (!hasSingleLeg) criticScores.critique.push('Brakuje single-leg stabilizacji.');
-  if (criticScores.interference_risk === 'high') criticScores.critique.push('Za wysoki koszt nóg względem biegania w oknie 72h.');
+  if (!hasCalf) sessionReview.critique.push('Propozycja nie obejmuje ćwiczeń łydki.');
+  if (!hasSingleLeg) sessionReview.critique.push('Propozycja nie obejmuje ruchu jednonóż.');
+  if (sessionReview.interference_risk === 'high') sessionReview.critique.push('Ciężkie nogi nakładają się z wymagającym bieganiem w oknie 72h.');
 
   return {
-    role: 'reverse_engineered_hybrid_strength_coach',
+    role: 'Sparky_training_analysis',
     strength_gap_days: strengthGapDays, strength_window: strengthWindow,
     high_readiness: highReadiness, low_strain: lowStrain,
     recent_hard_runs: recentHardRuns, upcoming_run_plan_72h: hasUpcomingRunPlan,
     push_pull_ratio: pushPullRatio, pattern_stats: patternStats,
     priority_gaps: strengthGaps.slice(0, 6), deterministic_decisions: coachDecisions,
-    session_blueprint: sessionBlueprint, critic_scores: criticScores,
+    session_blueprint: sessionBlueprint, session_review: sessionReview,
     session_bias: strengthWindow ? 'full_strength_with_posterior_chain_calf_single_leg'
       : recentHardRuns >= 2 || hasUpcomingRunPlan ? 'upper_prehab_calf_low_interference'
       : 'controlled_strength_rir_2_3',

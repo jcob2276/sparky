@@ -8818,6 +8818,8 @@ export type Database = {
           hr_frozen: boolean | null
           hr_max: number | null
           hr_source: string | null
+          icu_activity_id: string | null
+          icu_hr_zone_times: Json | null
           is_oura: boolean | null
           manual: boolean | null
           max_speed: number | null
@@ -8826,6 +8828,7 @@ export type Database = {
           pace_sec_per_km: number | null
           pause_seconds: number | null
           perceived_exertion: number | null
+          source: string | null
           splits_with_hr: Json | null
           sport_type: string | null
           start_date: string | null
@@ -8833,6 +8836,7 @@ export type Database = {
           suffer_score: number | null
           synced_at: string | null
           total_elevation_gain: number | null
+          trimp: number | null
           user_id: string | null
           workout_type: number | null
         }
@@ -9518,6 +9522,10 @@ export type Database = {
       health_coach_fingerprint: { Args: { p_owner: string }; Returns: string }
       increment_kpi_entry_for_week: {
         Args: { p_delta: number; p_kpi_id: string; p_week_start: string }
+        Returns: undefined
+      }
+      link_planned_running_activity: {
+        Args: { p_plan_workout_id: string; p_strava_id: number }
         Returns: undefined
       }
       match_vanguard_content: {

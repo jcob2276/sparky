@@ -15,6 +15,18 @@ export interface TrainingSession {
 export interface TrainingPlanDraft {
   title: string; startDate: string; blockWeeks: number; progression: string; deloadWeeks: number[]; tradeoffs: string[];
   sessions: TrainingSession[];
+  changes?: Array<{ sessionKey: string; before: TrainingSession; after: TrainingSession; why: string[] }>;
+}
+/** Restore prescriptions only; actual executions remain in their original records. */
+export function futureTrainingPlan(plan: TrainingPlanDraft, localDate: string): TrainingPlanDraft | null {
+  const sessions = plan.sessions.filter(session => session.date >= localDate);
+  if (!sessions.length) return null;
+  const last = sessions.reduce((date, session) => session.date > date ? session.date : date, localDate);
+  const dayOffset = (date: string) => Math.round((Date.parse(date) - Date.parse(localDate)) / 86400000);
+  const blockWeeks = Math.ceil((dayOffset(last) + 1) / 7);
+  const deloadWeeks = [...new Set(plan.deloadWeeks.map(week => Math.floor(dayOffset(shiftDateStr(plan.startDate, (week - 1) * 7)) / 7) + 1))]
+    .filter(week => week >= 1 && week <= blockWeeks);
+  return { ...plan, startDate: localDate, blockWeeks, deloadWeeks, sessions };
 }
 const record = (value: unknown): Record<string, unknown> => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : {};
 const text = (value: unknown) => typeof value === 'string' ? value.trim() : '';
@@ -42,7 +54,10 @@ export function validateTrainingPlan(raw: unknown, context: HealthCoachContext, 
   const keys = new Set<string>(), days = new Set<string>();
   const sessions: TrainingSession[] = [];
   for (const item of rawSessions) {
-    const row = record(item), key = text(row.key), date = text(row.date), type = text(row.type), intensity = text(row.intensity);
+    const reference = record(item), templates = record(draft.templates);
+    if (typeof reference.template === 'string' && !(reference.template in templates)) errors.push('Nieznany szablon sesji.');
+    const row = { ...record(templates[text(reference.template)]), ...reference };
+    const key = text(row.key), date = text(row.date), type = text(row.type), intensity = text(row.intensity);
     if (!key || keys.has(key) || days.has(date)) errors.push('Sesje muszą mieć unikalne identyfikatory i dni.');
     keys.add(key); days.add(date);
     if (!validDate(date) || !validDate(startDate) || date < startDate || (blockWeeks > 0 && date >= shiftDateStr(startDate, blockWeeks * 7))) errors.push('Data sesji poza blokiem.');
@@ -75,6 +90,12 @@ export function validateTrainingPlan(raw: unknown, context: HealthCoachContext, 
     sessions.push({ key, date, type: type as TrainingSession['type'], name: text(row.name), goal: text(row.goal), durationMinutes: duration,
       warmupMinutes: warmup, cooldownMinutes: cooldown, intensity: intensity as TrainingSession['intensity'], exercises, notes: text(row.notes),
       ...(row.distanceKm != null ? { distanceKm: number(row.distanceKm) } : {}) });
+  }
+  if (validDate(startDate) && Number.isInteger(blockWeeks) && blockWeeks > 0 && blockWeeks <= 12) {
+    for (let week = 0; week < blockWeeks; week++) {
+      const from = shiftDateStr(startDate, week * 7), until = shiftDateStr(from, 7);
+      if (!sessions.some(session => session.date >= from && session.date < until)) errors.push(`Brak konkretnej sesji w tygodniu ${week + 1}.`);
+    }
   }
   for (const lower of sessions.filter(session => session.intensity === 'hard' && session.exercises.some(exercise => exercise.pattern === 'lower'))) {
     if (sessions.some(run => run.type === 'run' && run.intensity === 'hard' && run.date >= lower.date && run.date <= shiftDateStr(lower.date, 1))) errors.push('Ciężkie nogi kolidują z kluczowym biegiem.');

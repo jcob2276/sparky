@@ -1,5 +1,6 @@
 import { safeSendTelegram } from "../../_utils/helpers.ts";
 import { handleSuplementCommand } from "../../_handlers/supplements.ts";
+import { handleTrainingCommand } from "../../_handlers/trainingPlan.ts";
 import {
   handleStartMenuCommand,
   handleKoniecCommand,
@@ -53,6 +54,11 @@ export class CommandRouterInterceptor implements MessageInterceptor {
     ctx.cleanText = cleanText;
 
     const lowerText = ctx.text.toLowerCase().trim();
+
+    if (lowerText === '/trening' || lowerText === '/trening plan') {
+      await handleTrainingCommand(ctx, ctx.chatId, lowerText);
+      return true;
+    }
 
     if (lowerText === "/start" || lowerText === "/menu") {
       await handleStartMenuCommand(ctx.chatId, ctx.telegramToken);

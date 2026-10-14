@@ -60,7 +60,7 @@ export default function DailyStrainCard({
 
   if (loading) return <div className="card p-4"><DataStateNotice tone="loading" title="Obciążenie dnia się liczy" detail="Ładuje ostatni wynik obciążenia i regeneracji." /></div>;
   if (queryError) return <div className="card border-danger/20 p-4"><DataStateNotice tone="warning" title="Obciążenie niedostępne" detail={`Nie mogę odczytać danych: ${queryError.message}`} /></div>;
-  if (!dbData?.row) return <div className="card p-4"><DataStateNotice title="Brak danych obciążenia" detail="Uruchom sync Oura/Strava i przelicz strain." /></div>;
+  if (!dbData?.row) return <div className="card p-4"><DataStateNotice title="Brak danych obciążenia" detail="Zsynchronizuj Oura i Garmin przez Intervals.icu, a następnie przelicz obciążenie." /></div>;
 
   const { row, oura, ouraYesterday, enhanced, enhancedYesterday } = dbData;
   const strainScore = row.strain_score ?? 0;

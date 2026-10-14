@@ -15,7 +15,7 @@ try {
       start_time timestamptz,end_time timestamptz,duration_minutes integer,session_notes text,msp_passed boolean,session_rpe integer,importance_score integer);
     CREATE TABLE exercise_logs(session_id uuid,user_id uuid,exercise_name text,set_number integer,reps integer,weight numeric,
       rpe numeric,rir numeric,is_pws_or_msp boolean,muscle_tags text[]);
-    CREATE TABLE strava_activities_clean(strava_id bigint,user_id uuid,start_date timestamptz);
+    CREATE TABLE strava_activities_clean(strava_id bigint,user_id uuid,start_date timestamptz,sport_type text,distance numeric,is_oura boolean DEFAULT false);
     CREATE TABLE training_plan_workouts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid NOT NULL,
       day_of_week text NOT NULL,planned_date date,workout_type text NOT NULL,workout_name text NOT NULL,
       description text,goal text,target_duration_min integer,target_distance_km double precision,
@@ -32,6 +32,7 @@ try {
   await db.exec(await readFile('supabase/migrations/20261014115955_health_training_plans.sql','utf8'));
   const resultMigration = await readFile('supabase/migrations/20261014121430_planned_workout_result_integrity.sql','utf8');
   await db.exec(resultMigration);
+  await db.exec(await readFile('supabase/migrations/20261014122804_link_planned_running_activity.sql','utf8'));
   const today = (await db.query("SELECT (now() AT TIME ZONE 'Europe/Warsaw')::date::text AS day")).rows[0].day;
   const enqueue = async key => (await db.query('SELECT enqueue_health_coach_job($1,$2,$3::jsonb) AS id',[owner,key,'{}'])).rows[0].id;
   const job = await enqueue('request-1');
@@ -68,6 +69,12 @@ try {
   await db.query("UPDATE training_plan_workouts SET completed=true WHERE user_id=$1",[owner]);
   await db.query('SELECT activate_training_plan($1,$2,1,$3)',[owner,v2,'approve-2']);
   assert.equal((await db.query('SELECT count(*)::int AS n FROM training_plan_workouts WHERE completed')).rows[0].n,1,'completed sessions survive activation');
+  const runSession = (await db.query("INSERT INTO training_plan_workouts(user_id,day_of_week,planned_date,workout_type,workout_name) VALUES($1,'1',$2,'run','Easy run') RETURNING id",[owner,today])).rows[0].id;
+  await db.query("INSERT INTO strava_activities_clean(strava_id,user_id,start_date,sport_type,distance) VALUES(99,$1,now(),'Run',5000),(100,$2,now(),'Run',5000)",[owner,other]);
+  await assert.rejects(db.query('SELECT link_planned_running_activity($1,100)',[runSession]),/not found/i,'foreign activity cannot complete a plan');
+  await db.query('SELECT link_planned_running_activity($1,99)',[runSession]);
+  await db.query('SELECT link_planned_running_activity($1,99)',[runSession]);
+  assert.equal((await db.query('SELECT strava_activity_id FROM training_plan_workouts WHERE id=$1',[runSession])).rows[0].strava_activity_id,99);
   await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)",[other]);
   await db.exec('SET ROLE authenticated');
   assert.equal((await db.query('SELECT * FROM training_plan_versions')).rows.length,0);

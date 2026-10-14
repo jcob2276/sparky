@@ -8,6 +8,8 @@ import { buildCoachBrain } from './coachBrain.ts';
 import { buildSystemPrompt, buildUserMsg } from './prompts.ts';
 import { fetchTrainingRawData } from './trainingRepo.ts';
 import { computeTrainingMetrics } from './loadCalculator.ts';
+import { formatHealthCoachContext } from '../_shared/healthCoachContext.ts';
+import { activitySourceLabel, activityHeartRateZones } from '@vanguard/domain';
 
 export async function analyzeTrainingLoad(supabase: any, userId: string, apiKey: string) {
   const now = new Date();
@@ -23,7 +25,7 @@ export async function analyzeTrainingLoad(supabase: any, userId: string, apiKey:
   const w4Start = addWarsawDays(today, -27);
 
   // ── Parallel data fetch ───────────────────────────────────────────────────
-  const { strainAll, workoutsAll, stravaAll, ouraAll, planContext, queryErrors } =
+  const { strainAll, workoutsAll, stravaAll, ouraAll, planContext, queryErrors, context } =
     await fetchTrainingRawData(supabase, userId, w4Start, w0Start, today, addWarsawDays);
 
   // ── Calculate training load metrics ───────────────────────────────────────
@@ -71,6 +73,10 @@ export async function analyzeTrainingLoad(supabase: any, userId: string, apiKey:
       const rpe = r.perceived_exertion ? `RPE${r.perceived_exertion}` : '';
       const pr = r.has_pr ? '🏆PR' : '';
       parts.push(`  ${type}: "${r.name}" ${dist} ${pace}${hr ? ` ${hr}` : ''}${rpe ? ` ${rpe}` : ''}${pr ? ` ${pr}` : ''}`);
+      parts.push(`    źródło: ${activitySourceLabel(r)}`);
+      const importedZones = activityHeartRateZones(r);
+      if (importedZones.length) parts.push(`    strefy HR źródła: ${importedZones.map((seconds, i) => `Z${i + 1}:${Math.round(seconds / 60)}min`).join(' ')}`);
+      if (r.trimp != null) parts.push(`    TRIMP: ${r.trimp}`);
       if (r.gc_enriched_at) {
         const gcLine: string[] = [];
         if (r.gc_training_effect_aerobic != null) gcLine.push(`TE aerob ${r.gc_training_effect_aerobic}`);
@@ -104,6 +110,7 @@ export async function analyzeTrainingLoad(supabase: any, userId: string, apiKey:
   const dataQualityNote = queryErrors.length ? `\n⚠️ DATA_QUALITY: zapytania do [${queryErrors.join(', ')}] nie powiodły się — traktuj jako NIEZNANE.\n` : '';
   const systemPrompt = buildSystemPrompt();
   const userMsg = buildUserMsg({
+    coachContextText: formatHealthCoachContext(context),
     dataQualityNote, hrMax: metrics.hrMax, z2Ceiling: metrics.z2Ceiling, thresholdHr: metrics.thresholdHr, today, todayDowLabel: metrics.todayDowLabel, todayDow: metrics.todayDow,
     baseRunKm: metrics.baseRunKm, baseSets: metrics.baseSets, baseStrain: metrics.baseStrain, expectedRunKmToDate: metrics.expectedRunKmToDate, expectedSetsToDate: metrics.expectedSetsToDate, expectedStrainToDate: metrics.expectedStrainToDate,
     earlyWeek: metrics.earlyWeek, midWeek: metrics.midWeek, acwr: metrics.acwr, acwrLabel: metrics.acwrLabel, acwrBand: metrics.acwrBand, monotony: metrics.monotony, acuteLoad: metrics.acuteLoad, chronicLoad: metrics.chronicLoad,

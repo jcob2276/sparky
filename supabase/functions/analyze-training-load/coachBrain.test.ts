@@ -1,5 +1,6 @@
 import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import { buildCoachBrain } from './coachBrain.ts';
+import { buildSystemPrompt } from './prompts.ts';
 
 const input = {
   workoutsAll: [{ date: '2026-10-08', exercise_logs: [{ exercise_name: 'Przysiad', rpe: 8, rir: null }] }],
@@ -33,4 +34,9 @@ Deno.test('a planned run prevents a full strength window from overriding interfe
     planned_date: '2026-10-14', workout_name: 'Interwały biegowe', completed: false,
   }] });
   assertEquals(result.strength_window, false);
+});
+
+Deno.test('coaching uses declared goals without inventing a human coach or an injury-prevention score', () => {
+  assertEquals(buildSystemPrompt().includes('Sportowiec MA bardzo dobrego trenera biegowego'), false);
+  assertEquals(JSON.stringify(buildCoachBrain(input)).includes('injury_prevention_score'), false);
 });

@@ -60,6 +60,23 @@ Deno.test('every fetched health source is restricted to the authenticated owner'
   assertEquals(context.queryErrors, []);
 });
 
+Deno.test('coaching reads Garmin via Intervals provenance and zones from the canonical activity view', async () => {
+  const client = createClient('https://example.supabase.co', 'test-key', {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { fetch: input => {
+      const url = new URL(input instanceof Request ? input.url : String(input));
+      const columns = (url.searchParams.get('select') ?? '').split(',');
+      const rows = url.pathname.endsWith('/strava_activities_clean') && ['source', 'icu_activity_id', 'icu_hr_zone_times', 'trimp'].every(key => columns.includes(key))
+        ? [{ strava_id: 12, start_date: '2026-10-13T17:00:00Z', source: 'garmin_intervals', icu_activity_id: 'i12', icu_hr_zone_times: [300, 1200, 100], trimp: 42 }]
+        : [];
+      return Promise.resolve(Response.json(rows));
+    } },
+  });
+  const context = await fetchHealthCoachContext({ supabase: client, userId: '11111111-1111-4111-8111-111111111111', asOf });
+  assertEquals(context.sources.strava_activities_clean.value?.[0].source, 'garmin_intervals');
+  assertStringIncludes(formatHealthCoachContext(context), 'Garmin przez Intervals.icu');
+});
+
 Deno.test('a review confirmed after asOf cannot close a nutrition day in retrospective context', () => {
   const context = buildHealthCoachContext({ asOf, data: {
     daily_nutrition: [{ date: '2026-10-14', calories: 2200 }],
@@ -75,4 +92,13 @@ Deno.test('expired core memory is excluded while confirmed health constraints do
     { id: 'constraints', key: 'health_coach:constraints', value: JSON.stringify({ equipment: ['barbell'], revision: 1 }) },
   ] } });
   assertEquals(context.sources.vanguard_preferences.value?.map(row => row.id), ['constraints']);
+});
+
+Deno.test('nearby planned sessions and calendar events precede distant future declarations', () => {
+  const context = buildHealthCoachContext({ asOf, data: {
+    training_plan_workouts: [{ id:'later',planned_date:'2026-11-01' },{ id:'today',planned_date:'2026-10-14' }],
+    vanguard_calendar: [{ id:'later',start_time:'2026-11-01T10:00:00Z' },{ id:'today',start_time:'2026-10-14T16:00:00Z' }],
+  } });
+  assertEquals(context.sources.training_plan_workouts.value?.[0].id,'today');
+  assertEquals(context.sources.vanguard_calendar.value?.[0].id,'today');
 });

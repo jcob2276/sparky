@@ -1,24 +1,29 @@
 import { useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchTrainingPlan, requestTrainingPlan, approveTrainingPlan, revertTrainingPlan, startPlannedWorkout, type PlanVersion, type PlannedWorkout } from '../../../lib/health/trainingPlanApi';
+import { fetchTrainingPlan, requestTrainingPlan, approveTrainingPlan, revertTrainingPlan, startPlannedWorkout, linkPlannedRunningActivity, type PlanVersion, type PlannedWorkout } from '../../../lib/health/trainingPlanApi';
 import type { WorkoutLoggerInitial } from '../../../lib/health/workoutDraft';
 import { loadWorkoutDraft, hasResumableWorkoutDraftContent } from '../../../lib/health/workoutDraft';
 import { notify } from '../../../lib/notify';
+import { biometricsKeys, calendarKeys } from '../../../lib/queryKeys';
 
 export function useTrainingPlan(userId: string, onStartWorkout?: (initial: WorkoutLoggerInitial) => void) {
   const client = useQueryClient();
   const requestKey = useRef<string | null>(null);
   const query = useQuery({ queryKey: ['training-plan', userId], queryFn: () => fetchTrainingPlan(userId),
     refetchInterval: query => query.state.data?.jobs.some(job => job.status === 'queued' || job.status === 'running') ? 3000 : false });
-  const refresh = () => client.invalidateQueries({ queryKey: ['training-plan', userId] });
+  const refresh = async () => {
+    await Promise.all([client.invalidateQueries({ queryKey: ['training-plan', userId] }),
+      client.invalidateQueries({ queryKey: biometricsKeys.all }), client.invalidateQueries({ queryKey: calendarKeys.all })]);
+  };
   const mutation = useMutation({
-    mutationFn: async (action: { type: 'generate'; weeks: number; instructions: string } | { type: 'approve' | 'revert'; version: PlanVersion } | { type: 'start'; workout: PlannedWorkout }) => {
+    mutationFn: async (action: { type: 'generate'; weeks: number; instructions: string } | { type: 'approve' | 'revert'; version: PlanVersion } | { type: 'start'; workout: PlannedWorkout } | { type: 'match'; workout: PlannedWorkout; activityId: number }) => {
       if (action.type === 'generate') {
         requestKey.current ??= crypto.randomUUID();
         await requestTrainingPlan(requestKey.current, action.weeks, action.instructions);
         requestKey.current = null;
       } else if (action.type === 'approve') await approveTrainingPlan(action.version);
       else if (action.type === 'revert') await revertTrainingPlan(action.version);
+      else if (action.type === 'match') await linkPlannedRunningActivity(action.workout, action.activityId);
       else if (action.type === 'start') {
         const draft = loadWorkoutDraft(userId);
         if (draft && hasResumableWorkoutDraftContent(draft)) throw new Error('Najpierw wznów albo odrzuć niezapisany trening.');
@@ -30,5 +35,6 @@ export function useTrainingPlan(userId: string, onStartWorkout?: (initial: Worko
     generate: (weeks: number, instructions: string) => mutation.mutate({ type: 'generate', weeks, instructions }),
     approve: (version: PlanVersion) => mutation.mutate({ type: 'approve', version }),
     revert: (version: PlanVersion) => mutation.mutate({ type: 'revert', version }),
+    match: (workout: PlannedWorkout, activityId: number) => mutation.mutate({ type: 'match', workout, activityId }),
     start: onStartWorkout ? (workout: PlannedWorkout) => mutation.mutate({ type: 'start', workout }) : undefined };
 }
