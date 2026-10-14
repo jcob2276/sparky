@@ -58,7 +58,7 @@ export async function retrieveRagContext(
       .gte('date', fourteenDaysAgoDate)
       .order('date', { ascending: false }),
     supabase.from('system_proposals')
-      .select('title, description, category')
+      .select('title, description:body, category:proposal_type')
       .eq('user_id', user_id)
       .eq('status', 'pending')
       .limit(5),
@@ -86,7 +86,7 @@ export async function retrieveRagContext(
   );
 
   const strain14dAll = strainRes.data || [];
-  const strainText = formatStrainContext(strain14dAll, wantsFullBiometrics);
+  const strainText = formatStrainContext(strain14dAll, wantsFullBiometrics, todayDate);
 
   const medicalContextText = medicalContext
     ? (wantsMedical ? formatMedicalContextBlock(medicalContext) : formatFlaggedMedicalSummary(medicalContext))

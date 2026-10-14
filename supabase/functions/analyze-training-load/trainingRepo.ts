@@ -38,7 +38,7 @@ export async function fetchTrainingRawData(
       .order('date'),
     supabase
       .from('training_plan_workouts')
-      .select('planned_date,workout_type,workout_name,target_distance_km,target_duration_min,target_pace_min_km,target_hr_max,goal')
+      .select('planned_date,workout_type,workout_name,target_distance_km,target_duration_min,target_pace_min_km,target_hr_max,goal,completed')
       .eq('user_id', userId)
       .gte('planned_date', w0Start)
       .lte('planned_date', addWarsawDays(today, 7))

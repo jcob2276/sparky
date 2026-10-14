@@ -1,5 +1,7 @@
 export function avg(items: any[] = [], key: string) {
-  const values = items.map((item) => Number(item?.[key])).filter(Number.isFinite);
+  const values = items.map((item) => item?.[key])
+    .filter(value => value !== null && value !== undefined && value !== '' && typeof value !== 'boolean')
+    .map(Number).filter(Number.isFinite);
   return values.length
     ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
     : null;

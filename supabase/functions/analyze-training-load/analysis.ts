@@ -100,7 +100,7 @@ export async function analyzeTrainingLoad(supabase: any, userId: string, apiKey:
 
   // ── Muscle coverage ───────────────────────────────────────────────────────
   const weekMuscleTags = [...new Set(metrics.workoutsByWeek[0].flatMap((w: any) => w.exercise_logs || []).flatMap((l: any) => Array.isArray(l.muscle_tags) ? l.muscle_tags : []).filter(Boolean))];
-  const coachSignals = buildCoachBrain({ workoutsAll, stravaByWeek: metrics.stravaByWeek, w0: metrics.w0, baseStrain: metrics.baseStrain, today, todayDow: metrics.todayDow, z2Ceiling: metrics.z2Ceiling, thresholdHr: metrics.thresholdHr, allTimeE1rm: metrics.allTimeE1rm });
+  const coachSignals = buildCoachBrain({ workoutsAll, planContext, stravaByWeek: metrics.stravaByWeek, w0: metrics.w0, baseStrain: metrics.baseStrain, today, todayDow: metrics.todayDow, z2Ceiling: metrics.z2Ceiling, thresholdHr: metrics.thresholdHr, allTimeE1rm: metrics.allTimeE1rm });
   const dataQualityNote = queryErrors.length ? `\n⚠️ DATA_QUALITY: zapytania do [${queryErrors.join(', ')}] nie powiodły się — traktuj jako NIEZNANE.\n` : '';
   const systemPrompt = buildSystemPrompt();
   const userMsg = buildUserMsg({

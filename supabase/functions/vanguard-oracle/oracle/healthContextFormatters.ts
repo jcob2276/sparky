@@ -69,12 +69,16 @@ export function computeHealthSummary(
 export function formatStrainContext(
   rows: Array<Record<string, unknown>>,
   wantsFullBiometrics: boolean,
+  localDate: string,
 ) {
-  if (!rows.length) return '[DAILY STRAIN]: brak danych (jeszcze nie policzono).';
-  const visible = wantsFullBiometrics ? rows : rows.slice(0, 5);
-  const today = rows[0];
+  const available = rows.filter(row => typeof row.date === 'string' && row.date <= localDate)
+    .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+  if (!available.length) return '[DAILY STRAIN]: brak danych (jeszcze nie policzono).';
+  const visible = wantsFullBiometrics ? available : available.slice(0, 5);
+  const today = available[0];
+  const label = today.date === localDate ? `DZIŚ (${localDate})` : `HISTORYCZNE (${today.date}); brak wyniku na ${localDate}`;
   return `[DAILY STRAIN — DANE DETERMINISTYCZNE]:
-DZIŚ: Strain ${today?.strain_score ?? '—'}/21, Recovery ${today?.recovery_score ?? '—'}/100, Fueling ${today?.fueling_score ?? '—'}/100, Status ${today?.daily_status ?? '—'}, Limiter: ${today?.main_limiter ?? '—'}.
-Green=można obciążać, yellow=ostrożnie, red=regeneracja. Fueling provisional nie jest finalnym wynikiem.
+${label}: Strain ${today?.strain_score ?? '—'}/21, Recovery ${today?.recovery_score ?? '—'}/100, Fueling ${today?.fueling_score ?? '—'}/100, Status ${today?.daily_status ?? '—'}, Limiter: ${today?.main_limiter ?? '—'}.
+${today.fueling_provisional ? 'Jedzenie niekompletne — fueling jest prowizoryczny; nie wyciągaj ostatecznych wniosków o deficycie.' : 'Status jest wskaźnikiem pomocniczym; uwzględnij plan, odczucia i jakość danych.'}
 Historia: ${JSON.stringify(visible)}`;
 }

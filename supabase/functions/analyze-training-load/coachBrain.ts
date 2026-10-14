@@ -1,18 +1,22 @@
-import { epley, avg, ACTIVITY_KW, PATTERN_RULES, LEG_PATTERN_KEYS, EXERCISE_LIBRARY, classifyFatigue, loadHint, dayDiff, exercisePatterns } from "../_shared/trainingHelpers.ts";
+import { avg, ACTIVITY_KW, PATTERN_RULES, LEG_PATTERN_KEYS, EXERCISE_LIBRARY, classifyFatigue, loadHint, dayDiff, exercisePatterns } from "../_shared/trainingHelpers.ts";
+import { shiftDateStr } from '@vanguard/domain';
 
 export function buildCoachBrain(opts: {
-  workoutsAll: any[];
-  stravaByWeek: any[][];
-  w0: any;
+  workoutsAll: Array<{ date: string; exercise_logs?: Array<{
+    exercise_name?: string; rir?: number | string | null; rpe?: number | string | null; muscle_tags?: string[];
+  }> }>;
+  stravaByWeek: Array<Array<{ sport_type?: string; hr_avg?: number | null }>>;
+  w0: { recovAvg: number | null; strainAvg: number | null };
   baseStrain: number | null;
   today: string;
   todayDow: number;
   z2Ceiling: number | null;
   thresholdHr: number | null;
   allTimeE1rm: Record<string, number>;
+  planContext?: Array<{ planned_date?: string | null; workout_type?: string; workout_name?: string;
+    target_distance_km?: number | null; completed?: boolean | null; skipped_at?: string | null }>;
 }) {
   const { workoutsAll, stravaByWeek, w0, baseStrain, today, z2Ceiling, thresholdHr, allTimeE1rm } = opts;
-  const warsaw = (d: Date) => d.toISOString().split('T')[0];
 
   // Pattern stats
   const patternStats: Record<string, {
@@ -28,7 +32,10 @@ export function buildCoachBrain(opts: {
     for (const l of (w.exercise_logs || [])) {
       if (ACTIVITY_KW.test(l.exercise_name || '')) continue;
       const patterns = exercisePatterns(l.exercise_name || '', Array.isArray(l.muscle_tags) ? l.muscle_tags : []);
-      const rir = l.rir != null ? Number(l.rir) : (l.rpe != null ? Number(l.rpe) : null);
+      const loggedRir = l.rir != null ? Number(l.rir) : null;
+      const loggedRpe = l.rpe != null ? Number(l.rpe) : null;
+      const rir = loggedRir != null && Number.isFinite(loggedRir) && loggedRir >= 0 && loggedRir <= 10
+        ? loggedRir : loggedRpe != null && loggedRpe >= 1 && loggedRpe <= 10 ? 10 - loggedRpe : null;
       for (const p of patterns) {
         const s = patternStats[p];
         if (!s) continue;
@@ -49,16 +56,19 @@ export function buildCoachBrain(opts: {
   const pushSets = patternStats.push?.sets28 ?? 0;
   const pullSets = patternStats.pull?.sets28 ?? 0;
   const pushPullRatio = pullSets > 0 ? +(pushSets / pullSets).toFixed(2) : null;
-  const strengthGapDays = workoutsAll.length ? dayDiff(workoutsAll.sort((a: any, b: any) => b.date.localeCompare(a.date))[0].date, today) : null;
-  const recentHardRuns = stravaByWeek[0].filter((r: any) =>
+  const strengthGapDays = workoutsAll.length ? dayDiff([...workoutsAll].sort((a, b) => b.date.localeCompare(a.date))[0].date, today) : null;
+  const recentHardRuns = (stravaByWeek[0] ?? []).filter(r =>
     /run/i.test(r.sport_type || '') && thresholdHr != null && Number(r.hr_avg) > thresholdHr
   ).length;
-  const threeDaysFromNow = (() => { const d = new Date(today + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + 3); return d.toISOString().split('T')[0] })();
-  const planContext: any[] = []; // placeholder — passed from caller
-  const hasUpcomingRunPlan = false; // simplified
+  const threeDaysFromNow = shiftDateStr(today, 3);
+  const hasUpcomingRunPlan = (opts.planContext ?? []).some(plan =>
+    !plan.completed && !plan.skipped_at && plan.planned_date != null &&
+    plan.planned_date >= today && plan.planned_date <= threeDaysFromNow &&
+    ((plan.target_distance_km ?? 0) > 0 || /run|bieg|interwa|tempo|long|easy/i.test(`${plan.workout_type ?? ''} ${plan.workout_name ?? ''}`))
+  );
   const highReadiness = w0.recovAvg != null && w0.recovAvg >= 75;
   const lowStrain = w0.strainAvg != null && w0.strainAvg < (baseStrain ?? 12) * 0.85;
-  const strengthWindow = highReadiness && lowStrain && (strengthGapDays == null || strengthGapDays >= 4);
+  const strengthWindow = highReadiness && lowStrain && !hasUpcomingRunPlan && (strengthGapDays == null || strengthGapDays >= 4);
 
   const gapRules = [
     { key: 'calf', maxDays: 7, reason: 'łydka/Achilles musi amortyzować kilometraż biegowy' },
