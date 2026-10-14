@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Eye, EyeOff, Fingerprint, LockKeyhole } from 'lucide-react';
+import { Eye, EyeOff, LockKeyhole } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { STORAGE_KEYS } from '../../lib/constants';
 import { ControlInput, Pressable } from '../ui/ControlPrimitives';
@@ -101,10 +101,7 @@ export default function Auth() {
       <div ref={cardRef} className="auth-card w-full max-w-[392px]">
         <div className="mb-7 flex flex-col items-center text-center">
           <div className="auth-logo-wrap mb-4">
-            <div className="auth-logo-ring" />
-            <div className="auth-logo-inner shadow-sm">
-              <Fingerprint size={24} strokeWidth={1.9} />
-            </div>
+            <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={64} height={64} />
           </div>
           <h1 className="auth-title font-display text-text-primary tracking-tight">
             Sparky

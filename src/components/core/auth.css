@@ -88,25 +88,9 @@
 /* ── Logo ── */
 .auth-logo-wrap {
   position: relative;
-  width: 48px; height: 48px;
+  width: 64px; height: 64px;
   animation: fadeSlideUp 0.45s cubic-bezier(0.23, 1, 0.32, 1) 0.18s both;
 }
-.auth-logo-inner {
-  position: absolute; inset: 0;
-  display: grid; place-items: center;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--color-primary, #3b82f6) 12%, transparent);
-  color: var(--color-primary, #3b82f6);
-}
-.auth-logo-ring {
-  position: absolute; inset: -7px;
-  border-radius: 21px;
-  border: 1.5px solid transparent;
-  border-top-color: color-mix(in srgb, var(--color-primary, #3b82f6) 65%, transparent);
-  border-right-color: color-mix(in srgb, var(--color-primary, #3b82f6) 20%, transparent);
-  animation: logoSpin 2.8s linear infinite;
-}
-@keyframes logoSpin { to { transform: rotate(360deg); } }
 
 /* ── Typography ── */
 .auth-title {
@@ -251,7 +235,6 @@
     transform: none;
   }
   .auth-orb { animation: none !important; }
-  .auth-logo-ring { animation: none !important; }
   .auth-logo-wrap, .auth-title, .auth-subtitle,
   .auth-field, .auth-submit, .auth-footer {
     animation: quickFade 0.2s ease both !important;

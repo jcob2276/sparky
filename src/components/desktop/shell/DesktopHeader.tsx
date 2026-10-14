@@ -2,6 +2,7 @@ import Button from '../../ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw, Moon, Sun, Fingerprint, ShieldCheck, Smartphone, LayoutGrid } from 'lucide-react';
 import OuraRingHeaderBadge from '../health/OuraRingHeaderBadge';
+import { BrandTitle } from '../../ui/BrandTitle';
 
 interface DesktopHeaderProps {
   now: string;
@@ -23,7 +24,7 @@ export default function DesktopHeader({
   return (
     <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border-custom bg-background/95 backdrop-blur-[var(--blur-md)] px-4 sm:px-8 py-3.5 flex items-center gap-2 sm:gap-4">
       <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-        <span className="font-display text-sm font-black uppercase tracking-[var(--ds-arbitrary-0-3em)] text-primary">Sparky</span>
+        <BrandTitle className="font-display text-sm text-text-primary" />
         <span className="text-2xs font-bold uppercase tracking-wider text-text-muted hidden lg:block">{now}</span>
       </div>
       <div className="hidden xl:flex items-center gap-3 ml-4">

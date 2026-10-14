@@ -1,54 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
-  <defs>
-    <!-- Background subtle gradient or white circle -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FFFFFF" />
-      <stop offset="100%" stop-color="#F2F7F9" />
-    </linearGradient>
-    
-    <!-- Turquoise / Mint Gradient -->
-    <linearGradient id="turquoiseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#26C6DA" />
-      <stop offset="100%" stop-color="#00ACC1" />
-    </linearGradient>
-    
-    <!-- Rose Gold / Warm Copper Gradient -->
-    <linearGradient id="roseGoldGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#E5A995" />
-      <stop offset="50%" stop-color="#F2C5B6" />
-      <stop offset="100%" stop-color="#FFE0D6" />
-    </linearGradient>
-
-    <!-- Deep Teal / Dark Accent for shading -->
-    <linearGradient id="darkTealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0097A7" />
-      <stop offset="100%" stop-color="#006064" />
-    </linearGradient>
-    
-    <!-- Drop shadow for origami panels -->
-    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse">
-      <feDropShadow dx="2" dy="6" stdDeviation="8" flood-color="#006064" flood-opacity="0.12" />
-    </filter>
-  </defs>
-
-  <!-- Circular background -->
-  <circle cx="256" cy="256" r="240" fill="url(#bgGrad)" stroke="#E0EDF0" stroke-width="6" />
-
-  <!-- Origami Bird / Arrow Composition -->
-  <g filter="url(#dropShadow)" transform="translate(0, 0)">
-    <!-- Right Wing - Turquoise -->
-    <path d="M256 100 L396 200 L256 280 Z" fill="url(#turquoiseGrad)" />
-
-    <!-- Left Wing - Rose Gold (creates contrast) -->
-    <path d="M256 100 L116 200 L256 280 Z" fill="url(#roseGoldGrad)" opacity="0.95" />
-
-    <!-- Body Central Diamond / Crest (pointing forward/up) -->
-    <path d="M256 100 L296 280 L256 380 L216 280 Z" fill="url(#darkTealGrad)" />
-
-    <!-- Front beak / Head accent -->
-    <path d="M256 100 L276 170 L256 190 L236 170 Z" fill="#FFFFFF" opacity="0.9" />
-
-    <!-- Tail feathers / lower body wing accents -->
-    <path d="M256 380 L306 320 L256 340 L206 320 Z" fill="url(#roseGoldGrad)" />
+  <title>Sparky — Spark</title>
+  <rect width="512" height="512" rx="112" fill="#171918" />
+  <g id="mark" transform="translate(0 16)">
+    <path fill="#F4F2E9" d="M398 112H224C157 112 120 146 120 190C120 229 145 248 190 266L279 307H160L114 368H285C352 368 392 337 392 291C392 252 367 231 323 211L236 172H352Z" />
+    <path fill="#42DEC8" d="M230 191L291 222L263 224L296 281L231 248L258 246Z" />
   </g>
 </svg>

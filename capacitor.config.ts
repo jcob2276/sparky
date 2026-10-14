@@ -16,8 +16,8 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchAutoHide: true,
-      // Keep in sync with .dark --background in src/index.css (native splash can't read CSS vars).
-      backgroundColor: '#1C1917',
+      // Brand background; keep in sync with Android ic_launcher_background.
+      backgroundColor: '#171918',
       showSpinner: false,
     },
     StatusBar: {
