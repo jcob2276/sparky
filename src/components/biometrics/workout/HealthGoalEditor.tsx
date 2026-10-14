@@ -1,15 +1,9 @@
 import { ControlInput, ControlSelect, ControlTextarea, Pressable } from '../../ui/ControlPrimitives';
 import type { HealthGoal, TrainingConstraints } from '../../../lib/health/healthGoals';
+import { HEALTH_GOAL_STANDARDS, HEALTH_GOAL_VARIANTS } from '@vanguard/domain';
 
 const DAYS = ['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Nd'];
-const OPTIONS: Record<string, { variants: string[]; standards: string[] }> = {
-  run_10k: { variants: ['road', 'track', 'treadmill'], standards: ['elapsed_time'] },
-  body_fat: { variants: ['dexa', 'bia', 'skinfold', 'tape'], standards: ['same_method'] },
-  pull_up: { variants: ['pronated', 'neutral', 'supinated'], standards: ['strict_full_rom'] },
-  muscle_up: { variants: ['bar', 'rings'], standards: ['strict_full_rom', 'controlled_kipping'] },
-  bench: { variants: ['barbell', 'paused_barbell'], standards: ['full_rom', 'paused_full_rom'] },
-  posture: { variants: ['user'], standards: ['comfortable_upright'] },
-};
+const UNITS: Record<string, string> = { seconds: 'minuty', percent: '%', reps: 'powtórzenia', kg: 'kg' };
 const LABELS: Record<string, string> = { road: 'Ulica', track: 'Bieżnia stadionowa', treadmill: 'Bieżnia mechaniczna',
   elapsed_time: 'Czas całkowity na 10 km', dexa: 'DXA', bia: 'BIA', skinfold: 'Fałdomierz', tape: 'Obwody', same_method: 'Porównanie tą samą metodą',
   pronated: 'Nachwyt', neutral: 'Chwyt neutralny', supinated: 'Podchwyt', strict_full_rom: 'Ściśle, pełny zakres ruchu',
@@ -27,14 +21,14 @@ export default function HealthGoalEditor({ goals, constraints, saving, error, pr
     {profileBodyFat != null && bf?.target !== profileBodyFat && <p className="text-xs text-warning">Profil żywienia ma cel {profileBodyFat}% BF. Zapis zmieni go na {bf?.target}%.</p>}
     {goals.map((goal, index) => <fieldset key={goal.id ?? goal.spec.kind} className="space-y-2 border-b border-border-custom pb-3">
       <legend className="text-sm font-semibold">{goal.name}</legend>
-      <label className="block text-xs">Cel ({goal.unit === 'seconds' ? 'minuty' : goal.unit})
+      {goal.spec.kind !== 'posture' && <label className="block text-xs">Cel ({UNITS[goal.unit] ?? goal.unit})
         <ControlInput type="number" min="0.1" step="0.1" value={goal.unit === 'seconds' ? goal.target / 60 : goal.target}
           onChange={e => changeGoal(index, { ...goal, target: Number(e.target.value) * (goal.unit === 'seconds' ? 60 : 1) })} className="w-full p-2 rounded-lg bg-surface-2" />
-      </label>
+      </label>}
       {(['variant', 'standard'] as const).map(field => <label className="block text-xs" key={field}>{field === 'variant' ? 'Wariant / metoda' : 'Kryterium wykonania'}
         <ControlSelect value={goal.spec[field] ?? ''} onChange={e => changeGoal(index, { ...goal, spec: { ...goal.spec, [field]: e.target.value || null } })} className="w-full p-2 rounded-lg bg-surface-2">
           <option value="">Jeszcze nie ustalone</option>
-          {OPTIONS[goal.spec.kind][field === 'variant' ? 'variants' : 'standards'].map(value => <option key={value} value={value}>{LABELS[value]}</option>)}
+          {(field === 'variant' ? HEALTH_GOAL_VARIANTS : HEALTH_GOAL_STANDARDS)[goal.spec.kind].map(value => <option key={value} value={value}>{LABELS[value]}</option>)}
         </ControlSelect>
       </label>)}
       <label className="block text-xs">Priorytet
@@ -65,6 +59,11 @@ export default function HealthGoalEditor({ goals, constraints, saving, error, pr
     <label className="block text-xs">Ograniczenia, ból, ruchy do pominięcia (jedno w wierszu)
       <ControlTextarea value={constraints.limitations.join('\n')} rows={3} onChange={e => changeConstraints({ ...constraints, limitations: e.target.value.split('\n') })} className="w-full p-2 rounded-lg bg-surface-2" />
     </label>
+    <label className="block text-xs">Ćwiczenia do pominięcia (oddziel przecinkami)
+      <ControlInput value={constraints.avoidExercises?.join(', ') ?? ''} onChange={e => changeConstraints({ ...constraints, avoidExercises: e.target.value.split(',').map(item => item.trim()).filter(Boolean) })} className="w-full p-2 rounded-lg bg-surface-2" />
+    </label>
+    <label className="flex items-center gap-2 text-xs"><ControlInput type="checkbox" checked={constraints.painReported === true}
+      onChange={e => changeConstraints({ ...constraints, painReported: e.target.checked })} />Obecnie odczuwam ból podczas ruchu</label>
     {error && <p role="alert" className="text-sm text-danger">{error}</p>}
     <Pressable variant="primary" onClick={save} disabled={saving}>{saving ? 'Zapisywanie…' : 'Potwierdź cele i warunki'}</Pressable>
   </section>;

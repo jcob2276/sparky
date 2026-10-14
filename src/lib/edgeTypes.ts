@@ -37,6 +37,9 @@ interface AnalyzeFoodQualityError {
 type AnalyzeFoodQualityResponse = AnalyzeFoodQualitySingle | AnalyzeFoodQualityRange | AnalyzeFoodQualityError;
 
 export interface AnalyzeTrainingLoadResponse {
+  jobId?: string;
+  versionId?: string;
+  status?: string;
   success?: boolean;
   stats?: {
     week_strain: number | null; base_strain: string | null;

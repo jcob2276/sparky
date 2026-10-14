@@ -2762,6 +2762,59 @@ export type Database = {
         }
         Relationships: []
       }
+      health_coach_jobs: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          last_error: string | null
+          lease_token: string | null
+          leased_until: string | null
+          payload: Json
+          request_key: string
+          result_version_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          lease_token?: string | null
+          leased_until?: string | null
+          payload?: Json
+          request_key: string
+          result_version_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          lease_token?: string | null
+          leased_until?: string | null
+          payload?: Json
+          request_key?: string
+          result_version_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "health_coach_jobs_result_version_id_fkey"
+            columns: ["result_version_id"]
+            isOneToOne: false
+            referencedRelation: "training_plan_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       healthspan_checkins: {
         Row: {
           checkin_date: string
@@ -6299,6 +6352,56 @@ export type Database = {
         }
         Relationships: []
       }
+      training_plan_versions: {
+        Row: {
+          activated_at: string | null
+          approval_key: string | null
+          base_revision: number
+          context_fingerprint: string
+          created_at: string
+          id: string
+          previous_version_id: string | null
+          revision: number
+          snapshot: Json
+          status: string
+          user_id: string
+        }
+        Insert: {
+          activated_at?: string | null
+          approval_key?: string | null
+          base_revision: number
+          context_fingerprint: string
+          created_at?: string
+          id?: string
+          previous_version_id?: string | null
+          revision: number
+          snapshot: Json
+          status?: string
+          user_id: string
+        }
+        Update: {
+          activated_at?: string | null
+          approval_key?: string | null
+          base_revision?: number
+          context_fingerprint?: string
+          created_at?: string
+          id?: string
+          previous_version_id?: string | null
+          revision?: number
+          snapshot?: Json
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_plan_versions_previous_version_id_fkey"
+            columns: ["previous_version_id"]
+            isOneToOne: false
+            referencedRelation: "training_plan_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       training_plan_workouts: {
         Row: {
           completed: boolean | null
@@ -6308,7 +6411,12 @@ export type Database = {
           description: string | null
           goal: string | null
           id: string
+          plan_version_id: string | null
           planned_date: string | null
+          prescription: Json | null
+          session_key: string | null
+          skipped_at: string | null
+          started_at: string | null
           strava_activity_id: number | null
           target_distance_km: number | null
           target_duration_min: number | null
@@ -6317,6 +6425,7 @@ export type Database = {
           target_pace_min_km: string | null
           user_id: string
           workout_name: string
+          workout_session_id: string | null
           workout_type: string
         }
         Insert: {
@@ -6327,7 +6436,12 @@ export type Database = {
           description?: string | null
           goal?: string | null
           id?: string
+          plan_version_id?: string | null
           planned_date?: string | null
+          prescription?: Json | null
+          session_key?: string | null
+          skipped_at?: string | null
+          started_at?: string | null
           strava_activity_id?: number | null
           target_distance_km?: number | null
           target_duration_min?: number | null
@@ -6336,6 +6450,7 @@ export type Database = {
           target_pace_min_km?: string | null
           user_id: string
           workout_name: string
+          workout_session_id?: string | null
           workout_type: string
         }
         Update: {
@@ -6346,7 +6461,12 @@ export type Database = {
           description?: string | null
           goal?: string | null
           id?: string
+          plan_version_id?: string | null
           planned_date?: string | null
+          prescription?: Json | null
+          session_key?: string | null
+          skipped_at?: string | null
+          started_at?: string | null
           strava_activity_id?: number | null
           target_distance_km?: number | null
           target_duration_min?: number | null
@@ -6355,9 +6475,17 @@ export type Database = {
           target_pace_min_km?: string | null
           user_id?: string
           workout_name?: string
+          workout_session_id?: string | null
           workout_type?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "training_plan_workouts_plan_version_id_fkey"
+            columns: ["plan_version_id"]
+            isOneToOne: false
+            referencedRelation: "training_plan_versions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "training_plan_workouts_strava_activity_id_fkey"
             columns: ["strava_activity_id"]
@@ -6371,6 +6499,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "strava_activities_clean"
             referencedColumns: ["strava_id"]
+          },
+          {
+            foreignKeyName: "training_plan_workouts_workout_session_id_fkey"
+            columns: ["workout_session_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sessions"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -9182,6 +9317,15 @@ export type Database = {
         Args: { p_date: string; p_user_id: string }
         Returns: undefined
       }
+      activate_training_plan: {
+        Args: {
+          p_base_revision: number
+          p_owner: string
+          p_request_key: string
+          p_version: string
+        }
+        Returns: string
+      }
       add_food_entry: {
         Args: {
           p_date: string
@@ -9211,7 +9355,39 @@ export type Database = {
         Args: { p_name: string; p_user_id: string }
         Returns: string
       }
+      claim_health_coach_job: {
+        Args: { p_job: string }
+        Returns: {
+          attempts: number
+          created_at: string
+          id: string
+          last_error: string | null
+          lease_token: string | null
+          leased_until: string | null
+          payload: Json
+          request_key: string
+          result_version_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "health_coach_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       cleanup_old_logs: { Args: never; Returns: undefined }
+      complete_health_plan_job: {
+        Args: {
+          p_fingerprint: string
+          p_job: string
+          p_snapshot: Json
+          p_token: string
+        }
+        Returns: string
+      }
       confirm_nutrition_meal_capture: {
         Args: {
           p_capture_id: string
@@ -9255,6 +9431,15 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      create_health_plan_draft: {
+        Args: {
+          p_base_revision?: number
+          p_fingerprint: string
+          p_owner: string
+          p_snapshot: Json
+        }
+        Returns: string
+      }
       delete_note_folder_hierarchy: {
         Args: { folder_id: string }
         Returns: undefined
@@ -9269,6 +9454,15 @@ export type Database = {
           p_user_id: string
         }
         Returns: number
+      }
+      dispatch_health_coach_jobs: { Args: { p_job?: string }; Returns: number }
+      enqueue_health_coach_job: {
+        Args: { p_owner: string; p_payload: Json; p_request_key: string }
+        Returns: string
+      }
+      fail_health_coach_job: {
+        Args: { p_error: string; p_job: string; p_token: string }
+        Returns: undefined
       }
       find_entity_seeds_by_embedding: {
         Args: {
@@ -9321,6 +9515,7 @@ export type Database = {
           target_entity: string
         }[]
       }
+      health_coach_fingerprint: { Args: { p_owner: string }; Returns: string }
       increment_kpi_entry_for_week: {
         Args: { p_delta: number; p_kpi_id: string; p_week_start: string }
         Returns: undefined
@@ -9454,6 +9649,20 @@ export type Database = {
         Args: { p_constraints: Json; p_goals: Json }
         Returns: undefined
       }
+      save_planned_workout_atomic: {
+        Args: {
+          p_day_key: string
+          p_end_time: string
+          p_logs: Json
+          p_msp_passed: boolean
+          p_notes: string
+          p_plan_workout_id: string
+          p_session_rpe?: number
+          p_start_time: string
+          p_user_id: string
+        }
+        Returns: string
+      }
       save_workout_atomic: {
         Args: {
           p_day_key: string
@@ -9514,6 +9723,10 @@ export type Database = {
           sprint_number: number
           week_in_sprint: number
         }[]
+      }
+      start_planned_workout: {
+        Args: { p_plan_workout_id: string }
+        Returns: Json
       }
       submit_morning_plan: {
         Args: {

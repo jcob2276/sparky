@@ -154,6 +154,7 @@ export async function saveWorkoutSession(
     startTimeManual: string
     endTimeManual: string
     plyoLogs?: PlyoSetLog[]
+    planWorkoutId?: string
   },
 ): Promise<{ queued: boolean; rpeMismatch: string | null }> {
   const validEx = opts.exercises.filter((e) => e.name.trim())
@@ -166,6 +167,7 @@ export async function saveWorkoutSession(
   const exLogs = validEx.flatMap((ex) =>
     (ex.sets ?? [])
       .filter((s) => s.kg.trim() !== '' || s.reps.trim() !== '')
+      .filter((s) => !opts.planWorkoutId || Number(s.reps) > 0)
       .map((s, i) => ({
         exercise_name: canonicalExerciseName(ex.name),
         set_number: i + 1,
@@ -178,7 +180,7 @@ export async function saveWorkoutSession(
       })),
   )
 
-  const acLogs = validAc.map((a, i) => ({
+  const acLogs = validAc.filter(a => !opts.planWorkoutId || Number(a.min) > 0).map((a, i) => ({
     exercise_name: a.note.trim() ? `${a.name.trim()} — ${a.note.trim()}` : a.name.trim(),
     set_number: i + 1,
     weight: 0,
@@ -187,6 +189,9 @@ export async function saveWorkoutSession(
     rir: null,
     muscle_tags: ['activity'],
   }))
+  if (opts.planWorkoutId && ![...plyoLogs, ...exLogs, ...acLogs].some(log => Number(log.reps) > 0)) {
+    throw new Error('Wpisz wykonany wynik serii lub czas aktywności przed zapisem.')
+  }
 
   let finalStart: string | null = null
   let finalEnd: string | null = null
@@ -221,9 +226,10 @@ export async function saveWorkoutSession(
     (validEx.every((e) => (e.tags ?? []).includes('wellness')) && validEx.length > 0 ? 'Sauna' : 'Trening')
 
   const { queued } = await rpcWithOfflineFallback(
-    'save_workout_atomic',
+    opts.planWorkoutId ? 'save_planned_workout_atomic' : 'save_workout_atomic',
     {
       p_user_id: userId,
+      ...(opts.planWorkoutId ? { p_plan_workout_id: opts.planWorkoutId } : {}),
       p_day_key: dayKey,
       p_start_time: finalStart as string,
       p_end_time: finalEnd as string,

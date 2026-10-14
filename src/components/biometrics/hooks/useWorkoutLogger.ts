@@ -11,15 +11,12 @@ import {
 import {
   endWorkoutSession,
   hasResumableWorkoutDraftContent,
-  isWorkoutSessionActive,
   loadWorkoutDraft,
   markWorkoutSessionActive,
-  persistWorkoutDraft,
-  saveWorkoutDraft,
   saveWorkoutSession,
-  type WorkoutDraft,
   type WorkoutLoggerInitial,
 } from '../../../lib/health/workoutLogging';
+import { useWorkoutDraftPersistence } from './useWorkoutDraftPersistence';
 import { useUserId } from '../../../store/useStore';
 import { useQueryClient } from '@tanstack/react-query';
 import { calendarKeys, biometricsKeys } from '../../../lib/queryKeys';
@@ -39,11 +36,7 @@ interface UseWorkoutLoggerOptions {
   onBack: () => void;
 }
 
-export function useWorkoutLogger({
-  initial,
-  onSaved,
-  onBack,
-}: UseWorkoutLoggerOptions) {
+export function useWorkoutLogger({ initial, onSaved, onBack }: UseWorkoutLoggerOptions) {
   const userId = useUserId();
   const queryClient = useQueryClient();
   const [workoutName, setWorkoutName] = useState('');
@@ -51,6 +44,7 @@ export function useWorkoutLogger({
   const [activities, setActivities] = useState<WorkoutActivity[]>([]);
   const [notes, setNotes] = useState('');
   const [sessionRpe, setSessionRpe] = useState<number | null>(null);
+  const [planWorkoutId, setPlanWorkoutId] = useState<string | undefined>(initial?.planWorkoutId);
   const [saving, setSaving] = useState(false);
   const [timerStart, setTimerStart] = useState<number | null>(() => Date.now());
 
@@ -60,11 +54,9 @@ export function useWorkoutLogger({
   const [workoutDate, setWorkoutDate] = useState(todayStr);
   const [startTimeManual, setStartTimeManual] = useState('18:00');
   const [endTimeManual, setEndTimeManual] = useState('19:00');
-
   const elapsed = useStopwatch(timerStart);
   const haptics = useHaptics();
   const sessionEndedRef = useRef(false);
-
   const finalizeWorkoutSession = useCallback(() => {
     sessionEndedRef.current = true;
     if (!userId) return;
@@ -100,6 +92,7 @@ export function useWorkoutLogger({
       setActivities(seed.activities ?? []);
       setNotes(seed.notes ?? '');
       setSessionRpe(seed.sessionRpe ?? null);
+      setPlanWorkoutId(seed.planWorkoutId);
       if (draft) {
         setWorkoutDate(draft.workoutDate);
         setTimerStart(draft.timerStart);
@@ -132,74 +125,22 @@ export function useWorkoutLogger({
     markWorkoutSessionActive(userId);
   }, [userId]);
 
-  const draftSnapshotRef = useRef<WorkoutDraft | null>(null);
-  useEffect(() => {
-    draftSnapshotRef.current = {
+  useWorkoutDraftPersistence(userId, {
       workoutName,
       exercises,
       activities,
       notes,
       sessionRpe,
+      planWorkoutId,
       workoutDate,
       timerStart,
       manualTime,
       startTimeManual,
       endTimeManual,
-      savedAt: Date.now(),
-    };
-  });
-
-  useEffect(() => {
-    if (!userId) return;
-    const flush = () => {
-      if (sessionEndedRef.current) return;
-      const draft = draftSnapshotRef.current;
-      if (!draft) return;
-      persistWorkoutDraft(userId, draft);
-      if (!sessionEndedRef.current && plyoSession && plyoDone.length > 0) {
-        savePlyoCheckoff(userId, plyoSession.sessionKey, plyoDone);
-      }
-    };
-    const onHide = () => {
-      if (document.visibilityState === 'hidden') flush();
-    };
-    window.addEventListener('pagehide', flush);
-    document.addEventListener('visibilitychange', onHide);
-    return () => {
-      window.removeEventListener('pagehide', flush);
-      document.removeEventListener('visibilitychange', onHide);
-    };
-  }, [userId, plyoSession, plyoDone]);
-
-  useEffect(() => {
-    if (!userId || sessionEndedRef.current) return;
-    const t = window.setTimeout(() => {
-      if (sessionEndedRef.current) return;
-      const draft = draftSnapshotRef.current;
-      if (!draft) return;
-      if (
-        isWorkoutSessionActive(userId) ||
-        hasResumableWorkoutDraftContent(draft)
-      ) {
-        saveWorkoutDraft(userId, draft);
-      } else {
-        endWorkoutSession(userId);
-      }
-    }, 800);
-    return () => window.clearTimeout(t);
-  }, [
-    userId,
-    workoutName,
-    exercises,
-    activities,
-    notes,
-    sessionRpe,
-    workoutDate,
-    timerStart,
-    manualTime,
-    startTimeManual,
-    endTimeManual,
-  ]);
+      savedAt: 0, // saveWorkoutDraft stamps the actual persistence time.
+    }, sessionEndedRef, () => {
+      if (userId && plyoSession && plyoDone.length > 0) savePlyoCheckoff(userId, plyoSession.sessionKey, plyoDone);
+    });
 
   const hasUnsavedData = Boolean(
     workoutName.trim() ||
@@ -276,6 +217,7 @@ export function useWorkoutLogger({
         activities,
         notes,
         sessionRpe,
+        planWorkoutId,
         workoutDate,
         timerStart,
         manualTime,
@@ -289,6 +231,7 @@ export function useWorkoutLogger({
       if (userId) {
         void queryClient.invalidateQueries({ queryKey: calendarKeys.all });
         void queryClient.invalidateQueries({ queryKey: biometricsKeys.all });
+        void queryClient.invalidateQueries({ queryKey: ['training-plan', userId] });
       }
       finalizeWorkoutSession();
       haptics.success();

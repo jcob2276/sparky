@@ -1,4 +1,13 @@
 export type HealthGoalKind = 'run_10k' | 'body_fat' | 'pull_up' | 'muscle_up' | 'bench' | 'posture';
+export const HEALTH_GOAL_STANDARDS: Record<HealthGoalKind, string[]> = {
+  run_10k: ['elapsed_time'], body_fat: ['same_method'], pull_up: ['strict_full_rom'],
+  muscle_up: ['strict_full_rom', 'controlled_kipping'], bench: ['full_rom', 'paused_full_rom'], posture: ['comfortable_upright'],
+};
+export const HEALTH_GOAL_VARIANTS: Record<HealthGoalKind, string[]> = {
+  run_10k: ['road', 'track', 'treadmill'], body_fat: ['dexa', 'bia', 'skinfold', 'tape'],
+  pull_up: ['pronated', 'neutral', 'supinated'], muscle_up: ['bar', 'rings'],
+  bench: ['barbell', 'paused_barbell'], posture: ['user'],
+};
 export interface HealthGoalSpec {
   kind: HealthGoalKind;
   variant: string | null;
@@ -20,6 +29,8 @@ export interface TrainingConstraints {
   availability: Array<{ day: number; minutes: number }>;
   equipment: string[];
   limitations: string[];
+  avoidExercises?: string[];
+  painReported?: boolean;
 }
 export interface HealthGoalResult {
   value: number;
@@ -36,11 +47,11 @@ const preset = (kind: HealthGoalKind, name: string, target: number, unit: string
 });
 /** Suggestions only. Saving requires an explicit user action; unknown standards remain unknown. */
 export const HEALTH_GOAL_PRESETS: HealthGoal[] = [
-  preset('run_10k', '10 km w 45 minut', 2700, 'seconds', false),
-  preset('body_fat', '13% tkanki tłuszczowej', 13, 'percent', false),
-  preset('pull_up', '10 poprawnych podciągnięć', 10, 'reps', true),
+  preset('run_10k', 'Bieg na 10 km', 2700, 'seconds', false),
+  preset('body_fat', 'Poziom tkanki tłuszczowej', 13, 'percent', false),
+  preset('pull_up', 'Poprawne podciągnięcia', 10, 'reps', true),
   preset('muscle_up', 'Poprawny muscle-up', 1, 'reps', true),
-  preset('bench', '100 kg na ławce z zapasem', 100, 'kg', true),
+  preset('bench', 'Wyciskanie sztangi z zapasem', 100, 'kg', true),
   preset('posture', 'Swobodna, wyprostowana postawa', 1, 'confirmed', true),
 ];
 
@@ -50,6 +61,7 @@ export function assessHealthGoal(goal: HealthGoal, result: HealthGoalResult | nu
   const unknown = (reason: string) => ({ state: 'unknown' as const, reason });
   if (!result) return unknown('Brak wyniku według ustalonego standardu.');
   if (!goal.spec.variant || !goal.spec.standard) return unknown('Najpierw potwierdź wariant i kryterium celu.');
+  if (!HEALTH_GOAL_STANDARDS[goal.spec.kind].includes(goal.spec.standard) || !HEALTH_GOAL_VARIANTS[goal.spec.kind].includes(goal.spec.variant)) return unknown('Nieznany standard lub wariant celu.');
   if (!Number.isFinite(result.value) || result.unit !== goal.unit) return unknown('Inna jednostka lub brak liczby.');
   if (goal.spec.variant !== result.variant || goal.spec.standard !== result.standard) return unknown('Wynik pochodzi z innego wariantu lub standardu.');
   if (goal.spec.kind === 'posture') {

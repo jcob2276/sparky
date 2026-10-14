@@ -109,13 +109,14 @@ export function StrengthSetRow({
     onFillSet(set.id, historyRow);
   };
 
-  const ghostKg =
-    historyRow?.weight != null ? (Number(historyRow.weight) === 0 ? '0' : String(historyRow.weight)) : '—';
-  const ghostReps = historyRow?.reps != null ? String(historyRow.reps) : '—';
-  const ghostRir = historyRow?.rir != null ? String(historyRow.rir) : '—';
+  const ghostKg = set.prescription ? (set.prescription.weightKg != null ? String(set.prescription.weightKg) : 'RIR')
+    : historyRow?.weight != null ? String(historyRow.weight) : '—';
+  const ghostReps = set.prescription ? String(set.prescription.reps) : historyRow?.reps != null ? String(historyRow.reps) : '—';
+  const ghostRir = set.prescription ? String(set.prescription.rir) : historyRow?.rir != null ? String(historyRow.rir) : '—';
 
   return (
     <div className="space-y-2 border-b border-border-custom pb-3 last:border-b-0">
+      {set.prescription && <p className="text-xs text-text-secondary">Cel: {set.prescription.reps} powt. · RIR {set.prescription.rir} · przerwa {set.prescription.restSeconds}s. Wpisz wykonany wynik.</p>}
       <div className="flex items-center gap-2">
       {/* Set Badge */}
       <Pressable

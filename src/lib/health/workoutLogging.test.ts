@@ -38,6 +38,15 @@ describe('workoutLogging', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.restoreAllMocks();
+    vi.clearAllMocks();
+  });
+
+  it('does not complete a planned session when all prescribed sets are still blank', async () => {
+    await expect(saveWorkoutSession('owner', { workoutName: 'Planned', planWorkoutId: 'plan-session',
+      exercises: [{ id: 1, name: 'Bench', tags: [], sets: [{ id: 2, kg: '', reps: '', rir: '', msp: false,
+        prescription: { reps: 8, weightKg: 70, rir: 3, restSeconds: 120 } }] }], activities: [], notes: '', sessionRpe: null,
+      workoutDate: '2026-10-14', timerStart: null, manualTime: false, startTimeManual: '', endTimeManual: '' }))
+      .rejects.toThrow('wynik');
   });
 
   describe('hasResumableWorkoutDraftContent', () => {

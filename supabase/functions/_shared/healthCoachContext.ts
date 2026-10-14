@@ -78,7 +78,7 @@ export async function fetchHealthCoachContext(input: {
   const sourceSelects: Record<HealthCoachSource, string> = {
     workout_sessions: 'id,date,workout_day,duration_minutes,session_rpe,session_notes,msp_passed,created_at,exercise_logs(id,exercise_name,set_number,weight,reps,rir,rpe,muscle_tags,is_pws_or_msp)',
     strava_activities_clean: 'strava_id,start_date,name,sport_type,distance,moving_time,elapsed_time,hr_avg,hr_max,hr_source,perceived_exertion,workout_type,has_pr,gc_weather,gc_vo2max,gc_hr_zones,gc_laps,gc_training_effect_aerobic,gc_training_effect_anaerobic,gc_enriched_at',
-    training_plan_workouts: 'id,planned_date,workout_type,workout_name,goal,target_duration_min,target_distance_km,target_hr_max,target_pace_min_km,target_pace_max_km,completed,created_at',
+    training_plan_workouts: 'id,planned_date,workout_type,workout_name,goal,target_duration_min,target_distance_km,target_hr_max,target_pace_min_km,target_pace_max_km,completed,skipped_at,plan_version_id,prescription,started_at,workout_session_id,created_at',
     oura_daily_summary: 'date,total_sleep_hours,readiness_score,hrv_avg,rhr_avg,steps,total_calories,active_calories,temp_deviation,deep_sleep_hours,bedtime_timestamp,rem_sleep_hours,sleep_efficiency,latency_minutes',
     daily_strain: 'date,strain_score,recovery_score,fueling_score,fueling_provisional,daily_status,main_limiter,leg_load,illness_level,mental_load_score,explanation,cardio_load,strength_load,cns_load',
     daily_nutrition: 'date,calories,protein,carbs,fat,fiber,sugar,avg_food_quality,food_quality_analysis',

@@ -8,6 +8,7 @@ export interface WorkoutSet {
   reps: string;
   rir: string;
   msp: boolean;
+  prescription?: { reps: number; weightKg: number | null; rir: number; restSeconds: number };
   type?: WorkoutSetType;
   rpe?: string;
   durationSec?: number;

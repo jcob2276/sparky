@@ -31,6 +31,10 @@ interface JsonCtx {
 }
 
 type Handler = (req: Request, ctx: JsonCtx) => Promise<unknown>;
+/** A trusted, actionable message for a user-correctable failure. Upstream errors stay private. */
+export class HttpError extends Error {
+  constructor(readonly status: 400 | 404 | 409 | 422, message: string) { super(message); }
+}
 
 function mergeCorsHeaders(res: Response, cors: Record<string, string>): Response {
   const headers = new Headers(res.headers);
@@ -91,6 +95,10 @@ export function serveJson(
         headers: { ...cors, 'Content-Type': 'application/json' },
       });
     } catch (err) {
+      if (err instanceof HttpError) return Response.json({ error: err.message }, { status: err.status, headers: cors });
+      if (err && typeof err === 'object' && 'code' in err && err.code === '40001') {
+        return Response.json({ error: 'Dane zmieniły się. Odśwież widok i ponów operację.' }, { status: 409, headers: cors });
+      }
       const url = new URL(req.url);
       const fnName = url.pathname.split('/').pop() || 'unknown';
 

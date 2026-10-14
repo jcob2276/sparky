@@ -6,6 +6,7 @@ export interface WorkoutLoggerInitial {
   activities: WorkoutActivity[]
   notes: string
   sessionRpe: number | null
+  planWorkoutId?: string
 }
 
 export interface WorkoutDraft extends WorkoutLoggerInitial {

@@ -32,4 +32,8 @@ describe('measurable health goals', () => {
     expect(validateTrainingConstraints({ availability: [{ day: 1, minutes: -20 }], equipment: [], limitations: [], revision: 1 })).not.toEqual([]);
     expect(validateTrainingConstraints({ availability: [{ day: 1, minutes: 50 }], equipment: ['barbell'], limitations: [], revision: 1 })).toEqual([]);
   });
+  it('does not auto-achieve a goal with an unrecognized measurement standard', () => {
+    const goal = { ...goals[4], spec: { ...goals[4].spec, variant: 'barbell', standard: 'unknown_test', reserveReps: 2 } };
+    expect(assessHealthGoal(goal, { ...sample, standard: 'unknown_test' }).state).toBe('unknown');
+  });
 });
