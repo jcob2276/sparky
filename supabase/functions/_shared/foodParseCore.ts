@@ -66,6 +66,7 @@ export interface ParsedFoodItem {
 }
 
 export interface UserParseContext {
+  mealPreferences?: import('@vanguard/domain').MealPreferences;
   profileLine: string
   targetKcal: number | null
   targetProtein: number | null

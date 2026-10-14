@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MealPlannerView } from './MealPlannerView';
-import type { MealPlanState } from '@vanguard/domain';
+import {parseMealPreferences,type MealPlanState} from '@vanguard/domain';
 
 const mockState: MealPlanState = {
   revision: 1,
@@ -37,6 +37,17 @@ const mockState: MealPlanState = {
 };
 
 describe('MealPlannerView', () => {
+  it('requires a fresh allergen check for a different stored draft with the same revision',()=>{
+    const state={...mockState,active:null,draft:{...mockState.active!,preferencesRevision:1}};
+    const props={date:'2026-10-14',state,targetKcal:2000,targetProtein:150,isGenerating:false,isApproving:false,
+      preferences:{...parseMealPreferences(null),confirmed:true,revision:1,allergies:['mleko']},
+      onGenerate:vi.fn(),onApprove:vi.fn(),onResizeMeal:vi.fn(),onToggleShoppingItem:vi.fn()};
+    const view=render(<MealPlannerView {...props}/>);
+    fireEvent.click(screen.getByLabelText(/Sprawdziłem skład i etykiety/));
+    expect(screen.getByRole('button',{name:'Zatwierdź menu'})).toBeEnabled();
+    view.rerender(<MealPlannerView {...props} date="2026-10-15" state={{...state,draft:{...state.draft,notes:'Inny szkic'}}}/>);
+    expect(screen.getByRole('button',{name:'Zatwierdź menu'})).toBeDisabled();
+  });
   it('shows a replacement draft while the active menu remains available for shopping', () => {
     const draft = structuredClone(mockState.active!);
     draft.days[0].meals[0].name='Nowy szkic';
@@ -94,7 +105,7 @@ describe('MealPlannerView', () => {
 
     // Click portion scale button 1.5x
     fireEvent.click(screen.getByText('1.5x'));
-    expect(onResize).toHaveBeenCalledWith('m1', 1.5);
+    expect(onResize).toHaveBeenCalledWith('m1', 1.5,'2026-10-14');
 
     // Switch to shopping list
     fireEvent.click(screen.getByText('Zakupy'));

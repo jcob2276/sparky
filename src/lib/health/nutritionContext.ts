@@ -31,6 +31,7 @@ export interface NutritionDayContext extends TodayNutritionSnapshot {
   foodDataState: 'missing' | 'logged';
   foodComplete: boolean;
   targetUpdatedAt: string | null;
+  targetError?:string|null;
 }
 
 /** Implied goal weight from constant lean mass + target BF% (same model as nutrition-coach). */
@@ -108,26 +109,28 @@ async function ensureNutritionTargetForDate(
   userId: string,
   date: string,
   accessToken: string | undefined,
-): Promise<void> {
-  if (!accessToken) return;
+): Promise<string|null> {
+  void accessToken; // Authorization comes from the shared Supabase client session.
   const today = getTodayWarsaw();
-  if (date !== today) return;
+  if (date !== today) return null;
 
-  const { data: existing } = await supabase
+  const { data: existing,error } = await supabase
     .from('nutrition_targets')
-    .select('date')
+    .select('date,target_kcal,protein_floor_g')
     .eq('user_id', userId)
     .eq('date', date)
     .maybeSingle();
-  if (existing) return;
+  if(error) return error.message;
+  if (existing?.target_kcal != null && existing.protein_floor_g != null) return null;
 
   try {
     await invokeEdge('vanguard-nutrition-coach', {
-      body: { userId, date, notify: false },
+      body: { action:'refresh_targets',userId, date, notify: false },
       signal: AbortSignal.timeout(TIMEOUTS.heavy),
     });
+    return null;
   } catch (e: unknown) {
-      console.warn('[nutritionContext] Failed to ensure nutrition target for date:', e);
+      return e instanceof Error?e.message:'Nie udało się odświeżyć celu żywienia.';
     }
 }
 
@@ -136,7 +139,7 @@ export async function fetchNutritionDayContext(
   date: string,
   accessToken?: string,
 ): Promise<NutritionDayContext> {
-  await ensureNutritionTargetForDate(userId, date, accessToken);
+  const targetError=await ensureNutritionTargetForDate(userId, date, accessToken);
 
   const { fromISO: dayStart, toISO: dayEnd } = warsawDayBoundsISO(date);
 
@@ -241,6 +244,7 @@ export async function fetchNutritionDayContext(
     foodDataState: dayRow.data ? 'logged' : 'missing',
     foodComplete: review.data?.completeness === 'complete',
     targetUpdatedAt: target?.updated_at ?? null,
+    targetError,
   };
 }
 

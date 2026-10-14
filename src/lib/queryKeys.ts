@@ -142,6 +142,7 @@ export const foodEntryListsKeys = {
 
 // ── MEAL PLAN KEYS ──
 export const mealPlanKeys = {
+  preferences:(userId:string)=>['health-meal-preferences',userId] as const,
   all: ['meal-plan'] as const,
   date: (userId: string, date: string) => [...mealPlanKeys.all, userId, date] as const,
   products: (userId: string) => [...mealPlanKeys.all, 'products', userId] as const,

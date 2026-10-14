@@ -1,3 +1,4 @@
+import {mealProductExcluded} from './mealPreferences.ts';
 export interface MealPlanProduct {
   id:string; name:string; source:string; verified:boolean; calories:number; protein:number; carbs:number; fat:number; fiber:number|null;
 }
@@ -5,8 +6,8 @@ export interface PlannedMacros { calories:number; protein:number; carbs:number; 
 export interface MealIngredient { product:MealPlanProduct; grams:number; baseGrams?:number; macros:PlannedMacros }
 export interface PlannedMeal { key:string; name:string; prepMinutes:number; instructions:string; ingredients:MealIngredient[]; totals:PlannedMacros }
 export interface MealPlanDay { date:string; meals:PlannedMeal[]; totals:PlannedMacros; target:{calories:number;protein:number} }
-export interface MealPlanDraft { notes:string; days:MealPlanDay[]; warnings:string[] }
-export interface MealPreferences { revision:number; confirmed:boolean; maxPrepMinutes:number; excluded:string[]; allergies:string[]; preferences:string }
+export interface MealPlanDraft { notes:string; days:MealPlanDay[]; warnings:string[]; preferencesRevision?:number }
+export interface MealPreferences { revision:number; confirmed:boolean; maxPrepMinutes:number; excluded:string[]; allergies:string[]; preferences:string; pattern?:'any'|'vegetarian'|'vegan' }
 export interface MealPlanState { revision:number; draft:MealPlanDraft|null; active:MealPlanDraft|null; requestKey?:string; approvalKey?:string; checkedProducts?:string[] }
 const obj = (raw:unknown): Record<string,unknown> => raw && typeof raw === 'object' && !Array.isArray(raw) ? raw as Record<string,unknown> : {};
 const str = (raw:unknown) => typeof raw === 'string' ? raw.trim() : '';
@@ -20,7 +21,7 @@ function total(rows:PlannedMacros[]): PlannedMacros {
   return {calories:round(rows.reduce((sum,row)=>sum+row.calories,0)),protein:round(rows.reduce((sum,row)=>sum+row.protein,0)),carbs:round(rows.reduce((sum,row)=>sum+row.carbs,0)),fat:round(rows.reduce((sum,row)=>sum+row.fat,0)),fiber:rows.some(row=>row.fiber == null) ? null : round(rows.reduce((sum,row)=>sum+(row.fiber ?? 0),0))};
 }
 /** LLM chooses product IDs and grams. All arithmetic uses the supplied owner-scoped catalog. */
-export function buildMealPlan(raw:unknown,products:MealPlanProduct[],targets:Array<{date:string;calories:number;protein:number}>,preferences:Pick<MealPreferences,'maxPrepMinutes'|'excluded'>): {plan:MealPlanDraft|null;errors:string[]} {
+export function buildMealPlan(raw:unknown,products:MealPlanProduct[],targets:Array<{date:string;calories:number;protein:number}>,preferences:Pick<MealPreferences,'maxPrepMinutes'|'excluded'>&Partial<Pick<MealPreferences,'allergies'|'pattern'>>): {plan:MealPlanDraft|null;errors:string[]} {
   const input = obj(raw), errors:string[] = [], days:MealPlanDay[] = [], seen = new Set<string>();
   const catalog = new Map(products.map(product=>[product.id,product]));
   const templates = obj(input.templates);
@@ -38,7 +39,7 @@ export function buildMealPlan(raw:unknown,products:MealPlanProduct[],targets:Arr
       for (const value of Array.isArray(row.ingredients) ? row.ingredients : []) {
         const part = obj(value), product = catalog.get(str(part.productId)), grams = numeric(part.grams);
         if (!product || !(grams>=1 && grams<=2000)) {errors.push('Produkt spoza biblioteki lub nieprawidłowa porcja.');continue;}
-        if (preferences.excluded.some(word=>product.name.toLocaleLowerCase().includes(word.toLocaleLowerCase()))) errors.push(`Wykluczony produkt: ${product.name}.`);
+        if (mealProductExcluded(product.name,preferences)) errors.push(`Wykluczony produkt: ${product.name}.`);
         ingredients.push(ingredient(product,grams));
       }
       if (!ingredients.length || ingredients.length>15) errors.push('Przepis wymaga od 1 do 15 składników.');

@@ -3,6 +3,7 @@ import { fetchMedicalContext } from "../_shared/medicalContext.ts";
 import { fetchHealthCoachContext } from '../_shared/healthCoachContext.ts';
 import { shiftDateStr, calibrateNutrition, type CoachRow, type HealthCoachSource } from '@vanguard/domain';
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import {HttpError} from '../_shared/http.ts';
 
 const KCAL_PER_KG = 7700;
 
@@ -19,7 +20,7 @@ export async function fetchNutritionData(supabase: SupabaseClient, userId: strin
   const rows = (source: HealthCoachSource): Array<CoachRow & { date: string }> =>
     (context.sources[source].value ?? []).map(row => ({ ...row, date: String(row.date ?? '') }));
   const profile = context.sources.nutrition_profile.value?.[0];
-  if (!profile) throw new Error("Brak nutrition_profile.");
+  if (!profile) throw new HttpError(400,'Najpierw uzupełnij profil żywienia i aktualny pomiar masy.');
   const d30 = context.windowStart;
   const bm = rows('body_metrics').filter(row => row.date >= shiftDateStr(today, -44)).reverse();
   const oura = rows('oura_daily_summary'), nutr = rows('daily_nutrition');
@@ -31,37 +32,40 @@ export async function fetchNutritionData(supabase: SupabaseClient, userId: strin
     medicalContext, today, targetDate, d30, context };
 }
 
-export function computeNutritionSignals(data: Omit<Awaited<ReturnType<typeof fetchNutritionData>>, 'context'> & Partial<Pick<Awaited<ReturnType<typeof fetchNutritionData>>, 'context'>>) {
+export function computeNutritionSignals(data: Omit<Awaited<ReturnType<typeof fetchNutritionData>>, 'context'> & Partial<Pick<Awaited<ReturnType<typeof fetchNutritionData>>, 'context'>>, evidenceDate=data.today) {
   const { profile, bm, oura, nutr, dayReviews, runs, gym, todayOura, todayNutr, medicalContext, today, targetDate, context } = data;
   const roundMean = (rows: CoachRow[], key: string) => { const value = mean(clean(rows,key)); return value == null ? null : Math.round(value); };
   const weights = bm.filter(row => (num(row.weight) ?? 0) > 0).sort((a,b)=>a.date.localeCompare(b.date));
   const first = weights[0], last = weights.at(-1);
-  const weightFresh = last != null && last.date >= shiftDateStr(today,-30);
+  const weightFresh = last != null && last.date >= shiftDateStr(evidenceDate,-30);
   const latestWeight = weightFresh ? num(last.weight) : null;
   const weightDaysSpan = first && last ? (Date.parse(last.date)-Date.parse(first.date))/86400000 : 0;
-  const reliableWeightWindow = weightDaysSpan >= 13 && last != null && last.date >= shiftDateStr(today,-7);
+  const reliableWeightWindow = weightDaysSpan >= 13 && last != null && last.date >= shiftDateStr(evidenceDate,-7);
   const weightTrendPerWeek = reliableWeightWindow ? +((Number(last.weight)-Number(first.weight))*7/weightDaysSpan).toFixed(2) : null;
   const calibration = calibrateNutrition(nutr.map(row=>({date:row.date,calories:num(row.calories)})),
-    weights.map(row=>({date:row.date,weight_kg:num(row.weight)})),dayReviews.map(row=>({date:row.date,completeness:String(row.completeness)})),today);
+    weights.map(row=>({date:row.date,weight_kg:num(row.weight)})),dayReviews.map(row=>({date:row.date,completeness:String(row.completeness)})),evidenceDate);
   const completeDates = new Set(dayReviews.map(row=>row.date));
   const completeNutr = nutr.filter(row=>completeDates.has(row.date));
   const avgIntake = calibration.averageCalories, daysLogged = calibration.loggedDays;
   const avgProtein = roundMean(completeNutr,'protein'), avgCarbs = roundMean(completeNutr,'carbs'), avgFat = roundMean(completeNutr,'fat');
   const avgFiber = mean(clean(completeNutr,'fiber'));
-  const energyRecent = oura.some(row=>row.date >= shiftDateStr(today,-7) && (num(row.total_calories) ?? 0) > 0);
+  const energyRecent = oura.some(row=>row.date >= shiftDateStr(evidenceDate,-7) && (num(row.total_calories) ?? 0) > 0);
   const avgTdeeOura = energyRecent ? roundMean(oura.filter(row=>(num(row.total_calories) ?? 0)>0),'total_calories') : null;
   const avgActive = roundMean(oura,'active_calories');
   const maintFromLog = calibration.maintenanceEstimateKcal;
   const estMaintenance = maintFromLog != null && maintFromLog > 0 ? maintFromLog : avgTdeeOura;
   const maintenanceBasis = maintFromLog != null ? 'estimated_energy_balance' : avgTdeeOura != null ? 'estimated_wearable' : 'missing';
-  const todayPlan = context?.sources.training_plan_workouts.value?.find(row=>row.planned_date === today && !row.completed && !row.skipped_at);
-  const prescription = todayPlan?.prescription && typeof todayPlan.prescription === 'object' ? todayPlan.prescription as CoachRow : null;
+  const todayPlans = context?.sources.training_plan_workouts.value?.filter(row=>row.planned_date === today && !row.skipped_at) ?? [];
+  const todayPlan = todayPlans[0];
   const recentLongEffort = runs.some(row=>(num(row.distance) ?? 0)>=30000 && String(row.start_date)>=shiftDateStr(today,-3));
   const strain = context?.sources.daily_strain.value?.find(row=>row.date === today);
   const recoveryHold = recentLongEffort || strain?.illness_level === 'high' || strain?.illness_level === 'moderate'
     || (num(todayOura?.total_sleep_hours) != null && Number(todayOura?.total_sleep_hours)<6)
     || (num(todayOura?.readiness_score) != null && Number(todayOura?.readiness_score)<60);
-  const keyTrainingDay = prescription?.intensity === 'hard' || (num(prescription?.durationMinutes) ?? 0)>=90;
+  const keyTrainingDay = todayPlans.some(row=>{
+    const prescription=row.prescription && typeof row.prescription === 'object'?row.prescription as CoachRow:null;
+    return prescription?.intensity === 'hard' || (num(prescription?.durationMinutes) ?? 0)>=90;
+  });
   const daysToEvent = typeof profile.event_date === 'string' ? Math.round((Date.parse(profile.event_date)-Date.parse(today))/86400000) : null;
   // Event proximity is context, not proof of a marathon taper or training phase.
   const inTaper = false;

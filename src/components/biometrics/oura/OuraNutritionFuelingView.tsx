@@ -14,6 +14,7 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
     return (
       <div className="space-y-4 pb-8">
         <DataStateNotice title="Brak dziennika jedzenia" detail={`Brak wpisów dla ${data.date ?? 'wybranego dnia'}. Dodaj faktycznie zjedzony posiłek w zakładce Jedzenie.`} />
+        {nutrition?.targetError && <DataStateNotice title="Cel żywienia wymaga uzupełnienia" detail={nutrition.targetError}/>}
         {userId && <FoodPlanningAssistantContainer userId={userId} />}
         {userId && (
           <MealPlannerContainer
@@ -29,6 +30,7 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
 
   const proteinRemaining = nutrition.targetProtein == null ? null : Math.max(0,nutrition.targetProtein-nutrition.protein);
   return <div className="space-y-4 pb-8">
+    {nutrition.targetError && <DataStateNotice title="Nie udało się odświeżyć celu żywienia" detail={nutrition.targetError}/>}
     <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-3">
       <h2 className="font-bold">Paliwo · {nutrition.date}</h2>
       <p className="text-sm">Zapisano {nutrition.calories} kcal · {nutrition.protein} g białka</p>

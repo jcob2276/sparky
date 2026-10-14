@@ -2,7 +2,8 @@ import {QueryClient,QueryClientProvider} from '@tanstack/react-query';
 import {render,screen} from '@testing-library/react';
 import {expect,it,vi} from 'vitest';
 import {OuraNutritionFuelingView} from './OuraNutritionFuelingView';
-vi.mock('../../../lib/health/mealPlanApi',()=>({fetchMealPlanState:async()=>null,approveMealPlan:vi.fn(),toggleShoppingItem:vi.fn(),resizeMealInPlanState:vi.fn()}));
+vi.mock('../../../lib/health/mealPlanApi',()=>({fetchMealPlannerState:async()=>({storageDate:'2026-10-14',state:null}),approveMealPlan:vi.fn(),toggleShoppingItem:vi.fn(),resizeMealInPlanState:vi.fn()}));
+vi.mock('../../../lib/health/mealPreferencesApi',()=>({fetchMealPreferences:async()=>({revision:1,confirmed:true,maxPrepMinutes:30,excluded:[],allergies:[],preferences:'',pattern:'any'}),saveMealPreferences:vi.fn()}));
 it('allows planning with existing targets before the first consumed meal',async()=>{
   render(<QueryClientProvider client={new QueryClient({defaultOptions:{queries:{retry:false}}})}>
     <OuraNutritionFuelingView data={{userId:'owner-one',date:'2026-10-14',strainRow:null,oura:null,nutrition:{

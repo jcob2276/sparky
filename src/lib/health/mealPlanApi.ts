@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import type { Json } from '../database.types';
+import {fetchMealPreferences} from './mealPreferencesApi';
 import {
   type MealPlanProduct,
   type MealPlanState,
@@ -30,6 +31,18 @@ export async function fetchMealPlanState(userId: string, date: string): Promise<
   const rawPlan: unknown = data.meal_plan;
   return rawPlan as MealPlanState;
 }
+/** An approved week remains visible on the following day; mutations keep its original storage row. */
+export type MealPlannerSnapshot={storageDate:string;state:MealPlanState|null;coveringActive?:{storageDate:string;state:MealPlanState}};
+export async function fetchMealPlannerState(userId:string,date:string):Promise<MealPlannerSnapshot> {
+  const exact=await fetchMealPlanState(userId,date);
+  if(exact?.active?.days.some(day=>day.date === date)) return {storageDate:date,state:exact};
+  const {data,error}=await supabase.from('nutrition_targets').select('date,meal_plan').eq('user_id',userId)
+    .contains('meal_plan',{active:{days:[{date}]}}).order('date',{ascending:false}).limit(1).maybeSingle();
+  if(error) throw error;
+  const covering=data?.meal_plan as MealPlanState|null;
+  if(exact) return {storageDate:date,state:exact,...(covering?{coveringActive:{storageDate:data!.date,state:covering}}:{})};
+  return {storageDate:data?.date ?? date,state:covering ?? null};
+}
 
 async function saveMealPlanState(userId: string, date: string, state: MealPlanState, baseRevision:number): Promise<void> {
   const payload: Json = JSON.parse(JSON.stringify(state));
@@ -46,11 +59,16 @@ async function saveMealPlanState(userId: string, date: string, state: MealPlanSt
   if (!data) throw new Error('Plan posiłków zmienił się w innej sesji. Odśwież podgląd przed ponowieniem.');
 }
 
-export async function approveMealPlan(userId: string, date: string, approvalKey: string, baseRevision?:number): Promise<MealPlanState> {
+export async function approveMealPlan(userId: string, date: string, approvalKey: string, baseRevision?:number,allergensReviewed=false): Promise<MealPlanState> {
   const current = await fetchMealPlanState(userId, date);
   if (current?.approvalKey === approvalKey) return current;
   if (!current || !current.draft) throw new Error('Brak szkicu planu posiłków do zatwierdzenia.');
   if (baseRevision != null && current.revision !== baseRevision) throw new Error('Szkic zmienił się. Odśwież podgląd przed zatwierdzeniem.');
+  if(current.draft.preferencesRevision != null) {
+    const preferences=await fetchMealPreferences(userId);
+    if(!preferences.confirmed || current.draft.preferencesRevision !== preferences.revision) throw new Error('Preferencje zmieniły się od utworzenia szkicu. Ułóż menu ponownie.');
+    if(preferences.allergies.length && !allergensReviewed) throw new Error('Sprawdź skład i etykiety produktów pod kątem zgłoszonych alergii przed zatwierdzeniem.');
+  }
 
   const updated: MealPlanState = {
     ...current,
@@ -92,7 +110,7 @@ export async function resizeMealInPlanState(
   date: string,
   mealKey: string,
   factor: number
-  ,baseRevision?:number
+  ,baseRevision?:number,mealDate=date
 ): Promise<MealPlanState> {
   const current = await fetchMealPlanState(userId, date);
   if (!current) throw new Error('Brak planu posiłków do przeskalowania.');
@@ -101,11 +119,11 @@ export async function resizeMealInPlanState(
   const targetPlan = current.draft ?? current.active;
   if (!targetPlan) throw new Error('Brak posiłków do zmiany wielkości.');
 
-  const resized = resizePlannedMeal(targetPlan, date, mealKey, factor);
+  const resized = resizePlannedMeal(targetPlan, mealDate, mealKey, factor);
   const updated: MealPlanState = {
     ...current,
     revision: (current.revision || 0) + 1,
-    draft: current.draft ? resizePlannedMeal(current.draft, date, mealKey, factor) : null,
+    draft: current.draft ? resizePlannedMeal(current.draft, mealDate, mealKey, factor) : null,
     active: current.draft ? current.active : resized,
   };
 

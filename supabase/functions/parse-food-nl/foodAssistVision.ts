@@ -2,7 +2,7 @@ import { callVisionLlm } from './mealVision.ts';
 import { parseJsonFromContent } from '../_shared/deepseek.ts';
 import type { UserParseContext } from '../_shared/foodParseCore.ts';
 
-import { normalizeMenuAnalysis, normalizeFridgeAnalysis, type RestaurantMenuAnalysis, type FridgeIngredientsAnalysis } from '@vanguard/domain';
+import { normalizeMenuAnalysis, normalizeFridgeAnalysis, mealProductExcluded, type RestaurantMenuAnalysis, type FridgeIngredientsAnalysis } from '@vanguard/domain';
 export async function parseRestaurantMenu(params: {
   imageBase64?: string;
   mimeType?: string;
@@ -14,6 +14,7 @@ export async function parseRestaurantMenu(params: {
 
   const prompt = `Jesteś doradcą żywieniowym Sparky. Przeanalizuj menu restauracji (ze zdjęcia lub tekstu) i zaproponuj 3 do 5 najlepszych dań dopasowanych do celów użytkownika.
 Kontekst użytkownika: ${ctx.profileLine}. Cel energii: ${ctx.targetKcal ?? 'nieustalony'} kcal, cel białka: ${ctx.targetProtein ?? 'nieustalony'} g.
+Potwierdzone preferencje: ${ctx.mealPreferences?.confirmed?JSON.stringify(ctx.mealPreferences):'Niepotwierdzone — nie zakładaj braku alergii.'}
 ZASADY:
 1. Dopasuj propozycje do ustalonych celów i potwierdzonych preferencji. Nie zakładaj alergii ani ich braku, redukcji ani przygotowań do maratonu.
 2. Podaj konkretne wskazówki do kelnera (np. "sos w osobnym sosjerku", "podwójna porcja surówki zamiast frytek").
@@ -60,7 +61,9 @@ ${text ? `TREŚĆ MENU:\n${text}` : ''}`;
     });
   }
 
-  return normalizeMenuAnalysis(parseJsonFromContent(content));
+  const result=normalizeMenuAnalysis(parseJsonFromContent(content));
+  if(ctx.mealPreferences?.confirmed) result.dishes=result.dishes.filter(dish=>!mealProductExcluded(dish.name,ctx.mealPreferences!));
+  return result;
 }
 
 export async function parseFridgeIngredients(params: {
@@ -75,6 +78,7 @@ export async function parseFridgeIngredients(params: {
   const prompt = `Jesteś doradcą żywieniowym Sparky. Przeanalizuj składniki w lodówce / spiżarni (ze zdjęcia lub opisu tekstowego).
 Zidentyfikuj dostępne produkty i zaproponuj 2-4 wykonalne, proste posiłki, które można z nich ugotować w domowych warunkach.
 Kontekst użytkownika: ${ctx.profileLine}. Cel energii: ${ctx.targetKcal ?? 'nieustalony'} kcal, cel białka: ${ctx.targetProtein ?? 'nieustalony'} g.
+Potwierdzone preferencje: ${ctx.mealPreferences?.confirmed?JSON.stringify(ctx.mealPreferences):'Niepotwierdzone — nie zakładaj braku alergii.'}
 ZASADY:
 1. Wskaż użyte składniki z lodówki oraz ewentualne brakujące drobiazgi (np. przyprawy, oliwa, ząbek czosnku).
 2. Szacuj makra z wyraźną rezerwą na niepewność ilości w lodówce.
@@ -122,5 +126,7 @@ ${text ? `OPIS SKŁADNIKÓW:\n${text}` : ''}`;
     });
   }
 
-  return normalizeFridgeAnalysis(parseJsonFromContent(content));
+  const result=normalizeFridgeAnalysis(parseJsonFromContent(content));
+  if(ctx.mealPreferences?.confirmed) result.suggestions=result.suggestions.filter(recipe=>![recipe.name,...recipe.ingredientsUsed,...recipe.missingIngredients].some(name=>mealProductExcluded(name,ctx.mealPreferences!)));
+  return result;
 }

@@ -1,98 +1,39 @@
-export interface GlycemicNutrientInput {
-  carbsGrams: number;
-  fiberGrams?: number | null;
-  proteinGrams: number;
-  fatGrams: number;
+/** Selected measured foods, not universal values for every variety or preparation.
+ * Primary database: University of Sydney, https://glycemicindex.com/gi-search/ . */
+export const GLYCEMIC_REFERENCES = [
+  {id:'basmati-white-uk-10min',name:'Basmati biały, gotowany 10 min (UK)',gi:50,n:10,study:'Ranawana i wsp., Int J Food Sci Nutr 2009;60(S4):99–110'},
+  {id:'basmati-brown-uk-25min',name:'Basmati brązowy, gotowany 25 min (UK)',gi:75,n:10,study:'Ranawana i wsp., Int J Food Sci Nutr 2009;60(S4):99–110'},
+  {id:'steel-cut-oats-water-au',name:'Owies cięty steel-cut, owsianka na wodzie (Australia)',gi:48,n:10,study:'Sydney GI Research Service, obserwacje niepublikowane, 2003'},
+  {id:'spaghetti-white-unico-ca',name:'Spaghetti białe Unico (Kanada)',gi:45,n:21,study:'Wolever i wsp., Eur J Clin Nutr 2003;57(3):475–482'},
+] as const;
+export type CarbDefinition='available'|'total_including_fiber'|'unknown';
+export interface GlycemicIngredient {
+  id:string;name:string;grams:number|null;carbsPer100g:number|null;fiberPer100g?:number|null;
+  carbDefinition:CarbDefinition;referenceId:string|null;portionConfirmed:boolean;
 }
-
 export interface EstimatedGlycemicResponse {
-  state: 'estimated' | 'missing_carbs' | 'provisional_unknown_fiber';
-  netCarbsGrams: number;
-  glycemicImpactScore: number;
-  tier: 'low' | 'moderate' | 'high';
-  tierLabel: string;
-  absorptionProfile: {
-    estimatedPeakMinutes: number;
-    peakWindowLabel: string;
-    description: string;
-  };
-  nonDiagnosticNotice: string;
+  state:'estimated'|'partial'|'missing';estimatedLoad:number|null;knownLoad:number|null;uncovered:string[];
+  coveredCount:number;totalCount:number;source:string;notice:string;
 }
-
-const NON_DIAGNOSTIC_NOTICE =
-  'Szacunek orientacyjny oparty o proporcje makroskładników i błonnika. Nie stanowi pomiaru stężenia glukozy we krwi, odczytu CGM ani diagnozy medycznej.';
-
-/**
- * Deterministic orientational glycemic response estimator.
- *
- * Invariants:
- * - Protein, fat, and dietary fiber slow down gastric emptying and blunt insulin/glucose peaks
- * - Missing fiber is labeled explicitly as 'provisional_unknown_fiber'
- * - Zero claims of actual blood sugar measurement
- */
-export function estimateGlycemicResponse(
-  input: GlycemicNutrientInput
-): EstimatedGlycemicResponse {
-  const carbs = Math.max(0, input.carbsGrams || 0);
-  const protein = Math.max(0, input.proteinGrams || 0);
-  const fat = Math.max(0, input.fatGrams || 0);
-  const fiberUnknown = input.fiberGrams == null;
-  const fiber = Math.max(0, input.fiberGrams ?? 0);
-
-  if (carbs <= 0) {
-    return {
-      state: 'missing_carbs',
-      netCarbsGrams: 0,
-      glycemicImpactScore: 0,
-      tier: 'low',
-      tierLabel: 'Minimalny wpływ glikemiczny (znikoma ilość węglowodanów)',
-      absorptionProfile: {
-        estimatedPeakMinutes: 60,
-        peakWindowLabel: 'Brak skoku glikemii',
-        description: 'Posiłek oparty głównie na białku i tłuszczach — minimalna odpowiedź glikemiczna.',
-      },
-      nonDiagnosticNotice: NON_DIAGNOSTIC_NOTICE,
-    };
+const valid=(value:unknown):value is number=>typeof value === 'number' && Number.isFinite(value) && value>=0;
+/** GL = measured reference GI × available carbohydrates in the confirmed portion / 100.
+ * Mixed-meal sum is an approximation; no personal glucose curve or peak-time prediction. */
+export function estimateGlycemicResponse(items:readonly GlycemicIngredient[]):EstimatedGlycemicResponse {
+  let load=0,covered=0;
+  const uncovered:string[]=[];
+  for(const item of items) {
+    const reference=GLYCEMIC_REFERENCES.find(row=>row.id === item.referenceId);
+    const fiberKnown=valid(item.fiberPer100g) && valid(item.carbsPer100g) && item.fiberPer100g<=item.carbsPer100g;
+    const available=item.carbDefinition === 'available'?item.carbsPer100g:
+      item.carbDefinition === 'total_including_fiber' && fiberKnown?item.carbsPer100g!-item.fiberPer100g!:null;
+    if(!item.portionConfirmed || !valid(item.grams) || item.grams<=0 || !valid(available) || (available>0 && !reference)) {
+      uncovered.push(item.name);continue;
+    }
+    load+=(reference?.gi ?? 0)*available*item.grams/10000;covered++;
   }
-
-  const netCarbs = Math.max(0, Math.round((carbs - fiber) * 10) / 10);
-
-  // Blunting factor: protein (0.015), fat (0.02), fiber (0.04)
-  const blunting = 1 + (0.015 * protein) + (0.02 * fat) + (0.04 * fiber);
-  const rawScore = netCarbs / blunting;
-  const score = Math.min(100, Math.max(1, Math.round(rawScore * 10) / 10));
-
-  let tier: 'low' | 'moderate' | 'high' = 'moderate';
-  let tierLabel = 'Umiarkowany wpływ glikemiczny — zrównoważone uwalnianie energii';
-  let estimatedPeakMinutes = 60;
-  let peakWindowLabel = 'Szczyt po ok. 45–60 min';
-  let description = 'Zbalansowane tempo wchłaniania węglowodanów dzięki obecności białka i tłuszczu.';
-
-  if (score < 15) {
-    tier = 'low';
-    tierLabel = 'Niski wpływ glikemiczny — powolne wchłanianie i stabilna glikemia';
-    estimatedPeakMinutes = 75;
-    peakWindowLabel = 'Płaski szczyt po 60–90 min';
-    description = 'Wysoki udział błonnika/białka znacząco spowalnia opróżnianie żołądka, zapobiegając gwałtownym wahaniom energii.';
-  } else if (score > 32) {
-    tier = 'high';
-    tierLabel = 'Wysoki potencjał glikemiczny — szybkie uwalnianie glukozy';
-    estimatedPeakMinutes = 35;
-    peakWindowLabel = 'Wczesny szczyt po 30–45 min';
-    description = 'Szybko przyswajalne węglowodany przy niższym udziale tłuszczu/błonnika. Korzystne okołotreningowo, przy braku ruchu może sprzyjać spadkowi energii.';
-  }
-
-  return {
-    state: fiberUnknown ? 'provisional_unknown_fiber' : 'estimated',
-    netCarbsGrams: netCarbs,
-    glycemicImpactScore: score,
-    tier,
-    tierLabel,
-    absorptionProfile: {
-      estimatedPeakMinutes,
-      peakWindowLabel,
-      description,
-    },
-    nonDiagnosticNotice: NON_DIAGNOSTIC_NOTICE,
-  };
+  const rounded=Math.round(load*10)/10;
+  const complete=items.length>0 && covered === items.length;
+  return {state:complete?'estimated':covered?'partial':'missing',estimatedLoad:complete?rounded:null,knownLoad:covered?rounded:null,
+    coveredCount:covered,totalCount:items.length,uncovered,source:'https://glycemicindex.com/gi-search/',
+    notice:'Orientacyjny ładunek glikemiczny z danych GI i porcji. Przybliżona suma składników nie przewiduje Twojej glukozy, czasu szczytu ani odpowiedzi na mieszany posiłek.'};
 }

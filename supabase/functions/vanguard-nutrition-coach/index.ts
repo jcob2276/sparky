@@ -1,8 +1,8 @@
 /**
  * @function vanguard-nutrition-coach
- * @trigger pg_cron `0 6 * * *` UTC (08:00 Warsaw) / manual
- * @role Trener żywieniowy: oblicza rzeczywiste zapotrzebowanie (TDEE), ustala cele i wysyła codzienne podsumowanie na Telegram.
- * @reads nutrition_profile, nutrition_targets, body_metrics, daily_nutrition, nutrition_day_reviews, oura_daily_summary, strava_activities_clean, workout_sessions, medical_lab_results, medical_documents, body_composition_measurements
+ * @trigger HTTP manual / explicit trusted scheduler
+ * @role Szacuje cele energii i białka, tworzy szkice jadłospisu z potwierdzonych preferencji; powiadomienie wymaga jawnego żądania zaufanego wywołującego.
+ * @reads nutrition_profile, nutrition_targets, body_metrics, daily_nutrition, nutrition_day_reviews, oura_daily_summary, strava_activities_clean, workout_sessions, medical_lab_results, medical_documents, body_composition_measurements, user_preferences, training_plan_workouts
  * @writes nutrition_targets
  * @calls deepseek-chat, api.telegram.org (poprzez send.ts)
  * @consumer Powiadomienia Telegram i cele w zakładce diety w aplikacji
@@ -17,42 +17,29 @@ import { getWarsawDateString } from "../_shared/time.ts";
 import { fetchNutritionData, computeNutritionSignals } from "./nutritionCompute.ts";
 import { formatHealthCoachContext } from '../_shared/healthCoachContext.ts';
 import { generateMealPlan } from './mealPlanning.ts';
-
-function buildPushMessage(date: string, s: any, verdict: any): string {
-  const t = s.today, e = s.energy, b = s.body;
-  const L: string[] = [];
-  L.push(`🍽️ Cel na dziś — ${date}`, "");
-  if (t.intake_so_far != null && t.intake_so_far > 0) { const rem = t.remaining_kcal; L.push(`🎯 Cel dnia ${t.target_kcal} kcal · zjedzone ${Math.round(t.intake_so_far)} · ${rem >= 0 ? `zostało ${rem}` : `przekroczone o ${Math.abs(rem)}`}`); L.push(`🥩 Białko: zostało ${t.remaining_protein} g (floor ${t.protein_floor_g})`); }
-  else { L.push(`🎯 Target: ${t.target_kcal} kcal (deficyt ${t.deficit_kcal})`); L.push(`🥩 Białko: min ${t.protein_floor_g} g`); }
-  L.push(`⚖️ Maintenance ~${e.est_maintenance} kcal · trend ${b.weight_trend_kg_per_week} kg/tydz`);
-  if (e.underlog_gap_kcal > 150) L.push(`📉 Niedolog ~${e.underlog_gap_kcal} kcal/dzień`);
-  const f = s.forecast;
-  if (f?.days_to_goal_est != null) L.push(`📅 Cel BF za ~${f.days_to_goal_est}d`);
-  if (f?.adaptive_correction_kcal) L.push(`🔧 Adaptive: ${f.adaptive_correction_kcal > 0 ? '-' : '+'}${Math.abs(f.adaptive_correction_kcal)} kcal`);
-  if (verdict?.today_focus) { L.push("", `👉 ${verdict.today_focus}`); }
-  if (Array.isArray(verdict?.flags) && verdict.flags.length) { L.push(""); for (const fl of verdict.flags) L.push(`⚠️ ${fl}`); }
-  if (Array.isArray(verdict?.food_suggestions) && verdict.food_suggestions.length) { L.push("", "🍴 Propozycje:"); for (const fl of verdict.food_suggestions) L.push(`• ${fl}`); }
-  return L.join("\n");
-}
+import {buildMealPlanTargets} from './mealTargets.ts';
+import {buildPushMessage} from './nutritionMessage.ts';
 
 Deno.serve(serveJson(async (req, ctx) => {
   const { supabase } = ctx;
   const body = await req.clone().json().catch(() => ({}));
   const userId = ctx.userId || getVanguardUserId();
   const notify = body.notify === true;
+  if(notify && !ctx.isServiceRole) throw new Error('Forbidden: notification delivery requires a trusted caller');
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY") || "";
   const today = body.date || getWarsawDateString(new Date());
+  if(typeof today !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(today) || !Number.isFinite(Date.parse(today)) || !new Date(today).toISOString().startsWith(today)) throw new HttpError(400,'Nieprawidłowa data żywienia.');
+  if(body.action && !['generate_meal_plan','refresh_targets'].includes(body.action)) throw new HttpError(400,'Nieznana operacja żywienia.');
 
   if (body.action === 'generate_meal_plan') {
     if (typeof body.requestKey !== 'string' || !body.requestKey) throw new HttpError(400,'Brak identyfikatora prośby.');
-    const nutrition = computeNutritionSignals(await fetchNutritionData(supabase,userId,today));
-    if (nutrition.targetKcal == null || nutrition.proteinFloor == null) throw new HttpError(400,'Najpierw uzupełnij aktualny pomiar masy i dane do oszacowania energii.');
-    const targets = [{date:today,calories:nutrition.targetKcal,protein:nutrition.proteinFloor}];
+    const data=await fetchNutritionData(supabase,userId,getWarsawDateString(new Date()));
+    const {targets,trainingContext}=buildMealPlanTargets(data,body.startDate ?? today,body.days ?? 7);
     const res = await generateMealPlan({
       supabase,
       userId,
       apiKey,
-      input: { date: today, targets, preferences: body.preferences,requestKey:body.requestKey },
+      input: { date: today, targets,trainingContext,requestKey:body.requestKey },
     });
     return res;
   }
@@ -62,7 +49,7 @@ Deno.serve(serveJson(async (req, ctx) => {
 
   let verdict: Record<string, unknown> | null = null;
   let verdictError: string | null = apiKey ? null : "no_deepseek_key";
-  if (apiKey) {
+  if (apiKey && body.action !== 'refresh_targets') {
     try {
       const SYSTEM = `Jesteś asystentem żywienia Sparky. Korzystaj z potwierdzonych celów i wspólnego planu biegania, siły oraz regeneracji.
 Nie zakładaj maratonu ani konkretnego celu redukcji. Wydatek zegarka i bilans energii to szacunki, nie dokładny pomiar zapotrzebowania.

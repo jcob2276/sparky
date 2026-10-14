@@ -6,6 +6,7 @@ export * from './training/planValidation.ts';
 export * from './training/coachDecision.ts';
 export * from './training/nutritionCalibration.ts';
 export * from './training/mealPlan.ts';
+export * from './training/mealPreferences.ts';
 export * from './training/mealCatalog.ts';
 export * from './training/foodAssist.ts';
 export * from './training/racePredictor.ts';

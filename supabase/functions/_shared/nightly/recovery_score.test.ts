@@ -41,8 +41,8 @@ Deno.test('computeRecoveryScore — normal day with solid Oura and baseline data
   // 2026-07-13: 7.5-7.5 = 0
   // 2026-07-14: 8.0-7.5 = 0.5
   // 2026-07-15: 8.0-7.5 = 0.5
-  // Total = 1.0h
-  assertEquals(result.sleepDebtH, 1.0);
+  // Total with exponential decay (weight = 0.9^age) = 0.9h
+  assertEquals(result.sleepDebtH, 0.9);
   assertEquals(result.recoveryConfidence, 'solid');
   assertEquals(typeof result.recovery, 'number');
   assertEquals(result.recovery! >= 0 && result.recovery! <= 100, true);

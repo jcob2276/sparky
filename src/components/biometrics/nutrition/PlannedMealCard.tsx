@@ -1,6 +1,7 @@
 import { Clock, Scale } from 'lucide-react';
 import type { PlannedMeal } from '@vanguard/domain';
 import Button from '../../ui/Button';
+import {GlycemicEstimate} from './GlycemicEstimate';
 
 interface PlannedMealCardProps {
   meal: PlannedMeal;
@@ -58,6 +59,7 @@ export function PlannedMealCard({ meal, onResizeMeal,disabled }: PlannedMealCard
         <span>W: {meal.totals.carbs} g</span>
         <span>T: {meal.totals.fat} g</span>
       </div>
+      <GlycemicEstimate items={meal.ingredients.map(item=>({id:item.product.id,name:item.product.name,grams:item.grams,carbs:item.macros.carbs,fiber:item.macros.fiber}))}/>
     </article>
   );
 }

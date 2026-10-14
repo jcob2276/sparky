@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildMealPlan, mealShoppingList, resizePlannedMeal } from '@vanguard/domain';
 import {
   fetchMealPlanProducts,
+  fetchMealPlannerState,
   approveMealPlan,
   toggleShoppingItem,
   resizeMealInPlanState,
@@ -38,6 +39,30 @@ describe('meal planning domain', () => {
 });
 
 describe('mealPlanApi client', () => {
+  it('keeps a covering active week available beside a draft stored on the exact date',async()=>{
+    const plan=buildMealPlan(request,products,targets,{maxPrepMinutes:30,excluded:[]}).plan!;
+    const exact={revision:1,draft:plan,active:null},active={revision:3,active:plan,draft:null};
+    vi.mocked(supabase.from).mockImplementation((()=>{
+      let covering=false;
+      const query={select:()=>query,eq:()=>query,contains:()=>{covering=true;return query;},order:()=>query,limit:()=>query,
+        maybeSingle:async()=>({data:covering?{date:'2026-10-14',meal_plan:active}:{meal_plan:exact},error:null})};
+      return query;
+    }) as never);
+    expect(await fetchMealPlannerState('u1','2026-10-15')).toEqual({storageDate:'2026-10-15',state:exact,coveringActive:{storageDate:'2026-10-14',state:active}});
+  });
+  it('finds an approved week on a later day while retaining its original storage row',async()=>{
+    const plan=buildMealPlan(request,products,targets,{maxPrepMinutes:30,excluded:[]}).plan!;
+    const state={revision:3,active:plan,draft:null};
+    const owners:string[]=[],dates:string[]=[];let activeLookup=false;
+    vi.mocked(supabase.from).mockImplementation((()=>{
+      const query={select:()=>query,eq:(field:string,value:string)=>{if(field === 'user_id') owners.push(value);if(field === 'date') dates.push(value);return query;},
+        contains:(_field:string,value:unknown)=>{expect(value).toEqual({active:{days:[{date:'2026-10-15'}]}});activeLookup=true;return query;},order:()=>query,limit:()=>query,
+        maybeSingle:async()=>({data:activeLookup?{date:'2026-10-14',meal_plan:state}:null,error:null})};
+      return query;
+    }) as never);
+    expect(await fetchMealPlannerState('u1','2026-10-15')).toEqual({storageDate:'2026-10-14',state});
+    expect(owners).toEqual(['u1','u1']);expect(dates).toEqual(['2026-10-15']);
+  });
   beforeEach(() => {
     vi.clearAllMocks();
   });
