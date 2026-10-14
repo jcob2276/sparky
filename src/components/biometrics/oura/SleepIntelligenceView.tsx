@@ -1,9 +1,16 @@
-import { Moon, Activity, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Moon, Activity } from 'lucide-react';
 import type { OuraHealthHubData } from './types';
 import { SleepFactorsSection } from './SleepFactorsSection';
 import { SleepRecoveryArchitecture } from './SleepRecoveryArchitecture';
 import { TargetStrainGaugeCard } from '../health/TargetStrainGaugeCard';
 import { HabitImpactCard } from '../health/HabitImpactCard';
+import { ThreeRingHeroCard } from '../health/ThreeRingHeroCard';
+import { StressEnergyBankCard } from '../health/StressEnergyBankCard';
+import { SleepNeedBreakdownCard } from '../health/SleepNeedBreakdownCard';
+import { DayTimelineCard } from '../health/DayTimelineCard';
+import { SleepDiagnosisCard } from './SleepDiagnosisCard';
+import { SleepEveningActionCard } from './SleepEveningActionCard';
+import { buildDayTimeline } from '@vanguard/domain';
 
 const formatMinutes = (mins: number) => {
   const h = Math.floor(mins / 60);
@@ -26,32 +33,72 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
   const avgHrv = enhanced?.sleep_average_hrv ? Math.round(enhanced.sleep_average_hrv) : null;
   const lowestHr = enhanced?.sleep_lowest_heart_rate ? Math.round(enhanced.sleep_lowest_heart_rate) : null;
 
-  // Practical diagnosis synthesis
+  const timelineItems = buildDayTimeline({
+    date: data.date ?? 'today',
+    sleep: {
+      bedtime_start: enhanced?.bedtime_start,
+      bedtime_end: enhanced?.bedtime_end,
+      sleep_score: sleepScore > 0 ? sleepScore : null,
+      total_sleep_hours: totalSleepHours > 0 ? totalSleepHours : null,
+      deep_sleep_hours: enhanced?.deep_sleep_hours,
+      hrv_average: avgHrv,
+    },
+    activities: data.stravaActivities,
+    recoveryHighMinutes: enhanced?.recovery_high_minutes,
+    stressHighMinutes: enhanced?.stress_high_minutes,
+  });
+
   const diagnosis = (() => {
     if (readinessScore >= 80) {
       return {
         title: 'Wysoka regeneracja i gotowość',
         desc: 'Oura odnotowała wysoki wynik gotowości. To jeden sygnał; decyzja treningowa uwzględnia też plan, ból, chorobę i ostatnie wykonanie.',
-        status: 'optimal',
+        status: 'optimal' as const,
       };
     }
     if (readinessScore >= 65) {
       return {
         title: 'Średnia regeneracja — umiarkowany wysiłek',
         desc: 'Wynik Oury znajduje się w środkowym zakresie. Sprawdź wspólną decyzję treningową i swoje odczucia przed sesją.',
-        status: 'moderate',
+        status: 'moderate' as const,
       };
     }
     return {
       title: readinessScore > 0 ? 'Niższy wynik gotowości' : 'Brak aktualnego wyniku gotowości',
       desc: 'Sam wskaźnik nie ustala przyczyny zmęczenia. Brak danych nie potwierdza gotowości do zwiększenia obciążenia.',
-      status: 'low',
+      status: 'low' as const,
     };
   })();
 
   return (
     <div className="space-y-5 pb-12">
-      {/* Top Banner: Sleep & Readiness Scores */}
+      <ThreeRingHeroCard
+        strainScore={data.strainRow?.strain_score}
+        recoveryScore={readinessScore > 0 ? readinessScore : null}
+        sleepScore={sleepScore > 0 ? sleepScore : null}
+        dateFormatted={data.date ?? undefined}
+      />
+
+      <StressEnergyBankCard
+        input={{
+          recoveryScore: readinessScore > 0 ? readinessScore : null,
+          sleepScore: sleepScore > 0 ? sleepScore : null,
+          strainScore: data.strainRow?.strain_score,
+          stressScore: oura?.stress_score,
+          stressHighMinutes: enhanced?.stress_high_minutes,
+          recoveryHighMinutes: enhanced?.recovery_high_minutes,
+          stressDaySummary: enhanced?.stress_day_summary,
+        }}
+      />
+
+      <SleepNeedBreakdownCard
+        input={{
+          baselineMinutes: 465,
+          strainScore: data.strainRow?.strain_score,
+          sleepDebtHours: 0.5,
+        }}
+      />
+
       <div className="grid grid-cols-2 gap-3">
         <div className="rounded-2xl border border-border-custom bg-surface-solid/50 p-4 shadow-2xs">
           <div className="flex items-center justify-between text-text-muted">
@@ -85,38 +132,18 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
         </div>
       </div>
 
-      {/* Practical Intelligence Synthesis Card */}
-      <div className={`rounded-2xl border p-4 shadow-2xs ${
-        diagnosis.status === 'optimal'
-          ? 'border-success/30 bg-success/5'
-          : diagnosis.status === 'moderate'
-          ? 'border-warning/30 bg-warning/5'
-          : 'border-danger/30 bg-danger/5'
-      }`}>
-        <div className="flex items-start gap-2.5">
-          <Sparkles size={16} className={diagnosis.status === 'optimal' ? 'text-success mt-0.5 shrink-0' : 'text-warning mt-0.5 shrink-0'} />
-          <div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
-              {diagnosis.title}
-            </h3>
-            <p className="mt-1 text-xs text-text-secondary leading-relaxed font-medium">
-              {diagnosis.desc}
-            </p>
-          </div>
-        </div>
-      </div>
+      <SleepDiagnosisCard diagnosis={diagnosis} />
 
-      {/* Target Strain Range (Whoop / Bevel Engine) */}
+      <DayTimelineCard items={timelineItems} dateFormatted={data.date ?? undefined} />
+
       <TargetStrainGaugeCard
         recoveryScore={readinessScore}
         strainScore={data.strainRow?.strain_score}
         userId={data.oura?.user_id ?? data.strainRow?.user_id}
       />
 
-      {/* Section: Practical Factors We Actually Track */}
       {context && <SleepFactorsSection context={context} />}
 
-      {/* Section: Architecture of Recovery (Deep, REM, HRV, Lowest HR) */}
       <SleepRecoveryArchitecture
         deepMinutes={deepMinutes}
         remMinutes={remMinutes}
@@ -128,20 +155,9 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
         sleepContributors={enhanced?.sleep_contributors as Record<string, number>}
       />
 
-      {/* Whoop / Bevel Habit Impact Journal */}
       <HabitImpactCard correlations={data.correlations} />
 
-      {/* Practical Evening Action Items */}
-      <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 space-y-2">
-        <h4 className="text-xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
-          <CheckCircle2 size={14} /> Zalecenie na dziś wieczór
-        </h4>
-        <ul className="text-2xs text-text-secondary space-y-1.5 list-disc list-inside font-medium">
-          <li>Odcięcie kofeiny najpóźniej do 14:00.</li>
-          <li>Ostatni posiłek minimum 2.5 - 3h przed snem, by tętno spoczynkowe spadło przed północą.</li>
-          <li>Zimna, zaciemniona sypialnia (18-19°C) dla wydłużenia fazy Deep Sleep.</li>
-        </ul>
-      </div>
+      <SleepEveningActionCard />
     </div>
   );
 }
