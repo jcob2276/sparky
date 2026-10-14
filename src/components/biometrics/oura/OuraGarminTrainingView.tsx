@@ -1,10 +1,17 @@
 import type { OuraHealthHubData } from './types';
-import { activityHeartRateZones, activitySourceLabel } from '@vanguard/domain';
+import {
+  activityHeartRateZones,
+  activitySourceLabel,
+  summarizeStrengthProgression,
+  type LiftConfig,
+} from '@vanguard/domain';
 import { formatWarsawDate } from '../../../lib/date';
 import DataStateNotice from '../../core/DataStateNotice';
 import { RacePredictorCard } from '../workout/RacePredictorCard';
 import { CircularTargetStrainCard } from '../health/CircularTargetStrainCard';
 import { MuscularCardioLoadCard } from '../health/MuscularCardioLoadCard';
+import { Zone2WeeklyCard } from '../health/Zone2WeeklyCard';
+import { StrengthProgressionCard } from '../health/StrengthProgressionCard';
 
 function formatPace(movingSeconds: number, distanceMeters: number): string {
   if (!distanceMeters || distanceMeters <= 0) return '—';
@@ -23,6 +30,45 @@ function formatDuration(seconds: number): string {
   return `${m}m ${s < 10 ? '0' : ''}${s}s`;
 }
 
+const DEFAULT_STRENGTH_LIFTS: LiftConfig[] = [
+  {
+    key: 'bench_press',
+    name: 'Wyciskanie na ławce',
+    target1RM: 110,
+    history: [
+      { date: '2026-10-01', weightKg: 85, reps: 6 },
+      { date: '2026-10-08', weightKg: 90, reps: 5 },
+    ],
+  },
+  {
+    key: 'squat',
+    name: 'Przysiad ze sztangą',
+    target1RM: 140,
+    history: [
+      { date: '2026-10-02', weightKg: 110, reps: 5 },
+      { date: '2026-10-09', weightKg: 115, reps: 5 },
+    ],
+  },
+  {
+    key: 'deadlift',
+    name: 'Martwy ciąg',
+    target1RM: 170,
+    history: [
+      { date: '2026-10-03', weightKg: 140, reps: 4 },
+      { date: '2026-10-10', weightKg: 145, reps: 4 },
+    ],
+  },
+  {
+    key: 'pull_up',
+    name: 'Podciąganie z ciężarem',
+    target1RM: 35,
+    history: [
+      { date: '2026-10-04', weightKg: 15, reps: 6 },
+      { date: '2026-10-11', weightKg: 17.5, reps: 5 },
+    ],
+  },
+];
+
 export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
   const activities = data.stravaActivities ?? [];
   const runs = activities.filter((activity) => /run/i.test(activity.sport_type ?? ''));
@@ -38,6 +84,7 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
   const totalSeconds = zones.reduce((sum, seconds) => sum + seconds, 0);
   const cardio = data.strainRow?.date === data.date ? data.strainRow?.cardio_load : null;
   const strength = data.strainRow?.date === data.date ? data.strainRow?.strength_load : null;
+  const strengthSummary = summarizeStrengthProgression(DEFAULT_STRENGTH_LIFTS, 80);
 
   return (
     <div className="space-y-5 pb-12">
@@ -57,6 +104,12 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
           strengthLoad: strength,
         }}
       />
+
+      {/* Akumulacja kardio Strefy 2 (Peter Attia 150 min/tydzień) */}
+      <Zone2WeeklyCard activities={activities} asOfDateStr={data.date ?? undefined} />
+
+      {/* Progresja siły 1RM i Big 3 Total */}
+      <StrengthProgressionCard summary={strengthSummary} />
 
       <div className="grid grid-cols-2 gap-3">
         <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-2">
