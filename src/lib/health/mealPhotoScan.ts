@@ -12,6 +12,12 @@ function wrapPhotoUploadError(cause: unknown): Error {
       { cause },
     );
   }
+  if (/internal server error/i.test(msg)) {
+    return new Error(
+      'Serwer analizy zdjęć jest chwilowo przeciążony. Spróbuj ponownie lub opisz posiłek tekstem.',
+      { cause },
+    );
+  }
   return cause instanceof Error ? cause : new Error(msg);
 }
 

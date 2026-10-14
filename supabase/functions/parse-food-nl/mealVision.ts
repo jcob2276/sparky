@@ -1,5 +1,5 @@
 import { createServiceClient } from '../_shared/supabase.ts'
-import { openaiChat } from '../_shared/openai.ts'
+import { parseJsonFromContent } from '../_shared/deepseek.ts'
 import {
   finalizeParsedItems,
   type UserParseContext,
@@ -14,6 +14,16 @@ function validMacro(value: unknown, max = 100): number | null {
   if (value == null) return null
   const number = Number(value)
   return Number.isFinite(number) && number >= 0 && number <= max ? Math.round(number * 10) / 10 : null
+}
+
+function parseJsonSafe(content: string): Record<string, unknown> {
+  const parsed = parseJsonFromContent(content)
+  if (parsed && typeof parsed === 'object') return parsed
+  try {
+    return JSON.parse(content || '{}')
+  } catch {
+    return {}
+  }
 }
 
 async function callVisionLlm({
@@ -32,60 +42,56 @@ async function callVisionLlm({
   maxTokens?: number
 }): Promise<string> {
   const geminiKey = Deno.env.get('GEMINI_API_KEY')
-  if (geminiKey) {
-    const models = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash']
-    for (const model of models) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{
-              parts: [
-                { text: prompt },
-                { inline_data: { mime_type: mimeType, data: imageBase64 } },
-              ],
-            }],
-            generationConfig: { responseMimeType: 'application/json' },
-          }),
-          signal: AbortSignal.timeout(20000),
-        })
-        if (res.ok) {
-          const json = await res.json()
-          const text = json.candidates?.[0]?.content?.parts?.[0]?.text
-          if (text) return text
-        } else {
-          console.warn(`[mealVision] Gemini (${model}) HTTP ${res.status}: ${await res.text().catch(() => '')}`)
-        }
-      } catch (err) {
-        console.warn(`[mealVision] Gemini (${model}) request failed:`, err)
+  if (!geminiKey) {
+    throw new Error('Brak GEMINI_API_KEY w konfiguracji')
+  }
+
+  const models = [
+    'gemini-flash-latest',
+    'gemini-flash-lite-latest',
+    'gemini-3-flash-preview',
+    'gemini-3.5-flash',
+  ]
+
+  let lastError: unknown = null
+  for (const model of models) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey}`
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType, data: imageBase64 } },
+            ],
+          }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            maxOutputTokens: maxTokens,
+          },
+        }),
+        signal: AbortSignal.timeout(25000),
+      })
+      if (res.ok) {
+        const json = await res.json()
+        const text = json.candidates?.[0]?.content?.parts?.[0]?.text
+        if (text) return text
+      } else {
+        const errBody = await res.text().catch(() => '')
+        console.warn(`[mealVision] Gemini (${model}) HTTP ${res.status}: ${errBody.slice(0, 200)}`)
+        lastError = new Error(`Gemini HTTP ${res.status}: ${errBody.slice(0, 100)}`)
       }
+    } catch (err) {
+      console.warn(`[mealVision] Gemini (${model}) failed:`, err)
+      lastError = err
     }
   }
 
-  const openaiKey = Deno.env.get('OPENAI_API_KEY')
-  if (openaiKey) {
-    const { content } = await openaiChat({
-      apiKey: openaiKey,
-      model: 'gpt-4o-mini',
-      temperature: 0.1,
-      maxTokens,
-      responseFormat: { type: 'json_object' },
-      userId,
-      feature,
-      messages: [{
-        role: 'user',
-        content: [
-          { type: 'text', text: prompt },
-          { type: 'image_url', image_url: { url: `data:${mimeType};base64,${imageBase64}` } },
-        ],
-      }],
-    })
-    return content || '{}'
-  }
-
-  throw new Error('Brak aktywnego dostawcy Vision (skonfiguruj GEMINI_API_KEY lub OPENAI_API_KEY)')
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('Błąd analizy obrazu przez modele Gemini')
 }
 
 export async function parseNutritionLabel(imageBase64: string, mimeType: string, userId?: string) {
@@ -99,7 +105,7 @@ export async function parseNutritionLabel(imageBase64: string, mimeType: string,
     feature: 'nutrition-label-ocr',
     maxTokens: 500,
   })
-  const raw = JSON.parse(content || '{}') as Record<string, unknown>
+  const raw = parseJsonSafe(content)
   const calories = validMacro(raw.calories, 1000)
   const protein = validMacro(raw.protein)
   const carbs = validMacro(raw.carbs)
@@ -189,8 +195,27 @@ export async function parseMealPhoto(
     feature: 'nutrition-meal-photo',
     maxTokens: 1800,
   })
-  const draft = normalizeMealPhotoResponse(JSON.parse(content || '{}'))
-  const textApiKey = Deno.env.get('DEEPSEEK_API_KEY') || Deno.env.get('OPENAI_API_KEY') || ''
+  let draft: MealPhotoDraft
+  try {
+    draft = normalizeMealPhotoResponse(parseJsonSafe(content))
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (msg.includes('no food items')) {
+      return {
+        items: [],
+        questions: [],
+        estimate: { calories: 0, minKcal: 0, maxKcal: 0 },
+        parserVersion: 'meal-photo-v1' as const,
+      }
+    }
+    throw err
+  }
+
+  if (!draft.items.length) {
+    return draft
+  }
+
+  const textApiKey = Deno.env.get('DEEPSEEK_API_KEY') || ''
   const finalized = await finalizeParsedItems(draft.items, {
     originalText: draft.items.map((item) => `${item.name} ${item.grams}g`).join(', '),
     corrections,

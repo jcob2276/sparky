@@ -46,4 +46,10 @@ describe('scanMealPhoto', () => {
     await expect(scanMealPhoto(new File(['photo'], 'meal.png'), 'user-1'))
       .rejects.toThrow('Nie udało się wysłać zdjęcia do serwera');
   });
+
+  it('maps internal server error to user-friendly message', async () => {
+    invokeEdge.mockRejectedValue(new Error('Internal server error'));
+    await expect(scanMealPhoto(new File(['photo'], 'meal.png'), 'user-1'))
+      .rejects.toThrow('Serwer analizy zdjęć jest chwilowo przeciążony');
+  });
 });
