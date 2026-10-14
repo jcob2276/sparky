@@ -14,11 +14,12 @@ import {
   resolveProposal,
   syncFrictionProposals,
 } from '../../lib/systemProposals';
-import { getTodayWarsaw, shiftWeekStart } from '../../lib/date';
+import { getTodayWarsaw, shiftWeekStart, shiftDateStr } from '../../lib/date';
 import { getWeekStartWarsaw } from '../../lib/growth/growth';
 import { quickCompleteOverdueWeeklyReview } from '../../lib/goal/goalSpine';
 import { notify } from '../../lib/notify';
 import TrainingPlanContainer from '../biometrics/workout/TrainingPlanContainer';
+import HealthCoachWeeklyReviewContainer from '../biometrics/workout/HealthCoachWeeklyReview';
 
 export default function WeekHub({
   onOpenActionCenter,
@@ -74,10 +75,19 @@ export default function WeekHub({
 
   return (
     <div className="space-y-5">
-      {userId && <details className="rounded-2xl border border-border-custom p-3">
-        <summary className="cursor-pointer text-sm font-semibold">Plan treningowy tygodnia</summary>
-        <TrainingPlanContainer userId={userId} />
-      </details>}
+      {userId && (
+        <details className="rounded-2xl border border-border-custom p-3">
+          <summary className="cursor-pointer text-sm font-semibold">Plan treningowy tygodnia</summary>
+          <TrainingPlanContainer userId={userId} />
+        </details>
+      )}
+      {userId && (
+        <HealthCoachWeeklyReviewContainer
+          userId={userId}
+          weekStart={weekStart}
+          weekEnd={shiftDateStr(weekStart, 6)}
+        />
+      )}
       {sundayReviewCta && (
         <Button
           variant="tonal"

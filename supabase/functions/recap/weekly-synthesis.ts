@@ -7,6 +7,14 @@ import { LLM_TASKS } from "../_shared/llm/tasks.ts";
 import { getWarsawDateString } from "../_shared/time.ts";
 import { getStreamForWeeklySynthesis, insertStreamRecord } from "../_shared/repos/streamRepo.ts";
 import { verifyDataSufficiencyWithJev } from "../_shared/jevVerifier.ts";
+import { fetchHealthCoachContext } from "../_shared/healthCoachContext.ts";
+import { buildHealthCoachReview } from "../_shared/healthCoachReview.ts";
+import {
+  formatPlanningsText,
+  formatDailyReflectionsText,
+  formatFrictionSummary,
+  formatBiometricsSummary,
+} from "./synthesisFormatting.ts";
 
 export async function runWeeklySynthesis(req: Request): Promise<unknown> {
   const VANGUARD_USER_ID = getVanguardUserId();
@@ -54,6 +62,24 @@ export async function runWeeklySynthesis(req: Request): Promise<unknown> {
     );
     const weeklyReflection = (weeklyReflectionRows || [])[0] || null;
 
+    // Health & training weekly coach review
+    let coachReviewSummary = "Brak danych treningowych z tego tygodnia.";
+    try {
+      const healthContext = await fetchHealthCoachContext({
+        supabase,
+        userId: VANGUARD_USER_ID,
+        asOf: now.toISOString(),
+      });
+      const review = buildHealthCoachReview({
+        context: healthContext,
+        weekStart,
+        weekEnd,
+      });
+      coachReviewSummary = review.summary;
+    } catch (e: any) {
+      console.warn('[weekly-synthesis] health coach review skipped:', e.message);
+    }
+
     const topHypotheses = await safeExecute(
       supabase.from('vanguard_curiosity_queue')
         .select('hypothesis, provocation, confidence_score, category')
@@ -77,108 +103,13 @@ export async function runWeeklySynthesis(req: Request): Promise<unknown> {
       4
     );
 
-    // --- Aggregate friction by type ---
-    const frictionByType: Record<string, number> = {};
-    for (const e of (frictionEvents || [])) {
-      if (e.friction_type) {
-        frictionByType[e.friction_type] = (frictionByType[e.friction_type] || 0) + 1;
-      }
-    }
-    const frictionSorted = Object.entries(frictionByType)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
+    // --- Summaries ---
+    const { frictionText, frictionDetails, frictionSorted } = formatFrictionSummary(frictionEvents);
+    const { bioText, sleepDaysCount } = formatBiometricsSummary(biometrics);
 
-    // --- Biometric averages ---
-    const bio = biometrics || [];
-    const sleepDays = bio.filter((b: any) => b.sleep_hours != null);
-    const hrvDays = bio.filter((b: any) => b.hrv_avg != null);
-    const execDays = bio.filter((b: any) => b.execution_score != null);
-
-    const avgSleep = sleepDays.length
-      ? (sleepDays.reduce((s: number, b: any) => s + b.sleep_hours, 0) / sleepDays.length).toFixed(1)
-      : null;
-    const avgHrv = hrvDays.length
-      ? Math.round(hrvDays.reduce((s: number, b: any) => s + b.hrv_avg, 0) / hrvDays.length)
-      : null;
-    const avgExec = execDays.length
-      ? Math.round(execDays.reduce((s: number, b: any) => s + b.execution_score, 0) / execDays.length * 100)
-      : null;
-
-    // --- Build LLM context ---
-    const frictionText = frictionSorted.length > 0
-      ? frictionSorted.map(([type, count]) => `${type}: ${count}x`).join(' | ')
-      : 'brak';
-
-    const frictionDetails = (frictionEvents || []).slice(0, 12)
-      .map((e: any) => `[${e.occurred_at?.split('T')[0]}] ${e.friction_type}: ${e.deviation || e.actual_behavior || '—'}`)
-      .join('\n');
-
-    const bioText = [
-      `Sen: ${avgSleep ?? 'brak'}h (${sleepDays.length} dni)`,
-      `HRV: ${avgHrv ?? 'brak'} (${hrvDays.length} dni)`,
-      `Wykonanie Top3: ${avgExec != null ? avgExec + '%' : 'brak'} (${execDays.length} dni)`,
-    ].join(' | ');
-
-    // Build unified plannings context: Power List (daily_wins) + daily_reconciliations planning
-    const daysWithTasks = (dailyWinsRows || []).filter((w: any) =>
-      [w.task_1, w.task_2, w.task_3, w.task_4, w.task_5].some((t: any) => t && String(t).trim().length > 0)
-    );
-    const plannedDatesSet = new Set([
-      ...(plannings || []).map((p: any) => p.date),
-      ...daysWithTasks.map((w: any) => w.date),
-    ]);
-    const planningsCount = plannedDatesSet.size;
-
-    const datesMap = new Map<string, { powerListTasks: string[]; legacyPlan?: any }>();
-    for (const w of (dailyWinsRows || [])) {
-      const tasks: string[] = [];
-      for (let i = 1; i <= 5; i++) {
-        const t = w[`task_${i}`];
-        const done = Boolean(w[`done_${i}`]);
-        if (t && String(t).trim()) {
-          tasks.push(`- ${String(t).trim()} -> ${done ? '[WYKONANE]' : '[NIEWYKONANE]'}`);
-        }
-      }
-      if (tasks.length > 0) {
-        datesMap.set(w.date, { powerListTasks: tasks });
-      }
-    }
-
-    for (const p of (plannings || [])) {
-      const existing = datesMap.get(p.date) || { powerListTasks: [] };
-      existing.legacyPlan = p;
-      datesMap.set(p.date, existing);
-    }
-
-    const sortedDates = Array.from(datesMap.keys()).sort().reverse();
-    const planningsText = sortedDates.length > 0
-      ? sortedDates.map((date) => {
-          const entry = datesMap.get(date)!;
-          const parts: string[] = [`[Data: ${date}]`];
-          if (entry.powerListTasks.length > 0) {
-            parts.push(`Power List (5 zadań dnia):\n${entry.powerListTasks.join('\n')}`);
-          }
-          if (entry.legacyPlan?.planning_summary) {
-            const plan = entry.legacyPlan.planning_summary;
-            const prodArtifact = plan.production_artifact?.artifact || plan.one_clear_move || '—';
-            const minViable = plan.minimum_viable_day || '—';
-            const p2 = entry.legacyPlan.p2_parsed || {};
-            const biggestCost = p2.biggest_cost || '—';
-            const blockers = p2.blocker_candidates?.join('; ') || '—';
-            parts.push(`Plan wieczorny: ${prodArtifact} | Minimum: ${minViable}\nKoszt: ${biggestCost} | Blokery: ${blockers}`);
-          }
-          return parts.join('\n');
-        }).join('\n\n')
-      : '';
-
-    const dailyReflectionsText = (dailyReflections || []).length > 0
-      ? (dailyReflections || []).map((d: any) => {
-          const parts = [`[${d.date}, wynik dnia: ${d.result ?? '—'}]`];
-          if (d.day_note?.trim()) parts.push(`Refleksja: "${d.day_note.trim()}"`);
-          if (d.journal_entry?.trim()) parts.push(`Co zrobiono: "${d.journal_entry.trim()}"`);
-          return parts.join(' ');
-        }).join('\n')
-      : 'Brak refleksji wieczornych w tym tygodniu.';
+    // Unified plannings and reflections context
+    const { planningsText, planningsCount } = formatPlanningsText(dailyWinsRows, plannings);
+    const dailyReflectionsText = formatDailyReflectionsText(dailyReflections) || 'Brak refleksji wieczornych w tym tygodniu.';
 
     const weeklyReflectionText = weeklyReflection
       ? [
@@ -212,7 +143,7 @@ export async function runWeeklySynthesis(req: Request): Promise<unknown> {
       task: "weekly_synthesis",
       dataSummary: {
         period: `${weekStart} – ${weekEnd}`,
-        days_with_biometrics: `${sleepDays.length} / 7 dni`,
+        days_with_biometrics: `${sleepDaysCount} / 7 dni`,
         days_with_plans_or_powerlist: `${planningsCount} / 7 dni`,
         days_with_daily_reflections: `${dailyReflections.length} / 7 dni`,
         friction_events_count: frictionEvents?.length || 0,
@@ -281,6 +212,9 @@ PYTANIE NA NASTĘPNE 7 DNI
  
 BIOMETRIA (${bio.length} dni danych):
 ${bioText}
+
+TRENING I CELE ZDROWOTNE (Przegląd wykonania i postępu):
+${coachReviewSummary}
  
 FRICTION EVENTS — typy:
 ${frictionText}

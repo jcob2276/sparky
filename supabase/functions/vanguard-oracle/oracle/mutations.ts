@@ -38,14 +38,13 @@ export async function logOracleRun(supabase: any, params: {
           metric = "sleep_hours";
           if (threshold === null) threshold = 7.5;
         } else if (t.includes("trening") || t.includes("strain") || t.includes("sport") || t.includes("workout") || t.includes("ćwicz")) {
-          metric = "readiness_score";
-          if (threshold === null) threshold = 70.0;
+          // Trening i fitness to cele domenowe ze standardami — nie wciskamy ich do readiness_score ani execution_score
+          continue;
         } else if (t.includes("zadania") || t.includes("wykonan") || t.includes("todo") || t.includes("task")) {
           metric = "execution_score";
           if (threshold === null) threshold = 0.8;
         } else {
-          metric = "execution_score";
-          if (threshold === null) threshold = 0.8;
+          continue;
         }
       } else {
         if (threshold === null) {
@@ -56,14 +55,11 @@ export async function logOracleRun(supabase: any, params: {
         }
       }
 
-      // Walidacja czy metryka jest na allowliście
+      // Walidacja czy metryka jest na allowliście bazy danych
       const ALLOWED_METRICS = ['sleep_hours', 'readiness_score', 'execution_score'];
       if (!ALLOWED_METRICS.includes(metric)) {
-        console.warn(`[oracle] Discarding invalid/unsafe metric: ${metric}, defaulting to execution_score`);
-        metric = "execution_score";
-        if (threshold === null || threshold === 1.0) {
-          threshold = 0.8;
-        }
+        console.warn(`[oracle] Discarding metric not in allowed table constraint: ${metric}`);
+        continue;
       }
 
       // Zapisz rekomendację jako obiekt w public.oracle_recommendations

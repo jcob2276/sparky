@@ -29,3 +29,52 @@ export interface HealthCoachContext {
   coverage: Record<HealthCoachSource, number>;
   queryErrors: string[];
 }
+
+export interface GoalProgressReview {
+  kpiId: string;
+  name: string;
+  target: number;
+  currentValue: number | null;
+  unit: string;
+  standard: string;
+  status: 'progressing' | 'regressing' | 'stable' | 'unassessed';
+  evidenceRefs: EvidenceRef[];
+  note: string;
+}
+
+export interface WeeklyAdherence {
+  plannedSessionsCount: number;
+  completedSessionsCount: number;
+  skippedSessionsCount: number;
+  unrecordedSessionsCount: number;
+  cardioKm: number;
+  strengthSets: number;
+  adherenceRate: number | null;
+  note: string;
+}
+
+export interface WeeklyDecisionReview {
+  decisionId: string;
+  date: string;
+  type: string;
+  summary: string;
+  applied: boolean;
+}
+
+export interface NextWeekProposal {
+  action: 'keep' | 'progress' | 'deload' | 'adjust';
+  rationale: string;
+  changesSummary: string[];
+}
+
+export interface HealthCoachWeeklyReview {
+  weekStart: string;
+  weekEnd: string;
+  goalProgress: GoalProgressReview[];
+  adherence: WeeklyAdherence;
+  coverage: Record<string, number>;
+  decisions: WeeklyDecisionReview[];
+  nextWeekProposal: NextWeekProposal;
+  assessmentStatus: 'evaluated' | 'insufficient_data';
+  summary: string;
+}

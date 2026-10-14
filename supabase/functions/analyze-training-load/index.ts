@@ -18,6 +18,7 @@ import { approvePlan, revertPlan } from './planActions.ts'
 import { HealthPlanInputError } from './planErrors.ts'
 import { decideTraining } from '@vanguard/domain'
 import { adjustedTrainingPlan } from './dailyDecision.ts'
+import { buildHealthCoachReview } from '../_shared/healthCoachReview.ts'
 
 Deno.serve(serveJson(async (req, ctx) => {
   const { userId, supabase } = ctx
@@ -38,6 +39,15 @@ Deno.serve(serveJson(async (req, ctx) => {
   if (body.action === 'coach_decision') {
     const context = await fetchHealthCoachContext({ supabase, userId })
     return { success: true, decision: decideTraining(context, { constraints: trainingConstraintsFromContext(context) }) }
+  }
+  if (body.action === 'weekly_review') {
+    const context = await fetchHealthCoachContext({ supabase, userId, asOf: body.asOf })
+    return { success: true, review: buildHealthCoachReview({
+      context,
+      weekStart: body.weekStart,
+      weekEnd: body.weekEnd,
+      decisions: body.decisions,
+    }) }
   }
   if (body.action === 'generate_plan' || body.action === 'adapt_plan') {
     if (typeof body.requestKey !== 'string' || !body.requestKey || body.requestKey.length > 120) throw new Error('Missing requestKey')

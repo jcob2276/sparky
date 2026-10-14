@@ -12,7 +12,7 @@ const DECLARATIONS = new Set<HealthCoachSource>(['training_plan_workouts', 'nutr
 const DERIVED = new Set<HealthCoachSource>(['daily_nutrition', 'daily_strain']);
 
 function rowDate(row: CoachRow): string {
-  return String(row.start_date ?? row.start_time ?? row.date ?? row.planned_date ?? row.timestamp ?? row.updated_at ?? row.created_at ?? '');
+  return String(row.session_date ?? row.start_date ?? row.start_time ?? row.date ?? row.planned_date ?? row.timestamp ?? row.updated_at ?? row.created_at ?? '');
 }
 
 function evidenceKind(source: HealthCoachSource): EvidenceKind {
