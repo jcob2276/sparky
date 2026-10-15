@@ -1,9 +1,13 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { DayTimelineCard } from './DayTimelineCard';
 import type { DayTimelineItem } from '@vanguard/domain';
 
 describe('DayTimelineCard', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it('renders timeline events with titles, durations and metrics', () => {
     const mockItems: DayTimelineItem[] = [
       {
@@ -38,6 +42,36 @@ describe('DayTimelineCard', () => {
 
     expect(screen.getByText('Bieg regeneracyjny Z2')).toBeInTheDocument();
     expect(screen.getByText(/Dystans: 6.5 km/i)).toBeInTheDocument();
+  });
+
+  it('collapses and expands timeline when toggle button is clicked', () => {
+    const mockItems: DayTimelineItem[] = [
+      {
+        id: '1',
+        type: 'sleep',
+        title: 'Główny sen',
+        timeFormatted: '01:30 – 08:00',
+        durationFormatted: '6h 30m',
+        metrics: [],
+        accentColor: 'indigo',
+        timestamp: 1000,
+      },
+    ];
+
+    render(<DayTimelineCard items={mockItems} />);
+
+    expect(screen.getByText('Główny sen')).toBeInTheDocument();
+
+    const toggleBtn = screen.getByRole('button', { name: /zwiń oś czasu/i });
+    fireEvent.click(toggleBtn);
+
+    expect(screen.queryByText('Główny sen')).not.toBeInTheDocument();
+    expect(screen.getByText(/Oś czasu zwinięta/i)).toBeInTheDocument();
+
+    const expandBtn = screen.getByRole('button', { name: /rozwiń oś czasu/i });
+    fireEvent.click(expandBtn);
+
+    expect(screen.getByText('Główny sen')).toBeInTheDocument();
   });
 
   it('renders empty message when no items are passed', () => {

@@ -3,8 +3,10 @@
  * @role Chronologiczna pionowa oś czasu dnia (Combined Day Timeline) w stylu Bevel / Whoop.
  */
 
-import { Moon, Flame, Dumbbell, Sparkles, Clock } from 'lucide-react';
+import { useState } from 'react';
+import { Moon, Flame, Dumbbell, Sparkles, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import type { DayTimelineItem } from '@vanguard/domain';
+import Button from '../../ui/Button';
 
 interface DayTimelineCardProps {
   items: DayTimelineItem[];
@@ -13,6 +15,26 @@ interface DayTimelineCardProps {
 
 export function DayTimelineCard({ items, dateFormatted }: DayTimelineCardProps) {
   const safeItems = Array.isArray(items) ? items : [];
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    try {
+      return localStorage.getItem('sparky_timeline_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleCollapsed = () => {
+    setIsCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sparky_timeline_collapsed', String(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
 
   const getEventIcon = (type: DayTimelineItem['type']) => {
     switch (type) {
@@ -53,12 +75,29 @@ export function DayTimelineCard({ items, dateFormatted }: DayTimelineCardProps) 
             Przebieg Dnia (Timeline)
           </h3>
         </div>
-        {dateFormatted && (
-          <span className="text-xs text-text-muted">{dateFormatted}</span>
-        )}
+        <div className="flex items-center gap-2">
+          {dateFormatted && (
+            <span className="text-xs text-text-muted">{dateFormatted}</span>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={toggleCollapsed}
+            className="!h-7 !px-2 text-text-muted hover:text-text-primary"
+            aria-label={isCollapsed ? 'Rozwiń oś czasu' : 'Zwiń oś czasu'}
+          >
+            {isCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
+            <span className="text-3xs">{isCollapsed ? 'Rozwiń' : 'Zwiń'}</span>
+          </Button>
+        </div>
       </div>
 
-      {safeItems.length === 0 ? (
+      {isCollapsed ? (
+        <div className="mt-3 flex items-center justify-between rounded-2xl border border-border-custom/30 bg-surface-2/20 px-3.5 py-2 text-xs text-text-secondary">
+          <span>Oś czasu zwinięta ({safeItems.length} zdarzeń)</span>
+          <span className="text-3xs text-text-muted">Kliknij Rozwiń, aby zobaczyć szczegóły</span>
+        </div>
+      ) : safeItems.length === 0 ? (
         <div className="my-6 rounded-2xl border border-border-custom/30 bg-surface-2/30 p-6 text-center text-xs text-text-muted">
           Brak zarejestrowanych aktywności ani snu w tym okresie.
         </div>
