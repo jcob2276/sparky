@@ -1,8 +1,11 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { HydrationCard } from './HydrationCard';
 
 describe('HydrationCard', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
   it('renders dynamic target, sweat loss, and increments water on button click', () => {
     const onAddWater = vi.fn();
     render(
@@ -58,5 +61,34 @@ describe('HydrationCard', () => {
 
     expect(screen.getByText(/Ryzyko odwodnienia/i)).toBeInTheDocument();
     expect(screen.getByText(/Zalecana suplementacja sodu/i)).toBeInTheDocument();
+  });
+
+  it('dynamically clears dehydration risk badge when intake crosses threshold', () => {
+    render(
+      <HydrationCard
+        initialData={{
+          baseTargetMl: 2500,
+          sweatLossMl: 850,
+          dynamicTargetMl: 3350,
+          loggedIntakeMl: 800,
+          remainingMl: 2550,
+          percentage: 24,
+          status: 'dehydration_risk',
+          statusLabel: 'Ryzyko odwodnienia',
+          needsElectrolytes: true,
+          electrolyteAdvisory: 'Wysoki ubytek potu (~850 ml).',
+          recommendation: 'Uzupełnij wodę z elektrolitami.',
+        }}
+      />
+    );
+
+    expect(screen.getByText(/Ryzyko odwodnienia/i)).toBeInTheDocument();
+
+    const add500Btn = screen.getByRole('button', { name: /dodaj 500 ml/i });
+    fireEvent.click(add500Btn);
+
+    // 800 + 500 = 1300 ml >= 1200 ml, dehydration risk is cleared
+    expect(screen.queryByText(/Ryzyko odwodnienia/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/W trakcie/i)).toBeInTheDocument();
   });
 });

@@ -62,7 +62,7 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
     <NetEnergyCard
       activeCaloriesBurned={data.enhanced?.active_calories ?? (data.strainRow?.strain_score ? Math.round(data.strainRow.strain_score * 45) : 500)}
       caloriesConsumed={nutrition.calories}
-      weightKg={75}
+      weightKg={nutrition.currentWeightKg ?? 75}
       targetGoal={netEnergyGoal}
       onGoalChange={setNetEnergyGoal}
     />
