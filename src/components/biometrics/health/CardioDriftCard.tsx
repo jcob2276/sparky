@@ -95,7 +95,11 @@ export function CardioDriftCard({
             </span>
           </div>
           <span className="mt-0.5 block text-3xs text-text-secondary">
-            {data.hasSignificantDrift ? 'Norma przekroczona (> 5%)' : 'W normie (< 3.5%)'}
+            {data.hasSignificantDrift
+              ? 'Norma przekroczona (> 5%)'
+              : data.rating === 'mild_drift'
+              ? 'Lekki dryf (3.5% - 5%)'
+              : 'W normie (< 3.5%)'}
           </span>
         </div>
 

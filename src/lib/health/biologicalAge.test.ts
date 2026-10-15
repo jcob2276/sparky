@@ -45,4 +45,14 @@ describe('calculateBiologicalAge', () => {
     expect(result.ageDelta).toBe(0);
     expect(result.factors.length).toBe(0);
   });
+
+  it('rewards or treats surplus sleep (negative debt) as zero debt', () => {
+    const result = calculateBiologicalAge({
+      chronologicalAge: 30,
+      sleepDebtMinutes: -120, // 2h surplus
+    });
+    const sleepFactor = result.factors.find(f => f.factor.includes('sn'));
+    expect(sleepFactor?.status).toBe('positive');
+    expect(sleepFactor?.yearsDelta).toBe(-0.8);
+  });
 });

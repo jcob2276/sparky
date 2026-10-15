@@ -48,6 +48,27 @@ describe('CardioDriftCard', () => {
     expect(screen.getByText('Zidentyfikowano dryf tętna (6.8%).')).toBeInTheDocument();
   });
 
+  it('renders mild drift state correctly', () => {
+    render(
+      <CardioDriftCard
+        data={{
+          decouplingPercentage: 4.2,
+          efHalf1: 0.024,
+          efHalf2: 0.023,
+          rating: 'mild_drift',
+          ratingLabel: 'Umiarkowany dryf (3.5% - 5.0%)',
+          hasSignificantDrift: false,
+          hrDeltaBpm: 4,
+          recommendation: 'Lekki dryf tętna (4.2%).',
+        }}
+      />
+    );
+
+    expect(screen.getByText('4.2%')).toBeInTheDocument();
+    expect(screen.getByText('Lekki dryf')).toBeInTheDocument();
+    expect(screen.getByText('Lekki dryf (3.5% - 5%)')).toBeInTheDocument();
+  });
+
   it('renders clean notice when data is null', () => {
     render(<CardioDriftCard data={null} />);
     expect(screen.getByText(/Brak zarejestrowanych biegów/i)).toBeInTheDocument();

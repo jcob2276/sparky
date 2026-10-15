@@ -106,9 +106,9 @@ export function calculateBiologicalAge(input: BiologicalAgeInput): BiologicalAge
 
   // 4. Sleep Debt & Circadian Health
   if (typeof input.sleepDebtMinutes === 'number' && Number.isFinite(input.sleepDebtMinutes)) {
-    // Both positive debt magnitude (e.g. 180 min debt) and negative sleep bank balance (e.g. -180 min debt)
-    // are correctly interpreted as sleep deficit.
-    const debtHours = Math.abs(input.sleepDebtMinutes) / 60;
+    // Non-positive values (surplus or zero) represent absence of debt.
+    const debtMinutes = Math.max(0, input.sleepDebtMinutes);
+    const debtHours = debtMinutes / 60;
     let sleepYears = 0;
     if (debtHours <= 1) sleepYears = -0.8;
     else if (debtHours <= 3) sleepYears = 0;

@@ -4,7 +4,7 @@
  * Monitoruje tygodniowy cel 150 minut w tlenie na bazie danych stref tętna z Garmina.
  */
 
-import { shiftDateStr } from '../date.ts';
+import { shiftDateStr, getTodayWarsaw } from '../date.ts';
 
 export interface Zone2ActivityInput {
   start_date?: string | null;
@@ -33,12 +33,12 @@ const POLISH_DAYS = ['Ndz', 'Pn', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob'];
 
 export function computeZone2Weekly(
   activities: Zone2ActivityInput[] | null | undefined,
-  asOfDateStr = '2026-10-14'
+  asOfDateStr?: string | null
 ): Zone2WeeklyResult {
   const targetMinutes = 150;
   const safeDateStr = asOfDateStr && typeof asOfDateStr === 'string' && asOfDateStr.length >= 10
     ? asOfDateStr.slice(0, 10)
-    : '2026-10-14';
+    : getTodayWarsaw();
   const asOf = new Date(`${safeDateStr}T12:00:00Z`);
 
   const dayOfWeek = asOf.getUTCDay(); // 0 = Sun, 1 = Mon...
