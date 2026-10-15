@@ -33,7 +33,7 @@ export default function WorkoutPresetsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-[var(--motion-medium)]">
       <div className="w-full max-w-lg max-h-[85vh] flex flex-col rounded-t-3xl sm:rounded-3xl border border-border-custom bg-background shadow-2xl overflow-hidden">
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border-custom px-5 py-4">
@@ -128,7 +128,7 @@ export default function WorkoutPresetsModal({
                   {preset.exercises.map((ex, i) => (
                     <div key={i} className="flex items-center justify-between text-2xs text-text-muted">
                       <span className="font-semibold text-text-secondary truncate">{ex.name}</span>
-                      <span className="shrink-0 font-mono text-3xs opacity-80">{ex.defaultSets.length} serie</span>
+                      <span className="shrink-0 font-mono text-3xs text-text-muted">{ex.defaultSets.length} serie</span>
                     </div>
                   ))}
                 </div>

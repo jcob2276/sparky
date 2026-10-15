@@ -17,7 +17,7 @@ if (files.length === 0) {
 
 // 1. Run type/compilation checks via Deno
 console.log('Running deno check on edge functions...');
-const checkResult = spawnSync('deno', ['check', '--import-map=supabase/functions/import_map.json', ...files], {
+const checkResult = spawnSync('deno', ['check', '--node-modules-dir=auto', '--import-map=supabase/functions/import_map.json', ...files], {
   stdio: 'inherit',
   shell: process.platform === 'win32',
 });

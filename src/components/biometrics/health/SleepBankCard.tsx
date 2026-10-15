@@ -133,7 +133,7 @@ export function SleepBankCard({ data }: SleepBankCardProps) {
                 <div key={day.date} className="flex flex-1 flex-col items-center gap-1">
                   <div className="flex h-8 w-full items-end justify-center">
                     <div
-                      className={`w-full max-w-[12px] rounded-t-sm transition-all ${
+                      className={`w-full max-w-3 rounded-t-sm transition-all ${
                         isPositive ? 'bg-success/80' : 'bg-warning/80'
                       }`}
                       style={{ height: `${barHeightPct}%` }}

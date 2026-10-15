@@ -23,6 +23,7 @@ import {
   type DailySleepRecord,
   type SleepBankDayInput,
 } from '@vanguard/domain';
+import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 
 const formatMinutes = (mins: number) => {
   const h = Math.floor(mins / 60);
@@ -64,10 +65,7 @@ function formatTimeHHMM(isoOrTimeString?: string | null, fallback = '07:00'): st
 }
 
 function getDateOffset(baseDate: string, daysAgo: number): string {
-  const d = new Date(`${baseDate}T12:00:00`);
-  if (isNaN(d.getTime())) return baseDate;
-  d.setDate(d.getDate() - daysAgo);
-  return d.toISOString().slice(0, 10);
+  return shiftDateStr(baseDate, -daysAgo);
 }
 
 function buildDefaultSleepRecords(
@@ -113,7 +111,7 @@ function extractSleepRecords(data: OuraHealthHubData): DailySleepRecord[] {
       return { date: day.date, bedtime: bed, wakeTime: wake, isFreeDay };
     });
   }
-  const baseDate = data.date || new Date().toISOString().slice(0, 10);
+  const baseDate = data.date || getTodayWarsaw();
   return buildDefaultSleepRecords(baseDate, data.enhanced?.bedtime_start, data.enhanced?.bedtime_end);
 }
 
@@ -125,7 +123,7 @@ function extractSleepBankInputs(data: OuraHealthHubData, totalSleepMinutes: numb
       sleepNeedMinutes: 480,
     }));
   }
-  const baseDate = data.date || new Date().toISOString().slice(0, 10);
+  const baseDate = data.date || getTodayWarsaw();
   return buildDefaultSleepBankInputs(baseDate, totalSleepMinutes);
 }
 

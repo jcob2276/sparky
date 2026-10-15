@@ -104,7 +104,7 @@ function SingleBodyView({
               <path
                 key={`${muscle}-${i}`}
                 d={d}
-                className={`transition-colors duration-150 cursor-pointer stroke-[1.5] ${shadeCls}`}
+                className={`transition-colors duration-[var(--motion-fast)] cursor-pointer stroke-2 ${shadeCls}`}
                 onClick={() => onSelectMuscle?.(muscle)}
               >
                 <title>{`${MUSCLE_PL_NAMES[muscle]}${level > 0 ? ` · Zmęczenie: Poziom ${level}/4` : ' · Zregenerowany'}`}</title>

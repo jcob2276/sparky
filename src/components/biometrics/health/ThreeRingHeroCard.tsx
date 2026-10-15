@@ -113,7 +113,7 @@ export function ThreeRingHeroCard({
   }
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-border-custom/50 bg-surface-1/90 p-5 shadow-lg backdrop-blur-xl">
+    <section className="relative overflow-hidden rounded-3xl border border-border-custom/50 bg-surface-1/90 p-5 shadow-lg">
       {dateFormatted && (
         <div className="mb-3 flex items-center justify-between text-xs font-medium text-text-muted">
           <span>{dateFormatted}</span>
@@ -127,7 +127,7 @@ export function ThreeRingHeroCard({
           valueFormatted={safeStrain != null ? `${safeStrain}` : '—'}
           percentage={strainPct}
           colorClass="text-warning"
-          strokeColor="var(--color-warning, #f59e0b)"
+          strokeColor="var(--color-warning)"
           onClick={() => onSelectRing?.('strain')}
         />
         <SingleRing
@@ -135,7 +135,7 @@ export function ThreeRingHeroCard({
           valueFormatted={safeRecovery != null ? `${safeRecovery}%` : '—'}
           percentage={recoveryPct}
           colorClass="text-success"
-          strokeColor="var(--color-success, #22c55e)"
+          strokeColor="var(--color-success)"
           onClick={() => onSelectRing?.('recovery')}
         />
         <SingleRing
@@ -143,7 +143,7 @@ export function ThreeRingHeroCard({
           valueFormatted={safeSleep != null ? `${safeSleep}%` : '—'}
           percentage={sleepPct}
           colorClass="text-info"
-          strokeColor="var(--color-info, #6366f1)"
+          strokeColor="var(--color-info)"
           onClick={() => onSelectRing?.('sleep')}
         />
       </div>

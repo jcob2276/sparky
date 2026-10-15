@@ -194,7 +194,17 @@ export interface SyncQuotesResponse {
   error?: string;
 }
 
-type SyncResponse = SyncOuraResponse | SyncStravaResponse | SyncCalendarResponse | SyncQuotesResponse;
+export interface SyncInvestmentAiResponse {
+  ok?: boolean;
+  content?: string;
+  error?: string;
+  model?: string;
+  generatedAt?: string;
+  sources?: Array<{ dataset: string; records: number; unavailable: string | null }>;
+  jevEvaluation?: unknown;
+}
+
+type SyncResponse = SyncOuraResponse | SyncStravaResponse | SyncCalendarResponse | SyncQuotesResponse | SyncInvestmentAiResponse;
 
 interface LookupFoodResponse {
   results: Array<{

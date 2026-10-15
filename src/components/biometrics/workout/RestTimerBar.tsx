@@ -14,7 +14,7 @@ function playTimerBeep() {
   try {
     const AudioCtx =
       window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
     const osc = ctx.createOscillator();
@@ -95,7 +95,7 @@ export default function RestTimerBar({
   const isDone = remaining === 0;
 
   return (
-    <div className="fixed bottom-24 left-4 right-4 max-w-md mx-auto z-30 animate-in fade-in slide-in-from-bottom-3 duration-200">
+    <div className="fixed bottom-24 left-4 right-4 max-w-md mx-auto z-[var(--z-sticky)] animate-in fade-in slide-in-from-bottom-3 duration-200">
       <div
         className={`rounded-2xl border shadow-xl backdrop-blur-md p-3 transition-all duration-300 ${
           isFlashing

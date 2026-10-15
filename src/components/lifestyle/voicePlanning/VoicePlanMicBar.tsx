@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Mic, Square, Send, Keyboard, MessageSquare } from 'lucide-react';
 import Button from '../../ui/Button';
+import { Pressable } from '../../ui/ControlPrimitives';
 import { ControlInput } from '../../ui/ControlPrimitives';
 
 interface Props {
@@ -96,8 +97,7 @@ export default function VoicePlanMicBar({
       ) : (
         /* Primary Big Voice Button */
         <div className="flex items-center gap-2">
-          <button
-            type="button"
+          <Pressable
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -110,7 +110,7 @@ export default function VoicePlanMicBar({
               <Mic size={14} className="text-on-accent animate-bounce" />
             </div>
             <span className="pointer-events-none select-none">Naciśnij, aby dyktować</span>
-          </button>
+          </Pressable>
 
           <Button
             variant="ghost"

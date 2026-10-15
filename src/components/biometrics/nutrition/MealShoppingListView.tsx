@@ -56,14 +56,14 @@ export function MealShoppingListView({ plan, checkedIds, onToggle,disabled }: Me
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
                 Kupione ({bought.length})
               </p>
-              <div className="space-y-1 opacity-60">
+              <div className="space-y-1 text-text-muted">
                 {bought.map((item) => (
                   <Button
                     key={item.productId}
                     variant="ghost"
                     onClick={() => onToggle(item.productId)}
                     disabled={disabled}
-                    className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-surface-1 px-3 py-1.5 text-left transition hover:opacity-100 h-auto font-normal"
+                    className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-surface-1 px-3 py-1.5 text-left transition hover:text-text-primary h-auto font-normal"
                   >
                     <div className="flex items-center gap-2 line-through text-text-muted">
                       <CheckCircle2 size={16} className="text-success" />

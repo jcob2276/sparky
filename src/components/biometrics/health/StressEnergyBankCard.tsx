@@ -49,7 +49,7 @@ export function StressEnergyBankCard({
   }
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-border-custom/50 bg-surface-1/90 p-5 shadow-lg backdrop-blur-xl">
+    <section className="relative overflow-hidden rounded-3xl border border-border-custom/50 bg-surface-1/90 p-5 shadow-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Activity size={18} className="text-text-secondary" />

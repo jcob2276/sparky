@@ -1,7 +1,7 @@
 import { useState, useId } from 'react';
 import { X, Upload, FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import Button from '../../ui/Button';
-import { ControlTextarea, Pressable } from '../../ui/ControlPrimitives';
+import { ControlInput, ControlTextarea, Pressable } from '../../ui/ControlPrimitives';
 import {
   parseStrongCsv,
   parseFitNotesCsv,
@@ -96,7 +96,7 @@ export default function WorkoutImportModal({
   const activeSession = parsedSessions[selectedSessionIdx];
 
   return (
-    <div className="fixed inset-0 z-[var(--z-modal)] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[var(--z-modal)] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-xs p-0 sm:p-4 animate-in fade-in duration-[var(--motion-medium)]">
       <div className="w-full max-w-lg max-h-[85vh] flex flex-col rounded-t-3xl sm:rounded-3xl border border-border-custom bg-background shadow-2xl overflow-hidden">
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border-custom px-5 py-4">
@@ -157,7 +157,7 @@ export default function WorkoutImportModal({
             >
               <FileText size={12} /> Załaduj plik
             </label>
-            <input
+            <ControlInput
               id={fileInputId}
               type="file"
               accept=".csv,.json,.txt"

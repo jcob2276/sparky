@@ -43,8 +43,7 @@ export default function PokerDecisionPage() {
         {/* Tab switchers & External Link */}
         <div className="flex items-center gap-2">
           <div className="flex bg-slate-900 p-0.5 rounded-lg border border-slate-800 text-xs">
-            <button
-              onClick={() => setActiveTab('decision_lab')}
+            <Pressable onClick={() => setActiveTab('decision_lab')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition ${
                 activeTab === 'decision_lab'
                   ? 'bg-emerald-600 text-white shadow-sm'
@@ -53,9 +52,8 @@ export default function PokerDecisionPage() {
             >
               <Target size={13} />
               <span>Decyzje & EV</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('libregto')}
+            </Pressable>
+            <Pressable onClick={() => setActiveTab('libregto')}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition ${
                 activeTab === 'libregto'
                   ? 'bg-emerald-600 text-white shadow-sm'
@@ -64,7 +62,7 @@ export default function PokerDecisionPage() {
             >
               <Sparkles size={13} />
               <span>LibreGTO</span>
-            </button>
+            </Pressable>
           </div>
 
           <a

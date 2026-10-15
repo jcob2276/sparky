@@ -27,7 +27,7 @@ export function OuraMetricCard({
   const Tag = onClick ? 'button' : 'article';
   return (
     <Tag
-      className="group min-h-44 w-full rounded-xl border border-white/5 bg-surface-2 p-5 text-left transition-transform duration-200 active:scale-95"
+      className="group min-h-44 w-full rounded-xl border border-white/5 bg-surface-2 p-5 text-left transition-transform duration-[var(--motion-medium)] active:scale-95"
       onClick={onClick}
       type={onClick ? 'button' : undefined}
     >

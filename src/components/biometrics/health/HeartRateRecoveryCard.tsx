@@ -89,7 +89,7 @@ export const HeartRateRecoveryCard: React.FC<HeartRateRecoveryCardProps> = ({
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
             <div
-              className={`h-full transition-all duration-500 ${style.bg}`}
+              className={`h-full transition-all ${style.bg}`}
               style={{ width: `${Math.min(100, Math.max(10, (result.hrDrop60s / 40) * 100))}%` }}
             />
           </div>

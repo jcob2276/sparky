@@ -43,7 +43,7 @@ const VALID_TABS: ReadonlySet<MainTabType> = new Set([
   'methodology',
 ]);
 
-export const InvestmentsPage: FC = () => {
+const InvestmentsPage: FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 

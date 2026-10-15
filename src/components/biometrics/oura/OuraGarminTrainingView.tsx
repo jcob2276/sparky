@@ -10,7 +10,7 @@ import {
   type LiftConfig,
   type StrengthPB,
 } from '@vanguard/domain';
-import { formatWarsawDate } from '../../../lib/date';
+import { formatWarsawDate, getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 import DataStateNotice from '../../core/DataStateNotice';
 import { RacePredictorCard } from '../workout/RacePredictorCard';
 import { CircularTargetStrainCard } from '../health/CircularTargetStrainCard';
@@ -39,9 +39,7 @@ function formatDuration(seconds: number): string {
 }
 
 function getRelativeDateStr(daysAgo: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - daysAgo);
-  return d.toISOString().slice(0, 10);
+  return shiftDateStr(getTodayWarsaw(), -daysAgo);
 }
 
 const DEFAULT_STRENGTH_LIFTS: LiftConfig[] = [

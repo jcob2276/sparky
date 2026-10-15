@@ -171,7 +171,7 @@ export default function WorkoutNlCaptureModal({
           <Pressable
             onClick={handleSubmit}
             disabled={isSubmitting || !text.trim()}
-            className="flex-1 py-3 rounded-xl bg-primary text-on-accent text-xs font-black uppercase tracking-wider shadow-md hover:bg-primary-hover disabled:opacity-50 ui-interactive flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-3 rounded-xl bg-primary text-on-accent text-xs font-black uppercase tracking-wider shadow-md hover:bg-primary-hover disabled:opacity-[var(--opacity-disabled)] ui-interactive flex items-center justify-center gap-2 cursor-pointer"
           >
             {isSubmitting ? (
               <Spinner size="sm" />

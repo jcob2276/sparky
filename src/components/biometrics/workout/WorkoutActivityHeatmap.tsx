@@ -1,6 +1,6 @@
 import { useEffect, useRef, useMemo } from 'react';
 import { Calendar, Flame, Clock } from 'lucide-react';
-import { getTodayWarsaw } from '../../../lib/date';
+import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 import { Pressable } from '../../ui/ControlPrimitives';
 
 const POLISH_MONTHS_SHORT = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'];
@@ -54,15 +54,13 @@ export default function WorkoutActivityHeatmap({
 
     // Calculate recent active streak
     let streak = 0;
-    const checkDate = new Date(`${todayStr}T12:00:00Z`);
     for (let i = 0; i < 365; i++) {
-      const iso = checkDate.toISOString().slice(0, 10);
+      const iso = shiftDateStr(todayStr, -i);
       if (agg[iso]?.count) {
         streak++;
       } else if (i > 1) {
         break;
       }
-      checkDate.setDate(checkDate.getDate() - 1);
     }
 
     return {
@@ -102,9 +100,7 @@ export default function WorkoutActivityHeatmap({
 
       const days = [];
       for (let d = 0; d < 7; d++) {
-        const dayDate = new Date(weekStart);
-        dayDate.setDate(weekStart.getDate() + d);
-        const iso = dayDate.toISOString().slice(0, 10);
+        const iso = shiftDateStr(todayStr, -dayOfWeek - (51 - w) * 7 + d);
         const entry = aggMap[iso];
 
         let level = entry?.count ? 1 : 0;

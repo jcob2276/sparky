@@ -57,7 +57,7 @@ export function CircularTargetStrainCard({
   }
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-border-custom/50 bg-surface-1/90 p-5 shadow-lg backdrop-blur-xl">
+    <section className="relative overflow-hidden rounded-3xl border border-border-custom/50 bg-surface-1/90 p-5 shadow-lg">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-semibold tracking-wide text-text-primary">
           Dzienne Obciążenie (Strain)
@@ -85,7 +85,7 @@ export function CircularTargetStrainCard({
               cy="80"
               r={radius}
               fill="none"
-              stroke="var(--color-warning, #f59e0b)"
+              stroke="var(--color-warning)"
               strokeOpacity="0.35"
               strokeWidth={strokeWidth + 4}
               strokeDasharray={`${safeArcLength} ${safeArcRest}`}
@@ -98,7 +98,7 @@ export function CircularTargetStrainCard({
               cy="80"
               r={radius}
               fill="none"
-              stroke="var(--color-warning, #f59e0b)"
+              stroke="var(--color-warning)"
               strokeWidth={strokeWidth}
               strokeLinecap="round"
               strokeDasharray={circumference}

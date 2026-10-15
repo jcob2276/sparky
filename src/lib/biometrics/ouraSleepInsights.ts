@@ -1,3 +1,5 @@
+import { shiftDateStr } from '@vanguard/domain';
+
 export interface OuraSleepInsightDay {
   date: string;
   bedtime_start: string | null;
@@ -79,9 +81,7 @@ function quantile(values: number[], fraction: number): number | null {
 }
 
 function dateDaysBefore(date: string, days: number): string {
-  const value = new Date(`${date}T12:00:00Z`);
-  value.setUTCDate(value.getUTCDate() - days);
-  return value.toISOString().slice(0, 10);
+  return shiftDateStr(date, -days);
 }
 
 function personalSleepNeed(history: OuraSleepInsightDay[], currentDate: string) {

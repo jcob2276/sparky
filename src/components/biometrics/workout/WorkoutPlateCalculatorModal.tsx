@@ -77,12 +77,12 @@ function BarbellSleeveGraphic({ result }: { result: PlateCalculationResult }) {
         <div className="absolute inset-y-1/2 left-0 h-3 w-full -translate-y-1/2 bg-surface-raised" />
 
         {/* Kołnierz gryfu */}
-        <div className="relative z-10 mr-2 flex h-20 w-4 items-center justify-center rounded-sm bg-surface-raised border border-border-custom">
+        <div className="relative mr-2 flex h-20 w-4 items-center justify-center rounded-sm bg-surface-raised border border-border-custom">
           <div className="h-full w-1 bg-surface-2" />
         </div>
 
         {/* Rząd talerzy */}
-        <div className="relative z-10 flex items-center gap-1.5 pl-1">
+        <div className="relative flex items-center gap-1.5 pl-1">
           {result.plates.length === 0 ? (
             <span className="text-xs font-medium text-text-muted">
               Sam gryf — brak dodatkowych talerzy
@@ -225,7 +225,7 @@ export function WorkoutPlateCalculatorModal({
                   }`}
                 >
                   <span className="text-xs font-bold leading-tight">{p.name}</span>
-                  <span className="mt-0.5 text-3xs opacity-80">{p.weightKg} kg</span>
+                  <span className="mt-0.5 text-3xs text-text-muted">{p.weightKg} kg</span>
                 </Button>
               );
             })}

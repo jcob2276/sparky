@@ -157,7 +157,7 @@ export function PersonalBestsCard({ summary }: PersonalBestsCardProps) {
               Ostatni PR: {summary.recentRecord.title}
             </span>
           </div>
-          <span className="text-3xs opacity-80">{summary.recentRecord.achievedAt}</span>
+          <span className="text-3xs text-text-muted">{summary.recentRecord.achievedAt}</span>
         </div>
       )}
 

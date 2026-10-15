@@ -75,7 +75,7 @@ export function updatePositionsWithQuotes<T extends JakubPortfolioData | Kondzio
 async function sync<T extends JakubPortfolioData | KondzioPortfolioData>(load: () => T, save: (data: T) => void): Promise<SyncPortfolioResult<T>> {
   const current = load();
   const tickers = current.positions.map(portfolioQuoteTicker);
-  const res = await invokeEdge('sync', { query: { service: 'quotes' }, body: { tickers, range: '1mo' } }) as unknown as {
+  const res = (await invokeEdge('sync', { query: { service: 'quotes' }, body: { tickers, range: '1mo' } })) as {
     ok: boolean; quotes?: Record<string, PortfolioQuote>; error?: string;
     rates?: SyncPortfolioResult['rates']; timestamp?: string;
   };

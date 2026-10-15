@@ -7,6 +7,8 @@
  * Przekształca zewnętrzne dane do zunifikowanego formatu Sparky.
  */
 
+import { getTodayWarsaw } from '../date';
+
 export interface ImportedSet {
   setNumber: number;
   weightKg: number;
@@ -236,7 +238,7 @@ export function mapHevyWorkoutsJson(hevyWorkouts: HevyWorkoutRaw[]): ImportedWor
   if (!Array.isArray(hevyWorkouts)) return [];
 
   return hevyWorkouts.map((hw) => {
-    const dateIso = hw.start_time ? hw.start_time.slice(0, 10) : new Date().toISOString().slice(0, 10);
+    const dateIso = hw.start_time ? hw.start_time.slice(0, 10) : getTodayWarsaw();
     const durationMinutes = hw.end_time && hw.start_time
       ? Math.round((new Date(hw.end_time).getTime() - new Date(hw.start_time).getTime()) / 60000)
       : undefined;

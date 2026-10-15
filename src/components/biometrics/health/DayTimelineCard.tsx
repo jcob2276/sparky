@@ -45,7 +45,7 @@ export function DayTimelineCard({ items, dateFormatted }: DayTimelineCardProps) 
   };
 
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-border-custom/50 bg-surface-1/90 p-5 shadow-lg backdrop-blur-xl">
+    <section className="relative overflow-hidden rounded-3xl border border-border-custom/50 bg-surface-1/90 p-5 shadow-lg">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Clock size={18} className="text-text-secondary" />
@@ -63,10 +63,10 @@ export function DayTimelineCard({ items, dateFormatted }: DayTimelineCardProps) 
           Brak zarejestrowanych aktywności ani snu w tym okresie.
         </div>
       ) : (
-        <div className="relative mt-5 space-y-4 pl-4 before:absolute before:bottom-2 before:left-[19px] before:top-2 before:w-[2px] before:bg-surface-3/60">
+        <div className="relative mt-5 space-y-4 pl-4 before:absolute before:bottom-2 before:left-5 before:top-2 before:w-0.5 before:bg-surface-3/60">
           {safeItems.map((item) => (
             <div key={item.id} className="relative flex items-start gap-3">
-              <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border-custom bg-surface-1 shadow-sm">
+              <div className="relative z-[var(--z-raised)] flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border-custom bg-surface-1 shadow-sm">
                 {getEventIcon(item.type)}
               </div>
 

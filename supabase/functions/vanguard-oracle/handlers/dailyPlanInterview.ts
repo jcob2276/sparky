@@ -17,11 +17,12 @@ export interface PlanInterviewResult {
 
 export async function handleDailyPlanInterview(
   req: Request,
-  body: any,
+  body: Record<string, unknown>,
   db: SupabaseClient,
 ): Promise<PlanInterviewResult> {
-  const { userId: scopeId } = await resolveUserScope(req, body.userId ?? null);
-  const userId = scopeId ?? body.userId;
+  const requestedUserId = typeof body.userId === "string" ? body.userId : null;
+  const { userId: scopeId } = await resolveUserScope(req, requestedUserId);
+  const userId = scopeId ?? requestedUserId;
   if (!userId) throw new Error("userId required");
 
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY") || "";
@@ -123,15 +124,18 @@ ODPOWIEDZ W POPRAWNYM FORMACIE JSON:
     : "Opowiedz mi, co chcesz dzisiaj osiągnąć — ułożymy plan.";
   const is_ready: boolean = Boolean(parsed.is_ready);
 
-  const rawSlots: any[] = Array.isArray(parsed.slots) ? parsed.slots : [];
-  const defaultCategories: Array<"cialo" | "duch" | "konto" | "general"> = ["cialo", "duch", "konto", "general", "general"];
+  const rawSlots = Array.isArray(parsed.slots) ? (parsed.slots as Array<Record<string, unknown>>) : [];
+  const defaultCategories: Array<PlanSlot["category"]> = ["cialo", "duch", "konto", "general", "general"];
 
   const slots: PlanSlot[] = [1, 2, 3, 4, 5].map(idx => {
-    const raw = rawSlots.find((s: any) => s.slot === idx) || currentSlots.find((s: any) => s.slot === idx);
+    const raw = rawSlots.find((s) => s.slot === idx) || currentSlots.find((s) => s.slot === idx);
     const cat = defaultCategories[idx - 1];
+    const category = (raw?.category === "cialo" || raw?.category === "duch" || raw?.category === "konto" || raw?.category === "general")
+      ? raw.category
+      : cat;
     return {
       slot: idx,
-      category: (raw?.category as any) || cat,
+      category,
       title: typeof raw?.title === "string" ? raw.title.trim() : "",
     };
   });

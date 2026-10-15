@@ -29,7 +29,7 @@ export function validateInvestmentAnalysis(content: string, finishReason: string
 export async function runInvestmentAi(req: Request): Promise<unknown> {
   const scope = await resolveUserScope(req, new URL(req.url).searchParams.get('userId'));
   if (!scope.userId) throw new Error('Unauthorized: zaloguj się, aby użyć analityka');
-  if (req.method !== 'POST') return new Response(JSON.stringify({ error: 'Użyj POST' }), { status: 405 });
+  if (req.method !== 'POST') throw new Error('Użyj POST');
   const rawText = await req.text();
   if (rawText.length > 24000) throw new Error('Pytanie jest zbyt długie');
   const body = JSON.parse(rawText);

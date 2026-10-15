@@ -1,5 +1,6 @@
 import type { PortfolioForecastModel, ScenarioType } from '../../../lib/investments/portfolioForecastService';
 import Button from '../../ui/Button';
+import { ControlInput } from '../../ui/ControlPrimitives';
 import { ScenarioConditionsBox } from './ScenarioConditionsBox';
 
 interface Props {
@@ -19,7 +20,7 @@ export function PortfolioScenarioCards({ model, selectedScenario, onSelectScenar
           <Button variant="ghost" size="sm" onClick={() => onSelectScenario(type)}>{scenario.label}</Button>
           <label className="block text-xs text-text-secondary">
             Założony zwrot (%)
-            <input type="number" min={-100} step="any" value={scenario.assumedReturnPct ?? ''}
+            <ControlInput type="number" min={-100} step="any" value={scenario.assumedReturnPct ?? ''}
               onChange={(event) => onAssumptionChange(type, event.target.value)}
               className="mt-1 w-full rounded-lg border border-border-custom bg-surface p-2 text-text-primary" />
           </label>

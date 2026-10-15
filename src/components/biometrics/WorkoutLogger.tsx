@@ -108,13 +108,12 @@ export default function WorkoutLogger({
           />
         ) : (
           <div className="flex justify-end -mb-2">
-            <button
-              type="button"
+            <Pressable
               onClick={() => logger.setPlyoSkipped(false)}
               className="inline-flex items-center gap-1.5 text-3xs font-bold text-text-muted hover:text-primary transition-colors cursor-pointer py-1 px-2.5 rounded-full border border-border-custom/40 bg-surface/50 hover:bg-surface-solid"
             >
               <Flame size={11} className="text-warning" /> + Dodaj Pliometrię (Wertykalne)
-            </button>
+            </Pressable>
           </div>
         )}
 
@@ -131,13 +130,12 @@ export default function WorkoutLogger({
               <Dumbbell size={12} className="text-text-muted" />
               <span className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted">Ćwiczenia</span>
             </div>
-            <button
-              type="button"
+            <Pressable
               onClick={() => setShowPresets(true)}
               className="flex items-center gap-1 text-3xs font-black uppercase tracking-wider text-text-secondary hover:text-primary transition-colors cursor-pointer"
             >
               <LayoutGrid size={11} className="text-primary" /> Zestawy
-            </button>
+            </Pressable>
           </div>
           {logger.exercises.map(ex => (
             <ExerciseCard

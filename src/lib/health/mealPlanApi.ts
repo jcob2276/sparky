@@ -18,7 +18,7 @@ export async function fetchMealPlanProducts(userId: string): Promise<MealPlanPro
   return readMealCatalog(refRes.data ?? [],libRes.data ?? []);
 }
 
-export async function fetchMealPlanState(userId: string, date: string): Promise<MealPlanState | null> {
+async function fetchMealPlanState(userId: string, date: string): Promise<MealPlanState | null> {
   const { data, error } = await supabase
     .from('nutrition_targets')
     .select('meal_plan')

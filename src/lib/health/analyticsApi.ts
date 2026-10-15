@@ -1,7 +1,7 @@
 import {supabase,invokeEdge} from '../supabase';
 import {ANALYTICS_DATASETS,chartDailySeries,validateAnalyticsQuery,type AnalyticsQuery,type HealthChartPreset} from '@vanguard/domain';
 
-export async function fetchAnalytics(userId:string,query:AnalyticsQuery) {
+async function fetchAnalytics(userId:string,query:AnalyticsQuery) {
   validateAnalyticsQuery(query);
   const response=await invokeEdge('vanguard-oracle',{body:{action:'analytics',user_id:userId,query}});
   if(!response.analytics) throw new Error('Nie udało się pobrać danych wykresu.');

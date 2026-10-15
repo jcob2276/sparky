@@ -170,7 +170,7 @@ export const NetEnergyCard: React.FC<NetEnergyCardProps> = ({
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
           <div
-            className={`h-full transition-all duration-500 ${
+            className={`h-full transition-all ${
               isDeficit ? 'bg-info' : expenditurePercentage > 105 ? 'bg-warning' : 'bg-success'
             }`}
             style={{ width: `${Math.min(100, expenditurePercentage)}%` }}
