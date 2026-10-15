@@ -35,7 +35,7 @@ const GoalSelector: React.FC<{
           className={`rounded-lg px-2 py-0.5 text-xs font-medium transition-colors ${
             isSelected
               ? 'bg-primary text-surface-1'
-              : 'bg-surface-2 text-secondary hover:text-primary'
+              : 'bg-surface-2 text-text-secondary hover:text-text-primary'
           }`}
         >
           {GOAL_LABELS[goal]}
@@ -48,13 +48,13 @@ const GoalSelector: React.FC<{
 const EnergyBreakdownGrid: React.FC<{ result: NetEnergyResult }> = ({ result }) => (
   <div className="grid grid-cols-2 gap-2 text-xs">
     <div className="rounded-lg border border-border-custom bg-surface-2/60 p-2.5">
-      <div className="flex items-center justify-between text-secondary">
-        <span className="flex items-center gap-1 font-medium text-primary">
+      <div className="flex items-center justify-between text-text-secondary">
+        <span className="flex items-center gap-1 font-medium text-text-primary">
           <Utensils className="h-3.5 w-3.5 text-success" /> Spożyte
         </span>
-        <span className="font-semibold text-primary">{result.consumed} kcal</span>
+        <span className="font-semibold text-text-primary">{result.consumed} kcal</span>
       </div>
-      <div className="mt-2 space-y-1 text-3xs text-secondary">
+      <div className="mt-2 space-y-1 text-3xs text-text-secondary">
         <div className="flex justify-between">
           <span>Termogeneza (TEF):</span>
           <span>+{result.tef} kcal</span>
@@ -63,13 +63,13 @@ const EnergyBreakdownGrid: React.FC<{ result: NetEnergyResult }> = ({ result }) 
     </div>
 
     <div className="rounded-lg border border-border-custom bg-surface-2/60 p-2.5">
-      <div className="flex items-center justify-between text-secondary">
-        <span className="flex items-center gap-1 font-medium text-primary">
+      <div className="flex items-center justify-between text-text-secondary">
+        <span className="flex items-center gap-1 font-medium text-text-primary">
           <Zap className="h-3.5 w-3.5 text-warning" /> Spalone (TDEE)
         </span>
-        <span className="font-semibold text-primary">{result.tdee} kcal</span>
+        <span className="font-semibold text-text-primary">{result.tdee} kcal</span>
       </div>
-      <div className="mt-2 space-y-1 text-3xs text-secondary">
+      <div className="mt-2 space-y-1 text-3xs text-text-secondary">
         <div className="flex justify-between">
           <span>BMR (spoczynek):</span>
           <span>{result.bmr} kcal</span>
@@ -118,8 +118,8 @@ export const NetEnergyCard: React.FC<NetEnergyCardProps> = ({
             <Flame className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-primary">Bilans Energetyczny Netto</h3>
-            <p className="text-xs text-secondary">Spożycie vs Wydatek Całkowity (TDEE)</p>
+            <h3 className="text-sm font-semibold text-text-primary">Bilans Energetyczny Netto</h3>
+            <p className="text-xs text-text-secondary">Spożycie vs Wydatek Całkowity (TDEE)</p>
           </div>
         </div>
         <GoalSelector targetGoal={targetGoal} onGoalChange={onGoalChange} />
@@ -128,7 +128,7 @@ export const NetEnergyCard: React.FC<NetEnergyCardProps> = ({
       {/* Main Net Metric Card */}
       <div className="rounded-xl bg-surface-2 p-3.5 flex items-center justify-between">
         <div className="space-y-0.5">
-          <p className="text-xs text-secondary">Bilans dobowy netto</p>
+          <p className="text-xs text-text-secondary">Bilans dobowy netto</p>
           <div className="flex items-baseline gap-2">
             <span
               className={`text-2xl font-bold tracking-tight ${
@@ -137,7 +137,7 @@ export const NetEnergyCard: React.FC<NetEnergyCardProps> = ({
             >
               {netSign} kcal
             </span>
-            <span className="text-xs font-medium text-secondary">
+            <span className="text-xs font-medium text-text-secondary">
               {result.status === 'deficit' ? 'Deficyt' : result.status === 'surplus' ? 'Nadwyżka' : 'Równowaga'}
             </span>
           </div>
@@ -145,7 +145,7 @@ export const NetEnergyCard: React.FC<NetEnergyCardProps> = ({
 
         {/* Weekly Trend Indicator */}
         <div className="text-right">
-          <p className="text-3xs text-muted flex items-center justify-end gap-1">
+          <p className="text-3xs text-text-muted flex items-center justify-end gap-1">
             {result.projectedWeeklyKgDelta < 0 ? (
               <TrendingDown className="h-3 w-3 text-info" />
             ) : (
@@ -153,7 +153,7 @@ export const NetEnergyCard: React.FC<NetEnergyCardProps> = ({
             )}
             Prognoza tyg.
           </p>
-          <p className="text-xs font-semibold text-primary mt-0.5">
+          <p className="text-xs font-semibold text-text-primary mt-0.5">
             {result.projectedWeeklyKgDelta > 0 ? `+${result.projectedWeeklyKgDelta}` : result.projectedWeeklyKgDelta} kg
           </p>
         </div>
@@ -164,9 +164,9 @@ export const NetEnergyCard: React.FC<NetEnergyCardProps> = ({
 
       {/* Energy Visual Progress Bar */}
       <div className="space-y-1.5">
-        <div className="flex justify-between text-xs text-secondary">
+        <div className="flex justify-between text-xs text-text-secondary">
           <span>Wykorzystanie zapotrzebowania</span>
-          <span className="font-medium text-primary">{expenditurePercentage}%</span>
+          <span className="font-medium text-text-primary">{expenditurePercentage}%</span>
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
           <div
@@ -179,7 +179,7 @@ export const NetEnergyCard: React.FC<NetEnergyCardProps> = ({
       </div>
 
       {/* Recommendation */}
-      <p className="text-xs leading-relaxed text-secondary border-t border-border-custom pt-2">
+      <p className="text-xs leading-relaxed text-text-secondary border-t border-border-custom pt-2">
         {result.recommendation}
       </p>
     </div>

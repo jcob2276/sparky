@@ -37,9 +37,12 @@ const DEFAULT_MUSCLE_GROUPS = [
   'Brzuch',
 ];
 
-export function computeMuscularCardioLoad(input: MuscularCardioLoadInput): MuscularCardioLoadResult {
-  const cardio = Math.max(0, Number(input.cardioLoad) || 0);
-  const muscular = Math.max(0, Number(input.strengthLoad) || 0);
+export function computeMuscularCardioLoad(
+  input: MuscularCardioLoadInput = { cardioLoad: 0, strengthLoad: 0 }
+): MuscularCardioLoadResult {
+  const safeInput = input || { cardioLoad: 0, strengthLoad: 0 };
+  const cardio = Math.max(0, Number(safeInput.cardioLoad) || 0);
+  const muscular = Math.max(0, Number(safeInput.strengthLoad) || 0);
 
   const total = cardio + muscular;
   let cardioPct = 50;
@@ -65,7 +68,7 @@ export function computeMuscularCardioLoad(input: MuscularCardioLoadInput): Muscu
   const muscleGroups: MuscleStatus[] = DEFAULT_MUSCLE_GROUPS.map((name) => {
     const key = name.toLowerCase();
     // Sprawdzamy czy partia miała ostatnio wysoki tonaż
-    const recentVolume = input.recentSessionsTonnage?.[key] ?? 0;
+    const recentVolume = safeInput.recentSessionsTonnage?.[key] ?? 0;
     let readiness = 95;
     if (recentVolume > 4000) {
       readiness = 40; // mocno zmęczone

@@ -17,6 +17,7 @@ function buildMuscleFatigueMap(
   muscleGroups: ReturnType<typeof computeMuscularCardioLoad>['muscleGroups']
 ): Record<string, number> {
   const map: Record<string, number> = {};
+  if (!Array.isArray(muscleGroups)) return map;
   for (const m of muscleGroups) {
     const fatigue = Math.max(0, Math.min(1, (100 - m.readinessPercentage) / 100));
     const n = (m.name || '').toLowerCase();

@@ -62,6 +62,20 @@ export function estimate1RM(weightKg: number, reps: number, rir = 0): number {
  * Analizuje progresję pojedynczego boju siłowego.
  */
 export function analyzeLiftProgression(config: LiftConfig): LiftProgressSummary {
+  if (!config) {
+    return {
+      key: 'bench_press',
+      name: 'Brak danych',
+      current1RM: 0,
+      allTime1RM: 0,
+      target1RM: 0,
+      progressPercentage: 0,
+      deltaVsPreviousPct: 0,
+      recommendedNextWeightKg: 0,
+      status: 'progressing',
+      historyCount: 0,
+    };
+  }
   const { key, name, target1RM, history } = config;
 
   if (!history || history.length === 0) {
@@ -70,10 +84,10 @@ export function analyzeLiftProgression(config: LiftConfig): LiftProgressSummary 
       name,
       current1RM: 0,
       allTime1RM: 0,
-      target1RM,
+      target1RM: target1RM || 0,
       progressPercentage: 0,
       deltaVsPreviousPct: 0,
-      recommendedNextWeightKg: Math.round(target1RM * 0.6),
+      recommendedNextWeightKg: Math.round((target1RM || 0) * 0.6),
       status: 'progressing',
       historyCount: 0,
     };
@@ -132,10 +146,11 @@ export function analyzeLiftProgression(config: LiftConfig): LiftProgressSummary 
  * Zbiorcze podsumowanie siły i stosunku do masy ciała (Big 3 Total).
  */
 export function summarizeStrengthProgression(
-  lifts: LiftConfig[],
+  lifts: LiftConfig[] = [],
   bodyWeightKg?: number
 ): OverallStrengthSummary {
-  const summaries = lifts.map(analyzeLiftProgression);
+  const safeLifts = Array.isArray(lifts) ? lifts : [];
+  const summaries = safeLifts.map(analyzeLiftProgression);
 
   const totalProgress = summaries.reduce((sum, l) => sum + l.progressPercentage, 0);
   const averageProgressPercentage = summaries.length > 0

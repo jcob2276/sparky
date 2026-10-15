@@ -13,6 +13,8 @@ interface SleepBankCardProps {
 }
 
 export function SleepBankCard({ data }: SleepBankCardProps) {
+  if (!data) return null;
+
   const isDebt = data.totalDebtMinutes < 0;
   const isSevere = data.status === 'severe_debt';
 

@@ -47,17 +47,17 @@ const getPlateHeightClass = (plate: number) => {
     case 25:
       return 'h-24 w-5';
     case 20:
-      return 'h-22 w-5';
+      return 'h-20 w-5';
     case 15:
-      return 'h-20 w-4.5';
+      return 'h-16 w-4';
     case 10:
-      return 'h-18 w-4.5';
-    case 5:
       return 'h-14 w-4';
+    case 5:
+      return 'h-12 w-4';
     case 2.5:
-      return 'h-12 w-3.5';
+      return 'h-10 w-3.5';
     case 1.25:
-      return 'h-10 w-3';
+      return 'h-8 w-3';
     default:
       return 'h-12 w-4';
   }

@@ -14,6 +14,8 @@ interface SleepConsistencyCardProps {
 }
 
 export function SleepConsistencyCard({ data }: SleepConsistencyCardProps) {
+  if (!data) return null;
+
   const getScoreColorClass = (score: number) => {
     if (score >= 85) return 'text-success';
     if (score >= 70) return 'text-primary';

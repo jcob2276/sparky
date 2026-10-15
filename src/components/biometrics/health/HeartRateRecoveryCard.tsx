@@ -40,8 +40,8 @@ export const HeartRateRecoveryCard: React.FC<HeartRateRecoveryCardProps> = ({
             <Activity className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-primary">Odzyskiwanie tętna (HRR)</h3>
-            <p className="text-xs text-secondary">
+            <h3 className="text-sm font-semibold text-text-primary">Odzyskiwanie tętna (HRR)</h3>
+            <p className="text-xs text-text-secondary">
               {workoutName ? `${workoutName} • Reaktywacja nerwu błędnego` : 'Spadek tętna po wysiłku (1m & 2m)'}
             </p>
           </div>
@@ -55,37 +55,37 @@ export const HeartRateRecoveryCard: React.FC<HeartRateRecoveryCardProps> = ({
       {/* Metrics Grid */}
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-lg bg-surface-2 p-3 text-center">
-          <p className="text-xs text-secondary flex items-center justify-center gap-1">
+          <p className="text-xs text-text-secondary flex items-center justify-center gap-1">
             <Heart className="h-3 w-3 text-danger" /> Szczytowe HR
           </p>
-          <p className="mt-1 text-base font-semibold text-primary">
+          <p className="mt-1 text-base font-semibold text-text-primary">
             {result.peakHeartRate > 0 ? `${result.peakHeartRate} bpm` : '—'}
           </p>
         </div>
 
         <div className="rounded-lg bg-surface-2 p-3 text-center">
-          <p className="text-xs text-secondary">Spadek 60s</p>
-          <p className={`mt-1 text-base font-semibold ${result.hrDrop60s ? style.text : 'text-primary'}`}>
+          <p className="text-xs text-text-secondary">Spadek 60s</p>
+          <p className={`mt-1 text-base font-semibold ${result.hrDrop60s ? style.text : 'text-text-primary'}`}>
             {result.hrDrop60s !== null ? `-${result.hrDrop60s} bpm` : '—'}
           </p>
-          <span className="text-3xs text-muted block mt-0.5">Norma &gt; 20 bpm</span>
+          <span className="text-3xs text-text-muted block mt-0.5">Norma &gt; 20 bpm</span>
         </div>
 
         <div className="rounded-lg bg-surface-2 p-3 text-center">
-          <p className="text-xs text-secondary">Spadek 120s</p>
-          <p className={`mt-1 text-base font-semibold ${result.hrDrop120s ? style.text : 'text-primary'}`}>
+          <p className="text-xs text-text-secondary">Spadek 120s</p>
+          <p className={`mt-1 text-base font-semibold ${result.hrDrop120s ? style.text : 'text-text-primary'}`}>
             {result.hrDrop120s !== null ? `-${result.hrDrop120s} bpm` : '—'}
           </p>
-          <span className="text-3xs text-muted block mt-0.5">Norma &gt; 35 bpm</span>
+          <span className="text-3xs text-text-muted block mt-0.5">Norma &gt; 35 bpm</span>
         </div>
       </div>
 
       {/* Visual Drop Bar */}
       {result.hrDrop60s !== null && (
         <div className="space-y-1">
-          <div className="flex justify-between text-xs text-secondary">
+          <div className="flex justify-between text-xs text-text-secondary">
             <span>Dynamika wyciszenia (60s)</span>
-            <span className="font-medium text-primary">{result.hrDrop60s} bpm</span>
+            <span className="font-medium text-text-primary">{result.hrDrop60s} bpm</span>
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-surface-2">
             <div
@@ -107,7 +107,7 @@ export const HeartRateRecoveryCard: React.FC<HeartRateRecoveryCardProps> = ({
       )}
 
       {/* Clinical Recommendation */}
-      <p className="text-xs leading-relaxed text-secondary border-t border-border-custom pt-2">
+      <p className="text-xs leading-relaxed text-text-secondary border-t border-border-custom pt-2">
         {result.recommendation}
       </p>
     </div>

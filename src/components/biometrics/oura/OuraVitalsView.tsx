@@ -96,7 +96,7 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
       <BiologicalAgeCard
         chronologicalAge={chronologicalAge ?? 30}
         vo2Max={data.garminVo2Max}
-        restingHeartRate={data.enhanced?.sleep_lowest_heart_rate ?? 50}
+        restingHeartRate={data.enhanced?.sleep_lowest_heart_rate ?? data.oura?.rhr_avg ?? null}
         hrvBaselineMs={data.enhanced?.sleep_average_hrv ?? data.oura?.hrv_avg}
         sleepDebtMinutes={sleepInsights.sleepDebtDays > 0 ? Math.abs(sleepInsights.sleepBalanceMinutes ?? 0) : 0}
         biologicalSex="male"

@@ -38,14 +38,20 @@ function formatDuration(seconds: number): string {
   return `${m}m ${s < 10 ? '0' : ''}${s}s`;
 }
 
+function getRelativeDateStr(daysAgo: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - daysAgo);
+  return d.toISOString().slice(0, 10);
+}
+
 const DEFAULT_STRENGTH_LIFTS: LiftConfig[] = [
   {
     key: 'bench_press',
     name: 'Wyciskanie na ławce',
     target1RM: 110,
     history: [
-      { date: '2026-10-01', weightKg: 85, reps: 6 },
-      { date: '2026-10-08', weightKg: 90, reps: 5 },
+      { date: getRelativeDateStr(14), weightKg: 85, reps: 6 },
+      { date: getRelativeDateStr(7), weightKg: 90, reps: 5 },
     ],
   },
   {
@@ -53,8 +59,8 @@ const DEFAULT_STRENGTH_LIFTS: LiftConfig[] = [
     name: 'Przysiad ze sztangą',
     target1RM: 140,
     history: [
-      { date: '2026-10-02', weightKg: 110, reps: 5 },
-      { date: '2026-10-09', weightKg: 115, reps: 5 },
+      { date: getRelativeDateStr(13), weightKg: 110, reps: 5 },
+      { date: getRelativeDateStr(6), weightKg: 115, reps: 5 },
     ],
   },
   {
@@ -62,8 +68,8 @@ const DEFAULT_STRENGTH_LIFTS: LiftConfig[] = [
     name: 'Martwy ciąg',
     target1RM: 170,
     history: [
-      { date: '2026-10-03', weightKg: 140, reps: 4 },
-      { date: '2026-10-10', weightKg: 145, reps: 4 },
+      { date: getRelativeDateStr(12), weightKg: 140, reps: 4 },
+      { date: getRelativeDateStr(5), weightKg: 145, reps: 4 },
     ],
   },
   {
@@ -71,17 +77,17 @@ const DEFAULT_STRENGTH_LIFTS: LiftConfig[] = [
     name: 'Podciąganie z ciężarem',
     target1RM: 35,
     history: [
-      { date: '2026-10-04', weightKg: 15, reps: 6 },
-      { date: '2026-10-11', weightKg: 17.5, reps: 5 },
+      { date: getRelativeDateStr(11), weightKg: 15, reps: 6 },
+      { date: getRelativeDateStr(4), weightKg: 17.5, reps: 5 },
     ],
   },
 ];
 
 const DEFAULT_STRENGTH_PBS: StrengthPB[] = [
-  { liftKey: 'bench_press', liftName: 'Wyciskanie leżąc', weightKg: 105, reps: 5, estimated1RM: 122.5, achievedAt: '2026-10-08' },
-  { liftKey: 'squat', liftName: 'Przysiad ze sztangą', weightKg: 135, reps: 5, estimated1RM: 157.5, achievedAt: '2026-10-09' },
-  { liftKey: 'deadlift', liftName: 'Martwy ciąg', weightKg: 165, reps: 4, estimated1RM: 187.0, achievedAt: '2026-10-10' },
-  { liftKey: 'pull_up', liftName: 'Podciąganie', weightKg: 17.5, reps: 5, estimated1RM: 20.4, achievedAt: '2026-10-11' },
+  { liftKey: 'bench_press', liftName: 'Wyciskanie leżąc', weightKg: 105, reps: 5, estimated1RM: 122.5, achievedAt: getRelativeDateStr(7) },
+  { liftKey: 'squat', liftName: 'Przysiad ze sztangą', weightKg: 135, reps: 5, estimated1RM: 157.5, achievedAt: getRelativeDateStr(6) },
+  { liftKey: 'deadlift', liftName: 'Martwy ciąg', weightKg: 165, reps: 4, estimated1RM: 187.0, achievedAt: getRelativeDateStr(5) },
+  { liftKey: 'pull_up', liftName: 'Podciąganie', weightKg: 17.5, reps: 5, estimated1RM: 20.4, achievedAt: getRelativeDateStr(4) },
 ];
 
 const HeartRateZonesSection: React.FC<{ zones: number[]; totalSeconds: number; dateStr?: string | null }> = ({

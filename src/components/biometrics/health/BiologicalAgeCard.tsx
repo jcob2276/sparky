@@ -44,8 +44,8 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
             <HeartPulse className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-primary">Wiek Biologiczny i Naczyniowy</h3>
-            <p className="text-xs text-secondary">Szacunek na bazie VO2 Max, RHR, HRV i snu</p>
+            <h3 className="text-sm font-semibold text-text-primary">Wiek Biologiczny i Naczyniowy</h3>
+            <p className="text-xs text-text-secondary">Szacunek na bazie VO2 Max, RHR, HRV i snu</p>
           </div>
         </div>
 
@@ -54,7 +54,7 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
             isYounger
               ? 'bg-success/10 text-success border-success/30'
               : result.status === 'optimal'
-              ? 'bg-surface-2 text-primary border-border-custom'
+              ? 'bg-surface-2 text-text-primary border-border-custom'
               : 'bg-warning/10 text-warning border-warning/30'
           }`}
         >
@@ -66,15 +66,15 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
       {/* Hero Metric Comparison */}
       <div className="grid grid-cols-3 gap-2 rounded-xl bg-surface-2 p-3 text-center">
         <div>
-          <p className="text-3xs text-secondary">Wiek metrykalny</p>
-          <p className="mt-1 text-xl font-bold text-primary">{result.chronologicalAge} <span className="text-xs font-normal">lat</span></p>
+          <p className="text-3xs text-text-secondary">Wiek metrykalny</p>
+          <p className="mt-1 text-xl font-bold text-text-primary">{result.chronologicalAge} <span className="text-xs font-normal">lat</span></p>
         </div>
 
         <div className="border-x border-border-custom">
-          <p className="text-3xs text-secondary">Wiek biologiczny</p>
+          <p className="text-3xs text-text-secondary">Wiek biologiczny</p>
           <p
             className={`mt-1 text-xl font-bold ${
-              isYounger ? 'text-success' : result.ageDelta > 2 ? 'text-warning' : 'text-primary'
+              isYounger ? 'text-success' : result.ageDelta > 2 ? 'text-warning' : 'text-text-primary'
             }`}
           >
             {result.biologicalAge} <span className="text-xs font-normal">lat</span>
@@ -82,10 +82,10 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
         </div>
 
         <div>
-          <p className="text-3xs text-secondary">Różnica wieku</p>
+          <p className="text-3xs text-text-secondary">Różnica wieku</p>
           <p
             className={`mt-1 text-xl font-bold ${
-              isYounger ? 'text-success' : result.ageDelta > 0 ? 'text-warning' : 'text-primary'
+              isYounger ? 'text-success' : result.ageDelta > 0 ? 'text-warning' : 'text-text-primary'
             }`}
           >
             {deltaFormatted}
@@ -96,7 +96,7 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
       {/* Biomarker Factors List */}
       {result.factors.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-secondary">Czynniki kształtujące profil:</p>
+          <p className="text-xs font-medium text-text-secondary">Czynniki kształtujące profil:</p>
           <div className="space-y-1.5">
             {result.factors.map((factor) => {
               const isPositive = factor.status === 'positive';
@@ -113,14 +113,14 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
                     ) : isNegative ? (
                       <ShieldAlert className="h-3.5 w-3.5 text-warning shrink-0" />
                     ) : (
-                      <MinusCircle className="h-3.5 w-3.5 text-muted shrink-0" />
+                      <MinusCircle className="h-3.5 w-3.5 text-text-muted shrink-0" />
                     )}
-                    <span className="text-primary font-medium">{factor.factor}</span>
+                    <span className="text-text-primary font-medium">{factor.factor}</span>
                   </div>
 
                   <span
                     className={`font-semibold ${
-                      isPositive ? 'text-success' : isNegative ? 'text-warning' : 'text-secondary'
+                      isPositive ? 'text-success' : isNegative ? 'text-warning' : 'text-text-secondary'
                     }`}
                   >
                     {factor.yearsDelta > 0 ? `+${factor.yearsDelta}` : factor.yearsDelta} l.
@@ -133,7 +133,7 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
       )}
 
       {/* Summary */}
-      <p className="text-xs leading-relaxed text-secondary border-t border-border-custom pt-2">
+      <p className="text-xs leading-relaxed text-text-secondary border-t border-border-custom pt-2">
         {result.summary}
       </p>
     </div>

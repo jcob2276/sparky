@@ -34,8 +34,8 @@ export const BedtimeTargetCard: React.FC<BedtimeTargetCardProps> = ({
             <Moon className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-primary">Cel Pory Snu i Latencja</h3>
-            <p className="text-xs text-secondary">Kompensacja wydajności snu i czasu zasypiania</p>
+            <h3 className="text-sm font-semibold text-text-primary">Cel Pory Snu i Latencja</h3>
+            <p className="text-xs text-text-secondary">Kompensacja wydajności snu i czasu zasypiania</p>
           </div>
         </div>
 
@@ -49,42 +49,42 @@ export const BedtimeTargetCard: React.FC<BedtimeTargetCardProps> = ({
       <div className="grid grid-cols-2 gap-2">
         {/* Recommended Bedtime */}
         <div className="rounded-xl bg-surface-2 p-3 space-y-1">
-          <p className="text-xs text-secondary flex items-center gap-1">
+          <p className="text-xs text-text-secondary flex items-center gap-1">
             <Bed className="h-3.5 w-3.5 text-info" /> Do łóżka
           </p>
-          <p className="text-2xl font-bold text-primary tracking-tight">{result.recommendedBedtime}</p>
-          <p className="text-3xs text-muted">Czas w łóżku: {result.inBedDurationFormatted}</p>
+          <p className="text-2xl font-bold text-text-primary tracking-tight">{result.recommendedBedtime}</p>
+          <p className="text-3xs text-text-muted">Czas w łóżku: {result.inBedDurationFormatted}</p>
         </div>
 
         {/* Wind-down Phase */}
         <div className="rounded-xl bg-surface-2 p-3 space-y-1">
-          <p className="text-xs text-secondary flex items-center gap-1">
+          <p className="text-xs text-text-secondary flex items-center gap-1">
             <Wind className="h-3.5 w-3.5 text-warning" /> Start wyciszenia
           </p>
           <p className="text-2xl font-bold text-warning tracking-tight">{result.recommendedWindDownTime}</p>
-          <p className="text-3xs text-muted">45m przed snem (mniej światła)</p>
+          <p className="text-3xs text-text-muted">45m przed snem (mniej światła)</p>
         </div>
       </div>
 
       {/* Metrics Row */}
       <div className="grid grid-cols-3 gap-2 text-center text-xs">
         <div className="rounded-lg border border-border-custom bg-surface-2/40 p-2">
-          <span className="text-3xs text-secondary block">Docelowa pobudka</span>
-          <span className="font-semibold text-primary flex items-center justify-center gap-1 mt-0.5">
-            <Clock className="h-3 w-3 text-secondary" /> {result.targetWakeTime}
+          <span className="text-3xs text-text-secondary block">Docelowa pobudka</span>
+          <span className="font-semibold text-text-primary flex items-center justify-center gap-1 mt-0.5">
+            <Clock className="h-3 w-3 text-text-secondary" /> {result.targetWakeTime}
           </span>
         </div>
 
         <div className="rounded-lg border border-border-custom bg-surface-2/40 p-2">
-          <span className="text-3xs text-secondary block">Czysty sen</span>
-          <span className="font-semibold text-primary mt-0.5 block">
+          <span className="text-3xs text-text-secondary block">Czysty sen</span>
+          <span className="font-semibold text-text-primary mt-0.5 block">
             {Math.floor(result.targetSleepMinutes / 60)}h {result.targetSleepMinutes % 60 > 0 ? `${result.targetSleepMinutes % 60}m` : ''}
           </span>
         </div>
 
         <div className="rounded-lg border border-border-custom bg-surface-2/40 p-2">
-          <span className="text-3xs text-secondary block">Śr. latencja</span>
-          <span className="font-semibold text-primary mt-0.5 block">
+          <span className="text-3xs text-text-secondary block">Śr. latencja</span>
+          <span className="font-semibold text-text-primary mt-0.5 block">
             {result.latencyUsed} min
           </span>
         </div>
@@ -92,7 +92,7 @@ export const BedtimeTargetCard: React.FC<BedtimeTargetCardProps> = ({
 
       {/* Latency insight tag */}
       <div className="flex items-center justify-between text-xs rounded-lg bg-surface-2/60 px-3 py-1.5 border border-border-custom">
-        <span className="text-secondary">Ocena zasypiania:</span>
+        <span className="text-text-secondary">Ocena zasypiania:</span>
         <span
           className={`font-medium ${
             result.latencyAssessment === 'optimal'
@@ -107,7 +107,7 @@ export const BedtimeTargetCard: React.FC<BedtimeTargetCardProps> = ({
       </div>
 
       {/* Recommendation */}
-      <p className="text-xs leading-relaxed text-secondary border-t border-border-custom pt-2">
+      <p className="text-xs leading-relaxed text-text-secondary border-t border-border-custom pt-2">
         {result.recommendation}
       </p>
     </div>

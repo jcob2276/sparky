@@ -38,17 +38,13 @@ function getSleepDiagnosis(readinessScore: number) {
       status: 'optimal' as const,
     };
   }
-  if (readinessScore >= 65) {
-    return {
-      title: 'Średnia regeneracja — umiarkowany wysiłek',
-      desc: 'Wynik Oury znajduje się w środkowym zakresie. Sprawdź wspólną decyzję treningową i swoje odczucia przed sesją.',
-      status: 'moderate' as const,
-    };
-  }
+  const isModerate = readinessScore >= 65;
   return {
-    title: readinessScore > 0 ? 'Niższy wynik gotowości' : 'Brak aktualnego wyniku gotowości',
-    desc: 'Sam wskaźnik nie ustala przyczyny zmęczenia. Brak danych nie potwierdza gotowości do zwiększenia obciążenia.',
-    status: 'low' as const,
+    title: isModerate ? 'Średnia regeneracja — umiarkowany wysiłek' : readinessScore > 0 ? 'Niższy wynik gotowości' : 'Brak aktualnego wyniku gotowości',
+    desc: isModerate
+      ? 'Wynik Oury znajduje się w środkowym zakresie. Sprawdź wspólną decyzję treningową i swoje odczucia przed sesją.'
+      : 'Sam wskaźnik nie ustala przyczyny zmęczenia. Brak danych nie potwierdza gotowości do zwiększenia obciążenia.',
+    status: isModerate ? ('moderate' as const) : ('low' as const),
   };
 }
 
@@ -61,48 +57,50 @@ function formatTimeHHMM(isoOrTimeString?: string | null, fallback = '07:00'): st
     }
   }
   const match = isoOrTimeString.match(/(\d{1,2}):(\d{2})/);
-  if (match) {
-    const h = Math.min(23, Math.max(0, parseInt(match[1], 10)));
-    const m = Math.min(59, Math.max(0, parseInt(match[2], 10)));
-    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-  }
-  return fallback;
+  if (!match) return fallback;
+  const h = Math.min(23, Math.max(0, parseInt(match[1], 10)));
+  const m = Math.min(59, Math.max(0, parseInt(match[2], 10)));
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+function getDateOffset(baseDate: string, daysAgo: number): string {
+  const d = new Date(`${baseDate}T12:00:00`);
+  if (isNaN(d.getTime())) return baseDate;
+  d.setDate(d.getDate() - daysAgo);
+  return d.toISOString().slice(0, 10);
 }
 
 function buildDefaultSleepRecords(
+  baseDate: string,
   bedtimeStart?: string | null,
   bedtimeEnd?: string | null
 ): DailySleepRecord[] {
-  return [
-    {
-      date: '2026-10-08',
-      bedtime: formatTimeHHMM(bedtimeStart, '23:10'),
-      wakeTime: formatTimeHHMM(bedtimeEnd, '07:05'),
-      isFreeDay: false,
-    },
-    { date: '2026-10-09', bedtime: '23:05', wakeTime: '07:10', isFreeDay: false },
-    { date: '2026-10-10', bedtime: '23:45', wakeTime: '07:50', isFreeDay: true },
-    { date: '2026-10-11', bedtime: '23:30', wakeTime: '07:40', isFreeDay: true },
-    { date: '2026-10-12', bedtime: '23:15', wakeTime: '07:05', isFreeDay: false },
-    { date: '2026-10-13', bedtime: '23:00', wakeTime: '06:55', isFreeDay: false },
-    { date: '2026-10-14', bedtime: '23:10', wakeTime: '07:00', isFreeDay: false },
+  const offsets = [6, 5, 4, 3, 2, 1, 0];
+  const defaults = [
+    { bed: '23:10', wake: '07:05' },
+    { bed: '23:05', wake: '07:10' },
+    { bed: '23:45', wake: '07:50' },
+    { bed: '23:30', wake: '07:40' },
+    { bed: '23:15', wake: '07:05' },
+    { bed: '23:00', wake: '06:55' },
+    { bed: formatTimeHHMM(bedtimeStart, '23:10'), wake: formatTimeHHMM(bedtimeEnd, '07:00') },
   ];
+  return offsets.map((ago, i) => {
+    const date = getDateOffset(baseDate, ago);
+    const d = new Date(`${date}T12:00:00`);
+    const isFreeDay = !isNaN(d.getTime()) && (d.getDay() === 0 || d.getDay() === 6);
+    return { date, bedtime: defaults[i].bed, wakeTime: defaults[i].wake, isFreeDay };
+  });
 }
 
-function buildDefaultSleepBankInputs(totalSleepMinutes: number): SleepBankDayInput[] {
-  return [
-    { date: '2026-10-08', sleepDurationMinutes: 440, sleepNeedMinutes: 480 },
-    { date: '2026-10-09', sleepDurationMinutes: 430, sleepNeedMinutes: 480 },
-    { date: '2026-10-10', sleepDurationMinutes: 510, sleepNeedMinutes: 480, napMinutes: 20 },
-    { date: '2026-10-11', sleepDurationMinutes: 490, sleepNeedMinutes: 480 },
-    { date: '2026-10-12', sleepDurationMinutes: 420, sleepNeedMinutes: 480 },
-    { date: '2026-10-13', sleepDurationMinutes: 450, sleepNeedMinutes: 480 },
-    {
-      date: '2026-10-14',
-      sleepDurationMinutes: totalSleepMinutes > 0 ? totalSleepMinutes : 440,
-      sleepNeedMinutes: 465,
-    },
-  ];
+function buildDefaultSleepBankInputs(baseDate: string, totalSleepMinutes: number): SleepBankDayInput[] {
+  const offsets = [6, 5, 4, 3, 2, 1, 0];
+  const durations = [440, 430, 510, 490, 420, 450, totalSleepMinutes > 0 ? totalSleepMinutes : 440];
+  return offsets.map((ago, i) => ({
+    date: getDateOffset(baseDate, ago),
+    sleepDurationMinutes: durations[i],
+    sleepNeedMinutes: i === 6 ? 465 : 480,
+  }));
 }
 
 function extractSleepRecords(data: OuraHealthHubData): DailySleepRecord[] {
@@ -111,11 +109,12 @@ function extractSleepRecords(data: OuraHealthHubData): DailySleepRecord[] {
       const bed = formatTimeHHMM(day.bedtime_start, '23:00');
       const wake = formatTimeHHMM(day.bedtime_end, '07:00');
       const d = new Date(`${day.date}T12:00:00`);
-      const isFreeDay = d.getDay() === 0 || d.getDay() === 6;
+      const isFreeDay = !isNaN(d.getTime()) && (d.getDay() === 0 || d.getDay() === 6);
       return { date: day.date, bedtime: bed, wakeTime: wake, isFreeDay };
     });
   }
-  return buildDefaultSleepRecords(data.enhanced?.bedtime_start, data.enhanced?.bedtime_end);
+  const baseDate = data.date || new Date().toISOString().slice(0, 10);
+  return buildDefaultSleepRecords(baseDate, data.enhanced?.bedtime_start, data.enhanced?.bedtime_end);
 }
 
 function extractSleepBankInputs(data: OuraHealthHubData, totalSleepMinutes: number): SleepBankDayInput[] {
@@ -126,7 +125,8 @@ function extractSleepBankInputs(data: OuraHealthHubData, totalSleepMinutes: numb
       sleepNeedMinutes: 480,
     }));
   }
-  return buildDefaultSleepBankInputs(totalSleepMinutes);
+  const baseDate = data.date || new Date().toISOString().slice(0, 10);
+  return buildDefaultSleepBankInputs(baseDate, totalSleepMinutes);
 }
 
 export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
