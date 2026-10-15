@@ -272,9 +272,9 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
 
       {/* Odzyskiwanie tętna po wysiłku HRR (Bevel / ACSM Clinical) */}
       <HeartRateRecoveryCard
-        peakHeartRate={latestRun?.hr_max ?? (latestRun?.hr_avg ? latestRun.hr_avg + 25 : null)}
-        heartRateAt60s={latestRun?.hr_avg ? Math.max(60, latestRun.hr_avg - 4) : null}
-        workoutName={latestRun?.name ?? undefined}
+        peakHeartRate={hasRunTelemetry ? (latestRun?.hr_max ?? latestRun?.average_heartrate ?? null) : null}
+        heartRateAt60s={null}
+        workoutName={hasRunTelemetry ? (latestRun?.name ?? undefined) : undefined}
       />
 
       <HeartRateZonesSection zones={zones} totalSeconds={totalSeconds} dateStr={data.date} />

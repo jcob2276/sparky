@@ -23,6 +23,11 @@ interface StrengthProgressionCardProps {
 export function StrengthProgressionCard({ summary, onSelectLift }: StrengthProgressionCardProps) {
   const [selectedLiftForCalc, setSelectedLiftForCalc] = useState<LiftProgressSummary | null>(null);
 
+  const lifts = summary?.lifts ?? [];
+  const bigThreeTotal = summary?.bigThreeTotal1RM ?? 0;
+  const avgProgress = summary?.averageProgressPercentage ?? 0;
+  const totalRecords = summary?.totalRecordsAchieved ?? 0;
+
   const getStatusBadge = (lift: LiftProgressSummary) => {
     switch (lift.status) {
       case 'target_reached':
@@ -61,16 +66,16 @@ export function StrengthProgressionCard({ summary, onSelectLift }: StrengthProgr
             </div>
           </div>
 
-          {summary.bigThreeTotal1RM > 0 && (
+          {bigThreeTotal > 0 && (
             <div className="text-right">
               <span className="text-3xs font-semibold uppercase tracking-wider text-text-muted">
                 Big 3 Total
               </span>
               <div className="flex items-baseline justify-end gap-1">
                 <span className="text-base font-bold tracking-tight text-text-primary">
-                  {summary.bigThreeTotal1RM} kg
+                  {bigThreeTotal} kg
                 </span>
-                {summary.relativeStrengthRatio && (
+                {summary?.relativeStrengthRatio && (
                   <span className="text-3xs font-bold text-primary">
                     ({summary.relativeStrengthRatio}x BW)
                   </span>
@@ -82,7 +87,7 @@ export function StrengthProgressionCard({ summary, onSelectLift }: StrengthProgr
 
         {/* Lista głównych bojów */}
         <div className="space-y-3">
-          {summary.lifts.map((lift) => (
+          {lifts.map((lift) => (
             <div
               key={lift.key}
               className="rounded-xl border border-border-custom/40 bg-surface-2/30 p-3 transition-colors hover:border-border-custom"
@@ -141,11 +146,11 @@ export function StrengthProgressionCard({ summary, onSelectLift }: StrengthProgr
           <div className="flex items-center gap-1.5">
             <Sparkles size={13} className="text-primary" />
             <span>
-              Średni postęp celów siłowych: <strong>{summary.averageProgressPercentage}%</strong>
+              Średni postęp celów siłowych: <strong>{avgProgress}%</strong>
             </span>
           </div>
           <span className="text-3xs font-semibold text-text-muted">
-            {summary.totalRecordsAchieved} aktualnych rekordów (PR)
+            {totalRecords} aktualnych rekordów (PR)
           </span>
         </div>
       </Card>

@@ -39,7 +39,7 @@ export function StressEnergyBankCard({
     },
   };
 
-  const currentTheme = stressColorMap[stress.category];
+  const currentTheme = stressColorMap[stress.category] || stressColorMap.med;
 
   let batteryColorClass = 'bg-success';
   if (energyBank < 30) {
@@ -113,9 +113,9 @@ export function StressEnergyBankCard({
         <div className="relative h-3.5 w-full overflow-hidden rounded-full bg-surface-3/50 p-0.5">
           <div
             className={`h-full rounded-full transition-all ${batteryColorClass}`}
-            style={{ width: `${energyBank}%` }}
+            style={{ width: `${Math.max(0, Math.min(100, energyBank))}%` }}
             role="progressbar"
-            aria-valuenow={energyBank}
+            aria-valuenow={Math.max(0, Math.min(100, energyBank))}
             aria-valuemin={0}
             aria-valuemax={100}
           />

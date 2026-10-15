@@ -17,39 +17,92 @@ interface CaffeineCutoffCardProps {
   fueling?: DynamicFuelingResult | null;
 }
 
-export function CaffeineCutoffCard({ caffeine, fueling }: CaffeineCutoffCardProps) {
-  const isCutoffPassed = caffeine.status === 'cutoff_passed';
-  const isBedtimeWarning = caffeine.status === 'bedtime_warning';
-  const isApproaching = caffeine.status === 'approaching_cutoff';
-
-  const getStatusBadge = () => {
-    if (isBedtimeWarning) {
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full border border-danger/40 bg-danger/10 px-2 py-0.5 text-3xs font-semibold uppercase tracking-wider text-danger">
-          <ShieldAlert size={10} /> Ryzyko dla fazy Deep
-        </span>
-      );
-    }
-    if (isCutoffPassed) {
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-3xs font-semibold uppercase tracking-wider text-warning">
-          <Moon size={10} /> Cutoff minął
-        </span>
-      );
-    }
-    if (isApproaching) {
-      return (
-        <span className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-3xs font-semibold uppercase tracking-wider text-warning">
-          Ostatnia szansa ({caffeine.minutesUntilCutoff} min)
-        </span>
-      );
-    }
+function CaffeineStatusBadge({
+  status,
+  minutesUntilCutoff,
+}: {
+  status: CaffeineCutoffResult['status'];
+  minutesUntilCutoff: number;
+}) {
+  if (status === 'bedtime_warning') {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/10 px-2 py-0.5 text-3xs font-semibold uppercase tracking-wider text-success">
-        <CheckCircle2 size={10} /> Bezpieczne okno
+      <span className="inline-flex items-center gap-1 rounded-full border border-danger/40 bg-danger/10 px-2 py-0.5 text-3xs font-semibold uppercase tracking-wider text-danger">
+        <ShieldAlert size={10} /> Ryzyko dla fazy Deep
       </span>
     );
-  };
+  }
+  if (status === 'cutoff_passed') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-3xs font-semibold uppercase tracking-wider text-warning">
+        <Moon size={10} /> Cutoff minął
+      </span>
+    );
+  }
+  if (status === 'approaching_cutoff') {
+    return (
+      <span className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-3xs font-semibold uppercase tracking-wider text-warning">
+        Ostatnia szansa ({minutesUntilCutoff} min)
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-success/40 bg-success/10 px-2 py-0.5 text-3xs font-semibold uppercase tracking-wider text-success">
+      <CheckCircle2 size={10} /> Bezpieczne okno
+    </span>
+  );
+}
+
+function FuelingSection({ fueling }: { fueling: DynamicFuelingResult }) {
+  return (
+    <div className="border-t border-border-custom/30 pt-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Flame size={14} className="text-warning" />
+          <span className="text-2xs font-semibold uppercase tracking-wider text-text-muted">
+            Dynamiczne Paliwo (Fueling Target)
+          </span>
+        </div>
+        <span className="text-3xs font-bold text-text-secondary">
+          {fueling.fuelingPercentage}% celu
+        </span>
+      </div>
+
+      <div className="space-y-1.5">
+        <div className="flex items-baseline justify-between text-xs">
+          <span className="font-semibold text-text-primary">
+            {fueling.consumedCalories} / {fueling.dynamicTargetCalories} kcal
+          </span>
+          <span
+            className={`text-2xs font-medium ${
+              fueling.remainingCalories >= 0 ? 'text-success' : 'text-warning'
+            }`}
+          >
+            {fueling.remainingCalories >= 0
+              ? `Pozostało ${fueling.remainingCalories} kcal`
+              : `Nadwyżka +${Math.abs(fueling.remainingCalories)} kcal`}
+          </span>
+        </div>
+
+        {/* Pasek postępu */}
+        <div className="h-2 w-full overflow-hidden rounded-full bg-surface-3">
+          <div
+            className="h-full rounded-full bg-warning transition-all"
+            style={{ width: `${Math.min(100, fueling.fuelingPercentage)}%` }}
+          />
+        </div>
+
+        <div className="flex justify-between text-3xs text-text-muted">
+          <span>Baza: {fueling.burnBreakdown.base} kcal</span>
+          <span>Aktywny wydatek: +{fueling.burnBreakdown.active} kcal</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function CaffeineCutoffCard({ caffeine, fueling }: CaffeineCutoffCardProps) {
+  if (!caffeine) return null;
+  const isBedtimeWarning = caffeine.status === 'bedtime_warning';
 
   return (
     <Card className="space-y-4 p-4 text-text-primary">
@@ -64,7 +117,10 @@ export function CaffeineCutoffCard({ caffeine, fueling }: CaffeineCutoffCardProp
             <p className="text-3xs text-text-muted">Optymalizacja snu i wydatku energetycznego</p>
           </div>
         </div>
-        {getStatusBadge()}
+        <CaffeineStatusBadge
+          status={caffeine.status}
+          minutesUntilCutoff={caffeine.minutesUntilCutoff}
+        />
       </div>
 
       {/* Grid: Caffeine Cutoff & Bedtime active */}
@@ -82,7 +138,7 @@ export function CaffeineCutoffCard({ caffeine, fueling }: CaffeineCutoffCardProp
           </div>
           <span className="mt-1 block text-3xs text-text-secondary">
             {caffeine.minutesUntilCutoff > 0
-              ? `Za ${Math.floor(caffeine.minutesUntilCutoff / 60)}h ${caffeine.minutesUntilCutoff % 60}m`
+              ? `Za ${Math.floor(caffeine.minutesUntilCutoff / 60) > 0 ? `${Math.floor(caffeine.minutesUntilCutoff / 60)}h ` : ''}${caffeine.minutesUntilCutoff % 60}m`
               : 'Zalecana woda / zioła'}
           </span>
         </div>
@@ -129,51 +185,7 @@ export function CaffeineCutoffCard({ caffeine, fueling }: CaffeineCutoffCardProp
       </div>
 
       {/* Fueling Energy Section (if available) */}
-      {fueling && (
-        <div className="border-t border-border-custom/30 pt-3">
-          <div className="mb-2 flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Flame size={14} className="text-warning" />
-              <span className="text-2xs font-semibold uppercase tracking-wider text-text-muted">
-                Dynamiczne Paliwo (Fueling Target)
-              </span>
-            </div>
-            <span className="text-3xs font-bold text-text-secondary">
-              {fueling.fuelingPercentage}% celu
-            </span>
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-baseline justify-between text-xs">
-              <span className="font-semibold text-text-primary">
-                {fueling.consumedCalories} / {fueling.dynamicTargetCalories} kcal
-              </span>
-              <span
-                className={`text-2xs font-medium ${
-                  fueling.remainingCalories >= 0 ? 'text-success' : 'text-warning'
-                }`}
-              >
-                {fueling.remainingCalories >= 0
-                  ? `Pozostało ${fueling.remainingCalories} kcal`
-                  : `Nadwyżka +${Math.abs(fueling.remainingCalories)} kcal`}
-              </span>
-            </div>
-
-            {/* Pasek postępu */}
-            <div className="h-2 w-full overflow-hidden rounded-full bg-surface-3">
-              <div
-                className="h-full rounded-full bg-warning transition-all"
-                style={{ width: `${Math.min(100, fueling.fuelingPercentage)}%` }}
-              />
-            </div>
-
-            <div className="flex justify-between text-3xs text-text-muted">
-              <span>Baza: {fueling.burnBreakdown.base} kcal</span>
-              <span>Aktywny wydatek: +{fueling.burnBreakdown.active} kcal</span>
-            </div>
-          </div>
-        </div>
-      )}
+      {fueling && <FuelingSection fueling={fueling} />}
     </Card>
   );
 }

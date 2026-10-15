@@ -12,6 +12,8 @@ interface DayTimelineCardProps {
 }
 
 export function DayTimelineCard({ items, dateFormatted }: DayTimelineCardProps) {
+  const safeItems = Array.isArray(items) ? items : [];
+
   const getEventIcon = (type: DayTimelineItem['type']) => {
     switch (type) {
       case 'sleep':
@@ -56,13 +58,13 @@ export function DayTimelineCard({ items, dateFormatted }: DayTimelineCardProps) 
         )}
       </div>
 
-      {items.length === 0 ? (
+      {safeItems.length === 0 ? (
         <div className="my-6 rounded-2xl border border-border-custom/30 bg-surface-2/30 p-6 text-center text-xs text-text-muted">
           Brak zarejestrowanych aktywności ani snu w tym okresie.
         </div>
       ) : (
         <div className="relative mt-5 space-y-4 pl-4 before:absolute before:bottom-2 before:left-[19px] before:top-2 before:w-[2px] before:bg-surface-3/60">
-          {items.map((item) => (
+          {safeItems.map((item) => (
             <div key={item.id} className="relative flex items-start gap-3">
               <div className="relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border-custom bg-surface-1 shadow-sm">
                 {getEventIcon(item.type)}

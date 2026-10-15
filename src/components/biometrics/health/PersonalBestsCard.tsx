@@ -125,6 +125,11 @@ function BiometricsPbGrid({ items }: { items: PersonalBestsSummary['biometrics']
 export function PersonalBestsCard({ summary }: PersonalBestsCardProps) {
   const [activeTab, setActiveTab] = useState<TabKey>('running');
 
+  const running = summary?.running ?? [];
+  const strength = summary?.strength ?? [];
+  const biometrics = summary?.biometrics ?? [];
+  const totalCount = summary?.totalRecordsCount ?? (running.length + strength.length + biometrics.length);
+
   return (
     <Card className="space-y-4 p-4 text-text-primary">
       {/* Nagłówek */}
@@ -139,12 +144,12 @@ export function PersonalBestsCard({ summary }: PersonalBestsCardProps) {
           </div>
         </div>
         <span className="inline-flex items-center gap-1 rounded-full border border-warning/40 bg-warning/10 px-2 py-0.5 text-3xs font-semibold uppercase tracking-wider text-warning">
-          <Award size={10} /> {summary.totalRecordsCount} rekordów
+          <Award size={10} /> {totalCount} rekordów
         </span>
       </div>
 
       {/* Banner ostatniego rekordu */}
-      {summary.recentRecord && (
+      {summary?.recentRecord && (
         <div className="flex items-center justify-between rounded-xl border border-warning/30 bg-warning/10 p-2.5 text-xs text-warning">
           <div className="flex items-center gap-2">
             <Flame size={14} className="shrink-0 text-warning" />
@@ -164,7 +169,7 @@ export function PersonalBestsCard({ summary }: PersonalBestsCardProps) {
           onClick={() => setActiveTab('running')}
           className="!h-7 !px-2.5 !text-3xs"
         >
-          Bieganie ({summary.running.length})
+          Bieganie ({running.length})
         </Button>
         <Button
           variant={activeTab === 'strength' ? 'primary' : 'ghost'}
@@ -172,7 +177,7 @@ export function PersonalBestsCard({ summary }: PersonalBestsCardProps) {
           onClick={() => setActiveTab('strength')}
           className="!h-7 !px-2.5 !text-3xs"
         >
-          Siła ({summary.strength.length})
+          Siła ({strength.length})
         </Button>
         <Button
           variant={activeTab === 'biometrics' ? 'primary' : 'ghost'}
@@ -180,15 +185,15 @@ export function PersonalBestsCard({ summary }: PersonalBestsCardProps) {
           onClick={() => setActiveTab('biometrics')}
           className="!h-7 !px-2.5 !text-3xs"
         >
-          Biometria ({summary.biometrics.length})
+          Biometria ({biometrics.length})
         </Button>
       </div>
 
       {/* Treść zakładki */}
       <div>
-        {activeTab === 'running' && <RunningPbGrid items={summary.running} />}
-        {activeTab === 'strength' && <StrengthPbGrid items={summary.strength} />}
-        {activeTab === 'biometrics' && <BiometricsPbGrid items={summary.biometrics} />}
+        {activeTab === 'running' && <RunningPbGrid items={running} />}
+        {activeTab === 'strength' && <StrengthPbGrid items={strength} />}
+        {activeTab === 'biometrics' && <BiometricsPbGrid items={biometrics} />}
       </div>
     </Card>
   );

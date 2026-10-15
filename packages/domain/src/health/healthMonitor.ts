@@ -53,12 +53,22 @@ function quantile(values:number[],fraction:number):number {
   return values[lower]+(values[upper]-values[lower])*(position-lower);
 }
 /** Descriptive personal history only: never a clinical reference range or diagnosis. */
-export function evaluateHealthMonitor(current:CurrentVitals,history:VitalHistoryRecord[],asOfDate=formatWarsawDate(new Date())): HealthMonitorResult {
-  const dated=[...new Map(history.filter(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date)
-    && row.date<asOfDate && row.date>=shiftDateStr(asOfDate,-30)).map(row=>[row.date,row])).values()];
-  const vitals:VitalBaseline[] = METRICS.map(metric=>{
-    const values=dated.map(row=>row[metric.field]).filter((value):value is number=>validValue(value,metric.field)).sort((a,b)=>a-b);
-    const observed=current[metric.field],value=validValue(observed,metric.field)?observed:null;
+export function evaluateHealthMonitor(
+  current?: CurrentVitals | null,
+  history?: VitalHistoryRecord[] | null,
+  asOfDate = formatWarsawDate(new Date())
+): HealthMonitorResult {
+  const safeCurrent = current || {};
+  const safeHistory = history || [];
+  const safeAsOf = asOfDate && typeof asOfDate === 'string' && asOfDate.length >= 10 ? asOfDate : formatWarsawDate(new Date());
+
+  const dated = [...new Map(safeHistory.filter(row => row && /^\d{4}-\d{2}-\d{2}$/.test(row.date)
+    && row.date < safeAsOf && row.date >= shiftDateStr(safeAsOf, -30)).map(row => [row.date, row])).values()];
+
+  const vitals: VitalBaseline[] = METRICS.map(metric => {
+    const values = dated.map(row => row[metric.field]).filter((value): value is number => validValue(value, metric.field)).sort((a, b) => a - b);
+    const observed = safeCurrent[metric.field];
+    const value = validValue(observed, metric.field) ? observed : null;
     const enough=values.length>=14;
     const min=enough?quantile(values,0.1):null,max=enough?quantile(values,0.9):null;
     const status:VitalBaseline['status']=!enough || value == null ? 'calibrating' : value<min! || value>max! ? 'attention' : 'optimal';

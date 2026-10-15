@@ -33,12 +33,13 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
     );
   }
 
-  const proteinRemaining = nutrition.targetProtein == null ? null : Math.max(0,nutrition.targetProtein-nutrition.protein);
+  const proteinRemaining = nutrition.targetProtein == null ? null : Math.max(0, nutrition.targetProtein - nutrition.protein);
+  const activeKcal = data.enhanced?.active_calories ?? (data.strainRow?.strain_score ? Math.round(data.strainRow.strain_score * 45) : 0);
   const hydrationResult = calculateDynamicHydration({
     baseTargetMl: 2500,
-    loggedIntakeMl: 1750,
-    activeCalories: data.enhanced?.active_calories ?? 500,
-    workoutDurationMinutes: 60,
+    loggedIntakeMl: 0,
+    activeCalories: activeKcal,
+    workoutDurationMinutes: activeKcal > 300 ? 45 : 0,
   });
 
   return <div className="space-y-4 pb-8">

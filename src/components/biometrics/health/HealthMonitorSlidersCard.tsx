@@ -16,21 +16,24 @@ export function HealthMonitorSlidersCard({ data }: HealthMonitorSlidersCardProps
   const result: HealthMonitorResult = useMemo(() => {
     const current = {
       hrv: data.enhanced?.sleep_average_hrv ?? data.oura?.hrv_avg ?? null,
-      restingHr: data.oura?.rhr_avg ?? null,
+      restingHr: data.enhanced?.sleep_lowest_heart_rate ?? data.oura?.rhr_avg ?? null,
       breathingRate: data.enhanced?.sleep_average_breath ?? null,
       skinTempDev: data.enhanced?.temperature_deviation ?? null,
       spo2: data.enhanced?.spo2_percentage ?? null,
     };
 
-    const summaries = new Map((data.ouraHistory ?? []).map(row=>[row.date,row]));
-    const enhanced = new Map((data.enhancedHistory ?? []).map(row=>[row.date,row]));
-    const history:VitalHistoryRecord[] = [...new Set([...summaries.keys(),...enhanced.keys()])].map(date=>({date,
-      hrv:data.enhanced?.sleep_average_hrv != null ? enhanced.get(date)?.sleep_average_hrv : summaries.get(date)?.hrv_avg,
-      restingHr:summaries.get(date)?.rhr_avg,breathingRate:enhanced.get(date)?.sleep_average_breath,
-      skinTempDev:enhanced.get(date)?.temperature_deviation,spo2:enhanced.get(date)?.spo2_percentage,
+    const summaries = new Map((data.ouraHistory ?? []).map((row) => [row.date, row]));
+    const enhanced = new Map((data.enhancedHistory ?? []).map((row) => [row.date, row]));
+    const history: VitalHistoryRecord[] = [...new Set([...summaries.keys(), ...enhanced.keys()])].map((date) => ({
+      date,
+      hrv: enhanced.get(date)?.sleep_average_hrv ?? summaries.get(date)?.hrv_avg ?? null,
+      restingHr: enhanced.get(date)?.sleep_lowest_heart_rate ?? summaries.get(date)?.rhr_avg ?? null,
+      breathingRate: enhanced.get(date)?.sleep_average_breath ?? null,
+      skinTempDev: enhanced.get(date)?.temperature_deviation ?? null,
+      spo2: enhanced.get(date)?.spo2_percentage ?? null,
     }));
 
-    return evaluateHealthMonitor(current, history,data.date ?? undefined);
+    return evaluateHealthMonitor(current, history, data.date ?? undefined);
   }, [data]);
 
   return (

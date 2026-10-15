@@ -57,9 +57,9 @@ export function Zone2WeeklyCard({ activities, asOfDateStr }: Zone2WeeklyCardProp
             className={`h-full rounded-full transition-all ${
               isAchieved ? 'bg-success' : 'bg-info'
             }`}
-            style={{ width: `${percentage}%` }}
+            style={{ width: `${Math.min(100, Math.max(0, percentage))}%` }}
             role="progressbar"
-            aria-valuenow={percentage}
+            aria-valuenow={Math.min(100, Math.max(0, percentage))}
             aria-valuemin={0}
             aria-valuemax={100}
           />

@@ -11,7 +11,8 @@ interface SleepNeedBreakdownCardProps {
 }
 
 export function SleepNeedBreakdownCard({ input }: SleepNeedBreakdownCardProps) {
-  const result = computeSleepNeed(input);
+  const safeInput = input || {};
+  const result = computeSleepNeed(safeInput);
   const {
     baselineFormatted,
     strainExtraMinutes,

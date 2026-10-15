@@ -29,7 +29,7 @@ export const HeartRateRecoveryCard: React.FC<HeartRateRecoveryCardProps> = ({
     heartRateAt120s,
   });
 
-  const style = CATEGORY_STYLES[result.category];
+  const style = CATEGORY_STYLES[result.category] || CATEGORY_STYLES.insufficient_data;
 
   return (
     <div className="rounded-xl border border-border-custom bg-surface-1 p-4 shadow-sm space-y-4">

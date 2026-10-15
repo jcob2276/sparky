@@ -109,7 +109,7 @@ export function CircularTargetStrainCard({
 
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-3xl font-extrabold tracking-tight text-text-primary">
-              {currentStrain != null ? currentStrain.toFixed(1) : '0.0'}
+              {strainVal.toFixed(1)}
             </span>
             <span className="text-xs font-semibold uppercase tracking-wider text-warning">
               Strain
