@@ -171,3 +171,11 @@ verify_jwt = false
 [functions.lookup-food]
 import_map = "./functions/import_map.json"
 verify_jwt = true
+
+[functions.analyze-physique]
+import_map = "./functions/import_map.json"
+verify_jwt = false
+
+[functions.sync-insider-trades]
+import_map = "./functions/import_map.json"
+verify_jwt = false
