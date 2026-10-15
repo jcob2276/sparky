@@ -45,6 +45,11 @@ export interface DayTimelineItem {
   timestamp: number; // do sortowania
 }
 
+function formatHHMM(d: Date): string {
+  if (isNaN(d.getTime())) return '12:00';
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 export function buildDayTimeline(options: {
   date: string; // YYYY-MM-DD
   sleep?: RawTimelineSleep | null;
@@ -54,14 +59,13 @@ export function buildDayTimeline(options: {
   stressHighMinutes?: number | null;
 }): DayTimelineItem[] {
   const items: DayTimelineItem[] = [];
+  const safeDate = options.date && options.date.length >= 10 ? options.date.slice(0, 10) : '2026-10-14';
 
   // 1. Sesja snu
   if (options.sleep && options.sleep.bedtime_start) {
     const start = new Date(options.sleep.bedtime_start);
     const end = options.sleep.bedtime_end ? new Date(options.sleep.bedtime_end) : null;
-    const timeFormatted = `${start.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}${
-      end ? ` – ${end.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}` : ''
-    }`;
+    const timeFormatted = `${formatHHMM(start)}${end ? ` – ${formatHHMM(end)}` : ''}`;
 
     const durationMin = end ? Math.round((end.getTime() - start.getTime()) / (60 * 1000)) : Math.round((options.sleep.total_sleep_hours ?? 7) * 60);
     const h = Math.floor(durationMin / 60);
@@ -93,7 +97,7 @@ export function buildDayTimeline(options: {
   // 2. Aktywności (Garmin / Bieganie / Rower)
   if (options.activities && options.activities.length > 0) {
     options.activities.forEach((act, idx) => {
-      const actDate = act.start_date ? new Date(act.start_date) : new Date(`${options.date}T12:00:00Z`);
+      const actDate = act.start_date ? new Date(act.start_date) : new Date(`${safeDate}T12:00:00Z`);
       const durSec = act.moving_time ?? 0;
       const durMin = Math.round(durSec / 60);
       const distKm = act.distance ? (act.distance / 1000).toFixed(2) : null;
@@ -107,7 +111,7 @@ export function buildDayTimeline(options: {
         id: act.id ?? `act-${idx}-${actDate.getTime()}`,
         type: 'running',
         title: act.name || 'Aktywność Garmin',
-        timeFormatted: actDate.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' }),
+        timeFormatted: formatHHMM(actDate),
         durationFormatted: durMin >= 60 ? `${Math.floor(durMin / 60)}h ${durMin % 60}m` : `${durMin} min`,
         metrics,
         accentColor: 'orange',

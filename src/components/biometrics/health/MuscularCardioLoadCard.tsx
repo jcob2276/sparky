@@ -19,22 +19,23 @@ function buildMuscleFatigueMap(
   const map: Record<string, number> = {};
   for (const m of muscleGroups) {
     const fatigue = Math.max(0, Math.min(1, (100 - m.readinessPercentage) / 100));
-    if (m.name === 'Nogi') {
+    const n = (m.name || '').toLowerCase();
+    if (n.includes('nog') || n.includes('czworo') || n.includes('kulsz')) {
       map.quadriceps = fatigue;
       map.hamstrings = fatigue;
       map.calves = fatigue;
       map.gluteal = fatigue;
-    } else if (m.name === 'Klatka piersiowa') {
+    } else if (n.includes('klatka')) {
       map.chest = fatigue;
-    } else if (m.name === 'Plecy') {
+    } else if (n.includes('plecy')) {
       map.lats = fatigue;
       map.trapezius = fatigue;
       map['lower-back'] = fatigue;
-    } else if (m.name === 'Ramiona') {
+    } else if (n.includes('bark') || n.includes('ramion')) {
+      map.shoulders = fatigue;
       map.biceps = fatigue;
       map.triceps = fatigue;
-      map.shoulders = fatigue;
-    } else if (m.name === 'Brzuch i Core') {
+    } else if (n.includes('brzuch') || n.includes('core')) {
       map.abs = fatigue;
     }
   }

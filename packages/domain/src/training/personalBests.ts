@@ -86,6 +86,25 @@ export function extractRunningPBs(activities: RawActivityForPB[]): RunningPB[] {
 
     for (const act of activities) {
       if (!act.distance || !act.moving_time || !act.start_date) continue;
+
+      // Odrzuć aktywności niebędące biegiem (np. rower, spacer)
+      if (act.sport_type) {
+        const st = act.sport_type.toLowerCase();
+        if (!st.includes('run')) continue;
+      } else if (act.name) {
+        const n = act.name.toLowerCase();
+        if (
+          n.includes('rower') ||
+          n.includes('ride') ||
+          n.includes('cycling') ||
+          n.includes('spacer') ||
+          n.includes('walk') ||
+          n.includes('hike')
+        ) {
+          continue;
+        }
+      }
+
       // Dopuszczalny zakres dystansu
       const minDistance = t.meters * (1 - t.tolerancePct);
       const maxDistance = t.meters * (1 + t.tolerancePct);
@@ -93,6 +112,11 @@ export function extractRunningPBs(activities: RawActivityForPB[]): RunningPB[] {
       if (act.distance >= minDistance && act.distance <= maxDistance) {
         // Przelicz czas proporcjonalnie do dokładnego dystansu docelowego
         const estimatedTargetTime = (act.moving_time / act.distance) * t.meters;
+
+        // Odrzuć niefizjologiczne tempo szybsze niż 2:10 /km (np. błędy GPS lub jazda autem)
+        const paceSecPerKm = estimatedTargetTime / (t.meters / 1000);
+        if (paceSecPerKm < 130) continue;
+
         if (bestTime === null || estimatedTargetTime < bestTime) {
           bestTime = Math.round(estimatedTargetTime);
           bestAct = act;

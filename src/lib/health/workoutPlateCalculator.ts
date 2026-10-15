@@ -50,9 +50,9 @@ export function calculatePlates(
 ): PlateCalculationResult {
   const barWeight = resolveBarWeight(barWeightOrType);
 
-  if (totalWeight <= barWeight) {
+  if (!Number.isFinite(totalWeight) || totalWeight <= barWeight) {
     return {
-      totalWeight,
+      totalWeight: Number.isFinite(totalWeight) ? totalWeight : barWeight,
       barWeight,
       weightPerSide: 0,
       plates: [],

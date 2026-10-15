@@ -48,11 +48,11 @@ export function estimateSweatLossMl(
 /**
  * Oblicza dynamiczne zapotrzebowanie na płyny z kompensacją potu.
  */
-export function calculateDynamicHydration(input: HydrationInput): HydrationResult {
-  const baseTargetMl = input.baseTargetMl || 2500;
-  const activeCalories = input.activeCalories || 0;
-  const workoutDurationMinutes = input.workoutDurationMinutes || 0;
-  const loggedIntakeMl = Math.max(0, input.loggedIntakeMl || 0);
+export function calculateDynamicHydration(input?: HydrationInput | null): HydrationResult {
+  const baseTargetMl = Math.max(1000, Number(input?.baseTargetMl) || 2500);
+  const activeCalories = Math.max(0, Number(input?.activeCalories) || 0);
+  const workoutDurationMinutes = Math.max(0, Number(input?.workoutDurationMinutes) || 0);
+  const loggedIntakeMl = Math.max(0, Number(input?.loggedIntakeMl) || 0);
 
   const sweatLossMl = estimateSweatLossMl(activeCalories, workoutDurationMinutes);
   const dynamicTargetMl = baseTargetMl + sweatLossMl;

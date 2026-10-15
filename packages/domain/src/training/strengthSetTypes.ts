@@ -70,12 +70,16 @@ export function analyzeStrengthSets(sets: StrengthSetInput[]): StrengthSetSummar
   };
 
   const supersetGroups = new Set<string>();
+  const validTypes: StrengthSetType[] = ['normal', 'warmup', 'dropset', 'failure', 'myo_rep'];
 
   for (const set of sets) {
-    const type = set.setType || 'normal';
+    const rawType = set.setType;
+    const type: StrengthSetType = rawType && validTypes.includes(rawType) ? rawType : 'normal';
     setsByType[type] = (setsByType[type] || 0) + 1;
 
-    const tonnage = Math.max(0, set.weightKg * set.reps);
+    const weight = Math.max(0, Number(set.weightKg) || 0);
+    const reps = Math.max(0, Number(set.reps) || 0);
+    const tonnage = weight * reps;
     totalTonnage += tonnage;
 
     if (set.supersetId && set.supersetId.trim()) {

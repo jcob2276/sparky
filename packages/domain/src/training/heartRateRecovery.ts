@@ -28,8 +28,21 @@ export interface HeartRateRecoveryResult {
  * - 60s drop 13 - 19 bpm: Fair recovery
  * - 60s drop < 12 bpm: Poor / high cardiac strain (autonomic fatigue)
  */
-export function calculateHeartRateRecovery(input: HeartRateRecoveryInput): HeartRateRecoveryResult {
-  const peak = Math.round(input.peakHeartRate);
+export function calculateHeartRateRecovery(input?: HeartRateRecoveryInput | null): HeartRateRecoveryResult {
+  if (!input) {
+    return {
+      hasValidData: false,
+      peakHeartRate: 0,
+      hrDrop60s: null,
+      hrDrop120s: null,
+      category: 'insufficient_data',
+      categoryLabel: 'Brak danych o wyciszeniu',
+      recommendation: 'Zarejestruj tętno 1 lub 2 minuty po zakończeniu aktywności, aby ocenić reaktywację przywspółczulną.',
+      isAutonomicFatigued: false,
+    };
+  }
+
+  const peak = Math.round(input.peakHeartRate || 0);
   const hr60 = typeof input.heartRateAt60s === 'number' && Number.isFinite(input.heartRateAt60s) && input.heartRateAt60s > 0
     ? Math.round(input.heartRateAt60s)
     : null;
@@ -37,7 +50,7 @@ export function calculateHeartRateRecovery(input: HeartRateRecoveryInput): Heart
     ? Math.round(input.heartRateAt120s)
     : null;
 
-  if (!Number.isFinite(peak) || peak <= 60 || (hr60 === null && hr120 === null)) {
+  if (!Number.isFinite(peak) || peak <= 60 || peak > 240 || (hr60 === null && hr120 === null)) {
     return {
       hasValidData: false,
       peakHeartRate: peak || 0,

@@ -76,17 +76,31 @@ export function wakeMinutesToTime(minutesFromMidnight: number): string {
 }
 
 function parseHourMinute(timeStr: string): [number, number] {
+  if (!timeStr || typeof timeStr !== 'string') return [0, 0];
   if (timeStr.includes('T')) {
     const d = new Date(timeStr);
-    return [d.getHours(), d.getMinutes()];
+    if (!isNaN(d.getTime())) {
+      return [d.getHours(), d.getMinutes()];
+    }
   }
-  const [h, m] = timeStr.split(':').map(Number);
-  return [Number.isFinite(h) ? h : 0, Number.isFinite(m) ? m : 0];
+  const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(am|pm)?/i);
+  if (match) {
+    let h = parseInt(match[1], 10);
+    const m = parseInt(match[2], 10);
+    const meridian = match[3]?.toLowerCase();
+    if (meridian === 'pm' && h < 12) h += 12;
+    if (meridian === 'am' && h === 12) h = 0;
+    return [Number.isFinite(h) ? h : 0, Number.isFinite(m) ? m : 0];
+  }
+  return [0, 0];
 }
 
 function isWeekend(dateStr: string): boolean {
+  if (!dateStr || typeof dateStr !== 'string') return false;
   // YYYY-MM-DD
-  const [y, m, d] = dateStr.split('-').map(Number);
+  const parts = dateStr.split('-').map(Number);
+  if (parts.length < 3 || isNaN(parts[0]) || isNaN(parts[1]) || isNaN(parts[2])) return false;
+  const [y, m, d] = parts;
   const dt = new Date(Date.UTC(y, m - 1, d));
   const day = dt.getUTCDay(); // 0 = niedziela, 6 = sobota
   return day === 0 || day === 6;

@@ -52,11 +52,15 @@ export interface DynamicFuelingResult {
  * Bedtime "00:30", buffer 10h -> "14:30".
  */
 export function calculateCutoffTime(targetBedtime: string, bufferHours = 10): string {
-  const [hoursStr, minutesStr] = targetBedtime.split(':');
-  const parsedH = Number(hoursStr);
-  const parsedM = Number(minutesStr);
-  const h = Number.isFinite(parsedH) ? parsedH : 23;
-  const m = Number.isFinite(parsedM) ? parsedM : 0;
+  let h = 23;
+  let m = 0;
+  if (targetBedtime && typeof targetBedtime === 'string') {
+    const match = targetBedtime.match(/(\d{1,2}):(\d{2})/);
+    if (match) {
+      h = Math.min(23, Math.max(0, parseInt(match[1], 10)));
+      m = Math.min(59, Math.max(0, parseInt(match[2], 10)));
+    }
+  }
 
   let totalMinutes = h * 60 + m - bufferHours * 60;
   while (totalMinutes < 0) {
@@ -87,16 +91,19 @@ export function calculateCaffeineCutoff(
 
   const cutoffTime = calculateCutoffTime(targetBedtime, bufferHours);
   const [cHours, cMins] = cutoffTime.split(':').map(Number);
-  const cutoffMinutes = cHours * 60 + cMins;
+  const cutoffMinutes = (Number.isFinite(cHours) ? cHours : 13) * 60 + (Number.isFinite(cMins) ? cMins : 0);
 
-  const [bHours, bMins] = targetBedtime.split(':').map(Number);
+  const bedMatch = (targetBedtime || '').match(/(\d{1,2}):(\d{2})/);
+  const bHours = bedMatch ? Math.min(23, Math.max(0, parseInt(bedMatch[1], 10))) : 23;
+  const bMins = bedMatch ? Math.min(59, Math.max(0, parseInt(bedMatch[2], 10))) : 0;
 
   // Minuty do cutoffu
   const minutesUntilCutoff = cutoffMinutes - currentMinutes;
 
   // Suma i stężenia aktywne
+  const validLogs = (caffeineLogs || []).filter((item) => item && typeof item.amountMg === 'number' && item.amountMg > 0);
   const totalConsumedMg = Math.round(
-    caffeineLogs.reduce((sum, item) => sum + (item.amountMg || 0), 0)
+    validLogs.reduce((sum, item) => sum + (item.amountMg || 0), 0)
   );
 
   let activeCurrentMg = 0;
@@ -113,8 +120,11 @@ export function calculateCaffeineCutoff(
   // Jeśli pora snu już minęła, poziom kofeiny przy pójściu spać to poziom bieżący
   const targetSleepTimestamp = Math.max(bedtimeDate.getTime(), now.getTime());
 
-  for (const log of caffeineLogs) {
+  for (const log of validLogs) {
+    if (!log.loggedAt) continue;
     const logDate = new Date(log.loggedAt);
+    if (isNaN(logDate.getTime())) continue;
+
     const hoursElapsed = (now.getTime() - logDate.getTime()) / (1000 * 60 * 60);
     const hoursToTargetSleep = (targetSleepTimestamp - logDate.getTime()) / (1000 * 60 * 60);
 

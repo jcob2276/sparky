@@ -36,12 +36,15 @@ export function computeZone2Weekly(
   asOfDateStr = '2026-10-14'
 ): Zone2WeeklyResult {
   const targetMinutes = 150;
-  const safeDateStr = asOfDateStr.slice(0, 10);
+  const safeDateStr = asOfDateStr && typeof asOfDateStr === 'string' && asOfDateStr.length >= 10
+    ? asOfDateStr.slice(0, 10)
+    : '2026-10-14';
   const asOf = new Date(`${safeDateStr}T12:00:00Z`);
 
   const dayOfWeek = asOf.getUTCDay(); // 0 = Sun, 1 = Mon...
   const distanceToMon = (dayOfWeek + 6) % 7;
   const mondayStr = shiftDateStr(safeDateStr, -distanceToMon);
+  const sundayStr = shiftDateStr(mondayStr, 6);
 
   const days: Zone2DaySummary[] = [];
   for (let i = 0; i < 7; i++) {
@@ -57,7 +60,7 @@ export function computeZone2Weekly(
     for (const act of activities) {
       if (!act.start_date) continue;
       const actDateStr = act.start_date.slice(0, 10);
-      if (actDateStr < mondayStr) continue;
+      if (actDateStr < mondayStr || actDateStr > sundayStr) continue;
 
       const dayEntry = days.find((d) => d.dateStr === actDateStr);
 

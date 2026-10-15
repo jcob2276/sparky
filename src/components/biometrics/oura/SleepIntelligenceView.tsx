@@ -52,6 +52,23 @@ function getSleepDiagnosis(readinessScore: number) {
   };
 }
 
+function formatTimeHHMM(isoOrTimeString?: string | null, fallback = '07:00'): string {
+  if (!isoOrTimeString) return fallback;
+  if (isoOrTimeString.includes('T')) {
+    const d = new Date(isoOrTimeString);
+    if (!isNaN(d.getTime())) {
+      return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    }
+  }
+  const match = isoOrTimeString.match(/(\d{1,2}):(\d{2})/);
+  if (match) {
+    const h = Math.min(23, Math.max(0, parseInt(match[1], 10)));
+    const m = Math.min(59, Math.max(0, parseInt(match[2], 10)));
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+  return fallback;
+}
+
 function buildDefaultSleepRecords(
   bedtimeStart?: string | null,
   bedtimeEnd?: string | null
@@ -59,8 +76,8 @@ function buildDefaultSleepRecords(
   return [
     {
       date: '2026-10-08',
-      bedtime: bedtimeStart ? new Date(bedtimeStart).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '23:10',
-      wakeTime: bedtimeEnd ? new Date(bedtimeEnd).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '07:05',
+      bedtime: formatTimeHHMM(bedtimeStart, '23:10'),
+      wakeTime: formatTimeHHMM(bedtimeEnd, '07:05'),
       isFreeDay: false,
     },
     { date: '2026-10-09', bedtime: '23:05', wakeTime: '07:10', isFreeDay: false },
@@ -91,13 +108,9 @@ function buildDefaultSleepBankInputs(totalSleepMinutes: number): SleepBankDayInp
 function extractSleepRecords(data: OuraHealthHubData): DailySleepRecord[] {
   if (data.enhancedHistory && data.enhancedHistory.length >= 2) {
     return data.enhancedHistory.map((day) => {
-      const bed = day.bedtime_start
-        ? new Date(day.bedtime_start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        : '23:00';
-      const wake = day.bedtime_end
-        ? new Date(day.bedtime_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        : '07:00';
-      const d = new Date(day.date);
+      const bed = formatTimeHHMM(day.bedtime_start, '23:00');
+      const wake = formatTimeHHMM(day.bedtime_end, '07:00');
+      const d = new Date(`${day.date}T12:00:00`);
       const isFreeDay = d.getDay() === 0 || d.getDay() === 6;
       return { date: day.date, bedtime: bed, wakeTime: wake, isFreeDay };
     });
@@ -206,11 +219,7 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
 
       {/* Rekomendacja Pory Snu i Latencja (Bevel Bedtime Engine) */}
       <BedtimeTargetCard
-        targetWakeTime={
-          enhanced?.bedtime_end
-            ? new Date(enhanced.bedtime_end).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            : '07:00'
-        }
+        targetWakeTime={formatTimeHHMM(enhanced?.bedtime_end, '07:00')}
         targetSleepMinutes={480}
         sleepEfficiencyPercent={enhanced?.sleep_efficiency ?? 88}
         sleepLatencyMinutes={enhanced?.sleep_latency_minutes ?? 14}

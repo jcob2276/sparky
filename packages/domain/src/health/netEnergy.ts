@@ -51,13 +51,14 @@ export function estimateBMR(
 /**
  * Calculates Net Energy Balance (Bevel Net Energy engine)
  */
-export function calculateNetEnergy(input: NetEnergyInput): NetEnergyResult {
-  const bmr = input.bmrOverride && input.bmrOverride > 800
-    ? Math.round(input.bmrOverride)
-    : estimateBMR(input.weightKg, input.heightCm, input.age, input.sex);
+export function calculateNetEnergy(input?: NetEnergyInput | null): NetEnergyResult {
+  const safeInput = input || { activeCaloriesBurned: 0, caloriesConsumed: 0 };
+  const bmr = safeInput.bmrOverride && safeInput.bmrOverride > 800
+    ? Math.round(safeInput.bmrOverride)
+    : estimateBMR(safeInput.weightKg, safeInput.heightCm, safeInput.age, safeInput.sex);
 
-  const activeBurn = Math.max(0, Math.round(input.activeCaloriesBurned || 0));
-  const consumed = Math.max(0, Math.round(input.caloriesConsumed || 0));
+  const activeBurn = Math.max(0, Math.round(Number(safeInput.activeCaloriesBurned) || 0));
+  const consumed = Math.max(0, Math.round(Number(safeInput.caloriesConsumed) || 0));
   
   // Thermic Effect of Food (TEF) is ~10% of ingested calories
   const tef = Math.round(consumed * 0.1);
@@ -68,7 +69,7 @@ export function calculateNetEnergy(input: NetEnergyInput): NetEnergyResult {
   // Net Balance = Consumed - TDEE
   const netKcal = consumed - tdee;
 
-  const targetGoal = input.targetGoal || 'maintenance';
+  const targetGoal = safeInput.targetGoal || 'maintenance';
 
   let status: 'deficit' | 'balanced' | 'surplus' = 'balanced';
   let statusLabel = 'Równowaga energetyczna';

@@ -29,9 +29,15 @@ export interface BedtimeTargetResult {
  * Calculates Bedtime Target factoring in Sleep Efficiency and Onset Latency (Bevel Sleep Target engine)
  */
 export function calculateBedtimeTarget(input: BedtimeTargetInput = {}): BedtimeTargetResult {
-  const wakeTimeStr = input.targetWakeTime && /^\d{1,2}:\d{2}$/.test(input.targetWakeTime)
-    ? input.targetWakeTime
-    : '07:00';
+  let wakeTimeStr = '07:00';
+  if (input.targetWakeTime && typeof input.targetWakeTime === 'string') {
+    const match = input.targetWakeTime.match(/(\d{1,2}):(\d{2})/);
+    if (match) {
+      const h = Math.min(23, Math.max(0, parseInt(match[1], 10)));
+      const m = Math.min(59, Math.max(0, parseInt(match[2], 10)));
+      wakeTimeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+    }
+  }
 
   const [wakeHour, wakeMin] = wakeTimeStr.split(':').map(Number);
   const wakeTimeMinutes = wakeHour * 60 + wakeMin;

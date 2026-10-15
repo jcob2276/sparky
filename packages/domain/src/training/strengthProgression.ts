@@ -49,10 +49,12 @@ export interface OverallStrengthSummary {
  * 1RM = weight * (1 + (reps + rir) / 30) dla reps > 1.
  */
 export function estimate1RM(weightKg: number, reps: number, rir = 0): number {
-  if (weightKg <= 0 || reps <= 0) return 0;
+  if (!Number.isFinite(weightKg) || !Number.isFinite(reps) || weightKg <= 0 || reps <= 0) return 0;
   const effectiveReps = reps + Math.max(0, rir);
   if (effectiveReps <= 1) return Math.round(weightKg * 10) / 10;
-  const raw1RM = weightKg * (1 + effectiveReps / 30);
+  // Cap at 20 reps: Epley empirical accuracy decays rapidly for high-rep endurance sets
+  const cappedReps = Math.min(20, effectiveReps);
+  const raw1RM = weightKg * (1 + cappedReps / 30);
   return Math.round(raw1RM * 10) / 10;
 }
 

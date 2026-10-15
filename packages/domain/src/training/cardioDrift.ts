@@ -30,10 +30,34 @@ export interface CardioDriftResult {
  * Decoupling = ((EF1 - EF2) / EF1) * 100%
  * gdzie EF = Prędkość (m/s) / Tętno (bpm)
  */
-export function calculateCardioDrift(input: CardioSplitInput): CardioDriftResult {
+export function calculateCardioDrift(input?: CardioSplitInput | null): CardioDriftResult {
+  if (!input) {
+    return {
+      decouplingPercentage: 0,
+      efHalf1: 0,
+      efHalf2: 0,
+      rating: 'optimal_coupling',
+      ratingLabel: 'Brak danych',
+      hasSignificantDrift: false,
+      hrDeltaBpm: 0,
+      recommendation: 'Brak wystarczających danych telemetrycznych do analizy dryfu tętna.',
+    };
+  }
+
   const { half1SpeedMps, half1AvgHr, half2SpeedMps, half2AvgHr } = input;
 
-  if (half1SpeedMps <= 0 || half1AvgHr <= 0 || half2SpeedMps <= 0 || half2AvgHr <= 0) {
+  if (
+    !Number.isFinite(half1SpeedMps) ||
+    !Number.isFinite(half1AvgHr) ||
+    !Number.isFinite(half2SpeedMps) ||
+    !Number.isFinite(half2AvgHr) ||
+    half1SpeedMps <= 0 ||
+    half1AvgHr <= 40 ||
+    half1AvgHr > 240 ||
+    half2SpeedMps <= 0 ||
+    half2AvgHr <= 40 ||
+    half2AvgHr > 240
+  ) {
     return {
       decouplingPercentage: 0,
       efHalf1: 0,
@@ -53,7 +77,8 @@ export function calculateCardioDrift(input: CardioSplitInput): CardioDriftResult
   const decouplingPercentage = Math.round(rawDecoupling * 10) / 10;
   const hrDeltaBpm = Math.round(half2AvgHr - half1AvgHr);
 
-  const hasSignificantDrift = decouplingPercentage > 5.0;
+  const isNonSteadyState = Math.abs(decouplingPercentage) > 30;
+  const hasSignificantDrift = decouplingPercentage > 5.0 && !isNonSteadyState;
 
   let rating: DecouplingRating = 'optimal_coupling';
   let ratingLabel = 'Pełne sprzężenie (< 3.5%)';
@@ -61,13 +86,15 @@ export function calculateCardioDrift(input: CardioSplitInput): CardioDriftResult
   if (hasSignificantDrift) {
     rating = 'aerobic_decoupling';
     ratingLabel = 'Dryf tętna (> 5.0%)';
-  } else if (decouplingPercentage >= 3.5) {
+  } else if (decouplingPercentage >= 3.5 && !isNonSteadyState) {
     rating = 'mild_drift';
     ratingLabel = 'Umiarkowany dryf (3.5% - 5.0%)';
   }
 
   let recommendation = 'Wzorcowa baza tlenowa. Współczynnik tempo/tętno pozostał stabilny przez cały bieg.';
-  if (hasSignificantDrift) {
+  if (isNonSteadyState) {
+    recommendation = `Sesja zawierała duże wahania tempa/tętna (odchylenie ${decouplingPercentage}%), typowe dla interwałów lub częstych przerw. Czysty dryf tlenowy (Pa:Hr) ocenia się na sesjach ciągłych (steady-state).`;
+  } else if (hasSignificantDrift) {
     recommendation = `Zidentyfikowano dryf tętna (${decouplingPercentage}%). W drugiej połowie serce pracowało z wyższym tętnem (+${hrDeltaBpm} bpm) dla utrzymania tej samej prędkości. Typowe przyczyny: ubytek płynów (odwodnienie), przegrzanie lub niedostateczna objętość bazy tlenowej (Zone 2).`;
   } else if (rating === 'mild_drift') {
     recommendation = `Lekki dryf tętna (${decouplingPercentage}%). Naturalna adaptacja w normie fizjologicznej.`;

@@ -67,24 +67,27 @@ export function calculateSleepBank(
 
   const recentDaysBreakdown = sorted.map((day) => {
     // Drzemki do 45 min dają 100% spłaty długu; powyżej 45 min mogą zaburzać sen nocny
-    const effectiveNap = day.napMinutes && day.napMinutes > 0 ? Math.min(day.napMinutes, 45) : 0;
-    const effectiveSleep = day.sleepDurationMinutes + effectiveNap;
-    const balanceMinutes = effectiveSleep - day.sleepNeedMinutes;
+    const rawNap = day.napMinutes && day.napMinutes > 0 ? Math.min(day.napMinutes, 45) : 0;
+    const effectiveNap = Number.isFinite(rawNap) ? rawNap : 0;
+    const duration = Math.max(0, Number(day.sleepDurationMinutes) || 0);
+    const need = Math.max(240, Number(day.sleepNeedMinutes) || 480);
+    const effectiveSleep = duration + effectiveNap;
+    const balanceMinutes = effectiveSleep - need;
 
     totalDebtMinutes += balanceMinutes;
-    totalSleep += day.sleepDurationMinutes;
-    totalNeed += day.sleepNeedMinutes;
+    totalSleep += duration;
+    totalNeed += need;
 
     return {
       date: day.date,
-      actualMinutes: day.sleepDurationMinutes,
-      needMinutes: day.sleepNeedMinutes,
+      actualMinutes: duration,
+      needMinutes: need,
       balanceMinutes,
     };
   });
 
-  const avgSleep = Math.round(totalSleep / sorted.length);
-  const avgNeed = Math.round(totalNeed / sorted.length);
+  const avgSleep = sorted.length > 0 ? Math.round(totalSleep / sorted.length) : 0;
+  const avgNeed = sorted.length > 0 ? Math.round(totalNeed / sorted.length) : 480;
   const totalDebtHours = Math.round((totalDebtMinutes / 60) * 10) / 10;
 
   // Ustalenie statusu długu

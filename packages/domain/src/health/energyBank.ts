@@ -33,29 +33,30 @@ export interface EnergyBankResult {
   explanation: string;
 }
 
-export function computeEnergyBank(input: EnergyBankInput): EnergyBankResult {
-  const rec = typeof input.recoveryScore === 'number' && Number.isFinite(input.recoveryScore)
-    ? Math.max(0, Math.min(100, input.recoveryScore))
+export function computeEnergyBank(input?: EnergyBankInput | null): EnergyBankResult {
+  const safeInput = input || { recoveryScore: 70, sleepScore: 70, strainScore: 0 };
+  const rec = typeof safeInput.recoveryScore === 'number' && Number.isFinite(safeInput.recoveryScore)
+    ? Math.max(0, Math.min(100, safeInput.recoveryScore))
     : 70; // fallback standardowy
-  const sleep = typeof input.sleepScore === 'number' && Number.isFinite(input.sleepScore)
-    ? Math.max(0, Math.min(100, input.sleepScore))
+  const sleep = typeof safeInput.sleepScore === 'number' && Number.isFinite(safeInput.sleepScore)
+    ? Math.max(0, Math.min(100, safeInput.sleepScore))
     : 70;
 
   // Poranny start baterii: ważona kombinacja regeneracji (60%) i jakości snu (40%)
   const baselineEnergy = Math.round(0.6 * rec + 0.4 * sleep);
 
   // Drenaż z aktywności fizycznej (Strain 0-21)
-  const strain = typeof input.strainScore === 'number' && Number.isFinite(input.strainScore)
-    ? Math.max(0, Math.min(21, input.strainScore))
+  const strain = typeof safeInput.strainScore === 'number' && Number.isFinite(safeInput.strainScore)
+    ? Math.max(0, Math.min(21, safeInput.strainScore))
     : 0;
   // Każdy punkt Strain drenuje ~2.6% baterii (Strain 15 drenuje ~39% baterii)
   const strainDrain = Math.round(strain * 2.6);
 
   // Drenaż ze stresu dziennego
-  const stressMinutes = Math.max(0, Number(input.stressHighMinutes) || 0);
-  const stressScoreVal = typeof input.stressScore === 'number' && Number.isFinite(input.stressScore)
-    ? Math.max(0, Math.min(100, input.stressScore))
-    : (input.stressDaySummary === 'stressful' ? 65 : input.stressDaySummary === 'restored' ? 20 : 35);
+  const stressMinutes = Math.max(0, Number(safeInput.stressHighMinutes) || 0);
+  const stressScoreVal = typeof safeInput.stressScore === 'number' && Number.isFinite(safeInput.stressScore)
+    ? Math.max(0, Math.min(100, safeInput.stressScore))
+    : (safeInput.stressDaySummary === 'stressful' ? 65 : safeInput.stressDaySummary === 'restored' ? 20 : 35);
 
   // Godzina wysokiego stresu drenuje ~8% baterii; dodatkowo bazowy drenaż ze wskaźnika stresu
   const stressDrainFromMinutes = Math.round((stressMinutes / 60) * 8);
@@ -63,7 +64,7 @@ export function computeEnergyBank(input: EnergyBankInput): EnergyBankResult {
   const stressDrain = Math.min(45, stressDrainFromMinutes + stressDrainFromScore);
 
   // Regeneracja w ciągu dnia (Restorative Time)
-  const recoveryMinutes = Math.max(0, Number(input.recoveryHighMinutes) || 0);
+  const recoveryMinutes = Math.max(0, Number(safeInput.recoveryHighMinutes) || 0);
   const restorationGain = Math.min(20, Math.round((recoveryMinutes / 60) * 5));
 
   // Ostateczny stan baterii (0 - 100)
