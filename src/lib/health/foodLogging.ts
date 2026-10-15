@@ -23,6 +23,13 @@ interface FoodParseMeta {
   unit?: string
   explicitGrams?: boolean
   defaultGrams?: number
+  baseGrams?: number
+  baseCalories?: number
+  baseProtein?: number
+  baseCarbs?: number
+  baseFat?: number
+  baseFiber?: number
+  baseSugar?: number
   warnings?: string[]
   validationStatus?: 'accepted' | 'review'
 }

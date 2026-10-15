@@ -65,4 +65,16 @@ describe('mealPortions', () => {
       fat: 18,
     });
   });
+
+  it('safely scales to 0 and recovers base macros when scaled back up', () => {
+    const zeroed = scaleDraftItem(baseItem, 0);
+    expect(zeroed.grams).toBe(0);
+    expect(zeroed.calories).toBe(0);
+    expect(zeroed.protein).toBe(0);
+
+    const restored = scaleDraftItem(zeroed, 120);
+    expect(restored.grams).toBe(120);
+    expect(restored.calories).toBe(180);
+    expect(restored.protein).toBe(15);
+  });
 });

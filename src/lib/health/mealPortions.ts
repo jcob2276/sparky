@@ -83,6 +83,13 @@ export function inferPortionState(item: ParsedFoodItem): PortionState {
       gramsPerUnit: Math.max(1, item.grams / declaredQty),
     };
   }
+  if (unit !== 'g') {
+    const defaultG = item.parseMeta?.defaultGrams && item.parseMeta.defaultGrams > 0
+      ? item.parseMeta.defaultGrams
+      : (DEFAULT_GRAMS_PER_UNIT[unit] ?? 100);
+    const qty = Math.max(1, Math.round((item.grams / defaultG) * 10) / 10);
+    return { unit, quantity: qty, gramsPerUnit: defaultG };
+  }
   const pieceMatch = item.name.match(/^(\d+)\s*[x×]?\s/i) || item.assumptions?.join(' ').match(/(\d+)\s*szt/i);
   if (pieceMatch) {
     const qty = Number(pieceMatch[1]);
@@ -94,24 +101,42 @@ export function inferPortionState(item: ParsedFoodItem): PortionState {
 }
 
 export function scaleDraftItem(item: MealDraftItem, newGrams: number): MealDraftItem {
-  const grams = Math.max(1, Math.round(newGrams));
-  const factor = grams / Math.max(1, item.grams);
+  const baseGrams = item.parseMeta?.baseGrams ?? (item.grams > 0 ? item.grams : 100);
+  const baseCalories = item.parseMeta?.baseCalories ?? item.calories;
+  const baseProtein = item.parseMeta?.baseProtein ?? item.protein;
+  const baseCarbs = item.parseMeta?.baseCarbs ?? item.carbs;
+  const baseFat = item.parseMeta?.baseFat ?? item.fat;
+  const baseFiber = item.parseMeta?.baseFiber ?? item.fiber;
+  const baseSugar = item.parseMeta?.baseSugar ?? item.sugar;
+
+  const grams = Math.max(0, Math.round(newGrams));
+  const factor = baseGrams > 0 ? grams / baseGrams : 0;
   const scale = (value: number | undefined) => (value == null ? undefined : Math.round(value * factor * 10) / 10);
   return {
     ...item,
     grams,
-    calories: Math.round(item.calories * factor),
-    protein: scale(item.protein) ?? 0,
-    carbs: scale(item.carbs) ?? 0,
-    fat: scale(item.fat) ?? 0,
-    fiber: scale(item.fiber),
-    sugar: scale(item.sugar),
+    calories: Math.round(baseCalories * factor),
+    protein: scale(baseProtein) ?? 0,
+    carbs: scale(baseCarbs) ?? 0,
+    fat: scale(baseFat) ?? 0,
+    fiber: scale(baseFiber),
+    sugar: scale(baseSugar),
+    parseMeta: {
+      ...(item.parseMeta ?? { macroSource: 'llm_estimate', parserVersion: 'composer-v1' }),
+      baseGrams,
+      baseCalories,
+      baseProtein,
+      baseCarbs,
+      baseFat,
+      baseFiber,
+      baseSugar,
+    },
   };
 }
 
 function gramsFromPortion(state: PortionState): number {
-  if (state.unit === 'g') return Math.max(1, Math.round(state.quantity));
-  return Math.max(1, Math.round(state.quantity * state.gramsPerUnit));
+  if (state.unit === 'g') return Math.max(0, Math.round(state.quantity));
+  return Math.max(0, Math.round(state.quantity * state.gramsPerUnit));
 }
 
 export function applyPortionState(item: MealDraftItem, state: PortionState): MealDraftItem {
@@ -121,6 +146,7 @@ export function applyPortionState(item: MealDraftItem, state: PortionState): Mea
     ...next,
     parseMeta: {
       ...(item.parseMeta ?? { macroSource: 'llm_estimate', parserVersion: 'composer-v1' }),
+      ...next.parseMeta,
       quantity,
       unit: state.unit === 'g' ? 'g' : state.unit,
       explicitGrams: state.unit === 'g',
@@ -164,6 +190,7 @@ function formatFraction(quantity: number): string {
 export function buildPortionChips(
   item: MealDraftItem,
   rememberedGrams?: number | null,
+  currentState?: PortionState,
 ): PortionChip[] {
   const chips: PortionChip[] = [];
   const seen = new Set<string>();
@@ -174,7 +201,7 @@ export function buildPortionChips(
     chips.push({ label, state });
   };
 
-  const base = inferPortionState(item);
+  const base = currentState ?? inferPortionState(item);
   const defaultGrams = readDefaultGrams(item);
 
   if (rememberedGrams && rememberedGrams > 0) {
@@ -188,7 +215,11 @@ export function buildPortionChips(
   }
 
   if (base.unit !== 'g') {
-    for (const quantity of FRACTION_QUANTITIES) {
+    const pieceQuantities = base.gramsPerUnit <= 30 && base.unit === 'piece'
+      ? [1, 2, 3, 5, 6, 8, 10]
+      : FRACTION_QUANTITIES;
+
+    for (const quantity of pieceQuantities) {
       const label = quantity === 1
         ? `1 ${PORTION_UNIT_LABELS[base.unit]}`
         : `${formatFraction(quantity)} ${PORTION_UNIT_LABELS[base.unit]}`;
