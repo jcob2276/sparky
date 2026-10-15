@@ -13,7 +13,7 @@ const SCALE_FACTORS = [0.75, 1, 1.25, 1.5];
 
 export function PlannedMealCard({ meal, onResizeMeal,disabled }: PlannedMealCardProps) {
   return (
-    <article className="rounded-xl border border-white/5 bg-surface-2 p-3 space-y-2">
+    <article className="rounded-xl border border-border-custom/40 bg-surface-2 p-3 space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-text-primary">{meal.name}</span>
@@ -32,7 +32,7 @@ export function PlannedMealCard({ meal, onResizeMeal,disabled }: PlannedMealCard
               size="sm"
               onClick={() => onResizeMeal(meal.key, factor)}
               disabled={disabled}
-              className="h-6 px-1.5 py-0 text-3xs font-medium bg-surface-1 border border-white/5 text-text-secondary hover:text-text-primary hover:border-primary/40 min-w-0"
+              className="h-6 px-1.5 py-0 text-3xs font-medium bg-surface-1 border border-border-custom/40 text-text-secondary hover:text-text-primary hover:border-primary/40 min-w-0"
             >
               {factor}x
             </Button>
@@ -42,7 +42,7 @@ export function PlannedMealCard({ meal, onResizeMeal,disabled }: PlannedMealCard
 
       <p className="text-xs text-text-muted italic">{meal.instructions}</p>
 
-      <div className="divide-y divide-white/5 pt-1">
+      <div className="divide-y divide-border-custom/40 pt-1">
         {meal.ingredients.map((ing) => (
           <div key={ing.product.id} className="flex items-center justify-between py-1 text-xs">
             <span className="text-text-secondary">{ing.product.name}</span>
@@ -53,7 +53,7 @@ export function PlannedMealCard({ meal, onResizeMeal,disabled }: PlannedMealCard
         ))}
       </div>
 
-      <div className="flex justify-end gap-3 pt-1 text-2xs text-text-muted border-t border-white/5">
+      <div className="flex justify-end gap-3 pt-1 text-2xs text-text-muted border-t border-border-custom/40">
         <span>Makra posiłku: {meal.totals.calories} kcal</span>
         <span>B: {meal.totals.protein} g</span>
         <span>W: {meal.totals.carbs} g</span>

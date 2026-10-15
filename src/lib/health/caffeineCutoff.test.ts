@@ -45,6 +45,27 @@ describe('caffeineCutoff', () => {
     expect(result.recommendation).toContain('Wysoka kofeina o porze snu');
   });
 
+  it('correctly handles post-midnight bedtime (01:00 AM) when currently at 00:30 AM', () => {
+    // Bedtime: 01:00 AM, now: 00:30 AM (30 min before bed)
+    // Cutoff was 10h prior (15:00 afternoon) -> must be cutoff_passed, NOT safe_window
+    const nowIso = '2026-10-15T00:30:00';
+    const result = calculateCaffeineCutoff('01:00', [], nowIso, 10);
+
+    expect(result.cutoffTime).toBe('15:00');
+    expect(result.status).toBe('cutoff_passed');
+    expect(result.minutesUntilCutoff).toBeLessThan(0);
+  });
+
+  it('detects approaching cutoff within 60 minutes', () => {
+    // Bedtime: 23:00, Cutoff: 13:00, Now: 12:45
+    const nowIso = '2026-10-14T12:45:00';
+    const result = calculateCaffeineCutoff('23:00', [], nowIso, 10);
+
+    expect(result.cutoffTime).toBe('13:00');
+    expect(result.status).toBe('approaching_cutoff');
+    expect(result.minutesUntilCutoff).toBe(15);
+  });
+
   it('calculates dynamic fueling based on base and active burn', () => {
     const fueling = calculateDynamicFueling({
       baseCalories: 2000,

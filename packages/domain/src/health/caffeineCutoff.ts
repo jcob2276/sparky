@@ -74,6 +74,24 @@ export function calculateCutoffTime(targetBedtime: string, bufferHours = 10): st
   return `${String(cutoffH).padStart(2, '0')}:${String(cutoffM).padStart(2, '0')}`;
 }
 
+export function getTargetBedtimeDate(now: Date, bHours: number, bMins: number): Date {
+  const d = new Date(now);
+  d.setHours(bHours, bMins, 0, 0);
+
+  if (bHours >= 12) {
+    // e.g. 23:00 - late night between 00:00 and 04:59 belongs to yesterday's scheduled sleep
+    if (now.getHours() < 5) {
+      d.setDate(d.getDate() - 1);
+    }
+  } else {
+    // e.g. 01:00 AM - from 05:00 to 23:59, bedtime falls on tomorrow morning (the upcoming night)
+    if (now.getHours() >= 5) {
+      d.setDate(d.getDate() + 1);
+    }
+  }
+  return d;
+}
+
 /**
  * Oblicza stan kofeinowy użytkownika:
  * - Half-life kofeiny wynosi średnio 5.5 godziny.
@@ -87,18 +105,16 @@ export function calculateCaffeineCutoff(
   halfLifeHours = 5.5
 ): CaffeineCutoffResult {
   const now = currentTimeIso ? new Date(currentTimeIso) : new Date();
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
-
-  const cutoffTime = calculateCutoffTime(targetBedtime, bufferHours);
-  const [cHours, cMins] = cutoffTime.split(':').map(Number);
-  const cutoffMinutes = (Number.isFinite(cHours) ? cHours : 13) * 60 + (Number.isFinite(cMins) ? cMins : 0);
 
   const bedMatch = (targetBedtime || '').match(/(\d{1,2}):(\d{2})/);
   const bHours = bedMatch ? Math.min(23, Math.max(0, parseInt(bedMatch[1], 10))) : 23;
   const bMins = bedMatch ? Math.min(59, Math.max(0, parseInt(bedMatch[2], 10))) : 0;
 
-  // Minuty do cutoffu
-  const minutesUntilCutoff = cutoffMinutes - currentMinutes;
+  // Oblicz dokładny czas pójścia spać dla bieżącej sesji snu
+  const bedtimeDate = getTargetBedtimeDate(now, bHours, bMins);
+  const cutoffDate = new Date(bedtimeDate.getTime() - bufferHours * 60 * 60 * 1000);
+  const minutesUntilCutoff = Math.round((cutoffDate.getTime() - now.getTime()) / (60 * 1000));
+  const cutoffTime = calculateCutoffTime(targetBedtime, bufferHours);
 
   // Suma i stężenia aktywne
   const validLogs = (caffeineLogs || []).filter((item) => item && typeof item.amountMg === 'number' && item.amountMg > 0);
@@ -108,14 +124,6 @@ export function calculateCaffeineCutoff(
 
   let activeCurrentMg = 0;
   let activeBedtimeMg = 0;
-
-  // Oblicz czas pójścia spać dla dzisiejszej sesji snu:
-  // Jeśli bHours < 12 (np. 00:30, 01:00), to pora snu przypada na kolejny dzień kalendarzowy
-  const bedtimeDate = new Date(now);
-  bedtoDate(bedtimeDate, bHours, bMins);
-  if (bHours < 12 && now.getHours() >= 12) {
-    bedtimeDate.setDate(bedtimeDate.getDate() + 1);
-  }
 
   // Jeśli pora snu już minęła, poziom kofeiny przy pójściu spać to poziom bieżący
   const targetSleepTimestamp = Math.max(bedtimeDate.getTime(), now.getTime());

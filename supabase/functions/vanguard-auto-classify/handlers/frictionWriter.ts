@@ -1,9 +1,18 @@
+import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { safeExecute } from "../../_shared/supabase.ts";
+import type { NormalizedFriction } from "./normalize.ts";
+
+export interface StreamRecordForFriction {
+  id: string;
+  user_id: string;
+  content: string;
+  created_at?: string;
+}
 
 export async function insertFrictionEventIfDetected(
-  record: any,
-  friction: any,
-  supabase: any,
+  record: StreamRecordForFriction,
+  friction: NormalizedFriction,
+  supabase: SupabaseClient,
 ): Promise<number | null> {
   const shouldLog = friction.event_kind !== null && friction.event_kind !== undefined;
   if (!shouldLog) return null;
