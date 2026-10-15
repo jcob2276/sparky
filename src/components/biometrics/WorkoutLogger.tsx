@@ -16,7 +16,7 @@ import { type WorkoutLoggerInitial } from '../../lib/health/workoutLogging';
 import ExerciseCard from './workout/ExerciseCard';
 import VolumeBar from './workout/VolumeBar';
 import PlyoBlock from './workout/PlyoBlock';
-import PlateCalculatorModal from './workout/PlateCalculatorModal';
+import { WorkoutPlateCalculatorModal } from './workout/WorkoutPlateCalculatorModal';
 import RestTimerBar from './workout/RestTimerBar';
 import WorkoutPresetsModal from './workout/WorkoutPresetsModal';
 import WorkoutImportModal from './workout/WorkoutImportModal';
@@ -209,9 +209,9 @@ export default function WorkoutLogger({
       {showRestTimer && <RestTimerBar onDismiss={() => setShowRestTimer(false)} />}
 
       {plateCalcState.isOpen && (
-        <PlateCalculatorModal
+        <WorkoutPlateCalculatorModal
           isOpen={plateCalcState.isOpen}
-          initialWeight={plateCalcState.initialKg}
+          initialWeightKg={plateCalcState.initialKg}
           onClose={() => setPlateCalcState((prev) => ({ ...prev, isOpen: false }))}
           onApplyWeight={plateCalcState.onApply}
         />

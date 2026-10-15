@@ -75,8 +75,8 @@ export default function HealthspanTrajectoryPanel({
           ))}
         </div>
       </div>
-      <div className="mt-4 h-52" aria-label="Wykres trajektorii Healthspan">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+      <div className="mt-4 h-52 min-w-0" aria-label="Wykres trajektorii Healthspan">
+        <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
           <LineChart data={chartData}>
             <CartesianGrid stroke="var(--border-custom)" strokeOpacity={0.3} vertical={false} />
             <XAxis dataKey="date" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} minTickGap={28} stroke="var(--border-custom)" />

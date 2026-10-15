@@ -19,6 +19,7 @@ interface WorkoutPlateCalculatorModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialWeightKg?: number;
+  onApplyWeight?: (weight: number) => void;
 }
 
 const getPlateColorClass = (plate: number) => {
@@ -127,6 +128,7 @@ export function WorkoutPlateCalculatorModal({
   isOpen,
   onClose,
   initialWeightKg = 80,
+  onApplyWeight,
 }: WorkoutPlateCalculatorModalProps) {
   const [totalWeight, setTotalWeight] = useState<number>(initialWeightKg);
   const [barType, setBarType] = useState<BarType>('olympic');
@@ -233,11 +235,22 @@ export function WorkoutPlateCalculatorModal({
         {/* Wizualizacja tulei gryfu */}
         <BarbellSleeveGraphic result={result} />
 
-        {/* Zamknięcie */}
-        <div className="flex justify-end pt-2">
+        {/* Akcje dolne */}
+        <div className="flex justify-end gap-2 pt-2">
           <Button variant="secondary" onClick={onClose}>
             Zamknij
           </Button>
+          {onApplyWeight && (
+            <Button
+              variant="primary"
+              onClick={() => {
+                onApplyWeight(totalWeight);
+                onClose();
+              }}
+            >
+              Wstaw ciężar ({totalWeight} kg)
+            </Button>
+          )}
         </div>
       </div>
     </Modal>

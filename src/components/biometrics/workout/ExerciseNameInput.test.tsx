@@ -12,7 +12,7 @@ vi.mock('../../../data/openGymCatalog', () => ({
 afterEach(cleanup);
 
 describe('ExerciseNameInput', () => {
-  it('keeps the search field available while its parent receives each typed character', () => {
+  it('keeps the search field available while its parent receives each typed character', async () => {
     function Harness() {
       const [name, setName] = useState('');
       return <ExerciseNameInput value={name} tags={[]} onChange={setName} />;
@@ -24,6 +24,7 @@ describe('ExerciseNameInput', () => {
     expect(screen.getByRole('textbox')).toHaveValue('b');
     fireEvent.change(input, { target: { value: 'bench' } });
     expect(screen.getByRole('textbox')).toHaveValue('bench');
+    await screen.findByRole('button', { name: /Barbell bench press/ });
   });
   it('allows selecting a full exercise name with a click or keyboard activation', async () => {
     const onChange = vi.fn();
