@@ -1,16 +1,13 @@
 import { calculateTargetStrain } from '@vanguard/domain';
-import CoachDecisionContainer from '../workout/CoachDecisionContainer';
 
 interface TargetStrainGaugeCardProps {
   recoveryScore: number | null | undefined;
   strainScore: number | null | undefined;
-  userId?: string;
 }
 
 export function TargetStrainGaugeCard({
   recoveryScore,
   strainScore,
-  userId,
 }: TargetStrainGaugeCardProps) {
   const result = calculateTargetStrain(recoveryScore, strainScore);
 
@@ -25,7 +22,6 @@ export function TargetStrainGaugeCard({
         </span>
       </p>
       <p className="text-xs leading-relaxed text-text-secondary">{result.recommendation}</p>
-      {userId && <CoachDecisionContainer userId={userId} />}
     </section>
   );
 }

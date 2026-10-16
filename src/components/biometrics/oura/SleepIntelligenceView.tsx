@@ -264,7 +264,6 @@ export function SleepIntelligenceView({ data }: { data: OuraHealthHubData }) {
       <TargetStrainGaugeCard
         recoveryScore={readinessScore}
         strainScore={data.strainRow?.strain_score}
-        userId={data.oura?.user_id ?? data.strainRow?.user_id}
       />
 
       {context && <SleepFactorsSection context={context} />}

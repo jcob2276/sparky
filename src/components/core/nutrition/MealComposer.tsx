@@ -11,7 +11,6 @@ import CopyDayModal from './CopyDayModal';
 import type { RecentEntry } from './hooks/foodEntryUtils';
 import { useMealComposer } from './hooks/useMealComposer';
 import { useSession } from '../../../store/useStore';
-import FoodPlanningAssistantContainer from '../../biometrics/nutrition/FoodPlanningAssistantContainer';
 
 export default function MealComposer({
   onSaved,
@@ -29,10 +28,6 @@ export default function MealComposer({
 
   return (
     <>
-      <details className="rounded-2xl border border-border-custom bg-surface p-3">
-        <summary className="cursor-pointer text-sm font-semibold">Pomoc z menu restauracji i składnikami w domu</summary>
-        <FoodPlanningAssistantContainer userId={session.user.id} />
-      </details>
       <Card className="space-y-4 border-border-custom/80 bg-surface p-5 shadow-sm">
         <ComposerHeader
           logDate={c.logDate}

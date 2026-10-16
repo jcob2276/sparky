@@ -3,7 +3,6 @@ import type { OuraHealthHubData } from './types';
 import DataStateNotice from '../../core/DataStateNotice';
 import { MealPlannerContainer } from '../nutrition/MealPlannerContainer';
 import { getTodayWarsaw } from '../../../lib/date';
-import FoodPlanningAssistantContainer from '../nutrition/FoodPlanningAssistantContainer';
 import { HydrationCard } from '../health/HydrationCard';
 import { NetEnergyCard } from '../health/NetEnergyCard';
 import { calculateDynamicHydration, type NetEnergyGoal } from '@vanguard/domain';
@@ -20,7 +19,6 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
       <div className="space-y-4 pb-8">
         <DataStateNotice title="Brak dziennika jedzenia" detail={`Brak wpisów dla ${data.date ?? 'wybranego dnia'}. Dodaj faktycznie zjedzony posiłek w zakładce Jedzenie.`} />
         {nutrition?.targetError && <DataStateNotice title="Cel żywienia wymaga uzupełnienia" detail={nutrition.targetError}/>}
-        {userId && <FoodPlanningAssistantContainer userId={userId} />}
         {userId && (
           <MealPlannerContainer
             userId={userId}
@@ -75,7 +73,6 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
         targetProtein={nutrition.targetProtein}
       />
     )}
-    {userId && <FoodPlanningAssistantContainer userId={userId} />}
 
     <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-2">
       <h3 className="font-semibold">Źródła i ograniczenia</h3>

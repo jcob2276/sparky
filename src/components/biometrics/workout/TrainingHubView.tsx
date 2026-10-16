@@ -6,7 +6,6 @@ import type { WorkoutLoggerInitial } from '../../../lib/health/workoutLogging';
 import { useTrainingHub } from './useTrainingHub';
 import HealthGoalEditorContainer from './HealthGoalEditorContainer';
 import TrainingPlanContainer from './TrainingPlanContainer';
-import CoachDecisionContainer from './CoachDecisionContainer';
 import TrainingTodayCard from './TrainingTodayCard';
 import TrainingTemplatesSection from './TrainingTemplatesSection';
 import WorkoutNlCaptureModal from './WorkoutNlCaptureModal';
@@ -146,7 +145,6 @@ export default function TrainingHubView({
           </div>
         ) : (
           <>
-            {userId && <CoachDecisionContainer userId={userId} />}
             {userId && <TrainingPlanContainer userId={userId} onStartWorkout={onStartWorkout} />}
             {/* Active Draft Banner */}
             {hasDraft && (

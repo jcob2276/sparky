@@ -1,10 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TargetStrainGaugeCard } from './TargetStrainGaugeCard';
-
-vi.mock('../workout/CoachDecisionContainer', () => ({
-  default: () => <div data-testid="coach-decision-container">Decyzja trenera</div>,
-}));
 
 describe('TargetStrainGaugeCard', () => {
   it('renders strain target and current strain values', () => {
@@ -20,9 +16,4 @@ describe('TargetStrainGaugeCard', () => {
     expect(screen.getByText(/brak danych/i)).toBeInTheDocument();
   });
 
-  it('mounts CoachDecisionContainer when userId is provided', () => {
-    render(<TargetStrainGaugeCard recoveryScore={70} strainScore={10} userId="test-user" />);
-
-    expect(screen.getByTestId('coach-decision-container')).toBeInTheDocument();
-  });
 });
