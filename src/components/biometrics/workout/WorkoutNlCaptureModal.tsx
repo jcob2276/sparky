@@ -6,6 +6,7 @@ import Spinner from '../../ui/Spinner';
 import { parseWorkoutNl, type ParsedWorkoutResult } from '../../../lib/health/workoutNlApi';
 import { notify } from '../../../lib/notify';
 import { useHaptics } from '../../../hooks/useHaptics';
+import { useWorkoutSpeechCapture } from '../hooks/useWorkoutSpeechCapture';
 
 interface WorkoutNlCaptureModalProps {
   isOpen: boolean;
@@ -26,60 +27,14 @@ export default function WorkoutNlCaptureModal({
 }: WorkoutNlCaptureModalProps) {
   const [text, setText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isListening, setIsListening] = useState(false);
   const haptics = useHaptics();
+  const { isListening, toggleListening, stopListening } = useWorkoutSpeechCapture(isOpen, (transcript) => {
+    setText((prev) => (prev ? `${prev}, ${transcript}` : transcript));
+  });
 
-  const handleSpeechToggle = () => {
-    /* eslint-disable @typescript-eslint/no-explicit-any */
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    /* eslint-enable @typescript-eslint/no-explicit-any */
-
-    if (!SpeechRecognition) {
-      notify('Dyktafon w przeglądarce nie jest wspierany — wpisz tekst', 'error');
-      return;
-    }
-
-    if (isListening) {
-      setIsListening(false);
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'pl-PL';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-        haptics.light();
-      };
-
-      /* eslint-disable @typescript-eslint/no-explicit-any */
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0]?.[0]?.transcript || '';
-        if (transcript) {
-          setText((prev) => (prev ? `${prev}, ${transcript}` : transcript));
-          haptics.success();
-        }
-      };
-      /* eslint-enable @typescript-eslint/no-explicit-any */
-
-      recognition.onerror = () => {
-        setIsListening(false);
-        haptics.error();
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognition.start();
-    } catch {
-      setIsListening(false);
-      notify('Nie udało się uruchomić mikrofonu', 'error');
-    }
+  const handleClose = () => {
+    stopListening();
+    onClose();
   };
 
   const handleSubmit = async () => {
@@ -90,6 +45,7 @@ export default function WorkoutNlCaptureModal({
     }
 
     setIsSubmitting(true);
+    stopListening();
     haptics.light();
 
     try {
@@ -102,7 +58,7 @@ export default function WorkoutNlCaptureModal({
       haptics.success();
       notify(`Rozpoznano ${result.exercises.length} ćwiczeń`, 'info');
       onApplyParsed(result);
-      onClose();
+      handleClose();
     } catch (err: unknown) {
       haptics.error();
       const msg = err instanceof Error ? err.message : 'Błąd parsowania';
@@ -113,7 +69,7 @@ export default function WorkoutNlCaptureModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Zrzut Treningu AI (DeepSeek)" size="md">
+    <Modal isOpen={isOpen} onClose={handleClose} title="Zrzut Treningu AI (DeepSeek)" size="md">
       <div className="space-y-4">
         <p className="text-xs text-text-secondary">
           Wklej notatki z siłowni lub podyktuj seriami — model dopasuje ćwiczenia do Twojej historii.
@@ -129,7 +85,7 @@ export default function WorkoutNlCaptureModal({
           />
 
           <Pressable
-            onClick={handleSpeechToggle}
+            onClick={toggleListening}
             className={`absolute bottom-3 right-3 p-2 rounded-xl ui-interactive cursor-pointer ${
               isListening
                 ? 'bg-danger text-on-accent animate-pulse shadow-md'
@@ -163,7 +119,7 @@ export default function WorkoutNlCaptureModal({
         {/* Actions */}
         <div className="flex gap-2 pt-2">
           <Pressable
-            onClick={onClose}
+            onClick={handleClose}
             className="flex-1 py-3 rounded-xl border border-border-custom bg-surface text-text-secondary text-xs font-bold hover:text-text-primary ui-interactive text-center cursor-pointer"
           >
             Anuluj

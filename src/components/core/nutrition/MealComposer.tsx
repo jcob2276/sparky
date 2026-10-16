@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Card } from '../../ui/Card';
 import BarcodeScanner from './BarcodeScanner';
 import MealComposerCustomProduct from './MealComposerCustomProduct';
@@ -6,11 +6,12 @@ import MealComposerDraft from './MealComposerDraft';
 import MealComposerLoggedItems from './MealComposerLoggedItems';
 import MealComposerQuick from './MealComposerQuick';
 import { ComposerHeader, ComposerInput, ComposerProgress, ComposerSearch } from './MealComposerChrome';
-import FoodEntryModal from './FoodEntryModal';
 import CopyDayModal from './CopyDayModal';
 import type { RecentEntry } from './hooks/foodEntryUtils';
 import { useMealComposer } from './hooks/useMealComposer';
 import { useSession } from '../../../store/useStore';
+
+const FoodEntryModal = lazy(() => import('./FoodEntryModal'));
 
 export default function MealComposer({
   onSaved,
@@ -142,15 +143,17 @@ export default function MealComposer({
       </Card>
 
       {editEntry && (
-        <FoodEntryModal
-          initialEditEntry={editEntry}
-          onClose={() => setEditEntry(null)}
-          onSaved={() => {
-            setEditEntry(null);
-            void c.refreshAfterSave();
-            onSaved?.();
-          }}
-        />
+        <Suspense fallback={null}>
+          <FoodEntryModal
+            initialEditEntry={editEntry}
+            onClose={() => setEditEntry(null)}
+            onSaved={() => {
+              setEditEntry(null);
+              void c.refreshAfterSave();
+              onSaved?.();
+            }}
+          />
+        </Suspense>
       )}
 
       {copyDayOpen && c.userId && (

@@ -1,30 +1,30 @@
-import { useState } from 'react';
 import { useUserId } from '../../store/useStore';
 import { useWeeklyBodyPulse } from '../../lib/biometricsApi';
 import { useWeeklyWinsMap } from '../../lib/weeklyWinsMap';
 import { AlertTriangle, CheckCircle2, Sparkles } from 'lucide-react';
 import Button from '../ui/Button';
-import { invokeEdge } from '../../lib/supabase';
+import { useWeeklyPulseSynthesis } from '../../hooks/useWeeklyPulseSynthesis';
+import DataStateNotice from './DataStateNotice';
 
 export default function WeeklyPulseDiagnostic() {
   const userId = useUserId() ?? '';
   const bodyPulse = useWeeklyBodyPulse(userId);
   const winsMap = useWeeklyWinsMap(userId);
 
-  const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
-  const [loadingAi, setLoadingAi] = useState(false);
-  const [showAi, setShowAi] = useState(false);
+  const { analysis: aiAnalysis, loading: loadingAi, show: showAi, request: requestSynthesis } = useWeeklyPulseSynthesis(userId);
 
-  if (bodyPulse.isLoading || winsMap.isLoading) return null;
+  if (!userId) return null;
+  if (bodyPulse.isLoading || winsMap.isLoading) return <DataStateNotice tone="loading" title="Ładuję podsumowanie tygodnia" />;
+  if (bodyPulse.isError || winsMap.isError) return <DataStateNotice tone="warning" title="Podsumowanie tygodnia niedostępne" detail={bodyPulse.error?.message ?? winsMap.error?.message ?? 'Nie udało się odczytać źródeł tygodnia.'} />;
 
   const data = bodyPulse.data;
   const wins = winsMap.data?.filter((d) => d.status === 'win').length ?? 0;
   const daysActive = winsMap.data?.filter((d) => d.doneCount > 0 || d.plannedCount > 0).length ?? 0;
 
-  if (!data && !winsMap.data) return null;
+  const hasBodyEvidence = data && (data.sleepAvgHours != null || data.averageRecovery != null || data.gymCount > 0 || data.runCount > 0 || data.saunaCount > 0);
+  if (!hasBodyEvidence && daysActive === 0) return <DataStateNotice title="Za mało zapisów do syntezy tygodnia" detail="Brakuje pomiarów ciała, zapisanych treningów i aktywnych dni w zadaniach." />;
 
   const sleepLow = data?.sleepAvgHours != null && data.sleepAvgHours < 6.5;
-  const sleepWarning = (data?.warningDays ?? 0) >= 3;
   const recoveryLow = data?.averageRecovery != null && data.averageRecovery < 65;
   const runningHigh = (data?.runKm ?? 0) >= 20;
   const gymZero = (data?.gymCount ?? 0) === 0;
@@ -33,43 +33,27 @@ export default function WeeklyPulseDiagnostic() {
   let message: string;
   let isWarning = false;
 
-  if ((sleepLow || sleepWarning) && recoveryLow) {
+  if (sleepLow && recoveryLow) {
     isWarning = true;
-    message = `Deficyt snu (${data?.warningDays ?? 0}d poniżej normy, śr. ${data?.sleepAvgHours?.toFixed(1) ?? '—'}h) obniża regenerację (${data?.averageRecovery ?? '—'}). Priorytet: ochrona snu i regeneracja.`;
+    message = `W zapisach występują krótszy sen (śr. ${data?.sleepAvgHours?.toFixed(1) ?? '—'}h) i niższy wynik regeneracji (${data?.averageRecovery ?? '—'}). Samo współwystępowanie nie ustala przyczyny.`;
   } else if (runningHigh && gymZero) {
     message = `Mocna objętość biegowa (${data?.runKm.toFixed(1)} km w 7 dni), brak sesji siłowej. Zadbaj o regenerację.`;
   } else if (winsLow) {
     isWarning = true;
     message = `Dyscyplina 5/5 na poziomie ${wins}/7 dni — skup się na domknięciu kluczowych priorytetów dnia.`;
   } else {
-    message = 'Stabilny rytm 7 dni: parametry ciała i realizacja zadań sprzyjają dociąganiu celów.';
+    message = `Zapisane treningi: ${data?.gymCount ?? '—'} siłowych i ${data?.runCount ?? '—'} biegowych. Domknięte dni: ${wins}/${daysActive}.`;
   }
 
   const fetchAiAnalysis = async () => {
-    if (aiAnalysis) {
-      setShowAi((v) => !v);
-      return;
-    }
-    setLoadingAi(true);
-    setShowAi(true);
-    try {
-      const prompt = `Przeanalizuj w 2 konkretnych, ostrych zdaniach stan tego tygodnia w Sparky:
-- Średni sen: ${data?.sleepAvgHours?.toFixed(1) ?? '—'}h (${data?.warningDays ?? 0} dni poniżej normy)
+    const prompt = `Przeanalizuj w 2 konkretnych, ostrych zdaniach stan tego tygodnia w Sparky:
+- Średni sen: ${data?.sleepAvgHours?.toFixed(1) ?? '—'}h
+- Dzienny status ostrzegawczy: ${data?.warningDays ?? '—'} dni (nie jest to liczba nocy z deficytem snu)
 - Bieganie: ${data?.runKm ?? 0} km (${data?.runCount ?? 0} treningów), Siłownia: ${data?.gymCount ?? 0}
 - Średnia regeneracja: ${data?.averageRecovery ?? '—'}
 - Dyscyplina 5/5: ${wins}/7 wygranych dni
 Zwróć 2 zdania syntezy behawioralnej: co jest wzorcem tygodnia i jaka jest dźwignia na finisz. Bez wstępów.`;
-
-      const res = (await invokeEdge('vanguard-oracle', {
-        body: { query: prompt, question: prompt },
-      })) as { answer?: string; text?: string; response?: string; content?: string };
-      const raw = (res?.answer || res?.text || res?.response || res?.content || '').trim();
-      setAiAnalysis(raw || 'Ustabilizuj sen przed północą i skup energię na domknięciu 1 priorytetu.');
-    } catch {
-      setAiAnalysis('Priorytet tygodnia: zabezpieczyć regenerację i domknąć otwarte zadania.');
-    } finally {
-      setLoadingAi(false);
-    }
+    await requestSynthesis(prompt);
   };
 
   return (

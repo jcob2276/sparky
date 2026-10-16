@@ -114,7 +114,7 @@ export function useTodoData() {
     doneItems, getChildren,
     todayItems, inboxItems, upcomingItems, sectionsWithItems,
   } = useTodoDerivedViews({
-    items, sections, projects, dreams, today, activeFilterSection, activeSmartQuery,
+    items, sections, projects, dreams, today, activeFilterSection, activeSmartQuery, linkedPlanIds,
   });
 
   // ── Actions (see hooks/useTodoActions.ts) ──

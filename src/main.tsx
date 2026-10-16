@@ -8,7 +8,8 @@ import { queryClient } from './lib/queryClient'
 import { initNativeShell } from './lib/native/initNativeShell'
 
 // Flush anything queued while offline and retry automatically on reconnect.
-initOfflineSync()
+const stopOfflineSync = initOfflineSync()
+if (import.meta.hot) import.meta.hot.dispose(stopOfflineSync)
 
 // Capacitor APK shell (no-op on Vercel PWA).
 void initNativeShell()

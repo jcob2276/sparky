@@ -97,7 +97,6 @@ export function usePowerListData({
     setYesterdayDayScore,
     setYesterdayMoodScore,
     planDaySignal,
-    directionLoading: direction.loading,
   });
 
   const [correctedYesterdayWin, setCorrectedYesterdayWin] = useState<DailyWinWithTasks | null>(null);

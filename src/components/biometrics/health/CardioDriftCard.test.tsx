@@ -71,6 +71,7 @@ describe('CardioDriftCard', () => {
 
   it('renders clean notice when data is null', () => {
     render(<CardioDriftCard data={null} />);
-    expect(screen.getByText(/Brak zarejestrowanych biegów/i)).toBeInTheDocument();
+    expect(screen.getByText(/Brak pomiarów tempa i tętna dla obu połówek sesji/i)).toBeInTheDocument();
+    expect(screen.getByText(/Średnie z całego biegu nie wystarczają/)).toBeInTheDocument();
   });
 });

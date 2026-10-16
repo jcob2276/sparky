@@ -7,6 +7,12 @@ import { selectCanonicalOuraDay } from './biometrics/ouraDayModel';
 import { mapOuraNightDetails } from './biometrics/ouraNightDetails';
 import { buildOuraContextInsights } from './biometrics/ouraContextInsights';
 
+export interface BiometricReadError { source: string; message: string }
+
+function collectBiometricReadErrors(sources: Record<string, { message: string } | null | undefined>): BiometricReadError[] {
+  return Object.entries(sources).flatMap(([source, error]) => error ? [{ source, message: error.message }] : []);
+}
+
 // ── QUERIES ──
 
 export function useDailyStrainOura(userId: string) {
@@ -20,8 +26,8 @@ export function useDailyStrainOura(userId: string) {
         { data: strainRows, error: e1 },
         { data: ouraRows, error: e2 },
         { data: enhancedRows, error: e3 },
-        { data: profileRow },
-        { data: stravaRows },
+        { data: profileRow, error: profileError },
+        { data: stravaRows, error: activitiesError },
       ] = await Promise.all([
         supabase
           .from('daily_strain')
@@ -89,6 +95,7 @@ export function useDailyStrainOura(userId: string) {
       }
 
       return {
+        sourceErrors: collectBiometricReadErrors({ daily_strain: e1, oura_daily_summary: e2, oura_enhanced: e3, nutrition_profile: profileError, strava_activities_clean: activitiesError }),
         row: strainRows,
         day: canonicalDay,
         date: canonicalDay?.date ?? null,
@@ -110,19 +117,22 @@ export function useDailyStrainOura(userId: string) {
 }
 
 export function useWeeklyBodyPulse(userId: string) {
-  const { since } = weeklyBodyPulseWindow();
+  const { since, today, fromISO, toISO } = weeklyBodyPulseWindow();
   return useQuery({
     queryKey: biometricsKeys.weeklyPulse(userId, since),
     queryFn: async () => {
-      const [{ data: strain }, { data: sessions }, { data: strava }, { data: oura }] = await Promise.all([
-        supabase.from('daily_strain').select('*').eq('user_id', userId).gte('date', since),
-        supabase.from('workout_sessions').select('*').eq('user_id', userId).gte('workout_day', since),
-        supabase.from('strava_activities').select('*').eq('user_id', userId).gte('start_date', since),
-        supabase.from('oura_daily_summary').select('*').eq('user_id', userId).gte('date', since),
+      const [{ data: strain, error: strainError }, { data: sessions, error: sessionsError }, { data: strava, error: stravaError }, { data: oura, error: ouraError }] = await Promise.all([
+        supabase.from('daily_strain').select('*').eq('user_id', userId).gte('date', since).lte('date', today),
+        supabase.from('workout_sessions').select('*').eq('user_id', userId).gte('date', since).lte('date', today),
+        supabase.from('strava_activities').select('*').eq('user_id', userId).gte('start_date', fromISO).lte('start_date', toISO),
+        supabase.from('oura_daily_summary').select('*').eq('user_id', userId).gte('date', since).lte('date', today),
       ]);
+      const errors = collectBiometricReadErrors({ daily_strain: strainError, workout_sessions: sessionsError, strava_activities: stravaError, oura_daily_summary: ouraError });
+      if (errors.length) throw new Error(errors.map((error) => `${error.source}: ${error.message}`).join(' · '));
 
       return buildWeeklyBodyPulse({
         since,
+        until: today,
         sessions: sessions || [],
         strava: strava || [],
         oura: oura || [],
@@ -160,6 +170,7 @@ export function useOuraHistory30Days(userId: string) {
       if (e2) console.warn('[useOuraHistory30Days] e2 warning:', e2.message);
 
       return {
+        sourceErrors: collectBiometricReadErrors({ oura_daily_summary: e1, oura_enhanced: e2 }),
         ouraHistory: ouraHistory || [],
         enhancedHistory: enhancedHistory || [],
       };
@@ -204,14 +215,14 @@ export function useOuraNightDetails(
       if (heartRateResult.error) console.warn('[useOuraNightDetails] heart rate:', heartRateResult.error.message);
       if (hrvResult.error) console.warn('[useOuraNightDetails] HRV:', hrvResult.error.message);
 
-      return mapOuraNightDetails({
+      return { ...mapOuraNightDetails({
         date,
         bedtimeStart,
         bedtimeEnd,
         phases: phasesResult.data ?? [],
         heartRate: heartRateResult.data ?? [],
         hrv: hrvResult.data ?? [],
-      });
+      }), sourceErrors: collectBiometricReadErrors({ oura_sleep_phase_timeline: phasesResult.error, oura_sleep_hr_timeline: heartRateResult.error, oura_sleep_hrv_timeline: hrvResult.error }) };
     },
     enabled: !!userId && !!date,
     staleTime: 1000 * 60 * 30,
@@ -248,13 +259,13 @@ export function useOuraContext(userId: string, contextDate: string | null, bedti
       if (workoutResult.error) console.warn('[useOuraContext] workouts:', workoutResult.error.message);
       if (foodResult.error) console.warn('[useOuraContext] food:', foodResult.error.message);
 
-      return buildOuraContextInsights({
+      return { ...buildOuraContextInsights({
         sleepDate: contextDate,
         bedtimeStart,
         phoneUsage: phoneResult.data,
         workouts: workoutResult.data ?? [],
         foodEntries: foodResult.data ?? [],
-      });
+      }), sourceErrors: collectBiometricReadErrors({ phone_usage_daily: phoneResult.error, workout_sessions: workoutResult.error, daily_food_entries: foodResult.error }) };
     },
     enabled: !!userId && !!contextDate,
     staleTime: 1000 * 60 * 15,

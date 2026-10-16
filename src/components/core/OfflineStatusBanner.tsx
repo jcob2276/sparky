@@ -18,7 +18,7 @@ export function OfflineStatusBanner() {
       setIsOnline(true);
       if (wasOffline) {
         setShowReconnected(true);
-        void flushOfflineQueue();
+        void flushOfflineQueue().catch((error) => console.warn('[offlineQueue] Reconnect flush postponed:', error));
         timer = setTimeout(() => {
           setShowReconnected(false);
           setWasOffline(false);

@@ -43,13 +43,14 @@ export function selectCanonicalOuraDay<S extends DatedRow, E extends DatedRow>(
   const summaries = rowsByDate(input.summaries);
   const enhanced = rowsByDate(input.enhanced);
   const summaryDates = [...summaries.keys()].sort((a, b) => b.localeCompare(a));
-  const selectedDate = summaries.has(input.preferredDate)
+  const availableDates = summaryDates.length ? summaryDates : [...enhanced.keys()].sort((a, b) => b.localeCompare(a));
+  const selectedDate = availableDates.includes(input.preferredDate)
     ? input.preferredDate
-    : summaryDates[0];
+    : availableDates[0];
 
   if (!selectedDate) return null;
 
-  const previousDate = summaryDates.find((date) => date < selectedDate) ?? null;
+  const previousDate = availableDates.find((date) => date < selectedDate) ?? null;
 
   return {
     ...assembleDay(selectedDate, summaries, enhanced),

@@ -1,41 +1,12 @@
 import { supabase } from './supabase';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { notify } from './notify';
+import { addQueuedWrite, getQueuedWrites, removeQueuedWrite, saveToDeadLetterQueue } from './offlineQueueStore';
 
 // Dynamic table dispatch requires bypassing the generic table-name constraint.
 // This is intentional — the offline queue replays arbitrary serialised writes.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const dynDb = supabase as SupabaseClient<any>;
-
-const DB_NAME = 'vanguard_offline';
-const STORE_NAME = 'queue';
-const DLQ_STORE_NAME = 'dead_letter';
-const DB_VERSION = 2;
-
-interface QueueEntry {
-  id: string;
-  fn: string;
-  args: Record<string, unknown>;
-  label: string;
-  createdAt: number;
-}
-
-function openDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, DB_VERSION);
-    req.onupgradeneeded = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-      }
-      if (!db.objectStoreNames.contains(DLQ_STORE_NAME)) {
-        db.createObjectStore(DLQ_STORE_NAME, { keyPath: 'id' });
-      }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
-}
 
 /**
  * Best-effort network-failure detector. Only errors that look like a genuine
@@ -45,73 +16,25 @@ function openDb(): Promise<IDBDatabase> {
  */
 export function isOfflineError(err: unknown): boolean {
   if (typeof navigator !== 'undefined' && navigator.onLine === false) return true;
-  const message = err instanceof Error ? err.message : String(err);
+  if (!err) return false;
+  if (typeof err === 'object' && 'name' in err && err.name === 'FunctionsFetchError') return true;
+  const message = typeof err === 'object' && 'message' in err && typeof err.message === 'string'
+    ? err.message : String(err);
   return /failed to fetch|networkerror|network request failed|load failed/i.test(message);
 }
 
 export async function queueOfflineWrite(fn: string, args: Record<string, unknown>, label: string): Promise<void> {
-  const db = await openDb();
-  const entry: QueueEntry = { id: crypto.randomUUID(), fn, args, label, createdAt: Date.now() };
-  await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).add(entry);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-  db.close();
+  const ownerId = await currentQueueUser();
+  if (!ownerId) throw new Error('Nie można zapisać operacji offline bez dostępnej sesji konta.');
+  await addQueuedWrite({ id: crypto.randomUUID(), ownerId, fn, args, label, createdAt: Date.now() });
 }
 
-async function getQueuedWrites(): Promise<QueueEntry[]> {
-  const db = await openDb();
-  const entries = await new Promise<QueueEntry[]>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const req = tx.objectStore(STORE_NAME).getAll();
-    req.onsuccess = () => resolve(req.result as QueueEntry[]);
-    req.onerror = () => reject(req.error);
-  });
-  db.close();
-  return entries.sort((a, b) => a.createdAt - b.createdAt);
-}
-
-async function removeQueuedWrite(id: string): Promise<void> {
-  const db = await openDb();
-  await new Promise<void>((resolve, reject) => {
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    tx.objectStore(STORE_NAME).delete(id);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
-  db.close();
-}
-
-async function saveToDeadLetterQueue(entry: QueueEntry, error: unknown): Promise<void> {
+async function currentQueueUser(): Promise<string | null> {
+  // Local queue ownership only; the server still authorizes every replay through Auth/RLS.
   try {
-    const db = await openDb();
-    const errMsg = error instanceof Error
-      ? error.message
-      : (typeof error === 'object' && error !== null && 'message' in error)
-        ? String((error as Record<string, unknown>).message)
-        : String(error);
-    const errCode = (typeof error === 'object' && error !== null && 'code' in error)
-      ? String((error as Record<string, unknown>).code)
-      : null;
-
-    const dlqEntry = {
-      ...entry,
-      failedAt: Date.now(),
-      errorMessage: errMsg,
-      errorCode: errCode,
-    };
-    await new Promise<void>((resolve, reject) => {
-      const tx = db.transaction(DLQ_STORE_NAME, 'readwrite');
-      tx.objectStore(DLQ_STORE_NAME).add(dlqEntry);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-    db.close();
-  } catch (err) {
-    console.error('[offlineQueue] Failed to save entry to DLQ:', err);
-  }
+    const { data, error } = await supabase.auth.getSession();
+    return error ? null : data.session?.user.id ?? null;
+  } catch { return null; }
 }
 
 
@@ -140,41 +63,60 @@ export async function rpcWithOfflineFallback(
 }
 
 let flushing = false;
+let flushAgain = false;
+let legacyNoticeShown = false;
 
 export async function flushOfflineQueue(): Promise<void> {
-  if (flushing) return;
+  if (flushing) { flushAgain = true; return; }
   if (typeof navigator !== 'undefined' && !navigator.onLine) return;
   flushing = true;
   try {
+    const ownerId = await currentQueueUser();
+    if (!ownerId) return;
     const entries = await getQueuedWrites();
     if (!entries.length) return;
+    if (!legacyNoticeShown && entries.some((entry) => !entry.ownerId)) {
+      legacyNoticeShown = true;
+      notify('Starsze zapisy offline nie mają przypisanego konta. Zachowano je lokalnie bez wysyłania.', 'error');
+    }
     let synced = 0;
     for (const entry of entries) {
-      let error = null;
-      if (entry.fn.startsWith('table:')) {
-        const [_, action, table] = entry.fn.split(':');
-        if (action === 'insert') {
-          const res = await dynDb.from(table).insert((entry.args.payload as Record<string, unknown>) || {});
-          error = res.error;
-        } else if (action === 'update') {
-          const res = await dynDb.from(table).update((entry.args.payload as Record<string, unknown>) || {}).match((entry.args.match as Record<string, unknown>) || {});
-          error = res.error;
+      if (entry.ownerId !== ownerId) continue;
+      if (await currentQueueUser() !== ownerId) break;
+      let error: { message: string } | null = null;
+      try {
+        if (entry.fn.startsWith('table:')) {
+          const [_, action, table] = entry.fn.split(':');
+          if (!['insert', 'update', 'delete'].includes(action)) throw new Error('Nieobsługiwana operacja tabeli w kolejce offline.');
+          const match = entry.args.match;
+          if (action !== 'insert' && (!match || typeof match !== 'object' || Array.isArray(match) || !Object.keys(match).length)) {
+            throw new Error('Brak filtra rekordu dla operacji offline.');
+          }
+          if (action === 'insert') {
+            const res = await dynDb.from(table).insert((entry.args.payload as Record<string, unknown>) || {});
+            error = res.error;
+          } else if (action === 'update') {
+            const res = await dynDb.from(table).update((entry.args.payload as Record<string, unknown>) || {}).match((entry.args.match as Record<string, unknown>) || {});
+            error = res.error;
+          } else {
+            const res = await dynDb.from(table).delete().match((entry.args.match as Record<string, unknown>) || {});
+            error = res.error;
+          }
+        } else if (entry.fn.startsWith('edge:')) {
+          const [_, functionName] = entry.fn.split(':');
+          const { data, error: edgeErr } = await supabase.functions.invoke(functionName, { body: entry.args });
+          error = edgeErr;
+          if (!error && (data?.error || data?.ok === false || data?.success === false)) {
+            error = new Error(typeof data?.error === 'string' ? data.error : `Funkcja ${functionName} zgłosiła niepowodzenie zapisu.`);
+          }
         } else {
-          const res = await dynDb.from(table).delete().match((entry.args.match as Record<string, unknown>) || {});
+          const res = await dynDb.rpc(entry.fn, entry.args);
           error = res.error;
         }
-      } else if (entry.fn.startsWith('edge:')) {
-        const [_, functionName] = entry.fn.split(':');
-        const { error: edgeErr } = await supabase.functions.invoke(functionName, {
-          body: entry.args,
-        });
-        error = edgeErr;
-      } else {
-        const res = await dynDb.rpc(entry.fn, entry.args);
-        error = res.error;
-      }
+      } catch (cause) { error = cause instanceof Error ? cause : { message: String(cause) }; }
 
       if (error) {
+        if (await currentQueueUser() !== ownerId) break;
         if (isOfflineError(error)) {
           console.debug(`[offlineQueue] Network offline during replay for ${entry.fn}. Stopping queue flush.`);
           break; // Stop - we are offline again, keep in queue
@@ -196,15 +138,33 @@ export async function flushOfflineQueue(): Promise<void> {
         'success',
       );
     }
+  } catch (error) {
+    flushAgain = false;
+    throw error;
   } finally {
     flushing = false;
+    if (flushAgain) { flushAgain = false; await flushOfflineQueue(); }
   }
 }
 
 /** Call once on app start — flushes anything queued from a previous offline session
  * and retries automatically whenever the browser regains connectivity. */
-export function initOfflineSync(): void {
-  if (typeof window === 'undefined') return;
-  window.addEventListener('online', () => { void flushOfflineQueue(); });
-  if (navigator.onLine) void flushOfflineQueue();
+export function initOfflineSync(): () => void {
+  if (typeof window === 'undefined') return () => {};
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const flush = () => { void flushOfflineQueue().catch((error) => console.warn('[offlineQueue] Flush postponed:', error)); };
+  const schedule = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(flush, 0);
+  };
+  const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    if (session) schedule();
+  });
+  window.addEventListener('online', flush);
+  if (navigator.onLine) schedule();
+  return () => {
+    if (timer) clearTimeout(timer);
+    window.removeEventListener('online', flush);
+    subscription.unsubscribe();
+  };
 }

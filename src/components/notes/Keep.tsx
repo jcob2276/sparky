@@ -19,7 +19,7 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
   const userId = useUserId();
 
   const {
-    notes, trashedNotes, folders, smartFolders, setNotes, trashLoading, foldersLoading, smartFoldersLoading, busy, setBusy,
+    notes, trashedNotes, folders, smartFolders, setNotes, trashLoading, trashError, foldersLoading, smartFoldersLoading, busy, setBusy,
     handleCreate, handleUpdate, handleDelete, handleTogglePin, handleNewNote,
     handleDeleteTag, handleRenameTag, handleReorder, handleRestore, handlePermanentDelete,
     handleCreateFolder, handleRenameFolder, handleMoveFolder, handleReorderFolder, handleDeleteFolder,
@@ -136,6 +136,7 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
           <TrashNotesView
             notes={trashedNotes}
             loading={trashLoading}
+            error={trashError}
             onRestore={handleRestore}
             onPermanentDelete={handlePermanentDelete}
           />

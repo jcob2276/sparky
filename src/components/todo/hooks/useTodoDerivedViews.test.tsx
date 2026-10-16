@@ -47,4 +47,13 @@ describe('study assignments in task views', () => {
     expect(result.openItems).toEqual([parent]);
     expect(result.getChildren(parent.id)).toEqual([child]);
   });
+  it('includes tasks linked to today daily win in todayItems even without explicit due_date', () => {
+    const planned = task({ id: 'planned-task', due_date: null });
+    const result = renderHook(() => useTodoDerivedViews({
+      items: [planned], sections: [section], projects: [], dreams: [], today: '2026-10-08',
+      activeFilterSection: null, activeSmartQuery: '',
+      linkedPlanIds: new Set(['planned-task']),
+    })).result.current;
+    expect(result.todayItems.map(i => i.id)).toEqual(['planned-task']);
+  });
 });

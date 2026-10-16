@@ -8,19 +8,20 @@ import { useState, useMemo } from 'react';
 import { Droplet, Plus, Sparkles, AlertTriangle, CheckCircle2, Zap } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import Button from '../../ui/Button';
-import { calculateDynamicHydration, type HydrationResult } from '@vanguard/domain';
+import { type HydrationResult } from '@vanguard/domain';
 
 interface HydrationCardProps {
   initialData: HydrationResult;
   date?: string;
+  userId?: string;
   onAddWater?: (amountMl: number) => void;
 }
 
-function getStoredIntake(date: string | undefined, fallback: number): number {
-  if (typeof window === 'undefined') return fallback;
+function getStoredIntake(storageKey: string | null, fallback: number): number {
+  if (typeof window === 'undefined' || !storageKey) return fallback;
   try {
-    const saved = localStorage.getItem(`sparky_hydration_${date || 'today'}`);
-    if (saved && !isNaN(Number(saved))) return Number(saved);
+    const saved = localStorage.getItem(storageKey);
+    if (saved && Number.isFinite(Number(saved)) && Number(saved) >= 0) return Number(saved);
   } catch {
     // fallback
   }
@@ -100,18 +101,17 @@ function HydrationBreakdown({
   );
 }
 
-export function HydrationCard({ initialData, date, onAddWater }: HydrationCardProps) {
-  const [prevDate, setPrevDate] = useState(date);
+export function HydrationCard({ initialData, date, userId, onAddWater }: HydrationCardProps) {
+  const storageKey = userId && date ? `sparky_hydration_${userId}_${date}` : null;
+  const [prevKey, setPrevKey] = useState(storageKey);
   const [loggedIntake, setLoggedIntake] = useState<number>(() =>
-    getStoredIntake(date, initialData.loggedIntakeMl)
+    getStoredIntake(storageKey, initialData.loggedIntakeMl)
   );
 
-  if (date !== prevDate) {
-    setPrevDate(date);
-    setLoggedIntake(getStoredIntake(date, initialData.loggedIntakeMl));
+  if (storageKey !== prevKey) {
+    setPrevKey(storageKey);
+    setLoggedIntake(getStoredIntake(storageKey, initialData.loggedIntakeMl));
   }
-
-  const storageKey = `sparky_hydration_${date || 'today'}`;
 
   const currentResult = useMemo((): HydrationResult => {
     const sweatLoss = initialData.sweatLossMl;
@@ -157,7 +157,7 @@ export function HydrationCard({ initialData, date, onAddWater }: HydrationCardPr
   const handleQuickAdd = (deltaMl: number) => {
     const updated = loggedIntake + deltaMl;
     setLoggedIntake(updated);
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && storageKey) {
       try {
         localStorage.setItem(storageKey, String(updated));
       } catch {

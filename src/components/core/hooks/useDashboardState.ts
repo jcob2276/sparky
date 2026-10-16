@@ -12,7 +12,7 @@ import { useHaptics } from '../../../hooks/useHaptics';
 import { useNudgeData } from './useNudgeData';
 import { useSyncActions } from '../../../hooks/useSyncActions';
 import { useSpineGuidance } from '../../../hooks/useSpineGuidance';
-import { usePendingActionCount } from '../../../components/shared/ActionCenterSheet';
+import { usePendingActionCount } from '../../../hooks/usePendingActionCount';
 import { useWorkoutResume } from '../../biometrics/hooks/useWorkoutResume';
 import { useDashboardSwipeNav } from './useDashboardSwipeNav';
 import { fetchLatestTaskReviewDate } from '../../../lib/todo/todo';

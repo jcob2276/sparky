@@ -147,7 +147,7 @@ export function useTrashedNotes(userId: string) {
         .not('deleted_at', 'is', null)
         .order('deleted_at', { ascending: false });
 
-      if (error) return [];
+      if (error) throw new Error(error.message);
       return mapNoteRows(data);
     },
     enabled: !!userId,

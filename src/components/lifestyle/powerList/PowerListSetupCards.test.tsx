@@ -80,7 +80,10 @@ describe('PowerListSetup', () => {
       weekCheckpointsDue: undefined,
       skills: undefined,
       checkpoints: { all: [], overdue: [], upcoming: [] },
+      hasData: true,
       loading: false,
+      isError: false,
+      error: null,
       reload: vi.fn().mockResolvedValue(undefined),
     };
 

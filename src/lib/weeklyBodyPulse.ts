@@ -1,4 +1,4 @@
-import { formatDayLabel, getTodayWarsaw, shiftDateStr, warsawDayBoundsISO, TIMEZONE } from './date';
+import { formatDayLabel, formatWarsawDate, getTodayWarsaw, shiftDateStr, warsawDayBoundsISO, TIMEZONE } from './date';
 import { getSaunaStats, isWellnessOnlySession, sessionDateKey } from './health/workoutSauna';
 
 const RUN_SPORTS = new Set(['Run', 'TrailRun', 'VirtualRun']);
@@ -95,7 +95,14 @@ function warsawClock(iso: string): { hour: number; minute: number; totalMinutes:
  * (bedtimes like 23:40 / 00:20). Morning wake times should pass wrapNight=false.
  */
 export function avgClockLabel(timestamps: string[], wrapNight = true): string | null {
-  const minutes = timestamps.map((ts) => {
+  const validTimestamps = timestamps.filter((ts) => {
+    if (!ts || typeof ts !== 'string') return false;
+    const d = new Date(ts);
+    return !Number.isNaN(d.getTime());
+  });
+  if (!validTimestamps.length) return null;
+
+  const minutes = validTimestamps.map((ts) => {
     const { hour, totalMinutes } = warsawClock(ts);
     return wrapNight && hour < 12 ? totalMinutes + 24 * 60 : totalMinutes;
   });
@@ -119,19 +126,26 @@ function shortWeekday(dateStr: string): string {
 
 export function buildWeeklyBodyPulse(input: {
   since: string;
+  until?: string;
   sessions: SessionRow[];
   strava: StravaRow[];
   oura: OuraPulseRow[];
   strain: StrainRow[];
 }): WeeklyBodyPulseData {
   const { since, sessions, strava, oura, strain } = input;
+  const until = input.until ?? shiftDateStr(since, 6);
 
   const inWindow = sessions.filter((s) => {
     const key = sessionDateKey(s.date) || sessionDateKey(s.workout_day);
-    return key >= since;
+    return key >= since && key <= until;
   });
 
   const gymCount = inWindow.filter((s) => !isWellnessOnlySession(s)).length;
+  const stravaWindow = strava.flatMap((activity) => {
+    if (!activity.start_date || !Number.isFinite(Date.parse(activity.start_date))) return [];
+    const day = formatWarsawDate(activity.start_date);
+    return day >= since && day <= until ? [{ ...activity, start_date: day }] : [];
+  });
   const { sessionsCount: saunaCount, totalMinutes: saunaMinutes } = getSaunaStats(
     inWindow.map((s) => ({
       date: sessionDateKey(s.date) || sessionDateKey(s.workout_day),
@@ -139,14 +153,17 @@ export function buildWeeklyBodyPulse(input: {
       exercise_logs: s.exercise_logs,
     })),
     since,
-    strava,
+    stravaWindow,
   );
 
-  const runs = strava.filter((a) => RUN_SPORTS.has(a.sport_type ?? '') && sessionDateKey(a.start_date) >= since);
+  const runs = stravaWindow.filter((a) => {
+    const key = sessionDateKey(a.start_date);
+    return RUN_SPORTS.has(a.sport_type ?? '') && key >= since && key <= until;
+  });
   const runCount = runs.length;
   const runKm = Math.round((runs.reduce((sum, a) => sum + (Number(a.distance) || 0), 0) / 1000) * 10) / 10;
 
-  const ouraWindow = oura.filter((row) => row.date >= since);
+  const ouraWindow = oura.filter((row) => row.date >= since && row.date <= until);
   const sleepDays: SleepDay[] = ouraWindow
     .filter((row) => row.total_sleep_hours != null || row.sleep_score != null)
     .map((row) => ({

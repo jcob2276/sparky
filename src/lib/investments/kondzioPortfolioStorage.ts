@@ -27,7 +27,7 @@ const INITIAL_KONDZIO_PORTFOLIO: KondzioPortfolioData = {
   totalPnlPct: 28.52,
   marketValuePln: 6737.34,
   freeCashPln: 24.29,
-  lastUpdated: new Date().toISOString(),
+  lastUpdated: '2026-03-31T00:00:00.000Z',
   positions: [
     {
       id: 'pos-asbis',

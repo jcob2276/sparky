@@ -33,7 +33,7 @@ export function useDirectionContext(userId: string | undefined, weekStartOverrid
     [weekStartOverride]
   );
 
-  const { data, isLoading: loading, refetch } = useQuery<DirectionContextData | null>({
+  const { data, isLoading: loading, isError, error, refetch } = useQuery<DirectionContextData | null>({
     queryKey: ['direction-context', userId, weekStart],
     queryFn: async () => {
       if (!userId) return null;
@@ -167,10 +167,13 @@ export function useDirectionContext(userId: string | undefined, weekStartOverrid
       weekCheckpointsDue: data?.weekCheckpointsDue,
       skills: data?.skills,
       checkpoints,
+      hasData: data != null,
       loading,
+      isError,
+      error: (error as Error | null) ?? null,
       reload,
     }),
-    [data, weekStart, checkpoints, loading, reload]
+    [data, weekStart, checkpoints, loading, isError, error, reload]
   );
 }
 

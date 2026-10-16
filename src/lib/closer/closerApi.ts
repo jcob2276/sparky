@@ -1,6 +1,7 @@
 import { supabase } from '../supabase';
 import type { Database } from '../database.types';
 import { addDays, format } from 'date-fns';
+import { invalidateGoalSpineCache } from '../goal/goalSpine.queries';
 
 export type CloserDailyLogRow = Database['public']['Tables']['closer_daily_logs']['Row'];
 
@@ -96,7 +97,7 @@ async function syncCloserWeeklyRollups(userId: string, weekStart: string): Promi
     else if (nameLow.includes('dial')) val = sumDials;
     else if (nameLow.includes('godzin')) val = Math.round(sumWorkHours * 10) / 10;
 
-    await supabase
+    const { error } = await supabase
       .from('kpi_entries')
       .upsert(
         {
@@ -107,5 +108,8 @@ async function syncCloserWeeklyRollups(userId: string, weekStart: string): Promi
         },
         { onConflict: 'kpi_id,week_start' },
       );
+    if (error) throw error;
   }
+
+  invalidateGoalSpineCache(userId);
 }

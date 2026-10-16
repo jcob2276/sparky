@@ -150,10 +150,20 @@ export function useTodoActions({
           }
 
           const newItem = await createTodoItem(userId, {
-            title: item.title, notes: item.notes ?? undefined, priority: item.priority || 'normal',
-            tagsText: (item.tags || []).join(', '), section_id: item.section_id ?? undefined,
-            due_date: nextDate || undefined, recurrence: item.recurrence ?? undefined,
-            scheduled_time: nextScheduledTime, reminder_at: nextReminderAt,
+            title: item.title,
+            notes: item.notes ?? undefined,
+            priority: item.priority || 'normal',
+            tagsText: (item.tags || []).join(', '),
+            section_id: item.section_id ?? undefined,
+            due_date: nextDate || undefined,
+            recurrence: item.recurrence ?? undefined,
+            scheduled_time: nextScheduledTime,
+            reminder_at: nextReminderAt,
+            project_id: item.project_id ?? undefined,
+            is_important: item.is_important ?? undefined,
+            category: item.category ?? undefined,
+            duration_minutes: item.duration_minutes ?? undefined,
+            parent_task_id: item.parent_task_id ?? undefined,
           });
           setItems(prev => [...prev, newItem]);
         }

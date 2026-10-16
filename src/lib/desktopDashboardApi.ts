@@ -20,12 +20,11 @@ import type {
   HabitRow,
   HabitLogRow,
   MarathonRow,
-  PhoneUsageRow,
 } from './desktopDashboardTypes';
 
 import { getTodayWarsaw, shiftDateStr } from './date';
 
-export type { DesktopQueryResult, DesktopSessionRow, StravaActivityRow, PhoneUsageRow };
+export type { DesktopQueryResult };
 
 export async function fetchDesktopDashboardData(userId: string): Promise<DesktopQueryResult> {
   const since60 = shiftDateStr(getTodayWarsaw(), -60);

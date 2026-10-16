@@ -1,9 +1,9 @@
-# Vanguard OS
+# Sparky
 
 > Prywatny, jednoosobowy system operacyjny do planowania, rejestrowania zachowania i
 > długoterminowej samoobserwacji.
 
-Vanguard łączy w jednym miejscu plan dnia, zadania, projekty, notatki, kalendarz,
+Sparky łączy w jednym miejscu plan dnia, zadania, projekty, notatki, kalendarz,
 trening, żywienie, biometrię i codzienną refleksję. Jego głównym zadaniem nie jest
 „motywowanie” ani diagnozowanie użytkownika, lecz zachowanie ciągłości: co zostało
 zaplanowane, co naprawdę się wydarzyło i jakie powtarzalności są widoczne w danych.
@@ -20,7 +20,7 @@ To aktywnie rozwijany system single-user, używany jako:
 
 **System mierzy zachowanie. Użytkownik nadaje mu znaczenie.**
 
-Vanguard rozdziela cztery pojęcia:
+Sparky rozdziela cztery pojęcia:
 
 1. **Plan** — co powinno się wydarzyć.
 2. **Ruch** — konkretna czynność możliwa do rozpoczęcia i zakończenia.
@@ -71,6 +71,8 @@ produktu — [`docs/PRODUCT_LANGUAGE.md`](./docs/PRODUCT_LANGUAGE.md).
 | `/trening`, `/cwiczenie`, `/sauna` | dedykowane rejestratory i widoki aktywności |
 | `/dashboard` | rozbudowany kokpit desktopowy |
 | `/finanse` | FIRE, runway, portfel i przepływy |
+| `/inwestycje`, `/insiderzy` | widok inwestycji i ujawnień transakcji |
+| `/poker`, `/poker-lab` | analiza decyzji pokerowych |
 | `/rozwoj` | umiejętności, eksperymenty i rozwój |
 | `/badania` | wyniki badań i trendy medyczne |
 | `/badania/laboratorium` | widok szczegółowych wyników badań laboratoryjnych |
@@ -84,8 +86,10 @@ produktu — [`docs/PRODUCT_LANGUAGE.md`](./docs/PRODUCT_LANGUAGE.md).
 
 <!-- README_SYNC_ROUTES_END -->
 
-Wszystkie trasy poza deweloperskim podglądem design systemu wymagają aktywnej sesji
-Supabase Auth.
+Główne widoki osobiste wymagają aktywnej sesji Supabase Auth. Widoki inwestycji
+(`/inwestycje`, `/insiderzy`, `/stocks`) i pokera (`/poker`, `/poker-lab`) mają
+osobne wejścia dostępne przed sprawdzeniem sesji. Podgląd design systemu jest
+dostępny bez sesji tylko w DEV.
 
 ### Zdrowie i aktywność
 
@@ -193,13 +197,13 @@ Aktualne tryby wejścia, przepływy oraz mapę handlerów opisują
 
 | Warstwa | Technologie |
 |---|---|
-| Web | React 19, TypeScript, Vite, React Router, TanStack Query, Zustand |
+| Web | React, TypeScript, Vite, React Router, TanStack Query, Zustand |
 | UI | Tailwind CSS 4, Framer Motion, Recharts, Lucide |
 | PWA | własny service worker, offline queue, Web Push |
-| Android | Capacitor 8, natywne integracje lokalizacji, Usage Stats, FCM i background sync |
+| Android | Capacitor, natywne integracje lokalizacji, Usage Stats, FCM i background sync |
 | Backend | Supabase PostgreSQL, Auth, RLS, Storage, Edge Functions, pg_cron |
 | Funkcje | TypeScript uruchamiany w Deno |
-| Modele | DeepSeek, OpenAI Whisper, OpenAI embeddings |
+| Modele | DeepSeek, Gemini, OpenAI i dostawcy obsługiwani przez wspólny kernel |
 | Integracje | Telegram Bot API, Oura, Strava, Garmin, Google Calendar, ActivityWatch |
 | Testy i jakość | Vitest, Testing Library, ESLint, TypeScript, Knip, własne ratchety i smoke testy |
 | Hosting | Vercel dla PWA, Supabase dla backendu |
@@ -207,7 +211,7 @@ Aktualne tryby wejścia, przepływy oraz mapę handlerów opisują
 ## Struktura repozytorium
 
 ```text
-Vanguard/
+Sparky/
 ├── src/                       # aplikacja React
 │   ├── components/            # moduły i widoki domenowe
 │   ├── hooks/                 # orkiestracja stanu i integracji
@@ -306,8 +310,10 @@ sprawdzane automatycznie względem odwołań w kodzie.
 | Supabase i zakres użytkownika | `SUPABASE_URL`, `SB_SECRET_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `VANGUARD_USER_ID`, `ALLOWED_ORIGINS` |
 | Harmonogramy | `VANGUARD_CRON_SECRET` |
 | Telegram | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `TELEGRAM_WEBHOOK_SECRET`, `TELEGRAM_SETUP_SECRET` |
-| Modele | `OPENAI_API_KEY`, `DEEPSEEK_API_KEY` |
+| Modele | `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `TYPESAFE_API_KEY` |
 | Google Calendar | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
+| NextDNS | `NEXTDNS_API_KEY`, `NEXTDNS_PROFILE_ID` |
+| Ujawnienia inwestycyjne SEC | `SEC_USER_AGENT` |
 | MCP | `MCP_SERVER_SECRET` |
 | Web Push | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` |
 | Firebase/FCM | `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` |
@@ -423,7 +429,7 @@ długoterminowym, nie deklaracją, że każda opisana tam zdolność już dział
 
 ## Prywatność i bezpieczeństwo
 
-Vanguard przetwarza szczególnie wrażliwe dane: głos, plany, kalendarz, żywienie,
+Sparky przetwarza szczególnie wrażliwe dane: głos, plany, kalendarz, żywienie,
 lokalizację, historię aktywności i biometrię. Repozytorium powinno zawierać wyłącznie
 kod, schematy i dane syntetyczne.
 

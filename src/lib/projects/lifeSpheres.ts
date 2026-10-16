@@ -6,7 +6,7 @@ import type { Database } from '../database.types';
 /**
  * The 6 "life spheres" — a weekly time-balance axis, distinct from the 3
  * growth pillars (Ciało/Duch/Konto tied to dreams/projects) and distinct from
- * the subjective 1-10 self-rating in HexagonPanel ("Heksagon życia"). This is
+ * subjective 1-10 self-ratings. This is
  * the single source of truth for the sphere vocabulary stored in
  * vanguard_calendar.category, vanguard_time_budgets.category and
  * todo_items.category — do not hardcode this list elsewhere.

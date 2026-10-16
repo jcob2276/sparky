@@ -33,8 +33,8 @@ export function CardioDriftCard({
           </div>
         </div>
         <div className="rounded-xl border border-dashed border-border-custom/60 p-4 text-center">
-          <p className="text-xs text-text-secondary">Brak zarejestrowanych biegów z pomiarem tempa i tętna dla wybranego dnia.</p>
-          <p className="text-3xs text-text-muted mt-1">Wykonaj bieg ciągły (minimum 20 min w stałym tempie), aby ocenić odsprzężenie tlenowe.</p>
+          <p className="text-xs text-text-secondary">Brak pomiarów tempa i tętna dla obu połówek sesji.</p>
+          <p className="text-3xs text-text-muted mt-1">Średnie z całego biegu nie wystarczają do obliczenia dryfu.</p>
         </div>
       </Card>
     );

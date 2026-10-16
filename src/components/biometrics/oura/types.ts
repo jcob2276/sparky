@@ -7,9 +7,11 @@ import type { OuraNightDetails } from '../../../lib/biometrics/ouraNightDetails'
 import type { OuraContextInsights } from '../../../lib/biometrics/ouraContextInsights';
 import type { CorrelationsData } from '../../../lib/correlationsApi';
 import type { NutritionDayContext } from '../../../lib/health/nutritionContext';
+import type { BiometricReadError } from '../../../lib/biometricsApi';
 
 
 export interface OuraHealthHubData {
+  sourceErrors?: BiometricReadError[];
   userId?:string;
   date?: string | null;
   strainRow: Tables<'daily_strain'> | null;

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { notify } from '../../../lib/notify';
-import { getSupportedAudioMimeType, getAudioFileExtension } from '../../../lib/audioRecorder';
+import { getSupportedAudioMimeType, getAudioFileExtension, startSpeechPreview } from '../../../lib/audioRecorder';
 import {
   converseDailyPlan,
   transcribeVoiceRecording,
@@ -22,18 +22,18 @@ const DEFAULT_SLOTS: PlanSlotItem[] = [
   { slot: 5, category: 'general', title: '' },
 ];
 
+function createInitialPlanSlots(initialSlots: Props['initialSlots']): PlanSlotItem[] {
+  if (!initialSlots || initialSlots.length !== 5) return DEFAULT_SLOTS;
+  return initialSlots.map((slot, index) => ({
+    slot: index + 1,
+    category: (slot?.category as PlanSlotItem['category']) || DEFAULT_SLOTS[index].category,
+    title: slot?.title || '',
+  }));
+}
+
 export function useVoicePlanInterview({ userId, planningDate, initialSlots }: Props) {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
-  const [slots, setSlots] = useState<PlanSlotItem[]>(() => {
-    if (initialSlots && initialSlots.length === 5) {
-      return initialSlots.map((s, idx) => ({
-        slot: idx + 1,
-        category: (s?.category as PlanSlotItem['category']) || DEFAULT_SLOTS[idx].category,
-        title: s?.title || '',
-      }));
-    }
-    return DEFAULT_SLOTS;
-  });
+  const [slots, setSlots] = useState<PlanSlotItem[]>(() => createInitialPlanSlots(initialSlots));
 
   const [isReady, setIsReady] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -43,7 +43,8 @@ export function useVoicePlanInterview({ userId, planningDate, initialSlots }: Pr
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const speechRecognitionRef = useRef<any>(null);
+  const speechRecognitionRef = useRef<ReturnType<typeof startSpeechPreview>>(null);
+  const transcriptRef = useRef('');
   const timerRef = useRef<number | null>(null);
 
   // Clear timer on unmount
@@ -114,12 +115,12 @@ export function useVoicePlanInterview({ userId, planningDate, initialSlots }: Pr
         streamRef.current = null;
 
         setIsProcessing(true);
-        let transcribedText = '';
+        let transcribedText: string;
         try {
           transcribedText = await transcribeVoiceRecording(file);
         } catch (transcribeErr) {
           console.warn('[VoicePlan] Whisper error, using speech recognition fallback:', transcribeErr);
-          transcribedText = interimTranscript.trim();
+          transcribedText = transcriptRef.current.trim();
         }
 
         if (transcribedText) {
@@ -129,12 +130,14 @@ export function useVoicePlanInterview({ userId, planningDate, initialSlots }: Pr
           setIsProcessing(false);
         }
         setInterimTranscript('');
+        transcriptRef.current = '';
       };
 
       recorder.start();
       setIsRecording(true);
       setAudioDuration(0);
       setInterimTranscript('');
+      transcriptRef.current = '';
 
       if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = window.setInterval(() => {
@@ -143,23 +146,10 @@ export function useVoicePlanInterview({ userId, planningDate, initialSlots }: Pr
 
       // Optionally start Web Speech Recognition for live text preview (non-blocking)
       try {
-        const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        if (SpeechRec) {
-          const rec = new SpeechRec();
-          rec.lang = 'pl-PL';
-          rec.continuous = true;
-          rec.interimResults = true;
-          rec.onresult = (e: any) => {
-            let str = '';
-            for (let i = 0; i < e.results.length; i++) {
-              str += e.results[i][0].transcript + ' ';
-            }
-            setInterimTranscript(str.trim());
-          };
-          rec.onerror = () => { /* ignore client speech recognition errors */ };
-          rec.start();
-          speechRecognitionRef.current = rec;
-        }
+        speechRecognitionRef.current = startSpeechPreview((text) => {
+          transcriptRef.current = text;
+          setInterimTranscript(text);
+        });
       } catch {
         // Web Speech is optional luxury, Whisper is the primary transcription engine
       }
@@ -168,7 +158,7 @@ export function useVoicePlanInterview({ userId, planningDate, initialSlots }: Pr
       const msg = err instanceof Error ? err.message : String(err);
       notify(`Nie udało się uruchomić nagrywania: ${msg}`, 'error');
     }
-  }, [interimTranscript, sendQuery]);
+  }, [sendQuery]);
 
   const stopRecording = useCallback(() => {
     if (timerRef.current) {
@@ -206,15 +196,9 @@ export function useVoicePlanInterview({ userId, planningDate, initialSlots }: Pr
   }, []);
 
   return {
-    messages,
-    slots,
-    isReady,
-    isRecording,
-    isProcessing,
-    interimTranscript,
-    audioDuration,
-    startRecording,
-    stopRecording,
+    messages, slots, isReady,
+    isRecording, isProcessing, interimTranscript, audioDuration,
+    startRecording, stopRecording,
     sendMessage: sendQuery,
     handleClearSlot,
     handleEditSlot,

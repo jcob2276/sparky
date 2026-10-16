@@ -1,7 +1,6 @@
 import Button from '../../ui/Button';
 import { useNavigate } from 'react-router-dom';
 import { RefreshCw, Moon, Sun, Fingerprint, ShieldCheck, Smartphone, LayoutGrid } from 'lucide-react';
-import OuraRingHeaderBadge from '../health/OuraRingHeaderBadge';
 import { BrandTitle } from '../../ui/BrandTitle';
 
 interface DesktopHeaderProps {
@@ -36,8 +35,6 @@ export default function DesktopHeader({
         ))}
       </div>
       <div className="ml-auto flex items-center gap-1.5 sm:gap-2 shrink-0">
-        {/* Oura ring badge retained in code per architecture, hidden from header UI */}
-        {(false as boolean) && <OuraRingHeaderBadge />}
         {onOpenTools && (
           <Button
             onClick={onOpenTools}

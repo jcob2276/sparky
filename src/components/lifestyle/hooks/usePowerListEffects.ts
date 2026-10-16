@@ -26,7 +26,6 @@ interface UsePowerListEffectsArgs {
   setYesterdayDayScore: React.Dispatch<React.SetStateAction<number>>;
   setYesterdayMoodScore: React.Dispatch<React.SetStateAction<number>>;
   planDaySignal: number | undefined;
-  directionLoading: boolean;
 }
 
 export function usePowerListEffects({
@@ -41,7 +40,6 @@ export function usePowerListEffects({
   setYesterdayDayScore,
   setYesterdayMoodScore,
   planDaySignal: _planDaySignal,
-  directionLoading: _directionLoading,
 }: UsePowerListEffectsArgs) {
   // 1. Fetch project names/metadata when todayWin tasks update
   const todoIds = [
@@ -89,7 +87,7 @@ export function usePowerListEffects({
     win: DailyWinWithTasks | null;
     dayScore: number | null;
   }>({
-    queryKey: ['powerlist-yesterday-win', userId],
+    queryKey: ['powerlist-yesterday-win', userId, today],
     queryFn: async () => {
       const yesterday = getYesterdayWarsaw();
       const [data, dayScore] = await Promise.all([

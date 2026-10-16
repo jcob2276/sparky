@@ -23,13 +23,13 @@ const makeNote = (overrides: Partial<Note> = {}): Note => ({
   ...overrides,
 });
 
-describe('useNoteDraftAutosave', () => {
-  beforeEach(() => {
+beforeEach(() => {
     vi.useFakeTimers();
     localStorage.clear();
   });
-  afterEach(() => vi.useRealTimers());
+afterEach(() => vi.useRealTimers());
 
+describe('useNoteDraftAutosave', () => {
   it('saves a changed draft after the debounce delay', () => {
     const onSave = vi.fn();
     const { result } = renderHook(() => useNoteDraftAutosave({
@@ -153,5 +153,98 @@ describe('useNoteDraftAutosave', () => {
       await Promise.resolve();
     });
     expect(result.current.saveStatus).toBe('saved');
+  });
+
+});
+
+describe('autosave across multiple notes', () => {
+  it('does not expose or flush an emergency draft for a locked note', async () => {
+    const raw = JSON.stringify({ title: 'Private', content: '<p>Protected draft</p>', color: 'default', tags: [], folder_id: null });
+    localStorage.setItem('vanguard_note_draft:note-1', raw);
+    const onSave = vi.fn();
+    const { result, unmount } = renderHook(() => useNoteDraftAutosave({ note: makeNote({ is_locked: true, content: '', tags: [] }), onSave }));
+    expect(result.current.content).not.toContain('Protected draft');
+    await act(async () => { await result.current.flushAndWait(); unmount(); });
+    expect(onSave).not.toHaveBeenCalled();
+    expect(localStorage.getItem('vanguard_note_draft:note-1')).toBe(raw);
+  });
+
+  it.each(['broken-json', 'null', '{"title":[],"content":"bad"}'])('ignores an unusable emergency draft (%s)', (raw) => {
+    localStorage.setItem('vanguard_note_draft:note-1', raw);
+    const { result } = renderHook(() => useNoteDraftAutosave({ note: makeNote(), onSave: vi.fn() }));
+    expect(result.current.content).toBe('<h1>Title</h1><p>Body</p>');
+    expect(result.current.saveStatus).toBe('idle');
+  });
+
+  it('restores an emergency draft on a fresh editor mount and keeps it unsaved until flushed', async () => {
+    const draft = { title: 'Odzyskany szkic', content: '<p>Odzyskany szkic</p>', color: 'default', tags: [], folder_id: null };
+    localStorage.setItem('vanguard_note_draft:note-1', JSON.stringify(draft));
+    const onSave = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useNoteDraftAutosave({ note: makeNote(), onSave }));
+    expect(result.current.content).toBe(draft.content);
+    expect(result.current.saveStatus).toBe('dirty');
+    expect(onSave).not.toHaveBeenCalled();
+    await act(async () => { await result.current.flushAndWait(); });
+    expect(onSave).toHaveBeenCalledWith('note-1', draft);
+    expect(localStorage.getItem('vanguard_note_draft:note-1')).toBeNull();
+  });
+
+  it.each(['pending', 'failed'])('reopens its own unsaved draft when a save is %s', async (state) => {
+    let finish!: () => void;
+    const onSave = state === 'failed' ? vi.fn().mockRejectedValue(new Error('offline'))
+      : vi.fn().mockImplementation(() => new Promise<void>((resolve) => { finish = resolve; }));
+    const original = makeNote();
+    const { result, rerender } = renderHook(({ note }) => useNoteDraftAutosave({ note, onSave }), { initialProps: { note: original } });
+    act(() => result.current.setContent('<p>Niezapisana wersja A</p>'));
+    await act(async () => { result.current.flush(); await Promise.resolve(); });
+    await act(async () => { rerender({ note: makeNote({ id: 'note-2' }) }); await Promise.resolve(); });
+    await act(async () => { rerender({ note: original }); await Promise.resolve(); });
+    expect(result.current.content).toBe('<p>Niezapisana wersja A</p>');
+    onSave.mockResolvedValue(undefined);
+    await act(async () => {
+      if (state === 'pending') finish();
+      await result.current.flushAndWait();
+    });
+  });
+
+  it('keeps each note draft under its own id when an earlier save fails', async () => {
+    let rejectFirst!: (error: Error) => void;
+    const onSave = vi.fn()
+      .mockImplementationOnce(() => new Promise<void>((_resolve, reject) => { rejectFirst = reject; }))
+      .mockResolvedValue(undefined);
+    const { result, rerender } = renderHook(
+      ({ note }) => useNoteDraftAutosave({ note, onSave }),
+      { initialProps: { note: makeNote() } },
+    );
+    act(() => result.current.setContent('<p>Pierwsza notatka</p>'));
+    act(() => result.current.flush());
+    rerender({ note: makeNote({ id: 'note-2' }) });
+    act(() => result.current.setContent('<p>Druga notatka</p>'));
+    act(() => result.current.flush());
+    await act(async () => { rejectFirst(new Error('offline')); await Promise.resolve(); });
+    expect(JSON.parse(localStorage.getItem('vanguard_note_draft:note-1') || 'null'))
+      .toMatchObject({ content: '<p>Pierwsza notatka</p>' });
+    await act(async () => { await result.current.flushAndWait(); });
+    expect(onSave).toHaveBeenCalledWith('note-1', expect.objectContaining({ content: '<p>Pierwsza notatka</p>' }));
+    expect(onSave).toHaveBeenCalledWith('note-2', expect.objectContaining({ content: '<p>Druga notatka</p>' }));
+    expect(onSave).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not drop an intermediate note when switching while a save is pending', async () => {
+    let finishFirst!: () => void;
+    const onSave = vi.fn().mockImplementationOnce(() => new Promise<void>((resolve) => { finishFirst = resolve; })).mockResolvedValue(undefined);
+    const { result, rerender } = renderHook(
+      ({ note }) => useNoteDraftAutosave({ note, onSave }),
+      { initialProps: { note: makeNote() } },
+    );
+    act(() => result.current.setContent('<p>A</p>'));
+    rerender({ note: makeNote({ id: 'note-2' }) });
+    act(() => result.current.setContent('<p>B</p>'));
+    rerender({ note: makeNote({ id: 'note-3' }) });
+    act(() => result.current.setContent('<p>C</p>'));
+    act(() => result.current.flush());
+    await act(async () => { finishFirst(); await Promise.resolve(); });
+    expect(onSave).toHaveBeenCalledWith('note-2', expect.objectContaining({ content: '<p>B</p>' }));
+    expect(onSave).toHaveBeenCalledWith('note-3', expect.objectContaining({ content: '<p>C</p>' }));
   });
 });

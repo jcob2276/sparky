@@ -171,19 +171,19 @@ function useProjectTaskKpiHandlers(
     }
   }, [setItems, data]);
 
-  const savingKpiRef = useRef<string | null>(null);
+  const inFlightKpisRef = useRef<Set<string>>(new Set());
   const handleUpdateKpiValue = useCallback((kpiId: string, raw: string) => {
-    if (savingKpiRef.current === kpiId) return;
+    if (inFlightKpisRef.current.has(kpiId)) return;
     const num = parseFloat(raw);
     if (isNaN(num)) { setEditingKpiId(null); return; }
-    savingKpiRef.current = kpiId;
+    inFlightKpisRef.current.add(kpiId);
     const weekStart = getWeekStartWarsaw(getTodayWarsaw());
     run(async () => {
       try {
         await upsertKpiEntry(userId, kpiId, weekStart, num);
         setEditingKpiId(null);
       } finally {
-        savingKpiRef.current = null;
+        inFlightKpisRef.current.delete(kpiId);
       }
     });
   }, [run, userId, setEditingKpiId]);

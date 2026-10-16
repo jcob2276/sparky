@@ -30,7 +30,7 @@ export async function fetchPendingProposals(userId: string): Promise<SystemPropo
     .order('created_at', { ascending: false });
   if (error) {
     console.warn('[systemProposals] fetch failed:', error.message);
-    return [];
+    throw new Error(error.message);
   }
   return (data ?? []) as SystemProposal[];
 }

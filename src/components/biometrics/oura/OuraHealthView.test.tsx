@@ -35,6 +35,17 @@ const data: OuraHealthHubData = {
 };
 
 describe('OuraHealthView', () => {
+  it('shows a failed source while preserving available measurements', () => {
+    renderWithClient(<OuraHealthView activeSection="sleep" data={{ ...data, sourceErrors: [{ source: 'oura_enhanced', message: 'offline' }] }} onOpenSleep={vi.fn()} onSectionChange={vi.fn()} />);
+    expect(screen.getByText('Część danych zdrowia jest niedostępna')).toBeInTheDocument();
+    expect(screen.getByText(/oura_enhanced: offline/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Regeneracja: 88%' })).toBeInTheDocument();
+  });
+
+  it('keeps source failure visible inside the detailed sleep view', () => {
+    renderWithClient(<OuraHealthView activeSection="sleep" sleepOpen data={{ ...data, sourceErrors: [{ source: 'oura_sleep_phase_timeline', message: 'offline' }] }} onOpenSleep={vi.fn()} onSectionChange={vi.fn()} />);
+    expect(screen.getByText(/oura_sleep_phase_timeline: offline/)).toBeInTheDocument();
+  });
   it('isolates the Oura-first dark theme and app-width content', () => {
     const { container } = renderWithClient(
       <OuraHealthView

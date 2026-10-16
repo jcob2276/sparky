@@ -2,6 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { calculateNetEnergy, estimateBMR } from '@vanguard/domain';
 
 describe('netEnergy domain', () => {
+  it('uses the recorded total expenditure without adding BMR or thermogenesis again', () => {
+    const result = calculateNetEnergy({
+      totalCaloriesBurned: 2500,
+      activeCaloriesBurned: 600,
+      caloriesConsumed: 2000,
+    });
+    expect(result.tdee).toBe(2500);
+    expect(result.netKcal).toBe(-500);
+    expect(result.bmr).toBeNull();
+    expect(result.tef).toBe(0);
+  });
+
   it('estimates BMR correctly with Mifflin-St Jeor defaults', () => {
     // 10*75 + 6.25*178 - 5*30 + 5 = 750 + 1112.5 - 150 + 5 = 1717.5 -> 1718
     const bmr = estimateBMR(75, 178, 30, 'male');

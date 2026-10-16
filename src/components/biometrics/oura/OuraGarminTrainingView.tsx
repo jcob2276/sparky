@@ -2,21 +2,16 @@ import type { OuraHealthHubData } from './types';
 import {
   activityHeartRateZones,
   activitySourceLabel,
-  summarizeStrengthProgression,
   extractRunningPBs,
   extractBiometricPBs,
   buildPersonalBestsSummary,
-  calculateCardioDrift,
-  type LiftConfig,
-  type StrengthPB,
 } from '@vanguard/domain';
-import { formatWarsawDate, getTodayWarsaw, shiftDateStr } from '../../../lib/date';
+import { formatWarsawDate } from '../../../lib/date';
 import DataStateNotice from '../../core/DataStateNotice';
 import { RacePredictorCard } from '../workout/RacePredictorCard';
 import { CircularTargetStrainCard } from '../health/CircularTargetStrainCard';
 import { MuscularCardioLoadCard } from '../health/MuscularCardioLoadCard';
 import { Zone2WeeklyCard } from '../health/Zone2WeeklyCard';
-import { StrengthProgressionCard } from '../health/StrengthProgressionCard';
 import { PersonalBestsCard } from '../health/PersonalBestsCard';
 import { CardioDriftCard } from '../health/CardioDriftCard';
 import { HeartRateRecoveryCard } from '../health/HeartRateRecoveryCard';
@@ -37,56 +32,6 @@ function formatDuration(seconds: number): string {
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m ${s < 10 ? '0' : ''}${s}s`;
 }
-
-function getRelativeDateStr(daysAgo: number): string {
-  return shiftDateStr(getTodayWarsaw(), -daysAgo);
-}
-
-const DEFAULT_STRENGTH_LIFTS: LiftConfig[] = [
-  {
-    key: 'bench_press',
-    name: 'Wyciskanie na ławce',
-    target1RM: 110,
-    history: [
-      { date: getRelativeDateStr(14), weightKg: 85, reps: 6 },
-      { date: getRelativeDateStr(7), weightKg: 90, reps: 5 },
-    ],
-  },
-  {
-    key: 'squat',
-    name: 'Przysiad ze sztangą',
-    target1RM: 140,
-    history: [
-      { date: getRelativeDateStr(13), weightKg: 110, reps: 5 },
-      { date: getRelativeDateStr(6), weightKg: 115, reps: 5 },
-    ],
-  },
-  {
-    key: 'deadlift',
-    name: 'Martwy ciąg',
-    target1RM: 170,
-    history: [
-      { date: getRelativeDateStr(12), weightKg: 140, reps: 4 },
-      { date: getRelativeDateStr(5), weightKg: 145, reps: 4 },
-    ],
-  },
-  {
-    key: 'pull_up',
-    name: 'Podciąganie z ciężarem',
-    target1RM: 35,
-    history: [
-      { date: getRelativeDateStr(11), weightKg: 15, reps: 6 },
-      { date: getRelativeDateStr(4), weightKg: 17.5, reps: 5 },
-    ],
-  },
-];
-
-const DEFAULT_STRENGTH_PBS: StrengthPB[] = [
-  { liftKey: 'bench_press', liftName: 'Wyciskanie leżąc', weightKg: 105, reps: 5, estimated1RM: 122.5, achievedAt: getRelativeDateStr(7) },
-  { liftKey: 'squat', liftName: 'Przysiad ze sztangą', weightKg: 135, reps: 5, estimated1RM: 157.5, achievedAt: getRelativeDateStr(6) },
-  { liftKey: 'deadlift', liftName: 'Martwy ciąg', weightKg: 165, reps: 4, estimated1RM: 187.0, achievedAt: getRelativeDateStr(5) },
-  { liftKey: 'pull_up', liftName: 'Podciąganie', weightKg: 17.5, reps: 5, estimated1RM: 20.4, achievedAt: getRelativeDateStr(4) },
-];
 
 const HeartRateZonesSection: React.FC<{ zones: number[]; totalSeconds: number; dateStr?: string | null }> = ({
   zones,
@@ -125,7 +70,7 @@ const HeartRateZonesSection: React.FC<{ zones: number[]; totalSeconds: number; d
 
 const RecentRunsSection: React.FC<{ runs: NonNullable<OuraHealthHubData['stravaActivities']> }> = ({ runs }) => (
   <section className="space-y-3">
-    <h3 className="font-bold">Ostatnie biegi · Garmin przez Intervals.icu</h3>
+    <h3 className="font-bold">Ostatnie zapisane biegi</h3>
     {!runs.length && (
       <DataStateNotice
         title="Brak zarejestrowanych biegów"
@@ -171,9 +116,11 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
     return sum;
   }, []);
   const totalSeconds = zones.reduce((sum, seconds) => sum + seconds, 0);
-  const cardio = data.strainRow?.date === data.date ? data.strainRow?.cardio_load : null;
-  const strength = data.strainRow?.date === data.date ? data.strainRow?.strength_load : null;
-  const strengthSummary = summarizeStrengthProgression(DEFAULT_STRENGTH_LIFTS, 80);
+  const strain = data.strainRow?.date === data.date ? data.strainRow : null;
+  const cardio = strain?.cardio_load;
+  const strength = strain?.strength_load;
+  const recordedDurations = todayActivities.flatMap((activity) => activity.moving_time == null ? [] : [activity.moving_time]);
+  const durationMinutes = recordedDurations.length ? recordedDurations.reduce((sum, seconds) => sum + seconds, 0) / 60 : null;
 
   const runningPBs = extractRunningPBs(activities);
   const biometricHistorySource = data.enhancedHistory && data.enhancedHistory.length > 0
@@ -196,7 +143,7 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
           ]
         : []);
   const biometricPBs = extractBiometricPBs(biometricHistorySource);
-  const pbSummary = buildPersonalBestsSummary(runningPBs, DEFAULT_STRENGTH_PBS, biometricPBs);
+  const pbSummary = buildPersonalBestsSummary(runningPBs, [], biometricPBs);
 
   const latestRun = runs[0];
   const hasRunTelemetry = Boolean(
@@ -208,29 +155,13 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
     (latestRun.hr_avg || latestRun.average_heartrate)
   );
 
-  const avgRunHr = latestRun?.hr_avg ?? latestRun?.average_heartrate ?? 0;
-  const runSpeed = (latestRun?.distance && latestRun?.moving_time)
-    ? (latestRun.distance / 2) / (latestRun.moving_time / 2)
-    : 0;
-
-  const cardioDriftResult = hasRunTelemetry
-    ? calculateCardioDrift({
-        half1SpeedMps: runSpeed,
-        half1AvgHr: Math.max(80, avgRunHr - 2),
-        half2SpeedMps: runSpeed,
-        half2AvgHr: Math.max(80, avgRunHr + 3),
-      })
-    : null;
-
   return (
     <div className="space-y-5 pb-12">
       {/* Kołowa tarcza Strain z łukiem docelowym (Target Strain Dial) */}
       <CircularTargetStrainCard
-        currentStrain={data.strainRow?.strain_score}
-        targetMin={10.0}
-        targetMax={15.0}
-        durationMinutes={totalSeconds > 0 ? Math.round(totalSeconds / 60) : 0}
-        totalCaloriesKcal={data.enhanced?.active_calories ?? 0}
+        currentStrain={strain?.strain_score}
+        durationMinutes={durationMinutes}
+        totalCaloriesKcal={data.enhanced?.date === data.date ? data.enhanced?.active_calories : null}
       />
 
       {/* Rozbicie obciążenia Cardio vs Muscular + Regeneracja partii mięśniowych */}
@@ -243,9 +174,6 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
 
       {/* Akumulacja kardio Strefy 2 (Peter Attia 150 min/tydzień) */}
       <Zone2WeeklyCard activities={activities} asOfDateStr={data.date ?? undefined} />
-
-      {/* Progresja siły 1RM i Big 3 Total */}
-      <StrengthProgressionCard summary={strengthSummary} />
 
       {/* Sala Rekordów Życiowych (PR Trophy Room) */}
       <PersonalBestsCard summary={pbSummary} />
@@ -272,7 +200,8 @@ export function OuraGarminTrainingView({ data }: { data: OuraHealthHubData }) {
       <RacePredictorCard activities={activities} />
 
       {/* Analiza dryfu tętna i rozprzężenia tlenowego (Joe Friel / Bevel) */}
-      <CardioDriftCard data={cardioDriftResult} />
+      {/* Agregaty sesji nie zawierają osobnych pomiarów obu połówek. */}
+      <CardioDriftCard data={null} />
 
       {/* Odzyskiwanie tętna po wysiłku HRR (Bevel / ACSM Clinical) */}
       <HeartRateRecoveryCard

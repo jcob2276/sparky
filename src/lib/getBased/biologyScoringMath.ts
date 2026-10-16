@@ -21,7 +21,7 @@ export type BiologyScoreResult = {
   missing: string[];
 };
 
-export const TONE_LABELS: Record<ScoreTone, string> = {
+const TONE_LABELS: Record<ScoreTone, string> = {
   excellent: 'Strong',
   good: 'Good',
   strained: 'Watch',
@@ -34,12 +34,12 @@ export function clamp(v: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, v));
 }
 
-export function lerp(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number {
+function lerp(value: number, inMin: number, inMax: number, outMin: number, outMax: number): number {
   if (inMax === inMin) return outMax;
   return outMin + ((value - inMin) / (inMax - inMin)) * (outMax - outMin);
 }
 
-export function resolveScoreTone(score: number | null): ScoreTone | null {
+function resolveScoreTone(score: number | null): ScoreTone | null {
   if (!Number.isFinite(score)) return null;
   if (score! >= 85) return 'excellent';
   if (score! >= 70) return 'good';

@@ -44,3 +44,41 @@ export function getAudioFileExtension(mimeType?: string): string {
   if (clean.includes('webm')) return 'webm';
   return 'webm';
 }
+
+interface SpeechPreview {
+  lang: string;
+  continuous: boolean;
+  interimResults: boolean;
+  onresult: (event: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void;
+  onerror: () => void;
+  onstart?: () => void;
+  onend?: () => void;
+  start: () => void;
+  stop: () => void;
+  abort?: () => void;
+}
+
+export function createSpeechRecognition(): SpeechPreview | null {
+  const speechWindow = window as Window & {
+    SpeechRecognition?: new () => SpeechPreview;
+    webkitSpeechRecognition?: new () => SpeechPreview;
+  };
+  const Recognition = speechWindow.SpeechRecognition ?? speechWindow.webkitSpeechRecognition;
+  return Recognition ? new Recognition() : null;
+}
+
+/** Optional browser speech preview; recorded audio remains the primary source. */
+export function startSpeechPreview(onTranscript: (text: string) => void): SpeechPreview | null {
+  const recognition = createSpeechRecognition();
+  if (!recognition) return null;
+  recognition.lang = 'pl-PL';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.onresult = (event) => {
+    const transcript = Array.from(event.results, (result) => result[0]?.transcript ?? '').join(' ').trim();
+    onTranscript(transcript);
+  };
+  recognition.onerror = () => {};
+  recognition.start();
+  return recognition;
+}

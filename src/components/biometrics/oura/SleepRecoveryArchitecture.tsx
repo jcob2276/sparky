@@ -1,15 +1,22 @@
 import React from 'react';
+import { buildSleepTimeline, type SleepStage } from '../../../lib/biometrics/ouraSleepTimeline';
+import DataStateNotice from '../../core/DataStateNotice';
 
 interface SleepRecoveryArchitectureProps {
-  deepMinutes: number;
-  remMinutes: number;
-  totalSleepMinutes: number;
+  deepMinutes: number | null;
+  remMinutes: number | null;
+  totalSleepMinutes: number | null;
   avgHrv: number | null;
   lowestHr: number | null;
   formatMinutes: (mins: number) => string;
   hypnogramString?: string | null;
-  sleepContributors?: Record<string, number> | null;
+  bedtimeStart?: string | null;
+  bedtimeEnd?: string | null;
+  date?: string | null;
+  sleepContributors?: Record<string, number | null> | null;
 }
+
+const PHASE_COLOR: Record<SleepStage, string> = { deep: 'bg-indigo-500', rem: 'bg-teal-400', awake: 'bg-amber-400', light: 'bg-sky-400/70' };
 
 const CONTRIBUTOR_LABELS: Record<string, string> = {
   total_sleep: 'Długość snu',
@@ -29,9 +36,12 @@ export function SleepRecoveryArchitecture({
   lowestHr,
   formatMinutes,
   hypnogramString,
+  bedtimeStart,
+  bedtimeEnd,
+  date,
   sleepContributors,
 }: SleepRecoveryArchitectureProps) {
-  const hypnoSegments = hypnogramString ? hypnogramString.split('') : [];
+  const timeline = buildSleepTimeline({ phases: hypnogramString, bedtimeStart, bedtimeEnd });
 
   return (
     <div className="space-y-4">
@@ -40,31 +50,22 @@ export function SleepRecoveryArchitecture({
       </h3>
 
       {/* Visual Hypnogram Timeline */}
-      {hypnoSegments.length > 0 && (
+      {timeline.status === 'available' ? (
         <div className="rounded-2xl border border-white/10 bg-surface-solid/50 p-4 space-y-3">
           <div className="flex items-center justify-between text-2xs">
             <span className="font-bold text-text-primary">Nocny Hipnogram (co 5 min)</span>
-            <span className="text-3xs text-text-muted font-mono">22:02 — 04:09</span>
+            <span className="text-3xs text-text-muted font-mono">{timeline.axisLabels.length ? `${timeline.axisLabels[0]} — ${timeline.axisLabels.at(-1)}` : 'Brak godzin nocy'}</span>
           </div>
 
           <div className="flex h-6 w-full overflow-hidden rounded-lg bg-black/40 p-0.5 gap-px">
-            {hypnoSegments.map((c, idx) => {
-              const bg =
-                c === '1'
-                  ? 'bg-indigo-500' // Deep
-                  : c === '3'
-                  ? 'bg-teal-400' // REM
-                  : c === '4'
-                  ? 'bg-amber-400' // Awake
-                  : 'bg-sky-400/70'; // Light
-              return (
+            {timeline.segments.map((segment) => (
                 <div
-                  key={idx}
-                  className={`h-full flex-1 rounded-2xs ${bg}`}
-                  title={`Interwał 5 min: faza ${c}`}
+                  key={segment.startBlock}
+                  className={`h-full rounded-2xs ${PHASE_COLOR[segment.stage]}`}
+                  style={{ flex: segment.blocks }}
+                  title={`Faza ${segment.stage}: ${segment.blocks * 5} min`}
                 />
-              );
-            })}
+            ))}
           </div>
 
           {/* Legend */}
@@ -83,27 +84,28 @@ export function SleepRecoveryArchitecture({
             </span>
           </div>
         </div>
-      )}
+      ) : <DataStateNotice title={timeline.status === 'invalid' ? 'Nieprawidłowy przebieg faz snu' : 'Brak przebiegu faz snu'} detail={`Oura · ${date ?? 'brak daty'}. Zapis przebiegu nocy jest niedostępny.`} />}
+      {timeline.durationMismatchMinutes != null && timeline.durationMismatchMinutes > 10 && <DataStateNotice tone="warning" title="Niespójny czas przebiegu faz" detail={`${date ?? 'Noc'}: fazy obejmują ${timeline.measuredMinutes} min, a zapisany przedział ${timeline.intervalMinutes} min.`} />}
 
       {/* 4 Pillars of Night Recovery */}
       <div className="grid grid-cols-2 gap-2.5">
         <div className="rounded-2xl border border-white/10 bg-surface-solid/50 p-3.5">
           <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Sen Głęboki (Deep)</span>
           <div className="mt-1 text-lg font-black text-text-primary">
-            {deepMinutes > 0 ? formatMinutes(deepMinutes) : '—'}
+            {deepMinutes != null ? formatMinutes(deepMinutes) : '—'}
           </div>
           <p className="mt-0.5 text-3xs text-text-muted">
-            {totalSleepMinutes > 0 ? `${Math.round((deepMinutes / totalSleepMinutes) * 100)}% (norma 15-25%)` : 'Brak'}
+            {totalSleepMinutes != null && totalSleepMinutes > 0 && deepMinutes != null ? `${Math.round((deepMinutes / totalSleepMinutes) * 100)}% zapisanego snu` : 'Brak danych'}
           </p>
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-surface-solid/50 p-3.5">
-          <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Sen REM (Psychika)</span>
+          <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Sen REM</span>
           <div className="mt-1 text-lg font-black text-text-primary">
-            {remMinutes > 0 ? formatMinutes(remMinutes) : '—'}
+            {remMinutes != null ? formatMinutes(remMinutes) : '—'}
           </div>
           <p className="mt-0.5 text-3xs text-text-muted">
-            {totalSleepMinutes > 0 ? `${Math.round((remMinutes / totalSleepMinutes) * 100)}% (norma 20-25%)` : 'Brak'}
+            {totalSleepMinutes != null && totalSleepMinutes > 0 && remMinutes != null ? `${Math.round((remMinutes / totalSleepMinutes) * 100)}% zapisanego snu` : 'Brak danych'}
           </p>
         </div>
 
@@ -112,15 +114,15 @@ export function SleepRecoveryArchitecture({
           <div className="mt-1 text-lg font-black text-info font-mono">
             {avgHrv != null ? `${avgHrv} ms` : '—'}
           </div>
-          <p className="mt-0.5 text-3xs text-text-muted">Tonus przywspółczulny</p>
+          <p className="mt-0.5 text-3xs text-text-muted">Średnia podczas snu</p>
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-surface-solid/50 p-3.5">
-          <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Najniższe tętno (Dip)</span>
+          <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Najniższe tętno</span>
           <div className="mt-1 text-lg font-black text-text-primary font-mono">
             {lowestHr != null ? `${lowestHr} bpm` : '—'}
           </div>
-          <p className="mt-0.5 text-3xs text-text-muted">Spoczynek nocy o 03:15</p>
+          <p className="mt-0.5 text-3xs text-text-muted">Minimum przekazane przez Oura</p>
         </div>
       </div>
 
@@ -133,16 +135,16 @@ export function SleepRecoveryArchitecture({
           <div className="space-y-2">
             {Object.entries(sleepContributors).map(([key, val]) => {
               const label = CONTRIBUTOR_LABELS[key] || key.replace(/_/g, ' ');
-              const score = typeof val === 'number' ? val : 0;
-              const color = score >= 80 ? 'bg-success' : score >= 60 ? 'bg-warning' : 'bg-danger';
+              const score = typeof val === 'number' && Number.isFinite(val) ? Math.max(0, Math.min(100, val)) : null;
+              const color = score == null ? 'bg-surface-3' : score >= 80 ? 'bg-success' : score >= 60 ? 'bg-warning' : 'bg-danger';
               return (
                 <div key={key} className="space-y-1">
                   <div className="flex justify-between text-3xs">
                     <span className="text-text-secondary font-medium">{label}</span>
-                    <span className="font-bold text-text-primary font-mono">{score}/100</span>
+                    <span className="font-bold text-text-primary font-mono">{score == null ? '—' : `${score}/100`}</span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-white/5 overflow-hidden">
-                    <div className={`h-full rounded-full ${color}`} style={{ width: `${score}%` }} />
+                    <div className={`h-full rounded-full ${color}`} style={{ width: `${score ?? 0}%` }} />
                   </div>
                 </div>
               );

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Sparkles, X, Check, ArrowRight } from 'lucide-react';
 import { useUserId } from '../../../store/useStore';
 import { getTodayWarsaw } from '../../../lib/date';

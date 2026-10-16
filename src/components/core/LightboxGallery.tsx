@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, ArrowLeft } from 'lucide-react';
+import { Pressable } from '../ui/ControlPrimitives';
 
 interface GalleryImage {
   src: string;
@@ -70,13 +71,13 @@ export default function LightboxGallery({ images, initialIndex, onClose }: Props
         onClick={e => e.stopPropagation()}
       >
         {zoomed !== null && images.length > 1 ? (
-          <button
+          <Pressable
             onClick={() => setZoomed(null)}
             className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors text-xs font-semibold tracking-wide uppercase"
           >
             <ArrowLeft size={14} />
             Galeria
-          </button>
+          </Pressable>
         ) : (
           <span className="text-xs font-black uppercase tracking-widest text-white/40">
             Wizja · {images.length} {images.length === 1 ? 'zdjęcie' : 'zdjęcia'}
@@ -89,13 +90,13 @@ export default function LightboxGallery({ images, initialIndex, onClose }: Props
               {zoomed + 1} / {images.length}
             </span>
           )}
-          <button
+          <Pressable
             onClick={onClose}
             className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
             aria-label="Zamknij"
           >
             <X size={15} />
-          </button>
+          </Pressable>
         </div>
       </div>
 
@@ -106,7 +107,7 @@ export default function LightboxGallery({ images, initialIndex, onClose }: Props
           onClick={e => e.stopPropagation()}
         >
           {images.map((img, idx) => (
-            <button
+            <Pressable
               key={img.src}
               onClick={() => setZoomed(idx)}
               className={`
@@ -128,7 +129,7 @@ export default function LightboxGallery({ images, initialIndex, onClose }: Props
                   {img.title}
                 </p>
               </div>
-            </button>
+            </Pressable>
           ))}
         </div>
       )}
@@ -154,21 +155,21 @@ export default function LightboxGallery({ images, initialIndex, onClose }: Props
           {/* Nawigacja prev/next (tylko gdy >1 zdjęcie) */}
           {images.length > 1 && (
             <div className="flex items-center gap-3" onClick={e => e.stopPropagation()}>
-              <button
+              <Pressable
                 onClick={() => setZoomed((zoomed - 1 + images.length) % images.length)}
                 className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold tracking-wide transition-colors"
               >
                 ← Poprzednie
-              </button>
+              </Pressable>
               <span className="text-xs text-white/40 font-semibold">
                 {images[zoomed].title}
               </span>
-              <button
+              <Pressable
                 onClick={() => setZoomed((zoomed + 1) % images.length)}
                 className="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white text-xs font-bold tracking-wide transition-colors"
               >
                 Następne →
-              </button>
+              </Pressable>
             </div>
           )}
 

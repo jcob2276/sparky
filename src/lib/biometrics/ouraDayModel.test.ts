@@ -2,6 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { selectCanonicalOuraDay } from './ouraDayModel';
 
 describe('selectCanonicalOuraDay', () => {
+  it('retains a measured enhanced day when the summary source is unavailable', () => {
+    const result = selectCanonicalOuraDay({ preferredDate: '2026-07-28', summaries: [], enhanced: [{ date: '2026-07-28', total_sleep_hours: 7 }] });
+    expect(result?.date).toBe('2026-07-28');
+    expect(result?.enhanced?.total_sleep_hours).toBe(7);
+    expect(result?.summary).toBeNull();
+    expect(result?.missingSources).toEqual(['oura_daily_summary']);
+  });
   it('never combines summary and enhanced rows from different dates', () => {
     const result = selectCanonicalOuraDay({
       preferredDate: '2026-07-28',

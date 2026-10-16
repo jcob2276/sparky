@@ -154,7 +154,7 @@ export default function SettingsView() {
           <Button type="button" variant="outline" onClick={startGoogleAuth} className="flex-1">
             Połącz konto
           </Button>
-          <Button type="button" variant="primary" onClick={() => syncCalendar().then(() => notify('Kalendarz zsynchronizowany', 'success'))} className="flex-1">
+          <Button type="button" variant="primary" onClick={() => { void syncCalendar(); }} className="flex-1">
             Sync teraz
           </Button>
         </div>

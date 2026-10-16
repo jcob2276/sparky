@@ -9,6 +9,32 @@ import {
 } from './weeklyBodyPulse';
 
 describe('buildWeeklyBodyPulse', () => {
+  it('excludes dates outside the seven-day window from activity and sleep totals', () => {
+    const data = buildWeeklyBodyPulse({
+      since: '2026-07-13',
+      sessions: [{ date: '2026-07-12' }, { date: '2026-07-19' }, { date: '2026-07-20' }],
+      strava: [
+        { start_date: '2026-07-19T12:00:00Z', sport_type: 'Run', distance: 1000 },
+        { start_date: '2026-07-20T12:00:00Z', sport_type: 'Run', distance: 9000 },
+        { start_date: '2026-07-20T12:00:00Z', sport_type: 'Sauna', distance: 0, elapsed_time: 1200 },
+      ],
+      oura: [
+        { date: '2026-07-19', total_sleep_hours: 7, sleep_score: 70 },
+        { date: '2026-07-20', total_sleep_hours: 10, sleep_score: 100 },
+      ], strain: [],
+    });
+    expect(data).toMatchObject({ gymCount: 1, runCount: 1, runKm: 1, saunaCount: 0, sleepAvgHours: 7, sleepAvgScore: 70 });
+  });
+  it('assigns timestamped runs to their Warsaw day at both window edges', () => {
+    const data = buildWeeklyBodyPulse({
+      since: '2026-07-13', sessions: [], oura: [], strain: [],
+      strava: [
+        { start_date: '2026-07-12T22:30:00Z', sport_type: 'Run', distance: 1000 },
+        { start_date: '2026-07-19T22:30:00Z', sport_type: 'Run', distance: 9000 },
+      ],
+    });
+    expect(data).toMatchObject({ runCount: 1, runKm: 1 });
+  });
   it('splits gym, sauna, runs and sleep extremes over 7 days', () => {
     const data = buildWeeklyBodyPulse({
       since: '2026-07-13',
@@ -97,8 +123,44 @@ describe('buildWeeklyBodyPulse', () => {
 });
 
 describe('avgClockLabel', () => {
+  it('ignores broken timestamps without crashing the weekly summary', () => {
+    expect(avgClockLabel(['not-a-date', '2026-07-13T23:00:00+02:00'])).toBe('23:00');
+    expect(avgClockLabel(['not-a-date'])).toBeNull();
+  });
   it('averages bedtimes across midnight', () => {
     expect(avgClockLabel(['2026-07-13T23:00:00+02:00', '2026-07-15T01:00:00+02:00'], true)).toBe('00:00');
+  });
+
+  it('safely ignores invalid timestamps without throwing RangeError', () => {
+    expect(avgClockLabel(['invalid-date', '', '2026-07-13T23:00:00+02:00'], true)).toBe('23:00');
+    expect(avgClockLabel(['nonsense', 'not-a-date'], true)).toBeNull();
+  });
+});
+
+describe('buildWeeklyBodyPulse date bounds', () => {
+  it('ignores future records beyond the until date', () => {
+    const data = buildWeeklyBodyPulse({
+      since: '2026-07-10',
+      until: '2026-07-15',
+      sessions: [
+        { date: '2026-07-12', workout_day: 'Trening', exercise_logs: [{ exercise_name: 'Bench', reps: 10 }] },
+        { date: '2026-07-20', workout_day: 'Przyszły trening', exercise_logs: [{ exercise_name: 'Bench', reps: 10 }] },
+      ],
+      strava: [
+        { start_date: '2026-07-11T08:00:00Z', sport_type: 'Run', distance: 5000 },
+        { start_date: '2026-07-18T08:00:00Z', sport_type: 'Run', distance: 10000 },
+      ],
+      oura: [
+        { date: '2026-07-12', total_sleep_hours: 8, sleep_score: 85 },
+        { date: '2026-07-19', total_sleep_hours: 9, sleep_score: 95 },
+      ],
+      strain: [],
+    });
+
+    expect(data.gymCount).toBe(1);
+    expect(data.runCount).toBe(1);
+    expect(data.runKm).toBe(5);
+    expect(data.sleepAvgHours).toBe(8);
   });
 });
 

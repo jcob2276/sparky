@@ -10,8 +10,6 @@
  * Oraz Epley Deload Candidate Search (dopasowanie ciężaru deloadu do siatki talerzy).
  */
 
-import { epley } from './workout';
-
 export type ProgressionPolicy = 'off' | 'linear' | 'greyskull' | 'double' | 'assisted' | 'bodyweight';
 
 export interface ProgressionTargetConfig {

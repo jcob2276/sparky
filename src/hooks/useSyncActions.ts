@@ -4,6 +4,7 @@ import { notify } from '../lib/notify';
 import { NETWORK_TIMEOUT_MS } from '../lib/constants';
 import { invokeEdge } from '../lib/supabase';
 import { calendarKeys, biometricsKeys } from '../lib/queryKeys';
+import { assertSyncSucceeded } from '../lib/syncApi';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
 const GOOGLE_CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
@@ -23,7 +24,7 @@ async function runUnifiedSync(
   const results = await Promise.allSettled(
     SYNC_SERVICES.map(async (service) => {
       const body = await callFn(`sync?service=${service}`, { userId });
-      return { service, body };
+      assertSyncSucceeded(body);
     }),
   );
 
@@ -33,18 +34,11 @@ async function runUnifiedSync(
   results.forEach((result, index) => {
     const service = SYNC_SERVICES[index];
     if (result.status === 'fulfilled') {
-      // Sync zwraca HTTP 200 z reason, gdy wymaga interwencji użytkownika
-      // (np. google_token_invalid = odwołany refresh token Google).
-      const reason = (result.value as { reason?: string } | undefined)?.reason;
-      if (reason === 'google_token_invalid') {
-        failed.push({ service, reason, tokenInvalid: true });
-        return;
-      }
       succeeded.push(service);
       return;
     }
     const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
-    failed.push({ service, reason });
+    failed.push({ service, reason, tokenInvalid: reason === 'google_token_invalid' });
   });
 
   return { succeeded, failed };
@@ -78,20 +72,22 @@ export function useSyncActions({
   setSyncing: (v: boolean) => void;
 }) {
   const queryClient = useQueryClient();
+  const lastSyncKey = `sparky_last_unified_sync_time_${userId ?? ''}`;
 
   // Powiadom o wymaganej re-autoryzacji Google max raz na 6h (auto-sync odpala się często).
   const notifyTokenInvalid = useCallback(() => {
-    const KEY = 'vanguard_gtoken_notice_time';
+    if (!userId) return;
+    const KEY = `sparky_gtoken_notice_time_${userId}`;
     const now = Date.now();
     try {
       const last = Number(localStorage.getItem(KEY) || 0);
-      if (now - last < 6 * 60 * 60 * 1000) return;
+      if (last > 0 && last <= now && now - last < 6 * 60 * 60 * 1000) return;
       localStorage.setItem(KEY, String(now));
     } catch { /* local storage can be unavailable */ }
     notify('Google Calendar rozłączony — wymagane ponowne połączenie, aby kalendarze się synchronizowały.', 'error', {
       action: { label: 'Połącz ponownie', onClick: () => startGoogleAuth() },
     });
-  }, []);
+  }, [userId]);
 
   const callFn = useCallback(async (fn: string, body: Record<string, unknown> = {}) => {
     return invokeEdge(fn, {
@@ -122,31 +118,30 @@ export function useSyncActions({
 
   useEffect(() => {
     if (!userId) return;
-    const LAST_SYNC_KEY = 'vanguard_last_unified_sync_time';
     const now = Date.now();
     let lastSync = 0;
     try {
-      const val = localStorage.getItem(LAST_SYNC_KEY);
-      lastSync = val ? parseInt(val, 10) : 0;
+      const val = Number(localStorage.getItem(lastSyncKey));
+      lastSync = Number.isFinite(val) && val > 0 && val <= now ? val : 0;
     } catch { /* local storage can be unavailable */ }
 
     // Throttle to 10 minutes (600,000 ms)
     if (now - lastSync > 10 * 60 * 1000) {
       try {
-        localStorage.setItem(LAST_SYNC_KEY, String(now));
+        localStorage.setItem(lastSyncKey, String(now));
       } catch { /* local storage can be unavailable */ }
       void syncCalendarSilent();
     }
-  }, [userId, syncCalendarSilent]);
+  }, [userId, syncCalendarSilent, lastSyncKey]);
 
   const syncCalendar = useCallback(async () => {
+    if (!userId) return;
     setSyncing(true);
     notify('Pobieram dane: Google Calendar, Oura i Strava… 🔄', 'info');
     try {
       const { succeeded, failed } = await runUnifiedSync(callFn, userId);
-      const LAST_SYNC_KEY = 'vanguard_last_unified_sync_time';
       try {
-        localStorage.setItem(LAST_SYNC_KEY, String(Date.now()));
+        localStorage.setItem(lastSyncKey, String(Date.now()));
       } catch { /* local storage can be unavailable */ }
       if (succeeded.length === 0) {
         if (failed.some((f) => f.tokenInvalid)) {
@@ -177,7 +172,7 @@ export function useSyncActions({
     } finally {
       setSyncing(false);
     }
-  }, [callFn, userId, onRefresh, setSyncing, queryClient, notifyTokenInvalid]);
+  }, [callFn, userId, onRefresh, setSyncing, queryClient, notifyTokenInvalid, lastSyncKey]);
 
   const handleGoogleCallback = useCallback(async (code: string) => {
     setSyncing(true);

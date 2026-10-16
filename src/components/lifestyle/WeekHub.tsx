@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Button from '../ui/Button';
-import { useQuery } from '@tanstack/react-query';
 import { useUserId } from '../../store/useStore';
 import { CalendarDays, Target, AlertCircle, ChevronRight, Check, History } from 'lucide-react';
 import WeekLoopSummary from '../shared/WeekLoopSummary';
@@ -9,11 +8,8 @@ import WeeklyBalanceHexagon from './WeeklyBalanceHexagon';
 import { SystemProposalCard } from '../shared/SystemProposalCard';
 import { useDirectionContext } from './direction/hooks/useDirectionContext';
 import { useSpineGuidance } from '../../hooks/useSpineGuidance';
-import {
-  fetchPendingProposals,
-  resolveProposal,
-  syncFrictionProposals,
-} from '../../lib/systemProposals';
+import { usePendingProposals } from '../../hooks/usePendingProposals';
+import DataStateNotice from '../core/DataStateNotice';
 import { getTodayWarsaw, shiftWeekStart, shiftDateStr } from '../../lib/date';
 import { getWeekStartWarsaw } from '../../lib/growth/growth';
 import { quickCompleteOverdueWeeklyReview } from '../../lib/goal/goalSpine';
@@ -60,14 +56,7 @@ export default function WeekHub({
     }
   };
 
-  const proposalsQuery = useQuery({
-    queryKey: ['system-proposals', userId],
-    queryFn: async () => {
-      await syncFrictionProposals(userId);
-      return fetchPendingProposals(userId);
-    },
-    enabled: !!userId,
-  });
+  const proposalsQuery = usePendingProposals(userId);
 
   const proposals = proposalsQuery.data ?? [];
 
@@ -144,6 +133,9 @@ export default function WeekHub({
         </div>
       )}
 
+      {proposalsQuery.error && <DataStateNotice title="Nie udało się odczytać propozycji tygodnia" detail={proposalsQuery.error.message} tone="warning" />}
+      {direction.isError && <DataStateNotice title="Nie udało się odczytać kontekstu tygodnia" detail={direction.error?.message} tone="warning" />}
+      {!direction.hasData && direction.loading && <DataStateNotice title="Wczytuję kontekst tygodnia" tone="loading" />}
       {proposals.length > 0 && (
         <section className="space-y-3">
           <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[var(--ds-arbitrary-0-14em)] text-warning">
@@ -153,10 +145,7 @@ export default function WeekHub({
             <SystemProposalCard
               key={p.id}
               proposal={p}
-              onResolved={async (id, status) => {
-                await resolveProposal(id, status);
-                void proposalsQuery.refetch();
-              }}
+              onResolved={proposalsQuery.resolve}
             />
           ))}
           {proposals.length > 2 && onOpenActionCenter && (
@@ -173,7 +162,7 @@ export default function WeekHub({
         </section>
       )}
 
-      {direction.weekStart && (
+      {direction.hasData && direction.weekStart && (
         <WeekLoopSummary
           ctx={{
             weekGoals: direction.weekGoals ?? { intention: null, commitment: null, cialo: null, duch: null, konto: null },

@@ -1,10 +1,23 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { HydrationCard } from './HydrationCard';
+import { calculateDynamicHydration } from '@vanguard/domain';
 
 describe('HydrationCard', () => {
   beforeEach(() => {
     localStorage.clear();
+  });
+  it('isolates saved intake by account and day, including account changes without unmounting', () => {
+    const initialData = calculateDynamicHydration({ loggedIntakeMl: 0 });
+    const { rerender } = render(<HydrationCard initialData={initialData} userId="alice" date="2026-10-16" />);
+    fireEvent.click(screen.getByRole('button', { name: /dodaj 250 ml/i }));
+    expect(screen.getByText('250')).toBeInTheDocument();
+    rerender(<HydrationCard initialData={initialData} userId="bob" date="2026-10-16" />);
+    expect(screen.getByText('0')).toBeInTheDocument();
+    rerender(<HydrationCard initialData={initialData} userId="alice" date="2026-10-16" />);
+    expect(screen.getByText('250')).toBeInTheDocument();
+    rerender(<HydrationCard initialData={initialData} userId="alice" date="2026-10-17" />);
+    expect(screen.getByText('0')).toBeInTheDocument();
   });
   it('renders dynamic target, sweat loss, and increments water on button click', () => {
     const onAddWater = vi.fn();

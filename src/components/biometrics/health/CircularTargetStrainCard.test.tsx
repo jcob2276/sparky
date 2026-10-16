@@ -3,6 +3,21 @@ import { render, screen } from '@testing-library/react';
 import { CircularTargetStrainCard } from './CircularTargetStrainCard';
 
 describe('CircularTargetStrainCard', () => {
+  it('does not invent a target or training clearance when only strain is known', () => {
+    render(<CircularTargetStrainCard currentStrain={8} />);
+    expect(screen.getByText('8.0')).toBeInTheDocument();
+    expect(screen.queryByText(/Cel: \d/)).not.toBeInTheDocument();
+    expect(screen.queryByText('Poniżej celu')).not.toBeInTheDocument();
+    expect(screen.queryByText(/ciało ma dziś zdolność/)).not.toBeInTheDocument();
+  });
+
+  it('keeps a missing measurement distinct from a recorded zero', () => {
+    const { rerender } = render(<CircularTargetStrainCard currentStrain={null} />);
+    expect(screen.queryByText('0.0')).not.toBeInTheDocument();
+    rerender(<CircularTargetStrainCard currentStrain={0} />);
+    expect(screen.getByText('0.0')).toBeInTheDocument();
+  });
+
   it('renders current strain score, target interval, duration, and calories', () => {
     render(
       <CircularTargetStrainCard
@@ -34,5 +49,11 @@ describe('CircularTargetStrainCard', () => {
     );
 
     expect(screen.getByText('Poniżej celu')).toBeInTheDocument();
+  });
+
+  it('rounds the total duration before splitting hours and minutes', () => {
+    render(<CircularTargetStrainCard currentStrain={0} durationMinutes={119 + 59 / 60} totalCaloriesKcal={0} />);
+    expect(screen.getByText('2h 0m')).toBeInTheDocument();
+    expect(screen.getByText('0 kcal')).toBeInTheDocument();
   });
 });

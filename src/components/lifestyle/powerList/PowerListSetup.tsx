@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight, Link2, LockKeyhole, X, Mic, Sparkles } from 'lucide-react';
+import { ArrowRight, Link2, LockKeyhole, X, Mic } from 'lucide-react';
 import Button from '../../ui/Button';
 import Badge from '../../ui/Badge';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
@@ -13,6 +13,7 @@ import { YesterdayRecap } from './PowerListSetupCards';
 import PowerListSetupHeader from './PowerListSetupHeader';
 import { PRIORITY_DOT, SPHERE_SLOTS } from './powerListConstants';
 import TodoPicker from './TodoPicker';
+import DataStateNotice from '../../core/DataStateNotice';
 
 interface Props {
   yesterdayWin: DailyWinWithTasks | null;
@@ -36,6 +37,31 @@ interface Props {
   pickerRef: React.RefObject<HTMLDivElement | null>;
   startNewDay: () => void;
   submitting: boolean;
+}
+
+function PlanningContextNotice({ direction }: Pick<Props, 'direction'>) {
+  if (direction.hasData && !direction.isError) return null;
+  return <DataStateNotice
+    title={direction.hasData ? 'Nie udało się odświeżyć kontekstu planowania' : direction.loading ? 'Wczytuję kontekst planowania' : 'Kontekst planowania niedostępny'}
+    detail={direction.error?.message ?? 'Możesz edytować szkic. Zapis planu wymaga wczytania kontekstu.'}
+    tone={direction.loading ? 'loading' : 'warning'}
+  />;
+}
+
+function StartDayAction({ ready, reflectionReady, missingTasks, submitting, onStart }: {
+  ready: boolean; reflectionReady: boolean; missingTasks: number; submitting: boolean; onStart: () => void;
+}) {
+  return <div className="space-y-3">
+    <p className="flex min-h-5 items-center justify-center gap-1.5 text-center text-sm text-text-secondary" aria-live="polite">
+      {ready ? 'Wszystko gotowe. Możesz zacząć dzień.'
+        : !reflectionReady ? <><LockKeyhole size={14} /> Najpierw zapisz krótką refleksję.</>
+          : <><LockKeyhole size={14} /> {missingTasks === 1 ? 'Brakuje jednego zadania.' : `Brakuje ${missingTasks} zadań.`}</>}
+    </p>
+    <Button size="lg" className="w-full" onClick={onStart} disabled={!ready} loading={submitting}
+      icon={ready ? <ArrowRight size={17} /> : <LockKeyhole size={16} />}>
+      {submitting ? 'Zapisywanie…' : ready ? 'Zacznij dzień' : 'Dokończ rytuał'}
+    </Button>
+  </div>;
 }
 
 export default function PowerListSetup({
@@ -73,12 +99,13 @@ export default function PowerListSetup({
         savingYesterdayTaskIds={savingYesterdayTaskIds}
       />
 
-      <PlanningCheckpointsStrip
+      <PlanningContextNotice direction={direction} />
+      {direction.hasData && <PlanningCheckpointsStrip
         checkpoints={[...direction.checkpoints.overdue, ...direction.checkpoints.upcoming]}
         loading={direction.loading}
         onFillSlot={fillSlotFromCheckpoint}
         occupiedSlots={occupiedSlots}
-      />
+      />}
 
       <section className="space-y-3" aria-labelledby="daily-plan-title">
         <header className="flex items-end justify-between gap-3 px-1">
@@ -175,25 +202,7 @@ export default function PowerListSetup({
         </div>
       </section>
 
-      <div className="space-y-3">
-        <p className="flex min-h-5 items-center justify-center gap-1.5 text-center text-sm text-text-secondary" aria-live="polite">
-          {ready
-            ? 'Wszystko gotowe. Możesz zacząć dzień.'
-            : !reflectionReady
-              ? <><LockKeyhole size={14} /> Najpierw zapisz krótką refleksję.</>
-              : <><LockKeyhole size={14} /> {missingTasks === 1 ? 'Brakuje jednego zadania.' : `Brakuje ${missingTasks} zadań.`}</>}
-        </p>
-        <Button
-          size="lg"
-          className="w-full"
-          onClick={startNewDay}
-          disabled={!ready}
-          loading={submitting}
-          icon={ready ? <ArrowRight size={17} /> : <LockKeyhole size={16} />}
-        >
-          {submitting ? 'Zapisywanie…' : ready ? 'Zacznij dzień' : 'Dokończ rytuał'}
-        </Button>
-      </div>
+      {direction.hasData && <StartDayAction ready={ready} reflectionReady={reflectionReady} missingTasks={missingTasks} submitting={submitting} onStart={startNewDay} />}
 
       <VoicePlanModal
         isOpen={voiceModalOpen}

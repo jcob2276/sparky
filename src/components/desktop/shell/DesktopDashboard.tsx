@@ -12,7 +12,6 @@ import Spinner from '../../ui/Spinner';
 import { startGoogleAuth } from '../../../hooks/useSyncActions';
 import { useDesktopData } from './useDesktopData';
 import { useHabitsData } from '../health/useHabitsData';
-import { useDreamsData } from '../vision/useDreamsData';
 import { useDesktopDashboardState } from './useDesktopDashboardState';
 import DesktopHeader from './DesktopHeader';
 import DesktopSectionNav from './DesktopSectionNav';
@@ -20,7 +19,6 @@ import DesktopQuickActionsBar from './DesktopQuickActionsBar';
 import DesktopTabContent from './DesktopTabContent';
 import DesktopQuickWeightModal from './DesktopQuickWeightModal';
 import DesktopToolsLauncherModal from './DesktopToolsLauncherModal';
-import DreamEditModal from '../vision/DreamEditModal';
 
 const WorkoutLogger = lazy(() => import('../../biometrics/WorkoutLogger'));
 const Fundament = lazy(() => import('../../core/Fundament'));
@@ -34,7 +32,6 @@ export default function DesktopDashboard() {
   const { loading, oura, sessions, strain, refresh } = desktopData;
 
   const habitsData = useHabitsData({ userId });
-  const dreamsData = useDreamsData({ userId, loading });
 
   const {
     activeTab,
@@ -131,9 +128,7 @@ export default function DesktopDashboard() {
                   tick={tick}
                   data={desktopData}
                   habitsData={habitsData}
-                  dreamsData={dreamsData}
                   volData={volData}
-                  refresh={refresh}
                   onOpenWorkout={openWorkout}
                   onOpenSauna={() => setShowSaunaModal(true)}
                   onOpenWeight={() => setShowWeightModal(true)}
@@ -144,17 +139,6 @@ export default function DesktopDashboard() {
           </div>
         </main>
       </div>
-
-      <DreamEditModal
-        editingDream={dreamsData.editingDream} setEditingDream={dreamsData.setEditingDream}
-        editDreamTitle={dreamsData.editDreamTitle} setEditDreamTitle={dreamsData.setEditDreamTitle}
-        editDreamCat={dreamsData.editDreamCat} setEditDreamCat={dreamsData.setEditDreamCat}
-        editDreamLifeGoal={dreamsData.editDreamLifeGoal} setEditDreamLifeGoal={dreamsData.setEditDreamLifeGoal}
-        editDreamDesc={dreamsData.editDreamDesc} setEditDreamDesc={dreamsData.setEditDreamDesc}
-        saveDreamEdit={dreamsData.saveDreamEdit} savingDream={dreamsData.savingDream}
-        toggleTop5={dreamsData.toggleTop5} deleteDream={dreamsData.deleteDream}
-        DREAM_CATEGORIES={dreamsData.DREAM_CATEGORIES} DREAM_CAT_LABEL={dreamsData.DREAM_CAT_LABEL}
-      />
 
       {showSaunaModal && (
         <Suspense fallback={null}>

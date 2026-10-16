@@ -230,6 +230,7 @@ export async function upsertKpiEntry(userId: string, kpiId: string, weekStart: s
       { onConflict: 'kpi_id,week_start' }
     );
   if (error) throw error;
+  invalidateGoalSpineCache(userId);
 }
 
 export async function createGoalKpi(

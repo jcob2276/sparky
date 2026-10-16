@@ -99,7 +99,7 @@ export default function DirectionPlanningMode({
         />
       )}
 
-      {reflectionSaved && (
+      {reflectionSaved && direction.hasData && (
         <DirectionPlanWeekPlan
           phase2={phase2} weekStart={weekStart} planWeekStart={planWeekStart}
           direction={{ sprintGoal: direction.sprintGoal ?? null, bhagLine: direction.bhagLine ?? null, monthTheme: direction.monthTheme ?? null, monthLabel: direction.monthLabel ?? null }}

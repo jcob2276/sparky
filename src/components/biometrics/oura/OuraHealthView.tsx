@@ -10,6 +10,7 @@ import IconButton from '../../ui/IconButton';
 import './ouraTheme.css';
 import HealthspanExperienceContainer from '../healthspan/HealthspanExperienceContainer';
 import { OuraLongTermView } from './OuraLongTermView';
+import DataStateNotice from '../../core/DataStateNotice';
 
 export type OuraSection = 'sleep' | 'training' | 'fueling' | 'vitals';
 
@@ -59,6 +60,7 @@ export function OuraHealthView({
           </Button>
         </div>
         <main className="mx-auto max-w-3xl px-4 pb-36 pt-5 sm:px-6">
+          <HealthReadErrors errors={data.sourceErrors} />
           <OuraSleepTab {...data} />
         </main>
       </div>
@@ -89,6 +91,7 @@ export function OuraHealthView({
         data-testid="oura-content"
         className="mx-auto w-full max-w-3xl px-4 pb-36 pt-7 sm:px-6"
       >
+        <HealthReadErrors errors={data.sourceErrors} />
         {isLoading ? (
           <div className="grid min-h-96 place-items-center text-sm text-text-muted">
             Synchronizuję pomiary zdrowia…
@@ -134,4 +137,8 @@ export function OuraHealthView({
       </nav>
     </div>
   );
+}
+
+function HealthReadErrors({ errors }: { errors: OuraHealthHubData['sourceErrors'] }) {
+  return errors?.length ? <DataStateNotice tone="warning" title="Część danych zdrowia jest niedostępna" detail={errors.map((error) => `${error.source}: ${error.message}`).join(' · ')} /> : null;
 }

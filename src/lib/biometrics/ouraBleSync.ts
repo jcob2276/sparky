@@ -86,31 +86,49 @@ export function setupGlobalBleSync(queryClient: QueryClient, _userId: string): (
     return () => {};
   }
 
+  let active = true;
+  let releaseListener: (() => void) | undefined;
+  let stopScan: (() => void) | undefined;
   import('../native/bleProbePlugin').then(({ BleProbe }) => {
+    if (!active) return;
     const saved = getSavedOuraDevice();
+    const subscriptions: Array<Promise<{ remove: () => void }>> = [];
+    const scan = () => {
+      if (!active) return;
+      subscriptions.push(BleProbe.addListener('scanFinished', () => { stopScan = undefined; }));
+      stopScan = () => { void BleProbe.stopScan().catch(() => {}); };
+      void BleProbe.startScan({ durationMs: 10000 }).catch(() => {});
+    };
 
     if (saved?.address) {
       console.log('[OuraBleSync] connecting to saved device', saved.address);
       BleProbe.connectDevice({ address: saved.address }).catch((err: unknown) => {
+        if (!active) return;
         console.warn('[OuraBleSync] connect to saved device failed, starting scan:', err);
-        BleProbe.startScan({ durationMs: 10000 }).catch(() => {});
+        scan();
       });
     } else {
       console.log('[OuraBleSync] no saved device — starting scan for Oura Ring...');
-      BleProbe.startScan({ durationMs: 10000 }).catch(() => {});
+      scan();
     }
 
     // Single lightweight event — fired once per flush after SQLite write completes.
     // Mirrors noop SourceCoordinator invalidating the UI after repository.insert().
-    const sub = BleProbe.addListener('ouraDataUpdated', () => {
+    subscriptions.push(BleProbe.addListener('ouraDataUpdated', () => {
+      if (!active) return;
       console.log('[OuraBleSync] ouraDataUpdated received — invalidating queries');
       queryClient.invalidateQueries();
-    });
+    }));
 
-    return () => {
-      sub.then((s: { remove: () => void }) => s.remove()).catch(() => {});
+    releaseListener = () => {
+      subscriptions.forEach((sub) => sub.then((item) => item.remove()).catch(() => {}));
     };
   }).catch(() => {});
 
-  return () => {};
+  return () => {
+    if (!active) return;
+    active = false;
+    releaseListener?.();
+    stopScan?.();
+  };
 }

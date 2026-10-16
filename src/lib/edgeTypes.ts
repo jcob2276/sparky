@@ -204,7 +204,8 @@ export interface SyncInvestmentAiResponse {
   jevEvaluation?: unknown;
 }
 
-type SyncResponse = SyncOuraResponse | SyncStravaResponse | SyncCalendarResponse | SyncQuotesResponse | SyncInvestmentAiResponse;
+type SyncResponse = SyncOuraResponse | SyncStravaResponse | SyncCalendarResponse | SyncQuotesResponse | SyncInvestmentAiResponse
+  | { ok: boolean; skipped: true; reason: string };
 
 interface LookupFoodResponse {
   results: Array<{

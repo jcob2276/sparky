@@ -13,6 +13,7 @@ interface UseTodoDerivedViewsProps {
   today: string;
   activeFilterSection: string | null;
   activeSmartQuery: string;
+  linkedPlanIds?: Set<string>;
 }
 
 /** Pure derivations from the raw items/sections query data — no state of its own. */
@@ -24,6 +25,7 @@ export function useTodoDerivedViews({
   today,
   activeFilterSection,
   activeSmartQuery,
+  linkedPlanIds,
 }: UseTodoDerivedViewsProps) {
   const sectionById = useMemo(() => Object.fromEntries(sections.map((s) => [s.id, s])), [sections]);
 
@@ -58,7 +60,12 @@ export function useTodoDerivedViews({
 
   const { todayItems, inboxItems, upcomingItems, sectionsWithItems } = useMemo(() => {
     const todayList = openItems
-      .filter((i) => (i.due_date && i.due_date <= today) || (i.deadline_date && i.deadline_date <= today) || i.ai_bucket === 'today')
+      .filter((i) =>
+        (i.due_date && i.due_date <= today) ||
+        (i.deadline_date && i.deadline_date <= today) ||
+        i.ai_bucket === 'today' ||
+        (linkedPlanIds ? linkedPlanIds.has(i.id) : false)
+      )
       .sort((a, b) => {
         const pA = PRIORITY_ORDER.indexOf(a.priority || 'normal');
         const pB = PRIORITY_ORDER.indexOf(b.priority || 'normal');
@@ -99,7 +106,7 @@ export function useTodoDerivedViews({
       upcomingItems: upcoming,
       sectionsWithItems: sectionsList
     };
-  }, [openItems, items, sections, today, applyFilter]);
+  }, [openItems, items, sections, today, applyFilter, linkedPlanIds]);
 
   return {
     sectionById,

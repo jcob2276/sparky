@@ -7,6 +7,7 @@ import { useUserId } from '../../store/useStore';
 import { getTodayWarsaw } from '../../lib/date';
 import { getWeekStartWarsaw } from '../../lib/growth/growth';
 import { Pressable } from '../ui/ControlPrimitives';
+import DataStateNotice from './DataStateNotice';
 
 const PILLAR_ORDER: PillarId[] = ['konto', 'duch', 'cialo'];
 
@@ -40,9 +41,11 @@ const PILLAR_CONFIG = {
 interface SphereExpandedProps {
   pillar: PillarId;
   sleepAvg?: number | null;
-  gymCount: number;
-  runCount: number;
+  gymCount: number | null;
+  runCount: number | null;
   activeProjectsCount: number;
+  directionLoading?: boolean;
+  directionError?: boolean;
   weekGoals: { cialo: string | null; duch: string | null; konto: string | null; intention: string | null };
   onClose: () => void;
 }
@@ -53,6 +56,8 @@ function WeeklySphereDetailsDrawer({
   gymCount,
   runCount,
   activeProjectsCount,
+  directionLoading,
+  directionError,
   weekGoals,
   onClose,
 }: SphereExpandedProps) {
@@ -63,13 +68,20 @@ function WeeklySphereDetailsDrawer({
   let weekGoalText: string;
 
   if (pillar === 'cialo') {
-    historySummary = `Sen śr. ${sleepAvg != null ? `${sleepAvg.toFixed(1)}h` : '—'} · Siłownia: ${gymCount}× · Bieg: ${runCount}×`;
+    historySummary = `Sen śr. ${sleepAvg != null ? `${sleepAvg.toFixed(1)}h` : '—'} · Siłownia: ${gymCount == null ? '—' : `${gymCount}×`} · Bieg: ${runCount == null ? '—' : `${runCount}×`}`;
     weekGoalText = weekGoals.cialo || goal.affirmation;
   } else if (pillar === 'duch') {
     historySummary = weekGoals.intention ? `Intencja: ${weekGoals.intention}` : 'Spokój, relacje, nawyki, rytm poranka i wieczoru';
     weekGoalText = weekGoals.duch || goal.affirmation;
   } else {
-    historySummary = `${activeProjectsCount} aktywnych projektów · Ruch w zadaniach i priorytetach`;
+    if (directionLoading) {
+      historySummary = 'Ładuję dane projektów...';
+    } else if (directionError) {
+      historySummary = 'Nie udało się pobrać projektów';
+    } else {
+      const projWord = activeProjectsCount === 1 ? 'aktywny projekt' : activeProjectsCount >= 2 && activeProjectsCount <= 4 ? 'aktywne projekty' : 'aktywnych projektów';
+      historySummary = `${activeProjectsCount} ${projWord} · Ruch w zadaniach i priorytetach`;
+    }
     weekGoalText = weekGoals.konto || goal.affirmation;
   }
 
@@ -115,14 +127,15 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
   const today = getTodayWarsaw();
   const weekStart = getWeekStartWarsaw(today);
 
-  const { data: bodyData } = useWeeklyBodyPulse(userId);
+  const bodyQuery = useWeeklyBodyPulse(userId);
+  const bodyData = bodyQuery.isError ? undefined : bodyQuery.data;
   const direction = useDirectionContext(userId, weekStart);
   const [selectedPillar, setSelectedPillar] = useState<PillarId | null>(null);
 
   const weekGoals = direction.weekGoals ?? { cialo: null, duch: null, konto: null, intention: null };
   const sleepAvg = bodyData?.sleepAvgHours;
-  const gymCount = bodyData?.gymCount ?? 0;
-  const runCount = bodyData?.runCount ?? 0;
+  const gymCount = bodyData?.gymCount ?? null;
+  const runCount = bodyData?.runCount ?? null;
   const activeProjectsCount = direction.activeProjects?.length ?? 0;
 
   const togglePillar = (p: PillarId) => {
@@ -131,6 +144,7 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
 
   const getPillarSubtitle = (pillar: PillarId) => {
     if (pillar === 'cialo') {
+      if (gymCount == null || runCount == null) return bodyQuery.isLoading ? 'Ładuję dane' : 'Dane niedostępne';
       const parts: string[] = [];
       if (sleepAvg != null) parts.push(`${sleepAvg.toFixed(1)}h sen`);
       parts.push(`${gymCount + runCount} tr.`);
@@ -139,7 +153,11 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
     if (pillar === 'duch') {
       return weekGoals.intention ? 'Intencja aktywna' : 'Rytm & spokój';
     }
-    return `${activeProjectsCount} ${activeProjectsCount === 1 ? 'projekt' : 'projekty'}`;
+    if (direction.loading) return 'Ładuję dane';
+    if (direction.isError) return 'Błąd odczytu';
+    if (activeProjectsCount === 1) return '1 projekt';
+    if (activeProjectsCount >= 2 && activeProjectsCount <= 4) return `${activeProjectsCount} projekty`;
+    return `${activeProjectsCount} projektów`;
   };
 
   return (
@@ -213,10 +231,14 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
           gymCount={gymCount}
           runCount={runCount}
           activeProjectsCount={activeProjectsCount}
+          directionLoading={direction.loading}
+          directionError={direction.isError}
           weekGoals={weekGoals}
           onClose={() => setSelectedPillar(null)}
         />
       )}
+      {bodyQuery.isError && <DataStateNotice tone="warning" title="Dane ciała niedostępne" detail={bodyQuery.error?.message} />}
+      {direction.isError && <DataStateNotice tone="warning" title="Dane projektów i kierunku niedostępne" detail={direction.error?.message} />}
     </section>
   );
 });

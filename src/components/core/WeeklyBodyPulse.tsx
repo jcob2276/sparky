@@ -10,12 +10,19 @@ import {
   type WeeklyBodyPulseData,
 } from '../../lib/weeklyBodyPulse';
 import Badge from '../ui/Badge';
+import DataStateNotice from './DataStateNotice';
 
 export default function WeeklyBodyPulse() {
   const userId = useUserId();
-  const { data, isLoading, isError } = useWeeklyBodyPulse(userId ?? '');
+  const { data, isLoading, isError, error } = useWeeklyBodyPulse(userId ?? '');
   if (!userId) return null;
+  if (isLoading) return <DataStateNotice tone="loading" title="Ładuję podsumowanie ciała" />;
+  if (isError) return <DataStateNotice tone="warning" title="Podsumowanie ciała niedostępne" detail={error?.message ?? 'Nie udało się odczytać danych tygodnia.'} />;
+  if (!data) return <DataStateNotice title="Brak podsumowania ciała" />;
+  return <WeeklyBodyPulseContent data={data} />;
+}
 
+function WeeklyBodyPulseContent({ data }: { data: WeeklyBodyPulseData }) {
   const today = getTodayWarsaw();
   const needsAttention = Boolean(
     data &&
@@ -33,13 +40,7 @@ export default function WeeklyBodyPulse() {
             <Activity size={12} className="text-primary" /> Ciało · 7 dni
           </p>
           <h3 className="mt-1 text-base font-bold text-text-primary">
-            {isLoading
-              ? 'Ładuję przebieg…'
-              : isError
-                ? 'Brak pełnych danych ciała'
-                : data
-                  ? bodyPulseHeadline(data)
-                  : 'Brak danych'}
+            {bodyPulseHeadline(data)}
           </h3>
         </div>
         {needsAttention ? (
@@ -84,7 +85,7 @@ export default function WeeklyBodyPulse() {
             <Moon size={11} /> Wskaźniki snu · śr.
           </p>
           {data && data.warningDays > 0 && (
-            <span className="text-2xs font-extrabold text-warning">{data.warningDays}d poniżej normy</span>
+            <span className="text-2xs font-extrabold text-warning">{data.warningDays} dni ze statusem ostrzegawczym</span>
           )}
         </div>
 

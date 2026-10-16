@@ -33,11 +33,17 @@ export function useDesktopDashboardState({
 }: UseDesktopDashboardStateOptions) {
   const { sessions, refresh } = desktopData;
 
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab') as DesktopTabType | null;
-  const [activeTab, setActiveTab] = useState<DesktopTabType>(
-    urlTab && ['training', 'health', 'intel'].includes(urlTab) ? urlTab : 'training',
-  );
+  const activeTab: DesktopTabType = urlTab && ['training', 'health', 'intel'].includes(urlTab) ? urlTab : 'training';
+  const setActiveTab = useCallback((tab: DesktopTabType) => {
+    if (tab === activeTab) return;
+    setSearchParams((current) => {
+      const next = new URLSearchParams(current);
+      next.set('tab', tab);
+      return next;
+    });
+  }, [activeTab, setSearchParams]);
   const [syncing, setSyncing] = useState(false);
   const [showWorkout, setShowWorkout] = useState(false);
   const [workoutInitial, setWorkoutInitial] = useState<WorkoutLoggerInitial | null>(null);
@@ -77,12 +83,17 @@ export function useDesktopDashboardState({
     setSyncing(true);
     try {
       const phase1 = await Promise.allSettled([syncOura(userId), syncCalendar(userId)]);
+      const failed: string[] = [];
       phase1.forEach((r, i) => {
-        if (r.status === 'rejected') console.error(`[sync] phase1[${i}] failed:`, r.reason);
+        if (r.status === 'rejected') {
+          failed.push(['Oura', 'Kalendarz'][i]);
+          console.error(`[sync] phase1[${i}] failed:`, r.reason);
+        }
       });
-      await syncStrava().catch((e) => console.error('[sync] strava failed:', e));
-      await computeDailyStrain(userId, 2).catch((e) => console.error('[sync] strain failed:', e));
-      refresh();
+      await syncStrava().catch((e) => { failed.push('Aktywności'); console.error('[sync] strava failed:', e); });
+      await computeDailyStrain(userId, 2).catch((e) => { failed.push('Obciążenie'); console.error('[sync] strain failed:', e); });
+      await refresh();
+      if (failed.length) notify(`Nie udało się odświeżyć: ${failed.join(', ')}. Pozostałe dane zostały odświeżone.`, 'error');
     } catch {
       notify('Synchronizacja nie powiodła się.', 'error');
     } finally {
@@ -104,7 +115,8 @@ export function useDesktopDashboardState({
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
-      if (target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || e.metaKey || e.ctrlKey) return;
+      if (target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
+        || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
       if (e.key === 's') void syncAll();
       if (e.key === 't') void openWorkout();
       if (e.key === 'w') setShowWeightModal(true);

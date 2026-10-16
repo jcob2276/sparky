@@ -3,14 +3,29 @@ import { Shield, Zap, Wallet } from 'lucide-react';
 
 export const RECURRENCE_LABELS: Record<string, string> = {
   daily: 'Codziennie',
+  weekdays: 'W dni robocze',
   weekly: 'Co tydzień',
-  monthly: 'Co miesiąc'
+  biweekly: 'Co 2 tygodnie',
+  monthly: 'Co miesiąc',
 };
 
 export function nextOccurrenceDate(baseDateStr: string | null, recurrence: string, today: string): string {
-  const base = baseDateStr || today;
+  const rawBase = baseDateStr || today;
+  const base = rawBase < today ? today : rawBase;
+
   if (recurrence === 'daily') return shiftDateStr(base, 1);
   if (recurrence === 'weekly') return shiftDateStr(base, 7);
+  if (recurrence === 'biweekly') return shiftDateStr(base, 14);
+
+  if (recurrence === 'weekdays') {
+    const [y, m, d] = base.split('-').map(Number);
+    const date = new Date(Date.UTC(y, m - 1, d));
+    const dayOfWeek = date.getUTCDay(); // 0 is Sunday, 5 is Friday, 6 is Saturday
+    if (dayOfWeek === 5) return shiftDateStr(base, 3); // Friday -> Monday
+    if (dayOfWeek === 6) return shiftDateStr(base, 2); // Saturday -> Monday
+    return shiftDateStr(base, 1); // Sunday-Thursday -> next day
+  }
+
   // monthly: needs Date for setUTCMonth
   const [y, m, day] = base.split('-').map(Number);
   const d = new Date(Date.UTC(y, m - 1, day));

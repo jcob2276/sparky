@@ -1,7 +1,6 @@
 import GeneralView from '../general/GeneralView';
 import MarathonPanel from '../fitness/MarathonPanel';
 import SupplementsPanel from '../health/SupplementsPanel';
-import DesktopKierunekSection from './DesktopKierunekSection';
 import DesktopTreningSection from '../fitness/DesktopTreningSection';
 import DesktopWorkoutProgressPanel from '../fitness/DesktopWorkoutProgressPanel';
 import DesktopSaunaSection from '../fitness/DesktopSaunaSection';
@@ -15,7 +14,6 @@ import MultiDomainMatrix from '../intel/MultiDomainMatrix';
 import type { DesktopTabType } from './DesktopQuickActionsBar';
 import type { useDesktopData } from './useDesktopData';
 import type { useHabitsData } from '../health/useHabitsData';
-import type { useDreamsData } from '../vision/useDreamsData';
 
 interface Props {
   activeTab: DesktopTabType;
@@ -25,9 +23,7 @@ interface Props {
   tick: string;
   data: ReturnType<typeof useDesktopData>;
   habitsData: ReturnType<typeof useHabitsData>;
-  dreamsData: ReturnType<typeof useDreamsData>;
   volData: { week: string; vol: number }[];
-  refresh: () => void;
   onTabChange?: (tab: DesktopTabType) => void;
   onOpenSauna?: () => void;
   onOpenWorkout?: () => void;
@@ -86,9 +82,7 @@ export default function DesktopTabContent({
   tick,
   data,
   habitsData,
-  dreamsData,
   volData,
-  refresh,
   onTabChange,
   onOpenSauna,
   onOpenWorkout,
@@ -107,10 +101,6 @@ export default function DesktopTabContent({
     marathon,
     strain,
     personalTargets,
-    projects,
-    moves,
-    goals,
-    sprintGoals,
   } = data;
 
   const handleOpenMatrix = () => {
@@ -150,21 +140,6 @@ export default function DesktopTabContent({
       phoneUsage={phoneUsage}
       strain={strain}
       marathon={marathon}
-    />
-  );
-
-  const _kierunekEl = (
-    <DesktopKierunekSection
-      userId={userId}
-      theme={theme}
-      grid={grid}
-      refresh={refresh}
-      habitsData={habitsData}
-      dreamsData={dreamsData}
-      projects={projects}
-      moves={moves}
-      goals={goals}
-      sprintGoals={sprintGoals}
     />
   );
 

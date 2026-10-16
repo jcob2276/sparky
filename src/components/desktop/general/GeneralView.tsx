@@ -2,8 +2,7 @@
  * @component GeneralView
  * @role Uniwersalny widok ogólny (health charts, friction, memex, rekomendacje).
  * @folders generalView/ = GeneralHealthCharts, GeneralFrictionPanels, GeneralMemexPanels,
- *          GeneralRecommendationsPanel, ScoreBar, generalViewUtils | hooks/ = useGeneralViewData,
- *          useHexagonScores
+ *          GeneralRecommendationsPanel, ScoreBar, generalViewUtils | hooks/ = useGeneralViewData
  * @usedBy DesktopDashboard
  */
 import { useGeneralViewData } from './hooks/useGeneralViewData';

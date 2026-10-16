@@ -43,7 +43,7 @@ const INITIAL_JAKUB_PORTFOLIO: JakubPortfolioData = {
   totalPnlPct: 4.01,
   marketValuePln: 7226.46,
   freeCashPln: 0,
-  lastUpdated: new Date().toISOString(),
+  lastUpdated: '2026-03-31T00:00:00.000Z',
   positions: [
     {
       id: 'pos-amazon',

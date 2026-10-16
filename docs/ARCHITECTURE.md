@@ -1,4 +1,4 @@
-# Vanguard OS — Architecture (current)
+# Sparky — Architecture (current)
 
 > **Source of truth for agents:** behavior and deploy live in `AGENTS.md` and `supabase/functions/README.md`.
 > This file is the **one-page map**: data flow, crons, subsystems.
@@ -11,7 +11,7 @@ Supabase project: configured per deployment through environment variables.
 
 | Subsystem | Role | Paths |
 |-----------|------|--------|
-| **Vanguard Core** | Daily loop, stream, friction, Oracle, planning | `supabase/functions/vanguard-*` |
+| **Sparky Core** | Daily loop, stream, friction, Oracle, planning | `supabase/functions/vanguard-*` |
 | **Integrations** | Oura, Calendar, Garmin, derived analysis | `supabase/functions/sync-*`, `supabase/functions/analyze-*`, `compute-daily-strain` |
 | **Projects & Todo** | Native projects and separate task surfaces | `src/components/projects`, `src/components/todo`, `projects`, `todo_*` tables |
 | **Life admin** | Birthdays, vehicle, documents with lead reminders | `src/components/terminy`, `life_obligations` |

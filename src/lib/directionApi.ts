@@ -62,7 +62,6 @@ export async function fetchDirectionData(
   const monthStart = closingMonthStartForReview(today);
 
   const [
-    ,
     { data: historyData },
     reviewData,
     planReviewData,
@@ -74,7 +73,6 @@ export async function fetchDirectionData(
     sprintFactsData,
     activeThemeReviewData,
   ] = await Promise.all([
-    supabase.from('daily_wins').select('*, daily_win_tasks(*)').eq('user_id', userId).eq('date', today).maybeSingle(),
     supabase.from('daily_wins').select('*, daily_win_tasks(*)').eq('user_id', userId).order('date', { ascending: false }).limit(60),
     fetchWeeklyReviewFull(userId, currentWeekStart),
     planWeekStartStr ? fetchWeeklyReviewFull(userId, planWeekStartStr) : Promise.resolve(null),
@@ -155,7 +153,7 @@ export async function fetchActiveProjects(userId: string): Promise<Array<{
 }
 
 export async function fetchDirectionWeekBoard(userId: string, weekStart: string, weekEnd: string, weekFromISO: string) {
-  return Promise.all([
+  const results = await Promise.all([
     supabase.from('learning_week_pins').select('id, slot, done, entity_type, entity_id, manual_title, project_id').eq('user_id', userId).eq('week_start', weekStart).order('sort_order'),
     supabase.from('goal_kpis').select('id, project_id, name, target').eq('user_id', userId),
     supabase.from('daily_wins').select('date, task_1, task_2, task_3, task_4, task_5, done_1, done_2, done_3, done_4, done_5, daily_win_tasks(slot, title, done)').eq('user_id', userId).gte('date', weekStart).lt('date', weekEnd),
@@ -167,4 +165,9 @@ export async function fetchDirectionWeekBoard(userId: string, weekStart: string,
     supabase.from('todo_items').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_milestone', true).eq('status', 'done').gte('completed_at', weekFromISO),
     supabase.from('todo_items').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('is_milestone', true).in('status', ['pending', 'open']).lte('due_date', weekEnd),
   ]);
+
+  for (const res of results) {
+    if (res.error) throw res.error;
+  }
+  return results;
 }

@@ -66,6 +66,21 @@ export function OuraHealthContainer() {
   if (!userId) return null;
 
   const data = {
+    sourceErrors: [
+      ...(dailyQuery.data?.sourceErrors ?? []),
+      ...(historyQuery.data?.sourceErrors ?? []).map((error) => ({ ...error, source: `Historia · ${error.source}` })),
+      ...(nightQuery.data?.sourceErrors ?? []),
+      ...(todayContextQuery.data?.sourceErrors ?? []).map((error) => ({ ...error, source: `${todayStr} · ${error.source}` })),
+      ...(nightContextQuery.data?.sourceErrors ?? []).map((error) => ({ ...error, source: `Przed nocą · ${error.source}` })),
+      ...[
+        { source: 'Pomiary dnia', error: dailyQuery.error },
+        { source: 'Historia Oura', error: historyQuery.error },
+        { source: 'Przebieg nocy', error: nightQuery.error },
+        { source: 'Kontekst dnia', error: todayContextQuery.error },
+        { source: 'Kontekst nocy', error: nightContextQuery.error },
+        { source: 'Korelacje', error: correlationsQuery.error },
+      ].flatMap(({ source, error }) => error ? [{ source, message: error.message }] : []),
+    ],
     userId,
     date: dailyQuery.data?.date ?? null,
     strainRow: dailyQuery.data?.row ?? null,

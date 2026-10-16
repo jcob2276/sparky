@@ -37,6 +37,12 @@ describe('offlineQueue', () => {
       expect(isOfflineError({ message: 'some error' })).toBe(false);
     });
 
+    it('detects Supabase FunctionsFetchError', () => {
+      const fnErr = new Error('Failed to send a request to the Edge Function');
+      fnErr.name = 'FunctionsFetchError';
+      expect(isOfflineError(fnErr)).toBe(true);
+    });
+
     it('handles null/undefined gracefully', () => {
       expect(() => isOfflineError(null)).not.toThrow();
       expect(() => isOfflineError(undefined)).not.toThrow();

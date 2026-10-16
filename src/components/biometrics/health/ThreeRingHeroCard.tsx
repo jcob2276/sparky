@@ -100,16 +100,16 @@ export function ThreeRingHeroCard({
   let coachingText = 'Brak wystarczających danych do podsumowania dnia.';
   if (safeRecovery != null && safeRecovery >= 75) {
     if (safeStrain != null && safeStrain >= 14) {
-      coachingText = 'Zrealizowano mocne obciążenie przy wysokiej regeneracji. Zadbaj o posiłek powysiłkowy i spokojny wieczór.';
+      coachingText = 'Zapisano wysokie obciążenie i wysoki wynik regeneracji. Decyzja treningowa wymaga także planu i aktualnych odczuć.';
     } else {
-      coachingText = 'Wysoka regeneracja. Organizm jest w pełni gotowy na mocniejszy trening zgodnie z planem.';
+      coachingText = 'Wysoka regeneracja według zapisanego wyniku. Sam wynik nie ustala gotowości do mocniejszego treningu.';
     }
   } else if (safeRecovery != null && safeRecovery < 45) {
-    coachingText = 'Niska regeneracja. Ogranicz intensywność, postaw na lekki ruch i priorytetowo zaplanuj wczesny sen.';
+    coachingText = 'Zapisany wynik regeneracji jest niski. Sprawdź wspólną decyzję treningową i swoje odczucia.';
   } else if (safeSleep != null && safeSleep < 65) {
-    coachingText = 'Umiarkowana regeneracja po słabszej nocy. Skup się na nawodnieniu i stabilnym tempie w ciągu dnia.';
+    coachingText = 'Zapisano niższy wynik snu. Sam wynik snu nie wyjaśnia przyczyny ani nie ustala gotowości treningowej.';
   } else if (safeRecovery != null) {
-    coachingText = 'Regeneracja w normie. Dobre warunki do realizacji zaplanowanych jednostek treningowych.';
+    coachingText = 'Wynik regeneracji jest w środkowym zakresie. Decyzja treningowa uwzględnia także plan i aktualny stan.';
   }
 
   return (

@@ -3,7 +3,6 @@ import { Sparkles, Compass, ImageIcon, Shield, Zap, Wallet, ChevronDown, Chevron
 import { Pressable } from '../ui/ControlPrimitives';
 import { NORTH_STAR_SPHERES, type PillarId } from '../../lib/projects/pillars';
 import { useVisionItemsQuery, type VisionBoardItemRow } from '../../lib/dreamsApi';
-import { useDashboardContext } from './context/DashboardContext';
 import { useSession } from '../../store/useStore';
 
 const PILLAR_ORDER: PillarId[] = ['konto', 'duch', 'cialo'];
@@ -54,22 +53,15 @@ function getMarathonStats() {
 
 interface VisionBoardDrawerProps {
   items: VisionBoardItemRow[];
-  onNavigate: (path: string) => void;
 }
 
-function VisionBoardDrawer({ items, onNavigate }: VisionBoardDrawerProps) {
+function VisionBoardDrawer({ items }: VisionBoardDrawerProps) {
   return (
     <div className="rounded-2xl border border-primary/20 bg-surface/50 p-3 space-y-2 animate-fadeIn">
       <div className="flex items-center justify-between text-2xs font-bold text-text-muted">
         <span className="flex items-center gap-1 text-primary">
           <Sparkles size={12} /> Tablica Marzeń & Wizja
         </span>
-        <Pressable
-          onClick={() => onNavigate('/desktop?tab=kierunek')}
-          className="text-primary hover:underline cursor-pointer"
-        >
-          Zarządzaj tablicą →
-        </Pressable>
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
         {items.map((item) => (
@@ -159,7 +151,6 @@ function SphereDetailsDrawer({ pillar, marathon, onClose }: SphereDetailsProps) 
 export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
   const session = useSession();
   const userId = session?.user?.id ?? '';
-  const s = useDashboardContext();
 
   const [showVisionBoard, setShowVisionBoard] = useState(false);
   const [selectedPillar, setSelectedPillar] = useState<PillarId | null>(null);
@@ -204,7 +195,7 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
       </div>
 
       {showVisionBoard && imageItems.length > 0 && (
-        <VisionBoardDrawer items={imageItems} onNavigate={s.navigate} />
+        <VisionBoardDrawer items={imageItems} />
       )}
 
       {/* 3 Compact Glanceable Columns */}

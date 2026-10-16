@@ -7,18 +7,19 @@ import React from 'react';
 import { StatHero } from '../ui/StatHero';
 
 interface DailyStrainMetricsRowProps {
-  strainScore: number;
+  strainScore: number | null;
   strainTone: string;
-  recoveryScore: number;
+  recoveryScore: number | null;
   recovTone: string;
   fuelingScore?: number | null;
+  fuelingProvisional?: boolean;
   sleepDebtH?: number | null;
 }
 
 function formatSleepDebt(val: number): string {
-  const absVal = Math.abs(val);
-  const hrs = Math.floor(absVal);
-  const mins = Math.round((absVal % 1) * 60);
+  const totalMinutes = Math.round(Math.abs(val) * 60);
+  const hrs = Math.floor(totalMinutes / 60);
+  const mins = totalMinutes % 60;
   return `${hrs}h ${mins}m`;
 }
 
@@ -28,6 +29,7 @@ export default function DailyStrainMetricsRow({
   recoveryScore,
   recovTone,
   fuelingScore,
+  fuelingProvisional = false,
   sleepDebtH,
 }: DailyStrainMetricsRowProps) {
   const metricCols = 2 + (fuelingScore != null ? 1 : 0) + (sleepDebtH != null ? 1 : 0);
@@ -37,22 +39,22 @@ export default function DailyStrainMetricsRow({
       <div>
         <StatHero value={strainScore ?? '--'} label="Strain" suffix="/21" color={strainTone} size="sm" />
         <div className="mt-1.5 h-[var(--ds-h-2px)] bg-border-custom/40 rounded-full">
-          <div className="h-[var(--ds-h-2px)] rounded-full bg-warning ui-interactive" style={{ width: `${Math.min(100, (strainScore / 21) * 100)}%` }} />
+          <div className="h-[var(--ds-h-2px)] rounded-full bg-warning ui-interactive" style={{ width: `${Math.min(100, ((strainScore ?? 0) / 21) * 100)}%` }} />
         </div>
       </div>
 
       <div>
         <StatHero value={recoveryScore ?? '--'} label="Recovery" suffix="/100" color={recovTone} size="sm" />
         <div className="mt-1.5 h-[var(--ds-h-2px)] bg-border-custom/40 rounded-full">
-          <div className={`h-[var(--ds-h-2px)] rounded-full ui-interactive ${recoveryScore >= 75 ? 'bg-success' : recoveryScore >= 55 ? 'bg-warning' : 'bg-danger'}`} style={{ width: `${Math.min(100, recoveryScore)}%` }} />
+          <div className={`h-[var(--ds-h-2px)] rounded-full ui-interactive ${recoveryScore == null ? 'bg-surface-3' : recoveryScore >= 75 ? 'bg-success' : recoveryScore >= 55 ? 'bg-warning' : 'bg-danger'}`} style={{ width: `${Math.min(100, recoveryScore ?? 0)}%` }} />
         </div>
       </div>
 
       {fuelingScore != null && (
         <div>
-          <StatHero value={fuelingScore} label="Fueling" suffix="/100" color={fuelingScore >= 70 ? 'text-success' : 'text-warning'} size="sm" />
+          <StatHero value={fuelingScore} label={fuelingProvisional ? 'Fueling · wstępne' : 'Fueling'} suffix="/100" color={fuelingProvisional ? 'text-text-muted' : fuelingScore >= 70 ? 'text-success' : 'text-warning'} size="sm" />
           <div className="mt-1.5 h-[var(--ds-h-2px)] bg-border-custom/40 rounded-full">
-            <div className={`h-[var(--ds-h-2px)] rounded-full ui-interactive ${fuelingScore >= 70 ? 'bg-success' : 'bg-warning'}`} style={{ width: `${Math.min(100, fuelingScore)}%` }} />
+            <div className={`h-[var(--ds-h-2px)] rounded-full ui-interactive ${fuelingProvisional ? 'bg-surface-3' : fuelingScore >= 70 ? 'bg-success' : 'bg-warning'}`} style={{ width: `${Math.min(100, fuelingScore)}%` }} />
           </div>
         </div>
       )}
@@ -60,8 +62,8 @@ export default function DailyStrainMetricsRow({
       {sleepDebtH != null && (
         <div>
           <StatHero
-            value={Math.abs(sleepDebtH) < 0.05 ? '–' : formatSleepDebt(sleepDebtH)}
-            label={sleepDebtH < 0 ? 'Deficyt snu' : 'Nadwyżka snu'}
+            value={formatSleepDebt(sleepDebtH)}
+            label={sleepDebtH === 0 ? 'Bilans snu' : sleepDebtH < 0 ? 'Deficyt snu' : 'Nadwyżka snu'}
             color={sleepDebtH < -0.5 ? 'text-danger' : sleepDebtH > 0.5 ? 'text-success' : 'text-text-primary'}
             size="sm"
           />

@@ -10,12 +10,25 @@ interface Props {
   plannedMinutes: number;
 }
 
+function loadSettings(key: string): DayCapacitySettings {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? { ...DEFAULT_DAY_CAPACITY, ...JSON.parse(raw) } : DEFAULT_DAY_CAPACITY;
+  } catch {
+    return DEFAULT_DAY_CAPACITY;
+  }
+}
+
 export default function DayCapacityBar({ userId, today, plannedMinutes }: Props) {
   const storageKey = `vanguard-day-capacity:${userId}`;
-  const [settings, setSettings] = useState<DayCapacitySettings>(() => {
-    try { return { ...DEFAULT_DAY_CAPACITY, ...JSON.parse(localStorage.getItem(storageKey) || '{}') }; }
-    catch { return DEFAULT_DAY_CAPACITY; }
-  });
+  const [prevKey, setPrevKey] = useState(storageKey);
+  const [settings, setSettings] = useState<DayCapacitySettings>(() => loadSettings(storageKey));
+
+  if (storageKey !== prevKey) {
+    setPrevKey(storageKey);
+    setSettings(loadSettings(storageKey));
+  }
+
   const [editing, setEditing] = useState(false);
   const { events } = useTodayCalendarEvents(userId, today);
   const available = calculateAvailableMinutes(settings, events);

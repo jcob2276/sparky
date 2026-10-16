@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Pencil, Plus, Utensils } from 'lucide-react';
 import { fetchShutdownFoodEntries, type ShutdownFoodEntry } from '../../../lib/shutdownApi';
 import Button from '../../ui/Button';
-import FoodEntryModal from '../nutrition/FoodEntryModal';
+
+const FoodEntryModal = lazy(() => import('../nutrition/FoodEntryModal'));
 
 interface Props {
   userId: string;
@@ -64,23 +65,27 @@ export default function ShutdownFoodReview({ userId, date }: Props) {
         </div>
       )}
       {editingEntry ? (
-        <FoodEntryModal
-          initialEditEntry={editingEntry}
-          onClose={() => setEditingEntry(null)}
-          onSaved={() => {
-            setEditingEntry(null);
-            void query.refetch();
-          }}
-        />
+        <Suspense fallback={null}>
+          <FoodEntryModal
+            initialEditEntry={editingEntry}
+            onClose={() => setEditingEntry(null)}
+            onSaved={() => {
+              setEditingEntry(null);
+              void query.refetch();
+            }}
+          />
+        </Suspense>
       ) : null}
       {addingEntry ? (
-        <FoodEntryModal
-          onClose={() => setAddingEntry(false)}
-          onSaved={() => {
-            setAddingEntry(false);
-            void query.refetch();
-          }}
-        />
+        <Suspense fallback={null}>
+          <FoodEntryModal
+            onClose={() => setAddingEntry(false)}
+            onSaved={() => {
+              setAddingEntry(false);
+              void query.refetch();
+            }}
+          />
+        </Suspense>
       ) : null}
     </section>
   );

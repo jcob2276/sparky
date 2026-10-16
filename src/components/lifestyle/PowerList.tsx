@@ -5,7 +5,7 @@
  * @folders hooks/ = usePowerListActions, usePowerListEffects (wrapowane przez usePowerListData)
  * @usedBy DashboardDzisTab
  */
-import { useEffect } from 'react';
+import { useEffect, useReducer } from 'react';
 import { Target } from 'lucide-react';
 import { usePowerListData } from './usePowerListData';
 
@@ -14,6 +14,9 @@ import PowerListActive from './powerList/PowerListActive';
 
 import { type DailyWinWithTasks } from './usePowerListData';
 import type { Tables } from '../../lib/database.types';
+import { useUserId } from '../../store/useStore';
+import { getTodayWarsaw } from '../../lib/date';
+import { useWarsawDayChange } from '../../hooks/useWarsawDayChange';
 
 export interface PowerListProps {
   todayWin: DailyWinWithTasks | null;
@@ -21,7 +24,17 @@ export interface PowerListProps {
   planDaySignal?: number;
 }
 
-export default function PowerList({
+export default function PowerList(props: PowerListProps) {
+  const userId = useUserId();
+  const [, refreshDay] = useReducer((tick: number) => tick + 1, 0);
+  useWarsawDayChange(refreshDay);
+  const today = getTodayWarsaw();
+  // Remount local form/KPI state before it can be saved under another owner or day.
+  const todayWin = props.todayWin?.user_id === userId && props.todayWin?.date === today ? props.todayWin : null;
+  return <PowerListContent key={`${userId ?? ''}:${today}`} {...props} todayWin={todayWin} />;
+}
+
+function PowerListContent({
   todayWin,
   onUpdate,
   planDaySignal,

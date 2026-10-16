@@ -21,6 +21,13 @@ export default function WeekPlanningRecap({
     );
   }
 
+  const errorNotice = direction.isError ? (
+      <div className="rounded-2xl border border-warning/30 bg-warning/5 px-4 py-3 text-xs text-warning">
+        Nie udało się wczytać podsumowania tygodnia{direction.error?.message ? `: ${direction.error.message}` : '.'}
+      </div>
+  ) : null;
+  if (!direction.hasData) return errorNotice;
+
   const hasProjects = (direction.activeProjects?.length ?? 0) > 0;
   const hasLoop =
     direction.weekGoals?.intention ||
@@ -30,10 +37,11 @@ export default function WeekPlanningRecap({
     direction.weekGoals?.konto ||
     (direction.powerListStats?.tasksSet ?? 0) > 0;
 
-  if (!hasProjects && !hasLoop) return null;
+  if (!hasProjects && !hasLoop) return errorNotice;
 
   return (
     <Card variant="receipt" className="space-y-4" style={{ background: 'var(--primary-5)' }}>
+      {errorNotice}
       <div>
         <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-2em)] text-primary">
           Ten tydzień — zoom out

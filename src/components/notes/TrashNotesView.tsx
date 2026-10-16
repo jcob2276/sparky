@@ -2,11 +2,13 @@ import { RotateCcw, Trash2 } from 'lucide-react';
 import type { Note } from '../../lib/notesApi';
 import { confirmDialog } from '../../lib/notify';
 import { Pressable } from '../ui/ControlPrimitives';
+import DataStateNotice from '../core/DataStateNotice';
 import { getPlainText, relativeDate } from './keepUtils';
 
 interface TrashNotesViewProps {
   notes: Note[];
   loading: boolean;
+  error?: string | null;
   onRestore: (id: string) => Promise<void>;
   onPermanentDelete: (id: string) => Promise<void>;
 }
@@ -14,11 +16,24 @@ interface TrashNotesViewProps {
 export default function TrashNotesView({
   notes,
   loading,
+  error,
   onRestore,
   onPermanentDelete,
 }: TrashNotesViewProps) {
   if (loading) {
     return <div className="flex flex-1 items-center justify-center text-sm text-text-muted">Ładowanie kosza…</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center p-4">
+        <DataStateNotice
+          tone="warning"
+          title="Nie udało się pobrać zawartości kosza"
+          detail={error}
+        />
+      </div>
+    );
   }
 
   if (!notes.length) {

@@ -38,23 +38,33 @@ import { handleInvestmentCallback } from "../_handlers/investmentCallback.ts";
 
 type CallbackQuery = {
   id: string;
-  data: string;
-  message: {
-    chat: { id: number };
-    message_id: number;
+  data?: string;
+  message?: {
+    chat?: { id: number };
+    message_id?: number;
     text?: string;
     reply_to_message?: { text?: string };
   };
+  from?: { id: number };
 };
 
 export async function handleCallbackQuery(
   callbackQuery: CallbackQuery,
   ctx: TelegramRouterContext,
 ): Promise<void> {
+  if (!callbackQuery || typeof callbackQuery.data !== "string") return;
   const { id: callbackId, data, message } = callbackQuery;
-  const chatId = message.chat.id;
-  const messageId = message.message_id;
+  const chatId = message?.chat?.id ?? callbackQuery.from?.id;
+  const messageId = message?.message_id;
   const { supabase, telegramToken, vanguardUserId } = ctx;
+
+  if (!chatId || !messageId) {
+    console.warn("[callbacks] missing chatId or messageId, answering callback only");
+    if (callbackId && telegramToken) {
+      await answerCallbackQuery(telegramToken, callbackId, { text: "Nieprawidłowe zapytanie" }).catch(() => {});
+    }
+    return;
+  }
 
   if (data.startsWith("contract_")) {
     const { answerCallbackQuery, editMessageText } = await import("../../_shared/infra/telegram/send.ts");

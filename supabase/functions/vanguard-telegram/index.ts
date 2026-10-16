@@ -9,8 +9,6 @@
  * @status active
  */
 import { createTelegramContext } from "./_router/config.ts";
-import { handleCallbackQuery } from "./_router/callbacks.ts";
-import { handleIncomingMessage } from "./_router/messages.ts";
 import { logCriticalError } from "../_shared/errorLogging.ts";
 import { resolveUserScope, getServiceRoleKey } from "../_shared/supabase.ts";
 import { serveJson } from "../_shared/http.ts";
@@ -132,6 +130,16 @@ Deno.serve(serveJson(async (req, jsonCtx) => {
       }
 
       if (payload.callback_query) {
+        const cb = payload.callback_query as {
+          message?: { chat?: { id: number } };
+          from?: { id: number };
+        };
+        const cbChatId = cb?.message?.chat?.id ?? cb?.from?.id;
+        if (!Number.isFinite(ctx.authorizedChatId) || ctx.authorizedChatId <= 0 || cbChatId !== ctx.authorizedChatId) {
+          console.warn("[telegram] ignored callback_query from unauthorized chat/user:", cbChatId);
+          return new Response("OK", { status: 200 });
+        }
+
         const supabase = jsonCtx.supabase;
         const { error } = await supabase
           .from("vanguard_telegram_inbox")

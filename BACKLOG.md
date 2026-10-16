@@ -684,6 +684,17 @@ Te punkty nie są osobnymi feature'ami; trzeba je zamknąć przed lub w trakcie 
 - [ ] Dodać pomiar wejść do domen i wykonanych akcji przed zamrażaniem kolejnych modułów.
   Bez tego decyzje produktowe pozostają opinią zamiast obserwacją.
 
+### Porządkowanie istniejących ścieżek — bez rozbudowy produktu
+
+- [x] Usunąć nieosiągalne panele i przykładowe wyniki zdrowotne; zachować działające odczyty domen.
+- [x] Rozróżnić brak pomiaru, rzeczywiste zero, niekompletny dziennik i błąd źródła w podsumowaniach zdrowia.
+- [x] Ujednolicić wynik synchronizacji i cache propozycji; zwalniać mikrofon oraz zasoby BLE po zamknięciu.
+- [x] Zachować ręczny szkic i refleksję przy błędzie kontekstu; zapis planu udostępniać po poprawnym odczycie, także z zachowanego cache.
+- [x] Odizolować stan planu dnia według konta i dnia warszawskiego; ograniczyć podsumowanie tygodniowe do właściwego okna.
+- [x] Zachować szkice różnych notatek podczas równoległego autosave, przełączania notatek i błędu zapisu.
+- [ ] Potwierdzić pełną regresję wspólnego drzewa po zakończeniu równoległej pracy oraz niezależny przegląd zmian.
+- [ ] Sprawdzić na urządzeniu fizycznym ponowne połączenie BLE, przerwanie nagrania i przejście offline → online w APK.
+
 ## Ponytail audit — cięcia bez utraty produktu
 
 Ranking od największej bezpiecznej redukcji:
@@ -757,7 +768,7 @@ Pełny opis w Części II §2.1–§2.3:
 ## Faza 3 — Model pojemności + struktura frontendu
 
 1. (częściowo) Część II §7.1 — 10 z ~31 ręcznych `useEffect+useState` hooków zmigrowanych na react-query. Zostały głównie "god hooki" (`useWorkoutLogger`, `usePowerListEffects`, `useNutritionData` — 5 konsumentów) i debounced search (`useFoodEntrySearch`) — świadomie odłożone, wymagają dedykowanej sesji.
-4. (częściowo) Offline write queue — `lib/offlineQueue.ts` pokrywa 6 domen. Luka: `dreamsApi.ts`, `calendarApi.ts`, `kpiTrendApi.ts` mają zero pokrycia offline.
+4. (częściowo) Offline write queue — `lib/offlineQueue.ts` pokrywa kluczowe domeny (w tym bezpieczną izolację per konto i Dead Letter Queue). Pozostałe: `calendarApi.ts`, `kpiTrendApi.ts`.
 
 ## Faza 4 — Graf wiedzy i backtester (przy najbliższym dotknięciu architekta/wiki-compilera)
 
@@ -1069,6 +1080,13 @@ Zero interfejsu dla trenera. Igor programuje trening na ślepo/ustnie, podczas g
 - [ ] CI łapie dryf migracji DB, ale nie dryf **wdrożonego kodu funkcji** vs repo.
 - [ ] `as any` w `src/` — patrz Część IV §PD1/§PD2 dla aktualnego stanu i planu.
 - [ ] Offline queue: `dreamsApi.ts`, `calendarApi.ts`, `kpiTrendApi.ts` mają zero pokrycia offline.
+- [ ] Offline queue: starsze wpisy bez `ownerId` pozostają zachowane i pomijane przy replay.
+  Ustalić ich właściciela przed ewentualnym odtworzeniem; nie przypisywać automatycznie
+  do aktualnie zalogowanego konta. Nowe wpisy mają właściciela, a błąd kopii do dead-letter
+  nie usuwa oryginału.
+- [ ] Telegram inbox: webhook potwierdza odbiór także przy błędzie INSERT do
+  `vanguard_telegram_inbox`. Zweryfikować trwały odbiór i deduplikację przed zmianą
+  polityki ponawiania; błąd poprzedzający zapis nie powinien bezpowrotnie gubić wiadomości.
 - [ ] Architektura `task_1..task_5`/`done_1..done_5` w `daily_wins` — sztywne sloty (świadomość, nie ruszać bez wyraźnej potrzeby).
 
 ---

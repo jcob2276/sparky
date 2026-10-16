@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { OuraHealthHubData } from './types';
 import DataStateNotice from '../../core/DataStateNotice';
 import { MealPlannerContainer } from '../nutrition/MealPlannerContainer';
-import { getTodayWarsaw } from '../../../lib/date';
+import { formatWarsawDate, getTodayWarsaw } from '../../../lib/date';
 import { HydrationCard } from '../health/HydrationCard';
 import { NetEnergyCard } from '../health/NetEnergyCard';
 import { calculateDynamicHydration, type NetEnergyGoal } from '@vanguard/domain';
@@ -32,12 +32,17 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
   }
 
   const proteinRemaining = nutrition.targetProtein == null ? null : Math.max(0, nutrition.targetProtein - nutrition.protein);
-  const activeKcal = data.enhanced?.active_calories ?? (data.strainRow?.strain_score ? Math.round(data.strainRow.strain_score * 45) : 0);
+  const enhanced = data.enhanced?.date === date ? data.enhanced : null;
+  const oura = data.oura?.date === date ? data.oura : null;
+  const activeKcal = enhanced?.active_calories ?? oura?.active_calories ?? null;
+  const totalKcal = enhanced?.total_calories ?? oura?.total_calories ?? null;
+  const workoutSeconds = (data.stravaActivities ?? []).reduce((sum, activity) =>
+    activity.start_date && formatWarsawDate(activity.start_date) === date ? sum + (activity.moving_time ?? 0) : sum, 0);
   const hydrationResult = calculateDynamicHydration({
     baseTargetMl: 2500,
     loggedIntakeMl: 0,
-    activeCalories: activeKcal,
-    workoutDurationMinutes: activeKcal > 300 ? 45 : 0,
+    activeCalories: activeKcal ?? 0,
+    workoutDurationMinutes: workoutSeconds / 60,
   });
 
   return <div className="space-y-4 pb-8">
@@ -54,13 +59,14 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
     </section>
 
     {/* Dynamiczne nawodnienie i kompensacja potu */}
-    <HydrationCard initialData={hydrationResult} date={date} />
+    <HydrationCard initialData={hydrationResult} date={date} userId={userId} />
 
     {/* Bilans Energetyczny Netto (Bevel Net Energy) */}
     <NetEnergyCard
-      activeCaloriesBurned={data.enhanced?.active_calories ?? (data.strainRow?.strain_score ? Math.round(data.strainRow.strain_score * 45) : 500)}
+      activeCaloriesBurned={activeKcal}
+      totalCaloriesBurned={nutrition.date === date ? totalKcal : null}
       caloriesConsumed={nutrition.calories}
-      weightKg={nutrition.currentWeightKg ?? 75}
+      foodComplete={nutrition.foodComplete}
       targetGoal={netEnergyGoal}
       onGoalChange={setNetEnergyGoal}
     />

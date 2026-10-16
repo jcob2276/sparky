@@ -22,11 +22,12 @@ export const SIGNAL_PILL: Record<string, string> = {
 export const CONF_LABEL = { solid: 'Solid', building: 'Building', calibrating: 'Calibrating' };
 
 export const STATUS_RING = {
+  unknown: '!border-border-custom',
   green:  '!border-success/20',
   yellow: '!border-warning/20',
   red:    '!border-danger/25',
 };
-export const STATUS_GLOW = { green: 'bg-success/5', yellow: 'bg-warning/5', red: 'bg-danger/5' };
+export const STATUS_GLOW = { unknown: 'bg-transparent', green: 'bg-success/5', yellow: 'bg-warning/5', red: 'bg-danger/5' };
 
 export const READINESS_MAP: Record<string, { label: string; color: string; bg: string }> = {
   primed:       { label: '⚡ Gotowy do działania', color: 'text-success dark:text-success', bg: 'bg-success/10 border-success/20' },

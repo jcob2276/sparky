@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Note } from './keepUtils';
-import { removeEmergencyNoteDraft, saveEmergencyNoteDraft } from '../../lib/noteDraftStorage';
+import { loadEmergencyNoteDraft, removeEmergencyNoteDraft, saveEmergencyNoteDraft } from '../../lib/noteDraftStorage';
 import { canonicalizeNoteContent, deriveNoteMetadata } from '../../lib/noteText';
 
 export type NoteSaveStatus = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
@@ -55,17 +55,20 @@ export function useNoteDraftAutosave({
   onSave,
   delay = 1_000,
 }: UseNoteDraftAutosaveOptions) {
-  const initialDraft = fromNote(note);
-  const initialSavedDraft = toSavedDraft(initialDraft);
+  const cloudDraft = fromNote(note);
+  const recoveredDraft = note.is_locked ? null : loadEmergencyNoteDraft(note.id);
+  const initialDraft = recoveredDraft ? { ...recoveredDraft, tagsInput: recoveredDraft.tags.join(', ') } : cloudDraft;
+  const initialSavedDraft = toSavedDraft(cloudDraft);
   const [draft, setDraft] = useState(initialDraft);
-  const [saveStatus, setSaveStatus] = useState<NoteSaveStatus>('idle');
+  const [saveStatus, setSaveStatus] = useState<NoteSaveStatus>(recoveredDraft ? 'dirty' : 'idle');
   const draftRef = useRef(initialDraft);
   const baselineRef = useRef(initialSavedDraft);
   const savedDraftsRef = useRef(new Map([[note.id, initialSavedDraft]]));
   const noteIdRef = useRef(note.id);
   const saveRef = useRef(onSave);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const queuedSaveRef = useRef<SaveJob | null>(null);
+  const queuedSavesRef = useRef(new Map<string, SaveJob>());
+  const inFlightJobRef = useRef<SaveJob | null>(null);
   const drainRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
@@ -78,31 +81,34 @@ export function useNoteDraftAutosave({
   }, []);
 
   const startDrain = useCallback(() => {
-    if (drainRef.current || !queuedSaveRef.current) return;
+    if (drainRef.current || !queuedSavesRef.current.size) return;
 
     const drain = async () => {
-      while (queuedSaveRef.current) {
-        const job = queuedSaveRef.current;
-        queuedSaveRef.current = null;
+      while (queuedSavesRef.current.size) {
+        const job = queuedSavesRef.current.values().next().value!;
+        queuedSavesRef.current.delete(job.noteId);
+        inFlightJobRef.current = job;
         setSaveStatus('saving');
         try {
           const result = saveRef.current(job.noteId, job.draft);
           if (result instanceof Promise) await result;
           savedDraftsRef.current.set(job.noteId, job.draft);
-          removeEmergencyNoteDraft(job.noteId);
+          if (!queuedSavesRef.current.has(job.noteId)) removeEmergencyNoteDraft(job.noteId);
           if (job.noteId === noteIdRef.current) {
             baselineRef.current = job.draft;
           }
         } catch {
-          // Keep the newest queued draft. If nothing newer arrived, retry this job.
-          queuedSaveRef.current ??= job;
-          saveEmergencyNoteDraft(job.noteId, queuedSaveRef.current.draft);
+          // Coalesce versions of the same note while preserving other notes.
+          if (!queuedSavesRef.current.has(job.noteId)) queuedSavesRef.current.set(job.noteId, job);
+          saveEmergencyNoteDraft(job.noteId, queuedSavesRef.current.get(job.noteId)!.draft);
           setSaveStatus('error');
           break;
+        } finally {
+          inFlightJobRef.current = null;
         }
       }
 
-      if (!queuedSaveRef.current) {
+      if (!queuedSavesRef.current.size) {
         const saved = savedDraftsRef.current.get(noteIdRef.current);
         const current = toSavedDraft(draftRef.current);
         setSaveStatus(saved && draftsEqual(saved, current) ? 'saved' : 'dirty');
@@ -120,9 +126,10 @@ export function useNoteDraftAutosave({
     clearTimer();
     const next = toSavedDraft(draftRef.current);
     const saved = savedDraftsRef.current.get(noteIdRef.current) ?? baselineRef.current;
-    if (draftsEqual(saved, next) && !queuedSaveRef.current) return;
+    if (draftsEqual(saved, next) && !queuedSavesRef.current.size) return;
 
-    queuedSaveRef.current = { noteId: noteIdRef.current, draft: next };
+    queuedSavesRef.current.set(noteIdRef.current, { noteId: noteIdRef.current, draft: next });
+    saveEmergencyNoteDraft(noteIdRef.current, next);
     startDrain();
   }, [clearTimer, startDrain]);
 
@@ -148,14 +155,17 @@ export function useNoteDraftAutosave({
   useEffect(() => {
     if (noteIdRef.current === note.id) return;
     flush();
-    const next = fromNote(note);
+    const pending = queuedSavesRef.current.get(note.id)
+      ?? (inFlightJobRef.current?.noteId === note.id ? inFlightJobRef.current : null);
+    const recovered = note.is_locked ? null : (pending?.draft ?? loadEmergencyNoteDraft(note.id));
+    const next = recovered ? { ...recovered, tagsInput: recovered.tags.join(', ') } : fromNote(note);
     noteIdRef.current = note.id;
     draftRef.current = next;
-    const saved = savedDraftsRef.current.get(note.id) ?? toSavedDraft(next);
+    const saved = savedDraftsRef.current.get(note.id) ?? toSavedDraft(fromNote(note));
     savedDraftsRef.current.set(note.id, saved);
     baselineRef.current = saved;
     setDraft(next);
-    setSaveStatus('idle');
+    setSaveStatus(recovered ? 'dirty' : 'idle');
   }, [flush, note]);
 
   useEffect(() => () => flush(), [flush]);

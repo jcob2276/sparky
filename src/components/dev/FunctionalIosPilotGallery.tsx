@@ -25,7 +25,10 @@ const DIRECTION: ComponentProps<typeof PowerListSetup>['direction'] = {
   weekCheckpointsDue: undefined,
   skills: undefined,
   checkpoints: { all: [], overdue: [], upcoming: [] },
+  hasData: true,
   loading: false,
+  isError: false,
+  error: null,
   reload: async () => undefined,
 };
 

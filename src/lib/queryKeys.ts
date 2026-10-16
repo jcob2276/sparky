@@ -127,7 +127,8 @@ export const projectsKeys = {
 export const actionCenterKeys = {
   all: ['action-center'] as const,
   count: (userId: string) => [...actionCenterKeys.all, 'count', userId] as const,
-  data: (userId: string) => [...actionCenterKeys.all, 'data', userId] as const,
+  clarifications: (userId: string) => [...actionCenterKeys.all, 'clarifications', userId] as const,
+  proposals: (userId: string) => [...actionCenterKeys.all, 'proposals', userId] as const,
 };
 
 // ── FOOD ENTRY LISTS KEYS ──

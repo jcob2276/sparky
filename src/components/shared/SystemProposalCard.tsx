@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Check, X, ChevronDown, ChevronUp } from 'lucide-react';
 import type { SystemProposal } from '../../lib/systemProposals';
 import { Card } from '../ui/Card';
+import { notify } from '../../lib/notify';
 
 export function SystemProposalCard({
   proposal,
@@ -20,6 +21,8 @@ export function SystemProposalCard({
     setBusy(true);
     try {
       await onResolved(proposal.id, status);
+    } catch (error) {
+      notify(`Nie udało się zapisać decyzji${error instanceof Error ? `: ${error.message}` : '.'}`, 'error');
     } finally {
       setBusy(false);
     }

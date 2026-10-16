@@ -27,7 +27,7 @@ export async function fetchUpcomingCheckpoints(
   const todayStr = getTodayWarsaw();
   const horizonStr = shiftDateStr(todayStr, horizonDays);
 
-  const [{ data: cps }, { data: projs }, { data: dreams }] = await Promise.all([
+  const [cpsRes, projsRes, dreamsRes] = await Promise.all([
     supabase
       .from('todo_items')
       .select('id, project_id, title, due_date, status')
@@ -39,6 +39,13 @@ export async function fetchUpcomingCheckpoints(
     supabase.from('projects').select('id, name, color, dream_id').eq('user_id', userId).eq('status', 'active'),
     supabase.from('dreams').select('id, life_goal').eq('user_id', userId),
   ]);
+
+  if (cpsRes.error) throw cpsRes.error;
+  if (projsRes.error) throw projsRes.error;
+
+  const cps = cpsRes.data;
+  const projs = projsRes.data;
+  const dreams = dreamsRes.data;
 
   if (!cps || !projs) return [];
 

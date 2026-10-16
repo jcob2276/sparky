@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mic, Square, Send, Keyboard, MessageSquare } from 'lucide-react';
+import { Mic, Square, Send, Keyboard } from 'lucide-react';
 import Button from '../../ui/Button';
 import { Pressable } from '../../ui/ControlPrimitives';
 import { ControlInput } from '../../ui/ControlPrimitives';

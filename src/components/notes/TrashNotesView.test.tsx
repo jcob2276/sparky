@@ -42,4 +42,19 @@ describe('TrashNotesView', () => {
     fireEvent.click(screen.getByTitle('Przywróć notatkę'));
     expect(onRestore).toHaveBeenCalledWith('note-1');
   });
+
+  it('renders an error message when query fails', () => {
+    render(
+      <TrashNotesView
+        notes={[]}
+        loading={false}
+        error="Błąd połączenia z bazą"
+        onRestore={vi.fn()}
+        onPermanentDelete={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/Nie udało się pobrać zawartości kosza/)).toBeInTheDocument();
+    expect(screen.getByText(/Błąd połączenia z bazą/)).toBeInTheDocument();
+    expect(screen.queryByText('Kosz jest pusty')).not.toBeInTheDocument();
+  });
 });

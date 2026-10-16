@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { BrandTitle } from '../ui/BrandTitle';
 import { useHaptics } from '../../hooks/useHaptics';
-import OuraRingHeaderBadge from '../desktop/health/OuraRingHeaderBadge';
 import { queryClient } from '../../lib/queryClient';
 import { desktopKeys } from '../../lib/queryKeys';
 import { fetchDesktopDashboardData } from '../../lib/desktopDashboardApi';
@@ -85,8 +84,6 @@ export function DashboardHeader({
       </div>
 
       <div className="header-icon-row flex min-w-0 items-center gap-2 overflow-x-auto">
-        {/* Oura ring badge retained in code per architecture, hidden from header UI */}
-        {(false as boolean) && <OuraRingHeaderBadge />}
 
         <Pressable
           onClick={() => { selection(); toggleTheme(); }}

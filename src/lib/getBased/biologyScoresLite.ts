@@ -6,16 +6,12 @@
 
 import type { MarkerSeries } from '../health/medicalAnalytics';
 import { SCORE_MARKER_KEYS, scoreHasEvidence } from '../health/medicalRetestContext';
-import { bridgeForMarkerKey, GETBASED_OPTIMAL, toCanonicalValue } from './markerBridge';
 
 import {
   type ScoreTone,
   type BiologyScoreResult,
   type Hit,
-  TONE_LABELS,
   clamp,
-  lerp,
-  resolveScoreTone,
   scoreAgainstRange,
   scoreHighOnly,
   scoreLowOnly,

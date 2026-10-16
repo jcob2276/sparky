@@ -19,6 +19,48 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=Geist+Mono:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800,900&display=swap" rel="stylesheet" />
     <title>Sparky</title>
+    <script>
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            for (var r of regs) { r.unregister(); }
+          }).catch(function() {});
+        }
+      }
+      window.addEventListener('error', function(e) {
+        setTimeout(function() {
+          var root = document.getElementById('root');
+          if (root && (!root.childNodes || root.childNodes.length === 0)) {
+            var box = document.getElementById('sparky-fatal-error');
+            if (!box) {
+              box = document.createElement('div');
+              box.id = 'sparky-fatal-error';
+              box.style.cssText = 'position:fixed;inset:0;background:#09090b;color:#f43f5e;padding:24px;font-family:system-ui,-apple-system,sans-serif;z-index:999999;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;';
+              box.innerHTML = '<h2 style="font-size:20px;font-weight:700;margin-bottom:8px;color:#f43f5e;">Błąd uruchamiania Sparky</h2><p style="font-size:14px;color:#a1a1aa;max-width:520px;margin-bottom:16px;">Przeglądarka zablokowała uruchomienie aplikacji lub wystąpił błąd pamięci podręcznej:</p><pre style="background:#18181b;padding:12px 16px;border-radius:8px;color:#fda4af;font-size:12px;text-align:left;max-width:90vw;overflow:auto;margin-bottom:20px;border:1px solid #27272a;"></pre><div style="display:flex;gap:12px;"><button id="btn-hard-reload" style="background:#3b82f6;color:white;border:none;padding:10px 18px;border-radius:8px;font-weight:600;cursor:pointer;">Odśwież pliki aplikacji</button></div>';
+              document.body ? document.body.appendChild(box) : document.documentElement.appendChild(box);
+              var btn = document.getElementById('btn-hard-reload');
+              if (btn) btn.onclick = function() {
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function(rs) {
+                    return Promise.all(rs.map(function(r) { return r.unregister(); }));
+                  }).then(function() {
+                    return window.caches ? caches.keys().then(function(keys) {
+                      return Promise.all(keys.map(function(k) { return caches.delete(k); }));
+                    }) : Promise.resolve();
+                  }).finally(function() {
+                    window.location.reload(true);
+                  });
+                } else {
+                  window.location.reload(true);
+                }
+              };
+            }
+            var pre = box.querySelector('pre');
+            if (pre) pre.textContent += (e.message || String(e)) + '\n' + (e.error && e.error.stack ? e.error.stack : '') + '\n';
+          }
+        }, 100);
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

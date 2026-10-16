@@ -7,6 +7,8 @@ export interface NetEnergyInput {
   sex?: 'male' | 'female' | null;
   /** Active calories burned from workouts and daily movement */
   activeCaloriesBurned: number;
+  /** Reported total expenditure, already including resting energy. */
+  totalCaloriesBurned?: number | null;
   /** Total calories consumed from food logging */
   caloriesConsumed: number;
   /** Target goal: deficit, maintenance, or surplus (default: maintenance) */
@@ -16,7 +18,7 @@ export interface NetEnergyInput {
 }
 
 export interface NetEnergyResult {
-  bmr: number;
+  bmr: number | null;
   activeBurn: number;
   tef: number;
   tdee: number;
@@ -53,7 +55,9 @@ export function estimateBMR(
  */
 export function calculateNetEnergy(input?: NetEnergyInput | null): NetEnergyResult {
   const safeInput = input || { activeCaloriesBurned: 0, caloriesConsumed: 0 };
-  const bmr = safeInput.bmrOverride && safeInput.bmrOverride > 800
+  const hasTotal = typeof safeInput.totalCaloriesBurned === 'number'
+    && Number.isFinite(safeInput.totalCaloriesBurned) && safeInput.totalCaloriesBurned >= 0;
+  const bmr = hasTotal ? null : safeInput.bmrOverride && safeInput.bmrOverride > 800
     ? Math.round(safeInput.bmrOverride)
     : estimateBMR(safeInput.weightKg, safeInput.heightCm, safeInput.age, safeInput.sex);
 
@@ -61,10 +65,10 @@ export function calculateNetEnergy(input?: NetEnergyInput | null): NetEnergyResu
   const consumed = Math.max(0, Math.round(Number(safeInput.caloriesConsumed) || 0));
   
   // Thermic Effect of Food (TEF) is ~10% of ingested calories
-  const tef = Math.round(consumed * 0.1);
+  const tef = hasTotal ? 0 : Math.round(consumed * 0.1);
 
   // Total Daily Energy Expenditure
-  const tdee = bmr + activeBurn + tef;
+  const tdee = hasTotal ? Math.round(safeInput.totalCaloriesBurned!) : (bmr ?? 0) + activeBurn + tef;
 
   // Net Balance = Consumed - TDEE
   const netKcal = consumed - tdee;
@@ -79,13 +83,13 @@ export function calculateNetEnergy(input?: NetEnergyInput | null): NetEnergyResu
     status = 'deficit';
     statusLabel = `Deficyt energetyczny (${netKcal} kcal)`;
     recommendation = targetGoal === 'deficit'
-      ? 'Optymalny deficyt sprzyjający redukcji tkanki tłuszczowej przy zachowaniu masy beztłuszczowej.'
-      : 'Ujemny bilans kaloryczny. Jeśli celem jest regeneracja lub budowa siły, rozważ dodatkową porcję węglowodanów złożonych.';
+      ? 'Zapisane spożycie jest niższe od oszacowanego wydatku, zgodnie z wybranym kierunkiem redukcji.'
+      : 'Zapisane spożycie jest niższe od oszacowanego wydatku energii.';
   } else if (netKcal > 150) {
     status = 'surplus';
     statusLabel = `Nadwyżka energetyczna (+${netKcal} kcal)`;
     recommendation = targetGoal === 'surplus'
-      ? 'Kontrolowana nadwyżka kaloryczna wspierająca anabolizm i adaptację do ciężkich jednostek siłowych.'
+      ? 'Zapisane spożycie jest wyższe od oszacowanego wydatku, zgodnie z wybranym kierunkiem zwiększania masy.'
       : 'Dodatni bilans kaloryczny przewyższa bieżące zapotrzebowanie ruchowe.';
   }
 

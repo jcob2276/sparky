@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import { cleanup, render, screen, fireEvent } from '@testing-library/react';
 import { ThreeRingHeroCard } from './ThreeRingHeroCard';
+afterEach(cleanup);
 
 describe('ThreeRingHeroCard', () => {
   it('renders all three rings with their scores and labels', () => {
@@ -54,5 +55,11 @@ describe('ThreeRingHeroCard', () => {
 
     const dashes = screen.getAllByText('—');
     expect(dashes.length).toBe(3);
+  });
+
+  it('does not turn a high recovery score into clearance for harder training', () => {
+    render(<ThreeRingHeroCard recoveryScore={85} sleepScore={null} strainScore={null} />);
+    expect(screen.getByText(/Sam wynik nie ustala gotowości/)).toBeInTheDocument();
+    expect(screen.queryByText(/w pełni gotowy/)).not.toBeInTheDocument();
   });
 });

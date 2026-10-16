@@ -11,9 +11,10 @@ import { type SleepConsistencyResult } from '@vanguard/domain';
 
 interface SleepConsistencyCardProps {
   data: SleepConsistencyResult;
+  sampleSize?: number;
 }
 
-export function SleepConsistencyCard({ data }: SleepConsistencyCardProps) {
+export function SleepConsistencyCard({ data, sampleSize }: SleepConsistencyCardProps) {
   if (!data) return null;
 
   const getScoreColorClass = (score: number) => {
@@ -62,7 +63,7 @@ export function SleepConsistencyCard({ data }: SleepConsistencyCardProps) {
           </div>
           <div>
             <h3 className="text-sm font-semibold tracking-tight">Regularność Snu</h3>
-            <p className="text-3xs text-text-muted">Synchronizacja zegara biologicznego (7 dni)</p>
+            <p className="text-3xs text-text-muted">Zapisane noce z ostatnich 7 dni{sampleSize != null ? ` · N=${sampleSize}` : ''}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -101,7 +102,7 @@ export function SleepConsistencyCard({ data }: SleepConsistencyCardProps) {
 
         <div className="rounded-xl border border-border-custom/50 bg-surface-2/40 p-3">
           <span className="text-3xs font-semibold uppercase tracking-wider text-text-muted">
-            Social Jetlag
+            Różnica tydzień/weekend
           </span>
           <div className="mt-1">
             <span
@@ -109,9 +110,9 @@ export function SleepConsistencyCard({ data }: SleepConsistencyCardProps) {
                 data.hasMeaningfulSocialJetlag ? 'text-warning' : 'text-text-primary'
               }`}
             >
-              {data.socialJetlagHours}h
+              {data.workdayMidSleep && data.freeDayMidSleep ? `${data.socialJetlagHours}h` : '—'}
             </span>
-            <span className="ml-1 text-3xs text-text-muted">({data.socialJetlagMinutes}m)</span>
+            {data.workdayMidSleep && data.freeDayMidSleep && <span className="ml-1 text-3xs text-text-muted">({data.socialJetlagMinutes}m)</span>}
           </div>
           <span className="mt-0.5 block text-3xs text-text-secondary">Przesunięcie weekend</span>
         </div>
@@ -144,7 +145,7 @@ export function SleepConsistencyCard({ data }: SleepConsistencyCardProps) {
         ) : (
           <Sparkles size={14} className="mt-0.5 shrink-0 text-primary" />
         )}
-        <p className="text-2xs leading-relaxed">{data.recommendation}</p>
+        <p className="text-2xs leading-relaxed">{data.workdayMidSleep && data.freeDayMidSleep ? data.recommendation : 'Brak nocy z obu grup do porównania tygodnia z weekendem. Wynik regularności obejmuje tylko zapisane noce.'}</p>
       </div>
     </Card>
   );
