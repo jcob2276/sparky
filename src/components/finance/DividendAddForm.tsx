@@ -16,14 +16,15 @@ export function DividendAddForm({ onAdd }: DividendAddFormProps) {
 
   const handleAddDividend = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTicker || !newAmount || !newShares || !newPayDate) return;
+    if (!newTicker.trim() || !newAmount || !newShares || !newPayDate) return;
 
-    const amt = parseFloat(newAmount);
-    const shs = parseFloat(newShares);
+    const amt = Number(newAmount);
+    const shs = Number(newShares);
+    if (!Number.isFinite(amt * shs) || amt <= 0 || shs <= 0) return;
     const newItem: DividendRecord = {
       id: Date.now().toString(),
-      ticker: newTicker.toUpperCase(),
-      companyName: newName || newTicker.toUpperCase(),
+      ticker: newTicker.trim().toUpperCase(),
+      companyName: newName.trim() || newTicker.trim().toUpperCase(),
       amountPerShare: amt,
       sharesCount: shs,
       totalAmount: amt * shs,
@@ -47,7 +48,7 @@ export function DividendAddForm({ onAdd }: DividendAddFormProps) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <Input
           size="sm"
-          placeholder="Ticker (np. VWCE.DE)"
+          placeholder="Ticker"
           value={newTicker}
           onChange={(e) => setNewTicker(e.target.value)}
           required
@@ -62,6 +63,7 @@ export function DividendAddForm({ onAdd }: DividendAddFormProps) {
           size="sm"
           type="number"
           step="0.01"
+          min="0.01"
           placeholder="Dywidenda/akcja PLN"
           value={newAmount}
           onChange={(e) => setNewAmount(e.target.value)}
@@ -71,6 +73,7 @@ export function DividendAddForm({ onAdd }: DividendAddFormProps) {
           size="sm"
           type="number"
           step="1"
+          min="1"
           placeholder="Liczba akcji"
           value={newShares}
           onChange={(e) => setNewShares(e.target.value)}
@@ -81,12 +84,13 @@ export function DividendAddForm({ onAdd }: DividendAddFormProps) {
         <Input
           size="sm"
           type="date"
+          aria-label="Data wypłaty"
           value={newPayDate}
           onChange={(e) => setNewPayDate(e.target.value)}
           required
         />
         <Button type="submit" variant="tonal" size="sm" className="slate-pill text-xs font-medium">
-          Zapisz Dywidendę
+          Dodaj do kalkulacji
         </Button>
       </div>
     </form>

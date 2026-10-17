@@ -1469,11 +1469,13 @@
 }
 
 /* Header icon row: scrolls internally instead of overflowing the app shell */
-.header-icon-row {
+.header-icon-row,
+.no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.header-icon-row::-webkit-scrollbar {
+.header-icon-row::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar {
   display: none;
 }
 
@@ -2418,7 +2420,7 @@ html.ios-sheet-active #root {
     touch-action: manipulation;
   }
 
-  .ui-interactive:active:not(:disabled) {
+  .ui-interactive:active:not(:disabled):not(:has(:active)) {
     transform: scale(0.97);
   }
 }

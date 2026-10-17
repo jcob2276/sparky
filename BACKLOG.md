@@ -692,6 +692,11 @@ Te punkty nie są osobnymi feature'ami; trzeba je zamknąć przed lub w trakcie 
 - [x] Zachować ręczny szkic i refleksję przy błędzie kontekstu; zapis planu udostępniać po poprawnym odczycie, także z zachowanego cache.
 - [x] Odizolować stan planu dnia według konta i dnia warszawskiego; ograniczyć podsumowanie tygodniowe do właściwego okna.
 - [x] Zachować szkice różnych notatek podczas równoległego autosave, przełączania notatek i błędu zapisu.
+- [x] Odrzucać spóźniony odczyt sesji po nowszym zdarzeniu logowania i resetować prywatne formularze przy zmianie konta.
+- [x] Usunąć fikcyjny portfel, ekspozycję ETF i oceny dywidend; zachować ręczny kalkulator bez przykładowych wpisów.
+- [x] Obsłużyć brak profilu finansowego w wynikach pochodnych; zachować rzeczywiste rekordy i edycję założeń.
+- [x] Przekazywać nieobsłużony błąd pipeline Telegrama do workera, żeby wpis trafiał do stanu błędu zamiast pozornego ukończenia.
+- [x] Zachować stan błędu kolejki po nieudanej obsłudze głosówki lub zapisie strumienia; zatrzymać Oracle przed odpowiedzią opartą na nieutrwalonej wiadomości.
 - [ ] Potwierdzić pełną regresję wspólnego drzewa po zakończeniu równoległej pracy oraz niezależny przegląd zmian.
 - [ ] Sprawdzić na urządzeniu fizycznym ponowne połączenie BLE, przerwanie nagrania i przejście offline → online w APK.
 
@@ -1084,9 +1089,12 @@ Zero interfejsu dla trenera. Igor programuje trening na ślepo/ustnie, podczas g
   Ustalić ich właściciela przed ewentualnym odtworzeniem; nie przypisywać automatycznie
   do aktualnie zalogowanego konta. Nowe wpisy mają właściciela, a błąd kopii do dead-letter
   nie usuwa oryginału.
-- [ ] Telegram inbox: webhook potwierdza odbiór także przy błędzie INSERT do
-  `vanguard_telegram_inbox`. Zweryfikować trwały odbiór i deduplikację przed zmianą
-  polityki ponawiania; błąd poprzedzający zapis nie powinien bezpowrotnie gubić wiadomości.
+- [x] Telegram inbox: webhook potwierdza odbiór po udanym INSERT do
+  `vanguard_telegram_inbox`; błąd zapisu zwraca ponawialne HTTP 503 i trafia do audytu.
+  Lokalna regresja obejmuje wiadomości, callbacki i odmowę dostępu bez sekretu.
+- [ ] Telegram inbox: przed wdrożeniem potwierdzić zachowanie przy równoczesnych
+  powtórzeniach oraz niejednoznacznym timeout po zapisie. Istniejący guard wiadomości
+  nie jest dowodem atomowej deduplikacji inbox; nie obiecywać wykonania dokładnie raz.
 - [ ] Architektura `task_1..task_5`/`done_1..done_5` w `daily_wins` — sztywne sloty (świadomość, nie ruszać bez wyraźnej potrzeby).
 
 ---

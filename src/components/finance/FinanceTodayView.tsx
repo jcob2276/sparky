@@ -174,13 +174,13 @@ export function FinanceTodayView({
         <p className="text-sm text-text-muted">{netWorthLine}</p>
       </header>
 
-      {budgetProgress && <FinanceBudgetProgress progress={budgetProgress} monthLabel={monthLabel} />}
+      {metrics.hasBudget && budgetProgress && <FinanceBudgetProgress progress={budgetProgress} monthLabel={monthLabel} />}
       <FinanceQuickCapture onAdd={onAddExpense} adding={addingExpense} />
       <FinanceIncomeSummary lines={incomeLines} />
       <FinanceCategoryChart slices={categorySlices} monthLabel={monthLabel} />
       <FinanceWaterfall lines={waterfall} monthLabel={monthLabel} />
       <RecentSpending transactions={recentTransactions} />
-      <PurchaseCheck freedomDaysForAmount={freedomDaysForAmount} />
+      {metrics.hasBudget && <PurchaseCheck freedomDaysForAmount={freedomDaysForAmount} />}
       <MonthAhead monthKey={monthKey} summary={cashflow} todayDay={todayDay} />
     </div>
   );

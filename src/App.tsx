@@ -1,7 +1,6 @@
-import { useState, useEffect, lazy, Suspense, type ReactNode, useCallback } from 'react';
+import { useEffect, lazy, Suspense, type ReactNode, useCallback } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { supabase } from './lib/supabase';
-import { useStore } from './store/useStore';
+import { useAppAuthSession } from './hooks/useAppAuthSession';
 import { isNativePlatform } from './lib/native/platform';
 import { initUsageStatsSync } from './lib/native/usageStatsSync';
 import { initLocationSync } from './lib/native/locationSync';
@@ -45,58 +44,6 @@ function KorealcjeRedirect() {
 
 function Screen({ kind, children }: { kind: PageTemplateKind; children: ReactNode }) {
   return <PageTemplateBoundary kind={kind}>{children}</PageTemplateBoundary>;
-}
-
-function useAppAuthSession() {
-  const { session, setSession } = useStore();
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let mounted = true;
-
-    // Safety timeout: never block the user on a loading spinner if auth takes longer than 1.2s
-    const safetyTimer = window.setTimeout(() => {
-      if (mounted) {
-        setLoading(false);
-      }
-    }, 1200);
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
-      if (!mounted) return;
-      setSession(currentSession);
-      setLoading(false);
-      window.clearTimeout(safetyTimer);
-    });
-
-    supabase.auth.getSession()
-      .then(({ data, error }) => {
-        if (!mounted) return;
-        if (error) {
-          console.warn('[auth] getSession error:', error.message);
-          setSession(null);
-        } else {
-          setSession(data.session);
-        }
-      })
-      .catch((err: unknown) => {
-        if (!mounted) return;
-        console.warn('[auth] getSession failed:', err instanceof Error ? err.message : err);
-        setSession(null);
-      })
-      .finally(() => {
-        if (!mounted) return;
-        window.clearTimeout(safetyTimer);
-        setLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-      window.clearTimeout(safetyTimer);
-      subscription.unsubscribe();
-    };
-  }, [setSession]);
-
-  return { session, loading };
 }
 
 function useNativePlatformSync(userId: string | undefined, handleNativeNavigate: (path: string) => void) {
@@ -177,7 +124,7 @@ function AppRoutes() {
   if (!session) return <Auth />;
 
   return (
-    <Routes>
+    <Routes key={session.user.id}>
       <Route path="/inwestycje" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="dashboard"><InvestmentsPage /></Screen>

@@ -42,6 +42,13 @@ export function formatDomainName(domain: string): string {
   return domain.replace(/^www\./i, '');
 }
 
+export function toValidUrl(url: string): string {
+  if (!url) return '#';
+  const trimmed = url.trim();
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 export function estimateReadingTime(text: string): number {
   if (!text) return 1;
   const wordCount = text.trim().split(/\s+/).length;

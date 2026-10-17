@@ -15,8 +15,6 @@ import { FinanceTimelinePanel } from './FinanceTimelinePanel';
 import { AllocationPanel } from './AllocationPanel';
 import { FinanceCsvImportPanel } from './FinanceCsvImportPanel';
 import DividendCalendarPanel from './DividendCalendarPanel';
-import PortfolioRebalancePanel from './PortfolioRebalancePanel';
-import EtfXrayPanel from './EtfXrayPanel';
 import { formatYears } from '../../lib/finance/formatMoney';
 import type { FinanceMetrics } from './useFinanceMetrics';
 import type { CoinPriceMap } from '../../lib/coingeckoApi';
@@ -60,6 +58,7 @@ export function FinanceTabContent(props: FinanceTabContentProps) {
     return (
       <div className="space-y-8">
         <FireCalculatorPanel
+          hasBudget={metrics.hasBudget}
           input={metrics.fireInput}
           onChange={(patch) => saveProfilePatch({
             ...(patch.monthlyExpenses != null ? { monthly_expenses: patch.monthlyExpenses } : {}),
@@ -70,14 +69,16 @@ export function FinanceTabContent(props: FinanceTabContentProps) {
             ...(patch.yearsToRetirement != null ? { years_to_retirement: patch.yearsToRetirement } : {}),
           })}
         />
-        <FinanceMonteCarloSection fireInput={metrics.fireInput} fireTarget={metrics.fire.fireNumber} />
-        <FinanceSection title="Co jeśli…">
+        {metrics.hasBudget && <>
+          <FinanceMonteCarloSection fireInput={metrics.fireInput} fireTarget={metrics.fire.fireNumber} />
+          <FinanceSection title="Co jeśli…">
           <FinanceList>
             {metrics.scenarios.map((s) => (
               <FinanceRow key={s.label} primary={s.label} trailing={formatYears(s.yearsToFire)} />
             ))}
           </FinanceList>
-        </FinanceSection>
+          </FinanceSection>
+        </>}
         <FinanceTimelinePanel
           snapshots={data.snapshots}
           currentNetWorth={metrics.netWorth}
@@ -116,11 +117,9 @@ export function FinanceTabContent(props: FinanceTabContentProps) {
           <AllocationPanel slices={metrics.allocation} />
           <div className="lg:col-span-2 space-y-8">
             <DividendCalendarPanel />
-            <PortfolioRebalancePanel />
-            <EtfXrayPanel />
             <FinanceWishlistPanel
               items={data.wishlist}
-              freedomDaysForAmount={metrics.fire.freedomDaysForAmount}
+              freedomDaysForAmount={metrics.hasBudget ? metrics.fire.freedomDaysForAmount : undefined}
               onAdd={(input) => void run(async () => { await mutations.addWishlist.mutateAsync(input); })}
               onUpdate={(input) => void run(async () => { await mutations.updateWishlistItem.mutateAsync(input); })}
               onRemove={(id) => void run(async () => { await mutations.removeWishlist.mutateAsync(id); })}

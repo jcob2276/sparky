@@ -3,6 +3,7 @@ import {
   getYouTubeId,
   isYouTubeUrl,
   formatDomainName,
+  toValidUrl,
   estimateReadingTime,
   matchesLinkQuickFilter,
   countFilterBadges,
@@ -10,6 +11,14 @@ import {
 import type { SavedLink } from '../../../lib/linksApi';
 
 describe('linksUtils', () => {
+  it('ensures valid absolute URLs with toValidUrl', () => {
+    expect(toValidUrl('https://certiverse.com')).toBe('https://certiverse.com');
+    expect(toValidUrl('http://x.com/path')).toBe('http://x.com/path');
+    expect(toValidUrl('certiverse.com')).toBe('https://certiverse.com');
+    expect(toValidUrl('  x.com/jakub  ')).toBe('https://x.com/jakub');
+    expect(toValidUrl('')).toBe('#');
+  });
+
   it('extracts YouTube IDs correctly', () => {
     expect(getYouTubeId('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');
     expect(getYouTubeId('https://youtu.be/dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');

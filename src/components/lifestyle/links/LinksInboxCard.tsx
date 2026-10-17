@@ -1,13 +1,8 @@
 import { Pressable } from '../../ui/ControlPrimitives';
-import {
-  Check,
-  ExternalLink,
-  PenLine,
-  Trash2,
-  BookOpen,
-} from 'lucide-react';
+import { Check, PenLine } from 'lucide-react';
 import type { SavedLink } from '../../../lib/linksApi';
-import { CATEGORY_COLORS, formatDomainName } from './linksUtils';
+import { CATEGORY_COLORS, formatDomainName, toValidUrl } from './linksUtils';
+import { LinksCardActions } from './LinksCardActions';
 
 interface LinksInboxCardProps {
   link: SavedLink;
@@ -21,6 +16,131 @@ interface LinksInboxCardProps {
   isSelected?: boolean;
   onToggleSelect?: () => void;
   haptic: (pattern: number | number[]) => void;
+}
+
+interface LinksCardThumbnailProps {
+  thumbnailUrl: string;
+  title: string;
+  validUrl: string;
+  isSelectMode: boolean;
+  isSelected: boolean;
+  onToggleSelect?: () => void;
+  haptic: (pattern: number | number[]) => void;
+}
+
+function LinksCardThumbnail({
+  thumbnailUrl,
+  title,
+  validUrl,
+  isSelectMode,
+  isSelected,
+  onToggleSelect,
+  haptic,
+}: LinksCardThumbnailProps) {
+  return (
+    <div className="relative -mx-4 -mt-4 mb-3 rounded-t-[var(--ds-arbitrary-24px)] overflow-hidden">
+      {isSelectMode ? (
+        <Pressable
+          onClick={onToggleSelect}
+          className="w-full block cursor-pointer"
+        >
+          <img
+            src={thumbnailUrl}
+            alt={title}
+            className="w-full aspect-video object-cover"
+            loading="lazy"
+          />
+        </Pressable>
+      ) : (
+        <a
+          href={validUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => haptic([6])}
+          className="w-full block cursor-pointer transition-opacity"
+        >
+          <img
+            src={thumbnailUrl}
+            alt={title}
+            className="w-full aspect-video object-cover"
+            loading="lazy"
+          />
+        </a>
+      )}
+      {isSelectMode && (
+        <Pressable
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect?.();
+          }}
+          className={`absolute top-3 left-3 h-5 w-5 rounded-md border flex items-center justify-center transition-all cursor-pointer backdrop-blur-md ${
+            isSelected
+              ? 'bg-primary border-primary text-on-accent shadow-xs'
+              : 'border-border-custom bg-background/80 text-transparent'
+          }`}
+        >
+          {isSelected && <Check size={12} strokeWidth={3} />}
+        </Pressable>
+      )}
+    </div>
+  );
+}
+
+interface LinksCardContentProps {
+  title: string;
+  description?: string;
+  validUrl: string;
+  isRead: boolean;
+  isSelectMode: boolean;
+  onToggleSelect?: () => void;
+  haptic: (pattern: number | number[]) => void;
+}
+
+function LinksCardContent({
+  title,
+  description,
+  validUrl,
+  isRead,
+  isSelectMode,
+  onToggleSelect,
+  haptic,
+}: LinksCardContentProps) {
+  if (isSelectMode) {
+    return (
+      <Pressable
+        onClick={onToggleSelect}
+        className="block w-full text-left cursor-pointer"
+      >
+        <h3 className={`text-sm font-semibold leading-snug tracking-tight ${isRead ? 'text-text-secondary line-through' : 'text-text-primary'}`}>
+          {title}
+        </h3>
+        {description && (
+          <p className="mt-1 text-xs text-text-muted leading-relaxed line-clamp-2 font-normal">
+            {description}
+          </p>
+        )}
+      </Pressable>
+    );
+  }
+
+  return (
+    <a
+      href={validUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={() => haptic([6])}
+      className="group/title block w-full text-left cursor-pointer"
+    >
+      <h3 className={`text-sm font-semibold leading-snug tracking-tight group-hover/title:text-primary transition-colors ${isRead ? 'text-text-secondary line-through' : 'text-text-primary'}`}>
+        {title}
+      </h3>
+      {description && (
+        <p className="mt-1 text-xs text-text-muted leading-relaxed line-clamp-2 font-normal">
+          {description}
+        </p>
+      )}
+    </a>
+  );
 }
 
 export function LinksInboxCard({
@@ -38,10 +158,11 @@ export function LinksInboxCard({
 }: LinksInboxCardProps) {
   const catStyle = CATEGORY_COLORS[link.category] || CATEGORY_COLORS['Inne'];
   const domainClean = formatDomainName(link.domain);
+  const validUrl = toValidUrl(link.url);
 
   return (
     <div
-      className={`pocket-card group relative ui-interactive duration-[var(--motion-medium)] select-none ${
+      className={`pocket-card group relative transition-all duration-[var(--motion-medium)] select-none ${
         isSelected
           ? 'bg-primary/10 border-primary/40 ring-1 ring-primary/30'
           : link.status === 'read'
@@ -49,28 +170,16 @@ export function LinksInboxCard({
           : 'hover:bg-surface-solid/70'
       }`}
     >
-      {/* Thumbnail */}
       {link.thumbnail_url && (
-        <div className="relative -mx-4 -mt-4 mb-3 rounded-t-[var(--ds-arbitrary-24px)] overflow-hidden">
-          <img
-            src={link.thumbnail_url}
-            alt={link.title}
-            className="w-full aspect-video object-cover"
-            loading="lazy"
-          />
-          {isSelectMode && (
-            <Pressable
-              onClick={onToggleSelect}
-              className={`absolute top-3 left-3 h-5 w-5 rounded-md border flex items-center justify-center ui-interactive cursor-pointer backdrop-blur-md ${
-                isSelected
-                  ? 'bg-primary border-primary text-on-accent shadow-xs'
-                  : 'border-border-custom bg-background/80 text-transparent'
-              }`}
-            >
-              {isSelected && <Check size={12} strokeWidth={3} />}
-            </Pressable>
-          )}
-        </div>
+        <LinksCardThumbnail
+          thumbnailUrl={link.thumbnail_url}
+          title={link.title}
+          validUrl={validUrl}
+          isSelectMode={isSelectMode}
+          isSelected={isSelected}
+          onToggleSelect={onToggleSelect}
+          haptic={haptic}
+        />
       )}
 
       {/* Header row */}
@@ -79,8 +188,11 @@ export function LinksInboxCard({
           <div className="flex items-center gap-2 flex-wrap mb-1.5">
             {isSelectMode && !link.thumbnail_url && (
               <Pressable
-                onClick={onToggleSelect}
-                className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center ui-interactive cursor-pointer ${
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSelect?.();
+                }}
+                className={`h-4 w-4 rounded-md border shrink-0 flex items-center justify-center transition-all cursor-pointer ${
                   isSelected
                     ? 'bg-primary border-primary text-on-accent shadow-xs'
                     : 'border-border-custom bg-surface-solid'
@@ -90,90 +202,74 @@ export function LinksInboxCard({
               </Pressable>
             )}
 
-            <div className="flex items-center gap-1 select-none">
-              <img
-                src={`https://www.google.com/s2/favicons?sz=32&domain=${link.domain}`}
-                alt=""
-                className="w-3.5 h-3.5 rounded-sm object-contain"
-                onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-              />
-              <span className="text-3xs text-text-muted">{link.channel_name || domainClean}</span>
-            </div>
+            {isSelectMode ? (
+              <div className="flex items-center gap-1 select-none">
+                <img
+                  src={`https://www.google.com/s2/favicons?sz=32&domain=${link.domain}`}
+                  alt=""
+                  className="w-3.5 h-3.5 rounded-sm object-contain"
+                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                />
+                <span className="text-3xs text-text-muted">{link.channel_name || domainClean}</span>
+              </div>
+            ) : (
+              <a
+                href={validUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => haptic([6])}
+                className="flex items-center gap-1 select-none hover:text-text-primary transition-colors cursor-pointer"
+              >
+                <img
+                  src={`https://www.google.com/s2/favicons?sz=32&domain=${link.domain}`}
+                  alt=""
+                  className="w-3.5 h-3.5 rounded-sm object-contain"
+                  onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                />
+                <span className="text-3xs text-text-muted hover:underline">{link.channel_name || domainClean}</span>
+              </a>
+            )}
 
             <span className={`rounded-full px-2 py-0.5 text-3xs font-semibold ${catStyle.pill}`}>
               {link.category}
             </span>
 
             {link.notes && (
-              <span className="flex items-center gap-0.5 text-3xs text-text-muted/70" title="Zawiera notatki">
+              <Pressable
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleExpand();
+                }}
+                className="flex items-center gap-0.5 text-3xs text-text-muted/70 hover:text-text-primary transition-colors cursor-pointer"
+                title="Zawiera notatki (kliknij, aby rozwinąć)"
+              >
                 <PenLine size={10} />
-              </span>
+              </Pressable>
             )}
           </div>
 
-          <Pressable
-            onClick={isSelectMode ? onToggleSelect : onToggleExpand}
-            className="block w-full text-left cursor-pointer"
-            aria-expanded={isExpanded}
-          >
-            <h3
-              className={`text-sm font-semibold leading-snug tracking-tight ${
-                link.status === 'read' ? 'text-text-secondary line-through' : 'text-text-primary'
-              }`}
-            >
-              {link.title}
-            </h3>
-            {link.description && (
-              <p className="mt-1 text-xs text-text-muted leading-relaxed line-clamp-2 font-normal">
-                {link.description}
-              </p>
-            )}
-          </Pressable>
+          <LinksCardContent
+            title={link.title}
+            description={link.description}
+            validUrl={validUrl}
+            isRead={link.status === 'read'}
+            isSelectMode={isSelectMode}
+            onToggleSelect={onToggleSelect}
+            haptic={haptic}
+          />
         </div>
 
-        {/* Action icons */}
-        <div className="flex items-center gap-1 shrink-0 pt-0.5">
-          {onOpenReader && (
-            <Pressable
-              onClick={onOpenReader}
-              className="btn-press rounded-full p-1.5 text-text-muted/60 hover:text-text-primary hover:bg-surface-solid/60 transition-colors cursor-pointer"
-              title="Otwórz czytnik"
-            >
-              <BookOpen size={13} />
-            </Pressable>
-          )}
-
-          <Pressable
-            onClick={onToggleRead}
-            className={`btn-press rounded-full p-1.5 ui-interactive cursor-pointer ${
-              link.status === 'read'
-                ? 'bg-success/15 text-success'
-                : 'text-text-muted/50 hover:text-text-primary hover:bg-surface-solid/60'
-            }`}
-            title={link.status === 'unread' ? 'Oznacz jako przeczytane' : 'Oznacz jako nieprzeczytane'}
-          >
-            <Check size={13} className={bouncing ? 'animate-pop-check' : ''} />
-          </Pressable>
-
-          <a
-            href={link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => haptic([6])}
-            className="btn-press rounded-full p-1.5 text-text-muted/50 hover:text-text-primary hover:bg-surface-solid/60 transition-colors"
-            title="Otwórz w nowej karcie"
-          >
-            <ExternalLink size={13} />
-          </a>
-
-          <Pressable
-            onClick={onDelete}
-            className="btn-press rounded-full p-1.5 text-text-muted/40 hover:text-danger hover:bg-danger/10 transition-colors cursor-pointer"
-            title="Usuń link"
-          >
-            <Trash2 size={13} />
-          </Pressable>
-        </div>
+        <LinksCardActions
+          link={link}
+          validUrl={validUrl}
+          isExpanded={isExpanded}
+          bouncing={bouncing}
+          onToggleExpand={onToggleExpand}
+          onToggleRead={onToggleRead}
+          onDelete={onDelete}
+          onOpenReader={onOpenReader}
+          haptic={haptic}
+        />
       </div>
     </div>
   );

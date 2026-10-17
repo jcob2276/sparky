@@ -1,6 +1,6 @@
 /**
  * Snowball Analytics Engine for Sparky OS.
- * Core algorithms: XIRR, Dividend Forecasting, ETF X-Ray, Rebalancing, Dividend Safety Rating, Tax Adjuster & Backtesting.
+ * Dividend totals for manually entered payouts.
  */
 
 export interface DividendRecord {
@@ -17,34 +17,6 @@ export interface DividendRecord {
   payoutRatioPct?: number;
   fcfCoverageRatio?: number;
   isIkeAccount?: boolean; // 0% Belka Tax Shield
-}
-
-export interface HoldingTarget {
-  id: string;
-  ticker: string;
-  name: string;
-  assetCategory: 'stocks' | 'etf' | 'crypto' | 'bonds' | 'cash';
-  targetPct: number;
-}
-
-export interface RebalanceRecommendation {
-  ticker: string;
-  name: string;
-  currentValue: number;
-  currentPct: number;
-  targetPct: number;
-  differencePct: number;
-  recommendedActionValue: number; // Positive = Buy, Negative = Sell
-  actionType: 'buy' | 'sell' | 'hold';
-}
-
-export interface DividendSafetyMetric {
-  ticker: string;
-  companyName: string;
-  score: number; // 0..100
-  safetyLevel: 'safe' | 'warning' | 'danger';
-  payoutRatio: number;
-  explanation: string;
 }
 
 export interface TaxSettings {
@@ -64,39 +36,8 @@ export function calculateNetDividend(grossAmount: number, isUsStock: boolean, se
 }
 
 /**
- * Evaluates Dividend Safety Rating (0..100) based on Payout Ratio & FCF coverage.
- */
-export function evaluateDividendSafety(dividends: DividendRecord[]): DividendSafetyMetric[] {
-  return dividends.map((div) => {
-    const payout = div.payoutRatioPct ?? 45; // Default safe 45% if unlisted
-    let score = 100 - payout;
-    if (score > 90) score = 90;
-    if (score < 10) score = 10;
-
-    let safetyLevel: 'safe' | 'warning' | 'danger' = 'safe';
-    let explanation = 'Wskaźnik wypłaty dywidendy w normie (Payout Ratio < 60%)';
-
-    if (payout > 80) {
-      safetyLevel = 'danger';
-      explanation = 'Wysokie ryzyko ścięcia dywidendy (Payout Ratio > 80%)';
-    } else if (payout > 60) {
-      safetyLevel = 'warning';
-      explanation = 'Podwyższony wskaźnik wypłaty (Payout Ratio 60-80%)';
-    }
-
-    return {
-      ticker: div.ticker,
-      companyName: div.companyName,
-      score,
-      safetyLevel,
-      payoutRatio: payout,
-      explanation,
-    };
-  });
-}
-
-/**
- * Calculates monthly dividend forecast for the next 12 months (Gross vs Net).
+ * Totals the supplied payouts by payment month (Gross vs Net).
+ * The legacy name does not imply a date filter; the monthly average divides their sum by 12.
  */
 export function calculate12MonthDividendForecast(
   dividends: DividendRecord[],
@@ -132,78 +73,4 @@ export function calculate12MonthDividendForecast(
     total12MonthForecastNet: Math.round(total12MonthForecastNet * 100) / 100,
     averageMonthlyIncomeNet: Math.round((total12MonthForecastNet / 12) * 100) / 100,
   };
-}
-
-/**
- * Calculates Portfolio Rebalancing actions.
- */
-export function calculatePortfolioRebalance(
-  currentHoldings: { ticker: string; name: string; currentValue: number }[],
-  targets: HoldingTarget[],
-): RebalanceRecommendation[] {
-  const totalPortfolioValue = currentHoldings.reduce((acc, h) => acc + h.currentValue, 0);
-  if (totalPortfolioValue <= 0) return [];
-
-  const recommendations: RebalanceRecommendation[] = [];
-
-  targets.forEach((target) => {
-    const match = currentHoldings.find((h) => h.ticker.toLowerCase() === target.ticker.toLowerCase());
-    const currentValue = match ? match.currentValue : 0;
-    const currentPct = Math.round((currentValue / totalPortfolioValue) * 10000) / 100;
-    const differencePct = Math.round((target.targetPct - currentPct) * 100) / 100;
-    const targetValue = (target.targetPct / 100) * totalPortfolioValue;
-    const recommendedActionValue = Math.round((targetValue - currentValue) * 100) / 100;
-
-    let actionType: 'buy' | 'sell' | 'hold' = 'hold';
-    if (recommendedActionValue > 10) actionType = 'buy';
-    else if (recommendedActionValue < -10) actionType = 'sell';
-
-    recommendations.push({
-      ticker: target.ticker,
-      name: target.name || match?.name || target.ticker,
-      currentValue,
-      currentPct,
-      targetPct: target.targetPct,
-      differencePct,
-      recommendedActionValue,
-      actionType,
-    });
-  });
-
-  return recommendations;
-}
-
-/**
- * XIRR calculation helper (Newton-Raphson method for Internal Rate of Return).
- */
-export function calculateXIRR(cashFlows: { date: Date; amount: number }[]): number {
-  if (cashFlows.length < 2) return 0;
-
-  let rate = 0.1;
-  const maxIterations = 100;
-  const precision = 0.0001;
-  const firstDate = cashFlows[0].date;
-
-  for (let i = 0; i < maxIterations; i++) {
-    let fValue = 0;
-    let fDerivative = 0;
-
-    for (const flow of cashFlows) {
-      const dayDiff = (flow.date.getTime() - firstDate.getTime()) / (1000 * 3600 * 24);
-      const yearFraction = dayDiff / 365.0;
-
-      fValue += flow.amount / Math.pow(1 + rate, yearFraction);
-      fDerivative -= (yearFraction * flow.amount) / Math.pow(1 + rate, yearFraction + 1);
-    }
-
-    if (Math.abs(fDerivative) < 1e-10) break;
-    const newRate = rate - fValue / fDerivative;
-
-    if (Math.abs(newRate - rate) < precision) {
-      return Math.round(newRate * 10000) / 100;
-    }
-    rate = newRate;
-  }
-
-  return Math.round(rate * 10000) / 100;
 }
