@@ -57,13 +57,17 @@ export function mapOuraNightDetails(input: OuraNightDetailsInput): OuraNightDeta
   const heartRate = withinInterval(input.heartRate, input.bedtimeStart, input.bedtimeEnd).sort(byTimestamp);
   const hrv = withinInterval(input.hrv, input.bedtimeStart, input.bedtimeEnd).sort(byTimestamp);
 
+  const hasPhases = phases.some((point) => point.phase != null || point.phase_code != null);
+  const hasHeartRate = heartRate.some((point) => point.bpm != null && point.bpm > 0);
+  const hasHrv = hrv.some((point) => point.hrv != null && point.hrv > 0);
+
   return {
     date: input.date,
     phases,
     heartRate,
     hrv,
-    phaseStatus: phases.length > 0 ? 'available' : 'unavailable',
-    heartRateStatus: heartRate.length > 0 ? 'available' : 'unavailable',
-    hrvStatus: hrv.length > 0 ? 'available' : 'unavailable',
+    phaseStatus: hasPhases ? 'available' : 'unavailable',
+    heartRateStatus: hasHeartRate ? 'available' : 'unavailable',
+    hrvStatus: hasHrv ? 'available' : 'unavailable',
   };
 }

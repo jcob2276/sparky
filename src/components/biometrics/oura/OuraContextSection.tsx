@@ -58,15 +58,19 @@ export function OuraContextSection({
         : 'Brak pomiaru czasu przed ekranem',
       detail: isScreenAvailable ? (
         <span className="flex flex-col gap-1">
-          {context.screen.lateNightMinutes != null && context.screen.lateNightMinutes > 0 && (
-            <span className="flex flex-wrap items-center gap-1.5">
-              <span>{context.screen.lateNightMinutes} min późnym wieczorem</span>
-              {context.screen.lateNightImpact && (
-                <span className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium ${context.screen.lateNightImpact.bgColor} ${context.screen.lateNightImpact.color}`}>
-                  {context.screen.lateNightImpact.badge}
-                </span>
-              )}
+          {context.screen.lateNightMinutes != null ? (
+            <span
+              className="flex flex-wrap items-center gap-1.5"
+              title="Okno nocne obejmuje wyłącznie godziny 23:00–24:00 oraz 00:00–04:00 czasu warszawskiego tego samego dnia kalendarzowego. Nie obejmuje wcześniejszego wieczoru (np. 20:00–22:59)."
+            >
+              <span>
+                {context.screen.lateNightMinutes === 0
+                  ? '0 min w oknie nocnym (23:00–04:00 · bez 20:00–22:59)'
+                  : `${context.screen.lateNightMinutes} min w oknie nocnym (23:00–04:00 · bez 20:00–22:59)`}
+              </span>
             </span>
+          ) : (
+            <span className="text-xs text-text-muted">Brak pomiaru okna nocnego (23:00–04:00)</span>
           )}
           {context.screen.unlocks != null && context.screen.unlocks > 0 && (
             <span className="text-xs text-text-muted">
@@ -81,7 +85,7 @@ export function OuraContextSection({
       color: 'text-info',
       interactive: isScreenAvailable,
       onClick: isScreenAvailable ? () => setScreenModalOpen(true) : undefined,
-      extra: isScreenAvailable && context.screen.cognitiveProfile && (
+      extra: isScreenAvailable && context.screen.categoryMinutesComplete && context.screen.cognitiveProfile && (
         <div className="mt-2 flex items-center justify-between">
           <div className="flex h-1.5 w-24 overflow-hidden rounded-full bg-surface-3">
             {context.screen.cognitiveProfile.toolRatio > 0 && (
@@ -109,9 +113,9 @@ export function OuraContextSection({
       icon: Coffee,
       label: 'Kofeina',
       value: context.caffeine.status === 'available'
-        ? `${context.caffeine.amountMg} mg`
+        ? `~${context.caffeine.amountMg} mg (szacunek)`
         : 'Nie zapisano kofeiny',
-      detail: context.caffeine.lastAt == null ? null : `Ostatnia o ${context.caffeine.lastAt}`,
+      detail: context.caffeine.lastAt == null ? null : `Szacunek z wpisów · czas wpisu ${context.caffeine.lastAt}`,
       color: 'text-warning',
     },
     {

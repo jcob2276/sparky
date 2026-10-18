@@ -44,20 +44,24 @@ function ageOnDate(birthDate: string | null | undefined, date: string | null | u
   if (!birthDate || !date) return null;
   const birth = new Date(`${birthDate}T00:00:00Z`);
   const current = new Date(`${date}T00:00:00Z`);
+  if (!Number.isFinite(birth.getTime()) || !Number.isFinite(current.getTime())) return null;
   let age = current.getUTCFullYear() - birth.getUTCFullYear();
   if (
     current.getUTCMonth() < birth.getUTCMonth()
     || (current.getUTCMonth() === birth.getUTCMonth() && current.getUTCDate() < birth.getUTCDate())
   ) age -= 1;
-  return age;
+  return age >= 0 && age < 120 ? age : null;
 }
 
 export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
+  const date = data.date ?? data.oura?.date ?? data.enhanced?.date ?? null;
+  const enhanced = date && data.enhanced?.date === date ? data.enhanced : null;
+  const oura = date && data.oura?.date === date ? data.oura : null;
   const enhancedHistory = data.enhancedHistory ?? [];
-  const currentInHistory = enhancedHistory.some((day) => day.date === data.enhanced?.date);
-  const insightHistory = currentInHistory || !data.enhanced
+  const currentInHistory = enhancedHistory.some((day) => day.date === enhanced?.date);
+  const insightHistory = currentInHistory || !enhanced
     ? enhancedHistory
-    : [...enhancedHistory, data.enhanced];
+    : [...enhancedHistory, enhanced];
   const aggregateSleepHistory = (data.ouraHistory ?? []).map((day) => ({
     date: day.date,
     bedtime_start: day.bedtime_timestamp,
@@ -68,12 +72,12 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
     sleep_score: day.sleep_score,
   }));
   const sleepInsights = buildOuraSleepInsights(
-    data.enhanced ?? null,
+    enhanced,
     insightHistory,
     aggregateSleepHistory,
   );
-  const vascularAge = data.enhanced?.vascular_age;
-  const chronologicalAge = ageOnDate(data.birthDateStr, data.date);
+  const vascularAge = enhanced?.vascular_age;
+  const chronologicalAge = ageOnDate(data.birthDateStr, date);
   const vascularAgeDelta = vascularAge == null || chronologicalAge == null
     ? null
     : Math.round(vascularAge - chronologicalAge);
@@ -85,21 +89,21 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
   return (
     <div className="space-y-7">
       <header>
-        <p className="text-sm text-text-muted">{data.date ?? 'Ostatni dostępny dzień'}</p>
+        <p className="text-sm text-text-muted">{date ?? 'Ostatni dostępny dzień'}</p>
         <h2 className="mt-1 text-3xl font-light text-white">Parametry życiowe</h2>
       </header>
 
       {/* Bevel / Whoop Health Monitor: 30-dniowe normy bazowe */}
-      <HealthMonitorSlidersCard data={data} />
+      <HealthMonitorSlidersCard data={{ ...data, date, oura, enhanced }} />
 
       {/* Wiek Biologiczny i Naczyniowy (Bevel Biological Age) */}
       <BiologicalAgeCard
-        chronologicalAge={chronologicalAge ?? 30}
-        vo2Max={data.garminVo2Max}
-        restingHeartRate={data.enhanced?.sleep_lowest_heart_rate ?? data.oura?.rhr_avg ?? null}
-        hrvBaselineMs={data.enhanced?.sleep_average_hrv ?? data.oura?.hrv_avg}
-        sleepDebtMinutes={sleepInsights.sleepDebtDays > 0 ? Math.abs(sleepInsights.sleepBalanceMinutes ?? 0) : 0}
-        biologicalSex="male"
+        chronologicalAge={chronologicalAge}
+        vo2Max={data.garminVo2Max ?? enhanced?.vo2_max ?? null}
+        restingHeartRate={enhanced?.sleep_lowest_heart_rate ?? oura?.rhr_avg ?? null}
+        hrvBaselineMs={enhanced?.sleep_average_hrv ?? oura?.hrv_avg}
+        sleepDebtMinutes={sleepInsights.sleepDebtMinutes}
+        biologicalSex={data.biologicalSex}
       />
 
       <section className="space-y-3">
@@ -107,8 +111,8 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
           <Activity size={20} className="text-info" /> Gotowość
         </h3>
         <div className="grid gap-3 sm:grid-cols-2">
-          <OuraMetricCard accent="blue" icon={Gauge} label="Wynik gotowości" status="Bieżący wynik" value={value(data.oura?.readiness_score)} />
-          <OuraMetricCard accent="green" icon={HeartPulse} label="HRV" status="Średnia nocna" value={value(data.oura?.hrv_avg, ' ms')} />
+          <OuraMetricCard accent="blue" icon={Gauge} label="Wynik gotowości" status="Bieżący wynik" value={value(oura?.readiness_score)} />
+          <OuraMetricCard accent="green" icon={HeartPulse} label="HRV" status="Średnia nocna" value={value(oura?.hrv_avg, ' ms')} />
         </div>
       </section>
 
@@ -117,8 +121,8 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
           <Moon size={20} className="text-success" /> Sen
         </h3>
         <div className="grid gap-3 sm:grid-cols-2">
-          <OuraMetricCard accent="green" icon={Moon} label="Wynik snu" status="Szczegóły nocy" value={value(data.enhanced?.sleep_score ?? data.oura?.sleep_score)} onClick={onOpenSleep} />
-          <OuraMetricCard accent="blue" icon={HeartPulse} label="Najniższe tętno" status="Podczas snu" value={value(data.enhanced?.sleep_lowest_heart_rate, ' bpm')} />
+          <OuraMetricCard accent="green" icon={Moon} label="Wynik snu" status="Szczegóły nocy" value={value(enhanced?.sleep_score ?? oura?.sleep_score)} onClick={onOpenSleep} />
+          <OuraMetricCard accent="blue" icon={HeartPulse} label="Najniższe tętno" status="Podczas snu" value={value(enhanced?.sleep_lowest_heart_rate, ' bpm')} />
         </div>
       </section>
 
@@ -147,9 +151,9 @@ export function OuraVitalsView({ data, onOpenSleep }: OuraVitalsViewProps) {
         </h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <OuraMetricCard accent="purple" icon={HeartHandshake} label="Wiek sercowo-naczyniowy" status={vascularAgeDelta == null ? 'Porównanie z wiekiem niedostępne' : `${vascularAgeDelta > 0 ? '+' : '−'}${Math.abs(vascularAgeDelta)} lat względem wieku`} value={vascularAge == null ? 'Brak danych' : `${Math.round(vascularAge)} lata`} />
-          <OuraMetricCard accent="blue" icon={Wind} label="Częstotliwość oddechu" status="Średnia podczas snu" value={data.enhanced?.sleep_average_breath == null ? 'Brak danych' : `${data.enhanced.sleep_average_breath.toLocaleString('pl-PL', { maximumFractionDigits: 1, minimumFractionDigits: 1 })}/min`} />
-          <OuraMetricCard accent="purple" icon={Thermometer} label="Odchylenie temperatury" value={data.enhanced?.temperature_deviation == null ? 'Brak danych' : `${data.enhanced.temperature_deviation > 0 ? '+' : ''}${data.enhanced.temperature_deviation.toFixed(2)}°C`} />
-          <OuraMetricCard accent="orange" icon={Footprints} label="Kroki" value={value(data.oura?.steps)} />
+          <OuraMetricCard accent="blue" icon={Wind} label="Częstotliwość oddechu" status="Średnia podczas snu" value={enhanced?.sleep_average_breath == null ? 'Brak danych' : `${enhanced.sleep_average_breath.toLocaleString('pl-PL', { maximumFractionDigits: 1, minimumFractionDigits: 1 })}/min`} />
+          <OuraMetricCard accent="purple" icon={Thermometer} label="Odchylenie temperatury" value={enhanced?.temperature_deviation == null ? 'Brak danych' : `${enhanced.temperature_deviation > 0 ? '+' : ''}${enhanced.temperature_deviation.toFixed(2)}°C`} />
+          <OuraMetricCard accent="orange" icon={Footprints} label="Kroki" value={value(oura?.steps)} />
         </div>
       </section>
     </div>

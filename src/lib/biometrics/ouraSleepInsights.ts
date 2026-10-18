@@ -60,7 +60,8 @@ function median(values: number[]): number | null {
 }
 
 function circularDifference(a: number, b: number): number {
-  return ((a - b + 720) % 1440) - 720;
+  const diff = (a - b + 720) % 1440;
+  return ((diff + 1440) % 1440) - 720;
 }
 
 function measuredRegularity(value: unknown): number | null {
@@ -144,10 +145,16 @@ export function buildOuraSleepInsights(
     : median(priorMidpoints.map(
       (value) => Math.abs(circularDifference(value, baselineMidpoint)),
     ));
-  const datedHistory = aggregateSleepHistory.filter((day) => day.date <= current.date);
-  const need = personalSleepNeed(datedHistory, current.date);
+  const uniqueDatedHistory = Array.from(
+    new Map(
+      aggregateSleepHistory
+        .filter((day) => day.date <= current.date)
+        .map((day) => [day.date, day]),
+    ).values(),
+  );
+  const need = personalSleepNeed(uniqueDatedHistory, current.date);
   const debtStartDate = dateDaysBefore(current.date, 13);
-  const debtWindow = datedHistory
+  const debtWindow = uniqueDatedHistory
     .filter((day) => day.date >= debtStartDate)
     .filter((day) => day.total_sleep_hours != null)
     .sort((a, b) => a.date.localeCompare(b.date));

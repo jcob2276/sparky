@@ -70,7 +70,7 @@ export function computeLenieCorrelations(
   if (logsWithPhone >= 3) {
     const pct = Math.round((logsWithLateScreen / logsWithPhone) * 100);
     if (pct >= 50) {
-      phoneCorrelationText = `${pct}% incydentów poprzedza ekran nocny (>25m po 22:00)`;
+      phoneCorrelationText = `${pct}% incydentów poprzedza ekran nocny (>25m w oknie 23:00–04:00)`;
     }
   }
 

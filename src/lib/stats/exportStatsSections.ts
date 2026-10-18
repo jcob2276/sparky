@@ -105,9 +105,9 @@ export function renderPhoneSection({ dayPhone }: PhoneSectionParams): string {
 
   const lnAlert =
     breakdown.lateNight > 60
-      ? ` · 🌙 po 23:00: **${breakdown.lateNight}m** ⚠️`
+      ? ` · 🌙 noc (23–04): **${breakdown.lateNight}m** ⚠️`
       : breakdown.lateNight > 0
-        ? ` · 🌙 ${breakdown.lateNight}m`
+        ? ` · 🌙 noc (23–04): ${breakdown.lateNight}m`
         : '';
 
   let md = `#### 📱 Telefon\n`;

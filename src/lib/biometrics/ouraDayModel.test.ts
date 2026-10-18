@@ -50,4 +50,18 @@ describe('selectCanonicalOuraDay', () => {
     expect(result?.previous?.summary?.total_sleep_hours).toBe(7.2);
     expect(result?.previous?.enhanced?.time_in_bed_hours).toBe(8.2);
   });
+
+  it('selects preferred date from enhanced even when summaries only has older dates', () => {
+    const result = selectCanonicalOuraDay({
+      preferredDate: '2026-07-28',
+      summaries: [{ date: '2026-07-26', total_sleep_hours: 7.0 }],
+      enhanced: [{ date: '2026-07-28', total_sleep_hours: 7.8 }],
+    });
+
+    expect(result?.date).toBe('2026-07-28');
+    expect(result?.enhanced?.total_sleep_hours).toBe(7.8);
+    expect(result?.summary).toBeNull();
+    expect(result?.missingSources).toEqual(['oura_daily_summary']);
+    expect(result?.previous?.date).toBe('2026-07-26');
+  });
 });

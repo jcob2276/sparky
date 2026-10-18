@@ -52,7 +52,7 @@ export function useDailyStrainOura(userId: string) {
           .order('date', { ascending: false }),
         supabase
           .from('nutrition_profile')
-          .select('birth_date')
+          .select('birth_date, sex')
           .eq('user_id', userId)
           .maybeSingle(),
         supabase
@@ -105,6 +105,11 @@ export function useDailyStrainOura(userId: string) {
         enhanced: enhancedRow,
         enhancedYesterday: enhancedYesterdayRow,
         birthDateStr: profileRow?.birth_date ?? null,
+        biologicalSex: (profileRow?.sex === 'F' || profileRow?.sex === 'female'
+          ? 'female'
+          : profileRow?.sex === 'M' || profileRow?.sex === 'male'
+          ? 'male'
+          : null) as 'male' | 'female' | null,
         garminVo2Max,
         externalVo2Source,
         stravaRows: stravaRows || [],
@@ -187,7 +192,7 @@ export function useOuraNightDetails(
   bedtimeEnd?: string | null,
 ) {
   return useQuery({
-    queryKey: biometricsKeys.ouraNight(userId, date ?? ''),
+    queryKey: biometricsKeys.ouraNight(userId, date ?? '', bedtimeStart, bedtimeEnd),
     queryFn: async () => {
       if (!date) return null;
       const [phasesResult, heartRateResult, hrvResult] = await Promise.all([
@@ -231,7 +236,7 @@ export function useOuraNightDetails(
 
 export function useOuraContext(userId: string, contextDate: string | null, bedtimeStart: string | null) {
   return useQuery({
-    queryKey: biometricsKeys.ouraContext(userId, contextDate ?? ''),
+    queryKey: biometricsKeys.ouraContext(userId, contextDate ?? '', bedtimeStart),
     queryFn: async () => {
       if (!contextDate) return null;
       const [phoneResult, workoutResult, foodResult] = await Promise.all([
@@ -245,7 +250,7 @@ export function useOuraContext(userId: string, contextDate: string | null, bedti
           .from('workout_sessions')
           .select('duration_minutes,hr_strain_score,end_time')
           .eq('user_id', userId)
-          .eq('workout_day', contextDate)
+          .eq('date', contextDate)
           .order('end_time'),
         supabase
           .from('daily_food_entries')

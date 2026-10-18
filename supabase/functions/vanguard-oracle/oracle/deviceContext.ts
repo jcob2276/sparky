@@ -44,7 +44,7 @@ export async function fetchDeviceUsageContext(
         const apps = Array.isArray(pRow.top_apps)
           ? pRow.top_apps.slice(0, 5).map((a: { app: string; min: number }) => `${a.app} ${a.min}m`).join(", ")
           : "brak";
-        lines.push(`  * Czas ekranowy Android: ${pRow.total_minutes} min (odblokowań: ${pRow.unlocks ?? "?"}, w nocy >23: ${pRow.late_night_minutes ?? 0} min). Top apki: ${apps}`);
+        lines.push(`  * Czas ekranowy Android: ${pRow.total_minutes} min (odblokowań: ${pRow.unlocks ?? "?"}, w oknie nocnym (23–04): ${pRow.late_night_minutes ?? 0} min). Top apki: ${apps}`);
       }
       
       if (aRow && Array.isArray(aRow.web_domains) && aRow.web_domains.length > 0) {

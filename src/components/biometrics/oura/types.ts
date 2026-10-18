@@ -22,6 +22,7 @@ export interface OuraHealthHubData {
   ouraHistory?: Tables<'oura_daily_summary'>[];
   enhancedHistory?: Tables<'oura_enhanced'>[];
   birthDateStr?: string | null;
+  biologicalSex?: 'male' | 'female' | null;
   garminVo2Max?: number | null;
   externalVo2Source?: string | null;
   nightDetails?: OuraNightDetails | null;
@@ -29,8 +30,11 @@ export interface OuraHealthHubData {
   todayContext?: OuraContextInsights | null;
   nightContext?: OuraContextInsights | null;
   correlations?: CorrelationsData | null;
+  correlationsError?: string | null;
+  correlationsLoading?: boolean;
   nutrition?: NutritionDayContext | null;
   nutritionError?: string | null;
+  nutritionLoading?: boolean;
   stravaActivities?: Array<{
     name?: string | null;
     distance?: number | null;

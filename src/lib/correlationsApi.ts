@@ -7,6 +7,7 @@ import type {
 } from '@vanguard/domain';
 
 export interface CorrelationsData {
+  sourceErrors?: Array<{ source: string; message: string }>;
   correlations: CorrelationResult[];
   behaviors: BehaviorEffectResult[];
   coverage: Record<string, number>;
@@ -29,6 +30,10 @@ async function fetchCorrelationsData(userId: string, includeWeak: boolean): Prom
   }
 
   return {
+    sourceErrors: [
+      { source: 'Korelacje', error: corrRes.error },
+      { source: 'Wpływ zachowań', error: behRes.error },
+    ].flatMap(({ source, error }) => error ? [{ source, message: error.message }] : []),
     correlations: corrRes.data?.results ?? [],
     coverage: corrRes.data?.coverage ?? {},
     stats: corrRes.data?.stats ?? null,

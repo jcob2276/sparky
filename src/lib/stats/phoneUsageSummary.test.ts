@@ -115,14 +115,20 @@ test('buildPhoneUsageDailyPayload — filtruje launchery i pakiety systemowe z t
   expect(payload.late_night_minutes).toBe(15);
 });
 
-test('evaluateLateNightImpact — ocenia wpływ na melatoninę i sen', () => {
-  expect(evaluateLateNightImpact(0).tier).toBe('optimal');
-  expect(evaluateLateNightImpact(15).tier).toBe('mild');
-  expect(evaluateLateNightImpact(35).tier).toBe('moderate');
-  expect(evaluateLateNightImpact(60).tier).toBe('high');
+test('evaluateLateNightImpact describes recorded minutes rather than inferring a sleep effect', () => {
+  for (const minutes of [0, 5, 35, 60]) {
+    const result = evaluateLateNightImpact(minutes);
+    expect(result?.badge).toBe(`${minutes} min`);
+    expect(result?.description).toMatch(/00:00–04:00.*23:00–24:00.*tego samego dnia/);
+    expect(result?.description).not.toMatch(/melaton|REM|latenc|znikomym|optymalne/i);
+  }
+  expect(evaluateLateNightImpact(null)).toBeNull();
+  expect(evaluateLateNightImpact(undefined)).toBeNull();
+  expect(evaluateLateNightImpact(NaN)).toBeNull();
+  expect(evaluateLateNightImpact(-1)).toBeNull();
 });
 
-test('evaluateCognitiveProfile — rozbicie na narzędzia vs rozrywkę i impulsywność', () => {
+test('evaluateCognitiveProfile — rozbicie na kategorie i opisowe progi odblokowań', () => {
   const profile = evaluateCognitiveProfile({
     total_minutes: 200,
     ai_minutes: 60,
@@ -143,12 +149,14 @@ test('evaluateCognitiveProfile — rozbicie na narzędzia vs rozrywkę i impulsy
   expect(profile.unlockIntervalMinutes).toBe(5); // 200 / 40 = 5
   expect(profile.avgSessionMinutes).toBe(5);
   expect(profile.attentionTier).toBe('normal'); // 40 unlocks is in 31–60 range
+  expect(profile.attentionLabel).not.toMatch(/impulsyw|fragmentac|skupien/i);
 });
 
 test('evaluateCognitiveProfile — tier escalation po progu', () => {
   expect(evaluateCognitiveProfile({ total_minutes: 300, unlocks: 25 }).attentionTier).toBe('focused');
   expect(evaluateCognitiveProfile({ total_minutes: 300, unlocks: 80 }).attentionTier).toBe('elevated');
   expect(evaluateCognitiveProfile({ total_minutes: 300, unlocks: 120 }).attentionTier).toBe('fragmented');
+  expect(evaluateCognitiveProfile({ total_minutes: 300, unlocks: 120 }).attentionLabel).toBe('Ponad 100 odblokowań');
   expect(evaluateCognitiveProfile({ total_minutes: 300, unlocks: null }).attentionTier).toBe('unknown');
 });
 

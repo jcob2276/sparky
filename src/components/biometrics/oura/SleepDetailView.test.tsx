@@ -25,7 +25,49 @@ const referenceNight: OuraHealthHubData = {
   } as OuraHealthHubData['enhanced'],
 };
 
-describe('SleepDetailView', () => {
+describe('SleepDetailView - totals and stages', () => {
+  it('keeps missing sleep totals and stages distinct from measured zero', () => {
+    render(<SleepDetailView data={{ date: '2026-07-28', strainRow: null, oura: null, enhanced: null }} />);
+
+    expect(screen.queryByText('0 h 0 min')).not.toBeInTheDocument();
+    expect(screen.getByText('REM Brak danych')).toBeInTheDocument();
+    expect(screen.getByText('Płytki Brak danych')).toBeInTheDocument();
+    expect(screen.getByText('Głęboki Brak danych')).toBeInTheDocument();
+    expect(screen.getByText('Stan czuwania Brak danych')).toBeInTheDocument();
+  });
+
+  it('does not infer unmeasured light sleep or awake time from other totals', () => {
+    render(<SleepDetailView data={{
+      ...referenceNight,
+      enhanced: { ...referenceNight.enhanced, light_sleep_hours: null, awake_time_minutes: null,
+        rem_sleep_hours: 0 } as OuraHealthHubData['enhanced'],
+    }} />);
+
+    expect(screen.getByText('7 h 42 min')).toBeInTheDocument();
+    expect(screen.getByText('REM 0 min 0%')).toBeInTheDocument();
+    expect(screen.getByText('Płytki Brak danych')).toBeInTheDocument();
+    expect(screen.getByText('Stan czuwania Brak danych')).toBeInTheDocument();
+  });
+
+  it('discards measurements belonging to another night', () => {
+    render(<SleepDetailView data={{
+      ...referenceNight,
+      date: '2026-07-29',
+      nightDetails: {
+        date: '2026-07-28', phases: [], hrv: [],
+        heartRate: [{ ts: '2026-07-28T01:00:00+02:00', bpm: 51 },
+          { ts: '2026-07-28T02:00:00+02:00', bpm: 49 }],
+        phaseStatus: 'unavailable', heartRateStatus: 'available', hrvStatus: 'unavailable',
+      },
+    }} />);
+
+    expect(screen.queryByText('7 h 42 min')).not.toBeInTheDocument();
+    expect(screen.queryByText('23:31')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Zmierzony ruch: 3 zdarzenia')).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Przebieg tętna podczas snu' })).not.toBeInTheDocument();
+    expect(screen.getByText('REM Brak danych')).toBeInTheDocument();
+  });
+
   it('renders the source-faithful reference-night totals', () => {
     render(<SleepDetailView data={referenceNight} />);
 
@@ -40,7 +82,9 @@ describe('SleepDetailView', () => {
     expect(screen.getByLabelText('Zmierzony ruch: 3 zdarzenia')).toBeInTheDocument();
     expect(screen.getByText('Kontekst przed snem')).toBeInTheDocument();
   });
+});
 
+describe('SleepDetailView - signals and fallbacks', () => {
   it('surfaces a material mismatch between the phase timeline and night interval', () => {
     render(
       <SleepDetailView
@@ -112,5 +156,55 @@ describe('SleepDetailView', () => {
     expect(screen.getByRole('img', { name: 'Przebieg HRV podczas snu' })).toBeInTheDocument();
     expect(screen.getByText('Najniższe 47 bpm')).toBeInTheDocument();
     expect(screen.getByText('Maks. 83 ms')).toBeInTheDocument();
+  });
+
+  it('filters out 0 bpm sensor dropouts when calculating lowest heart rate and average', () => {
+    render(
+      <SleepDetailView
+        data={{
+          date: '2026-07-28',
+          strainRow: null,
+          oura: null,
+          enhanced: null,
+          nightDetails: {
+            date: '2026-07-28',
+            phases: [],
+            heartRate: [
+              { ts: '2026-07-28T01:00:00+02:00', bpm: 0 }, // sensor dropout
+              { ts: '2026-07-28T02:00:00+02:00', bpm: 52 },
+              { ts: '2026-07-28T03:00:00+02:00', bpm: 48 },
+            ],
+            hrv: [{ ts: '2026-07-28T02:00:00+02:00', hrv: 45 }],
+            phaseStatus: 'unavailable',
+            heartRateStatus: 'available',
+            hrvStatus: 'available',
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText('Najniższe 48 bpm')).toBeInTheDocument();
+    expect(screen.queryByText('Najniższe 0 bpm')).not.toBeInTheDocument();
+  });
+
+  it('uses oura bedtime interval for duration when enhanced is unavailable', () => {
+    render(
+      <SleepDetailView
+        data={{
+          date: '2026-07-28',
+          strainRow: null,
+          oura: {
+            date: '2026-07-28',
+            total_sleep_hours: 7.5,
+            bedtime_timestamp: '2026-07-27T23:00:00+02:00',
+            bedtime_end_timestamp: '2026-07-28T07:30:00+02:00',
+          } as OuraHealthHubData['oura'],
+          enhanced: null,
+        }}
+      />,
+    );
+
+    expect(screen.getByText('7 h 30 min')).toBeInTheDocument();
+    expect(screen.getByText('Całkowity czas trwania 8 h 30 min')).toBeInTheDocument();
   });
 });
