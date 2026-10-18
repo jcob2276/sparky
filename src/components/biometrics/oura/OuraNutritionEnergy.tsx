@@ -2,7 +2,7 @@ import { Coffee, Moon, Target, Utensils } from 'lucide-react';
 import type { NutritionDayContext } from '../../../lib/health/nutritionContext';
 import type { OuraHealthHubData } from './types';
 import MacroProgressBar from '../../core/nutrition/MacroProgressBar';
-import { warsawTimeOfDay } from '../../../lib/date';
+import { shiftDateStr, warsawTimeOfDay } from '../../../lib/date';
 
 export interface OuraNutritionEnergyProps {
   nutrition: NutritionDayContext;
@@ -116,6 +116,8 @@ function MacroSplitSection({
 }
 
 interface MealTimingSectionProps {
+  contextDate: string | null;
+  sleepDate: string;
   lastMealAt: string | null;
   mealHoursBeforeBedtime: number | null;
   bedtimeStart: string | null;
@@ -125,6 +127,8 @@ interface MealTimingSectionProps {
 }
 
 function MealTimingSection({
+  contextDate,
+  sleepDate,
   lastMealAt,
   mealHoursBeforeBedtime,
   bedtimeStart,
@@ -139,18 +143,23 @@ function MealTimingSection({
         Timing posiłków i kofeiny a sen
       </h3>
 
+      <p className="text-xs text-text-secondary">
+        {contextDate ? `Zapisy z ${contextDate} → noc zakończona ${sleepDate}. Godziny dotyczą wpisów, nie potwierdzonego czasu spożycia.`
+          : `Noc zakończona ${sleepDate}. Brak kontekstu wpisów powiązanego z tą nocą.`}
+      </p>
+
       <div className="grid gap-2 sm:grid-cols-2 text-xs">
         <div className="rounded-xl bg-surface-2 p-3 space-y-1">
           <div className="flex items-center gap-1.5 text-text-secondary">
             <Utensils size={14} className="text-success" />
-            <span className="font-medium">Ostatni posiłek</span>
+            <span className="font-medium">Ostatni wpis jedzenia przed snem</span>
           </div>
           <p className="text-sm font-semibold text-text-primary">
-            {lastMealAt ? `Godzina ${lastMealAt}` : 'Brak zarejestrowanych posiłków z godziną'}
+            {lastMealAt ? `Ostatni wpis: ${lastMealAt}` : 'Brak wpisów przed snem z ustaloną godziną'}
           </p>
           {mealHoursBeforeBedtime != null ? (
-            <p className={mealHoursBeforeBedtime < 2 ? 'text-warning font-medium' : 'text-success'}>
-              {mealHoursBeforeBedtime}h przed snem {mealHoursBeforeBedtime < 2 ? '(posiłek blisko snu)' : '(optymalny bufor ≥2h)'}
+            <p className="text-text-secondary">
+              Wpis {mealHoursBeforeBedtime}h przed początkiem snu
             </p>
           ) : bedtimeStart ? (
             <p className="text-text-muted">Początek snu: {warsawTimeOfDay(bedtimeStart)}</p>
@@ -165,11 +174,12 @@ function MealTimingSection({
             <span className="font-medium">Kofeina & Half-life</span>
           </div>
           <p className="text-sm font-semibold text-text-primary">
-            {lastCaffeineAt ? `Ostatnia: ${lastCaffeineAt} (~${caffeineMg ?? 0} mg)` : 'Brak wpisów kofeiny'}
+            {lastCaffeineAt ? `Ostatni wpis kofeiny: ${lastCaffeineAt}` : 'Brak wpisów kofeiny przed początkiem snu z ustaloną godziną'}
           </p>
-          {remainingCaffeineMg != null && remainingCaffeineMg > 0 ? (
+          {caffeineMg != null && <p>Łącznie we wpisach: ~{caffeineMg} mg (szacunek)</p>}
+          {remainingCaffeineMg != null ? (
             <p className="text-warning font-medium">
-              ~{remainingCaffeineMg} mg aktywnej przy zasypianiu (model T½ ~5.5h)
+              ~{remainingCaffeineMg} mg przy początku snu, jeśli spożycie nastąpiło w chwili wpisu (model T½ ~5.5h)
             </p>
           ) : (
             <p className="text-text-muted">Model rozpadu T½ ~5.5h</p>
@@ -200,47 +210,15 @@ export function OuraNutritionEnergy({ nutrition, data, date }: OuraNutritionEner
   const carbsPct = totalMacroKcal > 0 ? Math.round((carbsKcal / totalMacroKcal) * 100) : 0;
   const fatPct = totalMacroKcal > 0 ? Math.round((fatKcal / totalMacroKcal) * 100) : 0;
 
-  // Context for the selected day
-  const contextForDay = data.context?.date === date ? data.context
-    : data.todayContext?.date === date ? data.todayContext
-    : data.nightContext?.date === date ? data.nightContext
-    : null;
-
   const bedtimeStart = data.enhanced?.date === date ? data.enhanced.bedtime_start
     : data.oura?.date === date ? data.oura.bedtime_timestamp
     : null;
-
-  const lastMealAt = nutrition.lastMealAt ?? contextForDay?.meals?.lastAt ?? null;
-  const lastCaffeineAt = nutrition.lastCaffeineAt ?? contextForDay?.caffeine?.lastAt ?? null;
-  const caffeineMg = nutrition.caffeineMg ?? contextForDay?.caffeine?.amountMg ?? null;
-
-  // Timing relative to sleep window
-  let mealHoursBeforeBedtime = contextForDay?.meals?.hoursBeforeBedtime ?? null;
-  if (mealHoursBeforeBedtime == null && lastMealAt && bedtimeStart) {
-    const bedMs = new Date(bedtimeStart).getTime();
-    const bedDateStr = bedtimeStart.slice(0, 10);
-    const mealIso = `${bedDateStr}T${lastMealAt}:00`;
-    const mealMs = new Date(mealIso).getTime();
-    if (!Number.isNaN(bedMs) && !Number.isNaN(mealMs)) {
-      const diff = (bedMs - mealMs) / 3600000;
-      if (diff >= 0 && diff <= 18) mealHoursBeforeBedtime = Math.round(diff * 10) / 10;
-    }
-  }
-
-  // Caffeine decay remaining at bedtime
-  let remainingCaffeineMg = contextForDay?.caffeine?.remainingMgAtBedtime ?? null;
-  if (remainingCaffeineMg == null && caffeineMg != null && caffeineMg > 0 && bedtimeStart && lastCaffeineAt) {
-    const bedMs = new Date(bedtimeStart).getTime();
-    const bedDateStr = bedtimeStart.slice(0, 10);
-    const caffIso = `${bedDateStr}T${lastCaffeineAt}:00`;
-    const caffMs = new Date(caffIso).getTime();
-    if (!Number.isNaN(bedMs) && !Number.isNaN(caffMs)) {
-      const diff = (bedMs - caffMs) / 3600000;
-      if (diff >= 0 && diff <= 24) {
-        remainingCaffeineMg = Math.round(caffeineMg * Math.pow(0.5, diff / 5.5));
-      }
-    }
-  }
+  // A completed night belongs to its wake date; today's food cannot explain it.
+  const nightContext = data.nightContext;
+  const contextForNight = bedtimeStart && nightContext?.bedtimeStart
+    && nightContext.date === shiftDateStr(date, -1)
+    && Date.parse(nightContext.bedtimeStart) === Date.parse(bedtimeStart)
+    ? nightContext : null;
 
   return (
     <div className="space-y-4">
@@ -260,12 +238,14 @@ export function OuraNutritionEnergy({ nutrition, data, date }: OuraNutritionEner
         fatPct={fatPct}
       />
       <MealTimingSection
-        lastMealAt={lastMealAt}
-        mealHoursBeforeBedtime={mealHoursBeforeBedtime}
+        contextDate={contextForNight?.date ?? null}
+        sleepDate={date}
+        lastMealAt={contextForNight?.meals.lastAt ?? null}
+        mealHoursBeforeBedtime={contextForNight?.meals.hoursBeforeBedtime ?? null}
         bedtimeStart={bedtimeStart}
-        lastCaffeineAt={lastCaffeineAt}
-        caffeineMg={caffeineMg}
-        remainingCaffeineMg={remainingCaffeineMg}
+        lastCaffeineAt={contextForNight?.caffeine.lastAt ?? null}
+        caffeineMg={contextForNight?.caffeine.amountMg ?? null}
+        remainingCaffeineMg={contextForNight?.caffeine.remainingMgAtBedtime ?? null}
       />
     </div>
   );

@@ -114,4 +114,31 @@ describe('OuraContextSection', () => {
 
     expect(screen.getByText('Brak pomiaru okna nocnego (23:00–04:00)')).toBeInTheDocument();
   });
+
+  it('distinguishes failed source reads from empty data and keeps partial values', () => {
+    const context = {
+      ...buildOuraContextInsights({
+        sleepDate: '2026-09-12',
+        bedtimeStart: null,
+        phoneUsage: { total_minutes: 60, late_night_minutes: null },
+        workouts: [],
+        foodEntries: [],
+      }),
+      sourceErrors: [
+        { source: 'phone_usage_daily', message: 'offline' },
+        { source: 'workout_sessions', message: 'offline' },
+        { source: 'daily_food_entries', message: 'offline' },
+      ],
+    };
+
+    render(<OuraContextSection context={context} />);
+
+    expect(screen.getByText('1h')).toBeInTheDocument();
+    expect(screen.getAllByText('Dane chwilowo niedostępne')).toHaveLength(3);
+    expect(screen.getAllByText('Nie udało się odczytać części danych.')).toHaveLength(4);
+    expect(screen.queryByText('Brak pomiaru czasu przed ekranem')).not.toBeInTheDocument();
+    expect(screen.queryByText('Nie zapisano treningu')).not.toBeInTheDocument();
+    expect(screen.queryByText('Nie zapisano kofeiny')).not.toBeInTheDocument();
+    expect(screen.queryByText(/phone_usage_daily|workout_sessions|daily_food_entries/)).not.toBeInTheDocument();
+  });
 });

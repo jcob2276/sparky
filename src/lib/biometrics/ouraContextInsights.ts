@@ -158,7 +158,9 @@ function resolveCaffeineInsights(
     }
   }
 
-  if (caffeineEntries.length > 0 && bedtimeMs != null) {
+  const allDoseTimesKnown = caffeineEntries.every((entry) =>
+    entry.logged_at != null && Number.isFinite(Date.parse(entry.logged_at)));
+  if (caffeineEntries.length > 0 && bedtimeMs != null && allDoseTimesKnown) {
     let decayedSum = 0;
     for (const entry of caffeineEntries) {
       if (!entry.logged_at) continue;
@@ -247,20 +249,22 @@ function resolveTrainingInsights(workouts: WorkoutInput[]) {
 }
 
 export function buildOuraContextInsights(input: OuraContextInput) {
+  const bedtimeDate = input.bedtimeStart ? new Date(input.bedtimeStart) : null;
+  const bedtimeMs = bedtimeDate && !Number.isNaN(bedtimeDate.getTime()) ? bedtimeDate.getTime() : null;
   const caffeineEntries = input.foodEntries
     .map((entry) => ({ ...entry, caffeineMg: estimateCaffeineMg(entry.name) }))
     .filter((entry) => entry.caffeineMg > 0)
+    .filter((entry) => bedtimeMs == null || !entry.logged_at
+      || !Number.isFinite(Date.parse(entry.logged_at)) || Date.parse(entry.logged_at) <= bedtimeMs)
     .sort((left, right) => (left.logged_at ?? '').localeCompare(right.logged_at ?? ''));
   const foodWithTimestamps = input.foodEntries
-    .filter((entry) => entry.logged_at)
+    .filter((entry) => entry.logged_at && Number.isFinite(Date.parse(entry.logged_at))
+      && (bedtimeMs == null || Date.parse(entry.logged_at) <= bedtimeMs))
     .sort((left, right) => (left.logged_at ?? '').localeCompare(right.logged_at ?? ''));
   const measuredQuality = input.foodEntries
     .flatMap((entry) => entry.food_quality_score == null ? [] : [entry.food_quality_score]);
   const lastCaffeine = caffeineEntries.at(-1);
   const lastMeal = foodWithTimestamps.at(-1);
-
-  const bedtimeDate = input.bedtimeStart ? new Date(input.bedtimeStart) : null;
-  const bedtimeMs = bedtimeDate && !Number.isNaN(bedtimeDate.getTime()) ? bedtimeDate.getTime() : null;
 
   return {
     date: input.sleepDate,
@@ -272,4 +276,6 @@ export function buildOuraContextInsights(input: OuraContextInput) {
   };
 }
 
-export type OuraContextInsights = ReturnType<typeof buildOuraContextInsights>;
+export type OuraContextInsights = ReturnType<typeof buildOuraContextInsights> & {
+  sourceErrors?: Array<{ source: string; message: string }>;
+};
