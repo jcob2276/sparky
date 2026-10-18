@@ -136,53 +136,21 @@ export interface LateNightImpact {
   label: string;
   badge: string;
   description: string;
-  color: 'text-success' | 'text-warning' | 'text-danger';
+  color: 'text-text-secondary';
   bgColor: string;
 }
 
-export function evaluateLateNightImpact(lateNightMinutes: number | null | undefined): LateNightImpact {
-  const min = Math.max(0, Math.round(lateNightMinutes ?? 0));
-  if (min === 0) {
-    return {
-      tier: 'optimal',
-      minutes: 0,
-      label: 'Czysty bufor snu',
-      badge: 'Optymalnie',
-      description: 'Brak ekspozycji na ekran późnym wieczorem. Optymalne warunki dla naturalnego wyrzutu melatoniny.',
-      color: 'text-success',
-      bgColor: 'bg-success/10',
-    };
-  }
-  if (min <= 20) {
-    return {
-      tier: 'mild',
-      minutes: min,
-      label: 'Minimalny wpływ',
-      badge: 'Niski wpływ',
-      description: `${min} min późnym wieczorem. Krótka ekspozycja o znikomym wpływie na latencję i architekturę snu.`,
-      color: 'text-success',
-      bgColor: 'bg-success/10',
-    };
-  }
-  if (min <= 45) {
-    return {
-      tier: 'moderate',
-      minutes: min,
-      label: 'Umiarkowane światło',
-      badge: 'Umiarkowany',
-      description: `${min} min późnym wieczorem. Niebieskie światło może opóźnić fazę REM i wydłużyć czas zasypiania.`,
-      color: 'text-warning',
-      bgColor: 'bg-warning/10',
-    };
-  }
+export function evaluateLateNightImpact(lateNightMinutes: number | null | undefined): LateNightImpact | null {
+  if (lateNightMinutes == null || !Number.isFinite(lateNightMinutes) || lateNightMinutes < 0) return null;
+  const min = Math.round(lateNightMinutes);
   return {
-    tier: 'high',
+    tier: min === 0 ? 'optimal' : min <= 20 ? 'mild' : min <= 45 ? 'moderate' : 'high',
     minutes: min,
-    label: 'Wysoka ekspozycja nocna',
-    badge: 'Stłumienie melatoniny',
-    description: `${min} min późnym wieczorem. Ryzyko silnego stłumienia melatoniny, opóźnienia snu głębokiego i gorszej regeneracji Oura.`,
-    color: 'text-danger',
-    bgColor: 'bg-danger/10',
+    label: 'Użycie w oknie nocnym (23:00–04:00)',
+    badge: `${min} min`,
+    description: `${min} min w przedziałach 00:00–04:00 oraz 23:00–24:00 tego samego dnia (czas Warszawy). Licznik dotyczy wyłącznie tych godzin nocnych — nie obejmuje wcześniejszego wieczoru (np. 20:00–22:59) ani nie mierzy wpływu na sen.`,
+    color: 'text-text-secondary',
+    bgColor: 'bg-surface-3',
   };
 }
 
@@ -241,16 +209,16 @@ export function evaluateCognitiveProfile(input: {
     const windowMinutes = total > 10 ? total : 960;
     unlockIntervalMinutes = Math.max(1, Math.round(windowMinutes / unlocks));
     if (unlocks <= 30) {
-      attentionLabel = 'Wysokie skupienie · Niska impulsywność';
+      attentionLabel = 'Do 30 odblokowań';
       attentionTier = 'focused';
     } else if (unlocks <= 60) {
       attentionLabel = 'Standardowa częstotliwość sprawdzania';
       attentionTier = 'normal';
     } else if (unlocks <= 100) {
-      attentionLabel = 'Podwyższona fragmentacja uwagi';
+      attentionLabel = '61–100 odblokowań';
       attentionTier = 'elevated';
     } else {
-      attentionLabel = 'Wysoka fragmentacja uwagi · Częste odruchy impulsywne';
+      attentionLabel = 'Ponad 100 odblokowań';
       attentionTier = 'fragmented';
     }
   }

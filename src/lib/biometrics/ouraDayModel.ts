@@ -42,8 +42,9 @@ export function selectCanonicalOuraDay<S extends DatedRow, E extends DatedRow>(
 ): CanonicalOuraDay<S, E> | null {
   const summaries = rowsByDate(input.summaries);
   const enhanced = rowsByDate(input.enhanced);
-  const summaryDates = [...summaries.keys()].sort((a, b) => b.localeCompare(a));
-  const availableDates = summaryDates.length ? summaryDates : [...enhanced.keys()].sort((a, b) => b.localeCompare(a));
+  const availableDates = Array.from(
+    new Set([...summaries.keys(), ...enhanced.keys()]),
+  ).sort((a, b) => b.localeCompare(a));
   const selectedDate = availableDates.includes(input.preferredDate)
     ? input.preferredDate
     : availableDates[0];

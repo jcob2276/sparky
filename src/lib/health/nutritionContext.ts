@@ -1,12 +1,18 @@
 import { supabase, invokeEdge } from '../supabase';
-import { getTodayWarsaw, formatWarsawDate, warsawDayBoundsISO } from '../date';
+import { getTodayWarsaw, formatWarsawDate, warsawDayBoundsISO, warsawTimeOfDay } from '../date';
 import type { TodayNutritionSnapshot } from './foodLogging';
 import { TIMEOUTS } from '../constants';
+import { estimateCaffeineMg } from '@vanguard/domain';
 
 type NutritionTrajectory = 'on_track' | 'behind' | 'ahead';
 
 export interface NutritionDayContext extends TodayNutritionSnapshot {
   date: string;
+  carbs: number;
+  fat: number;
+  lastMealAt?: string | null;
+  lastCaffeineAt?: string | null;
+  caffeineMg?: number | null;
   addBackKcal: number;
   deficitKcal: number;
   inTaper: boolean;
@@ -143,10 +149,10 @@ export async function fetchNutritionDayContext(
 
   const { fromISO: dayStart, toISO: dayEnd } = warsawDayBoundsISO(date);
 
-  const [dayRow, targetRow, profileRow, stravaRes, sessionsRes, review] = await Promise.all([
+  const [dayRow, targetRow, profileRow, stravaRes, sessionsRes, review, foodRes] = await Promise.all([
     supabase
       .from('daily_nutrition')
-      .select('calories, protein, avg_food_quality, food_quality_analysis')
+      .select('calories, protein, carbs, fat, avg_food_quality, food_quality_analysis')
       .eq('user_id', userId)
       .eq('date', date)
       .maybeSingle(),
@@ -176,9 +182,26 @@ export async function fetchNutritionDayContext(
       .eq('user_id', userId)
       .eq('date', date),
     supabase.from('nutrition_day_reviews').select('completeness').eq('user_id',userId).eq('date',date).maybeSingle(),
+    supabase
+      .from('daily_food_entries')
+      .select('name, calories, logged_at')
+      .eq('user_id', userId)
+      .eq('date', date)
+      .order('logged_at'),
   ]);
-  for (const result of [dayRow,targetRow,profileRow,stravaRes,sessionsRes,review]) if (result.error) throw result.error;
+  for (const result of [dayRow,targetRow,profileRow,stravaRes,sessionsRes,review,foodRes]) if (result?.error) throw result.error;
   const target = targetRow.data;
+
+  const foodEntries = (foodRes?.data ?? []) as Array<{ name: string; calories: number | null; logged_at: string | null }>;
+  const foodWithTimes = foodEntries.filter((e) => e.logged_at);
+  const lastMeal = foodWithTimes.at(-1);
+  const lastMealAt = lastMeal?.logged_at ? warsawTimeOfDay(lastMeal.logged_at) : null;
+  const caffeineEntries = foodEntries
+    .map((e) => ({ ...e, mg: estimateCaffeineMg(e.name) }))
+    .filter((e) => e.mg > 0);
+  const lastCaff = caffeineEntries.at(-1);
+  const lastCaffeineAt = lastCaff?.logged_at ? warsawTimeOfDay(lastCaff.logged_at) : null;
+  const caffeineMg = caffeineEntries.reduce((sum, e) => sum + e.mg, 0);
 
   const inputs = (target?.inputs ?? {}) as SignalsInputs;
   const verdictParsed = parseVerdict(target?.verdict);
@@ -215,6 +238,11 @@ export async function fetchNutritionDayContext(
     date,
     calories: dayRow.data?.calories ?? 0,
     protein: dayRow.data?.protein ?? 0,
+    carbs: dayRow.data?.carbs ?? 0,
+    fat: dayRow.data?.fat ?? 0,
+    lastMealAt,
+    lastCaffeineAt,
+    caffeineMg: caffeineEntries.length > 0 ? caffeineMg : null,
     targetKcal: target?.target_kcal ?? null,
     targetProtein: target?.protein_floor_g ?? null,
     avgFoodQuality: dayRow.data?.avg_food_quality ?? null,

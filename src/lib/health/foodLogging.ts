@@ -52,6 +52,8 @@ export interface ParsedFoodItem {
 export interface TodayNutritionSnapshot {
   calories: number
   protein: number
+  carbs?: number | null
+  fat?: number | null
   targetKcal: number | null
   targetProtein: number | null
   avgFoodQuality: number | null

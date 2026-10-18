@@ -38,8 +38,8 @@ describe('OuraContextSection', () => {
 
     render(<OuraContextSection context={context} />);
 
-    expect(screen.getByText('Ostatnia o 14:15')).toBeInTheDocument();
-    expect(screen.getByText('18 min późnym wieczorem')).toBeInTheDocument();
+    expect(screen.getByText('Szacunek z wpisów · czas wpisu 14:15')).toBeInTheDocument();
+    expect(screen.getByText(/18 min w oknie nocnym/)).toBeInTheDocument();
     expect(screen.queryByText(/daily_food_entries|workout_sessions|phone_usage_daily/)).not.toBeInTheDocument();
   });
 
@@ -69,13 +69,49 @@ describe('OuraContextSection', () => {
     render(<OuraContextSection context={context} />);
 
     expect(screen.getByText('3h 25m')).toBeInTheDocument();
-    expect(screen.getByText('15 min późnym wieczorem')).toBeInTheDocument();
+    expect(screen.getByText(/15 min w oknie nocnym/)).toBeInTheDocument();
 
     const screenButton = screen.getByRole('button', { name: /Ekran/ });
     fireEvent.click(screenButton);
 
-    expect(screen.getByText('Czas przed ekranem & Rytm biologiczny')).toBeInTheDocument();
-    expect(screen.getByText('Ekspozycja wieczorna & Higiena snu')).toBeInTheDocument();
+    expect(screen.getByText('Czas przed ekranem (telefon)')).toBeInTheDocument();
+    expect(screen.getByText(/Co obejmuje licznik okna nocnego/)).toBeInTheDocument();
     expect(screen.getByText('ChatGPT')).toBeInTheDocument();
+  });
+
+  it('displays explicit 0 min in night window when late_night_minutes is 0', () => {
+    const context = buildOuraContextInsights({
+      sleepDate: '2026-09-12',
+      bedtimeStart: null,
+      phoneUsage: {
+        total_minutes: 120,
+        late_night_minutes: 0,
+        unlocks: 15,
+      },
+      workouts: [],
+      foodEntries: [],
+    });
+
+    render(<OuraContextSection context={context} />);
+
+    expect(screen.getByText('0 min w oknie nocnym (23:00–04:00 · bez 20:00–22:59)')).toBeInTheDocument();
+    expect(screen.getByText(/15 odblokowań/)).toBeInTheDocument();
+  });
+
+  it('displays clean missing-data state when late_night_minutes is null', () => {
+    const context = buildOuraContextInsights({
+      sleepDate: '2026-09-12',
+      bedtimeStart: null,
+      phoneUsage: {
+        total_minutes: 60,
+        late_night_minutes: null,
+      },
+      workouts: [],
+      foodEntries: [],
+    });
+
+    render(<OuraContextSection context={context} />);
+
+    expect(screen.getByText('Brak pomiaru okna nocnego (23:00–04:00)')).toBeInTheDocument();
   });
 });

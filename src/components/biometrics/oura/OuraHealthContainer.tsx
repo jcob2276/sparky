@@ -20,7 +20,7 @@ export function OuraHealthContainer() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const userId = useUserId();
-  const [activeSection, setActiveSection] = useState<OuraSection>('sleep');
+  const [activeSection, setActiveSection] = useState<OuraSection>('overview');
   const [sleepOpen, setSleepOpen] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -50,14 +50,23 @@ export function OuraHealthContainer() {
   const handleSync = async () => {
     if (isSyncing || !userId) return;
     setIsSyncing(true);
+    let syncSucceeded = false;
     try {
       await syncOura(userId);
-      await computeDailyStrain(userId, 2);
-      await queryClient.invalidateQueries({ queryKey: biometricsKeys.all });
+      syncSucceeded = true;
+      try {
+        await computeDailyStrain(userId, 2);
+      } finally {
+        await queryClient.invalidateQueries({ queryKey: biometricsKeys.all });
+      }
       notify('Pomiary Oura zsynchronizowane', 'success');
     } catch (err) {
       console.error('[OuraHealthContainer] sync failed:', err);
-      notify('Nie udało się zsynchronizować Oura', 'error');
+      if (syncSucceeded) {
+        notify('Pomiary Oura pobrane; nie udało się przeliczyć obciążenia', 'error');
+      } else {
+        notify('Nie udało się zsynchronizować Oura', 'error');
+      }
     } finally {
       setIsSyncing(false);
     }
@@ -70,6 +79,7 @@ export function OuraHealthContainer() {
       ...(dailyQuery.data?.sourceErrors ?? []),
       ...(historyQuery.data?.sourceErrors ?? []).map((error) => ({ ...error, source: `Historia · ${error.source}` })),
       ...(nightQuery.data?.sourceErrors ?? []),
+      ...(correlationsQuery.data?.sourceErrors ?? []),
       ...(todayContextQuery.data?.sourceErrors ?? []).map((error) => ({ ...error, source: `${todayStr} · ${error.source}` })),
       ...(nightContextQuery.data?.sourceErrors ?? []).map((error) => ({ ...error, source: `Przed nocą · ${error.source}` })),
       ...[
@@ -79,6 +89,8 @@ export function OuraHealthContainer() {
         { source: 'Kontekst dnia', error: todayContextQuery.error },
         { source: 'Kontekst nocy', error: nightContextQuery.error },
         { source: 'Korelacje', error: correlationsQuery.error },
+        { source: 'Żywienie', error: nutritionQuery.error },
+        { source: 'Cel żywienia', error: nutritionQuery.data?.targetError ? { message: nutritionQuery.data.targetError } : null },
       ].flatMap(({ source, error }) => error ? [{ source, message: error.message }] : []),
     ],
     userId,
@@ -91,15 +103,19 @@ export function OuraHealthContainer() {
     ouraHistory: historyQuery.data?.ouraHistory ?? [],
     enhancedHistory: historyQuery.data?.enhancedHistory ?? [],
     birthDateStr: dailyQuery.data?.birthDateStr ?? null,
+    biologicalSex: dailyQuery.data?.biologicalSex ?? null,
     garminVo2Max: dailyQuery.data?.garminVo2Max ?? null,
     externalVo2Source: dailyQuery.data?.externalVo2Source ?? null,
     nightDetails: nightQuery.data ?? null,
     todayContext: todayContextQuery.data ?? null,
     nightContext: nightContextQuery.data ?? null,
     correlations: correlationsQuery.data ?? null,
+    correlationsError: correlationsQuery.error?.message ?? null,
+    correlationsLoading: correlationsQuery.isLoading,
     stravaActivities: dailyQuery.data?.stravaRows ?? [],
     nutrition: nutritionQuery.data ?? null,
     nutritionError: nutritionQuery.error?.message ?? null,
+    nutritionLoading: nutritionQuery.isLoading,
   };
 
   return (

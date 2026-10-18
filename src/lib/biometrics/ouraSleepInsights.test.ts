@@ -94,4 +94,39 @@ describe('buildOuraSleepInsights', () => {
     expect(result.circadianConfidence).toBe('solid');
     expect(result.circadianVariabilityMinutes).toBe(0);
   });
+
+  it('correctly calculates circadian offset across the midnight boundary', () => {
+    // Baseline midpoint: 23:00 (bedtime 19:00 - 03:00)
+    const history = Array.from({ length: 7 }, (_, index) => day(
+      `2026-07-${String(index + 10).padStart(2, '0')}`,
+      8,
+      '2026-07-09T19:00:00+02:00',
+      '2026-07-10T03:00:00+02:00',
+    ));
+    // Current midpoint: 01:00 (bedtime 21:00 - 05:00) -> 2 hours later (+120 min)
+    const current = day(
+      '2026-07-17',
+      8,
+      '2026-07-16T21:00:00+02:00',
+      '2026-07-17T05:00:00+02:00',
+    );
+
+    const result = buildOuraSleepInsights(current, history);
+
+    expect(result.circadianOffsetMinutes).toBe(120);
+    expect(result.circadianStatus).toBe('Przesunięty');
+  });
+
+  it('deduplicates duplicate history entries on the same date', () => {
+    const history = [
+      day('2026-07-20', 8, '2026-07-19T23:00:00+02:00', '2026-07-20T07:00:00+02:00'),
+      day('2026-07-20', 8, '2026-07-19T23:00:00+02:00', '2026-07-20T07:00:00+02:00'), // duplicate
+      day('2026-07-21', 8, '2026-07-20T23:00:00+02:00', '2026-07-21T07:00:00+02:00'),
+    ];
+    const current = day('2026-07-22', 8, '2026-07-21T23:00:00+02:00', '2026-07-22T07:00:00+02:00');
+
+    const result = buildOuraSleepInsights(current, [...history, current]);
+
+    expect(result.sleepDebtDays).toBe(3);
+  });
 });

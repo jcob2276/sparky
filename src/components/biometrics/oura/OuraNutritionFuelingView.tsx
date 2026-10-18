@@ -7,16 +7,21 @@ import { HydrationCard } from '../health/HydrationCard';
 import { NetEnergyCard } from '../health/NetEnergyCard';
 import { calculateDynamicHydration, type NetEnergyGoal } from '@vanguard/domain';
 
+import { OuraNutritionEnergy } from './OuraNutritionEnergy';
+
 export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
   const [netEnergyGoal, setNetEnergyGoal] = useState<NetEnergyGoal>('maintenance');
   const nutrition = data.nutrition;
   const userId = data.userId ?? data.strainRow?.user_id ?? data.oura?.user_id ?? '';
   const date = data.date || nutrition?.date || getTodayWarsaw();
 
-  if (data.nutritionError) return <DataStateNotice title="Nie udało się odczytać żywienia" detail={data.nutritionError} />;
+  if (data.nutritionLoading && !nutrition) return <p role="status" className="text-sm text-text-muted">Wczytuję żywienie…</p>;
+  const readError = data.nutritionError ? <DataStateNotice tone="warning" title={nutrition ? 'Nie udało się odświeżyć żywienia — pokazuję ostatni odczyt' : 'Nie udało się odczytać żywienia'} detail={data.nutritionError} /> : null;
+  if (readError && !nutrition) return readError;
   if (!nutrition || nutrition.foodDataState === 'missing') {
     return (
       <div className="space-y-4 pb-8">
+        {readError}
         <DataStateNotice title="Brak dziennika jedzenia" detail={`Brak wpisów dla ${data.date ?? 'wybranego dnia'}. Dodaj faktycznie zjedzony posiłek w zakładce Jedzenie.`} />
         {nutrition?.targetError && <DataStateNotice title="Cel żywienia wymaga uzupełnienia" detail={nutrition.targetError}/>}
         {userId && (
@@ -31,7 +36,6 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
     );
   }
 
-  const proteinRemaining = nutrition.targetProtein == null ? null : Math.max(0, nutrition.targetProtein - nutrition.protein);
   const enhanced = data.enhanced?.date === date ? data.enhanced : null;
   const oura = data.oura?.date === date ? data.oura : null;
   const activeKcal = enhanced?.active_calories ?? oura?.active_calories ?? null;
@@ -46,17 +50,9 @@ export function OuraNutritionFuelingView({data}:{data:OuraHealthHubData}) {
   });
 
   return <div className="space-y-4 pb-8">
+    {readError}
     {nutrition.targetError && <DataStateNotice title="Nie udało się odświeżyć celu żywienia" detail={nutrition.targetError}/>}
-    <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-3">
-      <h2 className="font-bold">Paliwo · {nutrition.date}</h2>
-      <p className="text-sm">Zapisano {nutrition.calories} kcal · {nutrition.protein} g białka</p>
-      <p className="text-sm">Cel energii: {nutrition.targetKcal == null ? 'brak aktualnego celu' : `${nutrition.targetKcal} kcal (szacunek)`}</p>
-      <p className="text-sm">Cel białka: {nutrition.targetProtein == null ? 'potrzebny aktualny pomiar masy' : `${nutrition.targetProtein} g`}</p>
-      {proteinRemaining != null && <p className="text-xs text-text-secondary">Do ustalonego celu białka pozostało {Math.round(proteinRemaining)} g. Ten wskaźnik nie mierzy regeneracji mięśni.</p>}
-      <p className="text-xs text-text-secondary">{nutrition.foodComplete ? 'Dzień potwierdzony jako kompletny.' : 'Dziennik nie jest zamknięty. Bieżące sumy nie oznaczają ostatecznego bilansu dnia.'}</p>
-      {nutrition.todayFocus && <p className="text-sm">{nutrition.todayFocus}</p>}
-      <p className="text-xs text-text-secondary">{nutrition.trainingLabel}</p>
-    </section>
+    <OuraNutritionEnergy nutrition={nutrition} data={data} date={date} />
 
     {/* Dynamiczne nawodnienie i kompensacja potu */}
     <HydrationCard initialData={hydrationResult} date={date} userId={userId} />

@@ -36,10 +36,10 @@ const data: OuraHealthHubData = {
 
 describe('OuraHealthView', () => {
   it('shows a failed source while preserving available measurements', () => {
-    renderWithClient(<OuraHealthView activeSection="sleep" data={{ ...data, sourceErrors: [{ source: 'oura_enhanced', message: 'offline' }] }} onOpenSleep={vi.fn()} onSectionChange={vi.fn()} />);
+    renderWithClient(<OuraHealthView activeSection="overview" data={{ ...data, sourceErrors: [{ source: 'oura_enhanced', message: 'offline' }] }} onOpenSleep={vi.fn()} onSectionChange={vi.fn()} />);
     expect(screen.getByText('Część danych zdrowia jest niedostępna')).toBeInTheDocument();
     expect(screen.getByText(/oura_enhanced: offline/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Regeneracja: 88%' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Regeneracja/ })).toHaveTextContent('88');
   });
 
   it('keeps source failure visible inside the detailed sleep view', () => {
@@ -49,7 +49,7 @@ describe('OuraHealthView', () => {
   it('isolates the Oura-first dark theme and app-width content', () => {
     const { container } = renderWithClient(
       <OuraHealthView
-        activeSection="sleep"
+        activeSection="overview"
         data={data}
         onOpenSleep={vi.fn()}
         onSectionChange={vi.fn()}
@@ -60,21 +60,24 @@ describe('OuraHealthView', () => {
     expect(screen.getByTestId('oura-content')).toHaveClass('max-w-3xl');
   });
 
-  it('shows the four primary health sections', () => {
+  it('starts with direction and keeps details without duplicate Garmin history', () => {
     renderWithClient(
       <OuraHealthView
-        activeSection="sleep"
-        data={data}
+        activeSection="overview"
+        data={{ ...data, stravaActivities: [{ name: 'Unique run history entry', start_date: '2026-07-28T08:00:00Z' }] }}
         onOpenSleep={vi.fn()}
         onSectionChange={vi.fn()}
       />,
     );
 
     expect(screen.getByRole('button', { name: 'Sen' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Garmin' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Paliwo' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Witalność' })).toBeInTheDocument();
-    expect(screen.getByText('Gotowość')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Przegląd' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Jedzenie' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Parametry' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Twój kierunek' })).toBeInTheDocument();
+    expect(screen.getByText('Zbieramy dane do porównania')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Garmin' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Unique run history entry')).not.toBeInTheDocument();
   });
 
   it('requests the selected section', () => {
@@ -88,8 +91,15 @@ describe('OuraHealthView', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Witalność' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Parametry' }));
     expect(onSectionChange).toHaveBeenCalledWith('vitals');
+  });
+
+  it('opens sleep details from the overview reading', () => {
+    const onSectionChange = vi.fn();
+    renderWithClient(<OuraHealthView activeSection="overview" data={data} onOpenSleep={vi.fn()} onSectionChange={onSectionChange} />);
+    fireEvent.click(screen.getByRole('button', { name: /Wynik snu/ }));
+    expect(onSectionChange).toHaveBeenCalledWith('sleep');
   });
 
   it('shows practical sleep and heart metrics in Parametry', () => {

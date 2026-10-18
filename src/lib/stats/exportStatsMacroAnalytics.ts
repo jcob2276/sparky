@@ -122,7 +122,7 @@ export function renderMacroAnalytics({
   md += `## 🔄 3. ANATOMIA PĘTLI SABOTAŻU & RECOVERY (LENIE)\n\n`;
   md += `- **Liczba incydentów (wpadki):** ${relapses.length} w ostatnich 7 dniach\n`;
   md += `- **Główne bodźce wyzwalające:** ${topStimuli}\n`;
-  md += `- **Nocny ekran po 22:00:** Średnio **${avgLateNight} min/dzień** (hamowanie melatoniny i opóźnienie nocnego spadku tętna Oura do godzin porannych).\n\n`;
+  md += `- **Ekran w oknie nocnym (23:00–04:00):** Średnio **${avgLateNight} min/dzień** (okno nocne, nie obejmuje godzin 20:00–22:59).\n\n`;
 
   md += `## 🏃 4. GOTOWOŚĆ BIEGOWA: MARATON 4 PAŹDZIERNIKA\n\n`;
   md += `- **Kilometraż tygodnia:** ${totalCardioKm} km (${runs.length} jednostek biegowych)\n`;

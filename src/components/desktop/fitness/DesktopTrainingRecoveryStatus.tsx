@@ -274,14 +274,14 @@ function ScreenTimeCard({
       <div className="flex items-center justify-between text-2xs text-text-muted">
         <span className="font-bold uppercase tracking-wider flex items-center gap-1.5">
           <Smartphone size={13} className="text-info" />
-          Screen Time & Dopamina
+          Czas przed ekranem (telefon)
         </span>
         {lateNightMinutes > 0 ? (
           <span className={`flex items-center gap-1 font-mono text-3xs font-bold ${lateColor}`}>
-            <Moon size={11} /> {lateNightMinutes}m noc
+            <Moon size={11} /> {lateNightMinutes}m noc (23–04)
           </span>
         ) : (
-          <span className="font-mono text-3xs text-success font-bold">Czysta noc</span>
+          <span className="font-mono text-3xs text-success font-bold">0m w nocy (23–04)</span>
         )}
       </div>
       <div>
@@ -293,8 +293,8 @@ function ScreenTimeCard({
         </div>
         <p className="text-3xs text-text-muted mt-1 leading-snug">
           {lateNightMinutes > 0
-            ? `${lateNightMinutes} min ekranu po 22:00 — hamowanie melatoniny`
-            : 'Zero ekranu po 22:00 — wysoka regeneracja OUN'}
+            ? `${lateNightMinutes} min ekranu w oknie nocnym (23:00–04:00 · bez 20:00–22:59)`
+            : '0 min ekranu w oknie nocnym (23:00–04:00)'}
         </p>
       </div>
     </Card>

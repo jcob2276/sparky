@@ -26,8 +26,8 @@ export const goalSpineKeys = {
 export const biometricsKeys = {
   all: ['biometrics'] as const,
   dailyStrainOura: (userId: string) => [...biometricsKeys.all, 'dailyStrainOura', userId] as const,
-  ouraNight: (userId: string, date: string) => [...biometricsKeys.all, 'ouraNight', userId, date] as const,
-  ouraContext: (userId: string, date: string) => [...biometricsKeys.all, 'ouraContext', userId, date] as const,
+  ouraNight: (userId: string, date: string, bedtimeStart?: string | null, bedtimeEnd?: string | null) => [...biometricsKeys.all, 'ouraNight', userId, date, bedtimeStart ?? null, bedtimeEnd ?? null] as const,
+  ouraContext: (userId: string, date: string, bedtimeStart?: string | null) => [...biometricsKeys.all, 'ouraContext', userId, date, bedtimeStart ?? null] as const,
   ouraHistory30: (userId: string) => [...biometricsKeys.all, 'ouraHistory30', userId] as const,
   weeklyPulse: (userId: string, since: string) => [...biometricsKeys.all, 'weeklyPulse', userId, since] as const,
 };

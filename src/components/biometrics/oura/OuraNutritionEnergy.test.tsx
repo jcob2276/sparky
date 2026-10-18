@@ -7,7 +7,7 @@ import { OuraNutritionFuelingView } from './OuraNutritionFuelingView';
 vi.mock('../nutrition/MealPlannerContainer', () => ({ MealPlannerContainer: () => null }));
 
 const nutrition: NutritionDayContext = {
-  date: '2026-10-16', calories: 2000, protein: 120, targetKcal: null, targetProtein: null,
+  date: '2026-10-16', calories: 2000, protein: 120, carbs: 0, fat: 0, targetKcal: null, targetProtein: null,
   foodComplete: false, foodDataState: 'logged', trainingLabel: '', todayFocus: null,
   avgFoodQuality: null, foodQualityAnalysis: null, addBackKcal: 0, deficitKcal: 0, inTaper: false,
   daysToMarathon: null, goalBodyFat: null, currentBodyFatEst: null, goalWeightKg: null,

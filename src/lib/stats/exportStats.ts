@@ -137,7 +137,7 @@ export async function exportStatsMarkdown({
   }
   if (includeActivityWatch) {
     md += `| **Ekran** | Średni czas telefonu | ${avgPhoneMinutes} min/dzień |\n`;
-    md += `| **Ekran** | Nocny ekran po 22:00 | ${avgLateNight} min/dzień |\n`;
+    md += `| **Ekran** | Ekran w oknie nocnym (23:00–04:00) | ${avgLateNight} min/dzień |\n`;
   }
   if (includeHabits || includeLenie) {
     md += `| **Dyscyplina** | Incydenty (Lenie) | ${relapses.length} |\n`;

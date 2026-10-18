@@ -20,7 +20,7 @@ const PADDING = 20;
 
 function chartPoints(points: NightSignalPoint[]): string {
   const measured = points.filter(
-    (point): point is NightSignalPoint & { value: number } => point.value != null,
+    (point): point is NightSignalPoint & { value: number } => point.value != null && point.value > 0,
   );
   if (measured.length < 2) return '';
   const values = measured.map((point) => point.value);
@@ -29,19 +29,21 @@ function chartPoints(points: NightSignalPoint[]): string {
   const range = Math.max(1, max - min);
 
   return measured.map((point, index) => {
-    const x = PADDING + index / (measured.length - 1) * (WIDTH - PADDING * 2);
-    const y = PADDING + (max - point.value) / range * (HEIGHT - PADDING * 2);
+    const x = PADDING + (index / (measured.length - 1)) * (WIDTH - PADDING * 2);
+    const y = PADDING + ((max - point.value) / range) * (HEIGHT - PADDING * 2);
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   }).join(' ');
 }
 
 function timeLabel(ts: string | undefined): string {
   if (!ts) return '';
+  const parsed = Date.parse(ts);
+  if (!Number.isFinite(parsed)) return '';
   return new Intl.DateTimeFormat('pl-PL', {
     hour: '2-digit',
     minute: '2-digit',
     timeZone: 'Europe/Warsaw',
-  }).format(new Date(ts));
+  }).format(new Date(parsed));
 }
 
 export function NightSignalChart({

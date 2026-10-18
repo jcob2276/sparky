@@ -5,6 +5,7 @@ import {
   selectActionableSleepFactors,
 } from '../../../lib/biometrics/ouraEvidence';
 import type { OuraHealthHubData } from './types';
+import DataStateNotice from '../../core/DataStateNotice';
 
 const sleepMetric = (metric: string) => (
   /sleep|sen|readiness|recovery|hrv|rhr/i.test(metric)
@@ -29,6 +30,8 @@ export function OuraPersonalEvidence({ data }: { data: OuraHealthHubData }) {
     (item) => activityBehavior(item.behavior_key),
   ).slice(0, 2);
   const hasEvidence = correlations.length > 0 || behaviors.length > 0;
+  const readFailed = Boolean(data.correlationsError || data.correlations?.sourceErrors?.length);
+  const loading = Boolean(data.correlationsLoading && !hasEvidence);
 
   return (
     <section className="space-y-3">
@@ -40,7 +43,10 @@ export function OuraPersonalEvidence({ data }: { data: OuraHealthHubData }) {
           Osobiste zależności statystyczne — nie ogólne porady i nie dowód przyczynowości.
         </p>
       </div>
-      {!hasEvidence ? (
+      {readFailed && <DataStateNotice tone="warning"
+        title={hasEvidence ? 'Część zależności jest niedostępna' : 'Zależności są chwilowo niedostępne'}
+        detail="Nie udało się pobrać wszystkich wyników. Zachowujemy dostępne zależności. Odśwież stronę, aby ponowić odczyt." />}
+      {loading ? <DataStateNotice tone="loading" title="Wczytuję osobiste zależności…" /> : !hasEvidence ? !readFailed && (
         <article className="rounded-xl border border-white/5 bg-surface-1 p-5">
           <p className="text-lg text-white">Trwa kalibracja zależności</p>
           <p className="mt-2 text-sm text-text-secondary">
@@ -80,7 +86,7 @@ export function OuraPersonalEvidence({ data }: { data: OuraHealthHubData }) {
         </h3>
         {activityCosts.length === 0 ? (
           <p className="mt-2 text-sm text-text-muted">
-            Kalibracja: potrzeba kilku podobnych treningów i nocy po nich, aby pokazać Twój koszt regeneracyjny.
+            {readFailed ? 'Brak pełnych danych do oceny kosztu aktywności.' : loading ? 'Czekamy na wyniki zależności aktywności i regeneracji.' : 'Kalibracja: potrzeba kilku podobnych treningów i nocy po nich, aby pokazać Twój koszt regeneracyjny.'}
           </p>
         ) : (
           <div className="mt-3 grid gap-3 sm:grid-cols-2">

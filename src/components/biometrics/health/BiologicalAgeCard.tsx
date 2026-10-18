@@ -1,6 +1,6 @@
 import React from 'react';
 import { CheckCircle2, HeartPulse, MinusCircle, ShieldAlert, Sparkles } from 'lucide-react';
-import { BiologicalAgeInput, calculateBiologicalAge } from '@vanguard/domain';
+import { calculateBiologicalAge } from '@vanguard/domain';
 
 export interface BiologicalAgeCardProps {
   chronologicalAge?: number | null;
@@ -12,21 +12,39 @@ export interface BiologicalAgeCardProps {
 }
 
 export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
-  chronologicalAge = 30,
+  chronologicalAge,
   vo2Max,
   restingHeartRate,
   hrvBaselineMs,
   sleepDebtMinutes,
-  biologicalSex = 'male',
+  biologicalSex,
 }) => {
-  const result = calculateBiologicalAge({
-    chronologicalAge: chronologicalAge || 30,
+  const validAge = chronologicalAge != null && Number.isFinite(chronologicalAge)
+    && chronologicalAge >= 18 && chronologicalAge <= 100;
+  const validSex = biologicalSex === 'male' || biologicalSex === 'female';
+  const result = chronologicalAge != null && validAge && validSex ? calculateBiologicalAge({
+    chronologicalAge,
     vo2Max,
     restingHeartRate,
     hrvBaselineMs,
     sleepDebtMinutes,
     biologicalSex,
-  } as BiologicalAgeInput);
+  }) : null;
+
+  if (!result || result.factors.length === 0) {
+    const missing = [
+      ...(!validAge ? ['wiek metrykalny'] : []),
+      ...(!validSex ? ['płeć biologiczna'] : []),
+      ...(result?.factors.length === 0 ? ['pomiary VO2 Max, RHR, HRV lub bilansu snu'] : []),
+    ];
+    return (
+      <section className="space-y-2 rounded-xl border border-border-custom bg-surface-1 p-4 shadow-sm">
+        <h3 className="text-sm font-semibold text-text-primary">Szacowany wiek biologiczny</h3>
+        <p className="text-sm text-text-secondary">Oszacowanie niedostępne. Brakuje: {missing.join(', ')}.</p>
+        <p className="text-xs text-text-muted">Model wymaga znanego wieku od 18 do 100 lat, płci biologicznej i pomiarów.</p>
+      </section>
+    );
+  }
 
   const isYounger = result.ageDelta < 0;
   const deltaFormatted = isYounger

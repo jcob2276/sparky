@@ -56,31 +56,19 @@ function formatTimestamp(timestamp: string | null): string | null {
   return Number.isNaN(date.getTime()) ? null : WARSAW_TIME.format(date);
 }
 
-export function buildOuraContextInsights(input: OuraContextInput) {
-  const caffeineEntries = input.foodEntries
-    .map((entry) => ({ ...entry, caffeineMg: estimateCaffeineMg(entry.name) }))
-    .filter((entry) => entry.caffeineMg > 0)
-    .sort((left, right) => (left.logged_at ?? '').localeCompare(right.logged_at ?? ''));
-  const foodWithTimestamps = input.foodEntries
-    .filter((entry) => entry.logged_at)
-    .sort((left, right) => (left.logged_at ?? '').localeCompare(right.logged_at ?? ''));
-  const measuredQuality = input.foodEntries
-    .flatMap((entry) => entry.food_quality_score == null ? [] : [entry.food_quality_score]);
-  const lastCaffeine = caffeineEntries.at(-1);
-  const lastMeal = foodWithTimestamps.at(-1);
-  const durationMinutes = input.workouts.reduce(
-    (sum, workout) => sum + (workout.duration_minutes ?? 0),
-    0,
-  );
-  const strainScores = input.workouts.flatMap(
-    (workout) => workout.hr_strain_score == null ? [] : [workout.hr_strain_score],
-  );
-
-  const phoneUsage = input.phoneUsage;
-  const lateNightImpact: LateNightImpact | null = phoneUsage
-    ? evaluateLateNightImpact(phoneUsage.late_night_minutes)
+function resolveScreenInsights(phoneUsage: PhoneUsageInput | null) {
+  const hasPhoneTotal = typeof phoneUsage?.total_minutes === 'number'
+    && Number.isFinite(phoneUsage.total_minutes)
+    && phoneUsage.total_minutes >= 0;
+  const safeLateNightMinutes = typeof phoneUsage?.late_night_minutes === 'number'
+    && Number.isFinite(phoneUsage.late_night_minutes)
+    && phoneUsage.late_night_minutes >= 0
+    ? Math.round(phoneUsage.late_night_minutes)
     : null;
-  const cognitiveProfile: PhoneCognitiveProfile | null = phoneUsage
+  const lateNightImpact: LateNightImpact | null = safeLateNightMinutes != null
+    ? evaluateLateNightImpact(safeLateNightMinutes)
+    : null;
+  const cognitiveProfile: PhoneCognitiveProfile | null = hasPhoneTotal && phoneUsage
     ? evaluateCognitiveProfile({
         total_minutes: phoneUsage.total_minutes,
         social_minutes: phoneUsage.social_minutes,
@@ -96,26 +84,8 @@ export function buildOuraContextInsights(input: OuraContextInput) {
     ? (phoneUsage.top_apps as Array<{ app: string; pkg: string; min: number }>)
     : [];
 
-  return {
-    date: input.sleepDate,
-    bedtimeStart: input.bedtimeStart,
-    screen: phoneUsage ? {
-      status: 'available' as ContextStatus,
-      source: 'phone_usage_daily' as const,
-      totalMinutes: phoneUsage.total_minutes,
-      lateNightMinutes: phoneUsage.late_night_minutes,
-      formattedTotal: formatPhoneUsageDuration(phoneUsage.total_minutes),
-      lateNightImpact,
-      cognitiveProfile,
-      topApps,
-      socialMinutes: phoneUsage.social_minutes ?? 0,
-      messagingMinutes: phoneUsage.messaging_minutes ?? 0,
-      entertainmentMinutes: phoneUsage.entertainment_minutes ?? 0,
-      aiMinutes: phoneUsage.ai_minutes ?? 0,
-      browserMinutes: phoneUsage.browser_minutes ?? 0,
-      otherMinutes: phoneUsage.other_minutes ?? 0,
-      unlocks: phoneUsage.unlocks ?? null,
-    } : {
+  if (!hasPhoneTotal || !phoneUsage) {
+    return {
       status: 'unavailable' as ContextStatus,
       source: 'phone_usage_daily' as const,
       totalMinutes: null,
@@ -123,6 +93,7 @@ export function buildOuraContextInsights(input: OuraContextInput) {
       formattedTotal: null,
       lateNightImpact: null,
       cognitiveProfile: null,
+      categoryMinutesComplete: false,
       topApps: [],
       socialMinutes: 0,
       messagingMinutes: 0,
@@ -131,46 +102,173 @@ export function buildOuraContextInsights(input: OuraContextInput) {
       browserMinutes: 0,
       otherMinutes: 0,
       unlocks: null,
-    },
-    caffeine: lastCaffeine ? {
-      status: 'available' as ContextStatus,
-      source: 'daily_food_entries' as const,
-      amountMg: caffeineEntries.reduce((sum, entry) => sum + entry.caffeineMg, 0),
-      lastAt: formatTimestamp(lastCaffeine.logged_at),
-    } : {
+    };
+  }
+
+  return {
+    status: 'available' as ContextStatus,
+    source: 'phone_usage_daily' as const,
+    totalMinutes: phoneUsage.total_minutes,
+    lateNightMinutes: safeLateNightMinutes,
+    formattedTotal: formatPhoneUsageDuration(phoneUsage.total_minutes),
+    lateNightImpact,
+    cognitiveProfile,
+    categoryMinutesComplete: [phoneUsage.social_minutes, phoneUsage.messaging_minutes,
+      phoneUsage.entertainment_minutes, phoneUsage.ai_minutes, phoneUsage.browser_minutes]
+      .every((minutes) => typeof minutes === 'number'
+        && Number.isFinite(minutes) && minutes >= 0),
+    topApps,
+    socialMinutes: phoneUsage.social_minutes ?? 0,
+    messagingMinutes: phoneUsage.messaging_minutes ?? 0,
+    entertainmentMinutes: phoneUsage.entertainment_minutes ?? 0,
+    aiMinutes: phoneUsage.ai_minutes ?? 0,
+    browserMinutes: phoneUsage.browser_minutes ?? 0,
+    otherMinutes: phoneUsage.other_minutes ?? 0,
+    unlocks: phoneUsage.unlocks ?? null,
+  };
+}
+
+function resolveCaffeineInsights(
+  caffeineEntries: Array<FoodEntryInput & { caffeineMg: number }>,
+  lastCaffeine: (FoodEntryInput & { caffeineMg: number }) | undefined,
+  bedtimeMs: number | null,
+) {
+  if (!lastCaffeine) {
+    return {
       status: 'unavailable' as ContextStatus,
       source: 'daily_food_entries' as const,
       amountMg: null,
       lastAt: null,
-    },
-    meals: input.foodEntries.length > 0 ? {
-      status: 'available' as ContextStatus,
-      source: 'daily_food_entries' as const,
-      calories: input.foodEntries.reduce((sum, entry) => sum + (entry.calories ?? 0), 0),
-      lastAt: formatTimestamp(lastMeal?.logged_at ?? null),
-      averageQuality: measuredQuality.length > 0
-        ? Math.round(measuredQuality.reduce((sum, score) => sum + score, 0) / measuredQuality.length)
-        : null,
-    } : {
+      hoursBeforeBedtime: null,
+      remainingMgAtBedtime: null,
+      halfLifeHours: 5.5,
+      isEstimate: true as const,
+      estimateNotice: null,
+    };
+  }
+
+  let caffeineHoursBeforeBedtime: number | null = null;
+  let remainingCaffeineMgAtBedtime: number | null = null;
+
+  if (lastCaffeine.logged_at && bedtimeMs != null) {
+    const lastCaffMs = new Date(lastCaffeine.logged_at).getTime();
+    if (!Number.isNaN(lastCaffMs)) {
+      const diffH = (bedtimeMs - lastCaffMs) / 3600000;
+      caffeineHoursBeforeBedtime = diffH > 0 ? Math.round(diffH * 10) / 10 : 0;
+    }
+  }
+
+  if (caffeineEntries.length > 0 && bedtimeMs != null) {
+    let decayedSum = 0;
+    for (const entry of caffeineEntries) {
+      if (!entry.logged_at) continue;
+      const entryMs = new Date(entry.logged_at).getTime();
+      if (Number.isNaN(entryMs)) continue;
+      const hoursElapsed = (bedtimeMs - entryMs) / 3600000;
+      if (hoursElapsed >= 0 && hoursElapsed <= 24) {
+        decayedSum += entry.caffeineMg * Math.pow(0.5, hoursElapsed / 5.5);
+      }
+    }
+    remainingCaffeineMgAtBedtime = Math.round(decayedSum);
+  }
+
+  return {
+    status: 'available' as ContextStatus,
+    source: 'daily_food_entries' as const,
+    amountMg: caffeineEntries.reduce((sum, entry) => sum + entry.caffeineMg, 0),
+    lastAt: formatTimestamp(lastCaffeine.logged_at),
+    hoursBeforeBedtime: caffeineHoursBeforeBedtime,
+    remainingMgAtBedtime: remainingCaffeineMgAtBedtime,
+    halfLifeHours: 5.5,
+    isEstimate: true as const,
+    estimateNotice: 'Szacunek z wpisów jedzenia (model half-life ~5.5h). Brak pomiaru stężenia we krwi.',
+  };
+}
+
+function resolveMealsInsights(
+  foodEntries: FoodEntryInput[],
+  lastMeal: FoodEntryInput | undefined,
+  measuredQuality: number[],
+  bedtimeMs: number | null,
+) {
+  if (foodEntries.length === 0) {
+    return {
       status: 'unavailable' as ContextStatus,
       source: 'daily_food_entries' as const,
       calories: null,
       lastAt: null,
+      hoursBeforeBedtime: null,
       averageQuality: null,
-    },
-    training: input.workouts.length > 0 ? {
-      status: 'available' as ContextStatus,
-      source: 'workout_sessions' as const,
-      durationMinutes,
-      strainScore: strainScores.length > 0 ? Math.max(...strainScores) : null,
-      lastEndTime: input.workouts.at(-1)?.end_time ?? null,
-    } : {
+    };
+  }
+
+  let mealHoursBeforeBedtime: number | null = null;
+  if (lastMeal?.logged_at && bedtimeMs != null) {
+    const lastMealMs = new Date(lastMeal.logged_at).getTime();
+    if (!Number.isNaN(lastMealMs)) {
+      const diffH = (bedtimeMs - lastMealMs) / 3600000;
+      mealHoursBeforeBedtime = diffH > 0 ? Math.round(diffH * 10) / 10 : 0;
+    }
+  }
+
+  return {
+    status: 'available' as ContextStatus,
+    source: 'daily_food_entries' as const,
+    calories: foodEntries.reduce((sum, entry) => sum + (entry.calories ?? 0), 0),
+    lastAt: formatTimestamp(lastMeal?.logged_at ?? null),
+    hoursBeforeBedtime: mealHoursBeforeBedtime,
+    averageQuality: measuredQuality.length > 0
+      ? Math.round(measuredQuality.reduce((sum, score) => sum + score, 0) / measuredQuality.length)
+      : null,
+  };
+}
+
+function resolveTrainingInsights(workouts: WorkoutInput[]) {
+  if (workouts.length === 0) {
+    return {
       status: 'unavailable' as ContextStatus,
       source: 'workout_sessions' as const,
       durationMinutes: null,
       strainScore: null,
       lastEndTime: null,
-    },
+    };
+  }
+
+  const durationMinutes = workouts.reduce((sum, w) => sum + (w.duration_minutes ?? 0), 0);
+  const strainScores = workouts.flatMap((w) => w.hr_strain_score == null ? [] : [w.hr_strain_score]);
+
+  return {
+    status: 'available' as ContextStatus,
+    source: 'workout_sessions' as const,
+    durationMinutes,
+    strainScore: strainScores.length > 0 ? Math.max(...strainScores) : null,
+    lastEndTime: workouts.at(-1)?.end_time ?? null,
+  };
+}
+
+export function buildOuraContextInsights(input: OuraContextInput) {
+  const caffeineEntries = input.foodEntries
+    .map((entry) => ({ ...entry, caffeineMg: estimateCaffeineMg(entry.name) }))
+    .filter((entry) => entry.caffeineMg > 0)
+    .sort((left, right) => (left.logged_at ?? '').localeCompare(right.logged_at ?? ''));
+  const foodWithTimestamps = input.foodEntries
+    .filter((entry) => entry.logged_at)
+    .sort((left, right) => (left.logged_at ?? '').localeCompare(right.logged_at ?? ''));
+  const measuredQuality = input.foodEntries
+    .flatMap((entry) => entry.food_quality_score == null ? [] : [entry.food_quality_score]);
+  const lastCaffeine = caffeineEntries.at(-1);
+  const lastMeal = foodWithTimestamps.at(-1);
+
+  const bedtimeDate = input.bedtimeStart ? new Date(input.bedtimeStart) : null;
+  const bedtimeMs = bedtimeDate && !Number.isNaN(bedtimeDate.getTime()) ? bedtimeDate.getTime() : null;
+
+  return {
+    date: input.sleepDate,
+    bedtimeStart: input.bedtimeStart,
+    screen: resolveScreenInsights(input.phoneUsage),
+    caffeine: resolveCaffeineInsights(caffeineEntries, lastCaffeine, bedtimeMs),
+    meals: resolveMealsInsights(input.foodEntries, lastMeal, measuredQuality, bedtimeMs),
+    training: resolveTrainingInsights(input.workouts),
   };
 }
 

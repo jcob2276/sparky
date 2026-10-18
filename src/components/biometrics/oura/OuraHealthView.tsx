@@ -1,18 +1,17 @@
-import { Activity, ArrowLeft, Flame, Moon, RefreshCw, Utensils } from 'lucide-react';
-import { OuraGarminTrainingView } from './OuraGarminTrainingView';
+import { Activity, ArrowLeft, Compass, Moon, RefreshCw, Utensils } from 'lucide-react';
 import { OuraNutritionFuelingView } from './OuraNutritionFuelingView';
 import { OuraVitalsView } from './OuraVitalsView';
-import { SleepIntelligenceView } from './SleepIntelligenceView';
+import { OuraOverviewView } from './OuraOverviewView';
 import type { OuraHealthHubData } from './types';
 import { OuraSleepTab } from './OuraSleepTab';
 import Button from '../../ui/Button';
 import IconButton from '../../ui/IconButton';
 import './ouraTheme.css';
 import HealthspanExperienceContainer from '../healthspan/HealthspanExperienceContainer';
-import { OuraLongTermView } from './OuraLongTermView';
+import { HealthChartsContainer } from '../health/HealthChartsContainer';
 import DataStateNotice from '../../core/DataStateNotice';
 
-export type OuraSection = 'sleep' | 'training' | 'fueling' | 'vitals';
+export type OuraSection = 'overview' | 'sleep' | 'fueling' | 'vitals';
 
 interface OuraHealthViewProps {
   activeSection: OuraSection;
@@ -28,10 +27,10 @@ interface OuraHealthViewProps {
 }
 
 const NAV_ITEMS = [
+  { id: 'overview' as const, label: 'Przegląd', icon: Compass },
   { id: 'sleep' as const, label: 'Sen', icon: Moon },
-  { id: 'training' as const, label: 'Garmin', icon: Flame },
-  { id: 'fueling' as const, label: 'Paliwo', icon: Utensils },
-  { id: 'vitals' as const, label: 'Witalność', icon: Activity },
+  { id: 'fueling' as const, label: 'Jedzenie', icon: Utensils },
+  { id: 'vitals' as const, label: 'Parametry', icon: Activity },
 ];
 
 export function OuraHealthView({
@@ -75,7 +74,7 @@ export function OuraHealthView({
           icon={<ArrowLeft size={22} />}
           onClick={onExit}
         />
-        <p className="text-sm font-light tracking-wide text-text-secondary">Sparky Biometrics</p>
+        <p className="text-sm font-light tracking-wide text-text-secondary">Sparky · Zdrowie</p>
         {onSync ? (
           <IconButton
             label="Synchronizuj z Oura"
@@ -98,14 +97,14 @@ export function OuraHealthView({
           </div>
         ) : (
           <>
-            {activeSection === 'sleep' && <SleepIntelligenceView data={data} />}
-            {activeSection === 'training' && <OuraGarminTrainingView data={data} />}
+            {activeSection === 'overview' && <OuraOverviewView data={data} onOpenSleep={() => onSectionChange('sleep')} onOpenVitals={() => onSectionChange('vitals')} />}
+            {activeSection === 'sleep' && <OuraSleepTab {...data} />}
             {activeSection === 'fueling' && <OuraNutritionFuelingView data={data} />}
             {activeSection === 'vitals' && (
               <div className="space-y-8">
                 <OuraVitalsView data={data} onOpenSleep={onOpenSleep} />
                 <HealthspanExperienceContainer />
-                <OuraLongTermView data={data} />
+                {data.userId && <HealthChartsContainer userId={data.userId} />}
               </div>
             )}
           </>

@@ -20,59 +20,81 @@ const STAGE_COLOR: Record<SleepStage, string> = {
   deep: 'bg-info/35',
 };
 
-const duration = (hours: number) => {
+const PHASE_NAME_TO_CODE: Record<string, string> = {
+  deep: '1',
+  light: '2',
+  rem: '3',
+  awake: '4',
+};
+
+const duration = (hours: number | null) => {
+  if (hours == null || !Number.isFinite(hours)) return 'Brak danych';
   const minutes = Math.round(hours * 60);
   return `${Math.floor(minutes / 60)} h ${minutes % 60} min`;
 };
 
 function average(values: Array<number | null>): number | null {
-  const measured = values.filter((entry): entry is number => entry != null);
+  const measured = values.filter((entry): entry is number => entry != null && entry > 0);
   return measured.length === 0
     ? null
     : Math.round(measured.reduce((sum, entry) => sum + entry, 0) / measured.length);
 }
 
 export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
-  const enhanced = data.enhanced;
-  const totalSleepHours = enhanced?.total_sleep_hours ?? data.oura?.total_sleep_hours ?? 0;
-  const timeInBedHours = enhanced?.time_in_bed_hours ?? 0;
-  const totalSleepMinutes = Math.max(1, Math.round(totalSleepHours * 60));
-  const remMinutes = Math.round((enhanced?.rem_sleep_hours ?? data.oura?.rem_sleep_hours ?? 0) * 60);
-  const deepMinutes = Math.round((enhanced?.deep_sleep_hours ?? data.oura?.deep_sleep_hours ?? 0) * 60);
-  const lightMinutes = Math.round((enhanced?.light_sleep_hours ?? Math.max(0, totalSleepHours - remMinutes / 60 - deepMinutes / 60)) * 60);
-  const awakeMinutes = enhanced?.awake_time_minutes ?? Math.max(0, Math.round(timeInBedHours * 60) - totalSleepMinutes);
-  const measuredPhaseString = data.nightDetails?.phaseStatus === 'available'
-    ? data.nightDetails.phases.map((point) => point.phase_code).join('')
+  const date = data.date ?? data.oura?.date ?? data.enhanced?.date ?? null;
+  const enhanced = date && data.enhanced?.date === date ? data.enhanced : null;
+  const oura = date && data.oura?.date === date ? data.oura : null;
+  const nightDetails = date && data.nightDetails?.date === date ? data.nightDetails : null;
+  const totalSleepHours = enhanced?.total_sleep_hours ?? oura?.total_sleep_hours ?? null;
+  const bedtimeStart = enhanced?.bedtime_start ?? oura?.bedtime_timestamp ?? null;
+  const bedtimeEnd = enhanced?.bedtime_end ?? oura?.bedtime_end_timestamp ?? null;
+  const bedtimeDurationHours = bedtimeStart && bedtimeEnd && Date.parse(bedtimeEnd) > Date.parse(bedtimeStart)
+    ? (Date.parse(bedtimeEnd) - Date.parse(bedtimeStart)) / 3_600_000
+    : null;
+  const timeInBedHours = enhanced?.time_in_bed_hours ?? (oura && bedtimeDurationHours != null ? bedtimeDurationHours : null);
+  const totalSleepMinutes = totalSleepHours == null ? null : Math.round(totalSleepHours * 60);
+  const remHours = enhanced?.rem_sleep_hours ?? oura?.rem_sleep_hours ?? null;
+  const deepHours = enhanced?.deep_sleep_hours ?? oura?.deep_sleep_hours ?? null;
+  const remMinutes = remHours == null ? null : Math.round(remHours * 60);
+  const deepMinutes = deepHours == null ? null : Math.round(deepHours * 60);
+  const lightMinutes = enhanced?.light_sleep_hours == null ? null : Math.round(enhanced.light_sleep_hours * 60);
+  const awakeMinutes = enhanced?.awake_time_minutes ?? null;
+  const measuredPhaseString = nightDetails?.phaseStatus === 'available'
+    ? nightDetails.phases.map((point) => {
+        if (point.phase_code != null) return String(point.phase_code);
+        if (point.phase && PHASE_NAME_TO_CODE[point.phase]) return PHASE_NAME_TO_CODE[point.phase];
+        return '?';
+      }).join('')
     : enhanced?.sleep_phase_5_min;
   const timeline = buildSleepTimeline({
     phases: measuredPhaseString,
-    bedtimeStart: enhanced?.bedtime_start,
-    bedtimeEnd: enhanced?.bedtime_end,
+    bedtimeStart,
+    bedtimeEnd,
   });
-  const averageHeartRate = average(data.nightDetails?.heartRate.map((point) => point.bpm) ?? []);
-  const averageHrv = average(data.nightDetails?.hrv.map((point) => point.hrv) ?? []);
-  const heartRatePoints = (data.nightDetails?.heartRate ?? []).map((point) => ({
+  const averageHeartRate = average(nightDetails?.heartRate.map((point) => point.bpm) ?? []);
+  const averageHrv = average(nightDetails?.hrv.map((point) => point.hrv) ?? []);
+  const heartRatePoints = (nightDetails?.heartRate ?? []).map((point) => ({
     ts: point.ts,
     value: point.bpm,
   }));
-  const hrvPoints = (data.nightDetails?.hrv ?? []).map((point) => ({
+  const hrvPoints = (nightDetails?.hrv ?? []).map((point) => ({
     ts: point.ts,
     value: point.hrv,
   }));
   const lowestHeartRate = enhanced?.sleep_lowest_heart_rate
     ?? heartRatePoints.reduce<number | null>(
-      (lowest, point) => point.value == null ? lowest : Math.min(lowest ?? point.value, point.value),
+      (lowest, point) => (point.value == null || point.value <= 0) ? lowest : Math.min(lowest ?? point.value, point.value),
       null,
     );
   const maximumHrv = hrvPoints.reduce<number | null>(
-    (highest, point) => point.value == null ? highest : Math.max(highest ?? point.value, point.value),
+    (highest, point) => (point.value == null || point.value <= 0) ? highest : Math.max(highest ?? point.value, point.value),
     null,
   );
 
   return (
     <div className="space-y-5">
       <header className="px-1">
-        <p className="text-sm text-text-muted">{data.date ?? 'Brak wybranej daty'}</p>
+        <p className="text-sm text-text-muted">{date ?? 'Brak wybranej daty'}</p>
         <h1 className="mt-2 text-4xl font-light text-white">Szczegółowe dane</h1>
       </header>
 
@@ -84,11 +106,15 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
           </div>
           <p className="mt-3 text-5xl font-light tracking-tight text-white">{duration(totalSleepHours)}</p>
           <p className="mt-3 text-sm text-text-secondary">
-            Całkowity czas trwania {timeInBedHours > 0 ? duration(timeInBedHours) : 'Brak danych'}
+            Całkowity czas trwania {duration(timeInBedHours)}
           </p>
         </div>
 
-        <div className="relative mx-4 h-64 border-b border-white/10 bg-black/10">
+        <div
+          role="img"
+          aria-label="Przebieg faz snu (hipnogram)"
+          className="relative mx-4 h-64 border-b border-white/10 bg-black/10"
+        >
           {timeline.status === 'available' ? timeline.segments.map((segment) => (
             <div
               key={`${segment.startBlock}-${segment.stage}`}
@@ -108,13 +134,20 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
 
         {timeline.axisLabels.length > 0 && (
           <div className="flex justify-between px-5 py-3 text-xs text-text-secondary">
-            {timeline.axisLabels.map((label, index) => <span key={`${label}-${index}`}>{label}</span>)}
+            {timeline.axisLabels.map((label, index) => (
+              <span
+                key={`${label}-${index}`}
+                className={index === 1 || index === 3 ? 'hidden sm:inline' : ''}
+              >
+                {label}
+              </span>
+            ))}
           </div>
         )}
 
         {timeline.durationMismatchMinutes != null && timeline.durationMismatchMinutes > 10 && (
           <div className="mx-5 mb-4 rounded-2xl border border-warning/25 bg-warning/10 px-4 py-3 text-xs leading-5 text-warning">
-            Niespójność danych dla {data.date ?? 'tej nocy'}: przebieg faz różni się od zapisanego przedziału o {timeline.durationMismatchMinutes} min.
+            Niespójność danych dla {date ?? 'tej nocy'}: przebieg faz różni się od zapisanego przedziału o {timeline.durationMismatchMinutes} min.
           </div>
         )}
 

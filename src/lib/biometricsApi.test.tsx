@@ -7,7 +7,8 @@ import { useDailyStrainOura, useOuraContext, useOuraHistory30Days, useOuraNightD
 
 const database = vi.hoisted(() => ({ tables: {} as Record<string, { data: unknown; error: { message: string } | null }>, filters: vi.fn() }));
 vi.mock('./supabase', () => ({ supabase: { from: (table: string) => ({
-  select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis(),
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn(function (this: unknown, column: string, value: string) { database.filters(table, 'eq', column, value); return this; }),
   gte: vi.fn(function (this: unknown, column: string, value: string) { database.filters(table, 'gte', column, value); return this; }),
   lte: vi.fn(function (this: unknown, column: string, value: string) { database.filters(table, 'lte', column, value); return this; }),
   order: vi.fn().mockReturnThis(), limit: vi.fn().mockReturnThis(), maybeSingle: vi.fn().mockReturnThis(),
@@ -24,6 +25,33 @@ beforeEach(() => { database.tables = {}; database.filters.mockClear(); });
 afterEach(async () => { cleanup(); await act(async () => { clients.splice(0).forEach((client) => client.clear()); }); });
 
 describe('partial biometric source failures', () => {
+  it('rebuilds the cached night when enhanced sleep boundaries arrive later', async () => {
+    database.tables = {
+      oura_sleep_hr_timeline: { data: [
+        { ts: '2026-10-16T02:00:00Z', bpm: 60 },
+        { ts: '2026-10-16T10:00:00Z', bpm: 75 },
+      ], error: null },
+    };
+    let start: string | null = null;
+    let end: string | null = null;
+    const { result, rerender } = setup(() => useOuraNightDetails('owner', '2026-10-16', start, end));
+    await waitFor(() => expect(result.current.data?.heartRate).toHaveLength(2));
+    start = '2026-10-15T22:00:00Z';
+    end = '2026-10-16T06:00:00Z';
+    rerender();
+    await waitFor(() => expect(result.current.data?.heartRate).toEqual([{ ts: '2026-10-16T02:00:00Z', bpm: 60 }]));
+    end = '2026-10-16T11:00:00Z';
+    rerender();
+    await waitFor(() => expect(result.current.data?.heartRate).toHaveLength(2));
+    start = '2026-10-16T09:00:00Z';
+    rerender();
+    await waitFor(() => expect(result.current.data?.heartRate).toEqual([{ ts: '2026-10-16T10:00:00Z', bpm: 75 }]));
+  });
+  it('selects the workout date for the context of a night', async () => {
+    const { result } = setup(() => useOuraContext('owner', '2026-10-15', null));
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(database.filters).toHaveBeenCalledWith('workout_sessions', 'eq', 'date', '2026-10-15');
+  });
   it('bounds weekly workouts by the actual date column rather than their workout name', async () => {
     const { result } = setup(() => useWeeklyBodyPulse('owner'));
     await waitFor(() => expect(result.current.isSuccess).toBe(true));

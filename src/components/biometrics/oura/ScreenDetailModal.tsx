@@ -1,4 +1,4 @@
-import { AlertTriangle, Brain, CheckCircle2, Clock, Eye, Info, Smartphone, Zap } from "lucide-react";
+import { Brain, Clock, Info, Smartphone, Zap } from "lucide-react";
 import Modal from "../../ui/Modal";
 import type { OuraContextInsights } from "../../../lib/biometrics/ouraContextInsights";
 import { formatPhoneUsageDuration } from "@vanguard/domain";
@@ -20,28 +20,26 @@ const ATTENTION_TIER_COLORS: Record<PhoneCognitiveProfile["attentionTier"], stri
 };
 
 function ImpactCard({ impact }: { impact: LateNightImpact }) {
-  const Icon =
-    impact.tier === "high" ? AlertTriangle :
-    impact.tier === "moderate" ? Eye :
-    CheckCircle2;
   return (
     <div className="rounded-xl border border-border-subtle bg-surface-2 p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Icon className={impact.color} size={18} />
-          <h4 className="text-sm font-medium text-text-primary">Ekspozycja wieczorna & Higiena snu</h4>
+          <Info className={impact.color} size={18} />
+          <h4 className="text-sm font-medium text-text-primary">Co obejmuje licznik okna nocnego</h4>
         </div>
         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${impact.bgColor} ${impact.color}`}>
           {impact.badge}
         </span>
       </div>
       <p className="mt-2 text-xs leading-relaxed text-text-secondary">{impact.description}</p>
-      {impact.tier !== "optimal" && (
-        <p className="mt-2 border-t border-border-subtle pt-2 text-xs text-text-muted">
-          <span className="font-semibold text-text-secondary">Protokół:</span>{" "}
-          60-minutowy bufor bez ekranu chroni fazę Deep Sleep i skraca latencję snu.
+      <div className="mt-3 space-y-1.5 border-t border-border-subtle pt-2.5 text-xs text-text-muted">
+        <p>
+          <strong className="text-text-secondary">Dlaczego nie cały wieczór?</strong> Licznik uwzględnia wyłącznie przedziały <span className="font-mono text-text-secondary">23:00–24:00</span> oraz <span className="font-mono text-text-secondary">00:00–04:00</span> czasu warszawskiego tego samego dnia kalendarzowego. Wcześniejsze godziny wieczorne (np. 20:00–22:59) wchodzą w łączny czas dnia, ale nie są zliczane jako okno nocne.
         </p>
-      )}
+        <p>
+          Nie jest to pomiar użycia przed zaśnięciem ani estymacja tłumienia melatoniny czy ubytku snu głębokiego. System rejestruje twarde minuty włączenia ekranu w zdefiniowanych godzinach, nie stawia prognoz biochemicznych.
+        </p>
+      </div>
     </div>
   );
 }
@@ -132,7 +130,7 @@ function AppRankingCard({ topApps }: { topApps: Array<{ app: string; pkg: string
 export function ScreenDetailModal({ isOpen, onClose, screen, date }: ScreenDetailModalProps) {
   if (!screen || screen.status !== "available") return null;
   const totalMin = screen.totalMinutes ?? 0;
-  const lateNightMin = screen.lateNightMinutes ?? 0;
+  const lateNightMin = screen.lateNightMinutes;
   const cognitive = screen.cognitiveProfile;
   const topApps = screen.topApps ?? [];
   const hasUnlocks = (cognitive?.unlocks ?? 0) > 0;
@@ -140,9 +138,10 @@ export function ScreenDetailModal({ isOpen, onClose, screen, date }: ScreenDetai
     <Modal
       isOpen={isOpen}
       onClose={onClose}
+      className="oura-theme dark"
       size="lg"
-      title={<div className="flex items-center gap-2 text-text-primary"><Smartphone className="text-info" size={20} /><span>Czas przed ekranem & Rytm biologiczny</span></div>}
-      subtitle={`Dzień poprzedzający sen ${date}`}
+      title={<div className="flex items-center gap-2 text-text-primary"><Smartphone className="text-info" size={20} /><span>Czas przed ekranem (telefon)</span></div>}
+      subtitle={`Zapisy z dnia ${date} · czas Warszawy`}
     >
       <div className="space-y-4">
         {totalMin < 15 && (
@@ -161,11 +160,11 @@ export function ScreenDetailModal({ isOpen, onClose, screen, date }: ScreenDetai
             <p className="text-xs text-text-muted">{totalMin} minut</p>
           </div>
           <div className="rounded-xl border border-border-subtle bg-surface-2 p-3 text-center">
-            <p className="text-xs text-text-muted">Późny wieczór</p>
-            <p className={`mt-1 text-xl font-light ${lateNightMin > 0 ? (screen.lateNightImpact?.color ?? "text-text-primary") : "text-success"}`}>
-              {lateNightMin > 0 ? `${lateNightMin} min` : "Brak"}
+            <p className="text-xs text-text-muted">Godziny nocne</p>
+            <p className="mt-1 text-xl font-light text-text-primary">
+              {lateNightMin == null ? 'Brak pomiaru' : `${lateNightMin} min`}
             </p>
-            <p className="text-xs text-text-muted">23:00–04:00</p>
+            <p className="text-xs text-text-muted">23:00–04:00 (bez 20:00–22:59)</p>
           </div>
           {hasUnlocks && (
             <div className="rounded-xl border border-border-subtle bg-surface-2 p-3 text-center">
@@ -176,7 +175,7 @@ export function ScreenDetailModal({ isOpen, onClose, screen, date }: ScreenDetai
           )}
         </div>
         {screen.lateNightImpact && <ImpactCard impact={screen.lateNightImpact} />}
-        {cognitive && totalMin > 0 && <CognitiveCard cognitive={cognitive} totalMin={totalMin} screen={screen} hasUnlocks={hasUnlocks} />}
+        {screen.categoryMinutesComplete && cognitive && totalMin > 0 && <CognitiveCard cognitive={cognitive} totalMin={totalMin} screen={screen} hasUnlocks={hasUnlocks} />}
         {topApps.length > 0 && <AppRankingCard topApps={topApps} />}
       </div>
     </Modal>
