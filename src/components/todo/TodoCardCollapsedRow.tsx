@@ -1,7 +1,9 @@
-import { CalendarDays, Check, Clock, GripVertical, MoreHorizontal, Pencil, Repeat2, Trash2 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
+import { CalendarDays, Check, Clock, Repeat2 } from 'lucide-react';
 import { Pressable, ControlInput } from '../ui/ControlPrimitives';
 import { getPlainText } from '../../lib/noteText';
 import { RECURRENCE_LABELS } from './todoUtils';
+import TodoRowQuickActions from './TodoRowQuickActions';
 import type { TodoItemRow } from '../../lib/todo/todo';
 
 interface TodoCardCollapsedRowProps {
@@ -16,10 +18,16 @@ interface TodoCardCollapsedRowProps {
   editingTitle: string;
   onEditChange: (val: string) => void;
   onEditSave: () => void;
+  onEditCancel?: () => void;
   expanded: boolean;
+  /** Click on the title starts inline editing. */
   onTitlePress: () => void;
-  onEdit: () => void;
+  onToggleExpand: () => void;
   onDelete: () => void;
+  sections: { id: string; name: string }[];
+  onSetSchedule: (patch: { due_date?: string | null }) => void;
+  onSetPriority: (priority: string) => void;
+  onMoveSection: (sectionId: string | null) => void;
   panelId: string;
   totalSubtaskCount: number;
   doneSubtaskCount: number;
@@ -39,20 +47,31 @@ interface TodoCardCollapsedRowProps {
 const PRIORITY_LABEL: Record<string, string> = { urgent: 'P1 · Pilne', high: 'P2 · Ważne', normal: 'P3', low: 'P4' };
 
 export default function TodoCardCollapsedRow({ item, busy, isDone, icon, label, dateInfo, today,
-  isEditing, editingTitle, onEditChange, onEditSave, expanded, onTitlePress, onEdit, onDelete, panelId,
+  isEditing, editingTitle, onEditChange, onEditSave, onEditCancel, expanded, onTitlePress, onToggleExpand, onDelete, panelId, sections, onSetSchedule, onSetPriority, onMoveSection,
   totalSubtaskCount, doneSubtaskCount, isLinkedToPlan, sectionName, dreamTitle, swipe, onShowContextMenu,
 }: TodoCardCollapsedRowProps) {
   const notes = getPlainText(item.notes || '').replace(/\bsource:(?:note|link):[0-9a-f-]+/gi, '').trim();
   const priority = item.priority || 'normal';
+  // Enter/Esc end the edit explicitly; the blur that follows the unmount must not save a second time.
+  const skipBlur = useRef(false);
+  useEffect(() => { if (isEditing) skipBlur.current = false; }, [isEditing]);
+  const finishEdit = (input: HTMLInputElement, action: () => void) => {
+    skipBlur.current = true;
+    const shell = input.closest<HTMLElement>('[data-todo-id]');
+    action();
+    requestAnimationFrame(() => shell?.focus({ preventScroll: true }));
+  };
   return (
     <>
       <div className="todo-focus-top">
-        <span className={`todo-focus-date ${dateInfo?.color || 'text-text-secondary'}`}>
-          <CalendarDays size={15} aria-hidden="true" />{dateInfo?.text || (isDone && item.due_date ? item.due_date : 'Bez terminu')}
-        </span>
-        <span className={`todo-focus-priority ${priority === 'urgent' || priority === 'high' ? 'todo-focus-important' : ''}`}>
-          {PRIORITY_LABEL[priority] || priority}
-        </span>
+        {(dateInfo || (isDone && item.due_date)) && (
+          <span className={`todo-focus-date ${dateInfo?.color || 'text-text-secondary'}`}>
+            <CalendarDays size={13} aria-hidden="true" />{dateInfo?.text || item.due_date}
+          </span>
+        )}
+        {(priority === 'urgent' || priority === 'high') && (
+          <span className="todo-focus-priority todo-focus-important">{PRIORITY_LABEL[priority]}</span>
+        )}
       </div>
       <div className="todo-focus-title-row">
         <Pressable haptic="none" onClick={e => { e.stopPropagation(); swipe.handleComplete(); }} disabled={busy}
@@ -64,13 +83,18 @@ export default function TodoCardCollapsedRow({ item, busy, isDone, icon, label, 
         {icon && <span aria-hidden="true" className="text-lg">{icon}</span>}
         {isEditing ? (
           <ControlInput autoFocus value={editingTitle} onChange={e => onEditChange(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') onEditSave(); }}
-            onBlur={onEditSave} onClick={e => e.stopPropagation()}
+            aria-label="Tytuł zadania (Enter zapisuje, Esc anuluje)"
+            onKeyDown={e => {
+              if (e.nativeEvent.isComposing) return;
+              if (e.key === 'Enter') { e.preventDefault(); finishEdit(e.currentTarget, onEditSave); }
+              else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); finishEdit(e.currentTarget, onEditCancel ?? onEditSave); }
+            }}
+            onBlur={() => { if (skipBlur.current) { skipBlur.current = false; return; } onEditSave(); }}
+            onClick={e => e.stopPropagation()}
             className="min-w-0 w-full rounded-lg border border-primary/40 bg-surface-solid px-2 py-2 text-base text-text-primary focus-visible:shadow-focus" />
         ) : (
           <Pressable onClick={e => { e.stopPropagation(); onTitlePress(); }}
-            aria-expanded={expanded} aria-controls={panelId}
-            className={`todo-instant min-h-11 min-w-0 flex-1 rounded-lg text-left text-base font-semibold leading-snug tracking-tight focus-visible:shadow-focus ${isDone ? 'line-through text-text-secondary' : 'text-text-primary'}`}>
+            className={`todo-instant todo-focus-title cursor-text min-h-11 min-w-0 flex-1 rounded-lg text-left text-base font-semibold leading-snug tracking-tight focus-visible:shadow-focus ${isDone ? 'line-through text-text-secondary' : 'text-text-primary'}`}>
             {label}
           </Pressable>
         )}
@@ -87,24 +111,9 @@ export default function TodoCardCollapsedRow({ item, busy, isDone, icon, label, 
           {isLinkedToPlan && <span>Plan</span>}
           {item.deadline_date && !isDone && <span className={item.deadline_date <= today ? 'text-danger' : ''}>do {item.deadline_date}</span>}
         </div>
-        <div className="todo-focus-actions">
-          <div data-no-view-swipe onTouchStart={swipe.onGripTouchStart} onTouchEnd={swipe.onGripTouchEnd}
-            onTouchMove={swipe.onGripTouchMove} onMouseDown={swipe.onGripMouseDown}
-            className="todo-focus-grip flex h-11 w-11 touch-none items-center justify-center rounded-lg text-text-secondary" title="Przeciągnij zadanie" aria-hidden="true">
-            <GripVertical size={16} aria-hidden="true" />
-          </div>
-          <Pressable haptic="none" onClick={e => { e.stopPropagation(); onEdit(); }}
-            className="todo-instant flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary hover:bg-surface-2 focus-visible:shadow-focus"
-            aria-label={`Edytuj: ${item.title}`} title="Edytuj zadanie"><Pencil size={17} aria-hidden="true" /></Pressable>
-          <Pressable haptic="none" onClick={e => { e.stopPropagation(); onDelete(); }}
-            className="todo-instant flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary hover:bg-danger/10 hover:text-danger focus-visible:shadow-focus"
-            aria-label={`Usuń: ${item.title}`} title="Usuń zadanie"><Trash2 size={17} aria-hidden="true" /></Pressable>
-          <Pressable haptic="none" onClick={e => {
-            e.stopPropagation(); const rect = e.currentTarget.getBoundingClientRect();
-            onShowContextMenu(item, rect.left, rect.bottom + 4);
-          }} className="todo-instant flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary hover:bg-surface-2 focus-visible:shadow-focus"
-            aria-label="Więcej opcji" title="Więcej opcji"><MoreHorizontal size={19} /></Pressable>
-        </div>
+        <TodoRowQuickActions item={item} today={today} expanded={expanded} panelId={panelId} sections={sections}
+          grip={swipe} onToggleExpand={onToggleExpand} onDelete={onDelete} onSetSchedule={onSetSchedule}
+          onSetPriority={onSetPriority} onMoveSection={onMoveSection} onShowContextMenu={onShowContextMenu} />
       </div>
     </>
   );

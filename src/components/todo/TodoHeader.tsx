@@ -1,5 +1,6 @@
 import { Pressable } from '../ui/ControlPrimitives';
-import { Bell, Kanban, LayoutGrid, ListTodo, PanelLeft, Plus } from 'lucide-react';
+import { Bell, CalendarDays, Kanban, LayoutGrid, ListTodo, PanelLeft, Plus } from 'lucide-react';
+import { TOGGLE_CALENDAR_EVENT } from './TodayEventsPanel';
 import { WorkspaceHeader } from '../shared/WorkspaceHeader';
 import { useTodoContext } from './context/TodoContext';
 import { SidebarTrigger } from '../ui/sidebar';
@@ -46,6 +47,15 @@ export default function TodoHeader({
         </>}
         actions={
           <div className="flex items-center gap-2">
+            <Pressable
+              variant="ghost"
+              size="sm"
+              onClick={() => window.dispatchEvent(new Event(TOGGLE_CALENDAR_EVENT))}
+              aria-label="Pokaż kalendarz dziś"
+              title="Kalendarz dziś"
+            >
+              <CalendarDays size={16} />
+            </Pressable>
             {onQuickAdd && (
               <Pressable
                 variant="primary"

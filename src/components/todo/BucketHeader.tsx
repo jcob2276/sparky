@@ -51,7 +51,7 @@ export default function BucketHeader({ icon, title, count, collapsed, onToggle, 
           className="todo-instant flex min-h-11 flex-1 min-w-0 items-center gap-2 rounded-lg text-left focus-visible:shadow-focus">
           <ChevronRight size={16} className={`text-text-secondary shrink-0 ${collapsed ? '' : 'rotate-90'}`} aria-hidden="true" />
           {icon && <span className="text-lg leading-none shrink-0" aria-hidden="true">{icon}</span>}
-          <span className="text-base sm:text-lg font-bold tracking-tight truncate">{title}</span>
+          <span className="text-base font-semibold tracking-tight truncate">{title}</span>
           <span className="text-sm tabular-nums text-text-secondary shrink-0">{count}</span>
         </Pressable>
       )}

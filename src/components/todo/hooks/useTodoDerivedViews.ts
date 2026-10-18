@@ -58,7 +58,7 @@ export function useTodoDerivedViews({
     return true;
   }), [activeFilterSection, activeSmartQuery, today, sectionNameById]);
 
-  const { todayItems, inboxItems, upcomingItems, sectionsWithItems } = useMemo(() => {
+  const { navCounts, todayItems, inboxItems, upcomingItems, sectionsWithItems } = useMemo(() => {
     const todayList = openItems
       .filter((i) =>
         (i.due_date && i.due_date <= today) ||
@@ -100,7 +100,18 @@ export function useTodoDerivedViews({
       ...s,
       items: applyFilter(sectionsMap[s.id] || [])
     }));
+    // Sidebar badges describe the whole workspace — independent of the active section/search filter.
+    const unfilteredCount = (arr: TodoItemRow[]) => arr.length;
+    const navCounts = {
+      today: unfilteredCount(todayList),
+      inbox: unfilteredCount(remainingItems.filter((i) => i.section_id === null)),
+      upcoming: unfilteredCount(remainingItems.filter((i) => {
+        const nextDate = i.due_date || i.deadline_date;
+        return nextDate && nextDate > today && nextDate <= upcomingCutoffStr;
+      })),
+    };
     return {
+      navCounts,
       todayItems: applyFilter(todayList),
       inboxItems: inbox,
       upcomingItems: upcoming,
@@ -115,6 +126,7 @@ export function useTodoDerivedViews({
     openItems,
     doneItems,
     getChildren,
+    navCounts,
     todayItems,
     inboxItems,
     upcomingItems,

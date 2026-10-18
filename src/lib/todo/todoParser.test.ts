@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseTodoQuickInput } from './todoParser';
+import { matchSectionByTag, parseTodoQuickInput, warsawWallClock } from './todoParser';
 
 // Fixed anchor date: Monday 2024-01-08 (week: Mon=1, Tue=2, ..., Sun=0)
 const MONDAY = new Date('2024-01-08T10:00:00');
@@ -191,5 +191,92 @@ describe('parseTodoQuickInput', () => {
       expect(() => parseTodoQuickInput(undefined)).not.toThrow();
       expect(parseTodoQuickInput(null).title).toBe('');
     });
+  });
+});
+
+describe('quick-add syntax extensions', () => {
+  it('parses !p1 priority and removes it from the title', () => {
+    const result = parseTodoQuickInput('zadzwonić do Marka !p1', MONDAY);
+    expect(result.priority).toBe('urgent');
+    expect(result.title).toBe('zadzwonić do Marka');
+  });
+
+  it('parses #sekcja and @kontekst as tags, keeping the @ prefix on contexts', () => {
+    const result = parseTodoQuickInput('kupić mleko #Zakupy @sklep', MONDAY);
+    expect(result.tags).toEqual(['zakupy', '@sklep']);
+    expect(result.title).toBe('kupić mleko');
+  });
+
+  it.each([
+    ['sprawdzić piec za godzinę', '11:00'],
+    ['sprawdzić piec za 2h', '12:00'],
+    ['sprawdzić piec za 2 godziny', '12:00'],
+    ['sprawdzić piec za pół godziny', '10:30'],
+    ['sprawdzić piec za kwadrans', '10:15'],
+  ])('parses relative clock in "%s"', (input, time) => {
+    const result = parseTodoQuickInput(input, MONDAY);
+    expect(result.title).toBe('sprawdzić piec');
+    expect(result.due_date).toBe('2024-01-08');
+    expect(result.scheduled_time).toBe(time);
+  });
+
+  it('parses "za 1 miesiąc"', () => {
+    expect(parseTodoQuickInput('przegląd za 1 miesiąc', MONDAY).due_date).toBe('2024-02-08');
+  });
+
+  it('rolls a bare past time over to tomorrow', () => {
+    const result = parseTodoQuickInput('budzik o 8', MONDAY);
+    expect(result.scheduled_time).toBe('08:00');
+    expect(result.due_date).toBe('2024-01-09');
+  });
+
+  it('keeps a bare future time on today', () => {
+    expect(parseTodoQuickInput('lunch o 13:30', MONDAY).due_date).toBe('2024-01-08');
+  });
+
+  it('does not treat "na 15" as a clock time', () => {
+    const result = parseTodoQuickInput('bilety na 15 osób', MONDAY);
+    expect(result.scheduled_time).toBeNull();
+    expect(result.title).toBe('bilety na 15 osób');
+  });
+
+  it('parses "jutro 15:00" and "w piątek"', () => {
+    const a = parseTodoQuickInput('prezentacja jutro 15:00', MONDAY);
+    expect(a.due_date).toBe('2024-01-09');
+    expect(a.scheduled_time).toBe('15:00');
+    const friday = parseTodoQuickInput('siłownia w piątek', MONDAY);
+    expect(friday.due_date).toBe('2024-01-12');
+    expect(friday.title).toBe('siłownia');
+  });
+
+  it('treats "następny piątek" as the Friday of the following week', () => {
+    expect(parseTodoQuickInput('review następny piątek', MONDAY).due_date).toBe('2024-01-19');
+  });
+
+  it('uses the Warsaw wall clock by default', () => {
+    const wall = warsawWallClock(new Date('2024-06-30T22:30:00Z')); // 00:30 on 1 July in Warsaw
+    expect(wall.getFullYear()).toBe(2024);
+    expect(wall.getMonth()).toBe(6);
+    expect(wall.getDate()).toBe(1);
+    expect(wall.getHours()).toBe(0);
+    expect(wall.getMinutes()).toBe(30);
+  });
+});
+
+describe('matchSectionByTag', () => {
+  const sections = [{ id: 's1', name: 'Praca domowa' }, { id: 's2', name: 'Zakupy' }, { id: 's3', name: 'Zdrowie' }];
+
+  it('matches exactly, ignoring case, diacritics and separators', () => {
+    expect(matchSectionByTag(['praca-domowa', 'x'], sections)).toEqual({ sectionId: 's1', sectionName: 'Praca domowa', tags: ['x'] });
+  });
+
+  it('matches a unique prefix of 3+ characters', () => {
+    expect(matchSectionByTag(['zak'], sections).sectionId).toBe('s2');
+  });
+
+  it('rejects ambiguous prefixes, short prefixes and contexts', () => {
+    expect(matchSectionByTag(['z'], sections).sectionId).toBeNull();
+    expect(matchSectionByTag(['@zakupy'], sections).sectionId).toBeNull();
+    expect(matchSectionByTag(['zdr', 'zak'], [...sections, { id: 's4', name: 'Zdrowa dieta' }]).sectionId).toBe('s2');
   });
 });

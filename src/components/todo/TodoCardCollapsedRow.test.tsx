@@ -15,7 +15,8 @@ const props = (): ComponentProps<typeof TodoCardCollapsedRow> => ({
     scheduled_time: null, section_id: null, sort_order: 0 } satisfies TodoItemRow,
   busy: false, isDone: true, icon: null, label: 'Test', dateInfo: null,
   today: '2026-10-08', isEditing: false, editingTitle: '', expanded: false,
-  onEditChange: vi.fn(), onEditSave: vi.fn(), onTitlePress: vi.fn(), onEdit: vi.fn(), onDelete: vi.fn(), panelId: 'details',
+  onEditChange: vi.fn(), onEditSave: vi.fn(), onTitlePress: vi.fn(), onToggleExpand: vi.fn(), onDelete: vi.fn(), panelId: 'details',
+  sections: [], onSetSchedule: vi.fn(), onSetPriority: vi.fn(), onMoveSection: vi.fn(),
   totalSubtaskCount: 0, doneSubtaskCount: 0, isLinkedToPlan: false,
   swipe: { handleComplete: vi.fn(),
     onGripTouchStart: vi.fn(), onGripTouchEnd: vi.fn(), onGripTouchMove: vi.fn(), onGripMouseDown: vi.fn() },
@@ -36,12 +37,37 @@ describe('task row actions', () => {
     expect(input.swipe.handleComplete).toHaveBeenCalledOnce();
     expect(input.swipe.onGripMouseDown).not.toHaveBeenCalled();
   });
-  it('exposes direct edit and delete actions even when completed', () => {
+  it('exposes direct delete and expand actions even when completed', () => {
     const input = props();
     render(<TodoCardCollapsedRow {...input} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Edytuj: Test' }));
     fireEvent.click(screen.getByRole('button', { name: 'Usuń: Test' }));
-    expect(input.onEdit).toHaveBeenCalledOnce();
+    fireEvent.click(screen.getByRole('button', { name: 'Rozwiń szczegóły: Test' }));
     expect(input.onDelete).toHaveBeenCalledOnce();
+    expect(input.onToggleExpand).toHaveBeenCalledOnce();
+  });
+  it('starts inline editing on title click without expanding', () => {
+    const input = props();
+    render(<TodoCardCollapsedRow {...input} />);
+    fireEvent.click(screen.getByText('Test'));
+    expect(input.onTitlePress).toHaveBeenCalledOnce();
+    expect(input.onToggleExpand).not.toHaveBeenCalled();
+  });
+  it('saves on Enter, cancels on Escape and never saves twice on the following blur', () => {
+    const save = vi.fn();
+    const cancel = vi.fn();
+    const input = { ...props(), isEditing: true, editingTitle: 'Nowy', onEditSave: save, onEditCancel: cancel };
+    render(<TodoCardCollapsedRow {...input} />);
+    const field = screen.getByRole('textbox');
+    fireEvent.keyDown(field, { key: 'Enter' });
+    fireEvent.blur(field);
+    expect(save).toHaveBeenCalledOnce();
+    fireEvent.keyDown(field, { key: 'Escape' });
+    expect(cancel).toHaveBeenCalledOnce();
+  });
+  it('opens the date presets popover with a single click', () => {
+    render(<TodoCardCollapsedRow {...props()} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Ustaw termin: Test' }));
+    expect(screen.getByRole('dialog', { name: 'Termin' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: /Za tydzień/ })).toBeTruthy();
   });
 });

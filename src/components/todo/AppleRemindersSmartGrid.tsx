@@ -86,14 +86,14 @@ export function AppleRemindersSmartGrid({
             className={`todo-instant min-w-0 flex items-center gap-3 px-3 py-3 rounded-xl border cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
               isActive
                 ? 'border-primary/50 bg-primary/15 shadow-sm ring-2 ring-primary/20'
-                : 'border-border-custom/40 bg-surface-solid/80 hover:bg-surface-solid hover:border-border-custom/60 shadow-xs'
+                : 'border-transparent bg-surface-solid shadow-xs hover:shadow-sm'
             }`}
           >
             <div className={`w-7 h-7 shrink-0 rounded-full ${card.bgColor} text-on-accent flex items-center justify-center shadow-xs`}>
               <Icon size={14} strokeWidth={2.5} />
             </div>
             <div className="min-w-0 flex flex-col leading-none justify-center">
-              <span className={`text-xl font-bold tabular-nums tracking-tight ${card.textColor}`}>
+              <span className={`text-2xl font-semibold tabular-nums tracking-tight ${card.textColor}`}>
                 {card.count}
               </span>
               <span className="text-xs font-medium text-text-secondary tracking-tight truncate mt-0.5">

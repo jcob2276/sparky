@@ -2,6 +2,9 @@ import { Pressable } from '../../ui/ControlPrimitives';
 import { useEffect, useRef, useState } from 'react';
 import { useTodoContext } from '../context/TodoContext';
 import TodoQuickCapture from '../TodoQuickCapture';
+import type { AddTodoOptions } from './useTodoQuickCapture';
+
+import { TODO_QUICK_ADD_EVENT } from './useTodoKeyboard';
 
 export function useTodoQuickAdd() {
   const {
@@ -13,6 +16,11 @@ export function useTodoQuickAdd() {
   const [scanTextOpen, setScanTextOpen] = useState(false);
 
   const openQuickAdd = (sectionId: string) => {
+    if (isExpanded) {
+      // Already open: keep the draft, just return focus to the title.
+      document.getElementById('todo-title-input')?.focus();
+      return;
+    }
     setActiveAddSectionId(sectionId);
     setIsExpanded(true);
     const defaultDate = sectionId === 'today' ? today : '';
@@ -27,6 +35,15 @@ export function useTodoQuickAdd() {
       quickCaptureRef.current?.querySelector<HTMLInputElement>('input')?.focus();
     }, 50);
   };
+
+  // Keyboard shortcut ("n") dispatched by useTodoKeyboard.
+  const openQuickAddRef = useRef(openQuickAdd);
+  useEffect(() => { openQuickAddRef.current = openQuickAdd; });
+  useEffect(() => {
+    const handler = () => openQuickAddRef.current('today');
+    window.addEventListener(TODO_QUICK_ADD_EVENT, handler);
+    return () => window.removeEventListener(TODO_QUICK_ADD_EVENT, handler);
+  }, []);
 
   // Auto-open quick capture when navigated with ?new=1 (PWA shortcut / Telegram)
   const autoNewTaskHandled = useRef(false);
@@ -60,9 +77,9 @@ export function useTodoQuickAdd() {
             if (!val) setActiveAddSectionId(null);
           }}
           busy={busy}
-          addItem={() => {
-            addItem();
-            setActiveAddSectionId(null);
+          addItem={(options?: AddTodoOptions) => {
+            addItem({ ...options, sections });
+            if (!options?.keepOpen) setActiveAddSectionId(null);
           }}
           sections={sections}
           parsedInput={parsedInput}

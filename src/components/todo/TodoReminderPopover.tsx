@@ -1,6 +1,7 @@
 import { Pressable, ControlInput, ControlSelect } from '../ui/ControlPrimitives';
 import { useEffect, useRef, useState } from 'react';
 import { Bell, HelpCircle } from 'lucide-react';
+import { combineDateTimeWarsawISO } from '../../lib/date';
 
 interface TodoReminderPopoverProps {
   inline?: boolean;
@@ -32,27 +33,36 @@ export default function TodoReminderPopover({
 
   useEffect(() => {
     const close = (e: MouseEvent | TouchEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      const target = e.target as Element | null;
+      // The trigger toggles the popover itself; closing here would make its click reopen it.
+      if (target?.closest?.('[data-todo-popover-trigger]')) return;
+      if (ref.current && !ref.current.contains(target as Node)) onClose();
     };
-    const closeKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    // Capture + stopPropagation: Esc closes only the popover, not the modal/card behind it.
+    const closeKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      onClose();
+    };
     const t = setTimeout(() => {
       document.addEventListener('mousedown', close);
       document.addEventListener('touchstart', close);
-      document.addEventListener('keydown', closeKey);
+      document.addEventListener('keydown', closeKey, true);
     }, 10);
     return () => {
       clearTimeout(t);
       document.removeEventListener('mousedown', close);
       document.removeEventListener('touchstart', close);
-      document.removeEventListener('keydown', closeKey);
+      document.removeEventListener('keydown', closeKey, true);
     };
   }, [onClose]);
 
-  const dueTimestamp = dueDate ? new Date(`${dueDate}T${scheduledTime || '09:00'}:00`) : null;
+  // Wall-clock times are Europe/Warsaw, never the browser zone.
+  const dueTimestamp = dueDate ? new Date(combineDateTimeWarsawISO(dueDate, scheduledTime || '09:00')) : null;
 
   const commitDatetime = () => {
     if (!datetimeVal) return;
-    onSetReminder(new Date(datetimeVal).toISOString());
+    onSetReminder(new Date(combineDateTimeWarsawISO(datetimeVal.slice(0, 10), datetimeVal.slice(11, 16))).toISOString());
     onClose();
   };
 
@@ -67,7 +77,7 @@ export default function TodoReminderPopover({
     <div
       ref={ref}
       onClick={(e) => e.stopPropagation()}
-      className={`${inline ? 'relative w-full' : 'absolute z-[var(--z-overlay)] top-full left-0 mt-2 w-[var(--ds-w-290px)] shadow-2xl'} rounded-2xl border border-border-custom bg-surface-solid flex flex-col gap-3 p-4 animate-in fade-in zoom-in-95 duration-[var(--motion-medium)] origin-top-left`}
+      className={`${inline ? 'relative w-full' : 'absolute z-[var(--z-overlay)] top-full left-0 mt-2 w-[var(--ds-w-290px)] todo-popover-fit shadow-2xl'} rounded-2xl border border-border-custom bg-surface-solid flex flex-col gap-3 p-4 animate-in fade-in zoom-in-95 duration-[var(--motion-medium)] origin-top-left`}
     >
       <p className="text-sm font-black text-text-primary">Przypomnienia</p>
 
@@ -97,6 +107,9 @@ export default function TodoReminderPopover({
           type="datetime-local"
           value={datetimeVal}
           onChange={(e) => setDatetimeVal(e.target.value)}
+          onKeyDown={(ev) => { if (ev.key === 'Enter') { ev.preventDefault(); commitDatetime(); } }}
+          aria-label="Data i godzina przypomnienia"
+          autoFocus
           className="w-full rounded-xl border border-border-custom/60 bg-surface/60 px-3 py-2 text-sm font-semibold text-text-primary outline-none focus:border-primary/40 [color-scheme:light] dark:[color-scheme:dark]"
         />
       ) : dueTimestamp ? (

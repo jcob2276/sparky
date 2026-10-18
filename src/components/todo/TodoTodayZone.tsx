@@ -4,6 +4,7 @@ import TodoCardConnected from './TodoCardConnected';
 import EmptyState from './EmptyState';
 import TodayRunway from './TodayRunway';
 import DayCapacityBar from './DayCapacityBar';
+import { dropState } from './todoDropState';
 
 interface TodoTodayZoneProps {
   renderInlineQuickCapture: (sectionId: string) => React.ReactNode;
@@ -21,18 +22,13 @@ export default function TodoTodayZone({ renderInlineQuickCapture, renderAddTodoB
   return (
     <div
       ref={todayZoneRef}
-      className={`todo-grouped-surface mb-4 ${
-        draggingItem !== null
-          ? dragTarget === 'today'
-            ? 'ring-2 ring-warning/60 shadow-[var(--shadow-accent-active)]'
-            : 'border-dashed border-warning/40'
-          : ''
-      }`}
+      className="todo-grouped-surface mb-4"
+      data-drop={dropState(draggingItem !== null, dragTarget === 'today')}
     >
       <div className="todo-grouped-header">
         <BucketHeader
-          icon="🔥"
-          title="Na dziś / Aktywne"
+          icon=""
+          title="Na dziś"
           count={todayItems.length}
           collapsed={!!collapsedSections['today']}
           onToggle={() => toggleSectionCollapse('today')}
@@ -47,12 +43,12 @@ export default function TodoTodayZone({ renderInlineQuickCapture, renderAddTodoB
           {todayItems.length === 0 ? (
             <EmptyState
               icon="🔥"
-              label="Brak zadań na dziś — upuść tutaj lub dodaj pierwsze"
+              label="Nic na dziś. Przeciągnij tu zadanie albo dodaj nowe."
               isDragOver={dragTarget === 'today'}
               dragColor="orange"
             />
           ) : (
-            <div className="todo-focus-grid">
+            <div className="todo-focus-grid" data-drop-label="Upuść, aby zaplanować na dziś">
               {todayItems.map((i) => (
                 <TodoCardConnected key={i.id} item={i} inToday />
               ))}

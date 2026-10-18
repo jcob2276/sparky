@@ -2471,40 +2471,80 @@ a,
   }
 }
 
-/* Sections organize the card grid without nesting one card inside another. */
-.todo-grouped-surface { margin-bottom: 1rem; }
-.todo-grouped-header { padding: 0.25rem 0 0.75rem; }
+/* Zadania jako gęste wiersze w jednej zaokrąglonej liście (styl Things / Przypomnienia). */
+.todo-grouped-surface { margin-bottom: 1.75rem; }
+.todo-grouped-header { padding: 0.125rem 0.25rem 0.5rem; }
 .todo-grouped-body { padding: 0; }
-.todo-focus-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.875rem; align-items: stretch; }
-.todo-focus-grid > * { min-width: 0; }
-.todo-focus-card {
-  height: 100%; min-width: 0; padding: 1.125rem;
+.todo-focus-grid {
+  display: flex; flex-direction: column; padding: 0.25rem;
   background: var(--surface-solid, var(--surface));
-  border: 1px solid color-mix(in srgb, var(--border-custom) 75%, transparent);
-  border-radius: 1.125rem;
-  box-shadow: 0 2px 3px rgba(0,0,0,0.025), 0 8px 24px rgba(0,0,0,0.035), inset 0 1px 0 rgba(255,255,255,0.09);
-  display: flex; flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--border-custom) 55%, transparent);
+  border-radius: 1rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
-.todo-focus-top, .todo-focus-footer, .todo-focus-title-row { display:flex; align-items:center; justify-content:space-between; }
-.todo-focus-top { min-height: 24px; gap: 0.5rem; }
-.todo-focus-date { display: inline-flex; gap: 0.375rem; align-items: center; font-size: 0.75rem; font-weight: 500; white-space: nowrap; }
-.todo-focus-priority { flex-shrink:0; color: var(--text-secondary); font-size: 0.75rem; }
-.todo-focus-important { padding: 0.25rem 0.5rem; border-radius: 0.375rem; color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 9%, transparent); }
-.todo-focus-title-row { justify-content:flex-start; gap: 0.25rem; margin-top: 0.75rem; margin-left: -0.75rem; }
-.todo-focus-check { width: 1.1875rem; height: 1.1875rem; display:flex; align-items:center; justify-content:center; border-radius:50%; border: 2px solid var(--border-custom); }
-.todo-focus-check.is-done { background:var(--color-success); border-color:var(--color-success); color:var(--on-accent); }
-.todo-focus-note { margin: 0.625rem 0 1.125rem 2rem; color: var(--text-secondary); font-size: 0.8125rem; line-height: 1.55; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; text-wrap: pretty; }
-.todo-focus-footer { gap: 0.5rem; margin-top: auto; padding-top: 0.5rem; border-top: 1px solid color-mix(in srgb, var(--border-custom) 35%, transparent); }
-.todo-focus-meta { min-width:0; display:flex; flex-wrap:wrap; gap:0.25rem 0.5rem; color:var(--text-secondary); font-size:0.75rem; line-height:1.35; }
-.todo-focus-meta > span { min-width:0; overflow-wrap:anywhere; display:inline-flex; align-items:center; gap:0.25rem; }
-.todo-focus-actions { flex-shrink:0; display:flex; }
+.todo-focus-grid > * { min-width: 0; }
+.todo-focus-grid > * + * { border-top: 1px solid color-mix(in srgb, var(--border-custom) 40%, transparent); }
+.todo-focus-card {
+  position: relative; min-width: 0;
+  display: grid; align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas: "title right act" "note note note" "meta meta meta" "exp exp exp";
+  padding: 0 0.5rem 0 0.25rem;
+  border-radius: 0.75rem;
+  background: transparent;
+  transition: background-color 120ms ease-out;
+}
+@media (hover: hover) and (pointer: fine) {
+  .todo-focus-card:hover { background: color-mix(in srgb, var(--text-primary) 4%, transparent); }
+}
+.todo-focus-card:has(.todo-focus-expanded) { background: color-mix(in srgb, var(--text-primary) 5%, transparent); padding-bottom: 0.5rem; }
+.todo-focus-top { grid-area: right; display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end; }
+.todo-focus-date { display: inline-flex; gap: 0.25rem; align-items: center; font-size: 0.75rem; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.todo-focus-priority { flex-shrink: 0; color: var(--text-secondary); font-size: 0.6875rem; font-weight: 600; }
+.todo-focus-important { padding: 0.125rem 0.5rem; border-radius: 999px; color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 12%, transparent); }
+.todo-focus-title-row { grid-area: title; display: flex; align-items: center; justify-content: flex-start; gap: 0.25rem; min-width: 0; }
+.todo-focus-title-row > button:last-child, .todo-focus-title-row > input { font-weight: 500; font-size: 0.9375rem; }
+.todo-focus-check {
+  width: 1.25rem; height: 1.25rem; display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--text-secondary) 55%, transparent);
+  background: transparent;
+}
+@media (hover: hover) and (pointer: fine) {
+  .todo-focus-card:hover .todo-focus-check:not(.is-done) { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 10%, transparent); }
+}
+.todo-focus-check.is-done { background: var(--color-success); border-color: var(--color-success); color: var(--on-accent); animation: todo-check-pop 240ms cubic-bezier(.34,1.56,.64,1); }
+.todo-focus-note { grid-area: note; margin: -0.25rem 0 0.5rem 2.875rem; color: var(--text-secondary); font-size: 0.8125rem; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; text-wrap: pretty; }
+.todo-focus-footer { display: contents; }
+.todo-focus-meta { grid-area: meta; min-width: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; margin: -0.25rem 0 0.5rem 2.875rem; color: var(--text-secondary); font-size: 0.75rem; line-height: 1.35; }
+.todo-focus-meta:empty { display: none; }
+.todo-focus-meta > span { min-width: 0; overflow-wrap: anywhere; display: inline-flex; align-items: center; gap: 0.25rem; }
+.todo-focus-actions { grid-area: act; display: flex; align-items: center; }
 .todo-focus-grip { cursor: grab; }
 .todo-focus-grip:active { cursor: grabbing; }
-.todo-focus-expanded { margin-top: 0.75rem; }
-.todo-focus-details { min-width:0; display:flex; flex-direction:column; gap:1rem; padding-top:0.75rem; border-top:1px solid color-mix(in srgb, var(--border-custom) 35%, transparent); }
-@media (max-width: 700px) {
-  .todo-focus-grid { grid-template-columns: minmax(0,1fr); gap: 0.75rem; }
-  .todo-focus-card { padding: 1rem; }
+.todo-focus-expanded { grid-area: exp; margin-top: 0.25rem; padding: 0 0.25rem 0 2.5rem; }
+.todo-focus-details { min-width: 0; display: flex; flex-direction: column; gap: 1rem; padding-top: 0.75rem; border-top: 1px solid color-mix(in srgb, var(--border-custom) 35%, transparent); }
+@media (hover: hover) and (pointer: fine) {
+  /* Desktop: akcje wysuwają się na prawą krawędź wiersza, nie zajmują miejsca. */
+  .todo-focus-actions {
+    position: absolute; right: 0.375rem; top: 50%; translate: 0 -50%; height: 2.25rem; padding: 0 0.125rem;
+    border-radius: 0.625rem; border: 1px solid color-mix(in srgb, var(--border-custom) 70%, transparent);
+    background: var(--surface-solid, var(--surface)); box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .todo-focus-actions > *, .todo-focus-actions > button { width: 2rem !important; height: 2rem !important; }
+  .todo-focus-card:hover .todo-focus-top, .todo-focus-card:focus-within .todo-focus-top { visibility: hidden; }
+}
+@keyframes todo-check-pop { 0% { scale: 0.6; } 60% { scale: 1.18; } 100% { scale: 1; } }
+@keyframes todo-leave {
+  0% { opacity: 1; max-height: 9rem; }
+  55% { opacity: 0; max-height: 9rem; }
+  100% { opacity: 0; max-height: 0; border-top-width: 0; }
+}
+.todo-card-leaving { overflow: hidden; pointer-events: none; animation: todo-leave 240ms cubic-bezier(.4,0,.2,1) forwards; }
+.todo-card-leaving .todo-focus-check { background: var(--color-success); border-color: var(--color-success); color: var(--on-accent); }
+.todo-card-leaving .todo-focus-title-row > button:last-child { text-decoration: line-through; color: var(--text-secondary); }
+@media (prefers-reduced-motion: reduce) {
+  .todo-card-leaving { animation: none; opacity: 0; }
+  .todo-focus-check.is-done { animation: none; }
 }
 
 /* Functional daily interactions stay stable, even under nested press feedback. */
@@ -2531,3 +2571,215 @@ a,
   .todo-action-menu .ui-pressable:active { transform: none !important; }
   .todo-action-menu[data-motion="pointer"] { transition: none; }
 }
+
+/* ===== Todo: tokeny i style widoku (przeniesione z todo.css; wartosci liczbowe jako --todo-*) ===== */
+:root {
+  --todo-dur-enter: 180ms;
+  --todo-dur-fast: 120ms;
+  --todo-dur-base: 150ms;
+  --todo-dur-tip-delay: 350ms;
+  --todo-enter-shift: 6px;
+  --todo-tip-shift: 2px;
+  --todo-pop-shift: 4px;
+  --todo-pop-scale: 0.98;
+  --todo-swipe-radius: 1.125rem;
+  --todo-qa-size: 2rem;
+  --todo-qa-size-coarse: 2.75rem;
+  --todo-qa-radius: 0.5rem;
+  --todo-tip-radius: 0.375rem;
+  --todo-tip-gap: 6px;
+  --todo-tip-pad-y: 0.25rem;
+  --todo-tip-pad-x: 0.5rem;
+  --todo-tip-font: 0.6875rem;
+  --todo-tip-weight: 500;
+  --todo-tip-leading: 1.2;
+  --todo-row-radius: 0.75rem;
+  --todo-pill-radius: 999px;
+  --todo-focus-ring: 2px;
+  --todo-drag-opacity: 0.35;
+  --todo-drop-ring: 3px;
+  --todo-drop-bar-inset: 0.5rem;
+  --todo-drop-bar-bottom: 0.1875rem;
+  --todo-drop-bar-h: 3px;
+  --todo-drop-label-right: 0.75rem;
+  --todo-drop-label-bottom: -0.875rem;
+  --todo-drop-pad-y: 0.1875rem;
+  --todo-drop-pad-x: 0.625rem;
+  --todo-drop-font: 0.75rem;
+  --todo-drop-weight: 600;
+  --todo-micro-font: 0.6875rem;
+  --todo-kanban-col-w: 82vw;
+  --todo-tap-pad: 15px;
+  --todo-tap-pad-sm: 0.5rem;
+  --todo-tap-shift: 13px;
+  --todo-tap-shift-sm: 6px;
+  --todo-z-pop: 10000;
+  --todo-sidebar-w: 17.5rem;
+  --todo-events-w: min(20rem, 100vw);
+  --todo-events-dur: 200ms;
+  --todo-palette-top: 12dvh;
+  --todo-palette-pad-x: 0.75rem;
+  --todo-palette-list-max: min(26rem, 60dvh);
+  --todo-palette-meta-max: 40%;
+  --todo-popover-gutter: 2rem;
+  --todo-scrim-light: 20%;
+  --todo-scrim-strong: 40%;
+}
+/* --- Karty: wejście, swipe-to-complete (mobile) --- */
+.todo-card-enter {
+  opacity: 1;
+  transform: none;
+  transition: opacity var(--todo-dur-enter) var(--ease-out), transform var(--todo-dur-enter) var(--ease-out);
+  @starting-style { opacity: 0; transform: translateY(var(--todo-enter-shift)); }
+}
+.todo-swipe-wrap { isolation: isolate; }
+.todo-swipe-row { touch-action: pan-y; will-change: auto; }
+.todo-swipe-wrap::before {
+  content: '';
+  position: absolute; inset: 0; z-index: -1;
+  border-radius: var(--todo-swipe-radius);
+  background: color-mix(in srgb, var(--color-success) 14%, transparent);
+  opacity: 0;
+  transition: opacity var(--todo-dur-fast) var(--ease-out);
+}
+.todo-swipe-wrap:has(.todo-swipe-row[style*="translate3d"])::before { opacity: 1; }
+.todo-swipe-wrap:has(.todo-swipe-row[data-swipe-armed="true"])::before {
+  background: color-mix(in srgb, var(--color-success) 28%, transparent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .todo-swipe-wrap::before { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .todo-card-enter { transition: none; @starting-style { opacity: 1; transform: none; } }
+  .todo-swipe-wrap::before { transition: none; }
+}
+
+/* Akcje karty: ukryte do hover/focus (desktop); na dotyku zostaje grip + menu "więcej" (edycja/usuń w menu, ukończ swipe'em). */
+@media (hover: hover) and (pointer: fine) {
+  .todo-focus-actions { opacity: 0; transition: opacity var(--todo-dur-fast) var(--ease-out); }
+  .todo-focus-card:hover .todo-focus-actions,
+  .todo-focus-card:focus-within .todo-focus-actions { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .todo-focus-actions { transition: none; }
+}
+
+/* --- Szybkie akcje wiersza (Linear-style) --- */
+.todo-qa { position: relative; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; width: var(--todo-qa-size); height: var(--todo-qa-size); border-radius: var(--todo-qa-radius); }
+.todo-focus-grip.todo-qa { cursor: grab; }
+/* Dotyk: duże cele; akcje wymagające precyzji zostają w menu "Więcej". */
+@media (pointer: coarse) {
+  .todo-qa { width: var(--todo-qa-size-coarse); height: var(--todo-qa-size-coarse); }
+  .todo-qa-fine { display: none; }
+}
+/* Tooltip z nazwą i skrótem: tylko myszka/klawiatura, pojawia się po krótkiej zwłoce. */
+@media (hover: hover) and (pointer: fine) {
+  .todo-qa[data-tip]::after {
+    content: attr(data-tip); position: absolute; right: 0; bottom: calc(100% + var(--todo-tip-gap)); z-index: 5;
+    padding: var(--todo-tip-pad-y) var(--todo-tip-pad-x); border-radius: var(--todo-tip-radius); white-space: nowrap; pointer-events: none;
+    font-size: var(--todo-tip-font); font-weight: var(--todo-tip-weight); line-height: var(--todo-tip-leading);
+    background: color-mix(in srgb, var(--text-primary) 92%, transparent); color: var(--surface-solid);
+    opacity: 0; transform: translateY(var(--todo-tip-shift));
+    transition: opacity var(--todo-dur-base) var(--ease-out) var(--todo-dur-tip-delay), transform var(--todo-dur-base) var(--ease-out) var(--todo-dur-tip-delay);
+  }
+  .todo-qa[data-tip]:hover::after, .todo-qa[data-tip]:focus-visible::after { opacity: 1; transform: none; }
+  .todo-focus-card:has(.todo-focus-expanded) .todo-focus-actions { opacity: 1; }
+}
+
+/* --- Fokus klawiaturowy wiersza (j/k) --- */
+.todo-row-shell { outline: none; border-radius: var(--todo-row-radius); }
+.todo-focus-card { transition: background-color var(--todo-dur-fast) var(--ease-out), box-shadow var(--todo-dur-base) var(--ease-out); }
+.todo-row-shell:focus-visible .todo-focus-card {
+  box-shadow: inset 0 0 0 var(--todo-focus-ring) color-mix(in srgb, var(--primary) 75%, transparent);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+@media (hover: hover) and (pointer: fine) {
+  .todo-row-shell:focus-visible .todo-focus-actions { opacity: 1; }
+  .todo-row-shell:focus-visible .todo-focus-top { visibility: hidden; }
+}
+
+/* --- Popover akcji wiersza: 150 ms, tylko opacity + transform --- */
+.todo-pop {
+  opacity: 1; transform: none; transform-origin: top right;
+  transition: opacity var(--todo-dur-base) var(--ease-out), transform var(--todo-dur-base) var(--ease-out);
+  @starting-style { opacity: 0; transform: translateY(calc(var(--todo-pop-shift) * -1)) scale(var(--todo-pop-scale)); }
+}
+.todo-pop[data-side="above"] { transform-origin: bottom right; @starting-style { opacity: 0; transform: translateY(var(--todo-pop-shift)) scale(var(--todo-pop-scale)); } }
+
+/* --- Drag & drop: wyraźny cel upuszczenia (bez zmiany układu, żeby cel nie "skakał") --- */
+.todo-is-dragging { opacity: var(--todo-drag-opacity); pointer-events: none; }
+.todo-grouped-surface[data-drop] .todo-focus-grid {
+  position: relative;
+  transition: border-color var(--todo-dur-base) var(--ease-out), background-color var(--todo-dur-base) var(--ease-out), box-shadow var(--todo-dur-base) var(--ease-out);
+}
+.todo-grouped-surface[data-drop="candidate"] .todo-focus-grid { border-style: dashed; border-color: color-mix(in srgb, var(--primary) 40%, transparent); }
+.todo-grouped-surface[data-drop="target"] .todo-focus-grid {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 7%, var(--surface-solid, var(--surface)));
+  box-shadow: 0 0 0 var(--todo-drop-ring) color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.todo-grouped-surface[data-drop="target"] .todo-focus-grid::after {
+  content: ''; position: absolute; left: var(--todo-drop-bar-inset); right: var(--todo-drop-bar-inset); bottom: var(--todo-drop-bar-bottom); height: var(--todo-drop-bar-h);
+  border-radius: var(--todo-pill-radius); background: var(--primary); pointer-events: none;
+}
+.todo-grouped-surface[data-drop="target"] .todo-focus-grid::before {
+  content: attr(data-drop-label); position: absolute; right: var(--todo-drop-label-right); bottom: var(--todo-drop-label-bottom); z-index: 3;
+  padding: var(--todo-drop-pad-y) var(--todo-drop-pad-x); border-radius: var(--todo-pill-radius); pointer-events: none;
+  background: var(--primary); color: var(--on-accent); font-size: var(--todo-drop-font); font-weight: var(--todo-drop-weight); white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .todo-pop, .todo-qa[data-tip]::after, .todo-grouped-surface[data-drop] .todo-focus-grid, .todo-focus-card { transition: none; }
+  .todo-pop { @starting-style { opacity: 1; transform: none; } }
+}
+
+/* Podczas edycji tytułu pasek akcji nie przykrywa pola. */
+.todo-focus-card:has(.todo-focus-title-row input) .todo-focus-actions { opacity: 0 !important; pointer-events: none; }
+
+.todo-text-micro { font-size: var(--todo-micro-font); }
+.todo-tap-target {
+  margin: calc(var(--todo-tap-pad) * -1);
+  margin-top: calc(var(--todo-tap-shift) * -1);
+  padding: var(--todo-tap-pad);
+}
+@media (min-width: 640px) {
+  .todo-tap-target {
+    margin: calc(var(--todo-tap-pad-sm) * -1);
+    margin-top: calc(var(--todo-tap-shift-sm) * -1);
+    padding: var(--todo-tap-pad-sm);
+  }
+}
+.todo-pop { z-index: var(--todo-z-pop); }
+.todo-popover-fit { max-width: calc(100vw - var(--todo-popover-gutter)); }
+@media (min-width: 768px) {
+  .todo-sidebar[data-state="expanded"] { width: var(--todo-sidebar-w) !important; }
+}
+.todo-chevron { transition: transform var(--todo-dur-base) var(--ease-out); }
+.todo-events-scrim {
+  position: fixed; inset: 0; z-index: var(--z-modal);
+  background: color-mix(in srgb, var(--scrim) var(--todo-scrim-light), transparent);
+  opacity: 1;
+  transition: opacity var(--todo-events-dur);
+}
+.todo-events-scrim[data-open="false"] { opacity: 0; pointer-events: none; }
+.todo-events-panel {
+  position: fixed; top: 0; bottom: 0; right: 0; z-index: var(--z-overlay);
+  width: var(--todo-events-w);
+  transform: translateX(0);
+  transition: transform var(--todo-events-dur) var(--ease-out);
+}
+.todo-events-panel[data-open="false"] { transform: translateX(100%); }
+.todo-palette-backdrop {
+  position: fixed; inset: 0; z-index: var(--z-overlay);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: var(--todo-palette-top) var(--todo-palette-pad-x) 0;
+  background: color-mix(in srgb, var(--scrim) var(--todo-scrim-strong), transparent);
+  backdrop-filter: blur(var(--blur-overlay));
+  -webkit-backdrop-filter: blur(var(--blur-overlay));
+}
+.todo-palette-list { max-height: var(--todo-palette-list-max); }
+.todo-palette-meta { max-width: var(--todo-palette-meta-max); }
+@media (prefers-reduced-motion: reduce) {
+  .todo-events-scrim, .todo-events-panel, .todo-chevron { transition: none; }
+}
+.todo-kanban-col { width: var(--todo-kanban-col-w); }
+@media (min-width: 640px) { .todo-kanban-col { width: var(--ds-w-220px); } }

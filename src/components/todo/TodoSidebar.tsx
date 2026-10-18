@@ -1,6 +1,6 @@
 import { Pressable, ControlInput } from '../ui/ControlPrimitives';
-import { useState } from 'react';
-import { Plus, Inbox, CalendarDays, CalendarClock, ChevronDown, Pencil, Trash2, Bell, PanelLeft } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Plus, Inbox, CalendarDays, CalendarClock, Pencil, Trash2 } from 'lucide-react';
 import WorkspaceNavigation from '../shared/WorkspaceNavigation';
 import type { WorkspaceDestination } from '../shared/WorkspaceNavigation';
 import WorkspaceSidebar from '../shared/WorkspaceSidebar';
@@ -49,6 +49,8 @@ export default function TodoSidebar({
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameVal, setRenameVal] = useState('');
   const { setOpenMobile } = useSidebar();
+  // Escape unmounts the input, which can still fire blur → must not commit a cancelled edit.
+  const cancelledRef = useRef(false);
 
   const selectDestination = (destination: TodoNavDest) => {
     onNavDest(destination);
@@ -61,6 +63,7 @@ export default function TodoSidebar({
   };
 
   const commitAdd = () => {
+    if (cancelledRef.current) { cancelledRef.current = false; return; }
     const n = newName.trim();
     if (n) onAddSection(n);
     setNewName('');
@@ -68,35 +71,14 @@ export default function TodoSidebar({
   };
 
   const commitRename = (id: string) => {
+    if (cancelledRef.current) { cancelledRef.current = false; return; }
     const n = renameVal.trim();
     if (n) onRenameSection(id, n);
     setRenamingId(null);
   };
 
   return (
-    <WorkspaceSidebar collapsed={collapsed} onCollapse={onToggleCollapse} className="gap-3" provideContext={false} mobileTitle="Zadania">
-      {/* Profile Header */}
-      <div className="hidden">
-        <div className="flex items-center gap-2 cursor-pointer hover:bg-text-primary/[0.04] p-1 rounded-lg transition-colors">
-          <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-black text-primary">
-            K
-          </div>
-          <span className="text-sm font-black text-text-primary">Kuba</span>
-          <ChevronDown size={11} className="text-text-muted/60" />
-        </div>
-        <div className="flex items-center gap-1">
-          <Pressable className="p-1.5 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer" title="Powiadomienia">
-            <Bell size={14} />
-          </Pressable>
-          <Pressable
-            onClick={onToggleCollapse}
-            className="p-1.5 text-text-muted hover:text-text-primary hover:bg-text-primary/[0.04] rounded-lg transition-colors cursor-pointer"
-            title="Zwiń panel boczny"
-          >
-            <PanelLeft size={14} />
-          </Pressable>
-        </div>
-      </div>
+    <WorkspaceSidebar collapsed={collapsed} onCollapse={onToggleCollapse} className="todo-sidebar gap-3" provideContext={false} mobileTitle="Zadania">
       {/* Workspace Section */}
       <div className="flex flex-col gap-0.5">
         <WorkspaceNavigation
@@ -145,7 +127,7 @@ export default function TodoSidebar({
         label="Moje projekty"
         collapsible
         defaultOpen
-        onAdd={() => setAdding(true)}
+        onAdd={() => { cancelledRef.current = false; setAdding(true); }}
         addTitle="Dodaj listę"
         bordered
         className="flex-1 min-h-0"
@@ -162,7 +144,7 @@ export default function TodoSidebar({
               onBlur={() => commitRename(s.id)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') commitRename(s.id);
-                if (e.key === 'Escape') setRenamingId(null);
+                if (e.key === 'Escape') { cancelledRef.current = true; setRenamingId(null); }
               }}
               className="flex-1 rounded-lg border border-primary/40 bg-surface-solid px-2 py-1 text-sm font-semibold text-primary outline-none"
             />
@@ -171,20 +153,21 @@ export default function TodoSidebar({
             <>
               <Pressable
                 onClick={() => {
+                  cancelledRef.current = false;
                   setRenamingId(s.id);
                   setRenameVal(s.name);
                 }}
-                className="p-1 text-text-muted/40 hover:text-primary transition-colors"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg md:h-7 md:w-7 text-text-muted/60 hover:text-primary transition-colors"
                 title="Zmień nazwę"
               >
-                <Pencil size={10} />
+                <Pencil size={12} />
               </Pressable>
               <Pressable
                 onClick={() => onDeleteSection(s.id)}
-                className="p-1 text-text-muted/40 hover:text-danger transition-colors"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg md:h-7 md:w-7 text-text-muted/60 hover:text-danger transition-colors"
                 title="Usuń listę"
               >
-                <Trash2 size={10} />
+                <Trash2 size={12} />
               </Pressable>
             </>
           ),
@@ -198,15 +181,15 @@ export default function TodoSidebar({
               onBlur={commitAdd}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') commitAdd();
-                if (e.key === 'Escape') { setAdding(false); setNewName(''); }
+                if (e.key === 'Escape') { cancelledRef.current = true; setAdding(false); setNewName(''); }
               }}
               placeholder="Nazwa listy…"
               className="mt-0.5 rounded-lg border border-primary/40 bg-surface-solid px-2 py-1 text-sm font-semibold text-primary outline-none"
             />
           ) : (
             <Pressable
-              onClick={() => setAdding(true)}
-              className="mt-0.5 flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm font-medium text-text-muted/40 hover:text-text-primary transition-colors"
+              onClick={() => { cancelledRef.current = false; setAdding(true); }}
+              className="mt-0.5 flex min-h-11 items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm md:min-h-0 font-medium text-text-muted/60 hover:text-text-primary transition-colors"
             >
               <Plus size={12} /> Nowa lista
             </Pressable>

@@ -54,19 +54,27 @@ export default function TodoDatePickerPopover({
 
   useEffect(() => {
     const close = (e: MouseEvent | TouchEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+      const target = e.target as Element | null;
+      // The trigger toggles the popover itself; closing here would make its click reopen it.
+      if (target?.closest?.('[data-todo-popover-trigger]')) return;
+      if (ref.current && !ref.current.contains(target as Node)) onClose();
     };
-    const closeKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    // Capture + stopPropagation: Esc closes only the popover, not the modal/card behind it.
+    const closeKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      onClose();
+    };
     const t = setTimeout(() => {
       document.addEventListener('mousedown', close);
       document.addEventListener('touchstart', close);
-      document.addEventListener('keydown', closeKey);
+      document.addEventListener('keydown', closeKey, true);
     }, 10);
     return () => {
       clearTimeout(t);
       document.removeEventListener('mousedown', close);
       document.removeEventListener('touchstart', close);
-      document.removeEventListener('keydown', closeKey);
+      document.removeEventListener('keydown', closeKey, true);
     };
   }, [onClose]);
 
@@ -74,15 +82,18 @@ export default function TodoDatePickerPopover({
   const weekendKey = nextWeekendKey(today);
 
   const pickDate = (key: string | null) => {
-    onChange({ due_date: key });
-    if (!key) { setShowTime(false); onChange({ scheduled_time: null, recurrence: null }); }
+    if (key) { onChange({ due_date: key }); return; }
+    // One patch, so a card persists a single update instead of three racing writes.
+    setShowTime(false);
+    onChange({ due_date: null, scheduled_time: null, recurrence: null });
   };
 
   const handleFreeText = (text: string) => {
     setFreeText(text);
     const parsed = parseTodoQuickInput(text);
     if (parsed.due_date) {
-      pickDate(parsed.due_date);
+      onChange({ due_date: parsed.due_date, ...(parsed.scheduled_time ? { scheduled_time: parsed.scheduled_time } : {}) });
+      if (parsed.scheduled_time) setShowTime(true);
       const [y, m] = parsed.due_date.split('-').map(Number);
       setViewYear(y);
       setViewMonth(m - 1);
@@ -121,13 +132,16 @@ export default function TodoDatePickerPopover({
     <div
       ref={ref}
       onClick={(e) => e.stopPropagation()}
-      className={`${inline ? 'relative w-full' : 'absolute z-[var(--z-overlay)] top-full left-0 mt-2 w-[var(--ds-w-280px)] shadow-2xl'} rounded-2xl border border-border-custom bg-surface-solid flex flex-col gap-2.5 p-3 animate-in fade-in zoom-in-95 duration-[var(--motion-medium)] origin-top-left`}
+      className={`${inline ? 'relative w-full' : 'absolute z-[var(--z-overlay)] top-full left-0 mt-2 w-[var(--ds-w-280px)] todo-popover-fit shadow-2xl'} rounded-2xl border border-border-custom bg-surface-solid flex flex-col gap-2.5 p-3 animate-in fade-in zoom-in-95 duration-[var(--motion-medium)] origin-top-left`}
     >
       <ControlInput
         autoFocus
         value={freeText}
         onChange={(e) => handleFreeText(e.target.value)}
-        placeholder="Wpisz termin"
+        onKeyDown={(ev) => { if (ev.key === 'Enter' && !ev.nativeEvent.isComposing) { ev.preventDefault(); onClose(); } }}
+        placeholder="Wpisz termin, np. jutro 15:00"
+        aria-label="Wpisz termin"
+        enterKeyHint="done"
         className="w-full rounded-xl border border-border-custom/60 bg-surface/60 px-3 py-1.5 text-sm font-medium text-text-primary outline-none placeholder:text-text-muted/40 focus:border-primary/40"
       />
 
@@ -165,10 +179,10 @@ export default function TodoDatePickerPopover({
         <div className="flex items-center justify-between mb-1.5 px-0.5">
           <span className="text-sm font-black text-text-primary">{MONTH_LABELS[viewMonth]} {viewYear}</span>
           <div className="flex gap-1">
-            <Pressable type="button" onClick={goPrevMonth} className="p-1 rounded-lg hover:bg-surface/60 transition-colors">
+            <Pressable type="button" aria-label="Poprzedni miesiąc" onClick={goPrevMonth} className="p-2 rounded-lg hover:bg-surface/60 transition-colors">
               <ChevronLeft size={13} className="text-text-muted" />
             </Pressable>
-            <Pressable type="button" onClick={goNextMonth} className="p-1 rounded-lg hover:bg-surface/60 transition-colors">
+            <Pressable type="button" aria-label="Następny miesiąc" onClick={goNextMonth} className="p-2 rounded-lg hover:bg-surface/60 transition-colors">
               <ChevronRight size={13} className="text-text-muted" />
             </Pressable>
           </div>
@@ -187,7 +201,9 @@ export default function TodoDatePickerPopover({
                 key={c.key}
                 type="button"
                 onClick={() => pickDate(c.key)}
-                className={`mx-auto h-6.5 w-6.5 rounded-lg text-xs font-semibold transition-colors ${
+                aria-label={c.key}
+                aria-pressed={isSelected}
+                className={`mx-auto h-8 w-8 rounded-lg text-xs font-semibold transition-colors ${
                   !c.inMonth ? 'text-text-muted/25' :
                   isSelected ? 'bg-primary text-on-accent' :
                   isToday ? 'text-primary border border-primary/40' :

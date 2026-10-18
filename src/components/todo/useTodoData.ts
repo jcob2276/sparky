@@ -99,9 +99,8 @@ export function useTodoData() {
     sections,
     collapsedSections,
     setCollapsedSections,
-    setBusy,
     setError,
-    fetchAll,
+    setItems,
   });
 
   useTodoLifecycleEffects({
@@ -112,7 +111,7 @@ export function useTodoData() {
   const {
     sectionById, sectionGoalMap, sectionDreamMap,
     doneItems, getChildren,
-    todayItems, inboxItems, upcomingItems, sectionsWithItems,
+    navCounts, todayItems, inboxItems, upcomingItems, sectionsWithItems,
   } = useTodoDerivedViews({
     items, sections, projects, dreams, today, activeFilterSection, activeSmartQuery, linkedPlanIds,
   });
@@ -160,6 +159,7 @@ export function useTodoData() {
     sectionDreamMap,
     parsedInput,
     doneItems,
+    navCounts,
     todayItems,
     inboxItems,
     upcomingItems,

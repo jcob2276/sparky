@@ -136,7 +136,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
   }
 
   if (navDest === 'flagged') {
-    const flaggedItems = items.filter((i) => i.priority === 'urgent' || i.priority === 'high');
+    const flaggedItems = items.filter((i) => i.status !== 'done' && (i.priority === 'urgent' || i.priority === 'high'));
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2 px-1 pt-2 pb-1">

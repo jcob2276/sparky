@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { useCallback, useEffect, useMemo, useState, lazy, Suspense } from 'react';
 
 import Skeleton from '../ui/Skeleton';
 import Spinner from '../ui/Spinner';
@@ -15,11 +15,13 @@ import type { TodoItemRow } from './useTodoData';
 import { TodoContext, useTodoContext } from './context/TodoContext';
 import './todo.css';
 import { useTodoQuickAdd } from './hooks/useTodoQuickAdd';
+import { TODO_NAVIGATE_EVENT, type TodoNavigateDetail } from './todoPaletteNav';
 import TodoContextMenuConnected from './TodoContextMenuConnected';
-import TodoHeader, { type TodoViewMode } from './TodoHeader';
+import TodoHeader from './TodoHeader';
 import TodoSearchBar from './TodoSearchBar';
 import TodoListView from './TodoListView';
 import { useTodoViewSwipe } from './hooks/useTodoViewSwipe';
+import { useTodoShell } from './hooks/useTodoShell';
 import { isStudySubject } from '../../lib/todo/studySubjects';
 import { SidebarProvider } from '../ui/sidebar';
 
@@ -35,17 +37,46 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
     run,
   } = todoData;
 
-  const [todoView, setTodoView] = useState<TodoViewMode>('lista');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [navDest, setNavDest] = useState<TodoNavDest>('overview');
 
+  const focusQuickCapture = useCallback(() => {
+    todoData.setIsExpanded(true);
+    quickCaptureRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => quickCaptureRef.current?.querySelector('input')?.focus(), 50);
+  }, [todoData, quickCaptureRef]);
+
+  const { todoView, setTodoView, sidebarCollapsed, setSidebarCollapsed, visited } = useTodoShell(!loading, {
+    onNewTask: () => { setTodoView('lista'); focusQuickCapture(); },
+    onEscape: () => setExpandedId(null),
+  });
+
   const viewSwipe = useTodoViewSwipe(todoView, setTodoView);
+
+  const boardItems = useMemo(() => todoData.items.filter((item) => !isStudySubject(item)), [todoData.items]);
+  const setBoardItems = useCallback(
+    (fn: (prev: TodoItemRow[]) => object[]) => todoData.setItems((prev) => fn(prev) as TodoItemRow[]),
+    [todoData],
+  );
 
   const {
     activeAddSectionId, scanTextOpen, setScanTextOpen,
     openQuickAdd,
     renderInlineQuickCapture, renderAddTodoButton,
   } = useTodoQuickAdd();
+
+  // Command palette navigation: this component owns navDest, so it handles the event directly.
+  useEffect(() => {
+    const onNavigate = (e: Event) => {
+      const detail = (e as CustomEvent<TodoNavigateDetail>).detail;
+      if (!detail) return;
+      detail.handled = true;
+      setTodoView('lista');
+      setNavDest(detail.target);
+      setActiveFilterSection(null);
+    };
+    window.addEventListener(TODO_NAVIGATE_EVENT, onNavigate);
+    return () => window.removeEventListener(TODO_NAVIGATE_EVENT, onNavigate);
+  }, [setTodoView, setActiveFilterSection]);
 
   useEffect(() => {
     const taskId = new URLSearchParams(window.location.search).get('task');
@@ -60,32 +91,7 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
         behavior: 'smooth', block: 'center',
       });
     }, 50);
-  }, [todoData.items, setActiveFilterSection, setExpandedId]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      const isInput = target?.tagName === 'INPUT' || target?.tagName === 'TEXTAREA' || target?.isContentEditable;
-      if (isInput) return;
-
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'n') {
-        e.preventDefault();
-        todoData.setIsExpanded(true);
-        quickCaptureRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        setTimeout(() => quickCaptureRef.current?.querySelector('input')?.focus(), 50);
-      } else if (e.key === 'Escape') {
-        setExpandedId(null);
-      } else if (e.key === '1') {
-        setTodoView('lista');
-      } else if (e.key === '2') {
-        setTodoView('kanban');
-      } else if (e.key === '3') {
-        setTodoView('eisenhower');
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [quickCaptureRef, setExpandedId, todoData]);
+  }, [todoData.items, setActiveFilterSection, setExpandedId, setTodoView]);
 
   if (loading) {
     return (
@@ -120,20 +126,16 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
         onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         navDest={navDest}
         onNavDest={(d) => { setNavDest(d); setActiveFilterSection(null); }}
-        inboxCount={todoData.inboxItems.length}
-        todayCount={todoData.todayItems.length}
-        upcomingCount={todoData.upcomingItems.length}
+        inboxCount={todoData.navCounts.inbox}
+        todayCount={todoData.navCounts.today}
+        upcomingCount={todoData.navCounts.upcoming}
         sections={todoData.sections}
         activeSectionId={activeFilterSection}
         onSelectSection={(id) => { setNavDest('overview'); setActiveFilterSection(id); }}
         onAddSection={(name) => run(() => createTodoSection(userId, name))}
         onRenameSection={(id, name) => run(() => renameTodoSection(id, name))}
         onDeleteSection={(id) => { setActiveFilterSection(null); run(() => archiveTodoSection(id)); }}
-        onQuickAdd={() => {
-          todoData.setIsExpanded(true);
-          quickCaptureRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          setTimeout(() => quickCaptureRef.current?.querySelector('input')?.focus(), 50);
-        }}
+        onQuickAdd={focusQuickCapture}
         onNavigateTo={onNavigateTo}
       />
 
@@ -158,35 +160,34 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
 
         <TodoSearchBar />
 
-        {todoView === 'eisenhower' && (
-          <main className="flex-1 overflow-y-auto" onClick={() => setExpandedId(null)}>
+        {/* Views stay mounted once visited (pre-mounted when idle) and are only hidden: 0 ms switch. */}
+        {visited.has('eisenhower') && (
+          <main
+            className={todoView === 'eisenhower' ? 'flex-1 overflow-y-auto pb-[env(safe-area-inset-bottom)]' : 'hidden'}
+            onClick={() => setExpandedId(null)}
+          >
             <Suspense fallback={<div className="flex h-64 items-center justify-center"><Spinner size="md" /></div>}>
-              <EisenhowerMatrix items={todoData.items.filter(item => !isStudySubject(item))} setItems={(fn) => todoData.setItems((prev) => fn(prev) as TodoItemRow[])} />
+              <EisenhowerMatrix items={boardItems} setItems={setBoardItems} />
             </Suspense>
           </main>
         )}
 
-        {todoView === 'kanban' && (
-          <main className="flex-1 overflow-hidden">
+        {visited.has('kanban') && (
+          <main className={todoView === 'kanban' ? 'flex-1 overflow-hidden pb-[env(safe-area-inset-bottom)]' : 'hidden'}>
             <Suspense fallback={<div className="flex h-64 items-center justify-center"><Spinner size="md" /></div>}>
-              <KanbanView
-                items={todoData.items.filter(item => !isStudySubject(item))}
-                sections={todoData.sections}
-                setItems={(fn) => todoData.setItems((prev) => fn(prev) as TodoItemRow[])}
-                today={today}
-              />
+              <KanbanView items={boardItems} sections={todoData.sections} setItems={setBoardItems} today={today} />
             </Suspense>
           </main>
         )}
 
-        {todoView === 'lista' && (
+        <div className={todoView === 'lista' ? 'flex min-h-0 flex-1 flex-col [--content-default:90rem]' : 'hidden'}>
           <TodoListView
             navDest={navDest}
             onSelectNavDest={(d) => { setNavDest(d); setActiveFilterSection(null); }}
             renderInlineQuickCapture={renderInlineQuickCapture}
             renderAddTodoButton={renderAddTodoButton}
           />
-        )}
+        </div>
       </div>
 
       {/* Desktop: today's calendar events panel */}

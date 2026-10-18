@@ -104,38 +104,41 @@ export function useTodoActions({
       ? { ...i, status: newStatus, completed_at: newStatus === 'done' ? now : null }
       : i
     ));
-    setTodoStatus(item, newStatus)
+    const pending = setTodoStatus(item, newStatus);
+    // Undo toast appears at once (not after the round-trip); undo waits for the write to settle.
+    if (newStatus === 'done' && !item.recurrence) {
+      const actionId = registerReversibleAction({
+        label: `Ukończenie: ${item.title}`,
+        undo: async () => {
+          await pending.catch(() => undefined);
+          setItems(prev => prev.map(i => i.id === item.id
+            ? { ...i, status: 'open', completed_at: null }
+            : i
+          ));
+          await setTodoStatus({ id: item.id }, 'open');
+        },
+        redo: async () => {
+          const completedAt = new Date().toISOString();
+          setItems(prev => prev.map(i => i.id === item.id
+            ? { ...i, status: 'done', completed_at: completedAt }
+            : i
+          ));
+          await setTodoStatus({ id: item.id }, 'done');
+        },
+      });
+      notify('Zadanie wykonane.', 'success', {
+        action: {
+          label: 'Cofnij',
+          onClick: () => {
+            void undoAction(actionId).catch((err) => {
+              setError(err instanceof Error ? err.message : String(err));
+            });
+          },
+        },
+      });
+    }
+    pending
       .then(async () => {
-        if (newStatus === 'done' && !item.recurrence) {
-          const actionId = registerReversibleAction({
-            label: `Ukończenie: ${item.title}`,
-            undo: async () => {
-              setItems(prev => prev.map(i => i.id === item.id
-                ? { ...i, status: 'open', completed_at: null }
-                : i
-              ));
-              await setTodoStatus({ id: item.id }, 'open');
-            },
-            redo: async () => {
-              const completedAt = new Date().toISOString();
-              setItems(prev => prev.map(i => i.id === item.id
-                ? { ...i, status: 'done', completed_at: completedAt }
-                : i
-              ));
-              await setTodoStatus({ id: item.id }, 'done');
-            },
-          });
-          notify('Zadanie wykonane.', 'success', {
-            action: {
-              label: 'Cofnij',
-              onClick: () => {
-                void undoAction(actionId).catch((err) => {
-                  setError(err instanceof Error ? err.message : String(err));
-                });
-              },
-            },
-          });
-        }
         if (newStatus === 'done' && item.recurrence && userId) {
           const nextDate = nextOccurrenceDate(item.due_date, item.recurrence, today);
           let nextScheduledTime: string | undefined = undefined;
@@ -171,7 +174,8 @@ export function useTodoActions({
       .catch((err) => {
         console.error('[handleComplete] setTodoStatus failed, rolling back:', err);
         setError(err instanceof Error ? err.message : String(err));
-        setItems(prev => prev.map(i => i.id === item.id
+        // Roll back only if the row still shows our optimistic state (user may have toggled again).
+        setItems(prev => prev.map(i => i.id === item.id && i.status === newStatus
           ? { ...i, status: item.status, completed_at: item.completed_at }
           : i
         ));
