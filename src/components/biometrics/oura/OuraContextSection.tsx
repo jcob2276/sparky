@@ -20,6 +20,27 @@ interface ContextCardItem {
   extra?: ReactNode;
 }
 
+function ContextCard({ color, detail, extra, icon: Icon, interactive, label, onClick, value }: ContextCardItem) {
+  const Tag = interactive ? 'button' : 'article';
+  return (
+    <Tag
+      onClick={onClick}
+      className={`rounded-xl border border-white/5 bg-surface-2 p-5 text-left transition-colors ${
+        interactive ? 'cursor-pointer hover:border-border-focus hover:bg-surface-3' : ''
+      }`}
+    >
+      <div className="flex items-center justify-between">
+        <Icon className={color} size={22} />
+        {interactive && <span className="text-xs font-medium text-text-muted">Szczegóły</span>}
+      </div>
+      <p className="mt-8 text-sm text-text-secondary">{label}</p>
+      <p className="mt-1 text-2xl font-light text-text-primary">{value}</p>
+      {extra}
+      {detail && <div className="mt-2 text-xs leading-5 text-text-muted">{detail}</div>}
+    </Tag>
+  );
+}
+
 export function OuraContextSection({
   context,
   title = 'Kontekst przed snem',
@@ -37,6 +58,14 @@ export function OuraContextSection({
   }
 
   const isScreenAvailable = context.screen.status === 'available';
+  const sourceFailed = (source: string) => context.sourceErrors?.some((error) => error.source === source) ?? false;
+  const phoneFailed = sourceFailed('phone_usage_daily');
+  const workoutFailed = sourceFailed('workout_sessions');
+  const foodFailed = sourceFailed('daily_food_entries');
+  const readFailure = <span className="text-warning">Nie udało się odczytać części danych.</span>;
+  const withReadFailure = (detail: ReactNode, failed: boolean): ReactNode => (
+    failed ? <span className="flex flex-col gap-1">{detail}{readFailure}</span> : detail
+  );
 
   const cards: ContextCardItem[] = [
     {
@@ -44,10 +73,13 @@ export function OuraContextSection({
       label: 'Trening',
       value: context.training.status === 'available'
         ? `${context.training.durationMinutes} min`
-        : 'Nie zapisano treningu',
-      detail: context.training.status === 'unavailable' || context.training.strainScore == null
-        ? null
-        : `Obciążenie ${context.training.strainScore}`,
+        : workoutFailed ? 'Dane chwilowo niedostępne' : 'Nie zapisano treningu',
+      detail: withReadFailure(
+        context.training.status === 'unavailable' || context.training.strainScore == null
+          ? null
+          : `Obciążenie ${context.training.strainScore}`,
+        workoutFailed,
+      ),
       color: 'text-warning',
     },
     {
@@ -55,8 +87,8 @@ export function OuraContextSection({
       label: 'Ekran',
       value: isScreenAvailable
         ? (context.screen.formattedTotal ?? `${context.screen.totalMinutes ?? '—'} min`)
-        : 'Brak pomiaru czasu przed ekranem',
-      detail: isScreenAvailable ? (
+        : phoneFailed ? 'Dane chwilowo niedostępne' : 'Brak pomiaru czasu przed ekranem',
+      detail: withReadFailure(isScreenAvailable ? (
         <span className="flex flex-col gap-1">
           {context.screen.lateNightMinutes != null ? (
             <span
@@ -81,7 +113,7 @@ export function OuraContextSection({
             </span>
           )}
         </span>
-      ) : null,
+      ) : null, phoneFailed),
       color: 'text-info',
       interactive: isScreenAvailable,
       onClick: isScreenAvailable ? () => setScreenModalOpen(true) : undefined,
@@ -114,8 +146,8 @@ export function OuraContextSection({
       label: 'Kofeina',
       value: context.caffeine.status === 'available'
         ? `~${context.caffeine.amountMg} mg (szacunek)`
-        : 'Nie zapisano kofeiny',
-      detail: context.caffeine.lastAt == null ? null : `Szacunek z wpisów · czas wpisu ${context.caffeine.lastAt}`,
+        : foodFailed ? 'Dane chwilowo niedostępne' : 'Nie zapisano kofeiny',
+      detail: withReadFailure(context.caffeine.lastAt == null ? null : `Szacunek z wpisów · czas wpisu ${context.caffeine.lastAt}`, foodFailed),
       color: 'text-warning',
     },
     {
@@ -123,10 +155,10 @@ export function OuraContextSection({
       label: 'Jedzenie',
       value: context.meals.status === 'available'
         ? `${context.meals.calories} kcal`
-        : 'Nie zapisano posiłków',
-      detail: context.meals.lastAt == null
+        : foodFailed ? 'Dane chwilowo niedostępne' : 'Nie zapisano posiłków',
+      detail: withReadFailure(context.meals.lastAt == null
         ? null
-        : `Ostatni wpis ${context.meals.lastAt} · jakość ${context.meals.averageQuality ?? '—'}/10`,
+        : `Ostatni wpis ${context.meals.lastAt} · jakość ${context.meals.averageQuality ?? '—'}/10`, foodFailed),
       color: 'text-success',
     },
   ];
@@ -144,27 +176,7 @@ export function OuraContextSection({
         <p className="mt-1 text-sm text-text-muted">{resolvedSubtitle}</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        {cards.map(({ color, detail, extra, icon: Icon, interactive, label, onClick, value }) => {
-          const Tag = interactive ? 'button' : 'article';
-          return (
-            <Tag
-              key={label}
-              onClick={onClick}
-              className={`rounded-xl border border-white/5 bg-surface-2 p-5 text-left transition-colors ${
-                interactive ? 'cursor-pointer hover:border-border-focus hover:bg-surface-3' : ''
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <Icon className={color} size={22} />
-                {interactive && <span className="text-xs font-medium text-text-muted">Szczegóły</span>}
-              </div>
-              <p className="mt-8 text-sm text-text-secondary">{label}</p>
-              <p className="mt-1 text-2xl font-light text-text-primary">{value}</p>
-              {extra}
-              {detail && <div className="mt-2 text-xs leading-5 text-text-muted">{detail}</div>}
-            </Tag>
-          );
-        })}
+        {cards.map((card) => <ContextCard key={card.label} {...card} />)}
       </div>
 
       <ScreenDetailModal

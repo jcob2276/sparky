@@ -1,6 +1,27 @@
 import { describe, expect, it } from 'vitest';
 import { buildOuraContextInsights } from './ouraContextInsights';
 
+describe('buildOuraContextInsights pre-sleep timing', () => {
+  it('excludes entries after sleep starts from pre-sleep timing and caffeine estimates', () => {
+    const result = buildOuraContextInsights({
+      sleepDate: '2026-10-15', bedtimeStart: '2026-10-15T23:00:00+02:00', phoneUsage: null, workouts: [],
+      foodEntries: [{ name: 'Kawa (100mg)', calories: 5, food_quality_score: null, logged_at: '2026-10-15T23:30:00+02:00' }],
+    });
+    expect(result.caffeine.hoursBeforeBedtime).toBeNull();
+    expect(result.caffeine.remainingMgAtBedtime).toBeNull();
+    expect(result.meals.hoursBeforeBedtime).toBeNull();
+    expect(result.meals.lastAt).toBeNull();
+  });
+
+  it('keeps remaining caffeine unknown when a dose has no timestamp', () => {
+    const result = buildOuraContextInsights({
+      sleepDate: '2026-10-15', bedtimeStart: '2026-10-15T23:00:00+02:00', phoneUsage: null, workouts: [],
+      foodEntries: [{ name: 'Kawa (100mg)', calories: 5, food_quality_score: null, logged_at: null }],
+    });
+    expect(result.caffeine.remainingMgAtBedtime).toBeNull();
+  });
+});
+
 describe('buildOuraContextInsights', () => {
   it('builds source-attributed context before bedtime', () => {
     const result = buildOuraContextInsights({

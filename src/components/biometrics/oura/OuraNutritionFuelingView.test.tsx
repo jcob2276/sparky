@@ -3,6 +3,7 @@ import {render,screen} from '@testing-library/react';
 import {expect,it,vi} from 'vitest';
 import {OuraNutritionFuelingView} from './OuraNutritionFuelingView';
 import type { OuraHealthHubData } from './types';
+import { buildOuraContextInsights } from '../../../lib/biometrics/ouraContextInsights';
 vi.mock('../../../lib/health/mealPlanApi',()=>({fetchMealPlannerState:async()=>({storageDate:'2026-10-14',state:null}),approveMealPlan:vi.fn(),toggleShoppingItem:vi.fn(),resizeMealInPlanState:vi.fn()}));
 vi.mock('../../../lib/health/mealPreferencesApi',()=>({fetchMealPreferences:async()=>({revision:1,confirmed:true,maxPrepMinutes:30,excluded:[],allergies:[],preferences:'',pattern:'any'}),saveMealPreferences:vi.fn()}));
 it('shows loading instead of claiming that the food diary is empty', () => {
@@ -45,9 +46,9 @@ it('renders calorie target vs actual intake, macro split breakdown, and meal tim
     foodDataState: 'logged',
     foodComplete: true,
     trainingLabel: 'Bieg · 10.0 km',
-    lastMealAt: '20:30',
-    lastCaffeineAt: '14:00',
-    caffeineMg: 100,
+    lastMealAt: '21:45',
+    lastCaffeineAt: '16:00',
+    caffeineMg: 200,
   } as NonNullable<OuraHealthHubData['nutrition']>;
 
   render(
@@ -60,10 +61,17 @@ it('renders calorie target vs actual intake, macro split breakdown, and meal tim
           oura: null,
           enhanced: {
             date: '2026-10-14',
-            bedtime_start: '2026-10-14T23:30:00+02:00',
+            bedtime_start: '2026-10-13T23:30:00+02:00',
             active_calories: 600,
             total_calories: 2700,
           } as never,
+          nightContext: buildOuraContextInsights({
+            sleepDate: '2026-10-13', bedtimeStart: '2026-10-13T23:30:00+02:00', phoneUsage: null, workouts: [],
+            foodEntries: [
+              { name: 'Kawa (100mg)', calories: 5, food_quality_score: null, logged_at: '2026-10-13T14:00:00+02:00' },
+              { name: 'Kolacja', calories: 600, food_quality_score: null, logged_at: '2026-10-13T20:30:00+02:00' },
+            ],
+          }),
           nutrition,
         }}
       />
@@ -81,13 +89,15 @@ it('renders calorie target vs actual intake, macro split breakdown, and meal tim
   expect(screen.getByText('220 g')).toBeInTheDocument();
   expect(screen.getByText('65 g')).toBeInTheDocument();
 
-  // Meal timing relative to sleep window (20:30 to 23:30 is 3h)
+  // Previous-day entries explain the completed night; current-day totals stay separate.
   expect(screen.getByText(/Timing posiłków i kofeiny a sen/)).toBeInTheDocument();
-  expect(screen.getByText('Godzina 20:30')).toBeInTheDocument();
-  expect(screen.getByText(/3h przed snem/)).toBeInTheDocument();
+  expect(screen.getByText(/Zapisy z 2026-10-13.*noc zakończona 2026-10-14/)).toBeInTheDocument();
+  expect(screen.getByText('Ostatni wpis: 20:30')).toBeInTheDocument();
+  expect(screen.getByText(/Wpis 3h przed początkiem snu/)).toBeInTheDocument();
+  expect(screen.queryByText(/21:45|16:00/)).not.toBeInTheDocument();
 
   // Caffeine half-life estimate indication
-  expect(screen.getByText(/Ostatnia: 14:00/)).toBeInTheDocument();
+  expect(screen.getByText(/Ostatni wpis kofeiny: 14:00/)).toBeInTheDocument();
   expect(screen.getByText(/Szacunek na podstawie wpisów w dzienniku/)).toBeInTheDocument();
 });
 
