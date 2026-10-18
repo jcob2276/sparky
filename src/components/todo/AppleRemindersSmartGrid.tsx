@@ -72,7 +72,7 @@ export function AppleRemindersSmartGrid({
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-2 mb-4 select-none sm:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2 mb-4 select-none sm:grid-cols-5 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1">
       {cards.map((card) => {
         const isActive = navDest === card.id;
         const Icon = card.icon;
