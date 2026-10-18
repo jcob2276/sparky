@@ -12,17 +12,12 @@ import { ControlInput } from '../ui/ControlPrimitives';
 import TodoPaletteList from './TodoPaletteList';
 
 const ROOT: PaletteMode = { kind: 'root' };
-const ENTER_MS = 150;
 
 const PLACEHOLDERS: Record<PaletteMode['kind'], string> = {
   root: 'Szukaj zadań lub wpisz polecenie…',
   'pick-task': 'Które zadanie przenieść?',
   'pick-section': 'Dokąd przenieść?',
 };
-
-function prefersReducedMotion(): boolean {
-  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-}
 
 export default function TodoCommandPalette() {
   const { items, sections, today } = useTodoContext();
@@ -66,18 +61,11 @@ export default function TodoCommandPalette() {
     return () => window.removeEventListener(TODO_PALETTE_EVENT, onOpen);
   }, [show]);
 
-  // Focus the input on open, restore the previous focus on close, animate in (150 ms).
+  // Focus the input on open and restore the previous focus on close. No enter animation:
+  // the palette is keyboard-initiated and used constantly, so it must feel instant.
   useEffect(() => {
     if (!open) return undefined;
     inputRef.current?.focus();
-    if (!prefersReducedMotion()) {
-      const timing = { duration: ENTER_MS, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'backwards' as const };
-      backdropRef.current?.animate?.([{ opacity: 0 }, { opacity: 1 }], timing);
-      panelRef.current?.animate?.([
-        { opacity: 0, transform: 'translateY(-8px) scale(0.98)' },
-        { opacity: 1, transform: 'translateY(0) scale(1)' },
-      ], timing);
-    }
     return () => { returnFocusRef.current?.focus?.(); };
   }, [open]);
 

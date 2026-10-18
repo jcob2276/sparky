@@ -2512,7 +2512,7 @@ a,
 @media (hover: hover) and (pointer: fine) {
   .todo-focus-card:hover .todo-focus-check:not(.is-done) { border-color: var(--color-success); background: color-mix(in srgb, var(--color-success) 10%, transparent); }
 }
-.todo-focus-check.is-done { background: var(--color-success); border-color: var(--color-success); color: var(--on-accent); animation: todo-check-pop 240ms cubic-bezier(.34,1.56,.64,1); }
+.todo-focus-check.is-done { background: var(--color-success); border-color: var(--color-success); color: var(--on-accent); animation: todo-check-pop 160ms var(--ease-out); }
 .todo-focus-note { grid-area: note; margin: -0.25rem 0 0.5rem 2.875rem; color: var(--text-secondary); font-size: 0.8125rem; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; text-wrap: pretty; }
 .todo-focus-footer { display: contents; }
 .todo-focus-meta { grid-area: meta; min-width: 0; display: flex; flex-wrap: wrap; gap: 0.25rem 0.75rem; margin: -0.25rem 0 0.5rem 2.875rem; color: var(--text-secondary); font-size: 0.75rem; line-height: 1.35; }
@@ -2533,13 +2533,14 @@ a,
   .todo-focus-actions > *, .todo-focus-actions > button { width: 2rem !important; height: 2rem !important; }
   .todo-focus-card:hover .todo-focus-top, .todo-focus-card:focus-within .todo-focus-top { visibility: hidden; }
 }
-@keyframes todo-check-pop { 0% { scale: 0.6; } 60% { scale: 1.18; } 100% { scale: 1; } }
+@keyframes todo-check-pop { 0% { scale: 0.8; } 100% { scale: 1; } }
+/* Fade + slide first (GPU), then collapse the row so the list closes the gap without a jump. */
 @keyframes todo-leave {
-  0% { opacity: 1; max-height: 9rem; }
-  55% { opacity: 0; max-height: 9rem; }
-  100% { opacity: 0; max-height: 0; border-top-width: 0; }
+  0% { opacity: 1; translate: 0 0; max-height: 9rem; }
+  60% { opacity: 0; translate: 0.75rem 0; max-height: 9rem; }
+  100% { opacity: 0; translate: 0.75rem 0; max-height: 0; border-top-width: 0; }
 }
-.todo-card-leaving { overflow: hidden; pointer-events: none; animation: todo-leave 240ms cubic-bezier(.4,0,.2,1) forwards; }
+.todo-card-leaving { overflow: hidden; pointer-events: none; animation: todo-leave 200ms var(--ease-out) forwards; }
 .todo-card-leaving .todo-focus-check { background: var(--color-success); border-color: var(--color-success); color: var(--on-accent); }
 .todo-card-leaving .todo-focus-title-row > button:last-child { text-decoration: line-through; color: var(--text-secondary); }
 @media (prefers-reduced-motion: reduce) {
@@ -2783,3 +2784,16 @@ a,
 }
 .todo-kanban-col { width: var(--todo-kanban-col-w); }
 @media (min-width: 640px) { .todo-kanban-col { width: var(--ds-w-220px); } }
+
+/* Wąskie ekrany i dotyk: tytuł dostaje całą szerokość, data/priorytet schodzą do osobnej linii. */
+.todo-focus-title-row > button:last-child { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere; }
+.todo-focus-card:has(.todo-focus-expanded) .todo-focus-title-row > button:last-child { -webkit-line-clamp: unset; display: block; }
+.todo-focus-top:empty { display: none; }
+@media (max-width: 40rem), (pointer: coarse) {
+  .todo-focus-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: "title title" "right act" "note note" "meta meta" "exp exp";
+  }
+  .todo-focus-top { justify-content: flex-start; margin-left: 2.875rem; }
+  .todo-focus-top:empty { display: block; }
+}

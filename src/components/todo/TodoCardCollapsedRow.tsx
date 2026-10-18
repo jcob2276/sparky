@@ -93,7 +93,7 @@ export default function TodoCardCollapsedRow({ item, busy, isDone, icon, label, 
             onClick={e => e.stopPropagation()}
             className="min-w-0 w-full rounded-lg border border-primary/40 bg-surface-solid px-2 py-2 text-base text-text-primary focus-visible:shadow-focus" />
         ) : (
-          <Pressable onClick={e => { e.stopPropagation(); onTitlePress(); }}
+          <Pressable title={item.title} onClick={e => { e.stopPropagation(); onTitlePress(); }}
             className={`todo-instant todo-focus-title cursor-text min-h-11 min-w-0 flex-1 rounded-lg text-left text-base font-semibold leading-snug tracking-tight focus-visible:shadow-focus ${isDone ? 'line-through text-text-secondary' : 'text-text-primary'}`}>
             {label}
           </Pressable>

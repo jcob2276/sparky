@@ -60,7 +60,7 @@ export default function TodoSearchBar() {
   return (
     <div className="flex flex-wrap items-center gap-1.5 px-4 pb-1 pt-3">
       <TodoCommandPalette />
-      <div className="relative flex min-h-10 min-w-64 flex-1 items-center gap-2 rounded-xl border border-border-custom/70 bg-surface-solid/50 px-3 focus-within:border-primary/40">
+      <div className="relative flex min-h-10 min-w-0 basis-48 flex-1 items-center gap-2 rounded-xl border border-border-custom/70 bg-surface-solid/50 px-3 focus-within:border-primary/40">
         <Search size={14} className="shrink-0 text-text-muted" />
         <ControlInput
           data-todo-search=""
