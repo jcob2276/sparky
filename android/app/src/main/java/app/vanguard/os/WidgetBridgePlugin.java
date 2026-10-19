@@ -59,6 +59,7 @@ public class WidgetBridgePlugin extends Plugin {
     @PluginMethod
     public void refreshFoodWidgets(PluginCall call) {
         VanguardFoodWidgetProvider.updateAll(getContext());
+        TasksWidgetProvider.updateAll(getContext());
         call.resolve();
     }
 
@@ -79,6 +80,18 @@ public class WidgetBridgePlugin extends Plugin {
     public void refreshDemoWidget(PluginCall call) {
         VanguardFoodWidgetProvider.updateAll(getContext());
         call.resolve(WidgetStateStore.readState(getContext()));
+    }
+
+    @PluginMethod
+    public void requestPinTasksWidget(PluginCall call) {
+        Context context = getContext();
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !manager.isRequestPinAppWidgetSupported()) {
+            call.reject("PIN_WIDGET_NOT_SUPPORTED");
+            return;
+        }
+        manager.requestPinAppWidget(new ComponentName(context, TasksWidgetProvider.class), null, null);
+        call.resolve();
     }
 
     @PluginMethod

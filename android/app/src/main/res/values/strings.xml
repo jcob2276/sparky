@@ -15,5 +15,7 @@
     <string name="widget_food_description">Kalorie i białko dnia, dodawanie posiłku jednym dotknięciem</string>
     <string name="widget_food_bar_name">Sparky: Dodaj posiłek (pasek)</string>
     <string name="widget_food_bar_description">Zdjęcie, skan, opis albo głos — zapis posiłku bez otwierania aplikacji</string>
+    <string name="widget_tasks_name">Sparky: Zadania i notatki</string>
+    <string name="widget_tasks_description">Lista zadań i notatek na pulpicie — odhaczaj, dodawaj i przeglądaj bez otwierania aplikacji</string>
 </resources>
 

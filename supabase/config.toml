@@ -183,3 +183,7 @@ verify_jwt = false
 [functions.widget-food]
 import_map = "./functions/import_map.json"
 verify_jwt = false
+
+[functions.widget-tasks]
+import_map = "./functions/import_map.json"
+verify_jwt = false

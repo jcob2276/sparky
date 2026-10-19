@@ -1,6 +1,6 @@
 # Mapa Edge Functions Vanguard
 
-Ten plik jest generowany automatycznie i opisuje mapę domenową, triggery oraz statusy wszystkich **34 aktywnych Edge Functions** w monorepo.
+Ten plik jest generowany automatycznie i opisuje mapę domenową, triggery oraz statusy wszystkich **35 aktywnych Edge Functions** w monorepo.
 
 ## Skaner Domenowy (Główna Mapa)
 
@@ -40,3 +40,4 @@ Ten plik jest generowany automatycznie i opisuje mapę domenową, triggery oraz 
 | [`vanguard-telegram-worker`](./vanguard-telegram-worker/index.ts) | **active** | DB trigger na wstawienie nowego rekordu w vanguard_telegram_inbox (async) | Asynchroniczny procesor Telegrama: przetwarza wiadomości i callbacki z kolejki inbox. | `vanguard_telegram_inbox, vanguard_stream, daily_reconciliations` | `vanguard_telegram_inbox (status, error_log)` | Wynik działania procesora (odpowiedź do użytkownika na Telegramie) |
 | [`vanguard-wiki-compiler`](./vanguard-wiki-compiler/index.ts) | **active** | HTTP POST / manual / cron | Kompilator wiki: agreguje i kompiluje fakty z grafu wiedzy w syntetyczne artykuły wiki. | `vanguard_wiki_pages, vanguard_wiki_sources, vanguard_wiki_review_items, vanguard_stream, friction_events, daily_reconciliations, confirmed_friction_events, vanguard_daily_aggregates, vanguard_behavioral_patterns, vanguard_knowledge, user_settings` | `vanguard_wiki_pages, vanguard_wiki_sources, vanguard_wiki_review_items, vanguard_wiki_runs, vanguard_knowledge` | Sekcja Wiki / Baza wiedzy w aplikacji frontendowej |
 | [`widget-food`](./widget-food/index.ts) | **active** | HTTP POST / Android home-screen widget (native) + app (register) | Backend widgetów jedzenia: rejestracja tokenu, stan dnia, parsowanie (tekst/zdjęcie/kod) i zapis posiłku bez otwierania aplikacji. | `daily_food_entries, nutrition_targets, widget_tokens` | `widget_tokens, daily_food_entries (przez add_food_entry)` | Widgety Android (VanguardFoodWidgetProvider, QuickFoodActivity) |
+| [`widget-tasks`](./widget-tasks/index.ts) | **active** | HTTP POST / Android home-screen widget (Zadania i notatki) | Backend widgetu zadań i notatek: lista otwartych zadań i ostatnich notatek, dodawanie zadania/notatki i odhaczanie zadania bez otwierania aplikacji. | `todo_items, vanguard_notes, widget_tokens` | `todo_items, vanguard_notes` | Widget Android TasksWidgetProvider i arkusz szybkiego dodawania |

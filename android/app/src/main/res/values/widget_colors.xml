@@ -8,4 +8,5 @@
     <color name="widget_accent">#C85A32</color>
     <color name="widget_on_accent">#FFFFFF</color>
     <color name="widget_sheet_dim">#99000000</color>
+    <color name="widget_danger">#D64545</color>
 </resources>

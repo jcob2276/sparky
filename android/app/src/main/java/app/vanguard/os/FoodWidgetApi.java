@@ -26,6 +26,10 @@ final class FoodWidgetApi {
     private FoodWidgetApi() {}
 
     static JSONObject call(Context context, JSONObject body) throws Exception {
+        return call(context, "widget-food", body);
+    }
+
+    static JSONObject call(Context context, String function, JSONObject body) throws Exception {
         String baseUrl = FoodWidgetStore.baseUrl(context);
         String userId = FoodWidgetStore.userId(context);
         String token = FoodWidgetStore.token(context);
@@ -33,7 +37,7 @@ final class FoodWidgetApi {
             throw new ApiException(401, "Otwórz aplikację raz, żeby połączyć widget.");
         }
         body.put("userId", userId);
-        HttpURLConnection conn = (HttpURLConnection) new URL(baseUrl + "/functions/v1/widget-food").openConnection();
+        HttpURLConnection conn = (HttpURLConnection) new URL(baseUrl + "/functions/v1/" + function).openConnection();
         try {
             conn.setRequestMethod("POST");
             conn.setConnectTimeout(10000);

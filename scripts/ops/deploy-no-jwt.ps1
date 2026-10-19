@@ -36,7 +36,8 @@ $all = @(
   "vanguard-telegram",
   "vanguard-telegram-worker",
   "vanguard-wiki-compiler",
-  "widget-food"
+  "widget-food",
+  "widget-tasks"
 )
 
 $targets = if ($args.Count -gt 0) { $args } else { $all }

@@ -10,11 +10,8 @@
  */
 import { createServiceClient, getServiceRoleKey, resolveUserScope } from '../_shared/supabase.ts'
 import { serveJson } from '../_shared/http.ts'
+import { requireWidgetUser, sha256Hex, WidgetHttpError as HttpError } from '../_shared/widgetAuth.ts'
 import { getWarsawDateString } from '../_shared/time.ts'
-
-class HttpError extends Error {
-  constructor(readonly status: number, message: string) { super(message) }
-}
 
 interface PortionItem {
   name: string
@@ -31,11 +28,6 @@ interface PortionItem {
 }
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack']
-
-async function sha256(text: string): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
-  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('')
-}
 
 function defaultMealType(): string {
   const hour = Number(new Date().toLocaleString('en-US', { timeZone: 'Europe/Warsaw', hour: '2-digit', hour12: false }))
@@ -145,16 +137,12 @@ async function handle(req: Request, db: ReturnType<typeof createServiceClient>) 
     const scope = await resolveUserScope(req, null)
     if (!scope.userId || scope.isServiceRole) throw new HttpError(401, 'Zaloguj się, aby włączyć widget.')
     const token = Array.from(crypto.getRandomValues(new Uint8Array(32))).map((b) => b.toString(16).padStart(2, '0')).join('')
-    const { error } = await db.from('widget_tokens').upsert({ user_id: scope.userId, token_hash: await sha256(token), created_at: new Date().toISOString() })
+    const { error } = await db.from('widget_tokens').upsert({ user_id: scope.userId, token_hash: await sha256Hex(token), created_at: new Date().toISOString() })
     if (error) throw error
     return { token, userId: scope.userId }
   }
 
-  const userId = typeof body.userId === 'string' ? body.userId : ''
-  const token = req.headers.get('x-widget-token') || ''
-  if (!userId || !token) throw new HttpError(401, 'Brak dostępu do widgetu.')
-  const { data: row } = await db.from('widget_tokens').select('token_hash').eq('user_id', userId).maybeSingle()
-  if (!row || row.token_hash !== await sha256(token)) throw new HttpError(401, 'Widget wymaga ponownego połączenia — otwórz aplikację.')
+  const userId = await requireWidgetUser(db, req, body)
 
   switch (body.action) {
     case 'state':

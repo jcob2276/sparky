@@ -11,6 +11,8 @@ final class FoodWidgetStore {
     private static final String KEY_USER_ID = "user_id";
     private static final String KEY_TOKEN = "token";
     private static final String KEY_STATE = "state_json";
+    private static final String KEY_TASKS_STATE = "tasks_state_json";
+    private static final String KEY_TASKS_TAB = "tasks_tab";
 
     private FoodWidgetStore() {}
 
@@ -24,6 +26,7 @@ final class FoodWidgetStore {
             .putString(KEY_USER_ID, userId)
             .putString(KEY_TOKEN, token)
             .remove(KEY_STATE)
+            .remove(KEY_TASKS_STATE)
             .apply();
     }
 
@@ -41,4 +44,12 @@ final class FoodWidgetStore {
     static void saveState(Context context, String json) { prefs(context).edit().putString(KEY_STATE, json).apply(); }
 
     static String state(Context context) { return prefs(context).getString(KEY_STATE, null); }
+
+    static void saveTasksState(Context context, String json) { prefs(context).edit().putString(KEY_TASKS_STATE, json).apply(); }
+
+    static String tasksState(Context context) { return prefs(context).getString(KEY_TASKS_STATE, null); }
+
+    static void saveTasksTab(Context context, String tab) { prefs(context).edit().putString(KEY_TASKS_TAB, tab).apply(); }
+
+    static String tasksTab(Context context) { return prefs(context).getString(KEY_TASKS_TAB, "tasks"); }
 }
