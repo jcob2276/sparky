@@ -102,7 +102,7 @@ export default function LiveWorkout({
             onActivate={() => setActiveId(exercise.id)}
             onChange={logger.updateExercise}
             onRemove={() => void removeExercise(exercise.id)}
-            onSwap={() => void requestSwap(exercise.id, () => setPickerOpen(true))}
+            onSwap={() => void requestSwap(exercise.id, () => window.setTimeout(() => setPickerOpen(true), 0))}
             onUndoable={(message, run) => setUndo({ message, run })}
             onSetDone={rest.start}
             onSetUndone={rest.skip}

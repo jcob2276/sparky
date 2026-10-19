@@ -79,7 +79,7 @@ export function useWorkoutLogger({ initial, onSaved, onBack }: UseWorkoutLoggerO
   }, [userId, workoutDate, plyoSkipped]);
 
   useEffect(() => {
-    if (!userId || initial === undefined) return;
+    if (!userId) return;
     const draft = loadWorkoutDraft(userId);
     const seed =
       draft && hasResumableWorkoutDraftContent(draft)
