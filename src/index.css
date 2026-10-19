@@ -2985,9 +2985,9 @@ a,
 @keyframes oura-sr-grow { from { opacity: 0; transform: scaleY(0.6); } to { opacity: 1; transform: none; } }
 
 /* Hero „Dziś” — miniatura VisionHeroCard i karty celów */
-:root { --hero-thumb-w: 7rem; --hero-thumb-h: 8rem; --hero-goal-w: 9.75rem; --hero-goal-h: 11.5rem; --hero-goal-scrim: color-mix(in srgb, var(--scrim) 82%, transparent); }
+:root { --hero-thumb-w: 7rem; --hero-thumb-h: 8rem; --hero-goal-h: 10rem; --hero-goal-scrim: color-mix(in srgb, var(--scrim) 82%, transparent); }
 .hero-thumb { width: var(--hero-thumb-w); height: var(--hero-thumb-h); }
-.hero-goal-card { position: relative; overflow: hidden; width: var(--hero-goal-w); height: var(--hero-goal-h); }
+.hero-goal-card { position: relative; overflow: hidden; min-width: 0; width: 100%; height: var(--hero-goal-h); }
 .hero-goal-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .hero-goal-scrim { position: absolute; inset: 0; background: linear-gradient(to top, var(--hero-goal-scrim) 8%, transparent 70%); }
 
