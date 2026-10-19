@@ -1,10 +1,14 @@
-import { Plus, Minus, X } from 'lucide-react';
-import { Pressable, ControlInput, ControlSelect } from '../../ui/ControlPrimitives';
+import { useState } from 'react';
+import { Check, ChevronDown, Plus, Minus, X } from 'lucide-react';
+import { Pressable, ControlInput } from '../../ui/ControlPrimitives';
+import Modal from '../../ui/Modal';
 import {
   PORTION_UNIT_LABELS,
   type PortionState,
   type PortionUnit,
 } from '../../../lib/health/mealPortions';
+
+const UNIT_NAMES = { ...PORTION_UNIT_LABELS, g: 'Gramy', piece: 'Sztuka', package: 'Opakowanie' };
 
 export default function MealDraftPortionControls({
   portion,
@@ -27,6 +31,7 @@ export default function MealDraftPortionControls({
   onClear: () => void;
   onUnitChange: (unit: PortionUnit) => void;
 }) {
+  const [unitPickerOpen, setUnitPickerOpen] = useState(false);
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border-custom/30 pt-2">
       <div className="flex items-center gap-1.5">
@@ -73,16 +78,16 @@ export default function MealDraftPortionControls({
         </span>
       </div>
 
-      <div className="flex items-center gap-1">
+      <div className="flex min-w-0 flex-wrap items-center gap-1.5">
         {primaryUnits.map((unit) => (
           <Pressable
             key={unit}
             type="button"
             onClick={() => onUnitChange(unit)}
-            className={`rounded-lg px-2 py-1 text-2xs font-extrabold uppercase tracking-wide ui-interactive duration-[var(--motion-fast)] ${
+            className={`min-h-11 rounded-xl border px-3 py-2 text-xs font-semibold ui-interactive duration-[var(--motion-fast)] ${
               portion.unit === unit
-                ? 'bg-primary text-on-accent shadow-sm'
-                : 'border border-border-custom text-text-muted hover:bg-surface-2 hover:text-text-secondary'
+                ? 'border-primary/30 bg-primary/10 text-primary'
+                : 'border-border-custom text-text-muted hover:bg-surface-2 hover:text-text-secondary'
             }`}
           >
             {PORTION_UNIT_LABELS[unit]}
@@ -90,27 +95,40 @@ export default function MealDraftPortionControls({
         ))}
 
         {otherUnits.length > 0 && (
-          <ControlSelect
-            value={otherUnits.includes(portion.unit) ? portion.unit : ''}
-            onChange={(e) => {
-              if (e.target.value) onUnitChange(e.target.value as PortionUnit);
-            }}
-            className={`h-7 rounded-lg border border-border-custom bg-surface px-1.5 text-2xs font-bold uppercase text-text-secondary ${
-              otherUnits.includes(portion.unit) ? 'border-primary text-primary' : ''
-            }`}
+          <Pressable
+            type="button"
+            onClick={() => setUnitPickerOpen(true)}
+            className="flex min-h-11 items-center gap-1.5 rounded-xl border border-border-custom bg-surface px-3 text-xs font-medium text-text-secondary hover:bg-surface-2"
             aria-label="Inna jednostka"
+            aria-haspopup="dialog"
+            aria-expanded={unitPickerOpen}
           >
-            <option value="" disabled>
-              Inna...
-            </option>
-            {otherUnits.map((unit) => (
-              <option key={unit} value={unit}>
-                {PORTION_UNIT_LABELS[unit]}
-              </option>
-            ))}
-          </ControlSelect>
+            Więcej <ChevronDown size={14} aria-hidden="true" />
+          </Pressable>
         )}
       </div>
+
+      <Modal isOpen={unitPickerOpen} onClose={() => setUnitPickerOpen(false)} title="Jednostka porcji" subtitle={itemName} size="sm" className="!bg-surface-solid">
+        <div className="grid grid-cols-2 gap-2">
+          {[...primaryUnits, ...otherUnits].map((unit) => (
+            <Pressable
+              key={unit}
+              type="button"
+              aria-pressed={portion.unit === unit}
+              onClick={() => {
+                onUnitChange(unit);
+                setUnitPickerOpen(false);
+              }}
+              className={`flex min-h-12 items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left text-sm font-medium ${
+                portion.unit === unit ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border-custom/60 bg-surface text-text-secondary hover:bg-surface-2'
+              }`}
+            >
+              <span className="capitalize">{UNIT_NAMES[unit]}</span>
+              {portion.unit === unit && <Check size={16} aria-hidden="true" />}
+            </Pressable>
+          ))}
+        </div>
+      </Modal>
     </div>
   );
 }
