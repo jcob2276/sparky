@@ -209,6 +209,11 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     }
   }, [text, parsing, userId, session, setDraftFromParsed]);
 
+  // A dismissed draft must not leave its photo linked to the next meal.
+  useEffect(() => {
+    if (!draftItems) scannedPhotoIdRef.current = null;
+  }, [draftItems]);
+
   const saveDraft = useCallback(async (
     items: MealDraftItem[],
     source: 'text' | 'photo' | 'repeat' | 'search',
@@ -278,6 +283,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
       });
       setDraftFromParsed(draft.items);
     } catch (cause: unknown) {
+      scannedPhotoIdRef.current = null;
       const message = cause instanceof Error ? cause.message : 'Nie udało się przeanalizować zdjęcia';
       setError(message);
       notify(message, 'error');
@@ -337,7 +343,8 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   const saveFromDraft = useCallback((rememberIds: Set<string>, name?: string) => {
     if (!draftItems?.length) return;
     const loggedAt = loggedTime ? combineDateTimeWarsawISO(logDate, loggedTime) : undefined;
-    void saveDraft(draftItems, 'text', rememberIds, { memoryName: name, loggedAt });
+    const source = scannedPhotoIdRef.current ? 'photo' : 'text';
+    void saveDraft(draftItems, source, rememberIds, { memoryName: name, loggedAt });
   }, [draftItems, logDate, loggedTime, saveDraft]);
 
   const handleFavorite = useCallback(async (fav: Omit<FoodFavoriteRow, 'barcode'> & { barcode?: string | null }) => {
