@@ -10,6 +10,8 @@ import {
   epley,
 } from './workoutUtils';
 import ExerciseNameInput from './ExerciseNameInput';
+import ExerciseThumb from './ExerciseThumb';
+import { useExerciseVisual } from '../../../lib/health/exerciseImages';
 import ExerciseWellnessSets from './ExerciseWellnessSets';
 import ExerciseStrengthSets from './ExerciseStrengthSets';
 import { ExerciseCardSubheader } from './ExerciseCardSubheader';
@@ -56,6 +58,9 @@ export default function ExerciseCard({
   const haptics = useHaptics();
   const navigate = useNavigate();
   const sets = exercise.sets ?? [];
+  const visual = useExerciseVisual(exercise.name ?? '');
+  const looksLikeBarbell = /sztang/i.test(exercise.name ?? '') || /^(martwy ciąg|wyciskanie płaskie|wyciskanie skośne)$/i.test((exercise.name ?? '').trim());
+  const isBarbell = visual?.isBarbell === true || looksLikeBarbell;
   const tags = exercise.tags ?? [];
   const isSaunaMode = tags.includes('wellness');
   const { lastSession, lastSessionDate, allTimeBest1RM } = useExerciseHistory(exercise.name ?? '', userId);
@@ -175,11 +180,19 @@ export default function ExerciseCard({
       padding="0"
     >
       <div className="px-3 py-2 border-b border-border-custom space-y-1">
-        <ExerciseNameInput
-          value={exercise.name}
-          tags={exercise.tags}
-          onChange={(name, t) => onChange({ ...exercise, name, tags: t })}
-        />
+        <div className="flex items-center gap-3">
+          <ExerciseThumb name={exercise.name ?? ''} />
+          <div className="min-w-0 flex-1">
+            <ExerciseNameInput
+              value={exercise.name}
+              tags={exercise.tags}
+              onChange={(name, t) => onChange({ ...exercise, name, tags: t })}
+            />
+            {exercise.name.trim() && !isSaunaMode && (
+              <p className="text-xs text-text-muted">{[visual?.equipment ?? (isBarbell ? 'Sztanga' : null), `${sets.length} ${sets.length === 1 ? 'seria' : sets.length >= 2 && sets.length <= 4 ? 'serie' : 'serii'}`].filter(Boolean).join(' • ')}</p>
+            )}
+          </div>
+        </div>
         <div className="flex items-center justify-end gap-2">
         {exercise.name.trim().length >= 2 && !isSaunaMode && (
           <Pressable
@@ -248,6 +261,7 @@ export default function ExerciseCard({
               updateSet={updateSet}
               removeSet={removeSet}
               onOpenPlateCalc={onOpenPlateCalc}
+              isBarbell={isBarbell}
             />
           )}
 

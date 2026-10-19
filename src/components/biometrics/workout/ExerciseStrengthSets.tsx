@@ -3,6 +3,7 @@ import { ControlSelect } from '../../ui/ControlPrimitives';
 import { WorkoutExercise } from './workoutUtils';
 import type { ExerciseHistoryRow } from '../../../lib/health/workout';
 import { StrengthSetRow } from './StrengthSetRow';
+import BarbellPlatesPanel from './BarbellPlatesPanel';
 
 interface ExerciseStrengthSetsProps {
   exercise: WorkoutExercise;
@@ -13,6 +14,7 @@ interface ExerciseStrengthSetsProps {
   updateSet: (id: number, field: string, value: string | boolean) => void;
   removeSet: (id: number) => void;
   onOpenPlateCalc?: (initialKg: number, onApply: (kg: number) => void) => void;
+  isBarbell?: boolean;
 }
 
 export default function ExerciseStrengthSets({
@@ -24,8 +26,10 @@ export default function ExerciseStrengthSets({
   updateSet,
   removeSet,
   onOpenPlateCalc,
+  isBarbell = false,
 }: ExerciseStrengthSetsProps) {
   const [weightStep, setWeightStep] = useState(2.5);
+  const [platesSetId, setPlatesSetId] = useState<number | null>(null);
   return (
     <>
       <div className="flex items-center justify-between gap-2 pb-1">
@@ -40,8 +44,8 @@ export default function ExerciseStrengthSets({
         </label>
       </div>
       {exercise.sets.map((set, idx) => (
+        <div key={set.id} className="space-y-2">
         <StrengthSetRow
-          key={set.id}
           set={set}
           idx={idx}
           historyRow={lastSessionRows[idx]}
@@ -51,9 +55,14 @@ export default function ExerciseStrengthSets({
           updateSet={updateSet}
           removeSet={removeSet}
           onOpenPlateCalc={onOpenPlateCalc}
+          onTogglePlates={isBarbell ? () => setPlatesSetId((current) => (current === set.id ? null : set.id)) : undefined}
           isTimed={exercise.mode === 'timed'}
           weightStep={weightStep}
         />
+        {isBarbell && platesSetId === set.id && (
+          <BarbellPlatesPanel kg={set.kg} onChange={(kg) => updateSet(set.id, 'kg', kg)} onClose={() => setPlatesSetId(null)} />
+        )}
+        </div>
       ))}
       <p className="text-xs text-text-secondary">Zapas (RIR) = ile powtórzeń zostało w rezerwie.</p>
     </>

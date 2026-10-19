@@ -17,6 +17,8 @@ interface StrengthSetRowProps {
   updateSet: (id: number, field: string, value: string | boolean) => void;
   removeSet: (id: number) => void;
   onOpenPlateCalc?: (initialKg: number, onApply: (kg: number) => void) => void;
+  /** Gdy podane (ćwiczenia ze sztangą), ikona wagi rozwija widok sztangi pod serią zamiast okna kalkulatora. */
+  onTogglePlates?: () => void;
   isTimed?: boolean;
   weightStep?: number;
 }
@@ -73,6 +75,7 @@ export function StrengthSetRow({
   updateSet,
   removeSet,
   onOpenPlateCalc,
+  onTogglePlates,
   isTimed,
   weightStep = 2.5,
 }: StrengthSetRowProps) {
@@ -146,11 +149,11 @@ export function StrengthSetRow({
         <span className="min-w-0 flex-1 text-xs text-text-secondary">Pierwsza sesja</span>
       )}
       <div className="ml-auto flex items-center gap-1">
-        {onOpenPlateCalc && (
+        {(onOpenPlateCalc || onTogglePlates) && (
           <Pressable
             type="button"
-            onClick={() =>
-              onOpenPlateCalc(parseFloat(set.kg) || (historyRow ? Number(historyRow.weight) || 60 : 60), (w) =>
+            onClick={() => onTogglePlates ? onTogglePlates() :
+              onOpenPlateCalc?.(parseFloat(set.kg) || (historyRow ? Number(historyRow.weight) || 60 : 60), (w) =>
                 updateSet(set.id, 'kg', String(w))
               )
             }

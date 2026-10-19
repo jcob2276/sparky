@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { EXERCISES, normalize } from '../../../data/exercises';
 import { searchOpenGymCatalog, preloadOpenGymCatalog, mapTargetToSparkyTags, type OpenGymExercise } from '../../../data/openGymCatalog';
 import { Card } from '../../ui/Card';
+import ExerciseThumb from './ExerciseThumb';
 
 interface ExerciseNameInputProps {
   value: string;
@@ -141,11 +142,14 @@ export default function ExerciseNameInput({
               onClick={() => select(item)}
               className="w-full !h-auto flex flex-col !items-start !gap-1 rounded-none !px-3 !py-3 text-left whitespace-normal border-b border-border-custom last:border-b-0 hover:bg-surface-2"
             >
+              <div className="flex w-full items-center gap-3">
+              <ExerciseThumb name={item.name} size="sm" />
               <div className="flex flex-col min-w-0">
                 <span className="text-base font-semibold text-text-primary whitespace-normal break-words leading-snug">{item.name}</span>
                 {item.equipment && (
                   <span className="text-xs text-text-secondary capitalize">{item.equipment}</span>
                 )}
+              </div>
               </div>
               <span className="text-xs text-text-secondary whitespace-normal">{item.tags.slice(0, 3).join(' · ')}</span>
             </Button>
