@@ -1,9 +1,11 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
-import { Search } from 'lucide-react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { ListTodo, Search } from 'lucide-react';
 import { DashboardFastCaptureMenu } from './DashboardFastCapture';
 
 describe('DashboardFastCaptureMenu', () => {
+  beforeEach(() => window.localStorage.clear());
+
   it('uses the canonical dialog and closes after an action', () => {
     const action = vi.fn();
     const onClose = vi.fn();
@@ -20,5 +22,38 @@ describe('DashboardFastCaptureMenu', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Jedzenie' }));
     expect(action).toHaveBeenCalledOnce();
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+
+  it('separates logging from navigation and shows an urgent counter on the matching tile', () => {
+    render(
+      <DashboardFastCaptureMenu
+        show
+        onClose={vi.fn()}
+        items={[{ label: 'Trening', emoji: '', color: 'red', action: vi.fn() }]}
+        tools={[{ label: 'Zadania', icon: ListTodo, action: vi.fn(), route: 'todo' }]}
+        badges={{ todo: 3 }}
+      />,
+    );
+    expect(screen.getByRole('region', { name: 'Zaloguj' })).toHaveTextContent('Trening');
+    expect(screen.getByRole('region', { name: 'Przejdź do' })).toHaveTextContent('Zadania');
+    expect(screen.getByRole('button', { name: 'Zadania, 3 pilnych' })).toHaveTextContent('3');
+  });
+
+  it('remembers the last used actions and offers them first next time', () => {
+    const action = vi.fn();
+    const props = {
+      items: [{ label: 'Trening', emoji: '', color: 'red', action }],
+      tools: [{ label: 'Zadania', icon: ListTodo, action: vi.fn() }],
+      onClose: vi.fn(),
+    };
+    const first = render(<DashboardFastCaptureMenu show {...props} />);
+    expect(screen.queryByRole('region', { name: 'Ostatnio użyte' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Trening' }));
+    first.unmount();
+
+    render(<DashboardFastCaptureMenu show {...props} />);
+    expect(screen.getByRole('region', { name: 'Ostatnio użyte' })).toHaveTextContent('Trening');
+    expect(screen.getByRole('button', { name: 'Ostatnio: Trening' })).toBeInTheDocument();
   });
 });

@@ -82,9 +82,9 @@ function DashboardContent() {
   }, [s]);
 
   const fastCaptureItems = useMemo(() => [
-    { label: 'Zaloguj Trening', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => { s.openWorkout(); } },
-    { label: 'Zaloguj Saunę', emoji: '🧖', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna') },
-    { label: 'Zmierz Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-primary)', action: () => s.navigate('/optics') },
+    { label: 'Trening', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => { s.openWorkout(); } },
+    { label: 'Sauna', emoji: '🧖', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna') },
+    { label: 'Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-primary)', action: () => s.navigate('/optics') },
   ], [s]);
 
   const workspaceTools = useMemo(() => [
@@ -244,6 +244,7 @@ function DashboardContent() {
           onClose={() => s.setShowFastCapture(false)}
           items={fastCaptureItems}
           tools={workspaceTools}
+          badges={{ todo: s.urgentTodoCount }}
           userId={userId}
           onRefresh={s.refresh}
         />
