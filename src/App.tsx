@@ -6,6 +6,7 @@ import { initUsageStatsSync } from './lib/native/usageStatsSync';
 import { initLocationSync } from './lib/native/locationSync';
 import { initBackgroundSync } from './lib/native/backgroundSync';
 import { initNativeIntents, registerNativeNavigate } from './lib/native/initNativeIntents';
+import { initFoodWidgetSync } from './lib/native/foodWidgetSync';
 import { hideSplashScreen } from './lib/native/initNativeShell';
 import Auth from './components/core/Auth';
 import Dashboard from './components/core/Dashboard';
@@ -67,7 +68,9 @@ function useNativePlatformSync(userId: string | undefined, handleNativeNavigate:
     const stopLocation = initLocationSync(userId);
     const stopBackground = initBackgroundSync(userId);
     const stopBleSync = setupGlobalBleSync(queryClient, userId);
+    const stopFoodWidget = initFoodWidgetSync(userId);
     return () => {
+      stopFoodWidget();
       stopUsage();
       stopLocation();
       stopBackground();

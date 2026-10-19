@@ -82,6 +82,28 @@
         </receiver>
 
         <receiver
+            android:name=".VanguardFoodBarWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_food_bar_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_food_bar_info" />
+        </receiver>
+
+        <activity
+            android:name=".QuickFoodActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|uiMode"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:taskAffinity=""
+            android:theme="@style/Theme.QuickFood"
+            android:windowSoftInputMode="adjustResize" />
+
+        <receiver
             android:name=".WidgetTapReceiver"
             android:exported="false">
             <intent-filter>

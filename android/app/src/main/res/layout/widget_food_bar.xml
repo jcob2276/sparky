@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_bar_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_card_bg"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/widget_bar_photo"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@drawable/widget_btn_primary"
+        android:contentDescription="Zdjęcie posiłku"
+        android:gravity="center"
+        android:text="📷"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/widget_bar_scan"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="6dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_btn_soft"
+        android:contentDescription="Skanuj kod kreskowy"
+        android:gravity="center"
+        android:text="▦"
+        android:textColor="@color/widget_text"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/widget_bar_text"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="6dp"
+        android:layout_weight="1"
+        android:background="@drawable/widget_btn_soft"
+        android:contentDescription="Wpisz posiłek"
+        android:gravity="center"
+        android:text="✎"
+        android:textColor="@color/widget_text"
+        android:textSize="24sp" />
+
+</LinearLayout>

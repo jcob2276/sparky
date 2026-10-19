@@ -37,6 +37,32 @@ public class WidgetBridgePlugin extends Plugin {
     }
 
     @PluginMethod
+    public void getFoodWidgetStatus(PluginCall call) {
+        JSObject ret = new JSObject();
+        ret.put("userId", FoodWidgetStore.userId(getContext()));
+        call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void setFoodWidgetCredentials(PluginCall call) {
+        String baseUrl = call.getString("baseUrl");
+        String userId = call.getString("userId");
+        String token = call.getString("token");
+        if (baseUrl == null || userId == null || token == null) {
+            call.reject("MISSING_CREDENTIALS");
+            return;
+        }
+        FoodWidgetStore.saveCredentials(getContext(), baseUrl, userId, token);
+        call.resolve();
+    }
+
+    @PluginMethod
+    public void refreshFoodWidgets(PluginCall call) {
+        VanguardFoodWidgetProvider.updateAll(getContext());
+        call.resolve();
+    }
+
+    @PluginMethod
     public void getDemoState(PluginCall call) {
         call.resolve(WidgetStateStore.readState(getContext()));
     }

@@ -11,7 +11,9 @@
     <string name="shortcut_voice">Quick Voice</string>
     <string name="widget_czat_name">Sparky: Czat &amp; Głos</string>
     <string name="widget_czat_description">Otwórz czat z Wyrocznią lub nagraj głos z pulpitu telefonu</string>
-    <string name="widget_food_name">Sparky: Posiłki &amp; Notatki</string>
-    <string name="widget_food_description">Szybkie logowanie posiłków i notatek z pulpitu telefonu</string>
+    <string name="widget_food_name">Sparky: Posiłek (karta)</string>
+    <string name="widget_food_description">Kalorie i białko dnia, dodawanie posiłku jednym dotknięciem</string>
+    <string name="widget_food_bar_name">Sparky: Dodaj posiłek (pasek)</string>
+    <string name="widget_food_bar_description">Zdjęcie, skan, opis albo głos — zapis posiłku bez otwierania aplikacji</string>
 </resources>
 

@@ -179,3 +179,7 @@ verify_jwt = false
 [functions.sync-insider-trades]
 import_map = "./functions/import_map.json"
 verify_jwt = false
+
+[functions.widget-food]
+import_map = "./functions/import_map.json"
+verify_jwt = false
