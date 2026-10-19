@@ -12,7 +12,7 @@ import LiveRirChips from './LiveRirChips';
 import LiveSetActions from './LiveSetActions';
 import { useLiveSetOps } from './useLiveSetOps';
 import LiveExerciseHeader from './LiveExerciseHeader';
-import { ghostForSet, isPersonalRecord, isSetLogged, type SetGhost } from './liveWorkoutUtils';
+import { ghostForSet, isPersonalRecord, type SetGhost } from './liveWorkoutUtils';
 
 interface Props {
   exercise: WorkoutExercise;
@@ -135,7 +135,8 @@ export default function LiveExerciseCard({
   };
   const isBarbell = visual?.isBarbell === true || BARBELL_NAME.test(exercise.name);
   const sets = exercise.sets;
-  const doneCount = sets.filter(isSetLogged).length;
+  const workingSets = sets.filter((s) => s.type !== 'warmup');
+  const doneCount = workingSets.filter((s) => s.done).length;
   const nextIdx = sets.findIndex((s) => !s.done);
 
   const ops = useLiveSetOps({
@@ -155,7 +156,7 @@ export default function LiveExerciseCard({
   const lastHasData = Boolean(lastSet && (lastSet.done || lastSet.kg.trim() || lastSet.reps.trim()));
 
   const hint = suggestion && suggestion.mode !== 'reps' ? suggestion.weight : null;
-  const subtitle = [visual?.equipment ?? (isBarbell ? 'Sztanga' : null), `${doneCount}/${sets.length} serii`].filter(Boolean).join(' · ');
+  const subtitle = [visual?.equipment ?? (isBarbell ? 'Sztanga' : null), `${doneCount}/${workingSets.length} serii`].filter(Boolean).join(' · ');
   const platesTarget = sets[nextIdx >= 0 ? nextIdx : sets.length - 1];
 
   return (

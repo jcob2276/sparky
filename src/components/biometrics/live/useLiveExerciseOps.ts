@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react';
 import { confirmDialog } from '../../../lib/notify';
 import { newExercise, newSet, type WorkoutExercise } from '../workout/workoutUtils';
 import type { useWorkoutLogger } from '../hooks/useWorkoutLogger';
-import { isSetLogged } from './liveWorkoutUtils';
 
 const DEFAULT_SETS = 1;
 
@@ -29,7 +28,7 @@ export function useLiveExerciseOps(logger: Logger, exercises: WorkoutExercise[],
   /** Zamiana ćwiczenia czyści serie — jeśli coś już zaliczono, pytamy najpierw. */
   const requestSwap = async (id: number, openPicker: () => void) => {
     const target = logger.exercises.find((e) => e.id === id);
-    const logged = target ? target.sets.filter(isSetLogged).length : 0;
+    const logged = target ? target.sets.filter((s) => s.done).length : 0;
     if (logged > 0 && !(await confirmDialog(`Zamiana ćwiczenia usunie ${logged} zaliczonych serii. Kontynuować?`))) return;
     setSwapId(id);
     openPicker();
@@ -44,7 +43,7 @@ export function useLiveExerciseOps(logger: Logger, exercises: WorkoutExercise[],
   const removeExercise = async (id: number) => {
     const target = logger.exercises.find((e) => e.id === id);
     if (!target) return;
-    const logged = target.sets.filter(isSetLogged).length;
+    const logged = target.sets.filter((s) => s.done).length;
     if (logged > 0 && !(await confirmDialog(`Usunąć „${target.name}” razem z ${logged} zaliczonymi seriami?`))) return;
     const index = logger.exercises.findIndex((e) => e.id === id);
     logger.setExercises((prev) => prev.filter((e) => e.id !== id));

@@ -49,7 +49,7 @@ export function warmupRamp(workingKg: number, barKg = 20): SetGhost[] {
   return ramp;
 }
 
-export function isSetLogged(set: WorkoutSet): boolean {
+function isSetLogged(set: WorkoutSet): boolean {
   return Boolean(set.done) || Boolean(set.kg.trim() && set.reps.trim());
 }
 
