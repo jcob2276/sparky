@@ -1,6 +1,9 @@
 import { supabase } from '../supabase';
+import { getTodayWarsaw, shiftDateStr } from '../date';
 import type { ExerciseHistoryRow } from './workout';
 import { historyNamesFor } from './exerciseHistoryAliases';
+import type { HubRecoverySessionRow } from './hubRecovery';
+import { isStrengthLog, normalizeSessionRpe } from './workoutDisplay';
 
 export async function fetchExerciseHistory(name: string, userId: string): Promise<ExerciseHistoryRow[]> {
   const names = historyNamesFor(name.trim());
@@ -15,6 +18,31 @@ export async function fetchExerciseHistory(name: string, userId: string): Promis
 
   if (error) throw new Error(error.message);
   return (data || []) as ExerciseHistoryRow[];
+}
+
+/**
+ * Recent sessions for hub fatigue map, week stats, PRs, forecasts, neglects.
+ * ~90d / 80 sessions covers e1RM trend + half-life fatigue (old rows decay to ~0).
+ */
+export async function fetchHubRecoverySessions(userId: string): Promise<HubRecoverySessionRow[]> {
+  const since = shiftDateStr(getTodayWarsaw(), -90);
+  const { data, error } = await supabase
+    .from('workout_sessions')
+    .select('date, exercise_logs(exercise_name, weight, reps, muscle_tags)')
+    .eq('user_id', userId)
+    .gte('date', since)
+    .not('workout_day', 'ilike', '%sauna%')
+    .order('date', { ascending: false })
+    .limit(80);
+
+  if (error || !data) return [];
+
+  return data
+    .map((s) => ({
+      date: s.date ?? '',
+      exercise_logs: (s.exercise_logs as HubRecoverySessionRow['exercise_logs']) || [],
+    }))
+    .filter((row) => Boolean(row.date));
 }
 
 export async function deleteWorkoutSession(id: string): Promise<void> {
@@ -60,7 +88,7 @@ export async function fetchRecentWorkoutTemplates(userId: string): Promise<Worko
     .eq('user_id', userId)
     .not('workout_day', 'ilike', '%sauna%')
     .order('date', { ascending: false })
-    .limit(20);
+    .limit(40);
 
   if (error || !sessions) return [];
 
@@ -72,9 +100,18 @@ export async function fetchRecentWorkoutTemplates(userId: string): Promise<Worko
     if (seenDays.has(day.toLowerCase())) continue;
     seenDays.add(day.toLowerCase());
 
-    const logs = (s.exercise_logs as Array<{ exercise_name: string; weight: number | null; reps: number | null; muscle_tags: string[] | null }>) || [];
-    const uniqueExNames = [...new Set(logs.map((l) => l.exercise_name).filter(Boolean))];
-    const totalTonnageKg = logs.reduce((acc, l) => {
+    const logs =
+      (s.exercise_logs as Array<{
+        exercise_name: string;
+        weight: number | null;
+        reps: number | null;
+        muscle_tags: string[] | null;
+      }>) || [];
+    const strengthLogs = logs.filter((l) => isStrengthLog(l.muscle_tags));
+    const uniqueExNames = [...new Set(strengthLogs.map((l) => l.exercise_name).filter(Boolean))];
+    if (uniqueExNames.length === 0) continue;
+
+    const totalTonnageKg = strengthLogs.reduce((acc, l) => {
       const w = Number(l.weight) || 0;
       const r = Number(l.reps) || 0;
       return acc + (w > 0 && r > 0 ? w * r : 0);
@@ -87,10 +124,10 @@ export async function fetchRecentWorkoutTemplates(userId: string): Promise<Worko
       exerciseCount: uniqueExNames.length,
       exercises: uniqueExNames.slice(0, 4),
       totalTonnageKg,
-      sessionRpe: s.session_rpe,
+      sessionRpe: normalizeSessionRpe(s.session_rpe),
     });
 
-    if (templates.length >= 4) break;
+    if (templates.length >= 3) break;
   }
 
   return templates;
@@ -152,7 +189,7 @@ export async function fetchTodayWorkoutDetails(userId: string, date: string): Pr
     startTime: s.start_time,
     endTime: s.end_time,
     notes: s.session_notes,
-    sessionRpe: s.session_rpe,
+    sessionRpe: normalizeSessionRpe(s.session_rpe),
     exercises: [...exMap.entries()].map(([name, data]) => ({
       name,
       ...data,

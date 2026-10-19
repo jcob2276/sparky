@@ -6,18 +6,19 @@ import { ChevronDown, ChevronUp, BookOpen, Brain } from 'lucide-react';
 import type { GeneralViewPattern, GeneralViewCuriosity, GeneralViewWiki } from '../hooks/useGeneralViewData';
 import { WikiEntry, PatternCard, HypothesisCard } from './GeneralMemexCards';
 import { groupHypotheses } from './memexPlain';
+import CoreMemoryHistory from '../../../memory/CoreMemoryHistory';
 
 interface GeneralMemexPanelsProps {
+  userId: string;
   patterns: GeneralViewPattern[];
   curiosity: GeneralViewCuriosity[];
   wiki: GeneralViewWiki[];
-  emeraldColor: string;
 }
 
 const VISIBLE_HYPOTHESES = 3;
 
-/** Pamięć systemu: potwierdzone wzorce, najmocniejsze hipotezy (powtórzenia scalone), wiki zwinięte. */
-export default function GeneralMemexPanels({ patterns, curiosity, wiki }: GeneralMemexPanelsProps) {
+/** Pamięć Sparky: obserwacje, hipotezy i syntezy ze źródłami. */
+export default function GeneralMemexPanels({ userId, patterns, curiosity, wiki }: GeneralMemexPanelsProps) {
   const [showAll, setShowAll] = React.useState(false);
   const [showWiki, setShowWiki] = React.useState(false);
 
@@ -27,8 +28,9 @@ export default function GeneralMemexPanels({ patterns, curiosity, wiki }: Genera
 
   return (
     <div className="space-y-5">
+      <CoreMemoryHistory key={userId} userId={userId} />
       {patterns.length > 0 && (
-        <Panel title={`Potwierdzone wzorce (${patterns.length})`}>
+        <Panel title={`Powtarzające się obserwacje (${patterns.length})`}>
           <div className="space-y-2">{patterns.map((p, i) => <PatternCard key={i} p={p} />)}</div>
         </Panel>
       )}
@@ -56,7 +58,7 @@ export default function GeneralMemexPanels({ patterns, curiosity, wiki }: Genera
 
       {wiki.length > 0 && (
         <Panel
-          title={`Zapisane fakty o Tobie (${wiki.length})`}
+          title={`Syntezy pamięci Sparky (${wiki.length})`}
           action={
             <Pressable onClick={() => setShowWiki((v) => !v)} className="text-2xs font-semibold text-primary">
               {showWiki ? 'Zwiń' : 'Pokaż'}
@@ -64,8 +66,8 @@ export default function GeneralMemexPanels({ patterns, curiosity, wiki }: Genera
           }
         >
           {showWiki ? (
-            <div className="max-h-[var(--ds-h-260px)] overflow-y-auto pr-1">
-              {wiki.map((w, i) => <WikiEntry key={i} w={w} />)}
+            <div className="space-y-2">
+              {wiki.map((w) => <WikiEntry key={w.id} w={w} userId={userId} />)}
             </div>
           ) : (
             <p className="flex items-center gap-1.5 text-xs text-text-muted"><BookOpen size={12} /> Rozwiń, żeby zobaczyć listę.</p>

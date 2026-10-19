@@ -23,11 +23,11 @@ type TriadDef = {
 
 const TRIAD_RULES: TriadDef[] = [
   // Family
-  { patterns: [/babci|babcia|babcie/, /krosn/], triads: [
+  { patterns: [/babci|babcia|babcie/, /krosn/], requireAll: true, triads: [
     { source: "Jakub", source_type: "person", relation: "ma_relacje_z", target: "Babcia z Krosna", target_type: "person", memory_type: "fact", confidence_score: 0.95 },
     { source: "Babcia z Krosna", source_type: "person", relation: "mieszka_w", target: "Krosno", target_type: "place", memory_type: "fact", confidence_score: 0.95 },
   ]},
-  { patterns: [/babci|babcia|babcie/, /(zeglic|zelic|zeglc|zelc)/], triads: [
+  { patterns: [/babci|babcia|babcie/, /(zeglic|zelic|zeglc|zelc)/], requireAll: true, triads: [
     { source: "Jakub", source_type: "person", relation: "ma_relacje_z", target: "Babcia z Zeglic", target_type: "person", memory_type: "fact", confidence_score: 0.9 },
     { source: "Babcia z Zeglic", source_type: "person", relation: "mieszka_w", target: "Zeglice", target_type: "place", memory_type: "fact", confidence_score: 0.9 },
   ]},

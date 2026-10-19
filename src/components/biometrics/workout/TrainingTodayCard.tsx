@@ -1,7 +1,7 @@
 import { CheckCircle2, Dumbbell, Clock, Flame } from 'lucide-react';
-import { Card } from '../../ui/Card';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { TodayWorkoutDetails } from '../../../lib/health/workoutApi';
+import { formatWorkoutTonnage, normalizeSessionRpe } from '../../../lib/health/workoutDisplay';
 
 interface TrainingTodayCardProps {
   details: TodayWorkoutDetails;
@@ -14,108 +14,112 @@ export default function TrainingTodayCard({
   onStartAnother,
   onLogSauna,
 }: TrainingTodayCardProps) {
-  const tonnageMg = (details.totalTonnageKg / 1000).toFixed(1);
+  const tonnageLabel = formatWorkoutTonnage(details.totalTonnageKg) ?? '—';
+  const rpe = normalizeSessionRpe(details.sessionRpe);
 
   return (
-    <Card variant="surface" className="border border-success/30 bg-success/5 space-y-4">
-      {/* Header */}
+    <section className="trening-panel rounded-[var(--tren-radius-card)] p-3.5 space-y-3 border-primary/25">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-success/15 text-success">
-            <CheckCircle2 size={18} />
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-on-accent">
+            <CheckCircle2 size={18} strokeWidth={2.5} />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-3xs font-black uppercase tracking-wider text-success">
-                Trening Zrobiony
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-3xs font-black uppercase tracking-wider text-primary">
+                Dziś zrobione
               </span>
-              {details.sessionRpe != null && (
-                <span className="text-3xs font-bold text-text-muted bg-surface px-1.5 py-0.5 rounded border border-border-custom">
-                  RPE {details.sessionRpe}
-                </span>
+              {rpe != null && (
+                <span className="trening-chip px-1.5 py-0.5 text-3xs font-bold">RPE {rpe}</span>
               )}
             </div>
-            <h2 className="text-base font-black text-text-primary font-display mt-0.5">
+            <h2 className="text-lg font-black text-text-primary font-display mt-0.5 leading-tight truncate">
               {details.workoutDay}
             </h2>
           </div>
         </div>
 
         {details.startTime && details.endTime && (
-          <div className="flex items-center gap-1 text-2xs font-bold text-text-muted">
+          <div className="flex items-center gap-1 text-2xs font-bold text-text-muted shrink-0">
             <Clock size={12} />
             <span>
-              {details.startTime.slice(11, 16)} – {details.endTime.slice(11, 16)}
+              {details.startTime.slice(11, 16)}–{details.endTime.slice(11, 16)}
             </span>
           </div>
         )}
       </div>
 
-      {/* Glanceable Metrics */}
-      <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border-custom/40">
-        <div className="bg-surface/60 rounded-xl p-2.5 text-center border border-border-custom/50">
-          <span className="text-3xs font-black uppercase tracking-wider text-text-muted block">Tonaż</span>
-          <span className="text-sm font-black text-primary font-mono">{tonnageMg} Mg</span>
-        </div>
-        <div className="bg-surface/60 rounded-xl p-2.5 text-center border border-border-custom/50">
-          <span className="text-3xs font-black uppercase tracking-wider text-text-muted block">Serie</span>
-          <span className="text-sm font-black text-text-primary font-mono">{details.totalSets}</span>
-        </div>
-        <div className="bg-surface/60 rounded-xl p-2.5 text-center border border-border-custom/50">
-          <span className="text-3xs font-black uppercase tracking-wider text-text-muted block">Ćwiczenia</span>
-          <span className="text-sm font-black text-text-primary font-mono">{details.exercises.length}</span>
-        </div>
+      <div className="grid grid-cols-3 gap-2">
+        {(
+          [
+            ['Tonaż', tonnageLabel, true],
+            ['Serie', String(details.totalSets), false],
+            ['Ćwiczenia', String(details.exercises.length), false],
+          ] as const
+        ).map(([label, value, accent]) => (
+          <div
+            key={label}
+            className="rounded-[var(--tren-radius-ctl)] bg-surface-1 px-2 py-2 text-center border border-border-custom/50"
+          >
+            <span className="text-3xs font-black uppercase tracking-wider text-text-muted block">
+              {label}
+            </span>
+            <span
+              className={`text-sm font-black font-mono mt-0.5 block ${
+                accent ? 'text-primary' : 'text-text-primary'
+              }`}
+            >
+              {value}
+            </span>
+          </div>
+        ))}
       </div>
 
-      {/* Exercise list summary */}
       {details.exercises.length > 0 && (
-        <div className="space-y-1.5 pt-1">
-          <span className="text-3xs font-black uppercase tracking-wider text-text-muted">
-            Wykonane ćwiczenia:
-          </span>
-          <div className="space-y-1">
-            {details.exercises.map((ex, i) => (
-              <div
-                key={i}
-                className="flex items-center justify-between text-xs py-1 px-2.5 rounded-lg bg-surface/40 border border-border-custom/40"
-              >
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-text-muted font-mono text-3xs">{i + 1}.</span>
-                  <span className="font-bold text-text-primary truncate">{ex.name}</span>
-                </div>
-                <div className="flex items-center gap-2 text-2xs font-mono text-text-secondary shrink-0">
-                  <span>{ex.setsCount} ser.</span>
-                  {ex.bestKg > 0 && <span className="font-bold text-primary">max {ex.bestKg}kg</span>}
-                </div>
+        <div className="space-y-1">
+          {details.exercises.slice(0, 6).map((ex, i) => (
+            <div
+              key={`${ex.name}-${i}`}
+              className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-xl bg-surface-1 border border-border-custom/35"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="text-text-muted font-mono text-3xs w-3">{i + 1}</span>
+                <span className="font-bold text-text-primary truncate">{ex.name}</span>
               </div>
-            ))}
-          </div>
+              <div className="flex items-center gap-2 text-2xs font-mono text-text-secondary shrink-0">
+                <span>{ex.setsCount}×</span>
+                {ex.bestKg > 0 && <span className="font-bold text-primary">{ex.bestKg}kg</span>}
+              </div>
+            </div>
+          ))}
+          {details.exercises.length > 6 && (
+            <p className="text-3xs text-text-muted px-1">+{details.exercises.length - 6} więcej</p>
+          )}
         </div>
       )}
 
       {details.notes && (
-        <div className="text-xs text-text-secondary italic bg-surface/40 p-2.5 rounded-xl border border-border-custom/40">
+        <p className="text-xs text-text-secondary italic bg-surface-1 px-2.5 py-2 rounded-xl border border-border-custom/35">
           „{details.notes}”
-        </div>
+        </p>
       )}
 
-      {/* Bottom Actions */}
-      <div className="flex gap-2 pt-2">
+      <div className="flex gap-2 pt-0.5">
         <Pressable
           onClick={onStartAnother}
-          className="flex-1 py-2.5 px-3 rounded-xl border border-border-custom bg-surface hover:bg-surface-solid text-text-primary text-xs font-black uppercase tracking-wider ui-interactive flex items-center justify-center gap-1.5 cursor-pointer"
+          className="flex-1 py-2.5 px-3 rounded-[var(--tren-radius-ctl)] border border-border-custom bg-surface-2 hover:border-primary/40 text-text-primary text-xs font-black uppercase tracking-wider ui-interactive flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <Dumbbell size={13} /> Kolejna sesja
         </Pressable>
         {onLogSauna && (
           <Pressable
             onClick={onLogSauna}
-            className="py-2.5 px-3 rounded-xl border border-warning/30 bg-warning/10 hover:bg-warning/20 text-warning text-xs font-black uppercase tracking-wider ui-interactive flex items-center justify-center gap-1.5 cursor-pointer"
+            className="py-2.5 px-3 rounded-[var(--tren-radius-ctl)] border border-warning/30 bg-warning/10 hover:bg-warning/20 text-warning text-xs font-black uppercase tracking-wider ui-interactive flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <Flame size={13} /> Sauna / Reg.
+            <Flame size={13} /> Sauna
           </Pressable>
         )}
       </div>
-    </Card>
+    </section>
   );
 }

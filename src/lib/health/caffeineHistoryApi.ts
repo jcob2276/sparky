@@ -30,5 +30,7 @@ export function useCaffeineEntries(userId: string, sinceDate: string) {
     queryKey: ['caffeine', 'entries', userId, sinceDate] as const,
     queryFn: () => fetchCaffeineEntriesSince(userId, sinceDate),
     enabled: !!userId && !!sinceDate,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: 'always',
   });
 }

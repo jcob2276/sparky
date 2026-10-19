@@ -1,8 +1,5 @@
 import { supabase } from '../supabase'
 import { scheduleStrainRecompute } from './strainRefresh'
-import { invokeEdge } from '../supabase'
-import type { AnalyzeTrainingLoadResponse } from '../edgeTypes'
-import { TIMEOUTS } from '../constants'
 import { rpcWithOfflineFallback } from '../offlineQueue'
 import { shiftDateStr } from '../date'
 import {
@@ -16,18 +13,8 @@ import { canonicalExerciseName } from './exerciseHistoryAliases'
 import { sessionRpeRirMismatch } from '@vanguard/domain'
 
 export * from './workoutDraft'
-
-const INSIGHT_KEY = (userId: string, date: string) => `vanguard_training_insight_${userId}_${date}`
-
-const loadTimers = new Map<string, ReturnType<typeof setTimeout>>()
-
-function storeTrainingInsight(userId: string, date: string, line: string): void {
-  try {
-    localStorage.setItem(INSIGHT_KEY(userId, date), JSON.stringify({ line, at: Date.now() }))
-  } catch {
-    /* ignore */
-  }
-}
+export { readLatestTrainingInsight, ensureFreshTrainingInsight } from './trainingInsight'
+import { scheduleTrainingLoadAnalysis } from './trainingInsight'
 
 function logsToExercises(logs: Array<{
   exercise_name: string
@@ -257,33 +244,4 @@ export async function saveWorkoutSession(
     queued,
     rpeMismatch: mismatch?.flagged ? mismatch.message : null,
   }
-}
-
-async function runTrainingLoadAnalysis(userId: string, date: string): Promise<void> {
-  try {
-    const json = await invokeEdge('analyze-training-load', {
-      body: { userId },
-      signal: AbortSignal.timeout(TIMEOUTS.llm),
-    }) as AnalyzeTrainingLoadResponse
-    const line =
-      json.coach_decision_summary ||
-      json.load_summary ||
-      json.strength_note ||
-      (json.load_status ? `Obciążenie: ${json.load_status}` : null)
-    if (line) storeTrainingInsight(userId, date, String(line))
-  } catch (e: unknown) { console.warn('[workoutLogging] Failed to run training load analysis:', e); }
-}
-
-/** Debounced background training insight — max ~1 heavy call after logging. */
-function scheduleTrainingLoadAnalysis(userId: string, date: string): void {
-  const key = `${userId}:${date}`
-  const existing = loadTimers.get(key)
-  if (existing) clearTimeout(existing)
-  loadTimers.set(
-    key,
-    setTimeout(() => {
-      loadTimers.delete(key)
-      void runTrainingLoadAnalysis(userId, date)
-    }, 4000),
-  )
 }

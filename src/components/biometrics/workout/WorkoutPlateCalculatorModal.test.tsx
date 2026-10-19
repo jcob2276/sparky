@@ -12,7 +12,7 @@ describe('WorkoutPlateCalculatorModal', () => {
       />
     );
 
-    expect(screen.getByText('Kalkulator Talerzy na Sztangę')).toBeInTheDocument();
+    expect(screen.getByText('Talerze na sztangę')).toBeInTheDocument();
     expect(screen.getByText('100')).toBeInTheDocument();
     expect(screen.getByText(/40 kg na stronę/i)).toBeInTheDocument();
     expect(screen.getByText('Gryf olimpijski')).toBeInTheDocument();
@@ -27,7 +27,7 @@ describe('WorkoutPlateCalculatorModal', () => {
       />
     );
 
-    const plusTen = screen.getByRole('button', { name: /dodaj 10 kg/i });
+    const plusTen = screen.getByRole('button', { name: 'Dodaj 10 kg' });
     fireEvent.click(plusTen);
 
     expect(screen.getByText('90')).toBeInTheDocument();

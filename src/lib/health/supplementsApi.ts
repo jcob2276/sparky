@@ -30,6 +30,9 @@ export function useSupplementLogs(userId: string, sinceDate: string) {
     queryKey: supplementsKeys.logs(userId, sinceDate),
     queryFn: () => fetchSupplementLogsSince(userId, sinceDate),
     enabled: !!userId && !!sinceDate,
+    // Telegram writes outside this QueryClient; mounted views must re-read the log.
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: 'always',
   });
 }
 
@@ -107,6 +110,10 @@ export function useToggleSupplement() {
           return base;
         }
       );
+    },
+    onSettled: (_data, _error, variables) => {
+      void queryClient.invalidateQueries({ queryKey: supplementsKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['oura-day-night', variables.userId] });
     },
   });
 }

@@ -61,8 +61,8 @@ export type CoffeeWindow =
 
 export interface IntakeInsights {
   todayStack: TodayStackItem[];
-  /** Godziny kofeiny dziś (HH:mm). */
-  todayCaffeineTimes: string[];
+  /** Source entries for today's caffeine; entries without a time remain visible. */
+  todayCaffeine: CaffeineEntry[];
   supplements: SupplementComparison[];
   caffeine: CaffeineGapInsights;
   coffeeWindow: CoffeeWindow;
@@ -247,9 +247,7 @@ export function buildIntakeInsights(input: IntakeInput): IntakeInsights {
   const thresholds = GAP_THRESHOLDS_H.map((h) => compareGap(gaps, h));
   return {
     todayStack: buildTodayStack(input.supplements, input.supplementLogs, input.today),
-    todayCaffeineTimes: input.caffeineEntries.flatMap((e) =>
-      e.date === input.today && e.loggedAt ? [warsawTimeOfDay(e.loggedAt)] : [],
-    ),
+    todayCaffeine: input.caffeineEntries.filter((e) => e.date === input.today),
     supplements: input.supplements.flatMap((s) => {
       const c = compareSupplement(s, input.supplementLogs, input.nights, byDate);
       return c ? [c] : [];

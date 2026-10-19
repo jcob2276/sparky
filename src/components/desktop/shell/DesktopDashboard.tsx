@@ -20,7 +20,7 @@ import DesktopTabContent from './DesktopTabContent';
 import DesktopQuickWeightModal from './DesktopQuickWeightModal';
 import DesktopToolsLauncherModal from './DesktopToolsLauncherModal';
 
-const WorkoutLogger = lazy(() => import('../../biometrics/WorkoutLogger'));
+const WorkoutLogger = lazy(() => import('../../biometrics/LiveWorkout'));
 const Fundament = lazy(() => import('../../core/Fundament'));
 const SystemHealth = lazy(() => import('../health/SystemHealth'));
 const SaunaLoggerModal = lazy(() => import('../../biometrics/SaunaLoggerModal'));

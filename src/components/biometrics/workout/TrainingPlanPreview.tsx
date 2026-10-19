@@ -17,20 +17,20 @@ export default function TrainingPlanPreview({ versions, sessions, jobs, busy, er
   const snapshot = readPlanSnapshot(draft?.snapshot);
   const generating = jobs.some(job => job.status === 'running' || job.status === 'queued');
   const current = sessions.filter(session => !session.completed && !session.skipped_at);
-  return <section className="rounded-2xl border border-border-custom bg-surface p-4 space-y-4" aria-label="Wspólny plan treningowy">
-    <h2 className="font-bold text-text-primary">Twój plan: bieganie, siła i umiejętności</h2>
-    {error && <p role="alert" className="text-sm text-danger">{error}</p>}
-    {active && <p className="text-xs text-text-secondary">Aktywna wersja {active.revision}. Zmiana planu zachowuje zapisane i rozpoczęte treningi.</p>}
-    {(showAll ? current : current.slice(0, 3)).map(session => <article key={session.id} className="border-b border-border-custom pb-3 space-y-1">
-      <p className="text-xs text-text-secondary">{session.planned_date} · {session.target_duration_min ?? '—'} min</p>
-      <h3 className="text-sm font-semibold">{session.workout_name}</h3>
+  return <section className="rounded-xl border border-border-custom bg-surface p-3 space-y-3" aria-label="Wspólny plan treningowy">
+    <h2 className="text-sm font-bold text-text-primary">Twój plan: bieganie, siła i umiejętności</h2>
+    {error && <p role="alert" className="text-xs text-danger">{error}</p>}
+    {active && <p className="text-3xs text-text-secondary">Aktywna wersja {active.revision}. Zmiana planu zachowuje zapisane i rozpoczęte treningi.</p>}
+    {(showAll ? current : current.slice(0, 3)).map(session => <article key={session.id} className="border-b border-border-custom pb-2.5 space-y-0.5">
+      <p className="text-3xs text-text-secondary">{session.planned_date} · {session.target_duration_min ?? '—'} min</p>
+      <h3 className="text-sm font-semibold leading-snug">{session.workout_name}</h3>
       <p className="text-xs text-text-secondary">{session.goal}</p>
-      <p className="text-xs whitespace-pre-wrap">{session.description}</p>
+      <p className="text-xs whitespace-pre-wrap text-text-secondary/90">{session.description}</p>
       {start && <Pressable variant="secondary" size="sm" disabled={busy} onClick={() => start(session)}>Rozpocznij sesję</Pressable>}
       {match && /run|bieg/i.test(session.workout_type) && <PlannedRunMatch workout={session} runs={runs} busy={busy} match={match} />}
     </article>)}
     {current.length > 3 && <Pressable variant="secondary" size="sm" onClick={() => setShowAll(value => !value)}>{showAll ? 'Pokaż najbliższe sesje' : `Pokaż cały blok (${current.length} sesji)`}</Pressable>}
-    {!active && !generating && <p className="text-sm text-text-secondary">Zapisz cele i warunki treningu poniżej. Sparky zaproponuje wspólny blok oparty na Twoich danych.</p>}
+    {!active && !generating && <p className="text-xs text-text-secondary">Zapisz cele i warunki poniżej. Sparky zaproponuje blok na Twoich danych.</p>}
     {snapshot && draft && <details open className="space-y-3 rounded-xl bg-surface-2 p-3">
       <summary className="cursor-pointer font-semibold">Propozycja: {snapshot.title}</summary>
       <p className="text-xs whitespace-pre-wrap">{snapshot.progression}</p>

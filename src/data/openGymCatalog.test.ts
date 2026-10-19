@@ -17,6 +17,15 @@ describe('openGymCatalog', () => {
     expect(results[0].name.toLowerCase()).toContain('bench press');
   });
 
+  it('ranks barbell bench above band for bare „bench press”', async () => {
+    const results = await searchOpenGymCatalog('bench press', 12);
+    const names = results.map((r) => r.name.toLowerCase());
+    const barbell = names.findIndex((n) => n.includes('barbell') && n.includes('bench press') && !n.includes('incline'));
+    const band = names.findIndex((n) => n.includes('band') && n.includes('bench press'));
+    expect(barbell).toBeGreaterThanOrEqual(0);
+    if (band >= 0) expect(barbell).toBeLessThan(band);
+  });
+
   it('finds exercise by id', async () => {
     const ex = await findExerciseById('0001');
     expect(ex).toBeDefined();

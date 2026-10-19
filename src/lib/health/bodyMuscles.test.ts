@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   calculateSvgMuscleLevels,
+  normalizeMuscleTag,
   SPARKY_TO_SVG_MAP,
   MUSCLE_PL_NAMES,
   SVG_MUSCLES,
@@ -11,6 +12,12 @@ describe('bodyMuscles', () => {
     expect(SPARKY_TO_SVG_MAP['klatka']).toEqual(['chest']);
     expect(SPARKY_TO_SVG_MAP['barki']).toEqual(['deltoids']);
     expect(SPARKY_TO_SVG_MAP['plecy']).toContain('upper-back');
+  });
+
+  it('normalizes common alias tags', () => {
+    expect(normalizeMuscleTag('quady')).toBe('czworogłowe');
+    expect(normalizeMuscleTag('tył barku')).toBe('barki');
+    expect(normalizeMuscleTag('dwugłowy')).toBe('dwugłowe ud');
   });
 
   it('has Polish names for every SVG muscle', () => {
@@ -34,5 +41,10 @@ describe('bodyMuscles', () => {
     expect(levels.triceps).toBe(2);
     expect(levels.biceps).toBe(1);
     expect(levels.quadriceps).toBe(0);
+  });
+
+  it('shades SVG from alias fatigue keys', () => {
+    const levels = calculateSvgMuscleLevels({ quady: 0.7 });
+    expect(levels.quadriceps).toBe(3);
   });
 });

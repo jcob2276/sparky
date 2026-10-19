@@ -56,7 +56,7 @@ Deno.serve(serveJson(async (req, ctx) => {
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY") ?? ""
   if (!apiKey) throw new Error("Missing DEEPSEEK_API_KEY")
 
-  const { totalTriads, failedUpserts, failedRecords } = await processRecords(
+  const { totalTriads, failedUpserts, failedRecords, processedRecords, skippedRecords, rejectedTriads, retryableRecordIds, errors } = await processRecords(
     supabase,
     records,
     activeLinks,
@@ -65,11 +65,22 @@ Deno.serve(serveJson(async (req, ctx) => {
     type
   )
 
-  return {
-    message: "Batch processed",
-    items_processed: records.length,
+  const success = failedRecords === 0 && failedUpserts === 0
+  const receipt = {
+    success,
+    ...(!success ? { error: 'Batch incomplete; retry failed records' } : {}),
+    message: success ? "Batch processed" : "Batch incomplete; retry failed records",
+    items_fetched: records.length,
+    items_processed: processedRecords,
+    items_skipped: skippedRecords,
+    triads_accepted: totalTriads,
+    // Legacy counter includes merges and accepted RPC calls; it is not an INSERT count.
     triads_created: totalTriads,
     failed_upserts: failedUpserts,
     failed_records: failedRecords,
+    rejected_triads: rejectedTriads,
+    retryable_record_ids: retryableRecordIds,
+    errors,
   }
+  return success ? receipt : Response.json(receipt, { status: 503 })
 }, { auth: 'service' }))

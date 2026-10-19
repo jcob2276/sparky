@@ -4,6 +4,11 @@
  * na polskie tagi anatomiczne Sparky.
  */
 
+import {
+  exerciseMatchesQuery,
+  scoreExerciseMatch,
+} from '../lib/health/exerciseSearch';
+
 export interface OpenGymExercise {
   id: string;
   name: string;
@@ -81,23 +86,30 @@ export function mapTargetToSparkyTags(target: string, secondaries: string[] = []
 
 export const mapTargetToVanguardTags = mapTargetToSparkyTags;
 
+function rankCatalogHits(catalog: OpenGymExercise[], query: string, limit: number): OpenGymExercise[] {
+  const q = query.trim();
+  if (!q) return [];
+
+  const scored: { ex: OpenGymExercise; score: number }[] = [];
+  for (const ex of catalog) {
+    const byName = exerciseMatchesQuery(ex.name, q);
+    const byTarget = ex.target.toLowerCase().includes(q.toLowerCase());
+    if (!byName && !byTarget) continue;
+    const score = byName
+      ? scoreExerciseMatch(ex.name, q)
+      : scoreExerciseMatch(ex.target, q) - 200;
+    scored.push({ ex, score });
+  }
+  scored.sort((a, b) => b.score - a.score || a.ex.name.localeCompare(b.ex.name));
+  return scored.slice(0, limit).map((s) => s.ex);
+}
+
 /**
- * Szybkie wyszukiwanie w katalogu 1,324 ćwiczeń (lazy load JSON).
+ * Wyszukiwanie w katalogu 1,324 ćwiczeń — ranking (nie pierwsze N alfabetycznie).
  */
 export async function searchOpenGymCatalog(query: string, limit = 10): Promise<OpenGymExercise[]> {
-  const norm = query.toLowerCase().trim();
-  if (!norm) return [];
-
   const catalog = await loadOpenGymCatalog();
-  const results: OpenGymExercise[] = [];
-  for (const ex of catalog) {
-    if (ex.name.toLowerCase().includes(norm) || ex.target.toLowerCase().includes(norm)) {
-      results.push(ex);
-      if (results.length >= limit) break;
-    }
-  }
-
-  return results;
+  return rankCatalogHits(catalog, query, limit);
 }
 
 /**
@@ -105,18 +117,7 @@ export async function searchOpenGymCatalog(query: string, limit = 10): Promise<O
  */
 export function searchOpenGymCatalogSync(query: string, limit = 10): OpenGymExercise[] {
   if (!catalogCache) return [];
-  const norm = query.toLowerCase().trim();
-  if (!norm) return [];
-
-  const results: OpenGymExercise[] = [];
-  for (const ex of catalogCache) {
-    if (ex.name.toLowerCase().includes(norm) || ex.target.toLowerCase().includes(norm)) {
-      results.push(ex);
-      if (results.length >= limit) break;
-    }
-  }
-
-  return results;
+  return rankCatalogHits(catalogCache, query, limit);
 }
 
 /**

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Coffee } from 'lucide-react';
 import {
   buildIntakeInsights,
@@ -7,6 +7,7 @@ import {
   type TodayStackItem,
 } from '../../../lib/biometrics/ouraIntakeInsights';
 import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
+import { useWarsawDayChange } from '../../../hooks/useWarsawDayChange';
 import { useCaffeineEntries } from '../../../lib/health/caffeineHistoryApi';
 import { notify } from '../../../lib/notify';
 import { buildQuickLog, useQuickLogSupplement } from '../../../lib/health/supplementQuickLogApi';
@@ -48,7 +49,8 @@ function windowText(w: CoffeeWindow): { headline: string; detail: string } {
 }
 
 export function OuraIntakeSection({ userId, data }: OuraIntakeSectionProps) {
-  const today = data.date ?? getTodayWarsaw();
+  const [today, setToday] = useState(getTodayWarsaw);
+  useWarsawDayChange(() => setToday(getTodayWarsaw()));
   const nights = useMemo(() => collectNights(data), [data]);
   const since = nights[0]?.date ?? shiftDateStr(today, -30);
   const supplementsQuery = useSupplements(userId);
@@ -111,7 +113,8 @@ export function OuraIntakeSection({ userId, data }: OuraIntakeSectionProps) {
       ) : !loading && (
         <>
           <TodayStrip
-            caffeineTimes={insights.todayCaffeineTimes}
+            date={today}
+            caffeine={insights.todayCaffeine}
             stack={insights.todayStack}
             pendingIds={pendingIds}
             error={quickLog.isError ? 'Nie udało się zapisać suplementu. Spróbuj ponownie.' : null}

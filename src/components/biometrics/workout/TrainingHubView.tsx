@@ -1,16 +1,19 @@
 import { useState } from 'react';
-import { ChevronLeft, TrendingUp, AlertCircle, RotateCcw } from 'lucide-react';
+import { ChevronLeft, AlertCircle, RotateCcw, Plus, Settings } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import Spinner from '../../ui/Spinner';
 import type { WorkoutLoggerInitial } from '../../../lib/health/workoutLogging';
 import { useTrainingHub } from './useTrainingHub';
-import HealthGoalEditorContainer from './HealthGoalEditorContainer';
-import TrainingPlanContainer from './TrainingPlanContainer';
+import { useTreningAccent } from './useTreningAccent';
 import TrainingTodayCard from './TrainingTodayCard';
 import TrainingTemplatesSection from './TrainingTemplatesSection';
-import WorkoutNlCaptureModal from './WorkoutNlCaptureModal';
-import BodyMap from './BodyMap';
-import WorkoutActivityHeatmap from './WorkoutActivityHeatmap';
+import TrainingHubRecords from './TrainingHubRecords';
+import TrainingHubInsight from './TrainingHubInsight';
+import TrainingHubWeekPanel from './TrainingHubWeekPanel';
+import TrainingHubSignals from './TrainingHubSignals';
+import TrainingHubAppearanceSheet from './TrainingHubAppearanceSheet';
+import TrainingHubPlanSection from './TrainingHubPlanSection';
+import './treningTheme.css';
 
 function ActiveDraftBanner({
   onResume,
@@ -20,32 +23,63 @@ function ActiveDraftBanner({
   onDiscard: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-warning/40 bg-warning/10 p-4 space-y-3 animate-in fade-in">
+    <div className="trening-panel rounded-[var(--tren-radius-card)] p-3.5 space-y-2.5 border-warning/35 bg-warning/10">
       <div className="flex items-center gap-2 text-warning">
-        <AlertCircle size={16} />
-        <span className="text-xs font-black uppercase tracking-wider">
-          Niezapisany trening w toku
-        </span>
+        <AlertCircle size={14} />
+        <span className="text-2xs font-black uppercase tracking-wider">Niezapisany trening</span>
       </div>
-      <p className="text-xs text-text-secondary">
-        Masz rozpoczętą sesję z zapisanymi seriami w pamięci podręcznej.
-      </p>
-      <div className="flex gap-2 pt-1">
+      <p className="text-xs text-text-secondary leading-snug">Sesja z seriami w pamięci podręcznej.</p>
+      <div className="flex gap-2">
         <Pressable
           onClick={onResume}
-          className="flex-1 py-2.5 rounded-xl bg-primary text-on-accent text-xs font-black uppercase tracking-wider shadow-md hover:bg-primary-hover ui-interactive text-center cursor-pointer"
+          className="flex-1 py-2.5 rounded-[var(--tren-radius-ctl)] trening-hero-cta text-2xs ui-interactive text-center cursor-pointer"
         >
-          Wznów sesję
+          Wznów
         </Pressable>
         <Pressable
           onClick={onDiscard}
-          className="py-2.5 px-3 rounded-xl border border-border-custom bg-surface text-text-muted hover:text-danger text-xs font-bold ui-interactive cursor-pointer"
+          className="py-2.5 px-3 rounded-[var(--tren-radius-ctl)] border border-border-custom bg-surface text-text-muted hover:text-danger text-xs font-bold ui-interactive cursor-pointer"
           title="Odrzuć szkic"
         >
-          <RotateCcw size={14} />
+          <RotateCcw size={13} />
         </Pressable>
       </div>
     </div>
+  );
+}
+
+function QuickStartCta({ onStart, compact }: { onStart: () => void; compact?: boolean }) {
+  if (compact) {
+    return (
+      <Pressable
+        onClick={onStart}
+        className="w-full trening-hero-cta py-3 flex items-center justify-center gap-2 text-sm ui-interactive cursor-pointer"
+      >
+        <Plus size={15} strokeWidth={2.5} />
+        Start Workout
+      </Pressable>
+    );
+  }
+
+  return (
+    <section className="trening-panel rounded-[var(--tren-radius-card)] p-4 space-y-3 border-primary/25">
+      <div className="space-y-1">
+        <p className="text-3xs font-black uppercase tracking-widest text-primary">Poczekalnia</p>
+        <h2 className="text-[1.25rem] font-black text-text-primary font-display leading-tight tracking-tight">
+          Gotowy na sesję?
+        </h2>
+        <p className="text-xs text-text-secondary leading-snug">
+          Mapa zmęczenia i PR poniżej — start pusty albo 1-tap schemat.
+        </p>
+      </div>
+      <Pressable
+        onClick={onStart}
+        className="w-full trening-hero-cta py-3.5 flex items-center justify-center gap-2 text-sm ui-interactive cursor-pointer"
+      >
+        <Plus size={16} strokeWidth={2.5} />
+        Start Workout
+      </Pressable>
+    </section>
   );
 }
 
@@ -62,138 +96,114 @@ export default function TrainingHubView({
   onBack,
   onNavigate,
 }: TrainingHubViewProps) {
-  const { loading, todaySession, templates, hasDraft, heatmapWorkouts, handleResumeDraft,
-    handleDiscardDraft, handleSelectTemplate, handleStartBlank } = useTrainingHub(userId, onStartWorkout);
-  const [activeTab, setActiveTab] = useState<'hub' | 'anatomy' | 'heatmap'>('hub');
-  const [showNlCapture, setShowNlCapture] = useState(false);
+  const {
+    loading,
+    todaySession,
+    templates,
+    records,
+    forecasts,
+    neglects,
+    insight,
+    insightLoading,
+    hasDraft,
+    fatigueByTag,
+    weekStats,
+    handleResumeDraft,
+    handleDiscardDraft,
+    handleSelectTemplate,
+    handleStartBlank,
+    handleRefreshInsight,
+  } = useTrainingHub(userId, onStartWorkout);
+  const { accent, setAccent } = useTreningAccent();
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
 
   return (
-    <div className="flex-grow bg-background flex flex-col min-h-screen pb-24 transition-colors">
-      {/* Header */}
-      <header className="sticky top-0 z-[var(--z-sticky)] bg-background/80 backdrop-blur-[var(--blur-md)] border-b border-border-custom p-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
+    <div
+      className="trening-theme flex-grow flex flex-col min-h-screen pb-20 transition-colors"
+      data-tren-accent={accent}
+    >
+      <header className="trening-header sticky top-0 z-[var(--z-sticky)] px-3 py-3 flex items-center justify-between gap-2 border-b">
+        <div className="flex items-center gap-2 min-w-0">
           <Pressable
             onClick={onBack}
-            className="p-2 -ml-2 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+            className="p-2 -ml-1 rounded-full bg-surface/80 text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={18} />
           </Pressable>
-          <div>
-            <span className="text-3xs font-black uppercase tracking-widest text-text-muted">Siłownia & Ruch</span>
-            <h1 className="text-sm font-black uppercase tracking-wider text-text-primary font-display leading-tight">
+          <div className="min-w-0">
+            <p className="text-3xs font-black uppercase tracking-[0.16em] text-primary">Trening</p>
+            <h1 className="text-lg font-black tracking-tight text-text-primary font-display leading-none mt-0.5 truncate">
               Centrum Treningowe
             </h1>
           </div>
         </div>
-
         <Pressable
-          onClick={() => onNavigate('/cwiczenie')}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-custom bg-surface hover:border-primary/40 text-text-secondary hover:text-primary text-xs font-bold ui-interactive cursor-pointer shadow-sm"
+          type="button"
+          onClick={() => setAppearanceOpen(true)}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border-custom bg-surface text-text-secondary hover:text-primary hover:border-primary/40 cursor-pointer"
+          aria-label="Wygląd treningu"
+          title="Wygląd"
         >
-          <TrendingUp size={13} />
-          <span className="text-2xs font-black uppercase tracking-wider">Baza & PR</span>
+          <Settings size={16} />
         </Pressable>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 p-4 sm:p-5 space-y-5 max-w-md mx-auto w-full">
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-surface-2/60 rounded-xl border border-border-custom w-full">
-          <Pressable
-            type="button"
-            onClick={() => setActiveTab('hub')}
-            className={`flex-1 py-1.5 rounded-lg text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer ${
-              activeTab === 'hub' ? 'bg-primary text-on-accent shadow-sm' : 'text-text-muted hover:text-text-primary'
-            }`}
-          >
-            Start & Plany
-          </Pressable>
-          <Pressable
-            type="button"
-            onClick={() => setActiveTab('anatomy')}
-            className={`flex-1 py-1.5 rounded-lg text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer ${
-              activeTab === 'anatomy' ? 'bg-primary text-on-accent shadow-sm' : 'text-text-muted hover:text-text-primary'
-            }`}
-          >
-            Mapa Mięśni
-          </Pressable>
-          <Pressable
-            type="button"
-            onClick={() => setActiveTab('heatmap')}
-            className={`flex-1 py-1.5 rounded-lg text-3xs font-black uppercase tracking-wider transition-colors cursor-pointer ${
-              activeTab === 'heatmap' ? 'bg-primary text-on-accent shadow-sm' : 'text-text-muted hover:text-text-primary'
-            }`}
-          >
-            Matryca 52 tyg.
-          </Pressable>
-        </div>
+      <div className="trening-glow-line w-full shrink-0" aria-hidden />
 
+      <main className="flex-1 px-3 py-4 space-y-3.5 max-w-md mx-auto w-full relative">
         {loading ? (
-          <div className="py-16 flex flex-col items-center justify-center gap-3">
+          <div className="py-16 flex flex-col items-center justify-center gap-2">
             <Spinner size="md" />
-            <span className="text-2xs font-black uppercase tracking-widest text-text-muted">
-              Wczytywanie jednostek...
-            </span>
-          </div>
-        ) : activeTab === 'anatomy' ? (
-          <div className="space-y-4 animate-in fade-in">
-            <BodyMap />
-          </div>
-        ) : activeTab === 'heatmap' ? (
-          <div className="space-y-4 animate-in fade-in">
-            <WorkoutActivityHeatmap workouts={heatmapWorkouts} />
+            <span className="text-2xs font-black uppercase tracking-widest text-text-muted">Wczytywanie…</span>
           </div>
         ) : (
-          <>
-            {userId && <TrainingPlanContainer userId={userId} onStartWorkout={onStartWorkout} />}
-            {/* Active Draft Banner */}
+          <div className="space-y-3.5 animate-in fade-in">
             {hasDraft && (
-              <ActiveDraftBanner
-                onResume={handleResumeDraft}
-                onDiscard={handleDiscardDraft}
-              />
+              <ActiveDraftBanner onResume={handleResumeDraft} onDiscard={handleDiscardDraft} />
             )}
 
-            {/* Today's Completed Workout */}
-            {todaySession && (
+            {todaySession ? (
               <TrainingTodayCard
                 details={todaySession}
                 onStartAnother={handleStartBlank}
                 onLogSauna={() => onNavigate('/sauna')}
               />
+            ) : (
+              !hasDraft && <QuickStartCta onStart={handleStartBlank} />
             )}
 
-            {/* Workout Start & Templates */}
+            <TrainingHubWeekPanel fatigueByTag={fatigueByTag} week={weekStats} />
+
+            <TrainingHubRecords records={records} />
+
+            <TrainingHubSignals forecasts={forecasts} neglects={neglects} />
+
+            <TrainingHubInsight
+              insight={insight}
+              loading={insightLoading}
+              onRefresh={handleRefreshInsight}
+            />
+
+            {(todaySession || hasDraft) && (
+              <QuickStartCta onStart={handleStartBlank} compact />
+            )}
+
             <TrainingTemplatesSection
               templates={templates}
               onSelectTemplate={handleSelectTemplate}
-              onStartBlank={handleStartBlank}
-              onOpenNlCapture={() => setShowNlCapture(true)}
             />
-            {userId && <details className="rounded-2xl border border-border-custom p-3">
-              <summary className="cursor-pointer text-sm font-semibold">Cele i warunki treningu</summary>
-              <HealthGoalEditorContainer userId={userId} />
-            </details>}
-          </>
+
+            {userId && <TrainingHubPlanSection userId={userId} onStartWorkout={onStartWorkout} />}
+          </div>
         )}
       </main>
 
-      {/* AI NL Capture Modal */}
-      {showNlCapture && (
-        <WorkoutNlCaptureModal
-          isOpen={showNlCapture}
-          onClose={() => setShowNlCapture(false)}
-          onApplyParsed={(parsed) => {
-            onStartWorkout({
-              workoutName: parsed.workoutName || 'Trening',
-              exercises: parsed.exercises,
-              activities: parsed.activities,
-              notes: '',
-              sessionRpe: null,
-            });
-          }}
-        />
-      )}
+      <TrainingHubAppearanceSheet
+        open={appearanceOpen}
+        accent={accent}
+        onSelect={setAccent}
+        onClose={() => setAppearanceOpen(false)}
+      />
     </div>
   );
 }

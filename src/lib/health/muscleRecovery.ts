@@ -5,6 +5,7 @@
  * oraz retencję siły z detreningiem (14 dni plateau + 28d half-life do podłogi 0.5).
  */
 
+import { normalizeMuscleTag } from './bodyMuscles';
 import { epley } from './workout';
 
 export const FATIGUE_HALF_LIFE_MS = 36 * 60 * 60 * 1000; // 36h half-life zmęczenia
@@ -159,7 +160,7 @@ export function calculateMuscleFatigue(
         0
       );
 
-      const tags = ex.muscleTags?.length ? ex.muscleTags : ['inne'];
+      const tags = (ex.muscleTags?.length ? ex.muscleTags : ['inne']).map(normalizeMuscleTag);
       const share = exTonnage / tags.length;
 
       for (const tag of tags) {
@@ -223,7 +224,8 @@ export function calculateMuscleStrengthRetention(
       const hasCompletedSet = ex.sets.some((s) => !s.isWarmup && s.done !== false);
       if (!hasCompletedSet) continue;
 
-      for (const tag of ex.muscleTags || []) {
+      for (const raw of ex.muscleTags || []) {
+        const tag = normalizeMuscleTag(raw);
         if (timestamp > (latestByMuscle[tag] ?? -Infinity)) {
           latestByMuscle[tag] = timestamp;
         }

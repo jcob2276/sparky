@@ -63,6 +63,7 @@
     "src/lib/edgeTypes.ts": ["types"],
     "src/lib/health/nutritionCalibration.ts": ["types"],
     "src/lib/health/healthGoals.ts": ["types"],
+    "supabase/functions/vanguard-oracle/oracle/coreMemory.ts": ["exports", "types"],
     "src/lib/health/healthCoachReviewApi.ts": ["exports"],
     "supabase/functions/_shared/healthCoachContext.ts": ["exports"],
     "supabase/functions/sync/investmentAi.ts": ["exports"],

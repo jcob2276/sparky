@@ -75,6 +75,33 @@ export const SPARKY_TO_SVG_MAP: Record<string, SvgMuscle[]> = {
   łydki: ['calves', 'tibialis'],
 };
 
+/** Aliasy z presetów / importów / EN → kanoniczne tagi Sparky. */
+const MUSCLE_TAG_ALIASES: Record<string, string> = {
+  quady: 'czworogłowe',
+  quads: 'czworogłowe',
+  nogi: 'czworogłowe',
+  legs: 'czworogłowe',
+  dwugłowy: 'dwugłowe ud',
+  'dwuglowe ud': 'dwugłowe ud',
+  hamstrings: 'dwugłowe ud',
+  'tył barku': 'barki',
+  'tyl barku': 'barki',
+  shoulders: 'barki',
+  chest: 'klatka',
+  back: 'plecy',
+  abs: 'brzuch',
+  glutes: 'pośladki',
+  calves: 'łydki',
+  forearms: 'przedramiona',
+};
+
+/** Normalizuje tag mięśniowy do kanonicznej formy używanej w mapie SVG / fatigue. */
+export function normalizeMuscleTag(tag: string): string {
+  const key = tag.trim().toLowerCase();
+  if (!key) return key;
+  return MUSCLE_TAG_ALIASES[key] ?? key;
+}
+
 export const VANGUARD_TO_SVG_MAP = SPARKY_TO_SVG_MAP;
 
 /**
@@ -95,7 +122,7 @@ export function calculateSvgMuscleLevels(
   }
 
   for (const [tag, fatigue] of Object.entries(fatigueByTag)) {
-    const svgMuscles = SPARKY_TO_SVG_MAP[tag.toLowerCase()];
+    const svgMuscles = SPARKY_TO_SVG_MAP[normalizeMuscleTag(tag)];
     if (!svgMuscles) continue;
 
     let level = 0;

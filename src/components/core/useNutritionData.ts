@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getTodayWarsaw, shiftDateStr } from '../../lib/date';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useWarsawDayChange } from '../../hooks/useWarsawDayChange';
 import { useUserId } from '../../store/useStore';
 import type { Database } from '../../lib/database.types';
 import { auditNutritionDay } from '../../lib/health/nutritionAudit';
@@ -28,7 +29,8 @@ export interface UseNutritionDataProps {
 
 export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutritionDataProps) {
   const userId = useUserId();
-  const todayRaw = getTodayWarsaw();
+  const [todayRaw, setTodayRaw] = useState(getTodayWarsaw);
+  useWarsawDayChange(() => setTodayRaw(getTodayWarsaw()));
   const haptics = useHaptics();
   const queryClient = useQueryClient();
 
@@ -38,16 +40,19 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
   const [activeChartTab, setActiveChartTab] = useState<'calories' | 'protein'>('calories');
 
   const query = useQuery({
-    queryKey: ['nutrition-data', userId, weeklyCalories],
+    queryKey: ['nutrition-data', userId, weeklyCalories, todayRaw],
     queryFn: () => userId ? loadNutritionDashboard(userId,todayRaw) : null,
     enabled: !!userId,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: 'always',
   });
 
+  const { refetch } = query;
   useEffect(() => {
-    if (userId) {
-      void query.refetch();
+    if (userId && refreshSignal) {
+      void refetch();
     }
-  }, [refreshSignal, userId, query]);
+  }, [refreshSignal, userId, refetch]);
 
   const proteinGoal = query.data?.proteinGoal ?? null;
   const kcalTarget = query.data?.kcalTarget ?? null;
@@ -82,7 +87,7 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
       setDeletingId(id);
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['nutrition-data', userId, weeklyCalories] });
+      void queryClient.invalidateQueries({ queryKey: ['nutrition-data', userId] });
     },
     onError: (e: unknown) => {
       notify('Nie udało się usunąć wpisu.', 'error');

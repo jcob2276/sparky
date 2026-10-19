@@ -27,7 +27,7 @@ import { OracleResponseSchema, extractAnswer } from "./responseExtract.ts";
 import { handleStreamingResponse } from "./streamHandler.ts";
 import { handleNoteSummary, handleExtractTasks } from "../handlers/noteOps.ts";
 import { getCircadianStance } from "./circadian.ts";
-import { fetchCoreMemory, applyCoreMemoryMutation } from "./coreMemory.ts";
+import { fetchCoreMemory, persistCoreMemoryResponse } from "./coreMemory.ts";
 
 const MAX_SQL_TOOL_ITERATIONS = 3;
 
@@ -248,6 +248,7 @@ export async function runOracleQuery(
     throw e;
   }
 
+  structuredResponse = await persistCoreMemoryResponse(supabase, user_id, structuredResponse, agent_run_mode);
   const text = extractAnswer(structuredResponse, rawOutput);
 
   await logOracleRun(supabase, {
@@ -264,12 +265,6 @@ export async function runOracleQuery(
     structuredResponse,
     agent_run_mode,
   );
-
-  if (structuredResponse.core_memory_mutation && agent_run_mode !== 'readOnly') {
-    await applyCoreMemoryMutation(supabase, user_id, structuredResponse.core_memory_mutation).catch((e) => {
-      console.error("[oracle] core_memory_mutation failed:", e);
-    });
-  }
 
   console.log(`[oracle] response returned`, Date.now() - t0);
   return {

@@ -65,4 +65,13 @@ describe('notes export', () => {
     expect(markdown).toContain('Lot do Gdańska');
     expect(markdown).not.toContain('<p>');
   });
+
+  it('exports links to the same target ID using its latest title and actual archive path', async () => {
+    const source = { ...note, content: '<p>Zobacz <a data-note-id="target">Dawny tytuł</a></p>' };
+    const target = { ...note, id: 'target', title: 'Nowy tytuł', content: '<p>Treść celu</p>' };
+    const zip = await JSZip.loadAsync(await (await buildNotesArchive('user-1', [source, target], [])).arrayBuffer());
+    const sourcePath = Object.keys(zip.files).find(path => path.startsWith('notes/') && path.endsWith('-note-1.md'))!;
+    const targetPath = Object.keys(zip.files).find(path => path.startsWith('notes/') && path.endsWith('-target.md'))!;
+    expect(await zip.file(sourcePath)!.async('string')).toContain(`[Nowy tytuł](${targetPath.slice('notes/'.length)})`);
+  });
 });

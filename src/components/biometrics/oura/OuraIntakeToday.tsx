@@ -1,6 +1,8 @@
 import { Check, Coffee, Pill } from 'lucide-react';
 import Button from '../../ui/Button';
 import type { TodayStackItem } from '../../../lib/biometrics/ouraIntakeInsights';
+import type { CaffeineEntry } from '../../../lib/health/caffeineHistoryApi';
+import { formatShortDateWarsaw, warsawTimeOfDay } from '../../../lib/date';
 
 const DAY_START_HOUR = 6;
 const DAY_SPAN_HOURS = 18; // 06:00–24:00
@@ -38,7 +40,8 @@ function StripRow({ label, icon: Icon, times, tone }: {
 }
 
 interface TodayStripProps {
-  caffeineTimes: string[];
+  date: string;
+  caffeine: CaffeineEntry[];
   stack: TodayStackItem[];
   /** Id suplementów, dla których trwa zapis. */
   pendingIds: ReadonlySet<string>;
@@ -51,12 +54,13 @@ function rowStatus(s: TodayStackItem): string {
   return s.plannedAt ? `Zaplanowany na ${s.plannedAt} · kliknij, by zaznaczyć` : 'Jeszcze nie zażyty · kliknij, by zaznaczyć';
 }
 
-export function TodayStrip({ caffeineTimes, stack, pendingIds, error, onToggle }: TodayStripProps) {
+export function TodayStrip({ date, caffeine, stack, pendingIds, error, onToggle }: TodayStripProps) {
+  const caffeineTimes = caffeine.flatMap((entry) => entry.loggedAt ? [warsawTimeOfDay(entry.loggedAt)] : []);
   const supplementTimes = stack.flatMap((s) => (s.takenAt ? [s.takenAt] : []));
   return (
     <div className="space-y-3 rounded-xl border border-border-custom bg-surface-2 p-5">
-      <p className="text-sm text-text-secondary">Dziś</p>
-      <StripRow label="Kawa" icon={Coffee} times={caffeineTimes} tone="bg-warning" />
+      <p className="text-sm text-text-secondary">Dziś · {formatShortDateWarsaw(date)}</p>
+      <StripRow label="Kofeina" icon={Coffee} times={caffeineTimes} tone="bg-warning" />
       <StripRow label="Suple" icon={Pill} times={supplementTimes} tone="bg-primary" />
       <div className="flex gap-3 text-xs text-text-muted">
         <span className="w-24 shrink-0" />
@@ -64,6 +68,9 @@ export function TodayStrip({ caffeineTimes, stack, pendingIds, error, onToggle }
           <span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span>
         </div>
       </div>
+      <p className="text-xs text-text-muted">
+        {caffeine.length ? caffeine.map((entry) => `${entry.name} · ${entry.loggedAt ? warsawTimeOfDay(entry.loggedAt) : 'brak godziny'} · ~${entry.mg} mg`).join('; ') : 'Brak wpisów kofeiny na dziś.'}
+      </p>
       {stack.length > 0 ? (
         <ul className="space-y-1">
           {stack.map((s) => (

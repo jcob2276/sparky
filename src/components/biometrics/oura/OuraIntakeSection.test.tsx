@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { CaffeineEntry } from '../../../lib/health/caffeineHistoryApi';
 import type { Supplement, SupplementLog } from '../../../lib/health/supplementsClient';
 import type { OuraHealthHubData } from './types';
@@ -45,19 +45,64 @@ function hub(nightCount: number): OuraHealthHubData {
   return { date: '2026-09-21', ouraHistory: rows as unknown as OuraHealthHubData['ouraHistory'] } as OuraHealthHubData;
 }
 
-describe('OuraIntakeSection', () => {
-  beforeEach(() => {
-    state.supplements = [];
-    state.logs = [];
-    state.caffeine = [];
-    state.loading = false;
-    state.mutate = vi.fn();
-    state.isError = false;
-    state.isPending = false;
-    state.variables = undefined;
-    state.notify = vi.fn();
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-09-21T10:00:00Z'));
+  state.supplements = [];
+  state.logs = [];
+  state.caffeine = [];
+  state.loading = false;
+  state.mutate = vi.fn();
+  state.isError = false;
+  state.isPending = false;
+  state.variables = undefined;
+  state.notify = vi.fn();
+});
+
+afterEach(() => vi.useRealTimers());
+
+describe('OuraIntakeSection calendar day and caffeine source', () => {
+  it('uses the Warsaw calendar day even when the last Oura night is older', () => {
+    state.supplements = [supplement];
+    state.logs = [{
+      id: 'telegram-log', user_id: 'u', supplement_id: 's1', quantity: 3,
+      date: '2026-09-21', logged_at: '2026-09-21T07:48:00Z', note: null,
+    }];
+    state.caffeine = [{ date: '2026-09-20', name: 'Kawa', loggedAt: '2026-09-20T09:35:00Z', mg: 95 }];
+    render(<OuraIntakeSection userId="u" data={{ ...hub(10), date: '2026-09-20' }} />);
+    expect(screen.getByRole('checkbox', { name: /Magnez/ })).toHaveAttribute('aria-checked', 'true');
+    expect(screen.getByText('Zażyty o 09:48')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /Kofeina: brak wpisów/ })).toBeInTheDocument();
   });
 
+  it('writes today when clicking a supplement with yesterday as the Oura date', () => {
+    state.supplements = [supplement];
+    render(<OuraIntakeSection userId="u" data={{ ...hub(10), date: '2026-09-20' }} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: /Magnez/ }));
+    expect(state.mutate.mock.calls[0][0].log.date).toBe('2026-09-21');
+  });
+
+  it('shows the caffeine source so Pepsi is not presented as a coffee', () => {
+    state.caffeine = [{ date: '2026-09-21', name: 'Pepsi Zero', loggedAt: '2026-09-21T09:35:00Z', mg: 35 }];
+    render(<OuraIntakeSection userId="u" data={hub(10)} />);
+    expect(screen.getByText('Pepsi Zero · 11:35 · ~35 mg')).toBeInTheDocument();
+    expect(screen.getByText('Dziś · 21.09')).toBeInTheDocument();
+  });
+
+  it('changes the logging date after Warsaw midnight when the tab returns', () => {
+    state.supplements = [supplement];
+    vi.setSystemTime(new Date('2026-09-21T21:59:00Z'));
+    render(<OuraIntakeSection userId="u" data={hub(10)} />);
+    act(() => {
+      vi.setSystemTime(new Date('2026-09-21T22:01:00Z'));
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    fireEvent.click(screen.getByRole('checkbox', { name: /Magnez/ }));
+    expect(state.mutate.mock.calls[0][0].log.date).toBe('2026-09-22');
+  });
+});
+
+describe('OuraIntakeSection rendering and actions', () => {
   it('pokazuje stan pusty po polsku, gdy nie ma kawy ani suplementów', () => {
     render(<OuraIntakeSection userId="u" data={hub(10)} />);
     expect(screen.getByRole('heading', { name: 'Kawa i suple' })).toBeInTheDocument();

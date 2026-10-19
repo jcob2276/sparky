@@ -213,16 +213,6 @@ function applyWeekModifiers(week: number, slot: PlyoSlotId, base: PlyoExercisePr
   return out
 }
 
-export function formatPlyoPrescription(ex: PlyoExercisePrescription): string {
-  if (ex.durationSec) {
-    const side = ex.sideLabel ? ` /${ex.sideLabel}` : ''
-    return `${ex.sets}×${ex.durationSec}s${side}`
-  }
-  if (ex.distanceM) return `${ex.sets}×${ex.distanceM} m`
-  const side = ex.sideLabel ? ` /${ex.sideLabel}` : ''
-  return `${ex.sets}×${ex.reps ?? '?'}${side}`
-}
-
 export function resolvePlyoSession(today: string, userId: string): PlyoSessionPlan {
   const week = programWeek(today)
   const { slotIndex } = loadPlyoProgramState(userId)

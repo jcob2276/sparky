@@ -1,0 +1,227 @@
+/**
+ * iOS-feel micro-interactions for /trening.
+ * Scoped under .trening-theme — springy but subtle, SF spacing rhythm, haptic-like CSS.
+ * Loaded via treningTheme.css (@import) so hub + logger pick it up without contested TS edits.
+ */
+
+.trening-theme {
+  /* SF-like 4pt rhythm */
+  --tren-space-1: 0.25rem; /* 4 */
+  --tren-space-2: 0.5rem; /* 8 */
+  --tren-space-3: 0.75rem; /* 12 */
+  --tren-space-4: 1rem; /* 16 */
+  --tren-space-5: 1.25rem; /* 20 */
+  --tren-space-6: 1.5rem; /* 24 */
+  --tren-ease-spring: cubic-bezier(0.34, 1.35, 0.64, 1);
+  --tren-ease-soft: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --tren-dur-tap: 90ms;
+  --tren-dur-spring: 320ms;
+  --tren-dur-wash: 280ms;
+}
+
+/* -- Set rows: soft spring into done wash -- */
+.trening-theme .trening-set-row {
+  transition:
+    background-color var(--tren-dur-wash) var(--tren-ease-soft),
+    border-color var(--tren-dur-wash) var(--tren-ease-soft),
+    transform var(--tren-dur-spring) var(--tren-ease-spring),
+    box-shadow var(--tren-dur-wash) var(--tren-ease-soft);
+}
+
+.trening-theme .trening-set-row.is-done {
+  animation: tren-set-done-in var(--tren-dur-spring) var(--tren-ease-spring) both;
+}
+
+@keyframes tren-set-done-in {
+  0% {
+    transform: scale(0.992);
+    box-shadow: 0 0 0 0 transparent;
+  }
+  55% {
+    transform: scale(1.008);
+    box-shadow: 0 0 0 3px rgb(var(--tren-accent-rgb) / 10%);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: none;
+  }
+}
+
+/* -- Checkmark: haptic press + pop when completed -- */
+.trening-theme .trening-check {
+  transition:
+    background-color var(--tren-dur-wash) var(--tren-ease-soft),
+    border-color var(--tren-dur-wash) var(--tren-ease-soft),
+    color var(--tren-dur-tap) var(--tren-ease-soft),
+    transform var(--tren-dur-spring) var(--tren-ease-spring),
+    box-shadow var(--tren-dur-wash) var(--tren-ease-soft);
+}
+
+.trening-theme .trening-check:active {
+  transform: scale(0.88);
+  transition-duration: var(--tren-dur-tap);
+}
+
+.trening-theme .trening-check.is-done {
+  animation: tren-check-fill var(--tren-dur-spring) var(--tren-ease-spring) both;
+  box-shadow: 0 0 0 0 rgb(var(--tren-accent-rgb) / 0%);
+}
+
+.trening-theme .trening-check.is-done .trening-check-mark {
+  animation: tren-check-mark-pop 380ms var(--tren-ease-spring) both;
+}
+
+@keyframes tren-check-fill {
+  0% {
+    transform: scale(0.82);
+    box-shadow: 0 0 0 0 rgb(var(--tren-accent-rgb) / 35%);
+  }
+  60% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgb(var(--tren-accent-rgb) / 0%);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgb(var(--tren-accent-rgb) / 0%);
+  }
+}
+
+@keyframes tren-check-mark-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.35) rotate(-12deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.18) rotate(0deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* -- Number steppers: iOS segmented control feel -- */
+.trening-theme .tren-num-input {
+  gap: var(--tren-space-1);
+}
+
+.trening-theme .tren-num-input .tren-stepper-btn {
+  transition:
+    background-color var(--tren-dur-tap) var(--tren-ease-soft),
+    color var(--tren-dur-tap) var(--tren-ease-soft),
+    transform var(--tren-dur-spring) var(--tren-ease-spring),
+    border-color var(--tren-dur-tap) var(--tren-ease-soft);
+}
+
+.trening-theme .tren-num-input .tren-stepper-btn:active {
+  transform: scale(0.9);
+  transition-duration: var(--tren-dur-tap);
+}
+
+.trening-theme .tren-num-input input:focus {
+  transition:
+    border-color var(--tren-dur-tap) var(--tren-ease-soft),
+    box-shadow var(--tren-dur-spring) var(--tren-ease-spring);
+  box-shadow: 0 0 0 3px rgb(var(--tren-accent-rgb) / 16%);
+}
+
+/* -- Live HUD strip -- */
+.trening-theme .tren-hud {
+  padding: var(--tren-space-3) var(--tren-space-3);
+  transition:
+    border-color var(--tren-dur-wash) var(--tren-ease-soft),
+    box-shadow var(--tren-dur-wash) var(--tren-ease-soft);
+}
+
+.trening-theme .tren-hud .tren-tap {
+  border-radius: var(--tren-radius-ctl);
+  transition:
+    background-color var(--tren-dur-tap) var(--tren-ease-soft),
+    transform var(--tren-dur-spring) var(--tren-ease-spring),
+    color var(--tren-dur-tap) var(--tren-ease-soft),
+    border-color var(--tren-dur-tap) var(--tren-ease-soft);
+}
+
+.trening-theme .tren-hud .tren-tap:active {
+  transform: scale(0.96);
+  transition-duration: var(--tren-dur-tap);
+}
+
+.trening-theme .tren-hud .tren-live-dot.is-on {
+  animation: tren-live-pulse 1.6s var(--tren-ease-soft) infinite;
+}
+
+@keyframes tren-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgb(var(--tren-accent-rgb) / 40%);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.15);
+    box-shadow: 0 0 0 4px rgb(var(--tren-accent-rgb) / 0%);
+  }
+}
+
+/* -- Generic pressables under theme (subtle haptic) -- */
+.trening-theme .trening-hero-cta,
+.trening-theme .trening-chip {
+  transition:
+    transform var(--tren-dur-spring) var(--tren-ease-spring),
+    background-color var(--tren-dur-tap) var(--tren-ease-soft),
+    box-shadow var(--tren-dur-wash) var(--tren-ease-soft);
+}
+
+.trening-theme .trening-hero-cta:active,
+.trening-theme .trening-chip:active {
+  transform: scale(0.97);
+}
+
+/* -- Exercise picker sheet (Hevy-style dense rows) -- */
+.trening-theme .tren-picker-search:focus {
+  border-color: rgb(var(--tren-accent-rgb) / 45%);
+  box-shadow: 0 0 0 3px rgb(var(--tren-accent-rgb) / 14%);
+  transition:
+    border-color var(--tren-dur-tap) var(--tren-ease-soft),
+    box-shadow var(--tren-dur-spring) var(--tren-ease-spring);
+}
+
+.trening-theme .tren-picker-row {
+  min-height: 56px;
+  transition:
+    background-color var(--tren-dur-tap) var(--tren-ease-soft),
+    transform var(--tren-dur-spring) var(--tren-ease-spring);
+}
+
+.trening-theme .tren-picker-row:active {
+  background-color: rgb(var(--tren-accent-rgb) / 8%);
+  transform: scale(0.992);
+  transition-duration: var(--tren-dur-tap);
+}
+
+.trening-theme .tren-picker-row:hover {
+  background-color: rgb(255 255 255 / 4%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trening-theme .trening-set-row,
+  .trening-theme .trening-set-row.is-done,
+  .trening-theme .trening-check,
+  .trening-theme .trening-check.is-done,
+  .trening-theme .trening-check.is-done .trening-check-mark,
+  .trening-theme .tren-num-input .tren-stepper-btn,
+  .trening-theme .tren-hud .tren-tap,
+  .trening-theme .tren-hud .tren-live-dot.is-on,
+  .trening-theme .trening-hero-cta,
+  .trening-theme .trening-chip,
+  .trening-theme .tren-picker-row,
+  .trening-theme .tren-picker-search:focus {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    box-shadow: none;
+  }
+}

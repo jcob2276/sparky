@@ -236,6 +236,8 @@ export function useOuraNightDetails(
 
 export function useOuraContext(userId: string, contextDate: string | null, bedtimeStart: string | null) {
   return useQuery({
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: 'always',
     queryKey: biometricsKeys.ouraContext(userId, contextDate ?? '', bedtimeStart),
     queryFn: async () => {
       if (!contextDate) return null;

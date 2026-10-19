@@ -145,7 +145,7 @@ describe('buildIntakeInsights', () => {
     expect(res.caffeine.nightsWithGap).toBe(1);
   });
 
-  it('ignoruje wpisy kofeiny bez godziny i zwraca dzisiejsze godziny kawy', () => {
+  it('zwraca dzisiejsze źródła kofeiny, także wpisy bez godziny', () => {
     const res = buildIntakeInsights({
       today: day(10), nights: [], supplements: [], supplementLogs: [],
       caffeineEntries: [
@@ -155,6 +155,8 @@ describe('buildIntakeInsights', () => {
         coffee(day(9), 15),
       ],
     });
-    expect(res.todayCaffeineTimes).toEqual(['08:00', '13:00']);
+    expect(res.todayCaffeine.map((entry) => entry.loggedAt)).toEqual([
+      null, coffee(day(10), 8).loggedAt, coffee(day(10), 13).loggedAt,
+    ]);
   });
 });

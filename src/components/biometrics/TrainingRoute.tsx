@@ -5,7 +5,7 @@ import { markWorkoutSessionActive, endWorkoutSession } from '../../lib/health/wo
 import { useUserId } from '../../store/useStore';
 import Spinner from '../ui/Spinner';
 
-const WorkoutLogger = lazy(() => import('./WorkoutLogger'));
+const WorkoutLogger = lazy(() => import('./LiveWorkout'));
 const TrainingHubView = lazy(() => import('./workout/TrainingHubView'));
 
 interface TrainingRouteProps {

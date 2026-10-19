@@ -7,6 +7,7 @@ import { getTodayWarsaw } from './date';
 import { downloadNoteDrawingPreview } from './noteDrawingsApi';
 import { downloadBlob } from './download';
 import { isNativePlatform } from './native/platform';
+import { noteContentAsMarkdown } from './noteReferences';
 
 const safeName = (value: string) => (
   value.normalize('NFKD').replace(/[^\w.-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 80) || 'notatka'
@@ -23,7 +24,7 @@ export const noteAsText = (note: Note, folderName?: string): string => [
   getPlainText(note.content),
 ].filter(line => line !== null).join('\n');
 
-export const noteAsMarkdown = (note: Note, folderName?: string, drawingPath?: string): string => [
+export const noteAsMarkdown = (note: Note, folderName?: string, drawingPath?: string, paths?: Map<string, { title: string; path: string }>): string => [
   `# ${note.title || 'Bez tytułu'}`,
   '',
   folderName ? `**Folder:** ${folderName}` : null,
@@ -31,7 +32,7 @@ export const noteAsMarkdown = (note: Note, folderName?: string, drawingPath?: st
   `**Utworzono:** ${note.created_at}`,
   `**Zmieniono:** ${note.updated_at}`,
   '',
-  getPlainText(note.content),
+  noteContentAsMarkdown(note.content, paths),
   drawingPath ? `\n![Rysunek](${drawingPath})` : null,
 ].filter(line => line !== null).join('\n');
 
@@ -100,6 +101,9 @@ export async function buildNotesArchive(
   folders: NoteFolder[],
 ): Promise<Blob> {
   const zip = new JSZip();
+  const notePaths = new Map(notes.filter(note => !note.is_locked).map(note => [note.id, {
+    title: note.title, path: `${safeName(note.title)}-${note.id}.md`,
+  }]));
   const folderNames = new Map(folders.map(folder => [folder.id, folder.name]));
   zip.file('manifest.json', JSON.stringify({
     exported_at: new Date().toISOString(),
@@ -111,7 +115,7 @@ export async function buildNotesArchive(
     const drawingPath = note.drawing_preview_path ? `../drawings/${note.id}.png` : undefined;
     zip.file(
       `notes/${safeName(note.title)}-${note.id}.md`,
-      noteAsMarkdown(note, note.folder_id ? folderNames.get(note.folder_id) : undefined, drawingPath),
+      noteAsMarkdown(note, note.folder_id ? folderNames.get(note.folder_id) : undefined, drawingPath, notePaths),
     );
     if (note.drawing_preview_path) {
       const preview = await downloadNoteDrawingPreview(note.drawing_preview_path);

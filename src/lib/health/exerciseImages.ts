@@ -55,15 +55,46 @@ export const POLISH_TO_ENGLISH: Record<string, string> = {
 
 const EQUIPMENT_PL: Record<string, string> = {
   barbell: 'Sztanga',
-  dumbbell: 'Hantle',
-  cable: 'Wyciąg',
-  machine: 'Maszyna',
-  'body only': 'Masa ciała',
-  kettlebells: 'Kettlebell',
+  'olympic barbell': 'Sztanga olimpijska',
+  'ez barbell': 'Łamana sztanga',
   'e-z curl bar': 'Łamana sztanga',
+  'trap bar': 'Trap bar',
+  dumbbell: 'Hantle',
+  kettlebell: 'Kettlebell',
+  kettlebells: 'Kettlebell',
+  cable: 'Wyciąg',
+  rope: 'Lina',
+  machine: 'Maszyna',
+  'leverage machine': 'Maszyna',
+  'smith machine': 'Smith',
+  'sled machine': 'Sanie',
+  'elliptical machine': 'Orbitrek',
+  'skierg machine': 'SkiErg',
+  'stepmill machine': 'Stepper',
+  'stationary bike': 'Rower',
+  'body only': 'Masa ciała',
+  'body weight': 'Masa ciała',
+  weighted: 'Obciążenie',
+  assisted: 'Wspomagane',
+  band: 'Guma',
   bands: 'Gumy',
+  'resistance band': 'Guma',
+  'medicine ball': 'Piłka lekarska',
+  'stability ball': 'Piłka',
+  'bosu ball': 'BOSU',
+  roller: 'Roller',
+  'wheel roller': 'Ab wheel',
+  hammer: 'Młot',
+  tire: 'Opona',
   other: 'Inne',
 };
+
+/** Angielska nazwa sprzętu (OpenGym / free-exercise-db) → etykieta PL. */
+export function formatEquipmentLabel(equipment: string | null | undefined): string | null {
+  if (!equipment?.trim()) return null;
+  const key = equipment.trim().toLowerCase();
+  return EQUIPMENT_PL[key] ?? equipment.charAt(0).toUpperCase() + equipment.slice(1);
+}
 
 let indexPromise: Promise<IndexRow[]> | null = null;
 let byName: Map<string, IndexRow> | null = null;

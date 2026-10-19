@@ -1,0 +1,277 @@
+/**
+ * Scoped athletic theme for /trening (hub + live logger).
+ * Accent presets via data-tren-accent (lime default / teal / orange / blue).
+ * Explicit background-color + background-image so body light theme cannot bleed through.
+ * Micro-interactions: iosPolish.css imported at file end (Vite inlines in place → wins cascade).
+ */
+.trening-theme {
+  /* Accent: dark-ink variant on light backgrounds, bright variant in dark mode */
+  --tren-bright: #c1ff2c;
+  --tren-bright-hover: #d4ff5c;
+  --tren-bright-rgb: 193 255 44;
+  --tren-bright-tonal: #1a2210;
+  --tren-bright-tonal-strong: #243018;
+  --tren-ink: #4d7c0f;
+  --tren-ink-hover: #3f6212;
+  --tren-ink-rgb: 77 124 15;
+  --tren-ink-tonal: #eef6dc;
+  --tren-ink-tonal-strong: #dcebb8;
+  --tren-accent: var(--tren-ink);
+  --tren-accent-hover: var(--tren-ink-hover);
+  --tren-accent-rgb: var(--tren-ink-rgb);
+  --tren-on-accent: #ffffff;
+  --tren-tonal: var(--tren-ink-tonal);
+  --tren-tonal-strong: var(--tren-ink-tonal-strong);
+  --tren-hairline: rgb(0 0 0 / 9%);
+  --tren-fill: rgb(0 0 0 / 4%);
+  --tren-panel: var(--surface);
+  --tren-panel-muted: var(--surface-2);
+  --tren-bar: rgb(255 255 255 / 88%);
+  --tren-bar-edge: rgb(0 0 0 / 7%);
+  --surface-tonal: var(--tren-tonal);
+  --surface-tonal-strong: var(--tren-tonal-strong);
+  --primary: var(--tren-accent);
+  --primary-hover: var(--tren-accent-hover);
+  --on-accent: var(--tren-on-accent);
+  --color-primary: var(--tren-accent);
+  --color-primary-hover: var(--tren-accent-hover);
+  --color-on-accent: var(--tren-on-accent);
+  --color-surface-tonal: var(--tren-tonal);
+  --color-surface-tonal-strong: var(--tren-tonal-strong);
+  --tren-set-done-bg: rgb(var(--tren-accent-rgb) / 10%);
+  --tren-set-done-border: rgb(var(--tren-accent-rgb) / 26%);
+  --tren-inset-glow: rgb(var(--tren-accent-rgb) / 5%);
+  --tren-radius-card: 1.25rem;
+  --tren-radius-ctl: 0.75rem;
+  background-color: var(--background);
+  color: var(--text-primary);
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+/* Dark mode follows the app toggle (html.dark) */
+.dark .trening-theme {
+  --tren-accent: var(--tren-bright);
+  --tren-accent-hover: var(--tren-bright-hover);
+  --tren-accent-rgb: var(--tren-bright-rgb);
+  --tren-on-accent: #0a0a0a;
+  --tren-tonal: var(--tren-bright-tonal);
+  --tren-tonal-strong: var(--tren-bright-tonal-strong);
+  --tren-hairline: rgb(255 255 255 / 8%);
+  --tren-fill: rgb(255 255 255 / 4%);
+  --tren-panel: #1c1c1e;
+  --tren-panel-muted: #141414;
+  --tren-bar: rgb(10 10 10 / 90%);
+  --tren-bar-edge: rgb(255 255 255 / 7%);
+  --background: #0a0a0a;
+  --surface: #1c1c1e;
+  --surface-solid: #1c1c1e;
+  --surface-1: #141414;
+  --surface-2: #222224;
+  --surface-3: #2c2c2e;
+  --surface-raised: #323234;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1a6;
+  --text-muted: #8e8e93;
+  --text-tertiary: #636366;
+  --border-custom: rgb(255 255 255 / 8%);
+  --border: rgb(255 255 255 / 8%);
+  --color-info: #64d2ff;
+  --color-success: var(--tren-accent);
+  --color-warning: #ffd60a;
+  --color-danger: #ff453a;
+  --color-background: #0a0a0a;
+  --color-surface: #1c1c1e;
+  --color-surface-solid: #1c1c1e;
+  --color-surface-1: #141414;
+  --color-surface-2: #222224;
+  --color-surface-3: #2c2c2e;
+  --color-surface-raised: #323234;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #a1a1a6;
+  --color-text-muted: #8e8e93;
+  --color-text-tertiary: #636366;
+  --color-border-custom: rgb(255 255 255 / 8%);
+  background-color: #0a0a0a;
+  background-image:
+    radial-gradient(ellipse 85% 45% at 8% -6%, rgb(var(--tren-accent-rgb) / 14%), transparent 44%),
+    radial-gradient(ellipse 60% 40% at 96% 4%, rgb(var(--tren-accent-rgb) / 7%), transparent 42%),
+    linear-gradient(180deg, #0e0e0e 0%, #0a0a0a 45%, #080808 100%);
+  color-scheme: dark;
+}
+
+/* Accent presets: ink (light) + bright (dark) pairs */
+.trening-theme[data-tren-accent='teal'],
+html[data-tren-accent='teal'] .trening-theme {
+  --tren-bright: #2dd4bf; --tren-bright-hover: #5eead4; --tren-bright-rgb: 45 212 191;
+  --tren-bright-tonal: #0f1f1c; --tren-bright-tonal-strong: #163530;
+  --tren-ink: #0f766e; --tren-ink-hover: #115e59; --tren-ink-rgb: 15 118 110;
+  --tren-ink-tonal: #dcf5f1; --tren-ink-tonal-strong: #b8e9e2;
+}
+
+.trening-theme[data-tren-accent='orange'],
+html[data-tren-accent='orange'] .trening-theme {
+  --tren-bright: #ff9f0a; --tren-bright-hover: #ffb340; --tren-bright-rgb: 255 159 10;
+  --tren-bright-tonal: #22180a; --tren-bright-tonal-strong: #33240e;
+  --tren-ink: #c2410c; --tren-ink-hover: #9a3412; --tren-ink-rgb: 194 65 12;
+  --tren-ink-tonal: #fdeedd; --tren-ink-tonal-strong: #fad7b4;
+}
+
+.trening-theme[data-tren-accent='blue'],
+html[data-tren-accent='blue'] .trening-theme {
+  --tren-bright: #64d2ff; --tren-bright-hover: #8adfff; --tren-bright-rgb: 100 210 255;
+  --tren-bright-tonal: #0a1822; --tren-bright-tonal-strong: #0e2433;
+  --tren-ink: #0a6cd6; --tren-ink-hover: #0858ad; --tren-ink-rgb: 10 108 214;
+  --tren-ink-tonal: #e3f0fd; --tren-ink-tonal-strong: #c4dffa;
+}
+
+.trening-theme .trening-header {
+  background: var(--tren-bar);
+  border-bottom-color: var(--tren-bar-edge);
+  backdrop-filter: blur(16px);
+}
+
+.trening-theme .trening-panel {
+  background: var(--tren-panel);
+  border: 1px solid var(--tren-hairline);
+  border-radius: var(--tren-radius-card);
+}
+
+.trening-theme .trening-panel-muted {
+  background: var(--tren-panel-muted);
+  border: 1px solid var(--tren-hairline);
+  border-radius: var(--tren-radius-ctl);
+}
+
+.trening-theme .trening-glow-line {
+  background: linear-gradient(90deg, transparent, rgb(var(--tren-accent-rgb) / 45%), transparent);
+  height: 1px;
+}
+
+.trening-theme .trening-hero-cta {
+  background: var(--tren-accent);
+  color: var(--tren-on-accent);
+  border-radius: 1rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow:
+    0 0 0 1px rgb(var(--tren-accent-rgb) / 35%),
+    0 8px 28px rgb(var(--tren-accent-rgb) / 18%);
+}
+
+.trening-theme .trening-hero-cta:hover {
+  background: var(--tren-accent-hover);
+}
+
+.trening-theme .trening-chip {
+  border: 1px solid rgb(var(--tren-accent-rgb) / 35%);
+  background: rgb(var(--tren-accent-rgb) / 8%);
+  color: var(--tren-accent);
+  border-radius: 999px;
+}
+
+/* Hevy set table: SET | PREV | KG | REPS | RIR | ✓ */
+.trening-theme .trening-set-grid {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(3rem, 0.9fr) minmax(3.75rem, 1.15fr) minmax(3.5rem, 1fr) minmax(3rem, 0.85fr) 2.75rem;
+  gap: 0.375rem;
+  align-items: center;
+}
+
+.trening-theme .trening-set-table-head {
+  display: grid;
+  grid-template-columns: 2.5rem minmax(3rem, 0.9fr) minmax(3.75rem, 1.15fr) minmax(3.5rem, 1fr) minmax(3rem, 0.85fr) 2.75rem;
+  gap: 0.375rem;
+  padding: 0.25rem 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.trening-theme .trening-set-row {
+  border-radius: 1rem;
+  padding: 0.4rem 0.3rem 0.25rem;
+  transition: background-color 120ms ease, border-color 120ms ease;
+  border: 1px solid transparent;
+}
+
+.trening-theme .trening-set-row.is-done {
+  background: var(--tren-set-done-bg);
+  border-color: var(--tren-set-done-border);
+}
+
+.trening-theme .trening-add-compact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 1.75rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--tren-accent-rgb) / 28%);
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.trening-theme .trening-add-compact:hover {
+  background: rgb(var(--tren-accent-rgb) / 12%);
+  border-color: rgb(var(--tren-accent-rgb) / 45%);
+}
+
+.trening-theme .trening-check {
+  display: inline-flex;
+  height: 2.5rem;
+  width: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1.5px solid var(--tren-hairline);
+  color: transparent;
+  background: var(--tren-fill);
+  flex-shrink: 0;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, transform 80ms ease;
+}
+
+.trening-theme .trening-check:active {
+  transform: scale(0.92);
+}
+
+.trening-theme .trening-check.is-done {
+  background: var(--tren-accent);
+  border-color: var(--tren-accent);
+  color: var(--tren-on-accent);
+}
+
+.trening-theme .trening-footer-bar {
+  background: var(--tren-bar);
+  border-top-color: var(--tren-bar-edge);
+  backdrop-filter: blur(16px);
+}
+
+/* Strive numpad dock */
+.trening-theme .tren-numpad-key {
+  border: 1px solid var(--tren-hairline);
+  transition: background-color 80ms ease, transform 80ms ease;
+}
+
+.trening-theme .tren-numpad-key:active {
+  background: rgb(var(--tren-accent-rgb) / 18%);
+}
+
+.trening-theme .tren-numpad-next {
+  box-shadow: 0 4px 16px rgb(var(--tren-accent-rgb) / 28%);
+}
+
+.trening-theme .tren-set-cell[aria-pressed='true'] {
+  box-shadow: 0 0 0 1px rgb(59 130 246 / 45%);
+}
+
+@import './iosPolish.css';

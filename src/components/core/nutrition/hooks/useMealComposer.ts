@@ -84,6 +84,8 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     queryKey: ['all-today-entries', userId, logDate],
     queryFn: () => fetchAllTodayEntries(userId!, logDate),
     enabled: !!userId,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: 'always',
   });
 
   useEffect(() => {

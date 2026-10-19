@@ -101,15 +101,6 @@ export function getEffortColor(rir: number | null | undefined): string | null {
   return EFFORT_BANDS[EFFORT_BANDS.length - 1].color;
 }
 
-export function getEffortBand(rir: number | null | undefined): EffortBand | null {
-  if (rir === null || rir === undefined || Number.isNaN(Number(rir))) return null;
-  const n = Number(rir);
-  for (const band of EFFORT_BANDS) {
-    if (n <= band.maxRir) return band;
-  }
-  return EFFORT_BANDS[EFFORT_BANDS.length - 1];
-}
-
 /**
  * Seria uznawana za ciężką stymulacyjnie (RIR <= 3).
  */

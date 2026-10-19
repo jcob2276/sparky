@@ -55,3 +55,4 @@ export * from './healthspanTrend.ts';
 export * from './training/index.ts';
 export * from './caffeine.ts';
 
+export * from './coreMemory.ts';
