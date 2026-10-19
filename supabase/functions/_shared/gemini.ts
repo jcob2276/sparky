@@ -5,6 +5,8 @@ import type { OpenAIChatParams, OpenAIChatResult } from "./openai.ts";
 export const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta";
 const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
 const FALLBACK_GEMINI_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash"];
+// Audio must not fall back to retired models when the primary is unavailable.
+const TRANSCRIPTION_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
 export const DEFAULT_EMBEDDING_MODEL = "gemini-embedding-001";
 
 interface GeminiPart {
@@ -190,7 +192,7 @@ export async function geminiTranscribe(
     "Dokonaj wiernej, dokładnej transkrypcji mowy z tego nagrania audio na tekst w języku polskim. Zwróć wyłącznie sam tekst wypowiedzi, bez żadnych wstępów, cudzysłowów ani komentarzy. Jeśli nagranie zawiera tylko ciszę lub szum, zwróć pusty ciąg znaków.";
   const prompt = opts?.prompt ? `${defaultPrompt}\nKontekst / słowa kluczowe: ${opts.prompt}` : defaultPrompt;
 
-  const candidateModels = [DEFAULT_GEMINI_MODEL, ...FALLBACK_GEMINI_MODELS];
+  const candidateModels = TRANSCRIPTION_MODELS;
   let lastErr: unknown;
 
   for (const model of candidateModels) {
