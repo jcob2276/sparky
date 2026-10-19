@@ -17,7 +17,6 @@ import {
   type WorkoutLoggerInitial,
 } from '../../../lib/health/workoutLogging';
 import { type DesktopTabType } from './DesktopQuickActionsBar';
-import { weeklyVolume } from '../desktopUtils';
 import { useDesktopData } from './useDesktopData';
 
 type DesktopData = ReturnType<typeof useDesktopData>;
@@ -31,7 +30,7 @@ export function useDesktopDashboardState({
   userId,
   desktopData,
 }: UseDesktopDashboardStateOptions) {
-  const { sessions, refresh } = desktopData;
+  const { refresh } = desktopData;
 
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab') as DesktopTabType | null;
@@ -127,7 +126,6 @@ export function useDesktopDashboardState({
   }, [syncAll, openWorkout]);
 
   const currentWeight = desktopData.body[desktopData.body.length - 1]?.weight ?? null;
-  const volData = useMemo(() => weeklyVolume(sessions), [sessions]);
   const now = useMemo(() => formatDashboardDate(), []);
 
   return {
@@ -155,7 +153,6 @@ export function useDesktopDashboardState({
     syncAll,
     openWorkout,
     currentWeight,
-    volData,
     now,
   };
 }

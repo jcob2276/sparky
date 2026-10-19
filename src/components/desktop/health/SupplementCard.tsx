@@ -209,7 +209,7 @@ export default function SupplementCard({
                   className="flex items-center gap-0.5 p-0 h-auto text-text-muted hover:text-primary text-2xs"
                   onClick={() => setEditingReminder(true)}
                 >
-                  <Bell size={10} /> Ustaw przypomnienie
+                  <Bell size={12} aria-label="Ustaw przypomnienie" />
                 </Pressable>
               )}
             </div>

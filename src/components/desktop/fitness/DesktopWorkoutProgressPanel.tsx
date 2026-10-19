@@ -14,7 +14,6 @@ interface Props {
   onOpenWorkout?: () => void;
 }
 
-// eslint-disable-next-line max-lines-per-function
 export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWorkout }: Props) {
   const [showHeatmap, setShowHeatmap] = useState(false);
 
@@ -28,7 +27,6 @@ export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWo
     (b.date || '').localeCompare(a.date || '')
   );
 
-  const latest = sortedStrength[0] ?? null;
 
   const heatmapWorkouts = useMemo(() => {
     return sessions
@@ -69,8 +67,6 @@ export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWo
   });
 
   const totalRunKm30d = runs30d.reduce((sum, a) => sum + (Number(a.distance) || 0) / 1000, 0);
-  const validHrs = runs30d.map((a) => a.hr_avg).filter((h): h is number => h != null && h > 60);
-  const avgRunHr30d = validHrs.length ? Math.round(validHrs.reduce((s, h) => s + h, 0) / validHrs.length) : null;
 
   return (
     <Card variant="surface" padding="1.25rem" className="space-y-4 border-border-custom bg-surface/30">
@@ -80,14 +76,11 @@ export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWo
             <Dumbbell size={20} />
           </div>
           <div>
-            <h3 className="text-sm font-bold tracking-tight text-text-primary">Dziennik Treningowy & Siła</h3>
-            <p className="text-xs text-text-muted">
-              Objętość tonażu (Mg), periodyzacja, RPE i progresja obciążeń
-            </p>
+            <h3 className="text-sm font-bold tracking-tight text-text-primary">Treningi · 30 dni</h3>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Pressable
             type="button"
             onClick={() => setShowHeatmap((prev) => !prev)}
@@ -125,9 +118,9 @@ export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWo
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Jednostki (30d)</p>
+          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Sesje</p>
           <p className="mt-1 text-2xl font-light text-text-primary">
             {sortedStrength.slice(0, 30).length + runs30d.length}×
           </p>
@@ -137,46 +130,15 @@ export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWo
         </div>
 
         <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Objętość hybrydowa (30d)</p>
+          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Tonaż</p>
           <p className="mt-1 text-2xl font-light text-text-primary">{tonnageMg > 0 ? `${tonnageMg} Mg` : '—'}</p>
           <p className="mt-0.5 text-2xs text-text-muted">
             {totalRunKm30d > 0
-              ? `+ ${totalRunKm30d.toFixed(1)} km bieg ${avgRunHr30d ? `(ø ${avgRunHr30d} bpm)` : ''}`
+              ? `+ ${totalRunKm30d.toFixed(1)} km biegu`
               : `${Math.round(totalTonnageKg).toLocaleString()} kg przerzucone`}
           </p>
         </div>
 
-        <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-          <p className="flex items-center justify-center gap-1 text-2xs font-bold uppercase tracking-wider text-text-muted">
-            <Activity size={11} /> Średnie RPE
-          </p>
-          <p className="mt-1 text-2xl font-light text-text-primary">
-            {latest?.session_rpe != null ? `@${latest.session_rpe}` : '@8'}
-          </p>
-          <p className="mt-0.5 text-2xs text-text-muted">
-            {latest?.session_rpe != null
-              ? latest.session_rpe >= 9.5
-                ? 'upadek mięśniowy (RIR 0)'
-                : latest.session_rpe >= 9
-                ? 'rezerwa 1 powtórzenie (RIR 1)'
-                : latest.session_rpe >= 8
-                ? 'rezerwa 2 powtórzenia (RIR 2)'
-                : latest.session_rpe >= 7
-                ? 'rezerwa ~3 powtórzenia (RIR 3)'
-                : 'praca submaksymalna / deload'
-              : 'rezerwa 2 powtórzenia'}
-          </p>
-        </div>
-
-        <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Ostatnia sesja</p>
-          <p className="mt-1 text-sm font-semibold text-text-primary truncate">
-            {latest?.workout_day || 'Brak sesji'}
-          </p>
-          <p className="mt-0.5 text-2xs text-text-muted">
-            {latest?.date ? sessionDateKey(latest.date) : 'zaplanuj trening'}
-          </p>
-        </div>
       </div>
 
       {showHeatmap && (
@@ -185,51 +147,10 @@ export default function DesktopWorkoutProgressPanel({ sessions, strava, onOpenWo
         </div>
       )}
 
-      {totalRunKm30d > 0 && (
-        <HybridSummaryBanner
-          tonnageMg={tonnageMg}
-          totalTonnageKg={totalTonnageKg}
-          totalRunKm30d={totalRunKm30d}
-          avgRunHr30d={avgRunHr30d}
-        />
-      )}
-
       {sortedStrength.length > 0 && (
         <RecentSessionsList sortedStrength={sortedStrength} onOpenWorkout={onOpenWorkout} />
       )}
     </Card>
-  );
-}
-
-function HybridSummaryBanner({
-  tonnageMg,
-  totalTonnageKg,
-  totalRunKm30d,
-  avgRunHr30d,
-}: {
-  tonnageMg: number;
-  totalTonnageKg: number;
-  totalRunKm30d: number;
-  avgRunHr30d: number | null;
-}) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border-custom/50 bg-surface-2/40 px-3.5 py-2 text-2xs text-text-secondary">
-      <div className="flex items-center gap-1.5">
-        <span className="font-bold text-primary">Tonaż siłowy:</span>
-        <span className="font-mono font-semibold">{tonnageMg} Mg</span>
-        <span className="text-text-muted">({Math.round(totalTonnageKg).toLocaleString()} kg)</span>
-      </div>
-      <div className="flex items-center gap-1.5">
-        <span className="font-bold text-warning">Dystans biegowy:</span>
-        <span className="font-mono font-semibold">{totalRunKm30d.toFixed(1)} km</span>
-        {avgRunHr30d && (
-          <span className="text-text-muted">· śr. tętno <strong>{avgRunHr30d} bpm</strong></span>
-        )}
-      </div>
-      <div className="text-text-muted">
-        Profil: <span className="font-bold text-text-primary">Hybrydowy (Siła + Bieganie)</span>
-      </div>
-    </div>
   );
 }
 

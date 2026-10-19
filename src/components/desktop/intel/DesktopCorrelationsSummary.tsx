@@ -3,7 +3,7 @@ import { BarChart2, ArrowUpRight, TrendingDown, TrendingUp } from 'lucide-react'
 import { Link } from 'react-router-dom';
 import { Card } from '../../ui/Card';
 import { useCorrelationsQuery } from '../../../lib/correlationsApi';
-import { classifyImpactFactors, rColor } from '@vanguard/domain';
+import { classifyImpactFactors } from '@vanguard/domain';
 
 export default function DesktopCorrelationsSummary({ userId }: { userId: string }) {
   const { data, isLoading } = useCorrelationsQuery(userId, false);
@@ -30,18 +30,13 @@ export default function DesktopCorrelationsSummary({ userId }: { userId: string 
           <div className="rounded-xl border border-primary/20 bg-primary/10 p-2 text-primary">
             <BarChart2 size={20} />
           </div>
-          <div>
-            <h3 className="text-sm font-bold tracking-tight text-text-primary">Korelacje Wielodomenowe</h3>
-            <p className="text-xs text-text-muted">
-              Matematyczne zależności przyczynowo-skutkowe: sen, ekran, kofeina, trening i regeneracja
-            </p>
-          </div>
+          <h3 className="text-sm font-bold tracking-tight text-text-primary">Co wpływa na co</h3>
         </div>
         <Link
           to="/korelacje"
           className="flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
         >
-          <span>Skaner korelacji</span>
+          <span>Więcej</span>
           <ArrowUpRight size={14} />
         </Link>
       </div>
@@ -63,7 +58,6 @@ export default function DesktopCorrelationsSummary({ userId }: { userId: string 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {topCorrelations.map((item, idx) => {
             const isNegative = item.r < 0;
-            const rVal = item.r.toFixed(2);
             return (
               <div
                 key={idx}
@@ -74,17 +68,6 @@ export default function DesktopCorrelationsSummary({ userId }: { userId: string 
                     <p className="text-xs font-bold text-text-primary leading-snug">
                       {item.x_label} → {item.y_label}
                     </p>
-                    <p className="text-3xs text-text-muted mt-0.5">
-                      lag: {item.lag_days === 0 ? 'ten sam dzień' : `${item.lag_days}d opóźnienia`} · N={item.n}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <span
-                      className="rounded-md px-1.5 py-0.5 font-mono text-xs font-bold"
-                      style={{ color: rColor(item.r) }}
-                    >
-                      r = {rVal}
-                    </span>
                   </div>
                 </div>
 
@@ -97,7 +80,7 @@ export default function DesktopCorrelationsSummary({ userId }: { userId: string 
                     )}
                   </span>
                   <span className="rounded-full bg-surface-solid px-2 py-0.5 text-3xs font-semibold text-text-muted shrink-0">
-                    {item.evidence_level === 'confirmed' ? 'Pewny' : item.evidence_level === 'probable' ? 'Prawdopodobny' : 'Hipoteza'}
+                    {item.evidence_level === 'confirmed' ? 'Pewne' : item.evidence_level === 'probable' ? 'Prawdopodobne' : 'Do sprawdzenia'}
                   </span>
                 </div>
               </div>

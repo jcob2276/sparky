@@ -58,7 +58,6 @@ export default function DesktopDashboard() {
     syncAll,
     openWorkout,
     currentWeight,
-    volData,
     now,
   } = useDesktopDashboardState({ userId, desktopData });
 
@@ -123,12 +122,10 @@ export default function DesktopDashboard() {
                   activeTab={activeTab}
                   onTabChange={setActiveTab}
                   userId={userId}
-                  theme={theme}
                   grid={grid}
                   tick={tick}
                   data={desktopData}
                   habitsData={habitsData}
-                  volData={volData}
                   onOpenWorkout={openWorkout}
                   onOpenSauna={() => setShowSaunaModal(true)}
                   onOpenWeight={() => setShowWeightModal(true)}

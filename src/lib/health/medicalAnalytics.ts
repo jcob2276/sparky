@@ -37,8 +37,6 @@ export type BodyCompositionRow = {
   notes: string | null;
 };
 
-export type LabFreshness = 'current' | 'recent' | 'stale' | 'old' | 'unknown';
-
 export type MarkerSeries = {
   marker_key: string;
   marker_name: string;
@@ -58,29 +56,6 @@ export function diffDaysFromToday(dateStr: string): number | null {
   const t = new Date(`${today}T12:00:00Z`).getTime();
   if (!Number.isFinite(d) || !Number.isFinite(t)) return null;
   return Math.round((t - d) / 86400000);
-}
-
-export function labFreshness(ageDays: number | null): LabFreshness {
-  if (ageDays == null || ageDays < 0) return 'unknown';
-  if (ageDays <= 90) return 'current';
-  if (ageDays <= 180) return 'recent';
-  if (ageDays <= 365) return 'stale';
-  return 'old';
-}
-
-export function freshnessLabel(f: LabFreshness): string {
-  switch (f) {
-    case 'current':
-      return 'świeże';
-    case 'recent':
-      return 'niedawne';
-    case 'stale':
-      return 'stare';
-    case 'old':
-      return 'archiwum';
-    default:
-      return '—';
-  }
 }
 
 function canonicalCategory(rawCategory: string | null | undefined): string {
