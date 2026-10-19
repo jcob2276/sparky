@@ -4542,6 +4542,36 @@ export type Database = {
           },
         ]
       }
+      nutrition_meal_photos: {
+        Row: {
+          created_at: string
+          id: string
+          meal_group_id: string
+          mime_type: string
+          size_bytes: number
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meal_group_id: string
+          mime_type?: string
+          size_bytes: number
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meal_group_id?: string
+          mime_type?: string
+          size_bytes?: number
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       nutrition_profile: {
         Row: {
           birth_date: string | null

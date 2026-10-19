@@ -35,6 +35,13 @@ describe('scanMealPhoto', () => {
     }));
   });
 
+  it('hands the compressed image to the caller so it can be stored with the meal', async () => {
+    invokeEdge.mockResolvedValue({ meal: { items: [{ id: 'rice', name: 'Ryż', grams: 200 }] } });
+    const onPrepared = vi.fn();
+    await scanMealPhoto(new File(['photo'], 'meal.png'), 'user-1', onPrepared);
+    expect(onPrepared).toHaveBeenCalledWith(await prepareVisionUpload.mock.results[0].value);
+  });
+
   it('rejects an empty photo result', async () => {
     invokeEdge.mockResolvedValue({ meal: { items: [] } });
     await expect(scanMealPhoto(new File(['photo'], 'meal.png'), 'user-1'))

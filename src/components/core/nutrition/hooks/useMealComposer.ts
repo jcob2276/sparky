@@ -27,6 +27,7 @@ import {
   upsertUserPortionsFromDraft,
 } from '../../../../lib/health/userPortionsApi';
 import { scanMealPhoto } from '../../../../lib/health/mealPhotoScan';
+import { saveMealPhoto } from '../../../../lib/health/mealPhotoStore';
 import { useFoodEntrySearch } from './useFoodEntrySearch';
 import { useSession } from '../../../../store/useStore';
 export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
@@ -47,6 +48,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [scanningPhoto, setScanningPhoto] = useState(false);
+  const scannedPhotoRef = useRef<Blob | null>(null);
   const [qualityPending, setQualityPending] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -216,6 +218,8 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     setSaving(true);
     setError(null);
     try {
+      const photo = source === 'photo' ? scannedPhotoRef.current : null;
+      const captureId = photo ? crypto.randomUUID() : undefined;
       await confirmMealCapture({
         userId,
         date: logDate,
@@ -224,7 +228,18 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
         items,
         memoryName: options?.memoryName,
         loggedAt: options?.loggedAt,
+        captureId,
       });
+      if (photo && captureId) {
+        // The meal is already saved; a failed photo upload must not undo it.
+        try {
+          await saveMealPhoto(userId, captureId, photo);
+        } catch (photoCause: unknown) {
+          console.warn('[useMealComposer] meal photo was not stored', photoCause);
+          notify('Posiłek zapisany, ale zdjęcia nie udało się zachować', 'info');
+        }
+      }
+      scannedPhotoRef.current = null;
       const toRemember = items
         .filter((item) => rememberIds.has(item.id))
         .map((item) => ({
@@ -259,8 +274,9 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     if (!userId || scanningPhoto) return;
     setScanningPhoto(true);
     setError(null);
+    scannedPhotoRef.current = null;
     try {
-      const draft = await scanMealPhoto(file, userId);
+      const draft = await scanMealPhoto(file, userId, (image) => { scannedPhotoRef.current = image; });
       setDraftFromParsed(draft.items);
     } catch (cause: unknown) {
       const message = cause instanceof Error ? cause.message : 'Nie udało się przeanalizować zdjęcia';

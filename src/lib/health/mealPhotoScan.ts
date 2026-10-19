@@ -21,8 +21,14 @@ function wrapPhotoUploadError(cause: unknown): Error {
   return cause instanceof Error ? cause : new Error(msg);
 }
 
-export async function scanMealPhoto(file: File, userId: string): Promise<MealPhotoResponse> {
+/** `onPrepared` receives the compressed JPEG that was sent for analysis, so the caller can keep it. */
+export async function scanMealPhoto(
+  file: File,
+  userId: string,
+  onPrepared?: (image: Blob) => void,
+): Promise<MealPhotoResponse> {
   const image = await prepareVisionUpload(file);
+  onPrepared?.(image);
   const imageBase64 = await blobToBase64(image);
 
   let response: Awaited<ReturnType<typeof invokeEdge<'parse-food-nl'>>>;
