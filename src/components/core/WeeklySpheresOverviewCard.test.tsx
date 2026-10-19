@@ -29,6 +29,10 @@ vi.mock('../../lib/biometricsApi', () => ({
   useWeeklyBodyPulse: () => mockState.bodyQuery,
 }));
 
+vi.mock('../../lib/weeklyWinsMap', () => ({
+  useWeeklyWinsMap: () => ({ data: [{ status: 'win' }, { status: 'loss' }], isLoading: false }),
+}));
+
 vi.mock('../lifestyle/direction/hooks/useDirectionContext', () => ({
   useDirectionContext: () => mockState.direction,
 }));
@@ -111,5 +115,14 @@ describe('WeeklySpheresOverviewCard - Direction and Project Error Truth', () => 
 
     fireEvent.click(screen.getByRole('button', { name: /Konto/i }));
     expect(screen.getByText(/0 aktywnych projektów/)).toBeInTheDocument();
+  });
+
+  it('shows one live number per sphere and no sleep or training figures', () => {
+    mockState.bodyQuery.data = { averageRecovery: 74, sleepAvgHours: 7.1, gymCount: 2, runCount: 1 } as never;
+    render(<WeeklySpheresOverviewCard />);
+    expect(screen.getByText('Regeneracja 74')).toBeInTheDocument();
+    expect(screen.getByText('1/7 dni 5/5')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Ciało/i }));
+    expect(screen.queryByText(/sen śr/i)).not.toBeInTheDocument();
   });
 });

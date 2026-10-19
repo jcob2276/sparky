@@ -1,165 +1,106 @@
-import React from 'react';
 import type { HealthCoachWeeklyReview } from '@vanguard/domain';
-import { Target, CheckCircle2, Dumbbell, Activity, HelpCircle } from 'lucide-react';
+import { Target, Dumbbell, CheckCircle2 } from 'lucide-react';
 import { useHealthCoachWeeklyReview } from './useHealthCoachWeeklyReview';
+import { useWeeklyBodyPulse } from '../../../lib/biometricsApi';
+
+interface TrainingActivity {
+  gymCount: number;
+  runCount: number;
+  runKm: number;
+  saunaCount: number;
+  saunaMinutes: number;
+}
 
 interface Props {
   review: HealthCoachWeeklyReview | null | undefined;
+  activity?: TrainingActivity | null;
   isLoading?: boolean;
   error?: Error | null;
 }
 
-export function HealthCoachWeeklyReviewView({ review, isLoading, error }: Props) {
+const ACTION_LABEL: Record<string, string> = { progress: 'Dołóż obciążenia', deload: 'Lżejszy tydzień', adjust: 'Zmień plan' };
+
+function ActivityChip({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 flex-1 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
+      <p className="text-3xs font-black uppercase tracking-widest text-text-muted">{label}</p>
+      <p className="mt-1 truncate text-base font-black text-text-primary">{value}</p>
+    </div>
+  );
+}
+
+function activityChips(a: TrainingActivity | null | undefined) {
+  if (!a) return [];
+  const chips: Array<{ label: string; value: string }> = [];
+  if (a.runCount > 0) chips.push({ label: 'Bieganie', value: a.runKm > 0 ? `${a.runKm} km · ${a.runCount}×` : `${a.runCount}×` });
+  if (a.gymCount > 0) chips.push({ label: 'Siłownia', value: `${a.gymCount}×` });
+  if (a.saunaCount > 0) chips.push({ label: 'Sauna', value: a.saunaMinutes > 0 ? `${a.saunaCount}× · ${a.saunaMinutes} min` : `${a.saunaCount}×` });
+  return chips;
+}
+
+export function HealthCoachWeeklyReviewView({ review, activity, isLoading, error }: Props) {
   if (isLoading) {
-    return (
-      <div className="rounded-2xl border border-border-custom bg-surface p-4 animate-pulse space-y-3">
-        <div className="h-5 w-48 bg-white/10 rounded" />
-        <div className="h-16 w-full bg-white/5 rounded-xl" />
-      </div>
-    );
+    return <div className="h-24 animate-pulse rounded-3xl border border-border-custom/60 bg-surface/70" />;
   }
 
-  if (error || !review) {
-    return (
-      <div className="rounded-2xl border border-border-custom bg-surface p-4 text-xs text-text-muted">
-        Brak dostępnego podsumowania celów dla tego tygodnia.
-      </div>
-    );
-  }
-
-  const { adherence, goalProgress, nextWeekProposal } = review;
+  const chips = activityChips(activity);
+  const adherence = review?.adherence;
+  const hasPlan = (adherence?.plannedSessionsCount ?? 0) > 0;
+  const measured = (review?.goalProgress ?? []).filter((g) => g.currentValue != null);
+  const waiting = (review?.goalProgress ?? []).filter((g) => g.currentValue == null);
+  const proposal = review?.nextWeekProposal;
+  const showProposal = proposal != null && proposal.action !== 'keep';
 
   return (
-    <div className="rounded-2xl border border-border-custom bg-surface p-4 space-y-4">
-      {/* Nagłówek tygodnia */}
-      <div className="flex items-center justify-between border-b border-border-custom pb-3">
-        <div className="flex items-center gap-2">
-          <Activity size={18} className="text-primary" />
-          <h3 className="text-sm font-semibold text-text-primary">
-            Tygodniowy przegląd treningu i celów
-          </h3>
-        </div>
-        <span className="text-2xs font-mono text-text-secondary">
-          {review.weekStart} – {review.weekEnd}
-        </span>
-      </div>
+    <section className="space-y-3 rounded-3xl border border-border-custom/60 bg-surface/70 p-4">
+      <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-widest text-text-muted">
+        <Dumbbell size={12} className="text-primary" /> Trening · 7 dni
+      </p>
 
-      {/* Realizacja założeń (Adherence) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <div className="rounded-xl border border-border-custom bg-surface-subtle p-2.5">
-          <div className="text-3xs text-text-muted uppercase">Sesje wykonane</div>
-          <div className="text-base font-bold font-mono text-text-primary mt-0.5">
-            {adherence.completedSessionsCount ?? '—'} / {adherence.plannedSessionsCount ?? '—'}
-          </div>
-          <div className="text-3xs text-text-secondary mt-0.5">
-            {adherence.adherenceRate != null ? `${Math.round(adherence.adherenceRate * 100)}% planu` : 'Brak planu'}
-          </div>
-        </div>
+      {chips.length > 0 ? (
+        <div className="flex gap-2">{chips.map((c) => <ActivityChip key={c.label} {...c} />)}</div>
+      ) : (
+        <p className="text-sm text-text-secondary">Brak zapisanych treningów w ostatnich 7 dniach.</p>
+      )}
 
-        <div className="rounded-xl border border-border-custom bg-surface-subtle p-2.5">
-          <div className="text-3xs text-text-muted uppercase">Bieganie (Garmin)</div>
-          <div className="text-base font-bold font-mono text-info mt-0.5">
-            {adherence.cardioKm ?? '—'} km
-          </div>
-          <div className="text-3xs text-text-secondary mt-0.5">dystans zapisanych biegów</div>
-        </div>
-
-        <div className="rounded-xl border border-border-custom bg-surface-subtle p-2.5">
-          <div className="text-3xs text-text-muted uppercase">Siła (Serie)</div>
-          <div className="text-base font-bold font-mono text-warning mt-0.5">
-            {adherence.strengthSets ?? '—'}
-          </div>
-          <div className="text-3xs text-text-secondary mt-0.5">odnotowanych serii</div>
-        </div>
-
-        <div className="rounded-xl border border-border-custom bg-surface-subtle p-2.5">
-          <div className="text-3xs text-text-muted uppercase">Nieodnotowane</div>
-          <div className="text-base font-bold font-mono text-text-secondary mt-0.5">
-            {adherence.unrecordedSessionsCount ?? '—'}
-          </div>
-          <div className="text-3xs text-text-secondary mt-0.5">brak wpisu ≠ opuszczenie</div>
-        </div>
-      </div>
-
-      {adherence.note && (
-        <p className="text-2xs text-text-secondary leading-relaxed bg-white/5 p-2.5 rounded-xl">
-          {adherence.note}
+      {hasPlan && adherence && (
+        <p className="text-xs font-semibold text-text-secondary">
+          Plan: {adherence.completedSessionsCount ?? 0} z {adherence.plannedSessionsCount} sesji
+          {(adherence.unrecordedSessionsCount ?? 0) > 0 && ` · ${adherence.unrecordedSessionsCount} bez wpisu (to nie znaczy, że opuszczone)`}
         </p>
       )}
 
-      {/* Postęp celów i standardów */}
-      {goalProgress.length > 0 && (
-        <div className="space-y-2">
-          <h4 className="text-xs font-semibold text-text-primary flex items-center gap-1.5">
-            <Target size={14} className="text-primary" /> Postęp celów ze standardami
-          </h4>
-          <div className="space-y-1.5">
-            {goalProgress.map((g) => (
-              <div
-                key={g.kpiId}
-                className="flex items-center justify-between p-2 rounded-xl bg-surface-subtle border border-border-custom text-2xs"
-              >
-                <div className="space-y-0.5">
-                  <div className="font-medium text-text-primary">{g.name}</div>
-                  <div className="text-3xs text-text-muted">Standard: {g.standard}</div>
-                  <p className="text-3xs text-text-muted">{g.note}</p>
-                </div>
-                <div className="text-right">
-                  <div className="font-mono font-bold text-text-primary">
-                    {g.currentValue != null ? `${g.currentValue} ${g.unit}` : 'Brak świeżego pomiaru'}
-                  </div>
-                  <div className="text-3xs flex items-center justify-end gap-1">
-                    {g.status === 'progressing' && (
-                      <span className="text-success flex items-center gap-0.5">
-                        <CheckCircle2 size={10} /> Progres
-                      </span>
-                    )}
-                    {g.status === 'stable' && (
-                      <span className="text-text-secondary flex items-center gap-0.5">
-                        Stabilnie
-                      </span>
-                    )}
-                    {g.status === 'unassessed' && (
-                      <span className="text-text-muted flex items-center gap-0.5">
-                        <HelpCircle size={10} /> Do oceny
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+      {measured.length > 0 && (
+        <div className="space-y-1.5">
+          <p className="flex items-center gap-1.5 text-3xs font-black uppercase tracking-widest text-text-muted">
+            <Target size={11} className="text-primary" /> Cele
+          </p>
+          {measured.map((g) => (
+            <div key={g.kpiId} className="flex items-center justify-between gap-2 rounded-2xl border border-border-custom/40 bg-surface/50 px-3 py-2 text-xs">
+              <span className="min-w-0 truncate font-semibold text-text-primary">{g.name}</span>
+              <span className="flex shrink-0 items-center gap-1 font-black text-text-primary">
+                {g.currentValue} {g.unit}
+                {g.status === 'progressing' && <CheckCircle2 size={12} className="text-success" />}
+              </span>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Propozycja na kolejny tydzień */}
-      {nextWeekProposal && (
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 space-y-1.5">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-text-primary flex items-center gap-1.5">
-              <Dumbbell size={14} className="text-primary" />
-              Rekomendacja na kolejny tydzień
-            </span>
-            <span className="text-2xs font-semibold uppercase px-2 py-0.5 rounded-full bg-primary/20 text-primary">
-              {nextWeekProposal.action === 'keep' && 'Utrzymanie'}
-              {nextWeekProposal.action === 'progress' && 'Progresja'}
-              {nextWeekProposal.action === 'deload' && 'Deload'}
-              {nextWeekProposal.action === 'adjust' && 'Korekta'}
-            </span>
-          </div>
-          <p className="text-2xs text-text-secondary leading-relaxed">
-            {nextWeekProposal.rationale}
-          </p>
-          {nextWeekProposal.changesSummary.length > 0 && (
-            <ul className="list-disc list-inside text-3xs text-text-muted space-y-0.5">
-              {nextWeekProposal.changesSummary.map((c, i) => (
-                <li key={i}>{c}</li>
-              ))}
-            </ul>
-          )}
+      {waiting.length > 0 && (
+        <p className="text-xs text-text-muted">
+          {waiting.map((g) => g.name).join(', ')} — czekają na pomiar. Ustaw go, żeby zobaczyć postęp.
+        </p>
+      )}
+      {error && <p className="text-xs text-text-muted">Nie udało się wczytać celów treningowych.</p>}
+
+      {showProposal && (
+        <div className="space-y-1 rounded-2xl border border-primary/20 bg-primary/5 p-3">
+          <p className="text-xs font-black text-text-primary">Na kolejny tydzień: {ACTION_LABEL[proposal.action] ?? proposal.action}</p>
+          <p className="text-xs leading-relaxed text-text-secondary">{proposal.rationale}</p>
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -173,5 +114,6 @@ export default function HealthCoachWeeklyReviewContainer({
   weekEnd: string;
 }) {
   const { data: review, isLoading, error } = useHealthCoachWeeklyReview(userId, weekStart, weekEnd);
-  return <HealthCoachWeeklyReviewView review={review} isLoading={isLoading} error={error} />;
+  const pulse = useWeeklyBodyPulse(userId ?? '');
+  return <HealthCoachWeeklyReviewView review={review} activity={pulse.data} isLoading={isLoading} error={error} />;
 }

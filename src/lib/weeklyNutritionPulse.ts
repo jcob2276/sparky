@@ -43,10 +43,11 @@ export function buildWeeklyNutritionPulse(input: {
   rows: NutritionDayRow[];
   proteinGoal: number | null;
   kcalTarget: number | null;
-  completeDates: string[];
+  /** Dzisiejszy dzień jest jeszcze w toku — nie zaniża średnich. */
+  today: string;
 }): WeeklyNutritionPulseData {
-  const complete = new Set(input.completeDates);
-  const logged = input.rows.filter(row=>complete.has(row.date));
+  // Dzień liczy się, gdy ma zapisane jedzenie — bez ręcznego zamykania dziennika.
+  const logged = input.rows.filter((row) => row.date < input.today && (row.calories ?? 0) > 0);
   const avgCalories = round0(mean(logged.flatMap((r) => (r.calories == null ? [] : [r.calories]))));
   const avgProtein = round0(mean(logged.flatMap((r) => (r.protein == null ? [] : [r.protein]))));
   const avgCarbs = round0(mean(logged.flatMap((r) => (r.carbs == null ? [] : [r.carbs]))));
@@ -81,8 +82,8 @@ export function buildWeeklyNutritionPulse(input: {
 }
 
 export function nutritionPulseHeadline(data: WeeklyNutritionPulseData): string {
-  if (data.loggedDays < 5) return 'Uzupełnij brakujące dni';
-  if (data.proteinGoal == null || data.kcalTarget == null) return 'Uzupełnij aktualne cele żywienia';
+  if (data.loggedDays < 3) return 'Za mało zapisanych dni';
+  if (data.proteinGoal == null || data.kcalTarget == null) return 'Ustaw cel białka i kalorii';
   if (data.proteinOnTrack === false) return 'Białko poniżej ustalonego celu';
   if (data.caloriesDeltaPct != null && data.caloriesDeltaPct > 8) return 'Zapisane kcal powyżej celu';
   if (data.caloriesDeltaPct != null && data.caloriesDeltaPct < -20) return 'Zapisane kcal poniżej celu';

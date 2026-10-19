@@ -35,14 +35,14 @@ export default function WeeklyPulseDiagnostic() {
 
   if (sleepLow && recoveryLow) {
     isWarning = true;
-    message = `W zapisach występują krótszy sen (śr. ${data?.sleepAvgHours?.toFixed(1) ?? '—'}h) i niższy wynik regeneracji (${data?.averageRecovery ?? '—'}). Samo współwystępowanie nie ustala przyczyny.`;
+    message = 'Ciężki tydzień dla organizmu: sen krótszy, a regeneracja niska. Odpuść mocne bodźce i zadbaj o wieczory.';
   } else if (runningHigh && gymZero) {
-    message = `Mocna objętość biegowa (${data?.runKm.toFixed(1)} km w 7 dni), brak sesji siłowej. Zadbaj o regenerację.`;
+    message = 'Dużo biegania i ani jednej siłowni. Dołóż regenerację i jedną sesję siły.';
   } else if (winsLow) {
     isWarning = true;
-    message = `Dyscyplina 5/5 na poziomie ${wins}/7 dni — skup się na domknięciu kluczowych priorytetów dnia.`;
+    message = 'Mało dni z domkniętym 5/5. Skup się na kluczowych priorytetach dnia.';
   } else {
-    message = `Zapisane treningi: ${data?.gymCount ?? '—'} siłowych i ${data?.runCount ?? '—'} biegowych. Domknięte dni: ${wins}/${daysActive}.`;
+    message = 'Tydzień idzie w normalnym rytmie — szczegóły poniżej.';
   }
 
   const fetchAiAnalysis = async () => {

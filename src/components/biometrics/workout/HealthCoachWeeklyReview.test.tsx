@@ -1,4 +1,3 @@
-import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { HealthCoachWeeklyReviewView } from './HealthCoachWeeklyReview';
@@ -52,29 +51,35 @@ const mockReview: HealthCoachWeeklyReview = {
   summary: 'Tydzień oceniony pozytywnie.',
 };
 
+const activity = { gymCount: 2, runCount: 3, runKm: 21.5, saunaCount: 1, saunaMinutes: 30 };
+
 describe('HealthCoachWeeklyReviewView', () => {
-  it('renders adherence metrics with Garmin cardio and unrecorded distinction', () => {
-    render(<HealthCoachWeeklyReviewView review={mockReview} />);
-    expect(screen.getByText('3 / 4')).toBeInTheDocument();
-    expect(screen.getByText('14.5 km')).toBeInTheDocument();
-    expect(screen.getByText('22')).toBeInTheDocument();
-    expect(screen.getByText(/brak wpisu ≠ opuszczenie/)).toBeInTheDocument();
+  it('shows real activity and plan adherence without reading unrecorded sessions as skipped', () => {
+    render(<HealthCoachWeeklyReviewView review={mockReview} activity={activity} />);
+    expect(screen.getByText('21.5 km · 3×')).toBeInTheDocument();
+    expect(screen.getByText('1× · 30 min')).toBeInTheDocument();
+    expect(screen.getByText(/Plan: 3 z 4 sesji/)).toBeInTheDocument();
+    expect(screen.getByText(/to nie znaczy, że opuszczone/)).toBeInTheDocument();
   });
 
-  it('renders KPI progress with explicit standard and unassessed status', () => {
-    render(<HealthCoachWeeklyReviewView review={mockReview} />);
-    expect(screen.getByText('Wyciskanie leżąc')).toBeInTheDocument();
-    expect(screen.getByText('Standard: 1RM z pauzą')).toBeInTheDocument();
-    expect(screen.getByText('Brak świeżego pomiaru')).toBeInTheDocument();
-    expect(screen.getByText('Do oceny')).toBeInTheDocument();
+  it('shows measured goals and collapses unmeasured ones into one line', () => {
+    render(<HealthCoachWeeklyReviewView review={mockReview} activity={activity} />);
     expect(screen.getByText('Bieg 10 km')).toBeInTheDocument();
-    expect(screen.getByText('Progres')).toBeInTheDocument();
+    expect(screen.getByText(/Wyciskanie leżąc — czekają na pomiar/)).toBeInTheDocument();
+    expect(screen.queryByText('Brak świeżego pomiaru')).not.toBeInTheDocument();
   });
 
-  it('renders next week recommendation with rationale', () => {
-    render(<HealthCoachWeeklyReviewView review={mockReview} />);
-    expect(screen.getByText('Progresja')).toBeInTheDocument();
-    expect(screen.getByText(/Solidna realizacja założeń/)).toBeInTheDocument();
-    expect(screen.getByText('Zwiększenie serii głównej w przysiadzie.')).toBeInTheDocument();
+  it('shows a recommendation only when it asks for a change', () => {
+    const { rerender } = render(<HealthCoachWeeklyReviewView review={mockReview} activity={activity} />);
+    expect(screen.getByText(/Dołóż obciążenia/)).toBeInTheDocument();
+    rerender(<HealthCoachWeeklyReviewView review={{ ...mockReview, nextWeekProposal: { action: 'keep', rationale: 'x', changesSummary: [] } }} activity={activity} />);
+    expect(screen.queryByText(/Na kolejny tydzień/)).not.toBeInTheDocument();
+  });
+
+  it('collapses an empty week to one line instead of empty tiles', () => {
+    const empty = { ...mockReview, goalProgress: [], adherence: { ...mockReview.adherence, plannedSessionsCount: null, completedSessionsCount: null, unrecordedSessionsCount: null } };
+    render(<HealthCoachWeeklyReviewView review={empty} activity={{ gymCount: 0, runCount: 0, runKm: 0, saunaCount: 0, saunaMinutes: 0 }} />);
+    expect(screen.getByText(/Brak zapisanych treningów/)).toBeInTheDocument();
+    expect(screen.queryByText(/Plan:/)).not.toBeInTheDocument();
   });
 });
