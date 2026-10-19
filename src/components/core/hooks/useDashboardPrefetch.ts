@@ -14,31 +14,58 @@ import {
  * after the main dashboard has settled. Guarantees near-instant transitions
  * to /kalendarz, /todo, /keep, /terminy, and /dashboard.
  */
+/** Runs `task` when the main thread is idle (falls back to a timer where requestIdleCallback is missing). */
+function whenIdle(task: () => void, delayMs: number): () => void {
+  let idleId: number | null = null;
+  const timer = window.setTimeout(() => {
+    if (typeof window.requestIdleCallback === 'function') {
+      idleId = window.requestIdleCallback(task, { timeout: 4000 });
+    } else {
+      task();
+    }
+  }, delayMs);
+  return () => {
+    window.clearTimeout(timer);
+    if (idleId != null && typeof window.cancelIdleCallback === 'function') window.cancelIdleCallback(idleId);
+  };
+}
+
+/** The desktop shell is only used on wide screens; phones must not download it or its data. */
+const DESKTOP_MIN_WIDTH = 1024;
+
+function isDesktopViewport(): boolean {
+  return window.innerWidth >= DESKTOP_MIN_WIDTH;
+}
+
 export function useDashboardPrefetch(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
 
-    // Stage 1: High-priority workspace tools (Kalendarz & To Do)
-    const stage1Timer = window.setTimeout(() => {
+    // Stage 1: the other dashboard tabs (their code only) and the two busiest workspace tools.
+    const cancelStage1 = whenIdle(() => {
+      void import('../DashboardTydzienTab');
+      void import('../DashboardHistoriaTab');
       void prefetchCalendarData(queryClient, userId);
       void prefetchTodoData(queryClient, userId);
     }, 600);
 
-    // Stage 2: Secondary tools & desktop dashboard
-    const stage2Timer = window.setTimeout(() => {
+    // Stage 2: secondary tools, then the desktop dashboard on wide screens only.
+    const cancelStage2 = whenIdle(() => {
+      void import('../DashboardProjektyTab');
       void prefetchKeepData(queryClient, userId);
       void prefetchTerminyData(queryClient, userId);
+      if (!isDesktopViewport()) return;
       void import('../../desktop/shell/DesktopDashboard');
       void queryClient.prefetchQuery({
         queryKey: desktopKeys.dashboard(userId),
         queryFn: () => fetchDesktopDashboardData(userId),
         staleTime: 1000 * 60 * 5,
       });
-    }, 1600);
+    }, 2500);
 
     return () => {
-      window.clearTimeout(stage1Timer);
-      window.clearTimeout(stage2Timer);
+      cancelStage1();
+      cancelStage2();
     };
   }, [userId]);
 }

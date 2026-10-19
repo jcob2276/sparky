@@ -6,8 +6,8 @@ import { fetchSprintContext } from '../../lib/goal/goalSpine';
 import { useGoalSpineInvalidation } from '../../hooks/useGoalSpineInvalidation';
 import { useUserId } from '../../store/useStore';
 import LightboxGallery from './LightboxGallery';
-import dreamBoardLandscape from '../../assets/dream_board_landscape.jpg';
-import girlGoal from '../../assets/girl_goal.png';
+import dreamBoardLandscape from '../../assets/dream_board_landscape.webp';
+import girlGoal from '../../assets/girl_goal.webp';
 
 const BORN = new Date('2002-07-06');
 
@@ -71,10 +71,15 @@ export default function VisionHeroCard() {
           )}
 
           {IMAGES.map((img, idx) => (
+            // Only the first image is loaded up front; the others mount once it is visible.
+            (idx === 0 || imageLoaded) && (
             <img
               key={img.src}
               src={img.src}
               alt={img.alt}
+              decoding="async"
+              fetchPriority={idx === 0 ? 'high' : 'low'}
+              loading={idx === 0 ? 'eager' : 'lazy'}
               onLoad={() => {
                 if (idx === currentImageIndex) setImageLoaded(true);
               }}
@@ -83,11 +88,12 @@ export default function VisionHeroCard() {
                   e.currentTarget.src = '/dream_board_landscape.jpg';
                 }
               }}
-              className={`absolute inset-0 w-full h-full object-cover transition-all duration-1000 ease-in-out group-hover:scale-[1.02] ${
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out ${
                 idx === currentImageIndex && imageLoaded ? 'opacity-100 z-10' : 'opacity-0 z-0'
               } ${img.objectPosition || ''}`}
               draggable={false}
             />
+            )
           ))}
 
           {/* Subtelny gradient górny */}
