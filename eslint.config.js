@@ -160,7 +160,7 @@ const CANONICAL_DATE_FORMATTERS = [
 
 
 export default defineConfig([
-  globalIgnores(['dist', '.tmp-get-based', 'coverage', 'android/**']),
+  globalIgnores(['dist', '.tmp-get-based', 'coverage', 'android/**', 'scratch/**']),
   {
     files: ['scripts/**/*.{js,cjs,mjs}'],
     extends: [
@@ -184,7 +184,7 @@ export default defineConfig([
     ],
     languageOptions: {
       globals: globals.browser,
-      parserOptions: { ecmaFeatures: { jsx: true } },
+      parserOptions: { ecmaFeatures: { jsx: true }, tsconfigRootDir: import.meta.dirname },
     },
     rules: {
       // base rule off — TS version below handles it with better type-awareness

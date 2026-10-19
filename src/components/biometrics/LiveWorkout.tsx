@@ -23,7 +23,7 @@ import { useRestTimer } from './live/useRestTimer';
 import { summarize } from './live/liveWorkoutUtils';
 import './workout/treningTheme.css';
 
-const DEFAULT_SETS = 3;
+const DEFAULT_SETS = 1;
 
 export default function LiveWorkout({
   onBack,
@@ -81,6 +81,21 @@ export default function LiveWorkout({
 
   const removeExercise = (id: number) => logger.setExercises((prev) => prev.filter((e) => e.id !== id));
 
+  const moveExercise = (id: number, direction: 'up' | 'down') => {
+    logger.setExercises((prev) => {
+      const valid = prev.filter((e) => e.name.trim());
+      const idx = valid.findIndex((e) => e.id === id);
+      if (idx === -1) return prev;
+      if (direction === 'up' && idx === 0) return prev;
+      if (direction === 'down' && idx === valid.length - 1) return prev;
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      const next = [...valid];
+      const [item] = next.splice(idx, 1);
+      next.splice(targetIdx, 0, item);
+      return next;
+    });
+  };
+
   return (
     <div className="trening-theme flex min-h-screen flex-col" data-tren-accent={accent}>
       <header className="trening-header sticky top-0 z-[var(--z-sticky)] flex items-center gap-2 px-2 py-2">
@@ -102,12 +117,16 @@ export default function LiveWorkout({
       </header>
 
       <main className="mx-auto w-full max-w-md flex-1 space-y-3 px-3 pb-44 pt-3">
-        {exercises.map((exercise) => (
+        {exercises.map((exercise, idx) => (
           <LiveExerciseCard
             key={exercise.id}
             exercise={exercise}
             userId={userId ?? undefined}
             active={exercise.id === currentId}
+            canMoveUp={idx > 0}
+            canMoveDown={idx < exercises.length - 1}
+            onMoveUp={() => moveExercise(exercise.id, 'up')}
+            onMoveDown={() => moveExercise(exercise.id, 'down')}
             onActivate={() => setActiveId(exercise.id)}
             onChange={logger.updateExercise}
             onRemove={() => removeExercise(exercise.id)}

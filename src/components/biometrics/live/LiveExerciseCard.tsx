@@ -1,23 +1,26 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, MoreHorizontal, Plus } from 'lucide-react';
+import { Minus, Plus } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import { useHaptics } from '../../../hooks/useHaptics';
 import { useExerciseVisual } from '../../../lib/health/exerciseImages';
 import { sortedHistorySets } from '../../../lib/health/workoutSetFill';
 import { computeExerciseSuggestion } from '../../../lib/health/exerciseSuggestion';
 import { newSet, useExerciseHistory, type WorkoutExercise, type WorkoutSet } from '../workout/workoutUtils';
-import ExerciseThumb from '../workout/ExerciseThumb';
 import BarbellPlatesPanel from '../workout/BarbellPlatesPanel';
 import LiveSetRow from './LiveSetRow';
-import LiveExerciseMenu from './LiveExerciseMenu';
 import LiveRirChips from './LiveRirChips';
+import LiveExerciseHeader from './LiveExerciseHeader';
 import { defaultRestSeconds, ghostForSet, isPersonalRecord, isSetLogged, warmupRamp, type SetGhost } from './liveWorkoutUtils';
 
 interface Props {
   exercise: WorkoutExercise;
   userId: string | undefined;
   active: boolean;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
   onActivate: () => void;
   onChange: (exercise: WorkoutExercise) => void;
   onRemove: () => void;
@@ -29,7 +32,45 @@ interface Props {
 
 const BARBELL_NAME = /sztang|martwy ci[aą]g|wyciskanie p[lł]askie|wyciskanie sko[sś]ne|przysiad/i;
 
-export default function LiveExerciseCard({ exercise, userId, active, onActivate, onChange, onRemove, onSetDone, onAllDone }: Props) {
+function LiveSetFooter({ canRemove, onAdd, onRemove }: { canRemove: boolean; onAdd: () => void; onRemove: () => void }) {
+  return (
+    <div className="flex items-center gap-2 px-1 pt-1">
+      <Pressable
+        type="button"
+        onClick={onAdd}
+        className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl bg-surface-2 text-sm font-bold text-primary hover:bg-primary/10 active:scale-95 transition-all"
+        aria-label="Dodaj serię"
+      >
+        <Plus size={16} /> Dodaj serię
+      </Pressable>
+      {canRemove && (
+        <Pressable
+          type="button"
+          onClick={onRemove}
+          className="flex h-11 items-center justify-center gap-1.5 rounded-2xl bg-surface-2 px-4 text-xs font-bold text-text-muted hover:text-danger hover:bg-danger/10 active:scale-95 transition-all"
+          aria-label="Usuń ostatnią serię"
+        >
+          <Minus size={15} /> Usuń serię
+        </Pressable>
+      )}
+    </div>
+  );
+}
+
+export default function LiveExerciseCard({
+  exercise,
+  userId,
+  active,
+  canMoveUp = false,
+  canMoveDown = false,
+  onMoveUp,
+  onMoveDown,
+  onActivate,
+  onChange,
+  onRemove,
+  onSetDone,
+  onAllDone,
+}: Props) {
   const navigate = useNavigate();
   const haptics = useHaptics();
   const visual = useExerciseVisual(exercise.name);
@@ -84,8 +125,7 @@ export default function LiveExerciseCard({ exercise, userId, active, onActivate,
 
   const addSet = (type: WorkoutSet['type'] = 'working') => {
     haptics.light();
-    const last = [...sets].reverse().find((s) => s.type !== 'warmup');
-    const created: WorkoutSet = { ...newSet(type), kg: type === 'warmup' ? '' : last?.kg ?? '', reps: type === 'warmup' ? '' : last?.reps ?? '' };
+    const created: WorkoutSet = newSet(type);
     onChange({ ...exercise, sets: type === 'warmup' ? [created, ...sets] : [...sets, created] });
   };
 
@@ -99,35 +139,25 @@ export default function LiveExerciseCard({ exercise, userId, active, onActivate,
 
   return (
     <section className={`rounded-3xl border bg-surface transition-colors ${active ? 'border-primary/40 shadow-sm' : 'border-border-custom'}`}>
-      <div className="flex items-center gap-3 p-3">
-        <Pressable onClick={onActivate} className="flex min-w-0 flex-1 items-center gap-3 text-left" aria-expanded={active} aria-label={`${exercise.name}, ${subtitle}`}>
-          <ExerciseThumb name={exercise.name} size={active ? 'lg' : 'md'} />
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-lg font-bold leading-tight text-text-primary">{exercise.name}</span>
-            <span className="block truncate text-xs font-medium text-text-muted">{subtitle}</span>
-          </span>
-        </Pressable>
-        {active ? (
-          <div className="relative shrink-0">
-            <Pressable onClick={() => setMenuOpen((v) => !v)} aria-label="Więcej opcji ćwiczenia" className="flex h-10 w-10 items-center justify-center rounded-full text-text-secondary hover:bg-surface-2">
-              <MoreHorizontal size={20} />
-            </Pressable>
-            {menuOpen && (
-              <LiveExerciseMenu
-                canPlates={isBarbell}
-                onClose={() => setMenuOpen(false)}
-                onWarmup={addWarmup}
-                onPlates={() => setPlatesOpen((v) => !v)}
-                onProgress={() => navigate({ pathname: '/cwiczenie', search: `?n=${encodeURIComponent(exercise.name)}` })}
-                onRemoveSet={removeLastSet}
-                onRemove={onRemove}
-              />
-            )}
-          </div>
-        ) : (
-          <ChevronDown size={18} className="shrink-0 text-text-muted" aria-hidden />
-        )}
-      </div>
+      <LiveExerciseHeader
+        name={exercise.name}
+        subtitle={subtitle}
+        active={active}
+        canMoveUp={canMoveUp}
+        canMoveDown={canMoveDown}
+        isBarbell={isBarbell}
+        menuOpen={menuOpen}
+        onActivate={onActivate}
+        onToggleMenu={() => setMenuOpen((v) => !v)}
+        onCloseMenu={() => setMenuOpen(false)}
+        onMoveUp={onMoveUp}
+        onMoveDown={onMoveDown}
+        onWarmup={addWarmup}
+        onPlates={() => setPlatesOpen((v) => !v)}
+        onProgress={() => navigate({ pathname: '/cwiczenie', search: `?n=${encodeURIComponent(exercise.name)}` })}
+        onRemoveSet={removeLastSet}
+        onRemove={onRemove}
+      />
 
       {active && (
         <div className="space-y-1 px-2 pb-3">
@@ -169,12 +199,7 @@ export default function LiveExerciseCard({ exercise, userId, active, onActivate,
               )}
             </div>
           ))}
-          <Pressable
-            onClick={() => addSet()}
-            className="mx-1 mt-1 flex h-11 w-[calc(100%-0.5rem)] items-center justify-center gap-1.5 rounded-2xl text-sm font-bold text-primary hover:bg-primary/10"
-          >
-            <Plus size={16} /> Seria
-          </Pressable>
+          <LiveSetFooter canRemove={sets.length > 1} onAdd={() => addSet()} onRemove={removeLastSet} />
         </div>
       )}
     </section>
