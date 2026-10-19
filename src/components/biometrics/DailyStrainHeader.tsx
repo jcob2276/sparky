@@ -5,16 +5,14 @@
  */
 import Button from '../ui/Button';
 import { RefreshCw } from 'lucide-react';
-import { CONF_PILL, CONF_LABEL, READINESS_MAP } from './dailyStrainCardStyles';
 
 interface DailyStrainHeaderProps {
   isStale: boolean;
   date: string;
   refreshing: boolean;
   onRefresh: () => void;
-  readinessLevel: string | null;
-  strConf?: keyof typeof CONF_PILL | null;
-  recConf?: keyof typeof CONF_PILL | null;
+  /** True while the model is still learning the user's baseline. */
+  preliminary?: boolean;
 }
 
 export default function DailyStrainHeader({
@@ -22,17 +20,18 @@ export default function DailyStrainHeader({
   date,
   refreshing,
   onRefresh,
-  readinessLevel,
-  strConf,
-  recConf,
+  preliminary = false,
 }: DailyStrainHeaderProps) {
-  const readinessInfo = readinessLevel ? READINESS_MAP[readinessLevel] : null;
-
   return (
     <>
       <div className="flex items-center justify-between relative z-[var(--z-raised)]">
         <div className="flex items-center gap-1.5">
-          <span className="pixel-label text-xs">Stan gotowości</span>
+          <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">Stan dnia</span>
+          {preliminary && (
+            <span title="Aplikacja dopiero poznaje Twoje typowe wartości, więc ocena jest przybliżona" className="rounded-full bg-surface-solid px-2 py-0.5 text-2xs font-semibold text-text-muted">
+              Wstępna ocena
+            </span>
+          )}
           {isStale && (
             <span className="text-2xs font-bold text-warning uppercase tracking-wider">
               (Dane z {date})
@@ -40,24 +39,6 @@ export default function DailyStrainHeader({
           )}
         </div>
         <Button onClick={onRefresh} variant="secondary" icon={<RefreshCw size={11} className={refreshing ? 'animate-spin text-primary' : ''} />} className="rounded-xl p-2" title="Sync + przelicz" />
-      </div>
-
-      <div className="flex items-center gap-1.5 flex-wrap relative z-[var(--z-raised)]">
-        {readinessInfo && (
-          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-black ${readinessInfo.bg} ${readinessInfo.color}`}>
-            {readinessInfo.label}
-          </span>
-        )}
-        {strConf && (
-          <span title="Pewność pomiaru obciążenia na podstawie danych" className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-2xs font-bold uppercase tracking-wider ${CONF_PILL[strConf]}`}>
-            Strain · {CONF_LABEL[strConf]}
-          </span>
-        )}
-        {recConf && (
-          <span title="Pewność modelu na podstawie historii danych bazowych" className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-2xs font-bold uppercase tracking-wider ${CONF_PILL[recConf]}`}>
-            Model · {CONF_LABEL[recConf]}
-          </span>
-        )}
       </div>
     </>
   );
