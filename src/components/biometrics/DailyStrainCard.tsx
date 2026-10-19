@@ -133,7 +133,6 @@ export default function DailyStrainCard({
       {missingSignals.length > 0 && (
         <DataStateNotice title="Niepełne dane" detail={missingSignals.join(' | ')} />
       )}
-      {row.fueling_provisional && <DataStateNotice title="Żywienie jeszcze niepełne" detail="Dziennik jedzenia nie jest zamknięty. Wstępny wynik nie potwierdza końcowego deficytu kalorii ani węglowodanów." />}
 
       {/* Oura Health Hub Launcher Button */}
       <Link

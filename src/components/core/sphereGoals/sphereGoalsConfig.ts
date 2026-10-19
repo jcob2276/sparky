@@ -1,12 +1,15 @@
 import { Wallet, Zap, Shield } from 'lucide-react';
 import type { PillarId } from '../../../lib/projects/pillars';
+import kontoPhoto from '../../../assets/goals/konto.webp';
+import duchPhoto from '../../../assets/goals/duch.webp';
+import cialoPhoto from '../../../assets/goals/cialo.webp';
 
 export const PILLAR_ORDER: PillarId[] = ['konto', 'duch', 'cialo'];
 
 export const PILLAR_CONFIG = {
-  konto: { icon: Wallet, borderColor: 'border-warning/30', bgActive: 'bg-warning/10', badgeText: 'text-warning', shortMetric: '15k zł / msc' },
-  duch: { icon: Zap, borderColor: 'border-primary/30', bgActive: 'bg-primary/10', badgeText: 'text-primary', shortMetric: 'Relacje' },
-  cialo: { icon: Shield, borderColor: 'border-success/30', bgActive: 'bg-success/10', badgeText: 'text-success', shortMetric: '15% BF · 100 kg' },
+  konto: { icon: Wallet, borderColor: 'border-warning/30', bgActive: 'bg-warning/10', badgeText: 'text-warning', shortMetric: '15k zł / msc', photo: kontoPhoto },
+  duch: { icon: Zap, borderColor: 'border-primary/30', bgActive: 'bg-primary/10', badgeText: 'text-primary', shortMetric: 'Relacje', photo: duchPhoto },
+  cialo: { icon: Shield, borderColor: 'border-success/30', bgActive: 'bg-success/10', badgeText: 'text-success', shortMetric: '15% BF · 100 kg', photo: cialoPhoto },
 };
 
 const RACE_DATE_DEFAULT = '2026-10-04T00:00:00';

@@ -26,7 +26,7 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
   return (
     <section className="space-y-2">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-3xs font-black uppercase tracking-widest text-text-muted">Twoje cele</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Najważniejsze teraz</h3>
         {imageItems.length > 0 && (
           <Pressable
             variant="tonal"
@@ -56,22 +56,22 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
               onClick={() => togglePillar(pillar)}
               aria-expanded={isSelected}
               title={goal.metric}
-              className={`hero-goal-card flex shrink-0 snap-start flex-col justify-between rounded-2xl border p-3 text-left transition-colors ui-interactive ${
-                isSelected
-                  ? `${cfg.borderColor} ${cfg.bgActive}`
-                  : 'border-border-custom/60 bg-surface-solid/40 hover:bg-surface-2/70'
+              className={`hero-goal-card flex shrink-0 snap-start flex-col justify-between rounded-2xl border p-3 text-left ui-interactive ${
+                isSelected ? `${cfg.borderColor} ring-2 ring-primary` : 'border-border-custom/60'
               }`}
             >
-              <span className="flex items-center justify-between gap-1">
-                <span className={`text-3xs font-black uppercase tracking-wider ${cfg.badgeText}`}>{goal.title}</span>
+              <img src={cfg.photo} alt="" aria-hidden="true" loading="lazy" decoding="async" className="hero-goal-photo" />
+              <span className="hero-goal-scrim" aria-hidden="true" />
+              <span className="relative flex items-center justify-between gap-1 text-on-accent">
+                <span className="text-xs font-semibold uppercase tracking-wider">{goal.title}</span>
                 <span className="flex items-center gap-1">
                   {marathonDays !== null && (
-                    <span className="text-3xs font-black text-success">🏃 {marathonDays}d</span>
+                    <span className="text-xs font-semibold">🏃 {marathonDays}d</span>
                   )}
-                  <Icon size={14} className={cfg.badgeText} />
+                  <Icon size={16} aria-hidden="true" />
                 </span>
               </span>
-              <span className="mt-1.5 line-clamp-2 text-sm font-black leading-tight text-text-primary">
+              <span className="relative line-clamp-2 text-xl font-black leading-tight text-on-accent">
                 {cfg.shortMetric}
               </span>
             </Pressable>

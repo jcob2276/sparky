@@ -69,7 +69,7 @@ describe('daily health evidence', () => {
     show();
     expect(screen.getByText('Fueling · wstępne')).toBeInTheDocument();
     expect(screen.getByText('42')).toBeInTheDocument();
-    expect(screen.getByText('Żywienie jeszcze niepełne')).toBeInTheDocument();
+    expect(screen.queryByText('Żywienie jeszcze niepełne')).not.toBeInTheDocument();
   });
 
   it('shows the stored explanation from the same daily row', () => {
@@ -84,7 +84,7 @@ describe('daily health evidence', () => {
     const { container } = show();
     expect(container.firstElementChild).not.toHaveClass('!border-danger/25');
     expect(screen.queryByText('Za mało kalorii względem obciążenia.')).not.toBeInTheDocument();
-    expect(screen.getByText('Żywienie jeszcze niepełne')).toBeInTheDocument();
+    expect(screen.queryByText('Żywienie jeszcze niepełne')).not.toBeInTheDocument();
   });
 
   it('labels wearable data from a different day', () => {
