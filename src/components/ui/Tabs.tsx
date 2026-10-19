@@ -50,7 +50,7 @@ export default function Tabs({ tabs, active, onChange, className = '' }: TabsPro
           className={`ui-tab relative z-10 flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold cursor-pointer touch-manipulation active:scale-[0.96] transition-colors duration-150 ${
             active === tab.key
               ? 'bg-surface-tonal text-primary'
-              : 'text-text-muted hover:bg-surface-3/50 hover:text-text-primary'
+              : 'text-text-secondary hover:bg-surface-3/50 hover:text-text-primary'
           }`}
         >
           {tab.icon && <span className="shrink-0">{tab.icon}</span>}
