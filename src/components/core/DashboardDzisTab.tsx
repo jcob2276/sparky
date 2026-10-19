@@ -9,7 +9,6 @@ import FoodQuickCapture from './nutrition/FoodQuickCapture';
 import Spinner from '../ui/Spinner';
 import { useDashboardContext } from './context/DashboardContext';
 import { dashboardKeys } from '../../lib/queryKeys';
-import TodayStatusStrip from './TodayStatusStrip';
 import DailyStrainCard from '../biometrics/DailyStrainCard';
 import DailySnapshotCard from './DailySnapshotCard';
 import TodayRunwayCard from './TodayRunwayCard';
@@ -59,7 +58,6 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
         <VisionHeroCard />
 
         <ThreeSpheresGoalsCard />
-        <TodayStatusStrip />
 
         <UrgentObligationsBanner
           userId={session.user.id}

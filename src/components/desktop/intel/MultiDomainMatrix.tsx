@@ -62,14 +62,7 @@ export default function MultiDomainMatrix({
           <div className="rounded-xl border border-primary/20 bg-primary/10 p-2 text-primary">
             <Layers size={20} />
           </div>
-          <div>
-            <h3 className="text-sm font-bold tracking-tight text-text-primary">
-              Wielodomenowa Mapa Korelacji — 13 Tygodni
-            </h3>
-            <p className="text-xs text-text-muted">
-              Wybierz i nałóż wymiary życia, aby zobaczyć synchronizację dyscypliny, makro i regeneracji
-            </p>
-          </div>
+          <h3 className="text-sm font-bold tracking-tight text-text-primary">Mapa dni · 13 tygodni</h3>
         </div>
 
         <div className="flex items-center gap-1.5 self-start sm:self-auto">

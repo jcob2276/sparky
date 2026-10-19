@@ -1,11 +1,11 @@
-import { EPISTEMIC_THRESHOLDS } from "@vanguard/domain"
 import { getWarsawDateString } from "../../_shared/time.ts"
-import { deepseekChat } from "../../_shared/deepseek.ts"
+import { deepseekChat, parseJsonFromContent } from "../../_shared/deepseek.ts"
 import { LLM_TASKS } from "../../_shared/llm/tasks.ts"
-import { deprecateSupersededLinks } from "../../_shared/deprecateSupersededLinks.ts"
 import { getAggregateByDate } from "../../_shared/repos/aggregatesRepo.ts"
-import { extractJsonObject, normalizeText } from "./helpers.ts"
-import { allowedRelations, deterministicTriads } from "./rules.ts"
+import { normalizeText } from "./helpers.ts"
+import { deterministicTriads } from "./rules.ts"
+import { buildExtractionPrompt } from "./prompt.ts"
+import { validateTriad } from "./validation.ts"
 
 export async function processRecords(
   supabase: any,
@@ -18,10 +18,15 @@ export async function processRecords(
   let totalTriads = 0
   let failedUpserts = 0
   let failedRecords = 0
+  let processedRecords = 0
+  let skippedRecords = 0
+  let rejectedTriads = 0
+  const retryableRecordIds: string[] = []
+  const errors: Array<{ record_id: string; reason: string }> = []
   let currentActiveLinks = [...activeLinks]
 
-  for (const record of records) {
-    if (!record.content) continue
+  for (const [recordIndex, record] of records.entries()) {
+    if (typeof record.content !== 'string' || !record.content.trim()) { skippedRecords++; continue }
 
     const recordDate = getWarsawDateString(new Date(record.created_at))
     let dailyBio = null
@@ -34,72 +39,12 @@ export async function processRecords(
       .map((l: any) => `- (${l.source_entity}) --(${l.relation})--> (${l.target_entity}) [confidence: ${l.confidence_score}]`)
       .join("\n")
 
-    const systemPrompt = `Jestes rygorystycznym Architektem Grafu Vanguard OS. Z tekstu i biometrii wyciagnij triady relacji.
+    const systemPrompt = buildExtractionPrompt(activeLinksText)
 
-ZASADY EKSTRAKCJI (Graphiti + LightRAG patterns):
-- Encja = konkretna, nazwana rzecz. ZAWSZE uzywaj NAJSPECYFICZNIEJSZEJ formy: "Cyberbezpieczenstwo magisterskie URz" nie "studia", "trening biegu 10km" nie "sport".
-- Uzywaj "Jakub" jako kanonicznej encji uzytkownika. Nigdy: "ja", "uzytkownik", "on".
-- Encje piszemy z Wielkiej Litery (Title Case): "Babcia z Krosna", "Gavronify", "Sprzedaz SaaS".
-- NIE twórz wezlów z: pospolitych rzeczowników (dzien, zycie, ludzie, rzeczy, czas), dat, przyslowkow, emocji bez konkretnego targetu.
-- Deduplication (Graphiti rule): jesli dwie encje sa TYM SAMYM obiektem realnym, uzywaj pelniejszej nazwy. "NYC" = "New York City" → "New York City".
-- NIGDY nie fabrykuj encji spoza tekstu.
-- Jesli wniosek nie jest wprost powiedzany → memory_type="hypothesis", confidence_score <= ${EPISTEMIC_THRESHOLDS.GRAPH_HYPOTHESIS_MAX_CONFIDENCE}.
-- Relacja MUSI byc jedna z listy:
-${allowedRelations.join(", ")}
-- Dla rodziny: ma_relacje_z, zna_osobe, mieszka_w, pamieta, wywoluje.
-- Dla miejsc: konkretny wezel miejsca np. "Krosno", "Zeglice", "Rzeszow".
-- Dla osob rodzinnych: opisowe wezly np. "Babcia z Krosna", "Kuzynka Wiolka".
-
-DYSKUSJA I ROZWIĄZYWANIE KONFLIKTÓW PAMIĘCI (Mem0 pattern):
-Porównaj każdą nowo wyciąganą triadę z aktualną listą istniejących faktów w grafie:
-EXISTING ACTIVE FACTS:
-${activeLinksText || "(brak)"}
-
-Dla każdej nowej triady określ jej "resolution":
-- "action": "insert" -> Nowy fakt, który nie dotyczy ani nie koliduje z żadnym istniejącym faktem.
-- "action": "merge" -> Nowa triada opisuje ten sam fakt, który już istnieje (identyczny subject, relation i target, np. ponowne wspomnienie tego samego faktu). Wskazuje to na duplikację/wzmocnienie. W "conflicting_link" podaj istniejący fakt.
-- "action": "supersede" -> Nowa triada bezpośrednio zaprzecza lub nadpisuje istniejący fakt (np. zmiana miejsca zamieszkania, nowa rola zawodowa zastępująca starą, zmiana nawyku). Stary fakt zostanie oznaczony jako historyczny/przestarzały. W "conflicting_link" podaj istniejący fakt, który jest nadpisywany.
-
-POLE KEYWORDS (LightRAG pattern):
-Dla kazdej triady dodaj "keywords" — 2-4 slowa kluczowe tematyczne oddzielone przecinkiem.
-
-Format odpowiedzi, TYLKO JSON:
-{
-  "triads": [
-    {
-      "source": "Jakub",
-      "source_type": "person",
-      "relation": "jest",
-      "target": "Student",
-      "target_type": "concept",
-      "memory_type": "fact",
-      "confidence_score": 0.9,
-      "keywords": "studia, edukacja",
-      "resolution": {
-        "action": "supersede",
-        "conflicting_link": {
-          "source": "Jakub",
-          "relation": "jest",
-          "target": "Inzynier"
-        }
-      }
-    }
-  ]
-}
-
-Przyklady:
-- Tekst: "mam dwie babcie, jedna mieszka w Krosnie, druga w Zeglicach"
-  -> {"triads":[
-    {"source":"Jakub","source_type":"person","relation":"ma_relacje_z","target":"Babcia z Krosna","target_type":"person","memory_type":"fact","confidence_score":0.9,"keywords":"rodzina, babcia, relacje","resolution":{"action":"insert"}},
-    {"source":"Babcia z Krosna","source_type":"person","relation":"mieszka_w","target":"Krosno","target_type":"place","memory_type":"fact","confidence_score":0.9,"keywords":"miejsce, Krosno, babcia","resolution":{"action":"insert"}},
-    {"source":"Jakub","source_type":"person","relation":"ma_relacje_z","target":"Babcia z Zeglic","target_type":"person","memory_type":"fact","confidence_score":0.9,"keywords":"rodzina, babcia, relacje","resolution":{"action":"insert"}},
-    {"source":"Babcia z Zeglic","source_type":"person","relation":"mieszka_w","target":"Zeglice","target_type":"place","memory_type":"fact","confidence_score":0.9,"keywords":"miejsce, Zeglice, babcia","resolution":{"action":"insert"}}
-  ]}
-- Tekst: "chce przejsc ze sfera marketingowej do sprzedazy na zywo"
-  -> {"triads":[{"source":"Jakub","source_type":"person","relation":"planuje","target":"Przejscie z marketingu do sprzedazy bezposredniej","target_type":"goal","memory_type":"fact","confidence_score":0.85,"keywords":"sprzedaz, kariera, zmiana, cel","resolution":{"action":"insert"}}]}`
-
+    let contextRefreshFailed = false
     try {
-      const { content: raw } = await deepseekChat({
+      const failuresBefore = failedUpserts
+      const { content: raw, finishReason } = await deepseekChat({
         apiKey,
         ...LLM_TASKS.classify,
         maxTokens: 2200,
@@ -112,10 +57,17 @@ Przyklady:
         ],
       })
 
-      const parsed = extractJsonObject(raw)
-      const llmTriads = Array.isArray(parsed.triads) ? parsed.triads : []
+      if (finishReason === 'length') throw new Error('Incomplete extraction: token limit reached')
+      const parsed = parseJsonFromContent(raw)
+      if (!parsed || !Array.isArray(parsed.triads)) throw new Error('Invalid extraction: expected triads array')
+      const llmTriads = parsed.triads
       const fallbackTriads = deterministicTriads(record.content)
-      const triads = [...llmTriads, ...fallbackTriads].filter((triad, index, all) =>
+      const validTriads = [...llmTriads, ...fallbackTriads].flatMap((candidate) => {
+        const triad = validateTriad(candidate, record.content.slice(0, 6000))
+        if (!triad) rejectedTriads++
+        return triad ? [triad] : []
+      })
+      const triads = validTriads.filter((triad, index, all) =>
         index === all.findIndex((other) =>
           other.source === triad.source &&
           other.relation === triad.relation &&
@@ -123,98 +75,17 @@ Przyklady:
         )
       )
 
-      let totalDeprecated = 0
       for (const triad of triads) {
-        if (!triad.source || !triad.relation || !triad.target) continue
-        if (!allowedRelations.includes(triad.relation)) {
-          failedUpserts++
-          console.error(`Architect rejected relation outside ontology: ${triad.relation}`)
-          continue
-        }
-
-        const resolutionAction = triad.resolution?.action || "insert"
         const conflictingLink = triad.resolution?.conflicting_link
-
-        let existingToMerge: any = null
-
-        if (resolutionAction === "supersede" && conflictingLink) {
-          const match = currentActiveLinks.find((l: any) =>
+        const superseded = triad.resolution?.action === 'supersede' && conflictingLink
+          ? currentActiveLinks.find((l: any) =>
             normalizeText(l.source_entity) === normalizeText(conflictingLink.source) &&
             l.relation === conflictingLink.relation &&
             normalizeText(l.target_entity) === normalizeText(conflictingLink.target)
           )
-          if (match) {
-            const { error: depErr } = await supabase
-              .from("vanguard_entity_links")
-              .update({
-                status: "deprecated",
-                temporal_status: "historical",
-                valid_until: new Date().toISOString(),
-                metadata: {
-                  ...(match.metadata || {}),
-                  deprecated_reason: "mem0_llm_superseded",
-                  superseded_by_episode: record.id,
-                }
-              })
-              .eq("id", match.id)
-
-            if (depErr) {
-              console.error(`[architect] Failed to deprecate link ${match.id}:`, depErr)
-            } else {
-              totalDeprecated++
-              currentActiveLinks = currentActiveLinks.filter((l) => l.id !== match.id)
-              console.log(`[architect] Mem0 superseded conflicting link: ${match.source_entity} --(${match.relation})--> ${match.target_entity}`)
-            }
-          }
-        } else if (resolutionAction === "merge" && conflictingLink) {
-          const match = currentActiveLinks.find((l: any) =>
-            normalizeText(l.source_entity) === normalizeText(conflictingLink.source) &&
-            l.relation === conflictingLink.relation &&
-            normalizeText(l.target_entity) === normalizeText(conflictingLink.target)
-          )
-          if (match) {
-            existingToMerge = match
-          }
-        }
-
-        if (existingToMerge) {
-          const newWeight = Math.max(existingToMerge.weight || 1.0, triad.confidence_score || 0.7)
-          const newCount = (existingToMerge.evidence_count || 1) + 1
-          const { error: updateErr } = await supabase
-            .from("vanguard_entity_links")
-            .update({
-              weight: newWeight,
-              evidence_count: newCount,
-              last_seen: getWarsawDateString()
-            })
-            .eq("id", existingToMerge.id)
-
-          if (updateErr) {
-            console.error(`[architect] Failed to merge link ${existingToMerge.id}:`, updateErr)
-            failedUpserts++
-          } else {
-            totalTriads++
-            existingToMerge.weight = newWeight
-            existingToMerge.evidence_count = newCount
-            console.log(`[architect] Mem0 merged link: ${existingToMerge.source_entity} --(${existingToMerge.relation})--> ${existingToMerge.target_entity}`)
-          }
-        } else {
-          if (resolutionAction === "insert" || !conflictingLink) {
-            const deprecated = await deprecateSupersededLinks(
-              supabase,
-              userId,
-              triad.source,
-              triad.relation,
-              triad.target,
-              triad.confidence_score || 0.7,
-              record.id,
-            )
-            if (deprecated > 0) {
-              totalDeprecated += deprecated
-              console.log(`[architect] Fallback deprecated ${deprecated} link(s) for ${triad.source} --(${triad.relation})--> *`)
-            }
-          }
-
+          : null
+        // One transaction owns insert, merge, dedupe and supersession. Never retire
+        // the previous fact before the replacement is durably accepted.
           const { error: upsertError } = await supabase.rpc("upsert_vanguard_entity_link", {
             p_user_id: userId,
             p_source: triad.source,
@@ -222,12 +93,19 @@ Przyklady:
             p_relation: triad.relation,
             p_target: triad.target,
             p_target_type: triad.target_type || "concept",
-            p_confidence_score: triad.confidence_score || 0.7,
+            p_confidence_score: triad.confidence_score,
             p_memory_type: triad.memory_type || "fact",
             p_layer: "intelligence",
             p_metadata: {
               source: "vanguard_architect",
               input_type: type,
+              source_record_id: record.id,
+              ...(superseded?.id ? { supersedes_link_id: superseded.id } : {}),
+              ...(!superseded?.id && superseded
+                && normalizeText(superseded.source_entity) === normalizeText(triad.source)
+                && superseded.relation === triad.relation
+                ? { supersedes_target: superseded.target_entity } : {}),
+              ...(triad.evidence_quote ? { evidence_quote: triad.evidence_quote } : {}),
               ...(triad.keywords ? { keywords: triad.keywords } : {}),
             },
             p_observed_at: record.created_at,
@@ -239,24 +117,38 @@ Przyklady:
             console.error("Architect graph upsert error:", upsertError)
           } else {
             totalTriads++
-            currentActiveLinks.push({
-              source_entity: triad.source,
-              relation: triad.relation,
-              target_entity: triad.target,
-              weight: triad.confidence_score || 0.7,
-              confidence_score: triad.confidence_score || 0.7,
-              metadata: { source: "vanguard_architect" },
-              evidence_count: 1
-            })
+            // A successful void RPC may insert, dedupe or retain a backdated fact.
+            // Only persisted rows establish IDs and the next conflict context.
+            contextRefreshFailed = true
+            const { data: active, error: refreshError } = await supabase.from('vanguard_entity_links')
+              .select('id, source_entity, relation, target_entity, weight, confidence_score, metadata, evidence_count')
+              .eq('user_id', userId).eq('status', 'active').limit(150)
+            if (refreshError || !Array.isArray(active)) throw new Error('Active graph context refresh failed')
+            currentActiveLinks = active
+            contextRefreshFailed = false
           }
-        }
       }
-      if (totalDeprecated > 0) {
-        console.log(`[architect] record ${record.id}: ${totalTriads} upserted, ${totalDeprecated} deprecated`)
+      processedRecords++
+      if (failedUpserts > failuresBefore) {
+        failedRecords++
+        retryableRecordIds.push(record.id)
+        errors.push({ record_id: record.id, reason: 'graph_write_failed' })
       }
     } catch (error) {
       console.error("Error processing record in Architect:", error)
       failedRecords++
+      retryableRecordIds.push(record.id)
+      errors.push({ record_id: record.id, reason: contextRefreshFailed ? 'context_refresh_failed'
+        : error instanceof Error && error.message.includes('token limit') ? 'incomplete_extraction' : 'extraction_failed' })
+      if (contextRefreshFailed) {
+        for (const pending of records.slice(recordIndex + 1)) {
+          if (typeof pending.content !== 'string' || !pending.content.trim()) { skippedRecords++; continue }
+          failedRecords++
+          retryableRecordIds.push(pending.id)
+          errors.push({ record_id: pending.id, reason: 'context_unavailable' })
+        }
+        break
+      }
     }
   }
 
@@ -264,5 +156,10 @@ Przyklady:
     totalTriads,
     failedUpserts,
     failedRecords,
+    processedRecords,
+    skippedRecords,
+    rejectedTriads,
+    retryableRecordIds,
+    errors,
   }
 }

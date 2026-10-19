@@ -93,14 +93,49 @@ a pasuje najbardziej naturalnie ze wszystkich, bo nie wymaga nowego kanału wej�
 | Daily Summary Digest | reconciliation | Auto-podsumowanie na koniec dnia (zrobione/nie/rollover/recovery) przed wieczornym reconciliation, nie zamiast niego | S |
 | Shutdown Ritual | reconciliation | Krótka checklist zamykająca dzień w Telegramie (rutyna z sekcji wyżej) zamiast osobnego feature'a | wliczone w Routines |
 
-### Warstwa wiedzy (Logseq/Tana) — tania wersja nad istniejącym stream+graph
+### Warstwa wiedzy — mechaniki źródłowe i dopasowanie do Sparky
 
-| Mechanika | Wzmacnia | Konkret | Effort |
-|---|---|---|---|
-| Block References | Memex, Oracle | Cytowanie wpisu stream w innym wpisie — ID już są, brakuje `referenced_entry_id` + UI chip | S |
-| Linked/Backlink View | Memex, wiki pages, Oracle | Klik na encję w wiki → lista wszystkich wpisów/friction/reconciliation jej dotyczących, chronologicznie. `vanguard_entity_links` już to wie, brakuje frontendu | S-M |
-| Live Queries | = Smart Filters wyżej, ten sam build | — | — |
-| Page Properties | wiki, projekty | Proste pola `status`/`priority`/`reviewed_at` na projektach/encjach zamiast pełnego systemu typów (Tana) | S |
+Źródła wynikają z odwołań w kodzie: Graphiti/LightRAG/Mem0 w
+`vanguard-architect/extraction/processor.ts`, Letta w `vanguard-oracle/oracle/coreMemory.ts`.
+Logseq/Tana są inspiracją dla interfejsu. Poniżej porównanie konkretnych opublikowanych
+zmian, nie deklaracja wdrożenia ani osobna kolejka prac; kolejność implementacji pozostaje
+w [BACKLOG.md](../../BACKLOG.md), zwłaszcza w części II i kontraktach spójności danych.
+
+**Istniejący fundament:** migracje `vanguard_entities_and_claims`,
+`vanguard_bitemporality_and_reads`, `entity_resolution` i `claims_soft_delete` zawierają już
+`claims`, encje, aliasy, `learned_at`, `valid_from` i historię wycofania.
+Oracle łączy wyszukiwanie grafowe, wektorowe i pełnotekstowe. To ustalenie z repo,
+nie potwierdzenie stanu produkcji. Nie planować tych elementów ponownie na podstawie
+starszego opisu braków; sprawdzać ich zachowanie i konsumentów.
+
+| Źródło i opublikowana zmiana | Co pokazuje kod Sparky | Ocena dopasowania |
+|---|---|---|
+| [Graphiti — dyscyplina ekstrakcji i walidacja atrybutów](https://github.com/getzep/graphiti/releases/tag/v0.29.1): ochrona przed rozumowaniem i opisem schematu w danych | `processor.ts` ma reguły promptu i kontrolę dozwolonej relacji, ale nie waliduje całej triady przed zapisem | Wysoka: walidować typy, długość i pewność, zachować związek ze źródłem. Ocenić na polskich przykładach i pustych kontrolach; limity dobierać do pola, nie kopiować do całej treści |
+| [Graphiti — osobne znaczniki czasu przetworzenia i czasu epizodu](https://github.com/getzep/graphiti/releases/tag/v0.29.1) | `claims` już rozróżnia czas poznania i obowiązywania; kompilator wiki wybiera stream po `created_at` | Wysoka: sprawdzić późny zapis dawnego zdarzenia i korektę po kompilacji. Kursor przetwarzania i zakres czasu zdarzeń pełnią różne role; nie tworzyć nowego modelu czasu obok istniejącego |
+| [LightRAG — obserwowalność uciętej ekstrakcji](https://github.com/HKUDS/LightRAG/pull/3607) | `deepseekChat` zwraca `finishReason`, lecz architekt pobiera tylko `content`; parsowalny JSON może zostać przyjęty mimo zakończenia limitem tokenów. Nieparsowalny wynik jest już liczony jako błąd rekordu | Wysoka: propagować stan kompletności przez istniejący etap, z ID źródła; uciętego wyniku nie potwierdzać jako pełnego sukcesu |
+| [Mem0 — potwierdzenie tylko zapisanych rekordów](https://github.com/mem0ai/mem0/releases/tag/v2.2.1) i [stały klucz przy ponawianiu generacji profilu](https://github.com/mem0ai/mem0/releases/tag/v2.2.0) | Embedder loguje błędy poszczególnych UPDATE, ale zwraca `updated: links.length`; merge architekta zwiększa `evidence_count`, a RPC zwiększa go przy konflikcie bez sprawdzenia unikalności epizodu | Najpierw wiarygodność: liczyć potwierdzone zapisy i unikalne dowody. Ten sam epizod po retry nie może udawać nowej obserwacji. Klucz operacji profilu jest inspiracją do tego kontraktu, nie gotowym deduplikatorem naszych faktów |
+| [Mem0 — profil użytkownika według JSON Schema](https://github.com/mem0ai/mem0/releases/tag/v2.2.0) | Istnieją wiki, `claims`, fundament i bloki core memory; kolejny niezależnie edytowany profil powiększyłby rozjazdy | Warunkowo: profil wyłącznie jako projekcja istniejącej wiedzy z referencjami i świeżością. API klienta usługi nie dowodzi dostępności generatora profilu w otwartym SDK |
+| [LightRAG — graf przed odbudową indeksu wektorowego](https://github.com/HKUDS/LightRAG/pull/3473) | Architekt i `vanguard-graph-embedder` są już oddzielone; wyszukiwanie ma też ścieżki grafową i pełnotekstową | Częściowo mamy: utrwalić status i postęp odbudowy, zweryfikować fallback oraz zgodność indeksu ze źródłem. Nie dodawać drugiego magazynu; tryb odroczony upstream służy backfillowi, nie zwykłemu bieżącemu ingestowi |
+| [Letta — MemFS z historią zmian](https://docs.letta.com/concepts/memfs) oraz [ochrona przed ponowieniem rozpoczętej operacji bez zapisanego wyniku](https://github.com/letta-ai/letta-code/releases/tag/v0.34.16) | Core memory ma tekst, TTL i czas aktualizacji; aktualizacja nadpisuje kopertę. Nie jest to historia rewizji ani rozstrzygnięcie nieznanego wyniku operacji | Wysoka wartość historii korekt i pochodzenia, po domknięciu zapisu. Rozszerzać istniejące wersjonowanie i rejestr operacji, bez przepisywania backendu na plikowy runtime. Aktywny kod Letty wskazuje teraz repo `letta-code`; dawne wydania serwera nie są jej bieżącą linią |
+| [Tana — referencje obejmujące wzmianki inline i import używający istniejących obiektów](https://outliner.tana.inc/changelog/2026-10-09-lanes-and-reference-fixes) | Notatki mają już `data-note-id`; wiki ma `source_refs`, lecz `useGeneralViewData` nie pobiera ID ani referencji wiki do panelu pamięci | Największa dźwignia UI: przejście teza → źródło oraz widok odwołań do tego samego ID. Naprawiać lub jawnie oznaczać nieaktualny tytuł/usunięty cel; nie kopiować treści do kolejnych magazynów |
+| [Tana — daty z timezone](https://outliner.tana.inc/changelog/2026-10-12-timezones-and-grouped-views) i [zachowanie mniej precyzyjnych dat w grupach](https://outliner.tana.inc/changelog/2026-w37-39) | Biblioteka dat ma Warsaw; niespójność czasu zdarzenia i rejestracji jest opisana w DC-11 | Wysoka: przenieść istniejące reguły czasu do konsumentów; zapis znanego dnia bez godziny nie uzasadnia wymyślonego markera godzinowego |
+| [Logseq — zapis przed nawigacją i czytelne zerwane referencje](https://github.com/logseq/logseq/releases/tag/2.0.2) | `useNoteDraftAutosave` ma już kolejkę, szkic awaryjny, retry i flush; eksport notatek ma manifest z ID i załączniki | Rozwijać istniejący mechanizm. Sprawdzić nawigację przy błędzie zapisu; rozszerzenie czytelnego Markdown o linki ma sens, ponieważ `noteAsMarkdown` spłaszcza HTML do tekstu. Manifest zachowuje surową treść, więc nie oznacza to utraty danych całego archiwum |
+
+Wniosek projektowy: największy zysk dają potwierdzony i odporny na retry zapis,
+kontrola jakości ekstrakcji, a następnie dostęp do dowodów i historii korekt.
+Pełny silnik agentowy Letty, nowa baza grafowa i kolejny autonomicznie edytowany profil
+nie rozwiązują obecnych niespójności. Grupowanie, galeria i zapisane preferencje widoku
+notatek już istnieją; nie traktować ich jako nowej funkcji do skopiowania.
+
+**Zakres weryfikacji:** próba rzeczywistego `processRecords` z podstawionym I/O
+odtworzyła wzrost `evidence_count` po ponownym podaniu tego samego ID epizodu oraz
+przyjęcie parsowalnego JSON mimo `finishReason: length`, bez zgłoszonego błędu rekordu.
+Próba nie wywoływała zewnętrznego modelu ani bazy. Pozostałe dopasowania wynikają
+z odczytu kodu i wskazanych źródeł, nie z testu całego wdrożonego przepływu.
+
+Pozostałe inspiracje warstwy wiedzy zachowują swój zakres: Live Queries to Smart Filters
+opisane wyżej, a Page Properties to edycja potrzebnych pól istniejących obiektów,
+zamiast wprowadzania pełnego systemu typów z Tany.
 
 ### Bufory (Reclaim)
 

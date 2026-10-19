@@ -1,6 +1,6 @@
 import { insertStreamRecord } from "../messageHelpers.ts";
 import { runAntiAnalysisGuard } from "../../_handlers/antiAnalysis.ts";
-import { inferVaultCategory } from "../../_utils/helpers.ts";
+import { inferVaultCategory, safeSendTelegram } from "../../_utils/helpers.ts";
 import { logAuditEvent } from "../../../_shared/audit.ts";
 import { MessageContext, MessageInterceptor } from "../interceptors.ts";
 
@@ -32,6 +32,10 @@ export class StreamWriterInterceptor implements MessageInterceptor {
       );
       ctx.streamRecordId = streamRes.streamRecordId;
       ctx.streamSaveFailed = streamRes.streamSaveFailed;
+      if (ctx.streamSaveFailed) {
+        await safeSendTelegram(ctx.chatId, "❌ Nie udało się przetworzyć wiadomości. Spróbuj ponownie.", ctx.telegramToken);
+        throw new Error("Nie udało się zapisać wiadomości w strumieniu");
+      }
     }
 
     // Anti-analysis guard

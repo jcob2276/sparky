@@ -1,19 +1,17 @@
 /**
  * @component GeneralView
- * @role Uniwersalny widok ogólny (health charts, friction, memex, rekomendacje).
- * @folders generalView/ = GeneralHealthCharts, GeneralFrictionPanels, GeneralMemexPanels,
- *          GeneralRecommendationsPanel, ScoreBar, generalViewUtils | hooks/ = useGeneralViewData
+ * @role Pamięć Sparky ze źródłami i zalecenia.
  * @usedBy DesktopDashboard
  */
 import { useGeneralViewData } from './hooks/useGeneralViewData';
 import Skeleton from '../../ui/Skeleton';
-import { C, OuraRow } from '../desktopUtils';
+import type { OuraRow } from '../desktopUtils';
 import GeneralMemexPanels from './generalView/GeneralMemexPanels';
 import GeneralRecommendationsPanel from './generalView/GeneralRecommendationsPanel';
+import { Pressable } from '../../ui/ControlPrimitives';
 
 export default function GeneralView({
   userId,
-  oura: ouraProp,
 }: {
   userId: string;
   oura?: OuraRow[];
@@ -24,7 +22,9 @@ export default function GeneralView({
     curiosity,
     recommendations,
     loading,
-  } = useGeneralViewData({ userId, ouraProp });
+    isError,
+    refetch,
+  } = useGeneralViewData({ userId });
 
   if (loading) {
     return (
@@ -36,29 +36,36 @@ export default function GeneralView({
     );
   }
 
+  if (isError) return (
+    <div role="alert" className="space-y-2 rounded-xl border border-border-custom p-4 text-sm text-text-muted">
+      <p>Nie udało się pobrać pamięci Sparky.</p>
+      <Pressable onClick={() => void refetch()} className="text-primary">Spróbuj ponownie</Pressable>
+    </div>
+  );
+
   return (
     <div className="space-y-5">
-      {/* ── SEKCJA: MEMEX ── */}
+      {/* ── SEKCJA: PAMIĘĆ SPARKY ── */}
       <div id="pamiec" className="scroll-mt-28 flex items-center gap-3">
         <div className="h-px flex-1 bg-border-custom" />
         <span className="text-xs font-black uppercase tracking-widest text-text-muted">
-          Memex — Pamięć systemu
+          Pamięć
         </span>
         <div className="h-px flex-1 bg-border-custom" />
       </div>
 
       <GeneralMemexPanels
+        userId={userId}
         patterns={patterns}
         curiosity={curiosity}
         wiki={wiki}
-        emeraldColor={C.emerald}
       />
 
       {/* ── SEKCJA: ZALECENIA WYROCZNI ── */}
       <div className="flex items-center gap-3 mt-2">
         <div className="h-px flex-1 bg-border-custom" />
         <span className="text-xs font-black uppercase tracking-widest text-text-muted">
-          Zalecenia Wyroczni
+          Zalecenia
         </span>
         <div className="h-px flex-1 bg-border-custom" />
       </div>

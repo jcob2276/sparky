@@ -1,18 +1,19 @@
-import { ArrowDownRight, ArrowUpRight, ChevronRight, Minus } from 'lucide-react';
 import { buildHealthDirection } from '../../../lib/biometrics/healthDirection';
+import { buildScoreRings } from '../../../lib/biometrics/ouraScoreBands';
 import { formatShortDateWarsaw, getTodayWarsaw } from '../../../lib/date';
+import { OuraBaselineSection } from './OuraBaselineSection';
 import { OuraContextSection } from './OuraContextSection';
+import { OuraDayNightSection } from './OuraDayNightSection';
 import { OuraPersonalEvidence } from './OuraPersonalEvidence';
+import { OuraScoreRings } from './OuraScoreRings';
+import { OuraSleepRegularitySection } from './OuraSleepRegularitySection';
 import type { OuraHealthHubData } from './types';
-import Button from '../../ui/Button';
 
 interface OuraOverviewViewProps {
   data: OuraHealthHubData;
   onOpenSleep: () => void;
   onOpenVitals: () => void;
 }
-
-const number = new Intl.NumberFormat('pl-PL', { maximumFractionDigits: 1 });
 
 export function OuraOverviewView({ data, onOpenSleep, onOpenVitals }: OuraOverviewViewProps) {
   const asOf = data.date ?? data.oura?.date ?? data.enhanced?.date ?? getTodayWarsaw();
@@ -39,28 +40,24 @@ export function OuraOverviewView({ data, onOpenSleep, onOpenVitals }: OuraOvervi
             Potrzeba co najmniej 4 dni z pomiarem w każdym tygodniu, osobno dla każdego wskaźnika.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          {direction.metrics.map(metric => {
-            const Icon = metric.delta == null || metric.delta === 0 ? Minus : metric.delta > 0 ? ArrowUpRight : ArrowDownRight;
-            const deltaText = metric.delta == null ? 'Za mało danych'
-              : `${metric.delta > 0 ? '+' : ''}${number.format(metric.delta)} ${metric.unit}`;
-            return (
-              <Button key={metric.key} variant="ghost" onClick={metric.key === 'sleep' ? onOpenSleep : onOpenVitals}
-                className="block min-w-0 !rounded-xl !border !border-white/5 !bg-surface-1 !p-3 text-left !font-normal !text-text-primary transition-colors hover:!bg-surface-2 sm:!p-5">
-                <span className="flex items-center justify-between gap-2 text-xs text-text-secondary sm:text-sm">{metric.label}<ChevronRight size={16} className="hidden shrink-0 sm:block" aria-hidden="true" /></span>
-                <span className="mt-3 block text-3xl font-light tabular-nums">{metric.latest == null ? '—' : number.format(metric.latest)}<span className="ml-1 text-sm text-text-muted">{metric.unit}</span></span>
-                <span className="mt-1 hidden text-xs text-text-muted sm:block">Pomiar {asOf}</span>
-                <span className="mt-4 flex items-start gap-1 text-xs text-info sm:mt-5 sm:gap-1.5 sm:text-sm"><Icon size={16} className="shrink-0" aria-hidden="true" /><span>{deltaText}{metric.delta != null && <span className="hidden sm:inline"> tydzień do tygodnia</span>}</span></span>
-                <span className="mt-2 block text-xs leading-5 text-text-muted">
-                  Średnia: {metric.previous == null ? '—' : number.format(metric.previous)} → {metric.current == null ? '—' : number.format(metric.current)} {metric.unit}<br />
-                  Dni z pomiarem: {metric.previousCount}/7 → {metric.currentCount}/7
-                </span>
-              </Button>
-            );
+        <OuraScoreRings
+          rings={buildScoreRings({
+            asOf,
+            summaries: [...(data.ouraHistory ?? []), ...(data.oura ? [data.oura] : [])],
+            enhanced: [...(data.enhancedHistory ?? []), ...(data.enhanced ? [data.enhanced] : [])],
+            strainScore: data.strainRow?.strain_score,
           })}
-        </div>
-        <p className="text-xs leading-5 text-text-muted">Zmiana HRV opisuje pomiary, sama nie przesądza o poprawie zdrowia. Strzałki pokazują zmianę średniej, nie jej przyczynę.</p>
+          onOpenSleep={onOpenSleep}
+          onOpenVitals={onOpenVitals}
+        />
+        <p className="text-xs leading-5 text-text-muted">Zmiana opisuje pomiary, sama nie przesądza o poprawie zdrowia. Strzałki pokazują różnicę względem średniej z 7 dni, nie jej przyczynę.</p>
       </section>
+
+      {data.userId && <OuraBaselineSection userId={data.userId} asOf={asOf} />}
+
+      {data.userId && <OuraDayNightSection data={data} latestNight={asOf} />}
+
+      {data.userId && <OuraSleepRegularitySection userId={data.userId} />}
 
       <section className="space-y-4" aria-labelledby="health-context-title">
         <div>

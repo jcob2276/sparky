@@ -89,7 +89,7 @@ async function runBackfillBatch(
   batch_size: number,
   force_reembed: boolean,
   hype_mode: boolean,
-): Promise<{ processed: number; updated: number; remaining: number | null }> {
+) {
   const supabase = createServiceClient();
 
   const query = supabase
@@ -109,7 +109,7 @@ async function runBackfillBatch(
   if (error) { console.error('[embedder] Fetch error:', error); throw error; }
   if (!links || links.length === 0) {
     console.log('[embedder] All done');
-    return { processed: 0, updated: 0, remaining: 0 };
+    return { processed: 0, updated: 0, failed: 0, remaining: 0, errors: [], retryable_link_ids: [] };
   }
 
   // Build fact texts
@@ -127,14 +127,32 @@ async function runBackfillBatch(
     console.log(`[embedder] HyPE enriched ${links.length} facts with hypothetical questions`);
   }
 
-  const embeddings = await embedBatch(enrichedTexts);
+  let embeddings: number[][] = [];
+  try { embeddings = await embedBatch(enrichedTexts); }
+  catch (error) { console.error('[embedder] Embedding generation failed:', error); }
+  let updated = 0;
+  const errors: Array<{ link_id?: string; reason: string }> = [];
+  const retryable_link_ids: string[] = [];
 
   for (let i = 0; i < links.length; i++) {
-    const { error: updateErr } = await supabase
-      .from('vanguard_entity_links')
-      .update({ embedding: embeddings[i], fact_text: enrichedTexts[i] })
-      .eq('id', links[i].id);
-    if (updateErr) console.error(`[embedder] Update error id=${links[i].id}:`, updateErr);
+    try {
+      const vector = embeddings[i];
+      if (!Array.isArray(vector) || vector.length !== 1536 || !vector.every(Number.isFinite)) {
+        throw new Error('invalid_embedding');
+      }
+      const { data, error: updateErr } = await supabase
+        .from('vanguard_entity_links')
+        .update({ embedding: vector, fact_text: enrichedTexts[i] })
+        .eq('id', links[i].id)
+        .eq('user_id', user_id)
+        .select('id');
+      if (updateErr || data?.length !== 1) throw new Error('update_not_confirmed');
+      updated++;
+    } catch (error) {
+      console.error(`[embedder] Update failed id=${links[i].id}:`, error);
+      retryable_link_ids.push(links[i].id);
+      errors.push({ link_id: links[i].id, reason: error instanceof Error ? error.message : 'update_failed' });
+    }
   }
 
   const countQuery = supabase
@@ -146,10 +164,11 @@ async function runBackfillBatch(
   else countQuery.is('fact_text', null);
 
   const { count: remaining, error: countErr } = await countQuery;
-  if (countErr) throw countErr;
+  if (countErr) errors.push({ reason: 'remaining_count_failed' });
 
-  console.log(`[embedder] Batch done: ${links.length} updated (hype=${hype_mode}), ~${remaining ?? '?'} remaining`);
-  return { processed: links.length, updated: links.length, remaining: remaining ?? null };
+  console.log(`[embedder] Batch done: ${updated} updated (hype=${hype_mode}), ~${countErr ? '?' : remaining ?? '?'} remaining`);
+  return { processed: links.length, updated, failed: retryable_link_ids.length,
+    remaining: countErr ? null : remaining ?? null, errors, retryable_link_ids };
 }
 
 Deno.serve(serveJson(async (req) => {
@@ -161,12 +180,14 @@ Deno.serve(serveJson(async (req) => {
 
   const result = await runBackfillBatch(user_id, batch_size, force_reembed, hype_mode);
 
-  return {
-    success: true,
+  const success = result.errors.length === 0;
+  const receipt = {
+    success,
     ...result,
-    message: result.remaining === 0
+    message: !success ? 'Batch incomplete; retry failed links or refresh remaining count' : result.remaining === 0
       ? 'Backfill complete'
       : `Batch embedded; ~${result.remaining} triples remaining — invoke again`,
     estimated_cost_usd: ((result.processed || 0) * 0.000002).toFixed(4),
   };
+  return success ? receipt : Response.json(receipt, { status: 503 });
 }, { auth: 'service' }));

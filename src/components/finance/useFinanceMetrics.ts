@@ -84,6 +84,7 @@ export function useFinanceMetrics(bundle: FinanceBundle | undefined) {
     ]);
 
     return {
+      hasBudget: bundle.hasProfile && effectiveExpenses > 0,
       netWorth,
       liquid,
       investments,

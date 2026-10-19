@@ -42,9 +42,11 @@ const TerminyPage     = lazy(() => import('../terminy/TerminyPage'));
 const GrowthView      = lazy(() => import('../growth/GrowthView'));
 
 import { DashboardDzisTab } from './DashboardDzisTab';
-import { DashboardTydzienTab } from './DashboardTydzienTab';
-import { DashboardHistoriaTab } from './DashboardHistoriaTab';
-import { DashboardProjektyTab } from './DashboardProjektyTab';
+
+// Only the first tab ships in the entry chunk; the rest load on demand (and are prefetched when idle).
+const DashboardTydzienTab = lazy(() => import('./DashboardTydzienTab').then((m) => ({ default: m.DashboardTydzienTab })));
+const DashboardHistoriaTab = lazy(() => import('./DashboardHistoriaTab').then((m) => ({ default: m.DashboardHistoriaTab })));
+const DashboardProjektyTab = lazy(() => import('./DashboardProjektyTab').then((m) => ({ default: m.DashboardProjektyTab })));
 
 const TAB_ORDER = ['dzis', 'tydzien', 'historia'];
 
@@ -80,9 +82,9 @@ function DashboardContent() {
   }, [s]);
 
   const fastCaptureItems = useMemo(() => [
-    { label: 'Zaloguj Trening', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => { s.openWorkout(); } },
-    { label: 'Zaloguj Saunę', emoji: '🧖', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna') },
-    { label: 'Zmierz Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-primary)', action: () => s.navigate('/optics') },
+    { label: 'Trening', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => { s.openWorkout(); } },
+    { label: 'Sauna', emoji: '🧖', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna') },
+    { label: 'Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-primary)', action: () => s.navigate('/optics') },
   ], [s]);
 
   const workspaceTools = useMemo(() => [
@@ -212,22 +214,24 @@ function DashboardContent() {
                 <ErrorBoundary inline>
                   <div className={s.view === 'tydzien' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
                     {visitedTabs.includes('tydzien') && (
-                      <DashboardTydzienTab
-                        weeklyCalories={s.weeklyCalories}
-                        nutritionKey={s.nutritionKey}
-                        onOpenActionCenter={handleOpenActionCenter}
-                      />
+                      <Suspense fallback={<ViewFallback />}>
+                        <DashboardTydzienTab
+                          weeklyCalories={s.weeklyCalories}
+                          nutritionKey={s.nutritionKey}
+                          onOpenActionCenter={handleOpenActionCenter}
+                        />
+                      </Suspense>
                     )}
                   </div>
                 </ErrorBoundary>
                 <ErrorBoundary inline>
                   <div className={s.view === 'historia' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
-                    {visitedTabs.includes('historia') && <DashboardHistoriaTab />}
+                    {visitedTabs.includes('historia') && <Suspense fallback={<ViewFallback />}><DashboardHistoriaTab /></Suspense>}
                   </div>
                 </ErrorBoundary>
                 <ErrorBoundary inline>
                   <div className={s.view === 'projekty' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
-                    {visitedTabs.includes('projekty') && <DashboardProjektyTab />}
+                    {visitedTabs.includes('projekty') && <Suspense fallback={<ViewFallback />}><DashboardProjektyTab /></Suspense>}
                   </div>
                 </ErrorBoundary>
               </>
@@ -240,6 +244,7 @@ function DashboardContent() {
           onClose={() => s.setShowFastCapture(false)}
           items={fastCaptureItems}
           tools={workspaceTools}
+          badges={{ todo: s.urgentTodoCount }}
           userId={userId}
           onRefresh={s.refresh}
         />

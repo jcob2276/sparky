@@ -5,7 +5,7 @@
  *          (actions/integrations/effects) | components/ = modale + header/sidebar | grid/ = warianty
  *          renderowania day/3-day/week/month/agenda (patrz CalendarGrid) | context/ = CalendarContext
  * @composes CalendarGrid (renderowanie siatki, patrz grid/)
- * @usedBy Dashboard, WeeklyBalanceHexagon
+ * @usedBy Dashboard
  */
 import { CalendarGrid } from './CalendarGrid';
 import { CalendarEventModal } from './CalendarEventModal';

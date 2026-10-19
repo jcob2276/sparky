@@ -8,10 +8,12 @@ export function formatMonthLabel(monthKey: string): string {
 }
 
 export function buildTodayHeadline(metrics: FinanceMetrics): string {
+  if (!metrics.hasBudget) return '—';
   return formatPln(metrics.safeToSpend.safeToday);
 }
 
 export function buildTodayContext(metrics: FinanceMetrics): string {
+  if (!metrics.hasBudget) return 'Uzupełnij założenia budżetu w zakładce Cel, żeby obliczyć kwotę do wydania.';
   const { safeToSpend, runway, incomeBreakdown, effectiveExpenses } = metrics;
 
   if (safeToSpend.emergencyBlocked) {
@@ -48,7 +50,7 @@ export function buildMonthWaterfall(metrics: FinanceMetrics): WaterfallLine[] {
   if (billsMonthly > 0) lines.push({ label: 'Rachunki', amount: -billsMonthly, kind: 'out' });
   if (subsMonthly > 0) lines.push({ label: 'Subskrypcje', amount: -subsMonthly, kind: 'out' });
   if (spentThisMonth > 0) lines.push({ label: 'Już wydane', amount: -spentThisMonth, kind: 'muted' });
-  lines.push({ label: 'Zostało w miesiącu', amount: safeToSpend.safeThisMonth, kind: 'result' });
+  if (metrics.hasBudget) lines.push({ label: 'Zostało w miesiącu', amount: safeToSpend.safeThisMonth, kind: 'result' });
   if (fixed === 0 && spentThisMonth === 0 && effectiveIncome === 0) return [];
   return lines;
 }

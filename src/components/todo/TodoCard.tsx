@@ -11,6 +11,7 @@ import TodoCardExpandedPanel from './TodoCardExpandedPanel';
 import TodoCardCollapsedRow from './TodoCardCollapsedRow';
 import { useTodoCardAttachments } from './useTodoCardAttachments';
 import { useTodoCardSwipe } from './useTodoCardSwipe';
+import { playTodoExit } from './todoExitAnimation';
 import type { TodoItemRow } from '../../lib/todo/todo';
 
 export interface TodoCardProps {
@@ -31,6 +32,7 @@ export interface TodoCardProps {
   onEditStart: (t: string) => void;
   onEditChange: (val: string) => void;
   onEditSave: () => void;
+  onEditCancel?: () => void;
   sectionName?: string | null;
   onDragStart?: (item: TodoItemRow, clientX: number, clientY: number) => void;
   isDragging: boolean;
@@ -70,6 +72,7 @@ export default function TodoCard({
   onEditStart,
   onEditChange,
   onEditSave,
+  onEditCancel,
   sectionName,
   onDragStart,
   isDragging,
@@ -88,11 +91,16 @@ export default function TodoCard({
   const { attachments, uploadingFile, fileInputRef, handleFileUpload, handleDeleteAttachment } = useTodoCardAttachments(expanded, item.id, item.user_id);
 
   const swipe = useTodoCardSwipe({
-    onToggle,
+    // Completing plays the exit animation first; reopening a done task is instant.
+    onToggle: () => {
+      if (item.status === 'done') { onToggle(); return; }
+      void playTodoExit(item.id).then(onToggle);
+    },
     item,
     onDragStart,
   });
 
+  const { setRowEl } = swipe;
   const panelId = useId();
   const totalSubtaskCount = childTasks.length;
   const doneSubtaskCount = childTasks.filter((c) => c.status === 'done').length;
@@ -104,7 +112,7 @@ export default function TodoCard({
   return (
     <div
       data-no-swipe-nav="true"
-      className={`group relative ${isDragging ? 'opacity-[var(--opacity-0)] pointer-events-none' : ''}`}
+      className={`todo-swipe-wrap todo-card-enter group relative ${isDragging ? 'todo-is-dragging' : ''}`}
     >
       {/* Row */}
       <div
@@ -113,7 +121,8 @@ export default function TodoCard({
           onShowContextMenu(item, e.clientX, e.clientY);
         }}
         onClick={e => e.stopPropagation()}
-        className="todo-focus-card"
+        ref={setRowEl}
+        className="todo-focus-card todo-swipe-row"
       >
         <TodoCardCollapsedRow
           item={item}
@@ -127,15 +136,20 @@ export default function TodoCard({
           editingTitle={editingTitle}
           onEditChange={onEditChange}
           onEditSave={onEditSave}
+          onEditCancel={onEditCancel}
           expanded={expanded}
           totalSubtaskCount={totalSubtaskCount}
           doneSubtaskCount={doneSubtaskCount}
           isLinkedToPlan={isLinkedToPlan}
           sectionName={sectionName}
           dreamTitle={dreamTitle}
-          onTitlePress={() => expanded ? onEditStart(item.title) : onToggleExpand(item.id)}
-          onEdit={() => onEditStart(item.title)}
+          onTitlePress={() => onEditStart(item.title)}
+          onToggleExpand={() => onToggleExpand(item.id)}
           onDelete={onDelete}
+          sections={sections}
+          onSetSchedule={onSetSchedule}
+          onSetPriority={onSetPriority}
+          onMoveSection={onMoveSection}
           panelId={panelId}
           swipe={swipe}
           onShowContextMenu={onShowContextMenu}

@@ -11,6 +11,7 @@ import { usePowerListData } from './usePowerListData';
 
 import PowerListSetup from './powerList/PowerListSetup';
 import PowerListActive from './powerList/PowerListActive';
+import PowerListProgress from './powerList/PowerListProgress';
 
 import { type DailyWinWithTasks } from './usePowerListData';
 import type { Tables } from '../../lib/database.types';
@@ -88,39 +89,22 @@ function PowerListContent({
   }, [pickerSlot, pickerRef, setPickerSlot]);
 
   const activeWin = effectiveTodayWin ?? todayWin;
+  const winTasks = activeWin?.daily_win_tasks ?? [];
+  const wonDay = winTasks.length > 0 && winTasks.every((t: Tables<'daily_win_tasks'>) => t.done);
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-3">
       <div className="flex items-end justify-between px-1">
-        <h3 className="flex items-center gap-2 text-sm font-semibold text-text-secondary">
-          <Target size={15} className="text-direction" /> Pięć zwycięstw
+        <h3 className={`flex items-center gap-2 text-sm font-semibold ${wonDay ? 'text-dayC' : 'text-text-secondary'}`}>
+          <Target size={15} className={wonDay ? 'text-dayC' : 'text-direction'} /> Pięć zwycięstw
         </h3>
-        {activeWin?.result === 'Z' ? (
-          <div className="rounded-full border border-dayC/15 bg-dayC/10 px-2.5 py-0.5 font-display text-2xs font-bold text-dayC">
-            Dzień wygrany
-          </div>
-        ) : activeWin && (() => {
-          const tasks = activeWin.daily_win_tasks || [];
-          const total = tasks.length;
-          const doneCount = tasks.filter((t: Tables<'daily_win_tasks'>) => t.done).length;
-          return total > 0 ? (
-            <div className="flex items-center gap-1.5">
-              <div className="flex gap-1">
-                {Array.from({ length: total }).map((_, i) => (
-                  <span
-                    key={i}
-                    className={`h-1.5 w-1.5 rounded-full transition-colors ${
-                      i < doneCount ? 'bg-dayC' : 'bg-border-custom'
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="font-display text-2xs font-bold text-text-muted">
-                {doneCount}/{total}
-              </span>
-            </div>
-          ) : null;
-        })()}
+        {activeWin && (activeWin.daily_win_tasks?.length ?? 0) > 0 && (
+          <PowerListProgress
+            done={(activeWin.daily_win_tasks ?? []).filter((t: Tables<'daily_win_tasks'>) => t.done).length}
+            total={activeWin.daily_win_tasks?.length ?? 0}
+            closed={activeWin.result === 'Z'}
+          />
+        )}
       </div>
 
       {!activeWin ? (

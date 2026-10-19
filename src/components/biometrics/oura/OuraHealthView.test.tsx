@@ -98,7 +98,7 @@ describe('OuraHealthView', () => {
   it('opens sleep details from the overview reading', () => {
     const onSectionChange = vi.fn();
     renderWithClient(<OuraHealthView activeSection="overview" data={data} onOpenSleep={vi.fn()} onSectionChange={onSectionChange} />);
-    fireEvent.click(screen.getByRole('button', { name: /Wynik snu/ }));
+    fireEvent.click(screen.getByRole('button', { name: /^Sen:/ }));
     expect(onSectionChange).toHaveBeenCalledWith('sleep');
   });
 

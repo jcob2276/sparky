@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchDesktopDashboardData, type DesktopQueryResult } from '../../../lib/desktopDashboardApi';
 import { desktopKeys } from '../../../lib/queryKeys';
 
-export type { DesktopSessionRow, StravaActivityRow, HabitRow, HabitLogRow } from '../../../lib/desktopDashboardTypes';
+export type { DesktopSessionRow, StravaActivityRow, HabitRow } from '../../../lib/desktopDashboardTypes';
 
 export function useDesktopData(userId: string | undefined) {
   const queryClient = useQueryClient();

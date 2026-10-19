@@ -1,7 +1,19 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { Database } from '../../../lib/database.types';
 
 type TodoItemRow = Database['public']['Tables']['todo_items']['Row'];
+
+const COLLAPSED_KEY = 'todo:collapsedSections';
+
+function readCollapsed(): Record<string, boolean> {
+  try {
+    const raw = window.localStorage.getItem(COLLAPSED_KEY);
+    const parsed: unknown = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, boolean> : {};
+  } catch {
+    return {};
+  }
+}
 
 export function useTodoUiState() {
   const [busy, setBusy] = useState(false);
@@ -12,7 +24,11 @@ export function useTodoUiState() {
   const [editingTitle, setEditingTitle] = useState('');
   const [activeFilterSection, setActiveFilterSection] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; item: TodoItemRow } | null>(null);
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(readCollapsed);
+
+  useEffect(() => {
+    try { window.localStorage.setItem(COLLAPSED_KEY, JSON.stringify(collapsedSections)); } catch { /* storage unavailable */ }
+  }, [collapsedSections]);
 
   const toggleExpand = useCallback((id: string) => setExpandedId(prev => prev === id ? null : id), []);
   const toggleSectionCollapse = useCallback((id: string) => {

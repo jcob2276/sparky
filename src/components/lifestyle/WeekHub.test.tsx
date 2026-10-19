@@ -16,7 +16,6 @@ vi.mock('../../lib/systemProposals', () => ({
 vi.mock('../../lib/goal/goalSpine', () => ({ quickCompleteOverdueWeeklyReview: vi.fn() }));
 vi.mock('../shared/WeekLoopSummary', () => ({ default: () => <div data-testid="week-plan-form" /> }));
 vi.mock('./ProjectWeekKpis', () => ({ default: () => null }));
-vi.mock('./WeeklyBalanceHexagon', () => ({ default: () => null }));
 vi.mock('../biometrics/workout/TrainingPlanContainer', () => ({ default: () => null }));
 vi.mock('../biometrics/workout/HealthCoachWeeklyReview', () => ({ default: () => null }));
 

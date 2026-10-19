@@ -57,19 +57,25 @@ export default function TodoScanTextModal({ userId, sectionId, onClose, onCreate
     const selected = tasks.filter((t) => t.selected);
     if (!selected.length) return;
     setCreating(true);
-    try {
-      const created = await Promise.all(selected.map((t) => createTodoItem(userId, {
-        title: t.title,
-        due_date: t.due_date || undefined,
-        priority: t.priority || undefined,
-        section_id: sectionId || undefined,
-      })));
-      onCreated(created);
+    setError(null);
+    const results = await Promise.allSettled(selected.map((t) => createTodoItem(userId, {
+      title: t.title,
+      due_date: t.due_date || undefined,
+      priority: t.priority || undefined,
+      section_id: sectionId || undefined,
+    })));
+    const created = results.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
+    if (created.length) onCreated(created);
+    const failed = selected.filter((_, i) => results[i].status === 'rejected');
+    if (!failed.length) {
       onClose();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? (err as Error).message : String(err));
-      setCreating(false);
+      return;
     }
+    // Keep only what failed so a retry never duplicates the tasks that were already saved.
+    setTasks(failed);
+    const reason = results.find((r): r is PromiseRejectedResult => r.status === 'rejected')?.reason;
+    setError(`Nie dodano ${failed.length} z ${selected.length}: ${reason instanceof Error ? reason.message : String(reason)}`);
+    setCreating(false);
   };
 
   const toggleTask = (idx: number) => {

@@ -692,6 +692,11 @@ Te punkty nie są osobnymi feature'ami; trzeba je zamknąć przed lub w trakcie 
 - [x] Zachować ręczny szkic i refleksję przy błędzie kontekstu; zapis planu udostępniać po poprawnym odczycie, także z zachowanego cache.
 - [x] Odizolować stan planu dnia według konta i dnia warszawskiego; ograniczyć podsumowanie tygodniowe do właściwego okna.
 - [x] Zachować szkice różnych notatek podczas równoległego autosave, przełączania notatek i błędu zapisu.
+- [x] Odrzucać spóźniony odczyt sesji po nowszym zdarzeniu logowania i resetować prywatne formularze przy zmianie konta.
+- [x] Usunąć fikcyjny portfel, ekspozycję ETF i oceny dywidend; zachować ręczny kalkulator bez przykładowych wpisów.
+- [x] Obsłużyć brak profilu finansowego w wynikach pochodnych; zachować rzeczywiste rekordy i edycję założeń.
+- [x] Przekazywać nieobsłużony błąd pipeline Telegrama do workera, żeby wpis trafiał do stanu błędu zamiast pozornego ukończenia.
+- [x] Zachować stan błędu kolejki po nieudanej obsłudze głosówki lub zapisie strumienia; zatrzymać Oracle przed odpowiedzią opartą na nieutrwalonej wiadomości.
 - [ ] Potwierdzić pełną regresję wspólnego drzewa po zakończeniu równoległej pracy oraz niezależny przegląd zmian.
 - [ ] Sprawdzić na urządzeniu fizycznym ponowne połączenie BLE, przerwanie nagrania i przejście offline → online w APK.
 
@@ -1049,6 +1054,133 @@ Zero interfejsu dla trenera. Igor programuje trening na ślepo/ustnie, podczas g
 
 > Zebrane z audytu 2026-07-05. Checklist, nie plan.
 
+## Priorytet 1–2 — spójność przepływu danych
+
+Ta kolejka konkretyzuje wspólne kontrakty Zakładów A/B/C. Zapis źródłowy pozostaje kanoniczny;
+agregaty i cache są pochodne, a snapshot
+zachowuje historię i nie zastępuje aktualnego stanu. Rozszerzać istniejące RPC,
+projekcje i przeliczenia. Poniższa kolejność uwzględnia zależności; blokady P0 pozostają pierwsze.
+
+### DC-01 — P1: jeden stan wykonania Todo i PowerList
+
+- [ ] **Problem:** zmiana wieczornej notatki/wyniku potrafi odbudować lustro i zgubić ukończenie zadania.
+  **Dowód:** `supabase/migrations/20260801103739_fix_power_list_todo_snapshot_sync.sql`
+  oraz guard głębokości triggera i odbudowa zadań w migracji `20260504000000_baseline.sql`:
+  `todo_items` ↔ `daily_win_tasks` ↔ sloty `daily_wins` mają konkurujące ścieżki zapisu.
+  **Minimum:** kanoniczny stan w modelu znormalizowanym; sloty tylko jako projekcja zgodności
+  w jednym kierunku. Zachować identyfikatory; edycja notatki/wyniku nie przebudowuje zadań.
+  **Odbiór:** ukończyć zadanie w Todo, zmienić wieczorną notatkę i wynik; ID oraz ukończenie
+  pozostają zgodne w Todo, PowerList, kalendarzu i historii, także przy równoległej edycji.
+
+### DC-02 — P1: wkład do KPI niezależny od miejsca ukończenia
+
+- [ ] **Problem:** wkład zadania do KPI zależy od ekranu użytego do odhaczenia.
+  **Dowód:** `src/components/lifestyle/hooks/usePowerListActions.ts` aktualizuje wkład;
+  odpowiadającej operacji brakuje w ścieżkach Todo, kalendarza i historii.
+  **Minimum:** po DC-01 wspólna transakcyjna aktualizacja różnicy wkładu, odporna na retry;
+  ukończenie, cofnięcie i zmiana powiązania KPI korzystają z tego samego kontraktu.
+  **Odbiór:** wykonaj → cofnij → wykonaj z każdego wejścia daje identyczny KPI; retry i równoległe kliknięcia nie podwajają wkładu.
+
+### DC-03 — P1: atomowy zapis całego posiłku w Telegramie
+
+- [ ] **Problem:** błąd jednej pozycji zostawia częściowy posiłek i usuwa podgląd potrzebny do ponowienia.
+  **Dowód:** `supabase/functions/vanguard-telegram/_handlers/foodMeal.ts` wykonuje osobne
+  `add_food_entry`, pomija błędy i usuwa `food_parse_pending` przed oceną pełnego zapisu.
+  **Minimum:** istniejący `confirm_nutrition_meal_capture`, stały pending ID jako capture ID
+  i usunięcie podglądu dopiero po pełnym commit. Jawnie obsłużyć autoryzowanego service role,
+  jeśli wymaga tego adapter Telegrama, zachowując kontrolę właściciela dla użytkownika.
+  **Odbiór:** błąd drugiej pozycji wycofuje posiłek i zachowuje podgląd; retry i równoległe potwierdzenie tworzą jeden posiłek.
+
+### DC-04 — P1: stała tożsamość zapisu przy retry i offline
+
+- [ ] **Problem:** nowy identyfikator przy ponowieniu zmienia jedną intencję w dodatkowy posiłek/dawkę.
+  **Dowód:** `src/lib/health/nutritionTrackerApi.ts` generuje capture ID przy każdym wywołaniu
+  i dopisuje czas osobnym PATCH; `src/lib/health/supplementsApi.ts` tworzy ID dopiero po błędzie online.
+  **Minimum:** nadać ID przed pierwszym zapisem i zachować przez retry/kolejkę; czas zdarzenia
+  zapisywać w transakcji capture. Dla suplementów konflikt tego samego ID operacji jest sukcesem,
+  bez deduplikowania rzeczywistych kolejnych dawek. Wykorzystać istniejącą kolejkę i RPC z DC-03.
+  **Odbiór:** commit z utraconą odpowiedzią/błędem PATCH, potem retry/replay: jeden capture, jedna kopia produktów i dawki; te same sumy i ID.
+
+### DC-05 — P2: korekta trafia do posiłku wskazanego odpowiedzią
+
+- [ ] **Problem:** aktualny tekst potwierdzenia nie uruchamia korekty; wyszukiwanie po nazwie może wybrać inny posiłek.
+  **Dowód:** `supabase/functions/vanguard-telegram/_router/messageHelpers.ts` oczekuje
+  `Zapisano (`, a `_handlers/foodMeal.ts` emituje `Zapisano posiłek`;
+  `_handlers/foodCorrection.ts` wybiera najnowszy pasujący produkt z dziś/wczoraj.
+  **Minimum:** spójny routing odpowiedzi oraz trwałe powiązanie potwierdzenia Telegrama
+  z entry/group ID; nazwa służy wyborowi w tej grupie, nie zgadywaniu globalnego rekordu.
+  **Odbiór:** zapisać produkt dwa razy, poprawić/usunąć przez odpowiedź na starsze potwierdzenie; zmienia się tylko wskazany zapis i jego agregat.
+
+### DC-06 — P1: aktualne źródło przed snapshotem i cache
+
+- [ ] **Problem:** stare podsumowanie może zastąpić rzeczywiste zero albo przetrwać korektę historii.
+  **Dowód:** `src/lib/dashboardApi.ts` używa world state bez kontroli `updated_at`, fallback
+  białka przywraca dawną dodatnią wartość, a tydzień bywa cache'owany;
+  `supabase/functions/_shared/worldState.ts` bezwarunkowo zwraca cache historycznego dnia.
+  **Minimum:** żywe wartości źródłowe mają pierwszeństwo; odróżnić zero, brak i błąd. Cache
+  ma rewizję/ważność i unieważnianie dotkniętych dat; nie opierać poprawności na refreshu Telegrama bez await.
+  **Odbiór:** żywe białko 0 nie staje się dawnym 85; korekta historycznego dnia odświeża
+  Dashboard, tydzień i Oracle z tego samego źródła, bez nowego równoległego silnika.
+
+### DC-07 — P2: tygodniowa aktywność z kanonicznego widoku
+
+- [ ] **Problem:** tygodniowy body pulse potrafi policzyć jedną aktywność z Oury/Garmina dwukrotnie.
+  **Dowód:** `src/lib/biometricsApi.ts` pobiera surowe `strava_activities`,
+  a `src/lib/weeklyBodyPulse.ts` używa tych rekordów z pominięciem widoku clean.
+  **Minimum:** odczyt `strava_activities_clean` z tą samą polityką źródła głównego
+  co pozostałe podsumowania; nie tworzyć kolejnego algorytmu deduplikacji w JavaScript.
+  **Odbiór:** pasujące importy Oura/Garmin dają jedną sesję i jednokrotny czas/dystans, zgodne z innymi podsumowaniami.
+
+### DC-08 — P2: pozostałe sporty nie stają się biegami
+
+- [ ] **Problem:** aktywność innego sportu zmienia biegowe flagi, fueling i wyjaśnienia dnia.
+  **Dowód:** `supabase/functions/_shared/nightly/computePerDay.ts` przekazuje wszystkie sporty jako biegi.
+  **Minimum:** jawny wspólny predykat biegu przy wyliczaniu biegowych pól;
+  zachować uzasadnione obciążenie innych sportów w ich właściwej części istniejących obliczeń.
+  **Odbiór:** rower/pływanie nie zwiększają kilometrów ani flag biegu; bieg zasila właściwe pola, obciążenie innych sportów nie znika.
+
+### DC-09 — P1: korekta treningu przelicza właściwe dni
+
+- [ ] **Problem:** edycja/usunięcie starego treningu lub zapis wstecz pozostawia stare strain/world state.
+  **Dowód:** `src/lib/health/workoutApi.ts`, `src/components/core/hooks/useStatsData.ts`
+  i `src/lib/health/strainRefresh.ts`; refresh wysyła `days: 1` niezależnie od daty zmiany.
+  **Minimum:** po regułach źródła z DC-06/07/08 przekazać stare i nowe daty oraz zależne okna
+  do istniejącego przeliczania; odbudować cache dotkniętej historii i unieważnić jej odczyty.
+  **Odbiór:** edycja, przeniesienie i usunięcie starego treningu dają zgodne strain/podsumowania dotkniętych i zależnych dni.
+
+### DC-10 — P2: jeden wewnętrzny wpis planu w kalendarzu
+
+- [ ] **Problem:** każde wysłanie planu poranka tworzy scheduled Todo i niezależne wydarzenie kalendarza.
+  **Dowód:** `src/components/core/morningPlan/useMorningPlanActions.ts` zapisuje oba byty
+  bez trwałego powiązania i wspólnego cyklu edycji/usuwania.
+  **Minimum:** wewnętrzny kalendarz pokazuje projekcję Todo; eksport zewnętrzny, jeśli wybrany,
+  ma stabilną tożsamość oraz jawne upsert, przeniesienie i usunięcie powiązanego wydarzenia.
+  **Odbiór:** ponowny submit, zmiana terminu i usunięcie dają jeden spójny wpis; eksport nie rusza obcych wydarzeń.
+
+### DC-11 — P2: dzień suplementacji zgodny z czasem zdarzenia
+
+- [ ] **Problem:** historyczny checkbox zapisuje dzień D, lecz `logged_at=now()` trafia na dzisiejszą oś czasu.
+  **Dowód:** `src/components/desktop/health/useSupplementsData.ts`,
+  `src/lib/health/supplementsApi.ts` oraz odczyt po `logged_at` w `src/lib/biometrics/ouraDayTimelineApi.ts`.
+  **Minimum:** oddzielić czas zdarzenia od czasu rejestracji. Historyczny zapis bez godziny
+  zachowuje dzień i nieznaną godzinę; nie fabrykować czasu spożycia ani typowej pory zażycia.
+  **Odbiór:** historyczny checkbox nie tworzy markera dziś; jawna historyczna godzina trafia na właściwą oś i do analizy.
+
+### DC-12 — P2: zakończony replay odświeża konsumentów
+
+- [ ] **Problem:** udany replay aktualizuje bazę, usuwa kolejkę i pokazuje toast, lecz zostawia stare query cache.
+  **Dowód:** `src/lib/offlineQueue.ts` nie informuje konsumentów o potwierdzonym zapisie.
+  **Minimum:** po sukcesie replay powiadomić wyłącznie dotknięte domeny i unieważnić ich klucze;
+  zachować rozróżnienie operacji oczekującej i zatwierdzonej, bez pozornego sukcesu przy enqueue.
+  **Odbiór:** wolny replay i wyścig z wcześniejszym refetch dają zgodne UI/bazę po reconnect, bez dodatkowego kliknięcia.
+
+**Zakres dowodu:** bieżące definicje triggerów Todo/PowerList sprawdzono także w produkcji.
+Próby rzeczywistych modułów TypeScript z podstawionym I/O odtworzyły częściowy posiłek,
+niedziałający routing korekty, nowe capture ID po błędzie PATCH, fallback 0 → 85,
+bezwarunkowy historyczny cache i brak invalidacji po replay. Pozostałe scenariusze to kryteria
+regresji ze śledzenia kodu; próby nie mutowały osobistej historii produkcyjnej.
+Szersze cele wspólnego kontekstu, backfill i coverage pozostają w istniejących sekcjach roadmapy.
+
 ## 🟠 Priorytet 2 — write-orphany (dobuduj zapis albo usuń martwy odczyt)
 
 - [x] `endmyopia_daily_logs` — czyta `VisionJournal.tsx`, zero writera.
@@ -1084,9 +1216,12 @@ Zero interfejsu dla trenera. Igor programuje trening na ślepo/ustnie, podczas g
   Ustalić ich właściciela przed ewentualnym odtworzeniem; nie przypisywać automatycznie
   do aktualnie zalogowanego konta. Nowe wpisy mają właściciela, a błąd kopii do dead-letter
   nie usuwa oryginału.
-- [ ] Telegram inbox: webhook potwierdza odbiór także przy błędzie INSERT do
-  `vanguard_telegram_inbox`. Zweryfikować trwały odbiór i deduplikację przed zmianą
-  polityki ponawiania; błąd poprzedzający zapis nie powinien bezpowrotnie gubić wiadomości.
+- [x] Telegram inbox: webhook potwierdza odbiór po udanym INSERT do
+  `vanguard_telegram_inbox`; błąd zapisu zwraca ponawialne HTTP 503 i trafia do audytu.
+  Lokalna regresja obejmuje wiadomości, callbacki i odmowę dostępu bez sekretu.
+- [ ] Telegram inbox: przed wdrożeniem potwierdzić zachowanie przy równoczesnych
+  powtórzeniach oraz niejednoznacznym timeout po zapisie. Istniejący guard wiadomości
+  nie jest dowodem atomowej deduplikacji inbox; nie obiecywać wykonania dokładnie raz.
 - [ ] Architektura `task_1..task_5`/`done_1..done_5` w `daily_wins` — sztywne sloty (świadomość, nie ruszać bez wyraźnej potrzeby).
 
 ---

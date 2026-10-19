@@ -16,7 +16,7 @@ interface FinanceWishlistPanelProps {
 
   items: FinanceWishlistItem[];
 
-  freedomDaysForAmount: (amount: number) => number;
+  freedomDaysForAmount?: (amount: number) => number;
 
   onAdd: (input: { name: string; price: number }) => void;
 
@@ -104,11 +104,11 @@ export function FinanceWishlistPanel({
 
             const status = coolOffStatus(item, today);
 
-            const days = freedomDaysForAmount(item.price);
+            const days = freedomDaysForAmount?.(item.price);
 
             const secondary = [
 
-              `${formatPln(item.price)} · ${days.toFixed(0)} dni wolności`,
+              `${formatPln(item.price)}${days == null ? '' : ` · ${days.toFixed(0)} dni wolności`}`,
 
               status === 'active' ? `Ochłonij do ${item.cool_off_until}` : null,
 

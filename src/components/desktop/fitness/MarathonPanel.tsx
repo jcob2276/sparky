@@ -83,6 +83,7 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
 
   const daysLeft = raceDate ? differenceInDays(raceDate, new Date()) : null;
   const weeksLeft = daysLeft !== null ? Math.ceil(daysLeft / 7) : null;
+  const upcoming = daysLeft !== null && daysLeft >= 0;
   const kmData = weeklyRunKm(strava);
   const recent4 = kmData.slice(-4);
   const avgKm = recent4.length ? Math.round((avg(recent4.map(w => w.km)) ?? 0) * 10) / 10 : null;
@@ -111,9 +112,10 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
 
   return (
     <Panel
-      title={formattedDate ? `${raceName} — ${formattedDate}` : raceName}
+      title={upcoming && formattedDate ? `${raceName} — ${formattedDate}` : 'Bieganie · kilometry na tydzień'}
     >
       <div className="flex items-start justify-between mb-5">
+        {upcoming ? (
         <div>
           <p className="font-display text-4xl font-black leading-none text-text-primary">
             {daysLeft !== null ? (daysLeft >= 0 ? daysLeft : 0) : '—'}
@@ -132,6 +134,7 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
             </div>
           )}
         </div>
+        ) : <span />}
         <div className="text-right space-y-2">
           {avgKm !== null && (
             <div>
@@ -152,6 +155,7 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
         </div>
       </div>
 
+      {upcoming && (
       <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 rounded-lg bg-surface-2/40 border border-border-custom/50 text-2xs text-text-secondary mb-4">
         <div className="flex items-center gap-1.5">
           <span className="font-bold text-primary">Tempo docelowe:</span>
@@ -171,8 +175,9 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
           </div>
         )}
       </div>
+      )}
 
-      {avgKm !== null && avgKm < 35 && (
+      {upcoming && avgKm !== null && avgKm < 35 && (
         <div className="mb-4 px-3 py-1.5 rounded-lg bg-warning/10 border border-warning/20 text-3xs text-warning flex items-center gap-1.5 leading-tight">
           <span>⚠️</span>
           <span>Niski 4-tyg. kilometraż ({avgKm} km/tyg vs optymalne 45–55 km pod cel 3h 45m). Kluczowa ostrożna taktyka pierwszych 25 km.</span>
@@ -199,9 +204,6 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
           Brak danych — zsynchronizuj Stravę
         </div>
       )}
-      <div className="mt-3 pt-2.5 border-t border-border-custom flex items-center justify-between text-2xs text-text-muted">
-        <span>Integracja Strava & Garmin</span>
-      </div>
     </Panel>
   );
 }

@@ -114,10 +114,11 @@ describe('weekly health unavailable states', () => {
     expect(screen.getByText(/workout_sessions: offline/)).toBeInTheDocument();
     expect(screen.queryByText('W normie')).not.toBeInTheDocument();
   });
-  it('preserves genuine zero counts after a successful weekly read', () => {
+  it('shows an empty sleep card without inventing values after a successful weekly read', () => {
     source.query.data = buildWeeklyBodyPulse({ since: '2026-10-10', sessions: [], strava: [], oura: [], strain: [] });
     render(<WeeklyBodyPulse />);
-    expect(screen.getAllByText('0').length).toBeGreaterThanOrEqual(3);
+    expect(screen.getByText(/Sen · średnia z 7 dni/)).toBeInTheDocument();
+    expect(screen.queryByText('W normie')).not.toBeInTheDocument();
   });
   it('does not synthesize a stable week when the body query failed', () => {
     source.query.isError = true; source.query.error = new Error('oura_daily_summary: offline');
@@ -128,9 +129,8 @@ describe('weekly health unavailable states', () => {
   it('does not turn a failed weekly read into zero workouts in the spheres card', () => {
     source.query.isError = true; source.query.error = new Error('workout_sessions: offline');
     render(<WeeklySpheresOverviewCard />);
-    expect(screen.queryByText('0 tr.')).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Ciało/ }));
-    expect(screen.getByText(/Siłownia: — · Bieg: —/)).toBeInTheDocument();
+    expect(screen.queryByText(/Regeneracja/)).not.toBeInTheDocument();
+    expect(screen.getByText('Brak danych')).toBeInTheDocument();
     expect(screen.getByText(/workout_sessions: offline/)).toBeInTheDocument();
   });
 });

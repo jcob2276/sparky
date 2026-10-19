@@ -7,9 +7,10 @@ import {
 import { PROGRESSION_RULES } from './progressionRules';
 
 /** Ćwiczenia gdzie 0 kg = bodyweight, progresja po powtórzeniach lub belt. */
-const BODYWEIGHT_PATTERN = /dip|dipy|pompki|pull-up|pull up|podci[aą]g|chin-up|muscle-up/i;
+const BODYWEIGHT_PATTERN =
+  /dip|dipy|pompki|push-?\s*up|pull-?\s*up|pull up|podci[aą]g|chin-?\s*up|muscle-?\s*up|plank|deska|pistol|shrimp|hang|zwis|l-?\s*sit|hollow|nordic|hr\s*push|handstand|stanie\s*na\s*r[eę]/i;
 
-export function isBodyweightExercise(exerciseName: string): boolean {
+function isBodyweightExercise(exerciseName: string): boolean {
   return BODYWEIGHT_PATTERN.test(exerciseName.trim());
 }
 
@@ -105,19 +106,4 @@ export function formatSuggestionShort(suggestion: ExerciseSuggestion): string {
   const arrow = w.action === 'progress' ? ' ↑' : w.action === 'regress' ? ' ↓' : '';
   const belt = suggestion.mode === 'belt' ? ' belt' : '';
   return `→ ${w.suggestedWeight}kg${belt}${arrow}`;
-}
-
-export function suggestionProgressed(suggestion: ExerciseSuggestion): boolean {
-  if (suggestion.mode === 'reps') return suggestion.reps.action === 'progress';
-  return suggestion.weight.action === 'progress';
-}
-
-export function suggestionRegressed(suggestion: ExerciseSuggestion): boolean {
-  if (suggestion.mode === 'reps') return suggestion.reps.action === 'regress';
-  return suggestion.weight.action === 'regress';
-}
-
-export function suggestionReason(suggestion: ExerciseSuggestion): string {
-  if (suggestion.mode === 'reps') return suggestion.reps.reason;
-  return suggestion.weight.reason;
 }

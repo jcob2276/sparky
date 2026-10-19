@@ -20,17 +20,17 @@ export default function EmptyState({
 
   const inactiveClass =
     dragColor === 'orange'
-      ? 'border-warning/25 text-warning/40 bg-surface-solid/10'
-      : 'border-border-custom/25 text-text-muted/30 bg-surface-solid/10';
+      ? 'border-border-custom/60 text-text-secondary'
+      : 'border-border-custom/60 text-text-secondary';
 
   return (
     <div
-      className={`mx-1 my-2 rounded-xl border border-dashed p-6 text-center ui-interactive duration-[var(--motion-medium)] ${
+      className={`my-1 rounded-2xl border border-dashed px-4 py-5 text-center ui-interactive duration-[var(--motion-medium)] ${
         isDragOver ? activeClass : inactiveClass
       }`}
     >
-      <span className="block text-base mb-1">{icon}</span>
-      <span className="text-xs font-bold tracking-wide">{label}</span>
+      <span className="sr-only">{icon}</span>
+      <span className="text-sm">{label}</span>
     </div>
   );
 }

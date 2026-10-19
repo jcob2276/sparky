@@ -9,7 +9,6 @@ import DesktopKartotekaSection from '../health/DesktopKartotekaSection';
 import DesktopOuraSleepCard from '../health/DesktopOuraSleepCard';
 import DesktopOpticsCard from '../health/DesktopOpticsCard';
 import DesktopCorrelationsSummary from '../intel/DesktopCorrelationsSummary';
-import DesktopHealthspanSection from '../intel/DesktopHealthspanSection';
 import MultiDomainMatrix from '../intel/MultiDomainMatrix';
 import type { DesktopTabType } from './DesktopQuickActionsBar';
 import type { useDesktopData } from './useDesktopData';
@@ -18,12 +17,10 @@ import type { useHabitsData } from '../health/useHabitsData';
 interface Props {
   activeTab: DesktopTabType;
   userId?: string;
-  theme: string;
   grid: string;
   tick: string;
   data: ReturnType<typeof useDesktopData>;
   habitsData: ReturnType<typeof useHabitsData>;
-  volData: { week: string; vol: number }[];
   onTabChange?: (tab: DesktopTabType) => void;
   onOpenSauna?: () => void;
   onOpenWorkout?: () => void;
@@ -77,12 +74,10 @@ function renderIntelTab(
 export default function DesktopTabContent({
   activeTab,
   userId,
-  theme,
   grid,
   tick,
   data,
   habitsData,
-  volData,
   onTabChange,
   onOpenSauna,
   onOpenWorkout,
@@ -91,7 +86,6 @@ export default function DesktopTabContent({
 }: Props) {
   const {
     oura,
-    nutrition,
     sessions,
     body,
     heightCm,
@@ -99,7 +93,6 @@ export default function DesktopTabContent({
     lenieLogs,
     phoneUsage,
     marathon,
-    strain,
     personalTargets,
   } = data;
 
@@ -126,20 +119,9 @@ export default function DesktopTabContent({
       sessions={sessions}
       strava={strava}
       oura={oura}
-      nutrition={nutrition}
-      habits={habitsData.habits}
-      habitLogs={habitsData.habitLogs}
-      volData={volData}
-      body={body}
-      heightCm={heightCm}
-      theme={theme}
-      grid={grid}
-      personalTargets={personalTargets}
       onOpenMatrix={handleOpenMatrix}
       lenieLogs={lenieLogs}
       phoneUsage={phoneUsage}
-      strain={strain}
-      marathon={marathon}
     />
   );
 
@@ -160,8 +142,7 @@ export default function DesktopTabContent({
   );
 
   const healthCards = (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      {userId && <DesktopHealthspanSection userId={userId} />}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {userId && <DesktopOuraSleepCard userId={userId} />}
       <DesktopOpticsCard onOpenOptics={onOpenOptics} />
     </div>

@@ -8,6 +8,8 @@ export interface WorkoutSet {
   reps: string;
   rir: string;
   msp: boolean;
+  /** Session UX: user marked set complete (Hevy check). Not persisted to DB. */
+  done?: boolean;
   prescription?: { reps: number; weightKg: number | null; rir: number; restSeconds: number };
   type?: WorkoutSetType;
   rpe?: string;
@@ -74,22 +76,6 @@ export function epley(
   return r === 1 ? k : k * (1 + r / 30);
 }
 
-function formatWeightLabel(weight: number | string | null | undefined): string {
-  const w = Number(weight);
-  if (Number.isNaN(w)) return '—';
-  return w === 0 ? 'BW' : `${w}kg`;
-}
-
-export function formatLastSession(sets: ExerciseHistoryRow[] | null | undefined): string | null {
-  if (!sets?.length) return null;
-  const sorted = [...sets].sort((a, b) => (a.set_number ?? 0) - (b.set_number ?? 0));
-  const ws = [...new Set(sorted.map((s) => Number(s.weight)))];
-  const rs = [...new Set(sorted.map((s) => s.reps))];
-  if (ws.length === 1 && rs.length === 1) {
-    return `${formatWeightLabel(ws[0])} × ${rs[0]} × ${sorted.length} ser.`;
-  }
-  return sorted.map((s) => `${formatWeightLabel(s.weight)}×${s.reps}`).join(' · ');
-}
 
 const WELLNESS_NAMES = ['sauna', 'lodowata', 'zimny prysznic', 'stretching', 'foam rolling'];
 
@@ -114,7 +100,7 @@ export function computeSessionStats(
   exercises: {
     tags?: string[];
     name?: string;
-    sets?: { kg: string | number; reps: string | number }[];
+    sets?: { kg: string | number; reps: string | number; done?: boolean }[];
   }[]
 ): SessionVolumeStats {
   let tonnage = 0;
@@ -126,13 +112,14 @@ export function computeSessionStats(
     for (const s of ex.sets || []) {
       const reps = parseInt(String(s.reps), 10) || 0;
       const kg = parseFloat(String(s.kg)) || 0;
-      if (reps > 0) {
-        completedSets++;
-        if (kg > 0) {
-          tonnage += kg * reps;
-        } else {
-          bwReps += reps;
-        }
+      const counted = s.done === true || reps > 0;
+      if (!counted) continue;
+      completedSets++;
+      if (reps <= 0) continue;
+      if (kg > 0) {
+        tonnage += kg * reps;
+      } else {
+        bwReps += reps;
       }
     }
   }

@@ -49,7 +49,7 @@ export function LinksQuickCapture({ onAddLink, loading }: LinksQuickCaptureProps
 
   return (
     <div
-      className={`mx-auto w-full max-w-[var(--ds-maxw-640px)] rounded-2xl border border-border-custom/40 bg-surface-solid/40 ui-interactive duration-[var(--motion-medium)] backdrop-blur-md shadow-xs ${
+      className={`mx-auto w-full max-w-[var(--ds-maxw-640px)] rounded-2xl border border-border-custom/40 bg-surface-solid/40 transition-all duration-[var(--motion-medium)] backdrop-blur-md shadow-xs ${
         expanded ? 'p-3.5 shadow-md border-border-custom' : 'px-3.5 py-2 hover:border-border-custom'
       }`}
     >

@@ -1,104 +1,82 @@
-import { Play, Sparkles, Plus, History } from 'lucide-react';
+import { Play, Zap } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { WorkoutTemplateSummary } from '../../../lib/health/workoutApi';
+import { formatWorkoutTonnage, normalizeSessionRpe } from '../../../lib/health/workoutDisplay';
+import { withNextRotationFlag } from '../../../lib/health/templateRotation';
 
 interface TrainingTemplatesSectionProps {
   templates: WorkoutTemplateSummary[];
   onSelectTemplate: (template: WorkoutTemplateSummary) => void;
-  onStartBlank: () => void;
-  onOpenNlCapture: () => void;
 }
 
+/** Compact 1-tap schemes — demoted below map / PRs / insight (not the hero). */
 export default function TrainingTemplatesSection({
   templates,
   onSelectTemplate,
-  onStartBlank,
-  onOpenNlCapture,
 }: TrainingTemplatesSectionProps) {
+  if (templates.length === 0) return null;
+
+  const marked = withNextRotationFlag(templates);
+
   return (
-    <div className="space-y-4">
-      {/* 1-Tap Quick Starts from History */}
-      {templates.length > 0 && (
-        <div className="space-y-2.5">
-          <div className="flex items-center gap-2">
-            <History size={13} className="text-text-muted" />
-            <span className="text-2xs font-black uppercase tracking-wider text-text-muted">
-              Powtórz ostatnie schematy (1-Tap)
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            {templates.map((tpl) => {
-              const tonnageMg = (tpl.totalTonnageKg / 1000).toFixed(1);
-              return (
-                <Pressable
-                  key={tpl.sessionId}
-                  onClick={() => onSelectTemplate(tpl)}
-                  className="rounded-2xl border border-border-custom bg-surface hover:border-primary/50 p-3.5 text-left ui-interactive group cursor-pointer space-y-2 shadow-sm"
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-black text-text-primary font-display group-hover:text-primary transition-colors">
-                      {tpl.workoutDay}
-                    </h3>
-                    <div className="p-1 rounded-lg bg-primary/10 text-primary transition-colors group-hover:text-primary-hover">
-                      <Play size={12} className="fill-current" />
-                    </div>
-                  </div>
-
-                  <div className="text-3xs text-text-secondary line-clamp-1">
-                    {tpl.exercises.join(' · ')}
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-1 border-t border-border-custom/40 text-3xs font-mono text-text-muted">
-                    <span>{tpl.exerciseCount} ćwiczeń</span>
-                    {tpl.totalTonnageKg > 0 && (
-                      <>
-                        <span>·</span>
-                        <span className="font-bold text-primary">{tonnageMg} Mg</span>
-                      </>
-                    )}
-                    {tpl.sessionRpe != null && (
-                      <>
-                        <span>·</span>
-                        <span>RPE {tpl.sessionRpe}</span>
-                      </>
-                    )}
-                  </div>
-                </Pressable>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Alternative Start Options: Blank or AI Capture */}
-      <div className="grid grid-cols-2 gap-2.5 pt-1">
-        <Pressable
-          onClick={onStartBlank}
-          className="rounded-2xl border border-dashed border-border-custom bg-surface/50 hover:bg-surface hover:border-primary/45 p-4 text-center ui-interactive cursor-pointer space-y-1.5"
-        >
-          <div className="mx-auto w-8 h-8 rounded-xl bg-surface border border-border-custom flex items-center justify-center text-text-secondary">
-            <Plus size={16} />
-          </div>
-          <span className="text-xs font-black uppercase tracking-wider text-text-primary block">
-            Czysty Trening
-          </span>
-          <span className="text-3xs text-text-muted block">Rozpocznij od zera</span>
-        </Pressable>
-
-        <Pressable
-          onClick={onOpenNlCapture}
-          className="rounded-2xl border border-primary/30 bg-primary/10 hover:bg-primary/15 p-4 text-center ui-interactive cursor-pointer space-y-1.5 shadow-sm"
-        >
-          <div className="mx-auto w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center">
-            <Sparkles size={16} />
-          </div>
-          <span className="text-xs font-black uppercase tracking-wider text-primary block">
-            AI Zrzut (NL)
-          </span>
-          <span className="text-3xs text-text-muted block">Głos lub wklejenie tekstu</span>
-        </Pressable>
+    <section className="space-y-2" aria-label="Szybkie schematy">
+      <div className="flex items-center gap-1.5 px-0.5">
+        <Zap size={12} className="text-primary" />
+        <span className="text-2xs font-black uppercase tracking-wider text-text-muted">
+          1-tap start
+        </span>
+        <span className="text-3xs font-bold text-text-tertiary tabular-nums ml-auto">
+          {templates.length} schemat{templates.length === 1 ? '' : 'y'}
+        </span>
       </div>
-    </div>
+
+      <div className="space-y-1.5">
+        {marked.map((tpl) => {
+          const tonnageLabel = formatWorkoutTonnage(tpl.totalTonnageKg);
+          const rpe = normalizeSessionRpe(tpl.sessionRpe);
+          return (
+            <Pressable
+              key={tpl.sessionId}
+              onClick={() => onSelectTemplate(tpl)}
+              className={`trening-panel-muted w-full rounded-[var(--tren-radius-card)] px-3 py-2 text-left ui-interactive group cursor-pointer hover:border-primary/35 ${
+                tpl.isNextInRotation ? 'border-primary/40' : ''
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <h3 className="text-sm font-bold text-text-primary font-display truncate group-hover:text-primary transition-colors">
+                      {tpl.workoutDay}
+                      {tpl.isNextInRotation && (
+                        <span className="ml-1.5 text-3xs font-black uppercase tracking-wider text-primary">
+                          następny
+                        </span>
+                      )}
+                    </h3>
+                    {tpl.date && (
+                      <span className="text-3xs text-text-muted tabular-nums shrink-0">
+                        {tpl.date.slice(5)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-2xs text-text-secondary line-clamp-1 leading-snug mt-0.5">
+                    {tpl.exercises.join(' · ')}
+                    {tonnageLabel ? ` · ${tonnageLabel}` : ''}
+                    {rpe != null ? ` · RPE ${rpe}` : ''}
+                  </p>
+                </div>
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-on-accent shrink-0 ${
+                    tpl.isNextInRotation ? 'bg-primary' : 'bg-primary/90'
+                  }`}
+                >
+                  <Play size={11} className="fill-current ml-0.5" />
+                </div>
+              </div>
+            </Pressable>
+          );
+        })}
+      </div>
+    </section>
   );
 }

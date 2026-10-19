@@ -9,11 +9,8 @@ export {
   newSet,
   newExercise,
   epley,
-  formatLastSession,
   isLogWellness,
   sessionVol,
-  computeSessionStats,
-  type SessionVolumeStats,
 } from '../../../lib/health/workout';
 
 export type { ExerciseHistoryRow };

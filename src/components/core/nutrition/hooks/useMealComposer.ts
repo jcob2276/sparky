@@ -27,6 +27,7 @@ import {
   upsertUserPortionsFromDraft,
 } from '../../../../lib/health/userPortionsApi';
 import { scanMealPhoto } from '../../../../lib/health/mealPhotoScan';
+import { saveMealPhoto } from '../../../../lib/health/mealPhotoStore';
 import { useFoodEntrySearch } from './useFoodEntrySearch';
 import { useSession } from '../../../../store/useStore';
 export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
@@ -47,6 +48,8 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [scanningPhoto, setScanningPhoto] = useState(false);
+  // meal_group_id of the photo stored at scan time; the meal saved from that scan reuses it.
+  const scannedPhotoIdRef = useRef<string | null>(null);
   const [qualityPending, setQualityPending] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +84,8 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     queryKey: ['all-today-entries', userId, logDate],
     queryFn: () => fetchAllTodayEntries(userId!, logDate),
     enabled: !!userId,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: 'always',
   });
 
   useEffect(() => {
@@ -206,6 +211,11 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     }
   }, [text, parsing, userId, session, setDraftFromParsed]);
 
+  // A dismissed draft must not leave its photo linked to the next meal.
+  useEffect(() => {
+    if (!draftItems) scannedPhotoIdRef.current = null;
+  }, [draftItems]);
+
   const saveDraft = useCallback(async (
     items: MealDraftItem[],
     source: 'text' | 'photo' | 'repeat' | 'search',
@@ -216,6 +226,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     setSaving(true);
     setError(null);
     try {
+      const captureId = source === 'photo' ? scannedPhotoIdRef.current ?? undefined : undefined;
       await confirmMealCapture({
         userId,
         date: logDate,
@@ -224,7 +235,9 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
         items,
         memoryName: options?.memoryName,
         loggedAt: options?.loggedAt,
+        captureId,
       });
+      scannedPhotoIdRef.current = null;
       const toRemember = items
         .filter((item) => rememberIds.has(item.id))
         .map((item) => ({
@@ -259,10 +272,20 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     if (!userId || scanningPhoto) return;
     setScanningPhoto(true);
     setError(null);
+    scannedPhotoIdRef.current = null;
     try {
-      const draft = await scanMealPhoto(file, userId);
+      // The photo is stored the moment it is taken, even when the analysis fails or the meal is never confirmed.
+      const draft = await scanMealPhoto(file, userId, (image) => {
+        const photoId = crypto.randomUUID();
+        scannedPhotoIdRef.current = photoId;
+        saveMealPhoto(userId, photoId, image).catch((photoCause: unknown) => {
+          console.warn('[useMealComposer] meal photo was not stored', photoCause);
+          notify('Nie udało się zachować zdjęcia', 'info');
+        });
+      });
       setDraftFromParsed(draft.items);
     } catch (cause: unknown) {
+      scannedPhotoIdRef.current = null;
       const message = cause instanceof Error ? cause.message : 'Nie udało się przeanalizować zdjęcia';
       setError(message);
       notify(message, 'error');
@@ -322,7 +345,8 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   const saveFromDraft = useCallback((rememberIds: Set<string>, name?: string) => {
     if (!draftItems?.length) return;
     const loggedAt = loggedTime ? combineDateTimeWarsawISO(logDate, loggedTime) : undefined;
-    void saveDraft(draftItems, 'text', rememberIds, { memoryName: name, loggedAt });
+    const source = scannedPhotoIdRef.current ? 'photo' : 'text';
+    void saveDraft(draftItems, source, rememberIds, { memoryName: name, loggedAt });
   }, [draftItems, logDate, loggedTime, saveDraft]);
 
   const handleFavorite = useCallback(async (fav: Omit<FoodFavoriteRow, 'barcode'> & { barcode?: string | null }) => {

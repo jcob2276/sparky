@@ -1,4 +1,4 @@
-import { cleanup, render, screen, within } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -9,7 +9,7 @@ const source = vi.hoisted(() => ({
   userId: 'alice', refresh: vi.fn(), error: null as Error | null,
   row: { date: '', strain_score: null as number | null, recovery_score: null as number | null,
     daily_status: null as string | null, main_limiter: 'recovery_ok', fueling_score: null as number | null,
-    fueling_provisional: false, components: null, readiness_level: null, explanation: null as string | null },
+    fueling_provisional: false, components: null as unknown, readiness_level: null as string | null, explanation: null as string | null },
   oura: null as { date: string } | null,
   sourceErrors: [] as { source: string; message: string }[],
 }));
@@ -40,22 +40,20 @@ afterEach(() => { cleanup(); clients.splice(0).forEach((client) => client.clear(
 describe('daily health evidence', () => {
   it('shows an unavailable source without hiding the known daily scores', () => {
     source.sourceErrors = [{ source: 'oura_enhanced', message: 'offline' }];
-    source.row.strain_score = 10;
+    source.row.recovery_score = 10;
     show();
     expect(screen.getByText(/oura_enhanced: offline/)).toBeInTheDocument();
-    expect(screen.getByText('10')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Regeneracja: 10 na 100' })).toBeInTheDocument();
   });
   it('keeps missing strain and recovery distinct from measured zero', () => {
     show();
-    expect(within(screen.getByText('Strain').parentElement!).getByText('--')).toBeInTheDocument();
-    expect(within(screen.getByText('Recovery').parentElement!).getByText('--')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Regeneracja: brak pomiaru' })).toBeInTheDocument();
   });
 
   it('still displays genuine zero scores', () => {
     source.row.strain_score = 0; source.row.recovery_score = 0;
     show();
-    expect(within(screen.getByText('Strain').parentElement!).getByText('0')).toBeInTheDocument();
-    expect(within(screen.getByText('Recovery').parentElement!).getByText('0')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'Regeneracja: 0 na 100' })).toBeInTheDocument();
   });
 
   it.each([null, 'green', 'unknown'])('does not present incomplete measurements as a positive state (%s)', (status) => {
@@ -64,18 +62,22 @@ describe('daily health evidence', () => {
     expect(container.firstElementChild).not.toHaveClass('!border-success/20');
   });
 
-  it('reads the canonical fueling column and marks an unfinished diary as provisional', () => {
+  it('does not show the food-diary score or the unfinished-diary notice at all', () => {
     source.row.fueling_score = 42; source.row.fueling_provisional = true;
     show();
-    expect(screen.getByText('Fueling · wstępne')).toBeInTheDocument();
-    expect(screen.getByText('42')).toBeInTheDocument();
-    expect(screen.getByText('Żywienie jeszcze niepełne')).toBeInTheDocument();
+    expect(screen.queryByText(/Jedzenie/)).not.toBeInTheDocument();
+    expect(screen.queryByText('42')).not.toBeInTheDocument();
+    expect(screen.queryByText('Żywienie jeszcze niepełne')).not.toBeInTheDocument();
   });
 
-  it('shows the stored explanation from the same daily row', () => {
-    source.row.explanation = 'Zarejestrowana sesja treningowa.';
+  it('explains the day in plain Polish instead of showing the stored jargon', () => {
+    source.row.readiness_level = 'strained';
+    source.row.explanation = '1224 kcal. Strain 0/21, recovery 38 — głównym ograniczeniem jest sen.';
+    source.row.components = { sleep_score_today: 58, readiness_signals: [{ key: 'hrv', flag: 'bad', detail: 'wyraźnie poniżej — zmęczenie autonomiczne' }] };
     show();
-    expect(screen.getByText('Zarejestrowana sesja treningowa.')).toBeInTheDocument();
+    expect(screen.getByText('Dziś lżej')).toBeInTheDocument();
+    expect(screen.getByText('Najmocniej ciągną w dół: niskie HRV i przeciętny sen.')).toBeInTheDocument();
+    expect(screen.queryByText(/zmęczenie autonomiczne|Strain 0|recovery 38/)).not.toBeInTheDocument();
   });
 
   it('does not treat calories as a final limiter when the diary is unfinished', () => {
@@ -84,7 +86,7 @@ describe('daily health evidence', () => {
     const { container } = show();
     expect(container.firstElementChild).not.toHaveClass('!border-danger/25');
     expect(screen.queryByText('Za mało kalorii względem obciążenia.')).not.toBeInTheDocument();
-    expect(screen.getByText('Żywienie jeszcze niepełne')).toBeInTheDocument();
+    expect(screen.queryByText('Żywienie jeszcze niepełne')).not.toBeInTheDocument();
   });
 
   it('labels wearable data from a different day', () => {

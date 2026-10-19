@@ -21,25 +21,25 @@ export default function TodoDoneHistory() {
     if (!ok) return;
 
     setIsClearing(true);
-    try {
-      const ids = doneItems.map(i => i.id);
-      if (setItems) {
-        setItems(prev => prev.filter(i => i.status !== 'done'));
-      }
-      await Promise.all(ids.map(id => deleteTodoItem(id)));
+    const removed = doneItems;
+    setItems(prev => prev.filter(i => i.status !== 'done'));
+    const results = await Promise.allSettled(removed.map(i => deleteTodoItem(i.id)));
+    const failed = removed.filter((_, idx) => results[idx].status === 'rejected');
+    if (failed.length > 0) {
+      // Restore only what the server refused to delete — no phantom deletions.
+      setItems(prev => [...prev, ...failed.filter(f => !prev.some(p => p.id === f.id))]);
+      notify(`Nie udało się usunąć ${failed.length} z ${count} ukończonych zadań.`, 'error');
+    } else {
       notify(`Usunięto ${count} ukończonych zadań.`, 'success');
-    } catch {
-      notify('Wystąpił problem podczas usuwania ukończonych zadań.', 'error');
-    } finally {
-      setIsClearing(false);
     }
+    setIsClearing(false);
   };
 
   return (
     <div className="border-t border-border-custom/20 pt-2 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <BucketHeader
-          icon="✅"
+          icon=""
           title="Historia"
           count={doneItems.length}
           collapsed={false}

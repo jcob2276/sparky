@@ -4,7 +4,6 @@ import { useUserId } from '../../store/useStore';
 import { CalendarDays, Target, AlertCircle, ChevronRight, Check, History } from 'lucide-react';
 import WeekLoopSummary from '../shared/WeekLoopSummary';
 // import ProjectWeekKpis from './ProjectWeekKpis';
-import WeeklyBalanceHexagon from './WeeklyBalanceHexagon';
 import { SystemProposalCard } from '../shared/SystemProposalCard';
 import { useDirectionContext } from './direction/hooks/useDirectionContext';
 import { useSpineGuidance } from '../../hooks/useSpineGuidance';
@@ -14,7 +13,6 @@ import { getTodayWarsaw, shiftWeekStart, shiftDateStr } from '../../lib/date';
 import { getWeekStartWarsaw } from '../../lib/growth/growth';
 import { quickCompleteOverdueWeeklyReview } from '../../lib/goal/goalSpine';
 import { notify } from '../../lib/notify';
-import TrainingPlanContainer from '../biometrics/workout/TrainingPlanContainer';
 import HealthCoachWeeklyReviewContainer from '../biometrics/workout/HealthCoachWeeklyReview';
 
 export default function WeekHub({
@@ -64,12 +62,6 @@ export default function WeekHub({
 
   return (
     <div className="space-y-5">
-      {userId && (
-        <details className="rounded-2xl border border-border-custom p-3">
-          <summary className="cursor-pointer text-sm font-semibold">Plan treningowy tygodnia</summary>
-          <TrainingPlanContainer userId={userId} />
-        </details>
-      )}
       {userId && (
         <HealthCoachWeeklyReviewContainer
           userId={userId}
@@ -207,8 +199,6 @@ export default function WeekHub({
           focusProjectIds={direction.sprintFocusProjectIds ?? []}
         />
       )} */}
-
-      <WeeklyBalanceHexagon userId={userId} />
     </div>
   );
 }

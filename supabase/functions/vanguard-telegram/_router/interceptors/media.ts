@@ -91,7 +91,7 @@ export class TranscriptionInterceptor implements MessageInterceptor {
         `⚠️ Nie udało się przetworzyć głosówki (${errMsg.slice(0, 100)}). Spróbuj nagrać ponownie lub napisz tekstem.`,
         ctx.telegramToken,
       );
-      return true;
+      throw err;
     }
     ctx.cleanText = ctx.text;
 

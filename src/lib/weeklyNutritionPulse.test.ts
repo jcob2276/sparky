@@ -10,7 +10,7 @@ describe('buildWeeklyNutritionPulse', () => {
     const pulse = buildWeeklyNutritionPulse({
       proteinGoal: 150,
       kcalTarget: 1800,
-      completeDates:['2026-07-14','2026-07-16'],
+      today: '2026-07-17',
       rows: [
         {
           date: '2026-07-14',
@@ -62,10 +62,39 @@ describe('buildWeeklyNutritionPulse', () => {
   });
 });
 
+describe('buildWeeklyNutritionPulse — day counting', () => {
+  const row = (date: string, calories: number | null, protein: number | null) => ({
+    date, calories, protein, carbs: null, fat: null, fiber: null, sugar: null, avg_food_quality: null, insulin_load: null,
+  });
+
+  it('counts days that have food entries without any manual day closing', () => {
+    const pulse = buildWeeklyNutritionPulse({
+      proteinGoal: 152,
+      kcalTarget: 2461,
+      today: '2026-10-19',
+      rows: [row('2026-10-14', 1802, 65), row('2026-10-15', 2380, 95), row('2026-10-16', 2866, 98), row('2026-10-18', 2295, 102)],
+    });
+    expect(pulse.loggedDays).toBe(4);
+    expect(pulse.avgProtein).toBe(90);
+    expect(pulse.avgCalories).toBe(2336);
+  });
+
+  it('ignores today (in progress) and empty days', () => {
+    const pulse = buildWeeklyNutritionPulse({
+      proteinGoal: null,
+      kcalTarget: null,
+      today: '2026-10-19',
+      rows: [row('2026-10-17', 0, 0), row('2026-10-18', 2000, 100), row('2026-10-19', 1224, 59)],
+    });
+    expect(pulse.loggedDays).toBe(1);
+    expect(pulse.avgCalories).toBe(2000);
+  });
+});
+
 describe('nutritionPulseHeadline', () => {
   it('prioritizes missing days', () => {
     expect(nutritionPulseHeadline({
-      loggedDays: 4,
+      loggedDays: 2,
       avgCalories: 1500,
       avgProtein: 105,
       avgCarbs: 120,
@@ -78,7 +107,7 @@ describe('nutritionPulseHeadline', () => {
       proteinGoal: 150,
       kcalTarget: 1800,
       proteinOnTrack: false,
-    })).toBe('Uzupełnij brakujące dni');
+    })).toBe('Za mało zapisanych dni');
   });
 });
 

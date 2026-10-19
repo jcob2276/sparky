@@ -228,8 +228,8 @@ export default function Modal({
           onClick={handleBackdropClick}
           className={`ui-floating-scrim fixed inset-0 z-[var(--z-overlay)] flex ${backdropPadding} ${verticalAlignClass} ${justifyClass} ${flexDirClass} ${overlayClassName}`}
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          animate={{ opacity: 1, pointerEvents: 'auto' }}
+          exit={{ opacity: 0, pointerEvents: 'none' }}
           transition={{ duration: reduceMotion ? 0.12 : 0.16, ease: 'easeOut' }}
         >
           <motion.div
@@ -246,8 +246,12 @@ export default function Modal({
             style={{ willChange: 'transform, opacity' }}
             className={`ui-floating-layer w-full ${sizeClasses[size]} ${padding} ${overflowY ? 'max-h-[88vh] overflow-y-auto' : ''} ${className}`}
             initial={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: 'translateY(14px) scale(0.98)' }}
-            animate={{ opacity: 1, transform: 'translateY(0px) scale(1)' }}
-            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, transform: 'translateY(12px) scale(0.98)' }}
+            animate={{ opacity: 1, transform: 'translateY(0px) scale(1)', pointerEvents: 'auto' }}
+            exit={
+              reduceMotion
+                ? { opacity: 0, pointerEvents: 'none' }
+                : { opacity: 0, transform: 'translateY(12px) scale(0.98)', pointerEvents: 'none' }
+            }
             transition={reduceMotion ? { duration: 0.12 } : IOS_SPRING.default}
           >
             <ModalHeader

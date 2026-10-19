@@ -111,13 +111,14 @@ export async function openaiChat(params: OpenAIChatParams): Promise<OpenAIChatRe
   return { content, raw };
 }
 
-/** Centralized audio transcription — delegates to Gemini 3 Flash when GEMINI_API_KEY is present, or Whisper fallback. */
+/** Centralized audio transcription — Gemini when configured, with Whisper fallback. */
 export async function transcribeBlob(
   audioBlob: Blob,
   apiKey: string,
   opts?: { filename?: string; language?: string; prompt?: string; timeoutMs?: number },
 ): Promise<string> {
   const geminiKey = Deno.env.get("GEMINI_API_KEY");
+  const openaiApiKey = Deno.env.get("OPENAI_API_KEY") || (apiKey?.startsWith("sk-") ? apiKey : "");
   let geminiErr: unknown = null;
   if (geminiKey) {
     try {
@@ -125,9 +126,11 @@ export async function transcribeBlob(
     } catch (err) {
       geminiErr = err;
       console.warn("[transcribeBlob] Gemini audio transcription failed, checking OpenAI fallback:", err);
-      if (!apiKey || !apiKey.startsWith("sk-")) throw err;
+      if (!openaiApiKey) throw err;
     }
   }
+
+  if (!openaiApiKey) throw new Error("[transcribeBlob] Missing valid OPENAI_API_KEY for transcription");
 
   const defaultPrompt = "Jakub, Vanguard, Oura, Garmin, Strava, diale, setting, no-showy, Transerfing, Cooper, Krosno, suplementy, zadania, trening";
   const filename = opts?.filename ?? "audio.ogg";
@@ -148,7 +151,7 @@ export async function transcribeBlob(
     try {
       const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
         method: "POST",
-        headers: { Authorization: `Bearer ${apiKey}` },
+        headers: { Authorization: `Bearer ${openaiApiKey}` },
         body: formData,
         signal: controller.signal,
       });

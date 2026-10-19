@@ -4,6 +4,7 @@ import { useTodoContext } from './context/TodoContext';
 import BucketHeader from './BucketHeader';
 import SectionForm from './SectionForm';
 import EmptyState from './EmptyState';
+import { dropState } from './todoDropState';
 import TodoCardConnected from './TodoCardConnected';
 import TodoStudySubjects from './TodoStudySubjects';
 import { isStudySubject } from '../../lib/todo/studySubjects';
@@ -56,17 +57,12 @@ export default function TodoSectionsList({ renderInlineQuickCapture, renderAddTo
 
             <div
               ref={el => { sectionRefs.current[sec.id] = el; }}
-              className={`todo-grouped-surface mb-4 ${
-                draggingItem !== null
-                  ? dragTarget === sec.id
-                    ? 'ring-2 ring-primary/60 shadow-[var(--shadow-accent-active)]'
-                    : 'border-dashed border-primary/40'
-                  : ''
-              }`}
+              className="todo-grouped-surface mb-4"
+              data-drop={dropState(draggingItem !== null, dragTarget === sec.id)}
             >
               <div className="todo-grouped-header">
                 <BucketHeader
-                  icon={hasSubjects ? '🎓' : '📂'}
+                  icon=""
                   title={sec.name}
                   count={sec.items.length}
                   collapsed={isCollapsed}
@@ -89,8 +85,8 @@ export default function TodoSectionsList({ renderInlineQuickCapture, renderAddTo
                   ) : hasSubjects ? (
                     <TodoStudySubjects items={sec.items} />
                   ) : (
-                    <div className="todo-focus-grid">
-                      {sec.items.map((i) => <TodoCardConnected key={i.id} item={i} />)}
+                    <div className="todo-focus-grid" data-drop-label={`Upuść, aby przenieść do: ${sec.name}`}>
+                      {sec.items.map((i) => <TodoCardConnected key={i.id} item={i} hideSectionName />)}
                     </div>
                   )}
                   <div className="pt-2 px-1">

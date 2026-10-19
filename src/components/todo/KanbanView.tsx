@@ -2,7 +2,7 @@ import { updateTodoItem } from '../../lib/todo/todo';
 import { PRIORITY, PRIORITY_ORDER } from './todoUtils';
 import { Card } from '../ui/Card';
 import { Check } from 'lucide-react';
-import { Pressable } from '../ui/ControlPrimitives';
+import { Pressable, ControlSelect } from '../ui/ControlPrimitives';
 
 interface Item {
   id: string;
@@ -71,7 +71,7 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
   };
 
   return (
-    <div className="flex h-full overflow-x-auto overflow-y-hidden pb-20 px-4 pt-4 gap-3">
+    <div className="flex h-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain px-4 pb-20 pt-4 gap-3 sm:snap-none">
       {columns.map((col) => {
         const colItems = open
           .filter((i) => i.section_id === col.id)
@@ -80,7 +80,7 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
         return (
           <div
             key={String(col.id)}
-            className="flex-shrink-0 w-[var(--ds-w-220px)] flex flex-col rounded-2xl bg-surface/40 border border-border-custom/40"
+            className="flex-shrink-0 todo-kanban-col snap-start flex flex-col rounded-2xl bg-surface/40 border border-border-custom/40"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
@@ -119,7 +119,7 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
                           e.stopPropagation();
                           completeTask(item.id);
                         }}
-                        className="mt-0.5 shrink-0 btn-press cursor-pointer"
+                        className="todo-tap-target shrink-0 cursor-pointer btn-press"
                         aria-label={`Oznacz jako wykonane: ${item.title}`}
                       >
                         <div className="h-3.5 w-3.5 rounded-full border border-border-custom hover:border-success hover:bg-success/15 flex items-center justify-center transition-colors">
@@ -143,13 +143,22 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
                         {dueBadge(item)}
                       </div>
                     </div>
+                    {/* Touch devices have no HTML5 drag — offer an explicit move control. */}
+                    <ControlSelect
+                      value={item.section_id ?? ''}
+                      onChange={(e) => moveToSection(item, e.target.value || null)}
+                      aria-label={`Przenieś zadanie: ${item.title}`}
+                      className="mt-2 h-11 w-full rounded-lg border border-border-custom bg-surface-solid px-2 text-base text-text-secondary sm:hidden"
+                    >
+                      {columns.map((c) => <option key={String(c.id)} value={c.id ?? ''}>{c.title}</option>)}
+                    </ControlSelect>
                   </div>
                 );
               })}
 
               {colItems.length === 0 && (
                 <Card variant="surface" padding="1rem" style={{ boxShadow: 'none' }} className="!bg-transparent !rounded-xl border border-dashed border-border-custom/20 text-center">
-                  <p className="text-2xs text-text-muted/40">Przeciągnij tutaj</p>
+                  <p className="text-2xs text-text-muted/60"><span className="hidden sm:inline">Przeciągnij tutaj</span><span className="sm:hidden">Brak zadań</span></p>
                 </Card>
               )}
             </div>

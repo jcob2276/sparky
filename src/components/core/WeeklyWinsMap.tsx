@@ -7,57 +7,22 @@ export default function WeeklyWinsMap() {
   const { data, isLoading } = useWeeklyWinsMap(userId ?? '');
   if (!userId) return null;
 
-  const wins = data?.filter((d) => d.status === 'win').length ?? 0;
   const tasksDone = (data ?? []).reduce((s, d) => s + d.doneCount, 0);
   const tasksSet = (data ?? []).reduce((s, d) => s + d.plannedCount, 0);
-  const daysActive = (data ?? []).filter((d) => d.doneCount > 0 || d.plannedCount > 0).length;
-  const winPct = Math.round((wins / 7) * 100);
+  const pct = tasksSet > 0 ? Math.round((tasksDone / tasksSet) * 100) : 0;
 
   return (
-    <section className="rounded-3xl border border-border-custom/60 bg-surface/70 p-4.5 space-y-4 flex flex-col justify-between">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-widest text-text-muted">
-            <CheckSquare size={12} className="text-primary" /> Dyscyplina · 7 dni
-          </p>
-          <h3 className="mt-1 text-base font-bold text-text-primary">
-            {isLoading ? 'Ładuję przebieg…' : `${wins}/7 dni z 5/5`}
-          </h3>
-        </div>
-        <span
-          className={`shrink-0 rounded-full px-2.5 py-0.5 text-2xs font-black uppercase tracking-wider ${
-            winPct >= 70
-              ? 'bg-success/15 text-success'
-              : winPct >= 40
-                ? 'bg-primary/15 text-primary'
-                : 'bg-warning/15 text-warning'
-          }`}
-        >
-          {winPct}% wygranych
-        </span>
+    <section className="space-y-3 rounded-3xl border border-border-custom/60 bg-surface/70 p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-widest text-text-muted">
+          <CheckSquare size={12} className="text-primary" /> Pięć zwycięstw · 7 dni
+        </p>
+        <p className="text-sm font-black text-text-primary">
+          {isLoading ? '…' : tasksSet > 0 ? `${tasksDone} z ${tasksSet} zadań` : 'brak zadań'}
+        </p>
       </div>
-
-      {/* Hero Stats */}
-      <div className="rounded-2xl border border-border-custom/40 bg-surface/50 p-3 space-y-2">
-        <div className="flex items-baseline justify-between">
-          <p className="text-2xl font-black tracking-tight text-text-primary">
-            {tasksDone}
-            <span className="text-xs font-bold text-text-muted ml-1">/ {tasksSet || 35} zadań</span>
-          </p>
-          <span className="text-xs font-semibold text-text-secondary">
-            {daysActive}/7 dni aktywnych
-          </span>
-        </div>
-
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/30">
-          <div
-            className={`h-full rounded-full transition-all duration-300 ${
-              winPct >= 70 ? 'bg-success' : 'bg-primary'
-            }`}
-            style={{ width: `${winPct}%` }}
-          />
-        </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/30">
+        <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${pct}%` }} />
       </div>
 
       {/* Day cells */}
@@ -88,18 +53,6 @@ export default function WeeklyWinsMap() {
         ))}
       </div>
 
-      {/* Legend */}
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-2xs font-bold text-text-muted border-t border-border-custom/30 pt-3">
-        <span className="flex items-center gap-1.5">
-          <span className={`inline-block h-3 w-3 rounded-sm border ${cellClass('win')}`} /> 5/5 wygrany
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className={`inline-block h-3 w-3 rounded-sm border ${cellClass('loss')}`} /> nie / brak
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block h-3 w-3 rounded-sm border border-border-custom bg-surface" /> dziś
-        </span>
-      </div>
     </section>
   );
 }

@@ -35,6 +35,7 @@ async function backfill() {
   let offset = 0;
   let totalTriads = 0;
   let totalProcessed = 0;
+  let failed = false;
 
   console.log("đźš€ Starting Retroactive Backfill for vanguard_stream...");
 
@@ -53,7 +54,8 @@ async function backfill() {
 
       const data = await response.json();
 
-      if (data.error) {
+      if (!response.ok || data.error || data.success === false) {
+        failed = true;
         console.error(`âťŚ Error at offset ${offset}:`, data.error);
         break;
       }
@@ -64,7 +66,7 @@ async function backfill() {
       }
 
       totalProcessed += data.items_processed;
-      totalTriads += data.triads_created || 0;
+      totalTriads += data.triads_accepted ?? data.triads_created ?? 0;
       console.log(`âś… Batch complete. Processed: ${data.items_processed}, Triads created: ${data.triads_created || 0}`);
 
       offset += 10;
@@ -75,13 +77,15 @@ async function backfill() {
         break;
       }
     } catch (err) {
+      failed = true;
       console.error(`âťŚ Network error at offset ${offset}:`, err.message);
       break;
     }
   }
 
   console.log("==========================================");
-  console.log(`đźŽ‰ BACKFILL COMPLETE`);
+  console.log(failed ? 'BACKFILL STOPPED — retry the failed batch' : 'BACKFILL COMPLETE');
+  if (failed) process.exitCode = 1;
   console.log(`Total stream entries processed: ${totalProcessed}`);
   console.log(`Total triads added/updated: ${totalTriads}`);
   console.log("==========================================");

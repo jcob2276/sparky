@@ -10,6 +10,8 @@ import { FinanceList, FinanceRow, FinanceSection, financeHeroNumberClass } from 
 
 interface FireCalculatorPanelProps {
 
+  hasBudget: boolean;
+
   input: FireInputs;
 
   onChange: (patch: Partial<FireInputs>) => void;
@@ -18,7 +20,7 @@ interface FireCalculatorPanelProps {
 
 
 
-export function FireCalculatorPanel({ input, onChange }: FireCalculatorPanelProps) {
+export function FireCalculatorPanel({ input, onChange, hasBudget }: FireCalculatorPanelProps) {
 
   const fire = computeFireMetrics(input);
 
@@ -140,7 +142,7 @@ export function FireCalculatorPanel({ input, onChange }: FireCalculatorPanelProp
 
 
 
-      <FinanceSection title="Wynik">
+      {hasBudget ? <FinanceSection title="Wynik">
 
         <div className="px-4 py-5">
 
@@ -174,7 +176,7 @@ export function FireCalculatorPanel({ input, onChange }: FireCalculatorPanelProp
 
         </FinanceList>
 
-      </FinanceSection>
+      </FinanceSection> : <p className="text-sm text-text-muted">Uzupełnij miesięczne wydatki, żeby obliczyć cel.</p>}
 
     </div>
 

@@ -1,6 +1,7 @@
 import { confirmDialog } from '../../lib/notify';
 import { deleteTodoItem, type TodoItemRow } from '../../lib/todo/todo';
 import type { Dispatch, SetStateAction } from 'react';
+import { playTodoExit } from './todoExitAnimation';
 
 /** Shared by the card and its menu so deletion has one confirmation and rollback path. */
 export async function confirmAndDeleteTodoItem(
@@ -9,6 +10,7 @@ export async function confirmAndDeleteTodoItem(
   setError: (message: string) => void,
 ) {
   if (!await confirmDialog(`Usunąć zadanie „${item.title}” na stałe?`)) return;
+  await playTodoExit(item.id);
   setItems(previous => previous.filter(current => current.id !== item.id));
   try {
     await deleteTodoItem(item.id);

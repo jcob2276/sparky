@@ -2,6 +2,7 @@ import { useTodoContext } from './context/TodoContext';
 import BucketHeader from './BucketHeader';
 import TodoCardConnected from './TodoCardConnected';
 import EmptyState from './EmptyState';
+import { dropState } from './todoDropState';
 
 interface TodoInboxZoneProps {
   renderInlineQuickCapture: (sectionId: string) => React.ReactNode;
@@ -19,13 +20,8 @@ export default function TodoInboxZone({ renderInlineQuickCapture, renderAddTodoB
   return (
     <div
       ref={inboxZoneRef}
-      className={`todo-grouped-surface mb-4 ${
-        draggingItem !== null
-          ? dragTarget === 'inbox'
-            ? 'ring-2 ring-primary/60 shadow-[var(--shadow-accent-active)]'
-            : 'border-dashed border-primary/40'
-          : ''
-      }`}
+      className="todo-grouped-surface mb-4"
+      data-drop={dropState(draggingItem !== null, dragTarget === 'inbox')}
     >
       <div className="todo-grouped-header">
         <BucketHeader
@@ -48,7 +44,7 @@ export default function TodoInboxZone({ renderInlineQuickCapture, renderAddTodoB
               dragColor="primary"
             />
           ) : (
-            <div className="todo-focus-grid">
+            <div className="todo-focus-grid" data-drop-label="Upuść, aby przenieść do skrzynki">
               {inboxItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}
             </div>
           )}

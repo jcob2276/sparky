@@ -38,8 +38,8 @@ Deno.serve(serveJson(async (req, jsonCtx) => {
   // save_link / setup_commands / fix_webhook are manual/admin-only utility branches —
   // never invoked by Telegram itself (no `update_id`/`message` shape), so they're free
   // to use serveJson's normal JSON error/success framing (real errors surface as real
-  // non-2xx responses) instead of the webhook's plain-text-always-200 contract below,
-  // which exists specifically to stop Telegram's own retry storm on internal failures.
+  // non-2xx responses) instead of the webhook's plain-text acknowledgement below.
+  // Webhook success means the inbox write completed, not that processing finished.
   if (payload.type === "save_link" && payload.url) {
       const { userId } = await resolveUserScope(req, ctx.vanguardUserId);
       if (!userId) throw new Error("Missing user scope");
@@ -116,8 +116,8 @@ Deno.serve(serveJson(async (req, jsonCtx) => {
       };
     }
 
-    // From here on: genuine Telegram webhook processing. Always ack "OK" 200, swallowing
-    // internal errors, so Telegram doesn't retry-storm this endpoint on our failures.
+    // Acknowledge accepted updates only after their durable inbox write. Processing
+    // failures belong to the worker; failure to accept an update must remain retryable.
     try {
       const secretCheck = verifyTelegramSecret(req);
       if (secretCheck === "missing_config") {
@@ -144,9 +144,7 @@ Deno.serve(serveJson(async (req, jsonCtx) => {
         const { error } = await supabase
           .from("vanguard_telegram_inbox")
           .insert({ payload });
-        if (error) {
-          console.error("[telegram] failed to queue callback_query:", error);
-        }
+        if (error) throw error;
         return new Response("OK", { status: 200 });
       }
 
@@ -173,9 +171,7 @@ Deno.serve(serveJson(async (req, jsonCtx) => {
       const { error } = await supabase
         .from("vanguard_telegram_inbox")
         .insert({ payload });
-      if (error) {
-        console.error("[telegram] failed to queue message:", error);
-      }
+      if (error) throw error;
       return new Response("OK", { status: 200 });
     } catch (err) {
       await logCriticalError({
@@ -183,6 +179,6 @@ Deno.serve(serveJson(async (req, jsonCtx) => {
         error: err,
         message: 'Top-level Telegram webhook error',
       });
-      return new Response("OK", { status: 200 });
+      return new Response("Inbox unavailable", { status: 503, headers: { "Retry-After": "5" } });
     }
 }, { auth: 'none' }));

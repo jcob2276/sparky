@@ -152,7 +152,7 @@ export async function handleCallbackQuery(
   if (isPatternFeedbackCallback(data)) {
     await handlePatternFeedbackCallback(
       data,
-      message,
+      { ...message, message_id: messageId },
       chatId,
       callbackId,
       ctx,
@@ -163,7 +163,7 @@ export async function handleCallbackQuery(
   if (isFeedbackCallback(data)) {
     await handleFeedbackCallback(
       data,
-      message,
+      { ...message, message_id: messageId },
       chatId,
       callbackId,
       ctx,

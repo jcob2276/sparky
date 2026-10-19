@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Pencil, Calendar, Copy, Trash2 } from 'lucide-react';
 import { Pressable, ControlSelect } from '../ui/ControlPrimitives';
@@ -22,6 +22,9 @@ export interface ContextMenuProps {
 
 export default function ContextMenu({ x, y, item, today, sections, onClose, onDelete, onSetDueDate, onMoveSection, onEditStart, onSetPriority, onDuplicate }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
+  // The parent passes a fresh onClose every render; keep the effect (focus + listeners) mounted once per position.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; });
   // Keyboard openings stay instant; pointer openings communicate the trigger's location.
   const [pointerOpening] = useState(() => !document.activeElement?.matches(':focus-visible'));
   const width = Math.min(288, window.innerWidth - 16);
@@ -38,13 +41,13 @@ export default function ContextMenu({ x, y, item, today, sections, onClose, onDe
     }
     panel?.querySelector<HTMLButtonElement>('button')?.focus();
     const closeOutside = (event: PointerEvent) => {
-      if (panel && !panel.contains(event.target as Node)) onClose();
+      if (panel && !panel.contains(event.target as Node)) onCloseRef.current();
     };
     const navigate = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
         event.stopPropagation();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (!(event.target instanceof Node) || !panel?.contains(event.target)) return;
@@ -70,7 +73,7 @@ export default function ContextMenu({ x, y, item, today, sections, onClose, onDe
       document.removeEventListener('keydown', navigate, true);
       if (document.activeElement === document.body || panel?.contains(document.activeElement)) trigger?.focus();
     };
-  }, [onClose, x, y, left]);
+  }, [x, y, left]);
 
   const act = (action: () => void) => { action(); onClose(); };
   const rowClass = 'todo-instant flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left font-medium hover:bg-surface-2 focus-visible:shadow-focus';
@@ -78,8 +81,8 @@ export default function ContextMenu({ x, y, item, today, sections, onClose, onDe
 
   return createPortal(
     <div ref={ref} role="dialog" aria-label={`Opcje zadania: ${item.title}`} data-motion={pointerOpening ? 'pointer' : 'keyboard'}
-      style={{ left, top, transformOrigin: `${Math.max(0, x - left)}px ${Math.max(0, y - top)}px` }}
-      className="todo-action-menu fixed overflow-y-auto rounded-2xl border border-border-custom bg-surface p-2 shadow-xl text-sm text-text-primary">
+      style={{ left, top, width, transformOrigin: `${Math.max(0, x - left)}px ${Math.max(0, y - top)}px` }}
+      className="todo-action-menu fixed overflow-y-auto overscroll-contain rounded-2xl border border-border-custom bg-surface p-2 shadow-xl text-sm text-text-primary">
       <Pressable onClick={() => act(onEditStart)} className={rowClass}><Pencil size={17} aria-hidden="true" />Edytuj zadanie</Pressable>
       <div className="my-2 border-t border-border-custom" />
       <p className="flex items-center gap-2 px-3 text-xs font-medium text-text-secondary"><Calendar size={14} aria-hidden="true" />Termin</p>

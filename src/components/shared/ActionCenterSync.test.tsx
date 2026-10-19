@@ -21,7 +21,6 @@ vi.mock('../lifestyle/direction/hooks/useDirectionContext', () => ({ useDirectio
 vi.mock('../../hooks/useSpineGuidance', () => ({ useSpineGuidance: () => ({ guidance: null }) }));
 vi.mock('../../lib/goal/goalSpine', () => ({ quickCompleteOverdueWeeklyReview: vi.fn() }));
 vi.mock('./WeekLoopSummary', () => ({ default: () => null }));
-vi.mock('../lifestyle/WeeklyBalanceHexagon', () => ({ default: () => null }));
 vi.mock('../biometrics/workout/TrainingPlanContainer', () => ({ default: () => null }));
 vi.mock('../biometrics/workout/HealthCoachWeeklyReview', () => ({ default: () => null }));
 

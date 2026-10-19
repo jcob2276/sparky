@@ -20,6 +20,7 @@ import type { NoteFolder } from '../../lib/noteFoldersApi';
 import NoteSaveIndicator from './NoteSaveIndicator';
 import { deriveNoteMetadata } from '../../lib/noteText';
 import NoteEditorMoreMenu from './NoteEditorMoreMenu';
+import NoteReferences from './NoteReferences';
 
 interface InlineEditorProps {
   note: Note;
@@ -56,6 +57,14 @@ export default function InlineEditor({
   
   const c = getColor(color);
   const metadata = deriveNoteMetadata(content);
+  const navigateReference = (id: string) => {
+    if (!allNotes.some(item => item.id === id && item.user_id === note.user_id && !item.deleted_at)) {
+      notify('Ta notatka jest niedostępna lub została usunięta.', 'error');
+      return;
+    }
+    flushSave();
+    onNavigateToNote?.(id);
+  };
 
   const aiSummarize = async () => {
     setAiLoading('summary');
@@ -170,9 +179,10 @@ export default function InlineEditor({
             allNotes={allNotes} 
             noteId={note.id} 
             userId={userId || undefined}
-            onNavigateToNote={id => { flushSave(); onNavigateToNote?.(id); }} 
+            onNavigateToNote={navigateReference}
           />
         </div>
+        <NoteReferences note={{ ...note, content }} notes={allNotes} onNavigate={navigateReference} />
         <NoteFolderPicker
           folderId={folder_id}
           folders={folders}

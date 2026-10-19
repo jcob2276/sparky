@@ -11,6 +11,8 @@ describe('canonicalExerciseName', () => {
     expect(canonicalExerciseName('Pull-up')).toBe('Podciąganie nachwytem');
     expect(canonicalExerciseName('OHP')).toBe('OHP sztangą');
     expect(canonicalExerciseName('Hip Thrust')).toBe('Hip thrust');
+    expect(canonicalExerciseName('bench press')).toBe('Wyciskanie płaskie');
+    expect(canonicalExerciseName('Barbell bench press')).toBe('Wyciskanie płaskie');
   });
 
   it('zostawia nieznane nazwy bez zmian', () => {

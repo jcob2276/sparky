@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import type { Database } from '../../../lib/database.types';
 import { usePersistentDraft } from '../../../hooks/usePersistentDraft';
-import { parseTodoQuickInput } from '../../../lib/todo/todoParser';
+import { matchSectionByTag, parseTodoQuickInput } from '../../../lib/todo/todoParser';
 import { combineDateTimeWarsawISO } from '../../../lib/date';
 import { createTodoItem } from '../../../lib/todo/todo';
 
@@ -15,6 +15,20 @@ interface UseTodoQuickCaptureProps {
   classifyInBackground: (item: TodoItemRow) => void;
 }
 
+export interface AddTodoOptions {
+  /** Keep the capture modal open (and its section/date context) so the next task can be typed at once. */
+  keepOpen?: boolean;
+  /** Sections used to resolve a typed `#sekcja` into a section. */
+  sections?: ReadonlyArray<{ id: string; name: string }>;
+}
+
+const EMPTY_FORM = {
+  title: '', notes: '', priority: 'normal', tagsText: '', due_date: '', deadline_date: '',
+  recurrence: '', section_id: '', scheduled_time: '', reminder_at: '',
+};
+const DOUBLE_SUBMIT_WINDOW_MS = 300;
+let tempCounter = 0;
+
 export function useTodoQuickCapture({
   userId,
   activeFilterSection,
@@ -25,22 +39,12 @@ export function useTodoQuickCapture({
   // Persisted quick-add draft
   const [form, setForm] = usePersistentDraft(
     userId ? `vanguard_todo_quickadd_draft_${userId}` : null,
-    {
-      title: '',
-      notes: '',
-      priority: 'normal',
-      tagsText: '',
-      due_date: '',
-      deadline_date: '',
-      recurrence: '',
-      section_id: '',
-      scheduled_time: '',
-      reminder_at: '',
-    }
+    EMPTY_FORM,
   );
 
   const [isExpanded, setIsExpanded] = useState(false);
   const quickCaptureRef = useRef<HTMLDivElement>(null);
+  const lastSubmitRef = useRef(0);
 
   const parsedInput = useMemo(() => parseTodoQuickInput(form.title), [form.title]);
 
@@ -61,18 +65,24 @@ export function useTodoQuickCapture({
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
-  const addItem = () => {
+  const addItem = (options: AddTodoOptions = {}) => {
     const title = parsedInput.title || form.title.trim();
     if (!title) return;
+    // Guards against a double Enter / click landing before the cleared draft re-renders.
+    const submittedAt = Date.now();
+    if (submittedAt - lastSubmitRef.current < DOUBLE_SUBMIT_WINDOW_MS) return;
+    lastSubmitRef.current = submittedAt;
+    const submittedForm = form;
 
     const priority = parsedInput.priority || form.priority;
     const due_date = parsedInput.due_date || form.due_date || null;
     const deadline_date = parsedInput.deadline_date || form.deadline_date || null;
     const duration_minutes = parsedInput.duration_minutes ?? null;
-    const section_id = form.section_id || activeFilterSection || null;
+    const sectionMatch = matchSectionByTag(parsedInput.tags, options.sections ?? []);
+    const section_id = sectionMatch.sectionId || form.section_id || activeFilterSection || null;
     const notes = form.notes || null;
     const tags = [...new Set([
-      ...parsedInput.tags,
+      ...sectionMatch.tags,
       ...form.tagsText.split(',').map((tag) => tag.trim()).filter(Boolean),
     ])];
     const tagsText = tags.join(',');
@@ -84,7 +94,7 @@ export function useTodoQuickCapture({
         : null;
     const reminder_at = form.reminder_at || (scheduled_time ? scheduled_time : null);
     // Optimistic insert
-    const tempId = `__temp_${Date.now()}`;
+    const tempId = `__temp_${Date.now()}_${tempCounter++}`;
     const optimistic: TodoItemRow = {
       id: tempId,
       user_id: userId,
@@ -116,19 +126,10 @@ export function useTodoQuickCapture({
     };
 
     setItems((prev) => [optimistic, ...prev]);
-    setForm({
-      title: '',
-      notes: '',
-      priority: 'normal',
-      tagsText: '',
-      due_date: '',
-      deadline_date: '',
-      recurrence: '',
-      section_id: '',
-      scheduled_time: '',
-      reminder_at: '',
-    });
-    setIsExpanded(false);
+    setForm(options.keepOpen
+      ? { ...EMPTY_FORM, section_id: submittedForm.section_id, due_date: submittedForm.due_date }
+      : EMPTY_FORM);
+    if (!options.keepOpen) setIsExpanded(false);
 
     createTodoItem(userId, {
       title,
@@ -147,9 +148,11 @@ export function useTodoQuickCapture({
         setItems((prev) => prev.map((i) => (i.id === tempId ? newItem : i)));
         if (!due_date && priority === 'normal') classifyInBackground(newItem);
       })
-      .catch((err) => {
+      .catch((err: unknown) => {
         setItems((prev) => prev.filter((i) => i.id !== tempId));
-        setError(err.message);
+        // Give the text back so a failed save never loses what was typed.
+        setForm((current) => (current.title.trim() ? current : submittedForm));
+        setError(err instanceof Error ? err.message : String(err));
       });
   };
 

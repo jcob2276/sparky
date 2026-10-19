@@ -1,4 +1,5 @@
 import { formatLongDateWarsaw, shiftDateStr } from '../../lib/date';
+import { normalizeSmartQueryAliases } from './smartQueryAliases';
 import { Shield, Zap, Wallet } from 'lucide-react';
 
 export const RECURRENCE_LABELS: Record<string, string> = {
@@ -114,11 +115,12 @@ export interface SmartQueryItem {
 }
 
 export function matchesSmartQuery(
-  query: string,
+  rawQuery: string,
   item: SmartQueryItem,
   today: string,
   sectionNameById: Record<string, string>
 ): boolean {
+  const query = normalizeSmartQueryAliases(rawQuery);
   const tokenRe = /(\w+):(\S+)/g;
   let m: RegExpExecArray | null;
   let freeText = query;

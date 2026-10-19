@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { updateTodoItem } from '../../lib/todo/todo';
 import type { TodoItemUpdate } from '../../lib/todo/todo';
 import { Check } from 'lucide-react';
-import { Pressable } from '../ui/ControlPrimitives';
+import { Pressable, ControlSelect } from '../ui/ControlPrimitives';
 
 interface Item {
   id: string;
@@ -156,7 +156,7 @@ export default function EisenhowerMatrix({ items, setItems }: Props) {
                         e.stopPropagation();
                         completeTask(item.id);
                       }}
-                      className="mt-0.5 shrink-0 btn-press cursor-pointer"
+                      className="todo-tap-target shrink-0 cursor-pointer btn-press"
                       aria-label={`Oznacz jako wykonane: ${item.title}`}
                     >
                       <div className="h-3.5 w-3.5 rounded-full border border-border-custom hover:border-success hover:bg-success/15 flex items-center justify-center transition-colors">
@@ -177,6 +177,17 @@ export default function EisenhowerMatrix({ items, setItems }: Props) {
                           </span>
                         )}
                       </div>
+                      <ControlSelect
+                        value={quadrantOf(item)}
+                        onChange={(e) => {
+                          const target = QUADRANTS.find((x) => x.key === e.target.value);
+                          if (target) moveToQuadrant(item, target);
+                        }}
+                        aria-label={`Przenieś zadanie: ${item.title}`}
+                        className="mt-2 h-11 w-full rounded-lg border border-border-custom bg-surface-solid px-2 text-base text-text-secondary sm:hidden"
+                      >
+                        {QUADRANTS.map((x) => <option key={x.key} value={x.key}>{x.label}</option>)}
+                      </ControlSelect>
                     </div>
                   </div>
                 ))}

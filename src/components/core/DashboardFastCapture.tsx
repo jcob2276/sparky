@@ -1,10 +1,11 @@
 import { memo, useMemo } from 'react';
 import { Pressable } from '../ui/ControlPrimitives';
-import { Plus, Shield, Zap, Wallet } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import Sheet from '../ui/Sheet';
 import { useHaptics } from '../../hooks/useHaptics';
 import { prefetchWorkspaceRoute } from '../../lib/workspacePrefetch';
+import { useRecentFastActions } from './hooks/useRecentFastActions';
 
 interface FastCaptureItem {
   label: string;
@@ -19,136 +20,59 @@ interface ToolItem {
   icon: LucideIcon;
   action: () => void;
   route?: string;
-  category?: 'operacje' | 'strategia_zdrowie';
 }
 
 interface Props {
   show: boolean;
   onClose: () => void;
+  /** Things you log (training, sauna, eyesight…). */
   items: FastCaptureItem[];
+  /** Places you jump to (tasks, calendar, notes…). */
   tools: ToolItem[];
   userId?: string;
   onRefresh?: () => void;
+  /** Counters shown on navigation tiles, keyed by route (e.g. { todo: 3 }). */
+  badges?: Record<string, number>;
 }
 
-interface ActionTile {
+interface Tile {
   label: string;
-  icon?: LucideIcon;
+  icon: LucideIcon;
   action: () => void;
   route?: string;
-  colorClass: string;
+  color?: string;
 }
 
-function buildFastCaptureSections(items: FastCaptureItem[], tools: ToolItem[]) {
-  const cialoActions: ActionTile[] = [];
-  const kontoActions: ActionTile[] = [];
-  const duchActions: ActionTile[] = [];
-  const otherActions: ActionTile[] = [];
-
-  items.forEach((item) => {
-    const lower = item.label.toLowerCase();
-    if (lower.includes('trening') || lower.includes('saun') || lower.includes('wzrok') || lower.includes('wag') || lower.includes('jedzenie')) {
-      cialoActions.push({
-        label: item.label,
-        icon: item.icon,
-        action: item.action,
-        colorClass: 'bg-success/10 text-success border-success/20 hover:border-success/40',
-      });
-    } else {
-      cialoActions.push({
-        label: item.label,
-        icon: item.icon,
-        action: item.action,
-        colorClass: 'bg-primary/10 text-primary border-primary/20 hover:border-primary/40',
-      });
-    }
-  });
-
-  tools.forEach((tool) => {
-    const lower = tool.label.toLowerCase();
-    if (lower.includes('zadani') || lower.includes('kalendarz') || lower.includes('notatk') || lower.includes('keep')) {
-      kontoActions.push({
-        label: tool.label,
-        icon: tool.icon,
-        action: tool.action,
-        route: tool.route,
-        colorClass: 'bg-warning/10 text-warning border-warning/20 hover:border-warning/40',
-      });
-    } else if (lower.includes('finans') || lower.includes('pocket') || lower.includes('termin') || lower.includes('rozwój') || lower.includes('rozwoj')) {
-      duchActions.push({
-        label: tool.label,
-        icon: tool.icon,
-        action: tool.action,
-        route: tool.route,
-        colorClass: 'bg-primary/10 text-primary border-primary/20 hover:border-primary/40',
-      });
-    } else {
-      otherActions.push({
-        label: tool.label,
-        icon: tool.icon,
-        action: tool.action,
-        route: tool.route,
-        colorClass: 'bg-surface-2/70 text-text-primary border-border-custom/40 hover:border-primary/30',
-      });
-    }
-  });
-
-  const kontoPriority = ['zadani', 'kalendarz', 'notatk', 'keep'];
-  kontoActions.sort((a, b) => {
-    const idxA = kontoPriority.findIndex(k => a.label.toLowerCase().includes(k));
-    const idxB = kontoPriority.findIndex(k => b.label.toLowerCase().includes(k));
-    return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
-  });
-
-  const duchPriority = ['finans', 'termin', 'rozwój', 'rozwoj', 'pocket'];
-  duchActions.sort((a, b) => {
-    const idxA = duchPriority.findIndex(k => a.label.toLowerCase().includes(k));
-    const idxB = duchPriority.findIndex(k => b.label.toLowerCase().includes(k));
-    return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
-  });
-
-  return [
-    {
-      id: 'cialo',
-      title: 'Ciało & Biometria',
-      icon: Shield,
-      accent: 'text-success',
-      tiles: cialoActions,
-    },
-    {
-      id: 'konto',
-      title: 'Konto & Działanie',
-      icon: Wallet,
-      accent: 'text-warning',
-      tiles: kontoActions,
-    },
-    {
-      id: 'duch',
-      title: 'Duch & Wiedza',
-      icon: Zap,
-      accent: 'text-primary',
-      tiles: duchActions,
-    },
-    ...(otherActions.length > 0 ? [{
-      id: 'inne',
-      title: 'Pozostałe narzędzia',
-      icon: Plus,
-      accent: 'text-text-muted',
-      tiles: otherActions,
-    }] : []),
-  ];
+function SectionTitle({ children }: { children: string }) {
+  return <p className="px-1 text-xs font-semibold uppercase tracking-wider text-text-muted">{children}</p>;
 }
 
-export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools, userId }: Props) {
+export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools, userId, badges }: Props) {
   const { selection } = useHaptics();
+  const { recent, remember } = useRecentFastActions();
 
-  const handleAction = (act: () => void) => {
+  const logTiles = useMemo<Tile[]>(
+    () => items.map((item) => ({ label: item.label, icon: item.icon ?? Plus, action: item.action, color: item.color })),
+    [items],
+  );
+  const navTiles = useMemo<Tile[]>(
+    () => tools.map((tool) => ({ label: tool.label, icon: tool.icon, action: tool.action, route: tool.route })),
+    [tools],
+  );
+  const recentTiles = useMemo(() => {
+    const all = [...logTiles, ...navTiles];
+    return recent.map((label) => all.find((tile) => tile.label === label)).filter((tile): tile is Tile => !!tile);
+  }, [recent, logTiles, navTiles]);
+
+  const run = (tile: Tile) => {
     selection();
-    act();
+    remember(tile.label);
+    tile.action();
     onClose();
   };
-
-  const sections = useMemo(() => buildFastCaptureSections(items, tools), [items, tools]);
+  const warm = (tile: Tile) => {
+    if (tile.route && userId) prefetchWorkspaceRoute(userId, tile.route);
+  };
 
   return (
     <Sheet
@@ -159,53 +83,90 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
       side="bottom"
       title="Szybkie akcje"
     >
-      <div className="mx-auto max-w-md space-y-4 pb-6 pt-1 max-h-[72vh] overflow-y-auto pr-0.5">
-        {sections.map((sec) => {
-          if (sec.tiles.length === 0) return null;
-          const SecIcon = sec.icon;
-
-          return (
-            <div key={sec.id} className="rounded-2xl border border-border-custom/40 bg-surface/30 p-3 space-y-2.5">
-              <div className="flex items-center gap-1.5 px-1">
-                <SecIcon size={13} className={sec.accent} />
-                <span className={`text-2xs font-black uppercase tracking-widest ${sec.accent}`}>
-                  {sec.title}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                {sec.tiles.map((tile) => {
-                  const Icon = tile.icon;
-
-                  return (
-                    <Pressable
-                      key={tile.label}
-                      variant="ghost"
-                      aria-label={tile.label}
-                      onClick={() => handleAction(tile.action)}
-                      onMouseEnter={() => {
-                        if (tile.route && userId) prefetchWorkspaceRoute(userId, tile.route);
-                      }}
-                      onTouchStart={() => {
-                        if (tile.route && userId) prefetchWorkspaceRoute(userId, tile.route);
-                      }}
-                      className="flex flex-col items-center gap-1.5 rounded-xl p-2 text-center active:scale-95 transition-transform cursor-pointer"
-                    >
-                      <div className={`flex h-11 w-11 items-center justify-center rounded-2xl border shadow-xs transition-colors ${tile.colorClass}`}>
-                        {Icon ? <Icon size={20} /> : <Plus size={20} />}
-                      </div>
-                      <span className="text-2xs font-bold tracking-tight text-text-primary line-clamp-1 w-full text-center">
-                        {tile.label}
-                      </span>
-                    </Pressable>
-                  );
-                })}
-              </div>
+      <div className="mx-auto max-w-md space-y-5 pb-6 pt-1 max-h-[72vh] overflow-y-auto">
+        {recentTiles.length > 0 && (
+          <section className="space-y-2" aria-label="Ostatnio użyte">
+            <SectionTitle>Ostatnio</SectionTitle>
+            <div className="flex flex-wrap gap-2">
+              {recentTiles.map((tile) => {
+                const Icon = tile.icon;
+                return (
+                  <Pressable
+                    key={`recent-${tile.label}`}
+                    variant="ghost"
+                    aria-label={`Ostatnio: ${tile.label}`}
+                    onClick={() => run(tile)}
+                    onMouseEnter={() => warm(tile)}
+                    onTouchStart={() => warm(tile)}
+                    className="flex min-h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-medium text-text-primary active:scale-95"
+                  >
+                    <Icon size={16} aria-hidden="true" />
+                    <span>{tile.label}</span>
+                  </Pressable>
+                );
+              })}
             </div>
-          );
-        })}
+          </section>
+        )}
+
+        {logTiles.length > 0 && (
+          <section className="space-y-2" aria-label="Zaloguj">
+            <SectionTitle>Zaloguj</SectionTitle>
+            <div className="grid grid-cols-3 gap-2">
+              {logTiles.map((tile) => {
+                const Icon = tile.icon;
+                return (
+                  <Pressable
+                    key={tile.label}
+                    variant="ghost"
+                    aria-label={tile.label}
+                    onClick={() => run(tile)}
+                    className="block w-full rounded-2xl text-center active:scale-95"
+                  >
+                    <span className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl bg-surface-2 px-2 py-3">
+                      <Icon size={24} style={{ color: tile.color }} aria-hidden="true" />
+                      <span className="text-sm font-medium text-text-primary">{tile.label}</span>
+                    </span>
+                  </Pressable>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {navTiles.length > 0 && (
+          <section className="space-y-2" aria-label="Przejdź do">
+            <SectionTitle>Przejdź do</SectionTitle>
+            <div className="grid grid-cols-4 gap-1">
+              {navTiles.map((tile) => {
+                const Icon = tile.icon;
+                const badge = tile.route ? badges?.[tile.route] ?? 0 : 0;
+                return (
+                  <Pressable
+                    key={tile.label}
+                    variant="ghost"
+                    aria-label={badge > 0 ? `${tile.label}, ${badge} pilnych` : tile.label}
+                    onClick={() => run(tile)}
+                    onMouseEnter={() => warm(tile)}
+                    onTouchStart={() => warm(tile)}
+                    className="flex min-h-11 flex-col items-center gap-1.5 rounded-xl p-2 text-center active:scale-95"
+                  >
+                    <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-surface-2 text-text-primary">
+                      <Icon size={20} aria-hidden="true" />
+                      {badge > 0 && (
+                        <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-xs font-semibold tabular-nums text-on-accent">
+                          {badge > 9 ? '9+' : badge}
+                        </span>
+                      )}
+                    </span>
+                    <span className="w-full truncate text-xs font-medium text-text-secondary">{tile.label}</span>
+                  </Pressable>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </div>
     </Sheet>
   );
 });
-

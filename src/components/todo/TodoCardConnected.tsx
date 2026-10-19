@@ -13,12 +13,16 @@ import { applyOptimisticPatch } from './todoOptimistic';
 import type { Database } from '../../lib/database.types';
 import { combineDateTimeWarsawISO, warsawTimeOfDay } from '../../lib/date';
 import { confirmAndDeleteTodoItem } from './todoDeleteAction';
+import { notify } from '../../lib/notify';
+import { registerReversibleAction, undoAction } from '../../lib/actionHistory';
 
 type TodoItemRow = Database['public']['Tables']['todo_items']['Row'];
 
 interface TodoCardConnectedProps {
   item: TodoItemRow;
   inToday?: boolean;
+  /** Hide the list name when the card already sits under its list header. */
+  hideSectionName?: boolean;
 }
 
 function useTodoCardHandlers(item: TodoItemRow) {
@@ -102,6 +106,7 @@ function useTodoCardHandlers(item: TodoItemRow) {
 export default function TodoCardConnected({
   item,
   inToday = false,
+  hideSectionName = false,
 }: TodoCardConnectedProps) {
   const {
     today,
@@ -131,6 +136,21 @@ export default function TodoCardConnected({
 
   const onDrop = useCallback(() => {
     applyOptimisticPatch(setItems, item, { status: 'dropped' }, () => setTodoStatus(item, 'dropped'), setError);
+    const actionId = registerReversibleAction({
+      label: `Porzucenie: ${item.title}`,
+      undo: async () => {
+        setItems(prev => prev.map(i => i.id === item.id ? { ...i, status: item.status } : i));
+        await setTodoStatus({ id: item.id }, item.status === 'done' ? 'done' : 'open');
+      },
+    });
+    notify('Zadanie porzucone.', 'success', {
+      action: {
+        label: 'Cofnij',
+        onClick: () => {
+          void undoAction(actionId).catch((err) => setError(err instanceof Error ? err.message : String(err)));
+        },
+      },
+    });
   }, [item, setItems, setError]);
 
   const onCancelReminder = useCallback(() => {
@@ -148,7 +168,7 @@ export default function TodoCardConnected({
   const onAddChildTask = useCallback((title: string) => addChildTask(item, title), [item, addChildTask]);
 
   return (
-    <div data-todo-id={item.id}>
+    <div data-todo-id={item.id} tabIndex={-1} className="todo-row-shell">
     <TodoCard
       item={item}
       busy={false}
@@ -167,7 +187,8 @@ export default function TodoCardConnected({
       }}
       onEditChange={setEditingTitle}
       onEditSave={() => saveEditTitle(item)}
-      sectionName={item.section_id ? sectionById[item.section_id]?.name : 'Skrzynka'}
+      onEditCancel={() => { setEditingId(null); setEditingTitle(''); }}
+      sectionName={hideSectionName ? null : item.section_id ? sectionById[item.section_id]?.name : 'Skrzynka'}
       dreamTitle={item.section_id ? sectionDreamMap[item.section_id] ?? null : null}
       onDragStart={handleDragStart}
       isDragging={draggingItem?.id === item.id}

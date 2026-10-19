@@ -25,5 +25,7 @@ export const STORAGE_KEYS = {
   ENDMYOPIA_CALIBRATION: 'endmyopia_calibration',
   ENDMYOPIA_AUTO_CAPTURE: 'endmyopia_auto_capture',
   BACKGROUND_SYNC_ENABLED: 'vanguard_background_sync_enabled',
+  /** Scoped accent for /trening (.trening-theme) — not global Sparky theme. */
+  TRENING_ACCENT: 'sparky_trening_accent',
 } as const;
 

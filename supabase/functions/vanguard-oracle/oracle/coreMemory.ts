@@ -1,121 +1,87 @@
-/**
- * coreMemory.ts — Memory Inbox & Disciplined Core Memory Blocks (Letta pattern).
- * Manages persistent, constrained memory slots in vanguard_preferences:
- * - human: durable personal traits (TTL 60 days)
- * - focus: active sprint / weekly objective (TTL 7 days)
- * - avoidance: active friction pattern (TTL 7 days)
- *
- * Invariants:
- * 1. Strict length limit (max 220 chars per block).
- * 2. Mandatory TTL (expires_at) — blocks naturally decay rather than fossilize.
- * 3. Structured JSON storage with timestamps and expiration.
- */
-
-import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+/** Persistent owner-authored core memory slots in vanguard_preferences. */
+import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { readMemoryValue } from '@vanguard/domain';
 
 export interface CoreMemoryBlocks {
   human?: string;
   focus?: string;
   avoidance?: string;
 }
-
 export interface CoreMemoryMutation {
-  block: "human" | "focus" | "avoidance";
-  action: "set" | "append";
+  block: 'human' | 'focus' | 'avoidance';
+  action: 'set' | 'append';
   content: string;
 }
-
-interface StoredMemoryEnvelope {
-  text: string;
-  updated_at: string;
-  expires_at: string;
-}
-
-const PREFIX = "core_memory:";
+const PREFIX = 'core_memory:';
 const MAX_BLOCK_CHARS = 220;
+const BLOCKS = ['human', 'focus', 'avoidance'] as const;
 
-function parseBlockValue(raw: string | null): string | undefined {
-  if (!raw) return undefined;
-  try {
-    const envelope = JSON.parse(raw) as StoredMemoryEnvelope;
-    if (envelope.expires_at && new Date(envelope.expires_at).getTime() < Date.now()) {
-      return undefined; // Block expired
-    }
-    return envelope.text || undefined;
-  } catch {
-    // Legacy plain string fallback
-    return raw.trim() || undefined;
-  }
-}
-
-export async function fetchCoreMemory(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<CoreMemoryBlocks> {
-  const { data } = await supabase
-    .from("vanguard_preferences")
-    .select("key, value")
-    .eq("user_id", userId)
-    .eq("is_active", true)
-    .like("key", `${PREFIX}%`);
-
+export async function fetchCoreMemory(supabase: SupabaseClient, userId: string): Promise<CoreMemoryBlocks> {
+  const { data, error } = await supabase.from('vanguard_preferences').select('key, value')
+    .eq('user_id', userId).eq('is_active', true).like('key', `${PREFIX}%`);
+  if (error) throw new Error('Core memory could not be read');
   const result: CoreMemoryBlocks = {};
-  for (const row of data || []) {
-    const parsed = parseBlockValue(row.value);
-    if (!parsed) continue;
-
-    if (row.key === `${PREFIX}human`) result.human = parsed;
-    else if (row.key === `${PREFIX}focus`) result.focus = parsed;
-    else if (row.key === `${PREFIX}avoidance`) result.avoidance = parsed;
+  for (const row of data ?? []) {
+    const parsed = readMemoryValue(row.value);
+    if (!parsed.restorable) continue;
+    const block = BLOCKS.find((name) => row.key === `${PREFIX}${name}`);
+    if (block) result[block] = parsed.text.slice(0, MAX_BLOCK_CHARS);
   }
   return result;
 }
 
 export async function applyCoreMemoryMutation(
-  supabase: SupabaseClient,
-  userId: string,
-  mutation: CoreMemoryMutation,
+  supabase: SupabaseClient, userId: string, mutation: CoreMemoryMutation,
 ): Promise<boolean> {
-  if (!mutation || !mutation.block || !mutation.content) return false;
-
-  const validBlocks = ["human", "focus", "avoidance"];
-  if (!validBlocks.includes(mutation.block)) return false;
-
+  if (!mutation || !BLOCKS.includes(mutation.block)
+    || !['set', 'append'].includes(mutation.action) || typeof mutation.content !== 'string') return false;
+  const addition = mutation.content.replace(/[\r\n]+/g, ' ').trim();
+  if (!addition) return false;
   const key = `${PREFIX}${mutation.block}`;
-  let cleanText = mutation.content.replace(/[\r\n]+/g, " ").trim();
-
-  // Invariant: strict character limit to prevent context stuffing
-  if (cleanText.length > MAX_BLOCK_CHARS) {
-    cleanText = cleanText.slice(0, MAX_BLOCK_CHARS).trim() + "...";
+  let text = addition;
+  let current: { id: string; value: string } | null = null;
+  if (mutation.action === 'append') {
+    const { data, error } = await supabase.from('vanguard_preferences').select('id, value')
+      .eq('user_id', userId).eq('key', key).eq('is_active', true).maybeSingle();
+    if (error) return false;
+    current = data;
+    const parsed = readMemoryValue(current?.value ?? null);
+    if (parsed.restorable) text = `${parsed.text.trim()} ${addition}`;
+    // Refuse an append that would silently discard either old or added content.
+    if (text.length > MAX_BLOCK_CHARS) return false;
   }
-
-  // TTL: 7 days for focus & avoidance, 60 days for durable human traits
-  const ttlDays = mutation.block === "human" ? 60 : 7;
+  text = text.slice(0, MAX_BLOCK_CHARS);
   const now = new Date();
-  const expiresAt = new Date(now.getTime() + ttlDays * 24 * 60 * 60 * 1000);
-
-  const envelope: StoredMemoryEnvelope = {
-    text: cleanText,
-    updated_at: now.toISOString(),
-    expires_at: expiresAt.toISOString(),
+  const ttlDays = mutation.block === 'human' ? 60 : 7;
+  const payload = {
+    user_id: userId, key, is_active: true, updated_at: now.toISOString(),
+    value: JSON.stringify({ text, updated_at: now.toISOString(), expires_at: new Date(now.getTime() + ttlDays * 86400000).toISOString() }),
   };
+  const query = current
+    ? supabase.from('vanguard_preferences').update(payload)
+      .eq('id', current.id).eq('user_id', userId).eq('is_active', true).eq('value', current.value)
+    : mutation.action === 'append'
+      ? supabase.from('vanguard_preferences').insert(payload)
+      : supabase.from('vanguard_preferences').upsert(payload, { onConflict: 'user_id,key' });
+  const { data, error } = await query.select('id').maybeSingle();
+  // No text, JSON envelope or database error payload is written to logs.
+  return !error && typeof data?.id === 'string';
+}
 
-  const { error } = await supabase.from("vanguard_preferences").upsert(
-    {
-      user_id: userId,
-      key,
-      value: JSON.stringify(envelope),
-      is_active: true,
-      updated_at: now.toISOString(),
-    },
-    { onConflict: "user_id,key" },
-  );
-
-  if (error) {
-    console.error(`[coreMemory] failed to upsert ${key}:`, error);
-    return false;
-  }
-
-  console.log(`[coreMemory] updated block "${mutation.block}" (TTL ${ttlDays}d):`, cleanText);
-  return true;
+/** Apply the write before the answer is rendered or stored in the Oracle run. */
+export async function persistCoreMemoryResponse<T extends Record<string, unknown>>(
+  supabase: SupabaseClient, userId: string, response: T, runMode: string,
+): Promise<T & { core_memory_saved?: boolean; text?: string }> {
+  if (!response.core_memory_mutation) return response;
+  const saved = runMode !== 'readOnly' && await applyCoreMemoryMutation(
+    supabase, userId, response.core_memory_mutation as CoreMemoryMutation,
+  ).catch(() => false);
+  if (saved) return { ...response, core_memory_saved: true };
+  const failureText = runMode === 'readOnly'
+    ? 'Tryb tylko do odczytu: nie zapisano zmiany w pamięci Sparky.'
+    : 'Nie udało się potwierdzić zapisu zmiany w pamięci Sparky. Sprawdź wpis przed ponowną próbą.';
+  return {
+    ...response, answer: failureText, text: failureText, should_respond: true,
+    core_memory_mutation: undefined, core_memory_saved: false,
+  };
 }

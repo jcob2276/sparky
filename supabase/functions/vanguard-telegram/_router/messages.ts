@@ -63,5 +63,6 @@ export async function handleIncomingMessage(
       error: err,
       message: "Unhandled error in handleIncomingMessage root pipeline",
     });
+    throw err;
   }
 }

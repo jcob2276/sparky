@@ -8,19 +8,6 @@ export interface OuraRow {
   sleep_efficiency?: number | null;
 }
 
-export interface WorkoutSessionSummary {
-  date: string | null;
-  exercise_logs: {
-    exercise_name: string;
-    weight: number | string | null;
-    reps: number | string | null;
-    muscle_tags?: string[];
-    is_pws_or_msp?: boolean | null;
-    rir?: number | null;
-    rpe?: number | null;
-  }[];
-}
-
 export interface StravaActivitySummary {
   start_date: string;
   sport_type: string;
@@ -28,8 +15,3 @@ export interface StravaActivitySummary {
   hr_avg?: number | null;
 }
 
-export interface NutritionDayRow {
-  date: string;
-  calories?: number | null;
-  protein?: number | null;
-}

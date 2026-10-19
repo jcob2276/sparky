@@ -158,7 +158,7 @@ export function OuraContextSection({
         : foodFailed ? 'Dane chwilowo niedostępne' : 'Nie zapisano posiłków',
       detail: withReadFailure(context.meals.lastAt == null
         ? null
-        : `Ostatni wpis ${context.meals.lastAt} · jakość ${context.meals.averageQuality ?? '—'}/10`, foodFailed),
+        : `Ostatni wpis ${context.meals.lastAt} · jakość ${context.meals.averageQuality ?? '—'}/100`, foodFailed),
       color: 'text-success',
     },
   ];

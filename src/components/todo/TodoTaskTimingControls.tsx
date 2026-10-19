@@ -25,7 +25,7 @@ export default function TodoTaskTimingControls({
   return (
     <>
       <div className="relative">
-        <Pressable type="button" onClick={() => setOpenPopover(openPopover === 'date' ? null : 'date')} className={`todo-instant flex min-h-11 items-center gap-1.5 rounded-lg border border-border-custom/80 px-2.5 py-2 text-xs font-semibold ${item.due_date ? 'border-primary/30 bg-primary/5 text-primary' : 'text-text-secondary'}`}>
+        <Pressable type="button" data-todo-popover-trigger="" aria-expanded={openPopover === 'date'} onClick={() => setOpenPopover(openPopover === 'date' ? null : 'date')} className={`todo-instant flex min-h-11 items-center gap-1.5 rounded-lg border border-border-custom/80 px-2.5 py-2 text-xs font-semibold ${item.due_date ? 'border-primary/30 bg-primary/5 text-primary' : 'text-text-secondary'}`}>
           <Calendar size={12} />
           {item.due_date ? `${item.due_date}${item.scheduled_time ? ` ${warsawTimeOfDay(item.scheduled_time)}` : ''}` : 'Zaplanuj'}
         </Pressable>
@@ -43,7 +43,7 @@ export default function TodoTaskTimingControls({
         </ControlSelect>
       </label>
       <div className="relative">
-        <Pressable type="button" onClick={() => setOpenPopover(openPopover === 'reminder' ? null : 'reminder')} className={`todo-instant flex min-h-11 items-center gap-1.5 rounded-lg border border-border-custom/80 px-2.5 py-2 text-xs font-semibold ${item.reminder_at ? 'border-primary/30 bg-primary/5 text-primary' : 'text-text-secondary'}`}>
+        <Pressable type="button" data-todo-popover-trigger="" aria-expanded={openPopover === 'reminder'} onClick={() => setOpenPopover(openPopover === 'reminder' ? null : 'reminder')} className={`todo-instant flex min-h-11 items-center gap-1.5 rounded-lg border border-border-custom/80 px-2.5 py-2 text-xs font-semibold ${item.reminder_at ? 'border-primary/30 bg-primary/5 text-primary' : 'text-text-secondary'}`}>
           <Bell size={12} /> {item.reminder_at ? new Date(item.reminder_at).toLocaleString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Przypomnienie'}
         </Pressable>
         {openPopover === 'reminder' && <TodoReminderPopover dueDate={item.due_date} scheduledTime={item.scheduled_time ? warsawTimeOfDay(item.scheduled_time) : null} onSetReminder={onSetReminder} onClose={() => setOpenPopover(null)} />}

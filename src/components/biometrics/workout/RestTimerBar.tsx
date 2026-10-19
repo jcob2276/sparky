@@ -8,6 +8,8 @@ interface RestTimerBarProps {
   initialSeconds?: number;
   onFinish?: () => void;
   onDismiss?: () => void;
+  /** Lift above Strive numpad dock when set entry is open. */
+  dockAboveNumpad?: boolean;
 }
 
 function playTimerBeep() {
@@ -36,6 +38,7 @@ export default function RestTimerBar({
   initialSeconds = 90,
   onFinish,
   onDismiss,
+  dockAboveNumpad = false,
 }: RestTimerBarProps) {
   const [totalSeconds, setTotalSeconds] = useState(initialSeconds);
   const [remaining, setRemaining] = useState(initialSeconds);
@@ -95,20 +98,24 @@ export default function RestTimerBar({
   const isDone = remaining === 0;
 
   return (
-    <div className="fixed bottom-24 left-4 right-4 max-w-md mx-auto z-[var(--z-sticky)] animate-in fade-in slide-in-from-bottom-3 duration-200">
+    <div
+      className={`fixed left-4 right-4 z-[calc(var(--z-modal)+1)] mx-auto max-w-md animate-in fade-in slide-in-from-bottom-3 duration-200 ${
+        dockAboveNumpad ? 'bottom-[19rem]' : 'bottom-24'
+      }`}
+    >
       <div
-        className={`rounded-2xl border shadow-xl backdrop-blur-md p-3 transition-all duration-300 ${
+        className={`rounded-2xl border p-3 shadow-xl backdrop-blur-md transition-all duration-300 ${
           isFlashing
-            ? 'bg-success/30 border-success ring-4 ring-success/50 animate-pulse text-success shadow-[0_0_30px_rgba(34,197,94,0.4)]'
+            ? 'animate-pulse border-success bg-success/30 text-success ring-4 ring-success/50 shadow-[0_0_30px_rgba(34,197,94,0.4)]'
             : isDone
-              ? 'bg-success/15 border-success/40 text-success'
-              : 'bg-surface-solid/95 border-primary/30 text-text-primary'
+              ? 'border-success/40 bg-success/15 text-success'
+              : 'border-success/35 bg-success/12 text-text-primary'
         }`}
       >
         <div className="flex items-center justify-between gap-3">
           {/* Left: icon + time */}
           <div className="flex items-center gap-2">
-            <div className={`p-1.5 rounded-xl ${isDone ? 'bg-success/20 text-success' : 'bg-primary/15 text-primary'}`}>
+            <div className={`rounded-xl p-1.5 ${isDone ? 'bg-success/20 text-success' : 'bg-success/20 text-success'}`}>
               <Timer size={16} />
             </div>
             <div>
@@ -170,9 +177,9 @@ export default function RestTimerBar({
 
         {/* Progress bar */}
         {!isDone && (
-          <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-border-custom/50">
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-success/20">
             <div
-              className="h-full rounded-full bg-primary transition-all duration-1000 ease-linear"
+              className="h-full rounded-full bg-success transition-all duration-1000 ease-linear"
               style={{ width: `${pct}%` }}
             />
           </div>

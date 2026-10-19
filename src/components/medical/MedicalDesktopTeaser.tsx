@@ -1,12 +1,10 @@
-import { FolderHeart, AlertTriangle, ArrowUpRight, FileText, CheckCircle2 } from 'lucide-react';
+import { FolderHeart, AlertTriangle, ArrowUpRight, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useMedicalData } from './hooks/useMedicalData';
 import {
   buildMarkerSeries,
   diffDaysFromToday,
   formatMedicalDate,
-  freshnessLabel,
-  labFreshness,
   PRIORITY_CHART_MARKERS,
 } from '../../lib/health/medicalAnalytics';
 import { ValueCell } from './MedicalLabSections';
@@ -23,7 +21,7 @@ function FlaggedMarkersAlert({ flaggedMarkers }: FlaggedAlertProps) {
       <div className="flex items-center justify-between text-2xs">
         <span className="font-bold text-warning flex items-center gap-1.5">
           <AlertTriangle size={13} />
-          <span>Markery poza zakresem referencyjnym ({flaggedMarkers.length}):</span>
+          <span>Poza normą ({flaggedMarkers.length}):</span>
         </span>
         <Link to="/badania/laboratorium" className="text-3xs font-semibold text-primary hover:underline">
           Otwórz laboratorium →
@@ -41,7 +39,7 @@ function FlaggedMarkersAlert({ flaggedMarkers }: FlaggedAlertProps) {
             </strong>
             {s.latest.flag && (
               <span className="text-3xs font-semibold px-1 rounded bg-warning/20 text-warning">
-                {s.latest.flag === 'H' ? '↑ wysoki' : s.latest.flag === 'L' ? '↓ niski' : s.latest.flag}
+                {s.latest.flag === 'H' || s.latest.flag === 'high' ? '↑ wysoki' : s.latest.flag === 'L' || s.latest.flag === 'low' ? '↓ niski' : 'poza celem'}
               </span>
             )}
             {s.latest.result_date && (
@@ -62,7 +60,7 @@ function FlaggedMarkersAlert({ flaggedMarkers }: FlaggedAlertProps) {
 }
 
 export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
-  const { labs, documents, loading } = useMedicalData(userId);
+  const { labs, loading } = useMedicalData(userId);
   const series = buildMarkerSeries(labs);
   const latestDate = labs[0]?.result_date ?? null;
 
@@ -75,8 +73,10 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
     .filter(Boolean)
     .slice(0, 6);
 
-  // Group unique categories
-  const categories = Array.from(new Set(series.map((s) => s.category).filter(Boolean)));
+  const staleFlagged = flaggedMarkers.filter((s) => {
+    const age = s.latest.result_date ? diffDaysFromToday(s.latest.result_date) : null;
+    return age != null && age > 365;
+  }).length;
 
   return (
     <Card variant="surface" className="bg-surface/30 border-border-custom space-y-4" padding="1.25rem">
@@ -86,14 +86,16 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
             <FolderHeart size={20} />
           </div>
           <div>
-            <h3 className="text-sm font-bold tracking-tight text-text-primary">Centrum Badań & Laboratorium</h3>
+            <h3 className="text-sm font-bold tracking-tight text-text-primary">Badania</h3>
             {latestDate && !loading ? (
               <p className="text-xs text-text-muted">
-                Ostatni panel: <strong className="text-text-secondary">{formatMedicalDate(latestDate)}</strong> (hormony/żelazo) ·{' '}
-                <span className="text-warning font-medium">lipidy & CBC do retestu (z 2025-04)</span> · {documents.length} plików PDF
+                Ostatni panel: <strong className="text-text-secondary">{formatMedicalDate(latestDate)}</strong>
+                {staleFlagged > 0 && (
+                  <> · <span className="font-medium text-warning">{staleFlagged} {staleFlagged === 1 ? 'wynik poza normą jest' : 'wyników poza normą jest'} sprzed ponad roku — czas na retest</span></>
+                )}
               </p>
             ) : (
-              <p className="text-xs text-text-muted">Kartoteka medyczna, morfologia i panele diagnostyczne</p>
+              <p className="text-xs text-text-muted">Wyniki badań krwi i dokumenty</p>
             )}
           </div>
         </div>
@@ -127,49 +129,6 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
         </div>
       ) : (
         <>
-          {/* Liczniki diagnostyczne */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-              <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Wszystkie markery</p>
-              <p className="mt-1 text-2xl font-light text-text-primary">{series.length}</p>
-              <p className="mt-0.5 text-2xs text-text-muted">{categories.length} układów biologicznych</p>
-            </div>
-
-            <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-              <p className="flex items-center justify-center gap-1 text-2xs font-bold uppercase tracking-wider text-text-muted">
-                {flaggedMarkers.length > 0 ? (
-                  <span className="text-warning flex items-center gap-1"><AlertTriangle size={11} /> Poza normą</span>
-                ) : (
-                  <span className="text-success flex items-center gap-1"><CheckCircle2 size={11} /> W normie</span>
-                )}
-              </p>
-              <p className={`mt-1 text-2xl font-light ${flaggedMarkers.length > 0 ? 'text-warning' : 'text-success'}`}>
-                {flaggedMarkers.length}
-              </p>
-              <p className="mt-0.5 text-2xs text-text-muted">
-                {flaggedMarkers.length > 0 ? 'wymaga uwagi lub kontroli' : 'wszystkie wyniki optymalne'}
-              </p>
-            </div>
-
-            <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-              <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Dokumentacja</p>
-              <p className="mt-1 text-2xl font-light text-text-primary">{documents.length}</p>
-              <p className="mt-0.5 text-2xs text-text-muted">zaimportowane panele</p>
-            </div>
-
-            <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-              <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Status panelu</p>
-              <p className="mt-1 text-sm font-semibold text-text-primary truncate">
-                {latestDate ? freshnessLabel(labFreshness(diffDaysFromToday(latestDate))) : 'brak danych'}
-              </p>
-              <p className="mt-0.5 text-2xs text-text-muted">
-                {latestDate && diffDaysFromToday(latestDate) != null
-                  ? `kolejny za ok. ${Math.max(0, 180 - (diffDaysFromToday(latestDate) ?? 0))} dni`
-                  : 'retest co 6 mies.'}
-              </p>
-            </div>
-          </div>
-
           <FlaggedMarkersAlert flaggedMarkers={flaggedMarkers} />
 
           {/* Siatka kluczowych markerów */}
@@ -177,7 +136,7 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
             <div className="flex items-center justify-between">
               <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Kluczowe markery laboratoryjne</p>
               <Link to="/badania/laboratorium" className="text-2xs text-text-muted hover:text-primary transition-colors">
-                Wszystkie 35 markerów →
+                Wszystkie markery →
               </Link>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">

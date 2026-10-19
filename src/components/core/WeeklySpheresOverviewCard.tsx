@@ -1,6 +1,7 @@
 import { useState, memo } from 'react';
 import { Shield, Zap, Wallet, ChevronDown, ChevronUp, Compass, ArrowRight } from 'lucide-react';
 import { useWeeklyBodyPulse } from '../../lib/biometricsApi';
+import { useWeeklyWinsMap } from '../../lib/weeklyWinsMap';
 import { useDirectionContext } from '../lifestyle/direction/hooks/useDirectionContext';
 import { NORTH_STAR_SPHERES, type PillarId } from '../../lib/projects/pillars';
 import { useUserId } from '../../store/useStore';
@@ -40,9 +41,6 @@ const PILLAR_CONFIG = {
 
 interface SphereExpandedProps {
   pillar: PillarId;
-  sleepAvg?: number | null;
-  gymCount: number | null;
-  runCount: number | null;
   activeProjectsCount: number;
   directionLoading?: boolean;
   directionError?: boolean;
@@ -52,9 +50,6 @@ interface SphereExpandedProps {
 
 function WeeklySphereDetailsDrawer({
   pillar,
-  sleepAvg,
-  gymCount,
-  runCount,
   activeProjectsCount,
   directionLoading,
   directionError,
@@ -64,11 +59,11 @@ function WeeklySphereDetailsDrawer({
   const cfg = PILLAR_CONFIG[pillar];
   const goal = NORTH_STAR_SPHERES[pillar];
 
-  let historySummary: string;
+  let historySummary: string | null;
   let weekGoalText: string;
 
   if (pillar === 'cialo') {
-    historySummary = `Sen śr. ${sleepAvg != null ? `${sleepAvg.toFixed(1)}h` : '—'} · Siłownia: ${gymCount == null ? '—' : `${gymCount}×`} · Bieg: ${runCount == null ? '—' : `${runCount}×`}`;
+    historySummary = null;
     weekGoalText = weekGoals.cialo || goal.affirmation;
   } else if (pillar === 'duch') {
     historySummary = weekGoals.intention ? `Intencja: ${weekGoals.intention}` : 'Spokój, relacje, nawyki, rytm poranka i wieczoru';
@@ -101,14 +96,11 @@ function WeeklySphereDetailsDrawer({
         </Pressable>
       </div>
 
-      <div className="rounded-xl bg-background/50 p-2.5 border border-border-custom/40 space-y-1">
-        <span className="text-3xs font-bold uppercase tracking-wider text-text-muted block">
-          Ostatnie 7 dni:
-        </span>
-        <p className="text-xs font-semibold text-text-secondary leading-snug">
+      {historySummary && (
+        <p className="rounded-xl border border-border-custom/40 bg-background/50 p-2.5 text-xs font-semibold leading-snug text-text-secondary">
           {historySummary}
         </p>
-      </div>
+      )}
 
       <div className="border-t border-border-custom/30 pt-1.5 space-y-1">
         <span className={`flex items-center gap-1 text-3xs font-bold uppercase tracking-wider ${cfg.badgeText}`}>
@@ -133,25 +125,24 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
   const [selectedPillar, setSelectedPillar] = useState<PillarId | null>(null);
 
   const weekGoals = direction.weekGoals ?? { cialo: null, duch: null, konto: null, intention: null };
-  const sleepAvg = bodyData?.sleepAvgHours;
-  const gymCount = bodyData?.gymCount ?? null;
-  const runCount = bodyData?.runCount ?? null;
+  const winsQuery = useWeeklyWinsMap(userId);
+  const winDays = winsQuery.data?.filter((d) => d.status === 'win').length ?? null;
+  const recovery = bodyData?.averageRecovery ?? null;
   const activeProjectsCount = direction.activeProjects?.length ?? 0;
 
   const togglePillar = (p: PillarId) => {
     setSelectedPillar(prev => prev === p ? null : p);
   };
 
-  const getPillarSubtitle = (pillar: PillarId) => {
+  /** Jedna kluczowa liczba na sferę — szczegóły (sen, jedzenie, treningi) są niżej, nie tutaj. */
+  const getPillarValue = (pillar: PillarId) => {
     if (pillar === 'cialo') {
-      if (gymCount == null || runCount == null) return bodyQuery.isLoading ? 'Ładuję dane' : 'Dane niedostępne';
-      const parts: string[] = [];
-      if (sleepAvg != null) parts.push(`${sleepAvg.toFixed(1)}h sen`);
-      parts.push(`${gymCount + runCount} tr.`);
-      return parts.join(' · ');
+      if (bodyQuery.isLoading) return 'Ładuję dane';
+      return recovery == null ? 'Brak danych' : `Regeneracja ${recovery}`;
     }
     if (pillar === 'duch') {
-      return weekGoals.intention ? 'Intencja aktywna' : 'Rytm & spokój';
+      if (winsQuery.isLoading) return 'Ładuję dane';
+      return winDays == null ? 'Brak danych' : `${winDays}/7 dni 5/5`;
     }
     if (direction.loading) return 'Ładuję dane';
     if (direction.isError) return 'Błąd odczytu';
@@ -170,16 +161,10 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
           </div>
           <div className="flex items-baseline gap-1.5">
             <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
-              Status 7 Dni
+              Trzy sfery
             </h3>
-            <span className="text-3xs font-semibold text-text-muted">
-              · 3 Sfery
-            </span>
           </div>
         </div>
-        <span className="rounded-full bg-primary/10 border border-primary/25 px-2 py-0.5 text-3xs font-black uppercase tracking-wider text-primary">
-          Synteza
-        </span>
       </div>
 
       {/* 3 Compact Columns */}
@@ -188,7 +173,7 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
           const cfg = PILLAR_CONFIG[pillar];
           const Icon = cfg.icon;
           const isSelected = selectedPillar === pillar;
-          const subtitle = getPillarSubtitle(pillar);
+          const value = getPillarValue(pillar);
 
           return (
             <Pressable
@@ -208,11 +193,11 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
               </div>
 
               <div className="mt-2 min-w-0">
-                <p className="truncate text-xs font-black text-text-primary tracking-tight">
-                  {cfg.shortMetric}
+                <p className="text-xs font-black leading-tight tracking-tight text-text-primary">
+                  {value}
                 </p>
                 <p className="mt-0.5 truncate text-3xs font-medium text-text-muted">
-                  {subtitle}
+                  cel: {cfg.shortMetric}
                 </p>
               </div>
 
@@ -227,9 +212,6 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
       {selectedPillar && (
         <WeeklySphereDetailsDrawer
           pillar={selectedPillar}
-          sleepAvg={sleepAvg}
-          gymCount={gymCount}
-          runCount={runCount}
           activeProjectsCount={activeProjectsCount}
           directionLoading={direction.loading}
           directionError={direction.isError}

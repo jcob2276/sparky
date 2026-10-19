@@ -4,6 +4,7 @@ import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import { ControlInput, ControlSelect, ControlTextarea, Pressable } from '../ui/ControlPrimitives';
 import { formatShortMonthLabel, shiftDateStr } from '../../lib/date';
+import { matchSectionByTag } from '../../lib/todo/todoParser';
 import TodoDatePickerPopover from './TodoDatePickerPopover';
 import TodoReminderPopover from './TodoReminderPopover';
 
@@ -19,11 +20,11 @@ interface Props {
   isExpanded: boolean;
   setIsExpanded: (value: boolean) => void;
   busy: boolean;
-  addItem: () => void;
+  addItem: (options?: { keepOpen?: boolean }) => void;
   sections: { id: string; name: string }[];
   parsedInput: {
     title: string; priority: string | null; due_date: string | null; deadline_date?: string | null; scheduled_time: string | null;
-    recurrence?: string | null; tokens: Array<{ type: string; value: string; label: string }>;
+    recurrence?: string | null; tags?: string[]; tokens: Array<{ type: string; value: string; label: string }>;
   };
   today: string;
   onOpenScanText?: () => void;
@@ -44,9 +45,18 @@ export default function TodoQuickCapture({
   const priority = parsedInput.priority || form.priority;
   const scheduledTime = parsedInput.scheduled_time || form.scheduled_time || '';
   const recurrence = parsedInput.recurrence || form.recurrence || '';
+  const sectionMatch = matchSectionByTag(parsedInput.tags ?? [], sections);
+  const matchedTag = sectionMatch.sectionId ? (parsedInput.tags ?? []).find((tag) => !sectionMatch.tags.includes(tag)) : undefined;
+  const sectionValue = sectionMatch.sectionId ?? form.section_id ?? '';
   const dateLabel = dueDate === today ? 'Dziś' : dueDate === shiftDateStr(today, 1) ? 'Jutro' : dueDate ? formatShortMonthLabel(`${dueDate}T12:00:00Z`).toLowerCase() : 'Bez terminu';
 
   if (!isExpanded || typeof document === 'undefined') return null;
+
+  const submit = (keepOpen: boolean) => {
+    if (busy || !form.title.trim()) return;
+    addItem({ keepOpen });
+    if (keepOpen) document.getElementById('todo-title-input')?.focus();
+  };
 
   const cancel = () => {
     setForm(EMPTY_FORM);
@@ -68,18 +78,28 @@ export default function TodoQuickCapture({
               onKeyDown={(event) => {
                 if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
                   event.preventDefault();
-                  if (!busy && form.title.trim()) addItem();
+                  // Enter adds and stays for the next task; Ctrl/Cmd+Enter adds and closes.
+                  submit(!(event.ctrlKey || event.metaKey));
                 }
               }}
               placeholder="Co chcesz zrobić?"
               className="min-h-14 w-full rounded-md border border-border-custom bg-surface-1 px-3 text-base font-medium text-text-primary placeholder:font-normal placeholder:text-text-muted focus:border-primary"
             />
-            <p id="todo-title-hint" className="mt-2 text-xs leading-relaxed text-text-muted">Możesz też wpisać: „Zadzwonić do Marka jutro o 10 p1”.</p>
+            {parsedInput.tokens.length > 0 ? (
+              <div className="mt-2 flex flex-wrap gap-1.5" aria-live="polite">
+                {parsedInput.tokens.map((token, index) => (
+                  <span key={`${token.type}-${index}`} className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                    {token.type === 'tag' && token.value === matchedTag ? `Lista: ${sectionMatch.sectionName}` : token.label}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+            <p id="todo-title-hint" className="mt-2 text-xs leading-relaxed text-text-muted">Np. „Zadzwonić do Marka jutro 15:00 !p1 #praca @telefon”. Enter dodaje i zostawia pole dla kolejnego, Ctrl+Enter dodaje i zamyka.</p>
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
             <div>
-              <Pressable aria-expanded={openPopover === 'date'} aria-controls="todo-capture-date" onClick={() => setOpenPopover((value) => value === 'date' ? null : 'date')} className={`flex min-h-11 items-center gap-2 rounded-md border px-3 text-xs font-medium ${dueDate ? 'border-primary/20 bg-primary/5 text-primary' : 'border-border-custom bg-surface-1 text-text-secondary'}`}>
+              <Pressable data-todo-popover-trigger="" aria-expanded={openPopover === 'date'} aria-controls="todo-capture-date" onClick={() => setOpenPopover((value) => value === 'date' ? null : 'date')} className={`flex min-h-11 items-center gap-2 rounded-md border px-3 text-xs font-medium ${dueDate ? 'border-primary/20 bg-primary/5 text-primary' : 'border-border-custom bg-surface-1 text-text-secondary'}`}>
                 <Calendar size={16} /><span>{dateLabel}{scheduledTime ? ` · ${scheduledTime}` : ''}</span><ChevronDown size={12} />
               </Pressable>
             </div>
@@ -93,7 +113,7 @@ export default function TodoQuickCapture({
 
             <div className="relative min-w-0 max-w-full">
               <Folder size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-              <ControlSelect value={form.section_id || ''} onChange={(event) => setForm({ ...form, section_id: event.target.value })} className="min-h-11 max-w-full cursor-pointer rounded-md border border-border-custom bg-surface-1 pl-9 pr-3 text-xs font-medium text-text-secondary" aria-label="Lista zadań">
+              <ControlSelect value={sectionValue} onChange={(event) => setForm({ ...form, section_id: event.target.value })} className="min-h-11 max-w-full cursor-pointer rounded-md border border-border-custom bg-surface-1 pl-9 pr-3 text-xs font-medium text-text-secondary" aria-label="Lista zadań">
                 <option value="">Skrzynka</option>{sections.map((section) => <option key={section.id} value={section.id}>{section.name}</option>)}
               </ControlSelect>
             </div>
@@ -117,7 +137,7 @@ export default function TodoQuickCapture({
                   <ControlInput type="date" min={dueDate || undefined} value={parsedInput.deadline_date || form.deadline_date} onChange={(event) => setForm((current) => ({ ...current, deadline_date: event.target.value }))} className="bg-transparent text-xs text-text-primary" />
                 </label>
                 <div className="relative">
-                  <Pressable onClick={() => setOpenPopover((value) => value === 'reminder' ? null : 'reminder')} className="flex min-h-11 items-center gap-2 rounded-md border border-border-custom bg-surface-solid px-3 text-xs font-bold text-text-secondary"><Bell size={15} /> {form.reminder_at ? 'Przypomnienie ustawione' : 'Przypomnienie'}</Pressable>
+                  <Pressable data-todo-popover-trigger="" aria-expanded={openPopover === 'reminder'} onClick={() => setOpenPopover((value) => value === 'reminder' ? null : 'reminder')} className="flex min-h-11 items-center gap-2 rounded-md border border-border-custom bg-surface-solid px-3 text-xs font-bold text-text-secondary"><Bell size={15} /> {form.reminder_at ? 'Przypomnienie ustawione' : 'Przypomnienie'}</Pressable>
                 </div>
                 {onOpenScanText ? <Pressable onClick={onOpenScanText} className="flex min-h-11 items-center gap-2 rounded-md border border-border-custom bg-surface-solid px-3 text-xs font-bold text-primary"><ScanText size={15} /> Skanuj tekst</Pressable> : null}
                 {recurrence ? <span className="flex min-h-11 items-center rounded-md bg-primary/10 px-3 text-xs font-bold text-primary">Powtarzanie: {recurrence}</span> : null}
@@ -128,7 +148,7 @@ export default function TodoQuickCapture({
 
         <footer className="mt-4 flex items-center justify-end gap-2 border-t border-border-custom/50 pt-4">
           <Button variant="ghost" onClick={cancel} className="text-text-secondary">Anuluj</Button>
-          <Button onClick={addItem} disabled={busy || !form.title.trim()} loading={busy}>Dodaj zadanie</Button>
+          <Button onClick={() => submit(false)} disabled={busy || !form.title.trim()} loading={busy}>Dodaj zadanie</Button>
         </footer>
         </div>
     </Modal>
