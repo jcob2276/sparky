@@ -13,6 +13,7 @@ export interface ComposerTodayMeal {
 export interface TodayFoodEntry extends RepeatableFoodEntry {
   meal_type: string;
   date: string;
+  meal_group_id?: string | null;
 }
 
 export async function fetchComposerTodayMeals(
@@ -52,7 +53,7 @@ export async function fetchAllTodayEntries(
 ): Promise<TodayFoodEntry[]> {
   const { data, error } = await supabase
     .from('daily_food_entries')
-    .select('id, name, brand, calories, protein, carbs, fat, fiber, sugar, amount, meal_type')
+    .select('id, name, brand, calories, protein, carbs, fat, fiber, sugar, amount, meal_type, meal_group_id')
     .eq('user_id', userId)
     .eq('date', date)
     .order('logged_at', { ascending: true, nullsFirst: false });

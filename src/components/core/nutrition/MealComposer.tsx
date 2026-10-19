@@ -9,6 +9,7 @@ import { ComposerHeader, ComposerInput, ComposerProgress, ComposerSearch } from 
 import CopyDayModal from './CopyDayModal';
 import type { RecentEntry } from './hooks/foodEntryUtils';
 import { useMealComposer } from './hooks/useMealComposer';
+import { useMealPhotoUrls } from './hooks/useMealPhotoUrls';
 import { useSession } from '../../../store/useStore';
 
 const FoodEntryModal = lazy(() => import('./FoodEntryModal'));
@@ -22,6 +23,7 @@ export default function MealComposer({
 }) {
   const session = useSession();
   const c = useMealComposer(onSaved, refreshSignal);
+  const photoUrls = useMealPhotoUrls(session?.user.id, c.allTodayEntries);
   const [editEntry, setEditEntry] = useState<RecentEntry | null>(null);
   const [copyDayOpen, setCopyDayOpen] = useState(false);
 
@@ -122,6 +124,7 @@ export default function MealComposer({
         {c.allTodayEntries.length > 0 && (
           <MealComposerLoggedItems
             entries={c.allTodayEntries}
+            photoUrls={photoUrls}
             onEditEntry={setEditEntry}
             onDeleteEntry={(id) => void c.deleteEntry(id)}
             isPastDay={c.isPastDay}

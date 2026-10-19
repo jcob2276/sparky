@@ -11,8 +11,24 @@ const MEAL_LABEL: Record<string, string> = {
   snack: 'Przekąska',
 };
 
+/** Ids of the first entry of each meal that has a photo, so the thumbnail shows once per meal. */
+function firstRowIdPerPhoto(entries: TodayFoodEntry[], photoUrls: Record<string, string>): Set<string> {
+  const rowIds = new Set<string>();
+  const seenGroups = new Set<string>();
+  for (const entry of entries) {
+    const groupId = entry.meal_group_id;
+    if (groupId && photoUrls[groupId] && !seenGroups.has(groupId)) {
+      seenGroups.add(groupId);
+      rowIds.add(entry.id);
+    }
+  }
+  return rowIds;
+}
+
 interface MealComposerLoggedItemsProps {
   entries: TodayFoodEntry[];
+  /** Signed photo URLs keyed by meal_group_id; the photo is shown on the first row of its meal. */
+  photoUrls?: Record<string, string>;
   onEditEntry: (entry: RecentEntry) => void;
   onDeleteEntry?: (id: string) => void;
   dateLabel?: string;
@@ -24,6 +40,7 @@ interface MealComposerLoggedItemsProps {
 
 export default function MealComposerLoggedItems({
   entries,
+  photoUrls = {},
   onEditEntry,
   onDeleteEntry,
   dateLabel = 'Zjedzone dziś',
@@ -48,6 +65,8 @@ export default function MealComposerLoggedItems({
     }
     groups.get(key)!.push(entry);
   }
+
+  const photoRowIds = firstRowIdPerPhoto(entries, photoUrls);
 
   return (
     <div className="space-y-3">
@@ -127,6 +146,16 @@ export default function MealComposerLoggedItems({
                       }
                       className="flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition-colors duration-150 hover:bg-surface-solid/50 active:bg-surface-solid/80"
                     >
+                      {photoRowIds.has(entry.id) && entry.meal_group_id && (
+                        <img
+                          src={photoUrls[entry.meal_group_id]}
+                          alt={`Zdjęcie posiłku: ${entry.name}`}
+                          loading="lazy"
+                          width={40}
+                          height={40}
+                          className="h-10 w-10 shrink-0 rounded-lg border border-border-custom/50 object-cover"
+                        />
+                      )}
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-xs font-bold text-text-primary leading-tight">{entry.name}</p>
                         <div className="mt-0.5 flex items-center gap-1.5 text-2xs text-text-muted">

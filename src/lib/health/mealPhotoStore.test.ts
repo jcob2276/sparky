@@ -1,21 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { upload, remove, upsert, from, storageFrom } = vi.hoisted(() => {
+const { upload, remove, upsert, createSignedUrls, selectIn, from, storageFrom } = vi.hoisted(() => {
   const upload = vi.fn();
   const remove = vi.fn();
   const upsert = vi.fn();
+  const createSignedUrls = vi.fn();
+  const selectIn = vi.fn();
+  const select = vi.fn(() => ({ eq: () => ({ in: selectIn }) }));
   return {
     upload,
     remove,
     upsert,
-    from: vi.fn(() => ({ upsert })),
-    storageFrom: vi.fn(() => ({ upload, remove })),
+    createSignedUrls,
+    selectIn,
+    from: vi.fn(() => ({ upsert, select })),
+    storageFrom: vi.fn(() => ({ upload, remove, createSignedUrls })),
   };
 });
 
 vi.mock('../supabase', () => ({ supabase: { from, storage: { from: storageFrom } } }));
 
-import { saveMealPhoto } from './mealPhotoStore';
+import { fetchMealPhotoUrls, saveMealPhoto } from './mealPhotoStore';
 
 describe('saveMealPhoto', () => {
   beforeEach(() => {
@@ -48,5 +53,30 @@ describe('saveMealPhoto', () => {
     upload.mockResolvedValue({ error: new Error('too large') });
     await expect(saveMealPhoto('user-1', 'meal-1', new Blob(['x']))).rejects.toThrow('too large');
     expect(upsert).not.toHaveBeenCalled();
+  });
+});
+
+describe('fetchMealPhotoUrls', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('returns nothing without querying when there are no meals', async () => {
+    await expect(fetchMealPhotoUrls('user-1', [])).resolves.toEqual({});
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it('maps signed URLs back to meal groups and skips meals without a photo', async () => {
+    selectIn.mockResolvedValue({
+      data: [{ meal_group_id: 'meal-1', storage_path: 'user-1/meal-1.jpg' }],
+      error: null,
+    });
+    createSignedUrls.mockResolvedValue({
+      data: [{ path: 'user-1/meal-1.jpg', signedUrl: 'https://signed/meal-1' }],
+      error: null,
+    });
+
+    await expect(fetchMealPhotoUrls('user-1', ['meal-1', 'meal-2'])).resolves.toEqual({
+      'meal-1': 'https://signed/meal-1',
+    });
+    expect(createSignedUrls).toHaveBeenCalledWith(['user-1/meal-1.jpg'], 3600);
   });
 });
