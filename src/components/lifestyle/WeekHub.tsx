@@ -4,7 +4,6 @@ import { useUserId } from '../../store/useStore';
 import { CalendarDays, Target, AlertCircle, ChevronRight, Check, History } from 'lucide-react';
 import WeekLoopSummary from '../shared/WeekLoopSummary';
 // import ProjectWeekKpis from './ProjectWeekKpis';
-import WeeklyBalanceHexagon from './WeeklyBalanceHexagon';
 import { SystemProposalCard } from '../shared/SystemProposalCard';
 import { useDirectionContext } from './direction/hooks/useDirectionContext';
 import { useSpineGuidance } from '../../hooks/useSpineGuidance';
@@ -200,8 +199,6 @@ export default function WeekHub({
           focusProjectIds={direction.sprintFocusProjectIds ?? []}
         />
       )} */}
-
-      <WeeklyBalanceHexagon userId={userId} />
     </div>
   );
 }
