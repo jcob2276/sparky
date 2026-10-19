@@ -49,6 +49,19 @@ describe('workoutLogging', () => {
       .rejects.toThrow('wynik');
   });
 
+  it('saves working sets only: warm-ups are skipped and numbering stays contiguous', async () => {
+    await saveWorkoutSession('owner', { workoutName: 'Push', exercises: [{ id: 1, name: 'Wyciskanie płaskie', tags: ['klatka'], sets: [
+      { id: 10, kg: '40', reps: '8', rir: '', msp: false, type: 'warmup', done: true },
+      { id: 11, kg: '80', reps: '8', rir: '2', msp: false, done: true },
+      { id: 12, kg: '80', reps: '7', rir: '1', msp: false, done: true },
+      { id: 13, kg: '', reps: '', rir: '', msp: false },
+    ] }], activities: [], notes: '', sessionRpe: 8, workoutDate: '2026-10-19', timerStart: null,
+    manualTime: false, startTimeManual: '', endTimeManual: '' });
+    const call = vi.mocked(supabase.rpc).mock.calls.find(([name]) => name === 'save_workout_atomic');
+    const logs = (call?.[1] as { p_logs: Array<{ set_number: number; weight: number; reps: number; rir: number | null }> }).p_logs;
+    expect(logs.map((l) => [l.set_number, l.weight, l.reps, l.rir])).toEqual([[1, 80, 8, 2], [2, 80, 7, 1]]);
+  });
+
   describe('hasResumableWorkoutDraftContent', () => {
     it('returns false for completely empty draft', () => {
       const empty = {
