@@ -20,6 +20,7 @@ interface Props {
   onPlates: () => void;
   onProgress: () => void;
   onRemoveSet: () => void;
+  onSwap?: () => void;
   onRemove: () => void;
 }
 
@@ -40,6 +41,7 @@ export default function LiveExerciseHeader({
   onPlates,
   onProgress,
   onRemoveSet,
+  onSwap,
   onRemove,
 }: Props) {
   return (
@@ -112,6 +114,7 @@ export default function LiveExerciseHeader({
                 onPlates={onPlates}
                 onProgress={onProgress}
                 onRemoveSet={onRemoveSet}
+                onSwap={onSwap}
                 onRemove={onRemove}
               />
             )}

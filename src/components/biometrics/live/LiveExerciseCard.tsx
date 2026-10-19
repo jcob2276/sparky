@@ -1,17 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Minus, Plus } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
-import { useHaptics } from '../../../hooks/useHaptics';
 import { useExerciseVisual } from '../../../lib/health/exerciseImages';
 import { sortedHistorySets } from '../../../lib/health/workoutSetFill';
 import { computeExerciseSuggestion } from '../../../lib/health/exerciseSuggestion';
-import { newSet, useExerciseHistory, type WorkoutExercise, type WorkoutSet } from '../workout/workoutUtils';
+import { useExerciseHistory, type WorkoutExercise, type WorkoutSet } from '../workout/workoutUtils';
 import BarbellPlatesPanel from '../workout/BarbellPlatesPanel';
 import LiveSetRow from './LiveSetRow';
 import LiveRirChips from './LiveRirChips';
+import LiveSetActions from './LiveSetActions';
+import { useLiveSetOps } from './useLiveSetOps';
 import LiveExerciseHeader from './LiveExerciseHeader';
-import { defaultRestSeconds, ghostForSet, isPersonalRecord, isSetLogged, warmupRamp, type SetGhost } from './liveWorkoutUtils';
+import { ghostForSet, isPersonalRecord, isSetLogged, type SetGhost } from './liveWorkoutUtils';
 
 interface Props {
   exercise: WorkoutExercise;
@@ -24,15 +25,44 @@ interface Props {
   onActivate: () => void;
   onChange: (exercise: WorkoutExercise) => void;
   onRemove: () => void;
+  onSwap?: () => void;
+  /** Po usunięciu serii — pasek „Cofnij”. */
+  onUndoable?: (message: string, undo: () => void) => void;
   /** Po zaliczeniu serii — start przerwy. */
   onSetDone: (restSeconds: number) => void;
+  /** Cofnięcie ✓ — przerwa po tej serii przestaje mieć sens. */
+  onSetUndone?: () => void;
   /** Wszystkie serie zaliczone — rodzic przechodzi do następnego ćwiczenia. */
   onAllDone: () => void;
 }
 
+const STEPS = [1, 2.5, 5];
+const CONFIRM_MS = 4000;
+
 const BARBELL_NAME = /sztang|martwy ci[aą]g|wyciskanie p[lł]askie|wyciskanie sko[sś]ne|przysiad/i;
 
-function LiveSetFooter({ canRemove, onAdd, onRemove }: { canRemove: boolean; onAdd: () => void; onRemove: () => void }) {
+function LiveSetFooter({
+  canRemove,
+  lastHasData,
+  step,
+  onAdd,
+  onRemove,
+  onCycleStep,
+}: {
+  canRemove: boolean;
+  lastHasData: boolean;
+  step: number;
+  onAdd: () => void;
+  onRemove: () => void;
+  onCycleStep: () => void;
+}) {
+  const [confirming, setConfirming] = useState(false);
+  useEffect(() => {
+    if (!confirming) return;
+    const t = window.setTimeout(() => setConfirming(false), CONFIRM_MS);
+    return () => window.clearTimeout(t);
+  }, [confirming]);
+  const stepText = String(step).replace('.', ',');
   return (
     <div className="flex items-center gap-2 px-1 pt-1">
       <Pressable
@@ -46,13 +76,28 @@ function LiveSetFooter({ canRemove, onAdd, onRemove }: { canRemove: boolean; onA
       {canRemove && (
         <Pressable
           type="button"
-          onClick={onRemove}
-          className="flex h-11 items-center justify-center gap-1.5 rounded-2xl bg-surface-2 px-4 text-xs font-bold text-text-muted hover:text-danger hover:bg-danger/10 active:scale-95 transition-all"
-          aria-label="Usuń ostatnią serię"
+          onClick={() => {
+            if (!lastHasData || confirming) {
+              setConfirming(false);
+              onRemove();
+            } else setConfirming(true);
+          }}
+          className={`flex h-11 items-center justify-center gap-1.5 rounded-2xl px-4 text-xs font-bold active:scale-95 transition-all ${
+            confirming ? 'bg-danger text-on-accent' : 'bg-surface-2 text-text-muted hover:text-danger hover:bg-danger/10'
+          }`}
+          aria-label={confirming ? 'Potwierdź usunięcie ostatniej serii' : 'Usuń ostatnią serię'}
         >
-          <Minus size={15} /> Usuń serię
+          <Minus size={15} /> {confirming ? 'Na pewno?' : 'Usuń serię'}
         </Pressable>
       )}
+      <Pressable
+        type="button"
+        onClick={onCycleStep}
+        aria-label={`Skok ciężaru ${stepText} kg, zmień`}
+        className="h-11 shrink-0 rounded-2xl border border-border-custom px-3 text-xs font-bold text-text-secondary"
+      >
+        ±{stepText} kg
+      </Pressable>
     </div>
   );
 }
@@ -68,17 +113,18 @@ export default function LiveExerciseCard({
   onActivate,
   onChange,
   onRemove,
+  onSwap,
+  onUndoable,
   onSetDone,
+  onSetUndone,
   onAllDone,
 }: Props) {
   const navigate = useNavigate();
-  const haptics = useHaptics();
   const visual = useExerciseVisual(exercise.name);
   const { lastSession, allTimeBest1RM } = useExerciseHistory(exercise.name, userId);
   const [menuOpen, setMenuOpen] = useState(false);
   const [platesOpen, setPlatesOpen] = useState(false);
-  const [rirSetId, setRirSetId] = useState<number | null>(null);
-
+  const [step, setStep] = useState(2.5);
   const history = lastSession ? sortedHistorySets(lastSession) : [];
   const suggestion = lastSession ? computeExerciseSuggestion(lastSession, exercise.name, exercise.tags) : null;
   const suggestedKg = suggestion && suggestion.mode !== 'reps' ? String(suggestion.weight.suggestedWeight) : null;
@@ -90,48 +136,23 @@ export default function LiveExerciseCard({
   const isBarbell = visual?.isBarbell === true || BARBELL_NAME.test(exercise.name);
   const sets = exercise.sets;
   const doneCount = sets.filter(isSetLogged).length;
-  const workingNumber = (idx: number) => sets.slice(0, idx + 1).filter((s) => s.type !== 'warmup').length;
   const nextIdx = sets.findIndex((s) => !s.done);
 
-  const patchSet = (id: number, patch: Partial<WorkoutSet>) =>
-    onChange({ ...exercise, sets: sets.map((s) => (s.id === id ? { ...s, ...patch } : s)) });
+  const ops = useLiveSetOps({
+    exercise,
+    onChange,
+    ghostOf,
+    fallbackKg: parseFloat(suggestedKg ?? '') || parseFloat(ghostForSet(history, 0, sets[0])?.kg ?? '') || 0,
+    onUndoable,
+    onSetDone,
+    onSetUndone,
+    onAllDone,
+  });
+  const { rirSetId, setRirSetId, actionsSetId, setActionsSetId, needsRepsId, setNeedsRepsId, workingNumber, patchSet, toggleDone, addSet, addWarmup, removeSetAt, duplicateSet } = ops;
+  const removeLastSet = () => removeSetAt(sets.length - 1);
 
-  const toggleDone = (idx: number) => {
-    const set = sets[idx];
-    haptics.light();
-    if (set.done) {
-      patchSet(set.id, { done: false });
-      return;
-    }
-    const ghost = ghostOf(set, idx);
-    patchSet(set.id, {
-      done: true,
-      kg: set.kg.trim() ? set.kg : ghost?.kg ?? '',
-      reps: set.reps.trim() ? set.reps : ghost?.reps ?? '',
-    });
-    setRirSetId(set.rir.trim() ? null : set.id);
-    onSetDone(defaultRestSeconds(exercise.name));
-    if (sets.every((s) => s.id === set.id || s.done)) onAllDone();
-  };
-
-  const addWarmup = () => {
-    haptics.light();
-    const working = sets.find((s) => s.type !== 'warmup');
-    const target = parseFloat(working?.kg ?? '') || parseFloat(suggestedKg ?? '') || parseFloat(ghostForSet(history, 0, working ?? sets[0])?.kg ?? '') || 0;
-    const ramp = warmupRamp(target);
-    if (!ramp.length) return addSet('warmup');
-    onChange({ ...exercise, sets: [...ramp.map((g) => ({ ...newSet('warmup'), kg: g.kg, reps: g.reps })), ...sets] });
-  };
-
-  const addSet = (type: WorkoutSet['type'] = 'working') => {
-    haptics.light();
-    const created: WorkoutSet = newSet(type);
-    onChange({ ...exercise, sets: type === 'warmup' ? [created, ...sets] : [...sets, created] });
-  };
-
-  const removeLastSet = () => {
-    if (sets.length > 1) onChange({ ...exercise, sets: sets.slice(0, -1) });
-  };
+  const lastSet = sets[sets.length - 1];
+  const lastHasData = Boolean(lastSet && (lastSet.done || lastSet.kg.trim() || lastSet.reps.trim()));
 
   const hint = suggestion && suggestion.mode !== 'reps' ? suggestion.weight : null;
   const subtitle = [visual?.equipment ?? (isBarbell ? 'Sztanga' : null), `${doneCount}/${sets.length} serii`].filter(Boolean).join(' · ');
@@ -156,6 +177,7 @@ export default function LiveExerciseCard({
         onPlates={() => setPlatesOpen((v) => !v)}
         onProgress={() => navigate({ pathname: '/cwiczenie', search: `?n=${encodeURIComponent(exercise.name)}` })}
         onRemoveSet={removeLastSet}
+        onSwap={onSwap}
         onRemove={onRemove}
       />
 
@@ -179,11 +201,27 @@ export default function LiveExerciseCard({
                 number={workingNumber(idx)}
                 ghost={ghostOf(set, idx)}
                 isNext={idx === nextIdx}
-                weightStep={2.5}
-                isPr={isPersonalRecord(set, allTimeBest1RM)}
-                onChange={(patch) => patchSet(set.id, patch)}
+                weightStep={step}
+                isPr={set.type !== 'warmup' && isPersonalRecord(set, allTimeBest1RM)}
+                actionsOpen={actionsSetId === set.id}
+                needsReps={needsRepsId === set.id}
+                onChange={(patch) => {
+                  patchSet(set.id, patch);
+                  if (patch.reps) setNeedsRepsId(null);
+                }}
                 onToggleDone={() => toggleDone(idx)}
+                onToggleActions={() => setActionsSetId((cur) => (cur === set.id ? null : set.id))}
               />
+              {actionsSetId === set.id && (
+                <LiveSetActions
+                  isWarmup={set.type === 'warmup'}
+                  canDelete={sets.length > 1}
+                  onToggleWarmup={() => patchSet(set.id, { type: set.type === 'warmup' ? 'working' : 'warmup' })}
+                  onDuplicate={() => duplicateSet(idx)}
+                  onDelete={() => removeSetAt(idx)}
+                  onClose={() => setActionsSetId(null)}
+                />
+              )}
               {rirSetId !== set.id && set.done && set.rir.trim() !== '' && (
                 <Pressable onClick={() => setRirSetId(set.id)} className="mx-2 mb-1 text-2xs font-bold text-text-muted" aria-label="Zmień RPE serii">
                   RPE {10 - Number(set.rir)} · {set.rir} w zapasie
@@ -199,7 +237,14 @@ export default function LiveExerciseCard({
               )}
             </div>
           ))}
-          <LiveSetFooter canRemove={sets.length > 1} onAdd={() => addSet()} onRemove={removeLastSet} />
+          <LiveSetFooter
+            canRemove={sets.length > 1}
+            lastHasData={lastHasData}
+            step={step}
+            onAdd={() => addSet()}
+            onRemove={removeLastSet}
+            onCycleStep={() => setStep((cur) => STEPS[(STEPS.indexOf(cur) + 1) % STEPS.length])}
+          />
         </div>
       )}
     </section>

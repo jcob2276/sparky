@@ -108,3 +108,50 @@ export function formatClock(totalSeconds: number): string {
   const safe = Math.max(0, totalSeconds);
   return `${Math.floor(safe / 60)}:${String(safe % 60).padStart(2, '0')}`;
 }
+
+export const MAX_KG = 600;
+export const MAX_REPS = 200;
+
+/** Czyści wpis liczbowy: bez końcowej kropki i zer z przodu, w zadanych granicach (puste zostaje puste). */
+export function normalizeNumber(value: string, max: number, integer: boolean): string {
+  const trimmed = value.trim();
+  if (trimmed === '' || trimmed === '.') return '';
+  const parsed = integer ? parseInt(trimmed, 10) : parseFloat(trimmed);
+  if (!Number.isFinite(parsed) || parsed < 0) return '';
+  return String(Math.min(max, parsed));
+}
+
+/** Serię można zaliczyć, gdy są powtórzenia (z wpisu albo z podpowiedzi). Ciężar może być pusty — ćwiczenia z masą ciała. */
+export function canComplete(set: WorkoutSet, ghost: SetGhost | null): boolean {
+  const reps = parseInt(set.reps, 10) || parseInt(ghost?.reps ?? '', 10) || 0;
+  return reps > 0;
+}
+
+export function moveItem<T>(items: T[], from: number, to: number): T[] {
+  if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) return items;
+  const next = [...items];
+  const [moved] = next.splice(from, 1);
+  next.splice(to, 0, moved);
+  return next;
+}
+
+/** Serie z wpisanymi wartościami, ale bez ✓ — trafią do zapisu, więc pokazujemy je w podsumowaniu. */
+export function countUnchecked(exercises: WorkoutExercise[]): number {
+  return exercises.reduce(
+    (sum, e) => sum + (e.name.trim() ? e.sets.filter((s) => s.type !== 'warmup' && !s.done && (s.kg.trim() !== '' || s.reps.trim() !== '')).length : 0),
+    0,
+  );
+}
+
+/** Zabezpieczenie przed podwójnym stuknięciem: drugie wywołanie w krótkim czasie jest ignorowane. */
+export function createToggleGuard(windowMs = 250) {
+  let last = 0;
+  return {
+    pass(): boolean {
+      const now = Date.now();
+      if (now - last < windowMs) return false;
+      last = now;
+      return true;
+    },
+  };
+}

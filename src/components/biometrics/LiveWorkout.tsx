@@ -12,18 +12,17 @@ import { useUserId } from '../../store/useStore';
 import { useBackHandler } from '../../lib/native/backStack';
 import { type WorkoutLoggerInitial } from '../../lib/health/workoutLogging';
 import { useWorkoutLogger } from './hooks/useWorkoutLogger';
-import { newExercise, newSet } from './workout/workoutUtils';
 import ExercisePickerModal from './workout/ExercisePickerModal';
 import TrainingHubAppearanceSheet from './workout/TrainingHubAppearanceSheet';
 import { useTreningAccent } from './workout/useTreningAccent';
 import LiveExerciseCard from './live/LiveExerciseCard';
 import LiveRestPill from './live/LiveRestPill';
+import LiveUndoBar from './live/LiveUndoBar';
 import LiveFinishSheet from './live/LiveFinishSheet';
 import { useRestTimer } from './live/useRestTimer';
 import { summarize } from './live/liveWorkoutUtils';
+import { useLiveExerciseOps } from './live/useLiveExerciseOps';
 import './workout/treningTheme.css';
-
-const DEFAULT_SETS = 1;
 
 export default function LiveWorkout({
   onBack,
@@ -67,34 +66,7 @@ export default function LiveWorkout({
   const currentId = activeId != null && exercises.some((e) => e.id === activeId) ? activeId : (firstOpen ?? exercises[0])?.id ?? null;
   const summary = summarize(logger.exercises);
 
-  const addExercise = (name: string, tags: string[]) => {
-    const created = { ...newExercise(), name, tags, sets: Array.from({ length: DEFAULT_SETS }, () => newSet()) };
-    logger.setExercises((prev) => [...prev.filter((e) => e.name.trim()), created]);
-    setActiveId(created.id);
-  };
-
-  const advanceFrom = (id: number) => {
-    const idx = exercises.findIndex((e) => e.id === id);
-    const next = exercises.slice(idx + 1).find((e) => e.sets.some((s) => !s.done));
-    if (next) window.setTimeout(() => setActiveId(next.id), 450);
-  };
-
-  const removeExercise = (id: number) => logger.setExercises((prev) => prev.filter((e) => e.id !== id));
-
-  const moveExercise = (id: number, direction: 'up' | 'down') => {
-    logger.setExercises((prev) => {
-      const valid = prev.filter((e) => e.name.trim());
-      const idx = valid.findIndex((e) => e.id === id);
-      if (idx === -1) return prev;
-      if (direction === 'up' && idx === 0) return prev;
-      if (direction === 'down' && idx === valid.length - 1) return prev;
-      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
-      const next = [...valid];
-      const [item] = next.splice(idx, 1);
-      next.splice(targetIdx, 0, item);
-      return next;
-    });
-  };
+  const { setSwapId, requestSwap, undo, setUndo, expireUndo, pickExercise, advanceFrom, removeExercise, moveExercise } = useLiveExerciseOps(logger, exercises, setActiveId);
 
   return (
     <div className="trening-theme flex min-h-screen flex-col" data-tren-accent={accent}>
@@ -129,8 +101,11 @@ export default function LiveWorkout({
             onMoveDown={() => moveExercise(exercise.id, 'down')}
             onActivate={() => setActiveId(exercise.id)}
             onChange={logger.updateExercise}
-            onRemove={() => removeExercise(exercise.id)}
+            onRemove={() => void removeExercise(exercise.id)}
+            onSwap={() => void requestSwap(exercise.id, () => setPickerOpen(true))}
+            onUndoable={(message, run) => setUndo({ message, run })}
             onSetDone={rest.start}
+            onSetUndone={rest.skip}
             onAllDone={() => advanceFrom(exercise.id)}
           />
         ))}
@@ -147,13 +122,23 @@ export default function LiveWorkout({
         </Button>
       </main>
 
-      {rest.active && (
-        <div className="fixed inset-x-0 bottom-0 z-[var(--z-sticky)] mx-auto w-full max-w-md px-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
-          <LiveRestPill remaining={rest.remaining} finished={rest.finished} onAdjust={rest.adjust} onSkip={rest.skip} />
+      {(rest.active || undo) && (
+        <div className="fixed inset-x-0 bottom-0 z-[var(--z-sticky)] mx-auto w-full max-w-md space-y-2 px-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          {undo && (
+            <LiveUndoBar
+              message={undo.message}
+              onUndo={() => {
+                undo.run();
+                setUndo(null);
+              }}
+              onExpire={expireUndo}
+            />
+          )}
+          {rest.active && <LiveRestPill remaining={rest.remaining} finished={rest.finished} onAdjust={rest.adjust} onSkip={rest.skip} />}
         </div>
       )}
 
-      <ExercisePickerModal isOpen={pickerOpen} onClose={() => setPickerOpen(false)} onSelect={addExercise} />
+      <ExercisePickerModal isOpen={pickerOpen} onClose={() => { setPickerOpen(false); setSwapId(null); }} onSelect={pickExercise} />
       <LiveFinishSheet open={finishOpen} onOpenChange={setFinishOpen} logger={logger} duration={logger.elapsed} />
       <TrainingHubAppearanceSheet open={appearanceOpen} accent={accent} onSelect={setAccent} onClose={() => setAppearanceOpen(false)} />
     </div>

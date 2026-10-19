@@ -4,7 +4,7 @@ import Button from '../../ui/Button';
 import { ControlInput, ControlTextarea, Pressable } from '../../ui/ControlPrimitives';
 import type { useWorkoutLogger } from '../hooks/useWorkoutLogger';
 import ManualTimePicker from '../workout/ManualTimePicker';
-import { autoWorkoutName, formatKg, summarize } from './liveWorkoutUtils';
+import { autoWorkoutName, countUnchecked, formatKg, summarize } from './liveWorkoutUtils';
 
 interface Props {
   open: boolean;
@@ -28,6 +28,7 @@ export default function LiveFinishSheet({ open, onOpenChange, logger, duration }
   const summary = summarize(logger.exercises);
   const suggestedName = autoWorkoutName(logger.exercises);
   const empty = summary.sets === 0;
+  const unchecked = countUnchecked(logger.exercises);
 
   const save = () => {
     if (!logger.workoutName.trim()) logger.setWorkoutName(suggestedName);
@@ -86,6 +87,11 @@ export default function LiveFinishSheet({ open, onOpenChange, logger, duration }
           </div>
         )}
 
+        {unchecked > 0 && (
+          <p className="rounded-2xl bg-warning/10 px-3 py-2 text-sm font-semibold text-warning">
+            {unchecked} {unchecked === 1 ? 'seria ma wpisane wartości, ale bez ✓' : 'serie mają wpisane wartości, ale bez ✓'} — zapiszą się razem z treningiem.
+          </p>
+        )}
         {empty && <p className="text-center text-sm text-text-muted">Zalicz przynajmniej jedną serię, żeby zapisać trening.</p>}
         <Button variant="primary" size="lg" disabled={empty || logger.saving} onClick={save} className="w-full !h-14 !rounded-2xl !text-base !font-black">
           {logger.saving ? 'Zapisuję…' : 'Zapisz trening'}

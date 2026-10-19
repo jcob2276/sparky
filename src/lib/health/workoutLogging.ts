@@ -153,6 +153,7 @@ export async function saveWorkoutSession(
 
   const exLogs = validEx.flatMap((ex) =>
     (ex.sets ?? [])
+      .filter((s) => s.type !== 'warmup')
       .filter((s) => s.kg.trim() !== '' || s.reps.trim() !== '')
       .filter((s) => !opts.planWorkoutId || Number(s.reps) > 0)
       .map((s, i) => ({

@@ -1,4 +1,4 @@
-import { Flame, Scale, TrendingUp, Trash2, Minus } from 'lucide-react';
+import { Flame, Scale, TrendingUp, Trash2, Minus, Repeat2 } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 
 interface Props {
@@ -8,11 +8,12 @@ interface Props {
   onPlates: () => void;
   onProgress: () => void;
   onRemoveSet: () => void;
+  onSwap?: () => void;
   onRemove: () => void;
 }
 
 /** Rzadko potrzebne akcje ćwiczenia schowane w jednym menu, żeby karta zostawała prosta. */
-export default function LiveExerciseMenu({ canPlates, onClose, onWarmup, onPlates, onProgress, onRemoveSet, onRemove }: Props) {
+export default function LiveExerciseMenu({ canPlates, onClose, onWarmup, onPlates, onProgress, onRemoveSet, onSwap, onRemove }: Props) {
   const item = 'flex h-11 w-full items-center gap-2.5 rounded-xl px-3 text-left text-sm font-semibold text-text-primary hover:bg-surface-2';
   const run = (action: () => void) => () => {
     onClose();
@@ -26,6 +27,7 @@ export default function LiveExerciseMenu({ canPlates, onClose, onWarmup, onPlate
         {canPlates && <Pressable role="menuitem" onClick={run(onPlates)} className={item}><Scale size={16} className="text-primary" /> Talerze na sztandze</Pressable>}
         <Pressable role="menuitem" onClick={run(onProgress)} className={item}><TrendingUp size={16} className="text-primary" /> Historia i progres</Pressable>
         <Pressable role="menuitem" onClick={run(onRemoveSet)} className={item}><Minus size={16} className="text-text-muted" /> Usuń ostatnią serię</Pressable>
+        {onSwap && <Pressable role="menuitem" onClick={run(onSwap)} className={item}><Repeat2 size={16} className="text-primary" /> Zamień ćwiczenie</Pressable>}
         <Pressable role="menuitem" onClick={run(onRemove)} className={`${item} !text-danger`}><Trash2 size={16} /> Usuń ćwiczenie</Pressable>
       </div>
     </>
