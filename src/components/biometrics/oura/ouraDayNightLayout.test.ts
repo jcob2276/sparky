@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  areaPath, buildPlotFrame, clamp, hourTicks, linearScale, linePath, paddedExtent, splitOnGaps, stackMarkerRows, stageRects,
+  areaPath, buildPlotFrame, clamp, hourTicks, linearScale, linePath, paddedExtent, resolveViewWindow, splitOnGaps, stackMarkerRows, stageRects,
 } from './ouraDayNightLayout';
 
 describe('ouraDayNightLayout', () => {
@@ -64,5 +64,34 @@ describe('ouraDayNightLayout', () => {
     expect(frame.width).toBe(280);
     expect(frame.x1).toBeGreaterThan(frame.x0);
     expect(frame.axis.top + frame.axis.height).toBe(frame.height);
+  });
+
+  it('zooms to bedtime-30min .. wake+30min and falls back without sleep', () => {
+    const w = ['2026-10-17T04:00:00.000Z', '2026-10-18T07:00:00.000Z'] as const;
+    const night = resolveViewWindow(w[0], w[1], '2026-10-17T21:40:00.000Z', '2026-10-18T05:30:00.000Z', 'night');
+    expect(night.mode).toBe('night');
+    expect(night.startMs).toBe(Date.parse('2026-10-17T21:10:00.000Z'));
+    expect(night.endMs).toBe(Date.parse('2026-10-18T06:00:00.000Z'));
+    expect(resolveViewWindow(w[0], w[1], null, null, 'night').mode).toBe('full');
+    expect(resolveViewWindow(w[0], w[1], '2026-10-17T21:40:00.000Z', '2026-10-18T05:30:00.000Z', 'full').startMs).toBe(Date.parse(w[0]));
+  });
+
+  it('never extends the zoomed window beyond the loaded window', () => {
+    const v = resolveViewWindow('2026-10-17T21:30:00.000Z', '2026-10-18T05:40:00.000Z', '2026-10-17T21:40:00.000Z', '2026-10-18T05:30:00.000Z', 'night');
+    expect(v.startMs).toBe(Date.parse('2026-10-17T21:30:00.000Z'));
+    expect(v.endMs).toBe(Date.parse('2026-10-18T05:40:00.000Z'));
+  });
+
+  it('zoomed frame drops caffeine lanes and gives touch-sized rows', () => {
+    const full = buildPlotFrame(343);
+    const zoom = buildPlotFrame(343, { zoomed: true });
+    expect(zoom.caffeine.height).toBe(0);
+    expect(zoom.gap.height).toBe(0);
+    expect(zoom.events.height).toBe(0);
+    expect(buildPlotFrame(343, { zoomed: true, showEvents: true }).events.height).toBeGreaterThan(0);
+    expect(zoom.hypnoRow).toBeGreaterThan(full.hypnoRow);
+    expect(zoom.hr.height).toBeGreaterThanOrEqual(44);
+    expect(zoom.hypnoRow).toBeGreaterThanOrEqual(24);
+    expect(zoom.axis.top + zoom.axis.height).toBe(zoom.height);
   });
 });

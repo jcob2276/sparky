@@ -4,8 +4,13 @@ import type { DayNightTimeline } from '../../../lib/biometrics/ouraDayTimeline.t
 import { formatLongDateWarsaw } from '../../../lib/date';
 import IconButton from '../../ui/IconButton';
 import Skeleton from '../../ui/Skeleton';
+import Tabs from '../../ui/Tabs';
+import { resolveViewWindow, type ViewMode } from './ouraDayNightLayout';
 import { OuraDayNightPlot } from './OuraDayNightPlot';
-import { buildAltRows, caffeineGap, describeMoment, formatClock, formatMomentLine, STAGE_LABEL } from './ouraDayNightReadout';
+import {
+  buildAltRows, buildPreSleepNote, caffeineGap, describeMoment, formatClock, formatMomentLine, STAGE_LABEL,
+} from './ouraDayNightReadout';
+import { useDayNightViewMode } from './useDayNightViewMode';
 import { useElementWidth } from './useElementWidth';
 
 export interface OuraDayNightChartProps {
@@ -17,6 +22,10 @@ export interface OuraDayNightChartProps {
 }
 
 const STAGES = ['deep', 'light', 'rem', 'awake'] as const;
+const VIEW_TABS = [
+  { key: 'full', label: 'Dzień + noc' },
+  { key: 'night', label: 'Tylko noc' },
+];
 
 function SummaryStats({ timeline }: { timeline: DayNightTimeline }) {
   const { summary } = timeline;
@@ -49,17 +58,24 @@ function AltTable({ timeline }: { timeline: DayNightTimeline }) {
   );
 }
 
-function ChartBody({ timeline }: { timeline: DayNightTimeline }) {
+function ChartBody({ timeline, mode, swapping }: { timeline: DayNightTimeline; mode: ViewMode; swapping: boolean }) {
   const { ref, width } = useElementWidth<HTMLDivElement>();
-  const [cursorMs, setCursorMs] = useState<number | null>(null);
+  const [cursor, setCursor] = useState<number | null>(null);
+  const view = resolveViewWindow(timeline.windowStart, timeline.windowEnd, timeline.sleepStart, timeline.sleepEnd, mode);
+  const cursorMs = cursor !== null && cursor >= view.startMs && cursor <= view.endMs ? cursor : null;
   const live = cursorMs === null ? '' : formatMomentLine(describeMoment(timeline, cursorMs));
+  const hasSleep = timeline.sleepStart !== null && timeline.sleepEnd !== null;
   return (
     <>
       <SummaryStats timeline={timeline} />
+      {view.mode === 'night' && <p className="oura-dn-note">{buildPreSleepNote(timeline)}</p>}
+      {!hasSleep && <p className="oura-dn-note">Brak snu tej nocy — pokazuję sam dzień.</p>}
       <div ref={ref} className="oura-dn-scroll">
-        <OuraDayNightPlot timeline={timeline} width={width} cursorMs={cursorMs} onCursorChange={setCursorMs} />
+        <div key={view.mode} className={swapping ? 'oura-dn-swap' : undefined}>
+          <OuraDayNightPlot timeline={timeline} view={view} width={width} cursorMs={cursorMs} onCursorChange={setCursor} />
+        </div>
       </div>
-      <ul className="oura-dn-legend" aria-label="Legenda faz snu">
+      <ul className="oura-dn-legend" aria-label="Legenda">
         {STAGES.map((stage) => (
           <li key={stage}><span className="oura-dn-swatch" data-stage={stage} />{STAGE_LABEL[stage]}</li>
         ))}
@@ -73,7 +89,13 @@ function ChartBody({ timeline }: { timeline: DayNightTimeline }) {
 }
 
 export function OuraDayNightChart({ timeline, loading, error, onPrevNight, onNextNight }: OuraDayNightChartProps) {
+  const [mode, setMode] = useDayNightViewMode();
+  /** Night the user switched the view on; the fade only plays for that night, never on night navigation. */
+  const [swapNight, setSwapNight] = useState<string | null>(null);
   const subtitle = timeline ? `Noc do ${formatLongDateWarsaw(`${timeline.nightDate}T12:00:00Z`)}` : 'Kofeina, suple, posiłki i noc na jednej osi';
+  const canToggle = !loading && !error && timeline !== null && timeline.sleepStart !== null && timeline.sleepEnd !== null;
+  const goPrev = () => { setSwapNight(null); onPrevNight(); };
+  const goNext = onNextNight ? () => { setSwapNight(null); onNextNight(); } : undefined;
   let body;
   if (loading) {
     body = <div aria-busy="true" aria-label="Ładowanie wykresu"><Skeleton variant="card" lines={6} /></div>;
@@ -94,7 +116,7 @@ export function OuraDayNightChart({ timeline, loading, error, onPrevNight, onNex
       </div>
     );
   } else {
-    body = <ChartBody key={timeline.nightDate} timeline={timeline} />;
+    body = <ChartBody key={timeline.nightDate} timeline={timeline} mode={mode} swapping={swapNight === timeline.nightDate} />;
   }
 
   return (
@@ -105,11 +127,21 @@ export function OuraDayNightChart({ timeline, loading, error, onPrevNight, onNex
           <p>{subtitle}</p>
         </div>
         <div className="oura-dn-nav">
-          <IconButton variant="tonal" size="sm" label="Poprzednia noc" icon={<ChevronLeft size={18} />} onClick={onPrevNight} />
+          <IconButton variant="tonal" size="sm" label="Poprzednia noc" icon={<ChevronLeft size={18} />} onClick={goPrev} />
           <IconButton variant="tonal" size="sm" label="Następna noc" icon={<ChevronRight size={18} />}
-            onClick={onNextNight} disabled={!onNextNight} />
+            onClick={goNext} disabled={!goNext} />
         </div>
       </header>
+      {canToggle && timeline && (
+        <div className="oura-dn-controls">
+          <Tabs
+            tabs={VIEW_TABS}
+            active={mode}
+            className="oura-dn-toggle"
+            onChange={(key) => { setSwapNight(timeline.nightDate); setMode(key === 'night' ? 'night' : 'full'); }}
+          />
+        </div>
+      )}
       {body}
     </section>
   );

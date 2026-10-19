@@ -7,10 +7,10 @@ import { shiftDateStr, warsawTimeOfDay } from '../date';
 export const MIN_NIGHTS_PER_GROUP = 5;
 /** Różnica wyniku snu (pkt), od której dopiero formułujemy rekomendację. */
 const MIN_SCORE_GAP = 3;
-const DEFAULT_CAFFEINE_CUTOFF_HOUR = 14;
-const CUTOFF_CANDIDATES = [12, 13, 14, 15, 16, 17] as const;
+/** Progi odstępu (h) między ostatnią kawą a zaśnięciem. */
+const GAP_THRESHOLDS_H = [4, 6, 8, 10] as const;
 
-export type IntakeNight = Pick<Tables<'oura_daily_summary'>, 'date' | 'sleep_score' | 'hrv_avg' | 'latency_minutes'>;
+export type IntakeNight = Pick<Tables<'oura_daily_summary'>, 'date' | 'sleep_score' | 'hrv_avg' | 'latency_minutes' | 'bedtime_timestamp'>;
 
 export interface NightGroup {
   /** Liczba nocy z wynikiem snu w grupie. */
@@ -36,20 +36,26 @@ export interface TodayStackItem {
   id: string;
   name: string;
   taken: boolean;
+  /** Id wpisu z dziś (do cofnięcia) albo null. */
+  logId: string | null;
   takenAt: string | null;
   plannedAt: string | null;
 }
 
-interface CaffeineComparison {
-  cutoffHour: number;
-  /** Dni z godzinną kofeiną (z nich budujemy porównanie). */
-  daysWithTimedCaffeine: number;
-  /** withGroup = noce po dniach z późną kawą, withoutGroup = po dniach z kawą wcześnie. */
+interface CaffeineGapComparison {
+  thresholdHours: number;
+  /** withGroup = noce z kawą <= X h przed snem, withoutGroup = noce z kawą > X h przed snem. */
   comparison: IntakeComparison;
 }
 
+interface CaffeineGapInsights {
+  /** Noce, dla których znamy odstęp ostatnia kawa → zaśnięcie. */
+  nightsWithGap: number;
+  thresholds: CaffeineGapComparison[];
+}
+
 export type CoffeeWindow =
-  | { status: 'recommendation'; beforeHour: number; scoreGap: number; nEarly: number; nLate: number }
+  | { status: 'recommendation'; beforeHours: number; latestClock: string | null; scoreGap: number; nFar: number; nNear: number }
   | { status: 'no_effect' }
   | { status: 'insufficient' };
 
@@ -58,7 +64,7 @@ export interface IntakeInsights {
   /** Godziny kofeiny dziś (HH:mm). */
   todayCaffeineTimes: string[];
   supplements: SupplementComparison[];
-  caffeine: CaffeineComparison;
+  caffeine: CaffeineGapInsights;
   coffeeWindow: CoffeeWindow;
 }
 
@@ -138,6 +144,7 @@ function buildTodayStack(supplements: Supplement[], logs: SupplementLog[], today
         id: s.id,
         name: s.name,
         taken: !!log,
+        logId: log?.id ?? null,
         takenAt: log?.logged_at ? warsawTimeOfDay(log.logged_at) : null,
         plannedAt: s.reminder_time ? s.reminder_time.slice(0, 5) : null,
       };
@@ -170,44 +177,64 @@ function compareSupplement(
   };
 }
 
-/** Dla każdego dnia z godzinną kofeiną: godzina ostatniej dawki (ułamek godziny, Warsaw). */
-function lastCaffeineHourByDay(entries: CaffeineEntry[]): Map<string, number> {
-  const result = new Map<string, number>();
+interface GapNight {
+  night: IntakeNight;
+  gapHours: number;
+}
+
+/** Odstęp (h) od ostatniej kawy dnia D do zaśnięcia (bedtime_start nocy D+1); pomija wpisy bez godziny i kawę po zaśnięciu. */
+function caffeineGapNights(entries: CaffeineEntry[], byDate: Map<string, IntakeNight>): GapNight[] {
+  const lastByDay = new Map<string, number>();
   for (const e of entries) {
     if (!e.loggedAt) continue;
-    const hour = clockToMinutes(warsawTimeOfDay(e.loggedAt)) / 60;
-    result.set(e.date, Math.max(result.get(e.date) ?? 0, hour));
+    const ms = new Date(e.loggedAt).getTime();
+    if (!Number.isNaN(ms)) lastByDay.set(e.date, Math.max(lastByDay.get(e.date) ?? 0, ms));
+  }
+  const result: GapNight[] = [];
+  for (const [day, ms] of lastByDay) {
+    const night = byDate.get(shiftDateStr(day, 1));
+    if (!night?.bedtime_timestamp) continue;
+    const gapHours = (new Date(night.bedtime_timestamp).getTime() - ms) / 3_600_000;
+    if (gapHours >= 0) result.push({ night, gapHours });
   }
   return result;
 }
 
-function compareCaffeine(
-  lastHours: Map<string, number>,
-  byDate: Map<string, IntakeNight>,
-  cutoffHour: number,
-): CaffeineComparison {
-  const lateDays: string[] = [];
-  const earlyDays: string[] = [];
-  for (const [day, hour] of lastHours) (hour >= cutoffHour ? lateDays : earlyDays).push(day);
-  return {
-    cutoffHour,
-    daysWithTimedCaffeine: lastHours.size,
-    comparison: compareGroups(nightsAfterDays(lateDays, byDate), nightsAfterDays(earlyDays, byDate)),
-  };
+function compareGap(gaps: GapNight[], thresholdHours: number): CaffeineGapComparison {
+  const near = gaps.filter((g) => g.gapHours <= thresholdHours).map((g) => g.night);
+  const far = gaps.filter((g) => g.gapHours > thresholdHours).map((g) => g.night);
+  return { thresholdHours, comparison: compareGroups(near, far) };
 }
 
-function recommendWindow(lastHours: Map<string, number>, byDate: Map<string, IntakeNight>): CoffeeWindow {
+/** Typowa godzina zaśnięcia (HH:mm), mediana z uwzględnieniem północy. */
+function typicalBedtimeMinutes(nights: IntakeNight[]): number | null {
+  const minutes = nights.flatMap((n) => {
+    if (!n.bedtime_timestamp) return [];
+    const m = clockToMinutes(warsawTimeOfDay(n.bedtime_timestamp));
+    return [m < 12 * 60 ? m + 1440 : m];
+  });
+  return median(minutes);
+}
+
+function recommendWindow(thresholds: CaffeineGapComparison[], nights: IntakeNight[]): CoffeeWindow {
   let best: Extract<CoffeeWindow, { status: 'recommendation' }> | null = null;
   let anyTestable = false;
-  for (const cutoff of CUTOFF_CANDIDATES) {
-    const { comparison } = compareCaffeine(lastHours, byDate, cutoff);
+  for (const { thresholdHours, comparison } of thresholds) {
     if (comparison.status !== 'ok') continue;
     anyTestable = true;
-    const { withGroup: late, withoutGroup: early } = comparison;
-    if (late.sleepScore == null || early.sleepScore == null) continue;
-    const gap = Math.round((early.sleepScore - late.sleepScore) * 10) / 10;
+    const { withGroup: near, withoutGroup: far } = comparison;
+    if (near.sleepScore == null || far.sleepScore == null) continue;
+    const gap = Math.round((far.sleepScore - near.sleepScore) * 10) / 10;
     if (gap >= MIN_SCORE_GAP && (!best || gap > best.scoreGap)) {
-      best = { status: 'recommendation', beforeHour: cutoff, scoreGap: gap, nEarly: early.n, nLate: late.n };
+      const bed = typicalBedtimeMinutes(nights);
+      best = {
+        status: 'recommendation',
+        beforeHours: thresholdHours,
+        latestClock: bed == null ? null : minutesToClock(((bed - thresholdHours * 60) % 1440 + 1440) % 1440),
+        scoreGap: gap,
+        nFar: far.n,
+        nNear: near.n,
+      };
     }
   }
   if (best) return best;
@@ -216,7 +243,8 @@ function recommendWindow(lastHours: Map<string, number>, byDate: Map<string, Int
 
 export function buildIntakeInsights(input: IntakeInput): IntakeInsights {
   const byDate = new Map(input.nights.map((n) => [n.date, n]));
-  const lastHours = lastCaffeineHourByDay(input.caffeineEntries);
+  const gaps = caffeineGapNights(input.caffeineEntries, byDate);
+  const thresholds = GAP_THRESHOLDS_H.map((h) => compareGap(gaps, h));
   return {
     todayStack: buildTodayStack(input.supplements, input.supplementLogs, input.today),
     todayCaffeineTimes: input.caffeineEntries.flatMap((e) =>
@@ -226,7 +254,7 @@ export function buildIntakeInsights(input: IntakeInput): IntakeInsights {
       const c = compareSupplement(s, input.supplementLogs, input.nights, byDate);
       return c ? [c] : [];
     }),
-    caffeine: compareCaffeine(lastHours, byDate, DEFAULT_CAFFEINE_CUTOFF_HOUR),
-    coffeeWindow: recommendWindow(lastHours, byDate),
+    caffeine: { nightsWithGap: gaps.length, thresholds },
+    coffeeWindow: recommendWindow(thresholds, input.nights),
   };
 }

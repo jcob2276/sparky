@@ -17,6 +17,8 @@ const log = (date: string, supplementId = 's1', hour = 21): SupplementLog => ({
 const day = (n: number) => `2026-09-${String(n).padStart(2, '0')}`;
 const night = (date: string, score: number): IntakeNight => ({
   date, sleep_score: score, hrv_avg: score - 20, latency_minutes: 10,
+  // zaśnięcie 23:00 poprzedniego wieczoru (czas warszawski)
+  bedtime_timestamp: `${day(Number(date.slice(-2)) - 1)}T23:00:00+02:00`,
 });
 const coffee = (date: string, hour: number): CaffeineEntry => ({
   date, name: 'Kawa', loggedAt: `${date}T${String(hour).padStart(2, '0')}:00:00+02:00`, mg: 95,
@@ -34,8 +36,8 @@ describe('buildIntakeInsights', () => {
       supplementLogs: [log(day(10))],
     });
     expect(res.todayStack).toEqual([
-      { id: 's1', name: 'Magnez', taken: true, takenAt: '21:30', plannedAt: '21:20' },
-      { id: 's2', name: 'Cynk', taken: false, takenAt: null, plannedAt: null },
+      { id: 's1', name: 'Magnez', taken: true, logId: `s1-${day(10)}`, takenAt: '21:30', plannedAt: '21:20' },
+      { id: 's2', name: 'Cynk', taken: false, logId: null, takenAt: null, plannedAt: null },
     ]);
   });
 
@@ -81,49 +83,66 @@ describe('buildIntakeInsights', () => {
     expect(res.supplements).toEqual([]);
   });
 
-  it('kofeina: późna kawa (>=14:00) vs wcześnie, z progiem 5 nocy', () => {
-    const lateDays = [2, 3, 4, 5, 6, 7];
-    const earlyDays = [8, 9, 10, 11, 12, 13];
-    const entries = [
-      ...lateDays.map((d) => coffee(day(d), 16)),
-      ...earlyDays.map((d) => coffee(day(d), 9)),
-    ];
+  it('kofeina: porównuje noce z kawą <= X h przed snem z nocami z kawą wcześniej', () => {
+    // kawa o 20:00 => 3 h przed snem o 23:00; kawa o 9:00 => 14 h przed snem
+    const nearDays = [2, 3, 4, 5, 6, 7];
+    const farDays = [8, 9, 10, 11, 12, 13];
+    const entries = [...nearDays.map((d) => coffee(day(d), 20)), ...farDays.map((d) => coffee(day(d), 9))];
     const res = buildIntakeInsights({
       today: day(21),
-      nights: nights((d) => (lateDays.map((x) => x + 1).includes(d) ? 65 : 80)),
+      nights: nights((d) => (nearDays.map((x) => x + 1).includes(d) ? 65 : 80)),
       caffeineEntries: entries, supplements: [], supplementLogs: [],
     });
-    const { comparison, daysWithTimedCaffeine } = res.caffeine;
-    expect(daysWithTimedCaffeine).toBe(12);
-    expect(comparison.status).toBe('ok');
-    if (comparison.status === 'ok') {
-      expect(comparison.withGroup.sleepScore).toBe(65);
-      expect(comparison.withoutGroup.sleepScore).toBe(80);
+    expect(res.caffeine.nightsWithGap).toBe(12);
+    expect(res.caffeine.thresholds.map((t) => t.thresholdHours)).toEqual([4, 6, 8, 10]);
+    const at4 = res.caffeine.thresholds[0].comparison;
+    expect(at4.status).toBe('ok');
+    if (at4.status === 'ok') {
+      expect(at4.withGroup).toMatchObject({ n: 6, sleepScore: 65 });
+      expect(at4.withoutGroup).toMatchObject({ n: 6, sleepScore: 80 });
     }
+    expect(res.coffeeWindow).toMatchObject({ status: 'recommendation', scoreGap: 15, nNear: 6, nFar: 6 });
+  });
+
+  it('rekomendacja podaje przybliżoną godzinę na podstawie typowego zaśnięcia', () => {
+    const entries = [2, 3, 4, 5, 6, 7].map((d) => coffee(day(d), 20))
+      .concat([8, 9, 10, 11, 12, 13].map((d) => coffee(day(d), 9)));
+    const res = buildIntakeInsights({
+      today: day(21), nights: nights((d) => (d <= 8 ? 60 : 80)), caffeineEntries: entries, supplements: [], supplementLogs: [],
+    });
     expect(res.coffeeWindow.status).toBe('recommendation');
     if (res.coffeeWindow.status === 'recommendation') {
-      expect(res.coffeeWindow.scoreGap).toBe(15);
-      expect(res.coffeeWindow.beforeHour).toBeGreaterThanOrEqual(12);
-      expect(res.coffeeWindow.beforeHour).toBeLessThanOrEqual(16);
+      const { beforeHours, latestClock } = res.coffeeWindow;
+      expect(latestClock).toBe(`${23 - beforeHours}:00`);
     }
   });
 
-  it('brak rekomendacji gdy kawa rzadko po południu (za mało danych)', () => {
-    const entries = [2, 3, 4, 5, 6, 7, 8].map((d) => coffee(day(d), 9)).concat([coffee(day(9), 16)]);
+  it('brak rekomendacji i "za mało danych" gdy kawa rzadko blisko snu', () => {
+    const entries = [2, 3, 4, 5, 6, 7, 8].map((d) => coffee(day(d), 9)).concat([coffee(day(9), 20)]);
     const res = buildIntakeInsights({
       today: day(21), nights: nights(() => 80), caffeineEntries: entries, supplements: [], supplementLogs: [],
     });
-    expect(res.caffeine.comparison.status).toBe('insufficient');
+    expect(res.caffeine.thresholds[0].comparison).toEqual({ status: 'insufficient', nWith: 1, nWithout: 7 });
     expect(res.coffeeWindow).toEqual({ status: 'insufficient' });
   });
 
   it('brak wyraźnej różnicy gdy obie grupy śpią tak samo', () => {
-    const entries = [2, 3, 4, 5, 6, 7].map((d) => coffee(day(d), 16))
+    const entries = [2, 3, 4, 5, 6, 7].map((d) => coffee(day(d), 20))
       .concat([8, 9, 10, 11, 12, 13].map((d) => coffee(day(d), 9)));
     const res = buildIntakeInsights({
       today: day(21), nights: nights(() => 80), caffeineEntries: entries, supplements: [], supplementLogs: [],
     });
     expect(res.coffeeWindow).toEqual({ status: 'no_effect' });
+  });
+
+  it('pomija kawę wypitą po zaśnięciu i noce bez bedtime', () => {
+    const noBed = { ...night(day(3), 80), bedtime_timestamp: null };
+    const res = buildIntakeInsights({
+      today: day(21), nights: [noBed, night(day(4), 80)], supplements: [], supplementLogs: [],
+      caffeineEntries: [coffee(day(2), 9), coffee(day(3), 23)],
+    });
+    // dzień 2 -> noc 3 bez bedtime (pominięta); dzień 3 o 23:00 vs zaśnięcie 23:00 => odstęp 0 h (zostaje)
+    expect(res.caffeine.nightsWithGap).toBe(1);
   });
 
   it('ignoruje wpisy kofeiny bez godziny i zwraca dzisiejsze godziny kawy', () => {
@@ -137,6 +156,5 @@ describe('buildIntakeInsights', () => {
       ],
     });
     expect(res.todayCaffeineTimes).toEqual(['08:00', '13:00']);
-    expect(res.caffeine.daysWithTimedCaffeine).toBe(2);
   });
 });

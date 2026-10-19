@@ -116,6 +116,21 @@ export function caffeineGap(timeline: DayNightTimeline): CaffeineGap | null {
   return { fromMs, toMs, label: formatDuration(toMs - fromMs) };
 }
 
+/** One-line recap of everything before the zoomed night window. */
+export function buildPreSleepNote(timeline: DayNightTimeline): string {
+  const { lastCaffeineAt, caffeineAtBedtimeMg, lastMealAt, supplementsTaken } = timeline.summary;
+  const parts: string[] = [];
+  if (lastCaffeineAt) {
+    const mg = caffeineAtBedtimeMg === null ? '' : `, ~${Math.round(caffeineAtBedtimeMg)} mg w ciele`;
+    parts.push(`ostatnia kofeina ${formatClock(Date.parse(lastCaffeineAt))}${mg}`);
+  } else {
+    parts.push('bez kofeiny');
+  }
+  if (lastMealAt) parts.push(`ostatni posiłek ${formatClock(Date.parse(lastMealAt))}`);
+  if (supplementsTaken.length > 0) parts.push(`suple: ${supplementsTaken.join(', ')}`);
+  return `przed snem: ${parts.join(' · ')}`;
+}
+
 export function buildChartAriaLabel(timeline: DayNightTimeline): string {
   const parts = [`Wykres dzień-noc dla nocy ${timeline.nightDate}.`];
   if (timeline.sleepStart && timeline.sleepEnd) {

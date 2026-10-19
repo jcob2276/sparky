@@ -1,11 +1,20 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Coffee } from 'lucide-react';
-import { buildIntakeInsights, type CoffeeWindow, type IntakeNight } from '../../../lib/biometrics/ouraIntakeInsights';
+import {
+  buildIntakeInsights,
+  type CoffeeWindow,
+  type IntakeNight,
+  type TodayStackItem,
+} from '../../../lib/biometrics/ouraIntakeInsights';
 import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 import { useCaffeineEntries } from '../../../lib/health/caffeineHistoryApi';
+import { notify } from '../../../lib/notify';
+import { buildQuickLog, useQuickLogSupplement } from '../../../lib/health/supplementQuickLogApi';
 import { useSupplementLogs, useSupplements } from '../../../lib/health/supplementsApi';
 import type { OuraHealthHubData } from './types';
-import { ComparisonCard, TodayStrip } from './OuraIntakeParts';
+import { CaffeineImpacts } from './OuraIntakeImpacts';
+import { ComparisonCard } from './OuraIntakeParts';
+import { TodayStrip } from './OuraIntakeToday';
 
 interface OuraIntakeSectionProps {
   userId: string;
@@ -21,20 +30,20 @@ function collectNights(data: OuraHealthHubData): IntakeNight[] {
 function windowText(w: CoffeeWindow): { headline: string; detail: string } {
   if (w.status === 'recommendation') {
     return {
-      headline: `Ostatnia kawa do ${w.beforeHour}:00`,
-      detail: `W Twoich danych noce po kawie przed ${w.beforeHour}:00 mają średnio o ${w.scoreGap} pkt wyższy wynik snu `
-        + `(${w.nEarly} vs ${w.nLate} nocy). Wybrano najlepszy z progów 12–17, więc traktuj to jako wskazówkę.`,
+      headline: `Ostatnia kawa najpóźniej ${w.beforeHours} h przed snem${w.latestClock ? ` (ok. ${w.latestClock})` : ''}`,
+      detail: `W Twoich danych noce z kawą wcześniej niż ${w.beforeHours} h przed snem mają średnio o ${w.scoreGap} pkt wyższy wynik snu `
+        + `(${w.nFar} vs ${w.nNear} nocy). Wybrano najlepszy z progów 4, 6, 8 i 10 h, więc to korelacja, nie dowód.`,
     };
   }
   if (w.status === 'no_effect') {
     return {
       headline: 'Brak wyraźnej różnicy',
-      detail: 'Przy żadnym progu godziny (12–17) wynik snu nie różni się o 3 pkt lub więcej. Nie ma podstaw, by zalecać limit.',
+      detail: 'Przy żadnym progu odstępu (4, 6, 8, 10 h) wynik snu nie różni się o 3 pkt lub więcej. Nie ma podstaw, by zalecać limit.',
     };
   }
   return {
     headline: 'Brak danych',
-    detail: 'Za mało nocy po kawie wypitej późno i wcześnie, żeby wyliczyć okno. Loguj kawę z godziną.',
+    detail: 'Za mało nocy z kawą blisko snu i wcześniej, żeby wyliczyć okno. Loguj kawę z godziną.',
   };
 }
 
@@ -56,6 +65,26 @@ export function OuraIntakeSection({ userId, data }: OuraIntakeSectionProps) {
     }),
     [today, nights, supplementsQuery.data, logsQuery.data, caffeineQuery.data],
   );
+
+  const quickLog = useQuickLogSupplement(userId, since);
+  const pendingIds = useMemo<ReadonlySet<string>>(
+    () => new Set(quickLog.isPending && quickLog.variables
+      ? [quickLog.variables.kind === 'log' ? quickLog.variables.log.supplement_id : quickLog.variables.supplementId]
+      : []),
+    [quickLog.isPending, quickLog.variables],
+  );
+  const toggleSupplement = useCallback((item: TodayStackItem) => {
+    if (item.taken && item.logId) {
+      quickLog.mutate({ kind: 'unlog', logId: item.logId, supplementId: item.id });
+      return;
+    }
+    const log = buildQuickLog(userId, item.id, today);
+    quickLog.mutate({ kind: 'log', log }, {
+      onSuccess: () => notify(`Zaznaczono: ${item.name}`, 'success', {
+        action: { label: 'Cofnij', onClick: () => quickLog.mutate({ kind: 'unlog', logId: log.id, supplementId: item.id }) },
+      }),
+    });
+  }, [quickLog, userId, today]);
 
   const loading = supplementsQuery.isLoading || logsQuery.isLoading || caffeineQuery.isLoading;
   const failed = supplementsQuery.isError || logsQuery.isError || caffeineQuery.isError;
@@ -81,7 +110,13 @@ export function OuraIntakeSection({ userId, data }: OuraIntakeSectionProps) {
         </div>
       ) : !loading && (
         <>
-          <TodayStrip caffeineTimes={insights.todayCaffeineTimes} stack={insights.todayStack} />
+          <TodayStrip
+            caffeineTimes={insights.todayCaffeineTimes}
+            stack={insights.todayStack}
+            pendingIds={pendingIds}
+            error={quickLog.isError ? 'Nie udało się zapisać suplementu. Spróbuj ponownie.' : null}
+            onToggle={toggleSupplement}
+          />
 
           <article className="rounded-xl border border-border-custom bg-surface-2 p-5">
             <div className="flex items-center gap-2 text-sm text-text-secondary">
@@ -91,14 +126,9 @@ export function OuraIntakeSection({ userId, data }: OuraIntakeSectionProps) {
             <p className="mt-2 text-xs leading-5 text-text-muted">{detail}</p>
           </article>
 
+          <CaffeineImpacts caffeine={insights.caffeine} />
+
           <div className="grid gap-3 sm:grid-cols-2">
-            <ComparisonCard
-              title="Kawa i następna noc"
-              subtitle={`Godzina ostatniej kawy: od ${insights.caffeine.cutoffHour}:00 vs wcześniej · ${insights.caffeine.daysWithTimedCaffeine} dni z godziną`}
-              withLabel={`Po ${insights.caffeine.cutoffHour}:00`}
-              withoutLabel={`Przed ${insights.caffeine.cutoffHour}:00`}
-              comparison={insights.caffeine.comparison}
-            />
             {insights.supplements.map((s) => (
               <ComparisonCard
                 key={s.id}
@@ -107,6 +137,8 @@ export function OuraIntakeSection({ userId, data }: OuraIntakeSectionProps) {
                 withLabel="Z suplem"
                 withoutLabel="Bez"
                 comparison={s.comparison}
+                progressVerb="Zaznaczone"
+                hint="Zaznaczaj regularnie, a po 5 nocach zobaczysz porównanie."
               />
             ))}
           </div>

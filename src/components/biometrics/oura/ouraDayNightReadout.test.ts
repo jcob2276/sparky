@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ouraDayTimelineFixture as timeline } from './ouraDayTimelineFixture';
 import {
-  buildAltRows, buildChartAriaLabel, caffeineGap, describeMoment, formatDuration, formatMomentLine, valueAt,
+  buildAltRows, buildChartAriaLabel, buildPreSleepNote, caffeineGap, describeMoment, formatDuration, formatMomentLine, valueAt,
 } from './ouraDayNightReadout';
 
 describe('ouraDayNightReadout', () => {
@@ -51,5 +51,14 @@ describe('ouraDayNightReadout', () => {
     expect(rows[0].time).toBe('06:00');
     expect(rows.some((r) => r.summary.includes('Magnez'))).toBe(true);
     expect(rows.map((r) => r.ms)).toEqual([...rows.map((r) => r.ms)].sort((a, b) => a - b));
+  });
+
+  it('summarises what happened before the zoomed night', () => {
+    const note = buildPreSleepNote(timeline);
+    expect(note).toContain('ostatnia kofeina 11:40');
+    expect(note).toContain('~28 mg w ciele');
+    expect(note).toContain('suple: Magnez, Glicynian');
+    expect(buildPreSleepNote({ ...timeline, summary: { ...timeline.summary, lastCaffeineAt: null, lastMealAt: null, supplementsTaken: [] } }))
+      .toBe('przed snem: bez kofeiny');
   });
 });

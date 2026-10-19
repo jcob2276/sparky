@@ -129,11 +129,45 @@ interface LaneBox {
   height: number;
 }
 
+export type ViewMode = 'full' | 'night';
+
+export interface ViewWindow {
+  mode: ViewMode;
+  startMs: number;
+  endMs: number;
+}
+
+const NIGHT_PAD_MS = 30 * 60_000;
+
+/** "night" zooms to bedtime-30min .. wake+30min; without a usable sleep window it falls back to the whole day. */
+export function resolveViewWindow(
+  windowStart: string,
+  windowEnd: string,
+  sleepStart: string | null,
+  sleepEnd: string | null,
+  mode: ViewMode,
+): ViewWindow {
+  const fullStart = Date.parse(windowStart);
+  const fullEnd = Date.parse(windowEnd);
+  const sleepFrom = sleepStart ? Date.parse(sleepStart) : NaN;
+  const sleepTo = sleepEnd ? Date.parse(sleepEnd) : NaN;
+  if (mode === 'night' && Number.isFinite(sleepFrom) && Number.isFinite(sleepTo) && sleepTo > sleepFrom) {
+    return {
+      mode: 'night',
+      startMs: Math.max(fullStart, sleepFrom - NIGHT_PAD_MS),
+      endMs: Math.min(fullEnd, sleepTo + NIGHT_PAD_MS),
+    };
+  }
+  return { mode: 'full', startMs: fullStart, endMs: fullEnd };
+}
+
 export interface PlotFrame {
   width: number;
   height: number;
   x0: number;
   x1: number;
+  zoomed: boolean;
+  hypnoRow: number;
   bandTop: number;
   caffeine: LaneBox;
   gap: LaneBox;
@@ -144,24 +178,33 @@ export interface PlotFrame {
   axis: LaneBox;
 }
 
-export const HYPNO_ROW = 15;
 export const EVENT_ROW = 22;
 
-/** Vertical rhythm of the lanes; the right margin is reserved for end-of-line value labels. */
-export function buildPlotFrame(width: number): PlotFrame {
+interface FrameOptions {
+  zoomed?: boolean;
+  /** Zoomed view only: keep the events lane when some marker falls inside the night window. */
+  showEvents?: boolean;
+}
+
+/**
+ * Vertical rhythm of the lanes; the right margin is reserved for end-of-line value labels.
+ * Zoomed ("night only") drops the caffeine/gap lanes and gives the hypnogram and HR/HRV lanes touch-sized rows.
+ */
+export function buildPlotFrame(width: number, { zoomed = false, showEvents = false }: FrameOptions = {}): PlotFrame {
   const w = Math.max(280, width);
+  const hypnoRow = zoomed ? 24 : 15;
   let y = 18;
   const lane = (height: number, after = 8): LaneBox => {
     const box = { top: y, height };
     y += height + after;
     return box;
   };
-  const caffeine = lane(88, 2);
-  const gap = lane(20, 6);
-  const events = lane(EVENT_ROW * 2, 8);
-  const sleep = lane(HYPNO_ROW * 4 + 12, 10);
-  const hr = lane(46, 6);
-  const hrv = lane(46, 4);
+  const caffeine = zoomed ? lane(0, 0) : lane(88, 2);
+  const gap = zoomed ? lane(0, 0) : lane(20, 6);
+  const events = !zoomed || showEvents ? lane(EVENT_ROW * 2, 8) : lane(0, 0);
+  const sleep = lane(hypnoRow * 4 + 12, 10);
+  const hr = lane(zoomed ? 76 : 46, 6);
+  const hrv = lane(zoomed ? 76 : 46, 4);
   const axis = lane(20, 0);
-  return { width: w, height: y, x0: 10, x1: w - 44, bandTop: 12, caffeine, gap, events, sleep, hr, hrv, axis };
+  return { width: w, height: y, x0: 10, x1: w - 44, zoomed, hypnoRow, bandTop: 12, caffeine, gap, events, sleep, hr, hrv, axis };
 }

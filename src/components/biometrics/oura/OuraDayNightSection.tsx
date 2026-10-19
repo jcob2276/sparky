@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { shiftDateStr } from '../../../lib/date';
+import { OuraBeforeSleep } from './OuraBeforeSleep';
 import { OuraDayNightChart } from './OuraDayNightChart';
 import { OuraIntakeSection } from './OuraIntakeSection';
 import { useDayNightTimeline } from './hooks/useDayNightTimeline';
@@ -34,6 +35,7 @@ export function OuraDayNightSection({ data, latestNight }: OuraDayNightSectionPr
         onPrevNight={() => setNightDate((d) => shiftDateStr(d, -1))}
         onNextNight={nightDate < latestNight ? () => setNightDate((d) => shiftDateStr(d, 1)) : undefined}
       />
+      {query.data?.timeline && <OuraBeforeSleep timeline={query.data.timeline} />}
       {sourceErrors.length > 0 && (
         <p className="text-xs leading-5 text-text-muted">
           Nie wczytano części warstw: {sourceErrors.map((e) => e.source).join(', ')}. Wykres pokazuje to, co się udało pobrać.

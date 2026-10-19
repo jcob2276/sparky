@@ -1,5 +1,6 @@
 import { Coffee, Dumbbell, Pill, Utensils } from 'lucide-react';
 import type { DayTimelineMarkerKind } from '../../../lib/biometrics/ouraDayTimeline.types';
+import { clamp } from './ouraDayNightLayout';
 import { markerText, STAGE_LABEL, type MomentReadout } from './ouraDayNightReadout';
 
 const MARKER_ICON = {
@@ -8,6 +9,8 @@ const MARKER_ICON = {
   meal: Utensils,
   workout: Dumbbell,
 } satisfies Record<DayTimelineMarkerKind, typeof Coffee>;
+
+const TOOLTIP_WIDTH = 200;
 
 interface OuraDayNightTooltipProps {
   moment: MomentReadout;
@@ -18,9 +21,11 @@ interface OuraDayNightTooltipProps {
 
 /** Floating readout pinned to the crosshair; flips to the left of the line past the chart middle. */
 export function OuraDayNightTooltip({ moment, x, chartWidth, top }: OuraDayNightTooltipProps) {
+  const width = Math.min(TOOLTIP_WIDTH, chartWidth - 8);
   const side = x > chartWidth / 2 ? 'left' : 'right';
+  const left = clamp(side === 'right' ? x + 12 : x - 12 - width, 4, chartWidth - width - 4);
   return (
-    <div className="oura-dn-tooltip" data-side={side} style={{ left: x, top }} aria-hidden="true">
+    <div className="oura-dn-tooltip" data-side={side} style={{ left, top, width }} aria-hidden="true">
       <p className="oura-dn-tooltip-time">{moment.time}</p>
       <dl className="oura-dn-tooltip-rows">
         {moment.stage && (

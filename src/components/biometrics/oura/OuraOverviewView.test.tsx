@@ -16,9 +16,8 @@ describe('health direction overview', () => {
     render(<OuraOverviewView data={{ date: '2026-10-16', oura: rows[13], strainRow: null, ouraHistory: rows }}
       onOpenSleep={vi.fn()} onOpenVitals={onOpenVitals} />);
     expect(screen.getByText('Sen i regeneracja zmieniają się różnie')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Wynik snu/ })).toHaveTextContent('+20 pkt tydzień do tygodnia');
-    expect(screen.getByRole('button', { name: /Regeneracja/ })).toHaveTextContent('-20 pkt tydzień do tygodnia');
-    expect(screen.getByRole('button', { name: /Nocne HRV/ })).toHaveTextContent('7/7 → 7/7');
+    expect(screen.getByRole('button', { name: /^Sen: 80 na 100, Dobry/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Regeneracja: 65 na 100, Średni/ })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Regeneracja/ }));
     expect(onOpenVitals).toHaveBeenCalledOnce();
   });
