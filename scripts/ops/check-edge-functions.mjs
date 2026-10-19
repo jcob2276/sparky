@@ -102,6 +102,7 @@ for (const fn of functionsNoJwt) {
     executableContent.includes('requireServiceRole') ||
     executableContent.includes('resolveUserScope') ||
     executableContent.includes('verifyTelegramSecret') ||
+    executableContent.includes('requireWidgetUser') ||
     executableContent.includes('MCP_SERVER_SECRET') ||
     serveJsonAuthed;
 
