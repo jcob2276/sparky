@@ -2797,3 +2797,92 @@ a,
   .todo-focus-top { justify-content: flex-start; margin-left: 2.875rem; }
   .todo-focus-top:empty { display: block; }
 }
+
+/* Day -> night chart (OuraDayNightChart). All chart colours/sizes live in this one block. */
+.oura-theme {
+  --oura-caffeine: var(--color-warning);
+  --oura-hr: var(--color-danger);
+  --oura-hrv: var(--color-success);
+  --oura-stage-deep: #4a78c2;
+  --oura-stage-light: var(--color-info);
+  --oura-stage-rem: var(--primary);
+  --oura-stage-awake: var(--text-secondary);
+  --oura-ev-supplement: var(--primary);
+  --oura-ev-meal: #d9925f;
+  --oura-ev-workout: var(--color-info);
+  --oura-ev-caffeine: var(--color-warning);
+  --oura-band: rgb(157 139 211 / 9%);
+  --oura-band-edge: rgb(157 139 211 / 28%);
+  --oura-grid: rgb(255 255 255 / 6%);
+  --oura-cursor: rgb(244 241 237 / 70%);
+  --oura-tooltip-bg: rgb(27 29 34 / 94%);
+  --oura-label: var(--text-muted);
+  --oura-dn-height: 22rem;
+  --oura-dn-fade: 280ms;
+}
+
+.oura-dn { display: grid; gap: 0.75rem; }
+.oura-dn-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.oura-dn-head h3 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+.oura-dn-head p { margin: 0.125rem 0 0; font-size: 0.75rem; color: var(--text-muted); }
+.oura-dn-nav { display: flex; gap: 0.375rem; }
+.oura-dn-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 0.5rem; margin: 0; }
+.oura-dn-stats div { padding: 0.5rem 0.625rem; border-radius: 0.75rem; background: var(--surface-2); }
+.oura-dn-stats dt { font-size: 0.6875rem; color: var(--text-muted); }
+.oura-dn-stats dd { margin: 0.125rem 0 0; font-size: 0.9375rem; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.oura-dn-scroll { width: 100%; overflow: hidden; }
+.oura-dn-plot { position: relative; }
+.oura-dn-svg { display: block; touch-action: pan-y; cursor: crosshair; outline: none; user-select: none; -webkit-user-select: none; }
+.oura-dn-svg:focus-visible { outline: 2px solid var(--oura-cursor); outline-offset: 2px; border-radius: 0.5rem; }
+.oura-dn-lane-title, .oura-dn-band-label, .oura-dn-gap-label, .oura-dn-tick, .oura-dn-empty-text, .oura-dn-dot-label, .oura-dn-end-label {
+  font-size: 10.5px; fill: var(--oura-label); font-variant-numeric: tabular-nums;
+}
+.oura-dn-band-label { fill: var(--primary); font-weight: 600; }
+.oura-dn-gap-label { fill: var(--text-secondary); }
+.oura-dn-dot-label { fill: var(--oura-caffeine); font-weight: 600; }
+.oura-dn-end-label { font-weight: 700; }
+.oura-dn-band { fill: var(--oura-band); stroke: var(--oura-band-edge); stroke-width: 1; stroke-dasharray: 3 3; }
+.oura-dn-grid { stroke: var(--oura-grid); stroke-width: 1; }
+.oura-dn-baseline { stroke: var(--oura-grid); stroke-width: 1; }
+.oura-dn-line { fill: none; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+.oura-dn-dot-caffeine { fill: var(--oura-caffeine); stroke: var(--surface-1); stroke-width: 2; }
+.oura-dn-gap-line { stroke: var(--text-secondary); stroke-width: 1.25; stroke-dasharray: 4 3; }
+.oura-dn-event { fill: var(--surface-2); stroke-width: 1.5; stroke: var(--oura-ev-supplement); }
+.oura-dn-event[data-kind='meal'] { stroke: var(--oura-ev-meal); }
+.oura-dn-event[data-kind='workout'] { stroke: var(--oura-ev-workout); }
+.oura-dn-event-icon { stroke: var(--text-primary); fill: none; }
+.oura-dn-stage[data-stage='deep'], .oura-dn-swatch[data-stage='deep'] { fill: var(--oura-stage-deep); background: var(--oura-stage-deep); }
+.oura-dn-stage[data-stage='light'], .oura-dn-swatch[data-stage='light'] { fill: var(--oura-stage-light); background: var(--oura-stage-light); }
+.oura-dn-stage[data-stage='rem'], .oura-dn-swatch[data-stage='rem'] { fill: var(--oura-stage-rem); background: var(--oura-stage-rem); }
+.oura-dn-stage[data-stage='awake'], .oura-dn-swatch[data-stage='awake'] { fill: var(--oura-stage-awake); background: var(--oura-stage-awake); }
+.oura-dn-step { stroke: var(--oura-band-edge); stroke-width: 1; }
+.oura-dn-cursor { stroke: var(--oura-cursor); stroke-width: 1; }
+.oura-dn-cursor-dot { fill: var(--surface-1); stroke: var(--oura-caffeine); stroke-width: 2; }
+.oura-dn-legend { display: flex; flex-wrap: wrap; gap: 0.25rem 0.875rem; margin: 0; padding: 0; list-style: none; font-size: 0.6875rem; color: var(--text-muted); }
+.oura-dn-legend li { display: inline-flex; align-items: center; gap: 0.375rem; }
+.oura-dn-swatch { display: inline-block; width: 0.625rem; height: 0.625rem; margin-right: 0.375rem; border-radius: 0.1875rem; }
+.oura-dn-legend .oura-dn-swatch { margin-right: 0; }
+.oura-dn-swatch[data-series='hr'] { background: var(--oura-hr); }
+.oura-dn-swatch[data-series='hrv'] { background: var(--oura-hrv); }
+.oura-dn-swatch[data-series='caffeine'] { background: var(--oura-caffeine); }
+.oura-dn-tooltip {
+  position: absolute; min-width: 8.5rem; max-width: 16rem; padding: 0.5rem 0.625rem; pointer-events: none;
+  border: 1px solid var(--border-custom); border-radius: 0.75rem; background: var(--oura-tooltip-bg);
+  font-size: 0.75rem; color: var(--text-primary); backdrop-filter: blur(6px);
+}
+.oura-dn-tooltip[data-side='right'] { transform: translateX(0.75rem); }
+.oura-dn-tooltip[data-side='left'] { transform: translateX(calc(-100% - 0.75rem)); }
+.oura-dn-tooltip-time { margin: 0 0 0.25rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.oura-dn-tooltip-rows { display: grid; gap: 0.125rem; margin: 0; }
+.oura-dn-tooltip-rows div { display: flex; justify-content: space-between; gap: 0.75rem; }
+.oura-dn-tooltip-rows dt { color: var(--text-muted); white-space: nowrap; }
+.oura-dn-tooltip-rows dd { margin: 0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.oura-dn-tooltip-markers { display: grid; gap: 0.125rem; margin: 0.375rem 0 0; padding: 0.375rem 0 0; list-style: none; border-top: 1px solid var(--border-custom); }
+.oura-dn-tooltip-markers li { display: flex; align-items: center; gap: 0.375rem; color: var(--text-secondary); }
+.oura-dn-state { display: grid; justify-items: center; gap: 0.25rem; padding: 2rem 1rem; border: 1px dashed var(--border-custom); border-radius: 1rem; color: var(--text-secondary); text-align: center; font-size: 0.8125rem; }
+.oura-dn-state p { margin: 0; }
+.oura-dn-state-detail { color: var(--text-muted); font-size: 0.75rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .oura-dn-plot { animation: oura-dn-in var(--oura-dn-fade) ease-out both; }
+}
+@keyframes oura-dn-in { from { opacity: 0; } to { opacity: 1; } }

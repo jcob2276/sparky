@@ -23,7 +23,7 @@ interface BuildSleepTimelineInput {
   bedtimeEnd: string | null | undefined;
 }
 
-const STAGES: Record<string, SleepStage> = {
+export const STAGES: Record<string, SleepStage> = {
   '1': 'deep',
   '2': 'light',
   '3': 'rem',

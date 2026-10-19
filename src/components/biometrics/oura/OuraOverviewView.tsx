@@ -2,6 +2,7 @@ import { ArrowDownRight, ArrowUpRight, ChevronRight, Minus } from 'lucide-react'
 import { buildHealthDirection } from '../../../lib/biometrics/healthDirection';
 import { formatShortDateWarsaw, getTodayWarsaw } from '../../../lib/date';
 import { OuraContextSection } from './OuraContextSection';
+import { OuraDayNightSection } from './OuraDayNightSection';
 import { OuraPersonalEvidence } from './OuraPersonalEvidence';
 import type { OuraHealthHubData } from './types';
 import Button from '../../ui/Button';
@@ -61,6 +62,8 @@ export function OuraOverviewView({ data, onOpenSleep, onOpenVitals }: OuraOvervi
         </div>
         <p className="text-xs leading-5 text-text-muted">Zmiana HRV opisuje pomiary, sama nie przesądza o poprawie zdrowia. Strzałki pokazują zmianę średniej, nie jej przyczynę.</p>
       </section>
+
+      {data.userId && <OuraDayNightSection data={data} latestNight={asOf} />}
 
       <section className="space-y-4" aria-labelledby="health-context-title">
         <div>
