@@ -24,10 +24,10 @@ export function ghostFor(rows: ExerciseHistoryRow[], idx: number): SetGhost | nu
 }
 
 /** Podpowiedź serii: z historii, a gdy jej brak — z zapisanego planu. */
-export function ghostForSet(rows: ExerciseHistoryRow[], idx: number, set: WorkoutSet): SetGhost | null {
+export function ghostForSet(rows: ExerciseHistoryRow[], idx: number, set: WorkoutSet | undefined): SetGhost | null {
   const fromHistory = ghostFor(rows, idx);
   if (fromHistory) return fromHistory;
-  if (!set.prescription) return null;
+  if (!set?.prescription) return null;
   return { kg: set.prescription.weightKg != null ? String(set.prescription.weightKg) : '', reps: String(set.prescription.reps) };
 }
 

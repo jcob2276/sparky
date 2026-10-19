@@ -5,7 +5,6 @@ import type { LucideIcon } from 'lucide-react';
 import Sheet from '../ui/Sheet';
 import { useHaptics } from '../../hooks/useHaptics';
 import { prefetchWorkspaceRoute } from '../../lib/workspacePrefetch';
-import { useRecentFastActions } from './hooks/useRecentFastActions';
 
 interface FastCaptureItem {
   label: string;
@@ -49,7 +48,6 @@ function SectionTitle({ children }: { children: string }) {
 
 export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools, userId, badges }: Props) {
   const { selection } = useHaptics();
-  const { recent, remember } = useRecentFastActions();
 
   const logTiles = useMemo<Tile[]>(
     () => items.map((item) => ({ label: item.label, icon: item.icon ?? Plus, action: item.action, color: item.color })),
@@ -59,14 +57,8 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
     () => tools.map((tool) => ({ label: tool.label, icon: tool.icon, action: tool.action, route: tool.route })),
     [tools],
   );
-  const recentTiles = useMemo(() => {
-    const all = [...logTiles, ...navTiles];
-    return recent.map((label) => all.find((tile) => tile.label === label)).filter((tile): tile is Tile => !!tile);
-  }, [recent, logTiles, navTiles]);
-
   const run = (tile: Tile) => {
     selection();
-    remember(tile.label);
     tile.action();
     onClose();
   };
@@ -84,31 +76,6 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
       title="Szybkie akcje"
     >
       <div className="mx-auto max-w-md space-y-5 pb-6 pt-1 max-h-[72vh] overflow-y-auto">
-        {recentTiles.length > 0 && (
-          <section className="space-y-2" aria-label="Ostatnio użyte">
-            <SectionTitle>Ostatnio</SectionTitle>
-            <div className="flex flex-wrap gap-2">
-              {recentTiles.map((tile) => {
-                const Icon = tile.icon;
-                return (
-                  <Pressable
-                    key={`recent-${tile.label}`}
-                    variant="ghost"
-                    aria-label={`Ostatnio: ${tile.label}`}
-                    onClick={() => run(tile)}
-                    onMouseEnter={() => warm(tile)}
-                    onTouchStart={() => warm(tile)}
-                    className="flex min-h-11 items-center gap-2 rounded-full bg-surface-2 px-4 text-sm font-medium text-text-primary active:scale-95"
-                  >
-                    <Icon size={16} aria-hidden="true" />
-                    <span>{tile.label}</span>
-                  </Pressable>
-                );
-              })}
-            </div>
-          </section>
-        )}
-
         {logTiles.length > 0 && (
           <section className="space-y-2" aria-label="Zaloguj">
             <SectionTitle>Zaloguj</SectionTitle>

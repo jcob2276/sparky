@@ -13,7 +13,7 @@ import { TIMEZONE } from '../../lib/date';
 import { Suspense, lazy, useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '../../store/useStore';
-import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Flame, Eye, GraduationCap } from 'lucide-react';
+import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Eye, GraduationCap } from 'lucide-react';
 import { dashboardKeys } from '../../lib/queryKeys';
 
 import { ErrorBoundary } from './ErrorBoundary';
@@ -82,9 +82,7 @@ function DashboardContent() {
   }, [s]);
 
   const fastCaptureItems = useMemo(() => [
-    { label: 'Trening', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => { s.openWorkout(); } },
-    { label: 'Sauna', emoji: '🧖', icon: Flame, color: 'var(--color-warning)', action: () => s.navigate('/sauna') },
-    { label: 'Wzrok', emoji: '👁️', icon: Eye, color: 'var(--color-primary)', action: () => s.navigate('/optics') },
+    { label: 'Centrum Treningowe', emoji: '🏋️', icon: Dumbbell, color: 'var(--color-warning)', action: () => s.navigate('/trening') },
   ], [s]);
 
   const workspaceTools = useMemo(() => [
@@ -95,6 +93,7 @@ function DashboardContent() {
     { label: 'Terminy', icon: Bell, action: () => s.navigate('/terminy'), route: 'terminy' },
     { label: 'Rozwój', icon: GraduationCap, action: () => s.navigate('/rozwoj'), route: 'rozwoj' },
     { label: 'Pocket', icon: BookOpen, action: () => s.navigate('/links'), route: 'links' },
+    { label: 'Wzrok', icon: Eye, action: () => s.navigate('/optics') },
   ], [s]);
 
   // ── Full-screen route views ──

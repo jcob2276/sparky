@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getTodayWarsaw, getWeekStartWarsaw, shiftDateStr } from '../../../lib/date';
 import { useHaptics } from '../../../hooks/useHaptics';
+import { useRunningLoad } from '../../../lib/health/runningLoadApi';
 import { confirmDialog, notify } from '../../../lib/notify';
 import {
   fetchTodayWorkoutDetails,
@@ -24,8 +25,6 @@ import {
   hasResumableWorkoutDraftContent,
   endWorkoutSession,
   loadWorkoutTemplate,
-  readLatestTrainingInsight,
-  ensureFreshTrainingInsight,
   type WorkoutLoggerInitial,
 } from '../../../lib/health/workoutLogging';
 
@@ -42,8 +41,7 @@ export function useTrainingHub(
   const [todaySession, setTodaySession] = useState<TodayWorkoutDetails | null>(null);
   const [templates, setTemplates] = useState<WorkoutTemplateSummary[]>([]);
   const [recoveryRows, setRecoveryRows] = useState<Awaited<ReturnType<typeof fetchHubRecoverySessions>>>([]);
-  const [insight, setInsight] = useState<string | null>(null);
-  const [insightLoading, setInsightLoading] = useState(false);
+  const running = useRunningLoad(userId);
   const [hasDraft, setHasDraft] = useState(false);
   const haptics = useHaptics();
   const todayStr = getTodayWarsaw();
@@ -52,8 +50,8 @@ export function useTrainingHub(
     if (!recoveryRows.length) return EMPTY_RECOVERY;
     const weekStart = getWeekStartWarsaw(todayStr);
     const weekEnd = shiftDateStr(weekStart, 6);
-    return buildHubRecoverySnapshot(recoveryRows, weekStart, weekEnd);
-  }, [recoveryRows, todayStr]);
+    return buildHubRecoverySnapshot(recoveryRows, weekStart, weekEnd, undefined, running.data?.fatigueInput ?? []);
+  }, [recoveryRows, todayStr, running.data]);
 
   const intelligence = useMemo(
     () =>
@@ -61,22 +59,6 @@ export function useTrainingHub(
         ? buildHubIntelligence(recoveryRows, todayStr)
         : { records: [] as HubLiftRecord[], forecasts: [] as HubForecast[], neglects: [] as HubNeglect[] },
     [recoveryRows, todayStr],
-  );
-
-  const refreshInsight = useCallback(
-    async (force = false) => {
-      if (!userId) return;
-      setInsightLoading(true);
-      try {
-        const line = await ensureFreshTrainingInsight(userId, todayStr, { force });
-        setInsight(line);
-      } catch {
-        /* keep cached line; edge may be slow/offline */
-      } finally {
-        setInsightLoading(false);
-      }
-    },
-    [userId, todayStr],
   );
 
   useEffect(() => {
@@ -92,7 +74,6 @@ export function useTrainingHub(
         setTodaySession(todayData);
         setTemplates(tplData);
         setRecoveryRows(recoveryData);
-        setInsight(readLatestTrainingInsight(userId, todayStr));
         const draft = loadWorkoutDraft(userId);
         setHasDraft(Boolean(draft && hasResumableWorkoutDraftContent(draft)));
       })
@@ -107,24 +88,6 @@ export function useTrainingHub(
     };
   }, [userId, todayStr]);
 
-  useEffect(() => {
-    if (!userId || loading) return;
-    let active = true;
-    void (async () => {
-      setInsightLoading(true);
-      try {
-        const line = await ensureFreshTrainingInsight(userId, todayStr);
-        if (active) setInsight(line);
-      } catch {
-        /* ignore */
-      } finally {
-        if (active) setInsightLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [userId, todayStr, loading]);
 
   const handleResumeDraft = () => {
     haptics.success();
@@ -157,11 +120,6 @@ export function useTrainingHub(
     onStartWorkout(null);
   };
 
-  const handleRefreshInsight = () => {
-    haptics.light();
-    void refreshInsight(true);
-  };
-
   return {
     loading,
     todaySession,
@@ -169,15 +127,13 @@ export function useTrainingHub(
     records: intelligence.records,
     forecasts: intelligence.forecasts,
     neglects: intelligence.neglects,
-    insight,
-    insightLoading,
     hasDraft,
+    running,
     fatigueByTag: recovery.fatigueByTag,
     weekStats: recovery.week,
     handleResumeDraft,
     handleDiscardDraft,
     handleSelectTemplate,
     handleStartBlank,
-    handleRefreshInsight,
   };
 }

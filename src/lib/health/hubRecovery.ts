@@ -99,8 +99,10 @@ export function buildHubRecoverySnapshot(
   weekStart: string,
   weekEndInclusive: string,
   nowMs: number = Date.now(),
+  /** Dodatkowe sesje (np. biegi) wliczane do zmęczenia mięśni, ale nie do statystyk siłowych tygodnia. */
+  extraSessions: WorkoutSessionInput[] = [],
 ): HubRecoverySnapshot {
-  const fatigueByTag = calculateMuscleFatigue(sessionsToFatigueInput(rows), nowMs);
+  const fatigueByTag = calculateMuscleFatigue([...sessionsToFatigueInput(rows), ...extraSessions], nowMs);
   const week = computeWeekStats(rows, weekStart, weekEndInclusive);
   return { fatigueByTag, week };
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft, AlertCircle, RotateCcw, Plus, Settings } from 'lucide-react';
+import { ChevronLeft, AlertCircle, RotateCcw, Plus, Settings, Flame } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import Spinner from '../../ui/Spinner';
 import type { WorkoutLoggerInitial } from '../../../lib/health/workoutLogging';
@@ -8,11 +8,10 @@ import { useTreningAccent } from './useTreningAccent';
 import TrainingTodayCard from './TrainingTodayCard';
 import TrainingTemplatesSection from './TrainingTemplatesSection';
 import TrainingHubRecords from './TrainingHubRecords';
-import TrainingHubInsight from './TrainingHubInsight';
 import TrainingHubWeekPanel from './TrainingHubWeekPanel';
+import TrainingHubRunning from './TrainingHubRunning';
 import TrainingHubSignals from './TrainingHubSignals';
 import TrainingHubAppearanceSheet from './TrainingHubAppearanceSheet';
-import TrainingHubPlanSection from './TrainingHubPlanSection';
 import './treningTheme.css';
 
 function ActiveDraftBanner({
@@ -48,37 +47,31 @@ function ActiveDraftBanner({
   );
 }
 
-function QuickStartCta({ onStart, compact }: { onStart: () => void; compact?: boolean }) {
-  if (compact) {
-    return (
-      <Pressable
-        onClick={onStart}
-        className="w-full trening-hero-cta py-3 flex items-center justify-center gap-2 text-sm ui-interactive cursor-pointer"
-      >
-        <Plus size={15} strokeWidth={2.5} />
-        Start Workout
-      </Pressable>
-    );
-  }
-
+function QuickStartCta({ onStart, onSauna, showStart }: { onStart: () => void; onSauna: () => void; showStart: boolean }) {
   return (
-    <section className="trening-panel rounded-[var(--tren-radius-card)] p-4 space-y-3 border-primary/25">
-      <div className="space-y-1">
-        <p className="text-3xs font-black uppercase tracking-widest text-primary">Poczekalnia</p>
-        <h2 className="text-[1.25rem] font-black text-text-primary font-display leading-tight tracking-tight">
-          Gotowy na sesję?
-        </h2>
-        <p className="text-xs text-text-secondary leading-snug">
-          Mapa zmęczenia i PR poniżej — start pusty albo 1-tap schemat.
-        </p>
+    <section className="trening-panel space-y-3 rounded-[var(--tren-radius-card)] border-primary/25 p-4">
+      {showStart && (
+        <div className="space-y-1">
+          <p className="text-3xs font-black uppercase tracking-widest text-primary">Poczekalnia</p>
+          <h2 className="font-display text-xl font-black leading-tight tracking-tight text-text-primary">Gotowy na sesję?</h2>
+        </div>
+      )}
+      <div className="flex gap-2">
+        {showStart && (
+          <Pressable onClick={onStart} className="trening-hero-cta ui-interactive flex flex-1 cursor-pointer items-center justify-center gap-2 py-3.5 text-sm">
+            <Plus size={16} strokeWidth={2.5} />
+            Start Workout
+          </Pressable>
+        )}
+        <Pressable
+          onClick={onSauna}
+          aria-label="Zaloguj saunę"
+          className={`ui-interactive flex h-[3.25rem] cursor-pointer items-center justify-center gap-2 rounded-2xl border border-border-custom bg-surface-1 text-sm font-bold text-text-primary ${showStart ? 'px-5' : 'flex-1'}`}
+        >
+          <Flame size={16} className="text-warning" />
+          Sauna
+        </Pressable>
       </div>
-      <Pressable
-        onClick={onStart}
-        className="w-full trening-hero-cta py-3.5 flex items-center justify-center gap-2 text-sm ui-interactive cursor-pointer"
-      >
-        <Plus size={16} strokeWidth={2.5} />
-        Start Workout
-      </Pressable>
     </section>
   );
 }
@@ -103,16 +96,14 @@ export default function TrainingHubView({
     records,
     forecasts,
     neglects,
-    insight,
-    insightLoading,
     hasDraft,
+    running,
     fatigueByTag,
     weekStats,
     handleResumeDraft,
     handleDiscardDraft,
     handleSelectTemplate,
     handleStartBlank,
-    handleRefreshInsight,
   } = useTrainingHub(userId, onStartWorkout);
   const { accent, setAccent } = useTreningAccent();
   const [appearanceOpen, setAppearanceOpen] = useState(false);
@@ -162,38 +153,27 @@ export default function TrainingHubView({
               <ActiveDraftBanner onResume={handleResumeDraft} onDiscard={handleDiscardDraft} />
             )}
 
-            {todaySession ? (
+            <QuickStartCta onStart={handleStartBlank} onSauna={() => onNavigate('/sauna')} showStart={!hasDraft} />
+
+            {todaySession && (
               <TrainingTodayCard
                 details={todaySession}
                 onStartAnother={handleStartBlank}
                 onLogSauna={() => onNavigate('/sauna')}
               />
-            ) : (
-              !hasDraft && <QuickStartCta onStart={handleStartBlank} />
             )}
 
             <TrainingHubWeekPanel fatigueByTag={fatigueByTag} week={weekStats} />
 
+            <TrainingHubRunning load={running.data} loading={running.isLoading} />
+
             <TrainingHubRecords records={records} />
 
             <TrainingHubSignals forecasts={forecasts} neglects={neglects} />
-
-            <TrainingHubInsight
-              insight={insight}
-              loading={insightLoading}
-              onRefresh={handleRefreshInsight}
-            />
-
-            {(todaySession || hasDraft) && (
-              <QuickStartCta onStart={handleStartBlank} compact />
-            )}
-
             <TrainingTemplatesSection
               templates={templates}
               onSelectTemplate={handleSelectTemplate}
             />
-
-            {userId && <TrainingHubPlanSection userId={userId} onStartWorkout={onStartWorkout} />}
           </div>
         )}
       </main>

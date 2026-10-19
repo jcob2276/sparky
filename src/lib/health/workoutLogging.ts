@@ -13,7 +13,6 @@ import { canonicalExerciseName } from './exerciseHistoryAliases'
 import { sessionRpeRirMismatch } from '@vanguard/domain'
 
 export * from './workoutDraft'
-export { readLatestTrainingInsight, ensureFreshTrainingInsight } from './trainingInsight'
 import { scheduleTrainingLoadAnalysis } from './trainingInsight'
 
 function logsToExercises(logs: Array<{

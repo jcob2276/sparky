@@ -5,6 +5,7 @@
  * @usedBy TrainingRoute, DesktopDashboard (lazy)
  */
 import { useEffect, useState } from 'react';
+import { newSet } from './workout/workoutUtils';
 import { ChevronLeft, Plus, Settings } from 'lucide-react';
 import Button from '../ui/Button';
 import { Pressable } from '../ui/ControlPrimitives';
@@ -62,6 +63,14 @@ export default function LiveWorkout({
   });
 
   const exercises = logger.exercises.filter((e) => e.name.trim());
+  const setExercises = logger.setExercises;
+  const hasEmptyExercise = exercises.some((e) => !e.sets?.length);
+
+  // Uszkodzony szkic z lokalnej pamięci (ćwiczenie bez serii) naprawiamy zamiast wywalać ekran.
+  useEffect(() => {
+    if (!hasEmptyExercise) return;
+    setExercises((prev) => prev.map((e) => (e.name.trim() && !e.sets?.length ? { ...e, sets: [newSet()] } : e)));
+  }, [hasEmptyExercise, setExercises]);
   const firstOpen = exercises.find((e) => e.sets.some((s) => !s.done));
   const currentId = activeId != null && exercises.some((e) => e.id === activeId) ? activeId : (firstOpen ?? exercises[0])?.id ?? null;
   const summary = summarize(logger.exercises);
@@ -89,7 +98,7 @@ export default function LiveWorkout({
       </header>
 
       <main className="mx-auto w-full max-w-md flex-1 space-y-3 px-3 pb-44 pt-3">
-        {exercises.map((exercise, idx) => (
+        {exercises.filter((e) => e.sets?.length).map((exercise, idx) => (
           <LiveExerciseCard
             key={exercise.id}
             exercise={exercise}

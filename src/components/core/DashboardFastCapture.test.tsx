@@ -39,21 +39,4 @@ describe('DashboardFastCaptureMenu', () => {
     expect(screen.getByRole('region', { name: 'Przejdź do' })).toHaveTextContent('Zadania');
     expect(screen.getByRole('button', { name: 'Zadania, 3 pilnych' })).toHaveTextContent('3');
   });
-
-  it('remembers the last used actions and offers them first next time', () => {
-    const action = vi.fn();
-    const props = {
-      items: [{ label: 'Trening', emoji: '', color: 'red', action }],
-      tools: [{ label: 'Zadania', icon: ListTodo, action: vi.fn() }],
-      onClose: vi.fn(),
-    };
-    const first = render(<DashboardFastCaptureMenu show {...props} />);
-    expect(screen.queryByRole('region', { name: 'Ostatnio użyte' })).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Trening' }));
-    first.unmount();
-
-    render(<DashboardFastCaptureMenu show {...props} />);
-    expect(screen.getByRole('region', { name: 'Ostatnio użyte' })).toHaveTextContent('Trening');
-    expect(screen.getByRole('button', { name: 'Ostatnio: Trening' })).toBeInTheDocument();
-  });
 });

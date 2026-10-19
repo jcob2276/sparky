@@ -1,148 +1,152 @@
-import Button from '../ui/Button';
-import { ControlInput, ControlTextarea } from '../ui/ControlPrimitives';
 import { useState } from 'react';
-import { ChevronLeft, Flame, Save } from 'lucide-react';
+import { ChevronLeft, Flame, Minus, Plus, Settings } from 'lucide-react';
+import Button from '../ui/Button';
+import { ControlTextarea, Pressable } from '../ui/ControlPrimitives';
 import { useHaptics } from '../../hooks/useHaptics';
 import { notify } from '../../lib/notify';
 import { saveSaunaSession } from '../../lib/health/workoutSauna';
-import { numInput } from './workout/workoutUtils';
 import { useUserId } from '../../store/useStore';
-import SaunaRpePicker from './SaunaRpePicker';
+import TrainingHubAppearanceSheet from './workout/TrainingHubAppearanceSheet';
+import { useTreningAccent } from './workout/useTreningAccent';
+import './workout/treningTheme.css';
 
-export default function SaunaLoggerModal({
-  onBack,
-  onSaved,
+const MINUTE_PRESETS = [10, 15, 20, 30];
+const MAX_MINUTES = 180;
+const MAX_CELSIUS = 130;
+
+function Stepper({
+  label,
+  unit,
+  value,
+  step,
+  max,
+  onChange,
 }: {
-  onBack: () => void;
-  onSaved?: () => void;
+  label: string;
+  unit: string;
+  value: number;
+  step: number;
+  max: number;
+  onChange: (next: number) => void;
 }) {
+  const round = 'flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border-custom bg-surface-1 text-text-primary active:scale-90 disabled:opacity-40';
+  return (
+    <div className="rounded-3xl border border-border-custom bg-surface p-4">
+      <p className="text-center text-xs font-bold uppercase tracking-wider text-text-muted">{label}</p>
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <Pressable onClick={() => onChange(Math.max(1, value - step))} disabled={value <= 1} aria-label={`${label}: minus ${step}`} className={round}>
+          <Minus size={18} />
+        </Pressable>
+        <p className="text-4xl font-black tabular-nums text-text-primary">
+          {value}
+          <span className="ml-1 text-base font-bold text-text-muted">{unit}</span>
+        </p>
+        <Pressable onClick={() => onChange(Math.min(max, value + step))} disabled={value >= max} aria-label={`${label}: plus ${step}`} className={round}>
+          <Plus size={18} />
+        </Pressable>
+      </div>
+    </div>
+  );
+}
+
+export default function SaunaLoggerModal({ onBack, onSaved }: { onBack: () => void; onSaved?: () => void }) {
   const userId = useUserId();
   const haptics = useHaptics();
-  const [minutes, setMinutes] = useState('15');
-  const [celsius, setCelsius] = useState('80');
+  const { accent, setAccent } = useTreningAccent();
+  const [minutes, setMinutes] = useState(15);
+  const [celsius, setCelsius] = useState(80);
   const [sessionRpe, setSessionRpe] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
   const [saving, setSaving] = useState(false);
-
-  const adjust = (field: 'minutes' | 'celsius', step: number) => {
-    haptics.light();
-    const cur = parseFloat(field === 'minutes' ? minutes : celsius);
-    const fallback = field === 'minutes' ? 15 : 80;
-    const next = (Number.isFinite(cur) ? cur : fallback) + step;
-    if (next < 1) return;
-    if (field === 'minutes') setMinutes(String(Math.round(next)));
-    else setCelsius(String(Math.round(next)));
-  };
+  const [appearanceOpen, setAppearanceOpen] = useState(false);
 
   async function save() {
     if (!userId || saving) return;
-    const mins = parseInt(minutes, 10);
-    const temp = celsius.trim() ? parseInt(celsius, 10) : null;
-    if (!mins || mins < 1) {
-      notify('Podaj czas w minutach', 'error');
-      return;
-    }
-
     setSaving(true);
     try {
-      await saveSaunaSession(userId, {
-        minutes: mins,
-        celsius: temp,
-        sessionRpe,
-        notes,
-      });
+      await saveSaunaSession(userId, { minutes, celsius, sessionRpe, notes });
       haptics.success();
       notify('Zapisano saunę', 'success');
       onSaved?.();
       onBack();
     } catch (err: unknown) {
       haptics.error();
-      notify(err instanceof Error ? (err as Error).message : String(err), 'error');
+      notify(err instanceof Error ? err.message : String(err), 'error');
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div className="flex-1 bg-background flex flex-col min-h-screen pb-32 transition-colors duration-[var(--motion-slow)]">
-      <header className="sticky top-0 z-[var(--z-sticky)] bg-background/80 backdrop-blur-[var(--blur-md)] border-b border-border-custom p-4 flex items-center gap-3">
-        <Button
-          variant="ghost"
-          onClick={onBack}
-          icon={<ChevronLeft size={20} />}
-          className="p-2 -ml-2 min-w-0 text-text-secondary hover:text-text-primary hover:bg-transparent"
-        />
-        <div className="flex items-center gap-2 flex-1">
-          <Flame size={16} className="text-warning" />
-          <h1 className="text-xs font-black uppercase tracking-[var(--ds-arbitrary-0-2em)] text-text-primary font-display">Sauna</h1>
-        </div>
+    <div className="trening-theme flex min-h-screen flex-col" data-tren-accent={accent}>
+      <header className="trening-header sticky top-0 z-[var(--z-sticky)] flex items-center gap-2 px-2 py-2">
+        <Button variant="ghost" onClick={onBack} aria-label="Wróć" className="!h-11 !w-11 shrink-0 !rounded-full !px-0">
+          <ChevronLeft size={22} />
+        </Button>
+        <h1 className="flex min-w-0 flex-1 items-center justify-center gap-2 text-lg font-black text-text-primary">
+          <Flame size={18} className="text-warning" /> Sauna
+        </h1>
+        <Pressable onClick={() => setAppearanceOpen(true)} aria-label="Wygląd" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-text-secondary hover:text-primary">
+          <Settings size={18} />
+        </Pressable>
       </header>
 
-      <main className="flex-1 p-5 space-y-8 max-w-md mx-auto w-full">
-        <p className="text-sm text-text-secondary leading-relaxed">
-          Osobny log od treningu siłowego. Po zapisie: strain (wellness ~1,5 pkt/min) + wymiar Regeneracja w profilu hybrydowym.
-        </p>
+      <main className="mx-auto w-full max-w-md flex-1 space-y-4 px-3 pb-32 pt-3">
+        <Stepper label="Czas" unit="min" value={minutes} step={5} max={MAX_MINUTES} onChange={setMinutes} />
+        <div className="flex gap-2">
+          {MINUTE_PRESETS.map((preset) => (
+            <Pressable
+              key={preset}
+              onClick={() => setMinutes(preset)}
+              aria-pressed={minutes === preset}
+              className={`h-11 flex-1 rounded-full border text-sm font-bold ${
+                minutes === preset ? 'border-primary bg-primary/15 text-primary' : 'border-border-custom bg-surface-1 text-text-secondary'
+              }`}
+            >
+              {preset} min
+            </Pressable>
+          ))}
+        </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-2xs font-black uppercase tracking-widest text-text-secondary">Minuty</label>
-            <ControlInput
-              type="number"
-              min={1}
-              step={1}
-              value={minutes}
-              onChange={(e) => setMinutes(e.target.value)}
-              className={numInput}
-            />
-            <div className="flex gap-1 justify-center">
-              <Button variant="ghost" onClick={() => adjust('minutes', -5)} className="text-xs font-bold bg-surface border border-border-custom w-9 h-7 min-w-0 p-0 rounded-lg hover:bg-surface">-5</Button>
-              <Button variant="ghost" onClick={() => adjust('minutes', 5)} className="text-xs font-bold bg-surface border border-border-custom w-9 h-7 min-w-0 p-0 rounded-lg hover:bg-surface">+5</Button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <label className="text-2xs font-black uppercase tracking-widest text-text-secondary">Temperatura °C</label>
-            <ControlInput
-              type="number"
-              min={1}
-              step={1}
-              value={celsius}
-              onChange={(e) => setCelsius(e.target.value)}
-              placeholder="80"
-              className={numInput}
-            />
-            <div className="flex gap-1 justify-center">
-              <Button variant="ghost" onClick={() => adjust('celsius', -5)} className="text-xs font-bold bg-surface border border-border-custom w-9 h-7 min-w-0 p-0 rounded-lg hover:bg-surface">-5</Button>
-              <Button variant="ghost" onClick={() => adjust('celsius', 5)} className="text-xs font-bold bg-surface border border-border-custom w-9 h-7 min-w-0 p-0 rounded-lg hover:bg-surface">+5</Button>
-            </div>
+        <Stepper label="Temperatura" unit="°C" value={celsius} step={5} max={MAX_CELSIUS} onChange={setCelsius} />
+
+        <div className="rounded-3xl border border-border-custom bg-surface p-4">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-text-muted">Jak ciężko? (1–10)</p>
+          <div className="grid grid-cols-5 gap-1.5">
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <Pressable
+                key={n}
+                aria-pressed={sessionRpe === n}
+                onClick={() => setSessionRpe(sessionRpe === n ? null : n)}
+                className={`h-11 rounded-xl border text-sm font-bold ${
+                  sessionRpe === n ? 'border-primary bg-primary/15 text-primary' : 'border-border-custom bg-surface-1 text-text-secondary'
+                }`}
+              >
+                {n}
+              </Pressable>
+            ))}
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-2xs font-black uppercase tracking-widest text-text-secondary">Notatka</label>
-          <ControlTextarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="np. po treningu nóg, sucha sauna, zimny prysznic po"
-            className="w-full bg-surface-solid border border-border-custom rounded-2xl px-4 py-3 text-sm text-text-primary min-h-[var(--ds-h-90px)] outline-none focus:border-primary/50 resize-none placeholder:text-text-muted/40"
-          />
-        </div>
-
-        <SaunaRpePicker sessionRpe={sessionRpe} setSessionRpe={setSessionRpe} />
+        <ControlTextarea
+          aria-label="Notatka"
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
+          placeholder="Notatka (np. po nogach, zimny prysznic po)"
+          rows={3}
+          className="w-full rounded-3xl border border-border-custom bg-surface p-4 text-sm text-text-primary placeholder:text-text-muted"
+        />
       </main>
 
-      <div className="fixed bottom-0 left-0 right-0 z-[var(--z-modal)] border-t border-border-custom bg-background/90 backdrop-blur-[var(--blur-md)] p-4 pb-[var(--ds-arbitrary-calc-1rem-env-safe-area-inset-bottom)]">
+      <div className="trening-footer-bar fixed inset-x-0 bottom-0 z-[var(--z-modal)] border-t px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
         <div className="mx-auto max-w-md">
-          <Button
-            variant="ghost"
-            onClick={() => void save()}
-            disabled={saving}
-            icon={<Save size={14} />}
-            className="w-full min-w-0 rounded-2xl bg-warning py-3.5 text-xs font-black uppercase tracking-wider text-on-accent hover:bg-warning-hover hover:text-on-accent disabled:opacity-[var(--opacity-50)]"
-          >
-            {saving ? 'Zapisywanie…' : 'Zapisz saunę'}
+          <Button variant="primary" onClick={() => void save()} disabled={saving} className="w-full !h-14 !rounded-2xl !text-base !font-black">
+            {saving ? 'Zapisuję…' : 'Zapisz saunę'}
           </Button>
         </div>
       </div>
+
+      <TrainingHubAppearanceSheet open={appearanceOpen} accent={accent} onSelect={setAccent} onClose={() => setAppearanceOpen(false)} />
     </div>
   );
 }
