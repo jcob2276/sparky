@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { CalendarDays, Check, Clock, Repeat2 } from 'lucide-react';
 import { Pressable, ControlInput } from '../ui/ControlPrimitives';
 import { getPlainText } from '../../lib/noteText';
+import { formatShortDateWarsaw } from '../../lib/date';
 import { RECURRENCE_LABELS } from './todoUtils';
 import TodoRowQuickActions from './TodoRowQuickActions';
 import type { TodoItemRow } from '../../lib/todo/todo';
@@ -64,12 +65,17 @@ export default function TodoCardCollapsedRow({ item, busy, isDone, icon, label, 
   return (
     <>
       <div className="todo-focus-top">
-        {(dateInfo || (isDone && item.due_date)) && (
-          <span className={`todo-focus-date ${dateInfo?.color || 'text-text-secondary'}`}>
-            <CalendarDays size={13} aria-hidden="true" />{dateInfo?.text || item.due_date}
+        {isDone && item.completed_at && (
+          <span className="todo-focus-date text-text-secondary">
+            <Check size={13} aria-hidden="true" />{formatShortDateWarsaw(item.completed_at)}
           </span>
         )}
-        {(priority === 'urgent' || priority === 'high') && (
+        {!isDone && dateInfo && (
+          <span className={`todo-focus-date ${dateInfo.color}`}>
+            <CalendarDays size={13} aria-hidden="true" />{dateInfo.text}
+          </span>
+        )}
+        {!isDone && (priority === 'urgent' || priority === 'high') && (
           <span className="todo-focus-priority todo-focus-important">{PRIORITY_LABEL[priority]}</span>
         )}
       </div>

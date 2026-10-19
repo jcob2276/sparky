@@ -39,7 +39,7 @@ export default function TodoDoneHistory() {
     <div className="border-t border-border-custom/20 pt-2 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <BucketHeader
-          icon="✅"
+          icon=""
           title="Historia"
           count={doneItems.length}
           collapsed={false}

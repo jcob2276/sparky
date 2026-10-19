@@ -22,8 +22,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2 px-1 pt-2 pb-1">
-          <span className="text-xl leading-none">📅</span>
-          <span className="text-xl font-extrabold text-text-primary tracking-tight">Dziś</span>
+          <span className="text-lg font-semibold text-text-primary tracking-tight">Dziś</span>
           <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full ml-1">{todayItems.length}</span>
         </div>
         <div className="todo-grouped-surface">
@@ -49,8 +48,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2 px-1 pt-2 pb-1">
-          <span className="text-xl leading-none">📥</span>
-          <span className="text-xl font-extrabold text-text-primary tracking-tight">Skrzynka</span>
+          <span className="text-lg font-semibold text-text-primary tracking-tight">Skrzynka</span>
           <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full ml-1">{inboxItems.length}</span>
         </div>
         <div className="todo-grouped-surface">
@@ -76,8 +74,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2 px-1 pt-2 pb-1">
-          <span className="text-xl leading-none">🗓️</span>
-          <span className="text-xl font-extrabold text-text-primary tracking-tight">Nadchodzące</span>
+          <span className="text-lg font-semibold text-text-primary tracking-tight">Nadchodzące</span>
           <span className="text-xs font-bold text-danger bg-danger/10 px-2 py-0.5 rounded-full ml-1">{upcomingItems.length}</span>
         </div>
         <div className="todo-grouped-surface">
@@ -116,9 +113,8 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2 px-1 pt-2 pb-1">
-          <span className="text-xl leading-none">📥</span>
-          <span className="text-xl font-extrabold text-text-primary tracking-tight">Wszystkie</span>
-          <span className="text-xs font-bold text-text-secondary bg-surface-solid px-2 py-0.5 rounded-full ml-1">{activeItems.length}</span>
+          <span className="text-lg font-semibold text-text-primary tracking-tight">Wszystkie</span>
+          <span className="text-sm tabular-nums text-text-secondary ml-1">{activeItems.length}</span>
         </div>
         <div className="todo-grouped-surface">
           <div className="todo-grouped-body">
@@ -140,8 +136,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2 px-1 pt-2 pb-1">
-          <span className="text-xl leading-none">🚩</span>
-          <span className="text-xl font-extrabold text-text-primary tracking-tight">Z flagą / Ważne</span>
+          <span className="text-lg font-semibold text-text-primary tracking-tight">Z flagą / Ważne</span>
           <span className="text-xs font-bold text-warning bg-warning/10 px-2 py-0.5 rounded-full ml-1">{flaggedItems.length}</span>
         </div>
         <div className="todo-grouped-surface">
@@ -164,9 +159,8 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2 px-1 pt-2 pb-1">
-          <span className="text-xl leading-none">✅</span>
-          <span className="text-xl font-extrabold text-text-primary tracking-tight">Ukończone</span>
-          <span className="text-xs font-bold text-success bg-success/10 px-2 py-0.5 rounded-full ml-1">{doneItems.length}</span>
+          <span className="text-lg font-semibold text-text-primary tracking-tight">Ukończone</span>
+          <span className="text-sm tabular-nums text-text-secondary ml-1">{doneItems.length}</span>
         </div>
         <div className="todo-grouped-surface">
           <div className="todo-grouped-body">
