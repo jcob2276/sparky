@@ -1,4 +1,3 @@
-import { Trophy } from 'lucide-react';
 import { Pressable, ControlTextarea } from '../../ui/ControlPrimitives';
 import { SPHERE_SLOTS } from './powerListConstants';
 import PowerListTask from '../PowerListTask';
@@ -41,7 +40,7 @@ export default function PowerListActive({
   const showClosePrompt = !hasDayNote && (allDone || eveningCloseDue);
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
       {checkpointPrompt && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-success/25 bg-success/[0.06] px-3.5 py-2.5 animate-fadeIn">
           <p className="text-xs font-semibold text-text-primary leading-snug min-w-0">
@@ -67,43 +66,29 @@ export default function PowerListActive({
         </div>
       )}
 
-      {allDone && todayWin.result === 'Z' && (
-        <div className="flex items-center gap-3 rounded-2xl border border-success/30 bg-gradient-to-r from-success/15 via-surface to-success/5 p-4 shadow-2xs animate-fadeIn">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-success/20 text-success border border-success/30 shadow-xs">
-            <Trophy size={18} />
-          </div>
-          <div className="min-w-0">
-            <h4 className="text-xs font-black uppercase tracking-wider text-success">
-              Wszystkie 5 zwycięstw zdobyte! Dzień wygrany (Z).
-            </h4>
-            <p className="text-xs text-text-secondary mt-0.5">
-              Dzień oficjalnie domknięty i przypieczętowany notatką.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {(todayWin.daily_win_tasks || [])
-        .sort((a: Tables<'daily_win_tasks'>, b: Tables<'daily_win_tasks'>) => a.slot - b.slot)
-        .map((t: Tables<'daily_win_tasks'>) => {
-          const sphere = t.slot <= 3 ? SPHERE_SLOTS[t.slot - 1] : null;
-          return (
-            <PowerListTask
-              key={t.id}
-              index={t.slot - 1}
-              task={t.title}
-              done={t.done ?? false}
-              completedAt={t.completed_at}
-              linkedTodoId={t.todo_id}
-              linkedProjectId={t.project_id}
-              projectMap={projectMap}
-              toggleTask={toggleTask}
-              sphere={sphere}
-              targetValue={t.target_value}
-              timeSlot={t.time_slot as 'morning' | 'noon' | 'afternoon' | 'evening' | null}
-            />
-          );
-        })}
+      <div className="divide-y divide-border-custom/60 overflow-hidden rounded-2xl border border-border-custom bg-surface">
+        {[...(todayWin.daily_win_tasks || [])]
+          .sort((a: Tables<'daily_win_tasks'>, b: Tables<'daily_win_tasks'>) => a.slot - b.slot)
+          .map((t: Tables<'daily_win_tasks'>) => {
+            const sphere = t.slot <= 3 ? SPHERE_SLOTS[t.slot - 1] : null;
+            return (
+              <PowerListTask
+                key={t.id}
+                index={t.slot - 1}
+                task={t.title}
+                done={t.done ?? false}
+                completedAt={t.completed_at}
+                linkedTodoId={t.todo_id}
+                linkedProjectId={t.project_id}
+                projectMap={projectMap}
+                toggleTask={toggleTask}
+                sphere={sphere}
+                targetValue={t.target_value}
+                timeSlot={t.time_slot as 'morning' | 'noon' | 'afternoon' | 'evening' | null}
+              />
+            );
+          })}
+      </div>
 
       {showClosePrompt && (
         <div className="rounded-2xl border border-primary/30 bg-surface/90 p-3.5 space-y-2.5 shadow-sm animate-fadeIn">

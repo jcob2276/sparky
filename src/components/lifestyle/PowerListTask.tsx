@@ -1,5 +1,6 @@
-import { Pressable } from '../ui/ControlPrimitives';
 import { Check, Link2 } from 'lucide-react';
+import { Pressable } from '../ui/ControlPrimitives';
+import { useHaptics } from '../../hooks/useHaptics';
 import { TIMEZONE } from '../../lib/date';
 
 type SphereIconType = React.ComponentType<{ size?: number | string; className?: string }>;
@@ -27,6 +28,7 @@ export interface PowerListTaskProps {
   timeSlot: 'morning' | 'noon' | 'afternoon' | 'evening' | null;
 }
 
+/** Wiersz listy „Pięć zwycięstw” — rządzi się wewnątrz wspólnej karty (separatory z kontenera). */
 export default function PowerListTask({
   index,
   task,
@@ -37,9 +39,8 @@ export default function PowerListTask({
   projectMap,
   toggleTask,
   sphere,
-  targetValue: _targetValue,
 }: PowerListTaskProps) {
-  const SphereIcon = sphere?.icon;
+  const haptics = useHaptics();
 
   const linkedProject = linkedTodoId
     ? projectMap[linkedTodoId]
@@ -47,79 +48,70 @@ export default function PowerListTask({
     ? projectMap[`task_project_${index + 1}`]
     : null;
 
+  const doneTime = done && completedAt
+    ? new Date(completedAt).toLocaleTimeString('pl-PL', { timeZone: TIMEZONE, hour: '2-digit', minute: '2-digit' })
+    : null;
+
+  const handleToggle = () => {
+    if (done) haptics.selection();
+    else haptics.success();
+    toggleTask(index);
+  };
+
   return (
     <Pressable
-      onClick={() => toggleTask(index)}
-      className={`group flex w-full cursor-pointer items-start gap-3 rounded-2xl border px-3.5 py-3 text-left ui-interactive active:scale-95 shadow-2xs ${
-        done
-          ? 'border-border-custom/50 bg-surface/20 opacity-[var(--opacity-60)] shadow-none'
-          : 'border-border-custom/80 bg-surface hover:border-primary/30 hover:bg-surface-solid/80 hover:shadow-xs'
-      }`}
+      haptic="none"
+      aria-pressed={done}
+      onClick={handleToggle}
+      className="group flex min-h-13 w-full items-center gap-3 px-4 py-2 text-left active:scale-100 active:bg-surface-solid/60"
     >
-      <div className="pt-0.5 shrink-0">
-        <div
-          className={`flex h-5.5 w-5.5 items-center justify-center rounded-full border ui-interactive ${
-            done
-              ? 'border-dayC bg-dayC text-on-accent shadow-2xs scale-100'
-              : 'border-border-custom bg-surface-solid/80 text-transparent scale-95 group-hover:border-primary/50 group-active:scale-90'
+      <span
+        className={`relative flex h-6 w-6 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 ${
+          done ? 'border-dayC' : 'border-border-custom group-hover:border-primary/60'
+        } wins-circle`}
+      >
+        <span data-on={done} className="wins-circle-fill absolute inset-0 rounded-full bg-dayC" />
+        <Check data-on={done} size={14} strokeWidth={3} className="wins-circle-check relative text-on-accent" />
+      </span>
+
+      <span className="min-w-0 flex-1">
+        <span
+          className={`wins-title line-clamp-2 text-sm font-medium leading-snug ${
+            done ? 'text-text-muted line-through' : 'text-text-primary'
           }`}
         >
-          <Check
-            size={11}
-            strokeWidth={3}
-            className={`transition-transform ${done ? 'scale-100' : 'scale-0'}`}
-          />
-        </div>
-      </div>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {sphere && SphereIcon && (
-            <span
-              className={`inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-3xs font-black uppercase tracking-wider ${sphere.bg} ${sphere.text} border ${sphere.border || 'border-transparent'}`}
-            >
-              <SphereIcon size={8} />
-              <span>{sphere.label}</span>
-            </span>
-          )}
-          <span
-            className={`text-sm font-semibold tracking-normal ui-interactive ${
-              done ? 'text-text-muted line-through opacity-[var(--opacity-70)]' : 'text-text-primary'
-            }`}
-          >
-            {task}
-          </span>
-        </div>
-
+          {task}
+        </span>
         {linkedProject && (
-          <p className="mt-1 flex items-center gap-1.5 text-2xs font-medium text-text-muted truncate">
-            <span
-              className={`h-1.5 w-1.5 shrink-0 rounded-full ${
-                COLOR_DOT[linkedProject.color || ''] || 'bg-primary'
-              }`}
-            />
+          <span className="mt-0.5 flex items-center gap-1.5 text-2xs font-medium text-text-muted">
+            <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${COLOR_DOT[linkedProject.color || ''] || 'bg-primary'}`} />
             <span className="truncate">{linkedProject.name}</span>
-          </p>
+          </span>
         )}
-
         {!linkedProject && linkedTodoId && !done && (
-          <p className="mt-1 flex items-center gap-1 text-2xs font-medium text-text-muted">
+          <span className="mt-0.5 flex items-center gap-1 text-2xs font-medium text-text-muted">
             <Link2 size={10} className="shrink-0 text-primary" />
             <span>Połączone zadanie</span>
-          </p>
+          </span>
         )}
+      </span>
 
-        {done && completedAt && (
-          <p className="mt-1 text-2xs font-medium text-text-muted/70">
-            Zrobione o{' '}
-            {new Date(completedAt).toLocaleTimeString('pl-PL', {
-              timeZone: TIMEZONE,
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </p>
-        )}
-      </div>
+      {(sphere || doneTime) && (
+        <span className={`flex shrink-0 flex-col items-end gap-0.5 ${done ? 'opacity-[var(--opacity-60)]' : ''}`}>
+          {sphere && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-text-secondary">
+              <span aria-hidden className={`h-2 w-2 rounded-full bg-current ${sphere.text}`} />
+              {sphere.label}
+            </span>
+          )}
+          {doneTime && (
+            <span className="text-2xs font-medium tabular-nums text-text-muted">
+              <span className="sr-only">Zrobione o </span>
+              {doneTime}
+            </span>
+          )}
+        </span>
+      )}
     </Pressable>
   );
 }

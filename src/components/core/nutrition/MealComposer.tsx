@@ -31,7 +31,7 @@ export default function MealComposer({
 
   return (
     <>
-      <Card className="space-y-4 border-border-custom/80 bg-surface p-5 shadow-sm">
+      <Card className="space-y-2 border-border-custom/80 bg-surface p-4 shadow-sm">
         <ComposerHeader
           logDate={c.logDate}
           setLogDate={c.setLogDate}

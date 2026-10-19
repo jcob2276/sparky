@@ -69,7 +69,7 @@ export default function MealComposerLoggedItems({
   const photoRowIds = firstRowIdPerPhoto(entries, photoUrls);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {isPastDay && onCopyEntireDay && (
         <div className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-primary/25 bg-primary/[0.05] shadow-2xs">
           <div className="min-w-0 flex-1">
@@ -89,21 +89,21 @@ export default function MealComposerLoggedItems({
         </div>
       )}
 
-      <div className="flex items-center justify-between px-1">
-        <p className="text-2xs font-black uppercase tracking-widest text-text-muted">
+      <div className="flex items-baseline justify-between px-1">
+        <p className="text-xs font-bold text-text-secondary">
           {dateLabel}
         </p>
-        <span className="text-2xs font-bold text-text-muted">
+        <span className="text-2xs font-semibold tabular-nums text-text-muted">
           {totalKcal} kcal&nbsp;&middot;&nbsp;<span className="text-primary font-black">{totalProtein} g B</span>
         </span>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-2">
         {order.map((mealType) => {
           const group = groups.get(mealType)!;
           const groupKcal = Math.round(group.reduce((s, e) => s + (e.calories ?? 0), 0));
           return (
-            <div key={mealType} className="space-y-1.5">
+            <div key={mealType} className="space-y-1">
               <div className="flex items-center justify-between px-1">
                 <span className="text-2xs font-black uppercase tracking-wider text-text-muted">
                   {MEAL_LABEL[mealType] ?? mealType}
@@ -123,7 +123,7 @@ export default function MealComposerLoggedItems({
                   )}
                 </div>
               </div>
-              <div className="overflow-hidden rounded-2xl border border-border-custom/60 bg-surface-solid/30 divide-y divide-border-custom/25 shadow-2xs">
+              <div className="overflow-hidden rounded-xl border border-border-custom/60 bg-surface-solid/30 divide-y divide-border-custom/25">
                 {group.map((entry) => (
                   <SwipeableFoodEntry
                     key={entry.id}
@@ -144,7 +144,7 @@ export default function MealComposerLoggedItems({
                           meal_type: entry.meal_type,
                         })
                       }
-                      className="flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left transition-colors duration-150 hover:bg-surface-solid/50 active:bg-surface-solid/80"
+                      className="flex w-full items-center justify-between gap-3 px-3 py-1 text-left transition-colors duration-150 hover:bg-surface-solid/50 active:bg-surface-solid/80"
                     >
                       {photoRowIds.has(entry.id) && entry.meal_group_id && (
                         <img
@@ -171,7 +171,7 @@ export default function MealComposerLoggedItems({
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-xs font-black text-text-primary">
+                        <span className="text-xs font-black tabular-nums text-text-primary">
                           {entry.calories ?? '?'}
                           <span className="ml-0.5 text-2xs font-normal text-text-muted">kcal</span>
                         </span>

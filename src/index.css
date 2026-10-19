@@ -2983,3 +2983,66 @@ a,
   .oura-sr-bar { animation: oura-sr-grow 320ms ease-out both; transform-box: fill-box; transform-origin: top; }
 }
 @keyframes oura-sr-grow { from { opacity: 0; transform: scaleY(0.6); } to { opacity: 1; transform: none; } }
+
+/* Hero „Dziś” — miniatura VisionHeroCard i karty celów */
+:root { --hero-thumb-w: 7rem; --hero-thumb-h: 8rem; --hero-goal-w: 8.75rem; }
+.hero-thumb { width: var(--hero-thumb-w); height: var(--hero-thumb-h); }
+.hero-goal-card { width: var(--hero-goal-w); min-height: 5.5rem; }
+
+/* ─── Pięć zwycięstw (PowerList): ruch i tokeny --wins-* ─── */
+:root { --wins-motion: 200ms; }
+.wins-seg-fill { transform: scaleX(0); transform-origin: left; transition: transform var(--wins-motion) ease-out; }
+.wins-seg-fill[data-on='true'] { transform: scaleX(1); }
+.wins-circle-fill { transform: scale(0.4); opacity: 0; transition: transform var(--wins-motion) ease-out, opacity var(--wins-motion) ease-out; }
+.wins-circle-fill[data-on='true'] { transform: none; opacity: 1; }
+.wins-circle-check { transform: scale(0.4); opacity: 0; transition: transform var(--wins-motion) ease-out, opacity var(--wins-motion) ease-out; }
+.wins-circle-check[data-on='true'] { transform: none; opacity: 1; }
+.wins-circle { transition: border-color var(--wins-motion) ease-out; }
+.wins-title { transition: color var(--wins-motion) ease-out; }
+@media (prefers-reduced-motion: no-preference) {
+  .wins-won-in { animation: wins-won-in var(--wins-motion) ease-out both; }
+}
+@keyframes wins-won-in { from { opacity: 0; transform: translateX(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .wins-seg-fill, .wins-circle-fill, .wins-circle-check, .wins-circle, .wins-title { transition: none; }
+}
+
+/* ── Meal composer (Posiłek card) tokens ─────────────────────────────── */
+:root {
+  --meal-protein: var(--primary);
+  --meal-carbs: var(--color-success);
+  --meal-fat: var(--color-warning);
+  --meal-track: var(--surface-3);
+  --meal-ring: var(--primary);
+  --meal-ring-over: var(--color-warning);
+  --meal-segment-bg: var(--surface-2);
+  --meal-segment-on: var(--surface-1);
+}
+.meal-segment { padding: 2px; border-radius: 0.625rem; background: var(--meal-segment-bg); }
+.meal-segment-item { display: inline-flex; align-items: center; justify-content: center; min-height: 2rem; border-radius: 0.5rem; font-weight: 700; color: var(--text-muted); }
+.meal-segment-item[aria-pressed='true'] { background: var(--meal-segment-on); color: var(--primary); box-shadow: 0 1px 2px rgb(0 0 0 / 12%); }
+.meal-segment-wide .meal-segment-item { min-height: 2.25rem; }
+.meal-hit { position: relative; }
+.meal-hit::after { content: ''; position: absolute; inset: -0.25rem -0.125rem; }
+.meal-ring-track { stroke: var(--meal-track); }
+.meal-ring-arc { stroke: var(--meal-ring); }
+.meal-ring-arc-over { stroke: var(--meal-ring-over); }
+.meal-macro[data-macro='protein'] { --meal-macro: var(--meal-protein); }
+.meal-macro[data-macro='carbs'] { --meal-macro: var(--meal-carbs); }
+.meal-macro[data-macro='fat'] { --meal-macro: var(--meal-fat); }
+.meal-macro-label { color: var(--meal-macro); }
+.meal-bar-track { background: var(--meal-track); }
+.meal-bar-fill { background: var(--meal-macro); transform-origin: left center; transition: transform 300ms ease-out; }
+.meal-quality { background: color-mix(in srgb, var(--color-warning) 15%, transparent); color: var(--color-warning); }
+.meal-input { border-color: var(--border-custom); background: var(--surface-2); color: var(--text-primary); }
+.meal-input:focus { border-color: var(--primary); background: var(--surface-1); }
+.meal-ai-btn { color: var(--primary); }
+.meal-ai-btn:disabled { opacity: 0.4; }
+.meal-photo-btn { background: var(--primary); color: var(--on-accent); }
+.meal-icon-btn { background: var(--surface-2); color: var(--text-secondary); }
+.meal-icon-btn[aria-pressed='true'] { background: var(--surface-tonal); color: var(--primary); }
+.meal-chips { scrollbar-width: none; -ms-overflow-style: none; }
+.meal-chips::-webkit-scrollbar { display: none; }
+.meal-chip { display: inline-flex; flex-shrink: 0; align-items: center; gap: 0.375rem; min-height: 2.25rem; padding: 0 0.75rem; border-radius: 9999px; border: 1px solid var(--border-custom); background: var(--surface-2); font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
+.meal-chip-accent { border-color: color-mix(in srgb, var(--primary) 40%, transparent); background: var(--surface-tonal); color: var(--primary); font-weight: 700; }
+@media (prefers-reduced-motion: reduce) { .meal-bar-fill { transition: none; } }
