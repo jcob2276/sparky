@@ -3484,6 +3484,59 @@ export type Database = {
           },
         ]
       }
+      library_items: {
+        Row: {
+          assignment_id: string | null
+          author: string | null
+          created_at: string
+          finished_on: string | null
+          finished_year: number | null
+          id: string
+          pages: number | null
+          rating: number | null
+          resource_type: string
+          source: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          assignment_id?: string | null
+          author?: string | null
+          created_at?: string
+          finished_on?: string | null
+          finished_year?: number | null
+          id?: string
+          pages?: number | null
+          rating?: number | null
+          resource_type?: string
+          source?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          assignment_id?: string | null
+          author?: string | null
+          created_at?: string
+          finished_on?: string | null
+          finished_year?: number | null
+          id?: string
+          pages?: number | null
+          rating?: number | null
+          resource_type?: string
+          source?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "library_items_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "learning_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       life_goals: {
         Row: {
           about_me: string | null

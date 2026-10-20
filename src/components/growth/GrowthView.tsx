@@ -9,6 +9,7 @@ import { Pressable } from '../ui/ControlPrimitives';
 import LearningAddModal from './learning/LearningAddModal';
 import LearningHistorySection from './learning/LearningHistorySection';
 import LearningMonthSection from './learning/LearningMonthSection';
+import LibraryShelf from './shelf/LibraryShelf';
 import {
   useDropAssignment,
   useLearningMonth,
@@ -23,7 +24,7 @@ interface Props {
   onNavigateTo?: (dest: string) => void;
 }
 
-/** Rozwój: plan nauki na miesiąc (max 3 materiały), dzienny slot i jedno kliknięcie „zrobione”. */
+/** Rozwój: plan nauki na miesiąc (max 3 materiały), dzienny slot, jedno kliknięcie „zrobione” i biblioteka-półka. */
 export default function GrowthView({ session: propSession, onBack, onNavigateTo }: Props) {
   const storeSession = useSession();
   const userId = (propSession || storeSession)?.user?.id;
@@ -100,6 +101,7 @@ export default function GrowthView({ session: propSession, onBack, onNavigateTo 
           onDrop={(assignment) => void dropAssignment(assignment)}
           onAdd={() => setAddOpen(true)}
         />
+        {userId && <LibraryShelf userId={userId} today={month.today} />}
         <LearningHistorySection items={past.data ?? []} />
       </main>
 

@@ -843,7 +843,9 @@ Kanoniczne helpery: `keepUtils.relativeDate` (notatki), `todoUtils` (todo), `cal
 
 ### Rozwój — kolejne plastry planu nauki (po MVP z 2026-10-21)
 
-- [ ] **Wirtualna półka (animowana biblioteka).** Ukończone pozycje (`learning_assignments.status='done'`, także filmy/książki spoza planu miesiąca) jako grzbiety/okładki na półce w Rozwoju; nowa pozycja „wsuwa się” na półkę przy ukończeniu (nagroda za domknięcie), licznik na rok, kolor wg rodzaju/umiejętności, miniatura z `vanguard_links.thumbnail_url` albo okładka z Open Library. Konsument: strona Rozwój + animacja w momencie ukończenia.
+- [x] **Wirtualna półka (animowana biblioteka)** — zrobione 2026-10-21: `library_items`, półka z animacją, import hurtem (lista, Goodreads, Letterboxd), auto-wpis z planu.
+- [ ] Półka: okładki zamiast generowanych grzbietów (miniatura z `vanguard_links.thumbnail_url` dla filmów z YouTube, okładki z Open Library), ocena gwiazdkami w szybkim dopisie, grupowanie po latach.
+- [ ] Biblioteka bez pracy: dopis przez Telegram („przeczytałem X”, „obejrzałem Y”) i jednorazowe wyciągnięcie przeczytanych/obejrzanych z istniejących notatek i strumienia (za zgodą, z podglądem przed zapisem).
 - [ ] Telegram: `/nauka` i przycisk „Zrobione” wieczorem (wołają `log_learning_progress`).
 - [ ] Blok czasu na dzienny slot w kalendarzu (`calendar-write`).
 - [ ] Zamknięcie miesiąca: lista zrobione/odpuszczone, przeniesienie niedokończonych jednym kliknięciem, podpowiedzi następnego miesiąca z Pocket i umiejętności bez praktyki; statystyki do `monthly_reviews.ritual_stats`.

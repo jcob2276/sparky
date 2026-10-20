@@ -40,7 +40,12 @@ export function useLogLearningProgress() {
   return useMutation({
     mutationFn: (input: { assignmentId: string; date: string; amount: number }) =>
       logLearningProgress(input.assignmentId, input.date, input.amount),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: learningKeys.all }),
+    onSuccess: (assignment, input) => {
+      if (assignment.status === 'done' && input.amount > 0) {
+        notify(`Skończone: „${assignment.title}”. Trafia na półkę.`, 'success');
+      }
+      return queryClient.invalidateQueries({ queryKey: learningKeys.all });
+    },
     onError: (err: unknown) => {
       console.error('[learning] logging progress failed:', err);
       notify('Nie udało się zapisać postępu nauki', 'error');

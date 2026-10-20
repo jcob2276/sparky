@@ -105,12 +105,13 @@ export async function fetchTopSkills(userId: string): Promise<LearningSkill[]> {
   return data ?? [];
 }
 
-/** Skończone i odpuszczone z poprzednich miesięcy, najnowsze najpierw. */
+/** Odpuszczone i niedokończone z poprzednich miesięcy, najnowsze najpierw (ukończone są na półce). */
 export async function fetchPastAssignments(userId: string, beforeMonthStart: string, limit = 12): Promise<LearningAssignment[]> {
   const { data, error } = await supabase
     .from('learning_assignments')
     .select('*')
     .eq('user_id', userId)
+    .neq('status', 'done')
     .lt('month_start', beforeMonthStart)
     .order('month_start', { ascending: false })
     .order('position', { ascending: true })

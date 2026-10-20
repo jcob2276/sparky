@@ -72,6 +72,7 @@ export const learningKeys = {
   pocket: (userId: string) => [...learningKeys.all, 'pocket', userId] as const,
   skills: (userId: string) => [...learningKeys.all, 'skills', userId] as const,
   history: (userId: string) => [...learningKeys.all, 'history', userId] as const,
+  library: (userId: string) => [...learningKeys.all, 'library', userId] as const,
 };
 
 // ── TODO KEYS ──

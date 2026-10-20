@@ -23,7 +23,7 @@ export const TYPE_LABELS: Record<LearningResourceType, string> = {
   book: 'Książka',
   course: 'Kurs',
   article: 'Artykuł',
-  video: 'Wideo',
+  video: 'Film / wideo',
   podcast: 'Podcast',
   other: 'Materiał',
 };

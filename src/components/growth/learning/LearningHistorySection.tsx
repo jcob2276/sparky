@@ -11,12 +11,11 @@ function monthLabel(monthStart: string): string {
 }
 
 function outcome(item: LearningAssignment): { label: string; tone: string } {
-  if (item.status === 'done') return { label: 'Skończone', tone: 'text-success' };
   if (item.status === 'dropped') return { label: 'Odpuszczone', tone: 'text-text-muted' };
   return { label: `Niedokończone (${progressPct(item)}%)`, tone: 'text-warning' };
 }
 
-/** Poprzednie miesiące: co się udało, co nie. Bez wniosków do wpisywania. */
+/** Z poprzednich miesięcy tylko to, co się nie udało. Ukończone są na półce w bibliotece. */
 export default function LearningHistorySection({ items }: { items: LearningAssignment[] }) {
   if (!items.length) return null;
   const byMonth = new Map<string, LearningAssignment[]>();
@@ -24,7 +23,7 @@ export default function LearningHistorySection({ items }: { items: LearningAssig
 
   return (
     <details className="rounded-2xl border border-border-custom/40 bg-surface/30 p-4">
-      <summary className="cursor-pointer text-sm font-black text-text-primary">Wcześniejsze miesiące</summary>
+      <summary className="cursor-pointer text-sm font-black text-text-primary">Niedokończone i odpuszczone</summary>
       <div className="mt-3 space-y-4">
         {[...byMonth.entries()].map(([month, list]) => (
           <section key={month} aria-label={monthLabel(month)}>

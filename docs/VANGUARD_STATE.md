@@ -424,9 +424,11 @@ Funkcje:
 - **plan nauki miesiąca**: maksymalnie 3 pozycje (książka, kurs, artykuł, wideo, podcast) z ilością (strony, minuty, lekcje, sztuki), terminem i opcjonalną umiejętnością z drzewa `learning_skills`;
 - **dzienny slot** liczony z tego, co zostało, i dni do terminu („str. 41–59, ok. 48 min”), jedno kliknięcie „Zrobione?” (ponowne cofa); status tempa: przed planem, zgodnie, za planem;
 - materiały wybierane z nieprzeczytanych w Pocket (`vanguard_links`) albo własne; z Pocket także przyciskiem „Do planu nauki” w szczegółach linku;
-- historia poprzednich miesięcy (skończone, odpuszczone, niedokończone).
+- **biblioteka (wirtualna półka)**: książki, filmy, kursy z całego życia jako grzbiety na półkach (grubość książki z liczby stron, kolor z tytułu, film jako płaskie pudełko), statystyki „razem / w tym roku”, filtr Książki/Filmy, karta wybranej pozycji; nowa pozycja wsuwa się na półkę z animacją (raz, z wyłączeniem przy ograniczonym ruchu);
+- biblioteka wypełnia się bez pracy: **import hurtem** (wklejona lista z nagłówkami „Książki:”, „Filmy 2019:”, wypunktowania, „Tytuł — Autor”, oceny, strony; albo CSV z Goodreads i Letterboxd, z podglądem i wykrywaniem duplikatów), **automatycznie z planu** (ukończona pozycja miesiąca sama trafia na półkę) i szybki dopis pojedynczej pozycji (poza tytułem wszystko opcjonalne, data może być samym rokiem);
+- historia poprzednich miesięcy pokazuje tylko niedokończone i odpuszczone (ukończone są na półce).
 
-Dane: `learning_assignments` (pozycje) i `learning_progress_log` (ilość na dzień); zapis postępu tylko przez RPC `log_learning_progress` (idempotentny na dzień, 0 cofa, sam ustawia `done`/`status`). Stare bloby `library_items` i `practice_evidences` w `vanguard_identity` były puste i nie są już używane.
+Dane: `learning_assignments` (pozycje) i `learning_progress_log` (ilość na dzień); zapis postępu tylko przez RPC `log_learning_progress` (idempotentny na dzień, 0 cofa, sam ustawia `done`/`status` i dopisuje lub zdejmuje wpis z biblioteki). `library_items` to biblioteka (data opcjonalna lub sam rok, ocena, źródło manual/paste/csv/plan, unikalność tytuł+autor+rodzaj). Stare bloby `library_items` i `practice_evidences` w `vanguard_identity` były puste i nie są już używane.
 
 Połączenia:
 
