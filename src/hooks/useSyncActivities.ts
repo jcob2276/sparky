@@ -30,7 +30,7 @@ export function useSyncActivities({
         .from('workout_sessions')
         .select('*, exercise_logs(exercise_name)')
         .eq('user_id', userId)
-        .order('workout_day', { ascending: false })
+        .order('date', { ascending: false })
         .limit(30);
 
       if (sessionErr) throw sessionErr;

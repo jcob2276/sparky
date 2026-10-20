@@ -80,7 +80,7 @@ async function fetchHasWorkoutToday(userId: string, today: string): Promise<bool
       .from('workout_sessions')
       .select('id')
       .eq('user_id', userId)
-      .or(`date.eq.${today},workout_day.eq.${today}`)
+      .eq('date', today)
       .limit(1)
       .maybeSingle(),
     supabase
