@@ -512,36 +512,6 @@ export type Database = {
         }
         Relationships: []
       }
-      convergence_live: {
-        Row: {
-          id: number
-          priced: number | null
-          quarter_start: string | null
-          refreshed_at: string | null
-          ret: number | null
-          top_n: number | null
-          valued_to: string | null
-        }
-        Insert: {
-          id?: number
-          priced?: number | null
-          quarter_start?: string | null
-          refreshed_at?: string | null
-          ret?: number | null
-          top_n?: number | null
-          valued_to?: string | null
-        }
-        Update: {
-          id?: number
-          priced?: number | null
-          quarter_start?: string | null
-          refreshed_at?: string | null
-          ret?: number | null
-          top_n?: number | null
-          valued_to?: string | null
-        }
-        Relationships: []
-      }
       daily_food_entries: {
         Row: {
           amount: string | null
@@ -2531,57 +2501,6 @@ export type Database = {
             referencedColumns: ["isin"]
           },
         ]
-      }
-      gpw_short_positions: {
-        Row: {
-          below_public_threshold: boolean | null
-          company: string
-          created_at: string
-          external_id: string | null
-          holder: string
-          id: number
-          isin: string | null
-          modify_date: string | null
-          position_date: string | null
-          position_pct: number | null
-          position_pct_raw: string | null
-          source_system: string | null
-          source_url: string | null
-          ticker: string | null
-        }
-        Insert: {
-          below_public_threshold?: boolean | null
-          company: string
-          created_at?: string
-          external_id?: string | null
-          holder: string
-          id: number
-          isin?: string | null
-          modify_date?: string | null
-          position_date?: string | null
-          position_pct?: number | null
-          position_pct_raw?: string | null
-          source_system?: string | null
-          source_url?: string | null
-          ticker?: string | null
-        }
-        Update: {
-          below_public_threshold?: boolean | null
-          company?: string
-          created_at?: string
-          external_id?: string | null
-          holder?: string
-          id?: number
-          isin?: string | null
-          modify_date?: string | null
-          position_date?: string | null
-          position_pct?: number | null
-          position_pct_raw?: string | null
-          source_system?: string | null
-          source_url?: string | null
-          ticker?: string | null
-        }
-        Relationships: []
       }
       habit_logs: {
         Row: {
@@ -7988,42 +7907,6 @@ export type Database = {
           seller_names?: Json | null
           sellers?: number | null
           ticker?: string | null
-          total_value?: number | null
-        }
-        Relationships: []
-      }
-      vw_consensus_ticker: {
-        Row: {
-          buyers: number | null
-          company_name: string | null
-          cusip_count: number | null
-          holders: number | null
-          net_buyers: number | null
-          new_positions: number | null
-          sellers: number | null
-          ticker: string
-          total_value: number | null
-        }
-        Insert: {
-          buyers?: number | null
-          company_name?: string | null
-          cusip_count?: number | null
-          holders?: number | null
-          net_buyers?: number | null
-          new_positions?: number | null
-          sellers?: number | null
-          ticker: string
-          total_value?: number | null
-        }
-        Update: {
-          buyers?: number | null
-          company_name?: string | null
-          cusip_count?: number | null
-          holders?: number | null
-          net_buyers?: number | null
-          new_positions?: number | null
-          sellers?: number | null
-          ticker?: string
           total_value?: number | null
         }
         Relationships: []

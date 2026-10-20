@@ -172,7 +172,7 @@ Removed crons: `vanguard-morning-brief`, `vanguard-morning-ping`, `vanguard-midd
 | `life_goals` | Long-term goals / BHAG |
 | `daily_wins` | PowerList: task_1..5, done_1..5, daily_rpe |
 
-Deprecated/dropped tables (do not use): `career_projects`, `career_moves`, `career_evidence`, `career_decisions` (removed 2026-06-30), `project_checkpoints` (milestones now in `todo_items.is_milestone`), `goals`, `focus_sessions`, `vanguard_intentions`, `vanguard_correlations`, `vanguard_temporal_links`.
+Deprecated/dropped tables (do not use): `career_projects`, `career_moves`, `career_evidence`, `career_decisions` (removed 2026-06-30), `project_checkpoints` (milestones now in `todo_items.is_milestone`), `goals`, `focus_sessions`, `vanguard_intentions`, `vanguard_correlations`, `vanguard_temporal_links`. Dropped 2026-10-20 (empty, no consumers): `convergence_backtest`, `finance_dividends`, `finance_holding_targets`, `investment_documents`, `investment_form4_transactions`, `investment_source_runs`, `investment_watchlist`, `learning_skill_snapshots`, `mcp_servers`. Archived to schema `graveyard` 2026-10-20: `gpw_short_positions` (replaced by `replace_knf_snapshot` → `vw_gpw_shorts_history`), `convergence_live`, `vw_consensus_ticker`.
 
 **Behavior logging (do not duplicate):**
 
@@ -228,3 +228,6 @@ Do not add or deploy a function that is not listed there with status `active` or
 
 See `docs/PRODUCT_PRINCIPLES.md` for the full gate.
 
+## Extensions in `public` (decision 2026-10-20)
+
+`vector`, `pg_trgm` and `pg_net` stay in the `public` schema on purpose: 15 `vector` columns, 3 trigram indexes and ~68 functions use their types/operators with `search_path = public`. Moving them requires rewriting `search_path` in every one of those functions and has no DB test harness, so the Supabase `extension_in_public` warning is accepted. Revisit only together with a function-by-function migration plus tests.
