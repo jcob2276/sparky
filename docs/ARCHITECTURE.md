@@ -230,4 +230,4 @@ See `docs/PRODUCT_PRINCIPLES.md` for the full gate.
 
 ## Extensions in `public` (decision 2026-10-20)
 
-`vector`, `pg_trgm` and `pg_net` stay in the `public` schema on purpose: 15 `vector` columns, 3 trigram indexes and ~68 functions use their types/operators with `search_path = public`. Moving them requires rewriting `search_path` in every one of those functions and has no DB test harness, so the Supabase `extension_in_public` warning is accepted. Revisit only together with a function-by-function migration plus tests.
+`vector`, `pg_trgm` and `pg_net` stay in the `public` schema on purpose: 15 `vector` columns, 3 trigram indexes and dozens of SQL routines use their types/operators with `search_path = public`. Moving them requires rewriting `search_path` in every one of those routines and has no DB test harness, so the Supabase `extension_in_public` warning is accepted. Revisit only together with a function-by-function migration plus tests.

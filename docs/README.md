@@ -15,6 +15,7 @@ kolejność czytania albo listę odnośników, powinien zamiast tego cytować te
 |---|---|---|
 | 1 | [`../AGENTS.md`](../AGENTS.md) | Konstytucja, reguły deployu, modele, critical rules |
 | 2 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Przepływ danych, crony, podsystemy, mapa katalogów (jedna strona) |
+| 2b | [`DATA_MAP.md`](./DATA_MAP.md) | Generowana mapa danych: kto czyta/pisze każdą tabelę (TS + SQL + cron) oraz słownik mylących nazw (`vanguard_*`, `workout_day`). Sprawdź PRZED usunięciem czegokolwiek |
 | 3 | [`../supabase/functions/README.md`](../supabase/functions/README.md) | Rejestr edge functions: status, JWT, tabele, LOC |
 | 4 | [`BACKEND_CONTRACT.md`](./BACKEND_CONTRACT.md) | Twarde reguły deweloperskie i deployu dla backendu i funkcji edge |
 | 5 | [`FRONTEND_GUIDE.md`](./FRONTEND_GUIDE.md) | Standardy deweloperskie i zasady projektowe (UX/UI) dla `src/` |

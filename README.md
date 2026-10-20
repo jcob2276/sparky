@@ -365,6 +365,10 @@ Dodatkowe kontrole:
 | `npm run audit:registry` | zgodność rejestru funkcji z systemem plików |
 | `npm run registry:generate` | ponowne wygenerowanie mapy Edge Functions |
 | `npm run db:check-drift` | kontrola rozjazdu migracji |
+| `npm run db:check-files` | offline: nazwy i unikalność plików migracji |
+| `npm run db:apply -- <plik.sql>` | jedyna ścieżka wgrywania migracji (wykonuje plik i zapisuje jego wersję w ledgerze) |
+| `npm run db:check-invariants` | niezmienniki bazy: RLS, FK, NOT NULL, granty, typy dat |
+| `npm run docs:data-map` | generuje `docs/DATA_MAP.md` (kto czyta/pisze każdą tabelę) |
 | `npm run audit:knip` | poszukiwanie martwego kodu i zależności |
 | `npm run oss:audit` | kontrola sekretów i prywatnych danych przed publikacją |
 | `npm run smoke` | powdrożeniowy smoke test backendu z service role |
