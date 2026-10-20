@@ -1,4 +1,4 @@
-import { assertEquals } from 'https://deno.land/std@0.224.0/assert/mod.ts';
+import { assertEquals, assertRejects } from 'https://deno.land/std@0.224.0/assert/mod.ts';
 import { geminiTranscribe } from './gemini.ts';
 import { transcribeBlob } from './openai.ts';
 
@@ -16,6 +16,47 @@ Deno.test('transcription skips unavailable Gemini models and uses a supported au
   try {
     assertEquals(await geminiTranscribe(new Blob(['audio'], { type: 'audio/ogg' }), 'gemini-fixture'), 'Planuję blok pracy.');
     assertEquals(models, ['gemini-3.8-flash', 'gemini-3.5-flash-lite']);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+for (const failure of [500, 503, 429, 'network', 'timeout', 'body-500'] as const) {
+  Deno.test(`transcription uses the next Gemini model after ${failure}`, async () => {
+    const originalFetch = globalThis.fetch;
+    const models: string[] = [];
+    globalThis.fetch = (input) => {
+      const model = String(input).match(/models\/([^:]+):/)?.[1] ?? '';
+      models.push(model);
+      if (model === 'gemini-3.5-flash-lite') {
+        return Promise.resolve(Response.json({ candidates: [{ content: { parts: [{ text: 'Odzyskana głosówka.' }] } }] }));
+      }
+      if (failure === 'network') return Promise.reject(new TypeError('fetch failed'));
+      if (failure === 'timeout') return Promise.reject(new DOMException('Timed out', 'AbortError'));
+      const status = failure === 'body-500' ? 500 : failure;
+      return Promise.resolve(Response.json({ error: { code: status, message: 'Service unavailable' } }, {
+        status: failure === 'body-500' ? 200 : status,
+      }));
+    };
+    try {
+      assertEquals(await geminiTranscribe(new Blob(['audio'], { type: 'audio/ogg' }), 'gemini-fixture'), 'Odzyskana głosówka.');
+      assertEquals(models.at(-1), 'gemini-3.5-flash-lite');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+}
+
+Deno.test('transcription fails immediately on invalid Gemini credentials', async () => {
+  const originalFetch = globalThis.fetch;
+  let calls = 0;
+  globalThis.fetch = () => {
+    calls++;
+    return Promise.resolve(Response.json({ error: { code: 401, message: 'Invalid API key' } }, { status: 401 }));
+  };
+  try {
+    await assertRejects(() => geminiTranscribe(new Blob(['audio']), 'invalid-fixture'), Error, '(401)');
+    assertEquals(calls, 1);
   } finally {
     globalThis.fetch = originalFetch;
   }

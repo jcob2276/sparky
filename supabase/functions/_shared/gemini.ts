@@ -197,6 +197,7 @@ export async function geminiTranscribe(
 
   for (const model of candidateModels) {
     const url = `${GEMINI_API_URL}/models/${model}:generateContent?key=${geminiKey}`;
+    let failureStatus: number | undefined;
     try {
       const res = await fetchWithRetry(url, {
         method: "POST",
@@ -207,20 +208,14 @@ export async function geminiTranscribe(
       }, { timeoutMs: opts?.timeoutMs ?? 45000, retries: 1, logTag: `gemini.transcribe.${model}` });
 
       if (!res.ok) {
+        failureStatus = res.status;
         const errText = await res.text().catch(() => "");
-        if (res.status === 404 && model !== candidateModels[candidateModels.length - 1]) {
-          console.warn(`[geminiTranscribe] Model ${model} returned 404, falling back...`);
-          continue;
-        }
         throw new Error(`Gemini transcribe HTTP error (${res.status}): ${errText.slice(0, 300)}`);
       }
 
       const raw = (await res.json()) as GeminiApiResponse;
       if (raw.error) {
-        if (raw.error.code === 404 && model !== candidateModels[candidateModels.length - 1]) {
-          console.warn(`[geminiTranscribe] Model ${model} returned 404 in body, falling back...`);
-          continue;
-        }
+        failureStatus = raw.error.code;
         throw new Error(`Gemini transcribe error (${raw.error.code}): ${raw.error.message}`);
       }
       const parts = raw.candidates?.[0]?.content?.parts ?? [];
@@ -232,7 +227,10 @@ export async function geminiTranscribe(
     } catch (err) {
       lastErr = err;
       const msg = err instanceof Error ? err.message : String(err);
-      if ((msg.includes("404") || msg.includes("not found")) && model !== candidateModels[candidateModels.length - 1]) {
+      // Model outages, throttling and transport failures can spare the fallback model.
+      const canFallback = failureStatus === undefined || failureStatus === 404
+        || failureStatus === 408 || failureStatus === 429 || failureStatus >= 500;
+      if (canFallback && model !== candidateModels[candidateModels.length - 1]) {
         console.warn(`[geminiTranscribe] Model ${model} error (${msg}), trying fallback...`);
         continue;
       }

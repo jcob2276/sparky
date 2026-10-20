@@ -88,7 +88,7 @@ export class TranscriptionInterceptor implements MessageInterceptor {
 
       await safeSendTelegram(
         ctx.chatId,
-        `⚠️ Nie udało się przetworzyć głosówki (${errMsg.slice(0, 100)}). Spróbuj nagrać ponownie lub napisz tekstem.`,
+        "⚠️ Nie udało się przetworzyć głosówki. Spróbuj przesłać tę samą wiadomość ponownie lub napisz tekstem.",
         ctx.telegramToken,
       );
       throw err;

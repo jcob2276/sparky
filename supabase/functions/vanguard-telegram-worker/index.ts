@@ -4,7 +4,7 @@
  * @role Asynchroniczny procesor Telegrama: przetwarza wiadomości i callbacki z kolejki inbox.
  * @reads vanguard_telegram_inbox, vanguard_stream, daily_reconciliations
  * @writes vanguard_telegram_inbox (status, error_log)
- * @calls api.telegram.org (poprzez send.ts), deepseek-v4-flash, openai (Whisper)
+ * @calls api.telegram.org (poprzez send.ts), deepseek-v4-flash, Gemini audio (zapasowy model po awarii), openai (Whisper)
  * @consumer Wynik działania procesora (odpowiedź do użytkownika na Telegramie)
  * @status active
  */
