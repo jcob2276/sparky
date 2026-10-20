@@ -1,13 +1,8 @@
-import { useCallback, useEffect, useRef, useState, useMemo, startTransition } from 'react';
+import { useCallback, useRef, useState, useMemo, startTransition } from 'react';
 import { useNavigate, useLocation, type NavigateOptions, type To } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { recordViewEvent } from '../../../lib/dashboardApi';
 import { useStore } from '../../../store/useStore';
 import { useDashboardData } from './useDashboardData';
-import { getTodayWarsaw, getWarsawHour } from '../../../lib/date';
-import { fetchLastFoodLogDate } from '../../../lib/behavior/behaviorLogClient';
-import { STORAGE_KEYS } from '../../../lib/constants';
 import { useHaptics } from '../../../hooks/useHaptics';
 import { useNudgeData } from './useNudgeData';
 import { useSyncActions } from '../../../hooks/useSyncActions';
@@ -15,23 +10,21 @@ import { useSpineGuidance } from '../../../hooks/useSpineGuidance';
 import { usePendingActionCount } from '../../../hooks/usePendingActionCount';
 import { useWorkoutResume } from '../../biometrics/hooks/useWorkoutResume';
 import { useDashboardSwipeNav } from './useDashboardSwipeNav';
-import { fetchLatestTaskReviewDate } from '../../../lib/todo/todo';
-import { getWeekStartWarsaw } from '../../../lib/growth/growth';
 import type { WorkoutLoggerInitial } from '../../../lib/health/workoutLogging';
 import { markWorkoutSessionActive } from '../../../lib/health/workoutLogging';
 import type { RecentEntry } from '../nutrition/hooks/useFoodEntryData';
 import type { SpineGuideTarget } from '../../../lib/goal/goalSpineGuide';
-
-const TAB_ORDER = ['dzis', 'tydzien', 'historia'];
-
-const normalizeView = (view: string | null | undefined) => {
-  if (!view || view === 'workout' || view === 'mentor' || view === 'mirror' || view === 'body') return 'dzis';
-  if (view === 'stream' || view === 'plan' || view === 'progress' || view === 'direction') return 'tydzien';
-  if (view === 'stats' || view === 'photos') return 'historia';
-  if (view === 'kariera') return 'projekty';
-  if (view === 'badania') return 'dzis';
-  return view;
-};
+import { TAB_ORDER, normalizeView } from './dashboardViews';
+import { useDashboardTheme } from './useDashboardTheme';
+import { useDashboardUrlRedirects } from './useDashboardUrlRedirects';
+import { useDashboardKeyboardShortcuts } from './useDashboardKeyboardShortcuts';
+import { useDashboardModalHistory } from './useDashboardModalHistory';
+import {
+  useDashboardViewTracking,
+  useDashboardTaskReview,
+  useDashboardShutdownSuggestion,
+  useDashboardLoggingGap,
+} from './useDashboardAutoPrompts';
 
 export function useDashboardState(session: Session) {
   const userId = session?.user?.id;
@@ -57,22 +50,7 @@ export function useDashboardState(session: Session) {
   const rawView = location.pathname === '/' ? 'dzis' : location.pathname.substring(1);
   const view = normalizeView(rawView);
 
-  // URL param redirects
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const viewParam = params.get('view');
-    if (viewParam === 'kariera') {
-      navigate('/projekty', { replace: true });
-    } else if (viewParam && TAB_ORDER.includes(viewParam)) {
-      navigate('/' + viewParam, { replace: true });
-    } else if (params.get('todo') === 'new') {
-      navigate('/todo?new=1', { replace: true });
-    } else if (params.get('share_url') || params.get('share_text') || params.get('share_title')) {
-      const shared = `${params.get('share_url') || ''} ${params.get('share_text') || ''}`;
-      const hasUrl = /https?:\/\/[^\s]+/.test(shared);
-      navigate({ pathname: hasUrl ? '/links' : '/keep', search: location.search }, { replace: true });
-    }
-  }, [location.search, navigate]);
+  useDashboardUrlRedirects(location, navigate);
 
   // Modal visibility state
   const [actionCenterOpen, setActionCenterOpen]     = useState(false);
@@ -109,136 +87,17 @@ export function useDashboardState(session: Session) {
     ? 'fastCapture'
     : null;
 
-  const lastOpenModalRef = useRef<string | null>(null);
-  const isPopStateRef = useRef(false);
+  const modalSetters = {
+    setShowMorningPlan, setShowShutdown, setShowWeeklyReview, setShowQuickFoodEntry,
+    setActionCenterOpen, setShowSearch, setShowFastCapture, setFoodEditEntry,
+  };
 
-  // Theme
-  const [theme, setTheme] = useState(() => localStorage.getItem(STORAGE_KEYS.THEME) || 'light');
-  useEffect(() => {
-    if (theme === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    try { localStorage.setItem(STORAGE_KEYS.THEME, theme); } catch (e: unknown) {
-      console.warn('[useDashboardState] Failed to save theme to localStorage:', e);
-    }
-  }, [theme]);
-  const toggleTheme = () => setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  const { theme, toggleTheme } = useDashboardTheme();
 
-  // Keyboard shortcuts (Cmd+K for search, ESC to close, N for capture, F for food)
-  useEffect(() => {
-    const isTyping = () => {
-      const active = document.activeElement;
-      if (!active) return false;
-      const tag = active.tagName.toLowerCase();
-      return tag === 'input' || tag === 'textarea' || active.hasAttribute('contenteditable') || active.getAttribute('contenteditable') === 'true';
-    };
+  useDashboardKeyboardShortcuts({ openModal, navigate, pathname: location.pathname, setters: modalSetters });
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const key = e.key.toLowerCase();
-
-      // 1. Search shortcut (Cmd+K or Ctrl+K)
-      if ((e.ctrlKey || e.metaKey) && key === 'k') {
-        e.preventDefault();
-        setShowSearch(prev => !prev);
-        return;
-      }
-
-      // 2. Escape shortcut to close any open modal
-      if (e.key === 'Escape') {
-        if (openModal) {
-          e.preventDefault();
-          setShowMorningPlan(false);
-          setShowShutdown(false);
-          setShowWeeklyReview(false);
-          setShowQuickFoodEntry(false);
-          setActionCenterOpen(false);
-          setShowSearch(false);
-          setShowFastCapture(false);
-          setFoodEditEntry(null);
-        }
-        return;
-      }
-
-      // 3. Letter shortcuts (N for Fast Capture, F for Food Entry)
-      if (isTyping() || openModal) {
-        return;
-      }
-
-      if (key === 'n' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault();
-        setShowFastCapture(true);
-      } else if (key === 'f' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault();
-        
-        if (location.pathname === '/dzis') {
-          document.getElementById('meal-composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-          navigate('/dzis');
-          setTimeout(() => document.getElementById('meal-composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [openModal, navigate, location.pathname]);
-
-  // View event tracking
-  // Note: viewEventMutation identity changes on every status transition (idle/pending/success).
-  // We store the mutate fn in a ref so the effect below only re-fires when userId or view
-  // actually changes — not on every mutation lifecycle tick. This prevents an infinite
-  // insert loop into view_events (seen at 87k+ rows when the mutation was in the deps array).
-  const viewEventMutation = useMutation({
-    mutationFn: async (viewName: string) => {
-      if (!userId) return;
-      await recordViewEvent(userId, viewName);
-    }
-  });
-  const viewEventMutateRef = useRef(viewEventMutation.mutate);
-  useEffect(() => { viewEventMutateRef.current = viewEventMutation.mutate; });
-
-  useEffect(() => {
-    if (userId && view) {
-      viewEventMutateRef.current(view);
-    }
-  }, [userId, view]);
-
-  // Task review status
-  const { data: latestTaskReviewDate } = useQuery({
-    queryKey: ['latest-task-review-date', userId],
-    queryFn: () => fetchLatestTaskReviewDate(userId!),
-    enabled: !!userId,
-  });
-
-  useEffect(() => {
-    if (latestTaskReviewDate) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate sync of react-query data to local state
-      setTaskReviewDoneThisWeek(getWeekStartWarsaw(latestTaskReviewDate) === getWeekStartWarsaw(getTodayWarsaw()));
-    }
-  }, [latestTaskReviewDate]);
-
-  // Meal deep link
-  useEffect(() => {
-    if (new URLSearchParams(location.search).get('meal') === 'new') {
-      navigate('/', { replace: true });
-      window.setTimeout(() => navigate('/dzis', { replace: true }), 0);
-    }
-  }, [location.search, navigate]);
-
-  // PWA Share Target lands on `/`; route link payloads to the canonical Pocket
-  // consumer instead of silently leaving the parameters on Dzisiaj.
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const sharedUrl = params.get('share_url') || '';
-    const sharedText = params.get('share_text') || '';
-    const hasUrl = /https?:\/\/[^\s]+/.test(`${sharedUrl} ${sharedText}`);
-    const target = hasUrl ? '/links' : sharedText.trim() ? '/keep' : null;
-    if (target && location.pathname !== target) {
-      navigate(`${target}?${params.toString()}`, { replace: true });
-    }
-  }, [location.pathname, location.search, navigate]);
+  useDashboardViewTracking(userId, view);
+  useDashboardTaskReview(userId, setTaskReviewDoneThisWeek);
 
   // Logo long-press → food entry
   const logoLongPressTimer = useRef<number | null>(null);
@@ -267,40 +126,8 @@ export function useDashboardState(session: Session) {
   const { syncCalendar, startGoogleAuth } = useSyncActions({ userId, accessToken, onRefresh: refresh, setSyncing });
   const { reviewOverdueDays, urgentTodoCount, staleNoteCount, refresh: refreshNudge } = useNudgeData(userId);
 
-  // Auto-suggest Evening Shutdown after 20:00 Warsaw
-  useEffect(() => {
-    if (!todayWin) return;
-    if (todayWin.day_note?.trim()) return;
-    const today = getTodayWarsaw();
-    try {
-      if (localStorage.getItem(STORAGE_KEYS.SHUTDOWN_DISMISSED) === today) return;
-    } catch (e: unknown) { console.warn('[useDashboardState] Failed to read shutdown dismissed date from localStorage:', e); }
-    const warsawHour = getWarsawHour();
-    if (warsawHour >= 20) { setTimeout(() => setShowShutdown(true), 0); }
-  }, [todayWin]);
-
-  // Detect a >2 day logging gap (§5.1) and prompt once per gap so it can be labeled
-  // rather than silently misread as an event (e.g. a fasting day) by correlations.
-  useEffect(() => {
-    if (!userId) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const lastDate = await fetchLastFoodLogDate(userId);
-        if (cancelled || !lastDate) return;
-        const gapDays = Math.round(
-          (new Date(getTodayWarsaw() + 'T12:00:00Z').getTime() - new Date(lastDate + 'T12:00:00Z').getTime())
-          / (24 * 60 * 60 * 1000),
-        );
-        if (gapDays <= 2) return;
-        if (localStorage.getItem(STORAGE_KEYS.GAP_PROMPT_DISMISSED_FOR) === lastDate) return;
-        setGapLastLoggedDate(lastDate);
-      } catch (e: unknown) {
-        console.warn('[useDashboardState] Failed to check logging gap:', e);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, [userId]);
+  useDashboardShutdownSuggestion(todayWin, setShowShutdown);
+  useDashboardLoggingGap(userId, setGapLastLoggedDate);
 
   // Navigation
   useWorkoutResume(userId, useCallback(() => {
@@ -370,66 +197,7 @@ export function useDashboardState(session: Session) {
     navigate('/trening');
   }, [userId, navigate]);
 
-  // --- Browser back button modal support effects ---
-
-  useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
-      isPopStateRef.current = true;
-      const modalInState = e.state?.modal;
-
-      // Close all modals
-      setShowMorningPlan(false);
-      setShowShutdown(false);
-      setShowWeeklyReview(false);
-      setShowQuickFoodEntry(false);
-      setActionCenterOpen(false);
-      setShowSearch(false);
-      setShowFastCapture(false);
-      setFoodEditEntry(null);
-
-      // Open the one in state, if any
-      if (modalInState) {
-        if (modalInState === 'morningPlan') setShowMorningPlan(true);
-        else if (modalInState === 'shutdown') setShowShutdown(true);
-        else if (modalInState === 'weeklyReview') setShowWeeklyReview(true);
-        else if (modalInState === 'quickFoodEntry') setShowQuickFoodEntry(true);
-        else if (modalInState === 'actionCenter') setActionCenterOpen(true);
-        else if (modalInState === 'search') setShowSearch(true);
-        else if (modalInState === 'fastCapture') setShowFastCapture(true);
-      }
-
-      lastOpenModalRef.current = modalInState || null;
-      isPopStateRef.current = false;
-    };
-
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
-
-  useEffect(() => {
-    const prev = lastOpenModalRef.current;
-    const curr = openModal;
-
-    if (prev === curr) return;
-
-    if (isPopStateRef.current) {
-      lastOpenModalRef.current = curr;
-      return;
-    }
-
-    if (curr && !prev) {
-      window.history.pushState({ modal: curr }, '');
-    } else if (!curr && prev) {
-      if (!isNavigatingRef.current) {
-        window.history.back();
-      }
-      isNavigatingRef.current = false;
-    } else if (curr && prev && curr !== prev) {
-      window.history.replaceState({ modal: curr }, '');
-    }
-
-    lastOpenModalRef.current = curr;
-  }, [openModal]);
+  useDashboardModalHistory(openModal, isNavigatingRef, modalSetters);
 
   return useMemo(() => ({
     // routing
@@ -470,7 +238,7 @@ export function useDashboardState(session: Session) {
     reviewOverdueDays, urgentTodoCount, staleNoteCount, refreshNudge,
     pendingActionCount, reloadPendingActions,
     isSyncing, syncCalendar, startGoogleAuth,
-    theme,
+    theme, toggleTheme,
     actionCenterOpen,
     historySubTab,
     workoutInitial, workoutKey,

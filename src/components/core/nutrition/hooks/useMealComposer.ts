@@ -1,35 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { combineDateTimeWarsawISO, getTodayWarsaw, getYesterdayWarsaw, warsawTimeOfDay } from '../../../../lib/date';
 import { notify } from '../../../../lib/notify';
-import { fetchNutritionDayContext } from '../../../../lib/health/nutritionContext';
-import { fetchComposerTodayMeals, fetchAllTodayEntries, copyFoodEntriesToDate, deleteFoodEntry } from '../../../../lib/health/composerTodayMealsApi';
-import { buildQuickChips, type QuickChip } from '../../../../lib/health/mealComposerQuick';
 import {
   MEAL_TYPES,
   QUICK_CAPTURE_FAVORITES,
   defaultMealType,
-  parseFoodNL,
-  quickAddFavorite,
-  type FoodFavoriteRow,
   type ParsedFoodItem,
   type MealTypeId,
 } from '../../../../lib/health/foodLogging';
-import {
-  type MealDraftItem,
-} from '../../../../lib/health/nutritionTracker';
-import { confirmMealCapture } from '../../../../lib/health/nutritionTrackerApi';
+import { type MealDraftItem } from '../../../../lib/health/nutritionTracker';
 import { entriesToDraft, foodBaseToDraft, mealLabelForType, parsedToDraft } from '../../../../lib/health/mealComposerUtils';
-import { fetchRecentFoodProducts, recentProductToDraft } from '../../../../lib/health/recentFoodProductsApi';
-import {
-  fetchUserPortions,
-  lookupUserPortion,
-  upsertUserPortionsFromDraft,
-} from '../../../../lib/health/userPortionsApi';
-import { scanMealPhoto } from '../../../../lib/health/mealPhotoScan';
-import { saveMealPhoto } from '../../../../lib/health/mealPhotoStore';
+import { recentProductToDraft } from '../../../../lib/health/recentFoodProductsApi';
+import { lookupUserPortion } from '../../../../lib/health/userPortionsApi';
 import { useFoodEntrySearch } from './useFoodEntrySearch';
 import { useSession } from '../../../../store/useStore';
+import { useMealComposerCapture } from './useMealComposerCapture';
+import { useMealComposerRefresh } from './useMealComposerRefresh';
+import { useMealComposerSave } from './useMealComposerSave';
+import { useMealComposerQueries } from './useMealComposerQueries';
+import { useMealComposerQuickChips } from './useMealComposerQuickChips';
+import { useMealComposerYesterday } from './useMealComposerYesterday';
+import { useMealComposerBulkActions } from './useMealComposerBulkActions';
+
 export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   const session = useSession();
   const userId = session?.user.id;
@@ -56,68 +49,9 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   const [loggedTime, setLoggedTime] = useState(() => warsawTimeOfDay(new Date().toISOString()));
   const [memoryName, setMemoryName] = useState('');
 
-  const contextQuery = useQuery({
-    queryKey: ['nutrition-context', userId, logDate],
-    queryFn: () => fetchNutritionDayContext(userId!, logDate, session!.access_token),
-    enabled: !!userId,
-  });
-
-  const userPortionsQuery = useQuery({
-    queryKey: ['user-portions', userId],
-    queryFn: () => fetchUserPortions(userId!),
-    enabled: !!userId,
-  });
-
-  const recentProductsQuery = useQuery({
-    queryKey: ['recent-food-products', userId],
-    queryFn: () => fetchRecentFoodProducts(userId!, 8),
-    enabled: !!userId,
-  });
-
-  const todayMealsQuery = useQuery({
-    queryKey: ['composer-today-meals', userId, logDate, mealType],
-    queryFn: () => fetchComposerTodayMeals(userId!, logDate, mealType),
-    enabled: !!userId,
-  });
-
-  const allTodayEntriesQuery = useQuery({
-    queryKey: ['all-today-entries', userId, logDate],
-    queryFn: () => fetchAllTodayEntries(userId!, logDate),
-    enabled: !!userId,
-    refetchInterval: 30_000,
-    refetchOnWindowFocus: 'always',
-  });
-
-  useEffect(() => {
-    if (!refreshSignal || !userId) return;
-    void queryClient.invalidateQueries({ queryKey: ['nutrition-context', userId, logDate] });
-    void queryClient.invalidateQueries({ queryKey: ['user-portions', userId] });
-    void queryClient.invalidateQueries({ queryKey: ['recent-food-products', userId] });
-    void queryClient.invalidateQueries({ queryKey: ['composer-today-meals', userId, logDate] });
-    void queryClient.invalidateQueries({ queryKey: ['all-today-entries', userId] });
-  }, [refreshSignal, queryClient, userId, logDate]);
-
-  const totals = useMemo(() => {
-    const ctx = contextQuery.data;
-    const entries = allTodayEntriesQuery.data;
-
-    // Live entries from daily_food_entries are the single source of truth for logged values
-    const liveCalories = entries
-      ? Math.round(entries.reduce((s, e) => s + (e.calories ?? 0), 0))
-      : (ctx?.calories ?? 0);
-    const liveProtein = entries
-      ? Math.round(entries.reduce((s, e) => s + (e.protein ?? 0), 0) * 10) / 10
-      : (ctx?.protein ?? 0);
-
-    return {
-      calories: liveCalories,
-      protein: liveProtein,
-      targetKcal: ctx?.targetKcal ?? null,
-      targetProtein: ctx?.targetProtein ?? null,
-      avgFoodQuality: ctx?.avgFoodQuality ?? null,
-      foodQualityAnalysis: ctx?.foodQualityAnalysis ?? null,
-    };
-  }, [allTodayEntriesQuery.data, contextQuery.data]);
+  const {
+    contextQuery, userPortionsQuery, recentProductsQuery, todayMealsQuery, allTodayEntriesQuery, totals,
+  } = useMealComposerQueries({ session, userId, logDate, mealType, refreshSignal });
 
   const appendFoodToDraft = useCallback((food: Parameters<typeof foodBaseToDraft>[0], grams?: number) => {
     const portions = userPortionsQuery.data;
@@ -167,132 +101,33 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     } catch { /* quota */ }
   }, [text, draftKey]);
 
-  const bumpQualityRefresh = useCallback(() => {
-    setQualityPending(true);
-    window.setTimeout(() => {
-      void queryClient.invalidateQueries({ queryKey: ['nutrition-context', userId, logDate] })
-        .then(() => setQualityPending(false));
-    }, 8000);
-  }, [queryClient, userId, logDate]);
-
-  const refreshAfterSave = useCallback(async () => {
-    await contextQuery.refetch();
-    void queryClient.invalidateQueries({ queryKey: ['nutrition-meal-memories', userId] });
-    void queryClient.invalidateQueries({ queryKey: ['meal-composer-yesterday', userId, mealType] });
-    void queryClient.invalidateQueries({ queryKey: ['recent-food-products', userId] });
-    void queryClient.invalidateQueries({ queryKey: ['user-portions', userId] });
-    void queryClient.invalidateQueries({ queryKey: ['composer-today-meals', userId, logDate, mealType] });
-    void queryClient.invalidateQueries({ queryKey: ['all-today-entries', userId, logDate] });
-    bumpQualityRefresh();
-    onSaved?.();
-  }, [bumpQualityRefresh, contextQuery, logDate, mealType, onSaved, queryClient, userId]);
+  const refreshAfterSave = useMealComposerRefresh({
+    queryClient, contextQuery, userId, logDate, mealType, onSaved, setQualityPending,
+  });
 
   const setDraftFromParsed = useCallback((items: ParsedFoodItem[], append = false) => {
     const next = parsedToDraft(items);
     setDraftItems((current) => (append && current?.length ? [...current, ...next] : next));
   }, []);
 
-  const parseText = useCallback(async () => {
-    if (!text.trim() || parsing || !userId) return;
-    setParsing(true);
-    setError(null);
-    try {
-      const items = await parseFoodNL(text.trim(), userId, session!.access_token);
-      if (!items.length) {
-        notify('Nie rozpoznano produktów — spróbuj opisać inaczej', 'error');
-        return;
-      }
-      setDraftFromParsed(items);
-      setText('');
-    } catch (cause: unknown) {
-      notify(cause instanceof Error ? cause.message : 'Parsowanie nie powiodło się', 'error');
-    } finally {
-      setParsing(false);
-    }
-  }, [text, parsing, userId, session, setDraftFromParsed]);
+  const { parseText, scanPhoto } = useMealComposerCapture({
+    userId, session, text, setText, parsing, setParsing, scanningPhoto, setScanningPhoto,
+    setError, setDraftFromParsed, scannedPhotoIdRef,
+  });
 
   // A dismissed draft must not leave its photo linked to the next meal.
   useEffect(() => {
     if (!draftItems) scannedPhotoIdRef.current = null;
   }, [draftItems]);
 
-  const saveDraft = useCallback(async (
-    items: MealDraftItem[],
-    source: 'text' | 'photo' | 'repeat' | 'search',
-    rememberIds: Set<string> = new Set(),
-    options?: { memoryName?: string; loggedAt?: string },
-  ) => {
-    if (!userId || !items.length || saving) return;
-    setSaving(true);
-    setError(null);
-    try {
-      const captureId = source === 'photo' ? scannedPhotoIdRef.current ?? undefined : undefined;
-      await confirmMealCapture({
-        userId,
-        date: logDate,
-        mealType,
-        source,
-        items,
-        memoryName: options?.memoryName,
-        loggedAt: options?.loggedAt,
-        captureId,
-      });
-      scannedPhotoIdRef.current = null;
-      const toRemember = items
-        .filter((item) => rememberIds.has(item.id))
-        .map((item) => ({
-          name: item.name,
-          grams: item.grams,
-          unit: item.parseMeta?.unit,
-        }));
-      if (toRemember.length) {
-        await upsertUserPortionsFromDraft(userId, toRemember);
-      }
-      setDraftItems(null);
-      setText('');
-      setMemoryName('');
-      search.setQuery('');
-      setSearchOpen(false);
-      await refreshAfterSave();
-      notify(`Zapisano posiłek (${items.length} ${items.length === 1 ? 'pozycja' : 'pozycje'})`, 'success');
-    } catch (cause: unknown) {
-      const message = cause instanceof Error ? cause.message : 'Zapis nie powiódł się';
-      setError(message);
-      notify(message, 'error');
-    } finally {
-      setSaving(false);
-    }
-  }, [userId, saving, logDate, mealType, refreshAfterSave, search]);
+  const { saveDraft, handleFavorite } = useMealComposerSave({
+    userId, saving, setSaving, setError, logDate, mealType, search, scannedPhotoIdRef,
+    setDraftItems, setText, setMemoryName, setSearchOpen, refreshAfterSave,
+  });
 
   const addRecentProduct = useCallback((product: Parameters<typeof recentProductToDraft>[0]) => {
     setDraftItems((current) => [...(current ?? []), recentProductToDraft(product)]);
   }, []);
-
-  const scanPhoto = useCallback(async (file: File) => {
-    if (!userId || scanningPhoto) return;
-    setScanningPhoto(true);
-    setError(null);
-    scannedPhotoIdRef.current = null;
-    try {
-      // The photo is stored the moment it is taken, even when the analysis fails or the meal is never confirmed.
-      const draft = await scanMealPhoto(file, userId, (image) => {
-        const photoId = crypto.randomUUID();
-        scannedPhotoIdRef.current = photoId;
-        saveMealPhoto(userId, photoId, image).catch((photoCause: unknown) => {
-          console.warn('[useMealComposer] meal photo was not stored', photoCause);
-          notify('Nie udało się zachować zdjęcia', 'info');
-        });
-      });
-      setDraftFromParsed(draft.items);
-    } catch (cause: unknown) {
-      scannedPhotoIdRef.current = null;
-      const message = cause instanceof Error ? cause.message : 'Nie udało się przeanalizować zdjęcia';
-      setError(message);
-      notify(message, 'error');
-    } finally {
-      setScanningPhoto(false);
-    }
-  }, [userId, scanningPhoto, setDraftFromParsed]);
 
   const loadTodayMealToDraft = useCallback((mealId: string) => {
     const meal = todayMealsQuery.data?.find((candidate) => candidate.id === mealId);
@@ -301,46 +136,13 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     setMemoryName(meal.name);
   }, [todayMealsQuery.data]);
 
-  const excludeNames = useMemo(() => {
-    const set = new Set<string>();
-    for (const entry of allTodayEntriesQuery.data ?? []) {
-      set.add(entry.name);
-    }
-    return set;
-  }, [allTodayEntriesQuery.data]);
-
-  const quickChips = useMemo(() => buildQuickChips({
-    recentProducts: recentProductsQuery.data ?? [],
-    favorites: QUICK_CAPTURE_FAVORITES,
-    excludeNames,
-  }), [recentProductsQuery.data, excludeNames]);
-
-  const handleQuickChip = useCallback((chip: QuickChip) => {
-    if (chip.kind === 'today') {
-      loadTodayMealToDraft(chip.id.replace('today-', ''));
-      return;
-    }
-    if (chip.kind === 'recent') {
-      const product = recentProductsQuery.data?.find((item) => chip.id === `recent-${item.id}`);
-      if (product) addRecentProduct(product);
-      return;
-    }
-    const fav = QUICK_CAPTURE_FAVORITES.find((item) => chip.id === `fav-${item.id}`);
-    if (!fav) return;
-    addFoodToDraft({
-      name: fav.name,
-      brand: fav.brand,
-      barcode: null,
-      calories: fav.calories,
-      protein: fav.protein,
-      carbs: fav.carbs,
-      fat: fav.fat,
-      fiber: fav.fiber,
-      sugar: fav.sugar,
-      defaultGrams: fav.default_grams,
-      source: 'confirmed',
-    }, fav.default_grams);
-  }, [addFoodToDraft, addRecentProduct, loadTodayMealToDraft, recentProductsQuery.data]);
+  const { quickChips, handleQuickChip } = useMealComposerQuickChips({
+    allTodayEntries: allTodayEntriesQuery.data,
+    recentProducts: recentProductsQuery.data,
+    addFoodToDraft,
+    addRecentProduct,
+    loadTodayMealToDraft,
+  });
 
   const saveFromDraft = useCallback((rememberIds: Set<string>, name?: string) => {
     if (!draftItems?.length) return;
@@ -349,50 +151,9 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     void saveDraft(draftItems, source, rememberIds, { memoryName: name, loggedAt });
   }, [draftItems, logDate, loggedTime, saveDraft]);
 
-  const handleFavorite = useCallback(async (fav: Omit<FoodFavoriteRow, 'barcode'> & { barcode?: string | null }) => {
-    if (!userId || saving) return;
-    setSaving(true);
-    try {
-      await quickAddFavorite(userId, fav, logDate, mealType);
-      await refreshAfterSave();
-      notify(fav.name, 'success');
-    } catch (cause: unknown) {
-      notify(cause instanceof Error ? cause.message : 'Błąd', 'error');
-    } finally {
-      setSaving(false);
-    }
-  }, [userId, saving, logDate, mealType, refreshAfterSave]);
-
-  const todayStr = useMemo(() => getTodayWarsaw(), []);
-  const yesterdayStr = useMemo(() => getYesterdayWarsaw(), []);
-
-  const yesterdayEntriesQuery = useQuery({
-    queryKey: ['all-today-entries', userId, yesterdayStr],
-    queryFn: () => fetchAllTodayEntries(userId!, yesterdayStr),
-    enabled: !!userId && logDate === todayStr,
+  const { todayStr, yesterdayMealSuggestion } = useMealComposerYesterday({
+    userId, logDate, mealType, allTodayEntries: allTodayEntriesQuery.data,
   });
-
-  const yesterdayMealSuggestion = useMemo(() => {
-    if (logDate !== todayStr || !yesterdayEntriesQuery.data?.length) return null;
-    const todayEntries = allTodayEntriesQuery.data ?? [];
-    const todayHasMeal = todayEntries.some((e) => e.meal_type === mealType);
-    if (todayHasMeal) return null;
-
-    const yesterdayMealEntries = yesterdayEntriesQuery.data.filter((e) => e.meal_type === mealType);
-    if (!yesterdayMealEntries.length) return null;
-
-    const totalCalories = Math.round(yesterdayMealEntries.reduce((sum, e) => sum + (e.calories ?? 0), 0));
-    const totalProtein = Math.round(yesterdayMealEntries.reduce((sum, e) => sum + (e.protein ?? 0), 0) * 10) / 10;
-    const name = yesterdayMealEntries.map((e) => e.name).join(' + ').slice(0, 42);
-
-    return {
-      name,
-      calories: totalCalories,
-      protein: totalProtein,
-      mealLabel: mealLabelForType(mealType),
-      entries: yesterdayMealEntries,
-    };
-  }, [logDate, todayStr, yesterdayEntriesQuery.data, allTodayEntriesQuery.data, mealType]);
 
   const repeatYesterdayMeal = useCallback(() => {
     if (!yesterdayMealSuggestion?.entries.length) return;
@@ -401,48 +162,9 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     notify(`Załadowano wczorajszy ${yesterdayMealSuggestion.mealLabel} do edytora!`, 'success');
   }, [yesterdayMealSuggestion]);
 
-  const copyEntireDayToToday = useCallback(async () => {
-    if (!userId || !allTodayEntriesQuery.data?.length || saving) return;
-    setSaving(true);
-    try {
-      await copyFoodEntriesToDate(userId, allTodayEntriesQuery.data, todayStr);
-      setLogDateAndResetTime(todayStr);
-      await refreshAfterSave();
-      notify('Skopiowano posiłki do dzisiaj!', 'success');
-    } catch (err) {
-      notify(err instanceof Error ? err.message : 'Błąd kopiowania', 'error');
-    } finally {
-      setSaving(false);
-    }
-  }, [allTodayEntriesQuery.data, refreshAfterSave, saving, setLogDateAndResetTime, todayStr, userId]);
-
-  const copyMealToToday = useCallback(async (sourceMealType: string) => {
-    if (!userId || !allTodayEntriesQuery.data?.length || saving) return;
-    const mealEntries = allTodayEntriesQuery.data.filter((e) => e.meal_type === sourceMealType);
-    if (!mealEntries.length) return;
-    setSaving(true);
-    try {
-      await copyFoodEntriesToDate(userId, mealEntries, todayStr, sourceMealType);
-      setLogDateAndResetTime(todayStr);
-      await refreshAfterSave();
-      notify(`Skopiowano ${mealLabelForType(sourceMealType)} do dzisiaj!`, 'success');
-    } catch (err) {
-      notify(err instanceof Error ? err.message : 'Błąd kopiowania', 'error');
-    } finally {
-      setSaving(false);
-    }
-  }, [allTodayEntriesQuery.data, refreshAfterSave, saving, setLogDateAndResetTime, todayStr, userId]);
-
-  const deleteEntry = useCallback(async (entryId: string) => {
-    if (!userId || saving) return;
-    try {
-      await deleteFoodEntry(userId, entryId);
-      await refreshAfterSave();
-      notify('Usunięto wpis', 'success');
-    } catch (err) {
-      notify(err instanceof Error ? err.message : 'Błąd usuwania', 'error');
-    }
-  }, [userId, saving, refreshAfterSave]);
+  const { copyEntireDayToToday, copyMealToToday, deleteEntry } = useMealComposerBulkActions({
+    userId, saving, setSaving, allTodayEntries: allTodayEntriesQuery.data, todayStr, setLogDateAndResetTime, refreshAfterSave,
+  });
 
   return {
     userId,

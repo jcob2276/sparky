@@ -1,46 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  useNotes, useTrashedNotes, Note, updateNoteApi,
-  restoreNoteApi, deleteNoteApi, moveNoteToTrashApi, sortNotes,
-} from '../../../lib/notesApi';
+import { useNotes, useTrashedNotes, Note, updateNoteApi } from '../../../lib/notesApi';
 import { notesKeys } from '../../../lib/queryKeys';
-import { notify } from '../../../lib/notify';
-import { STORAGE_KEYS } from '../../../lib/constants';
 import { useNotesMutations } from './useNotesMutations';
-import { deleteAllNoteAttachmentFiles, hasNoteAttachments } from '../../../lib/noteAttachmentsApi';
-import { hasNoteDrawing } from '../../../lib/noteDrawingsApi';
-import { shouldDiscardEmptyNote } from '../../../lib/noteDiscardRules';
-import {
-  createNoteFolder,
-  deleteNoteFolder,
-  moveNoteFolder,
-  renameNoteFolder,
-  useNoteFolders,
-} from '../../../lib/noteFoldersApi';
-import { decryptNotePayload, encryptNotePayload, type LockableNotePayload } from '../../../lib/noteLockCrypto';
+import { useNoteFolders } from '../../../lib/noteFoldersApi';
+import { encryptNotePayload, decryptNotePayload, type LockableNotePayload } from '../../../lib/noteLockCrypto';
 import { getNoteLockBlockReason } from '../../../lib/noteLockRules';
-import {
-  createNoteSmartFolder,
-  deleteNoteSmartFolder,
-  updateNoteSmartFolder,
-  useNoteSmartFolders,
-  type SmartFolderRuleV1,
-} from '../../../lib/noteSmartFolders';
+import { useNoteSmartFolders } from '../../../lib/noteSmartFolders';
+import { getNotesStorageKey, readLocalFallback } from './notesLocalFallback';
+import { useNoteListActions } from './useNoteListActions';
+import { useNoteTrashActions } from './useNoteTrashActions';
+import { useNoteFolderActions } from './useNoteFolderActions';
 
-function getNotesStorageKey(userId: string): string {
-  return `${STORAGE_KEYS.KEEP_NOTES_LOCAL}_${userId}`;
-}
-
-function readLocalFallback(userId: string): Note[] {
-  if (!userId) return [];
-  try {
-    const local = localStorage.getItem(getNotesStorageKey(userId));
-    return local ? (JSON.parse(local) as Note[]) : [];
-  } catch {
-    return [];
-  }
-}
 
 /**
  * The react-query cache (keyed by notesKeys.list(userId)) is the single source of truth for
@@ -173,146 +144,22 @@ export function useNotesData(userId: string) {
     refreshLockTimer();
   }, [handlePlainUpdate, refreshLockTimer, setNotes, storedNotes, unlockedPayloads, userId]);
 
-  const handleDeleteTag = useCallback(async (tagToDelete: string) => {
-    setBusy(true);
-    setError(null);
-    try {
-      const notesToUpdate = notes.filter((n) => n.tags?.includes(tagToDelete));
-      for (const note of notesToUpdate) {
-        const nextTags = (note.tags || []).filter((t) => t !== tagToDelete);
-        await updateNoteApi(note.id, { tags: nextTags, updated_at: new Date().toISOString() });
-      }
-      const updatedNotes = notes.map((n) =>
-        n.tags?.includes(tagToDelete)
-          ? {
-              ...n,
-              tags: (n.tags || []).filter((t) => t !== tagToDelete),
-              updated_at: new Date().toISOString(),
-            }
-          : n
-      );
-      setNotes(sortNotes(updatedNotes));
-      notify(`Tag "${tagToDelete}" został usunięty ze wszystkich notatek.`, 'info');
-    } catch (err: unknown) {
-      console.error('Error deleting tag:', err);
-      const errMsg = err instanceof Error ? err.message : String(err);
-      setError(errMsg || 'Nie udało się usunąć tagu.');
-    } finally {
-      setBusy(false);
-    }
-  }, [notes, setNotes]);
-
-  const handleRenameTag = useCallback(async (oldTag: string, newTag: string) => {
-    const normalized = newTag.trim();
-    if (!normalized) throw new Error('Nazwa tagu nie może być pusta.');
-    const changed = notes.filter(note => note.tags.includes(oldTag));
-    for (const note of changed) {
-      const tags = [...new Set(note.tags.map(tag => tag === oldTag ? normalized : tag))];
-      await updateNoteApi(note.id, { tags, updated_at: new Date().toISOString() });
-    }
-    setNotes(previous => previous.map(note => note.tags.includes(oldTag) ? {
-      ...note,
-      tags: [...new Set(note.tags.map(tag => tag === oldTag ? normalized : tag))],
-    } : note));
-  }, [notes, setNotes]);
-
-  const handleReorder = useCallback((dragId: string, overId: string) => {
-    setNotes((prev) => {
-      const arr = [...prev];
-      const fromIdx = arr.findIndex((n) => n.id === dragId);
-      const toIdx = arr.findIndex((n) => n.id === overId);
-      if (fromIdx === -1 || toIdx === -1) return prev;
-      if (arr[fromIdx].is_pinned !== arr[toIdx].is_pinned) return prev;
-      const [moved] = arr.splice(fromIdx, 1);
-      arr.splice(toIdx, 0, moved);
-      return arr;
-    });
-  }, [setNotes]);
-
-  const handleRestore = useCallback(async (id: string) => {
-    await restoreNoteApi(id);
-    await queryClient.invalidateQueries({ queryKey: notesKeys.all });
-    notify('Notatka przywrócona', 'success');
-  }, [queryClient]);
-
-  const handlePermanentDelete = useCallback(async (id: string) => {
-    await deleteAllNoteAttachmentFiles(id);
-    await deleteNoteApi(id);
-    queryClient.setQueryData<Note[]>(
-      notesKeys.trash(userId),
-      previous => (previous ?? []).filter(note => note.id !== id),
-    );
-    notify('Notatka usunięta trwale', 'info');
-  }, [queryClient, userId]);
-
-  const handleDiscardEmpty = useCallback(async (id: string) => {
-    const [hasAttachments, hasDrawing] = await Promise.all([
-      hasNoteAttachments(id),
-      hasNoteDrawing(id),
-    ]);
-    if (!shouldDiscardEmptyNote({ hasText: false, hasAttachments, hasDrawing })) return;
-    await moveNoteToTrashApi(id);
-    setNotes(previous => previous.filter(note => note.id !== id));
-    await queryClient.invalidateQueries({ queryKey: notesKeys.trash(userId) });
-  }, [queryClient, setNotes, userId]);
-
-  const handleCreateFolder = useCallback(async (name: string, parentId: string | null = null) => {
-    const created = await createNoteFolder(userId, name, parentId);
-    await queryClient.invalidateQueries({ queryKey: notesKeys.folders(userId) });
-    return created;
-  }, [queryClient, userId]);
-
-  const handleRenameFolder = useCallback(async (id: string, name: string) => {
-    await renameNoteFolder(id, name);
-    await queryClient.invalidateQueries({ queryKey: notesKeys.folders(userId) });
-  }, [queryClient, userId]);
-
-  const handleMoveFolder = useCallback(async (id: string, parentId: string | null) => {
-    const siblings = folders.filter(folder => folder.parent_id === parentId);
-    await moveNoteFolder(folders, id, parentId, siblings.length);
-    await queryClient.invalidateQueries({ queryKey: notesKeys.folders(userId) });
-  }, [folders, queryClient, userId]);
-
-  const handleReorderFolder = useCallback(async (id: string, direction: 'up' | 'down') => {
-    const folder = folders.find(item => item.id === id);
-    if (!folder) return;
-    const siblings = folders
-      .filter(item => item.parent_id === folder.parent_id)
-      .sort((a, b) => a.position - b.position || a.name.localeCompare(b.name, 'pl'));
-    const index = siblings.findIndex(item => item.id === id);
-    const target = siblings[direction === 'up' ? index - 1 : index + 1];
-    if (!target) return;
-    await Promise.all([
-      moveNoteFolder(folders, folder.id, folder.parent_id, target.position),
-      moveNoteFolder(folders, target.id, target.parent_id, folder.position),
-    ]);
-    await queryClient.invalidateQueries({ queryKey: notesKeys.folders(userId) });
-  }, [folders, queryClient, userId]);
-
-  const handleDeleteFolder = useCallback(async (id: string) => {
-    await deleteNoteFolder(id);
-    await queryClient.invalidateQueries({ queryKey: notesKeys.all });
-    notify('Folder usunięty; notatki pozostały w Wszystkich', 'info');
-  }, [queryClient]);
-
-  const refreshSmartFolders = useCallback(async () => {
-    await queryClient.invalidateQueries({ queryKey: ['notes', 'smart-folders', userId] });
-  }, [queryClient, userId]);
-
-  const handleCreateSmartFolder = useCallback(async (name: string, rule: SmartFolderRuleV1) => {
-    await createNoteSmartFolder(userId, name, rule);
-    await refreshSmartFolders();
-  }, [refreshSmartFolders, userId]);
-
-  const handleUpdateSmartFolder = useCallback(async (id: string, name: string, rule: SmartFolderRuleV1) => {
-    await updateNoteSmartFolder(id, { name, rule });
-    await refreshSmartFolders();
-  }, [refreshSmartFolders]);
-
-  const handleDeleteSmartFolder = useCallback(async (id: string) => {
-    await deleteNoteSmartFolder(id);
-    await refreshSmartFolders();
-  }, [refreshSmartFolders]);
+  const { handleDeleteTag, handleRenameTag, handleReorder } = useNoteListActions({
+    notes, setNotes, setBusy, setError,
+  });
+  const { handleRestore, handlePermanentDelete, handleDiscardEmpty } = useNoteTrashActions({
+    queryClient, userId, setNotes,
+  });
+  const {
+    handleCreateFolder,
+    handleRenameFolder,
+    handleMoveFolder,
+    handleReorderFolder,
+    handleDeleteFolder,
+    handleCreateSmartFolder,
+    handleUpdateSmartFolder,
+    handleDeleteSmartFolder,
+  } = useNoteFolderActions({ queryClient, userId, folders });
 
   const handleLockNote = useCallback(async (note: Note, passphrase: string) => {
     const blockReason = getNoteLockBlockReason(note);

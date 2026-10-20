@@ -1,9 +1,4 @@
 import { useCallback } from 'react';
-import { supabase } from '../../../../lib/supabase';
-import { getTodayWarsaw } from '../../../../lib/date';
-import { rpcWithOfflineFallback } from '../../../../lib/offlineQueue';
-import { notify } from '../../../../lib/notify';
-import { scheduleFoodQualityAnalysis } from '../../../../lib/health/nutritionSideEffects';
 import { foodTrustMeta } from '../../../../lib/health/foodTrust';
 import {
   type FoodBase,
@@ -12,6 +7,12 @@ import {
   parseGrams,
   derivePer100,
 } from './foodEntryUtils';
+import {
+  addFoodEntryRpc,
+  buildFoodEntryPayload,
+  toSaveErrorMessage,
+} from './foodEntryAddRpc';
+import { useFoodEntryPostSave } from './foodEntryPostSave';
 
 interface UseFoodEntryActionsOptions {
   userId: string | undefined;
@@ -49,35 +50,7 @@ export function useFoodEntryActions({
   onSaved,
 }: UseFoodEntryActionsOptions) {
 
-  const afterFoodLog = useCallback(() => {
-    if (userId) scheduleFoodQualityAnalysis(userId, getTodayWarsaw());
-  }, [userId]);
-
-  const cacheToLibrary = useCallback(
-    (food: FoodBase, defaultGrams: number) => {
-      if (!userId) return;
-      supabase
-        .rpc('cache_food_to_library', {
-          p_user_id: userId,
-          p_name: food.name,
-          p_brand: food.brand,
-          p_barcode: food.barcode,
-          p_calories: food.calories,
-          p_protein: food.protein,
-          p_carbs: food.carbs,
-          p_fat: food.fat,
-          p_fiber: food.fiber,
-          p_sugar: food.sugar,
-          p_default_grams: defaultGrams,
-        } as never)
-        .then(({ error }) => {
-          if (error) {
-            console.error('[FoodEntryModal] cacheToLibrary failed', error);
-          }
-        });
-    },
-    [userId]
-  );
+  const { afterFoodLog, cacheToLibrary } = useFoodEntryPostSave(userId);
 
   const save = useCallback(async () => {
     if (!search.selected || !userId || saving) return;
@@ -85,35 +58,16 @@ export function useFoodEntryActions({
     setSaving(true);
     setError(null);
     try {
-      const { queued } = await rpcWithOfflineFallback(
-        'add_food_entry',
-        {
-          p_user_id: userId,
-          p_date: getTodayWarsaw(),
-          p_grams: gramsNum,
-          p_entry: {
-            name: search.selected.name,
-            brand: search.selected.brand,
-            barcode: search.selected.barcode,
-            calories: search.selected.calories,
-            protein: search.selected.protein,
-            carbs: search.selected.carbs,
-            fat: search.selected.fat,
-            fiber: search.selected.fiber,
-            sugar: search.selected.sugar,
-            meal_type: mealType,
-            request_id: crypto.randomUUID(),
-            parse_meta: foodTrustMeta(search.selected),
-          },
-        },
-        'Posiłek'
+      const queued = await addFoodEntryRpc(
+        userId,
+        gramsNum,
+        buildFoodEntryPayload(
+          search.selected,
+          mealType,
+          foodTrustMeta(search.selected)
+        )
       );
-      if (queued) {
-        notify(
-          'Brak sieci — posiłek zapisany lokalnie, zsynchronizuje się automatycznie',
-          'info'
-        );
-      } else {
+      if (!queued) {
         cacheToLibrary(search.selected, gramsNum);
         afterFoodLog();
       }
@@ -124,9 +78,7 @@ export function useFoodEntryActions({
       search.setGrams('100');
       await lists.loadLists();
     } catch (err: unknown) {
-      setError(
-        err instanceof Error ? (err as Error).message : 'Zapis nie powiódł się'
-      );
+      setError(toSaveErrorMessage(err));
     } finally {
       setSaving(false);
     }
@@ -151,35 +103,12 @@ export function useFoodEntryActions({
       setQuickAddingId(key);
       setError(null);
       try {
-        const { queued } = await rpcWithOfflineFallback(
-          'add_food_entry',
-          {
-            p_user_id: userId,
-            p_date: getTodayWarsaw(),
-            p_grams: food.defaultGrams ?? 100,
-            p_entry: {
-              name: food.name,
-              brand: food.brand,
-              barcode: food.barcode,
-              calories: food.calories,
-              protein: food.protein,
-              carbs: food.carbs,
-              fat: food.fat,
-              fiber: food.fiber,
-              sugar: food.sugar,
-              meal_type: mealType,
-              request_id: crypto.randomUUID(),
-              parse_meta: foodTrustMeta(food),
-            },
-          },
-          'Posiłek'
+        const queued = await addFoodEntryRpc(
+          userId,
+          food.defaultGrams ?? 100,
+          buildFoodEntryPayload(food, mealType, foodTrustMeta(food))
         );
-        if (queued) {
-          notify(
-            'Brak sieci — posiłek zapisany lokalnie, zsynchronizuje się automatycznie',
-            'info'
-          );
-        } else {
+        if (!queued) {
           cacheToLibrary(food, food.defaultGrams ?? 100);
           afterFoodLog();
         }
@@ -187,11 +116,7 @@ export function useFoodEntryActions({
         onSaved?.();
         await lists.loadLists();
       } catch (err: unknown) {
-        setError(
-          err instanceof Error
-            ? (err as Error).message
-            : 'Zapis nie powiódł się'
-        );
+        setError(toSaveErrorMessage(err));
       } finally {
         setQuickAddingId(null);
       }
@@ -216,46 +141,21 @@ export function useFoodEntryActions({
       setQuickAddingId(fav.id);
       setError(null);
       try {
-        const { queued } = await rpcWithOfflineFallback(
-          'add_food_entry',
-          {
-            p_user_id: userId,
-            p_date: getTodayWarsaw(),
-            p_grams: fav.default_grams,
-            p_entry: {
-              name: fav.name,
-              brand: fav.brand,
-              barcode: fav.barcode,
-              calories: fav.calories,
-              protein: fav.protein,
-              carbs: fav.carbs,
-              fat: fav.fat,
-              fiber: fav.fiber,
-              sugar: fav.sugar,
-              meal_type: mealType,
-              request_id: crypto.randomUUID(),
-              parse_meta: foodTrustMeta({ ...fav, source: 'confirmed' }),
-            },
-          },
-          'Posiłek'
+        const queued = await addFoodEntryRpc(
+          userId,
+          fav.default_grams,
+          buildFoodEntryPayload(
+            fav,
+            mealType,
+            foodTrustMeta({ ...fav, source: 'confirmed' })
+          )
         );
-        if (queued) {
-          notify(
-            'Brak sieci — posiłek zapisany lokalnie, zsynchronizuje się automatycznie',
-            'info'
-          );
-        } else {
-          afterFoodLog();
-        }
+        if (!queued) afterFoodLog();
         flashSaved();
         onSaved?.();
         await lists.loadLists();
       } catch (err: unknown) {
-        setError(
-          err instanceof Error
-            ? (err as Error).message
-            : 'Zapis nie powiódł się'
-        );
+        setError(toSaveErrorMessage(err));
       } finally {
         setQuickAddingId(null);
       }
@@ -281,13 +181,11 @@ export function useFoodEntryActions({
       try {
         const grams = Math.max(1, parseGrams(entry.amount));
         const per100 = derivePer100(entry);
-        const { queued } = await rpcWithOfflineFallback(
-          'add_food_entry',
-          {
-            p_user_id: userId,
-            p_date: getTodayWarsaw(),
-            p_grams: grams,
-            p_entry: {
+        const queued = await addFoodEntryRpc(
+          userId,
+          grams,
+          buildFoodEntryPayload(
+            {
               name: entry.name,
               brand: entry.brand,
               barcode: null,
@@ -298,30 +196,17 @@ export function useFoodEntryActions({
               fat: per100.fat != null ? Math.round(per100.fat * 10) / 10 : null,
               fiber: null,
               sugar: null,
-              meal_type: mealType,
-              request_id: crypto.randomUUID(),
-              parse_meta: foodTrustMeta({ ...entry, source: 'history' }),
             },
-          },
-          'Posiłek'
+            mealType,
+            foodTrustMeta({ ...entry, source: 'history' })
+          )
         );
-        if (queued) {
-          notify(
-            'Brak sieci — posiłek zapisany lokalnie, zsynchronizuje się automatycznie',
-            'info'
-          );
-        } else {
-          afterFoodLog();
-        }
+        if (!queued) afterFoodLog();
         flashSaved();
         onSaved?.();
         await lists.loadLists();
       } catch (err: unknown) {
-        setError(
-          err instanceof Error
-            ? (err as Error).message
-            : 'Zapis nie powiódł się'
-        );
+        setError(toSaveErrorMessage(err));
       } finally {
         setQuickAddingId(null);
       }
