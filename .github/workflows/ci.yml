@@ -63,6 +63,9 @@ jobs:
       - name: Test
         run: npm run test
 
+      - name: Test SQL migrations (pglite)
+        run: npm run test:sql
+
       - name: Test edge function logic (Deno)
         run: npm run test:edge
 

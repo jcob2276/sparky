@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
-const modulePath = process.env.SPARKY_SQL_TEST_MODULE ?? '.superpowers/sdd/bevel-intelligence/sql-runtime/node_modules/@electric-sql/pglite/dist/index.js';
-const { PGlite } = await import(pathToFileURL(resolve(modulePath)).href);
+import { PGlite } from '@electric-sql/pglite';
 const db = new PGlite();
 const owner = '11111111-1111-4111-8111-111111111111';
 const other = '22222222-2222-4222-8222-222222222222';

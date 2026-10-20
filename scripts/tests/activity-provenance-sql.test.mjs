@@ -1,9 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
-const modulePath = process.env.SPARKY_SQL_TEST_MODULE ?? '.superpowers/sdd/bevel-intelligence/sql-runtime/node_modules/@electric-sql/pglite/dist/index.js';
-const { PGlite } = await import(pathToFileURL(resolve(modulePath)).href);
+import { PGlite } from '@electric-sql/pglite';
 const db = new PGlite();
 try {
   await db.exec(`CREATE ROLE authenticated; CREATE SCHEMA auth;

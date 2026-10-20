@@ -360,6 +360,7 @@ Dodatkowe kontrole:
 | Polecenie | Cel |
 |---|---|
 | `npm run smoke:ui` | szybki test zbudowanego interfejsu |
+| `npm run test:sql` | testy SQL/RLS migracji na in-process Postgres (pglite), bez sekretów |
 | `npm run test:edge` | testy współdzielonego kodu Edge w Deno |
 | `npm run audit:readme` | zgodność README z trasami, env, skryptami, linkami i funkcjami |
 | `npm run audit:registry` | zgodność rejestru funkcji z systemem plików |
