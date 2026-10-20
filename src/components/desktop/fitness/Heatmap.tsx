@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { format, parseISO } from 'date-fns';
-import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
+import { getTodayWarsaw, shiftDateStr, formatWarsawDate } from '../../../lib/date';
 import { isLogWellness, sessionVol } from '../../biometrics/workout/workoutUtils';
 import { isGarminSaunaActivity } from '../../../lib/health/workoutSauna';
 import { HeatmapTooltip, type HeatmapCellData, type HeatmapDay, type HeatmapTooltipState } from './HeatmapTooltip';
@@ -78,7 +78,7 @@ export default function Heatmap({ sessions, strava = [] }: HeatmapProps) {
   const runMap: Record<string, number> = {};
   for (const a of strava) {
     if (!a.sport_type || !a.start_date) continue;
-    const d = a.start_date.slice(0, 10);
+    const d = formatWarsawDate(a.start_date);
     if (['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type) && a.distance) {
       runMap[d] = (runMap[d] || 0) + (Number(a.distance) || 0) / 1000;
     }

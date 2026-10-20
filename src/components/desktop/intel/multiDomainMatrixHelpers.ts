@@ -1,4 +1,4 @@
-import { shiftDateStr } from '../../../lib/date';
+import { shiftDateStr, formatWarsawDate } from '../../../lib/date';
 import { sessionVol, isLogWellness } from '../../biometrics/workout/workoutUtils';
 import type { DesktopSessionRow, StravaActivityRow } from '../../../lib/desktopDashboardTypes';
 import type { LenieLogRow } from '../desktopUtils';
@@ -43,7 +43,7 @@ function createDomainMaps(
   for (const a of strava) {
     if (!a.sport_type || !a.start_date || !a.distance) continue;
     if (!['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type)) continue;
-    const d = a.start_date.slice(0, 10);
+    const d = formatWarsawDate(a.start_date);
     const km = (Number(a.distance) || 0) / 1000;
     const cur = runMap[d] || { km: 0, count: 0 };
     runMap[d] = { km: cur.km + km, count: cur.count + 1 };

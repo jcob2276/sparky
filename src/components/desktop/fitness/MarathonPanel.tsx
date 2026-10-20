@@ -3,7 +3,7 @@ import { differenceInDays } from 'date-fns';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { C, weeklyRunKm, avg, daysBefore, type StravaActivitySummary } from '../desktopUtils';
 import { Panel, Tip } from '../shell/Panel';
-import { formatLongDateWarsaw } from '../../../lib/date';
+import { formatLongDateWarsaw, formatWarsawDate } from '../../../lib/date';
 
 type MarathonTargetTime = string | { hours?: number; minutes?: number } | null | undefined;
 
@@ -92,7 +92,7 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
   // Running telemetry & Long Run Tracker (14 days)
   const since14d = daysBefore(14);
   const runs = strava.filter(s => (s.sport_type || '').toLowerCase().includes('run'));
-  const recentRuns14d = runs.filter(s => s.start_date.slice(0, 10) >= since14d);
+  const recentRuns14d = runs.filter(s => formatWarsawDate(s.start_date) >= since14d);
   const longestRun = recentRuns14d.reduce((max, r) => (Number(r.distance) || 0) > (Number(max?.distance) || 0) ? r : max, null as StravaActivitySummary | null);
   const longestKm = longestRun ? Math.round(((Number(longestRun.distance) || 0) / 1000) * 10) / 10 : null;
   const longestDaysAgo = longestRun ? differenceInDays(new Date(), new Date(longestRun.start_date)) : null;

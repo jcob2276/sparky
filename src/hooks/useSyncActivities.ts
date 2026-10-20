@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { addDays } from '../components/calendar/calendarHelpers';
 import type { CalendarEvent } from '../components/calendar/hooks/useCalendarWrite';
+import { formatWarsawDate } from '../lib/date';
 
 interface UseSyncActivitiesProps {
   userId: string | undefined;
@@ -144,7 +145,7 @@ export function useSyncActivities({
         const kardioByDate = new Map<string, typeof kardioActs>();
         for (const act of kardioActs) {
           if (!act.start_date) continue;
-          const dKey = act.start_date.slice(0, 10);
+          const dKey = formatWarsawDate(act.start_date);
           const existing = kardioByDate.get(dKey) || [];
           existing.push(act);
           kardioByDate.set(dKey, existing);

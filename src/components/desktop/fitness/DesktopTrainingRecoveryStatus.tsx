@@ -3,6 +3,7 @@ import { Card } from '../../ui/Card';
 import type { StravaActivitySummary } from '../desktopUtils';
 import { daysBefore } from '../desktopUtils';
 import type { PhoneUsageRow } from '../../../lib/desktopDashboardTypes';
+import { formatWarsawDate } from '../../../lib/date';
 
 interface Props {
   strava?: StravaActivitySummary[];
@@ -23,7 +24,7 @@ function runLoadLabel(km7d: number, km28d: number): string {
 export default function DesktopTrainingRecoveryStatus({ strava = [], phoneUsage = [] }: Props) {
   const runs = strava.filter((s) => (s.sport_type || '').toLowerCase().includes('run'));
   const kmSince = (since: string) =>
-    runs.filter((s) => s.start_date.slice(0, 10) >= since).reduce((sum, s) => sum + (Number(s.distance) || 0) / 1000, 0);
+    runs.filter((s) => formatWarsawDate(s.start_date) >= since).reduce((sum, s) => sum + (Number(s.distance) || 0) / 1000, 0);
   const km7d = kmSince(daysBefore(7));
   const km28d = kmSince(daysBefore(28));
 
