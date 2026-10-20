@@ -19,7 +19,7 @@ export function createTelegramContext(): TelegramRouterContext {
   return {
     supabase: createServiceClient(),
     telegramToken: Deno.env.get("TELEGRAM_BOT_TOKEN") || "",
-    openAiKey: Deno.env.get("OPENAI_API_KEY") || "",
+    openAiKey: Deno.env.get("GEMINI_API_KEY") || "",
     deepseekApiKey: Deno.env.get("DEEPSEEK_API_KEY") || "",
     vanguardUserId: getVanguardUserId(),
     authorizedChatId: parseInt(Deno.env.get("TELEGRAM_CHAT_ID") || "0"),

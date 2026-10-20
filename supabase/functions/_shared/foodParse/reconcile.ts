@@ -199,12 +199,11 @@ export async function callParseLLM(apiKey: string, system: string, userText: str
     });
     return parseJsonFromContent(result.content);
   } catch (err) {
-    console.warn('[callParseLLM] DeepSeek failed, trying OpenAI fallback:', err);
-    const openAiKey = Deno.env.get('OPENAI_API_KEY');
+    console.warn('[callParseLLM] DeepSeek failed, trying Gemini fallback:', err);
+    const openAiKey = Deno.env.get('GEMINI_API_KEY');
     if (openAiKey) {
       const { content } = await openaiChat({
         apiKey: openAiKey,
-        model: 'gpt-4o-mini',
         temperature: 0.1,
         maxTokens: maxTokens ?? 1200,
         responseFormat: { type: 'json_object' },

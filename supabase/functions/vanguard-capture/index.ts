@@ -4,7 +4,7 @@
  * @role Szybkie przechwytywanie notatek tekstowych i głosowych oraz zapisywanie do bazy jako stream/linki.
  * @reads vanguard_stream, vanguard_entity_links, entities, vanguard_relation_ontology, vanguard_links
  * @writes vanguard_stream, vanguard_raw_events, vanguard_entity_links, audit_events, vanguard_relation_ontology, vanguard_links
- * @calls deepseek-v4-flash, text-embedding-3-small, Gemini audio (zapasowy model po awarii), openai (Whisper)
+ * @calls deepseek-v4-flash, gemini-embedding-001, Gemini audio (zapasowy model po awarii)
  * @consumer Inbox w aplikacji frontendowej (stream i linki)
  * @status active
  */
@@ -18,7 +18,7 @@ import { insertStreamRecord } from "../_shared/repos/streamRepo.ts";
 
 Deno.serve(serveJson(async (req, ctx) => {
     const db = ctx.supabase;
-    const openAiKey = Deno.env.get("GEMINI_API_KEY") || Deno.env.get("OPENAI_API_KEY") || "";
+    const openAiKey = Deno.env.get("GEMINI_API_KEY") || "";
     const deepseekApiKey = Deno.env.get("DEEPSEEK_API_KEY") || "";
 
     const contentType = req.headers.get("content-type") || "";
@@ -49,13 +49,12 @@ Deno.serve(serveJson(async (req, ctx) => {
         try { metadata = JSON.parse(String(declaredMeta)); } catch (err) { console.debug("[vanguard-capture] Failed to parse declaredMeta json:", err); }
       }
 
-      if (!openAiKey) throw new Error("GEMINI_API_KEY / OPENAI_API_KEY is not configured");
+      if (!openAiKey) throw new Error("GEMINI_API_KEY is not configured");
       if (action === "ocr_only") {
         if (!file.type.startsWith("image/")) throw new Error("OCR requires an image file");
         const imageBase64 = encodeBase64(new Uint8Array(await file.arrayBuffer()));
         const result = await openaiChat({
           apiKey: openAiKey,
-          model: "gpt-4o-mini",
           maxTokens: 4000,
           temperature: 0,
           userId,

@@ -14,7 +14,7 @@ export async function handleClosureProposals(
   if (!classification.closed_topic_description) return;
   
   console.log(`[auto-classify] closing topic: ${classification.closed_topic_description}`);
-  const closureEmbedding = await getEmbedding(classification.closed_topic_description, Deno.env.get('OPENAI_API_KEY') ?? '');
+  const closureEmbedding = await getEmbedding(classification.closed_topic_description, Deno.env.get('GEMINI_API_KEY') ?? '');
 
   if (closureEmbedding) {
     const CLOSURE_THRESHOLD = 0.65;

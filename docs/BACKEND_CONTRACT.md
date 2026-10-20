@@ -35,7 +35,7 @@ Potrzebujesz X → importujesz Y. Napisanie własnej wersji = duplikat = narusze
 | Zakresy dnia / cutoffy streamu | `getWarsawDayBoundaries`, `getStreamCutoffs` z `_shared/time.ts` | ręczna arytmetyka na `Date` |
 | LLM DeepSeek | `deepseekChat()` / `deepseekStream()` z `_shared/deepseek.ts` | raw `fetch(api.deepseek.com)` |
 | JSON z odpowiedzi LLM | `parseJsonFromContent()` z `_shared/deepseek.ts` | regex / `JSON.parse` na surowym content |
-| OpenAI (embeddings, chat, Whisper) | `_shared/openai.ts` / `transcribeVoice` z `_shared/infra/telegram/send.ts` | raw `fetch(api.openai.com)` |
+| Gemini (embeddings, vision, transkrypcja) | `_shared/openai.ts` / `transcribeAudio` z `_shared/telegram.ts` | raw `fetch(generativelanguage.googleapis.com)` |
 | Telegram Bot API | `_shared/telegram.ts` (`sendMessage`, `answerCallbackQuery`, ...) | raw `fetch(api.telegram.org)` |
 | Kontekst streamu (72h/21d) | `_shared/streamContext.ts` | własny `.from('vanguard_stream')` z limitami |
 | Błąd krytyczny do audytu | `logCriticalError()` z `_shared/errorLogging.ts` | goły `console.error` i cisza |
@@ -86,8 +86,8 @@ Dodatkowe zakazy bez licznika (łapane na review):
 | Klasyfikacja / syntezy / chat | `deepseek-v4-flash` | domyślny |
 | **Structured JSON** (`responseFormat: json_object`) | `deepseek-chat` | v4-flash oddaje wynik w `reasoning_content` — patrz lessons 2026-06-21 |
 | Deep analysis (Oracle `!!`, analyst nightly) | `deepseek-reasoner` | drogi, tylko na żądanie |
-| Embeddings | `text-embedding-3-small` | zgodność wektorów w DB |
-| Transkrypcja | `whisper-1` | — |
+| Embeddings | `gemini-embedding-001` | 1536 wymiarów; bez awaryjnych wywołań OpenAI |
+| Transkrypcja | Gemini audio | fallback między modelami Gemini; bez OpenAI |
 
 **Rozstrzygnięte 2026-07-12**: `vanguard-auto-classify` (`handlers/classify.ts`) używa `v4-flash` +
 `json_object` i działa poprawnie — zweryfikowano empirycznie: 0 zdarzeń

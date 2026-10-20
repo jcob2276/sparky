@@ -4,7 +4,7 @@
  * @role Generuje embeddingi dla relacji grafu (vanguard_entity_links) w celu wyszukiwania semantycznego.
  * @reads vanguard_entity_links
  * @writes vanguard_entity_links (embedding)
- * @calls text-embedding-3-small, deepseek-v4-flash (do podsumowań relacji)
+ * @calls gemini-embedding-001, deepseek-v4-flash (do podsumowań relacji)
  * @consumer RAG Wyroczni (wyszukiwanie podobieństwa)
  * @status active
  */
@@ -15,11 +15,11 @@ import { getVanguardUserId } from "../_shared/constants.ts"
 import { deepseekChat } from "../_shared/deepseek.ts"
 import { LLM_TASKS } from "../_shared/llm/tasks.ts"
 
-const getOpenAIKey = () => Deno.env.get('OPENAI_API_KEY') ?? '';
+const getGeminiKey = () => Deno.env.get('GEMINI_API_KEY') ?? '';
 const getDeepSeekKey = () => Deno.env.get('DEEPSEEK_API_KEY') ?? '';
 
 async function embedBatch(texts: string[]): Promise<number[][]> {
-  const embeddings = await getEmbedding(texts, getOpenAIKey());
+  const embeddings = await getEmbedding(texts, getGeminiKey());
   if (!embeddings) throw new Error("Failed to generate embeddings batch");
   return embeddings as number[][];
 }

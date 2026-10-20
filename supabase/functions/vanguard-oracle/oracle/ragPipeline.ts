@@ -36,7 +36,7 @@ export async function runRagPipeline(
         })).data || []
       : [];
 
-    const embedding = await getEmbedding(current_query.substring(0, 1000), Deno.env.get('OPENAI_API_KEY') ?? '').catch(() => null);
+    const embedding = await getEmbedding(current_query.substring(0, 1000), Deno.env.get('GEMINI_API_KEY') ?? '').catch(() => null);
     const semanticGraphRes = embedding
       ? (await supabase.rpc('search_entity_links', { query_embedding: embedding, match_user_id: user_id, match_count: 15 })).data || []
       : [];

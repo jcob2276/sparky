@@ -4,7 +4,7 @@
  * @role Uruchamia testy ewaluacyjne Wyroczni i zapisuje wyniki dokładności odpowiedzi.
  * @reads vanguard_eval_questions, vanguard_eval_runs, vanguard_eval_results, entities, claims, daily_reconciliations, vanguard_daily_aggregates, daily_wins
  * @writes vanguard_eval_runs, vanguard_eval_results
- * @calls gpt-4o (jako sędzia w judgeAnswer), deepseek-v4-flash (wyrocznia testowana)
+ * @calls Gemini (jako sędzia w judgeAnswer), deepseek-v4-flash (wyrocznia testowana)
  * @consumer Wyniki ewaluacji widoczne w logach / bazie dla dewelopera
  * @status active
  */
@@ -109,7 +109,7 @@ async function runEval(run_id: string, questions: any[], user_id: string, offset
       for (const cat of Object.keys(byCategoryAll)) { const d = byCategoryAll[cat]; d.avg_score = Math.round(((d.total_score ?? 0) / d.total) * 1000) / 1000; delete d.total_score; }
       for (const diff of Object.keys(byDifficultyAll)) { const d = byDifficultyAll[diff]; d.avg_score = Math.round(((d.total_score ?? 0) / d.total) * 1000) / 1000; delete d.total_score; }
 
-      const summary = { total: totalAll, passed: passedAll, failed: totalAll - passedAll, avg_score: Math.round(avgAll * 1000) / 1000, pass_rate: totalAll > 0 ? Math.round((passedAll / totalAll) * 1000) / 1000 : 0, by_category: byCategoryAll, by_difficulty: byDifficultyAll, judge_model: 'gpt-4o-mini' };
+      const summary = { total: totalAll, passed: passedAll, failed: totalAll - passedAll, avg_score: Math.round(avgAll * 1000) / 1000, pass_rate: totalAll > 0 ? Math.round((passedAll / totalAll) * 1000) / 1000 : 0, by_category: byCategoryAll, by_difficulty: byDifficultyAll, judge_model: 'gemini-3.8-flash' };
 
       const { error: updateRunErr } = await supabase.from('vanguard_eval_runs').update({ status: 'completed', summary, completed_at: new Date().toISOString() }).eq('id', run_id);
       if (updateRunErr) throw updateRunErr;

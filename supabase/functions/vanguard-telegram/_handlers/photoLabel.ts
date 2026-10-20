@@ -34,7 +34,7 @@ export async function handlePhotoLabel(
     const arrayBuffer = await downloadRes.arrayBuffer();
     const base64Image = encodeBase64(new Uint8Array(arrayBuffer));
 
-    // Send to OpenAI Vision API
+    // Send to Gemini Vision API
     const systemPrompt = `Jesteś precyzyjnym systemem OCR do etykiet wartości odżywczych (tabele składników na opakowaniach produktów).
 Twoim zadaniem jest odczytanie z obrazu wartości odżywczych na 100g (lub 100ml) produktu oraz sugerowanej nazwy i marki.
 
@@ -62,7 +62,6 @@ Zwróć poprawny JSON (wyłącznie JSON, bez markdownu):
 
     const { content } = await openaiChat({
       apiKey: openAiKey,
-      model: "gpt-4o-mini",
       temperature: 0.1,
       maxTokens: 400,
       responseFormat: { type: "json_object" },
@@ -83,7 +82,7 @@ Zwróć poprawny JSON (wyłącznie JSON, bez markdownu):
     });
 
     if (!content) {
-      throw new Error("OpenAI returned empty message content");
+      throw new Error("Gemini returned empty message content");
     }
 
     const macro = JSON.parse(content) as {

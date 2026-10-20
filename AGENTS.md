@@ -152,8 +152,8 @@ naprawiła; te reguły utrzymują stan naprawiony:
 - Oracle deep mode (`!!`): `deepseek-reasoner`
 - Analyst nightly: `deepseek-reasoner` (pattern analysis)
 - JSON parsing tasks: `deepseek-chat` — food parsing, workout parsing, food quality, training load, librarian, eval-interview classification. Used where `responseFormat: json_object` is needed (v4-flash uses `reasoning_content` field, not suitable for structured JSON).
-- Transcription: OpenAI Whisper (`whisper-1`)
-- Embeddings: OpenAI `text-embedding-3-small`
+- Transcription: Gemini audio (fallback między modelami Gemini, bez OpenAI)
+- Embeddings: Gemini `gemini-embedding-001` (1536 wymiarów); Gemini zastępuje OpenAI w całym runtime
 
 ## Current system state
 

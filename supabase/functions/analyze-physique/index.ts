@@ -4,8 +4,8 @@
  * @role Analizuje zdjęcie sylwetki użytkownika za pomocą Vision AI pod kątem % body fat, ogólnej oceny, 15 grup mięśniowych i priorytetów.
  * @reads progress_photos
  * @writes progress_photos
- * @calls openaiChat (gpt-4o)
- * @consumer Moduł transformacji/zdjęć w aplikacji WWW Vanguard
+ * @calls Gemini Vision
+ * @consumer Moduł transformacji/zdjęć w aplikacji Sparky
  * @status active
  */
 
@@ -78,14 +78,14 @@ Deno.serve(
       throw new Error("Brak parametru imageUrl.");
     }
 
-    const openAiKey = Deno.env.get("GEMINI_API_KEY") || Deno.env.get("OPENAI_API_KEY");
+    const openAiKey = Deno.env.get("GEMINI_API_KEY");
     if (!openAiKey) {
-      throw new Error("Brak skonfigurowanego klucza GEMINI_API_KEY ani OPENAI_API_KEY.");
+      throw new Error("Brak skonfigurowanego klucza GEMINI_API_KEY.");
     }
 
     const { content } = await openaiChat({
       apiKey: openAiKey,
-      model: "gemini-2.5-flash",
+      model: "gemini-3.8-flash",
       temperature: 0.2,
       maxTokens: 3500,
       responseFormat: { type: "json_object" },

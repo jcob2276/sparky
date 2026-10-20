@@ -25,7 +25,7 @@ export async function handleSearch(req: Request, body: any, db: any): Promise<un
     // Invalid legacy preference falls back to all sources enabled.
   }
 
-  const openAiKey = Deno.env.get("OPENAI_API_KEY") || "";
+  const openAiKey = Deno.env.get("GEMINI_API_KEY") || "";
   let graphResults: any[] = [];
   if (openAiKey && sources.knowledge) {
     try {

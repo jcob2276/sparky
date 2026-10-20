@@ -4,9 +4,9 @@ import { getLatestSentReconciliation } from "../../../_shared/repos/reconciliati
 import { handleKeepCommand } from "../commands.ts";
 import { MessageContext, MessageInterceptor, tryResumeStuckReconciliationVoice } from "../interceptors.ts";
 
-// Whisper budget scaluje się z realną długością głosówki (Telegram ją podaje) zamiast
+// Budżet transkrypcji scaluje się z realną długością głosówki (Telegram ją podaje) zamiast
 // jednego sztywnego limitu — krótkie nagrania failują szybko, długie dostają realny czas
-// na transkrypcję. 3s przetwarzania na 1s audio to spory margines nad typowym tempem Whisper.
+// na transkrypcję. 3s przetwarzania na 1s audio to spory margines nad typowym tempem transkrypcji.
 function transcriptionTimeoutFor(durationSec: number): number {
   return Math.min(120000, Math.max(30000, durationSec * 3000));
 }

@@ -62,28 +62,20 @@ Deno.test('transcription fails immediately on invalid Gemini credentials', async
   }
 });
 
-Deno.test('Whisper fallback resolves its own OpenAI key when the caller passes a Gemini key', async () => {
+Deno.test('transcription never calls OpenAI when all Gemini models fail', async () => {
   const originalFetch = globalThis.fetch;
   const oldGemini = Deno.env.get('GEMINI_API_KEY');
   const oldOpenai = Deno.env.get('OPENAI_API_KEY');
   Deno.env.set('GEMINI_API_KEY', 'gemini-fixture');
   Deno.env.set('OPENAI_API_KEY', 'sk-openai-fixture');
-  let whisperCalls = 0;
-  globalThis.fetch = (input, init) => {
-    if (String(input).includes('api.openai.com')) {
-      whisperCalls++;
-      assertEquals(new Headers(init?.headers).get('Authorization'), 'Bearer sk-openai-fixture');
-      const form = init?.body as FormData;
-      assertEquals(form.get('model'), 'whisper-1');
-      assertEquals(form.get('language'), 'pl');
-      assertEquals((form.get('file') as File).name, 'voice.ogg');
-      return Promise.resolve(Response.json({ text: 'Odpowiedź z głosówki.' }));
-    }
-    return Promise.resolve(Response.json({ error: { code: 404, message: 'Model not found' } }, { status: 404 }));
+  const providers: string[] = [];
+  globalThis.fetch = (input) => {
+    providers.push(new URL(String(input)).hostname);
+    return Promise.resolve(Response.json({ error: { code: 500, message: 'Service unavailable' } }, { status: 500 }));
   };
   try {
-    assertEquals(await transcribeBlob(new Blob(['audio']), 'gemini-fixture', { filename: 'voice.ogg' }), 'Odpowiedź z głosówki.');
-    assertEquals(whisperCalls, 1);
+    await assertRejects(() => transcribeBlob(new Blob(['audio']), 'gemini-fixture'), Error, 'Gemini');
+    assertEquals(providers, ['generativelanguage.googleapis.com', 'generativelanguage.googleapis.com']);
   } finally {
     globalThis.fetch = originalFetch;
     if (oldGemini === undefined) Deno.env.delete('GEMINI_API_KEY'); else Deno.env.set('GEMINI_API_KEY', oldGemini);

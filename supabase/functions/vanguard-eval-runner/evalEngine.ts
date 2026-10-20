@@ -1,6 +1,6 @@
 import { openaiChat } from "../_shared/openai.ts";
 
-const OPENAI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? Deno.env.get('OPENAI_API_KEY') ?? '';
+const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY') ?? '';
 
 export interface Assertion {
   type: 'contains' | 'not_contains' | 'regex' | 'contains_all' | 'contains_any' | 'length_min' | 'length_max' | 'llm' | 'llm_judge';
@@ -42,8 +42,7 @@ PRÓG ZALICZENIA: score >= 0.7`;
 
   try {
     const { content } = await openaiChat({
-      apiKey: OPENAI_API_KEY,
-      model: 'gpt-4o-mini',
+      apiKey: GEMINI_API_KEY,
       responseFormat: { type: 'json_object' },
       messages: [{ role: 'user', content: prompt }],
       timeoutMs: 15000,

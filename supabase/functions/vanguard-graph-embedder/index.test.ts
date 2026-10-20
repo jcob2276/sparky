@@ -7,7 +7,7 @@ try { await import('./index.ts'); } finally { Object.defineProperty(Deno, 'serve
 
 async function backfill(mode: 'partial' | 'success' | 'missing-vector' | 'empty-update' | 'count-failure' | 'invalid-vector' | 'provider-failure') {
   const settings = { SUPABASE_URL: 'https://example.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'fixture',
-    SB_SECRET_KEY: '', GEMINI_API_KEY: '', OPENAI_API_KEY: 'fixture' };
+    SB_SECRET_KEY: '', GEMINI_API_KEY: 'gemini-fixture' };
   const prior = new Map(Object.keys(settings).map(key => [key, Deno.env.get(key)]));
   for (const [key, value] of Object.entries(settings)) Deno.env.set(key, value);
   const original = globalThis.fetch;
@@ -15,10 +15,10 @@ async function backfill(mode: 'partial' | 'success' | 'missing-vector' | 'empty-
   globalThis.fetch = async (input, init) => {
     const req = input instanceof Request ? input : new Request(input, init);
     const url = new URL(req.url);
-    if (url.hostname === 'api.openai.com') return mode === 'provider-failure'
+    if (url.hostname === 'generativelanguage.googleapis.com') return mode === 'provider-failure'
       ? Response.json({ error: 'invalid API key' }, { status: 401 })
-      : Response.json({ data: (mode === 'missing-vector' ? [0] : [0, 1])
-        .map(() => ({ embedding: Array(mode === 'invalid-vector' ? 12 : 1536).fill(0.1) })) });
+      : Response.json({ embeddings: (mode === 'missing-vector' ? [0] : [0, 1])
+        .map(() => ({ values: Array(mode === 'invalid-vector' ? 12 : 1536).fill(0.1) })) });
     if (req.method === 'HEAD') return mode === 'count-failure'
       ? Response.json({ message: 'count unavailable' }, { status: 400 })
       : new Response(null, { headers: { 'content-range': mode === 'success' ? '*/0' : '*/1' } });

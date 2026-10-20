@@ -207,7 +207,7 @@ export async function handleStreamRecord(record: any, supabase: any): Promise<un
   // === Wektoryzacja fingerprint ===
   let embedding: number[] | null = null;
   if (classification.fingerprint_text) {
-    const rawEmbedding = await getEmbedding(classification.fingerprint_text, Deno.env.get('OPENAI_API_KEY') ?? '');
+    const rawEmbedding = await getEmbedding(classification.fingerprint_text, Deno.env.get('GEMINI_API_KEY') ?? '');
     if (rawEmbedding && Array.isArray(rawEmbedding) && typeof rawEmbedding[0] === 'number') {
       embedding = rawEmbedding as number[];
     }

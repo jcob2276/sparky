@@ -4,7 +4,7 @@
  * @layer infra
  * @reads —
  * @writes —
- * @calls api.telegram.org, api.openai.com
+ * @calls api.telegram.org, generativelanguage.googleapis.com
  * @consumers vanguard-telegram, vanguard-nutrition-coach, sync, recap, vanguard-analyst
  */
 

@@ -108,8 +108,8 @@ Deno.serve(serveJson(async (req, auth) => {
   }
 
   if (!text) throw new Error('Missing text')
-  const apiKey = Deno.env.get('DEEPSEEK_API_KEY') || Deno.env.get('OPENAI_API_KEY') || ''
-  if (!apiKey) throw new Error('Missing DEEPSEEK_API_KEY / OPENAI_API_KEY')
+  const apiKey = Deno.env.get('DEEPSEEK_API_KEY') || ''
+  if (!apiKey) throw new Error('Missing DEEPSEEK_API_KEY')
 
   let items = await parseMealText(apiKey, text, ctx)
 

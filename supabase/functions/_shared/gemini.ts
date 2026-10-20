@@ -3,8 +3,8 @@ import { fetchWithRetry } from "./httpClient.ts";
 import type { OpenAIChatParams, OpenAIChatResult } from "./openai.ts";
 
 export const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta";
-const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
-const FALLBACK_GEMINI_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash"];
+const DEFAULT_GEMINI_MODEL = "gemini-3.8-flash";
+const FALLBACK_GEMINI_MODELS = ["gemini-3.5-flash-lite"];
 // Audio must not fall back to retired models when the primary is unavailable.
 const TRANSCRIPTION_MODELS = ["gemini-3.8-flash", "gemini-3.5-flash-lite"];
 export const DEFAULT_EMBEDDING_MODEL = "gemini-embedding-001";

@@ -178,7 +178,7 @@ async function persistResults(supabase: any, userId: string, now: Date, pages: W
 
       // Sync to vanguard_knowledge
       try {
-        const openaiKey = Deno.env.get("OPENAI_API_KEY") || "";
+        const openaiKey = Deno.env.get("GEMINI_API_KEY") || "";
         if (openaiKey) {
           const titleText = trimText(draft.title || slug, 120);
           const summaryText = trimText(draft.summary || "", 600);

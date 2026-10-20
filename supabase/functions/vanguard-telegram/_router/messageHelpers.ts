@@ -103,7 +103,7 @@ export async function checkIdempotency(
 }
 
 /**
- * Saves incoming message to vanguard_stream, computing OpenAI embedding and extracting emotions via DeepSeek.
+ * Saves incoming message to vanguard_stream, computing Gemini embedding and extracting emotions via DeepSeek.
  */
 export async function insertStreamRecord(
   cleanText: string,
@@ -166,7 +166,7 @@ export async function insertStreamRecord(
       if (Array.isArray(embedRes) && typeof embedRes[0] === 'number') {
         streamEmbedding = embedRes;
       } else {
-        console.warn('[telegram] OpenAI embedding returned empty result');
+        console.warn('[telegram] Gemini embedding returned empty result');
       }
 
       let emotionData = null;
