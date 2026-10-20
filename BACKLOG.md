@@ -841,6 +841,14 @@ Kanoniczne helpery: `keepUtils.relativeDate` (notatki), `todoUtils` (todo), `cal
 - **LLM gateway + rejestr promptów**, rozszerzony o: centralizację sekretów (`DEEPSEEK_API_KEY` czytany bezpośrednio w ~30 plikach zamiast przez `_shared/config.ts`) i tier wrażliwości danych.
 - Reszta punktów ciągłych — wykonuj przy dotyku odpowiedniego modułu.
 
+### Rozwój — kolejne plastry planu nauki (po MVP z 2026-10-21)
+
+- [ ] **Wirtualna półka (animowana biblioteka).** Ukończone pozycje (`learning_assignments.status='done'`, także filmy/książki spoza planu miesiąca) jako grzbiety/okładki na półce w Rozwoju; nowa pozycja „wsuwa się” na półkę przy ukończeniu (nagroda za domknięcie), licznik na rok, kolor wg rodzaju/umiejętności, miniatura z `vanguard_links.thumbnail_url` albo okładka z Open Library. Konsument: strona Rozwój + animacja w momencie ukończenia.
+- [ ] Telegram: `/nauka` i przycisk „Zrobione” wieczorem (wołają `log_learning_progress`).
+- [ ] Blok czasu na dzienny slot w kalendarzu (`calendar-write`).
+- [ ] Zamknięcie miesiąca: lista zrobione/odpuszczone, przeniesienie niedokończonych jednym kliknięciem, podpowiedzi następnego miesiąca z Pocket i umiejętności bez praktyki; statystyki do `monthly_reviews.ritual_stats`.
+- [ ] Pocket: pozycja z planu miesiąca na górze listy („najpierw to”), automatyczne uzupełnianie `resource_type`.
+
 **Zasada zamykająca Części I:** po Fazie 1.5 (§1.2 — kalibracja prognoz) masz obiektywny sygnał, czego jeszcze brakuje — jeśli krzywa błędu predykcji się wypłaszcza, dokładaj nowy sensor. Nie odwrotnie.
 
 ---
