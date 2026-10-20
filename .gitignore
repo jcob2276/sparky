@@ -121,3 +121,7 @@ deep_voice_entries.txt
 gracjan_videos.txt
 SESJA_HIPNOTERAPIA_*.md
 Obraz ChatGPT*.png
+
+# root-level stray artefacts
+jev_triage_results.csv
+nagrania_liczb_mp3.zip
