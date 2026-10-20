@@ -2,7 +2,7 @@
  * @function vanguard-nutrition-coach
  * @trigger HTTP manual / explicit trusted scheduler
  * @role Szacuje cele energii i białka, tworzy szkice jadłospisu z potwierdzonych preferencji; powiadomienie wymaga jawnego żądania zaufanego wywołującego.
- * @reads nutrition_profile, nutrition_targets, body_metrics, daily_nutrition, nutrition_day_reviews, oura_daily_summary, strava_activities_clean, workout_sessions, medical_lab_results, medical_documents, body_composition_measurements, user_preferences, training_plan_workouts
+ * @reads nutrition_profile, nutrition_targets, body_metrics, daily_nutrition, nutrition_day_reviews, oura_daily_summary, strava_activities_clean, workout_sessions, medical_lab_results, medical_documents, body_composition_measurements, user_preferences, training_plan_workouts, food_reference_pl, food_library
  * @writes nutrition_targets
  * @calls deepseek-chat, api.telegram.org (poprzez send.ts)
  * @consumer Powiadomienia Telegram i cele w zakładce diety w aplikacji

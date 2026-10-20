@@ -2,7 +2,7 @@
  * @function sync
  * @trigger HTTP POST / manual / cron
  * @role Router synchronizacji biometrii, kalendarza i danych rynkowych; fundamenty GPW, notowania, dokumenty House PTR i SEC 13F tylko dla service role.
- * @reads oura_daily_summary, strava_activities, vanguard_calendar, user_settings, vanguard_tokens, oura_enhanced, strava_tokens, intervals_tokens, oura_heartrate, oura_sleep_hr_timeline, oura_sleep_hrv_timeline, oura_sleep_phase_timeline
+ * @reads oura_daily_summary, strava_activities, vanguard_calendar, user_settings, vanguard_tokens, oura_enhanced, strava_tokens, intervals_tokens, oura_heartrate, oura_sleep_hr_timeline, oura_sleep_hrv_timeline, oura_sleep_phase_timeline, gpw_companies, politicians, vanguard_preferences, aw_daily_summary, investors, senate_disclosures
  * @writes oura_daily_summary, strava_activities, vanguard_calendar, audit_events, oura_enhanced, oura_heartrate, oura_sleep_phase_timeline, strava_tokens, vanguard_tokens, gpw_fin_public_teaser, prices_daily, market_quotes, house_disclosures, stock_act_trades, investment_source_status, filings, sec13f_positions
  * @calls ouraring.com, strava.com, googleapis.com/calendar, api.telegram.org (poprzez send.ts), scanner.tradingview.com, api.nbp.pl, query1.finance.yahoo.com, disclosures-clerk.house.gov, data.sec.gov/submissions, www.sec.gov/Archives
  * @consumer Zaktualizowane dane biometryczne, treningowe i kalendarza oraz fundamenty i prognozy GPW w aplikacji
