@@ -512,36 +512,6 @@ export type Database = {
         }
         Relationships: []
       }
-      convergence_backtest: {
-        Row: {
-          alpha: number | null
-          id: number
-          quarter: string | null
-          refreshed_at: string | null
-          ret_sp500: number | null
-          ret_top: number | null
-          top_n: number | null
-        }
-        Insert: {
-          alpha?: number | null
-          id?: number
-          quarter?: string | null
-          refreshed_at?: string | null
-          ret_sp500?: number | null
-          ret_top?: number | null
-          top_n?: number | null
-        }
-        Update: {
-          alpha?: number | null
-          id?: number
-          quarter?: string | null
-          refreshed_at?: string | null
-          ret_sp500?: number | null
-          ret_top?: number | null
-          top_n?: number | null
-        }
-        Relationships: []
-      }
       convergence_live: {
         Row: {
           id: number
@@ -1734,54 +1704,6 @@ export type Database = {
         }
         Relationships: []
       }
-      finance_dividends: {
-        Row: {
-          amount_per_share: number
-          company_name: string
-          created_at: string
-          currency: string
-          ex_date: string
-          id: string
-          pay_date: string
-          shares_count: number
-          status: string
-          ticker: string
-          total_amount: number | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          amount_per_share?: number
-          company_name: string
-          created_at?: string
-          currency?: string
-          ex_date: string
-          id?: string
-          pay_date: string
-          shares_count?: number
-          status?: string
-          ticker: string
-          total_amount?: number | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          amount_per_share?: number
-          company_name?: string
-          created_at?: string
-          currency?: string
-          ex_date?: string
-          id?: string
-          pay_date?: string
-          shares_count?: number
-          status?: string
-          ticker?: string
-          total_amount?: number | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       finance_goals: {
         Row: {
           auto_save_monthly: number
@@ -1814,39 +1736,6 @@ export type Database = {
           name?: string
           priority?: number
           target_amount?: number
-          user_id?: string
-        }
-        Relationships: []
-      }
-      finance_holding_targets: {
-        Row: {
-          asset_category: string
-          created_at: string
-          id: string
-          name: string
-          target_pct: number
-          ticker: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          asset_category?: string
-          created_at?: string
-          id?: string
-          name: string
-          target_pct?: number
-          ticker: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          asset_category?: string
-          created_at?: string
-          id?: string
-          name?: string
-          target_pct?: number
-          ticker?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -3118,161 +3007,6 @@ export type Database = {
         }
         Relationships: []
       }
-      investment_documents: {
-        Row: {
-          accession_number: string
-          available_at: string
-          content_hash: string
-          created_at: string
-          document_type: string
-          fetched_at: string
-          filed_at: string
-          id: string
-          issuer_cik: string
-          issuer_ticker: string | null
-          parser_version: string
-          raw_payload: string
-          source: string
-          source_url: string
-        }
-        Insert: {
-          accession_number: string
-          available_at: string
-          content_hash: string
-          created_at?: string
-          document_type: string
-          fetched_at?: string
-          filed_at: string
-          id?: string
-          issuer_cik: string
-          issuer_ticker?: string | null
-          parser_version: string
-          raw_payload: string
-          source: string
-          source_url: string
-        }
-        Update: {
-          accession_number?: string
-          available_at?: string
-          content_hash?: string
-          created_at?: string
-          document_type?: string
-          fetched_at?: string
-          filed_at?: string
-          id?: string
-          issuer_cik?: string
-          issuer_ticker?: string | null
-          parser_version?: string
-          raw_payload?: string
-          source?: string
-          source_url?: string
-        }
-        Relationships: []
-      }
-      investment_form4_transactions: {
-        Row: {
-          created_at: string
-          document_id: string
-          id: string
-          insider_cik: string | null
-          insider_name: string
-          is_derivative: boolean
-          issuer_cik: string
-          issuer_ticker: string | null
-          ownership_nature: string | null
-          price_per_share: number | null
-          row_key: string
-          security_type: string
-          shares: number | null
-          shares_owned_following: number | null
-          transaction_code: string
-          transaction_date: string
-        }
-        Insert: {
-          created_at?: string
-          document_id: string
-          id?: string
-          insider_cik?: string | null
-          insider_name: string
-          is_derivative?: boolean
-          issuer_cik: string
-          issuer_ticker?: string | null
-          ownership_nature?: string | null
-          price_per_share?: number | null
-          row_key: string
-          security_type?: string
-          shares?: number | null
-          shares_owned_following?: number | null
-          transaction_code: string
-          transaction_date: string
-        }
-        Update: {
-          created_at?: string
-          document_id?: string
-          id?: string
-          insider_cik?: string | null
-          insider_name?: string
-          is_derivative?: boolean
-          issuer_cik?: string
-          issuer_ticker?: string | null
-          ownership_nature?: string | null
-          price_per_share?: number | null
-          row_key?: string
-          security_type?: string
-          shares?: number | null
-          shares_owned_following?: number | null
-          transaction_code?: string
-          transaction_date?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "investment_form4_transactions_document_id_fkey"
-            columns: ["document_id"]
-            isOneToOne: false
-            referencedRelation: "investment_documents"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      investment_source_runs: {
-        Row: {
-          as_of: string | null
-          completed_at: string | null
-          documents_imported: number
-          error_message: string | null
-          id: string
-          source: string
-          started_at: string
-          status: string
-          transactions_imported: number
-          user_id: string
-        }
-        Insert: {
-          as_of?: string | null
-          completed_at?: string | null
-          documents_imported?: number
-          error_message?: string | null
-          id?: string
-          source: string
-          started_at?: string
-          status?: string
-          transactions_imported?: number
-          user_id: string
-        }
-        Update: {
-          as_of?: string | null
-          completed_at?: string | null
-          documents_imported?: number
-          error_message?: string | null
-          id?: string
-          source?: string
-          started_at?: string
-          status?: string
-          transactions_imported?: number
-          user_id?: string
-        }
-        Relationships: []
-      }
       investment_source_status: {
         Row: {
           checked_at: string
@@ -3297,39 +3031,6 @@ export type Database = {
           latest_disclosure_date?: string | null
           source?: string
           status?: string
-        }
-        Relationships: []
-      }
-      investment_watchlist: {
-        Row: {
-          created_at: string
-          id: string
-          is_active: boolean
-          issuer_cik: string | null
-          market: string
-          ticker: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          issuer_cik?: string | null
-          market?: string
-          ticker: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          issuer_cik?: string | null
-          market?: string
-          ticker?: string
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -3592,30 +3293,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      learning_skill_snapshots: {
-        Row: {
-          created_at: string
-          id: string
-          scores: Json
-          snapshot_date: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          scores?: Json
-          snapshot_date: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          scores?: Json
-          snapshot_date?: string
-          user_id?: string
-        }
-        Relationships: []
       }
       learning_skills: {
         Row: {
@@ -3982,45 +3659,6 @@ export type Database = {
           source_url?: string
           symbol?: string
           ticker?: string
-        }
-        Relationships: []
-      }
-      mcp_servers: {
-        Row: {
-          api_key: string | null
-          created_at: string
-          id: string
-          last_error: string | null
-          last_ping_at: string | null
-          name: string
-          status: string | null
-          updated_at: string
-          url: string
-          user_id: string
-        }
-        Insert: {
-          api_key?: string | null
-          created_at?: string
-          id?: string
-          last_error?: string | null
-          last_ping_at?: string | null
-          name: string
-          status?: string | null
-          updated_at?: string
-          url: string
-          user_id: string
-        }
-        Update: {
-          api_key?: string | null
-          created_at?: string
-          id?: string
-          last_error?: string | null
-          last_ping_at?: string | null
-          name?: string
-          status?: string | null
-          updated_at?: string
-          url?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -6884,6 +6522,48 @@ export type Database = {
         }
         Relationships: []
       }
+      vanguard_core_memory_revisions: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          key: string
+          new_is_active: boolean | null
+          new_value: string | null
+          old_is_active: boolean | null
+          old_value: string | null
+          operation: string
+          preference_id: string
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          key: string
+          new_is_active?: boolean | null
+          new_value?: string | null
+          old_is_active?: boolean | null
+          old_value?: string | null
+          operation: string
+          preference_id: string
+          user_id: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          key?: string
+          new_is_active?: boolean | null
+          new_value?: string | null
+          old_is_active?: boolean | null
+          old_value?: string | null
+          operation?: string
+          preference_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       vanguard_curiosity_queue: {
         Row: {
           category: string | null
@@ -8573,6 +8253,24 @@ export type Database = {
         }
         Relationships: []
       }
+      widget_tokens: {
+        Row: {
+          created_at: string
+          token_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          token_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          token_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       workout_sessions: {
         Row: {
           created_at: string | null
@@ -9676,6 +9374,14 @@ export type Database = {
           kind: string
           sim: number
         }[]
+      }
+      restore_core_memory_revision: {
+        Args: {
+          p_expected_updated_at: string
+          p_revision_id: string
+          p_value_side?: string
+        }
+        Returns: undefined
       }
       save_food_correction: {
         Args: {

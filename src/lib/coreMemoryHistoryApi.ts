@@ -25,7 +25,7 @@ export async function fetchCoreMemoryHistory(userId: string, limit = 30) {
   const [current, history] = await Promise.all([
     supabase.from('vanguard_preferences').select('id,key,value,is_active,updated_at')
       .eq('user_id', userId).in('key', Object.keys(MEMORY_BLOCK_LABELS)),
-    supabase.from('vanguard_core_memory_revisions' as never)
+    supabase.from('vanguard_core_memory_revisions')
       .select('id,preference_id,key,operation,old_value,new_value,old_is_active,new_is_active,changed_at', { count: 'exact' })
       .eq('user_id', userId).in('key', Object.keys(MEMORY_BLOCK_LABELS)).order('changed_at', { ascending: false }).order('id', { ascending: false }).limit(limit),
   ]);
@@ -39,8 +39,8 @@ export async function fetchCoreMemoryHistory(userId: string, limit = 30) {
 }
 
 export async function restoreCoreMemoryRevision(revisionId: string, expectedUpdatedAt: string, valueSide: MemoryValueSide = 'new') {
-  const { error } = await supabase.rpc('restore_core_memory_revision' as never, {
+  const { error } = await supabase.rpc('restore_core_memory_revision', {
     p_revision_id: revisionId, p_expected_updated_at: expectedUpdatedAt, p_value_side: valueSide,
-  } as never);
+  });
   if (error) throw error;
 }
