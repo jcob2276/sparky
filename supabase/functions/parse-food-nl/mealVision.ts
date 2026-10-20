@@ -9,6 +9,7 @@ import {
   normalizeMealPhotoResponse,
   type MealPhotoDraft,
 } from '../_shared/foodParse/mealPhoto.ts'
+import { classifyMealPhotoResponse, geminiFailureReason, readGeminiText } from './visionResponse.ts'
 
 function validMacro(value: unknown, max = 100): number | null {
   if (value == null) return null
@@ -75,9 +76,11 @@ export async function callVisionLlm({
         signal: AbortSignal.timeout(25000),
       })
       if (res.ok) {
-        const json = await res.json()
-        const text = json.candidates?.[0]?.content?.parts?.[0]?.text
-        if (text) return text
+        const result = readGeminiText(await res.json())
+        const failure = geminiFailureReason(result)
+        if (!failure && result.text) return result.text
+        console.warn(`[mealVision] Gemini (${model}) ${failure}; feature=${feature}`)
+        lastError = new Error(`Gemini: ${failure}`)
       } else {
         const errBody = await res.text().catch(() => '')
         console.warn(`[mealVision] Gemini (${model}) HTTP ${res.status}: ${errBody.slice(0, 200)}`)
@@ -103,7 +106,7 @@ export async function parseNutritionLabel(imageBase64: string, mimeType: string,
     mimeType,
     userId,
     feature: 'nutrition-label-ocr',
-    maxTokens: 500,
+    maxTokens: 2000,
   })
   const raw = parseJsonSafe(content)
   const calories = validMacro(raw.calories, 1000)
@@ -193,14 +196,20 @@ export async function parseMealPhoto(
     mimeType,
     userId,
     feature: 'nutrition-meal-photo',
-    maxTokens: 1800,
+    maxTokens: 6000,
   })
+  const parsed = parseJsonSafe(content)
+  if (classifyMealPhotoResponse(parsed) === 'unreadable') {
+    console.warn(`[mealVision] unreadable meal-photo reply (len=${content.length}): ${content.slice(0, 160).replace(/\s+/g, ' ')}`)
+    throw new Error('Model zwrócił nieczytelną odpowiedź na zdjęcie posiłku')
+  }
   let draft: MealPhotoDraft
   try {
-    draft = normalizeMealPhotoResponse(parseJsonSafe(content))
+    draft = normalizeMealPhotoResponse(parsed)
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err)
     if (msg.includes('no food items')) {
+      console.warn(`[mealVision] model reported no food items (len=${content.length}): ${content.slice(0, 160).replace(/\s+/g, ' ')}`)
       return {
         items: [],
         questions: [],
