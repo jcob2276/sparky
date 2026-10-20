@@ -20,7 +20,7 @@ const log = (
   rir: null,
   rpe: null,
   session_id: null,
-  user_id: null,
+  user_id: 'user-1',
 });
 
 test('groupExerciseLogs — łączy serie tego samego ćwiczenia w supersetach', () => {

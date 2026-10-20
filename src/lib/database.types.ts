@@ -60,21 +60,21 @@ export type Database = {
           created_at: string | null
           id: string
           role: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           content: string
           created_at?: string | null
           id?: string
           role: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           content?: string
           created_at?: string | null
           id?: string
           role?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -294,7 +294,7 @@ export type Database = {
           muscle_mass: number | null
           neck: number | null
           thigh: number | null
-          user_id: string | null
+          user_id: string
           waist: number | null
           weight: number | null
           weight_italia: number | null
@@ -316,7 +316,7 @@ export type Database = {
           muscle_mass?: number | null
           neck?: number | null
           thigh?: number | null
-          user_id?: string | null
+          user_id: string
           waist?: number | null
           weight?: number | null
           weight_italia?: number | null
@@ -338,7 +338,7 @@ export type Database = {
           muscle_mass?: number | null
           neck?: number | null
           thigh?: number | null
-          user_id?: string | null
+          user_id?: string
           waist?: number | null
           weight?: number | null
           weight_italia?: number | null
@@ -566,7 +566,7 @@ export type Database = {
           salt: number | null
           saturated_fat: number | null
           sugar: number | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           amount?: string | null
@@ -591,7 +591,7 @@ export type Database = {
           salt?: number | null
           saturated_fat?: number | null
           sugar?: number | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           amount?: string | null
@@ -616,7 +616,7 @@ export type Database = {
           salt?: number | null
           saturated_fat?: number | null
           sugar?: number | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -634,7 +634,7 @@ export type Database = {
           insulin_load: number | null
           protein: number | null
           sugar: number | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           avg_food_quality?: number | null
@@ -649,7 +649,7 @@ export type Database = {
           insulin_load?: number | null
           protein?: number | null
           sugar?: number | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           avg_food_quality?: number | null
@@ -664,7 +664,7 @@ export type Database = {
           insulin_load?: number | null
           protein?: number | null
           sugar?: number | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -996,7 +996,7 @@ export type Database = {
           task_5_target_value: string | null
           task_5_time_slot: string | null
           task_5_todo_id: string | null
-          user_id: string | null
+          user_id: string
           week_start: string | null
         }
         Insert: {
@@ -1063,7 +1063,7 @@ export type Database = {
           task_5_target_value?: string | null
           task_5_time_slot?: string | null
           task_5_todo_id?: string | null
-          user_id?: string | null
+          user_id: string
           week_start?: string | null
         }
         Update: {
@@ -1130,7 +1130,7 @@ export type Database = {
           task_5_target_value?: string | null
           task_5_time_slot?: string | null
           task_5_todo_id?: string | null
-          user_id?: string | null
+          user_id?: string
           week_start?: string | null
         }
         Relationships: [
@@ -1415,7 +1415,7 @@ export type Database = {
           id: string
           kind: string
           merged_into: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           canonical_name: string
@@ -1423,7 +1423,7 @@ export type Database = {
           id?: string
           kind: string
           merged_into?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           canonical_name?: string
@@ -1431,7 +1431,7 @@ export type Database = {
           id?: string
           kind?: string
           merged_into?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -1485,7 +1485,7 @@ export type Database = {
           rpe: number | null
           session_id: string | null
           set_number: number
-          user_id: string | null
+          user_id: string
           weight: number | null
         }
         Insert: {
@@ -1500,7 +1500,7 @@ export type Database = {
           rpe?: number | null
           session_id?: string | null
           set_number: number
-          user_id?: string | null
+          user_id: string
           weight?: number | null
         }
         Update: {
@@ -1515,7 +1515,7 @@ export type Database = {
           rpe?: number | null
           session_id?: string | null
           set_number?: number
-          user_id?: string | null
+          user_id?: string
           weight?: number | null
         }
         Relationships: [
@@ -2592,7 +2592,7 @@ export type Database = {
           habit_id: string | null
           id: string
           logged_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           completed?: boolean | null
@@ -2602,7 +2602,7 @@ export type Database = {
           habit_id?: string | null
           id?: string
           logged_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           completed?: boolean | null
@@ -2612,7 +2612,7 @@ export type Database = {
           habit_id?: string | null
           id?: string
           logged_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -2631,7 +2631,7 @@ export type Database = {
           id: string
           is_positive: boolean | null
           name: string
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
@@ -2639,7 +2639,7 @@ export type Database = {
           id?: string
           is_positive?: boolean | null
           name: string
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string | null
@@ -2647,7 +2647,7 @@ export type Database = {
           id?: string
           is_positive?: boolean | null
           name?: string
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -3473,7 +3473,7 @@ export type Database = {
           goal_duch: string | null
           goal_konto: string | null
           id: string
-          user_id: string | null
+          user_id: string
           vault_content: string | null
         }
         Insert: {
@@ -3490,7 +3490,7 @@ export type Database = {
           goal_duch?: string | null
           goal_konto?: string | null
           id?: string
-          user_id?: string | null
+          user_id: string
           vault_content?: string | null
         }
         Update: {
@@ -3507,7 +3507,7 @@ export type Database = {
           goal_duch?: string | null
           goal_konto?: string | null
           id?: string
-          user_id?: string | null
+          user_id?: string
           vault_content?: string | null
         }
         Relationships: []
@@ -3569,7 +3569,7 @@ export type Database = {
           latitude: number
           longitude: number
           place_name: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           accuracy?: number | null
@@ -3579,7 +3579,7 @@ export type Database = {
           latitude: number
           longitude: number
           place_name?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           accuracy?: number | null
@@ -3589,7 +3589,7 @@ export type Database = {
           latitude?: number
           longitude?: number
           place_name?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -4514,7 +4514,7 @@ export type Database = {
           temp_deviation: number | null
           total_calories: number | null
           total_sleep_hours: number | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           active_calories?: number | null
@@ -4541,7 +4541,7 @@ export type Database = {
           temp_deviation?: number | null
           total_calories?: number | null
           total_sleep_hours?: number | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           active_calories?: number | null
@@ -4568,7 +4568,7 @@ export type Database = {
           temp_deviation?: number | null
           total_calories?: number | null
           total_sleep_hours?: number | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -4957,7 +4957,7 @@ export type Database = {
           top_apps: Json | null
           total_minutes: number | null
           unlocks: number | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           ai_minutes?: number | null
@@ -4972,7 +4972,7 @@ export type Database = {
           top_apps?: Json | null
           total_minutes?: number | null
           unlocks?: number | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           ai_minutes?: number | null
@@ -4987,7 +4987,7 @@ export type Database = {
           top_apps?: Json | null
           total_minutes?: number | null
           unlocks?: number | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -5092,7 +5092,7 @@ export type Database = {
           id: string
           image_url: string
           thumbnail_url: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           ai_analysis?: Json | null
@@ -5101,7 +5101,7 @@ export type Database = {
           id?: string
           image_url: string
           thumbnail_url?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           ai_analysis?: Json | null
@@ -5110,7 +5110,7 @@ export type Database = {
           id?: string
           image_url?: string
           thumbnail_url?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -6456,7 +6456,7 @@ export type Database = {
           series_id: string | null
           start_time: string | null
           summary: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           category?: string | null
@@ -6472,7 +6472,7 @@ export type Database = {
           series_id?: string | null
           start_time?: string | null
           summary?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           category?: string | null
@@ -6488,7 +6488,7 @@ export type Database = {
           series_id?: string | null
           start_time?: string | null
           summary?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -6575,7 +6575,7 @@ export type Database = {
           provocation: string
           status: string | null
           updated_at: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           category?: string | null
@@ -6587,7 +6587,7 @@ export type Database = {
           provocation: string
           status?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           category?: string | null
@@ -6599,7 +6599,7 @@ export type Database = {
           provocation?: string
           status?: string | null
           updated_at?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -6623,7 +6623,7 @@ export type Database = {
           state_confidence: number | null
           strava_activities_json: Json | null
           temp_deviation: number | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           algo_version?: number | null
@@ -6644,7 +6644,7 @@ export type Database = {
           state_confidence?: number | null
           strava_activities_json?: Json | null
           temp_deviation?: number | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           algo_version?: number | null
@@ -6665,7 +6665,7 @@ export type Database = {
           state_confidence?: number | null
           strava_activities_json?: Json | null
           temp_deviation?: number | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -6961,7 +6961,7 @@ export type Database = {
           query: string | null
           reply: string | null
           score: number | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           correction?: string | null
@@ -6972,7 +6972,7 @@ export type Database = {
           query?: string | null
           reply?: string | null
           score?: number | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           correction?: string | null
@@ -6983,7 +6983,7 @@ export type Database = {
           query?: string | null
           reply?: string | null
           score?: number | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -6993,21 +6993,21 @@ export type Database = {
           id: string
           payload: Json
           timestamp: string | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           category: string
           id?: string
           payload: Json
           timestamp?: string | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           category?: string
           id?: string
           payload?: Json
           timestamp?: string | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -7114,7 +7114,7 @@ export type Database = {
           source_type: string | null
           tags: string[] | null
           title: string | null
-          user_id: string | null
+          user_id: string
           valid_until: string | null
         }
         Insert: {
@@ -7129,7 +7129,7 @@ export type Database = {
           source_type?: string | null
           tags?: string[] | null
           title?: string | null
-          user_id?: string | null
+          user_id: string
           valid_until?: string | null
         }
         Update: {
@@ -7144,7 +7144,7 @@ export type Database = {
           source_type?: string | null
           tags?: string[] | null
           title?: string | null
-          user_id?: string | null
+          user_id?: string
           valid_until?: string | null
         }
         Relationships: []
@@ -7549,7 +7549,7 @@ export type Database = {
           source: string | null
           tags: string[] | null
           timestamp: string | null
-          user_id: string | null
+          user_id: string
           valid_from: string | null
           valid_until: string | null
         }
@@ -7566,7 +7566,7 @@ export type Database = {
           source?: string | null
           tags?: string[] | null
           timestamp?: string | null
-          user_id?: string | null
+          user_id: string
           valid_from?: string | null
           valid_until?: string | null
         }
@@ -7583,7 +7583,7 @@ export type Database = {
           source?: string | null
           tags?: string[] | null
           timestamp?: string | null
-          user_id?: string | null
+          user_id?: string
           valid_from?: string | null
           valid_until?: string | null
         }
@@ -7900,19 +7900,19 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          user_id: string | null
+          user_id: string
           view_name: string
         }
         Insert: {
           created_at?: string | null
           id?: string
-          user_id?: string | null
+          user_id: string
           view_name: string
         }
         Update: {
           created_at?: string | null
           id?: string
-          user_id?: string | null
+          user_id?: string
           view_name?: string
         }
         Relationships: []
@@ -8188,7 +8188,7 @@ export type Database = {
           proud_of: string | null
           review_completed_at: string | null
           sabotage: string | null
-          user_id: string | null
+          user_id: string
           week_commitment: string | null
           week_goal_cialo: string | null
           week_goal_duch: string | null
@@ -8214,7 +8214,7 @@ export type Database = {
           proud_of?: string | null
           review_completed_at?: string | null
           sabotage?: string | null
-          user_id?: string | null
+          user_id: string
           week_commitment?: string | null
           week_goal_cialo?: string | null
           week_goal_duch?: string | null
@@ -8240,7 +8240,7 @@ export type Database = {
           proud_of?: string | null
           review_completed_at?: string | null
           sabotage?: string | null
-          user_id?: string | null
+          user_id?: string
           week_commitment?: string | null
           week_goal_cialo?: string | null
           week_goal_duch?: string | null
@@ -8289,7 +8289,7 @@ export type Database = {
           session_notes: string | null
           session_rpe: number | null
           start_time: string | null
-          user_id: string | null
+          user_id: string
           workout_day: string
         }
         Insert: {
@@ -8309,7 +8309,7 @@ export type Database = {
           session_notes?: string | null
           session_rpe?: number | null
           start_time?: string | null
-          user_id?: string | null
+          user_id: string
           workout_day: string
         }
         Update: {
@@ -8329,7 +8329,7 @@ export type Database = {
           session_notes?: string | null
           session_rpe?: number | null
           start_time?: string | null
-          user_id?: string | null
+          user_id?: string
           workout_day?: string
         }
         Relationships: []
@@ -9157,7 +9157,7 @@ export type Database = {
           salt: number | null
           saturated_fat: number | null
           sugar: number | null
-          user_id: string | null
+          user_id: string
         }[]
         SetofOptions: {
           from: "*"
