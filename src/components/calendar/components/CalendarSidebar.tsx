@@ -5,6 +5,7 @@ import SolarDayWidget from '../SolarDayWidget';
 import CalendarBudgetPanel from '../CalendarBudgetPanel';
 import { LIFE_SPHERES } from '../../../lib/projects/lifeSpheres';
 import { weekMon } from '../calendarHelpers';
+import { formatWarsawDate } from '../../../lib/date';
 import WorkspaceNavigation from '../../shared/WorkspaceNavigation';
 import WorkspaceSidebar from '../../shared/WorkspaceSidebar';
 import { useSidebar } from '../../ui/sidebar';
@@ -51,7 +52,7 @@ function CalendarSidebarBody({
     const set = new Set<string>();
     for (const ev of events) {
       if (ev.start_time) {
-        set.add(ev.start_time.split('T')[0]);
+        set.add(formatWarsawDate(ev.start_time));
       }
     }
     return set;

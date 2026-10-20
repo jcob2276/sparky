@@ -188,7 +188,7 @@ export const renderDayColumn = ({
           <>
             {sunriseVisible && (
               <div
-                className="absolute left-0 right-0 flex items-center pointer-events-none z-[var(--z-raised)]"
+                className="absolute left-0 right-0 flex items-center pointer-events-none z-0"
                 style={{ top: sunriseTop }}
                 title={`Wschód: ${formatTimeWarsaw(sun.sunrise)}`}
               >
@@ -200,7 +200,7 @@ export const renderDayColumn = ({
             )}
             {sunsetVisible && (
               <div
-                className="absolute left-0 right-0 flex items-center pointer-events-none z-[var(--z-raised)]"
+                className="absolute left-0 right-0 flex items-center pointer-events-none z-0"
                 style={{ top: sunsetTop }}
                 title={`Zachód: ${formatTimeWarsaw(sun.sunset)}`}
               >

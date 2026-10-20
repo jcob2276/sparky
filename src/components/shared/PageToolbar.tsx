@@ -13,9 +13,9 @@ interface PageToolbarProps {
 function PageToolbar({ title, description, leading, center, actions, navigation, hideNavigationOnMobile }: PageToolbarProps) {
   return (
     <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border-custom/40 bg-background/75 glass-elevated">
-      <div className="flex min-h-[var(--toolbar-height)] items-center gap-[var(--space-3)] px-[var(--space-4)] md:px-[var(--space-6)]">
+      <div className="flex min-h-[var(--toolbar-height)] items-center gap-2 px-[var(--space-4)] md:gap-[var(--space-3)] md:px-[var(--space-6)]">
         {leading}
-        <div className="min-w-0 shrink-0 max-w-[min(55vw,26rem)]">
+        <div className="min-w-0 shrink max-w-[min(55vw,26rem)]">
           <h1 className="truncate text-base font-bold tracking-tight text-text-primary md:text-xl">{title}</h1>
           {description && <p className="truncate text-xs text-text-muted">{description}</p>}
         </div>

@@ -4,6 +4,8 @@ import Modal from '../ui/Modal';
 import Button from '../ui/Button';
 import type { CalRow } from './calendarHelpers';
 import { LIFE_SPHERES } from '../../lib/projects/lifeSpheres';
+import { formatWarsawDate } from '../../lib/date';
+import { formatTimeOfISO } from './hooks/calendarDataHelpers';
 import { monthLabel, formatAlarmLabel, parseEKRecurrenceRule, detectVideoCallUrl } from './calendarHelpers';
 
 interface EventDetailsModalProps {
@@ -16,8 +18,8 @@ interface EventDetailsModalProps {
 function formatEventTime(startTime?: string | null, endTime?: string | null, isAllDay?: boolean | null): string {
   if (isAllDay) return 'Wydarzenie całodniowe';
   if (!startTime) return 'Brak godziny';
-  const startPart = startTime.split('T')[1]?.slice(0, 5) || '';
-  const endPart = endTime ? endTime.split('T')[1]?.slice(0, 5) || '' : '';
+  const startPart = formatTimeOfISO(startTime);
+  const endPart = endTime ? formatTimeOfISO(endTime) : '';
   if (startPart && endPart) return `${startPart} – ${endPart}`;
   return startPart;
 }
@@ -26,7 +28,7 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
   if (!event) return null;
 
   const sphere = LIFE_SPHERES.find((s) => s.id === event.category?.toLowerCase());
-  const dateStr = event.start_time ? event.start_time.split('T')[0] : '';
+  const dateStr = event.start_time ? formatWarsawDate(event.start_time) : '';
   const formattedDate = dateStr ? monthLabel(dateStr) : '';
   const timeFormatted = formatEventTime(event.start_time, event.end_time, event.is_all_day);
 

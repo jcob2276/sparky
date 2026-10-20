@@ -1,6 +1,7 @@
 import type { SparkyCalendarRow } from '../../../lib/calendarApi';
 import { addDays, CalRow } from '../calendarHelpers';
 import { deriveAll } from '../../terminy/terminyDerived';
+import { warsawTimeOfDay } from '../../../lib/date';
 
 export type CalView = 'dzien' | '3dni' | 'tydzien' | 'miesiac';
 export type RecurrenceKind = '' | 'daily' | 'weekly' | 'monthly' | 'custom';
@@ -18,17 +19,19 @@ export function getInitialCalView(): CalView {
   return 'tydzien';
 }
 
+/**
+ * Okno pobierania = miesiąc kotwicy ± 7 dni. Jest stabilne dla całego miesiąca, więc przesuwanie
+ * dnia/tygodnia nie zmienia klucza zapytania (brak ponownego pobrania i pustej siatki), a mini-kalendarz
+ * ma kropki dla całego miesiąca niezależnie od widoku.
+ */
 export function computeVisibleRange(calView: CalView, weekStart: string, selectedDay: string): VisibleRange {
-  if (calView === 'dzien') {
-    return { rangeStart: addDays(selectedDay, -1), rangeEnd: addDays(selectedDay, 1) };
-  }
-  if (calView === '3dni') {
-    return { rangeStart: addDays(selectedDay, -1), rangeEnd: addDays(selectedDay, 4) };
-  }
-  if (calView === 'tydzien') {
-    return { rangeStart: addDays(weekStart, -7), rangeEnd: addDays(weekStart, 14) };
-  }
-  return { rangeStart: addDays(selectedDay, -15), rangeEnd: addDays(selectedDay, 45) };
+  const anchor = calView === 'tydzien' ? weekStart : selectedDay;
+  const [year, month] = anchor.split('-').map(Number);
+  const monthStart = `${year}-${String(month).padStart(2, '0')}-01`;
+  const nextMonthStart = month === 12
+    ? `${year + 1}-01-01`
+    : `${year}-${String(month + 1).padStart(2, '0')}-01`;
+  return { rangeStart: addDays(monthStart, -7), rangeEnd: addDays(nextMonthStart, 7) };
 }
 
 /** Projects Terminy (Life Obligations) onto calendar rows. */
@@ -128,9 +131,12 @@ export function filterDisplayEvents(
 }
 
 export function formatTimeOfISO(iso: string): string {
-  const parts = iso.split('T')[1]?.split(':');
-  if (!parts || parts.length < 2) return '12:00';
-  return `${parts[0]}:${parts[1]}`;
+  try {
+    const hm = warsawTimeOfDay(iso);
+    return /^\d{2}:\d{2}$/.test(hm) ? hm : '12:00';
+  } catch {
+    return '12:00';
+  }
 }
 
 /** Cache filter for optimistic eviction when deleting an event (or its series). */

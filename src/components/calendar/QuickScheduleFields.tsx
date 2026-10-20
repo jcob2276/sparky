@@ -31,14 +31,14 @@ export function QuickScheduleFields({ calData, conflicts, budgets }: Props) {
             Całodniowe
           </label>
         </div>
-        <div className="grid grid-cols-3 gap-2">
-          <label className="space-y-1 text-2xs font-semibold text-text-secondary">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <label className="col-span-2 space-y-1 text-2xs font-semibold text-text-secondary sm:col-span-1">
             <span className="flex items-center gap-1 text-text-muted"><CalendarDays size={11} /> Data</span>
             <ControlInput
               type="date"
               value={quickCreate.date}
               onChange={(event) => event.target.value && setQuickCreate({ ...quickCreate, date: event.target.value })}
-              className="h-9 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2 text-xs font-semibold"
+              className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2 text-base font-semibold sm:h-9 sm:text-xs"
             />
           </label>
           <label className="space-y-1 text-2xs font-semibold text-text-secondary">
@@ -52,7 +52,7 @@ export function QuickScheduleFields({ calData, conflicts, budgets }: Props) {
                 const [hours, minutes] = event.target.value.split(':').map(Number);
                 setQuickCreate({ ...quickCreate, startMin: hours * 60 + minutes });
               }}
-              className="h-9 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2 text-xs font-semibold disabled:opacity-[var(--opacity-dimmed)]"
+              className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2 text-base font-semibold disabled:opacity-[var(--opacity-dimmed)] sm:h-9 sm:text-xs"
             />
           </label>
           <label className="space-y-1 text-2xs font-semibold text-text-secondary">
@@ -60,14 +60,15 @@ export function QuickScheduleFields({ calData, conflicts, budgets }: Props) {
             <ControlInput
               type="time"
               disabled={quickAllDay}
-              value={minutesLabel(quickCreate.startMin + quickDuration)}
+              value={minutesLabel((quickCreate.startMin + quickDuration) % 1440)}
               onChange={(event) => {
                 if (!event.target.value) return;
                 const [hours, minutes] = event.target.value.split(':').map(Number);
-                const duration = hours * 60 + minutes - quickCreate.startMin;
-                if (duration > 0) setQuickDuration(duration);
+                const diff = hours * 60 + minutes - quickCreate.startMin;
+                // koniec wcześniejszy niż start = następny dzień (jak w edycji wydarzenia)
+                setQuickDuration(diff > 0 ? diff : diff + 1440);
               }}
-              className="h-9 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2 text-xs font-semibold disabled:opacity-[var(--opacity-dimmed)]"
+              className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2 text-base font-semibold disabled:opacity-[var(--opacity-dimmed)] sm:h-9 sm:text-xs"
             />
           </label>
         </div>

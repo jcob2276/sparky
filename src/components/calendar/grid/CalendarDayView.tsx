@@ -97,24 +97,27 @@ export const CalendarDayView: React.FC<CalendarDayViewProps> = ({
           className="min-h-9 min-w-9 p-2 rounded-full hover:bg-surface-solid active:scale-[0.96] transition-[transform,background-color] duration-150"
         />
         <div className="text-center flex flex-col items-center">
-          <p className="text-sm font-semibold text-text-primary">{monthLabel(selectedDay)}</p>
+          <div className="relative">
+            <p className="text-sm font-semibold text-text-primary">{monthLabel(selectedDay)}</p>
+            {selectedDay !== today && (
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setSelectedDay(today);
+                  setWeekStart(weekMon(today));
+                }}
+                aria-label="Wróć do dziś"
+                className="absolute left-full top-1/2 ml-2 -translate-y-1/2 text-2xs text-primary font-semibold px-2 py-0.5 rounded-full bg-primary/10 hover:bg-primary/15 active:scale-[0.96] ui-interactive"
+              >
+                Dziś
+              </Button>
+            )}
+          </div>
           {weather?.daily?.[selectedDay] && (
             <div className="flex items-center gap-1 mt-0.5 text-xs font-medium text-text-muted cursor-help" title={WMO_WEATHER_DESC[weather.daily[selectedDay].weatherCode]}>
               {getWMOWeatherIcon(weather.daily[selectedDay].weatherCode, 12)}
               <span>{weather.daily[selectedDay].tempMax}°C / {weather.daily[selectedDay].tempMin}°C</span>
             </div>
-          )}
-          {selectedDay !== today && (
-            <Button
-              variant="ghost"
-              onClick={() => {
-                setSelectedDay(today);
-                setWeekStart(weekMon(today));
-              }}
-              className="text-2xs text-primary font-semibold mt-0.5 px-2 py-0.5 rounded-full bg-primary/10 hover:bg-primary/15 active:scale-[0.96] ui-interactive"
-            >
-              Wróć do dziś
-            </Button>
           )}
         </div>
         <Button

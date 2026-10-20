@@ -6,6 +6,7 @@
  */
 import { useCallback } from 'react';
 import type { CalRow } from '../../calendarHelpers';
+import { combineDateTimeWarsawISO, warsawTimeOfDay } from '../../../../lib/date';
 import type { useCreateCalendarEvent, useUpdateCalendarEvent } from '../../../../lib/calendarApi';
 
 interface UseContextMenuActionsOptions {
@@ -55,9 +56,10 @@ export function useContextMenuActions({
 
   const handleMoveToDate = useCallback(async (event: CalRow, dateStr: string) => {
     try {
-      const timePart = event.start_time ? event.start_time.split('T')[1] || '09:00:00+02:00' : '09:00:00+02:00';
-      const newStart = `${dateStr}T${timePart}`;
-      const newEnd = event.end_time ? `${dateStr}T${event.end_time.split('T')[1] || '10:00:00+02:00'}` : `${dateStr}T10:00:00+02:00`;
+      const startHm = event.start_time ? warsawTimeOfDay(event.start_time) : '09:00';
+      const endHm = event.end_time ? warsawTimeOfDay(event.end_time) : '10:00';
+      const newStart = combineDateTimeWarsawISO(dateStr, startHm);
+      const newEnd = combineDateTimeWarsawISO(dateStr, endHm);
       await updateEventMutation.mutateAsync({
         userId: userId || '',
         accessToken: accessToken || '',

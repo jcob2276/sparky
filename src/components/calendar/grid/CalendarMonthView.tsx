@@ -83,32 +83,21 @@ function MonthDayCell({
         !isCurrentMonth ? 'bg-surface-solid/10 text-text-muted/40' : ''
       } ${isToday ? 'bg-primary/[0.04]' : ''} ${isSelected ? 'ring-1 ring-inset ring-primary/40' : ''}`}
     >
-      <div className="mb-1 flex items-center justify-between">
+      <div className="mb-1 flex items-center justify-center md:justify-between">
         <div className="flex min-w-0 items-center gap-1.5">
           <span
             className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold tabular-nums transition-transform ${
               isToday
                 ? 'bg-primary text-on-accent shadow-xs font-bold'
-                : isCurrentMonth
-                  ? 'text-text-primary'
-                  : 'text-text-muted/40'
+                : holiday && isCurrentMonth
+                  ? 'text-warning'
+                  : isCurrentMonth
+                    ? 'text-text-primary'
+                    : 'text-text-muted/40'
             }`}
           >
             {dayNumber}
           </span>
-
-          {(dayEvents.length > 0 || dayTodos.length > 0) && (
-            <div className="calendar-month-dots flex items-center gap-0.5 md:hidden">
-              {categories.length > 0 ? (
-                <CategoryDots categories={categories} className="flex items-center gap-0.5" />
-              ) : (
-                <span className="h-1.5 w-1.5 rounded-full bg-text-muted" />
-              )}
-              {overflowCount > 0 && categories.length >= 3 && (
-                <span className="text-3xs font-semibold text-text-muted">+</span>
-              )}
-            </div>
-          )}
 
           <CategoryDots categories={categories} className="hidden items-center gap-1 md:flex" />
         </div>
@@ -118,7 +107,7 @@ function MonthDayCell({
             e.stopPropagation();
             onQuickCreate(dateStr);
           }}
-          className="flex min-h-7 min-w-7 items-center justify-center rounded-full p-1 text-text-muted transition-opacity hover:bg-surface-solid opacity-50 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+          className="hidden min-h-7 min-w-7 items-center justify-center rounded-full p-1 text-text-muted transition-opacity hover:bg-surface-solid opacity-0 hover:opacity-100 group-hover:opacity-100 md:flex"
           title="Dodaj wydarzenie"
           aria-label={`Dodaj wydarzenie ${dateStr}`}
         >
@@ -126,9 +115,22 @@ function MonthDayCell({
         </Pressable>
       </div>
 
+      {(dayEvents.length > 0 || dayTodos.length > 0) && (
+        <div className="calendar-month-dots flex h-2 items-center justify-center gap-0.5 md:hidden">
+          {categories.length > 0 ? (
+            <CategoryDots categories={categories} className="flex items-center gap-0.5" />
+          ) : (
+            <span className="h-1.5 w-1.5 rounded-full bg-text-muted" />
+          )}
+          {overflowCount > 0 && categories.length >= 3 && (
+            <span className="text-3xs font-semibold leading-none text-text-muted">+</span>
+          )}
+        </div>
+      )}
+
       {holiday && (
         <div
-          className="mb-0.5 shrink-0 truncate rounded-md border border-warning/20 bg-warning/10 px-1 py-0.5 text-3xs font-semibold text-warning select-none"
+          className="mb-0.5 hidden shrink-0 truncate rounded-md border border-warning/20 bg-warning/10 px-1 py-0.5 text-3xs font-semibold text-warning select-none md:block"
           title={holiday.name}
         >
           {holiday.name}
@@ -188,14 +190,13 @@ export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
   setQuickCreate,
   today: _today,
 }) => {
-  const currentMonthDate = useMemo(() => new Date(selectedDay), [selectedDay]);
   const gridDays = useMemo(() => getMonthGridDays(selectedDay), [selectedDay]);
 
   const changeMonth = (delta: number) => {
-    const d = new Date(currentMonthDate);
-    d.setMonth(d.getMonth() + delta);
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const [year, month] = selectedDay.split('-').map(Number);
+    const index = year * 12 + (month - 1) + delta;
+    const y = Math.floor(index / 12);
+    const m = String((index % 12) + 1).padStart(2, '0');
     setSelectedDay(`${y}-${m}-01`);
   };
 
