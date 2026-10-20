@@ -29,7 +29,11 @@ const version = m[1];
 const run = (args) => execFileSync("npx", ["supabase", ...args], { encoding: "utf8", shell: process.platform === "win32" });
 
 const ledger = run(["migration", "list", "--linked"]);
-if (new RegExp(`\|\s*${version}\s*\|`).test(ledger) && new RegExp(`${version}\s*\|\s*${version}`).test(ledger)) {
+const alreadyApplied = ledger.split("\n").some((row) => {
+  const [local = "", remote = ""] = row.split("|").map((cell) => cell.trim());
+  return local === version && remote === version;
+});
+if (alreadyApplied) {
   console.error(`Version ${version} is already applied remotely — nothing to do.`);
   process.exit(1);
 }

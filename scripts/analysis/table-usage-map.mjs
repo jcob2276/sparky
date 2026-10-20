@@ -23,7 +23,7 @@ const types = readFileSync("src/lib/database.types.ts", "utf8").replace(/\r/g, "
 const publicStart = types.indexOf("    Tables: {", types.indexOf("Tables: {") + 10);
 const tablesEnd = types.indexOf("\n    Views:", publicStart);
 const viewsEnd = types.indexOf("\n    Functions:", tablesEnd);
-const names = (block) => [...block.matchAll(/^      (\w+): \{\n        Row/gm)].map((m) => m[1]);
+const names = (block) => [...block.matchAll(/^ {6}(\w+): \{\n {8}Row/gm)].map((m) => m[1]);
 const tables = names(types.slice(publicStart, tablesEnd)).sort();
 const views = names(types.slice(tablesEnd, viewsEnd)).sort();
 

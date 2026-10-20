@@ -73,7 +73,7 @@ const CHECKS = [
     name: "SECURITY DEFINER functions taking p_user_id and callable by authenticated must check auth.uid()",
     sql: `SELECT p.oid::regprocedure::text AS fn FROM pg_proc p WHERE p.pronamespace = 'public'::regnamespace
           AND p.prosecdef AND pg_get_function_arguments(p.oid) ~ 'p_user_id'
-          AND has_function_privilege('authenticated', p.oid, 'execute') AND p.prosrc !~* 'auth\.uid\(\)'`,
+          AND has_function_privilege('authenticated', p.oid, 'execute') AND position('auth.uid()' in lower(p.prosrc)) = 0`,
   },
   {
     name: "views must not grant write privileges to anon/authenticated",

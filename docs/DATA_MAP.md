@@ -64,7 +64,7 @@
 | `gpw_financial_reports` | `scripts` | `view:gpw_latest_annual_reports` |
 | `gpw_report_import_coverage` | `scripts` | — |
 | `habit_logs` | `edge:_shared`, `edge:recap`, `edge:vanguard-telegram`, `src/lib/desktopDashboardFallback`, `src/lib/desktopDashboardTypes`, `src/lib/health`, `src/lib/multiDomainMatrixApi`, `src/lib/stats` | `fn:get_desktop_dashboard_data` |
-| `habits` | `edge:vanguard-telegram`, `src/components`, `src/lib/desktopDashboardApi`, `src/lib/desktopDashboardFallback`, `src/lib/desktopDashboardTypes`, `src/lib/health`, `src/lib/stats` | `fn:get_desktop_dashboard_data` |
+| `habits` | `edge:vanguard-telegram`, `pkg:domain`, `src/components`, `src/lib/desktopDashboardApi`, `src/lib/desktopDashboardFallback`, `src/lib/desktopDashboardTypes`, `src/lib/health`, `src/lib/stats` | `fn:get_desktop_dashboard_data` |
 | `health_coach_jobs` | — | `fn:claim_health_coach_job`, `fn:complete_health_plan_job`, `fn:dispatch_health_coach_jobs`, `fn:enqueue_health_coach_job`, `fn:fail_health_coach_job` |
 | `healthspan_checkins` | `edge:vanguard-oracle`, `src/lib/healthspanCheckinsApi` | — |
 | `healthspan_levers` | `edge:vanguard-oracle`, `src/lib/healthspanCheckinsApi` | — |
