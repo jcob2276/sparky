@@ -102,8 +102,6 @@ export function normalizeMuscleTag(tag: string): string {
   return MUSCLE_TAG_ALIASES[key] ?? key;
 }
 
-export const VANGUARD_TO_SVG_MAP = SPARKY_TO_SVG_MAP;
-
 /**
  * Przekształca mapę zmęczenia (0.0 - 1.0) ze Sparky (np. z muscleRecovery.ts)
  * na poziomy podświetlenia SVG (0 - 4).

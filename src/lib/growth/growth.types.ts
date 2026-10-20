@@ -44,8 +44,6 @@ export interface SparkyIdentityData {
   updated_at: string | null;
 }
 
-export type VanguardIdentityData = SparkyIdentityData;
-
 export interface GrowthTaskItem {
   id: string;
   title: string;

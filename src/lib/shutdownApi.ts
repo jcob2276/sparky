@@ -57,7 +57,6 @@ export async function insertSparkyStream(entry: TablesInsert<'vanguard_stream'>)
     .insert(entry);
   if (error) throw error;
 }
-export const insertVanguardStream = insertSparkyStream;
 
 export async function fetchShutdownFoodEntries(
   userId: string,

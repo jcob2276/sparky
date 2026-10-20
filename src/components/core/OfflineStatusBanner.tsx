@@ -69,4 +69,3 @@ export function OfflineStatusBanner() {
   );
 }
 
-export default OfflineStatusBanner;

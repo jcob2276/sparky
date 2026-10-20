@@ -113,8 +113,6 @@ export async function updateSparkyIdentity(
   if (error) throw error;
 }
 
-export const updateVanguardIdentity = updateSparkyIdentity;
-
 export async function saveLibraryItems(userId: string, items: LibraryItem[]): Promise<void> {
   await updateSparkyIdentity(userId, { library_items: items });
 }
