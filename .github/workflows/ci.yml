@@ -30,11 +30,20 @@ jobs:
       - name: Registry audit
         run: npm run audit:registry
 
+      - name: Migration file check
+        run: npm run db:check-files
+
       - name: Migration drift check
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
         run: npm run db:check-drift
+
+      - name: DB invariants (RLS, FKs, grants, types)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: npm run db:check-invariants
 
       - name: Typecheck edge functions
         run: npm run typecheck
