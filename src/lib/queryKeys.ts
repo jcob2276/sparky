@@ -62,6 +62,7 @@ export const nudgeKeys = {
 export const closerKeys = {
   all: ['closer'] as const,
   week: (userId: string, weekStart: string) => [...closerKeys.all, 'week', userId, weekStart] as const,
+  day: (userId: string, date: string) => [...closerKeys.all, 'day', userId, date] as const,
 };
 
 // ── TODO KEYS ──

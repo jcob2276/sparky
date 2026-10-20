@@ -42,7 +42,8 @@ Funkcje:
 - szybkie logowanie jedzenia;
 - strain, recovery i główny limiter;
 - dzienny snapshot;
-- rytuał wieczornego domknięcia;
+- rytuał wieczornego domknięcia, w którym **liczby sprzedaży dnia są wymagane**: umówieni, rozmowy (kolumna `dials`), sales calle (0 jest poprawną wartością, jest też „dziś bez sprzedaży”) i jedno zdanie opinii, zapisywane w `closer_daily_logs`;
+- poranny plan dnia zaczyna się od wczorajszych liczb, opinii i tempa tygodnia (cele 30 umówień i 10 sales calli), a gdy liczb brakuje, prosi o ich uzupełnienie;
 - niedzielny przegląd zadań;
 - blokada pełnego interfejsu do utworzenia dziennego planu.
 
@@ -50,7 +51,7 @@ Połączenia:
 
 - `daily_wins` i Todo dostarczają wykonanie;
 - Kalendarz i Terminy dostarczają ograniczenia czasu;
-- Oura, trening, Strava i żywienie zasilają strain/snapshot;
+- Oura, trening, Garmin i żywienie zasilają strain/snapshot;
 - zakończenie dnia zapisuje refleksję używaną przez Historię i Oracle.
 
 ### `/tydzien` — Tydzień
