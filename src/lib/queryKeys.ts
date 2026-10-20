@@ -65,6 +65,15 @@ export const closerKeys = {
   day: (userId: string, date: string) => [...closerKeys.all, 'day', userId, date] as const,
 };
 
+// ── LEARNING KEYS ──
+export const learningKeys = {
+  all: ['learning'] as const,
+  month: (userId: string, monthStart: string, today: string) => [...learningKeys.all, 'month', userId, monthStart, today] as const,
+  pocket: (userId: string) => [...learningKeys.all, 'pocket', userId] as const,
+  skills: (userId: string) => [...learningKeys.all, 'skills', userId] as const,
+  history: (userId: string) => [...learningKeys.all, 'history', userId] as const,
+};
+
 // ── TODO KEYS ──
 export const todoKeys = {
   all: ['todo'] as const,

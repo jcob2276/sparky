@@ -1,18 +1,21 @@
-import { useState, useTransition } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, GraduationCap, RefreshCw } from 'lucide-react';
+import { ArrowLeft, GraduationCap, Inbox } from 'lucide-react';
 import type { Session } from '@supabase/supabase-js';
 import { useSession } from '../../store/useStore';
-import { fetchGrowthDashboardData } from '../../lib/growth/growthApi';
-import Spinner from '../ui/Spinner';
+import { confirmDialog } from '../../lib/notify';
+import { MAX_ACTIVE_PER_MONTH, dailySlot, type LearningAssignment } from '../../lib/learning/learningModel';
 import { Pressable } from '../ui/ControlPrimitives';
-import { GrowthHeaderSection } from './GrowthHeaderSection';
-import { GrowthProjectsSection } from './GrowthProjectsSection';
-import { GrowthTasksSection } from './GrowthTasksSection';
-import { GrowthLibrarySection } from './GrowthLibrarySection';
-import { GrowthPracticeSection } from './GrowthPracticeSection';
-import { GrowthModals } from './GrowthModals';
+import LearningAddModal from './learning/LearningAddModal';
+import LearningHistorySection from './learning/LearningHistorySection';
+import LearningMonthSection from './learning/LearningMonthSection';
+import {
+  useDropAssignment,
+  useLearningMonth,
+  useLogLearningProgress,
+  usePastAssignments,
+  useTopSkills,
+} from './learning/useLearningPlan';
 
 interface Props {
   session?: Session;
@@ -20,63 +23,39 @@ interface Props {
   onNavigateTo?: (dest: string) => void;
 }
 
+/** Rozwój: plan nauki na miesiąc (max 3 materiały), dzienny slot i jedno kliknięcie „zrobione”. */
 export default function GrowthView({ session: propSession, onBack, onNavigateTo }: Props) {
   const storeSession = useSession();
-  const session = propSession || storeSession;
-  const userId = session?.user?.id;
+  const userId = (propSession || storeSession)?.user?.id;
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [, startTransition] = useTransition();
+  const [addOpen, setAddOpen] = useState(false);
 
-  const [activeModal, setActiveModal] = useState<'theme' | 'library' | 'evidence' | null>(null);
+  const month = useLearningMonth(userId);
+  const skills = useTopSkills(userId, true);
+  const past = usePastAssignments(userId, month.monthStart);
+  const log = useLogLearningProgress();
+  const drop = useDropAssignment(userId);
 
-  const queryKey = ['growth-dashboard-data', userId];
-  const { data, isLoading, refetch } = useQuery({
-    queryKey,
-    queryFn: () => (userId ? fetchGrowthDashboardData(userId) : null),
-    enabled: !!userId,
-  });
+  const skillLabels = Object.fromEntries((skills.data ?? []).map((skill) => [skill.id, skill.label]));
+  const activeCount = month.assignments.filter((a) => a.status === 'active').length;
+  const excludeLinkIds = month.assignments.flatMap((a) => (a.link_id ? [a.link_id] : []));
+  const busyId = log.isPending ? log.variables?.assignmentId ?? null : null;
 
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else {
-      navigate(-1);
-    }
+  const handleBack = () => (onBack ? onBack() : navigate(-1));
+  const openPocket = () => (onNavigateTo ? onNavigateTo('links') : navigate('/links'));
+
+  const toggleToday = (assignment: LearningAssignment) => {
+    const logged = month.loggedToday[assignment.id] ?? 0;
+    const amount = logged > 0 ? 0 : dailySlot(assignment, month.today, logged).amount;
+    log.mutate({ assignmentId: assignment.id, date: month.today, amount });
   };
 
-  const handleNavigate = (path: string) => {
-    if (onNavigateTo) {
-      onNavigateTo(path.replace(/^\//, ''));
-    } else {
-      navigate(path);
-    }
+  const dropAssignment = async (assignment: LearningAssignment) => {
+    if (await confirmDialog(`Odpuścić „${assignment.title}” w tym miesiącu?`)) drop.mutate(assignment.id);
   };
-
-  const handleRefresh = () => {
-    startTransition(() => {
-      void queryClient.invalidateQueries({ queryKey });
-      void refetch();
-    });
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    );
-  }
-
-  const identity = data?.identity ?? null;
-  const projects = data?.projects ?? [];
-  const tasks = data?.tasks ?? [];
-  const libraryItems = data?.libraryItems ?? [];
-  const practiceEvidences = data?.practiceEvidences ?? [];
 
   return (
     <div className="min-h-screen w-full bg-background text-text-primary pb-20">
-      {/* Top Header */}
       <header className="sticky top-0 z-[var(--z-sticky)] w-full border-b border-border-custom bg-background/95 backdrop-blur-[var(--blur-md)]">
         <div className="mx-auto flex w-full max-w-4xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
@@ -92,77 +71,46 @@ export default function GrowthView({ session: propSession, onBack, onNavigateTo 
                 <GraduationCap size={16} />
               </div>
               <div>
-                <h1 className="text-base font-bold tracking-tight text-text-primary">Rozwój & Nauka</h1>
-                <p className="text-3xs font-semibold text-text-muted">Kompas, projekty, praktyka i biblioteka wiedzy</p>
+                <h1 className="text-base font-bold tracking-tight text-text-primary">Rozwój</h1>
+                <p className="text-3xs font-semibold text-text-muted">Plan nauki na miesiąc</p>
               </div>
             </div>
           </div>
-
           <Pressable
-            onClick={handleRefresh}
-            aria-label="Odśwież"
-            className="rounded-xl border border-border-custom p-2 text-text-muted hover:text-text-primary transition-colors"
+            onClick={openPocket}
+            aria-label="Otwórz Pocket"
+            className="flex items-center gap-1.5 rounded-xl border border-border-custom px-3 py-2 text-xs font-bold text-text-muted hover:text-text-primary transition-colors"
           >
-            <RefreshCw size={15} />
+            <Inbox size={14} /> Pocket
           </Pressable>
         </div>
       </header>
 
-      {/* Main Content Body */}
       <main className="mx-auto w-full max-w-4xl space-y-5 px-4 pt-5">
-        {/* 1. Kompas Rozwoju (Główny motyw, luka, docelowa rola) */}
-        <GrowthHeaderSection
-          identity={identity}
-          onEdit={() => setActiveModal('theme')}
+        <LearningMonthSection
+          monthStart={month.monthStart}
+          today={month.today}
+          assignments={month.assignments}
+          loggedToday={month.loggedToday}
+          skillLabels={skillLabels}
+          loading={month.isLoading}
+          error={month.error}
+          busyId={busyId}
+          onToggleToday={toggleToday}
+          onDrop={(assignment) => void dropAssignment(assignment)}
+          onAdd={() => setAddOpen(true)}
         />
-
-        {/* 2. Aktywne Projekty Rozwojowe (SSOT z Kierunkiem) */}
-        <GrowthProjectsSection
-          projects={projects}
-          onNavigateToProjects={() => handleNavigate('/projekty')}
-        />
-
-        {/* 3. Następne Zadania & Działania (SSOT z Todo + Top 5) */}
-        {userId && (
-          <GrowthTasksSection
-            userId={userId}
-            tasks={tasks}
-            onRefresh={handleRefresh}
-            onNavigateToTodo={() => handleNavigate('/todo')}
-          />
-        )}
-
-        {/* 4. Biblioteka Wiedzy (Książki / Kursy / Artykuły) */}
-        {userId && (
-          <GrowthLibrarySection
-            userId={userId}
-            items={libraryItems}
-            onRefresh={handleRefresh}
-            onOpenAddModal={() => setActiveModal('library')}
-          />
-        )}
-
-        {/* 5. Dowody Wdrożenia w Praktyce (Zasada: Przeczytane ≠ Opanowane) */}
-        {userId && (
-          <GrowthPracticeSection
-            userId={userId}
-            evidences={practiceEvidences}
-            onRefresh={handleRefresh}
-            onOpenAddModal={() => setActiveModal('evidence')}
-          />
-        )}
+        <LearningHistorySection items={past.data ?? []} />
       </main>
 
-      {/* Modale akcji */}
-      {userId && (
-        <GrowthModals
+      {addOpen && userId && (
+        <LearningAddModal
           userId={userId}
-          identity={identity}
-          libraryItems={libraryItems}
-          practiceEvidences={practiceEvidences}
-          activeModal={activeModal}
-          onClose={() => setActiveModal(null)}
-          onRefresh={handleRefresh}
+          monthStart={month.monthStart}
+          today={month.today}
+          nextPosition={Math.min(activeCount, MAX_ACTIVE_PER_MONTH)}
+          excludeLinkIds={excludeLinkIds}
+          onClose={() => setAddOpen(false)}
         />
       )}
     </div>

@@ -1,6 +1,7 @@
 import { Pressable, ControlTextarea } from '../../ui/ControlPrimitives';
 import {
   Check,
+  GraduationCap,
   ListTodo,
   PenLine,
   StickyNote,
@@ -19,6 +20,7 @@ interface LinksExpandedDetailsProps {
   onChangeNotesDraft: (id: string, value: string) => void;
   onConvertToTodo: (link: SavedLink) => void;
   onConvertToNote: (link: SavedLink) => void;
+  onAddToLearning?: (link: SavedLink) => void;
 }
 
 export function LinksExpandedDetails({
@@ -31,6 +33,7 @@ export function LinksExpandedDetails({
   onChangeNotesDraft,
   onConvertToTodo,
   onConvertToNote,
+  onAddToLearning,
 }: LinksExpandedDetailsProps) {
   const youtubeId = getYouTubeId(link.url);
 
@@ -88,6 +91,17 @@ export function LinksExpandedDetails({
         >
           Do notatek
         </Pressable>
+        {onAddToLearning && (
+          <Pressable
+            variant="outline"
+            size="sm"
+            onClick={() => onAddToLearning(link)}
+            className="btn-press flex-1 min-w-30 justify-center gap-1.5 text-xs font-semibold"
+            icon={<GraduationCap size={12} />}
+          >
+            Do planu nauki
+          </Pressable>
+        )}
       </div>
 
       {/* Category Pills */}

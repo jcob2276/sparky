@@ -1,4 +1,6 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
+import type { SavedLink } from '../../lib/linksApi';
+import LearningAddFromLink from '../growth/learning/LearningAddFromLink';
 import { Pressable, ControlInput } from '../ui/ControlPrimitives';
 import {
   CheckCheck,
@@ -41,6 +43,7 @@ const STATUS_TABS: { id: 'unread' | 'read' | 'all'; label: string }[] = [
 export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?: (dest: string) => void }) {
   const haptics = useHaptics();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [learningLink, setLearningLink] = useState<SavedLink | null>(null);
 
   const haptic = (pattern: number | number[]) => {
     haptics.vibrate(pattern);
@@ -230,6 +233,7 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
                     isSelected={d.bulk.selectedIds.has(link.id)}
                     onToggleSelect={() => d.bulk.toggleSelectId(link.id)}
                     onOpenReader={(l) => d.setReaderLink(l)}
+                    onAddToLearning={setLearningLink}
                   />
                 ))}
               </div>
@@ -261,6 +265,8 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
         onUpdateLink={d.updateLinkData}
       />
 
+
+      {learningLink && <LearningAddFromLink link={learningLink} onClose={() => setLearningLink(null)} />}
 
       {/* AI Triage Suggestions Modal */}
       <LinksTriagePanel

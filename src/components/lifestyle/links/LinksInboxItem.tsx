@@ -12,6 +12,7 @@ interface LinksInboxItemProps {
   isSelected?: boolean;
   onToggleSelect?: () => void;
   onOpenReader?: (link: SavedLink) => void;
+  onAddToLearning?: (link: SavedLink) => void;
 }
 
 export function LinksInboxItem({
@@ -22,6 +23,7 @@ export function LinksInboxItem({
   isSelected = false,
   onToggleSelect,
   onOpenReader,
+  onAddToLearning,
 }: LinksInboxItemProps) {
   const isExpanded = d.expandedLinkId === link.id;
   const isDeleting = d.deletingIds.has(link.id);
@@ -75,6 +77,7 @@ export function LinksInboxItem({
             onChangeNotesDraft={(id, val) => d.setNotesDrafts((prev) => ({ ...prev, [id]: val }))}
             onConvertToTodo={d.handleLinkToTodo}
             onConvertToNote={d.handleLinkToNote}
+            onAddToLearning={onAddToLearning}
           />
         </div>
       </div>

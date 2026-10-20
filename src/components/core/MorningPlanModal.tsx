@@ -15,6 +15,7 @@ import MorningPlanStep2PowerList from './morningPlan/MorningPlanStep2PowerList';
 import MorningPlanStep3TimeBox from './morningPlan/MorningPlanStep3TimeBox';
 import MorningPlanWeekStrip from './morningPlan/MorningPlanWeekStrip';
 import MorningPlanYesterdayNumbers from './morningPlan/MorningPlanYesterdayNumbers';
+import MorningPlanLearningSlot from './morningPlan/MorningPlanLearningSlot';
 import VoicePlanModal from '../lifestyle/voicePlanning/VoicePlanModal';
 import { useMorningPlanActions } from './morningPlan/useMorningPlanActions';
 import { useMorningPlanData } from './morningPlan/useMorningPlanData';
@@ -105,7 +106,10 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {!planningTomorrow && step === 1 && userId && (
-            <MorningPlanYesterdayNumbers userId={userId} planningDate={planningDate} />
+            <>
+              <MorningPlanYesterdayNumbers userId={userId} planningDate={planningDate} />
+              <MorningPlanLearningSlot userId={userId} />
+            </>
           )}
           {step === 1 || planningTomorrow ? (
             <MorningPlanStep2PowerList

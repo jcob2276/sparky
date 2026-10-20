@@ -3213,6 +3213,113 @@ export type Database = {
           },
         ]
       }
+      learning_assignments: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          done: number
+          due_date: string
+          id: string
+          link_id: string | null
+          month_start: string
+          position: number
+          resource_type: string
+          skill_id: string | null
+          status: string
+          title: string
+          total: number
+          unit: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          done?: number
+          due_date: string
+          id?: string
+          link_id?: string | null
+          month_start: string
+          position?: number
+          resource_type?: string
+          skill_id?: string | null
+          status?: string
+          title: string
+          total: number
+          unit?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          done?: number
+          due_date?: string
+          id?: string
+          link_id?: string | null
+          month_start?: string
+          position?: number
+          resource_type?: string
+          skill_id?: string | null
+          status?: string
+          title?: string
+          total?: number
+          unit?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_assignments_link_id_fkey"
+            columns: ["link_id"]
+            isOneToOne: false
+            referencedRelation: "vanguard_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_assignments_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "learning_skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      learning_progress_log: {
+        Row: {
+          amount: number
+          assignment_id: string
+          created_at: string
+          date: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          assignment_id: string
+          created_at?: string
+          date: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          assignment_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_progress_log_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "learning_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learning_skills: {
         Row: {
           active: boolean
@@ -9144,6 +9251,33 @@ export type Database = {
       link_planned_running_activity: {
         Args: { p_plan_workout_id: string; p_strava_id: number }
         Returns: undefined
+      }
+      log_learning_progress: {
+        Args: { p_amount: number; p_assignment_id: string; p_date: string }
+        Returns: {
+          completed_at: string | null
+          created_at: string
+          done: number
+          due_date: string
+          id: string
+          link_id: string | null
+          month_start: string
+          position: number
+          resource_type: string
+          skill_id: string | null
+          status: string
+          title: string
+          total: number
+          unit: string
+          updated_at: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "learning_assignments"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       match_vanguard_content: {
         Args: {

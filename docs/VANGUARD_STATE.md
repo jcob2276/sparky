@@ -417,24 +417,22 @@ Połączenia:
 
 ### `/rozwoj` — Rozwój
 
-**Cel:** prowadzić rozwój umiejętności przez praktykę i dowody.
+**Cel:** wymusić zewnętrzny kierunek nauki: co w tym miesiącu muszę przeczytać lub opanować, bez pisania wniosków.
 
 Funkcje:
 
-- tożsamość rozwojowa;
-- mapa pojemności;
-- aktywna ścieżka;
-- biblioteka umiejętności i materiałów;
-- praktyka oraz dowody;
-- tygodniowy przegląd;
-- eksperymenty rozwojowe.
+- **plan nauki miesiąca**: maksymalnie 3 pozycje (książka, kurs, artykuł, wideo, podcast) z ilością (strony, minuty, lekcje, sztuki), terminem i opcjonalną umiejętnością z drzewa `learning_skills`;
+- **dzienny slot** liczony z tego, co zostało, i dni do terminu („str. 41–59, ok. 48 min”), jedno kliknięcie „Zrobione?” (ponowne cofa); status tempa: przed planem, zgodnie, za planem;
+- materiały wybierane z nieprzeczytanych w Pocket (`vanguard_links`) albo własne; z Pocket także przyciskiem „Do planu nauki” w szczegółach linku;
+- historia poprzednich miesięcy (skończone, odpuszczone, niedokończone).
+
+Dane: `learning_assignments` (pozycje) i `learning_progress_log` (ilość na dzień); zapis postępu tylko przez RPC `log_learning_progress` (idempotentny na dzień, 0 cofa, sam ustawia `done`/`status`). Stare bloby `library_items` i `practice_evidences` w `vanguard_identity` były puste i nie są już używane.
 
 Połączenia:
 
-- aktywna umiejętność powinna być projektem Kierunku;
-- konkretna praktyka trafia do Todo/Tygodnia;
-- dowody trafiają do Historii;
-- Fundament dostarcza świadomy kontekst.
+- poranny plan dnia pokazuje „Nauka na dziś” z jednym kliknięciem, a bez planu przypomina o jego ustawieniu;
+- Pocket dostarcza materiały, a drzewo umiejętności daje cel pozycji;
+- planowane: Telegram (`/nauka`, przycisk „Zrobione”), blok w kalendarzu, zamknięcie miesiąca z przeniesieniem niedokończonych, wirtualna półka z ukończonymi pozycjami.
 
 ### `/settings` — Ustawienia
 
