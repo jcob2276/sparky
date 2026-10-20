@@ -7,39 +7,34 @@ import {
   useOuraHistory30Days,
   useOuraNightDetails,
 } from '../../../lib/biometricsApi';
-import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
+import { shiftDateStr } from '../../../lib/date';
 import { useCorrelationsQuery } from '../../../lib/correlationsApi';
 import { useUserId } from '../../../store/useStore';
-import { OuraHealthView, type OuraSection } from './OuraHealthView';
+import { OuraHealthView } from './OuraHealthView';
+import type { DetailsAnchor, OuraSection } from './ouraTabs';
+import { useSleepDrivers } from '../../../lib/biometrics/sleepDrivers/useSleepDrivers';
 import { syncOura, computeDailyStrain } from '../../../lib/syncApi';
 import { notify } from '../../../lib/notify';
 import { biometricsKeys } from '../../../lib/queryKeys';
-import { useFuelingContext } from './useFuelingContext';
 
 export function OuraHealthContainer() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const userId = useUserId();
-  const [activeSection, setActiveSection] = useState<OuraSection>('overview');
-  const [sleepOpen, setSleepOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<OuraSection>('today');
+  const [detailsAnchor, setDetailsAnchor] = useState<DetailsAnchor | undefined>(undefined);
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const todayStr = getTodayWarsaw();
+  const drivers = useSleepDrivers(userId);
   const dailyQuery = useDailyStrainOura(userId ?? '');
   const historyQuery = useOuraHistory30Days(userId ?? '');
   const correlationsQuery = useCorrelationsQuery(userId, false);
   const selectedDate = dailyQuery.data?.date ?? null;
-  const nutritionQuery = useFuelingContext(userId, selectedDate ?? todayStr);
   const nightQuery = useOuraNightDetails(
     userId ?? '',
     selectedDate,
     dailyQuery.data?.enhanced?.bedtime_start ?? null,
     dailyQuery.data?.enhanced?.bedtime_end ?? null,
-  );
-  const todayContextQuery = useOuraContext(
-    userId ?? '',
-    todayStr,
-    null,
   );
   const nightContextQuery = useOuraContext(
     userId ?? '',
@@ -80,17 +75,14 @@ export function OuraHealthContainer() {
       ...(historyQuery.data?.sourceErrors ?? []).map((error) => ({ ...error, source: `Historia · ${error.source}` })),
       ...(nightQuery.data?.sourceErrors ?? []),
       ...(correlationsQuery.data?.sourceErrors ?? []),
-      ...(todayContextQuery.data?.sourceErrors ?? []).map((error) => ({ ...error, source: `${todayStr} · ${error.source}` })),
       ...(nightContextQuery.data?.sourceErrors ?? []).map((error) => ({ ...error, source: `Przed nocą · ${error.source}` })),
       ...[
         { source: 'Pomiary dnia', error: dailyQuery.error },
         { source: 'Historia Oura', error: historyQuery.error },
         { source: 'Przebieg nocy', error: nightQuery.error },
-        { source: 'Kontekst dnia', error: todayContextQuery.error },
         { source: 'Kontekst nocy', error: nightContextQuery.error },
         { source: 'Korelacje', error: correlationsQuery.error },
-        { source: 'Żywienie', error: nutritionQuery.error },
-        { source: 'Cel żywienia', error: nutritionQuery.data?.targetError ? { message: nutritionQuery.data.targetError } : null },
+        { source: 'Zależności snu', error: drivers.error },
       ].flatMap(({ source, error }) => error ? [{ source, message: error.message }] : []),
     ],
     userId,
@@ -107,29 +99,30 @@ export function OuraHealthContainer() {
     garminVo2Max: dailyQuery.data?.garminVo2Max ?? null,
     externalVo2Source: dailyQuery.data?.externalVo2Source ?? null,
     nightDetails: nightQuery.data ?? null,
-    todayContext: todayContextQuery.data ?? null,
     nightContext: nightContextQuery.data ?? null,
     correlations: correlationsQuery.data ?? null,
     correlationsError: correlationsQuery.error?.message ?? null,
     correlationsLoading: correlationsQuery.isLoading,
-    stravaActivities: dailyQuery.data?.stravaRows ?? [],
-    nutrition: nutritionQuery.data ?? null,
-    nutritionError: nutritionQuery.error?.message ?? null,
-    nutritionLoading: nutritionQuery.isLoading,
   };
 
   return (
     <OuraHealthView
       activeSection={activeSection}
       data={data}
-      isLoading={dailyQuery.isLoading || historyQuery.isLoading || nightQuery.isLoading || todayContextQuery.isLoading || nightContextQuery.isLoading}
+      detailsAnchor={detailsAnchor}
+      drivers={drivers}
+      isLoading={dailyQuery.isLoading || historyQuery.isLoading || nightQuery.isLoading || nightContextQuery.isLoading}
       isSyncing={isSyncing}
       onExit={() => navigate(-1)}
-      onOpenSleep={() => setSleepOpen(true)}
-      onSectionChange={setActiveSection}
-      onSleepClose={() => setSleepOpen(false)}
+      onOpenDetails={(anchor) => {
+        setDetailsAnchor(anchor);
+        setActiveSection('details');
+      }}
+      onSectionChange={(section) => {
+        if (section === 'today') setDetailsAnchor(undefined);
+        setActiveSection(section);
+      }}
       onSync={handleSync}
-      sleepOpen={sleepOpen}
     />
   );
 }

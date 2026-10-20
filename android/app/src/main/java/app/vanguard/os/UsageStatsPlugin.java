@@ -106,6 +106,7 @@ public class UsageStatsPlugin extends Plugin {
 
         Map<String, Long> packageMs = new HashMap<>();
         long[] lateNightAcc = new long[] { 0L };
+        long[] bucketAcc = new long[UsageBuckets.COUNT];
 
         while (events.hasNextEvent()) {
             events.getNextEvent(event);
@@ -122,7 +123,7 @@ public class UsageStatsPlugin extends Plugin {
                 }
             } else if (type == UsageEvents.Event.KEYGUARD_SHOWN) {
                 if (sessionStartMs > 0L) {
-                    recordSession(currentForegroundPkg, sessionStartMs, ts, beginMs, endMs, packageMs, lateNightAcc);
+                    recordSession(currentForegroundPkg, sessionStartMs, ts, beginMs, endMs, packageMs, lateNightAcc, bucketAcc);
                     sessionStartMs = 0L;
                 }
                 isKeyguardHidden = false;
@@ -133,7 +134,7 @@ public class UsageStatsPlugin extends Plugin {
                 }
             } else if (type == UsageEvents.Event.SCREEN_NON_INTERACTIVE) {
                 if (sessionStartMs > 0L) {
-                    recordSession(currentForegroundPkg, sessionStartMs, ts, beginMs, endMs, packageMs, lateNightAcc);
+                    recordSession(currentForegroundPkg, sessionStartMs, ts, beginMs, endMs, packageMs, lateNightAcc, bucketAcc);
                     sessionStartMs = 0L;
                 }
                 isScreenInteractive = false;
@@ -141,7 +142,7 @@ public class UsageStatsPlugin extends Plugin {
                 || type == UsageEvents.Event.MOVE_TO_FOREGROUND) {
                 String newPkg = event.getPackageName();
                 if (sessionStartMs > 0L) {
-                    recordSession(currentForegroundPkg, sessionStartMs, ts, beginMs, endMs, packageMs, lateNightAcc);
+                    recordSession(currentForegroundPkg, sessionStartMs, ts, beginMs, endMs, packageMs, lateNightAcc, bucketAcc);
                     sessionStartMs = 0L;
                 }
                 currentForegroundPkg = newPkg;
@@ -154,14 +155,14 @@ public class UsageStatsPlugin extends Plugin {
                 String pkg = event.getPackageName();
                 if (pkg != null && pkg.equals(currentForegroundPkg)) {
                     if (sessionStartMs > 0L) {
-                        recordSession(currentForegroundPkg, sessionStartMs, ts, beginMs, endMs, packageMs, lateNightAcc);
+                        recordSession(currentForegroundPkg, sessionStartMs, ts, beginMs, endMs, packageMs, lateNightAcc, bucketAcc);
                         sessionStartMs = 0L;
                     }
                     currentForegroundPkg = null;
                 }
             } else if (type == UsageEvents.Event.DEVICE_SHUTDOWN) {
                 if (sessionStartMs > 0L) {
-                    recordSession(currentForegroundPkg, sessionStartMs, ts, beginMs, endMs, packageMs, lateNightAcc);
+                    recordSession(currentForegroundPkg, sessionStartMs, ts, beginMs, endMs, packageMs, lateNightAcc, bucketAcc);
                     sessionStartMs = 0L;
                 }
                 isScreenInteractive = false;
@@ -182,10 +183,11 @@ public class UsageStatsPlugin extends Plugin {
 
         if (sessionStartMs > 0L && currentForegroundPkg != null && isScreenInteractive && isKeyguardHidden) {
             long safeEnd = Math.min(endMs, sessionStartMs + MAX_SESSION_MS);
-            recordSession(currentForegroundPkg, sessionStartMs, safeEnd, beginMs, endMs, packageMs, lateNightAcc);
+            recordSession(currentForegroundPkg, sessionStartMs, safeEnd, beginMs, endMs, packageMs, lateNightAcc, bucketAcc);
         }
 
-        // Fallback to queryUsageStats if event log is completely empty
+        // Fallback to queryUsageStats if event log is completely empty (no hourly data then)
+        boolean hasBuckets = !packageMs.isEmpty();
         if (packageMs.isEmpty()) {
             List<UsageStats> statsList = manager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, beginMs, endMs);
             if (statsList != null) {
@@ -220,6 +222,13 @@ public class UsageStatsPlugin extends Plugin {
         ret.put("unlocks", unlocks);
         ret.put("lateNightMs", safeLateNightMs);
         ret.put("totalForegroundMs", totalForegroundMs);
+        if (hasBuckets) {
+            JSArray bucketMinutes = new JSArray();
+            for (int m : UsageBuckets.toMinutes(bucketAcc, totalForegroundMs)) {
+                bucketMinutes.put(m);
+            }
+            ret.put("bucketMinutes", bucketMinutes);
+        }
         call.resolve(ret);
     }
 
@@ -249,7 +258,8 @@ public class UsageStatsPlugin extends Plugin {
         long beginMs,
         long endMs,
         Map<String, Long> packageMs,
-        long[] lateNightAcc
+        long[] lateNightAcc,
+        long[] bucketAcc
     ) {
         if (pkg == null || isSystemPackage(pkg)) return;
 
@@ -272,6 +282,7 @@ public class UsageStatsPlugin extends Plugin {
 
         long late = calculateLateNightOverlap(effectiveStart, effectiveEnd);
         lateNightAcc[0] += late;
+        UsageBuckets.add(bucketAcc, WARSAW, effectiveStart, effectiveEnd);
     }
 
     private long calculateLateNightOverlap(long startMs, long endMs) {

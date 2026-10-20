@@ -30,6 +30,7 @@ export const biometricsKeys = {
   ouraContext: (userId: string, date: string, bedtimeStart?: string | null) => [...biometricsKeys.all, 'ouraContext', userId, date, bedtimeStart ?? null] as const,
   ouraHistory30: (userId: string) => [...biometricsKeys.all, 'ouraHistory30', userId] as const,
   weeklyPulse: (userId: string, since: string) => [...biometricsKeys.all, 'weeklyPulse', userId, since] as const,
+  sleepDrivers: (userId: string) => [...biometricsKeys.all, 'sleepDrivers', userId] as const,
 };
 
 

@@ -3,7 +3,6 @@ import { buildSleepTimeline, type SleepStage } from '../../../lib/biometrics/our
 import { SleepMovementRow } from './SleepMovementRow';
 import { SleepStageSummary } from './SleepStageSummary';
 import type { OuraHealthHubData } from './types';
-import { OuraContextSection } from './OuraContextSection';
 import { NightSignalChart } from './NightSignalChart';
 
 const STAGE_HEIGHT: Record<SleepStage, string> = {
@@ -52,6 +51,7 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
     ? (Date.parse(bedtimeEnd) - Date.parse(bedtimeStart)) / 3_600_000
     : null;
   const timeInBedHours = enhanced?.time_in_bed_hours ?? (oura && bedtimeDurationHours != null ? bedtimeDurationHours : null);
+  const sleepScore = enhanced?.sleep_score ?? oura?.sleep_score ?? null;
   const totalSleepMinutes = totalSleepHours == null ? null : Math.round(totalSleepHours * 60);
   const remHours = enhanced?.rem_sleep_hours ?? oura?.rem_sleep_hours ?? null;
   const deepHours = enhanced?.deep_sleep_hours ?? oura?.deep_sleep_hours ?? null;
@@ -93,10 +93,10 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
 
   return (
     <div className="space-y-5">
-      <header className="px-1">
-        <p className="text-sm text-text-muted">{date ?? 'Brak wybranej daty'}</p>
-        <h1 className="mt-2 text-4xl font-light text-white">Szczegółowe dane</h1>
-      </header>
+      <p className="px-1 text-sm text-text-muted">
+        Noc zakończona {date ?? '— brak wybranej daty'}
+        {sleepScore != null && <> · wynik snu <span className="font-semibold text-text-primary">{Math.round(sleepScore)}</span></>}
+      </p>
 
       <section className="overflow-hidden rounded-xl border border-white/5 bg-surface-2">
         <div className="p-6">
@@ -187,7 +187,6 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
         title="Zmienność tętna"
         unit="ms"
       />
-      <OuraContextSection context={data.nightContext ?? data.context} />
     </div>
   );
 }

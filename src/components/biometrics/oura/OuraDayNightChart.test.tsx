@@ -8,11 +8,11 @@ const noop = () => undefined;
 describe('OuraDayNightChart', () => {
   beforeEach(() => window.localStorage.clear());
 
-  it('renders lanes, summary and an accessible description', () => {
+  it('renders lanes without a duplicated caffeine summary and an accessible description', () => {
     render(<OuraDayNightChart timeline={ouraDayTimelineFixture} loading={false} onPrevNight={noop} />);
     expect(screen.getByRole('img', { name: /Wykres dzień-noc.*23:40.*07:30/ })).toBeInTheDocument();
     expect(screen.getByText('Fazy snu')).toBeInTheDocument();
-    expect(screen.getByText(/ostatnia kofeina 11:40 → sen: 12 h/)).toBeInTheDocument();
+    expect(screen.queryByText('Kofeina łącznie')).not.toBeInTheDocument();
     expect(screen.getByRole('table', { name: /Dzień i noc w tabeli/ })).toBeInTheDocument();
   });
 
@@ -51,14 +51,14 @@ describe('OuraDayNightChart', () => {
     expect(document.querySelector('.oura-dn-cursor')).toBeNull();
   });
 
-  it('switches between day+night and night-only, remembers the choice and shows the pre-sleep strip', () => {
+  it('switches between day+night and night-only, remembers the choice without a duplicate pre-sleep note', () => {
     const { unmount } = render(<OuraDayNightChart timeline={ouraDayTimelineFixture} loading={false} onPrevNight={noop} />);
     expect(screen.getByRole('tab', { name: 'Dzień + noc' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByText('Kofeina w ciele · szczyt 137 mg')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('tab', { name: 'Tylko noc' }));
     expect(screen.getByRole('tab', { name: 'Tylko noc' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.queryByText(/Kofeina w ciele · szczyt/)).not.toBeInTheDocument();
-    expect(screen.getByText(/przed snem: ostatnia kofeina 11:40/)).toBeInTheDocument();
+    expect(screen.queryByText(/przed snem: ostatnia kofeina/)).not.toBeInTheDocument();
     expect(window.localStorage.getItem('oura-day-night-view')).toBe('night');
     unmount();
     render(<OuraDayNightChart timeline={ouraDayTimelineFixture} loading={false} onPrevNight={noop} />);

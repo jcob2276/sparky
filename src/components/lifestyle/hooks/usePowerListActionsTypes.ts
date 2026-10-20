@@ -2,7 +2,7 @@ import type { TaskSlot, DailyWinWithTasks, ProjectOption } from '../usePowerList
 import type { useDirectionContext } from '../direction/hooks/useDirectionContext';
 import type { PillarProjectBinding } from '../../../lib/dailyPlanProposal';
 
-export type DirectionContextValue = ReturnType<typeof useDirectionContext>;
+type DirectionContextValue = ReturnType<typeof useDirectionContext>;
 
 export interface UsePowerListActionsArgs {
   userId: string;

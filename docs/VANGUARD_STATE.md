@@ -259,15 +259,16 @@ Połączenia:
 
 ### `/oura` — Oura
 
-**Cel:** głęboka analiza regeneracji i danych z pierścienia.
+**Cel:** głęboka analiza regeneracji i danych z pierścienia, z naciskiem na to, **co wpływa na sen**.
 
-Funkcje:
+Strona ma dwie zakładki (powłoka: `OuraHealthView`, tylko do odczytu, bez formularzy):
 
-- sen, readiness, HRV, RHR, stres i aktywność;
-- szczegółowe fazy snu i timeline tętna/HRV;
-- trendy i wybór zakresu dat;
-- korelacje związane z Oura;
-- status synchronizacji i BLE.
+- **Dziś** (`oura/today/`): werdykt i 3 pierścienie, tylko odchylenia od normy, oś dzień→noc, pasek „co poprzedzało tę noc” (kawa, posiłek, trening, sauna, telefon po 21:30, komputer), top 3–4 zależności z silnika;
+- **Szczegóły** (`oura/details/`): pełny sen (fazy, tętno, HRV), rytm i regularność, **pełna lista zależności snu wraz z pokryciem danych**, obciążenie → regeneracja, parametry życiowe i wiek biologiczny, zwijane wykresy.
+
+Silnik zależności: `src/lib/biometrics/sleepDrivers/` (czyste funkcje + `sleepDriversApi.ts` + hook `useSleepDrivers`). Korelacja Spearmana czynnik × wynik snu (kawa, posiłek, trening, sauna, telefon, komputer) oraz sen → Top 5. Progi pewności są ostre z powodu wielu testów (`evidence.ts`): potwierdzone p<0.001, prawdopodobne p<0.01, wstępne p<0.05; bez istotności silnik mówi „jeszcze nic pewnego”.
+
+Źródła aktywności: **Garmin** (`strava_activities` z `source='garmin_intervals'`, nazwa tabeli historyczna) i dziennik treningów; kroki z Oura. Strava nie istnieje (12 martwych wierszy do 2026-06-10). Komputer: `aw_daily_summary` (ActivityWatch), synchronizacja stoi od 2026-06-10 i silnik oznacza to jako nieświeże.
 
 Połączenia:
 
@@ -540,6 +541,13 @@ Grupy:
 | Open Food Facts | informacje o produktach | Food logger |
 | ActivityWatch / Android Usage Stats | użycie urządzeń | zachowanie i korelacje |
 | Android lokalizacja | kontekst miejsca | stream/agregaty po podłączeniu konsumenta |
+
+Android Usage Stats → `phone_usage_daily`: oprócz sum dziennych i `late_night_minutes` (okno 23:00–04:00
+zaszyte w Javie) plugin zapisuje `usage_buckets` — 48 półgodzinnych kubełków minut pierwszoplanowych
+(indeks 0 = 00:00–00:30, strefa `Europe/Warsaw`, kubełek wg lokalnej godziny ściennej; w dniach DST
+powtórzona godzina sumuje się do kubełka, max 30 min). Dowolny próg wieczorny (np. 21:30) liczy aplikacja
+z kubełków. Wiersze sprzed wdrożenia nowego APK mają `usage_buckets = NULL` i nie da się ich odtworzyć;
+dane godzinowe pojawiają się dopiero od pierwszego synca ze zbudowanym nowym APK.
 
 ## Zasady interpretacji
 

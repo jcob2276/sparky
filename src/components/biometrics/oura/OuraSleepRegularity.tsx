@@ -26,17 +26,15 @@ function buildAriaLabel(d: SleepRegularity): string {
 }
 
 function Stats({ d }: { d: SleepRegularity }) {
-  const source = d.targetSource === 'personal' ? 'mediana z ostatnich nocy' : 'domyślnie, za mało danych';
   return (
     <>
       <dl className="oura-sr-stats">
         <div><dt>Mediana zaśnięcia</dt><dd>{formatAxisClock(d.medianBedtimeAxis ?? 0)}</dd></div>
         <div><dt>Odchylenie</dt><dd>±{d.bedtimeStdMin} min</dd></div>
-        <div><dt>Dług snu</dt><dd>{d.sleepDebtMinutes ? formatDuration(d.sleepDebtMinutes) : 'brak'}</dd></div>
       </dl>
       <p className="oura-sr-note">
         Spójność: {d.nightsWithinTolerance} z {d.nights.length} nocy ({d.consistencyPct}%) z zaśnięciem w ±{CONSISTENCY_TOLERANCE_MIN} min od mediany.
-        Odchylenie pobudki ±{d.wakeStdMin} min. Dług = suma niedoborów snu względem celu {formatDuration(d.targetMinutes)} ({source}).
+        Odchylenie pobudki ±{d.wakeStdMin} min.
       </p>
     </>
   );
@@ -53,7 +51,7 @@ function Chart({ d }: { d: SleepRegularity }) {
     : '';
   return (
     <>
-      <div ref={ref} className="oura-sr-plot">
+      <div ref={ref} className="oura-sr-plot min-w-0 overflow-hidden">
         <OuraSleepRegularityPlot
           data={d} width={width} activeDate={activeDate} onActiveChange={(date, x) => setPick((prev) => ({ date, x: x ?? prev.x }))} ariaLabel={buildAriaLabel(d)}
         />
@@ -110,7 +108,7 @@ function Body({ data, loading, error }: OuraSleepRegularityProps) {
 
 export function OuraSleepRegularity(props: OuraSleepRegularityProps) {
   return (
-    <section className="oura-sr" aria-labelledby="oura-sr-title">
+    <section className="oura-sr grid-cols-1" aria-labelledby="oura-sr-title">
       <header>
         <h3 id="oura-sr-title">Regularność snu</h3>
         <p>Pory zaśnięcia i pobudki z ostatnich 14 nocy (oś od 18:00)</p>

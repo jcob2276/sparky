@@ -10,7 +10,7 @@ const sources = vi.hoisted(() => ({
   syncOura: vi.fn(),
   computeDailyStrain: vi.fn(),
   dailyError: null as Error | null,
-  nutrition: { data: null as { targetError?: string } | null, error: null as Error | null, isLoading: false },
+  drivers: { data: null as unknown, error: null as Error | null, isLoading: false },
   correlations: { data: { sourceErrors: [] as Array<{ source: string; message: string }> }, error: null as Error | null, isLoading: false },
   daily: { date: '2026-10-16', row: null, oura: { date: '2026-10-16', readiness_score: 80 }, sourceErrors: [{ source: 'oura_enhanced', message: 'offline' }] },
 }));
@@ -24,14 +24,14 @@ vi.mock('../../../lib/biometricsApi', () => ({
   useOuraContext: () => ({ data: { sourceErrors: [{ source: 'daily_food_entries', message: 'food offline' }] }, isLoading: false }),
 }));
 vi.mock('../../../lib/correlationsApi', () => ({ useCorrelationsQuery: () => sources.correlations }));
-vi.mock('./useFuelingContext', () => ({ useFuelingContext: () => sources.nutrition }));
+vi.mock('../../../lib/biometrics/sleepDrivers/useSleepDrivers', () => ({ useSleepDrivers: () => sources.drivers }));
 vi.mock('./OuraHealthView', () => ({ OuraHealthView: vi.fn(() => null) }));
 let client: QueryClient;
 beforeEach(() => {
   vi.clearAllMocks(); sources.dailyError = null;
   sources.syncOura.mockResolvedValue(undefined);
   sources.computeDailyStrain.mockResolvedValue(undefined);
-  sources.nutrition = { data: null, error: null, isLoading: false };
+  sources.drivers = { data: null, error: null, isLoading: false };
   sources.correlations = { data: { sourceErrors: [] }, error: null, isLoading: false };
   client = new QueryClient();
 });
@@ -52,33 +52,29 @@ describe('health read error wiring', () => {
     expect(vi.mocked(OuraHealthView).mock.lastCall![0].isSyncing).toBe(false);
     expect(notify).toHaveBeenCalledWith('Pomiary Oura pobrane; nie udało się przeliczyć obciążenia', 'error');
   });
-  it('exposes nutrition and partial correlation failures in the global warning', () => {
-    sources.nutrition.error = new Error('food offline');
+  it('exposes partial correlation failures in the global warning', () => {
     sources.correlations.data.sourceErrors = [{ source: 'Korelacje', message: 'correlations offline' }];
     const data = show();
-    expect(data.sourceErrors).toEqual(expect.arrayContaining([
-      { source: 'Żywienie', message: 'food offline' },
-      { source: 'Korelacje', message: 'correlations offline' },
-    ]));
+    expect(data.sourceErrors).toContainEqual({ source: 'Korelacje', message: 'correlations offline' });
   });
-  it('exposes target refresh failure and whole correlation failure', () => {
-    sources.nutrition.data = { targetError: 'target offline' };
+  it('exposes whole correlation failure and sleep-driver failure', () => {
     sources.correlations.error = new Error('request failed');
+    sources.drivers.error = new Error('drivers offline');
     const data = show();
-    expect(data.sourceErrors).toContainEqual({ source: 'Cel żywienia', message: 'target offline' });
     expect(data.correlationsError).toBe('request failed');
+    expect(data.sourceErrors).toContainEqual({ source: 'Zależności snu', message: 'drivers offline' });
   });
-  it('marks pending nutrition and correlations without blocking the overview', () => {
-    sources.nutrition.isLoading = true;
+  it('marks pending correlations without blocking the view', () => {
     sources.correlations.isLoading = true;
     const data = show();
-    expect(data.nutritionLoading).toBe(true);
     expect(data.correlationsLoading).toBe(true);
     expect(vi.mocked(OuraHealthView).mock.lastCall![0].isLoading).toBe(false);
   });
-  it('opens the direction overview by default', () => {
+  it('opens the "Dziś" tab by default and passes the sleep drivers through', () => {
     show();
-    expect(vi.mocked(OuraHealthView).mock.lastCall![0].activeSection).toBe('overview');
+    const props = vi.mocked(OuraHealthView).mock.lastCall![0];
+    expect(props.activeSection).toBe('today');
+    expect(props.drivers).toBe(sources.drivers);
   });
   it('forwards errors from all read windows while retaining the known daily reading', () => {
     const data = show();
@@ -89,7 +85,6 @@ describe('health read error wiring', () => {
       { source: 'oura_sleep_hr_timeline', message: 'HR offline' },
       { source: 'Przed nocą · daily_food_entries', message: 'food offline' },
     ]));
-    expect(data.sourceErrors?.filter((error) => error.message === 'food offline')).toHaveLength(2);
   });
   it('also forwards whole-query failures during a refresh without deleting cached readings', () => {
     sources.dailyError = new Error('network unavailable');

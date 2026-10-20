@@ -34,7 +34,9 @@ function Ring({ ring, onOpen }: { ring: RingModel; onOpen: () => void }) {
         <span className="oura-ring-value">{ring.valueText}</span>
       </span>
       <span className="block text-center text-sm font-medium">{ring.label}</span>
-      <span className="oura-ring-band block text-center text-xs font-semibold" data-band={ring.band ?? ring.key}>{ring.bandLabel}</span>
+      {ring.bandLabel !== ring.label && (
+        <span className="oura-ring-band block text-center text-xs font-semibold" data-band={ring.band ?? ring.key}>{ring.bandLabel}</span>
+      )}
       {ring.deltaText && (
         <span className="flex w-full items-center justify-center gap-1 text-center text-xs leading-4 text-text-muted">
           <TrendIcon trend={ring.trend} />{ring.deltaText}

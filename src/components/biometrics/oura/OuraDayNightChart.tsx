@@ -8,7 +8,7 @@ import Tabs from '../../ui/Tabs';
 import { resolveViewWindow, type ViewMode } from './ouraDayNightLayout';
 import { OuraDayNightPlot } from './OuraDayNightPlot';
 import {
-  buildAltRows, buildPreSleepNote, caffeineGap, describeMoment, formatClock, formatMomentLine, STAGE_LABEL,
+  buildAltRows, describeMoment, formatMomentLine, STAGE_LABEL,
 } from './ouraDayNightReadout';
 import { useDayNightViewMode } from './useDayNightViewMode';
 import { useElementWidth } from './useElementWidth';
@@ -26,24 +26,6 @@ const VIEW_TABS = [
   { key: 'full', label: 'Dzień + noc' },
   { key: 'night', label: 'Tylko noc' },
 ];
-
-function SummaryStats({ timeline }: { timeline: DayNightTimeline }) {
-  const { summary } = timeline;
-  const gap = caffeineGap(timeline);
-  const items: Array<[string, string]> = [
-    ['Kofeina łącznie', summary.totalCaffeineMg > 0 ? `${Math.round(summary.totalCaffeineMg)} mg` : 'brak'],
-    ['Ostatnia kofeina', summary.lastCaffeineAt ? formatClock(Date.parse(summary.lastCaffeineAt)) : 'brak'],
-    ['Przerwa do snu', gap ? gap.label : '—'],
-    ['W ciele przy śnie', summary.caffeineAtBedtimeMg === null ? '—' : `~${Math.round(summary.caffeineAtBedtimeMg)} mg`],
-  ];
-  return (
-    <dl className="oura-dn-stats">
-      {items.map(([label, value]) => (
-        <div key={label}><dt>{label}</dt><dd>{value}</dd></div>
-      ))}
-    </dl>
-  );
-}
 
 function AltTable({ timeline }: { timeline: DayNightTimeline }) {
   const rows = useMemo(() => buildAltRows(timeline), [timeline]);
@@ -67,8 +49,6 @@ function ChartBody({ timeline, mode, swapping }: { timeline: DayNightTimeline; m
   const hasSleep = timeline.sleepStart !== null && timeline.sleepEnd !== null;
   return (
     <>
-      <SummaryStats timeline={timeline} />
-      {view.mode === 'night' && <p className="oura-dn-note">{buildPreSleepNote(timeline)}</p>}
       {!hasSleep && <p className="oura-dn-note">Brak snu tej nocy — pokazuję sam dzień.</p>}
       <div ref={ref} className="oura-dn-scroll">
         <div key={view.mode} className={swapping ? 'oura-dn-swap' : undefined}>
@@ -92,7 +72,7 @@ export function OuraDayNightChart({ timeline, loading, error, onPrevNight, onNex
   const [mode, setMode] = useDayNightViewMode();
   /** Night the user switched the view on; the fade only plays for that night, never on night navigation. */
   const [swapNight, setSwapNight] = useState<string | null>(null);
-  const subtitle = timeline ? `Noc do ${formatLongDateWarsaw(`${timeline.nightDate}T12:00:00Z`)}` : 'Kofeina, suple, posiłki i noc na jednej osi';
+  const subtitle = timeline ? `Noc do ${formatLongDateWarsaw(`${timeline.nightDate}T12:00:00Z`)}` : 'Kofeina, posiłki, trening i noc na jednej osi';
   const canToggle = !loading && !error && timeline !== null && timeline.sleepStart !== null && timeline.sleepEnd !== null;
   const goPrev = () => { setSwapNight(null); onPrevNight(); };
   const goNext = onNextNight ? () => { setSwapNight(null); onNextNight(); } : undefined;
@@ -123,7 +103,7 @@ export function OuraDayNightChart({ timeline, loading, error, onPrevNight, onNex
     <section className="oura-dn" aria-labelledby="oura-dn-title">
       <header className="oura-dn-head">
         <div>
-          <h3 id="oura-dn-title">Dzień → noc</h3>
+          <h2 id="oura-dn-title">Dzień → noc</h2>
           <p>{subtitle}</p>
         </div>
         <div className="oura-dn-nav">

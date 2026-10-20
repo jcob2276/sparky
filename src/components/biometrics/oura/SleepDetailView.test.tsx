@@ -80,7 +80,7 @@ describe('SleepDetailView - totals and stages', () => {
     expect(screen.getByText('Płytki 5 h 19 min 69%')).toBeInTheDocument();
     expect(screen.getByText('Głęboki 1 h 41 min 22%')).toBeInTheDocument();
     expect(screen.getByLabelText('Zmierzony ruch: 3 zdarzenia')).toBeInTheDocument();
-    expect(screen.getByText('Kontekst przed snem')).toBeInTheDocument();
+    expect(screen.queryByText('Kontekst przed snem')).not.toBeInTheDocument();
   });
 });
 

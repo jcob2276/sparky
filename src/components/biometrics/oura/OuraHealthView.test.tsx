@@ -1,146 +1,91 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { OuraHealthView } from './OuraHealthView';
+import Button from '../../ui/Button';
 import type { OuraHealthHubData } from './types';
+import type { UseSleepDriversResult } from '../../../lib/biometrics/sleepDrivers/types';
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: false,
-    },
-  },
-});
-
-function renderWithClient(ui: React.ReactElement) {
-  return render(
-    <QueryClientProvider client={queryClient}>
-      {ui}
-    </QueryClientProvider>,
-  );
-}
+vi.mock('./today/OuraTodayView', () => ({
+  OuraTodayView: ({ onOpenDetails }: { onOpenDetails: (anchor?: 'drivers') => void }) => (
+    <Button variant="ghost" onClick={() => onOpenDetails('drivers')}>today-view</Button>
+  ),
+}));
+vi.mock('./details/OuraDetailsView', () => ({
+  OuraDetailsView: ({ initialAnchor }: { initialAnchor?: string }) => (
+    <div data-testid="details-view">{initialAnchor ?? 'no-anchor'}</div>
+  ),
+}));
 
 const data: OuraHealthHubData = {
   date: '2026-07-28',
   strainRow: null,
-  oura: {
-    date: '2026-07-28',
-    readiness_score: 88,
-    sleep_score: 84,
-  } as OuraHealthHubData['oura'],
-  enhanced: {
-    date: '2026-07-28',
-    activity_score: 91,
-  } as OuraHealthHubData['enhanced'],
+  oura: { date: '2026-07-28', readiness_score: 88, sleep_score: 84 } as OuraHealthHubData['oura'],
 };
+const drivers: UseSleepDriversResult = { data: null, isLoading: false, error: null };
+
+function renderView(overrides: Partial<Parameters<typeof OuraHealthView>[0]> = {}) {
+  const props = {
+    activeSection: 'today' as const,
+    data,
+    drivers,
+    onOpenDetails: vi.fn(),
+    onSectionChange: vi.fn(),
+    ...overrides,
+  };
+  return { ...render(<OuraHealthView {...props} />), props };
+}
 
 describe('OuraHealthView', () => {
-  it('shows a failed source while preserving available measurements', () => {
-    renderWithClient(<OuraHealthView activeSection="overview" data={{ ...data, sourceErrors: [{ source: 'oura_enhanced', message: 'offline' }] }} onOpenSleep={vi.fn()} onSectionChange={vi.fn()} />);
+  it('shows a failed source while keeping the active tab rendered', () => {
+    renderView({ data: { ...data, sourceErrors: [{ source: 'oura_enhanced', message: 'offline' }] } });
     expect(screen.getByText('Część danych zdrowia jest niedostępna')).toBeInTheDocument();
     expect(screen.getByText(/oura_enhanced: offline/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Regeneracja/ })).toHaveTextContent('88');
+    expect(screen.getByText('today-view')).toBeInTheDocument();
   });
 
-  it('keeps source failure visible inside the detailed sleep view', () => {
-    renderWithClient(<OuraHealthView activeSection="sleep" sleepOpen data={{ ...data, sourceErrors: [{ source: 'oura_sleep_phase_timeline', message: 'offline' }] }} onOpenSleep={vi.fn()} onSectionChange={vi.fn()} />);
-    expect(screen.getByText(/oura_sleep_phase_timeline: offline/)).toBeInTheDocument();
-  });
   it('isolates the Oura-first dark theme and app-width content', () => {
-    const { container } = renderWithClient(
-      <OuraHealthView
-        activeSection="overview"
-        data={data}
-        onOpenSleep={vi.fn()}
-        onSectionChange={vi.fn()}
-      />,
-    );
-
+    const { container } = renderView();
     expect(container.firstElementChild).toHaveClass('dark');
     expect(screen.getByTestId('oura-content')).toHaveClass('max-w-3xl');
   });
 
-  it('starts with direction and keeps details without duplicate Garmin history', () => {
-    renderWithClient(
-      <OuraHealthView
-        activeSection="overview"
-        data={{ ...data, stravaActivities: [{ name: 'Unique run history entry', start_date: '2026-07-28T08:00:00Z' }] }}
-        onOpenSleep={vi.fn()}
-        onSectionChange={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByRole('button', { name: 'Sen' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Przegląd' })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('button', { name: 'Jedzenie' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Parametry' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Twój kierunek' })).toBeInTheDocument();
-    expect(screen.getByText('Zbieramy dane do porównania')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Garmin' })).not.toBeInTheDocument();
-    expect(screen.queryByText('Unique run history entry')).not.toBeInTheDocument();
+  it('offers exactly two tabs and marks the active one', () => {
+    renderView();
+    expect(screen.getByRole('button', { name: 'Dziś' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Szczegóły' })).toHaveAttribute('aria-pressed', 'false');
+    for (const removed of ['Przegląd', 'Sen', 'Jedzenie', 'Parametry']) {
+      expect(screen.queryByRole('button', { name: removed })).not.toBeInTheDocument();
+    }
   });
 
-  it('requests the selected section', () => {
-    const onSectionChange = vi.fn();
-    renderWithClient(
-      <OuraHealthView
-        activeSection="sleep"
-        data={data}
-        onOpenSleep={vi.fn()}
-        onSectionChange={onSectionChange}
-      />,
-    );
-
-    fireEvent.click(screen.getByRole('button', { name: 'Parametry' }));
-    expect(onSectionChange).toHaveBeenCalledWith('vitals');
+  it('requests the details tab from the navigation', () => {
+    const { props } = renderView();
+    fireEvent.click(screen.getByRole('button', { name: 'Szczegóły' }));
+    expect(props.onSectionChange).toHaveBeenCalledWith('details');
   });
 
-  it('opens sleep details from the overview reading', () => {
-    const onSectionChange = vi.fn();
-    renderWithClient(<OuraHealthView activeSection="overview" data={data} onOpenSleep={vi.fn()} onSectionChange={onSectionChange} />);
-    fireEvent.click(screen.getByRole('button', { name: /^Sen:/ }));
-    expect(onSectionChange).toHaveBeenCalledWith('sleep');
+  it('lets the Dziś tab jump to a section of Szczegóły', () => {
+    const { props } = renderView();
+    fireEvent.click(screen.getByText('today-view'));
+    expect(props.onOpenDetails).toHaveBeenCalledWith('drivers');
   });
 
-  it('shows practical sleep and heart metrics in Parametry', () => {
-    renderWithClient(
-      <OuraHealthView
-        activeSection="vitals"
-        data={{
-          ...data,
-          birthDateStr: '1998-01-01',
-          enhanced: {
-            date: '2026-07-28',
-            vascular_age: 23,
-            sleep_average_breath: 13.625,
-            total_sleep_hours: 7.5,
-            bedtime_start: '2026-07-27T23:10:00+02:00',
-            bedtime_end: '2026-07-28T07:10:00+02:00',
-            readiness_contributors: { sleep_regularity: 88 },
-          } as unknown as NonNullable<OuraHealthHubData['enhanced']>,
-          enhancedHistory: [{
-            date: '2026-07-27',
-            total_sleep_hours: 7.5,
-            bedtime_start: '2026-07-26T23:00:00+02:00',
-            bedtime_end: '2026-07-27T07:00:00+02:00',
-          } as unknown as NonNullable<OuraHealthHubData['enhanced']>],
-          ouraHistory: [
-            { date: '2026-07-27', total_sleep_hours: 7.5 },
-            { date: '2026-07-28', total_sleep_hours: 7.5 },
-          ] as OuraHealthHubData['ouraHistory'],
-        }}
-        onOpenSleep={vi.fn()}
-        onSectionChange={vi.fn()}
-      />,
-    );
+  it('renders Szczegóły with the requested anchor', () => {
+    renderView({ activeSection: 'details', detailsAnchor: 'drivers' });
+    expect(screen.getByTestId('details-view')).toHaveTextContent('drivers');
+    expect(screen.queryByText('today-view')).not.toBeInTheDocument();
+  });
 
-    expect(screen.getByText('Zegar biologiczny')).toBeInTheDocument();
-    expect(screen.getByText('Regularność snu')).toBeInTheDocument();
-    expect(screen.getByText('Bilans snu')).toBeInTheDocument();
-    expect(screen.getByText(/Potrzeba 16 h 0 min − sen 15 h 0 min/)).toBeInTheDocument();
-    expect(screen.getByText('Wiek sercowo-naczyniowy')).toBeInTheDocument();
-    const breathingCard = screen.getAllByRole('article').find(card => within(card).queryByText('Częstotliwość oddechu'));
-    expect(breathingCard).toBeDefined();
-    expect(within(breathingCard!).getByText('13,6/min')).toBeInTheDocument();
+  it('shows a loading state instead of either tab', () => {
+    renderView({ isLoading: true });
+    expect(screen.getByText(/Synchronizuję pomiary zdrowia/)).toBeInTheDocument();
+    expect(screen.queryByText('today-view')).not.toBeInTheDocument();
+  });
+
+  it('exposes sync only when a handler is supplied', () => {
+    const { rerender, props } = renderView();
+    expect(screen.queryByRole('button', { name: 'Synchronizuj z Oura' })).not.toBeInTheDocument();
+    rerender(<OuraHealthView {...props} onSync={vi.fn()} />);
+    expect(screen.getByRole('button', { name: 'Synchronizuj z Oura' })).toBeInTheDocument();
   });
 });

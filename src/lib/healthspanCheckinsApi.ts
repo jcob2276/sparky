@@ -1,9 +1,6 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format, startOfWeek } from 'date-fns';
 import type { FunctionalAgeProfile, HealthspanContributorKey } from '@vanguard/domain';
-import type { Json } from './database.types';
 import { getTodayWarsaw } from './date';
-import { healthspanKeys } from './queryKeys';
 import { supabase } from './supabase';
 
 export interface HealthspanCheckinPayload {
@@ -30,7 +27,6 @@ export interface HealthspanCheckinPayload {
   activityType?: string;
 }
 
-export type HealthspanCheckinPeriod = 'daily' | 'weekly' | 'manual';
 
 export interface HealthspanLeverRow {
   id: string;
@@ -57,38 +53,6 @@ export const evaluateHealthspanLeverOutcome = (
   if (actual == null) return 'no_data';
   return actual >= (target ?? (baseline ?? actual) + 5) ? 'success' : 'fail';
 };
-
-async function saveHealthspanCheckin(input: {
-  userId: string;
-  period: HealthspanCheckinPeriod;
-  date?: string;
-  payload: HealthspanCheckinPayload;
-}) {
-  const { error } = await supabase.from('healthspan_checkins').upsert({
-    user_id: input.userId,
-    checkin_date: input.date ?? getTodayWarsaw(),
-    period: input.period,
-    payload: input.payload as Json,
-    updated_at: new Date().toISOString(),
-  }, { onConflict: 'user_id,checkin_date,period' });
-  if (error) throw error;
-}
-
-async function saveHealthspanOnboarding(
-  userId: string,
-  input: { birthDate: string; sex: 'M' | 'F'; payload: HealthspanCheckinPayload },
-) {
-  const [profileResult] = await Promise.all([
-    supabase.from('nutrition_profile').upsert({
-      user_id: userId,
-      birth_date: input.birthDate,
-      sex: input.sex,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: 'user_id' }),
-    saveHealthspanCheckin({ userId, period: 'manual', payload: input.payload }),
-  ]);
-  if (profileResult.error) throw profileResult.error;
-}
 
 export async function fetchHealthspanCheckins(userId: string, since: string) {
   const { data, error } = await supabase.from('healthspan_checkins')
@@ -174,47 +138,4 @@ async function fetchHealthspanLevers(userId: string) {
     .limit(20);
   if (error) throw error;
   return (data ?? []) as HealthspanLeverRow[];
-}
-
-async function decideHealthspanLever(
-  userId: string,
-  id: string,
-  status: 'accepted' | 'completed' | 'dismissed',
-) {
-  const { error } = await supabase.from('healthspan_levers').update({
-    status,
-    decided_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }).eq('id', id).eq('user_id', userId);
-  if (error) throw error;
-}
-
-export function useSaveHealthspanCheckin(userId: string | undefined) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: (input: { period: HealthspanCheckinPeriod; payload: HealthspanCheckinPayload }) => (
-      saveHealthspanCheckin({ userId: userId!, ...input })
-    ),
-    onSuccess: () => client.invalidateQueries({ queryKey: healthspanKeys.all }),
-  });
-}
-
-export function useSaveHealthspanOnboarding(userId: string | undefined) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: (input: { birthDate: string; sex: 'M' | 'F'; payload: HealthspanCheckinPayload }) => (
-      saveHealthspanOnboarding(userId!, input)
-    ),
-    onSuccess: () => client.invalidateQueries({ queryKey: healthspanKeys.all }),
-  });
-}
-
-export function useDecideHealthspanLever(userId: string | undefined) {
-  const client = useQueryClient();
-  return useMutation({
-    mutationFn: (input: { id: string; status: 'accepted' | 'completed' | 'dismissed' }) => (
-      decideHealthspanLever(userId!, input.id, input.status)
-    ),
-    onSuccess: () => client.invalidateQueries({ queryKey: healthspanKeys.all }),
-  });
 }

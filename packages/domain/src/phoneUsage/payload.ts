@@ -10,6 +10,8 @@ export interface PhoneUsageSnapshot {
   unlocks: number;
   lateNightMs: number;
   totalForegroundMs?: number;
+  /** 48 half-hour foreground minutes (index 0 = 00:00-00:30 Europe/Warsaw). Absent on older APKs. */
+  bucketMinutes?: number[];
 }
 
 export interface PhoneUsageDailyPayload {
@@ -25,6 +27,22 @@ export interface PhoneUsageDailyPayload {
   other_minutes: number;
   unlocks: number;
   top_apps: Array<{ app: string; pkg: string; min: number }>;
+  /** 48 half-hour buckets (index 0 = 00:00-00:30 Europe/Warsaw), or null when unavailable/invalid. */
+  usage_buckets: number[] | null;
+}
+
+export const USAGE_BUCKET_COUNT = 48;
+export const USAGE_BUCKET_MAX_MINUTES = 30;
+
+/** Returns a defensive copy when the array is 48 integers in [0, 30], else null. */
+export function normalizeUsageBuckets(raw: unknown): number[] | null {
+  if (!Array.isArray(raw) || raw.length !== USAGE_BUCKET_COUNT) return null;
+  for (const v of raw) {
+    if (typeof v !== 'number' || !Number.isInteger(v) || v < 0 || v > USAGE_BUCKET_MAX_MINUTES) {
+      return null;
+    }
+  }
+  return [...(raw as number[])];
 }
 
 /** Split integer minutes across buckets so the parts sum exactly to totalMin. */
@@ -125,5 +143,6 @@ export function buildPhoneUsageDailyPayload(
     other_minutes: minutes.other ?? 0,
     unlocks: snapshot.unlocks,
     top_apps,
+    usage_buckets: normalizeUsageBuckets(snapshot.bucketMinutes),
   };
 }

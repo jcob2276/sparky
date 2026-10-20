@@ -2,10 +2,10 @@ import { getTodayWarsaw } from '../../../../lib/date';
 import { rpcWithOfflineFallback } from '../../../../lib/offlineQueue';
 import { notify } from '../../../../lib/notify';
 
-export const OFFLINE_QUEUED_MESSAGE =
+const OFFLINE_QUEUED_MESSAGE =
   'Brak sieci — posiłek zapisany lokalnie, zsynchronizuje się automatycznie';
 
-export const SAVE_FAILED_MESSAGE = 'Zapis nie powiódł się';
+const SAVE_FAILED_MESSAGE = 'Zapis nie powiódł się';
 
 /** Macro fields shared by every `add_food_entry` payload (per 100 g). */
 export interface FoodEntryMacros {

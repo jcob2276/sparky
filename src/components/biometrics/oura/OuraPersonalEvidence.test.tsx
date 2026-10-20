@@ -17,7 +17,7 @@ describe('personal evidence read states', () => {
     const data = { ...base, correlations: {
       ...empty,
       sourceErrors: [{ source: 'Korelacje', message: 'offline' }],
-      behaviors: [{ behavior_key: 'late_meal', outcome_metric: 'recovery_score', lag_days: 1,
+      behaviors: [{ behavior_key: 'strength_workout', outcome_metric: 'recovery_score', lag_days: 1,
         n_with: 12, n_without: 15, mean_with: 70, mean_without: 75, delta: -5, pct_change: -6.7,
         cohens_d: -0.6, p_value: 0.01, significant: true, confidence: 'solid' as const, dose_response: null }],
     } };
@@ -32,6 +32,18 @@ describe('personal evidence read states', () => {
     expect(screen.getByText('Wczytuję osobiste zależności…')).toBeInTheDocument();
     expect(screen.queryByText('Trwa kalibracja zależności')).not.toBeInTheDocument();
     rerender(<OuraPersonalEvidence data={{ ...base, correlations: empty }} />);
+    expect(screen.getByText('Trwa kalibracja zależności')).toBeInTheDocument();
+  });
+
+  it('hides behaviors already covered by the sleep drivers engine', () => {
+    const data = { ...base, correlations: {
+      ...empty,
+      behaviors: [{ behavior_key: 'late_meal', outcome_metric: 'recovery_score', lag_days: 1,
+        n_with: 12, n_without: 15, mean_with: 70, mean_without: 75, delta: -5, pct_change: -6.7,
+        cohens_d: -0.6, p_value: 0.01, significant: true, confidence: 'solid' as const, dose_response: null }],
+    } };
+    render(<OuraPersonalEvidence data={data} />);
+    expect(screen.queryByText('-5.0 pkt następnego dnia')).not.toBeInTheDocument();
     expect(screen.getByText('Trwa kalibracja zależności')).toBeInTheDocument();
   });
 });

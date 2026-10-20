@@ -6,7 +6,6 @@ import type { Tables } from '../../../lib/database.types';
 import type { OuraNightDetails } from '../../../lib/biometrics/ouraNightDetails';
 import type { OuraContextInsights } from '../../../lib/biometrics/ouraContextInsights';
 import type { CorrelationsData } from '../../../lib/correlationsApi';
-import type { NutritionDayContext } from '../../../lib/health/nutritionContext';
 import type { BiometricReadError } from '../../../lib/biometricsApi';
 
 
@@ -26,30 +25,8 @@ export interface OuraHealthHubData {
   garminVo2Max?: number | null;
   externalVo2Source?: string | null;
   nightDetails?: OuraNightDetails | null;
-  context?: OuraContextInsights | null;
-  todayContext?: OuraContextInsights | null;
   nightContext?: OuraContextInsights | null;
   correlations?: CorrelationsData | null;
   correlationsError?: string | null;
   correlationsLoading?: boolean;
-  nutrition?: NutritionDayContext | null;
-  nutritionError?: string | null;
-  nutritionLoading?: boolean;
-  stravaActivities?: Array<{
-    name?: string | null;
-    distance?: number | null;
-    moving_time?: number | null;
-    elapsed_time?:number|null;
-    start_date?: string | null;
-    average_heartrate?: number | null;
-    gc_vo2max?: number | null;
-    raw_data?: unknown;
-    source?: string | null;
-    sport_type?: string | null;
-    hr_avg?: number | null;
-    hr_max?: number | null;
-    icu_hr_zone_times?: unknown;
-    gc_hr_zones?: unknown;
-  }> | null;
 }
-

@@ -4876,6 +4876,7 @@ export type Database = {
           top_apps: Json | null
           total_minutes: number | null
           unlocks: number | null
+          usage_buckets: Json | null
           user_id: string
         }
         Insert: {
@@ -4891,6 +4892,7 @@ export type Database = {
           top_apps?: Json | null
           total_minutes?: number | null
           unlocks?: number | null
+          usage_buckets?: Json | null
           user_id: string
         }
         Update: {
@@ -4906,6 +4908,7 @@ export type Database = {
           top_apps?: Json | null
           total_minutes?: number | null
           unlocks?: number | null
+          usage_buckets?: Json | null
           user_id?: string
         }
         Relationships: []

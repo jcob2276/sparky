@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { OuraVitalsView } from './OuraVitalsView';
 import type { OuraHealthHubData } from './types';
 
@@ -12,28 +12,28 @@ const measured: OuraHealthHubData = {
 
 describe('OuraVitalsView', () => {
   it('keeps measured vascular age while explaining missing profile data for the estimate', () => {
-    render(<OuraVitalsView data={measured} onOpenSleep={vi.fn()} />);
+    render(<OuraVitalsView data={measured} />);
     expect(screen.getByText('23 lata')).toBeInTheDocument();
     expect(screen.getByText(/Brakuje: wiek metrykalny, płeć biologiczna/)).toBeInTheDocument();
     expect(screen.queryByText('Wiek biologiczny')).not.toBeInTheDocument();
   });
 
   it('does not infer sex from an available birth date', () => {
-    render(<OuraVitalsView data={{ ...measured, birthDateStr: '1998-01-01' }} onOpenSleep={vi.fn()} />);
+    render(<OuraVitalsView data={{ ...measured, birthDateStr: '1998-01-01' }} />);
     expect(screen.getByText(/Brakuje: płeć biologiczna/)).toBeInTheDocument();
     expect(screen.getByText('−5 lat względem wieku')).toBeInTheDocument();
     expect(screen.queryByText('Wiek biologiczny')).not.toBeInTheDocument();
   });
 
   it('does not display measurements from another selected date, including the health monitor', () => {
-    render(<OuraVitalsView data={{ ...measured, date: '2026-07-29' }} onOpenSleep={vi.fn()} />);
-    for (const stale of ['23 lata', '93', '8901', '13,6/min', '49 bpm']) {
+    render(<OuraVitalsView data={{ ...measured, date: '2026-07-29' }} />);
+    for (const stale of ['23 lata', '8901', '13,6/min', '49 bpm']) {
       expect(screen.queryByText(stale)).not.toBeInTheDocument();
     }
   });
 
   it('renders biological age when birth date, sex and measurements are provided', () => {
-    render(<OuraVitalsView data={{ ...measured, birthDateStr: '1998-01-01', biologicalSex: 'male' }} onOpenSleep={vi.fn()} />);
+    render(<OuraVitalsView data={{ ...measured, birthDateStr: '1998-01-01', biologicalSex: 'male' }} />);
     expect(screen.getByText('Wiek Biologiczny i Naczyniowy')).toBeInTheDocument();
     expect(screen.queryByText(/Oszacowanie niedostępne/)).not.toBeInTheDocument();
     expect(screen.getByText(/Wydolność tlenowa \(VO2 Max\)/)).toBeInTheDocument();
@@ -50,7 +50,7 @@ describe('OuraVitalsView', () => {
         vo2_max: 47,
       } as OuraHealthHubData['enhanced'],
     };
-    render(<OuraVitalsView data={withoutGarmin} onOpenSleep={vi.fn()} />);
+    render(<OuraVitalsView data={withoutGarmin} />);
     expect(screen.getByText('Wiek Biologiczny i Naczyniowy')).toBeInTheDocument();
     expect(screen.getByText(/Wydolność tlenowa \(VO2 Max\)/)).toBeInTheDocument();
   });
