@@ -1,4 +1,7 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "../index.html";
+@source "../src";
+@source "../packages";
 
 /* Functional iOS light */
 :root {

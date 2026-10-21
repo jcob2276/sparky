@@ -102,7 +102,15 @@ export default defineConfig(({ mode }) => {
       react(),
       ...(forCapacitor ? [] : [pwaPlugin()]),
     ],
+    // Scan only the real app entry. By default Vite crawls every *.html in the repo
+    // (android/ builds, .superpowers/ previews, coverage/), which made cold start ~40 s.
+    optimizeDeps: {
+      entries: ['index.html'],
+    },
     server: {
+      watch: {
+        ignored: ['**/android/**', '**/coverage/**', '**/dist/**', '**/.superpowers/**', '**/.worktrees/**', '**/.tmp/**', '**/*.log'],
+      },
       proxy: {
         '/oura-api': {
           target: 'https://api.ouraring.com',
