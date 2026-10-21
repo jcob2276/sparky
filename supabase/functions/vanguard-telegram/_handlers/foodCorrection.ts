@@ -110,8 +110,10 @@ Zwróć poprawny JSON (wyłącznie JSON, bez markdownu):
     const newProtein = Math.round(Number(entry.protein || 0) * factor * 10) / 10
     const newCarbs = Math.round(Number(entry.carbs || 0) * factor * 10) / 10
     const newFat = Math.round(Number(entry.fat || 0) * factor * 10) / 10
-    const newFiber = entry.fiber ? Math.round(Number(entry.fiber) * factor * 10) / 10 : null
-    const newSugar = entry.sugar ? Math.round(Number(entry.sugar) * factor * 10) / 10 : null
+    // 0 to znana wartość, null to brak danych — nie zamieniamy jednego w drugie.
+    const newFiber = entry.fiber != null ? Math.round(Number(entry.fiber) * factor * 10) / 10 : null
+    const newSugar = entry.sugar != null ? Math.round(Number(entry.sugar) * factor * 10) / 10 : null
+    const newSaturated = entry.saturated_fat != null ? Math.round(Number(entry.saturated_fat) * factor * 10) / 10 : null
     const newName = parsed.corrected_name || entry.name
 
     const { error: updateErr } = await supabase
@@ -125,6 +127,7 @@ Zwróć poprawny JSON (wyłącznie JSON, bez markdownu):
         fat: newFat,
         fiber: newFiber,
         sugar: newSugar,
+        saturated_fat: newSaturated,
         parse_meta: {
           macroSource: 'user_correction',
           parserVersion: '2026-06-28',

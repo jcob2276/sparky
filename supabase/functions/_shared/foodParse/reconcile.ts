@@ -10,7 +10,7 @@ import { buildSystemPrompt } from "./prompts.ts";
 
 const MIN_RECONCILE_SCORE = 0.52;
 
-interface Per100gFood { name: string; calories: number | null; protein: number | null; carbs: number | null; fat: number | null; fiber?: number | null; sugar?: number | null; source?: string; }
+interface Per100gFood { name: string; calories: number | null; protein: number | null; carbs: number | null; fat: number | null; fiber?: number | null; sugar?: number | null; saturatedFat?: number | null; source?: string; }
 export type ReconcileOpts = { supabaseUrl: string; serviceKey: string; userId?: string; db?: unknown; apiKey?: string; originalText?: string };
 
 export function isPlausibleFoodCandidate(query: string, candidate: Per100gFood): boolean {
@@ -84,10 +84,10 @@ export async function tryExpandCompoundItems(items: ParsedFoodItem[], opts: Reco
 function recalcFromPer100g(grams: number, per100: Per100gFood) {
   if (grams <= 0) {
     // Defensywny guard — grams=0 byłby dzieleniem przez 0 i zerował wszystkie makra w ciszy.
-    return { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: undefined, sugar: undefined };
+    return { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: undefined, sugar: undefined, saturatedFat: undefined };
   }
   const f = grams / 100, r = (n: number) => Math.round(n * 10) / 10;
-  return { calories: Math.round(Number(per100.calories) * f), protein: r(Number(per100.protein ?? 0) * f), carbs: r(Number(per100.carbs ?? 0) * f), fat: r(Number(per100.fat ?? 0) * f), fiber: per100.fiber != null ? r(Number(per100.fiber) * f) : undefined, sugar: per100.sugar != null ? r(Number(per100.sugar) * f) : undefined };
+  return { calories: Math.round(Number(per100.calories) * f), protein: r(Number(per100.protein ?? 0) * f), carbs: r(Number(per100.carbs ?? 0) * f), fat: r(Number(per100.fat ?? 0) * f), fiber: per100.fiber != null ? r(Number(per100.fiber) * f) : undefined, sugar: per100.sugar != null ? r(Number(per100.sugar) * f) : undefined, saturatedFat: per100.saturatedFat != null ? r(Number(per100.saturatedFat) * f) : undefined };
 }
 
 async function lookupOffFast(name: string): Promise<{ match: Per100gFood; score: number; macroSource: 'off' } | null> {
@@ -96,7 +96,7 @@ async function lookupOffFast(name: string): Promise<{ match: Per100gFood; score:
     const res = await fetch(url, { headers: { 'User-Agent': 'VanguardOS/1.0' }, signal: AbortSignal.timeout(6000) });
     if (!res.ok) return null;
     const json = await res.json() as { products?: Array<{ product_name?: string; nutriments?: Record<string, number> }> };
-    const results: Per100gFood[] = (json.products ?? []).filter((p) => p.product_name && p.nutriments?.['energy-kcal_100g'] != null).map((p) => ({ name: p.product_name!, calories: Math.round(Number(p.nutriments!['energy-kcal_100g'])), protein: p.nutriments!['proteins_100g'] ?? 0, carbs: p.nutriments!['carbohydrates_100g'] ?? 0, fat: p.nutriments!['fat_100g'] ?? 0, fiber: p.nutriments!['fiber_100g'], sugar: p.nutriments!['sugars_100g'], source: 'off' as const }));
+    const results: Per100gFood[] = (json.products ?? []).filter((p) => p.product_name && p.nutriments?.['energy-kcal_100g'] != null).map((p) => ({ name: p.product_name!, calories: Math.round(Number(p.nutriments!['energy-kcal_100g'])), protein: p.nutriments!['proteins_100g'] ?? 0, carbs: p.nutriments!['carbohydrates_100g'] ?? 0, fat: p.nutriments!['fat_100g'] ?? 0, fiber: p.nutriments!['fiber_100g'], sugar: p.nutriments!['sugars_100g'], saturatedFat: p.nutriments!['saturated-fat_100g'], source: 'off' as const }));
     const picked = pickBestMatchScored(name, results);
     return picked ? { match: picked.match, score: picked.score, macroSource: 'off' } : null;
   } catch { return null; }
@@ -130,13 +130,13 @@ export function mergeUserFoodCandidates(
 async function lookupViaLibraryRaw(name: string, userId: string, db: any): Promise<Per100gFood[] | null> {
   const [favoritesResult, libraryResult] = await Promise.all([
     db.from('food_favorites')
-      .select('name, calories, protein, carbs, fat, fiber, sugar')
+      .select('name, calories, protein, carbs, fat, fiber, sugar, saturated_fat')
       .eq('user_id', userId)
       .ilike('name', `%${name}%`)
       .order('use_count', { ascending: false })
       .limit(5),
     db.from('food_library')
-      .select('name, calories, protein, carbs, fat, fiber, sugar, source, validation_status')
+      .select('name, calories, protein, carbs, fat, fiber, sugar, saturated_fat, source, validation_status')
       .eq('user_id', userId)
       .neq('validation_status', 'quarantined')
       .ilike('name', `%${name}%`)
@@ -226,7 +226,7 @@ export async function fillMacrosLlmFallback(items: ParsedFoodItem[], apiKey: str
     const idx = indices[j];
     const macro = macroItems[j] ?? macroItems.find((m) => normalizePl(m.name).includes(normalizePl(out[idx].name)));
     if (!macro) continue;
-    out[idx] = { ...out[idx], calories: macro.calories, protein: macro.protein, carbs: macro.carbs, fat: macro.fat, fiber: macro.fiber, sugar: macro.sugar, confidence: macro.confidence === 'high' ? 'medium' : macro.confidence, source: 'llm', assumptions: [...(out[idx].assumptions ?? []), ...(macro.assumptions ?? []), 'makro szacowane — brak w bazie'], parseMeta: { ...out[idx].parseMeta, macroSource: 'llm_estimate', dataSource: 'llm_estimate', parserVersion: PARSER_VERSION } };
+    out[idx] = { ...out[idx], calories: macro.calories, protein: macro.protein, carbs: macro.carbs, fat: macro.fat, fiber: macro.fiber, sugar: macro.sugar, saturatedFat: macro.saturatedFat, confidence: macro.confidence === 'high' ? 'medium' : macro.confidence, source: 'llm', assumptions: [...(out[idx].assumptions ?? []), ...(macro.assumptions ?? []), 'makro szacowane — brak w bazie'], parseMeta: { ...out[idx].parseMeta, macroSource: 'llm_estimate', dataSource: 'llm_estimate', parserVersion: PARSER_VERSION } };
   }
   return out;
 }

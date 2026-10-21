@@ -1,7 +1,7 @@
 import type { ParsedFoodItem, FoodParseMeta } from "../foodParseCore.ts";
 import { normalizePl } from "./matching.ts";
 
-export const PARSER_VERSION = '2026-06-28';
+export const PARSER_VERSION = '2026-10-21';
 
 function parseConfidence(value: unknown): 'high' | 'medium' | 'low' {
   const v = String(value || '').toLowerCase();
@@ -150,6 +150,11 @@ export function normalizeRawItems(raw: unknown): ParsedFoodItem[] {
       if (item.sugar != null) {
         result.sugar = Math.max(0, Math.round(Number(item.sugar) * 10) / 10);
       }
+      const saturated = item.saturatedFat ?? item.saturated_fat;
+      if (saturated != null && Number.isFinite(Number(saturated))) {
+        // Nasycone nie mogą przekraczać całkowitego tłuszczu (błąd modelu → przycinamy).
+        result.saturatedFat = Math.min(fat, Math.max(0, Math.round(Number(saturated) * 10) / 10));
+      }
       const assumptions = parseAssumptions(item.assumptions);
       if (assumptions) result.assumptions = assumptions;
 
@@ -202,6 +207,7 @@ export function applyPhysiologicalGuardrails(items: ParsedFoodItem[], originalTe
             fat: Math.round(item.fat * scale * 10) / 10,
             fiber: item.fiber != null ? Math.round(item.fiber * scale * 10) / 10 : undefined,
             sugar: item.sugar != null ? Math.round(item.sugar * scale * 10) / 10 : undefined,
+            saturatedFat: item.saturatedFat != null ? Math.round(item.saturatedFat * scale * 10) / 10 : undefined,
             confidence: 'low',
             assumptions: [
               ...(item.assumptions ?? []),

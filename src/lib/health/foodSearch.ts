@@ -22,7 +22,7 @@ export function rankFoodResult(food: Pick<FoodBase, 'name' | 'brand'> & { useCou
 export async function searchPrivateFoodLibrary(userId: string, query: string): Promise<FoodBase[]> {
   const { data, error } = await supabase
     .from('food_library')
-    .select('name,brand,barcode,calories,protein,carbs,fat,fiber,sugar,default_grams')
+    .select('name,brand,barcode,calories,protein,carbs,fat,fiber,sugar,saturated_fat,default_grams')
     .eq('user_id', userId)
     .limit(250);
   if (error) throw error;
@@ -30,7 +30,7 @@ export async function searchPrivateFoodLibrary(userId: string, query: string): P
     .map((row) => ({
       name: row.name, brand: row.brand, barcode: row.barcode,
       calories: row.calories, protein: row.protein, carbs: row.carbs, fat: row.fat,
-      fiber: row.fiber, sugar: row.sugar, defaultGrams: row.default_grams,
+      fiber: row.fiber, sugar: row.sugar, saturated_fat: row.saturated_fat, defaultGrams: row.default_grams,
       source: 'confirmed' as const,
     }))
     .filter((food) => rankFoodResult(food, query) > 0)

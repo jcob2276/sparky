@@ -152,6 +152,7 @@ export function mealMemoryToDraft(value: unknown): MealDraftItem[] {
       fat: Math.round(fat * scale * 10) / 10,
       fiber: per100.fiber == null ? undefined : Math.round(Number(per100.fiber) * scale * 10) / 10,
       sugar: per100.sugar == null ? undefined : Math.round(Number(per100.sugar) * scale * 10) / 10,
+      saturatedFat: per100.saturated_fat == null ? undefined : Math.round(Number(per100.saturated_fat) * scale * 10) / 10,
       confidence: 'high' as const,
       source: 'library' as const,
     }];

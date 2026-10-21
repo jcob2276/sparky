@@ -25,6 +25,7 @@ export function useFoodEntryPostSave(userId: string | undefined) {
           p_fat: food.fat,
           p_fiber: food.fiber,
           p_sugar: food.sugar,
+          p_saturated_fat: food.saturated_fat ?? null,
           p_default_grams: defaultGrams,
         } as never)
         .then(({ error }) => {

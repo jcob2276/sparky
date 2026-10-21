@@ -24,6 +24,7 @@ interface FoodResult {
   fat: number | null
   fiber: number | null
   sugar: number | null
+  saturated_fat: number | null
   defaultGrams: number | null
   source?: 'generic' | 'reference_pl' | 'off'
   incomplete?: boolean
@@ -38,6 +39,7 @@ function toFoodResult(f: typeof GENERIC_FOODS[number], source: FoodResult['sourc
     fat: f.fat,
     fiber: f.fiber ?? null,
     sugar: f.sugar ?? null,
+    saturated_fat: null,
     barcode: null,
     brand: null,
     defaultGrams: null,
@@ -115,6 +117,9 @@ function offProductToResult(product: any, barcode: string | null): FoodResult | 
     fat: n['fat_100g'] ?? null,
     fiber: n['fiber_100g'] ?? null,
     sugar: n['sugars_100g'] ?? null,
+    // Nasycone większe niż całkowity tłuszcz to błąd w bazie OFF → traktujemy jak brak danych.
+    saturated_fat: n['saturated-fat_100g'] != null && n['fat_100g'] != null && n['saturated-fat_100g'] <= n['fat_100g'] + 0.05
+      ? n['saturated-fat_100g'] : null,
     defaultGrams: extractDefaultGrams(product),
     source: 'off',
     incomplete: n['energy-kcal_100g'] == null,

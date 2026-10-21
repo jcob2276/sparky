@@ -156,10 +156,10 @@ quantity i unit zachowują ilość podaną przez użytkownika. grams to przelicz
   }
   if (mode === 'macros_only') {
     return `Zwróć WYŁĄCZNIE poprawny format JSON (żadnego dodatkowego tekstu ani markdownu poza JSON):
-{"items":[{"name":"dokładna nazwa produktu","grams":130,"calories":113,"protein":2.5,"carbs":26.0,"fat":0.1,"fiber":1.8,"sugar":0.6,"confidence":"high|medium|low","assumptions":["opcjonalna lista założeń"]}]}`
+{"items":[{"name":"dokładna nazwa produktu","grams":130,"calories":113,"protein":2.5,"carbs":26.0,"fat":0.1,"fiber":1.8,"sugar":0.6,"saturatedFat":0.0,"confidence":"high|medium|low","assumptions":["opcjonalna lista założeń"]}]}`
   }
   return `Zwróć WYŁĄCZNIE poprawny format JSON (żadnego dodatkowego tekstu ani markdownu poza JSON):
-{"items":[{"name":"dokładna nazwa produktu gotowego/potrawy","grams":130,"calories":113,"protein":2.5,"carbs":26.0,"fat":0.1,"fiber":1.8,"sugar":0.6,"confidence":"high|medium|low","assumptions":["opcjonalna lista założeń"]}]}`
+{"items":[{"name":"dokładna nazwa produktu gotowego/potrawy","grams":130,"calories":113,"protein":2.5,"carbs":26.0,"fat":0.1,"fiber":1.8,"sugar":0.6,"saturatedFat":0.0,"confidence":"high|medium|low","assumptions":["opcjonalna lista założeń"]}]}`
 }
 
 function contextBlocks(ctx: UserParseContext): string {
@@ -197,7 +197,8 @@ function parsingRulesBlock(mode: 'full' | 'grams_only' | 'macros_only'): string 
    carbs = (wartość_W_na_100g * grams) / 100 (zaokrąglone do 1 miejsca po przecinku)
    fat = (wartość_T_na_100g * grams) / 100 (zaokrąglone do 1 miejsca po przecinku)
    fiber = błonnik w gramach dla całej porcji (zaokrąglone do 1 miejsca po przecinku). Jeśli brak informacji w bazie odniesienia, oszacuj na podstawie ogólnej wiedzy dietetycznej (np. chleb pełnoziarnisty/płatki mają ok. 6-10g błonnika/100g, owoce/warzywa mają ok. 1.5-3g błonnika/100g, mięsa/oleje mają 0g).
-   sugar = cukry proste w gramach dla całej porcji (zaokrąglone do 1 miejsca po przecinku). Jeśli brak informacji w bazie odniesienia, oszacuj na podstawie ogólnej wiedzy dietetycznej (np. owoce mają ok. 5-12g cukru/100g, nabiał ma ok. 4g laktozy/100g, słodycze i miód mają wysoki cukier, mięsa/tłuszcze mają 0g).`
+   sugar = cukry proste w gramach dla całej porcji (zaokrąglone do 1 miejsca po przecinku). Jeśli brak informacji w bazie odniesienia, oszacuj na podstawie ogólnej wiedzy dietetycznej (np. owoce mają ok. 5-12g cukru/100g, nabiał ma ok. 4g laktozy/100g, słodycze i miód mają wysoki cukier, mięsa/tłuszcze mają 0g).
+   saturatedFat = tłuszcze nasycone (SFA) w gramach dla całej porcji (1 miejsce po przecinku, nigdy więcej niż fat). Jeśli brak informacji w bazie odniesienia, oszacuj ostrożnie z wiedzy dietetycznej (np. masło ok. 51g/100g, śmietana 18% ok. 11g/100g, ser żółty ok. 17g/100g, wieprzowina/jagnięcina ok. 35-40% tłuszczu, kurczak ok. 30%, oleje roślinne 7-15g/100g, kokosowy 80g/100g). Gdy nie umiesz oszacować, pomiń pole zamiast wpisywać 0.`
 
   return `BARDZO WAŻNE REGUŁY PARSOWANIA:
 ${gramsRule}`

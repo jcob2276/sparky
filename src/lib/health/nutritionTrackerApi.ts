@@ -41,6 +41,7 @@ export function buildCaptureItems(items: CaptureDraftItem[]): CaptureItemPayload
         fat: round1(item.fat * scale),
         fiber: item.fiber == null ? null : round1(item.fiber * scale),
         sugar: item.sugar == null ? null : round1(item.sugar * scale),
+        saturated_fat: item.saturatedFat == null ? null : round1(item.saturatedFat * scale),
       },
       parseMeta: {
         ...(item.parseMeta ?? {}),

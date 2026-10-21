@@ -45,6 +45,7 @@ Wymagane wartości na 100g (nie na porcję!):
 - fat (g)
 - fiber (g) (jeśli podano, inaczej null)
 - sugar (g) (jeśli podano, inaczej null)
+- saturatedFat (g) — "w tym kwasy tłuszczowe nasycone" (jeśli podano, inaczej null)
 - brand (marka/producent, np. "Piątnica")
 - name (nazwa produktu, np. "Serek Wiejski Lekki")
 
@@ -57,7 +58,8 @@ Zwróć poprawny JSON (wyłącznie JSON, bez markdownu):
   "carbs": 2.0,
   "fat": 3.0,
   "fiber": null,
-  "sugar": 1.5
+  "sugar": 1.5,
+  "saturatedFat": 1.9
 }`;
 
     const { content } = await openaiChat({
@@ -94,6 +96,7 @@ Zwróć poprawny JSON (wyłącznie JSON, bez markdownu):
       fat?: number;
       fiber?: number | null;
       sugar?: number | null;
+      saturatedFat?: number | null;
     };
 
     if (!macro.name || macro.calories == null) {
@@ -112,8 +115,10 @@ Zwróć poprawny JSON (wyłącznie JSON, bez markdownu):
       protein: Number(macro.protein || 0),
       carbs: Number(macro.carbs || 0),
       fat: Number(macro.fat || 0),
-      fiber: macro.fiber ? Number(macro.fiber) : null,
-      sugar: macro.sugar ? Number(macro.sugar) : null,
+      // 0 to znana wartość z etykiety, null to brak danych.
+      fiber: macro.fiber != null ? Number(macro.fiber) : null,
+      sugar: macro.sugar != null ? Number(macro.sugar) : null,
+      saturated_fat: macro.saturatedFat != null && Number(macro.saturatedFat) <= Number(macro.fat || 0) + 0.05 ? Number(macro.saturatedFat) : null,
       default_grams: 100,
       source: "manual"
     }, { onConflict: "user_id,name,brand" });

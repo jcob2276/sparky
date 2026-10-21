@@ -10,6 +10,7 @@ export interface FoodBase {
   fat: number | null;
   fiber: number | null;
   sugar: number | null;
+  saturated_fat?: number | null;
   defaultGrams?: number | null;
   source?: FoodSource;
   useCount?: number;

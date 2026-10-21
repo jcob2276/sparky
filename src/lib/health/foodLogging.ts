@@ -43,6 +43,7 @@ export interface ParsedFoodItem {
   fat: number
   fiber?: number
   sugar?: number
+  saturatedFat?: number
   confidence: 'high' | 'medium' | 'low'
   source: 'llm' | 'database' | 'library'
   assumptions?: string[]

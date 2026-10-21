@@ -101,7 +101,7 @@ export async function parseNutritionLabel(imageBase64: string, mimeType: string,
   if (!/^image\/(jpeg|png|webp)$/.test(mimeType)) throw new Error('Unsupported image type')
   if (!imageBase64 || imageBase64.length > 8_000_000) throw new Error('Image is missing or too large')
   const content = await callVisionLlm({
-    prompt: `Odczytaj etykietę żywieniową. Zwróć wyłącznie JSON z wartościami na 100 g lub 100 ml: {"name":string,"brand":string|null,"calories":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"sugar":number|null,"servingGrams":number|null,"confidence":"high"|"medium"|"low"}. Nie przeliczaj porcji na 100 g, jeśli na zdjęciu brakuje podstawy przeliczenia. Wtedy ustaw confidence="low" i brakujące pola null.`,
+    prompt: `Odczytaj etykietę żywieniową. Zwróć wyłącznie JSON z wartościami na 100 g lub 100 ml: {"name":string,"brand":string|null,"calories":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"sugar":number|null,"saturatedFat":number|null,"servingGrams":number|null,"confidence":"high"|"medium"|"low"}. Pole saturatedFat to „w tym kwasy tłuszczowe nasycone” (ustaw null, jeśli etykieta go nie podaje, nie zgaduj). Nie przeliczaj porcji na 100 g, jeśli na zdjęciu brakuje podstawy przeliczenia. Wtedy ustaw confidence="low" i brakujące pola null.`,
     imageBase64,
     mimeType,
     userId,
@@ -126,6 +126,11 @@ export async function parseNutritionLabel(imageBase64: string, mimeType: string,
     barcode: null,
     calories, protein, carbs, fat,
     fiber: validMacro(raw.fiber), sugar: validMacro(raw.sugar),
+    // Nasycone to część tłuszczu: wartość większa niż całkowity tłuszcz to błąd odczytu → traktujemy jak brak.
+    saturated_fat: (() => {
+      const value = validMacro(raw.saturatedFat)
+      return value != null && value <= fat + 0.05 ? value : null
+    })(),
     defaultGrams: validMacro(raw.servingGrams, 2000) ?? 100,
     source: 'label_ocr',
     confidence,

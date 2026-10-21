@@ -29,6 +29,7 @@ export function foodBaseToDraft(food: FoodBase, grams: number): MealDraftItem {
     fat: scalePer100(food.fat, g),
     fiber: food.fiber == null ? undefined : scalePer100(food.fiber, g),
     sugar: food.sugar == null ? undefined : scalePer100(food.sugar, g),
+    saturatedFat: food.saturated_fat == null ? undefined : scalePer100(food.saturated_fat, g),
     confidence: food.confidence ?? 'high',
     source: food.source === 'confirmed' ? 'library' : 'database',
     parseMeta: {
@@ -52,6 +53,7 @@ export interface RepeatableFoodEntry {
   fat: number | null;
   fiber: number | null;
   sugar: number | null;
+  saturated_fat?: number | null;
   amount: string | null;
 }
 
@@ -75,6 +77,7 @@ export function entriesToDraft(entries: RepeatableFoodEntry[]): MealDraftItem[] 
       fat: entry.fat ?? 0,
       fiber: entry.fiber ?? undefined,
       sugar: entry.sugar ?? undefined,
+      saturatedFat: entry.saturated_fat ?? undefined,
       confidence: 'high' as const,
       source: 'library' as const,
     };
