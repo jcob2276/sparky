@@ -129,21 +129,6 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/biznesradar/, ''),
         }
       },
-      // Pre-transform the heavy lazy-loaded routes on server start so the first
-      // click into them doesn't pay a cold multi-file dev-server waterfall.
-      warmup: {
-        clientFiles: [
-          './src/components/core/DashboardProjektyTab.tsx',
-          './src/components/core/DashboardHistoriaTab.tsx',
-          './src/components/core/DashboardTydzienTab.tsx',
-          './src/components/calendar/CalendarView.tsx',
-          './src/components/todo/Todo.tsx',
-          './src/components/desktop/shell/DesktopDashboard.tsx',
-          './src/components/finance/FinancePage.tsx',
-          './src/components/growth/GrowthView.tsx',
-          './src/components/biometrics/OuraHealthPage.tsx',
-        ]
-      }
     },
     build: {
       sourcemap: !forCapacitor
