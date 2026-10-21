@@ -933,6 +933,12 @@
   margin-bottom: var(--ds-local-css-0-5em);
 }
 
+/* Pierwsza krótka linia = tytuł notatki (ustawiane w RichEditor przez data-title-first). */
+.keep-rich-editor[data-title-first='true'] > :first-child {
+  font-size: var(--text-xl);
+  font-weight: bold;
+}
+
 .keep-rich-editor h1, .keep-card-content h1 {
   font-size: var(--text-lg);
   font-weight: 800;

@@ -9,6 +9,7 @@ import { useRef } from 'react';
 import { Note, getColor, relativeDate, getPlainText } from './keepUtils';
 import { useHaptics } from '../../hooks/useHaptics';
 import { stripMarkdown } from './markdownLite';
+import { highlightText, snippetAround } from './searchSnippet';
 
 interface NoteRowProps {
   note: Note;
@@ -18,6 +19,7 @@ interface NoteRowProps {
   isSelectMode?: boolean;
   isSelected?: boolean;
   onToggleSelect?: () => void;
+  search?: string;
 }
 
 export default function NoteRow({
@@ -28,6 +30,7 @@ export default function NoteRow({
   isSelectMode = false,
   isSelected = false,
   onToggleSelect,
+  search = '',
 }: NoteRowProps) {
   const pressTimer = useRef<number | null>(null);
   const longPressed = useRef(false);
@@ -36,7 +39,7 @@ export default function NoteRow({
   const bodyText = (trimmedTitle && plainText.startsWith(trimmedTitle))
     ? plainText.slice(trimmedTitle.length).trim()
     : plainText;
-  const snippet = note.is_locked ? 'Wymaga hasła' : bodyText ? bodyText.slice(0, 180) : trimmedTitle ? '' : 'Brak dodatkowej treści';
+  const snippet = note.is_locked ? 'Wymaga hasła' : bodyText ? snippetAround(bodyText, search, 180) : trimmedTitle ? '' : 'Brak dodatkowej treści';
   const dateStr = relativeDate(note.updated_at || note.created_at);
   const color = getColor(note.color);
   const { light } = useHaptics();
@@ -96,7 +99,7 @@ export default function NoteRow({
             </div>
           )}
           <span className="block flex-1 line-clamp-3 break-words [overflow-wrap:anywhere] text-sm font-semibold leading-snug tracking-[var(--tracking-note-title)] text-text-primary">
-            {note.title.trim() || 'Bez tytułu'}
+            {highlightText(note.title.trim(), search) || 'Bez tytułu'}
           </span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
@@ -116,7 +119,7 @@ export default function NoteRow({
       <div className="flex items-baseline gap-1.5 text-xs leading-relaxed text-text-muted">
         <span className="shrink-0 font-medium text-text-secondary">{dateStr}</span>
         {snippet && <span aria-hidden="true" className="shrink-0 opacity-60">·</span>}
-        {snippet && <span className="flex-1 line-clamp-2 break-words [overflow-wrap:anywhere]">{snippet}</span>}
+        {snippet && <span className="flex-1 line-clamp-2 break-words [overflow-wrap:anywhere]">{highlightText(snippet, search)}</span>}
       </div>
 
       {note.tags.length > 0 && (

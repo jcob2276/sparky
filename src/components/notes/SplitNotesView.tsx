@@ -60,7 +60,7 @@ interface SplitNotesViewProps {
 export default function SplitNotesView({
   notes, filtered, pinned, others, activeNoteId, onSelectNote, onCloseNote, onUpdate, onDelete, onTogglePin,
   busy, allTags, onCreate: _onCreate, onExportChecklists, folders = [], onCreateFolder, onExportNote, onExportPdf, onShareNote, onLockNote,
-  collectionView, gridProps, sections, bulk, quickFilter, setQuickFilter, quickFilterCounts,
+  collectionView, gridProps, sections, bulk, quickFilter, setQuickFilter, quickFilterCounts, search,
 }: SplitNotesViewProps) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [actionNote, setActionNote] = useState<Note | null>(null);
@@ -141,6 +141,7 @@ export default function SplitNotesView({
               isSelectMode={bulk?.isSelectMode}
               selectedIds={bulk?.selectedIds}
               onToggleSelectId={bulk?.toggleSelectId}
+              search={search}
             />
           )}
         </section>

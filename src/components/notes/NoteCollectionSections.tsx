@@ -18,6 +18,7 @@ interface NoteCollectionSectionsProps {
   isSelectMode?: boolean;
   selectedIds?: Set<string>;
   onToggleSelectId?: (id: string) => void;
+  search?: string;
 }
 
 export default function NoteCollectionSections({
@@ -33,6 +34,7 @@ export default function NoteCollectionSections({
   isSelectMode = false,
   selectedIds,
   onToggleSelectId,
+  search = '',
 }: NoteCollectionSectionsProps) {
   return (
     <div className={collectionView === 'gallery' ? 'keep-note-sections gallery' : 'keep-note-sections'}>
@@ -68,6 +70,7 @@ export default function NoteCollectionSections({
                       isSelectMode={isSelectMode}
                       isSelected={selectedIds?.has(note.id)}
                       onToggleSelect={() => onToggleSelectId?.(note.id)}
+                      search={search}
                     />
                   </SwipeableNoteRow>
                   {index < section.notes.length - 1 && <div className="keep-note-section-divider" />}
