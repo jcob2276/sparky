@@ -1,9 +1,7 @@
 import { useHaptics } from '../../../hooks/useHaptics';
 import { notify } from '../../../lib/notify';
 import { markCheckpointDone } from '../../../lib/checkpoints';
-import { appendStreamEntry } from '../../../lib/streamApi';
-import { updateDailyWin } from '../../../lib/goal/goalSpine';
-import type { TaskSlot, DailyWinWithTasks, DailyWinRecord } from '../usePowerListTypes';
+import type { TaskSlot, DailyWinWithTasks } from '../usePowerListTypes';
 import type { UsePowerListActionsArgs } from './usePowerListActionsTypes';
 import { toggleTaskHelper } from './powerListToggleTask';
 import { startNewDayHelper } from './powerListStartNewDay';
@@ -21,7 +19,6 @@ export function usePowerListActions(args: UsePowerListActionsArgs) {
     fillSlotFromCheckpoint: (payload: { title: string; checkpointId: string; projectId: string }, slotIndex?: number) =>
       fillSlotFromCheckpointHelper(payload, slotIndex, args.newTaskForm, args.setNewTaskForm, haptics),
     confirmCheckpointDone: () => confirmCheckpointDoneHelper(args),
-    saveEveningClose: (win: DailyWinWithTasks | null) => saveEveningCloseHelper(args, win, haptics),
     toggleTask: (idx: number, win: DailyWinWithTasks | null, explicitDone?: boolean, explicitTimestamp?: string | null): Promise<DailyWinWithTasks | undefined> =>
       toggleTaskHelper(args, idx, win, haptics, explicitDone, explicitTimestamp),
     startNewDay: () => startNewDayHelper(args, haptics),
@@ -75,37 +72,3 @@ async function confirmCheckpointDoneHelper(args: UsePowerListActionsArgs) {
   }
 }
 
-async function saveEveningCloseHelper(args: UsePowerListActionsArgs, todayWin: DailyWinWithTasks | null, haptics: ReturnType<typeof useHaptics>) {
-  if (!todayWin || !args.eveningNote.trim() || args.savingEvening) return;
-  args.setSavingEvening(true);
-  try {
-    const note = args.eveningNote.trim();
-    const winRecord = todayWin as unknown as DailyWinRecord;
-    const tasks = todayWin.daily_win_tasks || [];
-    const allDone = tasks.length > 0
-      ? tasks.every((t) => t.done)
-      : [1, 2, 3, 4, 5].every((i) => {
-          if (!winRecord[`task_${i}`]) return true;
-          return winRecord[`done_${i}`];
-        });
-    const result: 'Z' | 'P' = allDone ? 'Z' : 'P';
-    const data = await updateDailyWin(args.userId, todayWin.id, {
-      day_note: note,
-      result,
-    });
-    void appendStreamEntry({
-      userId: args.userId,
-      source: 'powerlist',
-      content: `Domknięcie dnia (${result === 'Z' ? 'WYGRANA Z' : 'P'}): ${note}`,
-      metadata: { kind: 'day_close', date: args.today, result },
-    });
-    haptics.success();
-    notify(result === 'Z' ? 'Dzień zamknięty z wygraną (Z)!' : 'Dzień domknięty notatką.', 'success');
-    if (args.onUpdate) args.onUpdate(data);
-  } catch (err: unknown) {
-    console.error('[saveEveningClose]', err);
-    notify('Nie udało się zapisać domknięcia dnia.', 'error');
-  } finally {
-    args.setSavingEvening(false);
-  }
-}

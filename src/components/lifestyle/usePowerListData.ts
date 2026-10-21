@@ -68,8 +68,6 @@ export function usePowerListData({
   const [newTaskForm, setNewTaskForm] = useState<TaskSlot[]>(getInitialTaskForm);
   const [pickerSlot, setPickerSlot] = useState(-1);
   const [submitting, setSubmitting] = useState(false);
-  const [eveningNote, setEveningNote] = useState('');
-  const [savingEvening, setSavingEvening] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
   const draftLoaded = useRef(false);
   const [todaySlotKpis, setTodaySlotKpis] = useState<Record<number, string>>(() => {
@@ -170,9 +168,6 @@ export function usePowerListData({
     yesterdayNoteRequired,
     submitting,
     setSubmitting,
-    eveningNote,
-    savingEvening,
-    setSavingEvening,
     todaySlotKpis,
     onUpdate,
     setTodaySlotKpis,
@@ -269,9 +264,6 @@ export function usePowerListData({
     pickerSlot,
     setPickerSlot,
     submitting,
-    eveningNote,
-    setEveningNote,
-    savingEvening,
     pickerRef,
     todaySlotKpis,
     occupiedSlots,
@@ -279,7 +271,6 @@ export function usePowerListData({
     eveningCloseDue,
     fillSlotFromCheckpoint: actions.fillSlotFromCheckpoint,
     confirmCheckpointDone: actions.confirmCheckpointDone,
-    saveEveningClose: () => actions.saveEveningClose(effectiveTodayWin),
     toggleTask,
     startNewDay: actions.startNewDay,
     updateSlot: actions.updateSlot,

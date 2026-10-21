@@ -23,6 +23,7 @@ export interface PowerListProps {
   todayWin: DailyWinWithTasks | null;
   onUpdate?: (data: Record<string, unknown>) => void;
   planDaySignal?: number;
+  onOpenShutdown?: () => void;
 }
 
 export default function PowerList(props: PowerListProps) {
@@ -39,6 +40,7 @@ function PowerListContent({
   todayWin,
   onUpdate,
   planDaySignal,
+  onOpenShutdown,
 }: PowerListProps) {
   const {
     direction,
@@ -67,10 +69,6 @@ function PowerListContent({
     confirmCheckpointDone,
     updateSlot,
     eveningCloseDue,
-    eveningNote,
-    setEveningNote,
-    savingEvening,
-    saveEveningClose,
     toggleTask,
     startNewDay,
     todayWin: effectiveTodayWin,
@@ -141,10 +139,7 @@ function PowerListContent({
           projectMap={projectMap}
           toggleTask={toggleTask}
           eveningCloseDue={eveningCloseDue}
-          eveningNote={eveningNote}
-          setEveningNote={setEveningNote}
-          savingEvening={savingEvening}
-          saveEveningClose={saveEveningClose}
+          onOpenShutdown={onOpenShutdown}
         />
       )}
     </section>

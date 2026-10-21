@@ -180,6 +180,7 @@ function DashboardContent() {
                 <VisionHeroCard />
                 {weeklyReviewNudge}
                 <PowerList
+                  onOpenShutdown={() => s.setShowShutdown(true)}
                   todayWin={s.todayWin}
                   onUpdate={(data) => {
                     if (session?.user?.id && data && 'id' in data) {

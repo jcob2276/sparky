@@ -1,8 +1,7 @@
 import { Pressable } from '../ui/ControlPrimitives';
-import { TIMEZONE } from '../../lib/date';
+
 import { Suspense, memo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { Moon } from 'lucide-react';
 import { useSession } from '../../store/useStore';
 import PowerList from '../lifestyle/PowerList';
 import FoodQuickCapture from './nutrition/FoodQuickCapture';
@@ -22,15 +21,6 @@ function ViewFallback() {
       <Spinner size="md" />
     </div>
   );
-}
-
-function isAfter20(): boolean {
-  try {
-    const formatter = new Intl.DateTimeFormat('en-US', { timeZone: TIMEZONE, hour: 'numeric', hour12: false });
-    return parseInt(formatter.format(new Date()), 10) >= 20;
-  } catch {
-    return new Date().getHours() >= 20;
-  }
 }
 
 export const DashboardDzisTab = memo(function DashboardDzisTab() {
@@ -64,9 +54,11 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
           onNavigateToTerminy={() => s.navigate('/terminy')}
         />
       </div>
-      <div className="lg:grid lg:grid-cols-2 lg:gap-5 space-y-5 lg:space-y-0">
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-2">
+        {/* Na telefonie kolumny się „rozpuszczają” (contents) i kolejność daje order-*: Stan dnia (Strain) zaraz po Power List. */}
         {/* Lewa kolumna: Planowanie, zadania i szybki Posiłek */}
-        <div className="space-y-5">
+        <div className="contents lg:block lg:space-y-5">
+          <div className="order-1 space-y-5 lg:order-none">
           {weeklyReviewNudge}
           <PowerList
             todayWin={s.todayWin}
@@ -81,47 +73,34 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
               }
             }}
             planDaySignal={s.planDaySignal}
+            onOpenShutdown={() => s.setShowShutdown(true)}
           />
-          <div id="meal-composer">
+          </div>
+          <div id="meal-composer" className="order-3 lg:order-none">
             <FoodQuickCapture
               refreshSignal={s.nutritionKey}
               onSaved={() => { s.refresh(); s.setNutritionKey(k => k + 1); }}
             />
           </div>
-          <Suspense fallback={null}>
-            <TodayRunwayCard />
-          </Suspense>
-          {s.todayWin && isAfter20() && (
-            <div className="rounded-2xl border border-primary/20 bg-gradient-to-r from-primary/10 via-surface-solid to-primary/5 p-4 shadow-sm backdrop-blur-xs">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-primary border border-primary/25">
-                    <Moon size={18} />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-primary">Rytuał Wieczorny</h4>
-                    <p className="text-xs text-text-secondary mt-0.5 truncate">Czas na podsumowanie i domknięcie pętli dnia.</p>
-                  </div>
-                </div>
-                <Pressable
-                  onClick={() => s.setShowShutdown(true)}
-                  className="shrink-0 rounded-xl bg-primary px-3.5 py-2 text-xs font-black text-on-accent ui-interactive hover:bg-primary-hover active:scale-95 shadow-xs cursor-pointer"
-                >
-                  Domknij
-                </Pressable>
-              </div>
-            </div>
-          )}
+          <div className="order-4 lg:order-none">
+            <Suspense fallback={null}>
+              <TodayRunwayCard />
+            </Suspense>
+          </div>
         </div>
 
         {/* Prawa kolumna: Telemetria, biometria i wykresy */}
-        <div className="space-y-5">
-          <Suspense fallback={<ViewFallback />}>
-            <DailyStrainCard refreshSignal={s.nutritionKey + s.workoutKey} />
-          </Suspense>
-          <Suspense fallback={<ViewFallback />}>
-            <DailySnapshotCard />
-          </Suspense>
+        <div className="contents lg:block lg:space-y-5">
+          <div className="order-2 lg:order-none">
+            <Suspense fallback={<ViewFallback />}>
+              <DailyStrainCard refreshSignal={s.nutritionKey + s.workoutKey} />
+            </Suspense>
+          </div>
+          <div className="order-5 lg:order-none">
+            <Suspense fallback={<ViewFallback />}>
+              <DailySnapshotCard />
+            </Suspense>
+          </div>
         </div>
       </div>
     </div>

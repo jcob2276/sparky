@@ -21,9 +21,6 @@ export interface UsePowerListActionsArgs {
   yesterdayNoteRequired: boolean;
   submitting: boolean;
   setSubmitting: React.Dispatch<React.SetStateAction<boolean>>;
-  eveningNote: string;
-  savingEvening: boolean;
-  setSavingEvening: React.Dispatch<React.SetStateAction<boolean>>;
   todaySlotKpis: Record<number, string>;
   onUpdate?: (data: Record<string, unknown>) => void;
   setTodaySlotKpis: React.Dispatch<React.SetStateAction<Record<number, string>>>;

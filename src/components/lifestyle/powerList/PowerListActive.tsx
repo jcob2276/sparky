@@ -1,4 +1,4 @@
-import { Pressable, ControlTextarea } from '../../ui/ControlPrimitives';
+import { Pressable } from '../../ui/ControlPrimitives';
 import { SPHERE_SLOTS } from './powerListConstants';
 import PowerListTask from '../PowerListTask';
 
@@ -14,10 +14,7 @@ interface PowerListActiveProps {
   projectMap: Record<string, { name: string; color: string | null }>;
   toggleTask: (index: number) => void;
   eveningCloseDue: boolean;
-  eveningNote: string;
-  setEveningNote: (v: string) => void;
-  savingEvening: boolean;
-  saveEveningClose: () => Promise<void>;
+  onOpenShutdown?: () => void;
 }
 
 export default function PowerListActive({
@@ -29,15 +26,12 @@ export default function PowerListActive({
   projectMap,
   toggleTask,
   eveningCloseDue,
-  eveningNote,
-  setEveningNote,
-  savingEvening,
-  saveEveningClose,
+  onOpenShutdown,
 }: PowerListActiveProps) {
   const tasks = todayWin.daily_win_tasks || [];
   const allDone = tasks.length > 0 && tasks.every((t: Tables<'daily_win_tasks'>) => t.done);
   const hasDayNote = Boolean(todayWin.day_note?.trim());
-  const showClosePrompt = !hasDayNote && (allDone || eveningCloseDue);
+  const showClosePrompt = !hasDayNote && (allDone || eveningCloseDue) && Boolean(onOpenShutdown);
 
   return (
     <div className="space-y-3">
@@ -91,37 +85,20 @@ export default function PowerListActive({
       </div>
 
       {showClosePrompt && (
-        <div className="rounded-2xl border border-primary/30 bg-surface/90 p-3.5 space-y-2.5 shadow-sm animate-fadeIn">
-          <div className="flex items-center justify-between">
-            <span className="text-2xs font-black uppercase tracking-wider text-primary">
-              {allDone ? 'Komplet zadań — domknij dzień' : 'Wieczorne domknięcie dnia'}
-            </span>
-            <span className="text-3xs font-semibold text-text-muted">
-              Wymagana notatka
-            </span>
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-surface/90 px-3.5 py-3 shadow-sm animate-fadeIn">
+          <div className="min-w-0">
+            <p className="text-2xs font-black uppercase tracking-wider text-primary">
+              {allDone ? 'Komplet zadań' : 'Wieczorne domknięcie dnia'}
+            </p>
+            <p className="mt-0.5 text-xs leading-snug text-text-secondary">Liczby sprzedaży, notatka i ocena dnia.</p>
           </div>
-          <p className="text-xs text-text-secondary leading-snug">
-            {allDone
-              ? 'Wszystkie zadania dowiezione! Aby formalnie zamknąć i zapisać wygrany dzień (Z), dodaj krótką notatkę.'
-              : 'Dzień nie zamyka się samoczynnie — wpisz krótką notatkę refleksyjną, aby zapisać domknięcie.'}
-          </p>
-          <ControlTextarea
-            value={eveningNote}
-            onChange={(e) => setEveningNote(e.target.value)}
-            placeholder="Krótka notatka ze strony Jakuba (fakty, tarcie, co poszło dobrze)..."
-            rows={2}
-            className="w-full rounded-xl border border-border-custom bg-background/60 px-3 py-2 text-xs text-text-primary placeholder:text-text-muted focus:border-primary focus:outline-none resize-none transition-colors"
-          />
-          <div className="flex justify-end">
-            <Pressable
-              type="button"
-              onClick={() => void saveEveningClose()}
-              disabled={savingEvening || !eveningNote.trim()}
-              className="rounded-xl bg-primary px-3.5 py-1.5 text-xs font-black uppercase tracking-wider text-on-accent transition-opacity hover:opacity-90 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed shadow-xs"
-            >
-              {savingEvening ? 'Zamykam dzień…' : allDone ? 'Zamknij wygrany dzień (Z)' : 'Zamknij dzień notatką'}
-            </Pressable>
-          </div>
+          <Pressable
+            type="button"
+            onClick={onOpenShutdown}
+            className="shrink-0 rounded-xl bg-primary px-3.5 py-2 text-xs font-black uppercase tracking-wider text-on-accent transition-opacity hover:opacity-90 cursor-pointer shadow-xs"
+          >
+            Domknij dzień
+          </Pressable>
         </div>
       )}
 
