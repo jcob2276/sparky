@@ -44,6 +44,8 @@ async function persistHealthspanSnapshot(userId: string, today: string, profile:
     user_id: userId,
     snapshot_date: today,
     model_version: profile.modelVersion,
+    methodology_version: profile.modelVersion,
+    coverage: profile.confidence.coverage,
     profile: JSON.parse(JSON.stringify(profile)) as Json,
     pace: JSON.parse(JSON.stringify(pace)) as Json,
     input_summary: JSON.parse(JSON.stringify({
@@ -52,6 +54,16 @@ async function persistHealthspanSnapshot(userId: string, today: string, profile:
       confidence: profile.confidence,
       methodology_version: profile.modelVersion,
       evidence: profile.contributors.map((item: HealthspanContributor) => ({
+        key: item.key,
+        source: item.source,
+        measured_at: item.measuredAt,
+        sample_count: item.sampleCount,
+        quality: item.quality,
+      })),
+    })) as Json,
+    evidence_summary: JSON.parse(JSON.stringify({
+      date_range: { from: today, to: today },
+      contributors: profile.contributors.map((item: HealthspanContributor) => ({
         key: item.key,
         source: item.source,
         measured_at: item.measuredAt,

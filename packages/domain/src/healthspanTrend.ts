@@ -28,6 +28,10 @@ export interface HealthspanTrend {
   modelVersion: string | null;
 }
 
+const WEEK_MS = 7 * 24 * 3600 * 1000;
+const MAX_GAP_WEEKS = 3;
+const MIN_WEEK_FILL = 0.75;
+
 const round = (value: number, digits = 0) => {
   const scale = 10 ** digits;
   return Math.round(value * scale) / scale;
@@ -98,6 +102,13 @@ export function computeHealthspanTrend(
       ? 'insufficient_same_version_history'
       : 'insufficient_history';
     return calibrating(sameVersion, [], confounders, [reason], latestVersion);
+  }
+
+  const weekIndexes = weekly.map(([key]) => Math.round(Date.parse(`${key}T12:00:00Z`) / WEEK_MS));
+  const spanWeeks = weekIndexes[weekIndexes.length - 1] - weekIndexes[0] + 1;
+  const largestGap = Math.max(...weekIndexes.slice(1).map((value, index) => value - weekIndexes[index]));
+  if (largestGap > MAX_GAP_WEEKS || weekly.length / spanWeeks < MIN_WEEK_FILL) {
+    return calibrating(sameVersion, [], confounders, ["excessive_gaps"], latestVersion);
   }
 
   const commonDomains = Object.keys(sameVersion[0]?.contributors ?? {}).filter((key) => (

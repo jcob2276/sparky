@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { shiftDateStr } from './date';
 import { computeHealthspanTrend, type HealthspanTrendSnapshot } from '../../packages/domain/src/healthspanTrend';
 
 const domains = ['sleep_duration', 'cardio_fitness', 'strength'] as const;
 
 function weeklySnapshots(scores: number[], modelVersion = 'healthspan-v2'): HealthspanTrendSnapshot[] {
   return scores.map((score, index) => ({
-    date: new Date(Date.UTC(2026, 0, 5 + index * 7)).toISOString().slice(0, 10),
+    date: shiftDateStr('2026-01-05', index * 7),
     modelVersion,
     coverage: 82,
     evidenceStrength: 85,
@@ -40,7 +41,7 @@ describe('computeHealthspanTrend', () => {
       ...weeklySnapshots([55, 56, 57, 58, 59, 60], 'healthspan-v1'),
       ...weeklySnapshots([70, 71, 72, 73, 74, 75], 'healthspan-v2').map((item, index) => ({
         ...item,
-        date: new Date(Date.UTC(2026, 2, 2 + index * 7)).toISOString().slice(0, 10),
+        date: shiftDateStr('2026-03-02', index * 7),
       })),
     ];
 
@@ -57,5 +58,15 @@ describe('computeHealthspanTrend', () => {
 
     expect(illness.confidence).toBeLessThan(clean.confidence);
     expect(illness.confounders).toContain('illness');
+  });
+
+  it('calibrates when weekly history has large gaps', () => {
+    const snapshots = weeklySnapshots([55, 56, 56, 57, 58, 58, 59, 60, 63, 65, 67, 69])
+      .map((item, index) => (index >= 6 ? { ...item, date: shiftDateStr('2026-01-05', (index + 6) * 7) } : item));
+
+    const result = computeHealthspanTrend(snapshots, []);
+
+    expect(result.status).toBe('calibrating');
+    expect(result.reasons).toContain('excessive_gaps');
   });
 });

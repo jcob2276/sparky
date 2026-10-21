@@ -2709,9 +2709,12 @@ export type Database = {
       }
       healthspan_snapshots: {
         Row: {
+          coverage: number | null
           created_at: string
+          evidence_summary: Json
           id: string
           input_summary: Json
+          methodology_version: string | null
           model_version: string
           pace: Json
           profile: Json
@@ -2720,9 +2723,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          coverage?: number | null
           created_at?: string
+          evidence_summary?: Json
           id?: string
           input_summary?: Json
+          methodology_version?: string | null
           model_version: string
           pace: Json
           profile: Json
@@ -2731,9 +2737,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          coverage?: number | null
           created_at?: string
+          evidence_summary?: Json
           id?: string
           input_summary?: Json
+          methodology_version?: string | null
           model_version?: string
           pace?: Json
           profile?: Json
