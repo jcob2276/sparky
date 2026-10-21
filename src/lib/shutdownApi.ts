@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import type { Tables, TablesInsert } from './database.types';
 
-export type ShutdownFoodEntry = Pick<
+type ShutdownFoodEntry = Pick<
   Tables<'daily_food_entries'>,
   'id' | 'name' | 'brand' | 'calories' | 'protein' | 'carbs' | 'fat' | 'amount' | 'date' | 'meal_type'
 >;

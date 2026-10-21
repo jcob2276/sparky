@@ -34,6 +34,7 @@ export async function upsertCloserDailyLog(
     work_hours?: number;
     appointments?: number;
     sales_calls?: number;
+    sales_closed?: number;
     notes?: string | null;
   },
 ): Promise<CloserDailyLogRow> {
@@ -47,6 +48,7 @@ export async function upsertCloserDailyLog(
         work_hours: entry.work_hours ?? 0,
         appointments: entry.appointments ?? 0,
         sales_calls: entry.sales_calls ?? 0,
+        sales_closed: entry.sales_closed ?? 0,
         notes: entry.notes ?? null,
         updated_at: new Date().toISOString(),
       },

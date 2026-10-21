@@ -11,8 +11,6 @@ const m = vi.hoisted(() => ({
 
 vi.mock('./salesNumbers/useDaySalesNumbers', () => ({ useDaySalesNumbers: () => m.sales }));
 vi.mock('./shutdown/useShutdownData', () => ({ useShutdownData: () => m.shutdown }));
-vi.mock('./shutdown/ShutdownChecklist', () => ({ default: () => null }));
-vi.mock('./shutdown/ShutdownFoodReview', () => ({ default: () => null }));
 vi.mock('../shared/DailyScorePicker', () => ({ default: () => null }));
 
 function setup(salesPatch: Record<string, unknown> = {}) {
@@ -38,7 +36,7 @@ describe('DailyShutdownModal: liczby sprzedaży', () => {
   it('bez liczb nie da się zamknąć dnia i pokazuje dlaczego', () => {
     render(<DailyShutdownModal onClose={vi.fn()} />);
     expect(screen.getByRole('button', { name: /Zatwierdź zamknięcie/ })).toBeDisabled();
-    expect(screen.getByText(/Wpisz umówionych, rozmowy i sales calle/)).toBeInTheDocument();
+    expect(screen.getByText(/Wpisz diale, umówionych, rozmowy sprzedażowe i sprzedaże/)).toBeInTheDocument();
     expect(screen.getByText('wymagane')).toBeInTheDocument();
   });
 

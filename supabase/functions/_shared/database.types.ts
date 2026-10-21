@@ -446,6 +446,7 @@ export type Database = {
           id: string
           notes: string | null
           sales_calls: number
+          sales_closed: number
           updated_at: string
           user_id: string
           work_hours: number
@@ -458,6 +459,7 @@ export type Database = {
           id?: string
           notes?: string | null
           sales_calls?: number
+          sales_closed?: number
           updated_at?: string
           user_id: string
           work_hours?: number
@@ -470,6 +472,7 @@ export type Database = {
           id?: string
           notes?: string | null
           sales_calls?: number
+          sales_closed?: number
           updated_at?: string
           user_id?: string
           work_hours?: number
@@ -603,6 +606,7 @@ export type Database = {
           id: string
           insulin_load: number | null
           protein: number | null
+          saturated_fat: number | null
           sugar: number | null
           user_id: string
         }
@@ -618,6 +622,7 @@ export type Database = {
           id?: string
           insulin_load?: number | null
           protein?: number | null
+          saturated_fat?: number | null
           sugar?: number | null
           user_id: string
         }
@@ -633,6 +638,7 @@ export type Database = {
           id?: string
           insulin_load?: number | null
           protein?: number | null
+          saturated_fat?: number | null
           sugar?: number | null
           user_id?: string
         }
@@ -1965,6 +1971,7 @@ export type Database = {
           last_used: string
           name: string
           protein: number | null
+          saturated_fat: number | null
           sugar: number | null
           use_count: number
           user_id: string
@@ -1983,6 +1990,7 @@ export type Database = {
           last_used?: string
           name: string
           protein?: number | null
+          saturated_fat?: number | null
           sugar?: number | null
           use_count?: number
           user_id: string
@@ -2001,6 +2009,7 @@ export type Database = {
           last_used?: string
           name?: string
           protein?: number | null
+          saturated_fat?: number | null
           sugar?: number | null
           use_count?: number
           user_id?: string
@@ -2020,6 +2029,7 @@ export type Database = {
           id: string
           name: string
           protein: number | null
+          saturated_fat: number | null
           source: string
           sugar: number | null
           user_id: string
@@ -2039,6 +2049,7 @@ export type Database = {
           id?: string
           name: string
           protein?: number | null
+          saturated_fat?: number | null
           source?: string
           sugar?: number | null
           user_id: string
@@ -2058,6 +2069,7 @@ export type Database = {
           id?: string
           name?: string
           protein?: number | null
+          saturated_fat?: number | null
           source?: string
           sugar?: number | null
           user_id?: string
@@ -2103,6 +2115,7 @@ export type Database = {
           id: string
           name: string
           protein: number
+          saturated_fat: number | null
           source_label: string
           sugar: number | null
         }
@@ -2114,6 +2127,7 @@ export type Database = {
           id?: string
           name: string
           protein: number
+          saturated_fat?: number | null
           source_label?: string
           sugar?: number | null
         }
@@ -2125,6 +2139,7 @@ export type Database = {
           id?: string
           name?: string
           protein?: number
+          saturated_fat?: number | null
           source_label?: string
           sugar?: number | null
         }
@@ -9136,6 +9151,7 @@ export type Database = {
           p_fiber: number
           p_name: string
           p_protein: number
+          p_saturated_fat?: number
           p_sugar: number
           p_user_id: string
         }

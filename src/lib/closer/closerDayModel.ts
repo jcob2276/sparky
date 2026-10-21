@@ -10,19 +10,21 @@ export interface DayNumbersDraft {
   appointments: string;
   conversations: string;
   salesCalls: string;
+  salesClosed: string;
   /** Dzień bez sprzedaży: wszystkie liczby = 0, nic do wpisywania. */
   off: boolean;
   note: string;
 }
 
 /**
- * Liczby dnia w kolumnach `closer_daily_logs`: „rozmowy” to kolumna `dials`
- * (rozmowy telefoniczne), „sales calle” to `sales_calls`, „umówieni” to `appointments`.
+ * Liczby dnia w kolumnach `closer_daily_logs`: „diale” to kolumna `dials`, „umówieni” (z dial) to
+ * `appointments`, „rozmowy sprzedażowe” to `sales_calls`, „sprzedaże” to `sales_closed`.
  */
 export interface DayNumbers {
   appointments: number;
   dials: number;
   salesCalls: number;
+  salesClosed: number;
   note: string | null;
 }
 
@@ -30,6 +32,7 @@ export const EMPTY_DRAFT: DayNumbersDraft = {
   appointments: '',
   conversations: '',
   salesCalls: '',
+  salesClosed: '',
   off: false,
   note: '',
 };
@@ -49,12 +52,13 @@ export function sanitizeCountInput(raw: string): string {
 
 export function draftToNumbers(draft: DayNumbersDraft): DayNumbers | null {
   const note = draft.note.trim() || null;
-  if (draft.off) return { appointments: 0, dials: 0, salesCalls: 0, note };
+  if (draft.off) return { appointments: 0, dials: 0, salesCalls: 0, salesClosed: 0, note };
   const appointments = parseCount(draft.appointments);
   const dials = parseCount(draft.conversations);
   const salesCalls = parseCount(draft.salesCalls);
-  if (appointments == null || dials == null || salesCalls == null) return null;
-  return { appointments, dials, salesCalls, note };
+  const salesClosed = parseCount(draft.salesClosed);
+  if (appointments == null || dials == null || salesCalls == null || salesClosed == null) return null;
+  return { appointments, dials, salesCalls, salesClosed, note };
 }
 
 export function isDraftComplete(draft: DayNumbersDraft): boolean {
@@ -64,7 +68,7 @@ export function isDraftComplete(draft: DayNumbersDraft): boolean {
 /** Wiersz istnieje w bazie, ale może być zerowym szkieletem z samych godzin pracy. */
 export function hasEnteredNumbers(row: CloserDailyLogRow | null | undefined): boolean {
   if (!row) return false;
-  return (row.appointments ?? 0) + (row.dials ?? 0) + (row.sales_calls ?? 0) > 0 || Boolean(row.notes?.trim());
+  return (row.appointments ?? 0) + (row.dials ?? 0) + (row.sales_calls ?? 0) + (row.sales_closed ?? 0) > 0 || Boolean(row.notes?.trim());
 }
 
 export function rowToDraft(row: CloserDailyLogRow | null | undefined): DayNumbersDraft {
@@ -73,6 +77,7 @@ export function rowToDraft(row: CloserDailyLogRow | null | undefined): DayNumber
     appointments: String(row.appointments ?? 0),
     conversations: String(row.dials ?? 0),
     salesCalls: String(row.sales_calls ?? 0),
+    salesClosed: String(row.sales_closed ?? 0),
     off: false,
     note: row.notes ?? '',
   };
@@ -101,6 +106,7 @@ export interface WeekSums {
   appointments: number;
   salesCalls: number;
   dials: number;
+  salesClosed: number;
 }
 
 export function sumWeek(rows: CloserDailyLogRow[]): WeekSums {
@@ -109,7 +115,8 @@ export function sumWeek(rows: CloserDailyLogRow[]): WeekSums {
       appointments: acc.appointments + (row.appointments ?? 0),
       salesCalls: acc.salesCalls + (row.sales_calls ?? 0),
       dials: acc.dials + (row.dials ?? 0),
+      salesClosed: acc.salesClosed + (row.sales_closed ?? 0),
     }),
-    { appointments: 0, salesCalls: 0, dials: 0 },
+    { appointments: 0, salesCalls: 0, dials: 0, salesClosed: 0 },
   );
 }

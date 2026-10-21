@@ -16,17 +16,18 @@ function Harness({ initial = EMPTY_DRAFT }: { initial?: DayNumbersDraft }) {
 }
 
 describe('SalesNumbersFields', () => {
-  it('pokazuje trzy pola liczbowe i pole opinii', () => {
+  it('pokazuje cztery pola liczbowe i pole opinii', () => {
     render(<Harness />);
+    expect(screen.getByLabelText(/Diale/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Umówieni/)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Rozmowy/)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Sales calle/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Rozmowy sprzedażowe/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Sprzedaże/)).toBeInTheDocument();
     expect(screen.getByLabelText('Jedno zdanie o tych liczbach')).toBeInTheDocument();
   });
 
   it('przepuszcza tylko cyfry, maksymalnie trzy', () => {
     render(<Harness />);
-    const field = screen.getByLabelText(/Rozmowy/);
+    const field = screen.getByLabelText(/Diale/);
     fireEvent.change(field, { target: { value: '4a0-1,2' } });
     expect(field).toHaveValue('401');
   });
@@ -39,7 +40,7 @@ describe('SalesNumbersFields', () => {
   it('„bez sprzedaży” pokazuje zera i blokuje pola, ale zostawia opinię do wpisania', () => {
     render(<Harness />);
     fireEvent.click(screen.getByLabelText(/Dziś bez sprzedaży/));
-    for (const name of [/Umówieni/, /Rozmowy/, /Sales calle/]) {
+    for (const name of [/Diale/, /Umówieni/, /Rozmowy sprzedażowe/, /Sprzedaże/]) {
       expect(screen.getByLabelText(name)).toHaveValue('0');
       expect(screen.getByLabelText(name)).toBeDisabled();
     }

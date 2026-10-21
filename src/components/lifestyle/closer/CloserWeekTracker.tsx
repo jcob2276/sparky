@@ -168,6 +168,7 @@ export default function CloserWeekTracker({
         work_hours: patch.work_hours ?? Number(current?.work_hours ?? 0),
         appointments: patch.appointments ?? current?.appointments ?? 0,
         sales_calls: patch.sales_calls ?? current?.sales_calls ?? 0,
+        sales_closed: current?.sales_closed ?? 0,
         notes: patch.notes !== undefined ? patch.notes : (current?.notes ?? null),
       });
     },

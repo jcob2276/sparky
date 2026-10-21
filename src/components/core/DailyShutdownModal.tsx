@@ -9,8 +9,6 @@ import Modal from '../ui/Modal';
 import Spinner from '../ui/Spinner';
 import { useShutdownData } from './shutdown/useShutdownData';
 import DailyScorePicker from '../shared/DailyScorePicker';
-import ShutdownChecklist from './shutdown/ShutdownChecklist';
-import ShutdownFoodReview from './shutdown/ShutdownFoodReview';
 import SalesNumbersFields from './salesNumbers/SalesNumbersFields';
 import { useDaySalesNumbers } from './salesNumbers/useDaySalesNumbers';
 
@@ -126,18 +124,12 @@ export default function DailyShutdownModal({
             setMoodScore={data.setMoodScore}
           />
 
-          {data.userId ? (
-            <>
-              <ShutdownChecklist userId={data.userId} date={data.today} />
-              <ShutdownFoodReview userId={data.userId} date={data.today} />
-            </>
-          ) : null}
         </div>
 
         <footer className="p-4 border-t border-border-custom/20 space-y-2">
           {!sales.complete && !sales.loading && (
             <p className="text-xs font-semibold text-warning text-center">
-              Wpisz umówionych, rozmowy i sales calle (może być 0), żeby zamknąć dzień.
+              Wpisz diale, umówionych, rozmowy sprzedażowe i sprzedaże (może być 0), żeby zamknąć dzień.
             </p>
           )}
           <Button

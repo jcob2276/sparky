@@ -21,6 +21,7 @@ const row = (patch: Partial<CloserDailyLogRow>): CloserDailyLogRow => ({
   work_hours: 0,
   appointments: 0,
   sales_calls: 0,
+  sales_closed: 0,
   notes: null,
   created_at: '',
   updated_at: '',
@@ -44,21 +45,21 @@ describe('parseCount / sanitizeCountInput', () => {
 });
 
 describe('draftToNumbers', () => {
-  it('wymaga wszystkich trzech liczb', () => {
+  it('wymaga wszystkich czterech liczb', () => {
     expect(draftToNumbers({ ...EMPTY_DRAFT, appointments: '3', conversations: '40' })).toBeNull();
-    expect(isDraftComplete({ ...EMPTY_DRAFT, appointments: '3', conversations: '40', salesCalls: '2' })).toBe(true);
+    expect(isDraftComplete({ ...EMPTY_DRAFT, appointments: '3', conversations: '40', salesCalls: '2', salesClosed: '1' })).toBe(true);
   });
   it('zero wpisane świadomie jest kompletne', () => {
-    expect(draftToNumbers({ ...EMPTY_DRAFT, appointments: '0', conversations: '0', salesCalls: '0' }))
-      .toEqual({ appointments: 0, dials: 0, salesCalls: 0, note: null });
+    expect(draftToNumbers({ ...EMPTY_DRAFT, appointments: '0', conversations: '0', salesCalls: '0', salesClosed: '0' }))
+      .toEqual({ appointments: 0, dials: 0, salesCalls: 0, salesClosed: 0, note: null });
   });
   it('dzień bez sprzedaży daje zera bez wpisywania', () => {
     expect(draftToNumbers({ ...EMPTY_DRAFT, off: true, note: ' wolne ' }))
-      .toEqual({ appointments: 0, dials: 0, salesCalls: 0, note: 'wolne' });
+      .toEqual({ appointments: 0, dials: 0, salesCalls: 0, salesClosed: 0, note: 'wolne' });
   });
   it('mapuje rozmowy na dials i przycina opinię', () => {
-    expect(draftToNumbers({ ...EMPTY_DRAFT, appointments: '4', conversations: '41', salesCalls: '1', note: '  ok  ' }))
-      .toEqual({ appointments: 4, dials: 41, salesCalls: 1, note: 'ok' });
+    expect(draftToNumbers({ ...EMPTY_DRAFT, appointments: '4', conversations: '41', salesCalls: '3', salesClosed: '1', note: '  ok  ' }))
+      .toEqual({ appointments: 4, dials: 41, salesCalls: 3, salesClosed: 1, note: 'ok' });
   });
 });
 
@@ -70,8 +71,8 @@ describe('rowToDraft / hasEnteredNumbers', () => {
     expect(hasEnteredNumbers(null)).toBe(false);
   });
   it('odtwarza formularz z zapisanego wiersza', () => {
-    expect(rowToDraft(row({ appointments: 4, dials: 41, sales_calls: 1, notes: 'dobrze' })))
-      .toEqual({ appointments: '4', conversations: '41', salesCalls: '1', off: false, note: 'dobrze' });
+    expect(rowToDraft(row({ appointments: 4, dials: 41, sales_calls: 3, sales_closed: 1, notes: 'dobrze' })))
+      .toEqual({ appointments: '4', conversations: '41', salesCalls: '3', salesClosed: '1', off: false, note: 'dobrze' });
   });
 });
 
@@ -91,11 +92,11 @@ describe('weekPace', () => {
 });
 
 describe('sumWeek', () => {
-  it('sumuje trzy liczby i toleruje nulle', () => {
+  it('sumuje cztery liczby i toleruje nulle', () => {
     expect(sumWeek([
-      row({ appointments: 3, dials: 40, sales_calls: 1 }),
+      row({ appointments: 3, dials: 40, sales_calls: 1, sales_closed: 1 }),
       row({ appointments: 2, dials: 10, sales_calls: 2 }),
-    ])).toEqual({ appointments: 5, salesCalls: 3, dials: 50 });
-    expect(sumWeek([])).toEqual({ appointments: 0, salesCalls: 0, dials: 0 });
+    ])).toEqual({ appointments: 5, salesCalls: 3, dials: 50, salesClosed: 1 });
+    expect(sumWeek([])).toEqual({ appointments: 0, salesCalls: 0, dials: 0, salesClosed: 0 });
   });
 });

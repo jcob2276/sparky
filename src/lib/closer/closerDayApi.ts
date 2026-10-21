@@ -15,7 +15,7 @@ export async function fetchCloserDay(userId: string, date: string): Promise<Clos
 }
 
 /**
- * Zapisuje trzy liczby i opinię dnia. `upsertCloserDailyLog` zeruje pominięte pola,
+ * Zapisuje cztery liczby i opinię dnia. `upsertCloserDailyLog` zeruje pominięte pola,
  * więc godziny pracy z istniejącego wiersza przenosimy jawnie (ich nie edytujemy tutaj).
  */
 export async function saveCloserDayNumbers(
@@ -29,6 +29,7 @@ export async function saveCloserDayNumbers(
     dials: numbers.dials,
     appointments: numbers.appointments,
     sales_calls: numbers.salesCalls,
+    sales_closed: numbers.salesClosed,
     work_hours: Number(existing?.work_hours ?? 0),
     notes: numbers.note,
   });

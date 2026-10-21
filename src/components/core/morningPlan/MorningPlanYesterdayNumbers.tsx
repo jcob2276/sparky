@@ -1,6 +1,6 @@
 /**
  * @component MorningPlanYesterdayNumbers
- * @role Start dnia: wczorajsze liczby sprzedaży (umówieni, rozmowy, sales calle), opinia i tempo tygodnia.
+ * @role Start dnia: wczorajsze liczby sprzedaży (diale, umówieni, rozmowy sprzedażowe, sprzedaże), opinia i tempo tygodnia.
  * Gdy wczorajszych liczb brakuje, pokazuje ten sam formularz co domknięcie dnia, żeby je uzupełnić.
  */
 import { Quote } from 'lucide-react';
@@ -65,10 +65,11 @@ export default function MorningPlanYesterdayNumbers({ userId, planningDate }: Pr
   return (
     <section className="rounded-2xl border border-border-custom/40 bg-surface/40 p-4 space-y-3" aria-labelledby="yesterday-numbers">
       <h3 id="yesterday-numbers" className="text-xs font-black uppercase tracking-wider text-text-muted">Wczoraj</h3>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-4 gap-2">
+        <Stat value={row.dials ?? 0} label="Diale" />
         <Stat value={row.appointments ?? 0} label="Umówieni" />
-        <Stat value={row.dials ?? 0} label="Rozmowy" />
-        <Stat value={row.sales_calls ?? 0} label="Sales calle" />
+        <Stat value={row.sales_calls ?? 0} label="Rozmowy sprz." />
+        <Stat value={row.sales_closed ?? 0} label="Sprzedaże" />
       </div>
       {note && (
         <p className="flex items-start gap-2 text-sm text-text-secondary leading-snug">
