@@ -1,4 +1,4 @@
-import { Sparkles, Pencil, Check, X, Award } from 'lucide-react';
+import { Sparkles, Pencil, Check, X } from 'lucide-react';
 import { Pressable, ControlInput } from '../ui/ControlPrimitives';
 
 interface WeekIntentionBoxProps {
@@ -12,7 +12,6 @@ interface WeekIntentionBoxProps {
   aiSuggesting: boolean;
   handleAiSuggest: () => void;
   handleSaveIntention: () => void;
-  onStartWeeklyReview?: () => void;
   weekStart?: string;
   sourceFallback?: boolean;
   promptText: string;
@@ -29,23 +28,17 @@ export function WeekIntentionBox({
   aiSuggesting,
   handleAiSuggest,
   handleSaveIntention,
-  onStartWeeklyReview,
   weekStart,
   sourceFallback,
   promptText,
 }: WeekIntentionBoxProps) {
   return (
     <div className="rounded-2xl border border-primary/25 bg-primary/[0.05] p-3.5 space-y-2.5">
-      <div className="flex items-center justify-between">
-        <span className="text-3xs font-black uppercase tracking-widest text-primary flex items-center gap-1.5">
-          <Sparkles size={11} /> Intencja bieżącego tygodnia
+      {sourceFallback && (
+        <span className="inline-block text-3xs font-extrabold text-warning bg-warning/10 px-2 py-0.5 rounded-full">
+          Z poprzedniego tyg.
         </span>
-        {sourceFallback && (
-          <span className="text-3xs font-extrabold text-warning bg-warning/10 px-2 py-0.5 rounded-full">
-            Z poprzedniego tyg.
-          </span>
-        )}
-      </div>
+      )}
 
       {showWeek && !isEditing ? (
         <div className="flex items-start justify-between gap-3">
@@ -68,9 +61,8 @@ export function WeekIntentionBox({
         </div>
       ) : (
         <div className="space-y-2 pt-0.5">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-xs font-semibold text-primary/90 flex items-center gap-1.5 truncate">
-              <Sparkles size={12} className="shrink-0 text-primary" />
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-xs font-semibold text-primary/90 leading-snug">
               {promptText}
             </p>
             <Pressable
@@ -80,7 +72,7 @@ export function WeekIntentionBox({
               className="inline-flex items-center gap-1 text-3xs font-black uppercase tracking-wider text-primary hover:text-primary/80 transition-colors shrink-0"
             >
               <Sparkles size={11} className={aiSuggesting ? 'animate-spin' : ''} />
-              {aiSuggesting ? 'Myśli…' : '✨ AI sugestia'}
+              {aiSuggesting ? 'Myśli…' : 'AI sugestia'}
             </Pressable>
           </div>
           <div className="flex items-center gap-2">
@@ -118,17 +110,6 @@ export function WeekIntentionBox({
               </Pressable>
             )}
           </div>
-          {!showWeek && onStartWeeklyReview && (
-            <div className="pt-1">
-              <Pressable
-                type="button"
-                onClick={onStartWeeklyReview}
-                className="text-2xs font-semibold text-text-muted hover:text-primary transition-colors flex items-center gap-1"
-              >
-                <Award size={11} /> Lub otwórz pełny rytuał planowania
-              </Pressable>
-            </div>
-          )}
         </div>
       )}
     </div>

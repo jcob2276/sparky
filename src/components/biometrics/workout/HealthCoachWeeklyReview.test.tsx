@@ -62,10 +62,10 @@ describe('HealthCoachWeeklyReviewView', () => {
     expect(screen.getByText(/to nie znaczy, że opuszczone/)).toBeInTheDocument();
   });
 
-  it('shows measured goals and collapses unmeasured ones into one line', () => {
+  it('shows measured goals and hides unmeasured ones', () => {
     render(<HealthCoachWeeklyReviewView review={mockReview} activity={activity} />);
     expect(screen.getByText('Bieg 10 km')).toBeInTheDocument();
-    expect(screen.getByText(/Wyciskanie leżąc — czekają na pomiar/)).toBeInTheDocument();
+    expect(screen.queryByText(/czekają na pomiar/)).not.toBeInTheDocument();
     expect(screen.queryByText('Brak świeżego pomiaru')).not.toBeInTheDocument();
   });
 

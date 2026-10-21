@@ -47,7 +47,6 @@ export function HealthCoachWeeklyReviewView({ review, activity, isLoading, error
   const adherence = review?.adherence;
   const hasPlan = (adherence?.plannedSessionsCount ?? 0) > 0;
   const measured = (review?.goalProgress ?? []).filter((g) => g.currentValue != null);
-  const waiting = (review?.goalProgress ?? []).filter((g) => g.currentValue == null);
   const proposal = review?.nextWeekProposal;
   const showProposal = proposal != null && proposal.action !== 'keep';
 
@@ -87,11 +86,6 @@ export function HealthCoachWeeklyReviewView({ review, activity, isLoading, error
         </div>
       )}
 
-      {waiting.length > 0 && (
-        <p className="text-xs text-text-muted">
-          {waiting.map((g) => g.name).join(', ')} — czekają na pomiar. Ustaw go, żeby zobaczyć postęp.
-        </p>
-      )}
       {error && <p className="text-xs text-text-muted">Nie udało się wczytać celów treningowych.</p>}
 
       {showProposal && (

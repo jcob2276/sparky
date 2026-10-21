@@ -103,7 +103,6 @@ function ThreePillars({ cialo, duch, konto }: ThreePillarsProps) {
 export default function WeekLoopSummary({
   ctx,
   compact = false,
-  onStartWeeklyReview,
   weekStart,
   onIntentionSaved,
 }: {
@@ -118,7 +117,6 @@ export default function WeekLoopSummary({
     | 'bhagLine'
   >;
   compact?: boolean;
-  onStartWeeklyReview?: () => void;
   weekStart?: string;
   onIntentionSaved?: () => void;
 }) {
@@ -213,7 +211,6 @@ Zwróć TYLKO 1 konkretne zdanie w języku polskim, bez cudzysłowów.`;
         aiSuggesting={aiSuggesting}
         handleAiSuggest={() => void handleAiSuggest()}
         handleSaveIntention={() => void handleSaveIntention()}
-        onStartWeeklyReview={onStartWeeklyReview}
         weekStart={weekStart}
         sourceFallback={ctx.weekGoalsMeta?.source === 'fallback'}
         promptText={getDynamicIntentionPrompt()}

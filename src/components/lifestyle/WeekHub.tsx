@@ -167,7 +167,6 @@ export default function WeekHub({
           }}
           weekStart={direction.weekStart}
           onIntentionSaved={direction.reload}
-          onStartWeeklyReview={onStartWeeklyReview}
         />
       )}
 
