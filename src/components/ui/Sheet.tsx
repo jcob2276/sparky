@@ -13,9 +13,11 @@ interface SheetProps {
   title: ReactNode;
   children: ReactNode;
   side?: 'left' | 'right' | 'bottom';
+  /** Bottom sheet only: cap width and center it on wide screens instead of spanning the viewport. */
+  compact?: boolean;
 }
 
-function Sheet({ open, onOpenChange, title, children, side = 'right' }: SheetProps) {
+function Sheet({ open, onOpenChange, title, children, side = 'right', compact = false }: SheetProps) {
   const panelRef = useRef<HTMLElement>(null);
   const reduceMotion = useReducedMotion();
   const { light } = useHaptics();
@@ -48,7 +50,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right' }: SheetPro
   }, [open, onOpenChange, light]);
 
   const placement = side === 'bottom'
-    ? 'inset-x-0 bottom-0 max-h-[85svh] rounded-t-[28px] border-t border-black/10 dark:border-white/12 pb-[max(1.25rem,env(safe-area-inset-bottom))]'
+    ? `inset-x-0 bottom-0 max-h-[85svh] rounded-t-[28px] border-t border-black/10 dark:border-white/12 pb-[max(1.25rem,env(safe-area-inset-bottom))]${compact ? ' mx-auto max-w-lg sm:border-x' : ''}`
     : `${side === 'left' ? 'left-0' : 'right-0'} inset-y-0 w-full max-w-md border-x border-black/10 dark:border-white/10`;
 
   const initial = side === 'bottom' ? { y: '100%' } : { x: side === 'left' ? '-100%' : '100%' };

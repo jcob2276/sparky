@@ -9,7 +9,6 @@ import Spinner from '../ui/Spinner';
 import { SlidersHorizontal } from 'lucide-react';
 import HorizonHeader from './HorizonHeader';
 import WeeklyPulseDiagnostic from './WeeklyPulseDiagnostic';
-import { WeeklySpheresOverviewCard } from './WeeklySpheresOverviewCard';
 import { WeeklyPulseHub } from './WeeklyPulseHub';
 
 import Direction from '../lifestyle/Direction';
@@ -53,7 +52,6 @@ export const DashboardTydzienTab = memo(function DashboardTydzienTab({ weeklyCal
           }
         />
         <WeeklyPulseDiagnostic />
-        <WeeklySpheresOverviewCard />
         <WeeklyPulseHub weeklyCalories={weeklyCalories} refreshSignal={nutritionKey} />
       </div>
       <Suspense fallback={<ViewFallback />}>

@@ -43,7 +43,7 @@ interface Tile {
 }
 
 function SectionTitle({ children }: { children: string }) {
-  return <p className="px-1 text-xs font-semibold uppercase tracking-wider text-text-muted">{children}</p>;
+  return <p className="px-1 text-xs font-semibold uppercase tracking-widest text-text-muted">{children}</p>;
 }
 
 export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools, userId, badges }: Props) {
@@ -74,26 +74,31 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
       }}
       side="bottom"
       title="Szybkie akcje"
+      compact
     >
-      <div className="mx-auto max-w-md space-y-5 pb-6 pt-1 max-h-[72vh] overflow-y-auto">
+      <div className="space-y-6 pb-2">
         {logTiles.length > 0 && (
-          <section className="space-y-2" aria-label="Zaloguj">
+          <section className="space-y-3" aria-label="Zaloguj">
             <SectionTitle>Zaloguj</SectionTitle>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               {logTiles.map((tile) => {
                 const Icon = tile.icon;
+                const tint = tile.color ?? 'currentColor';
                 return (
                   <Pressable
                     key={tile.label}
                     variant="ghost"
                     aria-label={tile.label}
                     onClick={() => run(tile)}
-                    className="block w-full rounded-2xl text-center active:scale-95"
+                    className="flex min-h-16 w-full items-center gap-3 rounded-2xl border border-black/8 bg-surface-2 p-3 text-left transition-colors hover:bg-surface-3 active:scale-[0.97] dark:border-white/10"
                   >
-                    <span className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-2xl bg-surface-2 px-2 py-3">
-                      <Icon size={24} style={{ color: tile.color }} aria-hidden="true" />
-                      <span className="text-sm font-medium text-text-primary">{tile.label}</span>
+                    <span
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+                      style={{ color: tint, backgroundColor: `color-mix(in srgb, ${tint} 16%, transparent)` }}
+                    >
+                      <Icon size={22} aria-hidden="true" />
                     </span>
+                    <span className="min-w-0 flex-1 text-sm font-semibold leading-tight text-text-primary">{tile.label}</span>
                   </Pressable>
                 );
               })}
@@ -102,9 +107,9 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
         )}
 
         {navTiles.length > 0 && (
-          <section className="space-y-2" aria-label="Przejdź do">
+          <section className="space-y-3" aria-label="Przejdź do">
             <SectionTitle>Przejdź do</SectionTitle>
-            <div className="grid grid-cols-4 gap-1">
+            <div className="grid grid-cols-4 gap-2">
               {navTiles.map((tile) => {
                 const Icon = tile.icon;
                 const badge = tile.route ? badges?.[tile.route] ?? 0 : 0;
@@ -116,12 +121,12 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
                     onClick={() => run(tile)}
                     onMouseEnter={() => warm(tile)}
                     onTouchStart={() => warm(tile)}
-                    className="flex min-h-11 flex-col items-center gap-1.5 rounded-xl p-2 text-center active:scale-95"
+                    className="flex min-h-18 flex-col items-center justify-center gap-2 rounded-2xl border border-black/8 bg-surface-2 px-1 py-3 text-center transition-colors hover:bg-surface-3 active:scale-95 dark:border-white/10"
                   >
-                    <span className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-surface-2 text-text-primary">
-                      <Icon size={20} aria-hidden="true" />
+                    <span className="relative flex h-6 w-6 items-center justify-center text-text-primary">
+                      <Icon size={22} aria-hidden="true" />
                       {badge > 0 && (
-                        <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-xs font-semibold tabular-nums text-on-accent">
+                        <span className="absolute -right-3 -top-2.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-xs font-semibold tabular-nums text-on-accent">
                           {badge > 9 ? '9+' : badge}
                         </span>
                       )}
