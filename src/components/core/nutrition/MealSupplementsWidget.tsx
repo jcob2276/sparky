@@ -1,14 +1,18 @@
-import { useMemo } from 'react';
-import { Check, Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import { useHaptics } from '../../../hooks/useHaptics';
 import { notify } from '../../../lib/notify';
 import {
   useSupplementLogs,
+  useSetSupplementQuantity,
   useSupplements,
   useToggleSupplement,
 } from '../../../lib/health/supplementsApi';
+import { shortSupplementName } from '../../../lib/health/supplementLabels';
 import type { Supplement } from '../../../lib/health/supplementsClient';
+import SupplementChip from './SupplementChip';
+
+const QUANTITY_CHOICES = [1, 2, 3, 4, 5, 6];
 
 function isReverseLogic(sup: Supplement): boolean {
   return /pyłek|pylek|pollen/i.test(sup.name) || sup.dose_per_unit?.['reverse_logic'] === true;
@@ -26,6 +30,8 @@ export default function MealSupplementsWidget({ userId, date }: { userId: string
   const { data: supplements = [] } = useSupplements(userId);
   const { data: logs = [] } = useSupplementLogs(userId, date);
   const toggle = useToggleSupplement();
+  const setQuantity = useSetSupplementQuantity();
+  const [picking, setPicking] = useState<Supplement | null>(null);
 
   const due = useMemo(() => supplements.filter((sup) => isDueOn(sup, date)), [supplements, date]);
   const logBySupplement = useMemo(() => {
@@ -53,6 +59,23 @@ export default function MealSupplementsWidget({ userId, date }: { userId: string
     }
   };
 
+  const handleQuantity = async (sup: Supplement, quantity: number) => {
+    haptics.selection();
+    setPicking(null);
+    try {
+      await setQuantity.mutateAsync({
+        userId,
+        supplementId: sup.id,
+        date,
+        quantity,
+        existingLog: logBySupplement.get(sup.id) ?? null,
+      });
+    } catch (error: unknown) {
+      console.warn('[MealSupplementsWidget] set quantity failed:', error);
+      notify('Nie udało się zapisać liczby.', 'error');
+    }
+  };
+
   return (
     <section aria-label="Suplementy" className="space-y-1.5 border-t border-border-custom/40 pt-3">
       <div className="flex items-center justify-between px-1">
@@ -60,29 +83,43 @@ export default function MealSupplementsWidget({ userId, date }: { userId: string
         <span className="text-2xs font-bold text-text-muted">{takenCount}/{due.length}</span>
       </div>
       <div className="flex flex-wrap gap-1.5">
-        {due.map((sup) => {
-          const taken = logBySupplement.has(sup.id);
-          return (
+        {due.map((sup) => (
+          <SupplementChip
+            key={sup.id}
+            sup={sup}
+            quantity={logBySupplement.has(sup.id) ? Number(logBySupplement.get(sup.id)?.quantity ?? 1) : null}
+            disabled={toggle.isPending || setQuantity.isPending}
+            onToggle={() => void handleToggle(sup)}
+            onLongPress={() => {
+              haptics.selection();
+              setPicking(sup);
+            }}
+          />
+        ))}
+      </div>
+      {picking && (
+        <div role="group" aria-label={`Ile: ${picking.name}`} className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-border-custom/60 bg-surface-solid/50 p-2">
+          <span className="px-1 text-xs font-bold text-text-secondary">{shortSupplementName(picking)} · ile?</span>
+          {QUANTITY_CHOICES.map((n) => (
             <Pressable
-              key={sup.id}
+              key={n}
               type="button"
-              aria-pressed={taken}
-              aria-label={`${sup.name}: ${taken ? 'zażyty, kliknij aby cofnąć' : 'oznacz jako zażyty'}`}
-              disabled={toggle.isPending}
-              onClick={() => void handleToggle(sup)}
-              className={`touch-manipulation flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-bold ui-interactive active:scale-95 disabled:opacity-60 ${
-                taken
+              haptic="none"
+              onClick={() => void handleQuantity(picking, n)}
+              className={`touch-manipulation size-9 rounded-full border text-sm font-black tabular-nums ui-interactive ${
+                Number(logBySupplement.get(picking.id)?.quantity ?? 0) === n
                   ? 'border-success/40 bg-success/15 text-success'
-                  : 'border-border-custom bg-surface-solid/50 text-text-secondary hover:border-success/40'
+                  : 'border-border-custom text-text-primary'
               }`}
             >
-              <span aria-hidden>{sup.emoji || '💊'}</span>
-              <span>{sup.name}</span>
-              {taken ? <Check size={12} strokeWidth={3} /> : <Plus size={12} className="opacity-60" />}
+              {n}
             </Pressable>
-          );
-        })}
-      </div>
+          ))}
+          <Pressable type="button" haptic="none" onClick={() => setPicking(null)} className="ml-auto px-2 text-2xs font-bold text-text-muted">
+            Anuluj
+          </Pressable>
+        </div>
+      )}
     </section>
   );
 }

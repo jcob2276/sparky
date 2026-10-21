@@ -118,6 +118,58 @@ export function useToggleSupplement() {
   });
 }
 
+/** Ustawia liczbę porcji danego dnia: aktualizuje istniejący wpis albo tworzy nowy. */
+export function useSetSupplementQuantity() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      supplementId,
+      date,
+      quantity,
+      existingLog,
+    }: {
+      userId: string;
+      supplementId: string;
+      date: string;
+      quantity: number;
+      existingLog?: SupplementLog | null;
+    }) => {
+      if (existingLog) {
+        try {
+          const { error } = await supabase.from('supplement_logs').update({ quantity }).eq('id', existingLog.id).eq('user_id', userId);
+          if (error) throw error;
+        } catch (err: unknown) {
+          if (!isOfflineError(err)) throw err;
+          await queueOfflineWrite('table:update:supplement_logs', { match: { id: existingLog.id, user_id: userId }, payload: { quantity } }, 'Zmiana liczby suplementu');
+        }
+        return { ...existingLog, quantity };
+      }
+      const payload = { user_id: userId, supplement_id: supplementId, quantity, date };
+      try {
+        const { data, error } = await supabase.from('supplement_logs').insert(payload).select().single();
+        if (error) throw error;
+        return data as SupplementLog;
+      } catch (err: unknown) {
+        if (!isOfflineError(err)) throw err;
+        const local: SupplementLog = { id: crypto.randomUUID(), logged_at: new Date().toISOString(), note: null, ...payload };
+        await queueOfflineWrite('table:insert:supplement_logs', { payload: local }, 'Zaznaczenie suplementu');
+        return local;
+      }
+    },
+    onSuccess: (log, variables) => {
+      queryClient.setQueryData<SupplementLog[]>(supplementsKeys.logs(variables.userId, variables.date), (old) => [
+        log,
+        ...(old ?? []).filter((l) => l.id !== log.id),
+      ]);
+    },
+    onSettled: (_data, _error, variables) => {
+      void queryClient.invalidateQueries({ queryKey: supplementsKeys.all });
+      void queryClient.invalidateQueries({ queryKey: ['oura-day-night', variables.userId] });
+    },
+  });
+}
+
 export function useSaveSupplement() {
   const queryClient = useQueryClient();
   return useMutation({
