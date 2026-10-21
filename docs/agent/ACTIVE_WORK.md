@@ -828,14 +828,14 @@ zachowania BLE.
 
 ### Plan techniczny
 
-- [ ] Naprawić kontrakt `analyze-physique` zgodnie z kanonicznym `serveJson`.
-- [ ] Usunąć pliki i eksporty wskazane przez Knip jako martwe.
-- [ ] Zastąpić surowe kontrolki, kolory i wartości Tailwind istniejącymi
+- [x] Naprawić kontrakt `analyze-physique` zgodnie z kanonicznym `serveJson`.
+- [x] Usunąć pliki i eksporty wskazane przez Knip jako martwe.
+- [x] Zastąpić surowe kontrolki, kolory i wartości Tailwind istniejącymi
   prymitywami oraz tokenami design systemu.
-- [ ] Rozdzielić komponenty przekraczające limity odpowiedzialności i długości.
-- [ ] Rozdzielić nowe pliki Edge Functions przekraczające 300 linii.
-- [ ] Usunąć nowe `any` bez rozszerzania baseline’ów.
-- [ ] Zweryfikować lint, ratchety, Knip, typy, testy, Edge Functions i build.
+- [x] Rozdzielić komponenty przekraczające limity odpowiedzialności i długości.
+- [x] Rozdzielić nowe pliki Edge Functions przekraczające 300 linii.
+- [x] Usunąć nowe `any` bez rozszerzania baseline’ów.
+- [x] Zweryfikować lint, ratchety, Knip, typy, testy, Edge Functions i build.
 
 ### Ograniczenia
 

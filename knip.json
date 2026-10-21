@@ -10,8 +10,6 @@
     "supabase/functions/**/*.ts"
   ],
   "ignore": [
-    "supabase/functions/**/*.test.ts",
-    "supabase/functions/**/*_test.ts",
     "src/sw.ts",
     "src/lib/database.types.ts",
     "supabase/functions/_shared/database.types.ts",
@@ -81,9 +79,12 @@
     "src/components/investments/WatchlistTable.tsx": ["types"]
   },
   "ignoreDependencies": [
-    "npm"
+    "npm",
+    "playwright",
+    "@playwright/test"
   ],
   "ignoreBinaries": [
-    "powershell"
+    "pg_dump",
+    "psql"
   ]
 }
