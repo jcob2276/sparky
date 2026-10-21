@@ -9,54 +9,6 @@ import { invokeEdge } from '../../lib/supabase';
 
 const norm = (t: string | null | undefined) => (t ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
 const sameText = (a: string | null | undefined, b: string | null | undefined) => { const na = norm(a); return na.length > 0 && na === norm(b); };
-const truncate = (t: string, max = 110) => t.trim().length <= max ? t.trim() : `${t.trim().slice(0, max - 1)}…`;
-
-interface StrategicLineageProps {
-  bhag: string | null;
-  month: string | null;
-  sprint: string | null;
-  monthLabel?: string | null;
-  showSprint: boolean;
-}
-
-function StrategicLineage({ bhag, month, sprint, monthLabel, showSprint }: StrategicLineageProps) {
-  return (
-    <div className="rounded-xl border border-border-custom/30 bg-surface/40 p-2.5 space-y-2 text-xs">
-      {bhag && (
-        <div className="flex items-start gap-2">
-          <span className="text-3xs font-black uppercase tracking-widest text-text-muted shrink-0 w-14 pt-0.5">
-            Rok
-          </span>
-          <p className="text-text-secondary leading-snug font-medium flex-1">
-            {truncate(bhag, 120)}
-          </p>
-        </div>
-      )}
-
-      {month && (
-        <div className="flex items-start gap-2">
-          <span className="text-3xs font-black uppercase tracking-widest text-primary shrink-0 w-14 pt-0.5">
-            {monthLabel ? monthLabel : 'Miesiąc'}
-          </span>
-          <p className="text-text-primary font-semibold leading-snug flex-1">
-            {month}
-          </p>
-        </div>
-      )}
-
-      {showSprint && (
-        <div className="flex items-start gap-2">
-          <span className="text-3xs font-black uppercase tracking-widest text-primary shrink-0 w-14 pt-0.5">
-            Sprint
-          </span>
-          <p className="text-text-primary font-semibold leading-snug flex-1">
-            {sprint}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-}
 
 import { WeekIntentionBox } from './WeekIntentionBox';
 
@@ -122,7 +74,6 @@ export default function WeekLoopSummary({
   const [saving, setSaving] = useState(false);
   const [aiSuggesting, setAiSuggesting] = useState(false);
 
-  const showSprint = Boolean(sprint && !sameText(sprint, month) && !sameText(sprint, bhag));
   const showWeek = Boolean(
     intention && !sameText(intention, month) && !sameText(intention, sprint) && !sameText(intention, bhag),
   );
@@ -182,14 +133,6 @@ Zwróć TYLKO 1 konkretne zdanie w języku polskim, bez cudzysłowów.`;
           </span>
         )}
       </div>
-
-      <StrategicLineage
-        bhag={bhag}
-        month={month}
-        sprint={sprint}
-        monthLabel={ctx.monthLabel}
-        showSprint={showSprint}
-      />
 
       <WeekIntentionBox
         intention={intention}
