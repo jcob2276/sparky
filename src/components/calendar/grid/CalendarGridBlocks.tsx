@@ -8,6 +8,7 @@ import {
   formatTime,
   parseTime,
   detectVideoCallUrl,
+  isSleepSummary,
 } from '../calendarHelpers';
 import { GOAL_ICON } from '../../todo/todoUtils';
 import { EventQuickActions } from './EventQuickActions';
@@ -46,8 +47,7 @@ export const renderEventBlock = ({
   const rawSummary = ev.summary && ev.summary.trim() ? ev.summary.trim() : 'Wydarzenie';
   let displaySummary = rawSummary;
   if (tooShort) {
-    const isSleep = rawSummary.toLowerCase().includes('sen') || rawSummary.toLowerCase().includes('sleep');
-    if (isSleep) {
+    if (isSleepSummary(rawSummary)) {
       displaySummary = `${startStr}-${endStr}`;
     } else {
       displaySummary = `${rawSummary} (${startStr}–${endStr})`;
@@ -75,7 +75,7 @@ export const renderEventBlock = ({
         e.stopPropagation();
         handleEventContextMenu?.(ev, e);
       }}
-      className={`apple-event-card group absolute z-1 border-l-[4px] rounded-lg ${
+      className={`apple-event-card group absolute z-[var(--z-raised)] border-l-[4px] rounded-lg ${
         tooShort ? 'px-2 py-0.5 flex items-center justify-start' : 'px-2.5 py-1.5 flex flex-col justify-start gap-0.5'
       } overflow-hidden cursor-move shadow-2xs hover:shadow-md hover:brightness-[1.02] active:scale-[0.985] transition-[transform,box-shadow,filter] duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 select-none ${eventColor(ev)}`}
       style={{ top, height, left: `calc(${left} + 1px)`, width: `calc(${width} - 2px)` }}

@@ -20,6 +20,8 @@ export function useCalendarGridSwipe(options: Options) {
   };
 
   const onTouchStart: TouchEventHandler<HTMLDivElement> = (event) => {
+    // swipe nie generuje kliknięcia, więc flaga z poprzedniego gestu nie może zjeść następnego tapnięcia
+    swipeConsumed.current = false;
     if (event.touches.length !== 1) return;
     const target = event.target as HTMLElement | null;
     if (target?.closest('button, a, input, textarea, [role="dialog"]')) return;

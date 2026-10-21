@@ -32,7 +32,15 @@ export default function EventContextCard({ eventId, title }: { eventId: string; 
   const facts = data?.graph?.filter((fact) => fact.fact_text).slice(0, 2) || [];
 
   if (isLoading) {
-    return <div className="h-16 animate-pulse rounded-xl bg-surface-3/70" aria-label="Szukam powiązanego kontekstu" />;
+    return (
+      <div
+        role="status"
+        aria-label="Szukam powiązanego kontekstu"
+        className="flex h-8 animate-pulse items-center gap-1.5 rounded-lg bg-surface-3/50 px-3 text-2xs font-semibold text-text-muted"
+      >
+        <Sparkles size={12} /> Szukam powiązanych notatek…
+      </div>
+    );
   }
   if (!notes.length && !facts.length) return null;
 

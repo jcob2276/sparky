@@ -191,6 +191,11 @@ export function computeBudgetBarState(
   return { pct: 0, statusText: `${spent.toFixed(1)}h`, barColor: baseColor };
 }
 
+/** „Sen” / „Sleep” jako osobne słowo na początku tytułu (nie „Sensor” ani „Konsensus”). */
+export function isSleepSummary(summary: string | null | undefined): boolean {
+  return /^[^\p{L}\p{N}]*(?:sen|sleep)(?![\p{L}\p{N}])/iu.test(summary ?? '');
+}
+
 export function eventColor(ev: CalRow) {
   const summaryLower = ev.summary?.toLowerCase() || '';
   const isFocusTime = ev.summary?.includes('Focus Time') || ev.summary?.includes('🛡️');
@@ -236,7 +241,7 @@ export function eventColor(ev: CalRow) {
   ) {
     return categoryMap['praca'];
   }
-  if (summaryLower.includes('sen') || summaryLower.includes('sleep') || summaryLower.includes('sauna') || summaryLower.includes('regeneracj')) {
+  if (isSleepSummary(summaryLower) || summaryLower.includes('sauna') || summaryLower.includes('regeneracj')) {
     return categoryMap['odpoczynek_regeneracja'];
   }
   if (summaryLower.includes('bieg') || summaryLower.includes('trening') || summaryLower.includes('siłownia') || summaryLower.includes('run') || summaryLower.includes('gym') || summaryLower.includes('workout') || summaryLower.includes('tenis') || summaryLower.includes('logopeda')) {

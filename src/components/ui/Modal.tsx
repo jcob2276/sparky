@@ -11,6 +11,8 @@ export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   title?: React.ReactNode;
+  /** Etykieta dla czytników ekranu, gdy modal nie ma widocznego tytułu. */
+  ariaLabel?: string;
   subtitle?: React.ReactNode;
   children: React.ReactNode;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
@@ -187,6 +189,7 @@ export default function Modal({
   isOpen,
   onClose,
   title,
+  ariaLabel,
   subtitle,
   children,
   size = 'md',
@@ -239,7 +242,7 @@ export default function Modal({
             }}
             role="dialog"
             aria-modal="true"
-            aria-label={typeof title === 'string' ? title : undefined}
+            aria-label={typeof title === 'string' ? title : ariaLabel}
             aria-labelledby={typeof title !== 'string' && title ? titleId : undefined}
             data-material="floating"
             tabIndex={-1}

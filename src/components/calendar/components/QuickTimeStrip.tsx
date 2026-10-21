@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock } from 'lucide-react';
+import { ChevronRight, Clock } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 
 import { formatQuickDateLabel } from '../calendarHelpers';
@@ -19,6 +19,19 @@ interface QuickTimeStripProps {
   endTimeStr: string;
   quickDuration: number;
   setQuickDuration: (d: number) => void;
+  /** Klik w linię z datą i godziną otwiera pola Data / Od / Do. */
+  onEditTime: () => void;
+  allDay?: boolean;
+  /** Czas trwania wpisany w tytule (np. „45m”) ma pierwszeństwo, więc presety są nieaktywne. */
+  durationLocked?: boolean;
+  /** Ukrywa linię z datą i godziną, gdy te same dane są już w polach Data / Od / Do. */
+  showSummary?: boolean;
+}
+
+function durationLabel(mins: number): string {
+  if (mins >= 60 && mins % 60 === 0) return `${mins / 60}h`;
+  if (mins >= 60) return `${Math.floor(mins / 60)}h ${mins % 60}m`;
+  return `${mins}m`;
 }
 
 export function QuickTimeStrip({
@@ -27,24 +40,37 @@ export function QuickTimeStrip({
   endTimeStr,
   quickDuration,
   setQuickDuration,
+  onEditTime,
+  allDay = false,
+  durationLocked = false,
+  showSummary = true,
 }: QuickTimeStripProps) {
   const friendlyDate = formatQuickDateLabel(date);
+  const isCustomDuration = !DURATION_PRESETS.some((p) => p.mins === quickDuration);
 
   return (
-    <div className="rounded-xl bg-surface-solid/35 border border-border-custom/30 p-2.5 space-y-2">
-      <div className="flex items-center justify-between gap-2 text-xs">
-        <div className="flex items-center gap-1.5 font-medium text-text-secondary whitespace-nowrap min-w-0">
-          <Clock size={13} className="text-primary shrink-0" />
-          <span className="font-semibold text-text-primary capitalize">{friendlyDate}</span>
-          <span className="text-text-muted">·</span>
-          <span className="font-bold text-primary tabular-nums">{startTimeStr} – {endTimeStr}</span>
-        </div>
-        <span className="text-2xs font-semibold px-2 py-0.5 rounded-md bg-surface-solid border border-border-custom/30 text-text-muted tabular-nums shrink-0">
-          {quickDuration >= 60 ? `${quickDuration / 60}h` : `${quickDuration}m`}
+    <div className="space-y-1.5">
+      {showSummary && <Pressable
+        type="button"
+        onClick={onEditTime}
+        aria-label="Zmień datę i godzinę"
+        className="flex w-full items-center gap-1.5 rounded-lg px-1 py-1 text-left text-xs font-medium text-text-secondary hover:bg-surface-solid/40 active:bg-surface-solid/60 transition-colors"
+      >
+        <Clock size={13} className="shrink-0 text-primary" />
+        <span className="font-semibold capitalize text-text-primary">{friendlyDate}</span>
+        <span className="text-text-muted">·</span>
+        <span className="font-bold tabular-nums text-primary">{allDay ? 'Cały dzień' : `${startTimeStr} – ${endTimeStr}`}</span>
+        {!allDay && isCustomDuration && (
+          <span className="rounded-md border border-border-custom/30 bg-surface-solid px-1.5 text-2xs font-semibold tabular-nums text-text-muted">
+            {durationLabel(quickDuration)}
+          </span>
+        )}
+        <span className="ml-auto flex shrink-0 items-center text-2xs font-semibold text-text-muted">
+          Zmień <ChevronRight size={12} />
         </span>
-      </div>
+      </Pressable>}
 
-      <div className="flex items-center gap-1">
+      <div className={`flex items-center gap-1 ${allDay ? 'hidden' : ''}`}>
         {DURATION_PRESETS.map((p) => {
           const isSelected = quickDuration === p.mins;
           return (
@@ -52,9 +78,11 @@ export function QuickTimeStrip({
               key={p.mins}
               type="button"
               onClick={() => setQuickDuration(p.mins)}
-              className={`flex-1 py-1 px-1 rounded-lg text-2xs font-semibold text-center select-none active:scale-[0.96] transition-all duration-100 border ${
+              disabled={durationLocked}
+              title={durationLocked ? 'Czas trwania jest wpisany w tytule' : undefined}
+              className={`flex-1 rounded-lg border px-1 py-1.5 text-center text-2xs font-semibold select-none active:scale-[0.96] transition-all duration-100 disabled:opacity-[var(--opacity-dimmed)] disabled:active:scale-100 sm:py-1 ${
                 isSelected
-                  ? 'border-primary/50 bg-primary/20 text-primary font-bold shadow-2xs'
+                  ? 'border-primary/50 bg-primary/20 text-primary font-bold'
                   : 'border-border-custom/20 bg-surface-solid/50 text-text-muted hover:text-text-primary hover:bg-surface-solid'
               }`}
             >

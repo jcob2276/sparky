@@ -42,8 +42,8 @@ function EditWhenCard({
           Całodniowe
         </label>
       </div>
-      <div className="grid gap-2 sm:grid-cols-3">
-        <label className="space-y-1 text-xs font-bold text-text-secondary">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <label className="col-span-2 space-y-1 text-xs font-bold text-text-secondary sm:col-span-1">
           <span className="flex items-center gap-1 text-text-muted"><CalendarDays size={12} /> Data</span>
           <ControlInput type="date" value={editDate} onChange={(event) => setEditDate(event.target.value)} className="h-11 w-full rounded-lg border border-border-custom/40 bg-surface-solid/50 px-2.5 text-base font-semibold text-text-primary" />
         </label>
@@ -79,9 +79,9 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
     : [];
 
   return (
-    <Modal isOpen={Boolean(selectedEvent)} onClose={() => setSelectedEvent(null)} title="Edytuj wydarzenie" size="md">
+    <Modal isOpen={Boolean(selectedEvent)} onClose={() => setSelectedEvent(null)} title="Edytuj wydarzenie" size="md" padding="p-4">
       {selectedEvent && (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {isSeries && (
             <div className="flex items-center gap-2 rounded-xl bg-primary/10 px-3 py-2 text-xs font-bold text-primary">
               <Repeat2 size={15} /> Edytujesz całą serię wydarzeń
@@ -95,7 +95,7 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
             value={editTitle}
             onChange={(event) => setEditTitle(event.target.value)}
             placeholder="Tytuł wydarzenia…"
-            className="min-h-12 w-full rounded-xl border border-border-custom/40 bg-surface-solid/40 px-4 text-base font-bold tracking-tight text-text-primary focus:border-primary/50 placeholder:text-text-muted/40 transition-colors"
+            className="min-h-11 w-full rounded-xl border border-border-custom/40 bg-surface-solid/40 px-4 text-base font-bold tracking-tight text-text-primary focus:border-primary/50 placeholder:text-text-muted/40 transition-colors"
           />
 
           <CalendarConflictNotice titles={conflicts.map((event) => event.summary || 'Wydarzenie')} />
@@ -188,7 +188,7 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
           )}
 
           {/* Buttons Row */}
-          <div className="flex gap-2 pt-1">
+          <div className="sticky bottom-0 z-[var(--z-sticky)] -mx-4 -mb-4 flex gap-2 border-t border-border-custom/25 bg-surface-solid/70 px-4 pb-4 pt-2.5 backdrop-blur-xs">
             <Button
               variant="outline"
               onClick={handleEditDelete}

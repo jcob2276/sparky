@@ -15,6 +15,60 @@ const CALENDAR_TABS = [
   { key: 'miesiac', label: 'Miesiąc', mobileLabel: 'Mc' },
 ];
 
+function pluralizeEvents(count: number): string {
+  if (count === 1) return 'wydarzenie';
+  const lastDigit = count % 10;
+  const lastTwo = count % 100;
+  return lastDigit >= 2 && lastDigit <= 4 && (lastTwo < 12 || lastTwo > 14) ? 'wydarzenia' : 'wydarzeń';
+}
+
+function CalendarSearchField({ value, onChange, onClose }: { value: string; onChange: (value: string) => void; onClose: () => void }) {
+  return (
+    <div className="relative flex items-center">
+      <Search size={14} className="pointer-events-none absolute left-2.5 text-text-muted" />
+      <ControlInput
+        type="search"
+        autoFocus
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClose();
+        }}
+        placeholder="Szukaj…"
+        className="h-11 w-[min(52vw,14rem)] rounded-lg border border-border-custom/40 bg-surface-solid/30 pl-8 pr-8 text-base text-text-primary placeholder:text-text-muted/60 focus:border-primary focus:bg-background focus:outline-none sm:h-9 sm:w-48 sm:text-xs"
+      />
+      <Pressable
+        onClick={onClose}
+        className="absolute right-1 min-h-9 min-w-9 text-text-muted hover:text-text-primary"
+        aria-label="Zamknij wyszukiwanie"
+      >
+        <X size={14} />
+      </Pressable>
+    </div>
+  );
+}
+
+function CalendarSearchStatus({ term, matchCount, onClear }: { term: string; matchCount: number; onClear: () => void }) {
+  return (
+    <div
+      role="status"
+      className="flex items-center justify-between gap-2 border-b border-border-custom/25 bg-surface-solid/20 px-4 py-1.5 text-xs font-medium text-text-secondary"
+    >
+      <span className="min-w-0 truncate">
+        {matchCount > 0
+          ? `Znaleziono ${matchCount} ${pluralizeEvents(matchCount)} w tym miesiącu`
+          : `Brak wyników dla „${term}”`}
+      </span>
+      <Pressable
+        onClick={onClear}
+        className="shrink-0 rounded-full px-2 py-0.5 font-semibold text-primary hover:bg-primary/10"
+      >
+        Wyczyść
+      </Pressable>
+    </div>
+  );
+}
+
 interface CalendarHeaderProps {
   onBack: () => void;
 }
@@ -33,10 +87,14 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
       searchQuery,
       setSearchQuery,
       setQuickCreate,
+      displayEvents,
     },
     isSyncing,
     onSyncCalendar,
   } = useCalendar();
+
+  const searchTerm = searchQuery.trim();
+  const matchCount = displayEvents.length;
 
   const handleTodayClick = () => {
     setSelectedDay(today);
@@ -79,27 +137,14 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
       actions={
         <div className="flex items-center gap-1.5 sm:gap-2">
           {searchOpen ? (
-            <div className="relative flex items-center">
-              <Search size={14} className="pointer-events-none absolute left-2.5 text-text-muted" />
-              <ControlInput
-                type="search"
-                autoFocus
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Szukaj…"
-                className="h-11 w-[min(52vw,14rem)] rounded-lg border border-border-custom/40 bg-surface-solid/30 pl-8 pr-8 text-base text-text-primary placeholder:text-text-muted/60 focus:border-primary focus:bg-background focus:outline-none sm:h-9 sm:w-48 sm:text-xs"
-              />
-              <Pressable
-                onClick={() => {
-                  setSearchQuery('');
-                  setSearchOpen(false);
-                }}
-                className="absolute right-1 min-h-9 min-w-9 text-text-muted hover:text-text-primary"
-                aria-label="Zamknij wyszukiwanie"
-              >
-                <X size={14} />
-              </Pressable>
-            </div>
+            <CalendarSearchField
+              value={searchQuery}
+              onChange={setSearchQuery}
+              onClose={() => {
+                setSearchQuery('');
+                setSearchOpen(false);
+              }}
+            />
           ) : (
             <Pressable
               onClick={() => setSearchOpen(true)}
@@ -170,6 +215,9 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
         active: calView,
         onChange: (key) => setCalView(key as typeof calView),
       }}
+      secondaryRow={searchTerm ? (
+        <CalendarSearchStatus term={searchTerm} matchCount={matchCount} onClear={() => setSearchQuery('')} />
+      ) : undefined}
     />
   );
 }

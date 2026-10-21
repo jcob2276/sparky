@@ -59,6 +59,10 @@ export function useCalendarKeyboardShortcuts({
         return;
       }
 
+      // Kombinacje z Ctrl/Cmd/Alt (np. kopiowanie) i otwarte okna dialogowe nie sterują kalendarzem pod spodem.
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+
       const isPrev = e.key === 'ArrowLeft' || key === 'k';
       const isNext = e.key === 'ArrowRight' || key === 'j';
 

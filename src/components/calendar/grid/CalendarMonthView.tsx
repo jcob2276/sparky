@@ -1,7 +1,7 @@
 import { Pressable } from '../../ui/ControlPrimitives';
 import React, { useMemo } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
-import { getMonthGridDays, eventColor, formatTime } from '../calendarHelpers';
+import { getMonthGridDays, eventColor, formatTime, isSleepSummary } from '../calendarHelpers';
 import { formatRangeLabel } from '../calendarRangeLabel';
 import type { CalRow } from '../calendarHelpers';
 import type { CalendarTodo } from '../hooks/useCalendarTodos';
@@ -65,8 +65,10 @@ function MonthDayCell({
 }: MonthDayCellProps) {
   const holiday = getPolishHolidayForDate(dateStr);
   const maxVisible = holiday ? 2 : 3;
-  const overflowCount = Math.max(0, dayEvents.length + dayTodos.length - maxVisible);
-  const categories = Array.from(new Set(dayEvents.map((e) => e.category || 'default'))).slice(0, 3);
+  // sen na końcu (sort jest stabilny), żeby nie wypychał prawdziwych wydarzeń do „+N więcej”
+  const orderedEvents = [...dayEvents].sort((a, b) => Number(isSleepSummary(a.summary)) - Number(isSleepSummary(b.summary)));
+  const overflowCount = Math.max(0, orderedEvents.length + dayTodos.length - maxVisible);
+  const categories = Array.from(new Set(orderedEvents.map((e) => e.category || 'default'))).slice(0, 3);
 
   return (
     <div
@@ -138,7 +140,7 @@ function MonthDayCell({
       )}
 
       <div className="calendar-month-event-pill flex-1 space-y-1 overflow-hidden md:!block">
-        {dayEvents.slice(0, maxVisible).map((ev) => (
+        {orderedEvents.slice(0, maxVisible).map((ev) => (
           <div
             key={ev.id}
             onClick={(e) => {
@@ -153,8 +155,8 @@ function MonthDayCell({
           </div>
         ))}
 
-        {dayEvents.length < maxVisible &&
-          dayTodos.slice(0, maxVisible - dayEvents.length).map((todo) => (
+        {orderedEvents.length < maxVisible &&
+          dayTodos.slice(0, maxVisible - orderedEvents.length).map((todo) => (
             <div
               key={todo.id}
               className="truncate rounded-md border border-border-custom/40 bg-surface-solid/70 px-1.5 py-0.5 text-3xs font-medium text-text-secondary"

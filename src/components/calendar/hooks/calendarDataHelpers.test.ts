@@ -1,5 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { computeVisibleRange, formatTimeOfISO } from './calendarDataHelpers';
+import { isSleepSummary } from '../calendarHelpers';
+
+describe('isSleepSummary', () => {
+  it('recognises sleep entries, also with a leading emoji', () => {
+    expect(isSleepSummary('Sen')).toBe(true);
+    expect(isSleepSummary('😴 Sen')).toBe(true);
+    expect(isSleepSummary('Sleep 7h')).toBe(true);
+  });
+
+  it('does not treat words that merely contain "sen" as sleep', () => {
+    expect(isSleepSummary('Sensor lab')).toBe(false);
+    expect(isSleepSummary('Konsensus')).toBe(false);
+    expect(isSleepSummary(null)).toBe(false);
+  });
+});
 
 describe('computeVisibleRange', () => {
   it('is stable for every day of the month so navigation does not refetch', () => {

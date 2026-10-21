@@ -1,5 +1,5 @@
 import { LIFE_SPHERES, LEGACY_CATEGORY_TO_SPHERE } from '../../../lib/projects/lifeSpheres';
-import { addDays, weekMon, type CalRow } from '../calendarHelpers';
+import { addDays, isSleepSummary, weekMon, type CalRow } from '../calendarHelpers';
 import { formatWarsawDate } from '../../../lib/date';
 
 export const buildRecurrenceRule = (
@@ -66,7 +66,7 @@ export function calculateWeeklyTotals(events: CalRow[], weekStart: string, offse
     if (!ev.start_time || !ev.end_time || !ev.category) return;
     const evDateStr = formatWarsawDate(ev.start_time);
     if (evDateStr < targetWeekStart || evDateStr >= targetWeekEnd) return;
-    if (ev.summary?.toLowerCase()?.includes('sen') || ev.summary?.toLowerCase()?.includes('sleep')) return;
+    if (isSleepSummary(ev.summary)) return;
     const cat = LEGACY_CATEGORY_TO_SPHERE[ev.category.toLowerCase()] || ev.category.toLowerCase();
     if (!(cat in totals)) return;
     try {

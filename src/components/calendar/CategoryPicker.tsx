@@ -5,6 +5,8 @@ import { Pressable } from '../ui/ControlPrimitives';
 interface CategoryPickerProps {
   selected: string | null;
   onSelect: (key: string | null) => void;
+  /** Jeden przewijany rząd zamiast zawijania do kilku wierszy (kompaktowe dymki). */
+  scroll?: boolean;
 }
 
 const SHORT_SPHERE_LABELS: Record<string, string> = {
@@ -14,9 +16,9 @@ const SHORT_SPHERE_LABELS: Record<string, string> = {
   odpoczynek_regeneracja: 'Regeneracja',
 };
 
-export default function CategoryPicker({ selected, onSelect }: CategoryPickerProps) {
+export default function CategoryPicker({ selected, onSelect, scroll = false }: CategoryPickerProps) {
   return (
-    <div className="flex flex-wrap gap-1.5 py-0.5">
+    <div className={scroll ? 'no-scrollbar -mx-1 flex gap-1.5 overflow-x-auto px-1 py-0.5' : 'flex flex-wrap gap-1.5 py-0.5'}>
       {[{ id: null as string | null, label: 'Brak', dot: 'bg-text-muted/50' }, ...LIFE_SPHERES].map((cat) => {
         const isSelected = selected === cat.id;
         const displayLabel = cat.id && SHORT_SPHERE_LABELS[cat.id] ? SHORT_SPHERE_LABELS[cat.id] : cat.label;
@@ -25,7 +27,7 @@ export default function CategoryPicker({ selected, onSelect }: CategoryPickerPro
             key={cat.id || 'none'}
             type="button"
             onClick={() => onSelect(cat.id)}
-            className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ui-interactive select-none transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.96] ${
+            className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-2.5 py-1 rounded-full border ui-interactive select-none transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.96] ${
               isSelected
                 ? cat.id
                   ? 'bg-primary/15 border-primary/50 text-primary font-bold shadow-2xs'
