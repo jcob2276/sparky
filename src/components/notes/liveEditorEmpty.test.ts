@@ -24,6 +24,13 @@ describe('isLiveEditorEmpty', () => {
     expect(isLiveEditorEmpty()).toBe(false);
   });
 
+  it('is false when only the title field is filled', () => {
+    document.body.innerHTML = '<input class="keep-note-title" value="Tylko tytuł"><div class="keep-rich-editor"><p><br></p></div>';
+    expect(isLiveEditorEmpty()).toBe(false);
+    document.body.innerHTML = '<input class="keep-note-title" value="  "><div class="keep-rich-editor"><p><br></p></div>';
+    expect(isLiveEditorEmpty()).toBe(true);
+  });
+
   it('is false for notes that contain only media, tables, todos or links', () => {
     for (const html of [
       '<img src="x.png">',

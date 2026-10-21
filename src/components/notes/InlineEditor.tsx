@@ -8,7 +8,7 @@ import { Pressable } from '../ui/ControlPrimitives';
 import { useState } from 'react';
 import { useFocusEmptyEditor } from './hooks/useFocusEmptyEditor';
 import { ChevronLeft, X } from 'lucide-react';
-import RichEditor from './RichEditor';
+import TitledRichEditor from './TitledRichEditor';
 import { getColor, Note, getPlainText, relativeDate } from './keepUtils';
 import { invokeEdge } from '../../lib/supabase';
 import { notify, confirmDialog } from '../../lib/notify';
@@ -165,7 +165,7 @@ export default function InlineEditor({
             }
           }}
         >
-          <RichEditor 
+          <TitledRichEditor 
             value={content} 
             onChange={setContent} 
             placeholder="Zacznij pisać..."

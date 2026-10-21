@@ -23,18 +23,6 @@ interface RichEditorProps {
   onNavigateToNote?: (noteId: string) => void;
 }
 
-/** Krótka pierwsza linia (zwykły akapit) jest tytułem notatki — wyróżniamy ją jak w Apple Notes. */
-function markTitleBlock(editor: HTMLElement | null) {
-  const first = editor?.firstElementChild;
-  const isTitle = !!first
-    && (first.tagName === 'P' || first.tagName === 'DIV')
-    && !first.classList.contains('keep-todo-item')
-    && !first.querySelector('br:not(:last-child), img, table')
-    && (first.textContent ?? '').trim().length > 0
-    && (first.textContent ?? '').length <= 80;
-  if (editor) editor.dataset.titleFirst = isTitle ? 'true' : 'false';
-}
-
 export default function RichEditor({
   value,
   onChange,
@@ -52,7 +40,6 @@ export default function RichEditor({
 
   const handleInput = useCallback(() => {
     if (editorRef.current) {
-      markTitleBlock(editorRef.current);
       onChange(editorRef.current.innerHTML);
     }
   }, [onChange]);
@@ -89,7 +76,6 @@ export default function RichEditor({
     if (editorRef.current && editorRef.current.innerHTML !== html) {
       editorRef.current.innerHTML = html;
     }
-    markTitleBlock(editorRef.current);
   }, [value]);
 
   const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {

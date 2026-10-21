@@ -5,6 +5,7 @@
 export function isLiveEditorEmpty(): boolean {
   const editor = document.querySelector<HTMLElement>('.keep-rich-editor');
   if (!editor) return false;
+  if (document.querySelector<HTMLInputElement>('.keep-note-title')?.value.trim()) return false;
   if (editor.querySelector('img, table, .keep-todo-item, a')) return false;
   return !(editor.textContent ?? '').trim();
 }

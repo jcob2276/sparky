@@ -61,7 +61,7 @@ describe('InlineEditor mobile layout', () => {
       />,
     );
 
-    const contentFlow = screen.getByTestId('rich-editor').parentElement;
+    const contentFlow = screen.getByTestId('rich-editor').closest('.select-text');
 
     expect(contentFlow).toHaveClass('flex-none');
     expect(contentFlow).not.toHaveClass('flex-1');
