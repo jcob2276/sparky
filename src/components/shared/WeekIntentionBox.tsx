@@ -78,7 +78,8 @@ export function WeekIntentionBox({
           <div className="flex items-center gap-2">
             <ControlInput
               type="text"
-              placeholder="Wpisz intencję tygodnia..."
+              placeholder="Twoja odpowiedź…"
+              aria-label="Intencja tygodnia"
               value={draftIntention}
               onChange={(e) => setDraftIntention(e.target.value)}
               onKeyDown={(e) => {
