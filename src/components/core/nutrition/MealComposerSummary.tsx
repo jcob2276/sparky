@@ -1,3 +1,8 @@
+import type { WeekBalance } from '../../../lib/health/weekBalance';
+import type { DayNutrientCoverage } from '../../../lib/health/nutrientCoverage';
+import NutrientCoverageStrip from './NutrientCoverageStrip';
+import WeekBalanceStrip from './WeekBalanceStrip';
+
 type Totals = {
   calories: number;
   protein: number;
@@ -69,10 +74,14 @@ export function ComposerProgress({
   totals,
   qualityPending,
   macros,
+  week,
+  nutrients,
 }: {
   totals: Totals;
   qualityPending: boolean;
   macros?: { carbs: number; fat: number };
+  week?: WeekBalance | null;
+  nutrients?: DayNutrientCoverage;
 }) {
   const targetKcal = totals.targetKcal ?? FALLBACK_TARGET_KCAL;
   const eaten = Math.round(totals.calories);
@@ -84,6 +93,7 @@ export function ComposerProgress({
   const showQuality = qualityPending || totals.avgFoodQuality != null;
 
   return (
+    <div className="space-y-2">
     <div className="flex items-center gap-3">
       <MealCalorieRing eaten={eaten} target={targetKcal} />
       <div className="min-w-0 flex-1 space-y-1">
@@ -107,6 +117,9 @@ export function ComposerProgress({
           <MacroRow macro="fat" label="T" grams={macros?.fat ?? 0} target={targetFat} hint="Cel orientacyjny (30% kcal)" />
         </ul>
       </div>
+    </div>
+    {nutrients && <NutrientCoverageStrip coverage={nutrients} />}
+    {week && <WeekBalanceStrip week={week} />}
     </div>
   );
 }

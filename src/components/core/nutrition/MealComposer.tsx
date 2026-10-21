@@ -11,6 +11,8 @@ import CopyDayModal from './CopyDayModal';
 import type { RecentEntry } from './hooks/foodEntryUtils';
 import { useMealComposer } from './hooks/useMealComposer';
 import { useMealPhotoUrls } from './hooks/useMealPhotoUrls';
+import { useWeekBalance } from './hooks/useWeekBalance';
+import { computeDayNutrientCoverage } from '../../../lib/health/nutrientCoverage';
 import { useSession } from '../../../store/useStore';
 
 const FoodEntryModal = lazy(() => import('./FoodEntryModal'));
@@ -27,6 +29,8 @@ export default function MealComposer({
   const photoUrls = useMealPhotoUrls(session?.user.id, c.allTodayEntries);
   const [editEntry, setEditEntry] = useState<RecentEntry | null>(null);
   const [copyDayOpen, setCopyDayOpen] = useState(false);
+
+  const week = useWeekBalance(session?.user.id, c.logDate, c.totals.calories, c.totals.targetKcal);
 
   if (!session) return null;
 
@@ -46,6 +50,8 @@ export default function MealComposer({
         <ComposerProgress
           totals={c.totals}
           qualityPending={c.qualityPending}
+          week={week}
+          nutrients={computeDayNutrientCoverage(c.allTodayEntries)}
           macros={{
             carbs: Math.round(c.allTodayEntries.reduce((s, e) => s + (e.carbs ?? 0), 0)),
             fat: Math.round(c.allTodayEntries.reduce((s, e) => s + (e.fat ?? 0), 0) * 10) / 10,
@@ -117,10 +123,10 @@ export default function MealComposer({
             saving={c.saving}
             onChip={c.handleQuickChip}
             onOpenCopyDay={() => setCopyDayOpen(true)}
-            yesterdayMealSuggestion={c.yesterdayMealSuggestion}
-            onRepeatYesterdayMeal={c.repeatYesterdayMeal}
           />
         )}
+
+        {c.userId && <MealSupplementsWidget userId={c.userId} date={c.logDate} />}
 
         {c.allTodayEntries.length > 0 && (
           <MealComposerLoggedItems
@@ -141,8 +147,6 @@ export default function MealComposer({
             }
           />
         )}
-
-        {c.userId && <MealSupplementsWidget userId={c.userId} date={c.logDate} />}
 
         {c.error && <p role="alert" className="text-xs text-danger text-center font-medium">{c.error}</p>}
 

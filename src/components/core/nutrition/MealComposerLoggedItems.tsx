@@ -1,4 +1,5 @@
-import { ChevronRight, Copy } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronDown, ChevronRight, Copy } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { TodayFoodEntry } from '../../../lib/health/composerTodayMealsApi';
 import type { RecentEntry } from './hooks/foodEntryUtils';
@@ -25,6 +26,27 @@ function firstRowIdPerPhoto(entries: TodayFoodEntry[], photoUrls: Record<string,
   return rowIds;
 }
 
+function PastDayBanner({ onCopy, copying }: { onCopy: () => void; copying?: boolean }) {
+  return (
+    <div className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-primary/25 bg-primary/[0.05] shadow-2xs">
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-black text-text-primary leading-tight">Dzień z przeszłości</p>
+        <p className="text-2xs font-medium text-text-muted">Możesz skopiować te posiłki do dzisiaj</p>
+      </div>
+      <Pressable
+        type="button"
+        variant="primary"
+        onClick={onCopy}
+        disabled={copying}
+        className="shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black shadow-xs active:scale-95 disabled:opacity-50"
+      >
+        <Copy size={12} />
+        <span>Skopiuj dzień</span>
+      </Pressable>
+    </div>
+  );
+}
+
 interface MealComposerLoggedItemsProps {
   entries: TodayFoodEntry[];
   /** Signed photo URLs keyed by meal_group_id; the photo is shown on the first row of its meal. */
@@ -49,7 +71,9 @@ export default function MealComposerLoggedItems({
   onCopyMeal,
   copying,
 }: MealComposerLoggedItemsProps) {
+  const [expanded, setExpanded] = useState(false);
   if (!entries.length) return null;
+  const open = expanded || Boolean(isPastDay);
 
   const totalKcal = Math.round(entries.reduce((s, e) => s + (e.calories ?? 0), 0));
   const totalProtein = Math.round(entries.reduce((s, e) => s + (e.protein ?? 0), 0) * 10) / 10;
@@ -70,35 +94,31 @@ export default function MealComposerLoggedItems({
 
   return (
     <div className="space-y-2">
-      {isPastDay && onCopyEntireDay && (
-        <div className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-primary/25 bg-primary/[0.05] shadow-2xs">
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-black text-text-primary leading-tight">Dzień z przeszłości</p>
-            <p className="text-2xs font-medium text-text-muted">Możesz skopiować te posiłki do dzisiaj</p>
-          </div>
-          <Pressable
-            type="button"
-            variant="primary"
-            onClick={onCopyEntireDay}
-            disabled={copying}
-            className="shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black shadow-xs active:scale-95 disabled:opacity-50"
-          >
-            <Copy size={12} />
-            <span>Skopiuj dzień</span>
-          </Pressable>
-        </div>
-      )}
+      {isPastDay && onCopyEntireDay && <PastDayBanner onCopy={onCopyEntireDay} copying={copying} />}
 
-      <div className="flex items-baseline justify-between px-1">
-        <p className="text-xs font-bold text-text-secondary">
+      <Pressable
+        type="button"
+        haptic="none"
+        aria-expanded={open}
+        onClick={() => setExpanded((value) => !value)}
+        className="flex w-full items-center justify-between gap-2 px-1 text-left"
+      >
+        <span className="flex items-center gap-1 text-xs font-bold text-text-secondary">
+          <ChevronDown size={13} aria-hidden="true" className={`transition-transform ${open ? '' : '-rotate-90'}`} />
           {dateLabel}
-        </p>
+        </span>
         <span className="text-2xs font-semibold tabular-nums text-text-muted">
           {totalKcal} kcal&nbsp;&middot;&nbsp;<span className="text-primary font-black">{totalProtein} g B</span>
         </span>
-      </div>
+      </Pressable>
 
-      <div className="space-y-2">
+      {!open && (
+        <p className="px-1 text-2xs font-semibold text-text-muted">
+          {order.map((mealType) => `${MEAL_LABEL[mealType] ?? mealType} ${Math.round(groups.get(mealType)!.reduce((sum, e) => sum + (e.calories ?? 0), 0))}`).join(' · ')}
+        </p>
+      )}
+
+      <div className={open ? 'space-y-2' : 'hidden'}>
         {order.map((mealType) => {
           const group = groups.get(mealType)!;
           const groupKcal = Math.round(group.reduce((s, e) => s + (e.calories ?? 0), 0));

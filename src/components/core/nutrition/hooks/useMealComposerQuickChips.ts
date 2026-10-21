@@ -28,11 +28,12 @@ export function useMealComposerQuickChips({
     return set;
   }, [allTodayEntries]);
 
+  // Pasek szybkiego dodawania: tylko ulubione (ostatnie produkty tu nie wchodzą).
   const quickChips = useMemo(() => buildQuickChips({
-    recentProducts: recentProducts ?? [],
+    recentProducts: [],
     favorites: QUICK_CAPTURE_FAVORITES,
     excludeNames,
-  }), [recentProducts, excludeNames]);
+  }), [excludeNames]);
 
   const handleQuickChip = useCallback((chip: QuickChip) => {
     if (chip.kind === 'today') {

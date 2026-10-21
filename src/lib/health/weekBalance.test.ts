@@ -1,0 +1,45 @@
+import { describe, expect, it } from 'vitest';
+import { computeWeekBalance } from './weekBalance';
+
+const WEEK = '2026-10-19';
+
+describe('computeWeekBalance', () => {
+  it('sumuje zjedzone od poniedziałku i dolicza średni cel na dni przed nami', () => {
+    const result = computeWeekBalance({
+      weekStart: WEEK,
+      today: '2026-10-21',
+      eatenByDate: { '2026-10-19': 2530, '2026-10-20': 2679, '2026-10-21': 1737 },
+      targetByDate: { '2026-10-19': 2400, '2026-10-20': 2500, '2026-10-21': 2600 },
+      fallbackTarget: null,
+    });
+    // średni cel 2500 → budżet 3 dni (7500) + 4 dni × 2500 = 17500
+    expect(result).toEqual({ eaten: 6946, budget: 17500, remaining: 10554, perDayLeft: 2111, daysLeft: 5, missingDays: 0 });
+  });
+
+  it('zgłasza dni bez wpisów zamiast cicho zawyżać pozostałe kcal', () => {
+    const result = computeWeekBalance({
+      weekStart: WEEK,
+      today: '2026-10-21',
+      eatenByDate: { '2026-10-19': 2500, '2026-10-21': 500 },
+      targetByDate: { '2026-10-19': 2500, '2026-10-20': 2500, '2026-10-21': 2500 },
+      fallbackTarget: null,
+    });
+    expect(result?.missingDays).toBe(1);
+  });
+
+  it('dla minionego tygodnia nie podaje dziennej puli', () => {
+    const result = computeWeekBalance({
+      weekStart: WEEK,
+      today: '2026-10-28',
+      eatenByDate: {},
+      targetByDate: { '2026-10-19': 2000 },
+      fallbackTarget: 2000,
+    });
+    expect(result?.perDayLeft).toBeNull();
+    expect(result?.daysLeft).toBe(0);
+  });
+
+  it('bez żadnego celu nie zgaduje', () => {
+    expect(computeWeekBalance({ weekStart: WEEK, today: '2026-10-21', eatenByDate: {}, targetByDate: {}, fallbackTarget: null })).toBeNull();
+  });
+});
