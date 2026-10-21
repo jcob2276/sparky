@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import KeepHeader from './KeepHeader';
+import { SidebarProvider } from '../ui/sidebar';
 import { DEFAULT_NOTE_COLLECTION_PREFERENCES } from '../../lib/noteOrganization';
 
 const viewOptions = {
@@ -11,7 +12,7 @@ const viewOptions = {
 describe('KeepHeader', () => {
   it('offers Apple Notes list and gallery views', () => {
     render(
-      <KeepHeader
+      <SidebarProvider><KeepHeader
         onBack={vi.fn()}
         viewMode="list"
         setViewMode={vi.fn()}
@@ -21,7 +22,7 @@ describe('KeepHeader', () => {
         onNewNote={vi.fn()}
         exporting={false}
         {...viewOptions}
-      />,
+      /></SidebarProvider>,
     );
 
     expect(screen.getByText('Lista')).toBeInTheDocument();
@@ -32,7 +33,7 @@ describe('KeepHeader', () => {
   it('lets desktop users create a note from the header', () => {
     const onNewNote = vi.fn();
     render(
-      <KeepHeader
+      <SidebarProvider><KeepHeader
         onBack={vi.fn()}
         viewMode="list"
         setViewMode={vi.fn()}
@@ -42,7 +43,7 @@ describe('KeepHeader', () => {
         onNewNote={onNewNote}
         exporting={false}
         {...viewOptions}
-      />,
+      /></SidebarProvider>,
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'Nowa notatka' }));

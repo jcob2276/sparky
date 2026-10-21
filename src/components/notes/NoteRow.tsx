@@ -8,6 +8,7 @@ import { Check, LockKeyhole, Pin } from 'lucide-react';
 import { useRef } from 'react';
 import { Note, getColor, relativeDate, getPlainText } from './keepUtils';
 import { useHaptics } from '../../hooks/useHaptics';
+import { stripMarkdown } from './markdownLite';
 
 interface NoteRowProps {
   note: Note;
@@ -30,7 +31,7 @@ export default function NoteRow({
 }: NoteRowProps) {
   const pressTimer = useRef<number | null>(null);
   const longPressed = useRef(false);
-  const plainText = getPlainText(note.content);
+  const plainText = stripMarkdown(getPlainText(note.content));
   const trimmedTitle = note.title.trim();
   const bodyText = (trimmedTitle && plainText.startsWith(trimmedTitle))
     ? plainText.slice(trimmedTitle.length).trim()

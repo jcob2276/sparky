@@ -34,6 +34,7 @@ interface InlineEditorProps {
   allNotes?: Note[];
   onExportChecklists?: (note: Note) => void;
   isMobile: boolean;
+  showBack?: boolean;
   folders?: NoteFolder[];
   onCreateFolder?: (name: string, parentId?: string | null) => Promise<NoteFolder | null | void>;
   onExportNote?: (note: Note) => void;
@@ -44,7 +45,7 @@ interface InlineEditorProps {
 }
 
 export default function InlineEditor({
-  note, onClose, onUpdate, onDelete, onTogglePin, busy: _busy, allTags: _allTags = [], allNotes = [], onExportChecklists: _onExportChecklists, isMobile, folders = [], onCreateFolder, onExportNote, onExportPdf, onShareNote, onNavigateToNote, onLockNote,
+  note, onClose, onUpdate, onDelete, onTogglePin, busy: _busy, allTags: _allTags = [], allNotes = [], onExportChecklists: _onExportChecklists, isMobile, showBack = false, folders = [], onCreateFolder, onExportNote, onExportPdf, onShareNote, onNavigateToNote, onLockNote,
 }: InlineEditorProps) {
   const userId = useUserId();
   const rootRef = useFocusEmptyEditor(note.id);
@@ -107,7 +108,7 @@ export default function InlineEditor({
     >
       <div className="keep-inline-header flex items-center justify-between border-b border-border-custom/10 px-4 py-3 bg-background/5">
         <div className="flex items-center gap-2">
-          {isMobile && (
+          {(isMobile || showBack) && (
             <Pressable variant="ghost" size="sm" onClick={() => {
               const isEmpty = getPlainText(content).length === 0;
               if (!isEmpty) flushSave();
@@ -117,7 +118,7 @@ export default function InlineEditor({
               <span>Notatki</span>
             </Pressable>
           )}
-          {!isMobile && <span className="text-4xs uppercase tracking-widest opacity-[var(--opacity-60)] font-black">Notatka</span>}
+          {!isMobile && !showBack && <span className="text-4xs uppercase tracking-widest opacity-[var(--opacity-60)] font-black">Notatka</span>}
         </div>
         <div className="flex items-center gap-1.5">
           <NoteEditorMoreMenu

@@ -5,6 +5,7 @@
  */
 import { Grid3X3, List, Download, LockKeyhole, Search, SquarePen, X, CheckCheck } from 'lucide-react';
 import { WorkspaceHeader } from '../shared/WorkspaceHeader';
+import { SidebarTrigger } from '../ui/sidebar';
 import { ControlInput, Pressable } from '../ui/ControlPrimitives';
 import NoteViewOptions from './NoteViewOptions';
 import type { NoteCollectionPreferences } from '../../lib/noteOrganization';
@@ -34,6 +35,7 @@ export default function KeepHeader({
     <WorkspaceHeader
       title="Notatki"
       onBack={onBack}
+      leading={<SidebarTrigger className="!h-11 !w-11 md:hidden" aria-label="Otwórz foldery i tagi" />}
       center={(
         <div className="keep-search-wrap hidden md:block">
           <Search size={14} className="keep-search-icon" />

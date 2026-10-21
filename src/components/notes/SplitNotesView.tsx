@@ -161,6 +161,7 @@ export default function SplitNotesView({
               allNotes={notes}
               onExportChecklists={onExportChecklists}
               isMobile={isMobile}
+              showBack={galleryMode}
               folders={folders}
               onCreateFolder={onCreateFolder}
               onExportNote={onExportNote}

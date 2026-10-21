@@ -774,14 +774,19 @@
   font-weight: 400;
   color: var(--text-muted);
   opacity: 0.75;
+  white-space: nowrap;
+  flex: none;
 }
 .keep-card-actions {
   display: flex;
+  overflow: hidden;
+  margin-left: auto;
   gap: 0;
   opacity: var(--ds-local-css-0);
   transition: var(--ds-css-transition-opacity-0-15s);
 }
 .keep-card:hover .keep-card-actions { opacity: var(--ds-local-css-1); }
+.keep-card-actions .keep-icon-btn { width: var(--control-sm); height: var(--control-sm); }
 
 .keep-card-title-input {
   width: var(--ds-local-css-100);

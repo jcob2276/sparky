@@ -8,6 +8,7 @@ import { useRichEditorFormatting } from './hooks/useRichEditorFormatting';
 import { useRichEditorTriggers } from './hooks/useRichEditorTriggers';
 import { useRichEditorUploads } from './hooks/useRichEditorUploads';
 import { handleRichEditorKeyShortcuts } from './richEditorKeyHandlers';
+import { toDisplayHtml } from './markdownLite';
 
 interface RichEditorProps {
   value: string;
@@ -69,8 +70,11 @@ export default function RichEditor({
   });
 
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== value) {
-      editorRef.current.innerHTML = value;
+    // Markdown renderujemy tylko przy otwarciu notatki — nigdy w trakcie pisania (kursor by skakał).
+    const typing = document.activeElement === editorRef.current;
+    const html = typing ? value : toDisplayHtml(value);
+    if (editorRef.current && editorRef.current.innerHTML !== html) {
+      editorRef.current.innerHTML = html;
     }
   }, [value]);
 

@@ -10,7 +10,8 @@ import { buildFolderTree, type NoteFolder, type NoteFolderNode } from '../../lib
 import WorkspaceNavigation from '../shared/WorkspaceNavigation';
 import WorkspaceSidebar from '../shared/WorkspaceSidebar';
 import SidebarSection from '../shared/SidebarSection';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useSidebar } from '../ui/sidebar';
 import { confirmDialog, notify, promptDialog } from '../../lib/notify';
 import SidebarInlineCreate from './SidebarInlineCreate';
 import NoteFolderTree from './NoteFolderTree';
@@ -59,6 +60,9 @@ export default function KeepSidebar({
   tagFilter, onTagFilterChange, onRenameTag, activeSmartFolderId, setActiveSmartFolderId,
   onCreateSmartFolder, onUpdateSmartFolder, onDeleteSmartFolder,
 }: KeepSidebarProps) {
+  const { setOpenMobile } = useSidebar();
+  // Po wyborze widoku/folderu/tagu szuflada na telefonie sama się zamyka.
+  useEffect(() => { setOpenMobile(false); }, [sidebarTab, activeFolderId, activeTag, activeSmartFolderId, setOpenMobile]);
   const [creatingFolder, setCreatingFolder] = useState(false);
   const [editingSmartFolder, setEditingSmartFolder] = useState<NoteSmartFolder | 'new' | null>(null);
   const folderTree = buildFolderTree(folders);
@@ -105,7 +109,7 @@ export default function KeepSidebar({
   };
 
   return (
-    <WorkspaceSidebar>
+    <WorkspaceSidebar provideContext={false} mobileTitle="Notatki">
       <WorkspaceNavigation active="keep" onNavigate={goTo} />
       <div className="keep-sidebar-separator" />
 
@@ -118,7 +122,7 @@ export default function KeepSidebar({
             icon: <CheckSquare size={15} />,
             count: notes.filter(n => !n.is_archived).length,
             active: sidebarTab === 'notes' && !activeTag && !activeFolderId && !activeSmartFolderId && !tagFilter.tags.length,
-            onClick: () => { setSidebarTab('notes'); setActiveTag(() => null); onTagFilterChange({ tags: [], mode: tagFilter.mode }); setActiveFolderId(null); setActiveSmartFolderId(null); setSearch(''); },
+            onClick: () => { setOpenMobile(false); setSidebarTab('notes'); setActiveTag(() => null); onTagFilterChange({ tags: [], mode: tagFilter.mode }); setActiveFolderId(null); setActiveSmartFolderId(null); setSearch(''); },
           },
           {
             id: 'archive',
@@ -126,7 +130,7 @@ export default function KeepSidebar({
             icon: <Archive size={15} />,
             count: notes.filter(n => n.is_archived).length,
             active: sidebarTab === 'archive' && !activeTag,
-            onClick: () => { setSidebarTab('archive'); setActiveTag(() => null); setActiveFolderId(null); setSearch(''); },
+            onClick: () => { setOpenMobile(false); setSidebarTab('archive'); setActiveTag(() => null); setActiveFolderId(null); setSearch(''); },
           },
           {
             id: 'trash',
@@ -134,7 +138,7 @@ export default function KeepSidebar({
             icon: <Trash2 size={15} />,
             count: trashCount,
             active: sidebarTab === 'trash',
-            onClick: () => { setSidebarTab('trash'); setActiveTag(() => null); setActiveFolderId(null); setSearch(''); },
+            onClick: () => { setOpenMobile(false); setSidebarTab('trash'); setActiveTag(() => null); setActiveFolderId(null); setSearch(''); },
           },
         ]}
       />

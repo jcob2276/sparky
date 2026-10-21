@@ -8,6 +8,7 @@ import { useRef, useState } from 'react';
 import { Archive, Check, ListTodo, LockKeyhole, Palette, Pin, Trash2 } from 'lucide-react';
 import { getColor, relativeDate, sanitizeHtml, Note, highlightHtml } from './keepUtils';
 import { getPlainText } from '../../lib/noteText';
+import { dropLeadingTitle, toDisplayHtml } from './markdownLite';
 import NoteColorPicker from './NoteColorPicker';
 
 export default function NoteCard({
@@ -130,7 +131,7 @@ export default function NoteCard({
         <div
           className="keep-card-content"
           style={{ color: c.textSub }}
-          dangerouslySetInnerHTML={{ __html: highlightHtml(sanitizeHtml(note.content), search) }}
+          dangerouslySetInnerHTML={{ __html: highlightHtml(sanitizeHtml(dropLeadingTitle(toDisplayHtml(note.content), note.title)), search) }}
           onClick={(e) => {
             const target = e.target as HTMLElement;
             if (target.classList.contains('keep-todo-checkbox')) {

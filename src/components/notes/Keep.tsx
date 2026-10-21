@@ -14,6 +14,8 @@ import { useKeepView } from './hooks/useKeepView';
 import { useKeepActions } from './hooks/useKeepActions';
 import './notes.css';
 import TrashNotesView from './TrashNotesView';
+import { isLiveEditorEmpty } from './liveEditorEmpty';
+import { SidebarProvider } from '../ui/sidebar';
 
 export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; onNavigateTo?: (dest: string) => void }) {
   const userId = useUserId();
@@ -83,6 +85,7 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
   if (!userId) return null;
 
   return (
+    <SidebarProvider>
     <div className={`keep-root ${editingId ? 'keep-mobile-note-open' : ''}`}>
       <KeepSidebar
           notes={notes}
@@ -117,7 +120,7 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
       />
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         <div className="keep-browser-header"><KeepHeader
-          onBack={goBack}
+          onBack={editingId ? () => handleCloseCard(isLiveEditorEmpty()) : goBack}
           search={search}
           setSearch={setSearch}
           onExport={() => { void handleExportArchive(); }}
@@ -176,5 +179,6 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
       </div>
 
     </div>
+    </SidebarProvider>
   );
 }
