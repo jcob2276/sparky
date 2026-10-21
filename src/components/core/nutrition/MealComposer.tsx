@@ -5,6 +5,7 @@ import MealComposerCustomProduct from './MealComposerCustomProduct';
 import MealComposerDraft from './MealComposerDraft';
 import MealComposerLoggedItems from './MealComposerLoggedItems';
 import MealComposerQuick from './MealComposerQuick';
+import MealSupplementsWidget from './MealSupplementsWidget';
 import { ComposerHeader, ComposerInput, ComposerProgress, ComposerSearch } from './MealComposerChrome';
 import CopyDayModal from './CopyDayModal';
 import type { RecentEntry } from './hooks/foodEntryUtils';
@@ -140,6 +141,8 @@ export default function MealComposer({
             }
           />
         )}
+
+        {c.userId && <MealSupplementsWidget userId={c.userId} date={c.logDate} />}
 
         {c.error && <p role="alert" className="text-xs text-danger text-center font-medium">{c.error}</p>}
 

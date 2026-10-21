@@ -1,14 +1,11 @@
 import { useState } from 'react';
-import Button from '../../ui/Button';
 import { Pressable } from '../../ui/ControlPrimitives';
-import { Pill, Plus, X, AlertCircle, Check } from 'lucide-react';
+import { Pill, AlertCircle } from 'lucide-react';
 import Spinner from '../../ui/Spinner';
 import EmptyState from '../../ui/EmptyState';
 import { Card } from '../../ui/Card';
-import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 import { useSupplementsData } from './useSupplementsData';
 import SupplementCard from './SupplementCard';
-import SupplementAddForm from './SupplementAddForm';
 
 interface SupplementsPanelProps {
   userId: string;
@@ -34,7 +31,6 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
 
   const totalCount = data.activeSups.length;
   const adherencePct = totalCount > 0 ? Math.round((takenCount / totalCount) * 100) : 0;
-  const pendingCount = totalCount - takenCount;
 
   return (
     <Card padding="1rem 1.25rem" className="space-y-4 text-text-primary">
@@ -77,26 +73,10 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
             </Pressable>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            type="button"
-            onClick={() => {
-              data.setShowAddForm(!data.showAddForm);
-              if (!data.startDate) {
-                data.setStartDate(shiftDateStr(getTodayWarsaw(), 0));
-                data.setEndDate(shiftDateStr(getTodayWarsaw(), 21));
-              }
-            }}
-            className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-border-custom hover:border-success/50 bg-surface-solid/40 text-2xs font-bold uppercase tracking-wider text-text-secondary hover:text-success transition-colors cursor-pointer"
-            icon={data.showAddForm ? <X size={11} /> : <Plus size={11} />}
-          >
-            <span>{data.showAddForm ? 'Anuluj' : 'Nowy cykl'}</span>
-          </Button>
         </div>
       </div>
 
-      {/* Pasek statusu dziennego + Masowe zażycie */}
+      {/* Pasek statusu dziennego */}
       {totalCount > 0 && !data.loading && (
         <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 rounded-xl border border-border-custom/50 bg-surface-2/30">
           <div className="flex items-center gap-3">
@@ -118,18 +98,6 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
             </div>
           </div>
 
-          {pendingCount > 0 && (
-            <Button
-              variant="tonal"
-              size="sm"
-              type="button"
-              onClick={() => void data.handleLogAllToday()}
-              className="h-7 px-2.5 text-2xs font-bold uppercase tracking-wider text-success bg-success/10 border border-success/30 hover:bg-success/20 ui-interactive cursor-pointer"
-              icon={<Check size={12} className="stroke-[var(--ds-arbitrary-3px)]" />}
-            >
-              <span>Zaloguj wszystkie na dziś ({pendingCount})</span>
-            </Button>
-          )}
         </div>
       )}
 
@@ -140,24 +108,10 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
         </div>
       )}
 
-      {data.showAddForm && (
-        <SupplementAddForm
-          name={data.name} setName={data.setName} emoji={data.emoji} setEmoji={data.setEmoji}
-          unit={data.unit} setUnit={data.setUnit} skipQty={data.skipQty} setSkipQty={data.setSkipQty}
-          reverseLogic={data.reverseLogic} setReverseLogic={data.setReverseLogic}
-          hasCycle={data.hasCycle} setHasCycle={data.setHasCycle}
-          startDate={data.startDate} setStartDate={data.setStartDate}
-          endDate={data.endDate} setEndDate={data.setEndDate}
-          hasReminder={data.hasReminder} setHasReminder={data.setHasReminder}
-          reminderTime={data.reminderTime} setReminderTime={data.setReminderTime}
-          submitting={data.submitting} onSubmit={data.handleSubmit}
-        />
-      )}
-
       {data.loading ? (
         <div className="flex justify-center items-center py-8"><Spinner size="sm" /></div>
       ) : filteredSups.length === 0 ? (
-        <EmptyState icon="💊" label='Brak suplementów w wybranym filtrze. Kliknij "Nowy cykl" powyżej.' />
+        <EmptyState icon="💊" label='Brak suplementów w wybranym filtrze. Dodasz je przez Telegram.' />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {filteredSups.map((sup) => {
@@ -173,8 +127,6 @@ export default function SupplementsPanel({ userId }: SupplementsPanelProps) {
                 takenToday={takenToday}
                 last7Days={data.last7Days}
                 today={data.today}
-                onToggle={() => void data.handleToggle(sup)}
-                onToggleDate={(date) => void data.handleToggle(sup, date)}
                 onDeactivate={() => void data.handleDeactivate(sup)}
                 onUpdateReminder={(reminderTime) => void data.handleUpdateReminder(sup, reminderTime)}
                 isLogged={data.isLogged}

@@ -1,7 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { CheckSquare2, Plus, X } from 'lucide-react';
-import { useSupplementLogs, useSupplements, useToggleSupplement } from '../../../lib/health/supplementsApi';
-import { notify } from '../../../lib/notify';
 import Button from '../../ui/Button';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
 import {
@@ -32,18 +30,8 @@ export default function ShutdownChecklist({ userId, date }: Props) {
     () => new Set(readJson<string[]>(checkedKey, [])),
   );
   const [newItem, setNewItem] = useState('');
-  const { data: supplements = [] } = useSupplements(userId);
-  const { data: logs = [] } = useSupplementLogs(userId, date);
-  const toggleSupplement = useToggleSupplement();
-  const activeSupplements = supplements.filter((supplement) => supplement.active);
-  const loggedSupplementIds = useMemo(
-    () => new Set(logs.filter((log) => log.date === date).map((log) => log.supplement_id)),
-    [logs, date],
-  );
   const rows = buildShutdownChecklistRows({
     customItems,
-    supplements: activeSupplements,
-    loggedSupplementIds,
     checkedItemIds,
   });
 
@@ -70,24 +58,6 @@ export default function ShutdownChecklist({ userId, date }: Props) {
     });
   };
 
-  const toggleSupplementRow = async (supplementId: string) => {
-    const existingLog = logs.find(
-      (log) => log.supplement_id === supplementId && log.date === date,
-    );
-    try {
-      await toggleSupplement.mutateAsync({
-        userId,
-        supplementId,
-        date,
-        sinceDate: date,
-        existingLog,
-      });
-    } catch (error: unknown) {
-      console.warn('[ShutdownChecklist] Supplement toggle failed:', error);
-      notify('Nie udało się zapisać suplementu.', 'error');
-    }
-  };
-
   const addItem = () => {
     const item = normalizeCustomShutdownItem(newItem);
     if (!item) return;
@@ -110,13 +80,11 @@ export default function ShutdownChecklist({ userId, date }: Props) {
               <ControlInput
                 type="checkbox"
                 checked={row.checked}
-                onChange={() => row.kind === 'supplement' && row.supplementId
-                  ? void toggleSupplementRow(row.supplementId)
-                  : toggleRitual(row.id)}
+                onChange={() => toggleRitual(row.id)}
                 className="size-5 accent-primary"
               />
               <span className={`text-sm font-semibold ${row.checked ? 'text-text-muted line-through' : 'text-text-primary'}`}>
-                {row.kind === 'supplement' ? `Suplement · ${row.label}` : row.label}
+                {row.label}
               </span>
             </label>
             {row.kind === 'custom' ? (

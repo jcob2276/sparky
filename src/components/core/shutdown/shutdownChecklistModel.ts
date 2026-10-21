@@ -3,15 +3,9 @@ export interface ShutdownChecklistItem {
   label: string;
 }
 
-type ShutdownSupplementItem = {
-  id: string;
-  name: string;
-}
-
 export type ShutdownChecklistRow = ShutdownChecklistItem & {
   checked: boolean;
-  kind: 'ritual' | 'custom' | 'supplement';
-  supplementId?: string;
+  kind: 'ritual' | 'custom';
 };
 
 export const DEFAULT_SHUTDOWN_ITEMS: ShutdownChecklistItem[] = [
@@ -24,15 +18,11 @@ export const DEFAULT_SHUTDOWN_ITEMS: ShutdownChecklistItem[] = [
 
 interface BuildRowsArgs {
   customItems: ShutdownChecklistItem[];
-  supplements: ShutdownSupplementItem[];
-  loggedSupplementIds: Set<string>;
   checkedItemIds: Set<string>;
 }
 
 export function buildShutdownChecklistRows({
   customItems,
-  supplements,
-  loggedSupplementIds,
   checkedItemIds,
 }: BuildRowsArgs): ShutdownChecklistRow[] {
   const rituals: ShutdownChecklistRow[] = DEFAULT_SHUTDOWN_ITEMS.map((item) => ({
@@ -45,14 +35,7 @@ export function buildShutdownChecklistRows({
     checked: checkedItemIds.has(item.id),
     kind: 'custom',
   }));
-  const supplementRows: ShutdownChecklistRow[] = supplements.map((supplement) => ({
-    id: `supplement-${supplement.id}`,
-    label: supplement.name,
-    checked: loggedSupplementIds.has(supplement.id),
-    kind: 'supplement',
-    supplementId: supplement.id,
-  }));
-  return [...rituals, ...custom, ...supplementRows];
+  return [...rituals, ...custom];
 }
 
 export function normalizeCustomShutdownItem(

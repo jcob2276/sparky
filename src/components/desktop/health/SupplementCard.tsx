@@ -65,10 +65,9 @@ interface HistoryStripProps {
   isReverse: boolean;
   isExpired: boolean;
   onRenewCycle?: (days: number) => void;
-  onToggleDate?: (date: string) => void;
 }
 
-function History7dStrip({ last7Days, today, sup, isLogged, isReverse, isExpired, onRenewCycle, onToggleDate }: HistoryStripProps) {
+function History7dStrip({ last7Days, today, sup, isLogged, isReverse, isExpired, onRenewCycle }: HistoryStripProps) {
   return (
     <div className="border-t border-border-custom/40 pt-2 flex items-center justify-between gap-2 text-2xs">
       <div className="flex items-center gap-1.5 text-text-muted">
@@ -81,11 +80,9 @@ function History7dStrip({ last7Days, today, sup, isLogged, isReverse, isExpired,
             const taken = isReverse ? (inCycle ? !logged : false) : logged;
             const dayNum = date.split('-')[2];
             return (
-              <Pressable
+              <span
                 key={date}
-                type="button"
-                onClick={() => onToggleDate?.(date)}
-                className={`w-5 h-5 rounded flex items-center justify-center text-3xs font-mono font-bold ui-interactive cursor-pointer hover:scale-110 active:scale-95 transition-transform ${
+                className={`w-5 h-5 rounded flex items-center justify-center text-3xs font-mono font-bold ${
                   taken
                     ? 'bg-success/20 text-success border border-success/40'
                     : !inCycle
@@ -94,10 +91,10 @@ function History7dStrip({ last7Days, today, sup, isLogged, isReverse, isExpired,
                     ? 'bg-primary/20 text-primary border border-primary/50'
                     : 'bg-surface-2/40 text-text-muted/50 border border-border-custom/40'
                 }`}
-                title={`${date} (${dayNum}): ${taken ? 'Zażyto (kliknij aby zmienić)' : 'Pominięto (kliknij aby zmienić)'}`}
+                title={`${date} (${dayNum}): ${taken ? 'Zażyto' : 'Pominięto'}`}
               >
                 {taken ? '✓' : dayNum}
-              </Pressable>
+              </span>
             );
           })}
         </div>
@@ -122,8 +119,6 @@ interface SupplementCardProps {
   takenToday: boolean;
   last7Days: string[];
   today: string;
-  onToggle: () => void;
-  onToggleDate?: (date: string) => void;
   onDeactivate: () => void;
   onUpdateReminder: (reminderTime: string | null) => void;
   isLogged: (id: string, date: string) => boolean;
@@ -131,7 +126,7 @@ interface SupplementCardProps {
 }
 
 export default function SupplementCard({
-  sup, takenToday, last7Days, today, onToggle, onToggleDate, onDeactivate, onUpdateReminder, isLogged, onRenewCycle,
+  sup, takenToday, last7Days, today, onDeactivate, onUpdateReminder, isLogged, onRenewCycle,
 }: SupplementCardProps) {
   const [editingReminder, setEditingReminder] = useState(false);
   const [draftReminder, setDraftReminder] = useState(formatReminderInputValue(sup.reminder_time));
@@ -217,20 +212,16 @@ export default function SupplementCard({
         </div>
 
         <div className="flex items-center gap-1.5 shrink-0">
-          <Button
-            variant={takenToday ? 'tonal' : 'outline'}
-            size="sm"
-            type="button"
-            onClick={onToggle}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-2xs font-bold uppercase tracking-wider ui-interactive active:scale-95 cursor-pointer ${
+          <span
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg border text-2xs font-bold uppercase tracking-wider ${
               takenToday
-                ? 'border-success/40 bg-success/15 text-success hover:bg-success/25'
-                : 'border-border-custom bg-surface hover:text-text-primary hover:border-border-custom/80'
+                ? 'border-success/40 bg-success/15 text-success'
+                : 'border-border-custom bg-surface text-text-muted'
             }`}
-            icon={<Check size={11} className={takenToday ? 'stroke-[var(--ds-arbitrary-3px)]' : 'opacity-40'} />}
           >
-            <span>{isReverse ? (takenToday ? 'Wzięty' : 'Pominięty') : (takenToday ? 'Zażyto' : 'Zaloguj')}</span>
-          </Button>
+            <Check size={11} className={takenToday ? 'stroke-[var(--ds-arbitrary-3px)]' : 'opacity-40'} />
+            {isReverse ? (takenToday ? 'Wzięty' : 'Pominięty') : (takenToday ? 'Zażyto' : 'Czeka')}
+          </span>
 
           <Button
             variant="ghost"
@@ -283,7 +274,6 @@ export default function SupplementCard({
         isReverse={isReverse}
         isExpired={isExpired}
         onRenewCycle={onRenewCycle}
-        onToggleDate={onToggleDate}
       />
     </Card>
   );

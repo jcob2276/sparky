@@ -6,14 +6,9 @@ import {
 } from './shutdownChecklistModel';
 
 describe('buildShutdownChecklistRows', () => {
-  it('combines fixed rituals, custom items and active supplements', () => {
+  it('combines fixed rituals and custom items', () => {
     const rows = buildShutdownChecklistRows({
       customItems: [{ id: 'custom-spacer', label: 'Spacer 20 minut' }],
-      supplements: [
-        { id: 'creatine', name: 'Kreatyna' },
-        { id: 'd3', name: 'D3' },
-      ],
-      loggedSupplementIds: new Set(['creatine']),
       checkedItemIds: new Set(['phone-free-morning']),
     });
 
@@ -28,20 +23,6 @@ describe('buildShutdownChecklistRows', () => {
         label: 'Spacer 20 minut',
         checked: false,
         kind: 'custom',
-      },
-      {
-        id: 'supplement-creatine',
-        label: 'Kreatyna',
-        checked: true,
-        kind: 'supplement',
-        supplementId: 'creatine',
-      },
-      {
-        id: 'supplement-d3',
-        label: 'D3',
-        checked: false,
-        kind: 'supplement',
-        supplementId: 'd3',
       },
     ]);
   });

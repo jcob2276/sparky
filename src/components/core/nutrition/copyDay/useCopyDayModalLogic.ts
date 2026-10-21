@@ -72,12 +72,12 @@ function useCopyDayEntries({
   isOpen,
   userId,
   selectedDate,
-  deselectedIds,
+  pickedIds,
 }: {
   isOpen: boolean;
   userId: string;
   selectedDate: string;
-  deselectedIds: Set<string>;
+  pickedIds: Set<string>;
 }) {
   const entriesQuery = useQuery({
     queryKey: ['day-entries-for-copy', userId, selectedDate],
@@ -88,8 +88,8 @@ function useCopyDayEntries({
 
   const entries = useMemo(() => entriesQuery.data ?? [], [entriesQuery.data]);
   const selectedEntries = useMemo(
-    () => entries.filter((e) => !deselectedIds.has(e.id)),
-    [entries, deselectedIds],
+    () => entries.filter((e) => pickedIds.has(e.id)),
+    [entries, pickedIds],
   );
   const selectedItemIds = useMemo(
     () => new Set(selectedEntries.map((e) => e.id)),
@@ -142,7 +142,8 @@ export function useCopyDayModalLogic({
 
   const [selectedDate, setSelectedDate] = useState<string>(yesterday);
   const [targetMealType, setTargetMealType] = useState<MealTypeId | null>(null);
-  const [deselectedIds, setDeselectedIds] = useState<Set<string>>(new Set());
+  // Nothing is preselected: the user picks which entries to copy.
+  const [pickedIds, setPickedIds] = useState<Set<string>>(new Set());
   const [copying, setCopying] = useState(false);
 
   // Reset state each time the modal is opened so re-opening always starts fresh
@@ -150,7 +151,7 @@ export function useCopyDayModalLogic({
   useEffect(() => {
     if (isOpen && !wasOpenRef.current) {
       setSelectedDate(yesterday);
-      setDeselectedIds(new Set());
+      setPickedIds(new Set());
       setTargetMealType(null);
     }
     wasOpenRef.current = isOpen;
@@ -158,7 +159,7 @@ export function useCopyDayModalLogic({
 
   const handleSelectDate = useCallback((date: string) => {
     setSelectedDate(date);
-    setDeselectedIds(new Set());
+    setPickedIds(new Set());
   }, []);
 
   const {
@@ -174,12 +175,11 @@ export function useCopyDayModalLogic({
     isOpen,
     userId,
     selectedDate,
-    deselectedIds,
+    pickedIds,
   });
 
-
   const handleToggleItem = useCallback((id: string) => {
-    setDeselectedIds((prev) => {
+    setPickedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
@@ -190,22 +190,22 @@ export function useCopyDayModalLogic({
   const handleToggleMeal = useCallback((mealType: MealTypeId) => {
     const mealItems = groupedEntries.get(mealType) ?? [];
     if (!mealItems.length) return;
-    const allInMealSelected = mealItems.every((item) => !deselectedIds.has(item.id));
-    setDeselectedIds((prev) => {
+    const allInMealPicked = mealItems.every((item) => pickedIds.has(item.id));
+    setPickedIds((prev) => {
       const next = new Set(prev);
       for (const item of mealItems) {
-        if (allInMealSelected) next.add(item.id);
-        else next.delete(item.id);
+        if (allInMealPicked) next.delete(item.id);
+        else next.add(item.id);
       }
       return next;
     });
-  }, [groupedEntries, deselectedIds]);
+  }, [groupedEntries, pickedIds]);
 
   const handleToggleSelectAll = useCallback(() => {
     haptics.selection();
-    if (deselectedIds.size === 0) setDeselectedIds(new Set(entries.map((e) => e.id)));
-    else setDeselectedIds(new Set());
-  }, [haptics, deselectedIds, entries]);
+    if (entries.length > 0 && pickedIds.size === entries.length) setPickedIds(new Set());
+    else setPickedIds(new Set(entries.map((e) => e.id)));
+  }, [haptics, pickedIds, entries]);
 
   const handleCopySelected = useCallback(async () => {
     if (!selectedEntries.length || copying) return;
@@ -229,8 +229,7 @@ export function useCopyDayModalLogic({
 
   const handleCopyMeal = useCallback(async (type: MealTypeId) => {
     const mealEntries = groupedEntries.get(type) ?? [];
-    const mealSelected = mealEntries.filter((e) => !deselectedIds.has(e.id));
-    const itemsToCopy = mealSelected.length > 0 ? mealSelected : mealEntries;
+    const itemsToCopy = mealEntries.filter((e) => pickedIds.has(e.id));
     if (!itemsToCopy.length || copying) return;
     setCopying(true);
     try {
@@ -245,7 +244,7 @@ export function useCopyDayModalLogic({
     } finally {
       setCopying(false);
     }
-  }, [groupedEntries, deselectedIds, copying, targetMealType, userId, targetDate, haptics, onCopied, onClose]);
+  }, [groupedEntries, pickedIds, copying, targetMealType, userId, targetDate, haptics, onCopied, onClose]);
 
   return {
     yesterday,
