@@ -19,4 +19,3 @@ export const HERO_IMAGES: HeroImage[] = [
   { src: girlGoal, alt: 'Cel', title: 'Cel', objectPosition: 'object-[center_25%]' },
 ];
 
-export const HERO_ROTATION_MS = 8000;

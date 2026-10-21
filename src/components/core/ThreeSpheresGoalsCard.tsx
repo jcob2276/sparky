@@ -1,18 +1,17 @@
 import { useState, memo, useMemo } from 'react';
-import { ImageIcon } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
 import { NORTH_STAR_SPHERES, type PillarId } from '../../lib/projects/pillars';
 import { useVisionItemsQuery, type VisionBoardItemRow } from '../../lib/dreamsApi';
 import { useSession } from '../../store/useStore';
 import { PILLAR_CONFIG, PILLAR_ORDER, getMarathonStats } from './sphereGoals/sphereGoalsConfig';
-import { SphereDetailsDrawer, VisionBoardDrawer } from './sphereGoals/SphereDrawers';
+import { SphereDetailsDrawer } from './sphereGoals/SphereDrawers';
+import { VisionTilesRow } from './sphereGoals/VisionTilesRow';
 
 /** „Twoje cele” — 3 sfery Gwiazdy Polarnej jako poziomy rząd scroll-snap; tap rozwija szczegóły sfery. */
 export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
   const session = useSession();
   const userId = session?.user?.id ?? '';
 
-  const [showVisionBoard, setShowVisionBoard] = useState(false);
   const [selectedPillar, setSelectedPillar] = useState<PillarId | null>(null);
 
   const { data: visionItems = [] } = useVisionItemsQuery(userId);
@@ -27,20 +26,7 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
     <section className="space-y-2">
       <div className="flex items-center justify-between px-1">
         <h3 className="text-sm font-semibold text-text-primary">Najważniejsze teraz</h3>
-        {imageItems.length > 0 && (
-          <Pressable
-            variant="tonal"
-            size="sm"
-            onClick={() => setShowVisionBoard((v) => !v)}
-            className="flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/10 px-2 py-1 text-3xs font-bold text-primary hover:bg-primary/20 ui-interactive cursor-pointer"
-          >
-            <ImageIcon size={11} />
-            <span>Wizja ({imageItems.length})</span>
-          </Pressable>
-        )}
       </div>
-
-      {showVisionBoard && imageItems.length > 0 && <VisionBoardDrawer items={imageItems} />}
 
       <div className="grid grid-cols-3 gap-2">
         {PILLAR_ORDER.map((pillar) => {
@@ -86,6 +72,10 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
           onClose={() => setSelectedPillar(null)}
         />
       )}
+
+      <div className="pt-2">
+        <VisionTilesRow items={imageItems} />
+      </div>
     </section>
   );
 });

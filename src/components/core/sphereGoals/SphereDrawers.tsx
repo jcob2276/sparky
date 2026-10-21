@@ -1,37 +1,7 @@
-import { Sparkles, Trophy, Flame } from 'lucide-react';
+import { Trophy, Flame } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import { NORTH_STAR_SPHERES, type PillarId } from '../../../lib/projects/pillars';
-import type { VisionBoardItemRow } from '../../../lib/dreamsApi';
 import { PILLAR_CONFIG, type MarathonStats } from './sphereGoalsConfig';
-
-export function VisionBoardDrawer({ items }: { items: VisionBoardItemRow[] }) {
-  return (
-    <div className="rounded-2xl border border-primary/20 bg-surface/50 p-3 space-y-2 animate-fadeIn">
-      <div className="flex items-center justify-between text-2xs font-bold text-text-muted">
-        <span className="flex items-center gap-1 text-primary">
-          <Sparkles size={12} /> Tablica Marzeń & Wizja
-        </span>
-      </div>
-      <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className="h-20 w-32 shrink-0 overflow-hidden rounded-xl border border-border-custom/50 bg-surface shadow-xs"
-          >
-            <img
-              src={item.content}
-              alt="Wizja"
-              className="h-full w-full object-cover transition-transform hover:scale-105"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = 'none';
-              }}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 interface SphereDetailsProps {
   pillar: PillarId;
