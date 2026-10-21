@@ -1,0 +1,12 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/lint-edited.mjs", "timeout": 60 }
+        ]
+      }
+    ]
+  }
+}

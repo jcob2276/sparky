@@ -45,7 +45,10 @@ supabase/.temp/
 scratch/
 temp_fn_*
 .agents/
-.claude/
+.claude/*
+!.claude/agents/
+!.claude/hooks/
+!.claude/settings.json
 dev-server.log
 
 # Python cache
