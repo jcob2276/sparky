@@ -85,7 +85,7 @@ export default function Keep({ onBack, onNavigateTo }: { onBack?: () => void; on
   if (!userId) return null;
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={window.innerWidth >= 1100}>
     <div className={`keep-root ${editingId ? 'keep-mobile-note-open' : ''}`}>
       <KeepSidebar
           notes={notes}

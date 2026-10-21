@@ -25,8 +25,8 @@ describe('KeepHeader', () => {
       /></SidebarProvider>,
     );
 
-    expect(screen.getByText('Lista')).toBeInTheDocument();
-    expect(screen.getByText('Galeria')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Widok listy' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: 'Widok galerii' })).toHaveAttribute('aria-pressed', 'false');
     expect(screen.queryByText('Podział')).not.toBeInTheDocument();
   });
 

@@ -35,7 +35,7 @@ export default function KeepHeader({
     <WorkspaceHeader
       title="Notatki"
       onBack={onBack}
-      leading={<SidebarTrigger className="!h-11 !w-11 md:hidden" aria-label="Otwórz foldery i tagi" />}
+      leading={<SidebarTrigger className="!h-11 !w-11 md:!h-9 md:!w-9" aria-label="Foldery i tagi" />}
       center={(
         <div className="keep-search-wrap hidden md:block">
           <Search size={14} className="keep-search-icon" />
@@ -54,6 +54,21 @@ export default function KeepHeader({
         </div>
       )}
       actions={<>
+        <div className="hidden md:flex items-center gap-0.5 rounded-full bg-surface-2 p-0.5" role="group" aria-label="Widok notatek">
+          {([['list', 'Widok listy', <List key="l" size={15} />], ['gallery', 'Widok galerii', <Grid3X3 key="g" size={15} />]] as const).map(([mode, label, icon]) => (
+            <Pressable
+              key={mode}
+              type="button"
+              aria-label={label}
+              title={label}
+              aria-pressed={viewMode === mode}
+              onClick={() => setViewMode(mode)}
+              className={`rounded-full p-1.5 ${viewMode === mode ? 'bg-surface-solid text-primary shadow-xs' : 'text-text-muted hover:text-text-primary'}`}
+            >
+              {icon}
+            </Pressable>
+          ))}
+        </div>
         <NoteViewOptions
           value={preferences}
           onChange={onPreferencesChange}
@@ -83,15 +98,6 @@ export default function KeepHeader({
           <span className="hidden lg:inline">{exporting ? 'Eksportowanie…' : 'Eksport'}</span>
         </Pressable>
       </>}
-      tabs={{
-        items: [
-          { key: 'list', label: 'Lista', icon: <List size={14} /> },
-          { key: 'gallery', label: 'Galeria', icon: <Grid3X3 size={14} /> },
-        ],
-        active: viewMode,
-        onChange: (key) => setViewMode(key as 'list' | 'gallery'),
-        hideOnMobile: true,
-      }}
       secondaryRow={(
         <div className="md:hidden px-4 pb-2 pt-1 border-b border-border-custom/20">
           <div className="keep-search-wrap w-full">
