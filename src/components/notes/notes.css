@@ -1073,6 +1073,19 @@
 
 .keep-static-bar::-webkit-scrollbar { display: none; }
 
+/* Menu „⋯": tylko skalowanie, bez fade — przy wstrzymanej animacji menu nigdy nie jest przezroczyste. */
+.keep-more-menu.ios-anchored-popover { animation-name: keep-more-menu-pop; }
+@keyframes keep-more-menu-pop {
+  from { transform: var(--popover-pop-from); }
+  to { transform: none; }
+}
+
+/* Wskazówka, że pasek się przewija: wygaszona prawa krawędź. */
+.keep-static-bar.has-more {
+  -webkit-mask-image: var(--scroll-fade-mask);
+  mask-image: var(--scroll-fade-mask);
+}
+
 /* Dark mode: slightly more visible */
 .dark .keep-static-bar {
   background: var(--material-dark-75, rgba(30, 30, 30, 0.75));
@@ -1894,6 +1907,17 @@
   .keep-search {
     min-height: 40px;
     border-radius: 12px;
+    font-size: var(--text-input-mobile);
+  }
+
+  .keep-view-options .keep-view-options-trigger {
+    height: var(--touch-target);
+    width: var(--touch-target);
+  }
+
+  .keep-static-btn {
+    height: var(--touch-target);
+    min-width: var(--touch-target);
   }
 
   .keep-split-list-pane {

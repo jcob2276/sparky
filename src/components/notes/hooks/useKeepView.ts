@@ -22,6 +22,7 @@ import { matchesSmartFolder, type NoteSmartFolder } from '../../../lib/noteSmart
 import { useKeepBulkActions } from './useKeepBulkActions';
 import { useKeepKeyboardShortcuts } from './useKeepKeyboardShortcuts';
 import type { KeepQuickFilter } from '../KeepFilterPills';
+import { isLiveEditorEmpty } from '../liveEditorEmpty';
 
 type KeepViewMode = 'list' | 'gallery';
 
@@ -139,7 +140,7 @@ export function useKeepView({
     onClearSelection: bulk.clearSelection,
     isSelectMode: bulk.isSelectMode,
     setIsSelectMode: bulk.setIsSelectMode,
-    onCloseEditing: () => handleCloseCard(),
+    onCloseEditing: () => handleCloseCard(isLiveEditorEmpty()),
     editingId,
     onToggleViewMode: () => setViewModeWithPersist(v => (v === 'list' ? 'gallery' : 'list')),
   });
@@ -160,8 +161,12 @@ export function useKeepView({
         setBusy(false);
       }
     }
+    // Przełączenie na inną notatkę nie zostawia po sobie pustej.
+    if (editingId && editingId !== id && isLiveEditorEmpty()) {
+      void handleDiscardEmpty(editingId).catch(() => undefined);
+    }
     setEditingId(id);
-  }, [handleUnlockNote, notes, setBusy, unlockedNoteIds]);
+  }, [editingId, handleDiscardEmpty, handleUnlockNote, notes, setBusy, unlockedNoteIds]);
 
   const allTags = Array.from(new Set(notes.flatMap(n => n.tags))).sort();
 

@@ -44,7 +44,7 @@ export default function KeepFilterPills({ activeFilter, onChangeFilter, counts }
             role="tab"
             aria-selected={isActive}
             onClick={() => onChangeFilter(pill.id)}
-            className={`inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ui-interactive duration-[var(--motion-fast)] btn-press cursor-pointer ${
+            className={`relative before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ui-interactive duration-[var(--motion-fast)] btn-press cursor-pointer ${
               isActive
                 ? 'bg-primary text-on-accent shadow-xs'
                 : 'bg-surface-solid/80 hover:bg-surface-solid border border-border-custom/30 text-text-secondary hover:text-text-primary'

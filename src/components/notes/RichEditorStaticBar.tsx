@@ -4,7 +4,7 @@
  * @usedBy RichEditor
  */
 import { Pressable } from '../ui/ControlPrimitives';
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, type ReactNode } from 'react';
 import {
   Underline, Strikethrough, Quote, CheckSquare, Table2, Image, Highlighter,
   Heading2, List, ListOrdered, Indent, Outdent, Undo, Redo, Link2, Eraser,
@@ -28,84 +28,61 @@ interface Props {
   onAction: (action: string) => void;
 }
 
-function TextStyleGroup({ activeState, onAction }: { activeState: ActiveState; onAction: (a: string) => void }) {
-  return (
-    <>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('bold'); }} className={`keep-static-btn ${activeState.bold ? 'active' : ''}`} title="Pogrubienie">
-        <span style={{ fontWeight: 'var(--ds-inline-style-800)', fontSize: 'var(--ds-inline-style-15)', fontFamily: 'var(--ds-inline-style-georgia-serif)', lineHeight: 'var(--ds-inline-style-1)' }}>B</span>
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('italic'); }} className={`keep-static-btn ${activeState.italic ? 'active' : ''}`} title="Kursywa">
-        <span style={{ fontStyle: 'italic', fontWeight: 'var(--ds-inline-style-600)', fontSize: 'var(--ds-inline-style-15)', fontFamily: 'var(--ds-inline-style-georgia-serif)', lineHeight: 'var(--ds-inline-style-1)' }}>I</span>
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('underline'); }} className={`keep-static-btn ${activeState.underline ? 'active' : ''}`} title="Podkreślenie">
-        <Underline size={18} strokeWidth={2} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('strikethrough'); }} className={`keep-static-btn ${activeState.strikethrough ? 'active' : ''}`} title="Przekreślenie">
-        <Strikethrough size={18} strokeWidth={2} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('h1'); }} className={`keep-static-btn ${activeState.h1 ? 'active' : ''}`} title="Nagłówek H1">
-        <span style={{ fontWeight: 'var(--ds-inline-style-800)', fontSize: 'var(--ds-inline-style-11)', letterSpacing: 'var(--ds-inline-style-0-02em)', lineHeight: 'var(--ds-inline-style-1)' }}>H1</span>
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('h2'); }} className={`keep-static-btn ${activeState.h2 ? 'active' : ''}`} title="Nagłówek H2">
-        <Heading2 size={18} strokeWidth={2} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('blockquote'); }} className={`keep-static-btn ${activeState.blockquote ? 'active' : ''}`} title="Cytat">
-        <Quote size={18} strokeWidth={2} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('highlight'); }} className="keep-static-btn" title="Zakreślacz">
-        <Highlighter size={18} strokeWidth={2} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('clear'); }} className="keep-static-btn" title="Wyczyść formatowanie">
-        <Eraser size={18} strokeWidth={2} />
-      </Pressable>
-    </>
-  );
+const LABEL_STYLE = { fontSize: 'var(--ds-inline-style-15)', fontFamily: 'var(--ds-inline-style-georgia-serif)', lineHeight: 'var(--ds-inline-style-1)' } as const;
+
+interface BarButton {
+  action: string;
+  title: string;
+  icon: ReactNode;
+  active?: keyof ActiveState;
 }
 
-function BlockAndMediaGroup({ activeState, onAction }: { activeState: ActiveState; onAction: (a: string) => void }) {
-  return (
-    <>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('todo'); }} className="keep-static-btn" title="Lista zadań">
-        <CheckSquare size={20} strokeWidth={1.5} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('bullet'); }} className={`keep-static-btn ${activeState.list ? 'active' : ''}`} title="Lista punktowana">
-        <List size={20} strokeWidth={1.5} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('number'); }} className={`keep-static-btn ${activeState.numList ? 'active' : ''}`} title="Lista numerowana">
-        <ListOrdered size={20} strokeWidth={1.5} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('table'); }} className="keep-static-btn" title="Tabela">
-        <Table2 size={20} strokeWidth={1.5} />
-      </Pressable>
-      <div className="keep-static-sep" />
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('outdent'); }} className="keep-static-btn" title="Zmniejsz wcięcie">
-        <Outdent size={20} strokeWidth={1.5} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('indent'); }} className="keep-static-btn" title="Zwiększ wcięcie">
-        <Indent size={20} strokeWidth={1.5} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('undo'); }} className="keep-static-btn" title="Cofnij">
-        <Undo size={18} strokeWidth={2} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('redo'); }} className="keep-static-btn" title="Ponów">
-        <Redo size={18} strokeWidth={2} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('link'); }} className="keep-static-btn" title="Dodaj link">
-        <Link2 size={18} strokeWidth={2} />
-      </Pressable>
-      <Pressable type="button" onMouseDown={e => { e.preventDefault(); onAction('image'); }} className="keep-static-btn" title="Dodaj zdjęcie">
-        <Image size={20} strokeWidth={1.5} />
-      </Pressable>
-    </>
-  );
-}
+const ICON = { size: 20, strokeWidth: 1.5 } as const;
+const ICON_SM = { size: 18, strokeWidth: 2 } as const;
+
+// Kolejność = priorytet na wąskim ekranie: najczęstsze narzędzia są widoczne bez przewijania.
+const GROUPS: BarButton[][] = [
+  [
+    { action: 'todo', title: 'Lista zadań', icon: <CheckSquare {...ICON} /> },
+    { action: 'bullet', title: 'Lista punktowana', icon: <List {...ICON} />, active: 'list' },
+    { action: 'number', title: 'Lista numerowana', icon: <ListOrdered {...ICON} />, active: 'numList' },
+    { action: 'bold', title: 'Pogrubienie', active: 'bold', icon: <span style={{ ...LABEL_STYLE, fontWeight: 'var(--ds-inline-style-800)' }}>B</span> },
+    { action: 'italic', title: 'Kursywa', active: 'italic', icon: <span style={{ ...LABEL_STYLE, fontStyle: 'italic', fontWeight: 'var(--ds-inline-style-600)' }}>I</span> },
+    { action: 'h1', title: 'Nagłówek H1', active: 'h1', icon: <span style={{ fontWeight: 'var(--ds-inline-style-800)', fontSize: 'var(--ds-inline-style-11)', letterSpacing: 'var(--ds-inline-style-0-02em)', lineHeight: 'var(--ds-inline-style-1)' }}>H1</span> },
+    { action: 'undo', title: 'Cofnij', icon: <Undo {...ICON_SM} /> },
+    { action: 'redo', title: 'Ponów', icon: <Redo {...ICON_SM} /> },
+  ],
+  [
+    { action: 'underline', title: 'Podkreślenie', icon: <Underline {...ICON_SM} />, active: 'underline' },
+    { action: 'strikethrough', title: 'Przekreślenie', icon: <Strikethrough {...ICON_SM} />, active: 'strikethrough' },
+    { action: 'h2', title: 'Nagłówek H2', icon: <Heading2 {...ICON_SM} />, active: 'h2' },
+    { action: 'blockquote', title: 'Cytat', icon: <Quote {...ICON_SM} />, active: 'blockquote' },
+    { action: 'highlight', title: 'Zakreślacz', icon: <Highlighter {...ICON_SM} /> },
+    { action: 'clear', title: 'Wyczyść formatowanie', icon: <Eraser {...ICON_SM} /> },
+  ],
+  [
+    { action: 'link', title: 'Dodaj link', icon: <Link2 {...ICON_SM} /> },
+    { action: 'image', title: 'Dodaj zdjęcie', icon: <Image {...ICON} /> },
+    { action: 'table', title: 'Tabela', icon: <Table2 {...ICON} /> },
+    { action: 'outdent', title: 'Zmniejsz wcięcie', icon: <Outdent {...ICON} /> },
+    { action: 'indent', title: 'Zwiększ wcięcie', icon: <Indent {...ICON} /> },
+  ],
+];
 
 export default function RichEditorStaticBar({ activeState, showStaticBar, onAction }: Props) {
   const staticBarRef = useRef<HTMLDivElement>(null);
+  const [hasMore, setHasMore] = useState(false);
+
+  // Cień przy prawej krawędzi pokazuje, że pasek da się przewinąć.
+  const updateHasMore = () => {
+    const bar = staticBarRef.current;
+    if (bar) setHasMore(bar.scrollLeft + bar.clientWidth < bar.scrollWidth - 4);
+  };
 
   // Pin formatting bar above keyboard on mobile (iOS visualViewport API)
   useEffect(() => {
     if (!showStaticBar) return;
+    updateHasMore();
     const vv = window.visualViewport;
     if (!vv) return;
     const reposition = () => {
@@ -119,6 +96,7 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
         bar.style.cssText = '';
         bar.classList.remove('kb-open');
       }
+      updateHasMore();
     };
     vv.addEventListener('resize', reposition);
     vv.addEventListener('scroll', reposition);
@@ -131,10 +109,24 @@ export default function RichEditorStaticBar({ activeState, showStaticBar, onActi
   if (!showStaticBar) return null;
 
   return (
-    <div className="keep-static-bar" ref={staticBarRef}>
-      <TextStyleGroup activeState={activeState} onAction={onAction} />
-      <div className="keep-static-sep" />
-      <BlockAndMediaGroup activeState={activeState} onAction={onAction} />
+    <div className={`keep-static-bar ${hasMore ? 'has-more' : ''}`} ref={staticBarRef} onScroll={updateHasMore}>
+      {GROUPS.map((group, index) => (
+        <div key={index} className="contents">
+          {index > 0 && <div className="keep-static-sep" />}
+          {group.map(({ action, title, icon, active }) => (
+            <Pressable
+              key={action}
+              type="button"
+              onMouseDown={e => { e.preventDefault(); onAction(action); }}
+              className={`keep-static-btn ${active && activeState[active] ? 'active' : ''}`}
+              title={title}
+              aria-label={title}
+            >
+              {icon}
+            </Pressable>
+          ))}
+        </div>
+      ))}
     </div>
   );
 }

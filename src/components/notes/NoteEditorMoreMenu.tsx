@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Archive, Download, FileText, ListTodo, Lock, MoreHorizontal, Pin, Share2, Sparkles, Trash2 } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
 import { COLORS } from './keepUtils';
@@ -20,6 +20,14 @@ interface Props {
 
 export default function NoteEditorMoreMenu(props: Props) {
   const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (!open) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  }, [open]);
   const run = (action: () => void) => {
     setOpen(false);
     action();
@@ -33,7 +41,7 @@ export default function NoteEditorMoreMenu(props: Props) {
       {open && (
         <>
           <Pressable className="ios-popover-dismiss-layer" onClick={() => setOpen(false)} aria-label="Zamknij menu" />
-          <div className="ios-anchored-popover absolute right-0 top-9 z-[var(--z-overlay)] w-56 overflow-hidden rounded-xl border border-border-custom bg-surface-solid p-1 shadow-xl">
+          <div className="ios-anchored-popover keep-more-menu absolute right-0 top-9 z-[var(--z-overlay)] w-56 overflow-hidden rounded-xl border border-border-custom bg-surface-solid p-1 shadow-xl">
             <MenuItem icon={<Pin size={14} />} label={props.pinned ? 'Odepnij' : 'Przypnij'} onClick={() => run(props.onPin)} />
             <MenuItem icon={<Archive size={14} />} label="Archiwizuj" onClick={() => run(props.onArchive)} />
             <MenuItem icon={<Sparkles size={14} />} label="Podsumuj przez AI" onClick={() => run(props.onSummarize)} />

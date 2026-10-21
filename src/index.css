@@ -621,6 +621,9 @@
   --control-md: 2.5rem;
   --control-lg: 3rem;
   --touch-target: 2.75rem;
+  --text-input-mobile: 16px; /* <16px wywołuje zoom przy fokusie w iOS Safari */
+  --scroll-fade-mask: linear-gradient(to right, black calc(100% - 1.75rem), transparent);
+  --popover-pop-from: scale(0.95);
   --sidebar-width: 17.5rem;
   --sidebar-toggle-offset: calc(var(--sidebar-width) - 1.125rem);
   --content-narrow: 45rem;

@@ -25,6 +25,8 @@ export function useKeepKeyboardShortcuts({
 
       // Escape: exit select mode, or close editing note
       if (e.key === 'Escape') {
+        // Otwarte menu/okno dialogowe zamyka się pierwsze — nie wychodź z notatki.
+        if (e.defaultPrevented || document.querySelector('[role="dialog"], [aria-modal="true"], .ios-popover-dismiss-layer')) return;
         if (isSelectMode) {
           e.preventDefault();
           onClearSelection?.();

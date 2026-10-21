@@ -35,7 +35,7 @@ export default function NoteRow({
   const bodyText = (trimmedTitle && plainText.startsWith(trimmedTitle))
     ? plainText.slice(trimmedTitle.length).trim()
     : plainText;
-  const snippet = note.is_locked ? 'Wymaga hasła' : bodyText ? bodyText.slice(0, 180) : 'Brak dodatkowej treści';
+  const snippet = note.is_locked ? 'Wymaga hasła' : bodyText ? bodyText.slice(0, 180) : trimmedTitle ? '' : 'Brak dodatkowej treści';
   const dateStr = relativeDate(note.updated_at || note.created_at);
   const color = getColor(note.color);
   const { light } = useHaptics();
@@ -114,8 +114,8 @@ export default function NoteRow({
 
       <div className="flex items-baseline gap-1.5 text-xs leading-relaxed text-text-muted">
         <span className="shrink-0 font-medium text-text-secondary">{dateStr}</span>
-        <span aria-hidden="true" className="shrink-0 opacity-60">·</span>
-        <span className="flex-1 line-clamp-2 break-words [overflow-wrap:anywhere]">{snippet}</span>
+        {snippet && <span aria-hidden="true" className="shrink-0 opacity-60">·</span>}
+        {snippet && <span className="flex-1 line-clamp-2 break-words [overflow-wrap:anywhere]">{snippet}</span>}
       </div>
 
       {note.tags.length > 0 && (

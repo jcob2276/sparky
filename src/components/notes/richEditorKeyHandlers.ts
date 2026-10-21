@@ -24,6 +24,27 @@ function handleSpaceShortcut(e: React.KeyboardEvent<HTMLDivElement>, insertHTML:
     insertHTML('<div class="keep-todo-item"><span class="keep-todo-checkbox" contenteditable="false"></span><span class="keep-todo-text">&nbsp;</span></div>');
     return true;
   }
+  // "- " / "* " → lista punktowana, "1. " / "1) " → numerowana (tylko na początku linii).
+  const listCommand = /^[-*]$/.test(textBefore) ? 'insertUnorderedList' : /^1[.)]$/.test(textBefore) ? 'insertOrderedList' : null;
+  if (listCommand && !node.previousSibling && selection.isCollapsed) {
+    e.preventDefault();
+    const range = selection.getRangeAt(0);
+    range.setStart(node, 0);
+    range.setEnd(node, offset);
+    range.deleteContents();
+    // Pusty blok bez <br> zapada się i execCommand obejmuje sąsiedni akapit — daj mu wysokość i kursor.
+    const block = node.parentElement;
+    if (block && block !== e.currentTarget && !block.textContent) {
+      block.innerHTML = '<br>';
+      const caret = document.createRange();
+      caret.setStart(block, 0);
+      caret.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(caret);
+    }
+    document.execCommand(listCommand);
+    return true;
+  }
   return false;
 }
 

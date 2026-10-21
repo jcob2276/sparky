@@ -136,7 +136,7 @@ export default function SplitNotesView({
               onTogglePin={onTogglePin}
               onMove={note => { void requestMove(note); }}
               onDelete={note => {
-                void confirmDialog('Czy usunąć tę notatkę?').then(ok => { if (ok) onDelete(note.id); });
+                void confirmDialog('Przenieść notatkę do Kosza?').then(ok => { if (ok) onDelete(note.id); });
               }}
               isSelectMode={bulk?.isSelectMode}
               selectedIds={bulk?.selectedIds}
@@ -188,7 +188,7 @@ export default function SplitNotesView({
             setActionNote(null);
           }}
           onDelete={async () => {
-            if (await confirmDialog('Czy usunąć tę notatkę?')) onDelete(actionNote.id);
+            if (await confirmDialog('Przenieść notatkę do Kosza?')) onDelete(actionNote.id);
             setActionNote(null);
           }}
         />
