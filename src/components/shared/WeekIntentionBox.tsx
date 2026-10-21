@@ -14,7 +14,6 @@ interface WeekIntentionBoxProps {
   handleSaveIntention: () => void;
   weekStart?: string;
   sourceFallback?: boolean;
-  promptText: string;
 }
 
 export function WeekIntentionBox({
@@ -30,7 +29,6 @@ export function WeekIntentionBox({
   handleSaveIntention,
   weekStart,
   sourceFallback,
-  promptText,
 }: WeekIntentionBoxProps) {
   return (
     <div className="rounded-2xl border border-primary/25 bg-primary/[0.05] p-3.5 space-y-2.5">
@@ -61,10 +59,7 @@ export function WeekIntentionBox({
         </div>
       ) : (
         <div className="space-y-2 pt-0.5">
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-xs font-semibold text-primary/90 leading-snug">
-              {promptText}
-            </p>
+          <div className="flex justify-end">
             <Pressable
               type="button"
               onClick={handleAiSuggest}
@@ -78,7 +73,7 @@ export function WeekIntentionBox({
           <div className="flex items-center gap-2">
             <ControlInput
               type="text"
-              placeholder="Twoja odpowiedź…"
+              placeholder="Wpisz intencję tygodnia…"
               aria-label="Intencja tygodnia"
               value={draftIntention}
               onChange={(e) => setDraftIntention(e.target.value)}

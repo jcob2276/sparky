@@ -5,20 +5,11 @@ import { Card } from '../ui/Card';
 import { useUserId } from '../../store/useStore';
 import { saveWeekIntention } from '../../lib/goal/goalSpine';
 import { notify } from '../../lib/notify';
-import { getTodayWarsaw } from '../../lib/date';
 import { invokeEdge } from '../../lib/supabase';
 
 const norm = (t: string | null | undefined) => (t ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
 const sameText = (a: string | null | undefined, b: string | null | undefined) => { const na = norm(a); return na.length > 0 && na === norm(b); };
 const truncate = (t: string, max = 110) => t.trim().length <= max ? t.trim() : `${t.trim().slice(0, max - 1)}…`;
-
-function getDynamicIntentionPrompt(): string {
-  const day = new Date(`${getTodayWarsaw()}T12:00:00Z`).getUTCDay();
-  if (day === 1 || day === 2) return 'Jaka jedna rzecz sprawi, że w niedzielę powiesz: to był wygrany tydzień?';
-  if (day === 3 || day === 4) return 'Półmetek tygodnia. Na czym musisz utrzymać bezwzględny fokus do niedzieli?';
-  if (day === 5 || day === 6) return 'Finisz tygodnia (ostatnie 48–72h). Co musi się wydarzyć, żeby zamknąć go z tarczą?';
-  return 'Jaka jest główna intencja i tożsamość na nadchodzący tydzień?';
-}
 
 interface StrategicLineageProps {
   bhag: string | null;
@@ -213,7 +204,6 @@ Zwróć TYLKO 1 konkretne zdanie w języku polskim, bez cudzysłowów.`;
         handleSaveIntention={() => void handleSaveIntention()}
         weekStart={weekStart}
         sourceFallback={ctx.weekGoalsMeta?.source === 'fallback'}
-        promptText={getDynamicIntentionPrompt()}
       />
 
       {hasPillars && !compact && (
