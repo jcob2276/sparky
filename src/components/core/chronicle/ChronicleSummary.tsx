@@ -28,10 +28,12 @@ interface Props {
   loading: boolean;
   error: Error | null;
   periodTitle: string;
+  /** Wykres ma sens dopiero od miesiąca w górę; w tygodniu jest za mało punktów. */
+  showChart?: boolean;
 }
 
 /** Cel, kafelki ze zmianą względem poprzedniego okresu, wykres i uczciwe braki danych jednej zakładki Kroniki. */
-export default function ChronicleSummary({ summary, loading, error, periodTitle }: Props) {
+export default function ChronicleSummary({ summary, loading, error, periodTitle, showChart = true }: Props) {
   if (loading) return <Skeleton className="h-64 w-full rounded-3xl" />;
   if (error || !summary) {
     return <p className="rounded-2xl border border-warning/30 bg-warning/10 px-3 py-3 text-xs font-semibold text-warning">Nie udało się wczytać danych tego okresu.</p>;
@@ -57,10 +59,12 @@ export default function ChronicleSummary({ summary, loading, error, periodTitle 
         {tiles.map((tile, index) => <Tile key={tile.label} tile={tile} wide={oddLast && index === tiles.length - 1} />)}
       </div>
 
-      <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
-        <p className="text-3xs font-black uppercase tracking-widest text-text-muted">{chart.label}</p>
-        <ChronicleLineChart values={chart.values} labels={chart.labels} unit={chart.unit} ariaLabel={`${chart.label}, ${periodTitle}`} />
-      </div>
+      {showChart && (
+        <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
+          <p className="text-3xs font-black uppercase tracking-widest text-text-muted">{chart.label}</p>
+          <ChronicleLineChart values={chart.values} labels={chart.labels} unit={chart.unit} ariaLabel={`${chart.label}, ${periodTitle}`} />
+        </div>
+      )}
 
       {notes.length > 0 && (
         <ul className="space-y-0.5 px-1">

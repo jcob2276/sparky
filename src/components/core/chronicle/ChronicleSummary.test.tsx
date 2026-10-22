@@ -25,6 +25,13 @@ describe('ChronicleSummary', () => {
     expect(screen.getByText(/Brak liczb z 1 dnia/)).toBeInTheDocument();
   });
 
+  it('w tygodniu nie rysuje wykresu, ale zostawia cel, kafelki i braki danych', () => {
+    render(<ChronicleSummary summary={summary} loading={false} error={null} periodTitle="Ten tydzień" showChart={false} />);
+    expect(screen.queryByRole('img', { name: 'Umówieni, Ten tydzień' })).not.toBeInTheDocument();
+    expect(screen.getByText('+10 vs poprzedni')).toBeInTheDocument();
+    expect(screen.getByText(/Brak liczb z 1 dnia/)).toBeInTheDocument();
+  });
+
   it('bez danych do wykresu mówi o tym wprost', () => {
     render(<ChronicleSummary summary={{ ...summary, chart: { ...summary.chart, values: [null, null, null] } }} loading={false} error={null} periodTitle="Ten tydzień" />);
     expect(screen.getByText('Brak danych do wykresu w tym okresie.')).toBeInTheDocument();

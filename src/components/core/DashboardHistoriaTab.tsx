@@ -47,6 +47,7 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
         loading={chronicle.loading}
         error={chronicle.error}
         periodTitle={periodTitle}
+        showChart={period !== 'week'}
       />
 
       <Suspense fallback={<ViewFallback />}>
