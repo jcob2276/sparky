@@ -1,6 +1,7 @@
 /**
  * @component Stats
  * @role Hub zakładki Kronika: pomiary ciała, zdjęcia, siłownia, bieganie (Strava), eksport danych.
+ * Domena 'none' montuje tylko okno eksportu (zakładki Duch i Konto).
  * @usedBy DashboardHistoriaTab
  */
 import type { ReactNode } from 'react';
@@ -11,7 +12,7 @@ import { ChronicleExportModal } from './stats/ChronicleExportModal';
 import { useStatsData } from './hooks/useStatsData';
 import { mergeLatestBodyMetrics } from '../../lib/health/bodyMetrics';
 
-export type ChronicleDomain = 'body' | 'gym' | 'running' | 'all';
+type ChronicleDomain = 'body' | 'gym' | 'running' | 'all' | 'none';
 
 interface StatsProps {
   domain?: ChronicleDomain;
@@ -63,7 +64,7 @@ export default function Stats({
   } = useStatsData();
 
   if (!userId) return null;
-  if (loading) return <div className="p-8 text-center text-text-muted uppercase font-black animate-pulse tracking-widest">Wczytywanie...</div>;
+  if (loading) return domain === 'none' ? null : <div className="p-8 text-center text-text-muted uppercase font-black animate-pulse tracking-widest">Wczytywanie...</div>;
 
   const mergedBody = mergeLatestBodyMetrics(bodyData);
   const latestBody = mergedBody
@@ -88,11 +89,13 @@ export default function Stats({
   return (
     <div className="space-y-5 pb-6">
       {/* Milestone / Big Picture Bar */}
-      <ChronicleMilestonesBar
-        bodyData={bodyData}
-        recentSessions={recentSessions}
-        latestBody={latestBody}
-      />
+      {domain !== 'none' && (
+        <ChronicleMilestonesBar
+          bodyData={bodyData}
+          recentSessions={recentSessions}
+          latestBody={latestBody}
+        />
+      )}
 
       {/* Body & Physique Section */}
       {showBody && (

@@ -1,13 +1,16 @@
 import { Suspense, memo, useState } from 'react';
-import { FileDown } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useSession } from '../../store/useStore';
 import { Pressable } from '../ui/ControlPrimitives';
-import Button from '../ui/Button';
 import Spinner from '../ui/Spinner';
-import Stats, { type ChronicleDomain } from './Stats';
+import Stats from './Stats';
 import StravaWidget from '../integrations/StravaWidget';
 import Photos from '../identity/Photos';
-import { useHaptics } from '../../hooks/useHaptics';
+import ChronicleControls from './chronicle/ChronicleControls';
+import ChronicleSummary from './chronicle/ChronicleSummary';
+import { useChronicle } from './chronicle/useChronicle';
+import type { ChroniclePeriod } from '../../lib/chronicle/periods';
+import type { ChronicleGoal } from '../../lib/chronicle/summaryTypes';
 
 function ViewFallback() {
   return (
@@ -17,67 +20,38 @@ function ViewFallback() {
   );
 }
 
-const DOMAIN_TABS: { id: ChronicleDomain; label: string; icon: string }[] = [
-  { id: 'body', label: 'Ciało & Sylwetka', icon: '📏' },
-  { id: 'gym', label: 'Siłownia', icon: '🏋️' },
-  { id: 'running', label: 'Biegi', icon: '🏃' },
-  { id: 'all', label: 'Całość', icon: '📋' },
-];
-
 export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
   const session = useSession();
-  const haptics = useHaptics();
-  const [activeDomain, setActiveDomain] = useState<ChronicleDomain>('body');
+  const [goal, setGoal] = useState<ChronicleGoal>('cialo');
+  const [period, setPeriod] = useState<ChroniclePeriod>('week');
+  const [showTraining, setShowTraining] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const chronicle = useChronicle(goal, period);
 
   if (!session) return null;
 
+  const periodTitle = chronicle.window.title;
+
   return (
     <div className="p-4 sm:p-5 pb-8 space-y-4">
-      {/* Segmented Domain Tabs + Compact Export Button */}
-      <div className="flex items-center justify-between gap-2 pt-1 pb-1">
-        <div
-          className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          role="tablist"
-          aria-label="Domeny kroniki"
-        >
-          {DOMAIN_TABS.map((tab) => {
-            const isActive = activeDomain === tab.id;
-            return (
-              <Pressable
-                key={tab.id}
-                role="tab"
-                aria-selected={isActive}
-                onClick={() => {
-                  haptics.selection();
-                  setActiveDomain(tab.id);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-bold ui-interactive active:scale-95 shadow-2xs whitespace-nowrap cursor-pointer ${
-                  isActive
-                    ? 'border-primary/40 bg-primary/15 text-primary shadow-xs'
-                    : 'border-border-custom/80 bg-surface/70 hover:bg-surface text-text-muted hover:text-text-primary'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
-              </Pressable>
-            );
-          })}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsExportOpen(true)}
-          icon={<FileDown size={12} />}
-          className="!h-7 !px-2.5 !text-3xs font-black uppercase tracking-wider text-primary border-primary/25 bg-primary/10 hover:bg-primary/20 rounded-full shrink-0"
-        >
-          Eksport
-        </Button>
-      </div>
+      <ChronicleControls
+        goal={goal}
+        onGoal={setGoal}
+        period={period}
+        onPeriod={setPeriod}
+        onExport={() => setIsExportOpen(true)}
+      />
+
+      <ChronicleSummary
+        summary={chronicle.summary}
+        loading={chronicle.loading}
+        error={chronicle.error}
+        periodTitle={periodTitle}
+      />
 
       <Suspense fallback={<ViewFallback />}>
         <Stats
-          domain={activeDomain}
+          domain={goal === 'cialo' ? (showTraining ? 'all' : 'body') : 'none'}
           photosSlot={<Photos />}
           runningSlot={<StravaWidget />}
           isExportOpen={isExportOpen}
@@ -85,6 +59,17 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
           onOpenExport={() => setIsExportOpen(true)}
         />
       </Suspense>
+
+      {goal === 'cialo' && (
+        <Pressable
+          aria-expanded={showTraining}
+          onClick={() => setShowTraining((value) => !value)}
+          className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-border-custom/60 bg-surface/50 py-2.5 text-xs font-bold text-text-secondary ui-interactive active:scale-95 cursor-pointer"
+        >
+          <ChevronDown size={14} aria-hidden="true" className={showTraining ? 'rotate-180' : ''} />
+          {showTraining ? 'Ukryj treningi' : 'Pokaż treningi (siłownia, biegi)'}
+        </Pressable>
+      )}
     </div>
   );
 });
