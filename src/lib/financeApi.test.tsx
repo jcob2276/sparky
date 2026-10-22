@@ -79,7 +79,7 @@ it('does not invent income, expenses or a spending allowance before a budget pro
   expect(result.current.query.data?.profile.monthly_income).toBe(0);
   expect(result.current.query.data?.profile.monthly_expenses).toBe(0);
   expect(buildTodayHeadline(result.current.metrics!)).toBe('—');
-  expect(buildTodayContext(result.current.metrics!)).toMatch(/Uzupełnij.*Cel/);
+  expect(buildTodayContext(result.current.metrics!)).toMatch(/Wpisz plan wydatków/);
 });
 
 it('keeps the saved budget values and shows the calculated allowance when a profile exists', async () => {
@@ -103,26 +103,17 @@ function BudgetTab({ tab }: { tab: FinanceTabKey }) {
     run={async (fn) => fn()} saveProfilePatch={() => {}} />;
 }
 
-it.each(['today', 'fire', 'portfolio'] as const)('keeps actual records and inputs in %s without inventing results from a missing budget', async (tab) => {
-  source.wishlist = [{
-    id: 'wish', user_id: 'owner', name: 'Nowy rower', price: 1200, value_score: 0,
-    is_impulse: false, cool_off_until: null, still_want: true, notes: null, created_at: '2026-10-17T10:00:00Z',
-  }];
+it.each(['today', 'flows'] as const)('keeps actual records and inputs in %s without inventing results from a missing budget', async (tab) => {
   source.income = [{ id: 'pay', user_id: 'owner', name: 'Pensja', amount_monthly: 7000,
     source_type: 'salary', is_active: true, created_at: '2026-10-17T10:00:00Z' }];
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   render(<QueryClientProvider client={client}><BudgetTab tab={tab} /></QueryClientProvider>);
-  if (tab === 'fire') {
-    await screen.findByText('Miesięczne wydatki');
-    expect(screen.queryByText('Do FIRE brakuje')).not.toBeInTheDocument();
-    expect(screen.queryByText('Co jeśli…')).not.toBeInTheDocument();
-  } else if (tab === 'portfolio') {
-    await screen.findByText('Nowy rower');
-    expect(screen.queryByText(/dni wolności/)).not.toBeInTheDocument();
+  if (tab === 'flows') {
+    await screen.findByText('Pensja');
+    expect(screen.getByLabelText(/Plan wydatków na miesiąc/)).toHaveValue(null);
   } else {
-    await screen.findByText(/Uzupełnij.*Cel/);
+    await screen.findByText(/Wpisz plan wydatków/);
     expect(screen.queryByText('Zostało w miesiącu')).not.toBeInTheDocument();
-    expect(screen.getByText(/Razem\s+7000\s*zł\/mies\./)).toBeInTheDocument();
   }
 });
 

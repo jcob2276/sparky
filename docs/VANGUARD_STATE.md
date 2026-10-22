@@ -399,14 +399,9 @@ Interfejs webowy/mobilny skupia się wyłącznie na widokach operacyjnych (Dashb
 
 Funkcje:
 
-- szybki zapis wydatku;
-- przychody i wydatki;
-- rachunki i subskrypcje;
-- konta oraz portfel;
-- cele, wishlist i budżet;
-- import CSV;
-- runway/FIRE i wynik finansowy;
-- oś zmian.
+- zakładka Dziś: ile zostaje na dziś, plan vs wydane, szybki zapis wydatku (też gotówka), nadchodzące opłaty i wpływy;
+- zakładka Przepływy: plan wydatków na miesiąc, przychody, subskrypcje, rachunki, drobne wydatki i import CSV z banku;
+- konta, cele, wishlist, FIRE/Monte Carlo, alokacja, dywidendy i oś zmian zostały wycięte (brak użycia); akcje są w `/inwestycje`.
 
 Połączenia:
 

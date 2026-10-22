@@ -29,7 +29,7 @@ export interface FinanceAccount {
   created_at: string;
 }
 
-export interface FinanceGoal {
+interface FinanceGoal {
   id: string;
   user_id: string;
   name: string;

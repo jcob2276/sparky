@@ -1,8 +1,6 @@
-import { useState } from 'react';
-import { ControlInput } from '../ui/ControlPrimitives';
 import { formatPln } from '../../lib/finance/formatMoney';
 import type { CashflowMonthSummary, FinanceExpenseCategory } from '@vanguard/domain';
-import type { FinanceIncomeSource, FinanceTransaction } from '../../lib/financeApi';
+import type { FinanceTransaction } from '../../lib/financeApi';
 import type { FinanceMetrics } from './useFinanceMetrics';
 import {
   FinanceEmpty,
@@ -13,23 +11,15 @@ import {
   financeHeroNumberClass,
 } from './financeUi';
 import {
-  buildMonthWaterfall,
-  buildNetWorthLine,
-  buildPurchaseVerdict,
   buildTodayContext,
   buildTodayHeadline,
   formatMonthLabel,
 } from './financeNarrative';
 import {
   buildBudgetProgress,
-  buildCategorySlices,
-  buildIncomeSummary,
 } from '../../lib/finance/financeTodayInsights';
 import { FinanceQuickCapture } from './FinanceQuickCapture';
-import { FinanceWaterfall } from './FinanceWaterfall';
 import { FinanceBudgetProgress } from './FinanceBudgetProgress';
-import { FinanceCategoryChart } from './FinanceCategoryChart';
-import { FinanceIncomeSummary } from './FinanceIncomeSummary';
 
 interface FinanceTodayViewProps {
   metrics: FinanceMetrics;
@@ -37,8 +27,6 @@ interface FinanceTodayViewProps {
   cashflow: CashflowMonthSummary;
   todayDay: number;
   recentTransactions: FinanceTransaction[];
-  incomeSources: FinanceIncomeSource[];
-  freedomDaysForAmount: (amount: number) => number;
   onAddExpense: (input: { amount: number; category: FinanceExpenseCategory; note?: string }) => void;
   addingExpense: boolean;
 }
@@ -115,55 +103,22 @@ function MonthAhead({
   );
 }
 
-function PurchaseCheck({ freedomDaysForAmount }: { freedomDaysForAmount: (amount: number) => number }) {
-  const [price, setPrice] = useState('');
-  const amount = Number(price) || 0;
-  const days = amount > 0 ? freedomDaysForAmount(amount) : 0;
-  const verdict = buildPurchaseVerdict(amount, days);
-
-  return (
-    <FinanceSection title="Sprawdź kwotę" subtitle="Ile dni wolności to kosztuje — sama liczba.">
-      <div className="px-4 py-4">
-        <label className="block">
-          <span className="sr-only">Kwota</span>
-          <ControlInput
-            type="number"
-            min="0"
-            inputMode="decimal"
-            placeholder="np. 2400"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            className="min-h-12 w-full rounded-xl border-0 bg-surface-2/80 px-4 text-lg tracking-[var(--tracking-tight)] ring-1 ring-border-custom/30 transition-shadow focus:ring-2 focus:ring-primary/40"
-          />
-        </label>
-        {verdict && <FinanceProse className="mt-4">{verdict}</FinanceProse>}
-      </div>
-    </FinanceSection>
-  );
-}
-
 export function FinanceTodayView({
   metrics,
   monthKey,
   cashflow,
   todayDay,
   recentTransactions,
-  incomeSources,
-  freedomDaysForAmount,
   onAddExpense,
   addingExpense,
 }: FinanceTodayViewProps) {
   const headline = buildTodayHeadline(metrics);
   const context = buildTodayContext(metrics);
-  const netWorthLine = buildNetWorthLine(metrics);
-  const waterfall = buildMonthWaterfall(metrics);
   const monthLabel = formatMonthLabel(monthKey);
   const budgetProgress = buildBudgetProgress({
     effectiveExpenses: metrics.effectiveExpenses,
     spentThisMonth: metrics.spentThisMonth,
   });
-  const categorySlices = buildCategorySlices(recentTransactions, monthKey);
-  const incomeLines = buildIncomeSummary(incomeSources);
 
   return (
     <div className="space-y-8">
@@ -171,16 +126,11 @@ export function FinanceTodayView({
         <p className="text-sm text-text-muted">Na dziś zostaje około</p>
         <p className={financeHeroNumberClass}>{headline}</p>
         <FinanceProse>{context}</FinanceProse>
-        <p className="text-sm text-text-muted">{netWorthLine}</p>
       </header>
 
       {metrics.hasBudget && budgetProgress && <FinanceBudgetProgress progress={budgetProgress} monthLabel={monthLabel} />}
       <FinanceQuickCapture onAdd={onAddExpense} adding={addingExpense} />
-      <FinanceIncomeSummary lines={incomeLines} />
-      <FinanceCategoryChart slices={categorySlices} monthLabel={monthLabel} />
-      <FinanceWaterfall lines={waterfall} monthLabel={monthLabel} />
       <RecentSpending transactions={recentTransactions} />
-      {metrics.hasBudget && <PurchaseCheck freedomDaysForAmount={freedomDaysForAmount} />}
       <MonthAhead monthKey={monthKey} summary={cashflow} todayDay={todayDay} />
     </div>
   );

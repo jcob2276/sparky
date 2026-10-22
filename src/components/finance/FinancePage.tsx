@@ -13,21 +13,17 @@ import { useFinancePageData } from './useFinancePageData';
 
 const TABS = [
   { key: 'today', label: 'Dziś' },
-  { key: 'portfolio', label: 'Portfel' },
   { key: 'flows', label: 'Przepływy' },
-  { key: 'fire', label: 'Cel' },
 ] as const;
 
 const WIDTH_BY_TAB: Record<FinanceTabKey, 'narrow' | 'default' | 'wide'> = {
   today: 'narrow',
-  fire: 'default',
-  portfolio: 'wide',
   flows: 'wide',
 };
 
 function FinancePage() {
   const userId = useStore((s) => s.session?.user?.id);
-  const { bundleQuery, coinPricesQuery, data, metrics } = useFinancePageData(userId);
+  const { bundleQuery, data, metrics } = useFinancePageData(userId);
   const mutations = useFinanceMutations(userId);
   const [tab, setTab] = useState<FinanceTabKey>('today');
   const reduceMotion = useReducedMotion();
@@ -110,8 +106,6 @@ function FinancePage() {
                   data={data}
                   metrics={metrics}
                   mutations={mutations}
-                  coinPrices={coinPricesQuery.data}
-                  pricesLoading={coinPricesQuery.isFetching}
                   run={run}
                   saveProfilePatch={saveProfilePatch}
                 />

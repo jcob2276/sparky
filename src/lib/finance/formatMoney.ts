@@ -13,13 +13,3 @@ export function formatMonths(value: number): string {
   const years = value / 12;
   return `${years.toFixed(1)} lat`;
 }
-
-export function formatYears(value: number | null): string {
-  if (value == null) return '—';
-  if (value < 1) return `${Math.round(value * 12)} mies.`;
-  return `${value.toFixed(1)} lat`;
-}
-
-export function formatPct(value: number): string {
-  return `${value.toFixed(1)}%`;
-}
