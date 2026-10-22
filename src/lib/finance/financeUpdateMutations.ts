@@ -3,7 +3,6 @@ import { supabase } from '../supabase';
 import { financeKeys } from '../queryKeys';
 import { getTodayWarsaw } from '../date';
 import type { FinanceProfile } from '../financeApi';
-import type { ParsedTransaction } from './csvImport';
 
 export function invalidateFinance(qc: ReturnType<typeof useQueryClient>, userId: string) {
   void qc.invalidateQueries({ queryKey: financeKeys.bundle(userId) });
@@ -84,51 +83,11 @@ export function useFinanceUpdateMutations(userId: string | undefined) {
     onSuccess: () => { if (userId) invalidateFinance(qc, userId); },
   });
 
-  const importTransactions = useMutation({
-    mutationFn: async (rows: ParsedTransaction[]) => {
-      if (!userId) throw new Error('Brak użytkownika');
-      if (rows.length === 0) return { inserted: 0, skipped: 0 };
-
-      // Fetch existing dedup hashes for the date range in this batch
-      const dates = rows.map((r) => r.transaction_date);
-      const minDate = dates.reduce((a, b) => (a < b ? a : b));
-      const maxDate = dates.reduce((a, b) => (a > b ? a : b));
-
-      const { data: existing } = await supabase
-        .from('finance_transactions')
-        .select('dedup_hash')
-        .eq('user_id', userId)
-        .gte('transaction_date', minDate)
-        .lte('transaction_date', maxDate);
-
-      const knownHashes = new Set((existing ?? []).map((r) => r.dedup_hash as string));
-      const toInsert = rows.filter((r) => !knownHashes.has(r.dedup_hash));
-
-      if (toInsert.length === 0) return { inserted: 0, skipped: rows.length };
-
-      const { error } = await supabase.from('finance_transactions').insert(
-        toInsert.map((r) => ({
-          user_id: userId,
-          amount: r.amount,
-          category: r.category,
-          note: r.description.slice(0, 200) || null,
-          kind: r.kind,
-          transaction_date: r.transaction_date,
-          dedup_hash: r.dedup_hash,
-        })),
-      );
-      if (error) throw new Error(error.message);
-      return { inserted: toInsert.length, skipped: rows.length - toInsert.length };
-    },
-    onSuccess: () => { if (userId) invalidateFinance(qc, userId); },
-  });
-
   return {
     upsertProfile,
     updateGoalProgress,
     updateAccount,
     updateWishlistItem,
     saveMonthlySnapshot,
-    importTransactions,
   };
 }

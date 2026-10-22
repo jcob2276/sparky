@@ -12,16 +12,17 @@ import { ToggleChip } from '../ui/ToggleChip';
 import { ControlInput, ControlSelect, Pressable } from '../ui/ControlPrimitives';
 import { FinanceKeypad } from './FinanceKeypad';
 
+type Kind = 'expense' | 'income';
+
 interface FinanceQuickEntryProps {
   accounts: FinanceAccount[];
   pending: boolean;
   open: boolean;
+  initialKind: Kind;
   onOpenChange: (open: boolean) => void;
   showFab: boolean;
   onSubmit: (input: CashEntryInput) => Promise<boolean>;
 }
-
-type Kind = 'expense' | 'income';
 
 const INCOME_CATEGORIES = Object.values(FINANCE_INCOME_LABELS);
 const NO_ACCOUNT = '';
@@ -41,9 +42,9 @@ function pickInitial(kind: Kind, accounts: FinanceAccount[]) {
   return { category, accountId };
 }
 
-function EntryForm({ accounts, pending, onSubmit, onDone }: Pick<FinanceQuickEntryProps, 'accounts' | 'pending' | 'onSubmit'> & { onDone: () => void }) {
-  const [kind, setKind] = useState<Kind>('expense');
-  const [initial] = useState(() => pickInitial('expense', accounts));
+function EntryForm({ accounts, pending, initialKind, onSubmit, onDone }: Pick<FinanceQuickEntryProps, 'accounts' | 'pending' | 'initialKind' | 'onSubmit'> & { onDone: () => void }) {
+  const [kind, setKind] = useState<Kind>(initialKind);
+  const [initial] = useState(() => pickInitial(initialKind, accounts));
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState(initial.category);
   const [accountId, setAccountId] = useState(initial.accountId);
@@ -152,7 +153,7 @@ function EntryForm({ accounts, pending, onSubmit, onDone }: Pick<FinanceQuickEnt
   );
 }
 
-export function FinanceQuickEntry({ accounts, pending, open, onOpenChange, showFab, onSubmit }: FinanceQuickEntryProps) {
+export function FinanceQuickEntry({ accounts, pending, open, initialKind, onOpenChange, showFab, onSubmit }: FinanceQuickEntryProps) {
   return (
     <>
       {showFab && !open && (
@@ -161,7 +162,7 @@ export function FinanceQuickEntry({ accounts, pending, open, onOpenChange, showF
         </Fab>
       )}
       <Sheet open={open} onOpenChange={onOpenChange} title="Szybki wpis" side="bottom" compact>
-        {open && <EntryForm accounts={accounts} pending={pending} onSubmit={onSubmit} onDone={() => onOpenChange(false)} />}
+        {open && <EntryForm accounts={accounts} pending={pending} initialKind={initialKind} onSubmit={onSubmit} onDone={() => onOpenChange(false)} />}
       </Sheet>
     </>
   );

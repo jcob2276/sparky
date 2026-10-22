@@ -61,7 +61,7 @@ describe('FinanceQuickEntry', () => {
     window.localStorage.clear();
     const onSubmit = vi.fn().mockResolvedValue(true);
     const onOpenChange = vi.fn();
-    render(<FinanceQuickEntry accounts={[account]} pending={false} open onOpenChange={onOpenChange} showFab={false} onSubmit={onSubmit} />);
+    render(<FinanceQuickEntry accounts={[account]} pending={false} open initialKind="expense" onOpenChange={onOpenChange} showFab={false} onSubmit={onSubmit} />);
 
     for (const key of ['2', '5', 'Przecinek', '5']) fireEvent.click(screen.getByRole('button', { name: key }));
     fireEvent.submit(screen.getByRole('button', { name: /Zapisz/ }).closest('form')!);
@@ -76,14 +76,14 @@ describe('FinanceQuickEntry', () => {
   it('remembers the last category for the next entry', async () => {
     window.localStorage.clear();
     const onSubmit = vi.fn().mockResolvedValue(true);
-    const { unmount } = render(<FinanceQuickEntry accounts={[account]} pending={false} open onOpenChange={vi.fn()} showFab={false} onSubmit={onSubmit} />);
+    const { unmount } = render(<FinanceQuickEntry accounts={[account]} pending={false} open initialKind="expense" onOpenChange={vi.fn()} showFab={false} onSubmit={onSubmit} />);
     fireEvent.click(screen.getByRole('button', { name: 'Transport' }));
     fireEvent.click(screen.getByRole('button', { name: '7' }));
     fireEvent.submit(screen.getByRole('button', { name: /Zapisz/ }).closest('form')!);
     await waitFor(() => expect(onSubmit).toHaveBeenCalled());
     unmount();
 
-    render(<FinanceQuickEntry accounts={[account]} pending={false} open onOpenChange={vi.fn()} showFab={false} onSubmit={onSubmit} />);
+    render(<FinanceQuickEntry accounts={[account]} pending={false} open initialKind="expense" onOpenChange={vi.fn()} showFab={false} onSubmit={onSubmit} />);
     fireEvent.click(screen.getByRole('button', { name: '8' }));
     expect(screen.getByText(/· Transport/)).toBeInTheDocument();
   });

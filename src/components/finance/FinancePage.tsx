@@ -11,17 +11,18 @@ import { notify } from '../../lib/notify';
 import { getTodayWarsaw } from '../../lib/date';
 import ContentContainer from '../shared/ContentContainer';
 import Spinner from '../ui/Spinner';
-import Tabs from '../ui/Tabs';
 import { FinanceTabContent, type FinanceTabKey } from './FinanceTabContent';
+import { FinanceBottomNav } from './FinanceBottomNav';
 import { FinanceQuickEntry } from './FinanceQuickEntry';
+import { useForcedDarkTheme } from './useForcedDarkTheme';
 import { useFinancePageData } from './useFinancePageData';
 
-const TABS = [
-  { key: 'dashboard', label: 'Pulpit' },
-  { key: 'portfolio', label: 'Portfel' },
-  { key: 'accounts', label: 'Konta' },
-  { key: 'flows', label: 'Przepływy' },
-] as const;
+const TITLES: Record<FinanceTabKey, string> = {
+  dashboard: 'Finanse',
+  portfolio: 'Portfel',
+  accounts: 'Konta',
+  flows: 'Przepływy',
+};
 
 const WIDTH_BY_TAB: Record<FinanceTabKey, 'narrow' | 'default' | 'wide'> = {
   dashboard: 'default',
@@ -37,7 +38,8 @@ function FinancePage() {
   const holdingMutations = useHoldingMutations(userId);
   const cashEntry = useCashEntryMutation(userId);
   const [tab, setTab] = useState<FinanceTabKey>('dashboard');
-  const [quickEntryOpen, setQuickEntryOpen] = useState(false);
+  const [quickEntry, setQuickEntry] = useState<{ open: boolean; kind: 'expense' | 'income' }>({ open: false, kind: 'expense' });
+  useForcedDarkTheme();
   const reduceMotion = useReducedMotion();
 
   const run = async (fn: () => Promise<void>) => {
@@ -80,31 +82,24 @@ function FinancePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-text-primary">
-      <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border-custom/25 bg-background/85 backdrop-blur-[var(--blur-material)]">
-        <div className="mx-auto flex max-w-[var(--content-wide)] items-center justify-between gap-3 px-[var(--space-4)] py-4 md:px-[var(--space-8)]">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/dzis"
-              aria-label="Wróć"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-text-secondary transition-[transform,background-color,color] duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-95 hover:bg-surface-2 hover:text-text-primary"
-            >
-              <ArrowLeft size={20} strokeWidth={1.75} />
-            </Link>
-            <div>
-              <h1 className="text-xl font-semibold tracking-[var(--tracking-tight)]">Finanse</h1>
-            </div>
-          </div>
+    <div className="relative min-h-screen bg-background text-text-primary">
+      <div className="finance-glow pointer-events-none absolute inset-x-0 top-0 h-[26rem]" aria-hidden="true" />
+
+      <header className="relative z-[var(--z-sticky)]">
+        <div className="mx-auto flex max-w-[var(--content-default)] items-center gap-3 px-[var(--space-4)] py-3 md:px-[var(--space-8)]">
           <Link
-            to="/inwestycje"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-custom bg-surface text-xs font-semibold text-text-primary hover:bg-surface-2 transition-colors shadow-xs"
+            to="/dzis"
+            aria-label="Wróć"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background/30 text-text-primary transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-95"
           >
-            <span>👔</span> Inwestorzy 13F (OrcaFolio) ↗
+            <ArrowLeft size={20} strokeWidth={1.75} />
           </Link>
+          <h1 className="flex-1 text-center text-base font-semibold">{TITLES[tab]}</h1>
+          <span className="h-10 w-10 shrink-0" aria-hidden="true" />
         </div>
       </header>
 
-      <ContentContainer width={WIDTH_BY_TAB[tab]} className="space-y-8 pb-28 pt-6">
+      <ContentContainer width={WIDTH_BY_TAB[tab]} className="relative space-y-6 pb-32 pt-2">
         {bundleQuery.isLoading && (
           <div className="flex justify-center py-16"><Spinner /></div>
         )}
@@ -115,39 +110,31 @@ function FinancePage() {
         )}
 
         {metrics && data && (
-          <>
-            <Tabs
-              tabs={[...TABS]}
-              active={tab}
-              onChange={(k) => setTab(k as FinanceTabKey)}
-              className="rounded-2xl bg-surface-2/80 p-1 ring-1 ring-border-custom/20 [&_button]:rounded-xl [&_button]:py-2.5 [&_button]:text-sm [&_button]:font-medium"
-            />
-
-            <AnimatePresence initial={false}>
-              <motion.div
-                key={tab}
-                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduceMotion ? undefined : { opacity: 0 }}
-                transition={{ duration: 0.15, ease: 'easeOut' }}
-                style={{ willChange: 'transform, opacity' }}
-              >
-                <FinanceTabContent
-                  tab={tab}
-                  data={data}
-                  metrics={metrics}
-                  holdings={valuedHoldings}
-                  portfolio={portfolio}
-                  quotesLoading={quotesQuery.isFetching}
-                  mutations={mutations}
-                  holdingMutations={holdingMutations}
-                  run={run}
-                  saveProfilePatch={saveProfilePatch}
-                  onOpenQuickEntry={() => setQuickEntryOpen(true)}
-                />
-              </motion.div>
-            </AnimatePresence>
-          </>
+          <AnimatePresence initial={false}>
+            <motion.div
+              key={tab}
+              initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={reduceMotion ? undefined : { opacity: 0 }}
+              transition={{ duration: 0.15, ease: 'easeOut' }}
+              style={{ willChange: 'transform, opacity' }}
+            >
+              <FinanceTabContent
+                tab={tab}
+                data={data}
+                metrics={metrics}
+                holdings={valuedHoldings}
+                portfolio={portfolio}
+                quotesLoading={quotesQuery.isFetching}
+                mutations={mutations}
+                holdingMutations={holdingMutations}
+                run={run}
+                saveProfilePatch={saveProfilePatch}
+                onQuickEntry={(kind) => setQuickEntry({ open: true, kind })}
+                onNavigate={setTab}
+              />
+            </motion.div>
+          </AnimatePresence>
         )}
       </ContentContainer>
 
@@ -155,12 +142,14 @@ function FinancePage() {
         <FinanceQuickEntry
           accounts={data.accounts}
           pending={cashEntry.isPending}
-          open={quickEntryOpen}
-          onOpenChange={setQuickEntryOpen}
+          open={quickEntry.open}
+          initialKind={quickEntry.kind}
+          onOpenChange={(open) => setQuickEntry((current) => ({ ...current, open }))}
           showFab={tab !== 'dashboard'}
           onSubmit={saveCashEntry}
         />
       )}
+      <FinanceBottomNav active={tab} onChange={setTab} />
     </div>
   );
 }

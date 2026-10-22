@@ -104,7 +104,7 @@ function BudgetTab({ tab }: { tab: FinanceTabKey }) {
   const portfolio = { valuePln: 0, costPln: 0, pnlPln: 0, pnlPct: null, dayChangePln: 0, dayChangePct: null, unquotedCount: 0 };
   return <FinanceTabContent tab={tab} data={query.data} metrics={metrics} holdings={[]} portfolio={portfolio}
     quotesLoading={false} mutations={mutations} holdingMutations={holdingMutations}
-    run={async (fn) => fn()} saveProfilePatch={() => {}} onOpenQuickEntry={() => {}} />;
+    run={async (fn) => fn()} saveProfilePatch={() => {}} onQuickEntry={() => {}} onNavigate={() => {}} />;
 }
 
 it.each(['dashboard', 'flows'] as const)('keeps actual records and inputs in %s without inventing results from a missing budget', async (tab) => {

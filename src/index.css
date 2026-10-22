@@ -3103,3 +3103,8 @@ a,
   78% { transform: translateY(-3%) rotate(1.5deg); }
   100% { transform: none; }
 }
+
+/* Finanse: fioletowa poświata nad ciemnym tłem, jak w aplikacjach bankowych */
+.finance-glow {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-accent-purple) 65%, var(--background)) 0%, color-mix(in srgb, var(--color-accent-purple) 22%, var(--background)) 38%, var(--background) 100%);
+}

@@ -9,6 +9,7 @@ import Sheet from '../ui/Sheet';
 import { Pressable } from '../ui/ControlPrimitives';
 import { FinanceEmpty, FinanceList, FinanceRow, FinanceSection } from './financeUi';
 import { FinanceHoldingForm } from './FinanceHoldingForm';
+import { FinanceHoldingsHeatmap } from './FinanceHoldingsHeatmap';
 import { FinanceRebalanceCard } from './FinanceRebalanceCard';
 
 interface FinancePortfolioTabProps {
@@ -63,6 +64,8 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run }: Financ
   return (
     <div className="space-y-8">
       <Summary totals={totals} />
+
+      <FinanceHoldingsHeatmap holdings={holdings} loading={false} />
 
       <FinanceSection title="Pozycje">
         {holdings.length === 0 ? (

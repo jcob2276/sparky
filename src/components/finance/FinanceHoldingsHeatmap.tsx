@@ -35,7 +35,7 @@ export function FinanceHoldingsHeatmap({ holdings, loading }: FinanceHoldingsHea
         <FinanceEmpty>Dodaj pozycje w zakładce Portfel, a zobaczysz tu swoje akcje i ETF-y.</FinanceEmpty>
       ) : (
         <div
-          className="relative aspect-[4/3] w-full sm:aspect-[16/9]"
+          className="relative m-2 aspect-[4/3] w-[calc(100%-1rem)] sm:aspect-[16/9]"
           role="list"
           aria-label="Pozycje portfela według wartości i zmiany dziennej"
           aria-busy={loading}
