@@ -13,10 +13,11 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
-// Auto-load .env
-const envPath = path.join(__dirname, '..', '.env');
-if (fs.existsSync(envPath)) {
-  fs.readFileSync(envPath, 'utf8').split('\n').forEach(line => {
+// Auto-load .env / .env.local from the repo root (scripts/aw/../..)
+for (const name of ['.env', '.env.local']) {
+  const envPath = path.join(__dirname, '..', '..', name);
+  if (!fs.existsSync(envPath)) continue;
+  fs.readFileSync(envPath, 'utf8').split(/\r?\n/).forEach(line => {
     const [key, ...rest] = line.split('=');
     if (key && rest.length && !process.env[key.trim()]) {
       process.env[key.trim()] = rest.join('=').trim();
@@ -37,10 +38,13 @@ if (!SUPABASE_URL || !SUPABASE_KEY || !USER_ID) {
 // ── Produktywność: klasyfikacja aplikacji i domen ─────────────────────────────
 
 const WORK_APPS = ['cursor.exe', 'code.exe', 'claude.exe', 'codex.exe', 'windsurf.exe',
+  'antigravity.exe', 'slack.exe', 'chatgpt.exe', 'obsidian.exe', 'notion.exe', 'teams.exe',
   'node.exe', 'python.exe', 'webstorm64.exe', 'idea64.exe', 'pycharm64.exe',
   'terminal', 'powershell', 'cmd.exe', 'wt.exe', 'windowsterminal.exe'];
 
-const WORK_DOMAINS = ['github.com', 'gitlab.com', 'stackoverflow.com', 'supabase.com',
+const WORK_DOMAINS = ['chatgpt.com', 'chat.openai.com', 'gemini.google.com', 'aistudio.google.com',
+  'openai.com', 'app.slack.com', 'mail.google.com', 'calendar.google.com', 'drive.google.com',
+  'github.com', 'gitlab.com', 'stackoverflow.com', 'supabase.com',
   'claude.ai', 'anthropic.com', 'vercel.com', 'linear.app', 'notion.so',
   'figma.com', 'docs.google.com', 'console.aws.amazon.com'];
 
@@ -232,7 +236,7 @@ async function syncDay(buckets, dateStr) {
 
   // ── Zapis ──
   const res = await httpPost(
-    `${SUPABASE_URL}/rest/v1/aw_daily_summary`,
+    `${SUPABASE_URL}/rest/v1/aw_daily_summary?on_conflict=user_id,date`,
     {
       user_id: USER_ID,
       date: dateStr,
@@ -251,7 +255,7 @@ async function syncDay(buckets, dateStr) {
     { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'resolution=merge-duplicates' }
   );
 
-  return { dateStr, totalActiveSeconds, topApp: topApps[0]?.app, productivityRatio, saved: res.status < 300 };
+  return { dateStr, totalActiveSeconds, topApp: topApps[0]?.app, productivityRatio, saved: res.status < 300, status: res.status, error: res.body };
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -272,7 +276,7 @@ async function main() {
   }
 
   const now = new Date();
-  let synced = 0, skipped = 0;
+  let synced = 0, skipped = 0, failed = 0;
 
   for (let i = 0; i < daysBack; i++) {
     const d = new Date(now.getTime() - i * 86400000);
@@ -284,6 +288,9 @@ async function main() {
       if (!result) {
         console.log('(brak danych)');
         skipped++;
+      } else if (!result.saved) {
+        console.log(`❌ zapis do Supabase odrzucony (HTTP ${result.status}): ${JSON.stringify(result.error).slice(0, 200)}`);
+        failed++;
       } else {
         const mins = Math.round(result.totalActiveSeconds / 60);
         const pct = result.productivityRatio != null ? ` | praca: ${Math.round(result.productivityRatio * 100)}%` : '';
@@ -297,7 +304,8 @@ async function main() {
     if (daysBack > 1 && i < daysBack - 1) await new Promise(r => setTimeout(r, 150));
   }
 
-  console.log(`\n✅ Gotowe: ${synced} dni zapisano, ${skipped} dni bez danych`);
+  console.log(`\n${failed ? '❌' : '✅'} Gotowe: ${synced} dni zapisano, ${skipped} dni bez danych, ${failed} odrzuconych`);
+  if (failed) process.exit(1);
 }
 
 main().catch(e => { console.error('❌', e.message); process.exit(1); });
