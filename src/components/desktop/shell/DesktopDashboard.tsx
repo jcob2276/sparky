@@ -56,7 +56,6 @@ export default function DesktopDashboard() {
     grid,
     tick,
     syncAll,
-    openWorkout,
     currentWeight,
     now,
   } = useDesktopDashboardState({ userId, desktopData });
@@ -120,15 +119,12 @@ export default function DesktopDashboard() {
               ) : (
                 <DesktopTabContent
                   activeTab={activeTab}
-                  onTabChange={setActiveTab}
                   userId={userId}
                   grid={grid}
                   tick={tick}
                   data={desktopData}
                   habitsData={habitsData}
-                  onOpenWorkout={openWorkout}
                   onOpenSauna={() => setShowSaunaModal(true)}
-                  onOpenWeight={() => setShowWeightModal(true)}
                   onOpenOptics={() => navigate('/optics')}
                 />
               )}

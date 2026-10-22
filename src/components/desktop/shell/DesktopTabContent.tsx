@@ -1,9 +1,9 @@
 import GeneralView from '../general/GeneralView';
 import MarathonPanel from '../fitness/MarathonPanel';
 import DesktopTreningSection from '../fitness/DesktopTreningSection';
-import DesktopWorkoutProgressPanel from '../fitness/DesktopWorkoutProgressPanel';
 import DesktopSaunaSection from '../fitness/DesktopSaunaSection';
-import DesktopBodyCompPanel from '../fitness/DesktopBodyCompPanel';
+import DesktopPhoneTile from '../fitness/DesktopPhoneTile';
+import LeniePanelMini from '../health/LeniePanelMini';
 import DesktopKartotekaSection from '../health/DesktopKartotekaSection';
 import DesktopOuraSleepCard from '../health/DesktopOuraSleepCard';
 import DesktopOpticsCard from '../health/DesktopOpticsCard';
@@ -20,23 +20,20 @@ interface Props {
   tick: string;
   data: ReturnType<typeof useDesktopData>;
   habitsData: ReturnType<typeof useHabitsData>;
-  onTabChange?: (tab: DesktopTabType) => void;
   onOpenSauna?: () => void;
-  onOpenWorkout?: () => void;
-  onOpenWeight?: () => void;
   onOpenOptics?: () => void;
 }
 
 function renderTrainingTab(
   treningEl: React.ReactNode,
-  disciplinesGrid: React.ReactNode,
-  recoveryBodyGrid: React.ReactNode,
+  runningEl: React.ReactNode,
+  saunaEl: React.ReactNode,
 ) {
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
       {treningEl}
-      {disciplinesGrid}
-      {recoveryBodyGrid}
+      {runningEl}
+      {saunaEl}
     </div>
   );
 }
@@ -44,11 +41,13 @@ function renderTrainingTab(
 function renderHealthTab(
   kartotekaEl: React.ReactNode,
   healthCards: React.ReactNode,
+  habitsEl: React.ReactNode,
 ) {
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
       {kartotekaEl}
       {healthCards}
+      {habitsEl}
     </div>
   );
 }
@@ -75,30 +74,18 @@ export default function DesktopTabContent({
   tick,
   data,
   habitsData,
-  onTabChange,
   onOpenSauna,
-  onOpenWorkout,
-  onOpenWeight,
   onOpenOptics,
 }: Props) {
   const {
     oura,
     sessions,
-    body,
-    heightCm,
     strava,
     lenieLogs,
     phoneUsage,
     marathon,
     personalTargets,
   } = data;
-
-  const handleOpenMatrix = () => {
-    onTabChange?.('intel');
-    setTimeout(() => {
-      document.getElementById('multi-domain-matrix')?.scrollIntoView({ behavior: 'smooth' });
-    }, 80);
-  };
 
   const matrixEl = (
     <MultiDomainMatrix
@@ -111,30 +98,18 @@ export default function DesktopTabContent({
     />
   );
 
-  const treningEl = (
-    <DesktopTreningSection
-      sessions={sessions}
-      strava={strava}
-      oura={oura}
-      onOpenMatrix={handleOpenMatrix}
-      lenieLogs={lenieLogs}
-      phoneUsage={phoneUsage}
-    />
-  );
+  const treningEl = <DesktopTreningSection strava={strava} />;
 
   const kartotekaEl = <DesktopKartotekaSection userId={userId} />;
 
-  const disciplinesGrid = (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-      <DesktopWorkoutProgressPanel sessions={sessions} strava={strava} onOpenWorkout={onOpenWorkout} />
-      <MarathonPanel strava={strava} grid={grid} tick={tick} marathon={marathon} />
-    </div>
-  );
+  const runningEl = <MarathonPanel strava={strava} grid={grid} tick={tick} marathon={marathon} />;
 
-  const recoveryBodyGrid = (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-      <DesktopSaunaSection sessions={sessions} strava={strava} onOpenSauna={onOpenSauna} />
-      <DesktopBodyCompPanel body={body} heightCm={heightCm} onOpenWeight={onOpenWeight} />
+  const saunaEl = <DesktopSaunaSection sessions={sessions} strava={strava} onOpenSauna={onOpenSauna} />;
+
+  const habitsEl = (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <DesktopPhoneTile phoneUsage={phoneUsage} />
+      <LeniePanelMini logs={lenieLogs} phoneUsage={phoneUsage} oura={oura} />
     </div>
   );
 
@@ -152,14 +127,14 @@ export default function DesktopTabContent({
   );
 
   if (activeTab === 'training') {
-    return renderTrainingTab(treningEl, disciplinesGrid, recoveryBodyGrid);
+    return renderTrainingTab(treningEl, runningEl, saunaEl);
   }
   if (activeTab === 'health') {
-    return renderHealthTab(kartotekaEl, healthCards);
+    return renderHealthTab(kartotekaEl, healthCards, habitsEl);
   }
   if (activeTab === 'intel') {
     return renderIntelTab(intelCards, userId, oura, matrixEl);
   }
 
-  return renderTrainingTab(treningEl, disciplinesGrid, recoveryBodyGrid);
+  return renderTrainingTab(treningEl, runningEl, saunaEl);
 }
