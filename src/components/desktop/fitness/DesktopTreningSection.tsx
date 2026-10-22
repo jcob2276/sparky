@@ -6,7 +6,6 @@ import { Panel } from '../shell/Panel';
 import Heatmap from './Heatmap';
 import LeniePanelMini from '../health/LeniePanelMini';
 import DesktopTrainingRecoveryStatus from './DesktopTrainingRecoveryStatus';
-import DailyStrainCard from '../../biometrics/DailyStrainCard';
 import type { useDesktopData } from '../shell/useDesktopData';
 
 const MuscleHeatmap = lazy(() => import('../../biometrics/MuscleHeatmap'));
@@ -20,11 +19,10 @@ interface Props {
   oura: ReturnType<typeof useDesktopData>['oura'];
 }
 
-/** Trening: najpierw werdykt dnia (ta sama karta co w Dziś), potem to, co faktycznie zrobiłeś. */
+/** Trening: to, co faktycznie zrobiłeś. Werdykt dnia („Stan dnia”) jest tylko w Dziś. */
 export default function DesktopTreningSection({ sessions, strava, onOpenMatrix, lenieLogs, phoneUsage, oura }: Props) {
   return (
     <section id="trening" className="scroll-mt-28 space-y-5">
-      <DailyStrainCard />
       <DesktopTrainingRecoveryStatus strava={strava} phoneUsage={phoneUsage} />
       <LeniePanelMini logs={lenieLogs} phoneUsage={phoneUsage} oura={oura} />
       <Panel

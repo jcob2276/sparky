@@ -1,6 +1,5 @@
 import GeneralView from '../general/GeneralView';
 import MarathonPanel from '../fitness/MarathonPanel';
-import SupplementsPanel from '../health/SupplementsPanel';
 import DesktopTreningSection from '../fitness/DesktopTreningSection';
 import DesktopWorkoutProgressPanel from '../fitness/DesktopWorkoutProgressPanel';
 import DesktopSaunaSection from '../fitness/DesktopSaunaSection';
@@ -45,13 +44,11 @@ function renderTrainingTab(
 function renderHealthTab(
   kartotekaEl: React.ReactNode,
   healthCards: React.ReactNode,
-  userId: string | undefined,
 ) {
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
       {kartotekaEl}
       {healthCards}
-      {userId && <SupplementsPanel userId={userId} />}
     </div>
   );
 }
@@ -158,7 +155,7 @@ export default function DesktopTabContent({
     return renderTrainingTab(treningEl, disciplinesGrid, recoveryBodyGrid);
   }
   if (activeTab === 'health') {
-    return renderHealthTab(kartotekaEl, healthCards, userId);
+    return renderHealthTab(kartotekaEl, healthCards);
   }
   if (activeTab === 'intel') {
     return renderIntelTab(intelCards, userId, oura, matrixEl);

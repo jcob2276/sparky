@@ -4,8 +4,6 @@ import { isOfflineError, queueOfflineWrite } from '../offlineQueue';
 import {
   fetchSupplements,
   fetchSupplementLogsSince,
-  saveSupplement,
-  type Supplement,
   type SupplementLog,
 } from './supplementsClient';
 
@@ -166,52 +164,6 @@ export function useSetSupplementQuantity() {
     onSettled: (_data, _error, variables) => {
       void queryClient.invalidateQueries({ queryKey: supplementsKeys.all });
       void queryClient.invalidateQueries({ queryKey: ['oura-day-night', variables.userId] });
-    },
-  });
-}
-
-export function useSaveSupplement() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({
-      userId,
-      supplement,
-    }: {
-      userId: string;
-      supplement: Omit<Supplement, 'id' | 'user_id' | 'created_at' | 'reminder_sent_date'> & { id?: string; reminder_sent_date?: string | null };
-    }) => {
-      try {
-        const data = await saveSupplement(userId, supplement);
-        return data;
-      } catch (err: unknown) {
-        if (!isOfflineError(err)) throw err;
-        // Offline support for creating/updating supplements
-        if (supplement.id) {
-          await queueOfflineWrite(
-            'table:update:supplements',
-            { match: { id: supplement.id }, payload: supplement },
-            'Edycja suplementu'
-          );
-          return { id: supplement.id, user_id: userId, created_at: new Date().toISOString(), ...supplement } as Supplement;
-        } else {
-          const id = crypto.randomUUID();
-          const local = { id, user_id: userId, created_at: new Date().toISOString(), ...supplement } as Supplement;
-          await queueOfflineWrite('table:insert:supplements', { payload: local }, 'Dodanie suplementu');
-          return local;
-        }
-      }
-    },
-    onSuccess: (savedSup, variables) => {
-      queryClient.setQueryData<Supplement[]>(supplementsKeys.list(variables.userId), (old) => {
-        const base = old || [];
-        const existingIdx = base.findIndex((s) => s.id === savedSup.id);
-        if (existingIdx !== -1) {
-          const next = [...base];
-          next[existingIdx] = savedSup;
-          return next;
-        }
-        return [...base, savedSup];
-      });
     },
   });
 }

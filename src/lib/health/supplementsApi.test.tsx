@@ -8,7 +8,7 @@ import type { SupplementLog } from './supplementsClient';
 const db = vi.hoisted(() => ({ logs: [] as SupplementLog[], fetchLogs: vi.fn() }));
 vi.mock('./supplementsClient', () => ({
   fetchSupplementLogsSince: () => { db.fetchLogs(); return Promise.resolve([...db.logs]); },
-  fetchSupplements: vi.fn(), saveSupplement: vi.fn(),
+  fetchSupplements: vi.fn(),
 }));
 vi.mock('../supabase', () => ({ supabase: { from: () => ({
   insert: () => ({ select: () => ({ single: () => Promise.resolve({ data: db.logs[0], error: null }) }) }),
