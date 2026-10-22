@@ -36,9 +36,9 @@ it('does not hide a failed recap as if the week had no projects or goals', () =>
   render(<WeekPlanningRecap userId="owner" weekStart="2026-10-12" />);
   expect(screen.getByText(/goal_kpis offline/)).toBeInTheDocument();
 });
-it('retains an already loaded week alongside the refresh error notice', () => {
+it('shows the refresh error notice for an already loaded week without the intention card', () => {
   direction.hasData = true; direction.weekStart = '2026-10-12'; direction.isError = true; direction.error = new Error('offline');
   render(<QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })}><WeekHub /></QueryClientProvider>);
-  expect(screen.getByTestId('week-plan-form')).toBeInTheDocument();
+  expect(screen.queryByTestId('week-plan-form')).not.toBeInTheDocument();
   expect(screen.getByText('Nie udało się odczytać kontekstu tygodnia')).toBeInTheDocument();
 });

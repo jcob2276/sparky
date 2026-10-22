@@ -2,7 +2,6 @@ import { useState } from 'react';
 import Button from '../ui/Button';
 import { useUserId } from '../../store/useStore';
 import { CalendarDays, Target, AlertCircle, ChevronRight, Check, History } from 'lucide-react';
-import WeekLoopSummary from '../shared/WeekLoopSummary';
 // import ProjectWeekKpis from './ProjectWeekKpis';
 import { SystemProposalCard } from '../shared/SystemProposalCard';
 import { useDirectionContext } from './direction/hooks/useDirectionContext';
@@ -152,22 +151,6 @@ export default function WeekHub({
             </Button>
           )}
         </section>
-      )}
-
-      {direction.hasData && direction.weekStart && (
-        <WeekLoopSummary
-          ctx={{
-            weekGoals: direction.weekGoals ?? { intention: null, commitment: null, cialo: null, duch: null, konto: null },
-            weekGoalsMeta: direction.weekGoalsMeta,
-            focus: direction.focus ?? { skillId: null, skillLabel: null, subskillLabel: null, targetLevel: null },
-            sprintGoal: direction.sprintGoal ?? null,
-            monthTheme: direction.monthTheme ?? null,
-            monthLabel: direction.monthLabel ?? null,
-            bhagLine: direction.bhagLine ?? null,
-          }}
-          weekStart={direction.weekStart}
-          onIntentionSaved={direction.reload}
-        />
       )}
 
       {openMust.length > 0 && (
