@@ -71,19 +71,21 @@ function Chart({ d }: { d: SleepRegularity }) {
         <li><span className="oura-sr-swatch" data-within="false" />poza strefą</li>
       </ul>
       <p className="sr-only" aria-live="polite">{line}</p>
-      <table className="sr-only">
-        <caption>Regularność snu w tabeli</caption>
-        <thead><tr><th>Noc</th><th>Zaśnięcie</th><th>Pobudka</th><th>Sen</th></tr></thead>
-        <tbody>
-          {d.nights.map((n) => (
-            <tr key={n.date}>
-              <td>{n.weekday} {nightDate(n.date)}</td>
-              <td>{formatAxisClock(n.bedtimeAxis)}</td><td>{formatAxisClock(n.wakeAxis)}</td>
-              <td>{formatDuration(n.sleepMinutes)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="sr-only">
+        <table>
+          <caption>Regularność snu w tabeli</caption>
+          <thead><tr><th>Noc</th><th>Zaśnięcie</th><th>Pobudka</th><th>Sen</th></tr></thead>
+          <tbody>
+            {d.nights.map((n) => (
+              <tr key={n.date}>
+                <td>{n.weekday} {nightDate(n.date)}</td>
+                <td>{formatAxisClock(n.bedtimeAxis)}</td><td>{formatAxisClock(n.wakeAxis)}</td>
+                <td>{formatDuration(n.sleepMinutes)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </>
   );
 }

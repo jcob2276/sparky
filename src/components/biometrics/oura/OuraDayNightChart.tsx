@@ -30,13 +30,15 @@ const VIEW_TABS = [
 function AltTable({ timeline }: { timeline: DayNightTimeline }) {
   const rows = useMemo(() => buildAltRows(timeline), [timeline]);
   return (
-    <table className="sr-only">
-      <caption>Dzień i noc w tabeli: godzina, zdarzenia i pomiary</caption>
-      <thead><tr><th scope="col">Godzina</th><th scope="col">Opis</th></tr></thead>
-      <tbody>
-        {rows.map((row) => <tr key={row.key}><th scope="row">{row.time}</th><td>{row.summary}</td></tr>)}
-      </tbody>
-    </table>
+    <div className="sr-only">
+      <table>
+        <caption>Dzień i noc w tabeli: godzina, zdarzenia i pomiary</caption>
+        <thead><tr><th scope="col">Godzina</th><th scope="col">Opis</th></tr></thead>
+        <tbody>
+          {rows.map((row) => <tr key={row.key}><th scope="row">{row.time}</th><td>{row.summary}</td></tr>)}
+        </tbody>
+      </table>
+    </div>
   );
 }
 
