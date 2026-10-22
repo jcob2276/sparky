@@ -4,6 +4,7 @@ import {
   computeAllocation,
   computeFireMetrics,
   computeIncomeBreakdown,
+  computeNetWorthGoal,
   computeRunwayFloor,
   computeSafeToSpend,
   computeScenarios,
@@ -28,12 +29,22 @@ function spentThisMonth(transactions: FinanceBundle['transactions'], today: stri
     .reduce((n, t) => n + Math.abs(t.amount), 0);
 }
 
-export function useFinanceMetrics(bundle: FinanceBundle | undefined) {
+function earnedThisMonth(transactions: FinanceBundle['transactions'], today: string): number {
+  const prefix = today.slice(0, 7);
+  return transactions
+    .filter((t) => t.kind === 'income' && t.transaction_date.startsWith(prefix))
+    .reduce((n, t) => n + Math.abs(t.amount), 0);
+}
+
+export function useFinanceMetrics(bundle: FinanceBundle | undefined, portfolioValue = 0) {
   return useMemo(() => {
     if (!bundle) return null;
 
     const { profile, accounts, subscriptions, bills, incomeSources, transactions } = bundle;
-    const { netWorth, liquid, investments } = sumAccountBalances(accounts);
+    const accountTotals = sumAccountBalances(accounts);
+    const liquid = accountTotals.liquid;
+    const investments = accountTotals.investments + portfolioValue;
+    const netWorth = liquid + investments;
     const subsMonthly = subscriptions.filter((s) => s.is_active).reduce((n, s) => n + s.amount_monthly, 0);
     const billsMonthly = bills.filter((b) => b.is_active).reduce((n, b) => n + b.amount, 0);
     const incomeBreakdown = computeIncomeBreakdown(incomeSources);
@@ -68,6 +79,21 @@ export function useFinanceMetrics(bundle: FinanceBundle | undefined) {
     });
 
     const allocation = computeAllocation(accounts, FINANCE_ACCOUNT_LABELS);
+    const monthlySaving = Math.max(0, effectiveIncome - effectiveExpenses);
+    const goal = computeNetWorthGoal({
+      netWorth,
+      target: profile.net_worth_target,
+      monthlySaving,
+      annualReturnPct: profile.expected_return_pct,
+    });
+    const emergencyTarget = effectiveExpenses * profile.emergency_target_months;
+    const emergency = {
+      months: effectiveExpenses > 0 ? liquid / effectiveExpenses : null,
+      targetMonths: profile.emergency_target_months,
+      target: emergencyTarget,
+      missing: Math.max(0, emergencyTarget - liquid),
+      progressPct: emergencyTarget > 0 ? Math.min(100, (liquid / emergencyTarget) * 100) : 0,
+    };
     const cashflowMonth = buildFinanceCashflowMonth(bundle, monthKey, liquid);
 
     const scenarios = computeScenarios(fireInput, [
@@ -98,12 +124,17 @@ export function useFinanceMetrics(bundle: FinanceBundle | undefined) {
       fire,
       safeToSpend,
       spentThisMonth: spentMonth,
+      earnedThisMonth: earnedThisMonth(transactions, today),
       allocation,
+      goal,
+      monthlySaving,
+      netWorthTarget: profile.net_worth_target,
+      emergency,
       cashflowMonth,
       monthKey,
       scenarios,
     };
-  }, [bundle]);
+  }, [bundle, portfolioValue]);
 }
 
 export type FinanceMetrics = NonNullable<ReturnType<typeof useFinanceMetrics>>;

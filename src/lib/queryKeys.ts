@@ -181,4 +181,6 @@ export const lifeObligationKeys = {
 export const financeKeys = {
   all: ['finance'] as const,
   bundle: (userId: string) => [...financeKeys.all, 'bundle', userId] as const,
+  holdings: (userId: string) => [...financeKeys.all, 'holdings', userId] as const,
+  quotes: (tickers: string[]) => [...financeKeys.all, 'quotes', ...tickers] as const,
 };

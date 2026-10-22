@@ -1716,6 +1716,45 @@ export type Database = {
         }
         Relationships: []
       }
+      finance_holdings: {
+        Row: {
+          asset_class: string
+          avg_cost_pln: number
+          created_at: string
+          id: string
+          name: string
+          quantity: number
+          target_weight_pct: number | null
+          ticker: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          asset_class?: string
+          avg_cost_pln?: number
+          created_at?: string
+          id?: string
+          name: string
+          quantity: number
+          target_weight_pct?: number | null
+          ticker: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          asset_class?: string
+          avg_cost_pln?: number
+          created_at?: string
+          id?: string
+          name?: string
+          quantity?: number
+          target_weight_pct?: number | null
+          ticker?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       finance_income_sources: {
         Row: {
           amount_monthly: number
@@ -1753,6 +1792,7 @@ export type Database = {
           inflation_pct: number
           monthly_expenses: number
           monthly_income: number
+          net_worth_target: number
           safe_withdrawal_rate_pct: number
           updated_at: string
           user_id: string
@@ -1764,6 +1804,7 @@ export type Database = {
           inflation_pct?: number
           monthly_expenses?: number
           monthly_income?: number
+          net_worth_target?: number
           safe_withdrawal_rate_pct?: number
           updated_at?: string
           user_id: string
@@ -1775,6 +1816,7 @@ export type Database = {
           inflation_pct?: number
           monthly_expenses?: number
           monthly_income?: number
+          net_worth_target?: number
           safe_withdrawal_rate_pct?: number
           updated_at?: string
           user_id?: string
@@ -1850,6 +1892,7 @@ export type Database = {
       }
       finance_transactions: {
         Row: {
+          account_id: string | null
           amount: number
           category: string
           created_at: string
@@ -1861,6 +1904,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_id?: string | null
           amount: number
           category?: string
           created_at?: string
@@ -1872,6 +1916,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_id?: string | null
           amount?: number
           category?: string
           created_at?: string
@@ -1882,7 +1927,15 @@ export type Database = {
           transaction_date?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "finance_transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "finance_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       finance_wishlist: {
         Row: {
@@ -9130,6 +9183,34 @@ export type Database = {
           p_version: string
         }
         Returns: string
+      }
+      add_finance_cash_entry: {
+        Args: {
+          p_account_id?: string
+          p_amount: number
+          p_category: string
+          p_date: string
+          p_kind: string
+          p_note: string
+        }
+        Returns: {
+          account_id: string | null
+          amount: number
+          category: string
+          created_at: string
+          dedup_hash: string | null
+          id: string
+          kind: string
+          note: string | null
+          transaction_date: string
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "finance_transactions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       add_food_entry: {
         Args: {

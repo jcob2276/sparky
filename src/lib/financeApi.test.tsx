@@ -6,6 +6,7 @@ import { useFinanceBundle, useFinanceMutations, type FinanceIncomeSource, type F
 import { useFinanceMetrics } from '../components/finance/useFinanceMetrics';
 import { buildTodayContext, buildTodayHeadline } from '../components/finance/financeNarrative';
 import { FinanceTabContent, type FinanceTabKey } from '../components/finance/FinanceTabContent';
+import { useHoldingMutations } from './finance/holdingsApi';
 
 const source = vi.hoisted(() => ({
   profile: null as Record<string, unknown> | null,
@@ -98,12 +99,15 @@ it('keeps the saved budget values and shows the calculated allowance when a prof
 function BudgetTab({ tab }: { tab: FinanceTabKey }) {
   const { query, metrics } = useBudget();
   const mutations = useFinanceMutations('owner');
+  const holdingMutations = useHoldingMutations('owner');
   if (!query.data || !metrics) return null;
-  return <FinanceTabContent tab={tab} data={query.data} metrics={metrics} mutations={mutations}
-    run={async (fn) => fn()} saveProfilePatch={() => {}} />;
+  const portfolio = { valuePln: 0, costPln: 0, pnlPln: 0, pnlPct: null, dayChangePln: 0, dayChangePct: null, unquotedCount: 0 };
+  return <FinanceTabContent tab={tab} data={query.data} metrics={metrics} holdings={[]} portfolio={portfolio}
+    quotesLoading={false} mutations={mutations} holdingMutations={holdingMutations}
+    run={async (fn) => fn()} saveProfilePatch={() => {}} onOpenQuickEntry={() => {}} />;
 }
 
-it.each(['today', 'flows'] as const)('keeps actual records and inputs in %s without inventing results from a missing budget', async (tab) => {
+it.each(['dashboard', 'flows'] as const)('keeps actual records and inputs in %s without inventing results from a missing budget', async (tab) => {
   source.income = [{ id: 'pay', user_id: 'owner', name: 'Pensja', amount_monthly: 7000,
     source_type: 'salary', is_active: true, created_at: '2026-10-17T10:00:00Z' }];
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });

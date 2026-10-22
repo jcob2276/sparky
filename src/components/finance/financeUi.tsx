@@ -2,9 +2,6 @@ import type { ReactNode } from 'react';
 
 /** Shared typography + layout for the finance module (Apple-style grouped sections). */
 
-export const financeHeroNumberClass =
-  'text-[var(--finance-display-size)] font-semibold tabular-nums tracking-[var(--tracking-display)] leading-[var(--line-height-display)] text-text-primary';
-
 const financeAmountClass = 'tabular-nums tracking-[var(--tracking-tight)]';
 
 export function FinanceSection({

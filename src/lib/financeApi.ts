@@ -13,6 +13,7 @@ export interface FinanceProfile {
   safe_withdrawal_rate_pct: number;
   emergency_target_months: number;
   years_to_retirement: number;
+  net_worth_target: number;
   updated_at: string;
 }
 
@@ -84,6 +85,7 @@ export interface FinanceTransaction {
   note: string | null;
   transaction_date: string;
   kind: 'expense' | 'income';
+  account_id?: string | null;
   created_at: string;
 }
 
@@ -129,6 +131,7 @@ const DEFAULT_PROFILE: Omit<FinanceProfile, 'user_id' | 'updated_at'> = {
   safe_withdrawal_rate_pct: 4,
   emergency_target_months: 6,
   years_to_retirement: 20,
+  net_worth_target: 100000,
 };
 
 function num(row: Record<string, unknown>, key: string): number {
@@ -146,6 +149,7 @@ function mapProfile(row: Record<string, unknown>): FinanceProfile {
     safe_withdrawal_rate_pct: num(row, 'safe_withdrawal_rate_pct'),
     emergency_target_months: num(row, 'emergency_target_months'),
     years_to_retirement: num(row, 'years_to_retirement'),
+    net_worth_target: num(row, 'net_worth_target') || DEFAULT_PROFILE.net_worth_target,
     updated_at: String(row.updated_at ?? ''),
   };
 }

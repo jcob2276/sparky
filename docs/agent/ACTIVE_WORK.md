@@ -1,5 +1,16 @@
 # Active Work
 
+## Priorytet: Finanse — osobista aplikacja finansowa (cel 100 tys. majątku netto)
+
+Zrobione (2026-10-22): zakładki Pulpit / Portfel / Konta / Przepływy, majątek netto z postępem do celu (`finance_profile.net_worth_target`), mapa cieplna pozycji, alokacja, poduszka, szybki wpis gotówkowy (FAB, RPC `add_finance_cash_entry`), pozycje `finance_holdings` z notowaniami na żywo, kalkulator dopłaty, miesięczna migawka majątku.
+
+Do zrobienia:
+- [ ] Import transakcji brokera (XTB/Revolut CSV) do `finance_holdings` z średnim kosztem.
+- [ ] Dywidendy: kalendarz i prognoza z pozycji portfela.
+- [ ] Benchmark, drawdown, TWR/MWR (wymaga historii transakcji).
+- [ ] Integracja bankowa PSD2 (najpierw CSV banku).
+- [ ] Widget Androida z majątkiem netto (`widget_tokens`).
+
 ## Priorytet: Notatki — Apple Notes organization pack
 
 ### Cel

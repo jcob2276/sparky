@@ -4,28 +4,40 @@ import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
 import { useFinanceMutations } from '../../lib/financeApi';
+import { useCashEntryMutation, type CashEntryInput } from '../../lib/finance/cashEntryApi';
+import { useHoldingMutations } from '../../lib/finance/holdingsApi';
+import { useNetWorthSnapshotSync } from '../../lib/finance/netWorthSnapshots';
 import { notify } from '../../lib/notify';
+import { getTodayWarsaw } from '../../lib/date';
 import ContentContainer from '../shared/ContentContainer';
 import Spinner from '../ui/Spinner';
 import Tabs from '../ui/Tabs';
 import { FinanceTabContent, type FinanceTabKey } from './FinanceTabContent';
+import { FinanceQuickEntry } from './FinanceQuickEntry';
 import { useFinancePageData } from './useFinancePageData';
 
 const TABS = [
-  { key: 'today', label: 'Dziś' },
+  { key: 'dashboard', label: 'Pulpit' },
+  { key: 'portfolio', label: 'Portfel' },
+  { key: 'accounts', label: 'Konta' },
   { key: 'flows', label: 'Przepływy' },
 ] as const;
 
 const WIDTH_BY_TAB: Record<FinanceTabKey, 'narrow' | 'default' | 'wide'> = {
-  today: 'narrow',
+  dashboard: 'default',
+  portfolio: 'default',
+  accounts: 'narrow',
   flows: 'wide',
 };
 
 function FinancePage() {
   const userId = useStore((s) => s.session?.user?.id);
-  const { bundleQuery, data, metrics } = useFinancePageData(userId);
+  const { bundleQuery, holdingsQuery, quotesQuery, valuedHoldings, portfolio, data, metrics } = useFinancePageData(userId);
   const mutations = useFinanceMutations(userId);
-  const [tab, setTab] = useState<FinanceTabKey>('today');
+  const holdingMutations = useHoldingMutations(userId);
+  const cashEntry = useCashEntryMutation(userId);
+  const [tab, setTab] = useState<FinanceTabKey>('dashboard');
+  const [quickEntryOpen, setQuickEntryOpen] = useState(false);
   const reduceMotion = useReducedMotion();
 
   const run = async (fn: () => Promise<void>) => {
@@ -35,6 +47,25 @@ function FinancePage() {
       notify(err instanceof Error ? err.message : 'Błąd zapisu', 'error');
     }
   };
+
+  const saveCashEntry = async (input: CashEntryInput) => {
+    try {
+      await cashEntry.mutateAsync(input);
+      return true;
+    } catch (err: unknown) {
+      notify(err instanceof Error ? err.message : 'Błąd zapisu', 'error');
+      return false;
+    }
+  };
+
+  const currentMonth = `${getTodayWarsaw().slice(0, 7)}-01`;
+  const storedSnapshot = data?.snapshots.find((item) => item.snapshot_month.startsWith(currentMonth.slice(0, 7)));
+  const quotesSettled = !holdingsQuery.isLoading && !quotesQuery.isLoading;
+  useNetWorthSnapshotSync(
+    userId,
+    metrics && quotesSettled ? { netWorth: metrics.netWorth, liquid: metrics.liquid, investments: metrics.investments } : null,
+    storedSnapshot ? storedSnapshot.net_worth : null,
+  );
 
   const saveProfilePatch = (patch: Record<string, number>) => {
     void run(async () => { await mutations.upsertProfile.mutateAsync(patch); });
@@ -73,7 +104,7 @@ function FinancePage() {
         </div>
       </header>
 
-      <ContentContainer width={WIDTH_BY_TAB[tab]} className="space-y-8 pb-16 pt-6">
+      <ContentContainer width={WIDTH_BY_TAB[tab]} className="space-y-8 pb-28 pt-6">
         {bundleQuery.isLoading && (
           <div className="flex justify-center py-16"><Spinner /></div>
         )}
@@ -105,15 +136,31 @@ function FinancePage() {
                   tab={tab}
                   data={data}
                   metrics={metrics}
+                  holdings={valuedHoldings}
+                  portfolio={portfolio}
+                  quotesLoading={quotesQuery.isFetching}
                   mutations={mutations}
+                  holdingMutations={holdingMutations}
                   run={run}
                   saveProfilePatch={saveProfilePatch}
+                  onOpenQuickEntry={() => setQuickEntryOpen(true)}
                 />
               </motion.div>
             </AnimatePresence>
           </>
         )}
       </ContentContainer>
+
+      {data && (
+        <FinanceQuickEntry
+          accounts={data.accounts}
+          pending={cashEntry.isPending}
+          open={quickEntryOpen}
+          onOpenChange={setQuickEntryOpen}
+          showFab={tab !== 'dashboard'}
+          onSubmit={saveCashEntry}
+        />
+      )}
     </div>
   );
 }

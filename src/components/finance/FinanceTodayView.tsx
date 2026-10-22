@@ -1,5 +1,5 @@
 import { formatPln } from '../../lib/finance/formatMoney';
-import type { CashflowMonthSummary, FinanceExpenseCategory } from '@vanguard/domain';
+import type { CashflowMonthSummary } from '@vanguard/domain';
 import type { FinanceTransaction } from '../../lib/financeApi';
 import type { FinanceMetrics } from './useFinanceMetrics';
 import {
@@ -8,7 +8,6 @@ import {
   FinanceProse,
   FinanceRow,
   FinanceSection,
-  financeHeroNumberClass,
 } from './financeUi';
 import {
   buildTodayContext,
@@ -18,7 +17,6 @@ import {
 import {
   buildBudgetProgress,
 } from '../../lib/finance/financeTodayInsights';
-import { FinanceQuickCapture } from './FinanceQuickCapture';
 import { FinanceBudgetProgress } from './FinanceBudgetProgress';
 
 interface FinanceTodayViewProps {
@@ -27,8 +25,6 @@ interface FinanceTodayViewProps {
   cashflow: CashflowMonthSummary;
   todayDay: number;
   recentTransactions: FinanceTransaction[];
-  onAddExpense: (input: { amount: number; category: FinanceExpenseCategory; note?: string }) => void;
-  addingExpense: boolean;
 }
 
 const EVENT_LABEL: Record<string, string> = {
@@ -109,8 +105,6 @@ export function FinanceTodayView({
   cashflow,
   todayDay,
   recentTransactions,
-  onAddExpense,
-  addingExpense,
 }: FinanceTodayViewProps) {
   const headline = buildTodayHeadline(metrics);
   const context = buildTodayContext(metrics);
@@ -124,12 +118,11 @@ export function FinanceTodayView({
     <div className="space-y-8">
       <header className="space-y-3 pt-1">
         <p className="text-sm text-text-muted">Na dziś zostaje około</p>
-        <p className={financeHeroNumberClass}>{headline}</p>
+        <p className="text-3xl font-semibold tabular-nums tracking-[var(--tracking-tight)] text-text-primary">{headline}</p>
         <FinanceProse>{context}</FinanceProse>
       </header>
 
       {metrics.hasBudget && budgetProgress && <FinanceBudgetProgress progress={budgetProgress} monthLabel={monthLabel} />}
-      <FinanceQuickCapture onAdd={onAddExpense} adding={addingExpense} />
       <RecentSpending transactions={recentTransactions} />
       <MonthAhead monthKey={monthKey} summary={cashflow} todayDay={todayDay} />
     </div>
