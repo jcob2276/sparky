@@ -66,6 +66,7 @@ export function FinanceTabContent(props: FinanceTabContentProps) {
         data={data}
         metrics={metrics}
         holdings={holdings}
+        portfolio={portfolio}
         quotesLoading={quotesLoading}
         onSaveTarget={(target) => saveProfilePatch({ net_worth_target: target })}
         onQuickEntry={onQuickEntry}

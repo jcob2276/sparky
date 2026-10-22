@@ -1,24 +1,31 @@
-import { ArrowDownLeft, ArrowUpRight, MoreHorizontal, Target, type LucideIcon } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowDownLeft, ArrowUpRight, Calculator, MoreHorizontal, type LucideIcon } from 'lucide-react';
+import type { PortfolioTotals } from '@vanguard/domain';
 import { formatPln } from '../../lib/finance/formatMoney';
 import { Pressable } from '../ui/ControlPrimitives';
 import type { FinanceMetrics } from './useFinanceMetrics';
 
+type Segment = 'net' | 'invest' | 'cash';
+
+const SEGMENTS: Array<{ key: Segment; label: string }> = [
+  { key: 'net', label: 'Majątek' },
+  { key: 'invest', label: 'Inwestycje' },
+  { key: 'cash', label: 'Gotówka' },
+];
+
 interface FinanceHomeHeroProps {
   metrics: FinanceMetrics;
+  portfolio: PortfolioTotals;
+  hasHoldings: boolean;
   onQuickEntry: (kind: 'expense' | 'income') => void;
-  onGoal: () => void;
+  onRebalance: () => void;
   onMore: () => void;
-  onAccounts: () => void;
 }
 
 function ActionButton({ icon: Icon, label, onClick }: { icon: LucideIcon; label: string; onClick: () => void }) {
   return (
-    <Pressable
-      type="button"
-      onClick={onClick}
-      className="group flex flex-col items-center gap-2 text-xs font-semibold text-text-primary"
-    >
-      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-surface-2 transition-[transform,background-color] duration-[var(--motion-instant)] group-active:scale-[var(--scale-pressed-strong)] group-hover:bg-surface-2/70">
+    <Pressable type="button" onClick={onClick} className="group flex w-16 flex-col items-center gap-2 text-xs font-semibold text-text-primary">
+      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-background/40 ring-1 ring-text-primary/10 backdrop-blur-sm transition-transform duration-[var(--motion-instant)] group-active:scale-[var(--scale-pressed-strong)]">
         <Icon size={22} aria-hidden="true" />
       </span>
       {label}
@@ -26,27 +33,52 @@ function ActionButton({ icon: Icon, label, onClick }: { icon: LucideIcon; label:
   );
 }
 
-export function FinanceHomeHero({ metrics, onQuickEntry, onGoal, onMore, onAccounts }: FinanceHomeHeroProps) {
+function changeLine(change: number, pct: number | null): { text: string; tone: string } {
+  const sign = change > 0 ? '+' : change < 0 ? '−' : '';
+  const percent = pct == null ? '' : ` (${sign}${Math.abs(pct).toFixed(2).replace('.', ',')}%)`;
+  return {
+    text: `${sign}${formatPln(Math.abs(change), 2)}${percent} dziś`,
+    tone: change > 0 ? 'text-success' : change < 0 ? 'text-danger' : 'text-text-secondary',
+  };
+}
+
+export function FinanceHomeHero({ metrics, portfolio, hasHoldings, onQuickEntry, onRebalance, onMore }: FinanceHomeHeroProps) {
+  const [segment, setSegment] = useState<Segment>('net');
+  const amount = segment === 'net' ? metrics.netWorth : segment === 'invest' ? portfolio.valuePln : metrics.liquid;
+  const label = segment === 'net' ? 'Majątek netto' : segment === 'invest' ? 'Wartość inwestycji' : 'Płynna gotówka';
+  const showChange = segment !== 'cash' && hasHoldings;
+  const line = changeLine(portfolio.dayChangePln, portfolio.dayChangePct);
+
   return (
-    <section className="space-y-6 pt-2 text-center" aria-label="Majątek netto">
-      <div className="space-y-2">
-        <p className="text-sm text-text-secondary">Majątek netto</p>
-        <p className="text-[length:var(--finance-display-size)] font-semibold tabular-nums leading-[var(--line-height-display)] tracking-[var(--tracking-display)]">
-          {formatPln(metrics.netWorth)}
-        </p>
-        <Pressable
-          type="button"
-          onClick={onAccounts}
-          className="rounded-full bg-surface-2/80 px-5 py-2 text-sm font-semibold text-text-primary transition-transform duration-[var(--motion-instant)] active:scale-[var(--scale-pressed)]"
-        >
-          Konta
-        </Pressable>
+    <section className="space-y-6 text-center" aria-label={label}>
+      <div className="no-scrollbar -mx-4 flex justify-center gap-2 overflow-x-auto px-4" role="group" aria-label="Widok">
+        {SEGMENTS.map((item) => (
+          <Pressable
+            key={item.key}
+            type="button"
+            onClick={() => setSegment(item.key)}
+            aria-pressed={segment === item.key}
+            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-[var(--motion-fast)] ${segment === item.key ? 'bg-text-primary text-background' : 'bg-background/40 text-text-secondary'}`}
+          >
+            {item.label}
+          </Pressable>
+        ))}
       </div>
 
-      <div className="mx-auto flex max-w-sm justify-between gap-2 px-2">
+      <div className="space-y-1.5">
+        <p className="text-sm text-text-secondary">{label}</p>
+        <p className="text-[length:var(--finance-display-size)] font-semibold tabular-nums leading-[var(--line-height-display)] tracking-[var(--tracking-display)]">
+          {formatPln(amount)}
+        </p>
+        <p className={`min-h-5 text-sm font-medium tabular-nums ${showChange ? line.tone : 'text-transparent'}`} aria-hidden={!showChange}>
+          {showChange ? line.text : '.'}
+        </p>
+      </div>
+
+      <div className="mx-auto flex max-w-sm justify-between px-1">
         <ActionButton icon={ArrowUpRight} label="Wydatek" onClick={() => onQuickEntry('expense')} />
         <ActionButton icon={ArrowDownLeft} label="Wpływ" onClick={() => onQuickEntry('income')} />
-        <ActionButton icon={Target} label="Cel" onClick={onGoal} />
+        <ActionButton icon={Calculator} label="Dopłata" onClick={onRebalance} />
         <ActionButton icon={MoreHorizontal} label="Więcej" onClick={onMore} />
       </div>
     </section>

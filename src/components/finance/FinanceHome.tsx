@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { ArrowDownLeft, ArrowUpRight } from 'lucide-react';
-import type { ValuedHolding } from '@vanguard/domain';
+import type { PortfolioTotals, ValuedHolding } from '@vanguard/domain';
 import type { FinanceBundle } from '../../lib/financeApi';
 import type { FinanceMutations } from '../../lib/financeMutations';
 import { getTodayWarsaw } from '../../lib/date';
@@ -11,6 +11,8 @@ import { FinanceGoalCard } from './FinanceGoalCard';
 import { FinanceGoalsCard } from './FinanceGoalsCard';
 import { FinanceHoldingsHeatmap } from './FinanceHoldingsHeatmap';
 import { FinanceHomeHero } from './FinanceHomeHero';
+import { FinanceOnboardingCard } from './FinanceOnboardingCard';
+import { FinanceTopMovers } from './FinanceTopMovers';
 import { FinanceRecentTransactions } from './FinanceRecentTransactions';
 import { FinanceTodayView } from './FinanceTodayView';
 import type { FinanceTabKey } from './FinanceTabContent';
@@ -20,6 +22,7 @@ interface FinanceHomeProps {
   data: FinanceBundle;
   metrics: FinanceMetrics;
   holdings: ValuedHolding[];
+  portfolio: PortfolioTotals;
   quotesLoading: boolean;
   onSaveTarget: (target: number) => void;
   onQuickEntry: (kind: 'expense' | 'income') => void;
@@ -50,35 +53,33 @@ function MonthFlow({ metrics }: { metrics: FinanceMetrics }) {
   );
 }
 
-export function FinanceHome({ data, metrics, holdings, quotesLoading, onSaveTarget, onQuickEntry, onNavigate, mutations, run }: FinanceHomeProps) {
+export function FinanceHome({ data, metrics, holdings, portfolio, quotesLoading, onSaveTarget, onQuickEntry, onNavigate, mutations, run }: FinanceHomeProps) {
   const [goalEditing, setGoalEditing] = useState(false);
-  const goalRef = useRef<HTMLDivElement>(null);
   const todayDay = Number(getTodayWarsaw().split('-')[2]) || 1;
-
-  const openGoal = () => {
-    setGoalEditing(true);
-    goalRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
 
   return (
     <div className="space-y-6">
       <FinanceHomeHero
         metrics={metrics}
+        portfolio={portfolio}
+        hasHoldings={holdings.length > 0}
         onQuickEntry={onQuickEntry}
-        onGoal={openGoal}
+        onRebalance={() => onNavigate('portfolio')}
         onMore={() => onNavigate('flows')}
-        onAccounts={() => onNavigate('accounts')}
       />
+      <FinanceOnboardingCard
+        state={{ hasAccounts: data.accounts.length > 0, hasHoldings: holdings.length > 0, hasBudget: metrics.hasBudget }}
+        onNavigate={onNavigate}
+      />
+      <FinanceTopMovers holdings={holdings} onShowAll={() => onNavigate('portfolio')} />
       <FinanceRecentTransactions transactions={data.transactions} onShowAll={() => onNavigate('flows')} />
-      <div ref={goalRef}>
-        <FinanceGoalCard
-          metrics={metrics}
-          snapshots={data.snapshots}
-          editing={goalEditing}
-          onEditingChange={setGoalEditing}
-          onSaveTarget={onSaveTarget}
-        />
-      </div>
+      <FinanceGoalCard
+        metrics={metrics}
+        snapshots={data.snapshots}
+        editing={goalEditing}
+        onEditingChange={setGoalEditing}
+        onSaveTarget={onSaveTarget}
+      />
       <FinanceHoldingsHeatmap holdings={holdings} loading={quotesLoading} />
       <FinanceGoalsCard
         goals={data.goals}

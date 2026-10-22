@@ -8,6 +8,9 @@ interface FinanceHoldingsHeatmapProps {
 }
 
 const FULL_INTENSITY_PCT = 2;
+const MIN_HEIGHT_FOR_CHANGE = 16;
+const MIN_HEIGHT_FOR_LABEL = 9;
+const MIN_WIDTH_FOR_LABEL = 12;
 
 function formatChange(value: number | null): string {
   if (value == null) return '—';
@@ -43,7 +46,8 @@ export function FinanceHoldingsHeatmap({ holdings, loading }: FinanceHoldingsHea
           {rects.map((rect) => {
             const item = byId.get(rect.id);
             if (!item) return null;
-            const small = rect.w * rect.h < 450;
+            const showChange = rect.h >= MIN_HEIGHT_FOR_CHANGE && rect.w >= MIN_WIDTH_FOR_LABEL;
+            const showLabel = rect.h >= MIN_HEIGHT_FOR_LABEL && rect.w >= MIN_WIDTH_FOR_LABEL;
             return (
               <div
                 key={rect.id}
@@ -58,8 +62,8 @@ export function FinanceHoldingsHeatmap({ holdings, loading }: FinanceHoldingsHea
                   background: tileColor(item.dayChangePct),
                 }}
               >
-                <p className="truncate text-xs font-semibold text-text-primary">{item.ticker.replace(/\.(WA|DE|L|AS)$/, '')}</p>
-                {!small && (
+                {showLabel && <p className="truncate text-xs font-semibold text-text-primary">{item.ticker.replace(/\.(WA|DE|L|AS)$/, '')}</p>}
+                {showChange && (
                   <p className="text-xs tabular-nums text-text-secondary">{formatChange(item.dayChangePct)}</p>
                 )}
               </div>

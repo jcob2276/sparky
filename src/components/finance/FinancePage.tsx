@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
 import { useFinanceMutations } from '../../lib/financeApi';
@@ -11,6 +11,7 @@ import { notify } from '../../lib/notify';
 import { getTodayWarsaw } from '../../lib/date';
 import ContentContainer from '../shared/ContentContainer';
 import Spinner from '../ui/Spinner';
+import { Pressable } from '../ui/ControlPrimitives';
 import { FinanceTabContent, type FinanceTabKey } from './FinanceTabContent';
 import { FinanceBottomNav } from './FinanceBottomNav';
 import { FinanceQuickEntry } from './FinanceQuickEntry';
@@ -33,6 +34,7 @@ const WIDTH_BY_TAB: Record<FinanceTabKey, 'narrow' | 'default' | 'wide'> = {
 
 function FinancePage() {
   const userId = useStore((s) => s.session?.user?.id);
+  const initial = (useStore((s) => s.session?.user?.email) ?? 'S').charAt(0).toUpperCase();
   const { bundleQuery, holdingsQuery, quotesQuery, valuedHoldings, portfolio, data, metrics } = useFinancePageData(userId);
   const mutations = useFinanceMutations(userId);
   const holdingMutations = useHoldingMutations(userId);
@@ -86,16 +88,23 @@ function FinancePage() {
       <div className="finance-glow pointer-events-none absolute inset-x-0 top-0 h-[26rem]" aria-hidden="true" />
 
       <header className="relative z-[var(--z-sticky)]">
-        <div className="mx-auto flex max-w-[var(--content-default)] items-center gap-3 px-[var(--space-4)] py-3 md:px-[var(--space-8)]">
+        <div className="mx-auto flex max-w-[var(--content-default)] items-center gap-3 px-[var(--space-4)] pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-[var(--space-8)]">
           <Link
             to="/dzis"
-            aria-label="Wróć"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background/30 text-text-primary transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-95"
+            aria-label="Wróć do Sparky"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background/40 text-sm font-bold text-text-primary ring-1 ring-text-primary/15 transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-95"
           >
-            <ArrowLeft size={20} strokeWidth={1.75} />
+            {initial}
           </Link>
           <h1 className="flex-1 text-center text-base font-semibold">{TITLES[tab]}</h1>
-          <span className="h-10 w-10 shrink-0" aria-hidden="true" />
+          <Pressable
+            type="button"
+            onClick={() => setTab('portfolio')}
+            aria-label="Portfel"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background/40 text-text-primary ring-1 ring-text-primary/15"
+          >
+            <BarChart3 size={18} aria-hidden="true" />
+          </Pressable>
         </div>
       </header>
 
