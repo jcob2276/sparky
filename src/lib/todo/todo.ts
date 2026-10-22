@@ -24,6 +24,17 @@ export async function listTodoSections(userId: string): Promise<TodoSectionRow[]
   );
 }
 
+/** Dokładna liczba ukończonych zadań (lista pobiera tylko 60 ostatnich). */
+export async function countDoneTodoItems(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('todo_items')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('status', 'done');
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
 export async function listTodoItems(userId: string): Promise<TodoItemRow[]> {
   const [openRes, doneRes] = await Promise.all([
     supabase

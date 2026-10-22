@@ -1,3 +1,4 @@
+import { localizeRefText } from '../../../lib/health/refText';
 import { Printer, AlertTriangle, CheckCircle2, FileText } from 'lucide-react';
 import Modal from '../../ui/Modal';
 import Button from '../../ui/Button';
@@ -33,7 +34,7 @@ function KeyMarkersTable({ markers }: { markers: MarkerSeries[] }) {
             const isAlert = row.flag && row.flag !== 'N' && row.flag !== 'normal';
             const normStr = row.ref_low != null && row.ref_high != null
               ? `${row.ref_low} – ${row.ref_high}`
-              : row.ref_text || 'Standard';
+              : localizeRefText(row.ref_text) || 'Standard';
 
             return (
               <tr key={m.marker_key} className="hover:bg-surface-2 print:hover:bg-transparent">
@@ -149,7 +150,7 @@ export default function MedicalDoctorSummaryModal({
                       {row.marker_name}: <span className="font-mono text-warning font-black">{row.value} {row.unit}</span>
                     </span>
                     <span className="text-text-muted">
-                      {row.result_date} · Norma: {row.ref_low != null && row.ref_high != null ? `${row.ref_low} – ${row.ref_high}` : row.ref_text || '—'}
+                      {row.result_date} · Norma: {row.ref_low != null && row.ref_high != null ? `${row.ref_low} – ${row.ref_high}` : localizeRefText(row.ref_text) || '—'}
                     </span>
                   </div>
                 ))}

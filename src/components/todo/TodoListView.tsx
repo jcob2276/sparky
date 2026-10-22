@@ -12,6 +12,10 @@ import type { TodoNavDest } from './TodoSidebar';
 import TodoShortcutsHelp from './TodoShortcutsHelp';
 import { useTodoRowNav } from './hooks/useTodoRowNav';
 import { isStudySubject } from '../../lib/todo/studySubjects';
+import { useQuery } from '@tanstack/react-query';
+import { useStore } from '../../store/useStore';
+import { todoKeys } from '../../lib/queryKeys';
+import { countDoneTodoItems } from '../../lib/todo/todo';
 
 interface TodoListViewProps {
   navDest: TodoNavDest;
@@ -35,7 +39,14 @@ export default function TodoListView({
   const tasks = items.filter(item => !isStudySubject(item));
   const allCount = tasks.filter((i) => i.status !== 'done').length;
   const flaggedCount = tasks.filter((i) => (i.priority === 'urgent' || i.priority === 'high') && i.status !== 'done').length;
-  const completedCount = tasks.filter((i) => i.status === 'done').length;
+  const loadedDoneCount = tasks.filter((i) => i.status === 'done').length;
+  const userId = useStore((state) => state.session?.user?.id);
+  const doneCountQuery = useQuery({
+    queryKey: [...todoKeys.items(userId ?? ''), 'done-count'],
+    queryFn: () => countDoneTodoItems(userId!),
+    enabled: Boolean(userId),
+  });
+  const completedCount = Math.max(loadedDoneCount, doneCountQuery.data ?? 0);
 
   return (
     <main ref={mainRef} className="flex-1 overflow-y-auto" onClick={() => setExpandedId(null)}>

@@ -1,3 +1,5 @@
+import { isNumericRefText, localizeRefText } from '../../../lib/health/refText';
+
 interface MedicalRangeGaugeProps {
   value: number;
   refLow: number | null;
@@ -14,9 +16,10 @@ export default function MedicalRangeGauge({
   flag,
 }: MedicalRangeGaugeProps) {
   if (refLow == null || refHigh == null || refHigh <= refLow) {
+    const text = localizeRefText(refText) ?? '—';
     return (
-      <span className="text-3xs text-text-secondary font-mono">
-        {refText || '—'}
+      <span className={`text-3xs text-text-secondary ${isNumericRefText(text) ? 'font-mono' : 'leading-snug'}`}>
+        {text}
       </span>
     );
   }

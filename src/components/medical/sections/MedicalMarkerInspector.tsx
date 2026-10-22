@@ -1,3 +1,4 @@
+import { localizeRefText } from '../../../lib/health/refText';
 import Sheet from '../../ui/Sheet';
 import type { MarkerSeries } from '../../../lib/health/medicalAnalytics';
 import { Card } from '../../ui/Card';
@@ -30,7 +31,7 @@ export default function MedicalMarkerInspector({ markerKey, series, onClose }: M
   const hasFlag = latest.flag && latest.flag !== 'N' && latest.flag !== 'normal';
   const normStr = latest.ref_low != null && latest.ref_high != null
     ? `${latest.ref_low} – ${latest.ref_high}`
-    : latest.ref_text || 'Brak danych referencyjnych';
+    : localizeRefText(latest.ref_text) || 'Brak danych referencyjnych';
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }} title={latest.marker_name}>

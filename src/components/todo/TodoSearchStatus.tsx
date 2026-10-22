@@ -61,7 +61,9 @@ export function SearchStatus({ query, pending, onChange }: SearchStatusProps) {
   const count = useMemo(() => {
     if (!trimmed) return 0;
     const names = Object.fromEntries(sections.map((s) => [s.id, s.name]));
-    return items.filter((i) => !isStudySubject(i) && matchesSmartQuery(trimmed, i, today, names)).length;
+    // Lista filtruje tylko otwarte zadania, chyba że filtr sam wskazuje status.
+    const includeDone = /(^|s)status:/i.test(trimmed);
+    return items.filter((i) => (includeDone || i.status !== 'done') && !isStudySubject(i) && matchesSmartQuery(trimmed, i, today, names)).length;
   }, [trimmed, items, sections, today]);
 
   if (!trimmed) return null;

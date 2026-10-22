@@ -53,7 +53,7 @@ function MedicalViewHeader({
           </div>
         </div>
 
-        <div className="hidden md:flex items-center p-1 rounded-xl bg-surface-2 border border-border-custom">
+        <div className="hidden lg:flex items-center p-1 rounded-xl bg-surface-2 border border-border-custom">
           <Pressable className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-1 border border-border-custom shadow-xs text-xs font-bold text-text-primary">
             <Stethoscope size={13} className="text-primary" />
             <span>Kartoteka & Oś Zdrowia</span>
@@ -98,7 +98,7 @@ function MedicalViewHeader({
         </div>
       </div>
 
-      <div className="md:hidden flex border-t border-border-custom/50 px-4 py-2 bg-surface-1/50 gap-2">
+      <div className="lg:hidden flex border-t border-border-custom/50 px-4 py-2 bg-surface-1/50 gap-2">
         <Pressable className="flex-1 py-1.5 px-3 rounded-lg bg-primary/10 border border-primary/20 text-xs font-bold text-primary text-center">
           Kartoteka
         </Pressable>

@@ -1,3 +1,4 @@
+import { localizeRefText } from '../../../lib/health/refText';
 import { Card } from '../../ui/Card';
 import { CheckCircle2, Info } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, CartesianGrid } from 'recharts';
@@ -76,7 +77,7 @@ export function MedicalTrendDetailCard({ selectedTrend, insight }: MedicalTrendD
         <div className="bg-background/20 p-2.5 rounded-xl border border-border-custom/40">
           <span className="text-text-muted font-bold block">Zakres referencyjny</span>
           <span className="text-xs font-bold text-text-secondary mt-1 block">
-            {selectedTrend.ref_text || (selectedTrend.ref_low != null && selectedTrend.ref_high != null ? `${selectedTrend.ref_low} – ${selectedTrend.ref_high}` : 'Standard')}
+            {localizeRefText(selectedTrend.ref_text) || (selectedTrend.ref_low != null && selectedTrend.ref_high != null ? `${selectedTrend.ref_low} – ${selectedTrend.ref_high}` : 'Standard')}
           </span>
         </div>
       </div>

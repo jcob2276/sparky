@@ -96,7 +96,7 @@ export function AppleRemindersSmartGrid({
               <span className={`text-2xl font-semibold tabular-nums tracking-tight ${card.textColor}`}>
                 {card.count}
               </span>
-              <span className="text-xs font-medium text-text-secondary tracking-tight truncate mt-0.5">
+              <span className="text-xs font-medium text-text-secondary tracking-tight leading-tight break-words mt-0.5">
                 {card.title}
               </span>
             </div>
