@@ -58,7 +58,7 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-[var(--z-sticky)] pt-safe-top h-14 flex items-center justify-between gap-4 border-b border-border-custom/50 bg-background/80 px-4 sm:px-5 backdrop-blur-xs shadow-2xs transition-colors">
+    <header className="sticky top-0 z-[var(--z-sticky)] pt-safe-top min-h-14 py-2 flex items-center justify-between gap-4 border-b border-border-custom/50 bg-background/80 px-4 sm:px-5 backdrop-blur-xs shadow-2xs transition-colors">
       <div className="min-w-0 shrink-0 select-none">
         <div
           role="button"
