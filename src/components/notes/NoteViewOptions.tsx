@@ -42,7 +42,7 @@ export default function NoteViewOptions({
   }, [open]);
 
   const selectField = (sortField: NoteSortField) => {
-    onChange({ ...value, sortField, groupByDate: sortField === 'title' ? false : value.groupByDate });
+    onChange({ ...value, sortField });
     setOpen(false);
   };
 

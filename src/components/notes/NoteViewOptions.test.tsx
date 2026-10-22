@@ -5,7 +5,7 @@ import { DEFAULT_NOTE_COLLECTION_PREFERENCES } from '../../lib/noteOrganization'
 import NoteViewOptions from './NoteViewOptions';
 
 describe('NoteViewOptions', () => {
-  it('turns date grouping off when title sorting is selected', () => {
+  it('keeps the date grouping choice when title sorting is selected, so it returns with date sorting', () => {
     const onChange = vi.fn();
     render(<NoteViewOptions value={DEFAULT_NOTE_COLLECTION_PREFERENCES} onChange={onChange} />);
 
@@ -15,7 +15,7 @@ describe('NoteViewOptions', () => {
     expect(onChange).toHaveBeenCalledWith({
       ...DEFAULT_NOTE_COLLECTION_PREFERENCES,
       sortField: 'title',
-      groupByDate: false,
+      groupByDate: true,
     });
   });
 });

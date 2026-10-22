@@ -35,7 +35,7 @@ export function FinanceHoldingsHeatmap({ holdings, loading }: FinanceHoldingsHea
   return (
     <FinanceSection title="Mapa cieplna dnia" subtitle="Wielkość kafelka to wartość pozycji, kolor to zmiana dzienna.">
       {holdings.length === 0 ? (
-        <FinanceEmpty>Dodaj pozycje w zakładce Portfel, a zobaczysz tu swoje akcje i ETF-y.</FinanceEmpty>
+        <FinanceEmpty>Dodaj pozycje, a zobaczysz tu swoje akcje i ETF-y.</FinanceEmpty>
       ) : (
         <div
           className="relative m-2 aspect-[4/3] w-[calc(100%-1rem)] sm:aspect-[16/9]"

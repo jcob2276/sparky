@@ -28,6 +28,8 @@ function gcalRemindersPayload(reminderMinutes: number | null | undefined) {
   return { useDefault: false, overrides: [{ method: 'popup', minutes: reminderMinutes }] }
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 Deno.serve(serveJson(async (req, ctx) => {  try {
     const body = await req.clone().json()
     const { action, event, deleteScope } = body
@@ -237,12 +239,14 @@ Deno.serve(serveJson(async (req, ctx) => {  try {
       }
     }
 
+    // `id` is a uuid column: comparing it with a Google event id raises 22P02, so match it only for uuids.
+    const rowMatch = (value: string) => UUID_RE.test(value) ? `event_id.eq.${value},id.eq.${value}` : `event_id.eq.${value}`
     await safeExecute(
       supabase
         .from('vanguard_calendar')
         .delete()
         .eq('user_id', userId)
-        .or(`event_id.eq.${event.id},id.eq.${event.id}`)
+        .or(rowMatch(event.id))
     )
 
     if (deleteScope === 'all') {
@@ -251,7 +255,7 @@ Deno.serve(serveJson(async (req, ctx) => {  try {
           .from('vanguard_calendar')
           .delete()
           .eq('user_id', userId)
-          .or(`event_id.eq.${baseId},id.eq.${baseId},series_id.eq.${baseId},series_id.eq.${event.id},event_id.like.${baseId}_%`)
+          .or(`${rowMatch(baseId)},series_id.eq.${baseId},series_id.eq.${event.id},event_id.like.${baseId}_%`)
       )
     }
 

@@ -13,7 +13,7 @@ const holding = (id: string, overrides: Partial<HoldingInput> = {}): HoldingInpu
 describe('FinanceHoldingsHeatmap', () => {
   it('shows an empty hint without positions', () => {
     render(<FinanceHoldingsHeatmap holdings={[]} loading={false} />);
-    expect(screen.getByText(/Dodaj pozycje w zakładce Portfel/)).toBeInTheDocument();
+    expect(screen.getByText(/Dodaj pozycje, a zobaczysz/)).toBeInTheDocument();
   });
 
   it('renders one tile per position with the daily change', () => {

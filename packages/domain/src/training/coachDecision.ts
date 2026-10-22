@@ -59,6 +59,14 @@ function lowerVolume(session: TrainingSession): TrainingSession {
       : `${session.notes}\nPropozycja na dziś: mniejsza objętość, bez dokładania ciężaru. Wpisz rzeczywiste wykonanie w loggerze.` };
 }
 
+const WARSAW_STAMP = new Intl.DateTimeFormat('pl-PL', { timeZone: 'Europe/Warsaw', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+/** Znacznik zgłoszenia w czasie Warszawy zamiast surowego ISO/UTC. */
+function warsawStamp(value: unknown): string {
+  const date = new Date(String(value));
+  return Number.isNaN(date.getTime()) ? String(value) : WARSAW_STAMP.format(date);
+}
+
 export function decideTraining(context: HealthCoachContext, policy: { constraints: TrainingConstraints }): CoachDecision {
   const row = context.sources.training_plan_workouts.value?.find(row => row.planned_date === context.localDate && !row.completed && !row.skipped_at);
   const original = readSession(row?.prescription);
@@ -69,7 +77,7 @@ export function decideTraining(context: HealthCoachContext, policy: { constraint
   const pain = recentPainReport(context);
   if (policy.constraints.painReported || pain) {
     result.recommendation = 'recover';
-    result.reasons.push(pain ? `W ostatnich 72h pojawiło się zgłoszenie bólu (${String(pain.timestamp)}). Potwierdź jego aktualność przed ciężkim treningiem.`
+    result.reasons.push(pain ? `W ostatnich 72h pojawiło się zgłoszenie bólu (${warsawStamp(pain.timestamp)}). Potwierdź jego aktualność przed ciężkim treningiem.`
       : 'Zgłoszono ból podczas ruchu. Wstrzymaj ciężką sesję i najpierw wyjaśnij ograniczenie.');
     return result;
   }

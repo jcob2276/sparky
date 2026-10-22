@@ -28,7 +28,7 @@ export function parseNoteViewPreferences(value: unknown): NoteCollectionPreferen
     view: candidate.view,
     sortField: candidate.sortField as NoteCollectionPreferences['sortField'],
     direction: candidate.direction,
-    groupByDate: candidate.sortField === 'title' ? false : candidate.groupByDate,
+    groupByDate: candidate.groupByDate,
   };
 }
 
