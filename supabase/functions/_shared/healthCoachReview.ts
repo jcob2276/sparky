@@ -95,7 +95,8 @@ export function buildHealthCoachReview(input: BuildReviewInput): HealthCoachWeek
   const changesSummary = ['Zachowaj aktywny plan do przeglądu wykonania; zmiana wymaga zatwierdzenia.'];
   const dailyDecision=dailyTrainingDecision(context);
   if (dailyDecision.recommendation === 'recover' || dailyDecision.recommendation === 'reduce') {
-    action='deload';rationale='Bieżące zgłoszenie bólu, sygnał choroby lub osłabiona regeneracja przemawiają za przeglądem lżejszego wariantu przed kolejną sesją.';
+    // Decyzja wynika z dzisiejszego stanu, więc pokazujemy jej faktyczny powód, a nie listę możliwych.
+    action='deload';rationale=dailyDecision.reasons.length ? dailyDecision.reasons.join(' ') : 'Dzisiejszy stan przemawia za lżejszą najbliższą sesją.';
   } else if (plannedCount>0 && skipped.length/plannedCount>=0.5) {
     action='adjust';rationale='Co najmniej połowę wymagalnych sesji świadomie oznaczono jako pominięte. Przejrzyj dostępność i układ planu.';
   } else if (unrecorded.length) {

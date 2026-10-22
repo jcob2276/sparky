@@ -18,7 +18,7 @@ interface Props {
   error?: Error | null;
 }
 
-const ACTION_LABEL: Record<string, string> = { progress: 'Dołóż obciążenia', deload: 'Lżejszy tydzień', adjust: 'Zmień plan' };
+const ACTION_LABEL: Record<string, string> = { progress: 'Dołóż obciążenia', deload: 'Lżejsza najbliższa sesja', adjust: 'Zmień plan' };
 
 function ActivityChip({ label, value }: { label: string; value: string }) {
   return (

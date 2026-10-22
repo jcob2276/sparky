@@ -81,6 +81,9 @@ Deno.test('weekly review excludes future prescriptions and does not prescribe pr
   assertEquals(result.adherence.unrecordedSessionsCount,0);
   assertEquals(result.adherence.cardioKm,5);
   assertEquals(result.nextWeekProposal.action,'deload');
+  // powód to faktyczny sygnał z dzisiejszej decyzji, nie stała lista możliwych przyczyn
+  assertEquals(result.nextWeekProposal.rationale.includes('sygnał choroby'),true);
+  assertEquals(result.nextWeekProposal.rationale.includes('zgłoszenie bólu'),false);
 });
 
 Deno.test("healthCoachReview — separates measured progress from causal claim about coach advice", () => {
