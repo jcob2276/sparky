@@ -51,8 +51,14 @@ export const EXERCISES = [
   { name: 'Single-leg hop', tags: ['plyo', 'łydki', 'pośladki'] },
   { name: 'Split squat jump', tags: ['plyo', 'czworogłowe', 'pośladki'] },
   { name: 'Pogo hop', tags: ['plyo', 'łydki'] },
+  { name: 'Sumo przysiad', tags: ['czworogłowe', 'pośladki'] },
+  { name: 'Przysiad z wyskokiem', tags: ['czworogłowe', 'pośladki', 'łydki'] },
+  // Własny ciężar
+  { name: 'Pompki', tags: ['klatka', 'triceps', 'barki'] },
+  { name: 'Stanie na rękach', tags: ['barki', 'triceps'] },
   // Brzuch
   { name: 'Ab wheel rollout', tags: ['brzuch'] },
+  { name: 'Russian twist', tags: ['brzuch'] },
   // Wellness
   { name: 'Sauna', tags: ['wellness'] },
 ];

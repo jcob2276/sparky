@@ -2,6 +2,7 @@
  * Hub recovery snapshot: muscle fatigue + this-week volume/reps from session logs.
  */
 import { calculateMuscleFatigue, type WorkoutSessionInput } from './muscleRecovery';
+import { effectiveLoadKg } from './bodyweightLoad';
 import { isStrengthLog } from './workoutDisplay';
 
 type HubRecoveryLog = {
@@ -28,14 +29,14 @@ export type HubRecoverySnapshot = {
 };
 
 /** Groups flat exercise_logs into WorkoutSessionInput for calculateMuscleFatigue. */
-export function sessionsToFatigueInput(rows: HubRecoverySessionRow[]): WorkoutSessionInput[] {
+export function sessionsToFatigueInput(rows: HubRecoverySessionRow[], bodyWeightKg: number | null = null): WorkoutSessionInput[] {
   return rows.map((row) => {
     const byName = new Map<string, { muscleTags: string[]; sets: Array<{ weightKg: number; reps: number }> }>();
 
     for (const log of row.exercise_logs || []) {
       if (!isStrengthLog(log.muscle_tags)) continue;
       const name = (log.exercise_name || 'Ćwiczenie').trim() || 'Ćwiczenie';
-      const w = Number(log.weight) || 0;
+      const w = effectiveLoadKg(name, Number(log.weight) || 0, bodyWeightKg);
       const r = Number(log.reps) || 0;
       if (w <= 0 || r <= 0) continue;
 
@@ -65,6 +66,7 @@ export function computeWeekStats(
   rows: HubRecoverySessionRow[],
   weekStart: string,
   weekEndInclusive: string,
+  bodyWeightKg: number | null = null,
 ): HubWeekStats {
   let reps = 0;
   let volumeKg = 0;
@@ -77,7 +79,7 @@ export function computeWeekStats(
     let sessionHasWork = false;
     for (const log of row.exercise_logs || []) {
       if (!isStrengthLog(log.muscle_tags)) continue;
-      const w = Number(log.weight) || 0;
+      const w = effectiveLoadKg(log.exercise_name || '', Number(log.weight) || 0, bodyWeightKg);
       const r = Number(log.reps) || 0;
       if (r <= 0) continue;
       sessionHasWork = true;
@@ -101,8 +103,9 @@ export function buildHubRecoverySnapshot(
   nowMs: number = Date.now(),
   /** Dodatkowe sesje (np. biegi) wliczane do zmęczenia mięśni, ale nie do statystyk siłowych tygodnia. */
   extraSessions: WorkoutSessionInput[] = [],
+  bodyWeightKg: number | null = null,
 ): HubRecoverySnapshot {
-  const fatigueByTag = calculateMuscleFatigue([...sessionsToFatigueInput(rows), ...extraSessions], nowMs);
-  const week = computeWeekStats(rows, weekStart, weekEndInclusive);
+  const fatigueByTag = calculateMuscleFatigue([...sessionsToFatigueInput(rows, bodyWeightKg), ...extraSessions], nowMs);
+  const week = computeWeekStats(rows, weekStart, weekEndInclusive, bodyWeightKg);
   return { fatigueByTag, week };
 }

@@ -7,6 +7,7 @@ import {
   fetchTodayWorkoutDetails,
   fetchRecentWorkoutTemplates,
   fetchHubRecoverySessions,
+  fetchLatestBodyWeight,
   type TodayWorkoutDetails,
   type WorkoutTemplateSummary,
 } from '../../../lib/health/workoutApi';
@@ -41,6 +42,7 @@ export function useTrainingHub(
   const [todaySession, setTodaySession] = useState<TodayWorkoutDetails | null>(null);
   const [templates, setTemplates] = useState<WorkoutTemplateSummary[]>([]);
   const [recoveryRows, setRecoveryRows] = useState<Awaited<ReturnType<typeof fetchHubRecoverySessions>>>([]);
+  const [bodyWeightKg, setBodyWeightKg] = useState<number | null>(null);
   const running = useRunningLoad(userId);
   const [hasDraft, setHasDraft] = useState(false);
   const haptics = useHaptics();
@@ -50,8 +52,8 @@ export function useTrainingHub(
     if (!recoveryRows.length) return EMPTY_RECOVERY;
     const weekStart = getWeekStartWarsaw(todayStr);
     const weekEnd = shiftDateStr(weekStart, 6);
-    return buildHubRecoverySnapshot(recoveryRows, weekStart, weekEnd, undefined, running.data?.fatigueInput ?? []);
-  }, [recoveryRows, todayStr, running.data]);
+    return buildHubRecoverySnapshot(recoveryRows, weekStart, weekEnd, undefined, running.data?.fatigueInput ?? [], bodyWeightKg);
+  }, [recoveryRows, todayStr, running.data, bodyWeightKg]);
 
   const intelligence = useMemo(
     () =>
@@ -68,9 +70,11 @@ export function useTrainingHub(
       fetchTodayWorkoutDetails(userId, todayStr),
       fetchRecentWorkoutTemplates(userId),
       fetchHubRecoverySessions(userId),
+      fetchLatestBodyWeight(userId),
     ])
-      .then(([todayData, tplData, recoveryData]) => {
+      .then(([todayData, tplData, recoveryData, bodyWeight]) => {
         if (!active) return;
+        setBodyWeightKg(bodyWeight);
         setTodaySession(todayData);
         setTemplates(tplData);
         setRecoveryRows(recoveryData);

@@ -50,6 +50,11 @@ export const POLISH_TO_ENGLISH: Record<string, string> = {
   'wspięcia na łydki': 'Standing Calf Raises',
   'box jump': 'Front Box Jump',
   'ab wheel rollout': 'Ab Roller',
+  'sumo przysiad': 'Plie Dumbbell Squat',
+  'przysiad z wyskokiem': 'Freehand Jump Squat',
+  pompki: 'Pushups',
+  'stanie na rękach': 'Handstand Push-Ups',
+  'russian twist': 'Russian Twist',
   'face pull': 'Face Pull',
 };
 

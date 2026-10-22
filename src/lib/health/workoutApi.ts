@@ -45,6 +45,21 @@ export async function fetchHubRecoverySessions(userId: string): Promise<HubRecov
     .filter((row) => Boolean(row.date));
 }
 
+/** Ostatnia zapisana masa ciała (kg) — do liczenia obciążenia w ćwiczeniach z własnym ciężarem. */
+export async function fetchLatestBodyWeight(userId: string): Promise<number | null> {
+  const { data, error } = await supabase
+    .from('body_metrics')
+    .select('weight')
+    .eq('user_id', userId)
+    .not('weight', 'is', null)
+    .order('date', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error || !data) return null;
+  const weight = Number(data.weight);
+  return weight > 0 ? weight : null;
+}
+
 export async function deleteWorkoutSession(id: string): Promise<void> {
   const { error } = await supabase.from('workout_sessions').delete().eq('id', id);
   if (error) throw error;
