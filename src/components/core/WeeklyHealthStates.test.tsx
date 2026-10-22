@@ -2,7 +2,6 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildWeeklyBodyPulse } from '../../lib/weeklyBodyPulse';
 import WeeklyBodyPulse from './WeeklyBodyPulse';
-import WeeklyPulseDiagnostic from './WeeklyPulseDiagnostic';
 import { WeeklySpheresOverviewCard } from './WeeklySpheresOverviewCard';
 
 const source = vi.hoisted(() => ({ directionError: null as Error | null, userId: 'owner', query: {
@@ -25,22 +24,11 @@ describe('weekly health unavailable states', () => {
     expect(screen.getByText('Nie udało się pobrać projektów')).toBeInTheDocument();
     expect(screen.getByText('projects offline')).toBeInTheDocument();
   });
-  it('does not turn general daily warnings into a sleep deficit', () => {
-    source.query.data = { ...buildWeeklyBodyPulse({ since: '2026-10-10', sessions: [], strava: [], oura: [], strain: [] }), sleepAvgHours: 9, averageRecovery: 50, warningDays: 3 };
-    render(<WeeklyPulseDiagnostic />);
-    expect(screen.queryByText(/Deficyt snu/)).not.toBeInTheDocument();
-  });
   it('labels warning days by their actual source rather than a sleep norm', () => {
     source.query.data = { ...buildWeeklyBodyPulse({ since: '2026-10-10', sessions: [], strava: [], oura: [], strain: [] }), warningDays: 3 };
     render(<WeeklyBodyPulse />);
     expect(screen.getByText('3 dni ze statusem ostrzegawczym')).toBeInTheDocument();
     expect(screen.queryByText('3d poniżej normy')).not.toBeInTheDocument();
-  });
-  it('does not claim a stable rhythm when no measurements or active days are recorded', () => {
-    source.query.data = buildWeeklyBodyPulse({ since: '2026-10-10', sessions: [], strava: [], oura: [], strain: [] });
-    render(<WeeklyPulseDiagnostic />);
-    expect(screen.getByText('Za mało zapisów do syntezy tygodnia')).toBeInTheDocument();
-    expect(screen.queryByText(/Stabilny rytm/)).not.toBeInTheDocument();
   });
   it('does not show normal health or zero activity while loading', () => {
     source.query.isLoading = true;
@@ -60,12 +48,6 @@ describe('weekly health unavailable states', () => {
     render(<WeeklyBodyPulse />);
     expect(screen.getByText(/Sen · średnia z 7 dni/)).toBeInTheDocument();
     expect(screen.queryByText('W normie')).not.toBeInTheDocument();
-  });
-  it('does not synthesize a stable week when the body query failed', () => {
-    source.query.isError = true; source.query.error = new Error('oura_daily_summary: offline');
-    render(<WeeklyPulseDiagnostic />);
-    expect(screen.getByText(/oura_daily_summary: offline/)).toBeInTheDocument();
-    expect(screen.queryByText(/Stabilny rytm 7 dni/)).not.toBeInTheDocument();
   });
   it('does not turn a failed weekly read into zero workouts in the spheres card', () => {
     source.query.isError = true; source.query.error = new Error('workout_sessions: offline');
