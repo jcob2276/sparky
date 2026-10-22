@@ -1,4 +1,5 @@
 import { normalizeUsageBuckets } from '@vanguard/domain';
+import { isGarminSaunaActivity } from '../../health/garminSauna';
 import { parseMs } from './clock';
 import type { FoodEvent, NightInput, PcDay, PhoneDay, SessionSpan, Top5Day } from './inputTypes';
 import { round } from './stats';
@@ -36,6 +37,7 @@ export interface GarminRow {
   start_date: string | null;
   elapsed_time: number | null;
   sport_type: string | null;
+  name?: string | null;
 }
 
 export interface PhoneRow {
@@ -97,7 +99,7 @@ function mergeOverlapping(spans: SessionSpan[]): SessionSpan[] {
 }
 
 /**
- * Sauna = workout_sessions 'Sauna'. Trening = pozostałe sesje + aktywności Garmina (wiersze
+ * Sauna = workout_sessions 'Sauna' + aktywności Garmina „Kardio”. Trening = pozostałe sesje + aktywności Garmina (wiersze
  * source='garmin_intervals', filtr w API), bez dubli. Aktywność Garmina nakładająca się na saunę
  * (zegarek mierzy saunę jako „Workout”) NIE jest treningiem.
  */
@@ -112,8 +114,10 @@ export function mapSessions(workouts: WorkoutRow[], garmin: GarminRow[]): { trai
     const startMs = parseMs(a.start_date);
     if (startMs == null || NOT_TRAINING_SPORTS.has(a.sport_type ?? '')) continue;
     const endMs = startMs + (a.elapsed_time ?? 0) * 1000;
-    const isSauna = sauna.some((s) => startMs <= s.endMs + SAUNA_OVERLAP_MS && endMs >= s.startMs - SAUNA_OVERLAP_MS);
-    if (!isSauna) training.push({ startMs, endMs });
+    const overlapsSauna = sauna.some((s) => startMs <= s.endMs + SAUNA_OVERLAP_MS && endMs >= s.startMs - SAUNA_OVERLAP_MS);
+    if (overlapsSauna) continue;
+    // Kardio z Garmina to zawsze pobyt w saunie/spa, nawet gdy nie został zapisany ręcznie.
+    (isGarminSaunaActivity(a) ? sauna : training).push({ startMs, endMs });
   }
   return { training: mergeOverlapping(training), sauna };
 }

@@ -47,6 +47,31 @@ describe('mapSessions', () => {
     expect(training).toHaveLength(2);
     expect(training[0].endMs - training[0].startMs).toBe(60 * 60_000);
   });
+
+  it('traktuje Garmina „Kardio” jako saunę (pobyt w spa), a zwykły Workout jako trening', () => {
+    const { training, sauna } = mapSessions(
+      [],
+      [
+        { start_date: '2026-10-17T18:31:11Z', elapsed_time: 6727, sport_type: 'Workout', name: 'Kardio' },
+        { start_date: '2026-10-18T16:00:00Z', elapsed_time: 3000, sport_type: 'Workout', name: 'Siłownia' },
+        { start_date: '2026-10-19T08:00:00Z', elapsed_time: 600, sport_type: 'Workout', name: 'Kardio' },
+      ],
+    );
+    expect(sauna).toEqual([
+      { startMs: Date.parse('2026-10-17T18:31:11Z'), endMs: Date.parse('2026-10-17T18:31:11Z') + 6727_000 },
+      { startMs: Date.parse('2026-10-19T08:00:00Z'), endMs: Date.parse('2026-10-19T08:00:00Z') + 600_000 },
+    ]);
+    expect(training).toHaveLength(1);
+  });
+
+  it('nie dubluje sauny, gdy Kardio nakłada się na ręcznie zapisaną saunę', () => {
+    const { sauna, training } = mapSessions(
+      [{ workout_day: 'Sauna', start_time: '2026-10-17T18:31:00Z', end_time: '2026-10-17T20:23:00Z', duration_minutes: 112 }],
+      [{ start_date: '2026-10-17T18:31:11Z', elapsed_time: 6727, sport_type: 'Workout', name: 'Kardio' }],
+    );
+    expect(sauna).toHaveLength(1);
+    expect(training).toHaveLength(0);
+  });
 });
 
 describe('mapPhone', () => {

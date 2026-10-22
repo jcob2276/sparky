@@ -3,7 +3,7 @@ import type { StravaCleanActivity, StravaSplit, StravaBestEffort, GcHrZone } fro
 import type { Tables as DatabaseTables } from '../database.types';
 import { parseGcHrZones, parseStravaSplits, parseStravaBestEfforts } from '../db-json-guards';
 
-import { isGarminSaunaActivity } from '../health/workoutSauna';
+import { isGarminSaunaActivity } from '../health/garminSauna';
 
 interface StravaSectionParams {
   md: string;

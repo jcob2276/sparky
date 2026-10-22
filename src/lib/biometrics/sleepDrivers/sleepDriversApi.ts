@@ -48,7 +48,7 @@ export async function fetchSleepDriversInput(userId: string): Promise<SleepDrive
       .eq('user_id', userId).gte('start_time', fromISO),
     // historyczna nazwa tabeli; aktywne źródło to Garmin (source='garmin_intervals')
     supabase.from('strava_activities')
-      .select('start_date,elapsed_time,sport_type').eq('user_id', userId)
+      .select('start_date,elapsed_time,sport_type,name').eq('user_id', userId)
       .eq('source', 'garmin_intervals').gte('start_date', fromISO),
     supabase.from('phone_usage_daily').select('*').eq('user_id', userId).gte('date', sinceDayBefore),
     supabase.from('aw_daily_summary')

@@ -1,6 +1,7 @@
 import { Flame } from 'lucide-react';
 import { Card } from '../../ui/Card';
-import { getSaunaStats, isGarminSaunaActivity, sessionDateKey } from '../../../lib/health/workoutSauna';
+import { getSaunaStats, sessionDateKey } from '../../../lib/health/workoutSauna';
+import { isGarminSaunaActivity } from '../../../lib/health/garminSauna';
 import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 import type { DesktopSessionRow, StravaActivityRow } from '../shell/useDesktopData';
 

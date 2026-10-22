@@ -1,4 +1,5 @@
 import { formatWarsawDate, TIMEZONE } from '../date'
+import { isGarminSaunaActivity } from './garminSauna'
 import { newExercise, newSet, type WorkoutExercise } from './workout'
 import { saveWorkoutSession } from './workoutLogging'
 
@@ -37,7 +38,8 @@ export function sessionDateKey(date: string | null | undefined): string {
   if (!date) return ''
   return date.slice(0, 10)
 }
-function isSaunaSession(session: {
+
+function isSaunaSession(session: {
   workout_day?: string | null
   exercise_logs?: Array<{ exercise_name?: string | null; muscle_tags?: string[] | null; reps?: number | string | null }> | null
 }): boolean {
@@ -65,18 +67,6 @@ export interface StravaSaunaCandidate {
   name?: string | null
   sport_type?: string | null
   elapsed_time?: number | null
-}
-
-export function isGarminSaunaActivity(a: { name?: string | null; sport_type?: string | null }): boolean {
-  const sType = (a.sport_type || '').toLowerCase();
-  const n = (a.name || '').toLowerCase();
-  return (
-    sType.includes('cardio') ||
-    sType === 'sauna' ||
-    n.includes('kardio') ||
-    n.includes('cardio') ||
-    n.includes('sauna')
-  );
 }
 
 export function getSaunaStats(
