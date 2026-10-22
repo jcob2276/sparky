@@ -52,29 +52,30 @@ export default function LiveFinishSheet({ open, onOpenChange, logger, duration }
           className="h-12 w-full rounded-2xl border border-border-custom bg-surface-2 px-4 text-base font-semibold text-text-primary placeholder:text-text-muted"
         />
 
+        <div>
+          <p className="mb-1.5 text-xs font-bold text-text-secondary">Jak ciężki był cały trening? RPE (1–10) *</p>
+          <div className="grid grid-cols-5 gap-1.5">
+            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+              <Pressable
+                key={n}
+                aria-pressed={logger.sessionRpe === n}
+                onClick={() => logger.setSessionRpe(n)}
+                className={`h-10 rounded-xl border text-sm font-bold ${
+                  logger.sessionRpe === n ? 'border-primary bg-primary/15 text-primary' : 'border-border-custom bg-surface-1 text-text-secondary'
+                }`}
+              >
+                {n}
+              </Pressable>
+            ))}
+          </div>
+        </div>
+
         <Pressable onClick={() => setShowMore((v) => !v)} className="text-sm font-semibold text-primary">
-          {showMore ? 'Mniej' : 'Ocena, notatka, data'}
+          {showMore ? 'Mniej' : 'Notatka, data'}
         </Pressable>
 
         {showMore && (
           <div className="space-y-3">
-            <div>
-              <p className="mb-1.5 text-xs font-bold text-text-secondary">Jak ciężki był cały trening? (1–10)</p>
-              <div className="grid grid-cols-5 gap-1.5">
-                {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                  <Pressable
-                    key={n}
-                    aria-pressed={logger.sessionRpe === n}
-                    onClick={() => logger.setSessionRpe(logger.sessionRpe === n ? null : n)}
-                    className={`h-10 rounded-xl border text-sm font-bold ${
-                      logger.sessionRpe === n ? 'border-primary bg-primary/15 text-primary' : 'border-border-custom bg-surface-1 text-text-secondary'
-                    }`}
-                  >
-                    {n}
-                  </Pressable>
-                ))}
-              </div>
-            </div>
             <ControlTextarea
               aria-label="Notatka"
               value={logger.notes}
@@ -93,7 +94,8 @@ export default function LiveFinishSheet({ open, onOpenChange, logger, duration }
           </p>
         )}
         {empty && <p className="text-center text-sm text-text-muted">Zalicz przynajmniej jedną serię, żeby zapisać trening.</p>}
-        <Button variant="primary" size="lg" disabled={empty || logger.saving} onClick={save} className="w-full !h-14 !rounded-2xl !text-base !font-black">
+        {!empty && logger.sessionRpe == null && <p className="text-center text-sm text-text-muted">Zaznacz RPE, żeby zapisać trening.</p>}
+        <Button variant="primary" size="lg" disabled={empty || logger.sessionRpe == null || logger.saving} onClick={save} className="w-full !h-14 !rounded-2xl !text-base !font-black">
           {logger.saving ? 'Zapisuję…' : 'Zapisz trening'}
         </Button>
       </div>

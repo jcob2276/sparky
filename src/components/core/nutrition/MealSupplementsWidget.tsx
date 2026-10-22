@@ -18,8 +18,13 @@ function isReverseLogic(sup: Supplement): boolean {
   return /pyłek|pylek|pollen/i.test(sup.name) || sup.dose_per_unit?.['reverse_logic'] === true;
 }
 
+/** Stała dawka (kreatyna = 6 g) — bez wyboru liczby porcji. */
+const FIXED_DOSE_SLUGS = new Set(['kreatyna']);
+/** Chwilowo ukryte w widoku posiłku. */
+const HIDDEN_SLUGS = new Set(['cynk']);
+
 function isDueOn(sup: Supplement, date: string): boolean {
-  if (!sup.active || isReverseLogic(sup)) return false;
+  if (!sup.active || isReverseLogic(sup) || HIDDEN_SLUGS.has(sup.slug)) return false;
   if (sup.start_date && date < sup.start_date) return false;
   if (sup.end_date && date > sup.end_date) return false;
   return true;
@@ -90,7 +95,7 @@ export default function MealSupplementsWidget({ userId, date }: { userId: string
             quantity={logBySupplement.has(sup.id) ? Number(logBySupplement.get(sup.id)?.quantity ?? 1) : null}
             disabled={toggle.isPending || setQuantity.isPending}
             onToggle={() => void handleToggle(sup)}
-            onLongPress={() => {
+            onLongPress={FIXED_DOSE_SLUGS.has(sup.slug) ? undefined : () => {
               haptics.selection();
               setPicking(sup);
             }}

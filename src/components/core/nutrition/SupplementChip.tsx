@@ -12,7 +12,8 @@ interface Props {
   quantity: number | null;
   disabled: boolean;
   onToggle: () => void;
-  onLongPress: () => void;
+  /** Brak = stała porcja, bez wyboru liczby. */
+  onLongPress?: () => void;
 }
 
 /** Chip suplementu: tap przełącza „zażyty”, przytrzymanie otwiera wybór liczby porcji. */
@@ -28,6 +29,7 @@ export default function SupplementChip({ sup, quantity, disabled, onToggle, onLo
   const start = () => {
     fired.current = false;
     cancel();
+    if (!onLongPress) return;
     timer.current = window.setTimeout(() => {
       fired.current = true;
       onLongPress();
@@ -38,7 +40,7 @@ export default function SupplementChip({ sup, quantity, disabled, onToggle, onLo
     <Pressable
       type="button"
       aria-pressed={taken}
-      aria-label={`${sup.name}: ${taken ? 'zażyty, kliknij aby cofnąć' : 'oznacz jako zażyty'}. Przytrzymaj, aby wybrać liczbę`}
+      aria-label={`${sup.name}: ${taken ? 'zażyty, kliknij aby cofnąć' : 'oznacz jako zażyty'}.${onLongPress ? ' Przytrzymaj, aby wybrać liczbę' : ''}`}
       disabled={disabled}
       haptic="none"
       onPointerDown={start}
