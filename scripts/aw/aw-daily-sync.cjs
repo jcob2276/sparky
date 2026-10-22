@@ -116,20 +116,61 @@ function warsawHour(isoTimestamp) {
   return parseInt(new Date(isoTimestamp).toLocaleTimeString('pl-PL', { timeZone: 'Europe/Warsaw', hour: '2-digit', hour12: false }));
 }
 
+/** Warsaw calendar day [00:00, next 00:00) as UTC ISO strings (AW parses naive timestamps as UTC). */
+function warsawDayRange(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const midnightUtc = (yy, mm, dd) => {
+    for (const off of [0, 1, 2, 3]) {
+      const t = Date.UTC(yy, mm - 1, dd, -off);
+      if (toWarsaw(new Date(t)) === toWarsaw(new Date(Date.UTC(yy, mm - 1, dd, 12))) && toWarsaw(new Date(t - 1)) !== toWarsaw(new Date(t))) return t;
+    }
+    return Date.UTC(yy, mm - 1, dd);
+  };
+  const start = midnightUtc(y, m, d);
+  const next = new Date(Date.UTC(y, m - 1, d + 1, 12));
+  const end = midnightUtc(next.getUTCFullYear(), next.getUTCMonth() + 1, next.getUTCDate());
+  return { start: new Date(start).toISOString(), end: new Date(end).toISOString() };
+}
+
+function mergeIntervals(intervals) {
+  const sorted = intervals.map(i => [i.start.getTime(), i.end.getTime()]).sort((a, b) => a[0] - b[0]);
+  const out = [];
+  for (const [a, b] of sorted) {
+    if (out.length && a <= out[out.length - 1][1]) out[out.length - 1][1] = Math.max(out[out.length - 1][1], b);
+    else out.push([a, b]);
+  }
+  return out;
+}
+
+/** Clip events to the merged not-afk intervals: only the overlapping part of an event counts as active. */
+function clipToActive(events, merged) {
+  const out = [];
+  for (const e of events) {
+    const s = new Date(e.timestamp).getTime();
+    const en = s + e.duration * 1000;
+    for (const [a, b] of merged) {
+      if (b <= s) continue;
+      if (a >= en) break;
+      const cs = Math.max(s, a), ce = Math.min(en, b);
+      if (ce > cs) out.push({ ...e, timestamp: new Date(cs).toISOString(), duration: (ce - cs) / 1000 });
+    }
+  }
+  return out;
+}
+
 function findBucket(buckets, keyword) {
   return Object.keys(buckets).find(k => k.toLowerCase().includes(keyword)) || null;
 }
 
 async function getEvents(bucketId, start, end) {
-  const url = `${AW_URL}/api/0/buckets/${bucketId}/events?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&limit=10000`;
+  const url = `${AW_URL}/api/0/buckets/${bucketId}/events?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}&limit=-1`;
   return await httpGet(url);
 }
 
 // ── Sync jednego dnia ─────────────────────────────────────────────────────────
 
 async function syncDay(buckets, dateStr) {
-  const start = `${dateStr}T00:00:00`;
-  const end   = `${dateStr}T23:59:59`;
+  const { start, end } = warsawDayRange(dateStr);
 
   const windowBucket = findBucket(buckets, 'window');
   const afkBucket    = findBucket(buckets, 'afk');
@@ -164,9 +205,8 @@ async function syncDay(buckets, dateStr) {
   }
 
   // Filtruj przez not-afk
-  const activeEvents = notAfkIntervals
-    ? windowEvents.filter(e => { const t = new Date(e.timestamp); return notAfkIntervals.some(i => t >= i.start && t < i.end); })
-    : windowEvents;
+  const mergedActive = notAfkIntervals ? mergeIntervals(notAfkIntervals) : null;
+  const activeEvents = mergedActive ? clipToActive(windowEvents, mergedActive) : windowEvents;
 
   if (activeEvents.length === 0) return null;
 
@@ -212,7 +252,7 @@ async function syncDay(buckets, dateStr) {
       const webEvents = await getEvents(webBucket, start, end);
       if (Array.isArray(webEvents) && webEvents.length > 0) {
         const domainMap = {};
-        for (const e of webEvents) {
+        for (const e of (mergedActive ? clipToActive(webEvents, mergedActive) : webEvents)) {
           const domain = extractDomain(e.data?.url || '');
           if (!domain) continue;
           domainMap[domain] = (domainMap[domain] || 0) + e.duration;
