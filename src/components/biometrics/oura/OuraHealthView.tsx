@@ -74,29 +74,32 @@ export function OuraHealthView({
         )}
       </main>
 
-      <nav
-        aria-label="Sekcje zdrowia"
-        className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-xs items-center justify-around rounded-full border border-white/10 bg-surface-1/90 p-2 shadow-2xl backdrop-blur-xl"
-      >
-        {NAV_ITEMS.map(({ icon: Icon, id, label }) => {
-          const active = activeSection === id;
-          return (
-            <Button
-              key={id}
-              aria-label={label}
-              aria-pressed={active}
-              className={`!min-h-12 !min-w-24 !flex-col !gap-1 !rounded-full !px-2.5 !text-xs ${
-                active ? '!bg-white/10 !text-white' : '!text-text-muted'
-              }`}
-              onClick={() => onSectionChange(id)}
-              variant="ghost"
-            >
-              <Icon size={18} strokeWidth={active ? 2.2 : 1.7} />
-              <span>{label}</span>
-            </Button>
-          );
-        })}
-      </nav>
+      {/* sticky in normal flow (not fixed): stays centred in the page column even if an ancestor changes the fixed containing block */}
+      <div className="pointer-events-none sticky bottom-4 z-50 px-4">
+        <nav
+          aria-label="Sekcje zdrowia"
+          className="pointer-events-auto mx-auto flex max-w-xs items-center justify-around rounded-full border border-white/10 bg-surface-1/90 p-2 shadow-2xl backdrop-blur-xl"
+        >
+          {NAV_ITEMS.map(({ icon: Icon, id, label }) => {
+            const active = activeSection === id;
+            return (
+              <Button
+                key={id}
+                aria-label={label}
+                aria-pressed={active}
+                className={`!min-h-12 !min-w-24 !flex-col !gap-1 !rounded-full !px-2.5 !text-xs ${
+                  active ? '!bg-white/10 !text-white' : '!text-text-muted'
+                }`}
+                onClick={() => onSectionChange(id)}
+                variant="ghost"
+              >
+                <Icon size={18} strokeWidth={active ? 2.2 : 1.7} />
+                <span>{label}</span>
+              </Button>
+            );
+          })}
+        </nav>
+      </div>
     </div>
   );
 }
