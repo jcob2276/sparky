@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import Spinner from '../../../ui/Spinner';
+import Skeleton from '../../../ui/Skeleton';
 import { MEAL_TYPES, type MealTypeId } from '../../../../lib/health/foodLogging';
 import type { TodayFoodEntry } from '../../../../lib/health/composerTodayMealsApi';
 import MealGroupCard from './MealGroupCard';
@@ -27,10 +27,7 @@ export default memo(function CopyDayMealsList({
 }: CopyDayMealsListProps) {
   if (isLoading && !hasEntries) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 gap-2 text-text-muted">
-        <Spinner size="md" />
-        <span className="text-xs font-medium">Ładowanie posiłków…</span>
-      </div>
+      <Skeleton variant="card" lines={3} className="py-6" />
     );
   }
 

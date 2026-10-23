@@ -43,6 +43,10 @@ export function useLocationStatus() {
         if (summary.action === 'grant_foreground' && next && !next.fine && !next.coarse) {
           await openBackgroundLocationSettings();
         }
+        // Android 11+ has no in-app dialog for "Always": send the user to the permission screen.
+        if (summary.action === 'grant_background' && next && !next.background) {
+          await openBackgroundLocationSettings();
+        }
       } else if (summary.action === 'open_gps') {
         await openLocationSystemSettings();
       } else if (summary.action === 'open_app_settings') {

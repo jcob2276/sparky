@@ -37,7 +37,7 @@ export default function DesktopToolsLauncherModal({ isOpen, onClose }: Props) {
         {/* Codzienny obieg */}
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xs font-black uppercase tracking-wider text-text-muted">
+            <span className="text-2xs font-semibold tracking-wide text-text-muted">
               Codzienne Narzędzia Operacyjne
             </span>
             <div className="h-px flex-1 bg-border-custom/50" />
@@ -61,7 +61,7 @@ export default function DesktopToolsLauncherModal({ isOpen, onClose }: Props) {
                   <span className="text-xs font-bold text-text-primary group-hover:text-primary transition-colors">
                     {tool.label}
                   </span>
-                  <span className="text-3xs text-text-secondary line-clamp-1 mt-0.5">
+                  <span className="text-2xs text-text-secondary line-clamp-1 mt-0.5">
                     {tool.description}
                   </span>
                 </Pressable>
@@ -73,7 +73,7 @@ export default function DesktopToolsLauncherModal({ isOpen, onClose }: Props) {
         {/* Strategia, Zdrowie i Pamięć */}
         <div>
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xs font-black uppercase tracking-wider text-text-muted">
+            <span className="text-2xs font-semibold tracking-wide text-text-muted">
               Strategia, Zdrowie & Pamięć Długoterminowa
             </span>
             <div className="h-px flex-1 bg-border-custom/50" />
@@ -97,7 +97,7 @@ export default function DesktopToolsLauncherModal({ isOpen, onClose }: Props) {
                   <span className="text-xs font-bold text-text-primary group-hover:text-primary transition-colors">
                     {tool.label}
                   </span>
-                  <span className="text-3xs text-text-secondary line-clamp-1 mt-0.5">
+                  <span className="text-2xs text-text-secondary line-clamp-1 mt-0.5">
                     {tool.description}
                   </span>
                 </Pressable>

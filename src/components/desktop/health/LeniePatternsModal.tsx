@@ -32,38 +32,38 @@ export default function LeniePatternsModal({
         {/* KPI Grid */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="bg-danger/10 border border-danger/25 rounded-lg p-3">
-            <div className="flex items-center gap-1.5 text-danger text-2xs font-bold uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-1.5 text-danger text-2xs font-bold tracking-wide mb-1">
               <Clock className="w-3.5 h-3.5" />
               Noc (20–01)
             </div>
-            <div className="text-xl font-black text-danger">{stats.nightWindowPct}%</div>
+            <div className="text-xl font-semibold text-danger">{stats.nightWindowPct}%</div>
             <div className="text-2xs text-text-muted mt-0.5">{stats.nightWindowCount} zdarzeń w historii</div>
           </div>
 
           <div className="bg-warning/10 border border-warning/25 rounded-lg p-3">
-            <div className="flex items-center gap-1.5 text-warning text-2xs font-bold uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-1.5 text-warning text-2xs font-bold tracking-wide mb-1">
               <Clock className="w-3.5 h-3.5" />
               Popołudnie (13–17)
             </div>
-            <div className="text-xl font-black text-warning">{stats.afternoonWindowPct}%</div>
+            <div className="text-xl font-semibold text-warning">{stats.afternoonWindowPct}%</div>
             <div className="text-2xs text-text-muted mt-0.5">{stats.afternoonWindowCount} zdarzeń w historii</div>
           </div>
 
           <div className="bg-surface-elevated border border-border-custom/40 rounded-lg p-3">
-            <div className="flex items-center gap-1.5 text-text-secondary text-2xs font-bold uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-1.5 text-text-secondary text-2xs font-bold tracking-wide mb-1">
               <Flame className="w-3.5 h-3.5 text-danger/70" />
               Razem 30 dni
             </div>
-            <div className="text-xl font-black text-text-primary">{stats.totalEjaculations30}</div>
+            <div className="text-xl font-semibold text-text-primary">{stats.totalEjaculations30}</div>
             <div className="text-2xs text-text-muted mt-0.5">ø {stats.avgPerDay} / aktywny dzień</div>
           </div>
 
           <div className="bg-success/10 border border-success/25 rounded-lg p-3">
-            <div className="flex items-center gap-1.5 text-success text-2xs font-bold uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-1.5 text-success text-2xs font-bold tracking-wide mb-1">
               <ShieldCheck className="w-3.5 h-3.5" />
               Poranek (02–11)
             </div>
-            <div className="text-xl font-black text-success">
+            <div className="text-xl font-semibold text-success">
               {Math.max(0, 100 - stats.nightWindowPct - stats.afternoonWindowPct)}%
             </div>
             <div className="text-2xs text-text-muted mt-0.5">Strefa stabilna</div>
@@ -82,7 +82,7 @@ export default function LeniePatternsModal({
 
         {/* Patterns List */}
         <div className="flex flex-col gap-2.5">
-          <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wider flex items-center gap-1.5">
+          <h4 className="text-xs font-bold text-text-secondary tracking-wide flex items-center gap-1.5">
             <AlertTriangle className="w-3.5 h-3.5 text-warning" />
             Wykryte Prawidłowości Behawioralne
           </h4>
@@ -103,7 +103,7 @@ export default function LeniePatternsModal({
                   <div>
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <span className="text-xs font-bold text-text-primary">{p.title}</span>
-                      <span className={`text-3xs font-mono px-2 py-0.5 rounded border font-semibold ${badgeColors}`}>
+                      <span className={`text-2xs font-mono px-2 py-0.5 rounded border font-semibold ${badgeColors}`}>
                         {p.badge}
                       </span>
                     </div>
@@ -117,23 +117,23 @@ export default function LeniePatternsModal({
 
         {/* Recent logs with exact timestamps */}
         <div className="flex flex-col gap-2">
-          <h4 className="text-xs font-bold text-text-secondary uppercase tracking-wider">
+          <h4 className="text-xs font-bold text-text-secondary tracking-wide">
             Ostatnie wpadki z dokładną godziną
           </h4>
           <div className="border border-border-custom/30 rounded-lg divide-y divide-border-custom/20 max-h-48 overflow-y-auto bg-surface-ground/40">
             {stats.recentLogs.map((log, idx) => (
-              <div key={`${log.date}-${idx}`} className="px-3 py-2 flex items-center justify-between text-2xs gap-3">
+              <div key={`${log.date}-${idx}`} className="px-3 py-2 flex flex-col gap-1 text-xs sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="font-mono text-text-primary font-medium">{log.date}</span>
+                  <span className="whitespace-nowrap font-mono text-text-primary font-medium">{log.date}</span>
                   {log.timeStr ? (
-                    <span className="font-mono text-danger bg-danger/10 px-1.5 py-0.5 rounded text-3xs font-bold">
+                    <span className="font-mono text-danger bg-danger/10 px-1.5 py-0.5 rounded text-2xs font-bold">
                       {log.timeStr}
                     </span>
                   ) : (
-                    <span className="text-text-muted/50 text-3xs">—</span>
+                    <span className="text-text-muted/50 text-2xs">—</span>
                   )}
                 </div>
-                <div className="text-text-secondary truncate text-right">
+                <div className="text-text-secondary break-words sm:text-right">
                   <span className="font-medium text-text-primary">{log.stimulus}</span>
                   {log.context && <span className="text-text-muted ml-1.5 italic">({log.context})</span>}
                 </div>

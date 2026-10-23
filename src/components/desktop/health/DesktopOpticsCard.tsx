@@ -73,7 +73,7 @@ export default function DesktopOpticsCard({ onOpenOptics }: Props) {
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-              <p className="flex items-center justify-center gap-1 text-2xs font-bold uppercase tracking-wider text-text-muted">
+              <p className="flex items-center justify-center gap-1 text-2xs font-bold tracking-wide text-text-muted">
                 <Ruler size={11} /> Krawędź rozmycia
               </p>
               <p className="mt-1 text-2xl font-light text-text-primary">
@@ -83,7 +83,7 @@ export default function DesktopOpticsCard({ onOpenOptics }: Props) {
             </div>
 
             <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-              <p className="flex items-center justify-center gap-1 text-2xs font-bold uppercase tracking-wider text-info">
+              <p className="flex items-center justify-center gap-1 text-2xs font-bold tracking-wide text-info">
                 <Glasses size={11} /> Wyliczona wada
               </p>
               <p className="mt-1 text-2xl font-light text-info">
@@ -93,7 +93,7 @@ export default function DesktopOpticsCard({ onOpenOptics }: Props) {
             </div>
 
             <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-              <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Oko lewe (OS)</p>
+              <p className="text-2xs font-bold tracking-wide text-text-muted">Oko lewe (OS)</p>
               <p className="mt-1 text-lg font-semibold text-text-primary">
                 {latestLeft ? `${latestLeft.diopters.toFixed(2)} D` : '—'}
               </p>
@@ -103,7 +103,7 @@ export default function DesktopOpticsCard({ onOpenOptics }: Props) {
             </div>
 
             <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-              <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Oko prawe (OD)</p>
+              <p className="text-2xs font-bold tracking-wide text-text-muted">Oko prawe (OD)</p>
               <p className="mt-1 text-lg font-semibold text-text-primary">
                 {latestRight ? `${latestRight.diopters.toFixed(2)} D` : '—'}
               </p>
@@ -129,14 +129,14 @@ export default function DesktopOpticsCard({ onOpenOptics }: Props) {
                 </span>
               </div>
               {diffDiffLeft && diffDiffRight && (
-                <p className="text-3xs text-text-muted pl-5">
+                <p className="text-2xs text-text-muted pl-5">
                   Szkła robocze do komputera (65cm): <strong className="text-text-secondary">OS {diffDiffLeft} D / OD {diffDiffRight} D</strong> (+1.50D redukcji hiperopii).
                 </p>
               )}
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <span className="inline-flex items-center gap-1 text-3xs font-bold uppercase tracking-widest text-success">
+              <span className="inline-flex items-center gap-1 text-2xs font-bold tracking-wide text-success">
                 <CheckCircle2 size={12} /> Aktywne skupienie
               </span>
             </div>

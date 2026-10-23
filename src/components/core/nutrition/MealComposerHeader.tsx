@@ -22,7 +22,7 @@ export function ComposerHeader({
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <p className="font-display text-base font-black tracking-tight text-text-primary">Posiłek</p>
+        <p className="font-display text-base font-semibold tracking-tight text-text-primary">Posiłek</p>
         <div role="group" aria-label="Dzień" className="meal-segment relative flex items-center">
           {([['Dziś', today], ['Wczoraj', yesterday]] as const).map(([label, date]) => (
             <Pressable

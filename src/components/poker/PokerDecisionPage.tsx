@@ -36,7 +36,7 @@ export default function PokerDecisionPage() {
           tabs={TABS}
           active={activeTab}
           onChange={(key) => setActiveTab(key as PokerTab)}
-          className="my-1.5 min-w-0 flex-1 rounded-xl bg-surface-2 p-0.5 [&_.ui-tab]:min-h-[40px] [&_.ui-tab]:rounded-[10px]"
+          className="my-1.5 min-w-0 flex-1 rounded-xl bg-surface-2 p-0.5 [&_.ui-tab]:min-h-[40px] [&_.ui-tab]:min-w-0 [&_.ui-tab]:whitespace-nowrap [&_.ui-tab]:px-2 [&_.ui-tab]:rounded-[10px]"
         />
         <a
           href={standaloneSrc}

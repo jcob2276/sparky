@@ -61,7 +61,7 @@ export default function CopyDayPinnedHeader({
       {/* Pinned Modal Header */}
       <div className="flex items-center justify-between border-b border-border-custom/50 px-5 py-3 bg-surface-solid/30">
         <div>
-          <h3 className="text-base font-black text-text-primary tracking-tight">Kopiuj z innego dnia</h3>
+          <h3 className="text-base font-semibold text-text-primary tracking-tight">Kopiuj z innego dnia</h3>
           <p className="text-2xs font-medium text-text-muted">Wybierz dzień, zaznacz produkty i przenieś do dzisiaj</p>
         </div>
         <Pressable

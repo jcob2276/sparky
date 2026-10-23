@@ -16,14 +16,14 @@ export function SphereDetailsDrawer({ pillar, marathon, onClose }: SphereDetails
   return (
     <div className="rounded-2xl border border-border-custom/50 bg-surface-2/60 p-3.5 space-y-2.5 animate-fadeIn">
       <div className="flex items-center justify-between border-b border-border-custom/40 pb-1.5">
-        <span className={`text-2xs font-black uppercase tracking-wider ${cfg.badgeText}`}>
+        <span className={`text-2xs font-semibold tracking-wide ${cfg.badgeText}`}>
           Cel Sfery: {goal.title} ({goal.metric})
         </span>
         <Pressable
           variant="ghost"
           size="sm"
           onClick={onClose}
-          className="text-3xs text-text-muted hover:text-text-primary cursor-pointer"
+          className="text-2xs text-text-muted hover:text-text-primary cursor-pointer"
         >
           Zwiń
         </Pressable>
@@ -42,11 +42,11 @@ export function SphereDetailsDrawer({ pillar, marathon, onClose }: SphereDetails
 
       {pillar === 'cialo' && marathon.daysLeft > 0 && (
         <div className="rounded-xl border border-success/30 bg-success/5 p-2.5 space-y-1.5 mt-2">
-          <div className="flex items-center justify-between text-2xs font-black text-text-primary">
+          <div className="flex items-center justify-between text-2xs font-semibold text-text-primary">
             <span className="flex items-center gap-1 text-success">
               <Trophy size={13} /> {marathon.name}
             </span>
-            <span className="text-3xs text-text-muted">
+            <span className="text-2xs text-text-muted">
               {marathon.daysLeft} dni ({marathon.weeksLeft} tyg. {marathon.remainingDays} d)
             </span>
           </div>
@@ -57,7 +57,7 @@ export function SphereDetailsDrawer({ pillar, marathon, onClose }: SphereDetails
                 style={{ width: `${marathon.progressPct}%` }}
               />
             </div>
-            <span className="inline-flex items-center gap-0.5 text-3xs font-black text-success">
+            <span className="inline-flex items-center gap-0.5 text-2xs font-semibold text-success">
               <Flame size={10} /> {marathon.progressPct}% cyklu
             </span>
           </div>

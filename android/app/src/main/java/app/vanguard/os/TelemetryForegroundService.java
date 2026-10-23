@@ -59,6 +59,7 @@ public class TelemetryForegroundService extends Service {
             return START_NOT_STICKY;
         }
         TelemetryForegroundServiceHolder.setRunning(true);
+        BootRestartState.setWanted(this, true);
         if (collector == null) collector = new LocationCollector(this);
         if (!collector.start()) {
             Log.w(TAG, "Location permission missing; collector not started");

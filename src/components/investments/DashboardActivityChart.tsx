@@ -12,13 +12,14 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
     <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-xs space-y-4 flex flex-col justify-between h-full">
       {/* Header */}
       <div>
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-semibold text-text-primary">Aktywność źródeł, 14 dni</h2>
-          <span className="ui-num text-xl font-semibold text-text-primary">
-            {activity.total.toLocaleString()}
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="min-w-0 text-base font-semibold text-text-primary">Aktywność źródeł, 14 dni</h2>
+          <span className="ui-num shrink-0 text-right text-xl font-semibold leading-tight text-text-primary">
+            {activity.total.toLocaleString('pl-PL')}
+            <span className="block text-xs font-medium text-text-muted">zgłoszeń</span>
           </span>
         </div>
-        <p className="text-2xs text-text-secondary mt-0.5">
+        <p className="text-xs text-text-secondary mt-0.5">
           Zgłoszenia w odczytanych danych · {activity.peakDateLabel ? `szczyt ${activity.peakDateLabel}` : "brak zdarzeń"}
         </p>
       </div>

@@ -73,7 +73,7 @@ function PopoverHeader({
     <div className="flex items-center justify-between pb-2.5 border-b border-border-custom/50">
       <div className="flex items-center gap-1.5">
         <Calendar size={14} className="text-primary" />
-        <h4 className="text-xs font-black uppercase tracking-wider text-text-primary">
+        <h4 className="text-xs font-semibold tracking-wide text-text-primary">
           {monthName} {year}
         </h4>
       </div>
@@ -234,7 +234,7 @@ export default function MealDatePickerPopover({
         {WEEKDAY_SHORT.map((w, idx) => (
           <span
             key={w}
-            className={`text-3xs font-black uppercase tracking-wider ${
+            className={`text-2xs font-semibold tracking-wide ${
               idx >= 5 ? 'text-text-muted/60' : 'text-text-muted'
             }`}
           >
@@ -258,7 +258,7 @@ export default function MealDatePickerPopover({
               onClick={() => handlePickDate(key)}
               className={`flex h-8 w-8 items-center justify-center mx-auto rounded-xl text-xs font-bold ui-interactive cursor-pointer ${
                 isSelected
-                  ? 'bg-primary text-on-accent shadow-xs font-black'
+                  ? 'bg-primary text-on-accent shadow-xs font-semibold'
                   : isFuture
                   ? 'text-text-muted/20 cursor-not-allowed'
                   : !isCurrentMonth

@@ -73,7 +73,7 @@ export class ErrorBoundary extends Component<Props, State> {
             data-testid="inline-error-boundary"
             className="rounded-2xl border border-danger/25 bg-danger/5 p-4 text-center my-2 space-y-2.5"
           >
-            <div className="flex items-center justify-center gap-1.5 text-danger font-bold text-xs uppercase tracking-wider">
+            <div className="flex items-center justify-center gap-1.5 text-danger font-bold text-xs tracking-wide">
               <AlertTriangle size={14} className="shrink-0" />
               <span>Błąd modułu</span>
             </div>
@@ -104,7 +104,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-danger/10 text-danger border border-danger/20 mb-4">
             <AlertTriangle size={24} />
           </div>
-          <h2 className="text-lg font-black text-text-primary mb-2 font-display uppercase tracking-wide">
+          <h2 className="text-lg font-semibold text-text-primary mb-2 font-display tracking-wide">
             Coś poszło nie tak
           </h2>
           <p className="text-sm font-semibold text-text-muted mb-5 max-w-sm">

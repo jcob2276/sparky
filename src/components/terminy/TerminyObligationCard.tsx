@@ -149,7 +149,7 @@ export function TerminyObligationCard({
             }
           : undefined
       }
-      className={`group relative flex items-center ${
+      className={`group relative flex flex-wrap items-center sm:flex-nowrap ${
         compact ? 'gap-2.5 rounded-2xl p-2.5' : 'gap-3.5 rounded-[20px] p-3.5'
       } border border-border-custom/30 bg-surface-solid/70 backdrop-blur-md shadow-xs transition-all duration-200 ease-out active:scale-[0.98] hover:border-border-custom/60 hover:bg-surface-2/70 hover:shadow-md ${
         onEdit ? 'cursor-pointer' : ''
@@ -173,7 +173,7 @@ export function TerminyObligationCard({
       <ObligationProgressRing row={row} kind={kind} compact={compact} reduceMotion={reduceMotion} />
 
       {/* Info Block */}
-      <div className="min-w-0 flex-1 space-y-0.5">
+      <div className="min-w-0 flex-1 basis-[calc(100%-6rem)] space-y-0.5 sm:basis-auto">
         <div className="flex items-center gap-2">
           <p className="truncate text-sm font-semibold tracking-tight text-text-primary">
             {row.item.title}
@@ -198,7 +198,7 @@ export function TerminyObligationCard({
         </div>
 
         {row.item.notes && (
-          <p className="flex items-center gap-1 text-2xs text-text-muted/90 truncate pt-0.5">
+          <p className="flex items-center gap-1 text-xs text-text-muted/90 truncate pt-0.5">
             <FileSpreadsheet size={11} strokeWidth={2} className="shrink-0 text-primary/80" />
             <span className="truncate">{row.item.notes}</span>
           </p>
@@ -206,7 +206,7 @@ export function TerminyObligationCard({
       </div>
 
       {/* Actions & Urgency Pill */}
-      <div className="flex shrink-0 items-center gap-1.5">
+      <div className="flex w-full shrink-0 items-center justify-between gap-1.5 sm:w-auto sm:justify-end">
         <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-2xs font-semibold tracking-tight ${badgeClass}`}>
           <Clock size={11} strokeWidth={2.2} />
           {countdownLabel(row.daysLeft)}
@@ -218,7 +218,7 @@ export function TerminyObligationCard({
               e.stopPropagation();
               onConvertToTodo();
             }}
-            className="rounded-full p-2 text-text-muted opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
             title="Dodaj zadanie do Todo"
             aria-label="Dodaj zadanie do Todo"
           >
@@ -232,7 +232,7 @@ export function TerminyObligationCard({
               e.stopPropagation();
               onAddToCalendar(row);
             }}
-            className="rounded-full p-2 text-text-muted opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
             title="Dodaj do Kalendarza Sparky"
             aria-label="Dodaj do Kalendarza Sparky"
           >
@@ -246,7 +246,7 @@ export function TerminyObligationCard({
               e.stopPropagation();
               onExportICS(row);
             }}
-            className="rounded-full p-2 text-text-muted opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-70 transition-all duration-150 ease-out hover:bg-primary/10 hover:text-primary hover:opacity-100 active:scale-90"
             title="Eksportuj do pliku iCal (.ics)"
             aria-label="Eksportuj do pliku iCal (.ics)"
           >
@@ -259,7 +259,7 @@ export function TerminyObligationCard({
             e.stopPropagation();
             onDelete();
           }}
-          className="rounded-full p-2 text-text-muted opacity-60 transition-all duration-150 ease-out hover:bg-danger/10 hover:text-danger hover:opacity-100 active:scale-90 group-hover:opacity-100"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-text-muted sm:h-9 sm:w-9 opacity-60 transition-all duration-150 ease-out hover:bg-danger/10 hover:text-danger hover:opacity-100 active:scale-90 group-hover:opacity-100"
           aria-label="Usuń termin"
         >
           <Trash2 size={15} strokeWidth={2} />

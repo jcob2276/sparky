@@ -35,10 +35,10 @@ function EventMarkersList({
             className="flex items-center justify-between p-2.5 text-xs hover:bg-surface-2 transition-colors cursor-pointer"
           >
             <div className="min-w-0 flex-1 pr-2">
-              <p className={`font-bold truncate ${isAlert ? 'text-warning' : 'text-text-primary'}`}>
+              <p className={`font-bold break-words ${isAlert ? 'text-warning' : 'text-text-primary'}`}>
                 {m.name}
               </p>
-              <p className="text-2xs text-text-muted font-mono">Norma: {refStr}</p>
+              <p className="text-xs text-text-muted font-mono">Norma: {refStr}</p>
             </div>
             <div className="text-right shrink-0">
               <span className={`font-mono font-extrabold ${isAlert ? 'text-warning' : 'text-text-primary'}`}>

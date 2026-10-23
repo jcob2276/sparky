@@ -73,13 +73,13 @@ export default function LightboxGallery({ images, initialIndex, onClose }: Props
         {zoomed !== null && images.length > 1 ? (
           <Pressable
             onClick={() => setZoomed(null)}
-            className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors text-xs font-semibold tracking-wide uppercase"
+            className="flex items-center gap-1.5 text-white/70 hover:text-white transition-colors text-xs font-semibold tracking-wide"
           >
             <ArrowLeft size={14} />
             Galeria
           </Pressable>
         ) : (
-          <span className="text-xs font-black uppercase tracking-widest text-white/40">
+          <span className="text-xs font-semibold tracking-wide text-white/40">
             Wizja · {images.length} {images.length === 1 ? 'zdjęcie' : 'zdjęcia'}
           </span>
         )}
@@ -125,7 +125,7 @@ export default function LightboxGallery({ images, initialIndex, onClose }: Props
               />
               {/* Etykieta na hover */}
               <div className="absolute inset-x-0 bottom-0 py-1.5 px-2 bg-gradient-to-t from-black/80 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200">
-                <p className="text-3xs font-black uppercase tracking-widest text-white truncate">
+                <p className="text-2xs font-semibold tracking-wide text-white truncate">
                   {img.title}
                 </p>
               </div>
@@ -173,7 +173,7 @@ export default function LightboxGallery({ images, initialIndex, onClose }: Props
             </div>
           )}
 
-          <p className="text-3xs font-semibold text-white/30 tracking-widest uppercase">
+          <p className="text-2xs font-semibold text-white/30 tracking-wide">
             {images.length > 1 ? 'Dotknij tła aby wrócić do galerii' : 'Dotknij gdziekolwiek aby zamknąć'}
           </p>
         </div>

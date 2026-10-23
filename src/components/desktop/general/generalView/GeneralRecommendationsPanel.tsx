@@ -184,7 +184,7 @@ export default function GeneralRecommendationsPanel({
                 <Compass size={14} />
                 Governor uwagi: max 3 priorytety
               </span>
-              <span className="text-3xs text-text-muted">
+              <span className="text-2xs text-text-muted">
                 Dedykowane skupienie poznawcze
               </span>
             </div>

@@ -63,6 +63,7 @@ public class BackgroundSyncPlugin extends Plugin {
     @PluginMethod
     public void stop(PluginCall call) {
         Context ctx = getContext();
+        BootRestartState.setWanted(ctx, false);
         ctx.stopService(new Intent(ctx, TelemetryForegroundService.class));
         TelemetryForegroundServiceHolder.setRunning(false);
         JSObject ret = new JSObject();

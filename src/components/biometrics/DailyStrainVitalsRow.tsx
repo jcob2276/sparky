@@ -7,7 +7,6 @@ import React, { useState } from 'react';
 import { Zap, Activity, Moon, Thermometer, Footprints, ChevronDown } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
 import type { Tables } from '../../lib/database.types';
-import { StatHero } from '../ui/StatHero';
 import { zToVitalColor } from './dailyStrainCardStyles';
 import {
   TrendArrow,
@@ -47,8 +46,9 @@ function formatVitalValue(
 ) {
   if (today == null) return '--';
   return (
-    <span className="flex items-center justify-center">
-      {today.toLocaleString()}{unit}
+    <span className="flex items-baseline justify-center gap-0.5 whitespace-nowrap">
+      {today.toLocaleString('pl-PL')}
+      {unit && <span className="text-2xs font-semibold text-text-muted">{unit}</span>}
       <TrendArrow today={today} yesterday={yesterday} better={better} />
     </span>
   );
@@ -74,7 +74,7 @@ export default function DailyStrainVitalsRow({
         : null;
 
   const sleepVal = sleepRawVal ? (
-    <span className="flex items-center justify-center">
+    <span className="flex items-baseline justify-center gap-0.5 whitespace-nowrap">
       {sleepRawVal}
       <TrendArrow today={oura.total_sleep_hours} yesterday={ouraYesterday?.total_sleep_hours} better="higher" />
     </span>
@@ -133,13 +133,17 @@ export default function DailyStrainVitalsRow({
     <div className="space-y-3 relative z-[var(--z-raised)]">
       {/* Primary Vitals Row */}
       <div className="h-px bg-border-custom/30" />
-      <div className="flex items-center justify-between">
-        {vitals.map(({ icon: Icon, label, value, color }, idx) => (
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+        {vitals.map(({ icon: Icon, label, value, color }) => (
           <div
             key={label}
-            className={`flex-1 flex flex-col items-center text-center ${idx > 0 ? 'border-l border-border-custom/30' : ''}`}
+            className="flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl border border-border-custom/40 bg-surface-2 px-1.5 py-2 text-center"
           >
-            <StatHero value={value} label={label} icon={Icon} color={color} size="sm" />
+            <p className="flex items-center justify-center gap-1 text-2xs font-bold uppercase tracking-wider text-text-muted">
+              <Icon size={11} className={color} aria-hidden="true" />
+              {label}
+            </p>
+            <p className={`font-display text-base font-black leading-none ${color}`}>{value}</p>
           </div>
         ))}
       </div>

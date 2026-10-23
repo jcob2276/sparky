@@ -3,6 +3,7 @@ import { ChevronRight, AlertTriangle, ArrowDown, ArrowUp, Minus, Search, X } fro
 import type { MarkerSeries, MedicalLabRow } from '../../../lib/health/medicalAnalytics';
 import { ControlInput, ControlSelect, Pressable } from '../../ui/ControlPrimitives';
 import MedicalRangeGauge from './MedicalRangeGauge';
+import MedicalResultsCards from './MedicalResultsCards';
 
 interface MedicalResultsTableProps {
   series: MarkerSeries[];
@@ -53,11 +54,11 @@ function ResultsTableRow({
           <span>{item.current.marker_name}</span>
         </div>
         {item.current.category && (
-          <span className="text-2xs text-text-muted font-normal block">{item.current.category}</span>
+          <span className="text-xs text-text-muted font-normal block">{item.current.category}</span>
         )}
       </td>
       <td className={`px-4 py-3 font-extrabold ${hasFlag ? 'text-warning' : 'text-text-primary'}`}>
-        {item.current.value} <span className="text-2xs font-semibold text-text-muted ml-0.5">{item.current.unit}</span>
+        {item.current.value} <span className="text-xs font-semibold text-text-muted ml-0.5">{item.current.unit}</span>
       </td>
       <td className="px-4 py-3 text-center">
         <MedicalRangeGauge
@@ -69,7 +70,7 @@ function ResultsTableRow({
         />
       </td>
       <td className="px-4 py-3 font-mono">{renderDelta(item.current.value, item.previous)}</td>
-      <td className="px-4 py-3 text-text-muted">{item.current.result_date}</td>
+      <td className="whitespace-nowrap px-4 py-3 text-text-muted">{item.current.result_date}</td>
       <td className="px-4 py-3 text-text-secondary truncate max-w-[var(--ds-maxw-120px)]" title={item.current.provider || item.current.source_name}>
         {item.current.provider || item.current.source_name}
       </td>
@@ -130,18 +131,18 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
               {filteredMarkers.length} z {series.length}
             </span>
           </div>
-          <p className="text-2xs text-text-muted mt-0.5">Surowe fakty bezpośrednio z laboratoriów z graficznym zakresem referencyjnym</p>
+          <p className="text-xs text-text-muted mt-0.5">Surowe fakty bezpośrednio z laboratoriów z graficznym zakresem referencyjnym</p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative">
+        <div className="flex w-full flex-wrap items-center gap-2 md:w-auto">
+          <div className="relative w-full sm:w-auto">
             <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
             <ControlInput
               type="text"
               placeholder="Szukaj markeru…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-7 pr-7 py-1.5 text-xs rounded-xl border border-border-custom bg-background w-36 sm:w-44 focus:w-56 ui-interactive"
+              className="pl-7 pr-7 py-1.5 text-xs rounded-xl border border-border-custom bg-background w-full sm:w-44 sm:focus:w-56 ui-interactive"
             />
             {searchQuery && (
               <Pressable
@@ -156,7 +157,7 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
           <ControlSelect
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
-            className="rounded-xl border border-border-custom bg-background px-3 py-1.5 text-xs font-bold outline-none cursor-pointer"
+            className="w-full min-w-0 rounded-xl border border-border-custom bg-background px-3 py-1.5 text-xs font-bold outline-none cursor-pointer sm:w-auto"
           >
             <option value="all">Układy biologiczne (Wszystkie)</option>
             {categories.filter(c => c !== 'all').map(c => (
@@ -166,12 +167,12 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-1 border-b border-border-custom/60 pb-2">
+      <div className="flex flex-wrap gap-1.5 border-b border-border-custom/60 pb-2">
         {FILTER_TABS.map(tab => (
           <Pressable
             key={tab.value}
             onClick={() => setActiveTab(tab.value)}
-            className={`rounded-lg px-3 py-1 text-xs font-bold ui-interactive cursor-pointer ${
+            className={`min-h-9 rounded-lg px-3 py-1 text-xs font-bold ui-interactive cursor-pointer ${
               activeTab === tab.value 
                 ? 'bg-primary/10 text-primary border border-primary/20' 
                 : 'text-text-muted hover:text-text-primary'
@@ -182,7 +183,11 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
         ))}
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border-custom bg-background/30">
+      <div className="md:hidden">
+        <MedicalResultsCards items={filteredMarkers} onSelectMarker={onSelectMarker} />
+      </div>
+
+      <div className="hidden overflow-x-auto rounded-2xl border border-border-custom bg-background/30 md:block">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-border-custom text-2xs font-semibold text-text-muted tracking-wide bg-background/50">

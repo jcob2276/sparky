@@ -19,7 +19,7 @@ export default function CopyDestinationSelector({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between px-0.5">
-        <label className="text-2xs font-black uppercase tracking-widest text-text-muted">
+        <label className="text-2xs font-semibold tracking-wide text-text-muted">
           Kopiuj do
         </label>
         {selectedDestination && (
@@ -70,7 +70,7 @@ export default function CopyDestinationSelector({
               }}
               className={`touch-manipulation shrink-0 rounded-xl px-2.5 py-1.5 text-xs font-bold ui-interactive active:scale-95 ${
                 isSelected
-                  ? 'bg-primary text-on-accent shadow-2xs ring-1 ring-primary/30 font-black'
+                  ? 'bg-primary text-on-accent shadow-2xs ring-1 ring-primary/30 font-semibold'
                   : 'border border-border-custom/70 bg-surface-solid/30 text-text-secondary hover:text-text-primary hover:bg-surface-solid/60'
               }`}
             >

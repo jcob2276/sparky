@@ -109,7 +109,7 @@ function DefaultLists(props: Pick<BrowseScreenProps, 'activeTab' | 'setActiveTab
       <div className="mb-3.5 flex gap-0.5 rounded-full bg-surface-solid/50 p-1">
         {(['favorites', 'recent'] as const).map((tab) => (
           <Pressable key={tab} onClick={() => props.setActiveTab(tab)}
-            className={`flex-1 rounded-full py-2 text-xs font-black uppercase tracking-wider ${props.activeTab === tab ? 'bg-primary text-on-accent shadow-sm' : 'text-text-muted'}`}>
+            className={`flex-1 rounded-full py-2 text-xs font-semibold tracking-wide ${props.activeTab === tab ? 'bg-primary text-on-accent shadow-sm' : 'text-text-muted'}`}>
             {tab === 'favorites' ? 'Częste' : 'Ostatnie'}
           </Pressable>
         ))}
@@ -135,7 +135,7 @@ function RecentRows(props: Pick<BrowseScreenProps, 'recent' | 'quickAddingId' | 
   const grouped = props.recent.reduce<Record<string, RecentEntry[]>>((map, entry) => { (map[entry.date] ||= []).push(entry); return map; }, {});
   return <div className="space-y-3">{Object.entries(grouped).map(([date, entries]) => (
     <div key={date}>
-      <p className="mb-1.5 text-2xs font-black uppercase tracking-widest text-text-muted">{dayLabel(date, props.todayStr, props.yesterdayStr)}</p>
+      <p className="mb-1.5 text-2xs font-semibold tracking-wide text-text-muted">{dayLabel(date, props.todayStr, props.yesterdayStr)}</p>
       <div className="space-y-1.5">{entries.map((entry) => (
         <FoodRow key={entry.id} name={entry.name} subtitle={[entry.brand, entry.amount].filter(Boolean).join(' · ')}
           calories={entry.calories} loading={props.quickAddingId === entry.id} onTap={() => props.openEditEntry(entry)}

@@ -33,7 +33,7 @@ function precisionLabel(s: NativeLocationStatus): string {
 
 const FIX_LABEL: Record<string, string> = {
   grant_foreground: 'Zezwól na lokalizację',
-  grant_background: 'Ustaw „Zawsze”',
+  grant_background: 'Zawsze zezwalaj',
   open_gps: 'Włącz GPS',
   open_app_settings: 'Ustawienia aplikacji',
 };

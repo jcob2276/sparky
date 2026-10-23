@@ -16,20 +16,20 @@ export function MacroCardsRow({ preview }: { preview: MacroPreview | null }) {
   return (
     <div className="grid grid-cols-4 gap-2">
       <div className="rounded-2xl border border-border-custom/40 bg-surface-solid/30 p-2.5 text-center">
-        <p className="font-display text-base font-black text-text-primary leading-none">{preview.calories ?? '–'}</p>
-        <p className="mt-1 text-3xs font-black uppercase tracking-wider text-text-muted">Kcal</p>
+        <p className="font-display text-base font-semibold text-text-primary leading-none">{preview.calories ?? '–'}</p>
+        <p className="mt-1 text-2xs font-semibold tracking-wide text-text-muted">Kcal</p>
       </div>
       <div className="rounded-2xl border border-primary/20 bg-primary/[0.04] p-2.5 text-center">
-        <p className="font-display text-base font-black text-primary leading-none">{preview.protein ?? '–'}</p>
-        <p className="mt-1 text-3xs font-black uppercase tracking-wider text-primary">Białko</p>
+        <p className="font-display text-base font-semibold text-primary leading-none">{preview.protein ?? '–'}</p>
+        <p className="mt-1 text-2xs font-semibold tracking-wide text-primary">Białko</p>
       </div>
       <div className="rounded-2xl border border-border-custom/40 bg-surface-solid/30 p-2.5 text-center">
-        <p className="font-display text-base font-black text-text-primary leading-none">{preview.carbs ?? '–'}</p>
-        <p className="mt-1 text-3xs font-black uppercase tracking-wider text-text-muted">Węgle</p>
+        <p className="font-display text-base font-semibold text-text-primary leading-none">{preview.carbs ?? '–'}</p>
+        <p className="mt-1 text-2xs font-semibold tracking-wide text-text-muted">Węgle</p>
       </div>
       <div className="rounded-2xl border border-border-custom/40 bg-surface-solid/30 p-2.5 text-center">
-        <p className="font-display text-base font-black text-text-primary leading-none">{preview.fat ?? '–'}</p>
-        <p className="mt-1 text-3xs font-black uppercase tracking-wider text-text-muted">Tłuszcz</p>
+        <p className="font-display text-base font-semibold text-text-primary leading-none">{preview.fat ?? '–'}</p>
+        <p className="mt-1 text-2xs font-semibold tracking-wide text-text-muted">Tłuszcz</p>
       </div>
     </div>
   );
@@ -45,7 +45,7 @@ export function MealTypeSegmentedPicker({
   const haptics = useHaptics();
   return (
     <div className="space-y-1.5">
-      <label className="text-2xs font-black uppercase tracking-widest text-text-muted block">
+      <label className="text-2xs font-semibold tracking-wide text-text-muted block">
         Pora posiłku
       </label>
       <div className="grid grid-cols-4 gap-1 p-1 bg-surface-solid/40 rounded-2xl border border-border-custom/50">
@@ -57,7 +57,7 @@ export function MealTypeSegmentedPicker({
               haptics.selection();
               setMealType(m.id);
             }}
-            className={`rounded-xl py-1.5 text-center text-2xs font-black uppercase tracking-wider transition-all duration-150 active:scale-95 ${
+            className={`rounded-xl py-1.5 text-center text-2xs font-semibold tracking-wide transition-all duration-150 active:scale-95 ${
               mealType === m.id
                 ? 'bg-surface text-primary shadow-xs'
                 : 'text-text-muted hover:text-text-secondary'
@@ -96,7 +96,7 @@ export function PortionStepper({
 
   return (
     <div className="space-y-2">
-      <label className="text-2xs font-black uppercase tracking-widest text-text-muted block text-center">
+      <label className="text-2xs font-semibold tracking-wide text-text-muted block text-center">
         Waga porcji
       </label>
 
@@ -116,7 +116,7 @@ export function PortionStepper({
             inputMode="numeric"
             value={grams}
             onChange={(e) => setGrams(e.target.value)}
-            className="w-20 bg-transparent text-center font-display text-3xl font-black text-text-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            className="w-20 bg-transparent text-center font-display text-3xl font-semibold text-text-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           />
           <span className="text-sm font-bold text-text-muted">g</span>
         </div>

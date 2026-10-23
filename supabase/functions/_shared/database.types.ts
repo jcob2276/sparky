@@ -1252,6 +1252,156 @@ export type Database = {
           },
         ]
       }
+      device_signal_events: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: number
+          kind: string
+          payload: Json
+          ts: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: never
+          kind: string
+          payload?: Json
+          ts: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: never
+          kind?: string
+          payload?: Json
+          ts?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      device_signals_daily: {
+        Row: {
+          avg_lux: number | null
+          battery_min: number | null
+          cellular_min: number
+          charging_min: number
+          computed_at: string
+          date: string
+          dnd_min: number
+          evening_brightness_avg: number | null
+          evening_light_samples: number
+          evening_lux_avg: number | null
+          event_count: number
+          first_screen_on: string | null
+          headphones_min: number
+          home_wifi_min: number
+          last_screen_off: string | null
+          mobile_mb: number
+          notif_awake_hours: number | null
+          notif_per_hour: number | null
+          notif_top: Json
+          notif_total: number
+          offline_min: number
+          other_wifi_min: number
+          phone_sleep_batt_end: number | null
+          phone_sleep_batt_start: number | null
+          phone_sleep_charging: boolean | null
+          phone_sleep_confidence: string | null
+          phone_sleep_end: string | null
+          phone_sleep_min: number | null
+          phone_sleep_start: string | null
+          phone_sleep_steps: number | null
+          screen_after_22_min: number
+          screen_on_min: number
+          steps: number
+          total_mb: number
+          unlocks: number
+          user_id: string
+          work_wifi_min: number
+        }
+        Insert: {
+          avg_lux?: number | null
+          battery_min?: number | null
+          cellular_min?: number
+          charging_min?: number
+          computed_at?: string
+          date: string
+          dnd_min?: number
+          evening_brightness_avg?: number | null
+          evening_light_samples?: number
+          evening_lux_avg?: number | null
+          event_count?: number
+          first_screen_on?: string | null
+          headphones_min?: number
+          home_wifi_min?: number
+          last_screen_off?: string | null
+          mobile_mb?: number
+          notif_awake_hours?: number | null
+          notif_per_hour?: number | null
+          notif_top?: Json
+          notif_total?: number
+          offline_min?: number
+          other_wifi_min?: number
+          phone_sleep_batt_end?: number | null
+          phone_sleep_batt_start?: number | null
+          phone_sleep_charging?: boolean | null
+          phone_sleep_confidence?: string | null
+          phone_sleep_end?: string | null
+          phone_sleep_min?: number | null
+          phone_sleep_start?: string | null
+          phone_sleep_steps?: number | null
+          screen_after_22_min?: number
+          screen_on_min?: number
+          steps?: number
+          total_mb?: number
+          unlocks?: number
+          user_id: string
+          work_wifi_min?: number
+        }
+        Update: {
+          avg_lux?: number | null
+          battery_min?: number | null
+          cellular_min?: number
+          charging_min?: number
+          computed_at?: string
+          date?: string
+          dnd_min?: number
+          evening_brightness_avg?: number | null
+          evening_light_samples?: number
+          evening_lux_avg?: number | null
+          event_count?: number
+          first_screen_on?: string | null
+          headphones_min?: number
+          home_wifi_min?: number
+          last_screen_off?: string | null
+          mobile_mb?: number
+          notif_awake_hours?: number | null
+          notif_per_hour?: number | null
+          notif_top?: Json
+          notif_total?: number
+          offline_min?: number
+          other_wifi_min?: number
+          phone_sleep_batt_end?: number | null
+          phone_sleep_batt_start?: number | null
+          phone_sleep_charging?: boolean | null
+          phone_sleep_confidence?: string | null
+          phone_sleep_end?: string | null
+          phone_sleep_min?: number | null
+          phone_sleep_start?: string | null
+          phone_sleep_steps?: number | null
+          screen_after_22_min?: number
+          screen_on_min?: number
+          steps?: number
+          total_mb?: number
+          unlocks?: number
+          user_id?: string
+          work_wifi_min?: number
+        }
+        Relationships: []
+      }
       dreams: {
         Row: {
           category: string
@@ -3721,48 +3871,48 @@ export type Database = {
           accuracy: number | null
           altitude: number | null
           bearing: number | null
-          dwell_seconds: number | null
-          kind: string
-          provider: string | null
-          speed: number | null
           created_at: string | null
+          dwell_seconds: number | null
           id: string
           is_manual: boolean | null
+          kind: string
           latitude: number
           longitude: number
           place_name: string | null
+          provider: string | null
+          speed: number | null
           user_id: string
         }
         Insert: {
           accuracy?: number | null
           altitude?: number | null
           bearing?: number | null
-          dwell_seconds?: number | null
-          kind?: string
-          provider?: string | null
-          speed?: number | null
           created_at?: string | null
+          dwell_seconds?: number | null
           id?: string
           is_manual?: boolean | null
+          kind?: string
           latitude: number
           longitude: number
           place_name?: string | null
+          provider?: string | null
+          speed?: number | null
           user_id: string
         }
         Update: {
           accuracy?: number | null
           altitude?: number | null
           bearing?: number | null
-          dwell_seconds?: number | null
-          kind?: string
-          provider?: string | null
-          speed?: number | null
           created_at?: string | null
+          dwell_seconds?: number | null
           id?: string
           is_manual?: boolean | null
+          kind?: string
           latitude?: number
           longitude?: number
           place_name?: string | null
+          provider?: string | null
+          speed?: number | null
           user_id?: string
         }
         Relationships: []
@@ -9293,6 +9443,10 @@ export type Database = {
         }
         Returns: string
       }
+      compute_device_signals_daily: {
+        Args: { p_date: string; p_user_id: string }
+        Returns: undefined
+      }
       confirm_nutrition_meal_capture: {
         Args: {
           p_capture_id: string
@@ -9345,6 +9499,7 @@ export type Database = {
         }
         Returns: string
       }
+      cron_refresh_device_signals_daily: { Args: never; Returns: undefined }
       delete_note_folder_hierarchy: {
         Args: { folder_id: string }
         Returns: undefined
@@ -9475,6 +9630,10 @@ export type Database = {
         }[]
       }
       oracle_readonly_query: { Args: { query_text: string }; Returns: Json }
+      refresh_device_signals_daily: {
+        Args: { p_days?: number }
+        Returns: number
+      }
       remove_food_entry: {
         Args: { p_entry_id: string; p_user_id: string }
         Returns: undefined

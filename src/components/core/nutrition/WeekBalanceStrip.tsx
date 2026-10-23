@@ -9,9 +9,9 @@ export default function WeekBalanceStrip({ week }: { week: WeekBalance }) {
   return (
     <div className="space-y-1 border-t border-border-custom/40 pt-2" aria-label="Bilans tygodnia">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-2xs font-black uppercase tracking-wider text-text-muted">Tydzień pon–nd</span>
+        <span className="text-2xs font-semibold tracking-wide text-text-muted">Tydzień pon–nd</span>
         <span className="text-2xs font-semibold tabular-nums text-text-secondary">
-          <span className="text-xs font-black text-text-primary">{fmt(week.eaten)}</span> / {fmt(week.budget)} kcal
+          <span className="text-xs font-semibold text-text-primary">{fmt(week.eaten)}</span> / {fmt(week.budget)} kcal
         </span>
       </div>
       <span className="meal-bar-track block h-1.5 overflow-hidden rounded-full">
@@ -22,9 +22,9 @@ export default function WeekBalanceStrip({ week }: { week: WeekBalance }) {
       </span>
       <p className="text-xs font-semibold leading-snug text-text-muted">
         {over ? 'Ponad budżet o ' : 'Zostało '}
-        <span className="font-black tabular-nums text-text-primary">{fmt(Math.abs(week.remaining))} kcal</span>
+        <span className="font-semibold tabular-nums text-text-primary">{fmt(Math.abs(week.remaining))} kcal</span>
         {week.perDayLeft != null && !over && (
-          <> · ok. <span className="font-black tabular-nums text-text-primary">{fmt(week.perDayLeft)}</span>/dzień przez {week.daysLeft} {week.daysLeft === 1 ? 'dzień' : 'dni'}</>
+          <> · ok. <span className="font-semibold tabular-nums text-text-primary">{fmt(week.perDayLeft)}</span>/dzień przez {week.daysLeft} {week.daysLeft === 1 ? 'dzień' : 'dni'}</>
         )}
       </p>
       {week.missingDays > 0 && (

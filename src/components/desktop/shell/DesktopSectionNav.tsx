@@ -43,7 +43,7 @@ export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus 
   return (
     <nav className="hidden xl:block sticky top-24 self-start w-40 shrink-0 pt-1 space-y-6">
       <div>
-        <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-25em)] text-text-muted mb-2.5 px-2">
+        <p className="text-2xs font-semibold tracking-[var(--ds-arbitrary-0-25em)] text-text-muted mb-2.5 px-2">
           Obszary
         </p>
         <ul className="space-y-1">
@@ -56,7 +56,7 @@ export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus 
                   onClick={() => onTabChange(id)}
                   className={`w-full flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-xs font-bold ui-interactive text-left ${
                     isActive
-                      ? 'bg-primary/10 text-primary font-black border border-primary/20 shadow-xs'
+                      ? 'bg-primary/10 text-primary font-semibold border border-primary/20 shadow-xs'
                       : 'text-text-muted hover:text-text-primary hover:bg-surface-solid/10'
                   }`}
                   icon={<Icon size={14} className={isActive ? 'text-primary' : 'text-text-muted'} />}
@@ -73,7 +73,7 @@ export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus 
       </div>
 
       <div>
-        <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-25em)] text-text-muted mb-2.5 px-2">
+        <p className="text-2xs font-semibold tracking-[var(--ds-arbitrary-0-25em)] text-text-muted mb-2.5 px-2">
           Aplikacje
         </p>
         <ul className="space-y-1">

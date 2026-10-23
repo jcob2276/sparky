@@ -79,6 +79,9 @@ public class DeviceSignalsPlugin extends Plugin {
         ret.put("locationPermission", ContextCompat.checkSelfPermission(ctx,
             Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED);
         ret.put("queueSize", DeviceSignalQueue.size(ctx));
+        ret.put("bootRestartWanted", BootRestartState.isWanted(ctx));
+        ret.put("bootRestartResult", BootRestartState.lastResult(ctx));
+        ret.put("backgroundLocation", BootRestartState.hasBackgroundLocation(ctx));
         String ssid = collector.currentSsid();
         ret.put("wifiConnected", ssid != null);
         ret.put("wifiLabel", ssid == null ? null : DeviceSignalConfig.wifiLabelFor(ctx, ssid));

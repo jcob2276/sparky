@@ -63,6 +63,7 @@ export function FinanceHome({ data, metrics, holdings, portfolio, quotesLoading,
         metrics={metrics}
         portfolio={portfolio}
         hasHoldings={holdings.length > 0}
+        hasAccounts={data.accounts.length > 0}
         onQuickEntry={onQuickEntry}
         onRebalance={() => onNavigate('portfolio')}
         onMore={() => onNavigate('flows')}

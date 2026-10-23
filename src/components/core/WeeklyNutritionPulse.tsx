@@ -41,7 +41,7 @@ export default function WeeklyNutritionPulse({
   return (
     <section className="rounded-3xl border border-border-custom/60 bg-surface/70 p-4 space-y-3">
       <div>
-        <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-widest text-text-muted">
+        <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-text-muted">
           <Utensils size={12} className="text-primary" /> Odżywianie
           <span className="font-semibold normal-case tracking-normal">· pon–nd{hasDays ? `, średnia z ${pulse?.loggedDays} pełnych dni` : ''}</span>
         </p>
@@ -56,15 +56,15 @@ export default function WeeklyNutritionPulse({
         <>
           <div className="grid grid-cols-2 gap-2">
             <div className={`rounded-2xl border p-3 ${proteinLow ? 'border-warning/30 bg-warning/10' : 'border-border-custom/40 bg-surface/50'}`}>
-              <p className="text-3xs font-black uppercase tracking-widest text-text-muted">Białko / dzień</p>
-              <p className="mt-1 text-xl font-black text-text-primary">
+              <p className="text-2xs font-semibold tracking-wide text-text-muted">Białko / dzień</p>
+              <p className="mt-1 text-xl font-semibold text-text-primary">
                 {formatGrams(pulse.avgProtein)}
                 {pulse.proteinGoal != null && <span className="ml-1 text-2xs font-bold text-text-muted">z {pulse.proteinGoal} g</span>}
               </p>
             </div>
             <div className="rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
-              <p className="text-3xs font-black uppercase tracking-widest text-text-muted">Kalorie / dzień</p>
-              <p className="mt-1 text-xl font-black text-text-primary">
+              <p className="text-2xs font-semibold tracking-wide text-text-muted">Kalorie / dzień</p>
+              <p className="mt-1 text-xl font-semibold text-text-primary">
                 {pulse.avgCalories}
                 {pulse.kcalTarget != null && <span className="ml-1 text-2xs font-bold text-text-muted">z {pulse.kcalTarget}</span>}
               </p>

@@ -13,7 +13,7 @@ import { TIMEZONE } from '../../lib/date';
 import { Suspense, lazy, useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '../../store/useStore';
-import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Eye, GraduationCap } from 'lucide-react';
+import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Eye, GraduationCap, Settings } from 'lucide-react';
 import { dashboardKeys } from '../../lib/queryKeys';
 
 import { ErrorBoundary } from './ErrorBoundary';
@@ -28,6 +28,7 @@ import SearchModal from './SearchModal';
 import { useDashboardState } from './hooks/useDashboardState';
 import { useDashboardPrefetch } from './hooks/useDashboardPrefetch';
 import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
 import { DashboardContext } from './context/DashboardContext';
 
 const TrainingRoute   = lazy(() => import('../biometrics/TrainingRoute'));
@@ -52,9 +53,7 @@ const TAB_ORDER = ['dzis', 'tydzien', 'historia'];
 
 function ViewFallback() {
   return (
-    <div className="flex min-h-[var(--ds-h-220px)] items-center justify-center rounded-lg border border-on-accent/[0.06] bg-on-accent/[0.02]">
-      <Spinner size="md" />
-    </div>
+    <Skeleton variant="block" className="min-h-[var(--ds-h-220px)]" />
   );
 }
 
@@ -94,6 +93,7 @@ function DashboardContent() {
     { label: 'Rozwój', icon: GraduationCap, action: () => s.navigate('/rozwoj'), route: 'rozwoj' },
     { label: 'Pocket', icon: BookOpen, action: () => s.navigate('/links'), route: 'links' },
     { label: 'Wzrok', icon: Eye, action: () => s.navigate('/optics') },
+    { label: 'Ustawienia', icon: Settings, action: () => s.navigate('/settings'), route: 'settings' },
   ], [s]);
 
   // ── Full-screen route views ──
@@ -138,10 +138,10 @@ function DashboardContent() {
   const weeklyReviewNudge = new Date().getDay() === 0 && !s.taskReviewDoneThisWeek && (
     <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 flex items-center justify-between gap-4">
       <div className="min-w-0">
-        <h4 className="text-sm font-black text-primary uppercase tracking-wider">Tygodniowy Przegląd Zadań</h4>
+        <h4 className="text-sm font-semibold text-primary tracking-wide">Tygodniowy Przegląd Zadań</h4>
         <p className="text-xs text-text-secondary mt-0.5 break-words">Niedziela to czas na oczyszczenie skrzynki i audyt projektów.</p>
       </div>
-      <Pressable onClick={() => s.setShowWeeklyReview(true)} className="shrink-0 px-3.5 py-2 bg-primary hover:bg-primary-hover text-on-accent rounded-xl text-xs font-black transition-colors btn-press shadow-sm">
+      <Pressable onClick={() => s.setShowWeeklyReview(true)} className="shrink-0 px-3.5 py-2 bg-primary hover:bg-primary-hover text-on-accent rounded-xl text-xs font-semibold transition-colors btn-press shadow-sm">
         Rozpocznij
       </Pressable>
     </div>
@@ -199,7 +199,7 @@ function DashboardContent() {
                   onSaved={() => { s.refresh(); s.setNutritionKey(k => k + 1); }}
                 />
                 {s.todayWin && isAfter20() && (
-                  <Pressable onClick={() => s.setShowShutdown(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm font-black uppercase tracking-wider text-primary hover:bg-primary/20 active:scale-95 ui-interactive shadow-sm mt-4">
+                  <Pressable onClick={() => s.setShowShutdown(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm font-semibold tracking-wide text-primary hover:bg-primary/20 active:scale-95 ui-interactive shadow-sm mt-4">
                     Domknij Dzień (Rytuał Wieczorny)
                   </Pressable>
                 )}

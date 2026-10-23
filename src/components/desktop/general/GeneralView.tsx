@@ -48,7 +48,7 @@ export default function GeneralView({
       {/* ── SEKCJA: PAMIĘĆ SPARKY ── */}
       <div id="pamiec" className="scroll-mt-28 flex items-center gap-3">
         <div className="h-px flex-1 bg-border-custom" />
-        <span className="text-xs font-black uppercase tracking-widest text-text-muted">
+        <span className="text-xs font-semibold tracking-wide text-text-muted">
           Pamięć
         </span>
         <div className="h-px flex-1 bg-border-custom" />
@@ -64,7 +64,7 @@ export default function GeneralView({
       {/* ── SEKCJA: ZALECENIA WYROCZNI ── */}
       <div className="flex items-center gap-3 mt-2">
         <div className="h-px flex-1 bg-border-custom" />
-        <span className="text-xs font-black uppercase tracking-widest text-text-muted">
+        <span className="text-xs font-semibold tracking-wide text-text-muted">
           Zalecenia
         </span>
         <div className="h-px flex-1 bg-border-custom" />

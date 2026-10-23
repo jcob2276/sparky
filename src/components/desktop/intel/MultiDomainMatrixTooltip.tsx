@@ -24,7 +24,7 @@ function TooltipWorkoutSection({ day }: { day: DayMatrixDetail }) {
         </div>
       )}
       {day.gym?.exercises && day.gym.exercises.length > 0 && (
-        <p className="text-3xs text-text-muted truncate">
+        <p className="text-2xs text-text-muted truncate">
           {day.gym.exercises.join(' · ')}
         </p>
       )}
@@ -49,17 +49,17 @@ function TooltipMacroSleepSection({ day }: { day: DayMatrixDetail }) {
       {hasNutr && (
         <div className="flex items-center justify-between bg-surface/50 rounded-lg p-2 border border-border-custom/30 font-mono text-2xs">
           <div>
-            <span className="text-text-muted block text-3xs font-sans">Kcal</span>
+            <span className="text-text-muted block text-2xs font-sans">Kcal</span>
             <span className="font-bold text-text-primary">{day.nutrition?.kcal ?? '—'}</span>
           </div>
           <div>
-            <span className="text-text-muted block text-3xs font-sans">Białko</span>
+            <span className="text-text-muted block text-2xs font-sans">Białko</span>
             <span className={`font-bold ${day.nutrition?.protein && day.nutrition.protein >= 140 ? 'text-success' : 'text-text-primary'}`}>
               {day.nutrition?.protein ? `${day.nutrition.protein}g` : '—'}
             </span>
           </div>
           <div>
-            <span className="text-text-muted block text-3xs font-sans">Węgle</span>
+            <span className="text-text-muted block text-2xs font-sans">Węgle</span>
             <span className={`font-bold ${day.nutrition?.carbs && day.nutrition.carbs >= 200 ? 'text-warning' : 'text-text-primary'}`}>
               {day.nutrition?.carbs ? `${day.nutrition.carbs}g` : '—'}
             </span>
@@ -70,18 +70,18 @@ function TooltipMacroSleepSection({ day }: { day: DayMatrixDetail }) {
       {hasSleep && (
         <div className="flex items-center justify-between bg-surface/50 rounded-lg p-2 border border-border-custom/30 font-mono text-2xs">
           <div>
-            <span className="text-text-muted block text-3xs font-sans">Sen</span>
+            <span className="text-text-muted block text-2xs font-sans">Sen</span>
             <span className={`font-bold ${day.sleep?.score && day.sleep.score >= 80 ? 'text-info' : 'text-text-primary'}`}>
               {day.sleep?.score ? `${day.sleep.score}/100` : '—'}
               {day.sleep?.hours ? ` (${day.sleep.hours}h)` : ''}
             </span>
           </div>
           <div>
-            <span className="text-text-muted block text-3xs font-sans">HRV</span>
+            <span className="text-text-muted block text-2xs font-sans">HRV</span>
             <span className="font-bold text-primary">{day.sleep?.hrv ? `${day.sleep.hrv}ms` : '—'}</span>
           </div>
           <div>
-            <span className="text-text-muted block text-3xs font-sans">Readiness</span>
+            <span className="text-text-muted block text-2xs font-sans">Readiness</span>
             <span className="font-bold text-primary">{day.sleep?.readiness ?? '—'}</span>
           </div>
         </div>
@@ -103,7 +103,7 @@ function TooltipPowerLenieSection({ day }: { day: DayMatrixDetail }) {
           </div>
           <div className="space-y-0.5 pt-0.5">
             {day.powerList.tasks.map((t, idx) => (
-              <div key={idx} className="flex items-center gap-1 text-3xs truncate">
+              <div key={idx} className="flex items-center gap-1 text-2xs truncate">
                 <span className={t.done ? 'text-success' : 'text-text-muted'}>
                   {t.done ? '✓' : '○'}
                 </span>
@@ -123,19 +123,19 @@ function TooltipPowerLenieSection({ day }: { day: DayMatrixDetail }) {
             <span>{day.lenie.count}×</span>
           </div>
           {day.lenie.stimuli.length > 0 && (
-            <p className="text-3xs text-danger/80 truncate">
+            <p className="text-2xs text-danger/80 truncate">
               Bodziec: {day.lenie.stimuli.join(', ')}
             </p>
           )}
           {day.lenie.notes.length > 0 && (
-            <p className="text-3xs text-text-muted italic truncate">
+            <p className="text-2xs text-text-muted italic truncate">
               "{day.lenie.notes[0]}"
             </p>
           )}
         </div>
       ) : (
         !day.isFuture && (
-          <div className="flex items-center justify-between px-2 py-1 bg-success/10 rounded text-3xs text-success font-semibold">
+          <div className="flex items-center justify-between px-2 py-1 bg-success/10 rounded text-2xs text-success font-semibold">
             <span>Lenie / relaps:</span>
             <span>Czysto ✅</span>
           </div>
@@ -143,7 +143,7 @@ function TooltipPowerLenieSection({ day }: { day: DayMatrixDetail }) {
       )}
 
       {day.habits.totalCount > 0 && (
-        <div className="flex items-center justify-between px-2 py-1 bg-accent/10 rounded text-3xs text-accent">
+        <div className="flex items-center justify-between px-2 py-1 bg-accent/10 rounded text-2xs text-accent">
           <span>🧘 Nawyki:</span>
           <span className="font-mono font-bold">
             {day.habits.doneCount}/{day.habits.totalCount} ({Math.round((day.habits.doneCount / day.habits.totalCount) * 100)}%)
@@ -176,15 +176,15 @@ export function MultiDomainMatrixTooltip({ day, rect, selectedLayers }: Props) {
       <div className="flex items-center justify-between border-b border-border-custom/50 pb-2">
         <div className="flex items-center gap-1.5">
           <span className="font-mono text-2xs font-bold text-text-muted">{day.date}</span>
-          <span className="text-2xs font-black uppercase text-primary">({day.dayOfWeek})</span>
+          <span className="text-2xs font-semibold text-primary">({day.dayOfWeek})</span>
         </div>
         {day.isToday && (
-          <span className="rounded bg-primary/20 text-primary px-1.5 py-0.5 text-3xs font-black uppercase">
+          <span className="rounded bg-primary/20 text-primary px-1.5 py-0.5 text-2xs font-semibold">
             Dzisiaj
           </span>
         )}
         {day.isFuture && (
-          <span className="text-text-muted text-3xs italic">Przyszłość</span>
+          <span className="text-text-muted text-2xs italic">Przyszłość</span>
         )}
       </div>
 
@@ -193,7 +193,7 @@ export function MultiDomainMatrixTooltip({ day, rect, selectedLayers }: Props) {
           {activeMatchedLayers.map(l => (
             <span
               key={l.id}
-              className={`text-3xs font-semibold px-1.5 py-0.5 rounded border ${l.badgeClass}`}
+              className={`text-2xs font-semibold px-1.5 py-0.5 rounded border ${l.badgeClass}`}
             >
               {l.label}
             </span>

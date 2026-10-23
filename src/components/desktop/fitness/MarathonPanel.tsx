@@ -117,7 +117,7 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
       <div className="flex items-start justify-between mb-5">
         {upcoming ? (
         <div>
-          <p className="font-display text-4xl font-black leading-none text-text-primary">
+          <p className="font-display text-4xl font-semibold leading-none text-text-primary">
             {daysLeft !== null ? (daysLeft >= 0 ? daysLeft : 0) : '—'}
           </p>
           <p className="text-xs font-bold text-text-muted mt-1">
@@ -127,8 +127,8 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
           </p>
           {targetTime && (
             <div className="mt-2.5">
-              <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Cel czasowy</p>
-              <p className="font-display text-base font-black text-warning leading-none mt-0.5">
+              <p className="text-2xs font-semibold tracking-wide text-text-muted">Cel czasowy</p>
+              <p className="font-display text-base font-semibold text-warning leading-none mt-0.5">
                 {targetTime}
               </p>
             </div>
@@ -138,16 +138,16 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
         <div className="text-right space-y-2">
           {avgKm !== null && (
             <div>
-              <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Avg 4 tygodnie</p>
-              <p className="font-display text-2xl font-black text-warning leading-none">
+              <p className="text-2xs font-semibold tracking-wide text-text-muted">Avg 4 tygodnie</p>
+              <p className="font-display text-2xl font-semibold text-warning leading-none">
                 {avgKm} <span className="text-xs text-text-muted">km/tyg</span>
               </p>
             </div>
           )}
           {bestKm !== null && (
             <div>
-              <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Rekord tyg.</p>
-              <p className="font-display text-lg font-black text-text-primary leading-none">
+              <p className="text-2xs font-semibold tracking-wide text-text-muted">Rekord tyg.</p>
+              <p className="font-display text-lg font-semibold text-text-primary leading-none">
                 {bestKm} <span className="text-xs text-text-muted">km</span>
               </p>
             </div>
@@ -169,7 +169,7 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
           Faza: <span className="font-semibold text-text-primary">{phase}</span>
         </div>
         {longestKm !== null && (
-          <div className="w-full pt-1 mt-0.5 border-t border-border-custom/30 flex items-center justify-between text-3xs text-text-muted">
+          <div className="w-full pt-1 mt-0.5 border-t border-border-custom/30 flex items-center justify-between text-2xs text-text-muted">
             <span className="font-medium text-info">Long Run (14d): {longestKm} km</span>
             <span>{longestDaysAgo === 0 ? 'dzisiaj' : `${longestDaysAgo}d temu`}</span>
           </div>
@@ -178,7 +178,7 @@ export default function MarathonPanel({ strava, grid, tick, marathon }: Marathon
       )}
 
       {upcoming && avgKm !== null && avgKm < 35 && (
-        <div className="mb-4 px-3 py-1.5 rounded-lg bg-warning/10 border border-warning/20 text-3xs text-warning flex items-center gap-1.5 leading-tight">
+        <div className="mb-4 px-3 py-1.5 rounded-lg bg-warning/10 border border-warning/20 text-2xs text-warning flex items-center gap-1.5 leading-tight">
           <span>⚠️</span>
           <span>Niski 4-tyg. kilometraż ({avgKm} km/tyg vs optymalne 45–55 km pod cel 3h 45m). Kluczowa ostrożna taktyka pierwszych 25 km.</span>
         </div>

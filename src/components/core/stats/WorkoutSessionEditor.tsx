@@ -24,7 +24,7 @@ export function WorkoutSessionEditor({
   return (
     <div className="rounded-xl border-2 border-primary/50 bg-surface p-4 shadow-md space-y-3">
       <div className="flex items-center justify-between border-b border-border-custom pb-2.5">
-        <p className="text-xs font-black uppercase tracking-wider text-primary font-display flex items-center gap-1.5">
+        <p className="text-xs font-semibold tracking-wide text-primary font-display flex items-center gap-1.5">
           <Edit3 size={13} />
           Edycja sesji
         </p>
@@ -41,7 +41,7 @@ export function WorkoutSessionEditor({
         value={editForm.workout_day ?? ''}
         onChange={(e) => setEditForm({ ...editForm, workout_day: e.target.value })}
         placeholder="Nazwa treningu..."
-        className="w-full bg-surface-solid border border-border-custom rounded-xl p-2.5 text-sm font-black text-text-primary outline-none focus:border-primary"
+        className="w-full bg-surface-solid border border-border-custom rounded-xl p-2.5 text-sm font-semibold text-text-primary outline-none focus:border-primary"
       />
 
       {/* Logs editor */}
@@ -74,7 +74,7 @@ export function WorkoutSessionEditor({
                   placeholder="0"
                   className="w-14 bg-surface border border-border-custom rounded px-1.5 py-0.5 text-xs text-center font-bold"
                 />
-                <span className="text-3xs text-text-muted">{logIsWellness ? '°C' : 'kg'}</span>
+                <span className="text-2xs text-text-muted">{logIsWellness ? '°C' : 'kg'}</span>
 
                 <ControlInput
                   type="number"
@@ -83,7 +83,7 @@ export function WorkoutSessionEditor({
                   placeholder="0"
                   className="w-12 bg-surface border border-border-custom rounded px-1.5 py-0.5 text-xs text-center font-bold"
                 />
-                <span className="text-3xs text-text-muted">{logIsWellness ? 'min' : 'x'}</span>
+                <span className="text-2xs text-text-muted">{logIsWellness ? 'min' : 'x'}</span>
 
                 <Pressable
                   onClick={() => deleteLog(log.id)}

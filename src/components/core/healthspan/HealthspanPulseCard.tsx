@@ -16,7 +16,7 @@ export default function HealthspanPulseCard({
   return (
     <Card padding="1rem" className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-center">
       <div className="min-w-0">
-        <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-widest text-primary">
+        <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-primary">
           <Sparkles size={12} /> Healthspan
         </p>
         <div className="mt-1 flex items-baseline gap-2">
@@ -32,20 +32,20 @@ export default function HealthspanPulseCard({
         )}
       </div>
       <div className="rounded-xl bg-surface-2 px-3 py-2">
-        <p className="flex items-center gap-1 text-3xs font-bold uppercase text-text-muted">
+        <p className="flex items-center gap-1 text-2xs font-bold text-text-muted">
           <Activity size={11} /> Tempo
         </p>
-        <p className="mt-0.5 text-sm font-black text-text-primary">
+        <p className="mt-0.5 text-sm font-semibold text-text-primary">
           {pace.multiplier == null ? 'Kalibracja' : `${pace.multiplier.toFixed(2)}×`}
         </p>
       </div>
       {today?.capacity.score != null && (
         <div className="rounded-xl bg-surface-2 px-3 py-2">
-          <p className="text-3xs font-bold uppercase text-text-muted">Pojemność</p>
-          <p className="mt-0.5 text-sm font-black text-text-primary">{today.capacity.score}/100</p>
+          <p className="text-2xs font-bold text-text-muted">Pojemność</p>
+          <p className="mt-0.5 text-sm font-semibold text-text-primary">{today.capacity.score}/100</p>
         </div>
       )}
-      <div className="flex items-center gap-1.5 text-3xs text-text-muted sm:justify-end">
+      <div className="flex items-center gap-1.5 text-2xs text-text-muted sm:justify-end">
         <ShieldCheck size={12} /> {profile.confidence.overall}% pewności
       </div>
     </Card>

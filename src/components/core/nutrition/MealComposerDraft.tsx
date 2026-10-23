@@ -34,7 +34,7 @@ export default function MealComposerDraft({
   return (
     <div className="space-y-3 rounded-2xl border border-primary/25 bg-primary/[0.05] p-3">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-2xs font-black uppercase tracking-wider text-primary">Twój posiłek</p>
+        <p className="text-2xs font-semibold tracking-wide text-primary">Twój posiłek</p>
         <span className="text-2xs font-bold text-text-muted">{items.length} poz.</span>
       </div>
 
@@ -78,7 +78,7 @@ export default function MealComposerDraft({
       <GlycemicEstimate items={items.map(item=>({id:item.id,name:item.name,grams:item.grams,carbs:item.carbs,fiber:item.fiber}))}/>
       <div className="flex items-center justify-between gap-2 border-t border-border-custom/50 pt-2">
         <span className="text-xs text-text-muted">
-          <span className="font-black text-text-primary">{totals.calories} kcal</span>
+          <span className="font-semibold text-text-primary">{totals.calories} kcal</span>
           {' · '}
           <span className="font-bold text-primary">{totals.protein}B</span>
           {' · '}

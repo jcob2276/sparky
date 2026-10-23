@@ -35,6 +35,24 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
   ], [matchingCommands, visibleResults, navigate, onClose]);
 
   useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const root = document.documentElement;
+    const sync = () => {
+      root.style.setProperty('--search-viewport-height', `${Math.max(240, Math.round(viewport.height - 24))}px`);
+      root.style.setProperty('--search-viewport-top', `${Math.round(viewport.offsetTop)}px`);
+    };
+    sync();
+    viewport.addEventListener('resize', sync);
+    viewport.addEventListener('scroll', sync);
+    return () => {
+      viewport.removeEventListener('resize', sync);
+      viewport.removeEventListener('scroll', sync);
+      root.style.removeProperty('--search-viewport-height');
+      root.style.removeProperty('--search-viewport-top');
+    };
+  }, []);
   useEffect(() => subscribeActionHistory(setHistory), []);
   useEffect(() => {
     const trimmed = query.trim();
@@ -86,8 +104,8 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
       padding="p-0"
       overflowY={false}
       size="2xl"
-      overlayClassName="items-start pt-[var(--ds-arbitrary-10vh)]"
-      className="flex max-h-[var(--ds-h-75vh)] flex-col overflow-hidden rounded-2xl border border-border-custom bg-surface-2 shadow-2xl"
+      overlayClassName="items-start pt-3 sm:pt-[var(--ds-arbitrary-10vh)] mt-[var(--search-viewport-top)]"
+      className="flex max-h-[var(--search-viewport-height)] flex-col overflow-hidden rounded-2xl border border-border-custom bg-surface-solid shadow-2xl"
     >
       <div className="flex items-center gap-3 border-b border-border-custom px-4 py-3">
         <Search size={18} className="shrink-0 text-text-muted" />
@@ -96,17 +114,17 @@ export default function SearchModal({ onClose }: { onClose: () => void }) {
           value={query}
           onChange={(event) => { setQuery(event.target.value); setActiveIndex(0); }}
           onKeyDown={handleKeyDown}
-          placeholder="Szukaj albo wpisz, co chcesz zrobić…"
+          placeholder="Szukaj lub polecenie…"
           aria-label="Centrum komend Sparky"
-          className="flex-1 bg-transparent text-base font-semibold text-text-primary outline-none placeholder:text-text-muted"
+          className="min-w-0 flex-1 bg-transparent text-base font-semibold text-text-primary outline-none placeholder:text-text-muted"
         />
         {loading ? <Spinner size="sm" /> : (
-          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Zamknij centrum komend" className="h-8 w-8 rounded-full p-0"><X size={16} /></Button>
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Zamknij centrum komend" className="h-11 w-11 rounded-full p-0"><X size={16} /></Button>
         )}
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="px-4 pb-1 pt-3 text-2xs font-bold uppercase tracking-widest text-text-muted">
+        <div className="px-4 pb-1 pt-3 text-2xs font-bold tracking-wide text-text-muted">
           {query.trim() ? 'Najlepsze dopasowania' : 'Szybkie działania'}
         </div>
         {rows.length ? (

@@ -32,6 +32,17 @@ export function rowIssue(kind: DeviceSignalKind, status: DeviceSignalsStatus): s
   return null;
 }
 
+/** What happens to the collectors after the phone restarts (Android 14+ needs background location for the service). */
+export function bootRestartNote(status: DeviceSignalsStatus): string {
+  if (status.bootRestartResult === 'started') return 'Po ostatnim restarcie telefonu usługa wstała sama.';
+  if (status.bootRestartResult === 'refused') return 'Po restarcie Android odmówił uruchomienia usługi w tle — otwórz Sparky raz po restarcie.';
+  if (status.bootRestartResult === 'no_location_permission') return 'Po restarcie usługa nie wstanie: brak zgody na lokalizację.';
+  if (!status.backgroundLocation) {
+    return 'Po restarcie usługa lokalizacji nie wstanie sama bez zgody „Zawsze” na lokalizację; lekkie kolektory (ekran, bateria, sieć) wstaną.';
+  }
+  return 'Po restarcie telefonu kolektory i usługa w tle uruchomią się same (bez otwierania aplikacji).';
+}
+
 function hm(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;

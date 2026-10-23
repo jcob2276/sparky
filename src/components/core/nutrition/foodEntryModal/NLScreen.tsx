@@ -45,7 +45,7 @@ export default function NLScreen({
       <div className="flex gap-1.5 flex-wrap mb-1">
         {MEAL_TYPES.map((m) => (
           <Pressable key={m.id} onClick={() => setMealType(m.id)}
-            className={`rounded-full px-3 py-1.5 text-xs font-black uppercase tracking-wider ui-interactive cursor-pointer ${mealType === m.id ? 'bg-primary text-on-accent' : 'border border-border-custom text-text-muted'}`}>
+            className={`rounded-full px-3 py-1.5 text-xs font-semibold tracking-wide ui-interactive cursor-pointer ${mealType === m.id ? 'bg-primary text-on-accent' : 'border border-border-custom text-text-muted'}`}>
             {m.label}
           </Pressable>
         ))}
@@ -79,7 +79,7 @@ export default function NLScreen({
 
       {nlItems && (
         <div className="space-y-2">
-          <p className="text-2xs font-black uppercase tracking-wider text-text-muted">
+          <p className="text-2xs font-semibold tracking-wide text-text-muted">
             Znalezione ({nlActiveCount}/{nlItems.length})
           </p>
           {nlItems.map((item, i) => {
@@ -91,7 +91,7 @@ export default function NLScreen({
                   <p className="text-2xs text-text-muted flex items-center gap-1.5">
                     <span>{item.grams}g</span>
                     {confidenceLabel(item) && (
-                      <span className={`rounded px-1 py-0.5 text-2xs font-bold uppercase tracking-wide ${
+                      <span className={`rounded px-1 py-0.5 text-2xs font-bold tracking-wide ${
                         item.confidence === 'low' ? 'bg-warning/15 text-warning' :
                         item.source === 'library' || item.source === 'database' ? 'bg-success/15 text-success' :
                         'bg-primary/10 text-primary/80'
@@ -105,7 +105,7 @@ export default function NLScreen({
                   ) : null}
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="text-xs font-black text-text-secondary">{item.calories} kcal</p>
+                  <p className="text-xs font-semibold text-text-secondary">{item.calories} kcal</p>
                   <p className="text-2xs text-text-muted">
                     {item.protein}B · {item.carbs ?? '?'}W · {item.fat ?? '?'}T
                   </p>
@@ -135,7 +135,7 @@ export default function NLScreen({
                 const totT = Math.round(active.reduce((s, item) => s + (item.fat ?? 0), 0) * 10) / 10;
                 return (
                   <span className="text-xs text-text-muted">
-                    Łącznie: <span className="font-black text-text-secondary">{totKcal} kcal</span>
+                    Łącznie: <span className="font-semibold text-text-secondary">{totKcal} kcal</span>
                     {' · '}<span className="font-bold text-primary">{totB}B</span>
                     {' · '}<span className="font-bold text-warning">{totW}W</span>
                     {' · '}<span className="font-bold text-text-secondary">{totT}T</span>

@@ -13,28 +13,28 @@ function OutcomeBadge({ outcome }: { outcome: string | null }) {
   switch (outcome) {
     case 'success':
       return (
-        <span className="flex items-center gap-1 bg-success/10 text-success border border-success/20 px-2 py-0.5 rounded-full text-2xs font-black uppercase tracking-wider">
+        <span className="flex items-center gap-1 bg-success/10 text-success border border-success/20 px-2 py-0.5 rounded-full text-2xs font-semibold tracking-wide">
           <CheckCircle2 size={10} />
           Sukces
         </span>
       );
     case 'fail':
       return (
-        <span className="flex items-center gap-1 bg-danger/10 text-danger border border-danger/20 px-2 py-0.5 rounded-full text-2xs font-black uppercase tracking-wider">
+        <span className="flex items-center gap-1 bg-danger/10 text-danger border border-danger/20 px-2 py-0.5 rounded-full text-2xs font-semibold tracking-wide">
           <XCircle size={10} />
           Porażka
         </span>
       );
     case 'no_data':
       return (
-        <span className="flex items-center gap-1 bg-surface-solid text-text-muted border border-border-custom px-2 py-0.5 rounded-full text-2xs font-black uppercase tracking-wider">
+        <span className="flex items-center gap-1 bg-surface-solid text-text-muted border border-border-custom px-2 py-0.5 rounded-full text-2xs font-semibold tracking-wide">
           <HelpCircle size={10} />
           Brak danych
         </span>
       );
     default:
       return (
-        <span className="flex items-center gap-1 bg-warning/10 text-warning border border-warning/20 px-2 py-0.5 rounded-full text-2xs font-black uppercase tracking-wider">
+        <span className="flex items-center gap-1 bg-warning/10 text-warning border border-warning/20 px-2 py-0.5 rounded-full text-2xs font-semibold tracking-wide">
           Ewaluacja
         </span>
       );
@@ -91,7 +91,7 @@ export function HistoryTimelineItem({ rec }: { rec: OracleRecommendation }) {
 export function MetricGroupHeader({ metric, count, color, icon }: { metric: string; count: number; color: string; icon: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 mb-2">
-      <span className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-wider" style={{ color }}>
+      <span className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide" style={{ color }}>
         {icon}
         {metric}
       </span>
@@ -126,12 +126,12 @@ export function OracleStats({ evaluated }: { evaluated: OracleRecommendation[] }
       {/* Success rate hero */}
       <div className="flex items-center justify-between bg-surface-2 dark:bg-on-accent/[0.015] border border-border-custom/50 rounded-2xl p-4">
         <div className="flex flex-col">
-          <span className="text-xs font-black text-text-muted uppercase tracking-wider">Skuteczność</span>
+          <span className="text-xs font-semibold text-text-muted tracking-wide">Skuteczność</span>
           <span className="text-2xs text-text-muted mt-0.5">
             Na podstawie {totalEvaluated} rozstrzygnięć
           </span>
         </div>
-        <span className={`text-2xl font-black ${rateColor}`}>
+        <span className={`text-2xl font-semibold ${rateColor}`}>
           {successRate !== null ? `${successRate}%` : '—'}
         </span>
       </div>
@@ -139,16 +139,16 @@ export function OracleStats({ evaluated }: { evaluated: OracleRecommendation[] }
       {/* Counts */}
       <div className="grid grid-cols-3 gap-2 text-center text-xs">
         <div className="bg-success/5 border border-success/10 rounded-xl p-2 flex flex-col gap-0.5">
-          <span className="text-success font-black">{successes}</span>
-          <span className="text-2xs text-text-muted font-bold uppercase tracking-wide">Sukcesy</span>
+          <span className="text-success font-semibold">{successes}</span>
+          <span className="text-2xs text-text-muted font-bold tracking-wide">Sukcesy</span>
         </div>
         <div className="bg-danger/5 border border-danger/10 rounded-xl p-2 flex flex-col gap-0.5">
-          <span className="text-danger font-black">{fails}</span>
-          <span className="text-2xs text-text-muted font-bold uppercase tracking-wide">Błędy</span>
+          <span className="text-danger font-semibold">{fails}</span>
+          <span className="text-2xs text-text-muted font-bold tracking-wide">Błędy</span>
         </div>
         <div className="bg-surface-2/5 border border-border-custom rounded-xl p-2 flex flex-col gap-0.5">
-          <span className="text-text-muted font-black">{noData}</span>
-          <span className="text-2xs text-text-muted font-bold uppercase tracking-wide">Brak info</span>
+          <span className="text-text-muted font-semibold">{noData}</span>
+          <span className="text-2xs text-text-muted font-bold tracking-wide">Brak info</span>
         </div>
       </div>
 
@@ -157,7 +157,7 @@ export function OracleStats({ evaluated }: { evaluated: OracleRecommendation[] }
         <div className="flex items-center gap-2 bg-warning/8 border border-warning/20 rounded-xl px-3 py-2">
           <AlertTriangle size={12} className="text-warning shrink-0" />
           <div>
-            <p className="text-2xs font-black text-warning">{streak} porażek z rzędu</p>
+            <p className="text-2xs font-semibold text-warning">{streak} porażek z rzędu</p>
             <p className="text-2xs text-text-muted">Wzorzec nieskutecznych zaleceń</p>
           </div>
         </div>

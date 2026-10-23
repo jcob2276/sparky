@@ -50,7 +50,7 @@ export function FinanceRecentTransactions({ transactions, onShowAll }: FinanceRe
   return (
     <section className="rounded-2xl bg-surface-1 p-2" aria-label="Ostatnie transakcje">
       {recent.length === 0 ? (
-        <p className="px-4 py-8 text-center text-sm text-text-muted">
+        <p className="px-4 py-3 text-center text-sm text-text-muted">
           Brak wpisów. Użyj „Wydatek” albo „Wpływ”, a pojawią się tutaj.
         </p>
       ) : (
@@ -75,9 +75,11 @@ export function FinanceRecentTransactions({ transactions, onShowAll }: FinanceRe
           })}
         </ul>
       )}
-      <Pressable type="button" onClick={onShowAll} className="w-full rounded-2xl py-3 text-sm font-semibold text-primary">
-        Wyświetl wszystko
-      </Pressable>
+      {recent.length > 0 && (
+        <Pressable type="button" onClick={onShowAll} className="w-full rounded-2xl py-3 text-sm font-semibold text-primary">
+          Wyświetl wszystko
+        </Pressable>
+      )}
     </section>
   );
 }

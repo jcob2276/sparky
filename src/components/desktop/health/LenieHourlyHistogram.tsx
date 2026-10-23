@@ -22,7 +22,7 @@ export default function LenieHourlyHistogram({
         <span className="text-text-muted font-medium">
           Rozkład 24h (strefa Warszawa):
         </span>
-        <div className="flex items-center gap-2.5 text-3xs">
+        <div className="flex items-center gap-2.5 text-2xs">
           <span className="flex items-center gap-1 text-danger font-semibold">
             <span className="w-1.5 h-1.5 rounded-full bg-danger inline-block" />
             20:00–01:00 ({nightWindowPct}%)
@@ -55,7 +55,7 @@ export default function LenieHourlyHistogram({
             >
               {/* Tooltip */}
               <div className="absolute bottom-full mb-1 hidden group-hover:flex flex-col items-center z-30 pointer-events-none whitespace-nowrap">
-                <div className="bg-surface-elevated text-text-primary text-3xs font-mono px-1.5 py-0.5 rounded shadow border border-border-custom">
+                <div className="bg-surface-elevated text-text-primary text-2xs font-mono px-1.5 py-0.5 rounded shadow border border-border-custom">
                   {slot.label}:00 – {slot.count}× ({slot.pct}%)
                 </div>
               </div>
@@ -71,7 +71,7 @@ export default function LenieHourlyHistogram({
       </div>
 
       {/* Axis ticks */}
-      <div className="flex justify-between text-3xs font-mono text-text-muted/60 px-0.5">
+      <div className="flex justify-between text-2xs font-mono text-text-muted/60 px-0.5">
         <span>00:00</span>
         <span>04:00</span>
         <span>08:00</span>

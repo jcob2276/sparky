@@ -86,9 +86,9 @@ export default function DesktopQuickWeightModal({
               onChange={(e) => setWeightStr(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && void handleSave()}
               placeholder="0.0"
-              className="w-36 text-center font-display text-4xl font-black text-text-primary rounded-2xl border border-border-custom bg-surface py-2 font-mono outline-none focus:border-primary shadow-xs"
+              className="w-36 text-center font-display text-4xl font-semibold text-text-primary rounded-2xl border border-border-custom bg-surface py-2 font-mono outline-none focus:border-primary shadow-xs"
             />
-            <span className="text-sm font-bold text-text-muted uppercase">kg</span>
+            <span className="text-sm font-bold text-text-muted">kg</span>
           </div>
 
           <div className="flex items-center gap-1.5 pt-2">

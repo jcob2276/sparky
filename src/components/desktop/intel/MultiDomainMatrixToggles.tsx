@@ -13,7 +13,7 @@ export function MultiDomainMatrixToggles({
 }: Props) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
-      <span className="text-2xs font-bold uppercase tracking-wider text-text-muted mr-1">
+      <span className="text-2xs font-bold tracking-wide text-text-muted mr-1">
         Warstwy:
       </span>
       {MATRIX_LAYERS.map(layer => {

@@ -84,7 +84,7 @@ export default function MealSupplementsWidget({ userId, date }: { userId: string
   return (
     <section aria-label="Suplementy" className="space-y-1.5 border-t border-border-custom/40 pt-3">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-xs font-black uppercase tracking-wider text-text-muted">Suplementy</h3>
+        <h3 className="text-xs font-semibold tracking-wide text-text-muted">Suplementy</h3>
         <span className="text-2xs font-bold text-text-muted">{takenCount}/{due.length}</span>
       </div>
       <div className="flex flex-wrap gap-1.5">
@@ -111,7 +111,7 @@ export default function MealSupplementsWidget({ userId, date }: { userId: string
               type="button"
               haptic="none"
               onClick={() => void handleQuantity(picking, n)}
-              className={`touch-manipulation size-9 rounded-full border text-sm font-black tabular-nums ui-interactive ${
+              className={`touch-manipulation size-9 rounded-full border text-sm font-semibold tabular-nums ui-interactive ${
                 Number(logBySupplement.get(picking.id)?.quantity ?? 0) === n
                   ? 'border-success/40 bg-success/15 text-success'
                   : 'border-border-custom text-text-primary'

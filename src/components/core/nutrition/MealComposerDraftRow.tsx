@@ -126,7 +126,7 @@ export default function MealComposerDraftRow({
         </div>
         {badge ? (
           <span
-            className={`shrink-0 rounded px-1.5 py-0.5 text-2xs font-bold uppercase ${
+            className={`shrink-0 rounded px-1.5 py-0.5 text-2xs font-bold ${
               badge === 'sprawdź' ? 'bg-warning/15 text-warning' : 'bg-success/15 text-success'
             }`}
           >
@@ -141,7 +141,7 @@ export default function MealComposerDraftRow({
         >
           <Bookmark size={14} className={remember ? 'fill-current' : ''} />
         </Pressable>
-        <Pressable variant="ghost" onClick={onRemove} className="shrink-0 p-1 text-text-muted hover:text-danger">
+        <Pressable variant="ghost" onClick={onRemove} className="shrink-0 min-h-11 min-w-11 p-1 flex items-center justify-center text-text-muted hover:text-danger">
           <Trash2 size={14} />
         </Pressable>
       </div>

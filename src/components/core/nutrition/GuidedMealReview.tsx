@@ -26,8 +26,8 @@ export default function GuidedMealReview({
     <div className="space-y-3 rounded-2xl border border-primary/25 bg-primary/[0.06] p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-black uppercase tracking-wider text-primary">Sprawdź zdjęcie</p>
-          <p className="mt-1 text-sm font-black text-text-primary">
+          <p className="text-xs font-semibold tracking-wide text-primary">Sprawdź zdjęcie</p>
+          <p className="mt-1 text-sm font-semibold text-text-primary">
             około {total} kcal
           </p>
           <p className="text-2xs text-text-muted">

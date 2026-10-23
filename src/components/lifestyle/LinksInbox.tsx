@@ -20,6 +20,7 @@ import {
  */
 import Spinner from '../ui/Spinner';
 import { useHaptics } from '../../hooks/useHaptics';
+import { useIsNarrowViewport } from './links/useIsNarrowViewport';
 import { useLinksInboxData } from './links/useLinksInboxData';
 import { LinksTriagePanel } from './LinksTriagePanel';
 import { LinksInboxItem } from './links/LinksInboxItem';
@@ -62,6 +63,32 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
     isSelectMode: d.bulk.isSelectMode,
     selectedCount: d.bulk.selectedIds.size,
   });
+
+  const isNarrow = useIsNarrowViewport();
+  const searchField = (
+    <div className="keep-search-wrap">
+      <Search size={14} className="keep-search-icon" />
+      <ControlInput
+        ref={searchInputRef}
+        value={d.search}
+        onChange={(e) => d.setSearch(e.target.value)}
+        className="keep-search !pr-10"
+        placeholder="Szukaj w linkach…"
+        aria-label="Szukaj w linkach"
+      />
+      {d.search && (
+        <Pressable
+          variant="ghost"
+          size="sm"
+          className="keep-search-clear"
+          onClick={() => d.setSearch('')}
+          aria-label="Wyczyść wyszukiwanie"
+        >
+          <X size={12} />
+        </Pressable>
+      )}
+    </div>
+  );
 
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-text-primary">
@@ -109,32 +136,10 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         <WorkspaceHeader
           title="Pocket"
-          subtitle={d.unreadCount > 0 ? `${d.unreadCount} nieprzeczytanych` : 'Wszystko przeczytane'}
+          subtitle={d.unreadCount > 0 ? `${d.unreadCount} do przeczytania` : 'Wszystko przeczytane'}
           onBack={onBack}
-          center={
-            <div className="keep-search-wrap">
-              <Search size={14} className="keep-search-icon" />
-              <ControlInput
-                ref={searchInputRef}
-                value={d.search}
-                onChange={(e) => d.setSearch(e.target.value)}
-                className="keep-search"
-                placeholder="Szukaj w linkach (tytuł, domena, wnioski)…"
-                aria-label="Szukaj w linkach"
-              />
-              {d.search && (
-                <Pressable
-                  variant="ghost"
-                  size="sm"
-                  className="keep-search-clear"
-                  onClick={() => d.setSearch('')}
-                  aria-label="Wyczyść wyszukiwanie"
-                >
-                  <X size={12} />
-                </Pressable>
-              )}
-            </div>
-          }
+          center={isNarrow ? undefined : searchField}
+          secondaryRow={isNarrow ? <div className="px-[var(--space-4)] pt-2">{searchField}</div> : undefined}
           actions={
             <>
               <Pressable

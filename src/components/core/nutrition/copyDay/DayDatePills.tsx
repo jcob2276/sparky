@@ -1,4 +1,5 @@
 import { CalendarDays } from 'lucide-react';
+import Skeleton from '../../../ui/Skeleton';
 import { Pressable, ControlInput } from '../../../ui/ControlPrimitives';
 import { useHaptics } from '../../../../hooks/useHaptics';
 import { formatWeekdayWarsaw, formatShortDateWarsaw } from '../../../../lib/date';
@@ -29,7 +30,7 @@ export default function DayDatePills({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between px-0.5">
-        <label className="text-2xs font-black uppercase tracking-widest text-text-muted block">
+        <label className="text-2xs font-semibold tracking-wide text-text-muted block">
           Wybierz dzień z historii
         </label>
       </div>
@@ -57,22 +58,22 @@ export default function DayDatePills({
                   : 'border border-border-custom/80 bg-surface-solid/40 text-text-secondary hover:border-primary/40 hover:bg-surface-solid/70 hover:text-text-primary'
               }`}
             >
-              <span className="text-xs font-black capitalize tracking-tight leading-tight">{label}</span>
+              <span className="text-xs font-semibold capitalize tracking-tight leading-tight">{label}</span>
               <span className={`mt-0.5 text-2xs font-bold ${isSelected ? 'text-on-accent/80' : 'text-text-muted'}`}>
                 {shortDate}
               </span>
               {summary && summary.totalCalories > 0 ? (
                 <span
-                  className={`mt-1 inline-flex items-center rounded-md px-1.5 py-0.5 text-3xs font-black leading-none ${
+                  className={`mt-1 inline-flex items-center rounded-md px-1.5 py-0.5 text-2xs font-semibold leading-none ${
                     isSelected ? 'bg-white/20 text-on-accent' : 'bg-primary/10 text-primary'
                   }`}
                 >
                   {summary.totalCalories} kcal
                 </span>
               ) : isLoading ? (
-                <span className="mt-1 h-3 w-10 rounded-md bg-surface-solid animate-pulse" />
+                <Skeleton variant="block" className="mt-1 h-3 w-10 !rounded-md" />
               ) : (
-                <span className="mt-1 h-3 text-3xs text-text-muted/40 font-mono">···</span>
+                <span className="mt-1 h-3 text-2xs text-text-muted/40 font-mono">···</span>
               )}
             </Pressable>
           );
@@ -81,7 +82,7 @@ export default function DayDatePills({
         <label
           className={`shrink-0 min-w-[78px] relative flex flex-col items-center justify-center rounded-2xl px-3 py-2 border border-dashed ui-interactive cursor-pointer active:scale-95 ${
             !dates.includes(selectedDate)
-              ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/20 font-black'
+              ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/20 font-semibold'
               : 'border-border-custom/80 bg-surface-solid/20 text-text-muted hover:border-primary/40 hover:text-text-secondary'
           }`}
           title="Wybierz inną datę z kalendarza"

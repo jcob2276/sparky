@@ -142,7 +142,7 @@ export default function SwipeableFoodEntry({ children, onDelete }: SwipeableFood
             aria-label="Usuń wpis"
           >
             <Trash2 size={16} />
-            <span className="text-3xs font-black tracking-tight">Usuń</span>
+            <span className="text-2xs font-semibold tracking-tight">Usuń</span>
           </Pressable>
         </div>
       )}

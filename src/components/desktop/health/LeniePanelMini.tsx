@@ -94,7 +94,7 @@ export default function LeniePanelMini({ logs, phoneUsage, oura }: LeniePanelMin
       >
         {/* ── Row 1: label + stats chips + insight text + modal button ── */}
         <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-          <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-25em)] text-danger/50 shrink-0">
+          <p className="text-2xs font-semibold tracking-[var(--ds-arbitrary-0-25em)] text-danger/50 shrink-0">
             Lenie
           </p>
 
@@ -131,7 +131,7 @@ export default function LeniePanelMini({ logs, phoneUsage, oura }: LeniePanelMin
         </div>
 
         {(correlations.riskWindowAlert || correlations.sleepCorrelationText || correlations.phoneCorrelationText) && (
-          <p className="rounded-md border border-danger/20 bg-danger/10 px-2.5 py-1 text-3xs font-medium text-danger">
+          <p className="rounded-md border border-danger/20 bg-danger/10 px-2.5 py-1 text-2xs font-medium text-danger">
             {correlations.riskWindowAlert || correlations.sleepCorrelationText || correlations.phoneCorrelationText}
           </p>
         )}

@@ -61,7 +61,7 @@ function EmptyHorizonView({
           <Pressable
             key={tpl.id}
             onClick={() => onOpenAdd(tpl)}
-            className="group relative flex flex-col justify-between rounded-[22px] border border-border-custom/30 bg-surface-solid/60 backdrop-blur-md p-4.5 text-left transition-all duration-200 ease-out hover:border-border-custom/60 hover:bg-surface-2/80 hover:shadow-md active:scale-[0.98]"
+            className="group relative flex h-full flex-col justify-between rounded-[22px] border border-border-custom/30 bg-surface-solid/60 backdrop-blur-md p-4.5 text-left transition-all duration-200 ease-out hover:border-border-custom/60 hover:bg-surface-2/80 hover:shadow-md active:scale-[0.98]"
           >
             <div>
               <span className="block text-2xs font-bold text-text-muted">

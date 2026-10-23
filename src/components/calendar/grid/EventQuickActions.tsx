@@ -26,7 +26,7 @@ export function EventQuickActions({ ev }: { ev: CalRow }) {
 
   return (
     <div
-      className="absolute top-1 right-1 z-[var(--z-sticky)] flex gap-0.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
+      className="absolute top-1 right-1 z-[var(--z-sticky)] flex gap-0.5 [@media(hover:none)]:hidden opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150"
       onMouseDown={(e) => e.stopPropagation()}
     >
       <Pressable

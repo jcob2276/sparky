@@ -47,7 +47,7 @@ export default function GeneralMemexPanels({ userId, patterns, curiosity, wiki }
           {hidden > 0 && (
             <Pressable
               onClick={() => setShowAll((v) => !v)}
-              className="flex w-full items-center justify-center gap-1 py-1.5 text-2xs font-bold uppercase tracking-wider text-text-muted hover:text-text-secondary"
+              className="flex w-full items-center justify-center gap-1 py-1.5 text-2xs font-bold tracking-wide text-text-muted hover:text-text-secondary"
             >
               {showAll ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
               {showAll ? 'Mniej' : `Jeszcze ${hidden}`}

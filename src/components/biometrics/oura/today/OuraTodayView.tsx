@@ -6,6 +6,7 @@ import { OuraBaselineSection } from '../OuraBaselineSection';
 import { OuraDayNightSection } from '../OuraDayNightSection';
 import type { DetailsAnchor } from '../ouraTabs';
 import type { OuraHealthHubData } from '../types';
+import { PhoneSignalsSection } from '../phone/PhoneSignalsSection';
 import { OuraDriverEffects } from './OuraDriverEffects';
 import { OuraNightFactorsStrip } from './OuraNightFactorsStrip';
 import { OuraTodayHero } from './OuraTodayHero';
@@ -26,6 +27,7 @@ export function OuraTodayView({ data, drivers, onOpenDetails }: OuraTodayViewPro
       {data.userId && <OuraBaselineSection userId={data.userId} asOf={asOf} mode="deviations" />}
       {data.userId && <OuraDayNightSection userId={data.userId} latestNight={asOf} />}
       <OuraNightFactorsStrip drivers={drivers} screen={nightContext?.screen} screenDate={nightContext?.date} />
+      {data.userId && <PhoneSignalsSection userId={data.userId} />}
       <OuraDriverEffects drivers={drivers} onOpenDrivers={() => onOpenDetails('drivers')} />
       <Button variant="outline" onClick={() => onOpenDetails('sleep')} icon={<ArrowRight size={16} />} iconPosition="right" className="w-full">
         Szczegóły snu, regularność i parametry

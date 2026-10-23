@@ -43,7 +43,7 @@ interface Tile {
 }
 
 function SectionTitle({ children }: { children: string }) {
-  return <p className="px-1 text-xs font-semibold uppercase tracking-widest text-text-muted">{children}</p>;
+  return <p className="px-1 text-xs font-semibold tracking-wide text-text-muted">{children}</p>;
 }
 
 export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({ show, onClose, items, tools, userId, badges }: Props) {

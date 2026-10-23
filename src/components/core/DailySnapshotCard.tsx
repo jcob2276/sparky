@@ -46,15 +46,15 @@ export default function DailySnapshotCard() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Brain size={13} className="text-primary" />
-          <p className="text-2xs font-bold uppercase tracking-[var(--ds-arbitrary-0-15em)] text-text-muted">
+          <p className="text-2xs font-bold tracking-[var(--ds-arbitrary-0-15em)] text-text-muted">
             Plan dnia{isYesterday ? ' (wczoraj)' : ''}
           </p>
         </div>
         <div className="flex items-center gap-2">
           {dayScore != null && (
-            <span className="text-xs font-black text-text-primary">{dayScore}/10</span>
+            <span className="text-xs font-semibold text-text-primary">{dayScore}/10</span>
           )}
-          <Badge variant="tag" color={mode.color} className="text-2xs font-black uppercase tracking-wider">
+          <Badge variant="tag" color={mode.color} className="text-2xs font-semibold tracking-wide">
             {mode.label}
           </Badge>
         </div>
@@ -73,7 +73,7 @@ export default function DailySnapshotCard() {
       {/* One clear move */}
       {snap.one_clear_move && (
         <div className="rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 shadow-2xs">
-          <p className="text-3xs font-black uppercase tracking-widest text-primary mb-1.5 flex items-center gap-1.5">
+          <p className="text-2xs font-semibold tracking-wide text-primary mb-1.5 flex items-center gap-1.5">
             <Target size={12} /> Główny ruch dnia
           </p>
           <p className="text-sm font-bold leading-snug text-text-primary">
@@ -87,7 +87,7 @@ export default function DailySnapshotCard() {
         <div className="space-y-2">
           {snap.top3.slice(0, 3).map((item: string, i: number) => (
             <div key={i} className="flex items-start gap-3 rounded-xl border border-border-custom/40 bg-surface-solid/20 p-2.5">
-              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-3xs font-black text-primary">
+              <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-2xs font-semibold text-primary">
                 {i + 1}
               </div>
               <p className="text-xs font-semibold leading-snug text-text-secondary pt-0.5">{item}</p>
@@ -101,7 +101,7 @@ export default function DailySnapshotCard() {
         <div className="flex items-start gap-2.5 rounded-xl border border-warning/20 bg-warning/5 px-3.5 py-2.5">
           <Zap size={13} className="mt-0.5 shrink-0 text-warning" />
           <div>
-            <span className="block text-3xs font-black uppercase tracking-wider text-warning">Działanie napięciowe</span>
+            <span className="block text-2xs font-semibold tracking-wide text-warning">Działanie napięciowe</span>
             <p className="text-xs font-medium leading-snug text-text-secondary mt-0.5">{snap.tension_action.action}</p>
           </div>
         </div>
@@ -112,7 +112,7 @@ export default function DailySnapshotCard() {
         <div className="flex items-start gap-2.5 rounded-xl border border-danger/20 bg-danger/5 px-3.5 py-2.5">
           <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-danger" />
           <div>
-            <span className="block text-3xs font-black uppercase tracking-wider text-danger">Bloker południowy</span>
+            <span className="block text-2xs font-semibold tracking-wide text-danger">Bloker południowy</span>
             <p className="text-xs font-medium leading-snug text-text-secondary mt-0.5">{midday.blocker}</p>
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function DailySnapshotCard() {
       {/* Evening Extraction (Kronika) */}
       {data?.eveningExtraction && (
         <div className="rounded-2xl border border-border-custom/50 bg-surface-solid/30 p-4">
-          <p className="text-3xs font-black uppercase tracking-widest text-text-muted mb-1.5">
+          <p className="text-2xs font-semibold tracking-wide text-text-muted mb-1.5">
             Kronika Dnia
           </p>
           <div className="text-xs leading-relaxed text-text-secondary whitespace-pre-wrap">
@@ -136,8 +136,8 @@ export default function DailySnapshotCard() {
       {showScorePicker && (
         <div className="pt-2 border-t border-border-custom/50 space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-3xs font-black uppercase tracking-wider text-text-muted">Ocena Dnia (1–10)</p>
-            <span className="text-3xs text-text-muted">Jak podsumowujesz dzisiejszy dzień?</span>
+            <p className="text-2xs font-semibold tracking-wide text-text-muted">Ocena Dnia (1–10)</p>
+            <span className="text-2xs text-text-muted">Jak podsumowujesz dzisiejszy dzień?</span>
           </div>
           <div className="grid grid-cols-10 gap-1">
             {SCORES.map(s => (
@@ -145,7 +145,7 @@ export default function DailySnapshotCard() {
                 key={s}
                 onClick={() => saveScore(s)}
                 disabled={savingScore}
-                className={`flex h-9 items-center justify-center rounded-xl text-xs font-black ui-interactive active:scale-90 cursor-pointer disabled:opacity-[var(--opacity-40)] ${
+                className={`flex h-9 items-center justify-center rounded-xl text-xs font-semibold ui-interactive active:scale-90 cursor-pointer disabled:opacity-[var(--opacity-40)] ${
                   s <= 3
                     ? 'bg-danger/10 text-danger hover:bg-danger/25 border border-danger/20'
                     : s <= 6

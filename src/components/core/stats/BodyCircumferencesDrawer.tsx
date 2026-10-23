@@ -25,7 +25,7 @@ function Field({
 }) {
   return (
     <div className="space-y-1">
-      <label className="text-3xs font-bold uppercase tracking-wider text-text-muted font-display block">
+      <label className="text-2xs font-bold tracking-wide text-text-muted font-display block">
         {label}
       </label>
       <div className="relative">
@@ -33,9 +33,9 @@ function Field({
           type="text" inputMode="decimal" value={value}
           onChange={(e) => onChange(e.target.value.replace(',', '.'))}
           placeholder={placeholder ?? '--'}
-          className="w-full rounded-xl border border-border-custom bg-surface px-3 py-2 text-sm font-black text-text-primary outline-none ui-interactive placeholder:text-text-muted/60 focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
+          className="w-full rounded-xl border border-border-custom bg-surface px-3 py-2 text-sm font-semibold text-text-primary outline-none ui-interactive placeholder:text-text-muted/60 focus:border-primary/50 focus:bg-surface-solid focus:shadow-focus"
         />
-        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-3xs font-bold text-text-muted pointer-events-none">
+        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-2xs font-bold text-text-muted pointer-events-none">
           cm
         </span>
       </div>
@@ -67,7 +67,7 @@ export function BodyCircumferencesDrawer({
       {expanded && (
         <div className="rounded-xl border border-border-custom bg-surface/80 p-3.5 space-y-3">
           <div className="space-y-2">
-            <p className="text-3xs font-bold uppercase tracking-wider text-text-muted">Tułów</p>
+            <p className="text-2xs font-bold tracking-wide text-text-muted">Tułów</p>
             <div className="grid grid-cols-3 gap-2">
               <Field label="Klatka" value={newMetric.chest} onChange={set('chest')} placeholder={latestBody?.chest ? String(latestBody.chest) : '--'} />
               <Field label="Brzuch" value={newMetric.belly} onChange={set('belly')} placeholder={latestBody?.belly ? String(latestBody.belly) : '--'} />
@@ -76,7 +76,7 @@ export function BodyCircumferencesDrawer({
           </div>
 
           <div className="space-y-2 pt-1 border-t border-border-custom/50">
-            <p className="text-3xs font-bold uppercase tracking-wider text-text-muted">Kończyny & Szyja</p>
+            <p className="text-2xs font-bold tracking-wide text-text-muted">Kończyny & Szyja</p>
             <div className="grid grid-cols-4 gap-2">
               <Field label="Szyja" value={newMetric.neck} onChange={set('neck')} placeholder={latestBody?.neck ? String(latestBody.neck) : '~37'} />
               <Field label="Biceps L" value={newMetric.biceps_l} onChange={set('biceps_l')} placeholder={latestBody?.biceps_l ? String(latestBody.biceps_l) : '--'} />
@@ -85,7 +85,7 @@ export function BodyCircumferencesDrawer({
             </div>
           </div>
 
-          <p className="text-3xs text-text-muted leading-relaxed pt-1">
+          <p className="text-2xs text-text-muted leading-relaxed pt-1">
             💡 Pomiar rano na czczo. Talia = najwęższe miejsce. Brzuch = poziom pępka. Biodra = najszerszy punkt pośladków. US Navy liczy BF% z logarytmu różnicy obwodów.
           </p>
         </div>

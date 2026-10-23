@@ -14,6 +14,10 @@ export interface DeviceSignalsStatus {
   queueSize: number;
   wifiConnected: boolean;
   wifiLabel: WifiLabel | null;
+  /** Telemetry service should come back after a reboot (it was running when the phone shut down). */
+  bootRestartWanted: boolean;
+  bootRestartResult: 'none' | 'started' | 'no_background_location' | 'no_location_permission' | 'refused';
+  backgroundLocation: boolean;
 }
 
 export interface NativeDeviceSignal {

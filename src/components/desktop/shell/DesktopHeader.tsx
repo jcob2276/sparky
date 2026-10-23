@@ -24,12 +24,12 @@ export default function DesktopHeader({
     <header className="sticky top-0 z-[var(--z-sticky)] border-b border-border-custom bg-background/95 backdrop-blur-[var(--blur-md)] px-4 sm:px-8 py-3.5 flex items-center gap-2 sm:gap-4">
       <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         <BrandTitle className="font-display text-sm text-text-primary" />
-        <span className="text-2xs font-bold uppercase tracking-wider text-text-muted hidden lg:block">{now}</span>
+        <span className="text-2xs font-bold tracking-wide text-text-muted hidden lg:block">{now}</span>
       </div>
       <div className="hidden xl:flex items-center gap-3 ml-4">
         {[['S','sync'], ['T','trening'], ['W','waga'], ['D','dark']].map(([k, l]) => (
           <span key={k} className="flex items-center gap-1 text-2xs text-text-muted">
-            <kbd className="rounded border border-border-custom bg-surface px-1.5 py-0.5 font-mono text-2xs font-black leading-none">{k}</kbd>
+            <kbd className="rounded border border-border-custom bg-surface px-1.5 py-0.5 font-mono text-2xs font-semibold leading-none">{k}</kbd>
             <span>{l}</span>
           </span>
         ))}

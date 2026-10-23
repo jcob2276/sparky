@@ -59,7 +59,7 @@ export function MedicalTrendDetailCard({ selectedTrend, insight }: MedicalTrendD
         </div>
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-2xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
         <div className="bg-background/20 p-2.5 rounded-xl border border-border-custom/40">
           <span className="text-text-muted font-bold block">Aktualny (ostatni)</span>
           <span className="text-sm font-semibold text-text-primary mt-0.5 block">{selectedTrend.currentValue} {selectedTrend.unit}</span>
@@ -99,15 +99,15 @@ export function MedicalTrendDetailCard({ selectedTrend, insight }: MedicalTrendD
       </div>
 
       <div className="space-y-1.5 pt-1">
-        <span className="text-2xs font-semibold tracking-normal text-text-muted">Historia pomiarów</span>
+        <span className="text-xs font-semibold tracking-normal text-text-muted">Historia pomiarów</span>
         <div className="space-y-1">
           {[...selectedTrend.history].reverse().map((h) => (
             <div key={h.id} className="flex items-center justify-between text-xs bg-background/20 px-3 py-1.5 rounded-lg border border-border-custom/30">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-text-primary">{formatMedicalDate(h.result_date)}</span>
-                <span className="text-2xs text-text-muted">({h.source_name || h.provider || 'Laboratorium'})</span>
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="whitespace-nowrap font-bold text-text-primary">{formatMedicalDate(h.result_date)}</span>
+                <span className="text-xs text-text-muted truncate">({h.source_name || h.provider || 'Laboratorium'})</span>
               </div>
-              <span className="font-mono font-bold text-text-primary">{h.value} {h.unit}</span>
+              <span className="shrink-0 whitespace-nowrap pl-2 font-mono font-bold text-text-primary">{h.value} {h.unit}</span>
             </div>
           ))}
         </div>

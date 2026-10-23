@@ -51,12 +51,12 @@ function TrendPill({ cur, prev, unit, better = 'down' }: { cur?: number | null; 
   if (cur == null || prev == null) return null;
   const diff = Math.round((cur - prev) * 10) / 10;
   if (Math.abs(diff) < 0.05) {
-    return <span className="text-3xs font-mono font-bold text-text-muted px-1.5 py-0.5 rounded bg-surface-2/60">0.0 {unit}</span>;
+    return <span className="text-2xs font-mono font-bold text-text-muted px-1.5 py-0.5 rounded bg-surface-2/60">0.0 {unit}</span>;
   }
   const isBetter = better === 'down' ? diff < 0 : diff > 0;
   return (
     <span
-      className={`text-3xs font-mono font-bold px-1.5 py-0.5 rounded border ${
+      className={`text-2xs font-mono font-bold px-1.5 py-0.5 rounded border ${
         isBetter
           ? 'bg-success/10 text-success border-success/20'
           : 'bg-warning/10 text-warning border-warning/20'
@@ -103,11 +103,11 @@ export function BodyMetricsSection({
         <div>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted font-display">
+            <p className="text-2xs font-semibold tracking-[var(--ds-arbitrary-0-18em)] text-text-muted font-display">
               Pomiary ciała & Skład
             </p>
           </div>
-          <h2 className="mt-0.5 font-display text-lg font-black tracking-tight text-text-primary flex items-center gap-2">
+          <h2 className="mt-0.5 font-display text-lg font-semibold tracking-tight text-text-primary flex items-center gap-2">
             Waga & Talia
             <span className="text-xs font-normal text-text-muted">· Telemetria</span>
           </h2>
@@ -122,7 +122,7 @@ export function BodyMetricsSection({
         {/* Waga */}
         <div className="relative rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm ui-interactive focus-within:border-primary/60 focus-within:shadow-focus">
           <div className="flex items-center justify-between mb-1.5">
-            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text-muted font-display">
+            <label className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-text-muted font-display">
               <Scale size={13} className="text-primary" />
               Waga
             </label>
@@ -132,17 +132,17 @@ export function BodyMetricsSection({
             <ControlInput
               type="text" inputMode="decimal" value={newMetric.weight}
               onChange={(e) => setNewMetric({ ...newMetric, weight: e.target.value.replace(',', '.') })}
-              className="w-full bg-transparent text-2xl font-black text-text-primary outline-none placeholder:text-text-muted/40 font-display"
+              className="w-full bg-transparent text-2xl font-semibold text-text-primary outline-none placeholder:text-text-muted/40 font-display"
               placeholder={latestBody?.weight ? String(latestBody.weight) : '--'}
             />
-            <span className="text-xs font-bold text-text-muted uppercase">kg</span>
+            <span className="text-xs font-bold text-text-muted">kg</span>
           </div>
         </div>
 
         {/* Talia */}
         <div className="relative rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm ui-interactive focus-within:border-primary/60 focus-within:shadow-focus">
           <div className="flex items-center justify-between mb-1.5">
-            <label className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-text-muted font-display">
+            <label className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-text-muted font-display">
               <Ruler size={13} className="text-warning" />
               Talia
             </label>
@@ -152,10 +152,10 @@ export function BodyMetricsSection({
             <ControlInput
               type="text" inputMode="decimal" value={newMetric.waist}
               onChange={(e) => setNewMetric({ ...newMetric, waist: e.target.value.replace(',', '.') })}
-              className="w-full bg-transparent text-2xl font-black text-text-primary outline-none placeholder:text-text-muted/40 font-display"
+              className="w-full bg-transparent text-2xl font-semibold text-text-primary outline-none placeholder:text-text-muted/40 font-display"
               placeholder={latestBody?.waist ? String(latestBody.waist) : '--'}
             />
-            <span className="text-xs font-bold text-text-muted uppercase">cm</span>
+            <span className="text-xs font-bold text-text-muted">cm</span>
           </div>
         </div>
       </div>

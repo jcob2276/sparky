@@ -47,7 +47,7 @@ export default function SalesNumbersFields({ idPrefix, draft, onChange, disabled
             value={draft.off ? '0' : draft[key]}
             disabled={locked}
             onChange={(event) => onChange({ [key]: sanitizeCountInput(event.target.value) })}
-            className="w-full bg-surface-2 border border-border-custom/60 rounded-xl px-3 py-2.5 text-lg font-black text-text-primary text-center tabular-nums"
+            className="w-full bg-surface-2 border border-border-custom/60 rounded-xl px-3 py-2.5 text-lg font-semibold text-text-primary text-center tabular-nums"
           />
         </div>
       ))}

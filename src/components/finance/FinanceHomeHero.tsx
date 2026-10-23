@@ -17,6 +17,7 @@ interface FinanceHomeHeroProps {
   metrics: FinanceMetrics;
   portfolio: PortfolioTotals;
   hasHoldings: boolean;
+  hasAccounts: boolean;
   onQuickEntry: (kind: 'expense' | 'income') => void;
   onRebalance: () => void;
   onMore: () => void;
@@ -42,23 +43,24 @@ function changeLine(change: number, pct: number | null): { text: string; tone: s
   };
 }
 
-export function FinanceHomeHero({ metrics, portfolio, hasHoldings, onQuickEntry, onRebalance, onMore }: FinanceHomeHeroProps) {
+export function FinanceHomeHero({ metrics, portfolio, hasHoldings, hasAccounts, onQuickEntry, onRebalance, onMore }: FinanceHomeHeroProps) {
   const [segment, setSegment] = useState<Segment>('net');
   const amount = segment === 'net' ? metrics.netWorth : segment === 'invest' ? portfolio.valuePln : metrics.liquid;
   const label = segment === 'net' ? 'Majątek netto' : segment === 'invest' ? 'Wartość inwestycji' : 'Płynna gotówka';
   const showChange = segment !== 'cash' && hasHoldings;
+  const isUnset = amount === 0 && !hasAccounts && !hasHoldings;
   const line = changeLine(portfolio.dayChangePln, portfolio.dayChangePct);
 
   return (
     <section className="space-y-6 text-center" aria-label={label}>
-      <div className="no-scrollbar -mx-4 flex justify-center gap-2 overflow-x-auto px-4" role="group" aria-label="Widok">
+      <div className="flex flex-wrap justify-center gap-2" role="group" aria-label="Widok">
         {SEGMENTS.map((item) => (
           <Pressable
             key={item.key}
             type="button"
             onClick={() => setSegment(item.key)}
             aria-pressed={segment === item.key}
-            className={`min-h-11 shrink-0 rounded-full px-4 text-sm font-semibold transition-colors duration-[var(--motion-fast)] ${segment === item.key ? 'bg-text-primary text-background' : 'bg-background/40 text-text-secondary'}`}
+            className={`min-h-11 rounded-full px-4 text-sm font-semibold transition-colors duration-[var(--motion-fast)] ${segment === item.key ? 'bg-text-primary text-background' : 'bg-background/40 text-text-secondary'}`}
           >
             {item.label}
           </Pressable>
@@ -68,11 +70,17 @@ export function FinanceHomeHero({ metrics, portfolio, hasHoldings, onQuickEntry,
       <div className="space-y-1.5">
         <p className="text-sm text-text-secondary">{label}</p>
         <p className="ui-num text-[length:var(--finance-display-size)] font-semibold tabular-nums leading-[var(--line-height-display)] tracking-[var(--tracking-display)]">
-          {formatPln(amount)}
+          {isUnset ? '—' : formatPln(amount)}
         </p>
-        <p className={`min-h-5 text-sm font-medium tabular-nums ${showChange ? line.tone : 'text-transparent'}`} aria-hidden={!showChange}>
-          {showChange ? line.text : '.'}
-        </p>
+        {isUnset ? (
+          <p className="mx-auto min-h-5 max-w-xs text-sm font-medium text-text-muted">
+            Dodaj konto w zakładce Konta, a pokażemy tu stan.
+          </p>
+        ) : (
+          <p className={`min-h-5 text-sm font-medium tabular-nums ${showChange ? line.tone : 'text-transparent'}`} aria-hidden={!showChange}>
+            {showChange ? line.text : '.'}
+          </p>
+        )}
       </div>
 
       <div className="mx-auto flex max-w-sm justify-between px-1">

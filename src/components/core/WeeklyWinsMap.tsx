@@ -14,10 +14,10 @@ export default function WeeklyWinsMap() {
   return (
     <section className="space-y-3 rounded-3xl border border-border-custom/60 bg-surface/70 p-4">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-widest text-text-muted">
+        <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-text-muted">
           <CheckSquare size={12} className="text-primary" /> Pięć zwycięstw · 7 dni
         </p>
-        <p className="text-sm font-black text-text-primary">
+        <p className="text-sm font-semibold text-text-primary">
           {isLoading ? '…' : tasksSet > 0 ? `${tasksDone} z ${tasksSet} zadań` : 'brak zadań'}
         </p>
       </div>
@@ -42,13 +42,13 @@ export default function WeeklyWinsMap() {
               title={`${day.date}: ${day.doneCount}/${day.plannedCount || 5}${
                 day.result ? ` · ${day.result}` : ''
               }`}
-              className={`flex aspect-square w-full max-w-11 items-center justify-center rounded-xl border text-xs font-black ui-interactive ${
+              className={`flex aspect-square w-full max-w-11 items-center justify-center rounded-xl border text-xs font-semibold ui-interactive ${
                 cellClass(day.status)
               }`}
             >
               {day.status === 'open' && day.doneCount > 0 ? day.doneCount : null}
             </div>
-            <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">{day.label}</span>
+            <span className="text-2xs font-bold tracking-wide text-text-muted">{day.label}</span>
           </div>
         ))}
       </div>

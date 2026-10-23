@@ -5,7 +5,7 @@
  * @usedBy Dashboard
  */
 import { memo } from 'react';
-import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
 import { useSession } from '../../store/useStore';
 import { ProjectsProvider } from '../projects/context/ProjectsContext';
 import { useProjectsContext } from '../projects/context/projectsContextStore';
@@ -13,9 +13,7 @@ import { DirectionView } from '../projects/DirectionView';
 
 function ViewFallback() {
   return (
-    <div className="flex min-h-[var(--ds-h-220px)] items-center justify-center rounded-lg border border-on-accent/[0.06] bg-on-accent/[0.02]">
-      <Spinner size="md" />
-    </div>
+    <Skeleton variant="block" className="min-h-[var(--ds-h-220px)]" />
   );
 }
 

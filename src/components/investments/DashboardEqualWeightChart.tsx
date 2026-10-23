@@ -20,8 +20,8 @@ export const DashboardEqualWeightChart: FC<Props> = ({
 
   return (
     <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-xs flex flex-col justify-between h-full min-h-72">
-      <div className="flex items-center justify-between pb-3 border-b border-border-custom/40">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 pb-3 border-b border-border-custom/40">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           <span className="text-xs font-semibold text-text-muted">
             Watchlista · indeks cen równych wag
           </span>
@@ -37,19 +37,21 @@ export const DashboardEqualWeightChart: FC<Props> = ({
             </span>
           )}
         </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onNavigateToWatchlist}
-          icon={<ArrowRight size={13} />}
-          iconPosition="right"
-          className="text-xs font-semibold text-primary"
-        >
-          Przejdź do watchlisty
-        </Button>
+        {!isEmpty && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onNavigateToWatchlist}
+            icon={<ArrowRight size={13} />}
+            iconPosition="right"
+            className="shrink-0 text-xs font-semibold text-primary"
+          >
+            Przejdź do watchlisty
+          </Button>
+        )}
       </div>
 
-      <p className="text-2xs text-text-muted">Ceny surowe w walutach lokalnych, bez dywidend, korekt splitów i przeliczenia FX. Wyłącznie wspólne daty wszystkich spółek; to nie wynik portfela.</p>
+      <p className="py-2 text-xs text-text-muted">Ceny surowe w walutach lokalnych, bez dywidend, korekt splitów i przeliczenia FX. Wyłącznie wspólne daty wszystkich spółek; to nie wynik portfela.</p>
       {/* Main Area */}
       {isEmpty ? (
         <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">

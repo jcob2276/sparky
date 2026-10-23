@@ -40,14 +40,14 @@ export function InvestmentsHero({ activity, onNavigateTab }: InvestmentsHeroProp
 
   return (
     <section className="space-y-6 text-center" aria-label={current.caption}>
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 sm:justify-center" role="group" aria-label="Źródło danych">
+      <div className="flex flex-wrap justify-center gap-2" role="group" aria-label="Źródło danych">
         {SEGMENTS.map((item) => (
           <Pressable
             key={item.key}
             type="button"
             onClick={() => setSegment(item.key)}
             aria-pressed={segment === item.key}
-            className={`min-h-11 shrink-0 rounded-full px-4 text-sm font-semibold transition-colors duration-[var(--motion-fast)] ${segment === item.key ? 'bg-text-primary text-background' : 'bg-surface-1 text-text-secondary'}`}
+            className={`min-h-11 rounded-full px-3.5 sm:px-4 text-sm font-semibold transition-colors duration-[var(--motion-fast)] ${segment === item.key ? 'bg-text-primary text-background' : 'bg-surface-1 text-text-secondary'}`}
           >
             {item.label}
           </Pressable>
@@ -55,7 +55,7 @@ export function InvestmentsHero({ activity, onNavigateTab }: InvestmentsHeroProp
       </div>
 
       <div className="space-y-1.5">
-        <p className="text-sm text-text-secondary">{current.caption}</p>
+        <p className="text-base font-medium text-text-secondary">{current.caption}</p>
         <p className="ui-num text-[length:var(--finance-display-size)] font-semibold leading-[var(--line-height-display)] tracking-[var(--tracking-display)]">
           {value === null ? '—' : value.toLocaleString('pl-PL')}
         </p>

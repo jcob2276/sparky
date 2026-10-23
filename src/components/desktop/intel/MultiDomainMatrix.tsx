@@ -70,7 +70,7 @@ export default function MultiDomainMatrix({
             variant="ghost"
             size="sm"
             onClick={selectAll}
-            className="text-3xs text-text-muted hover:text-text-primary px-2 py-1 h-7"
+            className="text-2xs text-text-muted hover:text-text-primary px-2 py-1 h-7"
           >
             <CheckSquare size={13} className="mr-1" />
             Wszystkie
@@ -79,7 +79,7 @@ export default function MultiDomainMatrix({
             variant="ghost"
             size="sm"
             onClick={clearAll}
-            className="text-3xs text-text-muted hover:text-text-primary px-2 py-1 h-7"
+            className="text-2xs text-text-muted hover:text-text-primary px-2 py-1 h-7"
           >
             <Square size={13} className="mr-1" />
             Wyczyść

@@ -26,7 +26,7 @@ export function MultiDomainMatrixInsights({ stats }: Props) {
   return (
     <div className="mt-4 pt-3.5 border-t border-border-custom space-y-3">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">
+        <span className="text-2xs font-bold tracking-wide text-text-muted">
           SYNTEZA KORELACJI — OKNO 13 TYGODNI ({pastDaysCount} DNI)
         </span>
         <span className="text-2xs text-text-muted">
@@ -41,10 +41,10 @@ export function MultiDomainMatrixInsights({ stats }: Props) {
             <span>Dni Czyste (No Lenie)</span>
             <span className="font-bold text-success">{cleanPercent}%</span>
           </div>
-          <div className="text-sm font-black text-text-primary">
+          <div className="text-sm font-semibold text-text-primary">
             {cleanDaysCount} <span className="text-xs font-normal text-text-muted">/ {pastDaysCount}</span>
           </div>
-          <p className="text-3xs text-text-muted">
+          <p className="text-2xs text-text-muted">
             {daysWithIncident > 0
               ? `${daysWithIncident} dni z odnotowanym załamaniem`
               : 'Zero załamań w oknie 13 tyg!'}
@@ -57,13 +57,13 @@ export function MultiDomainMatrixInsights({ stats }: Props) {
             <span>Sen: Czysto vs Incydent</span>
             <span className="font-bold text-info">Oura</span>
           </div>
-          <div className="text-sm font-black text-text-primary">
+          <div className="text-sm font-semibold text-text-primary">
             {avgSleepCleanDays ?? '—'}{' '}
             <span className="text-xs font-normal text-text-muted">
               vs {avgSleepIncidentDays ?? '—'}
             </span>
           </div>
-          <p className="text-3xs text-text-muted">
+          <p className="text-2xs text-text-muted">
             {avgSleepCleanDays && avgSleepIncidentDays
               ? avgSleepCleanDays > avgSleepIncidentDays
                 ? `+${avgSleepCleanDays - avgSleepIncidentDays} pkt snu w dniach bez incydentu`
@@ -78,13 +78,13 @@ export function MultiDomainMatrixInsights({ stats }: Props) {
             <span>Power List: Realizacja</span>
             <span className="font-bold text-primary">⚡</span>
           </div>
-          <div className="text-sm font-black text-text-primary">
+          <div className="text-sm font-semibold text-text-primary">
             {powerListRateCleanDays != null ? `${powerListRateCleanDays}%` : '—'}{' '}
             <span className="text-xs font-normal text-text-muted">
               vs {powerListRateIncidentDays != null ? `${powerListRateIncidentDays}%` : '—'}
             </span>
           </div>
-          <p className="text-3xs text-text-muted">
+          <p className="text-2xs text-text-muted">
             {powerListRateCleanDays != null && powerListRateIncidentDays != null
               ? powerListRateCleanDays > powerListRateIncidentDays
                 ? `+${powerListRateCleanDays - powerListRateIncidentDays}% wyższa skuteczność w dni czyste`
@@ -99,17 +99,17 @@ export function MultiDomainMatrixInsights({ stats }: Props) {
             <span>Dni Pełnej Formy</span>
             <span>🏆</span>
           </div>
-          <div className="text-sm font-black text-primary">
+          <div className="text-sm font-semibold text-primary">
             {perfectDaysCount}{' '}
             <span className="text-xs font-normal text-text-muted">dni</span>
           </div>
-          <p className="text-3xs text-text-muted">
+          <p className="text-2xs text-text-muted">
             Trening + Białko + Sen ≥78 + Czysto
           </p>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-4 text-3xs text-text-muted pt-1">
+      <div className="flex flex-wrap items-center gap-4 text-2xs text-text-muted pt-1">
         <span>🏋️ Treningi (siłownia/bieg): <b className="text-text-primary">{daysWithTraining}</b></span>
         <span>🥩 Dni z białkiem ≥140g: <b className="text-text-primary">{daysWithHighProtein}</b></span>
         <span>🍚 Dni z węglami ≥200g: <b className="text-text-primary">{daysWithHighCarbs}</b></span>

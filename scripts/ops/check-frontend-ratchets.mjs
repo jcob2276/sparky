@@ -271,6 +271,13 @@ const patternDefinitions = {
       return count;
     },
   },
+  patternCount_shoutingTypography: {
+    label: 'text-3xs / font-black / uppercase classes in TSX (use text-2xs, font-semibold, sentence case)',
+    check: (file, relativePath, content) => {
+      if (!/\.tsx$/.test(relativePath) || /\.test\.tsx$/.test(relativePath)) return 0;
+      return (content.match(/(?<=^|[\s"'`:])(?:text-3xs|font-black|uppercase)(?=[\s"'`])/g) ?? []).length;
+    },
+  },
   patternCount_embeddedCssVisualValues: {
     label: "static numeric CSS embedded in TS/TSX strings",
     check: (file, relativePath, content) => {

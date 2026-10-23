@@ -32,17 +32,17 @@ export default function CopyDaySummaryBanner({
     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 rounded-2xl border border-primary/25 bg-primary/[0.06] p-3 shadow-2xs">
       <div className="min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-2xs font-black uppercase tracking-wider text-primary">
+          <span className="text-2xs font-semibold tracking-wide text-primary">
             {targetDestinationLabel ? `Cel: ${targetDestinationLabel}` : 'Zaznaczone pozycje'}
           </span>
           {isFetching && <Spinner size="sm" />}
         </div>
         <div className="flex items-baseline gap-2 mt-0.5">
-          <span className="font-display text-base font-black text-text-primary leading-tight">
+          <span className="font-display text-base font-semibold text-text-primary leading-tight">
             {selectedKcal} kcal
           </span>
           <span className="text-xs font-bold text-text-muted">
-            · <span className="text-primary font-black">{selectedProtein} g B</span>
+            · <span className="text-primary font-semibold">{selectedProtein} g B</span>
           </span>
         </div>
         <div className="mt-0.5 flex items-center gap-2 text-2xs text-text-muted">
@@ -75,7 +75,7 @@ export default function CopyDaySummaryBanner({
         variant="primary"
         onClick={onCopySelected}
         disabled={copying || noneSelected}
-        className="touch-manipulation shrink-0 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-black shadow-sm active:scale-95 disabled:opacity-40"
+        className="touch-manipulation shrink-0 flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-xs font-semibold shadow-sm active:scale-95 disabled:opacity-40"
       >
         {copying ? (
           <>

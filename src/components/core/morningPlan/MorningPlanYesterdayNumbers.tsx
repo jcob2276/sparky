@@ -26,8 +26,8 @@ interface Props {
 function Stat({ value, label }: { value: number; label: string }) {
   return (
     <div className="rounded-xl border border-border-custom/30 bg-surface/50 px-2 py-2 text-center">
-      <div className="text-xl font-black tabular-nums text-text-primary">{value}</div>
-      <div className="text-3xs font-bold uppercase tracking-wider text-text-muted">{label}</div>
+      <div className="text-xl font-semibold tabular-nums text-text-primary">{value}</div>
+      <div className="text-2xs font-bold tracking-wide text-text-muted">{label}</div>
     </div>
   );
 }
@@ -46,7 +46,7 @@ export default function MorningPlanYesterdayNumbers({ userId, planningDate }: Pr
     return (
       <section className="rounded-2xl border border-warning/30 bg-warning/[0.06] p-4 space-y-3" aria-labelledby="yesterday-missing">
         <div>
-          <h3 id="yesterday-missing" className="text-sm font-black text-text-primary">Brakuje liczb z wczoraj</h3>
+          <h3 id="yesterday-missing" className="text-sm font-semibold text-text-primary">Brakuje liczb z wczoraj</h3>
           <p className="text-xs text-text-secondary mt-0.5">Wpisz je teraz, żeby tydzień się zgadzał.</p>
         </div>
         <SalesNumbersFields idPrefix="yesterday" draft={day.draft} onChange={day.patchDraft} disabled={day.saving} />
@@ -64,7 +64,7 @@ export default function MorningPlanYesterdayNumbers({ userId, planningDate }: Pr
 
   return (
     <section className="rounded-2xl border border-border-custom/40 bg-surface/40 p-4 space-y-3" aria-labelledby="yesterday-numbers">
-      <h3 id="yesterday-numbers" className="text-xs font-black uppercase tracking-wider text-text-muted">Wczoraj</h3>
+      <h3 id="yesterday-numbers" className="text-xs font-semibold tracking-wide text-text-muted">Wczoraj</h3>
       <div className="grid grid-cols-4 gap-2">
         <Stat value={row.dials ?? 0} label="Diale" />
         <Stat value={row.appointments ?? 0} label="Umówieni" />

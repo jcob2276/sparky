@@ -3,7 +3,7 @@ import Button from '../ui/Button';
 import { Card } from '../ui/Card';
 import { ToggleChip } from '../ui/ToggleChip';
 import type { WifiLabel } from '../../lib/native/deviceSignalsPlugin';
-import { DEVICE_SIGNAL_ROWS, rowIssue, summaryLines } from './deviceSignalsLines';
+import { bootRestartNote, DEVICE_SIGNAL_ROWS, rowIssue, summaryLines } from './deviceSignalsLines';
 import { useDeviceSignalsCard } from './useDeviceSignalsCard';
 
 const WIFI_LABELS: Array<{ label: WifiLabel; text: string }> = [
@@ -17,8 +17,9 @@ interface DeviceSignalsCardProps {
 }
 
 export default function DeviceSignalsCard({ userId }: DeviceSignalsCardProps) {
-  const { status, summary, busy, toggleKind, toggleMaster, labelWifi, refreshNow } =
-    useDeviceSignalsCard(userId);
+  const {
+    status, summary, busy, toggleKind, toggleMaster, labelWifi, refreshNow, openNotificationAccess, openAppPermissions,
+  } = useDeviceSignalsCard(userId);
   const lines = summary ? summaryLines(summary) : [];
 
   return (
@@ -38,6 +39,33 @@ export default function DeviceSignalsCard({ userId }: DeviceSignalsCardProps) {
         Kolektory działają natywnie w tle, zapisują zdarzenia offline i wysyłają paczkami. Nie zbieram treści
         powiadomień, nazw sieci ani dźwięku z mikrofonu.
       </p>
+
+      {status && (!status.backgroundLocation || !status.notificationAccess) && (
+        <div className="space-y-2 rounded-lg border border-warning p-3" role="alert">
+          {!status.backgroundLocation && (
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-warning">Lokalizacja tylko podczas używania — w tle nie zbiera</p>
+              <p className="text-2xs text-text-muted">
+                Bez „Zawsze zezwalaj” usługa w tle nie uruchomi się też po restarcie telefonu.
+              </p>
+              <Button type="button" variant="outline" onClick={() => { void openAppPermissions(); }} className="w-full">
+                Zawsze zezwalaj (ustawienia systemowe)
+              </Button>
+            </div>
+          )}
+          {!status.notificationAccess && (
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-warning">Dostęp do powiadomień wyłączony</p>
+              <p className="text-2xs text-text-muted">
+                Bez niego nie liczę przerwań na godzinę, a kolektory nie wstają same po zabiciu aplikacji. Liczę tylko ilość, bez treści.
+              </p>
+              <Button type="button" variant="outline" onClick={() => { void openNotificationAccess(); }} className="w-full">
+                Włącz dostęp do powiadomień
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       {status === null ? (
         <p className="text-sm text-text-muted">Ładuję status…</p>
@@ -96,6 +124,7 @@ export default function DeviceSignalsCard({ userId }: DeviceSignalsCardProps) {
             Brak danych — pierwsze zdarzenia pojawią się po kilku minutach działania.
           </p>
         )}
+        {status && <p className="text-2xs text-text-muted">{bootRestartNote(status)}</p>}
         {status && status.queueSize > 0 && (
           <p className="text-2xs text-text-muted">W kolejce offline: {status.queueSize}</p>
         )}

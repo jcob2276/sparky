@@ -6,7 +6,7 @@ import { X, Send } from 'lucide-react';
 import Button from '../ui/Button';
 import { ControlInput, ControlTextarea } from '../ui/ControlPrimitives';
 import Modal from '../ui/Modal';
-import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
 import { useShutdownData } from './shutdown/useShutdownData';
 import DailyScorePicker from '../shared/DailyScorePicker';
 import SalesNumbersFields from './salesNumbers/SalesNumbersFields';
@@ -44,7 +44,7 @@ export default function DailyShutdownModal({
     return (
       <Modal isOpen onClose={onClose} showCloseButton={false} padding="p-6" size="xs" closeOnBackdropClick={false}>
         <div className="flex flex-col items-center gap-3">
-          <Spinner size="md" />
+          <Skeleton variant="text" lines={2} className="w-full" />
           <span className="text-sm font-bold text-text-muted">Wczytywanie dnia…</span>
         </div>
       </Modal>
@@ -55,7 +55,7 @@ export default function DailyShutdownModal({
     return (
       <Modal isOpen onClose={onClose} showCloseButton={false} padding="p-6" size="sm">
         <div className="text-center space-y-4">
-          <h2 className="text-base font-black text-text-primary">Brak planu na dziś</h2>
+          <h2 className="text-base font-semibold text-text-primary">Brak planu na dziś</h2>
           <p className="text-sm text-text-muted">Nie ma dzisiejszej Power List do rozliczenia.</p>
           <Button onClick={onClose} className="w-full" size="sm">Zamknij</Button>
         </div>
@@ -68,7 +68,7 @@ export default function DailyShutdownModal({
       <div className="relative w-full flex flex-col max-h-[var(--ds-h-85vh)] overflow-hidden">
         <header className="p-4 border-b border-border-custom/20 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-black text-text-primary uppercase tracking-wider">Domknięcie dnia</h2>
+            <h2 className="text-base font-semibold text-text-primary tracking-wide">Domknięcie dnia</h2>
             <span className="text-xs font-semibold text-text-muted">{data.today}</span>
           </div>
           <Button variant="ghost" size="sm" onClick={onClose} icon={<X size={18} />} />

@@ -63,7 +63,7 @@ function OuraNightStageBar({ deepMins, remMins, lightMins, awakeMins, totalBar, 
           />
         )}
       </div>
-      <div className="flex items-center justify-between text-3xs text-text-muted pt-1">
+      <div className="flex items-center justify-between text-2xs text-text-muted pt-1">
         <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-primary" /> Głęboki {deepMins ?? 0}m</span>
         <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-info" /> REM {remMins ?? 0}m</span>
         <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-text-muted/40" /> Lekki {lightMins}m</span>

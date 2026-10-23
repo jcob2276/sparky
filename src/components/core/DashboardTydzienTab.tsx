@@ -5,7 +5,7 @@
  */
 import { Suspense, memo } from 'react';
 import { useSession } from '../../store/useStore';
-import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
 import { SlidersHorizontal } from 'lucide-react';
 import HorizonHeader from './HorizonHeader';
 import { WeeklyPulseHub } from './WeeklyPulseHub';
@@ -17,9 +17,7 @@ import { getWeekStartWarsaw, formatWeekRange } from '../../lib/growth/growth';
 
 function ViewFallback() {
   return (
-    <div className="flex min-h-[var(--ds-h-220px)] items-center justify-center rounded-lg border border-on-accent/[0.06] bg-on-accent/[0.02]">
-      <Spinner size="md" />
-    </div>
+    <Skeleton variant="block" className="min-h-[var(--ds-h-220px)]" />
   );
 }
 
@@ -45,7 +43,7 @@ export const DashboardTydzienTab = memo(function DashboardTydzienTab({ weeklyCal
           title="Tydzień"
           icon={SlidersHorizontal}
           badge={
-            <span className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-primary">
+            <span className="rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-xs font-semibold tracking-wide text-primary">
               {weekRange}
             </span>
           }

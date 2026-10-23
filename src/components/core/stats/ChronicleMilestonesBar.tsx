@@ -78,17 +78,17 @@ export const ChronicleMilestonesBar = memo(function ChronicleMilestonesBar({
             <Trophy size={14} />
           </div>
           <div>
-            <p className="text-3xs font-black uppercase tracking-widest text-primary font-display">
+            <p className="text-2xs font-semibold tracking-wide text-primary font-display">
               Trajektoria Transformacji
             </p>
-            <h3 className="text-sm font-black text-text-primary tracking-tight">
+            <h3 className="text-sm font-semibold text-text-primary tracking-tight">
               {stats.days > 0 ? `${stats.days}. dzień drogi` : 'Rozpocznij zapisy'}
             </h3>
           </div>
         </div>
 
         {stats.days > 0 && (
-          <span className="flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-0.5 text-3xs font-black uppercase text-primary font-mono">
+          <span className="flex items-center gap-1 rounded-full border border-primary/25 bg-primary/10 px-2.5 py-0.5 text-2xs font-semibold text-primary font-mono">
             <Calendar size={11} />
             +{stats.days}d
           </span>
@@ -99,15 +99,15 @@ export const ChronicleMilestonesBar = memo(function ChronicleMilestonesBar({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
         {/* Waga */}
         <div className="rounded-xl border border-border-custom/70 bg-surface/70 p-2.5">
-          <span className="text-3xs font-bold text-text-muted uppercase">Waga</span>
+          <span className="text-2xs font-bold text-text-muted">Waga</span>
           <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-base font-black text-text-primary font-mono leading-none">
+            <span className="text-base font-semibold text-text-primary font-mono leading-none">
               {stats.curWeight != null ? `${stats.curWeight}` : '--'}
             </span>
-            <span className="text-3xs text-text-muted font-bold">kg</span>
+            <span className="text-2xs text-text-muted font-bold">kg</span>
           </div>
           {stats.weightDiff != null && (
-            <div className={`mt-1.5 flex items-center gap-0.5 text-3xs font-bold font-mono ${stats.weightDiff <= 0 ? 'text-success' : 'text-warning'}`}>
+            <div className={`mt-1.5 flex items-center gap-0.5 text-2xs font-bold font-mono ${stats.weightDiff <= 0 ? 'text-success' : 'text-warning'}`}>
               {stats.weightDiff <= 0 ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
               <span>{stats.weightDiff > 0 ? `+${stats.weightDiff}` : `${stats.weightDiff}`} kg</span>
             </div>
@@ -116,15 +116,15 @@ export const ChronicleMilestonesBar = memo(function ChronicleMilestonesBar({
 
         {/* Talia */}
         <div className="rounded-xl border border-border-custom/70 bg-surface/70 p-2.5">
-          <span className="text-3xs font-bold text-text-muted uppercase">Talia</span>
+          <span className="text-2xs font-bold text-text-muted">Talia</span>
           <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-base font-black text-text-primary font-mono leading-none">
+            <span className="text-base font-semibold text-text-primary font-mono leading-none">
               {stats.curWaist != null ? `${stats.curWaist}` : '--'}
             </span>
-            <span className="text-3xs text-text-muted font-bold">cm</span>
+            <span className="text-2xs text-text-muted font-bold">cm</span>
           </div>
           {stats.waistDiff != null && (
-            <div className={`mt-1.5 flex items-center gap-0.5 text-3xs font-bold font-mono ${stats.waistDiff <= 0 ? 'text-success' : 'text-warning'}`}>
+            <div className={`mt-1.5 flex items-center gap-0.5 text-2xs font-bold font-mono ${stats.waistDiff <= 0 ? 'text-success' : 'text-warning'}`}>
               {stats.waistDiff <= 0 ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
               <span>{stats.waistDiff > 0 ? `+${stats.waistDiff}` : `${stats.waistDiff}`} cm</span>
             </div>
@@ -133,14 +133,14 @@ export const ChronicleMilestonesBar = memo(function ChronicleMilestonesBar({
 
         {/* Rekord Tonażu */}
         <div className="rounded-xl border border-border-custom/70 bg-surface/70 p-2.5">
-          <span className="text-3xs font-bold text-text-muted uppercase">Max Tonaż</span>
+          <span className="text-2xs font-bold text-text-muted">Max Tonaż</span>
           <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-base font-black text-text-primary font-mono leading-none">
+            <span className="text-base font-semibold text-text-primary font-mono leading-none">
               {stats.peakTonnageMg ?? '--'}
             </span>
-            <span className="text-3xs text-text-muted font-bold">Mg</span>
+            <span className="text-2xs text-text-muted font-bold">Mg</span>
           </div>
-          <div className="mt-1.5 flex items-center gap-1 text-3xs font-bold text-text-muted">
+          <div className="mt-1.5 flex items-center gap-1 text-2xs font-bold text-text-muted">
             <Flame size={12} className="text-warning" />
             <span>Rekord sesji</span>
           </div>
@@ -148,14 +148,14 @@ export const ChronicleMilestonesBar = memo(function ChronicleMilestonesBar({
 
         {/* Sesje siłowe */}
         <div className="rounded-xl border border-border-custom/70 bg-surface/70 p-2.5">
-          <span className="text-3xs font-bold text-text-muted uppercase">Siłownia</span>
+          <span className="text-2xs font-bold text-text-muted">Siłownia</span>
           <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-base font-black text-text-primary font-mono leading-none">
+            <span className="text-base font-semibold text-text-primary font-mono leading-none">
               {stats.totalSessions}
             </span>
-            <span className="text-3xs text-text-muted font-bold">sesji</span>
+            <span className="text-2xs text-text-muted font-bold">sesji</span>
           </div>
-          <div className="mt-1.5 flex items-center gap-1 text-3xs font-bold text-text-muted">
+          <div className="mt-1.5 flex items-center gap-1 text-2xs font-bold text-text-muted">
             <Dumbbell size={12} className="text-primary" />
             <span>Zapisanych</span>
           </div>

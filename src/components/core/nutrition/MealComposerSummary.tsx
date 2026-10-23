@@ -40,7 +40,7 @@ function MealCalorieRing({ eaten, target }: { eaten: number; target: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-        <span className="font-display text-lg font-black tabular-nums text-text-primary">{eaten}</span>
+        <span className="font-display text-lg font-semibold tabular-nums text-text-primary">{eaten}</span>
         <span className="mt-0.5 text-2xs font-semibold tabular-nums text-text-muted">/ {target}</span>
       </div>
     </div>
@@ -59,12 +59,12 @@ function MacroRow({
   const ratio = target > 0 ? Math.min(1, grams / target) : 0;
   return (
     <li className="meal-macro flex h-4 items-center gap-2" data-macro={macro} title={hint}>
-      <span className="meal-macro-label w-3 text-xs font-black">{label}</span>
+      <span className="meal-macro-label w-3 text-xs font-semibold">{label}</span>
       <span className="meal-bar-track h-1.5 flex-1 overflow-hidden rounded-full">
         <span className="meal-bar-fill block h-full w-full rounded-full" style={{ transform: `scaleX(${ratio})` }} />
       </span>
       <span className="w-18 text-right text-2xs font-semibold tabular-nums text-text-secondary">
-        <span className="text-xs font-black text-text-primary">{Math.round(grams)}</span>/{target} g
+        <span className="text-xs font-semibold text-text-primary">{Math.round(grams)}</span>/{target} g
       </span>
     </li>
   );
@@ -100,12 +100,12 @@ export function ComposerProgress({
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs font-semibold leading-5 text-text-muted">
             {remaining >= 0 ? 'Zostało ' : 'Ponad o '}
-            <span className="font-black tabular-nums text-text-primary">{Math.abs(remaining)} kcal</span>
+            <span className="font-semibold tabular-nums text-text-primary">{Math.abs(remaining)} kcal</span>
           </p>
           {showQuality && (
             <span
               title={totals.foodQualityAnalysis ?? undefined}
-              className="meal-quality shrink-0 rounded-md px-1.5 font-display text-2xs font-black tabular-nums"
+              className="meal-quality shrink-0 rounded-md px-1.5 font-display text-2xs font-semibold tabular-nums"
             >
               {totals.avgFoodQuality != null ? `Jakość ${totals.avgFoodQuality}` : 'Jakość…'}
             </span>

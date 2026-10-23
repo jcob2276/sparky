@@ -59,7 +59,7 @@ export default function SynthesisMobileCard({ synthesis, onDecision }: Props) {
     <Card variant="accent" padding="1rem" className="space-y-4">
       <header className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-widest text-primary">
+          <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-primary">
             <Sparkles size={12} /> Synteza Sparky
           </p>
           <h2 className="mt-1 text-lg font-bold tracking-tight text-text-primary">
@@ -67,7 +67,7 @@ export default function SynthesisMobileCard({ synthesis, onDecision }: Props) {
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-text-secondary">{synthesis.summary}</p>
         </div>
-        <div className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-2xs font-black text-primary">
+        <div className="shrink-0 rounded-full bg-primary/10 px-2.5 py-1 text-2xs font-semibold text-primary">
           {synthesis.confidence.overall}% pewności
         </div>
       </header>
@@ -75,10 +75,10 @@ export default function SynthesisMobileCard({ synthesis, onDecision }: Props) {
       <div className="grid grid-cols-3 gap-1.5">
         {Object.entries(synthesis.trajectories).map(([domain, trajectory]) => (
           <div key={domain} className="rounded-xl bg-surface-2 px-2 py-2 text-center">
-            <p className="truncate text-3xs font-bold uppercase tracking-wide text-text-muted">
+            <p className="truncate text-2xs font-bold tracking-wide text-text-muted">
               {domainLabels[domain as SynthesisDomain]}
             </p>
-            <p className={`mt-0.5 text-sm font-black ${trajectoryTone[trajectory]}`}>
+            <p className={`mt-0.5 text-sm font-semibold ${trajectoryTone[trajectory]}`}>
               {trajectoryMark[trajectory]}
             </p>
           </div>
@@ -87,19 +87,19 @@ export default function SynthesisMobileCard({ synthesis, onDecision }: Props) {
 
       <section aria-labelledby="levers-heading" className="space-y-2">
         <div className="flex items-center justify-between">
-          <h3 id="levers-heading" className="text-2xs font-black uppercase tracking-widest text-text-muted">
+          <h3 id="levers-heading" className="text-2xs font-semibold tracking-wide text-text-muted">
             Kluczowe ruchy
           </h3>
-          <span className="text-3xs font-semibold text-text-muted">{synthesis.levers.length}/3</span>
+          <span className="text-2xs font-semibold text-text-muted">{synthesis.levers.length}/3</span>
         </div>
         {synthesis.levers.map((lever, index) => (
           <div key={lever.id} className="flex min-h-11 items-center gap-2 rounded-xl border border-border-custom bg-surface px-2.5 py-2">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-2xs font-black text-primary">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-2xs font-semibold text-primary">
               {index + 1}
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-xs font-bold text-text-primary">{lever.title}</p>
-              <p className="text-3xs text-text-muted">{domainLabels[lever.domain]}</p>
+              <p className="text-2xs text-text-muted">{domainLabels[lever.domain]}</p>
             </div>
             {lever.source === 'todo' ? (
               <Pressable
@@ -146,7 +146,7 @@ export default function SynthesisMobileCard({ synthesis, onDecision }: Props) {
             <AlertTriangle size={14} className="mt-0.5 shrink-0 text-warning" />
             <div>
               <p className="text-xs font-bold text-text-primary">{primaryConflict.title}</p>
-              <p className="mt-0.5 text-3xs leading-relaxed text-text-secondary">
+              <p className="mt-0.5 text-2xs leading-relaxed text-text-secondary">
                 {primaryConflict.recommendedResolution}
               </p>
             </div>
@@ -154,7 +154,7 @@ export default function SynthesisMobileCard({ synthesis, onDecision }: Props) {
         </section>
       )}
 
-      <footer className="flex items-center gap-1.5 border-t border-border-custom pt-2 text-3xs text-text-muted">
+      <footer className="flex items-center gap-1.5 border-t border-border-custom pt-2 text-2xs text-text-muted">
         <ShieldCheck size={11} />
         Pokrycie {synthesis.confidence.coverage}% · świeżość {synthesis.confidence.freshness}%
       </footer>

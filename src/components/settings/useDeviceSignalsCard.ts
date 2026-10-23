@@ -111,5 +111,15 @@ export function useDeviceSignalsCard(userId: string) {
     }
   };
 
-  return { status, summary, busy, toggleKind, toggleMaster, labelWifi, refreshNow };
+  const openNotificationAccess = async () => {
+    await DeviceSignals.openNotificationAccessSettings();
+  };
+
+  const openAppPermissions = async () => {
+    await DeviceSignals.openAppSettings();
+  };
+
+  return {
+    status, summary, busy, toggleKind, toggleMaster, labelWifi, refreshNow, openNotificationAccess, openAppPermissions,
+  };
 }

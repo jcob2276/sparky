@@ -10,10 +10,10 @@ function Cell({ label, data }: { label: string; data: NutrientCoverage }) {
     >
       {label}{' '}
       {data.known === 0 ? (
-        <span className="font-black text-warning">brak danych</span>
+        <span className="font-semibold text-warning">brak danych</span>
       ) : (
         <>
-          <span className="font-black text-text-primary">{missing ? '≥ ' : ''}{data.total} g</span>
+          <span className="font-semibold text-text-primary">{missing ? '≥ ' : ''}{data.total} g</span>
           {missing && <span className="text-warning"> ({data.known}/{data.items})</span>}
         </>
       )}

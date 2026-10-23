@@ -23,7 +23,7 @@ export default function MorningPlanLearningSlot({ userId }: { userId: string }) 
   if (visible.length === 0) {
     return (
       <section className="rounded-2xl border border-dashed border-warning/40 bg-warning/[0.05] p-4" aria-labelledby="learning-missing">
-        <h3 id="learning-missing" className="text-sm font-black text-text-primary">Brak planu nauki na ten miesiąc</h3>
+        <h3 id="learning-missing" className="text-sm font-semibold text-text-primary">Brak planu nauki na ten miesiąc</h3>
         <p className="mt-0.5 text-xs text-text-secondary">Wybierz do 3 materiałów w zakładce Rozwój, a tu pojawi się dzienny slot.</p>
       </section>
     );
@@ -33,13 +33,13 @@ export default function MorningPlanLearningSlot({ userId }: { userId: string }) 
 
   return (
     <section className="rounded-2xl border border-border-custom/40 bg-surface/40 p-4 space-y-3" aria-labelledby="learning-today">
-      <h3 id="learning-today" className="text-xs font-black uppercase tracking-wider text-text-muted">Nauka na dziś</h3>
+      <h3 id="learning-today" className="text-xs font-semibold tracking-wide text-text-muted">Nauka na dziś</h3>
       <ul className="space-y-3">
         {visible.map((assignment) => {
           const logged = month.loggedToday[assignment.id] ?? 0;
           return (
             <li key={assignment.id} className="space-y-1.5 border-t border-border-custom/20 pt-3 first:border-t-0 first:pt-0">
-              <p className="text-sm font-black text-text-primary leading-snug">{assignment.title}</p>
+              <p className="text-sm font-semibold text-text-primary leading-snug">{assignment.title}</p>
               <LearningSlotButton
                 assignment={assignment}
                 today={month.today}

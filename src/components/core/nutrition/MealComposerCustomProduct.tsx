@@ -61,7 +61,7 @@ export default function MealComposerCustomProduct({
 
   return (
     <div className="space-y-2 rounded-xl border border-dashed border-primary/30 bg-primary/[0.03] p-3">
-      <p className="text-2xs font-black uppercase tracking-wider text-primary">Własny produkt (na 100g)</p>
+      <p className="text-2xs font-semibold tracking-wide text-primary">Własny produkt (na 100g)</p>
       <ControlInput
         value={name}
         onChange={(event) => setName(event.target.value)}

@@ -92,7 +92,7 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
           <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-solid/30 border border-border-custom/30 text-xs font-medium text-text-primary">
             <MapPin size={16} className="text-danger shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-text-muted text-2xs mb-0.5">Lokalizacja</p>
+              <p className="font-bold text-text-muted text-xs mb-0.5">Lokalizacja</p>
               <a
                 href={`https://maps.google.com/?q=${encodeURIComponent(event.location)}`}
                 target="_blank"
@@ -110,7 +110,7 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
           <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-solid/30 border border-border-custom/30 text-xs text-text-primary">
             <AlignLeft size={16} className="text-text-muted shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-text-muted text-2xs mb-0.5">Notatka</p>
+              <p className="font-bold text-text-muted text-xs mb-0.5">Notatka</p>
               <p className="whitespace-pre-wrap text-text-secondary">{event.description}</p>
             </div>
           </div>
@@ -135,12 +135,12 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
         ) : null}
 
         {/* Actions Row */}
-        <div className="flex gap-2 pt-2">
+        <div className="flex gap-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-3">
           <Button
             variant="outline"
             onClick={onDelete}
             icon={<Trash2 size={16} />}
-            className="h-11 border-danger/30 text-danger hover:bg-danger/10"
+            className="inline-flex h-11 min-w-24 shrink-0 gap-2 border-danger/30 text-danger hover:bg-danger/10"
           >
             Usuń
           </Button>
@@ -148,7 +148,7 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
             variant="primary"
             onClick={onEdit}
             icon={<Edit3 size={16} />}
-            className="h-11 flex-1 font-bold"
+            className="inline-flex h-11 flex-1 gap-2 font-bold"
           >
             Edytuj
           </Button>

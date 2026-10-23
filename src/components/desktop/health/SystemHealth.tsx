@@ -35,13 +35,13 @@ export default function SystemHealth({ userId }: { userId: string }) {
   const getSeverityBadge = (sev: string) => {
     switch (sev) {
       case 'critical':
-        return <span className="bg-danger/10 text-danger border border-danger/20 px-1.5 py-0.5 rounded text-2xs font-black uppercase">CRITICAL</span>;
+        return <span className="bg-danger/10 text-danger border border-danger/20 px-1.5 py-0.5 rounded text-2xs font-semibold">CRITICAL</span>;
       case 'error':
-        return <span className="bg-danger/10 text-danger border border-danger/20 px-1.5 py-0.5 rounded text-2xs font-black uppercase">ERROR</span>;
+        return <span className="bg-danger/10 text-danger border border-danger/20 px-1.5 py-0.5 rounded text-2xs font-semibold">ERROR</span>;
       case 'warning':
-        return <span className="bg-warning/10 text-warning border border-warning/20 px-1.5 py-0.5 rounded text-2xs font-black uppercase">WARNING</span>;
+        return <span className="bg-warning/10 text-warning border border-warning/20 px-1.5 py-0.5 rounded text-2xs font-semibold">WARNING</span>;
       default:
-        return <span className="bg-info/10 text-info border border-info/20 px-1.5 py-0.5 rounded text-2xs font-black uppercase">INFO</span>;
+        return <span className="bg-info/10 text-info border border-info/20 px-1.5 py-0.5 rounded text-2xs font-semibold">INFO</span>;
     }
   };
 
@@ -70,7 +70,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
     return (
       <Card padding="1rem" className="space-y-3.5 ui-interactive duration-[var(--motion-medium)] hover:border-border-custom">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-black text-text-secondary">{title}</span>
+          <span className="text-sm font-semibold text-text-secondary">{title}</span>
           <div className={`${colorClass} opacity-[var(--opacity-80)]`}>{icon}</div>
         </div>
 
@@ -107,7 +107,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
       {coverage && (
         <div className="space-y-3.5">
           <div>
-            <h2 className="text-base font-black text-text-primary flex items-center gap-2">
+            <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
               <Zap className="text-warning fill-warning/20" size={18} />
               Pokrycie Danych (Logging Hygiene)
             </h2>
@@ -129,7 +129,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
       {healthQuery.data && (
         <div className="space-y-4">
           <div>
-            <h2 className="text-base font-black text-text-primary flex items-center gap-2">
+            <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
               <Target className="text-primary" size={18} />
               Kalibracja Modelu (Prediction Accuracy)
             </h2>
@@ -140,8 +140,8 @@ export default function SystemHealth({ userId }: { userId: string }) {
 
           <div className="grid grid-cols-3 gap-4">
             <Card padding="1rem" className="flex flex-col justify-between space-y-1.5 ui-interactive duration-[var(--motion-medium)] hover:border-border-custom">
-              <span className="text-2xs font-black text-text-muted uppercase tracking-wider">Błąd Snu</span>
-              <span className="text-lg font-black text-primary">
+              <span className="text-2xs font-semibold text-text-muted tracking-wide">Błąd Snu</span>
+              <span className="text-lg font-semibold text-primary">
                 {healthQuery.data.calibrationSummary.sleep_mae !== null
                   ? `±${healthQuery.data.calibrationSummary.sleep_mae} h`
                   : 'brak'}
@@ -150,8 +150,8 @@ export default function SystemHealth({ userId }: { userId: string }) {
             </Card>
 
             <Card padding="1rem" className="flex flex-col justify-between space-y-1.5 ui-interactive duration-[var(--motion-medium)] hover:border-border-custom">
-              <span className="text-2xs font-black text-text-muted uppercase tracking-wider">Błąd Gotowości</span>
-              <span className="text-lg font-black text-primary">
+              <span className="text-2xs font-semibold text-text-muted tracking-wide">Błąd Gotowości</span>
+              <span className="text-lg font-semibold text-primary">
                 {healthQuery.data.calibrationSummary.readiness_mae !== null
                   ? `±${healthQuery.data.calibrationSummary.readiness_mae} pkt`
                   : 'brak'}
@@ -160,8 +160,8 @@ export default function SystemHealth({ userId }: { userId: string }) {
             </Card>
 
             <Card padding="1rem" className="flex flex-col justify-between space-y-1.5 ui-interactive duration-[var(--motion-medium)] hover:border-border-custom">
-              <span className="text-2xs font-black text-text-muted uppercase tracking-wider">Błąd Wykonania</span>
-              <span className="text-lg font-black text-primary">
+              <span className="text-2xs font-semibold text-text-muted tracking-wide">Błąd Wykonania</span>
+              <span className="text-lg font-semibold text-primary">
                 {healthQuery.data.calibrationSummary.execution_mae !== null
                   ? `±${healthQuery.data.calibrationSummary.execution_mae}%`
                   : 'brak'}
@@ -173,7 +173,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
           {healthQuery.data.calibrationHistory.length > 0 && (
             <div className="bg-surface border border-border-custom/50 rounded-2xl p-4 space-y-2">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-black text-text-secondary uppercase tracking-wider flex items-center gap-1">
+                <span className="text-xs font-semibold text-text-secondary tracking-wide flex items-center gap-1">
                   <TrendingUp size={12} className="text-success" />
                   Trend błędu predykcji
                 </span>
@@ -209,7 +209,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
 
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-base font-black text-text-primary flex items-center gap-2">
+          <h2 className="text-base font-semibold text-text-primary flex items-center gap-2">
             <ShieldCheck className="text-primary" size={18} />
             Dziennik Audytu (System Logs)
           </h2>
@@ -261,7 +261,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
                     {getSeverityIcon(ev.severity)}
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-black text-text-primary px-1.5 py-0.5 rounded bg-surface-2 dark:bg-on-accent/[0.04]">
+                        <span className="text-xs font-semibold text-text-primary px-1.5 py-0.5 rounded bg-surface-2 dark:bg-on-accent/[0.04]">
                           {ev.event_type}
                         </span>
                         {getSeverityBadge(ev.severity)}
@@ -273,7 +273,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
                         {ev.message || '—'}
                       </p>
                       {ev.related_table && (
-                        <p className="text-xs text-text-muted font-bold uppercase tracking-wider">
+                        <p className="text-xs text-text-muted font-bold tracking-wide">
                           Tabela: {ev.related_table} {ev.related_id ? `(${ev.related_id})` : ''}
                         </p>
                       )}
@@ -281,7 +281,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
                   </div>
 
                   {hasMeta && (
-                    <Pressable className="p-1 rounded hover:bg-surface-2 dark:hover:bg-on-accent/[0.04] text-text-muted">
+                    <Pressable className="min-h-11 min-w-11 p-1 rounded hover:bg-surface-2 dark:hover:bg-on-accent/[0.04] text-text-muted">
                       {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
                     </Pressable>
                   )}

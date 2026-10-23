@@ -31,9 +31,9 @@ function FlaggedMarkersAlert({ flaggedMarkers }: FlaggedAlertProps) {
         {flaggedMarkers.slice(0, 7).map((s) => (
           <span
             key={s.marker_key}
-            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-surface border border-warning/30 text-2xs text-text-primary shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-surface border border-warning/30 max-w-full text-xs text-text-primary shadow-2xs"
           >
-            <span className="font-medium truncate max-w-[130px]">{s.marker_name}</span>
+            <span className="min-w-0 break-words font-medium">{s.marker_name}</span>
             <strong className="text-warning">
               {s.latest.value} {s.latest.unit}
             </strong>
@@ -145,7 +145,7 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
                   key={s!.marker_key}
                   className="rounded-xl border border-border-custom bg-background/40 px-3 py-2.5 flex flex-col justify-between hover:border-border-focus transition-colors"
                 >
-                  <p className="text-2xs font-semibold text-text-secondary truncate" title={s!.marker_name}>
+                  <p className="text-xs font-semibold leading-snug text-text-secondary line-clamp-2 break-words" title={s!.marker_name}>
                     {s!.marker_name}
                   </p>
                   <div className="mt-1.5">

@@ -83,8 +83,8 @@ export function summarizeLocationStatus(s: NativeLocationStatus): LocationStatus
   if (!s.background) {
     return {
       level: 'warn',
-      label: 'Lokalizacja tylko przy otwartej aplikacji',
-      hint: 'Wybierz „Zezwalaj zawsze”, inaczej Android ucina zbieranie w tle.',
+      label: 'Lokalizacja tylko podczas używania — w tle nie zbiera',
+      hint: 'Wybierz „Zawsze zezwalaj”, inaczej Android ucina zbieranie, gdy aplikacja jest zamknięta (i po restarcie telefonu usługa nie wstanie).',
       action: 'grant_background',
     };
   }

@@ -61,11 +61,11 @@ export function WorkoutHistorySection({
         <div>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-warning" />
-            <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted font-display">
+            <p className="text-2xs font-semibold tracking-[var(--ds-arbitrary-0-18em)] text-text-muted font-display">
               Siłownia & Jednostki
             </p>
           </div>
-          <h2 className="mt-0.5 font-display text-lg font-black tracking-tight text-text-primary flex items-center gap-2">
+          <h2 className="mt-0.5 font-display text-lg font-semibold tracking-tight text-text-primary flex items-center gap-2">
             Historia treningów
             <span className="text-xs font-mono font-bold text-text-muted">
               ({recentSessions.length})
@@ -125,10 +125,10 @@ export function WorkoutHistorySection({
                   {/* Left: Date + Weekday badge */}
                   <div className="flex items-center gap-3">
                     <div className="flex flex-col items-center justify-center w-12 h-11 rounded-lg bg-surface-2/60 border border-border-custom/60 text-center">
-                      <span className="text-xs font-black text-text-primary font-mono leading-none">
+                      <span className="text-xs font-semibold text-text-primary font-mono leading-none">
                         {dateFormatted}
                       </span>
-                      <span className="text-3xs font-semibold text-text-muted uppercase mt-0.5 leading-none">
+                      <span className="text-2xs font-semibold text-text-muted mt-0.5 leading-none">
                         {weekday.slice(0, 3)}
                       </span>
                     </div>
@@ -136,17 +136,17 @@ export function WorkoutHistorySection({
                     {/* Center info */}
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <h4 className="text-xs font-black uppercase tracking-tight text-text-primary truncate">
+                        <h4 className="text-xs font-semibold tracking-tight text-text-primary truncate">
                           {s.workout_day || 'Trening'}
                         </h4>
                         {isWellness && (
-                          <span className="inline-flex items-center gap-0.5 text-3xs font-bold text-info bg-info/10 border border-info/20 px-1.5 py-0.2 rounded">
+                          <span className="inline-flex items-center gap-0.5 text-2xs font-bold text-info bg-info/10 border border-info/20 px-1.5 py-0.2 rounded">
                             <Flame size={9} /> Wellness
                           </span>
                         )}
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 mt-1 text-3xs font-medium text-text-muted">
+                      <div className="flex flex-wrap items-center gap-2 mt-1 text-2xs font-medium text-text-muted">
                         {logs.length > 0 && <span>{logs.length} ćwiczeń</span>}
                         {totalTonnageKg > 0 && (
                           <>
@@ -201,7 +201,7 @@ export function WorkoutHistorySection({
                     {logs.map((l) => (
                       <span
                         key={l.id}
-                        className="inline-flex items-center gap-1 text-3xs font-medium bg-surface-2/60 border border-border-custom/50 px-2 py-1 rounded-md text-text-secondary"
+                        className="inline-flex items-center gap-1 text-2xs font-medium bg-surface-2/60 border border-border-custom/50 px-2 py-1 rounded-md text-text-secondary"
                       >
                         <span className="font-bold text-text-primary">{l.exercise_name}</span>
                         {l.weight != null && l.reps != null && (

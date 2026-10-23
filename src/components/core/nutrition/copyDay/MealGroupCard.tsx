@@ -63,11 +63,11 @@ export default memo(function MealGroupCard({
             {(allSelected || someSelected) && <Check size={11} strokeWidth={3} />}
           </div>
           <div>
-            <span className="text-xs font-black uppercase tracking-wider text-text-primary group-hover:text-primary transition-colors">
+            <span className="text-xs font-semibold tracking-wide text-text-primary group-hover:text-primary transition-colors">
               {mealTitle}
             </span>
             <span className="ml-2 text-2xs font-bold text-text-muted">
-              {displayCalories} kcal · <span className="text-primary font-black">{displayProtein} g B</span>
+              {displayCalories} kcal · <span className="text-primary font-semibold">{displayProtein} g B</span>
               {entries.length > 1 && (
                 <span className="ml-1 text-text-muted/70 font-normal">
                   ({mealSelectedEntries.length}/{entries.length})
@@ -134,7 +134,7 @@ export default memo(function MealGroupCard({
                 </div>
               </div>
 
-              <span className="shrink-0 font-display text-xs font-black text-text-primary">
+              <span className="shrink-0 font-display text-xs font-semibold text-text-primary">
                 {Math.round(item.calories ?? 0)} <span className="text-2xs font-normal text-text-muted">kcal</span>
               </span>
             </Pressable>

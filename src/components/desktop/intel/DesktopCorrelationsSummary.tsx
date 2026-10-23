@@ -80,7 +80,7 @@ export default function DesktopCorrelationsSummary({ userId }: { userId: string 
                       <span className="flex items-center text-success"><TrendingUp size={12} className="mr-0.5 shrink-0" /> {item.natural_effect || 'Dodatni wpływ'}</span>
                     )}
                   </span>
-                  <span className="rounded-full bg-surface-solid px-2 py-0.5 text-3xs font-semibold text-text-muted shrink-0">
+                  <span className="rounded-full bg-surface-solid px-2 py-0.5 text-2xs font-semibold text-text-muted shrink-0">
                     {item.evidence_level === 'confirmed' ? 'Pewne' : item.evidence_level === 'probable' ? 'Prawdopodobne' : 'Do sprawdzenia'}
                   </span>
                 </div>

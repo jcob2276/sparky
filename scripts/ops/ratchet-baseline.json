@@ -6,6 +6,7 @@
   "NO_COLOR_GUARD_EXCEPTIONS": 10,
   "maxWarnings": 0,
   "patternCount_backgroundError": 0,
+  "patternCount_shoutingTypography": 70,
   "patternCount_mojibake": 0,
   "patternCount_invalidAlphaColorConcat": 0,
   "patternCount_imagesWithoutAlt": 1,

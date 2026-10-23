@@ -35,7 +35,7 @@ export default function DesktopQuickActionsBar({
               onClick={() => onTabChange(id)}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold ui-interactive min-w-0 ${
                 isActive
-                  ? 'bg-primary text-on-accent shadow-sm font-black'
+                  ? 'bg-primary text-on-accent shadow-sm font-semibold'
                   : 'text-text-muted hover:text-text-primary hover:bg-surface-solid/10'
               }`}
               icon={<Icon size={14} className="shrink-0" />}

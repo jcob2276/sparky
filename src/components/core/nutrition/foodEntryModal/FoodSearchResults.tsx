@@ -23,7 +23,7 @@ export default function FoodSearchResults(props: FoodSearchResultsProps) {
     openNaturalLanguage } = props;
   return (
     <div className="space-y-1.5">
-      <p className="mb-2 text-2xs font-black uppercase tracking-wider text-text-muted">
+      <p className="mb-2 text-2xs font-semibold tracking-wide text-text-muted">
         Twoja biblioteka · plus dodaje sugerowaną porcję
       </p>
       {searchResults.length === 0 && !searching && (

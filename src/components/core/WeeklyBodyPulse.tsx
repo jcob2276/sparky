@@ -25,7 +25,7 @@ function WeeklyBodyPulseContent({ data }: { data: WeeklyBodyPulseData }) {
   return (
     <section className="space-y-3 rounded-3xl border border-primary/20 bg-primary/5 p-4">
       <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-widest text-primary">
+        <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-primary">
           <Moon size={12} /> Sen · średnia z 7 dni
         </p>
         {data.warningDays > 0 && (
@@ -34,7 +34,7 @@ function WeeklyBodyPulseContent({ data }: { data: WeeklyBodyPulseData }) {
       </div>
 
       <div className="flex items-baseline gap-3">
-        <p className="text-3xl font-black leading-none tracking-tight text-text-primary">{formatDurationHours(data.sleepAvgHours)}</p>
+        <p className="text-3xl font-semibold leading-none tracking-tight text-text-primary">{formatDurationHours(data.sleepAvgHours)}</p>
         <span className="text-xs font-semibold text-text-secondary">{data.avgBedtime ?? '—'} – {data.avgWake ?? '—'}</span>
       </div>
 
@@ -66,8 +66,8 @@ function ScoreCell({
 }) {
   return (
     <div className="min-w-0 rounded-xl border border-border-custom/30 bg-surface/50 px-2.5 py-2">
-      <p className="truncate text-3xs font-bold uppercase tracking-wide text-text-muted">{label}</p>
-      <span className={`text-sm font-black ${accent ? 'text-primary' : 'text-text-primary'}`}>
+      <p className="truncate text-2xs font-bold tracking-wide text-text-muted">{label}</p>
+      <span className={`text-sm font-semibold ${accent ? 'text-primary' : 'text-text-primary'}`}>
         {value == null ? '—' : `${value}${suffix}`}
       </span>
     </div>

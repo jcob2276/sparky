@@ -47,7 +47,7 @@ export function ComposerSearch({
             calories={scale(food.calories, food.defaultGrams ?? 100)}
             onTap={() => onPick(food)}
             onQuickAdd={() => onPick(food)}
-            quickAddIcon={<span className="text-xs font-black">+</span>}
+            quickAddIcon={<span className="text-xs font-semibold">+</span>}
           />
         ))}
       </div>

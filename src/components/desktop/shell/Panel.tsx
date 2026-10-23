@@ -13,7 +13,7 @@ export function Tip({ active = false, payload = [], label = '' }: { active?: boo
     <div className="rounded-xl border border-border-custom bg-surface-solid px-3 py-2 shadow-lg text-xs">
       <p className="text-text-muted font-bold mb-1">{label}</p>
       {payload.map((p, i) => (
-        <p key={i} style={{ color: p.color }} className="font-black">
+        <p key={i} style={{ color: p.color }} className="font-semibold">
           {p.name}: {p.value}
         </p>
       ))}
@@ -34,7 +34,7 @@ export function Panel({ title, action, children, className = '' }: PanelProps) {
       {(title || action) && (
         <div className="flex items-center justify-between gap-3 mb-4 pb-2.5 border-b border-border-custom">
           {title ? (
-            <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-22em)] text-text-muted truncate">
+            <p className="text-2xs font-semibold tracking-[var(--ds-arbitrary-0-22em)] text-text-muted truncate">
               {title}
             </p>
           ) : <div />}

@@ -11,8 +11,8 @@ const TONE_CLASS: Record<ChronicleTile['tone'], string> = {
 function Tile({ tile, wide }: { tile: ChronicleTile; wide: boolean }) {
   return (
     <div className={`rounded-2xl border border-border-custom/40 bg-surface/50 p-3 ${wide ? 'col-span-2' : ''}`}>
-      <p className="text-3xs font-black uppercase tracking-widest text-text-muted">{tile.label}</p>
-      <p className="mt-1 text-xl font-black tabular-nums text-text-primary">
+      <p className="text-2xs font-semibold tracking-wide text-text-muted">{tile.label}</p>
+      <p className="mt-1 text-xl font-semibold tabular-nums text-text-primary">
         {tile.value}
         {tile.hint && <span className="ml-1 text-2xs font-bold text-text-muted">{tile.hint}</span>}
       </p>
@@ -44,8 +44,8 @@ export default function ChronicleSummary({ summary, loading, error, periodTitle,
     <section className="space-y-3" aria-label={`Podsumowanie: ${goalLine.title}`}>
       <div className="space-y-1.5 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="text-2xs font-black uppercase tracking-widest text-text-muted">{goalLine.title} · {periodTitle}</p>
-          {goalLine.pct != null && <span className="text-xs font-black tabular-nums text-text-primary">{goalLine.pct}%</span>}
+          <p className="text-2xs font-semibold tracking-wide text-text-muted">{goalLine.title} · {periodTitle}</p>
+          {goalLine.pct != null && <span className="text-xs font-semibold tabular-nums text-text-primary">{goalLine.pct}%</span>}
         </div>
         {goalLine.pct != null && (
           <div className="h-1.5 overflow-hidden rounded-full bg-surface-3" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={goalLine.pct} aria-label="Postęp do celu">
@@ -61,7 +61,7 @@ export default function ChronicleSummary({ summary, loading, error, periodTitle,
 
       {showChart && (
         <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
-          <p className="text-3xs font-black uppercase tracking-widest text-text-muted">{chart.label}</p>
+          <p className="text-2xs font-semibold tracking-wide text-text-muted">{chart.label}</p>
           <ChronicleLineChart values={chart.values} labels={chart.labels} unit={chart.unit} ariaLabel={`${chart.label}, ${periodTitle}`} />
         </div>
       )}

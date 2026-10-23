@@ -2,7 +2,7 @@ import { Suspense, memo, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useSession } from '../../store/useStore';
 import { Pressable } from '../ui/ControlPrimitives';
-import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
 import Stats from './Stats';
 import StravaWidget from '../integrations/StravaWidget';
 import Photos from '../identity/Photos';
@@ -14,9 +14,7 @@ import type { ChronicleGoal } from '../../lib/chronicle/summaryTypes';
 
 function ViewFallback() {
   return (
-    <div className="flex min-h-[var(--ds-h-220px)] items-center justify-center rounded-lg border border-on-accent/[0.06] bg-on-accent/[0.02]">
-      <Spinner size="md" />
-    </div>
+    <Skeleton variant="block" className="min-h-[var(--ds-h-220px)]" />
   );
 }
 

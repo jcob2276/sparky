@@ -79,7 +79,7 @@ export default function MedicalTrends({ series }: MedicalTrendsProps) {
     <div className="space-y-6">
       <div className="border-b border-border-custom/50 pb-3">
         <h2 className="text-lg font-semibold font-display">3. Trendy i Zmienność</h2>
-        <p className="text-2xs text-text-muted mt-0.5">Analiza długoterminowa i dynamika zmian kluczowych parametrów</p>
+        <p className="text-xs text-text-muted mt-0.5">Analiza długoterminowa i dynamika zmian kluczowych parametrów</p>
       </div>
 
       {trendAnalysis.allTrends.length > 0 ? (
@@ -99,9 +99,9 @@ export default function MedicalTrends({ series }: MedicalTrendsProps) {
                       : 'border-border-custom bg-background/20 hover:bg-background/40'
                   }`}
                 >
-                  <div>
-                    <h4 className="text-xs font-bold text-text-primary">{s.name}</h4>
-                    <span className="text-2xs text-text-muted">
+                  <div className="min-w-0">
+                    <h4 className="text-xs font-bold text-text-primary break-words">{s.name}</h4>
+                    <span className="text-xs text-text-muted whitespace-nowrap">
                       {s.currentValue} {s.unit} · {s.history[s.history.length - 1]?.result_date}
                     </span>
                   </div>
@@ -120,14 +120,14 @@ export default function MedicalTrends({ series }: MedicalTrendsProps) {
                   <Pressable
                     key={s.key}
                     onClick={() => setSelectedChartKey(s.key)}
-                    className={`w-full text-left rounded-lg px-2.5 py-1.5 border ui-interactive flex items-center justify-between text-xs ${
+                    className={`w-full text-left min-h-11 rounded-lg px-2.5 py-1.5 border ui-interactive flex items-center justify-between text-xs ${
                       selectedTrend?.key === s.key
                         ? 'border-primary/40 bg-primary/[0.03]'
                         : 'border-border-custom/50 bg-background/10 hover:bg-background/20'
                     }`}
                   >
-                    <span className="font-semibold text-text-secondary">{s.name}</span>
-                    <span className="text-text-muted font-bold flex items-center gap-0.5 text-2xs">
+                    <span className="min-w-0 break-words font-semibold text-text-secondary">{s.name}</span>
+                    <span className="flex shrink-0 items-center gap-0.5 pl-2 text-xs font-bold text-text-muted">
                       <Minus size={10} />
                       {Math.abs(s.pctChange).toFixed(1)}%
                     </span>

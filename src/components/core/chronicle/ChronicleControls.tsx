@@ -45,7 +45,7 @@ export default function ChronicleControls({ goal, onGoal, period, onPeriod, onEx
           size="sm"
           onClick={onExport}
           icon={<FileDown size={12} />}
-          className="!h-7 !px-2.5 !text-3xs font-black uppercase tracking-wider text-primary border-primary/25 bg-primary/10 hover:bg-primary/20 rounded-full shrink-0"
+          className="!h-7 !px-2.5 !text-2xs font-semibold tracking-wide text-primary border-primary/25 bg-primary/10 hover:bg-primary/20 rounded-full shrink-0"
         >
           Eksport
         </Button>

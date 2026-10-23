@@ -18,12 +18,13 @@ import { fetchSparkyIdentity, upsertSparkyIdentity } from '../../lib/identityVau
 import { notify } from '../../lib/notify';
 import IdentityVault from '../identity/IdentityVault';
 import DataHub from './DataHub';
+import PageHeader from '../shared/PageHeader';
 import { useUserId } from '../../store/useStore';
 
 function SectionHeader({ icon: Icon, title, detail }: { icon: LucideIcon; title: string; detail?: string | null }) {
   return (
     <header className="space-y-1">
-      <p className="flex items-center gap-2 text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-22em)] text-text-muted">
+      <p className="flex items-center gap-2 text-2xs font-semibold tracking-[var(--ds-arbitrary-0-22em)] text-text-muted">
         <Icon size={12} /> {title}
       </p>
       {detail && <p className="text-xs font-semibold leading-relaxed text-text-secondary">{detail}</p>}
@@ -34,7 +35,7 @@ function SectionHeader({ icon: Icon, title, detail }: { icon: LucideIcon; title:
 function TextAreaBlock({ label, value, onChange, placeholder, danger = false, rows = 4 }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; danger?: boolean; rows?: number }) {
   return (
     <label className="block space-y-2">
-      <span className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted">{label}</span>
+      <span className="text-2xs font-semibold tracking-[var(--ds-arbitrary-0-18em)] text-text-muted">{label}</span>
       <ControlTextarea
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -119,26 +120,18 @@ export default function Fundament({ onBack, onSyncCalendar, isSyncing }: { onBac
   return (
     <div className="min-h-screen bg-background text-text-primary selection:bg-primary/30 transition-colors duration-[var(--motion-slow)]">
       <div className="mx-auto flex min-h-screen max-w-md flex-col border-x border-border-custom bg-background/40 backdrop-blur-[var(--blur-3xl)] pb-8 shadow-sm">
-        <header className="sticky top-0 z-[var(--z-sticky)] flex items-center gap-3 border-b border-border-custom bg-background/80 px-5 py-4 backdrop-blur-[var(--blur-xl)]">
-          <Pressable
-            onClick={onBack}
-            variant="secondary"
-            icon={<ChevronLeft size={18} />}
-            className="rounded-full p-2.5"
-            title="Wróć"
-          />
-          <div className="min-w-0">
-            <h1 className="truncate text-lg font-black uppercase tracking-tight text-text-primary font-display">Identity Fundament</h1>
-            <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-22em)] text-primary">Core context</p>
-          </div>
-        </header>
+        <PageHeader
+          title="Identity Fundament"
+          subtitle="Core context"
+          leading={<Pressable onClick={onBack} variant="secondary" icon={<ChevronLeft size={18} />} className="min-h-11 min-w-11 rounded-full" title="Wróć" aria-label="Wróć" />}
+        />
 
         <main className="flex-1 space-y-6 p-5">
           <section className="card bg-gradient-to-br from-primary/[0.04] to-danger/[0.02] border-border-custom p-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-24em)] text-primary">Fundament</p>
-                <h2 className="mt-2 font-display text-2xl font-black uppercase leading-none tracking-tight text-text-primary">
+                <p className="text-2xs font-semibold tracking-[var(--ds-arbitrary-0-24em)] text-primary">Fundament</p>
+                <h2 className="mt-2 font-display text-2xl font-semibold leading-none tracking-tight text-text-primary">
                   Prawda systemu
                 </h2>
               </div>
@@ -206,8 +199,8 @@ export default function Fundament({ onBack, onSyncCalendar, isSyncing }: { onBac
                     <Calendar size={18} />
                   </div>
                   <div>
-                    <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted">Calendar</p>
-                    <p className="text-sm font-black uppercase tracking-[var(--ds-arbitrary-0-08em)] text-text-primary mt-0.5">Synchronizuj kalendarz</p>
+                    <p className="text-2xs font-semibold tracking-[var(--ds-arbitrary-0-18em)] text-text-muted">Calendar</p>
+                    <p className="text-sm font-semibold tracking-[var(--ds-arbitrary-0-08em)] text-text-primary mt-0.5">Synchronizuj kalendarz</p>
                   </div>
                 </div>
                 <RefreshCw size={15} className={`text-primary ${isSyncing ? 'animate-spin' : ''}`} />
@@ -237,13 +230,13 @@ export default function Fundament({ onBack, onSyncCalendar, isSyncing }: { onBac
             onClick={saveIdentity}
             loading={saving}
             icon={<Save size={16} />}
-            className="w-full rounded-2xl px-4 py-4 text-sm font-bold tracking-wider shadow-lg shadow-primary/25 font-display"
+            className="w-full rounded-2xl px-4 py-4 text-sm font-bold tracking-wide shadow-lg shadow-primary/25 font-display"
           >
             Zapisz fundament
           </Pressable>
 
           <section className="rounded-2xl border border-primary/15 bg-primary/5 p-4">
-            <p className="text-xs font-bold uppercase leading-relaxed text-text-secondary">
+            <p className="text-xs font-bold leading-relaxed text-text-secondary">
               Te dane są warstwą deklaracji i kontekstu. System nadal powinien konfrontować je z zachowaniem, nie traktować jako automatycznej prawdy o wykonaniu.
             </p>
           </section>

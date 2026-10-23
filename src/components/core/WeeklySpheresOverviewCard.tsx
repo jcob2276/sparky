@@ -83,14 +83,14 @@ function WeeklySphereDetailsDrawer({
   return (
     <div className="rounded-2xl border border-border-custom/50 bg-surface-2/60 p-3.5 space-y-2.5 animate-fadeIn">
       <div className="flex items-center justify-between border-b border-border-custom/40 pb-1.5">
-        <span className={`text-2xs font-black uppercase tracking-wider ${cfg.badgeText}`}>
+        <span className={`text-2xs font-semibold tracking-wide ${cfg.badgeText}`}>
           {cfg.title}: {goal.title} ({goal.metric})
         </span>
         <Pressable
           variant="ghost"
           size="sm"
           onClick={onClose}
-          className="text-3xs text-text-muted hover:text-text-primary cursor-pointer"
+          className="text-2xs text-text-muted hover:text-text-primary cursor-pointer"
         >
           Zwiń
         </Pressable>
@@ -103,7 +103,7 @@ function WeeklySphereDetailsDrawer({
       )}
 
       <div className="border-t border-border-custom/30 pt-1.5 space-y-1">
-        <span className={`flex items-center gap-1 text-3xs font-bold uppercase tracking-wider ${cfg.badgeText}`}>
+        <span className={`flex items-center gap-1 text-2xs font-bold tracking-wide ${cfg.badgeText}`}>
           <ArrowRight size={10} /> Kierunek & Cel na nowy tydzień:
         </span>
         <p className="text-xs font-bold leading-relaxed text-text-primary italic">
@@ -160,7 +160,7 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
             <Compass size={15} />
           </div>
           <div className="flex items-baseline gap-1.5">
-            <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+            <h3 className="text-xs font-semibold tracking-wide text-text-primary">
               Trzy sfery
             </h3>
           </div>
@@ -186,17 +186,17 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className={`text-3xs font-black uppercase tracking-wider ${cfg.badgeText}`}>
+                <span className={`text-2xs font-semibold tracking-wide ${cfg.badgeText}`}>
                   {cfg.title}
                 </span>
                 <Icon size={13} className={cfg.badgeText} />
               </div>
 
               <div className="mt-2 min-w-0">
-                <p className="text-xs font-black leading-tight tracking-tight text-text-primary">
+                <p className="text-xs font-semibold leading-tight tracking-tight text-text-primary">
                   {value}
                 </p>
-                <p className="mt-0.5 truncate text-3xs font-medium text-text-muted">
+                <p className="mt-0.5 truncate text-2xs font-medium text-text-muted">
                   cel: {cfg.shortMetric}
                 </p>
               </div>

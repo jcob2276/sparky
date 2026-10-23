@@ -45,7 +45,7 @@ function DomainCardItem({ item }: { item: DomainItem }) {
         </div>
         <div className="min-w-0">
           <p className="text-xs font-bold text-text-primary truncate">{item.label}</p>
-          <p className="text-3xs text-text-muted truncate">{item.sub}</p>
+          <p className="text-2xs text-text-muted truncate">{item.sub}</p>
         </div>
       </div>
 
@@ -113,25 +113,25 @@ export function DataExportDomainGrid(props: DataExportDomainGridProps) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <label className="text-3xs font-bold uppercase tracking-wider text-text-muted">
+        <label className="text-2xs font-bold tracking-wide text-text-muted">
           Domeny raportu ({activeCount}/8)
         </label>
         <div className="flex items-center gap-1 flex-wrap">
           <Pressable
             onClick={selectAll}
-            className="px-2 py-0.5 rounded-md text-3xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer border border-transparent hover:border-border-custom"
+            className="px-2 py-0.5 rounded-md text-2xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer border border-transparent hover:border-border-custom"
           >
             Pełny OS
           </Pressable>
           <Pressable
             onClick={selectBody}
-            className="px-2 py-0.5 rounded-md text-3xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer border border-transparent hover:border-border-custom"
+            className="px-2 py-0.5 rounded-md text-2xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer border border-transparent hover:border-border-custom"
           >
             Ciało & Biometria
           </Pressable>
           <Pressable
             onClick={selectMind}
-            className="px-2 py-0.5 rounded-md text-3xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer border border-transparent hover:border-border-custom"
+            className="px-2 py-0.5 rounded-md text-2xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-2 transition-colors cursor-pointer border border-transparent hover:border-border-custom"
           >
             Umysł & Dyscyplina
           </Pressable>

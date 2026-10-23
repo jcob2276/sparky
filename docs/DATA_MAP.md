@@ -35,7 +35,8 @@
 | `daily_strain` | `edge:_shared`, `edge:analyze-training-load`, `edge:compute-behavior-effects`, `edge:vanguard-oracle`, `pkg:domain`, `scripts`, `src/components`, `src/lib/biometricsApi`, `src/lib/dailySnapshotApi`, `src/lib/desktopDashboardFallback`, `src/lib/health`, `src/lib/healthspanApi`, `src/lib/statsOverviewApi` | `fn:get_desktop_dashboard_data`, `view:strain_correlations` |
 | `daily_win_tasks` | `src/components`, `src/lib/chronicle`, `src/lib/dailyTopFive`, `src/lib/dashboardApi`, `src/lib/daySlots`, `src/lib/db-json-guards`, `src/lib/goal`, `src/lib/morningPlanApi`, `src/lib/todo` | `fn:submit_morning_plan`, `fn:sync_daily_win_tasks_to_daily_wins`, `fn:sync_daily_wins_to_daily_win_tasks`, `fn:sync_todo_to_daily_win_tasks` |
 | `daily_wins` | `edge:_shared`, `edge:recap`, `edge:vanguard-eval-runner`, `edge:vanguard-oracle`, `edge:vanguard-telegram`, `src/components`, `src/hooks/useSpineGuidance`, `src/lib/biometrics`, `src/lib/chronicle`, `src/lib/dailyTopFive`, `src/lib/dashboardApi`, `src/lib/db-json-guards`, `src/lib/directionApi`, `src/lib/goal`, `src/lib/growth`, `src/lib/morningPlanApi`, `src/lib/multiDomainMatrixApi`, `src/lib/shutdownApi`, `src/lib/stats`, `src/lib/todo`, `src/lib/weeklyWinsMap`, `src/lib/workspacePrefetch` | `fn:get_brain_health_report`, `fn:get_data_coverage`, `fn:get_desktop_dashboard_data`, `fn:match_vanguard_content`, `fn:submit_morning_plan`, `fn:sync_daily_win_tasks_to_daily_wins`, `fn:sync_todo_to_daily_win_tasks` |
-| `device_signal_events` | `src/lib/deviceSignalsApi` | `cron:device-signal-events-retention` |
+| `device_signal_events` | `src/lib/deviceSignalsApi` | `fn:compute_device_signals_daily`, `fn:cron_refresh_device_signals_daily`, `cron:device-signal-events-retention` |
+| `device_signals_daily` | `src/lib/deviceSignalsDailyApi` | `fn:compute_device_signals_daily` |
 | `dreams` | `src/lib/checkpoints`, `src/lib/goal`, `src/lib/projects`, `src/lib/queryKeys`, `src/lib/todo` | — |
 | `endmyopia_measurements` | `src/lib/endmyopiaApi`, `src/lib/visionApi` | — |
 | `endmyopia_prescriptions` | `src/lib/health`, `src/lib/visionApi` | — |
@@ -89,7 +90,7 @@
 | `library_items` | `src/lib/learning` | `fn:log_learning_progress` |
 | `life_goals` | `edge:recap`, `edge:vanguard-kpi-suggest`, `src/lib/desktopDashboardFallback`, `src/lib/goal`, `src/lib/stats` | `fn:get_desktop_dashboard_data` |
 | `life_obligations` | `edge:vanguard-push-reminder`, `src/lib/lifeObligationsApi` | — |
-| `location_history` | `src/lib/locationHistoryApi`, `src/lib/stats` | — |
+| `location_history` | `src/lib/deviceSignalsDailyApi`, `src/lib/locationHistoryApi`, `src/lib/stats` | — |
 | `marathons` | `src/lib/desktopDashboardFallback` | `fn:get_desktop_dashboard_data` |
 | `market_quotes` | `edge:sync` | `cron:sync-market-quotes` |
 | `medical_documents` | `edge:_shared`, `src/lib/health` | — |
@@ -111,7 +112,7 @@
 | `oracle_pending_actions` | `edge:vanguard-oracle` | — |
 | `oracle_recommendations` | `edge:_shared`, `edge:vanguard-analyst`, `edge:vanguard-backtester`, `edge:vanguard-oracle`, `src/lib/recommendationsApi` | — |
 | `oura_daily_summary` | `edge:_shared`, `edge:analyze-training-load`, `edge:recap`, `edge:sync`, `edge:vanguard-eval-interview`, `edge:vanguard-nightly`, `edge:vanguard-nutrition-coach`, `edge:vanguard-oracle`, `pkg:domain`, `scripts`, `src/components`, `src/hooks/useSyncOura`, `src/lib/biometrics`, `src/lib/biometricsApi`, `src/lib/chronicle`, `src/lib/dashboardApi`, `src/lib/desktopDashboardFallback`, `src/lib/healthspanApi`, `src/lib/multiDomainMatrixApi`, `src/lib/stats`, `src/lib/statsOverviewApi` | `fn:get_data_coverage`, `fn:get_desktop_dashboard_data`, `view:strain_correlations` |
-| `oura_enhanced` | `edge:_shared`, `edge:sync`, `edge:vanguard-analyst`, `scripts`, `src/components`, `src/lib/biometrics`, `src/lib/biometricsApi`, `src/lib/healthspanApi`, `src/lib/stats` | — |
+| `oura_enhanced` | `edge:_shared`, `edge:sync`, `edge:vanguard-analyst`, `scripts`, `src/components`, `src/lib/biometrics`, `src/lib/biometricsApi`, `src/lib/deviceSignalsDailyApi`, `src/lib/healthspanApi`, `src/lib/stats` | — |
 | `oura_heartrate` | `edge:_shared`, `edge:sync` | `view:oura_hr_zones_daily` |
 | `oura_sleep_hr_timeline` | `edge:sync`, `scripts`, `src/lib/biometrics`, `src/lib/biometricsApi` | — |
 | `oura_sleep_hrv_timeline` | `edge:sync`, `src/lib/biometrics`, `src/lib/biometricsApi` | — |

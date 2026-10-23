@@ -9,7 +9,7 @@ import { getWeekStartWarsaw } from '../../lib/growth/growth';
 import { useUserId } from '../../store/useStore';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
-import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
 import MorningPlanFooterActions from './morningPlan/MorningPlanFooterActions';
 import MorningPlanStep2PowerList from './morningPlan/MorningPlanStep2PowerList';
 import MorningPlanStep3TimeBox from './morningPlan/MorningPlanStep3TimeBox';
@@ -64,7 +64,7 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
     return (
       <Modal isOpen onClose={onClose} showCloseButton={false} padding="p-6" size="xs" closeOnBackdropClick={false}>
         <div className="flex flex-col items-center gap-3">
-          <Spinner size="md" />
+          <Skeleton variant="text" lines={2} className="w-full" />
           <span className="text-sm font-bold text-text-muted">Wczytywanie planowania…</span>
         </div>
       </Modal>
@@ -76,7 +76,7 @@ export default function MorningPlanModal({ onClose, targetDate }: Props) {
       <div className="relative w-full max-w-lg bg-background border border-border-custom/60 flex flex-col max-h-[var(--ds-h-85vh)] overflow-hidden">
         <header className="p-4 border-b border-border-custom/20 flex items-center justify-between">
           <div>
-            <h2 className="text-base font-black text-text-primary uppercase tracking-wider">
+            <h2 className="text-base font-semibold text-text-primary tracking-wide">
               {planningTomorrow ? 'Zaplanuj jutro' : 'Zaplanuj dzień'}
             </h2>
             <div className="flex items-center gap-1.5 mt-0.5">

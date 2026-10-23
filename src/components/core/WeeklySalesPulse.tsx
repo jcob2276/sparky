@@ -9,8 +9,8 @@ import { useWeekEnteredDays } from './salesNumbers/useWeekEnteredDays';
 function Cell({ label, value, target }: { label: string; value: number; target?: number }) {
   return (
     <div className="rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
-      <p className="text-3xs font-black uppercase tracking-widest text-text-muted">{label}</p>
-      <p className="mt-1 text-xl font-black tabular-nums text-text-primary">
+      <p className="text-2xs font-semibold tracking-wide text-text-muted">{label}</p>
+      <p className="mt-1 text-xl font-semibold tabular-nums text-text-primary">
         {value}
         {target != null && <span className="ml-1 text-2xs font-bold text-text-muted">z {target}</span>}
       </p>
@@ -31,7 +31,7 @@ export default function WeeklySalesPulse() {
 
   return (
     <section className="space-y-3 rounded-3xl border border-border-custom/60 bg-surface/70 p-4">
-      <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-widest text-text-muted">
+      <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-text-muted">
         <Phone size={12} className="text-primary" /> Sprzedaż <span className="font-semibold normal-case tracking-normal">· pon–nd</span>
       </p>
       {loading ? (

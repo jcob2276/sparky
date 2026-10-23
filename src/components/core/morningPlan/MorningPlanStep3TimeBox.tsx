@@ -50,7 +50,7 @@ export default function MorningPlanStep3TimeBox({
     <div className="space-y-4">
       <div>
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-black text-text-primary">Godziny i kalendarz</h3>
+          <h3 className="text-sm font-semibold text-text-primary">Godziny i kalendarz</h3>
           <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">Opcjonalnie</span>
         </div>
         <p className="text-xs text-text-muted mt-0.5">
@@ -61,8 +61,8 @@ export default function MorningPlanStep3TimeBox({
       {/* Workload Capacity indicator */}
       <div className="p-3.5 bg-surface-2 dark:bg-on-accent/[0.015] border border-border-custom/50 rounded-2xl space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Zapełnienie {dayWordGen} dnia</span>
-          <span className={`text-xs font-black ${isOverloaded ? 'text-danger' : 'text-primary'}`}>
+          <span className="text-xs font-bold text-text-muted tracking-wide">Zapełnienie {dayWordGen} dnia</span>
+          <span className={`text-xs font-semibold ${isOverloaded ? 'text-danger' : 'text-primary'}`}>
             {capacityHoursPlanned}h / {CAPACITY_HOURS}h
           </span>
         </div>
@@ -89,7 +89,7 @@ export default function MorningPlanStep3TimeBox({
       {/* Visual day timeline */}
       <div className="space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-2xs font-bold text-text-muted uppercase tracking-wider">Podgląd kalendarza {dayWordGen} dnia</span>
+          <span className="text-2xs font-bold text-text-muted tracking-wide">Podgląd kalendarza {dayWordGen} dnia</span>
           <span className="text-2xs text-text-muted/60">07:00 – 22:00</span>
         </div>
         <DayTimeline blocks={timelineBlocks} />
@@ -98,7 +98,7 @@ export default function MorningPlanStep3TimeBox({
       {/* Today's Tasks scheduling list */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-2xs font-bold text-text-muted uppercase tracking-wider block">Godziny zadań (opcjonalnie)</span>
+          <span className="text-2xs font-bold text-text-muted tracking-wide block">Godziny zadań (opcjonalnie)</span>
           <span className="text-2xs text-text-muted/60">Nie musisz uzupełniać wszystkich</span>
         </div>
 
@@ -113,7 +113,7 @@ export default function MorningPlanStep3TimeBox({
                 <div className="min-w-0 flex-1">
                   <span className="text-sm font-semibold text-text-primary block truncate">{task!.title}</span>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="inline-block text-2xs font-bold uppercase px-1.5 py-0.5 rounded bg-warning/10 text-warning tracking-wider">
+                    <span className="inline-block text-2xs font-bold px-1.5 py-0.5 rounded bg-warning/10 text-warning tracking-wide">
                       Power List
                     </span>
                     {!hasTime && (

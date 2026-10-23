@@ -109,15 +109,15 @@ function TerminyHeader({
 function TerminyScorecards({ total, urgent, notes }: { total: number; urgent: number; notes: number }) {
   const cards = [
     { label: 'Wszystkie', value: total, Icon: Calendar, color: 'text-primary' },
-    { label: 'Pilne (≤7 dni)', value: urgent, Icon: AlertTriangle, color: 'text-warning' },
+    { label: 'Pilne ≤7 dni', value: urgent, Icon: AlertTriangle, color: 'text-warning' },
     { label: 'Z notatkami', value: notes, Icon: FileSpreadsheet, color: 'text-info' },
   ];
   return (
     <div className="grid grid-cols-3 gap-3">
       {cards.map(({ label, value, Icon, color }) => (
-        <div key={label} className="flex flex-col justify-between rounded-[20px] border border-border-custom/30 bg-surface-solid/70 p-3.5 shadow-xs backdrop-blur-md">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-text-muted">
-            <Icon size={14} className={color} />
+        <div key={label} className="flex h-full min-w-0 flex-col justify-between rounded-[20px] border border-border-custom/30 bg-surface-solid/70 p-3 shadow-xs backdrop-blur-md">
+          <div className="flex items-start gap-1.5 text-xs font-semibold leading-tight text-text-muted">
+            <Icon size={14} className={`mt-px shrink-0 ${color}`} />
             <span>{label}</span>
           </div>
           <p className="mt-2 text-2xl font-bold tracking-tight text-text-primary">{value}</p>
@@ -139,10 +139,10 @@ function TerminyToolbar({ searchQuery, onSearchChange, filterMode, onFilterChang
         <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
         <Input value={searchQuery} onChange={(event) => onSearchChange(event.target.value)} placeholder="Szukaj terminu, osoby lub notatki..." className="rounded-[14px] border-border-custom/30 bg-surface-2/60 pl-9.5 text-xs focus:bg-surface-solid" />
       </div>
-      <div className="flex shrink-0 items-center gap-1.5">
+      <div className="flex shrink-0 flex-wrap items-center gap-1.5">
         <Filter size={13} className="mr-1 text-text-muted" />
         {filters.map((filter) => (
-          <Pressable key={filter.key} onClick={() => onFilterChange(filter.key)} className={`rounded-full px-3 py-1 text-2xs font-semibold ui-interactive ${filterMode === filter.key ? `${filter.active} text-on-accent` : 'bg-surface-2 text-text-secondary'}`}>
+          <Pressable key={filter.key} onClick={() => onFilterChange(filter.key)} className={`min-h-9 rounded-full px-3 py-1 text-xs font-semibold ui-interactive ${filterMode === filter.key ? `${filter.active} text-on-accent` : 'bg-surface-2 text-text-secondary'}`}>
             {filter.label}
           </Pressable>
         ))}
@@ -153,14 +153,14 @@ function TerminyToolbar({ searchQuery, onSearchChange, filterMode, onFilterChang
 
 function TerminyTabs({ tab, onTabChange }: Pick<Props, 'tab' | 'onTabChange'>) {
   return (
-    <div className="relative flex overflow-x-auto no-scrollbar rounded-[16px] bg-surface-2/70 p-1 ring-1 ring-border-custom/20 backdrop-blur-md">
+    <div className="relative flex max-w-full snap-x gap-1 overflow-x-auto no-scrollbar rounded-[16px] bg-surface-2/70 p-1 ring-1 ring-border-custom/20 backdrop-blur-md">
       {TABS.map((item) => {
         const isActive = tab === item.key;
         return (
           <Pressable
             key={item.key}
             onClick={() => onTabChange(item.key)}
-            className={`relative z-10 flex-1 min-w-[76px] shrink-0 rounded-[12px] py-2 px-2 text-center text-xs font-semibold tracking-tight transition-colors duration-150 ${
+            className={`relative z-10 min-h-11 flex-1 shrink-0 snap-start whitespace-nowrap rounded-[12px] px-3.5 py-2 text-center text-xs font-semibold tracking-tight transition-colors duration-150 ${
               isActive ? 'text-text-primary' : 'text-text-muted hover:text-text-secondary'
             }`}
           >

@@ -16,11 +16,11 @@ export default function DesktopPhoneTile({ phoneUsage = [] }: Props) {
   if (totalMinutes <= 0) return null;
   return (
     <Card variant="surface" padding="1rem" className="space-y-1 border-border-custom bg-surface/30">
-      <p className="flex items-center gap-1.5 text-2xs font-bold uppercase tracking-wider text-text-muted">
+      <p className="flex items-center gap-1.5 text-2xs font-bold tracking-wide text-text-muted">
         <Smartphone size={13} className="text-info" /> Telefon · wczoraj
       </p>
-      <p className="text-2xl font-black leading-none text-text-primary">{Math.floor(totalMinutes / 60)}h {String(totalMinutes % 60).padStart(2, '0')}m</p>
-      <p className={`text-3xs leading-snug ${lateColor}`}>
+      <p className="text-2xl font-semibold leading-none text-text-primary">{Math.floor(totalMinutes / 60)}h {String(totalMinutes % 60).padStart(2, '0')}m</p>
+      <p className={`text-2xs leading-snug ${lateColor}`}>
         {lateNight > 0 ? `${lateNight} min po 23:00` : 'Nic po 23:00'}
       </p>
     </Card>

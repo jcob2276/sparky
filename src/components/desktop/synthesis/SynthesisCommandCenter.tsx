@@ -66,7 +66,7 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
     <section className="overflow-hidden rounded-2xl border border-border-custom bg-surface shadow-sm">
       <header className="grid gap-px bg-border-custom xl:grid-cols-[1.4fr_1fr_1fr_0.8fr]">
         <div className="bg-surface p-5">
-          <p className="text-2xs font-black uppercase tracking-widest text-primary">Synteza Sparky</p>
+          <p className="text-2xs font-semibold tracking-wide text-primary">Synteza Sparky</p>
           <h2 className="mt-1 text-xl font-bold tracking-tight">Centrum decyzji</h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-text-secondary">{synthesis.summary}</p>
         </div>
@@ -96,7 +96,7 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
               const Icon = view.icon;
               return (
                 <div key={domain} className="rounded-xl bg-surface-2 px-3 py-2.5">
-                  <p className="text-3xs font-bold uppercase tracking-wide text-text-muted">
+                  <p className="text-2xs font-bold tracking-wide text-text-muted">
                     {domainLabel[domain as SynthesisDomain]}
                   </p>
                   <p className={`mt-1 flex items-center gap-1.5 text-sm font-bold ${view.tone}`}>
@@ -106,7 +106,7 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
               );
             })}
           </div>
-          <p className="text-3xs text-text-muted">
+          <p className="text-2xs text-text-muted">
             Pokrycie {synthesis.confidence.coverage}% · świeżość {synthesis.confidence.freshness}%
           </p>
         </div>
@@ -116,12 +116,12 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
           <div className="space-y-2">
             {synthesis.levers.map((lever, index) => (
               <article key={lever.id} className="flex items-center gap-3 rounded-xl border border-border-custom px-3 py-3">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-black text-primary">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                   {index + 1}
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold">{lever.title}</p>
-                  <p className="text-3xs text-text-muted">
+                  <p className="text-2xs text-text-muted">
                     {domainLabel[lever.domain]} · {sourceLabel[lever.source] ?? 'Ruch'}{lever.dueDate ? ` · Termin: ${lever.dueDate}` : ''}
                   </p>
                 </div>
@@ -221,7 +221,7 @@ function CandidateQueue({ candidates }: { candidates: DecisionCandidate[] }) {
       <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
         {candidates.slice(0, 8).map((candidate) => (
           <div key={candidate.id} className="min-w-56 rounded-xl border border-border-custom px-3 py-2.5">
-            <p className="text-3xs font-bold uppercase tracking-wide text-text-muted">
+            <p className="text-2xs font-bold tracking-wide text-text-muted">
               {domainLabel[candidate.domain]} · {sourceLabel[candidate.source] ?? 'Zadanie'}
             </p>
             <p className="mt-1 truncate text-sm font-bold">{candidate.title}</p>
@@ -242,7 +242,7 @@ function RecommendationOutcomes({ outcomes }: { outcomes: SparkySynthesis['recom
           <article key={item.id} className="rounded-xl bg-surface-2 p-3">
             <div className="flex items-start justify-between gap-3">
               <p className="text-sm font-bold">{item.title}</p>
-              <span className={`shrink-0 text-3xs font-black uppercase ${
+              <span className={`shrink-0 text-2xs font-semibold ${
                 item.outcome === 'success' ? 'text-success' : item.outcome === 'fail' ? 'text-danger' : 'text-text-muted'
               }`}>
                 {outcomeLabel[item.outcome]}
@@ -259,12 +259,12 @@ function RecommendationOutcomes({ outcomes }: { outcomes: SparkySynthesis['recom
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-surface p-5">
-      <p className="text-3xs font-black uppercase tracking-widest text-text-muted">{label}</p>
+      <p className="text-2xs font-semibold tracking-wide text-text-muted">{label}</p>
       <p className="mt-2 text-sm font-bold leading-snug text-text-primary">{value}</p>
     </div>
   );
 }
 
 function PanelTitle({ children }: { children: string }) {
-  return <h3 className="text-2xs font-black uppercase tracking-widest text-text-muted">{children}</h3>;
+  return <h3 className="text-2xs font-semibold tracking-wide text-text-muted">{children}</h3>;
 }

@@ -30,7 +30,7 @@ function PastDayBanner({ onCopy, copying }: { onCopy: () => void; copying?: bool
   return (
     <div className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-primary/25 bg-primary/[0.05] shadow-2xs">
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-black text-text-primary leading-tight">Dzień z przeszłości</p>
+        <p className="text-xs font-semibold text-text-primary leading-tight">Dzień z przeszłości</p>
         <p className="text-2xs font-medium text-text-muted">Możesz skopiować te posiłki do dzisiaj</p>
       </div>
       <Pressable
@@ -38,7 +38,7 @@ function PastDayBanner({ onCopy, copying }: { onCopy: () => void; copying?: bool
         variant="primary"
         onClick={onCopy}
         disabled={copying}
-        className="shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-black shadow-xs active:scale-95 disabled:opacity-50"
+        className="shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold shadow-xs active:scale-95 disabled:opacity-50"
       >
         <Copy size={12} />
         <span>Skopiuj dzień</span>
@@ -108,7 +108,7 @@ export default function MealComposerLoggedItems({
           {dateLabel}
         </span>
         <span className="text-2xs font-semibold tabular-nums text-text-muted">
-          {totalKcal} kcal&nbsp;&middot;&nbsp;<span className="text-primary font-black">{totalProtein} g B</span>
+          {totalKcal} kcal&nbsp;&middot;&nbsp;<span className="text-primary font-semibold">{totalProtein} g B</span>
         </span>
       </Pressable>
 
@@ -125,7 +125,7 @@ export default function MealComposerLoggedItems({
           return (
             <div key={mealType} className="space-y-1">
               <div className="flex items-center justify-between px-1">
-                <span className="text-2xs font-black uppercase tracking-wider text-text-muted">
+                <span className="text-2xs font-semibold tracking-wide text-text-muted">
                   {MEAL_LABEL[mealType] ?? mealType}
                 </span>
                 <div className="flex items-center gap-2">
@@ -191,7 +191,7 @@ export default function MealComposerLoggedItems({
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-xs font-black tabular-nums text-text-primary">
+                        <span className="text-xs font-semibold tabular-nums text-text-primary">
                           {entry.calories ?? '?'}
                           <span className="ml-0.5 text-2xs font-normal text-text-muted">kcal</span>
                         </span>

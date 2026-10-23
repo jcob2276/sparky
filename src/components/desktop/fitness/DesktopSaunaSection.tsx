@@ -59,7 +59,7 @@ export default function DesktopSaunaSection({ sessions, strava }: Props) {
           </div>
           <h3 className="text-sm font-bold tracking-tight text-text-primary">Sauna</h3>
         </div>
-        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-3xs font-bold uppercase tracking-widest ${
+        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-2xs font-bold tracking-wide ${
           isTargetMet ? 'bg-success/15 text-success' : 'bg-warning/15 text-warning'
         }`}>
           {isTargetMet ? 'Cel tygodnia zrobiony' : `Brakuje ${targetSessionsPerWeek - weekStats.sessionsCount} sesji`}
@@ -68,19 +68,19 @@ export default function DesktopSaunaSection({ sessions, strava }: Props) {
 
       <div className="grid grid-cols-3 gap-2">
         <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">7 dni</p>
+          <p className="text-2xs font-bold tracking-wide text-text-muted">7 dni</p>
           <p className={`mt-1 text-2xl font-light ${isTargetMet ? 'text-success' : 'text-text-primary'}`}>
             {weekStats.sessionsCount}<span className="text-2xs text-text-muted"> / {targetSessionsPerWeek}</span>
           </p>
           <p className="mt-0.5 text-2xs text-text-muted">{weekStats.totalMinutes} min</p>
         </div>
         <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">30 dni</p>
+          <p className="text-2xs font-bold tracking-wide text-text-muted">30 dni</p>
           <p className="mt-1 text-2xl font-light text-text-primary">{monthStats.sessionsCount}×</p>
           <p className="mt-0.5 text-2xs text-text-muted">{monthStats.totalMinutes} min</p>
         </div>
         <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
-          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Ostatnia</p>
+          <p className="text-2xs font-bold tracking-wide text-text-muted">Ostatnia</p>
           <p className="mt-1 text-sm font-semibold text-text-primary">{latestDateStr ? latestDateStr.slice(5) : '—'}</p>
           <p className="mt-0.5 text-2xs text-text-muted">{latestMinutes > 0 ? `${latestMinutes} min` : ''}</p>
         </div>

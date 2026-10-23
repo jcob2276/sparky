@@ -11,6 +11,8 @@
     html.embed header nav button { white-space: nowrap; min-height: 44px; }
     html.embed header { position: static; }
     body { overflow-x: hidden; }
+    main, header > div { min-width: 0; }
+    main > div { max-width: 100%; }
     @media (max-width: 767px) { header nav { max-width: 100%; overflow-x: auto; scrollbar-width: none; } header nav button { white-space: nowrap; } }
   </style>
   <title>Poker Decision Lab – Myślenie Probabilistyczne & Anti-Resulting</title>
@@ -87,6 +89,21 @@
       50% { box-shadow: 0 0 25px rgba(245, 158, 11, 0.5); }
     }
     .glow-warning { animation: pulseWarning 2s infinite; }
+
+    /* Telefon (375-412px): zawijanie zamiast ucinania */
+    @media (max-width: 479px) {
+      header > div { flex-wrap: wrap; height: auto !important; row-gap: 6px; }
+      header nav { display: grid !important; grid-template-columns: 1fr 1fr; width: 100%; max-width: 100%; overflow: visible !important; gap: 4px; }
+      header nav button { white-space: normal !important; text-align: center; padding-left: 8px !important; padding-right: 8px !important; line-height: 1.2; min-height: 44px; }
+      main { overflow-x: hidden; }
+      #boardCards { flex-wrap: wrap; gap: 6px; }
+      #boardCards .poker-card { width: 46px !important; height: 66px !important; }
+      #oppCards .poker-card, #heroCards .poker-card { width: 40px !important; height: 58px !important; }
+      #decisionControls button { padding-left: 10px !important; padding-right: 10px !important; font-size: 13px; min-height: 44px; }
+      #decisionControls .flex.items-center.space-x-3 { flex-wrap: wrap; gap: 8px; }
+      #decisionControls .flex.items-center.space-x-3 > * { margin-left: 0 !important; }
+      #nextScenarioBar { flex-direction: column; align-items: stretch; gap: 12px; }
+    }
   </style>
 </head>
 <body class="bg-[#0B0F17] text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-emerald-500 selection:text-white">
@@ -160,15 +177,15 @@
         
         <!-- Left 8 cols: The Table / Scenario -->
         <div class="lg:col-span-8 space-y-5">
-          <div class="relative bg-gradient-to-b from-[#0F1B15] to-[#0A120E] border-2 border-emerald-950/80 rounded-3xl p-6 sm:p-8 shadow-2xl overflow-hidden min-h-[440px] flex flex-col justify-between">
+          <div class="relative bg-gradient-to-b from-[#0F1B15] to-[#0A120E] border-2 border-emerald-950/80 rounded-3xl p-4 sm:p-8 shadow-2xl overflow-hidden min-h-[440px] flex flex-col justify-between">
             <!-- Subtle Felt Texture / Ring -->
             <div class="absolute inset-4 rounded-[2.5rem] border border-emerald-500/10 pointer-events-none"></div>
             <div class="absolute -top-24 -left-24 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
             <!-- Table Top: Opponent & Pot Info -->
-            <div class="relative z-10 flex items-center justify-between">
+            <div class="relative z-10 flex flex-wrap items-start justify-between gap-3">
               <!-- Opponent -->
-              <div class="flex items-center space-x-3 bg-black/40 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-800">
+              <div class="flex flex-wrap items-center gap-2 max-w-full bg-black/40 backdrop-blur-md px-3 sm:px-4 py-2.5 rounded-2xl border border-slate-800">
                 <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-amber-400 border border-amber-500/30">
                   👤
                 </div>
@@ -217,7 +234,7 @@
                     <span id="heroPosition" class="text-[10px] bg-emerald-950 text-emerald-400 px-1.5 py-0.5 rounded font-mono border border-emerald-800">BB</span>
                   </div>
                   <div id="heroHandName" class="text-xs text-emerald-300 font-medium mt-0.5">Flush Draw (Draw do koloru)</div>
-                  <div class="text-[11px] text-slate-400 mt-1">Twój stack: <span id="heroStack" class="font-mono text-slate-200">$450</span></div>
+                  <div class="text-xs text-slate-400 mt-1">Twój stack: <span id="heroStack" class="font-mono text-slate-200">$450</span></div>
                 </div>
               </div>
 
@@ -225,7 +242,7 @@
               <div class="bg-rose-950/50 border border-rose-800/60 p-3 rounded-2xl text-center sm:text-right w-full sm:w-auto">
                 <div class="text-xs text-rose-300 font-medium">Rywal zagrywa bet:</div>
                 <div class="text-2xl font-black font-mono text-rose-400" id="betToCall">$50</div>
-                <div class="text-[11px] text-slate-400">Koszt sprawdzenia</div>
+                <div class="text-xs text-slate-400">Koszt sprawdzenia</div>
               </div>
             </div>
 
@@ -319,7 +336,7 @@
                   <span class="text-2xl font-black font-mono" id="evValueDisplay">+$24.60</span>
                   <span class="text-xs text-slate-400" id="evPercentDisplay">ROI: +49.2%</span>
                 </div>
-                <p class="text-[11px] text-slate-400 leading-relaxed" id="evFormulaText">
+                <p class="text-xs text-slate-400 leading-relaxed" id="evFormulaText">
                   Średnio przy każdym takim sprawdzeniu zyskujesz $24.60, niezależnie od tego, czy wygrasz w tym konkretnym rozdaniu.
                 </p>
               </div>
@@ -334,12 +351,12 @@
                 <!-- Canvas simulation chart -->
                 <canvas id="mcCanvas" width="300" height="120" class="w-full bg-slate-900 rounded-lg border border-slate-800"></canvas>
                 
-                <div class="flex justify-between text-[10px] font-mono text-slate-500">
+                <div class="flex justify-between text-xs font-mono text-slate-500">
                   <span>Rozdanie 1</span>
                   <span id="mcFinalProfit" class="text-emerald-400 font-bold">Zysk po 1000x: +$24,600</span>
                   <span>Rozdanie 1000</span>
                 </div>
-                <p class="text-[11px] text-slate-400 leading-snug">
+                <p class="text-xs text-slate-400 leading-snug">
                   Niebieska linia to Twój realny kapitał przy powtórzeniu tej samej decyzji 1000 razy. Pojedynczy wynik to tylko 1 piksel na tym wykresie.
                 </p>
               </div>

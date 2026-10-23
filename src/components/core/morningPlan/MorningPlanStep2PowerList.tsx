@@ -40,7 +40,7 @@ export default function MorningPlanStep2PowerList({
               <Mic size={15} />
             </div>
             <div className="min-w-0">
-              <h4 className="text-xs font-black text-text-primary uppercase tracking-wide">
+              <h4 className="text-xs font-semibold text-text-primary tracking-wide">
                 Zaplanuj głosem ze Sparky
               </h4>
               <p className="text-2xs text-text-muted truncate">
@@ -60,7 +60,7 @@ export default function MorningPlanStep2PowerList({
       )}
 
       <div>
-        <h3 className="text-sm font-black text-text-primary">Co chcesz zrobić {dayWord}?</h3>
+        <h3 className="text-sm font-semibold text-text-primary">Co chcesz zrobić {dayWord}?</h3>
         <p className="text-xs text-text-muted mt-0.5">
           Wpisz własny plan lub użyj dyktowania głosem. Zadania z Todo poniżej są tylko sugestiami.
         </p>
@@ -74,7 +74,7 @@ export default function MorningPlanStep2PowerList({
               <span className="size-6 rounded-full bg-border-custom/30 flex items-center justify-center text-xs font-bold text-text-muted shrink-0">
                 {index + 1}
               </span>
-              <span className={`px-2 py-1 rounded-lg text-2xs font-black uppercase tracking-wider border shrink-0 min-w-14 text-center ${meta.badge}`}>
+              <span className={`px-2 py-1 rounded-lg text-2xs font-semibold tracking-wide border shrink-0 min-w-14 text-center ${meta.badge}`}>
                 {meta.label}
               </span>
               <ControlInput
@@ -108,7 +108,7 @@ export default function MorningPlanStep2PowerList({
           ) : (
             suggestions.map((task) => (
               <div key={task.id} className="flex items-center gap-2">
-                <span className={`text-2xs font-black ${PRIORITY_COLORS[task.priority] || 'text-text-muted'}`}>
+                <span className={`text-2xs font-semibold ${PRIORITY_COLORS[task.priority] || 'text-text-muted'}`}>
                   {task.priority === 'urgent' ? '!!' : task.priority === 'high' ? '!' : '·'}
                 </span>
                 <span className="text-sm font-semibold text-text-primary flex-1 truncate">{task.title}</span>

@@ -56,11 +56,11 @@ export default function PortionScreen({
       </div>
 
       <div>
-        <p className="text-lg font-black text-text-primary leading-tight tracking-tight">{selected.name}</p>
+        <p className="text-lg font-semibold text-text-primary leading-tight tracking-tight">{selected.name}</p>
         {selected.brand && (
           <p className="mt-0.5 text-xs font-medium text-text-muted">{selected.brand}</p>
         )}
-        <p className={`mt-1 text-2xs font-bold uppercase tracking-wider ${trust.level === 'estimated' ? 'text-warning' : trust.level === 'incomplete' ? 'text-danger' : 'text-success'}`}>
+        <p className={`mt-1 text-2xs font-bold tracking-wide ${trust.level === 'estimated' ? 'text-warning' : trust.level === 'incomplete' ? 'text-danger' : 'text-success'}`}>
           {trust.label}{range && range.min !== range.max ? ` · około ${range.min}–${range.max} kcal` : ''}
         </p>
       </div>
@@ -87,7 +87,7 @@ export default function PortionScreen({
         }}
         disabled={saving || savedFlash}
         loading={saving}
-        className="w-full rounded-2xl py-3 text-sm font-black active:scale-[0.98] ui-interactive shadow-sm"
+        className="w-full rounded-2xl py-3 text-sm font-semibold active:scale-[0.98] ui-interactive shadow-sm"
       >
         {savedFlash ? 'Zapisano!' : 'Dodaj do dziennika'}
       </Pressable>

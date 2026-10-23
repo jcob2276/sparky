@@ -5,6 +5,8 @@ import {
   Moon,
   Sun,
   LayoutDashboard,
+  Search,
+  Settings,
 } from 'lucide-react';
 import { BrandTitle } from '../ui/BrandTitle';
 import { useHaptics } from '../../hooks/useHaptics';
@@ -12,6 +14,8 @@ import { queryClient } from '../../lib/queryClient';
 import { desktopKeys } from '../../lib/queryKeys';
 import { fetchDesktopDashboardData } from '../../lib/desktopDashboardApi';
 
+
+const ICON_BUTTON_CLASS = '!h-11 !w-11 shrink-0 !p-0 !rounded-full border border-border-custom/60 bg-surface-solid text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs';
 
 interface DashboardHeaderProps {
   userId: string | undefined;
@@ -39,7 +43,7 @@ export function DashboardHeader({
   showLock,
   view: _view,
   onShortcutClick: _onShortcutClick,
-  onSearchClick: _onSearchClick,
+  onSearchClick,
   staleNoteCount: _staleNoteCount,
   handleLogoPressStart,
   handleLogoPressEnd,
@@ -79,12 +83,35 @@ export function DashboardHeader({
         </p>
       </div>
 
-      <div className="header-icon-row flex min-w-0 items-center gap-2 overflow-x-auto">
+      <div className="header-icon-row flex min-w-0 items-center gap-1.5">
+
+        {onSearchClick && (
+          <Pressable
+            onClick={() => { selection(); onSearchClick(); }}
+            variant="ghost"
+            className={ICON_BUTTON_CLASS}
+            aria-label="Szukaj"
+            title="Szukaj"
+          >
+            <Search size={18} strokeWidth={1.8} />
+          </Pressable>
+        )}
+
+        <Link
+          to="/settings"
+          onClick={() => selection()}
+          className={ICON_BUTTON_CLASS}
+          aria-label="Ustawienia"
+          title="Ustawienia"
+        >
+          <Settings size={18} strokeWidth={1.8} />
+        </Link>
 
         <Pressable
           onClick={() => { selection(); toggleTheme(); }}
           variant="ghost"
-          className="!h-11 !w-11 !p-0 !rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
+          className={ICON_BUTTON_CLASS}
+          aria-label={theme === 'light' ? 'Przełącz na tryb ciemny' : 'Przełącz na tryb jasny'}
           title={theme === 'light' ? 'Przełącz na tryb ciemny' : 'Przełącz na tryb jasny'}
         >
           {theme === 'light' ? (
@@ -101,7 +128,8 @@ export function DashboardHeader({
             onMouseEnter={handlePrefetchDashboard}
             onTouchStart={handlePrefetchDashboard}
             onFocus={handlePrefetchDashboard}
-            className="h-11 w-11 shrink-0 rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
+            className={ICON_BUTTON_CLASS}
+            aria-label="Desktop dashboard"
             title="Desktop dashboard"
           >
             <LayoutDashboard size={15} strokeWidth={1.8} />
@@ -111,7 +139,3 @@ export function DashboardHeader({
     </header>
   );
 }
-
-
-
-

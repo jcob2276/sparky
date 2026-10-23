@@ -18,7 +18,7 @@ export default function FoodRow({ name, subtitle, calories, loading, onTap, onQu
         <p className="text-sm font-bold text-text-primary truncate">{name}</p>
         {subtitle && <p className="text-xs text-text-muted truncate mt-0.5">{subtitle}</p>}
       </Pressable>
-      <span className="text-xs font-black text-primary shrink-0 tabular-nums">{calories ?? '?'} kcal</span>
+      <span className="text-xs font-semibold text-primary shrink-0 tabular-nums">{calories ?? '?'} kcal</span>
       <Pressable
         onClick={onQuickAdd}
         loading={loading}

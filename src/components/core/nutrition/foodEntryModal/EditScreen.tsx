@@ -55,7 +55,7 @@ export default function EditScreen({
       </div>
 
       <div>
-        <p className="text-lg font-black text-text-primary leading-tight tracking-tight">{editingEntry.name}</p>
+        <p className="text-lg font-semibold text-text-primary leading-tight tracking-tight">{editingEntry.name}</p>
         {editingEntry.brand && (
           <p className="mt-0.5 text-xs font-medium text-text-muted">{editingEntry.brand}</p>
         )}
@@ -78,7 +78,7 @@ export default function EditScreen({
             deleteEntry();
           }}
           loading={editDeleting}
-          className="flex items-center gap-1.5 rounded-2xl border border-danger/30 bg-danger/10 px-4 text-xs font-black text-danger hover:bg-danger/20 active:scale-95 ui-interactive shadow-none"
+          className="flex items-center gap-1.5 rounded-2xl border border-danger/30 bg-danger/10 px-4 text-xs font-semibold text-danger hover:bg-danger/20 active:scale-95 ui-interactive shadow-none"
         >
           <Trash2 size={15} />
           <span>Usuń</span>
@@ -91,7 +91,7 @@ export default function EditScreen({
             saveEntryEdit();
           }}
           loading={editSaving}
-          className="flex-1 rounded-2xl py-3 text-sm font-black active:scale-[0.98] ui-interactive shadow-sm"
+          className="flex-1 rounded-2xl py-3 text-sm font-semibold active:scale-[0.98] ui-interactive shadow-sm"
         >
           Zapisz zmiany
         </Pressable>

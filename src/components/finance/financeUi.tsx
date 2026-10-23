@@ -73,7 +73,7 @@ export function FinanceRow({
 
 export function FinanceEmpty({ children }: { children: ReactNode }) {
   return (
-    <p className="px-4 py-8 text-center text-sm leading-relaxed text-text-muted">{children}</p>
+    <p className="px-4 py-4 text-center text-sm leading-relaxed text-text-muted">{children}</p>
   );
 }
 
