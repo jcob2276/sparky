@@ -42,7 +42,7 @@ export default function NoteAttachmentsView({
   return (
     <section className="border-t border-border-custom/20 py-3" aria-label="Załączniki">
       <div className="mb-2 flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-3xs font-bold uppercase tracking-wide text-text-muted">
+        <span className="flex items-center gap-1.5 text-xs font-medium text-text-muted">
           <Paperclip size={12} /> Załączniki {attachments.length ? `(${attachments.length})` : ''}
         </span>
         <div className="relative">
@@ -85,7 +85,7 @@ export default function NoteAttachmentsView({
         }} />
       </div>
 
-      {loading && <p className="text-xs text-text-muted">Ładowanie załączników…</p>}
+      {loading && <div className="ui-skeleton h-10 w-full" role="status" aria-label="Ładowanie załączników" />}
       {!loading && attachments.length > 0 && (
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {attachments.map(attachment => (

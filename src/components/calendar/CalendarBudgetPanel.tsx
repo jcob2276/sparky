@@ -78,9 +78,9 @@ export default function CalendarBudgetPanel({
     return (
       <div className="space-y-2">
         <div className="flex items-center justify-between px-4 pt-1">
-          <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Budżety czasu</span>
+          <span className="text-xs font-bold text-text-muted">Budżety czasu</span>
           {onConfigure && (
-            <Button variant="ghost" size="sm" onClick={onConfigure} className="text-xs font-black hover:underline min-h-11">
+            <Button variant="ghost" size="sm" onClick={onConfigure} className="text-xs font-semibold hover:underline min-h-11">
               Konfiguruj
             </Button>
           )}
@@ -95,9 +95,9 @@ export default function CalendarBudgetPanel({
   return (
     <div className="space-y-2.5">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Budżety czasu (Tydzień)</span>
+        <span className="text-xs font-bold text-text-muted">Budżety czasu (Tydzień)</span>
         {onConfigure && (
-          <Button variant="ghost" size="sm" onClick={onConfigure} className="text-xs font-black hover:underline">
+          <Button variant="ghost" size="sm" onClick={onConfigure} className="text-xs font-semibold hover:underline">
             Konfiguruj
           </Button>
         )}

@@ -36,7 +36,7 @@ export function TerminyYearDistribution({
       <div className="flex items-center justify-between px-0.5">
         <div className="flex items-center gap-2">
           <CalendarRange size={15} className="text-primary" />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">
+          <h3 className="text-xs font-bold text-text-muted">
             Rozkład w roku ({totalInYear} {totalInYear === 1 ? 'termin' : totalInYear >= 2 && totalInYear <= 4 ? 'terminy' : 'terminów'})
           </h3>
         </div>
@@ -79,12 +79,12 @@ export function TerminyYearDistribution({
                   : 'bg-surface-solid/20 text-text-muted/40 cursor-default opacity-60'
               }`}
             >
-              <span className={`text-2xs font-bold uppercase tracking-tight ${
+              <span className={`text-2xs font-bold tracking-tight ${
                 isSelected ? 'text-on-accent' : isCurrent ? 'text-primary' : 'text-text-muted'
               }`}>
                 {name}
               </span>
-              <span className={`mt-0.5 text-xs font-black tabular-nums ${
+              <span className={`mt-0.5 text-xs font-semibold tabular-nums ${
                 isSelected ? 'text-on-accent' : hasItems ? 'text-text-primary' : 'text-text-muted/30'
               }`}>
                 {count}

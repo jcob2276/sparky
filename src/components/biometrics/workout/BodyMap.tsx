@@ -1,3 +1,4 @@
+import Skeleton from '../../ui/Skeleton';
 import { useState, useEffect } from 'react';
 import {
   SVG_MUSCLES,
@@ -78,7 +79,7 @@ function SingleBodyView({
 }) {
   return (
     <div className="flex flex-col items-center">
-      <span className="text-3xs font-black uppercase tracking-widest text-text-muted/70 mb-1">
+      <span className="text-2xs font-semibold tracking-normal text-text-muted/70 mb-1">
         {label}
       </span>
       <svg
@@ -133,9 +134,7 @@ export default function BodyMap({
 
   if (!paths) {
     return (
-      <div className={`${compact ? 'h-36' : 'h-64'} flex items-center justify-center text-xs text-text-muted animate-pulse ${className}`}>
-        Ładowanie mapy anatomii...
-      </div>
+      <Skeleton variant="block" className={`${compact ? 'h-36' : 'h-64'} ${className}`} />
     );
   }
 
@@ -147,7 +146,7 @@ export default function BodyMap({
     >
       {!compact && (
         <div className="flex items-center justify-between w-full mb-3">
-          <div className="text-2xs font-black uppercase tracking-wider text-text-secondary">
+          <div className="text-2xs font-semibold tracking-normal text-text-secondary">
             Mapa Zmęczenia Anatomicznego
           </div>
         </div>
@@ -173,7 +172,7 @@ export default function BodyMap({
       </div>
 
       <div
-        className={`flex items-center justify-center gap-2.5 w-full text-3xs font-bold text-text-muted ${
+        className={`flex items-center justify-center gap-2.5 w-full text-2xs font-bold text-text-muted ${
           compact ? 'mt-2 pt-2' : 'mt-4 pt-3 border-t border-border-custom/50'
         }`}
       >

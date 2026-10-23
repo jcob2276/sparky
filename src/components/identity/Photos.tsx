@@ -9,6 +9,7 @@ import { notify, confirmDialog } from '../../lib/notify';
 import { generateThumbnail } from '../../lib/imageThumbnail';
 import { useUserId } from '../../store/useStore';
 import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
 import { Card } from '../ui/Card';
 import {
   deleteProgressPhoto,
@@ -150,7 +151,12 @@ export default function Photos() {
     }
   }
 
-  if (loading) return <div className="p-8 text-center text-text-muted uppercase font-black animate-pulse">Wczytywanie Analizy Wizualnej...</div>;
+  if (loading) return (
+    <div className="space-y-3">
+      <Skeleton variant="block" className="aspect-[4/5] w-full" />
+      <Skeleton variant="avatar" />
+    </div>
+  );
 
   if (photos.length === 0) {
     return (
@@ -159,15 +165,15 @@ export default function Photos() {
           <Camera size={22} />
         </div>
         <div className="space-y-1">
-          <h3 className="text-base font-black uppercase tracking-tight text-text-primary font-display">
-            Wizualny Protokół
+          <h3 className="text-lg font-semibold text-text-primary font-display">
+            Zdjęcia postępu
           </h3>
-          <p className="text-xs font-medium leading-relaxed text-text-secondary max-w-[var(--ds-maxw-280px)] mx-auto">
+          <p className="text-sm leading-relaxed text-text-secondary max-w-[var(--ds-maxw-280px)] mx-auto">
             Brak zdjęć postępu w bazie. Zrób i dodaj pierwsze zdjęcie, aby zacząć śledzić transformację sylwetki.
           </p>
         </div>
         <div className="pt-2">
-          <label className="inline-flex items-center gap-2 cursor-pointer bg-primary text-on-accent font-display font-bold text-xs uppercase tracking-wider px-5 py-3 rounded-xl hover:bg-primary-hover ui-interactive active:scale-95 shadow-md shadow-primary/20 cursor-pointer">
+          <label className="inline-flex items-center gap-2 cursor-pointer bg-primary text-on-accent min-h-[48px] font-display font-semibold text-sm px-5 py-3 rounded-xl hover:bg-primary-hover ui-interactive active:scale-95 shadow-md shadow-primary/20 cursor-pointer">
             {uploading ? (
               <Spinner size="sm" className="!border-on-accent/30 !border-t-on-accent" />
             ) : (

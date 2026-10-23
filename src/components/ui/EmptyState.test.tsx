@@ -10,6 +10,12 @@ describe('EmptyState', () => {
     expect(screen.getByText('Brak notatek')).toBeInTheDocument();
   });
 
+  it('falls back to a lucide icon and renders description', () => {
+    const { container } = render(<EmptyState label="Pusto" description="Dodaj pierwszy wpis" />);
+    expect(container.querySelector('svg')).not.toBeNull();
+    expect(screen.getByText('Dodaj pierwszy wpis')).toBeInTheDocument();
+  });
+
   it('does not render an action button when none is passed', () => {
     render(<EmptyState icon="📝" label="Brak notatek" />);
     expect(screen.queryByRole('button')).not.toBeInTheDocument();

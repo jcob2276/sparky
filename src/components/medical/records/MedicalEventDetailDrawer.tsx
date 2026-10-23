@@ -38,14 +38,14 @@ function EventMarkersList({
               <p className={`font-bold truncate ${isAlert ? 'text-warning' : 'text-text-primary'}`}>
                 {m.name}
               </p>
-              <p className="text-3xs text-text-muted font-mono">Norma: {refStr}</p>
+              <p className="text-2xs text-text-muted font-mono">Norma: {refStr}</p>
             </div>
             <div className="text-right shrink-0">
               <span className={`font-mono font-extrabold ${isAlert ? 'text-warning' : 'text-text-primary'}`}>
                 {m.value} {m.unit}
               </span>
               {isAlert && (
-                <span className="block text-3xs font-bold text-warning uppercase">Poza normą</span>
+                <span className="block text-2xs font-bold text-warning">Poza normą</span>
               )}
             </div>
           </div>
@@ -86,7 +86,7 @@ export default function MedicalEventDetailDrawer({
       }}
       title={
         <div className="flex items-center gap-2 min-w-0 pr-6">
-          <span className={`text-3xs font-black uppercase tracking-wider px-2 py-0.5 rounded border shrink-0 ${typeInfo.badgeColor}`}>
+          <span className={`text-2xs font-semibold tracking-normal px-2 py-0.5 rounded border shrink-0 ${typeInfo.badgeColor}`}>
             {typeInfo.label}
           </span>
           <span className="truncate text-sm font-bold text-text-primary">{item.title}</span>
@@ -100,7 +100,7 @@ export default function MedicalEventDetailDrawer({
               <Calendar size={13} className="text-primary" /> {item.occurredOn}
             </span>
             {item.specialty && (
-              <span className="text-3xs font-semibold uppercase tracking-wider text-text-muted">
+              <span className="text-2xs font-semibold tracking-normal text-text-muted">
                 {item.specialty}
               </span>
             )}
@@ -115,14 +115,14 @@ export default function MedicalEventDetailDrawer({
 
         {item.summary && (
           <Card variant="surface" padding="1rem" className="space-y-1.5">
-            <p className="text-3xs font-black uppercase tracking-wider text-text-muted">Opis / Podsumowanie</p>
+            <p className="text-2xs font-semibold tracking-normal text-text-muted">Opis / Podsumowanie</p>
             <p className="text-xs leading-relaxed text-text-secondary whitespace-pre-wrap">{item.summary}</p>
           </Card>
         )}
 
         {item.recommendations && (
           <Card variant="surface" padding="1rem" className="space-y-1.5 border-primary/20 bg-primary/[0.02]">
-            <p className="text-3xs font-black uppercase tracking-wider text-primary">Zalecenia Lekarskie</p>
+            <p className="text-2xs font-semibold tracking-normal text-primary">Zalecenia Lekarskie</p>
             <p className="text-xs leading-relaxed text-text-primary whitespace-pre-wrap">{item.recommendations}</p>
           </Card>
         )}
@@ -131,11 +131,11 @@ export default function MedicalEventDetailDrawer({
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-text-primary flex items-center gap-1.5">
+                <h4 className="text-xs font-semibold tracking-normal text-text-primary flex items-center gap-1.5">
                   <FlaskConical size={14} className="text-primary" /> Zbadane Markery ({markers.length})
                 </h4>
                 {outOfRangeMarkers.length > 0 && (
-                  <span className="text-3xs text-warning font-bold">
+                  <span className="text-2xs text-warning font-bold">
                     {outOfRangeMarkers.length} poza zakresem referencyjnym
                   </span>
                 )}

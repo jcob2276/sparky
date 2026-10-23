@@ -29,7 +29,7 @@ export default function ShelfDetail({ item, deleting, onDelete }: ShelfDetailPro
     <div role="region" aria-label={`Szczegóły: ${item.title}`} className="rounded-2xl border border-border-custom/50 bg-surface/50 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-sm font-black text-text-primary leading-snug">{item.title}</h3>
+          <h3 className="text-sm font-semibold text-text-primary leading-snug">{item.title}</h3>
           {item.author && <p className="text-xs font-semibold text-text-secondary">{item.author}</p>}
           <p className="mt-1 text-xs text-text-muted">{facts.join(' · ')}</p>
         </div>

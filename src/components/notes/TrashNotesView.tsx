@@ -21,7 +21,13 @@ export default function TrashNotesView({
   onPermanentDelete,
 }: TrashNotesViewProps) {
   if (loading) {
-    return <div className="flex flex-1 items-center justify-center text-sm text-text-muted">Ładowanie kosza…</div>;
+    return (
+      <div className="flex flex-1 flex-col gap-2 p-4" role="status" aria-label="Ładowanie kosza">
+        <div className="ui-skeleton h-16 w-full" />
+        <div className="ui-skeleton h-16 w-full" />
+        <div className="ui-skeleton h-16 w-full" />
+      </div>
+    );
   }
 
   if (error) {

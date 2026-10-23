@@ -23,12 +23,12 @@ export default function VisionHeroCard() {
 
   return (
     <>
-      <section className="overflow-hidden rounded-3xl border border-border-custom/70 bg-surface-solid/40 p-4 shadow-sm">
+      <section className="overflow-hidden ui-surface-lift rounded-[var(--radius-grouped)] border border-border-custom/60 bg-surface-solid/40 p-4">
         <div
           onClick={() => setIsFullscreen(true)}
-          className="flex min-w-0 cursor-pointer select-none flex-col gap-2"
+          className="flex min-h-11 min-w-0 cursor-pointer select-none flex-col gap-2"
         >
-          <p title={`${SPRINT_SEASON[sprint.sprintNumber]} · PY${sprint.personalYear}`} className="truncate text-2xs font-black uppercase tracking-wider text-primary">
+          <p title={`${SPRINT_SEASON[sprint.sprintNumber]} · PY${sprint.personalYear}`} className="truncate text-xs font-medium text-text-secondary">
             Dzień {lived.toLocaleString('pl-PL')} · Sprint {sprint.sprintNumber} · tydz. {sprint.weekInSprint}/12
           </p>
           <div
@@ -42,10 +42,10 @@ export default function VisionHeroCard() {
             <div className="h-1 flex-1 overflow-hidden rounded-full bg-surface-3">
               <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
             </div>
-            <span className="shrink-0 text-xs font-black tabular-nums text-text-primary">{pct}%</span>
+            <span className="ui-num shrink-0 text-xs font-semibold tabular-nums text-text-primary">{pct}%</span>
           </div>
-          {sprintGoal && <p className="truncate text-2xs font-bold text-text-secondary">🎯 {sprintGoal}</p>}
-          <p title={quoteTitle} className="line-clamp-3 font-display text-sm font-semibold italic leading-snug text-text-primary">
+          {sprintGoal && <p className="truncate text-xs font-medium text-text-primary">{sprintGoal}</p>}
+          <p title={quoteTitle} className="line-clamp-2 text-xs italic leading-snug text-text-muted">
             „{fuel.text}”
           </p>
         </div>

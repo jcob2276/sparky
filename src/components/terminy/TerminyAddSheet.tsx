@@ -180,7 +180,7 @@ function TerminyAddForm({ seed, isEdit, today, pending, onClose, onSubmit }: For
   return (
     <div className="space-y-4">
       <div>
-        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-muted">Kategoria</p>
+        <p className="mb-2 text-xs font-bold text-text-muted">Kategoria</p>
         <div className="flex flex-wrap gap-2">
           {FORM_KINDS.map((k) => (
             <Pressable
@@ -198,7 +198,7 @@ function TerminyAddForm({ seed, isEdit, today, pending, onClose, onSubmit }: For
 
       {!isEdit && typeOptions.length > 0 && (
         <div>
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-muted">Typ</p>
+          <p className="mb-2 text-xs font-bold text-text-muted">Typ</p>
           <div className="flex flex-wrap gap-2">
             {typeOptions.map((tpl) => (
               <Pressable
@@ -218,7 +218,7 @@ function TerminyAddForm({ seed, isEdit, today, pending, onClose, onSubmit }: For
       )}
 
       <div>
-        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-text-muted">Powtarzanie</p>
+        <p className="mb-2 text-xs font-bold text-text-muted">Powtarzanie</p>
         <div className="flex flex-wrap gap-2">
           {LIFE_OBLIGATION_RECURRENCES.map((r) => (
             <Pressable
@@ -232,7 +232,7 @@ function TerminyAddForm({ seed, isEdit, today, pending, onClose, onSubmit }: For
             </Pressable>
           ))}
         </div>
-        <p className="mt-1.5 text-3xs text-text-muted">
+        <p className="mt-1.5 text-2xs text-text-muted">
           {recurrence === 'yearly' && 'Po dacie automatycznie liczy się ten sam dzień w kolejnym roku.'}
           {recurrence === 'monthly' && 'Po dacie skacze na ten sam dzień miesiąca w następnym miesiącu.'}
           {recurrence === 'once' && 'Po dacie znika z listy (jednorazowy termin).'}

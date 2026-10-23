@@ -73,7 +73,7 @@ export default function CalendarBudgetModal() {
               <span className="text-xs font-bold text-text-primary block">{sphere.label}</span>
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col space-y-1">
-                  <span className="text-2xs font-black uppercase tracking-widest text-text-muted">
+                  <span className="text-2xs font-semibold text-text-muted">
                     Min (godzin/tyg)
                   </span>
                   <ControlInput
@@ -88,7 +88,7 @@ export default function CalendarBudgetModal() {
                   />
                 </div>
                 <div className="flex flex-col space-y-1">
-                  <span className="text-2xs font-black uppercase tracking-widest text-text-muted">
+                  <span className="text-2xs font-semibold text-text-muted">
                     Max (godzin/tyg)
                   </span>
                   <ControlInput
@@ -122,7 +122,7 @@ export default function CalendarBudgetModal() {
       <Button
         variant="primary"
         onClick={handleSaveAll}
-        className="w-full py-3 text-sm uppercase"
+        className="w-full py-3 text-sm"
       >
         Zapisz Budżety
       </Button>

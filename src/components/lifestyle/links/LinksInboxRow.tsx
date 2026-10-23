@@ -190,8 +190,8 @@ export function LinksInboxRow({
               {link.title}
             </h3>
             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-              <span className="text-3xs text-text-muted font-medium">{domainClean}</span>
-              <span className={`rounded-full px-1.5 py-0.2 text-3xs font-bold ${catStyle.pill}`}>
+              <span className="text-2xs text-text-muted font-medium">{domainClean}</span>
+              <span className={`rounded-full px-1.5 py-0.2 text-2xs font-bold ${catStyle.pill}`}>
                 {link.category}
               </span>
             </div>
@@ -220,8 +220,8 @@ export function LinksInboxRow({
               {link.title}
             </h3>
             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-              <span className="text-3xs text-text-muted font-medium">{domainClean}</span>
-              <span className={`rounded-full px-1.5 py-0.2 text-3xs font-bold ${catStyle.pill}`}>
+              <span className="text-2xs text-text-muted font-medium">{domainClean}</span>
+              <span className={`rounded-full px-1.5 py-0.2 text-2xs font-bold ${catStyle.pill}`}>
                 {link.category}
               </span>
             </div>

@@ -30,12 +30,12 @@ export const ScenarioConditionsBox: FC<Props> = ({
             Co musi się wydarzyć ({activeScenario.label}):
           </h4>
         </div>
-        <span className="text-4xs font-mono text-text-muted uppercase">
+        <span className="text-2xs font-mono text-text-muted">
           Horyzont {horizonMonths}M
         </span>
       </div>
 
-      <p className="text-3xs text-text-secondary leading-relaxed font-sans">
+      <p className="text-2xs text-text-secondary leading-relaxed font-sans">
         {activeScenario.headline}
       </p>
 

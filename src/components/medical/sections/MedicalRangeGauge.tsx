@@ -18,7 +18,7 @@ export default function MedicalRangeGauge({
   if (refLow == null || refHigh == null || refHigh <= refLow) {
     const text = localizeRefText(refText) ?? '—';
     return (
-      <span className={`text-3xs text-text-secondary ${isNumericRefText(text) ? 'font-mono' : 'leading-snug'}`}>
+      <span className={`text-2xs text-text-secondary ${isNumericRefText(text) ? 'font-mono' : 'leading-snug'}`}>
         {text}
       </span>
     );
@@ -46,7 +46,7 @@ export default function MedicalRangeGauge({
 
   return (
     <div className="flex flex-col items-center gap-1 min-w-[100px] max-w-[120px] mx-auto">
-      <span className="text-3xs font-mono font-bold text-text-secondary leading-none">
+      <span className="text-2xs font-mono font-bold text-text-secondary leading-none">
         {refLow} – {refHigh}
       </span>
       <div

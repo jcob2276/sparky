@@ -5,7 +5,7 @@
  * @usedBy Keep (gdy viewMode === 'split')
  */
 import { useEffect, useState } from 'react';
-import { Bot } from 'lucide-react';
+import { Bot, StickyNote } from 'lucide-react';
 import { Note } from './keepUtils';
 import InlineEditor from './InlineEditor';
 import NoteQuickActions from './NoteQuickActions';
@@ -122,8 +122,9 @@ export default function SplitNotesView({
 
           {filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-text-muted p-6 text-center">
-              <p className="font-bold text-sm">Brak notatek</p>
-              <p className="text-xs mt-1">Zmień filtry lub utwórz nową notatkę.</p>
+              <StickyNote size={32} className="mb-3 text-text-muted/50" aria-hidden="true" />
+              <p className="font-semibold text-base text-text-secondary">Brak notatek</p>
+              <p className="text-sm mt-1 max-w-xs">Zmień filtry lub utwórz nową notatkę.</p>
             </div>
           ) : (
             <NoteCollectionSections
@@ -173,9 +174,9 @@ export default function SplitNotesView({
             />
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-text-muted p-8 text-center bg-surface-solid/10">
-              <Bot size={40} className="mb-3 text-text-muted/50 animate-pulse" />
-              <p className="font-bold text-sm">Wybierz notatkę z listy</p>
-              <p className="text-xs mt-1">Kliknij dowolną notatkę po lewej stronie lub utwórz nową notatkę klikając przycisk "+" na dole.</p>
+              <Bot size={40} className="mb-3 text-text-muted/50" />
+              <p className="font-semibold text-base text-text-secondary">Wybierz notatkę z listy</p>
+              <p className="text-sm mt-1 max-w-xs">Kliknij dowolną notatkę po lewej stronie lub utwórz nową przyciskiem „+”.</p>
             </div>
           )}
         </section>

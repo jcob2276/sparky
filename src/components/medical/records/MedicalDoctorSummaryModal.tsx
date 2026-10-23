@@ -20,7 +20,7 @@ function KeyMarkersTable({ markers }: { markers: MarkerSeries[] }) {
     <div className="overflow-x-auto rounded-xl border border-border-custom bg-surface-1">
       <table className="w-full text-left text-xs border-collapse">
         <thead>
-          <tr className="border-b border-border-custom text-3xs font-black uppercase text-text-muted bg-surface-2">
+          <tr className="border-b border-border-custom text-2xs font-semibold text-text-muted bg-surface-2">
             <th className="p-2.5">Parametr</th>
             <th className="p-2.5">Ostatni Wynik</th>
             <th className="p-2.5">Zakres Normy</th>
@@ -39,18 +39,18 @@ function KeyMarkersTable({ markers }: { markers: MarkerSeries[] }) {
             return (
               <tr key={m.marker_key} className="hover:bg-surface-2 print:hover:bg-transparent">
                 <td className="p-2.5 font-bold">{m.marker_name}</td>
-                <td className={`p-2.5 font-mono font-extrabold ${isAlert ? 'text-warning font-black' : ''}`}>
+                <td className={`p-2.5 font-mono font-extrabold ${isAlert ? 'text-warning font-semibold' : ''}`}>
                   {row.value} {row.unit}
                 </td>
                 <td className="p-2.5 font-mono text-text-muted">{normStr}</td>
                 <td className="p-2.5 text-text-muted">{row.result_date}</td>
                 <td className="p-2.5">
                   {isAlert ? (
-                    <span className="inline-flex items-center gap-1 rounded bg-warning/10 px-1.5 py-0.5 text-3xs font-bold text-warning">
+                    <span className="inline-flex items-center gap-1 rounded bg-warning/10 px-1.5 py-0.5 text-2xs font-bold text-warning">
                       <AlertTriangle size={10} /> Poza zakresem
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-3xs font-bold text-success">
+                    <span className="inline-flex items-center gap-1 text-2xs font-bold text-success">
                       <CheckCircle2 size={10} /> W normie
                     </span>
                   )}
@@ -107,12 +107,12 @@ export default function MedicalDoctorSummaryModal({
           <div className="rounded-xl border border-border-custom bg-surface-1 p-4">
             <div className="flex justify-between items-start">
               <div>
-                <h3 className="text-base font-bold uppercase tracking-tight">Karta Podsumowania Medycznego</h3>
-                <p className="text-3xs text-text-muted mt-0.5">
+                <h3 className="text-base font-bold tracking-tight">Karta Podsumowania Medycznego</h3>
+                <p className="text-2xs text-text-muted mt-0.5">
                   Sparky Health Hub · Dane pacjenta do wglądu diagnostycznego
                 </p>
               </div>
-              <div className="text-right text-3xs text-text-muted">
+              <div className="text-right text-2xs text-text-muted">
                 <p>Data raportu: <span className="font-bold text-text-primary">{today}</span></p>
                 {userAge != null && <p>Wiek pacjenta: <span className="font-bold text-text-primary">{userAge} lat</span></p>}
                 <p>Ostatnie badanie: <span className="font-bold text-text-primary">{summary.latestOn ?? '—'}</span></p>
@@ -120,9 +120,9 @@ export default function MedicalDoctorSummaryModal({
             </div>
 
             <div className="mt-3 flex flex-wrap gap-1.5 border-t border-border-custom/50 pt-2.5">
-              <span className="text-3xs font-bold text-text-muted uppercase mr-1">Obszary opieki:</span>
+              <span className="text-2xs font-bold text-text-muted mr-1">Obszary opieki:</span>
               {summary.specialties.map((s) => (
-                <span key={s} className="rounded-md bg-surface-2 px-2 py-0.5 text-3xs font-semibold">
+                <span key={s} className="rounded-md bg-surface-2 px-2 py-0.5 text-2xs font-semibold">
                   {s}
                 </span>
               ))}
@@ -130,7 +130,7 @@ export default function MedicalDoctorSummaryModal({
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-2xs font-black uppercase tracking-wider text-text-muted flex items-center gap-1.5">
+            <h4 className="text-2xs font-semibold tracking-normal text-text-muted flex items-center gap-1.5">
               <FileText size={13} className="text-primary" />
               Ostatnie Wyniki Kluczowych Markerów Laboratoryjnych
             </h4>
@@ -139,15 +139,15 @@ export default function MedicalDoctorSummaryModal({
 
           {outOfRange.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-2xs font-black uppercase tracking-wider text-warning flex items-center gap-1.5">
+              <h4 className="text-2xs font-semibold tracking-normal text-warning flex items-center gap-1.5">
                 <AlertTriangle size={13} />
                 Zarejestrowane Odchylenia w Historii Badań ({outOfRange.length})
               </h4>
               <div className="rounded-xl border border-warning/20 bg-warning/[0.03] p-3 text-xs space-y-1.5">
                 {outOfRange.slice(0, 6).map((row, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-3xs">
+                  <div key={idx} className="flex items-center justify-between text-2xs">
                     <span className="font-bold text-text-primary">
-                      {row.marker_name}: <span className="font-mono text-warning font-black">{row.value} {row.unit}</span>
+                      {row.marker_name}: <span className="font-mono text-warning font-semibold">{row.value} {row.unit}</span>
                     </span>
                     <span className="text-text-muted">
                       {row.result_date} · Norma: {row.ref_low != null && row.ref_high != null ? `${row.ref_low} – ${row.ref_high}` : localizeRefText(row.ref_text) || '—'}
@@ -160,7 +160,7 @@ export default function MedicalDoctorSummaryModal({
 
           {recentVisits.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-2xs font-black uppercase tracking-wider text-text-muted">
+              <h4 className="text-2xs font-semibold tracking-normal text-text-muted">
                 Ostatnie Wizyty i Zalecenia Specjalistyczne
               </h4>
               <div className="space-y-2">
@@ -168,12 +168,12 @@ export default function MedicalDoctorSummaryModal({
                   <div key={item.id} className="rounded-xl border border-border-custom bg-surface-1 p-3 space-y-1">
                     <div className="flex justify-between items-baseline">
                       <span className="font-bold text-text-primary">{item.title}</span>
-                      <span className="text-3xs text-text-muted">{item.occurredOn}</span>
+                      <span className="text-2xs text-text-muted">{item.occurredOn}</span>
                     </div>
-                    {item.specialty && <span className="text-3xs text-primary font-bold">{item.specialty}</span>}
-                    {item.summary && <p className="text-3xs text-text-secondary">{item.summary}</p>}
+                    {item.specialty && <span className="text-2xs text-primary font-bold">{item.specialty}</span>}
+                    {item.summary && <p className="text-2xs text-text-secondary">{item.summary}</p>}
                     {item.recommendations && (
-                      <p className="text-3xs font-semibold text-text-primary mt-1">
+                      <p className="text-2xs font-semibold text-text-primary mt-1">
                         Zalecenia: {item.recommendations}
                       </p>
                     )}

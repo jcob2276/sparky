@@ -150,7 +150,7 @@ export default function DrawingEditor({ userId, noteId, onClose, onInsertText }:
         </div>
       </header>
       <main className="drawing-editor-stage">
-        {isLoading ? <p>Ładowanie rysunku…</p> : <DrawingCanvas
+        {isLoading ? <div className="ui-skeleton h-full w-full" role="status" aria-label="Ładowanie rysunku" /> : <DrawingCanvas
           document={document}
           tool={tool}
           color={color}

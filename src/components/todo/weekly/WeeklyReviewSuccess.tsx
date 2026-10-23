@@ -8,7 +8,7 @@ export default function WeeklyReviewSuccess() {
         <Sparkles />
       </div>
       <div className="space-y-1">
-        <h2 className="text-lg font-black text-text-primary uppercase tracking-wider">
+        <h2 className="text-lg font-semibold text-text-primary">
           System oczyszczony!
         </h2>
         <p className="text-sm text-text-muted">

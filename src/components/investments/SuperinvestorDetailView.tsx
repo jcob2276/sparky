@@ -1,5 +1,6 @@
 import { FC } from 'react';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { InvestmentsSkeleton } from './InvestmentsSkeleton';
 import { SuperinvestorDetailHeader } from './SuperinvestorDetailHeader';
 import { SuperinvestorQuarterChart } from './SuperinvestorQuarterChart';
 import { SuperinvestorHoldingsTable } from './SuperinvestorHoldingsTable';
@@ -22,10 +23,7 @@ export const SuperinvestorDetailView: FC<Props> = ({
   const data = query.data;
   if (query.isPending) {
     return (
-      <div className="flex flex-col items-center justify-center p-16 space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <div className="text-xs font-mono text-text-muted">Pobieranie portfela 13F i historii kwartalnej...</div>
-      </div>
+      <InvestmentsSkeleton rows={6} label="Pobieranie portfela 13F" />
     );
   }
   if (query.error) return <div role="alert" className="p-8 space-y-4">
@@ -72,8 +70,8 @@ export const SuperinvestorDetailView: FC<Props> = ({
       />
 
       {/* Performance Curve Banner */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-2xs space-y-1.5">
-        <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono">
+      <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-2xs space-y-1.5">
+        <h3 className="text-xs sm:text-sm font-semibold text-text-primary font-mono">
           Stan ujawnionych pozycji · {data.periodQuarter}
         </h3>
         <p className="text-xs text-text-secondary leading-relaxed max-w-4xl">

@@ -1,7 +1,7 @@
-import React from 'react';
+import type { ReactNode } from 'react';
 
 interface EmptyStateProps {
-  icon: string;
+  icon: ReactNode;
   label: string;
   isDragOver?: boolean;
   dragColor?: 'orange' | 'primary';

@@ -66,7 +66,7 @@ export default function VoicePlanModal({
               <Sparkles size={16} />
             </div>
             <div>
-              <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">
+              <h3 className="text-sm font-semibold text-text-primary">
                 Planowanie głosem ze Sparky
               </h3>
               <p className="text-2xs font-semibold text-text-muted">{effectiveDate}</p>

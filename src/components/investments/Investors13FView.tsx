@@ -3,7 +3,7 @@ import { useSuperinvestorsOverview } from '../../lib/investments/useSuperinvesto
 import { SuperinvestorsHeader, CategoryFilter } from './SuperinvestorsHeader';
 import { SuperinvestorCard } from './SuperinvestorCard';
 import { SuperinvestorDetailView } from './SuperinvestorDetailView';
-import { Loader2 } from 'lucide-react';
+import { InvestmentsSkeleton } from './InvestmentsSkeleton';
 import Button from '../ui/Button';
 import type { SuperinvestorOverviewItem } from '../../lib/investments/superinvestorTypes';
 import { CompanyDetailView } from './CompanyDetailView';
@@ -54,10 +54,7 @@ export const Investors13FView: FC<Props> = ({ onNavigateTab, watchlist, onToggle
 
   if (query.isPending) {
     return (
-      <div className="flex flex-col items-center justify-center p-20 space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <div className="text-xs font-mono text-text-muted">Pobieranie zweryfikowanych raportów SEC 13F...</div>
-      </div>
+      <InvestmentsSkeleton rows={6} label="Pobieranie raportów SEC 13F" />
     );
   }
   if (query.error) return <div role="alert" className="p-8 text-text-secondary">
@@ -104,7 +101,7 @@ export const Investors13FView: FC<Props> = ({ onNavigateTab, watchlist, onToggle
       </div>
 
       {filteredInvestors.length === 0 && (
-        <div className="p-12 text-center rounded-3xl bg-surface border border-border-custom text-text-muted font-mono text-xs">
+        <div className="p-12 text-center rounded-2xl bg-surface border border-border-custom text-text-muted font-mono text-xs">
           Brak inwestorów spełniających wybrane kryteria wyszukiwania.
         </div>
       )}

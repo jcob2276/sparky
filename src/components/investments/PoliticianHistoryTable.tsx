@@ -14,7 +14,7 @@ export const PoliticianHistoryTable: FC<Props> = ({
   return (
     <div className="bg-surface-elevated border border-border-custom rounded-2xl overflow-hidden shadow-sm">
       <div className="p-4 border-b border-border-custom/50">
-        <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+        <h3 className="text-xs font-semibold text-text-primary">
           Ostatnie transakcje ({transactions.length})
         </h3>
         <p className="text-2xs text-text-muted mt-0.5">
@@ -24,7 +24,7 @@ export const PoliticianHistoryTable: FC<Props> = ({
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="bg-surface-subtle text-3xs font-black text-text-muted uppercase tracking-wider border-b border-border-custom/40">
+          <thead className="bg-surface-subtle text-2xs font-semibold text-text-muted border-b border-border-custom/40">
             <tr>
               <th className="py-2.5 px-4">Data Transakcji</th>
               <th className="py-2.5 px-4">Spółka</th>
@@ -47,12 +47,12 @@ export const PoliticianHistoryTable: FC<Props> = ({
                     <span className="font-bold text-text-primary hover:text-primary transition-colors">
                       {t.ticker}
                     </span>
-                    <span className="text-3xs text-text-muted truncate max-w-40">{t.companyName}</span>
+                    <span className="text-2xs text-text-muted truncate max-w-40">{t.companyName}</span>
                   </div>
                 </td>
                 <td className="py-3 px-4 text-center font-sans">
                   <span
-                    className={`px-2 py-0.5 rounded-md text-3xs font-semibold uppercase tracking-wider border border-border-custom ${
+                    className={`px-2 py-0.5 rounded-md text-2xs font-semibold border border-border-custom ${
                       t.type === 'buy' ? 'text-success bg-surface-subtle' : 'text-danger bg-surface-subtle'
                     }`}
                   >

@@ -85,7 +85,7 @@ export const StocksConsensusToolbar: FC<Props> = ({
               size="sm"
               variant={filterType === 'all' ? 'primary' : 'secondary'}
               onClick={() => onFilterChange('all')}
-              className="rounded-xl text-3xs font-bold uppercase"
+              className="rounded-xl text-2xs font-bold"
             >
               Wszystkie
             </Button>
@@ -93,7 +93,7 @@ export const StocksConsensusToolbar: FC<Props> = ({
               size="sm"
               variant={filterType === 'accumulation' ? 'primary' : 'secondary'}
               onClick={() => onFilterChange('accumulation')}
-              className="rounded-xl text-3xs font-bold uppercase"
+              className="rounded-xl text-2xs font-bold"
             >
               Wzrosty netto
             </Button>
@@ -101,7 +101,7 @@ export const StocksConsensusToolbar: FC<Props> = ({
               size="sm"
               variant={filterType === 'distribution' ? 'primary' : 'secondary'}
               onClick={() => onFilterChange('distribution')}
-              className="rounded-xl text-3xs font-bold uppercase"
+              className="rounded-xl text-2xs font-bold"
             >
               Spadki netto
             </Button>
@@ -109,7 +109,7 @@ export const StocksConsensusToolbar: FC<Props> = ({
               size="sm"
               variant={filterType === 'active' ? 'primary' : 'secondary'}
               onClick={() => onFilterChange('active')}
-              className="rounded-xl text-3xs font-bold uppercase"
+              className="rounded-xl text-2xs font-bold"
             >
               Duży ruch
             </Button>
@@ -169,7 +169,7 @@ export const StocksConsensusToolbar: FC<Props> = ({
       {/* Highlight Banner */}
       {mostActiveTicker && mostActiveTicker !== '—' && (
         <div className="px-4 py-2.5 rounded-2xl bg-success/10 border border-success/20 flex items-center gap-2 text-xs">
-          <span className="font-mono font-black text-success">
+          <span className="font-mono font-semibold text-success">
             {mostActiveTicker}
           </span>
           <span className="text-text-primary">

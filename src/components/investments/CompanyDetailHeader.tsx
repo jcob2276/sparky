@@ -50,7 +50,7 @@ export const CompanyDetailHeader: FC<Props> = ({
         <div className="flex items-center gap-3.5">
           <CompanyLogo ticker={data.ticker} name={data.name} size={44} />
           <div>
-            <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-text-primary">
+            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-text-primary">
               {data.name}
             </h1>
             <div className="text-2xs font-mono text-text-muted mt-0.5">
@@ -67,11 +67,11 @@ export const CompanyDetailHeader: FC<Props> = ({
         {/* Right: Price & Watchlist CTA */}
         <div className="flex items-center gap-4">
           <div className="text-right">
-            {inactive && <div className="text-3xs text-text-muted">Ostatnie historyczne notowanie</div>}
-            <div className="text-2xl font-black font-mono text-text-primary tabular-nums">
+            {inactive && <div className="text-2xs text-text-muted">Ostatnie historyczne notowanie</div>}
+            <div className="text-2xl font-semibold font-mono text-text-primary tabular-nums">
               {data.price != null ? data.price.toFixed(2).replace('.', ',') : '—'} {data.priceCurrency ?? ''}
             </div>
-            {!inactive && <div className="text-3xs font-mono text-text-muted flex items-center justify-end gap-1.5 mt-0.5">
+            {!inactive && <div className="text-2xs font-mono text-text-muted flex items-center justify-end gap-1.5 mt-0.5">
               <span className={data.changeTodayPct == null ? 'text-text-muted' : isPosChange ? 'text-success font-semibold' : 'text-danger font-semibold'}>
                 {data.changeTodayPct == null ? 'Dziś: —' : `${isPosChange ? '+' : ''}${data.changeTodayPct.toFixed(1).replace('.', ',')}%`}
               </span>
@@ -80,7 +80,7 @@ export const CompanyDetailHeader: FC<Props> = ({
                 {data.change1yPct == null ? '—' : `${isPos1y ? '+' : ''}${data.change1yPct.toFixed(1).replace('.', ',')}%`} R/R
               </span>
             </div>}
-            <div className="text-3xs text-text-muted mt-1">
+            <div className="text-2xs text-text-muted mt-1">
               {data.priceDate && data.priceSourceUrl ? (
                 <a href={data.priceSourceUrl} target="_blank" rel="noreferrer" className="underline">
                   Notowanie: {data.priceDate}
@@ -94,7 +94,7 @@ export const CompanyDetailHeader: FC<Props> = ({
             variant={isWatched ? 'secondary' : 'tonal'}
             icon={<Star size={13} className={isWatched ? 'fill-warning text-warning' : ''} />}
             onClick={onToggleWatchlist}
-            className="rounded-xl text-xs font-semibold uppercase tracking-wider"
+            className="rounded-xl text-xs font-semibold"
           >
             {isWatched ? 'Obserwujesz' : 'Obserwuj'}
           </Button>

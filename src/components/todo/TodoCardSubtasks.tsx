@@ -22,7 +22,7 @@ export default function TodoCardSubtasks({ childTasks, onAddChildTask, onToggleC
   return (
     <div className="border-t border-border-custom/20 pt-2.5 flex flex-col gap-2">
       <div className="flex items-center justify-between px-1">
-        <span className="text-2xs font-black uppercase tracking-wider text-text-muted/60">Podzadania ({childTasks.filter(c => c.status === 'done').length}/{childTasks.length})</span>
+        <span className="text-2xs font-semibold text-text-muted/60">Podzadania ({childTasks.filter(c => c.status === 'done').length}/{childTasks.length})</span>
       </div>
 
       {childTasks.length > 0 && (
@@ -73,7 +73,7 @@ export default function TodoCardSubtasks({ childTasks, onAddChildTask, onToggleC
             }
           }}
           disabled={!newChildTask.trim()}
-          className="rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-black text-primary disabled:opacity-[var(--opacity-30)] hover:bg-primary/20 transition-colors btn-press"
+          className="rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary disabled:opacity-[var(--opacity-30)] hover:bg-primary/20 transition-colors btn-press"
         >
           Dodaj
         </Pressable>

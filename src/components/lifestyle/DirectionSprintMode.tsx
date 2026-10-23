@@ -7,7 +7,7 @@ function Divider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-2">
       <div className="h-px flex-1 bg-border-custom" />
-      <span className="text-2xs uppercase tracking-widest text-text-muted font-black">{title}</span>
+      <span className="text-2xs text-text-muted font-semibold">{title}</span>
       <div className="h-px flex-1 bg-border-custom" />
     </div>
   );
@@ -74,7 +74,7 @@ export default function DirectionSprintMode({
   return (
     <div className="space-y-6 pb-6 border-b border-border-custom mb-6">
       <div className="rounded-2xl border border-warning/30 bg-warning/5 px-4 py-3">
-        <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-2em)] text-warning">Zamknięcie sprintu</p>
+        <p className="text-2xs font-semibold text-warning">Zamknięcie sprintu</p>
         <p className="mt-1 text-sm font-semibold text-text-primary">
           {sprintFacts.sprintLabel} · tydzień 12/12
         </p>
@@ -97,7 +97,7 @@ export default function DirectionSprintMode({
         </div>
         {pillarLine && (
           <p className="text-xs text-text-secondary">
-            <span className="font-black text-text-muted">Śr. oceny filarów: </span>
+            <span className="font-semibold text-text-muted">Śr. oceny filarów: </span>
             {pillarLine}
           </p>
         )}
@@ -161,7 +161,7 @@ export default function DirectionSprintMode({
                         key={d}
                         type="button"
                         onClick={() => setProject(p.id, d)}
-                        className={`rounded-lg px-2 py-1 text-2xs font-black uppercase tracking-wide transition-colors ${
+                        className={`rounded-lg px-2 py-1 text-2xs font-semibold transition-colors ${
                           decision === d
                             ? d === 'continue'
                               ? 'bg-primary text-on-accent'

@@ -34,7 +34,7 @@ export default function MedicalSuggestions({
     if (items.length === 0) return null;
     return (
       <div className="space-y-3">
-        <span className={`text-3xs font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${badgeColor}`}>
+        <span className={`text-2xs font-semibold tracking-normal px-2 py-0.5 rounded-full ${badgeColor}`}>
           {title}
         </span>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -47,18 +47,18 @@ export default function MedicalSuggestions({
             >
               <div>
                 <h4 className="text-xs font-bold text-text-primary leading-tight">{item.title}</h4>
-                <p className="text-3xs text-text-secondary mt-1.5 leading-relaxed">{item.reason}</p>
+                <p className="text-2xs text-text-secondary mt-1.5 leading-relaxed">{item.reason}</p>
               </div>
 
               {title === 'Do omówienia ze specjalistą' && (
                 <div className="space-y-1.5">
-                  <label className="text-2xs font-black uppercase text-text-muted">Notatka do omówienia / Pytanie</label>
+                  <label className="text-2xs font-semibold text-text-muted">Notatka do omówienia / Pytanie</label>
                   <ControlInput
                     type="text"
                     placeholder="Wpisz o co zapytać lekarza (dopisze się do terminu)..."
                     value={doctorNotes[item.id] ?? ''}
                     onChange={(e) => setDoctorNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                    className="w-full bg-background/50 border border-border-custom rounded-lg px-2 py-1 text-3xs focus:outline-none focus:border-primary text-text-primary"
+                    className="w-full bg-background/50 border border-border-custom rounded-lg px-2 py-1 text-2xs focus:outline-none focus:border-primary text-text-primary"
                   />
                 </div>
               )}
@@ -103,7 +103,7 @@ export default function MedicalSuggestions({
   return (
     <div className="space-y-6">
       <div className="border-b border-border-custom/50 pb-3">
-        <h2 className="text-lg font-black uppercase font-display">Planowanie i Sugestie</h2>
+        <h2 className="text-lg font-semibold font-display">Planowanie i Sugestie</h2>
         <p className="text-2xs text-text-muted mt-0.5">Automatyczne wnioski oponujące o kolejne kroki diagnostyczne</p>
       </div>
 

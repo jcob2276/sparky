@@ -7,7 +7,7 @@ export const CompanyPiotroskiCard: FC<{ ticker: string }> = ({ ticker }) => (
       <ShieldCheck size={18} /> Piotroski F-Score · {ticker}
     </h3>
     <p className="text-xs text-text-secondary">Brak zweryfikowanych danych do obliczenia wyniku.</p>
-    <p className="text-3xs text-text-muted leading-relaxed">
+    <p className="text-2xs text-text-muted leading-relaxed">
       Wymagane są porównywalne dane z raportów rocznych: zysk, aktywa, przepływy operacyjne,
       zadłużenie, płynność, emisje akcji, marża brutto i rotacja aktywów.
       Ocena Piotroskiego oraz ranking Magic Formula pozostają niedostępne do czasu podłączenia tych danych.

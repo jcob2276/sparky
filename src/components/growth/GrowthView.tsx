@@ -73,7 +73,7 @@ export default function GrowthView({ session: propSession, onBack, onNavigateTo 
               </div>
               <div>
                 <h1 className="text-base font-bold tracking-tight text-text-primary">Rozwój</h1>
-                <p className="text-3xs font-semibold text-text-muted">Plan nauki na miesiąc</p>
+                <p className="text-2xs font-semibold text-text-muted">Plan nauki na miesiąc</p>
               </div>
             </div>
           </div>

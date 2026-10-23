@@ -62,14 +62,14 @@ export const JakubAddPositionModal: FC<Props> = ({
   return (
     <div className="fixed inset-0 z-[var(--z-modal)] flex items-center justify-center p-4">
       <div className="fixed inset-0 bg-scrim/60" onClick={onClose} />
-      <div className="relative w-full max-w-lg rounded-3xl bg-surface border border-border-custom p-6 shadow-2xl space-y-5 animate-scale-up">
+      <div className="relative w-full max-w-lg rounded-2xl bg-surface border border-border-custom p-6 shadow-2xl space-y-5 animate-scale-up">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border-custom/50 pb-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl bg-primary/20 text-primary flex items-center justify-center">
               <Plus size={16} />
             </div>
-            <h3 className="font-black text-sm sm:text-base text-text-primary">
+            <h3 className="font-semibold text-sm sm:text-base text-text-primary">
               Zarządzaj portfelem Jakuba
             </h3>
           </div>
@@ -85,7 +85,7 @@ export const JakubAddPositionModal: FC<Props> = ({
 
         {/* 1. Free cash quick update */}
         <div className="p-3.5 rounded-2xl bg-surface-elevated/40 border border-border-custom/70 space-y-2">
-          <div className="text-3xs font-mono text-text-muted uppercase flex items-center gap-1.5">
+          <div className="text-2xs font-mono text-text-muted flex items-center gap-1.5">
             <Wallet size={12} className="text-primary" />
             <span>Aktualizacja wolnych środków (PLN)</span>
           </div>

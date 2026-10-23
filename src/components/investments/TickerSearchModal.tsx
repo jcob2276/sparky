@@ -108,7 +108,7 @@ export const TickerSearchModal: FC<Props> = ({ isOpen, onClose }) => {
 
       {/* Modal */}
       <div className="fixed top-[10vh] left-1/2 -translate-x-1/2 z-[var(--z-overlay)] w-full max-w-2xl px-4 animate-fade-in">
-        <div className="bg-surface border border-border-custom rounded-3xl shadow-2xl overflow-hidden">
+        <div className="bg-surface border border-border-custom rounded-2xl shadow-2xl overflow-hidden">
           {/* Search input */}
           <div className="flex items-center gap-3 p-4 border-b border-border-custom/50">
             <div className="flex-1">
@@ -135,7 +135,7 @@ export const TickerSearchModal: FC<Props> = ({ isOpen, onClose }) => {
           {/* Quick pills when empty */}
           {query.length < 2 && (
             <div className="p-4 space-y-3">
-              <p className="text-2xs font-semibold text-text-muted uppercase tracking-wider">
+              <p className="text-2xs font-semibold text-text-muted">
                 Szybkie skróty
               </p>
               <div className="flex flex-wrap gap-2">

@@ -23,11 +23,11 @@ export default function LearningHistorySection({ items }: { items: LearningAssig
 
   return (
     <details className="rounded-2xl border border-border-custom/40 bg-surface/30 p-4">
-      <summary className="cursor-pointer text-sm font-black text-text-primary">Niedokończone i odpuszczone</summary>
+      <summary className="cursor-pointer text-sm font-semibold text-text-primary">Niedokończone i odpuszczone</summary>
       <div className="mt-3 space-y-4">
         {[...byMonth.entries()].map(([month, list]) => (
           <section key={month} aria-label={monthLabel(month)}>
-            <h3 className="text-3xs font-black uppercase tracking-wider text-text-muted">{monthLabel(month)}</h3>
+            <h3 className="text-2xs font-semibold text-text-muted">{monthLabel(month)}</h3>
             <ul className="mt-1.5 space-y-1">
               {list.map((item) => {
                 const { label, tone } = outcome(item);

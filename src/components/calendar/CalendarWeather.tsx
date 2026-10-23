@@ -39,7 +39,7 @@ export const WMO_WEATHER_DESC: Record<number, string> = {
 export function getWMOWeatherIcon(code: number, size = 12, isNight = false) {
   switch (code) {
     case 0:
-      return isNight ? <Moon size={size} className="text-primary animate-pulse" /> : <Sun size={size} className="text-warning" />;
+      return isNight ? <Moon size={size} className="text-primary" /> : <Sun size={size} className="text-warning" />;
     case 1:
     case 2:
       return isNight ? <CloudMoon size={size} className="text-text-muted" /> : <CloudSun size={size} className="text-warning" />;
@@ -67,7 +67,7 @@ export function getWMOWeatherIcon(code: number, size = 12, isNight = false) {
     case 95:
     case 96:
     case 99:
-      return <CloudLightning size={size} className="text-warning animate-pulse" />;
+      return <CloudLightning size={size} className="text-warning" />;
     default:
       return <Cloud size={size} className="text-text-muted" />;
   }

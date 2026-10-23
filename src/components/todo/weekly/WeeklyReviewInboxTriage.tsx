@@ -1,7 +1,7 @@
 import { Pressable, ControlSelect } from '../../ui/ControlPrimitives';
 import React from 'react';
 import { useWeeklyReview } from './context/WeeklyReviewContext';
-import { Inbox, Check, Trash2, Folder } from 'lucide-react';
+import { Check, Folder, Inbox, Trash2 } from 'lucide-react';
 import EmptyState from '../../ui/EmptyState';
 import type { Database } from '../../../lib/database.types';
 
@@ -20,7 +20,7 @@ export default function WeeklyReviewInboxTriage() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-black text-text-primary flex items-center gap-1.5 uppercase tracking-wider">
+        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
           <Inbox size={15} className="text-primary" />
           Krok 1: Triaż Skrzynki Odbiorczej
         </h3>
@@ -30,7 +30,7 @@ export default function WeeklyReviewInboxTriage() {
       </div>
 
       {openInboxItems.length === 0 ? (
-        <EmptyState icon="📥" label="Twoja skrzynka odbiorcza jest pusta. Wszystkie zadania mają przypisane projekty!" />
+        <EmptyState icon={<Inbox size={22} strokeWidth={1.75} />} label="Twoja skrzynka odbiorcza jest pusta. Wszystkie zadania mają przypisane projekty!" />
       ) : (
         <div className="space-y-2">
           {openInboxItems.map((item: TodoItemRow) => {

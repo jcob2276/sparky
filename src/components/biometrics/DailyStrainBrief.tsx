@@ -41,7 +41,7 @@ export default function DailyStrainBrief({ recoveryScore, ...input }: ReadinessI
       <div className="flex items-center gap-4">
         <RecoveryRing score={recoveryScore} />
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-muted">Regeneracja</p>
+          <p className="text-xs font-semibold tracking-normal text-text-muted">Regeneracja</p>
           <p className={`text-xl font-semibold leading-tight ${TONE_TEXT[brief.tone]}`}>{brief.headline}</p>
           <p className="mt-1 text-sm leading-snug text-text-secondary">{brief.advice}</p>
           {brief.drivers && <p className="mt-1.5 text-sm leading-snug text-text-primary">{brief.drivers}</p>}

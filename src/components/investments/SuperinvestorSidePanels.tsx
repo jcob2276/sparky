@@ -54,8 +54,8 @@ export const SuperinvestorSidePanels: FC<Props> = ({
   return (
     <div className="space-y-4">
       {/* 1. Struktura pozycji (Donut) */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-2xs space-y-4">
-        <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono border-b border-border-custom/50 pb-3">
+      <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-2xs space-y-4">
+        <h3 className="text-xs sm:text-sm font-semibold text-text-primary font-mono border-b border-border-custom/50 pb-3">
           Pięć największych pozycji SH
         </h3>
 
@@ -81,10 +81,10 @@ export const SuperinvestorSidePanels: FC<Props> = ({
 
           {/* Center Label */}
           <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
-            <span className="text-base font-black text-text-primary tracking-tight font-mono">
+            <span className="text-base font-semibold text-text-primary tracking-tight font-mono">
               {basketValueFormatted}
             </span>
-            <span className="text-3xs uppercase tracking-wider text-text-muted font-mono font-semibold">
+            <span className="text-2xs text-text-muted font-mono font-semibold">
               Wartość Koszyka
             </span>
           </div>
@@ -92,12 +92,12 @@ export const SuperinvestorSidePanels: FC<Props> = ({
       </div>
 
       {/* 2. Alokacja Sektorowa */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-2xs space-y-3">
+      <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-2xs space-y-3">
         <div className="flex items-center justify-between gap-2 border-b border-border-custom/50 pb-3">
-          <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono">
+          <h3 className="text-xs sm:text-sm font-semibold text-text-primary font-mono">
             Alokacja Sektorowa
           </h3>
-          <span className="text-3xs font-mono font-semibold text-text-muted">
+          <span className="text-2xs font-mono font-semibold text-text-muted">
             WG WARTOŚCI POZYCJI · {periodQuarter}
           </span>
         </div>
@@ -129,8 +129,8 @@ export const SuperinvestorSidePanels: FC<Props> = ({
       </div>
 
       {/* 3. Ruchy w ostatnim 13F */}
-      <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-2xs space-y-3">
-        <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono border-b border-border-custom/50 pb-3">
+      <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-2xs space-y-3">
+        <h3 className="text-xs sm:text-sm font-semibold text-text-primary font-mono border-b border-border-custom/50 pb-3">
           Ruchy w Ostatnim 13F
         </h3>
 
@@ -142,7 +142,7 @@ export const SuperinvestorSidePanels: FC<Props> = ({
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span
-                  className={`px-1.5 py-0.5 rounded text-3xs font-bold shrink-0 ${
+                  className={`px-1.5 py-0.5 rounded text-2xs font-bold shrink-0 ${
                     act.isNegative
                       ? 'bg-danger/10 text-danger border border-danger/20'
                       : 'bg-success/10 text-success border border-success/20'
@@ -152,7 +152,7 @@ export const SuperinvestorSidePanels: FC<Props> = ({
                 </span>
                 <span className="font-bold text-text-primary truncate">{act.ticker}</span>
               </div>
-              <span className="text-3xs text-text-secondary font-medium shrink-0 ml-2">
+              <span className="text-2xs text-text-secondary font-medium shrink-0 ml-2">
                 {act.details}
               </span>
             </div>

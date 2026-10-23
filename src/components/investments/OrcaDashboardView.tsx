@@ -8,6 +8,8 @@ import { DashboardActivityChart } from './DashboardActivityChart';
 import { DashboardDisclosureStream } from './DashboardDisclosureStream';
 import { DashboardBottomCards } from './DashboardBottomCards';
 import { DashboardHeader, DashboardSourceStatus } from './DashboardSourceStatus';
+import { InvestmentsHero } from './InvestmentsHero';
+import { InvestmentsSkeleton } from './InvestmentsSkeleton';
 interface Props { onNavigateTab: (tab: string) => void }
 export const OrcaDashboardView: FC<Props> = ({ onNavigateTab }) => {
   const [watchlist, setWatchlist] = useState<string[]>(loadStoredWatchlist);
@@ -16,13 +18,14 @@ export const OrcaDashboardView: FC<Props> = ({ onNavigateTab }) => {
   const handleToggleWatchlist = useCallback((ticker: string) => {
     setWatchlist(prev => { const next = prev.includes(ticker) ? prev.filter(t => t !== ticker) : [...prev, ticker]; saveStoredWatchlist(next); return next; });
   }, []);
-  return <div className="space-y-4 animate-fade-in text-text-primary">
+  return <div className="ui-stagger space-y-6 text-text-primary">
     <DashboardHeader />
-    {query.isPending && <p role="status">Pobieranie danych źródłowych…</p>}
+    {query.isPending && <InvestmentsSkeleton label="Pobieranie danych źródłowych" />}
     {query.error && <p role="alert" className="text-danger">Nie udało się odczytać pulpitu: {query.error.message}</p>}
+    {query.data && <InvestmentsHero activity={query.data.activity14d} onNavigateTab={onNavigateTab} />}
     {query.data && <DashboardContent data={query.data} watchlist={watchlist} onNavigateTab={onNavigateTab} />}
     {!builderDismissed && watchlist.length < 3 && <DashboardWatchlistBuilder watchlist={watchlist} onToggle={handleToggleWatchlist} onDismiss={() => setBuilderDismissed(true)} />}
-    <p className="text-3xs text-text-muted">Dane publiczne mają opóźnienia i niepełne pokrycie. Serwis ma charakter informacyjno-edukacyjny i nie świadczy doradztwa inwestycyjnego.</p>
+    <p className="text-2xs text-text-muted">Dane publiczne mają opóźnienia i niepełne pokrycie. Serwis ma charakter informacyjno-edukacyjny i nie świadczy doradztwa inwestycyjnego.</p>
   </div>;
 };
 const DashboardContent = ({ data, watchlist, onNavigateTab }: { data: NonNullable<ReturnType<typeof useDashboardData>['data']>; watchlist: string[]; onNavigateTab: Props['onNavigateTab'] }) => <>

@@ -77,7 +77,7 @@ export default function WeekHub({
           className="flex w-full items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3.5 text-left transition-colors hover:bg-primary/15 active:scale-[var(--ds-arbitrary-0-99)]"
         >
           <div className="min-w-0">
-            <p className="flex items-center gap-2 text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-primary">
+            <p className="flex items-center gap-2 text-2xs font-semibold text-primary">
               <CalendarDays size={12} /> Zamknięcie tygodnia
             </p>
             <p className="mt-1 text-sm font-semibold text-text-primary leading-snug">
@@ -91,7 +91,7 @@ export default function WeekHub({
       {overdueReviewCue && (
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-warning/25 bg-warning/[0.06] p-3.5">
           <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-2xs font-black uppercase tracking-widest text-warning">
+            <p className="flex items-center gap-1.5 text-2xs font-semibold text-warning">
               <History size={12} /> Poprzedni tydzień czeka na domknięcie
             </p>
             <p className="mt-0.5 text-xs text-text-secondary">
@@ -129,7 +129,7 @@ export default function WeekHub({
       {!direction.hasData && direction.loading && <DataStateNotice title="Wczytuję kontekst tygodnia" tone="loading" />}
       {proposals.length > 0 && (
         <section className="space-y-3">
-          <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[var(--ds-arbitrary-0-14em)] text-warning">
+          <p className="flex items-center gap-2 text-xs font-semibold text-warning">
             <AlertCircle size={12} /> Do decyzji ({proposals.length})
           </p>
           {proposals.slice(0, 2).map((p) => (
@@ -155,7 +155,7 @@ export default function WeekHub({
 
       {openMust.length > 0 && (
         <section className="space-y-2">
-          <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[var(--ds-arbitrary-0-14em)] text-text-muted">
+          <p className="flex items-center gap-2 text-xs font-semibold text-text-muted">
             <Target size={12} className="text-primary" /> Must tygodnia ({openMust.length})
           </p>
           <ul className="grid gap-2 sm:grid-cols-2">

@@ -16,7 +16,7 @@ export default function TrainingHubSignals({ forecasts, neglects }: Props) {
         <section className="space-y-2" aria-label="Estymaty progresji">
           <div className="flex items-center gap-1.5 px-0.5">
             <TrendingUp size={12} className="text-primary" />
-            <span className="text-2xs font-black uppercase tracking-wider text-text-muted">
+            <span className="text-2xs font-semibold tracking-normal text-text-muted">
               Trend e1RM
             </span>
           </div>
@@ -28,12 +28,12 @@ export default function TrainingHubSignals({ forecasts, neglects }: Props) {
               >
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-xs font-bold text-text-primary">{f.displayLabel}</span>
-                  <span className="text-xs font-black tabular-nums text-primary">
+                  <span className="text-xs font-semibold tabular-nums text-primary">
                     {f.deltaPerWeekKg > 0 ? '+' : ''}
                     {f.deltaPerWeekKg} kg/tydz.
                   </span>
                 </div>
-                <p className="text-3xs text-text-secondary leading-snug mt-1">{f.summary}</p>
+                <p className="text-2xs text-text-secondary leading-snug mt-1">{f.summary}</p>
               </li>
             ))}
           </ul>
@@ -44,7 +44,7 @@ export default function TrainingHubSignals({ forecasts, neglects }: Props) {
         <section className="space-y-2" aria-label="Zaniedbania">
           <div className="flex items-center gap-1.5 px-0.5">
             <AlertTriangle size={12} className="text-warning" />
-            <span className="text-2xs font-black uppercase tracking-wider text-text-muted">
+            <span className="text-2xs font-semibold tracking-normal text-text-muted">
               Zaniedbania
             </span>
           </div>
@@ -56,11 +56,11 @@ export default function TrainingHubSignals({ forecasts, neglects }: Props) {
               >
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-xs font-bold text-text-primary">{n.displayLabel}</span>
-                  <span className="text-3xs font-bold tabular-nums text-text-tertiary">
+                  <span className="text-2xs font-bold tabular-nums text-text-tertiary">
                     {n.reason === 'gap' ? `${n.daysSince}d` : `${n.volumeSharePct}% vol`}
                   </span>
                 </div>
-                <p className="text-3xs text-text-secondary leading-snug mt-1">{n.summary}</p>
+                <p className="text-2xs text-text-secondary leading-snug mt-1">{n.summary}</p>
               </li>
             ))}
           </ul>

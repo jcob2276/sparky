@@ -26,14 +26,14 @@ export default function LibraryImportPreview({ fresh, duplicates, skipped }: Lib
                 {item.title}
                 {item.author && <span className="text-text-muted"> — {item.author}</span>}
               </span>
-              <span className="shrink-0 text-3xs font-bold uppercase tracking-wider text-text-muted">
+              <span className="shrink-0 text-2xs font-bold text-text-muted">
                 {LIBRARY_TYPE_LABELS[item.resourceType as LibraryType]}
                 {item.finishedYear ? ` · ${item.finishedYear}` : item.finishedOn ? ` · ${item.finishedOn.slice(0, 4)}` : ''}
               </span>
             </li>
           ))}
           {fresh.length > MAX_PREVIEW && (
-            <li className="pt-1 text-center text-3xs text-text-muted">i jeszcze {fresh.length - MAX_PREVIEW}…</li>
+            <li className="pt-1 text-center text-2xs text-text-muted">i jeszcze {fresh.length - MAX_PREVIEW}…</li>
           )}
         </ul>
       )}

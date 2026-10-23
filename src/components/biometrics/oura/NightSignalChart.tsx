@@ -59,9 +59,9 @@ export function NightSignalChart({
   const polyline = chartPoints(points);
   return (
     <article className="overflow-hidden rounded-xl border border-white/5 bg-surface-2 p-5 sm:p-6">
-      <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">{title}</p>
+      <p className="text-xs font-semibold tracking-normal text-text-secondary">{title}</p>
       <div className="mt-3 flex flex-wrap items-end gap-x-5 gap-y-1">
-        <p className="text-4xl font-light text-white">
+        <p className="text-4xl font-light text-text-primary">
           {average == null ? 'Brak danych' : `${average} ${unit}`}
         </p>
         <p className="pb-1 text-sm text-text-secondary">{summary}</p>
@@ -77,7 +77,7 @@ export function NightSignalChart({
             {[0.25, 0.5, 0.75].map((position) => (
               <line
                 key={position}
-                className="text-white/10"
+                className="text-text-primary/10"
                 stroke="currentColor"
                 x1={PADDING}
                 x2={WIDTH - PADDING}

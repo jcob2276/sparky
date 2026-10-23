@@ -129,6 +129,8 @@
     ]
   }
   </script>
+  <script>if (/[?&]embed=1/.test(location.search)) document.documentElement.classList.add('embed');</script>
+  <style>html.embed .header__logo { display: none; } html.embed .header { justify-content: center; } html.embed .header__nav { overflow-x: auto; scrollbar-width: none; }</style>
 </head>
 <body>
   <div class="app" id="app">

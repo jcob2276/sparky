@@ -114,7 +114,7 @@ function PillarSection({ pillar }: { pillar: PillarId }) {
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
-            <h3 className={`text-xs font-black uppercase tracking-widest ${meta.text}`}>{meta.label}</h3>
+            <h3 className={`text-xs font-semibold ${meta.text}`}>{meta.label}</h3>
             {targetDays !== null && <span className="text-xs font-semibold text-text-muted">{targetDays} dni do celu</span>}
           </div>
           <p className="mt-1 text-sm font-bold leading-snug text-text-primary">
@@ -169,7 +169,7 @@ export function DirectionView() {
         </div>
         {nearest && (
           <div className="mt-3 rounded-2xl border border-primary/15 bg-primary/[0.06] px-4 py-3">
-            <p className="text-2xs font-black uppercase tracking-widest text-primary">Najbliższy główny cel</p>
+            <p className="text-2xs font-semibold text-primary">Najbliższy główny cel</p>
             <div className="mt-1 flex items-center justify-between gap-3">
               <p className="min-w-0 truncate font-semibold text-text-primary">{nearest.goal || nearest.name}</p>
               <span className="shrink-0 text-sm font-bold text-primary">{daysUntil(nearest.deadline)} dni</span>
@@ -186,8 +186,8 @@ export function DirectionView() {
 function Summary({ label, value, warning = false }: { label: string; value: string; warning?: boolean }) {
   return (
     <div className="min-w-0 text-center">
-      <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">{label}</p>
-      <p className={`mt-1 text-lg font-black ${warning ? 'text-warning' : 'text-text-primary'}`}>{value}</p>
+      <p className="text-2xs font-bold text-text-muted">{label}</p>
+      <p className={`mt-1 text-lg font-semibold ${warning ? 'text-warning' : 'text-text-primary'}`}>{value}</p>
     </div>
   );
 }

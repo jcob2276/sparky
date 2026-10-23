@@ -18,7 +18,7 @@ export const GpwFundamentalsHeader: FC<Props> = ({
       {/* Title & Refreshed Date */}
       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-semibold text-text-primary tracking-tight">
             Fundamenty GPW
           </h1>
           <p className="text-xs text-text-secondary mt-1 max-w-3xl leading-relaxed">
@@ -30,7 +30,7 @@ export const GpwFundamentalsHeader: FC<Props> = ({
           </p>
         </div>
 
-        <div className="text-3xs font-mono font-medium text-text-muted shrink-0">
+        <div className="text-2xs font-mono font-medium text-text-muted shrink-0">
           {refreshedDate ? `pobrano ${refreshedDate}` : 'Brak daty pobrania'}
         </div>
       </div>

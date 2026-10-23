@@ -2,6 +2,7 @@ import { FC } from 'react';
 import Button from '../ui/Button';
 import { ArrowRight } from 'lucide-react';
 import { DashboardData } from '../../lib/investments/dashboardService';
+import { GroupedList, GroupedListRow } from '../ui/GroupedList';
 import { CompanyLogo } from './CompanyLogo';
 
 interface Props {
@@ -9,92 +10,59 @@ interface Props {
   onViewAll: () => void;
 }
 
-export const DashboardDisclosureStream: FC<Props> = ({ items, onViewAll }) => {
-  return (
-    <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-xs space-y-4 flex flex-col justify-between h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-border-custom/40">
-        <div>
-          <span className="text-xs font-black uppercase tracking-wider text-text-muted">
-            Strumień ujawnień
-          </span>
-          <p className="text-3xs text-text-secondary mt-0.5">
-            Daty zgłoszeń Form 4 i STOCK Act oraz daty pozycji KNF · ostatnie 14 dni
-          </p>
-        </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={onViewAll}
-          icon={<ArrowRight size={13} />}
-          iconPosition="right"
-          className="text-xs font-semibold text-primary"
-        >
-          wszystkie
-        </Button>
-      </div>
-
-      {/* Scrollable list */}
-      <div className="max-h-72 overflow-y-auto divide-y divide-border-custom/30 pr-1">
-        {items.length === 0 ? (
-          <div className="py-12 text-center text-xs text-text-secondary">
-            Brak zgłoszeń w odczytanym oknie 14 dni. Status odczytu i pokrycia źródeł powyżej.
-          </div>
-        ) : (
-          items.map((item) => (
-            <div
-              key={item.id}
-              className="py-2.5 px-1.5 flex items-center justify-between gap-3 hover:bg-surface-elevated/40 rounded-xl transition-colors"
-            >
-              {/* Left Details */}
-              <div className="flex items-center gap-2.5 min-w-0">
-                <span className="font-mono text-3xs font-semibold text-text-muted w-12 shrink-0">
-                  {item.dateLabel}
-                </span>
-
-                <span
-                  className={`px-1.5 py-0.5 rounded-md text-3xs font-mono font-black border shrink-0 ${
-                    item.sourceType === 'FORM 4'
-                      ? 'bg-warning/15 text-warning border-warning/30'
-                      : item.sourceType === 'KNF'
-                      ? 'bg-danger/15 text-danger border-danger/30'
-                      : 'bg-primary/15 text-primary border-primary/30'
-                  }`}
-                >
-                  {item.sourceType}
-                </span>
-
-                <CompanyLogo ticker={item.ticker} size={22} className="shrink-0" />
-
-                <span className="font-mono font-bold text-xs text-text-primary shrink-0">
-                  {item.ticker}
-                </span>
-
-                <p className="text-xs text-text-secondary truncate max-w-xs sm:max-w-md" title={item.description}>
-                  {item.description}
-                </p>
-              </div>
-
-              {/* Right Value / Amount */}
-              <div className="text-right shrink-0">
-                <span
-                  className={`font-mono text-xs font-bold tabular-nums ${
-                    item.amountOrPercent.includes('%')
-                      ? 'text-danger'
-                      : item.amountOrPercent.includes('USD')
-                      ? 'text-success'
-                      : 'text-text-muted'
-                  }`}
-                >
-                  {item.amountOrPercent}
-                </span>
-                {item.sourceUrl && <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer"
-                  className="block text-3xs text-primary underline">Dokument źródłowy</a>}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
+const SOURCE_TONE: Record<Props['items'][number]['sourceType'], string> = {
+  'FORM 4': 'bg-warning/15 text-warning',
+  KNF: 'bg-danger/15 text-danger',
+  STOCK: 'bg-primary/15 text-primary',
 };
+
+function amountTone(value: string): string {
+  if (value.includes('%')) return 'text-danger';
+  if (value.includes('USD')) return 'text-success';
+  return 'text-text-muted';
+}
+
+export const DashboardDisclosureStream: FC<Props> = ({ items, onViewAll }) => (
+  <section className="space-y-2" aria-label="Strumień ujawnień">
+    <div className="flex items-end justify-between gap-3 px-1">
+      <div>
+        <h2 className="text-base font-semibold text-text-primary">Strumień ujawnień</h2>
+        <p className="text-xs text-text-muted">Form 4, STOCK Act i pozycje KNF z ostatnich 14 dni</p>
+      </div>
+      <Button size="sm" variant="ghost" onClick={onViewAll} icon={<ArrowRight size={14} />} iconPosition="right" className="min-h-11 text-sm font-semibold text-primary">
+        Wszystkie
+      </Button>
+    </div>
+
+    {items.length === 0 ? (
+      <p className="rounded-2xl bg-surface-1 px-4 py-10 text-center text-sm text-text-secondary">
+        Brak zgłoszeń w oknie 14 dni. Status odczytu i pokrycia źródeł znajdziesz niżej.
+      </p>
+    ) : (
+      <GroupedList className="max-h-[28rem] overflow-y-auto">
+        {items.map((item) => (
+          <GroupedListRow key={item.id} className="flex min-h-14 items-center gap-3 py-2.5">
+            <CompanyLogo ticker={item.ticker} size={32} className="shrink-0" />
+            <div className="min-w-0 flex-1">
+              <p className="flex items-center gap-2 text-sm font-semibold text-text-primary">
+                {item.ticker}
+                <span className={`rounded-md px-1.5 py-0.5 text-2xs font-medium ${SOURCE_TONE[item.sourceType]}`}>{item.sourceType}</span>
+              </p>
+              <p className="line-clamp-2 text-xs text-text-secondary">{item.description}</p>
+              <p className="text-2xs text-text-muted">
+                {item.dateLabel}
+                {item.sourceUrl && (
+                  <>
+                    {' · '}
+                    <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">Dokument źródłowy</a>
+                  </>
+                )}
+              </p>
+            </div>
+            <span className={`ui-num shrink-0 text-right text-sm font-semibold ${amountTone(item.amountOrPercent)}`}>{item.amountOrPercent}</span>
+          </GroupedListRow>
+        ))}
+      </GroupedList>
+    )}
+  </section>
+);

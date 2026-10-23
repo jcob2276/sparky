@@ -38,11 +38,11 @@ export default function PhysiqueAnalysisModal({ analysis, photoDate, onClose }: 
               <Sparkles size={18} />
             </div>
             <div>
-              <h2 className="text-base font-black font-display tracking-tight text-text-primary uppercase">
-                Analiza Sylwetki AI
+              <h2 className="text-lg font-semibold font-display tracking-tight text-text-primary">
+                Analiza sylwetki AI
               </h2>
               {photoDate && (
-                <p className="text-2xs font-bold text-text-muted uppercase tracking-wider">
+                <p className="text-xs text-text-muted">
                   Check-in: {photoDate}
                 </p>
               )}
@@ -52,7 +52,8 @@ export default function PhysiqueAnalysisModal({ analysis, photoDate, onClose }: 
             onClick={onClose}
             variant="ghost"
             icon={<X size={18} />}
-            className="text-text-muted hover:text-text-primary p-2 rounded-xl"
+            aria-label="Zamknij analizę"
+            className="flex h-11 w-11 items-center justify-center text-text-muted hover:text-text-primary rounded-xl"
           />
         </div>
 
@@ -62,34 +63,34 @@ export default function PhysiqueAnalysisModal({ analysis, photoDate, onClose }: 
           {/* Main Score Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Card padding="1rem" className="text-center bg-primary/5 border-primary/20">
-              <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">Physique Score</span>
-              <p className="mt-1 text-2xl font-black font-display text-primary">{analysis.overall_score}<span className="text-xs text-text-muted">/100</span></p>
+              <span className="text-xs font-medium text-text-muted">Wynik sylwetki</span>
+              <p className="mt-1 text-3xl font-semibold font-display ui-num text-primary">{analysis.overall_score}<span className="text-xs text-text-muted">/100</span></p>
             </Card>
 
             <Card padding="1rem" className="text-center">
-              <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">% Body Fat</span>
-              <p className="mt-1 text-lg font-black font-display text-text-primary">{analysis.body_fat_estimate}</p>
+              <span className="text-xs font-medium text-text-muted">Tkanka tłuszczowa</span>
+              <p className="mt-1 text-xl font-semibold font-display ui-num text-text-primary">{analysis.body_fat_estimate}</p>
             </Card>
 
             <Card padding="1rem" className="text-center">
-              <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">Conditioning</span>
-              <p className="mt-1 text-lg font-black font-display text-text-primary">{analysis.conditioning_score}<span className="text-xs text-text-muted">/100</span></p>
+              <span className="text-xs font-medium text-text-muted">Kondycja</span>
+              <p className="mt-1 text-xl font-semibold font-display ui-num text-text-primary">{analysis.conditioning_score}<span className="text-xs text-text-muted">/100</span></p>
             </Card>
 
             <Card padding="1rem" className="text-center">
-              <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">Symetria</span>
-              <p className="mt-1 text-lg font-black font-display text-text-primary">{analysis.symmetry_score}<span className="text-xs text-text-muted">/100</span></p>
+              <span className="text-xs font-medium text-text-muted">Symetria</span>
+              <p className="mt-1 text-xl font-semibold font-display ui-num text-text-primary">{analysis.symmetry_score}<span className="text-xs text-text-muted">/100</span></p>
             </Card>
           </div>
 
           {/* AI Coaching Summary */}
           {analysis.coaching_summary && (
             <Card padding="1.25rem" className="border-border-custom bg-surface-solid/30 space-y-2">
-              <div className="flex items-center gap-2 text-xs font-black uppercase text-primary tracking-wider font-display">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primary font-display">
                 <Activity size={15} />
-                <span>Wnioski AI Trenera</span>
+                <span>Wnioski AI trenera</span>
               </div>
-              <p className="text-xs leading-relaxed text-text-secondary font-medium">
+              <p className="text-sm leading-relaxed text-text-secondary">
                 {analysis.coaching_summary}
               </p>
             </Card>
@@ -98,12 +99,12 @@ export default function PhysiqueAnalysisModal({ analysis, photoDate, onClose }: 
           {/* Priorities */}
           {analysis.priorities && analysis.priorities.length > 0 && (
             <div className="space-y-2">
-              <h3 className="text-xs font-black uppercase tracking-wider text-text-muted font-display">
-                Priorytety Treningowe
+              <h3 className="text-sm font-semibold text-text-primary font-display">
+                Priorytety treningowe
               </h3>
               <div className="space-y-2">
                 {analysis.priorities.map((priority, idx) => (
-                  <div key={idx} className="flex items-start gap-2.5 p-3 rounded-2xl bg-surface border border-border-custom text-xs font-medium text-text-primary">
+                  <div key={idx} className="flex items-start gap-2.5 p-3 rounded-2xl bg-surface border border-border-custom text-sm text-text-primary">
                     <div className="mt-0.5 shrink-0 text-primary">
                       <Dumbbell size={14} />
                     </div>
@@ -118,12 +119,12 @@ export default function PhysiqueAnalysisModal({ analysis, photoDate, onClose }: 
           {analysis.muscle_groups && analysis.muscle_groups.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-black uppercase tracking-wider text-text-muted font-display">
-                  Rozbicie Grup Mięśniowych ({analysis.muscle_groups.length})
+                <h3 className="text-sm font-semibold text-text-primary font-display">
+                  Rozbicie grup mięśniowych ({analysis.muscle_groups.length})
                 </h3>
                 <Pressable
                   onClick={() => setShowAllMuscles(!showAllMuscles)}
-                  className="text-2xs font-bold uppercase tracking-wider text-primary flex items-center gap-1 hover:underline"
+                  className="min-h-[44px] text-xs font-semibold text-primary flex items-center gap-1 hover:underline"
                 >
                   <span>{showAllMuscles ? 'Pokaż mniej' : `Pokaż wszystkie (${analysis.muscle_groups.length})`}</span>
                   {showAllMuscles ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -145,7 +146,7 @@ export default function PhysiqueAnalysisModal({ analysis, photoDate, onClose }: 
           <Pressable
             onClick={onClose}
             variant="ghost"
-            className="px-6 py-2 bg-primary text-on-accent font-display font-bold text-xs uppercase rounded-xl hover:bg-primary-hover ui-interactive"
+            className="min-h-[44px] px-6 py-2 bg-primary text-on-accent font-display font-semibold text-sm rounded-xl hover:bg-primary-hover ui-interactive"
           >
             Zamknij
           </Pressable>
@@ -172,13 +173,13 @@ function MuscleGroupCard({ muscle }: { muscle: MuscleGroupAnalysis }) {
   return (
     <div className="p-3 rounded-2xl border border-border-custom bg-surface space-y-1.5 hover:border-border-custom/80 transition-colors">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-bold text-text-primary font-display">{muscle.name}</span>
-        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-2xs font-black uppercase ${badgeColor}`}>
+        <span className="text-sm font-semibold text-text-primary font-display">{muscle.name}</span>
+        <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full border text-xs font-semibold ui-num ${badgeColor}`}>
           <StatusIcon size={12} />
           <span>{muscle.score}/100</span>
         </div>
       </div>
-      <p className="text-2xs text-text-secondary leading-snug font-medium">
+      <p className="text-xs text-text-secondary leading-snug">
         {muscle.notes}
       </p>
     </div>

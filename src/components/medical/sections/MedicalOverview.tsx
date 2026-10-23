@@ -55,7 +55,7 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
   return (
     <div className="space-y-6">
       <div className="border-b border-border-custom/50 pb-3">
-        <h2 className="text-lg font-black uppercase font-display">1. Przegląd Stanu Zdrowia</h2>
+        <h2 className="text-lg font-semibold font-display">1. Przegląd Stanu Zdrowia</h2>
         <p className="text-2xs text-text-muted mt-0.5">Podstawowy stan dokumentów, kompletności i pilnych spraw</p>
       </div>
 
@@ -63,7 +63,7 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
         {/* Freshness Card */}
         <Card variant="outline" padding="1rem" className="flex flex-col justify-between h-36 bg-background/30">
           <div>
-            <div className="flex items-center gap-1.5 text-2xs font-black uppercase text-text-muted tracking-wider">
+            <div className="flex items-center gap-1.5 text-2xs font-semibold text-text-muted tracking-wide">
               <Calendar size={12} className="text-primary" />
               Aktualność paneli
             </div>
@@ -76,13 +76,13 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
               </p>
             )}
           </div>
-          <p className="text-3xs text-text-muted">Optymalna częstotliwość badania: co 6 miesięcy</p>
+          <p className="text-2xs text-text-muted">Optymalna częstotliwość badania: co 6 miesięcy</p>
         </Card>
 
         {/* Completeness Card */}
         <Card variant="outline" padding="1rem" className="flex flex-col justify-between h-36 bg-background/30">
           <div>
-            <div className="flex items-center gap-1.5 text-2xs font-black uppercase text-text-muted tracking-wider">
+            <div className="flex items-center gap-1.5 text-2xs font-semibold text-text-muted tracking-wide">
               <HelpCircle size={12} className="text-primary" />
               Kompletność profilu
             </div>
@@ -93,7 +93,7 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
               {completenessDetail}
             </p>
           </div>
-          <p className="text-3xs text-text-muted">
+          <p className="text-2xs text-text-muted">
             {completenessSubtext}
           </p>
         </Card>
@@ -101,7 +101,7 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
         {/* Out of Range Card */}
         <Card variant="outline" padding="1rem" className="flex flex-col justify-between h-36 bg-background/30">
           <div>
-            <div className="flex items-center gap-1.5 text-2xs font-black uppercase text-text-muted tracking-wider">
+            <div className="flex items-center gap-1.5 text-2xs font-semibold text-text-muted tracking-wide">
               {latestOutOfRange > 0 ? (
                 <AlertOctagon size={12} className="text-warning" />
               ) : (
@@ -120,7 +120,7 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
               {totalOutOfRange > 0 ? `${totalOutOfRange} odchyleń w historii badań` : 'Brak odchyleń w historii'}
             </p>
           </div>
-          <p className="text-3xs text-text-muted">
+          <p className="text-2xs text-text-muted">
             {latestOutOfRange === 0
               ? `Ostatni panel badał tylko ${latestPanelRows.length} markerów (7 odchyleń z 2025 czeka na retest)`
               : 'Sprawdź wyniki oznaczone flagą'}
@@ -133,15 +133,15 @@ export default function MedicalOverview({ labs, onActionClick }: MedicalOverview
           className="rounded-2xl border border-dashed border-primary/30 hover:border-primary/60 bg-primary/[0.02] hover:bg-primary/[0.04] p-4 text-left ui-interactive cursor-pointer flex flex-col justify-between h-36"
         >
           <div>
-            <div className="flex items-center gap-1.5 text-2xs font-black uppercase text-primary tracking-wider">
+            <div className="flex items-center gap-1.5 text-2xs font-semibold text-primary tracking-wide">
               <CheckSquare size={12} />
               Następny krok
             </div>
-            <p className="text-sm font-black text-text-primary mt-2">
+            <p className="text-sm font-semibold text-text-primary mt-2">
               Zaplanuj kolejny panel badań
             </p>
           </div>
-          <div className="flex items-center gap-1 text-2xs font-black text-primary uppercase">
+          <div className="flex items-center gap-1 text-2xs font-semibold text-primary">
             Przejdź do planu <ArrowRight size={10} />
           </div>
         </Pressable>

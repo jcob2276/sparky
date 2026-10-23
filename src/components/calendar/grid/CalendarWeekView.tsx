@@ -65,15 +65,15 @@ function CalendarWeekPeriodHeader({
       </Pressable>
       <div className="text-center flex items-center gap-2 min-w-0 px-1">
         <span className="text-xs sm:text-sm font-semibold text-text-primary truncate">{dayLabel(weekStart)} – {dayLabel(addDays(weekStart, 6))}</span>
-        <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold text-3xs border border-primary/25 shrink-0">
+        <span className="px-2 py-0.5 rounded-full bg-primary/10 text-primary font-bold text-2xs border border-primary/25 shrink-0">
           Tydz. {currentWeekNumber}
         </span>
         {avgScore && (
           <span
-            className="px-2 py-0.5 rounded-full bg-surface-solid/80 text-text-primary font-semibold text-3xs border border-border-custom/40 flex items-center gap-1 shrink-0"
+            className="px-2 py-0.5 rounded-full bg-surface-solid/80 text-text-primary font-semibold text-2xs border border-border-custom/40 flex items-center gap-1 shrink-0"
             title={`Średnia ocena tygodnia (${scoredDaysCount} dni z oceną): ${avgScore}/10`}
           >
-            <span className="text-warning text-3xs">★</span> {avgScore}
+            <span className="text-warning text-2xs">★</span> {avgScore}
           </span>
         )}
         {showCurrentWeekBtn && (
@@ -128,7 +128,7 @@ function WeekDayHeaderCell({
       {forecast && (
         <div className="mt-0.5 hidden items-center gap-1 md:flex" title={`${WMO_WEATHER_DESC[forecast.weatherCode]}: ${forecast.tempMax}°C / ${forecast.tempMin}°C`}>
           {getWMOWeatherIcon(forecast.weatherCode, 11)}
-          <span className="text-3xs font-medium text-text-muted">{forecast.tempMax}°</span>
+          <span className="text-2xs font-medium text-text-muted">{forecast.tempMax}°</span>
         </div>
       )}
       <span className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ui-interactive ${isToday ? 'bg-primary text-on-accent shadow-xs' : 'text-text-primary group-hover:bg-surface-solid'}`}>
@@ -137,7 +137,7 @@ function WeekDayHeaderCell({
       {score != null && (
         <span
           title={`Ocena dnia: ${score}/10`}
-          className={`mt-1 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-3xs font-bold tabular-nums border ${
+          className={`mt-1 inline-flex items-center justify-center rounded-full px-1.5 py-0.5 text-2xs font-bold tabular-nums border ${
             score >= 8
               ? 'bg-success/15 text-success border-success/40'
               : score >= 5
@@ -151,7 +151,7 @@ function WeekDayHeaderCell({
       {totalTodos > 0 && (
         <span
           title={`Wykonano zadania: ${completedTodos}/${totalTodos}`}
-          className={`mt-0.5 hidden md:inline-flex items-center justify-center text-3xs font-medium tabular-nums ${
+          className={`mt-0.5 hidden md:inline-flex items-center justify-center text-2xs font-medium tabular-nums ${
             completedTodos === totalTodos ? 'text-success' : 'text-text-muted/75'
           }`}
         >

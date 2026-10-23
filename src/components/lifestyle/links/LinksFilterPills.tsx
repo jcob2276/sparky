@@ -60,7 +60,7 @@ export function LinksFilterPills({
             <span>{pill.label}</span>
             {count !== undefined && count > 0 && (
               <span
-                className={`px-1.5 py-0.2 rounded-full text-3xs font-black ${
+                className={`px-1.5 py-0.2 rounded-full text-2xs font-semibold ${
                   isActive
                     ? 'bg-on-accent/20 text-on-accent'
                     : 'bg-surface-2/40 text-text-muted'

@@ -47,7 +47,7 @@ function MedicalViewHeader({
           </Link>
           <div>
             <p className="ios-section-label">Zdrowie & Diagnostyka</p>
-            <h1 className="text-lg sm:text-xl font-black font-display uppercase tracking-tight truncate">
+            <h1 className="text-lg sm:text-xl font-semibold font-display tracking-tight truncate">
               Kartoteka Medyczna
             </h1>
           </div>
@@ -148,8 +148,8 @@ export default function MedicalRecordsView({
         <section aria-labelledby="consider-heading" className="space-y-4">
           <div className="flex items-end justify-between gap-4 border-b border-border-custom/50 pb-3">
             <div>
-              <span className="text-3xs font-black uppercase tracking-wider text-primary">Prewencja</span>
-              <h2 id="consider-heading" className="text-xl font-black font-display uppercase tracking-tight text-text-primary mt-0.5">
+              <span className="text-2xs font-semibold tracking-normal text-primary">Prewencja</span>
+              <h2 id="consider-heading" className="text-xl font-semibold font-display tracking-tight text-text-primary mt-0.5">
                 Profilaktyka i Następne Kroki
               </h2>
             </div>
@@ -184,7 +184,7 @@ export default function MedicalRecordsView({
                     </div>
                     {suggestion.sourceUrl ? (
                       <a
-                        className="inline-flex items-center gap-1 text-3xs font-bold text-text-muted hover:text-primary"
+                        className="inline-flex items-center gap-1 text-2xs font-bold text-text-muted hover:text-primary"
                         href={suggestion.sourceUrl}
                         target="_blank"
                         rel="noreferrer"
@@ -192,7 +192,7 @@ export default function MedicalRecordsView({
                         {suggestion.sourceLabel} <ChevronRight size={11} />
                       </a>
                     ) : (
-                      <p className="text-3xs font-bold text-text-muted">{suggestion.sourceLabel}</p>
+                      <p className="text-2xs font-bold text-text-muted">{suggestion.sourceLabel}</p>
                     )}
                   </div>
                 </Card>

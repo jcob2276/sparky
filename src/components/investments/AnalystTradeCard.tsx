@@ -27,7 +27,7 @@ export const AnalystTradeCard: FC<TradeItemData> = ({
       {/* Left side: Action, Ticker, Company */}
       <div className="flex items-start gap-3 min-w-0">
         <div
-          className={`px-2.5 py-1 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1 shrink-0 ${
+          className={`px-2.5 py-1 rounded-xl text-xs font-semibold flex items-center gap-1 shrink-0 ${
             isBuy
               ? 'bg-success/10 text-success border border-success/20'
               : 'bg-danger/10 text-danger border border-danger/20'
@@ -40,7 +40,7 @@ export const AnalystTradeCard: FC<TradeItemData> = ({
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             {hasTicker ? (
-              <span className="font-mono font-black text-sm px-2 py-0.5 rounded-lg bg-surface border border-border-custom text-text-primary shadow-xs">
+              <span className="font-mono font-semibold text-sm px-2 py-0.5 rounded-lg bg-surface border border-border-custom text-text-primary shadow-xs">
                 ${cleanTicker}
               </span>
             ) : (

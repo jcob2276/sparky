@@ -34,7 +34,7 @@ export function TaskPlacement({ isTimed, onChange }: { isTimed: boolean; onChang
 export function TaskDurationPicker({ value, onChange }: { value: number; onChange: (minutes: number) => void }) {
   return (
     <section className="space-y-2">
-      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-muted">
+      <div className="flex items-center gap-2 text-xs font-bold text-text-muted">
         <Clock3 size={15} /> Czas trwania
       </div>
       <div className="grid grid-cols-4 gap-2">
@@ -57,7 +57,7 @@ export function TaskDurationPicker({ value, onChange }: { value: number; onChang
 export function TaskRecurrencePicker({ value, onChange }: { value: string; onChange: (value: string | null) => void }) {
   return (
     <section className="space-y-2">
-      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-muted">
+      <div className="flex items-center gap-2 text-xs font-bold text-text-muted">
         <Repeat2 size={15} /> Powtarzanie
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

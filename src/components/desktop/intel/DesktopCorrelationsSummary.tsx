@@ -1,4 +1,5 @@
 import React from 'react';
+import Skeleton from '../../ui/Skeleton';
 import { BarChart2, ArrowUpRight, TrendingDown, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card } from '../../ui/Card';
@@ -42,7 +43,7 @@ export default function DesktopCorrelationsSummary({ userId }: { userId: string 
       </div>
 
       {isLoading ? (
-        <div className="h-28 animate-pulse rounded-xl bg-border-custom/30" />
+        <Skeleton variant="block" className="h-28" />
       ) : topCorrelations.length === 0 ? (
         <div className="rounded-xl border border-border-custom bg-background/40 p-4 text-center">
           <p className="text-xs text-text-muted">

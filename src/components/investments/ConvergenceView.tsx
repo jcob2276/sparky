@@ -112,7 +112,7 @@ export const ConvergenceView: FC<Props> = ({ watchlist, onNavigateTab }) => {
       />
 
       {alerts.length > 0 && (
-        <div className="p-4 rounded-3xl border border-primary/30 bg-primary/5 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="p-4 rounded-2xl border border-primary/30 bg-primary/5 flex flex-col sm:flex-row sm:items-center gap-3">
           <Bell size={16} className="text-primary shrink-0" />
           <p className="text-xs text-text-secondary flex-1">
             Nowe odczytane dokumenty Kongresu lub SEC dla spółek ze zbieżnością: {alerts.map(row => row.ticker).join(', ')}.
@@ -153,7 +153,7 @@ export const ConvergenceView: FC<Props> = ({ watchlist, onNavigateTab }) => {
         </Button>
       )}
 
-      <p className="text-3xs font-mono text-text-muted leading-relaxed max-w-4xl">
+      <p className="text-2xs font-mono text-text-muted leading-relaxed max-w-4xl">
         Ocena = pozycja percentylowa ważonych źródeł (40% bilans zmian pozycji 13F, 24% netto transakcji polityków, 16% liczby kupujących polityków, 20% insiderzy; bez danych insiderskich 50/30/20). Brak porównania 13F nie daje punktów. 13F porównuje dwa ostatnie kwartały, transakcje obejmują okno {windowLabel}. Porządkuje listę, nie jest prognozą ani oceną spółki. Kwoty transakcji polityków to środki widełek z ujawnień STOCK Act.
       </p>
     </div>

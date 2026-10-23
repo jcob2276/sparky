@@ -22,7 +22,7 @@ export default function VoicePlanSlotsPreview({ slots, onClearSlot }: Props) {
   return (
     <div className="rounded-2xl border border-border-custom/40 bg-surface/50 p-3 space-y-2">
       <div className="flex items-center justify-between px-1">
-        <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">
+        <span className="text-2xs font-bold text-text-muted">
           5 Priorytetów Dnia
         </span>
         <span className="text-2xs font-mono font-bold px-2 py-0.5 rounded-full bg-surface-2 border border-border-custom/40 text-text-secondary">
@@ -50,7 +50,7 @@ export default function VoicePlanSlotsPreview({ slots, onClearSlot }: Props) {
                   {index + 1}
                 </span>
                 <span
-                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-2xs font-black uppercase tracking-wider border ${meta.badge}`}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-2xs font-semibold border ${meta.badge}`}
                 >
                   <Icon size={10} />
                   {meta.label}

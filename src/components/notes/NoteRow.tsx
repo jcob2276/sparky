@@ -125,12 +125,12 @@ export default function NoteRow({
       {note.tags.length > 0 && (
         <div className="mt-1 flex flex-wrap gap-1.5 leading-none">
           {note.tags.slice(0, 3).map(tag => (
-            <span key={tag} className="rounded-md bg-primary/8 px-1.5 py-1 text-3xs font-medium lowercase text-primary/80">
+            <span key={tag} className="rounded-md bg-primary/8 px-1.5 py-1 text-2xs font-medium lowercase text-primary/80">
               #{tag.toLowerCase()}
             </span>
           ))}
           {note.tags.length > 3 && (
-            <span className="px-1 py-1 text-3xs font-medium text-text-muted">+{note.tags.length - 3}</span>
+            <span className="px-1 py-1 text-2xs font-medium text-text-muted">+{note.tags.length - 3}</span>
           )}
         </div>
       )}

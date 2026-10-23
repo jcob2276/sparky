@@ -59,14 +59,14 @@ function TimelineCardRow({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span className={`text-3xs font-black uppercase tracking-wider px-2 py-0.5 rounded border ${typeInfo.badgeColor}`}>
+            <span className={`text-2xs font-semibold tracking-normal px-2 py-0.5 rounded border ${typeInfo.badgeColor}`}>
               {typeInfo.label}
             </span>
-            <time className="text-3xs font-semibold text-text-muted flex items-center gap-1">
+            <time className="text-2xs font-semibold text-text-muted flex items-center gap-1">
               <Calendar size={11} /> {item.occurredOn}
             </time>
             {item.provider && (
-              <span className="text-3xs text-text-muted flex items-center gap-0.5 truncate max-w-[200px]">
+              <span className="text-2xs text-text-muted flex items-center gap-0.5 truncate max-w-[200px]">
                 <MapPin size={10} /> {item.provider}
               </span>
             )}
@@ -89,7 +89,7 @@ function TimelineCardRow({
                 return (
                   <span
                     key={idx}
-                    className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-3xs font-mono font-bold border ${
+                    className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-2xs font-mono font-bold border ${
                       isAlert
                         ? 'border-warning/30 bg-warning/10 text-warning'
                         : 'border-border-custom/50 bg-background/50 text-text-secondary'
@@ -100,12 +100,12 @@ function TimelineCardRow({
                 );
               })}
               {markers.length > 4 && (
-                <span className="text-3xs font-bold text-text-muted">
+                <span className="text-2xs font-bold text-text-muted">
                   +{markers.length - 4} więcej…
                 </span>
               )}
               {outOfRange.length > 0 && (
-                <span className="text-3xs font-black text-warning ml-1">
+                <span className="text-2xs font-semibold text-warning ml-1">
                   ({outOfRange.length} poza normą)
                 </span>
               )}
@@ -193,10 +193,10 @@ export default function MedicalTimelineSection({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-border-custom/50 pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 id="timeline-heading" className="text-xl font-black font-display uppercase tracking-tight text-text-primary">
+            <h2 id="timeline-heading" className="text-xl font-semibold font-display tracking-tight text-text-primary">
               Oś Zdrowia & Dokumentacja
             </h2>
-            <span className="rounded-full bg-surface-2 px-2 py-0.5 text-3xs font-bold text-text-muted">
+            <span className="rounded-full bg-surface-2 px-2 py-0.5 text-2xs font-bold text-text-muted">
               {filteredTimeline.length}
             </span>
           </div>
@@ -257,7 +257,7 @@ export default function MedicalTimelineSection({
           {groupedByYear.map(([year, items]) => (
             <div key={year} className="space-y-2">
               <div className="sticky top-28 z-10 py-1 bg-background/80 backdrop-blur-sm">
-                <span className="inline-block rounded-md bg-surface-3 px-2 py-0.5 text-3xs font-black uppercase tracking-wider text-text-muted">
+                <span className="inline-block rounded-md bg-surface-3 px-2 py-0.5 text-2xs font-semibold tracking-normal text-text-muted">
                   Rok {year}
                 </span>
               </div>

@@ -55,7 +55,7 @@ export const CompanyLogo: FC<Props> = ({
           className="w-full h-full object-contain p-0.5"
         />
       ) : (
-        <span className="font-mono text-2xs font-extrabold text-text-primary tracking-wider select-none">
+        <span className="font-mono text-2xs font-extrabold text-text-primary select-none">
           {clean && clean !== '—' ? clean.slice(0, 3) : '•'}
         </span>
       )}

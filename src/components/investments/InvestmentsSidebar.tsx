@@ -71,7 +71,7 @@ export const InvestmentsSidebar: FC<Props> = ({
 
   const renderNavGroup = (title: string, items: NavItem[]) => (
     <div className="space-y-1">
-      <div className="px-3 text-3xs font-black uppercase tracking-wider text-text-muted mb-1.5">
+      <div className="px-3 text-2xs font-semibold text-text-muted mb-1.5">
         {title}
       </div>
       {items.map((item) => {
@@ -114,7 +114,7 @@ export const InvestmentsSidebar: FC<Props> = ({
               <div className="font-mono text-sm font-bold tracking-tight text-text-primary">
                 Sparky
               </div>
-              <p className="text-3xs font-mono text-text-muted">Inwestycje • Nawigacja</p>
+              <p className="text-2xs font-mono text-text-muted">Inwestycje • Nawigacja</p>
             </div>
           </div>
 
@@ -144,12 +144,12 @@ export const InvestmentsSidebar: FC<Props> = ({
       {/* Footer Info */}
       <div className="pt-4 border-t border-border-custom/40 px-1">
         <div className="p-3 rounded-2xl bg-surface border border-border-custom/50 shadow-xs space-y-1">
-          <div className="text-3xs font-mono text-text-muted uppercase">Status synchronizacji</div>
+          <div className="text-2xs font-mono text-text-muted">Status synchronizacji</div>
           <div className="text-xs font-bold text-success flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
             Live Feed: {liveCount} zdarzeń
           </div>
-          <div className="text-3xs text-text-secondary">SEC 13F · STOCK Act · KNF</div>
+          <div className="text-2xs text-text-secondary">SEC 13F · STOCK Act · KNF</div>
         </div>
       </div>
     </div>

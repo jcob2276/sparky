@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const AnalystThread: FC<Props> = ({ messages, loading, scrollRef }) => (
-  <div className="bg-surface border border-border-custom rounded-3xl p-4 sm:p-6 shadow-xs space-y-5 max-h-[700px] overflow-y-auto">
+  <div className="bg-surface border border-border-custom rounded-2xl p-4 sm:p-6 shadow-xs space-y-5 max-h-[700px] overflow-y-auto">
     {messages.map((message, index) => (
       <div
         key={index}

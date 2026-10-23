@@ -19,7 +19,7 @@ export default function LiveUndoBar({ message, onUndo, onExpire }: Props) {
   return (
     <div role="status" className="flex items-center gap-3 rounded-full border border-border-custom bg-surface-solid px-4 py-2 shadow-lg">
       <p className="min-w-0 flex-1 truncate text-sm font-semibold text-text-primary">{message}</p>
-      <Pressable onClick={onUndo} className="h-10 shrink-0 rounded-full px-3 text-sm font-black text-primary">
+      <Pressable onClick={onUndo} className="h-10 shrink-0 rounded-full px-3 text-sm font-semibold text-primary">
         Cofnij
       </Pressable>
     </div>

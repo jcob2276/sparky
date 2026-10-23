@@ -90,12 +90,12 @@ export default function GlassesCabinet() {
       {/* Historical List (Collapsed/Simple View) */}
       {prescriptions.filter(p => p.status === 'past').length > 0 && (
         <div className="mt-8">
-          <h4 className="text-sm font-bold uppercase tracking-wider text-text-muted mb-4">Historia Szkieł</h4>
+          <h4 className="text-sm font-bold tracking-normal text-text-muted mb-4">Historia Szkieł</h4>
           <div className="space-y-2">
             {prescriptions.filter(p => p.status === 'past').map(p => (
               <Card key={p.id} variant="outline" padding="1rem" className="flex flex-col sm:flex-row sm:items-center justify-between">
                 <div>
-                  <span className={`text-xs uppercase font-black tracking-wider px-2 py-0.5 rounded-full ${p.type === 'normalized' ? 'bg-info/20 text-info' : 'bg-success/20 text-success'}`}>
+                  <span className={`text-xs font-semibold tracking-wide px-2 py-0.5 rounded-full ${p.type === 'normalized' ? 'bg-info/20 text-info' : 'bg-success/20 text-success'}`}>
                     {p.type}
                   </span>
                   <div className="text-xs text-text-secondary mt-2 flex gap-4">

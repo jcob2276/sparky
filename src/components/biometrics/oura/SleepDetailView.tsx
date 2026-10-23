@@ -101,10 +101,10 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
       <section className="overflow-hidden rounded-xl border border-white/5 bg-surface-2">
         <div className="p-6">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-widest text-text-secondary">Czas snu</p>
+            <p className="text-xs font-semibold tracking-normal text-text-secondary">Czas snu</p>
             <Moon className="text-success" size={22} />
           </div>
-          <p className="mt-3 text-5xl font-light tracking-tight text-white">{duration(totalSleepHours)}</p>
+          <p className="mt-3 text-5xl font-light tracking-tight text-text-primary">{duration(totalSleepHours)}</p>
           <p className="mt-3 text-sm text-text-secondary">
             Całkowity czas trwania {duration(timeInBedHours)}
           </p>
@@ -171,7 +171,7 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
           ? averageHeartRate
           : Math.round(enhanced.sleep_average_heart_rate)}
         averageLabel="Średnie tętno"
-        colorClass="text-white"
+        colorClass="text-text-primary"
         points={heartRatePoints}
         summary={lowestHeartRate == null ? 'Minimum niedostępne' : `Najniższe ${Math.round(lowestHeartRate)} bpm`}
         title="Tętno podczas snu"

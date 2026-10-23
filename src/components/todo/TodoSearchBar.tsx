@@ -134,7 +134,7 @@ export default function TodoSearchBar() {
               placeholder="Nazwa Smart Listy…"
               className="w-32 rounded-full border border-primary/30 bg-surface-solid/60 px-2.5 py-1 text-xs font-semibold text-text-primary outline-none"
             />
-            <Pressable onClick={saveSmartList} className="px-1.5 text-xs font-black text-primary">Zapisz</Pressable>
+            <Pressable onClick={saveSmartList} className="px-1.5 text-xs font-semibold text-primary">Zapisz</Pressable>
           </div>
         ) : (
           <Pressable

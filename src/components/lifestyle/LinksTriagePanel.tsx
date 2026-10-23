@@ -57,7 +57,7 @@ export function LinksTriagePanel({
               <Card key={s.id} variant="outline" padding="1rem" className="!bg-surface-2/40 !border-border-custom !rounded-xl space-y-3">
                 <h4 className="text-sm font-bold text-text-primary leading-snug">{link.title}</h4>
 
-                <div className="flex flex-wrap gap-2 text-xs font-black uppercase">
+                <div className="flex flex-wrap gap-2 text-xs font-semibold">
                   <span className={`px-2 py-0.5 rounded ${
                     s.action === 'keep' ? 'bg-primary/10 text-primary' :
                     s.action === 'archive' ? 'bg-surface-2/10 text-text-muted' :
@@ -78,7 +78,7 @@ export function LinksTriagePanel({
 
                 {s.takeaways && s.takeaways.length > 0 && (
                   <div className="space-y-1">
-                    <span className="text-2xs font-bold uppercase tracking-wider text-text-muted">Kluczowe wnioski:</span>
+                    <span className="text-2xs font-bold text-text-muted">Kluczowe wnioski:</span>
                     <ul className="list-disc list-inside text-xs text-text-secondary pl-1 space-y-0.5">
                       {s.takeaways.map((t: string, idx: number) => (
                         <li key={idx} className="font-medium">{t}</li>

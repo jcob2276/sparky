@@ -210,7 +210,7 @@ export default function EndMyopiaCalculator() {
               <ArrowLeft size={18} />
             </Pressable>
             <div>
-              <h1 className="text-base font-black uppercase tracking-tight leading-none">Sparky Optics</h1>
+              <h1 className="text-base font-semibold tracking-tight leading-none">Sparky Optics</h1>
               <p className="text-xs text-text-muted mt-0.5">
                 {phase === 'calibrate' ? 'Kalibracja wymagana' : 'Wybierz oko do pomiaru'}
               </p>
@@ -225,7 +225,7 @@ export default function EndMyopiaCalculator() {
                 <div className="w-14 h-14 rounded-2xl bg-warning/10 flex items-center justify-center mx-auto mb-5">
                   <Ruler className="text-warning" size={24} />
                 </div>
-                <h2 className="text-xl font-black mb-2">Kalibracja jednorazowa</h2>
+                <h2 className="text-xl font-semibold mb-2">Kalibracja jednorazowa</h2>
                 <p className="text-sm text-text-muted mb-6 leading-relaxed">
                   Wyciągnij rękę, trzymaj telefon dokładnie <span className="text-text-primary font-bold">40 cm</span> od twarzy. Twarz prosto w kamerę.
                 </p>
@@ -255,7 +255,7 @@ export default function EndMyopiaCalculator() {
             {phase === 'select-eye' && (
               <>
                 <div className="w-full max-w-sm text-center mb-2">
-                  <h2 className="text-2xl font-black mb-1">Które oko?</h2>
+                  <h2 className="text-2xl font-semibold mb-1">Które oko?</h2>
                   <p className="text-sm text-text-muted">Zasłoń drugie oko i dotknij odpowiedniego</p>
                 </div>
 
@@ -265,14 +265,14 @@ export default function EndMyopiaCalculator() {
                     className="aspect-square bg-surface border border-border-custom rounded-3xl flex flex-col items-center justify-center gap-3 active:scale-95 ui-interactive hover:border-primary/50 hover:bg-primary/5"
                   >
                     <span className="text-5xl">👁</span>
-                    <span className="font-black text-lg">Lewe</span>
+                    <span className="font-semibold text-lg">Lewe</span>
                   </Pressable>
                   <Pressable
                     onClick={() => startMeasure('right')}
                     className="aspect-square bg-surface border border-border-custom rounded-3xl flex flex-col items-center justify-center gap-3 active:scale-95 ui-interactive hover:border-primary/50 hover:bg-primary/5"
                   >
                     <span className="text-5xl">👁</span>
-                    <span className="font-black text-lg">Prawe</span>
+                    <span className="font-semibold text-lg">Prawe</span>
                   </Pressable>
                 </div>
 
@@ -290,7 +290,7 @@ export default function EndMyopiaCalculator() {
           <div className="w-full max-w-4xl mx-auto px-4 pb-24 space-y-10">
             <GlassesCabinet />
             <div>
-              <h2 className="text-2xl font-black font-display uppercase tracking-tight mb-6">Dziennik EndMyopia</h2>
+              <h2 className="text-2xl font-semibold font-display tracking-tight mb-6">Dziennik EndMyopia</h2>
               <VisionJournal refreshTrigger={refreshTrigger} />
             </div>
           </div>

@@ -14,7 +14,7 @@ export const GpwInsidersClustersTable: FC<Props> = ({ clusters, onSelectTicker }
         <h2 className="text-sm sm:text-base font-bold text-text-primary tracking-tight">
           Klastry zakupów z ostatnich 90 dni
         </h2>
-        <span className="text-3xs font-mono text-text-muted">
+        <span className="text-2xs font-mono text-text-muted">
           co najmniej dwóch insiderów, do 14 dni od siebie
         </span>
       </div>
@@ -23,7 +23,7 @@ export const GpwInsidersClustersTable: FC<Props> = ({ clusters, onSelectTicker }
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-border-custom/50 text-3xs uppercase font-mono tracking-wider text-text-muted">
+            <tr className="border-b border-border-custom/50 text-2xs font-mono text-text-muted">
               <th className="pb-2.5 font-semibold">Spółka</th>
               <th className="pb-2.5 font-semibold text-center">Kupujących</th>
               <th className="pb-2.5 font-semibold text-center">Transakcji</th>
@@ -46,7 +46,7 @@ export const GpwInsidersClustersTable: FC<Props> = ({ clusters, onSelectTicker }
                   >
                     {c.ticker}
                   </span>
-                  <span className="text-text-secondary text-3xs">{c.companyName}</span>
+                  <span className="text-text-secondary text-2xs">{c.companyName}</span>
                 </td>
 
                 {/* Kupujących */}
@@ -65,12 +65,12 @@ export const GpwInsidersClustersTable: FC<Props> = ({ clusters, onSelectTicker }
                 </td>
 
                 {/* Okno dat */}
-                <td className="py-2.5 text-center font-mono text-3xs text-text-secondary whitespace-nowrap">
+                <td className="py-2.5 text-center font-mono text-2xs text-text-secondary whitespace-nowrap">
                   {c.dateRange}
                 </td>
 
                 {/* Kto — UNLOCKED */}
-                <td className="py-2.5 pl-4 text-3xs text-text-primary">
+                <td className="py-2.5 pl-4 text-2xs text-text-primary">
                   <div className="flex flex-wrap gap-1 items-center">
                     {c.insiders.map((name, idx) => (
                       <span
@@ -89,7 +89,7 @@ export const GpwInsidersClustersTable: FC<Props> = ({ clusters, onSelectTicker }
       </div>
 
       {/* Footer note: Największe pojedyncze zakupy */}
-      <div className="pt-2 border-t border-border-custom/40 text-3xs font-mono text-text-secondary flex flex-wrap gap-2 items-center">
+      <div className="pt-2 border-t border-border-custom/40 text-2xs font-mono text-text-secondary flex flex-wrap gap-2 items-center">
         <span className="font-semibold text-text-primary">Największe pojedyncze zakupy (90 dni):</span>
         <span className="text-primary font-bold">ZAB</span>
         <span className="text-text-muted">(Tomasz Suchański · 14,2 mln zł)</span>

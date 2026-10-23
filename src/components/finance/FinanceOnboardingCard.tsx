@@ -25,7 +25,7 @@ export function FinanceOnboardingCard({ state, onNavigate }: FinanceOnboardingCa
   if (done === STEPS.length) return null;
 
   return (
-    <section className="space-y-3 rounded-3xl bg-primary p-5 text-on-accent" aria-label="Uzupełnij finanse">
+    <section className="space-y-3 rounded-2xl bg-primary p-5 text-on-accent" aria-label="Uzupełnij finanse">
       <div>
         <h2 className="text-lg font-semibold">Uzupełnij swoje finanse</h2>
         <p className="text-sm opacity-80">{done} z {STEPS.length} gotowe. Bez tego majątek i cel będą puste.</p>

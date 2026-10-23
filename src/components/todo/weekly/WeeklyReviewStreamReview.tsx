@@ -1,7 +1,7 @@
 import { Pressable, ControlTextarea } from '../../ui/ControlPrimitives';
 import React from 'react';
 import { useWeeklyReview } from './context/WeeklyReviewContext';
-import { Mic, Trash2, Pencil } from 'lucide-react';
+import { Mic, Pencil, Trash2, Waves } from 'lucide-react';
 import EmptyState from '../../ui/EmptyState';
 import { isVoiceEntry, type StreamEntry } from '../../../lib/behavior/streamReview';
 import { formatStreamEntryDate } from './weeklyHelpers';
@@ -21,7 +21,7 @@ export default function WeeklyReviewStreamReview() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-black text-text-primary flex items-center gap-1.5 uppercase tracking-wider">
+        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
           <Mic size={15} className="text-primary" />
           Krok 3: Kontrola Wpisów Strumienia
         </h3>
@@ -31,7 +31,7 @@ export default function WeeklyReviewStreamReview() {
       </div>
 
       {streamEntries.length === 0 ? (
-        <EmptyState icon="🌊" label="Brak wpisów z Telegrama w ostatnich 7 dniach." />
+        <EmptyState icon={<Waves size={22} strokeWidth={1.75} />} label="Brak wpisów z Telegrama w ostatnich 7 dniach." />
       ) : (
         <div className="space-y-2.5">
           {streamEntries.map((entry: StreamEntry) => {
@@ -42,7 +42,7 @@ export default function WeeklyReviewStreamReview() {
                 key={entry.id}
                 className="p-3 rounded-xl border border-border-custom/50 bg-surface-solid/30 space-y-2"
               >
-                <div className="flex items-center gap-1.5 text-2xs font-bold text-text-muted uppercase tracking-wider">
+                <div className="flex items-center gap-1.5 text-2xs font-bold text-text-muted">
                   {voice && <Mic size={10} className="text-primary shrink-0" />}
                   <span>{formatStreamEntryDate(entry.created_at)}</span>
                 </div>
@@ -64,7 +64,7 @@ export default function WeeklyReviewStreamReview() {
                       </Pressable>
                       <Pressable
                         onClick={saveEditStream}
-                        className="text-xs font-black text-on-accent bg-primary rounded-lg px-3 py-1"
+                        className="text-xs font-semibold text-on-accent bg-primary rounded-lg px-3 py-1"
                       >
                         Zapisz
                       </Pressable>

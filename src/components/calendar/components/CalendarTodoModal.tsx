@@ -49,7 +49,7 @@ export default function CalendarTodoModal() {
         />
 
         <section className="space-y-3">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-text-muted">
+          <div className="flex items-center gap-2 text-xs font-bold text-text-muted">
             <CalendarDays size={15} /> Umiejscowienie
           </div>
           <TaskPlacement isTimed={isTimed} onChange={setPlacement} />

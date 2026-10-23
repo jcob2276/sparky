@@ -1,4 +1,5 @@
 import { Moon, ArrowUpRight, Clock } from 'lucide-react';
+import Skeleton from '../../ui/Skeleton';
 import { Link } from 'react-router-dom';
 import { Card } from '../../ui/Card';
 import { useDailyStrainOura } from '../../../lib/biometricsApi';
@@ -124,7 +125,7 @@ export default function DesktopOuraSleepCard({ userId }: { userId: string }) {
       </div>
 
       {isLoading ? (
-        <div className="h-28 animate-pulse rounded-xl bg-border-custom/30" />
+        <Skeleton variant="block" className="h-28" />
       ) : (
         <>
           <div className="flex items-baseline gap-3">

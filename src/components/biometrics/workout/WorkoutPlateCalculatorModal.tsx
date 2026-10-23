@@ -67,11 +67,11 @@ export function WorkoutPlateCalculatorModal({
     >
       <div className="space-y-3.5 p-1 text-text-primary">
         <div className="flex flex-col items-center rounded-[var(--tren-radius-card,1.25rem)] border border-primary/20 bg-surface-1 px-3 py-3.5 shadow-[inset_0_1px_0_var(--tren-inset-glow)]">
-          <span className="text-3xs font-semibold uppercase tracking-widest text-text-muted">
+          <span className="text-2xs font-semibold tracking-normal text-text-muted">
             Ciężar całkowity
           </span>
           <div className="my-1 flex items-baseline gap-1">
-            <span className="text-4xl font-black tracking-tight tabular-nums text-primary">{totalWeight}</span>
+            <span className="text-4xl font-semibold tracking-tight tabular-nums text-primary">{totalWeight}</span>
             <span className="text-sm font-bold text-text-muted">kg</span>
           </div>
           <p className="text-2xs text-text-muted">
@@ -80,7 +80,7 @@ export function WorkoutPlateCalculatorModal({
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-3xs font-semibold uppercase tracking-widest text-text-muted">
+          <label className="text-2xs font-semibold tracking-normal text-text-muted">
             Gryf
           </label>
           <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
@@ -101,7 +101,7 @@ export function WorkoutPlateCalculatorModal({
                   }`}
                 >
                   <span className="block text-2xs font-bold leading-tight">{p.name}</span>
-                  <span className="mt-0.5 block text-3xs text-text-muted">{p.weightKg} kg</span>
+                  <span className="mt-0.5 block text-2xs text-text-muted">{p.weightKg} kg</span>
                 </Pressable>
               );
             })}
@@ -130,7 +130,7 @@ export function WorkoutPlateCalculatorModal({
         )}
 
         <div>
-          <p className="mb-1.5 text-3xs font-semibold uppercase tracking-widest text-text-muted">
+          <p className="mb-1.5 text-2xs font-semibold tracking-normal text-text-muted">
             Dołóż talerz (obie strony)
           </p>
           <div className="flex flex-wrap gap-1.5">

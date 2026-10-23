@@ -58,7 +58,7 @@ export function FinanceHomeHero({ metrics, portfolio, hasHoldings, onQuickEntry,
             type="button"
             onClick={() => setSegment(item.key)}
             aria-pressed={segment === item.key}
-            className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition-colors duration-[var(--motion-fast)] ${segment === item.key ? 'bg-text-primary text-background' : 'bg-background/40 text-text-secondary'}`}
+            className={`min-h-11 shrink-0 rounded-full px-4 text-sm font-semibold transition-colors duration-[var(--motion-fast)] ${segment === item.key ? 'bg-text-primary text-background' : 'bg-background/40 text-text-secondary'}`}
           >
             {item.label}
           </Pressable>
@@ -67,7 +67,7 @@ export function FinanceHomeHero({ metrics, portfolio, hasHoldings, onQuickEntry,
 
       <div className="space-y-1.5">
         <p className="text-sm text-text-secondary">{label}</p>
-        <p className="text-[length:var(--finance-display-size)] font-semibold tabular-nums leading-[var(--line-height-display)] tracking-[var(--tracking-display)]">
+        <p className="ui-num text-[length:var(--finance-display-size)] font-semibold tabular-nums leading-[var(--line-height-display)] tracking-[var(--tracking-display)]">
           {formatPln(amount)}
         </p>
         <p className={`min-h-5 text-sm font-medium tabular-nums ${showChange ? line.tone : 'text-transparent'}`} aria-hidden={!showChange}>

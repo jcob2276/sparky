@@ -16,7 +16,7 @@ export const GpwShortsTable: FC<Props> = ({
   return (
     <div className="overflow-x-auto border border-border-custom/60 rounded-2xl bg-surface/40">
       <table className="w-full text-left text-xs font-mono">
-        <thead className="bg-surface text-3xs font-semibold uppercase text-text-muted border-b border-border-custom/50">
+        <thead className="bg-surface text-2xs font-semibold text-text-muted border-b border-border-custom/50">
           <tr>
             <th className="py-2.5 px-3">Spółka</th>
             <th className="py-2.5 px-3 text-right">Łączny short</th>
@@ -49,7 +49,7 @@ export const GpwShortsTable: FC<Props> = ({
                 </td>
 
                 {/* Łączny short */}
-                <td className="py-3 px-3 text-right font-black font-mono text-xs sm:text-sm text-danger">
+                <td className="py-3 px-3 text-right font-semibold font-mono text-xs sm:text-sm text-danger">
                   {c.isHistorical ? 'Brak publicznej pozycji' : `${c.totalPct.toFixed(2)}%`}
                 </td>
 

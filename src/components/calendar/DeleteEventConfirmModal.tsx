@@ -19,7 +19,7 @@ export default function DeleteEventConfirmModal({ selectedEvent, deleting, onClo
 
   return (
     <Modal isOpen onClose={onClose} showCloseButton={false} size="xs">
-      <p className="text-base font-black text-text-primary text-center">Usuń wydarzenie</p>
+      <p className="text-base font-semibold text-text-primary text-center">Usuń wydarzenie</p>
       <p className="text-xs font-bold text-text-secondary text-center">
         {isRecurringInstance
           ? 'To wydarzenie jest częścią cyklu. Usunąć tylko to wystąpienie, czy całą serię?'

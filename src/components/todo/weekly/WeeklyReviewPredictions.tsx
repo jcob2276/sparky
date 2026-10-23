@@ -37,7 +37,7 @@ export default function WeeklyReviewPredictions() {
   return (
     <div className="space-y-5 animate-fadeIn">
       <div>
-        <h3 className="text-sm font-black text-text-primary flex items-center gap-1.5 uppercase tracking-wider">
+        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
           <Target size={15} className="text-primary" />
           Krok 4: Prognozy i Kalibracja
         </h3>
@@ -49,28 +49,28 @@ export default function WeeklyReviewPredictions() {
       {/* Calibration Rollup Grid */}
       <div className="grid grid-cols-3 gap-3">
         <div className="bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/50 rounded-xl p-3 flex flex-col justify-between space-y-1">
-          <span className="text-2xs font-bold text-text-muted uppercase tracking-wider">
+          <span className="text-2xs font-bold text-text-muted">
             Prognoza Snu
           </span>
-          <span className="text-base font-black text-primary">
+          <span className="text-base font-semibold text-primary">
             {sleepMae ? `±${sleepMae}h` : 'brak'}
           </span>
           <span className="text-2xs font-medium text-text-muted">Średni błąd (MAE)</span>
         </div>
         <div className="bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/50 rounded-xl p-3 flex flex-col justify-between space-y-1">
-          <span className="text-2xs font-bold text-text-muted uppercase tracking-wider">
+          <span className="text-2xs font-bold text-text-muted">
             Wykonanie
           </span>
-          <span className="text-base font-black text-primary">
+          <span className="text-base font-semibold text-primary">
             {executionMae ? `±${executionMae}%` : 'brak'}
           </span>
           <span className="text-2xs font-medium text-text-muted">Średni błąd (MAE)</span>
         </div>
         <div className="bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/50 rounded-xl p-3 flex flex-col justify-between space-y-1">
-          <span className="text-2xs font-bold text-text-muted uppercase tracking-wider">
+          <span className="text-2xs font-bold text-text-muted">
             Brier Wzorców
           </span>
-          <span className="text-base font-black text-primary">
+          <span className="text-base font-semibold text-primary">
             {patternBrier ? patternBrier : 'brak'}
           </span>
           <span className="text-2xs font-medium text-text-muted">Brier (0 = idealny)</span>
@@ -83,7 +83,7 @@ export default function WeeklyReviewPredictions() {
           <div className="flex items-center gap-2">
             <TrendingUp size={16} className="text-success" />
             <div className="flex flex-col">
-              <span className="text-xs font-black text-text-primary">
+              <span className="text-xs font-semibold text-text-primary">
                 Brier Score Twoich Prognoz
               </span>
               <span className="text-2xs text-text-muted">
@@ -91,13 +91,13 @@ export default function WeeklyReviewPredictions() {
               </span>
             </div>
           </div>
-          <span className="text-lg font-black text-success">{customBrier}</span>
+          <span className="text-lg font-semibold text-success">{customBrier}</span>
         </div>
       )}
 
       {/* Pending resolutions */}
       <div className="space-y-2.5">
-        <span className="text-xs font-bold text-text-primary block uppercase tracking-wider">
+        <span className="text-xs font-bold text-text-primary block">
           Rozstrzygnij prognozy własne ({pendingCustom.length})
         </span>
         {pendingCustom.length === 0 ? (
@@ -112,7 +112,7 @@ export default function WeeklyReviewPredictions() {
                 className="bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/50 rounded-xl p-3 flex items-center justify-between"
               >
                 <div className="space-y-0.5 border-none">
-                  <p className="text-xs font-black text-text-primary">{pred.metric}</p>
+                  <p className="text-xs font-semibold text-text-primary">{pred.metric}</p>
                   <div className="flex items-center gap-2 text-2xs text-text-muted">
                     <span>Data: {pred.prediction_date}</span>
                     <span>•</span>

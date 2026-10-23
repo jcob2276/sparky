@@ -1,3 +1,4 @@
+import Skeleton from '../ui/Skeleton';
 import { Pressable } from '../ui/ControlPrimitives';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Dumbbell, Activity } from 'lucide-react';
@@ -173,8 +174,8 @@ export default function MuscleHeatmap({
       <div className="px-5 pt-5 pb-3">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-2xs font-bold uppercase tracking-[var(--ds-arbitrary-0-15em)] text-text-muted font-display">Mapa mięśni</p>
-            <h2 className="mt-1 font-display text-lg font-black tracking-tight text-text-primary">Co trenowałeś</h2>
+            <p className="text-2xs font-bold tracking-normal text-text-muted font-display">Mapa mięśni</p>
+            <h2 className="mt-1 font-display text-lg font-semibold tracking-tight text-text-primary">Co trenowałeś</h2>
           </div>
           <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
             {runKmPeriod > 0 && (
@@ -196,7 +197,7 @@ export default function MuscleHeatmap({
                 <Pressable
                   key={p.days}
                   onClick={() => setPeriod(p.days)}
-                  className={`h-9 min-w-12 rounded-xl border px-3 text-xs font-black uppercase tracking-widest ui-interactive cursor-pointer ${
+                  className={`h-9 min-w-12 rounded-xl border px-3 text-xs font-semibold tracking-normal ui-interactive cursor-pointer ${
                     period === p.days
                       ? 'border-info/40 bg-info/15 text-info dark:text-info shadow-[var(--ds-shadow-0-0-12px-rgba-56-189-248-0-1)]'
                       : 'border-border-custom bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-solid'
@@ -216,12 +217,12 @@ export default function MuscleHeatmap({
                 className="h-2 w-2 rounded-full shadow-[var(--ds-shadow-0-0-10px-currentcolor)]"
                 style={{ color: topTag ? tagColor(topTag) : 'var(--text-muted)', backgroundColor: 'currentColor' }}
               />
-              <span className="text-xs font-black uppercase tracking-widest text-text-muted">Top</span>
-              <span className="text-xs font-black capitalize text-text-primary">{topTag ?? 'brak'}</span>
+              <span className="text-xs font-semibold tracking-normal text-text-muted">Top</span>
+              <span className="text-xs font-semibold capitalize text-text-primary">{topTag ?? 'brak'}</span>
             </div>
             {neglected.length > 0 && (
               <div className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-border-custom bg-surface px-3 py-2 shadow-sm">
-                <span className="text-xs font-black uppercase tracking-widest text-text-muted">Zaniedbane</span>
+                <span className="text-xs font-semibold tracking-normal text-text-muted">Zaniedbane</span>
                 <span className="truncate text-xs font-bold capitalize text-text-secondary">{neglected.join(', ')}</span>
               </div>
             )}
@@ -230,7 +231,7 @@ export default function MuscleHeatmap({
       </div>
 
       {loading ? (
-        <div className="flex h-56 items-center justify-center text-xs text-text-muted animate-pulse">Ładowanie...</div>
+        <Skeleton variant="block" className="mx-5 mb-4 h-56" />
       ) : (
         <>
           <div className="relative grid grid-cols-2 gap-4 px-5 pb-4 pt-1">
@@ -240,7 +241,7 @@ export default function MuscleHeatmap({
               { label: 'Tył', view: 'posterior' as const },
             ]).map(({ label, view }) => (
               <div key={view} className="relative flex flex-col items-center gap-2">
-                <span className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted">{label}</span>
+                <span className="text-2xs font-semibold tracking-normal text-text-muted">{label}</span>
                 <div className="muscle-map-model w-full max-w-[var(--ds-maxw-168px)]">
                   <BodyModel view={view} loadByTag={loadByTag} onMuscleClick={handleMuscleClick} />
                 </div>
@@ -252,7 +253,7 @@ export default function MuscleHeatmap({
             <div className="space-y-3 border-t border-border-custom bg-text-primary/[0.01] px-5 py-4">
               {ranked.map(([tag, count]) => (
                 <div key={tag} className="grid grid-cols-[var(--ds-arbitrary-90px-1fr-72px)] items-center gap-3">
-                  <span className="flex min-w-0 items-center gap-2 text-xs font-black capitalize text-text-secondary">
+                  <span className="flex min-w-0 items-center gap-2 text-xs font-semibold capitalize text-text-secondary">
                     <span
                       className="h-2 w-2 shrink-0 rounded-full"
                       style={{ backgroundColor: tagColor(tag), boxShadow: `0 0 8px ${tagColor(tag)}` }}
@@ -270,7 +271,7 @@ export default function MuscleHeatmap({
                     />
                   </div>
                   <div className="text-right">
-                    <div className="text-xs font-black tabular-nums text-text-secondary">
+                    <div className="text-xs font-semibold tabular-nums text-text-secondary">
                       {formatSetCount(setsByTag[tag] ?? 0)} eff
                     </div>
                     <div className="text-2xs font-bold tabular-nums text-text-muted/70">
@@ -281,7 +282,7 @@ export default function MuscleHeatmap({
               ))}
               {neglected.length > 0 && (
                 <div className="flex flex-wrap gap-1.5 border-t border-border-custom pt-3">
-                  <span className="mr-1 text-2xs font-black uppercase tracking-widest text-text-muted">Bez bodźca</span>
+                  <span className="mr-1 text-2xs font-semibold tracking-normal text-text-muted">Bez bodźca</span>
                   {neglected.map((tag) => (
                     <span key={tag} className="rounded-lg border border-border-custom bg-surface px-2 py-1 text-xs font-bold capitalize text-text-secondary">
                       {tag}

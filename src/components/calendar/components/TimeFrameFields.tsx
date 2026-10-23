@@ -21,7 +21,7 @@ export default function TimeFrameFields({
   return (
     <div className="space-y-2 border-t border-border-custom/30 pt-3">
       <div>
-        <span className="block text-2xs font-black uppercase tracking-widest text-text-muted">Preferowane dni</span>
+        <span className="block text-2xs font-semibold text-text-muted">Preferowane dni</span>
         <span className="text-2xs text-text-muted">Wskazówka dla planowania, nigdy automatyczna zmiana.</span>
       </div>
       <div className="grid grid-cols-7 gap-1">

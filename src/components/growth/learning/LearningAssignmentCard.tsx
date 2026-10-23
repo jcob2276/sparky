@@ -68,14 +68,14 @@ export default function LearningAssignmentCard({
           <Icon size={16} aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-black text-text-primary leading-snug">{assignment.title}</h3>
+          <h3 className="text-sm font-semibold text-text-primary leading-snug">{assignment.title}</h3>
           <p className="mt-0.5 text-xs text-text-muted">
             {TYPE_LABELS[type]}
             {skillLabel ? ` · ${skillLabel}` : ''}
             {` · do ${formatDue(assignment.due_date)}`}
           </p>
         </div>
-        <span className={`shrink-0 rounded-full px-2 py-0.5 text-3xs font-black uppercase tracking-wider ${PACE_TONE[pace]}`}>
+        <span className={`shrink-0 rounded-full px-2 py-0.5 text-2xs font-semibold ${PACE_TONE[pace]}`}>
           {PACE_LABELS[pace]}
         </span>
       </div>

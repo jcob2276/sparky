@@ -53,7 +53,7 @@ export function MealShoppingListView({ plan, checkedIds, onToggle,disabled }: Me
 
           {bought.length > 0 && (
             <div className="pt-2">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-text-muted">
+              <p className="mb-2 text-xs font-semibold tracking-normal text-text-muted">
                 Kupione ({bought.length})
               </p>
               <div className="space-y-1 text-text-muted">

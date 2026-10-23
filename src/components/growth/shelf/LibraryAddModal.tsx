@@ -52,7 +52,7 @@ export default function LibraryAddModal({ userId, today, onClose }: LibraryAddMo
     <Modal isOpen onClose={onClose} showCloseButton={false} padding="p-0" overflowY={false} size="md">
       <div className="flex max-h-[var(--ds-h-85vh)] w-full flex-col overflow-hidden">
         <header className="flex items-center justify-between border-b border-border-custom/20 p-4">
-          <h2 className="text-base font-black uppercase tracking-wider text-text-primary">Dodaj do biblioteki</h2>
+          <h2 className="text-base font-semibold text-text-primary">Dodaj do biblioteki</h2>
           <Button variant="ghost" size="sm" onClick={onClose} icon={<X size={18} />} aria-label="Zamknij" />
         </header>
         <form

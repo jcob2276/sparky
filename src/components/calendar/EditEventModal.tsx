@@ -164,7 +164,7 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
 
           {/* Category Picker */}
           <div className="space-y-1.5">
-            <span className="text-2xs text-text-muted/70 font-black uppercase tracking-wider px-1">Obszar życia:</span>
+            <span className="text-2xs text-text-muted/70 font-semibold px-1">Obszar życia:</span>
             <CategoryPicker selected={editCategory} onSelect={setEditCategory} />
           </div>
 
@@ -201,7 +201,7 @@ export function EditEventModal({ calData, handleEditSave }: Props) {
               disabled={saving || !editTitle.trim() || !editDate || (!editAllDay && (!editStart || !editEnd)) || (editRecurrence === 'custom' && editCustomDays.length === 0)}
               loading={saving}
               variant="primary"
-              className="h-11 flex-1 text-xs font-black uppercase tracking-wider"
+              className="h-11 flex-1 text-xs font-semibold"
             >
               Zapisz zmiany
             </Button>

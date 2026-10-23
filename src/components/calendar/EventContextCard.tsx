@@ -36,7 +36,7 @@ export default function EventContextCard({ eventId, title }: { eventId: string; 
       <div
         role="status"
         aria-label="Szukam powiązanego kontekstu"
-        className="flex h-8 animate-pulse items-center gap-1.5 rounded-lg bg-surface-3/50 px-3 text-2xs font-semibold text-text-muted"
+        className="flex h-8 items-center gap-1.5 rounded-lg bg-surface-3/50 px-3 text-2xs font-semibold text-text-muted"
       >
         <Sparkles size={12} /> Szukam powiązanych notatek…
       </div>
@@ -46,7 +46,7 @@ export default function EventContextCard({ eventId, title }: { eventId: string; 
 
   return (
     <aside className="rounded-xl border border-primary/15 bg-primary/5 p-3" aria-label="Powiązany kontekst wydarzenia">
-      <div className="mb-2 flex items-center gap-2 text-xs font-black text-primary">
+      <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-primary">
         <Sparkles size={14} /> Przygotowanie
       </div>
       <div className="space-y-1.5">

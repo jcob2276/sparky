@@ -70,14 +70,14 @@ export const PoliticiansView: FC<Props> = ({
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border-custom/50">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-text-primary">
+          <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-text-primary">
             Kongres · Transakcje
           </h2>
           <p className="text-2xs text-text-muted mt-0.5">
             Fakt o danych, kto co ujawnił i kiedy, nie zalecenie.
           </p>
         </div>
-        <div className="text-3xs font-mono text-text-muted uppercase tracking-wider">
+        <div className="text-2xs font-mono text-text-muted">
           STOCK ACT · IZBA · SENAT
         </div>
       </div>

@@ -9,7 +9,7 @@ export function ValueCell({ row }: { row: MedicalLabRow }) {
         : 'text-text-primary';
 
   return (
-    <span className={`font-black tabular-nums ${tone}`}>
+    <span className={`font-semibold tabular-nums ${tone}`}>
       {row.value}
       {row.unit ? <span className="ml-0.5 text-xs font-semibold text-text-muted">{row.unit}</span> : null}
     </span>

@@ -23,7 +23,7 @@ function FlaggedMarkersAlert({ flaggedMarkers }: FlaggedAlertProps) {
           <AlertTriangle size={13} />
           <span>Poza normą ({flaggedMarkers.length}):</span>
         </span>
-        <Link to="/badania/laboratorium" className="text-3xs font-semibold text-primary hover:underline">
+        <Link to="/badania/laboratorium" className="text-2xs font-semibold text-primary hover:underline">
           Otwórz laboratorium →
         </Link>
       </div>
@@ -38,12 +38,12 @@ function FlaggedMarkersAlert({ flaggedMarkers }: FlaggedAlertProps) {
               {s.latest.value} {s.latest.unit}
             </strong>
             {s.latest.flag && (
-              <span className="text-3xs font-semibold px-1 rounded bg-warning/20 text-warning">
+              <span className="text-2xs font-semibold px-1 rounded bg-warning/20 text-warning">
                 {s.latest.flag === 'H' || s.latest.flag === 'high' ? '↑ wysoki' : s.latest.flag === 'L' || s.latest.flag === 'low' ? '↓ niski' : 'poza celem'}
               </span>
             )}
             {s.latest.result_date && (
-              <span className="text-3xs text-text-muted font-mono" title={`Data pomiaru: ${s.latest.result_date}`}>
+              <span className="text-2xs text-text-muted font-mono" title={`Data pomiaru: ${s.latest.result_date}`}>
                 {s.latest.result_date.slice(0, 7)}
               </span>
             )}
@@ -134,7 +134,7 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
           {/* Siatka kluczowych markerów */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Kluczowe markery laboratoryjne</p>
+              <p className="text-2xs font-bold tracking-normal text-text-muted">Kluczowe markery laboratoryjne</p>
               <Link to="/badania/laboratorium" className="text-2xs text-text-muted hover:text-primary transition-colors">
                 Wszystkie markery →
               </Link>

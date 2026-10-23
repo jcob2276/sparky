@@ -22,10 +22,10 @@ export default function TrainingTemplatesSection({
     <section className="space-y-2" aria-label="Szybkie schematy">
       <div className="flex items-center gap-1.5 px-0.5">
         <Zap size={12} className="text-primary" />
-        <span className="text-2xs font-black uppercase tracking-wider text-text-muted">
+        <span className="text-2xs font-semibold tracking-normal text-text-muted">
           1-tap start
         </span>
-        <span className="text-3xs font-bold text-text-tertiary tabular-nums ml-auto">
+        <span className="text-2xs font-bold text-text-tertiary tabular-nums ml-auto">
           {templates.length} schemat{templates.length === 1 ? '' : 'y'}
         </span>
       </div>
@@ -48,13 +48,13 @@ export default function TrainingTemplatesSection({
                     <h3 className="text-sm font-bold text-text-primary font-display truncate group-hover:text-primary transition-colors">
                       {tpl.workoutDay}
                       {tpl.isNextInRotation && (
-                        <span className="ml-1.5 text-3xs font-black uppercase tracking-wider text-primary">
+                        <span className="ml-1.5 text-2xs font-semibold tracking-normal text-primary">
                           następny
                         </span>
                       )}
                     </h3>
                     {tpl.date && (
-                      <span className="text-3xs text-text-muted tabular-nums shrink-0">
+                      <span className="text-2xs text-text-muted tabular-nums shrink-0">
                         {tpl.date.slice(5)}
                       </span>
                     )}

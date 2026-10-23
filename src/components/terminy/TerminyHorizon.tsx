@@ -64,7 +64,7 @@ function EmptyHorizonView({
             className="group relative flex flex-col justify-between rounded-[22px] border border-border-custom/30 bg-surface-solid/60 backdrop-blur-md p-4.5 text-left transition-all duration-200 ease-out hover:border-border-custom/60 hover:bg-surface-2/80 hover:shadow-md active:scale-[0.98]"
           >
             <div>
-              <span className="block text-3xs font-bold uppercase tracking-wider text-text-muted">
+              <span className="block text-2xs font-bold text-text-muted">
                 {LIFE_OBLIGATION_KIND_LABELS[tpl.kind]}
               </span>
               <span className="mt-1 block text-sm font-semibold tracking-tight text-text-primary">
@@ -108,7 +108,7 @@ function NextUrgentBanner({
       <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
       <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="space-y-1.5">
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary ring-1 ring-primary/30">
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary ring-1 ring-primary/30">
             <Sparkles size={13} strokeWidth={2.2} />
             Najbliższy termin
           </p>
@@ -167,7 +167,7 @@ export function TerminyHorizon({
         return (
           <section key={bucket} className="space-y-3">
             <div className="flex items-center justify-between px-1">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted">
+              <h3 className="text-xs font-bold text-text-muted">
                 {URGENCY_BUCKET_LABELS[bucket]}
               </h3>
               <span className="rounded-full bg-surface-3/60 px-2 py-0.5 text-2xs font-semibold text-text-muted">

@@ -11,10 +11,10 @@ export default function MedicalPassportHeader({ summary }: MedicalPassportHeader
     <section aria-labelledby="passport-heading" className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <span className="text-3xs font-black uppercase tracking-wider text-primary flex items-center gap-1.5">
+          <span className="text-2xs font-semibold tracking-normal text-primary flex items-center gap-1.5">
             <ShieldCheck size={13} /> Paszport Zdrowia
           </span>
-          <h2 id="passport-heading" className="text-2xl font-black font-display uppercase tracking-tight text-text-primary mt-1">
+          <h2 id="passport-heading" className="text-2xl font-semibold font-display tracking-tight text-text-primary mt-1">
             Twój Obraz Zdrowia
           </h2>
           <p className="mt-1 text-xs text-text-muted">
@@ -36,7 +36,7 @@ export default function MedicalPassportHeader({ summary }: MedicalPassportHeader
       <div className="grid gap-3 sm:grid-cols-3">
         <Card variant="surface" padding="1.25rem" className="flex flex-col justify-between">
           <div>
-            <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Ostatni Wpis</span>
+            <span className="text-2xs font-semibold tracking-normal text-text-muted">Ostatni Wpis</span>
             <p className="mt-2 text-base font-bold text-text-primary truncate" title={summary.latestLabel ?? ''}>
               {summary.latestLabel ?? 'Brak wpisów'}
             </p>
@@ -48,8 +48,8 @@ export default function MedicalPassportHeader({ summary }: MedicalPassportHeader
 
         <Card variant="surface" padding="1.25rem" className="flex flex-col justify-between">
           <div>
-            <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Ciągłość Danych</span>
-            <p className="mt-2 text-2xl font-black text-text-primary">{summary.recordCount} zdarzeń</p>
+            <span className="text-2xs font-semibold tracking-normal text-text-muted">Ciągłość Danych</span>
+            <p className="mt-2 text-2xl font-semibold text-text-primary">{summary.recordCount} zdarzeń</p>
           </div>
           <p className="mt-2 text-xs text-text-secondary font-semibold">
             {summary.specialtyCount} {summary.specialtyCount === 1 ? 'obszar opieki' : summary.specialtyCount < 5 ? 'obszary opieki' : 'obszarów opieki'}
@@ -58,7 +58,7 @@ export default function MedicalPassportHeader({ summary }: MedicalPassportHeader
 
         <Card variant="surface" padding="1.25rem" className="flex flex-col justify-between">
           <div>
-            <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Najbliższa Kontrola</span>
+            <span className="text-2xs font-semibold tracking-normal text-text-muted">Najbliższa Kontrola</span>
             <p className="mt-2 text-base font-bold text-text-primary">
               {summary.nextFollowUpOn ?? 'Brak zaplanowanych'}
             </p>

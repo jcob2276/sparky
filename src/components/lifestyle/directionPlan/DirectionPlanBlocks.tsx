@@ -12,15 +12,15 @@ export function Block1Narrative({ phase1, phase1Loading }: { phase1: Phase1Recap
             <Sparkles size={15} />
           </div>
           <div>
-            <h3 className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-2em)] text-primary">
+            <h3 className="text-2xs font-semibold text-primary">
               Sparky Intelligence · Zoom-out Tygodnia
             </h3>
-            <p className="text-3xs font-semibold text-text-muted">
+            <p className="text-2xs font-semibold text-text-muted">
               Synteza zachowań, telemetrii i autentycznego głosu
             </p>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5 text-3xs font-bold text-text-muted">
+        <div className="flex flex-wrap items-center gap-1.5 text-2xs font-bold text-text-muted">
           <span className="rounded-full border border-border-custom bg-surface px-2 py-0.5">🎙️ Głosówki</span>
           <span className="rounded-full border border-border-custom bg-surface px-2 py-0.5">📱 Czas ekranu & No-Drift</span>
           <span className="rounded-full border border-border-custom bg-surface px-2 py-0.5">🌙 Rytm snu Oura</span>
@@ -29,7 +29,7 @@ export function Block1Narrative({ phase1, phase1Loading }: { phase1: Phase1Recap
       </div>
 
       {phase1Loading && (
-        <div className="flex items-center gap-3 py-6 justify-center text-text-muted text-sm animate-pulse">
+        <div className="flex items-center gap-3 py-6 justify-center text-text-muted text-sm">
           <Spinner size="sm" />
           <span>Sparky AI krzyżuje telemetrię, głosówki i historię Power Listy…</span>
         </div>
@@ -38,7 +38,7 @@ export function Block1Narrative({ phase1, phase1Loading }: { phase1: Phase1Recap
       {phase1 && (
         <div className="space-y-4">
           <div className="space-y-2">
-            <p className="text-2xs font-black uppercase tracking-wider text-text-muted">
+            <p className="text-2xs font-semibold text-text-muted">
               Jak wyglądał twój tydzień
             </p>
             <p className="text-sm leading-relaxed text-text-primary tracking-normal font-sans">
@@ -50,7 +50,7 @@ export function Block1Narrative({ phase1, phase1Loading }: { phase1: Phase1Recap
             <div className="rounded-xl border border-warning/30 bg-warning/[0.06] p-3.5 space-y-1.5 animate-fadeIn">
               <div className="flex items-center gap-2 text-warning">
                 <AlertTriangle size={14} />
-                <p className="text-2xs font-black uppercase tracking-wider">
+                <p className="text-2xs font-semibold">
                   Długoterminowy motyw / Zawieszony wzorzec
                 </p>
               </div>
@@ -64,7 +64,7 @@ export function Block1Narrative({ phase1, phase1Loading }: { phase1: Phase1Recap
             <div className="rounded-xl border border-primary/30 bg-primary/[0.05] p-3.5 md:p-4 space-y-1.5 animate-fadeIn">
               <div className="flex items-center gap-2 text-primary">
                 <MessageSquareQuote size={15} />
-                <p className="text-2xs font-black uppercase tracking-wider">
+                <p className="text-2xs font-semibold">
                   Pytanie otwierające refleksję
                 </p>
               </div>

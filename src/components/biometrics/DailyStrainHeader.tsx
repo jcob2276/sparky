@@ -26,14 +26,14 @@ export default function DailyStrainHeader({
     <>
       <div className="flex items-center justify-between relative z-[var(--z-raised)]">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">Stan dnia</span>
+          <span className="text-xs font-semibold tracking-normal text-text-muted">Stan dnia</span>
           {preliminary && (
             <span title="Aplikacja dopiero poznaje Twoje typowe wartości, więc ocena jest przybliżona" className="rounded-full bg-surface-solid px-2 py-0.5 text-2xs font-semibold text-text-muted">
               Wstępna ocena
             </span>
           )}
           {isStale && (
-            <span className="text-2xs font-bold text-warning uppercase tracking-wider">
+            <span className="text-2xs font-bold text-warning tracking-normal">
               (Dane z {date})
             </span>
           )}

@@ -39,17 +39,17 @@ export const CongressClusterRadar: FC<Props> = ({
               <h3 className="text-xs sm:text-sm font-bold text-text-primary tracking-tight">
                 Radar Zbieżności Kongresu · Cluster Buys
               </h3>
-              <span className="px-1.5 py-0.5 rounded text-4xs font-mono font-bold bg-primary/15 text-primary border border-primary/30">
+              <span className="px-1.5 py-0.5 rounded text-2xs font-mono font-bold bg-primary/15 text-primary border border-primary/30">
                 14 DNI
               </span>
             </div>
-            <p className="text-3xs text-text-muted mt-0.5">
+            <p className="text-2xs text-text-muted mt-0.5">
               Zakupy tej samej spółki przez ≥2 polityków ujawnione w ostatnich 14 dniach. Zbieżność zgłoszeń, nie rekomendacja.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 text-3xs font-mono text-text-muted">
+        <div className="flex items-center gap-1.5 text-2xs font-mono text-text-muted">
           <Users size={12} className="text-primary" />
           <span>Wykryto {clusterBuys.length} klastrów</span>
         </div>
@@ -71,12 +71,12 @@ export const CongressClusterRadar: FC<Props> = ({
                 <CompanyLogo ticker={cluster.ticker} name={cluster.companyName} size={32} />
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-mono font-black text-text-primary group-hover:text-primary transition-colors">
+                    <span className="text-xs font-mono font-semibold text-text-primary group-hover:text-primary transition-colors">
                       ${cluster.ticker}
                     </span>
                     {cluster.isBipartisan && (
                       <span
-                        className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-4xs font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30"
+                        className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-2xs font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30"
                         title="Ponadpartyjny klaster: Kupują zarówno Demokraci jak i Republikanie!"
                       >
                         <Sparkles size={9} />
@@ -84,7 +84,7 @@ export const CongressClusterRadar: FC<Props> = ({
                       </span>
                     )}
                   </div>
-                  <div className="text-3xs text-text-muted truncate max-w-40">
+                  <div className="text-2xs text-text-muted truncate max-w-40">
                     {cluster.companyName}
                   </div>
                 </div>
@@ -95,7 +95,7 @@ export const CongressClusterRadar: FC<Props> = ({
                 <div className="text-xs font-mono font-bold text-success">
                   {cluster.buyerCount} kupujących
                 </div>
-                <div className="text-4xs font-mono text-text-muted">
+                <div className="text-2xs font-mono text-text-muted">
                   {formatVol(cluster.totalVolumeUsd)}
                 </div>
               </div>
@@ -112,7 +112,7 @@ export const CongressClusterRadar: FC<Props> = ({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') onSelectPolitician(b.name);
                   }}
-                  className="cursor-pointer inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-surface-elevated hover:bg-surface-subtle border border-border-custom text-4xs transition-colors"
+                  className="cursor-pointer inline-flex items-center gap-1 px-1.5 py-0.5 rounded-lg bg-surface-elevated hover:bg-surface-subtle border border-border-custom text-2xs transition-colors"
                   title={`${b.name} (${b.party}-${b.state}) · ${formatVol(b.volumeUsd)}`}
                 >
                   <PoliticianAvatar name={b.name} bioguideId={b.bioguideId} size={14} />

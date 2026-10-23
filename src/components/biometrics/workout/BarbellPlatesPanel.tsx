@@ -24,20 +24,20 @@ export default function BarbellPlatesPanel({ kg, onChange, onClose }: Props) {
     <div className="space-y-2.5 rounded-[var(--tren-radius-card,1.25rem)] border border-primary/20 bg-surface-1 p-2.5 animate-in fade-in shadow-[inset_0_1px_0_var(--tren-inset-glow)]">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <p className="text-3xs font-semibold uppercase tracking-widest text-text-muted">
+          <p className="text-2xs font-semibold tracking-normal text-text-muted">
             Plate loader
           </p>
           <p className="mt-0.5 flex items-baseline gap-1 leading-none">
-            <span className="text-2xl font-black tabular-nums tracking-tight text-primary">{total}</span>
+            <span className="text-2xl font-semibold tabular-nums tracking-tight text-primary">{total}</span>
             <span className="text-2xs font-bold text-text-muted">kg</span>
           </p>
-          <p className="mt-1 text-3xs font-medium text-text-muted">
+          <p className="mt-1 text-2xs font-medium text-text-muted">
             Olympic {BAR_KG} · {result.weightPerSide} / side
           </p>
         </div>
         <Pressable
           onClick={onClose}
-          className="shrink-0 rounded-lg px-2 py-1 text-3xs font-semibold text-text-muted hover:bg-surface-2 hover:text-text-primary"
+          className="shrink-0 rounded-lg px-2 py-1 text-2xs font-semibold text-text-muted hover:bg-surface-2 hover:text-text-primary"
         >
           Zwiń
         </Pressable>
@@ -46,11 +46,11 @@ export default function BarbellPlatesPanel({ kg, onChange, onClose }: Props) {
       <BarbellSleeve result={result} onRemovePlate={(plate) => setTotal(total - plate * 2)} />
 
       {result.remainder > 0 && (
-        <p className="text-3xs text-warning">Zostaje {result.remainder} kg / strona poza standardem.</p>
+        <p className="text-2xs text-warning">Zostaje {result.remainder} kg / strona poza standardem.</p>
       )}
 
       <div>
-        <p className="mb-1.5 text-3xs font-semibold uppercase tracking-widest text-text-muted">
+        <p className="mb-1.5 text-2xs font-semibold tracking-normal text-text-muted">
           Dołóż · obie strony
         </p>
         <div className="flex flex-wrap items-center gap-1.5">
@@ -67,7 +67,7 @@ export default function BarbellPlatesPanel({ kg, onChange, onClose }: Props) {
           <Pressable
             aria-label="Sam gryf"
             onClick={() => setTotal(BAR_KG)}
-            className="flex h-7 shrink-0 items-center justify-center gap-1 rounded-full border border-border-custom bg-surface-solid px-2.5 text-3xs font-semibold text-text-muted hover:border-primary/40 hover:text-primary"
+            className="flex h-7 shrink-0 items-center justify-center gap-1 rounded-full border border-border-custom bg-surface-solid px-2.5 text-2xs font-semibold text-text-muted hover:border-primary/40 hover:text-primary"
           >
             <Minus size={10} strokeWidth={2.5} /> Gryf
           </Pressable>

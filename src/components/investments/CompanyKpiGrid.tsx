@@ -64,11 +64,11 @@ export const CompanyKpiGrid: FC<Props> = ({ data }) => {
           key={idx}
           className="bg-surface-elevated border border-border-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between"
         >
-          <div className="text-3xs font-black uppercase tracking-wider text-text-muted">
+          <div className="text-2xs font-semibold text-text-muted">
             {kpi.title}
           </div>
           <div className="my-2.5">
-            <div className={`text-2xl font-black font-mono tracking-tight tabular-nums ${kpi.valueClass}`}>
+            <div className={`text-2xl font-semibold font-mono tracking-tight tabular-nums ${kpi.valueClass}`}>
               {kpi.value}
             </div>
           </div>

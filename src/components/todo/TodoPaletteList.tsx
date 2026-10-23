@@ -9,7 +9,7 @@ function Highlighted({ text, indices }: { text: string; indices?: number[] }) {
     <>
       {splitByIndices(text, indices ?? []).map((segment, i) => (
         segment.hit
-          ? <mark key={i} className="bg-transparent font-black text-primary">{segment.text}</mark>
+          ? <mark key={i} className="bg-transparent font-semibold text-primary">{segment.text}</mark>
           : <Fragment key={i}>{segment.text}</Fragment>
       ))}
     </>
@@ -42,7 +42,7 @@ export default function TodoPaletteList({ groups, activeIndex, query, onHover, o
     <div id={PALETTE_LISTBOX_ID} role="listbox" aria-label="Wyniki" className="todo-palette-list overflow-y-auto overscroll-contain p-1.5">
       {groups.map((group, groupIndex) => (
         <div key={group.label} role="group" aria-label={group.label} className="pb-1">
-          <div aria-hidden="true" className="px-2.5 pb-1 pt-2 todo-text-micro font-black uppercase tracking-wider text-text-muted/70">{group.label}</div>
+          <div aria-hidden="true" className="px-2.5 pb-1 pt-2 todo-text-micro font-semibold text-text-muted/70">{group.label}</div>
           {group.entries.map((entry, entryIndex) => {
             const index = offsets[groupIndex] + entryIndex;
             const active = index === activeIndex;

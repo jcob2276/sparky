@@ -19,16 +19,16 @@ export default function PhotosTimelineList({
   onDelete,
 }: Props) {
   return (
-    <div className="space-y-2.5">
+    <div className="ui-rise space-y-2.5">
       <div className="flex justify-between items-center px-1">
         <div className="flex items-center gap-1.5">
           <Film size={13} className="text-primary" />
-          <p className="text-2xs font-bold uppercase tracking-[var(--ds-arbitrary-0-15em)] text-text-muted font-display">
+          <p className="text-sm font-semibold text-text-primary">
             Oś czasu transformacji
           </p>
-          <span className="text-3xs font-bold text-text-muted font-mono">({photos.length})</span>
+          <span className="text-xs text-text-muted ui-num">({photos.length})</span>
         </div>
-        <p className="text-3xs font-semibold text-text-muted uppercase tracking-wider">
+        <p className="text-2xs text-text-muted">
           Wybierz 2 zdjęcia do porównania
         </p>
       </div>
@@ -73,7 +73,7 @@ export default function PhotosTimelineList({
                 {isSelected && (
                   <div className="absolute inset-0 flex items-end justify-center pb-1.5 bg-gradient-to-t from-black/60 via-transparent to-transparent">
                     <span
-                      className={`text-3xs font-black uppercase px-2 py-0.5 rounded-full backdrop-blur-sm border shadow-sm ${
+                      className={`text-2xs font-semibold px-2 py-0.5 rounded-full backdrop-blur-sm border shadow-sm ${
                         isBase
                           ? 'bg-emerald-600/90 text-white border-emerald-400/40'
                           : 'bg-primary/90 text-on-accent border-primary/40'
@@ -87,7 +87,7 @@ export default function PhotosTimelineList({
 
               <div className="flex justify-between items-center px-0.5">
                 <span
-                  className={`text-3xs font-mono font-bold ${
+                  className={`text-2xs ui-num font-semibold ${
                     isSelected ? 'text-primary' : 'text-text-secondary'
                   }`}
                 >
@@ -96,8 +96,9 @@ export default function PhotosTimelineList({
                 <Pressable
                   onClick={() => onDelete(photo.id, photo.image_url, photo.thumbnail_url)}
                   variant="ghost"
-                  icon={<Trash2 size={10} />}
-                  className="opacity-40 group-hover:opacity-100 text-text-muted hover:text-danger p-0.5 rounded transition-opacity"
+                  icon={<Trash2 size={14} />}
+                  aria-label="Usuń zdjęcie"
+                  className="-my-2 -mr-2.5 flex h-11 w-11 items-center justify-center opacity-50 group-hover:opacity-100 text-text-muted hover:text-danger rounded transition-opacity"
                   title="Usuń zdjęcie"
                 />
               </div>

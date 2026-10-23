@@ -5,7 +5,7 @@ function Divider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-2">
       <div className="h-px flex-1 bg-border-custom" />
-      <span className="text-2xs uppercase tracking-widest text-text-muted font-black">{title}</span>
+      <span className="text-2xs text-text-muted font-semibold">{title}</span>
       <div className="h-px flex-1 bg-border-custom" />
     </div>
   );
@@ -97,7 +97,7 @@ export default function DirectionPlanReflection(props: DirectionPlanReflectionPr
         placeholder="Jedna twarda reguła na nowy tydzień: co usuwam, co upraszczam, gdzie wstawiam twardy limit…"
       />
       <div className="pt-3 space-y-4 border-t border-border-custom">
-        <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Oceny tygodnia (1–10)</p>
+        <p className="text-2xs font-semibold text-text-muted">Oceny tygodnia (1–10)</p>
         <PillarScoreRow label="Ciało" current={props.pillarScores.cialo} prev={props.prevWeekScores?.cialo} onChange={(v) => props.setPillarScores({ ...props.pillarScores, cialo: v })} />
         <PillarScoreRow label="Duch" current={props.pillarScores.duch} prev={props.prevWeekScores?.duch} onChange={(v) => props.setPillarScores({ ...props.pillarScores, duch: v })} />
         <PillarScoreRow label="Konto" current={props.pillarScores.konto} prev={props.prevWeekScores?.konto} onChange={(v) => props.setPillarScores({ ...props.pillarScores, konto: v })} />

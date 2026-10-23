@@ -20,8 +20,8 @@ export default function LiveRestPill({ remaining, finished, onAdjust, onSkip }: 
       }`}
     >
       <div className="min-w-0 flex-1 pl-1">
-        <p className={`text-3xs font-bold uppercase tracking-wider ${finished ? 'text-on-accent' : 'text-text-muted'}`}>{finished ? 'Koniec przerwy' : 'Przerwa'}</p>
-        <p className="text-xl font-black leading-none tabular-nums">{finished ? 'Do dzieła' : formatClock(remaining)}</p>
+        <p className={`text-2xs font-bold tracking-normal ${finished ? 'text-on-accent' : 'text-text-muted'}`}>{finished ? 'Koniec przerwy' : 'Przerwa'}</p>
+        <p className="text-xl font-semibold leading-none tabular-nums">{finished ? 'Do dzieła' : formatClock(remaining)}</p>
       </div>
       {!finished && (
         <>

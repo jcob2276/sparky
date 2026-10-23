@@ -40,7 +40,7 @@ export default function TagFilterControl({ tags, value, onChange, onRename, onDe
   return (
     <div className="flex flex-col gap-2 px-2 pb-2 pt-1" aria-label="Filtr tagów">
       {value.tags.length > 1 && (
-        <div className="flex gap-1 rounded-full bg-surface-2 p-0.5 text-3xs font-semibold" role="radiogroup" aria-label="Dopasowanie tagów">
+        <div className="flex gap-1 rounded-full bg-surface-2 p-0.5 text-2xs font-semibold" role="radiogroup" aria-label="Dopasowanie tagów">
           {MODES.map(({ mode, label }) => (
             <Pressable
               key={mode}
@@ -90,7 +90,7 @@ export default function TagFilterControl({ tags, value, onChange, onRename, onDe
         })}
       </div>
       {(hiddenCount > 0 || expanded || canManage) && (
-        <div className="flex items-center justify-between text-3xs font-semibold text-text-muted">
+        <div className="flex items-center justify-between text-2xs font-semibold text-text-muted">
           {(hiddenCount > 0 || expanded) ? (
             <Pressable type="button" onClick={() => setExpanded(!expanded)} className="hover:text-text-primary">
               {expanded ? 'Mniej' : `Pokaż wszystkie (${tags.length})`}

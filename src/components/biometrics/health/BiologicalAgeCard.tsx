@@ -84,12 +84,12 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
       {/* Hero Metric Comparison */}
       <div className="grid grid-cols-3 gap-2 rounded-xl bg-surface-2 p-3 text-center">
         <div>
-          <p className="text-3xs text-text-secondary">Wiek metrykalny</p>
+          <p className="text-2xs text-text-secondary">Wiek metrykalny</p>
           <p className="mt-1 text-xl font-bold text-text-primary">{result.chronologicalAge} <span className="text-xs font-normal">lat</span></p>
         </div>
 
         <div className="border-x border-border-custom">
-          <p className="text-3xs text-text-secondary">Wiek biologiczny</p>
+          <p className="text-2xs text-text-secondary">Wiek biologiczny</p>
           <p
             className={`mt-1 text-xl font-bold ${
               isYounger ? 'text-success' : result.ageDelta > 2 ? 'text-warning' : 'text-text-primary'
@@ -100,7 +100,7 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
         </div>
 
         <div>
-          <p className="text-3xs text-text-secondary">Różnica wieku</p>
+          <p className="text-2xs text-text-secondary">Różnica wieku</p>
           <p
             className={`mt-1 text-xl font-bold ${
               isYounger ? 'text-success' : result.ageDelta > 0 ? 'text-warning' : 'text-text-primary'

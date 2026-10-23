@@ -57,10 +57,10 @@ export const JakubPortfolioView: FC<Props> = ({ onNavigateTab }) => {
       {/* 2. Holdings List matching Mobile App */}
       <div className="space-y-2">
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-sm sm:text-base font-black text-text-primary tracking-tight">
+          <h3 className="text-sm sm:text-base font-semibold text-text-primary tracking-tight">
             Otwarte pozycje w portfelu Jakuba
           </h3>
-          <span className="text-3xs font-mono text-text-muted">
+          <span className="text-2xs font-mono text-text-muted">
             {valuationAsOf ? `Pełna wycena z dnia: ${formatShortDateWarsaw(valuationAsOf)}` : "Wycena mieszana / ręczna — sprawdź daty pozycji"}
           </span>
         </div>

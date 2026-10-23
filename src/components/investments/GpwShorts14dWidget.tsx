@@ -15,7 +15,7 @@ export const GpwShorts14dWidget: FC<Props> = ({
 }) => {
   return (
     <div className="bg-surface border border-border-custom/70 rounded-2xl p-4 shadow-2xs space-y-3.5">
-      <h4 className="text-xs font-bold text-text-primary tracking-tight uppercase font-mono">
+      <h4 className="text-xs font-bold text-text-primary tracking-tight font-mono">
         Zmiany 14 dni
       </h4>
       <p className="text-2xs text-text-secondary">Zmiana sumy publicznych pozycji wobec ostatniego zapisanego stanu bieżącego rejestru sprzed 14 dni.</p>
@@ -23,7 +23,7 @@ export const GpwShorts14dWidget: FC<Props> = ({
 
       {/* WZROSTY */}
       <div className="space-y-1.5">
-        <div className="text-3xs uppercase tracking-wider font-mono text-text-muted">
+        <div className="text-2xs font-mono text-text-muted">
           Wzrosty
         </div>
         <div className="space-y-1">
@@ -50,7 +50,7 @@ export const GpwShorts14dWidget: FC<Props> = ({
 
       {/* SPADKI */}
       <div className="space-y-1.5 pt-1 border-t border-border-custom/40">
-        <div className="text-3xs uppercase tracking-wider font-mono text-text-muted">
+        <div className="text-2xs font-mono text-text-muted">
           Spadki
         </div>
         <div className="space-y-1">

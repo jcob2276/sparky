@@ -44,10 +44,10 @@ export const SuperinvestorHoldingsTable: FC<Props> = ({
   });
 
   return (
-    <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-2xs space-y-4">
+    <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-2xs space-y-4">
       {/* Title & Tabs Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-custom/50 pb-3">
-        <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono">
+        <h3 className="text-xs sm:text-sm font-semibold text-text-primary font-mono">
           Ujawnione pozycje SH
         </h3>
 
@@ -120,7 +120,7 @@ export const SuperinvestorHoldingsTable: FC<Props> = ({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-border-custom/40 text-3xs font-mono uppercase tracking-wider text-text-muted">
+            <tr className="border-b border-border-custom/40 text-2xs font-mono text-text-muted">
               <th className="py-2.5 px-3 font-semibold">Pozycja</th>
               <th className="py-2.5 px-3 font-semibold text-right">Waga</th>
               <th className="py-2.5 px-3 font-semibold text-right">Akcje</th>

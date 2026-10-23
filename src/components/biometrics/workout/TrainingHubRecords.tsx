@@ -26,7 +26,7 @@ export default function TrainingHubRecords({ records }: Props) {
     <section className="space-y-2" aria-label="Rekordy siłowe">
       <div className="flex items-center gap-1.5 px-0.5">
         <Trophy size={12} className="text-primary" />
-        <span className="text-2xs font-black uppercase tracking-wider text-text-muted">
+        <span className="text-2xs font-semibold tracking-normal text-text-muted">
           PR · e1RM / reps
         </span>
       </div>
@@ -36,16 +36,16 @@ export default function TrainingHubRecords({ records }: Props) {
             key={r.key}
             className="trening-panel rounded-[var(--tren-radius-card)] px-2 py-2.5 text-center"
           >
-            <p className="text-3xs font-bold uppercase tracking-wide text-text-muted truncate">
+            <p className="text-2xs font-bold tracking-normal text-text-muted truncate">
               {r.displayLabel}
             </p>
-            <p className="text-xl font-black tabular-nums text-primary font-display leading-none mt-1.5">
+            <p className="text-xl font-semibold tabular-nums text-primary font-display leading-none mt-1.5">
               {r.value}
-              <span className="text-3xs font-bold text-text-muted ml-0.5">
+              <span className="text-2xs font-bold text-text-muted ml-0.5">
                 {r.unit === 'reps' ? 'rep' : 'kg'}
               </span>
             </p>
-            <p className="text-3xs text-text-muted tabular-nums mt-1.5">{r.date.slice(5)}</p>
+            <p className="text-2xs text-text-muted tabular-nums mt-1.5">{r.date.slice(5)}</p>
           </div>
         ))}
       </div>

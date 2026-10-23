@@ -53,11 +53,11 @@ function ResultsTableRow({
           <span>{item.current.marker_name}</span>
         </div>
         {item.current.category && (
-          <span className="text-3xs text-text-muted font-normal block">{item.current.category}</span>
+          <span className="text-2xs text-text-muted font-normal block">{item.current.category}</span>
         )}
       </td>
       <td className={`px-4 py-3 font-extrabold ${hasFlag ? 'text-warning' : 'text-text-primary'}`}>
-        {item.current.value} <span className="text-3xs font-semibold text-text-muted uppercase ml-0.5">{item.current.unit}</span>
+        {item.current.value} <span className="text-2xs font-semibold text-text-muted ml-0.5">{item.current.unit}</span>
       </td>
       <td className="px-4 py-3 text-center">
         <MedicalRangeGauge
@@ -125,8 +125,8 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
       <div className="border-b border-border-custom/50 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-black uppercase font-display">2. Wyniki Laboratoryjne</h2>
-            <span className="text-3xs font-bold text-text-muted rounded-full bg-surface-2 px-2 py-0.5">
+            <h2 className="text-lg font-semibold font-display">2. Wyniki Laboratoryjne</h2>
+            <span className="text-2xs font-bold text-text-muted rounded-full bg-surface-2 px-2 py-0.5">
               {filteredMarkers.length} z {series.length}
             </span>
           </div>
@@ -185,7 +185,7 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
       <div className="overflow-x-auto rounded-2xl border border-border-custom bg-background/30">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
-            <tr className="border-b border-border-custom text-2xs font-black uppercase text-text-muted tracking-wider bg-background/50">
+            <tr className="border-b border-border-custom text-2xs font-semibold text-text-muted tracking-wide bg-background/50">
               <th className="px-4 py-3">Nazwa</th>
               <th className="px-4 py-3">Wynik</th>
               <th className="px-4 py-3 text-center">Norma Lab (Wskaźnik)</th>

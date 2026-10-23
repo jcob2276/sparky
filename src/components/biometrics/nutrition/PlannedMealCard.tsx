@@ -32,7 +32,7 @@ export function PlannedMealCard({ meal, onResizeMeal,disabled }: PlannedMealCard
               size="sm"
               onClick={() => onResizeMeal(meal.key, factor)}
               disabled={disabled}
-              className="h-6 px-1.5 py-0 text-3xs font-medium bg-surface-1 border border-border-custom/40 text-text-secondary hover:text-text-primary hover:border-primary/40 min-w-0"
+              className="h-6 px-1.5 py-0 text-2xs font-medium bg-surface-1 border border-border-custom/40 text-text-secondary hover:text-text-primary hover:border-primary/40 min-w-0"
             >
               {factor}x
             </Button>

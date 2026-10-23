@@ -38,7 +38,7 @@ export const CongressFilterToolbar: FC<Props> = ({
       <div className="flex flex-wrap items-center gap-4 text-2xs">
         {/* Izba */}
         <div className="flex items-center gap-1.5">
-          <span className="font-mono text-3xs uppercase font-bold text-text-muted">Izba:</span>
+          <span className="font-mono text-2xs font-bold text-text-muted">Izba:</span>
           <div className="flex items-center bg-surface-subtle p-0.5 rounded-lg border border-border-custom/50">
             {(
               [
@@ -52,7 +52,7 @@ export const CongressFilterToolbar: FC<Props> = ({
                 size="sm"
                 variant={chamber === val ? 'secondary' : 'ghost'}
                 onClick={() => onChamberChange(val)}
-                className="text-3xs font-bold px-2 py-0.5 h-6 rounded-md"
+                className="text-2xs font-bold px-2 py-0.5 h-6 rounded-md"
               >
                 {label}
               </Button>
@@ -62,7 +62,7 @@ export const CongressFilterToolbar: FC<Props> = ({
 
         {/* Partia */}
         <div className="flex items-center gap-1.5">
-          <span className="font-mono text-3xs uppercase font-bold text-text-muted">Partia:</span>
+          <span className="font-mono text-2xs font-bold text-text-muted">Partia:</span>
           <div className="flex items-center bg-surface-subtle p-0.5 rounded-lg border border-border-custom/50">
             {(
               [
@@ -76,7 +76,7 @@ export const CongressFilterToolbar: FC<Props> = ({
                 size="sm"
                 variant={party === val ? 'secondary' : 'ghost'}
                 onClick={() => onPartyChange(val)}
-                className="text-3xs font-bold px-2 py-0.5 h-6 rounded-md"
+                className="text-2xs font-bold px-2 py-0.5 h-6 rounded-md"
               >
                 {label}
               </Button>
@@ -86,7 +86,7 @@ export const CongressFilterToolbar: FC<Props> = ({
 
         {/* Okres */}
         <div className="flex items-center gap-1.5">
-          <span className="font-mono text-3xs uppercase font-bold text-text-muted">Okres:</span>
+          <span className="font-mono text-2xs font-bold text-text-muted">Okres:</span>
           <div className="flex items-center bg-surface-subtle p-0.5 rounded-lg border border-border-custom/50">
             {(
               [
@@ -100,7 +100,7 @@ export const CongressFilterToolbar: FC<Props> = ({
                 size="sm"
                 variant={timeframe === val ? 'secondary' : 'ghost'}
                 onClick={() => onTimeframeChange(val)}
-                className="text-3xs font-bold px-2 py-0.5 h-6 rounded-md"
+                className="text-2xs font-bold px-2 py-0.5 h-6 rounded-md"
               >
                 {label}
               </Button>

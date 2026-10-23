@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Save, MapPin, Watch, Calendar, ArrowLeft, User } from 'lucide-react';
 import { isNativePlatform } from '../../lib/native/platform';
 import NativePermissionsCard from './NativePermissionsCard';
+import DeviceSignalsCard from './DeviceSignalsCard';
 import {
   fetchNutritionProfile,
   upsertNutritionProfile,
@@ -16,8 +17,8 @@ import { useSyncActions } from '../../hooks/useSyncActions';
 import { useSession } from '../../store/useStore';
 import { notify } from '../../lib/notify';
 import type { Tables } from '../../lib/database.types';
-import { Card } from '../ui/Card';
 import AiContextSettings from './AiContextSettings';
+import SettingsSection from './SettingsSection';
 
 export default function SettingsView() {
   const session = useSession();
@@ -94,18 +95,15 @@ export default function SettingsView() {
   if (!session) return null;
 
   return (
-    <div className="min-h-screen bg-background p-5 pb-24 max-w-lg mx-auto space-y-6">
+    <div className="ui-stagger min-h-screen bg-background p-5 pb-24 max-w-lg mx-auto space-y-4">
       <div className="flex items-center gap-3">
-        <Link to="/" aria-label="Wróć do widoku głównego" className="rounded-xl border border-border-custom p-2 text-text-muted hover:text-text-primary">
-          <ArrowLeft size={16} />
+        <Link to="/" aria-label="Wróć do widoku głównego" className="flex h-11 w-11 items-center justify-center rounded-xl text-text-secondary transition hover:bg-surface-2 hover:text-text-primary">
+          <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-lg font-black font-display text-text-primary">Ustawienia</h1>
+        <h1 className="font-display text-2xl font-semibold tracking-tight text-text-primary">Ustawienia</h1>
       </div>
 
-      <Card padding="1rem" className="space-y-3">
-        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-text-muted">
-          <Watch size={13} /> Oura
-        </div>
+      <SettingsSection icon={<Watch size={16} />} title="Oura" description="Token pozwala pobierać sen, gotowość i aktywność.">
         <ControlInput
           type="password"
           placeholder="Oura personal access token"
@@ -113,12 +111,9 @@ export default function SettingsView() {
           onChange={(e) => setForm((f) => ({ ...f, oura_token: e.target.value }))}
           className="w-full rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
         />
-      </Card>
+      </SettingsSection>
 
-      <Card padding="1rem" className="space-y-3">
-        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-text-muted">
-          <MapPin size={13} /> Lokalizacja domu
-        </div>
+      <SettingsSection icon={<MapPin size={16} />} title="Lokalizacja domu" description="Punkt odniesienia dla wykrywania miejsc.">
         <div className="grid grid-cols-2 gap-2">
           <ControlInput
             type="number"
@@ -137,7 +132,7 @@ export default function SettingsView() {
             className="rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
           />
         </div>
-      </Card>
+      </SettingsSection>
 
       <NutritionProfileSettings profile={profile} onChange={setProfile} />
 
@@ -145,11 +140,9 @@ export default function SettingsView() {
       <AiContextSettings userId={session.user.id} />
 
       {isNativePlatform() && <NativePermissionsCard userId={session.user.id} />}
+      {isNativePlatform() && <DeviceSignalsCard userId={session.user.id} />}
 
-      <Card padding="1rem" className="space-y-3">
-        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-text-muted">
-          <Calendar size={13} /> Google Calendar
-        </div>
+      <SettingsSection icon={<Calendar size={16} />} title="Google Calendar" description="Połącz konto i zsynchronizuj wydarzenia.">
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={startGoogleAuth} className="flex-1">
             Połącz konto
@@ -158,7 +151,7 @@ export default function SettingsView() {
             Sync teraz
           </Button>
         </div>
-      </Card>
+      </SettingsSection>
 
       <Button
         type="button"
@@ -167,7 +160,7 @@ export default function SettingsView() {
         loading={saving}
         onClick={save}
         icon={<Save size={14} />}
-        className="w-full uppercase tracking-wider"
+        className="w-full"
       >
         {saving ? 'Zapisuję…' : 'Zapisz ustawienia'}
       </Button>
@@ -182,13 +175,10 @@ interface NutritionProfileSettingsProps {
 
 function NutritionProfileSettings({ profile, onChange }: NutritionProfileSettingsProps) {
   return (
-    <Card padding="1rem" className="space-y-3">
-      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-text-muted">
-        <User size={13} /> Profil Żywieniowy & Biometria
-      </div>
+    <SettingsSection icon={<User size={16} />} title="Profil żywieniowy i biometria" description="Podstawa do liczenia kalorii, białka i tempa celu.">
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs text-text-muted block mb-1 font-bold">Płeć</label>
+          <label className="text-xs text-text-muted block mb-1 font-medium">Płeć</label>
           <ControlSelect
             value={profile.sex ?? ''}
             onChange={(e) => onChange({ ...profile, sex: e.target.value || null })}
@@ -200,7 +190,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
           </ControlSelect>
         </div>
         <div>
-          <label className="text-xs text-text-muted block mb-1 font-bold">Wzrost (cm)</label>
+          <label className="text-xs text-text-muted block mb-1 font-medium">Wzrost (cm)</label>
           <ControlInput
             type="number"
             placeholder="np. 180"
@@ -211,7 +201,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
         </div>
       </div>
       <div>
-        <label className="text-xs text-text-muted block mb-1 font-bold">Data urodzenia</label>
+        <label className="text-xs text-text-muted block mb-1 font-medium">Data urodzenia</label>
         <ControlInput
           type="date"
           value={profile.birth_date ? profile.birth_date.slice(0, 10) : ''}
@@ -221,7 +211,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs text-text-muted block mb-1 font-bold">Docelowy tłuszcz (%)</label>
+          <label className="text-xs text-text-muted block mb-1 font-medium">Docelowy tłuszcz (%)</label>
           <ControlInput
             type="number"
             step="0.1"
@@ -232,7 +222,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
           />
         </div>
         <div>
-          <label className="text-xs text-text-muted block mb-1 font-bold">Cel chudnięcia (kg/tydz)</label>
+          <label className="text-xs text-text-muted block mb-1 font-medium">Cel chudnięcia (kg/tydz)</label>
           <ControlInput
             type="number"
             step="0.05"
@@ -245,7 +235,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <label className="text-xs text-text-muted block mb-1 font-bold">Białko na kg (g)</label>
+          <label className="text-xs text-text-muted block mb-1 font-medium">Białko na kg (g)</label>
           <ControlInput
             type="number"
             step="0.1"
@@ -256,7 +246,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
           />
         </div>
         <div>
-          <label className="text-xs text-text-muted block mb-1 font-bold">Data docelowa</label>
+          <label className="text-xs text-text-muted block mb-1 font-medium">Data docelowa</label>
           <ControlInput
             type="date"
             value={profile.goal_target_date ? profile.goal_target_date.slice(0, 10) : ''}
@@ -265,6 +255,6 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
           />
         </div>
       </div>
-    </Card>
+    </SettingsSection>
   );
 }

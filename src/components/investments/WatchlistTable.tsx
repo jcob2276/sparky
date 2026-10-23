@@ -19,7 +19,7 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
 
   return (
     <>
-      <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
+      <div className="bg-surface border border-border-custom rounded-2xl overflow-hidden shadow-xs">
         <div className="p-4 sm:p-5 border-b border-border-custom/50 flex items-center justify-between">
           <h3 className="text-base font-bold text-text-primary flex items-center gap-2">
             <span>📋</span> Spółki na Twoim radarze ({items.length})
@@ -31,7 +31,7 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
-            <thead className="bg-surface border-b border-border-custom/50 text-2xs text-text-secondary uppercase font-semibold">
+            <thead className="bg-surface border-b border-border-custom/50 text-2xs text-text-secondary font-semibold">
               <tr>
                 <th className="py-3 px-4 w-12 text-center">Obserwuj</th>
                 <th className="py-3 px-4">Spółka & Ticker</th>
@@ -98,7 +98,7 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
                   <td className="py-3.5 px-4 text-right font-mono font-bold text-text-primary tabular-nums">
                     {item.price}
                     {item.priceDate && item.priceSourceUrl && <a href={item.priceSourceUrl} target="_blank" rel="noopener noreferrer"
-                      className="block text-3xs font-normal text-primary underline">{item.priceDate}</a>}
+                      className="block text-2xs font-normal text-primary underline">{item.priceDate}</a>}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono text-xs tabular-nums">
                     {item.changePercent == null ? (
@@ -122,7 +122,7 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
                         {item.lastSignal}
                       </span>
                       {!!item.signalSourceUrls?.length && <a href={item.signalSourceUrls[0]} target="_blank" rel="noopener noreferrer"
-                        className="block mt-1 text-primary underline text-3xs">Dokument SEC</a>}
+                        className="block mt-1 text-primary underline text-2xs">Dokument SEC</a>}
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <Button

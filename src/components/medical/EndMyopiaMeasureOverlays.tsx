@@ -69,7 +69,7 @@ export function MeasurePhaseOverlay({
 
       <div className="flex-1 flex items-center justify-center px-6 pt-20 pb-32">
         <p
-          className="text-scrim font-black tracking-[var(--ds-arbitrary-0-25em)] text-center leading-none select-none"
+          className="text-scrim font-semibold tracking-[var(--ds-arbitrary-0-25em)] text-center leading-none select-none"
           style={{ fontSize: `${FOCUS_SIZES[sizeLevel - 1]}rem` }}
         >
           FOCUS
@@ -94,7 +94,7 @@ export function MeasurePhaseOverlay({
             <Pressable
               onClick={onManualCapture}
               disabled={!faceDetected}
-              className="bg-info text-on-accent font-black px-7 py-3 rounded-2xl text-sm disabled:opacity-[var(--opacity-30)] active:scale-95 ui-interactive"
+              className="bg-info text-on-accent font-semibold px-7 py-3 rounded-2xl text-sm disabled:opacity-[var(--opacity-30)] active:scale-95 ui-interactive"
             >
               Złap pomiar
             </Pressable>
@@ -110,7 +110,7 @@ export function MeasurePhaseOverlay({
 
         <Pressable
           onClick={onToggleAutoCapture}
-          className={`text-xs font-black px-3 py-1.5 rounded-full ui-interactive ${
+          className={`text-xs font-semibold px-3 py-1.5 rounded-full ui-interactive ${
             autoCapture
               ? 'bg-info text-info border border-info'
               : 'bg-surface-2 text-text-muted border border-border-custom'
@@ -145,17 +145,17 @@ export function CapturedPhaseOverlay({
   return (
     <FullscreenExperience label="Wynik pomiaru wzroku" className="items-center justify-center gap-8 px-6">
       <div className="w-full max-w-xs rounded-3xl bg-surface border-2 border-primary/30 p-8 text-center shadow-2xl">
-        <p className="text-xs uppercase tracking-widest text-text-muted mb-5 font-bold">
+        <p className="text-xs tracking-normal text-text-muted mb-5 font-bold">
           {selectedEye === 'left' ? '👁 Lewe oko' : 'Prawe oko 👁'}
         </p>
         <div className="flex items-end justify-center gap-4">
           <div>
-            <p className="text-6xl font-black font-display tabular-nums">{capturedDistance?.toFixed(1)}</p>
+            <p className="text-6xl font-semibold font-display tabular-nums">{capturedDistance?.toFixed(1)}</p>
             <p className="text-sm text-text-muted font-bold mt-1">cm</p>
           </div>
-          <p className="text-3xl font-black text-text-muted mb-3">=</p>
+          <p className="text-3xl font-semibold text-text-muted mb-3">=</p>
           <div>
-            <p className="text-6xl font-black font-display text-primary tabular-nums">{capturedDiopters?.toFixed(2)}</p>
+            <p className="text-6xl font-semibold font-display text-primary tabular-nums">{capturedDiopters?.toFixed(2)}</p>
             <p className="text-sm text-text-muted font-bold mt-1">D</p>
           </div>
         </div>
@@ -172,7 +172,7 @@ export function CapturedPhaseOverlay({
         <Pressable
           onClick={onSave}
           disabled={isSaving}
-          className="w-full py-5 bg-primary text-background font-black uppercase tracking-wider rounded-2xl flex items-center justify-center gap-2 active:scale-95 ui-interactive disabled:opacity-[var(--opacity-50)]"
+          className="w-full py-5 bg-primary text-background font-semibold tracking-normal rounded-2xl flex items-center justify-center gap-2 active:scale-95 ui-interactive disabled:opacity-[var(--opacity-50)]"
         >
           <Check size={18} />
           {isSaving ? 'Zapisywanie...' : 'Zapisz pomiar'}
@@ -199,7 +199,7 @@ export function SavedPhaseOverlay({ selectedEye }: SavedPhaseOverlayProps) {
       <div className="w-20 h-20 rounded-full bg-success/20 flex items-center justify-center">
         <Check size={36} className="text-success" />
       </div>
-      <p className="text-2xl font-black text-success">Zapisano!</p>
+      <p className="text-2xl font-semibold text-success">Zapisano!</p>
       <p className="text-sm text-success">
         {selectedEye === 'left' ? 'Przechodzę do prawego oka...' : 'Pomiary zakończone!'}
       </p>

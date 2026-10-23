@@ -16,7 +16,7 @@ export const WatchlistSuggestionsDropdown: FC<Props> = ({
 
   return (
     <div className="absolute left-0 right-0 top-full mt-1.5 z-50 bg-surface border border-border-custom rounded-2xl shadow-xl overflow-hidden divide-y divide-border-custom/40 animate-fade-in">
-      <div className="p-2 text-2xs font-semibold text-text-muted uppercase tracking-wider bg-surface/80">
+      <div className="p-2 text-2xs font-semibold text-text-muted bg-surface/80">
         Dopasowane spółki w bazie danych:
       </div>
       {suggestions.map((item) => {

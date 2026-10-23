@@ -39,12 +39,12 @@ const PRESET_QUESTIONS = [
 
 export const AiAnalystPrompts: FC<Props> = ({ onSelectPrompt }) => {
   return (
-    <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-surface border border-border-custom shadow-xs space-y-3">
+    <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-2xl bg-surface border border-border-custom shadow-xs space-y-3">
       <div>
         <h3 className="text-sm sm:text-base font-bold text-text-primary flex items-center gap-2">
           <span>💡</span> O co zapytać Analityka AI?
         </h3>
-        <p className="text-3xs sm:text-xs text-text-secondary mt-0.5">
+        <p className="text-2xs sm:text-xs text-text-secondary mt-0.5">
           Odpowiada na podstawie danych 13F, transakcji Kongresu USA, szortów KNF oraz raportów GPW.
         </p>
       </div>
@@ -64,15 +64,15 @@ export const AiAnalystPrompts: FC<Props> = ({ onSelectPrompt }) => {
                 <span className="text-xs font-bold text-text-primary group-hover:text-primary transition-colors">
                   {q.title}
                 </span>
-                <span className="px-1.5 py-0.2 rounded-md text-3xs font-mono font-bold bg-primary/10 text-primary border border-primary/20 shrink-0">
+                <span className="px-1.5 py-0.2 rounded-md text-2xs font-mono font-bold bg-primary/10 text-primary border border-primary/20 shrink-0">
                   {q.tag}
                 </span>
               </div>
-              <p className="text-3xs sm:text-xs text-text-secondary leading-relaxed line-clamp-2 sm:line-clamp-3">
+              <p className="text-2xs sm:text-xs text-text-secondary leading-relaxed line-clamp-2 sm:line-clamp-3">
                 {q.prompt}
               </p>
             </div>
-            <div className="text-3xs font-mono font-semibold text-primary group-hover:underline flex items-center gap-1">
+            <div className="text-2xs font-mono font-semibold text-primary group-hover:underline flex items-center gap-1">
               <span>Zapytaj</span>
               <span>→</span>
             </div>

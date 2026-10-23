@@ -45,16 +45,16 @@ function CloserKpiCards({
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
       {/* Umówienia */}
       <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-        <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
+        <div className="flex items-center justify-between text-2xs font-bold text-text-muted">
           <span className="flex items-center gap-1">
             <CalendarCheck size={11} className="text-success" /> Umówienia
           </span>
-          <span className={pctAppointments >= 100 ? 'text-success font-black' : ''}>
+          <span className={pctAppointments >= 100 ? 'text-success font-semibold' : ''}>
             {pctAppointments}%
           </span>
         </div>
         <div className="flex items-baseline gap-1">
-          <span className="text-lg font-black text-text-primary">{sumAppointments}</span>
+          <span className="text-lg font-semibold text-text-primary">{sumAppointments}</span>
           <span className="text-xs font-semibold text-text-muted">/ {targetAppointments}</span>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/25">
@@ -69,16 +69,16 @@ function CloserKpiCards({
 
       {/* Sales calle */}
       <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-        <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
+        <div className="flex items-center justify-between text-2xs font-bold text-text-muted">
           <span className="flex items-center gap-1">
             <UserCheck size={11} className="text-primary" /> Sales calle
           </span>
-          <span className={pctSalesCalls >= 100 ? 'text-success font-black' : ''}>
+          <span className={pctSalesCalls >= 100 ? 'text-success font-semibold' : ''}>
             {pctSalesCalls}%
           </span>
         </div>
         <div className="flex items-baseline gap-1">
-          <span className="text-lg font-black text-text-primary">{sumSalesCalls}</span>
+          <span className="text-lg font-semibold text-text-primary">{sumSalesCalls}</span>
           <span className="text-xs font-semibold text-text-muted">/ {targetSalesCalls}</span>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/25">
@@ -93,34 +93,34 @@ function CloserKpiCards({
 
       {/* Diale */}
       <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-        <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
+        <div className="flex items-center justify-between text-2xs font-bold text-text-muted">
           <span className="flex items-center gap-1">
             <PhoneCall size={11} className="text-primary" /> Diale
           </span>
           <span>Tydzień</span>
         </div>
         <div className="flex items-baseline gap-1">
-          <span className="text-lg font-black text-primary">{sumDials}</span>
-          <span className="text-3xs text-text-muted">łączna liczba</span>
+          <span className="text-lg font-semibold text-primary">{sumDials}</span>
+          <span className="text-2xs text-text-muted">łączna liczba</span>
         </div>
-        <p className="text-3xs text-text-muted truncate">
+        <p className="text-2xs text-text-muted truncate">
           śr. {Math.round(sumDials / 7)} / dzień
         </p>
       </div>
 
       {/* Godziny pracy */}
       <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-        <div className="flex items-center justify-between text-3xs font-bold text-text-muted uppercase">
+        <div className="flex items-center justify-between text-2xs font-bold text-text-muted">
           <span className="flex items-center gap-1">
             <Clock size={11} className="text-warning" /> Czas pracy
           </span>
           <span>Tydzień</span>
         </div>
         <div className="flex items-baseline gap-1">
-          <span className="text-lg font-black text-text-primary">{sumWorkHours}</span>
+          <span className="text-lg font-semibold text-text-primary">{sumWorkHours}</span>
           <span className="text-xs font-bold text-text-muted">godzin</span>
         </div>
-        <p className="text-3xs text-text-muted truncate">
+        <p className="text-2xs text-text-muted truncate">
           śr. {Math.round((sumWorkHours / 7) * 10) / 10}h / dzień
         </p>
       </div>
@@ -209,9 +209,9 @@ export default function CloserWeekTracker({
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-black text-text-primary tracking-tight">{projectName}</h3>
+            <h3 className="text-sm font-semibold text-text-primary tracking-tight">{projectName}</h3>
             {isFocusSprint && (
-              <span className="text-2xs font-black uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+              <span className="text-2xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                 Focus sprintu
               </span>
             )}
@@ -223,7 +223,7 @@ export default function CloserWeekTracker({
 
         <div className="flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/5 px-2.5 py-1">
           <Target size={13} className="text-primary" />
-          <span className="text-xs font-black text-primary">50% Close Rate</span>
+          <span className="text-xs font-semibold text-primary">50% Close Rate</span>
         </div>
       </div>
 
@@ -241,7 +241,7 @@ export default function CloserWeekTracker({
 
       {/* 7-Day Picker Strip */}
       <div className="space-y-1.5">
-        <p className="text-3xs font-black uppercase tracking-wider text-text-muted">Wybierz dzień</p>
+        <p className="text-2xs font-semibold text-text-muted">Wybierz dzień</p>
         <CloserDayStrip
           weekStart={weekStart}
           selectedDate={selectedDate}

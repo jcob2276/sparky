@@ -13,7 +13,7 @@ const PoliticiansTabTable: FC<{ data: CompanyDetailData }> = ({ data }) => {
   return (
     <div className="bg-surface-elevated border border-border-custom rounded-2xl overflow-hidden shadow-sm">
       <div className="p-4 border-b border-border-custom/50">
-        <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+        <h3 className="text-xs font-semibold text-text-primary">
           Ujawnienia Polityków STOCK Act ({data.politicians.trades.length})
         </h3>
         <p className="text-2xs text-text-muted mt-0.5">
@@ -28,7 +28,7 @@ const PoliticiansTabTable: FC<{ data: CompanyDetailData }> = ({ data }) => {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-surface-subtle text-3xs font-black text-text-muted uppercase tracking-wider border-b border-border-custom/40">
+            <thead className="bg-surface-subtle text-2xs font-semibold text-text-muted border-b border-border-custom/40">
               <tr>
                 <th className="py-2.5 px-4">Polityk / Filer</th>
                 <th className="py-2.5 px-4">Data Transakcji</th>
@@ -48,7 +48,7 @@ const PoliticiansTabTable: FC<{ data: CompanyDetailData }> = ({ data }) => {
                     <td className="py-3 px-4 text-text-muted">{t.transactionDate || '—'}</td>
                     <td className="py-3 px-4 text-text-muted">{t.disclosureDate || '—'}</td>
                     <td className="py-3 px-4 font-sans">
-                      <span className={`px-2 py-0.5 rounded-full text-3xs font-semibold border border-border-custom ${
+                      <span className={`px-2 py-0.5 rounded-full text-2xs font-semibold border border-border-custom ${
                         isBuy ? 'text-success bg-surface-subtle' : 'text-danger bg-surface-subtle'
                       }`}>
                         {isBuy ? 'Kupno' : 'Sprzedaż'}
@@ -72,7 +72,7 @@ const InsidersTabTable: FC<{ data: CompanyDetailData }> = ({ data }) => {
   return (
     <div className="bg-surface-elevated border border-border-custom rounded-2xl overflow-hidden shadow-sm">
       <div className="p-4 border-b border-border-custom/50">
-        <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+        <h3 className="text-xs font-semibold text-text-primary">
           Transakcje Insiderów SEC Form 4 ({data.insiders.trades.length})
         </h3>
         <p className="text-2xs text-text-muted mt-0.5">
@@ -87,7 +87,7 @@ const InsidersTabTable: FC<{ data: CompanyDetailData }> = ({ data }) => {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-surface-subtle text-3xs font-black text-text-muted uppercase tracking-wider border-b border-border-custom/40">
+            <thead className="bg-surface-subtle text-2xs font-semibold text-text-muted border-b border-border-custom/40">
               <tr>
                 <th className="py-2.5 px-4">Podmiot</th>
                 <th className="py-2.5 px-4">Data Transakcji</th>
@@ -104,7 +104,7 @@ const InsidersTabTable: FC<{ data: CompanyDetailData }> = ({ data }) => {
                   <td className="py-3 px-4 text-text-muted">{t.transactionDate || '—'}</td>
                   <td className="py-3 px-4 text-text-muted">{t.filingDate || '—'}</td>
                   <td className="py-3 px-4 text-center">
-                    <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-surface-subtle border border-border-custom text-text-primary">
+                    <span className="px-2 py-0.5 rounded-md text-2xs font-bold bg-surface-subtle border border-border-custom text-text-primary">
                       {t.transactionCode}
                     </span>
                   </td>

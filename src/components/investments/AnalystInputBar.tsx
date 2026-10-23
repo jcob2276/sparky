@@ -16,7 +16,7 @@ export const AnalystInputBar: FC<Props> = ({
   onInputChange,
   onSend,
 }) => (
-  <div className="p-2.5 sm:p-4 rounded-2xl sm:rounded-3xl bg-surface border border-border-custom shadow-xs flex items-center gap-2 sm:gap-3">
+  <div className="p-2.5 sm:p-4 rounded-2xl sm:rounded-2xl bg-surface border border-border-custom shadow-xs flex items-center gap-2 sm:gap-3">
     <div className="flex-1 min-w-0">
       <Input
         type="text"

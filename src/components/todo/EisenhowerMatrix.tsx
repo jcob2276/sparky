@@ -132,11 +132,11 @@ export default function EisenhowerMatrix({ items, setItems }: Props) {
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <p className="text-xs font-black text-text-primary tracking-tight">{q.label}</p>
+                  <p className="text-xs font-semibold text-text-primary tracking-tight">{q.label}</p>
                   <p className="text-2xs text-text-muted font-medium mt-0.5">{q.sub}</p>
                 </div>
                 {qItems.length > 0 && (
-                  <span className={`text-xs font-black px-2 py-0.5 rounded-full ${q.badge}`}>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${q.badge}`}>
                     {qItems.length}
                   </span>
                 )}

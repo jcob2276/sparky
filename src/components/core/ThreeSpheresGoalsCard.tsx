@@ -25,7 +25,7 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
   return (
     <section className="space-y-2">
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-sm font-semibold text-text-primary">Najważniejsze teraz</h3>
+        <h3 className="text-sm font-medium text-text-secondary">Kierunek</h3>
       </div>
 
       <div className="grid grid-cols-3 gap-2">
@@ -42,14 +42,14 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
               onClick={() => togglePillar(pillar)}
               aria-expanded={isSelected}
               title={goal.metric}
-              className={`hero-goal-card flex flex-col justify-between rounded-2xl border p-2.5 text-left ui-interactive ${
+              className={`hero-goal-card flex flex-col justify-between min-h-16 rounded-[var(--radius-grouped)] border p-2.5 text-left ui-interactive ${
                 isSelected ? `${cfg.borderColor} ring-2 ring-primary` : 'border-border-custom/60'
               }`}
             >
               <img src={cfg.photo} alt="" aria-hidden="true" loading="lazy" decoding="async" className="hero-goal-photo" />
               <span className="hero-goal-scrim" aria-hidden="true" />
               <span className="relative flex items-center justify-between gap-1 text-on-accent">
-                <span className="text-2xs font-semibold uppercase tracking-wider">{goal.title}</span>
+                <span className="text-xs font-semibold">{goal.title}</span>
                 <span className="flex items-center gap-1">
                   {marathonDays !== null && (
                     <span className="text-2xs font-semibold">🏃{marathonDays}d</span>
@@ -57,7 +57,7 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
                   <Icon size={14} aria-hidden="true" />
                 </span>
               </span>
-              <span className="relative break-words text-base font-black leading-tight text-on-accent">
+              <span className="relative break-words text-base font-semibold leading-tight text-on-accent">
                 {cfg.shortMetric}
               </span>
             </Pressable>

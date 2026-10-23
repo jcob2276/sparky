@@ -202,7 +202,7 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
             </div>
 
             {d.sharingStatus && (
-              <div className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary text-sm font-semibold rounded-[var(--radius-md)] animate-pulse">
+              <div className="flex items-center gap-3 px-4 py-3 bg-primary/10 text-primary text-sm font-semibold rounded-[var(--radius-md)]">
                 <Spinner size="sm" className="shrink-0" />
                 {d.sharingStatus}
               </div>

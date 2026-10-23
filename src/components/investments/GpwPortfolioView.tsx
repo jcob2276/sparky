@@ -112,7 +112,7 @@ export const GpwPortfolioView: FC<Props> = ({
       ) : (
         <div className="overflow-x-auto border border-border-custom/60 rounded-xl bg-surface/40">
           <table className="w-full text-left text-xs font-mono">
-            <thead className="bg-surface text-3xs font-semibold uppercase text-text-muted border-b border-border-custom/50">
+            <thead className="bg-surface text-2xs font-semibold text-text-muted border-b border-border-custom/50">
               <tr>
                 <th className="py-2.5 px-3">Spółka</th>
                 <th className="py-2.5 px-3 text-right">Kurs PLN</th>

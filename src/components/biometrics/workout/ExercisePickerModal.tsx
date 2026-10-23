@@ -121,7 +121,7 @@ export default function ExercisePickerModal({
               onClick={pickCustom}
               className="tren-picker-row flex w-full items-center gap-3 border-b border-border-custom px-4 py-3 text-left ui-interactive"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-surface-tonal text-sm font-black text-primary">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/30 bg-surface-tonal text-sm font-semibold text-primary">
                 +
               </span>
               <span className="min-w-0">
@@ -134,7 +134,7 @@ export default function ExercisePickerModal({
           ) : null}
 
           {matches.length > 0 ? (
-            <p className="px-4 pb-1 pt-3 text-2xs font-bold uppercase tracking-wider text-text-tertiary">
+            <p className="px-4 pb-1 pt-3 text-2xs font-bold tracking-normal text-text-tertiary">
               {queryTrim ? 'Wyniki' : 'Częste z dziennika'}
             </p>
           ) : null}

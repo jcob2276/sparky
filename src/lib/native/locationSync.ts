@@ -1,6 +1,7 @@
 /**
- * Native foreground location → location_history (Android/iOS Capacitor).
- * With FGS (Faza 5), watch continues while sync service is active.
+ * Location → location_history (Android/iOS Capacitor).
+ * Continuous collection runs natively (TelemetryForegroundService + Fused provider) into an
+ * offline queue; this module uploads that queue and offers a high-accuracy one-shot fallback.
  */
 import { App } from '@capacitor/app';
 import { Geolocation, type Position } from '@capacitor/geolocation';
@@ -18,18 +19,25 @@ import {
   insertLocationPoint,
 } from '../locationHistoryApi';
 import { supabase } from '../supabase';
-import { isNativePlatform } from './platform';
-import { isBackgroundSyncRunning } from './backgroundSync';
+import { isAndroid, isNativePlatform } from './platform';
+import { LocationBuffer } from './locationBufferPlugin';
+import { getLocationStatus } from './locationPermissions';
+import { flushLocationQueue, type LocationFlushResult } from './locationQueueFlush';
 
 const SYNC_THROTTLE_MS = 30 * 60 * 1000;
 const MIN_MOVE_M = 200;
-const WATCH_MIN_INTERVAL_MS = 5 * 60 * 1000;
+/** One-shot fixes worse than this are discarded; manual sync tolerates up to the relaxed limit. */
+const MAX_ACCURACY_M = 50;
+const MAX_ACCURACY_MANUAL_M = 100;
+const POIS_TTL_MS = 10 * 60 * 1000;
+const FLUSH_MIN_GAP_MS = 20 * 1000;
+const NATIVE_FRESH_MS = 20 * 60 * 1000;
 
 let lastSaved: { lat: number; lng: number; atMs: number } | null = null;
-let watchId: string | null = null;
 let activeUserId: string | null = null;
 let teardown: (() => void) | null = null;
-let lastWatchSampleAt = 0;
+let poisCache: { userId: string; atMs: number; pois: LocationPoi[] } | null = null;
+let lastFlushAt = 0;
 
 export interface LocationSyncResult {
   ok: boolean;
@@ -39,6 +47,9 @@ export interface LocationSyncResult {
 }
 
 async function loadPois(userId: string): Promise<LocationPoi[]> {
+  if (poisCache && poisCache.userId === userId && Date.now() - poisCache.atMs < POIS_TTL_MS) {
+    return poisCache.pois;
+  }
   const pois: LocationPoi[] = [RZESZOW_POI];
   const { data } = await supabase
     .from('user_settings')
@@ -53,6 +64,7 @@ async function loadPois(userId: string): Promise<LocationPoi[]> {
       radiusM: DEFAULT_HOME_RADIUS_M,
     });
   }
+  poisCache = { userId, atMs: Date.now(), pois };
   return pois;
 }
 
@@ -66,7 +78,7 @@ export async function hasLocationPermission(): Promise<boolean> {
   }
 }
 
-export async function requestLocationPermission(): Promise<boolean> {
+async function requestLocationPermission(): Promise<boolean> {
   if (!isNativePlatform()) return false;
   try {
     let perm = await Geolocation.checkPermissions();
@@ -85,8 +97,12 @@ async function persistPosition(
   force: boolean,
 ): Promise<LocationSyncResult> {
   const now = Date.now();
-  const { latitude, longitude } = position.coords;
+  const { latitude, longitude, speed, heading, altitude } = position.coords;
   const accuracy = position.coords.accuracy ?? null;
+
+  if (accuracy === null || accuracy > (force ? MAX_ACCURACY_MANUAL_M : MAX_ACCURACY_M)) {
+    return force ? { ok: false, error: 'low_accuracy' } : { ok: false, skipped: true };
+  }
 
   if (
     !force &&
@@ -102,8 +118,14 @@ async function persistPosition(
     latitude,
     longitude,
     accuracy,
+    speed: speed ?? null,
+    bearing: heading ?? null,
+    altitude: altitude ?? null,
+    provider: 'webview',
+    kind: 'point',
     place_name: placeName,
-    is_manual: false,
+    is_manual: force,
+    created_at: new Date(position.timestamp || now).toISOString(),
   });
 
   if (!insert.ok) {
@@ -112,6 +134,14 @@ async function persistPosition(
 
   lastSaved = { lat: latitude, lng: longitude, atMs: now };
   return { ok: true, placeName };
+}
+
+/** Upload buffered native fixes (offline queue). Safe to call from any trigger. */
+export async function flushLocationNow(userId: string, force = false): Promise<LocationFlushResult> {
+  const now = Date.now();
+  if (!force && now - lastFlushAt < FLUSH_MIN_GAP_MS) return { uploaded: 0, pending: 0 };
+  lastFlushAt = now;
+  return flushLocationQueue(userId, () => loadPois(userId));
 }
 
 export async function syncLocationNow(userId: string, force = false): Promise<LocationSyncResult> {
@@ -130,10 +160,20 @@ export async function syncLocationNow(userId: string, force = false): Promise<Lo
       return { ok: false, error: 'location_denied' };
     }
 
+    // Drain first: the native collector usually already has fresher, filtered data.
+    await flushLocationNow(session.user.id, true);
+
+    if (!force) {
+      const native = await getLocationStatus();
+      if (native?.collectorRunning && Date.now() - native.lastFixAtMs < NATIVE_FRESH_MS) {
+        return { ok: false, skipped: true };
+      }
+    }
+
     const position = await Geolocation.getCurrentPosition({
-      enableHighAccuracy: false,
-      timeout: 20_000,
-      maximumAge: 60_000,
+      enableHighAccuracy: true,
+      timeout: 25_000,
+      maximumAge: 15_000,
     });
 
     return persistPosition(session.user.id, position, force);
@@ -158,29 +198,6 @@ async function hydrateLastSaved(userId: string): Promise<void> {
   }
 }
 
-async function startWatch(userId: string): Promise<void> {
-  if (watchId || !userId) return;
-  const granted = await hasLocationPermission();
-  if (!granted) return;
-
-  watchId = await Geolocation.watchPosition(
-    { enableHighAccuracy: false, timeout: 20_000, maximumAge: 120_000 },
-    (position, err) => {
-      if (err || !position || !activeUserId) return;
-      const now = Date.now();
-      if (now - lastWatchSampleAt < WATCH_MIN_INTERVAL_MS) return;
-      lastWatchSampleAt = now;
-      void persistPosition(activeUserId, position, false);
-    },
-  );
-}
-
-async function stopWatch(): Promise<void> {
-  if (!watchId) return;
-  await Geolocation.clearWatch({ id: watchId });
-  watchId = null;
-}
-
 export function initLocationSync(userId: string): () => void {
   if (!isNativePlatform() || !userId) return () => {};
 
@@ -192,19 +209,29 @@ export function initLocationSync(userId: string): () => void {
 
   const resumeListener = App.addListener('appStateChange', ({ isActive }) => {
     if (isActive && activeUserId) {
+      void flushLocationNow(activeUserId);
       void syncLocationNow(activeUserId, false);
-      void startWatch(activeUserId);
-    } else if (!isBackgroundSyncRunning()) {
-      void stopWatch();
     }
   });
 
+  const onOnline = () => {
+    if (activeUserId) void flushLocationNow(activeUserId, true);
+  };
+  window.addEventListener('online', onOnline);
+
+  const queuedListener = isAndroid()
+    ? LocationBuffer.addListener('locationQueued', () => {
+        if (activeUserId) void flushLocationNow(activeUserId);
+      }).catch(() => null)
+    : Promise.resolve(null);
+
+  void flushLocationNow(userId, true);
   void syncLocationNow(userId, true);
-  void startWatch(userId);
 
   teardown = () => {
     void resumeListener.then((h) => h.remove());
-    void stopWatch();
+    void queuedListener.then((h) => h?.remove());
+    window.removeEventListener('online', onOnline);
     if (activeUserId === userId) {
       activeUserId = null;
       teardown = null;

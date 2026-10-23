@@ -118,7 +118,7 @@ export default function InlineEditor({
               <span>Notatki</span>
             </Pressable>
           )}
-          {!isMobile && !showBack && <span className="text-4xs uppercase tracking-widest opacity-[var(--opacity-60)] font-black">Notatka</span>}
+          {!isMobile && !showBack && <span className="text-xs opacity-[var(--opacity-60)] font-semibold">Notatka</span>}
         </div>
         <div className="flex items-center gap-1.5">
           <NoteEditorMoreMenu
@@ -143,13 +143,13 @@ export default function InlineEditor({
         </div>
       </div>
       <div className="flex-1 overflow-y-auto px-4 py-3 md:px-6 md:py-4 flex flex-col gap-3 max-w-3xl mx-auto w-full">
-        <div className="text-4xs text-text-muted/65 font-bold text-center block tracking-wider uppercase">{relativeDate(note.updated_at || note.created_at)}</div>
-        <NoteSaveIndicator status={saveStatus} onRetry={retrySave} className="block h-4 shrink-0 text-4xs text-center opacity-[var(--opacity-55)]" />
+        <div className="text-2xs text-text-muted font-medium text-center block">{relativeDate(note.updated_at || note.created_at)}</div>
+        <NoteSaveIndicator status={saveStatus} onRetry={retrySave} className="block h-4 shrink-0 text-2xs text-center opacity-[var(--opacity-55)]" />
         {aiResult && (
           <div className="bg-text-primary/5 border border-border-custom/10 p-3 rounded-xl text-xs relative flex flex-col gap-1 leading-relaxed mb-2">
-            <div className="flex items-center justify-between text-3xs opacity-[var(--opacity-60)] font-black">
-              <span>{aiResult.type === 'summary' ? '🤖 PODSUMOWANIE AI' : '🤖 WYEKSTRAHOWANE ZADANIA'}</span>
-              <Pressable variant="ghost" size="sm" onClick={() => setAiResult(null)} className="hover:text-text-primary text-text-muted"><X size={10} /></Pressable>
+            <div className="flex items-center justify-between text-xs opacity-[var(--opacity-70)] font-semibold">
+              <span>{aiResult.type === 'summary' ? 'Podsumowanie AI' : 'Wyekstrahowane zadania'}</span>
+              <Pressable variant="ghost" size="sm" onClick={() => setAiResult(null)} className="hover:text-text-primary text-text-muted" aria-label="Zamknij wynik AI"><X size={14} /></Pressable>
             </div>
             <p className="whitespace-pre-wrap">{aiResult.text}</p>
           </div>

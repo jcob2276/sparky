@@ -26,10 +26,10 @@ export const PortfolioAiForecastReport: FC<Props> = ({
             <Zap size={16} className="fill-primary" />
           </div>
           <div>
-            <h4 className="text-xs sm:text-sm font-black text-text-primary tracking-tight">
+            <h4 className="text-xs sm:text-sm font-semibold text-text-primary tracking-tight">
               Analiza źródeł AI
             </h4>
-            <p className="text-4xs font-mono text-text-muted">
+            <p className="text-2xs font-mono text-text-muted">
               Sparky · dostępne dane publiczne · brak skalibrowanej prognozy
             </p>
           </div>
@@ -41,7 +41,7 @@ export const PortfolioAiForecastReport: FC<Props> = ({
             variant="ghost"
             onClick={onRefresh}
             disabled={loading}
-            className="rounded-xl text-3xs font-mono text-text-muted hover:text-text-primary px-2"
+            className="rounded-xl text-2xs font-mono text-text-muted hover:text-text-primary px-2"
             title="Przelicz ponownie"
           >
             <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
@@ -69,14 +69,14 @@ export const PortfolioAiForecastReport: FC<Props> = ({
             <div className="text-xs font-bold text-text-primary">
               Analiza danych źródłowych w toku...
             </div>
-            <p className="text-3xs text-text-muted max-w-sm">
+            <p className="text-2xs text-text-muted max-w-sm">
               Sprawdzam dostępne notowania i publiczne ujawnienia. Brakujące źródła zostaną wskazane.
             </p>
           </div>
         </div>
       ) : (
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-3xs font-mono text-success">
+          <div className="flex items-center gap-2 text-2xs font-mono text-success">
             <CheckCircle2 size={13} />
             <span>Analiza AI — daty źródeł wskazane w raporcie</span>
           </div>

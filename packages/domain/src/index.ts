@@ -48,6 +48,7 @@ export * from './finance/snowballEngine.ts';
 export * from './finance/portfolio.ts';
 export * from './lifeObligations.ts';
 export * from './phoneUsage.ts';
+export * from './deviceSignals.ts';
 export * from './location.ts';
 export * from './synthesis.ts';
 export * from './healthspan.ts';

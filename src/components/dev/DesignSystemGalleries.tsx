@@ -1,36 +1,16 @@
 import Button from '../ui/Button';
 import { useState } from 'react';
-import { Layers, Palette, Type, Box, Sparkles } from 'lucide-react';
+import { Layers, Palette, Box, Sparkles } from 'lucide-react';
 import { Card } from '../ui/Card';
 import Badge from '../ui/Badge';
 import Tabs from '../ui/Tabs';
 import Modal from '../ui/Modal';
 import Spinner from '../ui/Spinner';
-import Skeleton from '../ui/Skeleton';
-import EmptyState from '../ui/EmptyState';
 import { CharacterAvatar } from '../ui/CharacterAvatar';
 
+import { Section, Row } from './galleryPrimitives';
+
 /* -- tiny helpers -- */
-
-function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
-  return (
-    <section className="space-y-4">
-      <h2 className="flex items-center gap-2 text-base font-black text-text-primary">
-        {icon}{title}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
-function Row({ label, children }: { label?: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      {label && <p className="text-xs font-bold uppercase tracking-widest text-text-muted">{label}</p>}
-      <div className="flex flex-wrap items-center gap-3">{children}</div>
-    </div>
-  );
-}
 
 function Swatch({ className, label }: { className: string; label: string }) {
   return (
@@ -79,49 +59,6 @@ export function ColorTokensSection() {
   );
 }
 
-export function TypographyScaleSection() {
-  return (
-    <Section icon={<Type size={16} />} title="Typography Scale">
-      <div className="space-y-1.5">
-        {[
-          ['text-6xl', '56px', 'Splash large'],
-          ['text-5xl', '48px', 'Splash'],
-          ['text-4xl', '36px', 'Hero large'],
-          ['text-3xl', '30px', 'Hero headings'],
-          ['text-2xl', '24px', 'Display numbers'],
-          ['text-xl', '20px', 'Large headings'],
-          ['text-lg', '18px', 'Headings, card titles'],
-          ['text-base', '15px', 'Section headers, primary body'],
-          ['text-sm', '13px', 'Form inputs, descriptions'],
-          ['text-xs', '11px', 'Labels, metadata'],
-          ['text-2xs', '9px', 'Status badges, flags'],
-          ['text-3xs', '7px', 'Micro-labels'],
-        ].map(([token, size, desc]) => (
-          <div key={token} className="flex items-baseline gap-3">
-            <code className="text-2xs font-mono text-text-muted w-16 shrink-0">{token}</code>
-            <span className={`font-sans ${token} font-bold text-text-primary`}>{size}</span>
-            <span className="text-2xs text-text-muted">{desc}</span>
-          </div>
-        ))}
-      </div>
-    </Section>
-  );
-}
-
-export function FontStacksSection() {
-  return (
-    <Section icon={<Type size={16} />} title="Font Stacks">
-      <div className="space-y-2">
-        <p className="font-display text-3xl font-black tracking-tight text-text-primary">Display: Cabinet Grotesk</p>
-        <p className="font-sans text-xl font-bold text-text-primary">Heading: Plus Jakarta Sans</p>
-        <p className="font-sans text-base text-text-primary">Body: 15px regular</p>
-        <p className="pixel-label">Pixel Label: 9px uppercase mono</p>
-        <p className="font-mono text-sm text-text-muted">Mono: Geist Mono</p>
-      </div>
-    </Section>
-  );
-}
-
 export function ButtonGallery() {
   return (
     <Section icon={<Box size={16} />} title="Button">
@@ -154,7 +91,7 @@ export function CardGallery() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {(['glass', 'immersive', 'canvas', 'receipt', 'outline', 'notice', 'danger', 'accent'] as const).map(v => (
           <Card key={v} variant={v} padding="1rem">
-            <p className="text-xs font-black uppercase tracking-widest text-text-muted mb-1">{v}</p>
+            <p className="text-xs font-semibold text-text-muted mb-1">{v}</p>
             <p className="text-sm text-text-secondary">Variant content goes here.</p>
           </Card>
         ))}
@@ -238,37 +175,6 @@ export function SpinnerGallery() {
         <div className="flex flex-col items-center gap-1"><Spinner size="sm" /><span className="text-2xs font-bold text-text-muted">sm</span></div>
         <div className="flex flex-col items-center gap-1"><Spinner size="md" /><span className="text-2xs font-bold text-text-muted">md</span></div>
         <div className="flex flex-col items-center gap-1"><Spinner size="lg" /><span className="text-2xs font-bold text-text-muted">lg</span></div>
-      </div>
-    </Section>
-  );
-}
-
-export function SkeletonGallery() {
-  return (
-    <Section icon={<Box size={16} />} title="Skeleton">
-      <div className="max-w-sm space-y-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-2">text (3 lines)</p>
-          <Skeleton variant="text" />
-        </div>
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-2">avatar</p>
-          <Skeleton variant="avatar" />
-        </div>
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-text-muted mb-2">card</p>
-          <Skeleton variant="card" lines={3} />
-        </div>
-      </div>
-    </Section>
-  );
-}
-
-export function EmptyStateGallery() {
-  return (
-    <Section icon={<Box size={16} />} title="EmptyState">
-      <div className="max-w-sm">
-        <EmptyState icon="📭" label="Brak elementow do wyswietlenia" action={{ label: 'Dodaj pierwszy', onClick: () => {} }} />
       </div>
     </Section>
   );

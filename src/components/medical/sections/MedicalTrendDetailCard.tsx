@@ -30,16 +30,16 @@ export function MedicalTrendDetailCard({ selectedTrend, insight }: MedicalTrendD
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-custom/40 pb-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-3xs font-black uppercase text-primary tracking-wider">{selectedTrend.category || 'Marker'}</span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-3xs font-bold text-primary">
+            <span className="text-2xs font-semibold text-primary tracking-wide">{selectedTrend.category || 'Marker'}</span>
+            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-2xs font-bold text-primary">
               <CheckCircle2 size={10} /> W normie
             </span>
           </div>
-          <h3 className="text-lg font-black text-text-primary mt-0.5">{selectedTrend.name}</h3>
+          <h3 className="text-lg font-semibold text-text-primary mt-0.5">{selectedTrend.name}</h3>
         </div>
 
         <div className="flex items-baseline gap-2 sm:text-right">
-          <span className="text-2xl font-black text-text-primary">
+          <span className="text-2xl font-semibold text-text-primary">
             {selectedTrend.currentValue}
           </span>
           <span className="text-xs font-bold text-text-muted">{selectedTrend.unit}</span>
@@ -53,7 +53,7 @@ export function MedicalTrendDetailCard({ selectedTrend, insight }: MedicalTrendD
         <div className="flex items-start gap-2.5 rounded-xl bg-primary/[0.04] border border-primary/20 p-3 text-xs text-text-secondary leading-relaxed">
           <Info size={16} className="text-primary shrink-0 mt-0.5" />
           <div>
-            <span className="font-black text-text-primary block text-2xs uppercase tracking-wider">Interpretacja Analityczna</span>
+            <span className="font-semibold text-text-primary block text-2xs tracking-normal">Interpretacja Analityczna</span>
             {insight}
           </div>
         </div>
@@ -62,15 +62,15 @@ export function MedicalTrendDetailCard({ selectedTrend, insight }: MedicalTrendD
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-2xs">
         <div className="bg-background/20 p-2.5 rounded-xl border border-border-custom/40">
           <span className="text-text-muted font-bold block">Aktualny (ostatni)</span>
-          <span className="text-sm font-black text-text-primary mt-0.5 block">{selectedTrend.currentValue} {selectedTrend.unit}</span>
+          <span className="text-sm font-semibold text-text-primary mt-0.5 block">{selectedTrend.currentValue} {selectedTrend.unit}</span>
         </div>
         <div className="bg-background/20 p-2.5 rounded-xl border border-border-custom/40">
           <span className="text-text-muted font-bold block">Poprzedni pomiar</span>
-          <span className="text-sm font-black text-text-secondary mt-0.5 block">{selectedTrend.prevValue} {selectedTrend.unit}</span>
+          <span className="text-sm font-semibold text-text-secondary mt-0.5 block">{selectedTrend.prevValue} {selectedTrend.unit}</span>
         </div>
         <div className="bg-background/20 p-2.5 rounded-xl border border-border-custom/40">
           <span className="text-text-muted font-bold block">Zmiana bezwzgl.</span>
-          <span className="text-sm font-black text-text-primary mt-0.5 block">
+          <span className="text-sm font-semibold text-text-primary mt-0.5 block">
             {selectedTrend.absoluteChange > 0 ? '+' : ''}{selectedTrend.absoluteChange.toFixed(2)}
           </span>
         </div>
@@ -99,13 +99,13 @@ export function MedicalTrendDetailCard({ selectedTrend, insight }: MedicalTrendD
       </div>
 
       <div className="space-y-1.5 pt-1">
-        <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Historia pomiarów</span>
+        <span className="text-2xs font-semibold tracking-normal text-text-muted">Historia pomiarów</span>
         <div className="space-y-1">
           {[...selectedTrend.history].reverse().map((h) => (
             <div key={h.id} className="flex items-center justify-between text-xs bg-background/20 px-3 py-1.5 rounded-lg border border-border-custom/30">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-text-primary">{formatMedicalDate(h.result_date)}</span>
-                <span className="text-3xs text-text-muted">({h.source_name || h.provider || 'Laboratorium'})</span>
+                <span className="text-2xs text-text-muted">({h.source_name || h.provider || 'Laboratorium'})</span>
               </div>
               <span className="font-mono font-bold text-text-primary">{h.value} {h.unit}</span>
             </div>

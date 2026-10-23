@@ -78,17 +78,17 @@ export default function MedicalTrends({ series }: MedicalTrendsProps) {
   return (
     <div className="space-y-6">
       <div className="border-b border-border-custom/50 pb-3">
-        <h2 className="text-lg font-black uppercase font-display">3. Trendy i Zmienność</h2>
+        <h2 className="text-lg font-semibold font-display">3. Trendy i Zmienność</h2>
         <p className="text-2xs text-text-muted mt-0.5">Analiza długoterminowa i dynamika zmian kluczowych parametrów</p>
       </div>
 
       {trendAnalysis.allTrends.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 space-y-4">
-            <span className="text-2xs font-black uppercase tracking-wider text-text-muted">Synteza Zmian</span>
+            <span className="text-2xs font-semibold tracking-normal text-text-muted">Synteza Zmian</span>
             
             <div className="space-y-2">
-              <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Największe przesunięcia (≥10%)</span>
+              <span className="text-2xs font-semibold tracking-normal text-text-muted">Największe przesunięcia (≥10%)</span>
               {trendAnalysis.largestChanges.map(s => (
                 <Pressable
                   key={s.key}
@@ -101,11 +101,11 @@ export default function MedicalTrends({ series }: MedicalTrendsProps) {
                 >
                   <div>
                     <h4 className="text-xs font-bold text-text-primary">{s.name}</h4>
-                    <span className="text-3xs text-text-muted">
+                    <span className="text-2xs text-text-muted">
                       {s.currentValue} {s.unit} · {s.history[s.history.length - 1]?.result_date}
                     </span>
                   </div>
-                  <span className={`text-xs font-black flex items-center gap-0.5 ${s.pctChange > 0 ? 'text-primary' : 'text-text-muted'}`}>
+                  <span className={`text-xs font-semibold flex items-center gap-0.5 ${s.pctChange > 0 ? 'text-primary' : 'text-text-muted'}`}>
                     {s.pctChange < 0 ? <TrendingDown size={12} /> : <TrendingUp size={12} />}
                     {s.pctChange > 0 ? '+' : ''}{s.pctChange.toFixed(0)}%
                   </span>
@@ -114,7 +114,7 @@ export default function MedicalTrends({ series }: MedicalTrendsProps) {
             </div>
 
             <div className="space-y-2">
-              <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Stabilne wskaźniki (&lt;10%)</span>
+              <span className="text-2xs font-semibold tracking-normal text-text-muted">Stabilne wskaźniki (&lt;10%)</span>
               <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
                 {trendAnalysis.stable.map(s => (
                   <Pressable

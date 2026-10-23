@@ -44,15 +44,15 @@ function Section({ title, icon: Icon, value, onChange, placeholder, description,
           <Icon size={18} className={themeStyles.text} />
         </div>
         <div>
-          <h3 className="text-sm font-black text-text-primary uppercase tracking-tight">{title}</h3>
-          <p className="text-xs text-text-muted uppercase tracking-widest">{description}</p>
+          <h3 className="text-base font-semibold text-text-primary">{title}</h3>
+          <p className="text-xs text-text-muted">{description}</p>
         </div>
       </div>
       <ControlTextarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-surface-solid border border-border-custom rounded-2xl p-4 text-sm font-bold text-text-primary min-h-[var(--ds-h-120px)] focus:border-primary/50 focus:shadow-focus outline-none ui-interactive placeholder:text-text-muted/40"
+        className="w-full bg-surface-solid border border-border-custom rounded-2xl p-4 text-sm text-text-primary min-h-[var(--ds-h-120px)] focus:border-primary/50 focus:shadow-focus outline-none ui-interactive placeholder:text-text-muted/40"
       />
     </Card>
   );
@@ -135,41 +135,41 @@ export default function IdentityVault() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-6 animate-in fade-in slide-in-from-bottom-4 duration-[var(--motion-deliberate)]">
+    <div className="ui-stagger max-w-4xl mx-auto space-y-6 pb-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-end">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <Shield size={16} className="text-primary animate-pulse" />
-            <span className="text-xs font-black text-primary uppercase tracking-[var(--ds-arbitrary-0-3em)]">Identity Vault v3.1</span>
+            <Shield size={16} className="text-primary" />
+            <span className="text-xs font-semibold text-primary">Fundament</span>
           </div>
-          <h1 className="text-3xl font-display font-black text-text-primary tracking-tight uppercase">Pełny Profil Bliźniaka</h1>
-          <p className="text-text-secondary text-xs mt-1 font-semibold leading-relaxed">Wpisz tu wszystko, co Wyrocznia powinna o Tobie wiedzieć.</p>
+          <h1 className="text-3xl font-display font-semibold text-text-primary tracking-tight">Pełny profil bliźniaka</h1>
+          <p className="text-text-secondary text-sm mt-1 leading-relaxed">Wpisz tu wszystko, co Wyrocznia powinna o Tobie wiedzieć.</p>
         </div>
 
         <Pressable
           onClick={handleSave}
           disabled={loading}
-          className={`px-8 py-3.5 rounded-2xl font-bold text-sm uppercase tracking-wider flex items-center justify-center gap-2 hover:scale-[var(--ds-arbitrary-1-01)] active:scale-[var(--ds-arbitrary-0-99)] ui-interactive shadow-md disabled:opacity-[var(--opacity-50)] font-display cursor-pointer ${
+          className={`min-h-[48px] px-8 py-3.5 rounded-2xl font-semibold text-sm flex items-center justify-center gap-2 hover:scale-[var(--ds-arbitrary-1-01)] active:scale-[var(--ds-arbitrary-0-99)] ui-interactive shadow-md disabled:opacity-[var(--opacity-50)] font-display cursor-pointer ${
             saveStatus === 'success'
               ? 'bg-success text-on-accent shadow-success/20'
               : 'bg-primary text-on-accent hover:bg-primary-hover shadow-primary/20'
           }`}
         >
-          {loading ? 'Synchronizacja...' : saveStatus === 'success' ? '✓ Zapisano!' : <><Save size={16} /> Zaktualizuj Prawdę</>}
+          {loading ? 'Zapisuję…' : saveStatus === 'success' ? 'Zapisano' : <><Save size={16} /> Zapisz fundament</>}
         </Pressable>
       </div>
 
       {saveStatus === 'success' && (
-        <div className="bg-success/5 dark:bg-success/10 border border-success/25 text-success dark:text-success p-4 rounded-2xl text-xs font-bold uppercase tracking-wider text-center animate-in zoom-in-95">
-          Fundament Zaktualizowany. Bliźniak właśnie stał się mądrzejszy.
+        <div className="bg-success/5 dark:bg-success/10 border border-success/25 text-success dark:text-success p-4 rounded-2xl text-sm font-medium text-center animate-in zoom-in-95">
+          Fundament zapisany. Bliźniak właśnie stał się mądrzejszy.
         </div>
       )}
 
       {/* Grid of Sections */}
-      <div className="grid grid-cols-1 gap-4.5">
+      <div className="ui-stagger grid grid-cols-1 gap-4">
         <Section
-          title="JA"
+          title="Ja"
           icon={Ghost}
           value={vault.identity}
           onChange={(v) => setVault(prev => ({ ...prev, identity: v }))}
@@ -178,7 +178,7 @@ export default function IdentityVault() {
           placeholder="Kim jesteś? Twoje wartości, lęki, relacje, cienie, misja życiowa, wzorce zachowań, sesje terapeutyczne, refleksje..."
         />
         <Section
-          title="CIAŁO"
+          title="Ciało"
           icon={Heart}
           value={vault.philosophy}
           onChange={(v) => setVault(prev => ({ ...prev, philosophy: v }))}
@@ -187,7 +187,7 @@ export default function IdentityVault() {
           placeholder="Plany treningowe, wyniki badań, dane z Oury, żywienie, pomiary, suplementacja, samopoczucie fizyczne..."
         />
         <Section
-          title="ZASOBY"
+          title="Zasoby"
           icon={Briefcase}
           value={vault.finances}
           onChange={(v) => setVault(prev => ({ ...prev, finances: v }))}

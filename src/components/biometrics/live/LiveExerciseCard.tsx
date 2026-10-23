@@ -189,7 +189,7 @@ export default function LiveExerciseCard({
               Dziś celuj w {String(hint.suggestedWeight).replace('.', ',')} kg{hint.action === 'progress' ? ' ↑' : ''} · {hint.reason}
             </p>
           )}
-          <div className="grid grid-cols-[2.25rem_1fr_1fr_2.75rem] gap-2 px-1.5 pb-0.5 text-2xs font-bold uppercase tracking-wider text-text-muted">
+          <div className="grid grid-cols-[2.25rem_1fr_1fr_2.75rem] gap-2 px-1.5 pb-0.5 text-2xs font-bold tracking-normal text-text-muted">
             <span />
             <span className="text-center">kg</span>
             <span className="text-center">powt.</span>

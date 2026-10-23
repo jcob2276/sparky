@@ -1,7 +1,7 @@
 import { Pressable, ControlInput } from '../../ui/ControlPrimitives';
 import React from 'react';
 import { useWeeklyReview } from './context/WeeklyReviewContext';
-import { Folder, Calendar, Check, Trash2 } from 'lucide-react';
+import { Calendar, Check, CheckCircle2, Folder, Trash2 } from 'lucide-react';
 import EmptyState from '../../ui/EmptyState';
 import type { Database } from '../../../lib/database.types';
 
@@ -20,7 +20,7 @@ export default function WeeklyReviewSectionAudit() {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-black text-text-primary flex items-center gap-1.5 uppercase tracking-wider">
+        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
           <Folder size={15} className="text-primary" />
           Krok 2: Audyt Sekcji i Projektów
         </h3>
@@ -30,7 +30,7 @@ export default function WeeklyReviewSectionAudit() {
       </div>
 
       {activeSections.length === 0 ? (
-        <EmptyState icon="✅" label="Brak otwartych zadań w projektach do audytu." />
+        <EmptyState icon={<CheckCircle2 size={22} strokeWidth={1.75} />} label="Brak otwartych zadań w projektach do audytu." />
       ) : (
         <div className="space-y-4">
           {/* Current Section Indicator Tabs */}
@@ -64,7 +64,7 @@ export default function WeeklyReviewSectionAudit() {
             return (
               <div className="space-y-2.5">
                 <div className="p-3 bg-surface-2 dark:bg-on-accent/[0.01] rounded-xl border border-border-custom/30">
-                  <span className="text-xs font-black text-primary uppercase tracking-wider block">
+                  <span className="text-xs font-semibold text-primary block">
                     Bieżący Projekt:
                   </span>
                   <span className="text-sm font-bold text-text-primary mt-0.5 block">

@@ -79,7 +79,7 @@ export default function KeepBulkActionBar({
 
       <div className="flex items-center gap-1.5 rounded-2xl border border-border-custom/50 bg-background/95 px-3 py-2 shadow-2xl backdrop-blur-xl ring-1 ring-border-custom/20">
         <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-bold text-text-primary">
-          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary text-on-accent text-3xs font-black px-1">
+          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary text-on-accent text-2xs font-semibold px-1">
             {selectedCount}
           </span>
           <span className="hidden sm:inline">wybranych</span>

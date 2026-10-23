@@ -44,7 +44,7 @@ function LabHeader({ onBack }: { onBack: () => void }) {
           <ArrowLeft size={18} />
         </Button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-black font-display uppercase tracking-tight">Laboratorium</h1>
+          <h1 className="text-xl font-semibold font-display tracking-tight">Laboratorium</h1>
         </div>
       </div>
     </header>

@@ -3,7 +3,7 @@ import type { CompanyFundHistoryPoint } from '../../lib/investments/companyDetai
 
 export const CompanyFundDisclosureCard: FC<{ ticker: string; history?: CompanyFundHistoryPoint[] }> = ({ ticker, history = [] }) => (
   <section className="bg-surface-elevated border border-border-custom rounded-2xl p-5 space-y-2">
-    <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+    <h3 className="text-xs font-semibold text-text-primary">
       Historia pozycji 13F · {ticker}
     </h3>
     {history.length ? (

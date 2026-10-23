@@ -19,10 +19,10 @@ export const DashboardEqualWeightChart: FC<Props> = ({
   const isEmpty = watchlist.length === 0;
 
   return (
-    <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-xs flex flex-col justify-between h-full min-h-72">
+    <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-xs flex flex-col justify-between h-full min-h-72">
       <div className="flex items-center justify-between pb-3 border-b border-border-custom/40">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-black uppercase tracking-wider text-text-muted">
+          <span className="text-xs font-semibold text-text-muted">
             Watchlista · indeks cen równych wag
           </span>
           {effectiveData && (
@@ -49,7 +49,7 @@ export const DashboardEqualWeightChart: FC<Props> = ({
         </Button>
       </div>
 
-      <p className="text-3xs text-text-muted">Ceny surowe w walutach lokalnych, bez dywidend, korekt splitów i przeliczenia FX. Wyłącznie wspólne daty wszystkich spółek; to nie wynik portfela.</p>
+      <p className="text-2xs text-text-muted">Ceny surowe w walutach lokalnych, bez dywidend, korekt splitów i przeliczenia FX. Wyłącznie wspólne daty wszystkich spółek; to nie wynik portfela.</p>
       {/* Main Area */}
       {isEmpty ? (
         <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
@@ -109,7 +109,7 @@ export const DashboardEqualWeightChart: FC<Props> = ({
               })()}
             </svg>
           </div>
-          <div className="flex justify-between items-center text-3xs font-mono text-text-muted pt-2 border-t border-border-custom/30 mt-2">
+          <div className="flex justify-between items-center text-2xs font-mono text-text-muted pt-2 border-t border-border-custom/30 mt-2">
             <span>{effectiveData.dates[0]}</span>
             <span className="flex items-center gap-1 font-semibold text-text-primary">
               <TrendingUp size={12} className="text-primary" /> Indeks bazowy 100 pkt

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import SectionTitle from '../ui/SectionTitle';
 
 interface SectionProps {
   title?: ReactNode;
@@ -14,8 +15,8 @@ function Section({ title, description, actions, children, className = '' }: Sect
       {(title || description || actions) && (
         <header className="flex items-end justify-between gap-[var(--space-4)]">
           <div className="min-w-0">
-            {title && <h2 className="text-lg font-bold tracking-tight text-text-primary">{title}</h2>}
-            {description && <p className="mt-[var(--space-1)] text-sm leading-relaxed text-text-secondary">{description}</p>}
+            {title && <SectionTitle>{title}</SectionTitle>}
+            {description && <p className="mt-[var(--space-1)] text-xs leading-relaxed text-text-muted">{description}</p>}
           </div>
           {actions && <div className="shrink-0">{actions}</div>}
         </header>

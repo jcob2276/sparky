@@ -51,14 +51,14 @@ export default function MedicalHeader({ series, documents, onImportClick, onView
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black font-display uppercase tracking-tight">Badania i Analizy</h1>
+          <h1 className="text-3xl font-semibold font-display tracking-tight">Badania i Analizy</h1>
           <p className="text-sm text-text-muted mt-1">Zaufane centrum dokumentacji zdrowotnej i decyzji</p>
         </div>
         <Button
           variant="outline"
           onClick={onImportClick}
           icon={<FilePlus size={15} />}
-          className="self-start sm:self-center uppercase font-black text-xs tracking-wider border-primary/20 bg-primary/[0.02]"
+          className="self-start sm:self-center font-semibold text-xs tracking-wide border-primary/20 bg-primary/[0.02]"
         >
           Dodaj wyniki
         </Button>
@@ -68,7 +68,7 @@ export default function MedicalHeader({ series, documents, onImportClick, onView
         {/* Status of documentation */}
         <Card variant="surface" padding="1.25rem" className="md:col-span-1 flex flex-col justify-between space-y-4">
           <div>
-            <span className="text-2xs font-black uppercase tracking-wider text-text-muted">Stan Dokumentacji</span>
+            <span className="text-2xs font-semibold tracking-normal text-text-muted">Stan Dokumentacji</span>
             {latestDateStr ? (
               <div className="mt-3">
                 <p className="text-base font-bold text-text-primary leading-snug">
@@ -93,7 +93,7 @@ export default function MedicalHeader({ series, documents, onImportClick, onView
         {/* Wymaga Uwagi / Actionable Center */}
         <Card variant="surface" padding="1.25rem" className="md:col-span-2 flex flex-col justify-between">
           <div className="space-y-2">
-            <span className="text-2xs font-black uppercase tracking-wider text-text-muted">Wymaga Uwagi</span>
+            <span className="text-2xs font-semibold tracking-normal text-text-muted">Wymaga Uwagi</span>
             {warnings.length > 0 ? (
               <ul className="space-y-2 pt-2">
                 {warnings.map((w, i) => (
@@ -112,10 +112,10 @@ export default function MedicalHeader({ series, documents, onImportClick, onView
           </div>
 
           <div className="mt-4 pt-3 border-t border-border-custom/50 flex flex-wrap gap-2">
-            <Button variant="ghost" size="sm" onClick={onViewResults} className="uppercase font-black text-2xs">
+            <Button variant="ghost" size="sm" onClick={onViewResults} className="font-semibold text-2xs">
               Zobacz Wyniki
             </Button>
-            <Button variant="ghost" size="sm" onClick={onPlanRetest} className="uppercase font-black text-2xs text-primary">
+            <Button variant="ghost" size="sm" onClick={onPlanRetest} className="font-semibold text-2xs text-primary">
               Zaplanuj ponowne badanie
             </Button>
           </div>

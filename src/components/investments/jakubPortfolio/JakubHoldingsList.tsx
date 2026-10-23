@@ -27,13 +27,13 @@ export const JakubHoldingsList: FC<Props> = ({ positions, onAskAnalyst }) => {
           size="sm"
           variant="ghost"
           onClick={() => setSortDesc((prev) => !prev)}
-          className="text-3xs sm:text-xs font-mono text-text-muted hover:text-text-primary gap-1 px-2 h-7"
+          className="text-2xs sm:text-xs font-mono text-text-muted hover:text-text-primary gap-1 px-2 h-7"
         >
           <ArrowUpDown size={12} />
           <span>Sortuj wg wartości ({sortDesc ? 'od największej' : 'od najmniejszej'})</span>
         </Button>
 
-        <span className="text-3xs font-mono text-text-muted">
+        <span className="text-2xs font-mono text-text-muted">
           Łącznie w aktywach:{' '}
           <strong className="text-text-primary">
             {totalValue.toLocaleString('pl-PL', { minimumFractionDigits: 2 })} PLN

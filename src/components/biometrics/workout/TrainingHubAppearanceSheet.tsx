@@ -54,8 +54,8 @@ export default function TrainingHubAppearanceSheet({
 
         <div className="flex items-center justify-between px-4 pt-2 pb-3 border-b border-border-custom/70">
           <div>
-            <p className="text-3xs font-black uppercase tracking-widest text-primary">Wygląd</p>
-            <h2 className="text-base font-black text-text-primary font-display leading-tight mt-0.5">
+            <p className="text-2xs font-semibold tracking-normal text-primary">Wygląd</p>
+            <h2 className="text-base font-semibold text-text-primary font-display leading-tight mt-0.5">
               Kolor akcentu
             </h2>
           </div>
@@ -113,7 +113,7 @@ export default function TrainingHubAppearanceSheet({
                       <p className="text-sm font-bold text-text-primary font-display truncate">
                         {preset.label}
                       </p>
-                      <p className="text-3xs text-text-muted truncate">{preset.hint}</p>
+                      <p className="text-2xs text-text-muted truncate">{preset.hint}</p>
                     </div>
                   </div>
                   {selected && (

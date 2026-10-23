@@ -67,7 +67,7 @@ export const QuoteChart: FC<Props> = ({ ticker, marks }) => {
 
   return (
     <div className="mt-3">
-      <div className="text-3xs font-mono uppercase tracking-wide text-text-muted mb-1">
+      <div className="text-2xs font-mono text-text-muted mb-1">
         {ticker} · close_adj · znaczniki transakcji
       </div>
       <svg viewBox="0 0 640 180" className="w-full h-36 bg-surface border border-border-custom rounded-lg">

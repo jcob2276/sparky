@@ -141,7 +141,7 @@ export default function TodoCommandPalette() {
       >
         <div className="flex items-center gap-2 border-b border-border-custom/60 px-3.5">
           {breadcrumb
-            ? <span className="flex shrink-0 items-center gap-1 rounded-md bg-primary/15 px-1.5 py-0.5 todo-text-micro font-black text-primary"><ChevronLeft size={11} aria-hidden="true" />{breadcrumb}</span>
+            ? <span className="flex shrink-0 items-center gap-1 rounded-md bg-primary/15 px-1.5 py-0.5 todo-text-micro font-semibold text-primary"><ChevronLeft size={11} aria-hidden="true" />{breadcrumb}</span>
             : <Search size={15} aria-hidden="true" className="shrink-0 text-text-muted" />}
           <ControlInput
             ref={inputRef}

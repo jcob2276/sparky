@@ -76,8 +76,6 @@ export default function RichEditorAutocompleteMenu({
               padding: 'var(--ds-inline-style-6px-12px-4px)',
               fontSize: 'var(--ds-inline-style-9)',
               fontWeight: 'var(--ds-inline-style-700)',
-              textTransform: 'uppercase',
-              letterSpacing: 'var(--ds-inline-style-0-05em)',
               opacity: 'var(--ds-inline-style-0-5)',
             }}
           >

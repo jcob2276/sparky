@@ -17,11 +17,11 @@ export default function TrainingHubWeekPanel({ fatigueByTag, week }: Props) {
       aria-label="Mapa zmęczenia"
     >
       <div className="flex items-center justify-between px-0.5">
-        <span className="text-2xs font-black uppercase tracking-wider text-text-muted">
+        <span className="text-2xs font-semibold tracking-normal text-text-muted">
           Mapa zmęczenia
         </span>
         {week.sessions > 0 && (
-          <span className="text-3xs font-bold text-text-tertiary tabular-nums">
+          <span className="text-2xs font-bold text-text-tertiary tabular-nums">
             {week.sessions} sesj{week.sessions === 1 ? 'a' : week.sessions < 5 ? 'e' : 'i'} · tydzień
           </span>
         )}
@@ -38,14 +38,14 @@ export default function TrainingHubWeekPanel({ fatigueByTag, week }: Props) {
 
         <div className="w-[5.5rem] shrink-0 flex flex-col justify-center gap-3 border-l border-border-custom/60 pl-3">
           <div>
-            <p className="text-3xs font-black uppercase tracking-wider text-text-muted">Reps</p>
-            <p className="text-xl font-black text-text-primary font-display tabular-nums leading-none mt-1">
+            <p className="text-2xs font-semibold tracking-normal text-text-muted">Reps</p>
+            <p className="text-xl font-semibold text-text-primary font-display tabular-nums leading-none mt-1">
               {week.reps.toLocaleString('pl-PL')}
             </p>
           </div>
           <div>
-            <p className="text-3xs font-black uppercase tracking-wider text-text-muted">Volume</p>
-            <p className="text-xl font-black text-primary font-display tabular-nums leading-none mt-1">
+            <p className="text-2xs font-semibold tracking-normal text-text-muted">Volume</p>
+            <p className="text-xl font-semibold text-primary font-display tabular-nums leading-none mt-1">
               {volumeLabel}
             </p>
           </div>

@@ -40,7 +40,7 @@ export function OuraMetricCard({
           <Icon size={19} strokeWidth={1.8} />
         </span>
       </div>
-      <p className="mt-10 text-4xl font-light tracking-tight text-white">{value}</p>
+      <p className="mt-10 text-4xl font-light tracking-tight text-text-primary">{value}</p>
     </Tag>
   );
 }

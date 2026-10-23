@@ -5,7 +5,7 @@ export function SleepMovementRow({ movementItems }: { movementItems?: string | n
 
   return (
     <div className="border-y border-white/5 py-5">
-      <p className="text-center text-xs font-semibold uppercase tracking-widest text-text-secondary">Ruch</p>
+      <p className="text-center text-xs font-semibold tracking-normal text-text-secondary">Ruch</p>
       {timeline.status === 'available' && timeline.samples.length > 0 ? (
         <div
           aria-label={`Zmierzony ruch: ${timeline.samples.length} zdarzenia`}

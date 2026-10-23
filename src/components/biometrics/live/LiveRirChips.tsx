@@ -22,7 +22,7 @@ export default function LiveRirChips({ value, onPick, onDismiss }: Props) {
   return (
     <div className="mx-1 mb-1" role="group" aria-label="RPE serii">
       <div className="mb-1 flex items-center justify-between px-1">
-        <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Jak ciężka? RPE</p>
+        <p className="text-2xs font-bold tracking-normal text-text-muted">Jak ciężka? RPE</p>
         <Pressable onClick={onDismiss} aria-label="Pomiń ocenę serii" className="flex h-7 w-7 items-center justify-center rounded-full text-text-muted">
           <X size={14} />
         </Pressable>
@@ -38,8 +38,8 @@ export default function LiveRirChips({ value, onPick, onDismiss }: Props) {
               current === option.rpe ? 'border-primary bg-primary/15 text-primary' : 'border-border-custom bg-surface-1 text-text-secondary'
             }`}
           >
-            <span className="text-base font-black leading-none">{option.rpe}</span>
-            <span className="mt-0.5 text-3xs font-semibold">{option.label}</span>
+            <span className="text-base font-semibold leading-none">{option.rpe}</span>
+            <span className="mt-0.5 text-2xs font-semibold">{option.label}</span>
           </Pressable>
         ))}
       </div>

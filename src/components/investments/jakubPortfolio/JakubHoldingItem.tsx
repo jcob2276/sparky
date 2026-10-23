@@ -50,15 +50,15 @@ export const JakubHoldingItem: FC<Props> = ({
               <span className="font-bold text-xs sm:text-sm text-text-primary truncate">
                 {pos.name}
               </span>
-              <span className="px-1.5 py-0.2 rounded-md font-mono text-4xs bg-surface-elevated text-text-muted border border-border-custom uppercase font-semibold">
+              <span className="px-1.5 py-0.2 rounded-md font-mono text-2xs bg-surface-elevated text-text-muted border border-border-custom font-semibold">
                 {pos.type}
               </span>
-              <span className="px-1.5 py-0.2 rounded-md font-mono text-4xs bg-primary/10 text-primary border border-primary/20">
+              <span className="px-1.5 py-0.2 rounded-md font-mono text-2xs bg-primary/10 text-primary border border-primary/20">
                 {pos.market}
               </span>
             </div>
 
-            <div className="text-3xs font-mono text-text-muted flex items-center gap-1.5 flex-wrap">
+            <div className="text-2xs font-mono text-text-muted flex items-center gap-1.5 flex-wrap">
               <span>{pos.shares} szt.</span>
               <span>•</span>
               <span>zakup: {pos.avgBuyPrice.toFixed(2)} zł</span>
@@ -67,7 +67,7 @@ export const JakubHoldingItem: FC<Props> = ({
               <span>•</span>
               <span>{weightPct.toFixed(1)}%</span>
             </div>
-            <div className="text-4xs text-text-muted">
+            <div className="text-2xs text-text-muted">
               {pos.quoteAsOf ? `Notowanie: ${formatShortDateWarsaw(pos.quoteAsOf)} · ${pos.quoteSource}` : 'Wycena ręczna / zapisany stan — brak datowanego notowania'}
               {pos.quoteSourceUrl && <a className="ml-1 text-primary" href={pos.quoteSourceUrl} target="_blank" rel="noopener noreferrer">Źródło</a>}
             </div>
@@ -82,7 +82,7 @@ export const JakubHoldingItem: FC<Props> = ({
             </div>
 
             <div
-              className={`text-3xs font-mono font-bold flex items-center justify-end gap-0.5 ${
+              className={`text-2xs font-mono font-bold flex items-center justify-end gap-0.5 ${
                 isLoss ? 'text-danger' : 'text-success'
               }`}
             >
@@ -105,7 +105,7 @@ export const JakubHoldingItem: FC<Props> = ({
       {isExpanded && (
         <div className="px-4 pb-4 pt-2 border-t border-border-custom/50 bg-surface-elevated/30 space-y-3 animate-fade-in text-xs">
           {pos.knfShortStatus && (
-            <div className="p-2.5 rounded-xl bg-danger/10 border border-danger/30 text-danger text-3xs font-mono flex items-start gap-2">
+            <div className="p-2.5 rounded-xl bg-danger/10 border border-danger/30 text-danger text-2xs font-mono flex items-start gap-2">
               <ShieldAlert size={14} className="shrink-0 mt-0.5" />
               <div>
                 <strong>Zapisana notatka KNF (bez bieżącej weryfikacji):</strong> {pos.knfShortStatus}
@@ -114,7 +114,7 @@ export const JakubHoldingItem: FC<Props> = ({
           )}
 
           {pos.smartMoneySignal && (
-            <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/25 text-primary text-3xs font-mono flex items-start gap-2">
+            <div className="p-2.5 rounded-xl bg-primary/10 border border-primary/25 text-primary text-2xs font-mono flex items-start gap-2">
               <Sparkles size={14} className="shrink-0 mt-0.5" />
               <div>
                 <strong>Zapisana notatka (bez bieżącej weryfikacji):</strong> {pos.smartMoneySignal}
@@ -123,7 +123,7 @@ export const JakubHoldingItem: FC<Props> = ({
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-            <div className="text-3xs font-mono text-text-muted">
+            <div className="text-2xs font-mono text-text-muted">
               Ticker giełdowy: <strong className="text-text-primary">${pos.ticker}</strong>
             </div>
 
@@ -131,7 +131,7 @@ export const JakubHoldingItem: FC<Props> = ({
               size="sm"
               variant="tonal"
               onClick={() => onAskAnalyst(pos.ticker, pos.name)}
-              className="text-3xs gap-1 rounded-xl"
+              className="text-2xs gap-1 rounded-xl"
             >
               <MessageSquare size={12} />
               <span>Zapytaj Analityka AI o ${pos.ticker}</span>

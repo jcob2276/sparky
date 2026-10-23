@@ -17,10 +17,10 @@ export const StocksConsensusTable: FC<Props> = ({
   onSelectStockForChart,
 }) => {
   return (
-    <div className="bg-surface border border-border-custom rounded-3xl overflow-hidden shadow-xs">
+    <div className="bg-surface border border-border-custom rounded-2xl overflow-hidden shadow-xs">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="bg-surface border-b border-border-custom/50 text-2xs text-text-secondary uppercase font-semibold">
+          <thead className="bg-surface border-b border-border-custom/50 text-2xs text-text-secondary font-semibold">
             <tr>
               <th className="py-3 px-4">Spółka</th>
               <th className="py-3 px-4">Sektor</th>

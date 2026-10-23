@@ -13,7 +13,7 @@ export default function MedicalDocHistory({ documents }: MedicalDocHistoryProps)
   return (
     <div className="space-y-4">
       <div className="border-b border-border-custom/50 pb-3">
-        <h2 className="text-lg font-black uppercase font-display">4. Historia Dokumentów</h2>
+        <h2 className="text-lg font-semibold font-display">4. Historia Dokumentów</h2>
         <p className="text-2xs text-text-muted mt-0.5">Oryginalne dokumenty i surowe raporty laboratoryjne jako źródło prawdy</p>
       </div>
 
@@ -36,17 +36,17 @@ export default function MedicalDocHistory({ documents }: MedicalDocHistoryProps)
                       {doc.source_name}
                     </span>
                   </div>
-                  <span className={`text-3xs font-black uppercase tracking-wider px-2 py-0.5 rounded border shrink-0 ${typeInfo.badgeColor}`}>
+                  <span className={`text-2xs font-semibold tracking-normal px-2 py-0.5 rounded border shrink-0 ${typeInfo.badgeColor}`}>
                     {typeInfo.label}
                   </span>
                 </div>
 
-                <div className="mt-3 space-y-1 text-3xs font-semibold text-text-secondary">
+                <div className="mt-3 space-y-1 text-2xs font-semibold text-text-secondary">
                   <p>
-                    <span className="text-text-muted uppercase font-black">Data badania:</span> {doc.document_date}
+                    <span className="text-text-muted font-semibold">Data badania:</span> {doc.document_date}
                   </p>
                   <p>
-                    <span className="text-text-muted uppercase font-black">Laboratorium / Źródło:</span> {doc.provider || 'Nieznane'}
+                    <span className="text-text-muted font-semibold">Laboratorium / Źródło:</span> {doc.provider || 'Nieznane'}
                   </p>
                   {doc.summary && (
                     <p className="text-text-muted italic truncate mt-1">
@@ -56,7 +56,7 @@ export default function MedicalDocHistory({ documents }: MedicalDocHistoryProps)
                 </div>
               </div>
 
-              <div className="border-t border-border-custom/40 pt-2.5 flex items-center justify-between text-3xs">
+              <div className="border-t border-border-custom/40 pt-2.5 flex items-center justify-between text-2xs">
                 <span className="text-text-muted font-bold">
                   Dodano: {doc.created_at?.slice(0, 10)}
                 </span>
@@ -68,7 +68,7 @@ export default function MedicalDocHistory({ documents }: MedicalDocHistoryProps)
                       const filename = doc.source_name || 'dokument-medyczny.pdf';
                       void downloadFromUrl(doc.source_path!, filename);
                     }}
-                    className="flex items-center gap-1 font-black uppercase text-primary hover:underline cursor-pointer"
+                    className="flex items-center gap-1 font-semibold text-primary hover:underline cursor-pointer"
                   >
                     <Download size={10} /> Pobierz źródło
                   </Pressable>

@@ -88,7 +88,7 @@ export function OuraHealthView({
                 aria-label={label}
                 aria-pressed={active}
                 className={`!min-h-12 !min-w-24 !flex-col !gap-1 !rounded-full !px-2.5 !text-xs ${
-                  active ? '!bg-white/10 !text-white' : '!text-text-muted'
+                  active ? '!bg-surface-3 !text-text-primary' : '!text-text-muted'
                 }`}
                 onClick={() => onSectionChange(id)}
                 variant="ghost"

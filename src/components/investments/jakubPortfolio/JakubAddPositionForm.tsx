@@ -49,7 +49,7 @@ export const JakubAddPositionForm: FC<Props> = ({ onAddPosition, onClose }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="text-3xs font-mono text-text-muted uppercase">Dodaj nową pozycję</div>
+      <div className="text-2xs font-mono text-text-muted">Dodaj nową pozycję</div>
 
       <div className="grid grid-cols-2 gap-2.5">
         <Input

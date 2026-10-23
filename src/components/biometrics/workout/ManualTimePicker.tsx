@@ -39,7 +39,7 @@ export default function ManualTimePicker({ logger }: ManualTimePickerProps) {
       {isOpen && (
         <div className="p-3 pt-0 border-t border-border-custom/30 grid grid-cols-3 gap-2 animate-in fade-in duration-150">
           <div className="space-y-1">
-            <label className="text-3xs font-black uppercase tracking-widest text-text-muted">Data</label>
+            <label className="text-2xs font-semibold tracking-normal text-text-muted">Data</label>
             <ControlInput
               type="date"
               value={logger.workoutDate}
@@ -48,7 +48,7 @@ export default function ManualTimePicker({ logger }: ManualTimePickerProps) {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-3xs font-black uppercase tracking-widest text-text-muted">Start</label>
+            <label className="text-2xs font-semibold tracking-normal text-text-muted">Start</label>
             <ControlInput
               type="time"
               value={logger.startTimeManual}
@@ -57,7 +57,7 @@ export default function ManualTimePicker({ logger }: ManualTimePickerProps) {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-3xs font-black uppercase tracking-widest text-text-muted">Koniec</label>
+            <label className="text-2xs font-semibold tracking-normal text-text-muted">Koniec</label>
             <ControlInput
               type="time"
               value={logger.endTimeManual}

@@ -8,7 +8,7 @@ function Divider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-2">
       <div className="h-px flex-1 bg-border-custom" />
-      <span className="text-2xs uppercase tracking-widest text-text-muted font-black">{title}</span>
+      <span className="text-2xs text-text-muted font-semibold">{title}</span>
       <div className="h-px flex-1 bg-border-custom" />
     </div>
   );

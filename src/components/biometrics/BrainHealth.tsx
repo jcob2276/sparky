@@ -23,14 +23,14 @@ export default function BrainHealth() {
   return (
     <Card variant="glass" className="border border-border-custom space-y-4" padding="1.25rem">
       <div className="flex items-center justify-between">
-        <h4 className="text-xs font-black text-text-primary uppercase tracking-widest flex items-center gap-2">
+        <h4 className="text-xs font-semibold text-text-primary tracking-normal flex items-center gap-2">
           <Brain size={14} className="text-primary" /> Sparky Brain Health
         </h4>
         <Button
           onClick={() => void queryClient.invalidateQueries({ queryKey: ['brain-health', userId] })}
           variant="ghost"
           size="sm"
-          className="!px-0 uppercase tracking-widest"
+          className="!px-0 tracking-normal"
         >
           Odśwież
         </Button>
@@ -45,7 +45,7 @@ export default function BrainHealth() {
           {report.map((row: BrainHealthRow) => (
             <div key={row.table_name} className="bg-surface border border-border-custom p-3.5 rounded-xl space-y-2">
               <div className="flex justify-between items-start">
-                <span className="text-2xs font-black text-text-secondary uppercase tracking-tight">
+                <span className="text-2xs font-semibold text-text-secondary tracking-tight">
                   {row.table_name.replace('vanguard_', '')}
                 </span>
                 {row.coverage_percent >= 90 ? (
@@ -58,12 +58,12 @@ export default function BrainHealth() {
               </div>
 
               <div className="flex items-baseline gap-2">
-                <span className="text-lg font-black text-text-primary italic font-display">{row.total_records}</span>
-                <span className="text-2xs font-bold text-text-muted uppercase">rekordów</span>
+                <span className="text-lg font-semibold text-text-primary italic font-display">{row.total_records}</span>
+                <span className="text-2xs font-bold text-text-muted">rekordów</span>
               </div>
 
               <div className="space-y-1">
-                <div className="flex justify-between text-2xs font-black uppercase">
+                <div className="flex justify-between text-2xs font-semibold">
                   <span className="text-text-muted italic">Semantic coverage</span>
                   <span className={row.coverage_percent < 50 ? 'text-danger' : 'text-primary'}>
                     {row.coverage_percent}%
@@ -81,7 +81,7 @@ export default function BrainHealth() {
         </div>
       )}
 
-      <p className="text-2xs text-text-muted font-bold leading-relaxed uppercase">
+      <p className="text-2xs text-text-muted font-bold leading-relaxed">
         * "Semantic Coverage" oznacza procent rekordów posiadających wygenerowane embeddingi wektorowe, gotowe do użycia przez Oracle.
       </p>
     </Card>

@@ -117,12 +117,12 @@ export function PhotoCompareSlider({
 
       {/* Left label badge */}
       <div className="absolute top-3 left-3 bg-surface/80 backdrop-blur-md px-2.5 py-1 rounded-full border border-border-custom shadow-sm pointer-events-none">
-        <p className="text-3xs font-black text-text-secondary uppercase tracking-wider">{baseLabel}</p>
+        <p className="text-2xs font-semibold text-text-secondary">{baseLabel}</p>
       </div>
 
       {/* Right label badge */}
       <div className="absolute top-3 right-3 bg-primary/20 backdrop-blur-md px-2.5 py-1 rounded-full border border-primary/30 shadow-sm pointer-events-none">
-        <p className="text-3xs font-black text-primary uppercase tracking-wider">{targetLabel}</p>
+        <p className="text-2xs font-semibold text-primary">{targetLabel}</p>
       </div>
     </div>
   );

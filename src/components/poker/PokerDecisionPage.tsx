@@ -1,89 +1,57 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ExternalLink, Target, Sparkles } from 'lucide-react';
-import { Pressable } from '../ui/ControlPrimitives';
+import IconButton from '../ui/IconButton';
+import Tabs from '../ui/Tabs';
+
+type PokerTab = 'decision_lab' | 'libregto';
+
+const TABS = [
+  { key: 'decision_lab', label: 'Decyzje i EV', icon: <Target size={14} /> },
+  { key: 'libregto', label: 'LibreGTO', icon: <Sparkles size={14} /> },
+];
+
+const SOURCES: Record<PokerTab, string> = {
+  decision_lab: '/poker/index.html?embed=1',
+  libregto: '/libregto/index.html?embed=1',
+};
 
 export default function PokerDecisionPage() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'decision_lab' | 'libregto'>('decision_lab');
-
-  const currentSrc = activeTab === 'decision_lab' ? '/poker/index.html' : '/libregto/index.html';
+  const [activeTab, setActiveTab] = useState<PokerTab>('decision_lab');
+  const currentSrc = SOURCES[activeTab];
+  const standaloneSrc = currentSrc.replace('?embed=1', '');
 
   return (
-    <div className="min-h-screen w-full bg-background text-text-primary flex flex-col">
-      {/* Top Header */}
-      <header className="border-b border-border-custom/50 bg-surface-1/90 backdrop-blur px-4 py-3 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <Pressable
-            variant="ghost"
-            onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-solid/10 text-xs font-semibold"
-          >
-            <ArrowLeft size={16} />
-            <span>Dashboard</span>
-          </Pressable>
-
-          <div className="h-4 w-px bg-border-custom/40" />
-
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-success/10 text-success border border-success/20 font-black text-sm">
-              ♠
-            </div>
-            <div>
-              <h1 className="text-sm font-bold text-text-primary flex items-center gap-2">
-                Poker Decision Lab
-                <span className="text-3xs font-mono px-1.5 py-0.2 bg-success/10 text-success border border-success/20 rounded">
-                  Mental Models
-                </span>
-              </h1>
-            </div>
-          </div>
-        </div>
-
-        {/* Tab switchers & External Link */}
-        <div className="flex items-center gap-2">
-          <div className="flex bg-surface-2 p-0.5 rounded-lg border border-border-custom text-xs">
-            <Pressable onClick={() => setActiveTab('decision_lab')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition ${
-                activeTab === 'decision_lab'
-                  ? 'bg-success text-on-accent shadow-sm'
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              <Target size={13} />
-              <span>Decyzje & EV</span>
-            </Pressable>
-            <Pressable onClick={() => setActiveTab('libregto')}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-md font-medium transition ${
-                activeTab === 'libregto'
-                  ? 'bg-success text-on-accent shadow-sm'
-                  : 'text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              <Sparkles size={13} />
-              <span>LibreGTO</span>
-            </Pressable>
-          </div>
-
-          <a
-            href={currentSrc}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Otwórz pełnoekranowo w nowej karcie"
-            className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-surface-3 transition"
-          >
-            <ExternalLink size={16} />
-          </a>
-        </div>
+    <div className="flex h-dvh w-full flex-col bg-background text-text-primary">
+      <header className="ui-app-header flex shrink-0 items-center gap-2 px-2 pt-[env(safe-area-inset-top)]">
+        <IconButton
+          icon={<ArrowLeft size={20} />}
+          label="Wróć do pulpitu"
+          onClick={() => navigate('/dashboard')}
+          className="!h-11 !w-11 shrink-0"
+        />
+        <h1 className="hidden shrink-0 text-base font-semibold tracking-tight sm:block">Poker Decision Lab</h1>
+        <Tabs
+          tabs={TABS}
+          active={activeTab}
+          onChange={(key) => setActiveTab(key as PokerTab)}
+          className="my-1.5 min-w-0 flex-1 rounded-xl bg-surface-2 p-0.5 [&_.ui-tab]:min-h-[40px] [&_.ui-tab]:rounded-[10px]"
+        />
+        <a
+          href={standaloneSrc}
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Otwórz pełnoekranowo w nowej karcie"
+          aria-label="Otwórz pełnoekranowo w nowej karcie"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-text-secondary transition hover:bg-surface-3 hover:text-text-primary"
+        >
+          <ExternalLink size={18} />
+        </a>
       </header>
 
-      {/* Main Interactive Embed Frame */}
-      <main className="flex-1 w-full h-[calc(100vh-53px)] overflow-hidden bg-background">
-        <iframe
-          src={currentSrc}
-          title="Poker Decision Lab"
-          className="w-full h-full border-none"
-        />
+      <main className="min-h-0 w-full flex-1 overflow-hidden bg-background">
+        <iframe key={activeTab} src={currentSrc} title="Poker Decision Lab" className="h-full w-full border-none" />
       </main>
     </div>
   );

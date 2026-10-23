@@ -96,7 +96,7 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
                 <span className="text-sm font-bold text-text-primary">{col.title}</span>
               </div>
               {colItems.length > 0 && (
-                <span className="text-xs font-black text-text-muted bg-surface-solid px-1.5 py-0.5 rounded-full">
+                <span className="text-xs font-semibold text-text-muted bg-surface-solid px-1.5 py-0.5 rounded-full">
                   {colItems.length}
                 </span>
               )}
@@ -129,7 +129,7 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
                       <p className="text-xs font-semibold text-text-primary leading-snug line-clamp-3 flex-1">{item.title}</p>
                     </div>
                     <div className="flex items-center justify-between mt-2 pl-5">
-                      <span className={`text-2xs font-black px-1.5 py-0.5 rounded-full ${pMeta?.chip ?? 'bg-surface-solid text-text-muted'}`}>
+                      <span className={`text-2xs font-semibold px-1.5 py-0.5 rounded-full ${pMeta?.chip ?? 'bg-surface-solid text-text-muted'}`}>
                         {pMeta?.label ?? item.priority}
                       </span>
                       <div className="flex items-center gap-1.5">

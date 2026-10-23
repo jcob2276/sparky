@@ -32,7 +32,7 @@ export const GpwCompaniesHeader: FC<Props> = ({
     <div className="space-y-4">
       {/* Title & Subtitle */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-semibold text-text-primary tracking-tight">
           Spółki GPW
         </h1>
         <p className="text-xs text-text-secondary mt-1 max-w-3xl leading-relaxed">
@@ -87,7 +87,7 @@ export const GpwCompaniesHeader: FC<Props> = ({
       </div>
 
       {/* Stats Counter Line */}
-      <div className="text-3xs font-mono font-medium text-text-muted">
+      <div className="text-2xs font-mono font-medium text-text-muted">
         {summary ? `${summary.total} spółek · ${summary.activeShorts} z publicznym shortem · ${summary.insiderBuys} z odczytanymi zakupami insiderów w 90 dni · ${summary.convergenceSignals} zbieżności w danych`
           : 'Oczekiwanie na dane — statystyki niedostępne'}
       </div>

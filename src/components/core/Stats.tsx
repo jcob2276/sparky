@@ -4,6 +4,7 @@
  * Domena 'none' montuje tylko okno eksportu (zakładki Duch i Konto).
  * @usedBy DashboardHistoriaTab
  */
+import Skeleton from '../ui/Skeleton';
 import type { ReactNode } from 'react';
 import { BodyMetricsSection } from './stats/BodyMetricsSection';
 import { WorkoutHistorySection } from './stats/WorkoutHistorySection';
@@ -64,7 +65,7 @@ export default function Stats({
   } = useStatsData();
 
   if (!userId) return null;
-  if (loading) return domain === 'none' ? null : <div className="p-8 text-center text-text-muted uppercase font-black animate-pulse tracking-widest">Wczytywanie...</div>;
+  if (loading) return domain === 'none' ? null : <Skeleton variant="card" lines={4} className="m-5" />;
 
   const mergedBody = mergeLatestBodyMetrics(bodyData);
   const latestBody = mergedBody

@@ -19,7 +19,7 @@ export default function WeeklyReviewSynthesis() {
   return (
     <div className="space-y-4 animate-fadeIn">
       <div>
-        <h3 className="text-sm font-black text-text-primary flex items-center gap-1.5 uppercase tracking-wider">
+        <h3 className="text-sm font-semibold text-text-primary flex items-center gap-1.5">
           <Sparkles size={15} className="text-primary" />
           Krok 5: Synteza Tygodnia
         </h3>
@@ -39,7 +39,7 @@ export default function WeeklyReviewSynthesis() {
           </p>
           {aiRecap.phase1.question && (
             <div className="pt-2 border-t border-primary dark:border-primary/30">
-              <span className="text-xs font-bold text-primary dark:text-primary block uppercase tracking-wider">
+              <span className="text-xs font-bold text-primary dark:text-primary block">
                 Pytanie pomocnicze:
               </span>
               <p className="text-sm text-text-secondary font-semibold italic mt-0.5 text-primary dark:text-primary">
@@ -51,7 +51,7 @@ export default function WeeklyReviewSynthesis() {
       )}
 
       <div className="space-y-2">
-        <span className="text-xs font-bold text-text-primary block uppercase tracking-wider">
+        <span className="text-xs font-bold text-text-primary block">
           Notatka tygodniowa
         </span>
         <ControlTextarea
@@ -66,7 +66,7 @@ export default function WeeklyReviewSynthesis() {
       {/* STAGING FUTURE PREDICTIONS */}
       <div className="space-y-3 pt-3 border-t border-border-custom/20">
         <div>
-          <span className="text-xs font-bold text-text-primary block uppercase tracking-wider">
+          <span className="text-xs font-bold text-text-primary block">
             Prognozy na nadchodzący tydzień
           </span>
           <p className="text-2xs text-text-muted">
@@ -110,7 +110,7 @@ export default function WeeklyReviewSynthesis() {
               className="bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/60 rounded-xl px-3 py-2 text-xs font-semibold text-text-primary placeholder:text-text-muted/30 focus:border-primary/50 outline-none transition-colors"
             />
             <div className="flex items-center justify-between">
-              <span className="text-2xs font-bold text-text-muted uppercase tracking-wider">
+              <span className="text-2xs font-bold text-text-muted">
                 Pewność: {(newPredictionConfidence * 100).toFixed(0)}%
               </span>
               <ControlInput

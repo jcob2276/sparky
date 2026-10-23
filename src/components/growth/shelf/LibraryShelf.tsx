@@ -33,8 +33,8 @@ const FILTERS: Array<{ id: ShelfFilter; label: string }> = [
 function StatTile({ label, thisYear, total }: { label: string; thisYear: number; total: number }) {
   return (
     <div className="rounded-xl border border-border-custom/40 bg-surface/40 px-3 py-2">
-      <p className="text-3xs font-black uppercase tracking-wider text-text-muted">{label}</p>
-      <p className="text-sm font-black tabular-nums text-text-primary">
+      <p className="text-2xs font-semibold text-text-muted">{label}</p>
+      <p className="text-sm font-semibold tabular-nums text-text-primary">
         {total} <span className="text-xs font-semibold text-text-muted">· w tym roku {thisYear}</span>
       </p>
     </div>
@@ -92,7 +92,7 @@ export default function LibraryShelf({ userId, today }: { userId: string; today:
     <section className="space-y-3" aria-labelledby="library-title">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h2 id="library-title" className="text-lg font-black tracking-tight text-text-primary">Biblioteka</h2>
+          <h2 id="library-title" className="text-lg font-semibold tracking-tight text-text-primary">Biblioteka</h2>
           <p className="text-xs text-text-muted">Książki i filmy z całego życia. Ukończone z planu dochodzą same.</p>
         </div>
         <div className="flex gap-2">

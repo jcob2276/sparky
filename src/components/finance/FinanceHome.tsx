@@ -39,7 +39,7 @@ function MonthFlow({ metrics }: { metrics: FinanceMetrics }) {
   return (
     <div className="grid grid-cols-2 gap-3">
       {tiles.map(({ label, amount, icon: Icon, tone }) => (
-        <div key={label} className="flex items-center gap-3 rounded-3xl bg-surface-1 p-4">
+        <div key={label} className="flex items-center gap-3 rounded-2xl bg-surface-1 p-4">
           <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${tone}`}>
             <Icon size={18} aria-hidden="true" />
           </span>
@@ -58,7 +58,7 @@ export function FinanceHome({ data, metrics, holdings, portfolio, quotesLoading,
   const todayDay = Number(getTodayWarsaw().split('-')[2]) || 1;
 
   return (
-    <div className="space-y-6">
+    <div className="ui-stagger space-y-6">
       <FinanceHomeHero
         metrics={metrics}
         portfolio={portfolio}

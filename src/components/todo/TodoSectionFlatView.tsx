@@ -1,3 +1,4 @@
+import { FolderOpen } from 'lucide-react';
 import { useTodoContext } from './context/TodoContext';
 import TodoCardConnected from './TodoCardConnected';
 import EmptyState from './EmptyState';
@@ -26,7 +27,7 @@ export default function TodoSectionFlatView({ sectionId, renderInlineQuickCaptur
       </div>
       <div className="pt-1">
         {sec.items.length === 0 ? (
-          <EmptyState icon="📂" label="Brak otwartych zadań w tej sekcji." />
+          <EmptyState icon={<FolderOpen size={22} strokeWidth={1.75} />} label="Brak otwartych zadań w tej sekcji." />
         ) : hasSubjects ? (
           <TodoStudySubjects items={sec.items} />
         ) : (

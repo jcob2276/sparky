@@ -16,8 +16,8 @@ interface Props {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-surface-2 px-3 py-2.5 text-center">
-      <p className="text-xl font-black tabular-nums text-text-primary">{value}</p>
-      <p className="text-3xs font-bold uppercase tracking-wider text-text-muted">{label}</p>
+      <p className="text-xl font-semibold tabular-nums text-text-primary">{value}</p>
+      <p className="text-2xs font-bold tracking-normal text-text-muted">{label}</p>
     </div>
   );
 }
@@ -95,7 +95,7 @@ export default function LiveFinishSheet({ open, onOpenChange, logger, duration }
         )}
         {empty && <p className="text-center text-sm text-text-muted">Zalicz przynajmniej jedną serię, żeby zapisać trening.</p>}
         {!empty && logger.sessionRpe == null && <p className="text-center text-sm text-text-muted">Zaznacz RPE, żeby zapisać trening.</p>}
-        <Button variant="primary" size="lg" disabled={empty || logger.sessionRpe == null || logger.saving} onClick={save} className="w-full !h-14 !rounded-2xl !text-base !font-black">
+        <Button variant="primary" size="lg" disabled={empty || logger.sessionRpe == null || logger.saving} onClick={save} className="w-full !h-14 !rounded-2xl !text-base !font-semibold">
           {logger.saving ? 'Zapisuję…' : 'Zapisz trening'}
         </Button>
       </div>

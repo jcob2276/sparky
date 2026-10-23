@@ -48,7 +48,7 @@ export function AllDayStrip({ days, allDayByDay, gutterWidth, onEventClick }: Al
               }}
               title={ev.summary || 'Wydarzenie całodniowe'}
               aria-label={ev.summary || 'Wydarzenie całodniowe'}
-              className="flex w-full min-h-6 cursor-pointer items-center gap-1.5 truncate rounded-md border border-border-custom/40 bg-surface-solid/80 hover:bg-surface-solid px-2 py-0.5 text-left text-3xs font-semibold text-text-primary active:scale-[0.98] transition-[transform,background-color,border-color] duration-150 ease-out shadow-2xs"
+              className="flex w-full min-h-6 cursor-pointer items-center gap-1.5 truncate rounded-md border border-border-custom/40 bg-surface-solid/80 hover:bg-surface-solid px-2 py-0.5 text-left text-2xs font-semibold text-text-primary active:scale-[0.98] transition-[transform,background-color,border-color] duration-150 ease-out shadow-2xs"
             >
               <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${categoryDotClass(ev.category)}`} />
               <span className="truncate">{ev.summary}</span>

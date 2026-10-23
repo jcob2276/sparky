@@ -49,13 +49,13 @@ export default function MedicalMarkerInspector({ markerKey, series, onClose }: M
         {/* Latest Value Hero */}
         <div className="bg-background/40 border border-border-custom rounded-2xl p-4 flex justify-between items-center">
           <div>
-            <span className="text-3xs font-black uppercase text-text-muted tracking-wider">Ostatni Pomiar</span>
-            <p className="text-2xl font-black text-text-primary mt-1">
-              {latest.value} <span className="text-sm font-bold text-text-muted uppercase">{latest.unit}</span>
+            <span className="text-2xs font-semibold text-text-muted tracking-wide">Ostatni Pomiar</span>
+            <p className="text-2xl font-semibold text-text-primary mt-1">
+              {latest.value} <span className="text-sm font-bold text-text-muted">{latest.unit}</span>
             </p>
           </div>
           <div className="text-right">
-            <span className="text-3xs font-black uppercase text-text-muted tracking-wider">Zakres Norma</span>
+            <span className="text-2xs font-semibold text-text-muted tracking-wide">Zakres Norma</span>
             <p className="text-sm font-bold text-text-secondary mt-1 font-mono">{normStr}</p>
           </div>
         </div>
@@ -63,7 +63,7 @@ export default function MedicalMarkerInspector({ markerKey, series, onClose }: M
         {/* Sparkline / History Chart */}
         {chartData.length >= 2 ? (
           <div className="space-y-2">
-            <span className="text-3xs font-black uppercase text-text-muted tracking-wider">Historia Trendu ({chartData.length} pomiary)</span>
+            <span className="text-2xs font-semibold text-text-muted tracking-wide">Historia Trendu ({chartData.length} pomiary)</span>
             <div className="h-32 w-full bg-background/20 border border-border-custom rounded-2xl p-2">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
@@ -71,7 +71,7 @@ export default function MedicalMarkerInspector({ markerKey, series, onClose }: M
                   <YAxis tick={{ fontSize: 9 }} stroke="var(--border-custom)" domain={['dataMin - 10%', 'dataMax + 10%']} />
                   <Tooltip
                     contentStyle={{ background: 'var(--surface-solid)', borderColor: 'var(--border-custom)', borderRadius: '12px' }}
-                    labelClassName="text-3xs font-bold text-text-muted"
+                    labelClassName="text-2xs font-bold text-text-muted"
                   />
                   <Line type="monotone" dataKey="value" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                 </LineChart>
@@ -86,7 +86,7 @@ export default function MedicalMarkerInspector({ markerKey, series, onClose }: M
 
         {/* Full Measurements List */}
         <div className="space-y-3">
-          <span className="text-3xs font-black uppercase text-text-muted tracking-wider block">Wszystkie Wpisy</span>
+          <span className="text-2xs font-semibold text-text-muted tracking-wide block">Wszystkie Wpisy</span>
           <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
             {history.map((row, i) => (
               <Card key={row.id || i} variant="outline" padding="0.75rem" className="bg-background/10 border-border-custom/50 space-y-1.5">
@@ -95,21 +95,21 @@ export default function MedicalMarkerInspector({ markerKey, series, onClose }: M
                     <Calendar size={12} className="text-text-muted" />
                     {row.result_date}
                   </span>
-                  <span className="text-xs font-black text-text-primary">
+                  <span className="text-xs font-semibold text-text-primary">
                     {row.value} {row.unit}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-3xs text-text-secondary">
+                <div className="flex items-center justify-between text-2xs text-text-secondary">
                   <span className="flex items-center gap-1">
                     <FlaskConical size={10} />
                     {row.provider || row.source_name || 'Brak źródła'}
                   </span>
                   {row.flag && row.flag !== 'N' && (
-                    <span className="text-warning font-black uppercase">Poza normą ({row.flag})</span>
+                    <span className="text-warning font-semibold">Poza normą ({row.flag})</span>
                   )}
                 </div>
                 {row.notes && (
-                  <p className="text-3xs text-text-muted bg-background/40 p-1.5 rounded border border-border-custom/30 mt-1">
+                  <p className="text-2xs text-text-muted bg-background/40 p-1.5 rounded border border-border-custom/30 mt-1">
                     Context: {row.notes}
                   </p>
                 )}

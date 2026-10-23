@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '../../store/useStore';
 import PowerList from '../lifestyle/PowerList';
 import FoodQuickCapture from './nutrition/FoodQuickCapture';
-import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
 import { useDashboardContext } from './context/DashboardContext';
 import { dashboardKeys } from '../../lib/queryKeys';
 import DailyStrainCard from '../biometrics/DailyStrainCard';
@@ -14,13 +14,10 @@ import TodayRunwayCard from './TodayRunwayCard';
 import { UrgentObligationsBanner } from '../terminy/UrgentObligationsBanner';
 import { ThreeSpheresGoalsCard } from './ThreeSpheresGoalsCard';
 import VisionHeroCard from './VisionHeroCard';
+import { DashboardGreeting } from './DashboardGreeting';
 
 function ViewFallback() {
-  return (
-    <div className="flex min-h-[var(--ds-h-220px)] items-center justify-center rounded-lg border border-on-accent/[0.06] bg-on-accent/[0.02]">
-      <Spinner size="md" />
-    </div>
-  );
+  return <Skeleton variant="card" lines={4} className="min-h-[var(--ds-h-220px)]" />;
 }
 
 export const DashboardDzisTab = memo(function DashboardDzisTab() {
@@ -31,12 +28,12 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
   if (!session) return null;
 
   const weeklyReviewNudge = new Date().getDay() === 0 && !s.taskReviewDoneThisWeek && (
-    <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 flex items-center justify-between gap-4 shadow-2xs">
+    <div className="rounded-[var(--radius-grouped)] border border-primary/20 bg-primary/10 p-4 flex items-center justify-between gap-4 shadow-2xs">
       <div className="min-w-0">
-        <h4 className="text-sm font-black text-primary uppercase tracking-wider">Tygodniowy Przegląd Zadań</h4>
+        <h4 className="text-sm font-semibold text-primary">Tygodniowy Przegląd Zadań</h4>
         <p className="text-xs text-text-secondary mt-0.5 break-words">Niedziela to czas na oczyszczenie skrzynki i audyt projektów.</p>
       </div>
-      <Pressable onClick={() => s.setShowWeeklyReview(true)} className="shrink-0 px-3.5 py-2 bg-primary hover:bg-primary-hover text-on-accent rounded-xl text-xs font-black ui-interactive active:scale-95 shadow-sm cursor-pointer">
+      <Pressable onClick={() => s.setShowWeeklyReview(true)} className="shrink-0 min-h-11 px-4 bg-primary hover:bg-primary-hover text-on-accent rounded-full text-sm font-semibold ui-interactive active:scale-95 shadow-sm cursor-pointer">
         Rozpocznij
       </Pressable>
     </div>
@@ -44,10 +41,12 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
 
   return (
     <div className="min-h-full bg-background p-5 pb-32">
-      <div className="mb-5 space-y-4">
-        <VisionHeroCard />
+      <div className="ui-stagger mb-5 space-y-4">
+        <DashboardGreeting />
 
-        <ThreeSpheresGoalsCard />
+        <Suspense fallback={<ViewFallback />}>
+          <TodayRunwayCard />
+        </Suspense>
 
         <UrgentObligationsBanner
           userId={session.user.id}
@@ -58,7 +57,7 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
         {/* Na telefonie kolumny się „rozpuszczają” (contents) i kolejność daje order-*: Stan dnia (Strain) zaraz po Power List. */}
         {/* Lewa kolumna: Planowanie, zadania i szybki Posiłek */}
         <div className="contents lg:block lg:space-y-5">
-          <div className="order-1 space-y-5 lg:order-none">
+          <div className="ui-rise ui-rise--2 order-1 space-y-5 lg:order-none">
           {weeklyReviewNudge}
           <PowerList
             todayWin={s.todayWin}
@@ -76,27 +75,26 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
             onOpenShutdown={() => s.setShowShutdown(true)}
           />
           </div>
-          <div id="meal-composer" className="order-3 lg:order-none">
+          <div id="meal-composer" className="ui-rise ui-rise--4 order-3 lg:order-none">
             <FoodQuickCapture
               refreshSignal={s.nutritionKey}
               onSaved={() => { s.refresh(); s.setNutritionKey(k => k + 1); }}
             />
           </div>
-          <div className="order-4 lg:order-none">
-            <Suspense fallback={null}>
-              <TodayRunwayCard />
-            </Suspense>
+          <div className="ui-rise ui-rise--5 order-4 space-y-4 lg:order-none">
+            <VisionHeroCard />
+            <ThreeSpheresGoalsCard />
           </div>
         </div>
 
         {/* Prawa kolumna: Telemetria, biometria i wykresy */}
         <div className="contents lg:block lg:space-y-5">
-          <div className="order-2 lg:order-none">
+          <div className="ui-rise ui-rise--3 order-2 lg:order-none">
             <Suspense fallback={<ViewFallback />}>
               <DailyStrainCard refreshSignal={s.nutritionKey + s.workoutKey} />
             </Suspense>
           </div>
-          <div className="order-5 lg:order-none">
+          <div className="ui-rise ui-rise--5 order-5 lg:order-none">
             <Suspense fallback={<ViewFallback />}>
               <DailySnapshotCard />
             </Suspense>

@@ -26,14 +26,14 @@ export default function TrainingTodayCard({
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-3xs font-black uppercase tracking-wider text-primary">
+              <span className="text-2xs font-semibold tracking-normal text-primary">
                 Dziś zrobione
               </span>
               {rpe != null && (
-                <span className="trening-chip px-1.5 py-0.5 text-3xs font-bold">RPE {rpe}</span>
+                <span className="trening-chip px-1.5 py-0.5 text-2xs font-bold">RPE {rpe}</span>
               )}
             </div>
-            <h2 className="text-lg font-black text-text-primary font-display mt-0.5 leading-tight truncate">
+            <h2 className="text-lg font-semibold text-text-primary font-display mt-0.5 leading-tight truncate">
               {details.workoutDay}
             </h2>
           </div>
@@ -61,11 +61,11 @@ export default function TrainingTodayCard({
             key={label}
             className="rounded-[var(--tren-radius-ctl)] bg-surface-1 px-2 py-2 text-center border border-border-custom/50"
           >
-            <span className="text-3xs font-black uppercase tracking-wider text-text-muted block">
+            <span className="text-2xs font-semibold tracking-normal text-text-muted block">
               {label}
             </span>
             <span
-              className={`text-sm font-black font-mono mt-0.5 block ${
+              className={`text-sm font-semibold font-mono mt-0.5 block ${
                 accent ? 'text-primary' : 'text-text-primary'
               }`}
             >
@@ -83,7 +83,7 @@ export default function TrainingTodayCard({
               className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-xl bg-surface-1 border border-border-custom/35"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-text-muted font-mono text-3xs w-3">{i + 1}</span>
+                <span className="text-text-muted font-mono text-2xs w-3">{i + 1}</span>
                 <span className="font-bold text-text-primary truncate">{ex.name}</span>
               </div>
               <div className="flex items-center gap-2 text-2xs font-mono text-text-secondary shrink-0">
@@ -93,7 +93,7 @@ export default function TrainingTodayCard({
             </div>
           ))}
           {details.exercises.length > 6 && (
-            <p className="text-3xs text-text-muted px-1">+{details.exercises.length - 6} więcej</p>
+            <p className="text-2xs text-text-muted px-1">+{details.exercises.length - 6} więcej</p>
           )}
         </div>
       )}
@@ -107,14 +107,14 @@ export default function TrainingTodayCard({
       <div className="flex gap-2 pt-0.5">
         <Pressable
           onClick={onStartAnother}
-          className="flex-1 py-2.5 px-3 rounded-[var(--tren-radius-ctl)] border border-border-custom bg-surface-2 hover:border-primary/40 text-text-primary text-xs font-black uppercase tracking-wider ui-interactive flex items-center justify-center gap-1.5 cursor-pointer"
+          className="flex-1 py-2.5 px-3 rounded-[var(--tren-radius-ctl)] border border-border-custom bg-surface-2 hover:border-primary/40 text-text-primary text-xs font-semibold tracking-normal ui-interactive flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <Dumbbell size={13} /> Kolejna sesja
         </Pressable>
         {onLogSauna && (
           <Pressable
             onClick={onLogSauna}
-            className="py-2.5 px-3 rounded-[var(--tren-radius-ctl)] border border-warning/30 bg-warning/10 hover:bg-warning/20 text-warning text-xs font-black uppercase tracking-wider ui-interactive flex items-center justify-center gap-1.5 cursor-pointer"
+            className="py-2.5 px-3 rounded-[var(--tren-radius-ctl)] border border-warning/30 bg-warning/10 hover:bg-warning/20 text-warning text-xs font-semibold tracking-normal ui-interactive flex items-center justify-center gap-1.5 cursor-pointer"
           >
             <Flame size={13} /> Sauna
           </Pressable>

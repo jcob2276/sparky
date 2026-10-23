@@ -1,4 +1,5 @@
 import { Phone } from 'lucide-react';
+import Skeleton from '../ui/Skeleton';
 import { getTodayWarsaw, getWeekStartWarsaw } from '../../lib/date';
 import { CLOSER_WEEKLY_TARGETS } from '../../lib/closer/closerDayModel';
 import { useUserId } from '../../store/useStore';
@@ -34,7 +35,7 @@ export default function WeeklySalesPulse() {
         <Phone size={12} className="text-primary" /> Sprzedaż <span className="font-semibold normal-case tracking-normal">· pon–nd</span>
       </p>
       {loading ? (
-        <div className="h-20 animate-pulse rounded-2xl bg-surface/50" />
+        <Skeleton variant="block" className="h-20" />
       ) : empty ? (
         <p className="text-sm text-text-secondary">Brak wpisanych liczb w tym tygodniu. Wpiszesz je w domknięciu dnia.</p>
       ) : (

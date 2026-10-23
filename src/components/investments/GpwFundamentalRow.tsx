@@ -51,13 +51,13 @@ export const GpwFundamentalRow: FC<Props> = ({ company: c, onSelect }) => {
             <div className="font-bold text-text-primary group-hover:text-primary transition-colors flex items-center gap-1.5">
               {c.ticker}
             </div>
-            <div className="text-3xs text-text-muted truncate max-w-40 sm:max-w-56">
+            <div className="text-2xs text-text-muted truncate max-w-40 sm:max-w-56">
               {c.name} · {c.sectorPl}
             </div>
             {c.sourceUrl && (
               <a href={c.sourceUrl} target="_blank" rel="noopener noreferrer"
                 onClick={(event) => event.stopPropagation()}
-                className="text-3xs text-primary underline"
+                className="text-2xs text-primary underline"
                 title={`Pobrano: ${c.refreshedAt || 'brak daty'}${c.fxDate ? `. Kurs NBP: ${c.fxDate}` : ''}`}>
                 Źródło wskaźników
               </a>
@@ -68,7 +68,7 @@ export const GpwFundamentalRow: FC<Props> = ({ company: c, onSelect }) => {
       </td>
 
       {/* Kap. Mld Zł */}
-      <td className="py-3 px-3 text-right font-black text-text-primary font-mono text-xs sm:text-sm">
+      <td className="py-3 px-3 text-right font-semibold text-text-primary font-mono text-xs sm:text-sm">
         {fmtVal(c.mcapMld, 1)}
       </td>
 
@@ -140,7 +140,7 @@ export const GpwFundamentalRow: FC<Props> = ({ company: c, onSelect }) => {
               )}
             </svg>
           ) : (
-            <span className="text-3xs text-text-muted font-mono">—</span>
+            <span className="text-2xs text-text-muted font-mono">—</span>
           )}
         </div>
       </td>

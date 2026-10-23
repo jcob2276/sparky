@@ -1,4 +1,5 @@
 import { Eye, ArrowUpRight, Ruler, Glasses, Sparkles, CheckCircle2 } from 'lucide-react';
+import Skeleton from '../../ui/Skeleton';
 import { Link } from 'react-router-dom';
 import { Card } from '../../ui/Card';
 import { Pressable } from '../../ui/ControlPrimitives';
@@ -67,7 +68,7 @@ export default function DesktopOpticsCard({ onOpenOptics }: Props) {
       </div>
 
       {isLoading ? (
-        <div className="h-24 animate-pulse rounded-xl bg-border-custom/30" />
+        <Skeleton variant="block" className="h-24" />
       ) : (
         <>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

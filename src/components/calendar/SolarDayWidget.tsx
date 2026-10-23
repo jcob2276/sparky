@@ -32,7 +32,7 @@ export default function SolarDayWidget({ dateStr }: Props) {
           <span className="text-lg" title="Wschód słońca">🌅</span>
           <div>
             <div className="text-sm font-bold text-text-primary tabular-nums">{sunriseStr}</div>
-            <div className="text-2xs text-text-muted uppercase tracking-wider">Wschód</div>
+            <div className="text-2xs text-text-muted">Wschód</div>
           </div>
         </div>
 
@@ -40,13 +40,13 @@ export default function SolarDayWidget({ dateStr }: Props) {
           <div className="text-xs font-bold text-text-muted tabular-nums">
             {dayLenH}h {dayLenM}m
           </div>
-          <div className="text-2xs text-text-muted uppercase tracking-wider">światła</div>
+          <div className="text-2xs text-text-muted">światła</div>
         </div>
 
         <div className="flex items-center gap-1.5">
           <div className="text-right">
             <div className="text-sm font-bold text-text-primary tabular-nums">{sunsetStr}</div>
-            <div className="text-2xs text-text-muted uppercase tracking-wider">Zachód</div>
+            <div className="text-2xs text-text-muted">Zachód</div>
           </div>
           <span className="text-lg" title="Zachód słońca">🌇</span>
         </div>
@@ -85,7 +85,7 @@ export default function SolarDayWidget({ dateStr }: Props) {
         <span className="text-xl leading-none">{moon.emoji}</span>
         <div>
           <div className="text-xs font-semibold text-text-primary">{moon.name}</div>
-          <div className="text-2xs text-text-muted uppercase tracking-wider">
+          <div className="text-2xs text-text-muted">
             {Math.round(moon.phase * 100)}% cyklu
           </div>
         </div>

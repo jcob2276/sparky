@@ -25,7 +25,7 @@ export function TrendArrow({
   }
 
   return (
-    <span className={`text-3xs font-black ml-0.5 select-none ${color}`}>
+    <span className={`text-2xs font-semibold ml-0.5 select-none ${color}`}>
       {isUp ? '↑' : '↓'}
     </span>
   );
@@ -85,9 +85,9 @@ export function SecondaryVitalsRow({ oura, ouraYesterday, enhanced, enhancedYest
           <div key={label} className="flex flex-col items-center text-center p-1 sm:border-l sm:border-border-custom/30 first:border-0">
             <div className="flex items-center gap-1 mb-0.5 animate-fadeIn">
               <Icon size={10} className="text-text-muted" />
-              <span className="text-3xs uppercase tracking-wider text-text-muted font-bold">{label}</span>
+              <span className="text-2xs tracking-normal text-text-muted font-bold">{label}</span>
             </div>
-            <span className={`text-xs font-black flex items-center justify-center ${color}`}>
+            <span className={`text-xs font-semibold flex items-center justify-center ${color}`}>
               {value}
               {arrow}
             </span>
@@ -106,16 +106,16 @@ export function SleepStagesRow({ oura, ouraYesterday, enhanced, enhancedYesterda
       <div className="h-px bg-border-custom/30" />
       <div className="flex items-center justify-between text-2xs px-1">
         <div className="flex-1 text-center">
-          <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Sen Głęboki</span>
-          <span className="text-xs font-black text-dayB flex items-center justify-center">
+          <span className="text-2xs text-text-muted tracking-normal block mb-0.5 font-bold">Sen Głęboki</span>
+          <span className="text-xs font-semibold text-dayB flex items-center justify-center">
             {formatHours(oura.deep_sleep_hours)}
             <TrendArrow today={oura.deep_sleep_hours} yesterday={ouraYesterday?.deep_sleep_hours} better="higher" />
           </span>
         </div>
         <div className="w-px h-6 bg-border-custom/30" />
         <div className="flex-1 text-center">
-          <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Faza REM</span>
-          <span className="text-xs font-black text-dayA flex items-center justify-center">
+          <span className="text-2xs text-text-muted tracking-normal block mb-0.5 font-bold">Faza REM</span>
+          <span className="text-xs font-semibold text-dayA flex items-center justify-center">
             {formatHours(oura.rem_sleep_hours)}
             <TrendArrow today={oura.rem_sleep_hours} yesterday={ouraYesterday?.rem_sleep_hours} better="higher" />
           </span>
@@ -124,8 +124,8 @@ export function SleepStagesRow({ oura, ouraYesterday, enhanced, enhancedYesterda
           <>
             <div className="w-px h-6 bg-border-custom/30" />
             <div className="flex-1 text-center">
-              <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Sen Lekki</span>
-              <span className="text-xs font-black text-text-secondary flex items-center justify-center">
+              <span className="text-2xs text-text-muted tracking-normal block mb-0.5 font-bold">Sen Lekki</span>
+              <span className="text-xs font-semibold text-text-secondary flex items-center justify-center">
                 {formatHours(enhanced.light_sleep_hours)}
                 <TrendArrow today={enhanced.light_sleep_hours} yesterday={enhancedYesterday?.light_sleep_hours} better="neutral" />
               </span>
@@ -152,22 +152,22 @@ export function CardiovascularRow({ enhanced }: { enhanced?: Tables<'oura_enhanc
       <div className="h-px bg-border-custom/30" />
       <div className="grid grid-cols-2 sm:flex sm:items-center sm:justify-between text-2xs px-1 gap-2 sm:gap-0">
         <div className="flex-1 text-center">
-          <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Wiek Naczyniowy</span>
-          <span className="text-xs font-black text-success flex items-center justify-center">
+          <span className="text-2xs text-text-muted tracking-normal block mb-0.5 font-bold">Wiek Naczyniowy</span>
+          <span className="text-xs font-semibold text-success flex items-center justify-center">
             {enhanced?.vascular_age != null ? `${Math.round(enhanced.vascular_age)} lat` : 'Optymalny'}
           </span>
         </div>
         <div className="hidden sm:block w-px h-6 bg-border-custom/30" />
         <div className="flex-1 text-center">
-          <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Odporność</span>
-          <span className="text-xs font-black text-primary capitalize flex items-center justify-center">
+          <span className="text-2xs text-text-muted tracking-normal block mb-0.5 font-bold">Odporność</span>
+          <span className="text-xs font-semibold text-primary capitalize flex items-center justify-center">
             {enhanced?.resilience_level || 'Solidna'}
           </span>
         </div>
         <div className="hidden sm:block w-px h-6 bg-border-custom/30" />
         <div className="flex-1 text-center">
-          <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">Stres Dnia</span>
-          <span className="text-xs font-black text-warning flex items-center justify-center">
+          <span className="text-2xs text-text-muted tracking-normal block mb-0.5 font-bold">Stres Dnia</span>
+          <span className="text-xs font-semibold text-warning flex items-center justify-center">
             {enhanced?.stress_high_minutes != null ? `${enhanced.stress_high_minutes}m` : 'Niski'}
           </span>
         </div>
@@ -175,8 +175,8 @@ export function CardiovascularRow({ enhanced }: { enhanced?: Tables<'oura_enhanc
           <>
             <div className="hidden sm:block w-px h-6 bg-border-custom/30" />
             <div className="flex-1 text-center">
-              <span className="text-3xs text-text-muted uppercase tracking-wider block mb-0.5 font-bold">VO2 Max</span>
-              <span className="text-xs font-black text-info flex items-center justify-center">
+              <span className="text-2xs text-text-muted tracking-normal block mb-0.5 font-bold">VO2 Max</span>
+              <span className="text-xs font-semibold text-info flex items-center justify-center">
                 {enhanced.vo2_max}
               </span>
             </div>

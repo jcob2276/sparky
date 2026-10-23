@@ -77,7 +77,7 @@ function E1rmSparkline({ points }: { points: ExerciseProgressSummary['chartPoint
           <circle key={c.date} cx={c.x} cy={c.y} r="3" fill="currentColor" />
         ))}
       </svg>
-      <div className="flex justify-between text-3xs font-bold text-text-muted px-0.5">
+      <div className="flex justify-between text-2xs font-bold text-text-muted px-0.5">
         <span>{formatShortDate(points[0].date)}</span>
         <span>{formatShortDate(points[points.length - 1].date)}</span>
       </div>
@@ -90,14 +90,14 @@ function SessionCard({ session, mode }: { session: ExerciseSessionSummary; mode:
     <Card variant="surface" className="border border-border-custom p-3 space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-xs font-black text-text-primary">{formatSessionDate(session.date)}</p>
+          <p className="text-xs font-semibold text-text-primary">{formatSessionDate(session.date)}</p>
           <p className="mt-0.5 text-sm font-bold text-text-secondary">{session.headline}</p>
         </div>
         {mode === 'weighted' && session.e1rm != null && (
           <p className="text-xs font-bold text-text-muted shrink-0">e1RM {session.e1rm.toFixed(1)}</p>
         )}
       </div>
-      <div className="grid grid-cols-[var(--ds-arbitrary-28px-1fr-1fr-44px)] gap-1 text-2xs font-bold text-text-muted uppercase tracking-wide">
+      <div className="grid grid-cols-[var(--ds-arbitrary-28px-1fr-1fr-44px)] gap-1 text-2xs font-bold text-text-muted tracking-normal">
         <span>#</span>
         <span className="text-center">kg</span>
         <span className="text-center">pow.</span>
@@ -154,7 +154,7 @@ export default function ExerciseProgressPage({ exerciseName, onBack }: ExerciseP
           <Pressable onClick={onBack} className="flex h-10 w-10 items-center justify-center rounded-xl cursor-pointer">
             <ChevronLeft size={20} />
           </Pressable>
-          <h1 className="text-sm font-black text-text-primary">{exerciseName}</h1>
+          <h1 className="text-sm font-semibold text-text-primary">{exerciseName}</h1>
         </header>
         <p className="p-6 text-center text-sm text-text-muted">Zaloguj się, aby zobaczyć historię ćwiczenia.</p>
       </div>
@@ -176,7 +176,7 @@ export default function ExerciseProgressPage({ exerciseName, onBack }: ExerciseP
           <Pressable onClick={onBack} className="flex h-10 w-10 items-center justify-center rounded-xl cursor-pointer">
             <ChevronLeft size={20} />
           </Pressable>
-          <h1 className="text-sm font-black text-text-primary">{exerciseName}</h1>
+          <h1 className="text-sm font-semibold text-text-primary">{exerciseName}</h1>
         </header>
         <p className="p-6 text-center text-sm text-text-muted">{error ?? 'Brak danych dla tego ćwiczenia'}</p>
       </div>
@@ -192,7 +192,7 @@ export default function ExerciseProgressPage({ exerciseName, onBack }: ExerciseP
           <ChevronLeft size={20} />
         </Pressable>
         <div className="min-w-0">
-          <h1 className="text-sm font-black text-text-primary line-clamp-2">{summary.exerciseName}</h1>
+          <h1 className="text-sm font-semibold text-text-primary line-clamp-2">{summary.exerciseName}</h1>
           <p className="text-2xs text-text-muted">
             {summary.sessionCount} {summary.sessionCount === 1 ? 'sesja' : summary.sessionCount < 5 ? 'sesje' : 'sesji'} w historii
           </p>
@@ -206,8 +206,8 @@ export default function ExerciseProgressPage({ exerciseName, onBack }: ExerciseP
 
         {sug && (
           <Card variant="surface" className="border border-border-custom p-4">
-            <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Sugestia na następny raz</p>
-            <p className="mt-1 text-3xl font-black text-primary">{sug.suggestedWeight} kg</p>
+            <p className="text-2xs font-semibold tracking-normal text-text-muted">Sugestia na następny raz</p>
+            <p className="mt-1 text-3xl font-semibold text-primary">{sug.suggestedWeight} kg</p>
             <p className="mt-1 text-xs text-text-secondary">{sug.reason}</p>
             <p className="mt-2 text-2xs text-text-muted">Ostatni top set: {sug.lastWeight} kg</p>
           </Card>
@@ -218,18 +218,18 @@ export default function ExerciseProgressPage({ exerciseName, onBack }: ExerciseP
             <div className="flex flex-wrap gap-4">
               <div>
                 <p className="text-2xs text-text-muted">e1RM ostatni</p>
-                <p className="text-xl font-black text-text-primary">{summary.latestE1rm.toFixed(1)} kg</p>
+                <p className="text-xl font-semibold text-text-primary">{summary.latestE1rm.toFixed(1)} kg</p>
               </div>
               {summary.bestE1rm != null && summary.bestE1rm !== summary.latestE1rm && (
                 <div>
                   <p className="text-2xs text-text-muted">Rekord</p>
-                  <p className="text-lg font-black text-text-secondary">{summary.bestE1rm.toFixed(1)} kg</p>
+                  <p className="text-lg font-semibold text-text-secondary">{summary.bestE1rm.toFixed(1)} kg</p>
                 </div>
               )}
               {summary.e1rmDeltaVsPrev != null && summary.sessionCount >= 3 && (
                 <div>
                   <p className="text-2xs text-text-muted">vs poprz. sesja</p>
-                  <p className={`text-lg font-black ${summary.e1rmDeltaVsPrev >= 0 ? 'text-success' : 'text-warning'}`}>
+                  <p className={`text-lg font-semibold ${summary.e1rmDeltaVsPrev >= 0 ? 'text-success' : 'text-warning'}`}>
                     {summary.e1rmDeltaVsPrev >= 0 ? '+' : ''}{summary.e1rmDeltaVsPrev.toFixed(1)}%
                   </p>
                 </div>
@@ -237,7 +237,7 @@ export default function ExerciseProgressPage({ exerciseName, onBack }: ExerciseP
               {summary.trendLabel !== 'insufficient' && (
                 <div>
                   <p className="text-2xs text-text-muted">Trend (e1RM)</p>
-                  <p className="text-lg font-black text-text-secondary capitalize">
+                  <p className="text-lg font-semibold text-text-secondary capitalize">
                     {TREND_LABEL_PL[summary.trendLabel]}
                     {summary.trendSlopePct != null ? ` (${summary.trendSlopePct > 0 ? '+' : ''}${summary.trendSlopePct}%/ses.)` : ''}
                   </p>
@@ -246,7 +246,7 @@ export default function ExerciseProgressPage({ exerciseName, onBack }: ExerciseP
               {summary.rollingMaxE1rm != null && summary.sessionCount >= 3 && (
                 <div>
                   <p className="text-2xs text-text-muted">Max 4 sesje</p>
-                  <p className="text-lg font-black text-text-secondary">{summary.rollingMaxE1rm.toFixed(1)} kg</p>
+                  <p className="text-lg font-semibold text-text-secondary">{summary.rollingMaxE1rm.toFixed(1)} kg</p>
                 </div>
               )}
             </div>
@@ -255,7 +255,7 @@ export default function ExerciseProgressPage({ exerciseName, onBack }: ExerciseP
         )}
 
         <div className="space-y-2">
-          <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Ostatnie sesje</p>
+          <p className="text-2xs font-semibold tracking-normal text-text-muted">Ostatnie sesje</p>
           {summary.sessions.length === 0 ? (
             <p className="text-sm text-text-muted">Brak historii</p>
           ) : (

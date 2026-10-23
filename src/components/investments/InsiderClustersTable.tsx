@@ -13,13 +13,13 @@ export const InsiderClustersTable: FC<Props> = ({
   onSelectTicker,
 }) => {
   return (
-    <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-2xs space-y-4">
+    <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-2xs space-y-4">
       {/* Header */}
       <div>
-        <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono">
+        <h3 className="text-xs sm:text-sm font-semibold text-text-primary font-mono">
           Klastry zakupów z ostatnich 90 dni
         </h3>
-        <p className="text-3xs sm:text-xs text-text-secondary mt-1">
+        <p className="text-2xs sm:text-xs text-text-secondary mt-1">
           Spółki, w których co najmniej dwóch insiderów kupowało w odstępie do 14 dni. Fakt o danych, nie rekomendacja.
         </p>
       </div>
@@ -28,7 +28,7 @@ export const InsiderClustersTable: FC<Props> = ({
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="border-b border-border-custom/40 text-3xs font-mono uppercase tracking-wider text-text-muted">
+            <tr className="border-b border-border-custom/40 text-2xs font-mono text-text-muted">
               <th className="py-2.5 px-3 font-semibold">Spółka</th>
               <th className="py-2.5 px-3 font-semibold text-right">Kupujących</th>
               <th className="py-2.5 px-3 font-semibold text-right">Transakcji</th>
@@ -52,14 +52,14 @@ export const InsiderClustersTable: FC<Props> = ({
                     <div className="font-bold text-text-primary group-hover:text-primary transition-colors">
                       {c.ticker}
                     </div>
-                    <div className="text-3xs text-text-muted truncate max-w-48 sm:max-w-64">
+                    <div className="text-2xs text-text-muted truncate max-w-48 sm:max-w-64">
                       {c.companyName}
                     </div>
                   </div>
                 </td>
 
                 {/* Kupujących */}
-                <td className="py-3 px-3 text-right font-black text-success text-sm sm:text-base">
+                <td className="py-3 px-3 text-right font-semibold text-success text-sm sm:text-base">
                   {c.buyersCount}
                 </td>
 
@@ -89,7 +89,7 @@ export const InsiderClustersTable: FC<Props> = ({
       </div>
 
       {/* Footer: Największe pojedyncze zakupy (Unblurred!) */}
-      <div className="pt-3 border-t border-border-custom/40 text-3xs font-mono text-text-secondary">
+      <div className="pt-3 border-t border-border-custom/40 text-2xs font-mono text-text-secondary">
         <span className="font-bold text-text-primary">Największe pojedyncze zakupy (90 dni):</span>{' '}
         <span className="text-text-muted">{topSinglePurchases}</span>
       </div>

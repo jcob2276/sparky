@@ -36,95 +36,39 @@ export const InvestmentsTopNav: FC<Props> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const iconButton = 'h-11 w-11 shrink-0 rounded-full p-0 text-text-secondary hover:text-text-primary';
+  const backLabel = activeTab === 'dashboard' ? 'Wróć do Sparky' : 'Wróć do pulpitu';
+
   return (
-    <div className="relative mb-6 border-b border-border-custom/50 pb-4 w-full max-w-full overflow-hidden">
-      <div className="flex items-center justify-between gap-2 sm:gap-4 w-full min-w-0">
-        {/* Left: Back + Mobile Toggle + Brand */}
-        <div className="flex items-center gap-1 sm:gap-3 min-w-0 shrink-0">
+    <div className="relative mb-4 w-full max-w-full">
+      <div className="flex w-full min-w-0 items-center justify-between gap-1">
+        <div className="flex min-w-0 items-center gap-0.5">
           {onBack && (
-            <Button
-              size="sm"
-              variant="ghost"
-              icon={<ArrowLeft size={18} />}
-              onClick={onBack}
-              className="rounded-xl p-2 text-text-secondary hover:text-text-primary shrink-0"
-              aria-label={activeTab === 'dashboard' ? 'Wróć do Sparky' : 'Wróć do pulpitu'}
-              title={activeTab === 'dashboard' ? 'Wróć do Sparky' : 'Wróć do pulpitu'}
-            />
+            <Button size="sm" variant="ghost" icon={<ArrowLeft size={20} />} onClick={onBack} className={iconButton} aria-label={backLabel} title={backLabel} />
           )}
-
           {onOpenMobileMenu && (
-            <Button
-              size="sm"
-              variant="ghost"
-              icon={<Menu size={18} />}
-              onClick={onOpenMobileMenu}
-              className="lg:hidden rounded-xl p-2 text-text-secondary hover:text-text-primary shrink-0"
-              aria-label="Otwórz menu nawigacji"
-              title="Otwórz menu nawigacji"
-            />
+            <Button size="sm" variant="ghost" icon={<Menu size={20} />} onClick={onOpenMobileMenu} className={`lg:hidden ${iconButton}`} aria-label="Otwórz menu nawigacji" title="Otwórz menu nawigacji" />
           )}
-
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-            <span className="font-mono text-xs font-bold text-primary">SP</span>
-            <div className="leading-tight">
-              <div className="font-mono text-xs sm:text-sm font-bold tracking-tight text-text-primary">
-                Sparky
-              </div>
-              <p className="text-3xs font-mono text-text-secondary hidden sm:block">
-                13F · Kongres · Form 4 · GPW
-              </p>
-            </div>
-          </div>
-
-          <div className="h-4 w-px bg-border-custom/60 mx-0.5 sm:mx-1 hidden sm:block" />
-
-          {/* Global Ticker Search */}
-          <Button
-            size="sm"
-            variant="secondary"
-            icon={<Search size={14} />}
-            onClick={() => setIsSearchOpen(true)}
-            className="rounded-xl text-xs font-semibold px-2.5 sm:px-3 shrink-0"
-            aria-label="Szukaj spółki"
-            title="Szukaj spółki (⌘K)"
-          >
-            <span className="hidden sm:inline">Szukaj spółki</span>
-            <span className="ml-1.5 text-3xs font-mono text-text-muted hidden md:inline">⌘K</span>
-          </Button>
+          <h1 className="ml-1 hidden truncate text-lg font-semibold text-text-primary sm:block">Inwestycje</h1>
         </div>
 
-        {/* Actions */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex shrink-0 items-center gap-0.5">
           <MarketStatusBadge />
-
+          <Button size="sm" variant="ghost" icon={<Search size={18} />} onClick={() => setIsSearchOpen(true)} className={iconButton} aria-label="Szukaj spółki" title="Szukaj spółki (⌘K)" />
+          <Button size="sm" variant="ghost" icon={<BookOpen size={18} />} onClick={onOpenPlaybook} className={`hidden sm:inline-flex ${iconButton}`} aria-label="Playbook" title="Playbook" />
           <Button
             size="sm"
-            variant="secondary"
-            icon={<BookOpen size={13} />}
-            onClick={onOpenPlaybook}
-            className="hidden sm:inline-flex rounded-xl text-xs font-semibold"
-          >
-            Playbook
-          </Button>
-
-          <Button
-            size="sm"
-            variant="secondary"
-            icon={<RefreshCw size={13} className={syncing ? 'animate-spin' : ''} />}
+            variant="ghost"
+            icon={<RefreshCw size={18} className={syncing ? 'animate-spin' : ''} />}
             onClick={onRefresh}
             disabled={syncing}
-            loading={syncing}
-            className="rounded-xl text-xs font-semibold px-2.5 sm:px-3 shrink-0"
+            className={iconButton}
             aria-label={syncing ? 'Aktualizacja...' : 'Odśwież'}
             title={syncing ? 'Aktualizacja...' : 'Odśwież'}
-          >
-            <span className="hidden sm:inline">{syncing ? 'Aktualizacja...' : 'Odśwież'}</span>
-          </Button>
+          />
         </div>
       </div>
 
-      {/* Global Ticker Search Modal */}
       <TickerSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </div>
   );

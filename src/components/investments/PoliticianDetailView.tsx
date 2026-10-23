@@ -65,10 +65,10 @@ const PoliticianKpiCards: FC<{ detail: PoliticianDetail }> = ({ detail }) => {
           key={i}
           className="bg-surface-elevated border border-border-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between"
         >
-          <div className="text-3xs font-black uppercase tracking-wider text-text-muted">
+          <div className="text-2xs font-semibold text-text-muted">
             {kpi.label}
           </div>
-          <div className={`mt-2 font-mono font-black text-lg tabular-nums truncate ${kpi.color}`}>
+          <div className={`mt-2 font-mono font-semibold text-lg tabular-nums truncate ${kpi.color}`}>
             {kpi.val}
           </div>
         </div>
@@ -83,27 +83,27 @@ const PoliticianPerformanceCard: FC<{ detail: PoliticianDetail }> = ({ detail })
     <div className="bg-surface-elevated border border-border-custom rounded-2xl p-5 shadow-sm space-y-4">
       <div className="flex items-center gap-2">
         <TrendingUp size={16} className="text-success" />
-        <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+        <h3 className="text-xs font-semibold text-text-primary">
           Historyczny zwrot po ujawnieniu z porównaniem do S&amp;P 500
         </h3>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-surface-subtle border border-border-custom/50 rounded-xl p-3.5 space-y-1">
-          <div className="text-3xs font-mono uppercase text-text-muted">Zwrot polityka (1Y)</div>
-          <div className="text-xl font-black font-mono text-success">
+          <div className="text-2xs font-mono text-text-muted">Zwrot polityka (1Y)</div>
+          <div className="text-xl font-semibold font-mono text-success">
             +{perf.politician1y.toFixed(1).replace('.', ',')}%
           </div>
         </div>
         <div className="bg-surface-subtle border border-border-custom/50 rounded-xl p-3.5 space-y-1">
-          <div className="text-3xs font-mono uppercase text-text-muted">Benchmark S&amp;P 500 (1Y)</div>
-          <div className="text-xl font-black font-mono text-text-primary">
+          <div className="text-2xs font-mono text-text-muted">Benchmark S&amp;P 500 (1Y)</div>
+          <div className="text-xl font-semibold font-mono text-text-primary">
             +{perf.sp5001y.toFixed(1).replace('.', ',')}%
           </div>
         </div>
         <div className="bg-surface-subtle border border-border-custom/50 rounded-xl p-3.5 space-y-1">
-          <div className="text-3xs font-mono uppercase text-text-muted">Alfa (Przewaga nad rynkiem)</div>
-          <div className="text-xl font-black font-mono text-primary">
+          <div className="text-2xs font-mono text-text-muted">Alfa (Przewaga nad rynkiem)</div>
+          <div className="text-xl font-semibold font-mono text-primary">
             +{perf.alpha1y.toFixed(1).replace('.', ',')}%
           </div>
         </div>
@@ -208,11 +208,11 @@ export const PoliticianDetailView: FC<Props> = ({
             size={56}
           />
           <div>
-            <h1 className="text-2xl font-black uppercase tracking-tight text-text-primary">
+            <h1 className="text-2xl font-semibold tracking-tight text-text-primary">
               {detail.name}
             </h1>
             <div className="flex flex-wrap items-center gap-2 mt-1">
-              <span className={`px-2 py-0.5 rounded-md text-3xs font-bold uppercase tracking-wider ${
+              <span className={`px-2 py-0.5 rounded-md text-2xs font-bold ${
                 detail.party === 'D' ? 'bg-primary/10 text-primary border border-primary/20' : 'bg-danger/10 text-danger border border-danger/20'
               }`}>
                 {detail.partyLabel}
@@ -229,7 +229,7 @@ export const PoliticianDetailView: FC<Props> = ({
           variant={isWatched ? 'secondary' : 'tonal'}
           icon={<Star size={13} className={isWatched ? 'fill-warning text-warning' : ''} />}
           onClick={() => onToggleWatchlist(detail.name)}
-          className="rounded-xl text-xs font-semibold uppercase tracking-wider"
+          className="rounded-xl text-xs font-semibold"
         >
           {isWatched ? 'Obserwujesz' : 'Obserwuj'}
         </Button>
@@ -248,8 +248,8 @@ export const PoliticianDetailView: FC<Props> = ({
       <PoliticianHistoryTable transactions={detail.transactions} onSelectStock={onSelectStock} />
 
       {/* Educational Footer Disclaimer */}
-      <div className="text-3xs text-text-muted space-y-1 pt-2 border-t border-border-custom/30 leading-relaxed font-mono">
-        <p className="font-bold uppercase tracking-wider">
+      <div className="text-2xs text-text-muted space-y-1 pt-2 border-t border-border-custom/30 leading-relaxed font-mono">
+        <p className="font-bold">
           Portfel hipotetyczny: kupna z ujawnień, waga = środek przedziału kwoty. Fakt o danych, nie zalecenie.
         </p>
         <p>

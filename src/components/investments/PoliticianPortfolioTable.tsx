@@ -18,7 +18,7 @@ export const PoliticianPortfolioTable: FC<Props> = ({ portfolio, onSelectStock }
   return (
     <div className="bg-surface-elevated border border-border-custom rounded-2xl overflow-hidden shadow-sm">
       <div className="p-4 border-b border-border-custom/50">
-        <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+        <h3 className="text-xs font-semibold text-text-primary">
           Portfel hipotetyczny: Kupna z ujawnień
         </h3>
         <p className="text-2xs text-text-muted mt-0.5">
@@ -27,7 +27,7 @@ export const PoliticianPortfolioTable: FC<Props> = ({ portfolio, onSelectStock }
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="bg-surface-subtle text-3xs font-black text-text-muted uppercase tracking-wider border-b border-border-custom/40">
+          <thead className="bg-surface-subtle text-2xs font-semibold text-text-muted border-b border-border-custom/40">
             <tr>
               <th className="py-2.5 px-4">Spółka</th>
               <th className="py-2.5 px-4 text-right">Szacowany wolumen</th>
@@ -47,7 +47,7 @@ export const PoliticianPortfolioTable: FC<Props> = ({ portfolio, onSelectStock }
                     <CompanyLogo ticker={h.ticker} name={h.companyName} size={24} />
                     <div>
                       <div className="font-bold text-text-primary">{h.ticker}</div>
-                      <div className="text-3xs text-text-muted font-normal">{h.companyName}</div>
+                      <div className="text-2xs text-text-muted font-normal">{h.companyName}</div>
                     </div>
                   </div>
                 </td>

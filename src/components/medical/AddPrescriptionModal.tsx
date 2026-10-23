@@ -102,7 +102,7 @@ export default function AddPrescriptionModal({ onClose, onSaved, userId }: AddPr
           </div>
         </div>
 
-        <Button type="submit" loading={isSubmitting} className="w-full py-3 font-bold uppercase tracking-wider">
+        <Button type="submit" loading={isSubmitting} className="w-full py-3 font-bold tracking-normal">
           Zapisz Szkła
         </Button>
       </form>

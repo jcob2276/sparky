@@ -10,12 +10,11 @@ import { useNetWorthSnapshotSync } from '../../lib/finance/netWorthSnapshots';
 import { notify } from '../../lib/notify';
 import { getTodayWarsaw } from '../../lib/date';
 import ContentContainer from '../shared/ContentContainer';
-import Spinner from '../ui/Spinner';
+import { FinanceSkeleton } from './FinanceSkeleton';
 import { Pressable } from '../ui/ControlPrimitives';
 import { FinanceTabContent, type FinanceTabKey } from './FinanceTabContent';
 import { FinanceBottomNav } from './FinanceBottomNav';
 import { FinanceQuickEntry } from './FinanceQuickEntry';
-import { useForcedDarkTheme } from './useForcedDarkTheme';
 import { useFinancePageData } from './useFinancePageData';
 
 const TITLES: Record<FinanceTabKey, string> = {
@@ -41,7 +40,6 @@ function FinancePage() {
   const cashEntry = useCashEntryMutation(userId);
   const [tab, setTab] = useState<FinanceTabKey>('dashboard');
   const [quickEntry, setQuickEntry] = useState<{ open: boolean; kind: 'expense' | 'income' }>({ open: false, kind: 'expense' });
-  useForcedDarkTheme();
   const reduceMotion = useReducedMotion();
 
   const run = async (fn: () => Promise<void>) => {
@@ -92,7 +90,7 @@ function FinancePage() {
           <Link
             to="/dzis"
             aria-label="Wróć do Sparky"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background/40 text-sm font-bold text-text-primary ring-1 ring-text-primary/15 transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-95"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-background/40 text-sm font-bold text-text-primary ring-1 ring-text-primary/15 transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-95"
           >
             {initial}
           </Link>
@@ -101,7 +99,7 @@ function FinancePage() {
             type="button"
             onClick={() => setTab('portfolio')}
             aria-label="Portfel"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-background/40 text-text-primary ring-1 ring-text-primary/15"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-background/40 text-text-primary ring-1 ring-text-primary/15"
           >
             <BarChart3 size={18} aria-hidden="true" />
           </Pressable>
@@ -110,7 +108,7 @@ function FinancePage() {
 
       <ContentContainer width={WIDTH_BY_TAB[tab]} className="relative space-y-6 pb-32 pt-2">
         {bundleQuery.isLoading && (
-          <div className="flex justify-center py-16"><Spinner /></div>
+          <FinanceSkeleton />
         )}
         {bundleQuery.error && (
           <p className="rounded-2xl bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/20">

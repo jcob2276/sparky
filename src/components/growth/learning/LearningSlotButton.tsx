@@ -24,7 +24,7 @@ export default function LearningSlotButton({ assignment, today, loggedToday, bus
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="min-w-0">
-        <p className="text-3xs font-black uppercase tracking-wider text-text-muted">
+        <p className="text-2xs font-semibold text-text-muted">
           {slot.overdue ? 'Zaległość na dziś' : 'Dziś'}
         </p>
         <p className="text-sm font-bold text-text-primary truncate">

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable } from '../ui/ControlPrimitives';
+import Skeleton from '../ui/Skeleton';
 import { CalendarDays, Clock, X } from 'lucide-react';
 import { TIMEZONE } from '../../lib/date';
 import { useTodayCalendarEvents } from '../calendar/hooks/useTodayCalendarEvents';
@@ -25,7 +26,7 @@ function EventsList({ userId, today }: { userId: string; today: string }) {
     <div className="flex-1 overflow-y-auto px-3 py-2 space-y-1">
       {loading && (
         <div className="space-y-2 py-2" aria-busy="true" aria-label="Ładowanie wydarzeń">
-          {[0, 1, 2].map((i) => <div key={i} className="h-12 animate-pulse rounded-xl bg-surface-solid/50" />)}
+          {[0, 1, 2].map((i) => <Skeleton key={i} variant="block" className="h-12" />)}
         </div>
       )}
       {!loading && events.length === 0 && (

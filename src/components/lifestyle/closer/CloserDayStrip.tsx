@@ -59,14 +59,14 @@ export default function CloserDayStrip({
               : 'hover:bg-surface-solid/10 text-text-muted hover:text-text-primary'
           }`}
         >
-          <span className="text-3xs uppercase tracking-wider opacity-80">{d.dayLabel}</span>
-          <span className={`text-xs font-black mt-0.5 ${d.isSelected ? 'text-white' : 'text-text-primary'}`}>
+          <span className="text-2xs opacity-80">{d.dayLabel}</span>
+          <span className={`text-xs font-semibold mt-0.5 ${d.isSelected ? 'text-on-accent' : 'text-text-primary'}`}>
             {d.dayNum}
           </span>
           {d.hasData && (
             <span
               className={`mt-1 h-1.5 w-1.5 rounded-full ${
-                d.isSelected ? 'bg-white' : 'bg-primary'
+                d.isSelected ? 'bg-on-accent' : 'bg-primary'
               }`}
             />
           )}

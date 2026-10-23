@@ -24,7 +24,7 @@ export const SuperinvestorHoldingRow: FC<Props> = ({ holding: h, onSelectTicker 
             <div className="font-bold text-text-primary group-hover:text-primary transition-colors flex items-center gap-1.5">
               {h.tickerMapped ? h.ticker : `CUSIP: ${h.cusip}`}
             </div>
-            <div className="text-3xs text-text-muted truncate max-w-36 sm:max-w-44">
+            <div className="text-2xs text-text-muted truncate max-w-36 sm:max-w-44">
               {h.companyName}
             </div>
           </div>
@@ -60,31 +60,31 @@ export const SuperinvestorHoldingRow: FC<Props> = ({ holding: h, onSelectTicker 
       {/* Zmiana Badge */}
       <td className="py-3 px-3 text-right">
         {h.changeType === 'new' && (
-          <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-success/10 text-success border border-success/20">
+          <span className="px-2 py-0.5 rounded-md text-2xs font-bold bg-success/10 text-success border border-success/20">
             Nowa pozycja
           </span>
         )}
         {h.changeType === 'decreased' && (
-          <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-danger/10 text-danger border border-danger/20">
+          <span className="px-2 py-0.5 rounded-md text-2xs font-bold bg-danger/10 text-danger border border-danger/20">
             Mniej akcji {h.sharesDeltaPct ? `${h.sharesDeltaPct.toFixed(1)}%` : ''}
           </span>
         )}
         {h.changeType === 'increased' && (
-          <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-success/10 text-success border border-success/20">
+          <span className="px-2 py-0.5 rounded-md text-2xs font-bold bg-success/10 text-success border border-success/20">
             Więcej akcji {h.sharesDeltaPct ? `+${h.sharesDeltaPct.toFixed(1)}%` : ''}
           </span>
         )}
         {h.changeType === 'sold' && (
-          <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-surface-elevated text-text-muted border border-border-custom">
+          <span className="px-2 py-0.5 rounded-md text-2xs font-bold bg-surface-elevated text-text-muted border border-border-custom">
             Brak w raporcie
           </span>
         )}
         {h.changeType === 'unchanged' && (
-          <span className="px-2 py-0.5 rounded-md text-3xs font-bold bg-surface-elevated text-text-secondary border border-border-custom/50">
+          <span className="px-2 py-0.5 rounded-md text-2xs font-bold bg-surface-elevated text-text-secondary border border-border-custom/50">
             Bez zmian
           </span>
         )}
-        {h.changeType === 'unknown' && <span className="text-text-muted text-3xs">Brak porównania</span>}
+        {h.changeType === 'unknown' && <span className="text-text-muted text-2xs">Brak porównania</span>}
       </td>
     </tr>
   );

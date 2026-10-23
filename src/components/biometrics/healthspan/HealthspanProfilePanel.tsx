@@ -44,9 +44,9 @@ export default function HealthspanProfilePanel({ profile, pace, today }: Props) 
       <section className="overflow-hidden rounded-3xl border border-white/10 bg-surface-1">
         <div className="grid gap-px bg-white/10 sm:grid-cols-3">
           <div className="bg-surface-1 p-5 sm:col-span-2">
-            <p className="text-2xs font-black uppercase tracking-widest text-primary">Healthspan Intelligence</p>
+            <p className="text-2xs font-semibold tracking-normal text-primary">Healthspan Intelligence</p>
             <h2 className="mt-2 text-2xl font-light tracking-tight">Wiek funkcjonalny</h2>
-            <p className="mt-3 text-4xl font-light tracking-tight text-white">
+            <p className="mt-3 text-4xl font-light tracking-tight text-text-primary">
               {profile.ageRange.low}–{profile.ageRange.high} lat
             </p>
             <p className="mt-2 text-sm text-text-secondary">
@@ -54,7 +54,7 @@ export default function HealthspanProfilePanel({ profile, pace, today }: Props) 
             </p>
           </div>
           <div className="bg-surface-1 p-5">
-            <p className="text-2xs font-bold uppercase tracking-widest text-text-muted">Tempo zmian</p>
+            <p className="text-2xs font-bold tracking-normal text-text-muted">Tempo zmian</p>
             <p className="mt-3 text-3xl font-light">
               {pace.multiplier == null ? 'Kalibracja' : `${pace.multiplier.toFixed(2)}×`}
             </p>
@@ -71,15 +71,15 @@ export default function HealthspanProfilePanel({ profile, pace, today }: Props) 
         {today && (
           <div className="grid gap-px border-t border-white/10 bg-white/10 sm:grid-cols-2">
             <div className="bg-surface-1 p-4">
-              <p className="text-3xs font-bold uppercase tracking-widest text-text-muted">Pojemność dzisiaj</p>
-              <p className="mt-1 text-lg font-semibold text-white">
+              <p className="text-2xs font-bold tracking-normal text-text-muted">Pojemność dzisiaj</p>
+              <p className="mt-1 text-lg font-semibold text-text-primary">
                 {today.capacity.score == null ? 'Brak danych' : `${today.capacity.score}/100 · ${today.capacity.state}`}
               </p>
               {today.capacity.limiter && <p className="text-xs text-text-muted">Limiter: {today.capacity.limiter}</p>}
             </div>
             <div className="bg-surface-1 p-4">
-              <p className="text-3xs font-bold uppercase tracking-widest text-text-muted">Wsparcie snu</p>
-              <p className="mt-1 text-lg font-semibold text-white">
+              <p className="text-2xs font-bold tracking-normal text-text-muted">Wsparcie snu</p>
+              <p className="mt-1 text-lg font-semibold text-text-primary">
                 {today.sleepSupport.score == null ? 'Brak danych' : `${today.sleepSupport.score}/100 · ${today.sleepSupport.label}`}
               </p>
             </div>
@@ -100,7 +100,7 @@ export default function HealthspanProfilePanel({ profile, pace, today }: Props) 
       )}
 
       <section className="rounded-2xl border border-white/10 bg-surface-1 p-4">
-        <h3 className="text-sm font-bold text-white">Metodologia</h3>
+        <h3 className="text-sm font-bold text-text-primary">Metodologia</h3>
         <div className="mt-3 grid gap-3 text-xs leading-relaxed text-text-secondary sm:grid-cols-2">
           <p>
             <strong className="text-text-primary">Wiek funkcjonalny:</strong> wiek chronologiczny skorygowany
@@ -157,13 +157,13 @@ function ContributorSection({
   if (!contributors.length) return null;
   return (
     <section>
-      <h3 className="mb-3 text-xs font-black uppercase tracking-widest text-text-muted">{title}</h3>
+      <h3 className="mb-3 text-xs font-semibold tracking-normal text-text-muted">{title}</h3>
       <div className="space-y-2">
         {contributors.map((item) => (
           <article key={item.key} className="rounded-2xl border border-white/10 bg-surface-1 p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="font-semibold text-white">{item.label}</p>
+                <p className="font-semibold text-text-primary">{item.label}</p>
                 <p className="mt-1 text-xs text-text-muted">{item.benchmark}</p>
               </div>
               <div className="text-right">
@@ -190,8 +190,8 @@ function ContributorSection({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-white/5 px-4 py-3">
-      <p className="text-3xs font-bold uppercase tracking-widest text-text-muted">{label}</p>
-      <p className="mt-1 text-lg font-semibold text-white">{value}</p>
+      <p className="text-2xs font-bold tracking-normal text-text-muted">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-text-primary">{value}</p>
     </div>
   );
 }

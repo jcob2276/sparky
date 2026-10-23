@@ -42,7 +42,7 @@ export function LinksBulkActionBar({
     >
       {showCategoryMenu && (
         <div className="rounded-2xl border border-border-custom bg-background/95 p-2 shadow-xl backdrop-blur-md min-w-[170px] animate-in fade-in zoom-in-95">
-          <p className="px-2 py-1 text-3xs font-black uppercase text-text-muted">Kategoria</p>
+          <p className="px-2 py-1 text-2xs font-semibold text-text-muted">Kategoria</p>
           {CATEGORIES.map((cat) => (
             <Pressable
               key={cat}
@@ -60,7 +60,7 @@ export function LinksBulkActionBar({
 
       <div className="flex items-center gap-1.5 rounded-2xl border border-border-custom/50 bg-background/95 px-3 py-2 shadow-2xl backdrop-blur-xl ring-1 ring-border-custom/20">
         <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-bold text-text-primary">
-          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary text-on-accent text-3xs font-black px-1">
+          <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary text-on-accent text-2xs font-semibold px-1">
             {selectedCount}
           </span>
           <span className="hidden sm:inline">wybranych</span>

@@ -56,13 +56,13 @@ export const GpwInsidersHeatmap: FC<Props> = ({ className = '' }) => {
           <h2 className="text-sm sm:text-base font-bold text-text-primary tracking-tight">
             Natężenie zakupów insiderów, 90 dni
           </h2>
-          <p className="text-3xs text-text-muted mt-0.5">
+          <p className="text-2xs text-text-muted mt-0.5">
             Dzienny rozkład transakcji osób zarządzających i rad nadzorczych na GPW
           </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-3xs font-mono uppercase tracking-wider text-text-muted">
+          <span className="text-2xs font-mono text-text-muted">
             KOLOR = LICZBA TRANSAKCJI
           </span>
           <div className="flex items-center gap-1">
@@ -91,7 +91,7 @@ export const GpwInsidersHeatmap: FC<Props> = ({ className = '' }) => {
         </div>
 
         {/* Hover detail bar */}
-        <div className="mt-2 flex items-center justify-between text-3xs font-mono text-text-muted border-t border-border-custom/40 pt-2">
+        <div className="mt-2 flex items-center justify-between text-2xs font-mono text-text-muted border-t border-border-custom/40 pt-2">
           <div>
             {hoveredCell ? (
               <span className="text-text-primary font-semibold">

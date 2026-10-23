@@ -139,7 +139,7 @@ export default function MedicalImport({ isOpen, onClose, series, onConfirmImport
           <>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <label className="space-y-1">
-                <span className="text-2xs font-black uppercase text-text-muted">Data wyniku</span>
+                <span className="text-2xs font-semibold text-text-muted">Data wyniku</span>
                 <ControlInput
                   type="date"
                   value={resultDate}
@@ -148,7 +148,7 @@ export default function MedicalImport({ isOpen, onClose, series, onConfirmImport
                 />
               </label>
               <label className="space-y-1">
-                <span className="text-2xs font-black uppercase text-text-muted">Dokument / źródło</span>
+                <span className="text-2xs font-semibold text-text-muted">Dokument / źródło</span>
                 <ControlInput
                   type="text"
                   placeholder="np. Morfologia — Diagnostyka"
@@ -158,7 +158,7 @@ export default function MedicalImport({ isOpen, onClose, series, onConfirmImport
                 />
               </label>
               <label className="space-y-1">
-                <span className="text-2xs font-black uppercase text-text-muted">Laboratorium</span>
+                <span className="text-2xs font-semibold text-text-muted">Laboratorium</span>
                 <ControlInput
                   type="text"
                   placeholder="np. Diagnostyka"

@@ -83,7 +83,7 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
       style={{ borderRadius: 'var(--radius-md)' }}
     >
       <div className="flex items-center justify-between px-0.5">
-        <span className="text-xs sm:text-sm font-black text-text-primary tracking-wide">
+        <span className="text-xs sm:text-sm font-semibold text-text-primary">
           {monthNames[month]} {year}
         </span>
         <div className="flex gap-1 items-center">
@@ -105,9 +105,9 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
       </div>
 
       <div className="grid grid-cols-[16px_repeat(7,minmax(0,1fr))] gap-x-0.5 gap-y-1 text-center items-center">
-        <span className="text-3xs font-black text-text-muted/40 uppercase self-center">T.</span>
+        <span className="text-2xs font-semibold text-text-muted/40 self-center">T.</span>
         {['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'].map((d, idx) => (
-          <span key={idx} className="text-3xs font-bold text-text-muted/60 uppercase tracking-wider">
+          <span key={idx} className="text-2xs font-bold text-text-muted/60">
             {d}
           </span>
         ))}
@@ -117,7 +117,7 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
 
           return (
             <React.Fragment key={rowIdx}>
-              <span className="text-3xs font-black text-text-muted/35 flex items-center justify-center tabular-nums">
+              <span className="text-2xs font-semibold text-text-muted/35 flex items-center justify-center tabular-nums">
                 {weekNum}
               </span>
               {rowDays.map((item, idx) => {
@@ -134,7 +134,7 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
                       title={showMoon ? `${item.dayStr} · ${moon.name}` : item.dayStr}
                       className={`h-7 w-7 sm:h-7.5 sm:w-7.5 mx-auto rounded-full flex items-center justify-center text-xs transition-all duration-150 active:scale-90 ${
                         isSelected
-                          ? 'bg-primary text-on-accent font-black shadow-xs scale-105'
+                          ? 'bg-primary text-on-accent font-semibold shadow-xs scale-105'
                           : isToday
                           ? 'border border-primary text-primary font-bold hover:bg-primary/10'
                           : item.isCurrentMonth
@@ -147,7 +147,7 @@ export default function MiniCalendar({ selectedDay, onSelectDay, eventDatesSet }
                     <div className="h-1.5 flex items-center justify-center mt-0.5">
                       {showMoon ? (
                         <span
-                          className="text-3xs leading-none opacity-80"
+                          className="text-2xs leading-none opacity-80"
                           title={moon.name}
                         >
                           {moon.emoji}

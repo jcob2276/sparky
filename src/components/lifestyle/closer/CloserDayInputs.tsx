@@ -32,7 +32,7 @@ function DialsCard({ dials, disabled, onChangeDials }: DialsCardProps) {
         <span className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
           <PhoneCall size={13} className="text-primary" /> Diale
         </span>
-        <span className="text-base font-black text-primary">{dials}</span>
+        <span className="text-base font-semibold text-primary">{dials}</span>
       </div>
       <div className="flex items-center gap-1">
         <Pressable
@@ -55,7 +55,7 @@ function DialsCard({ dials, disabled, onChangeDials }: DialsCardProps) {
           type="button"
           disabled={disabled}
           onClick={() => onChangeDials(1)}
-          className="flex-1 rounded-lg border border-primary/30 bg-primary/10 py-1 text-2xs font-black text-primary hover:bg-primary/20 active:scale-95"
+          className="flex-1 rounded-lg border border-primary/30 bg-primary/10 py-1 text-2xs font-semibold text-primary hover:bg-primary/20 active:scale-95"
         >
           +1
         </Pressable>
@@ -63,7 +63,7 @@ function DialsCard({ dials, disabled, onChangeDials }: DialsCardProps) {
           type="button"
           disabled={disabled}
           onClick={() => onChangeDials(5)}
-          className="flex-1 rounded-lg border border-primary/30 bg-primary/10 py-1 text-2xs font-black text-primary hover:bg-primary/20 active:scale-95"
+          className="flex-1 rounded-lg border border-primary/30 bg-primary/10 py-1 text-2xs font-semibold text-primary hover:bg-primary/20 active:scale-95"
         >
           +5
         </Pressable>
@@ -71,7 +71,7 @@ function DialsCard({ dials, disabled, onChangeDials }: DialsCardProps) {
           type="button"
           disabled={disabled}
           onClick={() => onChangeDials(10)}
-          className="flex-1 rounded-lg border border-primary/30 bg-primary/10 py-1 text-2xs font-black text-primary hover:bg-primary/20 active:scale-95"
+          className="flex-1 rounded-lg border border-primary/30 bg-primary/10 py-1 text-2xs font-semibold text-primary hover:bg-primary/20 active:scale-95"
         >
           +10
         </Pressable>
@@ -93,7 +93,7 @@ function WorkHoursCard({ workHours, disabled, onChangeWorkHours }: WorkHoursCard
         <span className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
           <Clock size={13} className="text-warning" /> Czas pracy
         </span>
-        <span className="text-base font-black text-text-primary">{workHours}h</span>
+        <span className="text-base font-semibold text-text-primary">{workHours}h</span>
       </div>
       <div className="flex items-center gap-1">
         <Pressable
@@ -108,7 +108,7 @@ function WorkHoursCard({ workHours, disabled, onChangeWorkHours }: WorkHoursCard
           type="button"
           disabled={disabled}
           onClick={() => onChangeWorkHours(0.5)}
-          className="flex-1 rounded-lg border border-warning/30 bg-warning/10 py-1 text-2xs font-black text-warning hover:bg-warning/20 active:scale-95"
+          className="flex-1 rounded-lg border border-warning/30 bg-warning/10 py-1 text-2xs font-semibold text-warning hover:bg-warning/20 active:scale-95"
         >
           +0.5h
         </Pressable>
@@ -116,7 +116,7 @@ function WorkHoursCard({ workHours, disabled, onChangeWorkHours }: WorkHoursCard
           type="button"
           disabled={disabled}
           onClick={() => onChangeWorkHours(1)}
-          className="flex-1 rounded-lg border border-warning/30 bg-warning/10 py-1 text-2xs font-black text-warning hover:bg-warning/20 active:scale-95"
+          className="flex-1 rounded-lg border border-warning/30 bg-warning/10 py-1 text-2xs font-semibold text-warning hover:bg-warning/20 active:scale-95"
         >
           +1h
         </Pressable>
@@ -124,7 +124,7 @@ function WorkHoursCard({ workHours, disabled, onChangeWorkHours }: WorkHoursCard
           type="button"
           disabled={disabled}
           onClick={() => onChangeWorkHours(2)}
-          className="flex-1 rounded-lg border border-warning/30 bg-warning/10 py-1 text-2xs font-black text-warning hover:bg-warning/20 active:scale-95"
+          className="flex-1 rounded-lg border border-warning/30 bg-warning/10 py-1 text-2xs font-semibold text-warning hover:bg-warning/20 active:scale-95"
         >
           +2h
         </Pressable>
@@ -164,7 +164,7 @@ function CounterCard({
         <span className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
           <Icon size={13} className={iconColor} /> {label}
         </span>
-        <span className="text-3xs text-text-muted">{sublabel}</span>
+        <span className="text-2xs text-text-muted">{sublabel}</span>
       </div>
       <div className="flex items-center gap-2">
         <Pressable
@@ -175,14 +175,14 @@ function CounterCard({
         >
           -
         </Pressable>
-        <span className={`text-base font-black min-w-4 text-center ${valueColor}`}>
+        <span className={`text-base font-semibold min-w-4 text-center ${valueColor}`}>
           {value}
         </span>
         <Pressable
           type="button"
           disabled={disabled}
           onClick={onIncrement}
-          className={`flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-black active:scale-95 ${buttonColor}`}
+          className={`flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-semibold active:scale-95 ${buttonColor}`}
         >
           +
         </Pressable>
@@ -243,7 +243,7 @@ export default function CloserDayInputs({
             {displayDate}
           </span>
           {isToday && (
-            <span className="ml-2 rounded-md bg-primary/10 px-1.5 py-0.5 text-3xs font-black uppercase tracking-wider text-primary">
+            <span className="ml-2 rounded-md bg-primary/10 px-1.5 py-0.5 text-2xs font-semibold text-primary">
               Dziś
             </span>
           )}

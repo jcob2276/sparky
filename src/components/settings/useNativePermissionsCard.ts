@@ -13,10 +13,11 @@ import {
 import { consumeNativeShareOnResume } from '../../lib/native/initNativeIntents';
 import {
   fetchTodayLocationSummary,
+  flushLocationNow,
   hasLocationPermission,
-  requestLocationPermission,
   syncLocationNow,
 } from '../../lib/native/locationSync';
+import { requestLocationAccess } from '../../lib/native/locationPermissions';
 import { hasUsageStatsAccess, syncPhoneUsageToday } from '../../lib/native/usageStatsSync';
 
 function syncErrorMessage(code: string | undefined): string {
@@ -25,6 +26,8 @@ function syncErrorMessage(code: string | undefined): string {
       return 'Brak dostępu do statystyk — tapnij Uprawnienia i włącz Sparky.';
     case 'location_denied':
       return 'Brak lokalizacji — zezwól w popupie Androida.';
+    case 'low_accuracy':
+      return 'Sygnał GPS za słaby (>100 m) — wyjdź na otwartą przestrzeń i spróbuj ponownie.';
     case 'not_authenticated':
       return 'Nie jesteś zalogowany — wyloguj i zaloguj ponownie.';
     default:
@@ -118,9 +121,10 @@ export function useNativePermissionsCard(userId: string) {
     setSyncing(true);
     try {
       if (!locationGranted) {
-        await requestLocationPermission();
+        await requestLocationAccess();
         await refreshAccess();
       }
+      await flushLocationNow(userId, true);
 
       const [phone, location] = await Promise.all([
         syncPhoneUsageToday(userId, true, { silent: true }),

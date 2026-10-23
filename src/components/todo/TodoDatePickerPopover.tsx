@@ -177,7 +177,7 @@ export default function TodoDatePickerPopover({
 
       <div className="border-t border-border-custom/40 pt-2">
         <div className="flex items-center justify-between mb-1.5 px-0.5">
-          <span className="text-sm font-black text-text-primary">{MONTH_LABELS[viewMonth]} {viewYear}</span>
+          <span className="text-sm font-semibold text-text-primary">{MONTH_LABELS[viewMonth]} {viewYear}</span>
           <div className="flex gap-1">
             <Pressable type="button" aria-label="Poprzedni miesiąc" onClick={goPrevMonth} className="p-2 rounded-lg hover:bg-surface/60 transition-colors">
               <ChevronLeft size={13} className="text-text-muted" />

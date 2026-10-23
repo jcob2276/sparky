@@ -48,7 +48,7 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
             <div className="flex items-center gap-2.5">
               <Video size={18} strokeWidth={2.5} />
               <div className="text-left leading-tight">
-                <p className="text-xs font-black uppercase tracking-wider">Dołącz do spotkania</p>
+                <p className="text-xs font-semibold">Dołącz do spotkania</p>
                 <p className="text-2xs opacity-80">{videoCall.provider}</p>
               </div>
             </div>
@@ -92,7 +92,7 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
           <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-solid/30 border border-border-custom/30 text-xs font-medium text-text-primary">
             <MapPin size={16} className="text-danger shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-text-muted text-2xs uppercase tracking-wider mb-0.5">Lokalizacja</p>
+              <p className="font-bold text-text-muted text-2xs mb-0.5">Lokalizacja</p>
               <a
                 href={`https://maps.google.com/?q=${encodeURIComponent(event.location)}`}
                 target="_blank"
@@ -110,7 +110,7 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
           <div className="flex items-start gap-3 p-3 rounded-xl bg-surface-solid/30 border border-border-custom/30 text-xs text-text-primary">
             <AlignLeft size={16} className="text-text-muted shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-text-muted text-2xs uppercase tracking-wider mb-0.5">Notatka</p>
+              <p className="font-bold text-text-muted text-2xs mb-0.5">Notatka</p>
               <p className="whitespace-pre-wrap text-text-secondary">{event.description}</p>
             </div>
           </div>
@@ -148,7 +148,7 @@ export function EventDetailsModal({ event, onClose, onEdit, onDelete }: EventDet
             variant="primary"
             onClick={onEdit}
             icon={<Edit3 size={16} />}
-            className="h-11 flex-1 font-bold uppercase tracking-wider"
+            className="h-11 flex-1 font-bold"
           >
             Edytuj
           </Button>

@@ -101,10 +101,10 @@ function TodoInner({ onBack, onNavigateTo }: { onBack: () => void; onNavigateTo?
           <Skeleton variant="card" lines={3} className="opacity-40" />
         </div>
         <div className="flex-1 p-6 space-y-4 max-w-3xl overflow-y-auto">
-          <div className="h-8 w-48 rounded-xl bg-surface-solid/70 animate-pulse mb-6" />
+          <Skeleton variant="block" className="mb-6 h-8 w-48" />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-6">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-2xl border border-border-custom/20 bg-surface-solid/40 animate-pulse" />
+              <Skeleton key={i} variant="block" className="h-20" />
             ))}
           </div>
           <Skeleton variant="card" lines={4} className="opacity-70" />

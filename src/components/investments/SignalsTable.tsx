@@ -45,12 +45,12 @@ const SignalRowView: FC<{ row: SignalRow }> = ({ row }) => {
               <div className="font-mono font-bold text-sm text-text-primary flex items-center gap-1.5">
                 <span>{row.ticker}</span>
                 {row.convergent && (
-                  <span className="px-1.5 py-0.2 rounded-xs text-4xs font-mono font-bold uppercase bg-primary/15 text-primary border border-primary/30" title="Dwa źródła ujawnień: 13F oraz Kongres">
+                  <span className="px-1.5 py-0.2 rounded-xs text-2xs font-mono font-bold bg-primary/15 text-primary border border-primary/30" title="Dwa źródła ujawnień: 13F oraz Kongres">
                     2 źródła
                   </span>
                 )}
               </div>
-              <div className="text-3xs text-text-muted truncate max-w-56 sm:max-w-xs">
+              <div className="text-2xs text-text-muted truncate max-w-56 sm:max-w-xs">
                 {row.companyName} {row.holders > 0 ? `· ${row.holders} ${fundLabel}` : ''}
               </div>
             </div>
@@ -112,16 +112,16 @@ const SignalRowView: FC<{ row: SignalRow }> = ({ row }) => {
 };
 
 export const SignalsTable: FC<Props> = ({ title, rows }) => (
-  <div className="rounded-3xl bg-surface border border-border-custom shadow-xs overflow-hidden">
+  <div className="rounded-2xl bg-surface border border-border-custom shadow-xs overflow-hidden">
     {title && (
-      <div className="px-4 py-3 border-b border-border-custom/50 text-xs font-black uppercase tracking-wider text-text-secondary">
+      <div className="px-4 py-3 border-b border-border-custom/50 text-xs font-semibold text-text-secondary">
         {title}
       </div>
     )}
     <div className="overflow-x-auto">
       <table className="w-full text-left min-w-full">
         <thead>
-          <tr className="text-3xs font-bold uppercase tracking-wider text-text-muted border-b border-border-custom/40 bg-surface/40">
+          <tr className="text-2xs font-bold text-text-muted border-b border-border-custom/40 bg-surface/40">
             <th className="py-3 px-4 font-bold">Spółka</th>
             <th className="py-3 px-4 font-bold text-center">Bilans zmian 13F</th>
             <th className="py-3 px-4 font-bold text-center">Politycy (k/s)</th>

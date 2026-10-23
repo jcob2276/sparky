@@ -121,13 +121,13 @@ export default function VisionJournal({ refreshTrigger = 0 }: { refreshTrigger?:
   return (
     <Card variant="surface" className="w-full flex flex-col gap-8 bg-surface/50 border-border-custom" padding="1.5rem">
       <div className="flex items-center justify-between border-b border-border-custom/40 pb-4">
-        <span className="text-xs font-bold text-text-muted uppercase tracking-wider">Agregacja wykresu</span>
+        <span className="text-xs font-bold text-text-muted tracking-normal">Agregacja wykresu</span>
         <div className="flex bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/60 rounded-xl p-0.5">
           <Pressable
             onClick={() => setViewMode('daily')}
             className={`px-3 py-1 rounded-lg text-xs font-bold ui-interactive cursor-pointer ${
               viewMode === 'daily'
-                ? 'bg-primary text-on-accent font-black'
+                ? 'bg-primary text-on-accent font-semibold'
                 : 'text-text-muted hover:text-text-primary'
             }`}
           >
@@ -137,7 +137,7 @@ export default function VisionJournal({ refreshTrigger = 0 }: { refreshTrigger?:
             onClick={() => setViewMode('monthly')}
             className={`px-3 py-1 rounded-lg text-xs font-bold ui-interactive cursor-pointer ${
               viewMode === 'monthly'
-                ? 'bg-primary text-on-accent font-black'
+                ? 'bg-primary text-on-accent font-semibold'
                 : 'text-text-muted hover:text-text-primary'
             }`}
           >

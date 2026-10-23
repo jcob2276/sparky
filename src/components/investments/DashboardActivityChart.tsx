@@ -9,18 +9,16 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
   const maxDayTotal = Math.max(...activity.days.map((d) => d.total), 1);
 
   return (
-    <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-xs space-y-4 flex flex-col justify-between h-full">
+    <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-xs space-y-4 flex flex-col justify-between h-full">
       {/* Header */}
       <div>
         <div className="flex items-center justify-between">
-          <span className="text-xs font-black uppercase tracking-wider text-text-muted">
-            Aktywność źródeł 14 DNI
-          </span>
-          <span className="font-mono text-xl font-black text-primary tabular-nums">
+          <h2 className="text-base font-semibold text-text-primary">Aktywność źródeł, 14 dni</h2>
+          <span className="ui-num text-xl font-semibold text-text-primary">
             {activity.total.toLocaleString()}
           </span>
         </div>
-        <p className="text-3xs text-text-secondary mt-0.5">
+        <p className="text-2xs text-text-secondary mt-0.5">
           Zgłoszenia w odczytanych danych · {activity.peakDateLabel ? `szczyt ${activity.peakDateLabel}` : "brak zdarzeń"}
         </p>
       </div>
@@ -41,7 +39,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
                 className="flex-1 flex flex-col items-center justify-end h-full group relative"
               >
                 {/* Tooltip */}
-                <div className="absolute -top-10 hidden group-hover:flex items-center bg-surface border border-border-custom px-2 py-1 rounded-md text-3xs font-mono shadow-lg whitespace-nowrap pointer-events-none">
+                <div className="absolute -top-10 hidden group-hover:flex items-center bg-surface border border-border-custom px-2 py-1 rounded-md text-2xs font-mono shadow-lg whitespace-nowrap pointer-events-none">
                   <div>{day.date}: {day.total} zdarzeń</div>
                 </div>
 
@@ -65,7 +63,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
         </div>
 
         {/* Date Axis */}
-        <div className="flex justify-between items-center text-3xs font-mono text-text-muted pt-2 px-1 border-t border-border-custom/30">
+        <div className="flex justify-between items-center text-2xs font-mono text-text-muted pt-2 px-1 border-t border-border-custom/30">
           <span>{activity.days[0]?.label || '—'}</span>
           <span>{activity.days[Math.floor(activity.days.length / 2)]?.label || '—'}</span>
           <span>{activity.days[activity.days.length - 1]?.label || '—'}</span>
@@ -77,7 +75,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
         <div className="flex items-center justify-between p-2 rounded-xl bg-surface border border-border-custom/40">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm bg-primary shrink-0" />
-            <span className="text-3xs text-text-secondary">Politycy</span>
+            <span className="text-2xs text-text-secondary">Politycy</span>
           </div>
           <span className="font-bold text-text-primary text-xs">{activity.sources.politicians ?? '—'}</span>
         </div>
@@ -85,7 +83,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
         <div className="flex items-center justify-between p-2 rounded-xl bg-surface border border-border-custom/40">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm bg-info shrink-0" />
-            <span className="text-3xs text-text-secondary">Fundusze 13F</span>
+            <span className="text-2xs text-text-secondary">Fundusze 13F</span>
           </div>
           <span className="font-bold text-text-primary text-xs">{activity.sources.funds ?? '—'}</span>
         </div>
@@ -93,7 +91,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
         <div className="flex items-center justify-between p-2 rounded-xl bg-surface border border-border-custom/40">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm bg-warning shrink-0" />
-            <span className="text-3xs text-text-secondary">Insiderzy</span>
+            <span className="text-2xs text-text-secondary">Insiderzy</span>
           </div>
           <span className="font-bold text-text-primary text-xs">{activity.sources.insiders ?? '—'}</span>
         </div>
@@ -101,7 +99,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
         <div className="flex items-center justify-between p-2 rounded-xl bg-surface border border-border-custom/40">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm bg-danger shrink-0" />
-            <span className="text-3xs text-text-secondary">Short GPW</span>
+            <span className="text-2xs text-text-secondary">Short GPW</span>
           </div>
           <span className="font-bold text-danger text-xs">{activity.sources.shorts ?? '—'}</span>
         </div>

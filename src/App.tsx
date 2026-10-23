@@ -5,6 +5,7 @@ import { isNativePlatform } from './lib/native/platform';
 import { initUsageStatsSync } from './lib/native/usageStatsSync';
 import { initLocationSync } from './lib/native/locationSync';
 import { initBackgroundSync } from './lib/native/backgroundSync';
+import { initDeviceSignalsSync } from './lib/native/deviceSignalsSync';
 import { initNativeIntents, registerNativeNavigate } from './lib/native/initNativeIntents';
 import { initFoodWidgetSync } from './lib/native/foodWidgetSync';
 import { hideSplashScreen } from './lib/native/initNativeShell';
@@ -13,7 +14,7 @@ import Dashboard from './components/core/Dashboard';
 import { ErrorBoundary } from './components/core/ErrorBoundary';
 import { OfflineStatusBanner } from './components/core/OfflineStatusBanner';
 import { ToastHost } from './components/ui/ToastHost';
-import Spinner from './components/ui/Spinner';
+import ShellSkeleton from './components/ui/ShellSkeleton';
 import SettingsView from './components/settings/SettingsView';
 import PageTemplateBoundary, { type PageTemplateKind } from './components/shared/PageTemplateBoundary';
 import ActionHistoryController from './components/core/ActionHistoryController';
@@ -33,11 +34,7 @@ const PokerDecisionPage = lazy(() => import('./components/poker/PokerDecisionPag
 import { queryClient } from './lib/queryClient';
 import { setupGlobalBleSync } from './lib/biometrics/ouraBleSync';
 
-const FALLBACK_SPINNER = (
-  <div className="min-h-screen bg-background flex items-center justify-center">
-    <Spinner size="lg" />
-  </div>
-);
+const FALLBACK_SPINNER = <ShellSkeleton />;
 
 function KorealcjeRedirect() {
   return <Navigate to="/korelacje" replace />;
@@ -67,6 +64,7 @@ function useNativePlatformSync(userId: string | undefined, handleNativeNavigate:
     const stopUsage = initUsageStatsSync(userId);
     const stopLocation = initLocationSync(userId);
     const stopBackground = initBackgroundSync(userId);
+    const stopSignals = initDeviceSignalsSync(userId);
     const stopBleSync = setupGlobalBleSync(queryClient, userId);
     const stopFoodWidget = initFoodWidgetSync(userId);
     return () => {
@@ -74,6 +72,7 @@ function useNativePlatformSync(userId: string | undefined, handleNativeNavigate:
       stopUsage();
       stopLocation();
       stopBackground();
+      stopSignals();
       stopBleSync();
     };
   }, [userId]);

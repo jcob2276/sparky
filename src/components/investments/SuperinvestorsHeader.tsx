@@ -42,10 +42,10 @@ export const SuperinvestorsHeader: FC<Props> = ({
     <div className="space-y-6">
       {/* Title & Subtitle */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-black text-text-primary tracking-tight">
+        <h1 className="text-xl sm:text-2xl font-semibold text-text-primary tracking-tight">
           SUPERINWESTORZY · 13F
         </h1>
-        <p className="text-3xs uppercase tracking-widest text-text-muted mt-1 font-semibold">
+        <p className="text-2xs text-text-muted mt-1 font-semibold">
           WARTOŚCI Z ODCZYTANYCH RAPORTÓW SEC · HISTORIA UJAWNIEŃ, NIE STOPA ZWROTU
         </p>
       </div>
@@ -53,37 +53,37 @@ export const SuperinvestorsHeader: FC<Props> = ({
       {/* 4 Summary KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 rounded-2xl bg-surface border border-border-custom shadow-2xs">
-          <div className="text-3xs uppercase tracking-wider font-semibold text-text-muted font-mono">
+          <div className="text-2xs font-semibold text-text-muted font-mono">
             Aktywni Inwestorzy
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-text-primary tracking-tight mt-1">
+          <div className="text-2xl sm:text-3xl font-semibold text-text-primary tracking-tight mt-1">
             {totalActive}
           </div>
         </div>
 
         <div className="p-4 rounded-2xl bg-surface border border-border-custom shadow-2xs">
-          <div className="text-3xs uppercase tracking-wider font-semibold text-text-muted font-mono">
+          <div className="text-2xs font-semibold text-text-muted font-mono">
             Z odczytanym raportem
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-success tracking-tight mt-1">
+          <div className="text-2xl sm:text-3xl font-semibold text-success tracking-tight mt-1">
             {verifiedCount}
           </div>
         </div>
 
         <div className="p-4 rounded-2xl bg-surface border border-border-custom shadow-2xs">
-          <div className="text-3xs uppercase tracking-wider font-semibold text-text-muted font-mono">
+          <div className="text-2xs font-semibold text-text-muted font-mono">
             W Konsensusie
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-text-primary tracking-tight mt-1">
+          <div className="text-2xl sm:text-3xl font-semibold text-text-primary tracking-tight mt-1">
             {consensusCount}
           </div>
         </div>
 
         <div className="p-4 rounded-2xl bg-surface border border-border-custom shadow-2xs">
-          <div className="text-3xs uppercase tracking-wider font-semibold text-text-muted font-mono">
+          <div className="text-2xs font-semibold text-text-muted font-mono">
             Kategorie
           </div>
-          <div className="text-2xl sm:text-3xl font-black text-text-primary tracking-tight mt-1">
+          <div className="text-2xl sm:text-3xl font-semibold text-text-primary tracking-tight mt-1">
             {categoriesCount}
           </div>
         </div>
@@ -111,7 +111,7 @@ export const SuperinvestorsHeader: FC<Props> = ({
                 size="sm"
                 variant={isSelected ? 'primary' : 'ghost'}
                 onClick={() => onCategoryChange(tab.id)}
-                className={`text-2xs font-bold rounded-xl shrink-0 uppercase tracking-wider ${
+                className={`text-2xs font-bold rounded-xl shrink-0 ${
                   isSelected ? 'shadow-2xs' : 'text-text-secondary hover:text-text-primary'
                 }`}
               >

@@ -22,7 +22,7 @@ export const TripleConfluenceRadar: FC<Props> = ({ rows, onSelectTicker }) => {
   if (confluentStocks.length === 0) return null;
 
   return (
-    <div className="bg-surface border-2 border-primary/40 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-sm space-y-3.5 relative overflow-hidden">
+    <div className="bg-surface border-2 border-primary/40 rounded-2xl sm:rounded-2xl p-4 sm:p-5 shadow-sm space-y-3.5 relative overflow-hidden">
       {/* Background ambient accent */}
       <div className="absolute -top-12 -right-12 w-48 h-48 bg-primary/5 rounded-full pointer-events-none" />
 
@@ -34,20 +34,20 @@ export const TripleConfluenceRadar: FC<Props> = ({ rows, onSelectTicker }) => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-sm sm:text-base font-black text-text-primary tracking-tight">
+              <h3 className="text-sm sm:text-base font-semibold text-text-primary tracking-tight">
                 Zbieżność ujawnień 13F i Kongresu
               </h3>
-              <span className="px-2 py-0.5 rounded-full text-4xs font-mono uppercase font-black bg-primary text-text-on-primary">
+              <span className="px-2 py-0.5 rounded-full text-2xs font-mono font-semibold bg-primary text-text-on-primary">
                 Dane historyczne
               </span>
             </div>
-            <p className="text-3xs text-text-muted mt-0.5">
+            <p className="text-2xs text-text-muted mt-0.5">
               Zmiany pozycji w raportach 13F i ujawnione zakupy Kongresu. Dokumenty mają różne daty i opóźnienia.
             </p>
           </div>
         </div>
 
-        <div className="text-3xs font-mono text-primary font-bold hidden sm:block">
+        <div className="text-2xs font-mono text-primary font-bold hidden sm:block">
           Ranking opisowy, nie prognoza zysku
         </div>
       </div>
@@ -72,19 +72,19 @@ export const TripleConfluenceRadar: FC<Props> = ({ rows, onSelectTicker }) => {
                     <div>
                       <div className="font-mono font-bold text-sm text-text-primary group-hover:text-primary transition-colors flex items-center gap-1.5">
                         <span>{item.ticker}</span>
-                        <span className="text-3xs font-sans text-text-muted truncate max-w-28">
+                        <span className="text-2xs font-sans text-text-muted truncate max-w-28">
                           {item.companyName}
                         </span>
                       </div>
                     </div>
                   </div>
-                  <span className="px-1.5 py-0.5 rounded-md text-3xs font-mono font-bold bg-primary/10 text-primary border border-primary/20">
+                  <span className="px-1.5 py-0.5 rounded-md text-2xs font-mono font-bold bg-primary/10 text-primary border border-primary/20">
                     Ranking: {item.score}/100
                   </span>
                 </div>
 
                 {/* Evidence bullets */}
-                <div className="space-y-1 text-3xs font-mono text-text-secondary bg-surface-elevated/50 p-2.5 rounded-xl border border-border-custom/40">
+                <div className="space-y-1 text-2xs font-mono text-text-secondary bg-surface-elevated/50 p-2.5 rounded-xl border border-border-custom/40">
                   <div className="flex items-center gap-1.5 text-success">
                     <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
                     <span>Bilans zwiększeń i redukcji 13F: +{item.fundNetBuyers}</span>
@@ -105,7 +105,7 @@ export const TripleConfluenceRadar: FC<Props> = ({ rows, onSelectTicker }) => {
               </div>
 
               {/* Bottom footer / action */}
-              <div className="pt-2 border-t border-border-custom/40 flex items-center justify-between text-3xs font-mono">
+              <div className="pt-2 border-t border-border-custom/40 flex items-center justify-between text-2xs font-mono">
                 <span className="inline-flex items-center gap-1 text-success font-semibold">
                   <Target size={11} />
                   <span>Zobacz dane</span>

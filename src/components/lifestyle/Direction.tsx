@@ -13,13 +13,14 @@ import DirectionMonthlyMode from './DirectionMonthlyMode';
 import DirectionSprintMode from './DirectionSprintMode';
 import DirectionPlanningMode from './DirectionPlanningMode';
 import WeekHub from './WeekHub';
+import Skeleton from '../ui/Skeleton';
 import { useDirection } from './direction/hooks/useDirection';
 
 function SectionTitle({ icon: Icon, title, detail, action }: { icon: LucideIcon; title: string; detail?: string; action?: ReactNode }) {
   return (
     <header className="flex items-end justify-between gap-4">
       <div>
-        <p className="flex items-center gap-2 text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-22em)] text-text-muted">
+        <p className="flex items-center gap-2 text-2xs font-semibold text-text-muted">
           <Icon size={12} /> {title}
         </p>
         {detail && <p className="mt-1 text-xs font-semibold leading-relaxed text-text-secondary">{detail}</p>}
@@ -107,7 +108,13 @@ export default function Direction({
   } = useDirection(undefined, onOpenActionCenter);
 
   if (loading) {
-    return <div className="p-8 text-center text-text-muted uppercase font-black animate-pulse tracking-widest">Wczytywanie Kierunku...</div>;
+    return (
+      <div className="ui-stagger space-y-3 p-4" aria-busy="true">
+        <Skeleton variant="stat" />
+        <Skeleton variant="card" lines={3} />
+        <Skeleton variant="card" lines={2} />
+      </div>
+    );
   }
 
   const reflectionSaved = ritualClosed || !!currentReview?.review_completed_at || Boolean(
@@ -145,9 +152,7 @@ export default function Direction({
         )}
 
         {showSprintMode && !sprintFacts && (
-          <div className="py-6 text-center text-sm text-text-muted animate-pulse">
-            Zbieram dane sprintu…
-          </div>
+          <Skeleton variant="card" lines={4} className="my-4" />
         )}
 
         {showSprintMode && sprintFacts && (
@@ -165,9 +170,7 @@ export default function Direction({
         )}
 
         {showMonthlyMode && closingMonthStart && !monthFacts && (
-          <div className="py-6 text-center text-sm text-text-muted animate-pulse">
-            Zbieram dane miesiąca…
-          </div>
+          <Skeleton variant="card" lines={4} className="my-4" />
         )}
 
         {showMonthlyMode && closingMonthStart && monthFacts && (

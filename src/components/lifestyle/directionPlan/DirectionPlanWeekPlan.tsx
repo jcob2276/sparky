@@ -12,7 +12,7 @@ function Divider({ title }: { title: string }) {
   return (
     <div className="flex items-center gap-2">
       <div className="h-px flex-1 bg-border-custom" />
-      <span className="text-2xs uppercase tracking-widest text-text-muted font-black">{title}</span>
+      <span className="text-2xs text-text-muted font-semibold">{title}</span>
       <div className="h-px flex-1 bg-border-custom" />
     </div>
   );
@@ -69,13 +69,13 @@ export default function DirectionPlanWeekPlan({
 
       {block5material && (
         <div className="space-y-2">
-          <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Sugestie AI</p>
+          <p className="text-2xs font-semibold text-text-muted">Sugestie AI</p>
           {(direction.monthTheme || sprintBridge || longTermBridge) && (
             <div className="rounded-xl border border-primary/15 bg-primary/[0.03] px-3 py-2.5 space-y-1.5">
               {longTermBridge && <p className="text-xs font-semibold text-text-primary leading-relaxed">{longTermBridge}</p>}
               {direction.monthTheme && (
                 <p className="text-xs text-text-secondary leading-relaxed">
-                  <span className="font-black uppercase tracking-wider text-primary text-2xs">Temat miesiąca{direction.monthLabel ? ` · ${direction.monthLabel}` : ''}:{' '}</span>
+                  <span className="font-semibold text-primary text-2xs">Temat miesiąca{direction.monthLabel ? ` · ${direction.monthLabel}` : ''}:{' '}</span>
                   {direction.monthTheme}
                 </p>
               )}
@@ -85,7 +85,7 @@ export default function DirectionPlanWeekPlan({
           {(["cialo", "duch", "konto"] as const).map((p) =>
             block5material[p] ? (
               <div key={p} className="bg-surface border border-border-custom rounded-xl px-3 py-2.5">
-                <p className="text-xs font-bold text-text-muted uppercase tracking-wider mb-0.5">{p === "cialo" ? "Ciało" : p === "duch" ? "Duch" : "Konto"}</p>
+                <p className="text-xs font-bold text-text-muted mb-0.5">{p === "cialo" ? "Ciało" : p === "duch" ? "Duch" : "Konto"}</p>
                 <p className="text-xs text-text-secondary leading-relaxed">{block5material[p]}</p>
               </div>
             ) : null
@@ -99,7 +99,7 @@ export default function DirectionPlanWeekPlan({
             {longTermBridge && <p className="text-xs font-semibold text-text-primary leading-relaxed">{longTermBridge}</p>}
             {direction.monthTheme && (
               <p className="text-xs text-text-secondary leading-relaxed">
-                <span className="font-black uppercase tracking-wider text-primary text-2xs">Temat miesiąca{direction.monthLabel ? ` · ${direction.monthLabel}` : ''}:{' '}</span>
+                <span className="font-semibold text-primary text-2xs">Temat miesiąca{direction.monthLabel ? ` · ${direction.monthLabel}` : ''}:{' '}</span>
                 {direction.monthTheme}
               </p>
             )}
@@ -117,7 +117,7 @@ export default function DirectionPlanWeekPlan({
           <Textarea value={weekCommitment} onChange={setWeekCommitment} placeholder="Jedna rzecz której nie odpuszczę bez względu na wszystko…" rows={2} />
         </div>
         <div className="pt-3 space-y-3 border-t border-border-custom">
-          <p className="text-2xs font-black uppercase tracking-widest text-text-muted">3 duże cele na ten tydzień</p>
+          <p className="text-2xs font-semibold text-text-muted">3 duże cele na ten tydzień</p>
           {planCarriedFromMonth && <p className="text-xs font-semibold text-primary">Cele filarów wstępnie z przeglądu miesiąca (korekta / dźwignia).</p>}
           <div className="space-y-1">
             <p className="text-xs text-text-muted font-medium">Ciało</p>

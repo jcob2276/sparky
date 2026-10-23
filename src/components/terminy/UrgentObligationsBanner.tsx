@@ -72,11 +72,11 @@ export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) 
 
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="text-2xs font-bold uppercase tracking-wider text-danger">
+              <span className="text-2xs font-bold text-danger">
                 {bannerMessage}
               </span>
               {urgentRows.length > 1 && (
-                <span className="rounded-full bg-danger/20 px-2 py-0.5 text-3xs font-semibold text-danger">
+                <span className="rounded-full bg-danger/20 px-2 py-0.5 text-2xs font-semibold text-danger">
                   +{urgentRows.length - 1} więcej
                 </span>
               )}
@@ -97,7 +97,7 @@ export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) 
           <Pressable
             onClick={() => void handleComplete(topUrgent)}
             disabled={isPending}
-            className="flex items-center gap-1.5 rounded-full bg-danger text-white px-3.5 py-1.5 text-xs font-semibold shadow-xs ui-interactive active:scale-95 hover:opacity-90 disabled:opacity-60"
+            className="flex items-center gap-1.5 rounded-full bg-danger text-on-accent min-h-11 px-4 py-1.5 text-xs font-semibold shadow-xs ui-interactive active:scale-95 hover:opacity-90 disabled:opacity-60"
           >
             <CheckCircle2 size={14} strokeWidth={2.2} />
             <span>Zrealizowano</span>

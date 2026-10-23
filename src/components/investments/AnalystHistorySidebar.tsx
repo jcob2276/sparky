@@ -41,7 +41,7 @@ export const AnalystHistorySidebar: FC<Props> = ({
 }) => {
   if (isCollapsed) {
     return (
-      <div className="hidden lg:flex flex-col items-center gap-3 p-2 rounded-3xl bg-surface/60 border border-border-custom shadow-xs shrink-0 w-14">
+      <div className="hidden lg:flex flex-col items-center gap-3 p-2 rounded-2xl bg-surface/60 border border-border-custom shadow-xs shrink-0 w-14">
         <Button
           size="sm"
           variant="ghost"
@@ -59,7 +59,7 @@ export const AnalystHistorySidebar: FC<Props> = ({
           title="Nowa rozmowa"
         />
         {conversations.length > 0 && (
-          <div className="mt-2 flex flex-col items-center gap-1 font-mono text-3xs text-text-muted">
+          <div className="mt-2 flex flex-col items-center gap-1 font-mono text-2xs text-text-muted">
             <History size={13} />
             <span>{conversations.length}</span>
           </div>
@@ -69,17 +69,17 @@ export const AnalystHistorySidebar: FC<Props> = ({
   }
 
   return (
-    <div className="w-full lg:w-72 xl:w-80 shrink-0 p-4 rounded-3xl bg-surface/60 border border-border-custom shadow-xs flex flex-col justify-between">
+    <div className="w-full lg:w-72 xl:w-80 shrink-0 p-4 rounded-2xl bg-surface/60 border border-border-custom shadow-xs flex flex-col justify-between">
       <div>
         {/* Header */}
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-border-custom/40">
           <div className="flex items-center gap-2">
             <History size={14} className="text-primary" />
-            <span className="text-xs font-bold uppercase tracking-wider text-text-muted font-mono">
+            <span className="text-xs font-bold text-text-muted font-mono">
               Historia rozmów
             </span>
             {conversations.length > 0 && (
-              <span className="px-1.5 py-0.2 rounded-md text-3xs font-mono font-bold bg-primary/10 text-primary border border-primary/20">
+              <span className="px-1.5 py-0.2 rounded-md text-2xs font-mono font-bold bg-primary/10 text-primary border border-primary/20">
                 {conversations.length}
               </span>
             )}
@@ -112,7 +112,7 @@ export const AnalystHistorySidebar: FC<Props> = ({
           <div className="py-8 px-3 text-center">
             <MessageSquare size={22} strokeWidth={1.5} className="mx-auto text-text-muted mb-2" />
             <p className="text-xs font-medium text-text-secondary">Brak zapisanych rozmów</p>
-            <p className="text-3xs text-text-muted mt-1 leading-relaxed">
+            <p className="text-2xs text-text-muted mt-1 leading-relaxed">
               Każde nowe pytanie zadane analitykowi zostanie tutaj automatycznie zapisane.
             </p>
           </div>
@@ -142,7 +142,7 @@ export const AnalystHistorySidebar: FC<Props> = ({
                       <p className="text-xs font-semibold truncate leading-snug">
                         {conv.title}
                       </p>
-                      <div className="flex items-center gap-1.5 mt-1 text-3xs font-mono text-text-muted">
+                      <div className="flex items-center gap-1.5 mt-1 text-2xs font-mono text-text-muted">
                         <span>{formatConversationDate(conv.updatedAt || conv.createdAt)}</span>
                         <span>·</span>
                         <span>
@@ -170,7 +170,7 @@ export const AnalystHistorySidebar: FC<Props> = ({
       </div>
 
       {/* Footer hint */}
-      <div className="pt-3 mt-3 border-t border-border-custom/30 text-3xs font-mono text-text-muted text-center">
+      <div className="pt-3 mt-3 border-t border-border-custom/30 text-2xs font-mono text-text-muted text-center">
         Pamięć lokalna przeglądarki
       </div>
     </div>

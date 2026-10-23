@@ -63,7 +63,7 @@ export default function LearningPocketPicker({ links, loading, error, onPick, on
                   className="flex w-full flex-col rounded-xl border border-border-custom/40 px-3 py-2 text-left hover:bg-surface-solid transition-colors"
                 >
                   <span className="text-sm font-semibold text-text-primary line-clamp-2">{link.title}</span>
-                  <span className="text-3xs text-text-muted">{link.domain}</span>
+                  <span className="text-2xs text-text-muted">{link.domain}</span>
                 </Pressable>
               </li>
             ))}

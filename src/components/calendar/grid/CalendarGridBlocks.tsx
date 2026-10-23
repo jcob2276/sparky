@@ -83,7 +83,7 @@ export const renderEventBlock = ({
     >
       {!tooShort && <EventQuickActions ev={ev} />}
       <div className="flex items-start gap-1 min-w-0 w-full justify-start">
-        {isAIScheduled && !tooShort && <Sparkles size={11} className="shrink-0 animate-pulse text-warning mt-0.5" />}
+        {isAIScheduled && !tooShort && <Sparkles size={11} className="shrink-0 text-warning mt-0.5" />}
         {isFocusTime && !tooShort && <Shield size={11} className="shrink-0 text-current mt-0.5" />}
         {videoCall && !tooShort && <Video size={11} className="shrink-0 text-current mt-0.5" />}
         <p className={`${textColor} ${tooShort ? 'text-xs truncate font-bold' : isMedium ? 'text-xs font-bold leading-snug break-normal line-clamp-2' : 'text-xs md:text-sm font-bold leading-snug break-normal line-clamp-3'} hyphens-none`}>
@@ -100,7 +100,7 @@ export const renderEventBlock = ({
               rel="noopener noreferrer"
               onMouseDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-black/10 dark:bg-white/15 hover:bg-black/20 dark:hover:bg-white/25 text-current font-bold text-3xs cursor-pointer transition-colors shadow-2xs"
+              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-black/10 dark:bg-white/15 hover:bg-black/20 dark:hover:bg-white/25 text-current font-bold text-2xs cursor-pointer transition-colors shadow-2xs"
               title={`Dołącz do spotkania (${videoCall.provider}): ${videoCall.url}`}
             >
               📹 {videoCall.provider}

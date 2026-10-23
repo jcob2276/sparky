@@ -41,7 +41,7 @@ export const PortfolioSubNav: FC<Props> = ({ activeTab, onSelectTab }) => {
         </Button>
       </div>
 
-      <div className="hidden sm:flex items-center pr-3 text-3xs font-mono text-text-muted">
+      <div className="hidden sm:flex items-center pr-3 text-2xs font-mono text-text-muted">
         <span>Przełącz widok portfela</span>
       </div>
     </div>

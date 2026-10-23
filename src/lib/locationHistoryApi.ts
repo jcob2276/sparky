@@ -9,12 +9,16 @@ export interface LocationHistoryInsert {
   place_name?: string | null;
   is_manual?: boolean;
   created_at?: string;
+  speed?: number | null;
+  bearing?: number | null;
+  altitude?: number | null;
+  provider?: string | null;
+  kind?: 'point' | 'visit';
+  dwell_seconds?: number | null;
 }
 
-export async function insertLocationPoint(
-  row: LocationHistoryInsert,
-): Promise<{ ok: boolean; error?: string }> {
-  const { error } = await supabase.from('location_history').insert({
+function toRow(row: LocationHistoryInsert) {
+  return {
     user_id: row.user_id,
     latitude: row.latitude,
     longitude: row.longitude,
@@ -22,12 +26,34 @@ export async function insertLocationPoint(
     place_name: row.place_name ?? null,
     is_manual: row.is_manual ?? false,
     created_at: row.created_at ?? new Date().toISOString(),
-  });
+    speed: row.speed ?? null,
+    bearing: row.bearing ?? null,
+    altitude: row.altitude ?? null,
+    provider: row.provider ?? null,
+    kind: row.kind ?? 'point',
+    dwell_seconds: row.dwell_seconds ?? null,
+  };
+}
+
+/** Idempotent batch upload (retries of the same fix are ignored via user_id+created_at+kind). */
+export async function upsertLocationPoints(
+  rows: LocationHistoryInsert[],
+): Promise<{ ok: boolean; error?: string }> {
+  if (rows.length === 0) return { ok: true };
+  const { error } = await supabase
+    .from('location_history')
+    .upsert(rows.map(toRow), { onConflict: 'user_id,created_at,kind', ignoreDuplicates: true });
   if (error) {
-    console.error('[location] insert failed:', error);
+    console.error('[location] batch upsert failed:', error);
     return { ok: false, error: error.message };
   }
   return { ok: true };
+}
+
+export async function insertLocationPoint(
+  row: LocationHistoryInsert,
+): Promise<{ ok: boolean; error?: string }> {
+  return upsertLocationPoints([row]);
 }
 
 export async function fetchLatestLocation(userId: string) {

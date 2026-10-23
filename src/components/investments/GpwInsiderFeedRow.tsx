@@ -13,7 +13,7 @@ export const GpwInsiderFeedRow: FC<Props> = ({ trade, onSelectTicker }) => {
   return (
     <tr className="hover:bg-primary/5 transition-colors">
       {/* Data */}
-      <td className="py-2.5 font-mono text-3xs text-text-secondary whitespace-nowrap">
+      <td className="py-2.5 font-mono text-2xs text-text-secondary whitespace-nowrap">
         {trade.transactionDate}
       </td>
 
@@ -28,7 +28,7 @@ export const GpwInsiderFeedRow: FC<Props> = ({ trade, onSelectTicker }) => {
         >
           {trade.ticker}
         </span>
-        <span className="text-3xs text-text-secondary truncate max-w-28 inline-block align-bottom">
+        <span className="text-2xs text-text-secondary truncate max-w-28 inline-block align-bottom">
           {trade.company}
         </span>
       </td>
@@ -36,7 +36,7 @@ export const GpwInsiderFeedRow: FC<Props> = ({ trade, onSelectTicker }) => {
       {/* Rodzaj badge */}
       <td className="py-2.5 text-center font-mono">
         <span
-          className={`inline-block px-1.5 py-0.5 rounded-sm text-4xs font-bold uppercase ${
+          className={`inline-block px-1.5 py-0.5 rounded-sm text-2xs font-bold ${
             isBuy
               ? 'bg-success/10 text-success border border-success/20'
               : isSell
@@ -59,7 +59,7 @@ export const GpwInsiderFeedRow: FC<Props> = ({ trade, onSelectTicker }) => {
           href={trade.sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-3xs font-mono font-medium text-primary hover:underline"
+          className="inline-flex items-center gap-1 text-2xs font-mono font-medium text-primary hover:underline"
         >
           <span>Raport GPW</span>
           <span>↗</span>

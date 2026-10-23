@@ -58,13 +58,9 @@ export function DashboardNavBar({
           translate runs on GPU compositor thread at all times. */}
       <span
         aria-hidden="true"
-        className={`pointer-events-none absolute inset-y-1.5 left-0 rounded-full shadow-sm border
-          transition-[transform,opacity] duration-[var(--motion-fast)] ease-[var(--ease-out)]
-          ${pillIsFastCapture
-            ? 'bg-primary/10 dark:bg-primary/20 border-primary/20'
-            : 'bg-black/5 dark:bg-white/15 border-black/10 dark:border-white/10'
-          }
-          ${pillVisible ? 'opacity-100' : 'opacity-0'}`}
+        className={`ui-nav-pill pointer-events-none absolute inset-y-1.5 left-0 rounded-full ${
+          pillIsFastCapture ? 'ui-nav-pill--capture' : ''
+        } ${pillVisible ? 'opacity-100' : 'opacity-0'}`}
         style={{
           width: `${100 / totalItems}%`,
           transform: `translateX(${pillIndex * 100}%)`,
@@ -84,13 +80,14 @@ export function DashboardNavBar({
               navigateTo(item.id);
             }}
             className={`relative z-10 flex flex-1 flex-col items-center justify-center gap-0.5 rounded-full py-1.5 px-0 min-w-0 h-auto transition-[transform,color] duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-95 hover:bg-transparent ${
-              isActive ? 'text-text-primary font-bold' : 'text-text-muted hover:text-text-primary'
+              isActive ? 'text-text-primary' : 'text-text-muted hover:text-text-primary'
             }`}
           >
             <div className="relative">
               <item.icon
-                size={18}
-                className={`transition-[transform,color] duration-[var(--motion-fast)] ease-[var(--ease-out)] ${
+                size={20}
+                strokeWidth={isActive ? 2.2 : 1.8}
+                className={`ui-nav-item-icon ${
                   isActive ? 'scale-110 text-primary' : 'scale-100 opacity-70'
                 }`}
               />
@@ -100,7 +97,7 @@ export function DashboardNavBar({
                 </span>
               )}
             </div>
-            <span className="text-3xs font-semibold tracking-tight">{item.label}</span>
+            <span className={`text-2xs tracking-tight ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
           </Button>
         );
       })}

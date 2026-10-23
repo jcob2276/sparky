@@ -14,7 +14,7 @@ export function GpwAnnualReportSummary({ report }: { report: GpwAnnualReport }) 
       <dl>{facts.map(([label, value]) => <div key={label} className="flex justify-between gap-3">
         <dt>{label}</dt><dd className="whitespace-nowrap">{value == null ? '—' : `${money.format(value / 1e6)} mln ${report.currency}`}</dd>
       </div>)}</dl>
-      {report.freeCashFlow != null && <p className="text-text-muted text-3xs">FCF = przepływy operacyjne − zakupy rzeczowych aktywów i wartości niematerialnych.</p>}
+      {report.freeCashFlow != null && <p className="text-text-muted text-2xs">FCF = przepływy operacyjne − zakupy rzeczowych aktywów i wartości niematerialnych.</p>}
       <a className="text-primary underline" href={report.sourceUrl} target="_blank" rel="noopener noreferrer">Oficjalny plik raportu</a>
     </div>
   </details>;

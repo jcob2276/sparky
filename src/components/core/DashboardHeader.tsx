@@ -58,7 +58,7 @@ export function DashboardHeader({
   };
 
   return (
-    <header className="sticky top-0 z-[var(--z-sticky)] pt-safe-top min-h-14 py-2 flex items-center justify-between gap-4 border-b border-border-custom/50 bg-background/80 px-4 sm:px-5 backdrop-blur-xs shadow-2xs transition-colors">
+    <header className="sticky top-0 z-[var(--z-sticky)] pt-safe-top min-h-14 py-2 flex items-center justify-between gap-4 ui-app-header px-4 sm:px-5">
       <div className="min-w-0 shrink-0 select-none">
         <div
           role="button"
@@ -70,15 +70,11 @@ export function DashboardHeader({
           onPointerLeave={handleLogoPressEnd}
           onContextMenu={(e) => e.preventDefault()}
         >
-          <h1 className="font-display text-sm font-black tracking-widest text-primary transition-opacity group-hover:opacity-90">
+          <h1 className="font-display text-sm font-semibold tracking-wide text-primary transition-opacity group-hover:opacity-90">
             <BrandTitle />
           </h1>
-          <span className="relative flex h-2 w-2 items-center justify-center" aria-hidden="true">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success/60" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-success shadow-xs" />
-          </span>
         </div>
-        <p className="text-2xs font-medium tracking-tight text-text-muted capitalize">
+        <p className="text-xs font-medium text-text-muted capitalize">
           {formatDashboardDate()}
         </p>
       </div>
@@ -88,7 +84,7 @@ export function DashboardHeader({
         <Pressable
           onClick={() => { selection(); toggleTheme(); }}
           variant="ghost"
-          className="!h-9 !w-9 !p-0 !rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
+          className="!h-11 !w-11 !p-0 !rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
           title={theme === 'light' ? 'Przełącz na tryb ciemny' : 'Przełącz na tryb jasny'}
         >
           {theme === 'light' ? (
@@ -105,7 +101,7 @@ export function DashboardHeader({
             onMouseEnter={handlePrefetchDashboard}
             onTouchStart={handlePrefetchDashboard}
             onFocus={handlePrefetchDashboard}
-            className="h-9 w-9 shrink-0 rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
+            className="h-11 w-11 shrink-0 rounded-full border border-border-custom/60 bg-surface-solid/50 text-text-secondary hover:text-text-primary hover:border-primary/40 active:scale-90 ui-interactive flex items-center justify-center shadow-xs"
             title="Desktop dashboard"
           >
             <LayoutDashboard size={15} strokeWidth={1.8} />

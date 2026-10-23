@@ -35,7 +35,7 @@ export const GpwShortsChartWidget: FC<Props> = ({ data, isTopRanked = false }) =
   return <div className="bg-surface border border-border-custom/70 rounded-2xl p-4 space-y-3">
     <div className="flex items-center justify-between gap-2">
       <h4 className="text-xs font-bold font-mono">{data.ticker}: publiczny short i kurs</h4>
-      {isTopRanked && <span className="text-3xs text-text-muted">Największa ujawniona suma</span>}
+      {isTopRanked && <span className="text-2xs text-text-muted">Największa ujawniona suma</span>}
     </div>
     {!points.length ? <p className="text-xs text-text-secondary">Brak historii wykresu dla tej spółki.</p> :
       <svg viewBox="0 0 320 120" className="w-full h-36" role="img" aria-label={`Historia ujawnionych pozycji i kursu ${data.ticker}`}>
@@ -43,10 +43,10 @@ export const GpwShortsChartWidget: FC<Props> = ({ data, isTopRanked = false }) =
         {points.filter(p => p.shortPct != null).length === 1 && points.filter(p => p.shortPct != null).map(p =>
           <circle key={p.date} cx={x(p.date)} cy="40" r="2.5" fill="var(--color-danger)" />)}
         {pricePaths.map((d, i) => <path key={`price-${i}`} d={d} fill="none" stroke="var(--color-text-muted)" strokeWidth="1.4" />)}
-        <text x="315" y="18" textAnchor="end" className="text-3xs fill-danger">{data.shortPct == null ? '—' : `${data.shortPct.toFixed(2)}%`}</text>
-        <text x="315" y="68" textAnchor="end" className="text-3xs fill-text-muted">{data.latestPrice?.toFixed(2) ?? '—'}</text>
-        <text x="10" y="116" className="text-4xs fill-text-muted">{data.startDateLabel}</text>
-        <text x="280" y="116" textAnchor="end" className="text-4xs fill-text-muted">{data.endDateLabel}</text>
+        <text x="315" y="18" textAnchor="end" className="text-2xs fill-danger">{data.shortPct == null ? '—' : `${data.shortPct.toFixed(2)}%`}</text>
+        <text x="315" y="68" textAnchor="end" className="text-2xs fill-text-muted">{data.latestPrice?.toFixed(2) ?? '—'}</text>
+        <text x="10" y="116" className="text-2xs fill-text-muted">{data.startDateLabel}</text>
+        <text x="280" y="116" textAnchor="end" className="text-2xs fill-text-muted">{data.endDateLabel}</text>
       </svg>}
     <div className="text-2xs text-text-secondary space-y-1">
       <p>Ostatni zapisany stan rejestru: {data.shortPct == null ? 'brak danych' : `${data.shortPct.toFixed(2)}%`}

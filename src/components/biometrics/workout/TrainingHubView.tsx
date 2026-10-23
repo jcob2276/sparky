@@ -25,7 +25,7 @@ function ActiveDraftBanner({
     <div className="trening-panel rounded-[var(--tren-radius-card)] p-3.5 space-y-2.5 border-warning/35 bg-warning/10">
       <div className="flex items-center gap-2 text-warning">
         <AlertCircle size={14} />
-        <span className="text-2xs font-black uppercase tracking-wider">Niezapisany trening</span>
+        <span className="text-2xs font-semibold tracking-normal">Niezapisany trening</span>
       </div>
       <p className="text-xs text-text-secondary leading-snug">Sesja z seriami w pamięci podręcznej.</p>
       <div className="flex gap-2">
@@ -52,8 +52,8 @@ function QuickStartCta({ onStart, onSauna, showStart }: { onStart: () => void; o
     <section className="trening-panel space-y-3 rounded-[var(--tren-radius-card)] border-primary/25 p-4">
       {showStart && (
         <div className="space-y-1">
-          <p className="text-3xs font-black uppercase tracking-widest text-primary">Poczekalnia</p>
-          <h2 className="font-display text-xl font-black leading-tight tracking-tight text-text-primary">Gotowy na sesję?</h2>
+          <p className="text-2xs font-semibold tracking-normal text-primary">Poczekalnia</p>
+          <h2 className="font-display text-xl font-semibold leading-tight tracking-tight text-text-primary">Gotowy na sesję?</h2>
         </div>
       )}
       <div className="flex gap-2">
@@ -122,8 +122,8 @@ export default function TrainingHubView({
             <ChevronLeft size={18} />
           </Pressable>
           <div className="min-w-0">
-            <p className="text-3xs font-black uppercase tracking-[0.16em] text-primary">Trening</p>
-            <h1 className="text-lg font-black tracking-tight text-text-primary font-display leading-none mt-0.5 truncate">
+            <p className="text-2xs font-semibold tracking-normal text-primary">Trening</p>
+            <h1 className="text-lg font-semibold tracking-tight text-text-primary font-display leading-none mt-0.5 truncate">
               Centrum Treningowe
             </h1>
           </div>
@@ -145,7 +145,7 @@ export default function TrainingHubView({
         {loading ? (
           <div className="py-16 flex flex-col items-center justify-center gap-2">
             <Spinner size="md" />
-            <span className="text-2xs font-black uppercase tracking-widest text-text-muted">Wczytywanie…</span>
+            <span className="text-2xs font-semibold tracking-normal text-text-muted">Wczytywanie…</span>
           </div>
         ) : (
           <div className="space-y-3.5 animate-in fade-in">

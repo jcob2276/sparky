@@ -28,6 +28,8 @@
 | `<div className="fixed inset-0 z-50 ...">` (modal) | `<Modal isOpen={...} onClose={...}>` |
 | `<div className="animate-spin rounded-full ...">` | `<Spinner size="md" />` |
 | `<div className="animate-pulse ...">` (ładowanie) | `<Skeleton variant="text" />` |
+| `text-3xs font-black uppercase tracking-widest` (tytuł sekcji) | `<SectionTitle>` |
+| `<EmptyState icon="📭">` (emoji) | `<EmptyState icon={<Inbox />}>` (lucide) |
 | `bg-blue-500`, `text-rose-400`, `border-emerald-200` w className | Tokeny: `bg-danger`, `text-success`, `bg-surface-2` |
 | `<span className="inline-flex items-center ... badge">` | `<Badge variant="count" count={5} />` |
 
@@ -127,6 +129,8 @@ Tailwind: `text-text-primary`, `text-text-secondary`, `text-text-muted`, `text-t
 | `--radius-sheet` / `--radius-xl` | `28px` | Modale, sheety i duże warstwy pływające |
 | `--radius-full` | `9999px` | Pill shape |
 
+`--radius-2xl` i `--radius-3xl` są aliasami `--radius-hero` (22px) i `--radius-sheet` (28px); stare `rounded-2xl/3xl` nie dają już 32-40px.
+
 ### 2.5 Shadow tokens
 
 | Token | Do czego |
@@ -178,7 +182,7 @@ duże tytuły są ciaśniejsze, body pozostaje blisko `0`.
 | `text-3xl` / `--text-screen-title` | 34px | Duży tytuł ekranu, waga 700, tracking `-0.022em` |
 | `text-4xl` | 36px | Hero large |
 | `text-5xl` | 48px | Splash |
-| `text-6xl` | 56px | Splash large |
+| `text-6xl` | 60px | Splash large |
 
 **Zasada:** body i wiersze mają czytać się jak systemowy iOS. Uppercase i mikroetykieta
 nie mogą zastępować prawdziwej hierarchii.
@@ -352,7 +356,7 @@ import Skeleton from '../ui/Skeleton';
 
 | Prop | Default | Opcje |
 |---|---|---|
-| `variant` | `'text'` | `text`, `avatar`, `card` |
+| `variant` | `'text'` | `text`, `avatar`, `card`, `stat`, `block` |
 | `lines` | `3` | Liczba linii |
 
 ### EmptyState
@@ -360,8 +364,40 @@ import Skeleton from '../ui/Skeleton';
 ```tsx
 import EmptyState from '../ui/EmptyState';
 
-<EmptyState icon="📭" label="Brak danych" action={{ label: 'Dodaj', onClick: () => {} }} />
+<EmptyState
+  icon={<Inbox size={22} />}          // lucide; opcjonalne (domyślnie Inbox), string-emoji tylko legacy
+  label="Brak danych"
+  description="Dodaj pierwszy wpis."  // opcjonalne
+  compact                             // opcjonalne, wariant do kart i sheetów
+  action={{ label: 'Dodaj', onClick: () => {} }}
+/>
 ```
+
+Tokeny (`border-border-custom`, `bg-surface-2`), więc widoczny w jasnym i ciemnym motywie. Przycisk akcji ma 44px.
+
+### SectionTitle
+
+```tsx
+import SectionTitle from '../ui/SectionTitle';
+
+<SectionTitle trailing="3 z 5">Dzisiejsze zadania</SectionTitle>
+```
+
+Jedyna reguła nagłówka sekcji: 15px, waga 600, sentence-case. Zastępuje
+`text-3xs font-black uppercase tracking-widest`. `shared/Section` używa go wewnętrznie.
+
+### PageHeader
+
+`shared/PageHeader` — duży tytuł 34px (`--text-screen-title`), który zwija się do paska 17px z blurem po
+przewinięciu (IntersectionObserver, bez nasłuchu scrolla). Sloty `leading` / `actions`, opcjonalny `subtitle`.
+
+### IconButton
+
+Zawsze ma strefę dotyku 44x44px (pseudo-element), nawet gdy wizualnie jest mniejszy.
+
+### ShellSkeleton
+
+`ui/ShellSkeleton` jest fallbackiem tras (`Suspense`/ładowanie sesji) zamiast wycentrowanego spinnera.
 
 ### Input
 

@@ -13,7 +13,7 @@ const SIZE_CLASSES = {
   sm: 'w-8 h-8 text-xs',
   md: 'w-10 h-10 text-sm font-bold',
   lg: 'w-12 h-12 text-base font-bold',
-  xl: 'w-16 h-16 text-xl font-black',
+  xl: 'w-16 h-16 text-xl font-semibold',
 };
 
 export const SuperinvestorAvatar: FC<Props> = ({

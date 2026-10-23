@@ -18,7 +18,7 @@ export const PortfolioForecastCard: FC<Props> = ({ portfolio }) => {
   const { horizon, setHorizon, selectedScenario, setSelectedScenario, model, setAssumption, aiReport, setAiReport, isGeneratingAi, handleRunAiForecast } = usePortfolioForecast(portfolio);
 
   return (
-    <div className="rounded-3xl border border-border-custom bg-surface p-5 sm:p-7 shadow-xs space-y-6 relative overflow-hidden">
+    <div className="rounded-2xl border border-border-custom bg-surface p-5 sm:p-7 shadow-xs space-y-6 relative overflow-hidden">
       {/* 1. Header with Title & Horizon Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-custom/60 pb-4">
         <div className="flex items-center gap-3">
@@ -27,14 +27,14 @@ export const PortfolioForecastCard: FC<Props> = ({ portfolio }) => {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-base sm:text-lg font-black text-text-primary tracking-tight">
+              <h3 className="text-base sm:text-lg font-semibold text-text-primary tracking-tight">
                 Scenariusze portfela
               </h3>
-              <span className="px-2 py-0.5 rounded-full text-4xs font-mono font-bold bg-primary/10 text-primary border border-primary/20 uppercase">
+              <span className="px-2 py-0.5 rounded-full text-2xs font-mono font-bold bg-primary/10 text-primary border border-primary/20">
                 Założenia użytkownika
               </span>
             </div>
-            <p className="text-3xs text-text-muted mt-0.5">
+            <p className="text-2xs text-text-muted mt-0.5">
               Kalkulator scenariuszy i dostępność danych źródłowych
             </p>
           </div>
@@ -48,7 +48,7 @@ export const PortfolioForecastCard: FC<Props> = ({ portfolio }) => {
               size="sm"
               variant={horizon === h ? 'primary' : 'ghost'}
               onClick={() => setHorizon(h)}
-              className={`rounded-lg px-2.5 py-1 text-3xs font-mono font-bold ${
+              className={`rounded-lg px-2.5 py-1 text-2xs font-mono font-bold ${
                 horizon === h ? 'shadow-xs' : 'text-text-muted hover:text-text-primary'
               }`}
             >
@@ -75,7 +75,7 @@ export const PortfolioForecastCard: FC<Props> = ({ portfolio }) => {
 
       {/* 4. Deep AI & Jev Run Section */}
       <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border-custom/50">
-        <div className="flex items-center gap-2 text-3xs text-text-muted">
+        <div className="flex items-center gap-2 text-2xs text-text-muted">
           <Sparkles size={14} className="text-primary shrink-0" />
           <span>
             Analiza AI publicznych danych instrumentów. Ilości, wyceny pozycji i gotówka pozostają lokalnie.

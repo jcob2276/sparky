@@ -37,14 +37,14 @@ export function PhotoComparisonCard({
         <div>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-18em)] text-text-muted font-display">
+            <p className="text-xs font-medium text-text-muted">
               Postęp sylwetki
             </p>
           </div>
-          <h2 className="mt-0.5 font-display text-lg font-black tracking-tight text-text-primary flex items-center gap-2">
+          <h2 className="mt-0.5 font-display text-xl font-semibold tracking-tight text-text-primary flex items-center gap-2">
             Transformacja
             {daysDiff > 0 && (
-              <span className="text-xs font-bold text-primary font-mono">
+              <span className="text-xs font-semibold text-primary ui-num">
                 +{daysDiff}d
               </span>
             )}
@@ -58,7 +58,7 @@ export function PhotoComparisonCard({
             <div className="flex items-center rounded-xl bg-surface border border-border-custom p-0.5">
               <Pressable
                 onClick={() => setMode('side')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-2xs font-bold ui-interactive ${
+                className={`flex items-center gap-1 min-h-[40px] min-w-[40px] justify-center px-2.5 py-1.5 rounded-lg text-xs font-semibold ui-interactive ${
                   mode === 'side'
                     ? 'bg-primary text-on-accent shadow-sm'
                     : 'text-text-muted hover:text-text-primary'
@@ -70,7 +70,7 @@ export function PhotoComparisonCard({
               </Pressable>
               <Pressable
                 onClick={() => setMode('slider')}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-2xs font-bold ui-interactive ${
+                className={`flex items-center gap-1 min-h-[40px] min-w-[40px] justify-center px-2.5 py-1.5 rounded-lg text-xs font-semibold ui-interactive ${
                   mode === 'slider'
                     ? 'bg-primary text-on-accent shadow-sm'
                     : 'text-text-muted hover:text-text-primary'
@@ -87,14 +87,14 @@ export function PhotoComparisonCard({
             <Pressable
               onClick={() => onAnalyze(targetPhoto)}
               disabled={analyzingId === targetPhoto.id}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary hover:text-on-accent font-display text-xs font-bold uppercase tracking-wider ui-interactive cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary hover:text-on-accent min-h-[44px] font-display text-xs font-semibold ui-interactive cursor-pointer shadow-sm"
             >
               {analyzingId === targetPhoto.id ? <Spinner size="sm" /> : <Sparkles size={14} />}
               <span>{targetPhoto.ai_analysis ? 'Wynik AI' : 'Analizuj AI'}</span>
             </Pressable>
           )}
 
-          <label className="cursor-pointer flex h-9 w-9 items-center justify-center rounded-xl border border-border-custom bg-surface text-text-secondary ui-interactive hover:bg-primary hover:border-primary hover:text-on-accent shadow-sm active:scale-95">
+          <label className="cursor-pointer flex h-11 w-11 items-center justify-center rounded-xl border border-border-custom bg-surface text-text-secondary ui-interactive hover:bg-primary hover:border-primary hover:text-on-accent shadow-sm active:scale-95">
             {uploading ? <Spinner size="sm" /> : <Camera size={15} />}
             <ControlInput type="file" accept="image/*" className="hidden" onChange={onUpload} disabled={uploading} />
           </label>
@@ -119,11 +119,11 @@ export function PhotoComparisonCard({
                   <>
                     <img src={basePhoto.image_url} alt="Zdjęcie bazowe sylwetki" className="absolute inset-0 w-full h-full object-cover" />
                     <div className="absolute top-3 left-3 bg-surface/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-border-custom shadow-sm">
-                      <p className="text-3xs font-black text-text-secondary uppercase tracking-widest">Baza: {baseDateStr}</p>
+                      <p className="text-2xs font-semibold text-text-secondary">Baza: {baseDateStr}</p>
                     </div>
                   </>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-xs font-black text-text-muted uppercase">Wybierz bazę</div>
+                  <div className="flex items-center justify-center h-full text-sm font-medium text-text-muted">Wybierz bazę</div>
                 )}
               </div>
 
@@ -133,11 +133,11 @@ export function PhotoComparisonCard({
                   <>
                     <img src={targetPhoto.image_url} alt="Zdjęcie docelowe sylwetki" className="absolute inset-0 w-full h-full object-cover" />
                     <div className="absolute top-3 right-3 bg-primary/20 backdrop-blur-md px-2.5 py-1 rounded-full border border-primary/30 shadow-sm">
-                      <p className="text-3xs font-black text-primary uppercase tracking-widest">Cel: {targetDateStr}</p>
+                      <p className="text-2xs font-semibold text-primary">Cel: {targetDateStr}</p>
                     </div>
                   </>
                 ) : (
-                  <div className="flex items-center justify-center h-full text-xs font-black text-text-muted uppercase">Wybierz cel</div>
+                  <div className="flex items-center justify-center h-full text-sm font-medium text-text-muted">Wybierz cel</div>
                 )}
               </div>
             </div>
@@ -145,7 +145,7 @@ export function PhotoComparisonCard({
             {/* VS Badge */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
               <div className="bg-surface/90 backdrop-blur-md border border-border-custom w-10 h-10 rounded-full flex items-center justify-center shadow-lg">
-                <span className="text-xs font-black text-text-primary">VS</span>
+                <span className="text-xs font-semibold text-text-primary">VS</span>
               </div>
             </div>
 
@@ -153,7 +153,7 @@ export function PhotoComparisonCard({
             {daysDiff > 0 && (
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-primary text-on-accent px-4 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 pointer-events-none">
                 <Flame size={12} />
-                <p className="text-2xs font-black uppercase tracking-wider whitespace-nowrap">
+                <p className="text-xs font-semibold whitespace-nowrap">
                   +{daysDiff} dni transformacji
                 </p>
               </div>

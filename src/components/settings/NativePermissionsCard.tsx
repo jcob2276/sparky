@@ -1,12 +1,13 @@
 import { Smartphone, RefreshCw, MapPin, Battery, Zap } from 'lucide-react';
 import Button from '../ui/Button';
-import { Card } from '../ui/Card';
+import SettingsSection from './SettingsSection';
 import {
   openAutostartSettings,
   openBackgroundLocationSettings,
   requestIgnoreBatteryOptimizations,
 } from '../../lib/native/backgroundSync';
 import { openUsageStatsSettings } from '../../lib/native/usageStatsSync';
+import LocationStatusPanel from './LocationStatusPanel';
 import { useNativePermissionsCard } from './useNativePermissionsCard';
 
 interface NativePermissionsCardProps {
@@ -29,10 +30,7 @@ export default function NativePermissionsCard({ userId }: NativePermissionsCardP
   } = useNativePermissionsCard(userId);
 
   return (
-    <Card padding="1rem" className="space-y-4">
-      <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-text-muted">
-        <Smartphone size={13} /> Telefon (APK)
-      </div>
+    <SettingsSection icon={<Smartphone size={16} />} title="Telefon (APK)" description="Uprawnienia i synchronizacja w tle." className="space-y-4">
 
       <div className="space-y-2 text-sm">
         <div className="flex items-center justify-between">
@@ -61,6 +59,8 @@ export default function NativePermissionsCard({ userId }: NativePermissionsCardP
         </div>
       </div>
 
+      <LocationStatusPanel />
+
       {lastTotal !== null && (
         <p className="text-sm text-text-primary font-medium">
           Dziś: {lastTotal} min ekranu
@@ -74,7 +74,7 @@ export default function NativePermissionsCard({ userId }: NativePermissionsCardP
         </p>
       )}
 
-      <p className="text-2xs text-text-muted">
+      <p className="text-xs text-text-muted">
         Sync w tle utrzymuje proces przy życiu (powiadomienie). Na Xiaomi włącz autostart i „bez ograniczeń”.
       </p>
 
@@ -113,6 +113,6 @@ export default function NativePermissionsCard({ userId }: NativePermissionsCardP
           Sync teraz
         </Button>
       </div>
-    </Card>
+    </SettingsSection>
   );
 }

@@ -23,7 +23,7 @@ export default function LearningAddFromLink({ link, onClose }: LearningAddFromLi
     return (
       <Modal isOpen onClose={onClose} showCloseButton={false} padding="p-6" size="sm">
         <div className="space-y-4 text-center">
-          <h2 className="text-base font-black text-text-primary">Plan na ten miesiąc jest pełny</h2>
+          <h2 className="text-base font-semibold text-text-primary">Plan na ten miesiąc jest pełny</h2>
           <p className="text-sm text-text-muted">
             Masz już {MAX_ACTIVE_PER_MONTH} pozycje. Odpuść jedną w zakładce Rozwój albo skończ którąś, żeby dodać nową.
           </p>

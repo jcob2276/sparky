@@ -17,7 +17,7 @@ function ScatterTip({ active, payload }: { active?: boolean; payload?: { payload
   return (
     <div className="rounded-lg border border-border-custom bg-surface px-2.5 py-1.5 text-xs shadow-md">
       <p className="text-text-muted text-2xs">{p.day}</p>
-      <p className="font-bold text-text-primary">{p.x.toFixed(1)} → {p.y.toFixed(1)}</p>
+      <p className="font-semibold text-text-primary ui-num">{p.x.toFixed(1)} → {p.y.toFixed(1)}</p>
     </div>
   );
 }
@@ -26,21 +26,21 @@ function ConfidenceBadge({ level }: { level: ImpactFactor['evidence_level'] }) {
   switch (level) {
     case 'confirmed':
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-3xs font-black uppercase tracking-widest text-success">
+        <span className="inline-flex items-center gap-1 rounded-full bg-success/10 border border-success/20 px-2 py-0.5 text-xs font-semibold text-success">
           <span className="h-1.5 w-1.5 rounded-full bg-success inline-block" />
           Pewny
         </span>
       );
     case 'probable':
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 text-3xs font-black uppercase tracking-widest text-primary">
+        <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 border border-primary/20 px-2 py-0.5 text-xs font-semibold text-primary">
           <span className="h-1.5 w-1.5 rounded-full bg-primary inline-block" />
           Sygnał
         </span>
       );
     case 'hypothesis':
       return (
-        <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 border border-warning/20 px-2 py-0.5 text-3xs font-black uppercase tracking-widest text-warning">
+        <span className="inline-flex items-center gap-1 rounded-full bg-warning/10 border border-warning/20 px-2 py-0.5 text-xs font-semibold text-warning">
           <span className="h-1.5 w-1.5 rounded-full bg-warning inline-block" />
           Słaby
         </span>
@@ -75,12 +75,12 @@ export default function CorrelationCard({ item, showChart = false }: Props) {
     <Card
       variant="surface"
       padding="0"
-      className={`border transition-colors duration-[var(--motion-fast)] ${borderClass} overflow-hidden`}
+      className={`ui-surface-lift border transition-colors duration-[var(--motion-fast)] ${borderClass} overflow-hidden`}
     >
       <div className="p-4 flex flex-col gap-3">
         {/* Top row: category + badge */}
         <div className="flex items-center justify-between gap-2">
-          <span className="text-3xs font-bold uppercase tracking-wider text-text-muted">
+          <span className="text-xs font-medium text-text-muted">
             {CATEGORY_LABELS[item.category] ?? item.category}
           </span>
           <ConfidenceBadge level={item.evidence_level} />
@@ -88,17 +88,17 @@ export default function CorrelationCard({ item, showChart = false }: Props) {
 
         {/* Main insight: effect first */}
         <div>
-          <p className="text-xs font-semibold text-text-secondary leading-snug">
+          <p className="text-sm font-medium text-text-secondary leading-snug">
             {item.x_label}
             {item.lag_days > 0 && (
               <span className="text-text-muted"> → {lagLabel(item.lag_days)}</span>
             )}
           </p>
           <div className="flex items-baseline gap-2 mt-1">
-            <span className={`text-2xl font-black tabular-nums leading-none ${directionColor}`}>
+            <span className={`text-3xl font-semibold ui-num tracking-tight leading-none ${directionColor}`}>
               {direction} {item.natural_effect.split(' ')[0]}
             </span>
-            <span className="text-xs font-semibold text-text-muted">
+            <span className="text-sm text-text-muted">
               {item.y_label}
             </span>
           </div>
@@ -119,7 +119,7 @@ export default function CorrelationCard({ item, showChart = false }: Props) {
                   dataKey="x"
                   type="number"
                   name={item.x_label}
-                  tick={{ fontSize: 9, fill: 'var(--color-text-muted)' }}
+                  tick={{ fontSize: 10, fill: 'var(--color-text-muted)' }}
                   axisLine={false}
                   tickLine={false}
                 />
@@ -127,7 +127,7 @@ export default function CorrelationCard({ item, showChart = false }: Props) {
                   dataKey="y"
                   type="number"
                   name={item.y_label}
-                  tick={{ fontSize: 9, fill: 'var(--color-text-muted)' }}
+                  tick={{ fontSize: 10, fill: 'var(--color-text-muted)' }}
                   width={28}
                   axisLine={false}
                   tickLine={false}
@@ -147,19 +147,19 @@ export default function CorrelationCard({ item, showChart = false }: Props) {
 
         {/* Footer stats */}
         <div className="flex items-center gap-3 pt-1 border-t border-border-custom/40">
-          <span className="text-2xs text-text-muted font-medium">
-            N=<span className="font-bold text-text-secondary">{item.n}</span>
+          <span className="text-xs text-text-muted ui-num">
+            n = <span className="font-semibold text-text-secondary">{item.n}</span>
           </span>
-          <span className="text-2xs font-bold tabular-nums" style={{ color }}>
+          <span className="text-xs font-semibold ui-num" style={{ color }}>
             r={item.r > 0 ? '+' : ''}{item.r.toFixed(2)}
           </span>
           {item.is_stable && (
-            <span className="text-2xs text-success font-semibold ml-auto">
+            <span className="text-xs text-success font-medium ml-auto">
               ✓ stabilny
             </span>
           )}
           {!item.is_stable && item.evidence_level !== 'hypothesis' && (
-            <span className="text-2xs text-text-muted ml-auto">niestabilny</span>
+            <span className="text-xs text-text-muted ml-auto">niestabilny</span>
           )}
         </div>
       </div>

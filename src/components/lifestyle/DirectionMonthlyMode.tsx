@@ -53,8 +53,8 @@ function StatPill({ value, label, highlight }: { value: string; label: string; h
       : 'text-text-primary';
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border border-border-custom/50 bg-surface/60 px-3 py-3 gap-0.5 text-center">
-      <span className={`text-2xl font-black tracking-tight leading-none ${color}`}>{value}</span>
-      <span className="text-2xs font-bold uppercase tracking-wide text-text-muted mt-1 leading-tight">{label}</span>
+      <span className={`text-2xl font-semibold tracking-tight leading-none ${color}`}>{value}</span>
+      <span className="text-2xs font-bold text-text-muted mt-1 leading-tight">{label}</span>
     </div>
   );
 }
@@ -78,7 +78,7 @@ function ReflectionInput({
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <Icon size={13} className="text-primary shrink-0" />
-        <span className="text-xs font-black uppercase tracking-widest text-text-primary">{label}</span>
+        <span className="text-xs font-semibold text-text-primary">{label}</span>
       </div>
       <p className="text-xs text-text-muted pl-5">{hint}</p>
       <Textarea value={value} onChange={onChange} placeholder={placeholder} />
@@ -100,7 +100,7 @@ function MonthStatsGrid({ monthFacts }: { monthFacts: MonthFacts }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Miesiąc w liczbach</p>
+      <p className="text-2xs font-semibold text-text-muted">Miesiąc w liczbach</p>
       <div className="grid grid-cols-3 gap-2">
         <StatPill
           value={`${monthFacts.weeksReviewed}/${monthFacts.weeksInMonth}`}
@@ -149,7 +149,7 @@ function MonthAiRecapCard({
   return (
     <div className="rounded-2xl border border-border-custom/60 bg-surface/40 overflow-hidden">
       <div className="px-4 pt-4 pb-3 border-b border-border-custom/40">
-        <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Jak wyglądał twój miesiąc</p>
+        <p className="text-2xs font-semibold text-text-muted">Jak wyglądał twój miesiąc</p>
       </div>
 
       {recapLoading && (
@@ -167,14 +167,14 @@ function MonthAiRecapCard({
 
           {recap.longterm_motif && (
             <div className="px-4 py-3 bg-warning/[0.05]">
-              <p className="text-2xs font-black uppercase tracking-widest text-warning mb-1.5">Motyw powtarzający się</p>
+              <p className="text-2xs font-semibold text-warning mb-1.5">Motyw powtarzający się</p>
               <p className="text-sm font-semibold text-text-primary">{recap.longterm_motif}</p>
             </div>
           )}
 
           {recap.question && (
             <div className="px-4 py-3">
-              <p className="text-2xs font-black uppercase tracking-widest text-text-muted mb-2">Pytanie otwierające</p>
+              <p className="text-2xs font-semibold text-text-muted mb-2">Pytanie otwierające</p>
               <p className="text-sm text-text-secondary italic leading-relaxed">„{recap.question}”</p>
             </div>
           )}
@@ -213,7 +213,7 @@ export default function DirectionMonthlyMode({
     <div className="space-y-6 pb-6 border-b border-border-custom mb-6">
       {/* Header strip */}
       <div className="rounded-2xl border border-warning/20 bg-warning/[0.06] px-4 py-3.5">
-        <p className="text-2xs font-black uppercase tracking-[0.2em] text-warning">Przegląd miesiąca</p>
+        <p className="text-2xs font-semibold text-warning">Przegląd miesiąca</p>
         <p className="mt-1 text-base font-bold text-text-primary capitalize">{monthFacts.monthLabel}</p>
         <p className="mt-1 text-xs text-text-secondary leading-relaxed">
           Warstwa między sprintem a tygodniem — zamknij miesiąc, potem planuj tydzień.
@@ -228,7 +228,7 @@ export default function DirectionMonthlyMode({
 
       {/* Reflection questions */}
       <div className="space-y-5">
-        <p className="text-2xs font-black uppercase tracking-widest text-text-muted">Refleksja miesiąca</p>
+        <p className="text-2xs font-semibold text-text-muted">Refleksja miesiąca</p>
         <ReflectionInput
           icon={AlertCircle}
           label="Wzorzec miesiąca"
@@ -260,7 +260,7 @@ export default function DirectionMonthlyMode({
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Lightbulb size={13} className="text-primary shrink-0" />
-            <p className="text-xs font-black uppercase tracking-widest text-text-primary">Temat miesiąca</p>
+            <p className="text-xs font-semibold text-text-primary">Temat miesiąca</p>
           </div>
           {recap?.theme_suggestion && (
             <span className="text-2xs font-bold text-primary/70 bg-primary/10 rounded-full px-2 py-0.5">

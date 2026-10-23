@@ -84,15 +84,15 @@ export default function LiveWorkout({
           <ChevronLeft size={22} />
         </Button>
         <div className="min-w-0 flex-1 text-center">
-          <p className="text-xl font-black tabular-nums leading-none text-text-primary">{logger.elapsed ?? '00:00'}</p>
-          <p className="mt-0.5 text-3xs font-bold uppercase tracking-wider text-text-muted">
+          <p className="text-xl font-semibold tabular-nums leading-none text-text-primary">{logger.elapsed ?? '00:00'}</p>
+          <p className="mt-0.5 text-2xs font-bold tracking-normal text-text-muted">
             {summary.sets > 0 ? `${summary.sets} serii` : 'Trening'}
           </p>
         </div>
         <Pressable onClick={() => setAppearanceOpen(true)} aria-label="Wygląd treningu" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-text-secondary hover:text-primary">
           <Settings size={18} />
         </Pressable>
-        <Button variant="primary" onClick={() => setFinishOpen(true)} className="!h-11 shrink-0 !rounded-full !px-5 !text-sm !font-black">
+        <Button variant="primary" onClick={() => setFinishOpen(true)} className="!h-11 shrink-0 !rounded-full !px-5 !text-sm !font-semibold">
           Zakończ
         </Button>
       </header>

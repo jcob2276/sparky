@@ -59,7 +59,7 @@ export const GpwCompanyRow: FC<Props> = ({
             <div className="font-bold text-text-primary group-hover:text-primary transition-colors text-xs sm:text-sm">
               {stock.ticker}
             </div>
-            <div className="text-3xs text-text-muted truncate max-w-40 sm:max-w-64 uppercase tracking-wider font-mono">
+            <div className="text-2xs text-text-muted truncate max-w-40 sm:max-w-64 font-mono">
               {stock.name}
             </div>
           </div>
@@ -69,9 +69,9 @@ export const GpwCompanyRow: FC<Props> = ({
       {/* KURS PLN */}
       <td className="py-3 px-3 text-right font-medium text-text-primary font-mono text-xs sm:text-sm">
         {fmtPln(stock.close)}
-        {stock.priceDate && <div className="text-3xs text-text-muted">{stock.priceDate}</div>}
+        {stock.priceDate && <div className="text-2xs text-text-muted">{stock.priceDate}</div>}
         {stock.priceSourceUrl && <a href={stock.priceSourceUrl} target="_blank" rel="noopener noreferrer"
-          onClick={event => event.stopPropagation()} className="text-3xs text-primary underline">Źródło ceny</a>}
+          onClick={event => event.stopPropagation()} className="text-2xs text-primary underline">Źródło ceny</a>}
       </td>
 
       {/* DZIŚ */}
@@ -150,7 +150,7 @@ export const GpwCompanyRow: FC<Props> = ({
               />
             </svg>
           ) : (
-            <span className="text-3xs text-text-muted font-mono">—</span>
+            <span className="text-2xs text-text-muted font-mono">—</span>
           )}
         </div>
       </td>

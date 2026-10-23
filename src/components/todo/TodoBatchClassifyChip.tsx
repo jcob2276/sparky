@@ -23,7 +23,7 @@ export default function TodoBatchClassifyChip() {
           {batchClassifying ? 'Porządkowanie zadań...' : `${unclassifiedCount} zadań do przypisania przez AI`}
         </span>
       </div>
-      <span className="text-3xs font-bold bg-primary/15 text-primary px-2.5 py-1 rounded-md uppercase tracking-wider shrink-0">
+      <span className="text-2xs font-bold bg-primary/15 text-primary px-2.5 py-1 rounded-md shrink-0">
         Klasyfikuj
       </span>
     </Pressable>

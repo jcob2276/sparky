@@ -58,12 +58,12 @@ function ReaderBody({
       {/* 3 Spheres AI Synthesis Section */}
       <div className="space-y-2.5 rounded-2xl border border-primary/20 bg-primary/5 p-4">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-primary">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
             <Sparkles size={14} />
             <span>Wnioski AI · 3 Sfery</span>
           </div>
           {link.category && (
-            <span className={`px-2.5 py-0.5 rounded-full text-3xs font-black uppercase tracking-wider border ${
+            <span className={`px-2.5 py-0.5 rounded-full text-2xs font-semibold border ${
               link.category === 'Ciało'
                 ? 'bg-success/15 text-success border-success/30'
                 : link.category === 'Duch'
@@ -81,7 +81,7 @@ function ReaderBody({
           <ul className="space-y-2 pt-1">
             {link.takeaways.map((t, idx) => (
               <li key={idx} className="flex items-start gap-2 text-xs leading-relaxed text-text-primary">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-3xs font-black text-primary mt-0.5">
+                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/20 text-2xs font-semibold text-primary mt-0.5">
                   {idx + 1}
                 </span>
                 <span>{t}</span>
@@ -101,7 +101,7 @@ function ReaderBody({
             onClick={onGenerateAi}
             loading={isAnalyzing}
             icon={!isAnalyzing ? <Sparkles size={13} /> : undefined}
-            className="w-full text-2xs font-black uppercase tracking-wider"
+            className="w-full text-2xs font-semibold"
           >
             {isAnalyzing ? 'Analizowanie materiału...' : link.takeaways?.length ? 'Przelicz wnioski (3 Sfery)' : 'Wygeneruj wnioski AI (3 Sfery)'}
           </Button>
@@ -130,7 +130,7 @@ function ReaderBody({
       </div>
 
       <div className="space-y-1.5 pt-2 border-t border-border-custom/20">
-        <p className="flex items-center gap-1 text-xs font-bold uppercase tracking-wider text-text-muted">
+        <p className="flex items-center gap-1 text-xs font-bold text-text-muted">
           <PenLine size={12} /> Twoje notatki i przemyślenia
         </p>
         <ControlTextarea

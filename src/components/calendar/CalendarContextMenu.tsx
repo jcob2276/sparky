@@ -82,7 +82,7 @@ function CategoryGrid({
           onClick={() => onSelect(sphere.id)}
           className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-2xs font-bold active:scale-[0.97] transition-[transform,background-color,border-color,color] duration-150 ease-out border ${
             event.category?.toLowerCase() === sphere.id
-              ? 'border-primary bg-primary/10 text-primary font-black'
+              ? 'border-primary bg-primary/10 text-primary font-semibold'
               : 'border-border-custom/30 hover:bg-surface-solid text-text-secondary'
           }`}
         >
@@ -105,7 +105,7 @@ function MoveSection({
 }) {
   return (
     <div className="my-1 border-t border-border-custom/20 pt-1">
-      <p className="px-2.5 py-0.5 text-2xs font-black uppercase tracking-wider text-text-muted/70">
+      <p className="px-2.5 py-0.5 text-2xs font-semibold text-text-muted/70">
         Przełóż termin
       </p>
       <MenuItem
@@ -248,7 +248,7 @@ export function CalendarContextMenu({
 
       {/* Change Category / Life Sphere */}
       <div className="my-1 border-t border-border-custom/20 pt-1">
-        <p className="px-2.5 py-0.5 text-2xs font-black uppercase tracking-wider text-text-muted/70 flex items-center gap-1">
+        <p className="px-2.5 py-0.5 text-2xs font-semibold text-text-muted/70 flex items-center gap-1">
           <Tag size={10} />
           <span>Kategoria / Sfera</span>
         </p>

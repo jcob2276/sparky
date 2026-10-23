@@ -5,7 +5,7 @@ import { useSession } from '../../store/useStore';
 import { supabase, invokeEdge } from '../../lib/supabase';
 import { unwrapList } from '../../lib/supabaseUtils';
 import { TIMEOUTS } from '../../lib/constants';
-import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
 import { Pressable } from '../ui/ControlPrimitives';
 
 interface StravaActivityItem {
@@ -74,22 +74,22 @@ function RunCard({ activity }: { activity: StravaActivityItem }) {
       <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-3xs font-mono font-bold text-text-muted uppercase tracking-wider">
+            <span className="text-2xs ui-num font-semibold text-text-muted">
               {fmtDateWithWeekday(activity.start_date)}
             </span>
             {activity.has_pr && (
-              <span className="inline-flex items-center gap-1 text-3xs font-black px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-500 border border-amber-500/30">
+              <span className="inline-flex items-center gap-1 text-2xs font-semibold px-1.5 py-0.2 rounded bg-amber-500/15 text-amber-500 border border-amber-500/30">
                 <Trophy size={10} /> PR
               </span>
             )}
           </div>
-          <h3 className="mt-0.5 truncate text-xs font-black uppercase tracking-tight text-text-primary font-display">
+          <h3 className="mt-0.5 truncate text-xs font-semibold text-text-primary font-display">
             {activity.name || 'Trening biegowy'}
           </h3>
         </div>
 
         {/* Small Strava/Garmin indicator */}
-        <span className="text-3xs font-mono font-bold text-text-muted/60 px-1.5 py-0.5 rounded bg-surface-2/40 border border-border-custom/40">
+        <span className="text-2xs ui-num font-semibold text-text-muted/60 px-1.5 py-0.5 rounded bg-surface-2/40 border border-border-custom/40">
           Garmin
         </span>
       </div>
@@ -98,44 +98,44 @@ function RunCard({ activity }: { activity: StravaActivityItem }) {
       <div className="grid grid-cols-4 gap-1.5">
         {/* Dystans */}
         <div className="rounded-lg bg-surface-2/50 border border-border-custom/50 p-2 text-center">
-          <div className="flex items-center justify-center gap-1 text-3xs text-text-muted uppercase">
+          <div className="flex items-center justify-center gap-1 text-2xs text-text-muted">
             <Route size={10} className="text-warning" />
             <span>Dystans</span>
           </div>
-          <p className="text-sm font-black text-text-primary font-display mt-0.5">
-            {distance} <span className="text-3xs font-bold text-text-muted">km</span>
+          <p className="text-sm font-semibold text-text-primary font-display mt-0.5">
+            {distance} <span className="text-2xs font-semibold text-text-muted">km</span>
           </p>
         </div>
 
         {/* Tempo */}
         <div className="rounded-lg bg-surface-2/50 border border-border-custom/50 p-2 text-center">
-          <div className="flex items-center justify-center gap-1 text-3xs text-text-muted uppercase">
+          <div className="flex items-center justify-center gap-1 text-2xs text-text-muted">
             <Activity size={10} className="text-primary" />
             <span>Tempo</span>
           </div>
-          <p className="text-sm font-black text-text-primary font-display mt-0.5">
-            {fmtPace(activity.pace_sec_per_km)} <span className="text-3xs font-bold text-text-muted">/km</span>
+          <p className="text-sm font-semibold text-text-primary font-display mt-0.5">
+            {fmtPace(activity.pace_sec_per_km)} <span className="text-2xs font-semibold text-text-muted">/km</span>
           </p>
         </div>
 
         {/* Czas */}
         <div className="rounded-lg bg-surface-2/50 border border-border-custom/50 p-2 text-center">
-          <div className="flex items-center justify-center gap-1 text-3xs text-text-muted uppercase">
+          <div className="flex items-center justify-center gap-1 text-2xs text-text-muted">
             <Clock size={10} className="text-text-muted" />
             <span>Czas</span>
           </div>
-          <p className="text-sm font-black text-text-primary font-display mt-0.5">
+          <p className="text-sm font-semibold text-text-primary font-display mt-0.5">
             {fmtTime(activity.moving_time)}
           </p>
         </div>
 
         {/* Wznios */}
         <div className="rounded-lg bg-surface-2/50 border border-border-custom/50 p-2 text-center">
-          <div className="flex items-center justify-center gap-1 text-3xs text-text-muted uppercase">
+          <div className="flex items-center justify-center gap-1 text-2xs text-text-muted">
             <Mountain size={10} className="text-text-muted" />
             <span>Wznios</span>
           </div>
-          <p className="text-sm font-black text-text-primary font-display mt-0.5">
+          <p className="text-sm font-semibold text-text-primary font-display mt-0.5">
             {elevation != null ? `+${elevation}m` : '--'}
           </p>
         </div>
@@ -143,10 +143,10 @@ function RunCard({ activity }: { activity: StravaActivityItem }) {
 
       {/* Physiological Footer */}
       {(hrAvg || activity.perceived_exertion) && (
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border-custom/40 text-3xs font-bold">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-border-custom/40 text-2xs font-semibold">
           {hrAvg && hrZone && (
             <div className="flex items-center gap-1.5">
-              <span className="inline-flex items-center gap-1 text-danger font-mono font-black">
+              <span className="inline-flex items-center gap-1 text-danger font-mono font-semibold">
                 <HeartPulse size={11} /> {hrAvg} bpm
               </span>
               <span className={`px-1.5 py-0.2 rounded border font-sans ${hrZone.color}`}>
@@ -156,7 +156,7 @@ function RunCard({ activity }: { activity: StravaActivityItem }) {
           )}
           {activity.perceived_exertion && (
             <span className="text-text-muted">
-              Wysiłek RPE <span className="text-text-primary font-black">{activity.perceived_exertion}/10</span>
+              Wysiłek RPE <span className="text-text-primary font-semibold">{activity.perceived_exertion}/10</span>
             </span>
           )}
         </div>
@@ -224,42 +224,44 @@ export default function StravaWidget() {
         <div>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-warning" />
-            <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-22em)] text-warning font-display">
-              Bieganie & Telemetria
+            <p className="text-xs font-medium text-warning">
+              Bieganie i telemetria
             </p>
           </div>
-          <h2 className="mt-0.5 text-lg font-black uppercase tracking-tight text-text-primary font-display flex items-center gap-2">
+          <h2 className="mt-0.5 text-xl font-semibold text-text-primary font-display flex items-center gap-2">
             Ostatnie 3 biegi
-            <span className="text-xs font-mono font-bold text-text-muted">· Garmin / Strava</span>
+            <span className="text-xs font-medium text-text-muted">· Garmin / Strava</span>
           </h2>
         </div>
         <Pressable
           onClick={handleSync}
           disabled={syncing}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-custom bg-surface text-text-secondary ui-interactive hover:bg-surface-solid hover:text-text-primary active:scale-95 shadow-sm cursor-pointer"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-custom bg-surface text-text-secondary ui-interactive hover:bg-surface-solid hover:text-text-primary active:scale-95 shadow-sm cursor-pointer"
           title="Synchronizuj z Garmin / Strava"
         >
           <RefreshCw size={13} className={syncing ? 'animate-spin text-warning' : ''} />
-          <span className="text-3xs font-bold uppercase tracking-wider hidden sm:inline">
-            {syncing ? 'Synchronizacja...' : 'Sync'}
+          <span className="text-2xs font-semibold hidden sm:inline">
+            {syncing ? 'Synchronizuję…' : 'Sync'}
           </span>
         </Pressable>
       </header>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-xl border border-danger/20 bg-danger/10 px-3 py-2 text-xs font-bold text-danger">
+        <div className="flex items-center gap-2 rounded-xl border border-danger/20 bg-danger/10 px-3 py-2 text-xs font-semibold text-danger">
           <AlertTriangle size={13} />
           {error}
         </div>
       )}
 
       {loading ? (
-        <div className="p-8 text-center rounded-xl bg-surface border border-border-custom">
-          <Spinner size="sm" className="!border-text-primary/10 !border-t-warning" />
+        <div className="space-y-2.5">
+          <Skeleton variant="card" lines={2} />
+          <Skeleton variant="card" lines={2} />
         </div>
       ) : activities.length === 0 ? (
         <div className="p-6 text-center rounded-xl bg-surface border border-border-custom">
-          <p className="text-xs font-black uppercase tracking-widest text-text-muted">Brak biegów w feedzie</p>
+          <p className="text-sm font-medium text-text-secondary">Brak biegów w feedzie</p>
+          <p className="mt-1 text-xs text-text-muted">Kliknij Sync, aby pobrać ostatnie treningi z Garmin / Strava.</p>
         </div>
       ) : (
         <div className="space-y-2.5">

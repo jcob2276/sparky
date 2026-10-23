@@ -3719,6 +3719,12 @@ export type Database = {
       location_history: {
         Row: {
           accuracy: number | null
+          altitude: number | null
+          bearing: number | null
+          dwell_seconds: number | null
+          kind: string
+          provider: string | null
+          speed: number | null
           created_at: string | null
           id: string
           is_manual: boolean | null
@@ -3729,6 +3735,12 @@ export type Database = {
         }
         Insert: {
           accuracy?: number | null
+          altitude?: number | null
+          bearing?: number | null
+          dwell_seconds?: number | null
+          kind?: string
+          provider?: string | null
+          speed?: number | null
           created_at?: string | null
           id?: string
           is_manual?: boolean | null
@@ -3739,6 +3751,12 @@ export type Database = {
         }
         Update: {
           accuracy?: number | null
+          altitude?: number | null
+          bearing?: number | null
+          dwell_seconds?: number | null
+          kind?: string
+          provider?: string | null
+          speed?: number | null
           created_at?: string | null
           id?: string
           is_manual?: boolean | null

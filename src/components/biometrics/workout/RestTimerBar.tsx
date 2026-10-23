@@ -120,10 +120,10 @@ export default function RestTimerBar({
             </div>
             <div>
               <div className="flex items-baseline gap-1.5">
-                <span className="text-base font-black font-mono tracking-tight tabular-nums">
+                <span className="text-base font-semibold font-mono tracking-tight tabular-nums">
                   {isDone ? 'Koniec przerwy!' : <NumberTicker value={formatTime(remaining)} />}
                 </span>
-                <span className="text-3xs font-bold uppercase tracking-wider text-text-muted">
+                <span className="text-2xs font-bold tracking-normal text-text-muted">
                   {isDone ? 'Czas na serię' : 'Odpoczynek'}
                 </span>
               </div>
@@ -135,7 +135,7 @@ export default function RestTimerBar({
             {!isDone && (
               <Pressable
                 onClick={() => addTime(30)}
-                className="flex items-center gap-0.5 px-2 py-1 rounded-lg bg-surface border border-border-custom text-2xs font-black text-text-secondary hover:text-text-primary ui-interactive active:scale-95 cursor-pointer"
+                className="flex items-center gap-0.5 px-2 py-1 rounded-lg bg-surface border border-border-custom text-2xs font-semibold text-text-secondary hover:text-text-primary ui-interactive active:scale-95 cursor-pointer"
                 title="Dodaj 30 sekund"
               >
                 <Plus size={10} /> 30s
@@ -145,7 +145,7 @@ export default function RestTimerBar({
             {isDone ? (
               <Pressable
                 onClick={() => restart(90)}
-                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-success text-on-accent text-2xs font-black uppercase tracking-wider hover:bg-success/90 ui-interactive active:scale-95 cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-success text-on-accent text-2xs font-semibold tracking-normal hover:bg-success/90 ui-interactive active:scale-95 cursor-pointer"
               >
                 <RotateCcw size={11} /> 90s
               </Pressable>
@@ -155,8 +155,8 @@ export default function RestTimerBar({
                   <Pressable
                     key={s}
                     onClick={() => restart(s)}
-                    className={`px-1.5 py-1 rounded-md text-3xs font-bold ui-interactive cursor-pointer ${
-                      totalSeconds === s ? 'bg-primary/20 text-primary font-black' : 'text-text-muted hover:text-text-secondary'
+                    className={`px-1.5 py-1 rounded-md text-2xs font-bold ui-interactive cursor-pointer ${
+                      totalSeconds === s ? 'bg-primary/20 text-primary font-semibold' : 'text-text-muted hover:text-text-secondary'
                     }`}
                   >
                     {s}s

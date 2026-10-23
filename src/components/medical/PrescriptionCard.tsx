@@ -27,7 +27,7 @@ export default function PrescriptionCard({ title, prescription }: PrescriptionCa
 
       <div className="flex items-start justify-between mb-4">
         <div>
-          <span className={`text-xs font-black uppercase tracking-wider px-2 py-1 rounded-full ${isNormalized ? 'bg-info/20 text-info' : 'bg-success/20 text-success'}`}>
+          <span className={`text-xs font-semibold tracking-normal px-2 py-1 rounded-full ${isNormalized ? 'bg-info/20 text-info' : 'bg-success/20 text-success'}`}>
             {isNormalized ? 'NORMALIZATION' : 'DIFFERENTIALS'}
           </span>
           <p className="text-xs text-text-muted mt-2 flex items-center gap-1">
@@ -44,11 +44,11 @@ export default function PrescriptionCard({ title, prescription }: PrescriptionCa
       <div className="grid grid-cols-2 gap-4">
         {/* Left Eye */}
         <div className="bg-surface/50 rounded-xl p-3 border border-border-custom">
-          <div className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Lewe Oko (OS)</div>
+          <div className="text-xs font-bold text-text-muted tracking-normal mb-2">Lewe Oko (OS)</div>
           <div className="flex justify-between items-end">
             <div>
               <div className="text-xs text-text-muted">Sfera</div>
-              <div className="font-display font-black text-xl">{prescription.sphere_l ?? '-'}</div>
+              <div className="font-display font-semibold text-xl">{prescription.sphere_l ?? '-'}</div>
             </div>
             <div className="text-right">
               <div className="text-xs text-text-muted">Cyl / Oś</div>
@@ -59,11 +59,11 @@ export default function PrescriptionCard({ title, prescription }: PrescriptionCa
 
         {/* Right Eye */}
         <div className="bg-surface/50 rounded-xl p-3 border border-border-custom">
-          <div className="text-xs font-bold text-text-muted uppercase tracking-wider mb-2">Prawe Oko (OD)</div>
+          <div className="text-xs font-bold text-text-muted tracking-normal mb-2">Prawe Oko (OD)</div>
           <div className="flex justify-between items-end">
             <div>
               <div className="text-xs text-text-muted">Sfera</div>
-              <div className="font-display font-black text-xl">{prescription.sphere_r ?? '-'}</div>
+              <div className="font-display font-semibold text-xl">{prescription.sphere_r ?? '-'}</div>
             </div>
             <div className="text-right">
               <div className="text-xs text-text-muted">Cyl / Oś</div>

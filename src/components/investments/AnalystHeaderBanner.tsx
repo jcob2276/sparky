@@ -15,15 +15,15 @@ export const AnalystHeaderBanner: FC<Props> = ({
   conversationCount = 0,
   onOpenMobileHistory,
 }) => (
-  <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-3xl bg-surface border border-border-custom shadow-xs">
+  <div className="p-3.5 sm:p-5 rounded-2xl sm:rounded-2xl bg-surface border border-border-custom shadow-xs">
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div>
         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mb-1">
-          <span className="px-2 py-0.5 rounded-md text-3xs sm:text-2xs font-bold bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
+          <span className="px-2 py-0.5 rounded-md text-2xs sm:text-2xs font-bold bg-primary/10 text-primary border border-primary/20 flex items-center gap-1">
             <Sparkles size={11} />
             <span>Analityk AI · Sparky</span>
           </span>
-          <span className="text-3xs sm:text-2xs font-mono text-text-secondary">
+          <span className="text-2xs sm:text-2xs font-mono text-text-secondary">
             Sparky · dane publiczne z datą i źródłem
           </span>
         </div>

@@ -15,14 +15,14 @@ export const SignalHorizonBadge: FC<Props> = ({
   compact = false,
 }) => {
   if (source === 'insider') return <span
-    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-3xs text-text-muted ${className}`}
+    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-2xs text-text-muted ${className}`}
     title="Dokument SEC Form 4. Datę transakcji i datę publikacji pokazujemy osobno.">
     SEC Form 4
   </span>;
   if (source === 'gpw_mar') {
     return (
       <span
-        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-3xs font-semibold bg-success/15 text-success border border-success/30 ${className}`}
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-2xs font-semibold bg-success/15 text-success border border-success/30 ${className}`}
         title="Ujawnienie MAR art. 19. Sprawdź datę transakcji i datę publikacji dokumentu."
       >
         <Zap size={11} className="shrink-0" />
@@ -36,7 +36,7 @@ export const SignalHorizonBadge: FC<Props> = ({
   if (source === 'congress') {
     return (
       <span
-        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-3xs font-semibold bg-primary/15 text-primary border border-primary/30 ${className}`}
+        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-2xs font-semibold bg-primary/15 text-primary border border-primary/30 ${className}`}
         title="Termin zgłoszenia: 30 dni od uzyskania informacji, najpóźniej 45 dni od transakcji. Rzeczywiste daty pokazujemy osobno."
       >
         <Clock size={11} className="shrink-0" />
@@ -49,7 +49,7 @@ export const SignalHorizonBadge: FC<Props> = ({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-3xs font-semibold bg-text-muted/15 text-text-secondary border border-border-custom ${className}`}
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-2xs font-semibold bg-text-muted/15 text-text-secondary border border-border-custom ${className}`}
       title="13F pokazuje stan na koniec kwartału. Zmiana między raportami nie ujawnia daty transakcji ani horyzontu inwestora."
     >
       <Hourglass size={11} className="shrink-0" />

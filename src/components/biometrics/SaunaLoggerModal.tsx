@@ -32,12 +32,12 @@ function Stepper({
   const round = 'flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border-custom bg-surface-1 text-text-primary active:scale-90 disabled:opacity-40';
   return (
     <div className="rounded-3xl border border-border-custom bg-surface p-4">
-      <p className="text-center text-xs font-bold uppercase tracking-wider text-text-muted">{label}</p>
+      <p className="text-center text-xs font-bold tracking-normal text-text-muted">{label}</p>
       <div className="mt-2 flex items-center justify-between gap-3">
         <Pressable onClick={() => onChange(Math.max(1, value - step))} disabled={value <= 1} aria-label={`${label}: minus ${step}`} className={round}>
           <Minus size={18} />
         </Pressable>
-        <p className="text-4xl font-black tabular-nums text-text-primary">
+        <p className="text-4xl font-semibold tabular-nums text-text-primary">
           {value}
           <span className="ml-1 text-base font-bold text-text-muted">{unit}</span>
         </p>
@@ -83,7 +83,7 @@ export default function SaunaLoggerModal({ onBack, onSaved }: { onBack: () => vo
         <Button variant="ghost" onClick={onBack} aria-label="Wróć" className="!h-11 !w-11 shrink-0 !rounded-full !px-0">
           <ChevronLeft size={22} />
         </Button>
-        <h1 className="flex min-w-0 flex-1 items-center justify-center gap-2 text-lg font-black text-text-primary">
+        <h1 className="flex min-w-0 flex-1 items-center justify-center gap-2 text-lg font-semibold text-text-primary">
           <Flame size={18} className="text-warning" /> Sauna
         </h1>
         <Pressable onClick={() => setAppearanceOpen(true)} aria-label="Wygląd" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-text-secondary hover:text-primary">
@@ -111,7 +111,7 @@ export default function SaunaLoggerModal({ onBack, onSaved }: { onBack: () => vo
         <Stepper label="Temperatura" unit="°C" value={celsius} step={5} max={MAX_CELSIUS} onChange={setCelsius} />
 
         <div className="rounded-3xl border border-border-custom bg-surface p-4">
-          <p className="mb-2 text-xs font-bold uppercase tracking-wider text-text-muted">Jak ciężko? (1–10)</p>
+          <p className="mb-2 text-xs font-bold tracking-normal text-text-muted">Jak ciężko? (1–10)</p>
           <div className="grid grid-cols-5 gap-1.5">
             {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
               <Pressable
@@ -140,7 +140,7 @@ export default function SaunaLoggerModal({ onBack, onSaved }: { onBack: () => vo
 
       <div className="trening-footer-bar fixed inset-x-0 bottom-0 z-[var(--z-modal)] border-t px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3">
         <div className="mx-auto max-w-md">
-          <Button variant="primary" onClick={() => void save()} disabled={saving} className="w-full !h-14 !rounded-2xl !text-base !font-black">
+          <Button variant="primary" onClick={() => void save()} disabled={saving} className="w-full !h-14 !rounded-2xl !text-base !font-semibold">
             {saving ? 'Zapisuję…' : 'Zapisz saunę'}
           </Button>
         </div>

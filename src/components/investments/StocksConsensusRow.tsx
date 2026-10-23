@@ -52,7 +52,7 @@ export const StocksConsensusRow: FC<Props> = ({
 
       <td className="py-3 px-4 text-right font-mono font-bold text-text-primary tabular-nums">
         {stock.priceUsd != null ? stock.priceUsd.toFixed(2).replace('.', ',') : '—'}
-        {stock.priceDate && <div className="text-3xs text-text-muted font-normal">{stock.priceDate}</div>}
+        {stock.priceDate && <div className="text-2xs text-text-muted font-normal">{stock.priceDate}</div>}
       </td>
 
       <td className="py-3 px-4 text-right font-mono text-2xs tabular-nums">
@@ -85,12 +85,12 @@ export const StocksConsensusRow: FC<Props> = ({
               style={{ width: `${sellPercent}%` }}
             />
           </div>
-          <div className="font-mono text-3xs text-text-secondary whitespace-nowrap">
+          <div className="font-mono text-2xs text-text-secondary whitespace-nowrap">
             <span className="font-bold text-text-primary">{stock.comparedFunds ? `${stock.fundsBuying} ↑` : '—'}</span>
             <span className="mx-1 text-text-muted">·</span>
             <span className="font-bold text-text-primary">{stock.comparedFunds ? `${stock.fundsSelling} ↓` : '—'}</span>
           </div>
-          <span className="text-3xs text-text-muted">{stock.comparedFunds ? `${stock.comparedFunds} porównanych` : 'Brak porównania'}</span>
+          <span className="text-2xs text-text-muted">{stock.comparedFunds ? `${stock.comparedFunds} porównanych` : 'Brak porównania'}</span>
         </div>
       </td>
 
@@ -128,7 +128,7 @@ export const StocksConsensusRow: FC<Props> = ({
 
       <td className="py-3 px-3 text-center">
         <span
-          className={`inline-block min-w-8 text-center px-2 py-0.5 rounded-md text-xs font-mono font-black border ${
+          className={`inline-block min-w-8 text-center px-2 py-0.5 rounded-md text-xs font-mono font-semibold border ${
             stock.netScore > 0
               ? 'bg-success/15 text-success border-success/30'
               : stock.netScore < 0

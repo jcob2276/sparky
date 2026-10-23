@@ -154,7 +154,6 @@ html[data-tren-accent='blue'] .trening-theme {
   border-radius: 1rem;
   font-weight: 900;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
   box-shadow:
     0 0 0 1px rgb(var(--tren-accent-rgb) / 35%),
     0 8px 28px rgb(var(--tren-accent-rgb) / 18%);
@@ -188,7 +187,6 @@ html[data-tren-accent='blue'] .trening-theme {
   font-size: 0.6875rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .trening-theme .trening-set-row {
@@ -217,7 +215,6 @@ html[data-tren-accent='blue'] .trening-theme {
   font-size: 0.625rem;
   font-weight: 800;
   letter-spacing: 0.05em;
-  text-transform: uppercase;
   transition: background-color 120ms ease, border-color 120ms ease;
 }
 

@@ -48,7 +48,7 @@ export function FinanceRecentTransactions({ transactions, onShowAll }: FinanceRe
   const recent = transactions.slice(0, 6);
 
   return (
-    <section className="rounded-3xl bg-surface-1 p-2" aria-label="Ostatnie transakcje">
+    <section className="rounded-2xl bg-surface-1 p-2" aria-label="Ostatnie transakcje">
       {recent.length === 0 ? (
         <p className="px-4 py-8 text-center text-sm text-text-muted">
           Brak wpisów. Użyj „Wydatek” albo „Wpływ”, a pojawią się tutaj.

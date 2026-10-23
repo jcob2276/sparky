@@ -55,11 +55,11 @@ export function LinksExpandedDetails({
       {/* AI Key Takeaways */}
       {link.takeaways && link.takeaways.length > 0 && (
         <div className="space-y-1.5">
-          <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Kluczowe wnioski</p>
+          <p className="text-2xs font-bold text-text-muted">Kluczowe wnioski</p>
           <ul className="space-y-1.5">
             {link.takeaways.map((t, i) => (
               <li key={i} className="flex items-start gap-2 text-xs leading-relaxed text-text-primary">
-                <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-3xs font-bold text-primary">
+                <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-2xs font-bold text-primary">
                   {i + 1}
                 </span>
                 <span>{t}</span>
@@ -106,7 +106,7 @@ export function LinksExpandedDetails({
 
       {/* Category Pills */}
       <div className="space-y-1 pt-1 border-t border-border-custom/20">
-        <p className="text-2xs font-bold uppercase tracking-wider text-text-muted">Kategoria</p>
+        <p className="text-2xs font-bold text-text-muted">Kategoria</p>
         <div className="flex flex-wrap gap-1">
           {CATEGORIES.map((cat) => {
             const isActive = link.category === cat;
@@ -131,11 +131,11 @@ export function LinksExpandedDetails({
       {/* Reflections & Notes */}
       <div className="space-y-1.5 pt-1 border-t border-border-custom/20">
         <div className="flex items-center justify-between">
-          <p className="flex items-center gap-1 text-2xs font-bold uppercase tracking-wider text-text-muted">
+          <p className="flex items-center gap-1 text-2xs font-bold text-text-muted">
             <PenLine size={10} /> Przemyślenia i notatki
           </p>
           {savedNoteId === link.id && (
-            <span className="flex items-center gap-1 text-3xs font-semibold text-success">
+            <span className="flex items-center gap-1 text-2xs font-semibold text-success">
               <Check size={9} /> Zapisano
             </span>
           )}

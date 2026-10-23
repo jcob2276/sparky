@@ -83,7 +83,7 @@ export const TradingViewChartModal: FC<Props> = ({
 
   return (
     <div className="fixed top-0 left-0 right-0 bottom-0 z-[var(--z-modal)] flex items-center justify-center p-3 sm:p-6 bg-scrim/60 backdrop-blur-xs animate-fade-in">
-      <div className="bg-surface border border-border-custom rounded-3xl max-w-5xl w-full h-5/6 max-h-screen flex flex-col shadow-2xl overflow-hidden relative">
+      <div className="bg-surface border border-border-custom rounded-2xl max-w-5xl w-full h-5/6 max-h-screen flex flex-col shadow-2xl overflow-hidden relative">
         {/* Header */}
         <div className="p-4 sm:p-5 border-b border-border-custom/50 flex items-center justify-between gap-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
@@ -104,7 +104,7 @@ export const TradingViewChartModal: FC<Props> = ({
                 >
                   {market}
                 </span>
-                <span className="text-3xs font-mono text-text-muted hidden md:inline">
+                <span className="text-2xs font-mono text-text-muted hidden md:inline">
                   {tvSymbol}
                 </span>
               </div>
@@ -155,7 +155,7 @@ export const TradingViewChartModal: FC<Props> = ({
         </div>
 
         {/* Footer info bar */}
-        <div className="px-4 py-2.5 border-t border-border-custom/40 bg-surface/50 flex items-center justify-between text-3xs font-mono text-text-muted shrink-0">
+        <div className="px-4 py-2.5 border-t border-border-custom/40 bg-surface/50 flex items-center justify-between text-2xs font-mono text-text-muted shrink-0">
           <span>Interaktywne świece, wskaźniki techniczne (RSI, MACD, SMA) · TradingView Live</span>
           <span className="hidden sm:inline">Strefa czasowa: Europe/Warsaw (CET/CEST)</span>
         </div>

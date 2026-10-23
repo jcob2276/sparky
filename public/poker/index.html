@@ -3,6 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>if (/[?&]embed=1/.test(location.search)) document.documentElement.classList.add('embed');</script>
+  <style>
+    html.embed .embed-hide { display: none !important; }
+    html.embed header > div { height: auto; padding-top: 6px; padding-bottom: 6px; }
+    html.embed header nav { max-width: 100%; overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; }
+    html.embed header nav button { white-space: nowrap; min-height: 44px; }
+    html.embed header { position: static; }
+    body { overflow-x: hidden; }
+    @media (max-width: 767px) { header nav { max-width: 100%; overflow-x: auto; scrollbar-width: none; } header nav button { white-space: nowrap; } }
+  </style>
   <title>Poker Decision Lab – Myślenie Probabilistyczne & Anti-Resulting</title>
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -84,7 +94,7 @@
   <!-- Top Navigation -->
   <header class="border-b border-slate-800 bg-[#0E1420]/80 backdrop-blur sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
+      <div class="embed-hide flex items-center space-x-3">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-900/30">
           <span class="text-xl font-black text-black">♠</span>
         </div>
@@ -114,7 +124,7 @@
       </nav>
 
       <!-- Audio & Sound Toggle -->
-      <div class="flex items-center space-x-2">
+      <div class="flex items-center space-x-2 shrink-0">
         <button id="soundToggle" onclick="toggleSound()" class="p-2 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition text-sm flex items-center space-x-1">
           <span id="soundIcon">🔊</span>
           <span class="hidden md:inline text-xs">Dźwięk</span>

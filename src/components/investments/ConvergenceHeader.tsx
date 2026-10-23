@@ -37,10 +37,10 @@ export const ConvergenceHeader: FC<Props> = ({
   hasRows,
   onNavigateTab,
 }) => (
-  <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-xs space-y-4">
+  <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-xs space-y-4">
     <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
       <div>
-        <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-text-primary">
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-text-primary">
           ZBIEŻNOŚĆ UJAWNIEŃ
         </h1>
         <p className="text-xs text-text-secondary mt-1.5 max-w-2xl leading-relaxed">
@@ -70,7 +70,7 @@ export const ConvergenceHeader: FC<Props> = ({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-3xs font-mono text-text-muted">3 ŹRÓDŁA · OKNO {windowLabel}</span>
+        <span className="text-2xs font-mono text-text-muted">3 ŹRÓDŁA · OKNO {windowLabel}</span>
         {(['90d', '365d'] as const).map((option) => (
           <Button
             key={option}

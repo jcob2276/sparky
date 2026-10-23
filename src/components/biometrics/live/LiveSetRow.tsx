@@ -106,7 +106,7 @@ export default function LiveSetRow({ set, number, ghost, isNext, weightStep, isP
           onClick={onToggleActions}
           aria-expanded={actionsOpen}
           aria-label={`${isWarmup ? 'Rozgrzewka' : `Seria ${number}`}, opcje`}
-          className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-black ${
+          className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${
             isWarmup ? 'bg-warning/15 text-warning' : actionsOpen ? 'bg-primary text-on-accent' : 'bg-surface-2 text-text-secondary'
           }`}
         >

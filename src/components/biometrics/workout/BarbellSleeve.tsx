@@ -26,7 +26,7 @@ function PlateDisc({ plate, onRemove }: { plate: number; onRemove?: (plateKg: nu
         aria-hidden
         className="pointer-events-none absolute inset-y-[32%] left-1/2 w-[55%] -translate-x-1/2 rounded-[1px] bg-background/30"
       />
-      <span className="relative z-[1] text-3xs tracking-tight opacity-95 drop-shadow-sm">
+      <span className="relative z-[1] text-2xs tracking-tight opacity-95 drop-shadow-sm">
         {plate}
       </span>
     </>
@@ -84,7 +84,7 @@ export default function BarbellSleeve({ result, onRemovePlate, className = '' }:
 
       <div className="relative z-[1] flex items-center gap-px pl-0.5">
         {plates.length === 0 ? (
-          <span className="pl-2 text-3xs font-medium text-text-muted">Sam gryf</span>
+          <span className="pl-2 text-2xs font-medium text-text-muted">Sam gryf</span>
         ) : (
           plates.map(({ plate, key }) => (
             <PlateDisc key={key} plate={plate} onRemove={onRemovePlate} />

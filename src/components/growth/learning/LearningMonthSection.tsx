@@ -45,7 +45,7 @@ export default function LearningMonthSection({
     <section className="space-y-3" aria-labelledby="learning-month-title">
       <div className="flex items-end justify-between gap-3">
         <div>
-          <h2 id="learning-month-title" className="text-lg font-black tracking-tight text-text-primary">
+          <h2 id="learning-month-title" className="text-lg font-semibold tracking-tight text-text-primary">
             Ten miesiąc ({monthName})
           </h2>
           <p className="text-xs text-text-muted">

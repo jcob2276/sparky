@@ -22,7 +22,7 @@ export const CongressStreamTable: FC<Props> = ({
     <div className="bg-surface-elevated border border-border-custom rounded-2xl overflow-hidden shadow-sm space-y-2">
       <div className="p-4 border-b border-border-custom/50 flex items-center justify-between">
         <div>
-          <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+          <h3 className="text-xs font-semibold text-text-primary">
             Strumień ujawnień ({stream.length})
           </h3>
           <p className="text-2xs text-text-muted mt-0.5">
@@ -38,7 +38,7 @@ export const CongressStreamTable: FC<Props> = ({
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[840px] text-left text-xs">
-            <thead className="bg-surface-subtle text-3xs font-black text-text-muted uppercase tracking-wider border-b border-border-custom/40">
+            <thead className="bg-surface-subtle text-2xs font-semibold text-text-muted border-b border-border-custom/40">
               <tr>
                 <th className="py-2.5 px-4">Polityk</th>
                 <th className="py-2.5 px-4">Ticker</th>
@@ -70,7 +70,7 @@ export const CongressStreamTable: FC<Props> = ({
                           <div className="font-sans font-bold text-text-primary group-hover:text-primary transition-colors truncate">
                             {trade.politicianName}
                           </div>
-                          <div className="text-3xs text-text-muted truncate">
+                          <div className="text-2xs text-text-muted truncate">
                             <span>{trade.chamber === 'senate' ? 'SENAT' : 'IZBA'}</span>
                             <span className="mx-1">·</span>
                             <span>{trade.party ? `${trade.party}-` : '—'}{trade.state}</span>
@@ -98,13 +98,13 @@ export const CongressStreamTable: FC<Props> = ({
                           {trade.ticker}
                         </span>
                       </div>
-                      <div className="text-3xs text-text-muted max-w-48 truncate" title={trade.companyName}>{trade.companyName}</div>
+                      <div className="text-2xs text-text-muted max-w-48 truncate" title={trade.companyName}>{trade.companyName}</div>
                     </td>
 
                     {/* Typ */}
                     <td className="py-3 px-4 text-center font-sans">
                       <span
-                        className={`px-2 py-0.5 rounded-md text-3xs font-semibold uppercase tracking-wider border border-border-custom ${
+                        className={`px-2 py-0.5 rounded-md text-2xs font-semibold border border-border-custom ${
                           trade.type === 'buy'
                             ? 'text-success bg-surface-subtle'
                             : 'text-danger bg-surface-subtle'
@@ -125,10 +125,10 @@ export const CongressStreamTable: FC<Props> = ({
                         <span className={`font-bold ${isLate ? 'text-danger' : 'text-text-muted'}`}>
                           {trade.delayDays == null ? 'Brak dat' : `${trade.delayDays} DNI`}
                         </span>
-                        <span className="text-3xs text-text-muted">Transakcja: {trade.transactionDate || '—'}</span>
-                        <span className="text-3xs text-text-muted">Ujawnienie: {trade.disclosureDate || '—'}</span>
+                        <span className="text-2xs text-text-muted">Transakcja: {trade.transactionDate || '—'}</span>
+                        <span className="text-2xs text-text-muted">Ujawnienie: {trade.disclosureDate || '—'}</span>
                         {trade.sourceUrl && <a href={trade.sourceUrl} target="_blank" rel="noopener noreferrer"
-                          className="text-primary underline text-3xs" onClick={(event) => event.stopPropagation()}>Dokument źródłowy</a>}
+                          className="text-primary underline text-2xs" onClick={(event) => event.stopPropagation()}>Dokument źródłowy</a>}
                       </div>
                     </td>
                   </tr>

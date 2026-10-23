@@ -113,7 +113,7 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
                   {forecast && (
                     <div className="mt-0.5 flex items-center gap-1" title={`${WMO_WEATHER_DESC[forecast.weatherCode]}: ${forecast.tempMax}°C / ${forecast.tempMin}°C`}>
                       {getWMOWeatherIcon(forecast.weatherCode, 11)}
-                      <span className="text-3xs font-medium text-text-muted">{forecast.tempMax}°</span>
+                      <span className="text-2xs font-medium text-text-muted">{forecast.tempMax}°</span>
                     </div>
                   )}
                   <span className={`mt-1 flex h-7 w-7 items-center justify-center rounded-full text-sm font-bold ui-interactive ${isToday ? 'bg-primary text-on-accent shadow-xs' : 'text-text-primary group-hover:bg-surface-solid'}`}>

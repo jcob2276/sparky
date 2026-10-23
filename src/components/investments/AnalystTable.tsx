@@ -18,7 +18,7 @@ export const AnalystTable: FC<Props> = ({ headers, rows }) => {
     <div className="my-4 overflow-hidden rounded-2xl border border-border-custom bg-surface shadow-xs">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs sm:text-sm">
-          <thead className="border-b border-border-custom bg-surface-2/60 text-2xs uppercase tracking-wider text-text-secondary font-bold">
+          <thead className="border-b border-border-custom bg-surface-2/60 text-2xs text-text-secondary font-bold">
             <tr>
               {headers.map((h, idx) => {
                 const { text } = cleanCell(h);

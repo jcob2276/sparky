@@ -15,10 +15,12 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(UsageStatsPlugin.class);
         registerPlugin(BackgroundSyncPlugin.class);
+        registerPlugin(LocationBufferPlugin.class);
         registerPlugin(ShareIntentPlugin.class);
         registerPlugin(WidgetBridgePlugin.class);
         registerPlugin(BleProbePlugin.class);
         registerPlugin(StylusInputPlugin.class);
+        registerPlugin(DeviceSignalsPlugin.class);
         super.onCreate(savedInstanceState);
         android.webkit.WebView.setWebContentsDebuggingEnabled(true);
 

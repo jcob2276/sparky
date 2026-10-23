@@ -46,7 +46,7 @@ export const MarketStatusBadge: FC = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       <div
-        className="flex items-center gap-1 sm:gap-2 px-2 sm:px-2.5 py-1 rounded-xl bg-surface border border-border-custom shadow-2xs cursor-pointer select-none hover:border-primary/40 transition-colors shrink-0"
+        className="flex min-h-11 items-center gap-1 sm:gap-2 px-2.5 rounded-full bg-surface-1 cursor-pointer select-none hover:border-primary/40 transition-colors shrink-0"
         onClick={() => setIsOpen((prev) => !prev)}
         title="Kliknij, aby zobaczyć godziny sesji giełdowych"
       >
@@ -55,7 +55,7 @@ export const MarketStatusBadge: FC = () => {
         {/* GPW Pill */}
         <div className="flex items-center gap-1 sm:gap-1.5 font-mono text-2xs">
           {renderDot(sessions.gpw.badgeVariant, sessions.gpw.state)}
-          <span className="font-bold text-text-primary text-3xs sm:text-2xs">GPW</span>
+          <span className="font-bold text-text-primary text-2xs sm:text-2xs">GPW</span>
           <span
             className={`hidden md:inline ${
               sessions.gpw.state === 'open'
@@ -72,7 +72,7 @@ export const MarketStatusBadge: FC = () => {
         {/* USA Pill */}
         <div className="flex items-center gap-1 sm:gap-1.5 font-mono text-2xs">
           {renderDot(sessions.usa.badgeVariant, sessions.usa.state)}
-          <span className="font-bold text-text-primary text-3xs sm:text-2xs">USA</span>
+          <span className="font-bold text-text-primary text-2xs sm:text-2xs">USA</span>
           <span
             className={`hidden md:inline ${
               sessions.usa.state === 'open'
@@ -92,7 +92,7 @@ export const MarketStatusBadge: FC = () => {
             <span className="font-bold text-text-primary font-mono text-xs flex items-center gap-1.5">
               <span>🕒</span> Sesje giełdowe na żywo
             </span>
-            <span className="text-3xs font-mono text-text-muted">Czas Polski (CET)</span>
+            <span className="text-2xs font-mono text-text-muted">Czas Polski (CET)</span>
           </div>
 
           {/* GPW detail */}
@@ -112,7 +112,7 @@ export const MarketStatusBadge: FC = () => {
                 {sessions.gpw.stateLabel}
               </span>
             </div>
-            <div className="flex items-center justify-between text-3xs font-mono text-text-muted">
+            <div className="flex items-center justify-between text-2xs font-mono text-text-muted">
               <span>{sessions.gpw.hoursLabel}</span>
               <span className="text-text-secondary">{sessions.gpw.nextSessionNote}</span>
             </div>
@@ -135,7 +135,7 @@ export const MarketStatusBadge: FC = () => {
                 {sessions.usa.stateLabel}
               </span>
             </div>
-            <div className="flex items-center justify-between text-3xs font-mono text-text-muted">
+            <div className="flex items-center justify-between text-2xs font-mono text-text-muted">
               <span>{sessions.usa.hoursLabel}</span>
               <span className="text-text-secondary">{sessions.usa.nextSessionNote}</span>
             </div>

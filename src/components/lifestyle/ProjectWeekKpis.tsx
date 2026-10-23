@@ -76,7 +76,7 @@ export default function ProjectWeekKpis({
 
   return (
     <section className="space-y-2">
-      <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[var(--ds-arbitrary-0-14em)] text-text-muted">
+      <p className="flex items-center gap-2 text-xs font-semibold text-text-muted">
         <TrendingUp size={12} /> Projekty tego tygodnia ({projects.length})
       </p>
       <div className="space-y-2.5">
@@ -98,7 +98,7 @@ export default function ProjectWeekKpis({
               <p className="text-sm font-bold text-text-primary flex items-center gap-2 flex-wrap">
                 {project.name}
                 {focusProjectIds.includes(project.id) && (
-                  <span className="text-2xs font-black uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                  <span className="text-2xs font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                     Focus sprintu
                   </span>
                 )}
@@ -116,14 +116,14 @@ export default function ProjectWeekKpis({
                       <div className="min-w-0 flex-1">
                         <span className="text-xs font-bold text-text-primary block truncate">{kpi.name}</span>
                         {kpi.unit && (
-                          <span className="text-3xs uppercase tracking-wider text-text-muted">{kpi.unit}</span>
+                          <span className="text-2xs text-text-muted">{kpi.unit}</span>
                         )}
                       </div>
 
                       {/* Value + Quick +1 button + Target */}
                       <div className="flex items-center gap-2 shrink-0">
                         <div className="flex items-center gap-1">
-                          <span className={`text-sm font-black ${isComplete ? 'text-success' : 'text-text-primary'}`}>
+                          <span className={`text-sm font-semibold ${isComplete ? 'text-success' : 'text-text-primary'}`}>
                             {val}
                           </span>
                           {!readOnly && (
@@ -156,7 +156,7 @@ export default function ProjectWeekKpis({
                               className="w-12 rounded-lg border border-border-custom/40 bg-surface px-1.5 py-0.5 text-xs font-bold text-text-primary text-center outline-none focus:border-primary/40"
                             />
                             {hasTarget && pct !== null && (
-                              <span className={`text-3xs font-extrabold px-1.5 py-0.5 rounded-full ${
+                              <span className={`text-2xs font-extrabold px-1.5 py-0.5 rounded-full ${
                                 isComplete ? 'bg-success/15 text-success' : 'bg-surface-raised text-text-muted'
                               }`}>
                                 {pct}%
@@ -226,7 +226,7 @@ export default function ProjectWeekKpis({
                         key={p.id}
                         type="button"
                         onClick={() => setNewKpi((f) => ({ ...f, pillar: p.id }))}
-                        className={`rounded-md px-2 py-0.5 text-2xs font-black uppercase cursor-pointer transition-colors ${
+                        className={`rounded-md px-2 py-0.5 text-2xs font-semibold cursor-pointer transition-colors ${
                           newKpi.pillar === p.id ? 'bg-primary/15 text-primary' : 'text-text-muted hover:text-text-primary'
                         }`}
                       >

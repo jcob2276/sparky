@@ -12,7 +12,7 @@ export const InsiderFeedTable: FC<Props> = ({ feed, onSelectTicker }) => {
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <div className="rounded-3xl bg-surface border border-border-custom shadow-2xs overflow-hidden">
+    <div className="rounded-2xl bg-surface border border-border-custom shadow-2xs overflow-hidden">
       {/* Header with Toggle */}
       <div
         role="button"
@@ -23,11 +23,11 @@ export const InsiderFeedTable: FC<Props> = ({ feed, onSelectTicker }) => {
       >
         <div className="flex items-center gap-2">
           {isOpen ? <ChevronUp size={16} className="text-text-muted" /> : <ChevronDown size={16} className="text-text-muted" />}
-          <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono">
+          <h3 className="text-xs sm:text-sm font-semibold text-text-primary font-mono">
             Najnowsze transakcje w próbie ({feed.length})
           </h3>
         </div>
-        <span className="text-3xs font-mono font-bold text-text-muted uppercase">
+        <span className="text-2xs font-mono font-bold text-text-muted">
           {isOpen ? 'Zwiń' : 'Rozwiń'}
         </span>
       </div>
@@ -38,7 +38,7 @@ export const InsiderFeedTable: FC<Props> = ({ feed, onSelectTicker }) => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-border-custom/40 text-3xs font-mono uppercase tracking-wider text-text-muted">
+                <tr className="border-b border-border-custom/40 text-2xs font-mono text-text-muted">
                   <th className="py-2.5 px-3 font-semibold">Zgłoszenie</th>
                   <th className="py-2.5 px-3 font-semibold">Spółka</th>
                   <th className="py-2.5 px-3 font-semibold">Insider</th>

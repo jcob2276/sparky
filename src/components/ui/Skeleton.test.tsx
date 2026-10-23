@@ -6,19 +6,19 @@ import Skeleton from './Skeleton';
 describe('Skeleton', () => {
   it('renders text variant with 3 default lines', () => {
     const { container } = render(<Skeleton />);
-    const pulses = container.querySelectorAll('.animate-pulse');
+    const pulses = container.querySelectorAll('.ui-skeleton');
     expect(pulses.length).toBe(3);
   });
 
   it('renders correct number of lines for text variant', () => {
     const { container } = render(<Skeleton lines={5} />);
-    const pulses = container.querySelectorAll('.animate-pulse');
+    const pulses = container.querySelectorAll('.ui-skeleton');
     expect(pulses.length).toBe(5);
   });
 
   it('renders avatar variant with avatar and text placeholders', () => {
     const { container } = render(<Skeleton variant="avatar" />);
-    const pulses = container.querySelectorAll('.animate-pulse');
+    const pulses = container.querySelectorAll('.ui-skeleton');
     expect(pulses.length).toBe(3);
     const avatar = container.querySelector('.rounded-full');
     expect(avatar).toBeTruthy();
@@ -26,7 +26,7 @@ describe('Skeleton', () => {
 
   it('renders card variant with title and content lines', () => {
     const { container } = render(<Skeleton variant="card" lines={2} />);
-    const pulses = container.querySelectorAll('.animate-pulse');
+    const pulses = container.querySelectorAll('.ui-skeleton');
     expect(pulses.length).toBe(3);
     const card = container.querySelector('.rounded-\\[var\\(--radius-lg\\)\\]');
     expect(card).toBeTruthy();

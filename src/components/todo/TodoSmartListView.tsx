@@ -1,3 +1,4 @@
+import { CalendarDays, CalendarRange, CheckCircle2, Flag, Inbox, ListChecks } from 'lucide-react';
 import { Fragment } from 'react';
 import { useTodoContext } from './context/TodoContext';
 import TodoCardConnected from './TodoCardConnected';
@@ -28,7 +29,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
         <div className="todo-grouped-surface">
           <div className="todo-grouped-body">
             {todayItems.length === 0 ? (
-              <EmptyState icon="📅" label="Brak zadań na dziś." />
+              <EmptyState icon={<CalendarDays size={22} strokeWidth={1.75} />} label="Brak zadań na dziś." />
             ) : (
               <div className="todo-focus-grid">
                 {todayItems.map((i) => <TodoCardConnected key={i.id} item={i} inToday />)}
@@ -54,7 +55,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
         <div className="todo-grouped-surface">
           <div className="todo-grouped-body">
             {inboxItems.length === 0 ? (
-              <EmptyState icon="📥" label="Skrzynka pusta." />
+              <EmptyState icon={<Inbox size={22} strokeWidth={1.75} />} label="Skrzynka pusta." />
             ) : (
               <div className="todo-focus-grid">
                 {inboxItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}
@@ -80,7 +81,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
         <div className="todo-grouped-surface">
           <div className="todo-grouped-body">
             {upcomingItems.length === 0 ? (
-              <EmptyState icon="🗓️" label="Brak zadań w najbliższych 7 dniach." />
+              <EmptyState icon={<CalendarRange size={22} strokeWidth={1.75} />} label="Brak zadań w najbliższych 7 dniach." />
             ) : (
               <div className="todo-focus-grid">
                 {upcomingItems.map((i, index) => {
@@ -88,7 +89,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
                   return (
                     <Fragment key={i.id}>
                       {showDateHeader && i.due_date && (
-                        <div className="col-span-full px-1 pt-3 pb-1 text-xs font-semibold uppercase tracking-wider text-text-secondary">
+                        <div className="col-span-full px-1 pt-3 pb-1 text-xs font-semibold text-text-secondary">
                           {formatUpcomingDateHeader(i.due_date)}
                         </div>
                       )}
@@ -119,7 +120,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
         <div className="todo-grouped-surface">
           <div className="todo-grouped-body">
             {activeItems.length === 0 ? (
-              <EmptyState icon="📋" label="Brak otwartych zadań." />
+              <EmptyState icon={<ListChecks size={22} strokeWidth={1.75} />} label="Brak otwartych zadań." />
             ) : (
               <div className="todo-focus-grid">
                 {activeItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}
@@ -142,7 +143,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
         <div className="todo-grouped-surface">
           <div className="todo-grouped-body">
             {flaggedItems.length === 0 ? (
-              <EmptyState icon="🚩" label="Brak oznaczonych zadań." />
+              <EmptyState icon={<Flag size={22} strokeWidth={1.75} />} label="Brak oznaczonych zadań." />
             ) : (
               <div className="todo-focus-grid">
                 {flaggedItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}
@@ -165,7 +166,7 @@ export default function TodoSmartListView({ navDest, renderInlineQuickCapture, r
         <div className="todo-grouped-surface">
           <div className="todo-grouped-body">
             {doneItems.length === 0 ? (
-              <EmptyState icon="✅" label="Brak ukończonych zadań." />
+              <EmptyState icon={<CheckCircle2 size={22} strokeWidth={1.75} />} label="Brak ukończonych zadań." />
             ) : (
               <div className="todo-focus-grid">
                 {doneItems.map((i) => <TodoCardConnected key={i.id} item={i} />)}

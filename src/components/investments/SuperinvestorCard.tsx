@@ -35,7 +35,7 @@ export const SuperinvestorCard: FC<Props> = ({ investor, onClick }) => {
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onClick()}
-      className="p-4 sm:p-5 rounded-3xl bg-surface border border-border-custom hover:border-primary/50 transition-all duration-150 cursor-pointer shadow-2xs hover:shadow-xs group flex flex-col justify-between space-y-4"
+      className="p-4 sm:p-5 rounded-2xl bg-surface border border-border-custom hover:border-primary/50 transition-all duration-150 cursor-pointer shadow-2xs hover:shadow-xs group flex flex-col justify-between space-y-4"
     >
       {/* Top Header: Avatar + Names */}
       <div className="flex items-start gap-3 min-w-0">
@@ -49,7 +49,7 @@ export const SuperinvestorCard: FC<Props> = ({ investor, onClick }) => {
           <h3 className="text-sm font-bold text-text-primary tracking-tight truncate group-hover:text-primary transition-colors">
             {investor.name}
           </h3>
-          <p className="text-3xs text-text-muted truncate mt-0.5">
+          <p className="text-2xs text-text-muted truncate mt-0.5">
             {investor.fundName}
           </p>
         </div>
@@ -58,13 +58,13 @@ export const SuperinvestorCard: FC<Props> = ({ investor, onClick }) => {
       {/* Middle: AUM & Sparkline */}
       <div className="flex items-end justify-between gap-2 pt-1">
         <div>
-          <div className="text-lg sm:text-xl font-black text-text-primary tracking-tight">
+          <div className="text-lg sm:text-xl font-semibold text-text-primary tracking-tight">
             {investor.aumFormatted.split(' ')[0]}
             <span className="text-xs font-semibold text-text-muted ml-1">
               {investor.aumFormatted.split(' ').slice(1).join(' ')}
             </span>
           </div>
-          <div className="text-3xs font-mono font-medium text-text-muted uppercase tracking-wider mt-0.5">
+          <div className="text-2xs font-mono font-medium text-text-muted mt-0.5">
             Wartość ujawniona w 13F
           </div>
         </div>
@@ -83,7 +83,7 @@ export const SuperinvestorCard: FC<Props> = ({ investor, onClick }) => {
               />
             </svg>
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-3xs text-text-muted">
+            <div className="w-full h-full flex items-center justify-center text-2xs text-text-muted">
               —
             </div>
           )}
@@ -91,13 +91,13 @@ export const SuperinvestorCard: FC<Props> = ({ investor, onClick }) => {
       </div>
 
       {/* Bottom Metadata */}
-      <div className="pt-2 border-t border-border-custom/50 flex items-center justify-between text-3xs font-mono text-text-secondary">
+      <div className="pt-2 border-t border-border-custom/50 flex items-center justify-between text-2xs font-mono text-text-secondary">
         <span>
           {investor.positionsCount ?? '—'} wpisów 13F · {investor.category}
         </span>
         <span className="text-text-muted">{investor.filingDate}</span>
       </div>
-      <p className="text-3xs text-text-muted">
+      <p className="text-2xs text-text-muted">
         {investor.reportPeriod ? `Stan: ${investor.reportPeriod}` : 'Brak zweryfikowanego raportu'}
       </p>
     </div>

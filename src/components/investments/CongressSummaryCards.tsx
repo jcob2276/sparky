@@ -24,7 +24,7 @@ export const CongressSummaryCards: FC<Props> = ({
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
       {/* 1. Najczęściej kupowane */}
       <div className="bg-surface-elevated border border-border-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between space-y-3">
-        <div className="text-3xs font-black uppercase tracking-wider text-text-primary">
+        <div className="text-2xs font-semibold text-text-primary">
           Najczęściej kupowane
         </div>
         <div className="space-y-2.5">
@@ -40,7 +40,7 @@ export const CongressSummaryCards: FC<Props> = ({
                 <div className="text-xs font-mono font-bold text-text-primary group-hover:text-primary transition-colors">
                   {item.ticker}
                 </div>
-                <div className="text-3xs text-text-muted truncate">
+                <div className="text-2xs text-text-muted truncate">
                   Kupiono {item.count}× · szacunek {formatVol(item.volumeUsd)}
                 </div>
               </div>
@@ -51,7 +51,7 @@ export const CongressSummaryCards: FC<Props> = ({
 
       {/* 2. Najczęściej sprzedawane */}
       <div className="bg-surface-elevated border border-border-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between space-y-3">
-        <div className="text-3xs font-black uppercase tracking-wider text-text-primary">
+        <div className="text-2xs font-semibold text-text-primary">
           Najczęściej sprzedawane
         </div>
         <div className="space-y-2.5">
@@ -67,7 +67,7 @@ export const CongressSummaryCards: FC<Props> = ({
                 <div className="text-xs font-mono font-bold text-text-primary group-hover:text-primary transition-colors">
                   {item.ticker}
                 </div>
-                <div className="text-3xs text-text-muted truncate">
+                <div className="text-2xs text-text-muted truncate">
                   Sprzedano {item.count}× · szacunek {formatVol(item.volumeUsd)}
                 </div>
               </div>
@@ -78,7 +78,7 @@ export const CongressSummaryCards: FC<Props> = ({
 
       {/* 3. Największe transakcje */}
       <div className="bg-surface-elevated border border-border-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between space-y-3">
-        <div className="text-3xs font-black uppercase tracking-wider text-text-primary">
+        <div className="text-2xs font-semibold text-text-primary">
           Największe transakcje
         </div>
         <div className="space-y-2.5">
@@ -98,7 +98,7 @@ export const CongressSummaryCards: FC<Props> = ({
                 <div className="text-xs font-bold text-text-primary group-hover:text-primary transition-colors truncate">
                   {t.politicianName} · <span className="font-mono">{t.ticker}</span>
                 </div>
-                <div className="text-3xs text-text-muted truncate">
+                <div className="text-2xs text-text-muted truncate">
                   {t.amountLabel}
                 </div>
               </div>

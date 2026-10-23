@@ -59,7 +59,7 @@
   gap: var(--ds-local-css-7px);
   font-family: var(--font-display);
   font-size: var(--text-lg);
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-primary);
   letter-spacing: -0.02em;
 }
@@ -157,8 +157,6 @@
 .keep-sidebar-section-label {
   font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: var(--ds-local-css-0-05em);
-  text-transform: uppercase;
   color: var(--text-muted);
   padding: 10px 12px 4px;
   opacity: var(--ds-local-css-0-7);
@@ -836,9 +834,7 @@
   align-items: center;
   gap: var(--ds-local-css-6px);
   font-size: var(--text-2xs);
-  font-weight: var(--ds-local-css-800);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font-weight: 600;
   color: var(--text-muted);
   margin-bottom: var(--ds-local-css-12px);
   padding-left: 2px;
@@ -936,7 +932,7 @@
 
 .keep-rich-editor h1, .keep-card-content h1 {
   font-size: var(--text-lg);
-  font-weight: 800;
+  font-weight: 600;
   margin: var(--ds-local-css-12px-0-6px);
   color: var(--text-primary);
   font-family: var(--font-display);
@@ -1525,8 +1521,6 @@
 .tag-suggestions-label {
   font-size: var(--text-2xs);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   color: var(--text-muted);
   margin-bottom: 6px;
   opacity: var(--ds-local-css-0-8);
@@ -1648,10 +1642,8 @@
 }
 .keep-backlinks-title {
   font-size: var(--text-2xs);
-  font-weight: 900;
+  font-weight: 600;
   color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: var(--ds-local-css-0-05em);
   margin-bottom: 10px;
   display: flex;
   align-items: center;
@@ -1950,10 +1942,8 @@
   display: flex;
   font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
   gap: 0.35rem;
   margin: 0 0 0.4rem 0.5rem;
-  text-transform: uppercase;
 }
 
 .keep-note-section:first-child .keep-note-section-title svg {
@@ -2008,11 +1998,9 @@
 
 .keep-view-options-label {
   color: var(--text-muted);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
   padding: 0.45rem 0.7rem 0.3rem;
-  text-transform: uppercase;
 }
 
 .keep-view-options-menu button {

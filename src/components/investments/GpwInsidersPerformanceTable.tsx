@@ -23,7 +23,7 @@ export const GpwInsidersPerformanceTable: FC<Props> = ({ data, onSelectTicker })
           variant="ghost"
           size="sm"
           onClick={() => setShowExplanation(!showExplanation)}
-          className="text-3xs font-semibold text-primary"
+          className="text-2xs font-semibold text-primary"
         >
           {showExplanation ? 'Zamknij wyjaśnienie' : 'Jak to liczymy'}
         </Button>
@@ -42,7 +42,7 @@ export const GpwInsidersPerformanceTable: FC<Props> = ({ data, onSelectTicker })
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead>
-            <tr className="border-b border-border-custom/50 text-3xs uppercase font-mono tracking-wider text-text-muted">
+            <tr className="border-b border-border-custom/50 text-2xs font-mono text-text-muted">
               <th className="pb-2.5 font-semibold">Osoba</th>
               <th className="pb-2.5 font-semibold text-center">Nabycia w ocenie</th>
               <th className="pb-2.5 font-semibold text-right">Mediana 90s</th>
@@ -64,7 +64,7 @@ export const GpwInsidersPerformanceTable: FC<Props> = ({ data, onSelectTicker })
                   <td className="py-2.5 text-text-primary font-medium">
                     <span className="mr-1.5">{row.personName}</span>
                     {row.isEntity && (
-                      <span className="inline-block px-1.5 py-0.2 rounded-xs text-4xs font-mono uppercase bg-text-muted/10 text-text-muted border border-text-muted/20">
+                      <span className="inline-block px-1.5 py-0.2 rounded-xs text-2xs font-mono bg-text-muted/10 text-text-muted border border-text-muted/20">
                         Podmiot
                       </span>
                     )}
@@ -120,7 +120,7 @@ export const GpwInsidersPerformanceTable: FC<Props> = ({ data, onSelectTicker })
                   </td>
 
                   {/* Ostatnia transakcja */}
-                  <td className="py-2.5 text-right font-mono text-3xs text-text-secondary whitespace-nowrap">
+                  <td className="py-2.5 text-right font-mono text-2xs text-text-secondary whitespace-nowrap">
                     {row.lastTransactionDate}
                   </td>
                 </tr>
@@ -131,7 +131,7 @@ export const GpwInsidersPerformanceTable: FC<Props> = ({ data, onSelectTicker })
       </div>
 
       {/* Footnote */}
-      <div className="pt-2 border-t border-border-custom/40 text-3xs text-text-secondary leading-relaxed">
+      <div className="pt-2 border-t border-border-custom/40 text-2xs text-text-secondary leading-relaxed">
         Mediana zwrotu 90 sesji giełdowych po zakupach tej osoby na tle mediany całego uniwersum GPW w tym samym oknie, przy co najmniej 3 nabyciach. Wszystkie wartości skuteczności i alfy są odblokowane w pełnym trybie analitycznym.
       </div>
     </div>

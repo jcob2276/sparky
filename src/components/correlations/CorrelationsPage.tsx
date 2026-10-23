@@ -2,7 +2,8 @@ import CorrelationCard from './CorrelationCard';
 import CorrelationsHeader from './CorrelationsHeader';
 import { useCorrelationsData } from './hooks/useCorrelationsData';
 import { Card } from '../ui/Card';
-import Spinner from '../ui/Spinner';
+import Skeleton from '../ui/Skeleton';
+import { Sparkles } from 'lucide-react';
 
 export default function CorrelationsPage() {
   const {
@@ -22,11 +23,14 @@ export default function CorrelationsPage() {
     <div className="min-h-screen w-full bg-background text-text-primary flex flex-col">
       <CorrelationsHeader loading={loading} onRefresh={load} daysOfData={daysOfData} />
 
-      <main className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-8 pb-20">
+      <main className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-8 pb-20 ui-stagger">
         {loading && (
-          <div className="flex flex-col items-center justify-center gap-3 py-16 text-text-muted">
-            <Spinner size="lg" />
-            <p className="text-sm font-medium">Analizuję Twoje wzorce…</p>
+          <div className="space-y-3" aria-live="polite">
+            <p className="text-sm text-text-muted">Analizuję Twoje wzorce…</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Skeleton variant="card" lines={3} />
+              <Skeleton variant="card" lines={3} />
+            </div>
           </div>
         )}
 
@@ -42,18 +46,18 @@ export default function CorrelationsPage() {
             {/* ── SECTION 1: Strong signals ── */}
             <section className="space-y-4">
               <div>
-                <h2 className="text-xs font-black uppercase tracking-widest text-text-muted">
+                <h2 className="text-lg font-semibold text-text-primary">
                   Co wiemy na pewno
                 </h2>
-                <p className="text-xs text-text-muted mt-0.5">
+                <p className="text-sm text-text-muted mt-0.5">
                   Wzorce z wystarczającą ilością danych i stabilne w czasie
                 </p>
               </div>
 
               {strongSignals.length === 0 ? (
                 <Card variant="outline" padding="2rem" className="text-center border-dashed">
-                  <p className="text-sm font-bold text-text-secondary">Brak pewnych sygnałów jeszcze</p>
-                  <p className="text-xs text-text-muted mt-1.5 max-w-xs mx-auto">
+                  <p className="text-base font-semibold text-text-secondary">Brak pewnych sygnałów jeszcze</p>
+                  <p className="text-sm text-text-muted mt-1.5 max-w-xs mx-auto">
                     Potrzebujesz co najmniej 12–25 dni logowania konkretnego czynnika, żeby system mógł
                     wyciągnąć wiarygodny wniosek.
                   </p>
@@ -75,10 +79,10 @@ export default function CorrelationsPage() {
             {hypotheses.length > 0 && (
               <section className="space-y-4">
                 <div>
-                  <h2 className="text-xs font-black uppercase tracking-widest text-text-muted">
+                  <h2 className="text-lg font-semibold text-text-primary">
                     Sygnały do obserwacji
                   </h2>
-                  <p className="text-xs text-text-muted mt-0.5">
+                  <p className="text-sm text-text-muted mt-0.5">
                     Trend istnieje, ale za mało danych żeby być pewnym — zbieraj dalej
                   </p>
                 </div>
@@ -94,10 +98,10 @@ export default function CorrelationsPage() {
             {sparseMetrics.length > 0 && (
               <section className="space-y-4">
                 <div>
-                  <h2 className="text-xs font-black uppercase tracking-widest text-text-muted">
+                  <h2 className="text-lg font-semibold text-text-primary">
                     Czego jeszcze nie wiemy
                   </h2>
-                  <p className="text-xs text-text-muted mt-0.5">
+                  <p className="text-sm text-text-muted mt-0.5">
                     Te czynniki są logowane za rzadko — poniżej co robić
                   </p>
                 </div>
@@ -117,12 +121,12 @@ export default function CorrelationsPage() {
                         </div>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-text-primary">{m.label}</p>
-                        <p className="text-2xs text-text-muted mt-0.5">{m.action}</p>
+                        <p className="text-sm font-medium text-text-primary">{m.label}</p>
+                        <p className="text-xs text-text-muted mt-0.5">{m.action}</p>
                       </div>
                       <div className="shrink-0 text-right">
-                        <p className="text-xs font-black text-text-secondary">{m.n}<span className="text-text-muted font-normal">/{25}</span></p>
-                        <p className="text-2xs text-text-muted">dni</p>
+                        <p className="text-sm font-semibold text-text-secondary ui-num">{m.n}<span className="text-text-muted font-normal">/{25}</span></p>
+                        <p className="text-xs text-text-muted">dni</p>
                       </div>
                     </div>
                   ))}
@@ -133,7 +137,8 @@ export default function CorrelationsPage() {
             {/* ── Empty state: nothing at all ── */}
             {strongSignals.length === 0 && hypotheses.length === 0 && sparseMetrics.length === 0 && (
               <Card variant="outline" padding="2.5rem" className="text-center border-dashed">
-                <p className="text-base font-black text-text-secondary">Brak danych do analizy</p>
+                <Sparkles size={24} className="mx-auto mb-3 text-text-muted" aria-hidden="true" />
+                <p className="text-base font-semibold text-text-secondary">Brak danych do analizy</p>
                 <p className="text-sm text-text-muted mt-2 max-w-sm mx-auto leading-relaxed">
                   Loguj posiłki, treningi i uzupełniaj nawyki przez kilka tygodni — system sam zacznie znajdować wzorce.
                 </p>

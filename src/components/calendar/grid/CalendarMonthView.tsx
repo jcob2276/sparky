@@ -125,14 +125,14 @@ function MonthDayCell({
             <span className="h-1.5 w-1.5 rounded-full bg-text-muted" />
           )}
           {overflowCount > 0 && categories.length >= 3 && (
-            <span className="text-3xs font-semibold leading-none text-text-muted">+</span>
+            <span className="text-2xs font-semibold leading-none text-text-muted">+</span>
           )}
         </div>
       )}
 
       {holiday && (
         <div
-          className="mb-0.5 hidden shrink-0 truncate rounded-md border border-warning/20 bg-warning/10 px-1 py-0.5 text-3xs font-semibold text-warning select-none md:block"
+          className="mb-0.5 hidden shrink-0 truncate rounded-md border border-warning/20 bg-warning/10 px-1 py-0.5 text-2xs font-semibold text-warning select-none md:block"
           title={holiday.name}
         >
           {holiday.name}
@@ -147,7 +147,7 @@ function MonthDayCell({
               e.stopPropagation();
               onEventClick(ev);
             }}
-            className={`cursor-pointer truncate rounded-md px-1.5 py-0.5 text-3xs font-medium active:scale-[0.98] transition-[transform,opacity] duration-100 ease-out ${eventColor(ev)}`}
+            className={`cursor-pointer truncate rounded-md px-1.5 py-0.5 text-2xs font-medium active:scale-[0.98] transition-[transform,opacity] duration-100 ease-out ${eventColor(ev)}`}
             title={`${ev.summary} (${(ev.original_start_time || ev.start_time) ? formatTime(ev.original_start_time || ev.start_time!) : ''})`}
           >
             {(ev.original_start_time || ev.start_time) && <span className="mr-1 font-semibold">{formatTime(ev.original_start_time || ev.start_time!)}</span>}
@@ -159,7 +159,7 @@ function MonthDayCell({
           dayTodos.slice(0, maxVisible - orderedEvents.length).map((todo) => (
             <div
               key={todo.id}
-              className="truncate rounded-md border border-border-custom/40 bg-surface-solid/70 px-1.5 py-0.5 text-3xs font-medium text-text-secondary"
+              className="truncate rounded-md border border-border-custom/40 bg-surface-solid/70 px-1.5 py-0.5 text-2xs font-medium text-text-secondary"
               title={todo.title}
             >
               ✓ {todo.title}
@@ -172,7 +172,7 @@ function MonthDayCell({
               e.stopPropagation();
               onOpenDay(dateStr);
             }}
-            className="w-full pt-0.5 text-left text-3xs font-semibold text-primary hover:underline"
+            className="w-full pt-0.5 text-left text-2xs font-semibold text-primary hover:underline"
           >
             +{overflowCount} więcej…
           </Pressable>
@@ -214,7 +214,7 @@ export const CalendarMonthView: React.FC<CalendarMonthViewProps> = ({
           <Pressable onClick={() => changeMonth(-1)} className="min-h-9 min-w-9 rounded-full p-2 hover:bg-surface-solid active:scale-[0.96] transition-transform duration-100 ease-out" aria-label="Poprzedni miesiąc">
             <ChevronLeft size={16} className="text-text-muted" />
           </Pressable>
-          <p className="text-xs font-semibold uppercase tracking-wider text-text-primary px-1">
+          <p className="text-xs font-semibold text-text-primary px-1">
             {formatRangeLabel('miesiac', selectedDay, selectedDay)}
           </p>
         </div>

@@ -1252,6 +1252,36 @@ export type Database = {
           },
         ]
       }
+      device_signal_events: {
+        Row: {
+          client_id: string
+          created_at: string
+          id: number
+          kind: string
+          payload: Json
+          ts: string
+          user_id: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          id?: never
+          kind: string
+          payload?: Json
+          ts: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          id?: never
+          kind?: string
+          payload?: Json
+          ts?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       dreams: {
         Row: {
           category: string
@@ -3719,6 +3749,12 @@ export type Database = {
       location_history: {
         Row: {
           accuracy: number | null
+          altitude: number | null
+          bearing: number | null
+          dwell_seconds: number | null
+          kind: string
+          provider: string | null
+          speed: number | null
           created_at: string | null
           id: string
           is_manual: boolean | null
@@ -3729,6 +3765,12 @@ export type Database = {
         }
         Insert: {
           accuracy?: number | null
+          altitude?: number | null
+          bearing?: number | null
+          dwell_seconds?: number | null
+          kind?: string
+          provider?: string | null
+          speed?: number | null
           created_at?: string | null
           id?: string
           is_manual?: boolean | null
@@ -3739,6 +3781,12 @@ export type Database = {
         }
         Update: {
           accuracy?: number | null
+          altitude?: number | null
+          bearing?: number | null
+          dwell_seconds?: number | null
+          kind?: string
+          provider?: string | null
+          speed?: number | null
           created_at?: string | null
           id?: string
           is_manual?: boolean | null

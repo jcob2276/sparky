@@ -48,12 +48,12 @@ export const SignalEvidence: FC<Props> = ({ ticker, companyName }) => {
             />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-3xs font-bold uppercase tracking-wide text-text-muted">
+                <span className="text-2xs font-bold text-text-muted">
                   {ACTOR_LABEL[item.actor]}
                 </span>
                 <strong className="text-sm text-text-primary">{item.who}</strong>
                 <span
-                  className={`text-3xs font-semibold px-1.5 py-0.5 rounded-md ${
+                  className={`text-2xs font-semibold px-1.5 py-0.5 rounded-md ${
                     item.tone === 'up'
                       ? 'bg-success/15 text-success'
                       : item.tone === 'down'

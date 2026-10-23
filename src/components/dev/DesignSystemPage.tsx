@@ -6,19 +6,23 @@ import { BrandTitle } from '../ui/BrandTitle';
 import {
   Divider,
   ColorTokensSection,
-  TypographyScaleSection,
-  FontStacksSection,
   ButtonGallery,
   CardGallery,
   BadgeGallery,
   TabsGallery,
   ModalGallery,
   SpinnerGallery,
-  SkeletonGallery,
-  EmptyStateGallery,
   CharacterAvatarGallery,
   CssVariablesReference,
 } from './DesignSystemGalleries';
+import {
+  TypographyScaleSection,
+  FontStacksSection,
+  SectionTitleGallery,
+  SkeletonGallery,
+  EmptyStateGallery,
+  ForbiddenPatternsSection,
+} from './FoundationGalleries';
 import { ControlPrimitivesGallery, LayoutPrimitivesGallery } from './CentralControlGalleries';
 import FunctionalIosPilotGallery from './FunctionalIosPilotGallery';
 
@@ -36,7 +40,7 @@ function DesignSystemHeader({ onBack, dark, onToggleTheme }: { onBack: () => voi
           className="p-1.5 rounded-lg h-auto min-w-0 text-text-muted hover:text-text-primary"
         />
         <BrandTitle className="text-base" />
-        <span className="ml-auto hidden text-xs font-bold uppercase tracking-widest text-text-muted sm:block">/dev/design-system</span>
+        <span className="ml-auto hidden text-xs font-medium text-text-muted sm:block">/dev/design-system</span>
         <Button variant="tonal" size="sm" onClick={onToggleTheme} aria-label={dark ? 'Włącz jasny motyw' : 'Włącz ciemny motyw'}>
           {dark ? <Sun size={15} /> : <Moon size={15} />}
         </Button>
@@ -88,6 +92,8 @@ export default function DesignSystemPage() {
         <Divider />
         <BorderBeamGallery />
         <Divider />
+        <SectionTitleGallery />
+        <Divider />
         <SkeletonGallery />
         <Divider />
         <EmptyStateGallery />
@@ -97,6 +103,8 @@ export default function DesignSystemPage() {
         <ControlPrimitivesGallery />
         <Divider />
         <LayoutPrimitivesGallery />
+        <Divider />
+        <ForbiddenPatternsSection />
         <Divider />
         <CssVariablesReference />
 

@@ -99,7 +99,7 @@ export default function WorkoutNlCaptureModal({
 
         {/* Quick Example Chips */}
         <div className="space-y-1.5">
-          <span className="text-3xs font-black uppercase tracking-wider text-text-muted">Przykłady:</span>
+          <span className="text-2xs font-semibold tracking-normal text-text-muted">Przykłady:</span>
           <div className="flex flex-col gap-1">
             {EXAMPLE_PROMPTS.map((ex, i) => (
               <Pressable
@@ -108,7 +108,7 @@ export default function WorkoutNlCaptureModal({
                   haptics.light();
                   setText(ex);
                 }}
-                className="text-left text-3xs text-text-secondary bg-surface/60 hover:bg-surface border border-border-custom/50 rounded-xl px-2.5 py-1.5 truncate cursor-pointer transition-colors"
+                className="text-left text-2xs text-text-secondary bg-surface/60 hover:bg-surface border border-border-custom/50 rounded-xl px-2.5 py-1.5 truncate cursor-pointer transition-colors"
               >
                 {ex}
               </Pressable>
@@ -127,7 +127,7 @@ export default function WorkoutNlCaptureModal({
           <Pressable
             onClick={handleSubmit}
             disabled={isSubmitting || !text.trim()}
-            className="flex-1 py-3 rounded-xl bg-primary text-on-accent text-xs font-black uppercase tracking-wider shadow-md hover:bg-primary-hover disabled:opacity-[var(--opacity-disabled)] ui-interactive flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 py-3 rounded-xl bg-primary text-on-accent text-xs font-semibold tracking-normal shadow-md hover:bg-primary-hover disabled:opacity-[var(--opacity-disabled)] ui-interactive flex items-center justify-center gap-2 cursor-pointer"
           >
             {isSubmitting ? (
               <Spinner size="sm" />

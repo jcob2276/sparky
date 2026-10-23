@@ -30,10 +30,10 @@ export const CongressRankingCard: FC<Props> = ({
       <div className="space-y-2">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-baseline gap-2">
-            <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+            <h3 className="text-xs font-semibold text-text-primary">
               Ranking
             </h3>
-            <span className="text-3xs font-mono text-text-muted">{timeframe}</span>
+            <span className="text-2xs font-mono text-text-muted">{timeframe}</span>
           </div>
 
           {/* Timeframe switch */}
@@ -44,7 +44,7 @@ export const CongressRankingCard: FC<Props> = ({
                 size="sm"
                 variant={timeframe === t ? 'secondary' : 'ghost'}
                 onClick={() => setTimeframe(t)}
-                className="text-3xs font-bold px-2 py-0.5 h-6 rounded-md"
+                className="text-2xs font-bold px-2 py-0.5 h-6 rounded-md"
               >
                 {t}
               </Button>
@@ -52,7 +52,7 @@ export const CongressRankingCard: FC<Props> = ({
           </div>
         </div>
 
-        <p className="text-3xs uppercase tracking-wider font-mono text-text-muted">
+        <p className="text-2xs font-mono text-text-muted">
           Alfa vs S&amp;P 500, nie surowy zwrot
         </p>
       </div>
@@ -71,7 +71,7 @@ export const CongressRankingCard: FC<Props> = ({
               className="py-2.5 flex items-center justify-between gap-3 cursor-pointer hover:bg-surface-subtle/60 px-2 rounded-xl transition-colors group"
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-3xs font-mono font-bold text-text-muted w-4 text-center">
+                <span className="text-2xs font-mono font-bold text-text-muted w-4 text-center">
                   {idx + 1}
                 </span>
                 <PoliticianAvatar
@@ -84,7 +84,7 @@ export const CongressRankingCard: FC<Props> = ({
                   <div className="text-xs font-bold text-text-primary group-hover:text-primary transition-colors truncate">
                     {pol.name}
                   </div>
-                  <div className="text-3xs font-mono text-text-muted truncate">
+                  <div className="text-2xs font-mono text-text-muted truncate">
                     <span>{pol.chamber}</span>
                     <span className="mx-1">·</span>
                     <span>

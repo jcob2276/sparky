@@ -2,6 +2,7 @@ import WeekLoopSummary from '../shared/WeekLoopSummary';
 import ProjectWeekKpis from './ProjectWeekKpis';
 import { useDirectionContext } from './direction/hooks/useDirectionContext';
 import { Card } from '../ui/Card';
+import Skeleton from '../ui/Skeleton';
 
 /** Read-only week hub snapshot at the top of Sunday planning — same data as WeekHub radar. */
 export default function WeekPlanningRecap({
@@ -15,9 +16,7 @@ export default function WeekPlanningRecap({
 
   if (direction.loading) {
     return (
-      <div className="rounded-2xl border border-border-custom bg-surface/30 px-4 py-6 text-center text-xs text-text-muted animate-pulse">
-        Wczytuję podsumowanie tygodnia…
-      </div>
+      <Skeleton variant="card" lines={3} />
     );
   }
 
@@ -43,7 +42,7 @@ export default function WeekPlanningRecap({
     <Card variant="receipt" className="space-y-4" style={{ background: 'var(--primary-5)' }}>
       {errorNotice}
       <div>
-        <p className="text-2xs font-black uppercase tracking-[var(--ds-arbitrary-0-2em)] text-primary">
+        <p className="text-2xs font-semibold text-primary">
           Ten tydzień — zoom out
         </p>
         <p className="mt-1 text-xs text-text-secondary leading-relaxed">

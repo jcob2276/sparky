@@ -50,7 +50,7 @@ export default function CalendarShell({
 
 
         {toastMessage && (
-          <div className="calendar-toast fixed left-1/2 z-[var(--z-emergency)] -translate-x-1/2 rounded-xl bg-text-primary px-4 py-3 text-xs font-black uppercase tracking-wider text-background shadow-lg animate-in slide-in-from-bottom duration-[var(--motion-medium)] md:left-auto md:right-4 md:translate-x-0">
+          <div className="calendar-toast fixed left-1/2 z-[var(--z-emergency)] -translate-x-1/2 rounded-xl bg-text-primary px-4 py-3 text-xs font-semibold text-background shadow-lg animate-in slide-in-from-bottom duration-[var(--motion-medium)] md:left-auto md:right-4 md:translate-x-0">
             {toastMessage}
           </div>
         )}

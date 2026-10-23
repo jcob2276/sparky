@@ -15,10 +15,10 @@ export const CompanyAboutCard: FC<Props> = ({ data, onAskAnalyst }) => {
       <div className="lg:col-span-2 bg-surface-elevated border border-border-custom rounded-2xl p-5 shadow-sm space-y-3">
         <div className="flex items-center gap-2">
           <Building2 size={16} className="text-text-muted" />
-          <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+          <h3 className="text-xs font-semibold text-text-primary">
             O Spółce
           </h3>
-          <span className="text-3xs font-mono px-2 py-0.5 rounded-md bg-surface-subtle border border-border-custom text-text-muted">
+          <span className="text-2xs font-mono px-2 py-0.5 rounded-md bg-surface-subtle border border-border-custom text-text-muted">
             {data.exchange}
           </span>
         </div>
@@ -33,7 +33,7 @@ export const CompanyAboutCard: FC<Props> = ({ data, onAskAnalyst }) => {
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Sparkles size={16} className="text-primary" />
-            <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+            <h3 className="text-xs font-semibold text-text-primary">
               Zapytaj Analityka AI
             </h3>
           </div>
@@ -48,7 +48,7 @@ export const CompanyAboutCard: FC<Props> = ({ data, onAskAnalyst }) => {
             variant="primary"
             icon={<Sparkles size={14} />}
             onClick={() => onAskAnalyst(data.ticker)}
-            className="w-full justify-center rounded-xl text-xs font-bold uppercase tracking-wider"
+            className="w-full justify-center rounded-xl text-xs font-bold"
           >
             Zapytaj o {data.ticker}
           </Button>

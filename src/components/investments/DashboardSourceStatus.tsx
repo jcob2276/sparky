@@ -42,5 +42,5 @@ export function DashboardSourceStatus({ data }: { data: DashboardData }) {
   </div>;
 }
 export function DashboardHeader() {
-  return <div className="font-mono text-xs font-bold text-text-muted">PULPIT {formatDashboardDate().toUpperCase()} · EUROPE/WARSAW</div>;
+  return <p className="text-center text-xs text-text-muted">{formatDashboardDate()} · Warszawa</p>;
 }

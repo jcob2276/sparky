@@ -50,11 +50,11 @@ export const GpwInsidersLiveFeed: FC<Props> = ({ onSelectTicker }) => {
             <h2 className="text-sm sm:text-base font-bold text-text-primary tracking-tight">
               Dane na żywo: zawiadomienia MAR art. 19
             </h2>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-4xs font-mono uppercase bg-success/15 text-success border border-success/30 font-bold">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-mono bg-success/15 text-success border border-success/30 font-bold">
               ● Na żywo (Pro odblokowane)
             </span>
           </div>
-          <p className="text-3xs text-text-muted mt-0.5">
+          <p className="text-2xs text-text-muted mt-0.5">
             Bieżący strumień zawiadomień transakcji menedżerskich bezpośrednio z systemu ESPI GPW
           </p>
         </div>
@@ -68,7 +68,7 @@ export const GpwInsidersLiveFeed: FC<Props> = ({ onSelectTicker }) => {
               setLoading(true);
               setSideFilter('all');
             }}
-            className="text-3xs font-mono"
+            className="text-2xs font-mono"
           >
             Wszystkie
           </Button>
@@ -79,7 +79,7 @@ export const GpwInsidersLiveFeed: FC<Props> = ({ onSelectTicker }) => {
               setLoading(true);
               setSideFilter('buy');
             }}
-            className="text-3xs font-mono text-success"
+            className="text-2xs font-mono text-success"
           >
             Nabycia (Kupno)
           </Button>
@@ -90,7 +90,7 @@ export const GpwInsidersLiveFeed: FC<Props> = ({ onSelectTicker }) => {
               setLoading(true);
               setSideFilter('sell');
             }}
-            className="text-3xs font-mono text-danger"
+            className="text-2xs font-mono text-danger"
           >
             Zbycia (Sprzedaż)
           </Button>
@@ -124,7 +124,7 @@ export const GpwInsidersLiveFeed: FC<Props> = ({ onSelectTicker }) => {
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr className="border-b border-border-custom/50 text-3xs uppercase font-mono tracking-wider text-text-muted">
+              <tr className="border-b border-border-custom/50 text-2xs font-mono text-text-muted">
                 <th className="pb-2.5 font-semibold">Data</th>
                 <th className="pb-2.5 font-semibold">Spółka</th>
                 <th className="pb-2.5 font-semibold text-center">Rodzaj</th>

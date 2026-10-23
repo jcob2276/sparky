@@ -9,13 +9,13 @@ export const InsiderIntensityMatrix: FC<Props> = ({ rows }) => {
   if (!rows || rows.length === 0) return null;
 
   return (
-    <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-2xs space-y-4">
+    <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-2xs space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border-custom/50 pb-3">
-        <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono">
+        <h3 className="text-xs sm:text-sm font-semibold text-text-primary font-mono">
           Natężenie zakupów insiderów (90 dni)
         </h3>
-        <span className="text-3xs font-mono font-bold text-text-muted uppercase tracking-wider">
+        <span className="text-2xs font-mono font-bold text-text-muted">
           SPÓŁKI × TYGODNIE · KOLOR = LICZBA TRANSAKCJI ▾
         </span>
       </div>
@@ -43,7 +43,7 @@ export const InsiderIntensityMatrix: FC<Props> = ({ rows }) => {
                     <div
                       key={wIdx}
                       title={`Tydzień ${wIdx + 1} (najstarszy → bieżący): ${cnt} transakcji`}
-                      className={`h-7 sm:h-8 rounded-lg border flex items-center justify-center font-mono text-3xs font-bold transition-all duration-150 hover:scale-105 cursor-pointer shadow-2xs ${cellBg}`}
+                      className={`h-7 sm:h-8 rounded-lg border flex items-center justify-center font-mono text-2xs font-bold transition-all duration-150 hover:scale-105 cursor-pointer shadow-2xs ${cellBg}`}
                     >
                       {cnt > 0 ? cnt : ''}
                     </div>
@@ -52,7 +52,7 @@ export const InsiderIntensityMatrix: FC<Props> = ({ rows }) => {
               </div>
 
               {/* Total Badge */}
-              <div className="w-12 text-right shrink-0 font-mono text-3xs font-bold text-text-muted">
+              <div className="w-12 text-right shrink-0 font-mono text-2xs font-bold text-text-muted">
                 {row.total}
               </div>
             </div>

@@ -69,7 +69,7 @@ export function FinanceGoalsCard({ goals, onAdd, onUpdate, onRemove }: FinanceGo
   };
 
   return (
-    <section className="space-y-4 rounded-3xl bg-surface-1 p-5" aria-label="Moje cele">
+    <section className="space-y-4 rounded-2xl bg-surface-1 p-5" aria-label="Moje cele">
       <h2 className="text-base font-semibold">Moje cele</h2>
       {goals.length === 0 ? (
         <p className="text-sm text-text-muted">Dodaj cel, a pokażę postęp: wakacje, fundusz awaryjny, auto.</p>
@@ -81,7 +81,7 @@ export function FinanceGoalsCard({ goals, onAdd, onUpdate, onRemove }: FinanceGo
               <li key={goal.id} className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <p className="min-w-0 flex-1 truncate text-base font-medium">{goal.name}</p>
-                  <Pressable type="button" onClick={() => void remove(goal)} aria-label={`Usuń cel ${goal.name}`} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-text-muted hover:text-danger">
+                  <Pressable type="button" onClick={() => void remove(goal)} aria-label={`Usuń cel ${goal.name}`} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-text-muted hover:text-danger">
                     <Trash2 size={18} aria-hidden="true" />
                   </Pressable>
                 </div>

@@ -35,7 +35,7 @@ export function MedicalImportReviewStep({ resultDate, rows, onBack, onSave, savi
     <div className="space-y-4">
       <div className="flex items-center justify-between border-b border-border-custom pb-2">
         <span className="text-xs font-bold">Weryfikacja przed zapisem · {resultDate}</span>
-        <span className="rounded bg-primary/10 px-2 py-0.5 text-3xs font-black uppercase text-primary">
+        <span className="rounded bg-primary/10 px-2 py-0.5 text-2xs font-semibold text-primary">
           {rows.length} {rows.length === 1 ? 'marker' : 'markery'}
         </span>
       </div>
@@ -47,7 +47,7 @@ export function MedicalImportReviewStep({ resultDate, rows, onBack, onSave, savi
           <div key={row.markerName} className="flex items-center justify-between gap-3 rounded-xl border border-border-custom bg-background/40 p-3">
             <div>
               <h4 className="text-xs font-bold text-text-primary">{row.markerName}</h4>
-              <span className="font-mono text-3xs text-text-muted">
+              <span className="font-mono text-2xs text-text-muted">
                 {row.value} {row.unit}
                 {row.refLow != null && row.refHigh != null && ` (norma: ${row.refLow}–${row.refHigh})`}
               </span>
@@ -58,7 +58,7 @@ export function MedicalImportReviewStep({ resultDate, rows, onBack, onSave, savi
                   {row.delta > 0 ? '+' : ''}{Math.abs(row.delta) < 0.01 ? row.delta.toFixed(3) : row.delta.toFixed(1)} {row.unit}
                 </span>
               )}
-              <span className={`rounded px-2 py-0.5 text-3xs font-black uppercase ${FLAG_CLASS[row.flag]}`}>
+              <span className={`rounded px-2 py-0.5 text-2xs font-semibold ${FLAG_CLASS[row.flag]}`}>
                 {FLAG_LABEL[row.flag]}
               </span>
             </div>

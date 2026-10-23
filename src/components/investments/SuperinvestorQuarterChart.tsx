@@ -18,16 +18,16 @@ export const SuperinvestorQuarterChart: FC<Props> = ({ quarters, quarterGrowthPc
   }
 
   return (
-    <div className="p-5 sm:p-6 rounded-3xl bg-surface border border-border-custom shadow-2xs space-y-4">
+    <div className="p-5 sm:p-6 rounded-2xl bg-surface border border-border-custom shadow-2xs space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between gap-2 border-b border-border-custom/50 pb-3">
-        <h3 className="text-xs sm:text-sm font-black text-text-primary tracking-wider uppercase font-mono">
+        <h3 className="text-xs sm:text-sm font-semibold text-text-primary font-mono">
           Wartość Portfela 13F
         </h3>
         <div className="flex items-center gap-1.5 text-2xs font-mono font-bold">
           <span className="text-text-muted">{quarters.length} KWARTAŁÓW ·</span>
           <span className="text-text-muted">KONIEC KWARTAŁU</span>
-          <span className="text-text-secondary font-black">q/q: {quarterGrowthPct}</span>
+          <span className="text-text-secondary font-semibold">q/q: {quarterGrowthPct}</span>
         </div>
       </div>
 
@@ -40,7 +40,7 @@ export const SuperinvestorQuarterChart: FC<Props> = ({ quarters, quarterGrowthPc
             return (
               <div key={idx} className="flex-1 flex flex-col items-center h-full justify-end group">
                 {/* Value Above Bar */}
-                <div className="text-3xs font-mono font-medium text-text-secondary mb-1.5 tracking-tighter text-center whitespace-nowrap">
+                <div className="text-2xs font-mono font-medium text-text-secondary mb-1.5 tracking-tighter text-center whitespace-nowrap">
                   {q.valueFormatted}
                 </div>
 

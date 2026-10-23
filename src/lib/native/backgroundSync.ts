@@ -3,18 +3,13 @@
  */
 import { App } from '@capacitor/app';
 import { STORAGE_KEYS } from '../constants';
-import { syncLocationNow } from './locationSync';
+import { flushLocationNow, syncLocationNow } from './locationSync';
 import { isNativePlatform } from './platform';
 import { syncPhoneUsageToday } from './usageStatsSync';
 import { BackgroundSync } from './backgroundSyncPlugin';
 
-let serviceRunning = false;
 let activeUserId: string | null = null;
 let teardown: (() => void) | null = null;
-
-export function isBackgroundSyncRunning(): boolean {
-  return serviceRunning;
-}
 
 export function isBackgroundSyncEnabled(): boolean {
   if (!isNativePlatform()) return false;
@@ -30,10 +25,8 @@ export async function refreshBackgroundSyncRunning(): Promise<boolean> {
   if (!isNativePlatform()) return false;
   try {
     const { running } = await BackgroundSync.isRunning();
-    serviceRunning = running;
     return running;
   } catch {
-    serviceRunning = false;
     return false;
   }
 }
@@ -42,7 +35,6 @@ export async function startBackgroundSync(): Promise<boolean> {
   if (!isNativePlatform()) return false;
   try {
     const { running } = await BackgroundSync.start();
-    serviceRunning = running;
     setBackgroundSyncEnabled(true);
     return running;
   } catch (err) {
@@ -55,7 +47,6 @@ export async function stopBackgroundSync(): Promise<void> {
   if (!isNativePlatform()) return;
   try {
     await BackgroundSync.stop();
-    serviceRunning = false;
     setBackgroundSyncEnabled(false);
   } catch (err) {
     console.error('[background-sync] stop failed:', err);
@@ -90,7 +81,7 @@ export async function openBackgroundLocationSettings(): Promise<void> {
 async function runSyncTick(userId: string): Promise<void> {
   await Promise.all([
     syncPhoneUsageToday(userId, false, { silent: true }),
-    syncLocationNow(userId, false),
+    flushLocationNow(userId, true).then(() => syncLocationNow(userId, false)),
   ]);
 }
 

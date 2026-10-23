@@ -70,7 +70,7 @@ export function HealthMonitorSlidersCard({ data }: HealthMonitorSlidersCardProps
         ))}
       </div>
 
-      <p className="text-3xs text-text-muted pt-1 border-t border-border-custom/40">
+      <p className="text-2xs text-text-muted pt-1 border-t border-border-custom/40">
         Przedział obejmuje percentyle 10–90 z co najmniej 14 wcześniejszych nocy. To opis historii, nie norma kliniczna. Odchylenie temperatury skóry nie potwierdza gorączki; monitor nie stawia diagnoz.
       </p>
     </section>
@@ -121,10 +121,10 @@ function VitalSliderRow({ vital }: { vital: VitalBaseline }) {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-3xs text-text-muted hidden sm:inline">
+          <span className="text-2xs text-text-muted hidden sm:inline">
             Historia: {vital.formattedBaseline}
           </span>
-          <span className={`rounded-full border px-2 py-0.5 text-3xs font-semibold ${statusColor}`}>
+          <span className={`rounded-full border px-2 py-0.5 text-2xs font-semibold ${statusColor}`}>
             {vital.statusLabel}
           </span>
         </div>
@@ -158,7 +158,7 @@ function VitalSliderRow({ vital }: { vital: VitalBaseline }) {
         )}
       </div>
 
-      <div className="flex items-center justify-between text-3xs text-text-muted font-mono px-0.5 sm:hidden">
+      <div className="flex items-center justify-between text-2xs text-text-muted font-mono px-0.5 sm:hidden">
         <span>Baza: {vital.formattedBaseline}</span>
         <span>{vital.daysOfHistory} nocy</span>
       </div>

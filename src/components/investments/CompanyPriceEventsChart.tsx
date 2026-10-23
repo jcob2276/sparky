@@ -89,13 +89,13 @@ const PriceChartTooltip: FC<{
       {events && (events.politicians.length > 0 || events.insiders.length > 0) && (
         <div className="pt-1 border-t border-border-custom/50 space-y-1">
           {events.politicians.map((p, i) => (
-            <div key={i} className="text-3xs text-success font-semibold flex items-center gap-1">
+            <div key={i} className="text-2xs text-success font-semibold flex items-center gap-1">
               <span>●</span>
               <span>Polityk: {p.filerName} ({p.type} {p.amountLabel}); transakcja: {p.transactionDate || '—'}</span>
             </div>
           ))}
           {events.insiders.map((ins, i) => (
-            <div key={i} className="text-3xs text-accent font-semibold flex items-center gap-1">
+            <div key={i} className="text-2xs text-accent font-semibold flex items-center gap-1">
               <span>●</span>
               <span>Insider: transakcja ({ins.transactionCode}); data: {ins.transactionDate || '—'}</span>
             </div>
@@ -145,7 +145,7 @@ export const CompanyPriceEventsChart: FC<Props> = ({ data }) => {
     <div className="bg-surface-elevated border border-border-custom rounded-2xl p-5 shadow-sm space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h3 className="text-xs font-black uppercase tracking-wider text-text-primary">
+          <h3 className="text-xs font-semibold text-text-primary">
             Kurs + Zdarzenia Ujawnien
           </h3>
           <p className="text-2xs text-text-muted mt-0.5">
@@ -155,7 +155,7 @@ export const CompanyPriceEventsChart: FC<Props> = ({ data }) => {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 text-3xs font-mono text-text-muted">
+          <div className="flex items-center gap-3 text-2xs font-mono text-text-muted">
             <span className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-success" />
               <span>Polityk</span>
@@ -171,7 +171,7 @@ export const CompanyPriceEventsChart: FC<Props> = ({ data }) => {
               size="sm"
               variant={timeframe === '3M' ? 'secondary' : 'ghost'}
               onClick={() => setTimeframe('3M')}
-              className="text-3xs font-bold px-2 py-0.5 h-6 rounded-md"
+              className="text-2xs font-bold px-2 py-0.5 h-6 rounded-md"
             >
               3M
             </Button>
@@ -179,7 +179,7 @@ export const CompanyPriceEventsChart: FC<Props> = ({ data }) => {
               size="sm"
               variant={timeframe === '12M' ? 'secondary' : 'ghost'}
               onClick={() => setTimeframe('12M')}
-              className="text-3xs font-bold px-2 py-0.5 h-6 rounded-md"
+              className="text-2xs font-bold px-2 py-0.5 h-6 rounded-md"
             >
               12M
             </Button>
@@ -213,7 +213,7 @@ export const CompanyPriceEventsChart: FC<Props> = ({ data }) => {
               return (
                 <g key={ratio}>
                   <line x1="0" y1={y} x2="800" y2={y} stroke="currentColor" strokeDasharray="3 3" className="text-border-custom/40" />
-                  <text x="795" y={y - 4} textAnchor="end" className="text-3xs font-mono fill-text-muted">
+                  <text x="795" y={y - 4} textAnchor="end" className="text-2xs font-mono fill-text-muted">
                     {priceVal.toFixed(1)}
                   </text>
                 </g>
@@ -247,7 +247,7 @@ export const CompanyPriceEventsChart: FC<Props> = ({ data }) => {
       </div>
 
       {points.length > 0 && (
-        <div className="flex justify-between text-3xs font-mono text-text-muted px-2 pt-1 border-t border-border-custom/30">
+        <div className="flex justify-between text-2xs font-mono text-text-muted px-2 pt-1 border-t border-border-custom/30">
           <span>{points[0].date}</span>
           <span>{points[Math.floor(points.length / 2)].date}</span>
           <span>{points[points.length - 1].date}</span>

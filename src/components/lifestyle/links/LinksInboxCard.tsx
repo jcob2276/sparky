@@ -210,7 +210,7 @@ export function LinksInboxCard({
                   className="w-3.5 h-3.5 rounded-sm object-contain"
                   onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                 />
-                <span className="text-3xs text-text-muted">{link.channel_name || domainClean}</span>
+                <span className="text-2xs text-text-muted">{link.channel_name || domainClean}</span>
               </div>
             ) : (
               <a
@@ -226,11 +226,11 @@ export function LinksInboxCard({
                   className="w-3.5 h-3.5 rounded-sm object-contain"
                   onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                 />
-                <span className="text-3xs text-text-muted hover:underline">{link.channel_name || domainClean}</span>
+                <span className="text-2xs text-text-muted hover:underline">{link.channel_name || domainClean}</span>
               </a>
             )}
 
-            <span className={`rounded-full px-2 py-0.5 text-3xs font-semibold ${catStyle.pill}`}>
+            <span className={`rounded-full px-2 py-0.5 text-2xs font-semibold ${catStyle.pill}`}>
               {link.category}
             </span>
 
@@ -240,7 +240,7 @@ export function LinksInboxCard({
                   e.stopPropagation();
                   onToggleExpand();
                 }}
-                className="flex items-center gap-0.5 text-3xs text-text-muted/70 hover:text-text-primary transition-colors cursor-pointer"
+                className="flex items-center gap-0.5 text-2xs text-text-muted/70 hover:text-text-primary transition-colors cursor-pointer"
                 title="Zawiera notatki (kliknij, aby rozwinąć)"
               >
                 <PenLine size={10} />

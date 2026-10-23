@@ -47,7 +47,7 @@ export default function VoicePlanMicBar({
     <div className="pt-2 border-t border-border-custom/20 space-y-2">
       {/* Recording in progress */}
       {isRecording ? (
-        <div className="flex items-center justify-between p-3 rounded-2xl bg-danger/10 border border-danger/30 animate-pulse">
+        <div className="flex items-center justify-between p-3 rounded-2xl bg-danger/10 border border-danger/30">
           <div className="flex items-center gap-2.5">
             <span className="size-3 rounded-full bg-danger animate-ping" />
             <div>
@@ -104,7 +104,7 @@ export default function VoicePlanMicBar({
               onStartRecording();
             }}
             disabled={isProcessing}
-            className="flex-1 flex items-center justify-center gap-3 py-3 px-4 rounded-2xl bg-gradient-to-r from-primary to-primary-hover text-on-accent font-black text-xs tracking-wider uppercase transition-all shadow-md active:scale-98 disabled:opacity-50 cursor-pointer"
+            className="flex-1 flex items-center justify-center gap-3 py-3 px-4 rounded-2xl bg-gradient-to-r from-primary to-primary-hover text-on-accent font-semibold text-xs transition-all shadow-md active:scale-98 disabled:opacity-50 cursor-pointer"
           >
             <div className="size-6 rounded-full bg-on-accent/20 flex items-center justify-center pointer-events-none">
               <Mic size={14} className="text-on-accent animate-bounce" />

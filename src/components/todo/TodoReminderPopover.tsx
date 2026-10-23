@@ -79,7 +79,7 @@ export default function TodoReminderPopover({
       onClick={(e) => e.stopPropagation()}
       className={`${inline ? 'relative w-full' : 'absolute z-[var(--z-overlay)] top-full left-0 mt-2 w-[var(--ds-w-290px)] todo-popover-fit shadow-2xl'} rounded-2xl border border-border-custom bg-surface-solid flex flex-col gap-3 p-4 animate-in fade-in zoom-in-95 duration-[var(--motion-medium)] origin-top-left`}
     >
-      <p className="text-sm font-black text-text-primary">Przypomnienia</p>
+      <p className="text-sm font-semibold text-text-primary">Przypomnienia</p>
 
       <div className="flex items-center gap-4 border-b border-border-custom/40">
         <Pressable
@@ -138,7 +138,7 @@ export default function TodoReminderPopover({
           type="button"
           onClick={tab === 'datetime' ? commitDatetime : commitBefore}
           disabled={tab === 'datetime' ? !datetimeVal : !dueTimestamp}
-          className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-sm font-black text-on-accent disabled:opacity-[var(--opacity-30)] hover:bg-primary/90 transition-colors"
+          className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-sm font-semibold text-on-accent disabled:opacity-[var(--opacity-30)] hover:bg-primary/90 transition-colors"
         >
           <Bell size={12} /> Dodaj przypomnienie
         </Pressable>
