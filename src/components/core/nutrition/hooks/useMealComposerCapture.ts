@@ -1,4 +1,4 @@
-import { useCallback, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
+import { useCallback, useState, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import { notify } from '../../../../lib/notify';
 import { parseFoodNL, type ParsedFoodItem } from '../../../../lib/health/foodLogging';
 import { scanMealPhoto } from '../../../../lib/health/mealPhotoScan';
@@ -24,6 +24,7 @@ export function useMealComposerCapture({
   userId, session, text, setText, parsing, setParsing, scanningPhoto, setScanningPhoto,
   setError, setDraftFromParsed, scannedPhotoIdRef,
 }: Params) {
+  const [scanFile, setScanFile] = useState<File | null>(null);
   const parseText = useCallback(async () => {
     if (!text.trim() || parsing || !userId) return;
     setParsing(true);
@@ -46,6 +47,7 @@ export function useMealComposerCapture({
   const scanPhoto = useCallback(async (file: File) => {
     if (!userId || scanningPhoto) return;
     setScanningPhoto(true);
+    setScanFile(file);
     setError(null);
     scannedPhotoIdRef.current = null;
     try {
@@ -66,8 +68,9 @@ export function useMealComposerCapture({
       notify(message, 'error');
     } finally {
       setScanningPhoto(false);
+      setScanFile(null);
     }
   }, [userId, scanningPhoto, setDraftFromParsed, setScanningPhoto, setError, scannedPhotoIdRef]);
 
-  return { parseText, scanPhoto };
+  return { parseText, scanPhoto, scanFile };
 }

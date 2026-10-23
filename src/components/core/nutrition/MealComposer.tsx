@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { Card } from '../../ui/Card';
 import BarcodeScanner from './BarcodeScanner';
+import MealScanOverlay from './MealScanOverlay';
 import MealComposerCustomProduct from './MealComposerCustomProduct';
 import MealComposerDraft from './MealComposerDraft';
 import MealComposerLoggedItems from './MealComposerLoggedItems';
@@ -71,6 +72,8 @@ export default function MealComposer({
           onOpenScanner={() => c.search.setScannerOpen(true)}
           photoInputRef={c.photoInputRef}
         />
+
+        {c.scanFile && <MealScanOverlay file={c.scanFile} />}
 
         {c.search.scannerOpen && (
           <BarcodeScanner

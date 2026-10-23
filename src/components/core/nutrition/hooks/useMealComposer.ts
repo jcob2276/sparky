@@ -110,7 +110,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     setDraftItems((current) => (append && current?.length ? [...current, ...next] : next));
   }, []);
 
-  const { parseText, scanPhoto } = useMealComposerCapture({
+  const { parseText, scanPhoto, scanFile } = useMealComposerCapture({
     userId, session, text, setText, parsing, setParsing, scanningPhoto, setScanningPhoto,
     setError, setDraftFromParsed, scannedPhotoIdRef,
   });
@@ -179,6 +179,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     parsing,
     saving,
     scanningPhoto,
+    scanFile,
     draftItems,
     setDraftItems,
     error,
