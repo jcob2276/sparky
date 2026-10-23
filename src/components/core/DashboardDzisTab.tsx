@@ -44,9 +44,10 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
       <div className="ui-stagger mb-5 space-y-4">
         <DashboardGreeting />
 
-        <Suspense fallback={<ViewFallback />}>
-          <TodayRunwayCard />
-        </Suspense>
+        <VisionHeroCard />
+
+        <ThreeSpheresGoalsCard />
+
 
         <UrgentObligationsBanner
           userId={session.user.id}
@@ -81,9 +82,10 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
               onSaved={() => { s.refresh(); s.setNutritionKey(k => k + 1); }}
             />
           </div>
-          <div className="ui-rise ui-rise--5 order-4 space-y-4 lg:order-none">
-            <VisionHeroCard />
-            <ThreeSpheresGoalsCard />
+          <div className="ui-rise ui-rise--5 order-4 lg:order-none">
+            <Suspense fallback={null}>
+              <TodayRunwayCard />
+            </Suspense>
           </div>
         </div>
 
