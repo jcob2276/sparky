@@ -1,86 +1,68 @@
-import { FC, useState, useEffect } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
+import { fetchGpwInsiderNoticesYtd, type GpwInsiderNotice } from '../../lib/investments/gpwInsidersService';
 import {
-  GpwInsiderKpis,
-  GpwInsiderCluster,
-  GpwInsiderEffectiveness,
-  fetchGpwInsidersKpis,
-  fetchGpwInsiderClusters,
-  fetchGpwInsiderEffectiveness,
-} from '../../lib/investments/gpwInsidersService';
+  computeGpwInsiderClusters,
+  computeGpwInsiderDailyCells,
+  computeGpwInsiderKpis,
+} from '../../lib/investments/gpwInsidersStats';
+import { getTodayWarsaw } from '../../lib/date';
+import { yearFloor } from '../../lib/investments/yearFloor';
+import Skeleton from '../ui/Skeleton';
+import EmptyState from '../ui/EmptyState';
 import { GpwInsidersHeader } from './GpwInsidersHeader';
 import { GpwInsidersHeatmap } from './GpwInsidersHeatmap';
 import { GpwInsidersClustersTable } from './GpwInsidersClustersTable';
-import { GpwInsidersPerformanceTable } from './GpwInsidersPerformanceTable';
 import { GpwInsidersLiveFeed } from './GpwInsidersLiveFeed';
 
 interface Props {
   onNavigateTab?: (tab: string) => void;
 }
 
-const DEFAULT_KPIS: GpwInsiderKpis = {
-  purchases: 486,
-  sales: 483,
-  market90dPurchases: 616,
-  market90dSales: 768,
-  marketDeltaPoints: '+5.6 pkt',
-  mostActiveTicker: 'BUMECH',
-  mostActiveCount: 211,
-  medianPerCompany: 3,
-  tempo30d: 935,
-  tempoAvg90d: 461,
-  tempoGrowthPct: '+103%',
-};
-
 export const EspiFeedView: FC<Props> = ({ onNavigateTab }) => {
-  const [kpis, setKpis] = useState<GpwInsiderKpis>(DEFAULT_KPIS);
-  const [clusters, setClusters] = useState<GpwInsiderCluster[]>([]);
-  const [effectiveness, setEffectiveness] = useState<GpwInsiderEffectiveness[]>([]);
+  const [notices, setNotices] = useState<GpwInsiderNotice[] | null>(null);
+  const [failed, setFailed] = useState(false);
+  const today = getTodayWarsaw();
+  const floor = yearFloor(today);
 
   useEffect(() => {
     let active = true;
-
-    Promise.all([
-      fetchGpwInsidersKpis(),
-      fetchGpwInsiderClusters(),
-      fetchGpwInsiderEffectiveness(),
-    ]).then(([nextKpis, nextClusters, nextEff]) => {
-      if (!active) return;
-      setKpis(nextKpis);
-      setClusters(nextClusters);
-      setEffectiveness(nextEff);
-    });
-
-    return () => {
-      active = false;
-    };
+    fetchGpwInsiderNoticesYtd()
+      .then((rows) => { if (active) setNotices(rows); })
+      .catch(() => { if (active) { setFailed(true); setNotices([]); } });
+    return () => { active = false; };
   }, []);
 
-  const handleSelectTicker = (ticker: string) => {
-    // When clicking a ticker, navigate to GPW portfolio/details view if available
-    onNavigateTab?.(`company_${ticker}`);
-  };
+  const stats = useMemo(() => {
+    if (!notices) return null;
+    return {
+      kpis: computeGpwInsiderKpis(notices, today, floor),
+      clusters: computeGpwInsiderClusters(notices),
+      cells: computeGpwInsiderDailyCells(notices, floor, today),
+    };
+  }, [notices, today, floor]);
+
+  const handleSelectTicker = (ticker: string) => onNavigateTab?.(`company_${ticker}`);
 
   return (
     <div className="space-y-6 animate-fade-in text-text-primary pb-12">
-      {/* 1. Header with 3 sub-tabs and top 3 KPI cards */}
-      <GpwInsidersHeader kpis={kpis} onNavigateTab={onNavigateTab} />
+      <GpwInsidersHeader kpis={stats?.kpis ?? null} floor={floor} onNavigateTab={onNavigateTab} />
 
-      {/* 2. 90-day purchase intensity distribution */}
-      <GpwInsidersHeatmap />
+      {!stats ? (
+        <Skeleton variant="card" lines={4} />
+      ) : failed ? (
+        <EmptyState label="Nie udało się pobrać zawiadomień MAR" description="Spróbuj ponownie za chwilę. Nie pokazujemy danych zastępczych." />
+      ) : notices && notices.length === 0 ? (
+        <EmptyState
+          label={`Brak zawiadomień MAR od 1 stycznia ${floor.slice(0, 4)}`}
+          description="Baza trzyma tylko bieżący rok. Zawiadomienia pojawią się po pierwszym imporcie ESPI."
+        />
+      ) : (
+        <>
+          <GpwInsidersHeatmap cells={stats.cells} floor={floor} />
+          <GpwInsidersClustersTable clusters={stats.clusters} onSelectTicker={handleSelectTicker} />
+        </>
+      )}
 
-      {/* 3. 90-day clusters table with 100% unlocked insider names */}
-      <GpwInsidersClustersTable
-        clusters={clusters}
-        onSelectTicker={handleSelectTicker}
-      />
-
-      {/* 4. Historical effectiveness table with unblurred median and alpha */}
-      <GpwInsidersPerformanceTable
-        data={effectiveness}
-        onSelectTicker={handleSelectTicker}
-      />
-
-      {/* 5. Live feed of MAR art. 19 announcements (replacing paywall) */}
       <GpwInsidersLiveFeed onSelectTicker={handleSelectTicker} />
     </div>
   );

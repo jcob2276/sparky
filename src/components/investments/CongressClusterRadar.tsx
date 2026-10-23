@@ -3,6 +3,8 @@ import { CompanyLogo } from './CompanyLogo';
 import { PoliticianAvatar } from './PoliticianAvatar';
 import type { ClusterBuyAlert } from '../../lib/investments/congressClusterService';
 import { Radio, Users, Sparkles } from 'lucide-react';
+import { currentYear } from '../../lib/investments/yearFloor';
+import { formatDatePl } from '../../lib/investments/congressTradeFormat';
 
 interface Props {
   clusterBuys: ClusterBuyAlert[];
@@ -15,13 +17,19 @@ export const CongressClusterRadar: FC<Props> = ({
   onSelectStock,
   onSelectPolitician,
 }) => {
-  if (!clusterBuys || clusterBuys.length === 0) return null;
-
   const formatVol = (val: number) => {
     if (val >= 1e6) return `${(val / 1e6).toFixed(1).replace('.', ',')} mln USD`;
     if (val >= 1e3) return `${(val / 1e3).toFixed(1).replace('.', ',')} tys USD`;
     return `${val.toLocaleString()} USD`;
   };
+
+  if (!clusterBuys || clusterBuys.length === 0) {
+    return (
+      <section className="bg-surface-elevated border border-border-custom rounded-2xl p-4 text-xs text-text-muted">
+        <span className="font-semibold text-text-primary">Klastry kupujących · 14 dni:</span> brak spółek kupowanych przez co najmniej 2 polityków w ostatnich 14 dniach ujawnień (dane od 1 stycznia {currentYear()}).
+      </section>
+    );
+  }
 
   // Show top 6 cluster buys
   const topClusters = clusterBuys.slice(0, 6);
@@ -76,7 +84,7 @@ export const CongressClusterRadar: FC<Props> = ({
                     </span>
                     {cluster.isBipartisan && (
                       <span
-                        className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-2xs font-bold bg-purple-500/15 text-purple-400 border border-purple-500/30"
+                        className="inline-flex items-center gap-0.5 px-1 py-0.2 rounded text-2xs font-bold bg-info/15 text-info border border-info/30"
                         title="Ponadpartyjny klaster: Kupują zarówno Demokraci jak i Republikanie!"
                       >
                         <Sparkles size={9} />
@@ -96,7 +104,7 @@ export const CongressClusterRadar: FC<Props> = ({
                   {cluster.buyerCount} kupujących
                 </div>
                 <div className="text-2xs font-mono text-text-muted">
-                  {formatVol(cluster.totalVolumeUsd)}
+                  {formatVol(cluster.totalVolumeUsd)} · do {formatDatePl(cluster.latestDate)}
                 </div>
               </div>
             </div>

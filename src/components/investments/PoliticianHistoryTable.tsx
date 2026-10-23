@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { CompanyLogo } from './CompanyLogo';
 import type { PoliticianDetail } from '../../lib/investments/congressService';
+import { formatDatePl, STOCK_ACT_DEADLINE_DAYS } from '../../lib/investments/congressTradeFormat';
 
 interface Props {
   transactions: PoliticianDetail['transactions'];
@@ -18,10 +19,11 @@ export const PoliticianHistoryTable: FC<Props> = ({
           Ostatnie transakcje ({transactions.length})
         </h3>
         <p className="text-2xs text-text-muted mt-0.5">
-          Pełna historia transakcji z formularzy STOCK Act (dostępna w całości, bez paywalli)
+          Transakcje z formularzy STOCK Act od początku roku: widełki kwot i daty wprost z ujawnień
         </p>
       </div>
 
+      {transactions.length === 0 && <p className="p-4 text-xs text-text-muted">Brak transakcji w bieżącym roku.</p>}
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead className="bg-surface-subtle text-2xs font-semibold text-text-muted border-b border-border-custom/40">
@@ -37,7 +39,7 @@ export const PoliticianHistoryTable: FC<Props> = ({
           <tbody className="divide-y divide-border-custom/30 font-mono text-2xs">
             {transactions.map((t) => (
               <tr key={t.id} className="hover:bg-surface-subtle/50 transition-colors">
-                <td className="py-3 px-4 text-text-primary">{t.transactionDate}</td>
+                <td className="py-3 px-4 text-text-primary">{formatDatePl(t.transactionDate)}</td>
                 <td
                   className="py-3 px-4 cursor-pointer"
                   onClick={() => t.ticker && t.ticker !== '—' && onSelectStock && onSelectStock(t.ticker)}
@@ -62,11 +64,14 @@ export const PoliticianHistoryTable: FC<Props> = ({
                 <td className="py-3 px-4 text-right text-text-primary font-bold tabular-nums">
                   {t.amountLabel}
                 </td>
-                <td className="py-3 px-4 text-text-muted">{t.disclosureDate}</td>
+                <td className="py-3 px-4 text-text-muted">
+                  {formatDatePl(t.disclosureDate)}
+                  {t.sourceUrl && <a href={t.sourceUrl} target="_blank" rel="noopener noreferrer" className="block text-primary underline">Dokument</a>}
+                </td>
                 <td className={`py-3 px-4 text-right tabular-nums font-bold ${
-                  t.delayDays >= 30 ? 'text-danger' : 'text-text-muted'
+                  t.delayDays != null && t.delayDays > STOCK_ACT_DEADLINE_DAYS ? 'text-danger' : 'text-text-muted'
                 }`}>
-                  {t.delayDays} DNI
+                  {t.delayDays == null ? '—' : `${t.delayDays} dni`}
                 </td>
               </tr>
             ))}

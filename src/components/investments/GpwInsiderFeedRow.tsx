@@ -1,4 +1,6 @@
 import { FC } from 'react';
+import Button from '../ui/Button';
+import { formatDotDate } from './gpwInsidersFormat';
 import { GpwInsiderLiveTrade } from '../../lib/investments/gpwInsidersService';
 
 interface Props {
@@ -14,20 +16,14 @@ export const GpwInsiderFeedRow: FC<Props> = ({ trade, onSelectTicker }) => {
     <tr className="hover:bg-primary/5 transition-colors">
       {/* Data */}
       <td className="py-2.5 font-mono text-2xs text-text-secondary whitespace-nowrap">
-        {trade.transactionDate}
+        {formatDotDate(trade.transactionDate)}
       </td>
 
       {/* Spółka & Ticker */}
       <td className="py-2.5 font-mono">
-        <span
-          role="button"
-          tabIndex={0}
-          onClick={() => onSelectTicker?.(trade.ticker)}
-          onKeyDown={(e) => e.key === 'Enter' && onSelectTicker?.(trade.ticker)}
-          className="font-bold text-primary hover:underline cursor-pointer mr-1.5"
-        >
+        <Button variant="ghost" size="sm" onClick={() => onSelectTicker?.(trade.ticker)} className="font-bold mr-1">
           {trade.ticker}
-        </span>
+        </Button>
         <span className="text-2xs text-text-secondary truncate max-w-28 inline-block align-bottom">
           {trade.company}
         </span>

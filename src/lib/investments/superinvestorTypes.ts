@@ -39,6 +39,8 @@ export interface QuarterHistoryItem {
   valueFormatted: string;
   rawValue: number;
   isLatest: boolean;
+  /** Raport z poprzedniego roku — tylko punkt odniesienia dla Q/Q. */
+  isBaseline?: boolean;
 }
 
 export interface HoldingChangeItem {

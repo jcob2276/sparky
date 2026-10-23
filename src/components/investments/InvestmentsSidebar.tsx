@@ -1,7 +1,8 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { MainTabType } from './InvestmentsPage';
 import Button from '../ui/Button';
-import { useModalBackHandler } from '../../lib/investments/useModalBackHandler';
+import { formatIsoDatePl } from '../../lib/investments/investmentsApi';
+import { currentYear } from '../../lib/investments/yearFloor';
 import {
   CircleDot,
   MessageSquare,
@@ -16,6 +17,10 @@ import {
   TrendingDown,
   Building2,
   X,
+  Search,
+  Newspaper,
+  Scale,
+  UserCog,
 } from 'lucide-react';
 
 interface Props {
@@ -24,6 +29,8 @@ interface Props {
   liveCount: number;
   isOpenMobile: boolean;
   onCloseMobile: () => void;
+  onOpenSearch: () => void;
+  latestTradeIso: string | null;
 }
 
 interface NavItem {
@@ -48,15 +55,15 @@ const NAV_RYNEK_USA: NavItem[] = [
   { id: 'screener', label: 'Spółki', icon: <TrendingUp size={16} /> },
   { id: 'politicians', label: 'Kongres', icon: <Landmark size={16} /> },
   { id: 'investors', label: 'Superinwestorzy', icon: <Share2 size={16} /> },
-  { id: 'live', label: 'Insiderzy', icon: <User size={16} /> },
+  { id: 'live', label: 'Insiderzy', icon: <UserCog size={16} /> },
   { id: 'simulation', label: 'Symulacja', icon: <BarChart3 size={16} /> },
 ];
 
 const NAV_RYNEK_POLSKI: NavItem[] = [
   { id: 'gpw_mar', label: 'Spółki GPW', icon: <Building2 size={16} /> },
-  { id: 'methodology', label: 'Fundamenty', icon: <BarChart3 size={16} /> },
+  { id: 'methodology', label: 'Fundamenty', icon: <Scale size={16} /> },
   { id: 'gpw_shorts', label: 'Krótka sprzedaż', icon: <TrendingDown size={16} /> },
-  { id: 'stocks', label: 'Insiderzy ESPI', icon: <User size={16} /> },
+  { id: 'stocks', label: 'Insiderzy ESPI', icon: <Newspaper size={16} /> },
 ];
 
 export const InvestmentsSidebar: FC<Props> = ({
@@ -65,13 +72,22 @@ export const InvestmentsSidebar: FC<Props> = ({
   liveCount,
   isOpenMobile,
   onCloseMobile,
+  onOpenSearch,
+  latestTradeIso,
 }) => {
-  // Obsługa gestu/przycisku 'Wstecz' na telefonie
-  useModalBackHandler('investmentsSidebarMobile', isOpenMobile, onCloseMobile);
+  // Historia (popstate / back natywny) jest obsługiwana w InvestmentsPage — tu tylko Escape.
+  useEffect(() => {
+    if (!isOpenMobile) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onCloseMobile();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isOpenMobile, onCloseMobile]);
 
   const renderNavGroup = (title: string, items: NavItem[]) => (
     <div className="space-y-1">
-      <div className="px-3 text-2xs font-semibold text-text-muted mb-1.5">
+      <div className="px-3 text-2xs font-semibold tracking-wide text-text-muted mb-1.5">
         {title}
       </div>
       {items.map((item) => {
@@ -85,7 +101,8 @@ export const InvestmentsSidebar: FC<Props> = ({
               onSelectTab(item.id);
               onCloseMobile();
             }}
-            className={`w-full justify-start rounded-xl px-3 py-2 text-xs transition-all ${
+            aria-current={isSelected ? 'page' : undefined}
+            className={`w-full min-h-11 justify-start rounded-xl px-3 py-2 text-xs transition-all ${
               isSelected
                 ? 'border-l-4 border-primary font-bold shadow-xs'
                 : 'text-text-secondary hover:text-text-primary hover:bg-surface border-l-4 border-transparent font-medium'
@@ -132,24 +149,43 @@ export const InvestmentsSidebar: FC<Props> = ({
           </div>
         </div>
 
+        <Button
+          size="sm"
+          variant="secondary"
+          icon={<Search size={14} />}
+          onClick={() => {
+            onOpenSearch();
+            onCloseMobile();
+          }}
+          className="w-full justify-start rounded-xl px-3 min-h-11 text-xs text-text-secondary"
+          aria-label="Szukaj spółki"
+        >
+          <span className="flex-1 text-left">Szukaj spółki…</span>
+          <kbd className="hidden lg:inline rounded-md bg-surface-1 px-1.5 py-0.5 font-mono text-2xs text-text-muted">Ctrl K</kbd>
+        </Button>
+
         {/* Groups */}
         <div className="space-y-5">
-          {renderNavGroup('CENTRUM', NAV_CENTRUM)}
-          {renderNavGroup('PORTFELE', NAV_PORTFELE)}
-          {renderNavGroup('RYNEK USA', NAV_RYNEK_USA)}
-          {renderNavGroup('RYNEK POLSKI', NAV_RYNEK_POLSKI)}
+          {renderNavGroup('Centrum', NAV_CENTRUM)}
+          {renderNavGroup('Portfel', NAV_PORTFELE)}
+          {renderNavGroup('Rynek USA', NAV_RYNEK_USA)}
+          {renderNavGroup('Rynek Polska', NAV_RYNEK_POLSKI)}
         </div>
       </div>
 
       {/* Footer Info */}
       <div className="pt-4 border-t border-border-custom/40 px-1">
         <div className="p-3 rounded-2xl bg-surface border border-border-custom/50 shadow-xs space-y-1">
-          <div className="text-2xs font-mono text-text-muted">Status synchronizacji</div>
+          <div className="text-2xs font-mono text-text-muted">Świeżość danych</div>
           <div className="text-xs font-bold text-success flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-success inline-block" />
-            Live Feed: {liveCount} zdarzeń
+            Form 4: {liveCount} zgłoszeń
           </div>
-          <div className="text-2xs text-text-secondary">SEC 13F · STOCK Act · KNF</div>
+          <div className="ui-num text-2xs text-text-secondary">
+            {latestTradeIso ? `ostatnie ${formatIsoDatePl(latestTradeIso)}` : 'brak zdarzeń w tym roku'}
+          </div>
+          <div className="text-2xs text-text-secondary">Dane od 1 stycznia {currentYear()}</div>
+          <div className="text-2xs text-text-muted">SEC 13F · STOCK Act · KNF · ESPI</div>
         </div>
       </div>
     </div>
@@ -158,16 +194,17 @@ export const InvestmentsSidebar: FC<Props> = ({
   return (
     <>
       {/* Desktop Sticky Sidebar */}
-      <aside className="hidden lg:block w-64 shrink-0 border-r border-border-custom/50 bg-background/80 backdrop-blur-md sticky top-0 h-screen">
+      <aside aria-label="Nawigacja Inwestycji" className="hidden lg:block w-64 shrink-0 border-r border-border-custom/50 bg-background/80 backdrop-blur-md sticky top-0 h-screen">
         {sidebarContent}
       </aside>
 
       {/* Mobile Drawer Overlay */}
       {isOpenMobile && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
+        <div className="lg:hidden fixed inset-0 z-50 flex" role="dialog" aria-modal="true" aria-label="Nawigacja Inwestycji">
           <div
             className="fixed inset-0 bg-scrim/60 backdrop-blur-xs transition-opacity"
             onClick={onCloseMobile}
+            aria-hidden="true"
           />
           <div className="relative w-4/5 max-w-xs sm:w-80 bg-background border-r border-border-custom h-full z-10 shadow-2xl flex flex-col animate-in slide-in-from-left duration-200 ease-out">
             {sidebarContent}

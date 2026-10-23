@@ -70,3 +70,15 @@ it('finds SEC catalogue securities without inventing 13F coverage', async () => 
   expect(item.signalsCount).toBeNull();
   expect(item.price).toBe('—');
 });
+
+it('never reads prices or Form 4 before 1 January and counts insider buys and sells', async () => {
+  read.mockImplementation(async path => path.startsWith('vw_sec_form4_public') ? [
+    { ticker: 'ABC', transaction_code: 'P' }, { ticker: 'ABC', transaction_code: 'P' },
+    { ticker: 'ABC', transaction_code: 'S' }, { ticker: 'XYZ', transaction_code: 'S' },
+  ] : []);
+  const [item] = await fetchWatchlistDetails(['ABC.US']);
+  expect([item.insiderBuys, item.insiderSells]).toEqual([2, 1]);
+  const paths = read.mock.calls.map(([path]) => decodeURIComponent(path));
+  expect(paths.find(p => p.startsWith('prices_daily'))).toContain('date=gte.2026-08-22');
+  expect(paths.find(p => p.startsWith('vw_sec_form4_public'))).toContain('filing_date=gte.2026-01-01');
+});

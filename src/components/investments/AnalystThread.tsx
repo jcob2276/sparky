@@ -1,7 +1,8 @@
 import React, { FC } from 'react';
 import { ChatMessage } from '../../lib/investments/investmentsAiService';
 import { AnalystMessageRenderer } from './AnalystMessageRenderer';
-import { Bot, User } from 'lucide-react';
+import { Bot, User, ShieldCheck } from 'lucide-react';
+import { AnalystToolSteps } from './AnalystToolSteps';
 
 interface Props {
   messages: ChatMessage[];
@@ -47,13 +48,17 @@ export const AnalystThread: FC<Props> = ({ messages, loading, scrollRef }) => (
       </div>
     ))}
     {loading && (
-      <div className="flex gap-3 text-sm items-center text-text-muted">
+      <div className="flex gap-3 items-start">
         <div className="w-8 h-8 rounded-xl bg-primary/15 text-primary border border-primary/25 flex items-center justify-center shrink-0 animate-pulse">
           <Bot size={16} />
         </div>
-        <div className="text-xs font-mono animate-pulse">Analityk AI analizuje dostępne źródła...</div>
+        <AnalystToolSteps question={[...messages].reverse().find((m) => m.role === 'user')?.content ?? ''} />
       </div>
     )}
+    <p className="flex items-center gap-1.5 text-2xs text-text-muted border-t border-border-custom/40 pt-3">
+      <ShieldCheck size={12} className="shrink-0" />
+      Zestawienie danych, nie rekomendacja inwestycyjna
+    </p>
     <div ref={scrollRef} />
   </div>
 );

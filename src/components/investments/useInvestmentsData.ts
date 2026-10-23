@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   detectClusterTickers,
+  isWithinYearFloor,
+  latestTradeDate,
   InsiderTradeItem,
   InvestmentFilters,
   InvestmentStats,
@@ -8,6 +10,7 @@ import {
 import { fetchForm4History, fetchNamedForm4 } from '../../lib/investments/form4Public';
 import { fetchForm4Trades } from '../../lib/investments/publicDisclosures';
 import { notify } from '../../lib/notify';
+import { yearFloor } from '../../lib/investments/yearFloor';
 import { useQueryClient } from '@tanstack/react-query';
 
 function matchesTrade(trade: InsiderTradeItem, filters: InvestmentFilters): boolean {
@@ -111,9 +114,13 @@ export function useInvestmentsData() {
   };
 
   const trades = useMemo(
-    () => allTrades.filter((trade) => matchesTrade(trade, filters)),
+    () => {
+      const floor = yearFloor();
+      return allTrades.filter((trade) => isWithinYearFloor(trade, floor) && matchesTrade(trade, filters));
+    },
     [allTrades, filters],
   );
+  const latestTradeIso = useMemo(() => latestTradeDate(allTrades), [allTrades]);
 
   const stats = useMemo(() => summarize(trades), [trades]);
   const clusterTickers = detectClusterTickers(trades);
@@ -129,5 +136,6 @@ export function useInvestmentsData() {
     clusterTickers,
     historyTruncated,
     refreshRevision,
+    latestTradeIso,
   };
 }

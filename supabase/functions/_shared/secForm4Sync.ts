@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { keepFromFloor } from './yearFloor.ts';
 import { parseCurrentFeed, parseMasterIndex, parseOwnership } from './secForm4.ts';
 
 /** Serialized, contact-identified requests stay well below SEC's 10 requests/second ceiling. */
@@ -39,6 +40,7 @@ export async function syncSecForm4(supabase: SupabaseClient, options: { limit?: 
     const index = await fetchSec(`https://www.sec.gov/Archives/edgar/daily-index/${year}/QTR${quarter}/master.${stamp}.idx`);
     parseMasterIndex(index ?? '').forEach(r => discovered.set(r.accession, r));
   }
+  for (const [key, row] of discovered) if (keepFromFloor([row], (r) => r.filing_date).length === 0) discovered.delete(key);
   if (discovered.size) {
     const { error } = await supabase.from('sec_form4_filings').upsert([...discovered.values()], { onConflict: 'accession', ignoreDuplicates: true });
     if (error) throw error;
@@ -60,7 +62,8 @@ export async function syncSecForm4(supabase: SupabaseClient, options: { limit?: 
       const directory = filing.accession.replaceAll('-', '');
       const documentBase = base.endsWith(directory + '/') ? base : base + directory + '/';
       const docUrl = filename && /^[\w.\-]+$/.test(filename) ? `${documentBase}${filename}` : filing.submission_url;
-      const records = parseOwnership(xml, { ...filing, doc_url: docUrl });
+      // Retencja: transakcje sprzed 1 stycznia (np. spóźnione zgłoszenia) nie trafiają do bazy.
+      const records = keepFromFloor(parseOwnership(xml, { ...filing, doc_url: docUrl }), (r) => String(r.transaction_date ?? r.filing_date ?? ''));
       if (records.length) {
         const { error } = await supabase.from('insider_trades').upsert(records, { onConflict: 'id' });
         if (error) throw error;

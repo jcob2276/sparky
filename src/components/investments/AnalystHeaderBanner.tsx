@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import Button from '../ui/Button';
+import { analystDataScopeLabel } from '../../lib/investments/investmentsAiService';
 import { Sparkles, RefreshCw, History } from 'lucide-react';
 
 interface Props {
@@ -24,7 +25,7 @@ export const AnalystHeaderBanner: FC<Props> = ({
             <span>Analityk AI · Sparky</span>
           </span>
           <span className="text-2xs sm:text-2xs font-mono text-text-secondary">
-            Sparky · dane publiczne z datą i źródłem
+            dane publiczne z datą i źródłem · {analystDataScopeLabel()}
           </span>
         </div>
         <h2 className="text-lg sm:text-2xl font-extrabold text-text-primary tracking-tight">

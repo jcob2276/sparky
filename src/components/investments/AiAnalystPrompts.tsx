@@ -6,19 +6,24 @@ interface Props {
 
 const PRESET_QUESTIONS = [
   {
+    title: 'Dino i Żabka',
+    prompt: 'Porównaj Dino Polska i Żabkę w tabeli: przychody, marże, wycena (C/Z) i pozycje krótkie KNF. Dodaj wykres kwartalny przychodów z marżą netto nad słupkiem. Podaj datę danych i źródło.',
+    tag: 'Porównanie GPW',
+  },
+  {
+    title: 'Co się zmieniło w KGHM',
+    prompt: 'Co się zmieniło w KGHM od początku roku? Zestaw w tabeli: raporty i komunikaty ESPI, transakcje insiderów, pozycje krótkie KNF i wskaźniki. Podaj datę danych i źródło.',
+    tag: 'ESPI + insiderzy',
+  },
+  {
     title: 'Rosnące przychody, niski C/Z',
-    prompt: 'Pokaż spółki z GPW, którym przychody rosną ponad 10% r/r, a C/Z jest poniżej 10. Pomiń mikrospółki.',
-    tag: 'Fundamenty GPW',
+    prompt: 'Pokaż w tabeli spółki z GPW, którym przychody rosną ponad 10% r/r, a C/Z jest poniżej 10. Pomiń mikrospółki. Podaj datę danych i źródło.',
+    tag: 'Screener GPW',
   },
   {
     title: 'Insiderzy w bankach',
     prompt: 'Co robili insiderzy w bankach i instytucjach finansowych (PKO, Pekao, Alior, Santander) w ostatnim czasie?',
     tag: 'GPW MAR',
-  },
-  {
-    title: 'Porównaj Dino i Żabkę',
-    prompt: 'Porównaj Dino Polska i Żabkę: wyniki, marże, pozycje krótkie KNF i wycenę.',
-    tag: 'GPW Duopol',
   },
   {
     title: 'Co kupuje Nancy Pelosi?',
@@ -45,7 +50,7 @@ export const AiAnalystPrompts: FC<Props> = ({ onSelectPrompt }) => {
           <span>💡</span> O co zapytać Analityka AI?
         </h3>
         <p className="text-2xs sm:text-xs text-text-secondary mt-0.5">
-          Odpowiada na podstawie danych 13F, transakcji Kongresu USA, szortów KNF oraz raportów GPW.
+          Odpowiada tabelą lub wykresem, z datą danych i źródłem. Zakres: dane od 1 stycznia bieżącego roku (13F, Kongres USA, szorty KNF, raporty GPW).
         </p>
       </div>
 

@@ -1,5 +1,6 @@
 import { orcaSelect } from './superinvestorsApi';
 import { shiftDateStr, getTodayWarsaw, formatLongDateWarsaw } from '../date';
+import { yearFloor } from './yearFloor';
 
 export interface GpwShortCompany {
   ticker: string; companyName: string; totalPct: number; publicHoldersCount: number;
@@ -63,11 +64,11 @@ export async function fetchGpwShortsData() {
 export async function fetchShortVsPriceChart(ticker: string, companyName: string): Promise<GpwShortChartData> {
   const cleanTicker = ticker.toUpperCase().replace(/\.(WA|PL)$/, '').trim();
   const today = getTodayWarsaw();
-  const since = shiftDateStr(today, -90);
+  const since = yearFloor(today);
   const [history, prices, reports] = await Promise.all([
     orcaSelect<RawShortsHistory>(`knf_short_snapshots?company=eq.${encodeURIComponent(companyName)}&observed_date=gte.${since}&observed_date=lte.${today}&order=observed_date.asc&select=company,ticker,position_date:observed_date,total_pct`, { strict: true }),
     orcaSelect<RawDailyPrice>(`prices_daily?or=(ticker.eq.${encodeURIComponent(cleanTicker)},ticker.eq.${encodeURIComponent(cleanTicker)}.WA)&date=gte.${since}&date=lte.${today}&currency=eq.PLN&order=date.asc&select=date,close_raw,currency,source_url`, { strict: true }),
-    orcaSelect<RawPositionReport>(`knf_disclosed_positions?company=eq.${encodeURIComponent(companyName)}&position_date=lte.${today}&order=position_date.desc,modify_date.desc.nullslast,external_id.asc&limit=5&select=holder,position_pct,position_date,source_url`, { strict: true }),
+    orcaSelect<RawPositionReport>(`knf_disclosed_positions?company=eq.${encodeURIComponent(companyName)}&position_date=gte.${since}&position_date=lte.${today}&order=position_date.desc,modify_date.desc.nullslast,external_id.asc&limit=5&select=holder,position_pct,position_date,source_url`, { strict: true }),
   ]);
   if (history.length >= 20000 || prices.length >= 20000) throw new Error('Niepełny odczyt wykresu KNF');
   const known = history.filter(h => h.total_pct != null && Number.isFinite(h.total_pct))

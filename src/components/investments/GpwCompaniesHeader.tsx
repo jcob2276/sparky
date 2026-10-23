@@ -88,7 +88,7 @@ export const GpwCompaniesHeader: FC<Props> = ({
 
       {/* Stats Counter Line */}
       <div className="text-2xs font-mono font-medium text-text-muted">
-        {summary ? `${summary.total} spółek · ${summary.activeShorts} z publicznym shortem · ${summary.insiderBuys} z odczytanymi zakupami insiderów w 90 dni · ${summary.convergenceSignals} zbieżności w danych`
+        {summary ? `${summary.total} spółek · ${summary.activeShorts} z publicznym shortem · ${summary.insiderBuys} z odczytanymi zakupami insiderów (do 90 dni, od 1 stycznia) · ${summary.convergenceSignals} zbieżności w danych`
           : 'Oczekiwanie na dane — statystyki niedostępne'}
       </div>
     </div>

@@ -4,6 +4,7 @@
  */
 
 import { orcaSelect } from './superinvestorsApi';
+import { clampToYearFloor } from './yearFloor';
 import { summarizeCompanyPrices, type CompanyPriceRow } from './companyPriceHistory';
 import { getTodayWarsaw, shiftDateStr } from '../date';
 import { usQuoteSymbol } from './marketSymbol';
@@ -111,7 +112,7 @@ export async function fetchEnrichedConsensus(): Promise<{
         `companies?market=eq.us&ticker=in.(${encTickers})&select=ticker,sector,listing_status,listing_status_date,listing_source_url&limit=500`, { strict: true }
       ) : Promise.resolve([]),
       tickers.length ? orcaSelect<RawDailyPriceRow>(
-        `prices_daily?ticker=in.(${priceTickers})&date=gte.${shiftDateStr(getTodayWarsaw(), -45)}&order=date.desc,ticker.asc&select=ticker,date,close_raw,currency,source_url`
+        `prices_daily?ticker=in.(${priceTickers})&date=gte.${clampToYearFloor(shiftDateStr(getTodayWarsaw(), -45))}&order=date.desc,ticker.asc&select=ticker,date,close_raw,currency,source_url`
       ) : Promise.resolve([]),
     ]);
 

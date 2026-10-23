@@ -56,7 +56,7 @@ export const GpwShortsChartWidget: FC<Props> = ({ data, isTopRanked = false }) =
       <p>Czerwona linia: suma z zapisanych stanów bieżącego rejestru. Szara: dostępne surowe kursy PLN. Skale są niezależne.</p>
       <p>Notowanie dla trwającej sesji może się jeszcze zmieniać.</p>
       {data.priceSourceUrl && <a href={data.priceSourceUrl} target="_blank" rel="noreferrer" className="text-primary underline">Źródło notowania</a>}
-      <p>Zakres: dostępne obserwacje z ostatnich 90 dni. Archiwum pojedynczych zgłoszeń nie dowodzi historycznej sumy pozycji.</p>
+      <p>Zakres: od 1 stycznia (YTD), dostępne obserwacje. Archiwum pojedynczych zgłoszeń nie dowodzi historycznej sumy pozycji.</p>
     </div>
     {data.reportedPositions.length > 0 && <div className="border-t border-border-custom pt-3 space-y-2 text-2xs">
       <h5 className="font-bold">Ostatnie zgłoszenia pojedynczych pozycji</h5>

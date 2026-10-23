@@ -5,6 +5,7 @@ import type { WatchlistItem } from '../../lib/investments/watchlistService';
 import { MiniSparkline } from './MiniSparkline';
 import { TradingViewChartModal } from './TradingViewChartModal';
 import { CompanyListingNotice } from './CompanyListingNotice';
+import { currentYear } from '../../lib/investments/yearFloor';
 
 export type { WatchlistItem };
 
@@ -25,7 +26,7 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
             <span>📋</span> Spółki na Twoim radarze ({items.length})
           </h3>
           <span className="text-xs text-text-secondary font-mono">
-            Kliknij gwiazdkę, aby usunąć spółkę z watchlisty
+            Sygnały: 13F, KNF i Form 4 od 1 stycznia
           </span>
         </div>
 
@@ -121,6 +122,18 @@ export const WatchlistTable: FC<Props> = ({ items, watchlist, onToggle }) => {
                       <span className="px-2 py-0.5 rounded-md bg-surface border border-border-custom font-mono text-2xs">
                         {item.lastSignal}
                       </span>
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {item.netChanges13f != null && <span className={`px-1.5 py-0.5 rounded-md border text-2xs font-mono font-semibold ${
+                          item.netChanges13f > 0 ? 'bg-success/10 text-success border-success/20' : item.netChanges13f < 0 ? 'bg-danger/10 text-danger border-danger/20' : 'bg-surface text-text-muted border-border-custom'}`}
+                          title="Bilans funduszy 13F zwiększających minus zmniejszających pozycję">
+                          Fundusze {item.netChanges13f > 0 ? '+' : ''}{item.netChanges13f}</span>}
+                        {item.shortPct != null && item.shortPct > 0 && <span className="px-1.5 py-0.5 rounded-md border bg-danger/10 text-danger border-danger/20 text-2xs font-mono font-semibold"
+                          title="Suma ujawnionych krótkich pozycji w rejestrze KNF">Short KNF {item.shortPct}%</span>}
+                        {item.insiderBuys != null && item.insiderSells != null && (item.insiderBuys + item.insiderSells > 0) && <span
+                          className="px-1.5 py-0.5 rounded-md border bg-surface text-text-secondary border-border-custom text-2xs font-mono font-semibold"
+                          title={`Form 4 (kupno P / sprzedaż S) od 1 stycznia ${currentYear()}`}>
+                          Insiderzy {item.insiderBuys}K / {item.insiderSells}S</span>}
+                      </div>
                       {!!item.signalSourceUrls?.length && <a href={item.signalSourceUrls[0]} target="_blank" rel="noopener noreferrer"
                         className="block mt-1 text-primary underline text-2xs">Dokument SEC</a>}
                     </td>

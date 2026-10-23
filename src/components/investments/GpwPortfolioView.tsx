@@ -119,9 +119,9 @@ export const GpwPortfolioView: FC<Props> = ({
                 <th className="py-2.5 px-3 text-right">Dziś</th>
                 <th className="py-2.5 px-3 text-right">Short</th>
                 <th className="py-2.5 px-3 text-right">Zm. 14D</th>
-                <th className="py-2.5 px-3 text-right">Zakupy 90D</th>
+                <th className="py-2.5 px-3 text-right" title="Zakupy insiderów: ostatnie 90 dni, nie wcześniej niż od 1 stycznia">Zakupy 90D</th>
                 <th className="py-2.5 px-3 text-left">Sygnał</th>
-                <th className="py-2.5 px-3 text-right" title="Dostępne rzeczywiste notowania z ostatnich 12 miesięcy; historia może być krótsza.">Historia do 12M</th>
+                <th className="py-2.5 px-3 text-right" title="Notowania od 1 stycznia bieżącego roku (YTD); w styczniu historia jest krótka.">Kurs YTD</th>
                 <th className="py-2.5 px-2 text-center w-8" />
               </tr>
             </thead>

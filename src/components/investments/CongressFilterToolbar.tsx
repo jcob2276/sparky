@@ -2,10 +2,11 @@ import { FC } from 'react';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import { Search } from 'lucide-react';
+import { currentYear } from '../../lib/investments/yearFloor';
 
 export type ChamberFilter = 'all' | 'house' | 'senate';
 export type PartyFilter = 'all' | 'D' | 'R';
-export type TimeframeFilter = '90' | '365' | 'all';
+export type TimeframeFilter = '90' | 'ytd';
 
 interface Props {
   chamber: ChamberFilter;
@@ -90,9 +91,8 @@ export const CongressFilterToolbar: FC<Props> = ({
           <div className="flex items-center bg-surface-subtle p-0.5 rounded-lg border border-border-custom/50">
             {(
               [
-                ['90', '90 Dni'],
-                ['365', '365 Dni'],
-                ['all', 'Cala Historia'],
+                ['90', '90 dni'],
+                ['ytd', `Od 1 stycznia ${currentYear()}`],
               ] as const
             ).map(([val, label]) => (
               <Button

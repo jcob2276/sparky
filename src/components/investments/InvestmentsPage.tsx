@@ -1,12 +1,14 @@
-import { FC, useState, useCallback, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { FC, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useInvestmentsData } from './useInvestmentsData';
 import { InvestmentsTopNav } from './InvestmentsTopNav';
 import { InvestmentsSidebar } from './InvestmentsSidebar';
+import { InvestmentsStatusStrip } from './InvestmentsStatusStrip';
+import { TickerSearchModal } from './TickerSearchModal';
 import { CopycatPlaybookModal } from './CopycatPlaybookModal';
 import { InvestmentsTabRenderer } from './InvestmentsTabRenderer';
 import { loadStoredWatchlist, saveStoredWatchlist } from '../../lib/investments/watchlistStorage';
-import { useBackHandler } from '../../lib/native/backStack';
+import { useInvestmentsShell } from './useInvestmentsShell';
 
 export type MainTabType =
   | 'dashboard'
@@ -45,13 +47,10 @@ const VALID_TABS: ReadonlySet<MainTabType> = new Set([
 
 const InvestmentsPage: FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
 
   const tabParam = searchParams.get('tab') as MainTabType | null;
   const activeTab: MainTabType = tabParam && VALID_TABS.has(tabParam) ? tabParam : 'dashboard';
 
-  const [isPlaybookOpen, setIsPlaybookOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [watchlist, setWatchlist] = useState<string[]>(loadStoredWatchlist);
 
   const handleSelectTab = useCallback(
@@ -69,78 +68,19 @@ const InvestmentsPage: FC = () => {
     [activeTab, setSearchParams]
   );
 
-  const handleBack = useCallback(() => {
-    if (isMobileMenuOpen) {
-      setIsMobileMenuOpen(false);
-      return;
-    }
-    if (isPlaybookOpen) {
-      setIsPlaybookOpen(false);
-      return;
-    }
-    if (activeTab !== 'dashboard') {
-      handleSelectTab('dashboard');
-      return;
-    }
-    navigate('/');
-  }, [isMobileMenuOpen, isPlaybookOpen, activeTab, handleSelectTab, navigate]);
-
-  const handleOpenMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen(true);
-    window.history.pushState({ modal: 'mobileMenu' }, '');
-  }, []);
-
-  const handleCloseMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen(false);
-    if (window.history.state?.modal === 'mobileMenu') {
-      window.history.back();
-    }
-  }, []);
-
-  const handleOpenPlaybook = useCallback(() => {
-    setIsPlaybookOpen(true);
-    window.history.pushState({ modal: 'playbook' }, '');
-  }, []);
-
-  const handleClosePlaybook = useCallback(() => {
-    setIsPlaybookOpen(false);
-    if (window.history.state?.modal === 'playbook') {
-      window.history.back();
-    }
-  }, []);
-
-  // Browser popstate handler for drawers and modals
-  useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
-      const modalInState = e.state?.modal;
-      if (isMobileMenuOpen && modalInState !== 'mobileMenu') {
-        setIsMobileMenuOpen(false);
-      }
-      if (isPlaybookOpen && modalInState !== 'playbook') {
-        setIsPlaybookOpen(false);
-      }
-    };
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [isMobileMenuOpen, isPlaybookOpen]);
-
-  // Native Android/Capacitor hardware back button hygiene
-  useBackHandler(() => {
-    if (isMobileMenuOpen) {
-      handleCloseMobileMenu();
-      return true;
-    }
-    if (isPlaybookOpen) {
-      handleClosePlaybook();
-      return true;
-    }
-    if (activeTab !== 'dashboard') {
-      handleSelectTab('dashboard');
-      return true;
-    }
-    navigate('/');
-    return true;
-  }, true);
+  const goDashboard = useCallback(() => handleSelectTab('dashboard'), [handleSelectTab]);
+  const {
+    isPlaybookOpen,
+    isMobileMenuOpen,
+    isSearchOpen,
+    handleBack,
+    handleOpenMobileMenu,
+    handleCloseMobileMenu,
+    handleOpenPlaybook,
+    handleClosePlaybook,
+    handleOpenSearch,
+    handleCloseSearch,
+  } = useInvestmentsShell(activeTab, goDashboard);
 
   const handleToggleWatchlist = useCallback((ticker: string) => {
     setWatchlist((prev) => {
@@ -160,17 +100,19 @@ const InvestmentsPage: FC = () => {
     clusterTickers,
     historyTruncated,
     refreshRevision,
+    latestTradeIso,
   } = useInvestmentsData();
 
   return (
     <div className="min-h-screen bg-background text-text-primary flex w-full max-w-full overflow-x-hidden">
-      {/* 1:1 OrcaFolio Left Sidebar */}
       <InvestmentsSidebar
         activeTab={activeTab}
         onSelectTab={handleSelectTab}
         liveCount={trades.length}
         isOpenMobile={isMobileMenuOpen}
         onCloseMobile={handleCloseMobileMenu}
+        onOpenSearch={handleOpenSearch}
+        latestTradeIso={latestTradeIso}
       />
 
       {/* Main Content Area */}
@@ -184,7 +126,9 @@ const InvestmentsPage: FC = () => {
             onRefresh={handleRefresh}
             syncing={syncing}
             onOpenMobileMenu={handleOpenMobileMenu}
+            onOpenSearch={handleOpenSearch}
           />
+          <InvestmentsStatusStrip latestTradeIso={latestTradeIso} tradeCount={trades.length} loading={loading} />
         </div>
 
         {/* Tab Contents View */}
@@ -204,6 +148,7 @@ const InvestmentsPage: FC = () => {
         </main>
       </div>
 
+      <TickerSearchModal isOpen={isSearchOpen} onClose={handleCloseSearch} />
       <CopycatPlaybookModal
         isOpen={isPlaybookOpen}
         onClose={handleClosePlaybook}

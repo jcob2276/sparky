@@ -11,6 +11,8 @@ import { KondzioPortfolioSummaryCard } from './KondzioPortfolioSummaryCard';
 import { JakubHoldingItem } from './JakubHoldingItem';
 import { PortfolioSubNav } from './PortfolioSubNav';
 import { PortfolioForecastCard } from './PortfolioForecastCard';
+import { PortfolioAllocationCard } from './PortfolioAllocationCard';
+import { PortfolioPerformanceCard } from './PortfolioPerformanceCard';
 import { notify } from '../../../lib/notify';
 import { formatShortDateWarsaw } from '../../../lib/date';
 import type { MainTabType } from '../InvestmentsPage';
@@ -54,6 +56,12 @@ export const KondzioPortfolioView: FC<Props> = ({ onNavigateTab }) => {
         isSyncing={isSyncing}
         lastSyncRates={lastSyncRates}
       />
+
+      {/* 1b. Wynik YTD vs SPY i alokacja */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <PortfolioPerformanceCard scope="kondzio" positions={portfolio.positions} />
+        <PortfolioAllocationCard positions={portfolio.positions} freeCashPln={portfolio.freeCashPln} />
+      </div>
 
       {/* 2. Holdings List */}
       <div className="space-y-2">

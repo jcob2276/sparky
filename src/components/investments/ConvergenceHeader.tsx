@@ -79,7 +79,7 @@ export const ConvergenceHeader: FC<Props> = ({
             className="rounded-xl text-xs font-semibold"
             onClick={() => onWindowChange(option)}
           >
-            {option === '90d' ? '90 dni' : '12 mies.'}
+            {option === '90d' ? '90 dni' : 'Od 1 stycznia'}
           </Button>
         ))}
       </div>

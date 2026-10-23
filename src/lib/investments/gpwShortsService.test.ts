@@ -59,6 +59,14 @@ describe('official KNF analytics', () => {
     expect(chart.points).toEqual([]);
     expect(chart.reportedPositions).toEqual([{ holder: 'Past holder', pct: 2, date: '2026-09-20', sourceUrl: 'https://rss.knf.gov.pl/rss_pub/' }]);
   });
+  it('starts every chart read at the 1 January floor (YTD), not a rolling window', async () => {
+    await fetchShortVsPriceChart('CDR', 'CDPROJEKT');
+    const paths = read.mock.calls.map(([path]) => path ?? '');
+    expect(paths).toHaveLength(3);
+    expect(paths[0]).toContain('observed_date=gte.2026-01-01');
+    expect(paths[1]).toContain('date=gte.2026-01-01');
+    expect(paths[2]).toContain('position_date=gte.2026-01-01');
+  });
 });
 
 

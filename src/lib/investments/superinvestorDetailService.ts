@@ -1,4 +1,5 @@
 import { orcaSelect } from './superinvestorsApi';
+import { isBaselinePeriod, reportWindowFilter } from './superinvestorWindow';
 import { fetchFundInvestor, type VerifiedFundReport } from './superinvestorOverviewService';
 import { formatQuarterLabel, formatUsdBillions, type HoldingChangeItem, type SuperinvestorDetailData } from './superinvestorTypes';
 export * from './superinvestorTypes';
@@ -39,7 +40,7 @@ export async function fetchSuperinvestorDetail(
   investorId: string,
 ): Promise<SuperinvestorDetailData | null> {
   const scope = `investor_id=eq.${encodeURIComponent(investorId)}`;
-  const reports = await orcaSelect<VerifiedFundReport>(`vw_sec13f_fund_reports?${scope}&order=period_of_report.desc&limit=8`, { strict: true });
+  const reports = await orcaSelect<VerifiedFundReport>(`vw_sec13f_fund_reports?${scope}&${reportWindowFilter()}&order=period_of_report.desc&limit=8`, { strict: true });
   const investor = await fetchFundInvestor(investorId, reports);
   if (!investor) return null;
   const latest = reports[0];
@@ -72,7 +73,7 @@ export async function fetchSuperinvestorDetail(
     newCount: count('new'), increasedCount: count('increased'), decreasedCount: count('decreased'), soldCount: count('sold'),
     quarters: reports.slice().reverse().map((report, index) => ({
       quarterLabel: formatQuarterLabel(report.period_of_report), rawValue: Number(report.verified_value_usd),
-      valueFormatted: formatUsdBillions(Number(report.verified_value_usd)), isLatest: index === reports.length - 1,
+      valueFormatted: formatUsdBillions(Number(report.verified_value_usd)), isLatest: index === reports.length - 1, isBaseline: isBaselinePeriod(report.period_of_report),
     })),
     quarterGrowthPct: growth === null ? '—' : `${growth >= 0 ? '+' : ''}${growth.toFixed(2).replace('.', ',')}%`,
     latestFilingUrl: latest?.filing_url ?? null, previousFilingUrl: previous?.filing_url ?? null,

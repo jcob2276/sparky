@@ -9,9 +9,9 @@ const money = new Intl.NumberFormat('pl-PL', { maximumFractionDigits: 2 });
 export function CompanyFinancialReportsCard({ reports }: { reports: UsFinancialReport[] }) {
   return <section className="bg-surface-elevated border border-border-custom rounded-2xl p-5 space-y-3">
     <h3 className="font-semibold text-text-primary">Raporty finansowe · SEC</h3>
-    {!reports.length ? <p className="text-sm text-text-muted">Brak zaimportowanego raportu finansowego ze standardowymi danymi SEC dla tej spółki.</p>
+    {!reports.length ? <p className="text-sm text-text-muted">Brak raportu finansowego SEC z bieżącego roku dla tej spółki (raporty od 1 stycznia).</p>
       : <>
-        <p className="text-xs text-text-muted">Wyniki dotyczą podanego okresu. Raporty 10-Q mogą zawierać dane narastająco od początku roku; aktywa i kapitał pokazują stan na koniec okresu.</p>
+        <p className="text-xs text-text-muted">Raporty od 1 stycznia · źródło: SEC EDGAR. Wyniki dotyczą podanego okresu. Raporty 10-Q mogą zawierać dane narastająco od początku roku; aktywa i kapitał pokazują stan na koniec okresu.</p>
         {reports.map((report, index) => <details key={report.accession} open={index === 0} className="border-t border-border-custom pt-3">
           <summary className="cursor-pointer text-sm text-text-primary">{report.form} · {formatLongDateWarsaw(report.periodStart)}–{formatLongDateWarsaw(report.periodEnd)}</summary>
           <p className="text-xs text-text-muted my-2">Publikacja: {formatLongDateWarsaw(report.publicationDate)} · mln {report.currency}</p>

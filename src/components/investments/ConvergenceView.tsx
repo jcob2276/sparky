@@ -53,7 +53,7 @@ export const ConvergenceView: FC<Props> = ({ watchlist, onNavigateTab }) => {
   const [filterTab, setFilterTab] = useState<'convergent' | 'all'>('convergent');
   const [visibleCount, setVisibleCount] = useState(PAGE);
   const { rows, alerts, loading, error, dismissAlerts } = useSignalBoard(window);
-  const windowLabel = window === '90d' ? '90 DNI' : '12 MIES.';
+  const windowLabel = window === '90d' ? '90 DNI' : 'OD 1 STYCZNIA';
 
   const filteredByWatchlist = useMemo(() => {
     if (!watchlistOnly) return rows;
@@ -127,7 +127,7 @@ export const ConvergenceView: FC<Props> = ({ watchlist, onNavigateTab }) => {
       {error && <p className="text-sm text-danger">{error}. Spróbuj ponownie za chwilę.</p>}
       {!loading && !error && displayRows.length === 0 && (
         <p className="text-sm text-text-secondary">
-          Brak zbieżności w tym oknie. Poszerz okno do 12 miesięcy albo wróć po najbliższej synchronizacji ujawnień.
+          Brak zbieżności w tym oknie. Dane są liczone od 1 stycznia bieżącego roku — poszerz okno albo wróć po najbliższej synchronizacji ujawnień.
         </p>
       )}
 

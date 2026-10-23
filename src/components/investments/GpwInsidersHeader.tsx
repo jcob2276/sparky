@@ -1,87 +1,60 @@
 import { FC } from 'react';
-import { GpwInsiderKpis } from '../../lib/investments/gpwInsidersService';
+import type { GpwInsiderKpis } from '../../lib/investments/gpwInsidersService';
+import Button from '../ui/Button';
+import { formatDotDate } from './gpwInsidersFormat';
 
 interface Props {
-  kpis: GpwInsiderKpis;
+  kpis: GpwInsiderKpis | null;
+  floor: string;
   onNavigateTab?: (tab: string) => void;
 }
 
-export const GpwInsidersHeader: FC<Props> = ({ kpis, onNavigateTab }) => {
+const Card: FC<{ label: string; value: string; note: string }> = ({ label, value, note }) => (
+  <div className="bg-surface border border-border-custom/70 rounded-2xl p-4 shadow-2xs">
+    <div className="text-2xs font-mono text-text-muted">{label}</div>
+    <div className="text-2xl sm:text-3xl font-semibold font-mono text-text-primary mt-1">{value}</div>
+    <div className="text-2xs font-mono text-text-muted mt-0.5">{note}</div>
+  </div>
+);
+
+export const GpwInsidersHeader: FC<Props> = ({ kpis, floor, onNavigateTab }) => {
+  const since = formatDotDate(floor);
+  const until = kpis?.latestReportDate ? formatDotDate(kpis.latestReportDate) : '—';
   return (
     <div className="space-y-4">
-      {/* Title & Subtitle */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-semibold text-text-primary tracking-tight">
-          Insiderzy GPW (ESPI)
-        </h1>
+        <h1 className="text-xl sm:text-2xl font-semibold text-text-primary tracking-tight">Insiderzy GPW (MAR art. 19)</h1>
         <p className="text-xs text-text-secondary mt-1 max-w-3xl leading-relaxed">
-          Transakcje osób pełniących obowiązki zarządcze w spółkach z GPW: zawiadomienia MAR art. 19 publikowane przez ESPI, z linkiem do każdego raportu źródłowego.
+          Zawiadomienia o transakcjach osób pełniących obowiązki zarządcze. Dane od 1 stycznia {floor.slice(0, 4)} ·
+          źródło: ESPI/GPW, import do bazy · dane do {until}. Widok źródłowy nie zawiera kwot ani nazwisk, dlatego ich nie pokazujemy.
         </p>
       </div>
 
-      {/* 3 Sub-tabs */}
-      <div className="flex items-center gap-6 border-b border-border-custom/50 pt-1">
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => onNavigateTab?.('gpw_shorts')}
-          onKeyDown={(e) => e.key === 'Enter' && onNavigateTab?.('gpw_shorts')}
-          className="pb-3 text-xs sm:text-sm font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-        >
-          Krótka sprzedaż
-        </div>
-        <div className="pb-3 text-xs sm:text-sm font-bold text-primary border-b-2 border-primary cursor-default">
-          Insiderzy (ESPI)
-        </div>
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => onNavigateTab?.('methodology')}
-          onKeyDown={(e) => e.key === 'Enter' && onNavigateTab?.('methodology')}
-          className="pb-3 text-xs sm:text-sm font-semibold text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
-        >
-          Fundamenty
-        </div>
-      </div>
+      <nav aria-label="Rynek polski" className="flex items-center gap-1 border-b border-border-custom/50">
+        <Button variant="ghost" size="sm" onClick={() => onNavigateTab?.('gpw_shorts')}>Krótka sprzedaż</Button>
+        <Button variant="tonal" size="sm" aria-current="page">Insiderzy (MAR)</Button>
+        <Button variant="ghost" size="sm" onClick={() => onNavigateTab?.('methodology')}>Fundamenty</Button>
+      </nav>
 
-      {/* Top 3 KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
-        <div className="bg-surface border border-border-custom/70 rounded-2xl p-4 shadow-2xs">
-          <div className="text-2xs font-mono text-text-muted">
-            Nabycia / Zbycia
-          </div>
-          <div className="text-2xl sm:text-3xl font-semibold font-mono text-text-primary mt-1">
-            {kpis.purchases} / {kpis.sales}
-          </div>
-          <div className="text-2xs font-mono text-text-muted mt-0.5">
-            rynek 90d: {kpis.market90dPurchases} / {kpis.market90dSales} · {kpis.marketDeltaPoints}
-          </div>
+      {kpis && (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
+          <Card
+            label="Nabycia / zbycia"
+            value={`${kpis.purchases} / ${kpis.sales}`}
+            note={`od ${since} · ${kpis.total} zawiadomień łącznie`}
+          />
+          <Card
+            label="Najaktywniejsza spółka"
+            value={kpis.mostActiveTicker ? `${kpis.mostActiveTicker} · ${kpis.mostActiveCount}` : '—'}
+            note={`mediana na spółkę: ${kpis.medianPerCompany}`}
+          />
+          <Card
+            label="Tempo zgłoszeń"
+            value={`${kpis.tempo30d} / 30 dni`}
+            note={`średnio ${kpis.tempoAvgMonthly} / miesiąc od ${since}`}
+          />
         </div>
-
-        <div className="bg-surface border border-border-custom/70 rounded-2xl p-4 shadow-2xs">
-          <div className="text-2xs font-mono text-text-muted">
-            Najaktywniejsza spółka
-          </div>
-          <div className="text-2xl sm:text-3xl font-semibold font-mono text-text-primary mt-1">
-            {kpis.mostActiveTicker} · {kpis.mostActiveCount}
-          </div>
-          <div className="text-2xs font-mono text-text-muted mt-0.5">
-            mediana/spółkę: {kpis.medianPerCompany}
-          </div>
-        </div>
-
-        <div className="bg-surface border border-border-custom/70 rounded-2xl p-4 shadow-2xs">
-          <div className="text-2xs font-mono text-text-muted">
-            Tempo zgłoszeń
-          </div>
-          <div className="text-2xl sm:text-3xl font-semibold font-mono text-text-primary mt-1">
-            {kpis.tempo30d} / 30 dni
-          </div>
-          <div className="text-2xs font-mono text-text-muted mt-0.5">
-            śr. miesięczna 90d: {kpis.tempoAvg90d} · {kpis.tempoGrowthPct}
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 };

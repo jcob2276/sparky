@@ -1,4 +1,5 @@
 import { orcaSelect } from './superinvestorsApi';
+import { yearFloor } from './yearFloor';
 
 export interface UsFinancialReport {
   accession: string;
@@ -44,7 +45,7 @@ export function parseUsFinancialReport(value: unknown): UsFinancialReport | null
 }
 
 export async function fetchUsFinancialReports(ticker: string): Promise<UsFinancialReport[]> {
-  const rows = await orcaSelect<unknown>(`us_company_financial_reports?ticker=eq.${encodeURIComponent(ticker)}&order=period_end.desc,publication_date.desc&limit=16`, { strict: true });
+  const rows = await orcaSelect<unknown>(`us_company_financial_reports?ticker=eq.${encodeURIComponent(ticker)}&period_end=gte.${yearFloor()}&order=period_end.desc,publication_date.desc&limit=16`, { strict: true });
   return rows.flatMap(row => {
     const report = parseUsFinancialReport(row);
     return report ? [report] : [];

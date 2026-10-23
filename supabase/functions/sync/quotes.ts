@@ -1,5 +1,6 @@
 import { requireServiceRole } from '../_shared/auth.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
+import { keepFromFloor } from '../_shared/yearFloor.ts';
 import { convertCurrency, fetchGpwFxTable } from './gpwFundamentalsFx.ts';
 import { fetchMarketChart, normalizeMarketSymbol } from './marketQuoteData.ts';
 
@@ -43,7 +44,8 @@ export async function runQuotesSync(req: Request): Promise<unknown> {
   if (!successful.length) throw new Error(`Nie pobrano notowań: ${errors.map((e) => e.message).join('; ')}`);
   if (body.persist === true) {
     const db = createServiceClient();
-    const history = successful.flatMap((r) => r.history);
+    // Retencja: do prices_daily trafiają tylko sesje od 1 stycznia (zakres 2y/max nie wciąga starszych).
+    const history = keepFromFloor(successful.flatMap((r) => r.history), (row) => String(row.date));
     if (history.length) {
       const { error } = await db.from('prices_daily').upsert(history, { onConflict: 'ticker,date' });
       if (error) throw new Error(`Zapis historii cen: ${error.message}`);

@@ -1,7 +1,6 @@
-import { FC, useState, useEffect } from 'react';
+import { FC } from 'react';
 import Button from '../ui/Button';
 import { Search, RefreshCw, BookOpen, Menu, ArrowLeft } from 'lucide-react';
-import { TickerSearchModal } from './TickerSearchModal';
 import { MarketStatusBadge } from './MarketStatusBadge';
 import type { MainTabType } from './InvestmentsPage';
 
@@ -10,6 +9,7 @@ interface Props {
   onRefresh: () => void;
   syncing: boolean;
   onOpenMobileMenu?: () => void;
+  onOpenSearch: () => void;
   activeTab?: MainTabType;
   onBack?: () => void;
 }
@@ -19,23 +19,10 @@ export const InvestmentsTopNav: FC<Props> = ({
   onRefresh,
   syncing,
   onOpenMobileMenu,
+  onOpenSearch,
   activeTab,
   onBack,
 }) => {
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-
-  // Open search on Cmd/Ctrl+K
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsSearchOpen(true);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
   const iconButton = 'h-11 w-11 shrink-0 rounded-full p-0 text-text-secondary hover:text-text-primary';
   const backLabel = activeTab === 'dashboard' ? 'Wróć do Sparky' : 'Wróć do pulpitu';
 
@@ -54,7 +41,7 @@ export const InvestmentsTopNav: FC<Props> = ({
 
         <div className="flex shrink-0 items-center gap-0.5">
           <MarketStatusBadge />
-          <Button size="sm" variant="ghost" icon={<Search size={18} />} onClick={() => setIsSearchOpen(true)} className={iconButton} aria-label="Szukaj spółki" title="Szukaj spółki (⌘K)" />
+          <Button size="sm" variant="ghost" icon={<Search size={18} />} onClick={onOpenSearch} className={iconButton} aria-label="Szukaj spółki" title="Szukaj spółki (Ctrl/⌘ + K)" />
           <Button size="sm" variant="ghost" icon={<BookOpen size={18} />} onClick={onOpenPlaybook} className={`hidden sm:inline-flex ${iconButton}`} aria-label="Playbook" title="Playbook" />
           <Button
             size="sm"
@@ -69,7 +56,6 @@ export const InvestmentsTopNav: FC<Props> = ({
         </div>
       </div>
 
-      <TickerSearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </div>
   );
 };

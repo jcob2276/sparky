@@ -1,6 +1,7 @@
 import { unzipSync, strFromU8 } from 'https://esm.sh/fflate@0.8.2';
 import { createServiceClient } from '../_shared/supabase.ts';
 import { requireServiceRole } from '../_shared/auth.ts';
+import { keepFromFloor, yearFloor } from '../_shared/yearFloor.ts';
 import { parseHouseIndex } from './houseDisclosureData.ts';
 import { readHousePdf } from './houseDisclosurePdf.ts';
 
@@ -11,7 +12,7 @@ export async function runHouseDisclosuresSync(req: Request): Promise<unknown> {
   const currentYear = new Date().getUTCFullYear();
   const year = body.year ?? currentYear;
   const limit = body.limit ?? 5;
-  if (!Number.isInteger(year) || year < 2012 || year > currentYear
+  if (!Number.isInteger(year) || year < Number(yearFloor().slice(0, 4)) || year > currentYear
     || !Number.isInteger(limit) || limit < 1 || limit > 10) throw new Error('Niepoprawny zakres House PTR');
   const db = createServiceClient();
   const checkedAt = new Date().toISOString();
@@ -45,7 +46,7 @@ export async function runHouseDisclosuresSync(req: Request): Promise<unknown> {
     for (const doc of pending ?? []) {
       try {
         const rows = await readHousePdf(doc.source_url);
-        const payload = rows.map((row, index) => ({
+        const payload = keepFromFloor(rows, (row) => row.transactionDate).map((row, index) => ({
           id: `house-${year}-${doc.doc_id}-${index}`,
           politician_id: names.get(doc.filer_name.toLowerCase().trim()) ?? null,
           filer_name: doc.filer_name, chamber: 'house', ticker: row.ticker, asset_description: row.asset,

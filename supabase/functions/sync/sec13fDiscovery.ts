@@ -1,5 +1,6 @@
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { secFetcher } from '../_shared/secForm4Sync.ts';
+import { sec13fPeriodFloor } from '../_shared/yearFloor.ts';
 import { parseSec13fRecent } from './sec13fData.ts';
 import { describeSec13fError } from './sec13fErrors.ts';
 
@@ -20,8 +21,8 @@ export async function discoverSec13f(db: SupabaseClient, limit: number) {
     try {
       const input = await fetchSec(`https://data.sec.gov/submissions/CIK${investor.cik.padStart(10, '0')}.json`);
       if (!input) throw new Error('SEC submissions unavailable');
-      // User-requested storage retention: never rediscover deleted pre-2024 reports.
-      const recent = parseSec13fRecent(input, investor.cik).filter(row => row.period >= '2024-01-01');
+      // Retencja: bieżący rok + baseline Q4 poprzedniego roku (prune_investments_before_year); starszych nie odkrywamy ponownie.
+      const recent = parseSec13fRecent(input, investor.cik).filter(row => row.period >= sec13fPeriodFloor());
       const known = new Set<string>();
       for (let offset = 0; offset < recent.length; offset += 100) {
         const { data, error: readError } = await db.from('filings').select('accession_no')

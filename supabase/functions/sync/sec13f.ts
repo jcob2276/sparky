@@ -1,4 +1,5 @@
 import { createServiceClient } from '../_shared/supabase.ts';
+import { sec13fPeriodFloor } from '../_shared/yearFloor.ts';
 import { requireServiceRole } from '../_shared/auth.ts';
 import { secFetcher } from '../_shared/secForm4Sync.ts';
 import { parseSec13fSubmission } from './sec13fData.ts';
@@ -34,10 +35,10 @@ export async function runSec13fSync(req: Request) {
     || !requestedFiling.length || requestedFiling.length > 200)) throw new Error('SEC 13F filingId must be a nonempty identifier');
   if (requestedPeriod !== undefined && (typeof requestedPeriod !== 'string'
     || !/^20\d{2}-(03-31|06-30|09-30|12-31)$/.test(requestedPeriod)
-    || requestedPeriod < '2024-01-01'
-    || requestedPeriod > checkedAt.slice(0, 10))) throw new Error('SEC 13F period must be a past quarter end from 2024 onward');
+    || requestedPeriod < sec13fPeriodFloor()
+    || requestedPeriod > checkedAt.slice(0, 10))) throw new Error('SEC 13F period must be a past quarter end from the retention baseline (31 Dec of the previous year) onward');
   let pendingQuery = db.from('filings').select('id,investor_id,accession_no,period_of_report,filing_url,is_amendment')
-    .eq('positions_status', 'pending').gte('period_of_report', '2024-01-01')
+    .eq('positions_status', 'pending').gte('period_of_report', sec13fPeriodFloor())
     .order('period_of_report', { ascending: false }).order('filing_date', { ascending: false }).limit(limit);
   if (requestedPeriod) pendingQuery = pendingQuery.eq('period_of_report', requestedPeriod);
   if (requestedFiling) pendingQuery = pendingQuery.eq('id', requestedFiling);

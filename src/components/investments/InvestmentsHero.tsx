@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { Activity, Eye, GitMerge, Landmark, type LucideIcon } from 'lucide-react';
 import type { DashboardData } from '../../lib/investments/dashboardService';
 import { Pressable } from '../ui/ControlPrimitives';
+import { activityWindowLabel } from '../../lib/investments/dashboardThesis';
 
 type Segment = 'all' | 'politicians' | 'insiders' | 'funds' | 'shorts';
 
 const SEGMENTS: Array<{ key: Segment; label: string; caption: string }> = [
-  { key: 'all', label: 'Wszystko', caption: 'Zgłoszeń w 14 dni' },
+  { key: 'all', label: 'Wszystko', caption: 'Zgłoszeń w oknie' },
   { key: 'politicians', label: 'Kongres', caption: 'Ujawnień Kongresu' },
   { key: 'insiders', label: 'Insiderzy', caption: 'Zgłoszeń Form 4' },
   { key: 'funds', label: 'Fundusze 13F', caption: 'Raportów funduszy' },
@@ -36,7 +37,8 @@ export function InvestmentsHero({ activity, onNavigateTab }: InvestmentsHeroProp
   const [segment, setSegment] = useState<Segment>('all');
   const current = SEGMENTS.find((item) => item.key === segment) ?? SEGMENTS[0];
   const value = valueFor(activity, segment);
-  const peak = activity.peakDateLabel ? `szczyt ${activity.peakDateLabel}` : 'brak zdarzeń w oknie';
+  const windowLabel = activityWindowLabel(activity);
+  const peak = activity.peakDateLabel ? `${windowLabel} · szczyt ${activity.peakDateLabel}` : `${windowLabel} · brak zdarzeń w oknie`;
 
   return (
     <section className="space-y-6 text-center" aria-label={current.caption}>

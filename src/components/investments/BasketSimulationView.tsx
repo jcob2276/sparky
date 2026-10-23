@@ -2,6 +2,7 @@ import { FC, useState } from 'react';
 import { useDisclosureBasket } from '../../lib/investments/useDisclosureBasket';
 import type { BasketPoint } from '../../lib/investments/basketSimulation';
 import Button from '../ui/Button';
+import { currentYear } from '../../lib/investments/yearFloor';
 
 function formatPct(value: number): string {
   return `${value > 0 ? '+' : ''}${value.toFixed(2).replace('.', ',')}%`;
@@ -39,8 +40,9 @@ export const BasketSimulationView: FC = () => {
         {query.isPending && <p className="text-xs text-text-muted">Pobieranie raportów i cen całego koszyka…</p>}
         {query.error && <p role="alert" className="text-xs text-danger">Nie udało się obliczyć koszyka: {query.error.message}</p>}
         {data && !query.error && <>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs font-mono">
             <div>Wynik: {last ? formatPct(last.returnPct) : '—'}</div>
+            <div>SPY (to samo okno): {data.benchmarkReturnPct == null ? '—' : formatPct(data.benchmarkReturnPct)}</div>
             <div>Od: {baseline?.date ?? '—'}</div>
             <div>Do: {last?.date ?? '—'}</div>
             <div>Skład: {data.candidates.length} / {data.requestedSize}</div>
@@ -48,6 +50,12 @@ export const BasketSimulationView: FC = () => {
           <p className="text-xs text-text-muted">
             Stan raportów: {data.period ?? '—'}; porównanie: {data.previousPeriod ?? '—'}.
             {' '}Wszystkie wykorzystane ujawnienia były opublikowane do {data.knownOn ?? '—'}.
+          </p>
+          {last && data.benchmarkReturnPct != null && <p className="text-xs text-text-secondary">
+            Koszyk {last.returnPct >= data.benchmarkReturnPct ? 'wyprzedza' : 'zostaje w tyle za'} S&P 500 (SPY) o{' '}
+            {Math.abs(last.returnPct - data.benchmarkReturnPct).toFixed(2).replace('.', ',')} pp.</p>}
+          <p className="text-xs text-text-muted">
+            Dane cenowe od 1 stycznia {currentYear()}{data.fromYearStart ? ' — ujawnienia sprzed początku roku, więc wycena startuje w pierwszym dniu sesji roku.' : '.'}
           </p>
           {data.reason && <p role="status" className="text-xs text-text-secondary">{data.reason}
             {data.missingTickers.length > 0 && ` Brak danych: ${data.missingTickers.join(', ')}.`}

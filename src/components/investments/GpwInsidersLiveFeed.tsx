@@ -48,14 +48,11 @@ export const GpwInsidersLiveFeed: FC<Props> = ({ onSelectTicker }) => {
         <div>
           <div className="flex items-center gap-2">
             <h2 className="text-sm sm:text-base font-bold text-text-primary tracking-tight">
-              Dane na żywo: zawiadomienia MAR art. 19
+              Zawiadomienia MAR art. 19
             </h2>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-mono bg-success/15 text-success border border-success/30 font-bold">
-              ● Na żywo (Pro odblokowane)
-            </span>
           </div>
           <p className="text-2xs text-text-muted mt-0.5">
-            Bieżący strumień zawiadomień transakcji menedżerskich bezpośrednio z systemu ESPI GPW
+            Ostatnie 60 zawiadomień od 1 stycznia · źródło: ESPI/GPW (widok bez kwot)
           </p>
         </div>
 

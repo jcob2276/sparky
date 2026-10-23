@@ -4,6 +4,7 @@
  */
 
 import { orcaSelect } from './superinvestorsApi';
+import { clampToYearFloor, yearFloor } from './yearFloor';
 
 export interface InsiderSummaryStats {
   purchasesCount: number;
@@ -78,7 +79,7 @@ const number = (n: number | null | undefined): number | null => n != null && Num
 const money = (n: number | null): string => n == null ? '—' : `$${n.toLocaleString('pl-PL', { maximumFractionDigits: 2 })}`;
 const ownerKey = (r: RawPublicInsider) => r.filer_id || r.filer_name || r.id;
 export function buildInsidersPageData(rawRows: RawPublicInsider[], now = new Date()): InsidersPageData {
-  const cutoff = now.getTime() - 90 * 86400000;
+  const cutoff = Math.max(now.getTime() - 90 * 86400000, Date.parse(yearFloor(now.toISOString().slice(0, 10))));
   const rows = rawRows.filter(r => r.filing_date && Date.parse(r.filing_date) >= cutoff && Date.parse(r.filing_date) <= now.getTime());
   const feed: InsiderFeedItem[] = rows.slice(0, 100).map(r => {
     const code = r.transaction_code || '—';
@@ -142,7 +143,7 @@ export function buildInsidersPageData(rawRows: RawPublicInsider[], now = new Dat
   };
 }
 export async function fetchInsidersPageData(): Promise<InsidersPageData> {
-  const date = new Date(Date.now()-90*86400000).toISOString().slice(0,10);
+  const date = clampToYearFloor(new Date(Date.now()-90*86400000).toISOString().slice(0,10));
   const [rows, statuses] = await Promise.all([
     orcaSelect<RawPublicInsider>(`vw_sec_form4_public?filing_date=gte.${date}&order=filing_date.desc,id.desc`, { strict:true }),
     orcaSelect<{ queued_filings: number; failed_filings: number; latest_processed_filing: string | null; last_processed_at: string | null }>('vw_sec_form4_status?limit=1', { strict:true }),

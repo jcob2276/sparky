@@ -1,5 +1,6 @@
 import { FC } from 'react';
 import { DashboardData } from '../../lib/investments/dashboardService';
+import { activityWindowLabel, activityWindowNote } from '../../lib/investments/dashboardThesis';
 
 interface Props {
   activity: DashboardData['activity14d'];
@@ -13,7 +14,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
       {/* Header */}
       <div>
         <div className="flex items-start justify-between gap-3">
-          <h2 className="min-w-0 text-base font-semibold text-text-primary">Aktywność źródeł, 14 dni</h2>
+          <h2 className="min-w-0 text-base font-semibold text-text-primary">Aktywność źródeł, {activityWindowLabel(activity)}</h2>
           <span className="ui-num shrink-0 text-right text-xl font-semibold leading-tight text-text-primary">
             {activity.total.toLocaleString('pl-PL')}
             <span className="block text-xs font-medium text-text-muted">zgłoszeń</span>
@@ -22,6 +23,7 @@ export const DashboardActivityChart: FC<Props> = ({ activity }) => {
         <p className="text-xs text-text-secondary mt-0.5">
           Zgłoszenia w odczytanych danych · {activity.peakDateLabel ? `szczyt ${activity.peakDateLabel}` : "brak zdarzeń"}
         </p>
+        {activityWindowNote(activity) && <p className="mt-1 text-xs text-warning">{activityWindowNote(activity)}</p>}
       </div>
 
       {/* 14-day Stacked Bar Chart */}

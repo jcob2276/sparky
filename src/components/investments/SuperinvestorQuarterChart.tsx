@@ -25,7 +25,7 @@ export const SuperinvestorQuarterChart: FC<Props> = ({ quarters, quarterGrowthPc
           Wartość Portfela 13F
         </h3>
         <div className="flex items-center gap-1.5 text-2xs font-mono font-bold">
-          <span className="text-text-muted">{quarters.length} KWARTAŁÓW ·</span>
+          <span className="text-text-muted">RAPORTY OD 1 STYCZNIA ·</span>
           <span className="text-text-muted">KONIEC KWARTAŁU</span>
           <span className="text-text-secondary font-semibold">q/q: {quarterGrowthPct}</span>
         </div>
@@ -49,6 +49,7 @@ export const SuperinvestorQuarterChart: FC<Props> = ({ quarters, quarterGrowthPc
                   className={`w-full max-w-14 rounded-t-lg transition-all duration-300 ${
                     q.isLatest
                       ? 'bg-success/80 group-hover:bg-success shadow-xs'
+                      : q.isBaseline ? 'bg-surface-elevated border border-dashed border-border-custom opacity-70'
                       : 'bg-surface-elevated border border-border-custom/80 group-hover:border-primary/50'
                   }`}
                   style={{ height: `${heightPercent}%` }}
@@ -62,12 +63,15 @@ export const SuperinvestorQuarterChart: FC<Props> = ({ quarters, quarterGrowthPc
                 >
                   {q.quarterLabel}
                 </div>
+                {q.isBaseline && (
+                  <div className="text-2xs font-mono text-text-muted">baseline Q/Q</div>
+                )}
               </div>
             );
           })}
         </div>
       </div>
-      <p className="text-xs text-text-muted">Wartość odczytanych pozycji 13F obejmuje również opcje i PRN. Jej zmiana nie jest stopą zwrotu funduszu.</p>
+      <p className="text-xs text-text-muted">Wartość odczytanych pozycji 13F obejmuje również opcje i PRN. Jej zmiana nie jest stopą zwrotu funduszu. Źródło: SEC EDGAR 13F · raporty z bieżącego roku; kwartał z poprzedniego roku to wyłącznie baseline porównania Q/Q.</p>
     </div>
   );
 };

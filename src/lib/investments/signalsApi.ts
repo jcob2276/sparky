@@ -1,4 +1,6 @@
 import { getTodayWarsaw, shiftDateStr } from '../date';
+import { clampToYearFloor, yearFloor } from './yearFloor';
+import { baselinePeriod } from './superinvestorWindow';
 import { orcaSelect } from './superinvestorsApi';
 import { rankDisclosureSignals, type SignalMetrics, type SignalRow } from './signalsScore';
 import { fetchSignalInsiderEvidence } from './signalsInsiderEvidence';
@@ -69,7 +71,7 @@ const inflight = new Map<SignalWindow, Promise<SignalRow[]>>();
 
 function windowStart(window: SignalWindow): string {
   const days = window === '90d' ? -90 : -365;
-  return shiftDateStr(getTodayWarsaw(), days);
+  return clampToYearFloor(shiftDateStr(getTodayWarsaw(), days));
 }
 
 function isBuy(type: string): boolean {
@@ -230,10 +232,10 @@ export async function fetchSignalEvidence(ticker: string): Promise<SignalEvidenc
   const symbol = ticker.trim().toUpperCase();
   const [holdings, trades, insiderEvents] = await Promise.all([
     orcaSelect<HoldingRaw>(
-      `vw_sec13f_verified_changes?select=investor_id,shares_delta,value_now,change_type,period_of_report,previous_period,filing_url,previous_filing_url,source_urls&ticker=eq.${encodeURIComponent(symbol)}&change_type=neq.reported_unchanged&order=value_now.desc&limit=40`, { strict: true },
+      `vw_sec13f_verified_changes?select=investor_id,shares_delta,value_now,change_type,period_of_report,previous_period,filing_url,previous_filing_url,source_urls&ticker=eq.${encodeURIComponent(symbol)}&change_type=neq.reported_unchanged&period_of_report=gte.${baselinePeriod()}&order=value_now.desc&limit=40`, { strict: true },
     ),
     orcaSelect<TradeRaw>(
-      `stock_act_trades?select=external_id,filer_name,ticker,transaction_type,transaction_date,disclosure_date,source_url,amount_low,amount_high,politicians(display_name)&source_url=not.is.null&disclosure_date=not.is.null&ticker=eq.${encodeURIComponent(symbol)}&order=disclosure_date.desc&limit=40`, { strict: true },
+      `stock_act_trades?select=external_id,filer_name,ticker,transaction_type,transaction_date,disclosure_date,source_url,amount_low,amount_high,politicians(display_name)&source_url=not.is.null&disclosure_date=not.is.null&ticker=eq.${encodeURIComponent(symbol)}&disclosure_date=gte.${yearFloor()}&order=disclosure_date.desc&limit=40`, { strict: true },
     ),
     fetchSignalInsiderEvidence(symbol),
   ]);

@@ -14,6 +14,8 @@ import { CongressRankingCard } from './CongressRankingCard';
 import { PoliticianDetailView } from './PoliticianDetailView';
 import { CompanyDetailView } from './CompanyDetailView';
 import { HouseDisclosureDocuments } from './HouseDisclosureDocuments';
+import { yearFloor } from '../../lib/investments/yearFloor';
+import { formatDatePl } from '../../lib/investments/congressTradeFormat';
 
 interface Props {
   watchlist?: string[];
@@ -28,7 +30,7 @@ export const PoliticiansView: FC<Props> = ({
 }) => {
   const [chamber, setChamber] = useState<ChamberFilter>('all');
   const [party, setParty] = useState<PartyFilter>('all');
-  const [timeframe, setTimeframe] = useState<TimeframeFilter>('all');
+  const [timeframe, setTimeframe] = useState<TimeframeFilter>('ytd');
   const [searchPolitician, setSearchPolitician] = useState('');
   const [searchTicker, setSearchTicker] = useState('');
 
@@ -74,7 +76,7 @@ export const PoliticiansView: FC<Props> = ({
             Kongres · Transakcje
           </h2>
           <p className="text-2xs text-text-muted mt-0.5">
-            Fakt o danych, kto co ujawnił i kiedy, nie zalecenie.
+            Kto co ujawnił, w jakich widełkach i kiedy. Fakt o danych, nie zalecenie.
           </p>
         </div>
         <div className="text-2xs font-mono text-text-muted">
@@ -97,9 +99,11 @@ export const PoliticiansView: FC<Props> = ({
       />
 
       <p className="text-xs text-text-muted">
-        House PTR · {sourceStatus ? `ostatnia kontrola: ${new Date(sourceStatus.checked_at).toLocaleString('pl-PL')}` : 'brak potwierdzonej kontroli źródła'}
-        {sourceStatus?.latest_disclosure_date && ` · najnowsza data zgłoszenia: ${sourceStatus.latest_disclosure_date}`}
-        {sourceStatus?.status !== 'ok' && sourceStatus && ' · import wymaga sprawdzenia'}
+        Źródło: ujawnienia STOCK Act (House PTR, Senat) · dane od {formatDatePl(overview?.coverage.since ?? yearFloor())}
+        {overview?.coverage.latestDisclosureDate && ` do ${formatDatePl(overview.coverage.latestDisclosureDate)}`}
+        {sourceStatus && ` · ostatnia kontrola źródła: ${new Date(sourceStatus.checked_at).toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' })}`}
+        {!sourceStatus && ' · brak potwierdzonej kontroli źródła'}
+        {sourceStatus && sourceStatus.status !== 'ok' && ' · import wymaga sprawdzenia'}
       </p>
       {overview?.coverage.limited && <p className="text-xs text-warning">Załadowano {overview.coverage.fetchedRows} ostatnich rekordów. Zawęź okres, aby podsumowania obejmowały cały wybrany zakres.</p>}
       {chamber !== 'senate'
@@ -149,6 +153,7 @@ export const PoliticiansView: FC<Props> = ({
             <div className="min-w-0">
               <CongressRankingCard
                 rankings={overview.rankings}
+                since={overview.coverage.since}
                 onSelectPolitician={(p) => setSelectedPolitician(p)}
               />
             </div>

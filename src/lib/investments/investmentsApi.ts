@@ -61,3 +61,33 @@ export function detectClusterTickers(trades: InsiderTradeItem[]): Set<string> {
   }
   return clusterSet;
 }
+
+/** Najlepsza data zdarzenia: zgłoszenie, potem transakcja (YYYY-MM-DD) albo null. */
+export function tradeEventDate(trade: Pick<InsiderTradeItem, 'filing_date' | 'transaction_date'>): string | null {
+  return (trade.filing_date ?? trade.transaction_date)?.slice(0, 10) ?? null;
+}
+
+/**
+ * Retencja: baza trzyma tylko bieżący rok, więc rekordy sprzed `floor` (YYYY-MM-DD)
+ * nie wchodzą do widoków. Rekordy bez daty zostają (nie wiemy, że są stare).
+ */
+export function isWithinYearFloor(trade: Pick<InsiderTradeItem, 'filing_date' | 'transaction_date'>, floor: string): boolean {
+  const date = tradeEventDate(trade);
+  return date === null || date >= floor;
+}
+
+/** Najświeższa data zdarzenia w liście albo null — do paska świeżości źródeł. */
+export function latestTradeDate(trades: ReadonlyArray<Pick<InsiderTradeItem, 'filing_date' | 'transaction_date'>>): string | null {
+  let latest: string | null = null;
+  for (const trade of trades) {
+    const date = tradeEventDate(trade);
+    if (date && (latest === null || date > latest)) latest = date;
+  }
+  return latest;
+}
+
+/** YYYY-MM-DD -> DD.MM.RRRR (bez stref czasowych, czysty string). */
+export function formatIsoDatePl(iso: string): string {
+  const [y, m, d] = iso.slice(0, 10).split('-');
+  return `${d}.${m}.${y}`;
+}

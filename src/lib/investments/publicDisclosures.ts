@@ -1,4 +1,5 @@
 import { orcaSelect } from './superinvestorsApi';
+import { yearFloor } from './yearFloor';
 import type { RawPublicInsider } from './insidersService';
 import type { InsiderTradeItem } from './investmentsApi';
 
@@ -74,7 +75,7 @@ function mapStockAct(row: StockActRaw): InsiderTradeItem {
 
 export async function fetchRecentCongress(limit = 12): Promise<InsiderTradeItem[]> {
   const rows = await orcaSelect<StockActRaw>(
-    `stock_act_trades?select=${STOCK_ACT_SELECT}&order=disclosure_date.desc.nullslast&limit=${limit}`,
+    `stock_act_trades?select=${STOCK_ACT_SELECT}&disclosure_date=gte.${yearFloor()}&order=disclosure_date.desc.nullslast&limit=${limit}`,
   );
   return rows.map(mapStockAct);
 }
@@ -127,7 +128,7 @@ interface GpwRaw {
 
 export async function fetchGpwInsiderTrades(): Promise<InsiderTradeItem[]> {
   const rows = await orcaSelect<GpwRaw>(
-    'vw_gpw_insider_public?select=id,company,ticker,side,transaction_date,report_date,title&order=transaction_date.desc.nullslast',
+    `vw_gpw_insider_public?select=id,company,ticker,side,transaction_date,report_date,title&report_date=gte.${yearFloor()}&order=transaction_date.desc.nullslast`,
   );
   return rows.map((row) => ({
     id: String(row.id ?? `${row.ticker ?? 'gpw'}-${row.transaction_date ?? ''}`),

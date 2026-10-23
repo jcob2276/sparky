@@ -1,4 +1,5 @@
 import { FC, useState, useMemo } from 'react';
+import { clampToYearFloor } from '../../lib/investments/yearFloor';
 import Button from '../ui/Button';
 import { getTodayWarsaw, shiftDateStr } from '../../lib/date';
 import type { CompanyDetailData } from '../../lib/investments/companyDetailService';
@@ -113,7 +114,7 @@ export const CompanyPriceEventsChart: FC<Props> = ({ data }) => {
   const filteredPrices = useMemo(() => {
     if (!data.prices || data.prices.length === 0) return [];
     const days = timeframe === '3M' ? -90 : -365;
-    const cutoffStr = shiftDateStr(getTodayWarsaw(), days);
+    const cutoffStr = clampToYearFloor(shiftDateStr(getTodayWarsaw(), days));
     return data.prices.filter((p) => p.date >= cutoffStr && p.date <= getTodayWarsaw());
   }, [data.prices, timeframe]);
 
@@ -181,7 +182,7 @@ export const CompanyPriceEventsChart: FC<Props> = ({ data }) => {
               onClick={() => setTimeframe('12M')}
               className="text-2xs font-bold px-2 py-0.5 h-6 rounded-md"
             >
-              12M
+              Od 1 stycznia
             </Button>
           </div>
         </div>

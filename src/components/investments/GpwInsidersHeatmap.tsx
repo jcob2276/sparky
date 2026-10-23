@@ -1,114 +1,73 @@
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
+import type { GpwInsiderDayCell } from '../../lib/investments/gpwInsidersService';
+import { formatDotDate } from './gpwInsidersFormat';
 
 interface Props {
+  cells: GpwInsiderDayCell[];
+  floor: string;
   className?: string;
 }
 
-interface IntensityCell {
-  date: string;
-  dayOfWeek: number;
-  count: number;
+const MONTHS = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'];
+
+/** Poniedziałek = 0 (siatka tygodniowa zaczyna się od poniedziałku). */
+function weekdayIndex(iso: string): number {
+  return (new Date(`${iso}T00:00:00Z`).getUTCDay() + 6) % 7;
 }
 
-// Generate realistic 90-day distribution (roughly 13 weeks)
-function generate90DayCells(): IntensityCell[] {
-  const cells: IntensityCell[] = [];
-  const baseCounts = [
-    3, 5, 8, 12, 18, 22, 14, 9, 6, 15, 27, 34, 42, 19, 11,
-    8, 14, 25, 30, 21, 16, 12, 19, 28, 35, 22, 18, 14, 9,
-    7, 12, 19, 26, 31, 24, 17, 13, 21, 33, 40, 28, 19, 15,
-    10, 16, 23, 29, 38, 25, 18, 14, 22, 35, 48, 32, 21, 17,
-    11, 15, 24, 30, 44, 29, 20, 16, 25, 39, 52, 36, 24, 19,
-    14, 18, 27, 33, 49, 31, 22, 18, 28, 41, 58, 39, 27, 21,
-  ];
-
-  for (let i = 0; i < 90; i++) {
-    const d = new Date(2026, 5, 15); // June 15, 2026
-    d.setDate(d.getDate() + i);
-    const dayStr = `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')}`;
-    const count = baseCounts[i % baseCounts.length] ?? 5;
-    cells.push({
-      date: dayStr,
-      dayOfWeek: d.getDay(),
-      count,
-    });
-  }
-  return cells;
+function colorClass(count: number, max: number): string {
+  if (count <= 0) return 'bg-surface-3';
+  const ratio = count / Math.max(max, 1);
+  if (ratio > 0.75) return 'bg-primary';
+  if (ratio > 0.5) return 'bg-primary/80';
+  if (ratio > 0.25) return 'bg-primary/50';
+  return 'bg-primary/25';
 }
 
-export const GpwInsidersHeatmap: FC<Props> = ({ className = '' }) => {
-  const [cells] = useState<IntensityCell[]>(generate90DayCells);
-  const [hoveredCell, setHoveredCell] = useState<IntensityCell | null>(null);
-
-  const getColorClass = (count: number) => {
-    if (count >= 40) return 'bg-primary';
-    if (count >= 25) return 'bg-primary/80';
-    if (count >= 15) return 'bg-primary/50';
-    if (count >= 6) return 'bg-primary/25';
-    return 'bg-primary/10';
-  };
+export const GpwInsidersHeatmap: FC<Props> = ({ cells, floor, className = '' }) => {
+  const [hovered, setHovered] = useState<GpwInsiderDayCell | null>(null);
+  const max = useMemo(() => cells.reduce((m, c) => Math.max(m, c.count), 0), [cells]);
+  const lead = cells[0] ? weekdayIndex(cells[0].date) : 0;
+  const months = useMemo(
+    () => [...new Set(cells.map((c) => Number(c.date.slice(5, 7)) - 1))].map((m) => MONTHS[m]),
+    [cells],
+  );
 
   return (
-    <div className={`bg-surface border border-border-custom/70 rounded-2xl p-4 sm:p-5 shadow-2xs ${className}`}>
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div>
-          <h2 className="text-sm sm:text-base font-bold text-text-primary tracking-tight">
-            Natężenie zakupów insiderów, 90 dni
-          </h2>
-          <p className="text-2xs text-text-muted mt-0.5">
-            Dzienny rozkład transakcji osób zarządzających i rad nadzorczych na GPW
-          </p>
-        </div>
+    <section className={`bg-surface border border-border-custom/70 rounded-2xl p-4 sm:p-5 shadow-2xs ${className}`}>
+      <div className="mb-4">
+        <h2 className="text-sm sm:text-base font-bold text-text-primary tracking-tight">
+          Natężenie zawiadomień MAR od 1 stycznia {floor.slice(0, 4)}
+        </h2>
+        <p className="text-2xs text-text-muted mt-0.5">
+          Dzienna liczba transakcji menedżerskich na GPW (data transakcji) · kolor względem dnia szczytowego ({max})
+        </p>
+      </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-2xs font-mono text-text-muted">
-            KOLOR = LICZBA TRANSAKCJI
+      <div className="grid grid-flow-col grid-rows-7 gap-1 overflow-x-auto pb-2" role="img"
+        aria-label={`Mapa cieplna zawiadomień MAR, szczyt ${max} dziennie`}>
+        {Array.from({ length: lead }, (_, i) => <span key={`pad-${i}`} className="w-3 h-3 sm:w-3.5 sm:h-3.5" />)}
+        {cells.map((cell) => (
+          <span
+            key={cell.date}
+            title={`${formatDotDate(cell.date)}: ${cell.count}`}
+            onMouseEnter={() => setHovered(cell)}
+            onMouseLeave={() => setHovered(null)}
+            className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-2xs ${colorClass(cell.count, max)}`}
+          />
+        ))}
+      </div>
+
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-2xs font-mono text-text-muted border-t border-border-custom/40 pt-2">
+        {hovered ? (
+          <span className="text-text-primary font-semibold">
+            {formatDotDate(hovered.date)}: <span className="text-primary">{hovered.count}</span> zawiadomień
           </span>
-          <div className="flex items-center gap-1">
-            <span className="w-2.5 h-2.5 rounded-xs bg-primary/10" title="1-5" />
-            <span className="w-2.5 h-2.5 rounded-xs bg-primary/25" title="6-15" />
-            <span className="w-2.5 h-2.5 rounded-xs bg-primary/50" title="16-25" />
-            <span className="w-2.5 h-2.5 rounded-xs bg-primary/80" title="26-40" />
-            <span className="w-2.5 h-2.5 rounded-xs bg-primary" title="40+" />
-          </div>
-        </div>
+        ) : (
+          <span>Najedź na dzień, aby zobaczyć liczbę zgłoszeń</span>
+        )}
+        <span>{months.join(' · ')}</span>
       </div>
-
-      {/* Grid container */}
-      <div className="relative">
-        <div className="grid grid-flow-col grid-rows-7 gap-1 overflow-x-auto pb-2">
-          {cells.map((cell, idx) => (
-            <div
-              key={`${cell.date}-${idx}`}
-              onMouseEnter={() => setHoveredCell(cell)}
-              onMouseLeave={() => setHoveredCell(null)}
-              className={`w-3 h-3 sm:w-3.5 sm:h-3.5 rounded-2xs cursor-pointer transition-transform hover:scale-125 ${getColorClass(
-                cell.count
-              )}`}
-            />
-          ))}
-        </div>
-
-        {/* Hover detail bar */}
-        <div className="mt-2 flex items-center justify-between text-2xs font-mono text-text-muted border-t border-border-custom/40 pt-2">
-          <div>
-            {hoveredCell ? (
-              <span className="text-text-primary font-semibold">
-                {hoveredCell.date}: <span className="text-primary">{hoveredCell.count}</span> transakcji MAR art. 19
-              </span>
-            ) : (
-              <span>Najedź na dzień, aby zobaczyć wolumen zgłoszeń</span>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <span>Czerwiec 2026</span>
-            <span>Lipiec 2026</span>
-            <span>Sierpień 2026</span>
-            <span>Wrzesień 2026</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
   );
 };

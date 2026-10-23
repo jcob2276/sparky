@@ -45,6 +45,15 @@ it('keeps all long positions including unmapped CUSIPs and both comparison sourc
   expect(data?.holdings.find(row => row.cusip === '0')).toMatchObject({ sharesDelta: 10, weightPct: 1.25, changeType: 'increased' });
   expect(data?.holdings.find(row => row.cusip === '1')).toMatchObject({ tickerMapped: false, companyName: 'Actual issuer' });
 });
+it('limits fund reports to the current year plus a prior-year baseline', async () => {
+  const year = new Date().getFullYear();
+  await fetchSuperinvestorDetail('fund');
+  const paths = vi.mocked(orcaSelect).mock.calls.map(([path]) => path).filter(path => path.startsWith('vw_sec13f_fund_reports?'));
+  expect(paths.length).toBeGreaterThan(0);
+  paths.forEach(path => expect(path).toContain(`period_of_report=gte.${year - 1}-12-31`));
+  const data = await fetchSuperinvestorDetail('fund');
+  expect(data?.quarters.every(q => q.isBaseline === false)).toBe(true);
+});
 it('does not call every current position new when the preceding quarter is unavailable', async () => {
   historical = [reports[0], { ...reports[1], period_of_report: '2025-12-31' }];
   const data = await fetchSuperinvestorDetail('fund');

@@ -1,6 +1,7 @@
 import { FC, useState, useEffect } from 'react';
 import { getGpwSession, getUsaSession, MarketSession } from '../../lib/investments/marketStatus';
 import { Clock } from 'lucide-react';
+import { Pressable } from '../ui/ControlPrimitives';
 
 export const MarketStatusBadge: FC = () => {
   const [sessions, setSessions] = useState<{ gpw: MarketSession; usa: MarketSession }>(() => ({
@@ -45,9 +46,12 @@ export const MarketStatusBadge: FC = () => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div
-        className="flex min-h-11 items-center gap-1 sm:gap-2 px-2.5 rounded-full bg-surface-1 cursor-pointer select-none hover:border-primary/40 transition-colors shrink-0"
+      <Pressable
+        type="button"
+        className="flex min-h-11 items-center gap-1 sm:gap-2 px-2.5 rounded-full bg-surface-1 select-none hover:border-primary/40 transition-colors shrink-0"
         onClick={() => setIsOpen((prev) => !prev)}
+        aria-expanded={showPopover}
+        aria-label="Status sesji giełdowych GPW i USA"
         title="Kliknij, aby zobaczyć godziny sesji giełdowych"
       >
         <Clock size={12} className="text-text-muted hidden sm:inline" />
@@ -83,16 +87,16 @@ export const MarketStatusBadge: FC = () => {
             {sessions.usa.stateLabel}
           </span>
         </div>
-      </div>
+      </Pressable>
 
       {/* Dropdown Popover */}
       {showPopover && (
-        <div className="absolute right-0 top-full mt-2 w-72 p-3.5 rounded-2xl bg-surface border border-border-custom shadow-xl z-[var(--z-popover)] text-xs animate-fade-in space-y-3">
+        <div role="status" className="absolute right-0 top-full mt-2 w-72 p-3.5 rounded-2xl bg-surface border border-border-custom shadow-xl z-[var(--z-popover)] text-xs animate-fade-in space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-border-custom/50">
             <span className="font-bold text-text-primary font-mono text-xs flex items-center gap-1.5">
-              <span>🕒</span> Sesje giełdowe na żywo
+              <Clock size={12} aria-hidden="true" /> Sesje giełdowe na żywo
             </span>
-            <span className="text-2xs font-mono text-text-muted">Czas Polski (CET)</span>
+            <span className="text-2xs font-mono text-text-muted">Czas polski</span>
           </div>
 
           {/* GPW detail */}

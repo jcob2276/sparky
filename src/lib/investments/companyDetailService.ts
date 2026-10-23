@@ -5,6 +5,8 @@
  */
 
 import { orcaSelect } from './superinvestorsApi';
+import { clampToYearFloor, yearFloor } from './yearFloor';
+import { baselinePeriod } from './superinvestorWindow';
 import { getTodayWarsaw, shiftDateStr } from '../date';
 import { summarizeCompanyPrices, type CompanyPriceRow } from './companyPriceHistory';
 import { usQuoteSymbol } from './marketSymbol';
@@ -172,15 +174,15 @@ export async function fetchCompanyDetailData(
     await Promise.all([
       market === 'us' ? orcaSelect<RawConsensus>(`vw_consensus?select=company_name&ticker=eq.${encodeURIComponent(cleanTicker)}&limit=1`, { strict: true }) : Promise.resolve([]),
       orcaSelect<CompanyPriceRow>(
-        `prices_daily?ticker=eq.${encodeURIComponent(priceSymbol)}&date=gte.${shiftDateStr(today, -375)}&date=lte.${today}&order=date.asc&limit=400`,
+        `prices_daily?ticker=eq.${encodeURIComponent(priceSymbol)}&date=gte.${clampToYearFloor(shiftDateStr(today, -375), today)}&date=lte.${today}&order=date.asc&limit=400`,
         { strict: true },
       ),
       market === 'us' ? orcaSelect<RawStockAct>(
-        `stock_act_trades?ticker=eq.${cleanTicker}&source_url=not.is.null&disclosure_date=not.is.null&order=transaction_date.desc&limit=50`,
+        `stock_act_trades?ticker=eq.${cleanTicker}&source_url=not.is.null&disclosure_date=not.is.null&transaction_date=gte.${yearFloor(today)}&order=transaction_date.desc&limit=50`,
         { strict: true },
       ) : Promise.resolve([]),
       market === 'us' ? orcaSelect<RawInsider>(
-        `vw_sec_form4_public?ticker=eq.${cleanTicker}&is_derivative=eq.false&form_type=eq.4&order=transaction_date.desc&limit=50`,
+        `vw_sec_form4_public?ticker=eq.${cleanTicker}&is_derivative=eq.false&form_type=eq.4&transaction_date=gte.${yearFloor(today)}&order=transaction_date.desc&limit=50`,
         { strict: true },
       ) : Promise.resolve([]),
       market === 'us' ? orcaSelect<RawHolding>(
@@ -188,7 +190,7 @@ export async function fetchCompanyDetailData(
         { strict: true },
       ) : Promise.resolve([]),
       market === 'us' ? orcaSelect<RawHoldingChange>(
-        `vw_sec13f_verified_changes?ticker=eq.${encodeURIComponent(cleanTicker)}&order=value_now.desc&limit=200`,
+        `vw_sec13f_verified_changes?ticker=eq.${encodeURIComponent(cleanTicker)}&period_of_report=gte.${baselinePeriod(today)}&order=value_now.desc&limit=200`,
         { strict: true },
       ) : Promise.resolve([]),
       market === 'us' ? orcaSelect<{ id: string; display_name?: string; fund_name?: string }>(
@@ -196,7 +198,7 @@ export async function fetchCompanyDetailData(
         { strict: true },
       ) : Promise.resolve([]),
       market === 'us' ? orcaSelect<CompanyFundHistoryPoint>(
-        `vw_sec13f_company_history?ticker=eq.${encodeURIComponent(cleanTicker)}&order=period_of_report.desc&limit=40`,
+        `vw_sec13f_company_history?ticker=eq.${encodeURIComponent(cleanTicker)}&period_of_report=gte.${baselinePeriod(today)}&order=period_of_report.desc&limit=40`,
         { strict: true },
       ) : Promise.resolve([]),
       market === 'us' ? fetchCompanyListing(cleanTicker) : Promise.resolve({} as CompanyListing),

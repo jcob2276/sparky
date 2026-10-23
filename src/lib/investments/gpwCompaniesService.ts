@@ -1,5 +1,6 @@
 import { orcaSelect } from './superinvestorsApi';
 import { getTodayWarsaw, shiftDateStr } from '../date';
+import { clampToYearFloor, yearFloor } from './yearFloor';
 
 export interface GpwStockItem {
   ticker: string; name: string; isin: string; close: number | null;
@@ -22,7 +23,8 @@ const finite = (value: unknown): number | null => typeof value === 'number' && N
 
 export async function fetchGpwStocksList(): Promise<{ stocks: GpwStockItem[]; summary: GpwStocksSummary }> {
   const today = getTodayWarsaw();
-  const since = shiftDateStr(today, -90);
+  const since = clampToYearFloor(shiftDateStr(today, -90), today);
+  const floor = yearFloor(today);
   const [companies, shorts, baseline, trades, prices] = await Promise.all([
     orcaSelect<Company>('gpw_companies?select=isin,ticker,name&order=name.asc', { strict: true }),
     orcaSelect<Short>('vw_gpw_shorts_agg?select=ticker,total_pct&order=ticker.asc', { strict: true }),
@@ -52,7 +54,7 @@ export async function fetchGpwStocksList(): Promise<{ stocks: GpwStockItem[]; su
     const old = finite(baseMap.get(ticker)?.total_pct);
     const diff14dPp = shortPct != null && old != null ? Math.round((shortPct - old) * 100) / 100 : null;
     const buys90dCount = buys.get(ticker) ?? null;
-    const points = (price?.points ?? []).filter(point => point.date <= today && finite(point.price) != null && point.price > 0);
+    const points = (price?.points ?? []).filter(point => point.date >= floor && point.date <= today && finite(point.price) != null && point.price > 0);
     return [{ ticker, name: company.name || ticker, isin: company.isin || '',
       close: finite(price?.close), priceDate: price?.price_date ?? null,
       priceSourceUrl: price?.source_url ?? null, historyStart: price?.history_start ?? null,

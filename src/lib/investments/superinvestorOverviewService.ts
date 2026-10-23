@@ -1,4 +1,5 @@
 import { orcaSelect } from './superinvestorsApi';
+import { reportWindowFilter } from './superinvestorWindow';
 import { formatLongDateWarsaw } from '../date';
 import { formatUsdBillions, type SuperinvestorOverviewItem, type SuperinvestorsOverviewData } from './superinvestorTypes';
 
@@ -34,7 +35,7 @@ export async function fetchFundInvestor(id: string, reports: VerifiedFundReport[
 export async function fetchSuperinvestorsOverview(): Promise<SuperinvestorsOverviewData> {
   const [catalogue, reports] = await Promise.all([
     orcaSelect<RawInvestor>('investors?is_active=eq.true&order=display_name.asc', { strict: true }),
-    orcaSelect<VerifiedFundReport>('vw_sec13f_fund_reports?order=period_of_report.desc,investor_id.asc', { strict: true }),
+    orcaSelect<VerifiedFundReport>(`vw_sec13f_fund_reports?${reportWindowFilter()}&order=period_of_report.desc,investor_id.asc`, { strict: true }),
   ]);
   const investors = catalogue.map(inv => fundOverviewItem(inv, reports.filter(report => report.investor_id === inv.id)));
   return { investors, stats: {

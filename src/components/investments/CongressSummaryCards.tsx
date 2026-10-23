@@ -20,6 +20,8 @@ export const CongressSummaryCards: FC<Props> = ({
     return `${val.toLocaleString()} USD`;
   };
 
+  const totalTrades = data.partyActivity.democrats.tradesCount + data.partyActivity.republicans.tradesCount;
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3.5">
       {/* 1. Najczęściej kupowane */}
@@ -107,33 +109,29 @@ export const CongressSummaryCards: FC<Props> = ({
         </div>
       </div>
 
-      {/* 4. Średni zwrot 1Y po ujawnieniu */}
+      {/* 4. Aktywność wg partii (z ujawnień, bez zwrotu) */}
       <div className="bg-surface-elevated border border-border-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between space-y-3">
-        <div className="text-xs sm:text-sm font-bold text-text-primary tracking-tight">
-          Średni zwrot 1Y po ujawnieniu
+        <div className="text-2xs font-semibold text-text-primary">
+          Aktywność wg partii
         </div>
-        {data.partyReturns.democrats.pct == null || data.partyReturns.republicans.pct == null ? (
-          <p className="text-xs text-text-muted">Brak zweryfikowanych obliczeń zwrotu po ujawnieniu. Dane transakcji nie określają wyniku portfela.</p>
-        ) : <div className="space-y-2.5 my-auto">
-          {/* Demokraci */}
-          <div className="w-full h-9 rounded-xl bg-primary text-text-on-primary flex items-center justify-between px-3.5 shadow-2xs font-bold text-xs sm:text-sm">
-            <span>Demokraci</span>
-            <span className="font-mono">+{data.partyReturns.democrats.pct.toFixed(1).replace('.', ',')}%</span>
-          </div>
-
-          {/* Republikanie */}
-          <div className="flex">
-            <div
-              className="h-9 rounded-xl bg-danger text-text-on-primary flex items-center justify-between px-3.5 shadow-2xs font-bold text-xs sm:text-sm whitespace-nowrap"
-              style={{
-                width: `${Math.max(48, Math.min(100, (data.partyReturns.republicans.pct / data.partyReturns.democrats.pct) * 100))}%`,
-              }}
-            >
-              <span className="mr-2">Republikanie</span>
-              <span className="font-mono">+{data.partyReturns.republicans.pct.toFixed(1).replace('.', ',')}%</span>
+        <div className="space-y-2.5 my-auto">
+          {([
+            ['Demokraci', data.partyActivity.democrats, 'bg-primary'],
+            ['Republikanie', data.partyActivity.republicans, 'bg-danger'],
+          ] as const).map(([label, group, bar]) => (
+            <div key={label} className="space-y-1">
+              <div className="flex items-baseline justify-between text-xs">
+                <span className="font-semibold text-text-primary">{label}</span>
+                <span className="font-mono tabular-nums text-text-muted">{group.tradesCount} transakcji</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-surface-subtle overflow-hidden">
+                <div className={`h-full rounded-full ${bar}`} style={{ width: `${totalTrades ? Math.max(2, (group.tradesCount / totalTrades) * 100) : 0}%` }} />
+              </div>
+              <div className="text-2xs text-text-muted">szacunek {formatVol(group.volumeUsd)} (środek widełek)</div>
             </div>
-          </div>
-        </div>}
+          ))}
+        </div>
+        <p className="text-2xs text-text-muted">Liczba ujawnień, nie wynik inwestycyjny. Politycy bez przypisanej partii pominięci.</p>
       </div>
     </div>
   );

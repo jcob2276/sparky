@@ -1,4 +1,5 @@
 import { createServiceClient } from '../_shared/supabase.ts';
+import { keepFromFloor } from '../_shared/yearFloor.ts';
 import { requireServiceRole } from '../_shared/auth.ts';
 import { SenateSession } from './senateDisclosureClient.ts';
 import { parseSenateDisclosure,senateDocumentUrl,buildSenateTrades } from './senateDisclosureData.ts';
@@ -46,7 +47,7 @@ export async function runSenateSync(req: Request): Promise<unknown> {
     for(const queued of pending ?? []) {
       try {
         const doc=parseSenateDisclosure(await session.report(queued.source_url),queued.source_url);
-        const payload=buildSenateTrades(doc,names.get(doc.filerName.toLowerCase().trim()) ?? null);
+        const payload=keepFromFloor(buildSenateTrades(doc,names.get(doc.filerName.toLowerCase().trim()) ?? null),row=>row.transaction_date);
         const {data,error}=await db.rpc('replace_senate_disclosure',{p_document_id:doc.id,p_filer_name:doc.filerName,
           p_filing_date:doc.filingDate,p_trades:payload});
         if(error)throw new Error(`Zapis transakcji Senatu: ${error.message}`);

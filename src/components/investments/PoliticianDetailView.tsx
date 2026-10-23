@@ -1,6 +1,8 @@
 import { FC, useState, useEffect } from 'react';
 import Button from '../ui/Button';
-import { ChevronLeft, Star, AlertCircle, RefreshCw, TrendingUp } from 'lucide-react';
+import { ChevronLeft, Star, AlertCircle, RefreshCw } from 'lucide-react';
+import { PoliticianKpiCards, PoliticianDisclosureCard } from './PoliticianKpiCards';
+import { formatDatePl } from '../../lib/investments/congressTradeFormat';
 import { PoliticianAvatar } from './PoliticianAvatar';
 import { PoliticianPortfolioTable } from './PoliticianPortfolioTable';
 import { PoliticianHistoryTable } from './PoliticianHistoryTable';
@@ -16,103 +18,6 @@ interface Props {
   watchlist: string[];
   onToggleWatchlist: (name: string) => void;
 }
-
-const formatUsd = (val: number) => {
-  if (val >= 1e6) return `${(val / 1e6).toFixed(1).replace('.', ',')} mln USD`;
-  if (val >= 1e3) return `${(val / 1e3).toFixed(1).replace('.', ',')} tys USD`;
-  return `${val.toLocaleString()} USD`;
-};
-
-const PoliticianKpiCards: FC<{ detail: PoliticianDetail }> = ({ detail }) => {
-  const isDem = detail.party === 'D';
-  const kpis = [
-    {
-      label: 'PARTIA',
-      val: detail.partyLabel,
-      color: isDem ? 'text-primary' : 'text-danger',
-    },
-    {
-      label: 'WSZYSTKIE UJAWNIENIA',
-      val: `${detail.totalDisclosures}`,
-      color: 'text-text-primary',
-    },
-    {
-      label: 'KUPNA / SPRZEDAŻ',
-      val: `${detail.buysCount} / ${detail.sellsCount}`,
-      color: 'text-text-primary',
-    },
-    {
-      label: 'WOLUMEN ~',
-      val: formatUsd(detail.totalVolumeUsd),
-      color: 'text-text-primary',
-    },
-    {
-      label: 'WIDEŁKI ŁĄCZNIE',
-      val: `${formatUsd(detail.rangeLowUsd)} - ${formatUsd(detail.rangeHighUsd)}`,
-      color: 'text-text-primary',
-    },
-    {
-      label: 'OSTATNIA TRANSAKCJA',
-      val: detail.lastTradeDate || '—',
-      color: 'text-text-primary',
-    },
-  ];
-
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-      {kpis.map((kpi, i) => (
-        <div
-          key={i}
-          className="bg-surface-elevated border border-border-custom rounded-2xl p-4 shadow-sm flex flex-col justify-between"
-        >
-          <div className="text-2xs font-semibold text-text-muted">
-            {kpi.label}
-          </div>
-          <div className={`mt-2 font-mono font-semibold text-lg tabular-nums truncate ${kpi.color}`}>
-            {kpi.val}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const PoliticianPerformanceCard: FC<{ detail: PoliticianDetail }> = ({ detail }) => {
-  const perf = detail.performance;
-  return (
-    <div className="bg-surface-elevated border border-border-custom rounded-2xl p-5 shadow-sm space-y-4">
-      <div className="flex items-center gap-2">
-        <TrendingUp size={16} className="text-success" />
-        <h3 className="text-xs font-semibold text-text-primary">
-          Historyczny zwrot po ujawnieniu z porównaniem do S&amp;P 500
-        </h3>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-surface-subtle border border-border-custom/50 rounded-xl p-3.5 space-y-1">
-          <div className="text-2xs font-mono text-text-muted">Zwrot polityka (1Y)</div>
-          <div className="text-xl font-semibold font-mono text-success">
-            +{perf.politician1y.toFixed(1).replace('.', ',')}%
-          </div>
-        </div>
-        <div className="bg-surface-subtle border border-border-custom/50 rounded-xl p-3.5 space-y-1">
-          <div className="text-2xs font-mono text-text-muted">Benchmark S&amp;P 500 (1Y)</div>
-          <div className="text-xl font-semibold font-mono text-text-primary">
-            +{perf.sp5001y.toFixed(1).replace('.', ',')}%
-          </div>
-        </div>
-        <div className="bg-surface-subtle border border-border-custom/50 rounded-xl p-3.5 space-y-1">
-          <div className="text-2xs font-mono text-text-muted">Alfa (Przewaga nad rynkiem)</div>
-          <div className="text-xl font-semibold font-mono text-primary">
-            +{perf.alpha1y.toFixed(1).replace('.', ',')}%
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
 
 export const PoliticianDetailView: FC<Props> = ({
   politicianNameOrId,
@@ -218,7 +123,7 @@ export const PoliticianDetailView: FC<Props> = ({
                 {detail.partyLabel}
               </span>
               <span className="text-2xs font-mono text-text-muted">
-                {detail.chamberLabel} · {detail.state} · UJAWNIENIA STOCK ACT
+                {detail.chamberLabel}{detail.state && ` · ${detail.state}`} · UJAWNIENIA STOCK ACT OD {formatDatePl(detail.since)}
               </span>
             </div>
           </div>
@@ -238,8 +143,11 @@ export const PoliticianDetailView: FC<Props> = ({
       {/* 6 KPI Cards */}
       <PoliticianKpiCards detail={detail} />
 
-      {/* S&P 500 Alpha Comparison */}
-      <PoliticianPerformanceCard detail={detail} />
+      {/* Terminowość ujawnień */}
+      <PoliticianDisclosureCard detail={detail} />
+      {detail.totalDisclosures === 0 && (
+        <p className="text-xs text-text-muted">Brak ujawnień tego polityka od {formatDatePl(detail.since)}. Dane obejmują wyłącznie bieżący rok.</p>
+      )}
 
       {/* Portfolio Breakdown */}
       <PoliticianPortfolioTable portfolio={detail.portfolio} onSelectStock={onSelectStock} />

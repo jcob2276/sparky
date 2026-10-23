@@ -3,6 +3,9 @@ import { orcaSelect } from './superinvestorsApi';
 import { usQuoteSymbol } from './marketSymbol';
 import { calculateDisclosureBasket, type BasketPrice } from './basketSimulation';
 import type { ListingStatus } from './companyListing';
+import { yearFloor } from './yearFloor';
+
+const BASKET_BENCHMARK = 'SPY';
 
 interface BasketCandidate {
   ticker: string; company_name: string; net_changes: number; total_value: number;
@@ -48,20 +51,33 @@ export async function fetchDisclosureBasket(size: 5 | 10 | 20 = 10) {
   }
   const knownOn = [...usedReports.values()].map(r => r.filing_date).sort().at(-1) ?? null;
   const quoteSymbols = candidates.map(c => usQuoteSymbol(c.ticker));
+  // Wycena startuje po ostatnim ujawnieniu, ale nigdy przed 1 stycznia (baza trzyma tylko bieżący rok).
+  const dayBeforeFloor = shiftDateStr(yearFloor(today), -1);
+  const anchor = knownOn && knownOn > dayBeforeFloor ? knownOn : dayBeforeFloor;
+  const fromYearStart = !!knownOn && anchor !== knownOn;
   const [prices, listings] = knownOn ? await Promise.all([
-    orcaSelect<BasketPrice>(`prices_daily?select=ticker,date,close_adj,currency,source_url&ticker=in.(${encodeURIComponent(quoteSymbols.join(','))})&date=gt.${knownOn}&date=lt.${today}&order=date.asc,ticker.asc`, { strict: true }),
+    orcaSelect<BasketPrice>(`prices_daily?select=ticker,date,close_adj,currency,source_url&ticker=in.(${encodeURIComponent([...quoteSymbols, BASKET_BENCHMARK].join(','))})&date=gt.${anchor}&date=lt.${today}&order=date.asc,ticker.asc`, { strict: true }),
     orcaSelect<{ ticker: string; listing_status: ListingStatus }>(
       `companies?select=ticker,listing_status&market=eq.us&ticker=in.(${encodeURIComponent(symbols.join(','))})`, { strict: true }),
   ]) : [[], []];
   if (prices.length >= 20_000) throw new Error('Przekroczono limit danych cenowych koszyka.');
   const names = new Map(candidates.map(c => [usQuoteSymbol(c.ticker), c.ticker]));
-  const calculation = calculateDisclosureBasket(symbols, knownOn ?? today,
-    prices.map(p => ({ ...p, ticker: names.get(p.ticker) ?? p.ticker })), shiftDateStr(today, -1));
+  const calculation = calculateDisclosureBasket(symbols, anchor,
+    prices.filter(p => p.ticker !== BASKET_BENCHMARK).map(p => ({ ...p, ticker: names.get(p.ticker) ?? p.ticker })), shiftDateStr(today, -1));
+  const benchmarkReturnPct = benchmarkReturn(prices, calculation.points[0]?.date, calculation.points.at(-1)?.date);
   return {
-    ...calculation, candidates, knownOn, requestedSize: size, today,
+    ...calculation, candidates, knownOn, anchor, fromYearStart, benchmarkReturnPct, requestedSize: size, today,
     period: candidates[0]?.period_of_report ?? null, previousPeriod: candidates[0]?.previous_period ?? null,
     reportSources: [...usedReports.values()],
     listingStatuses: Object.fromEntries(listings.map(l => [l.ticker, l.listing_status])),
   };
 }
 export type DisclosureBasket = Awaited<ReturnType<typeof fetchDisclosureBasket>>;
+
+/** Zwrot SPY (close_adj) w dokładnie tym samym oknie co koszyk; null, gdy brakuje któregokolwiek końca. */
+function benchmarkReturn(prices: BasketPrice[], from?: string, to?: string): number | null {
+  if (!from || !to) return null;
+  const at = (date: string) => Number(prices.find(p => p.ticker === BASKET_BENCHMARK && p.date === date && p.currency === 'USD')?.close_adj);
+  const a = at(from), b = at(to);
+  return Number.isFinite(a) && Number.isFinite(b) && a > 0 && b > 0 ? (b / a - 1) * 100 : null;
+}

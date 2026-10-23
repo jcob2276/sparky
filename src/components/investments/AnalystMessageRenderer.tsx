@@ -1,138 +1,12 @@
 import React, { FC, useMemo } from 'react';
 import { AnalystTable } from './AnalystTable';
-import { AnalystTradeCard, type TradeItemData } from './AnalystTradeCard';
+import { AnalystTradeCard } from './AnalystTradeCard';
+import { AnalystChart } from './AnalystChart';
+import { parseBlocks } from './analystParse';
 import { Landmark, BarChart3, Sparkles, ShieldCheck, ShieldAlert, ArrowRight, ExternalLink } from 'lucide-react';
 
 interface Props {
   content: string;
-}
-
-type ParsedBlock =
-  | { type: 'table'; headers: string[]; rows: string[][] }
-  | { type: 'trade'; data: TradeItemData }
-  | { type: 'heading'; level: number; text: string }
-  | { type: 'disclaimer'; text: string }
-  | { type: 'text'; text: string };
-
-function parseTableBlock(lines: string[]): { headers: string[]; rows: string[][] } | null {
-  if (lines.length < 2) return null;
-  const headerLine = lines[0];
-  const headers = headerLine.split('|').map((s) => s.trim()).filter(Boolean);
-
-  const rows: string[][] = [];
-  for (let i = 2; i < lines.length; i++) {
-    const rowLine = lines[i];
-    const cells = rowLine.split('|').map((s) => s.trim());
-    if (cells.length >= 2) {
-      const cleanCells = cells.slice(1, -1);
-      if (cleanCells.length > 0) rows.push(cleanCells);
-    }
-  }
-  return { headers, rows };
-}
-
-function parseBlocks(raw: string): ParsedBlock[] {
-  const lines = raw.split('\n');
-  const blocks: ParsedBlock[] = [];
-  let tableBuffer: string[] = [];
-  let currentTrade: TradeItemData | null = null;
-
-  const flushTable = () => {
-    if (tableBuffer.length > 0) {
-      const table = parseTableBlock(tableBuffer);
-      if (table) blocks.push({ type: 'table', headers: table.headers, rows: table.rows });
-      tableBuffer = [];
-    }
-  };
-
-  const flushTrade = () => {
-    if (currentTrade) {
-      blocks.push({ type: 'trade', data: currentTrade });
-      currentTrade = null;
-    }
-  };
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmed = line.trim();
-
-    // Table line
-    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
-      flushTrade();
-      tableBuffer.push(trimmed);
-      continue;
-    } else {
-      flushTable();
-    }
-
-    // Trade header: e.g. * **BUY: BE** or * **SELL: AAPL** or * **BUY**: **INTC**
-    const tradeMatch = trimmed.match(/^[*•-]\s+\*\*(BUY|SELL):?\s*([^(*]+)?\*\*(?:\s*\(([^)]+)\))?/i);
-    if (tradeMatch) {
-      flushTrade();
-      const action = tradeMatch[1].toUpperCase() as 'BUY' | 'SELL';
-      const ticker = tradeMatch[2]?.replace(/[:*\s]/g, '').trim() || '—';
-      const desc = tradeMatch[3]?.trim() || '';
-      currentTrade = {
-        action,
-        ticker,
-        desc,
-        amount: '',
-        txDate: '',
-        filingDate: '',
-      };
-      continue;
-    }
-
-    // Inside trade item
-    if (currentTrade) {
-      const kwotaMatch = trimmed.match(/Kwota:\s*\*?\*?([^*]+)\*?\*?/i);
-      const txMatch = trimmed.match(/(?:Data transakcji|Transakcja):\s*\*?\*?([^*]+)\*?\*?/i);
-      const filMatch = trimmed.match(/(?:Ujawnienie|Zgłoszenie):\s*\*?\*?([^*]+)\*?\*?/i);
-
-      if (kwotaMatch) { currentTrade.amount = kwotaMatch[1].trim(); continue; }
-      if (txMatch) { currentTrade.txDate = txMatch[1].trim(); continue; }
-      if (filMatch) { currentTrade.filingDate = filMatch[1].trim(); continue; }
-
-      if (trimmed === '' || trimmed.startsWith('*') || trimmed.startsWith('#')) {
-        flushTrade();
-      }
-    }
-
-    // Disclaimer
-    if (trimmed.includes('Analizy mają charakter informacyjny') || trimmed.includes('rekomendacji inwestycyjnej')) {
-      flushTrade();
-      blocks.push({
-        type: 'disclaimer',
-        text: trimmed.replace(/[*_#-]/g, '').trim(),
-      });
-      continue;
-    }
-
-    // Headings
-    if (trimmed.startsWith('### ') || trimmed.startsWith('## ') || trimmed.startsWith('# ')) {
-      flushTrade();
-      const level = trimmed.indexOf(' ');
-      blocks.push({
-        type: 'heading',
-        level,
-        text: trimmed.slice(level + 1).replace(/\*\*/g, '').trim(),
-      });
-      continue;
-    }
-
-    // Empty or separator line
-    if (trimmed === '' || trimmed === '---' || trimmed === '***') {
-      continue;
-    }
-
-    // Regular line
-    blocks.push({ type: 'text', text: trimmed });
-  }
-
-  flushTable();
-  flushTrade();
-
-  return blocks;
 }
 
 function renderFormattedLine(text: string): React.ReactNode {
@@ -217,6 +91,18 @@ export const AnalystMessageRenderer: FC<Props> = ({ content }) => {
 
         if (block.type === 'table') {
           return <AnalystTable key={idx} headers={block.headers} rows={block.rows} />;
+        }
+
+        if (block.type === 'chart') {
+          return <AnalystChart key={idx} spec={block.chart} />;
+        }
+
+        if (block.type === 'source') {
+          return (
+            <p key={idx} className="text-2xs font-mono text-text-muted">
+              {block.text}
+            </p>
+          );
         }
 
         if (block.type === 'trade') {

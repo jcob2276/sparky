@@ -8,6 +8,7 @@ import { DashboardActivityChart } from './DashboardActivityChart';
 import { DashboardDisclosureStream } from './DashboardDisclosureStream';
 import { DashboardBottomCards } from './DashboardBottomCards';
 import { DashboardHeader, DashboardSourceStatus } from './DashboardSourceStatus';
+import { DashboardThesis } from './DashboardThesis';
 import { InvestmentsHero } from './InvestmentsHero';
 import { InvestmentsSkeleton } from './InvestmentsSkeleton';
 interface Props { onNavigateTab: (tab: string) => void }
@@ -22,6 +23,7 @@ export const OrcaDashboardView: FC<Props> = ({ onNavigateTab }) => {
     <DashboardHeader />
     {query.isPending && <InvestmentsSkeleton label="Pobieranie danych źródłowych" />}
     {query.error && <p role="alert" className="text-danger">Nie udało się odczytać pulpitu: {query.error.message}</p>}
+    {query.data && <DashboardThesis data={query.data} onNavigateTab={onNavigateTab} />}
     {query.data && <InvestmentsHero activity={query.data.activity14d} onNavigateTab={onNavigateTab} />}
     {query.data && <DashboardContent data={query.data} watchlist={watchlist} onNavigateTab={onNavigateTab} />}
     {!builderDismissed && watchlist.length < 3 && <DashboardWatchlistBuilder watchlist={watchlist} onToggle={handleToggleWatchlist} onDismiss={() => setBuilderDismissed(true)} />}

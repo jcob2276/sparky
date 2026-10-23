@@ -1,9 +1,12 @@
 /**
- * politicianDetailService.ts — Pobieranie pełnego profilu wybranego polityka,
- * historii transakcji, szacowanego portfela oraz wskaźników alfy vs S&P 500.
+ * politicianDetailService.ts — profil polityka wyłącznie z ujawnień STOCK Act z bieżącego roku
+ * (od 1 stycznia, Europe/Warsaw): transakcje, widełki kwot, hipotetyczny portfel i opóźnienie zgłoszeń.
+ * Bez alfy: baza nie ma cen dla większości tickerów z ujawnień, więc nie zgadujemy wyniku.
  */
 
 import { orcaSelect } from './superinvestorsApi';
+import { yearFloor } from './yearFloor';
+import { classifyTradeType, daysBetween, formatAmountRange, median, STOCK_ACT_DEADLINE_DAYS } from './congressTradeFormat';
 
 export interface PoliticianDetail {
   id: string;
@@ -14,6 +17,8 @@ export interface PoliticianDetail {
   partyLabel: string;
   state: string;
   bioguideId?: string | null;
+  /** Początek okna danych (YYYY-MM-DD) — 1 stycznia bieżącego roku. */
+  since: string;
   totalDisclosures: number;
   buysCount: number;
   sellsCount: number;
@@ -21,6 +26,9 @@ export interface PoliticianDetail {
   rangeLowUsd: number;
   rangeHighUsd: number;
   lastTradeDate: string;
+  lastDisclosureDate: string;
+  medianDelayDays: number | null;
+  lateCount: number;
   transactions: Array<{
     id: string;
     ticker: string;
@@ -30,7 +38,8 @@ export interface PoliticianDetail {
     amountMid: number;
     transactionDate: string;
     disclosureDate: string;
-    delayDays: number;
+    delayDays: number | null;
+    sourceUrl: string | null;
   }>;
   portfolio: Array<{
     ticker: string;
@@ -39,16 +48,10 @@ export interface PoliticianDetail {
     tradesCount: number;
     weightPct: number;
   }>;
-  performance: {
-    alpha1y: number;
-    politician1y: number;
-    sp5001y: number;
-  };
 }
 
 interface RawStockAct {
   id: string;
-  politician_id?: string;
   ticker?: string;
   asset_description?: string;
   transaction_date?: string;
@@ -56,7 +59,8 @@ interface RawStockAct {
   transaction_type?: string;
   amount_low?: number;
   amount_high?: number;
-  external_id?: string;
+  filer_name?: string;
+  source_url?: string;
 }
 
 interface RawPolitician {
@@ -68,133 +72,80 @@ interface RawPolitician {
   bioguide_id?: string;
 }
 
-function parseDays(from?: string, to?: string): number {
-  if (!from || !to) return 0;
-  const d1 = new Date(from).getTime();
-  const d2 = new Date(to).getTime();
-  if (isNaN(d1) || isNaN(d2)) return 0;
-  return Math.max(0, Math.round((d2 - d1) / (1000 * 60 * 60 * 24)));
-}
+const DETAIL_SELECT = 'id,ticker,asset_description,transaction_date,disclosure_date,transaction_type,amount_low,amount_high,filer_name,source_url';
 
-function formatRange(low?: number, high?: number): string {
-  const l = low || 0;
-  const h = high || 0;
-  const fmt = (val: number) => {
-    if (val >= 1e6) return `${(val / 1e6).toFixed(1).replace('.', ',')} mln USD`;
-    if (val >= 1e3) return `${(val / 1e3).toFixed(1).replace('.', ',')} tys USD`;
-    return `${val} USD`;
-  };
-  if (l > 0 && h > 0) return `${fmt(l)} - ${fmt(h)}`;
-  if (h > 0) return fmt(h);
-  if (l > 0) return fmt(l);
-  return '—';
+function partyLabel(party: string): string {
+  return party === 'D' ? 'Demokrata' : party === 'R' ? 'Republikanin' : 'Brak danych o partii';
 }
 
 export async function fetchPoliticianDetail(nameOrId: string): Promise<PoliticianDetail> {
   const clean = nameOrId.trim();
+  const safe = clean.replace(/[%_,()*"\\]/g, ' ').trim();
+  const since = yearFloor();
   const polRows = await orcaSelect<RawPolitician>(
-    `politicians?or=(id.eq.${encodeURIComponent(clean)},display_name.ilike.*${encodeURIComponent(clean)}*)&limit=1`
-  ).catch(() => []);
-
+    `politicians?select=id,display_name,chamber,party,state,bioguide_id&or=(id.eq.${encodeURIComponent(safe)},display_name.ilike.*${encodeURIComponent(safe)}*)&limit=1`,
+    { strict: true },
+  );
   const pol = polRows[0];
-  const polId = pol?.id;
-  const name = pol?.display_name || clean;
-  const chamber = pol?.chamber || 'house';
-  const party = pol?.party || 'D';
-  const state = pol?.state || 'CA';
-  const bioguideId = pol?.bioguide_id;
+  const owner = pol?.id && /^[a-z0-9_-]+$/i.test(pol.id)
+    ? `politician_id=eq.${pol.id}`
+    : `filer_name=ilike.*${encodeURIComponent(safe)}*`;
+  const tradeRows = await orcaSelect<RawStockAct>(
+    `stock_act_trades?select=${DETAIL_SELECT}&${owner}&disclosure_date=gte.${since}&order=transaction_date.desc.nullslast,id.asc&limit=600`,
+    { strict: true },
+  );
 
-  const query = polId
-    ? `stock_act_trades?politician_id=eq.${polId}&order=transaction_date.desc.nullslast&limit=600`
-    : `stock_act_trades?order=transaction_date.desc.nullslast&limit=600`;
-
-  const tradeRows = await orcaSelect<RawStockAct>(query).catch(() => []);
-
-  let buys = 0;
-  let sells = 0;
-  let lowSum = 0;
-  let highSum = 0;
-  let lastDate = '';
-
-  const holdingsMap = new Map<string, { companyName: string; value: number; count: number }>();
+  let buys = 0; let sells = 0; let lowSum = 0; let highSum = 0; let lastTrade = ''; let lastDisclosure = '';
+  const delays: number[] = [];
+  const holdings = new Map<string, { companyName: string; value: number; count: number }>();
 
   const transactions = tradeRows.map((t) => {
-    const isBuy = (t.transaction_type || '').toLowerCase().includes('buy') || (t.transaction_type || '').toLowerCase().includes('purchase');
-    if (isBuy) buys += 1;
-    else sells += 1;
-
+    const kind = classifyTradeType(t.transaction_type);
+    const isBuy = kind === 'buy';
+    if (isBuy) buys += 1; else if (kind === 'sell') sells += 1;
     const low = t.amount_low || 0;
     const high = t.amount_high || low;
     const mid = (low + high) / 2;
-
-    lowSum += low;
-    highSum += high;
-
-    const tDate = t.transaction_date || t.disclosure_date || '';
-    if (!lastDate || tDate > lastDate) lastDate = tDate;
+    lowSum += low; highSum += high;
+    if (t.transaction_date && t.transaction_date > lastTrade) lastTrade = t.transaction_date;
+    if (t.disclosure_date && t.disclosure_date > lastDisclosure) lastDisclosure = t.disclosure_date;
+    const delay = daysBetween(t.transaction_date, t.disclosure_date);
+    if (delay != null) delays.push(delay);
 
     const ticker = (t.ticker || '').toUpperCase();
-    if (ticker && ticker !== '—') {
-      const cur = holdingsMap.get(ticker) || {
-        companyName: t.asset_description || ticker,
-        value: 0,
-        count: 0,
-      };
-      if (isBuy) cur.value += mid;
-      else cur.value = Math.max(0, cur.value - mid);
+    if (ticker && ticker !== '—' && (isBuy || kind === 'sell')) {
+      const cur = holdings.get(ticker) || { companyName: t.asset_description || ticker, value: 0, count: 0 };
+      cur.value = isBuy ? cur.value + mid : Math.max(0, cur.value - mid);
       cur.count += 1;
-      holdingsMap.set(ticker, cur);
+      holdings.set(ticker, cur);
     }
-
     return {
-      id: t.id,
-      ticker: ticker || '—',
-      companyName: t.asset_description || ticker || 'Spółka',
-      type: isBuy ? ('buy' as const) : ('sell' as const),
-      amountLabel: formatRange(low, high),
-      amountMid: mid,
-      transactionDate: t.transaction_date || '—',
-      disclosureDate: t.disclosure_date || '—',
-      delayDays: parseDays(t.transaction_date, t.disclosure_date),
+      id: t.id, ticker: ticker || '—', companyName: t.asset_description || ticker || 'Nieopisany instrument',
+      type: isBuy ? ('buy' as const) : ('sell' as const), amountLabel: formatAmountRange(low, high), amountMid: mid,
+      transactionDate: t.transaction_date || '', disclosureDate: t.disclosure_date || '', delayDays: delay,
+      sourceUrl: t.source_url?.startsWith('https://') ? t.source_url : null,
     };
   });
 
-  const totalVol = (lowSum + highSum) / 2 || 91400000;
-  const portfolioTotal = Array.from(holdingsMap.values()).reduce((sum, h) => sum + h.value, 0) || totalVol;
-
-  const portfolio = Array.from(holdingsMap.entries())
+  const portfolioTotal = Array.from(holdings.values()).reduce((sum, h) => sum + h.value, 0);
+  const portfolio = Array.from(holdings.entries())
     .filter(([, h]) => h.value > 0)
-    .map(([t, h]) => ({
-      ticker: t,
-      companyName: h.companyName,
-      estimatedValueUsd: h.value,
-      tradesCount: h.count,
-      weightPct: Number(((h.value / portfolioTotal) * 100).toFixed(1)),
+    .map(([ticker, h]) => ({
+      ticker, companyName: h.companyName, estimatedValueUsd: h.value, tradesCount: h.count,
+      weightPct: portfolioTotal > 0 ? Number(((h.value / portfolioTotal) * 100).toFixed(1)) : 0,
     }))
     .sort((a, b) => b.estimatedValueUsd - a.estimatedValueUsd);
 
+  const chamber = pol?.chamber || '';
+  const party = pol?.party || '';
   return {
-    id: polId || 'pol-id',
-    name,
-    chamber,
-    chamberLabel: chamber === 'senate' ? 'SENAT' : 'IZBA REPREZENTANTÓW',
-    party,
-    partyLabel: party === 'D' ? 'Demokrata' : 'Republikanin',
-    state,
-    bioguideId,
-    totalDisclosures: tradeRows.length || 470,
-    buysCount: buys || 282,
-    sellsCount: sells || 188,
-    totalVolumeUsd: totalVol,
-    rangeLowUsd: lowSum || 58900000,
-    rangeHighUsd: highSum || 123900000,
-    lastTradeDate: lastDate || '31.08.2026',
-    transactions,
-    portfolio,
-    performance: {
-      alpha1y: 18.2,
-      politician1y: 38.6,
-      sp5001y: 20.4,
-    },
+    id: pol?.id || clean, name: pol?.display_name || tradeRows[0]?.filer_name || clean, chamber,
+    chamberLabel: chamber === 'senate' ? 'SENAT' : chamber === 'house' ? 'IZBA REPREZENTANTÓW' : 'KONGRES',
+    party, partyLabel: partyLabel(party), state: pol?.state || '', bioguideId: pol?.bioguide_id, since,
+    totalDisclosures: tradeRows.length, buysCount: buys, sellsCount: sells,
+    totalVolumeUsd: (lowSum + highSum) / 2, rangeLowUsd: lowSum, rangeHighUsd: highSum,
+    lastTradeDate: lastTrade, lastDisclosureDate: lastDisclosure,
+    medianDelayDays: median(delays), lateCount: delays.filter((d) => d > STOCK_ACT_DEADLINE_DAYS).length,
+    transactions, portfolio,
   };
 }

@@ -3,6 +3,7 @@ import Button from '../ui/Button';
 import { CompanyLogo } from './CompanyLogo';
 import { PoliticianAvatar } from './PoliticianAvatar';
 import type { CongressOverview } from '../../lib/investments/congressService';
+import { formatDatePl, STOCK_ACT_DEADLINE_DAYS } from '../../lib/investments/congressTradeFormat';
 
 interface Props {
   stream: CongressOverview['stream'];
@@ -26,7 +27,7 @@ export const CongressStreamTable: FC<Props> = ({
             Strumień ujawnień ({stream.length})
           </h3>
           <p className="text-2xs text-text-muted mt-0.5">
-            Ostatnie zgłoszenia transakcji polityków USA w ramach STOCK Act
+            Najnowsze zgłoszenia polityków USA (STOCK Act): widełki kwot i daty wprost z ujawnień. Czerwone opóźnienie = ponad 45 dni.
           </p>
         </div>
       </div>
@@ -37,19 +38,21 @@ export const CongressStreamTable: FC<Props> = ({
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[840px] text-left text-xs">
+          <table className="w-full min-w-[920px] text-left text-xs">
             <thead className="bg-surface-subtle text-2xs font-semibold text-text-muted border-b border-border-custom/40">
               <tr>
                 <th className="py-2.5 px-4">Polityk</th>
                 <th className="py-2.5 px-4">Ticker</th>
                 <th className="py-2.5 px-4 text-center">Typ</th>
-                <th className="py-2.5 px-4 text-right">Kwota</th>
+                <th className="py-2.5 px-4 text-right">Widełki kwoty</th>
+                <th className="py-2.5 px-4 text-right">Transakcja</th>
+                <th className="py-2.5 px-4 text-right">Ujawnienie</th>
                 <th className="py-2.5 px-4 text-right">Opóźnienie</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border-custom/30 font-mono text-2xs">
               {shown.map((trade) => {
-                const isLate = trade.delayDays != null && trade.delayDays >= 30;
+                const isLate = trade.delayDays != null && trade.delayDays > STOCK_ACT_DEADLINE_DAYS;
 
                 return (
                   <tr
@@ -119,17 +122,17 @@ export const CongressStreamTable: FC<Props> = ({
                       {trade.amountLabel}
                     </td>
 
-                    {/* Opóźnienie / Status Kopiowania */}
+                    <td className="py-3 px-4 text-right tabular-nums whitespace-nowrap text-text-primary">{formatDatePl(trade.transactionDate)}</td>
+                    <td className="py-3 px-4 text-right tabular-nums whitespace-nowrap text-text-primary">
+                      <div>{formatDatePl(trade.disclosureDate)}</div>
+                      {trade.sourceUrl && <a href={trade.sourceUrl} target="_blank" rel="noopener noreferrer"
+                        className="text-primary underline text-2xs" onClick={(event) => event.stopPropagation()}>Dokument źródłowy</a>}
+                    </td>
                     <td className="py-3 px-4 text-right tabular-nums whitespace-nowrap">
-                      <div className="flex flex-col items-end gap-0.5">
-                        <span className={`font-bold ${isLate ? 'text-danger' : 'text-text-muted'}`}>
-                          {trade.delayDays == null ? 'Brak dat' : `${trade.delayDays} DNI`}
-                        </span>
-                        <span className="text-2xs text-text-muted">Transakcja: {trade.transactionDate || '—'}</span>
-                        <span className="text-2xs text-text-muted">Ujawnienie: {trade.disclosureDate || '—'}</span>
-                        {trade.sourceUrl && <a href={trade.sourceUrl} target="_blank" rel="noopener noreferrer"
-                          className="text-primary underline text-2xs" onClick={(event) => event.stopPropagation()}>Dokument źródłowy</a>}
-                      </div>
+                      <span className={`font-bold ${isLate ? 'text-danger' : 'text-text-muted'}`}
+                        title={isLate ? `Po terminie ${STOCK_ACT_DEADLINE_DAYS} dni z ustawy STOCK Act` : undefined}>
+                        {trade.delayDays == null ? 'Brak dat' : `${trade.delayDays} dni`}
+                      </span>
                     </td>
                   </tr>
                 );

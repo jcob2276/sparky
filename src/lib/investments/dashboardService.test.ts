@@ -69,3 +69,25 @@ describe('dashboard evidence', () => {
   });
 });
 
+describe('year floor', () => {
+  it('clamps the 14-day window to 1 January so no query reaches into last year', async () => {
+    vi.resetModules();
+    vi.doMock('../date', async (original) => ({ ...await original<typeof import('../date')>(), getTodayWarsaw: () => '2026-01-05' }));
+    const { fetchDashboardData: fetchJan } = await import('./dashboardService');
+    const { orcaSelect: jan } = await import('./superinvestorsApi');
+    vi.mocked(jan).mockClear(); vi.mocked(jan).mockResolvedValue([]);
+    const data = await fetchJan();
+    expect(data.activity14d.windowStart).toBe('2026-01-01');
+    expect(data.activity14d.windowDays).toBe(5);
+    expect(data.activity14d.clampedToYearStart).toBe(true);
+    const dated = vi.mocked(jan).mock.calls.map(([path]) => path).filter(path => path.includes('gte.'));
+    expect(dated.length).toBeGreaterThan(0);
+    for (const path of dated) expect(path).toContain('gte.2026-01-01');
+    vi.doUnmock('../date');
+  });
+  it('keeps the full 14 days outside January', async () => {
+    const data = await fetchDashboardData();
+    expect(data.activity14d.windowDays).toBe(14);
+    expect(data.activity14d.clampedToYearStart).toBe(false);
+  });
+});

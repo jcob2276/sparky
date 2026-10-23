@@ -1,4 +1,5 @@
 import { orcaSelect } from './superinvestorsApi';
+import { yearFloor } from './yearFloor';
 
 export type SearchSource = 'Polityk' | 'Superinwestor' | 'STOCK Act' | '13F';
 
@@ -118,12 +119,12 @@ export async function searchDisclosures(raw: string): Promise<DisclosureSearchHi
     listPoliticians || listInvestors || party
       ? Promise.resolve([] as TradeRaw[])
       : safe<TradeRaw>(
-          `stock_act_trades?select=id,ticker,filer_name,transaction_type,transaction_date,disclosure_date,source_url,amount_low,amount_high,politicians(display_name)&filer_name=ilike.*${enc}*&order=disclosure_date.desc,id.asc&limit=8`,
+          `stock_act_trades?select=id,ticker,filer_name,transaction_type,transaction_date,disclosure_date,source_url,amount_low,amount_high,politicians(display_name)&disclosure_date=gte.${yearFloor()}&filer_name=ilike.*${enc}*&order=disclosure_date.desc,id.asc&limit=8`,
         ),
     listPoliticians || listInvestors || party
       ? Promise.resolve([] as TradeRaw[])
       : safe<TradeRaw>(
-          `stock_act_trades?select=id,ticker,filer_name,transaction_type,transaction_date,disclosure_date,source_url,amount_low,amount_high,politicians(display_name)&ticker=ilike.*${enc}*&order=disclosure_date.desc,id.asc&limit=8`,
+          `stock_act_trades?select=id,ticker,filer_name,transaction_type,transaction_date,disclosure_date,source_url,amount_low,amount_high,politicians(display_name)&disclosure_date=gte.${yearFloor()}&ticker=ilike.*${enc}*&order=disclosure_date.desc,id.asc&limit=8`,
         ),
     listPoliticians || listInvestors || party
       ? Promise.resolve([] as ConsensusRaw[])
