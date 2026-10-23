@@ -13,6 +13,7 @@
         <activity
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
             android:name=".MainActivity"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
@@ -117,6 +118,7 @@
 
         <activity
             android:name=".QuickFoodActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize|uiMode"
             android:excludeFromRecents="true"
             android:exported="false"
@@ -153,6 +155,7 @@
 
         <activity
             android:name=".QuickAddActivity"
+            android:screenOrientation="portrait"
             android:configChanges="orientation|keyboardHidden|screenSize|uiMode"
             android:excludeFromRecents="true"
             android:exported="false"
