@@ -15,7 +15,7 @@ const SEN_METRICS = new Set([
   'sleep_h', 'sleep_score', 'sleep_efficiency', 'sleep_latency', 'deep_sleep_h', 'rem_sleep_h',
   'light_sleep_h', 'sleep_hr', 'sleep_hrv', 'sleep_lowest_hr', 'restless_periods', 'temp_deviation',
   'spo2', 'vo2max', 'stress_high_min', 'met_avg', 'sedentary_min', 'bedtime_hour', 'hrv', 'rhr',
-  'readiness', 'recovery',
+  'readiness', 'recovery', 'phone_sleep_min',
 ])
 
 const ZYW_METRICS = new Set([
@@ -33,6 +33,12 @@ const TRENING_METRICS = new Set([
 const EKRAN_METRICS = new Set([
   'screen_time_min', 'fragmentation_index', 'productivity_ratio', 'phone_active_h',
   'dopamine_load_index', 'execution_score', 'identity_score', 'phone_drift',
+  'phone_unlocks', 'phone_screen_min', 'screen_after_22_min', 'notif_per_hour', 'headphones_min',
+])
+
+const OTOCZENIE_METRICS = new Set([
+  'weather_temp_mean', 'weather_temp_max', 'weather_sunshine_h', 'weather_precip_mm', 'weather_humidity',
+  'evening_lux', 'home_wifi_min', 'work_wifi_min',
 ])
 
 const SUPLEMENTY_METRICS = new Set([
@@ -123,6 +129,7 @@ export function inferMetricCategory(metric: string): CorrelationCategory {
   if (ZYW_METRICS.has(metric)) return 'zywienie'
   if (TRENING_METRICS.has(metric)) return 'trening'
   if (EKRAN_METRICS.has(metric)) return 'ekran'
+  if (OTOCZENIE_METRICS.has(metric)) return 'otoczenie'
   if (SUPLEMENTY_METRICS.has(metric)) return 'suplementy'
   if (ZACHOWANIE_METRICS.has(metric)) return 'zachowanie'
   return 'regeneracja'

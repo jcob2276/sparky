@@ -28,4 +28,7 @@ export const DRIVER_SPLITS: Record<DriverId, { subject: string; spec: SplitSpec 
   phone_evening_min: { subject: 'Telefon po 21:30', spec: amountLabels('Telefon po 21:30', 'min', 60) },
   phone_total_min: { subject: 'Telefon w ciągu dnia', spec: amountLabels('Telefon dziennie', 'min', null) },
   pc_active_h: { subject: 'Komputer', spec: amountLabels('Komputer', 'h', null) },
+  night_temp_c: { subject: 'Temperatura nocą', spec: amountLabels('Temperatura nocą', '°C', null) },
+  night_humidity_pct: { subject: 'Wilgotność nocą', spec: amountLabels('Wilgotność nocą', '%', null) },
+  sunshine_h: { subject: 'Słońce w dniu przed nocą', spec: amountLabels('Słońce w dniu', 'h', null) },
 };

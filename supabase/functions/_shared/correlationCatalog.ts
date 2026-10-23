@@ -1,4 +1,4 @@
-export type CorrelationCategory = 'sen' | 'zywienie' | 'trening' | 'regeneracja' | 'zachowanie' | 'suplementy' | 'ekran'
+export type CorrelationCategory = 'sen' | 'zywienie' | 'trening' | 'regeneracja' | 'zachowanie' | 'suplementy' | 'ekran' | 'otoczenie'
 
 /** Human labels for known metrics; behavior_log keys get labels at runtime. */
 export const METRIC_LABELS: Record<string, string> = {
@@ -84,6 +84,20 @@ export const METRIC_LABELS: Record<string, string> = {
   d3_taken: 'D3+K2',
   habit_count: 'Nawyki zaliczone',
   weight_kg: 'Waga (kg)',
+  weather_temp_mean: 'Temperatura dnia (°C)',
+  weather_temp_max: 'Temperatura max (°C)',
+  weather_sunshine_h: 'Słońce (h)',
+  weather_precip_mm: 'Opady (mm)',
+  weather_humidity: 'Wilgotność (%)',
+  phone_unlocks: 'Odblokowania telefonu',
+  phone_screen_min: 'Ekran telefonu (min)',
+  screen_after_22_min: 'Ekran po 22:00 (min)',
+  evening_lux: 'Światło wieczorem (lux)',
+  notif_per_hour: 'Powiadomienia na godzinę',
+  phone_sleep_min: 'Sen wg telefonu (min)',
+  home_wifi_min: 'Czas w domu (Wi-Fi, min)',
+  work_wifi_min: 'Czas w pracy (Wi-Fi, min)',
+  headphones_min: 'Słuchawki (min)',
   behav__walenie: 'Ejakulacja / PMO',
   behav__pmo: 'PMO',
   behav__seks: 'Seks',

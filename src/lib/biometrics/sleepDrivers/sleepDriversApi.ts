@@ -1,6 +1,7 @@
 import { supabase } from '../../supabase';
 import { getTodayWarsaw, shiftDateStr, warsawDayBoundsISO } from '../../date';
 import type { SleepDriversInput } from './inputTypes';
+import { fetchWeatherHistory } from './weatherHistoryApi';
 import { mapFood, mapNights, mapPc, mapPhone, mapSessions, mapTop5 } from './mapRows';
 
 /** Okno analizy: ~13 miesięcy wstecz, jedno równoległe zestawienie zapytań. */
@@ -27,13 +28,19 @@ async function fetchAllRows<T>(source: string, page: (from: number, to: number) 
   }
 }
 
+/** Pogoda tylko przy ustawionej lokalizacji domu; bez niej czynniki pogodowe mają puste pokrycie. */
+async function loadWeather(home: { home_lat: number | null; home_lng: number | null } | null, since: string) {
+  if (home?.home_lat == null || home.home_lng == null) return [];
+  return fetchWeatherHistory(Number(home.home_lat), Number(home.home_lng), since, getTodayWarsaw());
+}
+
 /** Tylko odczyt. Predyktory wieczorne dnia D-1 => zapytania sięgają o 1 dzień przed oknem. */
 export async function fetchSleepDriversInput(userId: string): Promise<SleepDriversInput> {
   const since = shiftDateStr(getTodayWarsaw(), -SLEEP_DRIVERS_WINDOW_DAYS);
   const sinceDayBefore = shiftDateStr(since, -1);
   const fromISO = warsawDayBoundsISO(sinceDayBefore).fromISO;
 
-  const [enhanced, summary, food, workouts, garmin, phone, pc, wins] = await Promise.all([
+  const [enhanced, summary, food, workouts, garmin, phone, pc, wins, settings] = await Promise.all([
     supabase.from('oura_enhanced')
       .select('date,sleep_score,total_sleep_hours,deep_sleep_hours,sleep_efficiency,sleep_average_hrv,sleep_latency_minutes,bedtime_start')
       .eq('user_id', userId).gte('date', since),
@@ -55,6 +62,7 @@ export async function fetchSleepDriversInput(userId: string): Promise<SleepDrive
       .select('date,total_active_seconds').eq('user_id', userId).gte('date', sinceDayBefore),
     supabase.from('daily_wins')
       .select('date,daily_win_tasks(done)').eq('user_id', userId).gte('date', since),
+    supabase.from('user_settings').select('home_lat,home_lng').eq('user_id', userId).maybeSingle(),
   ]);
 
   const { training, sauna } = mapSessions(
@@ -68,6 +76,7 @@ export async function fetchSleepDriversInput(userId: string): Promise<SleepDrive
     sauna,
     phone: mapPhone(unwrapRows('phone_usage_daily', phone)),
     pc: mapPc(unwrapRows('aw_daily_summary', pc)),
+    weather: await loadWeather(settings.data, sinceDayBefore),
     top5: mapTop5(unwrapRows('daily_wins', wins).flatMap((w) => (w.date ? [{ ...w, date: w.date }] : []))),
   };
 }

@@ -228,6 +228,34 @@ export function buildMetricSeries(input: SeriesBuildInput): Record<string, Serie
     if (b.weight != null) series.weight_kg.push({ day: b.date, value: Number(b.weight) })
   }
 
+  // Pogoda (weather_daily) i sygnaly telefonu (device_signals_daily)
+  for (const r of input.weatherRows ?? []) {
+    const day = String(r.date)
+    if (r.temp_mean != null) series.weather_temp_mean.push({ day, value: Number(r.temp_mean) })
+    if (r.temp_max != null) series.weather_temp_max.push({ day, value: Number(r.temp_max) })
+    if (r.sunshine_h != null) series.weather_sunshine_h.push({ day, value: Number(r.sunshine_h) })
+    if (r.precip_mm != null) series.weather_precip_mm.push({ day, value: Number(r.precip_mm) })
+    if (r.humidity_mean != null) series.weather_humidity.push({ day, value: Number(r.humidity_mean) })
+  }
+
+  for (const r of input.deviceRows ?? []) {
+    const day = String(r.date)
+    // Dzien bez zdarzen (brak danych z telefonu) to brak wiedzy, nie zero.
+    if (!Number(r.event_count ?? 0)) continue
+    const push = (key: keyof typeof series, val: unknown) => {
+      if (val != null) series[key].push({ day, value: Number(val) })
+    }
+    push('phone_unlocks', r.unlocks)
+    push('phone_screen_min', r.screen_on_min)
+    push('screen_after_22_min', r.screen_after_22_min)
+    push('evening_lux', r.evening_lux_avg)
+    push('notif_per_hour', r.notif_per_hour)
+    push('phone_sleep_min', r.phone_sleep_min)
+    push('home_wifi_min', r.home_wifi_min)
+    push('work_wifi_min', r.work_wifi_min)
+    push('headphones_min', r.headphones_min)
+  }
+
   // Friction backfill (90d)
   const dailyFriction: Record<string, { total: number; avoidance: number; procrastination: number }> = {}
   for (let i = 0; i < 90; i++) {

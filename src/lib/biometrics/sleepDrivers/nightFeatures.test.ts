@@ -5,7 +5,7 @@ import { buildNightRecord, indexInputs } from './nightFeatures';
 const OUTCOMES: NightInput['outcomes'] = {
   sleep_score: 80, sleep_h: 7, sleep_efficiency: 90, deep_sleep_pct: 18, sleep_hrv: 40, sleep_latency_min: 10,
 };
-const base: SleepDriversInput = { nights: [], food: [], training: [], sauna: [], phone: [], pc: [], top5: [] };
+const base: SleepDriversInput = { nights: [], food: [], training: [], sauna: [], phone: [], pc: [], top5: [], weather: [] };
 const night = (date: string, bedtimeStart: string | null): NightInput => ({ date, bedtimeStart, outcomes: OUTCOMES });
 const span = (startIso: string, endIso: string) => ({ startMs: Date.parse(startIso), endMs: Date.parse(endIso) });
 

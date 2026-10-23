@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronRight, Coffee, Dumbbell, Flame, Monitor, Smartphone, Utensils } from 'lucide-react';
+import { ChevronRight, Coffee, Dumbbell, Flame, Monitor, Smartphone, Sun, Thermometer, Utensils } from 'lucide-react';
 import type { OuraContextInsights } from '../../../../lib/biometrics/ouraContextInsights';
 import type { UseSleepDriversResult } from '../../../../lib/biometrics/sleepDrivers/types';
 import DataStateNotice from '../../../core/DataStateNotice';
@@ -10,7 +10,7 @@ import { OuraSectionHeader } from '../shared/OuraSectionHeader';
 import { buildFactorTiles, type FactorKey, type FactorTile } from './nightFactors';
 
 const ICONS: Record<FactorKey, typeof Coffee> = {
-  caffeine: Coffee, meal: Utensils, training: Dumbbell, sauna: Flame, phone: Smartphone, pc: Monitor,
+  caffeine: Coffee, meal: Utensils, training: Dumbbell, sauna: Flame, phone: Smartphone, pc: Monitor, weather: Thermometer, sun: Sun,
 };
 
 interface OuraNightFactorsStripProps {
@@ -40,7 +40,7 @@ function Tile({ tile, onOpen }: { tile: FactorTile; onOpen?: () => void }) {
     : <div className={cls} role="group" aria-label={`${tile.label}: ${tile.value}${tile.hint ? `, ${tile.hint}` : ''}`}>{body}</div>;
 }
 
-/** One place for the context of the last night: caffeine, meal, training, sauna, phone, computer. */
+/** One place for the context of the last night: caffeine, meal, training, sauna, phone, computer, weather. */
 export function OuraNightFactorsStrip({ drivers, screen, screenDate }: OuraNightFactorsStripProps) {
   const [screenOpen, setScreenOpen] = useState(false);
   const night = drivers.data?.lastNight ?? null;

@@ -160,6 +160,8 @@ export const runComputeCorrelations = async (
       awRows: prepared.awRows,
       habitRows: [],
       bodyRows: prepared.bodyRows,
+      weatherRows: prepared.weatherRows,
+      deviceRows: prepared.deviceRows,
     })
 
     const habitLogRows = (habitLogR.data ?? []).flatMap((row: any) => {

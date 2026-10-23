@@ -1,6 +1,6 @@
 import type { DriverCoverage, DriverId, NightFactors } from '../../../../lib/biometrics/sleepDrivers/types';
 
-export type FactorKey = 'caffeine' | 'meal' | 'training' | 'sauna' | 'phone' | 'pc';
+export type FactorKey = 'caffeine' | 'meal' | 'training' | 'sauna' | 'phone' | 'pc' | 'weather' | 'sun';
 
 export interface FactorTile {
   key: FactorKey;
@@ -30,7 +30,21 @@ function eventTile(key: FactorKey, label: string, at: string | null, gapH: numbe
     : { key, label, value: 'Brak', hint: emptyHint, state: 'empty' };
 }
 
-/** Six context tiles for the last night. States come only from the engine's data and coverage; no thresholds are invented. */
+/** Pogoda: puste pokrycie = brak lokalizacji domu, a nie „zero”. */
+function weatherTiles(night: NightFactors, coverage: DriverCoverage[]): FactorTile[] {
+  const hasData = (driver: DriverId) => (coverage.find(c => c.driver === driver)?.n ?? 0) > 0;
+  const noLocation = !hasData('night_temp_c') && !hasData('sunshine_h');
+  const emptyHint = noLocation ? 'ustaw lokalizację domu' : 'bez pomiaru';
+  const weather: FactorTile = night.nightTempC != null
+    ? { key: 'weather', label: 'Pogoda nocą', value: `${hours.format(night.nightTempC)} °C`, hint: night.nightHumidityPct != null ? `wilgotność ${Math.round(night.nightHumidityPct)}%` : null, state: 'data' }
+    : { key: 'weather', label: 'Pogoda nocą', value: 'Brak', hint: emptyHint, state: 'empty' };
+  const sun: FactorTile = night.sunshineH != null
+    ? { key: 'sun', label: 'Słońce wczoraj', value: `${hours.format(night.sunshineH)} h`, hint: 'nasłonecznienia', state: 'data' }
+    : { key: 'sun', label: 'Słońce wczoraj', value: 'Brak', hint: emptyHint, state: 'empty' };
+  return [weather, sun];
+}
+
+/** Eight context tiles for the last night. States come only from the engine's data and coverage; no thresholds are invented. */
 export function buildFactorTiles(night: NightFactors, coverage: DriverCoverage[]): FactorTile[] {
   const phoneStale = isStale(coverage, 'phone_evening_min');
   const pcStale = isStale(coverage, 'pc_active_h');
@@ -51,5 +65,6 @@ export function buildFactorTiles(night: NightFactors, coverage: DriverCoverage[]
     eventTile('sauna', 'Sauna', night.saunaAt, night.saunaGapH, 'nie zapisano'),
     phone,
     pc,
+    ...weatherTiles(night, coverage),
   ];
 }

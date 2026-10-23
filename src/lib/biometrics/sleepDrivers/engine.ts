@@ -24,6 +24,9 @@ function toNightFactors(night: NightRecord): NightFactors {
     phoneEveningMin: d.phone_evening_min,
     phoneTotalMin: d.phone_total_min,
     pcActiveH: gap(d.pc_active_h),
+    nightTempC: d.night_temp_c,
+    nightHumidityPct: d.night_humidity_pct,
+    sunshineH: gap(d.sunshine_h),
   };
 }
 

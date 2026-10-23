@@ -120,7 +120,7 @@ export const ALLOWED_OUTCOMES = new Set([
   'sleep_hrv', 'hrv', 'sleep_lowest_hr', 'rhr', 'readiness', 'recovery',
   'plan_done_pct', 'execution_score', 'day_score', 'mood_score', 'weight_kg',
   'workout_strain', 'strain', 'cns_load',
-  'screen_time_min', 'phone_drift', 'dopamine_load_index', 'friction_count'
+  'screen_time_min', 'phone_drift', 'dopamine_load_index', 'friction_count', 'phone_sleep_min'
 ]);
 
 export const ALLOWED_INPUTS = new Set([
@@ -130,7 +130,10 @@ export const ALLOWED_INPUTS = new Set([
   'insulin_load', 'steps', 'workout_strain', 'strain', 'screen_time_min',
   'night_screen_min', 'planned_blocks_count', 'gym_tonnage_mg', 'sauna_min',
   'fragmentation_index', 'phone_drift', 'phone_active_h', 'creatine_taken',
-  'omega3_taken', 'lions_mane_taken', 'd3_taken', 'habit_count'
+  'omega3_taken', 'lions_mane_taken', 'd3_taken', 'habit_count',
+  'weather_temp_mean', 'weather_sunshine_h', 'weather_precip_mm', 'weather_humidity',
+  'phone_unlocks', 'phone_screen_min', 'screen_after_22_min', 'evening_lux', 'notif_per_hour',
+  'home_wifi_min', 'work_wifi_min', 'headphones_min'
 ]);
 
 export const REDUNDANT_GROUPS = [
@@ -138,7 +141,9 @@ export const REDUNDANT_GROUPS = [
   ['readiness', 'recovery'],
   ['calories', 'protein', 'carbs', 'fat', 'sugar', 'fiber', 'insulin_load'],
   ['steps', 'workout_strain', 'strain', 'cns_load', 'leg_load', 'cardio', 'strength', 'workout_hr_avg', 'workout_hr_peak'],
-  ['screen_time_min', 'fragmentation_index', 'phone_active_h', 'dopamine_load_index'],
+  ['screen_time_min', 'fragmentation_index', 'phone_active_h', 'dopamine_load_index', 'phone_screen_min', 'phone_unlocks', 'notif_per_hour'],
+  ['screen_after_22_min', 'night_screen_min'],
+  ['weather_temp_mean', 'weather_temp_max'],
   ['dinner_calories', 'dinner_carbs', 'dinner_fat']
 ];
 

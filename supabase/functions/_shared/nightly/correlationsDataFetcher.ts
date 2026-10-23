@@ -1,4 +1,5 @@
 import { aggregateStravaRuns } from '../correlationSeries.ts';
+import { syncWeatherDaily } from '../weatherSync.ts';
 
 export interface PreparedCorrelationData {
   strainRows: any[];
@@ -16,9 +17,11 @@ export interface PreparedCorrelationData {
   stravaRows: any[];
   awRows: any[];
   bodyRows: any[];
+  weatherRows: any[];
+  deviceRows: any[];
 }
 
-/** Fetches raw data from 16 Supabase tables required for correlation analysis. */
+/** Fetches raw data from 18 Supabase tables required for correlation analysis. */
 async function fetchRawCorrelationData(supabase: any, userId: string, start90: string) {
   return await Promise.all([
     supabase.from('daily_strain').select('date, strain_score, recovery_score, fueling_score, cardio_load, strength_load, cns_load, leg_load, mental_load_score, illness_score, components').eq('user_id', userId).gte('date', start90).order('date'),
@@ -37,6 +40,8 @@ async function fetchRawCorrelationData(supabase: any, userId: string, start90: s
     supabase.from('aw_daily_summary').select('date, productivity_ratio, phone_active_seconds').eq('user_id', userId).gte('date', start90),
     supabase.from('body_metrics').select('date, weight').eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('habit_logs').select('date, completed, habits(name)').eq('user_id', userId).gte('date', start90),
+    supabase.from('weather_daily').select('date, temp_mean, temp_max, humidity_mean, precip_mm, sunshine_h').eq('user_id', userId).gte('date', start90).order('date'),
+    supabase.from('device_signals_daily').select('date, event_count, unlocks, screen_on_min, screen_after_22_min, evening_lux_avg, notif_per_hour, phone_sleep_min, home_wifi_min, work_wifi_min, headphones_min').eq('user_id', userId).gte('date', start90).order('date'),
   ]);
 }
 
@@ -47,13 +52,14 @@ export async function fetchAndPrepareCorrelationData(
   start90: string,
   todayWarsaw: string,
 ): Promise<{ data: PreparedCorrelationData; habitLogR: any }> {
+  await syncWeatherDaily(supabase, userId, start90, todayWarsaw);
   const [
     strainR, ouraR, ouraEnhR, nutrR, aggregatesR, frictionR, foodR, consolidatedR,
-    winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR,
+    winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR, weatherR, deviceR,
   ] = await fetchRawCorrelationData(supabase, userId, start90);
 
   // Log queries failing (non-fatal, warning only)
-  const queries = { strainR, ouraR, ouraEnhR, nutrR, aggregatesR, frictionR, foodR, consolidatedR, winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR };
+  const queries = { strainR, ouraR, ouraEnhR, nutrR, aggregatesR, frictionR, foodR, consolidatedR, winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR, weatherR, deviceR };
   for (const [name, res] of Object.entries(queries)) {
     if (res.error) {
       console.warn(`[correlations] query failed: ${name}: ${res.error.message}`);
@@ -111,6 +117,8 @@ export async function fetchAndPrepareCorrelationData(
       stravaRows,
       awRows: awR.data ?? [],
       bodyRows: bodyR.data ?? [],
+      weatherRows: weatherR.data ?? [],
+      deviceRows: deviceR.data ?? [],
     },
     habitLogR,
   };

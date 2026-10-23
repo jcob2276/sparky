@@ -9,6 +9,9 @@ export const DRIVER_META: Record<DriverId, DriverMeta> = {
   phone_evening_min: { label: 'Telefon po 21:30', unit: 'min', hint: 'minuty przy telefonie od 21:30 do zaśnięcia; im więcej, tym zwykle gorzej' },
   phone_total_min: { label: 'Telefon w ciągu dnia', unit: 'min', hint: 'łączny czas ekranu danego dnia' },
   pc_active_h: { label: 'Czas przy komputerze', unit: 'h', hint: 'aktywny czas przy komputerze (ActivityWatch) w dniu poprzedzającym noc' },
+  night_temp_c: { label: 'Temperatura nocą', unit: '°C', hint: 'średnia temperatura na zewnątrz od 22:00 do 6:00 (Open-Meteo, lokalizacja domu)' },
+  night_humidity_pct: { label: 'Wilgotność nocą', unit: '%', hint: 'średnia wilgotność powietrza na zewnątrz od 22:00 do 6:00' },
+  sunshine_h: { label: 'Słońce w dniu przed nocą', unit: 'h', hint: 'godziny nasłonecznienia w dniu poprzedzającym noc; im więcej światła dziennego, tym zwykle lepszy sen' },
 };
 
 export interface OutcomeMeta {

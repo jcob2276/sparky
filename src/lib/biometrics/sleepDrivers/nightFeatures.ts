@@ -2,6 +2,7 @@ import { estimateCaffeineMg } from '@vanguard/domain';
 import { shiftDateStr } from '../../date';
 import { HOUR_MS, localHHmm, parseMs } from './clock';
 import { phoneEveningMinutes } from './phoneEvening';
+import { nightWeather, type WeatherDay } from './weatherDays';
 import type { FoodEvent, NightInput, NightRecord, PhoneDay, SessionSpan, SleepDriversInput } from './inputTypes';
 
 /** Zdarzenia wieczorne szukamy w oknie 24 h przed zaśnięciem. */
@@ -36,6 +37,7 @@ export interface NightIndexes {
   phoneByDay: Map<string, PhoneDay>;
   bucketsByDay: Map<string, number[]>;
   pcByDay: Map<string, number>;
+  weatherByDay: Map<string, WeatherDay>;
 }
 
 export function indexInputs(input: SleepDriversInput): NightIndexes {
@@ -52,6 +54,7 @@ export function indexInputs(input: SleepDriversInput): NightIndexes {
     phoneByDay,
     bucketsByDay,
     pcByDay: new Map(input.pc.map((p) => [p.date, p.activeH])),
+    weatherByDay: new Map(input.weather.map((w) => [w.date, w])),
   };
 }
 
@@ -71,6 +74,7 @@ export function buildNightRecord(night: NightInput, idx: NightIndexes): NightRec
   const training = bedMs == null ? null : lastBefore(idx.trainingEnds, bedMs);
   const sauna = bedMs == null ? null : lastBefore(idx.saunaEnds, bedMs);
   const phone = idx.phoneByDay.get(prevDay);
+  const weather = nightWeather(night.date, idx.weatherByDay);
   return {
     date: night.date,
     bedtimeAt: bedMs == null ? null : localHHmm(bedMs),
@@ -83,6 +87,9 @@ export function buildNightRecord(night: NightInput, idx: NightIndexes): NightRec
       phone_evening_min: bedMs == null ? null : phoneEveningMinutes(night.date, bedMs, idx.bucketsByDay),
       phone_total_min: phone?.totalMin ?? null,
       pc_active_h: idx.pcByDay.get(prevDay) ?? null,
+      night_temp_c: weather.nightTempC,
+      night_humidity_pct: weather.nightHumidityPct,
+      sunshine_h: weather.sunshineH,
     },
     clock: {
       caffeineLastAt: hhmm(caffeine),

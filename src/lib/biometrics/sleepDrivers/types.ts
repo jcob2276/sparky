@@ -15,7 +15,10 @@ export type DriverId =
   | 'sauna_gap_h'
   | 'phone_evening_min'
   | 'phone_total_min'
-  | 'pc_active_h';
+  | 'pc_active_h'
+  | 'night_temp_c'
+  | 'night_humidity_pct'
+  | 'sunshine_h';
 
 export type SleepOutcomeId =
   | 'sleep_score'
@@ -99,6 +102,9 @@ export interface NightFactors {
   phoneEveningMin: number | null;
   phoneTotalMin: number | null;
   pcActiveH: number | null;
+  nightTempC: number | null;
+  nightHumidityPct: number | null;
+  sunshineH: number | null;
 }
 
 export interface SleepDriversResult {

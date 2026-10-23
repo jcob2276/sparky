@@ -1,4 +1,5 @@
 import type { DriverId, SleepOutcomeId } from './types';
+import type { WeatherDay } from './weatherDays';
 
 /** Noc zakończona w dniu `date` (klucz jak oura_daily_summary.day), z wynikami snu. */
 export interface NightInput {
@@ -43,6 +44,7 @@ export interface SleepDriversInput {
   phone: PhoneDay[];
   pc: PcDay[];
   top5: Top5Day[];
+  weather: WeatherDay[];
 }
 
 /** Godziny lokalne „HH:mm” zdarzeń wieczornych (do paska NightFactors). */

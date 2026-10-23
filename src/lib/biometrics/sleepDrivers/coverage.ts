@@ -4,6 +4,7 @@ import type { NightRecord } from './inputTypes';
 import type { DriverCoverage, DriverId } from './types';
 
 const STALE_DAYS = 14;
+const WEATHER_DRIVERS = new Set<DriverId>(['night_temp_c', 'night_humidity_pct', 'sunshine_h']);
 /** Poniżej tylu nocy nie pokazujemy żadnego efektu (patrz classifyEvidence). */
 const MIN_NIGHTS_NOTE = 8;
 
@@ -13,9 +14,9 @@ function daysBetween(from: string, to: string): number {
 
 function noteFor(driver: DriverId, n: number, firstDate: string | null, lastDate: string | null, stale: boolean): string | null {
   if (n === 0) {
-    return driver === 'phone_evening_min'
-      ? 'Brak godzinowych danych telefonu: zbieranie zaczęło się dopiero po aktualizacji aplikacji.'
-      : 'Brak danych dla tego czynnika.';
+    if (driver === 'phone_evening_min') return 'Brak godzinowych danych telefonu: zbieranie zaczęło się dopiero po aktualizacji aplikacji.';
+    if (WEATHER_DRIVERS.has(driver)) return 'Brak danych pogodowych: ustaw lokalizację domu w ustawieniach.';
+    return 'Brak danych dla tego czynnika.';
   }
   if (stale && lastDate) {
     const lastSource = driver === 'pc_active_h' ? shiftDateStr(lastDate, -1) : lastDate;

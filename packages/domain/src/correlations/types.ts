@@ -1,6 +1,6 @@
 import { pearson, spearman } from './math.ts';
 
-export type CorrelationCategory = 'sen' | 'zywienie' | 'trening' | 'regeneracja' | 'zachowanie' | 'suplementy' | 'ekran';
+export type CorrelationCategory = 'sen' | 'zywienie' | 'trening' | 'regeneracja' | 'zachowanie' | 'suplementy' | 'ekran' | 'otoczenie';
 export type ConfidenceTier = 'calibrating' | 'building' | 'solid';
 export type CorrelationMethod = 'pearson' | 'spearman';
 
@@ -83,6 +83,7 @@ export const CATEGORY_LABELS: Record<CorrelationCategory, string> = {
   zachowanie: 'Zachowanie',
   suplementy: 'Suplementy',
   ekran: 'Ekran & focus',
+  otoczenie: 'Otoczenie & pogoda',
 };
 
 export const METHOD_LABELS: Record<CorrelationMethod, string> = {

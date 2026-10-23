@@ -17,6 +17,9 @@ export const sleepDriversFixture: SleepDriversResult = {
     phoneEveningMin: 74,
     phoneTotalMin: 409,
     pcActiveH: null,
+    nightTempC: 11.5,
+    nightHumidityPct: 82,
+    sunshineH: 4.2,
   },
   effects: [
     {

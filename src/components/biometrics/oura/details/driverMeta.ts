@@ -6,6 +6,7 @@ export { DRIVER_META, OUTCOME_META } from '../../../../lib/biometrics/sleepDrive
 export const DRIVER_ORDER: DriverId[] = [
   'training_gap_h', 'sauna_gap_h', 'meal_gap_h', 'caffeine_gap_h',
   'phone_evening_min', 'phone_total_min', 'pc_active_h',
+  'night_temp_c', 'night_humidity_pct', 'sunshine_h',
 ];
 
 /** Etykiety z silnika są małą literą — do nagłówków kart. */

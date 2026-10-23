@@ -19,6 +19,8 @@ describe('buildFactorTiles', () => {
     expect(pc.state).toBe('stale');
     expect(pc.value).toBe('Brak świeżych danych');
     expect(tiles.find(t => t.key === 'phone')).toMatchObject({ value: '74 min' });
+    expect(tiles.find(t => t.key === 'weather')).toMatchObject({ value: '11,5 °C', hint: 'wilgotność 82%', state: 'data' });
+    expect(tiles.find(t => t.key === 'sun')).toMatchObject({ value: '4,2 h' });
   });
 });
 

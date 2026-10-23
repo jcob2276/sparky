@@ -20,6 +20,9 @@ export function emptySeries(): Record<string, SeriesPoint[]> {
     alcohol_units: [], travel_day: [], illness_day: [], stress_manual: [],
     creatine_taken: [], omega3_taken: [], lions_mane_taken: [], d3_taken: [],
     habit_count: [], weight_kg: [],
+    weather_temp_mean: [], weather_temp_max: [], weather_sunshine_h: [], weather_precip_mm: [], weather_humidity: [],
+    phone_unlocks: [], phone_screen_min: [], screen_after_22_min: [], evening_lux: [], notif_per_hour: [],
+    phone_sleep_min: [], home_wifi_min: [], work_wifi_min: [], headphones_min: [],
   }
 }
 
@@ -41,6 +44,8 @@ export interface SeriesBuildInput {
   awRows: { date: string; productivity_ratio: number | null; phone_active_seconds: number | null }[]
   habitRows: Record<string, unknown>[]
   bodyRows: { date: string; weight: number | null }[]
+  weatherRows?: Record<string, unknown>[]
+  deviceRows?: Record<string, unknown>[]
 }
 
 export function aggregateStravaRuns(

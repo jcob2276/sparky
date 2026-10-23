@@ -5,7 +5,7 @@ import type { NightInput, SleepDriversInput } from './inputTypes';
 
 const HOUR = 3_600_000;
 const START = '2026-06-01';
-const empty = (): SleepDriversInput => ({ nights: [], food: [], training: [], sauna: [], phone: [], pc: [], top5: [] });
+const empty = (): SleepDriversInput => ({ nights: [], food: [], training: [], sauna: [], phone: [], pc: [], top5: [], weather: [] });
 
 function makeInput(count: number, gapFor: (i: number) => number, scoreFor: (i: number) => number): SleepDriversInput {
   const input = empty();
@@ -86,6 +86,6 @@ describe('computeSleepDrivers', () => {
   it('puste wejście daje pusty wynik bez wyjątków', () => {
     const result = computeSleepDrivers(empty());
     expect(result).toMatchObject({ nightsAnalyzed: 0, effects: [], top5Effects: [], lastNight: null });
-    expect(result.coverage).toHaveLength(7);
+    expect(result.coverage).toHaveLength(10);
   });
 });
