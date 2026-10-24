@@ -2,6 +2,9 @@ import { VISUAL_CARDS_AND_MUTATIONS_PROMPT } from "./systemPromptCards.ts";
 import { ANTI_SELF_DECEPTION_PROMPT } from "./systemPromptAntiDeception.ts";
 import type { CoreMemoryBlocks } from "./coreMemory.ts";
 
+/** Pusty blok pamięci rdzenia: nie podstawiamy wymyślonych faktów o użytkowniku, tylko mówimy, że nic nie zapisano. */
+const CORE_MEMORY_EMPTY = "(brak zapisu — nie zgaduj, dopytaj albo zaktualizuj blok przez core_memory_mutation)";
+
 export function buildSystemPrompt(params: {
   agent_run_mode: string;
   mode: string;
@@ -161,9 +164,9 @@ Gdy Jakub deklaruje konkretne okno czasowe działania, cel na daną godzinę lub
 
 ${circadianContextText ? `[WEWNĘTRZNY STAN DOBOWY (Lingxi pattern)]:\n${circadianContextText}\n` : ''}
 [PAMIĘĆ RDZENIA — CORE MEMORY BLOCKS (Letta / MemGPT pattern)]:
-- HUMAN: ${coreMemory?.human || 'Przedsiębiorca, buduje Vanguard, biega, trenuje kalistenikę.'}
-- FOCUS: ${coreMemory?.focus || 'Dowożenie sprzedaży i diali, konsultacja hipnoterapii.'}
-- AVOIDANCE: ${coreMemory?.avoidance || 'Ucieczka w kodowanie i architekturę zamiast bezpośredniego outreachu i sprzedaży.'}
+- HUMAN: ${coreMemory?.human || CORE_MEMORY_EMPTY}
+- FOCUS: ${coreMemory?.focus || CORE_MEMORY_EMPTY}
+- AVOIDANCE: ${coreMemory?.avoidance || CORE_MEMORY_EMPTY}
 Gdy Jakub ustala nowy kluczowy priorytet, deklaruje przełom lub definiuje nowe tarcie, zaktualizuj blok za pomocą "core_memory_mutation".
 
 ${VISUAL_CARDS_AND_MUTATIONS_PROMPT}
