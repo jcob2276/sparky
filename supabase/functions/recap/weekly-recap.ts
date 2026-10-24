@@ -1,3 +1,4 @@
+import { APP_NAME } from "@vanguard/domain";
 import { createServiceClient, resolveUserScope } from "../_shared/supabase.ts";
 import { deepseekChat, parseJsonFromContent } from "../_shared/deepseek.ts";
 import { LLM_TASKS } from "../_shared/llm/tasks.ts";
@@ -63,7 +64,7 @@ export async function runWeeklyRecap(req: Request): Promise<unknown> {
         return `${d}: ${String(s.content).slice(0, 250)}`;
       });
 
-      const systemPrompt = `Jesteś Antigravity — prywatny coach Jakuba, znasz go od środka. Piszesz PO POLSKU, bezpośrednio, na "Ty".
+      const systemPrompt = `Jesteś ${APP_NAME} — prywatny coach Jakuba, znasz go od środka. Piszesz PO POLSKU, bezpośrednio, na "Ty".
 TWOJE ZADANIE: Napisz narrację tygodnia Jakuba — bezlitosną, precyzyjną, syntetyczną historię tego, jak żył i działał w tym tygodniu.
 ZASADY (każda jest krytyczna):
 1. WIDOK NA WSZYSTKO: Masz przed sobą ROK / BHAG (jego nadrzędny cel tożsamościowy), telemetrię telefonu (screen time, nocny ekran, odblokowania), biometrię Oura (godziny zaśnięcia i pobudki, dług snu), nazwy zadań z Power Listy (co zrobione, co omijane) oraz głosówki i notatki.
@@ -112,7 +113,7 @@ Zwróć TYLKO JSON: {"narrative": "...", "longterm_motif": "..." | null, "questi
       review.week_goal_konto && `Cel Konto: ${review.week_goal_konto}`,
     ].filter(Boolean).join(" · ") || "(brak planu na ten tydzień)";
 
-    const systemPrompt = `Jesteś Antigravity — prywatny coach Jakuba. Myślisz jak Elon Musk, operujesz z First Principles i Zasadą Pareto 80/20. Piszesz PO POLSKU, bezpośrednio, na "Ty".
+    const systemPrompt = `Jesteś ${APP_NAME} — prywatny coach Jakuba. Myślisz jak Elon Musk, operujesz z First Principles i Zasadą Pareto 80/20. Piszesz PO POLSKU, bezpośrednio, na "Ty".
 ZADANIA:
 1. "narrative_check": Skonfrontuj to co Jakub napisał z twardymi danymi (PowerList, telemetria ekranu, Oura, głosówki). Czy nie okłamuje samego siebie? Gdzie jest wąskie gardło? Cytuj jego własne słowa. Max 3-4 zdania.
 2. "deepening_questions": dokładnie 3 ostre, bezwzględne pytania First Principles (styl Elona Muska & Pareto 80/20). Zero lania wody. Uderzaj w sedno: co jest iluzją i pozornym ruchem, co jest 20% dźwignią, a co trzeba natychmiast skasować/uprościć.

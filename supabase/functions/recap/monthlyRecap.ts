@@ -1,4 +1,4 @@
-import { isRunSport } from "@vanguard/domain";
+import { isRunSport, APP_NAME } from "@vanguard/domain";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { Database } from "../_shared/database.types.ts";
 import { deepseekChat, parseJsonFromContent } from "../_shared/deepseek.ts";
@@ -245,7 +245,7 @@ ${reconcBlock || "(brak wieczornych wpisów)"}
 GŁOSÓWKI I WIADOMOŚCI JAKUBA (${voiceEntries.length} wpisów, top 30 po ważności):
 ${voiceBlock || "(brak głosówek w tym miesiącu)"}`;
 
-  const systemPrompt = `Jesteś Antigravity — prywatny coach Jakuba. Znasz go od środka. Piszesz PO POLSKU, bezpośrednio, na "Ty".
+  const systemPrompt = `Jesteś ${APP_NAME} — prywatny coach Jakuba. Znasz go od środka. Piszesz PO POLSKU, bezpośrednio, na "Ty".
 Masz dane CAŁEGO MIESIĄCA — głosówki, reconciliacje wieczorne, sen tygodniami, trening, refleksje tygodniowe, wzorce behawioralne.
 
 TWOJE ZADANIE: Napisz narrację miesiąca. Nie listę statystyk. Historię tego, co naprawdę się działo.
