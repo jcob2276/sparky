@@ -15,6 +15,7 @@ import { UrgentObligationsBanner } from '../terminy/UrgentObligationsBanner';
 import { ThreeSpheresGoalsCard } from './ThreeSpheresGoalsCard';
 import VisionHeroCard from './VisionHeroCard';
 import { DashboardGreeting } from './DashboardGreeting';
+import BodyMeasureBanner from './bodyMeasure/BodyMeasureBanner';
 
 function ViewFallback() {
   return <Skeleton variant="card" lines={4} className="min-h-[var(--ds-h-220px)]" />;
@@ -43,6 +44,8 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
     <div className="min-h-full bg-background p-5 pb-32">
       <div className="ui-stagger mb-5 space-y-4">
         <DashboardGreeting />
+
+        <BodyMeasureBanner userId={session.user.id} />
 
         <VisionHeroCard />
 
