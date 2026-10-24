@@ -1,6 +1,6 @@
 import { bucketSeries, daysWithData, periodValue, type DatedValue } from './aggregate';
 import type { PeriodWindow } from './periods';
-import { CLOSER_WEEKLY_TARGETS } from '../closer/closerDayModel';
+import { DEFAULT_CLOSER_TARGETS, type CloserWeeklyTargets } from '../closer/closerDayModel';
 import { shiftDateStr } from '../date';
 import { formatValue, makeTile, type ChronicleSummaryData } from './summaryTypes';
 import { DEFAULT_LIFE_TARGETS, incomeLabel, type LifeTargets } from '../lifeGoals';
@@ -154,7 +154,7 @@ function rate(part: number | null, whole: number | null): number | null {
   return part == null || whole == null || whole <= 0 ? null : Math.round((part / whole) * 100);
 }
 
-export function buildKontoSummary(rows: KontoRows, win: PeriodWindow, today: string, targets: LifeTargets = DEFAULT_LIFE_TARGETS): ChronicleSummaryData {
+export function buildKontoSummary(rows: KontoRows, win: PeriodWindow, today: string, targets: LifeTargets = DEFAULT_LIFE_TARGETS, closerTargets: CloserWeeklyTargets = DEFAULT_CLOSER_TARGETS): ChronicleSummaryData {
   const { start, end, prevStart, prevEnd } = win;
   const series = (pick: (log: KontoRows['logs'][number]) => number): DatedValue[] => rows.logs.map((log) => ({ date: log.date, value: pick(log) }));
   const dials = series((l) => l.dials);
@@ -162,8 +162,8 @@ export function buildKontoSummary(rows: KontoRows, win: PeriodWindow, today: str
   const calls = series((l) => l.sales_calls);
   const sales = series((l) => l.sales_closed);
   const sum = (list: DatedValue[], a: string, b: string) => periodValue(list, a, b, 'sum');
-  const targetBooked = Math.round(CLOSER_WEEKLY_TARGETS.appointments * win.weeks);
-  const targetCalls = Math.round(CLOSER_WEEKLY_TARGETS.salesCalls * win.weeks);
+  const targetBooked = Math.round(closerTargets.appointments * win.weeks);
+  const targetCalls = Math.round(closerTargets.salesCalls * win.weeks);
   const bookedNow = sum(booked, start, end);
   const entered = series((l) => l.dials + l.appointments + l.sales_calls + l.sales_closed).filter((r) => (r.value ?? 0) > 0);
   const yesterday = shiftDateStr(today, -1);

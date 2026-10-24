@@ -7,10 +7,10 @@ import { Quote } from 'lucide-react';
 import { shiftDateStr } from '../../../lib/date';
 import { getWeekStartWarsaw } from '../../../lib/growth/growth';
 import {
-  CLOSER_WEEKLY_TARGETS,
   hasEnteredNumbers,
   weekPace,
 } from '../../../lib/closer/closerDayModel';
+import { useCloserTargets } from '../../../lib/closer/closerTargetsApi';
 import DataStateNotice from '../DataStateNotice';
 import Button from '../../ui/Button';
 import Skeleton from '../../ui/Skeleton';
@@ -36,6 +36,7 @@ export default function MorningPlanYesterdayNumbers({ userId, planningDate }: Pr
   const yesterday = shiftDateStr(planningDate, -1);
   const day = useDaySalesNumbers(userId, yesterday);
   const week = useWeekSalesSums(userId, getWeekStartWarsaw(planningDate));
+  const targets = useCloserTargets(userId);
 
   if (day.loading) return <Skeleton className="h-28 w-full rounded-2xl" />;
   if (day.loadError) {
@@ -58,8 +59,8 @@ export default function MorningPlanYesterdayNumbers({ userId, planningDate }: Pr
   }
 
   const row = day.row!;
-  const appointmentsPace = weekPace(week.sums.appointments, CLOSER_WEEKLY_TARGETS.appointments, planningDate);
-  const callsPace = weekPace(week.sums.salesCalls, CLOSER_WEEKLY_TARGETS.salesCalls, planningDate);
+  const appointmentsPace = weekPace(week.sums.appointments, targets.appointments, planningDate);
+  const callsPace = weekPace(week.sums.salesCalls, targets.salesCalls, planningDate);
   const note = row.notes?.trim();
 
   return (
@@ -78,7 +79,7 @@ export default function MorningPlanYesterdayNumbers({ userId, planningDate }: Pr
         </p>
       )}
       <p className="text-xs font-semibold text-text-primary border-t border-border-custom/20 pt-2.5">
-        Tydzień: umówieni {week.sums.appointments}/{CLOSER_WEEKLY_TARGETS.appointments}, sales calle {week.sums.salesCalls}/{CLOSER_WEEKLY_TARGETS.salesCalls}.
+        Tydzień: umówieni {week.sums.appointments}/{targets.appointments}, sales calle {week.sums.salesCalls}/{targets.salesCalls}.
         {appointmentsPace.remaining + callsPace.remaining > 0
           ? ` Dziś potrzeba około ${appointmentsPace.perDay} umówień i ${callsPace.perDay} sales calli.`
           : ' Cele tygodnia zrobione.'}

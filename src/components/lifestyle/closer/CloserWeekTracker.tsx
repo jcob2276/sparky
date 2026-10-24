@@ -7,7 +7,7 @@ import {
   upsertCloserDailyLog,
   type CloserDailyLogRow,
 } from '../../../lib/closer/closerApi';
-import { CLOSER_WEEKLY_TARGETS } from '../../../lib/closer/closerDayModel';
+import { useCloserTargets } from '../../../lib/closer/closerTargetsApi';
 import { closerKeys, goalSpineKeys } from '../../../lib/queryKeys';
 import { getTodayWarsaw } from '../../../lib/date';
 import CloserDayStrip from './CloserDayStrip';
@@ -196,8 +196,9 @@ export default function CloserWeekTracker({
     [logs],
   );
 
-  const targetAppointments = CLOSER_WEEKLY_TARGETS.appointments;
-  const targetSalesCalls = CLOSER_WEEKLY_TARGETS.salesCalls;
+  const targets = useCloserTargets(userId);
+  const targetAppointments = targets.appointments;
+  const targetSalesCalls = targets.salesCalls;
   const pctAppointments = Math.min(100, Math.round((sumAppointments / targetAppointments) * 100));
   const pctSalesCalls = Math.min(100, Math.round((sumSalesCalls / targetSalesCalls) * 100));
 

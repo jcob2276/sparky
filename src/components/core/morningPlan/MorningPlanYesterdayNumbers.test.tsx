@@ -10,6 +10,11 @@ const state = vi.hoisted(() => ({
   save: vi.fn(),
 }));
 
+vi.mock('../../../lib/closer/closerTargetsApi', async () => {
+  const { DEFAULT_CLOSER_TARGETS } = await import('../../../lib/closer/closerDayModel');
+  return { useCloserTargets: () => DEFAULT_CLOSER_TARGETS };
+});
+
 vi.mock('../salesNumbers/useDaySalesNumbers', () => ({ useDaySalesNumbers: () => state.day }));
 vi.mock('../salesNumbers/useWeekSalesSums', () => ({ useWeekSalesSums: () => state.week }));
 
