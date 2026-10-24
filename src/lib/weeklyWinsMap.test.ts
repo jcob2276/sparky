@@ -34,4 +34,29 @@ describe('buildWeeklyWinsMap', () => {
     // missing past day
     expect(days[2]).toMatchObject({ date: '2026-07-15', status: 'loss' });
   });
+
+  it('carries the day rating, the opinion and the five tasks with their categories', () => {
+    const days = buildWeeklyWinsMap({
+      today: '2026-07-19',
+      scores: { '2026-07-14': 6 },
+      rows: [
+        {
+          date: '2026-07-14',
+          result: 'P',
+          day_note: '  spoko, ale brak planu  ',
+          task_1: 'Trening', category_1: 'cialo', done_1: true,
+          task_2: 'Dykcja', category_2: 'duch', done_2: false,
+          task_3: null, task_4: '', task_5: null,
+        },
+      ],
+    });
+    const day = days[1];
+    expect(day.score).toBe(6);
+    expect(day.note).toBe('spoko, ale brak planu');
+    expect(day.tasks).toEqual([
+      { slot: 1, title: 'Trening', done: true, category: 'cialo' },
+      { slot: 2, title: 'Dykcja', done: false, category: 'duch' },
+    ]);
+    expect(days[0]).toMatchObject({ score: null, note: null, tasks: [] });
+  });
 });
