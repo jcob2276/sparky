@@ -5,6 +5,7 @@ import { CLOSER_WEEKLY_TARGETS } from '../../lib/closer/closerDayModel';
 import { useUserId } from '../../store/useStore';
 import { useWeekSalesSums } from './salesNumbers/useWeekSalesSums';
 import { useWeekEnteredDays } from './salesNumbers/useWeekEnteredDays';
+import SalesPlanLines from './salesNumbers/SalesPlanLines';
 
 function Cell({ label, value, target }: { label: string; value: number; target?: number }) {
   return (
@@ -49,6 +50,7 @@ export default function WeeklySalesPulse() {
           <p className="text-xs font-semibold text-text-secondary">
             Z rozmowy odebranej na umówienie {rate(sums.appointments, sums.dials)} · z rozmowy na sprzedaż {rate(sums.salesClosed, sums.salesCalls)}
           </p>
+          <SalesPlanLines sums={sums} today={today} />
         </>
       )}
       {missingDays > 0 && !loading && (
