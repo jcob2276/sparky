@@ -38,4 +38,15 @@ describe('useChronicleSelection', () => {
     act(() => result.current.shiftMain(1));
     expect(result.current.compareOffset).toBe(2);
   });
+
+  it('przyjmuje wybór z zewnątrz i dalej ciągnie porównanie tylko wtedy, gdy jest tuż wcześniej', () => {
+    const { result } = renderHook(() => useChronicleSelection());
+    act(() => result.current.apply(0, 1));
+    act(() => result.current.shiftMain(1));
+    expect(result.current.compareOffset).toBe(2);
+    act(() => result.current.apply(0, 4));
+    act(() => result.current.shiftMain(1));
+    expect([result.current.offset, result.current.compareOffset]).toEqual([1, 4]);
+  });
 });
+

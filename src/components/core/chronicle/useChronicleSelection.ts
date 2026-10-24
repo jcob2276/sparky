@@ -25,11 +25,18 @@ export function useChronicleSelection() {
     setCompareOffset(next);
   }, [offset, compareOffset]);
 
+  /** Ustawia wybór z zewnątrz (skrót z innej zakładki); porównanie przestaje podążać, jeśli nie jest „tuż wcześniej”. */
+  const apply = useCallback((nextOffset: number, nextCompareOffset: number) => {
+    setOffset(Math.max(0, nextOffset));
+    setCompareOffset(Math.max(0, nextCompareOffset));
+    setFollowing(nextCompareOffset === nextOffset + 1);
+  }, []);
+
   const reset = useCallback(() => {
     setOffset(0);
     setCompareOffset(1);
     setFollowing(true);
   }, []);
 
-  return { offset, compareOffset, shiftMain, shiftCompare, reset };
+  return { offset, compareOffset, shiftMain, shiftCompare, apply, reset };
 }
