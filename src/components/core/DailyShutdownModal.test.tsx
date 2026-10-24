@@ -36,7 +36,7 @@ describe('DailyShutdownModal: liczby sprzedaży', () => {
   it('bez liczb nie da się zamknąć dnia i pokazuje dlaczego', () => {
     render(<DailyShutdownModal onClose={vi.fn()} />);
     expect(screen.getByRole('button', { name: /Zatwierdź zamknięcie/ })).toBeDisabled();
-    expect(screen.getByText(/Wpisz diale, umówionych, rozmowy sprzedażowe i sprzedaże/)).toBeInTheDocument();
+    expect(screen.getByText(/Wpisz rozmowy odebrane, umówionych, rozmowy sprzedażowe i sprzedaże/)).toBeInTheDocument();
     expect(screen.getByText('wymagane')).toBeInTheDocument();
   });
 

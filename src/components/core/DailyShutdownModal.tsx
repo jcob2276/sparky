@@ -129,7 +129,7 @@ export default function DailyShutdownModal({
         <footer className="p-4 border-t border-border-custom/20 space-y-2">
           {!sales.complete && !sales.loading && (
             <p className="text-xs font-semibold text-warning text-center">
-              Wpisz diale, umówionych, rozmowy sprzedażowe i sprzedaże (może być 0), żeby zamknąć dzień.
+              Wpisz rozmowy odebrane, umówionych, rozmowy sprzedażowe i sprzedaże (może być 0), żeby zamknąć dzień.
             </p>
           )}
           <Button

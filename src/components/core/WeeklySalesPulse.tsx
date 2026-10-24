@@ -20,7 +20,7 @@ function Cell({ label, value, target }: { label: string; value: number; target?:
 
 const rate = (part: number, whole: number) => (whole > 0 ? `${Math.round((part / whole) * 100)}%` : '—');
 
-/** Lejek sprzedaży tygodnia pon–nd: diale → umówieni, rozmowy sprzedażowe → sprzedaże, z brakującymi dniami. */
+/** Lejek sprzedaży tygodnia pon–nd: rozmowy odebrane → umówieni, rozmowy sprzedażowe → sprzedaże, z brakującymi dniami. */
 export default function WeeklySalesPulse() {
   const userId = useUserId();
   const today = getTodayWarsaw();
@@ -41,13 +41,13 @@ export default function WeeklySalesPulse() {
       ) : (
         <>
           <div className="grid grid-cols-2 gap-2">
-            <Cell label="Diale" value={sums.dials} />
+            <Cell label="Rozmowy odebrane" value={sums.dials} />
             <Cell label="Umówieni" value={sums.appointments} target={CLOSER_WEEKLY_TARGETS.appointments} />
             <Cell label="Rozmowy sprzedażowe" value={sums.salesCalls} target={CLOSER_WEEKLY_TARGETS.salesCalls} />
             <Cell label="Sprzedaże" value={sums.salesClosed} />
           </div>
           <p className="text-xs font-semibold text-text-secondary">
-            Z diala na umówienie {rate(sums.appointments, sums.dials)} · z rozmowy na sprzedaż {rate(sums.salesClosed, sums.salesCalls)}
+            Z rozmowy odebranej na umówienie {rate(sums.appointments, sums.dials)} · z rozmowy na sprzedaż {rate(sums.salesClosed, sums.salesCalls)}
           </p>
         </>
       )}

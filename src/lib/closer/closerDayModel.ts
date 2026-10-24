@@ -17,7 +17,7 @@ export interface DayNumbersDraft {
 }
 
 /**
- * Liczby dnia w kolumnach `closer_daily_logs`: „diale” to kolumna `dials`, „umówieni” (z dial) to
+ * Liczby dnia w kolumnach `closer_daily_logs`: „rozmowy odebrane” to kolumna `dials` (historyczna nazwa: dawniej diale), „umówieni” (z rozmów) to
  * `appointments`, „rozmowy sprzedażowe” to `sales_calls`, „sprzedaże” to `sales_closed`.
  */
 export interface DayNumbers {
