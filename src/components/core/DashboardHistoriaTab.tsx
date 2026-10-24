@@ -1,7 +1,5 @@
 import { Suspense, memo, useEffect, useState } from 'react';
-import { ChevronDown } from 'lucide-react';
 import { useSession } from '../../store/useStore';
-import { Pressable } from '../ui/ControlPrimitives';
 import Skeleton from '../ui/Skeleton';
 import Stats from './Stats';
 import StravaWidget from '../integrations/StravaWidget';
@@ -27,7 +25,6 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
   const session = useSession();
   const [goal, setGoal] = useState<ChronicleGoal>('cialo');
   const [period, setPeriod] = useState<ChroniclePeriod>('week');
-  const [showTraining, setShowTraining] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
   const selection = useChronicleSelection();
   const chronicle = useChronicle(goal, period, selection.offset, selection.compareOffset);
@@ -88,7 +85,7 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
 
       <Suspense fallback={<ViewFallback />}>
         <Stats
-          domain={goal === 'cialo' ? (showTraining ? 'all' : 'body') : 'none'}
+          domain={goal === 'cialo' ? 'all' : 'none'}
           photosSlot={<Photos />}
           runningSlot={<StravaWidget />}
           isExportOpen={isExportOpen}
@@ -97,16 +94,6 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
         />
       </Suspense>
 
-      {goal === 'cialo' && (
-        <Pressable
-          aria-expanded={showTraining}
-          onClick={() => setShowTraining((value) => !value)}
-          className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-border-custom/60 bg-surface/50 py-2.5 text-xs font-bold text-text-secondary ui-interactive active:scale-95 cursor-pointer"
-        >
-          <ChevronDown size={14} aria-hidden="true" className={showTraining ? 'rotate-180' : ''} />
-          {showTraining ? 'Ukryj treningi' : 'Pokaż treningi (siłownia, biegi)'}
-        </Pressable>
-      )}
     </div>
   );
 });

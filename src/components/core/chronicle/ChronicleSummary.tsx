@@ -1,5 +1,6 @@
 import type { ChronicleSummaryData, ChronicleTile } from '../../../lib/chronicle/summaryTypes';
 import Skeleton from '../../ui/Skeleton';
+import ChronicleAccordion from './ChronicleAccordion';
 import ChronicleLineChart from './ChronicleLineChart';
 
 const TONE_CLASS: Record<ChronicleTile['tone'], string> = {
@@ -33,6 +34,11 @@ function groupTiles(tiles: ChronicleTile[]): Array<{ title: string | null; tiles
     else groups.push({ title, tiles: [tile] });
   }
   return groups;
+}
+
+/** Podgląd zwiniętej grupy: do trzech pierwszych kafelków, np. „Sen 6,4 h · Jakość snu 70 · HRV 54 ms”. */
+function groupPreview(tiles: ChronicleTile[]): string {
+  return tiles.slice(0, 3).map((tile) => `${tile.label} ${tile.value}`).join(' · ');
 }
 
 interface Props {
@@ -69,16 +75,18 @@ export default function ChronicleSummary({ summary, loading, error, periodTitle,
         <p className="text-xs font-semibold text-text-secondary">{goalLine.hint}</p>
       </div>
 
-      {groups.map((group) => (
-        <div key={group.title ?? 'all'} className="space-y-1.5">
-          {group.title && <p className="px-1 text-2xs font-semibold tracking-wide text-text-muted">{group.title}</p>}
+      {groups.map((group, groupIndex) => {
+        const grid = (
           <div className="grid grid-cols-2 gap-2">
             {group.tiles.map((tile, index) => (
               <Tile key={tile.label} tile={tile} wide={group.tiles.length % 2 === 1 && index === group.tiles.length - 1} compareLabel={compareLabel} />
             ))}
           </div>
-        </div>
-      ))}
+        );
+        return group.title
+          ? <ChronicleAccordion key={group.title} title={group.title} preview={groupPreview(group.tiles)} defaultOpen={groupIndex === 0}>{grid}</ChronicleAccordion>
+          : <div key="all">{grid}</div>;
+      })}
 
       {showChart && (
         <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">

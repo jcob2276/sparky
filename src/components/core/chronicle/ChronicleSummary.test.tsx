@@ -37,20 +37,27 @@ describe('ChronicleSummary', () => {
     expect(screen.getByText('+10 vs 21–27 wrz')).toBeInTheDocument();
   });
 
-  it('grupuje kafelki pod nagłówkami sekcji, a bez grup zostawia jeden blok', () => {
+  it('pierwsza grupa jest otwarta, reszta zwinięta do jednej linii z podglądem; bez grup zostaje jeden blok', () => {
     const grouped = {
       ...summary,
       tiles: [
-        { label: 'Sen', value: '7 h', delta: null, tone: 'neutral' as const, group: 'Sen' },
+        { label: 'Sen', value: '7 h', delta: '+1 h', tone: 'good' as const, group: 'Sen' },
         { label: 'HRV', value: '60', delta: null, tone: 'neutral' as const, group: 'Sen' },
-        { label: 'Kalorie', value: '2400', delta: null, tone: 'neutral' as const, group: 'Jedzenie' },
+        { label: 'Kalorie', value: '2400', delta: '+200', tone: 'neutral' as const, group: 'Jedzenie' },
+        { label: 'Białko', value: '120', delta: null, tone: 'neutral' as const, group: 'Jedzenie' },
       ],
     };
     const { rerender } = render(<ChronicleSummary summary={grouped} loading={false} error={null} periodTitle="Ten tydzień" />);
-    expect(screen.getByText('Sen', { selector: 'p.px-1' })).toBeInTheDocument();
-    expect(screen.getByText('Jedzenie', { selector: 'p.px-1' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Sen/ })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByText('+1 h vs poprzedni')).toBeInTheDocument();
+    const food = screen.getByRole('button', { name: /Jedzenie.*Kalorie 2400 · Białko 120/ });
+    expect(food).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByText('+200 vs poprzedni')).toBeNull();
+    fireEvent.click(food);
+    expect(screen.getByText('+200 vs poprzedni')).toBeInTheDocument();
     rerender(<ChronicleSummary summary={summary} loading={false} error={null} periodTitle="Ten tydzień" />);
-    expect(screen.queryByText('Jedzenie', { selector: 'p.px-1' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /Jedzenie/ })).toBeNull();
+    expect(screen.getByText('+10 vs poprzedni')).toBeInTheDocument();
   });
 
   it('bez danych do wykresu mówi o tym wprost', () => {
