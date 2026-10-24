@@ -1,10 +1,12 @@
 import { AlertTriangle, ChevronRight } from 'lucide-react';
 import type { MarkerSeries } from '../../../lib/health/medicalAnalytics';
 import { Pressable } from '../../ui/ControlPrimitives';
+import { MiniSparkline } from '../../investments/MiniSparkline';
+import { markerChange, sparkValues } from '../../../lib/health/markerTrend';
 import MedicalRangeGauge from './MedicalRangeGauge';
 
 interface MedicalResultsCardsProps {
-  items: Array<{ current: MarkerSeries['latest']; previous: MarkerSeries['prior'] }>;
+  items: Array<{ current: MarkerSeries['latest']; previous: MarkerSeries['prior']; history: MarkerSeries['history'] }>;
   onSelectMarker: (markerKey: string) => void;
 }
 
@@ -19,7 +21,8 @@ export default function MedicalResultsCards({ items, onSelectMarker }: MedicalRe
   }
   return (
     <ul className="space-y-2">
-      {items.map(({ current }) => {
+      {items.map(({ current, previous, history }) => {
+        const change = markerChange(current, previous);
         const hasFlag = current.flag && current.flag !== 'N' && current.flag !== 'normal';
         return (
           <li key={current.id}>
@@ -46,6 +49,12 @@ export default function MedicalResultsCards({ items, onSelectMarker }: MedicalRe
               <div className="shrink-0 text-right">
                 <p className={`text-base font-extrabold tabular-nums ${hasFlag ? 'text-warning' : 'text-text-primary'}`}>{current.value}</p>
                 <p className="text-xs font-semibold text-text-muted">{current.unit}</p>
+                {history.length > 1 && <MiniSparkline data={sparkValues(history)} width={56} height={18} className="ml-auto mt-1 text-primary" />}
+                {change && change.direction !== 'flat' && (
+                  <p className="mt-0.5 text-2xs tabular-nums text-text-muted">
+                    {change.direction === 'up' ? '↑' : '↓'} {change.pct != null ? `${Math.abs(change.pct)}%` : Math.abs(change.delta).toFixed(1)} od poprz.
+                  </p>
+                )}
               </div>
               <ChevronRight size={16} className="shrink-0 text-text-muted" aria-hidden="true" />
             </Pressable>

@@ -13,7 +13,7 @@ export default function MedicalDocHistory({ documents }: MedicalDocHistoryProps)
   return (
     <div className="space-y-4">
       <div className="border-b border-border-custom/50 pb-3">
-        <h2 className="text-lg font-semibold font-display">4. Historia Dokumentów</h2>
+        <h2 className="text-lg font-semibold font-display">Historia dokumentów</h2>
         <p className="text-2xs text-text-muted mt-0.5">Oryginalne dokumenty i surowe raporty laboratoryjne jako źródło prawdy</p>
       </div>
 
