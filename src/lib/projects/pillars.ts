@@ -1,5 +1,5 @@
 import { Shield, Zap, Wallet, type LucideIcon } from 'lucide-react';
-import { GOAL_BENCH_KG, GOAL_BODY_FAT_PCT } from '../lifeGoals';
+import { GOAL_BENCH_KG, GOAL_BODY_FAT_PCT, GOAL_INCOME_LABEL } from '../lifeGoals';
 
 /**
  * Single source of truth for the three life pillars (Ciało/Duch/Konto) and the
@@ -46,7 +46,7 @@ export const NORTH_STAR_SPHERES: Record<PillarId, NorthStarGoal> = {
     title: 'Konto',
     affirmation: 'Ja Jakub zarabiam z łatwością i luzem 15 tysięcy złotych netto miesięcznie',
     why: 'Bo chcę mieć luz z kasą i kupować co tylko chcę',
-    metric: '15 000 zł netto / msc',
+    metric: GOAL_INCOME_LABEL,
   },
   duch: {
     pillar: 'duch',

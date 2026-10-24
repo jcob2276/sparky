@@ -115,17 +115,6 @@ export async function loadWorkoutTemplate(userId: string, workoutDay?: string): 
   }
 }
 
-export type PlyoSetLog = {
-  exercise_name: string
-  set_number: number
-  weight: number
-  reps: number
-  rir: null
-  rpe: null
-  is_pws_or_msp: boolean
-  muscle_tags: string[]
-}
-
 export async function saveWorkoutSession(
   userId: string,
   opts: {
@@ -139,14 +128,12 @@ export async function saveWorkoutSession(
     manualTime: boolean
     startTimeManual: string
     endTimeManual: string
-    plyoLogs?: PlyoSetLog[]
     planWorkoutId?: string
   },
 ): Promise<{ queued: boolean; rpeMismatch: string | null }> {
   const validEx = opts.exercises.filter((e) => e.name.trim())
   const validAc = opts.activities.filter((a) => a.name.trim())
-  const plyoLogs = opts.plyoLogs ?? []
-  if (!validEx.length && !validAc.length && !plyoLogs.length) {
+  if (!validEx.length && !validAc.length) {
     throw new Error('Dodaj co najmniej jedno ćwiczenie')
   }
 
@@ -176,7 +163,7 @@ export async function saveWorkoutSession(
     rir: null,
     muscle_tags: ['activity'],
   }))
-  if (opts.planWorkoutId && ![...plyoLogs, ...exLogs, ...acLogs].some(log => Number(log.reps) > 0)) {
+  if (opts.planWorkoutId && ![...exLogs, ...acLogs].some(log => Number(log.reps) > 0)) {
     throw new Error('Wpisz wykonany wynik serii lub czas aktywności przed zapisem.')
   }
 
@@ -222,7 +209,7 @@ export async function saveWorkoutSession(
       p_end_time: finalEnd as string,
       p_notes: opts.notes,
       p_msp_passed: mspPassed,
-      p_logs: [...plyoLogs, ...exLogs, ...acLogs],
+      p_logs: [...exLogs, ...acLogs],
       p_session_rpe: opts.sessionRpe ?? undefined,
     },
     'Trening',

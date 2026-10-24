@@ -44,17 +44,6 @@ export function hasResumableWorkoutDraftContent(draft: WorkoutDraft): boolean {
   return false
 }
 
-function hasPlyoCheckoffProgress(userId: string): boolean {
-  try {
-    const raw = localStorage.getItem(`vanguard_plyo_checkoff_${userId}`)
-    if (!raw) return false
-    const parsed = JSON.parse(raw) as { done?: boolean[][] }
-    return (parsed.done ?? []).some((row) => row.some(Boolean))
-  } catch {
-    return false
-  }
-}
-
 export function markWorkoutSessionActive(userId: string): void {
   try {
     localStorage.setItem(ACTIVE_SESSION_KEY(userId), String(Date.now()))
@@ -81,19 +70,16 @@ export function isWorkoutSessionActive(userId: string): boolean {
 
 export function shouldAutoResumeWorkout(userId: string): boolean {
   const draft = readWorkoutDraftRaw(userId)
-  const hasPlyo = hasPlyoCheckoffProgress(userId)
   const hasDraft = draft != null && hasResumableWorkoutDraftContent(draft)
 
   if (isWorkoutSessionActive(userId)) {
-    if (hasDraft || hasPlyo) return true
+    if (hasDraft) return true
     clearWorkoutSessionActive(userId)
     clearWorkoutDraft(userId)
     return false
   }
 
-  if (hasDraft) return true
-  if (hasPlyo) return true
-  return false
+  return hasDraft
 }
 
 export function purgeStaleWorkoutDraft(userId: string): void {

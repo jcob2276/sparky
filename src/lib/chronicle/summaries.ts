@@ -3,7 +3,7 @@ import type { PeriodWindow } from './periods';
 import { CLOSER_WEEKLY_TARGETS } from '../closer/closerDayModel';
 import { shiftDateStr } from '../date';
 import { formatValue, makeTile, type ChronicleSummaryData } from './summaryTypes';
-import { GOAL_BENCH_KG, GOAL_BODY_FAT_PCT } from '../lifeGoals';
+import { GOAL_BENCH_KG, GOAL_BODY_FAT_PCT, GOAL_INCOME_LABEL } from '../lifeGoals';
 
 const GOAL_BF = GOAL_BODY_FAT_PCT;
 
@@ -178,7 +178,7 @@ export function buildKontoSummary(rows: KontoRows, win: PeriodWindow, today: str
     goalLine: {
       title: 'Konto',
       pct: bookedNow == null || targetBooked === 0 ? null : Math.min(100, Math.round((bookedNow / targetBooked) * 100)),
-      hint: `Umówieni ${bookedNow ?? 0} z ${targetBooked} · cel 15 000 zł netto / msc`,
+      hint: `Umówieni ${bookedNow ?? 0} z ${targetBooked} · cel ${GOAL_INCOME_LABEL}`,
     },
     tiles: [
       makeTile({ group: 'Lejek', label: 'Rozmowy odebrane', current: sum(dials, start, end), previous: sum(dials, prevStart, prevEnd), higherIsBetter: true }),

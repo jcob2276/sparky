@@ -9,7 +9,7 @@ import { getTodayWarsaw } from '../../lib/date';
 import { getWeekStartWarsaw } from '../../lib/growth/growth';
 import { Pressable } from '../ui/ControlPrimitives';
 import DataStateNotice from './DataStateNotice';
-import { GOAL_BODY_SHORT } from '../../lib/lifeGoals';
+import { GOAL_BODY_SHORT, GOAL_INCOME_SHORT } from '../../lib/lifeGoals';
 
 const PILLAR_ORDER: PillarId[] = ['konto', 'duch', 'cialo'];
 
@@ -20,7 +20,7 @@ const PILLAR_CONFIG = {
     borderColor: 'border-warning/30',
     bgActive: 'bg-warning/10',
     badgeText: 'text-warning',
-    shortMetric: '15k zł / msc',
+    shortMetric: GOAL_INCOME_SHORT,
   },
   duch: {
     icon: Zap,
