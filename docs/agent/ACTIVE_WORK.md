@@ -2066,7 +2066,7 @@ Do zrobienia (kolejne pionowe plastry, jeden temat = jeden commit):
 - [x] Laboratorium: zakładki Przegląd / Wyniki / Trendy / Dokumenty (`lib/health/labTabs.ts`).
 - [x] Wyniki: karty markerów ze sparkline, zmianą % i filtrem „Ostatnio” (`lib/health/markerTrend.ts`).
 - [x] Import: zdjęcie wyniku → odczyt AI (`parse-lab-results`) → wiersze kreatora → zatwierdzenie (PDF: jeszcze nie).
-- [ ] Kontekst treningu i snu przy markerach (ferrytyna vs objętość biegania) — tylko jako informacja, bez diagnozy.
+- [x] Kontekst treningu, snu i jedzenia przy markerach (`lib/health/markerContext.ts`), tylko jako informacja.
 - [ ] Kartoteka: te same zasady (czytelność, jedna główna akcja, bez zwijanych nagłówków).
 - [ ] Świadomość aplikacji: sprawdzić, że `_shared/medicalContext.ts` trafia do porannego briefu i Oracle z flagą świeżości.
 
