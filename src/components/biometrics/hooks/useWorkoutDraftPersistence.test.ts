@@ -9,7 +9,7 @@ describe('planned workout draft persistence', () => {
   it('persists the latest plan identity on debounce and backgrounding', () => {
     vi.useFakeTimers(); markWorkoutSessionActive('owner');
     const ended = { current: false };
-    const { rerender } = renderHook(({ current }) => useWorkoutDraftPersistence('owner', current, ended, () => {}), { initialProps: { current: draft } });
+    const { rerender } = renderHook(({ current }) => useWorkoutDraftPersistence('owner', current, ended), { initialProps: { current: draft } });
     act(() => vi.advanceTimersByTime(800));
     expect(loadWorkoutDraft('owner')?.planWorkoutId).toBe('planned-session');
     rerender({ current: { ...draft, notes: 'last set recorded' } });
@@ -19,7 +19,7 @@ describe('planned workout draft persistence', () => {
   it('does not resurrect a completed draft when the app backgrounds or a timer fires', () => {
     vi.useFakeTimers(); markWorkoutSessionActive('owner');
     const ended = { current: false };
-    renderHook(() => useWorkoutDraftPersistence('owner', draft, ended, () => {}));
+    renderHook(() => useWorkoutDraftPersistence('owner', draft, ended));
     ended.current = true; endWorkoutSession('owner');
     act(() => { window.dispatchEvent(new Event('pagehide')); vi.advanceTimersByTime(1000); });
     expect(loadWorkoutDraft('owner')).toBeNull();

@@ -1,9 +1,9 @@
-import { useState, memo, useMemo } from 'react';
+import { useState, memo } from 'react';
 import { Pressable } from '../ui/ControlPrimitives';
 import { NORTH_STAR_SPHERES, type PillarId } from '../../lib/projects/pillars';
 import { useVisionItemsQuery, type VisionBoardItemRow } from '../../lib/dreamsApi';
 import { useSession } from '../../store/useStore';
-import { PILLAR_CONFIG, PILLAR_ORDER, getMarathonStats } from './sphereGoals/sphereGoalsConfig';
+import { PILLAR_CONFIG, PILLAR_ORDER } from './sphereGoals/sphereGoalsConfig';
 import { SphereDetailsDrawer } from './sphereGoals/SphereDrawers';
 import { VisionTilesRow } from './sphereGoals/VisionTilesRow';
 
@@ -16,7 +16,6 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
 
   const { data: visionItems = [] } = useVisionItemsQuery(userId);
   const imageItems = visionItems.filter((item: VisionBoardItemRow) => item.type === 'image');
-  const marathon = useMemo(() => getMarathonStats(), []);
 
   const togglePillar = (p: PillarId) => {
     setSelectedPillar((prev) => (prev === p ? null : p));
@@ -34,7 +33,6 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
           const goal = NORTH_STAR_SPHERES[pillar];
           const Icon = cfg.icon;
           const isSelected = selectedPillar === pillar;
-          const marathonDays = pillar === 'cialo' && marathon.daysLeft > 0 ? marathon.daysLeft : null;
 
           return (
             <Pressable
@@ -51,9 +49,6 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
               <span className="relative flex items-center justify-between gap-1 text-on-accent">
                 <span className="text-xs font-semibold">{goal.title}</span>
                 <span className="flex items-center gap-1">
-                  {marathonDays !== null && (
-                    <span className="text-2xs font-semibold">🏃{marathonDays}d</span>
-                  )}
                   <Icon size={14} aria-hidden="true" />
                 </span>
               </span>
@@ -68,7 +63,6 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
       {selectedPillar && (
         <SphereDetailsDrawer
           pillar={selectedPillar}
-          marathon={marathon}
           onClose={() => setSelectedPillar(null)}
         />
       )}

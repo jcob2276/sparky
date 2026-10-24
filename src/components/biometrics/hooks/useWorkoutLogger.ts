@@ -20,15 +20,6 @@ import { useWorkoutDraftPersistence } from './useWorkoutDraftPersistence';
 import { useUserId } from '../../../store/useStore';
 import { useQueryClient } from '@tanstack/react-query';
 import { calendarKeys, biometricsKeys } from '../../../lib/queryKeys';
-import {
-  advancePlyoProgram,
-  clearPlyoCheckoff,
-  initPlyoCheckoff,
-  isPlyoSessionComplete,
-  plyoPrescriptionToLogs,
-  resolvePlyoSession,
-  savePlyoCheckoff,
-} from '../../../lib/health/plyoMarathonProgram';
 
 interface UseWorkoutLoggerOptions {
   initial?: WorkoutLoggerInitial | null;
@@ -61,22 +52,7 @@ export function useWorkoutLogger({ initial, onSaved, onBack }: UseWorkoutLoggerO
     sessionEndedRef.current = true;
     if (!userId) return;
     endWorkoutSession(userId);
-    clearPlyoCheckoff(userId);
   }, [userId]);
-
-  const [plyoSkipped, setPlyoSkipped] = useState(true);
-  const plyoSession = userId ? resolvePlyoSession(workoutDate, userId) : null;
-  const [plyoDone, setPlyoDone] = useState<boolean[][]>(() =>
-    plyoSession && userId ? initPlyoCheckoff(userId, plyoSession) : []
-  );
-
-  useEffect(() => {
-    if (!userId || plyoSkipped) return;
-    const session = resolvePlyoSession(workoutDate, userId);
-    void (async () => {
-      setPlyoDone(initPlyoCheckoff(userId, session));
-    })();
-  }, [userId, workoutDate, plyoSkipped]);
 
   useEffect(() => {
     if (!userId) return;
@@ -104,23 +80,6 @@ export function useWorkoutLogger({ initial, onSaved, onBack }: UseWorkoutLoggerO
   }, [userId, initial]);
 
   useEffect(() => {
-    if (!userId || plyoSkipped || !plyoSession || sessionEndedRef.current) return;
-    const t = window.setTimeout(() => {
-      if (sessionEndedRef.current) return;
-      savePlyoCheckoff(userId, plyoSession.sessionKey, plyoDone);
-    }, 400);
-    return () => window.clearTimeout(t);
-  }, [userId, plyoSkipped, plyoSession, plyoDone]);
-
-  const togglePlyoSet = (exIdx: number, setIdx: number) => {
-    setPlyoDone((prev) =>
-      prev.map((row, i) =>
-        i === exIdx ? row.map((d, j) => (j === setIdx ? !d : d)) : row
-      )
-    );
-  };
-
-  useEffect(() => {
     if (!userId) return;
     markWorkoutSessionActive(userId);
   }, [userId]);
@@ -138,17 +97,14 @@ export function useWorkoutLogger({ initial, onSaved, onBack }: UseWorkoutLoggerO
       startTimeManual,
       endTimeManual,
       savedAt: 0, // saveWorkoutDraft stamps the actual persistence time.
-    }, sessionEndedRef, () => {
-      if (userId && plyoSession && plyoDone.length > 0) savePlyoCheckoff(userId, plyoSession.sessionKey, plyoDone);
-    });
+    }, sessionEndedRef);
 
   const hasUnsavedData = Boolean(
     workoutName.trim() ||
       notes.trim() ||
       sessionRpe != null ||
       exercises.some((e) => e.name.trim()) ||
-      activities.some((a) => a.name.trim()) ||
-      plyoDone.some((row) => row.some(Boolean))
+      activities.some((a) => a.name.trim())
   );
 
   const handleBack = async () => {
@@ -180,12 +136,8 @@ export function useWorkoutLogger({ initial, onSaved, onBack }: UseWorkoutLoggerO
     if (!userId || saving) return;
     const validEx = exercises.filter((e) => e.name.trim());
     const validAc = activities.filter((a) => a.name.trim());
-    const plyoLogs =
-      !plyoSkipped && plyoSession
-        ? plyoPrescriptionToLogs(plyoSession.exercises, plyoDone)
-        : [];
-    if (!validEx.length && !validAc.length && !plyoLogs.length) {
-      notify('Dodaj ćwiczenia siłowe albo odhacz serie plyo', 'error');
+    if (!validEx.length && !validAc.length) {
+      notify('Dodaj przynajmniej jedno ćwiczenie', 'error');
       return;
     }
 
@@ -205,10 +157,6 @@ export function useWorkoutLogger({ initial, onSaved, onBack }: UseWorkoutLoggerO
       }
     }
 
-    const plyoComplete = Boolean(
-      !plyoSkipped && plyoSession && isPlyoSessionComplete(plyoDone)
-    );
-
     setSaving(true);
     try {
       const { queued, rpeMismatch } = await saveWorkoutSession(userId, {
@@ -223,11 +171,7 @@ export function useWorkoutLogger({ initial, onSaved, onBack }: UseWorkoutLoggerO
         manualTime,
         startTimeManual,
         endTimeManual,
-        plyoLogs,
       });
-      if (plyoComplete) {
-        advancePlyoProgram(userId);
-      }
       if (userId) {
         void queryClient.invalidateQueries({ queryKey: calendarKeys.all });
         void queryClient.invalidateQueries({ queryKey: biometricsKeys.all });
@@ -285,11 +229,6 @@ export function useWorkoutLogger({ initial, onSaved, onBack }: UseWorkoutLoggerO
     endTimeManual,
     setEndTimeManual,
     elapsed,
-    plyoSkipped,
-    setPlyoSkipped,
-    plyoSession,
-    plyoDone,
-    togglePlyoSet,
     addExercise,
     removeExercise,
     updateExercise,

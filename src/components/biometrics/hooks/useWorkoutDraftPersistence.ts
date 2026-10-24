@@ -3,15 +3,14 @@ import { hasResumableWorkoutDraftContent, isWorkoutSessionActive, persistWorkout
 
 /** Keep app-background and debounced saves on the same latest draft, including plan identity. */
 export function useWorkoutDraftPersistence(userId: string | undefined, draft: WorkoutDraft,
-  ended: RefObject<boolean>, onFlush: () => void) {
-  const latest = useRef({ draft, onFlush });
-  useEffect(() => { latest.current = { draft, onFlush }; });
+  ended: RefObject<boolean>) {
+  const latest = useRef({ draft });
+  useEffect(() => { latest.current = { draft }; });
   useEffect(() => {
     if (!userId) return;
     const flush = () => {
       if (ended.current) return;
       persistWorkoutDraft(userId, latest.current.draft);
-      latest.current.onFlush();
     };
     const onHide = () => { if (document.visibilityState === 'hidden') flush(); };
     window.addEventListener('pagehide', flush);
