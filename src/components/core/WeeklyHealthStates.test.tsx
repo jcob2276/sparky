@@ -8,6 +8,11 @@ const source = vi.hoisted(() => ({ directionError: null as Error | null, userId:
   data: undefined as ReturnType<typeof buildWeeklyBodyPulse> | undefined,
   isLoading: false, isError: false, error: null as Error | null,
 } }));
+vi.mock('../../lib/lifeTargetsApi', async () => {
+  const { DEFAULT_LIFE_TARGETS } = await import('../../lib/lifeGoals');
+  return { useLifeTargets: () => DEFAULT_LIFE_TARGETS };
+});
+
 vi.mock('../../lib/biometricsApi', () => ({ useWeeklyBodyPulse: () => source.query }));
 vi.mock('../../store/useStore', () => ({ useUserId: () => source.userId }));
 vi.mock('../../lib/weeklyWinsMap', () => ({ useWeeklyWinsMap: () => ({ data: [], isLoading: false, isError: false }) }));

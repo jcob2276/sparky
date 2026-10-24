@@ -1,8 +1,9 @@
 import { useState, memo } from 'react';
 import { Pressable } from '../ui/ControlPrimitives';
-import { NORTH_STAR_SPHERES, type PillarId } from '../../lib/projects/pillars';
+import { buildNorthStarSpheres, type PillarId } from '../../lib/projects/pillars';
 import { useVisionItemsQuery, type VisionBoardItemRow } from '../../lib/dreamsApi';
 import { useSession } from '../../store/useStore';
+import { useLifeTargets } from '../../lib/lifeTargetsApi';
 import { PILLAR_CONFIG, PILLAR_ORDER } from './sphereGoals/sphereGoalsConfig';
 import { SphereDetailsDrawer } from './sphereGoals/SphereDrawers';
 import { VisionTilesRow } from './sphereGoals/VisionTilesRow';
@@ -11,6 +12,7 @@ import { VisionTilesRow } from './sphereGoals/VisionTilesRow';
 export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
   const session = useSession();
   const userId = session?.user?.id ?? '';
+  const spheres = buildNorthStarSpheres(useLifeTargets(userId));
 
   const [selectedPillar, setSelectedPillar] = useState<PillarId | null>(null);
 
@@ -30,7 +32,7 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
       <div className="grid grid-cols-3 gap-2">
         {PILLAR_ORDER.map((pillar) => {
           const cfg = PILLAR_CONFIG[pillar];
-          const goal = NORTH_STAR_SPHERES[pillar];
+          const goal = spheres[pillar];
           const Icon = cfg.icon;
           const isSelected = selectedPillar === pillar;
 
@@ -53,7 +55,7 @@ export const ThreeSpheresGoalsCard = memo(function ThreeSpheresGoalsCard() {
                 </span>
               </span>
               <span className="relative break-words text-base font-semibold leading-tight text-on-accent">
-                {cfg.shortMetric}
+                {goal.short}
               </span>
             </Pressable>
           );

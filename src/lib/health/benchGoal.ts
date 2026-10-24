@@ -1,8 +1,7 @@
 import { shiftDateStr } from '../date';
-import { GOAL_BENCH_KG } from '../lifeGoals';
+import { DEFAULT_LIFE_TARGETS } from '../lifeGoals';
 
 export const BENCH_GOAL_EXERCISE = 'Wyciskanie płaskie';
-const BENCH_GOAL_KG = GOAL_BENCH_KG;
 
 type BenchGoalStatus = 'no-data' | 'few-sessions' | 'reached' | 'flat' | 'on-track';
 
@@ -40,7 +39,7 @@ function weeklySlope(points: Array<{ date: string; e1rm: number }>): number | nu
  * Postęp do celu w wyciskaniu z historii e1RM. Prognozę podaje dopiero od 4 sesji z rozpiętością 3 tygodni,
  * bo przy mniejszej próbie nachylenie to zgadywanie.
  */
-export function buildBenchGoal(points: Array<{ date: string; e1rm: number }>, today: string, goalKg = BENCH_GOAL_KG): BenchGoal {
+export function buildBenchGoal(points: Array<{ date: string; e1rm: number }>, today: string, goalKg = DEFAULT_LIFE_TARGETS.benchKg): BenchGoal {
   const sorted = [...points].sort((a, b) => a.date.localeCompare(b.date));
   const best = sorted.length ? Math.max(...sorted.map((p) => p.e1rm)) : null;
   const base = { goalKg, bestE1rm: best, sessions: sorted.length, weeklyGainKg: null, etaDate: null };

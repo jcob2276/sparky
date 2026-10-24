@@ -1,5 +1,5 @@
 import { Shield, Zap, Wallet, type LucideIcon } from 'lucide-react';
-import { GOAL_BENCH_KG, GOAL_BODY_FAT_PCT, GOAL_INCOME_LABEL } from '../lifeGoals';
+import { bodyShort, incomeLabel, incomeShort, type LifeTargets } from '../lifeGoals';
 
 /**
  * Single source of truth for the three life pillars (Ciało/Duch/Konto) and the
@@ -38,15 +38,19 @@ export interface NorthStarGoal {
   affirmation: string;
   why: string;
   metric: string;
+  /** Skrót celu pod kafelkiem sfery. */
+  short: string;
 }
 
-export const NORTH_STAR_SPHERES: Record<PillarId, NorthStarGoal> = {
+/** Sfery z celami liczbowymi pochodzącymi z bazy (`useLifeTargets`), nie z wpisanych na sztywno stałych. */
+export const buildNorthStarSpheres = (t: LifeTargets): Record<PillarId, NorthStarGoal> => ({
   konto: {
     pillar: 'konto',
     title: 'Konto',
-    affirmation: 'Ja Jakub zarabiam z łatwością i luzem 15 tysięcy złotych netto miesięcznie',
+    affirmation: `Ja Jakub zarabiam z łatwością i luzem ${t.incomeNetPln / 1000} tysięcy złotych netto miesięcznie`,
     why: 'Bo chcę mieć luz z kasą i kupować co tylko chcę',
-    metric: GOAL_INCOME_LABEL,
+    metric: incomeLabel(t),
+    short: incomeShort(t),
   },
   duch: {
     pillar: 'duch',
@@ -54,13 +58,15 @@ export const NORTH_STAR_SPHERES: Record<PillarId, NorthStarGoal> = {
     affirmation: 'Ja Jakub z łatwością buduję nowe relacje i mam ogromne powodzenie wśród kobiet',
     why: 'Bo chcę mieć kobitę i sex i dzieci',
     metric: 'Głębokie relacje i powodzenie',
+    short: 'Relacje',
   },
   cialo: {
     pillar: 'cialo',
     title: 'Ciało',
-    affirmation: `Ja Jakub buduję codziennie swoje ciało, ${GOAL_BODY_FAT_PCT}% BF i ${GOAL_BENCH_KG} kg bench press`,
+    affirmation: `Ja Jakub buduję codziennie swoje ciało, ${t.bodyFatPct}% BF i ${t.benchKg} kg bench press`,
     why: 'Bo chcę wyglądać pociągająco',
-    metric: `${GOAL_BODY_FAT_PCT}% BF · ${GOAL_BENCH_KG} kg bench press`,
+    metric: `${t.bodyFatPct}% BF · ${t.benchKg} kg bench press`,
+    short: bodyShort(t),
   },
-};
+});
 

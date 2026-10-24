@@ -17,9 +17,9 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 
 | Fakt | Właściciel (zapis) | Jak czytać |
 |---|---|---|
-| Cel tłuszczu (%) | `nutrition_profile.goal_body_fat` | `useLifeTargets().bodyFatPct` |
-| Cel wyciskania (kg, e1RM) | `life_targets.bench_goal_kg` | `useLifeTargets().benchKg` |
-| Cel dochodu netto (zł/msc) | `life_targets.income_goal_net_pln` | `useLifeTargets().incomeNetPln` |
+| Cel tłuszczu (%) | `nutrition_profile.goal_body_fat` | `useLifeTargets(userId).bodyFatPct` |
+| Cel wyciskania (kg, e1RM) | `life_targets.bench_goal_kg` | `useLifeTargets(userId).benchKg` |
+| Cel dochodu netto (zł/msc) | `life_targets.income_goal_net_pln` | `useLifeTargets(userId).incomeNetPln` |
 | Cel majątku netto (zł) | `finance_profile.net_worth_target` | `useLifeTargets().netWorthPln` |
 | Cele tygodniowe sprzedaży (umówienia, sales calle, rozmowy odebrane, godziny) | `goal_kpis` (projekt closer) | `useLifeTargets().weekly*` |
 | Cel snu (h) | `nutrition_profile.sleep_target_hours` | `personalTargets.sleepTargetH` (edge), `useLifeTargets().sleepH` |
@@ -34,7 +34,7 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 | Aktywności liczone jako bieganie | `src/lib/runSports.ts` | kopia w `period-compare` (osobny bundle) |
 | Strefa czasu aplikacji | `WARSAW_TZ` w `@vanguard/domain` | dni jako klucze `YYYY-MM-DD` w Warszawie |
 | Tydzień (pon–nd) | `getWeekStartWarsaw` | |
-| Cele ciała jako stałe awaryjne | `src/lib/lifeGoals.ts` | tylko wartości domyślne do czasu załadowania z bazy |
+| Wartości awaryjne celów i formatowanie ich tekstów | `src/lib/lifeGoals.ts` | tylko do czasu załadowania z bazy; odczyt przez `lifeTargetsApi.ts` |
 
 ## Znane rozjazdy do ujednolicenia (usuwaj wiersz, gdy naprawione)
 
