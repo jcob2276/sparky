@@ -8,6 +8,9 @@ import BrowseScreen from './BrowseScreen';
 
 interface FoodEntryContentProps {
   userId?: string;
+  onClose: () => void;
+  onPhotoChanged?: () => void;
+  canGoBack: boolean;
   screen: string;
   editingEntry: RecentEntry | null;
   setEditingEntry: (v: RecentEntry | null) => void;
@@ -70,7 +73,7 @@ interface FoodEntryContentProps {
 
 export default function FoodEntryContent(props: FoodEntryContentProps) {
   const {
-    screen, editingEntry, selected, userId,
+    screen, editingEntry, selected, userId, onClose, onPhotoChanged, canGoBack,
     // edit
     setEditingEntry, editGrams, setEditGrams, editMealType, setEditMealType,
     editPreview, error, editSaving, editDeleting, saveEntryEdit, deleteEntry,
@@ -89,25 +92,31 @@ export default function FoodEntryContent(props: FoodEntryContentProps) {
     openEditEntry, quickRepeatEntry, todayStr, yesterdayStr,
   } = props;
 
+  if (screen === 'edit' && editingEntry) {
+    return (
+      <EditScreen
+        userId={userId}
+        canGoBack={canGoBack}
+        onClose={onClose}
+        onPhotoChanged={onPhotoChanged}
+        editingEntry={editingEntry}
+        setEditingEntry={setEditingEntry}
+        editGrams={editGrams}
+        setEditGrams={setEditGrams}
+        editMealType={editMealType}
+        setEditMealType={setEditMealType}
+        editPreview={editPreview}
+        error={error}
+        editSaving={editSaving}
+        editDeleting={editDeleting}
+        saveEntryEdit={saveEntryEdit}
+        deleteEntry={deleteEntry}
+      />
+    );
+  }
+
   return (
     <div className="p-4 overflow-y-auto flex-1">
-      {screen === 'edit' && editingEntry && (
-        <EditScreen
-          editingEntry={editingEntry}
-          setEditingEntry={setEditingEntry}
-          editGrams={editGrams}
-          setEditGrams={setEditGrams}
-          editMealType={editMealType}
-          setEditMealType={setEditMealType}
-          editPreview={editPreview}
-          error={error}
-          editSaving={editSaving}
-          editDeleting={editDeleting}
-          saveEntryEdit={saveEntryEdit}
-          deleteEntry={deleteEntry}
-        />
-      )}
-
       {screen === 'nl' && (
         <NLScreen
           setNlMode={setNlMode}

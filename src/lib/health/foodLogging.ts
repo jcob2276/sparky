@@ -143,6 +143,16 @@ export async function updateFoodEntry(
   if (error) throw error;
 }
 
+/** Gives a single entry a meal group, so a photo can be attached to it. */
+export async function assignEntryMealGroup(userId: string, entryId: string, mealGroupId: string): Promise<void> {
+  const { error } = await supabase
+    .from('daily_food_entries')
+    .update({ meal_group_id: mealGroupId })
+    .eq('id', entryId)
+    .eq('user_id', userId);
+  if (error) throw error;
+}
+
 export async function removeFoodEntry(userId: string, entryId: string): Promise<void> {
   const { error } = await supabase.rpc('remove_food_entry', {
     p_user_id: userId,

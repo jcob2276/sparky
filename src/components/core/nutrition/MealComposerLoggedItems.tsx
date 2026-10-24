@@ -162,6 +162,8 @@ export default function MealComposerLoggedItems({
                           amount: entry.amount,
                           date: entry.date,
                           meal_type: entry.meal_type,
+                          meal_group_id: entry.meal_group_id,
+                          photoUrl: entry.meal_group_id ? photoUrls[entry.meal_group_id] : null,
                         })
                       }
                       className="flex w-full items-center justify-between gap-3 px-3 py-1 text-left transition-colors duration-150 hover:bg-surface-solid/50 active:bg-surface-solid/80"

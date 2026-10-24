@@ -20,6 +20,9 @@ export interface RecentEntry {
   amount: string | null;
   date: string;
   meal_type?: string | null;
+  meal_group_id?: string | null;
+  /** Signed URL of the meal photo, when the caller already has it (avoids a flash while it loads). */
+  photoUrl?: string | null;
 }
 
 export type NLItem = NLFoodItem;
