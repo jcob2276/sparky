@@ -10,7 +10,11 @@ import {
   type MarkerSeries,
 } from '../../../lib/health/medicalAnalytics';
 import { ControlInput } from '../../ui/ControlPrimitives';
+import type { ParseLabResultsResponse } from '../../../lib/edgeTypes';
 import { MedicalImportReviewStep } from './MedicalImportSteps';
+import MedicalImportPhoto from './MedicalImportPhoto';
+import { draftsFromScan } from '../../../lib/health/labPhotoScan';
+import { useUserId } from '../../../store/useStore';
 
 export interface ImportedMedicalResult {
   marker_key: string;
@@ -60,6 +64,7 @@ const EMPTY_ROW = (): EntryRow => ({
 
 // eslint-disable-next-line max-lines-per-function
 export default function MedicalImport({ isOpen, onClose, series, onConfirmImport }: MedicalImportProps) {
+  const userId = useUserId();
   const [step, setStep] = useState<Step>('entry');
   const [resultDate, setResultDate] = useState(getTodayWarsaw());
   const [docName, setDocName] = useState('');
@@ -83,6 +88,14 @@ export default function MedicalImport({ isOpen, onClose, series, onConfirmImport
     if (raw.trim() === '') return null;
     const num = Number(raw);
     return Number.isFinite(num) ? num : null;
+  };
+
+  const applyScan = (scan: ParseLabResultsResponse) => {
+    if (scan.resultDate) setResultDate(scan.resultDate);
+    if (scan.provider) setProvider(scan.provider);
+    setDocName((prev) => prev || 'Wynik ze zdjęcia');
+    const drafts = draftsFromScan(scan).map((draft) => ({ ...draft, localId: crypto.randomUUID() }));
+    setRows((prev) => [...prev.filter((row) => row.markerName.trim() !== '' || row.value.trim() !== ''), ...drafts]);
   };
 
   const validRows = rows.filter((row) => row.markerName.trim() !== '' && toNumber(row.value) !== null);
@@ -137,6 +150,7 @@ export default function MedicalImport({ isOpen, onClose, series, onConfirmImport
       <div className="space-y-6 py-2">
         {step === 'entry' && (
           <>
+            <MedicalImportPhoto userId={userId ?? null} onScanned={applyScan} />
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <label className="space-y-1">
                 <span className="text-2xs font-semibold text-text-muted">Data wyniku</span>
