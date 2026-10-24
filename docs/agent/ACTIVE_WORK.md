@@ -2054,3 +2054,19 @@ więc prostota i szybkość mają pierwszeństwo przed skalowaniem i abstrakcjam
 - Faza 3 Usage Stats → `phone_usage_daily`
 - Faza 2 FCM push
 - Faza 1 bootstrap Capacitor
+
+## Priorytet: Badania — czytelność i dopasowanie do użytkownika (2026-10-24)
+
+Zakres: Kartoteka (`/badania`) oraz Laboratorium. Cel: mniej przewijania, więcej wniosków z własnych danych.
+
+Zrobione:
+- [x] Laboratorium → „Twój obraz”: świeżość grup badań + lista „Dla Ciebie” (`lib/health/medicalPersonalOverview.ts`).
+
+Do zrobienia (kolejne pionowe plastry, jeden temat = jeden commit):
+- [ ] Laboratorium: zamiast 8 numerowanych sekcji w jednym scrollu — zakładki (Przegląd / Wyniki / Trendy / Dokumenty).
+- [ ] Wyniki: karty markerów z zakresem i sparkline zamiast gęstej tabeli; widok „ostatnio zmienione”.
+- [ ] Import: zdjęcie/PDF wyniku → rozpoznanie → zatwierdzenie.
+- [ ] Kontekst treningu i snu przy markerach (ferrytyna vs objętość biegania) — tylko jako informacja, bez diagnozy.
+- [ ] Kartoteka: te same zasady (czytelność, jedna główna akcja, bez zwijanych nagłówków).
+- [ ] Świadomość aplikacji: sprawdzić, że `_shared/medicalContext.ts` trafia do porannego briefu i Oracle z flagą świeżości.
+
