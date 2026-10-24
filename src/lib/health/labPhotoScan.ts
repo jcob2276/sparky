@@ -33,11 +33,18 @@ export function describeLabScanError(cause: unknown): string {
   return message || 'Nie udało się odczytać wyników ze zdjęcia.';
 }
 
+/** PDF idzie bez kompresji, więc ma twardy limit rozmiaru; zdjęcia są zmniejszane przed wysyłką. */
+const MAX_PDF_BYTES = 6_000_000;
+
+export const isPdfFile = (file: Pick<File, 'type' | 'name'>): boolean => file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
+
 export async function scanLabPhoto(file: File, userId: string): Promise<ParseLabResultsResponse> {
-  const image = await prepareVisionUpload(file, { maxDim: 1800, quality: 0.82 });
-  const imageBase64 = await blobToBase64(image);
+  const pdf = isPdfFile(file);
+  if (pdf && file.size > MAX_PDF_BYTES) throw new Error('PDF jest za duży (limit 6 MB). Zrób zdjęcie wyniku albo wyślij mniejszy plik.');
+  const payload = pdf ? file : await prepareVisionUpload(file, { maxDim: 1800, quality: 0.82 });
+  const imageBase64 = await blobToBase64(payload);
   return invokeEdge('parse-lab-results', {
-    body: { userId, mimeType: 'image/jpeg', imageBase64 },
+    body: { userId, mimeType: pdf ? 'application/pdf' : 'image/jpeg', imageBase64 },
     signal: AbortSignal.timeout(TIMEOUTS.llmHeavy),
   });
 }
