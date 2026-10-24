@@ -10,6 +10,7 @@ import { BodyMetricsSection } from './stats/BodyMetricsSection';
 import { WorkoutHistorySection } from './stats/WorkoutHistorySection';
 import { ChronicleMilestonesBar } from './stats/ChronicleMilestonesBar';
 import { ChronicleExportModal } from './stats/ChronicleExportModal';
+import ChronicleAccordion from './chronicle/ChronicleAccordion';
 import { useStatsData } from './hooks/useStatsData';
 import { mergeLatestBodyMetrics } from '../../lib/health/bodyMetrics';
 
@@ -87,20 +88,21 @@ export default function Stats({
   const showGym = domain === 'gym' || domain === 'all';
   const showRunning = domain === 'running' || domain === 'all';
 
-  return (
-    <div className="space-y-5 pb-6">
-      {/* Milestone / Big Picture Bar */}
-      {domain !== 'none' && (
-        <ChronicleMilestonesBar
-          bodyData={bodyData}
-          recentSessions={recentSessions}
-          latestBody={latestBody}
-        />
-      )}
+  const bodyPreview = [
+    latestBody?.weight != null ? `Waga ${String(latestBody.weight).replace('.', ',')} kg` : null,
+    latestBody?.body_fat != null ? `Tłuszcz ${String(latestBody.body_fat).replace('.', ',')}%` : null,
+  ].filter(Boolean).join(' · ') || undefined;
 
-      {/* Body & Physique Section */}
+  return (
+    <div className="space-y-3 pb-6">
+      {/* Sylwetka: kamienie milowe, pomiary z wykresami i zdjęcia w jednej zwijanej sekcji */}
       {showBody && (
-        <div className="space-y-5">
+        <ChronicleAccordion title="Sylwetka i pomiary" preview={bodyPreview}>
+          <ChronicleMilestonesBar
+            bodyData={bodyData}
+            recentSessions={recentSessions}
+            latestBody={latestBody}
+          />
           <BodyMetricsSection
             trends={trends}
             newMetric={newMetric}
@@ -110,28 +112,34 @@ export default function Stats({
             saveMetrics={saveMetrics}
           />
           {photosSlot}
-        </div>
+        </ChronicleAccordion>
       )}
 
-      {/* Strength & Gym Section */}
+      {/* Siłownia */}
       {showGym && (
-        <WorkoutHistorySection
-          recentSessions={recentSessions}
-          showAllSessions={showAllSessions}
-          setShowAllSessions={setShowAllSessions}
-          editingSession={editingSession}
-          editForm={editForm}
-          setEditForm={setEditForm}
-          startEditing={startEditing}
-          updateSession={updateSession}
-          deleteSession={deleteSession}
-          deleteLog={deleteLog}
-          setEditingSession={setEditingSession}
-        />
+        <ChronicleAccordion title="Siłownia" preview={recentSessions.length ? `${recentSessions.length} ostatnich sesji` : undefined}>
+          <WorkoutHistorySection
+            recentSessions={recentSessions}
+            showAllSessions={showAllSessions}
+            setShowAllSessions={setShowAllSessions}
+            editingSession={editingSession}
+            editForm={editForm}
+            setEditForm={setEditForm}
+            startEditing={startEditing}
+            updateSession={updateSession}
+            deleteSession={deleteSession}
+            deleteLog={deleteLog}
+            setEditingSession={setEditingSession}
+          />
+        </ChronicleAccordion>
       )}
 
-      {/* Running / Endurance Section */}
-      {showRunning && runningSlot}
+      {/* Bieganie (Strava) */}
+      {showRunning && runningSlot && (
+        <ChronicleAccordion title="Bieganie" preview="Strava">
+          {runningSlot}
+        </ChronicleAccordion>
+      )}
 
       {/* Export Modal / Sheet */}
       <ChronicleExportModal
