@@ -1,6 +1,8 @@
 import { ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
 import type { NewMetricState } from './BodyMetricsSection';
+import MeasureHelp from '../bodyMeasure/MeasureHelp';
+import type { MeasureKey } from '../../../lib/health/measureGuides';
 
 interface BodyCircumferencesDrawerProps {
   expanded: boolean;
@@ -19,15 +21,15 @@ interface BodyCircumferencesDrawerProps {
 }
 
 function Field({
-  label, value, onChange, placeholder,
+  label, value, onChange, placeholder, measure,
 }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string;
+  label: string; value: string; onChange: (v: string) => void; placeholder?: string; measure: MeasureKey;
 }) {
   return (
     <div className="space-y-1">
-      <label className="text-2xs font-bold tracking-wide text-text-muted font-display block">
-        {label}
-      </label>
+      <span className="flex items-center gap-1 text-2xs font-bold tracking-wide text-text-muted font-display">
+        {label} <MeasureHelp measure={measure} />
+      </span>
       <div className="relative">
         <ControlInput
           type="text" inputMode="decimal" value={value}
@@ -69,19 +71,19 @@ export function BodyCircumferencesDrawer({
           <div className="space-y-2">
             <p className="text-2xs font-bold tracking-wide text-text-muted">Tułów</p>
             <div className="grid grid-cols-3 gap-2">
-              <Field label="Klatka" value={newMetric.chest} onChange={set('chest')} placeholder={latestBody?.chest ? String(latestBody.chest) : '--'} />
-              <Field label="Brzuch" value={newMetric.belly} onChange={set('belly')} placeholder={latestBody?.belly ? String(latestBody.belly) : '--'} />
-              <Field label="Biodra" value={newMetric.hips} onChange={set('hips')} placeholder={latestBody?.hips ? String(latestBody.hips) : '--'} />
+              <Field measure="chest" label="Klatka" value={newMetric.chest} onChange={set('chest')} placeholder={latestBody?.chest ? String(latestBody.chest) : '--'} />
+              <Field measure="belly" label="Brzuch" value={newMetric.belly} onChange={set('belly')} placeholder={latestBody?.belly ? String(latestBody.belly) : '--'} />
+              <Field measure="hips" label="Biodra" value={newMetric.hips} onChange={set('hips')} placeholder={latestBody?.hips ? String(latestBody.hips) : '--'} />
             </div>
           </div>
 
           <div className="space-y-2 pt-1 border-t border-border-custom/50">
             <p className="text-2xs font-bold tracking-wide text-text-muted">Kończyny & Szyja</p>
             <div className="grid grid-cols-4 gap-2">
-              <Field label="Szyja" value={newMetric.neck} onChange={set('neck')} placeholder={latestBody?.neck ? String(latestBody.neck) : '~37'} />
-              <Field label="Biceps L" value={newMetric.biceps_l} onChange={set('biceps_l')} placeholder={latestBody?.biceps_l ? String(latestBody.biceps_l) : '--'} />
-              <Field label="Udo" value={newMetric.thigh} onChange={set('thigh')} placeholder={latestBody?.thigh ? String(latestBody.thigh) : '--'} />
-              <Field label="Łydka" value={newMetric.calf} onChange={set('calf')} placeholder={latestBody?.calf ? String(latestBody.calf) : '--'} />
+              <Field measure="neck" label="Szyja" value={newMetric.neck} onChange={set('neck')} placeholder={latestBody?.neck ? String(latestBody.neck) : '~37'} />
+              <Field measure="biceps_l" label="Biceps L" value={newMetric.biceps_l} onChange={set('biceps_l')} placeholder={latestBody?.biceps_l ? String(latestBody.biceps_l) : '--'} />
+              <Field measure="thigh" label="Udo" value={newMetric.thigh} onChange={set('thigh')} placeholder={latestBody?.thigh ? String(latestBody.thigh) : '--'} />
+              <Field measure="calf" label="Łydka" value={newMetric.calf} onChange={set('calf')} placeholder={latestBody?.calf ? String(latestBody.calf) : '--'} />
             </div>
           </div>
 
