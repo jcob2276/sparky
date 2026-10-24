@@ -1,7 +1,7 @@
 import { formatDayLabel, formatWarsawDate, getTodayWarsaw, shiftDateStr, warsawDayBoundsISO, TIMEZONE } from './date';
 import { getSaunaStats, isWellnessOnlySession, sessionDateKey } from './health/workoutSauna';
+import { isRunSport } from './runSports';
 
-const RUN_SPORTS = new Set(['Run', 'TrailRun', 'VirtualRun']);
 
 export type SleepDay = {
   date: string;
@@ -158,7 +158,7 @@ export function buildWeeklyBodyPulse(input: {
 
   const runs = stravaWindow.filter((a) => {
     const key = sessionDateKey(a.start_date);
-    return RUN_SPORTS.has(a.sport_type ?? '') && key >= since && key <= until;
+    return isRunSport(a.sport_type) && key >= since && key <= until;
   });
   const runCount = runs.length;
   const runKm = Math.round((runs.reduce((sum, a) => sum + (Number(a.distance) || 0), 0) / 1000) * 10) / 10;

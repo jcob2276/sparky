@@ -9,6 +9,7 @@ import type {
   DayMatrixDetail,
   MatrixCorrelationStats,
 } from './multiDomainMatrixTypes';
+import { isRunSport } from '../../../lib/runSports';
 
 const DOW_NAMES = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'Sb', 'Nd'];
 
@@ -42,7 +43,7 @@ function createDomainMaps(
   const runMap: Record<string, { km: number; count: number }> = {};
   for (const a of strava) {
     if (!a.sport_type || !a.start_date || !a.distance) continue;
-    if (!['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type)) continue;
+    if (!isRunSport(a.sport_type)) continue;
     const d = formatWarsawDate(a.start_date);
     const km = (Number(a.distance) || 0) / 1000;
     const cur = runMap[d] || { km: 0, count: 0 };

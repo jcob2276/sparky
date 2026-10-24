@@ -120,3 +120,23 @@ export function sumWeek(rows: CloserDailyLogRow[]): WeekSums {
     { appointments: 0, salesCalls: 0, dials: 0, salesClosed: 0 },
   );
 }
+
+export interface WeekKpiSums {
+  appointments: number;
+  salesCalls: number;
+  dials: number;
+  workHours: number;
+}
+
+/**
+ * Które sumy tygodnia zasilają który KPI projektu, po nazwie KPI. „Rozmowy odebrane” (dawniej „Liczba diali”) liczą się
+ * z `dials`; nierozpoznana nazwa daje 0, więc przy zmianie nazwy KPI trzeba tu dopisać dopasowanie.
+ */
+export function closerKpiValue(kpiName: string, sums: WeekKpiSums): number {
+  const name = kpiName.toLowerCase();
+  if (name.includes('umówie')) return sums.appointments;
+  if (name.includes('call')) return sums.salesCalls;
+  if (name.includes('rozmow') || name.includes('dial')) return sums.dials;
+  if (name.includes('godzin')) return Math.round(sums.workHours * 10) / 10;
+  return 0;
+}

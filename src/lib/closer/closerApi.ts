@@ -2,6 +2,7 @@ import { supabase } from '../supabase';
 import type { Database } from '../database.types';
 import { addDays, format } from 'date-fns';
 import { invalidateGoalSpineCache } from '../goal/goalSpine.queries';
+import { closerKpiValue } from './closerDayModel';
 
 export type CloserDailyLogRow = Database['public']['Tables']['closer_daily_logs']['Row'];
 
@@ -92,12 +93,7 @@ async function syncCloserWeeklyRollups(userId: string, weekStart: string): Promi
   if (!kpis) return;
 
   for (const k of kpis) {
-    let val = 0;
-    const nameLow = k.name.toLowerCase();
-    if (nameLow.includes('umówie')) val = sumAppointments;
-    else if (nameLow.includes('call')) val = sumSalesCalls;
-    else if (nameLow.includes('dial')) val = sumDials;
-    else if (nameLow.includes('godzin')) val = Math.round(sumWorkHours * 10) / 10;
+    const val = closerKpiValue(k.name, { appointments: sumAppointments, salesCalls: sumSalesCalls, dials: sumDials, workHours: sumWorkHours });
 
     const { error } = await supabase
       .from('kpi_entries')

@@ -44,3 +44,17 @@ describe('buildSalesPlan', () => {
     expect(weekend.dialsForFullWeek).toBe(141);
   });
 });
+
+import { closerKpiValue } from './closerDayModel';
+
+describe('closerKpiValue', () => {
+  const sums = { appointments: 16, salesCalls: 9, dials: 75, workHours: 12.34 };
+  it('dopasowuje KPI po nazwie, także po zmianie „Liczba diali” na „Rozmowy odebrane”', () => {
+    expect(closerKpiValue('Umówienia', sums)).toBe(16);
+    expect(closerKpiValue('Sales calle', sums)).toBe(9);
+    expect(closerKpiValue('Rozmowy odebrane', sums)).toBe(75);
+    expect(closerKpiValue('Liczba diali', sums)).toBe(75);
+    expect(closerKpiValue('Godziny pracy', sums)).toBe(12.3);
+    expect(closerKpiValue('Coś innego', sums)).toBe(0);
+  });
+});

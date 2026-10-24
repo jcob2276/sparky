@@ -1,5 +1,6 @@
 import { formatWarsawDate, shiftDateStr } from '../date';
 import type { WorkoutSessionInput } from './muscleRecovery';
+import { isRunSport } from '../runSports';
 
 export interface RunRow {
   start_date: string | null;
@@ -40,7 +41,6 @@ export interface RunningLoad {
   fatigueInput: WorkoutSessionInput[];
 }
 
-const RUN_SPORTS = new Set(['Run', 'TrailRun', 'VirtualRun']);
 const REST_HR = 50;
 const DEFAULT_MAX_HR = 190;
 /** Przelicznik obciążenia biegowego na bodziec dla mięśni nóg w modelu zmęczenia (twardy bieg ~100 pkt ≈ 60% zmęczenia nóg). */
@@ -70,7 +70,7 @@ function verdictFor(load7: number, avg: number | null): string {
 export function buildRunningLoad(rows: RunRow[], today: string): RunningLoad {
   const maxHr = Math.max(DEFAULT_MAX_HR, ...rows.map((r) => r.hr_max ?? 0));
   const runs: RunSummary[] = rows.flatMap((row) => {
-    if (!row.start_date || !RUN_SPORTS.has(row.sport_type ?? '')) return [];
+    if (!row.start_date || !isRunSport(row.sport_type)) return [];
     const parsed = Date.parse(row.start_date);
     if (!Number.isFinite(parsed)) return [];
     const minutes = Math.round((row.moving_time ?? 0) / 60);
