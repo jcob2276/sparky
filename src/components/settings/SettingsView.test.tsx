@@ -5,6 +5,8 @@ import { expect, it, vi } from 'vitest';
 import { notify } from '../../lib/notify';
 import SettingsView from './SettingsView';
 
+vi.mock('./LifeTargetsSettings', () => ({ default: () => null }));
+
 vi.mock('../../lib/notify', () => ({ notify: vi.fn() }));
 vi.mock('../../store/useStore', () => ({ useSession: () => ({ user: { id: 'owner' }, access_token: 'token' }) }));
 vi.mock('../../hooks/useUserSettings', () => ({

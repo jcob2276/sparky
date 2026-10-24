@@ -19,7 +19,7 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 | Fakt | Właściciel (zapis) | Jak czytać |
 |---|---|---|
 | Cel tłuszczu (%) | `nutrition_profile.goal_body_fat` | `useLifeTargets(userId).bodyFatPct` |
-| Cel wyciskania (kg, e1RM) | `life_targets.bench_goal_kg` | `useLifeTargets(userId).benchKg` |
+| Cel wyciskania (kg, e1RM) | `life_targets.bench_goal_kg` (edycja: Ustawienia → Cele liczbowe) | `useLifeTargets(userId).benchKg` |
 | Cel dochodu netto (zł/msc) | `life_targets.income_goal_net_pln` | `useLifeTargets(userId).incomeNetPln` |
 | Cel majątku netto (zł) | `finance_profile.net_worth_target` | `useLifeTargets().netWorthPln` |
 | Cele tygodniowe sprzedaży (umówienia, sales calle, rozmowy odebrane, godziny) | `goal_kpis` (projekt closer) | `useLifeTargets().weekly*` |

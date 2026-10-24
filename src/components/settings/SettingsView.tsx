@@ -18,6 +18,7 @@ import { useSession } from '../../store/useStore';
 import { notify } from '../../lib/notify';
 import type { Tables } from '../../lib/database.types';
 import AiContextSettings from './AiContextSettings';
+import LifeTargetsSettings from './LifeTargetsSettings';
 import SettingsSection from './SettingsSection';
 
 export default function SettingsView() {
@@ -136,6 +137,8 @@ export default function SettingsView() {
 
       <NutritionProfileSettings profile={profile} onChange={setProfile} />
 
+
+      <LifeTargetsSettings userId={session.user.id} />
 
       <AiContextSettings userId={session.user.id} />
 
