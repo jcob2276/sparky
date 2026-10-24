@@ -1,5 +1,5 @@
 import { assertEquals, assertStringIncludes } from 'https://deno.land/std@0.208.0/assert/mod.ts'
-import { buildCompareUserPrompt, buildPeriodFacts, normalizeCompare, warsawDay, type PeriodRows } from './periodCompareCore.ts'
+import { COMPARE_SYSTEM_PROMPT, buildCompareUserPrompt, buildPeriodFacts, normalizeCompare, warsawDay, type PeriodRows } from './periodCompareCore.ts'
 
 const empty: PeriodRows = { wins: [], scores: [], oura: [], nutrition: [], workoutSessions: 0, runDistancesM: [], closer: [], journal: [] }
 
@@ -19,7 +19,7 @@ Deno.test('facts aggregate tasks by category, averages ignore missing days, runs
   assertEquals(f.notes, [{ date: '2026-10-19', text: 'spoko' }])
   assertEquals(f.sleep, { hours: 6.5, score: 80, hrv: null, rhr: 52, readiness: null })
   assertEquals(f.training.runKm, 15.5)
-  assertEquals(f.sales, { calls: 25, booked: 5, salesCalls: 3, sold: 1 })
+  assertEquals(f.sales, { entries: 2, calls: 25, booked: 5, salesCalls: 3, sold: 1 })
   assertEquals(f.journal, [{ date: '2026-10-24', text: 'wpis' }])
   assertEquals(f.days, 7)
 })
@@ -47,3 +47,17 @@ Deno.test('normalize keeps at most three well-formed items per list and rejects 
   assertEquals(normalizeCompare({ improved: [] }), null)
   assertEquals(warsawDay('2026-10-23T22:30:00Z'), '2026-10-24')
 })
+
+Deno.test('a period with no sales entries is described as missing data, not as zero', () => {
+  const a = buildPeriodFacts('A', '2026-10-19', '2026-10-25', { ...empty, closer: [{ dials: 10, appointments: 3, sales_calls: 1, sales_closed: 0 }] })
+  const b = buildPeriodFacts('B', '2026-10-05', '2026-10-11', empty)
+  const prompt = buildCompareUserPrompt(a, b)
+  assertStringIncludes(prompt, 'Sprzedaż (z 1 dni z wpisem): rozmowy odebrane 10')
+  assertStringIncludes(prompt, 'Sprzedaż: brak wpisów z tego okresu (to brak danych, NIE zero)')
+})
+
+Deno.test('the system prompt keeps past events from becoming to-dos and forbids invented circumstances', () => {
+  assertStringIncludes(COMPARE_SYSTEM_PROMPT, 'nie jest zadaniem na przyszłość')
+  assertStringIncludes(COMPARE_SYSTEM_PROMPT, 'Nie dodawaj okoliczności, których nie ma w danych')
+})
+

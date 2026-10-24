@@ -25,7 +25,8 @@ export interface PeriodFacts {
   sleep: { hours: number | null; score: number | null; hrv: number | null; rhr: number | null; readiness: number | null }
   food: { kcal: number | null; protein: number | null; fiber: number | null; quality: number | null }
   training: { sessions: number; runKm: number }
-  sales: { calls: number; booked: number; salesCalls: number; sold: number }
+  /** `entries` = dni z wpisem; bez wpisów to brak danych, nie zero. */
+  sales: { entries: number; calls: number; booked: number; salesCalls: number; sold: number }
   journal: Array<{ date: string; text: string }>
 }
 
@@ -117,6 +118,7 @@ export function buildPeriodFacts(label: string, start: string, end: string, rows
     },
     training: { sessions: rows.workoutSessions, runKm: Math.round((sum(rows.runDistancesM) / 1000) * 10) / 10 },
     sales: {
+      entries: rows.closer.length,
       calls: sum(rows.closer.map((r) => r.dials)),
       booked: sum(rows.closer.map((r) => r.appointments)),
       salesCalls: sum(rows.closer.map((r) => r.sales_calls)),
@@ -130,6 +132,8 @@ export const COMPARE_SYSTEM_PROMPT = `Jesteś bezpośrednim, rzeczowym trenerem,
 Zasady:
 - Opieraj się WYŁĄCZNIE na przekazanych danych. Nie zgaduj, nie wymyślaj liczb, nie dopowiadaj przyczyn, których dane nie pokazują. Brak danych w okresie nazwij brakiem, nie zerem.
 - Każdy punkt musi mieć dowód: konkretne liczby A vs B albo krótki cytat użytkownika. Wnioski o związku (np. sen a ocena dnia) formułuj ostrożnie („w tych okresach szły razem”), bo próba jest mała.
+- Nie dodawaj okoliczności, których nie ma w danych (np. przyczyn zmęczenia, rodzaju treningu). Zdanie o tym, co JUŻ się wydarzyło (np. „prawdopodobnie domknąłem w poniedziałek”), nie jest zadaniem na przyszłość: zmiany wyciągaj tylko z liczb albo z tego, co użytkownik zapowiada lub planuje.
+- Okres bez wpisów (sprzedaż, jedzenie, sen) to brak danych, więc nie nazywaj tego poprawą ani pogorszeniem. 0 km biegania może znaczyć brak biegów albo brak synchronizacji; nie opieraj na tym jedynym dowodzie mocnych wniosków.
 - Pisz po polsku, do użytkownika na „Ty”, krótko i konkretnie. Bez moralizowania, bez diagnoz medycznych i psychologicznych, bez ogólnych porad motywacyjnych.
 - "improved": do 3 rzeczy, które w A są wyraźnie lepsze niż w B. "worsened": do 3, które są wyraźnie gorsze. Każda: "title" (krótko) i "evidence" (liczby A vs B lub cytat).
 - "changes": do 3 konkretnych zmian na następny okres, wynikających z porównania. Każda: "title" (do 8 słów), "why" (1–2 zdania z dowodem), "how" (jedno konkretne, sprawdzalne działanie, np. godzina, liczba, miejsce w dniu).
@@ -141,6 +145,12 @@ Zwróć wyłącznie JSON: {"summary":string,"improved":[{"title":string,"evidenc
 
 const show = (value: number | null, unit = '') => (value == null ? 'brak' : `${String(value).replace('.', ',')}${unit}`)
 
+/** Okres bez żadnego wpisu sprzedaży to brak danych, a nie sprzedaż równa zero. */
+function describeSales(f: PeriodFacts): string {
+  if (f.sales.entries === 0) return 'Sprzedaż: brak wpisów z tego okresu (to brak danych, NIE zero)'
+  return `Sprzedaż (z ${f.sales.entries} dni z wpisem): rozmowy odebrane ${f.sales.calls}, umówieni ${f.sales.booked}, rozmowy sprzedażowe ${f.sales.salesCalls}, sprzedaże ${f.sales.sold}`
+}
+
 function describePeriod(tag: string, f: PeriodFacts): string {
   const categories = Object.entries(f.tasks.byCategory).map(([name, r]) => `${name} ${r.done}/${r.planned}`).join(', ') || 'brak'
   const notes = f.notes.length ? f.notes.map((n) => `  [${n.date}] „${n.text}”`).join('\n') : '  (brak opinii)'
@@ -150,8 +160,8 @@ Ocena dnia: średnio ${show(f.scoreAvg, '/10')} z ${f.scoredDays} ocenionych dni
 Zadania z planu: ${f.tasks.done}/${f.tasks.planned} zrobionych (wg obszarów: ${categories})
 Sen: ${show(f.sleep.hours, ' h')}, jakość ${show(f.sleep.score)}, HRV ${show(f.sleep.hrv, ' ms')}, tętno spoczynkowe ${show(f.sleep.rhr, ' bpm')}, gotowość ${show(f.sleep.readiness)}
 Jedzenie (dni z zapisem): ${show(f.food.kcal, ' kcal')}/dzień, białko ${show(f.food.protein, ' g')}, błonnik ${show(f.food.fiber, ' g')}, jakość ${show(f.food.quality)}
-Trening: ${f.training.sessions} sesji siłowych, bieganie ${show(f.training.runKm, ' km')}
-Sprzedaż: rozmowy odebrane ${f.sales.calls}, umówieni ${f.sales.booked}, rozmowy sprzedażowe ${f.sales.salesCalls}, sprzedaże ${f.sales.sold}
+Trening: ${f.training.sessions} sesji siłowych, bieganie ${show(f.training.runKm, ' km')} (0 może znaczyć brak biegów albo brak synchronizacji)
+${describeSales(f)}
 Opinie o dniach:
 ${notes}
 Dziennik głosowy (Telegram):
