@@ -53,7 +53,7 @@ Deno.serve(serveJson(async (req, ctx) => {
         .select('date, day_note, task_1, task_2, task_3, task_4, task_5, category_1, category_2, category_3, category_4, category_5, done_1, done_2, done_3, done_4, done_5')
         .eq('user_id', userId).gte('date', start).lte('date', end),
       db.from('daily_reconciliations').select('date, day_score').eq('user_id', userId).gte('date', start).lte('date', end),
-      db.from('oura_daily_summary').select('total_sleep_hours, sleep_score, hrv_avg, rhr_avg, readiness_score').eq('user_id', userId).gte('date', start).lte('date', end),
+      db.from('oura_daily_summary').select('date, total_sleep_hours, sleep_score, hrv_avg, rhr_avg, readiness_score, bedtime_timestamp, bedtime_end_timestamp, latency_minutes, deep_sleep_hours, rem_sleep_hours, sleep_efficiency').eq('user_id', userId).gte('date', start).lte('date', end),
       db.from('daily_nutrition').select('date, calories, protein, fiber, avg_food_quality').eq('user_id', userId).gte('date', start).lte('date', end),
       db.from('workout_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('date', start).lte('date', end).not('workout_day', 'ilike', '%sauna%'),
       db.from('strava_activities_clean').select('distance').eq('user_id', userId).eq('is_oura', false).in('sport_type', RUN_SPORTS)
