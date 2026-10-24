@@ -1,4 +1,5 @@
 import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getWarsawDateString } from "@vanguard/domain";
 import { resolveUserScope } from "../../_shared/supabase.ts";
 import { deepseekChat, parseJsonFromContent } from "../../_shared/deepseek.ts";
 import { LLM_TASKS } from "../../_shared/llm/tasks.ts";
@@ -28,7 +29,7 @@ export async function handleDailyPlanInterview(
   const apiKey = Deno.env.get("DEEPSEEK_API_KEY") || "";
   if (!apiKey) throw new Error("DEEPSEEK_API_KEY not set");
 
-  const planningDate = String(body.planningDate || new Date().toISOString().slice(0, 10));
+  const planningDate = String(body.planningDate || getWarsawDateString());
   const messages: Array<{ role: "user" | "assistant"; content: string }> = Array.isArray(body.messages) ? body.messages : [];
   const currentSlots: PlanSlot[] = Array.isArray(body.currentSlots) ? body.currentSlots : [];
 

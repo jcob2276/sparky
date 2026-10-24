@@ -1,3 +1,4 @@
+import { getWarsawDateString } from '@vanguard/domain'
 import { createServiceClient, resolveUserScope } from '../_shared/supabase.ts'
 
 export async function runNextDnsSync(req: Request): Promise<unknown> {
@@ -47,7 +48,7 @@ export async function runNextDnsSync(req: Request): Promise<unknown> {
   const domains = Array.isArray(json.data) ? json.data : []
 
   // 3. Store/update today's web_domains in aw_daily_summary
-  const today = new Date().toISOString().slice(0, 10)
+  const today = getWarsawDateString()
 
   if (domains.length > 0) {
     const webDomains = domains.map((d: { root?: string; domain?: string; name?: string; queries?: number }) => ({
