@@ -18,6 +18,9 @@ export const HEALTH_THRESHOLDS = {
   SLEEP_WARNING_H: 6.5,
 };
 
+/** Dzień jedzenia poniżej tej liczby kcal to prawie na pewno niepełny zapis (np. wpisany dopiero wieczorem). */
+export const MIN_FULL_DAY_KCAL = 1000;
+
 export function recoveryTier(score: number): 'green' | 'yellow' | 'red' {
   if (score >= HEALTH_THRESHOLDS.RECOVERY_GREEN) return 'green';
   if (score < HEALTH_THRESHOLDS.RECOVERY_YELLOW) return 'red';

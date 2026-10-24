@@ -1,4 +1,4 @@
-import { canonicalExerciseName, formatWarsawDate, type CoachRow, type GoalProgressReview, type HealthCoachContext } from '@vanguard/domain';
+import { canonicalExerciseName, formatWarsawDate, isRunSport, type CoachRow, type GoalProgressReview, type HealthCoachContext } from '@vanguard/domain';
 /** Targets are declarations. Raw records can inform a review without confirming a technique standard. */
 export function reviewHealthGoal(row:CoachRow,context:HealthCoachContext,from:string,to:string): GoalProgressReview {
   const spec = row.measurement_spec && typeof row.measurement_spec === 'object' ? row.measurement_spec as CoachRow : {};
@@ -8,7 +8,7 @@ export function reviewHealthGoal(row:CoachRow,context:HealthCoachContext,from:st
   const within = (date:string) => date >= from && date <= to && date <= context.localDate;
   if (spec.kind === 'run_10k') {
     const runs = (context.sources.strava_activities_clean.value ?? []).filter(activity =>
-      within(formatWarsawDate(String(activity.start_date ?? ''))) && /^(Run|TrailRun|VirtualRun)$/i.test(String(activity.sport_type))
+      within(formatWarsawDate(String(activity.start_date ?? ''))) && isRunSport(String(activity.sport_type))
       && Number(activity.distance)>=10000 && Number(activity.distance)<=10100 && Number(activity.elapsed_time)>0);
     const best = runs.sort((a,b)=>Number(a.elapsed_time)-Number(b.elapsed_time))[0];
     if (best) { result.currentValue=Number(best.elapsed_time);result.evidenceRefs=[{table:'strava_activities_clean',id:String(best.strava_id),observedAt:String(best.start_date),kind:'measured'}];

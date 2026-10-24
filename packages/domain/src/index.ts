@@ -13,6 +13,7 @@ export * from './training/racePredictor.ts';
 export * from './training/targetStrain.ts';
 export * from './training/muscularCardioLoad.ts';
 export * from './training/zone2Cardio.ts';
+export * from './training/runSports.ts';
 export * from './training/strengthProgression.ts';
 export * from './training/personalBests.ts';
 export * from './training/cardioDrift.ts';

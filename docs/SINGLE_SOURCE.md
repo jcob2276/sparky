@@ -31,8 +31,8 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 
 | Definicja | Właściciel | Uwagi |
 |---|---|---|
-| Pełny dzień jedzenia (próg kcal, bez dzisiaj) | `src/lib/chronicle/nutritionDays.ts` (`MIN_FULL_DAY_KCAL`) | kopie w funkcjach edge `period-compare` i `analyze-food-quality` (osobne bundle) |
-| Aktywności liczone jako bieganie | `src/lib/runSports.ts` | kopia w `period-compare` (osobny bundle) |
+| Pełny dzień jedzenia (próg kcal, bez dzisiaj) | `MIN_FULL_DAY_KCAL` w `@vanguard/domain` | frontend i funkcje edge importują tę samą stałą |
+| Aktywności liczone jako bieganie | `RUN_SPORT_TYPES` / `isRunSport` w `@vanguard/domain` | `src/lib/runSports.ts` tylko re-eksportuje |
 | Próg „krótka noc” i „ostrzeżenie o śnie” | `HEALTH_THRESHOLDS.SLEEP_SHORT_H` / `SLEEP_WARNING_H` w `@vanguard/domain` | frontend i funkcje edge importują; nie wpisuj literału godzin w kodzie |
 | Strefa czasu aplikacji | `WARSAW_TZ` w `@vanguard/domain` | dni jako klucze `YYYY-MM-DD` w Warszawie |
 | Tydzień (pon–nd) | `getWeekStartWarsaw` | |
