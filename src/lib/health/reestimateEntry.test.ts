@@ -31,7 +31,7 @@ describe('reestimateEntry', () => {
 
   it('looks at the stored photo, with the corrected name as the hint', async () => {
     fetchMealPhotoBlob.mockResolvedValue(new Blob(['jpg']));
-    analyzeMealPhoto.mockResolvedValue({ items: [item(100, 400)] });
+    analyzeMealPhoto.mockResolvedValue({ hintApplied: true, items: [item(100, 400)] });
 
     const result = await reestimateEntry({ userId: 'u', name: 'sernik baskijski', grams: 100, mealGroupId: 'g1' });
 
@@ -55,6 +55,13 @@ describe('reestimateEntry', () => {
     const result = await reestimateEntry({ userId: 'u', name: 'x', grams: 100, mealGroupId: 'g1' });
     warn.mockRestore();
     expect(result?.viaPhoto).toBe(false);
+  });
+
+  it('ignores a photo answer that did not use the hint and falls back to the name', async () => {
+    fetchMealPhotoBlob.mockResolvedValue(new Blob(['jpg']));
+    analyzeMealPhoto.mockResolvedValue({ items: [item(100, 400), item(200, 900)] });
+    const result = await reestimateEntry({ userId: 'u', name: 'x', grams: 100, mealGroupId: 'g1' });
+    expect(result).toEqual({ per100: expect.objectContaining({ calories: 358 }), viaPhoto: false });
   });
 
   it('skips the photo lookup for an entry without a meal group', async () => {
