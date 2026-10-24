@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { describeLabScanError, draftsFromScan } from './labPhotoScan';
+import { describeLabScanError, draftsFromScan, isPdfFile } from './labPhotoScan';
 
 describe('draftsFromScan', () => {
   it('zamienia odczyt na tekstowe wiersze kreatora, puste granice zostają puste', () => {
@@ -17,5 +17,13 @@ describe('describeLabScanError', () => {
     expect(describeLabScanError(new Error('Requested function was not found'))).toContain('nie jest jeszcze dostępny');
     expect(describeLabScanError(new Error('Nie udało się odczytać wyników ze zdjęcia. Spróbuj ostrzejszego, bliższego ujęcia.'))).toContain('ostrzejszego');
     expect(describeLabScanError(new Error(''))).toBe('Nie udało się odczytać wyników ze zdjęcia.');
+  });
+});
+
+describe('isPdfFile', () => {
+  it('rozpoznaje PDF po typie albo rozszerzeniu, zdjęcia nie', () => {
+    expect(isPdfFile({ type: 'application/pdf', name: 'a' })).toBe(true);
+    expect(isPdfFile({ type: '', name: 'Wyniki.PDF' })).toBe(true);
+    expect(isPdfFile({ type: 'image/jpeg', name: 'a.jpg' })).toBe(false);
   });
 });

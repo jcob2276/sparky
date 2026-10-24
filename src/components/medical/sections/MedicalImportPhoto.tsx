@@ -11,7 +11,7 @@ interface MedicalImportPhotoProps {
   onScanned: (scan: ParseLabResultsResponse) => void;
 }
 
-/** Zdjęcie lub skan wyniku → AI odczytuje markery do wiersza kreatora; zatwierdza użytkownik. */
+/** Zdjęcie, skan lub PDF wyniku → AI odczytuje markery do wiersza kreatora; zatwierdza użytkownik. */
 export default function MedicalImportPhoto({ userId, onScanned }: MedicalImportPhotoProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -33,11 +33,11 @@ export default function MedicalImportPhoto({ userId, onScanned }: MedicalImportP
 
   return (
     <div className="rounded-xl border border-primary/30 bg-primary/10 p-3">
-      <ControlInput ref={inputRef} type="file" accept="image/*" hidden onChange={(event) => void handleFile(event.target.files?.[0])} />
+      <ControlInput ref={inputRef} type="file" accept="image/*,application/pdf" hidden onChange={(event) => void handleFile(event.target.files?.[0])} />
       <Button variant="outline" size="sm" disabled={busy || !userId} onClick={() => inputRef.current?.click()}>
-        <Camera size={14} /> {busy ? 'AI czyta wyniki…' : 'Zdjęcie wyniku'}
+        <Camera size={14} /> {busy ? 'AI czyta wyniki…' : 'Zdjęcie lub PDF wyniku'}
       </Button>
-      <p className="mt-1.5 text-xs text-text-secondary">Zrób zdjęcie lub wybierz skan wyniku. AI przepisze markery, a Ty sprawdzisz je i zatwierdzisz.</p>
+      <p className="mt-1.5 text-xs text-text-secondary">Zrób zdjęcie albo wybierz skan lub PDF z wynikiem. AI przepisze markery, a Ty sprawdzisz je i zatwierdzisz.</p>
     </div>
   );
 }

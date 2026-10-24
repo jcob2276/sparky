@@ -1,7 +1,7 @@
 /**
  * @function parse-lab-results
  * @trigger HTTP POST / Frontend (Badania → Laboratorium → Dodaj wyniki → Zdjęcie wyniku)
- * @role Odczytuje ze zdjęcia lub skanu wyniku badań listę markerów (nazwa, wartość, jednostka, zakres); nic nie zapisuje, użytkownik zatwierdza w kreatorze.
+ * @role Odczytuje ze zdjęcia, skanu lub PDF-a wyniku badań listę markerów (nazwa, wartość, jednostka, zakres); nic nie zapisuje, użytkownik zatwierdza w kreatorze.
  * @reads —
  * @writes —
  * @calls Gemini Vision
@@ -18,9 +18,9 @@ const MAX_BASE64_CHARS = 9_000_000
 Deno.serve(serveJson(async (req, ctx) => {
   const body = await req.json().catch(() => ({}))
   const imageBase64 = typeof body.imageBase64 === 'string' ? body.imageBase64 : ''
-  const mimeType = typeof body.mimeType === 'string' && /^image\/(jpeg|png|webp)$/.test(body.mimeType) ? body.mimeType : 'image/jpeg'
-  if (!imageBase64) throw new HttpError(400, 'Brak zdjęcia wyniku.')
-  if (imageBase64.length > MAX_BASE64_CHARS) throw new HttpError(413, 'Zdjęcie jest za duże. Zrób bliższe ujęcie.')
+  const mimeType = typeof body.mimeType === 'string' && /^(image\/(jpeg|png|webp)|application\/pdf)$/.test(body.mimeType) ? body.mimeType : 'image/jpeg'
+  if (!imageBase64) throw new HttpError(400, 'Brak pliku z wynikiem.')
+  if (imageBase64.length > MAX_BASE64_CHARS) throw new HttpError(413, 'Plik jest za duży. Zrób bliższe zdjęcie lub wyślij mniejszy plik.')
   const apiKey = Deno.env.get('GEMINI_API_KEY') || ''
   if (!apiKey) throw new HttpError(500, 'Odczyt zdjęć nie jest skonfigurowany.')
 
