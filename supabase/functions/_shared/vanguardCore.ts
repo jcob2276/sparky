@@ -5,7 +5,7 @@
  * Sprowadzona do _shared/ aby backend i frontend współdzieliły te same reguły z-score.
  */
 
-import { HEALTH_THRESHOLDS } from '@vanguard/domain';
+import { DEFAULT_PROTEIN_FLOOR_G, HEALTH_THRESHOLDS } from '@vanguard/domain';
 import { zScore, mean, stdDev } from './stats.ts';
 import {
   generateActiveSignature, translateBiometrics, formatBaselineContext,
@@ -60,7 +60,7 @@ export function computeSignals(oura: any = null, todayWin: any = null, nutrition
   }
 
   const executionRatio = Math.max(0, (completedTasks / 5) - timePenalty);
-  const proteinGoal = Number(nutrition?.protein_floor_g) || Number(nutrition?.protein_target) || 150;
+  const proteinGoal = Number(nutrition?.protein_floor_g) || Number(nutrition?.protein_target) || DEFAULT_PROTEIN_FLOOR_G;
   const proteinConsumed = nutrition?.protein || 0;
   const proteinRatio = Math.min(proteinConsumed / proteinGoal, 1.2);
 

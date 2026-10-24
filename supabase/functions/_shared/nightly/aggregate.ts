@@ -1,4 +1,4 @@
-import { HEALTH_THRESHOLDS } from '@vanguard/domain'
+import { DEFAULT_PROTEIN_FLOOR_G, HEALTH_THRESHOLDS } from '@vanguard/domain'
 import { VanguardCore, computeSignals } from '../vanguardCore.ts'
 import { safeExecute } from '../supabase.ts'
 import { getWarsawDayBoundaries } from '../time.ts'
@@ -95,12 +95,12 @@ export const runSaveDailyAggregate = async (
 
   // Protein: kara gdy <0.5 sigma poniżej baseline (adaptacyjne)
   if (!bl.calibrating && bl.means.execution != null) {
-    const proteinBaseline = (bl.means as Record<string, unknown>)?.protein as number ?? 140
+    const proteinBaseline = (bl.means as Record<string, unknown>)?.protein as number ?? DEFAULT_PROTEIN_FLOOR_G
     const zProtein = signals.protein_grams > 0 ? (signals.protein_grams - proteinBaseline) / Math.max(proteinBaseline * 0.15, 20) : -2
     if (zProtein < -0.5) identityScore -= Math.round(Math.min(20, (Math.abs(zProtein) - 0.5) * 10))
   } else {
     // calibrating — fallback do sztywnego progu
-    if ((nutrition as Record<string, unknown>)?.protein as number < 140) identityScore -= 15
+    if ((nutrition as Record<string, unknown>)?.protein as number < DEFAULT_PROTEIN_FLOOR_G) identityScore -= 15
   }
 
   // Sleep: kara gdy poniżej personal baseline (nie sztywne 6.5h)

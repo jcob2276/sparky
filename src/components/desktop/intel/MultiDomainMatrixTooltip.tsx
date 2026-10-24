@@ -54,7 +54,7 @@ function TooltipMacroSleepSection({ day }: { day: DayMatrixDetail }) {
           </div>
           <div>
             <span className="text-text-muted block text-2xs font-sans">Białko</span>
-            <span className={`font-bold ${day.nutrition?.protein && day.nutrition.protein >= 140 ? 'text-success' : 'text-text-primary'}`}>
+            <span className={`font-bold ${day.activeLayers.includes('protein') ? 'text-success' : 'text-text-primary'}`}>
               {day.nutrition?.protein ? `${day.nutrition.protein}g` : '—'}
             </span>
           </div>
