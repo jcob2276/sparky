@@ -1,11 +1,9 @@
-import {
-  estimateCaffeineMg,
+import { estimateCaffeineMg,
   evaluateCognitiveProfile,
   evaluateLateNightImpact,
   formatPhoneUsageDuration,
   type LateNightImpact,
-  type PhoneCognitiveProfile,
-} from '@vanguard/domain';
+  type PhoneCognitiveProfile, TIMEZONE } from '@vanguard/domain';
 
 type ContextStatus = 'available' | 'unavailable';
 
@@ -44,7 +42,7 @@ interface OuraContextInput {
 }
 
 const WARSAW_TIME = new Intl.DateTimeFormat('pl-PL', {
-  timeZone: 'Europe/Warsaw',
+  timeZone: TIMEZONE,
   hour: '2-digit',
   minute: '2-digit',
   hour12: false,

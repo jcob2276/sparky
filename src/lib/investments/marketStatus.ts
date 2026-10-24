@@ -1,3 +1,5 @@
+import { TIMEZONE } from '@vanguard/domain';
+
 /**
  * marketStatus.ts — Obliczanie statusu sesji giełdowych GPW (Warszawa) oraz USA (NYSE/NASDAQ).
  * Uwzględnia strefy czasowe Europe/Warsaw i America/New_York oraz czas letni/zimowy (DST).
@@ -40,7 +42,7 @@ function getTimeParts(timeZone: string, now: Date): TimeParts {
 const WEEKDAYS = new Set(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
 
 export function getGpwSession(now = new Date()): MarketSession {
-  const { weekday, totalMinutes } = getTimeParts('Europe/Warsaw', now);
+  const { weekday, totalMinutes } = getTimeParts(TIMEZONE, now);
   const isWeekday = WEEKDAYS.has(weekday);
 
   // 08:30 = 510, 09:00 = 540, 17:00 = 1020, 17:05 = 1025

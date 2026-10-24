@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { derivePersonalTargets } from '@vanguard/domain';
 import { supabase } from './supabase';
-import { getTodayWarsaw, getDaysAgoWarsaw, warsawDayBoundsISO } from './date';
+import { getTodayWarsaw, getDaysAgoWarsaw, getWeekStartWarsaw, warsawDayBoundsISO } from './date';
 import { SparkyCore, computeSignals } from './vanguardCore';
 import { syncCalendar } from './syncApi';
 import { parseWorldState } from './db-json-guards';
@@ -100,9 +100,7 @@ async function fetchHasWorkoutToday(userId: string, today: string): Promise<bool
  */
 async function fetchDashboardData(userId: string): Promise<DashboardData> {
   const today = getTodayWarsaw();
-  const dayOfWeek = new Date(today + 'T12:00:00Z').getUTCDay();
-  const daysToMonday = (dayOfWeek + 6) % 7;
-  const monday = getDaysAgoWarsaw(daysToMonday);
+  const monday = getWeekStartWarsaw(today);
 
   // 1. Fetch from cached world state table first
   const { data: wsRow } = await supabase

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DEFAULT_PROTEIN_FLOOR_G } from '@vanguard/domain';
-import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
+import { getTodayWarsaw, getWeekStartWarsaw, shiftDateStr } from '../../../lib/date';
 import { fetchMultiDomainMatrixApi } from '../../../lib/multiDomainMatrixApi';
 import type { DesktopSessionRow, StravaActivityRow } from '../../../lib/desktopDashboardTypes';
 import type { LenieLogRow } from '../desktopUtils';
@@ -37,9 +37,7 @@ export function useMultiDomainMatrixData({
   );
 
   const todayStr = getTodayWarsaw();
-  const dow = new Date(todayStr + 'T12:00:00Z').getUTCDay();
-  const offsetToMonday = -(dow === 0 ? 6 : dow - 1);
-  const mondayStr = shiftDateStr(todayStr, offsetToMonday);
+  const mondayStr = getWeekStartWarsaw(todayStr);
   const startStr = shiftDateStr(mondayStr, -12 * 7);
 
   const { data: apiData, isLoading } = useQuery({

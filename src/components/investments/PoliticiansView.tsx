@@ -1,3 +1,4 @@
+import { TIMEZONE } from '@vanguard/domain';
 import { FC, useState } from 'react';
 import Button from '../ui/Button';
 import { useCongressOverview } from '../../lib/investments/useCongressOverview';
@@ -101,7 +102,7 @@ export const PoliticiansView: FC<Props> = ({
       <p className="text-xs text-text-muted">
         Źródło: ujawnienia STOCK Act (House PTR, Senat) · dane od {formatDatePl(overview?.coverage.since ?? yearFloor())}
         {overview?.coverage.latestDisclosureDate && ` do ${formatDatePl(overview.coverage.latestDisclosureDate)}`}
-        {sourceStatus && ` · ostatnia kontrola źródła: ${new Date(sourceStatus.checked_at).toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' })}`}
+        {sourceStatus && ` · ostatnia kontrola źródła: ${new Date(sourceStatus.checked_at).toLocaleString('pl-PL', { timeZone: TIMEZONE })}`}
         {!sourceStatus && ' · brak potwierdzonej kontroli źródła'}
         {sourceStatus && sourceStatus.status !== 'ok' && ' · import wymaga sprawdzenia'}
       </p>

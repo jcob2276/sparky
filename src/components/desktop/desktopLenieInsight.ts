@@ -1,3 +1,4 @@
+import { TIMEZONE } from '@vanguard/domain';
 import { daysBefore } from './desktopMath';
 
 export interface LenieLogRow {
@@ -138,7 +139,7 @@ export interface LenieStatsResult {
 function warsawHourAndMinute(isoStr: string): { hour: number; minute: number; timeStr: string } {
   const d = new Date(isoStr);
   const parts = new Intl.DateTimeFormat('pl-PL', {
-    timeZone: 'Europe/Warsaw',
+    timeZone: TIMEZONE,
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,

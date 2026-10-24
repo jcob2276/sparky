@@ -1,3 +1,4 @@
+import { TIMEZONE } from '@vanguard/domain';
 import { supabase } from '../supabase';
 import { getTodayWarsaw } from '../date';
 import { nutritionSeries } from './nutritionDays';
@@ -7,7 +8,7 @@ import { RUN_SPORT_TYPES } from '../runSports';
 /** Data kalendarzowa w Warszawie (wpis o 00:30 należy do nowego dnia, nie do poprzedniego dnia UTC). */
 export function warsawDateKey(iso: string): string {
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Warsaw' }).format(date);
+  return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('sv-SE', { timeZone: TIMEZONE }).format(date);
 }
 
 /** Biegi liczone jak w tygodniowym pulsie ciała. */

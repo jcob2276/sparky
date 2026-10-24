@@ -1,3 +1,4 @@
+import { TIMEZONE } from '@vanguard/domain';
 import { DashboardData } from '../../lib/investments/dashboardService';
 import { formatDashboardDate } from '../../lib/date';
 
@@ -13,7 +14,7 @@ function readableError(error: string | null | undefined): string | null {
 }
 
 const stamp = (value: string | null | undefined, fallback: string) => (
-  value ? new Date(value).toLocaleString('pl-PL', { timeZone: 'Europe/Warsaw' }) : fallback
+  value ? new Date(value).toLocaleString('pl-PL', { timeZone: TIMEZONE }) : fallback
 );
 
 export function DashboardSourceStatus({ data }: { data: DashboardData }) {

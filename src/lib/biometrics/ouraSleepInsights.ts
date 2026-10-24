@@ -1,4 +1,4 @@
-import { shiftDateStr } from '@vanguard/domain';
+import { shiftDateStr, TIMEZONE } from '@vanguard/domain';
 
 export interface OuraSleepInsightDay {
   date: string;
@@ -36,7 +36,7 @@ const WARSAW_TIME = new Intl.DateTimeFormat('en-GB', {
   hour: '2-digit',
   hour12: false,
   minute: '2-digit',
-  timeZone: 'Europe/Warsaw',
+  timeZone: TIMEZONE,
 });
 
 function midpointMinutes(day: OuraSleepInsightDay): number | null {

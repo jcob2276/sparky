@@ -1,3 +1,5 @@
+import { TIMEZONE } from '@vanguard/domain';
+
 interface NightSignalPoint {
   ts: string;
   value: number | null;
@@ -42,7 +44,7 @@ function timeLabel(ts: string | undefined): string {
   return new Intl.DateTimeFormat('pl-PL', {
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: 'Europe/Warsaw',
+    timeZone: TIMEZONE,
   }).format(new Date(parsed));
 }
 
