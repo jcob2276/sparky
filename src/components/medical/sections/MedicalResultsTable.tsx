@@ -4,6 +4,7 @@ import type { MarkerSeries, MedicalLabRow } from '../../../lib/health/medicalAna
 import { ControlInput, ControlSelect, Pressable } from '../../ui/ControlPrimitives';
 import MedicalRangeGauge from './MedicalRangeGauge';
 import MedicalResultsCards from './MedicalResultsCards';
+import { latestBatchKeys } from '../../../lib/health/markerTrend';
 
 interface MedicalResultsTableProps {
   series: MarkerSeries[];
@@ -13,6 +14,7 @@ interface MedicalResultsTableProps {
 const FILTER_TABS = [
   { value: 'all', label: 'Wszystkie' },
   { value: 'attention', label: 'Wymaga uwagi' },
+  { value: 'recent', label: 'Ostatnio' },
   { value: 'changed', label: 'Zmienione' },
   { value: 'new', label: 'Nowe' },
 ];
@@ -89,7 +91,7 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
   const latestMarkers = useMemo(
     () =>
       series
-        .map((s) => ({ current: s.latest, previous: s.prior, count: s.history.length }))
+        .map((s) => ({ current: s.latest, previous: s.prior, history: s.history, count: s.history.length }))
         .sort((a, b) => a.current.marker_name.localeCompare(b.current.marker_name)),
     [series],
   );
@@ -98,6 +100,8 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
     const set = new Set(series.map((s) => s.category).filter(Boolean) as string[]);
     return ['all', ...Array.from(set).sort((a, b) => a.localeCompare(b, 'pl'))];
   }, [series]);
+
+  const recentKeys = useMemo(() => latestBatchKeys(series.map((s) => s.latest)), [series]);
 
   const filteredMarkers = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -111,6 +115,9 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
       if (activeTab === 'attention') {
         return m.current.flag && m.current.flag !== 'N' && m.current.flag !== 'normal';
       }
+      if (activeTab === 'recent') {
+        return recentKeys.has(m.current.marker_key);
+      }
       if (activeTab === 'changed') {
         return m.previous !== null && m.current.value !== m.previous.value;
       }
@@ -119,14 +126,14 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
       }
       return true;
     });
-  }, [latestMarkers, activeTab, selectedCategory, searchQuery]);
+  }, [latestMarkers, activeTab, selectedCategory, searchQuery, recentKeys]);
 
   return (
     <div className="space-y-4">
       <div className="border-b border-border-custom/50 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold font-display">2. Wyniki Laboratoryjne</h2>
+            <h2 className="text-lg font-semibold font-display">Wyniki laboratoryjne</h2>
             <span className="text-2xs font-bold text-text-muted rounded-full bg-surface-2 px-2 py-0.5">
               {filteredMarkers.length} z {series.length}
             </span>

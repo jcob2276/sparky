@@ -2064,7 +2064,7 @@ Zrobione:
 
 Do zrobienia (kolejne pionowe plastry, jeden temat = jeden commit):
 - [x] Laboratorium: zakładki Przegląd / Wyniki / Trendy / Dokumenty (`lib/health/labTabs.ts`).
-- [ ] Wyniki: karty markerów z zakresem i sparkline zamiast gęstej tabeli; widok „ostatnio zmienione”.
+- [x] Wyniki: karty markerów ze sparkline, zmianą % i filtrem „Ostatnio” (`lib/health/markerTrend.ts`).
 - [ ] Import: zdjęcie/PDF wyniku → rozpoznanie → zatwierdzenie.
 - [ ] Kontekst treningu i snu przy markerach (ferrytyna vs objętość biegania) — tylko jako informacja, bez diagnozy.
 - [ ] Kartoteka: te same zasady (czytelność, jedna główna akcja, bez zwijanych nagłówków).

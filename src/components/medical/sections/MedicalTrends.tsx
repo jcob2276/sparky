@@ -78,7 +78,7 @@ export default function MedicalTrends({ series }: MedicalTrendsProps) {
   return (
     <div className="space-y-6">
       <div className="border-b border-border-custom/50 pb-3">
-        <h2 className="text-lg font-semibold font-display">3. Trendy i Zmienność</h2>
+        <h2 className="text-lg font-semibold font-display">Trendy i zmienność</h2>
         <p className="text-xs text-text-muted mt-0.5">Analiza długoterminowa i dynamika zmian kluczowych parametrów</p>
       </div>
 
