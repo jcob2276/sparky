@@ -12,6 +12,10 @@ export const HEALTH_THRESHOLDS = {
   READINESS_YELLOW: 50,
   READINESS_PLAN_LOW: 60,
   READINESS_SUCCESS: 75,
+
+  // Sleep (h): jedna definicja „krótkiej nocy” i „ostrzeżenia” dla całej aplikacji (docs/SINGLE_SOURCE.md)
+  SLEEP_SHORT_H: 6,
+  SLEEP_WARNING_H: 6.5,
 };
 
 export function recoveryTier(score: number): 'green' | 'yellow' | 'red' {

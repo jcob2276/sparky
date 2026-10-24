@@ -32,6 +32,7 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 |---|---|---|
 | Pełny dzień jedzenia (próg kcal, bez dzisiaj) | `src/lib/chronicle/nutritionDays.ts` (`MIN_FULL_DAY_KCAL`) | kopie w funkcjach edge `period-compare` i `analyze-food-quality` (osobne bundle) |
 | Aktywności liczone jako bieganie | `src/lib/runSports.ts` | kopia w `period-compare` (osobny bundle) |
+| Próg „krótka noc” i „ostrzeżenie o śnie” | `HEALTH_THRESHOLDS.SLEEP_SHORT_H` / `SLEEP_WARNING_H` w `@vanguard/domain` | frontend i funkcje edge importują; nie wpisuj literału godzin w kodzie |
 | Strefa czasu aplikacji | `WARSAW_TZ` w `@vanguard/domain` | dni jako klucze `YYYY-MM-DD` w Warszawie |
 | Tydzień (pon–nd) | `getWeekStartWarsaw` | |
 | Wartości awaryjne celów i formatowanie ich tekstów | `src/lib/lifeGoals.ts` | tylko do czasu załadowania z bazy; odczyt przez `lifeTargetsApi.ts` |
@@ -40,7 +41,6 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 
 | Temat | Gdzie się rozjeżdża | Decyzja |
 |---|---|---|
-| Próg „krótka noc” | kilka różnych progów (6 h, 6.5 h, 6.8 h) w recap, period-compare, Oracle, `/teraz`, `computePerDay`, a cel snu pochodzi z profilu | jedna definicja w `@vanguard/domain`: jeden próg „krótka noc” i jedno „ostrzeżenie”, cel z profilu |
 | Persona AI | „Antigravity” w promptach, aplikacja nazywa się Sparky | do decyzji użytkownika |
 | Portfele w Inwestycjach | zakodowane na sztywno (Jakub, Kondzio) vs `finance_holdings` | zostawione celowo, do przeniesienia do Finansów |
 | Cel Duch i cel sprintu 3 | `life_goals.goal_duch` pusty, brak wpisu `sprint_goals` | do uzupełnienia przez użytkownika |

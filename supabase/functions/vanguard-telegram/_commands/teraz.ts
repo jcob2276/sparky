@@ -1,3 +1,4 @@
+import { HEALTH_THRESHOLDS } from "@vanguard/domain";
 import { sendChatAction } from "../../_shared/telegram.ts";
 import { safeSendTelegram } from "../_utils/helpers.ts";
 import { getWarsawDateString } from "../../_shared/time.ts";
@@ -104,7 +105,7 @@ export async function handleTerazCommand(
 
     // 3. Risk & Circadian analysis
     const isImpulseWindow = warsawHour === 10 || (warsawHour === 11 && warsawMinute <= 30);
-    const lowSleep = typeof agg?.sleep_hours === "number" && agg.sleep_hours > 0 && agg.sleep_hours < 6.5;
+    const lowSleep = typeof agg?.sleep_hours === "number" && agg.sleep_hours > 0 && agg.sleep_hours < HEALTH_THRESHOLDS.SLEEP_WARNING_H;
 
     let phaseDesc = "Faza pracy";
     if (warsawHour >= 5 && warsawHour < 11) {
@@ -142,7 +143,7 @@ export async function handleTerazCommand(
     if (isImpulseWindow) {
       lines.push("Zero ucieczki w architekturę, refaktory czy nowe karty. Trwa okno podatności na impulsy — dociśnij tylko bieżący ruch.");
     } else if (lowSleep) {
-      lines.push("Sen < 6.5h: w 80% przypadków egzekucja spada do <= 0.50. Bezwzględny zakaz otwierania gier i pobocznych wątków.");
+      lines.push(`Sen < ${HEALTH_THRESHOLDS.SLEEP_WARNING_H}h: w 80% przypadków egzekucja spada do <= 0.50. Bezwzględny zakaz otwierania gier i pobocznych wątków.`);
     } else {
       lines.push("Zero pobocznych wątków przed ukończeniem powyższego zadania.");
     }

@@ -1,3 +1,4 @@
+import { HEALTH_THRESHOLDS } from "@vanguard/domain";
 import { addDaysStr, getSprintInfoForDate, monthThemeSourceForWeek, mean, isVoiceEntry, avgBedtimeLabel } from "./helpers.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { Database } from "../_shared/database.types.ts";
@@ -139,7 +140,7 @@ export async function gatherWeekFacts(db: SupabaseClient<Database>, userId: stri
   const bedtime = avgBedtimeLabel(oura.map((o: any) => o.bedtime_timestamp).filter(Boolean));
   const avgSleepScore = mean(oura.map((o: any) => o.sleep_score).filter(Boolean));
   const avgDeepSleep = mean(oura.map((o: any) => o.deep_sleep_hours).filter(Boolean));
-  const daysUnder6h = oura.filter((o: any) => o.total_sleep_hours != null && o.total_sleep_hours < 6).length;
+  const daysUnder6h = oura.filter((o: any) => o.total_sleep_hours != null && o.total_sleep_hours < HEALTH_THRESHOLDS.SLEEP_SHORT_H).length;
   const readiness = oura.map((o: any) => ({ date: o.date, score: o.readiness_score })).filter((r: any) => r.score != null);
   const sleepDailyLines = oura.map((o: any) => {
     const bed = o.bedtime_timestamp ? new Date(o.bedtime_timestamp).toLocaleTimeString("pl-PL", { timeZone: "Europe/Warsaw", hour: "2-digit", minute: "2-digit" }) : null;

@@ -5,6 +5,7 @@
  * Sprowadzona do _shared/ aby backend i frontend współdzieliły te same reguły z-score.
  */
 
+import { HEALTH_THRESHOLDS } from '@vanguard/domain';
 import { zScore, mean, stdDev } from './stats.ts';
 import {
   generateActiveSignature, translateBiometrics, formatBaselineContext,
@@ -144,7 +145,7 @@ export class VanguardCore {
     const zHrv = this._zScore(current.hrv, bl.means.hrv, bl.stdDevs.hrv);
     const hrvScore = Math.max(0, Math.min(10, (zHrv + 2) * 2.5));
     let balanceModifier = 1.0;
-    if (current.daily_rpe >= 8 && (current.sleep < 6.5 || current.hrv < bl.means.hrv)) balanceModifier = 0.8;
+    if (current.daily_rpe >= 8 && (current.sleep < HEALTH_THRESHOLDS.SLEEP_WARNING_H || current.hrv < bl.means.hrv)) balanceModifier = 0.8;
     return Math.round((executionScore + trainingScore + proteinScore + sleepScore + hrvScore) * balanceModifier);
   }
 

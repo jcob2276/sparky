@@ -1,3 +1,4 @@
+import { HEALTH_THRESHOLDS } from '@vanguard/domain'
 import { VanguardCore, computeSignals } from '../vanguardCore.ts'
 import { safeExecute } from '../supabase.ts'
 import { getWarsawDayBoundaries } from '../time.ts'
@@ -109,7 +110,7 @@ export const runSaveDailyAggregate = async (
       if (zSleep < -1.0) identityScore -= 15
       else if (zSleep < -0.5) identityScore -= 7
     } else {
-      if (oura.total_sleep_hours < 6.5) identityScore -= 15
+      if (oura.total_sleep_hours < HEALTH_THRESHOLDS.SLEEP_WARNING_H) identityScore -= 15
     }
   }
 

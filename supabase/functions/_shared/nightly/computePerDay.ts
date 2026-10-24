@@ -1,3 +1,4 @@
+import { HEALTH_THRESHOLDS } from '@vanguard/domain';
 import { clamp } from './baselines.ts';
 import { computeReadiness, type ReadinessDay } from './readiness.ts';
 import { computeRecoveryScore } from './recovery_score.ts';
@@ -74,10 +75,10 @@ export function computePerDay(opts: {
   let limiter = 'recovery_ok';
   if (hadLoad && kcal != null && kcal < 1700 && !fuelingProvisional) limiter = 'calories';
   else if (strainScoreResult.isRunDay && carbs != null && carbs < 150 && !fuelingProvisional) limiter = 'carbs';
-  else if (sleep != null && sleep < 6.0) limiter = 'sleep';
+  else if (sleep != null && sleep < HEALTH_THRESHOLDS.SLEEP_SHORT_H) limiter = 'sleep';
   else if (strain != null && strain > 15 && recovery != null && recovery < HEALTH_THRESHOLDS.RECOVERY_LIMITER) limiter = strainScoreResult.cardioRaw >= strainScoreResult.strengthPts ? 'cardio_load' : 'strength_load';
   else if (mentalLoad != null && mentalLoad >= 7) limiter = 'mental_load';
-  else if (sleep != null && sleep < 6.8) limiter = 'sleep';
+  else if (sleep != null && sleep < HEALTH_THRESHOLDS.SLEEP_WARNING_H) limiter = 'sleep';
   else if (kcal != null && kcal < 1500 && !fuelingProvisional) limiter = 'calories';
 
   // Illness override
