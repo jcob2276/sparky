@@ -18,9 +18,9 @@ interface CountField {
   icon: ReactNode;
 }
 
-/** Kolejność lejka: najpierw diale i umówienia z nich, niżej rozmowy sprzedażowe i sprzedaże. */
+/** Kolejność lejka: najpierw rozmowy odebrane i umówienia z nich, niżej rozmowy sprzedażowe i sprzedaże. */
 const DIAL_FIELDS: CountField[] = [
-  { key: 'conversations', label: 'Diale', icon: <PhoneCall size={13} className="text-primary" /> },
+  { key: 'conversations', label: 'Rozmowy odebrane', icon: <PhoneCall size={13} className="text-primary" /> },
   { key: 'appointments', label: 'Umówieni', icon: <CalendarCheck size={13} className="text-success" /> },
 ];
 const SALES_FIELDS: CountField[] = [
@@ -28,7 +28,7 @@ const SALES_FIELDS: CountField[] = [
   { key: 'salesClosed', label: 'Sprzedaże', icon: <Handshake size={13} className="text-warning" /> },
 ];
 
-/** Cztery liczby dnia (diale → umówieni, rozmowy sprzedażowe → sprzedaże) i jedno zdanie opinii. Puste pole to „jeszcze nie wpisane”, 0 jest poprawną wartością. */
+/** Cztery liczby dnia (rozmowy odebrane → umówieni, rozmowy sprzedażowe → sprzedaże) i jedno zdanie opinii. Puste pole to „jeszcze nie wpisane”, 0 jest poprawną wartością. */
 export default function SalesNumbersFields({ idPrefix, draft, onChange, disabled = false }: SalesNumbersFieldsProps) {
   const locked = disabled || draft.off;
   const renderRow = (fields: CountField[]) => (

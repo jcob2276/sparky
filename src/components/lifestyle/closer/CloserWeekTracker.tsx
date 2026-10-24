@@ -91,11 +91,11 @@ function CloserKpiCards({
         </div>
       </div>
 
-      {/* Diale */}
+      {/* Rozmowy odebrane */}
       <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
         <div className="flex items-center justify-between text-2xs font-bold text-text-muted">
           <span className="flex items-center gap-1">
-            <PhoneCall size={11} className="text-primary" /> Diale
+            <PhoneCall size={11} className="text-primary" /> Rozmowy odebrane
           </span>
           <span>Tydzień</span>
         </div>

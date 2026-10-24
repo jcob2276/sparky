@@ -116,7 +116,7 @@ export function buildKontoSummary(rows: KontoRows, win: PeriodWindow, today: str
   const daysCounted = lastDay < start ? 0 : Math.round((new Date(`${lastDay}T12:00:00Z`).getTime() - new Date(`${start}T12:00:00Z`).getTime()) / 86400000) + 1;
   const missing = daysCounted - (daysCounted > 0 ? daysWithData(entered, start, lastDay) : 0);
   const dialsNow = sum(dials, start, end) ?? 0;
-  const notes = [dialsNow > 0 && bookedNow != null ? `Z diala na umówienie ${Math.round((bookedNow / dialsNow) * 1000) / 10}%.` : 'Brak diali w tym okresie.'];
+  const notes = [dialsNow > 0 && bookedNow != null ? `Z rozmowy odebranej na umówienie ${Math.round((bookedNow / dialsNow) * 1000) / 10}%.` : 'Brak rozmów odebranych w tym okresie.'];
   if (missing > 0) notes.push(`Brak liczb z ${missing} ${missing === 1 ? 'dnia' : 'dni'} (bez dzisiejszego): sumy są zaniżone.`);
   return {
     goalLine: {
@@ -125,7 +125,7 @@ export function buildKontoSummary(rows: KontoRows, win: PeriodWindow, today: str
       hint: `Umówieni ${bookedNow ?? 0} z ${targetBooked} · cel 15 000 zł netto / msc`,
     },
     tiles: [
-      makeTile({ label: 'Diale', current: sum(dials, start, end), previous: sum(dials, prevStart, prevEnd), higherIsBetter: true }),
+      makeTile({ label: 'Rozmowy odebrane', current: sum(dials, start, end), previous: sum(dials, prevStart, prevEnd), higherIsBetter: true }),
       makeTile({ label: 'Umówieni', current: bookedNow, previous: sum(booked, prevStart, prevEnd), higherIsBetter: true, hint: `z ${targetBooked}` }),
       makeTile({ label: 'Rozmowy sprz.', current: sum(calls, start, end), previous: sum(calls, prevStart, prevEnd), higherIsBetter: true, hint: `z ${targetCalls}` }),
       makeTile({ label: 'Sprzedaże', current: sum(sales, start, end), previous: sum(sales, prevStart, prevEnd), higherIsBetter: true }),

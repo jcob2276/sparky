@@ -14,8 +14,8 @@ describe('buildKontoSummary', () => {
   it('sumuje lejek tygodnia i porównuje z poprzednim', () => {
     const s = buildKontoSummary({ logs }, week, '2026-10-21');
     const byLabel = Object.fromEntries(s.tiles.map((t) => [t.label, t]));
-    expect(byLabel['Diale'].value).toBe('40');
-    expect(byLabel['Diale'].delta).toBe('+10');
+    expect(byLabel['Rozmowy odebrane'].value).toBe('40');
+    expect(byLabel['Rozmowy odebrane'].delta).toBe('+10');
     expect(byLabel['Umówieni'].hint).toBe('z 30');
     expect(s.goalLine.pct).toBe(13);
   });

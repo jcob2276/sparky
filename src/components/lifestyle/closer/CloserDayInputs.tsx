@@ -30,7 +30,7 @@ function DialsCard({ dials, disabled, onChangeDials }: DialsCardProps) {
     <div className="rounded-xl border border-border-custom/25 bg-surface-raised/30 p-2.5 space-y-2">
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
-          <PhoneCall size={13} className="text-primary" /> Diale
+          <PhoneCall size={13} className="text-primary" /> Rozmowy odebrane
         </span>
         <span className="text-base font-semibold text-primary">{dials}</span>
       </div>
