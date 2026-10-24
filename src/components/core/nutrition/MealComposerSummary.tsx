@@ -1,3 +1,4 @@
+import { DEFAULT_PROTEIN_FLOOR_G } from '@vanguard/domain';
 import type { WeekBalance } from '../../../lib/health/weekBalance';
 import type { DayNutrientCoverage } from '../../../lib/health/nutrientCoverage';
 import NutrientCoverageStrip from './NutrientCoverageStrip';
@@ -87,7 +88,7 @@ export function ComposerProgress({
   const eaten = Math.round(totals.calories);
   const remaining = Math.round(targetKcal - totals.calories);
   // B uses the real target; W/T are derived (T = 30% kcal, W = the rest) because only B/kcal targets are stored.
-  const targetProtein = Math.round(totals.targetProtein ?? (targetKcal * 0.25) / 4);
+  const targetProtein = Math.round(totals.targetProtein ?? DEFAULT_PROTEIN_FLOOR_G);
   const targetFat = Math.round((targetKcal * 0.3) / 9);
   const targetCarbs = Math.max(0, Math.round((targetKcal - targetProtein * 4 - targetFat * 9) / 4));
   const showQuality = qualityPending || totals.avgFoodQuality != null;
