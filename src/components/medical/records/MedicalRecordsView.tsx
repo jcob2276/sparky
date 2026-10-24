@@ -85,7 +85,7 @@ function MedicalViewHeader({
             onClick={onImportLabs}
             className="hidden lg:inline-flex text-xs"
           >
-            Importuj wyniki
+            Dodaj wyniki
           </Button>
           <Button
             size="sm"
@@ -145,12 +145,21 @@ export default function MedicalRecordsView({
       <main className="mx-auto w-full max-w-7xl flex-1 space-y-10 px-4 py-6 pb-20 sm:px-6">
         <MedicalPassportHeader summary={summary} />
 
+        <Card variant="surface" padding="1rem" className="flex flex-wrap items-center justify-between gap-3">
+          <p className="min-w-0 flex-1 text-sm text-text-secondary">
+            Masz nowe wyniki? Zrób zdjęcie albo wyślij PDF, a AI przepisze markery. Ty je sprawdzisz i zatwierdzisz.
+          </p>
+          <Button size="sm" variant="tonal" icon={<FileUp size={14} />} onClick={onImportLabs}>
+            Dodaj wyniki
+          </Button>
+        </Card>
+
         <section aria-labelledby="consider-heading" className="space-y-4">
           <div className="flex items-end justify-between gap-4 border-b border-border-custom/50 pb-3">
             <div>
               <span className="text-2xs font-semibold tracking-normal text-primary">Prewencja</span>
               <h2 id="consider-heading" className="text-xl font-semibold font-display tracking-tight text-text-primary mt-0.5">
-                Profilaktyka i Następne Kroki
+                Co warto zrobić
               </h2>
             </div>
             <Button size="sm" variant="ghost" onClick={() => onOpenLabs()} className="text-xs text-primary">
