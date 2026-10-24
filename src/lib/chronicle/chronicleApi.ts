@@ -1,4 +1,6 @@
 import { supabase } from '../supabase';
+import { getTodayWarsaw } from '../date';
+import { nutritionSeries } from './nutritionDays';
 import type { CialoRows, DuchRows, KontoRows } from './summaries';
 
 /** Data kalendarzowa w Warszawie (wpis o 00:30 należy do nowego dnia, nie do poprzedniego dnia UTC). */
@@ -32,21 +34,22 @@ export async function fetchCialoRows(userId: string, from: string, to: string): 
     supabase.from('strava_activities_clean').select('start_date, distance, sport_type').eq('user_id', userId).eq('is_oura', false).in('sport_type', RUN_SPORTS).gte('start_date', `${from}T00:00:00Z`).lte('start_date', `${to}T23:59:59Z`),
   ]);
   for (const result of [body, nutrition, sleep, workouts, latestFat, runs]) if (result.error) throw result.error;
-  const logged = (rows: Array<{ date: string }> | null, pick: (row: never) => unknown) =>
+  const today = getTodayWarsaw();
+  const positive = (rows: Array<{ date: string }> | null, pick: (row: never) => unknown) =>
     (rows ?? []).flatMap((row) => { const value = num(pick(row as never)); return value != null && value > 0 ? [{ date: row.date, value }] : []; });
   const latest = latestFat.data?.[0];
   return {
     weight: (body.data ?? []).flatMap((row) => (row.date ? [{ date: row.date, value: num(row.weight) }] : [])),
     bodyFat: (body.data ?? []).flatMap((row) => (row.date ? [{ date: row.date, value: num(row.body_fat) }] : [])),
-    protein: (nutrition.data ?? []).filter((row) => (num(row.protein) ?? 0) > 0).map((row) => ({ date: row.date, value: num(row.protein) })),
-    calories: logged(nutrition.data, (row: { calories: unknown }) => row.calories),
-    fiber: logged(nutrition.data, (row: { fiber: unknown }) => row.fiber),
-    foodQuality: logged(nutrition.data, (row: { avg_food_quality: unknown }) => row.avg_food_quality),
+    protein: nutritionSeries(nutrition.data, today, (row) => row.protein),
+    calories: nutritionSeries(nutrition.data, today, (row) => row.calories),
+    fiber: nutritionSeries(nutrition.data, today, (row) => row.fiber),
+    foodQuality: nutritionSeries(nutrition.data, today, (row) => row.avg_food_quality),
     sleepHours: (sleep.data ?? []).map((row) => ({ date: row.date, value: num(row.total_sleep_hours) })),
-    sleepScore: logged(sleep.data, (row: { sleep_score: unknown }) => row.sleep_score),
-    hrv: logged(sleep.data, (row: { hrv_avg: unknown }) => row.hrv_avg),
-    restingHr: logged(sleep.data, (row: { rhr_avg: unknown }) => row.rhr_avg),
-    readiness: logged(sleep.data, (row: { readiness_score: unknown }) => row.readiness_score),
+    sleepScore: positive(sleep.data, (row: { sleep_score: unknown }) => row.sleep_score),
+    hrv: positive(sleep.data, (row: { hrv_avg: unknown }) => row.hrv_avg),
+    restingHr: positive(sleep.data, (row: { rhr_avg: unknown }) => row.rhr_avg),
+    readiness: positive(sleep.data, (row: { readiness_score: unknown }) => row.readiness_score),
     runKm: runKmByDay(runs.data ?? []),
     workouts: (workouts.data ?? []).filter((row) => row.date).map((row) => ({ date: row.date as string, value: 1 })),
     latestBodyFat: latest?.date && num(latest.body_fat) != null ? { date: latest.date, value: num(latest.body_fat) as number } : null,

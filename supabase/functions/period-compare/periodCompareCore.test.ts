@@ -12,7 +12,7 @@ Deno.test('facts aggregate tasks by category, averages ignore missing days, runs
     runDistancesM: [10000, 5500, null],
     closer: [{ dials: 10, appointments: 3, sales_calls: 1, sales_closed: 0 }, { dials: 15, appointments: 2, sales_calls: 2, sales_closed: 1 }],
     journal: [{ timestamp: '2026-10-23T22:30:00Z', content: 'wpis' }, { timestamp: null, content: 'bez daty' }],
-  })
+  }, '2026-10-26')
   assertEquals(f.scoreAvg, 5)
   assertEquals(f.scoredDays, 2)
   assertEquals(f.tasks, { done: 1, planned: 2, byCategory: { cialo: { done: 1, planned: 1 }, duch: { done: 0, planned: 1 } } })
@@ -25,8 +25,8 @@ Deno.test('facts aggregate tasks by category, averages ignore missing days, runs
 })
 
 Deno.test('prompt names both periods and says "brak" for missing data instead of zero', () => {
-  const a = buildPeriodFacts('A', '2026-10-19', '2026-10-25', empty)
-  const b = buildPeriodFacts('B', '2026-10-12', '2026-10-18', empty)
+  const a = buildPeriodFacts('A', '2026-10-19', '2026-10-25', empty, '2026-10-26')
+  const b = buildPeriodFacts('B', '2026-10-12', '2026-10-18', empty, '2026-10-26')
   const prompt = buildCompareUserPrompt(a, b)
   assertStringIncludes(prompt, 'OKRES A (wybrany): A (2026-10-19 do 2026-10-25, 7 dni)')
   assertStringIncludes(prompt, 'OKRES B (punkt odniesienia): B')
@@ -49,8 +49,8 @@ Deno.test('normalize keeps at most three well-formed items per list and rejects 
 })
 
 Deno.test('a period with no sales entries is described as missing data, not as zero', () => {
-  const a = buildPeriodFacts('A', '2026-10-19', '2026-10-25', { ...empty, closer: [{ dials: 10, appointments: 3, sales_calls: 1, sales_closed: 0 }] })
-  const b = buildPeriodFacts('B', '2026-10-05', '2026-10-11', empty)
+  const a = buildPeriodFacts('A', '2026-10-19', '2026-10-25', { ...empty, closer: [{ dials: 10, appointments: 3, sales_calls: 1, sales_closed: 0 }] }, '2026-10-26')
+  const b = buildPeriodFacts('B', '2026-10-05', '2026-10-11', empty, '2026-10-26')
   const prompt = buildCompareUserPrompt(a, b)
   assertStringIncludes(prompt, 'Sprzedaż (z 1 dni z wpisem): rozmowy odebrane 10')
   assertStringIncludes(prompt, 'Sprzedaż: brak wpisów z tego okresu (to brak danych, NIE zero)')
@@ -59,5 +59,25 @@ Deno.test('a period with no sales entries is described as missing data, not as z
 Deno.test('the system prompt keeps past events from becoming to-dos and forbids invented circumstances', () => {
   assertStringIncludes(COMPARE_SYSTEM_PROMPT, 'nie jest zadaniem na przyszłość')
   assertStringIncludes(COMPARE_SYSTEM_PROMPT, 'Nie dodawaj okoliczności, których nie ma w danych')
+})
+
+Deno.test('food averages use only finished days with logged calories, keep a real 0 fiber day, and ignore today', () => {
+  const nutrition = [
+    { date: '2026-10-19', calories: 2530, protein: 153.1, fiber: 7, avg_food_quality: 42 },
+    { date: '2026-10-21', calories: 1737, protein: 59.4, fiber: 0, avg_food_quality: 32 },
+    { date: '2026-10-22', calories: 0, protein: 0, fiber: 0, avg_food_quality: null },
+    { date: '2026-10-24', calories: 531, protein: 17.2, fiber: 3.1, avg_food_quality: 38 },
+  ]
+  const f = buildPeriodFacts('A', '2026-10-19', '2026-10-25', { ...empty, nutrition }, '2026-10-24')
+  assertEquals(f.food, { days: 2, kcal: 2133.5, protein: 106.3, fiber: 3.5, quality: 37 })
+})
+
+Deno.test('prompt states the nutrition targets and warns that fiber is a lower bound', () => {
+  const a = buildPeriodFacts('A', '2026-10-19', '2026-10-25', empty, '2026-10-26')
+  const b = buildPeriodFacts('B', '2026-10-12', '2026-10-18', empty, '2026-10-26')
+  const prompt = buildCompareUserPrompt(a, b, { kcal: 2428, protein: 155 })
+  assertStringIncludes(prompt, 'Cele żywieniowe użytkownika: 2428 kcal/dzień, białko co najmniej 155 g/dzień')
+  assertStringIncludes(prompt, 'błonnik (dolna granica)')
+  assertStringIncludes(COMPARE_SYSTEM_PROMPT, 'Błonnik w danych to dolna granica')
 })
 

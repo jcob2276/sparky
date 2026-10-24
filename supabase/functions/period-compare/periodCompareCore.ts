@@ -4,7 +4,7 @@ export interface PeriodRows {
   wins: Array<Record<string, unknown>>
   scores: Array<{ date: string; day_score: number | null }>
   oura: Array<{ total_sleep_hours: number | null; sleep_score: number | null; hrv_avg: number | null; rhr_avg: number | null; readiness_score: number | null }>
-  nutrition: Array<{ calories: number | null; protein: number | null; fiber: number | null; avg_food_quality: number | null }>
+  nutrition: Array<{ date: string; calories: number | null; protein: number | null; fiber: number | null; avg_food_quality: number | null }>
   workoutSessions: number
   runDistancesM: Array<number | null>
   closer: Array<{ dials: number | null; appointments: number | null; sales_calls: number | null; sales_closed: number | null }>
@@ -23,7 +23,8 @@ export interface PeriodFacts {
   tasks: CategoryRate & { byCategory: Record<string, CategoryRate> }
   notes: Array<{ date: string; text: string }>
   sleep: { hours: number | null; score: number | null; hrv: number | null; rhr: number | null; readiness: number | null }
-  food: { kcal: number | null; protein: number | null; fiber: number | null; quality: number | null }
+  /** Tylko pełne dni (bez dzisiejszego, z zapisanymi kaloriami); `days` = ile ich było. */
+  food: { days: number; kcal: number | null; protein: number | null; fiber: number | null; quality: number | null }
   training: { sessions: number; runKm: number }
   /** `entries` = dni z wpisem; bez wpisów to brak danych, nie zero. */
   sales: { entries: number; calls: number; booked: number; salesCalls: number; sold: number }
@@ -57,6 +58,12 @@ export function warsawDay(iso: string): string {
   return Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Warsaw' }).format(date)
 }
 
+/** Średnia z wartości znanych, wliczając 0 (dzień bez błonnika to prawdziwe 0, brak danych to null). */
+function avgKnown(values: Array<number | null | undefined>): number | null {
+  const real = values.filter((v): v is number => typeof v === 'number' && Number.isFinite(v) && v >= 0)
+  return real.length ? Math.round((real.reduce((a, b) => a + b, 0) / real.length) * 10) / 10 : null
+}
+
 function avg(values: Array<number | null | undefined>): number | null {
   const real = values.filter((v): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0)
   return real.length ? Math.round((real.reduce((a, b) => a + b, 0) / real.length) * 10) / 10 : null
@@ -68,7 +75,9 @@ function daysBetween(start: string, end: string): number {
 
 const sum = (values: Array<number | null | undefined>) => values.reduce<number>((a, b) => a + (b ?? 0), 0)
 
-export function buildPeriodFacts(label: string, start: string, end: string, rows: PeriodRows): PeriodFacts {
+export function buildPeriodFacts(label: string, start: string, end: string, rows: PeriodRows, today: string): PeriodFacts {
+  // Dzisiejszy dzień jest w toku i zaniżałby średnie jedzenia (jak „średnia z N pełnych dni” w apce).
+  const foodDays = rows.nutrition.filter((r) => r.date < today && (r.calories ?? 0) > 0)
   const byCategory: Record<string, CategoryRate> = {}
   let done = 0
   let planned = 0
@@ -111,10 +120,11 @@ export function buildPeriodFacts(label: string, start: string, end: string, rows
       readiness: avg(rows.oura.map((r) => r.readiness_score)),
     },
     food: {
-      kcal: avg(rows.nutrition.map((r) => r.calories)),
-      protein: avg(rows.nutrition.map((r) => r.protein)),
-      fiber: avg(rows.nutrition.map((r) => r.fiber)),
-      quality: avg(rows.nutrition.map((r) => r.avg_food_quality)),
+      days: foodDays.length,
+      kcal: avgKnown(foodDays.map((r) => r.calories)),
+      protein: avgKnown(foodDays.map((r) => r.protein)),
+      fiber: avgKnown(foodDays.map((r) => r.fiber)),
+      quality: avgKnown(foodDays.map((r) => r.avg_food_quality)),
     },
     training: { sessions: rows.workoutSessions, runKm: Math.round((sum(rows.runDistancesM) / 1000) * 10) / 10 },
     sales: {
@@ -133,6 +143,7 @@ Zasady:
 - Opieraj się WYŁĄCZNIE na przekazanych danych. Nie zgaduj, nie wymyślaj liczb, nie dopowiadaj przyczyn, których dane nie pokazują. Brak danych w okresie nazwij brakiem, nie zerem.
 - Każdy punkt musi mieć dowód: konkretne liczby A vs B albo krótki cytat użytkownika. Wnioski o związku (np. sen a ocena dnia) formułuj ostrożnie („w tych okresach szły razem”), bo próba jest mała.
 - Nie dodawaj okoliczności, których nie ma w danych (np. przyczyn zmęczenia, rodzaju treningu). Zdanie o tym, co JUŻ się wydarzyło (np. „prawdopodobnie domknąłem w poniedziałek”), nie jest zadaniem na przyszłość: zmiany wyciągaj tylko z liczb albo z tego, co użytkownik zapowiada lub planuje.
+- Błonnik w danych to dolna granica (nie każdy produkt ma go w bazie), a jedzenie jest liczone z pełnych dni bez dzisiejszego: nie wyciągaj z samego błonnika mocnych wniosków ani zaleceń. Przy białku i kaloriach odnoś się do celów żywieniowych, jeśli je podano.
 - Okres bez wpisów (sprzedaż, jedzenie, sen) to brak danych, więc nie nazywaj tego poprawą ani pogorszeniem. 0 km biegania może znaczyć brak biegów albo brak synchronizacji; nie opieraj na tym jedynym dowodzie mocnych wniosków.
 - Pisz po polsku, do użytkownika na „Ty”, krótko i konkretnie. Bez moralizowania, bez diagnoz medycznych i psychologicznych, bez ogólnych porad motywacyjnych.
 - "improved": do 3 rzeczy, które w A są wyraźnie lepsze niż w B. "worsened": do 3, które są wyraźnie gorsze. Każda: "title" (krótko) i "evidence" (liczby A vs B lub cytat).
@@ -159,7 +170,7 @@ function describePeriod(tag: string, f: PeriodFacts): string {
 Ocena dnia: średnio ${show(f.scoreAvg, '/10')} z ${f.scoredDays} ocenionych dni
 Zadania z planu: ${f.tasks.done}/${f.tasks.planned} zrobionych (wg obszarów: ${categories})
 Sen: ${show(f.sleep.hours, ' h')}, jakość ${show(f.sleep.score)}, HRV ${show(f.sleep.hrv, ' ms')}, tętno spoczynkowe ${show(f.sleep.rhr, ' bpm')}, gotowość ${show(f.sleep.readiness)}
-Jedzenie (dni z zapisem): ${show(f.food.kcal, ' kcal')}/dzień, białko ${show(f.food.protein, ' g')}, błonnik ${show(f.food.fiber, ' g')}, jakość ${show(f.food.quality)}
+Jedzenie (średnia z ${f.food.days} pełnych dni z zapisem): ${show(f.food.kcal, ' kcal')}/dzień, białko ${show(f.food.protein, ' g')}, błonnik (dolna granica) ${show(f.food.fiber, ' g')}, jakość ${show(f.food.quality)}
 Trening: ${f.training.sessions} sesji siłowych, bieganie ${show(f.training.runKm, ' km')} (0 może znaczyć brak biegów albo brak synchronizacji)
 ${describeSales(f)}
 Opinie o dniach:
@@ -168,8 +179,13 @@ Dziennik głosowy (Telegram):
 ${journal}`
 }
 
-export function buildCompareUserPrompt(a: PeriodFacts, b: PeriodFacts): string {
-  return `${describePeriod('A (wybrany)', a)}\n\n${describePeriod('B (punkt odniesienia)', b)}`
+export interface FoodTargets { kcal: number | null; protein: number | null }
+
+export function buildCompareUserPrompt(a: PeriodFacts, b: PeriodFacts, targets?: FoodTargets): string {
+  const goals = targets && (targets.kcal != null || targets.protein != null)
+    ? `Cele żywieniowe użytkownika: ${show(targets.kcal ?? null, ' kcal')}/dzień, białko co najmniej ${show(targets.protein ?? null, ' g')}/dzień\n\n`
+    : ''
+  return `${goals}${describePeriod('A (wybrany)', a)}\n\n${describePeriod('B (punkt odniesienia)', b)}`
 }
 
 function text(value: unknown, max: number): string {
