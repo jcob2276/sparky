@@ -152,4 +152,5 @@ export { ForceReplyInterceptor, IdempotencyInterceptor, SavedLinkInterceptor } f
 export { CommandRouterInterceptor, TodoAutoCaptureInterceptor } from "./interceptors/commands.ts";
 export { ReconciliationContextInterceptor, ReconciliationSaverInterceptor } from "./interceptors/reconciliation.ts";
 export { StreamWriterInterceptor, KnowledgeSaverInterceptor } from "./interceptors/storage.ts";
+export { RepetitionAlarmInterceptor } from "./interceptors/repetition.ts";
 export { OracleResponseInterceptor } from "./interceptors/oracle.ts";

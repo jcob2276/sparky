@@ -11,14 +11,8 @@
 import { serveJson, HttpError } from '../_shared/http.ts'
 import { deepseekChat, parseJsonFromContent } from '../_shared/deepseek.ts'
 import { LLM_TASKS } from '../_shared/llm/tasks.ts'
-import {
-  COMPARE_SYSTEM_PROMPT,
-  buildCompareUserPrompt,
-  buildPeriodFacts,
-  normalizeCompare,
-  type FoodTargets,
-  type PeriodRows,
-} from './periodCompareCore.ts'
+import { buildPeriodFacts, type PeriodRows } from './periodCompareCore.ts'
+import { COMPARE_SYSTEM_PROMPT, buildCompareUserPrompt, normalizeCompare, type FoodTargets } from './periodComparePrompt.ts'
 
 const DATE = /^\d{4}-\d{2}-\d{2}$/
 const MAX_SPAN_DAYS = 400
