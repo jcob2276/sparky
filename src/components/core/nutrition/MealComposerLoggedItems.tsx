@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { ChevronDown, ChevronRight, Copy } from 'lucide-react';
+import { ChevronRight, Copy } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { TodayFoodEntry } from '../../../lib/health/composerTodayMealsApi';
 import type { RecentEntry } from './hooks/foodEntryUtils';
@@ -65,15 +64,13 @@ export default function MealComposerLoggedItems({
   photoUrls = {},
   onEditEntry,
   onDeleteEntry,
-  dateLabel = 'Zjedzone dziś',
+  dateLabel = 'Zjedzone',
   isPastDay,
   onCopyEntireDay,
   onCopyMeal,
   copying,
 }: MealComposerLoggedItemsProps) {
-  const [expanded, setExpanded] = useState(false);
   if (!entries.length) return null;
-  const open = expanded || Boolean(isPastDay);
 
   const totalKcal = Math.round(entries.reduce((s, e) => s + (e.calories ?? 0), 0));
   const totalProtein = Math.round(entries.reduce((s, e) => s + (e.protein ?? 0), 0) * 10) / 10;
@@ -93,32 +90,17 @@ export default function MealComposerLoggedItems({
   const photoRowIds = firstRowIdPerPhoto(entries, photoUrls);
 
   return (
-    <div className="space-y-2">
+    <section aria-label={dateLabel} className="space-y-2 border-t border-border-custom/40 pt-3">
       {isPastDay && onCopyEntireDay && <PastDayBanner onCopy={onCopyEntireDay} copying={copying} />}
 
-      <Pressable
-        type="button"
-        haptic="none"
-        aria-expanded={open}
-        onClick={() => setExpanded((value) => !value)}
-        className="flex w-full items-center justify-between gap-2 px-1 text-left"
-      >
-        <span className="flex items-center gap-1 text-xs font-bold text-text-secondary">
-          <ChevronDown size={13} aria-hidden="true" className={`transition-transform ${open ? '' : '-rotate-90'}`} />
-          {dateLabel}
+      <div className="flex items-center justify-between px-1">
+        <h3 className="text-xs font-semibold tracking-wide text-text-muted">{dateLabel}</h3>
+        <span className="text-2xs font-bold tabular-nums text-text-muted">
+          {totalKcal} kcal&nbsp;&middot;&nbsp;<span className="text-primary">{totalProtein} g B</span>
         </span>
-        <span className="text-2xs font-semibold tabular-nums text-text-muted">
-          {totalKcal} kcal&nbsp;&middot;&nbsp;<span className="text-primary font-semibold">{totalProtein} g B</span>
-        </span>
-      </Pressable>
+      </div>
 
-      {!open && (
-        <p className="px-1 text-2xs font-semibold text-text-muted">
-          {order.map((mealType) => `${MEAL_LABEL[mealType] ?? mealType} ${Math.round(groups.get(mealType)!.reduce((sum, e) => sum + (e.calories ?? 0), 0))}`).join(' · ')}
-        </p>
-      )}
-
-      <div className={open ? 'space-y-2' : 'hidden'}>
+      <div className="space-y-2">
         {order.map((mealType) => {
           const group = groups.get(mealType)!;
           const groupKcal = Math.round(group.reduce((s, e) => s + (e.calories ?? 0), 0));
@@ -207,6 +189,6 @@ export default function MealComposerLoggedItems({
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
