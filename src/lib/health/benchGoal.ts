@@ -1,7 +1,8 @@
 import { shiftDateStr } from '../date';
+import { GOAL_BENCH_KG } from '../lifeGoals';
 
 export const BENCH_GOAL_EXERCISE = 'Wyciskanie płaskie';
-const BENCH_GOAL_KG = 100;
+const BENCH_GOAL_KG = GOAL_BENCH_KG;
 
 type BenchGoalStatus = 'no-data' | 'few-sessions' | 'reached' | 'flat' | 'on-track';
 

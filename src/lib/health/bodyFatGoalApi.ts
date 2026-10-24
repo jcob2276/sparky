@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../supabase';
 import { getTodayWarsaw, shiftDateStr } from '../date';
+import { GOAL_BODY_FAT_PCT } from '../lifeGoals';
 import { buildBodyFatGoal, type BodyFatGoal, type DatedPoint } from './bodyFatGoal';
 
-const FALLBACK_GOAL_PCT = 15;
+
 const HISTORY_DAYS = 180;
 
 const num = (value: unknown): number | null => (value == null || value === '' || Number.isNaN(Number(value)) ? null : Number(value));
@@ -29,7 +30,7 @@ export function useBodyFatGoal(userId: string | undefined) {
       ]);
       if (metrics.error) throw metrics.error;
       const rows = metrics.data ?? [];
-      const goal = num(profile.data?.goal_body_fat) ?? FALLBACK_GOAL_PCT;
+      const goal = num(profile.data?.goal_body_fat) ?? GOAL_BODY_FAT_PCT;
       return buildBodyFatGoal({
         bf: series(rows, (r: { body_fat: unknown }) => r.body_fat),
         weight: series(rows, (r: { weight: unknown }) => r.weight),

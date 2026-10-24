@@ -6,7 +6,6 @@ import {
   Sun,
   LayoutDashboard,
   Search,
-  Settings,
 } from 'lucide-react';
 import { BrandTitle } from '../ui/BrandTitle';
 import { useHaptics } from '../../hooks/useHaptics';
@@ -96,16 +95,6 @@ export function DashboardHeader({
             <Search size={18} strokeWidth={1.8} />
           </Pressable>
         )}
-
-        <Link
-          to="/settings"
-          onClick={() => selection()}
-          className={ICON_BUTTON_CLASS}
-          aria-label="Ustawienia"
-          title="Ustawienia"
-        >
-          <Settings size={18} strokeWidth={1.8} />
-        </Link>
 
         <Pressable
           onClick={() => { selection(); toggleTheme(); }}

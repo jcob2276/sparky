@@ -1,4 +1,5 @@
 import { Shield, Zap, Wallet, type LucideIcon } from 'lucide-react';
+import { GOAL_BENCH_KG, GOAL_BODY_FAT_PCT } from '../lifeGoals';
 
 /**
  * Single source of truth for the three life pillars (Ciało/Duch/Konto) and the
@@ -57,9 +58,9 @@ export const NORTH_STAR_SPHERES: Record<PillarId, NorthStarGoal> = {
   cialo: {
     pillar: 'cialo',
     title: 'Ciało',
-    affirmation: 'Ja Jakub buduję codziennie swoje ciało, 15% BF i 100 kg bench press',
+    affirmation: `Ja Jakub buduję codziennie swoje ciało, ${GOAL_BODY_FAT_PCT}% BF i ${GOAL_BENCH_KG} kg bench press`,
     why: 'Bo chcę wyglądać pociągająco',
-    metric: '15% BF · 100 kg bench press',
+    metric: `${GOAL_BODY_FAT_PCT}% BF · ${GOAL_BENCH_KG} kg bench press`,
   },
 };
 

@@ -9,7 +9,7 @@ const STATUS_LINE: Record<BenchGoal['status'], (goal: BenchGoal) => string> = {
   'on-track': (g) => `Zostało ${g.remainingKg} kg. Przy tempie ${String(g.weeklyGainKg).replace('.', ',')} kg na tydzień cel wypada około ${g.etaDate}.`,
 };
 
-/** Cel 100 kg w wyciskaniu (e1RM) i jak daleko do niego. Prognoza tylko przy wystarczającej liczbie sesji. */
+/** Cel w wyciskaniu (e1RM, z `lifeGoals`) i jak daleko do niego. Prognoza tylko przy wystarczającej liczbie sesji. */
 export default function TrainingHubGoal({ goal }: { goal: BenchGoal | undefined }) {
   if (!goal) return null;
   return (

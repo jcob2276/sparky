@@ -3,8 +3,9 @@ import type { PeriodWindow } from './periods';
 import { CLOSER_WEEKLY_TARGETS } from '../closer/closerDayModel';
 import { shiftDateStr } from '../date';
 import { formatValue, makeTile, type ChronicleSummaryData } from './summaryTypes';
+import { GOAL_BENCH_KG, GOAL_BODY_FAT_PCT } from '../lifeGoals';
 
-const GOAL_BF = 15;
+const GOAL_BF = GOAL_BODY_FAT_PCT;
 
 export interface CialoRows {
   weight: DatedValue[];
@@ -84,7 +85,7 @@ export function buildCialoSummary(rows: CialoRows, win: PeriodWindow): Chronicle
       title: 'Ciało',
       pct: null,
       hint: fatShown == null
-        ? 'Brak pomiaru tłuszczu. Cel: 15% BF i 100 kg w wyciskaniu.'
+        ? `Brak pomiaru tłuszczu. Cel: ${GOAL_BODY_FAT_PCT}% BF i ${GOAL_BENCH_KG} kg w wyciskaniu.`
         : `Tłuszcz ${formatValue(fatShown, 1, '%')} → cel ${GOAL_BF}%: brakuje ${formatValue(Math.max(0, fatShown - GOAL_BF), 1)} pkt`,
     },
     tiles: [
