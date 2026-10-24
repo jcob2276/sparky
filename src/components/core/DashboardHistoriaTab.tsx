@@ -1,4 +1,4 @@
-import { Suspense, memo, useState } from 'react';
+import { Suspense, memo, useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useSession } from '../../store/useStore';
 import { Pressable } from '../ui/ControlPrimitives';
@@ -9,6 +9,7 @@ import Photos from '../identity/Photos';
 import ChronicleControls from './chronicle/ChronicleControls';
 import ChroniclePeriodPicker from './chronicle/ChroniclePeriodPicker';
 import { periodLabel } from '../../lib/chronicle/periods';
+import { subscribeChronicleIntent, takeChronicleIntent } from '../../lib/chronicle/chronicleIntent';
 import ChronicleSummary from './chronicle/ChronicleSummary';
 import { useChronicle } from './chronicle/useChronicle';
 import { useChronicleSelection } from './chronicle/useChronicleSelection';
@@ -29,6 +30,20 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
   const [isExportOpen, setIsExportOpen] = useState(false);
   const selection = useChronicleSelection();
   const chronicle = useChronicle(goal, period, selection.offset, selection.compareOffset);
+  const { apply } = selection;
+
+  // Skrót z innej zakładki (np. Tydzień): ustaw cel, okres i porównanie, także gdy zamiar przyszedł przed zamontowaniem.
+  useEffect(() => {
+    const take = () => {
+      const intent = takeChronicleIntent();
+      if (!intent) return;
+      setGoal(intent.goal);
+      setPeriod(intent.period);
+      apply(intent.offset, intent.compareOffset);
+    };
+    take();
+    return subscribeChronicleIntent(take);
+  }, [apply]);
 
   if (!session) return null;
 
