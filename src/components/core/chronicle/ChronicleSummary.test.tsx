@@ -37,6 +37,22 @@ describe('ChronicleSummary', () => {
     expect(screen.getByText('+10 vs 21–27 wrz')).toBeInTheDocument();
   });
 
+  it('grupuje kafelki pod nagłówkami sekcji, a bez grup zostawia jeden blok', () => {
+    const grouped = {
+      ...summary,
+      tiles: [
+        { label: 'Sen', value: '7 h', delta: null, tone: 'neutral' as const, group: 'Sen' },
+        { label: 'HRV', value: '60', delta: null, tone: 'neutral' as const, group: 'Sen' },
+        { label: 'Kalorie', value: '2400', delta: null, tone: 'neutral' as const, group: 'Jedzenie' },
+      ],
+    };
+    const { rerender } = render(<ChronicleSummary summary={grouped} loading={false} error={null} periodTitle="Ten tydzień" />);
+    expect(screen.getByText('Sen', { selector: 'p.px-1' })).toBeInTheDocument();
+    expect(screen.getByText('Jedzenie', { selector: 'p.px-1' })).toBeInTheDocument();
+    rerender(<ChronicleSummary summary={summary} loading={false} error={null} periodTitle="Ten tydzień" />);
+    expect(screen.queryByText('Jedzenie', { selector: 'p.px-1' })).toBeNull();
+  });
+
   it('bez danych do wykresu mówi o tym wprost', () => {
     render(<ChronicleSummary summary={{ ...summary, chart: { ...summary.chart, values: [null, null, null] } }} loading={false} error={null} periodTitle="Ten tydzień" />);
     expect(screen.getByText('Brak danych do wykresu w tym okresie.')).toBeInTheDocument();

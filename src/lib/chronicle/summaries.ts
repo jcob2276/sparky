@@ -14,11 +14,24 @@ export interface CialoRows {
   /** Jedna pozycja (value 1) na sesję treningową. */
   workouts: DatedValue[];
   latestBodyFat: { date: string; value: number } | null;
+  sleepScore?: DatedValue[];
+  hrv?: DatedValue[];
+  restingHr?: DatedValue[];
+  readiness?: DatedValue[];
+  calories?: DatedValue[];
+  fiber?: DatedValue[];
+  foodQuality?: DatedValue[];
+  /** Kilometry biegania danego dnia. */
+  runKm?: DatedValue[];
 }
 
 export interface DuchRows {
   tasks: Array<{ date: string; done: boolean; category: string | null }>;
   wins: Array<{ date: string; result: string | null; mood: number | null; hasNote: boolean }>;
+  /** Własna ocena dnia 1–10 z domknięcia dnia. */
+  dayScores?: DatedValue[];
+  /** Liczba wpisów z dziennika głosowego (Telegram) danego dnia. */
+  journal?: DatedValue[];
 }
 
 export interface KontoRows {
@@ -26,6 +39,35 @@ export interface KontoRows {
 }
 
 const countsAs = (rows: DatedValue[]) => rows.map((row) => ({ ...row, value: row.value == null ? null : 1 }));
+
+const avgOf = (rows: DatedValue[] | undefined, a: string, b: string) => periodValue(rows ?? [], a, b, 'avg');
+
+/** Sen: godziny i to, jak się po nim regenerujesz. Brak pomiaru w okresie to „—”, nie zero. */
+function cialoSleepTiles(rows: CialoRows, win: PeriodWindow) {
+  const { start, end, prevStart, prevEnd } = win;
+  const tile = (label: string, data: DatedValue[] | undefined, higherIsBetter: boolean, digits = 0, unit = '') =>
+    makeTile({ group: 'Sen', label, current: avgOf(data, start, end), previous: avgOf(data, prevStart, prevEnd), digits, unit, higherIsBetter });
+  return [
+    tile('Sen', rows.sleepHours, true, 1, ' h'),
+    tile('Jakość snu', rows.sleepScore, true),
+    tile('HRV', rows.hrv, true, 0, ' ms'),
+    tile('Tętno spoczynkowe', rows.restingHr, false, 0, ' bpm'),
+    tile('Gotowość', rows.readiness, true),
+  ];
+}
+
+/** Jedzenie liczy tylko dni z zapisem; kalorie nie mają kierunku „lepiej”, bo cel zależy od fazy. */
+function cialoFoodTiles(rows: CialoRows, win: PeriodWindow) {
+  const { start, end, prevStart, prevEnd } = win;
+  const tile = (label: string, data: DatedValue[] | undefined, higherIsBetter: boolean | null, digits = 0, unit = '') =>
+    makeTile({ group: 'Jedzenie', label, current: avgOf(data, start, end), previous: avgOf(data, prevStart, prevEnd), digits, unit, higherIsBetter });
+  return [
+    tile('Kalorie / dzień', rows.calories, null, 0, ' kcal'),
+    tile('Białko / dzień', rows.protein, true, 0, ' g'),
+    tile('Błonnik / dzień', rows.fiber, true, 0, ' g'),
+    tile('Jakość jedzenia', rows.foodQuality, true),
+  ];
+}
 
 export function buildCialoSummary(rows: CialoRows, win: PeriodWindow): ChronicleSummaryData {
   const { start, end, prevStart, prevEnd } = win;
@@ -46,19 +88,22 @@ export function buildCialoSummary(rows: CialoRows, win: PeriodWindow): Chronicle
         : `Tłuszcz ${formatValue(fatShown, 1, '%')} → cel ${GOAL_BF}%: brakuje ${formatValue(Math.max(0, fatShown - GOAL_BF), 1)} pkt`,
     },
     tiles: [
-      makeTile({ label: 'Waga', current: weightNow, previous: periodValue(rows.weight, prevStart, prevEnd, 'last'), digits: 1, unit: ' kg', higherIsBetter: null }),
+      ...cialoSleepTiles(rows, win),
+      ...cialoFoodTiles(rows, win),
+      makeTile({ group: 'Trening', label: 'Treningi', current: periodValue(countsAs(rows.workouts), start, end, 'sum') ?? 0, previous: periodValue(countsAs(rows.workouts), prevStart, prevEnd, 'sum') ?? 0, higherIsBetter: true }),
+      ...(rows.runKm ? [makeTile({ group: 'Trening', label: 'Bieganie', current: periodValue(rows.runKm, start, end, 'sum'), previous: periodValue(rows.runKm, prevStart, prevEnd, 'sum'), digits: 1, unit: ' km', higherIsBetter: true })] : []),
+      makeTile({ group: 'Skład ciała', label: 'Waga', current: weightNow, previous: periodValue(rows.weight, prevStart, prevEnd, 'last'), digits: 1, unit: ' kg', higherIsBetter: null }),
       makeTile({
-        label: 'Tłuszcz', current: fatShown, previous: fatFromHistory ? null : fatPrev, digits: 1, unit: '%', higherIsBetter: false,
+        group: 'Skład ciała', label: 'Tłuszcz', current: fatShown, previous: fatFromHistory ? null : fatPrev, digits: 1, unit: '%', higherIsBetter: false,
         hint: fatFromHistory ? `pomiar z ${rows.latestBodyFat?.date}` : undefined,
       }),
-      makeTile({ label: 'Białko / dzień', current: periodValue(rows.protein, start, end, 'avg'), previous: periodValue(rows.protein, prevStart, prevEnd, 'avg'), unit: ' g', higherIsBetter: true }),
-      makeTile({ label: 'Sen', current: periodValue(rows.sleepHours, start, end, 'avg'), previous: periodValue(rows.sleepHours, prevStart, prevEnd, 'avg'), digits: 1, unit: ' h', higherIsBetter: true }),
-      makeTile({ label: 'Treningi', current: periodValue(countsAs(rows.workouts), start, end, 'sum') ?? 0, previous: periodValue(countsAs(rows.workouts), prevStart, prevEnd, 'sum') ?? 0, higherIsBetter: true }),
     ],
     chart: { label: 'Waga (kg)', unit: 'kg', labels: win.buckets.map((b) => b.label), values: bucketSeries(rows.weight, win.buckets, 'last') },
     notes,
   };
 }
+
+const daysIn = (a: string, b: string) => Math.round((new Date(`${b}T12:00:00Z`).getTime() - new Date(`${a}T12:00:00Z`).getTime()) / 86400000) + 1;
 
 export function buildDuchSummary(rows: DuchRows, win: PeriodWindow): ChronicleSummaryData {
   const { start, end, prevStart, prevEnd } = win;
@@ -86,10 +131,15 @@ export function buildDuchSummary(rows: DuchRows, win: PeriodWindow): ChronicleSu
       hint: sphereNow.length ? `Zwycięstwa w sferze Duch: ${sphereDone} z ${sphereNow.length}` : 'Brak zwycięstw w sferze Duch w tym okresie',
     },
     tiles: [
-      makeTile({ label: 'Sfera Duch', current: sphereNow.length ? sphereDone : null, previous: spherePrev.length ? spherePrev.filter((t) => t.done).length : null, higherIsBetter: true, hint: sphereNow.length ? `z ${sphereNow.length}` : undefined }),
-      makeTile({ label: 'Wszystkie zwycięstwa', current: tasksNow.length ? done : null, previous: tasksPrev.length ? donePrev : null, higherIsBetter: true, hint: tasksNow.length ? `z ${tasksNow.length}` : undefined }),
-      makeTile({ label: 'Pełne dni (5/5)', current: full(winsNow), previous: full(winsPrev), higherIsBetter: true }),
-      makeTile({ label: 'Nastrój', current: mood(winsNow), previous: mood(winsPrev), digits: 1, higherIsBetter: true }),
+      makeTile({ group: 'Oceny', label: 'Ocena dnia', current: avgOf(rows.dayScores, start, end), previous: avgOf(rows.dayScores, prevStart, prevEnd), digits: 1, unit: '/10', higherIsBetter: true, hint: rows.dayScores ? `z ${daysWithData(rows.dayScores, start, end)} dni` : undefined }),
+      makeTile({ group: 'Zwycięstwa', label: 'Sfera Duch', current: sphereNow.length ? sphereDone : null, previous: spherePrev.length ? spherePrev.filter((t) => t.done).length : null, higherIsBetter: true, hint: sphereNow.length ? `z ${sphereNow.length}` : undefined }),
+      makeTile({ group: 'Zwycięstwa', label: 'Wszystkie zwycięstwa', current: tasksNow.length ? done : null, previous: tasksPrev.length ? donePrev : null, higherIsBetter: true, hint: tasksNow.length ? `z ${tasksNow.length}` : undefined }),
+      makeTile({ group: 'Zwycięstwa', label: 'Pełne dni (5/5)', current: full(winsNow), previous: full(winsPrev), higherIsBetter: true }),
+      makeTile({ group: 'Zwycięstwa', label: 'Nastrój', current: mood(winsNow), previous: mood(winsPrev), digits: 1, higherIsBetter: true }),
+      ...(rows.journal ? [
+        makeTile({ group: 'Dziennik z Telegrama', label: 'Wpisy', current: periodValue(rows.journal, start, end, 'sum') ?? 0, previous: periodValue(rows.journal, prevStart, prevEnd, 'sum') ?? 0, higherIsBetter: true }),
+        makeTile({ group: 'Dziennik z Telegrama', label: 'Dni z wpisem', current: daysWithData(rows.journal, start, end), previous: daysWithData(rows.journal, prevStart, prevEnd), higherIsBetter: true, hint: `z ${daysIn(start, end)}` }),
+      ] : []),
     ],
     chart: { label: 'Zwycięstwa / dzień', unit: '', labels: win.buckets.map((b) => b.label), values: bucketSeries(doneByDay, win.buckets, 'sum') },
     notes: [
@@ -97,6 +147,11 @@ export function buildDuchSummary(rows: DuchRows, win: PeriodWindow): ChronicleSu
       'Zwycięstwa z podziałem na sfery są zapisywane od 5 lipca.',
     ],
   };
+}
+
+/** Procent z części i całości; bez całości nie ma skuteczności (null), a nie 0%. */
+function rate(part: number | null, whole: number | null): number | null {
+  return part == null || whole == null || whole <= 0 ? null : Math.round((part / whole) * 100);
 }
 
 export function buildKontoSummary(rows: KontoRows, win: PeriodWindow, today: string): ChronicleSummaryData {
@@ -125,10 +180,12 @@ export function buildKontoSummary(rows: KontoRows, win: PeriodWindow, today: str
       hint: `Umówieni ${bookedNow ?? 0} z ${targetBooked} · cel 15 000 zł netto / msc`,
     },
     tiles: [
-      makeTile({ label: 'Rozmowy odebrane', current: sum(dials, start, end), previous: sum(dials, prevStart, prevEnd), higherIsBetter: true }),
-      makeTile({ label: 'Umówieni', current: bookedNow, previous: sum(booked, prevStart, prevEnd), higherIsBetter: true, hint: `z ${targetBooked}` }),
-      makeTile({ label: 'Rozmowy sprz.', current: sum(calls, start, end), previous: sum(calls, prevStart, prevEnd), higherIsBetter: true, hint: `z ${targetCalls}` }),
-      makeTile({ label: 'Sprzedaże', current: sum(sales, start, end), previous: sum(sales, prevStart, prevEnd), higherIsBetter: true }),
+      makeTile({ group: 'Lejek', label: 'Rozmowy odebrane', current: sum(dials, start, end), previous: sum(dials, prevStart, prevEnd), higherIsBetter: true }),
+      makeTile({ group: 'Lejek', label: 'Umówieni', current: bookedNow, previous: sum(booked, prevStart, prevEnd), higherIsBetter: true, hint: `z ${targetBooked}` }),
+      makeTile({ group: 'Lejek', label: 'Rozmowy sprz.', current: sum(calls, start, end), previous: sum(calls, prevStart, prevEnd), higherIsBetter: true, hint: `z ${targetCalls}` }),
+      makeTile({ group: 'Lejek', label: 'Sprzedaże', current: sum(sales, start, end), previous: sum(sales, prevStart, prevEnd), higherIsBetter: true }),
+      makeTile({ group: 'Skuteczność', label: 'Z rozmowy na umówienie', current: rate(bookedNow, dialsNow), previous: rate(sum(booked, prevStart, prevEnd), sum(dials, prevStart, prevEnd)), unit: '%', higherIsBetter: true }),
+      makeTile({ group: 'Skuteczność', label: 'Z rozmowy sprz. na sprzedaż', current: rate(sum(sales, start, end), sum(calls, start, end)), previous: rate(sum(sales, prevStart, prevEnd), sum(calls, prevStart, prevEnd)), unit: '%', higherIsBetter: true }),
     ],
     chart: { label: 'Umówieni', unit: '', labels: win.buckets.map((b) => b.label), values: bucketSeries(booked, win.buckets, 'sum') },
     notes,

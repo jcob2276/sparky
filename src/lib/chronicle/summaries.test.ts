@@ -67,3 +67,63 @@ describe('buildDuchSummary', () => {
     expect(s.tiles.find((t) => t.label === 'Pełne dni (5/5)')?.value).toBe('1');
   });
 });
+
+describe('głębsze porównanie okresów', () => {
+  const prev = '2026-10-14';
+  const now = '2026-10-20';
+
+  it('Ciało: sen z jakością i HRV, jedzenie z kaloriami i jakością oraz bieganie w kilometrach, każde w swojej grupie', () => {
+    const s = buildCialoSummary({
+      weight: [], bodyFat: [], protein: [], workouts: [], latestBodyFat: null,
+      sleepHours: [{ date: now, value: 7 }, { date: prev, value: 6 }],
+      sleepScore: [{ date: now, value: 80 }, { date: prev, value: 70 }],
+      hrv: [{ date: now, value: 60 }, { date: prev, value: 65 }],
+      restingHr: [{ date: now, value: 52 }, { date: prev, value: 55 }],
+      readiness: [{ date: now, value: 75 }],
+      calories: [{ date: now, value: 2400 }, { date: prev, value: 2200 }],
+      fiber: [{ date: now, value: 30 }],
+      foodQuality: [{ date: now, value: 45 }, { date: prev, value: 40 }],
+      runKm: [{ date: now, value: 10 }, { date: '2026-10-21', value: 5.5 }, { date: prev, value: 8 }],
+    }, week);
+    const by = Object.fromEntries(s.tiles.map((t) => [t.label, t]));
+    expect(by['Jakość snu']).toMatchObject({ value: '80', delta: '+10', tone: 'good', group: 'Sen' });
+    expect(by['HRV']).toMatchObject({ delta: '−5 ms', tone: 'bad' });
+    expect(by['Tętno spoczynkowe']).toMatchObject({ delta: '−3 bpm', tone: 'good' });
+    expect(by['Gotowość'].delta).toBeNull();
+    expect(by['Kalorie / dzień']).toMatchObject({ value: '2400 kcal', delta: '+200 kcal', tone: 'neutral', group: 'Jedzenie' });
+    expect(by['Jakość jedzenia'].group).toBe('Jedzenie');
+    expect(by['Bieganie']).toMatchObject({ value: '15,5 km', delta: '+7,5 km', group: 'Trening' });
+    expect(by['Waga'].group).toBe('Skład ciała');
+  });
+
+  it('Ciało bez nowych danych nie pokazuje wymyślonych zer', () => {
+    const s = buildCialoSummary({ weight: [], bodyFat: [], protein: [], sleepHours: [], workouts: [], latestBodyFat: null }, week);
+    expect(s.tiles.find((t) => t.label === 'HRV')?.value).toBe('—');
+    expect(s.tiles.find((t) => t.label === 'Bieganie')).toBeUndefined();
+  });
+
+  it('Duch: ocena dnia, wpisy i dni z dziennikiem z Telegrama', () => {
+    const s = buildDuchSummary({
+      tasks: [], wins: [],
+      dayScores: [{ date: now, value: 6 }, { date: '2026-10-21', value: 4 }, { date: prev, value: 5 }],
+      journal: [{ date: now, value: 3 }, { date: '2026-10-21', value: 1 }, { date: prev, value: 2 }],
+    }, week);
+    const by = Object.fromEntries(s.tiles.map((t) => [t.label, t]));
+    expect(by['Ocena dnia']).toMatchObject({ value: '5,0/10', delta: '±0,0/10', hint: 'z 2 dni', group: 'Oceny' });
+    expect(by['Wpisy']).toMatchObject({ value: '4', delta: '+2', group: 'Dziennik z Telegrama' });
+    expect(by['Dni z wpisem']).toMatchObject({ value: '2', hint: 'z 7' });
+  });
+
+  it('Konto: skuteczność liczona z rozmów, a bez rozmów to brak, nie 0%', () => {
+    const logs = [
+      { date: now, dials: 20, appointments: 4, sales_calls: 2, sales_closed: 1 },
+      { date: prev, dials: 20, appointments: 2, sales_calls: 4, sales_closed: 1 },
+    ];
+    const by = Object.fromEntries(buildKontoSummary({ logs }, week, '2026-10-24').tiles.map((t) => [t.label, t]));
+    expect(by['Z rozmowy na umówienie']).toMatchObject({ value: '20%', delta: '+10%', group: 'Skuteczność' });
+    expect(by['Z rozmowy sprz. na sprzedaż']).toMatchObject({ value: '50%', delta: '+25%' });
+    const empty = Object.fromEntries(buildKontoSummary({ logs: [] }, week, '2026-10-24').tiles.map((t) => [t.label, t]));
+    expect(empty['Z rozmowy na umówienie'].value).toBe('—');
+  });
+});
+
