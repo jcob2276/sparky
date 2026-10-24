@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase';
 import { DEFAULT_LIFE_TARGETS, type LifeTargets } from './lifeGoals';
 
@@ -29,4 +29,24 @@ export function useLifeTargets(userId: string | undefined): LifeTargets {
     queryFn: () => fetchLifeTargets(userId as string),
   });
   return data ?? DEFAULT_LIFE_TARGETS;
+}
+
+/** Zapis celów z `life_targets`; cel tłuszczu ma własne pole w profilu żywieniowym. */
+async function saveLifeTargets(userId: string, targets: Pick<LifeTargets, 'benchKg' | 'incomeNetPln'>): Promise<void> {
+  const { error } = await supabase
+    .from('life_targets')
+    .upsert({ user_id: userId, bench_goal_kg: targets.benchKg, income_goal_net_pln: targets.incomeNetPln, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  if (error) throw error;
+}
+
+export function useSaveLifeTargets(userId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (targets: Pick<LifeTargets, 'benchKg' | 'incomeNetPln'>) => saveLifeTargets(userId, targets),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['life-targets', userId] });
+      void queryClient.invalidateQueries({ queryKey: ['bench-goal', userId] });
+      void queryClient.invalidateQueries({ queryKey: ['chronicle'] });
+    },
+  });
 }
