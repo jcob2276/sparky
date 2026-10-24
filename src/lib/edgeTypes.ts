@@ -221,6 +221,18 @@ interface LookupFoodResponse {
   incompleteCount: number;
 }
 
+export interface PeriodCompareResponse {
+  comparison: {
+    summary: string;
+    improved: Array<{ title: string; evidence: string }>;
+    worsened: Array<{ title: string; evidence: string }>;
+    changes: Array<{ title: string; why: string; how: string }>;
+    journal: Array<{ title: string; evidence: string }>;
+  };
+  generatedAt: string;
+  basedOn: { scoredDays: [number, number]; journalEntries: [number, number] };
+}
+
 export interface WeekAiInsightResponse {
   insight: {
     summary: string;
@@ -289,6 +301,7 @@ export interface EdgeFunctionResponses {
   'parse-food-nl': ParseFoodNLResponse;
   'parse-workout-nl': ParseWorkoutNLResponse;
   'week-insight': WeekAiInsightResponse;
+  'period-compare': PeriodCompareResponse;
   'vanguard-capture': CaptureResponse;
   'vanguard-nightly': NightlyResponse;
   'vanguard-nutrition-coach': NutritionCoachResponse;

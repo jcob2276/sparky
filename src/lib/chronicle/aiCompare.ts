@@ -1,0 +1,66 @@
+import { useCallback, useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { TIMEOUTS } from '../constants';
+import { invokeEdge } from '../supabase';
+import type { PeriodCompareResponse } from '../edgeTypes';
+import { describeWeekInsightError } from '../weekAiInsight';
+
+export interface ComparePeriod {
+  label: string;
+  start: string;
+  end: string;
+}
+
+const CACHE_PREFIX = 'period-compare-ai';
+
+/**
+ * Klucz pary okresów plus dzisiejsza data: wynik dla trwającego okresu starzeje się z dnia na dzień,
+ * a dla zamkniętych okresów odświeżenie raz dziennie niczego nie psuje.
+ */
+export function compareCacheKey(userId: string, a: ComparePeriod, b: ComparePeriod, today: string): string {
+  return `${CACHE_PREFIX}:${userId}:${a.start}:${a.end}:${b.start}:${b.end}:${today}`;
+}
+
+function readCache(key: string): PeriodCompareResponse | null {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as PeriodCompareResponse) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(key: string, value: PeriodCompareResponse): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    /* storage unavailable: the result still shows for this session */
+  }
+}
+
+/** AI porównuje dwa okresy tylko na żądanie; wynik jest pamiętany dla tej pary okresów i dnia. */
+export function usePeriodAiCompare(userId: string | undefined, a: ComparePeriod, b: ComparePeriod, today: string) {
+  const key = userId ? compareCacheKey(userId, a, b, today) : null;
+  const [fresh, setFresh] = useState<{ key: string; value: PeriodCompareResponse } | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: () => invokeEdge('period-compare', { body: { userId, a, b }, signal: AbortSignal.timeout(TIMEOUTS.llm) }),
+    onSuccess: (data) => {
+      if (!key) return;
+      setFresh({ key, value: data });
+      writeCache(key, data);
+    },
+  });
+
+  const generate = useCallback(() => {
+    if (userId && !mutation.isPending) mutation.mutate();
+  }, [userId, mutation]);
+
+  const result = key ? (fresh?.key === key ? fresh.value : readCache(key)) : null;
+  return {
+    result,
+    generate,
+    loading: mutation.isPending,
+    error: mutation.isError ? describeWeekInsightError(mutation.error) : null,
+  };
+}
