@@ -253,39 +253,50 @@
             <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div class="text-sm">
                 <span class="text-slate-400">Twoja decyzja w tym punkcie:</span>
-                <p class="text-xs text-slate-500">Oceń opłacalność matematyczną (EV) zanim klikniesz</p>
+                <p class="text-xs text-slate-500">Najpierw oceń equity i pewność, potem wybierz ruch</p>
               </div>
 
               <div class="flex items-center space-x-3 w-full sm:w-auto">
-                <button onclick="handleUserDecision('FOLD')" class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold transition border border-slate-700 flex items-center justify-center space-x-2">
+                <button id="btnFold" onclick="handleUserDecision('FOLD')" class="disabled:opacity-40 disabled:cursor-not-allowed flex-1 sm:flex-none px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold transition border border-slate-700 flex items-center justify-center space-x-2">
                   <span>❌ FOLD</span>
                 </button>
-                <button onclick="handleUserDecision('CALL')" class="flex-1 sm:flex-none px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black transition shadow-lg shadow-emerald-950/40 flex items-center justify-center space-x-2 text-base">
+                <button id="btnCall" onclick="handleUserDecision('CALL')" class="disabled:opacity-40 disabled:cursor-not-allowed flex-1 sm:flex-none px-8 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black transition shadow-lg shadow-emerald-950/40 flex items-center justify-center space-x-2 text-base">
                   <span>✅ CALL (<span id="btnCallAmount">$50</span>)</span>
                 </button>
-                <button onclick="handleUserDecision('RAISE')" class="flex-1 sm:flex-none px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold transition shadow-lg shadow-amber-950/40 flex items-center justify-center space-x-2">
+                <button id="btnRaise" onclick="handleUserDecision('RAISE')" class="disabled:opacity-40 disabled:cursor-not-allowed flex-1 sm:flex-none px-6 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold transition shadow-lg shadow-amber-950/40 flex items-center justify-center space-x-2">
                   <span>🚀 ALL-IN / RAISE</span>
                 </button>
               </div>
             </div>
 
-            <!-- Quick Mental Check Collapse -->
-            <div class="mt-4 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between text-xs text-slate-400 gap-2">
-              <div class="flex items-center space-x-4">
-                <span>💡 Twoje Outy: <strong id="hintOuts" class="text-slate-200">9 outów</strong></span>
-                <span>📊 Twoje Szanse (Equity): <strong id="hintEquity" class="text-slate-200">~36%</strong></span>
-                <span>🎯 Wymagane Pot Odds: <strong id="hintPotOdds" class="text-slate-200">23.8%</strong></span>
+            <!-- Think first: estimate + confidence BEFORE the move -->
+            <div id="thinkPanel" class="mt-4 pt-4 border-t border-slate-800/80 space-y-4">
+              <div>
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-semibold text-slate-200">1. Oceń swoje equity (szansę na wygraną rozdania)</span>
+                  <strong id="estimateValue" class="font-mono text-amber-300">—</strong>
+                </div>
+                <input id="estimateSlider" type="range" min="0" max="100" step="5" value="50" oninput="onEstimateInput(this.value)" class="mt-2 w-full accent-emerald-500" aria-label="Twoja ocena equity w procentach">
               </div>
-              <button onclick="toggleMathDetails()" class="text-emerald-400 hover:underline">
-                [Pokaż/Ukryj jak to policzyć]
-              </button>
-            </div>
-
-            <!-- Hidden Explanation of Math -->
-            <div id="mathDetailsBox" class="hidden mt-3 p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
-              <p><strong>1. Pot Odds:</strong> Ryzykujesz <code class="text-emerald-300" id="mathCallCost">$50</code>, by wygrać pulę łączną <code class="text-emerald-300" id="mathTotalPot">$210</code> ($160 + $50). Wymagane equity = $50 / $210 = <code class="text-amber-300 font-bold" id="mathReqEq">23.8%</code>.</p>
-              <p><strong>2. Reguła 4 (Flop do River):</strong> Masz 9 kart dających wygraną (outów). 9 × 4 = <code class="text-amber-300 font-bold">~36%</code> szans na trafienie.</p>
-              <p><strong>3. Wniosek EV:</strong> Twoje szanse (36%) są wyższe niż cena puli (23.8%). <strong>Call ma czyste dodatnie EV (+EV)!</strong></p>
+              <div>
+                <div class="text-xs font-semibold text-slate-200">2. Jak bardzo jesteś pewny swojej decyzji?</div>
+                <div class="mt-2 grid grid-cols-3 gap-2">
+                  <button id="conf1" onclick="setConfidence(1)" class="conf-chip rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-xs font-bold text-slate-300">Zgaduję</button>
+                  <button id="conf2" onclick="setConfidence(2)" class="conf-chip rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-xs font-bold text-slate-300">Raczej tak</button>
+                  <button id="conf3" onclick="setConfidence(3)" class="conf-chip rounded-lg border border-slate-700 bg-slate-800 px-2 py-2 text-xs font-bold text-slate-300">Jestem pewny</button>
+                </div>
+              </div>
+              <p id="thinkHelp" class="text-[11px] text-slate-500">Ruch odblokuje się po ocenie equity i pewności. Tak ćwiczysz kalibrację, a nie zgadywanie.</p>
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span>Utknąłeś? Podpowiedź jest zapisywana w statystykach.</span>
+                <button onclick="revealHint()" class="text-emerald-400 hover:underline">[Pokaż podpowiedź]</button>
+              </div>
+              <div id="hintBox" class="hidden space-y-1 rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-slate-300">
+                <p>💡 Outy: <strong id="hintOuts" class="text-slate-200">9 outów</strong> · 📊 Equity: <strong id="hintEquity" class="text-slate-200">~36%</strong> · 🎯 Wymagane equity: <strong id="hintPotOdds" class="text-slate-200">20%</strong></p>
+                <p id="mathLine1"></p>
+                <p id="mathLine2"></p>
+                <p id="mathLine3"></p>
+              </div>
             </div>
           </div>
 
@@ -329,6 +340,8 @@
                 <!-- Injected via JS -->
               </div>
 
+              <div id="learningFeedback" class="space-y-1.5 rounded-xl border border-slate-800 bg-slate-950 p-4 text-xs text-slate-300"></div>
+
               <!-- Mathematical EV Breakdown -->
               <div class="bg-slate-950 p-4 rounded-xl border border-slate-800/80 space-y-2">
                 <div class="text-xs font-mono uppercase text-slate-400">Wartość Oczekiwana (EV) Decyzji:</div>
@@ -369,22 +382,36 @@
             <h4 class="font-bold text-xs uppercase tracking-wider text-slate-400">Twoje Statystyki Jakości (Nie Wyniku)</h4>
             <div class="grid grid-cols-2 gap-3 text-center">
               <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <div class="text-xs text-slate-500">Dobre Decyzje (+EV)</div>
+                <div class="text-xs text-slate-500">Najlepszy ruch</div>
                 <div class="text-xl font-black text-emerald-400 font-mono" id="statGoodDecisions">0</div>
               </div>
               <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <div class="text-xs text-slate-500">Błędy (-EV)</div>
+                <div class="text-xs text-slate-500">Błędy</div>
                 <div class="text-xl font-black text-rose-400 font-mono" id="statBadDecisions">0</div>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <div class="text-xs text-slate-500">Celność</div>
+                <div class="text-lg font-black text-indigo-400 font-mono" id="statResilience">0%</div>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <div class="text-xs text-slate-500">Seria bez błędu</div>
+                <div class="text-lg font-black text-amber-400 font-mono" id="statStreak">0</div>
+              </div>
+              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
+                <div class="text-xs text-slate-500">Średni błąd oceny equity</div>
+                <div class="text-lg font-black text-sky-400 font-mono" id="statAvgError">—</div>
               </div>
               <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
                 <div class="text-xs text-slate-500">Skumulowane EV</div>
                 <div class="text-lg font-black text-amber-400 font-mono" id="statTotalEV">$0.00</div>
               </div>
-              <div class="bg-slate-950 p-3 rounded-xl border border-slate-800">
-                <div class="text-xs text-slate-500">Odporność na Resulting</div>
-                <div class="text-lg font-black text-indigo-400 font-mono" id="statResilience">100%</div>
-              </div>
             </div>
+            <div class="rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-slate-300 space-y-1">
+              <div class="font-semibold text-slate-200">Kalibracja pewności</div>
+              <div id="statCalibration" class="text-slate-400">Brak danych.</div>
+              <div id="statWeak" class="text-slate-400"></div>
+            </div>
+            <button onclick="resetProgress()" class="w-full rounded-lg border border-slate-700 py-2 text-xs text-slate-400 hover:text-slate-200">Zresetuj postęp</button>
           </div>
 
         </div>
@@ -715,6 +742,139 @@
       `;
     }
 
+
+    // <core>
+    const STORE_KEY = 'poker-decision-lab-v2';
+    const MAX_ATTEMPTS = 300;
+    const DRILL_TEMPLATES = [
+      { outs: 4, name: 'Gutshot (wewnętrzny strit)', hero: [{r:'J',s:'s'},{r:'10',s:'d'}], flop: [{r:'K',s:'c'},{r:'9',s:'h'},{r:'3',s:'d'}], turn: {r:'2',s:'s'}, river: {r:'4',s:'h'}, opp: [{r:'K',s:'s'},{r:'9',s:'s'}] },
+      { outs: 6, name: 'Dwie overcards (A i Q)', hero: [{r:'A',s:'s'},{r:'Q',s:'d'}], flop: [{r:'9',s:'c'},{r:'6',s:'h'},{r:'2',s:'d'}], turn: {r:'3',s:'s'}, river: {r:'4',s:'c'}, opp: [{r:'9',s:'d'},{r:'8',s:'s'}] },
+      { outs: 8, name: 'Otwarty strit (OESD)', hero: [{r:'9',s:'d'},{r:'8',s:'c'}], flop: [{r:'7',s:'s'},{r:'6',s:'h'},{r:'2',s:'d'}], turn: {r:'K',s:'c'}, river: {r:'3',s:'h'}, opp: [{r:'A',s:'s'},{r:'7',s:'d'}] },
+      { outs: 9, name: 'Draw do koloru', hero: [{r:'A',s:'h'},{r:'4',s:'h'}], flop: [{r:'K',s:'h'},{r:'8',s:'h'},{r:'2',s:'c'}], turn: {r:'7',s:'d'}, river: {r:'3',s:'s'}, opp: [{r:'K',s:'d'},{r:'J',s:'c'}] },
+      { outs: 12, name: 'Draw do koloru + gutshot', hero: [{r:'10',s:'h'},{r:'9',s:'h'}], flop: [{r:'J',s:'h'},{r:'7',s:'h'},{r:'2',s:'c'}], turn: {r:'3',s:'d'}, river: {r:'4',s:'s'}, opp: [{r:'J',s:'s'},{r:'J',s:'d'}] },
+      { outs: 15, name: 'Monster combo draw', hero: [{r:'9',s:'h'},{r:'8',s:'h'}], flop: [{r:'7',s:'h'},{r:'6',s:'h'},{r:'K',s:'c'}], turn: {r:'2',s:'d'}, river: {r:'3',s:'s'}, opp: [{r:'A',s:'c'},{r:'K',s:'d'}] }
+    ];
+    const DRILL_POTS = [60, 80, 100, 120, 150, 200, 240];
+    const DRILL_BET_FRACTIONS = [0.25, 0.33, 0.5, 0.66, 0.75, 1, 1.5];
+    const POSITIONS = ['BB', 'SB', 'BTN', 'CO'];
+
+    // Pula liczona PRZED betem rywala: po calli w puli jest pot + 2 * bet, więc potrzebne equity to bet / (pot + 2 * bet).
+    function requiredEquity(pot, bet) { return bet / (pot + 2 * bet); }
+    function pairs(n) { return n * (n - 1) / 2; }
+    function drawEquity(outs, street) {
+      if (street === 'RIVER') return 0;
+      if (street === 'TURN') return outs / 46;
+      return 1 - pairs(47 - outs) / pairs(47);
+    }
+    function callEV(equity, pot, bet) { return equity * (pot + bet) - (1 - equity) * bet; }
+    function round1(x) { return Math.round(x * 10) / 10; }
+
+    function buildDrill(spec) {
+      const t = DRILL_TEMPLATES[spec.t];
+      const equity = drawEquity(t.outs, spec.street);
+      const req = requiredEquity(spec.pot, spec.bet);
+      const ev = callEV(equity, spec.pot, spec.bet);
+      const best = ev > 0 ? 'CALL' : 'FOLD';
+      const rule = spec.street === 'TURN' ? 2 : 4;
+      return {
+        id: 'd', generated: true, spec,
+        title: 'Trening pot odds: ' + t.name,
+        street: spec.street, oppName: 'Rywal (zakład ' + Math.round(spec.bet / spec.pot * 100) + '% puli)', oppPosition: POSITIONS[(spec.t + spec.pot) % POSITIONS.length],
+        oppRangeSummary: 'Zakład wartościowy, Ty gonisz draw', heroPosition: POSITIONS[(spec.t + spec.bet) % POSITIONS.length],
+        heroHand: t.hero, heroHandName: t.name + ' (' + t.outs + ' outów)',
+        board: spec.street === 'TURN' ? [...t.flop, t.turn] : t.flop, turnCard: spec.street === 'TURN' ? null : t.turn, riverCard: t.river,
+        oppCards: t.opp, pot: spec.pot, bet: spec.bet, heroStack: spec.pot * 3, outs: t.outs, equity,
+        bestAction: best, shoveEV: null, callEV: ev, foldEV: 0,
+        explanation: 'Pula $' + spec.pot + ', rywal stawia $' + spec.bet + '. Po calli w puli będzie $' + (spec.pot + 2 * spec.bet) + ', więc potrzebujesz ' + round1(req * 100) + '% equity. Masz ' + t.outs + ' outów: reguła ' + rule + ' daje ~' + Math.min(100, t.outs * rule) + '% (dokładnie ' + round1(equity * 100) + '%). ' + (ev > 0 ? 'Equity jest wyższe niż cena, więc call to +EV.' : 'Equity jest niższe niż cena, więc call to -EV: FOLD.')
+      };
+    }
+
+    function makeDrillSpec(rng) {
+      for (let i = 0; i < 40; i++) {
+        const t = Math.floor(rng() * DRILL_TEMPLATES.length);
+        const street = rng() < 0.5 ? 'FLOP' : 'TURN';
+        const pot = DRILL_POTS[Math.floor(rng() * DRILL_POTS.length)];
+        const bet = Math.max(5, Math.round(pot * DRILL_BET_FRACTIONS[Math.floor(rng() * DRILL_BET_FRACTIONS.length)] / 5) * 5);
+        // Odrzucamy sytuacje „na styk” (różnica < 3 pp), żeby odpowiedź była jednoznaczna.
+        if (Math.abs(drawEquity(DRILL_TEMPLATES[t].outs, street) - requiredEquity(pot, bet)) >= 0.03) return { t, street, pot, bet };
+      }
+      return { t: 3, street: 'FLOP', pot: 120, bet: 40 };
+    }
+
+    function drillKey(spec) { return 'd' + spec.t + '-' + spec.street + '-' + spec.pot + '-' + spec.bet; }
+
+    function evByAction(s, action) {
+      if (action === 'CALL') return s.callEV;
+      if (action === 'RAISE') return s.shoveEV == null ? 0 : s.shoveEV;
+      return s.foldEV;
+    }
+
+    function recordAttempt(progress, attempt) {
+      const attempts = [...progress.attempts, attempt];
+      return { attempts: attempts.length > MAX_ATTEMPTS ? attempts.slice(-MAX_ATTEMPTS) : attempts };
+    }
+
+    const CONF_LABELS = { 1: 'Zgaduję', 2: 'Raczej tak', 3: 'Pewny' };
+
+    function summarize(progress) {
+      const a = progress.attempts;
+      const correct = a.filter(x => x.correct).length;
+      let streak = 0;
+      for (let i = a.length - 1; i >= 0 && a[i].correct; i--) streak++;
+      const withEst = a.filter(x => x.estimate != null);
+      const avgError = withEst.length ? round1(withEst.reduce((sum, x) => sum + Math.abs(x.estimate - x.trueEq), 0) / withEst.length) : null;
+      const calibration = [1, 2, 3].map(level => {
+        const rows = a.filter(x => x.confidence === level);
+        return { level, n: rows.length, accuracy: rows.length ? Math.round(rows.filter(x => x.correct).length / rows.length * 100) : null };
+      });
+      const wrongByKey = {};
+      a.filter(x => !x.correct).forEach(x => { wrongByKey[x.title || x.key] = (wrongByKey[x.title || x.key] || 0) + 1; });
+      const weak = Object.entries(wrongByKey).sort((x, y) => y[1] - x[1]).slice(0, 2).map(([title, n]) => ({ title, n }));
+      return { total: a.length, correct, wrong: a.length - correct, accuracy: a.length ? Math.round(correct / a.length * 100) : 0, streak, avgError, calibration, totalEV: a.reduce((sum, x) => sum + (x.ev || 0), 0), weak };
+    }
+
+    function calibrationVerdict(summary) {
+      const high = summary.calibration[2];
+      const low = summary.calibration[0];
+      if (high.n >= 3 && high.accuracy !== null && high.accuracy < 70) return 'Uwaga: gdy jesteś pewny, trafiasz tylko w ' + high.accuracy + '%. To przesadna pewność siebie, zwalniaj przy takich decyzjach.';
+      if (low.n >= 3 && low.accuracy !== null && low.accuracy >= 80) return 'Gdy zgadujesz, trafiasz w ' + low.accuracy + '%: wiesz więcej, niż ufasz sobie.';
+      return null;
+    }
+
+    // Wybór kolejnego pytania: najpierw powtórki błędów, potem to, czego jeszcze nie widziałeś, reszta losowo.
+    function pickNext(progress, curatedCount, rng, lastKey) {
+      const a = progress.attempts;
+      const unresolved = a.slice(-40).filter((x, i, arr) => !x.correct && x.key !== lastKey && !arr.slice(i + 1).some(y => y.key === x.key && y.correct));
+      if (unresolved.length && rng() < 0.4) {
+        const x = unresolved[Math.floor(rng() * unresolved.length)];
+        if (x.spec) return { type: 'drill', spec: x.spec, retry: true };
+        const idx = Number(String(x.key).slice(1));
+        if (Number.isInteger(idx) && idx >= 0 && idx < curatedCount) return { type: 'curated', index: idx, retry: true };
+      }
+      if (rng() < 0.4) {
+        const seen = new Set(a.map(x => x.key));
+        const weights = [];
+        for (let i = 0; i < curatedCount; i++) weights.push('c' + i === lastKey ? 0 : (seen.has('c' + i) ? 1 : 3));
+        const total = weights.reduce((x, y) => x + y, 0);
+        if (total > 0) {
+          let r = rng() * total;
+          for (let i = 0; i < curatedCount; i++) { r -= weights[i]; if (r < 0) return { type: 'curated', index: i }; }
+        }
+      }
+      let spec = makeDrillSpec(rng);
+      for (let i = 0; i < 5 && drillKey(spec) === lastKey; i++) spec = makeDrillSpec(rng);
+      return { type: 'drill', spec };
+    }
+
+    function estimateVerdict(estimate, trueEq) {
+      const err = Math.abs(estimate - trueEq);
+      const dir = estimate > trueEq ? 'zawyżyłeś' : 'zaniżyłeś';
+      if (err <= 5) return { err, text: 'Celnie: oceniłeś ' + estimate + '%, było ' + trueEq + '% (błąd ' + err + ' pp).' };
+      if (err <= 10) return { err, text: 'Blisko: oceniłeś ' + estimate + '%, było ' + trueEq + '% (' + dir + ' o ' + err + ' pp).' };
+      return { err, text: 'Mocno obok: oceniłeś ' + estimate + '%, było ' + trueEq + '% (' + dir + ' o ' + err + ' pp). Policz outy: ×4 na flopie, ×2 na turnie.' };
+    }
+    // </core>
+
     // Curated rich scenarios focusing on decision quality & mental models
     const SCENARIOS = [
       {
@@ -846,16 +1006,86 @@
     ];
 
     let currentScenarioIdx = 0;
-    let userStats = {
-      goodDecisions: 0,
-      badDecisions: 0,
-      totalEV: 0,
-      resultTrapsEncountered: 0
-    };
+    let currentScenario = SCENARIOS[0];
+    let currentKey = 'c0';
+    let progress = { attempts: [] };
+    let estimateTouched = false;
+    let estimateValue = 50;
+    let confidence = null;
+    let hintUsed = false;
+
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (parsed && Array.isArray(parsed.attempts)) progress = { attempts: parsed.attempts.slice(-MAX_ATTEMPTS) };
+      } catch (e) { /* pamięć niedostępna: postęp działa tylko w tej sesji */ }
+    }
+
+    function saveProgress() {
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(progress)); } catch (e) { /* jw. */ }
+    }
+
+    function resetProgress() {
+      if (!confirm('Zresetować cały postęp i statystyki?')) return;
+      progress = { attempts: [] };
+      saveProgress();
+      updateScoreboard();
+    }
+
+    function updateActionLock() {
+      const locked = !(estimateTouched && confidence);
+      ['btnFold', 'btnCall', 'btnRaise'].forEach(id => { const b = document.getElementById(id); if (b) b.disabled = locked; });
+      const help = document.getElementById('thinkHelp');
+      if (help) help.classList.toggle('hidden', !locked);
+    }
+
+    function onEstimateInput(value) {
+      estimateTouched = true;
+      estimateValue = Number(value);
+      document.getElementById('estimateValue').innerText = estimateValue + '%';
+      updateActionLock();
+    }
+
+    function setConfidence(level) {
+      confidence = level;
+      [1, 2, 3].forEach(l => {
+        const chip = document.getElementById('conf' + l);
+        chip.classList.toggle('bg-emerald-600', l === level);
+        chip.classList.toggle('text-white', l === level);
+        chip.classList.toggle('bg-slate-800', l !== level);
+        chip.classList.toggle('text-slate-300', l !== level);
+      });
+      updateActionLock();
+    }
+
+    function revealHint() {
+      hintUsed = true;
+      document.getElementById('hintBox').classList.remove('hidden');
+    }
 
     function loadScenario(index) {
       currentScenarioIdx = index % SCENARIOS.length;
-      const s = SCENARIOS[currentScenarioIdx];
+      currentKey = 'c' + currentScenarioIdx;
+      loadScenarioObject(SCENARIOS[currentScenarioIdx]);
+    }
+
+    function loadScenarioObject(s) {
+      currentScenario = s;
+      estimateTouched = false;
+      estimateValue = 50;
+      confidence = null;
+      hintUsed = false;
+      document.getElementById('estimateSlider').value = 50;
+      document.getElementById('estimateValue').innerText = '—';
+      document.getElementById('hintBox').classList.add('hidden');
+      [1, 2, 3].forEach(l => {
+        const chip = document.getElementById('conf' + l);
+        chip.classList.remove('bg-emerald-600', 'text-white');
+        chip.classList.add('bg-slate-800', 'text-slate-300');
+      });
+      document.getElementById('btnRaise').classList.toggle('hidden', s.shoveEV == null);
+      updateActionLock();
 
       // Street & Info
       document.getElementById('streetBadge').innerText = s.street;
@@ -893,13 +1123,18 @@
       document.getElementById('hintOuts').innerText = `${s.outs} outów`;
       const eqDisplay = Math.round((s.scenarioCustomEquity || s.equity) * 100);
       document.getElementById('hintEquity').innerText = `~${eqDisplay}%`;
-      const potOdds = Math.round((s.bet / (s.pot + s.bet)) * 1000) / 10;
+      const req = requiredEquity(s.pot, s.bet);
+      const potOdds = round1(req * 100);
       document.getElementById('hintPotOdds').innerText = `${potOdds}%`;
 
-      // Math details
-      document.getElementById('mathCallCost').innerText = `$${s.bet}`;
-      document.getElementById('mathTotalPot').innerText = `$${s.pot + s.bet}`;
-      document.getElementById('mathReqEq').innerText = `${potOdds}%`;
+      // Podpowiedź (widoczna dopiero po kliknięciu): wszystko liczone z danych scenariusza
+      const eqNow = s.scenarioCustomEquity || s.equity;
+      const ruleN = s.street === 'TURN' ? 2 : 4;
+      document.getElementById('mathLine1').innerHTML = `<strong>1. Cena:</strong> płacisz <code class="text-emerald-300">$${s.bet}</code>, a po calli w puli będzie <code class="text-emerald-300">$${s.pot + 2 * s.bet}</code> ($${s.pot} + $${s.bet} rywala + $${s.bet} Twoje). Wymagane equity = ${s.bet} / ${s.pot + 2 * s.bet} = <code class="text-amber-300 font-bold">${potOdds}%</code>.`;
+      document.getElementById('mathLine2').innerHTML = (s.scenarioCustomEquity || s.outs <= 2)
+        ? `<strong>2. Szanse:</strong> tu equity wynika z zakresu rywala, nie z outów: ok. <code class="text-amber-300 font-bold">${Math.round(eqNow * 100)}%</code>.`
+        : `<strong>2. Reguła ${ruleN}:</strong> ${s.outs} outów × ${ruleN} = <code class="text-amber-300 font-bold">~${Math.min(100, s.outs * ruleN)}%</code> (dokładnie ${round1(eqNow * 100)}%).`;
+      document.getElementById('mathLine3').innerHTML = `<strong>3. Wniosek:</strong> ${eqNow > req ? 'Twoje szanse są wyższe niż cena, więc call jest +EV.' : 'Twoje szanse są niższe niż cena, więc call jest -EV.'}`;
 
       // Reset Controls & Result View
       document.getElementById('decisionControls').classList.remove('hidden');
@@ -910,15 +1145,14 @@
       document.getElementById('decisionBadge').innerText = "Oczekiwanie na ruch";
     }
 
-    function toggleMathDetails() {
-      const box = document.getElementById('mathDetailsBox');
-      box.classList.toggle('hidden');
-    }
-
     function handleUserDecision(action) {
       playChipSound();
-      const s = SCENARIOS[currentScenarioIdx];
-      const isGoodDecision = (action === s.bestAction) || (action === 'CALL' && s.callEV > 0) || (action === 'RAISE' && s.shoveEV > 0);
+      const s = currentScenario;
+      const decisionEV = evByAction(s, action);
+      // Matryca 2x2 mówi o znaku EV; „najlepszy ruch” to osobne, ostrzejsze kryterium do statystyk.
+      const isGoodDecision = action === 'FOLD' ? s.bestAction === 'FOLD' : decisionEV > 0;
+      const isBest = action === s.bestAction;
+      const evLoss = Math.max(0, evByAction(s, s.bestAction) - decisionEV);
 
       // Determine outcome of this single runout
       const heroEquity = s.scenarioCustomEquity || s.equity;
@@ -938,26 +1172,25 @@
       if (s.riverCard) fullBoard.push(s.riverCard);
       document.getElementById('boardCards').innerHTML = fullBoard.map(c => renderCardHTML(c.r, c.s)).join('');
 
-      // EV calculation
-      let decisionEV = 0;
-      if (action === 'FOLD') decisionEV = s.foldEV;
-      else if (action === 'CALL') decisionEV = s.callEV;
-      else if (action === 'RAISE') decisionEV = s.shoveEV;
-
-      // Update stats
-      if (isGoodDecision) {
-        userStats.goodDecisions++;
-      } else {
-        userStats.badDecisions++;
-      }
-      userStats.totalEV += decisionEV;
+      // Zapis próby (trwały postęp): ocena equity, pewność i użycie podpowiedzi liczą się tak samo jak sam ruch
+      const trueEq = Math.round(heroEquity * 100);
+      const attempt = {
+        key: currentKey, title: s.generated ? null : s.title, spec: s.generated ? s.spec : null, correct: isBest, action, best: s.bestAction,
+        estimate: estimateTouched ? estimateValue : null, trueEq, confidence, hint: hintUsed, ev: decisionEV, at: Date.now()
+      };
+      progress = recordAttempt(progress, attempt);
+      saveProgress();
       updateScoreboard();
+      renderLearningFeedback(attempt, isBest, evLoss);
 
       // Setup Decision Badge
       const badge = document.getElementById('decisionBadge');
-      if (isGoodDecision) {
+      if (isBest) {
         badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
-        badge.innerText = `DOBRA DECYZJA (+EV)`;
+        badge.innerText = `NAJLEPSZY RUCH`;
+      } else if (isGoodDecision) {
+        badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30";
+        badge.innerText = `+EV, ALE NIE NAJLEPSZY (-$${evLoss.toFixed(0)})`;
       } else {
         badge.className = "px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30";
         badge.innerText = `BŁĄD DECYZYJNY (-EV)`;
@@ -997,7 +1230,6 @@
           `;
         } else if (isGoodDecision && !singleRunWon) {
           playBadBeatSound();
-          userStats.resultTrapsEncountered++;
           box.className = "p-4 rounded-xl border border-indigo-700 bg-indigo-950/40 space-y-2";
           box.innerHTML = `
             <div class="flex items-center space-x-2">
@@ -1117,16 +1349,41 @@
     }
 
     function updateScoreboard() {
-      document.getElementById('statGoodDecisions').innerText = userStats.goodDecisions;
-      document.getElementById('statBadDecisions').innerText = userStats.badDecisions;
-      document.getElementById('statTotalEV').innerText = `${userStats.totalEV >= 0 ? '+' : ''}$${userStats.totalEV.toFixed(2)}`;
-      const total = userStats.goodDecisions + userStats.badDecisions;
-      const res = total > 0 ? Math.round((userStats.goodDecisions / total) * 100) : 100;
-      document.getElementById('statResilience').innerText = `${res}%`;
+      const sum = summarize(progress);
+      document.getElementById('statGoodDecisions').innerText = sum.correct;
+      document.getElementById('statBadDecisions').innerText = sum.wrong;
+      document.getElementById('statTotalEV').innerText = `${sum.totalEV >= 0 ? '+' : ''}$${sum.totalEV.toFixed(2)}`;
+      document.getElementById('statResilience').innerText = `${sum.accuracy}%`;
+      document.getElementById('statStreak').innerText = sum.streak;
+      document.getElementById('statAvgError').innerText = sum.avgError == null ? '—' : `${sum.avgError} pp`;
+      const lines = sum.calibration.filter(c => c.n > 0).map(c => `${CONF_LABELS[c.level]}: ${c.accuracy}% trafnych (${c.n})`);
+      const verdict = calibrationVerdict(sum);
+      document.getElementById('statCalibration').innerText = lines.length ? lines.join(' · ') + (verdict ? ' — ' + verdict : '') : 'Brak danych. Oceniaj pewność przed każdym ruchem.';
+      document.getElementById('statWeak').innerText = sum.weak.length ? 'Najczęstsze błędy: ' + sum.weak.map(w => `${w.title || 'trening pot odds'} (${w.n})`).join(', ') + '.' : '';
+    }
+
+    function renderLearningFeedback(attempt, isBest, evLoss) {
+      const rows = [];
+      rows.push(isBest ? '✅ Wybrałeś najlepszy ruch.' : `❌ Najlepszy ruch to ${attempt.best}. Twój wybór kosztuje średnio $${evLoss.toFixed(2)} EV.`);
+      if (attempt.estimate != null) rows.push('📊 ' + estimateVerdict(attempt.estimate, attempt.trueEq).text);
+      else rows.push('📊 Nie oceniłeś equity przed ruchem, a to właśnie ta umiejętność robi różnicę.');
+      if (attempt.confidence === 3 && !isBest) rows.push('⚠️ Byłeś pewny i się pomyliłeś. To najdroższy typ błędu: wypisz, co przeoczyłeś.');
+      else if (attempt.confidence === 1 && isBest) rows.push('🍀 Trafiłeś, ale zgadywałeś. To jeszcze nie jest umiejętność, powtórz przy podobnej sytuacji.');
+      else if (attempt.confidence === 3 && isBest) rows.push('🎯 Pewny i trafny: tak ma wyglądać dobra kalibracja.');
+      if (attempt.hint) rows.push('💡 Użyłeś podpowiedzi. Następnym razem spróbuj bez niej.');
+      document.getElementById('learningFeedback').innerHTML = rows.map(r => `<p>${r}</p>`).join('');
     }
 
     function loadNextScenario() {
-      loadScenario(currentScenarioIdx + 1);
+      const next = pickNext(progress, SCENARIOS.length, Math.random, currentKey);
+      if (next.type === 'curated') {
+        currentScenarioIdx = next.index;
+        currentKey = 'c' + next.index;
+        loadScenarioObject(SCENARIOS[next.index]);
+      } else {
+        currentKey = drillKey(next.spec);
+        loadScenarioObject(buildDrill(next.spec));
+      }
     }
 
     // --- TAB 2: SPEED MATH DRILL LOGIC ---
@@ -1134,10 +1391,10 @@
       {
         cat: "POT ODDS",
         q: "W puli jest $150. Rywal stawia $50. Ile % szans (equity) potrzebujesz, by sprawdzić?",
-        hint: "Koszt: $50, Pula po Twoim callu: $200. $50 / $200 = ?",
+        hint: "Pula $150 + bet rywala $50 + Twój call $50 = $250. Płacisz $50. $50 / $250 = ?",
         options: ["20%", "25%", "33%", "50%"],
-        correct: 1, // 25%
-        expl: "Pula przed callem: $200 ($150+$50). Sprawdzasz za $50. Całkowita pula = $250. Wymagane equity = 50 / 250 = 20% (lub 25% pot odds zależnie od notacji)."
+        correct: 0, // 20%
+        expl: "Po Twoim callu w puli będzie $250 ($150 + $50 rywala + $50 Twoje). Płacisz $50, więc wymagane equity = 50 / 250 = 20%."
       },
       {
         cat: "REGUŁA 4 (FLOP → RIVER)",
@@ -1157,11 +1414,11 @@
       },
       {
         cat: "DECYZJA EV",
-        q: "Pula wynosi $200. Rywal stawia $100 (pełna pula). Ile equity potrzebujesz na opłacalny call?",
-        hint: "Ryzykujesz 100, by wygrać 400 łącznie (200 + 100 + 100).",
+        q: "Pula wynosi $200. Rywal stawia $200 (pełna pula). Ile equity potrzebujesz na opłacalny call?",
+        hint: "Płacisz $200, a pula po calli to 200 + 200 + 200 = $600.",
         options: ["20%", "25%", "33.3%", "50%"],
         correct: 2, // 33.3%
-        expl: "Koszt $100 / Pula końcowa $400 = 25%... uwaga: bet w wysokości 1/2 puli to 25%, bet 100% puli to 33.3%!"
+        expl: "Koszt $200 / pula końcowa $600 = 33,3%. Skala do zapamiętania: bet 1/4 puli to 16,7%, 1/2 puli to 25%, cała pula to 33,3%."
       },
       {
         cat: "GUTSHOT REALITY",
@@ -1304,6 +1561,8 @@
 
     // --- INITIALIZATION ---
     window.addEventListener('DOMContentLoaded', () => {
+      loadProgress();
+      updateScoreboard();
       loadScenario(0);
       renderMathQuestion();
     });
