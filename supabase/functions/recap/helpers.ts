@@ -10,18 +10,6 @@ function monthThemeSourceForWeek(weekStart: string): string {
   return `${y}-${String(m - 1).padStart(2, "0")}-01`;
 }
 
-function getSprintInfoForDate(dateStr: string) {
-  const d = new Date(dateStr + "T12:00:00Z");
-  const yr = d.getUTCFullYear();
-  let anchor = new Date(`${yr}-03-01T12:00:00Z`);
-  if (d.getTime() < anchor.getTime()) anchor = new Date(`${yr - 1}-03-01T12:00:00Z`);
-  const personalYear = anchor.getFullYear();
-  const daysSince = Math.floor((d.getTime() - anchor.getTime()) / 86400000);
-  const weeksSince = Math.floor(daysSince / 7);
-  const sprintNumber = Math.floor(weeksSince / 12) + 1;
-  return { personalYear, sprintNumber };
-}
-
 function mean(xs: number[]): number | null {
   return xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
 }
@@ -46,4 +34,4 @@ function avgBedtimeLabel(timestamps: string[]): string | null {
   return `${String(Math.floor(wrapped / 60)).padStart(2, "0")}:${String(wrapped % 60).padStart(2, "0")}`;
 }
 
-export { addDaysStr, monthThemeSourceForWeek, getSprintInfoForDate, mean, isVoiceEntry, avgBedtimeLabel };
+export { addDaysStr, monthThemeSourceForWeek, mean, isVoiceEntry, avgBedtimeLabel };
