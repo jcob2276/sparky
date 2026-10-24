@@ -4,7 +4,7 @@ import type { ChronicleGoal, ChronicleSummaryData, ChronicleTile } from './summa
 export const WEEK_HIGHLIGHTS: Array<{ goal: ChronicleGoal; labels: string[] }> = [
   { goal: 'duch', labels: ['Wszystkie zwycięstwa'] },
   { goal: 'konto', labels: ['Umówieni', 'Sprzedaże'] },
-  { goal: 'cialo', labels: ['Treningi', 'Sen'] },
+  { goal: 'cialo', labels: ['Treningi', 'Sen', 'Jakość snu', 'Kalorie / dzień', 'Białko / dzień'] },
 ];
 
 /** Wybrane kafelki w podanej kolejności; brak podsumowania lub kafelka to po prostu pusta lista, nie wyjątek. */
