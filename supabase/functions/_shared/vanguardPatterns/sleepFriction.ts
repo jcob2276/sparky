@@ -5,7 +5,7 @@
  * a konkretnymi typami friction_events następnego dnia.
  *
  * Jeden z czterech wzorców wysokiego ROI z researchu (ETAP_1_RESEARCH...).
- * Kompletujemy czwórkę: S1 (blokery), S2 (poranny protokół), S3 (sen), S4 (plan adherence).
+ * Kompletujemy zestaw: S1 (blokery), S3 (sen), S4 (plan adherence).
  */
 
 import { safeExecute } from '../supabase.ts';
