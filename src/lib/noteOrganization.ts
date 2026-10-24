@@ -1,3 +1,4 @@
+import { TIMEZONE } from '@vanguard/domain';
 import type { Note } from './notesApi';
 
 export type NoteSortField = 'updated_at' | 'created_at' | 'title';
@@ -25,14 +26,14 @@ export const DEFAULT_NOTE_COLLECTION_PREFERENCES: NoteCollectionPreferences = {
 };
 
 const WARSAW_DATE = new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'Europe/Warsaw',
+  timeZone: TIMEZONE,
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',
 });
 
 const MONTH_LABEL = new Intl.DateTimeFormat('pl-PL', {
-  timeZone: 'Europe/Warsaw',
+  timeZone: TIMEZONE,
   month: 'long',
 });
 

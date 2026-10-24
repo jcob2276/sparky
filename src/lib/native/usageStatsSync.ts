@@ -2,12 +2,10 @@
  * Native Usage Stats → phone_usage_daily sync (Android only).
  */
 import { App } from '@capacitor/app';
-import {
-  buildPhoneUsageDailyPayload,
+import { buildPhoneUsageDailyPayload,
   getWarsawDateString,
   getWarsawDayBoundaries,
-  warsawDayStartUTCMs,
-} from '@vanguard/domain';
+  warsawDayStartUTCMs, TIMEZONE } from '@vanguard/domain';
 import { upsertPhoneUsageDaily } from '../phoneUsageApi';
 import { notify } from '../notify';
 import { supabase } from '../supabase';
@@ -32,7 +30,7 @@ export interface PhoneUsageSyncResult {
 
 function getYesterdayDateStr(todayStr: string): string {
   const d = new Date(new Date(`${todayStr}T12:00:00Z`).getTime() - 86400000);
-  return d.toLocaleDateString('en-CA', { timeZone: 'Europe/Warsaw' });
+  return d.toLocaleDateString('en-CA', { timeZone: TIMEZONE });
 }
 
 async function syncPhoneUsageForDate(

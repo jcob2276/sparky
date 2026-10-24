@@ -1,3 +1,4 @@
+import { TIMEZONE } from '@vanguard/domain';
 import { shiftDateStr, warsawTimeOfDay } from '../date';
 
 /**
@@ -64,7 +65,7 @@ const WEEKDAY_SHORT: Record<string, string> = {
 
 function weekdayShort(date: string): string {
   const long = new Date(`${date}T12:00:00Z`)
-    .toLocaleDateString('pl-PL', { timeZone: 'Europe/Warsaw', weekday: 'long' });
+    .toLocaleDateString('pl-PL', { timeZone: TIMEZONE, weekday: 'long' });
   return WEEKDAY_SHORT[long] ?? long.slice(0, 2);
 }
 

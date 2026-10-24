@@ -1,3 +1,5 @@
+import { TIMEZONE } from '@vanguard/domain';
+
 export type SleepStage = 'awake' | 'rem' | 'light' | 'deep';
 type SleepTimelineStatus = 'available' | 'unavailable' | 'invalid';
 
@@ -31,7 +33,7 @@ export const STAGES: Record<string, SleepStage> = {
 };
 
 const WARSAW_TIME = new Intl.DateTimeFormat('pl-PL', {
-  timeZone: 'Europe/Warsaw',
+  timeZone: TIMEZONE,
   hour: '2-digit',
   minute: '2-digit',
   hour12: false,

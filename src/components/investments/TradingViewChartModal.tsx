@@ -1,3 +1,4 @@
+import { TIMEZONE } from '@vanguard/domain';
 import { FC, useEffect, useRef } from 'react';
 import Button from '../ui/Button';
 import { X, ExternalLink, LineChart } from 'lucide-react';
@@ -57,7 +58,7 @@ export const TradingViewChartModal: FC<Props> = ({
       autosize: true,
       symbol: tvSymbol,
       interval: 'D',
-      timezone: 'Europe/Warsaw',
+      timezone: TIMEZONE,
       theme: 'dark',
       style: '1',
       locale: 'pl',

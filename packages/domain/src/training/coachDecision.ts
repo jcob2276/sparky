@@ -1,7 +1,7 @@
 import type { CoachRow, HealthCoachContext, EvidenceRef } from './coachTypes.ts';
 import type { TrainingConstraints } from './healthGoals.ts';
 import type { TrainingSession } from './planValidation.ts';
-import { shiftDateStr } from '../date.ts';
+import { shiftDateStr, TIMEZONE } from '../date.ts';
 
 export interface CoachDecision {
   asOf: string; localDate: string; recommendation: 'unknown' | 'keep' | 'reduce' | 'recover';
@@ -59,7 +59,7 @@ function lowerVolume(session: TrainingSession): TrainingSession {
       : `${session.notes}\nPropozycja na dziś: mniejsza objętość, bez dokładania ciężaru. Wpisz rzeczywiste wykonanie w loggerze.` };
 }
 
-const WARSAW_STAMP = new Intl.DateTimeFormat('pl-PL', { timeZone: 'Europe/Warsaw', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+const WARSAW_STAMP = new Intl.DateTimeFormat('pl-PL', { timeZone: TIMEZONE, day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 
 /** Znacznik zgłoszenia w czasie Warszawy zamiast surowego ISO/UTC. */
 function warsawStamp(value: unknown): string {
