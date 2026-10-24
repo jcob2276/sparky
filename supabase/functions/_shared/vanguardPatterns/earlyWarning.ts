@@ -7,6 +7,7 @@
  * Na razie tylko jeden reżim, bardzo konserwatywnie.
  */
 
+import { HEALTH_THRESHOLDS } from '@vanguard/domain';
 import { safeExecute } from '../supabase.ts';
 import { getWarsawDateString } from '../time.ts';
 import type { PatternInsight } from './types.ts';
@@ -43,7 +44,7 @@ export async function detectEarlyWarningSignals(
   let recentLowSleep = 0;
   if (recentAggs) {
     for (const a of recentAggs) {
-      if (a.sleep_hours != null && a.sleep_hours < 6.5) recentLowSleep++;
+      if (a.sleep_hours != null && a.sleep_hours < HEALTH_THRESHOLDS.SLEEP_WARNING_H) recentLowSleep++;
     }
   }
 
@@ -150,7 +151,7 @@ export async function detectEarlyWarningSignals(
   let lastFragSleepDate = '';
   if (recentAggs) {
     for (const a of recentAggs) {
-      if (a.sleep_hours != null && a.sleep_hours < 6.5 && a.fragmentation_index != null && a.fragmentation_index > 0.55) {
+      if (a.sleep_hours != null && a.sleep_hours < HEALTH_THRESHOLDS.SLEEP_WARNING_H && a.fragmentation_index != null && a.fragmentation_index > 0.55) {
         fragmentationSleepDays++;
         if (!lastFragSleepDate) lastFragSleepDate = a.date;
       }
@@ -176,7 +177,7 @@ export async function detectEarlyWarningSignals(
       return [{
         type: 'early_warning',
         title: 'Wczesny sygnał: wysoka fragmentacja + niski sen',
-        evidenceText: `W ostatnich 5 dniach odnotowaliśmy ${fragmentationSleepDays} dni z krótkim snem (<6.5h) i podwyższoną fragmentacją uwagi (>0.55). Ta kombinacja silnie obniża odporność na dryf i unikanie trudnych zadań.`,
+        evidenceText: `W ostatnich 5 dniach odnotowaliśmy ${fragmentationSleepDays} dni z krótkim snem (<${HEALTH_THRESHOLDS.SLEEP_WARNING_H}h) i podwyższoną fragmentacją uwagi (>0.55). Ta kombinacja silnie obniża odporność na dryf i unikanie trudnych zadań.`,
         confidence: 0.73,
         sampleSize: fragmentationSleepDays,
         lastSeenDate: lastFragSleepDate || null,

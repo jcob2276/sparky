@@ -1,3 +1,4 @@
+import { HEALTH_THRESHOLDS } from '@vanguard/domain';
 import { formatDayLabel, formatWarsawDate, getTodayWarsaw, shiftDateStr, warsawDayBoundsISO, TIMEZONE } from './date';
 import { getSaunaStats, isWellnessOnlySession, sessionDateKey } from './health/workoutSauna';
 import { isRunSport } from './runSports';
@@ -248,7 +249,7 @@ export function formatSleepDayLabel(day: SleepDay | null, today: string): string
 }
 
 export function bodyPulseHeadline(data: WeeklyBodyPulseData): string {
-  if (data.sleepAvgHours != null && data.sleepAvgHours < 6.5) return 'Sen ciągnie w dół ostatnie 7 dni';
+  if (data.sleepAvgHours != null && data.sleepAvgHours < HEALTH_THRESHOLDS.SLEEP_WARNING_H) return 'Sen ciągnie w dół ostatnie 7 dni';
   if (data.gymCount === 0 && data.runCount === 0) return 'Mało ruchu w ostatnich 7 dniach';
   if (data.gymCount + data.runCount >= 4) return 'Aktywność trzyma kierunek';
   return 'Przebieg ostatnich 7 dni';

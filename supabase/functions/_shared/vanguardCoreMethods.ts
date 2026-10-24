@@ -1,3 +1,4 @@
+import { HEALTH_THRESHOLDS } from '@vanguard/domain';
 import { zScore } from './stats.ts';
 import { getWarsawDateString } from './time.ts';
 import { getAggregateByDate } from './repos/aggregatesRepo.ts';
@@ -97,7 +98,7 @@ export function detectLagCorrelations(history: any[]) {
   const yesterday = history[history.length - 2];
   const twoDaysAgo = history[history.length - 3];
 
-  if (twoDaysAgo.sleep_hours < 6 && today.dopamine_load_index > 1.2) {
+  if (twoDaysAgo.sleep_hours < HEALTH_THRESHOLDS.SLEEP_SHORT_H && today.dopamine_load_index > 1.2) {
     correlations.push({ type: 'SLEEP_DEBT_ECHO', message: 'Dzisiejszy skok dopaminy skorelowany z brakiem snu sprzed 48h.' });
   }
   if (yesterday.fragmentation_index > 1.5 && today.execution_score < 0.4) {

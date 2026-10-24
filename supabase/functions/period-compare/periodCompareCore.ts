@@ -1,3 +1,4 @@
+import { HEALTH_THRESHOLDS } from '@vanguard/domain';
 /** Pure core of the AI period comparison: facts per period, the prompt, and response shaping (no Deno or DB imports). */
 
 export interface PeriodRows {
@@ -201,7 +202,7 @@ export function buildPeriodFacts(label: string, start: string, end: string, rows
       bedtimeSpreadMin: bedtime.spreadMin,
       wake: averageClock(rows.oura.map((r) => r.bedtime_end_timestamp)),
       shortNights: rows.oura
-        .flatMap((r) => (typeof r.total_sleep_hours === 'number' && r.total_sleep_hours > 0 && r.total_sleep_hours < 6 ? [{ date: r.date, hours: Math.round(r.total_sleep_hours * 10) / 10 }] : []))
+        .flatMap((r) => (typeof r.total_sleep_hours === 'number' && r.total_sleep_hours > 0 && r.total_sleep_hours < HEALTH_THRESHOLDS.SLEEP_SHORT_H ? [{ date: r.date, hours: Math.round(r.total_sleep_hours * 10) / 10 }] : []))
         .sort((x, y) => x.hours - y.hours)
         .slice(0, 3),
       latency: avg(rows.oura.map((r) => r.latency_minutes)),

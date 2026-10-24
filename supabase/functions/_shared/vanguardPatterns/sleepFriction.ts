@@ -8,6 +8,7 @@
  * Kompletujemy zestaw: S1 (blokery), S3 (sen), S4 (plan adherence).
  */
 
+import { HEALTH_THRESHOLDS } from '@vanguard/domain';
 import { safeExecute } from '../supabase.ts';
 import { getWarsawDateString } from '../time.ts';
 import type { PatternInsight } from './types.ts';
@@ -44,7 +45,7 @@ export async function detectSleepFrictionLink(
     const sleep = day.sleep_hours;
     if (sleep == null) continue;
 
-    const isLowSleep = sleep < 6.5;
+    const isLowSleep = sleep < HEALTH_THRESHOLDS.SLEEP_WARNING_H;
 
     // Pobierz friction_events następnego dnia
     const frictions = await safeExecute(

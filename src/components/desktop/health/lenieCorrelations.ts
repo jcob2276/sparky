@@ -1,3 +1,4 @@
+import { HEALTH_THRESHOLDS } from '@vanguard/domain';
 import type { LenieLogRow, PhoneUsageRow } from '../../../lib/desktopDashboardTypes';
 import type { OuraRow } from '../desktopUtils';
 
@@ -33,7 +34,7 @@ export function computeLenieCorrelations(
     const o = ouraMap.get(l.date);
     if (o && o.total_sleep_hours != null) {
       logsWithSleep++;
-      if (o.total_sleep_hours < 6.5 || (o.readiness_score && o.readiness_score < 70)) {
+      if (o.total_sleep_hours < HEALTH_THRESHOLDS.SLEEP_WARNING_H || (o.readiness_score && o.readiness_score < 70)) {
         logsWithLowSleep++;
       }
     }
@@ -43,7 +44,7 @@ export function computeLenieCorrelations(
   if (logsWithSleep >= 3) {
     const pct = Math.round((logsWithLowSleep / logsWithSleep) * 100);
     if (pct >= 50) {
-      sleepCorrelationText = `${pct}% incydentów po nocy ze snem <6.5h lub niskim Readiness`;
+      sleepCorrelationText = `${pct}% incydentów po nocy ze snem poniżej ${HEALTH_THRESHOLDS.SLEEP_WARNING_H}h lub niskim Readiness`;
     }
   }
 
