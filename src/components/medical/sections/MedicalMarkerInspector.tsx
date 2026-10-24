@@ -3,6 +3,10 @@ import Sheet from '../../ui/Sheet';
 import type { MarkerSeries } from '../../../lib/health/medicalAnalytics';
 import { Card } from '../../ui/Card';
 import { AlertTriangle, Calendar, FlaskConical } from 'lucide-react';
+import MedicalMarkerContext from './MedicalMarkerContext';
+import { contextKindFor } from '../../../lib/health/markerContext';
+import { useMarkerContext } from '../../../lib/health/markerContextApi';
+import { useUserId } from '../../../store/useStore';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface MedicalMarkerInspectorProps {
@@ -13,8 +17,11 @@ interface MedicalMarkerInspectorProps {
 
 export default function MedicalMarkerInspector({ markerKey, series, onClose }: MedicalMarkerInspectorProps) {
   const isOpen = !!markerKey;
+  const userId = useUserId();
 
   const selected = series.find((s) => s.marker_key === markerKey);
+  const kind = selected ? contextKindFor(selected.marker_key, selected.marker_name) : null;
+  const { data: context } = useMarkerContext(userId, kind, selected?.latest.result_date);
   if (!selected) return null;
 
   // history: newest first for the table, oldest first for the chart
@@ -59,6 +66,8 @@ export default function MedicalMarkerInspector({ markerKey, series, onClose }: M
             <p className="text-sm font-bold text-text-secondary mt-1 font-mono">{normStr}</p>
           </div>
         </div>
+
+        {context && <MedicalMarkerContext context={context} />}
 
         {/* Sparkline / History Chart */}
         {chartData.length >= 2 ? (
