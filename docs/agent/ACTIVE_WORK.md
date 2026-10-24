@@ -6,10 +6,17 @@ Zasada jednego źródła prawdy dla danych i celów: [`../SINGLE_SOURCE.md`](../
 
 ## W toku
 
-- **Jedno źródło prawdy dla celów i liczb** ([`../SINGLE_SOURCE.md`](../SINGLE_SOURCE.md)): rejestr faktów, tabela
-  `life_targets` (bench, dochód), warstwa odczytu `lifeTargets` i usunięcie zakodowanych kopii. Kolejne kroki: patrz
-  sekcja „Plan” w SINGLE_SOURCE.
-- **Alarm powtórek refleksji (Telegram)**: kod jest na `main`, działa dopiero po wdrożeniu `vanguard-telegram`.
+- **Jedno źródło prawdy** ([`../SINGLE_SOURCE.md`](../SINGLE_SOURCE.md)): cele, progi i definicje mają jednego właściciela
+  (`life_targets`, `goal_kpis`, `@vanguard/domain`), a strażnik `src/lib/lifeGoals.guard.test.ts` pilnuje celów w kodzie.
+  Dalsze szukanie rozjazdów: literał strefy w funkcjach edge (niskie ryzyko), różne definicje „średni sen” i „treningi
+  w tygodniu” na ekranach, próg węgli wpisany w macierzy, liczby w promptach AI.
+- **Weryfikacja wdrożenia funkcji edge**: wdrożone ręcznie (`vanguard-nightly`, `vanguard-oracle`, `vanguard-telegram`,
+  `recap`, `period-compare`, `analyze-food-quality`, `parse-food-nl`, `analyze-training-load`), ale bez sprawdzenia działania.
+  Test w aplikacji: porównanie okresów AI w Kronice, Analiza tygodnia, raport tygodniowy, `/teraz` w Telegramie; przy błędzie
+  logi w panelu Supabase (Edge Functions → funkcja → Logs).
+- Zasady pracy: jeden temat = jeden PR; po merge'u `git checkout -B <gałąź> origin/main`; testy reguł domeny w
+  `src/lib/domainRules/` (vitest zbiera tylko `src/**`); bez deno lokalnie importy funkcji edge sprawdza bundle esbuild
+  z aliasem `@vanguard/domain`.
 
 ## Czeka na decyzję użytkownika
 
@@ -18,14 +25,6 @@ Zasada jednego źródła prawdy dla danych i celów: [`../SINGLE_SOURCE.md`](../
 - Cel bieżącego sprintu nie ma wpisu; wybór cyklu uściślania celów (rano/tydzień/sprint, tylko sprint i rok,
   tylko gdy brakuje).
 - Portfele w Inwestycjach (zakodowane na sztywno: „Kondzia” i Jakuba): zostawione celowo, do przeniesienia do Finansów.
-
-## Zablokowane tokenem `SUPABASE_ACCESS_TOKEN` (sekret GitHub, `sbp_…`)
-
-Duże funkcje edge można wdrożyć tylko workflow `deploy-edge.yml`. Czekają na wdrożenie:
-- `parse-food-nl` (przeliczanie wpisu ze zdjęciem, uczenie się z poprawek),
-- `vanguard-oracle` (świeżość starych odchyleń z badań w „aktywnych odchyleniach”),
-- `vanguard-telegram` (alarm powtórek), `vanguard-nightly` (wycięty detektor porannego protokołu),
-- `analyze-food-quality` (próg niepełnego dnia), `recap` (prompt bez No-Drift).
 
 ## Otwarte punkty (Finanse, Badania, Healthspan v2, Kartoteka, Notatki, iOS)
 
