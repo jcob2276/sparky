@@ -196,3 +196,7 @@ verify_jwt = false
 import_map = "./functions/import_map.json"
 verify_jwt = false
 
+
+[functions.parse-lab-results]
+import_map = "./functions/import_map.json"
+verify_jwt = false

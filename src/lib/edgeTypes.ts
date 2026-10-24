@@ -233,6 +233,19 @@ export interface PeriodCompareResponse {
   basedOn: { scoredDays: [number, number]; journalEntries: [number, number] };
 }
 
+export interface ParseLabResultsResponse {
+  resultDate: string | null;
+  provider: string | null;
+  results: Array<{
+    marker_name: string;
+    value: number;
+    unit: string;
+    ref_low: number | null;
+    ref_high: number | null;
+    category: string | null;
+  }>;
+}
+
 export interface WeekAiInsightResponse {
   insight: {
     summary: string;
@@ -302,6 +315,7 @@ export interface EdgeFunctionResponses {
   'parse-workout-nl': ParseWorkoutNLResponse;
   'week-insight': WeekAiInsightResponse;
   'period-compare': PeriodCompareResponse;
+  'parse-lab-results': ParseLabResultsResponse;
   'vanguard-capture': CaptureResponse;
   'vanguard-nightly': NightlyResponse;
   'vanguard-nutrition-coach': NutritionCoachResponse;
