@@ -27,7 +27,8 @@ import MedicalBodyComposition from './sections/MedicalBodyComposition';
 
 import MedicalMarkerInspector from './sections/MedicalMarkerInspector';
 import MedicalImport, { type ImportedMedicalResult, type LabResultEntryMeta } from './sections/MedicalImport';
-import MedicalLabNav from './sections/MedicalLabNav';
+import Tabs from '../ui/Tabs';
+import { LAB_TABS, tabForSection, type LabTab } from '../../lib/health/labTabs';
 
 const SNOOZE_DAYS = 30;
 const CALENDAR_LEAD_DAYS = 14;
@@ -61,6 +62,7 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
 
   const [selectedMarkerKey, setSelectedMarkerKey] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
+  const [tab, setTab] = useState<LabTab>('przeglad');
 
   // Derive series & calculations
   const series = useMemo(() => buildMarkerSeries(labs), [labs]);
@@ -121,11 +123,9 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
     await refresh();
   };
 
-  const scrollToSection = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+  const openSection = (id: string) => {
+    setTab(tabForSection(id));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleBack = onBack ?? (() => navigate('/badania'));
@@ -142,68 +142,48 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
     <div className="min-h-screen w-full bg-background text-text-primary flex flex-col">
       <LabHeader onBack={handleBack} />
 
-      <div className="flex-1 w-full max-w-[var(--ds-maxw-1600px)] mx-auto px-4 sm:px-6 lg:px-10 py-6 pb-16 space-y-10">
-        {/* Header block (Completeness, attention and import trigger) */}
+      <div className="flex-1 w-full max-w-[var(--ds-maxw-1600px)] mx-auto px-4 sm:px-6 lg:px-10 py-6 pb-16 space-y-6">
         <MedicalHeader
           series={series}
           documents={documents}
           onImportClick={() => setImportOpen(true)}
-          onViewResults={() => scrollToSection('wyniki')}
-          onPlanRetest={() => scrollToSection('sugestie')}
+          onViewResults={() => openSection('wyniki')}
+          onPlanRetest={() => openSection('sugestie')}
         />
 
-        {/* Quick section navigation pills */}
-        <MedicalLabNav onSelectSection={scrollToSection} />
+        <Tabs tabs={LAB_TABS} active={tab} onChange={(key) => setTab(key as LabTab)} className="sticky top-14 z-20 bg-background/90 backdrop-blur-md py-1" />
 
-        {/* Level 1: Przegląd */}
-        <div id="przeglad">
-          <MedicalOverview
-            series={series}
-            supplements={supplements}
-            onSelectMarker={setSelectedMarkerKey}
-            onActionClick={scrollToSection}
-          />
-        </div>
-
-        {/* Level 2: Wyniki Table */}
-        <div id="wyniki">
-          <MedicalResultsTable
-            series={series}
-            onSelectMarker={setSelectedMarkerKey}
-          />
-        </div>
-
-        {/* Level 3: Trendy */}
-        <div id="trendy">
-          <MedicalTrends series={series} />
-        </div>
-
-        {/* Level 4: Dokumenty history */}
-        <div id="dokumenty">
-          <MedicalDocHistory documents={documents} />
-        </div>
-
-        {/* Co warto badać section */}
-        <div id="sugestie">
-          <MedicalSuggestions
-            suggestions={suggestions}
-            loading={retestLoading}
-            busyId={persistAction.isPending ? persistAction.variables?.suggestionKey : null}
-            onHide={handleHide}
-            onSnooze={handleSnooze}
-            onPlanInCalendar={handlePlanInCalendar}
-          />
-        </div>
-
-        {/* Eksperymentalne wskaźniki (Biology Scores) */}
-        <div id="scores">
-          <MedicalBiologyScoresSection scores={biologyScores} />
-        </div>
-
-        {/* Body compositions section */}
-        <div id="cialo">
-          <MedicalBodyComposition rows={bodyComposition} />
-        </div>
+        {tab === 'przeglad' && (
+          <div className="space-y-10">
+            <MedicalOverview
+              series={series}
+              supplements={supplements}
+              onSelectMarker={setSelectedMarkerKey}
+              onActionClick={openSection}
+            />
+            <MedicalSuggestions
+              suggestions={suggestions}
+              loading={retestLoading}
+              busyId={persistAction.isPending ? persistAction.variables?.suggestionKey : null}
+              onHide={handleHide}
+              onSnooze={handleSnooze}
+              onPlanInCalendar={handlePlanInCalendar}
+            />
+          </div>
+        )}
+        {tab === 'wyniki' && (
+          <div className="space-y-10">
+            <MedicalResultsTable series={series} onSelectMarker={setSelectedMarkerKey} />
+            <MedicalBodyComposition rows={bodyComposition} />
+          </div>
+        )}
+        {tab === 'trendy' && (
+          <div className="space-y-10">
+            <MedicalTrends series={series} />
+            <MedicalBiologyScoresSection scores={biologyScores} />
+          </div>
+        )}
+        {tab === 'dokumenty' && <MedicalDocHistory documents={documents} />}
       </div>
 
       {/* Marker side drawer details */}
