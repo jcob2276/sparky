@@ -1,5 +1,5 @@
-import { HEALTH_THRESHOLDS } from "@vanguard/domain";
-import { addDaysStr, getSprintInfoForDate, monthThemeSourceForWeek, mean, isVoiceEntry, avgBedtimeLabel } from "./helpers.ts";
+import { HEALTH_THRESHOLDS, getSprintInfoForDate } from "@vanguard/domain";
+import { addDaysStr, monthThemeSourceForWeek, mean, isVoiceEntry, avgBedtimeLabel } from "./helpers.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { Database } from "../_shared/database.types.ts";
 
