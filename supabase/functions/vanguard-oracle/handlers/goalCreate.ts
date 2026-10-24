@@ -1,3 +1,4 @@
+import { APP_NAME } from '@vanguard/domain';
 import { resolveUserScope } from "../../_shared/supabase.ts";
 import { deepseekChat, parseJsonFromContent } from "../../_shared/deepseek.ts";
 import { LLM_TASKS } from "../../_shared/llm/tasks.ts";
@@ -16,7 +17,7 @@ export async function handleGoalCreate(req: Request, body: any): Promise<unknown
     userName?: string;
   };
 
-  const systemPrompt = `Jesteś Antigravity — AI asystentem ${userName}. Na podstawie odpowiedzi wygeneruj strukturę projektu jako JSON.
+  const systemPrompt = `Jesteś ${APP_NAME} — AI asystentem ${userName}. Na podstawie odpowiedzi wygeneruj strukturę projektu jako JSON.
 
 ZASADY:
 - project_name: krótka nazwa SYSTEMU (co robisz), nie cel (co chcesz osiągnąć)

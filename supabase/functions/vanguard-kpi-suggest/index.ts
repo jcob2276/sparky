@@ -8,6 +8,7 @@
  * @consumer Kreator celów w zakładce Direction w aplikacji
  * @status active
  */
+import { APP_NAME } from '@vanguard/domain';
 import { serveJson } from "../_shared/http.ts";
 import { createServiceClient } from "../_shared/supabase.ts";
 import { deepseekChat, parseJsonFromContent } from "../_shared/deepseek.ts";
@@ -54,7 +55,7 @@ Deno.serve(serveJson(async (req, ctx) => {
   if (hasStrava) tracking.push("Strava (biegi, km, tempo — auto)");
   if (hasNutrition) tracking.push("Dziennik posilkow (kcal, bialko — logowane)");
 
-  const systemPrompt = "Jestes Antigravity - AI Jakuba. Zaproponuj PRAKTYCZNE tygodniowe KPI.\n\nZASADY:\n- Tylko metryki mierzalne co tydzien bez specjalnego sprzetu\n- Proxy zamiast idealow: obwod talii zamiast % tluszczu, serie treningowe zamiast sily max\n- Jesli dane sa auto-trackowane (Strava, Oura, log posilkow) - to preferuj, oznacz w reason\n- Unikaj metryk ktore juz istnieja w systemie\n- Max 3 propozycje na sfere\n- reason: 1 krotkie zdanie jak mierzyc i dlaczego ta metryka\n\nZwroc TYLKO JSON:\n{\"suggestions\": [{\"pillar\": \"cialo|duch|konto\", \"name\": \"...\", \"unit\": \"...\", \"higher_is_better\": true, \"reason\": \"...\"}]}";
+  const systemPrompt = "Jestes " + APP_NAME + " - AI Jakuba. Zaproponuj PRAKTYCZNE tygodniowe KPI.\n\nZASADY:\n- Tylko metryki mierzalne co tydzien bez specjalnego sprzetu\n- Proxy zamiast idealow: obwod talii zamiast % tluszczu, serie treningowe zamiast sily max\n- Jesli dane sa auto-trackowane (Strava, Oura, log posilkow) - to preferuj, oznacz w reason\n- Unikaj metryk ktore juz istnieja w systemie\n- Max 3 propozycje na sfere\n- reason: 1 krotkie zdanie jak mierzyc i dlaczego ta metryka\n\nZwroc TYLKO JSON:\n{\"suggestions\": [{\"pillar\": \"cialo|duch|konto\", \"name\": \"...\", \"unit\": \"...\", \"higher_is_better\": true, \"reason\": \"...\"}]}";
 
   const userPrompt = "CELE:\n- Cialo: " + (g?.goal_cialo ?? "nie ustawione") +
     "\n- Duch: " + (g?.goal_duch ?? "nie ustawione") +

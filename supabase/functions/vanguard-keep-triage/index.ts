@@ -7,6 +7,7 @@
  * @calls deepseek-chat
  * @status active
  */
+import { APP_NAME } from '@vanguard/domain';
 import { serveJson } from "../_shared/http.ts";
 import { deepseekChat, parseJsonFromContent } from "../_shared/deepseek.ts";
 import { LLM_TASKS } from "../_shared/llm/tasks.ts";
@@ -60,7 +61,7 @@ Deno.serve(serveJson(async (req, ctx) => {
     .join("\n---\n");
 
   const systemPrompt =
-    "Jestes Antigravity - AI Jakuba. Analizujesz linki i artykuly z jego skrzynki Pocket (LinksInbox).\n\n" +
+    "Jestes " + APP_NAME + " - AI Jakuba. Analizujesz linki i artykuly z jego skrzynki Pocket (LinksInbox).\n\n" +
     "Twoim zadaniem jest ocena i synteza wiedzy pod katem 3 Glownych Sfer Zycia Jakuba:\n" +
     "- \"Ciało\": zdrowie fizyczne, sen, regeneracja, biometria Oura, trening silowy, odzywianie, longevity\n" +
     "- \"Duch\": umysl, psychika, relacje, uwaznosc, filozofia, nawyki, jasnosc myslenia, spokoj\n" +
