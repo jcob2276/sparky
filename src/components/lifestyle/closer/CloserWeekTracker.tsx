@@ -218,7 +218,7 @@ export default function CloserWeekTracker({
             )}
           </div>
           <p className="text-xs text-text-muted mt-0.5">
-            Tydzień: 30 umówień & 10 sales calli z 50% close rate
+            Tydzień: {targets.appointments} umówień & {targets.salesCalls} sales calli z 50% close rate
           </p>
         </div>
 

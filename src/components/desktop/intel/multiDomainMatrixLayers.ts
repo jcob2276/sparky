@@ -21,7 +21,7 @@ export const MATRIX_LAYERS: MatrixLayerConfig[] = [
   },
   {
     id: 'protein',
-    label: '🥩 Białko ≥140g',
+    label: '🥩 Białko ≥ minimum',
     shortLabel: 'Białko',
     icon: '🥩',
     colorClass: 'bg-success',

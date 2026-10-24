@@ -111,7 +111,7 @@ export function MultiDomainMatrixInsights({ stats }: Props) {
 
       <div className="flex flex-wrap items-center gap-4 text-2xs text-text-muted pt-1">
         <span>🏋️ Treningi (siłownia/bieg): <b className="text-text-primary">{daysWithTraining}</b></span>
-        <span>🥩 Dni z białkiem ≥140g: <b className="text-text-primary">{daysWithHighProtein}</b></span>
+        <span>🥩 Dni z białkiem ≥ minimum: <b className="text-text-primary">{daysWithHighProtein}</b></span>
         <span>🍚 Dni z węglami ≥200g: <b className="text-text-primary">{daysWithHighCarbs}</b></span>
       </div>
     </div>
