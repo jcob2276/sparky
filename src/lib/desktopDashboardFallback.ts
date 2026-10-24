@@ -1,3 +1,4 @@
+import { derivePersonalTargets } from '@vanguard/domain';
 import { supabase } from './supabase';
 import { getTodayWarsaw, shiftDateStr } from './date';
 import {
@@ -73,15 +74,7 @@ export async function fetchDashboardFallback(userId: string): Promise<DesktopQue
   const ntRow = nutritionTargetsRes?.data;
   const profileRow = profileRes?.data;
 
-  let proteinFloorG = 140;
-  if (ntRow?.protein_floor_g != null && Number(ntRow.protein_floor_g) > 0) {
-    proteinFloorG = Number(ntRow.protein_floor_g);
-  } else if (profileRow?.protein_g_per_kg != null && body.data?.length) {
-    const latestWeight = body.data[body.data.length - 1]?.weight;
-    if (latestWeight) proteinFloorG = Math.round(Number(latestWeight) * Number(profileRow.protein_g_per_kg));
-  }
-  const sleepTargetH = profileRow?.sleep_target_hours != null && Number(profileRow.sleep_target_hours) > 0
-    ? Number(profileRow.sleep_target_hours) : 8.0;
+  const { proteinFloorG, sleepTargetH } = derivePersonalTargets({ target: ntRow, profile: profileRow, weightKg: body.data?.[body.data.length - 1]?.weight });
 
   return {
     oura: oura.data || [],

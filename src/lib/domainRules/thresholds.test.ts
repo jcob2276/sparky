@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { HEALTH_THRESHOLDS } from './thresholds';
+import { HEALTH_THRESHOLDS } from '@vanguard/domain';
 
 describe('progi snu', () => {
   it('ostrzeżenie jest powyżej progu krótkiej nocy', () => {
