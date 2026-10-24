@@ -11,7 +11,12 @@ export interface ComparePeriod {
   end: string;
 }
 
-const CACHE_PREFIX = 'period-compare-ai';
+/**
+ * Wersja analizy w kluczu zapamiętanego wyniku: podbij ją po każdej zmianie funkcji `period-compare`,
+ * inaczej użytkownik przez resztę dnia widzi stary wynik z poprzedniej wersji promptu.
+ */
+const ANALYSIS_VERSION = 4;
+const CACHE_PREFIX = `period-compare-ai:v${ANALYSIS_VERSION}`;
 
 /**
  * Klucz pary okresów plus dzisiejsza data: wynik dla trwającego okresu starzeje się z dnia na dzień,

@@ -15,4 +15,9 @@ describe('compareCacheKey', () => {
   it('nie zależy od etykiet, tylko od granic okresów', () => {
     expect(compareCacheKey('u1', { ...a, label: 'inna' }, b, '2026-10-24')).toBe(compareCacheKey('u1', a, b, '2026-10-24'));
   });
+
+  it('klucz zawiera wersję analizy, więc wynik z poprzedniej wersji funkcji nie jest pokazywany', () => {
+    expect(compareCacheKey('u1', a, b, '2026-10-24')).toMatch(/^period-compare-ai:v\d+:u1:/);
+  });
 });
+
