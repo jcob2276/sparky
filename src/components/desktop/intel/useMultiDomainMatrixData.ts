@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { DEFAULT_PROTEIN_FLOOR_G } from '@vanguard/domain';
 import { getTodayWarsaw, shiftDateStr } from '../../../lib/date';
 import { fetchMultiDomainMatrixApi } from '../../../lib/multiDomainMatrixApi';
 import type { DesktopSessionRow, StravaActivityRow } from '../../../lib/desktopDashboardTypes';
@@ -29,7 +30,7 @@ export function useMultiDomainMatrixData({
   strava,
   lenieLogs,
   habits,
-  proteinFloorG = 140,
+  proteinFloorG = DEFAULT_PROTEIN_FLOOR_G,
 }: UseMultiDomainMatrixDataParams) {
   const [selectedLayers, setSelectedLayers] = useState<Set<MatrixLayerId>>(
     new Set(DEFAULT_ACTIVE_LAYERS)

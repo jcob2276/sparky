@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { DEFAULT_PROTEIN_FLOOR_G } from '@vanguard/domain';
 import { supabase } from '../../../lib/supabase';
 import type { Session } from '@supabase/supabase-js';
 import {
@@ -71,7 +72,7 @@ export function useDashboardData(sessionProp?: Session | null, enabled = true) {
     weeklyCalories: 0,
     todayWin: null,
     proteinToday: 0,
-    proteinTarget: 150,
+    proteinTarget: DEFAULT_PROTEIN_FLOOR_G,
     hasWorkoutToday: false,
     ouraToday: [],
     readiness: 0,

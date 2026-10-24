@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { derivePersonalTargets } from '@vanguard/domain';
 import { supabase } from './supabase';
 import { getTodayWarsaw, getDaysAgoWarsaw, warsawDayBoundsISO } from './date';
 import { SparkyCore, computeSignals } from './vanguardCore';
@@ -57,15 +58,12 @@ async function fetchLiveProteinToday(userId: string, today: string): Promise<num
 }
 
 async function fetchLiveProteinTarget(userId: string): Promise<number> {
-  const { data } = await supabase
-    .from('nutrition_targets')
-    .select('protein_floor_g')
-    .eq('user_id', userId)
-    .order('date', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  return Number(data?.protein_floor_g) || 150;
+  const [target, profile, body] = await Promise.all([
+    supabase.from('nutrition_targets').select('protein_floor_g').eq('user_id', userId).order('date', { ascending: false }).limit(1).maybeSingle(),
+    supabase.from('nutrition_profile').select('protein_g_per_kg').eq('user_id', userId).maybeSingle(),
+    supabase.from('body_metrics').select('weight').eq('user_id', userId).not('weight', 'is', null).order('date', { ascending: false }).limit(1).maybeSingle(),
+  ]);
+  return derivePersonalTargets({ target: target.data, profile: profile.data, weightKg: body.data?.weight }).proteinFloorG;
 }
 
 /**

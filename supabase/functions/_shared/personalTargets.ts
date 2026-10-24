@@ -13,13 +13,11 @@
  *   - metrics_recovery.ts → runComputeRecoveryForecast (needSleepHours)
  *   - vanguard-nightly (orchestrator)
  *
- * NEVER hardcode 140g protein or 8.0h sleep elsewhere — use this resolver.
+ * NEVER hardcode protein or sleep targets elsewhere — use this resolver (edge) or `derivePersonalTargets` (frontend).
  */
 
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
-
-const DEFAULT_PROTEIN_FLOOR_G = 150;
-const DEFAULT_SLEEP_TARGET_H = 8.0;
+import { derivePersonalTargets } from '@vanguard/domain';
 
 export interface PersonalTargets {
   /** Minimum daily protein (g). From nutrition_targets.protein_floor_g (latest).
@@ -59,28 +57,5 @@ export async function resolvePersonalTargets(
       .maybeSingle(),
   ]);
 
-  const target = targetsRes.data;
-  const profile = profileRes.data;
-  const body = bodyRes.data;
-
-  // --- protein floor ---
-  let proteinFloorG = DEFAULT_PROTEIN_FLOOR_G;
-  if (target?.protein_floor_g != null && Number(target.protein_floor_g) > 0) {
-    proteinFloorG = Number(target.protein_floor_g);
-  } else if (profile?.protein_g_per_kg != null && body?.weight != null) {
-    // nutrition-coach hasn't run yet — compute the same way it would
-    proteinFloorG = Math.round(Number(body.weight) * Number(profile.protein_g_per_kg));
-  }
-
-  // --- kcal target ---
-  const targetKcal =
-    target?.target_kcal != null ? Number(target.target_kcal) : null;
-
-  // --- sleep target ---
-  const sleepTargetH =
-    profile?.sleep_target_hours != null && Number(profile.sleep_target_hours) > 0
-      ? Number(profile.sleep_target_hours)
-      : DEFAULT_SLEEP_TARGET_H;
-
-  return { proteinFloorG, targetKcal, sleepTargetH };
+  return derivePersonalTargets({ target: targetsRes.data, profile: profileRes.data, weightKg: bodyRes.data?.weight });
 }

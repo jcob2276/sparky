@@ -1,3 +1,4 @@
+import { derivePersonalTargets } from '@vanguard/domain';
 import { supabase } from './supabase';
 import { fetchDashboardFallback } from './desktopDashboardFallback';
 import type {
@@ -54,15 +55,7 @@ export async function fetchDesktopDashboardData(userId: string): Promise<Desktop
 
   const d = data as Record<string, unknown>;
   const bodyData = (d['body'] as BodyMetricRow[]) || [];
-  let proteinFloorG = 140;
-  if (ntRow?.protein_floor_g != null && Number(ntRow.protein_floor_g) > 0) {
-    proteinFloorG = Number(ntRow.protein_floor_g);
-  } else if (profileRow?.protein_g_per_kg != null && bodyData.length) {
-    const latestWeight = bodyData[bodyData.length - 1]?.weight;
-    if (latestWeight) proteinFloorG = Math.round(Number(latestWeight) * Number(profileRow.protein_g_per_kg));
-  }
-  const sleepTargetH = profileRow?.sleep_target_hours != null && Number(profileRow.sleep_target_hours) > 0
-    ? Number(profileRow.sleep_target_hours) : 8.0;
+  const { proteinFloorG, sleepTargetH } = derivePersonalTargets({ target: ntRow, profile: profileRow, weightKg: bodyData[bodyData.length - 1]?.weight });
 
   return {
     oura: (d['oura'] as OuraRow[]) || [],
