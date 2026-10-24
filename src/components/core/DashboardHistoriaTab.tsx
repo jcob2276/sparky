@@ -7,6 +7,7 @@ import Stats from './Stats';
 import StravaWidget from '../integrations/StravaWidget';
 import Photos from '../identity/Photos';
 import ChronicleControls from './chronicle/ChronicleControls';
+import ChronicleAiCompare from './chronicle/ChronicleAiCompare';
 import ChroniclePeriodPicker from './chronicle/ChroniclePeriodPicker';
 import { periodLabel } from '../../lib/chronicle/periods';
 import { subscribeChronicleIntent, takeChronicleIntent } from '../../lib/chronicle/chronicleIntent';
@@ -78,6 +79,11 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
         periodTitle={periodTitle}
         compareLabel={chronicle.window.compareLabel}
         showChart={period !== 'week'}
+      />
+
+      <ChronicleAiCompare
+        a={{ label: periodTitle, start: chronicle.window.start, end: chronicle.window.end }}
+        b={{ label: chronicle.window.compareLabel, start: chronicle.window.prevStart, end: chronicle.window.prevEnd }}
       />
 
       <Suspense fallback={<ViewFallback />}>

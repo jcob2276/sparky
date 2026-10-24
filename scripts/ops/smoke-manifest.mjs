@@ -38,6 +38,7 @@ export const NO_VERIFY_JWT_FUNCTIONS = [
   "vanguard-kpi-suggest",
   "vanguard-mcp-server",
   "week-insight",
+  "period-compare",
 ];
 
 

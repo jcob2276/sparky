@@ -9,6 +9,8 @@ export interface ChronicleTile {
   delta: string | null;
   tone: ChronicleTone;
   hint?: string;
+  /** Nagłówek sekcji w obrębie celu (np. Sen, Jedzenie); kafelki bez grupy idą jednym blokiem. */
+  group?: string;
 }
 
 interface ChronicleChart {
@@ -48,8 +50,9 @@ export function makeTile(input: {
   unit?: string;
   higherIsBetter: boolean | null;
   hint?: string;
+  group?: string;
 }): ChronicleTile {
-  const { label, current, previous, digits = 0, unit = '', higherIsBetter, hint } = input;
+  const { label, current, previous, digits = 0, unit = '', higherIsBetter, hint, group } = input;
   const diff = current == null || previous == null ? null : current - previous;
   const rounded = diff == null ? null : Math.round(diff * 10 ** digits) / 10 ** digits;
   const tone: ChronicleTone =
@@ -61,5 +64,6 @@ export function makeTile(input: {
     delta: rounded == null ? null : `${sign}${nf(Math.abs(rounded), digits)}${unit}`,
     tone,
     hint,
+    ...(group ? { group } : {}),
   };
 }

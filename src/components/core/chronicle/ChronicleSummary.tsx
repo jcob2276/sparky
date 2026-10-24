@@ -23,6 +23,18 @@ function Tile({ tile, wide, compareLabel }: { tile: ChronicleTile; wide: boolean
   );
 }
 
+/** Kafelki w kolejności pierwszego wystąpienia grupy; bez grup wszystko idzie jednym blokiem. */
+function groupTiles(tiles: ChronicleTile[]): Array<{ title: string | null; tiles: ChronicleTile[] }> {
+  const groups: Array<{ title: string | null; tiles: ChronicleTile[] }> = [];
+  for (const tile of tiles) {
+    const title = tile.group ?? null;
+    const existing = groups.find((g) => g.title === title);
+    if (existing) existing.tiles.push(tile);
+    else groups.push({ title, tiles: [tile] });
+  }
+  return groups;
+}
+
 interface Props {
   summary: ChronicleSummaryData | null;
   loading: boolean;
@@ -41,7 +53,7 @@ export default function ChronicleSummary({ summary, loading, error, periodTitle,
     return <p className="rounded-2xl border border-warning/30 bg-warning/10 px-3 py-3 text-xs font-semibold text-warning">Nie udało się wczytać danych tego okresu.</p>;
   }
   const { goalLine, tiles, chart, notes } = summary;
-  const oddLast = tiles.length % 2 === 1;
+  const groups = groupTiles(tiles);
   return (
     <section className="space-y-3" aria-label={`Podsumowanie: ${goalLine.title}`}>
       <div className="space-y-1.5 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
@@ -57,9 +69,16 @@ export default function ChronicleSummary({ summary, loading, error, periodTitle,
         <p className="text-xs font-semibold text-text-secondary">{goalLine.hint}</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
-        {tiles.map((tile, index) => <Tile key={tile.label} tile={tile} wide={oddLast && index === tiles.length - 1} compareLabel={compareLabel} />)}
-      </div>
+      {groups.map((group) => (
+        <div key={group.title ?? 'all'} className="space-y-1.5">
+          {group.title && <p className="px-1 text-2xs font-semibold tracking-wide text-text-muted">{group.title}</p>}
+          <div className="grid grid-cols-2 gap-2">
+            {group.tiles.map((tile, index) => (
+              <Tile key={tile.label} tile={tile} wide={group.tiles.length % 2 === 1 && index === group.tiles.length - 1} compareLabel={compareLabel} />
+            ))}
+          </div>
+        </div>
+      ))}
 
       {showChart && (
         <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
