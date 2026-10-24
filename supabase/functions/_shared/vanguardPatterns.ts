@@ -24,7 +24,6 @@ export type { PatternInsight,  } from './vanguardPatterns/types.ts';
 
 export { detectRecurringBlockers } from './vanguardPatterns/blockers.ts';
 export { detectPlanAdherenceGaps } from './vanguardPatterns/planAdherence.ts';
-export { detectMorningProtocolImpact } from './vanguardPatterns/morningProtocol.ts';
 export { detectSleepFrictionLink } from './vanguardPatterns/sleepFriction.ts';
 export { detectEarlyWarningSignals } from './vanguardPatterns/earlyWarning.ts';
 export { detectNarrativeBiometricMismatch } from './vanguardPatterns/narrativeMismatch.ts';

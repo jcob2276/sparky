@@ -3,7 +3,6 @@ import { getWarsawDateString } from '../time.ts';
 import {
   detectRecurringBlockers,
   detectPlanAdherenceGaps,
-  detectMorningProtocolImpact,
   detectSleepFrictionLink,
   detectEarlyWarningSignals,
   detectNarrativeBiometricMismatch,
@@ -108,16 +107,15 @@ export const runDetectPatterns = async (
 
   const yesterday = getWarsawDateString(new Date(Date.now() - 86400000));
 
-  const [s1, s2, s3, s4, s5, s6] = await Promise.all([
+  const [s1, s3, s4, s5, s6] = await Promise.all([
     detectRecurringBlockers(supabase, userId),
-    detectMorningProtocolImpact(supabase, userId),
     detectSleepFrictionLink(supabase, userId),
     detectPlanAdherenceGaps(supabase, userId, yesterday),
     detectEarlyWarningSignals(supabase, userId),
     detectNarrativeBiometricMismatch(supabase, userId),
   ]);
 
-  const all = [...s1, ...s2, ...s3, ...s4, ...s5, ...s6].map(insightToDetector);
+  const all = [...s1, ...s3, ...s4, ...s5, ...s6].map(insightToDetector);
   console.log(`[detect-patterns] Found ${all.length} patterns total`);
 
   let inserted = 0;

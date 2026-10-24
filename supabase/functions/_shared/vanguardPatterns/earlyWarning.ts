@@ -2,7 +2,7 @@
  * Pierwszy prosty Early Warning (Etap 1)
  *
  * Wykrywa wczesne sygnały wchodzenia w znany zły reżim:
- * "Poranny dryf + niski sen + powtarzający się blocker" → wysokie ryzyko unikania / niskiego wykonania w najbliższych dniach.
+ * "Niski sen + powtarzający się blocker" → wysokie ryzyko unikania / niskiego wykonania w najbliższych dniach.
  *
  * Na razie tylko jeden reżim, bardzo konserwatywnie.
  */
@@ -28,33 +28,6 @@ export async function detectEarlyWarningSignals(
   const cutoff = getWarsawDateString(new Date(Date.now() - 8 * 24 * 3600 * 1000));
 
   const cooldownCutoff = getWarsawDateString(new Date(Date.now() - cooldownDays * 24 * 3600 * 1000));
-
-  // 1. Sprawdź ostatnie reconciliation pod kątem porannego dryfu (S2 sygnały)
-  const recentRecs = await safeExecute(
-    supabase
-      .from('daily_reconciliations')
-      .select('date, first_90_protected, planning_summary')
-      .eq('user_id', userId)
-      .gte('date', cutoff)
-      .order('date', { ascending: false })
-      .limit(5)
-  );
-
-  let recentMorningDrift = 0;
-  let lastDriftDate = '';
-
-  if (recentRecs) {
-    for (const r of recentRecs) {
-      const ops = ((r.planning_summary as Record<string, unknown>)?.operational_facts as Record<string, unknown>) || {};
-      const phoneFirst = ops.phone_first === true;
-      const first90Broken = r.first_90_protected === false;
-
-      if (phoneFirst || first90Broken) {
-        recentMorningDrift++;
-        if (!lastDriftDate) lastDriftDate = r.date;
-      }
-    }
-  }
 
   // 2. Sprawdź czy był niski sen/fragmentacja/słaby stan w ostatnich dniach (S3 + nowości)
   const recentAggs = await safeExecute(
@@ -87,9 +60,8 @@ export async function detectEarlyWarningSignals(
 
   const hasActiveRecurringBlocker = recentPatterns && recentPatterns.length > 0;
 
-  // Warunek Early Warning (bardzo konserwatywny) — Reżim 1: Poranny dryf + sen + blocker
+  // Warunek Early Warning (bardzo konserwatywny) — Reżim 1: niski sen + aktywny blocker
   const riskSignals = [];
-  if (recentMorningDrift >= 2) riskSignals.push('kilka dni z przerwanym first 90 / telefonem rano');
   if (recentLowSleep >= 2) riskSignals.push('niski sen w ostatnich dniach');
   if (hasActiveRecurringBlocker) riskSignals.push('aktywny powtarzający się blocker');
 
@@ -101,7 +73,7 @@ export async function detectEarlyWarningSignals(
         .select('last_seen, status')
         .eq('user_id', userId)
         .eq('pattern_type', 'early_warning')
-        .eq('metadata->>regime', 'morning_drift')
+        .eq('metadata->>regime', 'sleep_blocker')
         .gte('last_seen', cooldownCutoff)
         .order('last_seen', { ascending: false })
         .limit(1)
@@ -118,10 +90,9 @@ export async function detectEarlyWarningSignals(
         evidenceText: `W ostatnich dniach masz ${riskSignals.join(' + ')}. U Ciebie takie kombinacje w przeszłości często poprzedzały silne unikanie i spadek wykonania (ostatnie przypadki: ${lastDriftDate || 'niedawno'}).`,
         confidence: 0.71,
         sampleSize: riskSignals.length,
-        lastSeenDate: lastDriftDate || null,
+        lastSeenDate: recentAggs?.[0]?.date ?? null,
         metadata: {
-          regime: 'morning_drift',
-          morningDriftDays: recentMorningDrift,
+          regime: 'sleep_blocker',
           lowSleepDays: recentLowSleep,
           hasRecurringBlocker: hasActiveRecurringBlocker,
         },
@@ -235,16 +206,13 @@ export async function detectEarlyWarningSignals(
 
   let mondayTuesdayDrift = false;
   let driftDate = '';
-  if (recentRecs) {
-    for (const r of recentRecs) {
-      const day = new Date(r.date).getDay();
-      if (day === 1 || day === 2) { // Poniedziałek lub Wtorek
-        const ops = ((r.planning_summary as Record<string, unknown>)?.operational_facts as Record<string, unknown>) || {};
-        const phoneFirst = ops.phone_first === true;
-        const first90Broken = r.first_90_protected === false;
-        if (phoneFirst || first90Broken) {
+  if (recentAggs) {
+    for (const a of recentAggs) {
+      const day = new Date(a.date).getDay();
+      if (day === 1 || day === 2) { // Poniedziałek lub Wtorek: te same kryteria co weekendowe unikanie
+        if ((a.execution_score != null && a.execution_score < 0.45) || a.final_state === 'AVOIDANCE' || a.final_state === 'CHAOS') {
           mondayTuesdayDrift = true;
-          driftDate = r.date;
+          driftDate = a.date;
           break;
         }
       }
@@ -270,7 +238,7 @@ export async function detectEarlyWarningSignals(
       return [{
         type: 'early_warning',
         title: 'Wczesny sygnał: przeniesienie unikania z weekendu',
-        evidenceText: `Twój weekend (${weekendDate}) przyniósł spadek wykonania lub stan avoidance/chaos, a na początku tygodnia roboczego (${driftDate}) pojawił się poranny dryf (telefon/przerwane pierwsze 90). Grozi to zainfekowaniem całego tygodnia roboczego.`,
+        evidenceText: `Twój weekend (${weekendDate}) przyniósł spadek wykonania lub stan avoidance/chaos, a na początku tygodnia roboczego (${driftDate}) wykonanie znów spadło lub pojawił się stan avoidance/chaos. Grozi to zainfekowaniem całego tygodnia roboczego.`,
         confidence: 0.75,
         sampleSize: 2,
         lastSeenDate: driftDate,

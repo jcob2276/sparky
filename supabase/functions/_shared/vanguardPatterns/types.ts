@@ -3,7 +3,7 @@
  */
 
 export interface PatternInsight {
-  type: 'recurring_blocker' | 'plan_adherence_gap' | 'morning_protocol_impact' | 'sleep_friction_link' | 'early_warning' | 'narrative_biometric_mismatch';
+  type: 'recurring_blocker' | 'plan_adherence_gap' | 'sleep_friction_link' | 'early_warning' | 'narrative_biometric_mismatch';
   title: string;                    // Krótki tytuł do pokazania
   evidenceText: string;             // Gotowy tekst do wstawienia w wiadomość (po polsku)
   confidence: number;               // 0.0 – 1.0
