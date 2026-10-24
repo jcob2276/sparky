@@ -12,6 +12,7 @@ import DailyStrainCard from '../biometrics/DailyStrainCard';
 import DailySnapshotCard from './DailySnapshotCard';
 import TodayRunwayCard from './TodayRunwayCard';
 import { UrgentObligationsBanner } from '../terminy/UrgentObligationsBanner';
+import { UpcomingObligationsStrip } from '../terminy/UpcomingObligationsStrip';
 import { ThreeSpheresGoalsCard } from './ThreeSpheresGoalsCard';
 import VisionHeroCard from './VisionHeroCard';
 import { DashboardGreeting } from './DashboardGreeting';
@@ -53,6 +54,11 @@ export const DashboardDzisTab = memo(function DashboardDzisTab() {
 
 
         <UrgentObligationsBanner
+          userId={session.user.id}
+          onNavigateToTerminy={() => s.navigate('/terminy')}
+        />
+
+        <UpcomingObligationsStrip
           userId={session.user.id}
           onNavigateToTerminy={() => s.navigate('/terminy')}
         />
