@@ -29,21 +29,11 @@ export default function FoodEntryModal({ onClose, onSaved, initialEditEntry, ini
   const searchInputRef = useRef<HTMLInputElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
 
+  const data = useFoodEntryData({ onClose, onSaved, initialEditEntry, initialMealType, searchInputRef });
   const {
-    userId, activeTab, setActiveTab, favorites, recent, loadingList,
-    query, setQuery, searchResults, searching, externalSearching, externalSearched, searchExternal,
-    selected, setSelected, grams, setGrams,
-    mealType, setMealType, saving, quickAddingId, savedFlash,
-    error, setError, scannerOpen, setScannerOpen, scanLookingUp,
-    editingEntry, setEditingEntry, editGrams, setEditGrams,
-    editMealType, setEditMealType, editSaving, editDeleting,
-    todayTotals, targets,
-    nlMode, setNlMode, nlText, setNlText, nlParsing, nlItems,
-    nlSaving, nlRemovedIdx, setNlRemovedIdx, preview, editPreview,
-    openEditEntry, save, quickAddSearchResult, quickAddFavorite,
-    quickRepeatEntry, parseNL, saveNLItems, saveEntryEdit, deleteEntry,
-    todayStr, yesterdayStr, lookupBarcode,
-  } = useFoodEntryData({ onClose, onSaved, initialEditEntry, initialMealType, searchInputRef });
+    editingEntry, setEditingEntry, nlMode, setNlMode, selected, setSelected,
+    mealType, setMealType, savedFlash, todayTotals, targets,
+  } = data;
 
   useSheetKeyboardInset(sheetRef);
 
@@ -99,68 +89,12 @@ export default function FoodEntryModal({ onClose, onSaved, initialEditEntry, ini
       )}
 
       <FoodEntryContent
-        userId={userId}
+        {...data}
         onClose={onClose}
         onPhotoChanged={onPhotoChanged}
         canGoBack={!initialEditEntry}
         screen={screen}
-        editingEntry={editingEntry}
-        setEditingEntry={setEditingEntry}
-        editGrams={editGrams}
-        setEditGrams={setEditGrams}
-        editMealType={editMealType}
-        setEditMealType={setEditMealType}
-        editPreview={editPreview}
-        editSaving={editSaving}
-        editDeleting={editDeleting}
-        saveEntryEdit={saveEntryEdit}
-        deleteEntry={deleteEntry}
-        setNlMode={setNlMode}
-        setError={setError}
-        mealType={mealType}
-        setMealType={setMealType}
-        nlText={nlText}
-        setNlText={setNlText}
-        parseNL={parseNL}
-        nlParsing={nlParsing}
-        error={error}
-        nlItems={nlItems}
-        nlRemovedIdx={nlRemovedIdx}
-        setNlRemovedIdx={setNlRemovedIdx}
-        nlSaving={nlSaving}
-        saveNLItems={saveNLItems}
-        selected={selected}
-        setSelected={setSelected}
-        grams={grams}
-        setGrams={setGrams}
-        preview={preview}
-        saving={saving}
-        savedFlash={savedFlash}
-        save={save}
         searchInputRef={searchInputRef}
-        query={query}
-        setQuery={setQuery}
-        searching={searching}
-        searchResults={searchResults}
-        externalSearching={externalSearching}
-        externalSearched={externalSearched}
-        searchExternal={searchExternal}
-        scannerOpen={scannerOpen}
-        setScannerOpen={setScannerOpen}
-        scanLookingUp={scanLookingUp}
-        lookupBarcode={lookupBarcode}
-        quickAddingId={quickAddingId}
-        quickAddSearchResult={quickAddSearchResult}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        loadingList={loadingList}
-        favorites={favorites}
-        quickAddFavorite={quickAddFavorite}
-        recent={recent}
-        openEditEntry={openEditEntry}
-        quickRepeatEntry={quickRepeatEntry}
-        todayStr={todayStr}
-        yesterdayStr={yesterdayStr}
       />
     </Modal>
   );

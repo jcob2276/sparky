@@ -3,6 +3,7 @@ import { Pressable } from '../../../ui/ControlPrimitives';
 import type { RecentEntry } from '../hooks/useFoodEntryData';
 import { useEntryPhoto } from '../hooks/useEntryPhoto';
 import { useHaptics } from '../../../../hooks/useHaptics';
+import EditNameField from './EditNameField';
 import EditPhotoControls from './EditPhotoControls';
 import {
   MacroCardsRow,
@@ -19,6 +20,10 @@ interface EditScreenProps {
   canGoBack: boolean;
   onClose: () => void;
   onPhotoChanged?: () => void;
+  editName: string;
+  setEditName: (v: string) => void;
+  editReestimating: boolean;
+  reestimateFromName: () => void;
   editGrams: string;
   setEditGrams: (v: string) => void;
   editMealType: string;
@@ -48,6 +53,10 @@ export default function EditScreen({
   canGoBack,
   onClose,
   onPhotoChanged,
+  editName,
+  setEditName,
+  editReestimating,
+  reestimateFromName,
   editGrams,
   setEditGrams,
   editMealType,
@@ -62,7 +71,6 @@ export default function EditScreen({
   const haptics = useHaptics();
   const photo = useEntryPhoto(userId, editingEntry, onPhotoChanged);
   const onPhoto = photo.photoUrl != null;
-  const titleTone = onPhoto ? 'text-white drop-shadow-md' : 'text-text-primary';
   const mutedTone = onPhoto ? 'text-white/80 drop-shadow' : 'text-text-muted';
 
   return (
@@ -96,8 +104,15 @@ export default function EditScreen({
 
       <div className="relative min-h-0 flex-1 space-y-5 overflow-y-auto px-5 pb-4 pt-1">
         <div className={onPhoto ? 'pt-10' : ''}>
-          <p className={`text-2xl font-semibold leading-tight tracking-tight ${titleTone}`}>{editingEntry.name}</p>
-          {editingEntry.brand && <p className={`mt-0.5 text-xs font-medium ${mutedTone}`}>{editingEntry.brand}</p>}
+          <EditNameField
+            value={editName}
+            originalName={editingEntry.name}
+            onChange={setEditName}
+            onReestimate={reestimateFromName}
+            reestimating={editReestimating}
+            onPhoto={onPhoto}
+          />
+          {editingEntry.brand && <p className={`mt-1 text-xs font-medium ${mutedTone}`}>{editingEntry.brand}</p>}
         </div>
 
         <EditPhotoControls
