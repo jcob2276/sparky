@@ -58,3 +58,12 @@ describe('closerKpiValue', () => {
     expect(closerKpiValue('Coś innego', sums)).toBe(0);
   });
 });
+
+import { closerTargetsFromKpis, DEFAULT_CLOSER_TARGETS } from './closerDayModel';
+
+describe('closerTargetsFromKpis', () => {
+  it('bierze cele z KPI po nazwie, a braki i zera zastępuje wartościami awaryjnymi', () => {
+    expect(closerTargetsFromKpis([{ name: 'Umówienia', target: '40' }, { name: 'Sales calle', target: 12 }, { name: 'Rozmowy odebrane', target: 75 }])).toEqual({ appointments: 40, salesCalls: 12 });
+    expect(closerTargetsFromKpis([{ name: 'Umówienia', target: null }, { name: 'Sales calle', target: 0 }])).toEqual(DEFAULT_CLOSER_TARGETS);
+  });
+});

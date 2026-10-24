@@ -1,7 +1,7 @@
 import { Phone } from 'lucide-react';
 import Skeleton from '../ui/Skeleton';
 import { getTodayWarsaw, getWeekStartWarsaw } from '../../lib/date';
-import { CLOSER_WEEKLY_TARGETS } from '../../lib/closer/closerDayModel';
+import { useCloserTargets } from '../../lib/closer/closerTargetsApi';
 import { useUserId } from '../../store/useStore';
 import { useWeekSalesSums } from './salesNumbers/useWeekSalesSums';
 import { useWeekEnteredDays } from './salesNumbers/useWeekEnteredDays';
@@ -24,6 +24,7 @@ const rate = (part: number, whole: number) => (whole > 0 ? `${Math.round((part /
 /** Lejek sprzedaży tygodnia pon–nd: rozmowy odebrane → umówieni, rozmowy sprzedażowe → sprzedaże, z brakującymi dniami. */
 export default function WeeklySalesPulse() {
   const userId = useUserId();
+  const targets = useCloserTargets(userId);
   const today = getTodayWarsaw();
   const weekStart = getWeekStartWarsaw(today);
   const { sums, loading } = useWeekSalesSums(userId, weekStart);
@@ -43,8 +44,8 @@ export default function WeeklySalesPulse() {
         <>
           <div className="grid grid-cols-2 gap-2">
             <Cell label="Rozmowy odebrane" value={sums.dials} />
-            <Cell label="Umówieni" value={sums.appointments} target={CLOSER_WEEKLY_TARGETS.appointments} />
-            <Cell label="Rozmowy sprzedażowe" value={sums.salesCalls} target={CLOSER_WEEKLY_TARGETS.salesCalls} />
+            <Cell label="Umówieni" value={sums.appointments} target={targets.appointments} />
+            <Cell label="Rozmowy sprzedażowe" value={sums.salesCalls} target={targets.salesCalls} />
             <Cell label="Sprzedaże" value={sums.salesClosed} />
           </div>
           <p className="text-xs font-semibold text-text-secondary">

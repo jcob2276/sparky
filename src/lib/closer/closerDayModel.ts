@@ -1,7 +1,26 @@
 import type { CloserDailyLogRow } from './closerApi';
 
-/** Cele tygodniowe sprzedaży (te same, co w CloserWeekTracker). */
-export const CLOSER_WEEKLY_TARGETS = { appointments: 30, salesCalls: 10 } as const;
+/** Cele tygodniowe sprzedaży. Właściciel: `goal_kpis` projektu closera; odczyt przez `useCloserTargets`. */
+export interface CloserWeeklyTargets {
+  appointments: number;
+  salesCalls: number;
+}
+
+/** Wartości awaryjne do czasu załadowania celów albo gdy projekt closera nie ma tych KPI. */
+export const DEFAULT_CLOSER_TARGETS: CloserWeeklyTargets = { appointments: 30, salesCalls: 10 };
+
+/** Cele z KPI projektu (dopasowanie po nazwie jak w `closerKpiValue`); brak lub 0 = wartość awaryjna. */
+export function closerTargetsFromKpis(kpis: Array<{ name: string; target: number | string | null }>): CloserWeeklyTargets {
+  const result = { ...DEFAULT_CLOSER_TARGETS };
+  for (const kpi of kpis) {
+    const name = kpi.name.toLowerCase();
+    const target = Number(kpi.target);
+    if (!Number.isFinite(target) || target <= 0) continue;
+    if (name.includes('umówie')) result.appointments = target;
+    else if (name.includes('call')) result.salesCalls = target;
+  }
+  return result;
+}
 
 const MAX_COUNT = 999;
 
