@@ -103,3 +103,54 @@ export function buildPeriodWindow(
     weeks: 52, title: String(year),
   };
 }
+
+type SprintArg = Parameters<typeof buildPeriodWindow>[2];
+
+/** Dowolna data z okresu przesuniętego o `steps` okresów (ujemne = wstecz). Sprint ma stałe granice, więc się nie przesuwa. */
+export function shiftPeriod(period: ChroniclePeriod, anchor: string, steps: number): string {
+  if (period === 'week') return shiftDateStr(anchor, 7 * steps);
+  if (period === 'month') {
+    const index = Number(anchor.slice(0, 4)) * 12 + (Number(anchor.slice(5, 7)) - 1) + steps;
+    return `${Math.floor(index / 12)}-${pad((index % 12) + 1)}-01`;
+  }
+  if (period === 'year') return `${Number(anchor.slice(0, 4)) + steps}-01-01`;
+  return anchor;
+}
+
+const dayOfMonth = (date: string) => Number(date.slice(8, 10));
+const monthName = (date: string) => MONTHS[Number(date.slice(5, 7)) - 1];
+
+/** Krótka etykieta okna: „19–25 paź”, „paź 2026”, „Sprint 3”, „2026”. */
+export function periodLabel(window: PeriodWindow): string {
+  if (window.period === 'week') {
+    return window.start.slice(0, 7) === window.end.slice(0, 7)
+      ? `${dayOfMonth(window.start)}–${dayOfMonth(window.end)} ${monthName(window.end)}`
+      : `${dayOfMonth(window.start)} ${monthName(window.start)} – ${dayOfMonth(window.end)} ${monthName(window.end)}`;
+  }
+  if (window.period === 'month') return `${monthName(window.start)} ${window.start.slice(0, 4)}`;
+  return window.title;
+}
+
+/**
+ * Okno wybranego okresu zestawione z DOWOLNYM innym okresem tego samego rodzaju (nie tylko z poprzednim).
+ * Tytuł zostaje „Ten tydzień/miesiąc” tylko wtedy, gdy okno zawiera dzisiejszą datę.
+ */
+export function buildComparisonWindow(
+  period: ChroniclePeriod,
+  anchor: string,
+  compareAnchor: string,
+  today: string = getTodayWarsaw(),
+  sprint?: SprintArg,
+): PeriodWindow & { compareLabel: string } {
+  const win = buildPeriodWindow(period, anchor, sprint);
+  const other = buildPeriodWindow(period, compareAnchor, sprint);
+  const isCurrent = today >= win.start && today <= win.end;
+  return {
+    ...win,
+    prevStart: other.start,
+    prevEnd: other.end,
+    title: isCurrent ? win.title : periodLabel(win),
+    compareLabel: periodLabel(other),
+  };
+}
+
