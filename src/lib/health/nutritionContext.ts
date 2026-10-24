@@ -16,13 +16,10 @@ export interface NutritionDayContext extends TodayNutritionSnapshot {
   caffeineMg?: number | null;
   addBackKcal: number;
   deficitKcal: number;
-  inTaper: boolean;
-  daysToMarathon: number | null;
   goalBodyFat: number | null;
   currentBodyFatEst: number | null;
   goalWeightKg: number | null;
   currentWeightKg: number | null;
-  eventName: string | null;
   trajectory: NutritionTrajectory | null;
   trajectoryNote: string | null;
   todayFocus: string | null;
@@ -65,10 +62,6 @@ type SignalsInputs = {
   profile?: {
     goal_body_fat?: number | null;
     current_body_fat_est?: number | null;
-    event_name?: string | null;
-    event_date?: string | null;
-    days_to_event?: number | null;
-    in_taper?: boolean;
     weekly_loss_kg?: number | null;
   };
   body?: { weight?: number | null };
@@ -167,7 +160,7 @@ export async function fetchNutritionDayContext(
       .maybeSingle(),
     supabase
       .from('nutrition_profile')
-      .select('goal_body_fat, current_body_fat_est, event_name, event_date, weekly_loss_kg')
+      .select('goal_body_fat, current_body_fat_est, weekly_loss_kg')
       .eq('user_id', userId)
       .maybeSingle(),
     supabase
@@ -228,12 +221,6 @@ export async function fetchNutritionDayContext(
   const currentWeightKg = num(inputs.body?.weight) ?? null;
   const goalWeightKg = impliedGoalWeightKg(currentWeightKg, currentBodyFatEst, goalBodyFat);
 
-  let daysToMarathon = profile.days_to_event ?? null;
-  if (daysToMarathon == null && profileRow.data?.event_date) {
-    const ev = new Date(`${profileRow.data.event_date}T12:00:00Z`).getTime();
-    const d = new Date(`${date}T12:00:00Z`).getTime();
-    daysToMarathon = Math.round((ev - d) / 86400000);
-  }
 
   return {
     date,
@@ -250,13 +237,10 @@ export async function fetchNutritionDayContext(
     foodQualityAnalysis: dayRow.data?.food_quality_analysis ?? null,
     addBackKcal,
     deficitKcal: target?.deficit_kcal ?? Math.round(Number(inputs.today?.deficit_kcal) || 0),
-    inTaper: profile.in_taper === true,
-    daysToMarathon,
     goalBodyFat,
     currentBodyFatEst,
     goalWeightKg,
     currentWeightKg,
-    eventName: profileRow.data?.event_name ?? profile.event_name ?? null,
     trajectory: verdictParsed.trajectory,
     trajectoryNote: verdictParsed.trajectoryNote,
     todayFocus: verdictParsed.todayFocus,
