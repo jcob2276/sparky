@@ -7,12 +7,15 @@ export interface NutritionRow {
 
 const num = (value: unknown): number | null => (value == null || value === '' || Number.isNaN(Number(value)) ? null : Number(value));
 
+/** Dzień jedzenia poniżej tej liczby kcal to prawie na pewno niepełny zapis (np. wpisany dopiero wieczorem). */
+export const MIN_FULL_DAY_KCAL = 1000;
+
 /**
- * Dzień z zapisanym jedzeniem, który już się skończył: dzisiejszy jest w toku i zaniżałby średnie
- * (ta sama reguła co „średnia z N pełnych dni” w karcie Odżywianie).
+ * Dzień z zapisanym jedzeniem, który już się skończył i wygląda na pełny: dzisiejszy jest w toku, a dzień poniżej
+ * `MIN_FULL_DAY_KCAL` to zwykle niepełny zapis; oba zaniżałyby średnie.
  */
 export function completedNutritionDays<T extends NutritionRow>(rows: T[] | null, today: string): T[] {
-  return (rows ?? []).filter((row) => row.date < today && (num(row.calories) ?? 0) > 0);
+  return (rows ?? []).filter((row) => row.date < today && (num(row.calories) ?? 0) >= MIN_FULL_DAY_KCAL);
 }
 
 /** Seria jednej wartości z pełnych dni; 0 jest poprawną wartością (np. dzień bez błonnika), brak (null) już nie. */

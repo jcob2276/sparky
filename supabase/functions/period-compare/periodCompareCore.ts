@@ -54,7 +54,8 @@ export interface PeriodFacts {
   }
   /** Tylko pełne dni (bez dzisiejszego, z zapisanymi kaloriami); `days` = ile ich było. */
   food: { days: number; kcal: number | null; protein: number | null; fiber: number | null; quality: number | null }
-  training: { sessions: number; runKm: number }
+  /** `stravaFresh`: Strava była niedawno synchronizowana, więc 0 km to naprawdę brak biegów. */
+  training: { sessions: number; runKm: number; stravaFresh: boolean }
   /** `entries` = dni z wpisem; bez wpisów to brak danych, nie zero. */
   sales: { entries: number; calls: number; booked: number; salesCalls: number; sold: number }
   journal: Array<{ date: string; text: string }>
@@ -72,6 +73,9 @@ export interface PeriodCompareResult {
 }
 
 const MAX_ITEMS = 3
+/** Dzień jedzenia poniżej tej liczby kcal to prawie na pewno niepełny zapis (np. wpisane dopiero wieczorem). */
+const MIN_FULL_DAY_KCAL = 1000
+const STRAVA_FRESH_DAYS = 2
 const MAX_NOTES = 7
 const MAX_JOURNAL = 12
 const MAX_JOURNAL_CHARS = 450
@@ -134,16 +138,25 @@ function avg(values: Array<number | null | undefined>): number | null {
   return real.length ? Math.round((real.reduce((a, b) => a + b, 0) / real.length) * 10) / 10 : null
 }
 
+/** Czy znacznik czasu (np. ostatniej synchronizacji) jest z ostatnich dni względem `today` (czas warszawski). */
+function isRecent(iso: string | null, today: string): boolean {
+  if (!iso) return false
+  const day = warsawDay(iso)
+  if (!day) return false
+  const gap = (new Date(`${today}T12:00:00Z`).getTime() - new Date(`${day}T12:00:00Z`).getTime()) / 86400000
+  return gap <= STRAVA_FRESH_DAYS
+}
+
 function daysBetween(start: string, end: string): number {
   return Math.round((new Date(`${end}T12:00:00Z`).getTime() - new Date(`${start}T12:00:00Z`).getTime()) / 86400000) + 1
 }
 
 const sum = (values: Array<number | null | undefined>) => values.reduce<number>((a, b) => a + (b ?? 0), 0)
 
-export function buildPeriodFacts(label: string, start: string, end: string, rows: PeriodRows, today: string): PeriodFacts {
+export function buildPeriodFacts(label: string, start: string, end: string, rows: PeriodRows, today: string, stravaSyncedAt: string | null = null): PeriodFacts {
   // Dzisiejszy dzień jest w toku i zaniżałby średnie jedzenia (jak „średnia z N pełnych dni” w apce).
   const bedtime = averageBedtime(rows.oura.map((r) => r.bedtime_timestamp))
-  const foodDays = rows.nutrition.filter((r) => r.date < today && (r.calories ?? 0) > 0)
+  const foodDays = rows.nutrition.filter((r) => r.date < today && (r.calories ?? 0) >= MIN_FULL_DAY_KCAL)
   const byCategory: Record<string, CategoryRate> = {}
   let done = 0
   let planned = 0
@@ -203,7 +216,7 @@ export function buildPeriodFacts(label: string, start: string, end: string, rows
       fiber: avgKnown(foodDays.map((r) => r.fiber)),
       quality: avgKnown(foodDays.map((r) => r.avg_food_quality)),
     },
-    training: { sessions: rows.workoutSessions, runKm: Math.round((sum(rows.runDistancesM) / 1000) * 10) / 10 },
+    training: { sessions: rows.workoutSessions, runKm: Math.round((sum(rows.runDistancesM) / 1000) * 10) / 10, stravaFresh: isRecent(stravaSyncedAt, today) },
     sales: {
       entries: rows.closer.length,
       calls: sum(rows.closer.map((r) => r.dials)),
@@ -223,7 +236,8 @@ Zasady:
 - Błonnik w danych to dolna granica (nie każdy produkt ma go w bazie), a jedzenie jest liczone z pełnych dni bez dzisiejszego: nie wyciągaj z samego błonnika mocnych wniosków ani zaleceń. Przy białku i kaloriach odnoś się do celów żywieniowych, jeśli je podano.
 - Brak wpisów lub danych tylko w JEDNYM okresie to uwaga o danych (wspomnij o niej w „summary”), a nie zalecenie dla użytkownika: nie każ „zapisywać” czegoś, co użytkownik już zapisuje, tylko w drugim okresie jeszcze nie zapisywał.
 - Przy śnie podawaj konkretne noce i godziny z danych (zasypianie, pobudka, krótkie noce z datami), a nie ogólne „śpij dłużej”. Zalecenie o śnie ma wynikać z jego rzeczywistych godzin.
-- Okres bez wpisów (sprzedaż, jedzenie, sen) to brak danych, więc nie nazywaj tego poprawą ani pogorszeniem. 0 km biegania może znaczyć brak biegów albo brak synchronizacji; nie opieraj na tym jedynym dowodzie mocnych wniosków.
+- Okres bez wpisów (sprzedaż, jedzenie, sen) to brak danych, więc nie nazywaj tego poprawą ani pogorszeniem. Przy bieganiu: gdy dane mówią, że Strava jest zsynchronizowana, 0 km to prawdziwy brak biegów (można to nazwać pogorszeniem, jeśli w drugim okresie biegi były); w przeciwnym razie nie opieraj na samym zerze mocnych wniosków.
+- Zalecenie nie może przeczyć własnemu tytułowi: liczby w tytule i w kroku mają być spójne (nie pisz „jedna sesja więcej”, a w kroku „trzy sesje”). Nie zalecaj więcej czegoś, co w A jest już lepsze niż w B, chyba że dane pokazują lukę względem celu lub planu użytkownika.
 - Pisz po polsku, do użytkownika na „Ty”, krótko i konkretnie. Bez moralizowania, bez diagnoz medycznych i psychologicznych, bez ogólnych porad motywacyjnych.
 - "improved": do 3 rzeczy, które w A są wyraźnie lepsze niż w B. "worsened": do 3, które są wyraźnie gorsze. Każda: "title" (krótko) i "evidence" (liczby A vs B lub cytat).
 - "changes": do 3 konkretnych zmian na następny okres, wynikających z porównania. Każda: "title" (do 8 słów), "why" (1–2 zdania z dowodem), "how" (jedno konkretne, sprawdzalne działanie, np. godzina, liczba, miejsce w dniu).
@@ -261,8 +275,8 @@ function describePeriod(tag: string, f: PeriodFacts): string {
 Ocena dnia: średnio ${show(f.scoreAvg, '/10')} z ${f.scoredDays} ocenionych dni
 Zadania z planu: ${f.tasks.done}/${f.tasks.planned} zrobionych (wg obszarów: ${categories})
 ${describeSleep(f)}
-Jedzenie (średnia z ${f.food.days} pełnych dni z zapisem): ${show(f.food.kcal, ' kcal')}/dzień, białko ${show(f.food.protein, ' g')}, błonnik (dolna granica) ${show(f.food.fiber, ' g')}, jakość ${show(f.food.quality)}
-Trening: ${f.training.sessions} sesji siłowych, bieganie ${show(f.training.runKm, ' km')} (0 może znaczyć brak biegów albo brak synchronizacji)
+Jedzenie (średnia z ${f.food.days} pełnych dni; dni poniżej ${MIN_FULL_DAY_KCAL} kcal i dzisiejszy pominięto jako niepełne zapisy): ${show(f.food.kcal, ' kcal')}/dzień, białko ${show(f.food.protein, ' g')}, błonnik (dolna granica) ${show(f.food.fiber, ' g')}, jakość ${show(f.food.quality)}
+Trening: ${f.training.sessions} sesji siłowych, bieganie ${show(f.training.runKm, ' km')} ${f.training.stravaFresh ? '(Strava jest zsynchronizowana, więc 0 km to brak biegów)' : '(0 może znaczyć brak biegów albo brak synchronizacji)'}
 ${describeSales(f)}
 Opinie o dniach:
 ${notes}

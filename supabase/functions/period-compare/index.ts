@@ -76,15 +76,17 @@ Deno.serve(serveJson(async (req, ctx) => {
   }
 
   const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Warsaw' }).format(new Date())
-  const [rowsA, rowsB, targetsRes] = await Promise.all([
+  const [rowsA, rowsB, targetsRes, syncRes] = await Promise.all([
     gather(a),
     gather(b),
     db.from('nutrition_targets').select('target_kcal, protein_floor_g').eq('user_id', userId).order('date', { ascending: false }).limit(1),
+    db.from('strava_activities').select('synced_at').eq('user_id', userId).order('synced_at', { ascending: false }).limit(1),
   ])
   const targetRow = (targetsRes.data ?? [])[0] as { target_kcal: number | null; protein_floor_g: number | null } | undefined
   const targets: FoodTargets = { kcal: targetRow?.target_kcal ?? null, protein: targetRow?.protein_floor_g ?? null }
-  const factsA = buildPeriodFacts(a.label, a.start, a.end, rowsA, today)
-  const factsB = buildPeriodFacts(b.label, b.start, b.end, rowsB, today)
+  const stravaSyncedAt = ((syncRes.data ?? [])[0] as { synced_at: string | null } | undefined)?.synced_at ?? null
+  const factsA = buildPeriodFacts(a.label, a.start, a.end, rowsA, today, stravaSyncedAt)
+  const factsB = buildPeriodFacts(b.label, b.start, b.end, rowsB, today, stravaSyncedAt)
 
   const { content } = await deepseekChat({
     apiKey,
