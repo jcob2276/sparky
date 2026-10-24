@@ -22,7 +22,7 @@ export function Block1Narrative({ phase1, phase1Loading }: { phase1: Phase1Recap
         </div>
         <div className="flex flex-wrap items-center gap-1.5 text-2xs font-bold text-text-muted">
           <span className="rounded-full border border-border-custom bg-surface px-2 py-0.5">🎙️ Głosówki</span>
-          <span className="rounded-full border border-border-custom bg-surface px-2 py-0.5">📱 Czas ekranu & No-Drift</span>
+          <span className="rounded-full border border-border-custom bg-surface px-2 py-0.5">📱 Czas ekranu</span>
           <span className="rounded-full border border-border-custom bg-surface px-2 py-0.5">🌙 Rytm snu Oura</span>
           <span className="rounded-full border border-border-custom bg-surface px-2 py-0.5">🎯 PowerList & BHAG</span>
         </div>

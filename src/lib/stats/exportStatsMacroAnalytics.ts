@@ -68,7 +68,8 @@ export function renderMacroAnalytics({
   // 3. Running & Cardio stats
   const runs = ((d.stravaData ?? []) as StravaCleanActivity[]).filter((a) => !a.is_oura && (a.distance || 0) > 0);
   const longestRunKm = runs.reduce((max, r) => Math.max(max, (r.distance || 0) / 1000), 0);
-  const vo2MaxVal = runs.find((r) => r.gc_vo2max)?.gc_vo2max || d.ouraEnhanced?.find((o) => o.vo2_max)?.vo2_max || 48.5;
+  const vo2MaxVal = runs.find((r) => r.gc_vo2max)?.gc_vo2max || d.ouraEnhanced?.find((o) => o.vo2_max)?.vo2_max || null;
+  const proteinTarget = d.proteinTargetG ?? null;
 
   // 4. App screen time distribution
   let entertainmentMin = 0;
@@ -92,10 +93,12 @@ export function renderMacroAnalytics({
       ? `🔴 **Eskapizm:** ${relapses.length} wpadki w tygodniu. Ekran rozrywkowy pochłania ${Math.round(entertainmentMin / 60)}h w tygodniu.`
       : `🟢 **Stabilna realizacja:** Większość dni dowieziona zgodnie z planem.`
   } |\n`;
-  md += `| **Filar 2: Ciało, obecność & odpowiedzialność** | Baza dla pewności siebie, przygotowanie do maratonu | **Sen: ${avgSleep}h** · Białko: ${avgProtein}g / 140g<br>Kardio: ${totalCardioKm} km | ${
-    Number(avgProtein) < 130
-      ? `🟡 **Deficyt Paliwa:** Niedobór ${140 - Number(avgProtein)}g białka/dzień. Ryzyko katabolizmu przy kilometrażu biegowym.`
-      : `🟢 **Optymalne paliwo:** Białko i regeneracja w normie.`
+  md += `| **Filar 2: Ciało, obecność & odpowiedzialność** | Baza dla pewności siebie i pracy | **Sen: ${avgSleep}h** · Białko: ${avgProtein}g${proteinTarget ? ` / ${proteinTarget}g` : ''}<br>Kardio: ${totalCardioKm} km | ${
+    proteinTarget == null
+      ? '⚪ **Brak celu białka:** ustaw cel w żywieniu, żeby ocenić paliwo.'
+      : Number(avgProtein) < proteinTarget * 0.9
+        ? `🟡 **Deficyt Paliwa:** Niedobór ${Math.round(proteinTarget - Number(avgProtein))}g białka/dzień względem celu ${proteinTarget}g.`
+        : `🟢 **Optymalne paliwo:** Białko blisko celu.`
   } |\n`;
   md += `| **Filar 3: Wiedza spotyka rynek** | Zamiana wiedzy w sprzedaż, Top Closer, dowożenie | **Konto: ${catStats.konto.done}/${catStats.konto.total} zadań** (${
     catStats.konto.total > 0 ? Math.round((catStats.konto.done / catStats.konto.total) * 100) : 0
@@ -124,16 +127,16 @@ export function renderMacroAnalytics({
   md += `- **Główne bodźce wyzwalające:** ${topStimuli}\n`;
   md += `- **Ekran w oknie nocnym (23:00–04:00):** Średnio **${avgLateNight} min/dzień** (okno nocne, nie obejmuje godzin 20:00–22:59).\n\n`;
 
-  md += `## 🏃 4. GOTOWOŚĆ BIEGOWA: MARATON 4 PAŹDZIERNIKA\n\n`;
+  md += `## 🏃 4. BIEGANIE I REGENERACJA\n\n`;
   md += `- **Kilometraż tygodnia:** ${totalCardioKm} km (${runs.length} jednostek biegowych)\n`;
   md += `- **Najdłuższy bieg (Long Run):** ${longestRunKm > 0 ? `${longestRunKm.toFixed(1)} km` : '—'}\n`;
-  md += `- **Szacowane VO2Max:** ${vo2MaxVal} ml/kg/min (Wiek sprawnościowy: 20 lat)\n`;
-  md += `- **Status regeneracji mięśniowej:** Średnie białko ${avgProtein}g / 140g targetu (${
-    Number(avgProtein) < 130 ? '⚠️ WYMAGA PILNEGO ZWIĘKSZENIA DLA UNIKNIĘCIA KONTUZJI' : 'Zadowalające'
+  md += `- **VO2Max:** ${vo2MaxVal != null ? `${vo2MaxVal} ml/kg/min` : 'brak danych'}\n`;
+  md += `- **Status regeneracji mięśniowej:** Średnie białko ${avgProtein}g${proteinTarget ? ` / ${proteinTarget}g celu` : ''} (${
+    proteinTarget != null && Number(avgProtein) < proteinTarget * 0.9 ? '⚠️ poniżej celu' : proteinTarget == null ? 'brak celu do porównania' : 'blisko celu'
   })\n\n`;
 
   md += `## 🎯 5. DŹWIGNIA NA KOLEJNY TYDZIEŃ (KEYSTONE DOMINO)\n\n`;
-  md += `> **Główna Interwencja Operacyjna:** **No-Phone Morning (90 minut bez ekranu)**. Telefon poza zasięgiem rąk w sypialni. Poranny blok: woda, białko ≥40g, 10 min dykcji i natychmiastowe wejście w pierwsze 20 diali handlowych przed otwarciem aplikacji rozrywkowych.\n\n`;
+  md += `> **Dźwignia na kolejny tydzień:** wybierz jedną rzecz z sekcji powyżej, w której liczby są najgorsze, i zrób ją pierwszą w poniedziałek.\n\n`;
   md += `---\n\n`;
 
   return md;

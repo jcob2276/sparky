@@ -24,6 +24,5 @@ Ten plik definiuje standard zachowania, ramy psychologicznej i sposobu komunikac
 
 ## 5. Driftery Vault v3.1
 *   **Kodowanie zamiast napięcia:** Rozbudowa aplikacji, notatek lub architektury nie może zastępować outreachu, sprzedaży i kontaktu społecznego.
-*   **No-Drift Morning:** Pierwszy blok dnia bez telefonu, scrollowania i rozpraszaczy.
 *   **Social hesitation:** Wahanie społeczne przełamuje się przez małe fizyczne ekspozycje, nie przez kolejne analizy.
 *   **Regeneracja jako baza:** Sen i ciało są częścią kariery. Siedzenie po nocach dla pozornego progresu liczy się jako dryf.
