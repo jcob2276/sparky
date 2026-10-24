@@ -64,7 +64,7 @@ function cialoFoodTiles(rows: CialoRows, win: PeriodWindow) {
   return [
     tile('Kalorie / dzień', rows.calories, null, 0, ' kcal'),
     tile('Białko / dzień', rows.protein, true, 0, ' g'),
-    tile('Błonnik / dzień', rows.fiber, true, 0, ' g'),
+    { ...tile('Błonnik / dzień', rows.fiber, true, 0, ' g'), hint: 'min.' },
     tile('Jakość jedzenia', rows.foodQuality, true),
   ];
 }
@@ -77,7 +77,7 @@ export function buildCialoSummary(rows: CialoRows, win: PeriodWindow): Chronicle
   const fatPrev = periodValue(rows.bodyFat, prevStart, prevEnd, 'last');
   const fatFromHistory = fatNow == null && rows.latestBodyFat != null;
   const weightDays = daysWithData(rows.weight, start, end);
-  const notes = [`Waga: ${weightDays} ${weightDays === 1 ? 'pomiar' : 'pomiarów'} w tym okresie.`];
+  const notes = [`Waga: ${weightDays} ${weightDays === 1 ? 'pomiar' : 'pomiarów'} w tym okresie.`, 'Jedzenie liczone z pełnych dni (bez dzisiejszego); błonnik to dolna granica, bo nie każdy produkt ma go w bazie.'];
   if (fatNow == null) notes.push('Tłuszcz bez pomiaru w tym okresie, pokazuję ostatni znany.');
   return {
     goalLine: {

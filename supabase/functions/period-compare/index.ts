@@ -16,6 +16,7 @@ import {
   buildCompareUserPrompt,
   buildPeriodFacts,
   normalizeCompare,
+  type FoodTargets,
   type PeriodRows,
 } from './periodCompareCore.ts'
 
@@ -53,7 +54,7 @@ Deno.serve(serveJson(async (req, ctx) => {
         .eq('user_id', userId).gte('date', start).lte('date', end),
       db.from('daily_reconciliations').select('date, day_score').eq('user_id', userId).gte('date', start).lte('date', end),
       db.from('oura_daily_summary').select('total_sleep_hours, sleep_score, hrv_avg, rhr_avg, readiness_score').eq('user_id', userId).gte('date', start).lte('date', end),
-      db.from('daily_nutrition').select('calories, protein, fiber, avg_food_quality').eq('user_id', userId).gte('date', start).lte('date', end),
+      db.from('daily_nutrition').select('date, calories, protein, fiber, avg_food_quality').eq('user_id', userId).gte('date', start).lte('date', end),
       db.from('workout_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('date', start).lte('date', end).not('workout_day', 'ilike', '%sauna%'),
       db.from('strava_activities_clean').select('distance').eq('user_id', userId).eq('is_oura', false).in('sport_type', RUN_SPORTS)
         .gte('start_date', `${start}T00:00:00Z`).lte('start_date', `${end}T23:59:59Z`),
@@ -74,9 +75,16 @@ Deno.serve(serveJson(async (req, ctx) => {
     }
   }
 
-  const [rowsA, rowsB] = await Promise.all([gather(a), gather(b)])
-  const factsA = buildPeriodFacts(a.label, a.start, a.end, rowsA)
-  const factsB = buildPeriodFacts(b.label, b.start, b.end, rowsB)
+  const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Warsaw' }).format(new Date())
+  const [rowsA, rowsB, targetsRes] = await Promise.all([
+    gather(a),
+    gather(b),
+    db.from('nutrition_targets').select('target_kcal, protein_floor_g').eq('user_id', userId).order('date', { ascending: false }).limit(1),
+  ])
+  const targetRow = (targetsRes.data ?? [])[0] as { target_kcal: number | null; protein_floor_g: number | null } | undefined
+  const targets: FoodTargets = { kcal: targetRow?.target_kcal ?? null, protein: targetRow?.protein_floor_g ?? null }
+  const factsA = buildPeriodFacts(a.label, a.start, a.end, rowsA, today)
+  const factsB = buildPeriodFacts(b.label, b.start, b.end, rowsB, today)
 
   const { content } = await deepseekChat({
     apiKey,
@@ -87,7 +95,7 @@ Deno.serve(serveJson(async (req, ctx) => {
     feature: 'period-compare',
     messages: [
       { role: 'system', content: COMPARE_SYSTEM_PROMPT },
-      { role: 'user', content: buildCompareUserPrompt(factsA, factsB) },
+      { role: 'user', content: buildCompareUserPrompt(factsA, factsB, targets) },
     ],
   })
 
