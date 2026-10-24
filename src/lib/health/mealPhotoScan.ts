@@ -21,14 +21,12 @@ function wrapPhotoUploadError(cause: unknown): Error {
   return cause instanceof Error ? cause : new Error(msg);
 }
 
-/** `onPrepared` receives the compressed JPEG that was sent for analysis, so the caller can keep it. */
-export async function scanMealPhoto(
-  file: File,
+/** Sends an already compressed photo for analysis. `hint` is the user's correction of what is on the plate. */
+export async function analyzeMealPhoto(
+  image: Blob,
   userId: string,
-  onPrepared?: (image: Blob) => void,
+  hint?: string,
 ): Promise<MealPhotoResponse> {
-  const image = await prepareVisionUpload(file);
-  onPrepared?.(image);
   const imageBase64 = await blobToBase64(image);
 
   let response: Awaited<ReturnType<typeof invokeEdge<'parse-food-nl'>>>;
@@ -40,6 +38,7 @@ export async function scanMealPhoto(
         mimeType: 'image/jpeg',
         imageBase64,
         clientTime: new Date().toISOString(),
+        ...(hint?.trim() ? { hint: hint.trim() } : {}),
       },
       signal: AbortSignal.timeout(TIMEOUTS.llmHeavy),
     });
@@ -52,4 +51,15 @@ export async function scanMealPhoto(
     throw new Error('Nie udało się rozpoznać posiłku na zdjęciu');
   }
   return meal;
+}
+
+/** `onPrepared` receives the compressed JPEG that was sent for analysis, so the caller can keep it. */
+export async function scanMealPhoto(
+  file: File,
+  userId: string,
+  onPrepared?: (image: Blob) => void,
+): Promise<MealPhotoResponse> {
+  const image = await prepareVisionUpload(file);
+  onPrepared?.(image);
+  return analyzeMealPhoto(image, userId);
 }

@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useHaptics } from '../../../../hooks/useHaptics';
 import { notify } from '../../../../lib/notify';
+import { reestimateEntry } from '../../../../lib/health/reestimateEntry';
 import {
   parseGrams,
   derivePer100,
@@ -9,7 +10,6 @@ import {
 import {
   saveFoodCorrection,
   defaultMealType,
-  parseFoodNL,
   updateFoodEntry,
   removeFoodEntry,
 } from '../../../../lib/health/foodLogging';
@@ -86,7 +86,7 @@ export function useFoodEntryEdit({
     [setError]
   );
 
-  /** Asks the model again for the (corrected) name at the current portion; keeps the portion, replaces the macros. */
+  /** Asks the model again for the (corrected) name — and the meal photo, when there is one — at the current portion. */
   const reestimateFromName = useCallback(async () => {
     const name = editName.trim();
     if (!name || !userId || editReestimating) return;
@@ -94,25 +94,15 @@ export function useFoodEntryEdit({
     setError(null);
     try {
       const grams = parseInt(editGrams, 10) || 100;
-      const items = await parseFoodNL(`${name} ${grams} g`, userId, '');
-      const totalGrams = items.reduce((sum, item) => sum + (item.grams || 0), 0);
-      if (!items.length || totalGrams <= 0) {
+      const result = await reestimateEntry({ userId, name, grams, mealGroupId: editingEntry?.meal_group_id });
+      if (!result) {
         setError('Nie udało się przeliczyć — opisz dokładniej');
         return;
       }
-      const sum = (pick: (item: (typeof items)[number]) => number | undefined) =>
-        items.reduce((acc, item) => acc + (pick(item) ?? 0), 0);
-      const per100 = (total: number) => (total * 100) / totalGrams;
-      const next = {
-        calories: per100(sum((i) => i.calories)),
-        protein: per100(sum((i) => i.protein)),
-        carbs: per100(sum((i) => i.carbs)),
-        fat: per100(sum((i) => i.fat)),
-      };
-      setEditPer100(next);
-      const kcal = Math.round((next.calories * grams) / 100);
-      const protein = Math.round(((next.protein * grams) / 100) * 10) / 10;
-      const note = `Przeliczone dla „${name}” (${grams} g): ${kcal} kcal · ${protein} g B`;
+      setEditPer100(result.per100);
+      const kcal = Math.round((result.per100.calories * grams) / 100);
+      const protein = Math.round(((result.per100.protein * grams) / 100) * 10) / 10;
+      const note = `Przeliczone${result.viaPhoto ? ' ze zdjęcia' : ''} dla „${name}” (${grams} g): ${kcal} kcal · ${protein} g B`;
       setEditEstimateNote(note);
       notify(note, 'success');
       haptics.success();
@@ -121,7 +111,7 @@ export function useFoodEntryEdit({
     } finally {
       setEditReestimating(false);
     }
-  }, [editName, editGrams, userId, editReestimating, haptics, setError]);
+  }, [editName, editGrams, editingEntry, userId, editReestimating, haptics, setError]);
 
   const saveEntryEdit = useCallback(async () => {
     if (!editingEntry || !userId || editSaving || !editPreview) return;

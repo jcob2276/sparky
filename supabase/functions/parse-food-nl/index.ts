@@ -102,6 +102,7 @@ Deno.serve(serveJson(async (req, auth) => {
       db,
       supabaseUrl,
       serviceKey,
+      typeof body.hint === 'string' ? body.hint : undefined,
     )
     console.log(`[parse-food-nl] photo -> ${meal.items.length} items (user=${userId ?? 'anon'})`)
     return { meal }

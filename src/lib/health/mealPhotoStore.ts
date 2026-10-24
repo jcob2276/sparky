@@ -28,6 +28,13 @@ export async function saveMealPhoto(userId: string, mealGroupId: string, image: 
   }
 }
 
+/** The stored photo of a meal, or null when it has none (or cannot be read). */
+export async function fetchMealPhotoBlob(userId: string, mealGroupId: string): Promise<Blob | null> {
+  const { data, error } = await supabase.storage.from(BUCKET).download(`${userId}/${mealGroupId}.jpg`);
+  if (error || !data) return null;
+  return data;
+}
+
 /** Removes the photo of a meal (row first, so a failed file delete leaves at worst an orphaned file). */
 export async function deleteMealPhoto(userId: string, mealGroupId: string): Promise<void> {
   const { error } = await supabase
