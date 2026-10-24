@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { supabase } from './supabase';
 import { DEFAULT_LIFE_TARGETS, type LifeTargets } from './lifeGoals';
 
@@ -39,14 +39,17 @@ async function saveLifeTargets(userId: string, targets: Pick<LifeTargets, 'bench
   if (error) throw error;
 }
 
+/** Po zmianie dowolnego celu odświeża wszystko, co go pokazuje: cele, prognozy tłuszczu i wyciskania, Kronikę. */
+export function invalidateLifeTargets(queryClient: QueryClient, userId: string): void {
+  for (const queryKey of [['life-targets', userId], ['body-fat-goal', userId], ['bench-goal', userId], ['chronicle']]) {
+    void queryClient.invalidateQueries({ queryKey });
+  }
+}
+
 export function useSaveLifeTargets(userId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (targets: Pick<LifeTargets, 'benchKg' | 'incomeNetPln'>) => saveLifeTargets(userId, targets),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['life-targets', userId] });
-      void queryClient.invalidateQueries({ queryKey: ['bench-goal', userId] });
-      void queryClient.invalidateQueries({ queryKey: ['chronicle'] });
-    },
+    onSuccess: () => invalidateLifeTargets(queryClient, userId),
   });
 }

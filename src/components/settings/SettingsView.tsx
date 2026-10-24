@@ -15,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { userSettingsKeys } from '../../lib/queryKeys';
 import { useSyncActions } from '../../hooks/useSyncActions';
 import { useSession } from '../../store/useStore';
+import { invalidateLifeTargets } from '../../lib/lifeTargetsApi';
 import { notify } from '../../lib/notify';
 import type { Tables } from '../../lib/database.types';
 import AiContextSettings from './AiContextSettings';
@@ -85,6 +86,7 @@ export default function SettingsView() {
         updated_at: new Date().toISOString(),
       });
 
+      invalidateLifeTargets(queryClient, userId);
       notify('Ustawienia zapisane.', 'success');
     } catch (e: unknown) {
       notify(e instanceof Error ? (e as Error).message : 'Błąd zapisu', 'error');
