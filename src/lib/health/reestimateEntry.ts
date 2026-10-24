@@ -59,7 +59,8 @@ export async function reestimateEntry(input: {
     if (image) {
       try {
         const meal = await analyzeMealPhoto(image, userId, buildPhotoHint(name, grams));
-        const per100 = per100FromItems(meal.items);
+        // An older server ignores the hint and returns the whole meal, which must not be read as one item.
+        const per100 = meal.hintApplied ? per100FromItems(meal.items) : null;
         if (per100) return { per100, viaPhoto: true };
       } catch (cause: unknown) {
         console.warn('[reestimateEntry] photo analysis failed, falling back to the name', cause);

@@ -93,6 +93,7 @@ Deno.serve(serveJson(async (req, auth) => {
   }
 
   if (body.mode === 'meal_photo') {
+    const hint = typeof body.hint === 'string' ? body.hint.trim() : ''
     const meal = await parseMealPhoto(
       String(body.imageBase64 || ''),
       String(body.mimeType || ''),
@@ -102,10 +103,11 @@ Deno.serve(serveJson(async (req, auth) => {
       db,
       supabaseUrl,
       serviceKey,
-      typeof body.hint === 'string' ? body.hint : undefined,
+      hint || undefined,
     )
     console.log(`[parse-food-nl] photo -> ${meal.items.length} items (user=${userId ?? 'anon'})`)
-    return { meal }
+    // `hintApplied` lets old clients tell a hint-aware answer from one that ignored the hint.
+    return { meal: { ...meal, hintApplied: Boolean(hint) } }
   }
 
   if (!text) throw new Error('Missing text')

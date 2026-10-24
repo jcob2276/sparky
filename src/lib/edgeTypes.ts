@@ -102,6 +102,8 @@ export interface KeepTriageResponse {
 
 export interface MealPhotoResponse {
   parserVersion: 'meal-photo-v1';
+  /** Set by parse-food-nl when it received and used the user's `hint`. */
+  hintApplied?: boolean;
   estimate: { calories: number; minKcal: number; maxKcal: number };
   questions: Array<{
     id: string; itemId: string; prompt: string; impactKcal: number;
