@@ -2063,7 +2063,7 @@ Zrobione:
 - [x] Laboratorium → „Twój obraz”: świeżość grup badań + lista „Dla Ciebie” (`lib/health/medicalPersonalOverview.ts`).
 
 Do zrobienia (kolejne pionowe plastry, jeden temat = jeden commit):
-- [ ] Laboratorium: zamiast 8 numerowanych sekcji w jednym scrollu — zakładki (Przegląd / Wyniki / Trendy / Dokumenty).
+- [x] Laboratorium: zakładki Przegląd / Wyniki / Trendy / Dokumenty (`lib/health/labTabs.ts`).
 - [ ] Wyniki: karty markerów z zakresem i sparkline zamiast gęstej tabeli; widok „ostatnio zmienione”.
 - [ ] Import: zdjęcie/PDF wyniku → rozpoznanie → zatwierdzenie.
 - [ ] Kontekst treningu i snu przy markerach (ferrytyna vs objętość biegania) — tylko jako informacja, bez diagnozy.
