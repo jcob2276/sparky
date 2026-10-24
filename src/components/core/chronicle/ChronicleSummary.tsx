@@ -8,7 +8,7 @@ const TONE_CLASS: Record<ChronicleTile['tone'], string> = {
   neutral: 'text-text-muted',
 };
 
-function Tile({ tile, wide }: { tile: ChronicleTile; wide: boolean }) {
+function Tile({ tile, wide, compareLabel }: { tile: ChronicleTile; wide: boolean; compareLabel: string }) {
   return (
     <div className={`rounded-2xl border border-border-custom/40 bg-surface/50 p-3 ${wide ? 'col-span-2' : ''}`}>
       <p className="text-2xs font-semibold tracking-wide text-text-muted">{tile.label}</p>
@@ -17,7 +17,7 @@ function Tile({ tile, wide }: { tile: ChronicleTile; wide: boolean }) {
         {tile.hint && <span className="ml-1 text-2xs font-bold text-text-muted">{tile.hint}</span>}
       </p>
       <p className={`text-2xs font-bold tabular-nums ${TONE_CLASS[tile.tone]}`}>
-        {tile.delta ? `${tile.delta} vs poprzedni` : 'brak porównania'}
+        {tile.delta ? `${tile.delta} vs ${compareLabel}` : 'brak porównania'}
       </p>
     </div>
   );
@@ -28,12 +28,14 @@ interface Props {
   loading: boolean;
   error: Error | null;
   periodTitle: string;
+  /** Z czym zestawiono okres w kafelkach (domyślnie poprzedni). */
+  compareLabel?: string;
   /** Wykres ma sens dopiero od miesiąca w górę; w tygodniu jest za mało punktów. */
   showChart?: boolean;
 }
 
 /** Cel, kafelki ze zmianą względem poprzedniego okresu, wykres i uczciwe braki danych jednej zakładki Kroniki. */
-export default function ChronicleSummary({ summary, loading, error, periodTitle, showChart = true }: Props) {
+export default function ChronicleSummary({ summary, loading, error, periodTitle, compareLabel = 'poprzedni', showChart = true }: Props) {
   if (loading) return <Skeleton className="h-64 w-full rounded-3xl" />;
   if (error || !summary) {
     return <p className="rounded-2xl border border-warning/30 bg-warning/10 px-3 py-3 text-xs font-semibold text-warning">Nie udało się wczytać danych tego okresu.</p>;
@@ -56,7 +58,7 @@ export default function ChronicleSummary({ summary, loading, error, periodTitle,
       </div>
 
       <div className="grid grid-cols-2 gap-2">
-        {tiles.map((tile, index) => <Tile key={tile.label} tile={tile} wide={oddLast && index === tiles.length - 1} />)}
+        {tiles.map((tile, index) => <Tile key={tile.label} tile={tile} wide={oddLast && index === tiles.length - 1} compareLabel={compareLabel} />)}
       </div>
 
       {showChart && (

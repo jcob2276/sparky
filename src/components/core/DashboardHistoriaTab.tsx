@@ -7,8 +7,11 @@ import Stats from './Stats';
 import StravaWidget from '../integrations/StravaWidget';
 import Photos from '../identity/Photos';
 import ChronicleControls from './chronicle/ChronicleControls';
+import ChroniclePeriodPicker from './chronicle/ChroniclePeriodPicker';
+import { periodLabel } from '../../lib/chronicle/periods';
 import ChronicleSummary from './chronicle/ChronicleSummary';
 import { useChronicle } from './chronicle/useChronicle';
+import { useChronicleSelection } from './chronicle/useChronicleSelection';
 import type { ChroniclePeriod } from '../../lib/chronicle/periods';
 import type { ChronicleGoal } from '../../lib/chronicle/summaryTypes';
 
@@ -24,7 +27,8 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
   const [period, setPeriod] = useState<ChroniclePeriod>('week');
   const [showTraining, setShowTraining] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
-  const chronicle = useChronicle(goal, period);
+  const selection = useChronicleSelection();
+  const chronicle = useChronicle(goal, period, selection.offset, selection.compareOffset);
 
   if (!session) return null;
 
@@ -36,15 +40,28 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
         goal={goal}
         onGoal={setGoal}
         period={period}
-        onPeriod={setPeriod}
+        onPeriod={(next) => { setPeriod(next); selection.reset(); }}
         onExport={() => setIsExportOpen(true)}
       />
+
+      {period !== 'sprint' && (
+        <ChroniclePeriodPicker
+          label={periodLabel(chronicle.window)}
+          compareLabel={chronicle.window.compareLabel}
+          isCurrent={selection.offset === 0}
+          canCompareNewer={selection.compareOffset > 0}
+          onShift={selection.shiftMain}
+          onShiftCompare={selection.shiftCompare}
+          onReset={selection.reset}
+        />
+      )}
 
       <ChronicleSummary
         summary={chronicle.summary}
         loading={chronicle.loading}
         error={chronicle.error}
         periodTitle={periodTitle}
+        compareLabel={chronicle.window.compareLabel}
         showChart={period !== 'week'}
       />
 

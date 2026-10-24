@@ -32,6 +32,11 @@ describe('ChronicleSummary', () => {
     expect(screen.getByText(/Brak liczb z 1 dnia/)).toBeInTheDocument();
   });
 
+  it('podpisuje zmianę okresem, z którym porównano, zamiast „poprzedni”', () => {
+    render(<ChronicleSummary summary={summary} loading={false} error={null} periodTitle="Ten tydzień" compareLabel="21–27 wrz" />);
+    expect(screen.getByText('+10 vs 21–27 wrz')).toBeInTheDocument();
+  });
+
   it('bez danych do wykresu mówi o tym wprost', () => {
     render(<ChronicleSummary summary={{ ...summary, chart: { ...summary.chart, values: [null, null, null] } }} loading={false} error={null} periodTitle="Ten tydzień" />);
     expect(screen.getByText('Brak danych do wykresu w tym okresie.')).toBeInTheDocument();
