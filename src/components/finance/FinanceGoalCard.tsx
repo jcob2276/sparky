@@ -3,6 +3,7 @@ import { Target } from 'lucide-react';
 import type { FinanceSnapshot } from '../../lib/financeApi';
 import { formatMonths, formatPln } from '../../lib/finance/formatMoney';
 import { ControlInput, Pressable } from '../ui/ControlPrimitives';
+import FinanceGoalScenarios from './FinanceGoalScenarios';
 import type { FinanceMetrics } from './useFinanceMetrics';
 
 interface FinanceGoalCardProps {
@@ -101,6 +102,7 @@ export function FinanceGoalCard({ metrics, snapshots, editing, onEditingChange, 
         {goal.reached ? 'Cel osiągnięty.' : `Zostało ${formatPln(goal.remaining)}. `}{!goal.reached && goalLine(metrics)}
       </p>
       <Sparkline values={snapshots.map((item) => item.net_worth)} />
+      <FinanceGoalScenarios metrics={metrics} />
       {editing && <GoalEditor initial={metrics.netWorthTarget} onSave={onSaveTarget} onClose={() => onEditingChange(false)} />}
     </section>
   );
