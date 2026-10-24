@@ -138,6 +138,8 @@ const invalidateListeners = new Set<() => void>();
 
 export function invalidateGoalSpineCache(userId: string): void {
   void queryClient.invalidateQueries({ queryKey: goalSpineKeys.forUser(userId) });
+  // cele tygodniowe sprzedaży są czytane z `goal_kpis` (useCloserTargets), więc zmiana KPI musi je odświeżyć
+  void queryClient.invalidateQueries({ queryKey: ['closer-targets', userId] });
   invalidateListeners.forEach((fn) => fn());
 }
 
