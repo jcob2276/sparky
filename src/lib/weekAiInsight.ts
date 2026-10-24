@@ -1,8 +1,9 @@
 import { useCallback, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { TIMEOUTS } from './constants';
 import { invokeEdge } from './supabase';
 import type { WeekAiInsightResponse } from './edgeTypes';
+import { isWeekAiInsightResponse, loadInsight, saveInsight } from './aiInsightStore';
 
 const CACHE_PREFIX = 'week-ai-insight';
 
@@ -10,7 +11,7 @@ function cacheKey(userId: string, today: string): string {
   return `${CACHE_PREFIX}:${userId}:${today}`;
 }
 
-/** The analysis is kept per day in this browser: opening the tab must not call the model again. */
+/** The analysis is kept per day in this browser (and on the account, see aiInsightStore): opening the tab must not call the model again. */
 function readCache(userId: string, today: string): WeekAiInsightResponse | null {
   try {
     const raw = localStorage.getItem(cacheKey(userId, today));
@@ -48,7 +49,20 @@ export function useWeekAiInsight(userId: string | undefined, today: string) {
       }),
     onSuccess: (data) => {
       setResult(data);
-      if (userId) writeCache(userId, today, data);
+      if (userId) {
+        writeCache(userId, today, data);
+        void saveInsight(userId, 'week-insight', today, data).catch(() => undefined);
+      }
+    },
+  });
+
+  const stored = useQuery({
+    queryKey: ['ai-insight', 'week-insight', userId, today],
+    enabled: Boolean(userId && !result),
+    staleTime: Infinity,
+    queryFn: async () => {
+      const saved = await loadInsight(userId as string, 'week-insight', today);
+      return isWeekAiInsightResponse(saved) ? saved : null;
     },
   });
 
@@ -57,7 +71,7 @@ export function useWeekAiInsight(userId: string | undefined, today: string) {
   }, [userId, mutation]);
 
   return {
-    result,
+    result: result ?? stored.data ?? null,
     generate,
     loading: mutation.isPending,
     error: mutation.isError ? describeWeekInsightError(mutation.error) : null,

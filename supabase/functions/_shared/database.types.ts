@@ -78,6 +78,30 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_insight_results: {
+        Row: {
+          cache_key: string
+          created_at: string
+          kind: string
+          payload: Json
+          user_id: string
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          kind: string
+          payload: Json
+          user_id: string
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          kind?: string
+          payload?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       audit_events: {
         Row: {
           created_at: string

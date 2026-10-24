@@ -1,9 +1,10 @@
 import { useCallback, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { TIMEOUTS } from '../constants';
 import { invokeEdge } from '../supabase';
 import type { PeriodCompareResponse } from '../edgeTypes';
 import { describeWeekInsightError } from '../weekAiInsight';
+import { isPeriodCompareResponse, loadInsight, saveInsight } from '../aiInsightStore';
 
 export interface ComparePeriod {
   label: string;
@@ -43,7 +44,7 @@ function writeCache(key: string, value: PeriodCompareResponse): void {
   }
 }
 
-/** AI porównuje dwa okresy tylko na żądanie; wynik jest pamiętany dla tej pary okresów i dnia. */
+/** AI porównuje dwa okresy tylko na żądanie; wynik jest pamiętany w przeglądarce i na koncie dla tej pary okresów i dnia. */
 export function usePeriodAiCompare(userId: string | undefined, a: ComparePeriod, b: ComparePeriod, today: string) {
   const key = userId ? compareCacheKey(userId, a, b, today) : null;
   const [fresh, setFresh] = useState<{ key: string; value: PeriodCompareResponse } | null>(null);
@@ -54,6 +55,18 @@ export function usePeriodAiCompare(userId: string | undefined, a: ComparePeriod,
       if (!key) return;
       setFresh({ key, value: data });
       writeCache(key, data);
+      void saveInsight(userId as string, 'period-compare', key, data).catch(() => undefined);
+    },
+  });
+
+  const local = key ? readCache(key) : null;
+  const stored = useQuery({
+    queryKey: ['ai-insight', 'period-compare', key],
+    enabled: Boolean(userId && key && !local),
+    staleTime: Infinity,
+    queryFn: async () => {
+      const saved = await loadInsight(userId as string, 'period-compare', key as string);
+      return isPeriodCompareResponse(saved) ? saved : null;
     },
   });
 
@@ -61,7 +74,7 @@ export function usePeriodAiCompare(userId: string | undefined, a: ComparePeriod,
     if (userId && !mutation.isPending) mutation.mutate();
   }, [userId, mutation]);
 
-  const result = key ? (fresh?.key === key ? fresh.value : readCache(key)) : null;
+  const result = key ? (fresh?.key === key ? fresh.value : (local ?? stored.data ?? null)) : null;
   return {
     result,
     generate,
