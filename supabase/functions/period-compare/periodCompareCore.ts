@@ -3,7 +3,20 @@
 export interface PeriodRows {
   wins: Array<Record<string, unknown>>
   scores: Array<{ date: string; day_score: number | null }>
-  oura: Array<{ total_sleep_hours: number | null; sleep_score: number | null; hrv_avg: number | null; rhr_avg: number | null; readiness_score: number | null }>
+  oura: Array<{
+    date: string
+    total_sleep_hours: number | null
+    sleep_score: number | null
+    hrv_avg: number | null
+    rhr_avg: number | null
+    readiness_score: number | null
+    bedtime_timestamp: string | null
+    bedtime_end_timestamp: string | null
+    latency_minutes: number | null
+    deep_sleep_hours: number | null
+    rem_sleep_hours: number | null
+    sleep_efficiency: number | null
+  }>
   nutrition: Array<{ date: string; calories: number | null; protein: number | null; fiber: number | null; avg_food_quality: number | null }>
   workoutSessions: number
   runDistancesM: Array<number | null>
@@ -22,7 +35,23 @@ export interface PeriodFacts {
   scoredDays: number
   tasks: CategoryRate & { byCategory: Record<string, CategoryRate> }
   notes: Array<{ date: string; text: string }>
-  sleep: { hours: number | null; score: number | null; hrv: number | null; rhr: number | null; readiness: number | null }
+  sleep: {
+    hours: number | null
+    score: number | null
+    hrv: number | null
+    rhr: number | null
+    readiness: number | null
+    /** Średnia godzina zasypiania (czas warszawski, „HH:MM”) i rozrzut w minutach. */
+    bedtime: string | null
+    bedtimeSpreadMin: number | null
+    wake: string | null
+    /** Noce krótsze niż 6 h (data pobudki, godziny), najkrótsze najpierw. */
+    shortNights: Array<{ date: string; hours: number }>
+    latency: number | null
+    deepHours: number | null
+    remHours: number | null
+    efficiency: number | null
+  }
   /** Tylko pełne dni (bez dzisiejszego, z zapisanymi kaloriami); `days` = ile ich było. */
   food: { days: number; kcal: number | null; protein: number | null; fiber: number | null; quality: number | null }
   training: { sessions: number; runKm: number }
@@ -64,6 +93,42 @@ function avgKnown(values: Array<number | null | undefined>): number | null {
   return real.length ? Math.round((real.reduce((a, b) => a + b, 0) / real.length) * 10) / 10 : null
 }
 
+/** Minuty od północy czasu warszawskiego dla znacznika czasu; null dla błędnej daty. */
+function warsawMinutes(iso: string | null): number | null {
+  if (!iso) return null
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return null
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Warsaw', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(date)
+  const hour = Number(parts.find((p) => p.type === 'hour')?.value)
+  const minute = Number(parts.find((p) => p.type === 'minute')?.value)
+  return Number.isFinite(hour) && Number.isFinite(minute) ? hour * 60 + minute : null
+}
+
+const clockText = (minutes: number) => {
+  const m = ((Math.round(minutes) % 1440) + 1440) % 1440
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+}
+
+/**
+ * Średnia godzina zasypiania: godziny przed południem to już po północy tej samej nocy, więc dostają +24 h
+ * (inaczej 23:30 i 00:30 uśredniłyby się do południa). Zwraca też rozrzut (odchylenie standardowe).
+ */
+export function averageBedtime(isos: Array<string | null>): { clock: string | null; spreadMin: number | null } {
+  const minutes = isos.flatMap((iso) => {
+    const m = warsawMinutes(iso)
+    return m == null ? [] : [m < 720 ? m + 1440 : m]
+  })
+  if (!minutes.length) return { clock: null, spreadMin: null }
+  const mean = minutes.reduce((a, b) => a + b, 0) / minutes.length
+  const variance = minutes.reduce((a, b) => a + (b - mean) ** 2, 0) / minutes.length
+  return { clock: clockText(mean), spreadMin: Math.round(Math.sqrt(variance)) }
+}
+
+function averageClock(isos: Array<string | null>): string | null {
+  const minutes = isos.flatMap((iso) => { const m = warsawMinutes(iso); return m == null ? [] : [m] })
+  return minutes.length ? clockText(minutes.reduce((a, b) => a + b, 0) / minutes.length) : null
+}
+
 function avg(values: Array<number | null | undefined>): number | null {
   const real = values.filter((v): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0)
   return real.length ? Math.round((real.reduce((a, b) => a + b, 0) / real.length) * 10) / 10 : null
@@ -77,6 +142,7 @@ const sum = (values: Array<number | null | undefined>) => values.reduce<number>(
 
 export function buildPeriodFacts(label: string, start: string, end: string, rows: PeriodRows, today: string): PeriodFacts {
   // Dzisiejszy dzień jest w toku i zaniżałby średnie jedzenia (jak „średnia z N pełnych dni” w apce).
+  const bedtime = averageBedtime(rows.oura.map((r) => r.bedtime_timestamp))
   const foodDays = rows.nutrition.filter((r) => r.date < today && (r.calories ?? 0) > 0)
   const byCategory: Record<string, CategoryRate> = {}
   let done = 0
@@ -118,6 +184,17 @@ export function buildPeriodFacts(label: string, start: string, end: string, rows
       hrv: avg(rows.oura.map((r) => r.hrv_avg)),
       rhr: avg(rows.oura.map((r) => r.rhr_avg)),
       readiness: avg(rows.oura.map((r) => r.readiness_score)),
+      bedtime: bedtime.clock,
+      bedtimeSpreadMin: bedtime.spreadMin,
+      wake: averageClock(rows.oura.map((r) => r.bedtime_end_timestamp)),
+      shortNights: rows.oura
+        .flatMap((r) => (typeof r.total_sleep_hours === 'number' && r.total_sleep_hours > 0 && r.total_sleep_hours < 6 ? [{ date: r.date, hours: Math.round(r.total_sleep_hours * 10) / 10 }] : []))
+        .sort((x, y) => x.hours - y.hours)
+        .slice(0, 3),
+      latency: avg(rows.oura.map((r) => r.latency_minutes)),
+      deepHours: avg(rows.oura.map((r) => r.deep_sleep_hours)),
+      remHours: avg(rows.oura.map((r) => r.rem_sleep_hours)),
+      efficiency: avg(rows.oura.map((r) => r.sleep_efficiency)),
     },
     food: {
       days: foodDays.length,
@@ -144,6 +221,8 @@ Zasady:
 - Każdy punkt musi mieć dowód: konkretne liczby A vs B albo krótki cytat użytkownika. Wnioski o związku (np. sen a ocena dnia) formułuj ostrożnie („w tych okresach szły razem”), bo próba jest mała.
 - Nie dodawaj okoliczności, których nie ma w danych (np. przyczyn zmęczenia, rodzaju treningu). Zdanie o tym, co JUŻ się wydarzyło (np. „prawdopodobnie domknąłem w poniedziałek”), nie jest zadaniem na przyszłość: zmiany wyciągaj tylko z liczb albo z tego, co użytkownik zapowiada lub planuje.
 - Błonnik w danych to dolna granica (nie każdy produkt ma go w bazie), a jedzenie jest liczone z pełnych dni bez dzisiejszego: nie wyciągaj z samego błonnika mocnych wniosków ani zaleceń. Przy białku i kaloriach odnoś się do celów żywieniowych, jeśli je podano.
+- Brak wpisów lub danych tylko w JEDNYM okresie to uwaga o danych (wspomnij o niej w „summary”), a nie zalecenie dla użytkownika: nie każ „zapisywać” czegoś, co użytkownik już zapisuje, tylko w drugim okresie jeszcze nie zapisywał.
+- Przy śnie podawaj konkretne noce i godziny z danych (zasypianie, pobudka, krótkie noce z datami), a nie ogólne „śpij dłużej”. Zalecenie o śnie ma wynikać z jego rzeczywistych godzin.
 - Okres bez wpisów (sprzedaż, jedzenie, sen) to brak danych, więc nie nazywaj tego poprawą ani pogorszeniem. 0 km biegania może znaczyć brak biegów albo brak synchronizacji; nie opieraj na tym jedynym dowodzie mocnych wniosków.
 - Pisz po polsku, do użytkownika na „Ty”, krótko i konkretnie. Bez moralizowania, bez diagnoz medycznych i psychologicznych, bez ogólnych porad motywacyjnych.
 - "improved": do 3 rzeczy, które w A są wyraźnie lepsze niż w B. "worsened": do 3, które są wyraźnie gorsze. Każda: "title" (krótko) i "evidence" (liczby A vs B lub cytat).
@@ -157,6 +236,18 @@ Zwróć wyłącznie JSON: {"summary":string,"improved":[{"title":string,"evidenc
 const show = (value: number | null, unit = '') => (value == null ? 'brak' : `${String(value).replace('.', ',')}${unit}`)
 
 /** Okres bez żadnego wpisu sprzedaży to brak danych, a nie sprzedaż równa zero. */
+function describeSleep(f: PeriodFacts): string {
+  const s = f.sleep
+  const timing = s.bedtime
+    ? `zasypianie średnio ${s.bedtime}${s.bedtimeSpreadMin != null ? ` (rozrzut ±${s.bedtimeSpreadMin} min)` : ''}, pobudka średnio ${s.wake ?? 'brak'}`
+    : 'godziny snu: brak'
+  const short = s.shortNights.length
+    ? `krótkie noce (<6 h, data pobudki): ${s.shortNights.map((n) => `${n.date} ${show(n.hours, ' h')}`).join(', ')}`
+    : 'brak nocy krótszych niż 6 h'
+  return `Sen: ${show(s.hours, ' h')}, jakość ${show(s.score)}, HRV ${show(s.hrv, ' ms')}, tętno spoczynkowe ${show(s.rhr, ' bpm')}, gotowość ${show(s.readiness)}
+Szczegóły snu: ${timing}; ${short}; zasypianie trwa ${show(s.latency, ' min')}, sen głęboki ${show(s.deepHours, ' h')}, REM ${show(s.remHours, ' h')}, wydajność ${show(s.efficiency, '%')}`
+}
+
 function describeSales(f: PeriodFacts): string {
   if (f.sales.entries === 0) return 'Sprzedaż: brak wpisów z tego okresu (to brak danych, NIE zero)'
   return `Sprzedaż (z ${f.sales.entries} dni z wpisem): rozmowy odebrane ${f.sales.calls}, umówieni ${f.sales.booked}, rozmowy sprzedażowe ${f.sales.salesCalls}, sprzedaże ${f.sales.sold}`
@@ -169,7 +260,7 @@ function describePeriod(tag: string, f: PeriodFacts): string {
   return `OKRES ${tag}: ${f.label} (${f.start} do ${f.end}, ${f.days} dni)
 Ocena dnia: średnio ${show(f.scoreAvg, '/10')} z ${f.scoredDays} ocenionych dni
 Zadania z planu: ${f.tasks.done}/${f.tasks.planned} zrobionych (wg obszarów: ${categories})
-Sen: ${show(f.sleep.hours, ' h')}, jakość ${show(f.sleep.score)}, HRV ${show(f.sleep.hrv, ' ms')}, tętno spoczynkowe ${show(f.sleep.rhr, ' bpm')}, gotowość ${show(f.sleep.readiness)}
+${describeSleep(f)}
 Jedzenie (średnia z ${f.food.days} pełnych dni z zapisem): ${show(f.food.kcal, ' kcal')}/dzień, białko ${show(f.food.protein, ' g')}, błonnik (dolna granica) ${show(f.food.fiber, ' g')}, jakość ${show(f.food.quality)}
 Trening: ${f.training.sessions} sesji siłowych, bieganie ${show(f.training.runKm, ' km')} (0 może znaczyć brak biegów albo brak synchronizacji)
 ${describeSales(f)}
