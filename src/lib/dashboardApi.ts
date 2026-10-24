@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { derivePersonalTargets } from '@vanguard/domain';
 import { supabase } from './supabase';
-import { getTodayWarsaw, getDaysAgoWarsaw, getWeekStartWarsaw, warsawDayBoundsISO } from './date';
+import { getTodayWarsaw, getWeekStartWarsaw } from './date';
 import { SparkyCore, computeSignals } from './vanguardCore';
 import { syncCalendar } from './syncApi';
 import { parseWorldState } from './db-json-guards';
@@ -20,18 +19,12 @@ export type WorldState = {
 export interface DashboardData {
   weeklyCalories: number;
   todayWin: TodayWinRow | null;
-  proteinToday: number;
-  proteinTarget: number;
-  hasWorkoutToday: boolean;
-  ouraToday: unknown[];
-  readiness: number;
 }
 
 import { dashboardKeys } from './queryKeys';
 
 /**
- * Live today's protein sum directly from daily_food_entries, with daily_nutrition fallback.
- * Cached world_state was frozen at snapshot generation time, causing Dziś → BIAŁKO to show 0g all day.
+ * Live today's protein sum (daily_food_entries, daily_nutrition fallback) — feeds the core state signals in the live path.
  */
 async function fetchLiveProteinToday(userId: string, today: string): Promise<number> {
   const [entriesRes, nutritionRes] = await Promise.all([
@@ -57,44 +50,6 @@ async function fetchLiveProteinToday(userId: string, today: string): Promise<num
   return Number(nutritionRes.data?.protein) || 0;
 }
 
-async function fetchLiveProteinTarget(userId: string): Promise<number> {
-  const [target, profile, body] = await Promise.all([
-    supabase.from('nutrition_targets').select('protein_floor_g').eq('user_id', userId).order('date', { ascending: false }).limit(1).maybeSingle(),
-    supabase.from('nutrition_profile').select('protein_g_per_kg').eq('user_id', userId).maybeSingle(),
-    supabase.from('body_metrics').select('weight').eq('user_id', userId).not('weight', 'is', null).order('date', { ascending: false }).limit(1).maybeSingle(),
-  ]);
-  return derivePersonalTargets({ target: target.data, profile: profile.data, weightKg: body.data?.weight }).proteinFloorG;
-}
-
-/**
- * Gym sessions (workout_sessions) OR Strava/Garmin runs (strava_activities_clean).
- * Cached world_state historically only checked gym — runs were invisible to Dziś → TRENING.
- */
-async function fetchHasWorkoutToday(userId: string, today: string): Promise<boolean> {
-  const { fromISO, toISO } = warsawDayBoundsISO(today);
-
-  const [gymRes, stravaRes] = await Promise.all([
-    supabase
-      .from('workout_sessions')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('date', today)
-      .limit(1)
-      .maybeSingle(),
-    supabase
-      .from('strava_activities_clean')
-      .select('strava_id')
-      .eq('user_id', userId)
-      .eq('is_oura', false)
-      .gte('start_date', fromISO)
-      .lte('start_date', toISO)
-      .limit(1)
-      .maybeSingle(),
-  ]);
-
-  return !!(gymRes.data || stravaRes.data);
-}
-
 /**
  * Fetch dashboard data: checks cached world state first, falls back to live queries and vanguard core state determination.
  */
@@ -117,27 +72,17 @@ async function fetchDashboardData(userId: string): Promise<DashboardData> {
       // Fall through to live computation below.
       console.warn('[dashboardApi] world state JSON failed validation — falling back to live computation');
     } else {
-      // today_win + training status + live protein so Strava/gym/nutrition updates show without waiting for world_state rebuild
-      const [{ data: liveTodayWin }, hasWorkoutToday, liveProtein, proteinTarget] = await Promise.all([
-        supabase
-          .from('daily_wins')
-          .select('*, daily_win_tasks(*)')
-          .eq('user_id', userId)
-          .eq('date', today)
-          .maybeSingle(),
-        fetchHasWorkoutToday(userId, today),
-        fetchLiveProteinToday(userId, today),
-        fetchLiveProteinTarget(userId),
-      ]);
+      // live today_win, so ticking a task shows without waiting for the world_state rebuild
+      const { data: liveTodayWin } = await supabase
+        .from('daily_wins')
+        .select('*, daily_win_tasks(*)')
+        .eq('user_id', userId)
+        .eq('date', today)
+        .maybeSingle();
 
       return {
         weeklyCalories: state.nutrition?.weekly_calories ?? 0,
         todayWin: liveTodayWin ?? state.execution?.today_win ?? null,
-        proteinToday: liveProtein > 0 ? liveProtein : (state.nutrition?.protein_today ?? 0),
-        proteinTarget,
-        hasWorkoutToday,
-        ouraToday: state.biometrics?.oura_history ?? [],
-        readiness: state.biometrics?.readiness_score ?? 0,
       };
     }
   }
@@ -149,16 +94,12 @@ async function fetchDashboardData(userId: string): Promise<DashboardData> {
     nutritionRes,
     tDataRes,
     liveProtein,
-    proteinTarget,
-    hasWorkoutToday,
     ouraDataRes,
     lastWorkoutRes
   ] = await Promise.all([
     supabase.from('daily_nutrition').select('calories').eq('user_id', userId).gte('date', monday),
     supabase.from('daily_wins').select('*, daily_win_tasks(*)').eq('user_id', userId).eq('date', today).maybeSingle(),
     fetchLiveProteinToday(userId, today),
-    fetchLiveProteinTarget(userId),
-    fetchHasWorkoutToday(userId, today),
     supabase.from('oura_daily_summary').select('*').eq('user_id', userId).order('date', { ascending: false }).limit(30),
     supabase.from('workout_sessions').select('date').eq('user_id', userId).order('date', { ascending: false }).limit(1).maybeSingle()
   ]);
@@ -185,11 +126,6 @@ async function fetchDashboardData(userId: string): Promise<DashboardData> {
   return {
     weeklyCalories: totalCal,
     todayWin: tData,
-    proteinToday: liveProtein,
-    proteinTarget,
-    hasWorkoutToday,
-    ouraToday: ouraData || [],
-    readiness: ouraData?.[0]?.readiness_score || 0,
   };
 }
 

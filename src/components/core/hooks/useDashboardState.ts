@@ -121,7 +121,7 @@ export function useDashboardState(session: Session) {
   const { count: pendingActionCount, reload: reloadPendingActions } = usePendingActionCount();
   const { isSyncing, setSyncing } = useStore();
   const isDashboardView = ['dzis', 'tydzien', 'projekty', 'historia'].includes(view);
-  const { weeklyCalories, todayWin, proteinToday, proteinTarget, hasWorkoutToday, readiness, loading, refresh } = useDashboardData(session, isDashboardView);
+  const { weeklyCalories, todayWin, loading, refresh } = useDashboardData(session, isDashboardView);
   const { guidance: spineGuidance, loading: spineGuidanceLoading } = useSpineGuidance(userId, todayWin);
   const { syncCalendar, startGoogleAuth } = useSyncActions({ userId, accessToken, onRefresh: refresh, setSyncing });
   const { reviewOverdueDays, urgentTodoCount, staleNoteCount, refresh: refreshNudge } = useNudgeData(userId);
@@ -204,7 +204,7 @@ export function useDashboardState(session: Session) {
     view, navigate, goBack, navigateTo,
     location, handleMainTouchStart, handleMainTouchMove, handleMainTouchEnd, handleMainTouchCancel,
     // data
-    weeklyCalories, todayWin, proteinToday, proteinTarget, hasWorkoutToday, readiness, loading, refresh,
+    weeklyCalories, todayWin, loading, refresh,
     spineGuidance, spineGuidanceLoading,
     reviewOverdueDays, urgentTodoCount, staleNoteCount, refreshNudge,
     pendingActionCount, reloadPendingActions,
@@ -233,7 +233,7 @@ export function useDashboardState(session: Session) {
   }), [
     view, navigate, goBack, navigateTo,
     location, handleMainTouchStart, handleMainTouchMove, handleMainTouchEnd, handleMainTouchCancel,
-    weeklyCalories, todayWin, proteinToday, proteinTarget, hasWorkoutToday, readiness, loading, refresh,
+    weeklyCalories, todayWin, loading, refresh,
     spineGuidance, spineGuidanceLoading,
     reviewOverdueDays, urgentTodoCount, staleNoteCount, refreshNudge,
     pendingActionCount, reloadPendingActions,
