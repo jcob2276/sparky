@@ -31,6 +31,7 @@ function renderScreen(canGoBack = false, overrides: { editName?: string; reestim
       editName={overrides.editName ?? entry.name}
       setEditName={vi.fn()}
       editReestimating={false}
+      editEstimateNote={null}
       reestimateFromName={overrides.reestimateFromName ?? vi.fn()}
       editGrams="100"
       setEditGrams={vi.fn()}
@@ -70,7 +71,7 @@ describe('EditScreen', () => {
     const reestimate = vi.fn();
     renderScreen(false, { editName: 'sernik baskijski', reestimateFromName: reestimate });
     expect(screen.getByDisplayValue('sernik baskijski')).toBeTruthy();
-    expect(screen.getByText(/AI przeliczy/i)).toBeTruthy();
+    expect(screen.getByRole('button', { name: /nowej nazwy/i })).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /przelicz makro/i }));
     expect(reestimate).toHaveBeenCalledTimes(1);
   });
@@ -78,6 +79,7 @@ describe('EditScreen', () => {
   it('does not nag about re-estimating while the name is unchanged', () => {
     photoState.photoUrl = null;
     renderScreen();
-    expect(screen.queryByText(/AI przeliczy/i)).toBeNull();
+    expect(screen.queryByRole('button', { name: /nowej nazwy/i })).toBeNull();
+    expect(screen.getByRole('button', { name: /ponownie/i })).toBeTruthy();
   });
 });

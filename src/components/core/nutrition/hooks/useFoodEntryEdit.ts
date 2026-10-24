@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useHaptics } from '../../../../hooks/useHaptics';
+import { notify } from '../../../../lib/notify';
 import {
   parseGrams,
   derivePer100,
@@ -36,8 +37,13 @@ export function useFoodEntryEdit({
   const [editGrams, setEditGrams] = useState(
     initialEditEntry ? String(parseGrams(initialEditEntry.amount)) : '100'
   );
-  const [editName, setEditName] = useState(initialEditEntry?.name ?? '');
+  const [editName, setEditNameRaw] = useState(initialEditEntry?.name ?? '');
+  const [editEstimateNote, setEditEstimateNote] = useState<string | null>(null);
   const [editReestimating, setEditReestimating] = useState(false);
+  const setEditName = useCallback((value: string) => {
+    setEditNameRaw(value);
+    setEditEstimateNote(null);
+  }, []);
   const [editMealType, setEditMealType] = useState(
     initialEditEntry?.meal_type ?? defaultMealType()
   );
@@ -70,7 +76,8 @@ export function useFoodEntryEdit({
   const openEditEntry = useCallback(
     (entry: RecentEntry) => {
       setEditingEntry(entry);
-      setEditName(entry.name);
+      setEditNameRaw(entry.name);
+      setEditEstimateNote(null);
       setEditGrams(String(parseGrams(entry.amount)));
       setEditMealType(entry.meal_type ?? defaultMealType());
       setEditPer100(derivePer100(entry));
@@ -96,12 +103,18 @@ export function useFoodEntryEdit({
       const sum = (pick: (item: (typeof items)[number]) => number | undefined) =>
         items.reduce((acc, item) => acc + (pick(item) ?? 0), 0);
       const per100 = (total: number) => (total * 100) / totalGrams;
-      setEditPer100({
+      const next = {
         calories: per100(sum((i) => i.calories)),
         protein: per100(sum((i) => i.protein)),
         carbs: per100(sum((i) => i.carbs)),
         fat: per100(sum((i) => i.fat)),
-      });
+      };
+      setEditPer100(next);
+      const kcal = Math.round((next.calories * grams) / 100);
+      const protein = Math.round(((next.protein * grams) / 100) * 10) / 10;
+      const note = `Przeliczone dla „${name}” (${grams} g): ${kcal} kcal · ${protein} g B`;
+      setEditEstimateNote(note);
+      notify(note, 'success');
       haptics.success();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Przeliczenie nie powiodło się');
@@ -163,6 +176,7 @@ export function useFoodEntryEdit({
   return {
     editName,
     setEditName,
+    editEstimateNote,
     editReestimating,
     reestimateFromName,
     editingEntry,

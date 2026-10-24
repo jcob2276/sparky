@@ -23,6 +23,7 @@ interface EditScreenProps {
   editName: string;
   setEditName: (v: string) => void;
   editReestimating: boolean;
+  editEstimateNote: string | null;
   reestimateFromName: () => void;
   editGrams: string;
   setEditGrams: (v: string) => void;
@@ -56,6 +57,7 @@ export default function EditScreen({
   editName,
   setEditName,
   editReestimating,
+  editEstimateNote,
   reestimateFromName,
   editGrams,
   setEditGrams,
@@ -110,6 +112,7 @@ export default function EditScreen({
             onChange={setEditName}
             onReestimate={reestimateFromName}
             reestimating={editReestimating}
+            estimateNote={editEstimateNote}
             onPhoto={onPhoto}
           />
           {editingEntry.brand && <p className={`mt-1 text-xs font-medium ${mutedTone}`}>{editingEntry.brand}</p>}
