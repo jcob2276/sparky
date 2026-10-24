@@ -14,6 +14,7 @@ import BodyModel from './BodyModel';
 import type { StravaActivityRow } from '../desktop/shell/useDesktopData';
 import { useUserId } from '../../store/useStore';
 import './workout/muscleHeatmap.css';
+import { isRunSport } from '../../lib/runSports';
 
 const PERIODS = [
   { label: '7d', days: 7 },
@@ -68,7 +69,7 @@ export default function MuscleHeatmap({
     if (!strava?.length) return 0;
     const dateLimit = shiftDateStr(getTodayWarsaw(), -period);
     return strava
-      .filter((a) => ['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type || '') && (a.start_date || '') >= dateLimit)
+      .filter((a) => isRunSport(a.sport_type) && (a.start_date || '') >= dateLimit)
       .reduce((sum, a) => sum + (Number(a.distance) || 0) / 1000, 0);
   }, [strava, period]);
 
@@ -117,7 +118,7 @@ export default function MuscleHeatmap({
         // Factor in running volume into legs and core
         if (includeRunning && strava?.length) {
           const runActivities = strava.filter((a) => {
-            const isRun = ['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type || '');
+            const isRun = isRunSport(a.sport_type);
             return isRun && (a.start_date || '') >= dateLimit;
           });
           const totalRunKm = runActivities.reduce((sum, a) => sum + (Number(a.distance) || 0) / 1000, 0);

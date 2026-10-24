@@ -1,9 +1,10 @@
 import { formatWarsawDate } from '../../lib/date';
 import { format, startOfWeek } from 'date-fns';
 import type { StravaActivitySummary } from './desktopDataTypes';
+import { isRunSport } from '../../lib/runSports';
 
 export function weeklyRunKm(strava: StravaActivitySummary[]) {
-  const runs = strava.filter((a) => ['Run', 'TrailRun', 'VirtualRun', 'Hike'].includes(a.sport_type));
+  const runs = strava.filter((a) => isRunSport(a.sport_type));
   const map: Record<string, number> = {};
   const dates: Record<string, Date> = {};
   for (const a of runs) {

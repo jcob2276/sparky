@@ -3,6 +3,7 @@ import { getTodayWarsaw, formatWarsawDate, warsawDayBoundsISO, warsawTimeOfDay }
 import type { TodayNutritionSnapshot } from './foodLogging';
 import { TIMEOUTS } from '../constants';
 import { estimateCaffeineMg } from '@vanguard/domain';
+import { isRunSport } from '../runSports';
 
 type NutritionTrajectory = 'on_track' | 'behind' | 'ahead';
 
@@ -208,7 +209,7 @@ export async function fetchNutritionDayContext(
 
   let runKmToday = 0;
   for (const a of stravaRes.data ?? []) {
-    if (!['Run', 'TrailRun', 'VirtualRun'].includes(a.sport_type ?? '')) continue;
+    if (!isRunSport(a.sport_type)) continue;
     if (!a.start_date || stravaDay(a.start_date) !== date) continue;
     runKmToday += (Number(a.distance) || 0) / 1000;
   }

@@ -2,6 +2,7 @@ import { supabase } from '../supabase';
 import { getTodayWarsaw } from '../date';
 import { nutritionSeries } from './nutritionDays';
 import type { CialoRows, DuchRows, KontoRows } from './summaries';
+import { RUN_SPORT_TYPES } from '../runSports';
 
 /** Data kalendarzowa w Warszawie (wpis o 00:30 należy do nowego dnia, nie do poprzedniego dnia UTC). */
 export function warsawDateKey(iso: string): string {
@@ -10,7 +11,6 @@ export function warsawDateKey(iso: string): string {
 }
 
 /** Biegi liczone jak w tygodniowym pulsie ciała. */
-const RUN_SPORTS = ['Run', 'TrailRun', 'VirtualRun'];
 
 function runKmByDay(rows: Array<{ start_date: string | null; distance: number | null }>): CialoRows['runKm'] {
   const byDay = new Map<string, number>();
@@ -31,7 +31,7 @@ export async function fetchCialoRows(userId: string, from: string, to: string): 
     supabase.from('oura_daily_summary').select('date, total_sleep_hours, sleep_score, hrv_avg, rhr_avg, readiness_score').eq('user_id', userId).gte('date', from).lte('date', to),
     supabase.from('workout_sessions').select('date').eq('user_id', userId).gte('date', from).lte('date', to).not('workout_day', 'ilike', '%sauna%'),
     supabase.from('body_metrics').select('date, body_fat').eq('user_id', userId).not('body_fat', 'is', null).order('date', { ascending: false }).limit(1),
-    supabase.from('strava_activities_clean').select('start_date, distance, sport_type').eq('user_id', userId).eq('is_oura', false).in('sport_type', RUN_SPORTS).gte('start_date', `${from}T00:00:00Z`).lte('start_date', `${to}T23:59:59Z`),
+    supabase.from('strava_activities_clean').select('start_date, distance, sport_type').eq('user_id', userId).eq('is_oura', false).in('sport_type', [...RUN_SPORT_TYPES]).gte('start_date', `${from}T00:00:00Z`).lte('start_date', `${to}T23:59:59Z`),
   ]);
   for (const result of [body, nutrition, sleep, workouts, latestFat, runs]) if (result.error) throw result.error;
   const today = getTodayWarsaw();
