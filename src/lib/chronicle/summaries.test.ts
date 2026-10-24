@@ -44,7 +44,7 @@ describe('buildCialoSummary', () => {
     const fat = s.tiles.find((t) => t.label === 'Tłuszcz');
     expect(fat?.value).toBe('21,2%');
     expect(fat?.delta).toBeNull();
-    expect(s.goalLine.hint).toContain('brakuje 6,2 pkt');
+    expect(s.goalLine.hint).toContain('brakuje 7,2 pkt');
     expect(s.tiles.find((t) => t.label === 'Treningi')?.value).toBe('1');
   });
 });

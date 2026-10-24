@@ -9,6 +9,7 @@ import { getTodayWarsaw } from '../../lib/date';
 import { getWeekStartWarsaw } from '../../lib/growth/growth';
 import { Pressable } from '../ui/ControlPrimitives';
 import DataStateNotice from './DataStateNotice';
+import { GOAL_BODY_SHORT } from '../../lib/lifeGoals';
 
 const PILLAR_ORDER: PillarId[] = ['konto', 'duch', 'cialo'];
 
@@ -35,7 +36,7 @@ const PILLAR_CONFIG = {
     borderColor: 'border-success/30',
     bgActive: 'bg-success/10',
     badgeText: 'text-success',
-    shortMetric: '15% BF · 100kg',
+    shortMetric: GOAL_BODY_SHORT,
   },
 };
 
