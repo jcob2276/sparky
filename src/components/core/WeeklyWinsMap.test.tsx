@@ -15,6 +15,9 @@ const days: WinsDayCell[] = [
 ];
 
 vi.mock('../../lib/weeklyWinsMap', () => ({ useWeeklyWinsMap: () => ({ data: days, isLoading: false }) }));
+vi.mock('../../lib/weekAiInsight', () => ({
+  useWeekAiInsight: () => ({ result: null, generate: vi.fn(), loading: false, error: null }),
+}));
 vi.mock('../../store/useStore', () => ({ useUserId: () => 'u1' }));
 vi.mock('../../lib/date', () => ({
   getTodayWarsaw: () => '2026-10-24',

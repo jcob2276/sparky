@@ -37,6 +37,7 @@ export const NO_VERIFY_JWT_FUNCTIONS = [
   "parse-workout-nl",
   "vanguard-kpi-suggest",
   "vanguard-mcp-server",
+  "week-insight",
 ];
 
 

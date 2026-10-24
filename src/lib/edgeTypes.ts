@@ -221,6 +221,16 @@ interface LookupFoodResponse {
   incompleteCount: number;
 }
 
+export interface WeekAiInsightResponse {
+  insight: {
+    summary: string;
+    changes: Array<{ title: string; why: string; how: string }>;
+    patterns: Array<{ theme: string; evidence: string }>;
+  };
+  generatedAt: string;
+  basedOn: { days: number; journalEntries: number };
+}
+
 interface ParseWorkoutNLResponse {
   workout_name?: string;
   exercises: Array<{
@@ -278,6 +288,7 @@ export interface EdgeFunctionResponses {
   'vanguard-keep-triage': KeepTriageResponse;
   'parse-food-nl': ParseFoodNLResponse;
   'parse-workout-nl': ParseWorkoutNLResponse;
+  'week-insight': WeekAiInsightResponse;
   'vanguard-capture': CaptureResponse;
   'vanguard-nightly': NightlyResponse;
   'vanguard-nutrition-coach': NutritionCoachResponse;

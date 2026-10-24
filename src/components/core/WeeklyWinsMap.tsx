@@ -4,6 +4,7 @@ import { useWeeklyWinsMap, type WinsDayCell } from '../../lib/weeklyWinsMap';
 import { getTodayWarsaw, getYesterdayWarsaw } from '../../lib/date';
 import { useUserId } from '../../store/useStore';
 import { Pressable } from '../ui/ControlPrimitives';
+import WeeklyAiInsight from './WeeklyAiInsight';
 import WeeklyDayDetail from './WeeklyDayDetail';
 import WeeklyWeekInsights from './WeeklyWeekInsights';
 
@@ -51,6 +52,7 @@ export default function WeeklyWinsMap() {
 
       {selected && <WeeklyDayDetail day={selected} today={today} yesterday={getYesterdayWarsaw()} />}
       {data && <WeeklyWeekInsights days={data} today={today} />}
+      <WeeklyAiInsight today={today} />
     </div>
   );
 }

@@ -36,6 +36,7 @@ $all = @(
   "vanguard-telegram",
   "vanguard-telegram-worker",
   "vanguard-wiki-compiler",
+  "week-insight",
   "widget-food",
   "widget-tasks"
 )
