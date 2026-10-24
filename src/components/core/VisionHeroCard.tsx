@@ -19,7 +19,6 @@ export default function VisionHeroCard() {
   const fuel = getDailyFuelQuote(lived);
   const sprintGoal = useSprintGoal(userId, sprint.personalYear, sprint.sprintNumber);
   const pct = Math.min(100, Math.max(0, sprint.pct));
-  const quoteTitle = fuel.author ? `${fuel.text} — ${fuel.author}` : fuel.text;
 
   return (
     <>
@@ -44,9 +43,9 @@ export default function VisionHeroCard() {
             </div>
             <span className="ui-num shrink-0 text-xs font-semibold tabular-nums text-text-primary">{pct}%</span>
           </div>
-          {sprintGoal && <p className="truncate text-xs font-medium text-text-primary">{sprintGoal}</p>}
-          <p title={quoteTitle} className="line-clamp-2 text-xs italic leading-snug text-text-muted">
-            „{fuel.text}”
+          {sprintGoal && <p className="text-xs font-medium leading-snug text-text-primary">{sprintGoal}</p>}
+          <p className="text-xs italic leading-snug text-text-muted">
+            „{fuel.text}”{fuel.author && <span className="not-italic"> — {fuel.author}</span>}
           </p>
         </div>
       </section>

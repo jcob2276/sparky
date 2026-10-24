@@ -1,4 +1,5 @@
-import { ChevronRight, Copy } from 'lucide-react';
+import { useState } from 'react';
+import { ChevronDown, ChevronRight, Copy } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { TodayFoodEntry } from '../../../lib/health/composerTodayMealsApi';
 import type { RecentEntry } from './hooks/foodEntryUtils';
@@ -23,6 +24,55 @@ function firstRowIdPerPhoto(entries: TodayFoodEntry[], photoUrls: Record<string,
     }
   }
   return rowIds;
+}
+
+function LoggedItemsHeader({ title, count, kcal, protein, open, locked, onToggle }: {
+  title: string;
+  count: number;
+  kcal: number;
+  protein: number;
+  open: boolean;
+  /** Past days are always open, so the header is not a toggle there. */
+  locked: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <Pressable
+      type="button"
+      haptic="none"
+      aria-expanded={open}
+      disabled={locked}
+      onClick={onToggle}
+      className="flex w-full items-center gap-3 rounded-2xl border border-border-custom/60 bg-surface-solid/40 px-3.5 py-2.5 text-left active:bg-surface-solid/70 ui-interactive"
+    >
+      <div className="min-w-0 flex-1">
+        <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
+        <p className="text-2xs font-semibold tabular-nums text-text-muted">
+          {count} {count === 1 ? 'pozycja' : 'pozycje'}&nbsp;&middot;&nbsp;{kcal} kcal&nbsp;&middot;&nbsp;<span className="text-primary">{protein} g B</span>
+        </p>
+      </div>
+      {!locked && (
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-3 text-text-muted" aria-hidden="true">
+          <ChevronDown size={15} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+        </span>
+      )}
+    </Pressable>
+  );
+}
+
+function MealSummaryChips({ order, groups }: { order: string[]; groups: Map<string, TodayFoodEntry[]> }) {
+  return (
+    <div className="flex flex-wrap gap-1.5 px-0.5">
+      {order.map((mealType) => (
+        <span
+          key={mealType}
+          className="rounded-full bg-surface-solid/50 px-2.5 py-1 text-2xs font-semibold tabular-nums text-text-secondary"
+        >
+          {MEAL_LABEL[mealType] ?? mealType} {Math.round(groups.get(mealType)!.reduce((sum, e) => sum + (e.calories ?? 0), 0))}
+        </span>
+      ))}
+    </div>
+  );
 }
 
 function PastDayBanner({ onCopy, copying }: { onCopy: () => void; copying?: boolean }) {
@@ -70,7 +120,9 @@ export default function MealComposerLoggedItems({
   onCopyMeal,
   copying,
 }: MealComposerLoggedItemsProps) {
+  const [expanded, setExpanded] = useState(false);
   if (!entries.length) return null;
+  const open = expanded || Boolean(isPastDay);
 
   const totalKcal = Math.round(entries.reduce((s, e) => s + (e.calories ?? 0), 0));
   const totalProtein = Math.round(entries.reduce((s, e) => s + (e.protein ?? 0), 0) * 10) / 10;
@@ -93,14 +145,19 @@ export default function MealComposerLoggedItems({
     <section aria-label={dateLabel} className="space-y-2 border-t border-border-custom/40 pt-3">
       {isPastDay && onCopyEntireDay && <PastDayBanner onCopy={onCopyEntireDay} copying={copying} />}
 
-      <div className="flex items-center justify-between px-1">
-        <h3 className="text-xs font-semibold tracking-wide text-text-muted">{dateLabel}</h3>
-        <span className="text-2xs font-bold tabular-nums text-text-muted">
-          {totalKcal} kcal&nbsp;&middot;&nbsp;<span className="text-primary">{totalProtein} g B</span>
-        </span>
-      </div>
+      <LoggedItemsHeader
+        title={dateLabel}
+        count={entries.length}
+        kcal={totalKcal}
+        protein={totalProtein}
+        open={open}
+        locked={Boolean(isPastDay)}
+        onToggle={() => setExpanded((value) => !value)}
+      />
 
-      <div className="space-y-2">
+      {!open && <MealSummaryChips order={order} groups={groups} />}
+
+      <div className={open ? 'space-y-2' : 'hidden'}>
         {order.map((mealType) => {
           const group = groups.get(mealType)!;
           const groupKcal = Math.round(group.reduce((s, e) => s + (e.calories ?? 0), 0));
