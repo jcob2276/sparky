@@ -12,20 +12,6 @@ const MEAL_LABEL: Record<string, string> = {
   snack: 'Przekąska',
 };
 
-/** Ids of the first entry of each meal that has a photo, so the thumbnail shows once per meal. */
-function firstRowIdPerPhoto(entries: TodayFoodEntry[], photoUrls: Record<string, string>): Set<string> {
-  const rowIds = new Set<string>();
-  const seenGroups = new Set<string>();
-  for (const entry of entries) {
-    const groupId = entry.meal_group_id;
-    if (groupId && photoUrls[groupId] && !seenGroups.has(groupId)) {
-      seenGroups.add(groupId);
-      rowIds.add(entry.id);
-    }
-  }
-  return rowIds;
-}
-
 function LoggedItemsHeader({ title, count, kcal, protein, open, locked, onToggle }: {
   title: string;
   count: number;
@@ -98,7 +84,7 @@ function PastDayBanner({ onCopy, copying }: { onCopy: () => void; copying?: bool
 
 interface MealComposerLoggedItemsProps {
   entries: TodayFoodEntry[];
-  /** Signed photo URLs keyed by meal_group_id; the photo is shown on the first row of its meal. */
+  /** Signed photo URLs keyed by meal_group_id; every item of a photographed meal shows the same photo. */
   photoUrls?: Record<string, string>;
   onEditEntry: (entry: RecentEntry) => void;
   onDeleteEntry?: (id: string) => void;
@@ -138,8 +124,6 @@ export default function MealComposerLoggedItems({
     }
     groups.get(key)!.push(entry);
   }
-
-  const photoRowIds = firstRowIdPerPhoto(entries, photoUrls);
 
   return (
     <section aria-label={dateLabel} className="space-y-2 border-t border-border-custom/40 pt-3">
@@ -207,7 +191,7 @@ export default function MealComposerLoggedItems({
                       }
                       className="flex w-full items-center justify-between gap-3 px-3 py-1 text-left transition-colors duration-150 hover:bg-surface-solid/50 active:bg-surface-solid/80"
                     >
-                      {photoRowIds.has(entry.id) && entry.meal_group_id && (
+                      {entry.meal_group_id && photoUrls[entry.meal_group_id] && (
                         <img
                           src={photoUrls[entry.meal_group_id]}
                           alt={`Zdjęcie posiłku: ${entry.name}`}

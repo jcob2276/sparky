@@ -1,3 +1,4 @@
+import { buildMealPhotoPrompt } from './mealPhotoPrompt.ts'
 import { createServiceClient } from '../_shared/supabase.ts'
 import { parseJsonFromContent } from '../_shared/deepseek.ts'
 import {
@@ -192,9 +193,10 @@ export async function parseMealPhoto(
   db: ReturnType<typeof createServiceClient>,
   supabaseUrl: string,
   serviceKey: string,
+  hint?: string,
 ) {
   validateMealImage(imageBase64, mimeType)
-  const prompt = `Przeanalizuj zdjęcie całego posiłku. Zwróć wyłącznie JSON: {"items":[{"id":string,"name":string,"grams":number,"minGrams":number,"maxGrams":number,"calories":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"sugar":number|null,"confidence":"high"|"medium"|"low","assumptions":string[],"questions":[{"id":string,"prompt":string,"impactKcal":number,"options":[{"id":string,"label":string,"grams":number|null,"calories":number|null,"protein":number|null,"carbs":number|null,"fat":number|null,"fiber":number|null,"sugar":number|null}]}]}]}. Makra dotyczą całej oszacowanej porcji, nie 100 g. Każda opcja odpowiedzi ma zawierać skorygowane gramy, kalorie i makra całego składnika po wybraniu tej opcji. Rozdziel widoczne składniki. Uwzględnij możliwy olej, sos i ukryte dodatki, ale nie udawaj pomiaru: podaj realistyczny zakres minGrams/maxGrams. Pytania twórz tylko wtedy, gdy odpowiedź może istotnie zmienić kalorie; maksymalnie 3 kandydatów na składnik. Krótkie etykiety i pytania po polsku. Kontekst użytkownika: ${ctx.profileLine}. Najczęstsze wybory: ${ctx.historyBlock || 'brak'}.`
+  const prompt = buildMealPhotoPrompt(ctx, hint)
   const content = await callVisionLlm({
     prompt,
     imageBase64,
