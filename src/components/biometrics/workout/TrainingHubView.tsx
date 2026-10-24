@@ -8,6 +8,8 @@ import { useTreningAccent } from './useTreningAccent';
 import TrainingTodayCard from './TrainingTodayCard';
 import TrainingTemplatesSection from './TrainingTemplatesSection';
 import TrainingHubRecords from './TrainingHubRecords';
+import TrainingHubGoal from './TrainingHubGoal';
+import { useBenchGoal } from '../../../lib/health/benchGoalApi';
 import TrainingHubWeekPanel from './TrainingHubWeekPanel';
 import TrainingHubRunning from './TrainingHubRunning';
 import TrainingHubSignals from './TrainingHubSignals';
@@ -105,6 +107,7 @@ export default function TrainingHubView({
     handleSelectTemplate,
     handleStartBlank,
   } = useTrainingHub(userId, onStartWorkout);
+  const benchGoal = useBenchGoal(userId);
   const { accent, setAccent } = useTreningAccent();
   const [appearanceOpen, setAppearanceOpen] = useState(false);
 
@@ -166,6 +169,8 @@ export default function TrainingHubView({
             <TrainingHubWeekPanel fatigueByTag={fatigueByTag} week={weekStats} />
 
             <TrainingHubRunning load={running.data} loading={running.isLoading} />
+
+            <TrainingHubGoal goal={benchGoal.data} />
 
             <TrainingHubRecords records={records} />
 
