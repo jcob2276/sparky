@@ -1,3 +1,4 @@
+import { MIN_FULL_DAY_KCAL } from '@vanguard/domain';
 import type { DatedValue } from './aggregate';
 
 export interface NutritionRow {
@@ -6,9 +7,6 @@ export interface NutritionRow {
 }
 
 const num = (value: unknown): number | null => (value == null || value === '' || Number.isNaN(Number(value)) ? null : Number(value));
-
-/** Dzień jedzenia poniżej tej liczby kcal to prawie na pewno niepełny zapis (np. wpisany dopiero wieczorem). */
-export const MIN_FULL_DAY_KCAL = 1000;
 
 /**
  * Dzień z zapisanym jedzeniem, który już się skończył i wygląda na pełny: dzisiejszy jest w toku, a dzień poniżej

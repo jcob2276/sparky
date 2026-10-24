@@ -1,4 +1,5 @@
-import { MAX_ITEMS, MIN_FULL_DAY_KCAL, clip, type CompareChange, type CompareItem, type PeriodCompareResult, type PeriodFacts } from './periodCompareCore.ts'
+import { MIN_FULL_DAY_KCAL } from '@vanguard/domain'
+import { MAX_ITEMS, clip, type CompareChange, type CompareItem, type PeriodCompareResult, type PeriodFacts } from './periodCompareCore.ts'
 
 export const COMPARE_SYSTEM_PROMPT = `Jesteś bezpośrednim, rzeczowym trenerem, który porównuje DWA okresy życia jednej osoby: okres A (wybrany) i okres B (punkt odniesienia). Dostajesz liczby (sen, jedzenie, trening, sprzedaż), oceny dnia (1–10), zrobione i niezrobione zadania z planu 5 zadań, jednozdaniowe opinie oraz wpisy z dziennika głosowego.
 Zasady:

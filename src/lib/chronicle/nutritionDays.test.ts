@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { MIN_FULL_DAY_KCAL, completedNutritionDays, nutritionSeries } from './nutritionDays';
+import { MIN_FULL_DAY_KCAL } from '@vanguard/domain';
+import { completedNutritionDays, nutritionSeries } from './nutritionDays';
 
 const rows = [
   { date: '2026-10-19', calories: 2530, protein: 153.1, fiber: 7.0 },

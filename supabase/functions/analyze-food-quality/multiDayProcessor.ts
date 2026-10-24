@@ -1,3 +1,4 @@
+import { MIN_FULL_DAY_KCAL } from '@vanguard/domain';
 import { parseJsonFromContent } from '../_shared/deepseek.ts';
 import { buildTrainingDayMap } from './helpers.ts';
 
@@ -22,7 +23,7 @@ export async function processMultiDay(supabase: any, userId: string, dateFrom: s
   const dayTotals: Record<string, number> = {};
   for (const [d, items] of Object.entries(byDay)) dayTotals[d] = items.reduce((sum, e) => sum + (e.calories ?? 0), 0);
 
-  const incompleteDays = new Set(Object.entries(dayTotals).filter(([d, kcal]) => kcal < 1000 && !fastingDays.has(d)).map(([d]) => d));
+  const incompleteDays = new Set(Object.entries(dayTotals).filter(([d, kcal]) => kcal < MIN_FULL_DAY_KCAL && !fastingDays.has(d)).map(([d]) => d));
 
   const dayLines = Object.entries(byDay).map(([d, items]) => {
     const kcalTotal = dayTotals[d];

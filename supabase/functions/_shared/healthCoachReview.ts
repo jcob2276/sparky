@@ -1,3 +1,4 @@
+import { isRunSport } from '@vanguard/domain';
 import { reviewHealthGoal } from './healthGoalProgress.ts';
 import { dailyTrainingDecision } from './healthCoachInputs.ts';
 import {
@@ -41,7 +42,7 @@ export function buildHealthCoachReview(input: BuildReviewInput): HealthCoachWeek
   // 2. Activity totals within the week
   const runs = (context.sources.strava_activities_clean.value ?? []).filter((row: CoachRow) => {
     const d = formatWarsawDate(String(row.start_date ?? ''));
-    return /^(Run|TrailRun|VirtualRun)$/i.test(String(row.sport_type ?? '')) && d >= weekStart && d <= weekEnd && d <= context.localDate;
+    return isRunSport(String(row.sport_type ?? '')) && d >= weekStart && d <= weekEnd && d <= context.localDate;
   });
   const totalMeters = runs.reduce((sum: number, r: CoachRow) => sum + (Number(r.distance) || 0), 0);
   const cardioKm = Math.round((totalMeters / 1000) * 10) / 10;

@@ -1,4 +1,4 @@
-import { HEALTH_THRESHOLDS } from '@vanguard/domain';
+import { HEALTH_THRESHOLDS, MIN_FULL_DAY_KCAL } from '@vanguard/domain';
 /** Pure core of the AI period comparison: facts per period, the prompt, and response shaping (no Deno or DB imports). */
 
 export interface PeriodRows {
@@ -74,8 +74,6 @@ export interface PeriodCompareResult {
 }
 
 export const MAX_ITEMS = 3
-/** Dzień jedzenia poniżej tej liczby kcal to prawie na pewno niepełny zapis (np. wpisane dopiero wieczorem). */
-export const MIN_FULL_DAY_KCAL = 1000
 const STRAVA_FRESH_DAYS = 2
 const MAX_NOTES = 7
 const MAX_JOURNAL = 12

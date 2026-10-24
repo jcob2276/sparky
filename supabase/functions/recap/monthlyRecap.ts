@@ -1,3 +1,4 @@
+import { isRunSport } from "@vanguard/domain";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { Database } from "../_shared/database.types.ts";
 import { deepseekChat, parseJsonFromContent } from "../_shared/deepseek.ts";
@@ -153,7 +154,7 @@ export async function runMonthlyRecap(
   });
 
   // ── Strava summary ───────────────────────────────────────────────────
-  const runs = strava.filter((a) => ["Run", "TrailRun", "VirtualRun"].includes(a.sport_type ?? ""));
+  const runs = strava.filter((a) => isRunSport(a.sport_type));
   const gym = strava.filter((a) => ["WeightTraining", "Workout"].includes(a.sport_type ?? ""));
   const totalKm = runs.reduce((s: number, r: StravaActivityRow) => s + (r.distance || 0), 0) / 1000;
   const stravaLine = [

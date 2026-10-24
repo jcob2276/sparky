@@ -1,3 +1,4 @@
+import { isRunSport } from '../training/runSports.ts';
 import { BodyMetricRow, mergeLatestBodyMetrics, effectiveWaistForNavy, navyBodyFatPct, computeBmi } from './body.ts';
 import { DecayedLiftPR, extractLiftPRs } from './lifts.ts';
 
@@ -74,7 +75,7 @@ export function cooperBestKm(strava: Array<{ best_efforts?: unknown; distance?: 
       }
     }
     const sport = a.sport_type || '';
-    if (['Run', 'TrailRun', 'VirtualRun'].includes(sport)) {
+    if (isRunSport(sport)) {
       const min = (a.moving_time || 0) / 60;
       if (min >= 11.5 && min <= 12.5 && a.distance) {
         const km = a.distance / 1000;
