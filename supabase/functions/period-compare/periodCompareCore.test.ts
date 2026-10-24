@@ -115,3 +115,26 @@ Deno.test('the system prompt asks for concrete nights and keeps one-sided data g
   assertStringIncludes(COMPARE_SYSTEM_PROMPT, 'to uwaga o danych')
 })
 
+
+Deno.test('a day under 1000 kcal counts as incomplete and stays out of food averages', () => {
+  const nutrition = [
+    { date: '2026-10-19', calories: 2400, protein: 150, fiber: 20, avg_food_quality: 40 },
+    { date: '2026-10-20', calories: 864, protein: 30, fiber: 2, avg_food_quality: 30 },
+  ]
+  const f = buildPeriodFacts('A', '2026-10-19', '2026-10-25', { ...empty, nutrition }, '2026-10-24')
+  assertEquals(f.food?.days, 1)
+  assertEquals(f.food?.kcal, 2400)
+})
+
+Deno.test('0 km is a real result only when Strava was synced recently', () => {
+  const fresh = buildPeriodFacts('A', '2026-10-19', '2026-10-25', empty, '2026-10-24', '2026-10-24T09:59:00Z')
+  const stale = buildPeriodFacts('A', '2026-10-19', '2026-10-25', empty, '2026-10-24', '2026-10-10T09:59:00Z')
+  assertEquals(fresh.training.stravaFresh, true)
+  assertEquals(stale.training.stravaFresh, false)
+  assertStringIncludes(buildCompareUserPrompt(fresh, fresh), 'Strava jest zsynchronizowana')
+})
+
+Deno.test('the system prompt keeps advice consistent with the title and with improvements', () => {
+  assertStringIncludes(COMPARE_SYSTEM_PROMPT, 'Zalecenie nie może przeczyć własnemu tytułowi')
+  assertStringIncludes(COMPARE_SYSTEM_PROMPT, 'Nie zalecaj więcej czegoś, co w A jest już lepsze niż w B')
+})
