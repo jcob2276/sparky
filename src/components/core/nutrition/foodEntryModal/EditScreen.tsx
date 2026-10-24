@@ -1,7 +1,9 @@
-import { ArrowLeft, Trash2 } from 'lucide-react';
+import { ArrowLeft, Trash2, X } from 'lucide-react';
 import { Pressable } from '../../../ui/ControlPrimitives';
 import type { RecentEntry } from '../hooks/useFoodEntryData';
+import { useEntryPhoto } from '../hooks/useEntryPhoto';
 import { useHaptics } from '../../../../hooks/useHaptics';
+import EditPhotoControls from './EditPhotoControls';
 import {
   MacroCardsRow,
   MealTypeSegmentedPicker,
@@ -10,8 +12,13 @@ import {
 } from './FoodEntrySharedComponents';
 
 interface EditScreenProps {
+  userId?: string;
   editingEntry: RecentEntry;
   setEditingEntry: (entry: RecentEntry | null) => void;
+  /** True when the screen was reached from the browse list, so "back" has somewhere to go. */
+  canGoBack: boolean;
+  onClose: () => void;
+  onPhotoChanged?: () => void;
   editGrams: string;
   setEditGrams: (v: string) => void;
   editMealType: string;
@@ -24,9 +31,23 @@ interface EditScreenProps {
   deleteEntry: () => void;
 }
 
+/** Meal photo as the backdrop of the whole sheet: sharp at the top, fading into the surface below. */
+function PhotoBackdrop({ url }: { url: string }) {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <img src={url} alt="" className="h-full w-full scale-110 object-cover" />
+      <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-surface/80 to-surface/95" />
+    </div>
+  );
+}
+
 export default function EditScreen({
+  userId,
   editingEntry,
   setEditingEntry,
+  canGoBack,
+  onClose,
+  onPhotoChanged,
   editGrams,
   setEditGrams,
   editMealType,
@@ -39,49 +60,73 @@ export default function EditScreen({
   deleteEntry,
 }: EditScreenProps) {
   const haptics = useHaptics();
+  const photo = useEntryPhoto(userId, editingEntry, onPhotoChanged);
+  const onPhoto = photo.photoUrl != null;
+  const titleTone = onPhoto ? 'text-white drop-shadow-md' : 'text-text-primary';
+  const mutedTone = onPhoto ? 'text-white/80 drop-shadow' : 'text-text-muted';
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      {photo.photoUrl && <PhotoBackdrop url={photo.photoUrl} />}
+
+      <div className="relative flex shrink-0 items-center justify-between px-3 pt-3">
+        {canGoBack ? (
+          <Pressable
+            variant="ghost"
+            size="sm"
+            onClick={() => setEditingEntry(null)}
+            className={`flex min-h-11 items-center gap-1.5 px-2 active:scale-95 ${mutedTone}`}
+          >
+            <ArrowLeft size={16} />
+            <span className="text-xs font-bold">Wróć</span>
+          </Pressable>
+        ) : (
+          <span className={`px-2 text-2xs font-semibold tracking-wide ${mutedTone}`}>Edytuj wpis</span>
+        )}
         <Pressable
           variant="ghost"
           size="sm"
-          onClick={() => setEditingEntry(null)}
-          className="flex items-center gap-1.5 px-0 py-0 text-text-muted hover:text-text-primary transition-colors active:scale-95"
+          onClick={onClose}
+          aria-label="Zamknij"
+          className={`min-h-11 min-w-11 p-1 ${mutedTone}`}
         >
-          <ArrowLeft size={16} />
-          <span className="text-xs font-bold">Wróć</span>
+          <X size={18} />
         </Pressable>
       </div>
 
-      <div>
-        <p className="text-lg font-semibold text-text-primary leading-tight tracking-tight">{editingEntry.name}</p>
-        {editingEntry.brand && (
-          <p className="mt-0.5 text-xs font-medium text-text-muted">{editingEntry.brand}</p>
-        )}
+      <div className="relative min-h-0 flex-1 space-y-5 overflow-y-auto px-5 pb-4 pt-1">
+        <div className={onPhoto ? 'pt-10' : ''}>
+          <p className={`text-2xl font-semibold leading-tight tracking-tight ${titleTone}`}>{editingEntry.name}</p>
+          {editingEntry.brand && <p className={`mt-0.5 text-xs font-medium ${mutedTone}`}>{editingEntry.brand}</p>}
+        </div>
+
+        <EditPhotoControls
+          hasPhoto={onPhoto}
+          busy={photo.busy}
+          onPick={(file) => void photo.setPhoto(file)}
+          onRemove={() => void photo.removePhoto()}
+        />
+
+        <PortionStepper grams={editGrams} setGrams={setEditGrams} />
+        <MealTypeSegmentedPicker mealType={editMealType} setMealType={setEditMealType} />
+        <MacroCardsRow preview={editPreview} />
+
+        {error && <p className="text-center text-xs font-medium text-danger">{error}</p>}
       </div>
 
-      <PortionStepper grams={editGrams} setGrams={setEditGrams} />
-
-      <MealTypeSegmentedPicker mealType={editMealType} setMealType={setEditMealType} />
-
-      <MacroCardsRow preview={editPreview} />
-
-      {error && <p className="text-xs text-danger text-center font-medium">{error}</p>}
-
-      <div className="flex gap-2 pt-1">
+      <div className="relative flex shrink-0 gap-2 border-t border-border-custom/40 bg-surface/70 px-5 py-3 backdrop-blur-xl">
         <Pressable
           type="button"
           variant="ghost"
+          aria-label="Usuń wpis"
           onClick={() => {
             haptics.medium();
             deleteEntry();
           }}
           loading={editDeleting}
-          className="flex items-center gap-1.5 rounded-2xl border border-danger/30 bg-danger/10 px-4 text-xs font-semibold text-danger hover:bg-danger/20 active:scale-95 ui-interactive shadow-none"
+          className="flex min-h-12 w-12 items-center justify-center rounded-2xl border border-danger/30 bg-danger/10 text-danger shadow-none hover:bg-danger/20 active:scale-95 ui-interactive"
         >
-          <Trash2 size={15} />
-          <span>Usuń</span>
+          <Trash2 size={18} />
         </Pressable>
         <Pressable
           type="button"
@@ -91,7 +136,7 @@ export default function EditScreen({
             saveEntryEdit();
           }}
           loading={editSaving}
-          className="flex-1 rounded-2xl py-3 text-sm font-semibold active:scale-[0.98] ui-interactive shadow-sm"
+          className="min-h-12 flex-1 rounded-2xl text-sm font-semibold shadow-sm active:scale-[0.98] ui-interactive"
         >
           Zapisz zmiany
         </Pressable>

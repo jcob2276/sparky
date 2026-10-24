@@ -160,11 +160,8 @@ export default function MealComposer({
           <FoodEntryModal
             initialEditEntry={editEntry}
             onClose={() => setEditEntry(null)}
-            onSaved={() => {
-              setEditEntry(null);
-              void c.refreshAfterSave();
-              onSaved?.();
-            }}
+            onPhotoChanged={() => void c.refreshAfterSave()}
+            onSaved={() => { setEditEntry(null); void c.refreshAfterSave(); onSaved?.(); }}
           />
         </Suspense>
       )}

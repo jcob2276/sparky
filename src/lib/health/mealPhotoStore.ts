@@ -28,6 +28,18 @@ export async function saveMealPhoto(userId: string, mealGroupId: string, image: 
   }
 }
 
+/** Removes the photo of a meal (row first, so a failed file delete leaves at worst an orphaned file). */
+export async function deleteMealPhoto(userId: string, mealGroupId: string): Promise<void> {
+  const { error } = await supabase
+    .from('nutrition_meal_photos')
+    .delete()
+    .eq('user_id', userId)
+    .eq('meal_group_id', mealGroupId);
+  if (error) throw error;
+  const { error: removeError } = await supabase.storage.from(BUCKET).remove([`${userId}/${mealGroupId}.jpg`]);
+  if (removeError) console.warn('[mealPhotoStore] photo file was not removed', removeError);
+}
+
 /** Signed URLs for the photos of the given meals, keyed by meal_group_id. Meals without a photo are absent. */
 export async function fetchMealPhotoUrls(userId: string, mealGroupIds: string[]): Promise<Record<string, string>> {
   if (!mealGroupIds.length) return {};

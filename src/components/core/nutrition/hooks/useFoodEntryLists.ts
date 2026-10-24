@@ -21,7 +21,7 @@ async function fetchFavorites(userId: string): Promise<Favorite[]> {
 async function fetchRecent(userId: string): Promise<RecentEntry[]> {
   const { data, error } = await supabase
     .from('daily_food_entries')
-    .select('id, name, brand, calories, protein, carbs, fat, amount, date')
+    .select('id, name, brand, calories, protein, carbs, fat, amount, date, meal_group_id')
     .eq('user_id', userId)
     .order('logged_at', { ascending: false, nullsFirst: false })
     .order('created_at', { ascending: false })

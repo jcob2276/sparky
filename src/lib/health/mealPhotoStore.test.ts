@@ -1,26 +1,29 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { upload, remove, upsert, createSignedUrls, selectIn, from, storageFrom } = vi.hoisted(() => {
+const { upload, remove, upsert, createSignedUrls, selectIn, deleteEq, from, storageFrom } = vi.hoisted(() => {
   const upload = vi.fn();
   const remove = vi.fn();
   const upsert = vi.fn();
   const createSignedUrls = vi.fn();
   const selectIn = vi.fn();
   const select = vi.fn(() => ({ eq: () => ({ in: selectIn }) }));
+  const deleteEq = vi.fn();
+  const del = vi.fn(() => ({ eq: () => ({ eq: deleteEq }) }));
   return {
     upload,
     remove,
     upsert,
     createSignedUrls,
     selectIn,
-    from: vi.fn(() => ({ upsert, select })),
+    deleteEq,
+    from: vi.fn(() => ({ upsert, select, delete: del })),
     storageFrom: vi.fn(() => ({ upload, remove, createSignedUrls })),
   };
 });
 
 vi.mock('../supabase', () => ({ supabase: { from, storage: { from: storageFrom } } }));
 
-import { fetchMealPhotoUrls, saveMealPhoto } from './mealPhotoStore';
+import { deleteMealPhoto, fetchMealPhotoUrls, saveMealPhoto } from './mealPhotoStore';
 
 describe('saveMealPhoto', () => {
   beforeEach(() => {
@@ -78,5 +81,32 @@ describe('fetchMealPhotoUrls', () => {
       'meal-1': 'https://signed/meal-1',
     });
     expect(createSignedUrls).toHaveBeenCalledWith(['user-1/meal-1.jpg'], 3600);
+  });
+});
+
+describe('deleteMealPhoto', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    deleteEq.mockResolvedValue({ error: null });
+    remove.mockResolvedValue({ error: null });
+  });
+
+  it('deletes the row and then the file', async () => {
+    await deleteMealPhoto('user-1', 'meal-1');
+    expect(from).toHaveBeenCalledWith('nutrition_meal_photos');
+    expect(remove).toHaveBeenCalledWith(['user-1/meal-1.jpg']);
+  });
+
+  it('keeps the file when the row cannot be deleted', async () => {
+    deleteEq.mockResolvedValue({ error: new Error('rls') });
+    await expect(deleteMealPhoto('user-1', 'meal-1')).rejects.toThrow('rls');
+    expect(remove).not.toHaveBeenCalled();
+  });
+
+  it('does not fail when only the file removal fails', async () => {
+    remove.mockResolvedValue({ error: new Error('gone') });
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    await expect(deleteMealPhoto('user-1', 'meal-1')).resolves.toBeUndefined();
+    warn.mockRestore();
   });
 });
