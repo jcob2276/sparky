@@ -26,6 +26,8 @@ export interface ExportData {
   stravaRawData: { strava_id: number; raw_data: { description?: string; athlete_comment?: string } | null }[];
   awSummary: Tables<'aw_daily_summary'>[];
   phoneUsageData: Tables<'phone_usage_daily'>[];
+  /** Aktualny dolny cel białka z `nutrition_targets` (g/dzień); brak, gdy nie ustawiono. */
+  proteinTargetG?: number | null;
 }
 
 export async function fetchExportData(
@@ -82,7 +84,11 @@ export async function fetchExportData(
     supabase.from('phone_usage_daily').select('*').eq('user_id', session.user.id).gte('date', dateRange.from).lte('date', dateRange.to).order('date', { ascending: true })
   ]);
 
+  const { data: targetRow } = await supabase.from('nutrition_targets').select('protein_floor_g').eq('user_id', session.user.id).order('date', { ascending: false }).limit(1).maybeSingle();
+  const proteinTarget = Number(targetRow?.protein_floor_g);
+
   return {
+    proteinTargetG: Number.isFinite(proteinTarget) && proteinTarget > 0 ? proteinTarget : null,
     sessions: (sessions ?? []) as Tables<'workout_sessions'>[],
     bodyMetrics: (bodyMetrics ?? []) as Tables<'body_metrics'>[],
     food: (food ?? []) as Tables<'daily_food_entries'>[],

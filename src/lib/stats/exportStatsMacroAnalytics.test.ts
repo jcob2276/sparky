@@ -40,6 +40,7 @@ describe('renderMacroAnalytics', () => {
         },
       ],
       ouraEnhanced: [{ vo2_max: 48.5 }],
+      proteinTargetG: 155,
     } as unknown as ExportData;
 
     const res = renderMacroAnalytics({
@@ -59,8 +60,10 @@ describe('renderMacroAnalytics', () => {
     expect(res).toContain('MACIERZ ROZJAZDU TOŻSAMOŚCI');
     expect(res).toContain('PIPELINE SPRZEDAŻY & TONAZ REALIZACJI');
     expect(res).toContain('ANATOMIA PĘTLI SABOTAŻU & RECOVERY');
-    expect(res).toContain('GOTOWOŚĆ BIEGOWA: MARATON 4 PAŹDZIERNIKA');
+    expect(res).toContain('BIEGANIE I REGENERACJA');
     expect(res).toContain('DŹWIGNIA NA KOLEJNY TYDZIEŃ');
-    expect(res).toContain('No-Phone Morning');
+    expect(res).toContain('Białko: 108g / 155g');
+    expect(res).not.toContain('No-Phone Morning');
+    expect(res).not.toContain('Wiek sprawnościowy');
   });
 });
