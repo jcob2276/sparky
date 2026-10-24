@@ -21,6 +21,11 @@ const mockState = vi.hoisted(() => ({
   },
 }));
 
+vi.mock('../../lib/lifeTargetsApi', async () => {
+  const { DEFAULT_LIFE_TARGETS } = await import('../../lib/lifeGoals');
+  return { useLifeTargets: () => DEFAULT_LIFE_TARGETS };
+});
+
 vi.mock('../../store/useStore', () => ({
   useUserId: () => mockState.userId,
 }));

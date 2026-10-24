@@ -3,7 +3,8 @@ import { ArrowRight, CalendarDays, Check, Gauge, Plus, Target } from 'lucide-rea
 import { getTodayWarsaw } from '../../lib/date';
 import { addProjectActionToTopFive } from '../../lib/dailyTopFive';
 import { notify } from '../../lib/notify';
-import { PILLARS, PILLAR_META, NORTH_STAR_SPHERES, type PillarId } from '../../lib/projects/pillars';
+import { useLifeTargets } from '../../lib/lifeTargetsApi';
+import { PILLARS, PILLAR_META, buildNorthStarSpheres, type PillarId } from '../../lib/projects/pillars';
 import { Pressable } from '../ui/ControlPrimitives';
 import { useDashboardContext } from '../core/context/DashboardContext';
 import { useProjectsContext } from './context/projectsContextStore';
@@ -94,11 +95,11 @@ function ProjectRowView({ project, pillar }: { project: ProjectRow; pillar: Pill
 }
 
 function PillarSection({ pillar }: { pillar: PillarId }) {
-  const { activeProjects, projectPillar, lifeGoals } = useProjectsContext();
+  const { activeProjects, projectPillar, lifeGoals, userId } = useProjectsContext();
   const meta = PILLAR_META[pillar];
   const Icon = meta.icon;
   const keys = GOAL_KEYS[pillar];
-  const northStar = NORTH_STAR_SPHERES[pillar];
+  const northStar = buildNorthStarSpheres(useLifeTargets(userId))[pillar];
   const direction = lifeGoals?.[keys.goal] || northStar.affirmation;
   const targetDays = daysUntil(lifeGoals?.[keys.date]);
   const projects = activeProjects

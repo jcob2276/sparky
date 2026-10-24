@@ -1,11 +1,16 @@
 /**
- * Cele ciała w jednym miejscu: wszystkie teksty (Kronika, karty sfer, filary, karta Trening, prognoza tłuszczu) czytają
- * stąd, a cel tłuszczu jest też w Ustawieniach (`nutrition_profile.goal_body_fat`), który ma tę samą wartość.
- * Zmieniając cel, zmień tu i w Ustawieniach, a w Fundamencie tekst wizji (widzi go Oracle).
+ * Cele życiowe: wartości awaryjne i formatowanie tekstów. Właściciele wartości są w bazie (`docs/SINGLE_SOURCE.md`):
+ * tłuszcz w `nutrition_profile.goal_body_fat`, wyciskanie i dochód w `life_targets`. Komponenty czytają je przez
+ * `useLifeTargets`; stałe poniżej służą tylko do czasu załadowania i gdy wiersza nie ma.
  */
-export const GOAL_BODY_FAT_PCT = 14;
-export const GOAL_BENCH_KG = 100;
-const GOAL_NET_INCOME_PLN = 15000;
-export const GOAL_INCOME_LABEL = `${GOAL_NET_INCOME_PLN.toLocaleString('pl-PL')} zł netto / msc`;
-export const GOAL_INCOME_SHORT = `${GOAL_NET_INCOME_PLN / 1000}k zł / msc`;
-export const GOAL_BODY_SHORT = `${GOAL_BODY_FAT_PCT}% BF · ${GOAL_BENCH_KG} kg`;
+export interface LifeTargets {
+  bodyFatPct: number;
+  benchKg: number;
+  incomeNetPln: number;
+}
+
+export const DEFAULT_LIFE_TARGETS: LifeTargets = { bodyFatPct: 14, benchKg: 100, incomeNetPln: 15000 };
+
+export const incomeLabel = (t: LifeTargets) => `${t.incomeNetPln.toLocaleString('pl-PL')} zł netto / msc`;
+export const incomeShort = (t: LifeTargets) => `${t.incomeNetPln / 1000}k zł / msc`;
+export const bodyShort = (t: LifeTargets) => `${t.bodyFatPct}% BF · ${t.benchKg} kg`;

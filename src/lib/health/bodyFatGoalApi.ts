@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../supabase';
 import { getTodayWarsaw, shiftDateStr } from '../date';
-import { GOAL_BODY_FAT_PCT } from '../lifeGoals';
+import { fetchLifeTargets } from '../lifeTargetsApi';
 import { buildBodyFatGoal, type BodyFatGoal, type DatedPoint } from './bodyFatGoal';
 
 
@@ -16,7 +16,7 @@ function series(rows: Array<{ date: string | null }>, pick: (row: never) => unkn
   });
 }
 
-/** Cel tłuszczu z ustawień (nutrition_profile), a gdy go nie ma, 15%; historia pomiarów z ostatnich 6 miesięcy. */
+/** Cel tłuszczu z `fetchLifeTargets` (właściciel: nutrition_profile); historia pomiarów z ostatnich 6 miesięcy. */
 export function useBodyFatGoal(userId: string | undefined) {
   return useQuery<BodyFatGoal>({
     queryKey: ['body-fat-goal', userId],
@@ -24,18 +24,17 @@ export function useBodyFatGoal(userId: string | undefined) {
     staleTime: 5 * 60_000,
     queryFn: async () => {
       const today = getTodayWarsaw();
-      const [metrics, profile] = await Promise.all([
+      const [metrics, targets] = await Promise.all([
         supabase.from('body_metrics').select('date, weight, waist, body_fat').eq('user_id', userId as string).gte('date', shiftDateStr(today, -HISTORY_DAYS)).order('date', { ascending: true }),
-        supabase.from('nutrition_profile').select('goal_body_fat').eq('user_id', userId as string).maybeSingle(),
+        fetchLifeTargets(userId as string),
       ]);
       if (metrics.error) throw metrics.error;
       const rows = metrics.data ?? [];
-      const goal = num(profile.data?.goal_body_fat) ?? GOAL_BODY_FAT_PCT;
       return buildBodyFatGoal({
         bf: series(rows, (r: { body_fat: unknown }) => r.body_fat),
         weight: series(rows, (r: { weight: unknown }) => r.weight),
         waist: series(rows, (r: { waist: unknown }) => r.waist),
-        goal,
+        goal: targets.bodyFatPct,
         today,
       });
     },

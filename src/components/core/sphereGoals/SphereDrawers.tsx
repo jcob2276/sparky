@@ -1,5 +1,7 @@
 import { Pressable } from '../../ui/ControlPrimitives';
-import { NORTH_STAR_SPHERES, type PillarId } from '../../../lib/projects/pillars';
+import { buildNorthStarSpheres, type PillarId } from '../../../lib/projects/pillars';
+import { useLifeTargets } from '../../../lib/lifeTargetsApi';
+import { useUserId } from '../../../store/useStore';
 import { PILLAR_CONFIG } from './sphereGoalsConfig';
 
 interface SphereDetailsProps {
@@ -9,7 +11,7 @@ interface SphereDetailsProps {
 
 export function SphereDetailsDrawer({ pillar, onClose }: SphereDetailsProps) {
   const cfg = PILLAR_CONFIG[pillar];
-  const goal = NORTH_STAR_SPHERES[pillar];
+  const goal = buildNorthStarSpheres(useLifeTargets(useUserId() ?? ''))[pillar];
 
   return (
     <div className="rounded-2xl border border-border-custom/50 bg-surface-2/60 p-3.5 space-y-2.5 animate-fadeIn">

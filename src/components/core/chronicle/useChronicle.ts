@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getTodayWarsaw } from '../../../lib/date';
 import { useUserId } from '../../../store/useStore';
+import { useLifeTargets } from '../../../lib/lifeTargetsApi';
 import { buildComparisonWindow, buildPeriodWindow, shiftPeriod, type ChroniclePeriod } from '../../../lib/chronicle/periods';
 import { fetchCialoRows, fetchDuchRows, fetchKontoRows } from '../../../lib/chronicle/chronicleApi';
 import { buildCialoSummary, buildDuchSummary, buildKontoSummary } from '../../../lib/chronicle/summaries';
@@ -13,6 +14,7 @@ import type { ChronicleGoal, ChronicleSummaryData } from '../../../lib/chronicle
  */
 export function useChronicle(goal: ChronicleGoal, period: ChroniclePeriod, offset = 0, compareOffset = 1) {
   const userId = useUserId();
+  const targets = useLifeTargets(userId);
   const today = getTodayWarsaw();
   const win = useMemo(
     () => period === 'sprint'
@@ -24,11 +26,11 @@ export function useChronicle(goal: ChronicleGoal, period: ChroniclePeriod, offse
   const to = win.end > win.prevEnd ? win.end : win.prevEnd;
 
   const query = useQuery({
-    queryKey: ['chronicle', goal, userId ?? '', period, win.start, win.prevStart],
+    queryKey: ['chronicle', goal, userId ?? '', period, win.start, win.prevStart, targets],
     queryFn: async (): Promise<ChronicleSummaryData> => {
-      if (goal === 'cialo') return buildCialoSummary(await fetchCialoRows(userId!, from, to), win);
+      if (goal === 'cialo') return buildCialoSummary(await fetchCialoRows(userId!, from, to), win, targets);
       if (goal === 'duch') return buildDuchSummary(await fetchDuchRows(userId!, from, to), win);
-      return buildKontoSummary(await fetchKontoRows(userId!, from, to), win, today);
+      return buildKontoSummary(await fetchKontoRows(userId!, from, to), win, today, targets);
     },
     enabled: !!userId,
     staleTime: 60_000,

@@ -3,13 +3,13 @@ import { Shield, Zap, Wallet, ChevronDown, ChevronUp, Compass, ArrowRight } from
 import { useWeeklyBodyPulse } from '../../lib/biometricsApi';
 import { useWeeklyWinsMap } from '../../lib/weeklyWinsMap';
 import { useDirectionContext } from '../lifestyle/direction/hooks/useDirectionContext';
-import { NORTH_STAR_SPHERES, type PillarId } from '../../lib/projects/pillars';
+import { buildNorthStarSpheres, type PillarId } from '../../lib/projects/pillars';
 import { useUserId } from '../../store/useStore';
 import { getTodayWarsaw } from '../../lib/date';
 import { getWeekStartWarsaw } from '../../lib/growth/growth';
 import { Pressable } from '../ui/ControlPrimitives';
 import DataStateNotice from './DataStateNotice';
-import { GOAL_BODY_SHORT, GOAL_INCOME_SHORT } from '../../lib/lifeGoals';
+import { useLifeTargets } from '../../lib/lifeTargetsApi';
 
 const PILLAR_ORDER: PillarId[] = ['konto', 'duch', 'cialo'];
 
@@ -20,7 +20,6 @@ const PILLAR_CONFIG = {
     borderColor: 'border-warning/30',
     bgActive: 'bg-warning/10',
     badgeText: 'text-warning',
-    shortMetric: GOAL_INCOME_SHORT,
   },
   duch: {
     icon: Zap,
@@ -28,7 +27,6 @@ const PILLAR_CONFIG = {
     borderColor: 'border-primary/30',
     bgActive: 'bg-primary/10',
     badgeText: 'text-primary',
-    shortMetric: 'Relacje',
   },
   cialo: {
     icon: Shield,
@@ -36,7 +34,6 @@ const PILLAR_CONFIG = {
     borderColor: 'border-success/30',
     bgActive: 'bg-success/10',
     badgeText: 'text-success',
-    shortMetric: GOAL_BODY_SHORT,
   },
 };
 
@@ -58,7 +55,7 @@ function WeeklySphereDetailsDrawer({
   onClose,
 }: SphereExpandedProps) {
   const cfg = PILLAR_CONFIG[pillar];
-  const goal = NORTH_STAR_SPHERES[pillar];
+  const goal = buildNorthStarSpheres(useLifeTargets(useUserId() ?? ''))[pillar];
 
   let historySummary: string | null;
   let weekGoalText: string;
@@ -117,6 +114,7 @@ function WeeklySphereDetailsDrawer({
 
 export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard() {
   const userId = useUserId() ?? '';
+  const spheres = buildNorthStarSpheres(useLifeTargets(userId));
   const today = getTodayWarsaw();
   const weekStart = getWeekStartWarsaw(today);
 
@@ -198,7 +196,7 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
                   {value}
                 </p>
                 <p className="mt-0.5 truncate text-2xs font-medium text-text-muted">
-                  cel: {cfg.shortMetric}
+                  cel: {spheres[pillar].short}
                 </p>
               </div>
 

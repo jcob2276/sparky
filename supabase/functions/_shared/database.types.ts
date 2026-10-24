@@ -3788,6 +3788,27 @@ export type Database = {
           },
         ]
       }
+      life_targets: {
+        Row: {
+          bench_goal_kg: number
+          income_goal_net_pln: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bench_goal_kg?: number
+          income_goal_net_pln?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bench_goal_kg?: number
+          income_goal_net_pln?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       life_goals: {
         Row: {
           about_me: string | null

@@ -3,9 +3,8 @@ import type { PeriodWindow } from './periods';
 import { CLOSER_WEEKLY_TARGETS } from '../closer/closerDayModel';
 import { shiftDateStr } from '../date';
 import { formatValue, makeTile, type ChronicleSummaryData } from './summaryTypes';
-import { GOAL_BENCH_KG, GOAL_BODY_FAT_PCT, GOAL_INCOME_LABEL } from '../lifeGoals';
+import { DEFAULT_LIFE_TARGETS, incomeLabel, type LifeTargets } from '../lifeGoals';
 
-const GOAL_BF = GOAL_BODY_FAT_PCT;
 
 export interface CialoRows {
   weight: DatedValue[];
@@ -70,7 +69,7 @@ function cialoFoodTiles(rows: CialoRows, win: PeriodWindow) {
   ];
 }
 
-export function buildCialoSummary(rows: CialoRows, win: PeriodWindow): ChronicleSummaryData {
+export function buildCialoSummary(rows: CialoRows, win: PeriodWindow, targets: LifeTargets = DEFAULT_LIFE_TARGETS): ChronicleSummaryData {
   const { start, end, prevStart, prevEnd } = win;
   const weightNow = periodValue(rows.weight, start, end, 'last');
   const fatNow = periodValue(rows.bodyFat, start, end, 'last');
@@ -85,8 +84,8 @@ export function buildCialoSummary(rows: CialoRows, win: PeriodWindow): Chronicle
       title: 'Ciało',
       pct: null,
       hint: fatShown == null
-        ? `Brak pomiaru tłuszczu. Cel: ${GOAL_BODY_FAT_PCT}% BF i ${GOAL_BENCH_KG} kg w wyciskaniu.`
-        : `Tłuszcz ${formatValue(fatShown, 1, '%')} → cel ${GOAL_BF}%: brakuje ${formatValue(Math.max(0, fatShown - GOAL_BF), 1)} pkt`,
+        ? `Brak pomiaru tłuszczu. Cel: ${targets.bodyFatPct}% BF i ${targets.benchKg} kg w wyciskaniu.`
+        : `Tłuszcz ${formatValue(fatShown, 1, '%')} → cel ${targets.bodyFatPct}%: brakuje ${formatValue(Math.max(0, fatShown - targets.bodyFatPct), 1)} pkt`,
     },
     tiles: [
       ...cialoSleepTiles(rows, win),
@@ -155,7 +154,7 @@ function rate(part: number | null, whole: number | null): number | null {
   return part == null || whole == null || whole <= 0 ? null : Math.round((part / whole) * 100);
 }
 
-export function buildKontoSummary(rows: KontoRows, win: PeriodWindow, today: string): ChronicleSummaryData {
+export function buildKontoSummary(rows: KontoRows, win: PeriodWindow, today: string, targets: LifeTargets = DEFAULT_LIFE_TARGETS): ChronicleSummaryData {
   const { start, end, prevStart, prevEnd } = win;
   const series = (pick: (log: KontoRows['logs'][number]) => number): DatedValue[] => rows.logs.map((log) => ({ date: log.date, value: pick(log) }));
   const dials = series((l) => l.dials);
@@ -178,7 +177,7 @@ export function buildKontoSummary(rows: KontoRows, win: PeriodWindow, today: str
     goalLine: {
       title: 'Konto',
       pct: bookedNow == null || targetBooked === 0 ? null : Math.min(100, Math.round((bookedNow / targetBooked) * 100)),
-      hint: `Umówieni ${bookedNow ?? 0} z ${targetBooked} · cel ${GOAL_INCOME_LABEL}`,
+      hint: `Umówieni ${bookedNow ?? 0} z ${targetBooked} · cel ${incomeLabel(targets)}`,
     },
     tiles: [
       makeTile({ group: 'Lejek', label: 'Rozmowy odebrane', current: sum(dials, start, end), previous: sum(dials, prevStart, prevEnd), higherIsBetter: true }),
