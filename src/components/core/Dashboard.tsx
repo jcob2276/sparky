@@ -13,7 +13,7 @@ import { TIMEZONE } from '../../lib/date';
 import { Suspense, lazy, useMemo, useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '../../store/useStore';
-import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Eye, GraduationCap, Settings, Spade, TrendingUp } from 'lucide-react';
+import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Eye, GraduationCap, Settings, TrendingUp } from 'lucide-react';
 import { dashboardKeys } from '../../lib/queryKeys';
 
 import { ErrorBoundary } from './ErrorBoundary';
@@ -93,7 +93,6 @@ function DashboardContent() {
     { label: 'Rozwój', icon: GraduationCap, action: () => s.navigate('/rozwoj'), route: 'rozwoj' },
     { label: 'Pocket', icon: BookOpen, action: () => s.navigate('/links'), route: 'links' },
     { label: 'Inwestycje', icon: TrendingUp, action: () => s.navigate('/inwestycje'), route: 'inwestycje' },
-    { label: 'Poker', icon: Spade, action: () => s.navigate('/poker'), route: 'poker' },
     { label: 'Wzrok', icon: Eye, action: () => s.navigate('/optics') },
     { label: 'Ustawienia', icon: Settings, action: () => s.navigate('/settings'), route: 'settings' },
   ], [s]);
