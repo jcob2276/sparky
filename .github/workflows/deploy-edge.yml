@@ -1,0 +1,53 @@
+name: Deploy edge function
+
+# Manual only: a deploy changes production behaviour, so it is always an explicit decision.
+# Needs the repository secret SUPABASE_ACCESS_TOKEN (Supabase dashboard -> Account -> Access Tokens).
+on:
+  workflow_dispatch:
+    inputs:
+      function:
+        description: Name of the function under supabase/functions to deploy (e.g. parse-food-nl)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-edge-${{ inputs.function }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: pdvqkgfsqziqlhptatgf
+      FUNCTION_NAME: ${{ inputs.function }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate function name
+        run: |
+          if [[ ! "$FUNCTION_NAME" =~ ^[a-z0-9-]+$ ]] || [ ! -f "supabase/functions/$FUNCTION_NAME/index.ts" ]; then
+            echo "Unknown function: $FUNCTION_NAME" >&2
+            exit 1
+          fi
+
+      - name: Require the access token
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "Missing repository secret SUPABASE_ACCESS_TOKEN" >&2
+            exit 1
+          fi
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # verify_jwt and the import map come from supabase/config.toml ([functions.<name>]).
+      - name: Deploy
+        run: supabase functions deploy "$FUNCTION_NAME" --project-ref "$PROJECT_REF" --use-api
+
+      - name: Record the deployed commit
+        run: echo "Deployed $FUNCTION_NAME at $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
