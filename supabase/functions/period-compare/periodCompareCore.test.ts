@@ -1,5 +1,6 @@
 import { assertEquals, assertStringIncludes } from 'https://deno.land/std@0.208.0/assert/mod.ts'
-import { COMPARE_SYSTEM_PROMPT, averageBedtime, buildCompareUserPrompt, buildPeriodFacts, normalizeCompare, warsawDay, type PeriodRows } from './periodCompareCore.ts'
+import { averageBedtime, buildPeriodFacts, warsawDay, type PeriodRows } from './periodCompareCore.ts'
+import { COMPARE_SYSTEM_PROMPT, buildCompareUserPrompt, normalizeCompare } from './periodComparePrompt.ts'
 
 const night = (date: string, hours: number | null, score: number | null, hrv: number | null, rhr: number | null, readiness: number | null, bed: string | null = null, wake: string | null = null) => ({
   date, total_sleep_hours: hours, sleep_score: score, hrv_avg: hrv, rhr_avg: rhr, readiness_score: readiness,

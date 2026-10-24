@@ -13,6 +13,7 @@ import {
   ReconciliationContextInterceptor,
   StreamWriterInterceptor,
   ReconciliationSaverInterceptor,
+  RepetitionAlarmInterceptor,
   KnowledgeSaverInterceptor,
   OracleResponseInterceptor,
 } from "./interceptors.ts";
@@ -45,6 +46,7 @@ export async function handleIncomingMessage(
       new ReconciliationContextInterceptor(),
       new StreamWriterInterceptor(),
       new ReconciliationSaverInterceptor(),
+      new RepetitionAlarmInterceptor(),
       new KnowledgeSaverInterceptor(),
       new OracleResponseInterceptor(),
     ];
