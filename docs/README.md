@@ -15,6 +15,7 @@ kolejność czytania albo listę odnośników, powinien zamiast tego cytować te
 |---|---|---|
 | 1 | [`../AGENTS.md`](../AGENTS.md) | Konstytucja, reguły deployu, modele, critical rules |
 | 2 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Przepływ danych, crony, podsystemy, mapa katalogów (jedna strona) |
+| 1b | [`SINGLE_SOURCE.md`](./SINGLE_SOURCE.md) | Jedno źródło prawdy: kto jest właścicielem każdego celu, progu i definicji. Sprawdź PRZED wpisaniem jakiejkolwiek liczby do kodu lub promptu |
 | 2b | [`DATA_MAP.md`](./DATA_MAP.md) | Generowana mapa danych: kto czyta/pisze każdą tabelę (TS + SQL + cron) oraz słownik mylących nazw (`vanguard_*`, `workout_day`). Sprawdź PRZED usunięciem czegokolwiek |
 | 3 | [`../supabase/functions/README.md`](../supabase/functions/README.md) | Rejestr edge functions: status, JWT, tabele, LOC |
 | 4 | [`BACKEND_CONTRACT.md`](./BACKEND_CONTRACT.md) | Twarde reguły deweloperskie i deployu dla backendu i funkcji edge |
@@ -39,7 +40,7 @@ kolejność czytania albo listę odnośników, powinien zamiast tego cytować te
 | Plik | Kiedy czytać |
 |---|---|
 | [`../lessons.md`](../lessons.md) | Przed każdą sesją — sprawdź czy problem już był |
-| [`agent/ACTIVE_WORK.md`](./agent/ACTIVE_WORK.md) | Co jest w toku teraz (wieloetapowe sesje); też Capacitor/APK checklist |
+| [`agent/ACTIVE_WORK.md`](./agent/ACTIVE_WORK.md) | Co jest w toku teraz (krótki handoff, nadpisywany); Capacitor/APK; historia w `agent/archive/` |
 | [`direction/KIERUNEK.md`](./direction/KIERUNEK.md) | North Star / Wersja 10/10 — ocena, czy zmiana przybliża czy oddala od kierunku |
 | [`direction/FEATURE_INSPIRATIONS.md`](./direction/FEATURE_INSPIRATIONS.md) | Bank pomysłów funkcjonalnych, posortowany wg dźwigni |
 | [`../supabase/migrations/README.md`](../supabase/migrations/README.md) | Przed dodaniem nowej migracji |

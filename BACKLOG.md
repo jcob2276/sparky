@@ -1405,3 +1405,13 @@ Warunek konieczny: graf encji (`entities`/`entity_aliases`/`claims`) musi być s
 - [ ] Podłączyć `fetchWorldState()` w `queryOracle` zamiast ręcznego `Promise.all`.
 - [ ] Dodać Resolution Layer (Tier 1 trigram / Tier 2 embedding+LLM) + odczyt `public.claims` do `queryOracle`.
 - [ ] Deploy `vanguard-telegram` po weryfikacji powyższego.
+
+## Otwarte z archiwum ACTIVE_WORK
+
+Niezweryfikowane punkty z usuniętego, 2000-liniowego handoffu. Przed pracą sprawdź w kodzie, czy punkt nadal istnieje.
+
+- [ ] **Finanse**: import CSV brokera (XTB/Revolut) do `finance_holdings`, dywidendy, TWR/MWR, PSD2, widget Androida.
+- [ ] **Badania**: sprawdzić, że kontekst medyczny trafia do Oracle z flagą świeżości.
+- [ ] **Healthspan v2**: stan kalibracji przy krótkiej historii, `methodology_version`/`coverage`/`evidence_summary`, szczegół punktu (zakres dat, N, źródła), weryfikacja na prawdziwym profilu Garmin/Oura.
+- [ ] **Kartoteka**: testy i weryfikacja `MedicalRecordsView` / `medical_events`.
+- [ ] **Notatki (foldery, Smart Foldery, gesty)** i **Functional iOS**: jedno przejście po ekranach 390×844 i 1440×900.
