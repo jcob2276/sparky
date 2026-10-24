@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useUserId } from '../../store/useStore';
 import { useRetestSuggestions } from './hooks/useMedicalRetestContext';
 import { useMedicalRecordData } from '../../lib/health/medicalHooks';
+import { useSupplements } from '../../lib/health/supplementsApi';
 import { buildMarkerSeries } from '../../lib/health/medicalAnalytics';
 import { savePreventionAction, importMedicalLabResults, type PreventionActionStatus } from '../../lib/health/medicalRecordsApi';
 import { computeBiologyScoresLite } from '../../lib/getBased/biologyScoresLite';
@@ -56,6 +57,7 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { labs, bodyComposition, documents, loading, refresh } = useMedicalRecordData(userId);
+  const { data: supplements = [] } = useSupplements(userId ?? '');
 
   const [selectedMarkerKey, setSelectedMarkerKey] = useState<string | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -156,7 +158,9 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
         {/* Level 1: Przegląd */}
         <div id="przeglad">
           <MedicalOverview
-            labs={labs}
+            series={series}
+            supplements={supplements}
+            onSelectMarker={setSelectedMarkerKey}
             onActionClick={scrollToSection}
           />
         </div>

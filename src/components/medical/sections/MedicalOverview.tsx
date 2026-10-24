@@ -1,151 +1,113 @@
-import { Calendar, HelpCircle, CheckCircle2, AlertOctagon, CheckSquare, ArrowRight } from 'lucide-react';
-import { diffDaysFromToday, formatMedicalDate, type MedicalLabRow } from '../../../lib/health/medicalAnalytics';
+import { AlertTriangle, ArrowRight, CheckCircle2, Info } from 'lucide-react';
+import type { MarkerSeries } from '../../../lib/health/medicalAnalytics';
+import { formatMedicalDate } from '../../../lib/health/medicalAnalytics';
+import {
+  buildPanelFreshness,
+  buildPersonalInsights,
+  formatAge,
+  type InsightTone,
+  type PanelFreshnessStatus,
+  type SupplementRef,
+} from '../../../lib/health/medicalPersonalOverview';
+import { getTodayWarsaw } from '../../../lib/date';
 import { Card } from '../../ui/Card';
 import { Pressable } from '../../ui/ControlPrimitives';
 
 interface MedicalOverviewProps {
-  labs: MedicalLabRow[];
-  onActionClick: (actionId: string) => void;
+  series: MarkerSeries[];
+  supplements: SupplementRef[];
+  onSelectMarker: (markerKey: string) => void;
+  onActionClick: (sectionId: string) => void;
 }
 
-export default function MedicalOverview({ labs, onActionClick }: MedicalOverviewProps) {
-  const latestPanel = labs.length > 0 ? labs[0] : null;
-  const latestDateStr = latestPanel ? latestPanel.result_date : null;
-  const daysAgo = latestDateStr ? diffDaysFromToday(latestDateStr) : null;
+const STATUS_STYLE: Record<PanelFreshnessStatus, { dot: string; text: string; hint: string }> = {
+  fresh: { dot: 'bg-success', text: 'text-text-primary', hint: 'aktualne' },
+  aging: { dot: 'bg-warning', text: 'text-text-primary', hint: 'starzeje się' },
+  stale: { dot: 'bg-danger', text: 'text-warning', hint: 'do odświeżenia' },
+  missing: { dot: 'bg-border-custom', text: 'text-text-muted', hint: 'brak danych' },
+};
 
-  // Filter latest panel rows vs historical rows
-  const latestPanelRows = latestDateStr ? labs.filter(l => l.result_date === latestDateStr) : [];
-  const latestOutOfRange = latestPanelRows.filter(l => l.flag && l.flag !== 'N' && l.flag !== 'normal').length;
-  const totalOutOfRange = labs.filter(l => l.flag && l.flag !== 'N' && l.flag !== 'normal').length;
+const TONE_ICON: Record<InsightTone, { Icon: typeof Info; className: string }> = {
+  good: { Icon: CheckCircle2, className: 'text-success' },
+  watch: { Icon: AlertTriangle, className: 'text-warning' },
+  info: { Icon: Info, className: 'text-text-muted' },
+};
 
-  // Panel completeness logic (check if basic markers exist across user tests AND their freshness)
-  const requiredBasicKeys = ['hemoglobin', 'wbc', 'rbc', 'platelets', 'ferritin', 'tsh', 'glucose'];
-  const userKeys = new Set(labs.map(l => l.marker_key));
-  const hasMarker = (k: string) => {
-    if (k === 'platelets') return userKeys.has('platelets') || userKeys.has('plt');
-    return userKeys.has(k);
-  };
-  const missingKeys = requiredBasicKeys.filter(k => !hasMarker(k));
-
-  // Freshness check: when was the full morphology/glucose tested?
-  const oldestCoreLab = labs.find(l => ['hemoglobin', 'glucose', 'wbc'].includes(l.marker_key || ''));
-  const daysSinceCore = oldestCoreLab?.result_date ? diffDaysFromToday(oldestCoreLab.result_date) : null;
-  const isCoreOutdated = daysSinceCore != null && daysSinceCore > 365;
-
-  const completeness = isCoreOutdated
-    ? 'Wygasła / Do odświeżenia'
-    : missingKeys.length === 0
-    ? 'Kompletna'
-    : missingKeys.length <= 2
-    ? 'Dobra'
-    : 'Wymaga uzupełnienia';
-
-  const completenessDetail = isCoreOutdated
-    ? `Morfologia i biochemia: ${daysSinceCore} dni (${oldestCoreLab?.result_date})`
-    : missingKeys.length === 0
-    ? 'Wszystkie kluczowe markery zbadane'
-    : `Brakujące: ${missingKeys.length}`;
-
-  const completenessSubtext = isCoreOutdated
-    ? 'Wymagany retest morfologii i lipidogramu (brak ApoB/HbA1c)'
-    : missingKeys.length === 0
-    ? 'Baza danych pokrywa pełną morfologię i biochem'
-    : 'Zalecane uzupełnienie w kolejnym panelu';
+/** Personal overview: how fresh each panel is, and the few things in the user's own data worth a look. */
+export default function MedicalOverview({ series, supplements, onSelectMarker, onActionClick }: MedicalOverviewProps) {
+  const today = getTodayWarsaw();
+  const panels = buildPanelFreshness(series, today);
+  const insights = buildPersonalInsights({ series, supplements, today });
+  const lastDate = panels.reduce<string | null>((latest, p) => (p.lastDate && p.lastDate > (latest ?? '') ? p.lastDate : latest), null);
+  const needsRefresh = panels.filter((p) => p.status === 'stale').length;
 
   return (
-    <div className="space-y-6">
-      <div className="border-b border-border-custom/50 pb-3">
-        <h2 className="text-lg font-semibold font-display">1. Przegląd Stanu Zdrowia</h2>
-        <p className="text-2xs text-text-muted mt-0.5">Podstawowy stan dokumentów, kompletności i pilnych spraw</p>
+    <div className="space-y-5">
+      <div className="space-y-1">
+        <h2 className="text-lg font-semibold font-display">Twój obraz</h2>
+        <p className="text-xs text-text-muted">
+          {lastDate ? `Ostatnie badanie: ${formatMedicalDate(lastDate)}.` : 'Brak wyników.'}
+          {needsRefresh > 0 && ` ${needsRefresh} z ${panels.length} grup wymaga odświeżenia.`}
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Freshness Card */}
-        <Card variant="outline" padding="1rem" className="flex flex-col justify-between h-36 bg-background/30">
-          <div>
-            <div className="flex items-center gap-1.5 text-2xs font-semibold text-text-muted tracking-wide">
-              <Calendar size={12} className="text-primary" />
-              Aktualność paneli
-            </div>
-            <p className="text-sm font-bold text-text-primary mt-2">
-              {latestDateStr ? formatMedicalDate(latestDateStr) : 'Brak danych'}
-            </p>
-            {daysAgo != null && (
-              <p className="text-xs text-text-muted font-medium mt-0.5">
-                {daysAgo === 0 ? 'dzisiaj' : `${daysAgo} dni temu`} · {latestPanelRows.length} markerów
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {panels.map((panel) => {
+          const style = STATUS_STYLE[panel.status];
+          return (
+            <Pressable
+              key={panel.id}
+              type="button"
+              onClick={() => onActionClick('wyniki')}
+              className="rounded-2xl border border-border-custom/60 bg-surface-solid/30 p-3 text-left active:scale-95 ui-interactive"
+            >
+              <div className="flex items-center gap-1.5">
+                <span className={`h-2 w-2 shrink-0 rounded-full ${style.dot}`} aria-hidden="true" />
+                <span className="truncate text-xs font-semibold text-text-primary">{panel.label}</span>
+              </div>
+              <p className={`mt-1 text-2xs font-medium ${style.text}`}>
+                {panel.ageDays != null ? formatAge(panel.ageDays) : style.hint}
               </p>
-            )}
-          </div>
-          <p className="text-2xs text-text-muted">Optymalna częstotliwość badania: co 6 miesięcy</p>
-        </Card>
-
-        {/* Completeness Card */}
-        <Card variant="outline" padding="1rem" className="flex flex-col justify-between h-36 bg-background/30">
-          <div>
-            <div className="flex items-center gap-1.5 text-2xs font-semibold text-text-muted tracking-wide">
-              <HelpCircle size={12} className="text-primary" />
-              Kompletność profilu
-            </div>
-            <p className={`text-sm font-bold mt-2 ${isCoreOutdated ? 'text-warning' : 'text-text-primary'}`}>
-              {completeness}
-            </p>
-            <p className="text-xs text-text-muted font-medium mt-0.5">
-              {completenessDetail}
-            </p>
-          </div>
-          <p className="text-2xs text-text-muted">
-            {completenessSubtext}
-          </p>
-        </Card>
-
-        {/* Out of Range Card */}
-        <Card variant="outline" padding="1rem" className="flex flex-col justify-between h-36 bg-background/30">
-          <div>
-            <div className="flex items-center gap-1.5 text-2xs font-semibold text-text-muted tracking-wide">
-              {latestOutOfRange > 0 ? (
-                <AlertOctagon size={12} className="text-warning" />
-              ) : (
-                <CheckCircle2 size={12} className="text-primary" />
-              )}
-              Odchylenia laboratoryjne
-            </div>
-            <p className="text-sm font-bold text-text-primary mt-2">
-              {latestOutOfRange === 0 ? (
-                <span className="text-primary">Najnowszy panel: {latestPanelRows.length}/{latestPanelRows.length} w normie</span>
-              ) : (
-                <span>{latestOutOfRange} poza zakresem</span>
-              )}
-            </p>
-            <p className="text-xs text-text-muted font-medium mt-0.5">
-              {totalOutOfRange > 0 ? `${totalOutOfRange} odchyleń w historii badań` : 'Brak odchyleń w historii'}
-            </p>
-          </div>
-          <p className="text-2xs text-text-muted">
-            {latestOutOfRange === 0
-              ? `Ostatni panel badał tylko ${latestPanelRows.length} markerów (7 odchyleń z 2025 czeka na retest)`
-              : 'Sprawdź wyniki oznaczone flagą'}
-          </p>
-        </Card>
-
-        {/* Next Step / Action Card */}
-        <Pressable
-          onClick={() => onActionClick('retest')}
-          className="rounded-2xl border border-dashed border-primary/30 hover:border-primary/60 bg-primary/[0.02] hover:bg-primary/[0.04] p-4 text-left ui-interactive cursor-pointer flex flex-col justify-between h-36"
-        >
-          <div>
-            <div className="flex items-center gap-1.5 text-2xs font-semibold text-primary tracking-wide">
-              <CheckSquare size={12} />
-              Następny krok
-            </div>
-            <p className="text-sm font-semibold text-text-primary mt-2">
-              Zaplanuj kolejny panel badań
-            </p>
-          </div>
-          <div className="flex items-center gap-1 text-2xs font-semibold text-primary">
-            Przejdź do planu <ArrowRight size={10} />
-          </div>
-        </Pressable>
+              {panel.ageDays != null && <p className="text-2xs text-text-muted">{style.hint}</p>}
+            </Pressable>
+          );
+        })}
       </div>
+
+      {insights.length > 0 && (
+        <Card variant="outline" padding="0" className="divide-y divide-border-custom/40 bg-background/30">
+          <p className="px-4 pt-3 pb-2 text-2xs font-semibold tracking-wide text-text-muted">Dla Ciebie</p>
+          {insights.map((insight) => {
+            const { Icon, className } = TONE_ICON[insight.tone];
+            const markerKey = insight.markerKey;
+            return (
+              <Pressable
+                key={insight.id}
+                type="button"
+                disabled={!markerKey}
+                onClick={() => markerKey && onSelectMarker(markerKey)}
+                className="flex w-full items-start gap-3 px-4 py-3 text-left active:bg-surface-solid/60 ui-interactive disabled:cursor-default"
+              >
+                <Icon size={16} className={`mt-0.5 shrink-0 ${className}`} aria-hidden="true" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold leading-snug text-text-primary">{insight.title}</p>
+                  <p className="mt-0.5 text-xs leading-snug text-text-muted">{insight.detail}</p>
+                </div>
+              </Pressable>
+            );
+          })}
+        </Card>
+      )}
+
+      {needsRefresh > 0 && (
+        <Pressable
+          type="button"
+          onClick={() => onActionClick('sugestie')}
+          className="flex items-center gap-1 text-xs font-semibold text-primary active:scale-95"
+        >
+          Zaplanuj kolejny panel <ArrowRight size={12} aria-hidden="true" />
+        </Pressable>
+      )}
     </div>
   );
 }

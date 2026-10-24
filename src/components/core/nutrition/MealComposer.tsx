@@ -143,10 +143,10 @@ export default function MealComposer({
             copying={c.saving}
             dateLabel={
               c.logDate === c.today
-                ? 'Zjedzone dziś'
+                ? 'Zjedzone'
                 : c.logDate === c.yesterday
-                ? 'Zjedzone wczoraj'
-                : `Zjedzone (${c.logDate})`
+                ? 'Zjedzone · wczoraj'
+                : `Zjedzone · ${c.logDate}`
             }
           />
         )}

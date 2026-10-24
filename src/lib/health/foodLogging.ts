@@ -127,6 +127,7 @@ export async function updateFoodEntry(
   userId: string,
   entryId: string,
   entry: {
+    name?: string;
     calories: number;
     protein: number;
     carbs?: number | null;

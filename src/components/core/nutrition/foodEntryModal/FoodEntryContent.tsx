@@ -14,6 +14,10 @@ interface FoodEntryContentProps {
   screen: string;
   editingEntry: RecentEntry | null;
   setEditingEntry: (v: RecentEntry | null) => void;
+  editName: string;
+  setEditName: (v: string) => void;
+  editReestimating: boolean;
+  reestimateFromName: () => void;
   editGrams: string;
   setEditGrams: (v: string) => void;
   editMealType: string;
@@ -75,7 +79,7 @@ export default function FoodEntryContent(props: FoodEntryContentProps) {
   const {
     screen, editingEntry, selected, userId, onClose, onPhotoChanged, canGoBack,
     // edit
-    setEditingEntry, editGrams, setEditGrams, editMealType, setEditMealType,
+    setEditingEntry, editName, setEditName, editReestimating, reestimateFromName, editGrams, setEditGrams, editMealType, setEditMealType,
     editPreview, error, editSaving, editDeleting, saveEntryEdit, deleteEntry,
     // nl
     setNlMode, setError, mealType, setMealType, nlText, setNlText,
@@ -101,6 +105,10 @@ export default function FoodEntryContent(props: FoodEntryContentProps) {
         onPhotoChanged={onPhotoChanged}
         editingEntry={editingEntry}
         setEditingEntry={setEditingEntry}
+        editName={editName}
+        setEditName={setEditName}
+        editReestimating={editReestimating}
+        reestimateFromName={reestimateFromName}
         editGrams={editGrams}
         setEditGrams={setEditGrams}
         editMealType={editMealType}
