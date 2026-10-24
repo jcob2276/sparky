@@ -15,7 +15,7 @@ export default function MedicalPassportHeader({ summary }: MedicalPassportHeader
             <ShieldCheck size={13} /> Paszport Zdrowia
           </span>
           <h2 id="passport-heading" className="text-2xl font-semibold font-display tracking-tight text-text-primary mt-1">
-            Twój Obraz Zdrowia
+            Twoja kartoteka
           </h2>
           <p className="mt-1 text-xs text-text-muted">
             Fakty zebrane z wizyt lekarskich, raportów i badań laboratoryjnych — bez diagnozowania.
