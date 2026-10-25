@@ -33,6 +33,7 @@ export * from './health/thresholds.ts';
 export * from './appName.ts';
 export * from './growth/sprint.ts';
 export * from './health/personalTargets.ts';
+export * from './health/mergeSyncedRow.ts';
 export * from './epistemic/thresholds.ts';
 export * from './todoSchedule.ts';
 export * from './todoKeywords.ts';

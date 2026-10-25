@@ -1,3 +1,4 @@
+import { keepExistingWhenMissing } from '@vanguard/domain'
 import { safeExecute, createServiceClient, resolveUserScope } from '../_shared/supabase.ts'
 import { runEnhanced } from './enhanced.ts'
 import { runTimeseries } from './timeseries.ts'
@@ -164,8 +165,13 @@ export async function runOuraSync(req: Request): Promise<unknown> {
         })
 
         if (upsertData.length > 0) {
+          // częściowa odpowiedź Oury (np. bez sesji snu) nie może nadpisać zapisanych już wartości nullem
+          const { data: existingRows } = await supabase.from('oura_daily_summary').select('*')
+            .eq('user_id', userId).in('date', upsertData.map((row) => row.date))
+          const existingByDate = new Map((existingRows ?? []).map((row) => [row.date, row]))
+          const mergedData = upsertData.map((row) => keepExistingWhenMissing(row, existingByDate.get(row.date)))
           await safeExecute(
-            supabase.from('oura_daily_summary').upsert(upsertData, { onConflict: 'user_id,date' })
+            supabase.from('oura_daily_summary').upsert(mergedData, { onConflict: 'user_id,date' })
           )
           
           // Proactive low biometrics push alert (only for real sleep sessions >= 3h, never for charging ring or 0.02h artifacts)
