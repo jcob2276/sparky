@@ -3,8 +3,8 @@ import { ArrowUpRight, MessageSquare, Play, Search } from 'lucide-react';
 import type { CloserCallRow, CloserCallSummary } from '../../../lib/closer/closerCallsApi';
 import type { CloserDailyLogRow } from '../../../lib/closer/closerApi';
 import { filterCloserCalls, type LibraryScope } from '../../../lib/closer/closerLibrary';
-import { callPatterns } from '../../../lib/closer/closerPatterns';
-import CloserCallPatterns from './CloserCallPatterns';
+import { phaseReport } from '../../../lib/closer/closerPhaseTrends';
+import CloserPhaseTrends from './CloserPhaseTrends';
 import { formatLongDateWarsaw, warsawTimeOfDay } from '../../../lib/date';
 import Button from '../../ui/Button';
 import Input from '../../ui/Input';
@@ -36,7 +36,7 @@ export default function CloserCallsView({ calls, date, weekStart, loading, error
       <h3 className="text-lg font-semibold tracking-tight text-text-primary">Biblioteka rozmów</h3>
       <p className="text-sm text-text-secondary">Cała historia z Fathom{!loading && !error ? ` · ${calls.length} nagrań` : ''}</p>
     </div>
-    {!loading && !error && <CloserCallPatterns patterns={callPatterns(calls)} onOpen={onSelect} />}
+    {!loading && !error && <CloserPhaseTrends report={phaseReport(calls)} />}
     <Input aria-label="Szukaj rozmowy lub własnej notatki" placeholder="Szukaj rozmowy lub swojej notatki…" icon={<Search size={18} />}
       value={search} onChange={event => { setSearch(event.target.value); setLimit(8); }} />
     <div className="flex flex-wrap gap-2" aria-label="Zakres biblioteki">

@@ -44,6 +44,12 @@ const normalize = (text: string) =>
 
 const text = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
 
+/** Czy dosłowny cytat (po normalizacji) występuje gdziekolwiek w transkrypcie. */
+export function quoteInTranscript(quote: string, transcript: TranscriptLineInput[]): boolean {
+  const needle = normalize(quote);
+  return needle.length > 0 && transcript.map((line) => normalize(text(line.text))).join(' ').includes(needle);
+}
+
 /** Zostawia tylko momenty, których czas i cytat da się odnaleźć w transkrypcie; najwyżej 5. */
 export function groundCallMoments(raw: unknown, transcript: TranscriptLineInput[]): CallMoment[] {
   if (!Array.isArray(raw)) return [];

@@ -3,10 +3,10 @@ import type { Database } from '../database.types';
 
 export type CloserCallRow = Database['public']['Tables']['closer_calls']['Row'];
 export type CloserCallSummary = Pick<CloserCallRow, 'id' | 'user_id' | 'title' | 'call_date' | 'started_at' |
-  'duration_seconds' | 'share_url' | 'ai_status' | 'ai_score' | 'review_notes' | 'ai_mistakes' | 'ai_good_moves'>;
+  'duration_seconds' | 'share_url' | 'ai_status' | 'ai_score' | 'review_notes' | 'ai_phases' | 'ai_call_kind'>;
 
-// momenty AI są małe (≤ 10 na rozmowę), a biblioteka liczy z nich wzorce między rozmowami
-const SUMMARY_COLUMNS = 'id,user_id,title,call_date,started_at,duration_seconds,share_url,ai_status,ai_score,review_notes,ai_mistakes,ai_good_moves';
+// oceny etapów są małe, a biblioteka liczy z nich trendy między rozmowami
+const SUMMARY_COLUMNS = 'id,user_id,title,call_date,started_at,duration_seconds,share_url,ai_status,ai_score,review_notes,ai_phases,ai_call_kind';
 
 export async function fetchCloserCalls(userId: string): Promise<CloserCallSummary[]> {
   const calls: CloserCallSummary[] = [];
