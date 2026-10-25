@@ -3,6 +3,7 @@ import { useUserId } from '../../store/useStore';
 import { useBodyFatGoal } from '../../lib/health/bodyFatGoalApi';
 import type { BodyFatGoal } from '../../lib/health/bodyFatGoal';
 import { formatLongDateWarsaw } from '../../lib/date';
+import WeeklyCollapsible from './WeeklyCollapsible';
 
 const pl = (value: number) => String(value).replace('.', ',');
 
@@ -22,13 +23,11 @@ export default function WeeklyFatGoalCard() {
   const { data } = useBodyFatGoal(userId);
   if (!data || data.status === 'no-data') return null;
   return (
-    <section className="space-y-2 rounded-3xl border border-border-custom/60 bg-surface/70 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-text-muted">
-          <Target size={12} className="text-primary" /> Cel: {data.goal}% tłuszczu
-        </p>
-        <span className="text-sm font-semibold tabular-nums text-primary">{pl(data.currentBf ?? 0)}%</span>
-      </div>
+    <WeeklyCollapsible
+      icon={<Target size={12} className="text-primary" />}
+      title={`Cel: ${data.goal}% tłuszczu`}
+      summary={`${pl(data.currentBf ?? 0)}%`}
+    >
       <p className="text-sm font-semibold leading-snug text-text-primary">{headline(data)}</p>
       {data.status !== 'reached' && data.kgToLose != null && data.scenarioEta && (
         <p className="text-xs text-text-secondary">
@@ -37,6 +36,6 @@ export default function WeeklyFatGoalCard() {
       )}
       {data.facts.length > 0 && <p className="text-xs text-text-secondary">{data.facts.join(' ')}</p>}
       <p className="text-2xs text-text-muted">Pomiar z {data.currentDate?.slice(5)}. Różne metody pomiaru (waga, obwody) dają różne wyniki, więc trend ma sens tylko w obrębie jednej metody.</p>
-    </section>
+    </WeeklyCollapsible>
   );
 }

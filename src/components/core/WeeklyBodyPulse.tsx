@@ -8,6 +8,7 @@ import {
   type WeeklyBodyPulseData,
 } from '../../lib/weeklyBodyPulse';
 import DataStateNotice from './DataStateNotice';
+import WeeklyCollapsible from './WeeklyCollapsible';
 
 export default function WeeklyBodyPulse() {
   const userId = useUserId();
@@ -23,16 +24,14 @@ function WeeklyBodyPulseContent({ data }: { data: WeeklyBodyPulseData }) {
   const today = getTodayWarsaw();
 
   return (
-    <section className="space-y-3 rounded-3xl border border-primary/20 bg-primary/5 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-primary">
-          <Moon size={12} /> Sen · średnia z 7 dni
-        </p>
-        {data.warningDays > 0 && (
-          <span className="text-2xs font-extrabold text-warning">{data.warningDays} dni ze statusem ostrzegawczym</span>
-        )}
-      </div>
-
+    <WeeklyCollapsible
+      icon={<Moon size={12} className="text-primary" />}
+      title="Sen"
+      summary={`${formatDurationHours(data.sleepAvgHours)}${data.sleepAvgScore != null ? ` · jakość ${data.sleepAvgScore}` : ''}`}
+    >
+      {data.warningDays > 0 && (
+        <p className="text-2xs font-extrabold text-warning">{data.warningDays} dni ze statusem ostrzegawczym</p>
+      )}
       <div className="flex items-baseline gap-3">
         <p className="text-3xl font-semibold leading-none tracking-tight text-text-primary">{formatDurationHours(data.sleepAvgHours)}</p>
         <span className="text-xs font-semibold text-text-secondary">{data.avgBedtime ?? '—'} – {data.avgWake ?? '—'}</span>
@@ -49,7 +48,7 @@ function WeeklyBodyPulseContent({ data }: { data: WeeklyBodyPulseData }) {
         {' · '}najlepszy <span className="text-success">{formatSleepDayLabel(data.sleepBest, today)}</span>
         {' · '}najgorszy <span className="text-warning">{formatSleepDayLabel(data.sleepWorst, today)}</span>
       </p>
-    </section>
+    </WeeklyCollapsible>
   );
 }
 

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Utensils } from 'lucide-react';
+import WeeklyCollapsible from './WeeklyCollapsible';
 import { useNutritionData } from './useNutritionData';
 import NutrientCoverageStrip from './nutrition/NutrientCoverageStrip';
 import WeekBalanceStrip from './nutrition/WeekBalanceStrip';
@@ -39,16 +40,14 @@ export default function WeeklyNutritionPulse({
   const proteinLow = pulse?.proteinOnTrack === false;
 
   return (
-    <section className="rounded-3xl border border-border-custom/60 bg-surface/70 p-4 space-y-3">
-      <div>
-        <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-text-muted">
-          <Utensils size={12} className="text-primary" /> Odżywianie
-          <span className="font-semibold normal-case tracking-normal">· pon–nd{hasDays ? `, średnia z ${pulse?.loggedDays} pełnych dni` : ''}</span>
-        </p>
-        <h3 className="mt-1 text-base font-bold text-text-primary">
-          {week.isLoading || !pulse ? 'Ładuję przebieg…' : nutritionPulseHeadline(pulse)}
-        </h3>
-      </div>
+    <WeeklyCollapsible
+      icon={<Utensils size={12} className="text-primary" />}
+      title="Odżywianie"
+      summary={week.isLoading || !pulse ? 'Ładuję przebieg…' : nutritionPulseHeadline(pulse)}
+    >
+      <p className="text-2xs font-semibold text-text-muted">
+        pon–nd{hasDays ? `, średnia z ${pulse?.loggedDays} pełnych dni` : ''}
+      </p>
 
       {nutrition?.balance && <WeekBalanceStrip week={nutrition.balance} />}
 
@@ -81,6 +80,6 @@ export default function WeeklyNutritionPulse({
       {pulse && (pulse.proteinGoal == null || pulse.kcalTarget == null) && hasDays && (
         <p className="text-xs text-text-muted">Ustaw cel białka i kalorii w profilu odżywiania.</p>
       )}
-    </section>
+    </WeeklyCollapsible>
   );
 }

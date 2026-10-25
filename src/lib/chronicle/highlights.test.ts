@@ -19,7 +19,7 @@ describe('pickTiles', () => {
     expect(pickTiles(null, ['Umówieni'])).toEqual([]);
   });
 
-  it('skrót tygodnia obejmuje wszystkie trzy cele', () => {
-    expect(WEEK_HIGHLIGHTS.map((h) => h.goal)).toEqual(['duch', 'konto', 'cialo']);
+  it('skrót tygodnia pokazuje tylko liczby bez własnej karty na ekranie', () => {
+    expect(WEEK_HIGHLIGHTS.map((h) => h.goal)).toEqual(['konto', 'cialo']);
   });
 });

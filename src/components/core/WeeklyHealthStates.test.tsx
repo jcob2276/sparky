@@ -32,6 +32,7 @@ describe('weekly health unavailable states', () => {
   it('labels warning days by their actual source rather than a sleep norm', () => {
     source.query.data = { ...buildWeeklyBodyPulse({ since: '2026-10-10', sessions: [], strava: [], oura: [], strain: [] }), warningDays: 3 };
     render(<WeeklyBodyPulse />);
+    fireEvent.click(screen.getByRole('button', { name: /Sen/ }));
     expect(screen.getByText('3 dni ze statusem ostrzegawczym')).toBeInTheDocument();
     expect(screen.queryByText('3d poniżej normy')).not.toBeInTheDocument();
   });
@@ -51,7 +52,7 @@ describe('weekly health unavailable states', () => {
   it('shows an empty sleep card without inventing values after a successful weekly read', () => {
     source.query.data = buildWeeklyBodyPulse({ since: '2026-10-10', sessions: [], strava: [], oura: [], strain: [] });
     render(<WeeklyBodyPulse />);
-    expect(screen.getByText(/Sen · średnia z 7 dni/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Sen/ })).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByText('W normie')).not.toBeInTheDocument();
   });
   it('does not turn a failed weekly read into zero workouts in the spheres card', () => {

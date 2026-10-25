@@ -26,7 +26,7 @@ interface Props {
 export default function CloserCallsView({ calls, date, weekStart, loading, error, selected, detailLoading, detailError, onSelect, onSaveNotes, saving, saveError, dayContext, contextLoading, contextError }: Props) {
   const [search, setSearch] = useState('');
   const [scope, setScope] = useState<LibraryScope>('all');
-  const [limit, setLimit] = useState(8);
+  const [limit, setLimit] = useState(5);
   const filtered = filterCloserCalls(calls, search, scope, date, weekStart);
   const visible = filtered.slice(0, limit);
   const filters: { value: LibraryScope; label: string }[] = [
@@ -68,7 +68,7 @@ export default function CloserCallsView({ calls, date, weekStart, loading, error
             <ArrowUpRight size={18} className="shrink-0 text-primary" />
           </Button>)}
         </Card>
-        {visible.length < filtered.length && <Button className="w-full" variant="outline" onClick={() => setLimit(limit + 8)}>Pokaż kolejne rozmowy · pozostało {filtered.length - visible.length}</Button>}
+        {visible.length < filtered.length && <Button className="w-full" variant="outline" onClick={() => setLimit(limit + 10)}>Pokaż kolejne rozmowy · pozostało {filtered.length - visible.length}</Button>}
       </>}
     {(detailLoading || detailError) && <Modal isOpen onClose={() => onSelect(null)} title="Analiza rozmowy">
       {detailError ? <DataStateNotice title="Nie udało się otworzyć rozmowy" detail="Zamknij ten widok i spróbuj ponownie." tone="warning" />

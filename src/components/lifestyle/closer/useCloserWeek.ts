@@ -5,7 +5,6 @@ import { fetchCloserCalls } from '../../../lib/closer/closerCallsApi';
 import { recordedDayTotals } from '../../../lib/closer/closerLibrary';
 import { saveCloserWorkContext } from '../../../lib/closer/closerDayApi';
 import type { WorkContext } from '../../../lib/closer/closerWorkContext';
-import { useCloserTargets } from '../../../lib/closer/closerTargetsApi';
 import { closerKeys, goalSpineKeys } from '../../../lib/queryKeys';
 import { getTodayWarsaw, getWeekStartWarsaw } from '../../../lib/date';
 export function useCloserWeek(userId: string, weekStart: string) {
@@ -27,5 +26,5 @@ export function useCloserWeek(userId: string, weekStart: string) {
     onSuccess: saved => { client.setQueryData(closerKeys.day(userId, saved.date), saved); refresh(); },
   });
   const selectDate = (date: string) => { if (!numbers.isPending) numbers.reset(); if (!context.isPending) context.reset(); setSelection({ weekStart, date }); };
-  return { recorded: recordedDayTotals(library.data ?? [], selectedDate), libraryReady: library.isSuccess, logs, selectedDate, selectDate, numbers, context, targets: useCloserTargets(userId) };
+  return { recorded: recordedDayTotals(library.data ?? [], selectedDate), libraryReady: library.isSuccess, logs, selectedDate, selectDate, numbers, context };
 }

@@ -14,7 +14,7 @@ export default function CloserWeekTracker(props: Props) {
   return <CloserWeekView {...props} model={model} />;
 }
 function CloserWeekView({ userId, weekStart, projectName = 'Closer', isFocusSprint, model }: Props & { model: ReturnType<typeof useCloserWeek> }) {
-  const { logs, selectedDate, selectDate, targets, numbers, context } = model;
+  const { logs, selectedDate, selectDate, numbers, context } = model;
   const rows = logs.data ?? [];
   const logsByDate = Object.fromEntries(rows.map(row => [row.date, row]));
   const current = logsByDate[selectedDate];
@@ -28,7 +28,7 @@ function CloserWeekView({ userId, weekStart, projectName = 'Closer', isFocusSpri
     {logs.isPending ? <div className="flex items-center gap-3 py-5 text-sm text-text-secondary"><Spinner size="sm" /> Wczytywanie tygodnia…</div>
       : logs.isError ? <DataStateNotice tone="warning" title="Nie udało się wczytać tygodnia" detail="Odśwież widok i spróbuj ponownie." />
       : <>
-        <CloserWeekSummary logs={rows} targets={targets} />
+        <CloserWeekSummary logs={rows} />
         <section className="space-y-5 border-t border-border-custom pt-6" aria-label="Mój dzień pracy">
           <div>
             <h3 className="text-base font-semibold text-text-primary">Twój dzień</h3>

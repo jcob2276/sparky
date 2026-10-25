@@ -4,6 +4,7 @@ import { patternMeta, pickWeeklyPattern } from '../../lib/weeklyPattern';
 import { useCorrelationsData } from '../correlations/hooks/useCorrelationsData';
 import { Pressable } from '../ui/ControlPrimitives';
 import { useDashboardContext } from './context/DashboardContext';
+import WeeklyCollapsible from './WeeklyCollapsible';
 
 /** Jedna sprawdzona zależność z Twoich danych na tydzień; nic nie pokazuje, dopóki żadna nie ma dość dowodów. */
 export default function WeeklyPatternCard() {
@@ -13,10 +14,11 @@ export default function WeeklyPatternCard() {
   if (loading || !pattern) return null;
 
   return (
-    <section className="space-y-2 rounded-3xl border border-border-custom/60 bg-surface/70 p-4">
-      <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-text-muted">
-        <Lightbulb size={12} className="text-primary" /> Zależność tygodnia
-      </p>
+    <WeeklyCollapsible
+      icon={<Lightbulb size={12} className="text-primary" />}
+      title="Zależność tygodnia"
+      summary={pattern.natural_effect}
+    >
       <p className="text-sm font-semibold leading-snug text-text-primary">{pattern.natural_effect}</p>
       <p className="text-xs text-text-secondary">{patternMeta(pattern)}</p>
       <p className="text-2xs text-text-muted">To wzór z Twoich danych, a nie dowód przyczyny. Traktuj go jako wskazówkę do sprawdzenia.</p>
@@ -27,6 +29,6 @@ export default function WeeklyPatternCard() {
       >
         Wszystkie zależności <ArrowRight size={13} aria-hidden="true" />
       </Pressable>
-    </section>
+    </WeeklyCollapsible>
   );
 }

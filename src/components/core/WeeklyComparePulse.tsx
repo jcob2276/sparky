@@ -35,13 +35,12 @@ function Metric({ tile, onOpen }: { tile: ChronicleTile; onOpen: () => void }) {
 /** Ten tydzień na tle poprzedniego w kilku liczbach i skróty do porównania dowolnych tygodni lub miesięcy w Kronice. */
 export default function WeeklyComparePulse() {
   const dashboard = useDashboardContext();
-  const duch = useChronicle('duch', 'week');
   const konto = useChronicle('konto', 'week');
   const cialo = useChronicle('cialo', 'week');
   const bySummary: Record<ChronicleGoal, ChronicleSummaryData | null> = {
-    duch: duch.summary, konto: konto.summary, cialo: cialo.summary,
+    duch: null, konto: konto.summary, cialo: cialo.summary,
   };
-  const loading = duch.loading || konto.loading || cialo.loading;
+  const loading = konto.loading || cialo.loading;
 
   const open = (goal: ChronicleGoal, period: ChroniclePeriod) => {
     requestChronicle({ goal, period, offset: 0, compareOffset: 1 });
