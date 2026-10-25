@@ -26,7 +26,7 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 | Aktualny poziom tłuszczu (%) | ostatni pomiar `body_metrics.body_fat` | `nutrition_profile.current_body_fat_est` to tylko zapas, gdy pomiaru brak (healthspan, trener żywieniowy) |
 | Cel snu (h) | `nutrition_profile.sleep_target_hours` | `derivePersonalTargets().sleepTargetH` |
 | Białko i kcal dziennie | `nutrition_targets` (wiersz obowiązujący w danym dniu: `date <= dzień`, najnowszy; nie „najnowszy w ogóle”, bo trener zapisuje cel na jutro z wyprzedzeniem; frontend: `fetchNutritionTargetForDay`), awaryjnie waga × g/kg z profilu | `derivePersonalTargets` w `@vanguard/domain` (edge przez `personalTargets`, frontend wprost) |
-| Wizja i tożsamość (tekst) | `user_fundament` | Oracle; bez liczb celów w treści |
+| Wizja i tożsamość (tekst) | `user_fundament` | Oracle; liczby celów dostaje osobno z właścicieli (blok „CELE LICZBOWE” w prompcie), tekst wizji nie jest ich źródłem |
 
 ## Definicje i progi (kod, jeden moduł na definicję)
 

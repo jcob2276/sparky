@@ -27,7 +27,7 @@ export async function retrieveRagContext(
     /\b(pamiętasz|pamietasz|mówiłeś|mowiles|odpowiadałeś|pytałeś|preferenc)\w*/i.test(current_query || '');
 
   const [
-    fundamentRes, coachContext, proposalsRes, medicalContext, deviceUsageContext, projectsGoalsContext,
+    fundamentRes, coachContext, proposalsRes, medicalContext, deviceUsageContext, projectsGoalsContext, lifeTargetsRes,
   ] = await Promise.all([
     supabase.from('user_fundament')
       .select('identity, philosophy, vision')
@@ -42,6 +42,7 @@ export async function retrieveRagContext(
     fetchMedicalContext(supabase, user_id, todayDate).catch(() => null),
     fetchDeviceUsageContext(supabase, user_id),
     fetchProjectsAndGoalsContext(supabase, user_id),
+    supabase.from('life_targets').select('bench_goal_kg, income_goal_net_pln').eq('user_id', user_id).maybeSingle(),
   ]);
 
   if (fundamentRes.error) console.error('[oracle] user_fundament query error:', fundamentRes.error);
@@ -210,6 +211,19 @@ export async function retrieveRagContext(
     deviceUsageContext,
     projectsGoalsContext,
     dayLoopContextText: dayLoop.dayLoopContextText,
-    fundament: fundamentRes.data || { identity: '', philosophy: '', vision: '' }
+    fundament: {
+      ...(fundamentRes.data || { identity: '', philosophy: '', vision: '' }),
+      targets: formatLifeTargets(lifeTargetsRes.data, sourceRows('nutrition_profile')[0]?.goal_body_fat),
+    }
   };
+}
+
+/** Cele liczbowe od właścicieli (life_targets, nutrition_profile): tekst wizji w Fundamencie nie jest źródłem liczb. */
+function formatLifeTargets(targets: { bench_goal_kg: number | null; income_goal_net_pln: number | null } | null, goalBodyFat: unknown): string | null {
+  const parts = [
+    goalBodyFat != null && Number(goalBodyFat) > 0 ? `tłuszcz ${Number(goalBodyFat)}%` : null,
+    targets?.bench_goal_kg ? `wyciskanie ${targets.bench_goal_kg} kg (e1RM)` : null,
+    targets?.income_goal_net_pln ? `dochód ${targets.income_goal_net_pln} zł netto / msc` : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join(', ') : null;
 }
