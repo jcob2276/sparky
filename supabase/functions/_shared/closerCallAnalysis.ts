@@ -90,6 +90,7 @@ export async function analyzeCloserCall(
     const res = await deepseekChat({
       apiKey: Deno.env.get("DEEPSEEK_API_KEY") || "",
       userId,
+      model: "deepseek-chat",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: `Rozmowa: ${call.title}\n\nTranskrypt:\n${transcript}` },
