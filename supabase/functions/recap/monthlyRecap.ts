@@ -73,9 +73,10 @@ export async function runMonthlyRecap(
       .lte("date", monthEndStr)
       .order("date"),
     // Training (Strava)
-    db.from("strava_activities")
+    db.from("strava_activities_clean")
       .select("start_date, name, sport_type, distance")
       .eq("user_id", userId)
+      .eq("is_oura", false)
       .gte("start_date", monthStart)
       .lte("start_date", monthEndStr + "T23:59:59"),
     // Daily reconciliations — only days with evening user text + all mode data

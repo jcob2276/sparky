@@ -13,9 +13,10 @@ export function useRunningLoad(userId: string | undefined) {
     queryFn: async () => {
       const { fromISO } = warsawDayBoundsISO(shiftDateStr(today, -34));
       const { data, error } = await supabase
-        .from('strava_activities')
+        .from('strava_activities_clean')
         .select('start_date, distance, moving_time, sport_type, hr_avg, hr_max')
         .eq('user_id', userId as string)
+        .eq('is_oura', false)
         .gte('start_date', fromISO);
       if (error) throw new Error(error.message);
       return buildRunningLoad(data ?? [], today);

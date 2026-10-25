@@ -33,6 +33,7 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 | Definicja | Właściciel | Uwagi |
 |---|---|---|
 | Pełny dzień jedzenia (próg kcal, bez dzisiaj) | `MIN_FULL_DAY_KCAL` w `@vanguard/domain`, filtr `completedNutritionDays` | każda średnia z dni (Kronika, Puls Tygodnia, eksport, `period-compare`) liczy tylko pełne dni |
+| Aktywności sportowe (liczenie biegów, km, sesji) | widok `strava_activities_clean` z `is_oura = false` | surowa `strava_activities` zawiera biegi zapisane podwójnie (Oura + Strava); czytaj ją tylko do synchronizacji |
 | Aktywności liczone jako bieganie | `RUN_SPORT_TYPES` / `isRunSport` w `@vanguard/domain` | `src/lib/runSports.ts` tylko re-eksportuje |
 | Próg „krótka noc” i „ostrzeżenie o śnie” | `HEALTH_THRESHOLDS.SLEEP_SHORT_H` / `SLEEP_WARNING_H` w `@vanguard/domain` | frontend i funkcje edge importują; nie wpisuj literału godzin w kodzie |
 | Sprint 12-tygodniowy od 1 marca | `getSprintInfoForDate` w `@vanguard/domain` | `getSprintInfo()` we froncie tylko dokłada dzisiejszą datę |

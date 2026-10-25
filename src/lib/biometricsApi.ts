@@ -129,7 +129,8 @@ export function useWeeklyBodyPulse(userId: string) {
       const [{ data: strain, error: strainError }, { data: sessions, error: sessionsError }, { data: strava, error: stravaError }, { data: oura, error: ouraError }] = await Promise.all([
         supabase.from('daily_strain').select('*').eq('user_id', userId).gte('date', since).lte('date', today),
         supabase.from('workout_sessions').select('*').eq('user_id', userId).gte('date', since).lte('date', today),
-        supabase.from('strava_activities').select('*').eq('user_id', userId).gte('start_date', fromISO).lte('start_date', toISO),
+        // widok _clean: bez biegów zapisanych podwójnie (Oura + Strava) i bez samych aktywności z Oury
+        supabase.from('strava_activities_clean').select('start_date, sport_type, distance, name, elapsed_time').eq('user_id', userId).eq('is_oura', false).gte('start_date', fromISO).lte('start_date', toISO),
         supabase.from('oura_daily_summary').select('*').eq('user_id', userId).gte('date', since).lte('date', today),
       ]);
       const errors = collectBiometricReadErrors({ daily_strain: strainError, workout_sessions: sessionsError, strava_activities: stravaError, oura_daily_summary: ouraError });
