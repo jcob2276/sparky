@@ -9,8 +9,8 @@ const transcript = [
 
 describe('groundCallMoments', () => {
   it('zostawia moment z czasem i cytatem z transkryptu', () => {
-    const [moment] = groundCallMoments([{ timestamp: '00:04:30', quote: 'porozmawiam z żoną', what: 'Klient odkłada decyzję.', why: 'Możliwe, że decyzja jest wspólna.', experiment: 'Zapytaj, czy żona może dołączyć do kolejnej rozmowy.' }], transcript);
-    expect(moment).toEqual({ timestamp: '00:04:30', quote: 'porozmawiam z żoną', what: 'Klient odkłada decyzję.', why: 'Możliwe, że decyzja jest wspólna.', experiment: 'Zapytaj, czy żona może dołączyć do kolejnej rozmowy.' });
+    const [moment] = groundCallMoments([{ timestamp: '00:04:30', phase: 'obiekcje', quote: 'porozmawiam z żoną', what: 'Klient odkłada decyzję.', why: 'Możliwe, że decyzja jest wspólna.', experiment: 'Zapytaj, czy żona może dołączyć do kolejnej rozmowy.' }], transcript);
+    expect(moment).toEqual({ timestamp: '00:04:30', phase: 'obiekcje', quote: 'porozmawiam z żoną', what: 'Klient odkłada decyzję.', why: 'Możliwe, że decyzja jest wspólna.', experiment: 'Zapytaj, czy żona może dołączyć do kolejnej rozmowy.' });
   });
 
   it('odrzuca moment ze zmyślonym czasem albo cytatem', () => {
@@ -22,10 +22,14 @@ describe('groundCallMoments', () => {
     expect(groundCallMoments([{ timestamp: '00:05:10', quote: 'TO KOSZTUJE 4 TYSIĄCE złotych!', what: 'Cena podana po wątpliwości.' }], transcript)).toHaveLength(1);
   });
 
+  it('nieznany etap zamienia na null', () => {
+    expect(groundCallMoments([{ timestamp: '00:01:10', phase: 'small talk', what: 'Pytanie o koszt problemu.' }], transcript)[0].phase).toBeNull();
+  });
+
   it('bez cytatu i eksperymentu zwraca null, najwyżej 5 momentów', () => {
     const many = Array.from({ length: 8 }, () => ({ timestamp: '00:01:10', what: 'Pytanie o koszt problemu.' }));
     const moments = groundCallMoments(many, transcript);
     expect(moments).toHaveLength(5);
-    expect(moments[0]).toMatchObject({ quote: null, experiment: null });
+    expect(moments[0]).toMatchObject({ phase: null, quote: null, experiment: null });
   });
 });
