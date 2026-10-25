@@ -4,6 +4,68 @@ Krótki handoff: tylko to, co jest w toku **teraz**. Plik jest nadpisywany, nie 
 Zrobione plany usuwamy (historia jest w gicie), otwarte punkty trafiają do [`BACKLOG.md`](../../BACKLOG.md).
 Zasada jednego źródła prawdy dla danych i celów: [`../SINGLE_SOURCE.md`](../SINGLE_SOURCE.md).
 
+## Handoff dla Claude Code: panel closera w Sparky
+
+Użytkownik chce teraz opublikować bieżącą pracę przez **git push**; dalszy rozwój przejmuje Claude Code.
+Wybrany kierunek: osobny widok analizy z nagraniem, momentami, wskazówkami i własnymi notatkami;
+część osobista ma uwzględniać przede wszystkim **energię, presję i kontekst dnia**.
+
+### Co jest podłączone
+
+- `src/components/lifestyle/closer/`: `CloserWeekTracker` → `useCloserWeek` (dane), czytelne podsumowanie,
+  edycja kontekstu dnia, korekty liczb, biblioteka całej historii z jawnymi filtrami i wyszukiwaniem po tytule/notatkach.
+  Biblioteka pokazuje licznik wszystkich/pasujących/wyświetlonych i przycisk kolejnych rozmów; wybór dnia nie filtruje jej domyślnie.
+- Analiza: `CloserCallReviewView`, `CloserCallEvidence`, `useFathomPlayer`, `useCloserReviewNotes`.
+  Odtwarzacz Fathom przyjmuje seek przez **Player.js postMessage** (JSON string, origin + source sprawdzane);
+  parametr timestamp na iframe nie przewija filmu. Obserwacje AI są oddzielone od rzeczywistej transkrypcji.
+- `closer_calls.review_notes`: prywatny wniosek z rozmowy; szkic localStorage jest izolowany po właścicielu i rozmowie.
+- `closer_daily_logs.work_energy`, `work_pressure`: opcjonalne deklaracje użytkownika w skali 1–5; NULL oznacza brak deklaracji.
+  Kontekst tekstowy używa istniejącego `notes`, wspólnego z formularzem liczb. Szkic kontekstu jest izolowany po właścicielu i dacie.
+  Przy analizie pobierany jest kontekst **call_date nagrania**, nie dnia zaznaczonego w panelu.
+- `numbers_entered_at`: rozróżnia świadomie potwierdzony dzień zerowy od samych notatek/kontekstu.
+  `hasEnteredNumbers` nie uznaje już samej notatki za liczby; `rowToDraft` zachowuje opis, ale zostawia brakujące liczby puste.
+- API: `src/lib/closer/closerCallsApi.ts`, `closerDayApi.ts`, `closerApi.ts`; częściowy zapis kontekstu nie nadpisuje liczników.
+  Wyższy ręczny wynik i dane Fathom zachodzą na siebie — nie dodajemy ich dwukrotnie. Ograniczenie minimum jest też w bazie.
+
+### Backend i dostęp
+
+- Projekt Supabase: `pdvqkgfsqziqlhptatgf`; działają istniejące webhook i import Fathom.
+  Funkcja `fathom-webhook` ma verify_jwt=false, ale sprawdza podpis Standard Webhooks.
+  Sekret jest już skonfigurowany w Supabase; **nie twórz drugiego webhooka i nie kopiuj sekretów do repo/handoffu**.
+- Model strukturalnej analizy w `_shared/closerCallAnalysis.ts` to `deepseek-chat` (poprzedni model zwracał nieprawidłowy JSON).
+  Nie zmieniałem teraz promptu ani nie przeliczałem ocen. Nie wnioskuj o emocjach człowieka z wyniku rozmowy.
+- Migracje `20261025130316_closer_fathom_daily_totals.sql`, `20261025131515_closer_call_review_notes.sql`,
+  `20261025135927_closer_work_context.sql` i `20261025141203_closer_numbers_confirmation.sql` są zastosowane z tymi samymi wersjami w ledgerze.
+  Typy w `src/lib/database.types.ts` i `supabase/functions/_shared/database.types.ts` są odświeżone.
+- `npm run db:check-drift` wykrywa wcześniejsze rozjazdy local/remote, także dla pierwszej migracji closer_calls
+  zastosowanej wcześniej innym narzędziem. **Nie stosuj wszystkiego zbiorczo w ciemno**; najpierw porównaj istniejący schemat i ledger.
+- Lokalne pomocnicze `scripts/ops/fathom-register-webhook.mjs` i `fathom-set-secret.mjs` były nieśledzone przed tą częścią pracy;
+  nie są potrzebne do pracy panelu. Pierwszy może założyć zdublowany webhook.
+
+### Co warto dokończyć
+
+1. Dopracować jakość porad AI: obecne historyczne `why` bywają zbyt kategoryczne (np. kolejność ceny i pytania o decyzję)
+   oraz zawierają niezweryfikowane założenia o zwrocie inwestycji. Preferuj obserwację, hipotezę i jeden mały eksperyment.
+2. Dalszy polish panelu na realnym telefonie; kontekst w analizie jest pod transkrypcją w lewej kolumnie i można poprawić jego ekspozycję.
+   Nie dodawaj kolejnej ściany tekstu, ukrytych limitów ani automatycznych ocen stanu psychicznego.
+3. Sprawdzić zapis na zalogowanej produkcyjnej PWA i odtwarzanie na urządzeniu użytkownika.
+   Test przeglądarkowy bieżącego zapisu kontekstu używał odizolowanych danych demonstracyjnych i przechwyconego REST;
+   test SQL osobno sprawdzał owner RLS i zachowanie liczb. Fathom może zwracać własne błędy CORS odtwarzacza — jest link zewnętrzny.
+
+### Walidacja
+
+- Testy SQL: `npm run test:sql` — przeszły, w tym kontekst/zera, ochrona liczników i owner RLS.
+- Browser: widoki panelu/analizy przy szerokości telefonu nie rozszerzają strony na boki;
+  filtr dnia, rozwinięcie kolejnych nagrań, wyszukiwanie własnej notatki oraz pokazanie zapisanego kontekstu w analizie sprawdzone.
+- `npm run typecheck:ui`, ESLint dla zmienionych plików, `npm run ratchet:frontend` (w tym Knip) i `npm run build` przeszły.
+  Build ma wcześniejsze ostrzeżenia o kolejności importu iosPolish.css i wielkości chunków; bez błędu kompilacji.
+- Pełny `npm test -- --maxWorkers=4 --testTimeout=30000` uruchomiony; przy tworzeniu tego handoffu nadal trwał.
+  Nie traktuj tego jako potwierdzenia zielonego całego repo. Testy ukierunkowane na closer przeszły przed poprawką
+  potwierdzania zer; po niej rozszerzono regresję modelu i porannego formularza, a walidacja jest ponawiana.
+- Lokalny Windows: `C:\Users\jakub\Desktop\Sparky` jest junction do `D:\Przeniesione\Desktop-Sparky`.
+  Narzędzia Node/Vite uruchamiaj z rzeczywistego D:. Na Windows pełny Vitest ogranicz do
+  `npm test -- --maxWorkers=4 --testTimeout=30000`; testy strażników skanują pliki i wymagają czasu.
+
 ## W toku
 
 - **Jedno źródło prawdy** ([`../SINGLE_SOURCE.md`](../SINGLE_SOURCE.md)): cele, progi i definicje mają jednego właściciela

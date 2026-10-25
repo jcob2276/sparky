@@ -1,262 +1,54 @@
-import { useMemo, useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PhoneCall, Clock, CalendarCheck, UserCheck } from 'lucide-react';
 import { Card } from '../../ui/Card';
-import {
-  fetchCloserWeekLogs,
-  upsertCloserDailyLog,
-  type CloserDailyLogRow,
-} from '../../../lib/closer/closerApi';
-import { useCloserTargets } from '../../../lib/closer/closerTargetsApi';
-import { closerKeys, goalSpineKeys } from '../../../lib/queryKeys';
-import { getTodayWarsaw } from '../../../lib/date';
+import Spinner from '../../ui/Spinner';
+import DataStateNotice from '../../core/DataStateNotice';
+import { formatLongDateWarsaw, formatWeekdayWarsaw, formatWeekRange } from '../../../lib/date';
+import { useCloserWeek } from './useCloserWeek';
+import CloserWeekSummary from './CloserWeekSummary';
 import CloserDayStrip from './CloserDayStrip';
 import CloserDayInputs from './CloserDayInputs';
 import CloserCallsList from './CloserCallsList';
-
-interface Props {
-  userId: string;
-  weekStart: string;
-  projectName?: string;
-  isFocusSprint?: boolean;
+import CloserWorkContextEditor from './CloserWorkContextEditor';
+interface Props { userId: string; weekStart: string; projectName?: string; isFocusSprint?: boolean }
+export default function CloserWeekTracker(props: Props) {
+  const model = useCloserWeek(props.userId, props.weekStart);
+  return <CloserWeekView {...props} model={model} />;
 }
-
-interface CloserKpiCardsProps {
-  sumAppointments: number;
-  targetAppointments: number;
-  pctAppointments: number;
-  sumSalesCalls: number;
-  targetSalesCalls: number;
-  pctSalesCalls: number;
-  sumDials: number;
-  sumWorkHours: number;
-}
-
-function CloserKpiCards({
-  sumAppointments,
-  targetAppointments,
-  pctAppointments,
-  sumSalesCalls,
-  targetSalesCalls,
-  pctSalesCalls,
-  sumDials,
-  sumWorkHours,
-}: CloserKpiCardsProps) {
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-      {/* Umówienia */}
-      <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-        <div className="flex items-center justify-between text-2xs font-bold text-text-muted">
-          <span className="flex items-center gap-1">
-            <CalendarCheck size={11} className="text-success" /> Umówienia
-          </span>
-          <span className={pctAppointments >= 100 ? 'text-success font-semibold' : ''}>
-            {pctAppointments}%
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1">
-          <span className="text-lg font-semibold text-text-primary">{sumAppointments}</span>
-          <span className="text-xs font-semibold text-text-muted">/ {targetAppointments}</span>
-        </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/25">
-          <div
-            className={`h-full rounded-full transition-all duration-300 ${
-              pctAppointments >= 100 ? 'bg-success' : 'bg-primary'
-            }`}
-            style={{ width: `${pctAppointments}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Sales calle */}
-      <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-        <div className="flex items-center justify-between text-2xs font-bold text-text-muted">
-          <span className="flex items-center gap-1">
-            <UserCheck size={11} className="text-primary" /> Sales calle
-          </span>
-          <span className={pctSalesCalls >= 100 ? 'text-success font-semibold' : ''}>
-            {pctSalesCalls}%
-          </span>
-        </div>
-        <div className="flex items-baseline gap-1">
-          <span className="text-lg font-semibold text-text-primary">{sumSalesCalls}</span>
-          <span className="text-xs font-semibold text-text-muted">/ {targetSalesCalls}</span>
-        </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-border-custom/25">
-          <div
-            className={`h-full rounded-full transition-all duration-300 ${
-              pctSalesCalls >= 100 ? 'bg-success' : 'bg-primary'
-            }`}
-            style={{ width: `${pctSalesCalls}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Rozmowy odebrane */}
-      <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-        <div className="flex items-center justify-between text-2xs font-bold text-text-muted">
-          <span className="flex items-center gap-1">
-            <PhoneCall size={11} className="text-primary" /> Rozmowy odebrane
-          </span>
-          <span>Tydzień</span>
-        </div>
-        <div className="flex items-baseline gap-1">
-          <span className="text-lg font-semibold text-primary">{sumDials}</span>
-          <span className="text-2xs text-text-muted">łączna liczba</span>
-        </div>
-        <p className="text-2xs text-text-muted truncate">
-          śr. {Math.round(sumDials / 7)} / dzień
-        </p>
-      </div>
-
-      {/* Godziny pracy */}
-      <div className="rounded-xl border border-border-custom/30 bg-surface/50 p-2.5 space-y-1.5">
-        <div className="flex items-center justify-between text-2xs font-bold text-text-muted">
-          <span className="flex items-center gap-1">
-            <Clock size={11} className="text-warning" /> Czas pracy
-          </span>
-          <span>Tydzień</span>
-        </div>
-        <div className="flex items-baseline gap-1">
-          <span className="text-lg font-semibold text-text-primary">{sumWorkHours}</span>
-          <span className="text-xs font-bold text-text-muted">godzin</span>
-        </div>
-        <p className="text-2xs text-text-muted truncate">
-          śr. {Math.round((sumWorkHours / 7) * 10) / 10}h / dzień
-        </p>
-      </div>
-    </div>
-  );
-}
-
-export default function CloserWeekTracker({
-  userId,
-  weekStart,
-  projectName = 'Closer',
-  isFocusSprint = false,
-}: Props) {
-  const queryClient = useQueryClient();
-  const today = getTodayWarsaw();
-  const [selectedDate, setSelectedDate] = useState<string>(today);
-
-  const logsQuery = useQuery({
-    queryKey: closerKeys.week(userId, weekStart),
-    queryFn: () => fetchCloserWeekLogs(userId, weekStart),
-    enabled: !!userId && !!weekStart,
-  });
-
-  const logs = useMemo(() => logsQuery.data ?? [], [logsQuery.data]);
-  const logsByDate = useMemo(() => {
-    const map: Record<string, CloserDailyLogRow> = {};
-    for (const l of logs) {
-      map[l.date] = l;
-    }
-    return map;
-  }, [logs]);
-
-  const mutateLog = useMutation({
-    mutationFn: async (patch: {
-      dials?: number;
-      work_hours?: number;
-      appointments?: number;
-      sales_calls?: number;
-      notes?: string | null;
-    }) => {
-      const current = logsByDate[selectedDate];
-      return upsertCloserDailyLog(userId, weekStart, {
-        date: selectedDate,
-        dials: patch.dials ?? current?.dials ?? 0,
-        work_hours: patch.work_hours ?? Number(current?.work_hours ?? 0),
-        appointments: patch.appointments ?? current?.appointments ?? 0,
-        sales_calls: patch.sales_calls ?? current?.sales_calls ?? 0,
-        sales_closed: current?.sales_closed ?? 0,
-        notes: patch.notes !== undefined ? patch.notes : (current?.notes ?? null),
-      });
-    },
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: closerKeys.week(userId, weekStart) });
-      void queryClient.invalidateQueries({ queryKey: goalSpineKeys.all });
-    },
-  });
-
-  // Calculate weekly aggregates
-  const sumAppointments = useMemo(
-    () => logs.reduce((acc, l) => acc + (l.appointments || 0), 0),
-    [logs],
-  );
-  const sumSalesCalls = useMemo(
-    () => logs.reduce((acc, l) => acc + (l.sales_calls || 0), 0),
-    [logs],
-  );
-  const sumDials = useMemo(
-    () => logs.reduce((acc, l) => acc + (l.dials || 0), 0),
-    [logs],
-  );
-  const sumWorkHours = useMemo(
-    () => Math.round(logs.reduce((acc, l) => acc + (Number(l.work_hours) || 0), 0) * 10) / 10,
-    [logs],
-  );
-
-  const targets = useCloserTargets(userId);
-  const targetAppointments = targets.appointments;
-  const targetSalesCalls = targets.salesCalls;
-  const pctAppointments = Math.min(100, Math.round((sumAppointments / targetAppointments) * 100));
-  const pctSalesCalls = Math.min(100, Math.round((sumSalesCalls / targetSalesCalls) * 100));
-
-  const currentLog = logsByDate[selectedDate];
-
-  return (
-    <Card padding="1rem 1.1rem" className="space-y-4">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-text-primary tracking-tight">{projectName}</h3>
-            {isFocusSprint && (
-              <span className="text-2xs font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                Focus sprintu
-              </span>
-            )}
+function CloserWeekView({ userId, weekStart, projectName = 'Closer', isFocusSprint, model }: Props & { model: ReturnType<typeof useCloserWeek> }) {
+  const { logs, selectedDate, selectDate, targets, numbers, context } = model;
+  const rows = logs.data ?? [];
+  const logsByDate = Object.fromEntries(rows.map(row => [row.date, row]));
+  const current = logsByDate[selectedDate];
+  return <Card padding="1.25rem" className="space-y-7 sm:!p-7">
+    <header className="space-y-2">
+      <p className="text-sm font-medium text-primary">Twoja praca · {formatWeekRange(weekStart)}</p>
+      <h3 className="break-words text-xl font-semibold tracking-tight text-text-primary">{projectName}</h3>
+      <a href={"#closer-library-" + weekStart} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary">Przejdź do biblioteki rozmów</a>
+      {isFocusSprint && <p className="text-sm text-text-secondary">Focus sprintu</p>}
+    </header>
+    {logs.isPending ? <div className="flex items-center gap-3 py-5 text-sm text-text-secondary"><Spinner size="sm" /> Wczytywanie tygodnia…</div>
+      : logs.isError ? <DataStateNotice tone="warning" title="Nie udało się wczytać tygodnia" detail="Odśwież widok i spróbuj ponownie." />
+      : <>
+        <CloserWeekSummary logs={rows} targets={targets} />
+        <section className="space-y-5 border-t border-border-custom pt-6" aria-label="Mój dzień pracy">
+          <div>
+            <h3 className="text-base font-semibold text-text-primary">Twój dzień</h3>
+            <p className="mt-1 text-sm text-text-secondary">Wybierz dzień, żeby wrócić do jego liczb i kontekstu.</p>
           </div>
-          <p className="text-xs text-text-muted mt-0.5">
-            Tydzień: {targets.appointments} umówień & {targets.salesCalls} sales calli
-          </p>
-        </div>
-
-      </div>
-
-      {/* 4 Weekly KPI Summary Cards */}
-      <CloserKpiCards
-        sumAppointments={sumAppointments}
-        targetAppointments={targetAppointments}
-        pctAppointments={pctAppointments}
-        sumSalesCalls={sumSalesCalls}
-        targetSalesCalls={targetSalesCalls}
-        pctSalesCalls={pctSalesCalls}
-        sumDials={sumDials}
-        sumWorkHours={sumWorkHours}
-      />
-
-      {/* 7-Day Picker Strip */}
-      <div className="space-y-1.5">
-        <p className="text-2xs font-semibold text-text-muted">Wybierz dzień</p>
-        <CloserDayStrip
-          weekStart={weekStart}
-          selectedDate={selectedDate}
-          onSelectDate={setSelectedDate}
-          logsByDate={logsByDate}
-        />
-      </div>
-
-      {/* Daily Inputs Editor for the selected day */}
-      <CloserDayInputs
-        dateStr={selectedDate}
-        log={currentLog}
-        onUpdate={(patch) => mutateLog.mutate(patch)}
-        disabled={mutateLog.isPending}
-      />
-
-      <CloserCallsList userId={userId} date={selectedDate} />
-    </Card>
-  );
+          <CloserDayStrip weekStart={weekStart} selectedDate={selectedDate} onSelectDate={selectDate} logsByDate={logsByDate} />
+          <p className="text-sm font-medium capitalize text-text-primary">{formatWeekdayWarsaw(selectedDate)} · {formatLongDateWarsaw(selectedDate)}</p>
+          <CloserWorkContextEditor key={userId + selectedDate} userId={userId} date={selectedDate} row={current}
+            saving={context.isPending} error={context.isError && context.variables?.date === selectedDate}
+            onSave={value => context.mutate({ date: selectedDate, value })} />
+          <details className="border-t border-border-custom pt-4">
+            <summary className="cursor-pointer py-2 text-sm font-semibold text-primary">Liczby dnia i ręczne korekty</summary>
+            <div className="pt-4">
+              <CloserDayInputs dateStr={selectedDate} log={current} disabled={numbers.isPending || !model.libraryReady} recorded={model.libraryReady ? model.recorded : undefined}
+                onUpdate={patch => numbers.mutate({ date: selectedDate, patch: { date: selectedDate, ...patch } })} />
+              {numbers.isError && numbers.variables?.date === selectedDate && <p role="alert" className="mt-3 text-sm text-danger">Nie udało się zapisać liczb. Spróbuj ponownie.</p>}
+            </div>
+          </details>
+        </section>
+      </>}
+    <CloserCallsList userId={userId} date={selectedDate} weekStart={weekStart} />
+  </Card>;
 }

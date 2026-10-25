@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { ArrowUpRight, Check, Play, Save } from 'lucide-react';
 import type { CloserCallRow } from '../../../lib/closer/closerCallsApi';
+import type { CloserDailyLogRow } from '../../../lib/closer/closerApi';
+import CloserWorkContextSummary from './CloserWorkContextSummary';
 import { reviewMoments } from '../../../lib/closer/closerCallReview';
 import { formatLongDateWarsaw, warsawTimeOfDay } from '../../../lib/date';
 import { confirmDialog } from '../../../lib/notify';
@@ -13,13 +15,14 @@ import { useCloserReviewNotes } from './useCloserReviewNotes';
 
 interface Props {
   call: CloserCallRow;
+  dayContext?: CloserDailyLogRow | null; contextLoading?: boolean; contextError?: boolean;
   onClose: () => void;
   onSaveNotes: (notes: string) => void;
   saving: boolean;
   saveError: boolean;
 }
 
-export default function CloserCallReviewView({ call, onClose, onSaveNotes, saving, saveError }: Props) {
+export default function CloserCallReviewView({ call, onClose, onSaveNotes, saving, saveError, dayContext, contextLoading, contextError }: Props) {
   const moments = reviewMoments(call);
   const [selectedId, setSelectedId] = useState((moments.find(m => m.kind === 'practice') ?? moments[0])?.id);
   const { draft, setDraft, dirty, discard } = useCloserReviewNotes(call.user_id, call.id, call.review_notes);
@@ -43,12 +46,12 @@ export default function CloserCallReviewView({ call, onClose, onSaveNotes, savin
         <h2 className="max-w-4xl break-words text-xl font-semibold leading-snug tracking-tight text-text-primary sm:text-2xl">{call.title}</h2>
         <p className="mt-3 text-sm leading-relaxed text-text-secondary">
           Wybierz moment, sprawdź kontekst w nagraniu i zapisz, co chcesz zmienić.
-          {call.ai_status === 'done' && call.ai_score !== null ? ' Ocena AI: ' + call.ai_score + '/10.' : ''}
+
         </p>
       </header>
 
       <div className="grid min-w-0 gap-8 lg:grid-cols-[var(--closer-review-columns)] lg:gap-10">
-        <div className="min-w-0"><CloserCallEvidence call={call} seconds={selected?.seconds ?? null} /></div>
+        <div className="min-w-0"><CloserCallEvidence call={call} seconds={selected?.seconds ?? null} /><CloserWorkContextSummary row={dayContext} loading={contextLoading} error={contextError} /></div>
         <div className="min-w-0 space-y-7">
           <section aria-label="Momenty rozmowy" className="space-y-3">
             <div className="flex items-baseline justify-between gap-3">
@@ -105,9 +108,9 @@ export default function CloserCallReviewView({ call, onClose, onSaveNotes, savin
               disabled={saving} rows={5} placeholder="Na następnym callu przećwiczę…"
               className="w-full resize-y rounded-[var(--radius-md)] border border-border-custom bg-surface-2 p-4 text-base leading-7 text-text-primary outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-[var(--opacity-disabled)]" />
             {saveError && <p role="alert" className="text-sm text-danger">Nie udało się zapisać. Twoja notatka nadal jest tutaj — spróbuj ponownie.</p>}
-            <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <span role="status" className="text-xs text-text-secondary">{saving ? 'Zapisywanie…' : dirty ? 'Niezapisane zmiany' : call.review_notes ? 'Notatka zapisana' : 'Notatka widoczna tylko dla Ciebie'}</span>
-              <Button onClick={() => onSaveNotes(draft)} loading={saving} disabled={!dirty} icon={<Save size={16} />} size="md">Zapisz notatkę</Button>
+              <Button className="shrink-0 whitespace-nowrap" onClick={() => onSaveNotes(draft)} loading={saving} disabled={!dirty} icon={<Save size={16} />} size="md">Zapisz notatkę</Button>
             </div>
           </section>
         </div>

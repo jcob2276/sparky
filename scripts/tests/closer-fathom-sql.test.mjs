@@ -46,6 +46,19 @@ try {
   assert.equal(row.appointments,2);
   assert.equal(row.notes,'manual');
   assert.equal(row.sales_closed,0,'AI never declares a sale in daily statistics');
+  await db.exec(await readFile('supabase/migrations/20261025131515_closer_call_review_notes.sql','utf8'));
+  await db.exec(await readFile('supabase/migrations/20261025135927_closer_work_context.sql','utf8'));
+  await db.exec(await readFile('supabase/migrations/20261025141203_closer_numbers_confirmation.sql','utf8'));
+  assert.equal((await day(owner)).work_energy, null, 'historical energy stays unknown');
+  await db.query(`INSERT INTO closer_daily_logs(user_id,date,work_energy,work_pressure,notes)
+    VALUES ($1,'2026-10-25',2,4,'Trudny dzień') ON CONFLICT(user_id,date)
+    DO UPDATE SET work_energy=excluded.work_energy,work_pressure=excluded.work_pressure,notes=excluded.notes`,[owner]);
+  assert.equal((await day(owner)).sales_calls,2,'saving personal context preserves recorded totals');
+  assert.equal((await day(owner)).dials,7,'saving personal context preserves manual numbers');
+  await assert.rejects(db.query('UPDATE closer_daily_logs SET work_energy=6 WHERE user_id=$1',[owner]), /check constraint/);
+  await db.query(`INSERT INTO closer_daily_logs(user_id,date,notes,work_energy) VALUES ($1,'2026-10-24','Tylko kontekst',2)`,[owner]);
+  assert.equal((await db.query("SELECT numbers_entered_at FROM closer_daily_logs WHERE date='2026-10-24'")).rows[0].numbers_entered_at,null,'context alone never confirms numeric zeros');
+  await db.query("DELETE FROM closer_daily_logs WHERE date='2026-10-24'");
   const kpi = async name => Number((await db.query(`
     SELECT e.value FROM kpi_entries e JOIN goal_kpis k ON e.kpi_id=k.id
     WHERE k.name=$1 AND e.week_start='2026-10-19'`,[name])).rows[0].value);
@@ -88,7 +101,12 @@ try {
   assert.equal((await day(owner)).sales_calls,3,'authenticated manual save respects recorded floor');
   assert.equal(await kpi('Sales calle'),3,'authenticated edits update the same weekly KPI');
   await db.query("UPDATE closer_daily_logs SET sales_calls=0 WHERE user_id=$1",[other]);
+  await db.query('UPDATE closer_daily_logs SET work_energy=1,work_pressure=5 WHERE user_id=$1',[other]);
+  await db.query("UPDATE closer_calls SET review_notes='Moja notatka' WHERE user_id=$1",[owner]);
+  assert.ok((await db.query('SELECT review_notes FROM closer_calls')).rows.every(r=>r.review_notes==='Moja notatka'));
   await db.exec('RESET ROLE');
+  assert.equal((await day(other)).work_energy,null,'personal context keeps owner RLS');
+  assert.equal((await day(owner)).work_pressure,4,'numeric edits preserve personal context');
   assert.equal((await day(other)).sales_calls,2,'authenticated writes cannot alter another owner');
   console.log('Fathom totals: backfill, overlap, replay, manual floor, weekly KPI and owner RLS PASS');
 } catch (error) {

@@ -550,11 +550,14 @@ export type Database = {
           dials: number
           id: string
           notes: string | null
+          numbers_entered_at: string | null
           sales_calls: number
           sales_closed: number
           updated_at: string
           user_id: string
+          work_energy: number | null
           work_hours: number
+          work_pressure: number | null
         }
         Insert: {
           appointments?: number
@@ -563,11 +566,14 @@ export type Database = {
           dials?: number
           id?: string
           notes?: string | null
+          numbers_entered_at?: string | null
           sales_calls?: number
           sales_closed?: number
           updated_at?: string
           user_id: string
+          work_energy?: number | null
           work_hours?: number
+          work_pressure?: number | null
         }
         Update: {
           appointments?: number
@@ -576,11 +582,14 @@ export type Database = {
           dials?: number
           id?: string
           notes?: string | null
+          numbers_entered_at?: string | null
           sales_calls?: number
           sales_closed?: number
           updated_at?: string
           user_id?: string
+          work_energy?: number | null
           work_hours?: number
+          work_pressure?: number | null
         }
         Relationships: []
       }

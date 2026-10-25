@@ -31,6 +31,7 @@ export async function upsertCloserDailyLog(
   weekStart: string,
   entry: {
     date: string;
+    numbers_entered_at?: string;
     dials?: number;
     work_hours?: number;
     appointments?: number;
@@ -44,13 +45,7 @@ export async function upsertCloserDailyLog(
     .upsert(
       {
         user_id: userId,
-        date: entry.date,
-        dials: entry.dials ?? 0,
-        work_hours: entry.work_hours ?? 0,
-        appointments: entry.appointments ?? 0,
-        sales_calls: entry.sales_calls ?? 0,
-        sales_closed: entry.sales_closed ?? 0,
-        notes: entry.notes ?? null,
+        ...entry,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'user_id,date' },
