@@ -258,8 +258,8 @@ export default function CloserDayInputs({
           iconColor="text-success"
           valueColor="text-success"
           buttonColor="border-success/30 bg-success/10 text-success hover:bg-success/20"
-          label="Umówienia"
-          sublabel="spotkania z klientami"
+          label="Umówieni"
+          sublabel="umówieni z rozmów"
           value={appointments}
           disabled={disabled}
           onDecrement={() => changeAppointments(-1)}
@@ -270,8 +270,8 @@ export default function CloserDayInputs({
           iconColor="text-primary"
           valueColor="text-primary"
           buttonColor="border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-          label="Sales calle"
-          sublabel="przeprowadzone rozmowy"
+          label="Rozmowy sprzedażowe"
+          sublabel="przeprowadzone sales calle"
           value={salesCalls}
           disabled={disabled}
           onDecrement={() => changeSalesCalls(-1)}

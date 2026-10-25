@@ -46,5 +46,6 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 
 | Temat | Gdzie się rozjeżdża | Decyzja |
 |---|---|---|
+| Samodzielne aktywności z Oury (bez odpowiednika w Stravie) | pulpit desktopowy je liczy, Kronika, porównanie okresów, Puls i recap pomijają (`is_oura = false`) | do decyzji użytkownika; dziś dotyczy jednego biegu (24.05, 5,2 km) |
 | Portfele w Inwestycjach | zakodowane na sztywno (Jakub, Kondzio) vs `finance_holdings` | zostawione celowo, do przeniesienia do Finansów |
 | Cel Duch i cel sprintu 3 | `life_goals.goal_duch` pusty, brak wpisu `sprint_goals` | do uzupełnienia przez użytkownika |
