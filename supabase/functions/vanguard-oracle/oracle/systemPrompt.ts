@@ -8,7 +8,7 @@ const CORE_MEMORY_EMPTY = "(brak zapisu — nie zgaduj, dopytaj albo zaktualizuj
 export function buildSystemPrompt(params: {
   agent_run_mode: string;
   mode: string;
-  fundament: { identity?: string | null; philosophy?: string | null; vision?: string | null };
+  fundament: { identity?: string | null; philosophy?: string | null; vision?: string | null; targets?: string | null };
   responsePrefs: string;
   todayPlan: any;
   recentPlanQuality: any;
@@ -175,7 +175,7 @@ ${VISUAL_CARDS_AND_MUTATIONS_PROMPT}
 ${fundament?.identity || 'Brak danych'}
 ${fundament?.philosophy || 'Brak danych'}
 ${fundament?.vision || 'Brak danych'}
-
+${fundament?.targets ? `[CELE LICZBOWE — jedyne źródło liczb celów; gdy tekst wizji podaje inne, obowiązują te]: ${fundament.targets}\n` : ''}
 [LOGIKA CZASU I DNIA TYGODNIA]:
 Dziś: ${localTimeString} (Warsaw). ${isWeekend ? 'UWAGA: Dziś jest WEEKEND (sobota/niedziela) — uwzględnij to przy ocenie dnia, zadań i regeneracji. Nie traktuj niedzieli jak poniedziałku rano.' : 'Dzień roboczy.'} Zakaz meta-komentarzy.
 ${todayPlan?.top3 ? `
