@@ -34,7 +34,7 @@ część osobista ma uwzględniać przede wszystkim **energię, presję i kontek
   Sekret jest już skonfigurowany w Supabase; **nie twórz drugiego webhooka i nie kopiuj sekretów do repo/handoffu**.
 - Model strukturalnej analizy w `_shared/closerCallAnalysis.ts` to `deepseek-chat` (poprzedni model zwracał nieprawidłowy JSON).
   Prompt: cytat + obserwacja + hipoteza + jeden eksperyment, bez założeń o finansach/ROI klienta i bez ocen emocji;
-  momenty walidowane `groundCallMoments`. Starych ocen nie przeliczano.
+  momenty walidowane `groundCallMoments`. Wszystkie 23 zapisane rozmowy przeliczone nowym promptem 2026-10-25 (200 momentów, każdy z cytatem i eksperymentem).
 - Migracje `20261025130316_closer_fathom_daily_totals.sql`, `20261025131515_closer_call_review_notes.sql`,
   `20261025135927_closer_work_context.sql` i `20261025141203_closer_numbers_confirmation.sql` są zastosowane z tymi samymi wersjami w ledgerze.
   Typy w `src/lib/database.types.ts` i `supabase/functions/_shared/database.types.ts` są odświeżone.
@@ -45,10 +45,8 @@ część osobista ma uwzględniać przede wszystkim **energię, presję i kontek
 
 ### Co warto dokończyć
 
-1. **Ponowna analiza starszych rozmów.** Prompt (`_shared/closerCallAnalysis.ts`) daje teraz cytat, obserwację, hipotezę
-   i jeden eksperyment, a `groundCallMoments` (`@vanguard/domain`) odrzuca momenty bez czasu i cytatu z transkryptu.
-   Nagrania zanalizowane wcześniej mają stary format (bez cytatu i eksperymentu); UI pokazuje je jak dotąd.
-   Brakuje sposobu, żeby je przeliczyć (osobny endpoint albo przycisk w analizie) — tylko za zgodą użytkownika, bo zmienia zapisane wyniki.
+1. ~~Ponowna analiza starszych rozmów~~ — zrobione: funkcja `closer-reanalyze` (przycisk „Przeanalizuj ponownie” w analizie);
+   23 rozmowy przeliczone 2026-10-25 za zgodą użytkownika (wyniki: 1 closed, 9 follow_up, 13 unclear; średnia ocena procesu 5,3).
 2. Polish panelu na realnym telefonie. Skrót kontekstu dnia („Ty tego dnia: energia · presja”) jest już w nagłówku analizy,
    pełny blok zostaje pod transkryptem. Nie dodawaj ściany tekstu ani automatycznych ocen stanu psychicznego.
 3. Sprawdzić zapis na zalogowanej produkcyjnej PWA i odtwarzanie na urządzeniu użytkownika (Fathom może dawać CORS odtwarzacza; jest link zewnętrzny).
