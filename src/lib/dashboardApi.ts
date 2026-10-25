@@ -72,16 +72,23 @@ async function fetchDashboardData(userId: string): Promise<DashboardData> {
       // Fall through to live computation below.
       console.warn('[dashboardApi] world state JSON failed validation — falling back to live computation');
     } else {
-      // live today_win, so ticking a task shows without waiting for the world_state rebuild
-      const { data: liveTodayWin } = await supabase
-        .from('daily_wins')
-        .select('*, daily_win_tasks(*)')
-        .eq('user_id', userId)
-        .eq('date', today)
-        .maybeSingle();
+      // live today_win and weekly calories: world_state is rebuilt once a night, so meals and ticks
+      // from today would otherwise show only after the next rebuild
+      const [{ data: liveTodayWin }, { data: weekNutrition, error: weekNutritionError }] = await Promise.all([
+        supabase
+          .from('daily_wins')
+          .select('*, daily_win_tasks(*)')
+          .eq('user_id', userId)
+          .eq('date', today)
+          .maybeSingle(),
+        supabase.from('daily_nutrition').select('calories').eq('user_id', userId).gte('date', monday).lte('date', today),
+      ]);
+      const liveWeeklyCalories = weekNutritionError
+        ? null
+        : (weekNutrition ?? []).reduce((sum, row) => sum + (Number(row.calories) || 0), 0);
 
       return {
-        weeklyCalories: state.nutrition?.weekly_calories ?? 0,
+        weeklyCalories: liveWeeklyCalories ?? state.nutrition?.weekly_calories ?? 0,
         todayWin: liveTodayWin ?? state.execution?.today_win ?? null,
       };
     }
