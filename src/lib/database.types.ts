@@ -8508,6 +8508,42 @@ export type Database = {
         }
         Relationships: []
       }
+      weather_daily: {
+        Row: {
+          computed_at: string
+          date: string
+          humidity_mean: number | null
+          precip_mm: number | null
+          sunshine_h: number | null
+          temp_max: number | null
+          temp_mean: number | null
+          temp_min: number | null
+          user_id: string
+        }
+        Insert: {
+          computed_at?: string
+          date: string
+          humidity_mean?: number | null
+          precip_mm?: number | null
+          sunshine_h?: number | null
+          temp_max?: number | null
+          temp_mean?: number | null
+          temp_min?: number | null
+          user_id: string
+        }
+        Update: {
+          computed_at?: string
+          date?: string
+          humidity_mean?: number | null
+          precip_mm?: number | null
+          sunshine_h?: number | null
+          temp_max?: number | null
+          temp_mean?: number | null
+          temp_min?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       weekly_reviews: {
         Row: {
           ai_recap: Json | null
