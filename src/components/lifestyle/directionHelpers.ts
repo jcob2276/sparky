@@ -9,8 +9,11 @@ const APP_LAUNCH_DATE = '2026-05-03';
 export function calculateStats(history: DailyWinRow[]) {
   if (!history.length) return { streak: 0, weeklyP: 0, monthlyWin: false, weeks: [] as { isWeekWin: boolean; pCount: number; start: Date }[] };
   let streak = 0;
-  const sorted = [...history].sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
   const today = getTodayWarsaw();
+  // plan na jutro (zapisany wieczorem) nie jest jeszcze dniem do rozliczenia i nie może zerować serii
+  const sorted = history
+    .filter((day) => !day.date || day.date <= today)
+    .sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
   const yesterday = shiftDateStr(getTodayWarsaw(), -1);
   if (sorted[0]?.date === today || sorted[0]?.date === yesterday) {
     for (const day of sorted) {
