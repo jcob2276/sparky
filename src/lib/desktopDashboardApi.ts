@@ -34,6 +34,7 @@ export async function fetchDesktopDashboardData(userId: string): Promise<Desktop
     supabase.from('nutrition_targets')
       .select('protein_floor_g, target_kcal')
       .eq('user_id', userId)
+      .lte('date', getTodayWarsaw())
       .order('date', { ascending: false })
       .limit(1)
       .maybeSingle(),

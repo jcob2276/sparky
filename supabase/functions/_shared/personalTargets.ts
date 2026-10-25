@@ -17,7 +17,7 @@
  */
 
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { derivePersonalTargets } from '@vanguard/domain';
+import { derivePersonalTargets, getWarsawDateString } from '@vanguard/domain';
 
 export interface PersonalTargets {
   /** Minimum daily protein (g). From nutrition_targets.protein_floor_g (latest).
@@ -39,6 +39,8 @@ export async function resolvePersonalTargets(
       .from('nutrition_targets')
       .select('protein_floor_g, target_kcal')
       .eq('user_id', userId)
+      // trener zapisuje cel na jutro z wyprzedzeniem: bierzemy cel obowiązujący dziś, nie najnowszy wiersz
+      .lte('date', getWarsawDateString())
       .order('date', { ascending: false })
       .limit(1)
       .maybeSingle(),

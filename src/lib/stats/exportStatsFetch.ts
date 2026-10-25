@@ -84,7 +84,7 @@ export async function fetchExportData(
     supabase.from('phone_usage_daily').select('*').eq('user_id', session.user.id).gte('date', dateRange.from).lte('date', dateRange.to).order('date', { ascending: true })
   ]);
 
-  const { data: targetRow } = await supabase.from('nutrition_targets').select('protein_floor_g').eq('user_id', session.user.id).order('date', { ascending: false }).limit(1).maybeSingle();
+  const { data: targetRow } = await supabase.from('nutrition_targets').select('protein_floor_g').eq('user_id', session.user.id).lte('date', dateRange.to).order('date', { ascending: false }).limit(1).maybeSingle();
   const proteinTarget = Number(targetRow?.protein_floor_g);
 
   return {

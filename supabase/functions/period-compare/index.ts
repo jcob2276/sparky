@@ -73,7 +73,7 @@ Deno.serve(serveJson(async (req, ctx) => {
   const [rowsA, rowsB, targetsRes, syncRes] = await Promise.all([
     gather(a),
     gather(b),
-    db.from('nutrition_targets').select('target_kcal, protein_floor_g').eq('user_id', userId).order('date', { ascending: false }).limit(1),
+    db.from('nutrition_targets').select('target_kcal, protein_floor_g').eq('user_id', userId).lte('date', today).order('date', { ascending: false }).limit(1),
     db.from('strava_activities').select('synced_at').eq('user_id', userId).order('synced_at', { ascending: false }).limit(1),
   ])
   const targetRow = (targetsRes.data ?? [])[0] as { target_kcal: number | null; protein_floor_g: number | null } | undefined

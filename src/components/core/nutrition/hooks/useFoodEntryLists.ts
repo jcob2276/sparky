@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../../../lib/supabase';
 import { getTodayWarsaw } from '../../../../lib/date';
 import type { Favorite, RecentEntry } from './foodEntryUtils';
+import { fetchNutritionTargetForDay } from '../../../../lib/health/nutritionTargetsApi';
 
 import { foodEntryListsKeys } from '../../../../lib/queryKeys';
 
@@ -41,14 +42,7 @@ async function fetchTodayTotals(userId: string) {
 }
 
 async function fetchTargets(userId: string) {
-  const { data } = await supabase
-    .from('nutrition_targets')
-    .select('target_kcal, protein_floor_g')
-    .eq('user_id', userId)
-    .order('date', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return data ?? null;
+  return (await fetchNutritionTargetForDay(userId)) ?? null;
 }
 
 export function useFoodEntryLists(userId: string | undefined) {
