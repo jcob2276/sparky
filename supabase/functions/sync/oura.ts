@@ -158,7 +158,8 @@ export async function runOuraSync(req: Request): Promise<unknown> {
             total_calories: s.total_calories ?? null,
             bedtime_timestamp: s.bedtime_timestamp ?? null,
             bedtime_end_timestamp: s.bedtime_end_timestamp ?? null,
-            is_disciplined: isDisciplined,
+            // bez godziny zaśnięcia nie wiemy nic o dyscyplinie: null, żeby scalenie zachowało zapisaną wartość
+            is_disciplined: s.bedtime_timestamp ? isDisciplined : null,
             optimal_bedtime_start_offset: s.optimal_bedtime_start_offset ?? null,
             optimal_bedtime_end_offset: s.optimal_bedtime_end_offset ?? null,
             sleep_time_recommendation: s.sleep_time_recommendation ?? null,
