@@ -1,6 +1,6 @@
 # Mapa Edge Functions Vanguard
 
-Ten plik jest generowany automatycznie i opisuje mapę domenową, triggery oraz statusy wszystkich **39 aktywnych Edge Functions** w monorepo.
+Ten plik jest generowany automatycznie i opisuje mapę domenową, triggery oraz statusy wszystkich **40 aktywnych Edge Functions** w monorepo.
 
 ## Skaner Domenowy (Główna Mapa)
 
@@ -11,6 +11,7 @@ Ten plik jest generowany automatycznie i opisuje mapę domenową, triggery oraz 
 | [`analyze-training-load`](./analyze-training-load/index.ts) | **active** | HTTP POST / Frontend / manual LLM analysis | Analiza obciążenia treningowego na podstawie sesji i planów. | `daily_strain, workout_sessions, strava_activities_clean, training_plan_workouts, oura_daily_summary, training_plan_versions, health_coach_jobs, goal_kpis, vanguard_preferences` | `training_plan_versions, training_plan_workouts, health_coach_jobs` | Sekcja treningowa w aplikacji |
 | [`calendar-watch`](./calendar-watch/index.ts) | **active** | HTTP — webhook od Google Calendar push notifications + cron renewal. | — | `vanguard_calendar_watch, vanguard_tokens` | `vanguard_calendar (przez uruchomienie sync)` | Dwukierunkowa synchronizacja Google <-> Vanguard |
 | [`calendar-write`](./calendar-write/index.ts) | **active** | HTTP POST / Frontend / manual | Zapis/aktualizacja wydarzeń w kalendarzu Google oraz bazy danych vanguard_calendar. | `vanguard_tokens, vanguard_calendar` | `vanguard_calendar` | Kalendarz Google użytkownika |
+| [`closer-reanalyze`](./closer-reanalyze/index.ts) | **active** | HTTP POST — przycisk „Przeanalizuj ponownie” w analizie rozmowy albo service role (przeliczenie historii) | Ponowna analiza AI jednej zapisanej rozmowy closera tym samym kodem co webhook Fathom (aktualny prompt). | `closer_calls` | `closer_calls` | Widok analizy rozmowy (CloserCallReviewView) |
 | [`compute-behavior-effects`](./compute-behavior-effects/index.ts) | **active** | HTTP POST / Frontend / manual | Oblicza wpływ zachowań i nawyków na strain/recovery przy użyciu Welch t-test + Cohen's d. | `behavior_log, daily_strain` | `—` | Sekcja "What Moves You" w aplikacji |
 | [`fathom-webhook`](./fathom-webhook/index.ts) | **active** | HTTP POST — webhook Fathom "new meeting content ready" (podpis Standard Webhooks) | Zapis nagranej rozmowy z Google Meet do closer_calls i analiza AI (błędy / dobre zagrania). | `closer_calls` | `closer_calls` | Widok Closer (lista rozmów), Oracle (dataset closer_calls) |
 | [`lookup-food`](./lookup-food/index.ts) | **active** | HTTP POST / Frontend / manual | Wyszukiwanie makroskĹ‚adnikĂłw produktĂłw spoĹĽywczych (baza lokalna + API zewnÄ™trzne jak Open Food Facts). | `â€”` | `â€”` | Modal dodawania jedzenia (FoodEntryModal) w aplikacji |

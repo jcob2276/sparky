@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowUpRight, Check, Play, Save } from 'lucide-react';
+import { ArrowUpRight, Check, Play, RefreshCw, Save } from 'lucide-react';
 import type { CloserCallRow } from '../../../lib/closer/closerCallsApi';
 import type { CloserDailyLogRow } from '../../../lib/closer/closerApi';
 import CloserWorkContextSummary from './CloserWorkContextSummary';
@@ -13,6 +13,7 @@ import Modal from '../../ui/Modal';
 import EmptyState from '../../ui/EmptyState';
 import CloserCallEvidence from './CloserCallEvidence';
 import { useCloserReviewNotes } from './useCloserReviewNotes';
+import { useCloserReanalyze } from './useCloserReanalyze';
 
 interface Props {
   call: CloserCallRow;
@@ -27,6 +28,7 @@ export default function CloserCallReviewView({ call, onClose, onSaveNotes, savin
   const moments = reviewMoments(call);
   const [selectedId, setSelectedId] = useState((moments.find(m => m.kind === 'practice') ?? moments[0])?.id);
   const { draft, setDraft, dirty, discard } = useCloserReviewNotes(call.user_id, call.id, call.review_notes);
+  const reanalyze = useCloserReanalyze(call.id);
   const selected = moments.find(m => m.id === selectedId) ?? moments[0];
   const close = () => {
     if (saving) return;
@@ -48,6 +50,12 @@ export default function CloserCallReviewView({ call, onClose, onSaveNotes, savin
         <p className="mt-3 text-sm leading-relaxed text-text-secondary">
           Wybierz moment, sprawdź kontekst w nagraniu i zapisz, co chcesz zmienić.
         </p>
+        {call.transcript && <div className="mt-3 flex flex-wrap items-center gap-3">
+          <Button variant="outline" size="sm" icon={<RefreshCw size={14} />} loading={reanalyze.isPending}
+            onClick={() => reanalyze.mutate()}>Przeanalizuj ponownie</Button>
+          {reanalyze.isError && <span role="alert" className="text-xs text-danger">Nie udało się przeliczyć analizy. Spróbuj ponownie.</span>}
+          {reanalyze.isSuccess && <span role="status" className="text-xs text-text-secondary">Analiza przeliczona.</span>}
+        </div>}
         {hasWorkContext(dayContext) && (
           <p className="mt-2 text-sm text-text-secondary">
             Ty tego dnia: <span className="font-medium text-text-primary">

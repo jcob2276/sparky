@@ -34,3 +34,10 @@ export async function saveCloserCallNotes(userId: string, callId: string, notes:
   return data;
 }
 
+
+/** Ponowna analiza AI zapisanej rozmowy aktualnym promptem (funkcja `closer-reanalyze`). */
+export async function reanalyzeCloserCall(callId: string): Promise<{ ok: boolean; status: string | null }> {
+  const { data, error } = await supabase.functions.invoke('closer-reanalyze', { body: { callId } });
+  if (error) throw error;
+  return data as { ok: boolean; status: string | null };
+}
