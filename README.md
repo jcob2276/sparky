@@ -313,6 +313,7 @@ sprawdzane automatycznie względem odwołań w kodzie.
 | Modele | `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`, `TYPESAFE_API_KEY` |
 | Google Calendar | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
 | NextDNS | `NEXTDNS_API_KEY`, `NEXTDNS_PROFILE_ID` |
+| Fathom (nagrania rozmów) | `FATHOM_WEBHOOK_SECRET` |
 | Ujawnienia inwestycyjne SEC | `SEC_USER_AGENT` |
 | MCP | `MCP_SERVER_SECRET` |
 | Web Push | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` |
