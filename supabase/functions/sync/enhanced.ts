@@ -1,3 +1,4 @@
+import { keepExistingWhenMissing } from "@vanguard/domain"
 import { createServiceClient } from "../_shared/supabase.ts"
 import { resolveUserScope } from "../_shared/supabase.ts"
 
@@ -201,9 +202,17 @@ export const runEnhanced = async (req: Request) => {
       }))
 
       if (rows.length > 0) {
+        // zbiorczy upsert wyrównuje kolumny paczki, więc pole brakujące w jednym wierszu trafiłoby jako null;
+        // uzupełniamy je dotychczasową wartością z bazy
+        const { data: existingRows } = await supabase.from('oura_enhanced').select('*')
+          .eq('user_id', u.user_id).in('date', rows.map((row) => row.date))
+        const existingByDate = new Map((existingRows ?? []).map((row) => [row.date, row]))
+        const allKeys = [...new Set(rows.flatMap((row) => Object.keys(row)))]
+        const mergedRows = rows.map((row: Record<string, unknown>) => keepExistingWhenMissing(
+          Object.fromEntries(allKeys.map((key) => [key, row[key] ?? null])), existingByDate.get(row.date as string)))
         const { error: upErr } = await supabase
           .from('oura_enhanced')
-          .upsert(rows, { onConflict: 'user_id,date' })
+          .upsert(mergedRows, { onConflict: 'user_id,date' })
         if (upErr) {
           console.error('[oura-enh] upsert error', upErr)
           results.push({ user_id: u.user_id, error: upErr.message })
