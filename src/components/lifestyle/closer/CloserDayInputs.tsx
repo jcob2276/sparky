@@ -1,283 +1,47 @@
-import { format } from 'date-fns';
-import { pl } from 'date-fns/locale';
-import { PhoneCall, Clock, CalendarCheck, UserCheck } from 'lucide-react';
-import { useHaptics } from '../../../hooks/useHaptics';
 import type { CloserDailyLogRow } from '../../../lib/closer/closerApi';
-import { getTodayWarsaw } from '../../../lib/date';
-import { Pressable } from '../../ui/ControlPrimitives';
-
+import { hasEnteredNumbers } from '../../../lib/closer/closerDayModel';
+import { formatPhoneUsageDuration } from '../../../lib/date';
+import Button from '../../ui/Button';
 interface Props {
-  dateStr: string;
-  log: CloserDailyLogRow | undefined;
-  onUpdate: (patch: {
-    dials?: number;
-    work_hours?: number;
-    appointments?: number;
-    sales_calls?: number;
-    notes?: string | null;
-  }) => void;
-  disabled?: boolean;
+  dateStr: string; log?: CloserDailyLogRow; disabled?: boolean;
+  recorded?: { calls: number; hours: number };
+  onUpdate: (patch: { dials?: number; work_hours?: number; appointments?: number; sales_calls?: number; sales_closed?: number; numbers_entered_at?: string }) => void;
 }
-
-interface DialsCardProps {
-  dials: number;
-  disabled: boolean;
-  onChangeDials: (delta: number) => void;
-}
-
-function DialsCard({ dials, disabled, onChangeDials }: DialsCardProps) {
-  return (
-    <div className="rounded-xl border border-border-custom/25 bg-surface-raised/30 p-2.5 space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
-          <PhoneCall size={13} className="text-primary" /> Rozmowy odebrane
-        </span>
-        <span className="text-base font-semibold text-primary">{dials}</span>
-      </div>
-      <div className="flex items-center gap-1">
-        <Pressable
-          type="button"
-          disabled={disabled || dials <= 0}
-          onClick={() => onChangeDials(-5)}
-          className="flex-1 rounded-lg border border-border-custom/30 bg-surface py-1 text-2xs font-bold text-text-muted hover:text-text-primary active:scale-95 disabled:opacity-30"
-        >
-          -5
-        </Pressable>
-        <Pressable
-          type="button"
-          disabled={disabled || dials <= 0}
-          onClick={() => onChangeDials(-1)}
-          className="flex-1 rounded-lg border border-border-custom/30 bg-surface py-1 text-2xs font-bold text-text-muted hover:text-text-primary active:scale-95 disabled:opacity-30"
-        >
-          -1
-        </Pressable>
-        <Pressable
-          type="button"
-          disabled={disabled}
-          onClick={() => onChangeDials(1)}
-          className="flex-1 rounded-lg border border-primary/30 bg-primary/10 py-1 text-2xs font-semibold text-primary hover:bg-primary/20 active:scale-95"
-        >
-          +1
-        </Pressable>
-        <Pressable
-          type="button"
-          disabled={disabled}
-          onClick={() => onChangeDials(5)}
-          className="flex-1 rounded-lg border border-primary/30 bg-primary/10 py-1 text-2xs font-semibold text-primary hover:bg-primary/20 active:scale-95"
-        >
-          +5
-        </Pressable>
-        <Pressable
-          type="button"
-          disabled={disabled}
-          onClick={() => onChangeDials(10)}
-          className="flex-1 rounded-lg border border-primary/30 bg-primary/10 py-1 text-2xs font-semibold text-primary hover:bg-primary/20 active:scale-95"
-        >
-          +10
-        </Pressable>
-      </div>
-    </div>
-  );
-}
-
-interface WorkHoursCardProps {
-  workHours: number;
-  disabled: boolean;
-  onChangeWorkHours: (delta: number) => void;
-}
-
-function WorkHoursCard({ workHours, disabled, onChangeWorkHours }: WorkHoursCardProps) {
-  return (
-    <div className="rounded-xl border border-border-custom/25 bg-surface-raised/30 p-2.5 space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
-          <Clock size={13} className="text-warning" /> Czas pracy
-        </span>
-        <span className="text-base font-semibold text-text-primary">{workHours}h</span>
-      </div>
-      <div className="flex items-center gap-1">
-        <Pressable
-          type="button"
-          disabled={disabled || workHours <= 0}
-          onClick={() => onChangeWorkHours(-0.5)}
-          className="flex-1 rounded-lg border border-border-custom/30 bg-surface py-1 text-2xs font-bold text-text-muted hover:text-text-primary active:scale-95 disabled:opacity-30"
-        >
-          -0.5h
-        </Pressable>
-        <Pressable
-          type="button"
-          disabled={disabled}
-          onClick={() => onChangeWorkHours(0.5)}
-          className="flex-1 rounded-lg border border-warning/30 bg-warning/10 py-1 text-2xs font-semibold text-warning hover:bg-warning/20 active:scale-95"
-        >
-          +0.5h
-        </Pressable>
-        <Pressable
-          type="button"
-          disabled={disabled}
-          onClick={() => onChangeWorkHours(1)}
-          className="flex-1 rounded-lg border border-warning/30 bg-warning/10 py-1 text-2xs font-semibold text-warning hover:bg-warning/20 active:scale-95"
-        >
-          +1h
-        </Pressable>
-        <Pressable
-          type="button"
-          disabled={disabled}
-          onClick={() => onChangeWorkHours(2)}
-          className="flex-1 rounded-lg border border-warning/30 bg-warning/10 py-1 text-2xs font-semibold text-warning hover:bg-warning/20 active:scale-95"
-        >
-          +2h
-        </Pressable>
-      </div>
-    </div>
-  );
-}
-
-interface CounterCardProps {
-  icon: React.ElementType;
-  iconColor: string;
-  valueColor: string;
-  buttonColor: string;
-  label: string;
-  sublabel: string;
-  value: number;
-  disabled: boolean;
-  onDecrement: () => void;
-  onIncrement: () => void;
-}
-
-function CounterCard({
-  icon: Icon,
-  iconColor,
-  valueColor,
-  buttonColor,
-  label,
-  sublabel,
-  value,
-  disabled,
-  onDecrement,
-  onIncrement,
-}: CounterCardProps) {
-  return (
-    <div className="rounded-xl border border-border-custom/25 bg-surface-raised/30 p-2.5 flex items-center justify-between">
-      <div>
-        <span className="flex items-center gap-1.5 text-xs font-bold text-text-primary">
-          <Icon size={13} className={iconColor} /> {label}
-        </span>
-        <span className="text-2xs text-text-muted">{sublabel}</span>
-      </div>
-      <div className="flex items-center gap-2">
-        <Pressable
-          type="button"
-          disabled={disabled || value <= 0}
-          onClick={onDecrement}
-          className="flex h-7 w-7 items-center justify-center rounded-lg border border-border-custom/30 bg-surface text-xs font-bold text-text-muted hover:text-text-primary active:scale-95 disabled:opacity-30"
-        >
-          -
-        </Pressable>
-        <span className={`text-base font-semibold min-w-4 text-center ${valueColor}`}>
-          {value}
-        </span>
-        <Pressable
-          type="button"
-          disabled={disabled}
-          onClick={onIncrement}
-          className={`flex h-7 w-7 items-center justify-center rounded-lg border text-xs font-semibold active:scale-95 ${buttonColor}`}
-        >
-          +
-        </Pressable>
-      </div>
-    </div>
-  );
-}
-
-export default function CloserDayInputs({
-  dateStr,
-  log,
-  onUpdate,
-  disabled = false,
-}: Props) {
-  const haptics = useHaptics();
-
-  const dials = log?.dials ?? 0;
-  const workHours = log?.work_hours ?? 0;
-  const appointments = log?.appointments ?? 0;
-  const salesCalls = log?.sales_calls ?? 0;
-
-  const isToday = dateStr === getTodayWarsaw();
-  const displayDate = (() => {
-    try {
-      const [y, m, d] = dateStr.split('-').map(Number);
-      return format(new Date(y, m - 1, d), 'EEEE, d MMMM', { locale: pl });
-    } catch {
-      return dateStr;
-    }
-  })();
-
-  const changeDials = (delta: number) => {
-    haptics.selection();
-    onUpdate({ dials: Math.max(0, dials + delta) });
-  };
-
-  const changeWorkHours = (delta: number) => {
-    haptics.selection();
-    const next = Math.max(0, Math.round((workHours + delta) * 10) / 10);
-    onUpdate({ work_hours: next });
-  };
-
-  const changeAppointments = (delta: number) => {
-    haptics.selection();
-    onUpdate({ appointments: Math.max(0, appointments + delta) });
-  };
-
-  const changeSalesCalls = (delta: number) => {
-    haptics.selection();
-    onUpdate({ sales_calls: Math.max(0, salesCalls + delta) });
-  };
-
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <div>
-          <span className="text-xs font-bold capitalize text-text-primary">
-            {displayDate}
-          </span>
-          {isToday && (
-            <span className="ml-2 rounded-md bg-primary/10 px-1.5 py-0.5 text-2xs font-semibold text-primary">
-              Dziś
-            </span>
-          )}
+export default function CloserDayInputs({ log, onUpdate, disabled = false, recorded }: Props) {
+  const counters = [
+    { field: 'dials' as const, label: 'Rozmowy odebrane', value: log?.dials ?? 0, floor: 0 },
+    { field: 'appointments' as const, label: 'Umówienia', value: log?.appointments ?? 0, floor: 0 },
+    { field: 'sales_calls' as const, label: 'Rozmowy sprzedażowe', value: log?.sales_calls ?? 0, floor: recorded?.calls ?? 0 },
+    { field: 'sales_closed' as const, label: 'Sprzedaże', value: log?.sales_closed ?? 0, floor: 0 },
+  ];
+  const hours = Number(log?.work_hours ?? 0);
+  return <div className="space-y-4">
+    {recorded ? <p className="text-sm leading-6 text-text-secondary">Fathom potwierdza {recorded.calls} nagrań i {formatPhoneUsageDuration(recorded.hours * 60)} tego dnia. Liczby obejmują nagrania oraz Twój większy wpis ręczny; nie sumujemy ich podwójnie.</p> : <p className="text-sm text-text-secondary">Dane Fathom chwilowo niedostępne. Poczekaj na ich wczytanie przed korektą liczb.</p>}
+    {!hasEnteredNumbers(log) && <div className="space-y-2">
+      <p className="text-sm text-text-secondary">Liczby tego dnia nie są jeszcze potwierdzone. Możesz też świadomie zapisać dzień zerowy.</p>
+      <Button variant="outline" disabled={disabled} onClick={() => onUpdate({ numbers_entered_at: new Date().toISOString() })}>Potwierdź liczby dnia</Button>
+    </div>}
+    <div className="divide-y divide-border-custom">
+      {counters.map(counter => <div key={counter.field} className="flex items-center justify-between gap-3 py-3">
+        <span className="text-sm text-text-primary">{counter.label}</span>
+        <div className="flex shrink-0 items-center gap-3">
+          <Button variant="outline" aria-label={`Zmniejsz: ${counter.label}`} disabled={disabled || counter.value <= counter.floor}
+            onClick={() => onUpdate({ [counter.field]: Math.max(counter.floor, counter.value - 1) })}>−</Button>
+          <span className="min-w-6 text-center text-base font-semibold tabular-nums text-text-primary">{counter.value}</span>
+          <Button variant="tonal" aria-label={`Zwiększ: ${counter.label}`} disabled={disabled}
+            onClick={() => onUpdate({ [counter.field]: counter.value + 1 })}>+</Button>
+        </div>
+      </div>)}
+      <div className="space-y-3 py-3">
+        <div className="flex justify-between gap-3 text-sm"><span className="text-text-primary">Czas pracy</span><span className="font-semibold tabular-nums text-text-primary">{formatPhoneUsageDuration(hours * 60)}</span></div>
+        <div className="flex flex-wrap gap-2">
+          {[-0.5, 0.5, 1, 2].map(delta => <Button key={delta} variant={delta > 0 ? 'tonal' : 'outline'} disabled={disabled || (delta < 0 && hours <= (recorded?.hours ?? 0))}
+            aria-label={`${delta > 0 ? 'Dodaj' : 'Odejmij'} ${Math.abs(delta) * 60} minut pracy`}
+            onClick={() => onUpdate({ work_hours: Math.max(recorded?.hours ?? 0, Math.round((hours + delta) * 100) / 100) })}>
+            {delta > 0 ? '+' : '−'}{formatPhoneUsageDuration(Math.abs(delta) * 60)}
+          </Button>)}
         </div>
       </div>
-
-      <div className="grid gap-2.5 sm:grid-cols-2">
-        <DialsCard dials={dials} disabled={disabled} onChangeDials={changeDials} />
-        <WorkHoursCard workHours={workHours} disabled={disabled} onChangeWorkHours={changeWorkHours} />
-        <CounterCard
-          icon={CalendarCheck}
-          iconColor="text-success"
-          valueColor="text-success"
-          buttonColor="border-success/30 bg-success/10 text-success hover:bg-success/20"
-          label="Umówieni"
-          sublabel="umówieni z rozmów"
-          value={appointments}
-          disabled={disabled}
-          onDecrement={() => changeAppointments(-1)}
-          onIncrement={() => changeAppointments(1)}
-        />
-        <CounterCard
-          icon={UserCheck}
-          iconColor="text-primary"
-          valueColor="text-primary"
-          buttonColor="border-primary/30 bg-primary/10 text-primary hover:bg-primary/20"
-          label="Rozmowy sprzedażowe"
-          sublabel="przeprowadzone sales calle"
-          value={salesCalls}
-          disabled={disabled}
-          onDecrement={() => changeSalesCalls(-1)}
-          onIncrement={() => changeSalesCalls(1)}
-        />
-      </div>
     </div>
-  );
+  </div>;
 }

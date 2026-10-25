@@ -20,7 +20,7 @@ vi.mock('../salesNumbers/useWeekSalesSums', () => ({ useWeekSalesSums: () => sta
 
 const log = (patch: Partial<CloserDailyLogRow>): CloserDailyLogRow => ({
   id: 'l', user_id: 'u', date: '2026-10-20', dials: 0, work_hours: 0, appointments: 0, sales_calls: 0, sales_closed: 0,
-  notes: null, created_at: '', updated_at: '', ...patch,
+  numbers_entered_at: null, work_energy: null, work_pressure: null, notes: null, created_at: '', updated_at: '', ...patch,
 });
 
 function setDay(patch: Record<string, unknown>) {
@@ -37,6 +37,11 @@ beforeEach(() => {
 });
 
 describe('MorningPlanYesterdayNumbers', () => {
+  it('opis i energia dnia nie zastępują brakujących liczb', () => {
+    setDay({ row: log({ notes: 'Mało snu', work_energy: 2 }), draft: { ...EMPTY_DRAFT, note: 'Mało snu' } });
+    render(<MorningPlanYesterdayNumbers userId="u" planningDate="2026-10-21" />);
+    expect(screen.getByRole('heading', { name: 'Brakuje liczb z wczoraj' })).toBeInTheDocument();
+  });
   it('pokazuje wczorajsze liczby, opinię i tempo tygodnia', () => {
     setDay({ row: log({ appointments: 4, dials: 41, sales_calls: 1, notes: 'Po obiedzie lepiej' }) });
     state.week = { sums: { appointments: 12, salesCalls: 3, dials: 90 }, loading: false, error: null };

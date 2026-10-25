@@ -87,11 +87,11 @@ export function isDraftComplete(draft: DayNumbersDraft): boolean {
 /** Wiersz istnieje w bazie, ale może być zerowym szkieletem z samych godzin pracy. */
 export function hasEnteredNumbers(row: CloserDailyLogRow | null | undefined): boolean {
   if (!row) return false;
-  return (row.appointments ?? 0) + (row.dials ?? 0) + (row.sales_calls ?? 0) + (row.sales_closed ?? 0) > 0 || Boolean(row.notes?.trim());
+  return (row.appointments ?? 0) + (row.dials ?? 0) + (row.sales_calls ?? 0) + (row.sales_closed ?? 0) > 0 || Boolean(row.numbers_entered_at);
 }
 
 export function rowToDraft(row: CloserDailyLogRow | null | undefined): DayNumbersDraft {
-  if (!row || !hasEnteredNumbers(row)) return EMPTY_DRAFT;
+  if (!row || !hasEnteredNumbers(row)) return { ...EMPTY_DRAFT, note: row?.notes ?? '' };
   return {
     appointments: String(row.appointments ?? 0),
     conversations: String(row.dials ?? 0),

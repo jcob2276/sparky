@@ -27,6 +27,7 @@ describe('saveCloserDayNumbers', () => {
     await saveCloserDayNumbers('u1', '2026-10-21', { appointments: 4, dials: 41, salesCalls: 3, salesClosed: 1, note: 'ok' });
     expect(mocks.upsert).toHaveBeenCalledWith('u1', '2026-10-19', {
       date: '2026-10-21',
+      numbers_entered_at: expect.any(String),
       dials: 41,
       appointments: 4,
       sales_calls: 3,
@@ -39,7 +40,7 @@ describe('saveCloserDayNumbers', () => {
   it('dla nowego dnia ustawia godziny na 0 i liczy poniedziałek tygodnia w Warszawie', async () => {
     mocks.maybeSingle.mockResolvedValue({ data: null, error: null });
     await saveCloserDayNumbers('u1', '2026-10-25', { appointments: 0, dials: 0, salesCalls: 0, salesClosed: 0, note: null });
-    expect(mocks.upsert).toHaveBeenCalledWith('u1', '2026-10-19', expect.objectContaining({ work_hours: 0, notes: null }));
+    expect(mocks.upsert).toHaveBeenCalledWith('u1', '2026-10-19', expect.objectContaining({ work_hours: 0, notes: null, numbers_entered_at: expect.any(String) }));
   });
 
   it('propaguje błąd odczytu zamiast zapisywać na ślepo', async () => {

@@ -31,6 +31,7 @@ export * from './fitness.ts';
 export * from './stats.ts';
 export * from './health/thresholds.ts';
 export * from './appName.ts';
+export * from './closer/callMoments.ts';
 export * from './growth/sprint.ts';
 export * from './health/personalTargets.ts';
 export * from './health/mergeSyncedRow.ts';

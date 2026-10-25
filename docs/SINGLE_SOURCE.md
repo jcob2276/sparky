@@ -41,6 +41,7 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 | Nazwa aplikacji i persony AI w promptach | `APP_NAME` w `@vanguard/domain` | nie wpisuj nazwy asystenta w treści promptu |
 | Strefa czasu aplikacji | `TIMEZONE` (`WARSAW_TZ`) w `@vanguard/domain` | dni jako klucze `YYYY-MM-DD` w Warszawie; nie wpisuj literału strefy; `src/lib/warsawDay.guard.test.ts` zabrania „dzisiaj” z UTC |
 | Tydzień (pon–nd) | `getWeekStartWarsaw` | |
+| Wyniki dnia Closera (sales calle i czas pracy) | `closer_daily_logs` | nagrania `closer_calls` wyznaczają minimum przez triggery; większy wpis ręczny zostaje, tych samych rozmów nie dodajemy drugi raz; `kpi_entries` jest projekcją tygodnia |
 | Wartości awaryjne celów i formatowanie ich tekstów | `src/lib/lifeGoals.ts` | tylko do czasu załadowania z bazy; odczyt przez `lifeTargetsApi.ts` |
 
 ## Znane rozjazdy do ujednolicenia (usuwaj wiersz, gdy naprawione)

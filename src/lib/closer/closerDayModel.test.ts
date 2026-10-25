@@ -22,7 +22,7 @@ const row = (patch: Partial<CloserDailyLogRow>): CloserDailyLogRow => ({
   appointments: 0,
   sales_calls: 0,
   sales_closed: 0,
-  notes: null,
+  numbers_entered_at: null, work_energy: null, work_pressure: null, notes: null,
   created_at: '',
   updated_at: '',
   ...patch,
@@ -64,6 +64,12 @@ describe('draftToNumbers', () => {
 });
 
 describe('rowToDraft / hasEnteredNumbers', () => {
+  it('sam kontekst dnia nie potwierdza niewpisanych zer i zachowuje opis w formularzu', () => {
+    const contextOnly = row({ notes: 'Mało snu', work_energy: 2 });
+    expect(hasEnteredNumbers(contextOnly)).toBe(false);
+    expect(rowToDraft(contextOnly)).toEqual({ ...EMPTY_DRAFT, note: 'Mało snu' });
+    expect(hasEnteredNumbers(row({ numbers_entered_at: '2026-10-25T10:00:00Z' }))).toBe(true);
+  });
   it('pusty szkielet (same godziny pracy) nie liczy się jako wpisany dzień', () => {
     const skeleton = row({ work_hours: 6 });
     expect(hasEnteredNumbers(skeleton)).toBe(false);
