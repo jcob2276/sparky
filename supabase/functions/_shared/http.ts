@@ -33,7 +33,7 @@ interface JsonCtx {
 type Handler = (req: Request, ctx: JsonCtx) => Promise<unknown>;
 /** A trusted, actionable message for a user-correctable failure. Upstream errors stay private. */
 export class HttpError extends Error {
-  constructor(readonly status: 400 | 404 | 409 | 422, message: string) { super(message); }
+  constructor(readonly status: 400 | 404 | 409 | 413 | 422 | 500 | 502, message: string) { super(message); }
 }
 
 function mergeCorsHeaders(res: Response, cors: Record<string, string>): Response {
