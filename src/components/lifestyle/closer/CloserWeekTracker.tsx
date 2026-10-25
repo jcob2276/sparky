@@ -12,6 +12,7 @@ import { closerKeys, goalSpineKeys } from '../../../lib/queryKeys';
 import { getTodayWarsaw } from '../../../lib/date';
 import CloserDayStrip from './CloserDayStrip';
 import CloserDayInputs from './CloserDayInputs';
+import CloserCallsList from './CloserCallsList';
 
 interface Props {
   userId: string;
@@ -258,6 +259,8 @@ export default function CloserWeekTracker({
         onUpdate={(patch) => mutateLog.mutate(patch)}
         disabled={mutateLog.isPending}
       />
+
+      <CloserCallsList userId={userId} date={selectedDate} />
     </Card>
   );
 }

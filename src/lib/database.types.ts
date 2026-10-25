@@ -461,6 +461,84 @@ export type Database = {
           },
         ]
       }
+      closer_calls: {
+        Row: {
+          ai_analyzed_at: string | null
+          ai_good_moves: Json
+          ai_mistakes: Json
+          ai_next_step: string | null
+          ai_outcome: string | null
+          ai_score: number | null
+          ai_status: string
+          action_items: Json | null
+          call_date: string
+          created_at: string
+          duration_seconds: number | null
+          ended_at: string | null
+          fathom_recording_id: number
+          has_external_invitees: boolean
+          id: string
+          invitees: Json | null
+          share_url: string | null
+          started_at: string
+          summary_md: string | null
+          title: string
+          transcript: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ai_analyzed_at?: string | null
+          ai_good_moves?: Json
+          ai_mistakes?: Json
+          ai_next_step?: string | null
+          ai_outcome?: string | null
+          ai_score?: number | null
+          ai_status?: string
+          action_items?: Json | null
+          call_date: string
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          fathom_recording_id: number
+          has_external_invitees?: boolean
+          id?: string
+          invitees?: Json | null
+          share_url?: string | null
+          started_at: string
+          summary_md?: string | null
+          title: string
+          transcript?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ai_analyzed_at?: string | null
+          ai_good_moves?: Json
+          ai_mistakes?: Json
+          ai_next_step?: string | null
+          ai_outcome?: string | null
+          ai_score?: number | null
+          ai_status?: string
+          action_items?: Json | null
+          call_date?: string
+          created_at?: string
+          duration_seconds?: number | null
+          ended_at?: string | null
+          fathom_recording_id?: number
+          has_external_invitees?: boolean
+          id?: string
+          invitees?: Json | null
+          share_url?: string | null
+          started_at?: string
+          summary_md?: string | null
+          title?: string
+          transcript?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       closer_daily_logs: {
         Row: {
           appointments: number
