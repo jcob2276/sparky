@@ -37,6 +37,8 @@ export function computeNutritionSignals(data: Omit<Awaited<ReturnType<typeof fet
   const roundMean = (rows: CoachRow[], key: string) => { const value = mean(clean(rows,key)); return value == null ? null : Math.round(value); };
   const weights = bm.filter(row => (num(row.weight) ?? 0) > 0).sort((a,b)=>a.date.localeCompare(b.date));
   const first = weights[0], last = weights.at(-1);
+  // aktualny tłuszcz z ostatniego pomiaru; ręczna wartość z profilu tylko gdy pomiaru brak (profil bywa nieaktualny)
+  const latestMeasuredBf = [...bm].sort((a,b)=>b.date.localeCompare(a.date)).map(row=>num(row.body_fat)).find((v): v is number => v != null && v > 0) ?? null;
   const weightFresh = last != null && last.date >= shiftDateStr(evidenceDate,-30);
   const latestWeight = weightFresh ? num(last.weight) : null;
   const weightDaysSpan = first && last ? (Date.parse(last.date)-Date.parse(first.date))/86400000 : 0;
@@ -83,7 +85,7 @@ export function computeNutritionSignals(data: Omit<Awaited<ReturnType<typeof fet
   const age = typeof profile.birth_date === 'string' ? Math.floor((targetDate.getTime()-Date.parse(profile.birth_date))/(365.25*86400000)) : null;
   const signals = {
     as_of:context?.asOf ?? targetDate.toISOString(),window:context?.windowStart ?? data.d30,calibration,
-    profile:{height_cm:num(profile.height_cm),age,sex:profile.sex,goal_body_fat:num(profile.goal_body_fat),current_body_fat_est:num(profile.current_body_fat_est),event_name:profile.event_name,event_date:profile.event_date,days_to_event:daysToEvent,in_taper:inTaper,weekly_loss_kg:targetWeeklyLossKg},
+    profile:{height_cm:num(profile.height_cm),age,sex:profile.sex,goal_body_fat:num(profile.goal_body_fat),current_body_fat_est:latestMeasuredBf ?? num(profile.current_body_fat_est),body_fat_source:latestMeasuredBf != null ? 'measured' : 'profile_estimate',event_name:profile.event_name,event_date:profile.event_date,days_to_event:daysToEvent,in_taper:inTaper,weekly_loss_kg:targetWeeklyLossKg},
     body:{weight:latestWeight,weight_date:last?.date ?? null,weight_state:latestWeight == null?'missing_or_stale':'measured',waist:weightFresh?num(last?.waist):null,belly:weightFresh?num(last?.belly):null,weight_trend_kg_per_week:weightTrendPerWeek,weight_window_days:Math.round(weightDaysSpan)},
     forecast:{kind:'estimated_scenario',assumptions:'Liniowy trend masy wymaga aktualnych pomiarów i pełnych dni; nie przewiduje rozkładu tłuszczu i masy beztłuszczowej.',target_weekly_loss_kg:targetWeeklyLossKg,observed_weekly_loss_kg:weightTrendPerWeek == null?null:-weightTrendPerWeek,adaptive_correction_kcal:adaptiveCorrectionKcal,forecast_30d:forecast30,forecast_60d:forecast60,forecast_90d:forecast90,days_to_goal_est:daysToGoalEst},
     energy:{avg_tdee_oura:avgTdeeOura,oura_adjusted:avgTdeeOura,avg_active:avgActive,avg_intake_logged:avgIntake,maintenance_from_log:maintFromLog,est_maintenance:estMaintenance,maintenance_basis:maintenanceBasis,underlog_gap_kcal:underlogGap,days_logged_30:daysLogged,wearable_days:clean(oura,'total_calories').length},

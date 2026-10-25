@@ -16,10 +16,6 @@ export interface NutritionDayContext extends TodayNutritionSnapshot {
   caffeineMg?: number | null;
   addBackKcal: number;
   deficitKcal: number;
-  goalBodyFat: number | null;
-  currentBodyFatEst: number | null;
-  goalWeightKg: number | null;
-  currentWeightKg: number | null;
   trajectory: NutritionTrajectory | null;
   trajectoryNote: string | null;
   todayFocus: string | null;
@@ -36,26 +32,6 @@ export interface NutritionDayContext extends TodayNutritionSnapshot {
   foodComplete: boolean;
   targetUpdatedAt: string | null;
   targetError?:string|null;
-}
-
-/** Implied goal weight from constant lean mass + target BF% (same model as nutrition-coach). */
-function impliedGoalWeightKg(
-  currentWeightKg: number | null,
-  currentBfPct: number | null,
-  goalBfPct: number | null,
-): number | null {
-  if (
-    currentWeightKg == null ||
-    currentBfPct == null ||
-    goalBfPct == null ||
-    goalBfPct <= 0 ||
-    goalBfPct >= 100 ||
-    currentBfPct <= goalBfPct
-  ) {
-    return null;
-  }
-  const lean = currentWeightKg * (1 - currentBfPct / 100);
-  return Math.round((lean / (1 - goalBfPct / 100)) * 10) / 10;
 }
 
 type SignalsInputs = {
@@ -160,7 +136,7 @@ export async function fetchNutritionDayContext(
       .maybeSingle(),
     supabase
       .from('nutrition_profile')
-      .select('goal_body_fat, current_body_fat_est, weekly_loss_kg')
+      .select('weekly_loss_kg')
       .eq('user_id', userId)
       .maybeSingle(),
     supabase
@@ -215,11 +191,6 @@ export async function fetchNutritionDayContext(
 
   const addBackKcal = Math.round(Number(inputs.today?.add_back_kcal) || 0);
   const profile = inputs.profile ?? {};
-  const currentBodyFatEst =
-    profileRow.data?.current_body_fat_est ?? profile.current_body_fat_est ?? null;
-  const goalBodyFat = profileRow.data?.goal_body_fat ?? profile.goal_body_fat ?? null;
-  const currentWeightKg = num(inputs.body?.weight) ?? null;
-  const goalWeightKg = impliedGoalWeightKg(currentWeightKg, currentBodyFatEst, goalBodyFat);
 
 
   return {
@@ -237,10 +208,6 @@ export async function fetchNutritionDayContext(
     foodQualityAnalysis: dayRow.data?.food_quality_analysis ?? null,
     addBackKcal,
     deficitKcal: target?.deficit_kcal ?? Math.round(Number(inputs.today?.deficit_kcal) || 0),
-    goalBodyFat,
-    currentBodyFatEst,
-    goalWeightKg,
-    currentWeightKg,
     trajectory: verdictParsed.trajectory,
     trajectoryNote: verdictParsed.trajectoryNote,
     todayFocus: verdictParsed.todayFocus,
