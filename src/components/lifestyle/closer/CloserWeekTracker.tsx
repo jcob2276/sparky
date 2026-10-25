@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Target, PhoneCall, Clock, CalendarCheck, UserCheck } from 'lucide-react';
+import { PhoneCall, Clock, CalendarCheck, UserCheck } from 'lucide-react';
 import { Card } from '../../ui/Card';
 import {
   fetchCloserWeekLogs,
@@ -12,6 +12,7 @@ import { closerKeys, goalSpineKeys } from '../../../lib/queryKeys';
 import { getTodayWarsaw } from '../../../lib/date';
 import CloserDayStrip from './CloserDayStrip';
 import CloserDayInputs from './CloserDayInputs';
+import CloserCallsList from './CloserCallsList';
 
 interface Props {
   userId: string;
@@ -131,7 +132,7 @@ function CloserKpiCards({
 export default function CloserWeekTracker({
   userId,
   weekStart,
-  projectName = 'Jestem closerem (50% close rate)',
+  projectName = 'Closer',
   isFocusSprint = false,
 }: Props) {
   const queryClient = useQueryClient();
@@ -218,14 +219,10 @@ export default function CloserWeekTracker({
             )}
           </div>
           <p className="text-xs text-text-muted mt-0.5">
-            Tydzień: {targets.appointments} umówień & {targets.salesCalls} sales calli z 50% close rate
+            Tydzień: {targets.appointments} umówień & {targets.salesCalls} sales calli
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 rounded-xl border border-primary/20 bg-primary/5 px-2.5 py-1">
-          <Target size={13} className="text-primary" />
-          <span className="text-xs font-semibold text-primary">50% Close Rate</span>
-        </div>
       </div>
 
       {/* 4 Weekly KPI Summary Cards */}
@@ -258,6 +255,8 @@ export default function CloserWeekTracker({
         onUpdate={(patch) => mutateLog.mutate(patch)}
         disabled={mutateLog.isPending}
       />
+
+      <CloserCallsList userId={userId} date={selectedDate} />
     </Card>
   );
 }
