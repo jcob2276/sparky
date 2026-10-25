@@ -49,3 +49,35 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 | Samodzielne aktywności z Oury (bez odpowiednika w Stravie) | pulpit desktopowy je liczy, Kronika, porównanie okresów, Puls i recap pomijają (`is_oura = false`) | do decyzji użytkownika; dziś dotyczy jednego biegu (24.05, 5,2 km) |
 | Portfele w Inwestycjach | zakodowane na sztywno (Jakub, Kondzio) vs `finance_holdings` | zostawione celowo, do przeniesienia do Finansów |
 | Cel Duch i cel sprintu 3 | `life_goals.goal_duch` pusty, brak wpisu `sprint_goals` | do uzupełnienia przez użytkownika |
+
+## Jak szukać rozjazdów (metoda dla agentów)
+
+Rozjazd to ta sama informacja w dwóch miejscach z różną wartością albo definicją. Szukaj ich po kolei w pięciu warstwach,
+a każde znalezisko potwierdź danymi, zanim coś zmienisz.
+
+1. **Literały w kodzie.** Grepuj liczby celów i progów (`14`, `100 kg`, `150`, `6.5`, `1000`, `'%sauna%'`,
+   `'Europe/Warsaw'`, listy typu `['Run', 'TrailRun', ...]`) w `src`, `supabase/functions` i `packages/domain`.
+   Dwa wystąpienia tej samej liczby z tym samym znaczeniem to kandydat na jedną stałą w `@vanguard/domain`.
+2. **Kopie logiki.** Szukaj funkcji robiących to samo inaczej: „najnowszy wiersz” (`order desc limit 1`), średnie z dni,
+   początek tygodnia, sprint, „dzisiaj”. Typowe pułapki z historii repo:
+   - `order('date', desc).limit(1)` bez `lte('date', dzień)` łapie wiersze zapisane z wyprzedzeniem (cel i plan na jutro);
+   - `new Date().toISOString().slice(0, 10)` to dzień w UTC, po północy czasu polskiego wczorajszy (strażnik: `warsawDay.guard.test.ts`);
+   - średnie z dni bez `completedNutritionDays` wliczają dzisiejszy i niepełne dni;
+   - surowa `strava_activities` zamiast widoku `strava_activities_clean` dubluje biegi Oura + Strava.
+3. **Kopie danych w bazie.** Każda tabela pochodna (`kpi_entries`, `vanguard_daily_aggregates`, `daily_nutrition`,
+   `oura_enhanced`) porównaj zapytaniem ze źródłem (suma dni, ten sam dzień w dwóch tabelach). Rozjazd w danych
+   zwykle wskazuje błąd w kodzie zapisu, np. upsert całego wiersza nadpisujący istniejące pola `null`-em. Po naprawie
+   dopisz regułę do `scripts/ops/check-db-invariants.mjs`.
+4. **Pola liczone, których nikt nie czyta.** Dla każdego pola zwracanego przez hook lub API sprawdź grepem, czy ma
+   konsumenta w komponencie. Knip łapie martwe eksporty, ale nie martwe pola obiektu. Martwe pola z `?? 0` to
+   podwójny problem: zbędne zapytania i brak danych udający zero.
+5. **Prompty AI i teksty.** Szukaj zapasów typu `x || 'wymyślony fakt'` i liczb wpisanych do promptu. Zapas w prompcie
+   nigdy nie jest faktem o użytkowniku; liczby celów idą do promptu z właścicieli (blok „CELE LICZBOWE” w Oracle).
+
+Przy każdej zmianie wartości lub nowym `useQuery` na cudzych danych sprawdź też wszystkich piszących i ich
+unieważnianie cache (np. `invalidateLifeTargets`, `invalidateGoalSpineCache`), inaczej ekrany pokażą starą liczbę.
+Pole wyliczone bez danych wejściowych ma być `null` („nie wiem”), a nie `false` albo `0`.
+
+Każdą poprawkę dowodź testem odtwarzającym błąd na starym kodzie albo zapytaniem pokazującym dane przed i po.
+Decyzje produktowe (która definicja jest właściwa, kasowanie danych, godziny powiadomień) zapisuj w tabeli
+„Znane rozjazdy” i zostaw użytkownikowi.
