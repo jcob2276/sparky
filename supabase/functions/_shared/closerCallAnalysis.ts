@@ -3,7 +3,7 @@
  * Wynik trafia do `closer_calls.ai_*` i jest czytany przez UI oraz Oracle (dataset closer_calls).
  */
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { groundCallMoments, type CallMoment, type TranscriptLineInput } from "@vanguard/domain";
+import { CALL_PHASES, groundCallMoments, type CallMoment, type TranscriptLineInput } from "@vanguard/domain";
 import { deepseekChat, parseJsonFromContent } from "./deepseek.ts";
 
 const MAX_TRANSCRIPT_CHARS = 60000;
@@ -20,11 +20,12 @@ interface CallAnalysis {
 const SYSTEM_PROMPT = `Jesteś trenerem sprzedaży, który pomaga closerowi (użytkownikowi) uczyć się z własnej rozmowy. Odpowiadasz po polsku.
 Zwróć WYŁĄCZNIE JSON:
 {"outcome":"closed|follow_up|lost|unclear","score":1-10,
- "mistakes":[{"timestamp":"HH:MM:SS","quote":"dosłowny krótki cytat z transkryptu","what":"obserwacja","why":"hipoteza","experiment":"jeden mały eksperyment"}],
- "good_moves":[{"timestamp":"HH:MM:SS","quote":"dosłowny krótki cytat z transkryptu","what":"obserwacja","why":"hipoteza","experiment":"jak to powtórzyć"}],
+ "mistakes":[{"timestamp":"HH:MM:SS","phase":"etap","quote":"dosłowny krótki cytat z transkryptu","what":"obserwacja","why":"hipoteza","experiment":"jeden mały eksperyment"}],
+ "good_moves":[{"timestamp":"HH:MM:SS","phase":"etap","quote":"dosłowny krótki cytat z transkryptu","what":"obserwacja","why":"hipoteza","experiment":"jak to powtórzyć"}],
  "next_step":"konkretny następny krok z klientem albo null"}
 Zasady:
 - Najwyżej 5 elementów w każdej liście. "timestamp" i "quote" muszą pochodzić z transkryptu (cytat 3–15 słów, przepisany dosłownie); bez nich pomiń moment.
+- "phase" to etap rozmowy, w którym padł moment: ${CALL_PHASES.join("|")}.
 - "what" to neutralna obserwacja: co zostało powiedziane i co się wydarzyło dalej, bez ocen typu "błąd" czy "źle".
 - "why" to hipoteza, nie wyrok: pisz "możliwe, że…", "być może…", podaj jedną alternatywną interpretację, jeśli istnieje. Żadnych reguł typu "zawsze" albo "nigdy" (np. o kolejności ceny i pytania o decyzję).
 - "experiment" to jeden mały, sprawdzalny krok na następną rozmowę (jedno zdanie, coś do powiedzenia albo zapytania).

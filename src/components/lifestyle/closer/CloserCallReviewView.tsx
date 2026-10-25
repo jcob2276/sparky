@@ -3,6 +3,7 @@ import { ArrowUpRight, Check, Play, RefreshCw, Save } from 'lucide-react';
 import type { CloserCallRow } from '../../../lib/closer/closerCallsApi';
 import type { CloserDailyLogRow } from '../../../lib/closer/closerApi';
 import CloserWorkContextSummary from './CloserWorkContextSummary';
+import { CALL_PHASE_LABELS } from '@vanguard/domain';
 import { reviewMoments } from '../../../lib/closer/closerCallReview';
 import { hasWorkContext } from '../../../lib/closer/closerWorkContext';
 import { formatLongDateWarsaw, warsawTimeOfDay } from '../../../lib/date';
@@ -83,7 +84,7 @@ export default function CloserCallReviewView({ call, onClose, onSaveNotes, savin
                     <span className="mt-0.5 shrink-0 font-mono text-xs tabular-nums text-primary">{moment.timestamp || 'Bez czasu'}</span>
                     <span className="min-w-0 space-y-1">
                       <span className={`block text-xs font-medium ${moment.kind === 'practice' ? 'text-warning' : 'text-success'}`}>
-                        {moment.kind === 'practice' ? 'Do przećwiczenia' : 'Warto powtarzać'}
+                        {moment.kind === 'practice' ? 'Do przećwiczenia' : 'Warto powtarzać'}{moment.phase ? ' · ' + CALL_PHASE_LABELS[moment.phase] : ''}
                       </span>
                       <span className="line-clamp-2 block whitespace-normal text-sm font-medium leading-6 text-text-primary">{moment.what}</span>
                     </span>

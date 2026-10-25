@@ -9,8 +9,22 @@ export interface TranscriptLineInput {
   speaker?: { display_name?: string };
 }
 
+/** Etapy rozmowy sprzedażowej — klucz do wzorców powtarzających się między rozmowami. */
+export const CALL_PHASES = ['otwarcie', 'potrzeby', 'prezentacja', 'cena', 'obiekcje', 'zamkniecie'] as const;
+export type CallPhase = (typeof CALL_PHASES)[number];
+
+export const CALL_PHASE_LABELS: Record<CallPhase, string> = {
+  otwarcie: 'Otwarcie', potrzeby: 'Badanie potrzeb', prezentacja: 'Prezentacja oferty',
+  cena: 'Cena', obiekcje: 'Obiekcje', zamkniecie: 'Zamknięcie i następny krok',
+};
+
+export function callPhase(value: unknown): CallPhase | null {
+  return CALL_PHASES.find((phase) => phase === value) ?? null;
+}
+
 export interface CallMoment {
   timestamp: string;
+  phase: CallPhase | null;
   quote: string | null;
   what: string;
   why: string;
@@ -26,7 +40,7 @@ export function callTimestampSeconds(value: string): number | null {
 }
 
 const normalize = (text: string) =>
-  text.toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  text.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
 const text = (value: unknown): string => (typeof value === 'string' ? value.trim() : '');
 
@@ -48,6 +62,6 @@ export function groundCallMoments(raw: unknown, transcript: TranscriptLineInput[
     const quote = text(m.quote);
     const quoteFound = quote.length > 0 && normalize(quote).length > 0 && fullText.includes(normalize(quote));
     if (quote && !quoteFound) return [];
-    return [{ timestamp, quote: quote || null, what, why: text(m.why), experiment: text(m.experiment) || null }];
+    return [{ timestamp, phase: callPhase(m.phase), quote: quote || null, what, why: text(m.why), experiment: text(m.experiment) || null }];
   }).slice(0, MAX_MOMENTS);
 }

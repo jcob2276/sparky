@@ -1,3 +1,4 @@
+import { callPhase, type CallPhase } from '@vanguard/domain';
 import type { CloserCallRow } from './closerCallsApi';
 
 export interface ReviewMoment {
@@ -5,6 +6,8 @@ export interface ReviewMoment {
   kind: 'practice' | 'repeat';
   timestamp: string;
   seconds: number | null;
+  /** Etap rozmowy (nowe analizy); null w starszych. */
+  phase: CallPhase | null;
   what: string;
   why: string;
   /** Dosłowny cytat z transkryptu (nowe analizy); null w starszych. */
@@ -28,7 +31,8 @@ export function reviewMoments(call: Pick<CloserCallRow, 'ai_mistakes' | 'ai_good
   return groups.flatMap(([kind, values]) => !Array.isArray(values) ? [] : values.flatMap((value, index) => {
     if (!value || typeof value !== 'object' || !('what' in value) || typeof value.what !== 'string' || !value.what.trim()) return [];
     const timestamp = 'timestamp' in value && typeof value.timestamp === 'string' ? value.timestamp : '';
-    return [{ id: kind + ':' + index, kind, timestamp, seconds: timestampSeconds(timestamp), what: value.what,
+    return [{ id: kind + ':' + index, kind, timestamp, seconds: timestampSeconds(timestamp),
+      phase: callPhase('phase' in value ? value.phase : null), what: value.what,
       why: 'why' in value && typeof value.why === 'string' ? value.why : '',
       quote: optionalText(value, 'quote'), experiment: optionalText(value, 'experiment') }];
   })).sort((a, b) => (a.seconds ?? Infinity) - (b.seconds ?? Infinity));

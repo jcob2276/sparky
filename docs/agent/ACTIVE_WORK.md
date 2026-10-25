@@ -34,7 +34,7 @@ część osobista ma uwzględniać przede wszystkim **energię, presję i kontek
   Sekret jest już skonfigurowany w Supabase; **nie twórz drugiego webhooka i nie kopiuj sekretów do repo/handoffu**.
 - Model strukturalnej analizy w `_shared/closerCallAnalysis.ts` to `deepseek-chat` (poprzedni model zwracał nieprawidłowy JSON).
   Prompt: cytat + obserwacja + hipoteza + jeden eksperyment, bez założeń o finansach/ROI klienta i bez ocen emocji;
-  momenty walidowane `groundCallMoments`. Wszystkie 23 zapisane rozmowy przeliczone nowym promptem 2026-10-25 (200 momentów, każdy z cytatem i eksperymentem).
+  momenty walidowane `groundCallMoments`. Każdy moment ma też etap rozmowy (`CALL_PHASES` w `@vanguard/domain`); biblioteka pokazuje z nich kartę „Co się powtarza” (`closerPatterns.ts`, `CloserCallPatterns.tsx`, od 3 rozmów z etapami). Wszystkie 23 zapisane rozmowy przeliczone 2026-10-25 nowym promptem z etapami.
 - Migracje `20261025130316_closer_fathom_daily_totals.sql`, `20261025131515_closer_call_review_notes.sql`,
   `20261025135927_closer_work_context.sql` i `20261025141203_closer_numbers_confirmation.sql` są zastosowane z tymi samymi wersjami w ledgerze.
   Typy w `src/lib/database.types.ts` i `supabase/functions/_shared/database.types.ts` są odświeżone.
@@ -50,7 +50,7 @@ część osobista ma uwzględniać przede wszystkim **energię, presję i kontek
 2. Polish panelu na realnym telefonie. Skrót kontekstu dnia („Ty tego dnia: energia · presja”) jest już w nagłówku analizy,
    pełny blok zostaje pod transkryptem. Nie dodawaj ściany tekstu ani automatycznych ocen stanu psychicznego.
 3. Sprawdzić zapis na zalogowanej produkcyjnej PWA i odtwarzanie na urządzeniu użytkownika (Fathom może dawać CORS odtwarzacza; jest link zewnętrzny).
-4. Wdrożyć `fathom-webhook` po zmianie promptu (`supabase functions deploy fathom-webhook`).
+4. ~~Wdrożyć `fathom-webhook`~~ — wdrożone 2026-10-25 przez MCP jako bundle (v4, test bez podpisu → 403). Kolejne `supabase functions deploy` z CLI nadpisze je tą samą wersją z repo.
 
 ### Walidacja
 
