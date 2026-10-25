@@ -1,4 +1,4 @@
-import { TIMEZONE } from '@vanguard/domain';
+import { TIMEZONE, SAUNA_WORKOUT_DAY_PATTERN } from '@vanguard/domain';
 import { supabase } from '../supabase';
 import { getTodayWarsaw } from '../date';
 import { nutritionSeries } from './nutritionDays';
@@ -30,7 +30,7 @@ export async function fetchCialoRows(userId: string, from: string, to: string): 
     supabase.from('body_metrics').select('date, weight, body_fat').eq('user_id', userId).gte('date', from).lte('date', to),
     supabase.from('daily_nutrition').select('date, protein, calories, fiber, avg_food_quality').eq('user_id', userId).gte('date', from).lte('date', to),
     supabase.from('oura_daily_summary').select('date, total_sleep_hours, sleep_score, hrv_avg, rhr_avg, readiness_score').eq('user_id', userId).gte('date', from).lte('date', to),
-    supabase.from('workout_sessions').select('date').eq('user_id', userId).gte('date', from).lte('date', to).not('workout_day', 'ilike', '%sauna%'),
+    supabase.from('workout_sessions').select('date').eq('user_id', userId).gte('date', from).lte('date', to).not('workout_day', 'ilike', SAUNA_WORKOUT_DAY_PATTERN),
     supabase.from('body_metrics').select('date, body_fat').eq('user_id', userId).not('body_fat', 'is', null).order('date', { ascending: false }).limit(1),
     supabase.from('strava_activities_clean').select('start_date, distance, sport_type').eq('user_id', userId).eq('is_oura', false).in('sport_type', [...RUN_SPORT_TYPES]).gte('start_date', `${from}T00:00:00Z`).lte('start_date', `${to}T23:59:59Z`),
   ]);

@@ -1,3 +1,4 @@
+import { SAUNA_WORKOUT_DAY_PATTERN } from '@vanguard/domain';
 import { supabase } from '../supabase';
 import { getTodayWarsaw, shiftDateStr } from '../date';
 import type { ExerciseHistoryRow } from './workout';
@@ -31,7 +32,7 @@ export async function fetchHubRecoverySessions(userId: string): Promise<HubRecov
     .select('date, exercise_logs(exercise_name, weight, reps, muscle_tags)')
     .eq('user_id', userId)
     .gte('date', since)
-    .not('workout_day', 'ilike', '%sauna%')
+    .not('workout_day', 'ilike', SAUNA_WORKOUT_DAY_PATTERN)
     .order('date', { ascending: false })
     .limit(80);
 
@@ -101,7 +102,7 @@ export async function fetchRecentWorkoutTemplates(userId: string): Promise<Worko
     .from('workout_sessions')
     .select('id, workout_day, date, session_rpe, exercise_logs(exercise_name, weight, reps, muscle_tags)')
     .eq('user_id', userId)
-    .not('workout_day', 'ilike', '%sauna%')
+    .not('workout_day', 'ilike', SAUNA_WORKOUT_DAY_PATTERN)
     .order('date', { ascending: false })
     .limit(40);
 
@@ -172,7 +173,7 @@ export async function fetchTodayWorkoutDetails(userId: string, date: string): Pr
     .select('id, workout_day, date, start_time, end_time, session_notes, session_rpe, exercise_logs(exercise_name, weight, reps, rir, set_number)')
     .eq('user_id', userId)
     .eq('date', date)
-    .not('workout_day', 'ilike', '%sauna%')
+    .not('workout_day', 'ilike', SAUNA_WORKOUT_DAY_PATTERN)
     .order('created_at', { ascending: false })
     .limit(1);
 
