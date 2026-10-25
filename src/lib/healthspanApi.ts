@@ -1,12 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import {
-  computeFunctionalAge,
+import { computeFunctionalAge,
   computeHealthspanTrend,
   type FunctionalAgeProfile,
   type HealthspanPace,
   type HealthspanContributor,
-  type HealthspanConfounder,
-} from '@vanguard/domain';
+  type HealthspanConfounder, SAUNA_WORKOUT_DAY_PATTERN } from '@vanguard/domain';
 import { supabase } from './supabase';
 import { getTodayWarsaw, shiftDateStr } from './date';
 import { healthspanKeys } from './queryKeys';
@@ -102,7 +100,7 @@ async function fetchHealthspanProfile(userId: string, today = getTodayWarsaw()) 
     supabase.from('workout_sessions')
       .select('date, workout_day')
       .eq('user_id', userId)
-      .not('workout_day', 'ilike', '%sauna%')
+      .not('workout_day', 'ilike', SAUNA_WORKOUT_DAY_PATTERN)
       .gte('date', since90).lte('date', today).order('date'),
     supabase.from('body_metrics')
       .select('date, body_fat')

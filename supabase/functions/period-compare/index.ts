@@ -8,7 +8,7 @@
  * @consumer Karta „Porównanie AI” w Kronice
  * @status active
  */
-import { RUN_SPORT_TYPES } from '@vanguard/domain'
+import { RUN_SPORT_TYPES, SAUNA_WORKOUT_DAY_PATTERN } from '@vanguard/domain'
 import { serveJson, HttpError } from '../_shared/http.ts'
 import { deepseekChat, parseJsonFromContent } from '../_shared/deepseek.ts'
 import { LLM_TASKS } from '../_shared/llm/tasks.ts'
@@ -49,7 +49,7 @@ Deno.serve(serveJson(async (req, ctx) => {
       db.from('daily_reconciliations').select('date, day_score').eq('user_id', userId).gte('date', start).lte('date', end),
       db.from('oura_daily_summary').select('date, total_sleep_hours, sleep_score, hrv_avg, rhr_avg, readiness_score, bedtime_timestamp, bedtime_end_timestamp, latency_minutes, deep_sleep_hours, rem_sleep_hours, sleep_efficiency').eq('user_id', userId).gte('date', start).lte('date', end),
       db.from('daily_nutrition').select('date, calories, protein, fiber, avg_food_quality').eq('user_id', userId).gte('date', start).lte('date', end),
-      db.from('workout_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('date', start).lte('date', end).not('workout_day', 'ilike', '%sauna%'),
+      db.from('workout_sessions').select('id', { count: 'exact', head: true }).eq('user_id', userId).gte('date', start).lte('date', end).not('workout_day', 'ilike', SAUNA_WORKOUT_DAY_PATTERN),
       db.from('strava_activities_clean').select('distance').eq('user_id', userId).eq('is_oura', false).in('sport_type', [...RUN_SPORT_TYPES])
         .gte('start_date', `${start}T00:00:00Z`).lte('start_date', `${end}T23:59:59Z`),
       db.from('closer_daily_logs').select('dials, appointments, sales_calls, sales_closed').eq('user_id', userId).gte('date', start).lte('date', end),

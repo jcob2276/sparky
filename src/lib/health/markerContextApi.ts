@@ -1,3 +1,4 @@
+import { SAUNA_WORKOUT_DAY_PATTERN } from '@vanguard/domain';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../supabase';
 import { getTodayWarsaw } from '../date';
@@ -11,7 +12,7 @@ const num = (value: unknown): number | null => (value == null || value === '' ||
 async function fetchMarkerContextRows(userId: string, from: string, to: string): Promise<MarkerContextRows> {
   const [runs, workouts, sleep, nutrition] = await Promise.all([
     supabase.from('strava_activities_clean').select('start_date, distance').eq('user_id', userId).eq('is_oura', false).in('sport_type', [...RUN_SPORT_TYPES]).gte('start_date', `${from}T00:00:00Z`).lte('start_date', `${to}T23:59:59Z`),
-    supabase.from('workout_sessions').select('date').eq('user_id', userId).gte('date', from).lte('date', to).not('workout_day', 'ilike', '%sauna%'),
+    supabase.from('workout_sessions').select('date').eq('user_id', userId).gte('date', from).lte('date', to).not('workout_day', 'ilike', SAUNA_WORKOUT_DAY_PATTERN),
     supabase.from('oura_daily_summary').select('date, total_sleep_hours, hrv_avg').eq('user_id', userId).gte('date', from).lte('date', to),
     supabase.from('daily_nutrition').select('date, calories, protein').eq('user_id', userId).gte('date', from).lte('date', to),
   ]);
