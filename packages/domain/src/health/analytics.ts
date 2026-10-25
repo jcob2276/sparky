@@ -23,6 +23,7 @@ export const ANALYTICS_DATASETS:Record<string,{label:string;date:string|null;col
   projects:{label:'Projekty',date:null,columns:['id','name','goal','status','deadline'],metrics:{}},
   weekly_reviews:{label:'Przeglądy tygodnia',date:'week_start',columns:['week_start','proud_of','sabotage','do_differently','week_sentiment','bottleneck'],metrics:{}},
   monthly_reviews:{label:'Przeglądy miesiąca',date:'month_start',columns:['month_start','pattern_note','leverage_note','month_theme'],metrics:{}},
+  closer_calls:{label:'Rozmowy sprzedażowe (błędy i dobre zagrania)',date:'started_at',columns:['started_at','title','summary_md','ai_outcome','ai_score','ai_mistakes','ai_good_moves','ai_next_step'],metrics:{ai_score:'Ocena rozmowy (1-10)'}},
   daily_reconciliations:{label:'Refleksje dnia',date:'date',columns:['date','status','day_score','plan_quality','plan_failure_reason'],metrics:{}},
 };
 export interface AnalyticsQuery {
