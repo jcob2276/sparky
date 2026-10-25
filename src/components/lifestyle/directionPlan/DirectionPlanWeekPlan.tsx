@@ -36,7 +36,6 @@ interface DirectionPlanWeekPlanProps {
     monthTheme: string | null;
     monthLabel: string | null;
   };
-  weekIntention: string; setWeekIntention: (v: string) => void;
   weekCommitment: string; setWeekCommitment: (v: string) => void;
   weekGoalCialo: string; setWeekGoalCialo: (v: string) => void;
   weekGoalDuch: string; setWeekGoalDuch: (v: string) => void;
@@ -44,7 +43,6 @@ interface DirectionPlanWeekPlanProps {
   onComplete: () => void;
   completing: boolean;
   deepeningComplete: boolean;
-  intentionFromMonth?: boolean;
   planCarriedFromMonth?: boolean;
   /** Reguła z pytania 3 przeglądu (korekta algorytmu). */
   weekRule?: string;
@@ -52,15 +50,15 @@ interface DirectionPlanWeekPlanProps {
 
 export default function DirectionPlanWeekPlan({
   phase2, weekStart, planWeekStart, direction,
-  weekIntention, setWeekIntention, weekCommitment, setWeekCommitment,
+  weekCommitment, setWeekCommitment,
   weekGoalCialo, setWeekGoalCialo, weekGoalDuch, setWeekGoalDuch,
   weekGoalKonto, setWeekGoalKonto,
   onComplete, completing, deepeningComplete,
-  intentionFromMonth, planCarriedFromMonth, weekRule,
+  planCarriedFromMonth, weekRule,
 }: DirectionPlanWeekPlanProps) {
   const rule = weekRule?.trim() ?? '';
   const block5material = phase2?.block5_material;
-  const weekStepDraft = weekIntention.trim() || weekCommitment.trim() || null;
+  const weekStepDraft = weekCommitment.trim() || null;
   const sprintBridge = formatSprintWeekBridge(direction.sprintGoal, weekStepDraft);
   const longTermBridge = formatSprintFromLongTerm(direction.bhagLine ?? null, direction.sprintGoal);
 
@@ -120,11 +118,6 @@ export default function DirectionPlanWeekPlan({
           </div>
         )}
         <StaleTodosPanel />
-        <div className="space-y-1">
-          <p className="text-xs text-text-muted font-medium">Intencja tygodnia — jaki chcę być?</p>
-          {intentionFromMonth && weekIntention.trim() && <p className="text-xs font-semibold text-primary">Wstępnie z tematu miesiąca — doprecyzuj pod ten tydzień.</p>}
-          <Textarea value={weekIntention} onChange={setWeekIntention} placeholder="Np. konsekwentny, spokojny, zdecydowany…" rows={2} />
-        </div>
         <div className="space-y-1">
           <p className="text-xs text-text-muted font-medium">Zobowiązanie — co jest bezwzględne?</p>
           {planCarriedFromMonth && weekCommitment.trim() && <p className="text-xs font-semibold text-primary">Z korekty miesiąca — jedna rzecz do poprawy w tym tygodniu.</p>}

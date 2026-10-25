@@ -59,12 +59,12 @@ export default function DirectionPlanningMode({
   sabotage, setSabotage,
   weekHighlight, setWeekHighlight,
   newBelief, setNewBelief, deepeningAnswers, setDeepeningAnswers,
-  weekIntention, setWeekIntention, weekCommitment, setWeekCommitment,
+  weekCommitment, setWeekCommitment,
   weekGoalCialo, setWeekGoalCialo, weekGoalDuch, setWeekGoalDuch,
   weekGoalKonto, setWeekGoalKonto,
   saveReflection, savingReflection, onComplete, completing,
   reflectionSaved,
-  intentionFromMonth = false, planCarriedFromMonth = false,
+  planCarriedFromMonth = false,
 }: Props) {
   const currentUserId = useUserId();
   const direction = useDirectionContext(currentUserId ?? '', weekStart);
@@ -103,13 +103,12 @@ export default function DirectionPlanningMode({
         <DirectionPlanWeekPlan
           phase2={phase2} weekStart={weekStart} planWeekStart={planWeekStart}
           direction={{ sprintGoal: direction.sprintGoal ?? null, bhagLine: direction.bhagLine ?? null, monthTheme: direction.monthTheme ?? null, monthLabel: direction.monthLabel ?? null }}
-          weekIntention={weekIntention} setWeekIntention={setWeekIntention}
           weekCommitment={weekCommitment} setWeekCommitment={setWeekCommitment}
           weekGoalCialo={weekGoalCialo} setWeekGoalCialo={setWeekGoalCialo}
           weekGoalDuch={weekGoalDuch} setWeekGoalDuch={setWeekGoalDuch}
           weekGoalKonto={weekGoalKonto} setWeekGoalKonto={setWeekGoalKonto}
           onComplete={onComplete} completing={completing} deepeningComplete={deepeningComplete}
-          intentionFromMonth={intentionFromMonth} planCarriedFromMonth={planCarriedFromMonth}
+          planCarriedFromMonth={planCarriedFromMonth}
           weekRule={newBelief}
         />
       )}

@@ -29,8 +29,6 @@ export default function WeekPlanningRecap({
 
   const hasProjects = (direction.activeProjects?.length ?? 0) > 0;
   const hasLoop =
-    direction.weekGoals?.intention ||
-    direction.weekGoals?.commitment ||
     direction.weekGoals?.cialo ||
     direction.weekGoals?.duch ||
     direction.weekGoals?.konto ||
@@ -55,12 +53,7 @@ export default function WeekPlanningRecap({
           compact
           ctx={{
             weekGoals: direction.weekGoals ?? { intention: null, commitment: null, cialo: null, duch: null, konto: null },
-            weekGoalsMeta: direction.weekGoalsMeta,
             focus: direction.focus ?? { skillId: null, skillLabel: null, subskillLabel: null, targetLevel: null },
-            sprintGoal: direction.sprintGoal ?? null,
-            monthTheme: direction.monthTheme ?? null,
-            monthLabel: direction.monthLabel ?? null,
-            bhagLine: direction.bhagLine ?? null,
           }}
         />
       )}
