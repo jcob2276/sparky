@@ -103,8 +103,10 @@ export async function exportStatsMarkdown({
     const logs = (session as Tables<'workout_sessions'> & { exercise_logs?: Tables<'exercise_logs'>[] }).exercise_logs ?? [];
     return acc + logs.reduce((sum, log) => sum + (Number(log.weight) || 0) * (Number(log.reps) || 0), 0);
   }, 0);
-  const disciplineDays = (d.ouraData ?? []).filter((o) => o.is_disciplined).length;
-  const ouraDays = (d.ouraData ?? []).length;
+  // dyscyplina jest znana tylko w dniach z godziną zaśnięcia; brak danych nie jest „wpadką”
+  const knownDisciplineDays = (d.ouraData ?? []).filter((o) => o.bedtime_timestamp != null);
+  const disciplineDays = knownDisciplineDays.filter((o) => o.is_disciplined).length;
+  const ouraDays = knownDisciplineDays.length;
   const journalWins = (d.journal ?? []).filter((j) => j.result === 'Z').length;
   const journalDays = (d.journal ?? []).length;
 
