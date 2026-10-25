@@ -94,9 +94,9 @@ async function fetchHealthspanProfile(userId: string, today = getTodayWarsaw()) 
     supabase.from('oura_enhanced')
       .select('date, vo2_max, bedtime_start, stress_high_minutes, recovery_high_minutes')
       .eq('user_id', userId).gte('date', since90).lte('date', today).order('date'),
-    supabase.from('strava_activities')
+    supabase.from('strava_activities_clean')
       .select('strava_id, gc_activity_id, start_date, gc_vo2max, gc_hr_zones, gc_training_effect_aerobic, gc_training_effect_anaerobic, moving_time, sport_type, source')
-      .eq('user_id', userId).gte('start_date', `${since45}T00:00:00`).order('start_date'),
+      .eq('user_id', userId).eq('is_oura', false).gte('start_date', `${since45}T00:00:00`).order('start_date'),
     supabase.from('workout_sessions')
       .select('date, workout_day')
       .eq('user_id', userId)

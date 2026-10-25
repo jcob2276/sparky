@@ -22,7 +22,7 @@ export async function gatherWeekFacts(db: SupabaseClient<Database>, userId: stri
     db.from("oura_daily_summary").select("date, total_sleep_hours, bedtime_timestamp, bedtime_end_timestamp, readiness_score, sleep_score, deep_sleep_hours, rem_sleep_hours, latency_minutes").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd),
     db.from("daily_nutrition").select("date, calories, protein").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd),
     db.from("nutrition_targets").select("target_kcal").eq("user_id", userId).order("date", { ascending: false }).limit(1).maybeSingle(),
-    db.from("strava_activities").select("start_date, name, distance, sport_type").eq("user_id", userId).gte("start_date", weekStart).lte("start_date", weekEnd + "T23:59:59"),
+    db.from("strava_activities_clean").select("start_date, name, distance, sport_type").eq("user_id", userId).eq("is_oura", false).gte("start_date", weekStart).lte("start_date", weekEnd + "T23:59:59"),
     db.from("habit_logs").select("date, logged_at, final_stimulus, context_note").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd),
     db.from("todo_items").select("title, priority, created_at").eq("user_id", userId).eq("status", "open").eq("priority", "high").order("created_at", { ascending: true }),
     db.from("vanguard_links").select("status").eq("user_id", userId).eq("status", "unread"),
