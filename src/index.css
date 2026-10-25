@@ -5,6 +5,9 @@
 
 /* Functional iOS light */
 :root {
+  --closer-review-width: 90rem;
+  --closer-review-height: 95dvh;
+  --closer-review-columns: minmax(0, 1.1fr) minmax(0, 1fr);
   /* Every numeric Tailwind arbitrary value is centrally addressable. */
   --ds-arbitrary-0-98: 0.98;
   --ds-arbitrary-0-2em: 0.2em;
@@ -3001,13 +3004,15 @@ a,
 @keyframes oura-sr-grow { from { opacity: 0; transform: scaleY(0.6); } to { opacity: 1; transform: none; } }
 
 /* Hero „Dziś” — VisionHeroCard i karty celów */
-:root { --hero-goal-h: 10rem; --hero-goal-scrim: color-mix(in srgb, var(--scrim) 82%, transparent); }
+:root {
+ --hero-goal-h: 10rem; --hero-goal-scrim: color-mix(in srgb, var(--scrim) 82%, transparent); }
 .hero-goal-card { position: relative; overflow: hidden; min-width: 0; width: 100%; height: var(--hero-goal-h); }
 .hero-goal-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .hero-goal-scrim { position: absolute; inset: 0; background: linear-gradient(to top, var(--hero-goal-scrim) 8%, transparent 70%); }
 
 /* ─── Pięć zwycięstw (PowerList): ruch i tokeny --wins-* ─── */
-:root { --wins-motion: 200ms; }
+:root {
+ --wins-motion: 200ms; }
 .wins-seg-fill { transform: scaleX(0); transform-origin: left; transition: transform var(--wins-motion) ease-out; }
 .wins-seg-fill[data-on='true'] { transform: scaleX(1); }
 .wins-circle-fill { transform: scale(0.4); opacity: 0; transition: transform var(--wins-motion) ease-out, opacity var(--wins-motion) ease-out; }
@@ -3065,7 +3070,8 @@ a,
 @media (prefers-reduced-motion: reduce) { .meal-bar-fill { transition: none; } }
 
 /* "Stan dnia" card: recovery ring that works in light and dark themes. */
-:root { --readiness-ring-size: 5rem; --readiness-ring-c: 276; --readiness-ring-duration: 500ms; }
+:root {
+ --readiness-ring-size: 5rem; --readiness-ring-c: 276; --readiness-ring-duration: 500ms; }
 .readiness-ring { position: relative; flex-shrink: 0; width: var(--readiness-ring-size); height: var(--readiness-ring-size); }
 .readiness-ring-svg { display: block; width: 100%; height: 100%; }
 .readiness-ring-track { stroke: var(--border-custom); }

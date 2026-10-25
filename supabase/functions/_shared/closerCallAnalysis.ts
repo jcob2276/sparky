@@ -3,22 +3,11 @@
  * Wynik trafia do `closer_calls.ai_*` i jest czytany przez UI oraz Oracle (dataset closer_calls).
  */
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { groundCallMoments, type CallMoment, type TranscriptLineInput } from "@vanguard/domain";
 import { deepseekChat, parseJsonFromContent } from "./deepseek.ts";
 
 const MAX_TRANSCRIPT_CHARS = 60000;
 const OUTCOMES = ["closed", "follow_up", "lost", "unclear"] as const;
-
-interface TranscriptLine {
-  speaker?: { display_name?: string };
-  text?: string;
-  timestamp?: string;
-}
-
-interface CallMoment {
-  timestamp: string;
-  what: string;
-  why: string;
-}
 
 interface CallAnalysis {
   outcome: (typeof OUTCOMES)[number];
@@ -28,30 +17,30 @@ interface CallAnalysis {
   nextStep: string | null;
 }
 
-const SYSTEM_PROMPT = `Jesteś trenerem sprzedaży analizującym rozmowę closera (użytkownik to sprzedawca). Odpowiadasz po polsku.
-Na podstawie transkryptu zwróć WYŁĄCZNIE JSON:
-{"outcome":"closed|follow_up|lost|unclear","score":1-10,"mistakes":[{"timestamp":"HH:MM:SS","what":"co zrobił źle","why":"dlaczego to szkodzi i co zrobić zamiast"}],"good_moves":[{"timestamp":"HH:MM:SS","what":"co zrobił dobrze","why":"dlaczego to zadziałało"}],"next_step":"konkretny następny krok z klientem albo null"}
-Zasady: maksymalnie 5 błędów i 5 dobrych zagrań, tylko konkretne momenty z transkryptu, bez ogólników. Nie wymyślaj fragmentów, których nie ma w transkrypcie.`;
+const SYSTEM_PROMPT = `Jesteś trenerem sprzedaży, który pomaga closerowi (użytkownikowi) uczyć się z własnej rozmowy. Odpowiadasz po polsku.
+Zwróć WYŁĄCZNIE JSON:
+{"outcome":"closed|follow_up|lost|unclear","score":1-10,
+ "mistakes":[{"timestamp":"HH:MM:SS","quote":"dosłowny krótki cytat z transkryptu","what":"obserwacja","why":"hipoteza","experiment":"jeden mały eksperyment"}],
+ "good_moves":[{"timestamp":"HH:MM:SS","quote":"dosłowny krótki cytat z transkryptu","what":"obserwacja","why":"hipoteza","experiment":"jak to powtórzyć"}],
+ "next_step":"konkretny następny krok z klientem albo null"}
+Zasady:
+- Najwyżej 5 elementów w każdej liście. "timestamp" i "quote" muszą pochodzić z transkryptu (cytat 3–15 słów, przepisany dosłownie); bez nich pomiń moment.
+- "what" to neutralna obserwacja: co zostało powiedziane i co się wydarzyło dalej, bez ocen typu "błąd" czy "źle".
+- "why" to hipoteza, nie wyrok: pisz "możliwe, że…", "być może…", podaj jedną alternatywną interpretację, jeśli istnieje. Żadnych reguł typu "zawsze" albo "nigdy" (np. o kolejności ceny i pytania o decyzję).
+- "experiment" to jeden mały, sprawdzalny krok na następną rozmowę (jedno zdanie, coś do powiedzenia albo zapytania).
+- Nie zakładaj niczego o finansach, budżecie ani zwrocie z inwestycji klienta, jeśli klient sam o tym nie powiedział.
+- Nie oceniaj emocji ani stanu psychicznego żadnej ze stron; opisuj słowa i reakcje.
+- "score" ocenia przebieg rozmowy (proces sprzedaży), nie to, czy klient kupił. Gdy z transkryptu nie wynika, jak skończyła się rozmowa, "outcome" to "unclear".`;
 
 function transcriptToText(transcript: unknown[] | null): string {
-  const lines = (transcript ?? []) as TranscriptLine[];
+  const lines = (transcript ?? []) as TranscriptLineInput[];
   const text = lines
     .map((l) => `[${l.timestamp ?? "--:--:--"}] ${l.speaker?.display_name ?? "?"}: ${l.text ?? ""}`)
     .join("\n");
   return text.slice(0, MAX_TRANSCRIPT_CHARS);
 }
 
-function asMoments(raw: unknown): CallMoment[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.slice(0, 5).flatMap((item) => {
-    const m = item as Record<string, unknown>;
-    return typeof m?.what === "string" && m.what.trim()
-      ? [{ timestamp: String(m.timestamp ?? ""), what: m.what, why: String(m.why ?? "") }]
-      : [];
-  });
-}
-
-function parseAnalysis(content: string): CallAnalysis | null {
+function parseAnalysis(content: string, transcript: TranscriptLineInput[]): CallAnalysis | null {
   const json = parseJsonFromContent(content);
   if (!json) return null;
   const outcome = OUTCOMES.find((o) => o === json.outcome) ?? "unclear";
@@ -59,8 +48,9 @@ function parseAnalysis(content: string): CallAnalysis | null {
   return {
     outcome,
     score,
-    mistakes: asMoments(json.mistakes),
-    goodMoves: asMoments(json.good_moves),
+    // tylko momenty z prawdziwym czasem i cytatem z transkryptu (model potrafi je zmyślić)
+    mistakes: groundCallMoments(json.mistakes, transcript),
+    goodMoves: groundCallMoments(json.good_moves, transcript),
     nextStep: typeof json.next_step === "string" && json.next_step.trim() ? json.next_step : null,
   };
 }
@@ -90,15 +80,16 @@ export async function analyzeCloserCall(
     const res = await deepseekChat({
       apiKey: Deno.env.get("DEEPSEEK_API_KEY") || "",
       userId,
+      model: "deepseek-chat",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: `Rozmowa: ${call.title}\n\nTranskrypt:\n${transcript}` },
       ],
       responseFormat: { type: "json_object" },
-      maxTokens: 1500,
+      maxTokens: 2500,
       timeoutMs: 90000,
     });
-    const analysis = parseAnalysis(res.content);
+    const analysis = parseAnalysis(res.content, (call.transcript ?? []) as TranscriptLineInput[]);
     if (!analysis) throw new Error("Analiza AI: niepoprawny JSON");
     const { error: saveError } = await supabase.from("closer_calls").update({
       ai_status: "done",

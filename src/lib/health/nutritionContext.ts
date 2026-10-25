@@ -227,10 +227,3 @@ export async function fetchNutritionDayContext(
     targetError,
   };
 }
-
-function num(v: unknown): number | null {
-  if (v == null || Number.isNaN(Number(v))) return null;
-  const n = Number(v);
-  return n > 0 ? n : null;
-}
-

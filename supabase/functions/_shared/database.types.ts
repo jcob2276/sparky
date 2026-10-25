@@ -463,6 +463,7 @@ export type Database = {
       }
       closer_calls: {
         Row: {
+          action_items: Json | null
           ai_analyzed_at: string | null
           ai_good_moves: Json
           ai_mistakes: Json
@@ -470,7 +471,6 @@ export type Database = {
           ai_outcome: string | null
           ai_score: number | null
           ai_status: string
-          action_items: Json | null
           call_date: string
           created_at: string
           duration_seconds: number | null
@@ -479,6 +479,7 @@ export type Database = {
           has_external_invitees: boolean
           id: string
           invitees: Json | null
+          review_notes: string
           share_url: string | null
           started_at: string
           summary_md: string | null
@@ -488,6 +489,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          action_items?: Json | null
           ai_analyzed_at?: string | null
           ai_good_moves?: Json
           ai_mistakes?: Json
@@ -495,7 +497,6 @@ export type Database = {
           ai_outcome?: string | null
           ai_score?: number | null
           ai_status?: string
-          action_items?: Json | null
           call_date: string
           created_at?: string
           duration_seconds?: number | null
@@ -504,6 +505,7 @@ export type Database = {
           has_external_invitees?: boolean
           id?: string
           invitees?: Json | null
+          review_notes?: string
           share_url?: string | null
           started_at: string
           summary_md?: string | null
@@ -513,6 +515,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          action_items?: Json | null
           ai_analyzed_at?: string | null
           ai_good_moves?: Json
           ai_mistakes?: Json
@@ -520,7 +523,6 @@ export type Database = {
           ai_outcome?: string | null
           ai_score?: number | null
           ai_status?: string
-          action_items?: Json | null
           call_date?: string
           created_at?: string
           duration_seconds?: number | null
@@ -529,6 +531,7 @@ export type Database = {
           has_external_invitees?: boolean
           id?: string
           invitees?: Json | null
+          review_notes?: string
           share_url?: string | null
           started_at?: string
           summary_md?: string | null
@@ -547,11 +550,14 @@ export type Database = {
           dials: number
           id: string
           notes: string | null
+          numbers_entered_at: string | null
           sales_calls: number
           sales_closed: number
           updated_at: string
           user_id: string
+          work_energy: number | null
           work_hours: number
+          work_pressure: number | null
         }
         Insert: {
           appointments?: number
@@ -560,11 +566,14 @@ export type Database = {
           dials?: number
           id?: string
           notes?: string | null
+          numbers_entered_at?: string | null
           sales_calls?: number
           sales_closed?: number
           updated_at?: string
           user_id: string
+          work_energy?: number | null
           work_hours?: number
+          work_pressure?: number | null
         }
         Update: {
           appointments?: number
@@ -573,11 +582,14 @@ export type Database = {
           dials?: number
           id?: string
           notes?: string | null
+          numbers_entered_at?: string | null
           sales_calls?: number
           sales_closed?: number
           updated_at?: string
           user_id?: string
+          work_energy?: number | null
           work_hours?: number
+          work_pressure?: number | null
         }
         Relationships: []
       }
@@ -3866,27 +3878,6 @@ export type Database = {
           },
         ]
       }
-      life_targets: {
-        Row: {
-          bench_goal_kg: number
-          income_goal_net_pln: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          bench_goal_kg?: number
-          income_goal_net_pln?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          bench_goal_kg?: number
-          income_goal_net_pln?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       life_goals: {
         Row: {
           about_me: string | null
@@ -3984,6 +3975,27 @@ export type Database = {
           related_name?: string | null
           sent_reminders?: Json
           title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      life_targets: {
+        Row: {
+          bench_goal_kg: number
+          income_goal_net_pln: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bench_goal_kg?: number
+          income_goal_net_pln?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bench_goal_kg?: number
+          income_goal_net_pln?: number
           updated_at?: string
           user_id?: string
         }

@@ -1,6 +1,7 @@
 import { format, addDays } from 'date-fns';
 import { useHaptics } from '../../../hooks/useHaptics';
 import type { CloserDailyLogRow } from '../../../lib/closer/closerApi';
+import { hasWorkContext } from '../../../lib/closer/closerWorkContext';
 import { getTodayWarsaw } from '../../../lib/date';
 import { Pressable } from '../../ui/ControlPrimitives';
 
@@ -30,7 +31,7 @@ export default function CloserDayStrip({
     const log = logsByDate[dateStr];
     const isToday = dateStr === today;
     const isSelected = dateStr === selectedDate;
-    const hasData = (log?.dials ?? 0) > 0 || (Number(log?.work_hours) || 0) > 0 || (log?.appointments ?? 0) > 0 || (log?.sales_calls ?? 0) > 0;
+    const hasData = hasWorkContext(log) || (log?.dials ?? 0) > 0 || (Number(log?.work_hours) || 0) > 0 || (log?.appointments ?? 0) > 0 || (log?.sales_calls ?? 0) > 0;
 
     return {
       dateStr,
@@ -49,6 +50,8 @@ export default function CloserDayStrip({
         <Pressable
           key={d.dateStr}
           type="button"
+          aria-pressed={d.isSelected}
+          aria-label={d.dateStr + (d.isToday ? ' · dziś' : '')}
           onClick={() => {
             haptics.selection();
             onSelectDate(d.dateStr);
