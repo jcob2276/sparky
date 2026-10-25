@@ -1,7 +1,8 @@
 import { format, parseISO } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import type { Tables } from '../database.types';
-import { formatWarsawDate, shiftDateStr } from '../date';
+import { formatWarsawDate, getTodayWarsaw, shiftDateStr } from '../date';
+import { completedNutritionDays } from '../chronicle/nutritionDays';
 import type { ExportStatsMarkdownParams, StravaRawActivity } from './exportStatsTypes';
 import { downloadBlob, getAvg } from './exportStatsHelpers';
 import { fetchExportData } from './exportStatsFetch';
@@ -84,8 +85,10 @@ export async function exportStatsMarkdown({
 
   const avgWeight = getAvg(bodyMetrics as Record<string, unknown>[] | null, 'weight', 2);
   const avgWaist = getAvg(bodyMetrics as Record<string, unknown>[] | null, 'waist', 1);
-  const avgCalories = getAvg(nutritionEntries as Record<string, unknown>[], 'calories');
-  const avgProtein = getAvg(nutritionEntries as Record<string, unknown>[], 'protein');
+  // średnie z pełnych, zakończonych dni (ta sama definicja co Kronika); dziś i niepełne zapisy zaniżałyby wynik
+  const fullNutritionDays = completedNutritionDays(nutritionEntries, getTodayWarsaw());
+  const avgCalories = getAvg(fullNutritionDays as Record<string, unknown>[], 'calories');
+  const avgProtein = getAvg(fullNutritionDays as Record<string, unknown>[], 'protein');
   const avgSteps = getAvg(d.ouraData as Record<string, unknown>[] | null, 'steps');
   const avgSleep = getAvg(d.ouraData as Record<string, unknown>[] | null, 'total_sleep_hours', 2);
   const avgReadiness = getAvg(d.ouraData as Record<string, unknown>[] | null, 'readiness_score');

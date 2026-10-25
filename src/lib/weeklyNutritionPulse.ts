@@ -1,3 +1,5 @@
+import { completedNutritionDays } from './chronicle/nutritionDays';
+
 export type NutritionDayRow = {
   date: string;
   calories: number | null;
@@ -46,8 +48,8 @@ export function buildWeeklyNutritionPulse(input: {
   /** Dzisiejszy dzień jest jeszcze w toku — nie zaniża średnich. */
   today: string;
 }): WeeklyNutritionPulseData {
-  // Dzień liczy się, gdy ma zapisane jedzenie — bez ręcznego zamykania dziennika.
-  const logged = input.rows.filter((row) => row.date < input.today && (row.calories ?? 0) > 0);
+  // Ta sama definicja pełnego dnia co w Kronice i porównaniu okresów: zakończony i z pełnym zapisem jedzenia.
+  const logged = completedNutritionDays(input.rows, input.today);
   const avgCalories = round0(mean(logged.flatMap((r) => (r.calories == null ? [] : [r.calories]))));
   const avgProtein = round0(mean(logged.flatMap((r) => (r.protein == null ? [] : [r.protein]))));
   const avgCarbs = round0(mean(logged.flatMap((r) => (r.carbs == null ? [] : [r.carbs]))));

@@ -117,3 +117,17 @@ describe('formatGrams', () => {
     expect(formatGrams(null)).toBe('—');
   });
 });
+
+describe('buildWeeklyNutritionPulse — pełne dni', () => {
+  const row = (date: string, calories: number, protein: number) => ({
+    date, calories, protein, carbs: null, fat: null, fiber: null, sugar: null, avg_food_quality: null, insulin_load: null,
+  });
+  it('pomija niepełny dzień i dzisiejszy, jak Kronika', () => {
+    const pulse = buildWeeklyNutritionPulse({
+      proteinGoal: 150, kcalTarget: 2400, today: '2026-10-25',
+      rows: [row('2026-10-22', 2400, 150), row('2026-10-23', 600, 30), row('2026-10-24', 2200, 140), row('2026-10-25', 900, 50)],
+    });
+    expect(pulse.avgCalories).toBe(2300);
+    expect(pulse.avgProtein).toBe(145);
+  });
+});

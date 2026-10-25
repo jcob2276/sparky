@@ -122,11 +122,6 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
     });
   }, [rows, todayRaw]);
 
-  const avgProtein7d = useMemo(() => {
-    const vals = chart.filter((r) => r.protein > 0).map((r) => r.protein);
-    return vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : null;
-  }, [chart]);
-
   const todayRow = chart.find((r) => r.key === todayRaw);
   const todayProtein = todayRow?.protein ?? 0;
   const todayKcalFromEntries = todayEntries.reduce((s, e) => s + (e.calories ?? 0), 0);
@@ -214,7 +209,6 @@ export function useNutritionData({ weeklyCalories, refreshSignal }: UseNutrition
     deleteEntry,
     caloriesProgress,
     chart,
-    avgProtein7d,
     todayRow,
     todayProtein,
     todayKcal,
