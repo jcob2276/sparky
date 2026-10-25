@@ -8,20 +8,19 @@ const row: CloserDailyLogRow = { id: 'day', user_id: 'u', date: '2026-10-25', di
 beforeEach(() => localStorage.clear());
 afterEach(cleanup);
 describe('personal work context', () => {
-  it('saves explicit ratings without inferring them from numbers, and retains a failed draft', () => {
+  it('saves the note, keeps previously stored ratings untouched, and retains a failed draft', () => {
     const save = vi.fn();
     const props = { userId: 'u', date: row.date, row, saving: false, error: false, onSave: save };
     const view = render(<CloserWorkContextEditor {...props} />);
-    fireEvent.click(screen.getByRole('button', { name: /Energia w pracy: 2/ }));
     fireEvent.change(screen.getByRole('textbox'), { target: { value: '' } });
     fireEvent.click(screen.getByRole('button', { name: 'Zapisz kontekst' }));
-    expect(save).toHaveBeenCalledWith({ work_energy: null, work_pressure: 4, notes: '' });
+    expect(save).toHaveBeenCalledWith({ work_energy: 2, work_pressure: 4, notes: '' });
     view.rerender(<CloserWorkContextEditor {...props} error />);
     expect(screen.getByRole('textbox')).toHaveValue('');
     view.unmount();
     render(<CloserWorkContextEditor {...props} />);
     expect(screen.getByRole('textbox')).toHaveValue('');
-    expect(screen.getByRole('button', { name: /Energia w pracy: 2/ })).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByText('Energia w pracy')).not.toBeInTheDocument();
   });
   it('keeps unsaved context scoped to the owner and date', () => {
     const props = { userId: 'u', date: row.date, row, saving: false, error: false, onSave: vi.fn() };

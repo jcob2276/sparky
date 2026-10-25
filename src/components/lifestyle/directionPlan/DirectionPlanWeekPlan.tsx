@@ -3,6 +3,7 @@ import { ControlTextarea } from '../../ui/ControlPrimitives';
 import { formatSprintWeekBridge } from '../../../lib/goal/goalSpine';
 import { formatSprintFromLongTerm } from '../../../lib/goal/longTermBridge';
 import { Card } from '../../ui/Card';
+import StaleTodosPanel from './StaleTodosPanel';
 
 type Phase2Recap = {
   block5_material?: { cialo: string; duch: string; konto: string };
@@ -45,6 +46,8 @@ interface DirectionPlanWeekPlanProps {
   deepeningComplete: boolean;
   intentionFromMonth?: boolean;
   planCarriedFromMonth?: boolean;
+  /** Reguła z pytania 3 przeglądu (korekta algorytmu). */
+  weekRule?: string;
 }
 
 export default function DirectionPlanWeekPlan({
@@ -53,8 +56,9 @@ export default function DirectionPlanWeekPlan({
   weekGoalCialo, setWeekGoalCialo, weekGoalDuch, setWeekGoalDuch,
   weekGoalKonto, setWeekGoalKonto,
   onComplete, completing, deepeningComplete,
-  intentionFromMonth, planCarriedFromMonth,
+  intentionFromMonth, planCarriedFromMonth, weekRule,
 }: DirectionPlanWeekPlanProps) {
+  const rule = weekRule?.trim() ?? '';
   const block5material = phase2?.block5_material;
   const weekStepDraft = weekIntention.trim() || weekCommitment.trim() || null;
   const sprintBridge = formatSprintWeekBridge(direction.sprintGoal, weekStepDraft);
@@ -106,6 +110,16 @@ export default function DirectionPlanWeekPlan({
             {sprintBridge && <p className="text-xs font-semibold text-text-primary leading-relaxed">{sprintBridge}</p>}
           </Card>
         )}
+        {rule && (
+          <div className="rounded-xl border border-primary/25 bg-primary/[0.06] px-3.5 py-2.5 space-y-1.5">
+            <p className="text-2xs font-semibold text-primary">Twoja reguła na ten tydzień (z pytania 3)</p>
+            <p className="text-xs font-semibold text-text-primary leading-snug">{rule}</p>
+            {weekCommitment.trim() !== rule && (
+              <Button size="sm" variant="outline" onClick={() => setWeekCommitment(rule)}>Ustaw jako zobowiązanie</Button>
+            )}
+          </div>
+        )}
+        <StaleTodosPanel />
         <div className="space-y-1">
           <p className="text-xs text-text-muted font-medium">Intencja tygodnia — jaki chcę być?</p>
           {intentionFromMonth && weekIntention.trim() && <p className="text-xs font-semibold text-primary">Wstępnie z tematu miesiąca — doprecyzuj pod ten tydzień.</p>}

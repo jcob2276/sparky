@@ -110,6 +110,7 @@ export default function DirectionPlanningMode({
           weekGoalKonto={weekGoalKonto} setWeekGoalKonto={setWeekGoalKonto}
           onComplete={onComplete} completing={completing} deepeningComplete={deepeningComplete}
           intentionFromMonth={intentionFromMonth} planCarriedFromMonth={planCarriedFromMonth}
+          weekRule={newBelief}
         />
       )}
     </div>
