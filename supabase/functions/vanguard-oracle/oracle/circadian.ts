@@ -1,4 +1,4 @@
-import { HEALTH_THRESHOLDS } from '@vanguard/domain';
+import { lowSleepNote } from '../../_shared/sleepWarning.ts';
 /**
  * circadian.ts — Circadian Rhythm Engine (Lingxi / 灵犀 pattern).
  * Dynamically adjusts the agent's internal diurnal posture based on Warsaw hour
@@ -60,8 +60,9 @@ export function getCircadianStance(
   if (typeof readinessScore === "number" && readinessScore > 0 && readinessScore < 65) {
     warnings.push(`⚠️ OURA ALERT: Niski wskaźnik readiness (${readinessScore}). Obniżona rezerwa adaptacyjna. Nie forsuj wielkich obciążeń ani 12h sesji — skup się wyłącznie na 1 kluczowym ruchu.`);
   }
-  if (typeof sleepHours === "number" && sleepHours > 0 && sleepHours < HEALTH_THRESHOLDS.SLEEP_WARNING_H) {
-    warnings.push(`⚠️ STATYSTYKA EGZEKUCJI: Sen ${sleepHours.toFixed(1)}h (< ${HEALTH_THRESHOLDS.SLEEP_WARNING_H}h). W 80% przypadków egzekucja spada do <= 0.50. Zmniejszona kontrola impulsów — uprość plan do 1 rzeczy.`);
+  const sleepNote = lowSleepNote(sleepHours);
+  if (sleepNote) {
+    warnings.push(`⚠️ KRÓTKI SEN: ${sleepNote} Uprość plan do 1 rzeczy.`);
   }
   if (warsawHour >= 10 && warsawHour < 12) {
     warnings.push(`⚡ OKNO RYZYKA IMPULSU (10:00–11:30): Najwyższa podatność na ucieczkę w architekturę lub social media (opóźnienie zadań o 4-10h). Zero nowych wątków.`);
