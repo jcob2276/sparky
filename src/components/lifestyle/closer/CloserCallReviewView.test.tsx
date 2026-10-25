@@ -11,7 +11,7 @@ const call: CloserCallRow = { user_id:'u1',call_date:'2026-10-25',fathom_recordi
   duration_seconds:3600,share_url:'https://fathom.video/share/test-token',ai_status:'done',ai_score:6,
   ai_mistakes:[{ timestamp:'00:03:10',what:'Pytanie bez pogłębienia',why:'Zapytaj, co konkretnie budzi wątpliwość.' }],
   ai_good_moves:[{ timestamp:'00:01:00',what:'Dopytanie o cel',why:'Pomogło poznać sytuację.' }],
-  ai_next_step:'Ustal termin kontaktu.',review_notes:'',ai_phases:[],ai_call_kind:null,
+  ai_next_step:'Ustal termin kontaktu.',review_notes:'',ai_phases:[],ai_call_kind:null,call_metrics:null,
   transcript:[{ timestamp:'00:03:05',speaker:{display_name:'Klient'},text:'Potrzebuję więcej czasu.' }]
 };
 beforeEach(() => localStorage.clear());

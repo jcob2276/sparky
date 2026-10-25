@@ -1,9 +1,10 @@
 import { CALL_PHASES, CALL_PHASE_LABELS, type CallPhase, type PhaseAssessment, type PhaseCriterion } from '@vanguard/domain';
 import type { CloserCallSummary } from './closerCallsApi';
+import { windowTrend } from './closerTrendMath';
 
 type TrendCall = Pick<CloserCallSummary, 'started_at' | 'ai_phases' | 'ai_call_kind'>;
 
-export interface PhaseTrend {
+interface PhaseTrend {
   phase: CallPhase;
   label: string;
   /** Rozmowy sprzedażowe, w których etap został oceniony. */
@@ -32,8 +33,6 @@ export interface PhaseReport {
   working: CriterionStat[];
 }
 
-const WINDOW = 5;
-const MIN_WINDOW = 3;
 const MIN_REPEAT = 3;
 const WORKING_SHARE = 0.8;
 
@@ -52,9 +51,6 @@ function parsePhaseAssessments(value: unknown): PhaseAssessment[] {
   });
 }
 
-const average = (values: number[]) => values.reduce((sum, v) => sum + v, 0) / values.length;
-const round1 = (value: number) => Math.round(value * 10) / 10;
-
 /** Trendy etapów rozmów sprzedażowych: średnia z 5 ostatnich vs 5 poprzednich, co poprawić, co się powtarza i co działa. */
 export function phaseReport(calls: TrendCall[]): PhaseReport {
   const sales = calls.filter(call => call.ai_call_kind === 'sales')
@@ -64,10 +60,7 @@ export function phaseReport(calls: TrendCall[]): PhaseReport {
 
   const trends = CALL_PHASES.map((phase): PhaseTrend => {
     const scores = sales.flatMap(call => call.phases.filter(p => p.phase === phase).map(p => p.score));
-    const recent = scores.slice(0, WINDOW);
-    const previous = scores.slice(WINDOW, WINDOW * 2);
-    const recentAvg = recent.length >= MIN_WINDOW ? round1(average(recent)) : null;
-    const delta = recentAvg !== null && previous.length >= MIN_WINDOW ? round1(recentAvg - average(previous)) : null;
+    const { recent: recentAvg, delta } = windowTrend(scores);
     return { phase, label: CALL_PHASE_LABELS[phase], calls: scores.length, recent: recentAvg, delta };
   });
 

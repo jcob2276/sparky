@@ -3,7 +3,7 @@ import { filterCloserCalls, recordedDayTotals } from './closerLibrary';
 import type { CloserCallSummary } from './closerCallsApi';
 const call = (id: string, date: string, title: string, notes = ''): CloserCallSummary => ({
   id, call_date: date, title, review_notes: notes, user_id: 'owner', started_at: date + 'T10:00:00Z',
-  duration_seconds: 1800, share_url: null, ai_status: 'done', ai_score: null, ai_phases: [], ai_call_kind: null,
+  duration_seconds: 1800, share_url: null, ai_status: 'done', ai_score: null, ai_phases: [], ai_call_kind: null, call_metrics: null,
 });
 const calls = [call('today', '2026-10-25', 'Marlena'), call('week', '2026-10-20', 'Piotr', 'Budżet'), call('old', '2025-01-01', 'Anna')];
 describe('closer library', () => {
