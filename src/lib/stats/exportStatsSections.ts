@@ -72,7 +72,7 @@ export function renderOuraSection({ dayOura, dayOuraEnhanced, dayOuraDerived }: 
     }
   }
 
-  md += `- **Dyscyplina (Oura):** ${dayOura.is_disciplined ? '✅ Czysty dzień (Standard zachowany)' : '⚠️ Dzień z zakłóceniami / wpadką'}\n\n`;
+  md += `- **Dyscyplina (Oura):** ${dayOura.bedtime_timestamp == null ? 'brak danych o zaśnięciu' : dayOura.is_disciplined ? '✅ Czysty dzień (Standard zachowany)' : '⚠️ Dzień z zakłóceniami / wpadką'}\n\n`;
   return md;
 }
 
