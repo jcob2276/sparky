@@ -465,10 +465,12 @@ export type Database = {
         Row: {
           action_items: Json | null
           ai_analyzed_at: string | null
+          ai_call_kind: string | null
           ai_good_moves: Json
           ai_mistakes: Json
           ai_next_step: string | null
           ai_outcome: string | null
+          ai_phases: Json
           ai_score: number | null
           ai_status: string
           call_date: string
@@ -491,10 +493,12 @@ export type Database = {
         Insert: {
           action_items?: Json | null
           ai_analyzed_at?: string | null
+          ai_call_kind?: string | null
           ai_good_moves?: Json
           ai_mistakes?: Json
           ai_next_step?: string | null
           ai_outcome?: string | null
+          ai_phases?: Json
           ai_score?: number | null
           ai_status?: string
           call_date: string
@@ -517,10 +521,12 @@ export type Database = {
         Update: {
           action_items?: Json | null
           ai_analyzed_at?: string | null
+          ai_call_kind?: string | null
           ai_good_moves?: Json
           ai_mistakes?: Json
           ai_next_step?: string | null
           ai_outcome?: string | null
+          ai_phases?: Json
           ai_score?: number | null
           ai_status?: string
           call_date?: string
@@ -5799,6 +5805,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sales_playbook_criteria: {
+        Row: {
+          active: boolean
+          created_at: string
+          criterion_key: string
+          id: string
+          label: string
+          phase: string
+          sort_order: number
+          source: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          criterion_key: string
+          id?: string
+          label: string
+          phase: string
+          sort_order?: number
+          source?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          criterion_key?: string
+          id?: string
+          label?: string
+          phase?: string
+          sort_order?: number
+          source?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       senate_disclosures: {
         Row: {

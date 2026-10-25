@@ -34,7 +34,7 @@ część osobista ma uwzględniać przede wszystkim **energię, presję i kontek
   Sekret jest już skonfigurowany w Supabase; **nie twórz drugiego webhooka i nie kopiuj sekretów do repo/handoffu**.
 - Model strukturalnej analizy w `_shared/closerCallAnalysis.ts` to `deepseek-chat` (poprzedni model zwracał nieprawidłowy JSON).
   Prompt: cytat + obserwacja + hipoteza + jeden eksperyment, bez założeń o finansach/ROI klienta i bez ocen emocji;
-  momenty walidowane `groundCallMoments`. Każdy moment ma też etap rozmowy (`CALL_PHASES` w `@vanguard/domain`); biblioteka pokazuje z nich kartę „Co się powtarza” (`closerPatterns.ts`, `CloserCallPatterns.tsx`, od 3 rozmów z etapami). Wszystkie 23 zapisane rozmowy przeliczone 2026-10-25 nowym promptem z etapami.
+  momenty walidowane `groundCallMoments`. Każdy moment ma też etap rozmowy (`CALL_PHASES` w `@vanguard/domain`); Druga część analizy (`_shared/closerPhaseAssessment.ts`) klasyfikuje rozmowę (`ai_call_kind`: sales/training/other) i ocenia każdy etap 1–5 względem kryteriów (`ai_phases`; kryteria z tabeli `sales_playbook_criteria`, a gdy brak — `DEFAULT_PHASE_CRITERIA` w domenie). Biblioteka pokazuje kartę „Etapy rozmów” (`closerPhaseTrends.ts`, `CloserPhaseTrends.tsx`): średnia z 5 ostatnich vs poprzednie 5 na etap, najniżej oceniany etap z najczęściej brakującym kryterium, kryteria brakujące w ≥3 rozmowach, kryteria spełniane w ≥80%. Liczone tylko dla `sales`. Wszystkie 23 zapisane rozmowy przeliczone 2026-10-25 nowym promptem z etapami.
 - Migracje `20261025130316_closer_fathom_daily_totals.sql`, `20261025131515_closer_call_review_notes.sql`,
   `20261025135927_closer_work_context.sql` i `20261025141203_closer_numbers_confirmation.sql` są zastosowane z tymi samymi wersjami w ledgerze.
   Typy w `src/lib/database.types.ts` i `supabase/functions/_shared/database.types.ts` są odświeżone.
@@ -47,6 +47,7 @@ część osobista ma uwzględniać przede wszystkim **energię, presję i kontek
 
 1. ~~Ponowna analiza starszych rozmów~~ — zrobione: funkcja `closer-reanalyze` (przycisk „Przeanalizuj ponownie” w analizie);
    23 rozmowy przeliczone 2026-10-25 za zgodą użytkownika (wyniki: 1 closed, 9 follow_up, 13 unclear; średnia ocena procesu 5,3).
+1b. **Wiedza sprzedażowa od użytkownika (czeka na materiały):** oferta (cena, pakiet, raty, obiekcje z odpowiedziami) oraz notatki Hormozjego i najlepszych sprzedawców w `docs/career/sales-knowledge/`. Zamienić je na kryteria na etap w `sales_playbook_criteria` (klucz `etap.nazwa`, `source` = źródło), potem przeliczyć rozmowy przez `closer-reanalyze`. Skalę 1–5 skalibrować: użytkownik ocenia 3–4 rozmowy sam i porównujemy.
 2. Polish panelu na realnym telefonie. Skrót kontekstu dnia („Ty tego dnia: energia · presja”) jest już w nagłówku analizy,
    pełny blok zostaje pod transkryptem. Nie dodawaj ściany tekstu ani automatycznych ocen stanu psychicznego.
 3. Sprawdzić zapis na zalogowanej produkcyjnej PWA i odtwarzanie na urządzeniu użytkownika (Fathom może dawać CORS odtwarzacza; jest link zewnętrzny).

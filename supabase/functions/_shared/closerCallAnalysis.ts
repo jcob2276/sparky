@@ -5,6 +5,8 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { CALL_PHASES, groundCallMoments, type CallMoment, type TranscriptLineInput } from "@vanguard/domain";
 import { deepseekChat, parseJsonFromContent } from "./deepseek.ts";
+import { assessCallPhases, loadPhaseCriteria, type CallPhaseResult } from "./closerPhaseAssessment.ts";
+import { logCriticalError } from "./errorLogging.ts";
 
 const MAX_TRANSCRIPT_CHARS = 60000;
 const OUTCOMES = ["closed", "follow_up", "lost", "unclear"] as const;
@@ -77,7 +79,15 @@ export async function analyzeCloserCall(
     return;
   }
 
+  const lines = (call.transcript ?? []) as TranscriptLineInput[];
   try {
+    // ocena etapów jest dodatkiem: jej błąd nie psuje analizy momentów, a poprzednie oceny zostają
+    const phasesPromise: Promise<CallPhaseResult | null> = loadPhaseCriteria(supabase, userId)
+      .then((criteria) => assessCallPhases(userId, call.title, transcript, lines, criteria))
+      .catch(async (err) => {
+        await logCriticalError({ area: "closer-phase-assessment", error: err, metadata: { callId } });
+        return null;
+      });
     const res = await deepseekChat({
       apiKey: Deno.env.get("DEEPSEEK_API_KEY") || "",
       userId,
@@ -90,8 +100,9 @@ export async function analyzeCloserCall(
       maxTokens: 2500,
       timeoutMs: 90000,
     });
-    const analysis = parseAnalysis(res.content, (call.transcript ?? []) as TranscriptLineInput[]);
+    const analysis = parseAnalysis(res.content, lines);
     if (!analysis) throw new Error("Analiza AI: niepoprawny JSON");
+    const phases = await phasesPromise;
     const { error: saveError } = await supabase.from("closer_calls").update({
       ai_status: "done",
       ai_outcome: analysis.outcome,
@@ -99,6 +110,7 @@ export async function analyzeCloserCall(
       ai_mistakes: analysis.mistakes,
       ai_good_moves: analysis.goodMoves,
       ai_next_step: analysis.nextStep,
+      ...(phases ? { ai_phases: phases.phases, ai_call_kind: phases.kind } : {}),
       ai_analyzed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }).eq("id", callId).eq("user_id", userId);
