@@ -204,3 +204,8 @@ verify_jwt = false
 [functions.fathom-webhook]
 import_map = "./functions/import_map.json"
 verify_jwt = false
+
+[functions.closer-reanalyze]
+import_map = "./functions/import_map.json"
+# own auth in serveJson (user JWT or service key); the gateway check would reject non-JWT secret keys
+verify_jwt = false

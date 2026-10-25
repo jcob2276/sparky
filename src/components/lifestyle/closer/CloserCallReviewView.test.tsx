@@ -2,6 +2,9 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import CloserCallReviewView from './CloserCallReviewView';
+
+const reanalyze = vi.hoisted(() => ({ mutate: vi.fn(), isPending: false, isError: false, isSuccess: false }));
+vi.mock('./useCloserReanalyze', () => ({ useCloserReanalyze: () => reanalyze }));
 import type { CloserCallRow } from '../../../lib/closer/closerCallsApi';
 
 const call: CloserCallRow = { user_id:'u1',call_date:'2026-10-25',fathom_recording_id:1,ended_at:null,has_external_invitees:true,summary_md:null,invitees:null,action_items:null,ai_outcome:'unclear',ai_analyzed_at:null,created_at:'2026-10-25T10:00:00Z',updated_at:'2026-10-25T10:00:00Z',id:'call-1',title:'Rozmowa z klientem',started_at:'2026-10-25T10:00:00Z',
@@ -67,6 +70,11 @@ describe('separate call review', () => {
     expect(screen.getByText('Eksperyment na następną rozmowę')).toBeInTheDocument();
     expect(screen.getByText('Zapytaj, czego potrzebuje, żeby podjąć decyzję.')).toBeInTheDocument();
     expect(screen.getByText('energia 2/5 · presja 4/5')).toBeInTheDocument();
+  });
+  it('lets the user re-run the analysis with the current prompt', () => {
+    render(<CloserCallReviewView call={call} onClose={vi.fn()} onSaveNotes={vi.fn()} saving={false} saveError={false} />);
+    fireEvent.click(screen.getByRole('button', { name: /Przeanalizuj ponownie/ }));
+    expect(reanalyze.mutate).toHaveBeenCalledTimes(1);
   });
 });
 
