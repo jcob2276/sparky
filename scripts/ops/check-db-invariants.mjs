@@ -100,6 +100,25 @@ const CHECKS = [
           AND a.attnum > 0 AND NOT a.attisdropped JOIN pg_type t ON t.oid = a.atttypid
           WHERE c.relnamespace = 'public'::regnamespace AND c.relkind = 'r' AND t.typname = 'timestamp'`,
   },
+  {
+    // kpi_entries of the closer project are a weekly copy of closer_daily_logs (syncCloserWeeklyRollups);
+    // a mismatch means two places show different numbers for the same week (incident 2026-10-25).
+    name: "closer KPI weekly rollups must equal the sums of closer_daily_logs",
+    sql: `WITH sums AS (
+            SELECT user_id, date_trunc('week', date)::date AS ws, sum(appointments) AS appt, sum(sales_calls) AS calls,
+                   sum(dials) AS dials, round(sum(coalesce(work_hours, 0))::numeric, 1) AS hours
+            FROM public.closer_daily_logs GROUP BY 1, 2)
+          SELECT e.week_start, k.name, e.value FROM public.kpi_entries e
+          JOIN public.goal_kpis k ON k.id = e.kpi_id
+          JOIN public.projects p ON p.id = k.project_id AND p.name ILIKE '%closer%'
+          LEFT JOIN sums s ON s.user_id = e.user_id AND s.ws = e.week_start
+          WHERE e.value IS DISTINCT FROM CASE
+            WHEN k.name ILIKE '%umówie%' THEN coalesce(s.appt, 0)
+            WHEN k.name ILIKE '%call%' THEN coalesce(s.calls, 0)
+            WHEN k.name ILIKE '%rozmow%' OR k.name ILIKE '%dial%' THEN coalesce(s.dials, 0)
+            WHEN k.name ILIKE '%godzin%' THEN coalesce(s.hours, 0)
+            ELSE e.value END`,
+  },
 ];
 
 const npx = (args) => execFileSync("npx", ["supabase", ...args], { encoding: "utf8", shell: process.platform === "win32", stdio: ["ignore", "pipe", "pipe"] });
