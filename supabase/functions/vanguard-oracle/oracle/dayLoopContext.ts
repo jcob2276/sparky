@@ -62,6 +62,8 @@ export async function fetchDayLoopContext(
       .from('daily_wins')
       .select('date, task_1, done_1, category_1, completed_at_1, task_2, done_2, category_2, completed_at_2, task_3, done_3, category_3, completed_at_3, task_4, done_4, category_4, completed_at_4, task_5, done_5, category_5, completed_at_5, importance_score, mood_score, day_note, journal_entry, gratitude_entry, created_at')
       .eq('user_id', user_id)
+      // plan na jutro bywa zapisany wieczorem: bez tego ograniczenia trafiałby tu jako „dziś” albo „wczoraj”
+      .lte('date', todayDate)
       .order('date', { ascending: false })
       .limit(2),
     supabase
