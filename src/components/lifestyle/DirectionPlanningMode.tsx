@@ -75,6 +75,13 @@ export default function DirectionPlanningMode({
       ? reflectionSaved
       : deepeningQuestions.every((_, i) => (deepeningAnswers[String(i)] ?? '').trim().length > 0));
 
+  const unanswered = deepeningQuestions.filter((_, i) => !(deepeningAnswers[String(i)] ?? '').trim()).length;
+  const completeBlocker = phase2Loading
+    ? 'Czekam na pytania pogłębiające…'
+    : deepeningQuestions.length > 0 && unanswered > 0
+      ? `Żeby zakończyć przegląd, odpowiedz jeszcze na pytania w sekcji „Zagłębmy się" (brakuje: ${unanswered}).`
+      : '';
+
   return (
     <div className="space-y-6 pb-8">
       <WeekPlanningRecap userId={currentUserId ?? ''} weekStart={weekStart} />
@@ -107,7 +114,7 @@ export default function DirectionPlanningMode({
           weekGoalCialo={weekGoalCialo} setWeekGoalCialo={setWeekGoalCialo}
           weekGoalDuch={weekGoalDuch} setWeekGoalDuch={setWeekGoalDuch}
           weekGoalKonto={weekGoalKonto} setWeekGoalKonto={setWeekGoalKonto}
-          onComplete={onComplete} completing={completing} deepeningComplete={deepeningComplete}
+          onComplete={onComplete} completing={completing} deepeningComplete={deepeningComplete} completeBlocker={completeBlocker}
           planCarriedFromMonth={planCarriedFromMonth}
           weekRule={newBelief}
         />

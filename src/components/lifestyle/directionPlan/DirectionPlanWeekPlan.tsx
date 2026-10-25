@@ -43,6 +43,8 @@ interface DirectionPlanWeekPlanProps {
   onComplete: () => void;
   completing: boolean;
   deepeningComplete: boolean;
+  /** Co jeszcze blokuje zakończenie przeglądu (puste, gdy nic). */
+  completeBlocker?: string;
   planCarriedFromMonth?: boolean;
   /** Reguła z pytania 3 przeglądu (korekta algorytmu). */
   weekRule?: string;
@@ -53,7 +55,7 @@ export default function DirectionPlanWeekPlan({
   weekCommitment, setWeekCommitment,
   weekGoalCialo, setWeekGoalCialo, weekGoalDuch, setWeekGoalDuch,
   weekGoalKonto, setWeekGoalKonto,
-  onComplete, completing, deepeningComplete,
+  onComplete, completing, deepeningComplete, completeBlocker,
   planCarriedFromMonth, weekRule,
 }: DirectionPlanWeekPlanProps) {
   const rule = weekRule?.trim() ?? '';
@@ -63,7 +65,7 @@ export default function DirectionPlanWeekPlan({
   const longTermBridge = formatSprintFromLongTerm(direction.bhagLine ?? null, direction.sprintGoal);
 
   return (
-    <div className={`space-y-4 transition-opacity duration-[var(--motion-slow)] ${deepeningComplete ? "" : "opacity-[var(--opacity-30)] pointer-events-none"}`}>
+    <div className="space-y-4">
       <Divider title="Plan tygodnia" />
       {planWeekStart !== weekStart && (
         <p className="text-xs font-semibold text-text-muted">Cele zapiszą się na tydzień od {planWeekStart}</p>
@@ -139,6 +141,9 @@ export default function DirectionPlanWeekPlan({
             <Textarea value={weekGoalKonto} onChange={setWeekGoalKonto} placeholder="Jeden konkretny cel finansowy / zawodowy…" rows={2} />
           </div>
         </div>
+        {!deepeningComplete && completeBlocker && (
+          <p role="status" className="text-xs font-semibold text-warning">{completeBlocker}</p>
+        )}
         <Button onClick={onComplete} disabled={!deepeningComplete} loading={completing} variant="primary" className="w-full">
           {completing ? "Zamykam tydzień…" : "Zakończ przegląd tygodnia"}
         </Button>
