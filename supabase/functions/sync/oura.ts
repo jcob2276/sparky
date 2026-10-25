@@ -1,4 +1,4 @@
-import { keepExistingWhenMissing } from '@vanguard/domain'
+import { keepExistingWhenMissing, shiftDateStr } from '@vanguard/domain'
 import { safeExecute, createServiceClient, resolveUserScope } from '../_shared/supabase.ts'
 import { runEnhanced } from './enhanced.ts'
 import { runTimeseries } from './timeseries.ts'
@@ -61,7 +61,8 @@ export async function runOuraSync(req: Request): Promise<unknown> {
         const [readinessRes, sleepRes, sleepStagesRes, activityRes, sleepTimeRes] = await Promise.all([
           fetch(`${OURA_BASE_URL}/daily_readiness?start_date=${batchStart}&end_date=${batchEnd}`, { signal: AbortSignal.timeout(30000), headers }),
           fetch(`${OURA_BASE_URL}/daily_sleep?start_date=${batchStart}&end_date=${batchEnd}`, { signal: AbortSignal.timeout(30000), headers }),
-          fetch(`${OURA_BASE_URL}/sleep?start_date=${batchStart}&end_date=${batchEnd}`, { signal: AbortSignal.timeout(30000), headers }),
+          // noc zaczęta wieczorem dzień wcześniej należy do `day` następnego dnia: pobieramy z zapasem i filtrujemy po `day`
+          fetch(`${OURA_BASE_URL}/sleep?start_date=${shiftDateStr(batchStart, -1)}&end_date=${batchEnd}`, { signal: AbortSignal.timeout(30000), headers }),
           fetch(`${OURA_BASE_URL}/daily_activity?start_date=${batchStart}&end_date=${batchEnd}`, { signal: AbortSignal.timeout(30000), headers }),
           fetch(`${OURA_BASE_URL}/sleep_time?start_date=${batchStart}&end_date=${batchEnd}`, { signal: AbortSignal.timeout(30000), headers })
         ])
@@ -96,6 +97,7 @@ export async function runOuraSync(req: Request): Promise<unknown> {
 
         sleepStagesData.data?.forEach((item: any) => {
           const day = item.day || item.date;
+          if (!day || day < batchStart || day > batchEnd) return;
           const prev = summaries[day] || {};
           const isLongestEpisode = (item.total_sleep_duration || 0) >= (prev._longestSleepDuration || 0);
           summaries[day] = {
