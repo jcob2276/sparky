@@ -6,7 +6,7 @@
 export interface TranscriptLineInput {
   timestamp?: string;
   text?: string;
-  speaker?: { display_name?: string };
+  speaker?: { display_name?: string; matched_calendar_invitee_email?: string | null };
 }
 
 /** Etapy rozmowy sprzedażowej — klucz do wzorców powtarzających się między rozmowami. */

@@ -7,6 +7,7 @@ import { CALL_PHASES, groundCallMoments, type CallMoment, type TranscriptLineInp
 import { deepseekChat, parseJsonFromContent } from "./deepseek.ts";
 import { assessCallPhases, loadPhaseCriteria, type CallPhaseResult } from "./closerPhaseAssessment.ts";
 import { logCriticalError } from "./errorLogging.ts";
+import { loadCallMetrics } from "./closerCallMetrics.ts";
 
 const MAX_TRANSCRIPT_CHARS = 60000;
 const OUTCOMES = ["closed", "follow_up", "lost", "unclear"] as const;
@@ -103,6 +104,7 @@ export async function analyzeCloserCall(
     const analysis = parseAnalysis(res.content, lines);
     if (!analysis) throw new Error("Analiza AI: niepoprawny JSON");
     const phases = await phasesPromise;
+    const metrics = await loadCallMetrics(supabase, userId, lines).catch(() => undefined);
     const { error: saveError } = await supabase.from("closer_calls").update({
       ai_status: "done",
       ai_outcome: analysis.outcome,
@@ -111,6 +113,7 @@ export async function analyzeCloserCall(
       ai_good_moves: analysis.goodMoves,
       ai_next_step: analysis.nextStep,
       ...(phases ? { ai_phases: phases.phases, ai_call_kind: phases.kind } : {}),
+      ...(metrics !== undefined ? { call_metrics: metrics } : {}),
       ai_analyzed_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }).eq("id", callId).eq("user_id", userId);

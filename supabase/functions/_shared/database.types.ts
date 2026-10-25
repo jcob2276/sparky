@@ -474,6 +474,7 @@ export type Database = {
           ai_score: number | null
           ai_status: string
           call_date: string
+          call_metrics: Json | null
           created_at: string
           duration_seconds: number | null
           ended_at: string | null
@@ -502,6 +503,7 @@ export type Database = {
           ai_score?: number | null
           ai_status?: string
           call_date: string
+          call_metrics?: Json | null
           created_at?: string
           duration_seconds?: number | null
           ended_at?: string | null
@@ -530,6 +532,7 @@ export type Database = {
           ai_score?: number | null
           ai_status?: string
           call_date?: string
+          call_metrics?: Json | null
           created_at?: string
           duration_seconds?: number | null
           ended_at?: string | null

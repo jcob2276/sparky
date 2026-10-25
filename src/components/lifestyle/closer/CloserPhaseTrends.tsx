@@ -1,18 +1,9 @@
-import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react';
-import type { PhaseReport, PhaseTrend } from '../../../lib/closer/closerPhaseTrends';
+import type { PhaseReport } from '../../../lib/closer/closerPhaseTrends';
 import { Card } from '../../ui/Card';
+import CloserTrendDelta from './CloserTrendDelta';
 
 const MIN_CALLS = 3;
 const SMALL_SAMPLE = 10;
-
-function Delta({ trend }: { trend: PhaseTrend }) {
-  if (trend.delta === null) return <span className="text-xs text-text-secondary">brak porównania</span>;
-  if (trend.delta === 0) return <span className="flex items-center gap-1 text-xs text-text-secondary"><Minus size={14} />bez zmian</span>;
-  const up = trend.delta > 0;
-  return <span className={`flex items-center gap-1 text-xs font-medium ${up ? 'text-success' : 'text-danger'}`}>
-    {up ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}{up ? '+' : ''}{trend.delta.toString().replace('.', ',')}
-  </span>;
-}
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) =>
   <div className="space-y-2 px-4 py-4"><h5 className="text-sm font-semibold text-text-primary">{title}</h5>{children}</div>;
@@ -34,7 +25,7 @@ export default function CloserPhaseTrends({ report }: { report: PhaseReport }) {
         <span className="min-w-0 text-sm font-medium text-text-primary">{trend.label}<span className="ml-2 text-xs font-normal text-text-secondary">{trend.calls} ocen</span></span>
         <span className="flex shrink-0 items-center gap-3">
           <span className="text-sm tabular-nums text-text-primary">{trend.recent === null ? '—' : trend.recent.toString().replace('.', ',') + '/5'}</span>
-          <Delta trend={trend} />
+          <CloserTrendDelta delta={trend.delta} better="higher" />
         </span>
       </li>)}
     </ul>

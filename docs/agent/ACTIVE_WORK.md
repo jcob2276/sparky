@@ -47,6 +47,7 @@ część osobista ma uwzględniać przede wszystkim **energię, presję i kontek
 
 1. ~~Ponowna analiza starszych rozmów~~ — zrobione: funkcja `closer-reanalyze` (przycisk „Przeanalizuj ponownie” w analizie);
    23 rozmowy przeliczone 2026-10-25 za zgodą użytkownika (wyniki: 1 closed, 9 follow_up, 13 unclear; średnia ocena procesu 5,3).
+1a. **Prowadzenie rozmowy (zrobione):** `call_metrics` w `closer_calls` liczone z transkryptu bez AI (`computeCallTalkMetrics` w `@vanguard/domain`; „ja" = mówca z adresem właściciela konta z `auth.users`). Karta „Prowadzenie rozmowy" (`CloserVoiceCard`, `closerVoiceTrends.ts`): udział w mówieniu, najdłuższa wypowiedź, pytania klienta, tempo. `closer-reanalyze` z `metricsOnly: true` przelicza same metryki. Nie da się zmierzyć ciszy po cenie (transkrypt ma tylko początki wypowiedzi) ani prawdziwej dykcji (potrzebny dźwięk); nie dodawaj wypełniaczy (transkrypcja wycina „yyy").
 1b. **Wiedza sprzedażowa od użytkownika (czeka na materiały):** oferta (cena, pakiet, raty, obiekcje z odpowiedziami) oraz notatki Hormozjego i najlepszych sprzedawców w `docs/career/sales-knowledge/`. Zamienić je na kryteria na etap w `sales_playbook_criteria` (klucz `etap.nazwa`, `source` = źródło), potem przeliczyć rozmowy przez `closer-reanalyze`. Skalę 1–5 skalibrować: użytkownik ocenia 3–4 rozmowy sam i porównujemy.
 2. Polish panelu na realnym telefonie. Skrót kontekstu dnia („Ty tego dnia: energia · presja”) jest już w nagłówku analizy,
    pełny blok zostaje pod transkryptem. Nie dodawaj ściany tekstu ani automatycznych ocen stanu psychicznego.
