@@ -24,7 +24,6 @@
     "db:apply": "node scripts/ops/apply-migration.mjs",
     "db:check-invariants": "node scripts/ops/check-db-invariants.mjs",
     "docs:data-map": "node scripts/analysis/table-usage-map.mjs",
-    "sync:knf": "node scripts/sync_knf_shorts.mjs",
     "registry:generate": "node scripts/ops/generate-functions-registry.mjs",
     "check:edge": "node scripts/ops/check-edge-functions.mjs",
     "audit:readme": "node scripts/ops/check-readme-sync.mjs",

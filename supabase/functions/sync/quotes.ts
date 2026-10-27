@@ -1,18 +1,11 @@
-import { requireServiceRole } from '../_shared/auth.ts';
-import { createServiceClient } from '../_shared/supabase.ts';
-import { keepFromFloor } from '../_shared/yearFloor.ts';
 import { convertCurrency, fetchGpwFxTable } from './gpwFundamentalsFx.ts';
 import { fetchMarketChart, normalizeMarketSymbol } from './marketQuoteData.ts';
 
-/** Public requests may read quotes; only a service job may change the shared cache. */
+/** Odczyt notowań na żywo (Finanse/portfel). Bez zapisu do bazy. */
 export async function runQuotesSync(req: Request): Promise<unknown> {
   const url = new URL(req.url);
   const body = ['POST', 'PUT'].includes(req.method)
     ? await req.clone().json().catch(() => ({})) : {};
-  if (body.persist === true) {
-    const denied = requireServiceRole(req);
-    if (denied) return denied;
-  }
   const raw = Array.isArray(body.tickers) ? body.tickers
     : url.searchParams.get('tickers')?.split(',') ?? ['CDR.WA', 'MRVL', 'JEDI.DE', 'SXR8.DE'];
   if (!raw.length || raw.length > 30 || raw.some((t: unknown) => typeof t !== 'string'
@@ -42,24 +35,9 @@ export async function runQuotesSync(req: Request): Promise<unknown> {
   const errors = results.flatMap((r, i) => r.status === 'rejected'
     ? [{ symbol: instruments[i].symbol, message: String(r.reason instanceof Error ? r.reason.message : r.reason) }] : []);
   if (!successful.length) throw new Error(`Nie pobrano notowań: ${errors.map((e) => e.message).join('; ')}`);
-  if (body.persist === true) {
-    const db = createServiceClient();
-    // Retencja: do prices_daily trafiają tylko sesje od 1 stycznia (zakres 2y/max nie wciąga starszych).
-    const history = keepFromFloor(successful.flatMap((r) => r.history), (row) => String(row.date));
-    if (history.length) {
-      const { error } = await db.from('prices_daily').upsert(history, { onConflict: 'ticker,date' });
-      if (error) throw new Error(`Zapis historii cen: ${error.message}`);
-    }
-    const { error } = await db.from('market_quotes').upsert(successful.map(({ quote }) => ({
-      symbol: quote.symbol, ticker: quote.ticker, price: quote.price,
-      previous_close: quote.prevClose, currency: quote.currency, quote_asof: quote.quoteAsOf,
-      fetched_at: new Date().toISOString(), source: quote.source, source_url: quote.sourceUrl,
-    })), { onConflict: 'symbol' });
-    if (error) throw new Error(`Zapis notowań: ${error.message}`);
-  }
   const quotes = Object.fromEntries(successful.flatMap(({ quote }) =>
     [[quote.ticker, quote], [quote.symbol, quote]]));
   return { ok: errors.length === 0, partial: errors.length > 0, errors, quotes,
     rates: { usdPln: fx.rates.get('USD'), eurPln: fx.rates.get('EUR'), date: fx.date },
-    timestamp: new Date().toISOString(), persisted: body.persist === true };
+    timestamp: new Date().toISOString() };
 }

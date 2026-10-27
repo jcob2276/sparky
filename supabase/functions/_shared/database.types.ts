@@ -1801,86 +1801,6 @@ export type Database = {
         }
         Relationships: []
       }
-      filings: {
-        Row: {
-          accession_no: string | null
-          amendment_number: number | null
-          amendment_type: string | null
-          created_at: string
-          filing_date: string | null
-          filing_url: string | null
-          id: string
-          investor_id: string | null
-          is_amendment: boolean | null
-          period_of_report: string | null
-          positions_error: string | null
-          positions_parsed_at: string | null
-          positions_status: string
-          reported_cover_value_usd: number | null
-          total_positions: number | null
-          total_value: number | null
-          value_difference_usd: number | null
-          value_reconciliation: string
-          value_unit_usd: number | null
-          verified_entry_count: number | null
-          verified_value_usd: number | null
-        }
-        Insert: {
-          accession_no?: string | null
-          amendment_number?: number | null
-          amendment_type?: string | null
-          created_at?: string
-          filing_date?: string | null
-          filing_url?: string | null
-          id: string
-          investor_id?: string | null
-          is_amendment?: boolean | null
-          period_of_report?: string | null
-          positions_error?: string | null
-          positions_parsed_at?: string | null
-          positions_status?: string
-          reported_cover_value_usd?: number | null
-          total_positions?: number | null
-          total_value?: number | null
-          value_difference_usd?: number | null
-          value_reconciliation?: string
-          value_unit_usd?: number | null
-          verified_entry_count?: number | null
-          verified_value_usd?: number | null
-        }
-        Update: {
-          accession_no?: string | null
-          amendment_number?: number | null
-          amendment_type?: string | null
-          created_at?: string
-          filing_date?: string | null
-          filing_url?: string | null
-          id?: string
-          investor_id?: string | null
-          is_amendment?: boolean | null
-          period_of_report?: string | null
-          positions_error?: string | null
-          positions_parsed_at?: string | null
-          positions_status?: string
-          reported_cover_value_usd?: number | null
-          total_positions?: number | null
-          total_value?: number | null
-          value_difference_usd?: number | null
-          value_reconciliation?: string
-          value_unit_usd?: number | null
-          verified_entry_count?: number | null
-          verified_value_usd?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "filings_investor_id_fkey"
-            columns: ["investor_id"]
-            isOneToOne: false
-            referencedRelation: "investors"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       finance_accounts: {
         Row: {
           account_type: string
@@ -2296,9 +2216,9 @@ export type Database = {
           is_pinned: boolean
           last_used: string
           name: string
+          nutrient_sources: Json
           protein: number | null
           salt: number | null
-          nutrient_sources: Json
           saturated_fat: number | null
           sugar: number | null
           use_count: number
@@ -2320,9 +2240,9 @@ export type Database = {
           is_pinned?: boolean
           last_used?: string
           name: string
+          nutrient_sources?: Json
           protein?: number | null
           salt?: number | null
-          nutrient_sources?: Json
           saturated_fat?: number | null
           sugar?: number | null
           use_count?: number
@@ -2344,9 +2264,9 @@ export type Database = {
           is_pinned?: boolean
           last_used?: string
           name?: string
+          nutrient_sources?: Json
           protein?: number | null
           salt?: number | null
-          nutrient_sources?: Json
           saturated_fat?: number | null
           sugar?: number | null
           use_count?: number
@@ -2354,6 +2274,45 @@ export type Database = {
           validated_at?: string | null
           validation_reason?: string | null
           validation_status?: string
+        }
+        Relationships: []
+      }
+      food_history_repairs: {
+        Row: {
+          after: Json | null
+          batch: string
+          before: Json
+          id: string
+          kind: string
+          reason: string
+          repaired_at: string
+          row_id: string
+          table_name: string
+          user_id: string
+        }
+        Insert: {
+          after?: Json | null
+          batch: string
+          before: Json
+          id?: string
+          kind: string
+          reason: string
+          repaired_at?: string
+          row_id: string
+          table_name: string
+          user_id: string
+        }
+        Update: {
+          after?: Json | null
+          batch?: string
+          before?: Json
+          id?: string
+          kind?: string
+          reason?: string
+          repaired_at?: string
+          row_id?: string
+          table_name?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -2447,9 +2406,9 @@ export type Database = {
           fiber: number | null
           id: string
           name: string
+          nutrient_sources: Json
           protein: number | null
           salt: number | null
-          nutrient_sources: Json
           saturated_fat: number | null
           source: string
           sugar: number | null
@@ -2469,9 +2428,9 @@ export type Database = {
           fiber?: number | null
           id?: string
           name: string
+          nutrient_sources?: Json
           protein?: number | null
           salt?: number | null
-          nutrient_sources?: Json
           saturated_fat?: number | null
           source?: string
           sugar?: number | null
@@ -2491,9 +2450,9 @@ export type Database = {
           fiber?: number | null
           id?: string
           name?: string
+          nutrient_sources?: Json
           protein?: number | null
           salt?: number | null
-          nutrient_sources?: Json
           saturated_fat?: number | null
           source?: string
           sugar?: number | null
@@ -2731,214 +2690,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "projects"
             referencedColumns: ["id"]
-          },
-        ]
-      }
-      gpw_companies: {
-        Row: {
-          created_at: string
-          isin: string
-          name: string
-          ticker: string | null
-        }
-        Insert: {
-          created_at?: string
-          isin: string
-          name: string
-          ticker?: string | null
-        }
-        Update: {
-          created_at?: string
-          isin?: string
-          name?: string
-          ticker?: string | null
-        }
-        Relationships: []
-      }
-      gpw_fin_public_teaser: {
-        Row: {
-          div_yield: number | null
-          dy: number | null
-          fcf_yield: number | null
-          financial_currency: string | null
-          forward_eps: number | null
-          forward_pe: number | null
-          forward_pe_basis: string | null
-          fx_date: string | null
-          isin: string
-          mcap: number | null
-          name: string | null
-          net_debt_ebitda: number | null
-          net_margin: number | null
-          net_profit: number | null
-          pb: number | null
-          pe: number | null
-          quarters8: Json
-          quote_currency: string | null
-          quote_price: number | null
-          refreshed_at: string | null
-          revenue: number | null
-          revenue_yoy: number | null
-          roe: number | null
-          sector: string | null
-          source_system: string | null
-          source_url: string | null
-          ticker: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          div_yield?: number | null
-          dy?: number | null
-          fcf_yield?: number | null
-          financial_currency?: string | null
-          forward_eps?: number | null
-          forward_pe?: number | null
-          forward_pe_basis?: string | null
-          fx_date?: string | null
-          isin: string
-          mcap?: number | null
-          name?: string | null
-          net_debt_ebitda?: number | null
-          net_margin?: number | null
-          net_profit?: number | null
-          pb?: number | null
-          pe?: number | null
-          quarters8?: Json
-          quote_currency?: string | null
-          quote_price?: number | null
-          refreshed_at?: string | null
-          revenue?: number | null
-          revenue_yoy?: number | null
-          roe?: number | null
-          sector?: string | null
-          source_system?: string | null
-          source_url?: string | null
-          ticker?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          div_yield?: number | null
-          dy?: number | null
-          fcf_yield?: number | null
-          financial_currency?: string | null
-          forward_eps?: number | null
-          forward_pe?: number | null
-          forward_pe_basis?: string | null
-          fx_date?: string | null
-          isin?: string
-          mcap?: number | null
-          name?: string | null
-          net_debt_ebitda?: number | null
-          net_margin?: number | null
-          net_profit?: number | null
-          pb?: number | null
-          pe?: number | null
-          quarters8?: Json
-          quote_currency?: string | null
-          quote_price?: number | null
-          refreshed_at?: string | null
-          revenue?: number | null
-          revenue_yoy?: number | null
-          roe?: number | null
-          sector?: string | null
-          source_system?: string | null
-          source_url?: string | null
-          ticker?: string | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      gpw_financial_reports: {
-        Row: {
-          currency: string
-          document_member: string
-          imported_at: string
-          isin: string
-          metrics: Json
-          package_sha256: string
-          period_end: string
-          period_start: string
-          publication_date: string
-          report_page_url: string
-          report_period_end: string
-          reporting_scope: string
-          source_url: string
-        }
-        Insert: {
-          currency: string
-          document_member: string
-          imported_at?: string
-          isin: string
-          metrics: Json
-          package_sha256: string
-          period_end: string
-          period_start: string
-          publication_date: string
-          report_page_url: string
-          report_period_end: string
-          reporting_scope?: string
-          source_url: string
-        }
-        Update: {
-          currency?: string
-          document_member?: string
-          imported_at?: string
-          isin?: string
-          metrics?: Json
-          package_sha256?: string
-          period_end?: string
-          period_start?: string
-          publication_date?: string
-          report_page_url?: string
-          report_period_end?: string
-          reporting_scope?: string
-          source_url?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "gpw_financial_reports_isin_fkey"
-            columns: ["isin"]
-            isOneToOne: false
-            referencedRelation: "gpw_companies"
-            referencedColumns: ["isin"]
-          },
-        ]
-      }
-      gpw_report_import_coverage: {
-        Row: {
-          checked_at: string | null
-          error: string | null
-          identity_source_url: string | null
-          isin: string
-          legal_name: string | null
-          lei: string | null
-          status: string
-        }
-        Insert: {
-          checked_at?: string | null
-          error?: string | null
-          identity_source_url?: string | null
-          isin: string
-          legal_name?: string | null
-          lei?: string | null
-          status?: string
-        }
-        Update: {
-          checked_at?: string | null
-          error?: string | null
-          identity_source_url?: string | null
-          isin?: string
-          legal_name?: string | null
-          lei?: string | null
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "gpw_report_import_coverage_isin_fkey"
-            columns: ["isin"]
-            isOneToOne: true
-            referencedRelation: "gpw_companies"
-            referencedColumns: ["isin"]
           },
         ]
       }
@@ -3192,165 +2943,6 @@ export type Database = {
         }
         Relationships: []
       }
-      house_disclosures: {
-        Row: {
-          doc_id: string
-          filer_name: string
-          filing_date: string
-          first_seen_at: string
-          id: string
-          ocr_checked_at: string | null
-          parse_error: string | null
-          parse_status: string
-          parsed_at: string | null
-          source_url: string
-          transaction_count: number | null
-          year: number
-        }
-        Insert: {
-          doc_id: string
-          filer_name: string
-          filing_date: string
-          first_seen_at?: string
-          id: string
-          ocr_checked_at?: string | null
-          parse_error?: string | null
-          parse_status?: string
-          parsed_at?: string | null
-          source_url: string
-          transaction_count?: number | null
-          year: number
-        }
-        Update: {
-          doc_id?: string
-          filer_name?: string
-          filing_date?: string
-          first_seen_at?: string
-          id?: string
-          ocr_checked_at?: string | null
-          parse_error?: string | null
-          parse_status?: string
-          parsed_at?: string | null
-          source_url?: string
-          transaction_count?: number | null
-          year?: number
-        }
-        Relationships: []
-      }
-      insider_trades: {
-        Row: {
-          accession: string | null
-          acquired_disposed: string | null
-          amount_high: number | null
-          amount_label: string | null
-          amount_low: number | null
-          asset_name: string | null
-          asset_type: string | null
-          branch: string | null
-          chamber: string | null
-          created_at: string
-          days_to_file: number | null
-          doc_url: string | null
-          filer_id: string | null
-          filer_name: string
-          filing_date: string | null
-          form_type: string | null
-          id: string
-          insider_title: string | null
-          is_derivative: boolean | null
-          issuer_cik: string | null
-          ownership_nature: string | null
-          party: string | null
-          price_usd: number | null
-          raw_data: Json | null
-          reporting_owners: Json | null
-          security_title: string | null
-          shares: number | null
-          shares_after: number | null
-          source_id: string | null
-          state: string | null
-          ticker: string | null
-          transaction_code: string | null
-          transaction_date: string | null
-          transaction_type: string
-          value_usd: number | null
-        }
-        Insert: {
-          accession?: string | null
-          acquired_disposed?: string | null
-          amount_high?: number | null
-          amount_label?: string | null
-          amount_low?: number | null
-          asset_name?: string | null
-          asset_type?: string | null
-          branch?: string | null
-          chamber?: string | null
-          created_at?: string
-          days_to_file?: number | null
-          doc_url?: string | null
-          filer_id?: string | null
-          filer_name: string
-          filing_date?: string | null
-          form_type?: string | null
-          id: string
-          insider_title?: string | null
-          is_derivative?: boolean | null
-          issuer_cik?: string | null
-          ownership_nature?: string | null
-          party?: string | null
-          price_usd?: number | null
-          raw_data?: Json | null
-          reporting_owners?: Json | null
-          security_title?: string | null
-          shares?: number | null
-          shares_after?: number | null
-          source_id?: string | null
-          state?: string | null
-          ticker?: string | null
-          transaction_code?: string | null
-          transaction_date?: string | null
-          transaction_type: string
-          value_usd?: number | null
-        }
-        Update: {
-          accession?: string | null
-          acquired_disposed?: string | null
-          amount_high?: number | null
-          amount_label?: string | null
-          amount_low?: number | null
-          asset_name?: string | null
-          asset_type?: string | null
-          branch?: string | null
-          chamber?: string | null
-          created_at?: string
-          days_to_file?: number | null
-          doc_url?: string | null
-          filer_id?: string | null
-          filer_name?: string
-          filing_date?: string | null
-          form_type?: string | null
-          id?: string
-          insider_title?: string | null
-          is_derivative?: boolean | null
-          issuer_cik?: string | null
-          ownership_nature?: string | null
-          party?: string | null
-          price_usd?: number | null
-          raw_data?: Json | null
-          reporting_owners?: Json | null
-          security_title?: string | null
-          shares?: number | null
-          shares_after?: number | null
-          source_id?: string | null
-          state?: string | null
-          ticker?: string | null
-          transaction_code?: string | null
-          transaction_date?: string | null
-          transaction_type?: string
-          value_usd?: number | null
-        }
-        Relationships: []
-      }
       intervals_tokens: {
         Row: {
           api_key: string
@@ -3372,213 +2964,6 @@ export type Database = {
           created_at?: string
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      investment_source_status: {
-        Row: {
-          checked_at: string
-          error: string | null
-          last_success_at: string | null
-          latest_disclosure_date: string | null
-          source: string
-          status: string
-        }
-        Insert: {
-          checked_at: string
-          error?: string | null
-          last_success_at?: string | null
-          latest_disclosure_date?: string | null
-          source: string
-          status: string
-        }
-        Update: {
-          checked_at?: string
-          error?: string | null
-          last_success_at?: string | null
-          latest_disclosure_date?: string | null
-          source?: string
-          status?: string
-        }
-        Relationships: []
-      }
-      investors: {
-        Row: {
-          bio_md: string | null
-          category: string | null
-          cik: string | null
-          consensus_enabled: boolean | null
-          created_at: string
-          curve_enabled: boolean | null
-          description: string | null
-          display_name: string
-          fund_name: string | null
-          id: string
-          inception_date: string | null
-          is_active: boolean | null
-          slug: string | null
-          tier: string | null
-          updated_at: string
-        }
-        Insert: {
-          bio_md?: string | null
-          category?: string | null
-          cik?: string | null
-          consensus_enabled?: boolean | null
-          created_at?: string
-          curve_enabled?: boolean | null
-          description?: string | null
-          display_name: string
-          fund_name?: string | null
-          id: string
-          inception_date?: string | null
-          is_active?: boolean | null
-          slug?: string | null
-          tier?: string | null
-          updated_at?: string
-        }
-        Update: {
-          bio_md?: string | null
-          category?: string | null
-          cik?: string | null
-          consensus_enabled?: boolean | null
-          created_at?: string
-          curve_enabled?: boolean | null
-          description?: string | null
-          display_name?: string
-          fund_name?: string | null
-          id?: string
-          inception_date?: string | null
-          is_active?: boolean | null
-          slug?: string | null
-          tier?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      knf_current_positions: {
-        Row: {
-          below_public_threshold: boolean
-          company: string
-          created_at: string
-          external_id: string
-          holder: string
-          isin: string
-          modify_date: string | null
-          position_date: string
-          position_pct: number
-          position_pct_raw: string
-          source_system: string
-          source_url: string
-          ticker: string | null
-        }
-        Insert: {
-          below_public_threshold: boolean
-          company: string
-          created_at?: string
-          external_id: string
-          holder: string
-          isin: string
-          modify_date?: string | null
-          position_date: string
-          position_pct: number
-          position_pct_raw: string
-          source_system: string
-          source_url: string
-          ticker?: string | null
-        }
-        Update: {
-          below_public_threshold?: boolean
-          company?: string
-          created_at?: string
-          external_id?: string
-          holder?: string
-          isin?: string
-          modify_date?: string | null
-          position_date?: string
-          position_pct?: number
-          position_pct_raw?: string
-          source_system?: string
-          source_url?: string
-          ticker?: string | null
-        }
-        Relationships: []
-      }
-      knf_disclosed_positions: {
-        Row: {
-          below_public_threshold: boolean
-          company: string
-          created_at: string
-          external_id: string
-          holder: string
-          isin: string
-          modify_date: string | null
-          position_date: string
-          position_pct: number
-          position_pct_raw: string
-          source_system: string
-          source_url: string
-          ticker: string | null
-        }
-        Insert: {
-          below_public_threshold: boolean
-          company: string
-          created_at?: string
-          external_id: string
-          holder: string
-          isin: string
-          modify_date?: string | null
-          position_date: string
-          position_pct: number
-          position_pct_raw: string
-          source_system: string
-          source_url: string
-          ticker?: string | null
-        }
-        Update: {
-          below_public_threshold?: boolean
-          company?: string
-          created_at?: string
-          external_id?: string
-          holder?: string
-          isin?: string
-          modify_date?: string | null
-          position_date?: string
-          position_pct?: number
-          position_pct_raw?: string
-          source_system?: string
-          source_url?: string
-          ticker?: string | null
-        }
-        Relationships: []
-      }
-      knf_short_snapshots: {
-        Row: {
-          company: string
-          holders: number
-          isin: string
-          observed_at: string
-          observed_date: string
-          ticker: string | null
-          total_pct: number
-        }
-        Insert: {
-          company: string
-          holders: number
-          isin: string
-          observed_at: string
-          observed_date: string
-          ticker?: string | null
-          total_pct: number
-        }
-        Update: {
-          company?: string
-          holders?: number
-          isin?: string
-          observed_at?: string
-          observed_date?: string
-          ticker?: string | null
-          total_pct?: number
         }
         Relationships: []
       }
@@ -4190,42 +3575,6 @@ export type Database = {
           target_time?: string | null
           updated_at?: string | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      market_quotes: {
-        Row: {
-          currency: string
-          fetched_at: string
-          previous_close: number | null
-          price: number
-          quote_asof: string
-          source: string
-          source_url: string
-          symbol: string
-          ticker: string
-        }
-        Insert: {
-          currency: string
-          fetched_at?: string
-          previous_close?: number | null
-          price: number
-          quote_asof: string
-          source: string
-          source_url: string
-          symbol: string
-          ticker: string
-        }
-        Update: {
-          currency?: string
-          fetched_at?: string
-          previous_close?: number | null
-          price?: number
-          quote_asof?: string
-          source?: string
-          source_url?: string
-          symbol?: string
-          ticker?: string
         }
         Relationships: []
       }
@@ -5561,99 +4910,6 @@ export type Database = {
         }
         Relationships: []
       }
-      politicians: {
-        Row: {
-          bioguide_id: string | null
-          chamber: string | null
-          created_at: string
-          display_name: string
-          id: string
-          is_active: boolean | null
-          party: string | null
-          slug: string | null
-          state: string | null
-          updated_at: string
-        }
-        Insert: {
-          bioguide_id?: string | null
-          chamber?: string | null
-          created_at?: string
-          display_name: string
-          id: string
-          is_active?: boolean | null
-          party?: string | null
-          slug?: string | null
-          state?: string | null
-          updated_at?: string
-        }
-        Update: {
-          bioguide_id?: string | null
-          chamber?: string | null
-          created_at?: string
-          display_name?: string
-          id?: string
-          is_active?: boolean | null
-          party?: string | null
-          slug?: string | null
-          state?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      prices_daily: {
-        Row: {
-          close_adj: number | null
-          close_raw: number | null
-          created_at: string | null
-          currency: string | null
-          date: string
-          high: number | null
-          id: number
-          low: number | null
-          open: number | null
-          quote_asof: string | null
-          source: string | null
-          source_url: string | null
-          ticker: string
-          updated_at: string
-          volume: number | null
-        }
-        Insert: {
-          close_adj?: number | null
-          close_raw?: number | null
-          created_at?: string | null
-          currency?: string | null
-          date: string
-          high?: number | null
-          id?: number
-          low?: number | null
-          open?: number | null
-          quote_asof?: string | null
-          source?: string | null
-          source_url?: string | null
-          ticker: string
-          updated_at?: string
-          volume?: number | null
-        }
-        Update: {
-          close_adj?: number | null
-          close_raw?: number | null
-          created_at?: string | null
-          currency?: string | null
-          date?: string
-          high?: number | null
-          id?: number
-          low?: number | null
-          open?: number | null
-          quote_asof?: string | null
-          source?: string | null
-          source_url?: string | null
-          ticker?: string
-          updated_at?: string
-          volume?: number | null
-        }
-        Relationships: []
-      }
       progress_photos: {
         Row: {
           ai_analysis: Json | null
@@ -5825,89 +5081,6 @@ export type Database = {
         }
         Relationships: []
       }
-      sec_form4_filings: {
-        Row: {
-          accession: string
-          attempts: number
-          discovered_at: string
-          error: string | null
-          filing_date: string
-          form_type: string
-          processed_at: string | null
-          status: string
-          submission_url: string
-          transaction_count: number | null
-        }
-        Insert: {
-          accession: string
-          attempts?: number
-          discovered_at?: string
-          error?: string | null
-          filing_date: string
-          form_type: string
-          processed_at?: string | null
-          status?: string
-          submission_url: string
-          transaction_count?: number | null
-        }
-        Update: {
-          accession?: string
-          attempts?: number
-          discovered_at?: string
-          error?: string | null
-          filing_date?: string
-          form_type?: string
-          processed_at?: string | null
-          status?: string
-          submission_url?: string
-          transaction_count?: number | null
-        }
-        Relationships: []
-      }
-      sec13f_positions: {
-        Row: {
-          cusip: string
-          filing_id: string
-          issuer_name: string
-          put_call: string | null
-          quantity: number
-          quantity_type: string
-          row_index: number
-          title_of_class: string
-          value_usd: number
-        }
-        Insert: {
-          cusip: string
-          filing_id: string
-          issuer_name: string
-          put_call?: string | null
-          quantity: number
-          quantity_type: string
-          row_index: number
-          title_of_class: string
-          value_usd: number
-        }
-        Update: {
-          cusip?: string
-          filing_id?: string
-          issuer_name?: string
-          put_call?: string | null
-          quantity?: number
-          quantity_type?: string
-          row_index?: number
-          title_of_class?: string
-          value_usd?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sec13f_positions_filing_id_fkey"
-            columns: ["filing_id"]
-            isOneToOne: false
-            referencedRelation: "filings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       sales_playbook_criteria: {
         Row: {
           active: boolean
@@ -5941,42 +5114,6 @@ export type Database = {
           sort_order?: number
           source?: string | null
           user_id?: string
-        }
-        Relationships: []
-      }
-      senate_disclosures: {
-        Row: {
-          filer_name: string | null
-          filing_date: string | null
-          first_seen_at: string
-          id: string
-          parse_error: string | null
-          parse_status: string
-          parsed_at: string | null
-          source_url: string
-          transaction_count: number | null
-        }
-        Insert: {
-          filer_name?: string | null
-          filing_date?: string | null
-          first_seen_at?: string
-          id: string
-          parse_error?: string | null
-          parse_status?: string
-          parsed_at?: string | null
-          source_url: string
-          transaction_count?: number | null
-        }
-        Update: {
-          filer_name?: string | null
-          filing_date?: string | null
-          first_seen_at?: string
-          id?: string
-          parse_error?: string | null
-          parse_status?: string
-          parsed_at?: string | null
-          source_url?: string
-          transaction_count?: number | null
         }
         Relationships: []
       }
@@ -6045,77 +5182,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      stock_act_trades: {
-        Row: {
-          amount_high: number | null
-          amount_low: number | null
-          asset_description: string | null
-          chamber: string | null
-          created_at: string
-          disclosure_date: string | null
-          external_id: string | null
-          filer_name: string | null
-          id: string
-          notification_date: string | null
-          owner: string | null
-          politician_id: string | null
-          source: string | null
-          source_url: string | null
-          ticker: string | null
-          transaction_date: string | null
-          transaction_type: string | null
-          updated_at: string
-        }
-        Insert: {
-          amount_high?: number | null
-          amount_low?: number | null
-          asset_description?: string | null
-          chamber?: string | null
-          created_at?: string
-          disclosure_date?: string | null
-          external_id?: string | null
-          filer_name?: string | null
-          id: string
-          notification_date?: string | null
-          owner?: string | null
-          politician_id?: string | null
-          source?: string | null
-          source_url?: string | null
-          ticker?: string | null
-          transaction_date?: string | null
-          transaction_type?: string | null
-          updated_at?: string
-        }
-        Update: {
-          amount_high?: number | null
-          amount_low?: number | null
-          asset_description?: string | null
-          chamber?: string | null
-          created_at?: string
-          disclosure_date?: string | null
-          external_id?: string | null
-          filer_name?: string | null
-          id?: string
-          notification_date?: string | null
-          owner?: string | null
-          politician_id?: string | null
-          source?: string | null
-          source_url?: string | null
-          ticker?: string | null
-          transaction_date?: string | null
-          transaction_type?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "stock_act_trades_politician_id_fkey"
-            columns: ["politician_id"]
-            isOneToOne: false
-            referencedRelation: "politicians"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       strava_activities: {
         Row: {
@@ -6786,45 +5852,6 @@ export type Database = {
           },
         ]
       }
-      us_financial_reports: {
-        Row: {
-          accession: string
-          cik: number
-          currency: string
-          form_type: string
-          imported_at: string
-          metrics: Json
-          period_end: string
-          period_start: string
-          publication_date: string
-          source_url: string
-        }
-        Insert: {
-          accession: string
-          cik: number
-          currency: string
-          form_type: string
-          imported_at?: string
-          metrics: Json
-          period_end: string
-          period_start: string
-          publication_date: string
-          source_url: string
-        }
-        Update: {
-          accession?: string
-          cik?: number
-          currency?: string
-          form_type?: string
-          imported_at?: string
-          metrics?: Json
-          period_end?: string
-          period_start?: string
-          publication_date?: string
-          source_url?: string
-        }
-        Relationships: []
-      }
       us_report_import_coverage: {
         Row: {
           checked_at: string | null
@@ -6846,33 +5873,6 @@ export type Database = {
           error?: string | null
           report_count?: number
           status?: string
-        }
-        Relationships: []
-      }
-      us_security_catalogue: {
-        Row: {
-          checked_at: string
-          cik: string
-          exchange: string | null
-          name: string
-          source_url: string
-          ticker: string
-        }
-        Insert: {
-          checked_at: string
-          cik: string
-          exchange?: string | null
-          name: string
-          source_url?: string
-          ticker: string
-        }
-        Update: {
-          checked_at?: string
-          cik?: string
-          exchange?: string | null
-          name?: string
-          source_url?: string
-          ticker?: string
         }
         Relationships: []
       }
@@ -8598,150 +7598,6 @@ export type Database = {
         }
         Relationships: []
       }
-      vw_gpw_insider_public: {
-        Row: {
-          company: string | null
-          id: string
-          isin: string | null
-          parse_status: string | null
-          report_date: string | null
-          side: string | null
-          ticker: string | null
-          title: string | null
-          transaction_date: string | null
-        }
-        Insert: {
-          company?: string | null
-          id?: string
-          isin?: string | null
-          parse_status?: string | null
-          report_date?: string | null
-          side?: string | null
-          ticker?: string | null
-          title?: string | null
-          transaction_date?: string | null
-        }
-        Update: {
-          company?: string | null
-          id?: string
-          isin?: string | null
-          parse_status?: string | null
-          report_date?: string | null
-          side?: string | null
-          ticker?: string | null
-          title?: string | null
-          transaction_date?: string | null
-        }
-        Relationships: []
-      }
-      vw_gpw_shorts_agg: {
-        Row: {
-          below_threshold: number | null
-          company: string
-          last_change: string | null
-          public_holders: number | null
-          ticker: string | null
-          top_holder: string | null
-          top_holder_pct: number | null
-          total_pct: number | null
-        }
-        Insert: {
-          below_threshold?: number | null
-          company: string
-          last_change?: string | null
-          public_holders?: number | null
-          ticker?: string | null
-          top_holder?: string | null
-          top_holder_pct?: number | null
-          total_pct?: number | null
-        }
-        Update: {
-          below_threshold?: number | null
-          company?: string
-          last_change?: string | null
-          public_holders?: number | null
-          ticker?: string | null
-          top_holder?: string | null
-          top_holder_pct?: number | null
-          total_pct?: number | null
-        }
-        Relationships: []
-      }
-      vw_gpw_shorts_history: {
-        Row: {
-          company: string | null
-          holders: number | null
-          id: string
-          isin: string | null
-          key: string | null
-          position_date: string | null
-          ticker: string | null
-          total_pct: number | null
-        }
-        Insert: {
-          company?: string | null
-          holders?: number | null
-          id?: string
-          isin?: string | null
-          key?: string | null
-          position_date?: string | null
-          ticker?: string | null
-          total_pct?: number | null
-        }
-        Update: {
-          company?: string | null
-          holders?: number | null
-          id?: string
-          isin?: string | null
-          key?: string | null
-          position_date?: string | null
-          ticker?: string | null
-          total_pct?: number | null
-        }
-        Relationships: []
-      }
-      vw_holdings_changes: {
-        Row: {
-          change_type: string | null
-          company_name: string | null
-          cusip: string | null
-          id: string
-          investor_id: string | null
-          shares_delta: number | null
-          shares_now: number | null
-          shares_prev: number | null
-          ticker: string | null
-          value_now: number | null
-          weight_pct: number | null
-        }
-        Insert: {
-          change_type?: string | null
-          company_name?: string | null
-          cusip?: string | null
-          id?: string
-          investor_id?: string | null
-          shares_delta?: number | null
-          shares_now?: number | null
-          shares_prev?: number | null
-          ticker?: string | null
-          value_now?: number | null
-          weight_pct?: number | null
-        }
-        Update: {
-          change_type?: string | null
-          company_name?: string | null
-          cusip?: string | null
-          id?: string
-          investor_id?: string | null
-          shares_delta?: number | null
-          shares_now?: number | null
-          shares_prev?: number | null
-          ticker?: string | null
-          value_now?: number | null
-          weight_pct?: number | null
-        }
-        Relationships: []
-      }
       weather_daily: {
         Row: {
           computed_at: string
@@ -9047,60 +7903,6 @@ export type Database = {
           },
         ]
       }
-      gpw_company_annual_reports: {
-        Row: {
-          currency: string | null
-          document_member: string | null
-          imported_at: string | null
-          isin: string | null
-          metrics: Json | null
-          name: string | null
-          package_sha256: string | null
-          period_end: string | null
-          period_start: string | null
-          publication_date: string | null
-          report_page_url: string | null
-          report_period_end: string | null
-          reporting_scope: string | null
-          source_url: string | null
-          ticker: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "gpw_financial_reports_isin_fkey"
-            columns: ["isin"]
-            isOneToOne: false
-            referencedRelation: "gpw_companies"
-            referencedColumns: ["isin"]
-          },
-        ]
-      }
-      gpw_latest_annual_reports: {
-        Row: {
-          currency: string | null
-          document_member: string | null
-          imported_at: string | null
-          isin: string | null
-          metrics: Json | null
-          package_sha256: string | null
-          period_end: string | null
-          period_start: string | null
-          publication_date: string | null
-          report_page_url: string | null
-          report_period_end: string | null
-          reporting_scope: string | null
-          source_url: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "gpw_financial_reports_isin_fkey"
-            columns: ["isin"]
-            isOneToOne: false
-            referencedRelation: "gpw_companies"
-            referencedColumns: ["isin"]
-          },
-        ]
-      }
       oura_hr_zones_daily: {
         Row: {
           day: string | null
@@ -9176,22 +7978,6 @@ export type Database = {
           trimp: number | null
           user_id: string | null
           workout_type: number | null
-        }
-        Relationships: []
-      }
-      us_company_financial_reports: {
-        Row: {
-          accession: string | null
-          cik: number | null
-          currency: string | null
-          form_type: string | null
-          imported_at: string | null
-          metrics: Json | null
-          period_end: string | null
-          period_start: string | null
-          publication_date: string | null
-          source_url: string | null
-          ticker: string | null
         }
         Relationships: []
       }
@@ -9324,334 +8110,6 @@ export type Database = {
         }
         Relationships: []
       }
-      vw_gpw_price_summary: {
-        Row: {
-          change_pct: number | null
-          close: number | null
-          history_end: string | null
-          history_start: string | null
-          points: Json | null
-          price_date: string | null
-          source_url: string | null
-          ticker: string | null
-        }
-        Relationships: []
-      }
-      vw_insider_public: {
-        Row: {
-          company_name: string | null
-          filing_date: string | null
-          id: string | null
-          ticker: string | null
-          transaction_code: string | null
-          transaction_date: string | null
-        }
-        Insert: {
-          company_name?: never
-          filing_date?: string | null
-          id?: string | null
-          ticker?: string | null
-          transaction_code?: never
-          transaction_date?: string | null
-        }
-        Update: {
-          company_name?: never
-          filing_date?: string | null
-          id?: string | null
-          ticker?: string | null
-          transaction_code?: never
-          transaction_date?: string | null
-        }
-        Relationships: []
-      }
-      vw_knf_shorts_baseline_14d: {
-        Row: {
-          company: string | null
-          holders: number | null
-          isin: string | null
-          observed_at: string | null
-          position_date: string | null
-          ticker: string | null
-          total_pct: number | null
-        }
-        Relationships: []
-      }
-      vw_sec_form4_public: {
-        Row: {
-          accession: string | null
-          acquired_disposed: string | null
-          company_name: string | null
-          created_at: string | null
-          doc_url: string | null
-          filer_id: string | null
-          filer_name: string | null
-          filing_date: string | null
-          form_type: string | null
-          id: string | null
-          insider_title: string | null
-          is_derivative: boolean | null
-          issuer_cik: string | null
-          ownership_nature: string | null
-          price_usd: number | null
-          reporting_owners: Json | null
-          security_title: string | null
-          shares: number | null
-          shares_after: number | null
-          source_id: string | null
-          ticker: string | null
-          transaction_code: string | null
-          transaction_date: string | null
-          value_usd: number | null
-        }
-        Insert: {
-          accession?: string | null
-          acquired_disposed?: string | null
-          company_name?: string | null
-          created_at?: string | null
-          doc_url?: string | null
-          filer_id?: string | null
-          filer_name?: string | null
-          filing_date?: string | null
-          form_type?: string | null
-          id?: string | null
-          insider_title?: string | null
-          is_derivative?: boolean | null
-          issuer_cik?: string | null
-          ownership_nature?: string | null
-          price_usd?: number | null
-          reporting_owners?: Json | null
-          security_title?: string | null
-          shares?: number | null
-          shares_after?: number | null
-          source_id?: string | null
-          ticker?: string | null
-          transaction_code?: string | null
-          transaction_date?: string | null
-          value_usd?: number | null
-        }
-        Update: {
-          accession?: string | null
-          acquired_disposed?: string | null
-          company_name?: string | null
-          created_at?: string | null
-          doc_url?: string | null
-          filer_id?: string | null
-          filer_name?: string | null
-          filing_date?: string | null
-          form_type?: string | null
-          id?: string | null
-          insider_title?: string | null
-          is_derivative?: boolean | null
-          issuer_cik?: string | null
-          ownership_nature?: string | null
-          price_usd?: number | null
-          reporting_owners?: Json | null
-          security_title?: string | null
-          shares?: number | null
-          shares_after?: number | null
-          source_id?: string | null
-          ticker?: string | null
-          transaction_code?: string | null
-          transaction_date?: string | null
-          value_usd?: number | null
-        }
-        Relationships: []
-      }
-      vw_sec_form4_status: {
-        Row: {
-          discovered_filings: number | null
-          failed_filings: number | null
-          last_processed_at: string | null
-          latest_discovered_filing: string | null
-          latest_processed_filing: string | null
-          processed_filings: number | null
-          queued_filings: number | null
-        }
-        Relationships: []
-      }
-      vw_sec13f_cached_report_documents: {
-        Row: {
-          document_id: string | null
-          investor_id: string | null
-          period_of_report: string | null
-          report_id: string | null
-        }
-        Relationships: []
-      }
-      vw_sec13f_cached_reports: {
-        Row: {
-          document_ids: string[] | null
-          filing_date: string | null
-          filing_url: string | null
-          has_complete_positions: boolean | null
-          id: string | null
-          investor_id: string | null
-          period_of_report: string | null
-          reported_cover_value_usd: number | null
-          source_urls: Json | null
-          stored_entry_count: number | null
-          summary_warnings: Json | null
-          value_difference_usd: number | null
-          value_reconciliation: string | null
-          verified_entry_count: number | null
-          verified_value_usd: number | null
-        }
-        Relationships: []
-      }
-      vw_sec13f_company_history: {
-        Row: {
-          latest_filing_date: string | null
-          period_of_report: string | null
-          reported_holders: number | null
-          reported_shares: number | null
-          reported_value_usd: number | null
-          source_urls: Json | null
-          summary_warnings: Json | null
-          ticker: string | null
-        }
-        Relationships: []
-      }
-      vw_sec13f_current_holdings: {
-        Row: {
-          filing_date: string | null
-          filing_url: string | null
-          investor_id: string | null
-          period_of_report: string | null
-          shares: number | null
-          source_urls: Json | null
-          ticker: string | null
-          value_usd: number | null
-        }
-        Relationships: []
-      }
-      vw_sec13f_effective_positions: {
-        Row: {
-          cusip: string | null
-          filing_id: string | null
-          issuer_name: string | null
-          put_call: string | null
-          quantity: number | null
-          quantity_type: string | null
-          row_index: number | null
-          source_filing_id: string | null
-          title_of_class: string | null
-          value_usd: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sec13f_positions_filing_id_fkey"
-            columns: ["source_filing_id"]
-            isOneToOne: false
-            referencedRelation: "filings"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      vw_sec13f_fund_positions: {
-        Row: {
-          company_name: string | null
-          cusip: string | null
-          filing_date: string | null
-          filing_url: string | null
-          investor_id: string | null
-          period_of_report: string | null
-          shares: number | null
-          ticker: string | null
-          value_usd: number | null
-        }
-        Relationships: []
-      }
-      vw_sec13f_fund_reports: {
-        Row: {
-          filing_date: string | null
-          filing_url: string | null
-          has_complete_positions: boolean | null
-          id: string | null
-          investor_id: string | null
-          period_of_report: string | null
-          source_urls: Json | null
-          stored_entry_count: number | null
-          summary_warnings: Json | null
-          value_reconciliation: string | null
-          verified_entry_count: number | null
-          verified_value_usd: number | null
-        }
-        Relationships: []
-      }
-      vw_sec13f_report_documents: {
-        Row: {
-          document_id: string | null
-          investor_id: string | null
-          period_of_report: string | null
-          report_id: string | null
-        }
-        Relationships: []
-      }
-      vw_sec13f_screener: {
-        Row: {
-          company_name: string | null
-          compared_funds: number | null
-          holders: number | null
-          net_changes: number | null
-          period_of_report: string | null
-          previous_period: string | null
-          reported_decreases: number | null
-          reported_increases: number | null
-          source_urls: Json | null
-          ticker: string | null
-          total_value: number | null
-        }
-        Relationships: []
-      }
-      vw_sec13f_verified_changes: {
-        Row: {
-          change_type: string | null
-          filing_date: string | null
-          filing_url: string | null
-          investor_id: string | null
-          period_of_report: string | null
-          previous_filing_url: string | null
-          previous_period: string | null
-          shares_delta: number | null
-          shares_now: number | null
-          shares_previous: number | null
-          source_urls: Json | null
-          ticker: string | null
-          value_now: number | null
-        }
-        Relationships: []
-      }
-      vw_sec13f_verified_holdings: {
-        Row: {
-          filing_date: string | null
-          filing_url: string | null
-          investor_id: string | null
-          period_of_report: string | null
-          shares: number | null
-          source_urls: Json | null
-          ticker: string | null
-          value_usd: number | null
-        }
-        Relationships: []
-      }
-      vw_sec13f_verified_reports: {
-        Row: {
-          document_ids: string[] | null
-          filing_date: string | null
-          filing_url: string | null
-          id: string | null
-          investor_id: string | null
-          period_of_report: string | null
-          reported_cover_value_usd: number | null
-          source_urls: Json | null
-          summary_warnings: Json | null
-          value_difference_usd: number | null
-          value_reconciliation: string | null
-          verified_entry_count: number | null
-          verified_value_usd: number | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       _recompute_daily_nutrition: {
@@ -9714,9 +8172,9 @@ export type Database = {
           p_fat: number
           p_fiber: number
           p_name: string
+          p_nutrient_sources?: Json
           p_protein: number
           p_salt?: number
-          p_nutrient_sources?: Json
           p_saturated_fat?: number
           p_sugar: number
           p_user_id: string
@@ -9969,60 +8427,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      replace_house_disclosure: {
-        Args: { p_document_id: string; p_trades: Json }
-        Returns: number
-      }
-      replace_knf_snapshot: {
-        Args: { p_checked_at: string; p_current: Json; p_history: Json }
-        Returns: Json
-      }
-      replace_sec13f_filing: {
-        Args: {
-          p_amendment_number: number
-          p_amendment_type: string
-          p_entry_count: number
-          p_filing_id: string
-          p_positions: Json
-          p_reported_cover_value_usd: number
-          p_total_value_usd: number
-          p_value_unit_usd: number
-        }
-        Returns: number
-      }
-      replace_sec13f_positions: {
-        Args: {
-          p_entry_count: number
-          p_filing_id: string
-          p_positions: Json
-          p_total_value_usd: number
-        }
-        Returns: number
-      }
-      replace_sec13f_positions_with_summary: {
-        Args: {
-          p_entry_count: number
-          p_filing_id: string
-          p_positions: Json
-          p_reported_cover_value_usd: number
-          p_total_value_usd: number
-          p_value_unit_usd: number
-        }
-        Returns: number
-      }
-      replace_senate_disclosure: {
-        Args: {
-          p_document_id: string
-          p_filer_name: string
-          p_filing_date: string
-          p_trades: Json
-        }
-        Returns: number
-      }
-      replace_us_security_catalogue: {
-        Args: { p_checked_at: string; p_rows: Json }
-        Returns: number
-      }
       resolve_entity: {
         Args: { p_kind: string; p_name: string; p_user_id: string }
         Returns: string
@@ -10132,8 +8536,6 @@ export type Database = {
           target_type: string
         }[]
       }
-      sec13f_amendment_counts: { Args: never; Returns: Json }
-      seed_us_report_import_coverage: { Args: never; Returns: undefined }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       sprint_info_for_date: {

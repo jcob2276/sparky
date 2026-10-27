@@ -118,16 +118,6 @@ export default defineConfig(({ mode }) => {
           rewrite: (path) => path.replace(/^\/oura-api/, ''),
           secure: false
         },
-        '/openinsider': {
-          target: 'http://openinsider.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/openinsider/, ''),
-        },
-        '/biznesradar': {
-          target: 'https://www.biznesradar.pl',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/biznesradar/, ''),
-        }
       },
     },
     build: {

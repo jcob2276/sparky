@@ -34,7 +34,7 @@ it('keeps a private draft for the same owner and removes it on a direct account 
   expect(screen.getByLabelText('Private draft')).toHaveValue('');
 });
 
-it.each([['/poker', 'Public poker'], ['/inwestycje', 'Public investments']])('keeps the existing anonymous entry at %s', async (path, label) => {
+it.each([['/poker', 'Public poker']])('keeps the existing anonymous entry at %s', async (path, label) => {
   source.owner = null; window.history.replaceState({}, '', path);
   render(<App />);
   expect(await screen.findByText(label)).toBeInTheDocument();

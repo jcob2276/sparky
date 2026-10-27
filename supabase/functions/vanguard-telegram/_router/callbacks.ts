@@ -34,7 +34,6 @@ import {
   handleNoteStreamCallback,
   isNoteStreamCallback,
 } from "../_handlers/noteStreamCallbacks.ts";
-import { handleInvestmentCallback } from "../_handlers/investmentCallback.ts";
 
 type CallbackQuery = {
   id: string;
@@ -270,11 +269,6 @@ export async function handleCallbackQuery(
     await answerCallbackQuery(telegramToken, callbackId);
     const { editMessageReplyMarkup } = await import("../../_shared/infra/telegram/send.ts");
     await editMessageReplyMarkup(telegramToken, chatId, messageId, { inline_keyboard: inlineKeyboard }, { direct: true });
-    return;
-  }
-
-  if (data.startsWith("inv_")) {
-    await handleInvestmentCallback(data, callbackId, chatId, messageId, supabase, telegramToken);
     return;
   }
 

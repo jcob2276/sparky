@@ -2,7 +2,6 @@
   "$schema": "https://unpkg.com/knip@6/schema.json",
   "entry": [
     "supabase/functions/*/index.ts",
-    "supabase/functions/sync/senateDisclosureSource.ts",
     "scripts/**/*.{mjs,ts,cjs}"
   ],
   "project": [
@@ -64,27 +63,14 @@
     "supabase/functions/vanguard-oracle/oracle/coreMemory.ts": ["exports", "types"],
     "src/lib/health/healthCoachReviewApi.ts": ["exports"],
     "supabase/functions/_shared/healthCoachContext.ts": ["exports"],
-    "supabase/functions/sync/investmentAi.ts": ["exports"],
-    "src/lib/investments/superinvestorsApi.ts": ["exports"],
-    "src/lib/investments/superinvestorOverviewService.ts": ["exports"],
     "src/lib/todo/todoParser.ts": ["exports"],
     "src/lib/todo/studySubjects.ts": ["exports"],
-    "supabase/functions/sync/sec13fData.ts": ["exports"],
-    "src/lib/investments/publicDisclosures.ts": ["exports"],
     "supabase/functions/vanguard-telegram/_handlers/trainingPlan.ts": ["exports"],
-    "src/lib/investments/basketSimulation.ts": ["types"],
-    "src/lib/investments/basketSimulationService.ts": ["types"],
-    "supabase/functions/vanguard-oracle/handlers/dailyPlanInterview.ts": ["types"],
-    "src/lib/investments/useCongressOverview.ts": ["types"],
-    "src/components/investments/WatchlistTable.tsx": ["types"]
+    "supabase/functions/vanguard-oracle/handlers/dailyPlanInterview.ts": ["types"]
   },
   "ignoreDependencies": [
     "npm",
     "playwright",
     "@playwright/test"
-  ],
-  "ignoreBinaries": [
-    "pg_dump",
-    "psql"
   ]
 }

@@ -1,7 +1,7 @@
 import { AlertTriangle, ChevronRight } from 'lucide-react';
 import type { MarkerSeries } from '../../../lib/health/medicalAnalytics';
 import { Pressable } from '../../ui/ControlPrimitives';
-import { MiniSparkline } from '../../investments/MiniSparkline';
+import { MiniSparkline } from '../../shared/MiniSparkline';
 import { markerChange, sparkValues } from '../../../lib/health/markerTrend';
 import MedicalRangeGauge from './MedicalRangeGauge';
 

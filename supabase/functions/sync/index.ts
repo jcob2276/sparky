@@ -1,11 +1,11 @@
 /**
  * @function sync
  * @trigger HTTP POST / manual / cron
- * @role Router synchronizacji biometrii, kalendarza i danych rynkowych; fundamenty GPW, notowania, dokumenty House PTR i SEC 13F tylko dla service role.
- * @reads oura_daily_summary, strava_activities, vanguard_calendar, user_settings, vanguard_tokens, oura_enhanced, strava_tokens, intervals_tokens, oura_heartrate, oura_sleep_hr_timeline, oura_sleep_hrv_timeline, oura_sleep_phase_timeline, gpw_companies, politicians, vanguard_preferences, aw_daily_summary, investors, senate_disclosures
- * @writes oura_daily_summary, strava_activities, vanguard_calendar, audit_events, oura_enhanced, oura_heartrate, oura_sleep_phase_timeline, strava_tokens, vanguard_tokens, gpw_fin_public_teaser, prices_daily, market_quotes, house_disclosures, stock_act_trades, investment_source_status, filings, sec13f_positions
- * @calls ouraring.com, strava.com, googleapis.com/calendar, api.telegram.org (poprzez send.ts), scanner.tradingview.com, api.nbp.pl, query1.finance.yahoo.com, disclosures-clerk.house.gov, data.sec.gov/submissions, www.sec.gov/Archives
- * @consumer Zaktualizowane dane biometryczne, treningowe i kalendarza oraz fundamenty i prognozy GPW w aplikacji
+ * @role Router synchronizacji biometrii, kalendarza i notowań na żywo (Finanse).
+ * @reads oura_daily_summary, strava_activities, vanguard_calendar, user_settings, vanguard_tokens, oura_enhanced, strava_tokens, intervals_tokens, oura_heartrate, oura_sleep_hr_timeline, oura_sleep_hrv_timeline, oura_sleep_phase_timeline, vanguard_preferences, aw_daily_summary
+ * @writes oura_daily_summary, strava_activities, vanguard_calendar, audit_events, oura_enhanced, oura_heartrate, oura_sleep_phase_timeline, strava_tokens, vanguard_tokens
+ * @calls ouraring.com, strava.com, googleapis.com/calendar, api.telegram.org (poprzez send.ts), api.nbp.pl, query1.finance.yahoo.com
+ * @consumer Dane biometryczne, treningowe i kalendarza oraz notowania w Finansach
  * @status active
  */
 import { resolveUserScope } from '../_shared/supabase.ts'
@@ -15,12 +15,6 @@ import { runStravaSync } from './strava.ts'
 import { runCalendarSync } from './calendar.ts'
 import { runNextDnsSync } from './nextdns.ts'
 import { runQuotesSync } from './quotes.ts'
-import { runKnfShortsSync } from './knfShorts.ts'
-import { runSenateSync } from './senateTrades.ts'
-import { requireServiceRole } from '../_shared/auth.ts'
-import { runGpwFundamentalsSync } from './gpwFundamentals.ts'
-import { runInvestmentAi } from './investmentAi.ts'
-import { runSec13fSync } from './sec13f.ts'
 
 Deno.serve(serveJson(async (req) => {
   const url = new URL(req.url)
@@ -36,29 +30,11 @@ Deno.serve(serveJson(async (req) => {
     service = body.service
   }
 
-  if (service === 'gpw_fundamentals') {
-    const authError = requireServiceRole(req)
-    if (authError) return authError
-    return await runGpwFundamentalsSync()
-  }
-
-  if (service === 'house_disclosures') {
-    const { runHouseDisclosuresSync } = await import('./houseDisclosures.ts')
-    return await runHouseDisclosuresSync(req)
-  }
-  if (service === 'sec_13f') return await runSec13fSync(req)
-  if (service === 'us_catalogue') {
-    const { runUsCatalogueSync } = await import('./usCatalogue.ts')
-    return await runUsCatalogueSync(req)
-  }
-
-  if (service !== 'quotes' && service !== 'knf_shorts' && service !== 'senate' && service !== 'congress') {
+  if (service !== 'quotes') {
     await resolveUserScope(req, userId ?? null)
   }
 
-  if (service === 'investment_ai') {
-    return await runInvestmentAi(req)
-  } else if (service === 'oura') {
+  if (service === 'oura') {
     return await runOuraSync(req)
   } else if (service === 'strava') {
     return await runStravaSync(req)
@@ -68,10 +44,6 @@ Deno.serve(serveJson(async (req) => {
     return await runNextDnsSync(req)
   } else if (service === 'quotes') {
     return await runQuotesSync(req)
-  } else if (service === 'knf_shorts') {
-    return await runKnfShortsSync(req)
-  } else if (service === 'senate' || service === 'congress') {
-    return await runSenateSync(req)
   } else {
     throw new Error(`Unknown or missing service parameter: ${service}`)
   }
