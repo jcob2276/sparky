@@ -20,6 +20,13 @@ import { useSession } from '../../../store/useStore';
 
 const FoodEntryModal = lazy(() => import('./FoodEntryModal'));
 
+function sumDayMacros(entries: Array<{ carbs: number | null; fat: number | null }>) {
+  return {
+    carbs: Math.round(entries.reduce((sum, e) => sum + (e.carbs ?? 0), 0)),
+    fat: Math.round(entries.reduce((sum, e) => sum + (e.fat ?? 0), 0) * 10) / 10,
+  };
+}
+
 export default function MealComposer({
   onSaved,
   refreshSignal = 0,
@@ -58,10 +65,7 @@ export default function MealComposer({
           dayReview={dayReview}
           nutrients={computeDayNutrientCoverage(c.allTodayEntries)}
           energy={computeDayEnergyRange(c.allTodayEntries)}
-          macros={{
-            carbs: Math.round(c.allTodayEntries.reduce((s, e) => s + (e.carbs ?? 0), 0)),
-            fat: Math.round(c.allTodayEntries.reduce((s, e) => s + (e.fat ?? 0), 0) * 10) / 10,
-          }}
+          macros={sumDayMacros(c.allTodayEntries)}
         />
 
         <ComposerInput
@@ -131,6 +135,8 @@ export default function MealComposer({
             saving={c.saving}
             onChip={c.handleQuickChip}
             onOpenCopyDay={() => setCopyDayOpen(true)}
+            nextMeals={c.nextMealSuggestions}
+            onNextMeal={c.applyNextMeal}
           />
         )}
 

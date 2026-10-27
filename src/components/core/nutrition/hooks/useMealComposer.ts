@@ -22,6 +22,7 @@ import { useMealComposerSave } from './useMealComposerSave';
 import { useMealComposerQueries } from './useMealComposerQueries';
 import { useMealComposerQuickChips } from './useMealComposerQuickChips';
 import { useMealComposerYesterday } from './useMealComposerYesterday';
+import { useNextMealSuggestions } from './useNextMealSuggestions';
 import { useMealComposerBulkActions } from './useMealComposerBulkActions';
 
 export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
@@ -164,6 +165,18 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     notify(`Załadowano wczorajszy ${yesterdayMealSuggestion.mealLabel} do edytora!`, 'success');
   }, [yesterdayMealSuggestion]);
 
+  const { suggestions: nextMealSuggestions, applySuggestion: applyNextMeal } = useNextMealSuggestions({
+    userId,
+    enabled: logDate === todayStr,
+    mealType,
+    eatenKcal: totals.calories,
+    eatenProtein: totals.protein,
+    targetKcal: totals.targetKcal,
+    targetProtein: totals.targetProtein,
+    setDraftItems,
+    setMemoryName,
+  });
+
   const { copyEntireDayToToday, copyMealToToday, deleteEntry } = useMealComposerBulkActions({
     userId, saving, setSaving, allTodayEntries: allTodayEntriesQuery.data, todayStr, setLogDateAndResetTime, refreshAfterSave,
   });
@@ -220,6 +233,8 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     copyMealToToday,
     yesterdayMealSuggestion,
     repeatYesterdayMeal,
+    nextMealSuggestions,
+    applyNextMeal,
     deleteEntry,
     isPastDay: logDate !== todayStr,
   };

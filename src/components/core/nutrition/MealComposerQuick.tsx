@@ -1,5 +1,6 @@
-import { Copy, RotateCcw, Star } from 'lucide-react';
+import { Copy, RotateCcw, Sparkles, Star } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
+import type { MealMemorySuggestion } from '../../../lib/health/nutritionTracker';
 import type { QuickChip } from '../../../lib/health/mealComposerQuick';
 
 interface MealComposerQuickProps {
@@ -7,6 +8,8 @@ interface MealComposerQuickProps {
   saving: boolean;
   onChip: (chip: QuickChip) => void;
   onOpenCopyDay: () => void;
+  nextMeals?: MealMemorySuggestion[];
+  onNextMeal?: (suggestion: MealMemorySuggestion) => void;
   yesterdayMealSuggestion?: {
     name: string;
     calories: number;
@@ -21,6 +24,8 @@ export default function MealComposerQuick({
   saving,
   onChip,
   onOpenCopyDay,
+  nextMeals = [],
+  onNextMeal,
   yesterdayMealSuggestion,
   onRepeatYesterdayMeal,
 }: MealComposerQuickProps) {
@@ -44,6 +49,20 @@ export default function MealComposerQuick({
           </span>
         </Pressable>
       )}
+
+      {onNextMeal && nextMeals.map((meal) => (
+        <Pressable
+          key={meal.id}
+          onClick={() => onNextMeal(meal)}
+          disabled={saving}
+          className="meal-chip meal-chip-accent"
+          title={`${meal.name}: ${meal.reason} (${meal.calories} kcal, ${Math.round(meal.protein)} g białka). Dotknij, żeby wczytać do edytora.`}
+        >
+          <Sparkles size={13} className="shrink-0" aria-hidden="true" />
+          <span className="max-w-40 truncate">{meal.name}</span>
+          <span className="shrink-0 text-2xs">{meal.calories} kcal · {Math.round(meal.protein)} g B</span>
+        </Pressable>
+      ))}
 
       <Pressable
         onClick={onOpenCopyDay}
