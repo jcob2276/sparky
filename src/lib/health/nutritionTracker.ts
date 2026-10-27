@@ -63,6 +63,9 @@ export function applyGuidedAnswer<T extends MealDraftItem>(
       fat: exactOrScaled(option.fat, item.fat) ?? 0,
       fiber: exactOrScaled(option.fiber, item.fiber),
       sugar: exactOrScaled(option.sugar, item.sugar),
+      // Nasycone i sól nie mają pola w odpowiedzi, więc zawsze idą za zmianą porcji/energii (wcześniej zostawały stare).
+      saturatedFat: scaleMacro(item.saturatedFat, macroScale),
+      salt: item.salt == null ? undefined : Math.round(item.salt * macroScale * 100) / 100,
     } as T;
   });
 }
@@ -153,6 +156,7 @@ export function mealMemoryToDraft(value: unknown): MealDraftItem[] {
       fiber: per100.fiber == null ? undefined : Math.round(Number(per100.fiber) * scale * 10) / 10,
       sugar: per100.sugar == null ? undefined : Math.round(Number(per100.sugar) * scale * 10) / 10,
       saturatedFat: per100.saturated_fat == null ? undefined : Math.round(Number(per100.saturated_fat) * scale * 10) / 10,
+      salt: per100.salt == null ? undefined : Math.round(Number(per100.salt) * scale * 100) / 100,
       confidence: 'high' as const,
       source: 'library' as const,
     }];

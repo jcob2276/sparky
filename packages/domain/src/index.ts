@@ -26,6 +26,7 @@ export * from './health/hydration.ts';
 export * from './health/netEnergy.ts';
 export * from './health/foodEnergy.ts';
 export * from './health/foodIntegrity.ts';
+export * from './health/foodMicronutrients.ts';
 export * from './health/biologicalAge.ts';
 export * from './health/analytics.ts';
 export * from './correlations.ts';

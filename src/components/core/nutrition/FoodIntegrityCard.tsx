@@ -30,15 +30,20 @@ export default function FoodIntegrityCard() {
             <li key={row.key} className="rounded-2xl border border-border-custom/40 bg-surface/50 px-3 py-2">
               <p className="text-2xs font-semibold tracking-wide text-text-muted">{row.label}</p>
               <p className={`text-sm font-semibold tabular-nums ${TRUST_CLASS[row.trust]}`}>
-                {TRUST_LABEL[row.trust]} · {row.knownKcalSharePct}%
+                {TRUST_LABEL[row.trust]} · {row.certainKcalSharePct}%
               </p>
+              {row.knownKcalSharePct > row.certainKcalSharePct && (
+                <p className="text-2xs font-semibold text-text-muted">
+                  +{row.knownKcalSharePct - row.certainKcalSharePct}% z szacunku modelu
+                </p>
+              )}
             </li>
           ))}
         </ul>
       )}
       {data?.view.estimatedSharePct != null && (
         <p className="text-2xs font-semibold text-text-muted">
-          {data.view.estimatedSharePct}% kalorii tygodnia to szacunek · procent = udział kalorii z wpisów, które mają daną wartość
+          {data.view.estimatedSharePct}% kalorii tygodnia to szacunek · procent = udział kalorii, dla których wartość pochodzi ze źródła danych
         </p>
       )}
 

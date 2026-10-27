@@ -31,6 +31,15 @@ describe('entriesToDraft', () => {
   });
 });
 
+describe('entriesToDraft salt', () => {
+  it('carries saved salt into a repeated draft and leaves unknown salt unknown', () => {
+    const [known] = entriesToDraft([{ ...entry(null), salt: 2.4 }]);
+    const [unknown] = entriesToDraft([{ ...entry(null), salt: null }]);
+    expect(known.salt).toBe(2.4);
+    expect(unknown.salt).toBeUndefined();
+  });
+});
+
 describe('foodBaseToDraft', () => {
   const base = { barcode: null, brand: null, fiber: null, sugar: null };
 

@@ -44,4 +44,13 @@ describe('buildCaptureItems', () => {
     }], 'photo');
     expect(item.parseMeta.uncertainty_pct).toBeGreaterThanOrEqual(20);
   });
+
+  it('sends salt per 100 g and keeps unknown salt as null', () => {
+    const [withSalt, without] = buildCaptureItems([
+      { ...base, confidence: 'high', source: 'library', salt: 3.5, saturatedFat: 10, parseMeta: { macroSource: 'library', parserVersion: 't' } },
+      { ...base, confidence: 'high', source: 'library' },
+    ]);
+    expect(withSalt.per100).toEqual(expect.objectContaining({ salt: 1, saturated_fat: 2.9 }));
+    expect(without.per100.salt).toBeNull();
+  });
 });

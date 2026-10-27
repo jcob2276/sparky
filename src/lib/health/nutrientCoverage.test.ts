@@ -12,6 +12,11 @@ describe('computeDayNutrientCoverage', () => {
     expect(result.saturatedFat).toEqual({ total: 3, known: 1, items: 3 });
   });
 
+  it('liczy też sól: brak wartości to brak danych, nie zero', () => {
+    const result = computeDayNutrientCoverage([{ salt: 1.2 }, { salt: null }, {}]);
+    expect(result.salt).toEqual({ total: 1.2, known: 1, items: 3 });
+  });
+
   it('pusty dzień daje zera', () => {
     expect(computeDayNutrientCoverage([]).fiber).toEqual({ total: 0, known: 0, items: 0 });
   });

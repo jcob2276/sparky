@@ -25,9 +25,10 @@ function Cell({ label, data }: { label: string; data: NutrientCoverage }) {
 export default function NutrientCoverageStrip({ coverage }: { coverage: DayNutrientCoverage }) {
   if (coverage.fiber.items === 0) return null;
   return (
-    <p className="flex flex-wrap gap-x-3 text-2xs font-semibold text-text-muted" aria-label="Błonnik i tłuszcze nasycone">
+    <p className="flex flex-wrap gap-x-3 text-2xs font-semibold text-text-muted" aria-label="Błonnik, tłuszcze nasycone i sól">
       <Cell label="Błonnik" data={coverage.fiber} />
       <Cell label="Nasycone" data={coverage.saturatedFat} />
+      {coverage.salt && <Cell label="Sól" data={coverage.salt} />}
     </p>
   );
 }

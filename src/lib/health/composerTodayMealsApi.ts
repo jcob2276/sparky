@@ -23,7 +23,7 @@ export async function fetchComposerTodayMeals(
 ): Promise<ComposerTodayMeal[]> {
   const { data, error } = await supabase
     .from('daily_food_entries')
-    .select('id, name, brand, calories, protein, carbs, fat, fiber, sugar, saturated_fat, amount, meal_group_id, parse_meta')
+    .select('id, name, brand, calories, protein, carbs, fat, fiber, sugar, saturated_fat, salt, amount, meal_group_id, parse_meta')
     .eq('user_id', userId)
     .eq('date', date)
     .eq('meal_type', mealType)
@@ -53,7 +53,7 @@ export async function fetchAllTodayEntries(
 ): Promise<TodayFoodEntry[]> {
   const { data, error } = await supabase
     .from('daily_food_entries')
-    .select('id, name, brand, calories, protein, carbs, fat, fiber, sugar, saturated_fat, amount, meal_type, meal_group_id, parse_meta')
+    .select('id, name, brand, calories, protein, carbs, fat, fiber, sugar, saturated_fat, salt, amount, meal_type, meal_group_id, parse_meta')
     .eq('user_id', userId)
     .eq('date', date)
     .order('logged_at', { ascending: true, nullsFirst: false });

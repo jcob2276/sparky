@@ -3,6 +3,7 @@ import { supabase } from '../supabase'
 import { invokeEdge } from '../supabase'
 import { TIMEOUTS } from '../constants'
 import { confirmMealCapture } from './nutritionTrackerApi'
+import type { MicronutrientSources } from '@vanguard/domain'
 import type { MacroSource } from './foodTrust'
 
 export const MEAL_TYPES = [
@@ -16,6 +17,7 @@ export type MealTypeId = (typeof MEAL_TYPES)[number]['id']
 
 interface FoodParseMeta {
   macroSource: MacroSource
+  micronutrientSources?: MicronutrientSources
   /** Przy kopii wpisu: niepewność oryginału, od której kopia nie może być lepsza. */
   priorUncertaintyPct?: number
   matchScore?: number
@@ -47,6 +49,8 @@ export interface ParsedFoodItem {
   fiber?: number
   sugar?: number
   saturatedFat?: number
+  /** Sól w gramach dla całej porcji. */
+  salt?: number
   confidence: 'high' | 'medium' | 'low'
   source: 'llm' | 'database' | 'library'
   assumptions?: string[]

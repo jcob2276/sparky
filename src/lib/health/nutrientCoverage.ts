@@ -9,11 +9,14 @@ export interface NutrientCoverage {
 export interface DayNutrientCoverage {
   fiber: NutrientCoverage;
   saturatedFat: NutrientCoverage;
+  /** Sól w gramach; opcjonalna, bo część widoków (tydzień) jeszcze jej nie pobiera. */
+  salt?: NutrientCoverage;
 }
 
 interface EntryLike {
   fiber?: number | null;
   saturated_fat?: number | null;
+  salt?: number | null;
 }
 
 function coverageOf(entries: EntryLike[], pick: (e: EntryLike) => number | null | undefined): NutrientCoverage {
@@ -33,5 +36,6 @@ export function computeDayNutrientCoverage(entries: EntryLike[]): DayNutrientCov
   return {
     fiber: coverageOf(entries, (e) => e.fiber),
     saturatedFat: coverageOf(entries, (e) => e.saturated_fat),
+    salt: coverageOf(entries, (e) => e.salt),
   };
 }

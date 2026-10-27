@@ -1,4 +1,5 @@
 import type { ParsedFoodItem, FoodParseMeta } from "../foodParseCore.ts";
+import { mergeMicronutrients } from "@vanguard/domain";
 import { normalizePl } from "./matching.ts";
 
 export const PARSER_VERSION = '2026-10-21';
@@ -155,6 +156,13 @@ export function normalizeRawItems(raw: unknown): ParsedFoodItem[] {
         // Nasycone nie mogą przekraczać całkowitego tłuszczu (błąd modelu → przycinamy).
         result.saturatedFat = Math.min(fat, Math.max(0, Math.round(Number(saturated) * 10) / 10));
       }
+      const salt = item.salt ?? item.salt_g;
+      if (salt != null && Number.isFinite(Number(salt))) {
+        // Sól nie może ważyć więcej niż porcja (błąd modelu → przycinamy).
+        result.salt = Math.min(grams, Math.max(0, Math.round(Number(salt) * 100) / 100));
+      }
+      const { sources } = mergeMicronutrients({}, { fiber: result.fiber, sugar: result.sugar, saturatedFat: result.saturatedFat, salt: result.salt }, { fatG: fat, grams });
+      if (Object.keys(sources).length) result.parseMeta = { ...(result.parseMeta as FoodParseMeta), micronutrientSources: sources };
       const assumptions = parseAssumptions(item.assumptions);
       if (assumptions) result.assumptions = assumptions;
 
@@ -208,6 +216,7 @@ export function applyPhysiologicalGuardrails(items: ParsedFoodItem[], originalTe
             fiber: item.fiber != null ? Math.round(item.fiber * scale * 10) / 10 : undefined,
             sugar: item.sugar != null ? Math.round(item.sugar * scale * 10) / 10 : undefined,
             saturatedFat: item.saturatedFat != null ? Math.round(item.saturatedFat * scale * 10) / 10 : undefined,
+            salt: item.salt != null ? Math.round(item.salt * scale * 100) / 100 : undefined,
             confidence: 'low',
             assumptions: [
               ...(item.assumptions ?? []),

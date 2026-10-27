@@ -89,6 +89,23 @@ describe('auditFoodData: how sure we are about each nutrient', () => {
     expect(salt?.message).toContain('dolną granicą');
   });
 
+  it('does not call a value certain just because a model filled the field', () => {
+    const estimated = { macroSource: 'llm_estimate', uncertainty_pct: 25, micronutrientSources: { saturated_fat: 'estimate', salt: 'estimate' } };
+    const { summary, findings } = audit([
+      entry({ id: 'a', calories: 500, saturated_fat: 8, salt: 2, parse_meta: estimated }),
+      entry({ id: 'b', calories: 500, saturated_fat: 3, salt: 1, parse_meta: { macroSource: 'library', micronutrientSources: { saturated_fat: 'data', salt: 'data' } } }),
+    ]);
+    expect(summary.nutrients.saturated_fat).toEqual(expect.objectContaining({ knownKcalSharePct: 100, certainKcalSharePct: 50, trust: 'niepewne' }));
+    const finding = findings.find((f) => f.fingerprint === 'micronutrient_gap:saturated_fat');
+    expect(finding?.message).toContain('50% kalorii to szacunek modelu');
+    expect(finding?.message).not.toContain('dolną granicą');
+  });
+
+  it('keeps legacy entries without recorded provenance as data', () => {
+    const { summary } = audit([entry({ id: 'old', parse_meta: null })]);
+    expect(summary.nutrients.fiber.certainKcalSharePct).toBe(summary.nutrients.fiber.knownKcalSharePct);
+  });
+
   it('reports the estimate share and legacy provenance gaps', () => {
     const { summary, findings } = audit([
       entry({ id: 'photo', calories: 600, parse_meta: { macroSource: 'llm_estimate', uncertainty_pct: 25 } }),

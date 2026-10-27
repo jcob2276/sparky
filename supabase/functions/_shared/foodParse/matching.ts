@@ -64,6 +64,7 @@ export function scaleParsedItem(item: ParsedFoodItem, factor: number): ParsedFoo
     fiber: item.fiber != null ? round1(item.fiber * factor) : undefined,
     sugar: item.sugar != null ? round1(item.sugar * factor) : undefined,
     saturatedFat: item.saturatedFat != null ? round1(item.saturatedFat * factor) : undefined,
+    salt: item.salt != null ? Math.round(item.salt * factor * 100) / 100 : undefined,
   };
 }
 

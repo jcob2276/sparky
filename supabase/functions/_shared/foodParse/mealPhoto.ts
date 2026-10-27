@@ -1,3 +1,4 @@
+import { mergeMicronutrients, type MicronutrientSources } from '@vanguard/domain';
 interface PhotoParsedFoodItem {
   name: string;
   grams: number;
@@ -7,6 +8,8 @@ interface PhotoParsedFoodItem {
   fat: number;
   fiber?: number;
   sugar?: number;
+  saturatedFat?: number;
+  salt?: number;
   confidence: 'high' | 'medium' | 'low';
   source: 'llm' | 'database' | 'library';
   assumptions?: string[];
@@ -17,6 +20,7 @@ interface PhotoParsedFoodItem {
     unit?: string;
     explicitGrams?: boolean;
     validationStatus?: 'accepted' | 'review';
+    micronutrientSources?: MicronutrientSources;
   };
 }
 
@@ -122,6 +126,13 @@ export function normalizeMealPhotoResponse(raw: unknown): MealPhotoDraft {
       ? item.id.trim().slice(0, 100)
       : `photo-item-${index + 1}`;
     const questions = normalizeQuestions(item.questions, id);
+    const fat = Math.max(0, Math.round(finite(item.fat) * 10) / 10);
+    const micro = mergeMicronutrients({}, {
+      saturatedFat: item.saturatedFat == null ? undefined : finite(item.saturatedFat),
+      salt: item.salt == null ? undefined : finite(item.salt),
+      fiber: item.fiber == null ? undefined : finite(item.fiber),
+      sugar: item.sugar == null ? undefined : finite(item.sugar),
+    }, { fatG: fat, grams });
     const assumptions = Array.isArray(item.assumptions)
       ? item.assumptions.filter((value): value is string => typeof value === 'string').slice(0, 6)
       : [];
@@ -132,9 +143,11 @@ export function normalizeMealPhotoResponse(raw: unknown): MealPhotoDraft {
       calories: Math.max(0, Math.round(finite(item.calories))),
       protein: Math.max(0, Math.round(finite(item.protein) * 10) / 10),
       carbs: Math.max(0, Math.round(finite(item.carbs) * 10) / 10),
-      fat: Math.max(0, Math.round(finite(item.fat) * 10) / 10),
+      fat,
       fiber: item.fiber == null ? undefined : Math.max(0, Math.round(finite(item.fiber) * 10) / 10),
       sugar: item.sugar == null ? undefined : Math.max(0, Math.round(finite(item.sugar) * 10) / 10),
+      ...(micro.values.saturatedFat != null ? { saturatedFat: micro.values.saturatedFat } : {}),
+      ...(micro.values.salt != null ? { salt: micro.values.salt } : {}),
       confidence: confidence(item.confidence),
       source: 'llm',
       assumptions: ['porcja oszacowana ze zdjęcia', ...assumptions],
@@ -145,6 +158,7 @@ export function normalizeMealPhotoResponse(raw: unknown): MealPhotoDraft {
         unit: 'g',
         explicitGrams: false,
         validationStatus: 'review',
+        ...(Object.keys(micro.sources).length ? { micronutrientSources: micro.sources } : {}),
       },
       portionRange: { minGrams, maxGrams },
       questionCandidates: questions,

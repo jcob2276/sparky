@@ -60,6 +60,7 @@ export interface RepeatableFoodEntry {
   fiber: number | null;
   sugar: number | null;
   saturated_fat?: number | null;
+  salt?: number | null;
   amount: string | null;
   parse_meta?: unknown;
 }
@@ -109,6 +110,7 @@ export function entriesToDraft(entries: RepeatableFoodEntry[]): MealDraftItem[] 
       fiber: entry.fiber ?? undefined,
       sugar: entry.sugar ?? undefined,
       saturatedFat: entry.saturated_fat ?? undefined,
+      salt: entry.salt ?? undefined,
       confidence: confidenceFromUncertainty(prior.uncertaintyPct),
       source: 'library' as const,
       parseMeta: prior.macroSource ? {

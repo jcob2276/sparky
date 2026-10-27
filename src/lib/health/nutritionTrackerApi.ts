@@ -47,6 +47,7 @@ export function buildCaptureItems(items: CaptureDraftItem[], inputMode?: MealCap
         fiber: item.fiber == null ? null : round1(item.fiber * scale),
         sugar: item.sugar == null ? null : round1(item.sugar * scale),
         saturated_fat: item.saturatedFat == null ? null : round1(item.saturatedFat * scale),
+        salt: item.salt == null ? null : Math.round(item.salt * scale * 100) / 100,
       },
       parseMeta: {
         ...(item.parseMeta ?? {}),

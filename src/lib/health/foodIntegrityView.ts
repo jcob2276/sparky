@@ -6,6 +6,8 @@ interface NutrientRow {
   key: string;
   label: string;
   knownKcalSharePct: number;
+  /** Część kalorii z wartością ze źródła danych (reszta known to szacunek modelu). */
+  certainKcalSharePct: number;
   trust: NutrientTrust;
 }
 
@@ -49,7 +51,8 @@ export function buildIntegrityView(summary: Json | null): IntegrityView {
     const entry = jsonRecord(nutrients[key]);
     const share = entry.knownKcalSharePct;
     if (typeof share !== 'number' || !isTrust(entry.trust)) continue;
-    rows.push({ key, label, knownKcalSharePct: share, trust: entry.trust });
+    const certain = typeof entry.certainKcalSharePct === 'number' ? entry.certainKcalSharePct : share;
+    rows.push({ key, label, knownKcalSharePct: share, certainKcalSharePct: certain, trust: entry.trust });
   }
   const estimated = root.estimatedSharePct;
   return { estimatedSharePct: typeof estimated === 'number' ? estimated : null, nutrients: rows };

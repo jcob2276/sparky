@@ -22,6 +22,7 @@ import {
 } from "./foodParse/reconcile.ts";
 import { buildSystemPrompt } from "./foodParse/prompts.ts";
 import { validateParsedItems } from "./foodParse/semanticValidation.ts";
+import { fillMissingMicronutrients } from "./foodParse/micronutrientEstimate.ts";
 import { lookupGenericFood, scoreFoodNameMatch } from "./foodGeneric.ts";
 
 export {
@@ -48,6 +49,8 @@ export interface FoodParseMeta {
   explicitGrams?: boolean
   warnings?: string[]
   validationStatus?: 'accepted' | 'review'
+  /** Skąd pochodzi każda wartość błonnika, cukru, nasyconych i soli: źródło danych albo szacunek modelu. */
+  micronutrientSources?: import('@vanguard/domain').MicronutrientSources
 }
 
 export interface ParsedFoodItem {
@@ -60,6 +63,8 @@ export interface ParsedFoodItem {
   fiber?: number
   sugar?: number
   saturatedFat?: number
+  /** Sól w gramach dla całej porcji. */
+  salt?: number
   confidence: 'high' | 'medium' | 'low'
   source: 'llm' | 'database' | 'library'
   assumptions?: string[]
@@ -184,6 +189,7 @@ export async function finalizeParsedItems(
   out = applyHomemadeAdjustment(opts.originalText, out)
   out = applyPhysiologicalGuardrails(out, opts.originalText)
   out = enforceMacroMath(out)
+  if (opts.apiKey) out = await fillMissingMicronutrients(out, opts.apiKey)
   out = validateParsedItems(out, opts.originalText)
   return out
 }

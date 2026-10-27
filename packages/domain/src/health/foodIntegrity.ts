@@ -63,8 +63,11 @@ export type MicronutrientKey = 'fiber' | 'sugar' | 'saturated_fat' | 'salt';
 export type MicronutrientTrust = 'pewne' | 'czesciowe' | 'niepewne';
 
 export interface MicronutrientConfidence {
-  /** Jaka część kalorii okresu pochodzi z wpisów, które mają tę wartość (0 się liczy). */
+  /** Jaka część kalorii okresu pochodzi z wpisów, które mają tę wartość (0 się liczy), także z szacunku. */
   knownKcalSharePct: number;
+  /** Ta część kalorii, której wartość pochodzi ze źródła danych, a nie z oszacowania modelu. */
+  certainKcalSharePct: number;
+  /** Zaufanie wynika z danych, nie z szacunku: model potrafi wpisać liczbę do każdego pola. */
   trust: MicronutrientTrust;
   /** Największe wpisy bez wartości: od nich warto zacząć uzupełnianie. */
   topMissing: Array<{ id: string; name: string; calories: number }>;
@@ -143,23 +146,46 @@ function trustFor(sharePct: number): MicronutrientTrust {
   return sharePct >= PARTIAL_SHARE_PCT ? 'czesciowe' : 'niepewne';
 }
 
+/** Wpisy bez zapisanego pochodzenia (sprzed audytu) traktujemy jak dane: nie wiemy, że były szacunkiem. */
+function isEstimatedValue(parseMeta: unknown, key: MicronutrientKey): boolean {
+  return asRecord(asRecord(parseMeta).micronutrientSources)[key] === 'estimate';
+}
+
 function micronutrientConfidence(entries: AuditEntry[], key: MicronutrientKey): MicronutrientConfidence {
   let total = 0;
   let known = 0;
+  let certain = 0;
   const missing: MicronutrientConfidence['topMissing'] = [];
   for (const entry of entries) {
     const kcal = kcalOf(entry);
     if (kcal <= 0) continue;
     total += kcal;
-    if (entry[key] != null) known += kcal;
-    else missing.push({ id: entry.id, name: entry.name, calories: kcal });
+    if (entry[key] == null) {
+      missing.push({ id: entry.id, name: entry.name, calories: kcal });
+      continue;
+    }
+    known += kcal;
+    if (!isEstimatedValue(entry.parse_meta, key)) certain += kcal;
   }
   const knownKcalSharePct = total > 0 ? pct(known, total) : 100;
+  const certainKcalSharePct = total > 0 ? pct(certain, total) : 100;
   return {
     knownKcalSharePct,
-    trust: trustFor(knownKcalSharePct),
+    certainKcalSharePct,
+    trust: trustFor(certainKcalSharePct),
     topMissing: missing.sort((a, b) => b.calories - a.calories).slice(0, TOP_MISSING),
   };
+}
+
+function gapMessage(key: MicronutrientKey, confidence: MicronutrientConfidence): string {
+  const { knownKcalSharePct, certainKcalSharePct } = confidence;
+  const estimatedPart = knownKcalSharePct - certainKcalSharePct;
+  const known = knownKcalSharePct < 100
+    ? `znany dla ${knownKcalSharePct}% kalorii, suma jest dolną granicą`
+    : 'znany dla wszystkich wpisów';
+  return estimatedPart > 0
+    ? `${NUTRIENT_LABEL[key]}: ${known}; ${estimatedPart}% kalorii to szacunek modelu, ${certainKcalSharePct}% pochodzi z danych`
+    : `${NUTRIENT_LABEL[key]}: ${known}`;
 }
 
 function energyFindings(entries: AuditEntry[]): IntegrityFinding[] {
@@ -306,14 +332,19 @@ export function auditFoodData(input: FoodIntegrityInput): FoodIntegrityResult {
   ];
 
   for (const key of NUTRIENTS) {
-    const { knownKcalSharePct, trust, topMissing } = nutrients[key];
-    if (trust === 'pewne') continue;
+    const confidence = nutrients[key];
+    if (confidence.trust === 'pewne') continue;
     findings.push(gapFinding(
       'micronutrient_gap',
       `micronutrient_gap:${key}`,
-      trust === 'niepewne' ? 'warn' : 'info',
-      `${NUTRIENT_LABEL[key]}: znany dla ${knownKcalSharePct}% kalorii, suma jest dolną granicą`,
-      { nutrient: key, knownKcalSharePct, topMissing },
+      confidence.trust === 'niepewne' ? 'warn' : 'info',
+      gapMessage(key, confidence),
+      {
+        nutrient: key,
+        knownKcalSharePct: confidence.knownKcalSharePct,
+        certainKcalSharePct: confidence.certainKcalSharePct,
+        topMissing: confidence.topMissing,
+      },
     ));
   }
   if (summary.provenanceMissingSharePct >= HIGH_PROVENANCE_GAP_PCT) {

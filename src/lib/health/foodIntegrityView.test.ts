@@ -10,14 +10,14 @@ describe('buildIntegrityView', () => {
     const view = buildIntegrityView({
       estimatedSharePct: 37,
       nutrients: {
-        fiber: { knownKcalSharePct: 62, trust: 'czesciowe', topMissing: [] },
+        fiber: { knownKcalSharePct: 62, certainKcalSharePct: 40, trust: 'niepewne', topMissing: [] },
         salt: { knownKcalSharePct: 0, trust: 'niepewne', topMissing: [] },
       },
     });
     expect(view.estimatedSharePct).toBe(37);
     expect(view.nutrients).toEqual([
-      { key: 'fiber', label: 'Błonnik', knownKcalSharePct: 62, trust: 'czesciowe' },
-      { key: 'salt', label: 'Sól', knownKcalSharePct: 0, trust: 'niepewne' },
+      { key: 'fiber', label: 'Błonnik', knownKcalSharePct: 62, certainKcalSharePct: 40, trust: 'niepewne' },
+      { key: 'salt', label: 'Sól', knownKcalSharePct: 0, certainKcalSharePct: 0, trust: 'niepewne' },
     ]);
   });
 
