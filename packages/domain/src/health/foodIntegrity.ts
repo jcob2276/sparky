@@ -44,12 +44,12 @@ export type IntegrityFindingKind =
   | 'estimate_share_high';
 
 export type IntegritySeverity = 'info' | 'warn' | 'high';
-export type IntegrityAutoFix = 'quarantine_favorite' | 'recompute_totals';
+export type IntegrityAutoFix = 'quarantine_favorite' | 'quarantine_library' | 'recompute_totals';
 
 export interface IntegrityFinding {
   kind: IntegrityFindingKind;
   severity: IntegritySeverity;
-  entityTable: 'daily_food_entries' | 'food_favorites' | 'nutrition_meal_photos' | 'daily_nutrition' | null;
+  entityTable: 'daily_food_entries' | 'food_favorites' | 'food_library' | 'nutrition_meal_photos' | 'daily_nutrition' | null;
   entityId: string | null;
   /** Stabilny klucz: ten sam problem to ten sam wiersz po kolejnym uruchomieniu. */
   fingerprint: string;
@@ -126,7 +126,7 @@ export function entryUncertaintyPct(parseMeta: unknown): number {
     : DEFAULT_UNCERTAINTY_PCT;
 }
 
-const AMOUNT_WITH_UNIT = /^\s*(\d+(?:[.,]\d+)?)\s*(g|gr|ml|kg|l)\b/i;
+const AMOUNT_WITH_UNIT = /^\s*(\d+(?:[.,]\d+)?)\s*(g|gr|gram|grams|ml|kg|l)\s*$/i;
 
 /** Tylko jawna masa lub objętość (ml ≈ g); „3 szt.” i gołe liczby nie są gramami, więc nie wolno ich porównywać z makro. */
 export function parseAmountGrams(amount: string | null): number | null {
@@ -146,9 +146,18 @@ function trustFor(sharePct: number): MicronutrientTrust {
   return sharePct >= PARTIAL_SHARE_PCT ? 'czesciowe' : 'niepewne';
 }
 
-/** Wpisy bez zapisanego pochodzenia (sprzed audytu) traktujemy jak dane: nie wiemy, że były szacunkiem. */
-function isEstimatedValue(parseMeta: unknown, key: MicronutrientKey): boolean {
-  return asRecord(asRecord(parseMeta).micronutrientSources)[key] === 'estimate';
+/** Znana liczba nie jest potwierdzonym źródłem. Brak pochodzenia nigdy nie podnosi pewności. */
+function isDataValue(parseMeta: unknown, key: MicronutrientKey): boolean {
+  return asRecord(asRecord(parseMeta).micronutrientSources)[key] === 'data';
+}
+
+function validNutrient(entry: AuditEntry, key: MicronutrientKey): boolean {
+  const value = entry[key];
+  if (value == null || !Number.isFinite(value) || value < 0) return false;
+  if (key === 'saturated_fat' && entry.fat != null && value > entry.fat + 0.1) return false;
+  if (key === 'sugar' && entry.carbs != null && value > entry.carbs + 0.1) return false;
+  const grams = parseAmountGrams(entry.amount);
+  return grams == null || value <= grams;
 }
 
 function micronutrientConfidence(entries: AuditEntry[], key: MicronutrientKey): MicronutrientConfidence {
@@ -160,15 +169,15 @@ function micronutrientConfidence(entries: AuditEntry[], key: MicronutrientKey): 
     const kcal = kcalOf(entry);
     if (kcal <= 0) continue;
     total += kcal;
-    if (entry[key] == null) {
+    if (!validNutrient(entry, key)) {
       missing.push({ id: entry.id, name: entry.name, calories: kcal });
       continue;
     }
     known += kcal;
-    if (!isEstimatedValue(entry.parse_meta, key)) certain += kcal;
+    if (isDataValue(entry.parse_meta, key)) certain += kcal;
   }
-  const knownKcalSharePct = total > 0 ? pct(known, total) : 100;
-  const certainKcalSharePct = total > 0 ? pct(certain, total) : 100;
+  const knownKcalSharePct = pct(known, total);
+  const certainKcalSharePct = pct(certain, total);
   return {
     knownKcalSharePct,
     certainKcalSharePct,
@@ -184,7 +193,7 @@ function gapMessage(key: MicronutrientKey, confidence: MicronutrientConfidence):
     ? `znany dla ${knownKcalSharePct}% kalorii, suma jest dolną granicą`
     : 'znany dla wszystkich wpisów';
   return estimatedPart > 0
-    ? `${NUTRIENT_LABEL[key]}: ${known}; ${estimatedPart}% kalorii to szacunek modelu, ${certainKcalSharePct}% pochodzi z danych`
+    ? `${NUTRIENT_LABEL[key]}: ${known}; ${estimatedPart}% kalorii to szacunek lub nieznane źródło, ${certainKcalSharePct}% pochodzi z danych`
     : `${NUTRIENT_LABEL[key]}: ${known}`;
 }
 
@@ -333,7 +342,7 @@ export function auditFoodData(input: FoodIntegrityInput): FoodIntegrityResult {
 
   for (const key of NUTRIENTS) {
     const confidence = nutrients[key];
-    if (confidence.trust === 'pewne') continue;
+    if (!entries.length || confidence.trust === 'pewne') continue;
     findings.push(gapFinding(
       'micronutrient_gap',
       `micronutrient_gap:${key}`,

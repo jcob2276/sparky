@@ -7,6 +7,12 @@ const entry = (parse_meta: unknown): RepeatableFoodEntry => ({
 });
 
 describe('entriesToDraft', () => {
+  it('retains the individual nutrient origins when repeating a saved entry', () => {
+    const [item] = entriesToDraft([entry({ macroSource: 'library', micronutrientSources: { fiber: 'estimate', salt: 'data' } })]);
+    expect(item.parseMeta?.micronutrientSources).toEqual({ fiber: 'estimate', salt: 'data' });
+    const [withoutMacro] = entriesToDraft([entry({ micronutrientSources: { fiber: 'estimate' } })]);
+    expect(withoutMacro.parseMeta?.micronutrientSources).toEqual({ fiber: 'estimate' });
+  });
   it('does not turn a copied photo estimate into a confident library item', () => {
     const [item] = entriesToDraft([entry({ macroSource: 'llm_estimate', explicitGrams: false, uncertainty_pct: 25 })]);
     expect(item.confidence).toBe('low');
@@ -51,9 +57,17 @@ describe('foodBaseToDraft', () => {
   });
 
   it('carries label salt as data and marks every provided nutrient as such', () => {
-    const draft = foodBaseToDraft({ ...base, name: 'Chleb', calories: 250, protein: 8, carbs: 48, fat: 2, fiber: 6, salt: 1.2, confidence: 'high' }, 50);
+    const draft = foodBaseToDraft({ ...base, name: 'Chleb', source: 'label_ocr', calories: 250, protein: 8, carbs: 48, fat: 2, fiber: 6, salt: 1.2, confidence: 'high' }, 50);
     expect(draft.salt).toBe(0.6);
     expect(draft.parseMeta?.micronutrientSources).toEqual({ fiber: 'data', salt: 'data' });
+  });
+
+  it('keeps cached estimates and unknown sources distinct from label data', () => {
+    const food = { ...base, name: 'Chleb', calories: 250, protein: 8, carbs: 48, fat: 2, fiber: 6, salt: 1.2 };
+    const cached = foodBaseToDraft({ ...food, source: 'confirmed', nutrient_sources: { fiber: 'estimate', salt: 'data' } }, 100);
+    expect(cached.parseMeta?.micronutrientSources).toEqual({ fiber: 'estimate', salt: 'data' });
+    expect(cached.parseMeta?.macroSource).toBe('library');
+    expect(foodBaseToDraft(food, 100).parseMeta?.micronutrientSources).toEqual({ fiber: 'unknown', salt: 'unknown' });
   });
 
   it('keeps consistent products untouched', () => {

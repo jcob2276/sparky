@@ -1,3 +1,4 @@
+import { foodTrustMeta } from './foodTrust'
 import { supabase } from '../supabase'
 import { scheduleNutritionRefresh } from './nutritionSideEffects'
 
@@ -11,6 +12,9 @@ export interface FoodFavoriteRow {
   carbs: number | null
   fat: number | null
   fiber: number | null
+  saturated_fat?: number | null
+  salt?: number | null
+  nutrient_sources?: import('@vanguard/domain').MicronutrientSources
   sugar: number | null
   default_grams: number
   is_pinned?: boolean
@@ -82,13 +86,16 @@ export async function quickAddFavorite(
       fat: fav.fat,
       fiber: fav.fiber,
       sugar: fav.sugar,
+      saturated_fat: fav.saturated_fat ?? null,
+      salt: fav.salt ?? null,
       meal_type: mealType,
       request_id: crypto.randomUUID(),
       parse_meta: {
+        ...foodTrustMeta({ ...fav, source: 'estimated' }),
         source: 'fixed_favorite',
-        trust_level: 'confirmed',
+        trust_level: 'estimated',
         parserVersion: 'food-trust-v2',
-        uncertainty_pct: 5,
+        uncertainty_pct: 25,
       },
     },
   })

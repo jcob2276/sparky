@@ -2297,6 +2297,8 @@ export type Database = {
           last_used: string
           name: string
           protein: number | null
+          salt: number | null
+          nutrient_sources: Json
           saturated_fat: number | null
           sugar: number | null
           use_count: number
@@ -2319,6 +2321,8 @@ export type Database = {
           last_used?: string
           name: string
           protein?: number | null
+          salt?: number | null
+          nutrient_sources?: Json
           saturated_fat?: number | null
           sugar?: number | null
           use_count?: number
@@ -2341,6 +2345,8 @@ export type Database = {
           last_used?: string
           name?: string
           protein?: number | null
+          salt?: number | null
+          nutrient_sources?: Json
           saturated_fat?: number | null
           sugar?: number | null
           use_count?: number
@@ -2442,6 +2448,8 @@ export type Database = {
           id: string
           name: string
           protein: number | null
+          salt: number | null
+          nutrient_sources: Json
           saturated_fat: number | null
           source: string
           sugar: number | null
@@ -2462,6 +2470,8 @@ export type Database = {
           id?: string
           name: string
           protein?: number | null
+          salt?: number | null
+          nutrient_sources?: Json
           saturated_fat?: number | null
           source?: string
           sugar?: number | null
@@ -2482,6 +2492,8 @@ export type Database = {
           id?: string
           name?: string
           protein?: number | null
+          salt?: number | null
+          nutrient_sources?: Json
           saturated_fat?: number | null
           source?: string
           sugar?: number | null
@@ -9703,6 +9715,8 @@ export type Database = {
           p_fiber: number
           p_name: string
           p_protein: number
+          p_salt?: number
+          p_nutrient_sources?: Json
           p_saturated_fat?: number
           p_sugar: number
           p_user_id: string

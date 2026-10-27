@@ -1,5 +1,17 @@
 import { supabase } from '../supabase';
+import { foodTrustMeta } from './foodTrust';
 import type { FoodBase } from './foodTypes';
+
+export async function cacheFoodToLibrary(userId: string, food: FoodBase, defaultGrams: number): Promise<void> {
+  const { error } = await supabase.rpc('cache_food_to_library', {
+    p_user_id: userId, p_name: food.name, p_brand: food.brand, p_barcode: food.barcode,
+    p_calories: food.calories, p_protein: food.protein, p_carbs: food.carbs, p_fat: food.fat,
+    p_fiber: food.fiber, p_sugar: food.sugar, p_saturated_fat: food.saturated_fat ?? null,
+    p_salt: food.salt ?? null, p_nutrient_sources: foodTrustMeta(food).micronutrientSources,
+    p_default_grams: defaultGrams,
+  } as never);
+  if (error) throw error;
+}
 
 export interface CustomFoodInput {
   name: string;

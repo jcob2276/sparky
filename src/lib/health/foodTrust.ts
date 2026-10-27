@@ -1,3 +1,5 @@
+import { readMicronutrientSources } from '@vanguard/domain';
+
 export type FoodSource =
   | 'confirmed'
   | 'history'
@@ -10,6 +12,11 @@ export type FoodSource =
 export type FoodTrustLevel = 'confirmed' | 'reference' | 'estimated' | 'incomplete';
 
 export interface FoodTrustInput {
+  nutrient_sources?: import('@vanguard/domain').MicronutrientSources;
+  fiber?: number | null;
+  sugar?: number | null;
+  saturated_fat?: number | null;
+  salt?: number | null;
   source?: FoodSource | null;
   calories?: number | null;
   protein?: number | null;
@@ -48,6 +55,22 @@ const MACRO_SOURCES: readonly string[] = ['library', 'generic', 'reference_pl', 
 
 export function isMacroSource(value: unknown): value is MacroSource {
   return typeof value === 'string' && MACRO_SOURCES.includes(value);
+}
+
+export function readFoodProvenance(meta: unknown) {
+  const record = meta && typeof meta === 'object' ? meta as Record<string, unknown> : {};
+  return {
+    macroSource: isMacroSource(record.macroSource) ? record.macroSource : undefined,
+    micronutrientSources: readMicronutrientSources(record.micronutrientSources),
+    explicitGrams: typeof record.explicitGrams === 'boolean' ? record.explicitGrams : undefined,
+    uncertaintyPct: typeof record.uncertainty_pct === 'number' && Number.isFinite(record.uncertainty_pct)
+      ? record.uncertainty_pct : undefined,
+  };
+}
+
+export function confidenceFromUncertainty(pct: number | undefined): 'high' | 'medium' | 'low' {
+  if (pct == null || pct <= 12) return 'high';
+  return pct <= 22 ? 'medium' : 'low';
 }
 
 export interface ItemUncertaintyInput {
@@ -93,7 +116,14 @@ export function calorieRange(calories: number | null, uncertaintyPct: number | n
 
 export function foodTrustMeta(food: FoodTrustInput) {
   const trust = deriveFoodTrust(food);
+  const origin = food.source === 'off' || food.source === 'label_ocr' || food.source === 'reference_pl' ? 'data' : 'unknown';
+  const micronutrientSources = Object.fromEntries(
+    (['fiber', 'sugar', 'saturated_fat', 'salt'] as const)
+      .filter((key) => food[key] != null)
+      .map((key) => [key, food.nutrient_sources?.[key] ?? origin]),
+  );
   return {
+    micronutrientSources,
     source: food.source ?? 'estimated',
     trust_level: trust.level,
     uncertainty_pct: trust.uncertaintyPct,

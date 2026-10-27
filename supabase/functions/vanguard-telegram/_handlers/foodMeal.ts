@@ -67,6 +67,7 @@ async function saveParsedFoodEntries(
         fiber: item.fiber != null ? Math.round(Number(item.fiber) * scale100 * 10) / 10 : null,
         sugar: item.sugar != null ? Math.round(Number(item.sugar) * scale100 * 10) / 10 : null,
         saturated_fat: item.saturatedFat != null ? Math.round(Number(item.saturatedFat) * scale100 * 10) / 10 : null,
+        salt: item.salt != null ? Math.round(item.salt * scale100 * 100) / 100 : null,
         meal_type: mealType,
         meal_group_id: mealGroupId,
         request_id: crypto.randomUUID(),

@@ -1,4 +1,5 @@
 import type { FoodSource } from './foodTrust';
+import type { MicronutrientSources } from '@vanguard/domain';
 
 export interface FoodBase {
   barcode: string | null;
@@ -13,6 +14,7 @@ export interface FoodBase {
   saturated_fat?: number | null;
   /** Sól g/100 g; z etykiety lub OFF, więc to dana, nie szacunek. */
   salt?: number | null;
+  nutrient_sources?: MicronutrientSources;
   defaultGrams?: number | null;
   source?: FoodSource;
   useCount?: number;

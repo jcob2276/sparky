@@ -34,7 +34,7 @@ export default function FoodIntegrityCard() {
               </p>
               {row.knownKcalSharePct > row.certainKcalSharePct && (
                 <p className="text-2xs font-semibold text-text-muted">
-                  +{row.knownKcalSharePct - row.certainKcalSharePct}% z szacunku modelu
+                  +{row.knownKcalSharePct - row.certainKcalSharePct}% szacunek lub nieznane źródło
                 </p>
               )}
             </li>

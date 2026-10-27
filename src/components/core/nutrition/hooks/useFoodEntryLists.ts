@@ -10,14 +10,14 @@ import { foodEntryListsKeys } from '../../../../lib/queryKeys';
 async function fetchFavorites(userId: string): Promise<Favorite[]> {
   const { data, error } = await supabase
     .from('food_favorites')
-    .select('id, barcode, name, brand, calories, protein, carbs, fat, fiber, sugar, use_count, default_grams')
+    .select('id, barcode, name, brand, calories, protein, carbs, fat, fiber, sugar, saturated_fat, salt, nutrient_sources, use_count, default_grams')
     .eq('user_id', userId)
     .neq('validation_status', 'quarantined')
     .order('use_count', { ascending: false })
     .order('last_used', { ascending: false })
     .limit(20);
   if (error) console.error('[FoodEntryModal] favorites fetch failed', error);
-  return data ?? [];
+  return (data ?? []).map(row => ({ ...row, nutrient_sources: row.nutrient_sources as Favorite['nutrient_sources'] }));
 }
 
 async function fetchRecent(userId: string): Promise<RecentEntry[]> {

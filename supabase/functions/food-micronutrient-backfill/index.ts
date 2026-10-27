@@ -31,7 +31,7 @@ interface Row {
 const asNumber = (value: number | string | null): number | undefined => (value == null ? undefined : Number(value));
 
 function groupKey(row: Row): string {
-  return `${row.name.trim().toLowerCase()}|${(row.amount ?? '').trim().toLowerCase()}`;
+  return [row.name.trim().toLowerCase(), (row.amount ?? '').trim().toLowerCase(), row.calories, row.protein, row.carbs, row.fat].join('|');
 }
 
 async function pendingRows(db: Db, userId: string): Promise<Row[]> {
@@ -72,9 +72,13 @@ async function applyToRow(db: Db, row: Row, estimate: Record<string, unknown>): 
     micronutrientSources: merged.parseMeta?.micronutrientSources ?? {},
     [MARKER]: new Date().toISOString(),
   };
-  const { error } = await db.from('daily_food_entries').update({ ...patch, parse_meta: parseMeta }).eq('id', row.id);
+  let query = db.from('daily_food_entries').update({ ...patch, parse_meta: parseMeta }).eq('id', row.id).eq('user_id', row.user_id);
+  // Recheck blanks at write time: a simultaneous label correction always wins.
+  for (const column of Object.keys(patch)) query = query.is(column, null);
+  query = row.parse_meta == null ? query.is('parse_meta', null) : query.eq('parse_meta', JSON.stringify(row.parse_meta));
+  const { data, error } = await query.select('id');
   if (error) throw new Error(`food-micronutrient-backfill update: ${error.message}`);
-  return Object.keys(patch).length > 0;
+  return Object.keys(patch).length > 0 && (data?.length ?? 0) > 0;
 }
 
 async function backfillUser(db: Db, userId: string, groupLimit: number, apiKey: string) {

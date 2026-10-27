@@ -1,4 +1,4 @@
-import { assessEnergyConsistency, mergeMicronutrients } from "@vanguard/domain";
+import { assessEnergyConsistency, mergeMicronutrients, type MicronutrientSources } from "@vanguard/domain";
 import { deepseekChat, parseJsonFromContent } from "../deepseek.ts";
 import { openaiChat } from "../openai.ts";
 import { LLM_TASKS } from "../llm/tasks.ts";
@@ -11,7 +11,7 @@ import { buildSystemPrompt } from "./prompts.ts";
 
 const MIN_RECONCILE_SCORE = 0.52;
 
-interface Per100gFood { name: string; calories: number | null; protein: number | null; carbs: number | null; fat: number | null; fiber?: number | null; sugar?: number | null; saturatedFat?: number | null; salt?: number | null; source?: string; }
+interface Per100gFood { name: string; calories: number | null; protein: number | null; carbs: number | null; fat: number | null; fiber?: number | null; sugar?: number | null; saturatedFat?: number | null; salt?: number | null; source?: string; nutrient_sources?: MicronutrientSources; }
 export type ReconcileOpts = { supabaseUrl: string; serviceKey: string; userId?: string; db?: unknown; apiKey?: string; originalText?: string };
 
 export function isPlausibleFoodCandidate(query: string, candidate: Per100gFood): boolean {
@@ -132,14 +132,14 @@ export function mergeUserFoodCandidates(
 async function lookupViaLibraryRaw(name: string, userId: string, db: any): Promise<Per100gFood[] | null> {
   const [favoritesResult, libraryResult] = await Promise.all([
     db.from('food_favorites')
-      .select('name, calories, protein, carbs, fat, fiber, sugar, saturated_fat')
+      .select('name, calories, protein, carbs, fat, fiber, sugar, saturated_fat, salt, nutrient_sources')
       .eq('user_id', userId)
       .neq('validation_status', 'quarantined')
       .ilike('name', `%${name}%`)
       .order('use_count', { ascending: false })
       .limit(5),
     db.from('food_library')
-      .select('name, calories, protein, carbs, fat, fiber, sugar, saturated_fat, source, validation_status')
+      .select('name, calories, protein, carbs, fat, fiber, sugar, saturated_fat, salt, nutrient_sources, source, validation_status')
       .eq('user_id', userId)
       .neq('validation_status', 'quarantined')
       .ilike('name', `%${name}%`)
@@ -152,7 +152,8 @@ async function lookupViaLibraryRaw(name: string, userId: string, db: any): Promi
   const library = libraryResult.error
     ? []
     : (libraryResult.data ?? []) as Per100gFood[];
-  const merged = mergeUserFoodCandidates(favorites, library);
+  const adapt = (row: Per100gFood) => ({ ...row, saturatedFat: (row as Per100gFood & { saturated_fat?: number }).saturated_fat, nutrient_sources: row.nutrient_sources ?? {} });
+  const merged = mergeUserFoodCandidates(favorites.map(adapt), library.map(adapt));
   return merged.length ? merged : null;
 }
 
@@ -185,7 +186,7 @@ async function reconcileOne(item: ParsedFoodItem, opts: ReconcileOpts): Promise<
   if (!match?.calories && !isComposedDish) { const remote = await lookupOffFast(item.name); if (remote?.match.calories != null) { match = remote.match; source = 'database'; macroSource = remote.macroSource; matchScore = remote.score; matchedName = remote.match.name; } }
 
   if (matchScore != null && matchScore >= 0.50 && matchScore <= 0.72 && opts.apiKey && matchedName) { const ok = await verifyMatchWithLLM(item.name, matchedName, opts.apiKey); if (!ok) { match = null; source = 'llm'; macroSource = 'llm_estimate'; matchScore = undefined; matchedName = undefined; } }
-  if (match?.calories != null && source !== 'llm') { const recalculated = recalcFromPer100g(item.grams, match); const micro = mergeMicronutrients(recalculated, item, { fatG: recalculated.fat, grams: item.grams }); return { ...item, ...recalculated, ...micro.values, name: match.name || item.name, confidence: 'high', source, assumptions: item.assumptions, parseMeta: { ...item.parseMeta, macroSource, matchScore, matchedName, dataSource: match.source ?? macroSource, parserVersion: PARSER_VERSION, micronutrientSources: micro.sources } }; }
+  if (match?.calories != null && source !== 'llm') { const recalculated = recalcFromPer100g(item.grams, match); const micro = mergeMicronutrients(recalculated, item, { fatG: recalculated.fat, grams: item.grams }, match.nutrient_sources); return { ...item, ...recalculated, ...micro.values, name: match.name || item.name, confidence: 'high', source, assumptions: item.assumptions, parseMeta: { ...item.parseMeta, macroSource, matchScore, matchedName, dataSource: match.source ?? macroSource, parserVersion: PARSER_VERSION, micronutrientSources: micro.sources } }; }
   return item;
 }
 

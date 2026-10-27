@@ -46,6 +46,7 @@ Local/Supabase sync: edge functions (+ `_shared/`) — exact count and last-veri
 Deploy:
 - Cron/webhook functions MUST deploy with verify_jwt: false (--no-verify-jwt)
 - Affected: vanguard-daily-reconciliation,
+  food-integrity-audit,
   vanguard-oracle, vanguard-auto-classify, vanguard-architect,
   vanguard-wiki-compiler,
   ingest-vault-log,

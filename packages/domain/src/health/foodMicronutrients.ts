@@ -1,8 +1,19 @@
 import type { MicronutrientKey } from './foodIntegrity.ts';
 
 /** Skąd pochodzi wartość: ze źródła danych (etykieta, baza, biblioteka) czy z oszacowania modelu. */
-export type MicronutrientOrigin = 'data' | 'estimate';
+export type MicronutrientOrigin = 'data' | 'estimate' | 'unknown';
 export type MicronutrientSources = Partial<Record<MicronutrientKey, MicronutrientOrigin>>;
+
+export function readMicronutrientSources(value: unknown): MicronutrientSources {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  const record = value as Record<string, unknown>;
+  const sources: MicronutrientSources = {};
+  for (const key of ['fiber', 'sugar', 'saturated_fat', 'salt'] as const) {
+    const origin = record[key];
+    if (origin === 'data' || origin === 'estimate' || origin === 'unknown') sources[key] = origin;
+  }
+  return sources;
+}
 
 /** Wartości w gramach dla całej porcji; brak pola = nie wiadomo (nie 0). */
 export interface MicronutrientValues {
@@ -37,6 +48,7 @@ export function mergeMicronutrients(
   matched: MicronutrientValues,
   estimated: MicronutrientValues,
   caps: { fatG: number; grams: number },
+  matchedSources?: MicronutrientSources,
 ): MergedMicronutrients {
   const values: MergedMicronutrients['values'] = {};
   const sources: MicronutrientSources = {};
@@ -49,7 +61,7 @@ export function mergeMicronutrients(
     if (field === 'saturatedFat') value = Math.min(value, Math.max(0, caps.fatG));
     if (field === 'salt') value = Math.min(value, Math.max(0, caps.grams));
     values[field] = field === 'salt' ? round2(value) : round1(value);
-    sources[key] = isNumber(fromData) ? 'data' : 'estimate';
+    sources[key] = isNumber(fromData) ? (matchedSources == null ? 'data' : matchedSources[key] ?? 'unknown') : 'estimate';
   }
   return { values, sources };
 }
@@ -108,7 +120,7 @@ export function applyMicronutrientEstimates<T extends EstimableItem>(items: T[],
     const previous = item.parseMeta?.micronutrientSources ?? {};
     const sources: MicronutrientSources = { ...merged.sources };
     // Wartość bez zapisanego źródła pochodzi z pozycji liczonej przez model (llm_estimate) albo ze źródła danych.
-    const unrecordedOrigin: MicronutrientOrigin = item.parseMeta?.macroSource === 'llm_estimate' ? 'estimate' : 'data';
+    const unrecordedOrigin: MicronutrientOrigin = item.parseMeta?.macroSource === 'llm_estimate' ? 'estimate' : 'unknown';
     for (const [field, key] of SOURCE_KEYS) {
       if (current[field] != null) sources[key] = previous[key] ?? unrecordedOrigin;
     }

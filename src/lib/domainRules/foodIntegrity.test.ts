@@ -4,7 +4,7 @@ import { auditFoodData, entryUncertaintyPct, parseAmountGrams, type AuditEntry }
 const entry = (over: Partial<AuditEntry> & { id: string }): AuditEntry => ({
   date: '2026-10-26', name: 'Produkt', amount: '100 g', calories: 200, protein: 10, carbs: 20, fat: 8.9,
   fiber: 2, sugar: 5, saturated_fat: 3, salt: 1, meal_type: 'lunch', meal_group_id: null,
-  logged_at: '2026-10-26T12:00:00Z', parse_meta: { macroSource: 'library', uncertainty_pct: 8 }, ...over,
+  logged_at: '2026-10-26T12:00:00Z', parse_meta: { macroSource: 'library', uncertainty_pct: 8, micronutrientSources: { fiber: 'data', sugar: 'data', saturated_fat: 'data', salt: 'data' } }, ...over,
 });
 
 const audit = (entries: AuditEntry[], extra: Partial<Parameters<typeof auditFoodData>[0]> = {}) =>
@@ -97,13 +97,22 @@ describe('auditFoodData: how sure we are about each nutrient', () => {
     ]);
     expect(summary.nutrients.saturated_fat).toEqual(expect.objectContaining({ knownKcalSharePct: 100, certainKcalSharePct: 50, trust: 'niepewne' }));
     const finding = findings.find((f) => f.fingerprint === 'micronutrient_gap:saturated_fat');
-    expect(finding?.message).toContain('50% kalorii to szacunek modelu');
+    expect(finding?.message).toContain('50% kalorii to szacunek lub nieznane źródło');
     expect(finding?.message).not.toContain('dolną granicą');
   });
 
-  it('keeps legacy entries without recorded provenance as data', () => {
+  it('keeps legacy values known but never calls missing provenance certain', () => {
     const { summary } = audit([entry({ id: 'old', parse_meta: null })]);
-    expect(summary.nutrients.fiber.certainKcalSharePct).toBe(summary.nutrients.fiber.knownKcalSharePct);
+    expect(summary.nutrients.fiber.knownKcalSharePct).toBe(100);
+    expect(summary.nutrients.fiber.certainKcalSharePct).toBe(0);
+    expect(summary.nutrients.fiber.trust).toBe('niepewne');
+  });
+
+  it('does not trust impossible nutrient values even when marked as data', () => {
+    const { summary } = audit([entry({ id: 'bad', saturated_fat: 50, sugar: -1, salt: NaN })]);
+    expect(summary.nutrients.saturated_fat.certainKcalSharePct).toBe(0);
+    expect(summary.nutrients.sugar.knownKcalSharePct).toBe(0);
+    expect(summary.nutrients.salt.knownKcalSharePct).toBe(0);
   });
 
   it('reports the estimate share and legacy provenance gaps', () => {
@@ -131,6 +140,9 @@ describe('helpers', () => {
     expect(parseAmountGrams(null)).toBeNull();
     expect(parseAmountGrams('250 ml')).toBe(250);
     expect(parseAmountGrams('1,5 kg')).toBe(1500);
+    expect(parseAmountGrams('100 gram')).toBe(100);
+    expect(parseAmountGrams('160 grams')).toBe(160);
+    expect(parseAmountGrams('100 g x 2')).toBeNull();
   });
 
   it('does not mistake pieces or bare numbers for grams (false "physically impossible" alarms)', () => {

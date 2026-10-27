@@ -1,4 +1,5 @@
 import type { ParsedFoodItem } from './foodLogging';
+import { readFoodProvenance, confidenceFromUncertainty } from './foodTrust';
 
 export type NutritionDayCompleteness = 'complete' | 'partial' | 'unknown';
 
@@ -145,6 +146,7 @@ export function mealMemoryToDraft(value: unknown): MealDraftItem[] {
     const fat = Number(per100.fat);
     if (!name || ![grams, calories, protein, carbs, fat].every(Number.isFinite)) return [];
     const scale = grams / 100;
+    const prior = readFoodProvenance(item.parseMeta);
     return [{
       id: `memory-${index + 1}`,
       name,
@@ -157,8 +159,15 @@ export function mealMemoryToDraft(value: unknown): MealDraftItem[] {
       sugar: per100.sugar == null ? undefined : Math.round(Number(per100.sugar) * scale * 10) / 10,
       saturatedFat: per100.saturated_fat == null ? undefined : Math.round(Number(per100.saturated_fat) * scale * 10) / 10,
       salt: per100.salt == null ? undefined : Math.round(Number(per100.salt) * scale * 100) / 100,
-      confidence: 'high' as const,
+      confidence: confidenceFromUncertainty(prior.uncertaintyPct),
       source: 'library' as const,
+      parseMeta: {
+        macroSource: prior.macroSource ?? 'library',
+        micronutrientSources: prior.micronutrientSources,
+        priorUncertaintyPct: prior.uncertaintyPct,
+        explicitGrams: prior.explicitGrams,
+        parserVersion: 'meal-memory-v2',
+      },
     }];
   });
 }

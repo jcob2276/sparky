@@ -37,6 +37,11 @@ describe('mergeMicronutrients', () => {
     expect(values.salt).toBe(0.13);
     expect(values.sugar).toBe(2.3);
   });
+
+  it('preserves cached estimates and unknown origins through library reuse', () => {
+    const { sources } = mergeMicronutrients({ salt: 1, fiber: 2 }, {}, caps, { salt: 'estimate' });
+    expect(sources).toEqual({ salt: 'estimate', fiber: 'unknown' });
+  });
 });
 
 import { applyMicronutrientEstimates, indexesMissingMicronutrients, type EstimableItem } from '@vanguard/domain';
@@ -73,7 +78,7 @@ describe('applyMicronutrientEstimates', () => {
       [item({ fiber: 1, parseMeta: { macroSource: 'library', micronutrientSources: {} } })],
       { items: [{ index: 0, salt: 0.8 }] },
     );
-    expect(fromLibrary.parseMeta?.micronutrientSources).toEqual({ fiber: 'data', salt: 'estimate' });
+    expect(fromLibrary.parseMeta?.micronutrientSources).toEqual({ fiber: 'unknown', salt: 'estimate' });
   });
 
   it('ignores garbage: wrong shape, bad indexes, non-numbers, null estimates', () => {

@@ -2,11 +2,12 @@
  * @function food-integrity-audit
  * @trigger pg_cron co poniedziałek 04:30 UTC + wywołanie z aplikacji (przycisk „Sprawdź teraz”)
  * @role Samoaudyt jedzenia: wpisy, ulubione, zdjęcia i sumy dnia; pewność każdego składnika; odwracalne autonaprawy
- * @reads daily_food_entries, food_favorites, nutrition_meal_photos, daily_nutrition, food_integrity_findings
- * @writes food_integrity_findings, food_integrity_runs, food_favorites, daily_nutrition
+ * @reads daily_food_entries, food_library, food_favorites, nutrition_meal_photos, daily_nutrition, food_integrity_findings
+ * @writes food_integrity_findings, food_integrity_runs, food_library, food_favorites, daily_nutrition
  * @consumer karta „Jakość danych” w Odżywianiu (FoodIntegrityCard)
  * @status active
  */
+import { readAuditRows } from './readRows.ts';
 import { serveJson } from '../_shared/http.ts';
 import { createServiceClient } from '../_shared/supabase.ts';
 import {
@@ -25,25 +26,15 @@ const ENTITY_KINDS = new Set(['energy_mismatch', 'placeholder_favorite', 'duplic
 const ENTRY_COLUMNS = 'id,date,name,amount,calories,protein,carbs,fat,fiber,sugar,saturated_fat,salt,meal_type,meal_group_id,logged_at,parse_meta';
 
 type Db = ReturnType<typeof createServiceClient>;
-interface Result<T> { data: T | null; error: { message: string } | null }
 interface ExistingFinding { id: string; fingerprint: string; status: string; detail: Record<string, unknown> | null }
-
 const daysAgo = (days: number) => getWarsawDateString(new Date(Date.now() - days * 86_400_000));
-
-async function must<T extends unknown[]>(query: PromiseLike<Result<T>>, label: string): Promise<T> {
-  const { data, error } = await query;
-  if (error) throw new Error(`food-integrity-audit ${label}: ${error.message}`);
-  return data ?? ([] as unknown[] as T);
-}
-
 function check(error: { message: string } | null, label: string) {
   if (error) throw new Error(`food-integrity-audit ${label}: ${error.message}`);
 }
 
 async function targetUsers(db: Db, ctx: { isServiceRole: boolean; userId: string | null }): Promise<string[]> {
   if (!ctx.isServiceRole) return ctx.userId ? [ctx.userId] : [];
-  const rows = await must<Array<{ user_id: string }>>(
-    db.from('daily_food_entries').select('user_id').gte('date', daysAgo(14)).limit(5000), 'users');
+  const rows = await readAuditRows<{ user_id: string }>((from, to) => db.from('daily_food_entries').select('user_id').gte('date', daysAgo(14)).order('id').range(from, to), 'users');
   return [...new Set(rows.map((row) => row.user_id))];
 }
 
@@ -52,9 +43,9 @@ async function selfHeal(db: Db, userId: string, findings: IntegrityFinding[]) {
   let quarantined = 0;
   let recomputed = 0;
   for (const finding of findings) {
-    if (finding.autoFix === 'quarantine_favorite' && finding.entityId) {
-      const { error } = await db.from('food_favorites')
-        .update({ validation_status: 'quarantined', validation_reason: finding.message, validated_at: nowIso })
+    if ((finding.autoFix === 'quarantine_favorite' || finding.autoFix === 'quarantine_library') && finding.entityId) {
+      const { error } = await db.from(finding.autoFix === 'quarantine_library' ? 'food_library' : 'food_favorites')
+        .update({ validation_status: 'quarantined', validation_reason: `food-integrity-audit: ${finding.message}`, validated_at: nowIso })
         .eq('id', finding.entityId).eq('user_id', userId);
       check(error, 'quarantine favorite');
       quarantined += 1;
@@ -69,11 +60,11 @@ async function selfHeal(db: Db, userId: string, findings: IntegrityFinding[]) {
 }
 
 /** Ulubiony w kwarantannie, którego wartości już się zgadzają (poprawione przez użytkownika), wraca do użycia. */
-async function releaseFixedFavorites(db: Db, userId: string, quarantinedIds: Set<string>, findings: IntegrityFinding[]): Promise<number> {
-  const stillBad = new Set(findings.filter((finding) => finding.autoFix === 'quarantine_favorite').map((finding) => finding.entityId));
+async function releaseFixedFavorites(db: Db, userId: string, quarantinedIds: Set<string>, findings: IntegrityFinding[], table: 'food_favorites' | 'food_library' = 'food_favorites'): Promise<number> {
+  const stillBad = new Set(findings.filter((finding) => finding.entityTable === table).map((finding) => finding.entityId));
   const releasable = [...quarantinedIds].filter((id) => !stillBad.has(id));
   if (!releasable.length) return 0;
-  const { error } = await db.from('food_favorites')
+  const { error } = await db.from(table)
     .update({ validation_status: 'unreviewed', validation_reason: null, validated_at: new Date().toISOString() })
     .eq('user_id', userId).in('id', releasable);
   check(error, 'release favorites');
@@ -98,8 +89,7 @@ function toRow(userId: string, finding: IntegrityFinding, nowIso: string) {
 /** Nowe znaleziska wstawia, znane odświeża (odrzucone zostają odrzucone), a niepotwierdzone w oknie zamyka. */
 async function persistFindings(db: Db, userId: string, findings: IntegrityFinding[], windowStart: string) {
   const nowIso = new Date().toISOString();
-  const existing = await must<ExistingFinding[]>(
-    db.from('food_integrity_findings').select('id,fingerprint,status,detail').eq('user_id', userId), 'existing findings');
+  const existing = await readAuditRows<ExistingFinding>((from, to) => db.from('food_integrity_findings').select('id,fingerprint,status,detail').eq('user_id', userId).order('id').range(from, to), 'existing findings');
   const byFingerprint = new Map(existing.map((row) => [row.fingerprint, row]));
   const current = new Set(findings.map((finding) => finding.fingerprint));
 
@@ -129,35 +119,46 @@ async function persistFindings(db: Db, userId: string, findings: IntegrityFindin
 
 async function auditUser(db: Db, userId: string) {
   const entityStart = daysAgo(ENTITY_WINDOW_DAYS);
-  const summaryStart = daysAgo(SUMMARY_WINDOW_DAYS);
-  const [entries, favorites, photoRows, dayTotals] = await Promise.all([
-    must<AuditEntry[]>(db.from('daily_food_entries').select(ENTRY_COLUMNS).eq('user_id', userId).gte('date', entityStart), 'entries'),
-    must<Array<AuditFavorite & { validation_status: string }>>(
-      db.from('food_favorites').select('id,name,calories,protein,carbs,fat,validation_status').eq('user_id', userId),
+  const summaryStart = daysAgo(SUMMARY_WINDOW_DAYS - 1);
+  const [entries, favorites, photoRows, dayTotals, library] = await Promise.all([
+    readAuditRows<AuditEntry>((from, to) => db.from('daily_food_entries').select(ENTRY_COLUMNS).eq('user_id', userId).gte('date', entityStart).lte('date', daysAgo(0)).order('id').range(from, to), 'entries'),
+    readAuditRows<AuditFavorite & { validation_status: string; validation_reason: string | null }>((from, to) => db.from('food_favorites').select('id,name,calories,protein,carbs,fat,validation_status,validation_reason').eq('user_id', userId).order('id').range(from, to),
       'favorites'),
-    must<Array<{ id: string; meal_group_id: string; created_at: string }>>(
-      db.from('nutrition_meal_photos').select('id,meal_group_id,created_at').eq('user_id', userId).gte('created_at', `${entityStart}T00:00:00Z`),
+    readAuditRows<{ id: string; meal_group_id: string; created_at: string }>((from, to) => db.from('nutrition_meal_photos').select('id,meal_group_id,created_at').eq('user_id', userId).gte('created_at', `${entityStart}T00:00:00Z`).order('id').range(from, to),
       'photos'),
-    must<Array<{ date: string; calories: number | null }>>(
-      db.from('daily_nutrition').select('date,calories').eq('user_id', userId).gte('date', entityStart), 'day totals'),
+    readAuditRows<{ date: string; calories: number | null }>((from, to) => db.from('daily_nutrition').select('date,calories').eq('user_id', userId).gte('date', entityStart).lte('date', daysAgo(0)).order('date').range(from, to), 'day totals'),
+    readAuditRows<AuditFavorite & { validation_status: string; validation_reason: string | null }>((from, to) => db.from('food_library').select('id,name,calories,protein,carbs,fat,validation_status,validation_reason').eq('user_id', userId).order('id').range(from, to), 'library'),
   ]);
-  const photos: AuditPhoto[] = photoRows.map((photo) => ({ id: photo.id, meal_group_id: photo.meal_group_id, date: photo.created_at.slice(0, 10) }));
+  const visibleGroups = new Set(entries.map(entry => entry.meal_group_id));
+  const unchecked = [...new Set(photoRows.map(photo => photo.meal_group_id).filter(id => !visibleGroups.has(id)))];
+  const linkedOutside = new Set<string>();
+  for (let i = 0; i < unchecked.length; i += 100) {
+    const linked = await readAuditRows<{ meal_group_id: string }>((from, to) => db.from('daily_food_entries').select('meal_group_id').eq('user_id', userId).in('meal_group_id', unchecked.slice(i, i + 100)).order('id').range(from, to), 'photo links');
+    linked.forEach(row => linkedOutside.add(row.meal_group_id));
+  }
+  const photos: AuditPhoto[] = photoRows.filter(photo => !linkedOutside.has(photo.meal_group_id)).map((photo) => ({ id: photo.id, meal_group_id: photo.meal_group_id, date: getWarsawDateString(new Date(photo.created_at)) }));
 
   const long = auditFoodData({ entries, favorites, photos, dayTotals });
   const week = auditFoodData({ entries: entries.filter((entry) => entry.date >= summaryStart), favorites: [], photos: [], dayTotals: [] });
+  const libraryFindings = auditFoodData({ entries: [], favorites: library, photos: [], dayTotals: [] }).findings.map((finding): IntegrityFinding => ({ ...finding, entityTable: 'food_library', fingerprint: `placeholder_library:${finding.entityId}`, message: finding.message.replace('Ulubiony', 'Produkt biblioteki'), autoFix: 'quarantine_library' }));
   const findings = [
+    ...libraryFindings,
     ...long.findings.filter((finding) => ENTITY_KINDS.has(finding.kind)),
     ...week.findings.filter((finding) => !ENTITY_KINDS.has(finding.kind)),
   ];
 
   const quarantinedIds = new Set(favorites.filter((favorite) => favorite.validation_status === 'quarantined').map((favorite) => favorite.id));
-  const toHeal = findings.filter((finding) => finding.autoFix !== 'quarantine_favorite' || !quarantinedIds.has(finding.entityId ?? ''));
+  const quarantinedLibrary = new Set(library.filter(row => row.validation_status === 'quarantined').map(row => row.id));
+  const toHeal = findings.filter(finding => !(finding.autoFix === 'quarantine_favorite' && quarantinedIds.has(finding.entityId ?? '')) && !(finding.autoFix === 'quarantine_library' && quarantinedLibrary.has(finding.entityId ?? '')));
   const healed = await selfHeal(db, userId, toHeal);
-  const released = await releaseFixedFavorites(db, userId, quarantinedIds, findings);
+  // Never release quarantine imposed by a different validator just because energy now matches.
+  const ownedFavorites = new Set(favorites.filter(row => row.validation_reason?.startsWith('food-integrity-audit:')).map(row => row.id));
+  const ownedLibrary = new Set(library.filter(row => row.validation_reason?.startsWith('food-integrity-audit:')).map(row => row.id));
+  const released = await releaseFixedFavorites(db, userId, ownedFavorites, findings) + await releaseFixedFavorites(db, userId, ownedLibrary, libraryFindings, 'food_library');
   // Naprawione sumy nie są już problemem; kwarantanna zostaje widoczna, bo wartość ulubionego trzeba poprawić.
   const remaining = findings
     .filter((finding) => finding.autoFix !== 'recompute_totals')
-    .map((finding) => (finding.autoFix === 'quarantine_favorite' ? { ...finding, detail: { ...finding.detail, quarantined: true } } : finding));
+    .map((finding) => (finding.autoFix?.startsWith('quarantine_') ? { ...finding, detail: { ...finding.detail, quarantined: true } } : finding));
 
   const persisted = await persistFindings(db, userId, remaining, entityStart);
   const counts = { open: remaining.length, ...persisted, ...healed, released };

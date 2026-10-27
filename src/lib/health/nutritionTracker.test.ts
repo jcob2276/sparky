@@ -31,6 +31,13 @@ function draftItem(
 }
 
 describe('nutrition tracker domain', () => {
+  it('retains estimate provenance and uncertainty when learning a repeated meal', () => {
+    const [item] = mealMemoryToDraft([{ name: 'Zupa', grams: 200, per100: { calories: 100, protein: 5, carbs: 10, fat: 4, salt: 1 }, parseMeta: { macroSource: 'llm_estimate', uncertainty_pct: 30, micronutrientSources: { salt: 'estimate' } } }]);
+    expect(item.parseMeta?.macroSource).toBe('llm_estimate');
+    expect(item.parseMeta?.priorUncertaintyPct).toBe(30);
+    expect(item.parseMeta?.micronutrientSources).toEqual({ salt: 'estimate' });
+    expect(item.confidence).toBe('low');
+  });
   it('asks at most three questions in descending calorie impact', () => {
     const items = [
       draftItem('vegetables', 'Warzywa', [
