@@ -20,7 +20,7 @@ import {
 } from '@vanguard/domain';
 
 /** Problemy na poziomie wpisu szukamy w dłuższym oknie; luki składników liczymy z ostatniego tygodnia. */
-const ENTITY_WINDOW_DAYS = 60;
+const ENTITY_WINDOW_DAYS = 400;
 const SUMMARY_WINDOW_DAYS = 7;
 const ENTITY_KINDS = new Set(['energy_mismatch', 'placeholder_favorite', 'duplicate_entry', 'orphan_photo', 'totals_drift']);
 const ENTRY_COLUMNS = 'id,date,name,amount,calories,protein,carbs,fat,fiber,sugar,saturated_fat,salt,meal_type,meal_group_id,logged_at,parse_meta';
