@@ -13,6 +13,7 @@ import type { RecentEntry } from './hooks/foodEntryUtils';
 import { useMealComposer } from './hooks/useMealComposer';
 import { useMealPhotoUrls } from './hooks/useMealPhotoUrls';
 import { useWeekBalance } from './hooks/useWeekBalance';
+import { useDayReview } from './hooks/useDayReview';
 import { computeDayNutrientCoverage } from '../../../lib/health/nutrientCoverage';
 import { computeDayEnergyRange } from '../../../lib/health/nutritionAudit';
 import { useSession } from '../../../store/useStore';
@@ -32,6 +33,7 @@ export default function MealComposer({
   const [editEntry, setEditEntry] = useState<RecentEntry | null>(null);
   const [copyDayOpen, setCopyDayOpen] = useState(false);
 
+  const dayReview = useDayReview(session?.user.id, c.logDate);
   const week = useWeekBalance(session?.user.id, c.logDate, c.totals.calories, c.totals.targetKcal);
 
   if (!session) return null;
@@ -53,6 +55,7 @@ export default function MealComposer({
           totals={c.totals}
           qualityPending={c.qualityPending}
           week={week}
+          dayReview={dayReview}
           nutrients={computeDayNutrientCoverage(c.allTodayEntries)}
           energy={computeDayEnergyRange(c.allTodayEntries)}
           macros={{

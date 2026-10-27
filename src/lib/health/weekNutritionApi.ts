@@ -1,6 +1,8 @@
 import { supabase } from '../supabase';
 import { shiftDateStr } from '../date';
 import type { NutritionDayRow } from '../weeklyNutritionPulse';
+import { fetchNutritionDayReviews } from './nutritionTrackerApi';
+import type { NutritionDayCompleteness } from './nutritionTracker';
 
 interface WeekEntryNutrients {
   date: string;
@@ -13,12 +15,13 @@ export interface WeekNutritionInputs {
   rows: NutritionDayRow[];
   entries: WeekEntryNutrients[];
   targetByDate: Record<string, number>;
+  completenessByDate: Record<string, NutritionDayCompleteness>;
 }
 
 /** Dane żywienia z tygodnia pon–nd: sumy dni, pozycje (do pokrycia błonnika i nasyconych) i dzienne cele kcal. */
 export async function fetchWeekNutritionInputs(userId: string, weekStart: string): Promise<WeekNutritionInputs> {
   const weekEnd = shiftDateStr(weekStart, 6);
-  const [rowsRes, entriesRes, targetsRes] = await Promise.all([
+  const [rowsRes, entriesRes, targetsRes, reviews] = await Promise.all([
     supabase.from('daily_nutrition')
       .select('date, calories, protein, carbs, fat, fiber, sugar, avg_food_quality, insulin_load')
       .eq('user_id', userId).gte('date', weekStart).lte('date', weekEnd).order('date', { ascending: true }),
@@ -28,13 +31,17 @@ export async function fetchWeekNutritionInputs(userId: string, weekStart: string
     supabase.from('nutrition_targets')
       .select('date, target_kcal')
       .eq('user_id', userId).gte('date', weekStart).lte('date', weekEnd).not('target_kcal', 'is', null),
+    fetchNutritionDayReviews(userId, weekStart),
   ]);
   if (rowsRes.error) throw rowsRes.error;
   if (entriesRes.error) throw entriesRes.error;
   if (targetsRes.error) throw targetsRes.error;
   const targetByDate: Record<string, number> = {};
   for (const row of targetsRes.data ?? []) if (row.target_kcal != null) targetByDate[row.date] = Number(row.target_kcal);
+  const completenessByDate: Record<string, NutritionDayCompleteness> = {};
+  for (const review of reviews) if (review.date <= weekEnd) completenessByDate[review.date] = review.completeness;
   return {
+    completenessByDate,
     rows: (rowsRes.data ?? []).map((row) => ({
       date: row.date,
       calories: row.calories,

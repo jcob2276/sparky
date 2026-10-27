@@ -113,6 +113,15 @@ export async function confirmMealCapture(input: {
   scheduleNutritionRefresh(input.userId, input.date);
 }
 
+/** Zapisuje Twoją decyzję, czy dziennik dnia jest pełny; to jedyny sygnał dla kalibracji i bilansu tygodnia. */
+export async function saveNutritionDayReview(userId: string, date: string, completeness: NutritionDayCompleteness) {
+  const { error } = await supabase.from('nutrition_day_reviews').upsert(
+    { user_id: userId, date, completeness, confirmed_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { onConflict: 'user_id,date' },
+  );
+  if (error) throw error;
+}
+
 export async function fetchNutritionDayReviews(userId: string, since: string) {
   const { data, error } = await supabase.from('nutrition_day_reviews')
     .select('date,completeness')

@@ -27,7 +27,7 @@ export function buildWeekNutrition(input: {
   const coverage = computeDayNutrientCoverage(data.entries.filter((entry) => loggedDates.has(entry.date)));
   return {
     pulse: buildWeeklyNutritionPulse({ rows: data.rows, proteinGoal, kcalTarget: fallbackTarget, today }),
-    balance: computeWeekBalance({ weekStart, today, eatenByDate, targetByDate: data.targetByDate, fallbackTarget }),
+    balance: computeWeekBalance({ weekStart, today, eatenByDate, targetByDate: data.targetByDate, completenessByDate: data.completenessByDate, fallbackTarget }),
     fiber: coverage.fiber,
     saturatedFat: coverage.saturatedFat,
     salt: coverage.salt,

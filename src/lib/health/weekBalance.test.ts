@@ -13,7 +13,24 @@ describe('computeWeekBalance', () => {
       fallbackTarget: null,
     });
     // średni cel 2500 → budżet 3 dni (7500) + 4 dni × 2500 = 17500
-    expect(result).toEqual({ eaten: 6946, budget: 17500, remaining: 10554, perDayLeft: 2111, daysLeft: 5, missingDays: 0 });
+    expect(result).toEqual({ eaten: 6946, budget: 17500, remaining: 10554, perDayLeft: 2111, daysLeft: 5, missingDays: 0, partialDays: 0, binding: true });
+  });
+
+  it('potwierdzony pusty dzień to post, a dzień oznaczony jako niepełny odbiera budżetowi wiążący charakter', () => {
+    const base = {
+      weekStart: WEEK,
+      today: '2026-10-22',
+      eatenByDate: { '2026-10-19': 2500, '2026-10-21': 2400 },
+      targetByDate: { '2026-10-19': 2500, '2026-10-20': 2500, '2026-10-21': 2500 },
+      fallbackTarget: null,
+    };
+    const fasted = computeWeekBalance({ ...base, completenessByDate: { '2026-10-20': 'complete' } });
+    expect(fasted).toMatchObject({ missingDays: 0, partialDays: 0, binding: true });
+
+    const partial = computeWeekBalance({ ...base, completenessByDate: { '2026-10-20': 'complete', '2026-10-21': 'partial' } });
+    expect(partial).toMatchObject({ missingDays: 0, partialDays: 1, binding: false });
+
+    expect(computeWeekBalance(base)).toMatchObject({ missingDays: 1, binding: false });
   });
 
   it('zgłasza dni bez wpisów zamiast cicho zawyżać pozostałe kcal', () => {

@@ -9,6 +9,7 @@ describe('buildWeekNutrition', () => {
   it('liczy budżet pon–nd i pokrycie błonnika tylko z dni, które się liczą', () => {
     const result = buildWeekNutrition({
       data: {
+        completenessByDate: {},
         rows: [row('2026-10-19', 2500), row('2026-10-20', 2600), row('2026-10-21', 1000)],
         entries: [
           { date: '2026-10-19', fiber: 3, saturated_fat: null, salt: 2.5 },

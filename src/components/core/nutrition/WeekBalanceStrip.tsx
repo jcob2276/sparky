@@ -21,15 +21,20 @@ export default function WeekBalanceStrip({ week }: { week: WeekBalance }) {
         />
       </span>
       <p className="text-xs font-semibold leading-snug text-text-muted">
-        {over ? 'Ponad budżet o ' : 'Zostało '}
+        {over ? 'Ponad budżet o ' : week.binding ? 'Zostało ' : 'Orientacyjnie zostało '}
         <span className="font-semibold tabular-nums text-text-primary">{fmt(Math.abs(week.remaining))} kcal</span>
-        {week.perDayLeft != null && !over && (
+        {week.perDayLeft != null && !over && week.binding && (
           <> · ok. <span className="font-semibold tabular-nums text-text-primary">{fmt(week.perDayLeft)}</span>/dzień przez {week.daysLeft} {week.daysLeft === 1 ? 'dzień' : 'dni'}</>
         )}
       </p>
       {week.missingDays > 0 && (
         <p className="text-2xs font-semibold text-warning">
           Brak wpisów z {week.missingDays} {week.missingDays === 1 ? 'dnia' : 'dni'}: realnie zostało mniej.
+        </p>
+      )}
+      {week.partialDays > 0 && (
+        <p className="text-2xs font-semibold text-warning">
+          {week.partialDays} {week.partialDays === 1 ? 'dzień oznaczony' : 'dni oznaczone'} jako niepełne: nie licz na dzienną pulę.
         </p>
       )}
     </div>

@@ -30,6 +30,7 @@ export function useWeekBalance(
       today: getTodayWarsaw(),
       eatenByDate: { ...data.eatenByDate, [logDate]: liveCalories },
       targetByDate: data.targetByDate,
+      completenessByDate: data.completenessByDate,
       fallbackTarget,
     });
   }, [data, weekStart, logDate, liveCalories, fallbackTarget]);

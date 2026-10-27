@@ -4,6 +4,8 @@ import type { DayNutrientCoverage } from '../../../lib/health/nutrientCoverage';
 import type { DayEnergyRange } from '../../../lib/health/nutritionAudit';
 import NutrientCoverageStrip from './NutrientCoverageStrip';
 import WeekBalanceStrip from './WeekBalanceStrip';
+import DayCompletenessToggle from './DayCompletenessToggle';
+import type { DayReview } from './hooks/useDayReview';
 
 type Totals = {
   calories: number;
@@ -93,6 +95,7 @@ export function ComposerProgress({
   week,
   nutrients,
   energy,
+  dayReview,
 }: {
   totals: Totals;
   qualityPending: boolean;
@@ -100,6 +103,7 @@ export function ComposerProgress({
   week?: WeekBalance | null;
   nutrients?: DayNutrientCoverage;
   energy?: DayEnergyRange | null;
+  dayReview?: DayReview;
 }) {
   const targetKcal = totals.targetKcal ?? FALLBACK_TARGET_KCAL;
   const eaten = Math.round(totals.calories);
@@ -138,6 +142,7 @@ export function ComposerProgress({
     </div>
     {energy && <EnergyRangeLine energy={energy} />}
     {nutrients && <NutrientCoverageStrip coverage={nutrients} />}
+    {dayReview && <DayCompletenessToggle review={dayReview} />}
     {week && <WeekBalanceStrip week={week} />}
     </div>
   );
