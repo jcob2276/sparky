@@ -23,11 +23,13 @@ import { fetchWorldState } from "../../_shared/worldState.ts";
 import { logOracleRun, processOracleMutations } from "./mutations.ts";
 import { buildSqlTool } from "./sqlTool.ts";
 import { containsDsmlToolMarkup, stripDsmlMarkup } from "./dsmlSqlExtract.ts";
-import { OracleResponseSchema, extractAnswer } from "./responseExtract.ts";
+import { OracleResponseSchema, extractAnswer, salvageJsonAnswer } from "./responseExtract.ts";
 import { handleStreamingResponse } from "./streamHandler.ts";
 import { handleNoteSummary, handleExtractTasks } from "../handlers/noteOps.ts";
 import { getCircadianStance } from "./circadian.ts";
 import { fetchCoreMemory, persistCoreMemoryResponse } from "./coreMemory.ts";
+import { fetchConversationAwareness } from "./conversationAwareness.ts";
+import { fetchEchoes } from "./echoes.ts";
 
 const MAX_SQL_TOOL_ITERATIONS = 3;
 
@@ -88,7 +90,10 @@ export async function runOracleQuery(
 
 
   const rag = await retrieveRagContext(supabase, user_id, current_query, todayDate, fourteenDaysAgoDate, mode, cutoff72h);
-  const coreMemory = await fetchCoreMemory(supabase, user_id);
+  const [coreMemory, awarenessBase, echoesText] = await Promise.all([fetchCoreMemory(supabase, user_id), fetchConversationAwareness(supabase, user_id, now, todayDate), fetchEchoes(supabase, user_id, current_query, todayDate)]);
+  const awarenessText = echoesText ? `${awarenessBase}
+
+${echoesText}` : awarenessBase;
 
   const stateVectorObj = typeof safeStateVector === "object" && safeStateVector !== null
     ? (safeStateVector as Record<string, unknown>)
@@ -122,6 +127,7 @@ export async function runOracleQuery(
     dayLoopContextText: rag.dayLoopContextText,
     dayOfWeek,
     isWeekend,
+    awarenessText,
   });
 
   const compressedHistory = await compressHistoryIfNeeded(history || []);
@@ -238,7 +244,7 @@ export async function runOracleQuery(
     } else {
       structuredResponse = validation.data;
       if (!structuredResponse.answer && !structuredResponse.text && rawOutput.trim() && Object.keys(parsedObj).length === 0) {
-        structuredResponse.answer = rawOutput.trim();
+        structuredResponse.answer = salvageJsonAnswer(rawOutput) ?? rawOutput.trim();
       }
     }
 

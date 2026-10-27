@@ -1,9 +1,7 @@
 import type { TelegramRouterContext } from "./config.ts";
 import { deepseekChat, parseJsonFromContent } from "../../_shared/deepseek.ts";
 import { LLM_TASKS } from "../../_shared/llm/tasks.ts";
-import { getWarsawDateString } from "../../_shared/time.ts";
 import { sendChatAction } from "../../_shared/telegram.ts";
-import { fetchWorldState } from "../../_shared/worldState.ts";
 import { logAuditEvent } from "../../_shared/audit.ts";
 
 export async function queryOracle(
@@ -22,42 +20,13 @@ export async function queryOracle(
 
   const oracleHistory = (historyData || []).reverse();
 
-  const todayWarsawDate = getWarsawDateString();
-  const worldState = await fetchWorldState(supabase, vanguardUserId, todayWarsawDate).catch((e) => {
-    console.error("[telegram] fetchWorldState failed:", e);
-    return null;
-  });
-
-  const oura = worldState?.biometrics?.oura_history?.[0] || null;
-  const stateVector = worldState ? {
-    biometrics: {
-      hrv_avg: worldState.biometrics.hrv_avg,
-      sleep_hours: worldState.biometrics.sleep_hours,
-      oura_last_night: oura ? {
-        date: oura.date, bedtime: oura.bedtime_timestamp, sleep_hours: oura.total_sleep_hours,
-        readiness: oura.readiness_score, hrv: oura.hrv_avg, rhr: oura.rhr_avg,
-        deep_sleep_hours: oura.deep_sleep_hours, rem_sleep_hours: oura.rem_sleep_hours,
-        sleep_efficiency: oura.sleep_efficiency, latency_minutes: oura.latency_minutes,
-        sleep_data_status: oura.date === todayWarsawDate ? 'synced' : 'pending'
-      } : { sleep_data_status: 'pending' }
-    },
-    nutrition: { calories_today: worldState.nutrition?.calories_today || 0 },
-    physical: { last_workout: worldState.training?.last_training_date || 'Brak danych' },
-    discipline: { today_wins: 'Nie ustawiono celów' }
-  } : {
-    biometrics: { sleep_data_status: 'pending' },
-    nutrition: { calories_today: 0 },
-    physical: { last_workout: 'Brak danych' },
-    discipline: { today_wins: 'Nie ustawiono celów' }
-  };
-
   // Entity resolution
   let resolvedClaimsContext = "";
   try {
     const nluPrompt = `Jesteś modułem NLU w Vanguard OS. Wyodrębnij z tekstu główne nazwy encji (ludzi, celów, pojęć, projektów). Zwróć TYLKO JSON:
 {"entities": [{"name": "Nazwa", "kind": "person"}]}
 Dozwolone kind: "person" | "concept" | "place" | "education" | "role" | "event" | "other".
-Tekst: "${cleanText}"`;
+Tekst: ${JSON.stringify(cleanText)}`;
 
     const nluRes = await deepseekChat({
       apiKey: deepseekApiKey,
@@ -139,7 +108,7 @@ Tekst: "${cleanText}"`;
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${supabaseServiceRoleKey}`, 'apikey': supabaseServiceRoleKey },
       body: JSON.stringify({
-        current_query: cleanText, user_id: vanguardUserId, state_vector: stateVector,
+        current_query: cleanText, user_id: vanguardUserId,
         mode: mode === 'report' ? 'mirror' : 'chat',
         thinking: mode === 'deep', history: oracleHistory,
         resolved_claims: resolvedClaimsContext

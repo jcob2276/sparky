@@ -57,7 +57,19 @@ export async function runRagPipeline(
     console.log(`[RAG LOG] Step 1 (Facts): Retrieved ${uniqueFacts.length} unique facts.`);
 
     if (uniqueFacts.length > 0) {
-      graphContext = truncateToBudget("[WARSTWA FAKTÓW (Zweryfikowana wiedza)]:\n" + uniqueFacts.map((f: any) => f.fact_text ? `- ${f.fact_text}` : `- ${f.source_entity} ${f.relation} ${f.target_entity}`).join('\n'), 4000);
+      // Większość wpisów to jednorazowe wyciągi LLM (≈1–2 obserwacje), nie sprawdzona wiedza: pokazuj siłę dowodu i wiek.
+      const evidenceTag = (f: any) => {
+        // RPC-i grafu nie zawsze zwracają te pola: brak pola = brak informacji, nie „1".
+        const parts: string[] = [];
+        if (f.evidence_count != null) parts.push(`obserwacji: ${Number(f.evidence_count)}`);
+        const when = String(f.learned_at || f.last_seen || '').slice(0, 10);
+        if (when) parts.push(`zapisane ${when}`);
+        return parts.length ? ` (${parts.join(', ')})` : '';
+      };
+      graphContext = truncateToBudget(
+        "[PAMIĘĆ Z GRAFU — zapamiętane obserwacje z wcześniejszych rozmów, NIE sprawdzone fakty]:\n" +
+        "Zasada: obserwacji 1–2 to sygnał, nie prawda o Jakubie; wymaga potwierdzenia w tym, co mówi teraz. Starsze niż 3 tygodnie traktuj jak tło. Nie przedstawiaj ich jako pewnika.\n" +
+        uniqueFacts.map((f: any) => (f.fact_text ? `- ${f.fact_text}` : `- ${f.source_entity} ${f.relation} ${f.target_entity}`) + evidenceTag(f)).join('\n'), 4000);
     } else {
       graphContext = "[WARSTWA FAKTÓW]: Brak pasujących zweryfikowanych faktów.";
     }

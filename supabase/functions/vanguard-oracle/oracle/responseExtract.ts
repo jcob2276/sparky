@@ -60,8 +60,20 @@ export function extractAnswer(structuredResponse: any, rawOutput: string): strin
         // ignore JSON parse error
       }
     }
+    if (trimmedRaw.startsWith('{')) {
+      const salvaged = salvageJsonAnswer(trimmedRaw);
+      if (salvaged) return salvaged;
+    }
     return trimmedRaw;
   }
 
   return "Błąd generowania odpowiedzi.";
+}
+
+/** Gdy model zwrócił prawie-JSON (np. nieescapowane cudzysłowy) i parse padł: wyciągnij samo pole answer zamiast wysyłać surowy `{ "answer": ...` do czatu. */
+export function salvageJsonAnswer(raw: string): string | null {
+  const m = raw.match(/"answer"\s*:\s*"([\s\S]*?)"\s*(?:,\s*"(?:confidence|intent_confirmed|claims|clarification_request|schedule_poke|should_respond|core_memory_mutation|mint_fact_id)"|\}\s*$)/);
+  if (!m) return null;
+  const text = m[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\').trim();
+  return text.length > 0 ? text : null;
 }
