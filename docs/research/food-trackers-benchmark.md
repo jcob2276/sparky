@@ -12,6 +12,61 @@ Każdy fakt ma etykietę wiarygodności:
 
 Liczby dokładności typu „±4%" z blogów porównawczych **nie są dowodem**. Używam ich tylko do rankingu kierunkowego.
 
+## 0a. Weryfikacja (2026-10-27): stan faktyczny, nie z pamięci
+
+Sprawdzone bezpośrednio w bazie produkcyjnej, kodzie i dokumentacji źródeł. To jest część raportu o najwyższej wiarygodności [P].
+
+### Nasza baza (Supabase `pdvqkgfsqziqlhptatgf`)
+
+| Fakt | Wartość | Wniosek |
+|---|---|---|
+| Wpisy w dzienniku `daily_food_entries` | 1224 | |
+| Wpisy **bez** proweniencji (`macroSource` brak) | **ok. 804 z 1224 (66%)** w tym 727 bez żadnego znacznika zaufania | Większość historii to dane sprzed modelu pewności. Nie wiemy, jak dokładne są. Największa dziura w „pewności". |
+| Wpisy z `llm_estimate` | 134 (śr. niepewność 14,9%) | Najsłabsza warstwa, ale uczciwie oznaczona. |
+| Wpisy z biblioteki / OFF / korekty użytkownika | 164 / 81 / 20 | Najlepsza warstwa (niepewność 7–10%). |
+| Wpisy z `reference_pl` | ok. 9 | Prawie nieużywana. |
+| Tabela `food_reference_pl` | **22 rekordy** (bigos, rosół, pierogi...) | Baza referencyjna to w praktyce lista startowa. |
+| Dodatkowo w kodzie: `foodReferencePl.ts` (ok. 23 poz.) i `foodGeneric.ts` (ok. 57 poz.) | ok. 80 pozycji na sztywno | To jest cała „wiedza referencyjna" systemu. USDA ma ponad 5 tys. samych pozycji FNDDS. |
+| `food_library` / `food_favorites` | 234 / 551 | Najwartościowsze dane — Twoje własne. |
+| Rozszerzenia | `vector` 0.8.0, `pg_trgm`, `pg_cron`, `pg_net` | **pgvector już jest** — RAG nie wymaga nowej infrastruktury. |
+| Brak `amount_grams` w `daily_food_entries` | Porcja siedzi w tekstowym polu `amount` | Przy RAG i uczeniu biasu porcji trzeba mieć gramy jako liczbę. To realna luka schematu. |
+
+### Co sprawdziłem w źródłach zewnętrznych
+
+- **USDA FoodData Central** [P]: dane w domenie publicznej, CC0 1.0. Klucz API wymagany (data.gov), domyślnie 1000 zapytań/h na IP; `DEMO_KEY` tylko 30/h i 50/dobę. Zrzuty do pobrania: Foundation Foods (04/2026, CSV 32 MB rozpakowany), SR Legacy (04/2018, CSV 54 MB), FNDDS 2021–2023 (10/2024, CSV 1,6 GB), Branded (04/2026, CSV 2,9 GB). Pełny zrzut ok. 3,1 GB. **Wniosek:** import offline do własnej bazy jest łatwy i legalny; nie trzeba wołać API na żywo.
+- **Open Food Facts** [P, dokumentacja]: baza ODbL, zawartość rekordów DbCL, zdjęcia CC BY-SA. Limity: produkt 15 zapytań/min/IP, search 10/min/IP, przy przekroczeniu 503 i możliwa blokada IP. Wymagany `User-Agent` w formacie `Aplikacja/Wersja (e-mail)`. **Zakaz używania search do podpowiedzi podczas pisania.** Pełnotekstowe wyszukiwanie ma być przez `search.openfoodfacts.org`. Zrzuty: CSV i JSONL.
+- **Nutrition5k** [P]: 5006 talerzy ze stołówek Google, ważone składniki, część z głębią, CC BY 4.0, archiwum 181,4 GB. Do naszego benchmarku nie jest potrzebny w całości, ale daje sprawdzoną metodologię MAE.
+- **Boohee** [V]: dane ze strony producenta, patrz sekcja 1.
+- **PZH/IŻŻ** [niezweryfikowane]: tabele Kunachowicz i in. (PZWL, wyd. 2 z 2017) są książką chronioną prawem autorskim. Na stronie PZH jest PDF „baza danych – wersja pełna", ale nie udało mi się odczytać jego treści ani warunków użycia. **Nie importować, dopóki warunki nie zostaną potwierdzone.** To zmienia priorytet: zamiast PZH najpierw USDA (CC0) + dane z etykiet + Twoje własne ważenia.
+
+### Znalezione problemy w obecnym kodzie (do poprawy niezależnie od roadmapy)
+
+1. **`reconcile.ts` używa przestarzałego endpointu OFF** (`world.openfoodfacts.org/cgi/search.pl`) z `User-Agent: VanguardOS/1.0` bez kontaktu. Dokumentacja wymaga formatu z e-mailem, a search ma limit 10/min/IP. Edge functions Supabase dzielą adresy IP, więc ryzyko 503 jest realne. `lookup-food` robi to lepiej (nowy search + `OFF_USER_AGENT`). Naprawa: jeden wspólny klient OFF z kontaktem w UA, retry, cache w bazie.
+2. **Dwie niezależne ścieżki do OFF** (reconcile i lookup-food) — duplikacja i różne zachowania.
+3. **66% historii bez proweniencji** — można je częściowo odtworzyć: wpisy z tej samej potrawy w bibliotece/ulubionych dają źródło wstecz (backfill „provenance by match").
+
+### Repozytoria GitHub (przejrzane przez publiczne API, 2026-10-27)
+
+Wniosek główny: **gotowego odpowiednika nie ma.** Nie znalazłem repozytorium łączącego uziemienie w bazie referencyjnej, model niepewności, audyt historii i personalizację. Są elementy:
+
+| Repo | Co daje | Licencja | Użyteczność dla nas |
+|---|---|---|---|
+| openfoodfacts/openfoodfacts-js (265★) | Oficjalny klient API | Apache-2.0 | Można wzorować wspólnego klienta OFF (lub użyć) |
+| openfoodfacts/robotoff (117★) | Predykcje danych produktów, ekstrakcja z etykiet | AGPL-3.0 | Tylko jako wzór; AGPL — nie wklejać kodu |
+| openfoodfacts/openfoodfacts-server (1193★) | Silnik OFF, logika Nutri-Score/NOVA | AGPL-3.0 | Źródło algorytmu do ponownej implementacji (algorytm jest publiczny) |
+| mkayeterry/usda-fdc-data (13★) | Czyszczenie zbiorów USDA FDC | MIT | Wzór pipeline'u importu |
+| jack-tol/usda-food-pipeline (8★) | Pipeline Branded USDA | MIT | Wzór |
+| harsha-gouda/foodscribe (4★) | Parser opisów posiłków LLM + wyszukiwanie USDA | brak licencji | Tylko idea (LLM→USDA), jak DietAI24 |
+| IS2AI/Multitask-Food-Portion-Estimation (10★) | Model porcji + zbiór FPB | AGPL-3.0 | Badawcze; AGPL |
+| felixmelanson/crono-vision (31★) | Foto→Cronometer przez Gemini | brak licencji | Idea; używa nieudokumentowanego API — nie kopiować |
+| brandonp2412/FitBook (176★) | Offline tracker + kody kreskowe | MIT | Wzór UX skanowania |
+| tahaygun/ai-calorie-tracker (24★) | BYOK AI tracker | „Other" | Idea |
+| trygvem99/caltrack (0★) | Adaptacyjne TDEE z trendu wagi | brak licencji | Tylko idea; 0★, niezweryfikowane |
+| forketyfork/obsidian-food-tracker (19★) | Wtyczka Obsidiana | MIT | Nieistotne |
+
+Zasada: z repozytoriów bierzemy **pomysły i algorytmy publiczne**, nie kod z AGPL ani bez licencji. Kod MIT/Apache można adaptować z zachowaniem noty.
+Ograniczenie: wyszukiwanie GitHub zwraca wyniki częściowe (np. dla „MacroFactor algorithm" nic istotnego; dla polskich tabel 0), więc „nie ma" znaczy „nie znalazłem".
+
 ## 1. Mapa rynku: kto jest najlepszy w czym
 
 | Aplikacja (region) | Czym wygrywa | Czego nie robi | Jakość dowodów |
@@ -66,7 +121,8 @@ Skala: wpływ i wysiłek 1–5. Priorytet P0 = zrób najpierw.
 
 **A. Baza referencyjna jako uziemienie (RAG à la DietAI24/Boohee).**
 Wpływ 5, wysiłek 4.
-- Zaimportować i zindeksować: **USDA FoodData Central** (domena publiczna; Foundation/SR Legacy/FNDDS; FNDDS ma miary porcji), tabele **IŻŻ/PZH** (sprawdzić licencję przed importem), **Open Food Facts** dla kodów kreskowych (licencja ODbL: share-alike i atrybucja — dla własnego użytku OK, ale rozważyć gdy dane wychodzą na zewnątrz).
+- Zaimportować i zindeksować offline: **USDA FoodData Central** (CC0; Foundation + SR Legacy + FNDDS, razem poniżej 2 GB CSV; Branded 2,9 GB opcjonalnie), **Open Food Facts** dla kodów kreskowych i polskich produktów (ODbL — dla własnego użytku OK; zrzut JSONL zamiast zapytań na żywo). Tabele **IŻŻ/PZH** dopiero po potwierdzeniu licencji (patrz sekcja 0a). Tłumaczenie nazw PL↔EN: model + słownik, z pgvector na embeddingach.
+- Baza ma dziś tylko ok. 80 pozycji referencyjnych (22 w tabeli + ok. 57 w kodzie), więc nawet sam Foundation + SR Legacy zmieniłby skalę o rząd wielkości.
 - Wyszukiwanie wektorowe (pgvector w Supabase) + dopasowanie leksykalne po polsku; LLM opisuje, retrieval zwraca kandydatów, reconcile wybiera.
 - Zasada: każdy wpis ma `reference_id` i `source_tier`.
 - Uwaga jakościowa: liczby wielkości baz API (Nutritionix 1,9 mln, FatSecret 1,9 mln, Edamam ~900 tys., USDA 250–370 tys.) pochodzą z blogów dostawców [S] i są sprzeczne; wielkość nie świadczy o jakości.
@@ -118,6 +174,7 @@ Wpływ 3, wysiłek 4 (zależy od danych). Bez CGM: zbierać proxy (energia/senno
 
 Każdy plaster kończy się konsumentem w UI/Telegram (zasada Done).
 
+0. **Higiena (z sekcji 0a)** — wspólny klient OFF z poprawnym User-Agent i cache, kolumna gramów jako liczba, backfill proweniencji dla 66% historii.
 1. **Benchmark (D)** — najpierw, żeby mierzyć wszystko dalej. Wynik: skrypt + tabela wyników + wskaźnik w widoku zdrowia.
 2. **Taksonomia źródeł (B)** + migracja pól `source_tier`. Wynik: znaczek zaufania w wpisie.
 3. **Baza referencyjna (A)** — USDA FDC + PZH/IŻŻ w pgvector, RAG w `reconcile`. Wynik: wyższy odsetek wpisów `ref`/`lab`.
