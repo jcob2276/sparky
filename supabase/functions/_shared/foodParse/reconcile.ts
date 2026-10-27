@@ -1,3 +1,4 @@
+import { offNutrimentsPer100, searchOffProducts } from '../offClient.ts';
 import { assessEnergyConsistency, mergeMicronutrients, type MicronutrientSources } from "@vanguard/domain";
 import { deepseekChat, parseJsonFromContent } from "../deepseek.ts";
 import { openaiChat } from "../openai.ts";
@@ -93,15 +94,15 @@ function recalcFromPer100g(grams: number, per100: Per100gFood) {
 }
 
 async function lookupOffFast(name: string): Promise<{ match: Per100gFood; score: number; macroSource: 'off' } | null> {
-  const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(name)}&search_simple=1&action=process&json=1&page_size=5&tagtype_0=languages&tag_contains_0=contains&tag_0=polish`;
-  try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'VanguardOS/1.0' }, signal: AbortSignal.timeout(6000) });
-    if (!res.ok) return null;
-    const json = await res.json() as { products?: Array<{ product_name?: string; nutriments?: Record<string, number> }> };
-    const results: Per100gFood[] = (json.products ?? []).filter((p) => p.product_name && p.nutriments?.['energy-kcal_100g'] != null).map((p) => ({ name: p.product_name!, calories: Math.round(Number(p.nutriments!['energy-kcal_100g'])), protein: p.nutriments!['proteins_100g'] ?? 0, carbs: p.nutriments!['carbohydrates_100g'] ?? 0, fat: p.nutriments!['fat_100g'] ?? 0, fiber: p.nutriments!['fiber_100g'], sugar: p.nutriments!['sugars_100g'], saturatedFat: p.nutriments!['saturated-fat_100g'], salt: p.nutriments!['salt_100g'], source: 'off' as const }));
-    const picked = pickBestMatchScored(name, results);
-    return picked ? { match: picked.match, score: picked.score, macroSource: 'off' } : null;
-  } catch { return null; }
+  const { products } = await searchOffProducts(name, 5);
+  // Bez kcal nie ma co mapować; pozostałe braki zostają null (nieznane to nie zero).
+  const results: Per100gFood[] = products.flatMap((product): Per100gFood[] => {
+    const productName = [product.product_name, product.product_name_pl].find((value): value is string => typeof value === 'string' && value.trim() !== '');
+    const per100 = offNutrimentsPer100(product.nutriments);
+    return productName && per100.calories != null ? [{ name: productName, ...per100, source: 'off' as const }] : [];
+  });
+  const picked = pickBestMatchScored(name, results);
+  return picked ? { match: picked.match, score: picked.score, macroSource: 'off' } : null;
 }
 
 async function verifyMatchWithLLM(query: string, candidate: string, apiKey: string): Promise<boolean> {

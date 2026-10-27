@@ -11,8 +11,7 @@
 import { serveJson } from '../_shared/http.ts'
 import { GENERIC_FOODS, searchGenericFoods, pickBestGenericMatch } from '../_shared/foodGeneric.ts'
 import { lookupReferencePl } from '../_shared/foodReferencePl.ts'
-
-const OFF_USER_AGENT = 'VanguardOS/1.0 (jakub@vanguard.os - personal nutrition log)'
+import { fetchOffWithRetry, searchOffProducts } from '../_shared/offClient.ts'
 
 interface FoodResult {
   barcode: string | null
@@ -129,22 +128,6 @@ function offProductToResult(product: any, barcode: string | null): FoodResult | 
   }
 }
 
-// OFF is volunteer-run and occasionally throws transient 5xx under load —
-// one retry after a short backoff smooths that over without masking real failures.
-async function fetchOffWithRetry(url: string): Promise<Response | null> {
-  for (let attempt = 0; attempt < 2; attempt++) {
-    if (attempt > 0) await new Promise((r) => setTimeout(r, 400))
-    try {
-      const res = await fetch(url, { headers: { 'User-Agent': OFF_USER_AGENT }, signal: AbortSignal.timeout(22000) })
-      if (res.ok) return res
-      console.warn(`[lookup-food] OFF attempt ${attempt + 1} -> ${res.status}`)
-    } catch (err: unknown) {
-      console.warn(`[lookup-food] OFF attempt ${attempt + 1} threw:`, err instanceof Error ? err.message : String(err))
-    }
-  }
-  return null
-}
-
 async function lookupOneBarcode(barcode: string): Promise<FoodResult | null> {
   const res = await fetchOffWithRetry(`https://pl.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`)
   if (!res) return null
@@ -177,42 +160,11 @@ async function lookupByBarcode(barcode: string): Promise<FoodResult[]> {
 }
 
 async function searchOpenFoodFacts(query: string): Promise<{ results: FoodResult[]; status: 'ok' | 'unavailable'; incompleteCount: number }> {
-  // 1. Primary: Search-a-licious API (modern, dedicated search cluster, fast and resilient)
-  const fields = 'code,product_name,product_name_pl,product_name_en,brands,nutriments,serving_size,quantity,product_quantity'
-  const modernUrl = `https://search.openfoodfacts.org/search?q=${encodeURIComponent(query)}&page_size=15&langs=pl,en&fields=${fields}`
-  try {
-    const res = await fetch(modernUrl, {
-      headers: { 'User-Agent': OFF_USER_AGENT },
-      signal: AbortSignal.timeout(7000),
-    })
-    if (res.ok) {
-      const json = await res.json()
-      const hits = json.hits || []
-      const mapped = hits.map((h: any) => offProductToResult(h, h.code || null)).filter(Boolean) as FoodResult[]
-      const complete = mapped.filter((p) => !p.incomplete)
-      if (complete.length > 0 || mapped.length > 0) {
-        return { results: complete, status: 'ok', incompleteCount: mapped.length - complete.length }
-      }
-    } else {
-      console.warn(`[lookup-food] search.openfoodfacts.org returned ${res.status}`)
-    }
-  } catch (err: unknown) {
-    console.warn('[lookup-food] search.openfoodfacts.org fallback:', err instanceof Error ? err.message : String(err))
-  }
-
-  // 2. Fallback: pl.openfoodfacts.org CGI with countries=poland (avoid deprecated languages=polish which returns 503)
-  const legacyUrl = `https://pl.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10&tagtype_0=countries&tag_contains_0=contains&tag_0=poland`
-  const res = await fetchOffWithRetry(legacyUrl)
-  if (!res) return { results: [], status: 'unavailable', incompleteCount: 0 }
-  try {
-    const json = await res.json()
-    const products = json.products || []
-    const mapped = products.map((p: any) => offProductToResult(p, p.code || null)).filter(Boolean) as FoodResult[]
-    const complete = mapped.filter((product) => !product.incomplete)
-    return { results: complete, status: 'ok', incompleteCount: mapped.length - complete.length }
-  } catch {
-    return { results: [], status: 'unavailable', incompleteCount: 0 }
-  }
+  const { products, status } = await searchOffProducts(query)
+  if (status === 'unavailable') return { results: [], status, incompleteCount: 0 }
+  const mapped = products.map((p) => offProductToResult(p, typeof p.code === 'string' ? p.code : null)).filter(Boolean) as FoodResult[]
+  const complete = mapped.filter((product) => !product.incomplete)
+  return { results: complete, status: 'ok', incompleteCount: mapped.length - complete.length }
 }
 
 Deno.serve(serveJson(async (req) => {
