@@ -1,4 +1,5 @@
 import { safeSendTelegram } from "../../_utils/helpers.ts";
+import { DEFAULT_REPLY_KEYBOARD, FOOD_APP_ONLY_MESSAGE } from "../../_utils/constants.ts";
 import { handleSuplementCommand } from "../../_handlers/supplements.ts";
 import { handleTrainingCommand } from "../../_handlers/trainingPlan.ts";
 import {
@@ -11,7 +12,6 @@ import {
   handleLenieCommand,
   handleTodoCommand,
   handleKeepCommand,
-  handlePosilekCommand,
   handleWalenieCommand,
   handlePokeCommand,
   handleTerazCommand,
@@ -83,7 +83,7 @@ export class CommandRouterInterceptor implements MessageInterceptor {
       return true;
     }
     if (lowerText.startsWith("/posilek") || lowerText.startsWith("/posiłek")) {
-      await handlePosilekCommand(ctx.text, ctx.chatId, ctx.telegramToken, ctx.supabase, ctx.vanguardUserId, ctx.deepseekApiKey, ctx.supabaseUrl, ctx.supabaseServiceRoleKey);
+      await safeSendTelegram(ctx.chatId, FOOD_APP_ONLY_MESSAGE, ctx.telegramToken, { reply_markup: DEFAULT_REPLY_KEYBOARD });
       return true;
     }
     if (lowerText.startsWith("/lenie")) {

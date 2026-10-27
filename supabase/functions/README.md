@@ -54,7 +54,7 @@ Edit **one handler per change**. Webhook entry is a thin router (~35 LOC). The f
 | `constants.ts` | `getVanguardUserId` | Single-user default ID |
 | `time.ts` | `getWarsawDateString`, `getWarsawDayBoundaries`, `getStreamCutoffs` | Warsaw day ranges |
 | `streamContext.ts` | `fetchBriefingStreamLayers`, `fetchOracleStreamSlices`, formatters | Stream context (current-first) |
-| `telegram.ts` | `sendMessage`, `sendMessageParsed`, `answerCallbackQuery`, `clearInlineKeyboard`, `getTelegramFilePath`, `sendChatAction` | All Telegram Bot API from functions |
+| `telegram.ts` | `sendMessage`, `sendMessageParsed`, `answerCallbackQuery`, `clearInlineKeyboard`, `sendChatAction` | All Telegram Bot API from functions |
 | `deepseek.ts` | `deepseekChat`, `parseJsonFromContent` | New DeepSeek calls |
 | `vanguardCore.ts` | `VanguardCore`, `computeSignals` | `save-daily-aggregate`, frontend |
 

@@ -1,5 +1,6 @@
 import { sendChatAction, transcribeAudio } from "../../../_shared/telegram.ts";
 import { safeSendTelegram } from "../../_utils/helpers.ts";
+import { DEFAULT_REPLY_KEYBOARD, FOOD_APP_ONLY_MESSAGE } from "../../_utils/constants.ts";
 import { getLatestSentReconciliation } from "../../../_shared/repos/reconciliationsRepo.ts";
 import { handleKeepCommand } from "../commands.ts";
 import { MessageContext, MessageInterceptor, tryResumeStuckReconciliationVoice } from "../interceptors.ts";
@@ -17,15 +18,7 @@ export class PhotoInterceptor implements MessageInterceptor {
   async handle(ctx: MessageContext): Promise<boolean> {
     const photo = ctx.message.photo;
     if (photo && photo.length > 0) {
-      const { handlePhotoLabel } = await import("../../_handlers/photoLabel.ts");
-      await handlePhotoLabel(
-        photo,
-        ctx.chatId,
-        ctx.telegramToken,
-        ctx.openAiKey,
-        ctx.vanguardUserId,
-        ctx.supabase,
-      );
+      await safeSendTelegram(ctx.chatId, FOOD_APP_ONLY_MESSAGE, ctx.telegramToken, { reply_markup: DEFAULT_REPLY_KEYBOARD });
       return true;
     }
     return false;

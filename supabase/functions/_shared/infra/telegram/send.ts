@@ -252,7 +252,7 @@ export async function editMessageText(
   await queueOutbox("editMessageText", body);
 }
 
-export { getTelegramFilePath, telegramFileUrl, transcribeAudio } from "./transcribe.ts";
+export { transcribeAudio } from "./transcribe.ts";
 
 export async function setMessageReaction(
   token: string,

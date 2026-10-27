@@ -4,6 +4,8 @@
 
 Największa szansa Sparky to połączenie wiarygodnego dziennika, Twoich sprawdzonych produktów i przepisów, szybkich poprawek oraz decyzji uwzględniających rzeczywisty trening. Sam aparat, duża baza albo kolejny model językowy nie zapewnią tej przewagi.
 
+**Decyzja produktu:** dodawanie i korekta jedzenia odbywają się wyłącznie w aplikacji Sparky (app-only). Telegram zachowuje suplementy, post i odczyt `/dieta`, bez loggera posiłków, OCR etykiet i potwierdzania ich zapisu. Historyczne wpisy pozostają dostępne. Rekomendacje poniżej dotyczą loggera aplikacji.
+
 Rekomenduję następującą kolejność:
 
 1. Domknąć zapis, kompletność dnia i pochodzenie danych. Bez tego adaptacja energii uczy się błędów rejestru.
@@ -13,11 +15,11 @@ Rekomenduję następującą kolejność:
 5. Podłączyć istniejące, obecnie niekonsumowane elementy doprecyzowania i propozycji kolejnego posiłku.
 6. Dopiero na wiarygodnych danych uruchamiać adaptację celu i szerszą analizę składników.
 
-To rekomendacje badawcze, nie rozpoczęte zadania implementacyjne. Operacyjny backlog pozostaje wyłącznie w [BACKLOG.md](../../BACKLOG.md). W szczególności istnieją już tam zgłoszenia dotyczące atomowości Telegrama, ponowień i korekt; nie należy zakładać ich od nowa.
+To rekomendacje badawcze dla dalszego rozwoju aplikacji. Operacyjny backlog pozostaje wyłącznie w [BACKLOG.md](../../BACKLOG.md). DC-03 i DC-05 dotyczące loggera Telegrama są wycofane decyzją użytkownika; DC-04 nadal obejmuje ponowienia zapisu w aplikacji i suplementów.
 
 ## Metoda i granice dowodu
 
-Raport zastępuje poprzednią wersję w całości. Opiera się na dokumentacji producentów, dokumentacji źródeł danych, publikacjach naukowych, odczycie repozytoriów GitHub, kodzie lokalnym Sparky oraz agregujących zapytaniach SELECT do podłączonej bazy. Nie zmieniano aplikacji ani danych produkcyjnych.
+Raport zastępuje poprzednią wersję w całości. Opiera się na dokumentacji producentów, dokumentacji źródeł danych, publikacjach naukowych, odczycie repozytoriów GitHub, kodzie lokalnym Sparky oraz agregujących zapytaniach SELECT do podłączonej bazy. Sam research nie zmieniał aplikacji ani danych produkcyjnych. Późniejszą decyzję użytkownika o zapisie jedzenia wyłącznie w aplikacji uwzględniono w rekomendacjach; audyt opisuje kod wskazany w migawce, a nie stan po usunięciu loggera Telegrama.
 
 Rozróżniam:
 
@@ -49,7 +51,7 @@ Zmiennych liczebności, wersji rozszerzeń i daty odczytu nie utrwalam ponownie 
 | Wcześniejszy wniosek | Zweryfikowana korekta | Znaczenie |
 |---|---|---|
 | „Trzeba dodać kod kreskowy i OCR etykiety” | W Sparky istnieją oba przepływy oraz foto posiłku. | Sprawdzić jakość i domknięcie, nie budować duplikatu. |
-| „Głosu nie ma” | Telegram ma transkrypcję; główny edytor posiłku obsługuje tekst/foto. Nie potwierdzono kompletnego, dedykowanego przepływu głos→posiłek w UI. | Podłączyć istniejące wejście do tego samego capture; sama transkrypcja nie oznacza działającego food loggera. |
+| „Głosu nie ma” | W badanym kodzie Telegram miał transkrypcję, a edytor posiłku aplikacji obsługiwał tekst/foto. Nie potwierdzono kompletnego przepływu głos→posiłek w UI. | Ewentualne dyktowanie jedzenia rozwijać w aplikacji i kierować do jej capture; nie przywracać zapisu posiłków w Telegramie. |
 | „Nikt dobrze nie personalizuje porcji” | Asken deklaruje uczenie na korektach, Fitatu — zapamiętywanie częstych produktów i porcji; Sparky już zapisuje osobiste porcje. | Przewaga wymaga wyniku na Twoich danych, nie samej nazwy funkcji. |
 | „MacroFactor: bez check-inów, foto drugorzędne” | Producent dokumentuje tygodniowy check-in z oceną częściowych logów i osobne AI Food Logging. | Odróżnić ciągłą estymację wydatku od interfejsu cotygodniowej decyzji. |
 | „Mamy mikroskładniki jak Cronometer” | Obecny kontrakt Sparky obejmuje błonnik, cukry, nasycone i sól; nie pełny profil witamin i minerałów. | Nazwa modułu micronutrients nie dowodzi pełnego panelu mikro. |
@@ -161,7 +163,7 @@ Podstawa: [MealComposer](../../src/components/core/nutrition/MealComposer.tsx), 
 
 ### Najważniejsze ustalenia z kodu i schematu
 
-Poniższe pozycje są obserwacjami z odczytu. Nie wszystkie zostały odtworzone w żywym UI; weryfikacja wdrożenia jest kryterium późniejszego odbioru.
+Poniższe pozycje są obserwacjami kodu z commitu wskazanego przez `code_commit` w [migawce audytu](./food-trackers-audit.json). Opisy zachowania odnoszą się do badanego kodu, nie automatycznie do późniejszych zmian ani wdrożenia. Nie wszystkie zostały odtworzone w żywym UI; weryfikacja wdrożenia jest kryterium późniejszego odbioru.
 
 **Kompletność dnia ma odbiorców, ale nie odnaleziono aktywnego zapisu przez użytkownika.** Tabela nutrition_day_reviews oraz jej odczyty istnieją w analityce i coachu. W sprawdzonych źródłach aplikacji i Edge Functions nie znaleziono ścieżki INSERT/UPDATE ani wywołania RPC zapisującego tę decyzję. To ważniejszy problem od nowego algorytmu TDEE: nawet poprawny estymator nie otrzymuje sygnału, którego wymaga. Nie wolno automatycznie uznać całej historii za kompletną. [Kalibracja](../../packages/domain/src/training/nutritionCalibration.ts), [odczyt reviews](../../src/lib/health/nutritionTrackerApi.ts), [schemat i RLS](../../supabase/migrations/20260809145537_nutrition_adaptive_tracker.sql).
 
@@ -187,7 +189,7 @@ Poniższe pozycje są obserwacjami z odczytu. Nie wszystkie zostały odtworzone 
 
 **„Domowe” obniża energię bez dowodu receptury.** applyHomemadeAdjustment zmienia tłuszcz/cukier w szacunkach LLM po rozpoznaniu kontekstu domowego. Gdy domowa receptura jest bardziej tłusta, mechanizm wprowadza błąd w przewidywalnym kierunku. Również stałe proporcje rozbijania dań złożonych są założeniami, a nie pomiarami. [Korekta domowa](../../supabase/functions/_shared/foodParse/matching.ts), [rozbijanie dań](../../supabase/functions/_shared/foodParse/reconcile.ts).
 
-**Telegram nadal ma osobną semantykę zapisu posiłku.** foodMeal zapisuje pozycje pętlą add_food_entry, po błędzie pomija pozycję i może usunąć pending przed pełnym sukcesem. Interfejs aplikacji korzysta z confirm_nutrition_meal_capture. Ponowienie po utracie odpowiedzi musi używać stabilnego identyfikatora; nowe losowe ID nie gwarantuje idempotencji. To są już tematy istniejącego backlogu. [Telegram foodMeal](../../supabase/functions/vanguard-telegram/_handlers/foodMeal.ts), [capture aplikacji](../../src/lib/health/nutritionTrackerApi.ts).
+**Historyczna ścieżka Telegrama miała osobną semantykę zapisu posiłku.** W badanym commicie handler foodMeal zapisywał pozycje pętlą add_food_entry, pomijał błędy i mógł usunąć pending przed pełnym sukcesem. To obserwacja z [migawki audytu](./food-trackers-audit.json), nie opis obecnego wejścia do loggera. Decyzja użytkownika wycofuje dodawanie i korekty jedzenia w Telegramie, zamiast naprawiać tę ścieżkę (DC-03/DC-05). Aplikacja zachowuje confirm_nutrition_meal_capture; stabilny identyfikator jej ponowienia pozostaje tematem DC-04. [Capture aplikacji](../../src/lib/health/nutritionTrackerApi.ts).
 
 **Budżet tygodnia może pokazywać pozornie wolne kalorie.** computeWeekBalance podstawia zero przy brakujących dniach i oblicza pozostały budżet; raportuje missingDays, lecz sama arytmetyka nie używa kompletności. Niepełny dzień z kilkoma wpisami również nie jest tym samym co pełny. Odbiór powinien wymagać wstrzymania wiążącego „zostało do zjedzenia”, dopóki zakres nie jest kompletny. [Bilans tygodnia](../../src/lib/health/weekBalance.ts).
 
@@ -343,7 +345,7 @@ Poniższa specyfikacja jest rekomendacją wynikającą z researchu. Nie stanowi 
 
 ### Jeden wynik niezależnie od wejścia
 
-Tekst, głos, kod, etykieta, foto, powtórzenie i przepis powinny tworzyć ten sam szkic pozycji. Każda pozycja zachowuje tożsamość produktu, rodzaj ilości, pochodzenie składu oraz założenia. Kod skaluje wartości, a korekta zmienia odpowiedni fragment szkicu. Zapis odbywa się istniejącym atomowym mechanizmem; inne ekrany i Telegram konsumują ten sam kontrakt.
+Wejścia loggera aplikacji — tekst, kod, etykieta, foto, powtórzenie i przepis oraz ewentualne dyktowanie w aplikacji — powinny tworzyć ten sam szkic pozycji. Każda pozycja zachowuje tożsamość produktu, rodzaj ilości, pochodzenie składu oraz założenia. Kod skaluje wartości, a korekta zmienia odpowiedni fragment szkicu. Zapis odbywa się istniejącym atomowym mechanizmem aplikacji; inne ekrany czytają ten sam dziennik. Telegram `/dieta` pozostaje odczytem, bez tworzenia szkicu, zapisu i korekty jedzenia.
 
 Dla znanego produktu szybka ścieżka powinna omijać LLM. Przy „moje śniadanie, ale mniej płatków” najpierw odszukujemy własny wariant, potem zmieniamy płatki. Nie rozpoznajemy ponownie całego posiłku i nie nadpisujemy jego składników losowymi danymi ogólnymi.
 
@@ -429,7 +431,7 @@ To mapa decyzji do przyszłego wdrożenia. Przed rozpoczęciem odpowiednie pozyc
 
 | Priorytet / zależność | Zakres | Konsument i definicja odbioru | Wysiłek względny |
 |---|---|---|---|
-| P0: niezawodność zapisu | Wspólny atomowy zapis aplikacji i Telegrama, stabilny identyfikator ponowienia, korekta po ID | Utrata odpowiedzi i retry nie tworzą dubla; błąd jednej pozycji nie udaje sukcesu całego posiłku; szkic można odzyskać. Wykorzystać istniejące RPC i zgłoszenia backlogu. | Średni |
+| P0: niezawodność zapisu | Istniejący atomowy capture aplikacji, stabilny identyfikator ponowienia i korekta po ID | Utrata odpowiedzi i retry nie tworzą dubla; błąd jednej pozycji nie udaje sukcesu całego posiłku; szkic można odzyskać. Rozszerzyć istniejące RPC w zakresie DC-04; nie odbudowywać loggera Telegrama. | Średni |
 | P0: kompletność | Podłączyć zapis nutrition_day_reviews; niepełny tydzień nie tworzy pozornego budżetu | Użytkownik zamyka i otwiera dzień w UI, coach i statystyki widzą tę samą decyzję; dzień pusty nie staje się postem. | Mały–średni |
 | P0: masa i identyfikacja | Jawna jednostka/metoda porcji, bezpieczne kopiowanie amount, zachowanie kodu/marki/źródła | „1 porcja” nie zamienia się w 1 g; 100 ml nie staje się automatycznie 100 g; domyślna masa nie jest ważeniem; kopia nie podnosi pewności. | Średni |
 | P0: baseline | Mały, reprezentatywny zestaw ważonych własnych posiłków i pomiar obecnego pipeline’u | Wynik jest odtwarzalny; rozpoznanie, ilość, skład i tarcie raportowane osobno. Nie trzeba czekać na pełny zbiór, by naprawić deterministyczne błędy zapisu. | Średni, częściowo zależny od zbierania posiłków |
@@ -475,7 +477,7 @@ Nie nadpisywać pierwotnej odpowiedzi po korekcie — potrzebne są obie. To poz
 | Resztki | Niedopita zupa, pół talerza, niejadalna skórka/kość | Podana masa nie jest spożytą masą jadalną. |
 | Historia | „1 porcja”, „2 sztuki”, powtórzenie dawnego wpisu | Brak fabrykowania gramów. |
 | Braki danych | Nieznany błonnik/magnez, znane zero i etykietowe zero po zaokrągleniu | Unknown ≠ zero; częściowa suma jest częściowa. |
-| Przerwa/awaria | Offline, dwuklik, ponowienie webhooka, utrata odpowiedzi | Jeden zamiar tworzy jeden posiłek, żadna część nie ginie. |
+| Przerwa/awaria | Offline, dwuklik, ponowienie zapisu aplikacji, utrata odpowiedzi | Jeden zamiar tworzy jeden posiłek, żadna część nie ginie. |
 | Dzień/tydzień | Pusty dzień, niepełny dzień, potwierdzony post, przeniesienie daty przez północ | Braki nie zwiększają deficytu i nie zmieniają celu. |
 | Adaptacja | Skok wody, długa przerwa w ważeniach, systematycznie pominięty olej | Stan „za mało dowodów”, zamiast pewnej zmiany metabolizmu. |
 
@@ -513,7 +515,7 @@ Przewaga „najlepszy dla mnie” będzie udowodniona, gdy Sparky daje mniej ist
 - Automatyczne dawkowanie suplementów, diagnozy niedoborów i osobistą glikemię z HRV/senności.
 - Score zdrowia wyprowadzony ze zbyt ubogiego albo niepełnego profilu.
 - Obowiązkowe zdjęcie przed i po każdym jedzeniu.
-- Reimplementację funkcji już dostępnych w loggerze, zanim domkniemy ich odbiór przez UI/Telegram.
+- Reimplementację funkcji już dostępnych w loggerze, zanim domkniemy ich odbiór w UI aplikacji. Logger jedzenia w Telegramie jest wycofany decyzją użytkownika, a nie odłożony do późniejszej budowy.
 
 Nie odkładamy ochrony przed utratą wpisu, błędnych jednostek, proweniencji i dostępności. Prywatne zdjęcia mogą być użyteczne do korekty; powinny mieć kontrolę użytkownika i rozróżnienie szkicu od posiłku, zamiast niejawnego, bezterminowego gromadzenia.
 

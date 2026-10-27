@@ -253,6 +253,8 @@ czasu pozostają szkicem; system nie zgaduje standardu ani nie ogłasza osiągni
 ##### Global Constraints
 
 - Nazwa w produkcie: **Sparky**. PWA/Windows i Android mają wspólne dane i reguły.
+- Dodawanie i korekta jedzenia odbywają się wyłącznie w aplikacji. Telegram zachowuje
+  suplementy, post i odczyt `/dieta`; nie odbudowywać w nim loggera posiłków.
 - Rozmowa pozostaje w istniejącym Oracle/Telegramie; aplikacja pokazuje cele,
   plan, wykonanie i przegląd. Brak nowego niezależnego czatu w aplikacji.
 - `vanguard_stream → vanguard-auto-classify` pozostaje jedyną ścieżką friction/recovery
@@ -1091,15 +1093,11 @@ projekcje i przeliczenia. Poniższa kolejność uwzględnia zależności; blokad
   ukończenie, cofnięcie i zmiana powiązania KPI korzystają z tego samego kontraktu.
   **Odbiór:** wykonaj → cofnij → wykonaj z każdego wejścia daje identyczny KPI; retry i równoległe kliknięcia nie podwajają wkładu.
 
-### DC-03 — P1: atomowy zapis całego posiłku w Telegramie
+### DC-03 — wycofane: atomowy zapis posiłku w Telegramie
 
-- [ ] **Problem:** błąd jednej pozycji zostawia częściowy posiłek i usuwa podgląd potrzebny do ponowienia.
-  **Dowód:** `supabase/functions/vanguard-telegram/_handlers/foodMeal.ts` wykonuje osobne
-  `add_food_entry`, pomija błędy i usuwa `food_parse_pending` przed oceną pełnego zapisu.
-  **Minimum:** istniejący `confirm_nutrition_meal_capture`, stały pending ID jako capture ID
-  i usunięcie podglądu dopiero po pełnym commit. Jawnie obsłużyć autoryzowanego service role,
-  jeśli wymaga tego adapter Telegrama, zachowując kontrolę właściciela dla użytkownika.
-  **Odbiór:** błąd drugiej pozycji wycofuje posiłek i zachowuje podgląd; retry i równoległe potwierdzenie tworzą jeden posiłek.
+- [x] **Wycofane decyzją użytkownika:** dodawanie jedzenia jest wyłącznie w aplikacji.
+  Usunięcie loggera Telegrama zastępuje naprawę tej ścieżki; nie wdrażać adaptera zapisu.
+  Niezawodność istniejącego capture aplikacji pozostaje w DC-04.
 
 ### DC-04 — P1: stała tożsamość zapisu przy retry i offline
 
@@ -1108,18 +1106,14 @@ projekcje i przeliczenia. Poniższa kolejność uwzględnia zależności; blokad
   i dopisuje czas osobnym PATCH; `src/lib/health/supplementsApi.ts` tworzy ID dopiero po błędzie online.
   **Minimum:** nadać ID przed pierwszym zapisem i zachować przez retry/kolejkę; czas zdarzenia
   zapisywać w transakcji capture. Dla suplementów konflikt tego samego ID operacji jest sukcesem,
-  bez deduplikowania rzeczywistych kolejnych dawek. Wykorzystać istniejącą kolejkę i RPC z DC-03.
+  bez deduplikowania rzeczywistych kolejnych dawek. Wykorzystać istniejącą kolejkę i
+  `confirm_nutrition_meal_capture` aplikacji; zadanie nie zależy od wycofanego DC-03.
   **Odbiór:** commit z utraconą odpowiedzią/błędem PATCH, potem retry/replay: jeden capture, jedna kopia produktów i dawki; te same sumy i ID.
 
-### DC-05 — P2: korekta trafia do posiłku wskazanego odpowiedzią
+### DC-05 — wycofane: korekta posiłku odpowiedzią w Telegramie
 
-- [ ] **Problem:** aktualny tekst potwierdzenia nie uruchamia korekty; wyszukiwanie po nazwie może wybrać inny posiłek.
-  **Dowód:** `supabase/functions/vanguard-telegram/_router/messageHelpers.ts` oczekuje
-  `Zapisano (`, a `_handlers/foodMeal.ts` emituje `Zapisano posiłek`;
-  `_handlers/foodCorrection.ts` wybiera najnowszy pasujący produkt z dziś/wczoraj.
-  **Minimum:** spójny routing odpowiedzi oraz trwałe powiązanie potwierdzenia Telegrama
-  z entry/group ID; nazwa służy wyborowi w tej grupie, nie zgadywaniu globalnego rekordu.
-  **Odbiór:** zapisać produkt dwa razy, poprawić/usunąć przez odpowiedź na starsze potwierdzenie; zmienia się tylko wskazany zapis i jego agregat.
+- [x] **Wycofane decyzją użytkownika:** korekta jedzenia pozostaje w aplikacji.
+  Nie budować powiązań potwierdzeń Telegrama z wpisami posiłków ani nowego routera korekt.
 
 ### DC-06 — P1: aktualne źródło przed snapshotem i cache
 
@@ -1185,8 +1179,9 @@ projekcje i przeliczenia. Poniższa kolejność uwzględnia zależności; blokad
   **Odbiór:** wolny replay i wyścig z wcześniejszym refetch dają zgodne UI/bazę po reconnect, bez dodatkowego kliknięcia.
 
 **Zakres dowodu:** bieżące definicje triggerów Todo/PowerList sprawdzono także w produkcji.
-Próby rzeczywistych modułów TypeScript z podstawionym I/O odtworzyły częściowy posiłek,
-niedziałający routing korekty, nowe capture ID po błędzie PATCH, fallback 0 → 85,
+Próby rzeczywistych modułów TypeScript z podstawionym I/O odtworzyły częściowy posiłek
+i niedziałający routing korekty w wycofanej ścieżce Telegrama oraz nowe capture ID
+po błędzie PATCH, fallback 0 → 85,
 bezwarunkowy historyczny cache i brak invalidacji po replay. Pozostałe scenariusze to kryteria
 regresji ze śledzenia kodu; próby nie mutowały osobistej historii produkcyjnej.
 Szersze cele wspólnego kontekstu, backfill i coverage pozostają w istniejących sekcjach roadmapy.

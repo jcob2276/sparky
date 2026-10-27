@@ -13,7 +13,6 @@ export { handleInteractivePromptCommand } from "../_commands/interactive.ts";
 export { handleTodoCommand } from "../_commands/todo.ts";
 export { handleKeepCommand } from "../_commands/keep.ts";
 export { handlePostCommand } from "../_commands/post.ts";
-export { handlePosilekCommand } from "../_commands/posilek.ts";
 export { handleLenieCommand } from "../_commands/lenie.ts";
 export { handleWalenieCommand } from "../_commands/walenie.ts";
 export { handlePokeCommand } from "../_commands/poke.ts";

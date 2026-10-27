@@ -6,10 +6,10 @@ import { logCriticalError } from "../../_shared/errorLogging.ts";
 import { getReconciliationById } from "../../_shared/repos/reconciliationsRepo.ts";
 import { getStreamByTelegramMessageId, insertStreamRecord as insertStreamRow } from "../../_shared/repos/streamRepo.ts";
 import { safeSendTelegram } from "../_utils/helpers.ts";
+import { DEFAULT_REPLY_KEYBOARD, FOOD_APP_ONLY_MESSAGE } from "../_utils/constants.ts";
 import {
   handleTodoCommand,
   handleKeepCommand,
-  handlePosilekCommand,
 } from "./commands.ts";
 export { queryOracle } from "./oracleCaller.ts";
 
@@ -23,7 +23,7 @@ export async function handleForceReplyReply(
   chatId: number,
   ctx: TelegramRouterContext,
 ): Promise<boolean> {
-  const { supabase, telegramToken, deepseekApiKey, supabaseUrl, supabaseServiceRoleKey, vanguardUserId } = ctx;
+  const { supabase, telegramToken, deepseekApiKey, vanguardUserId } = ctx;
 
   if (promptText.includes("Zapis Lenie")) {
     const { handleLenieCommand } = await import("./commands.ts");
@@ -51,14 +51,9 @@ export async function handleForceReplyReply(
     await handleKeepCommand(text, chatId, telegramToken, supabase, vanguardUserId, false);
     return true;
   }
-  if (promptText.includes("Co zjadłeś?")) {
-    await handlePosilekCommand(text, chatId, telegramToken, supabase, vanguardUserId, deepseekApiKey, supabaseUrl, supabaseServiceRoleKey);
+  if (promptText.includes("Co zjadłeś?") || promptText.includes("Zapisano (") || promptText.includes("Zapisano posiłek")) {
+    await safeSendTelegram(chatId, FOOD_APP_ONLY_MESSAGE, telegramToken, { reply_markup: DEFAULT_REPLY_KEYBOARD });
     return true;
-  }
-  if (promptText.includes("Zapisano (")) {
-    const { handleMealCorrection } = await import("../_handlers/foodCorrection.ts");
-    const handled = await handleMealCorrection(promptText, text, vanguardUserId, supabase, telegramToken, chatId, deepseekApiKey);
-    if (handled) return true;
   }
   if (promptText.includes("Pytanie pogłębiające")) {
     const { handleClarificationReply } = await import("../_handlers/clarification.ts");

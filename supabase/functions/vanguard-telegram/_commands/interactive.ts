@@ -1,4 +1,5 @@
 import { safeSendTelegram } from "../_utils/helpers.ts";
+import { DEFAULT_REPLY_KEYBOARD, FOOD_APP_ONLY_MESSAGE } from "../_utils/constants.ts";
 
 export async function handleInteractivePromptCommand(
   lowerText: string,
@@ -54,14 +55,7 @@ export async function handleInteractivePromptCommand(
   }
 
   if (lowerText === '🍴 posiłek' || lowerText === '🍽 posiłek' || lowerText === '🍽 posilek' || lowerText === '/posilek' || lowerText === '/posiłek') {
-    await safeSendTelegram(chatId, "• Co zjadłeś?\nOpisz posiłek (np. `makaron z serkiem tłustym piątnica`):", telegramToken, {
-      parse_mode: 'Markdown',
-      reply_markup: {
-        force_reply: true,
-        selective: true,
-        input_field_placeholder: "np. 2 jajka sadzone i kromka chleba",
-      },
-    });
+    await safeSendTelegram(chatId, FOOD_APP_ONLY_MESSAGE, telegramToken, { reply_markup: DEFAULT_REPLY_KEYBOARD });
     return true;
   }
 

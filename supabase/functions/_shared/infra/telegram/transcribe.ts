@@ -2,7 +2,7 @@ import { fetchWithRetry } from "../../httpClient.ts";
 import { transcribeBlob } from "../../openai.ts";
 
 /** Telegram Bot API getFile — for voice / file download in webhook handlers. */
-export async function getTelegramFilePath(
+async function getTelegramFilePath(
   token: string,
   fileId: string,
 ): Promise<string> {
@@ -18,7 +18,7 @@ export async function getTelegramFilePath(
   return fileData.result.file_path as string;
 }
 
-export function telegramFileUrl(token: string, filePath: string): string {
+function telegramFileUrl(token: string, filePath: string): string {
   return `https://api.telegram.org/file/bot${token}/${filePath}`;
 }
 

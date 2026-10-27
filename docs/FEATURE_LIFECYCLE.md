@@ -21,6 +21,7 @@ This file is the repository-level status map for integrations, subsystems, and l
 | Daily strain | Active | `compute-daily-strain` writes `daily_strain`; auth-scoped single-user calls, service-role batch. |
 | Strava/Calendar sync | Active | Keep function registry, deploy list, and smoke manifest in sync. |
 | Yazio sync | Dropped | Removed 2026-06-26. Nutrition is logged in-app (`daily_nutrition`, `daily_food_entries`, `parse-food-nl`, `lookup-food`). Do not revive `sync-yazio` or store Yazio credentials in settings. |
+| Telegram meal logging and correction | Dropped | Food capture and correction belong exclusively to the Sparky app. Do not restore `/posilek`, meal-photo/label capture or meal-save callbacks in Telegram. Supplements, fasting and read-only `/dieta` remain. Existing food history is retained. |
 | Projects | Active | `projects` is the canonical app model for the Projekty section. `todo_sections.project_id` is an optional bridge for project-scoped tasks; projects are not defined by Todo. |
 | `project_checkpoints` table | Dropped | Migrated 2026-06-30 (`backfill_project_checkpoints_to_todo_items`, 15/15 rows, then `drop_legacy_project_checkpoints`). Checkpoints are exclusively `todo_items` rows with `is_milestone=true` now — no fallback paths remain in `checkpoints.ts`/`projects.ts`/`projectEvidence.ts`. `daily_wins.task_N_checkpoint_id` now FKs to `todo_items(id)` instead of the dropped table. |
 | Todo | Active | `todo_sections` / `todo_items` power the separate Zadania section and quick task surfaces. |

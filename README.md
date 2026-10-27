@@ -102,7 +102,8 @@ dostępny bez sesji tylko w DEV.
 
 ### Pamięć i AI
 
-- Telegram przyjmuje tekst, głos, posiłki, treningi, korekty i pytania;
+- Telegram przyjmuje tekst, głos, treningi, suplementy, post i pytania; `/dieta` odczytuje podsumowanie;
+- jedzenie dodaje się i poprawia wyłącznie w aplikacji Sparky;
 - Oracle odpowiada na podstawie bieżącego strumienia, biometrii oraz skompilowanej
   pamięci;
 - klasyfikator wyprowadza z surowego strumienia zdarzenia tarcia i odzyskiwania;

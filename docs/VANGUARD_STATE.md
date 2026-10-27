@@ -337,6 +337,9 @@ Połączenia:
 
 **Cel:** rejestrować jedzenie i regulować plan na podstawie realnego spożycia.
 
+Dodawanie i korekta jedzenia odbywają się wyłącznie w aplikacji Sparky. Telegram
+zachowuje suplementy, post i odczyt `/dieta`, bez zapisu posiłków lub etykiet ze zdjęć.
+
 Funkcje:
 
 - szybki zapis i pełny modal;
@@ -497,7 +500,9 @@ Historyczny błąd w adresie. Przekierowuje do `/korelacje`.
 | Długi głos | Vault ingest |
 | Odpowiedź na Wywiad | Uzupełnia lukę wiedzy |
 | Koniec dnia | Uruchamia refleksję |
-| Jedzenie / trening / zadanie | Parser domenowy i zapis |
+| Trening / zadanie | Parser domenowy i zapis |
+| Suplementy / post | Dotychczasowe ścieżki domenowe |
+| `/dieta` | Odczyt podsumowania żywienia; dodawanie i korekta jedzenia w aplikacji |
 
 Webhook zapisuje wiadomość do inboxu, worker ją przetwarza, a wiadomości wychodzące
 przechodzą przez outbox. Telegram i czat w aplikacji współdzielą Oracle, ale nie są
@@ -531,7 +536,7 @@ Grupy:
 | Oura | sen, readiness, HRV, RHR, stres, aktywność, timeline | Dziś, Oura, Historia, strain, Oracle |
 | Strava/Garmin/Intervals | aktywności, tempo, HR, strefy, obciążenie | Trening, Historia, strain, maraton |
 | Google Calendar | wydarzenia i ograniczenia czasu | Kalendarz, Dziś, planowanie |
-| Telegram | capture, rozmowa, wywiad, refleksja, powiadomienia | Stream, Oracle, Todo, żywienie |
+| Telegram | capture, rozmowa, wywiad, refleksja, powiadomienia | Stream, Oracle, Todo; suplementy/post i odczyt żywienia |
 | DeepSeek | klasyfikacja i większość rozumowania tekstowego | Oracle, analyst, parsery, wiki |
 | OpenAI | Whisper, embeddingi i analiza zdjęć sylwetki | Capture, graf, Historia |
 | Open Food Facts | informacje o produktach | Food logger |

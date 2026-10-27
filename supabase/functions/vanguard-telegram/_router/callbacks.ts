@@ -1,6 +1,7 @@
 import type { TelegramRouterContext } from "./config.ts";
 import { answerCallbackQuery, clearInlineKeyboard, editMessageText } from "../../_shared/telegram.ts";
 import { safeSendTelegram } from "../_utils/helpers.ts";
+import { FOOD_APP_ONLY_MESSAGE } from "../_utils/constants.ts";
 
 import {
   ANALYSIS_ACTION_CALLBACKS,
@@ -22,10 +23,6 @@ import {
   handleSupplementCallback,
   isSupplementCallback,
 } from "../_handlers/supplements.ts";
-import {
-  handleFoodMealCallback,
-  isFoodMealCallback,
-} from "../_handlers/foodMeal.ts";
 import {
   handleTodoCaptureCallback,
   isTodoCaptureCallback,
@@ -110,16 +107,9 @@ export async function handleCallbackQuery(
     return;
   }
 
-  if (isFoodMealCallback(data)) {
-    await handleFoodMealCallback(
-      data,
-      chatId,
-      messageId,
-      callbackId,
-      supabase,
-      telegramToken,
-      vanguardUserId,
-    );
+  if (data.startsWith("food_save:") || data.startsWith("food_cancel:")) {
+    await answerCallbackQuery(telegramToken, callbackId, { text: FOOD_APP_ONLY_MESSAGE });
+    await clearInlineKeyboard(telegramToken, chatId, messageId);
     return;
   }
 

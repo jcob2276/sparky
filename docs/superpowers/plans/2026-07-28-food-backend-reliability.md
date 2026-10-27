@@ -4,7 +4,7 @@
 
 **Goal:** Make food parsing reject semantically absurd portions and untrustworthy matches, preserve compound dish names, deduplicate writes, and persist auditable provenance.
 
-**Architecture:** Add a pure semantic validation layer after reconciliation, tighten source-aware matching, and remove heuristic splitting of compound names. Add database-backed idempotency to the canonical `add_food_entry` RPC while keeping frontend and Telegram on the same parser.
+**Architecture:** Add a pure semantic validation layer after reconciliation, tighten source-aware matching, and remove heuristic splitting of compound names. Keep food capture and correction exclusively in the Sparky app, using its existing capture/RPC path. Telegram supplements, fasting and read-only `/dieta` remain outside food logging.
 
 **Tech Stack:** Deno Edge Functions, TypeScript, Supabase Postgres, Vitest/Deno tests.
 
@@ -72,7 +72,6 @@
 
 **Files:**
 - Create via Supabase CLI: `supabase/migrations/<generated>_food_entry_idempotency.sql`
-- Modify: `supabase/functions/vanguard-telegram/_handlers/foodMeal.ts`
 - Modify: `src/lib/health/foodLogging.ts`
 - Modify: `src/components/core/nutrition/hooks/useFoodEntryActions.ts`
 
@@ -108,7 +107,7 @@
 - Modify: `supabase/functions/README.md` only if generated registry tooling requires it.
 
 **Interfaces:**
-- Frontend and Telegram consume the same deployed `parse-food-nl` behavior.
+- App food capture consumes the deployed `parse-food-nl` behavior; Telegram does not log or correct meals.
 
 - [ ] Run all food parser unit tests and typechecks.
 - [ ] Invoke the parser with the production regression corpus and inspect returned confidence, warnings, grams, kcal, and source.

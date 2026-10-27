@@ -182,7 +182,7 @@ Deprecated/dropped tables (do not use): `career_projects`, `career_moves`, `care
 | Daily habits incl. Lenie | `habits` + `habit_logs` | Desktop Nawyki, `/lenie` → also mirrors to stream |
 | Strength / wellness (sauna) | `workout_sessions` + `exercise_logs` | Workout logger, Sauna modal |
 | Confounders (alcohol, stress, illness, travel) | `behavior_log` | Desktop Sygnały dnia |
-| Meals / caffeine | `daily_food_entries` | Food logger, Telegram meal |
+| Meals / caffeine | `daily_food_entries` | In-app food logger only; Telegram `/dieta` reads the summary |
 | Supplements | `supplement_logs` | Telegram `/sup` |
 | Friction atoms | `friction_events` | **Derived** from stream via auto-classify only |
 | Legacy stretch checkboxes | `daily_habits` | **Deprecated** — no UI; use `habits` instead |
