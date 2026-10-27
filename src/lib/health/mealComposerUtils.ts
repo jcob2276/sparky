@@ -1,7 +1,7 @@
 import type { MealDraftItem } from './nutritionTracker';
 import type { ParsedFoodItem } from './foodLogging';
 import type { FoodBase } from './foodTypes';
-import { assessEnergyConsistency, describeEnergyMismatch, mergeMicronutrients } from '@vanguard/domain';
+import { assessEnergyConsistency, describeEnergyMismatch, mergeMicronutrients, parseAmountGrams as parseExplicitAmountGrams } from '@vanguard/domain';
 import { readFoodProvenance, confidenceFromUncertainty } from './foodTrust';
 
 function scalePer100(value: number | null, grams: number): number {
@@ -78,11 +78,14 @@ export interface RepeatableFoodEntry {
   parse_meta?: unknown;
 }
 
+/**
+ * Gramy z tekstu ilości, tylko gdy jest jawna jednostka masy/objętości (g, ml, kg, l).
+ * „1 porcja” albo „3 szt.” to inny rodzaj ilości, więc nie zamieniają się w 1 g ani 3 g;
+ * wtedy wracamy do 100 g jako neutralnej podstawy, którą trzeba potwierdzić ważeniem.
+ */
 export function parseAmountGrams(amount: string | null): number {
-  if (!amount) return 100;
-  const match = amount.match(/(\d+(?:[.,]\d+)?)/);
-  if (!match) return 100;
-  return Math.max(1, Math.round(parseFloat(match[1].replace(',', '.'))));
+  const grams = parseExplicitAmountGrams(amount);
+  return grams == null ? 100 : Math.max(1, Math.round(grams));
 }
 
 export function entriesToDraft(entries: RepeatableFoodEntry[]): MealDraftItem[] {

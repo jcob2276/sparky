@@ -76,3 +76,15 @@ describe('foodBaseToDraft', () => {
     expect(draft.assumptions).toBeUndefined();
   });
 });
+
+describe('parseAmountGrams (kopiowanie wpisów)', () => {
+  it('bierze gramy tylko z jawnej jednostki, a „1 porcja” i „3 szt.” nie stają się 1 g ani 3 g', async () => {
+    const { parseAmountGrams } = await import('./mealComposerUtils');
+    expect(parseAmountGrams('350 g')).toBe(350);
+    expect(parseAmountGrams('250 ml')).toBe(250);
+    expect(parseAmountGrams('1,5 kg')).toBe(1500);
+    expect(parseAmountGrams('1 porcja')).toBe(100);
+    expect(parseAmountGrams('3 szt.')).toBe(100);
+    expect(parseAmountGrams(null)).toBe(100);
+  });
+});
