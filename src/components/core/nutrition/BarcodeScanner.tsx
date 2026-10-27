@@ -1,6 +1,6 @@
 import { Pressable, ControlInput } from '../../ui/ControlPrimitives';
 import { useEffect, useRef, useState } from 'react';
-import { Keyboard } from 'lucide-react';
+import { Flashlight, FlashlightOff, Keyboard } from 'lucide-react';
 import Spinner from '../../ui/Spinner';
 
 declare global {
@@ -21,6 +21,9 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [manualCode, setManualCode] = useState('');
+  const trackRef = useRef<MediaStreamTrack | null>(null);
+  const [torchSupported, setTorchSupported] = useState(false);
+  const [torchOn, setTorchOn] = useState(false);
   const detectorSupported = typeof window !== 'undefined' && !!window.BarcodeDetector;
 
   useEffect(() => {
@@ -39,6 +42,8 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
         });
         if (stopped) { stream.getTracks().forEach((t) => t.stop()); return; }
         const track = stream.getVideoTracks()[0];
+        trackRef.current = track ?? null;
+        setTorchSupported(Boolean(track && (track.getCapabilities?.() as { torch?: boolean } | undefined)?.torch));
         if (track && 'applyConstraints' in track) {
           try {
             // @ts-expect-error advanced focusMode is supported on Chromium mobile
@@ -69,8 +74,20 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
         setCameraError('Brak dostępu do kamery — wpisz kod ręcznie');
       }
     })();
-    return () => { stopped = true; if (rafId) cancelAnimationFrame(rafId); stream?.getTracks().forEach((t) => t.stop()); };
+    return () => { stopped = true; if (rafId) cancelAnimationFrame(rafId); stream?.getTracks().forEach((t) => t.stop()); trackRef.current = null; };
   }, [detectorSupported, onDetected]);
+
+  const toggleTorch = async () => {
+    const track = trackRef.current;
+    if (!track) return;
+    const next = !torchOn;
+    try {
+      await track.applyConstraints({ advanced: [{ torch: next } as MediaTrackConstraintSet] });
+      setTorchOn(next);
+    } catch {
+      setTorchSupported(false);
+    }
+  };
 
   const handleManualSubmit = () => {
     const clean = manualCode.replace(/[\s-]+/g, '').trim();
@@ -84,6 +101,12 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
         <div className="relative rounded-2xl overflow-hidden bg-scrim aspect-square">
           <video ref={videoRef} muted playsInline className="w-full h-full object-cover" />
           <div className="absolute inset-8 border-2 border-primary/70 rounded-xl pointer-events-none" />
+          {torchSupported && (
+            <Pressable onClick={() => { void toggleTorch(); }} aria-label={torchOn ? 'Wyłącz latarkę' : 'Włącz latarkę'} aria-pressed={torchOn}
+              className={`touch-manipulation absolute top-3 right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border cursor-pointer ${torchOn ? 'bg-primary text-on-accent border-primary' : 'bg-scrim/60 text-on-accent border-on-accent/30'}`}>
+              {torchOn ? <Flashlight size={20} /> : <FlashlightOff size={20} />}
+            </Pressable>
+          )}
           {loading && <div className="absolute inset-0 flex items-center justify-center bg-scrim/50"><Spinner size="md" className="!border-on-accent/30 !border-t-white" /></div>}
         </div>
       ) : (

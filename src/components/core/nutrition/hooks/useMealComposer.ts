@@ -47,7 +47,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   const [qualityPending, setQualityPending] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { loggedTime, setManualLoggedTime, resetLoggedTime, resolveLoggedTime } = useLoggedTime(Boolean(draftItems?.length));
+  const { loggedTime, setManualLoggedTime, resetLoggedTime, resolveLoggedTime } = useLoggedTime(Boolean(draftItems?.length), draftItems?.length ?? 0);
   const [memoryName, setMemoryName] = useState('');
 
   const {
