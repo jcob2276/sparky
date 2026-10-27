@@ -30,6 +30,7 @@ import { getCircadianStance } from "./circadian.ts";
 import { fetchCoreMemory, persistCoreMemoryResponse } from "./coreMemory.ts";
 import { fetchConversationAwareness } from "./conversationAwareness.ts";
 import { fetchEchoes } from "./echoes.ts";
+import { fetchPillars } from "./pillars.ts";
 
 const MAX_SQL_TOOL_ITERATIONS = 3;
 
@@ -90,10 +91,8 @@ export async function runOracleQuery(
 
 
   const rag = await retrieveRagContext(supabase, user_id, current_query, todayDate, fourteenDaysAgoDate, mode, cutoff72h);
-  const [coreMemory, awarenessBase, echoesText] = await Promise.all([fetchCoreMemory(supabase, user_id), fetchConversationAwareness(supabase, user_id, now, todayDate), fetchEchoes(supabase, user_id, current_query, todayDate)]);
-  const awarenessText = echoesText ? `${awarenessBase}
-
-${echoesText}` : awarenessBase;
+  const [coreMemory, awarenessBase, echoesText, pillarsText] = await Promise.all([fetchCoreMemory(supabase, user_id), fetchConversationAwareness(supabase, user_id, now, todayDate), fetchEchoes(supabase, user_id, current_query, todayDate), fetchPillars(supabase, user_id)]);
+  const awarenessText = [awarenessBase, pillarsText, echoesText].filter(Boolean).join('\n\n');
 
   const stateVectorObj = typeof safeStateVector === "object" && safeStateVector !== null
     ? (safeStateVector as Record<string, unknown>)
