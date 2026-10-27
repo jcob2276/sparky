@@ -31,7 +31,7 @@ export async function verifyFathomSignature(
 
   const key = await crypto.subtle.importKey(
     "raw",
-    b64ToBytes(secret.replace(/^whsec_/, "")),
+    new Uint8Array(b64ToBytes(secret.replace(/^whsec_/, ""))),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign"],
