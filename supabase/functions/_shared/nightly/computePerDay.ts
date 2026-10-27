@@ -4,7 +4,6 @@ import { computeReadiness, type ReadinessDay } from './readiness.ts';
 import { computeRecoveryScore } from './recovery_score.ts';
 import { computeStrainScore } from './strain_score.ts';
 import { estimateCaffeineMg } from '../caffeineEstimate.ts';
-import { HEALTH_THRESHOLDS } from '@vanguard/domain';
 
 const ILLNESS_KEYS = /chorob|illness|unwell|sick|przezi|grypa|flu/i;
 

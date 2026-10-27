@@ -88,7 +88,7 @@ export async function detectEarlyWarningSignals(
       return [{
         type: 'early_warning',
         title: 'Wczesny sygnał wejścia w zły schemat',
-        evidenceText: `W ostatnich dniach masz ${riskSignals.join(' + ')}. U Ciebie takie kombinacje w przeszłości często poprzedzały silne unikanie i spadek wykonania (ostatnie przypadki: ${lastDriftDate || 'niedawno'}).`,
+        evidenceText: `W ostatnich dniach masz ${riskSignals.join(' + ')}. U Ciebie takie kombinacje w przeszłości często poprzedzały silne unikanie i spadek wykonania.`,
         confidence: 0.71,
         sampleSize: riskSignals.length,
         lastSeenDate: recentAggs?.[0]?.date ?? null,
