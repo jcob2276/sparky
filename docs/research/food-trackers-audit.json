@@ -1,0 +1,41 @@
+{
+  "scope": "aggregate read-only audit; no personal meal contents exported",
+  "counts": {
+    "food_library": 234,
+    "partial_days": 1,
+    "complete_days": 1,
+    "meal_captures": 248,
+    "food_favorites": 551,
+    "food_reference_pl": 22,
+    "daily_food_entries": 1224,
+    "macro_source_unknown": 806
+  },
+  "extensions": {
+    "vector": "0.8.0",
+    "pg_trgm": "1.6"
+  },
+  "client_date": "2026-10-27",
+  "macro_sources": {
+    "off": 81,
+    "generic": 10,
+    "library": 164,
+    "unknown": 806,
+    "llm_estimate": 134,
+    "reference_pl": 9,
+    "user_correction": 20
+  },
+  "library_sources": {
+    "logged": 16,
+    "yazio_import": 218
+  },
+  "numeric_mass_column": false,
+  "food_embedding_columns": 0,
+  "code_commit": "416b99dcf26df82ce85f6337a7265562bf063538",
+  "query": "select jsonb_build_object('client_date','2026-10-27','scope','aggregate read-only audit; no personal meal contents exported','counts',(select jsonb_object_agg(metric,n) from (select 'daily_food_entries' metric,count(*) n from public.daily_food_entries union all select 'macro_source_unknown',count(*) from public.daily_food_entries where nullif(parse_meta->>'macroSource','') is null union all select 'food_library',count(*) from public.food_library union all select 'food_reference_pl',count(*) from public.food_reference_pl union all select 'food_favorites',count(*) from public.food_favorites union all select 'complete_days',count(*) from public.nutrition_day_reviews where completeness='complete' union all select 'partial_days',count(*) from public.nutrition_day_reviews where completeness='partial' union all select 'meal_captures',count(*) from public.nutrition_meal_captures) t),'library_sources',(select jsonb_object_agg(source,n) from(select coalesce(source,'unknown') source,count(*) n from public.food_library group by 1)t),'macro_sources',(select jsonb_object_agg(source,n) from(select coalesce(nullif(parse_meta->>'macroSource',''),'unknown') source,count(*) n from public.daily_food_entries group by 1)t),'numeric_mass_column',(select exists(select 1 from information_schema.columns where table_schema='public' and table_name='daily_food_entries' and column_name in ('amount_grams','grams','mass_g') and data_type in ('numeric','integer','double precision'))),'food_embedding_columns',(select count(*) from information_schema.columns where table_schema='public' and table_name in ('food_library','food_reference_pl') and udt_name='vector'),'extensions',(select jsonb_object_agg(extname,extversion) from pg_extension where extname in ('vector','pg_trgm'))) audit;",
+  "interpretation_limits": [
+    "Database metadata and aggregate counts only; no meal ground truth or performance measurement.",
+    "Local source was inspected; deployed edge function parity was not verified.",
+    "A textual amount in grams does not prove a weighed portion.",
+    "A matching current library name cannot establish historical provenance."
+  ]
+}
