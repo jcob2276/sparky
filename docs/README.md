@@ -47,6 +47,7 @@ kolejność czytania albo listę odnośników, powinien zamiast tego cytować te
 | [`../scripts/README.md`](../scripts/README.md) | Przy uruchamianiu lokalnych skryptów |
 | [`runbooks/`](./runbooks/) | Przy incydentach (deploy, bot, DB, Telegram timeout) |
 | [`surface-contracts/BIOMETRICS.md`](./surface-contracts/BIOMETRICS.md) | Przed zmianą powierzchni biometrycznych (regression checklist) |
+| [`research/food-trackers-benchmark.md`](./research/food-trackers-benchmark.md) | Przed większą zmianą w module Jedzenie — co robią najlepsze trackery i mapa luk |
 | [`career/`](./career/) | Domena sprzedaż/closer — nie dotyczy Vanguard Core |
 
 ## Authority (gdy sprzeczne)
