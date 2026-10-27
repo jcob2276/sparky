@@ -9,6 +9,7 @@ export interface WeekNutrition {
   /** Błonnik i nasycone z dni, które policzyły się do średnich (bez dzisiejszego). */
   fiber: NutrientCoverage;
   saturatedFat: NutrientCoverage;
+  salt?: NutrientCoverage;
 }
 
 /** Żywienie tygodnia pon–nd: średnie z zapisanych dni, bilans budżetu kcal i pokrycie błonnika/nasyconych. */
@@ -29,5 +30,6 @@ export function buildWeekNutrition(input: {
     balance: computeWeekBalance({ weekStart, today, eatenByDate, targetByDate: data.targetByDate, fallbackTarget }),
     fiber: coverage.fiber,
     saturatedFat: coverage.saturatedFat,
+    salt: coverage.salt,
   };
 }

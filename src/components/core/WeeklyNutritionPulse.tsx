@@ -73,7 +73,7 @@ export default function WeeklyNutritionPulse({
             Węgle {formatGrams(pulse.avgCarbs)} · Tłuszcze {formatGrams(pulse.avgFat)}
             {pulse.avgQuality != null && ` · Jakość ${pulse.avgQuality}/100`}
           </p>
-          <NutrientCoverageStrip coverage={{ fiber: nutrition!.fiber, saturatedFat: nutrition!.saturatedFat }} />
+          <NutrientCoverageStrip coverage={{ fiber: nutrition!.fiber, saturatedFat: nutrition!.saturatedFat, salt: nutrition!.salt }} />
         </>
       )}
 

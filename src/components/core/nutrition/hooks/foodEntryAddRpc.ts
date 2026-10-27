@@ -19,6 +19,7 @@ export interface FoodEntryMacros {
   fiber: number | null;
   sugar: number | null;
   saturated_fat?: number | null;
+  salt?: number | null;
 }
 
 /** Builds the `p_entry` JSON for the `add_food_entry` RPC. */
@@ -38,6 +39,7 @@ export function buildFoodEntryPayload(
     fiber: macros.fiber,
     sugar: macros.sugar,
     saturated_fat: macros.saturated_fat ?? null,
+    salt: macros.salt ?? null,
     meal_type: mealType,
     request_id: crypto.randomUUID(),
     parse_meta: parseMeta,

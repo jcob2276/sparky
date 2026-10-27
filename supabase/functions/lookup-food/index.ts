@@ -25,6 +25,8 @@ interface FoodResult {
   fiber: number | null
   sugar: number | null
   saturated_fat: number | null
+  /** Sól g/100 g (OFF: salt_100g albo sód × 2,5). */
+  salt?: number | null
   defaultGrams: number | null
   source?: 'generic' | 'reference_pl' | 'off'
   incomplete?: boolean
@@ -120,6 +122,7 @@ function offProductToResult(product: any, barcode: string | null): FoodResult | 
     // Nasycone większe niż całkowity tłuszcz to błąd w bazie OFF → traktujemy jak brak danych.
     saturated_fat: n['saturated-fat_100g'] != null && n['fat_100g'] != null && n['saturated-fat_100g'] <= n['fat_100g'] + 0.05
       ? n['saturated-fat_100g'] : null,
+    salt: n['salt_100g'] != null ? n['salt_100g'] : n['sodium_100g'] != null ? Math.round(n['sodium_100g'] * 2.5 * 100) / 100 : null,
     defaultGrams: extractDefaultGrams(product),
     source: 'off',
     incomplete: n['energy-kcal_100g'] == null,

@@ -50,6 +50,12 @@ describe('foodBaseToDraft', () => {
     expect(draft.assumptions?.join(' ')).toContain('niespójna energia');
   });
 
+  it('carries label salt as data and marks every provided nutrient as such', () => {
+    const draft = foodBaseToDraft({ ...base, name: 'Chleb', calories: 250, protein: 8, carbs: 48, fat: 2, fiber: 6, salt: 1.2, confidence: 'high' }, 50);
+    expect(draft.salt).toBe(0.6);
+    expect(draft.parseMeta?.micronutrientSources).toEqual({ fiber: 'data', salt: 'data' });
+  });
+
   it('keeps consistent products untouched', () => {
     const draft = foodBaseToDraft({ ...base, name: 'Banan', calories: 89, protein: 1.1, carbs: 23, fat: 0.3, confidence: 'high' }, 120);
     expect(draft.confidence).toBe('high');

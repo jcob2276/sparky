@@ -6,6 +6,7 @@ interface WeekEntryNutrients {
   date: string;
   fiber: number | null;
   saturated_fat: number | null;
+  salt?: number | null;
 }
 
 export interface WeekNutritionInputs {
@@ -22,7 +23,7 @@ export async function fetchWeekNutritionInputs(userId: string, weekStart: string
       .select('date, calories, protein, carbs, fat, fiber, sugar, avg_food_quality, insulin_load')
       .eq('user_id', userId).gte('date', weekStart).lte('date', weekEnd).order('date', { ascending: true }),
     supabase.from('daily_food_entries')
-      .select('date, fiber, saturated_fat')
+      .select('date, fiber, saturated_fat, salt')
       .eq('user_id', userId).gte('date', weekStart).lte('date', weekEnd),
     supabase.from('nutrition_targets')
       .select('date, target_kcal')
@@ -49,6 +50,7 @@ export async function fetchWeekNutritionInputs(userId: string, weekStart: string
       date: row.date,
       fiber: row.fiber == null ? null : Number(row.fiber),
       saturated_fat: row.saturated_fat == null ? null : Number(row.saturated_fat),
+      salt: row.salt == null ? null : Number(row.salt),
     })),
     targetByDate,
   };

@@ -1,7 +1,7 @@
 import type { MealDraftItem } from './nutritionTracker';
 import type { ParsedFoodItem } from './foodLogging';
 import type { FoodBase } from './foodTypes';
-import { assessEnergyConsistency, describeEnergyMismatch } from '@vanguard/domain';
+import { assessEnergyConsistency, describeEnergyMismatch, mergeMicronutrients } from '@vanguard/domain';
 import { isMacroSource, type MacroSource } from './foodTrust';
 
 function scalePer100(value: number | null, grams: number): number {
@@ -21,6 +21,12 @@ export function foodBaseToDraft(food: FoodBase, grams: number): MealDraftItem {
   const defaultGrams = food.defaultGrams != null && food.defaultGrams > 0
     ? Math.round(food.defaultGrams)
     : undefined;
+  const micro = mergeMicronutrients({
+    fiber: food.fiber == null ? undefined : scalePer100(food.fiber, g),
+    sugar: food.sugar == null ? undefined : scalePer100(food.sugar, g),
+    saturatedFat: food.saturated_fat == null ? undefined : scalePer100(food.saturated_fat, g),
+    salt: food.salt == null ? undefined : Math.round((food.salt * g) / 100 * 100) / 100,
+  }, {}, { fatG: scalePer100(food.fat, g), grams: g });
   const energy = assessEnergyConsistency(food);
   const energyWarning = energy.status === 'mismatch' ? describeEnergyMismatch(energy, food.calories ?? 0) : undefined;
   return {
@@ -34,10 +40,12 @@ export function foodBaseToDraft(food: FoodBase, grams: number): MealDraftItem {
     fiber: food.fiber == null ? undefined : scalePer100(food.fiber, g),
     sugar: food.sugar == null ? undefined : scalePer100(food.sugar, g),
     saturatedFat: food.saturated_fat == null ? undefined : scalePer100(food.saturated_fat, g),
+    salt: micro.values.salt,
     confidence: energyWarning ? 'low' : food.confidence ?? 'high',
     source: food.source === 'confirmed' ? 'library' : 'database',
     assumptions: energyWarning ? [`niespójna energia: ${energyWarning}`] : undefined,
     parseMeta: {
+      micronutrientSources: micro.sources,
       ...(energyWarning ? { warnings: [energyWarning], validationStatus: 'review' as const } : {}),
       macroSource: food.source === 'confirmed' ? 'user_correction' : 'off',
       parserVersion: 'composer-search-v1',

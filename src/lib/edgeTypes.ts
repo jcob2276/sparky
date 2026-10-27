@@ -137,7 +137,7 @@ interface ParseFoodNLResponse {
   label?: {
     barcode: null; name: string; brand: string | null;
     calories: number; protein: number; carbs: number; fat: number;
-    fiber: number | null; sugar: number | null; saturated_fat: number | null; defaultGrams: number;
+    fiber: number | null; sugar: number | null; saturated_fat: number | null; salt?: number | null; defaultGrams: number;
     source: 'label_ocr'; confidence: 'high' | 'medium' | 'low';
   };
   meal?: MealPhotoResponse;
@@ -213,7 +213,7 @@ interface LookupFoodResponse {
   results: Array<{
     barcode: string | null; name: string; brand: string | null;
     calories: number | null; protein: number | null; carbs: number | null; fat: number | null;
-    fiber: number | null; sugar: number | null; saturated_fat: number | null; defaultGrams: number | null;
+    fiber: number | null; sugar: number | null; saturated_fat: number | null; salt?: number | null; defaultGrams: number | null;
     source?: 'generic' | 'reference_pl' | 'off';
     incomplete?: boolean;
   }>;

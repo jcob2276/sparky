@@ -102,7 +102,7 @@ export async function parseNutritionLabel(imageBase64: string, mimeType: string,
   if (!/^image\/(jpeg|png|webp)$/.test(mimeType)) throw new Error('Unsupported image type')
   if (!imageBase64 || imageBase64.length > 8_000_000) throw new Error('Image is missing or too large')
   const content = await callVisionLlm({
-    prompt: `Odczytaj etykietę żywieniową. Zwróć wyłącznie JSON z wartościami na 100 g lub 100 ml: {"name":string,"brand":string|null,"calories":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"sugar":number|null,"saturatedFat":number|null,"servingGrams":number|null,"confidence":"high"|"medium"|"low"}. Pole saturatedFat to „w tym kwasy tłuszczowe nasycone” (ustaw null, jeśli etykieta go nie podaje, nie zgaduj). Nie przeliczaj porcji na 100 g, jeśli na zdjęciu brakuje podstawy przeliczenia. Wtedy ustaw confidence="low" i brakujące pola null.`,
+    prompt: `Odczytaj etykietę żywieniową. Zwróć wyłącznie JSON z wartościami na 100 g lub 100 ml (pole salt to sól w gramach na 100 g; gdy na etykiecie jest tylko sód, salt = sód w g × 2,5; gdy nie ma żadnego z nich, wpisz null): {"name":string,"brand":string|null,"calories":number,"protein":number,"carbs":number,"fat":number,"fiber":number|null,"sugar":number|null,"saturatedFat":number|null,"salt":number|null,"servingGrams":number|null,"confidence":"high"|"medium"|"low"}. Pole saturatedFat to „w tym kwasy tłuszczowe nasycone” (ustaw null, jeśli etykieta go nie podaje, nie zgaduj). Nie przeliczaj porcji na 100 g, jeśli na zdjęciu brakuje podstawy przeliczenia. Wtedy ustaw confidence="low" i brakujące pola null.`,
     imageBase64,
     mimeType,
     userId,
@@ -132,6 +132,8 @@ export async function parseNutritionLabel(imageBase64: string, mimeType: string,
       const value = validMacro(raw.saturatedFat)
       return value != null && value <= fat + 0.05 ? value : null
     })(),
+    // Sól z etykiety to dana, nie szacunek; wartość większa niż 100 g na 100 g to błąd odczytu.
+    salt: validMacro(raw.salt, 100),
     defaultGrams: validMacro(raw.servingGrams, 2000) ?? 100,
     source: 'label_ocr',
     confidence,
