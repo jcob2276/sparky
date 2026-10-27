@@ -11,7 +11,9 @@ import type { P2ParsedResponse } from "../../_shared/reconciliationParser.ts";
 import { deepseekChat, parseJsonFromContent } from "../../_shared/deepseek.ts";
 import { LLM_TASKS } from "../../_shared/llm/tasks.ts";
 
-const TELEGRAM_FAST_LLM_MS = 14000;
+// Dluga glosowka = dluga struktura + analiza; 900 tokenow ucinalo JSON i analiza nie dochodzila.
+const TELEGRAM_FAST_LLM_MS = 40000;
+const TELEGRAM_FAST_MAX_TOKENS = 2400;
 
 export async function handleReconciliation(
   reconciliationId: string,
@@ -68,7 +70,7 @@ async function handleReconciliationTelegramFast(
     const { content: raw } = await deepseekChat({
       apiKey: deepseekApiKey,
       ...LLM_TASKS.structured,
-      maxTokens: 900,
+      maxTokens: TELEGRAM_FAST_MAX_TOKENS,
       timeoutMs: TELEGRAM_FAST_LLM_MS,
       messages: [{
         role: "user",
@@ -77,12 +79,13 @@ async function handleReconciliationTelegramFast(
           "Wyodrebnij strukture I napisz krotka analize. Odpowiedz TYLKO JSON:\n" +
           '{"evening_extraction":{"went_well":[],"went_wrong":[],"could_be_better":[],"gratitude":[],"tensions":[],"open_questions":[],"day_score":null},' +
           '"p2":{"day_score":null,"biggest_cost":null,"best_move":null,"correction":null,"resource":null,"blocker_candidates":[],"parse_confidence":0.5,"needs_manual_review":false,"unparsed_notes":null},' +
-          '"reflection":"4 sekcje po polsku: 1) Fakty 2) Dobrze 3) Zle/lepiej 4) Jedno pytanie do app"}\n\n' +
+          '"reflection":"max 1500 znakow, 4 sekcje po polsku: 1) Fakty 2) Dobrze 3) Zle/lepiej 4) Jedno pytanie do app"}\n\n' +
           `DATA: ${reconciliationDate}\nODPOWIEDZ UZYTKOWNIKA:\n${cleanText.slice(0, 3500)}`,
       }],
     });
 
     const parsed = parseJsonFromContent(raw);
+    if (!parsed) reflectionText = salvageReflection(raw);
     if (parsed) {
       if (parsed.evening_extraction && typeof parsed.evening_extraction === "object") {
         eveningExtraction = parsed.evening_extraction as Record<string, unknown>;
@@ -163,6 +166,18 @@ async function handleReconciliationTelegramFast(
     telegramToken,
     { disable_notification: false },
   );
+}
+
+/** Scieta (niedomknieta) odpowiedz JSON: wyciagnij przynajmniej tekst analizy. */
+function salvageReflection(raw: string): string {
+  const match = raw.match(/"reflection"\s*:\s*"((?:[^"\\]|\\.)*)/);
+  if (!match?.[1]) return "";
+  const body = match[1].replace(/\\$/, "");
+  try {
+    return (JSON.parse(`"${body}"`) as string).trim();
+  } catch {
+    return body.replace(/\\n/g, "\n").replace(/\\"/g, '"').trim();
+  }
 }
 
 function extractDayScore(text: string): number | null {
