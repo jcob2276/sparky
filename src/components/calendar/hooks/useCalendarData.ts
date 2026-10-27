@@ -169,7 +169,7 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
   });
 
   const {
-    executeDelete, handleEditDelete, restoreLastDeleted, deleteEventWithUndo, lastDeletedEvent,
+    executeDelete, handleEditDelete, deleteEventWithUndo,
   } = useCalendarDeleteActions({
     userId,
     accessToken,
@@ -265,8 +265,6 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     executeDelete,
     handleEditDelete,
     deleteEventWithUndo,
-    restoreLastDeleted,
-    lastDeletedEvent,
     createEventMutation,
     updateEventMutation,
     deleteEventMutation,
@@ -277,9 +275,9 @@ export function useCalendarData(userId: string | undefined, accessToken: string 
     editRecurrence, editRecurrenceEndDate, editReminder, editStart, editTitle, editingTodo,
     editingTodoTitle, eventToDelete, events, executeDelete, fetchEvents, frameDaysInputs, frameEndInputs,
     frameStartInputs, frameStrengthInputs, handleEditDelete, handleEventClick, handleEventMouseDown,
-    lastDeletedEvent, loading, openEditFromPreview, quickAllDay, quickCategory, quickCreate, quickCustomDays,
+    loading, openEditFromPreview, quickAllDay, quickCategory, quickCreate, quickCustomDays,
     quickDescription, quickDuration, quickLocation, quickRecurrence, quickRecurrenceEndDate,
-    quickReminder, quickTitle, quickType, restoreLastDeleted, saving, searchQuery, selectedDay, selectedEvent,
+    quickReminder, quickTitle, quickType, saving, searchQuery, selectedDay, selectedEvent,
     showBudgetConfig, showDeleteConfirm, sidebarCollapsed, toastMessage, toggleCategory,
     toggleSidebar, updateEventMutation, viewingEvent, visibleRange, weather, weatherLoading, weekStart,
     setBudgetMaxInputs, setBudgetMinInputs, setBudgetPanelExpanded, setDeleting, setEditAllDay,

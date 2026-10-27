@@ -6,11 +6,16 @@ import type { useCalendarData } from '../../hooks/useCalendarData';
 interface UseCalendarKeyboardShortcutsOptions {
   calData: ReturnType<typeof useCalendarData>;
   today: string;
+  onHelp: () => void;
 }
+
+/** Skróty jednoklawiszowe nie sterują kalendarzem spod otwartego okna, menu ani popovera. */
+const OVERLAY_SELECTOR = '[role="dialog"][aria-modal="true"], [role="menu"], [data-radix-popper-content-wrapper]';
 
 export function useCalendarKeyboardShortcuts({
   calData,
   today,
+  onHelp,
 }: UseCalendarKeyboardShortcutsOptions) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -26,12 +31,7 @@ export function useCalendarKeyboardShortcuts({
 
       const key = e.key.toLowerCase();
 
-      // Undo with Cmd+Z / Ctrl+Z
-      if (key === 'z' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        void calData.restoreLastDeleted();
-        return;
-      }
+      // ⌘Z / ⇧⌘Z obsługuje globalny ActionHistoryController; własny handler kalendarza dublował cofnięcie.
 
       // If viewing event details, handle edit and delete shortcuts
       if (calData.viewingEvent) {
@@ -61,7 +61,13 @@ export function useCalendarKeyboardShortcuts({
 
       // Kombinacje z Ctrl/Cmd/Alt (np. kopiowanie) i otwarte okna dialogowe nie sterują kalendarzem pod spodem.
       if (e.metaKey || e.ctrlKey || e.altKey) return;
-      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+      if (document.querySelector(OVERLAY_SELECTOR)) return;
+
+      if (e.key === '?') {
+        e.preventDefault();
+        onHelp();
+        return;
+      }
 
       const isPrev = e.key === 'ArrowLeft' || key === 'k';
       const isNext = e.key === 'ArrowRight' || key === 'j';
@@ -96,5 +102,5 @@ export function useCalendarKeyboardShortcuts({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [calData, today]);
+  }, [calData, today, onHelp]);
 }

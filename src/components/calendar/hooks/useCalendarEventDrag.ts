@@ -1,7 +1,14 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { calendarKeys } from '../../../lib/queryKeys';
-import { parseTime, dateOfISO, getWarsawOffset, HOUR_START, HOUR_END, PX_PER_MIN, CalRow } from '../calendarHelpers';
+import { dateOfISO, getWarsawOffset, parseTime, CalRow } from '../calendarHelpers';
 import { notify } from '../../../lib/notify';
+import { undoAction } from '../../../lib/actionHistory';
+import { haptics } from '../../../hooks/useHaptics';
+import { recordCalendarUpdate, useCalendarWriters } from '../calendarHistory';
+import {
+  LONG_PRESS_MS, MOUSE_DRAG_PX, TOUCH_CANCEL_PX,
+  computeDraggedTimes, snapDeltaMinutes, touchDragAction, type DragAction,
+} from '../calendarDragMath';
 
 interface VisibleRange {
   rangeStart: string;
@@ -24,6 +31,18 @@ interface UseCalendarEventDragParams {
   setToastMessage: (msg: string | null) => void;
 }
 
+type PointerEventLike = React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>;
+
+interface DragSession {
+  move: (clientX: number, clientY: number) => void;
+  end: (clientY: number) => Promise<void>;
+  cancel: () => void;
+}
+
+const pad = (n: number) => String(n).padStart(2, '0');
+const toISO = (date: string, min: number) => `${date}T${pad(Math.floor(min / 60))}:${pad(min % 60)}:00${getWarsawOffset(date)}`;
+const isCoarsePointer = () => typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+
 export function useCalendarEventDrag({
   userId,
   accessToken,
@@ -33,16 +52,188 @@ export function useCalendarEventDrag({
   onEventClick,
   setToastMessage,
 }: UseCalendarEventDragParams) {
-  const handleEventMouseDown = (
-    ev: CalRow,
-    e: React.MouseEvent<HTMLDivElement>,
-    action: 'move' | 'resize'
-  ) => {
-    e.stopPropagation();
-    e.preventDefault();
+  const writers = useCalendarWriters({ userId, accessToken, updateEventMutation });
+  const eventsKey = calendarKeys.events(userId || '', visibleRange.rangeStart, visibleRange.rangeEnd);
 
+  /** Wspólna sesja przeciągania: mysz startuje po progu ruchu, dotyk (`immediate`) po długim przytrzymaniu. */
+  const beginSession = (
+    ev: CalRow,
+    action: DragAction,
+    cardElement: HTMLDivElement | null,
+    startX: number,
+    startY: number,
+    immediate: boolean,
+  ): DragSession => {
+    const initialStartMin = parseTime(ev.start_time!);
+    const initialEndMin = parseTime(ev.end_time!);
+    const originalDate = dateOfISO(ev.start_time!);
+    // 'move' może przejść do innej kolumny dnia; 'resize' nigdy nie zmienia dnia wydarzenia.
+    let eventDate = originalDate;
+    let isDragging = false;
+    let lastDiffMins = 0;
+    let lastDay = originalDate;
+
+    const lift = () => {
+      isDragging = true;
+      if (cardElement) {
+        cardElement.style.transition = 'none';
+        cardElement.style.zIndex = '50';
+        cardElement.style.boxShadow = '0 16px 32px -4px rgba(0, 0, 0, 0.4)';
+        cardElement.style.opacity = '0.92';
+      }
+      document.body.style.cursor = action === 'resize' ? 'ns-resize' : 'grabbing';
+    };
+    const drop = () => {
+      document.body.style.cursor = '';
+      if (cardElement) {
+        cardElement.style.transition = '';
+        cardElement.style.zIndex = '';
+        cardElement.style.boxShadow = '';
+        cardElement.style.opacity = '';
+      }
+    };
+    const revert = () => { void queryClient.invalidateQueries({ queryKey: eventsKey }); };
+    if (immediate) lift();
+
+    const dayUnderCursor = (clientX: number, clientY: number): string | null =>
+      document.elementFromPoint(clientX, clientY)?.closest('[data-day-col]')?.getAttribute('data-day-col') || null;
+
+    const move = (clientX: number, clientY: number) => {
+      if (!isDragging) {
+        if (Math.hypot(clientX - startX, clientY - startY) < MOUSE_DRAG_PX) return;
+        lift();
+      }
+      const diffMins = snapDeltaMinutes(clientY - startY);
+      if (action === 'move') {
+        const hoveredDay = dayUnderCursor(clientX, clientY);
+        if (hoveredDay) eventDate = hoveredDay;
+      }
+      if (diffMins === lastDiffMins && eventDate === lastDay) return;
+      lastDiffMins = diffMins;
+      lastDay = eventDate;
+
+      const times = computeDraggedTimes({ action, startMin: initialStartMin, endMin: initialEndMin, diffMins });
+      // Tymczasowa lokalna aktualizacja, żeby przeciąganie było płynne
+      queryClient.setQueryData(eventsKey, (old: CalRow[] | undefined) => (old || []).map((item) => (
+        item.id !== ev.id ? item : { ...item, start_time: toISO(eventDate, times.startMin), end_time: toISO(eventDate, times.endMin) }
+      )));
+    };
+
+    const end = async (clientY: number) => {
+      drop();
+      if (!isDragging) {
+        onEventClick(ev);
+        return;
+      }
+      const diffMins = snapDeltaMinutes(clientY - startY);
+      if (diffMins === 0 && eventDate === originalDate) {
+        // Wrócił w to samo miejsce: bez zapisu, tylko odtwórz cache
+        revert();
+        return;
+      }
+      const times = computeDraggedTimes({ action, startMin: initialStartMin, endMin: initialEndMin, diffMins });
+      const before = {
+        id: ev.event_id || ev.id,
+        summary: ev.summary || '',
+        start: ev.start_time!,
+        end: ev.end_time!,
+        category: ev.category || undefined,
+        description: ev.description || undefined,
+        recurrence: ev.recurrence || undefined,
+        location: ev.location || undefined,
+        is_all_day: ev.is_all_day ?? false,
+        reminder_minutes: ev.reminder_minutes ?? null,
+      };
+      const after = { ...before, start: toISO(eventDate, times.startMin), end: toISO(eventDate, times.endMin) };
+      try {
+        await writers.update(after);
+        const actionId = recordCalendarUpdate(writers, { label: `Zmiana czasu: ${ev.summary || 'Wydarzenie'}`, before, after });
+        notify('Zaktualizowano czas wydarzenia.', 'success', {
+          action: { label: 'Cofnij', onClick: () => { void undoAction(actionId); } },
+        });
+      } catch (err) {
+        console.error('Failed to save drag/resize changes:', err);
+        setToastMessage('Nie udało się zapisać zmian.');
+        // Przy błędzie wróć do oryginalnych wartości
+        revert();
+      }
+    };
+
+    return { move, end, cancel: () => { drop(); revert(); } };
+  };
+
+  const startMouseDrag = (ev: CalRow, e: React.MouseEvent<HTMLDivElement>, action: DragAction) => {
+    const cardElement = (action === 'resize' ? e.currentTarget.parentElement : e.currentTarget) as HTMLDivElement | null;
+    const session = beginSession(ev, action, cardElement, e.clientX, e.clientY, false);
+    const handleMouseMove = (moveEvent: MouseEvent) => session.move(moveEvent.clientX, moveEvent.clientY);
+    const handleMouseUp = (upEvent: MouseEvent) => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+      void session.end(upEvent.clientY);
+    };
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  /**
+   * Dotyk: przewijanie wygrywa, dopóki palec nie postoi LONG_PRESS_MS. Wtedy blok „unosi się” (wibracja),
+   * a dalszy ruch przesuwa go (przytrzymanie przy dolnej krawędzi zmienia długość). Ruch przed końcem
+   * przytrzymania anuluje gest. Zwykłe stuknięcie nadal otwiera podgląd przez ścieżkę myszy.
+   */
+  const startTouchDrag = (ev: CalRow, e: React.TouchEvent<HTMLDivElement>, action: DragAction) => {
+    if (e.touches.length !== 1 || ev.series_id) return;
+    const { clientX: startX, clientY: startY } = e.touches[0];
+    const cardElement = (action === 'resize' ? e.currentTarget.parentElement : e.currentTarget) as HTMLDivElement | null;
+    const effective = cardElement ? touchDragAction(action, cardElement.getBoundingClientRect().bottom, startY) : action;
+    let session: DragSession | null = null;
+
+    const cleanup = () => {
+      clearTimeout(timer);
+      document.removeEventListener('touchmove', onTouchMove);
+      document.removeEventListener('touchend', onTouchEnd);
+      document.removeEventListener('touchcancel', onTouchCancel);
+    };
+    const timer = setTimeout(() => {
+      session = beginSession(ev, effective, cardElement, startX, startY, true);
+      haptics.medium();
+    }, LONG_PRESS_MS);
+    const onTouchMove = (touchEvent: TouchEvent) => {
+      const point = touchEvent.touches[0];
+      if (!session) {
+        if (Math.hypot(point.clientX - startX, point.clientY - startY) > TOUCH_CANCEL_PX) cleanup();
+        return;
+      }
+      touchEvent.preventDefault();
+      session.move(point.clientX, point.clientY);
+    };
+    const onTouchEnd = (touchEvent: TouchEvent) => {
+      const active = session;
+      cleanup();
+      if (!active) return;
+      // Bez tego przeglądarka dośle po puszczeniu palca zdarzenia myszy i otworzy podgląd.
+      touchEvent.preventDefault();
+      void active.end(touchEvent.changedTouches[0].clientY);
+    };
+    const onTouchCancel = () => {
+      const active = session;
+      cleanup();
+      active?.cancel();
+    };
+    document.addEventListener('touchmove', onTouchMove, { passive: false });
+    document.addEventListener('touchend', onTouchEnd, { passive: false });
+    document.addEventListener('touchcancel', onTouchCancel);
+  };
+
+  /** Wejście z bloku wydarzenia i uchwytu zmiany długości: mysz albo dotyk (jedna funkcja, bez nowych propsów). */
+  const handleEventMouseDown = (ev: CalRow, e: PointerEventLike, action: DragAction) => {
+    e.stopPropagation();
+    if ('touches' in e) {
+      if (ev.start_time && ev.end_time) startTouchDrag(ev, e, action);
+      return;
+    }
+    e.preventDefault();
     if (!ev.start_time || !ev.end_time) return;
-    if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) {
+    if (isCoarsePointer()) {
       onEventClick(ev);
       return;
     }
@@ -51,188 +242,7 @@ export function useCalendarEventDrag({
       setToastMessage('Cykliczne wydarzenie zmienisz bezpiecznie w edycji całej serii.');
       return;
     }
-
-    const cardElement = action === 'resize'
-      ? (e.currentTarget.parentElement as HTMLDivElement)
-      : (e.currentTarget as HTMLDivElement);
-
-    const startMin = parseTime(ev.start_time);
-    const endMin = parseTime(ev.end_time);
-    const duration = endMin - startMin;
-
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const initialStartMin = startMin;
-    const initialEndMin = endMin;
-    const originalDate = dateOfISO(ev.start_time);
-    // Mutable — 'move' drags can cross into a different day column; 'resize'
-    // never changes which day the event belongs to.
-    let eventDate = originalDate;
-
-    let isDragging = false;
-    let lastDiffMins = 0;
-    let lastDay = originalDate;
-
-    const dayUnderCursor = (clientX: number, clientY: number): string | null => {
-      const el = document.elementFromPoint(clientX, clientY)?.closest('[data-day-col]');
-      return el?.getAttribute('data-day-col') || null;
-    };
-
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const diffX = moveEvent.clientX - startX;
-      const diffY = moveEvent.clientY - startY;
-
-      if (!isDragging) {
-        if (Math.hypot(diffX, diffY) < 5) return;
-        isDragging = true;
-        if (cardElement) {
-          cardElement.style.transition = 'none';
-          cardElement.style.zIndex = '50';
-          cardElement.style.boxShadow = '0 16px 32px -4px rgba(0, 0, 0, 0.4)';
-          cardElement.style.opacity = '0.92';
-        }
-        document.body.style.cursor = action === 'resize' ? 'ns-resize' : 'grabbing';
-      }
-
-      const diffMins = Math.round((diffY / PX_PER_MIN) / 15) * 15;
-
-      if (action === 'move') {
-        const hoveredDay = dayUnderCursor(moveEvent.clientX, moveEvent.clientY);
-        if (hoveredDay) eventDate = hoveredDay;
-      }
-
-      if (diffMins === lastDiffMins && eventDate === lastDay) return;
-      lastDiffMins = diffMins;
-      lastDay = eventDate;
-
-      // Temporary local update for snappy UI feel
-      queryClient.setQueryData(
-        calendarKeys.events(userId || '', visibleRange.rangeStart, visibleRange.rangeEnd),
-        (old: CalRow[] | undefined) => {
-          return (old || []).map((item) => {
-            if (item.id !== ev.id) return item;
-
-            let newStartMin = initialStartMin;
-            let newEndMin = initialEndMin;
-
-            if (action === 'move') {
-              newStartMin = Math.max(HOUR_START * 60, Math.min(HOUR_END * 60 - duration, initialStartMin + diffMins));
-              newEndMin = newStartMin + duration;
-            } else if (action === 'resize') {
-              newEndMin = Math.max(newStartMin + 15, Math.min(HOUR_END * 60, initialEndMin + diffMins));
-            }
-
-            const pad = (n: number) => String(n).padStart(2, '0');
-            const newStartISO = `${eventDate}T${pad(Math.floor(newStartMin / 60))}:${pad(newStartMin % 60)}:00${getWarsawOffset(eventDate)}`;
-            const newEndISO = `${eventDate}T${pad(Math.floor(newEndMin / 60))}:${pad(newEndMin % 60)}:00${getWarsawOffset(eventDate)}`;
-
-            return {
-              ...item,
-              start_time: newStartISO,
-              end_time: newEndISO,
-            };
-          });
-        }
-      );
-    };
-
-    const handleMouseUp = async (upEvent: MouseEvent) => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.body.style.cursor = '';
-
-      if (cardElement) {
-        cardElement.style.transition = '';
-        cardElement.style.zIndex = '';
-        cardElement.style.boxShadow = '';
-        cardElement.style.opacity = '';
-      }
-
-      if (!isDragging) {
-        onEventClick(ev);
-        return;
-      }
-
-      const diffY = upEvent.clientY - startY;
-      const diffMins = Math.round((diffY / PX_PER_MIN) / 15) * 15;
-
-      if (diffMins === 0 && eventDate === originalDate) {
-        // Returned to exact same position — skip network call, restore cache
-        queryClient.invalidateQueries({
-          queryKey: calendarKeys.events(userId || '', visibleRange.rangeStart, visibleRange.rangeEnd),
-        });
-        return;
-      }
-
-      let finalStartMin = initialStartMin;
-      let finalEndMin = initialEndMin;
-
-      if (action === 'move') {
-        finalStartMin = Math.max(HOUR_START * 60, Math.min(HOUR_END * 60 - duration, initialStartMin + diffMins));
-        finalEndMin = finalStartMin + duration;
-      } else if (action === 'resize') {
-        finalEndMin = Math.max(finalStartMin + 15, Math.min(HOUR_END * 60, initialEndMin + diffMins));
-      }
-
-      const pad = (n: number) => String(n).padStart(2, '0');
-      const startISO = `${eventDate}T${pad(Math.floor(finalStartMin / 60))}:${pad(finalStartMin % 60)}:00${getWarsawOffset(eventDate)}`;
-      const endISO = `${eventDate}T${pad(Math.floor(finalEndMin / 60))}:${pad(finalEndMin % 60)}:00${getWarsawOffset(eventDate)}`;
-
-      const evId = ev.event_id || ev.id;
-      try {
-        await updateEventMutation.mutateAsync({
-          userId: userId || '',
-          accessToken: accessToken || '',
-          event: {
-            id: evId,
-            summary: ev.summary || '',
-            start: startISO,
-            end: endISO,
-            category: ev.category || undefined,
-            description: ev.description || undefined,
-            recurrence: ev.recurrence || undefined,
-            location: ev.location || undefined,
-            is_all_day: ev.is_all_day ?? false,
-            reminder_minutes: ev.reminder_minutes ?? null,
-          },
-        });
-        notify('Zaktualizowano czas wydarzenia.', 'success', {
-          action: {
-            label: 'Cofnij',
-            onClick: () => {
-              void updateEventMutation.mutateAsync({
-                userId: userId || '',
-                accessToken: accessToken || '',
-                event: {
-                  id: evId,
-                  summary: ev.summary || '',
-                  start: ev.start_time!,
-                  end: ev.end_time!,
-                  category: ev.category || undefined,
-                  description: ev.description || undefined,
-                  recurrence: ev.recurrence || undefined,
-                  location: ev.location || undefined,
-                  is_all_day: ev.is_all_day ?? false,
-                  reminder_minutes: ev.reminder_minutes ?? null,
-                },
-              }).then(() => queryClient.invalidateQueries({
-                queryKey: calendarKeys.events(userId || '', visibleRange.rangeStart, visibleRange.rangeEnd),
-              }));
-            },
-          },
-        });
-      } catch (err) {
-        console.error('Failed to save drag/resize changes:', err);
-        setToastMessage('Nie udało się zapisać zmian.');
-        // Revert cache to original values on failure
-        queryClient.invalidateQueries({
-          queryKey: calendarKeys.events(userId || '', visibleRange.rangeStart, visibleRange.rangeEnd),
-        });
-      }
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    startMouseDrag(ev, e, action);
   };
 
   return { handleEventMouseDown };

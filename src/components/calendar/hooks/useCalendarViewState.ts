@@ -53,6 +53,7 @@ export function useCalendarViewState({
     accessToken,
     createEventMutation: calData.createEventMutation,
     updateEventMutation: calData.updateEventMutation,
+    deleteEventMutation: calData.deleteEventMutation,
     setToastMessage: calData.setToastMessage,
   });
 
@@ -104,7 +105,9 @@ export function useCalendarViewState({
   });
 
   // Global keyboard shortcuts (views, arrows, quick create, backspace/delete, edit)
-  useCalendarKeyboardShortcuts({ calData, today });
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const openShortcuts = useCallback(() => setShortcutsOpen(true), []);
+  useCalendarKeyboardShortcuts({ calData, today, onHelp: openShortcuts });
 
   const contextValue: CalendarContextType = useMemo(
     () => ({
@@ -166,5 +169,7 @@ export function useCalendarViewState({
     handleContextMenuMoveToDate,
     handleContextMenuDuplicate,
     contextValue,
+    shortcutsOpen,
+    setShortcutsOpen,
   };
 }

@@ -5,10 +5,11 @@
  *          Wydarzenia całodniowe NIE renderują się już jako bloki czasowe.
  */
 import React from 'react';
-import { Sun } from 'lucide-react';
+import { Flag, Sun } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { CalRow } from '../calendarHelpers';
 import { LIFE_SPHERES } from '../../../lib/projects/lifeSpheres';
+import { getPolishHolidayForDate } from '../../../lib/holidays';
 
 function categoryDotClass(category?: string | null): string {
   const normalized = (category || '').replace('ciało_', 'cialo_');
@@ -23,7 +24,9 @@ interface AllDayStripProps {
 }
 
 export function AllDayStrip({ days, allDayByDay, gutterWidth, onEventClick }: AllDayStripProps) {
-  if (!allDayByDay.some((list) => list.length > 0)) return null;
+  const holidays = days.map((day) => getPolishHolidayForDate(day));
+  // Święto samo wystarcza, żeby pokazać pasek: wolny dzień ma być widać także w tygodniu i dniu, nie tylko w miesiącu.
+  if (!allDayByDay.some((list) => list.length > 0) && !holidays.some(Boolean)) return null;
 
   const isDayView = days.length === 1;
   const padClass = isDayView && gutterWidth > 44 ? 'pl-11 sm:pl-[72px]' : 'pl-11';
@@ -39,6 +42,16 @@ export function AllDayStrip({ days, allDayByDay, gutterWidth, onEventClick }: Al
       </div>
       {days.map((day, idx) => (
         <div key={day} className="flex-1 min-w-0 space-y-1 border-l border-border-custom/20 p-1 first:border-l-0">
+          {holidays[idx] && (
+            <div
+              title={holidays[idx].name}
+              aria-label={`Święto: ${holidays[idx].name}`}
+              className="flex w-full min-h-6 items-center gap-1.5 truncate rounded-md border border-warning/30 bg-warning/10 px-2 py-0.5 text-2xs font-semibold text-warning"
+            >
+              <Flag size={10} className="shrink-0" aria-hidden="true" />
+              <span className="truncate">{holidays[idx].name}</span>
+            </div>
+          )}
           {allDayByDay[idx].map((ev) => (
             <Pressable
               key={`${ev.id}-${day}`}

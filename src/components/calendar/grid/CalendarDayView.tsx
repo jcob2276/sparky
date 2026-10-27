@@ -35,7 +35,7 @@ interface CalendarDayViewProps {
   handleColumnMouseDown: (day: string, e: React.MouseEvent) => void;
   handleColumnMouseMove: (day: string, e: React.MouseEvent) => void;
   handleColumnClick?: (day: string, e: React.MouseEvent) => void;
-  handleEventMouseDown: (ev: CalRow, e: React.MouseEvent<HTMLDivElement>, action: 'move' | 'resize') => void;
+  handleEventMouseDown: (ev: CalRow, e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>, action: 'move' | 'resize') => void;
   handleEventContextMenu?: (ev: CalRow, e: React.MouseEvent) => void;
   handleToggleTodo: (id: string) => void;
   setEditingTodo: (todo: CalendarTodo | null) => void;

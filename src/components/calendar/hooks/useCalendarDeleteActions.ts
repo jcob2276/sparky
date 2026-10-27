@@ -1,4 +1,4 @@
-import { useCallback, useState, type Dispatch, type SetStateAction } from 'react';
+import { useCallback, type Dispatch, type SetStateAction } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   useCreateCalendarEvent,
@@ -6,8 +6,10 @@ import {
   type SparkyCalendarRow,
 } from '../../../lib/calendarApi';
 import { notify } from '../../../lib/notify';
+import { undoAction } from '../../../lib/actionHistory';
 import { calendarKeys } from '../../../lib/queryKeys';
 import { recurringSeriesBaseId, CalRow } from '../calendarHelpers';
+import { recordCalendarDelete, rowToEventPayload, useCalendarWriters } from '../calendarHistory';
 import { evictDeletedFromCache, evictSingleFromCache } from './calendarDataHelpers';
 
 interface UseCalendarDeleteActionsArgs {
@@ -86,32 +88,7 @@ export function useCalendarDeleteActions({
     setShowDeleteConfirm(true);
   }, [selectedEvent, setEventToDelete, setSelectedEvent, setShowDeleteConfirm]);
 
-  const [lastDeletedEvent, setLastDeletedEvent] = useState<CalRow | null>(null);
-
-  const restoreLastDeleted = useCallback(async () => {
-    if (!lastDeletedEvent || !lastDeletedEvent.start_time || !lastDeletedEvent.end_time) return;
-    try {
-      await createEventMutation.mutateAsync({
-        userId: userId || '',
-        accessToken: accessToken || '',
-        event: {
-          summary: lastDeletedEvent.summary || 'Wydarzenie',
-          start: lastDeletedEvent.start_time,
-          end: lastDeletedEvent.end_time,
-          category: lastDeletedEvent.category || undefined,
-          description: lastDeletedEvent.description || undefined,
-          location: lastDeletedEvent.location || undefined,
-          is_all_day: lastDeletedEvent.is_all_day ?? false,
-          reminder_minutes: lastDeletedEvent.reminder_minutes ?? null,
-        },
-      });
-      setLastDeletedEvent(null);
-      notify('Przywrócono wydarzenie ↩️', 'success');
-    } catch (err) {
-      console.error('Failed to restore event:', err);
-      notify('Nie udało się przywrócić wydarzenia.', 'error');
-    }
-  }, [lastDeletedEvent, createEventMutation, userId, accessToken]);
+  const writers = useCalendarWriters({ userId, accessToken, createEventMutation, deleteEventMutation });
 
   const deleteEventWithUndo = useCallback(async (ev: CalRow) => {
     const isRecurring = Boolean(
@@ -141,38 +118,24 @@ export function useCalendarDeleteActions({
         eventId: instanceId,
         deleteScope: 'this',
       });
-      setLastDeletedEvent(ev);
       setViewingEvent(null);
-      notify(`Usunięto "${ev.summary || 'Wydarzenie'}"`, 'info', {
-        action: {
-          label: 'Cofnij',
-          onClick: () => {
-            void createEventMutation.mutateAsync({
-              userId: userId || '',
-              accessToken: accessToken || '',
-              event: {
-                summary: ev.summary || 'Wydarzenie',
-                start: ev.start_time!,
-                end: ev.end_time!,
-                category: ev.category || undefined,
-                description: ev.description || undefined,
-                location: ev.location || undefined,
-                is_all_day: ev.is_all_day ?? false,
-                reminder_minutes: ev.reminder_minutes ?? null,
-              },
-            });
-          },
-        },
-      });
+      const payload = rowToEventPayload(ev);
+      // Cofnięcie przez globalną historię (⌘Z / ⇧⌘Z); przycisk w komunikacie robi to samo.
+      const actionId = payload
+        ? recordCalendarDelete(writers, { label: `Usunięcie: ${ev.summary || 'Wydarzenie'}`, event: { ...payload, recurrence: undefined } })
+        : null;
+      notify(`Usunięto "${ev.summary || 'Wydarzenie'}"`, 'info', actionId
+        ? { action: { label: 'Cofnij', onClick: () => { void undoAction(actionId); } } }
+        : undefined);
     } catch (err) {
       console.error('Failed to delete event:', err);
       notify('Nie udało się usunąć wydarzenia.', 'error');
       queryClient.invalidateQueries({ queryKey: calendarKeys.all });
     }
   }, [
-    deleteEventMutation, createEventMutation, userId, accessToken, queryClient,
+    deleteEventMutation, writers, userId, accessToken, queryClient,
     setEventToDelete, setShowDeleteConfirm, setViewingEvent,
   ]);
 
-  return { executeDelete, handleEditDelete, restoreLastDeleted, deleteEventWithUndo, lastDeletedEvent };
+  return { executeDelete, handleEditDelete, deleteEventWithUndo };
 }

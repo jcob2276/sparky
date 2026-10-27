@@ -70,6 +70,7 @@ export const renderEventBlock = ({
         }
       }}
       onMouseDown={(e) => handleEventMouseDown(ev, e, 'move')}
+      onTouchStart={(e) => handleEventMouseDown(ev, e, 'move')}
       onContextMenu={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -110,9 +111,10 @@ export const renderEventBlock = ({
       )}
       <div
         onMouseDown={(e) => handleEventMouseDown(ev, e, 'resize')}
-        className="absolute bottom-0 left-0 right-0 h-2 cursor-s-resize group-hover:bg-current/10 z-[var(--z-sticky)] flex items-center justify-center"
+        onTouchStart={(e) => handleEventMouseDown(ev, e, 'resize')}
+        className="absolute bottom-0 left-0 right-0 h-2 pointer-coarse:h-4 cursor-s-resize group-hover:bg-current/10 z-[var(--z-sticky)] flex items-center justify-center"
       >
-        <span className="w-4 h-0.5 rounded-full bg-current/20 group-hover:bg-current/40 opacity-0 group-hover:opacity-100 transition-opacity duration-100" />
+        <span className="w-4 h-0.5 rounded-full bg-current/20 group-hover:bg-current/40 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity duration-100" />
       </div>
     </div>
   );
