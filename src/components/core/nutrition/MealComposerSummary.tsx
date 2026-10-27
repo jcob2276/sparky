@@ -1,6 +1,7 @@
 import { DEFAULT_PROTEIN_FLOOR_G } from '@vanguard/domain';
 import type { WeekBalance } from '../../../lib/health/weekBalance';
 import type { DayNutrientCoverage } from '../../../lib/health/nutrientCoverage';
+import type { DayEnergyRange } from '../../../lib/health/nutritionAudit';
 import NutrientCoverageStrip from './NutrientCoverageStrip';
 import WeekBalanceStrip from './WeekBalanceStrip';
 
@@ -71,18 +72,34 @@ function MacroRow({
   );
 }
 
+/** Pokazuje zakres, gdy wynik dnia jest wyraźnie szacunkiem; pewne dane nie dostają dodatkowej linii. */
+function EnergyRangeLine({ energy }: { energy: DayEnergyRange }) {
+  if (energy.estimatedSharePct < 15) return null;
+  return (
+    <p
+      className="text-2xs font-semibold tabular-nums text-text-muted"
+      title="Szacunki ze zdjęć i AI mylą się w jedną stronę, więc rozstępy się sumują, nie uśredniają"
+    >
+      Możliwy zakres <span className="text-text-primary">{energy.min}–{energy.max} kcal</span>
+      <span className="text-warning"> · {energy.estimatedSharePct}% to szacunek</span>
+    </p>
+  );
+}
+
 export function ComposerProgress({
   totals,
   qualityPending,
   macros,
   week,
   nutrients,
+  energy,
 }: {
   totals: Totals;
   qualityPending: boolean;
   macros?: { carbs: number; fat: number };
   week?: WeekBalance | null;
   nutrients?: DayNutrientCoverage;
+  energy?: DayEnergyRange | null;
 }) {
   const targetKcal = totals.targetKcal ?? FALLBACK_TARGET_KCAL;
   const eaten = Math.round(totals.calories);
@@ -119,6 +136,7 @@ export function ComposerProgress({
         </ul>
       </div>
     </div>
+    {energy && <EnergyRangeLine energy={energy} />}
     {nutrients && <NutrientCoverageStrip coverage={nutrients} />}
     {week && <WeekBalanceStrip week={week} />}
     </div>

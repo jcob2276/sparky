@@ -42,6 +42,49 @@ export function deriveFoodTrust(food: FoodTrustInput): FoodTrust {
   return { level: 'estimated', uncertaintyPct: 25, label: 'Szacunek' };
 }
 
+export type MacroSource = 'library' | 'generic' | 'reference_pl' | 'off' | 'llm_estimate' | 'user_correction';
+
+const MACRO_SOURCES: readonly string[] = ['library', 'generic', 'reference_pl', 'off', 'llm_estimate', 'user_correction'];
+
+export function isMacroSource(value: unknown): value is MacroSource {
+  return typeof value === 'string' && MACRO_SOURCES.includes(value);
+}
+
+export interface ItemUncertaintyInput {
+  macroSource?: MacroSource | null;
+  itemSource?: 'llm' | 'database' | 'library';
+  confidence?: 'high' | 'medium' | 'low';
+  explicitGrams?: boolean;
+  inputMode?: string;
+  /** Niepewność wpisu, z którego kopiujemy; kopia nigdy nie jest pewniejsza od oryginału. */
+  priorUncertaintyPct?: number | null;
+}
+
+const MIN_UNCERTAINTY_PCT = 3;
+const MAX_UNCERTAINTY_PCT = 50;
+
+function macroUncertaintyPct({ macroSource, itemSource, confidence = 'medium' }: ItemUncertaintyInput): number {
+  if (macroSource === 'user_correction') return 3;
+  if (macroSource === 'library' || (macroSource == null && itemSource !== 'llm')) return 5;
+  if (macroSource === 'off' || macroSource === 'reference_pl' || macroSource === 'generic') {
+    return { high: 8, medium: 12, low: 20 }[confidence];
+  }
+  return { high: 15, medium: 25, low: 35 }[confidence];
+}
+
+function portionUncertaintyPct(input: ItemUncertaintyInput): number {
+  if (input.explicitGrams) return 0;
+  if (input.inputMode === 'photo') return 20;
+  return input.macroSource === 'llm_estimate' || input.itemSource === 'llm' ? 15 : 8;
+}
+
+/** Błąd źródła makro i błąd porcji są niezależne, więc składają się w sumie kwadratowej (nie w średniej z deklaracji LLM). */
+export function deriveItemUncertainty(input: ItemUncertaintyInput): number {
+  const combined = Math.hypot(macroUncertaintyPct(input), portionUncertaintyPct(input));
+  const floor = Number.isFinite(input.priorUncertaintyPct) ? Number(input.priorUncertaintyPct) : 0;
+  return Math.min(MAX_UNCERTAINTY_PCT, Math.max(MIN_UNCERTAINTY_PCT, Math.round(combined), Math.round(floor)));
+}
+
 export function calorieRange(calories: number | null, uncertaintyPct: number | null) {
   if (calories == null || uncertaintyPct == null) return null;
   const delta = calories * uncertaintyPct / 100;

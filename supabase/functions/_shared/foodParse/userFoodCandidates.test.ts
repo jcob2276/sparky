@@ -44,3 +44,9 @@ Deno.test('obviously poisoned favorite candidates are rejected before matching',
     source: 'favorite',
   }), false)
 })
+
+Deno.test('favorite with the 100 kcal placeholder is not a plausible candidate', () => {
+  const placeholder = { name: 'YoPRO Straciatella', calories: 100, protein: 8.3, carbs: 5.4, fat: 0.5 }
+  assertEquals(isPlausibleFoodCandidate('yopro', placeholder), false)
+  assertEquals(isPlausibleFoodCandidate('yopro', { ...placeholder, calories: 59 }), true)
+})

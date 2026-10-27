@@ -12,6 +12,7 @@ async function fetchFavorites(userId: string): Promise<Favorite[]> {
     .from('food_favorites')
     .select('id, barcode, name, brand, calories, protein, carbs, fat, fiber, sugar, use_count, default_grams')
     .eq('user_id', userId)
+    .neq('validation_status', 'quarantined')
     .order('use_count', { ascending: false })
     .order('last_used', { ascending: false })
     .limit(20);

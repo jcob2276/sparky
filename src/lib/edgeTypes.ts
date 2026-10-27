@@ -302,6 +302,11 @@ export interface VanguardOracleResponse {
   [key: string]: unknown;
 }
 
+export interface FoodIntegrityAuditResponse {
+  users: number;
+  results: Array<Record<string, number>>;
+}
+
 // ── Registry ─────────────────────────────────────────────────────────
 
 export interface EdgeFunctionResponses {
@@ -321,5 +326,6 @@ export interface EdgeFunctionResponses {
   'vanguard-nutrition-coach': NutritionCoachResponse;
   'sync': SyncResponse;
   'lookup-food': LookupFoodResponse;
+  'food-integrity-audit': FoodIntegrityAuditResponse;
   'vanguard-oracle': VanguardOracleResponse;
 }

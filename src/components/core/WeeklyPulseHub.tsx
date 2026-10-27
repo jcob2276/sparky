@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import FoodIntegrityCard from './nutrition/FoodIntegrityCard';
 import WeeklyBodyPulse from './WeeklyBodyPulse';
 import WeeklyComparePulse from './WeeklyComparePulse';
 import WeeklyFatGoalCard from './WeeklyFatGoalCard';
@@ -19,6 +20,7 @@ export const WeeklyPulseHub = memo(function WeeklyPulseHub({ weeklyCalories, ref
       <WeeklyWinsMap />
       <WeeklyComparePulse />
       <WeeklyNutritionPulse weeklyCalories={weeklyCalories} refreshSignal={refreshSignal} />
+      <FoodIntegrityCard />
       <WeeklySalesPulse />
       <WeeklyBodyPulse />
       <WeeklyFatGoalCard />

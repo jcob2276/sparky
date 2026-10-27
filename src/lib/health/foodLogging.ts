@@ -3,6 +3,7 @@ import { supabase } from '../supabase'
 import { invokeEdge } from '../supabase'
 import { TIMEOUTS } from '../constants'
 import { confirmMealCapture } from './nutritionTrackerApi'
+import type { MacroSource } from './foodTrust'
 
 export const MEAL_TYPES = [
   { id: 'breakfast', label: 'Śniadanie' },
@@ -14,7 +15,9 @@ export const MEAL_TYPES = [
 export type MealTypeId = (typeof MEAL_TYPES)[number]['id']
 
 interface FoodParseMeta {
-  macroSource: 'library' | 'generic' | 'reference_pl' | 'off' | 'llm_estimate' | 'user_correction'
+  macroSource: MacroSource
+  /** Przy kopii wpisu: niepewność oryginału, od której kopia nie może być lepsza. */
+  priorUncertaintyPct?: number
   matchScore?: number
   matchedName?: string
   dataSource?: string

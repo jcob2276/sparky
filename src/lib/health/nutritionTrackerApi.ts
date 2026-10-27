@@ -2,6 +2,7 @@ import type { Json } from '../database.types';
 import { supabase } from '../supabase';
 import { buildMealFingerprint, type MealDraftItem, type NutritionDayCompleteness } from './nutritionTracker';
 import { scheduleNutritionRefresh } from './nutritionSideEffects';
+import { deriveItemUncertainty } from './foodTrust';
 
 export type MealCaptureSource = 'photo' | 'text' | 'barcode' | 'repeat' | 'search';
 export type CaptureDraftItem = MealDraftItem;
@@ -18,16 +19,20 @@ export interface CaptureItemPayload {
 
 const round1 = (value: number) => Math.round(value * 10) / 10;
 
-export function buildCaptureItems(items: CaptureDraftItem[]): CaptureItemPayload[] {
+/** Poziom zaufania wynika ze źródła makro; pochodzenie z bazy/biblioteki nie podnosi szacunku ani danych OFF. */
+function captureTrustLevel(item: CaptureDraftItem): 'confirmed' | 'reference' | 'estimated' {
+  const macroSource = item.parseMeta?.macroSource;
+  if (macroSource === 'user_correction') return 'confirmed';
+  if (macroSource === 'llm_estimate') return 'estimated';
+  if (macroSource === 'off' || macroSource === 'reference_pl' || macroSource === 'generic') return 'reference';
+  return item.source === 'library' || item.source === 'database' ? 'confirmed' : 'estimated';
+}
+
+export function buildCaptureItems(items: CaptureDraftItem[], inputMode?: MealCaptureSource): CaptureItemPayload[] {
   return items.map((item) => {
     const grams = Math.max(1, Math.round(item.grams));
     const scale = 100 / grams;
-    const macroSource = item.parseMeta?.macroSource;
-    const trustLevel = item.source === 'library' || item.source === 'database' || macroSource === 'user_correction'
-      ? 'confirmed'
-      : macroSource === 'off' || macroSource === 'reference_pl'
-        ? 'reference'
-        : 'estimated';
+    const trustLevel = captureTrustLevel(item);
     return {
       name: item.name.trim(),
       brand: null,
@@ -48,7 +53,14 @@ export function buildCaptureItems(items: CaptureDraftItem[]): CaptureItemPayload
         source: 'user_confirmed',
         trust_level: trustLevel,
         user_confirmed: true,
-        uncertainty_pct: item.confidence === 'high' ? 8 : item.confidence === 'medium' ? 15 : 25,
+        uncertainty_pct: deriveItemUncertainty({
+          macroSource: item.parseMeta?.macroSource,
+          itemSource: item.source,
+          confidence: item.confidence,
+          explicitGrams: item.parseMeta?.explicitGrams,
+          inputMode,
+          priorUncertaintyPct: item.parseMeta?.priorUncertaintyPct,
+        }),
       },
     };
   });
@@ -67,7 +79,7 @@ export async function confirmMealCapture(input: {
 }): Promise<void> {
   if (!input.items.length) throw new Error('Posiłek nie zawiera żadnych pozycji');
   const captureId = input.captureId ?? crypto.randomUUID();
-  const items = buildCaptureItems(input.items);
+  const items = buildCaptureItems(input.items, input.source);
   const fingerprint = buildMealFingerprint(input.items);
   const { error } = await supabase.rpc('confirm_nutrition_meal_capture', {
     p_user_id: input.userId,

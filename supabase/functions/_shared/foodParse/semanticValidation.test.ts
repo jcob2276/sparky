@@ -112,3 +112,29 @@ Deno.test('credible reference food remains high confidence', () => {
   assertEquals(result.confidence, 'high')
   assertEquals(result.parseMeta?.validationStatus, 'accepted')
 })
+
+Deno.test('kcal equal to grams with real macros requires review', () => {
+  const [result] = validateParsedItems([
+    item({
+      name: 'Skyr naturalny',
+      grams: 150,
+      calories: 150,
+      protein: 18,
+      carbs: 6.2,
+      fat: 0,
+    }),
+  ], 'skyr 150g')
+
+  assertEquals(result.confidence, 'low')
+  assertEquals(result.parseMeta?.validationStatus, 'review')
+  assertStringIncludes(result.parseMeta?.warnings?.join(' ') ?? '', 'niespójna energia')
+})
+
+Deno.test('zero kcal juice with carbs is never accepted silently', () => {
+  const [result] = validateParsedItems([
+    item({ name: 'Sok pomarańczowy', grams: 1000, calories: 0, protein: 0, carbs: 100, fat: 0 }),
+  ], 'sok 1l')
+
+  assertEquals(result.confidence, 'low')
+  assertStringIncludes(result.parseMeta?.warnings?.join(' ') ?? '', '0 kcal')
+})

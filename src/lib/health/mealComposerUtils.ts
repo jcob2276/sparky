@@ -1,6 +1,8 @@
 import type { MealDraftItem } from './nutritionTracker';
 import type { ParsedFoodItem } from './foodLogging';
 import type { FoodBase } from './foodTypes';
+import { assessEnergyConsistency, describeEnergyMismatch } from '@vanguard/domain';
+import { isMacroSource, type MacroSource } from './foodTrust';
 
 function scalePer100(value: number | null, grams: number): number {
   if (value == null) return 0;
@@ -19,6 +21,8 @@ export function foodBaseToDraft(food: FoodBase, grams: number): MealDraftItem {
   const defaultGrams = food.defaultGrams != null && food.defaultGrams > 0
     ? Math.round(food.defaultGrams)
     : undefined;
+  const energy = assessEnergyConsistency(food);
+  const energyWarning = energy.status === 'mismatch' ? describeEnergyMismatch(energy, food.calories ?? 0) : undefined;
   return {
     id: crypto.randomUUID(),
     name: food.name,
@@ -30,9 +34,11 @@ export function foodBaseToDraft(food: FoodBase, grams: number): MealDraftItem {
     fiber: food.fiber == null ? undefined : scalePer100(food.fiber, g),
     sugar: food.sugar == null ? undefined : scalePer100(food.sugar, g),
     saturatedFat: food.saturated_fat == null ? undefined : scalePer100(food.saturated_fat, g),
-    confidence: food.confidence ?? 'high',
+    confidence: energyWarning ? 'low' : food.confidence ?? 'high',
     source: food.source === 'confirmed' ? 'library' : 'database',
+    assumptions: energyWarning ? [`niespójna energia: ${energyWarning}`] : undefined,
     parseMeta: {
+      ...(energyWarning ? { warnings: [energyWarning], validationStatus: 'review' as const } : {}),
       macroSource: food.source === 'confirmed' ? 'user_correction' : 'off',
       parserVersion: 'composer-search-v1',
       explicitGrams: true,
@@ -55,6 +61,30 @@ export interface RepeatableFoodEntry {
   sugar: number | null;
   saturated_fat?: number | null;
   amount: string | null;
+  parse_meta?: unknown;
+}
+
+interface PriorProvenance {
+  macroSource?: MacroSource;
+  explicitGrams?: boolean;
+  uncertaintyPct?: number;
+}
+
+function readPriorProvenance(meta: unknown): PriorProvenance {
+  if (!meta || typeof meta !== 'object') return {};
+  const record = meta as Record<string, unknown>;
+  return {
+    macroSource: isMacroSource(record.macroSource) ? record.macroSource : undefined,
+    explicitGrams: typeof record.explicitGrams === 'boolean' ? record.explicitGrams : undefined,
+    uncertaintyPct: typeof record.uncertainty_pct === 'number' && Number.isFinite(record.uncertainty_pct)
+      ? record.uncertainty_pct : undefined,
+  };
+}
+
+/** Kopia dziedziczy pewność oryginału: wysoka tylko dla danych, które nie były szacunkiem. */
+function confidenceFromUncertainty(pct: number | undefined): MealDraftItem['confidence'] {
+  if (pct == null || pct <= 12) return 'high';
+  return pct <= 22 ? 'medium' : 'low';
 }
 
 export function parseAmountGrams(amount: string | null): number {
@@ -67,6 +97,7 @@ export function parseAmountGrams(amount: string | null): number {
 export function entriesToDraft(entries: RepeatableFoodEntry[]): MealDraftItem[] {
   return entries.map((entry, index) => {
     const grams = parseAmountGrams(entry.amount);
+    const prior = readPriorProvenance(entry.parse_meta);
     return {
       id: `repeat-${index + 1}`,
       name: entry.name,
@@ -78,8 +109,14 @@ export function entriesToDraft(entries: RepeatableFoodEntry[]): MealDraftItem[] 
       fiber: entry.fiber ?? undefined,
       sugar: entry.sugar ?? undefined,
       saturatedFat: entry.saturated_fat ?? undefined,
-      confidence: 'high' as const,
+      confidence: confidenceFromUncertainty(prior.uncertaintyPct),
       source: 'library' as const,
+      parseMeta: prior.macroSource ? {
+        macroSource: prior.macroSource,
+        parserVersion: 'repeat-v2',
+        explicitGrams: prior.explicitGrams,
+        priorUncertaintyPct: prior.uncertaintyPct,
+      } : undefined,
     };
   });
 }

@@ -2301,6 +2301,9 @@ export type Database = {
           sugar: number | null
           use_count: number
           user_id: string
+          validated_at: string | null
+          validation_reason: string | null
+          validation_status: string
         }
         Insert: {
           barcode?: string | null
@@ -2320,6 +2323,9 @@ export type Database = {
           sugar?: number | null
           use_count?: number
           user_id: string
+          validated_at?: string | null
+          validation_reason?: string | null
+          validation_status?: string
         }
         Update: {
           barcode?: string | null
@@ -2339,6 +2345,87 @@ export type Database = {
           sugar?: number | null
           use_count?: number
           user_id?: string
+          validated_at?: string | null
+          validation_reason?: string | null
+          validation_status?: string
+        }
+        Relationships: []
+      }
+      food_integrity_findings: {
+        Row: {
+          auto_fix: string | null
+          detail: Json
+          entity_id: string | null
+          entity_table: string | null
+          fingerprint: string
+          first_seen_at: string
+          id: string
+          kind: string
+          last_seen_at: string
+          message: string
+          resolved_at: string | null
+          severity: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          auto_fix?: string | null
+          detail?: Json
+          entity_id?: string | null
+          entity_table?: string | null
+          fingerprint: string
+          first_seen_at?: string
+          id?: string
+          kind: string
+          last_seen_at?: string
+          message: string
+          resolved_at?: string | null
+          severity: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          auto_fix?: string | null
+          detail?: Json
+          entity_id?: string | null
+          entity_table?: string | null
+          fingerprint?: string
+          first_seen_at?: string
+          id?: string
+          kind?: string
+          last_seen_at?: string
+          message?: string
+          resolved_at?: string | null
+          severity?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      food_integrity_runs: {
+        Row: {
+          counts: Json
+          id: string
+          ran_at: string
+          summary: Json
+          user_id: string
+          window_days: number
+        }
+        Insert: {
+          counts?: Json
+          id?: string
+          ran_at?: string
+          summary: Json
+          user_id: string
+          window_days: number
+        }
+        Update: {
+          counts?: Json
+          id?: string
+          ran_at?: string
+          summary?: Json
+          user_id?: string
+          window_days?: number
         }
         Relationships: []
       }

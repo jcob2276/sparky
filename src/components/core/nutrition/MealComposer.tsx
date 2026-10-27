@@ -14,6 +14,7 @@ import { useMealComposer } from './hooks/useMealComposer';
 import { useMealPhotoUrls } from './hooks/useMealPhotoUrls';
 import { useWeekBalance } from './hooks/useWeekBalance';
 import { computeDayNutrientCoverage } from '../../../lib/health/nutrientCoverage';
+import { computeDayEnergyRange } from '../../../lib/health/nutritionAudit';
 import { useSession } from '../../../store/useStore';
 
 const FoodEntryModal = lazy(() => import('./FoodEntryModal'));
@@ -53,6 +54,7 @@ export default function MealComposer({
           qualityPending={c.qualityPending}
           week={week}
           nutrients={computeDayNutrientCoverage(c.allTodayEntries)}
+          energy={computeDayEnergyRange(c.allTodayEntries)}
           macros={{
             carbs: Math.round(c.allTodayEntries.reduce((s, e) => s + (e.carbs ?? 0), 0)),
             fat: Math.round(c.allTodayEntries.reduce((s, e) => s + (e.fat ?? 0), 0) * 10) / 10,

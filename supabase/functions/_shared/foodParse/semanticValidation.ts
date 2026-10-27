@@ -1,3 +1,4 @@
+import { assessEnergyConsistency, describeEnergyMismatch } from '@vanguard/domain'
 import type { ParsedFoodItem } from '../foodParseCore.ts'
 import { normalizePl, scaleParsedItem } from './matching.ts'
 
@@ -63,6 +64,12 @@ export function validateParsedItems(
         )
         confidence = 'low'
       }
+    }
+
+    const energy = assessEnergyConsistency(current, current.grams)
+    if (energy.status === 'mismatch') {
+      warnings.push(`niespójna energia: ${describeEnergyMismatch(energy, current.calories)}`)
+      confidence = 'low'
     }
 
     const matchScore = current.parseMeta?.matchScore

@@ -1,3 +1,4 @@
+import { assessEnergyConsistency } from "@vanguard/domain";
 import { deepseekChat, parseJsonFromContent } from "../deepseek.ts";
 import { openaiChat } from "../openai.ts";
 import { LLM_TASKS } from "../llm/tasks.ts";
@@ -23,7 +24,8 @@ export function isPlausibleFoodCandidate(query: string, candidate: Per100gFood):
   if (/\b(kebab|burger|pizza|zapiekanka|hot dog)\b/.test(normalized) && calories < 120) {
     return false;
   }
-  return true;
+  // Rekord, którego kcal przeczą własnym makro (np. 100 kcal/100 g w ulubionych), nie może wejść jako „high”.
+  return assessEnergyConsistency({ ...candidate, name: candidate.name }).status !== 'mismatch';
 }
 
 function pickBestMatchScored(query: string, results: Per100gFood[]): { match: Per100gFood; score: number } | null {
@@ -132,6 +134,7 @@ async function lookupViaLibraryRaw(name: string, userId: string, db: any): Promi
     db.from('food_favorites')
       .select('name, calories, protein, carbs, fat, fiber, sugar, saturated_fat')
       .eq('user_id', userId)
+      .neq('validation_status', 'quarantined')
       .ilike('name', `%${name}%`)
       .order('use_count', { ascending: false })
       .limit(5),
