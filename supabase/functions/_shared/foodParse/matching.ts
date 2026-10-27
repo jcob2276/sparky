@@ -133,37 +133,6 @@ export function recoverUnitCountFromText(
   });
 }
 
-function isHomemadeContext(text: string): boolean {
-  const n = normalizePl(text);
-  return /\b(domow\w*|wlasn\w*|babci|babcia|mamy|tesciow\w*|gotowane w domu)\b/.test(n);
-}
-
-/** Domowe ≈ mniej cukru/tłuszczu niż paczka/restauracja — tylko dla szacunków LLM. */
-export function applyHomemadeAdjustment(text: string, items: ParsedFoodItem[]): ParsedFoodItem[] {
-  if (!isHomemadeContext(text)) return items;
-
-  return items.map((item) => {
-    if (item.source !== 'llm') return item;
-    const sugarBefore = item.sugar ?? 0;
-    const fatBefore = item.fat;
-    const sugar = item.sugar != null ? Math.round(item.sugar * 0.88 * 10) / 10 : undefined;
-    const fat = Math.round(item.fat * 0.92 * 10) / 10;
-    const sugarSaved = item.sugar != null ? (sugarBefore - (sugar ?? 0)) * 4 : 0;
-    const fatSaved = (fatBefore - fat) * 9;
-    const calories = Math.max(0, Math.round(item.calories - sugarSaved - fatSaved));
-    return {
-      ...item,
-      sugar,
-      fat,
-      calories,
-      assumptions: [
-        ...(item.assumptions ?? []),
-        'domowe — lekko niższy cukier/tłuszcz niż wersja sklepowa/restauracyjna',
-      ],
-    };
-  });
-}
-
 export function isComplexMeal(text: string): boolean {
   if (text.length > 120) return true;
   if (COMPLEX_MEAL_RE.test(normalizePl(text))) return true;

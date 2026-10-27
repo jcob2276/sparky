@@ -1,6 +1,5 @@
 import {
   applyDeclaredPieceCount,
-  applyHomemadeAdjustment,
   isComplexMeal,
   normalizePl,
   parseDeclaredPieceCount,
@@ -27,7 +26,6 @@ import { lookupGenericFood, scoreFoodNameMatch } from "./foodGeneric.ts";
 
 export {
   applyDeclaredPieceCount,
-  applyHomemadeAdjustment,
   parseDeclaredPieceCount,
   pieceGramsForName,
 } from "./foodParse/matching.ts";
@@ -186,7 +184,6 @@ export async function finalizeParsedItems(
     out = await fillMacrosLlmFallback(out, opts.apiKey, opts.parseContext, opts.originalText)
   }
 
-  out = applyHomemadeAdjustment(opts.originalText, out)
   out = applyPhysiologicalGuardrails(out, opts.originalText)
   out = enforceMacroMath(out)
   if (opts.apiKey) out = await fillMissingMicronutrients(out, opts.apiKey)

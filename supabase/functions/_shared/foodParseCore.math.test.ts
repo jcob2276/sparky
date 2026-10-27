@@ -1,7 +1,6 @@
 import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts'
 import {
   applyUserCorrections,
-  applyHomemadeAdjustment,
   enforceMacroMath,
   needsFoodReview,
   caloriesFromMacros,
@@ -37,15 +36,6 @@ Deno.test('enforceMacroMath — ciche wyrównanie przy małym rozjazdzi', () => 
 Deno.test('enforceMacroMath — nie dotyka bazy', () => {
   const items = enforceMacroMath([llmItem({ source: 'database', calories: 999, protein: 1, carbs: 1, fat: 1 })])
   assertEquals(items[0].calories, 999)
-})
-
-Deno.test('applyHomemadeAdjustment — tylko LLM', () => {
-  const out = applyHomemadeAdjustment('naleśniki domowe', [
-    llmItem({ source: 'database', fat: 10, calories: 200 }),
-    llmItem({ fat: 10, calories: 200, sugar: 10 }),
-  ])
-  assertEquals(out[0].fat, 10)
-  assertEquals(out[1].fat, 9.2)
 })
 
 Deno.test('applyUserCorrections — skaluje gramy i ustawia high', () => {
