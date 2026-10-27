@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearActionHistory, redoLastAction, undoLastAction } from '../../lib/actionHistory';
 import {
-  recordCalendarCreate, recordCalendarDelete, recordCalendarUpdate, rowToEventPayload,
+  createEventWithHistory, recordCalendarCreate, recordCalendarDelete, recordCalendarUpdate, rowToEventPayload,
   type CalendarWriters,
 } from './calendarHistory';
 import type { CalRow } from './calendarHelpers';
@@ -60,6 +60,22 @@ describe('recordCalendarCreate', () => {
     expect(w.create).toHaveBeenCalledWith(event);
     await undoLastAction();
     expect(w.remove).toHaveBeenLastCalledWith('new-1');
+  });
+});
+
+describe('createEventWithHistory', () => {
+  it('creates the event and lets ⌘Z remove exactly that event', async () => {
+    const w = writers();
+    expect(await createEventWithHistory(w, event)).toEqual(expect.any(String));
+    await undoLastAction();
+    expect(w.remove).toHaveBeenCalledWith('new-1');
+  });
+
+  it('does not register a series, which a single delete cannot undo', async () => {
+    const w = writers();
+    expect(await createEventWithHistory(w, event, false)).toBeNull();
+    expect(w.create).toHaveBeenCalledTimes(1);
+    expect(await undoLastAction()).toBe(false);
   });
 });
 

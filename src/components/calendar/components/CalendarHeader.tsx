@@ -7,6 +7,8 @@ import { weekMon } from '../calendarHelpers';
 import { shiftPeriodDates } from '../calendarView/calendarViewHelpers';
 import { formatRangeLabel } from '../calendarRangeLabel';
 import { SidebarTrigger } from '../../ui/sidebar';
+import CalendarSearchResults from './CalendarSearchResults';
+import { useCalendarSearchResults } from '../hooks/useCalendarSearchResults';
 
 const CALENDAR_TABS = [
   { key: 'dzien', label: 'Dzień', mobileLabel: 'Dzień' },
@@ -23,6 +25,8 @@ function pluralizeEvents(count: number): string {
 }
 
 function CalendarSearchField({ value, onChange, onClose }: { value: string; onChange: (value: string) => void; onClose: () => void }) {
+  const { userId, today, jumpToEvent } = useCalendar();
+  const search = useCalendarSearchResults(userId, value, today);
   return (
     <div className="relative flex items-center">
       <Search size={14} className="pointer-events-none absolute left-2.5 text-text-muted" />
@@ -44,6 +48,15 @@ function CalendarSearchField({ value, onChange, onClose }: { value: string; onCh
       >
         <X size={14} />
       </Pressable>
+      <CalendarSearchResults
+        results={search.results}
+        term={search.term}
+        searching={search.searching}
+        onPick={(event) => {
+          jumpToEvent(event);
+          onClose();
+        }}
+      />
     </div>
   );
 }

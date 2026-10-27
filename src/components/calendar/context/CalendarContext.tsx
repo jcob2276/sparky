@@ -26,6 +26,9 @@ export interface CalendarContextType {
   isSyncingOura: boolean;
   isSyncingActivities: boolean;
 
+  // Skok z wyszukiwania: przenosi do dnia wydarzenia i je podświetla
+  jumpToEvent: (event: { id: string; start_time: string | null }) => void;
+
   // Actions
   onSyncCalendar: () => void;
   syncOura: () => Promise<void>;

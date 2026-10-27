@@ -75,6 +75,7 @@ export function useCalendarEventDrag({
 
     const lift = () => {
       isDragging = true;
+      document.body.dataset.calendarDragging = 'true';
       if (cardElement) {
         cardElement.style.transition = 'none';
         cardElement.style.zIndex = '50';
@@ -84,6 +85,7 @@ export function useCalendarEventDrag({
       document.body.style.cursor = action === 'resize' ? 'ns-resize' : 'grabbing';
     };
     const drop = () => {
+      delete document.body.dataset.calendarDragging;
       document.body.style.cursor = '';
       if (cardElement) {
         cardElement.style.transition = '';
@@ -181,7 +183,8 @@ export function useCalendarEventDrag({
    * przytrzymania anuluje gest. Zwykłe stuknięcie nadal otwiera podgląd przez ścieżkę myszy.
    */
   const startTouchDrag = (ev: CalRow, e: React.TouchEvent<HTMLDivElement>, action: DragAction) => {
-    if (e.touches.length !== 1 || ev.series_id) return;
+    if (e.touches.length !== 1) return;
+    const isSeries = Boolean(ev.series_id);
     const { clientX: startX, clientY: startY } = e.touches[0];
     const cardElement = (action === 'resize' ? e.currentTarget.parentElement : e.currentTarget) as HTMLDivElement | null;
     const effective = cardElement ? touchDragAction(action, cardElement.getBoundingClientRect().bottom, startY) : action;
@@ -194,6 +197,12 @@ export function useCalendarEventDrag({
       document.removeEventListener('touchcancel', onTouchCancel);
     };
     const timer = setTimeout(() => {
+      if (isSeries) {
+        // Seria zmienia się w edycji całej serii; przytrzymanie daje znać dlaczego nie da się jej przeciągnąć.
+        haptics.light();
+        setToastMessage('Cykliczne wydarzenie zmienisz bezpiecznie w edycji całej serii.');
+        return;
+      }
       session = beginSession(ev, effective, cardElement, startX, startY, true);
       haptics.medium();
     }, LONG_PRESS_MS);
@@ -226,11 +235,12 @@ export function useCalendarEventDrag({
 
   /** Wejście z bloku wydarzenia i uchwytu zmiany długości: mysz albo dotyk (jedna funkcja, bez nowych propsów). */
   const handleEventMouseDown = (ev: CalRow, e: PointerEventLike, action: DragAction) => {
-    e.stopPropagation();
     if ('touches' in e) {
+      // Dotyk nie zatrzymuje propagacji: swipe zaczęty na bloku nadal przełącza dzień.
       if (ev.start_time && ev.end_time) startTouchDrag(ev, e, action);
       return;
     }
+    e.stopPropagation();
     e.preventDefault();
     if (!ev.start_time || !ev.end_time) return;
     if (isCoarsePointer()) {

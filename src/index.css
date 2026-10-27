@@ -3254,3 +3254,18 @@ progress,
   .meal-scan, .meal-scan__photo, .meal-scan__corner, .meal-scan__status, .meal-scan__dots i { animation: none; }
   .meal-scan__beam { animation-duration: 6s; }
 }
+
+/* Skok z wyszukiwania w kalendarzu: krótkie podświetlenie znalezionego wydarzenia */
+.calendar-event-pulse {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes calendar-event-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 transparent; }
+    40% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--primary) 40%, transparent); }
+  }
+  .calendar-event-pulse {
+    animation: calendar-event-pulse 1.4s ease-out 1;
+  }
+}

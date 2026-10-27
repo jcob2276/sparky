@@ -32,6 +32,11 @@ export function useCalendarGridSwipe(options: Options) {
 
   const onTouchEnd: TouchEventHandler<HTMLDivElement> = (event) => {
     if (!touchStart.current || event.changedTouches.length !== 1) return;
+    // Przeciąganie wydarzenia (długie przytrzymanie) kończy się tym samym touchend; to nie jest swipe.
+    if (document.body.dataset.calendarDragging) {
+      touchStart.current = null;
+      return;
+    }
     const deltaX = event.changedTouches[0].clientX - touchStart.current.x;
     const deltaY = event.changedTouches[0].clientY - touchStart.current.y;
     touchStart.current = null;

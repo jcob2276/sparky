@@ -57,6 +57,20 @@ export function recordCalendarCreate(
   });
 }
 
+/**
+ * Tworzy wydarzenie i, gdy da się je odwrócić jednym usunięciem, rejestruje cofnięcie w historii.
+ * Wydarzenie z regułą powtarzania rozwija się w serię, więc takiego nie rejestrujemy (zwraca null).
+ */
+export async function createEventWithHistory(
+  writers: Pick<CalendarWriters, 'create' | 'remove'>,
+  event: NewEvent,
+  reversible = true,
+): Promise<string | null> {
+  const createdId = await writers.create(event);
+  if (!reversible) return null;
+  return recordCalendarCreate(writers, { label: `Nowe wydarzenie: ${event.summary}`, event, createdId });
+}
+
 export function recordCalendarDelete(
   writers: Pick<CalendarWriters, 'create' | 'remove'>,
   input: { label: string; event: NewEvent },

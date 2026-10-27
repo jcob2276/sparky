@@ -7,6 +7,7 @@ import type { useCalendarTodos } from '../../hooks/useCalendarTodos';
 import { registerReversibleAction, undoAction } from '../../../../lib/actionHistory';
 import { notify } from '../../../../lib/notify';
 import { buildQuickEventPayload, buildEditEventPayload } from '../eventPayload';
+import { createEventWithHistory, useCalendarWriters } from '../../calendarHistory';
 
 interface UseCalendarActionsOptions {
   userId: string | undefined;
@@ -62,6 +63,7 @@ export function useCalendarActions({
   } = calData;
 
   const { createScheduledTodo, fetchAllTodos } = calTodos;
+  const writers = useCalendarWriters({ userId, accessToken, createEventMutation, deleteEventMutation: calData.deleteEventMutation });
 
   const handleQuickSave = useCallback(async () => {
     if (!quickCreate || !quickTitle.trim()) return;
@@ -118,13 +120,9 @@ export function useCalendarActions({
       recurrence: recurrence ?? null,
     });
     try {
-      await createEventMutation.mutateAsync({
-        userId: userId || '',
-        accessToken: accessToken || '',
-        event: ev,
-      });
+      const actionId = await createEventWithHistory(writers, ev, !recurrence?.length);
       closeQuickCreate();
-      setToastMessage('Dodano nowe wydarzenie! 🗓️');
+      notify('Dodano nowe wydarzenie! 🗓️', 'success', actionId ? { action: { label: 'Cofnij', onClick: () => { void undoAction(actionId); } } } : undefined);
       if (recurrence?.length && onResyncCalendar) {
         await onResyncCalendar();
         await fetchEvents();
@@ -148,9 +146,7 @@ export function useCalendarActions({
     quickRecurrenceEndDate,
     quickCategory,
     quickCustomDays,
-    userId,
-    accessToken,
-    createEventMutation,
+    writers,
     onResyncCalendar,
     fetchEvents,
     createScheduledTodo,

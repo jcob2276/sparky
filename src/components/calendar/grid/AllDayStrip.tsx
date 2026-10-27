@@ -55,6 +55,7 @@ export function AllDayStrip({ days, allDayByDay, gutterWidth, onEventClick }: Al
           {allDayByDay[idx].map((ev) => (
             <Pressable
               key={`${ev.id}-${day}`}
+              data-event-id={ev.id}
               onClick={(e) => {
                 e.stopPropagation();
                 onEventClick(ev);
