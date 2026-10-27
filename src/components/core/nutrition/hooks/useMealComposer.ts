@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { combineDateTimeWarsawISO, getTodayWarsaw, getYesterdayWarsaw, warsawTimeOfDay } from '../../../../lib/date';
+import { combineDateTimeWarsawISO, getTodayWarsaw, getYesterdayWarsaw } from '../../../../lib/date';
+import { useLoggedTime } from './useLoggedTime';
 import { notify } from '../../../../lib/notify';
 import {
   MEAL_TYPES,
@@ -46,7 +47,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   const [qualityPending, setQualityPending] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [loggedTime, setLoggedTime] = useState(() => warsawTimeOfDay(new Date().toISOString()));
+  const { loggedTime, setManualLoggedTime, resetLoggedTime, resolveLoggedTime } = useLoggedTime(Boolean(draftItems?.length));
   const [memoryName, setMemoryName] = useState('');
 
   const {
@@ -82,8 +83,8 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
 
   const setLogDateAndResetTime = useCallback((date: string) => {
     setLogDate(date);
-    setLoggedTime(warsawTimeOfDay(new Date().toISOString()));
-  }, []);
+    resetLoggedTime();
+  }, [resetLoggedTime]);
 
   const rememberedByName = useMemo(() => {
     const map = new Map<string, number>();
@@ -146,10 +147,11 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
 
   const saveFromDraft = useCallback((rememberIds: Set<string>, name?: string) => {
     if (!draftItems?.length) return;
-    const loggedAt = loggedTime ? combineDateTimeWarsawISO(logDate, loggedTime) : undefined;
+    const time = resolveLoggedTime();
+    const loggedAt = time ? combineDateTimeWarsawISO(logDate, time) : undefined;
     const source = scannedPhotoIdRef.current ? 'photo' : 'text';
     void saveDraft(draftItems, source, rememberIds, { memoryName: name, loggedAt });
-  }, [draftItems, logDate, loggedTime, saveDraft]);
+  }, [draftItems, logDate, resolveLoggedTime, saveDraft]);
 
   const { todayStr, yesterdayMealSuggestion } = useMealComposerYesterday({
     userId, logDate, mealType, allTodayEntries: allTodayEntriesQuery.data,
@@ -199,7 +201,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     handleQuickChip,
     saveFromDraft,
     loggedTime,
-    setLoggedTime,
+    setLoggedTime: setManualLoggedTime,
     memoryName,
     setMemoryName,
     hasEntries: totals.calories > 0,
