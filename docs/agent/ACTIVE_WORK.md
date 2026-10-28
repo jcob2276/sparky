@@ -147,3 +147,9 @@ Format: `RRRR-MM-DD GG:MM · od → do · treść` (treść = fakt/prośba, bez 
 `codex exec -c windows.sandbox="unelevated" --sandbox workspace-write "<prompt>"` (do samego odczytu: `--sandbox read-only`).
 Bez `-c windows.sandbox="unelevated"` tryb workspace-write wiesza się na Windows. Nie używaj `--dangerously-bypass-approvals-and-sandbox`.
 Codex → Claude nadal idzie przez tę skrzynkę (Claude czyta ją na starcie).
+
+## Sloty dnia: migracja z daily_wins na daily_win_tasks (stan 2026-10-28)
+- Backend: wszystkie odczyty slotow w supabase/functions czytaja `daily_win_tasks` przez `_shared/dailyWinTasks.ts` (withLegacySlots). Wdrozone: recap, period-compare, week-insight (partia A); partia B (oracle, telegram, eval-runner, _shared) zacommitowana, do wdrozenia przez deploy-guard.
+- Zostaje frontend: zapis `done_N` w `src/components/core/shutdown/shutdownModel.ts` + czytelnicy (`useShutdownData`, `multiDomainMatrixHelpers`, `usePowerListData`, `useSpineGuidance`, `growthWeek`) nadal opieraja sie na kolumnach slotow.
+- Dopiero po przepieciu zapisu shutdown i pushu frontendu: archiwum `archive.daily_wins_slots` -> drop triggerow trg_sync_daily_wins / trg_sync_daily_win_tasks i 50 kolumn -> db:update-types.
+- Martwa metoda: `calculateGoalAlignment` w vanguardCore (brak wywolan).
