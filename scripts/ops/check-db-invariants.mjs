@@ -134,11 +134,11 @@ const CHECKS = [
           WHERE abs(coalesce(n.calories, 0) - e.kcal) > 1 OR abs(coalesce(n.protein, 0) - e.protein) > 1`,
   },
   {
-    // daily_wins trzyma sloty zadań także jako wiersze daily_win_tasks (okres przejściowy do usunięcia 50 kolumn).
-    name: "daily_wins slots 1-5 must mirror daily_win_tasks (title, done)",
-    sql: `SELECT w.date || ' slot ' || t.slot FROM public.daily_wins w JOIN public.daily_win_tasks t ON t.day_win_id = w.id
-          WHERE coalesce(CASE t.slot WHEN 1 THEN w.task_1 WHEN 2 THEN w.task_2 WHEN 3 THEN w.task_3 WHEN 4 THEN w.task_4 WHEN 5 THEN w.task_5 END, '') IS DISTINCT FROM coalesce(t.title, '')
-             OR coalesce(CASE t.slot WHEN 1 THEN w.done_1 WHEN 2 THEN w.done_2 WHEN 3 THEN w.done_3 WHEN 4 THEN w.done_4 WHEN 5 THEN w.done_5 END, false) IS DISTINCT FROM coalesce(t.done, false)`,
+    // Sloty dnia żyją tylko w daily_win_tasks; kolumny task_N/done_N/... w daily_wins zostały usunięte (2026-10-28).
+    name: "daily_wins must not carry slot columns (daily_win_tasks is the only owner)",
+    sql: `SELECT column_name FROM information_schema.columns
+          WHERE table_schema = 'public' AND table_name = 'daily_wins'
+            AND column_name ~ '^(task|done|category|completed_at)_[1-5]$|^task_[1-5]_(todo_id|checkpoint_id|pin_id|project_id|target_value|time_slot)$'`,
   },
   {
     // oura_enhanced dubluje wynik snu i gotowość z oura_daily_summary (canonical); godziny snu różnią się z definicji

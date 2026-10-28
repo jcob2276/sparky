@@ -1010,25 +1010,10 @@ export type Database = {
       }
       daily_wins: {
         Row: {
-          category_1: string | null
-          category_2: string | null
-          category_3: string | null
-          category_4: string | null
-          category_5: string | null
-          completed_at_1: string | null
-          completed_at_2: string | null
-          completed_at_3: string | null
-          completed_at_4: string | null
-          completed_at_5: string | null
           created_at: string | null
           daily_rpe: number | null
           date: string | null
           day_note: string | null
-          done_1: boolean | null
-          done_2: boolean | null
-          done_3: boolean | null
-          done_4: boolean | null
-          done_5: boolean | null
           embedding: string | null
           gratitude_entry: string | null
           id: string
@@ -1038,64 +1023,14 @@ export type Database = {
           mood_score: number | null
           result: string | null
           tags: string[] | null
-          task_1: string | null
-          task_1_checkpoint_id: string | null
-          task_1_pin_id: string | null
-          task_1_project_id: string | null
-          task_1_target_value: string | null
-          task_1_time_slot: string | null
-          task_1_todo_id: string | null
-          task_2: string | null
-          task_2_checkpoint_id: string | null
-          task_2_pin_id: string | null
-          task_2_project_id: string | null
-          task_2_target_value: string | null
-          task_2_time_slot: string | null
-          task_2_todo_id: string | null
-          task_3: string | null
-          task_3_checkpoint_id: string | null
-          task_3_pin_id: string | null
-          task_3_project_id: string | null
-          task_3_target_value: string | null
-          task_3_time_slot: string | null
-          task_3_todo_id: string | null
-          task_4: string | null
-          task_4_checkpoint_id: string | null
-          task_4_pin_id: string | null
-          task_4_project_id: string | null
-          task_4_target_value: string | null
-          task_4_time_slot: string | null
-          task_4_todo_id: string | null
-          task_5: string | null
-          task_5_checkpoint_id: string | null
-          task_5_pin_id: string | null
-          task_5_project_id: string | null
-          task_5_target_value: string | null
-          task_5_time_slot: string | null
-          task_5_todo_id: string | null
           user_id: string
           week_start: string | null
         }
         Insert: {
-          category_1?: string | null
-          category_2?: string | null
-          category_3?: string | null
-          category_4?: string | null
-          category_5?: string | null
-          completed_at_1?: string | null
-          completed_at_2?: string | null
-          completed_at_3?: string | null
-          completed_at_4?: string | null
-          completed_at_5?: string | null
           created_at?: string | null
           daily_rpe?: number | null
           date?: string | null
           day_note?: string | null
-          done_1?: boolean | null
-          done_2?: boolean | null
-          done_3?: boolean | null
-          done_4?: boolean | null
-          done_5?: boolean | null
           embedding?: string | null
           gratitude_entry?: string | null
           id?: string
@@ -1105,64 +1040,14 @@ export type Database = {
           mood_score?: number | null
           result?: string | null
           tags?: string[] | null
-          task_1?: string | null
-          task_1_checkpoint_id?: string | null
-          task_1_pin_id?: string | null
-          task_1_project_id?: string | null
-          task_1_target_value?: string | null
-          task_1_time_slot?: string | null
-          task_1_todo_id?: string | null
-          task_2?: string | null
-          task_2_checkpoint_id?: string | null
-          task_2_pin_id?: string | null
-          task_2_project_id?: string | null
-          task_2_target_value?: string | null
-          task_2_time_slot?: string | null
-          task_2_todo_id?: string | null
-          task_3?: string | null
-          task_3_checkpoint_id?: string | null
-          task_3_pin_id?: string | null
-          task_3_project_id?: string | null
-          task_3_target_value?: string | null
-          task_3_time_slot?: string | null
-          task_3_todo_id?: string | null
-          task_4?: string | null
-          task_4_checkpoint_id?: string | null
-          task_4_pin_id?: string | null
-          task_4_project_id?: string | null
-          task_4_target_value?: string | null
-          task_4_time_slot?: string | null
-          task_4_todo_id?: string | null
-          task_5?: string | null
-          task_5_checkpoint_id?: string | null
-          task_5_pin_id?: string | null
-          task_5_project_id?: string | null
-          task_5_target_value?: string | null
-          task_5_time_slot?: string | null
-          task_5_todo_id?: string | null
           user_id: string
           week_start?: string | null
         }
         Update: {
-          category_1?: string | null
-          category_2?: string | null
-          category_3?: string | null
-          category_4?: string | null
-          category_5?: string | null
-          completed_at_1?: string | null
-          completed_at_2?: string | null
-          completed_at_3?: string | null
-          completed_at_4?: string | null
-          completed_at_5?: string | null
           created_at?: string | null
           daily_rpe?: number | null
           date?: string | null
           day_note?: string | null
-          done_1?: boolean | null
-          done_2?: boolean | null
-          done_3?: boolean | null
-          done_4?: boolean | null
-          done_5?: boolean | null
           embedding?: string | null
           gratitude_entry?: string | null
           id?: string
@@ -1172,186 +1057,10 @@ export type Database = {
           mood_score?: number | null
           result?: string | null
           tags?: string[] | null
-          task_1?: string | null
-          task_1_checkpoint_id?: string | null
-          task_1_pin_id?: string | null
-          task_1_project_id?: string | null
-          task_1_target_value?: string | null
-          task_1_time_slot?: string | null
-          task_1_todo_id?: string | null
-          task_2?: string | null
-          task_2_checkpoint_id?: string | null
-          task_2_pin_id?: string | null
-          task_2_project_id?: string | null
-          task_2_target_value?: string | null
-          task_2_time_slot?: string | null
-          task_2_todo_id?: string | null
-          task_3?: string | null
-          task_3_checkpoint_id?: string | null
-          task_3_pin_id?: string | null
-          task_3_project_id?: string | null
-          task_3_target_value?: string | null
-          task_3_time_slot?: string | null
-          task_3_todo_id?: string | null
-          task_4?: string | null
-          task_4_checkpoint_id?: string | null
-          task_4_pin_id?: string | null
-          task_4_project_id?: string | null
-          task_4_target_value?: string | null
-          task_4_time_slot?: string | null
-          task_4_todo_id?: string | null
-          task_5?: string | null
-          task_5_checkpoint_id?: string | null
-          task_5_pin_id?: string | null
-          task_5_project_id?: string | null
-          task_5_target_value?: string | null
-          task_5_time_slot?: string | null
-          task_5_todo_id?: string | null
           user_id?: string
           week_start?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "daily_wins_task_1_checkpoint_id_fkey"
-            columns: ["task_1_checkpoint_id"]
-            isOneToOne: false
-            referencedRelation: "todo_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_1_pin_id_fkey"
-            columns: ["task_1_pin_id"]
-            isOneToOne: false
-            referencedRelation: "learning_week_pins"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_1_project_id_fkey"
-            columns: ["task_1_project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_1_todo_id_fkey"
-            columns: ["task_1_todo_id"]
-            isOneToOne: false
-            referencedRelation: "todo_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_2_checkpoint_id_fkey"
-            columns: ["task_2_checkpoint_id"]
-            isOneToOne: false
-            referencedRelation: "todo_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_2_pin_id_fkey"
-            columns: ["task_2_pin_id"]
-            isOneToOne: false
-            referencedRelation: "learning_week_pins"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_2_project_id_fkey"
-            columns: ["task_2_project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_2_todo_id_fkey"
-            columns: ["task_2_todo_id"]
-            isOneToOne: false
-            referencedRelation: "todo_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_3_checkpoint_id_fkey"
-            columns: ["task_3_checkpoint_id"]
-            isOneToOne: false
-            referencedRelation: "todo_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_3_pin_id_fkey"
-            columns: ["task_3_pin_id"]
-            isOneToOne: false
-            referencedRelation: "learning_week_pins"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_3_project_id_fkey"
-            columns: ["task_3_project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_3_todo_id_fkey"
-            columns: ["task_3_todo_id"]
-            isOneToOne: false
-            referencedRelation: "todo_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_4_checkpoint_id_fkey"
-            columns: ["task_4_checkpoint_id"]
-            isOneToOne: false
-            referencedRelation: "todo_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_4_pin_id_fkey"
-            columns: ["task_4_pin_id"]
-            isOneToOne: false
-            referencedRelation: "learning_week_pins"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_4_project_id_fkey"
-            columns: ["task_4_project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_4_todo_id_fkey"
-            columns: ["task_4_todo_id"]
-            isOneToOne: false
-            referencedRelation: "todo_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_5_checkpoint_id_fkey"
-            columns: ["task_5_checkpoint_id"]
-            isOneToOne: false
-            referencedRelation: "todo_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_5_pin_id_fkey"
-            columns: ["task_5_pin_id"]
-            isOneToOne: false
-            referencedRelation: "learning_week_pins"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_5_project_id_fkey"
-            columns: ["task_5_project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "daily_wins_task_5_todo_id_fkey"
-            columns: ["task_5_todo_id"]
-            isOneToOne: false
-            referencedRelation: "todo_items"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       device_signal_events: {
         Row: {
@@ -4537,6 +4246,7 @@ export type Database = {
           inactivity_alerts: number | null
           light_sleep_hours: number | null
           low_activity_minutes: number | null
+          main_sleep_hours: number | null
           medium_activity_minutes: number | null
           movement_items: string | null
           non_wear_minutes: number | null
@@ -4595,6 +4305,7 @@ export type Database = {
           inactivity_alerts?: number | null
           light_sleep_hours?: number | null
           low_activity_minutes?: number | null
+          main_sleep_hours?: number | null
           medium_activity_minutes?: number | null
           movement_items?: string | null
           non_wear_minutes?: number | null
@@ -4653,6 +4364,7 @@ export type Database = {
           inactivity_alerts?: number | null
           light_sleep_hours?: number | null
           low_activity_minutes?: number | null
+          main_sleep_hours?: number | null
           medium_activity_minutes?: number | null
           movement_items?: string | null
           non_wear_minutes?: number | null

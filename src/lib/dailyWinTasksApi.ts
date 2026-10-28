@@ -5,14 +5,15 @@ import type { Database, Tables, TablesInsert, TablesUpdate } from './database.ty
 type Slot = 1 | 2 | 3 | 4 | 5;
 type SlotColumn = `task_${Slot}` | `category_${Slot}` | `done_${Slot}` | `completed_at_${Slot}`
   | `task_${Slot}_${'todo_id' | 'checkpoint_id' | 'pin_id' | 'project_id' | 'target_value' | 'time_slot'}`;
-type SlotColumns = Pick<Tables<'daily_wins'>, SlotColumn>;
-export type DailyWinWithTasks = Omit<Tables<'daily_wins'>, SlotColumn> & { daily_win_tasks: Tables<'daily_win_tasks'>[] };
-export type DailyWinMetadataUpdate = Omit<TablesUpdate<'daily_wins'>, SlotColumn>;
-export type DailyWinMetadataInsert = Omit<TablesInsert<'daily_wins'>, SlotColumn>;
+/** Kolumn slotów nie ma już w daily_wins; to kształt zgodności budowany w pamięci z wierszy daily_win_tasks. */
+type SlotColumns = { [K in SlotColumn]: K extends `done_${Slot}` ? boolean | null : string | null };
+export type DailyWinWithTasks = Tables<'daily_wins'> & { daily_win_tasks: Tables<'daily_win_tasks'>[] };
+export type DailyWinMetadataUpdate = TablesUpdate<'daily_wins'>;
+export type DailyWinMetadataInsert = TablesInsert<'daily_wins'>;
 type AdaptedDailyWin = DailyWinWithTasks & SlotColumns;
 type ReadResult<T> = { data: T | null; error: PostgrestError | null };
 
-// Explicit parent metadata: never request the fifty mirrored columns, even with select('*').
+// Jawna lista metadanych dnia (bez select('*')).
 const DAY_WITH_TASKS = 'id,user_id,date,created_at,week_start,result,day_note,daily_rpe,embedding,gratitude_entry,importance_score,is_intervention,journal_entry,mood_score,tags,daily_win_tasks(*)' as const;
 const SLOTS = [1, 2, 3, 4, 5] as const;
 
