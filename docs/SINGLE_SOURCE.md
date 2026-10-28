@@ -53,7 +53,7 @@ Rozjazd w niezmienniku znaczy, że ktoś zapisuje obok właściciela.
 |---|---|---|---|
 | Epizod nawyku „Lenie” (też `/lenie`, `/walenie`, `/pmo`) | `habit_logs` + `habits` (jeden zapis: `recordLenieEpisode`) | `behavior_log.walenie`, trigger `habit_logs_sync_lenie` (docelowo do usunięcia po przepięciu czytelników) | kopia = nawyk w obie strony |
 | Dzienny agregat jedzenia | `daily_food_entries` | `daily_nutrition` (trigger) | kcal i białko = suma wpisów dnia |
-| Zadania dnia (sloty 1–5) | `daily_win_tasks` (wiersze) | `daily_wins.task_N/done_N/…` (50 kolumn, okres przejściowy, zapisuje je RPC planu porannego) | tytuł i done slotów zgodne |
+| Zadania dnia (sloty 1–5) | `daily_win_tasks` (wiersze) | `daily_wins.task_N/done_N/…` (50 kolumn, utrzymywane triggerami `trg_sync_daily_win_tasks` i `trg_sync_daily_wins` w obie strony; od 28.10 trigger zmienia tylko różniące się sloty, więc identyfikatory zadań są stabilne; RPC planu porannego zapisuje wyłącznie `daily_win_tasks`) | tytuł i done slotów zgodne |
 | Wynik snu i gotowość dobowa | `oura_daily_summary` | `oura_enhanced.sleep_score/readiness_score` | równe w obu tabelach |
 | Godziny snu | `oura_daily_summary.total_sleep_hours` = suma epizodów z dnia | `oura_enhanced.total_sleep_hours` = najdłuższy epizod (inna definicja, nie kopia; do rozdzielenia nazw) | nie porównujemy |
 | Powiązania grafu wiedzy | `vanguard_entity_links` (model zapisu) | `claims` + `entities` + `relations` (trigger; Oracle czyta `claims`) | źródło powiązania istnieje w `entities` |
