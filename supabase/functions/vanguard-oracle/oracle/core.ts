@@ -27,6 +27,7 @@ import { OracleResponseSchema, extractAnswer, salvageJsonAnswer } from "./respon
 import { handleStreamingResponse } from "./streamHandler.ts";
 import { handleNoteSummary, handleExtractTasks } from "../handlers/noteOps.ts";
 import { getCircadianStance } from "./circadian.ts";
+import { circadianInputs, warsawHourFor } from "./circadianInputs.ts";
 import { fetchCoreMemory, persistCoreMemoryResponse } from "./coreMemory.ts";
 import { fetchConversationAwareness } from "./conversationAwareness.ts";
 import { fetchEchoes } from "./echoes.ts";
@@ -94,20 +95,8 @@ export async function runOracleQuery(
   const [coreMemory, awarenessBase, echoesText, pillarsText] = await Promise.all([fetchCoreMemory(supabase, user_id), fetchConversationAwareness(supabase, user_id, now, todayDate), fetchEchoes(supabase, user_id, current_query, todayDate), fetchPillars(supabase, user_id)]);
   const awarenessText = [awarenessBase, pillarsText, echoesText].filter(Boolean).join('\n\n');
 
-  const stateVectorObj = typeof safeStateVector === "object" && safeStateVector !== null
-    ? (safeStateVector as Record<string, unknown>)
-    : undefined;
-  const biometricsObj = typeof stateVectorObj?.biometrics === "object" && stateVectorObj.biometrics !== null
-    ? (stateVectorObj.biometrics as Record<string, unknown>)
-    : undefined;
-  const ouraInfo = typeof biometricsObj?.oura_last_night === "object" && biometricsObj.oura_last_night !== null
-    ? (biometricsObj.oura_last_night as Record<string, unknown>)
-    : undefined;
-  const readinessScore = typeof ouraInfo?.readiness === "number" ? ouraInfo.readiness : undefined;
-  const sleepHours = typeof ouraInfo?.sleep_hours === "number" ? ouraInfo.sleep_hours : undefined;
-
-  const warsawHour = parseInt(localTimeString.slice(11, 13), 10) || new Date().getUTCHours() + 2;
-  const circadian = getCircadianStance(warsawHour, readinessScore, sleepHours);
+  const { readinessScore, sleepHours } = circadianInputs(safeStateVector);
+  const circadian = getCircadianStance(warsawHourFor(now, override_date), readinessScore, sleepHours);
   const circadianContextText = `${circadian.headline}\n${circadian.instructions}${circadian.biometricWarning ? '\n' + circadian.biometricWarning : ''}`;
 
   const systemPrompt = buildSystemPrompt({

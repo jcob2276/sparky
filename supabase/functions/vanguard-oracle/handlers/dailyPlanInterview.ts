@@ -3,6 +3,7 @@ import { getWarsawDateString } from "@vanguard/domain";
 import { resolveUserScope } from "../../_shared/supabase.ts";
 import { deepseekChat, parseJsonFromContent } from "../../_shared/deepseek.ts";
 import { LLM_TASKS } from "../../_shared/llm/tasks.ts";
+import { buildOuraLine, fetchLatestOura } from "./ouraPlanContext.ts";
 
 export interface PlanSlot {
   slot: number;
@@ -46,17 +47,12 @@ export async function handleDailyPlanInterview(
       .gte("start_time", `${planningDate}T00:00:00`)
       .lt("start_time", `${planningDate}T23:59:59`)
       .limit(10),
-    db.from("oura_daily_summary")
-      .select("score_readiness, score_sleep, total_sleep_duration")
-      .eq("user_id", userId)
-      .order("day", { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+    fetchLatestOura(db, userId, planningDate),
   ]);
 
   const openTodos = (todoRes.data || []).map((t: any) => `- [${t.priority}] ${t.title}`).join("\n");
   const calEvents = (calRes.data || []).map((e: any) => `- ${e.start_time?.slice(11, 16)} - ${e.end_time?.slice(11, 16)}: ${e.summary}`).join("\n");
-  const oura = ouraRes.data ? `Gotowość Oura: ${ouraRes.data.score_readiness ?? 'Brak'}/100, Sen: ${ouraRes.data.score_sleep ?? 'Brak'}/100` : "";
+  const oura = buildOuraLine(ouraRes, planningDate);
 
   const systemPrompt = `Jesteś Sparky — bezkompromisowym, precyzyjnym asystentem i planerem dnia Jakuba.
 Twoim zadaniem jest pomóc Jakubowi zaplanować dzień ${planningDate} poprzez rozmowę (Jakub dyktuje Ci głosem swoje cele i zamierzenia).

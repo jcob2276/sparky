@@ -1,6 +1,7 @@
 import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getWarsawDateString, warsawDayBoundsISO } from "./time.ts";
 import { getAggregateByDate } from "./repos/aggregatesRepo.ts";
+import { lastAvailableBiometrics, pickOuraRows, type LastAvailableBiometrics } from "./worldStateOura.ts";
 
 interface WorldStateMeta {
   source: string;
@@ -17,6 +18,7 @@ export interface WorldState {
     sleep_hours: number | null;
     hrv_avg: number | null;
     readiness_score: number | null;
+    last_available: LastAvailableBiometrics | null;
     oura_history: any[] | null;
     _meta: WorldStateMeta;
   };
@@ -90,18 +92,16 @@ export async function fetchWorldState(
     return 1.0;
   };
 
-  // 1. Oura Biometrics (30 days history)
   const { data: ouraData } = await supabase
     .from('oura_daily_summary')
     .select('*')
     .eq('user_id', userId)
+    .lte('date', date)
     .order('date', { ascending: false })
     .limit(30);
 
-  const oura = ouraData?.find((o: any) => o.date === date) || ouraData?.[0] || null;
-  // oura_daily_summary has no updated_at column — created_at is the real write timestamp
-  // (calculateFreshness(undefined) silently returned 999h/"stale" for every call before
-  // this fix, since the original query's `.updated_at` never existed on the row).
+  // Wartości dnia tylko z dokładnej daty, wcześniejszy pomiar osobno (last_available); brak updated_at, więc created_at.
+  const { exact: oura, latest: ouraLatest } = pickOuraRows(ouraData, date);
   const ouraFreshness = calculateFreshness(oura?.created_at);
 
   // 2. Daily Wins (Execution with tasks)
@@ -214,6 +214,7 @@ export async function fetchWorldState(
       sleep_hours: oura?.total_sleep_hours ?? null,
       hrv_avg: oura?.hrv_avg ?? null,
       readiness_score: oura?.readiness_score ?? null,
+      last_available: lastAvailableBiometrics(oura, ouraLatest),
       oura_history: ouraData ?? null,
       _meta: {
         source: 'oura_daily_summary',
