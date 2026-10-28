@@ -25,6 +25,7 @@ export * from './health/sleepConsistency.ts';
 export * from './health/hydration.ts';
 export * from './health/netEnergy.ts';
 export * from './health/foodBenchmark.ts';
+export * from './health/usdaFdc.ts';
 export * from './health/foodEnergy.ts';
 export * from './health/foodIntegrity.ts';
 export * from './health/foodMicronutrients.ts';

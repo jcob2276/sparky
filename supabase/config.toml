@@ -213,3 +213,7 @@ verify_jwt = false
 [functions.food-micronutrient-backfill]
 import_map = "./functions/import_map.json"
 verify_jwt = false
+
+[functions.food-reference-embed]
+import_map = "./functions/import_map.json"
+verify_jwt = false
