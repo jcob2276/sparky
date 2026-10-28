@@ -1,9 +1,9 @@
 import { assertEquals, assertStringIncludes } from 'https://deno.land/std@0.208.0/assert/mod.ts';
-import { validateTrainingPlan, futureTrainingPlan } from '@vanguard/domain';
+import { validateTrainingPlan, futureTrainingPlan, type TrainingSession } from '@vanguard/domain';
 import { buildHealthCoachContext } from '../_shared/healthCoachContext.ts';
 const context = buildHealthCoachContext({ asOf: '2026-10-14T12:00:00Z', data: {} });
 const constraints = { revision: 1, availability: [{ day: 4, minutes: 60 }, { day: 5, minutes: 60 }], equipment: ['barbell'], limitations: [] };
-const session = { key: 'one', date: '2026-10-15', type: 'strength', name: 'Upper', goal: 'Bench',
+const session: TrainingSession = { key: 'one', date: '2026-10-15', type: 'strength', name: 'Upper', goal: 'Bench',
   durationMinutes: 45, warmupMinutes: 8, cooldownMinutes: 5, intensity: 'moderate', notes: 'RIR 3',
   exercises: [{ name: 'Bench Press', sets: 3, reps: 8, rir: 3, restSeconds: 120, weightKg: null, equipment: ['barbell'], pattern: 'upper' }] };
 const draft = { title: 'Hybrid', startDate: '2026-10-15', blockWeeks: 1, progression: 'Reps first', deloadWeeks: [1], tradeoffs: ['Maintain muscle during reduction'], sessions: [session] };

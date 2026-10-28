@@ -29,13 +29,13 @@ Deno.test('computeNutritionSignals — standard stable inputs', () => {
     ],
     runs: [],
     gym: [],
-    todayOura: { total_calories: 2500, active_calories: 400, steps: 8000 },
-    todayNutr: { calories: 1500, protein: 120, carbs: 150, fat: 50, fiber: 20 },
-    medicalContext: { alerts: [], hint: '' },
+    todayOura: { date: '2026-06-15', total_calories: 2500, active_calories: 400, steps: 8000 },
+    todayNutr: { date: '2026-06-15', calories: 1500, protein: 120, carbs: 150, fat: 50, fiber: 20 },
+    medicalContext: { today: '2026-06-15', rule: '', latest_labs: [], body_composition: [], documents: [] },
     today: '2026-06-15',
     targetDate: new Date('2026-06-15T12:00:00Z'),
     d30: '2026-05-16',
-  };
+  } satisfies Parameters<typeof computeNutritionSignals>[0];
 
   const { signals, estMaintenance, targetKcal, proteinFloor } = computeNutritionSignals(data);
 
@@ -76,13 +76,13 @@ Deno.test('computeNutritionSignals — weight loss trend and goal estimation', (
     dayReviews: [],
     runs: [],
     gym: [],
-    todayOura: null,
-    todayNutr: null,
-    medicalContext: null,
+    todayOura: undefined,
+    todayNutr: undefined,
+    medicalContext: { today: '2026-06-15', rule: '', latest_labs: [], body_composition: [], documents: [] },
     today: '2026-06-15',
     targetDate: new Date('2026-06-15T12:00:00Z'),
     d30: '2026-05-16',
-  };
+  } satisfies Parameters<typeof computeNutritionSignals>[0];
 
   const { signals, weightTrendPerWeek } = computeNutritionSignals(data);
 
@@ -97,7 +97,8 @@ Deno.test('computeNutritionSignals — weight loss trend and goal estimation', (
 });
 
 Deno.test('missing weight, energy and incomplete food remain unknown rather than a fictional target', () => {
-  const result = computeNutritionSignals({profile:{goal_body_fat:13},bm:[],oura:[],nutr:[{date:'2026-10-14',calories:800}],dayReviews:[],runs:[],gym:[],todayOura:null,todayNutr:null,medicalContext:null,today:'2026-10-14',targetDate:new Date('2026-10-14T12:00:00Z'),d30:'2026-09-17'});
+  const result = computeNutritionSignals({profile:{goal_body_fat:13},bm:[],oura:[],nutr:[{date:'2026-10-14',calories:800}],dayReviews:[],runs:[],gym:[],todayOura:undefined,todayNutr:undefined,
+    medicalContext:{today:'2026-10-14',rule:'',latest_labs:[],body_composition:[],documents:[]},today:'2026-10-14',targetDate:new Date('2026-10-14T12:00:00Z'),d30:'2026-09-17'});
   assertEquals(result.targetKcal,null);
   assertEquals(result.proteinFloor,null);
   assertEquals(result.avgIntake,null);

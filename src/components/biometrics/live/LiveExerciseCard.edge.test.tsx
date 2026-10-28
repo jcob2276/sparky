@@ -1,12 +1,17 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import LiveExerciseCard from './LiveExerciseCard';
 import { canComplete, countUnchecked, moveItem, normalizeNumber } from './liveWorkoutUtils';
 import { newSet, type WorkoutExercise, type WorkoutSet } from '../workout/workoutUtils';
 
 const set = (patch: Partial<WorkoutSet> = {}): WorkoutSet => ({ ...newSet(), ...patch });
-const exercise = (sets: WorkoutSet[]): WorkoutExercise => ({ id: 1, name: 'Przysiad sumo', tags: ['nogi'], sets });
+const exercise = (sets: WorkoutSet[]): WorkoutExercise => ({
+  id: 1, name: 'Przysiad sumo', tags: ['nogi'],
+  sets: sets.map((row, index) => ({ ...row, id: index + 1 })),
+});
+
+afterEach(() => vi.restoreAllMocks());
 
 function renderCard(ex: WorkoutExercise, props: Partial<Parameters<typeof LiveExerciseCard>[0]> = {}) {
   const onChange = vi.fn();
@@ -106,11 +111,20 @@ describe('deleting a set', () => {
   });
 
   it('asks twice before dropping the last set when it has data, but not when it is empty', () => {
+    // Reproduce collisions from newSet's timestamp + random ID without relying on chance.
+    vi.spyOn(Date, 'now').mockReturnValue(1793188800000);
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
     const withData = renderCard(exercise([set({ kg: '50', reps: '8' }), set({ kg: '60', reps: '8' })]));
     fireEvent.click(screen.getByRole('button', { name: 'Usuń ostatnią serię' }));
     expect(withData.onChange).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Potwierdź usunięcie ostatniej serii' }));
-    expect((withData.onChange.mock.calls[0][0] as WorkoutExercise).sets).toHaveLength(1);
+    expect((withData.onChange.mock.calls[0][0] as WorkoutExercise).sets).toMatchObject([{ kg: '50', reps: '8' }]);
+
+    withData.showExercise(exercise([set({ kg: '50', reps: '8' }), set()]));
+    withData.onChange.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: 'Usuń ostatnią serię' }));
+    expect(withData.onChange).toHaveBeenCalledTimes(1);
+    expect((withData.onChange.mock.calls[0][0] as WorkoutExercise).sets).toMatchObject([{ kg: '50', reps: '8' }]);
   });
 
   it('duplicates a set right after itself and can mark it as a warm-up', () => {
