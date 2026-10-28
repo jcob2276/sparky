@@ -1,4 +1,3 @@
-import JSZip from 'jszip';
 import type { NoteFolder } from './noteFoldersApi';
 import type { Note } from './notesApi';
 import { downloadNoteAttachmentFile, listUserNoteAttachments } from './noteAttachmentsApi';
@@ -100,6 +99,7 @@ export async function buildNotesArchive(
   notes: Note[],
   folders: NoteFolder[],
 ): Promise<Blob> {
+  const { default: JSZip } = await import('jszip');
   const zip = new JSZip();
   const notePaths = new Map(notes.filter(note => !note.is_locked).map(note => [note.id, {
     title: note.title, path: `${safeName(note.title)}-${note.id}.md`,

@@ -1,14 +1,16 @@
 import { useUserId } from '../../store/useStore';
 import { useNoteAttachmentsController } from './hooks/useNoteAttachmentsController';
 import NoteAttachmentsView from './NoteAttachmentsView';
-import DrawingEditor from './drawing/DrawingEditor';
-import { useState } from 'react';
+import { lazy, Suspense, useState, startTransition } from 'react';
 import { useNoteDrawing } from '../../lib/noteDrawingsApi';
 import { Pressable } from '../ui/ControlPrimitives';
+
+const DrawingEditor = lazy(() => import('./drawing/DrawingEditor'));
 
 export default function NoteAttachments({ noteId, onInsertText }: { noteId: string; onInsertText?: (text: string) => void }) {
   const userId = useUserId();
   const [drawingOpen, setDrawingOpen] = useState(false);
+  const openDrawing = () => startTransition(() => setDrawingOpen(true));
   const controller = useNoteAttachmentsController(noteId, userId || '');
   const { data: drawing } = useNoteDrawing(noteId);
   if (!userId) return null;
@@ -26,13 +28,16 @@ export default function NoteAttachments({ noteId, onInsertText }: { noteId: stri
       }}
       onRecord={controller.recordAudio}
       onDelete={controller.removeAttachment}
-      onDraw={() => setDrawingOpen(true)}
+      onDraw={openDrawing}
     />
-    {drawing?.previewUrl && <Pressable type="button" className="note-drawing-preview" onClick={() => setDrawingOpen(true)}>
+    {drawing?.previewUrl && <Pressable type="button" className="note-drawing-preview" onClick={openDrawing}>
       <img src={drawing.previewUrl} alt="Podgląd rysunku" />
       <span>Rysunek · edytuj</span>
     </Pressable>}
-    {drawingOpen && <DrawingEditor userId={userId} noteId={noteId} onInsertText={onInsertText} onClose={() => setDrawingOpen(false)} />}
+    {/* Keep the note visible while the editor loads; no temporary overlay or spinner. */}
+    <Suspense fallback={null}>
+      {drawingOpen && <DrawingEditor userId={userId} noteId={noteId} onInsertText={onInsertText} onClose={() => setDrawingOpen(false)} />}
+    </Suspense>
     </>
   );
 }

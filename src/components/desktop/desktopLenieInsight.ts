@@ -136,14 +136,12 @@ export interface LenieStatsResult {
   recentLogs: LenieRecentLogDisplay[];
 }
 
+const warsawTimeFormatter = new Intl.DateTimeFormat('pl-PL', {
+  timeZone: TIMEZONE, hour: '2-digit', minute: '2-digit', hour12: false,
+});
+
 function warsawHourAndMinute(isoStr: string): { hour: number; minute: number; timeStr: string } {
-  const d = new Date(isoStr);
-  const parts = new Intl.DateTimeFormat('pl-PL', {
-    timeZone: TIMEZONE,
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).formatToParts(d);
+  const parts = warsawTimeFormatter.formatToParts(new Date(isoStr));
 
   const hStr = parts.find((p) => p.type === 'hour')?.value ?? '00';
   const mStr = parts.find((p) => p.type === 'minute')?.value ?? '00';

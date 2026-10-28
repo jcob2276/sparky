@@ -37,9 +37,18 @@ function isDesktopViewport(): boolean {
   return window.innerWidth >= DESKTOP_MIN_WIDTH;
 }
 
+type NetworkInformationLike = { saveData?: boolean; effectiveType?: string };
+
+/** Tryb oszczędzania danych albo wolne łącze: rozgrzewanie w tle tylko by zabrało pasmo realnym działaniom. */
+export function isConstrainedConnection(connection: NetworkInformationLike | undefined): boolean {
+  if (!connection) return false;
+  return connection.saveData === true || ['slow-2g', '2g', '3g'].includes(connection.effectiveType ?? '');
+}
+
 export function useDashboardPrefetch(userId: string | undefined) {
   useEffect(() => {
     if (!userId) return;
+    if (isConstrainedConnection((navigator as Navigator & { connection?: NetworkInformationLike }).connection)) return;
 
     // Stage 1: the other dashboard tabs (their code only) and the two busiest workspace tools.
     const cancelStage1 = whenIdle(() => {

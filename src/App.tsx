@@ -15,12 +15,12 @@ import { ErrorBoundary } from './components/core/ErrorBoundary';
 import { OfflineStatusBanner } from './components/core/OfflineStatusBanner';
 import { ToastHost } from './components/ui/ToastHost';
 import ShellSkeleton from './components/ui/ShellSkeleton';
-import SettingsView from './components/settings/SettingsView';
 import PageTemplateBoundary, { type PageTemplateKind } from './components/shared/PageTemplateBoundary';
 import ActionHistoryController from './components/core/ActionHistoryController';
 import { QueryErrorResetBoundary } from '@tanstack/react-query';
 
 const DesktopDashboard = lazy(() => import('./components/desktop/shell/DesktopDashboard'));
+const SettingsView = lazy(() => import('./components/settings/SettingsView'));
 const MedicalStudiesPage = lazy(() => import('./components/medical/MedicalStudiesPage'));
 const MedicalLaboratoryPage = lazy(() => import('./components/medical/MedicalLaboratoryPage'));
 const CorrelationsPage = lazy(() => import('./components/correlations/CorrelationsPage'));
@@ -138,7 +138,7 @@ function AppRoutes() {
           <Screen kind="dashboard"><DesktopDashboard /></Screen>
         </Suspense>
       } />
-      <Route path="/settings" element={<Screen kind="list"><SettingsView /></Screen>} />
+      <Route path="/settings" element={<Screen kind="list"><Suspense fallback={FALLBACK_SPINNER}><SettingsView /></Suspense></Screen>} />
       <Route path="/finanse" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="dashboard"><FinancePage /></Screen>

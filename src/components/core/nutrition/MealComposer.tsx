@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useMemo, useState, startTransition } from 'react';
 import { Card } from '../../ui/Card';
 import BarcodeScanner from './BarcodeScanner';
 import MealScanOverlay from './MealScanOverlay';
@@ -8,7 +8,6 @@ import MealComposerLoggedItems from './MealComposerLoggedItems';
 import MealComposerQuick from './MealComposerQuick';
 import MealSupplementsWidget from './MealSupplementsWidget';
 import { ComposerHeader, ComposerInput, ComposerProgress, ComposerSearch } from './MealComposerChrome';
-import CopyDayModal from './CopyDayModal';
 import type { RecentEntry } from './hooks/foodEntryUtils';
 import { useMealComposer } from './hooks/useMealComposer';
 import { useMealPhotoUrls } from './hooks/useMealPhotoUrls';
@@ -19,6 +18,7 @@ import { computeDayEnergyRange } from '../../../lib/health/nutritionAudit';
 import { useSession } from '../../../store/useStore';
 
 const FoodEntryModal = lazy(() => import('./FoodEntryModal'));
+const CopyDayModal = lazy(() => import('./CopyDayModal'));
 
 function sumDayMacros(entries: Array<{ carbs: number | null; fat: number | null }>) {
   return {
@@ -27,18 +27,15 @@ function sumDayMacros(entries: Array<{ carbs: number | null; fat: number | null 
   };
 }
 
-export default function MealComposer({
-  onSaved,
-  refreshSignal = 0,
-}: {
-  onSaved?: () => void;
-  refreshSignal?: number;
-}) {
+export default function MealComposer({ onSaved, refreshSignal = 0 }: { onSaved?: () => void; refreshSignal?: number }) {
   const session = useSession();
   const c = useMealComposer(onSaved, refreshSignal);
   const photoUrls = useMealPhotoUrls(session?.user.id, c.allTodayEntries);
   const [editEntry, setEditEntry] = useState<RecentEntry | null>(null);
   const [copyDayOpen, setCopyDayOpen] = useState(false);
+  const nutrients = useMemo(() => computeDayNutrientCoverage(c.allTodayEntries), [c.allTodayEntries]);
+  const energy = useMemo(() => computeDayEnergyRange(c.allTodayEntries), [c.allTodayEntries]);
+  const macros = useMemo(() => sumDayMacros(c.allTodayEntries), [c.allTodayEntries]);
 
   const dayReview = useDayReview(session?.user.id, c.logDate);
   const week = useWeekBalance(session?.user.id, c.logDate, c.totals.calories, c.totals.targetKcal);
@@ -63,9 +60,9 @@ export default function MealComposer({
           qualityPending={c.qualityPending}
           week={week}
           dayReview={dayReview}
-          nutrients={computeDayNutrientCoverage(c.allTodayEntries)}
-          energy={computeDayEnergyRange(c.allTodayEntries)}
-          macros={sumDayMacros(c.allTodayEntries)}
+          nutrients={nutrients}
+          energy={energy}
+          macros={macros}
         />
 
         <ComposerInput
@@ -134,7 +131,7 @@ export default function MealComposer({
             chips={c.quickChips}
             saving={c.saving}
             onChip={c.handleQuickChip}
-            onOpenCopyDay={() => setCopyDayOpen(true)}
+            onOpenCopyDay={() => startTransition(() => setCopyDayOpen(true))}
             nextMeals={c.nextMealSuggestions}
             onNextMeal={c.applyNextMeal}
           />
@@ -145,9 +142,9 @@ export default function MealComposer({
         {c.allTodayEntries.length > 0 && (
           <MealComposerLoggedItems
             entries={c.allTodayEntries}
-            photoUrls={photoUrls}
+            photoUrls={Object.keys(photoUrls).length ? photoUrls : undefined}
             onEditEntry={setEditEntry}
-            onDeleteEntry={(id) => void c.deleteEntry(id)}
+            onDeleteEntry={c.deleteEntry}
             isPastDay={c.isPastDay}
             onCopyEntireDay={c.copyEntireDayToToday}
             onCopyMeal={c.copyMealToToday}
@@ -177,6 +174,7 @@ export default function MealComposer({
         </Suspense>
       )}
 
+      <Suspense fallback={null}>
       {copyDayOpen && c.userId && (
         <CopyDayModal
           isOpen={copyDayOpen}
@@ -189,6 +187,7 @@ export default function MealComposer({
           }}
         />
       )}
+      </Suspense>
     </>
   );
 }

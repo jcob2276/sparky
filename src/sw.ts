@@ -1,5 +1,8 @@
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { clientsClaim } from 'workbox-core';
+import { registerRoute } from 'workbox-routing';
+import { CacheFirst } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -13,6 +16,15 @@ cleanupOutdatedCaches();
 
 // Precaching assets automatically injected by Vite PWA
 precacheAndRoute(self.__WB_MANIFEST);
+
+// Hashed build assets left out of the precache (e.g. the PDF library) are cached the first time they are used.
+registerRoute(
+  ({ url }) => url.origin === self.location.origin && url.pathname.startsWith('/assets/'),
+  new CacheFirst({
+    cacheName: 'assets-runtime',
+    plugins: [new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 * 60 })],
+  }),
+);
 
 // Handle push notifications
 self.addEventListener('push', (event) => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, Copy } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { TodayFoodEntry } from '../../../lib/health/composerTodayMealsApi';
@@ -46,7 +46,7 @@ function LoggedItemsHeader({ title, count, kcal, protein, open, locked, onToggle
   );
 }
 
-function MealSummaryChips({ order, groups }: { order: string[]; groups: Map<string, TodayFoodEntry[]> }) {
+function MealSummaryChips({ order, calories }: { order: string[]; calories: Map<string, number> }) {
   return (
     <div className="flex flex-wrap gap-1.5 px-0.5">
       {order.map((mealType) => (
@@ -54,7 +54,7 @@ function MealSummaryChips({ order, groups }: { order: string[]; groups: Map<stri
           key={mealType}
           className="rounded-full bg-surface-solid/50 px-2.5 py-1 text-2xs font-semibold tabular-nums text-text-secondary"
         >
-          {MEAL_LABEL[mealType] ?? mealType} {Math.round(groups.get(mealType)!.reduce((sum, e) => sum + (e.calories ?? 0), 0))}
+          {MEAL_LABEL[mealType] ?? mealType} {calories.get(mealType)}
         </span>
       ))}
     </div>
@@ -95,9 +95,11 @@ interface MealComposerLoggedItemsProps {
   copying?: boolean;
 }
 
-export default function MealComposerLoggedItems({
+const EMPTY_PHOTO_URLS: Record<string, string> = {};
+
+export default memo(function MealComposerLoggedItems({
   entries,
-  photoUrls = {},
+  photoUrls = EMPTY_PHOTO_URLS,
   onEditEntry,
   onDeleteEntry,
   dateLabel = 'Zjedzone',
@@ -107,23 +109,22 @@ export default function MealComposerLoggedItems({
   copying,
 }: MealComposerLoggedItemsProps) {
   const [expanded, setExpanded] = useState(false);
-  if (!entries.length) return null;
   const open = expanded || Boolean(isPastDay);
-
-  const totalKcal = Math.round(entries.reduce((s, e) => s + (e.calories ?? 0), 0));
-  const totalProtein = Math.round(entries.reduce((s, e) => s + (e.protein ?? 0), 0) * 10) / 10;
-
-  // Group by meal_type preserving order of first appearance
-  const order: string[] = [];
-  const groups = new Map<string, TodayFoodEntry[]>();
-  for (const entry of entries) {
-    const key = entry.meal_type;
-    if (!groups.has(key)) {
-      order.push(key);
-      groups.set(key, []);
+  const { totalKcal, totalProtein, order, groups, calories } = useMemo(() => {
+    const totalKcal = Math.round(entries.reduce((s, e) => s + (e.calories ?? 0), 0));
+    const totalProtein = Math.round(entries.reduce((s, e) => s + (e.protein ?? 0), 0) * 10) / 10;
+    // Map iteration preserves the order of each meal's first appearance.
+    const groups = new Map<string, TodayFoodEntry[]>();
+    for (const entry of entries) {
+      const group = groups.get(entry.meal_type) ?? [];
+      group.push(entry);
+      groups.set(entry.meal_type, group);
     }
-    groups.get(key)!.push(entry);
-  }
+    const calories = new Map([...groups].map(([key, group]) =>
+      [key, Math.round(group.reduce((sum, entry) => sum + (entry.calories ?? 0), 0))]));
+    return { totalKcal, totalProtein, order: [...groups.keys()], groups, calories };
+  }, [entries]);
+  if (!entries.length) return null;
 
   return (
     <section aria-label={dateLabel} className="space-y-2 border-t border-border-custom/40 pt-3">
@@ -139,12 +140,12 @@ export default function MealComposerLoggedItems({
         onToggle={() => setExpanded((value) => !value)}
       />
 
-      {!open && <MealSummaryChips order={order} groups={groups} />}
+      {!open && <MealSummaryChips order={order} calories={calories} />}
 
-      <div className={open ? 'space-y-2' : 'hidden'}>
+      {open && <div className="space-y-2">
         {order.map((mealType) => {
           const group = groups.get(mealType)!;
-          const groupKcal = Math.round(group.reduce((s, e) => s + (e.calories ?? 0), 0));
+          const groupKcal = calories.get(mealType);
           return (
             <div key={mealType} className="space-y-1">
               <div className="flex items-center justify-between px-1">
@@ -229,7 +230,7 @@ export default function MealComposerLoggedItems({
             </div>
           );
         })}
-      </div>
+      </div>}
     </section>
   );
-}
+});

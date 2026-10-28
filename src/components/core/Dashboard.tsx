@@ -10,7 +10,7 @@
  */
 import { Pressable } from '../ui/ControlPrimitives';
 import { TIMEZONE } from '../../lib/date';
-import { Suspense, lazy, useMemo, useState, useCallback } from 'react';
+import { Suspense, lazy, useMemo, useState, useCallback, useDeferredValue } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSession } from '../../store/useStore';
 import { Sun, Calendar, Sparkles, StickyNote, ListTodo, BookOpen, WalletCards, Bell, Dumbbell, Eye, GraduationCap, Settings } from 'lucide-react';
@@ -24,7 +24,7 @@ import { DashboardFastCaptureMenu } from './DashboardFastCapture';
 import VisionHeroCard from './VisionHeroCard';
 import PowerList from '../lifestyle/PowerList';
 import FoodQuickCapture from './nutrition/FoodQuickCapture';
-import SearchModal from './SearchModal';
+const SearchModal = lazy(() => import('./SearchModal'));
 import { useDashboardState } from './hooks/useDashboardState';
 import { useDashboardPrefetch } from './hooks/useDashboardPrefetch';
 import Spinner from '../ui/Spinner';
@@ -67,6 +67,7 @@ function isAfter20(): boolean {
 function DashboardContent() {
   const session = useSession()!;
   const s = useDashboardState(session);
+  const showSearch = useDeferredValue(s.showSearch);
   const queryClient = useQueryClient();
   const userId = session.user.id;
   useDashboardPrefetch(userId);
@@ -274,7 +275,7 @@ function DashboardContent() {
           refresh={s.refresh} setNutritionKey={s.setNutritionKey}
         />
 
-        {s.showSearch && <SearchModal onClose={() => s.setShowSearch(false)} />}
+        <Suspense fallback={null}>{showSearch && <SearchModal onClose={() => s.setShowSearch(false)} />}</Suspense>
       </div>
     </DashboardContext.Provider>
   );

@@ -1,5 +1,5 @@
 import { getTodayWarsaw } from '../../../lib/date';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card } from '../../ui/Card';
 import { StatHero } from '../../ui/StatHero';
 import Button from '../../ui/Button';
@@ -51,6 +51,11 @@ export default function LeniePanelMini({ logs, phoneUsage, oura }: LeniePanelMin
   const totalWeek  = allLogs.filter((l) => l.date >= daysBefore(7)).length;
   const lastDate   = allLogs[0]?.date ?? null;
   const todayStr   = getTodayWarsaw();
+  // The day is part of the cache key because statistics include a rolling 30-day window.
+  const stats = useMemo(() => {
+    void todayStr;
+    return computeLenieStats(logs ?? []);
+  }, [logs, todayStr]);
 
   const daysFree = lastDate
     ? Math.round(
@@ -71,14 +76,13 @@ export default function LeniePanelMini({ logs, phoneUsage, oura }: LeniePanelMin
         <LeniePatternsModal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          stats={computeLenieStats([])}
+          stats={stats}
         />
       </>
     );
   }
 
   const insight = computeLenieInsight(allLogs);
-  const stats   = computeLenieStats(allLogs);
   const correlations = computeLenieCorrelations(allLogs, phoneUsage, oura);
 
   return (
