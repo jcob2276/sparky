@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  answerGuidedQuestion,
   applyGuidedAnswer,
   buildMealFingerprint,
   buildNutritionProjection,
@@ -158,5 +159,24 @@ describe('nutrition tracker domain', () => {
       id: 'chicken', name: 'Kurczak z ryżem', calories: 620, protein: 45,
     }));
     expect(suggestions[0].reason).toContain('białk');
+  });
+});
+
+describe('answerGuidedQuestion', () => {
+  const question = { id: 'sauce', itemId: 'rice', prompt: 'Jaki sos?', impactKcal: 120, options: [] };
+  const other = { id: 'oil', itemId: 'rice', prompt: 'Czy był olej?', impactKcal: 60, options: [] };
+
+  it('stosuje odpowiedź i usuwa to pytanie, zostawiając pozostałe', () => {
+    const items = [draftItem('rice', 'Ryż', [question, other])];
+    const [result] = answerGuidedQuestion(items, question, { id: 'cream', label: 'Śmietanowy', calories: 180 });
+    expect(result.calories).toBe(180);
+    expect(result.questionCandidates?.map((candidate) => candidate.id)).toEqual(['oil']);
+  });
+
+  it('„nie wiem” nie zmienia liczb, ale pytanie znika i nie wraca', () => {
+    const items = [draftItem('rice', 'Ryż', [question])];
+    const [result] = answerGuidedQuestion(items, question, { id: 'unknown', label: 'Nie wiem' });
+    expect(result.calories).toBe(100);
+    expect(selectGuidedQuestions([result])).toEqual([]);
   });
 });

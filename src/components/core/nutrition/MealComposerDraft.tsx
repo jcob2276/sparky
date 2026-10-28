@@ -3,6 +3,7 @@ import { Pressable, ControlInput } from '../../ui/ControlPrimitives';
 import type { MealDraftItem } from '../../../lib/health/nutritionTracker';
 import { draftTotals } from '../../../lib/health/mealPortions';
 import MealComposerDraftRow from './MealComposerDraftRow';
+import DraftGuidedQuestions from './DraftGuidedQuestions';
 import {GlycemicEstimate} from '../../biometrics/nutrition/GlycemicEstimate';
 
 export default function MealComposerDraft({
@@ -75,6 +76,7 @@ export default function MealComposerDraft({
         ))}
       </div>
 
+      <DraftGuidedQuestions items={items} onChange={onChange} />
       <GlycemicEstimate items={items.map(item=>({id:item.id,name:item.name,grams:item.grams,carbs:item.carbs,fiber:item.fiber}))}/>
       <div className="flex items-center justify-between gap-2 border-t border-border-custom/50 pt-2">
         <span className="text-xs text-text-muted">

@@ -71,6 +71,22 @@ export function applyGuidedAnswer<T extends MealDraftItem>(
   });
 }
 
+/**
+ * Zastosowanie odpowiedzi na pytanie doprecyzowujące i usunięcie go ze szkicu, żeby nie wracało.
+ * Odpowiedź „nie wiem” niczego nie zmienia w liczbach, ale pytanie też znika.
+ */
+export function answerGuidedQuestion<T extends MealDraftItem>(
+  items: T[],
+  question: GuidedQuestion,
+  option: GuidedQuestionOption,
+): T[] {
+  return applyGuidedAnswer(items, question, option).map((item) => (
+    item.questionCandidates?.some((candidate) => candidate.id === question.id)
+      ? { ...item, questionCandidates: item.questionCandidates.filter((candidate) => candidate.id !== question.id) }
+      : item
+  ));
+}
+
 export function selectGuidedQuestions(
   items: MealDraftItem[],
   limit = 3,
