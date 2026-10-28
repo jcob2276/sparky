@@ -7,6 +7,7 @@
  * - Yesterday's continuity
  */
 import { getPlanQualitySignal } from "../../_shared/planQuality.ts";
+import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from "../../_shared/dailyWinTasks.ts";
 
 export interface DayLoopContextResult {
   dayLoopContextText: string;
@@ -60,7 +61,7 @@ export async function fetchDayLoopContext(
   const [winsRes, reconsRes] = await Promise.all([
     supabase
       .from('daily_wins')
-      .select('date, task_1, done_1, category_1, completed_at_1, task_2, done_2, category_2, completed_at_2, task_3, done_3, category_3, completed_at_3, task_4, done_4, category_4, completed_at_4, task_5, done_5, category_5, completed_at_5, importance_score, mood_score, day_note, journal_entry, gratitude_entry, created_at')
+      .select(`date, importance_score, mood_score, day_note, journal_entry, gratitude_entry, created_at, daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`)
       .eq('user_id', user_id)
       // plan na jutro bywa zapisany wieczorem: bez tego ograniczenia trafiałby tu jako „dziś” albo „wczoraj”
       .lte('date', todayDate)
@@ -74,7 +75,7 @@ export async function fetchDayLoopContext(
       .limit(2),
   ]);
 
-  const winsList = winsRes.data || [];
+  const winsList = (winsRes.data || []).map(withLegacySlots);
   const reconsList = reconsRes.data || [];
 
   const todayWin = winsList.find((w: Record<string, unknown>) => w.date === todayDate) || winsList[0];

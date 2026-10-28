@@ -2,19 +2,7 @@ import { lowSleepNote } from "../../_shared/sleepWarning.ts";
 import { sendChatAction } from "../../_shared/telegram.ts";
 import { safeSendTelegram } from "../_utils/helpers.ts";
 import { getWarsawDateString } from "../../_shared/time.ts";
-
-interface DailyWinRow {
-  task_1: string | null;
-  done_1: boolean | null;
-  task_2: string | null;
-  done_2: boolean | null;
-  task_3: string | null;
-  done_3: boolean | null;
-  task_4: string | null;
-  done_4: boolean | null;
-  task_5: string | null;
-  done_5: boolean | null;
-}
+import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from "../../_shared/dailyWinTasks.ts";
 
 export async function handleTerazCommand(
   chatId: number,
@@ -59,26 +47,21 @@ export async function handleTerazCommand(
     }
 
     // 2. Active tasks: daily_wins (Power List) first, then todo_items
-    const { data: win } = await supabase
+    const { data: winRow } = await supabase
       .from("daily_wins")
-      .select("task_1, done_1, task_2, done_2, task_3, done_3, task_4, done_4, task_5, done_5")
+      .select(`daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`)
       .eq("user_id", vanguardUserId)
       .eq("date", today)
-      .maybeSingle() as { data: DailyWinRow | null };
+      .maybeSingle();
+    const win = winRow ? withLegacySlots(winRow) : null;
 
     let singleMove: string | null = null;
     let moveSource = "";
 
     if (win) {
-      const tasks: [string | null, boolean | null, number][] = [
-        [win.task_1, win.done_1, 1],
-        [win.task_2, win.done_2, 2],
-        [win.task_3, win.done_3, 3],
-        [win.task_4, win.done_4, 4],
-        [win.task_5, win.done_5, 5],
-      ];
-      for (const [t, done, idx] of tasks) {
-        if (t && t.trim() && !done) {
+      for (let idx = 1; idx <= 5; idx++) {
+        const t = win[`task_${idx}`];
+        if (typeof t === "string" && t.trim() && !win[`done_${idx}`]) {
           singleMove = t.trim();
           moveSource = `Power List #${idx}`;
           break;

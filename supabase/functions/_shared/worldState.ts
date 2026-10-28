@@ -2,6 +2,7 @@ import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getWarsawDateString, warsawDayBoundsISO } from "./time.ts";
 import { getAggregateByDate } from "./repos/aggregatesRepo.ts";
 import { lastAvailableBiometrics, pickOuraRows, type LastAvailableBiometrics } from "./worldStateOura.ts";
+import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from "./dailyWinTasks.ts";
 
 interface WorldStateMeta {
   source: string;
@@ -104,25 +105,17 @@ export async function fetchWorldState(
   const ouraFreshness = calculateFreshness(oura?.created_at);
 
   // 2. Daily Wins (Execution with tasks)
-  const { data: wins } = await supabase
+  const { data: winsRow } = await supabase
     .from('daily_wins')
-    .select('*, daily_win_tasks(*)')
+    .select(`*, daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`)
     .eq('user_id', userId)
     .eq('date', date)
     .maybeSingle();
+  const wins = winsRow ? withLegacySlots(winsRow) : null;
 
   // daily_wins has no updated_at column either — same fix as oura above.
   const winsFreshness = calculateFreshness(wins?.created_at);
-  let tasksDone = 0;
-  if (wins?.daily_win_tasks) {
-    tasksDone = wins.daily_win_tasks.filter((t: any) => t.done).length;
-  } else if (wins) {
-    if (wins.done_1) tasksDone++;
-    if (wins.done_2) tasksDone++;
-    if (wins.done_3) tasksDone++;
-    if (wins.done_4) tasksDone++;
-    if (wins.done_5) tasksDone++;
-  }
+  const tasksDone = [1, 2, 3, 4, 5].filter((slot) => wins?.[`done_${slot}`]).length;
 
   // 3. Vanguard Aggregates (System State)
   const aggregate = await getAggregateByDate(supabase, userId, date).catch(() => null);

@@ -2,6 +2,7 @@ import { DEFAULT_PROTEIN_FLOOR_G, HEALTH_THRESHOLDS } from '@vanguard/domain'
 import { VanguardCore, computeSignals } from '../vanguardCore.ts'
 import { safeExecute } from '../supabase.ts'
 import { getWarsawDayBoundaries } from '../time.ts'
+import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from '../dailyWinTasks.ts'
 
 export const runSaveDailyAggregate = async (
   supabase: any,
@@ -9,9 +10,9 @@ export const runSaveDailyAggregate = async (
   today: string
 ): Promise<{ success: boolean; state: string; identity_score: number }> => {
   // Pobierz dane z aktywnych źródeł (Oura, Wins, Nutrition, Last Workout, Strava)
-  const [oura, wins, nutrition, lastWorkout, stravaRaw] = await Promise.all([
+  const [oura, winsRow, nutrition, lastWorkout, stravaRaw] = await Promise.all([
     safeExecute(supabase.from('oura_daily_summary').select('*').eq('user_id', userId).eq('date', today).maybeSingle()),
-    safeExecute(supabase.from('daily_wins').select('*').eq('user_id', userId).eq('date', today).maybeSingle()),
+    safeExecute(supabase.from('daily_wins').select(`*, daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`).eq('user_id', userId).eq('date', today).maybeSingle()),
     safeExecute(supabase.from('daily_nutrition').select('*').eq('user_id', userId).eq('date', today).maybeSingle()),
     safeExecute(supabase.from('workout_sessions').select('date').eq('user_id', userId).order('date', { ascending: false }).limit(1).maybeSingle()),
     // Strava: aktywności z widoku clean dla danego dnia (Warsaw timezone, DST-safe)
@@ -25,6 +26,7 @@ export const runSaveDailyAggregate = async (
         .order('start_date', { ascending: true }));
     })(),
   ])
+  const wins = winsRow ? withLegacySlots(winsRow) : null
 
   const lastTrainingDate = lastWorkout?.date || null
 

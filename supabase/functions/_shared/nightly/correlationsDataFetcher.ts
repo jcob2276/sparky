@@ -1,5 +1,6 @@
 import { aggregateStravaRuns } from '../correlationSeries.ts';
 import { syncWeatherDaily } from '../weatherSync.ts';
+import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from '../dailyWinTasks.ts';
 
 export interface PreparedCorrelationData {
   strainRows: any[];
@@ -32,7 +33,7 @@ async function fetchRawCorrelationData(supabase: any, userId: string, start90: s
     supabase.from('friction_events').select('occurred_at, friction_type').eq('user_id', userId).gte('occurred_at', start90 + 'T00:00:00Z'),
     supabase.from('daily_food_entries').select('date, name, logged_at, calories, carbs, fat, protein, meal_type').eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('vanguard_consolidated_activities').select('event_date, source_type, category, label, metric_value, metadata').eq('user_id', userId).gte('event_date', start90),
-    supabase.from('daily_wins').select('date, mood_score, daily_rpe, done_1, done_2, done_3, done_4, done_5, task_1, task_2, task_3, task_4, task_5').eq('user_id', userId).gte('date', start90).order('date'),
+    supabase.from('daily_wins').select(`date, mood_score, daily_rpe, daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`).eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('daily_reconciliations').select('date, day_score, phone_drift_morning').eq('user_id', userId).gte('date', start90),
     supabase.from('supplement_logs').select('date, supplement_id').eq('user_id', userId).gte('date', start90),
     supabase.from('supplements').select('id, slug').eq('user_id', userId),
@@ -110,7 +111,7 @@ export async function fetchAndPrepareCorrelationData(
       frictionRows: frictionR.data ?? [],
       foodRows: excludeGapDays(foodR.data ?? []),
       workoutRows,
-      winsRows: winsR.data ?? [],
+      winsRows: (winsR.data ?? []).map(withLegacySlots),
       reconRows: (reconR.data ?? []).map((r: any) => ({ date: r.date, day_score: r.day_score, phone_drift_morning: r.phone_drift_morning })),
       behaviorRows,
       supplementRows,

@@ -13,6 +13,7 @@ import { serveJson } from "../_shared/http.ts"
 import { getVanguardUserId } from "../_shared/constants.ts"
 import { getWarsawDateString } from "../_shared/time.ts"
 import { evaluateQuestion } from "./evalEngine.ts"
+import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from "../_shared/dailyWinTasks.ts"
 
 async function runEval(run_id: string, questions: any[], user_id: string, offset = 0, total = 0, isFinalBatch = true) {
   const supabase = createServiceClient();
@@ -22,11 +23,12 @@ async function runEval(run_id: string, questions: any[], user_id: string, offset
 
   try {
     const todayWarsawDate = getWarsawDateString();
-    const [{ data: recentBiometrics }, { data: todayWin }, { data: planRows }] = await Promise.all([
+    const [{ data: recentBiometrics }, { data: todayWinRow }, { data: planRows }] = await Promise.all([
       supabase.from('vanguard_daily_aggregates').select('date, final_state, sleep_hours, hrv_avg, execution_score, dopamine_load_index, readiness_score, sleep_score, activity_score').eq('user_id', user_id).order('date', { ascending: false }).limit(7),
-      supabase.from('daily_wins').select('task_1, done_1, task_2, done_2, task_3, done_3, task_4, done_4, task_5, done_5, result').eq('user_id', user_id).eq('date', todayWarsawDate).maybeSingle(),
+      supabase.from('daily_wins').select(`result, daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`).eq('user_id', user_id).eq('date', todayWarsawDate).maybeSingle(),
       supabase.from('daily_reconciliations').select('planning_summary, answered_at').eq('user_id', user_id).not('planning_summary', 'is', null).order('created_at', { ascending: false }).limit(5),
     ]);
+    const todayWin = todayWinRow ? withLegacySlots(todayWinRow) : null;
 
     const todayPlan = (planRows || []).find((r: any) => r.planning_summary?.target_date === todayWarsawDate && !r.planning_summary?.parse_error)?.planning_summary || null;
     const stateVector = {
