@@ -105,12 +105,16 @@ export async function confirmMealCapture(input: {
   if (error) throw error;
 
   if (input.loggedAt) {
-    const { error: timeError } = await supabase
-      .from('daily_food_entries')
-      .update({ logged_at: input.loggedAt })
-      .eq('user_id', input.userId)
-      .eq('meal_group_id', captureId);
-    if (timeError) throw timeError;
+    try {
+      const { error: timeError } = await supabase
+        .from('daily_food_entries')
+        .update({ logged_at: input.loggedAt })
+        .eq('user_id', input.userId)
+        .eq('meal_group_id', captureId);
+      if (timeError) throw timeError;
+    } catch (cause) {
+      throw new Error('Posiłek zapisany, ale nie udało się ustawić godziny. Ponów zapis, aby dokończyć.', { cause });
+    }
   }
 
   scheduleNutritionRefresh(input.userId, input.date);

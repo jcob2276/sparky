@@ -1,6 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getTodayWarsaw, getYesterdayWarsaw } from '../../../../lib/date';
+import { useWarsawDayChange } from '../../../../hooks/useWarsawDayChange';
 import { fetchAllTodayEntries, type TodayFoodEntry } from '../../../../lib/health/composerTodayMealsApi';
 import { buildYesterdayMealSuggestion } from './mealComposerCalc';
 
@@ -12,8 +13,12 @@ interface Params {
 }
 
 export function useMealComposerYesterday({ userId, logDate, mealType, allTodayEntries }: Params) {
-  const todayStr = useMemo(() => getTodayWarsaw(), []);
-  const yesterdayStr = useMemo(() => getYesterdayWarsaw(), []);
+  const [todayStr, setTodayStr] = useState(getTodayWarsaw);
+  const [yesterdayStr, setYesterdayStr] = useState(getYesterdayWarsaw);
+  useWarsawDayChange(() => {
+    setTodayStr(getTodayWarsaw());
+    setYesterdayStr(getYesterdayWarsaw());
+  });
 
   const yesterdayEntriesQuery = useQuery({
     queryKey: ['all-today-entries', userId, yesterdayStr],

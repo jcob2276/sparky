@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useWarsawDayChange } from '../../../../hooks/useWarsawDayChange';
 import { combineDateTimeWarsawISO, getTodayWarsaw, getYesterdayWarsaw } from '../../../../lib/date';
 import { useLoggedTime } from './useLoggedTime';
 import {
@@ -38,6 +39,10 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   });
   const [mealType, setMealType] = useState<MealTypeId>(() => defaultMealType());
   const [logDate, setLogDate] = useState(() => getTodayWarsaw());
+  const followsTodayRef = useRef(true);
+  useWarsawDayChange(() => {
+    if (followsTodayRef.current) setLogDate(getTodayWarsaw());
+  });
   const [draftItems, setDraftItems] = useState<MealDraftItem[] | null>(null);
   const [parsing, setParsing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -82,6 +87,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   }, [appendFoodToDraft, search]);
 
   const setLogDateAndResetTime = useCallback((date: string) => {
+    followsTodayRef.current = date === getTodayWarsaw();
     setLogDate(date);
     resetLoggedTime();
   }, [resetLoggedTime]);
@@ -122,7 +128,7 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
   }, [draftItems]);
 
   const { saveDraft, handleFavorite } = useMealComposerSave({
-    userId, saving, setSaving, setError, logDate, mealType, search, scannedPhotoIdRef,
+    userId, saving, setSaving, setError, logDate, mealType, search, scannedPhotoIdRef, draftItems,
     setDraftItems, setText, setMemoryName, setSearchOpen, refreshAfterSave,
   });
 
