@@ -52,14 +52,16 @@ export function scoreUsdaCandidate(queryEn: string, description: string): { scor
   // Stan z zapytania musi występować w opisie.
   if (queryStates.some((state) => !descSet.has(state))) return null;
   // Opis z innym stanem, którego zapytanie nie wskazuje (np. zapytanie bez stanu, opis „raw”) dostaje karę, nie odrzucenie.
-  const unrequestedStates = descStates.filter((state) => !queryStates.includes(state)).length;
+  // „cooked” w opisie nie kłóci się z konkretnym sposobem obróbki w zapytaniu (roasted, boiled, ...).
+  const queryHasCookingMethod = queryStates.some((state) => state !== 'cooked' && state !== 'raw' && state !== 'dry' && state !== 'dried');
+  const unrequestedStates = descStates.filter((state) => !queryStates.includes(state) && !(state === 'cooked' && queryHasCookingMethod)).length;
 
   const rest = queryTokens.filter((token) => !queryHead.includes(token));
   const coverage = rest.length ? rest.filter((token) => descSet.has(token)).length / rest.length : 1;
   if (coverage < 0.6) return null;
 
   const extra = descTokens.filter((token) => !queryTokens.includes(token) && !STATE_WORDS.has(token)).length;
-  const score = 0.55 + 0.35 * coverage - Math.min(0.25, extra * 0.025) - Math.min(0.2, unrequestedStates * 0.1);
+  const score = 0.55 + 0.35 * coverage - Math.min(0.1, extra * 0.01) - Math.min(0.2, unrequestedStates * 0.1);
   return { score: Math.round(Math.max(0, Math.min(1, score)) * 1000) / 1000, coverage: Math.round(coverage * 100) / 100 };
 }
 

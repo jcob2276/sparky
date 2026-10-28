@@ -113,15 +113,16 @@ async function lookupUsda(nameEn: string, db: unknown): Promise<{ match: Per100g
   try {
     const { data, error } = await (db as { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: UsdaRow[] | null; error: unknown }> })
       .rpc('search_food_reference_usda', { query_text: nameEn, match_count: 30 });
-    if (error || !data?.length) return null;
+    if (error) { console.warn('[usda] rpc failed', error); return null; }
+    if (!data?.length) return null;
     const picked = pickUsdaMatch(nameEn, data.map((row) => ({ ...row, fdcId: row.fdc_id, dataType: row.data_type })));
-    if (!picked) return null;
+    if (!picked) { console.info('[usda] no confident match', nameEn, data.length); return null; }
     const row = picked.candidate;
     return {
       score: picked.score,
       match: { name: row.description, calories: row.kcal, protein: row.protein, carbs: row.carbs, fat: row.fat, fiber: row.fiber, sugar: row.sugar, saturatedFat: row.saturated_fat, salt: row.salt, source: `usda_fdc:${row.fdc_id}` },
     };
-  } catch { return null; }
+  } catch (err) { console.warn('[usda] lookup threw', err instanceof Error ? err.message : err); return null; }
 }
 
 async function verifyMatchWithLLM(query: string, candidate: string, apiKey: string): Promise<boolean> {
