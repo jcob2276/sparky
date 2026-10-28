@@ -49,9 +49,9 @@ export function deriveFoodTrust(food: FoodTrustInput): FoodTrust {
   return { level: 'estimated', uncertaintyPct: 25, label: 'Szacunek' };
 }
 
-export type MacroSource = 'library' | 'generic' | 'reference_pl' | 'off' | 'llm_estimate' | 'user_correction';
+export type MacroSource = 'library' | 'generic' | 'reference_pl' | 'usda' | 'off' | 'llm_estimate' | 'user_correction';
 
-const MACRO_SOURCES: readonly string[] = ['library', 'generic', 'reference_pl', 'off', 'llm_estimate', 'user_correction'];
+const MACRO_SOURCES: readonly string[] = ['library', 'generic', 'reference_pl', 'usda', 'off', 'llm_estimate', 'user_correction'];
 
 export function isMacroSource(value: unknown): value is MacroSource {
   return typeof value === 'string' && MACRO_SOURCES.includes(value);
@@ -89,7 +89,7 @@ const MAX_UNCERTAINTY_PCT = 50;
 function macroUncertaintyPct({ macroSource, itemSource, confidence = 'medium' }: ItemUncertaintyInput): number {
   if (macroSource === 'user_correction') return 3;
   if (macroSource === 'library' || (macroSource == null && itemSource !== 'llm')) return 5;
-  if (macroSource === 'off' || macroSource === 'reference_pl' || macroSource === 'generic') {
+  if (macroSource === 'off' || macroSource === 'reference_pl' || macroSource === 'usda' || macroSource === 'generic') {
     return { high: 8, medium: 12, low: 20 }[confidence];
   }
   return { high: 15, medium: 25, low: 35 }[confidence];

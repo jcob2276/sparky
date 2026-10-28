@@ -92,6 +92,7 @@ export function normalizeGramOnlyItems(raw: unknown): ParsedFoodItem[] {
           explicitGrams: typeof item.explicitGrams === 'boolean'
             ? item.explicitGrams
             : undefined,
+          nameEn: typeof item.nameEn === 'string' && item.nameEn.trim() ? item.nameEn.trim().slice(0, 120) : undefined,
         },
       };
       if (assumptions.length) result.assumptions = assumptions;

@@ -24,7 +24,7 @@ function captureTrustLevel(item: CaptureDraftItem): 'confirmed' | 'reference' | 
   const macroSource = item.parseMeta?.macroSource;
   if (macroSource === 'user_correction') return 'confirmed';
   if (macroSource === 'llm_estimate') return 'estimated';
-  if (macroSource === 'off' || macroSource === 'reference_pl' || macroSource === 'generic') return 'reference';
+  if (macroSource === 'off' || macroSource === 'reference_pl' || macroSource === 'usda' || macroSource === 'generic') return 'reference';
   return item.source === 'library' || item.source === 'database' ? 'confirmed' : 'estimated';
 }
 

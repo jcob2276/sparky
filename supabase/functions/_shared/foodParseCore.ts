@@ -37,7 +37,7 @@ export {
 export { applyUserCorrections } from "./foodParse/reconcile.ts";
 
 export interface FoodParseMeta {
-  macroSource: 'library' | 'generic' | 'reference_pl' | 'off' | 'llm_estimate' | 'user_correction'
+  macroSource: 'library' | 'generic' | 'reference_pl' | 'usda' | 'off' | 'llm_estimate' | 'user_correction'
   matchScore?: number
   matchedName?: string
   dataSource?: string
@@ -45,6 +45,8 @@ export interface FoodParseMeta {
   quantity?: number
   unit?: string
   explicitGrams?: boolean
+  /** Angielska nazwa w składni USDA podana przez parser; służy do dopasowania do referencji USDA. */
+  nameEn?: string
   warnings?: string[]
   validationStatus?: 'accepted' | 'review'
   /** Skąd pochodzi każda wartość błonnika, cukru, nasyconych i soli: źródło danych albo szacunek modelu. */

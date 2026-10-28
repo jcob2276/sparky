@@ -1,4 +1,5 @@
 import { offNutrimentsPer100, searchOffProducts } from '../offClient.ts';
+import { pickUsdaMatch } from "@vanguard/domain";
 import { assessEnergyConsistency, mergeMicronutrients, type MicronutrientSources } from "@vanguard/domain";
 import { deepseekChat, parseJsonFromContent } from "../deepseek.ts";
 import { openaiChat } from "../openai.ts";
@@ -105,6 +106,24 @@ async function lookupOffFast(name: string): Promise<{ match: Per100gFood; score:
   return picked ? { match: picked.match, score: picked.score, macroSource: 'off' } : null;
 }
 
+type UsdaRow = { fdc_id: number; data_type: 'foundation_food' | 'sr_legacy_food'; description: string; kcal: number; protein: number; fat: number; carbs: number; fiber: number | null; sugar: number | null; saturated_fat: number | null; salt: number | null };
+
+/** Referencja USDA po angielskiej nazwie z parsera; zwraca null, gdy rodzaj lub stan produktu nie zgadzają się pewnie. */
+async function lookupUsda(nameEn: string, db: unknown): Promise<{ match: Per100gFood; score: number } | null> {
+  try {
+    const { data, error } = await (db as { rpc: (fn: string, args: Record<string, unknown>) => Promise<{ data: UsdaRow[] | null; error: unknown }> })
+      .rpc('search_food_reference_usda', { query_text: nameEn, match_count: 30 });
+    if (error || !data?.length) return null;
+    const picked = pickUsdaMatch(nameEn, data.map((row) => ({ ...row, fdcId: row.fdc_id, dataType: row.data_type })));
+    if (!picked) return null;
+    const row = picked.candidate;
+    return {
+      score: picked.score,
+      match: { name: row.description, calories: row.kcal, protein: row.protein, carbs: row.carbs, fat: row.fat, fiber: row.fiber, sugar: row.sugar, saturatedFat: row.saturated_fat, salt: row.salt, source: `usda_fdc:${row.fdc_id}` },
+    };
+  } catch { return null; }
+}
+
 async function verifyMatchWithLLM(query: string, candidate: string, apiKey: string): Promise<boolean> {
   try {
     const res = await deepseekChat({
@@ -183,11 +202,14 @@ async function reconcileOne(item: ParsedFoodItem, opts: ReconcileOpts): Promise<
   // Krok 3: Generic staples — TYLKO jeśli to NIE jest potrawa złożona.
   if (!match?.calories && !isComposedDish) { const local = lookupGenericFood(item.name); if (local) { match = local; source = 'database'; macroSource = 'generic'; matchedName = local.name; matchScore = scoreFoodNameMatch(item.name, local.name); } }
 
+  // Krok 3b: USDA FoodData Central po angielskiej nazwie z parsera — proste produkty, nie potrawy złożone i marki.
+  if (!match?.calories && !isComposedDish && item.parseMeta?.nameEn && opts.db) { const usda = await lookupUsda(item.parseMeta.nameEn, opts.db); if (usda) { match = usda.match; source = 'database'; macroSource = 'usda'; matchScore = usda.score; matchedName = usda.match.name; } }
+
   // Krok 4: OpenFoodFacts — TYLKO jeśli to NIE jest potrawa złożona.
   if (!match?.calories && !isComposedDish) { const remote = await lookupOffFast(item.name); if (remote?.match.calories != null) { match = remote.match; source = 'database'; macroSource = remote.macroSource; matchScore = remote.score; matchedName = remote.match.name; } }
 
   if (matchScore != null && matchScore >= 0.50 && matchScore <= 0.72 && opts.apiKey && matchedName) { const ok = await verifyMatchWithLLM(item.name, matchedName, opts.apiKey); if (!ok) { match = null; source = 'llm'; macroSource = 'llm_estimate'; matchScore = undefined; matchedName = undefined; } }
-  if (match?.calories != null && source !== 'llm') { const recalculated = recalcFromPer100g(item.grams, match); const micro = mergeMicronutrients(recalculated, item, { fatG: recalculated.fat, grams: item.grams }, match.nutrient_sources); return { ...item, ...recalculated, ...micro.values, name: match.name || item.name, confidence: 'high', source, assumptions: item.assumptions, parseMeta: { ...item.parseMeta, macroSource, matchScore, matchedName, dataSource: match.source ?? macroSource, parserVersion: PARSER_VERSION, micronutrientSources: micro.sources } }; }
+  if (match?.calories != null && source !== 'llm') { const recalculated = recalcFromPer100g(item.grams, match); const micro = mergeMicronutrients(recalculated, item, { fatG: recalculated.fat, grams: item.grams }, match.nutrient_sources); return { ...item, ...recalculated, ...micro.values, name: macroSource === 'usda' ? item.name : (match.name || item.name), confidence: 'high', source, assumptions: item.assumptions, parseMeta: { ...item.parseMeta, macroSource, matchScore, matchedName, dataSource: match.source ?? macroSource, parserVersion: PARSER_VERSION, micronutrientSources: micro.sources } }; }
   return item;
 }
 

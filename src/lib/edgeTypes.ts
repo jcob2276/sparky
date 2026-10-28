@@ -118,7 +118,7 @@ export interface MealPhotoResponse {
     assumptions?: string[]; portionRange: { minGrams: number; maxGrams: number };
     questionCandidates: MealPhotoResponse['questions'];
     parseMeta?: {
-      macroSource: 'library' | 'generic' | 'reference_pl' | 'off' | 'llm_estimate' | 'user_correction';
+      macroSource: 'library' | 'generic' | 'reference_pl' | 'usda' | 'off' | 'llm_estimate' | 'user_correction';
       parserVersion: string; matchScore?: number; matchedName?: string; dataSource?: string;
       quantity?: number; unit?: string; explicitGrams?: boolean; warnings?: string[];
       validationStatus?: 'accepted' | 'review';

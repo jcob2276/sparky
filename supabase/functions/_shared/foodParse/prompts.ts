@@ -151,7 +151,8 @@ function confidenceRulesBlock(): string {
 function jsonSchemaBlock(mode: 'full' | 'grams_only' | 'macros_only'): string {
   if (mode === 'grams_only') {
     return `Zwróć WYŁĄCZNIE poprawny format JSON (żadnego dodatkowego tekstu ani markdownu poza JSON):
-{"items":[{"name":"dokładna nazwa produktu gotowego/potrawy","quantity":2,"unit":"g|kg|ml|sztuka|miska|kromka|plaster|porcja|opakowanie","grams":130,"explicitGrams":true,"confidence":"high|medium|low","assumptions":["opcjonalna lista założeń gdy szacujesz gramaturę"]}]}
+{"items":[{"name":"dokładna nazwa produktu gotowego/potrawy","quantity":2,"unit":"g|kg|ml|sztuka|miska|kromka|plaster|porcja|opakowanie","nameEn":"Rice, white, long-grain, cooked","grams":130,"explicitGrams":true,"confidence":"high|medium|low","assumptions":["opcjonalna lista założeń gdy szacujesz gramaturę"]}]}
+nameEn to angielska nazwa produktu w składni bazy USDA: „Rodzaj, odmiana, stan” (np. „Chicken, broilers or fryers, breast, meat only, cooked, roasted”, „Oil, olive”, „Cheese, cottage, lowfat”). Pierwszy człon to rodzaj produktu. Zawsze podaj stan zgodny z opisem (raw, cooked, boiled, fried, roasted, baked); gdy użytkownik go nie podał, wybierz typowy dla spożycia (ryż i makaron cooked, warzywa raw lub cooked wg kontekstu, mięso cooked). Dla potraw złożonych, produktów markowych i wszystkiego, czego nie da się opisać jako prosty produkt USDA, ustaw nameEn na null.
 quantity i unit zachowują ilość podaną przez użytkownika. grams to przeliczona masa całkowita. explicitGrams=true tylko gdy użytkownik podał wprost g/kg/ml; dla sztuk, misek i porcji ustaw false.`
   }
   if (mode === 'macros_only') {

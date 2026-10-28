@@ -14,7 +14,7 @@ interface PhotoParsedFoodItem {
   source: 'llm' | 'database' | 'library';
   assumptions?: string[];
   parseMeta?: {
-    macroSource: 'library' | 'generic' | 'reference_pl' | 'off' | 'llm_estimate' | 'user_correction';
+    macroSource: 'library' | 'generic' | 'reference_pl' | 'usda' | 'off' | 'llm_estimate' | 'user_correction';
     parserVersion: string;
     quantity?: number;
     unit?: string;
