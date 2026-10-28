@@ -1,6 +1,7 @@
 import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts'
 import { reconcileItems } from './reconcile.ts'
 import type { ParsedFoodItem } from '../foodParseCore.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const item = (nameEn: string | undefined): ParsedFoodItem => ({
   name: 'Amarantus ugotowany', grams: 200, calories: 0, protein: 0, carbs: 0, fat: 0, confidence: 'medium', source: 'llm',
@@ -11,7 +12,10 @@ const row = (fdc_id: number, description: string, kcal: number) => ({
   fdc_id, data_type: 'sr_legacy_food', description, kcal, protein: 3.8, fat: 1.6, carbs: 18.7, fiber: 2.1, sugar: null, saturated_fat: 0.4, salt: 0.005,
 })
 
-const fakeDb = (rows: unknown[]) => ({ rpc: (_fn: string, _args: unknown) => Promise.resolve({ data: rows, error: null }) })
+const fakeDb = (rows: unknown[]) => createClient('https://example.supabase.co', 'test', {
+  auth: { persistSession: false, autoRefreshToken: false },
+  global: { fetch: async () => Response.json(rows) },
+})
 const opts = (rows: unknown[]) => ({ supabaseUrl: '', serviceKey: '', db: fakeDb(rows) })
 
 Deno.test('prosty produkt z angielską nazwą dostaje makro z USDA, a polska nazwa zostaje', async () => {

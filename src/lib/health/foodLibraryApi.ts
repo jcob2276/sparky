@@ -1,15 +1,18 @@
 import { supabase } from '../supabase';
 import { foodTrustMeta } from './foodTrust';
 import type { FoodBase } from './foodTypes';
+import { rankFoodResult } from './foodSearch';
 
 export async function cacheFoodToLibrary(userId: string, food: FoodBase, defaultGrams: number): Promise<void> {
-  const { error } = await supabase.rpc('cache_food_to_library', {
-    p_user_id: userId, p_name: food.name, p_brand: food.brand, p_barcode: food.barcode,
-    p_calories: food.calories, p_protein: food.protein, p_carbs: food.carbs, p_fat: food.fat,
-    p_fiber: food.fiber, p_sugar: food.sugar, p_saturated_fat: food.saturated_fat ?? null,
-    p_salt: food.salt ?? null, p_nutrient_sources: foodTrustMeta(food).micronutrientSources,
-    p_default_grams: defaultGrams,
-  } as never);
+  const { error } = await supabase.rpc('ensure_food_library', {
+    p_user_id: userId, p_default_grams: defaultGrams,
+    p_food: {
+      name: food.name, brand: food.brand, barcode: food.barcode,
+      calories: food.calories, protein: food.protein, carbs: food.carbs, fat: food.fat,
+      fiber: food.fiber, sugar: food.sugar, saturated_fat: food.saturated_fat ?? null,
+      salt: food.salt ?? null, nutrient_sources: foodTrustMeta(food).micronutrientSources,
+    },
+  });
   if (error) throw error;
 }
 
@@ -45,30 +48,17 @@ export async function upsertCustomFood(userId: string, input: CustomFoodInput): 
     validation_reason: 'composer_manual',
   };
 
-  const { data: existing, error: findError } = await supabase
-    .from('food_library')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('name', name)
-    .is('brand', null)
-    .maybeSingle();
-  if (findError) throw findError;
-
-  const { data, error } = existing
-    ? await supabase
-      .from('food_library')
-      .update(payload)
-      .eq('id', existing.id)
-      .select('name,brand,barcode,calories,protein,carbs,fat,fiber,sugar,default_grams')
-      .single()
-    : await supabase
-      .from('food_library')
-      .insert(payload)
-      .select('name,brand,barcode,calories,protein,carbs,fat,fiber,sugar,default_grams')
-      .single();
+  const { data: libraryId, error: saveError } = await supabase.rpc('ensure_food_library', {
+    p_user_id: userId, p_food: payload, p_default_grams: payload.default_grams,
+  });
+  if (saveError) throw saveError;
+  const { data, error } = await supabase.from('food_library')
+    .select('name,brand,barcode,calories,protein,carbs,fat,fiber,sugar,saturated_fat,salt,nutrient_sources,default_grams')
+    .eq('user_id', userId).eq('id', libraryId).single();
   if (error) throw error;
 
   return {
+    library_id: libraryId,
     name: data.name,
     brand: data.brand,
     barcode: data.barcode,
@@ -78,7 +68,28 @@ export async function upsertCustomFood(userId: string, input: CustomFoodInput): 
     fat: data.fat,
     fiber: data.fiber,
     sugar: data.sugar,
+    saturated_fat: data.saturated_fat,
+    salt: data.salt,
+    nutrient_sources: data.nutrient_sources as FoodBase['nutrient_sources'],
     defaultGrams: data.default_grams,
     source: 'confirmed',
   };
+}
+
+export async function searchPrivateFoodLibrary(userId: string, query: string): Promise<FoodBase[]> {
+  const readPage = (from: number) => supabase.from('food_library')
+    .select('id,name,brand,barcode,calories,protein,carbs,fat,fiber,sugar,saturated_fat,salt,nutrient_sources,default_grams')
+    .eq('user_id', userId).neq('validation_status', 'quarantined').order('id').range(from, from + 499);
+  const rows: NonNullable<Awaited<ReturnType<typeof readPage>>['data']> = [];
+  for (let from = 0; ; from += 500) {
+    const { data, error } = await readPage(from);
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if (!data || data.length < 500) break;
+  }
+  return rows.map(({ id, default_grams, nutrient_sources, ...food }) => ({
+    ...food, library_id: id, defaultGrams: default_grams,
+    nutrient_sources: nutrient_sources as FoodBase['nutrient_sources'], source: 'confirmed' as const,
+  })).filter((food) => rankFoodResult(food, query) > 0)
+    .sort((a, b) => rankFoodResult(b, query) - rankFoodResult(a, query)).slice(0, 12);
 }

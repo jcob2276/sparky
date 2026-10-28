@@ -9,6 +9,7 @@ const SAVE_FAILED_MESSAGE = 'Zapis nie powiódł się';
 
 /** Macro fields shared by every `add_food_entry` payload (per 100 g). */
 export interface FoodEntryMacros {
+  library_id?: string;
   name: string;
   brand: string | null;
   barcode: string | null;
@@ -29,6 +30,7 @@ export function buildFoodEntryPayload(
   parseMeta: unknown
 ): Record<string, unknown> {
   return {
+    library_id: macros.library_id,
     name: macros.name,
     brand: macros.brand,
     barcode: macros.barcode,

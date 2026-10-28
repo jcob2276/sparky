@@ -1,5 +1,26 @@
 import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts'
-import { isPlausibleFoodCandidate, mergeUserFoodCandidates } from './reconcile.ts'
+import { isPlausibleFoodCandidate, mergeUserFoodCandidates, lookupViaLibraryRaw } from './reconcile.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+Deno.test('favorite candidates use joined catalog nutrients with both owners and catalog quarantine filter', async () => {
+  const owner = 'owner', urls: URL[] = []
+  const food = { name: 'Kawa', calories: 51, protein: 2.6, carbs: 4, fat: 2.7, saturated_fat: 1 }
+  const db = createClient('https://example.supabase.co', 'test', { auth: { persistSession: false, autoRefreshToken: false }, global: { fetch: input => {
+    const url = new URL(input instanceof Request ? input.url : String(input)); urls.push(url)
+    assertEquals(url.searchParams.get('user_id'), `eq.${owner}`)
+    if (url.pathname.endsWith('food_favorites')) {
+      assertEquals(url.searchParams.get('food_library.user_id'), `eq.${owner}`)
+      assertEquals(url.searchParams.get('food_library.validation_status'), 'neq.quarantined')
+      assertEquals(url.searchParams.get('food_library.name'), 'ilike.%Kawa%')
+      assertEquals(url.searchParams.get('select')?.startsWith('food_library!inner('), true)
+      return Promise.resolve(Response.json([{ name: 'stale', calories: 100, food_library: food }]))
+    }
+    return Promise.resolve(Response.json([]))
+  } } })
+  const result = await lookupViaLibraryRaw('Kawa', owner, db)
+  assertEquals(result?.[0].name, 'Kawa'); assertEquals(result?.[0].calories, 51)
+  assertEquals(result?.[0].saturatedFat, 1); assertEquals(urls.length, 2)
+})
 
 Deno.test('verified favorite wins over imported library candidate with the same name', () => {
   const merged = mergeUserFoodCandidates(

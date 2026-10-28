@@ -11,7 +11,7 @@ function fixture(catalog=true,confirmed=true) {
     const url=new URL(input instanceof Request?input.url:String(input)),table=url.pathname.split('/').at(-1),method=init?.method ?? 'GET';
     if(table === 'vanguard_preferences') {assertEquals(url.searchParams.get('user_id'),`eq.${owner}`);assertEquals(url.searchParams.get('key'),'eq.health_coach:meal_preferences');return Response.json([{value:JSON.stringify(preferences)}]);}
     if (table === 'food_reference_pl') return Response.json(catalog?[{id:'oats',name:'Płatki',calories:400,protein:10,carbs:60,fat:10,fiber:8}]:[]);
-    if (table === 'food_library') {assertEquals(url.searchParams.get('user_id'),`eq.${owner}`);return Response.json([]);}
+    if (table === 'food_library') {assertEquals(url.searchParams.get('user_id'),`eq.${owner}`);assertEquals(url.searchParams.get('validation_status'),'neq.quarantined');return Response.json([]);}
     assertEquals(table,'nutrition_targets');
     if (method === 'POST') {const body=JSON.parse(String(init?.body));assertEquals(body,{user_id:owner,date});exists=true;return Response.json([]);}
     assertEquals(url.searchParams.get('user_id'),`eq.${owner}`);assertEquals(url.searchParams.get('date'),`eq.${date}`);

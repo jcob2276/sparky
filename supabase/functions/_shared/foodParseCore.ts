@@ -94,7 +94,7 @@ export interface FinalizeFoodParseOpts {
   supabaseUrl: string
   serviceKey: string
   userId?: string
-  db?: unknown
+  db?: ReturnType<typeof import('./supabase.ts').createServiceClient>
   apiKey?: string
   parseContext?: UserParseContext
 }

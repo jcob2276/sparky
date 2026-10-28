@@ -1,46 +1,9 @@
 import { useCallback, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../../../../lib/supabase';
-import { getTodayWarsaw } from '../../../../lib/date';
-import type { Favorite, RecentEntry } from './foodEntryUtils';
+import { fetchFavorites, fetchRecent, fetchTodayTotals } from '../../../../lib/health/foodEntryListsApi';
 import { fetchNutritionTargetForDay } from '../../../../lib/health/nutritionTargetsApi';
 
 import { foodEntryListsKeys } from '../../../../lib/queryKeys';
-
-async function fetchFavorites(userId: string): Promise<Favorite[]> {
-  const { data, error } = await supabase
-    .from('food_favorites')
-    .select('id, barcode, name, brand, calories, protein, carbs, fat, fiber, sugar, saturated_fat, salt, nutrient_sources, use_count, default_grams')
-    .eq('user_id', userId)
-    .neq('validation_status', 'quarantined')
-    .order('use_count', { ascending: false })
-    .order('last_used', { ascending: false })
-    .limit(20);
-  if (error) console.error('[FoodEntryModal] favorites fetch failed', error);
-  return (data ?? []).map(row => ({ ...row, nutrient_sources: row.nutrient_sources as Favorite['nutrient_sources'] }));
-}
-
-async function fetchRecent(userId: string): Promise<RecentEntry[]> {
-  const { data, error } = await supabase
-    .from('daily_food_entries')
-    .select('id, name, brand, calories, protein, carbs, fat, amount, date, meal_group_id')
-    .eq('user_id', userId)
-    .order('logged_at', { ascending: false, nullsFirst: false })
-    .order('created_at', { ascending: false })
-    .limit(15);
-  if (error) console.error('[FoodEntryModal] recent fetch failed', error);
-  return data ?? [];
-}
-
-async function fetchTodayTotals(userId: string) {
-  const { data } = await supabase
-    .from('daily_nutrition')
-    .select('calories, protein')
-    .eq('user_id', userId)
-    .eq('date', getTodayWarsaw())
-    .maybeSingle();
-  return data ? { calories: data.calories ?? 0, protein: data.protein ?? 0 } : { calories: 0, protein: 0 };
-}
 
 async function fetchTargets(userId: string) {
   return (await fetchNutritionTargetForDay(userId)) ?? null;

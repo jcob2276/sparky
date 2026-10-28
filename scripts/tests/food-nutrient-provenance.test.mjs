@@ -17,18 +17,21 @@ try {
       meal_group_id uuid, parse_meta jsonb, request_id uuid
     );
     CREATE TABLE food_favorites (
-      id uuid DEFAULT gen_random_uuid(), user_id uuid, name text, brand text, barcode text,
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid, name text NOT NULL, brand text, barcode text,
       calories integer, protein numeric, carbs numeric, fat numeric, fiber numeric, sugar numeric,
       saturated_fat numeric, default_grams integer, is_pinned boolean,
       use_count integer DEFAULT 1, last_used timestamptz DEFAULT now()
     );
-    CREATE UNIQUE INDEX favorite_name ON food_favorites(user_id,name,coalesce(brand,''));
+    CREATE UNIQUE INDEX food_favorites_user_name_brand_key ON food_favorites(user_id,name,coalesce(brand,''));
     CREATE TABLE food_library (
+      id uuid PRIMARY KEY DEFAULT gen_random_uuid(), created_at timestamptz DEFAULT now(),
+      validation_status text DEFAULT 'unreviewed',validation_reason text,validated_at timestamptz,
       user_id uuid, name text, brand text, barcode text, calories numeric,
       protein numeric, carbs numeric, fat numeric, fiber numeric, sugar numeric,
       saturated_fat numeric, default_grams integer, source text
     );
-    CREATE UNIQUE INDEX library_name ON food_library(user_id,name,coalesce(brand,''));
+    CREATE UNIQUE INDEX food_library_user_name_brand_key ON food_library(user_id,name,coalesce(brand,''));
+    ALTER TABLE food_favorites ADD COLUMN library_id uuid REFERENCES food_library(id);
     CREATE FUNCTION public._recompute_daily_nutrition(uuid,date) RETURNS void LANGUAGE sql AS $$ SELECT $$;
     CREATE FUNCTION public.cache_food_to_library(uuid,text,text,text,numeric,numeric,numeric,numeric,numeric,numeric,integer,numeric)
       RETURNS void LANGUAGE sql AS $$ SELECT $$;
@@ -36,6 +39,11 @@ try {
   await db.exec(await readFile('supabase/migrations/20261027160425_food_nutrient_provenance.sql', 'utf8'));
   await db.exec(await readFile('supabase/migrations/20261021211000_update_food_entry_saturated_fat.sql', 'utf8'));
   await db.exec(await readFile('supabase/migrations/20261027222927_food_entry_portion_micronutrients.sql', 'utf8'));
+  await db.exec(await readFile('scripts/ops/food-favorites-library-cutover.sql', 'utf8'));
+  // Exercise the future thin schema: no accidental legacy reads/writes can pass.
+  await db.exec(`ALTER TABLE food_favorites DROP COLUMN name,DROP COLUMN brand,DROP COLUMN barcode,
+    DROP COLUMN calories,DROP COLUMN protein,DROP COLUMN carbs,DROP COLUMN fat,DROP COLUMN fiber,
+    DROP COLUMN sugar,DROP COLUMN saturated_fat,DROP COLUMN salt,DROP COLUMN nutrient_sources`);
   const payload = {
     name: 'Chleb', calories: 250, protein: 8, carbs: 48, fat: 2,
     fiber: 6, sugar: 3, saturated_fat: 0.5, salt: 1.2,
@@ -47,15 +55,17 @@ try {
   const entry = (await db.query('SELECT * FROM daily_food_entries')).rows[0];
   assert.equal(Number(entry.salt), 0.6, 'salt scales with the portion');
   assert.equal(Number(entry.saturated_fat), 0.3);
-  const favorite = (await db.query('SELECT * FROM food_favorites')).rows[0];
-  assert.equal(Number(favorite.salt), 1.2, 'favorites store salt per 100 g');
+  const favorite = (await db.query('SELECT l.* FROM food_favorites f JOIN food_library l ON l.id=f.library_id')).rows[0];
+  assert.equal(Number(favorite.salt), 1.2, 'catalog stores salt per 100 g');
   assert.deepEqual(favorite.nutrient_sources, { salt: 'data', fiber: 'estimate', sugar: 'unknown', saturated_fat: 'unknown' });
   await add();
   assert.equal((await db.query('SELECT count(*)::int as n FROM daily_food_entries')).rows[0].n, 1, 'retries are idempotent');
   await db.query('SELECT add_food_entry($1,$2,50,$3::jsonb)', [owner, '2026-10-27', JSON.stringify({ ...payload, fiber: 10, salt: null, request_id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', parse_meta: {} })]);
-  const reused = (await db.query('SELECT * FROM food_favorites')).rows[0];
-  assert.equal(reused.nutrient_sources.fiber, 'unknown', 'a replacement value without provenance must not inherit old certainty');
+  const reused = (await db.query('SELECT l.* FROM food_favorites f JOIN food_library l ON l.id=f.library_id')).rows[0];
+  assert.equal(reused.nutrient_sources.fiber, 'estimate', 'reuse never overwrites catalog values or provenance');
   assert.equal(reused.nutrient_sources.salt, 'data', 'a retained value keeps its actual origin');
+  assert.equal(Number(reused.fiber), 6);
+  assert.equal((await db.query('SELECT use_count FROM food_favorites')).rows[0].use_count, 2);
   await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)", ['22222222-2222-4222-8222-222222222222']);
   await assert.rejects(add, /forbidden/);
   await db.exec("SELECT set_config('request.jwt.claim.sub','',false)");
@@ -69,7 +79,19 @@ try {
   assert.equal(Number(library.salt), 1.2, 'model guesses cannot overwrite label salt');
   assert.equal(library.nutrient_sources.salt, 'data');
   await cache(1.1, { salt: 'data' });
-  assert.equal(Number((await db.query('SELECT salt FROM food_library')).rows[0].salt), 1.1, 'new label data refreshes the cache');
+  assert.equal(Number((await db.query('SELECT salt FROM food_library')).rows[0].salt), 1.2, 'cache never overwrites an existing catalog row, even with label data');
+  const ensure = async (userId, food) => (await db.query('SELECT ensure_food_library($1,$2::jsonb,100) AS id', [userId,JSON.stringify(food)])).rows[0].id;
+  assert.equal(await ensure(owner,{name:'  cHlEb  ',calories:999}),favorite.id, 'name fallback uses lower(trim(name))');
+  const barcodeId = await ensure(owner,{name:'Chleb',barcode:'123',calories:300});
+  assert.notEqual(barcodeId,favorite.id, 'a supplied barcode never falls back to another product name');
+  assert.equal(await ensure(owner,{name:'Inna nazwa',barcode:'123',calories:999}),barcodeId);
+  const secondOwner='22222222-2222-4222-8222-222222222222';
+  assert.notEqual(await ensure(secondOwner,{name:'Chleb',barcode:'123',calories:400}),barcodeId);
+  await db.query('UPDATE food_favorites SET is_pinned=true');
+  await db.query('SELECT add_food_entry($1,$2,75,$3::jsonb)',[owner,'2026-10-28',JSON.stringify({...payload,name:'Inna nazwa',library_id:favorite.id,request_id:'cccccccc-cccc-4ccc-8ccc-cccccccccccc'})]);
+  const usage=(await db.query('SELECT * FROM food_favorites WHERE library_id=$1',[favorite.id])).rows[0];
+  assert.equal(usage.use_count,3);assert.equal(usage.default_grams,75);assert.equal(usage.is_pinned,true);
+  await assert.rejects(()=>db.query('SELECT add_food_entry($1,$2,75,$3::jsonb)',[secondOwner,'2026-10-28',JSON.stringify({...payload,library_id:favorite.id,request_id:'dddddddd-dddd-4ddd-8ddd-dddddddddddd'})]),/forbidden library/);
   await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)", [owner]);
   await db.query('SELECT update_food_entry($1,$2,$3::jsonb)', [owner, entry.id, JSON.stringify({ amount: '100 g', calories: 250, protein: 8, carbs: 48, fat: 2 })]);
   const resized = (await db.query('SELECT * FROM daily_food_entries WHERE id=$1', [entry.id])).rows[0];
@@ -109,7 +131,7 @@ try {
   await db.exec(timeoutMigration);
   const cron = (await db.query('SELECT command FROM cron.job WHERE jobid=1')).rows[0].command;
   assert.equal(Object.values((await db.query(cron)).rows[0])[0], 120000, 'scheduled audit receives its full timeout, also after migration retry');
-  console.log('Food nutrient SQL: portion scaling, provenance, cache precedence, retries, owner guard PASS');
+  console.log('Food SQL: thin favorites, immutable catalog, identity, usage, provenance, retries, owner guard, portion scaling PASS');
 } finally {
   await db.close();
 }

@@ -20,7 +20,7 @@ export interface GenerateMealPlanInput {
 async function fetchCatalogProducts(supabase:SupabaseClient, userId: string): Promise<MealPlanProduct[]> {
   const [refRes, libRes] = await Promise.all([
     supabase.from('food_reference_pl').select('id, name, calories, protein, carbs, fat, fiber').limit(150),
-    supabase.from('food_library').select('id, name, calories, protein, carbs, fat, fiber, source, validation_status').eq('user_id', userId).limit(150),
+    supabase.from('food_library').select('id, name, calories, protein, carbs, fat, fiber, source, validation_status').eq('user_id', userId).neq('validation_status', 'quarantined').limit(150),
   ]);
 
   for (const result of [refRes,libRes]) if (result.error) throw result.error;

@@ -134,11 +134,11 @@ if (!url || !key) {
 const supabase = createClient(url, key)
 
 async function fetchLibrary(userId: string) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('food_library')
     .select('name, calories, protein, carbs, fat, fiber, sugar')
-    .eq('user_id', userId)
-  return data ?? []
+    .eq('user_id', userId).neq('validation_status', 'quarantined')
+  if (error) throw error; return data ?? []
 }
 
 async function main() {

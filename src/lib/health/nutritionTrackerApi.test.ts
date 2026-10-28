@@ -93,14 +93,17 @@ async function prepareDiaryDb(db: PGlite, owner: string, other: string) {
         saturated_fat numeric, default_grams integer, is_pinned boolean,
         use_count integer DEFAULT 1, last_used timestamptz DEFAULT now()
       );
-      CREATE UNIQUE INDEX favorite_name ON food_favorites(user_id,name,coalesce(brand,''));
+      CREATE UNIQUE INDEX food_favorites_user_name_brand_key ON food_favorites(user_id,name,coalesce(brand,''));
       CREATE TABLE food_library (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),created_at timestamptz DEFAULT now(),
+        validation_status text DEFAULT 'unreviewed',validation_reason text,validated_at timestamptz,
         user_id uuid, name text, brand text, barcode text, calories numeric, protein numeric,
         carbs numeric, fat numeric, fiber numeric, sugar numeric, saturated_fat numeric,
         default_grams integer, source text
       );
       CREATE TABLE food_reference_pl(id integer PRIMARY KEY);
-      CREATE UNIQUE INDEX library_name ON food_library(user_id,name,coalesce(brand,''));
+      CREATE UNIQUE INDEX food_library_user_name_brand_key ON food_library(user_id,name,coalesce(brand,''));
+      ALTER TABLE food_favorites ADD COLUMN library_id uuid REFERENCES food_library(id);
       CREATE FUNCTION public.cache_food_to_library(uuid,text,text,text,numeric,numeric,numeric,
         numeric,numeric,numeric,integer,numeric) RETURNS void LANGUAGE sql AS $$ SELECT $$;
     `);
@@ -116,6 +119,10 @@ async function prepareDiaryDb(db: PGlite, owner: string, other: string) {
       '20261027160425_food_nutrient_provenance.sql',
       '20261027222927_food_entry_portion_micronutrients.sql',
     ]) await db.exec(await readFile(`supabase/migrations/${migration}`, 'utf8'));
+    await db.exec(await readFile('scripts/ops/food-favorites-library-cutover.sql', 'utf8'));
+    await db.exec(`ALTER TABLE food_favorites DROP COLUMN name,DROP COLUMN brand,DROP COLUMN barcode,
+      DROP COLUMN calories,DROP COLUMN protein,DROP COLUMN carbs,DROP COLUMN fat,DROP COLUMN fiber,
+      DROP COLUMN sugar,DROP COLUMN saturated_fat,DROP COLUMN salt,DROP COLUMN nutrient_sources`);
 }
 
 describe('nutrition diary aggregate regression', () => {

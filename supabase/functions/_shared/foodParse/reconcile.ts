@@ -10,11 +10,13 @@ import type { ParsedFoodItem, UserParseContext, FoodCorrection } from "../foodPa
 import { normalizePl, scaleParsedItem } from "./matching.ts";
 import { isUnmatchedForMacros, normalizeRawItems, PARSER_VERSION } from "./normalize.ts";
 import { buildSystemPrompt } from "./prompts.ts";
+import type { createServiceClient } from '../supabase.ts';
 
 const MIN_RECONCILE_SCORE = 0.52;
 
 interface Per100gFood { name: string; calories: number | null; protein: number | null; carbs: number | null; fat: number | null; fiber?: number | null; sugar?: number | null; saturatedFat?: number | null; salt?: number | null; source?: string; nutrient_sources?: MicronutrientSources; }
-export type ReconcileOpts = { supabaseUrl: string; serviceKey: string; userId?: string; db?: unknown; apiKey?: string; originalText?: string };
+type Db = ReturnType<typeof createServiceClient>;
+export type ReconcileOpts = { supabaseUrl: string; serviceKey: string; userId?: string; db?: Db; apiKey?: string; originalText?: string };
 
 export function isPlausibleFoodCandidate(query: string, candidate: Per100gFood): boolean {
   const calories = Number(candidate.calories ?? 0);
@@ -150,13 +152,14 @@ export function mergeUserFoodCandidates(
   ];
 }
 
-async function lookupViaLibraryRaw(name: string, userId: string, db: any): Promise<Per100gFood[] | null> {
+export async function lookupViaLibraryRaw(name: string, userId: string, db: Db): Promise<Per100gFood[] | null> {
   const [favoritesResult, libraryResult] = await Promise.all([
     db.from('food_favorites')
-      .select('name, calories, protein, carbs, fat, fiber, sugar, saturated_fat, salt, nutrient_sources')
+      .select('food_library!inner(name, calories, protein, carbs, fat, fiber, sugar, saturated_fat, salt, nutrient_sources)')
       .eq('user_id', userId)
-      .neq('validation_status', 'quarantined')
-      .ilike('name', `%${name}%`)
+      .eq('food_library.user_id', userId)
+      .neq('food_library.validation_status', 'quarantined')
+      .ilike('food_library.name', `%${name}%`)
       .order('use_count', { ascending: false })
       .limit(5),
     db.from('food_library')
@@ -169,7 +172,7 @@ async function lookupViaLibraryRaw(name: string, userId: string, db: any): Promi
 
   const favorites = favoritesResult.error
     ? []
-    : (favoritesResult.data ?? []) as Per100gFood[];
+    : ((favoritesResult.data ?? []) as unknown as { food_library: Per100gFood }[]).map(row => row.food_library);
   const library = libraryResult.error
     ? []
     : (libraryResult.data ?? []) as Per100gFood[];

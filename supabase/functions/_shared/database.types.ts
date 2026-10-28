@@ -1903,7 +1903,7 @@ export type Database = {
           is_pinned: boolean
           last_used: string
           library_id: string | null
-          name: string
+          name: string | null
           nutrient_sources: Json
           protein: number | null
           salt: number | null
@@ -1928,7 +1928,7 @@ export type Database = {
           is_pinned?: boolean
           last_used?: string
           library_id?: string | null
-          name: string
+          name?: string | null
           nutrient_sources?: Json
           protein?: number | null
           salt?: number | null
@@ -1953,7 +1953,7 @@ export type Database = {
           is_pinned?: boolean
           last_used?: string
           library_id?: string | null
-          name?: string
+          name?: string | null
           nutrient_sources?: Json
           protein?: number | null
           salt?: number | null
@@ -7912,6 +7912,10 @@ export type Database = {
       dispatch_health_coach_jobs: { Args: { p_job?: string }; Returns: number }
       enqueue_health_coach_job: {
         Args: { p_owner: string; p_payload: Json; p_request_key: string }
+        Returns: string
+      }
+      ensure_food_library: {
+        Args: { p_default_grams: number; p_food: Json; p_user_id: string }
         Returns: string
       }
       fail_health_coach_job: {

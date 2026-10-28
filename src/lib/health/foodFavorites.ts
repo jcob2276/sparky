@@ -3,6 +3,7 @@ import { supabase } from '../supabase'
 import { scheduleNutritionRefresh } from './nutritionSideEffects'
 
 export interface FoodFavoriteRow {
+  library_id?: string;
   id: string
   name: string
   brand: string | null
@@ -77,6 +78,7 @@ export async function quickAddFavorite(
     p_date: date,
     p_grams: fav.default_grams || 100,
     p_entry: {
+      library_id: fav.library_id,
       name: fav.name,
       brand: fav.brand,
       barcode: fav.barcode,

@@ -63,7 +63,7 @@ export const SMOKE_TARGETS = [
   { name: "vanguard-nightly", post: "safe", body: { action: "compute-correlations" }, sideEffects: "Unified nightly pipeline" },
   { name: "analyze-training-load", post: "skip", sideEffects: "Calls DeepSeek — manual trigger only" },
   { name: "vanguard-nutrition-coach", post: "skip", sideEffects: "Calls DeepSeek + writes nutrition target — OPTIONS only" },
-  { name: "vanguard-librarian", post: "skip", sideEffects: "Calls DeepSeek + writes food_library entries — OPTIONS only" },
+  { name: "vanguard-librarian", post: "skip", sideEffects: "Calls DeepSeek + insert-only food_library catalog via ensure_food_library — OPTIONS only" },
   { name: "vanguard-push-reminder", post: "skip", sideEffects: "Sends web push notifications for reminders" },
   { name: "vanguard-capture", post: "skip", sideEffects: "Unified capture endpoint (text/link/voice)" },
   { name: "vanguard-keep-triage", post: "skip", sideEffects: "AI triage for unread links (calls DeepSeek)" },

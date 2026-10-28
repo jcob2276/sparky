@@ -1,6 +1,7 @@
 import { NETWORK_TIMEOUT_MS } from '../constants';
-import { invokeEdge, supabase } from '../supabase';
+import { invokeEdge } from '../supabase';
 import type { FoodBase } from './foodTypes';
+export { searchPrivateFoodLibrary } from './foodLibraryApi';
 
 export interface ExternalFoodSearchResult {
   results: FoodBase[];
@@ -17,29 +18,6 @@ export function rankFoodResult(food: Pick<FoodBase, 'name' | 'brand'> & { useCou
   const brand = normalize(food.brand ?? '');
   const match = name === needle ? 100 : name.startsWith(needle) ? 70 : name.includes(needle) ? 45 : brand.includes(needle) ? 25 : 0;
   return match + Math.min(20, food.useCount ?? 0);
-}
-
-export async function searchPrivateFoodLibrary(userId: string, query: string): Promise<FoodBase[]> {
-  const readPage = (from: number) => supabase.from('food_library')
-    .select('name,brand,barcode,calories,protein,carbs,fat,fiber,sugar,saturated_fat,salt,nutrient_sources,default_grams')
-    .eq('user_id', userId).neq('validation_status', 'quarantined').order('id').range(from, from + 499);
-  const rows: NonNullable<Awaited<ReturnType<typeof readPage>>['data']> = [];
-  for (let from = 0; ; from += 500) {
-    const { data, error } = await readPage(from);
-    if (error) throw error;
-    rows.push(...(data ?? []));
-    if (!data || data.length < 500) break;
-  }
-  return rows
-    .map((row) => ({
-      name: row.name, brand: row.brand, barcode: row.barcode,
-      calories: row.calories, protein: row.protein, carbs: row.carbs, fat: row.fat,
-      fiber: row.fiber, sugar: row.sugar, saturated_fat: row.saturated_fat, salt: row.salt, nutrient_sources: row.nutrient_sources as FoodBase['nutrient_sources'], defaultGrams: row.default_grams,
-      source: 'confirmed' as const,
-    }))
-    .filter((food) => rankFoodResult(food, query) > 0)
-    .sort((a, b) => rankFoodResult(b, query) - rankFoodResult(a, query))
-    .slice(0, 12);
 }
 
 export async function searchExternalFoods(query: string): Promise<ExternalFoodSearchResult> {

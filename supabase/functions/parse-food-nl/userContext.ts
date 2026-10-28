@@ -15,7 +15,7 @@ export async function loadUserContext(
     db.from('nutrition_profile').select('height_cm, sex, birth_date').eq('user_id', userId).maybeSingle(),
     targetForDay(db, userId, today, 'target_kcal, protein_floor_g'),
     db.from('body_metrics').select('weight,date').eq('user_id', userId).gte('date',shiftDateStr(today,-30)).lte('date',today).order('date', { ascending: false }).limit(1).maybeSingle(),
-    db.from('food_favorites').select('name, default_grams, use_count').eq('user_id', userId).order('use_count', { ascending: false }).limit(15),
+    db.from('food_favorites').select('default_grams, use_count, food_library!inner(name)').eq('user_id', userId).eq('food_library.user_id', userId).neq('food_library.validation_status', 'quarantined').order('use_count', { ascending: false }).limit(15),
     db.from('food_corrections').select('query_name, corrected_name, corrected_grams').eq('user_id', userId).order('updated_at', { ascending: false }).limit(10),
     db.from('daily_food_entries').select('name, logged_at').eq('user_id', userId).gte('date', cutoff).lte('date',today).order('logged_at', { ascending: false }).limit(400),
     db.from('user_portions').select('name, grams').eq('user_id', userId),
@@ -27,7 +27,7 @@ export async function loadUserContext(
   const profile = profileRes.data as { height_cm?: number; sex?: string; birth_date?: string } | null
   const target = targetRes.data as { target_kcal?: number; protein_floor_g?: number } | null
   const weight = weightRes.data as { weight?: number } | null
-  const favorites = (favRes.data ?? []) as { name: string; default_grams: number; use_count: number }[]
+  const favorites = (favRes.error ? [] : (favRes.data ?? [])) as unknown as { food_library: { name: string }; default_grams: number; use_count: number }[]
   const corrections = corrRes.error ? [] : ((corrRes.data ?? []) as { query_name: string; corrected_name: string | null; corrected_grams: number }[])
   const portions = portionsRes.error ? [] : ((portionsRes.data ?? []) as { name: string; grams: number }[])
 
@@ -45,7 +45,7 @@ export async function loadUserContext(
   ].filter(Boolean).join(', ')
 
   const favoritesBlock = favorites.length
-    ? favorites.map((f) => `- ${f.name}: zwykle ${f.default_grams}g (×${f.use_count})`).join('\n')
+    ? favorites.map((f) => `- ${f.food_library.name}: zwykle ${f.default_grams}g (×${f.use_count})`).join('\n')
     : '(brak historii — użyj standardowych porcji)'
 
   const correctionsBlock = corrections.length

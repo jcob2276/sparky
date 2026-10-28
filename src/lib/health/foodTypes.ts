@@ -2,6 +2,7 @@ import type { FoodSource } from './foodTrust';
 import type { MicronutrientSources } from '@vanguard/domain';
 
 export interface FoodBase {
+  library_id?: string;
   barcode: string | null;
   name: string;
   brand: string | null;
