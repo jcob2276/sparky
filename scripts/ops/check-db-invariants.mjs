@@ -119,6 +119,45 @@ const CHECKS = [
             WHEN k.name ILIKE '%godzin%' THEN coalesce(s.hours, 0)
             ELSE e.value END`,
   },
+  {
+    // Jedno źródło prawdy: nawyk „Lenie” (habit_logs). behavior_log.walenie to kopia pochodna utrzymywana
+    // triggerem habit_logs_sync_lenie; rozjazd w którąkolwiek stronę znaczy, że ktoś zapisuje obok triggera.
+    name: "behavior_log.walenie must mirror habit_logs 'Lenie' (completed) in both directions",
+    sql: `SELECT 'habit without copy ' || l.date AS issue FROM public.habit_logs l JOIN public.habits h ON h.id = l.habit_id AND h.name = 'Lenie'
+          WHERE l.completed IS TRUE AND NOT EXISTS (SELECT 1 FROM public.behavior_log b WHERE b.user_id = l.user_id AND b.date = l.date AND b.behavior_key = 'walenie')
+          UNION ALL
+          SELECT 'copy without habit ' || b.date FROM public.behavior_log b WHERE b.behavior_key = 'walenie'
+          AND NOT EXISTS (SELECT 1 FROM public.habit_logs l JOIN public.habits h ON h.id = l.habit_id AND h.name = 'Lenie'
+                          WHERE l.user_id = b.user_id AND l.date = b.date AND l.completed IS TRUE)`,
+  },
+  {
+    // daily_nutrition jest agregatem daily_food_entries (trigger); suma wpisów dnia musi się zgadzać.
+    name: "daily_nutrition calories/protein must equal the sums of daily_food_entries",
+    sql: `SELECT n.date FROM public.daily_nutrition n
+          JOIN (SELECT user_id, date, sum(coalesce(calories, 0)) AS kcal, sum(coalesce(protein, 0)) AS protein
+                FROM public.daily_food_entries GROUP BY 1, 2) e ON e.user_id = n.user_id AND e.date = n.date
+          WHERE abs(coalesce(n.calories, 0) - e.kcal) > 1 OR abs(coalesce(n.protein, 0) - e.protein) > 1`,
+  },
+  {
+    // daily_wins trzyma sloty zadań także jako wiersze daily_win_tasks (okres przejściowy do usunięcia 50 kolumn).
+    name: "daily_wins slots 1-5 must mirror daily_win_tasks (title, done)",
+    sql: `SELECT w.date || ' slot ' || t.slot FROM public.daily_wins w JOIN public.daily_win_tasks t ON t.day_win_id = w.id
+          WHERE coalesce(CASE t.slot WHEN 1 THEN w.task_1 WHEN 2 THEN w.task_2 WHEN 3 THEN w.task_3 WHEN 4 THEN w.task_4 WHEN 5 THEN w.task_5 END, '') IS DISTINCT FROM coalesce(t.title, '')
+             OR coalesce(CASE t.slot WHEN 1 THEN w.done_1 WHEN 2 THEN w.done_2 WHEN 3 THEN w.done_3 WHEN 4 THEN w.done_4 WHEN 5 THEN w.done_5 END, false) IS DISTINCT FROM coalesce(t.done, false)`,
+  },
+  {
+    // oura_enhanced dubluje wynik snu i gotowość z oura_daily_summary (canonical); godziny snu różnią się z definicji
+    // (suma epizodów kontra najdłuższy), więc ich tu nie porównujemy.
+    name: "oura_enhanced sleep_score/readiness_score must equal oura_daily_summary",
+    sql: `SELECT s.date FROM public.oura_daily_summary s JOIN public.oura_enhanced e ON e.user_id = s.user_id AND e.date = s.date
+          WHERE s.sleep_score IS DISTINCT FROM e.sleep_score OR s.readiness_score IS DISTINCT FROM e.readiness_score`,
+  },
+  {
+    // Powiązania grafu wskazują encje po nazwie (źródło). Cel bywa tekstem (np. wpis „Kondensacja”), więc nie jest sprawdzany.
+    name: "vanguard_entity_links.source_entity must resolve to entities.canonical_name",
+    sql: `SELECT DISTINCT l.source_entity FROM public.vanguard_entity_links l
+          WHERE NOT EXISTS (SELECT 1 FROM public.entities e WHERE lower(e.canonical_name) = lower(l.source_entity))`,
+  },
 ];
 
 const npx = (args) => execFileSync("npx", ["supabase", ...args], { encoding: "utf8", shell: process.platform === "win32", stdio: ["ignore", "pipe", "pipe"] });
