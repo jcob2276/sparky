@@ -1,4 +1,6 @@
-import { HEALTH_THRESHOLDS, getSprintInfoForDate } from "@vanguard/domain";
+import { HEALTH_THRESHOLDS, getSprintInfoForDate, getWarsawDateString, warsawDayBoundsISO } from "@vanguard/domain";
+import { targetForDay } from "../_shared/nutritionTargetForDay.ts";
+import { averageOver, completeNutritionDays } from "./nutritionDays.ts";
 import { addDaysStr, monthThemeSourceForWeek, mean, isVoiceEntry, avgBedtimeLabel } from "./helpers.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { Database } from "../_shared/database.types.ts";
@@ -11,6 +13,9 @@ type Row = any;
 
 export async function gatherWeekFacts(db: SupabaseClient<Database>, userId: string, weekStart: string) {
   const weekEnd = addDaysStr(weekStart, 6);
+  // Zakres tygodnia w strefie Warszawy (połowa otwarta w praktyce: od 00:00 pierwszego do 23:59:59 ostatniego dnia).
+  const { fromISO: weekFrom } = warsawDayBoundsISO(weekStart);
+  const { toISO: weekTo } = warsawDayBoundsISO(weekEnd);
 
   const [
     winsRes, ouraRes, nutrRes, targetRes, runsRes, habitLogsRes,
@@ -21,21 +26,21 @@ export async function gatherWeekFacts(db: SupabaseClient<Database>, userId: stri
     db.from("daily_wins").select("date, result, task_1, task_2, task_3, task_4, task_5, category_1, category_2, category_3, category_4, category_5, done_1, done_2, done_3, done_4, done_5, day_note, task_1_project_id, task_2_project_id, task_3_project_id, task_4_project_id, task_5_project_id, task_1_target_value, task_2_target_value, task_3_target_value, task_4_target_value, task_5_target_value").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd).order("date"),
     db.from("oura_daily_summary").select("date, total_sleep_hours, bedtime_timestamp, bedtime_end_timestamp, readiness_score, sleep_score, deep_sleep_hours, rem_sleep_hours, latency_minutes").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd),
     db.from("daily_nutrition").select("date, calories, protein").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd),
-    db.from("nutrition_targets").select("target_kcal").eq("user_id", userId).order("date", { ascending: false }).limit(1).maybeSingle(),
-    db.from("strava_activities_clean").select("start_date, name, distance, sport_type").eq("user_id", userId).eq("is_oura", false).gte("start_date", weekStart).lte("start_date", weekEnd + "T23:59:59"),
+    targetForDay(db, userId, weekEnd, "target_kcal"),
+    db.from("strava_activities_clean").select("start_date, name, distance, sport_type").eq("user_id", userId).eq("is_oura", false).gte("start_date", weekFrom).lte("start_date", weekTo),
     db.from("habit_logs").select("date, logged_at, final_stimulus, context_note").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd),
     db.from("todo_items").select("title, priority, created_at").eq("user_id", userId).eq("status", "open").eq("priority", "high").order("created_at", { ascending: true }),
     db.from("vanguard_links").select("status").eq("user_id", userId).eq("status", "unread"),
-    db.from("vanguard_stream").select("source, content, timestamp, importance_score, classification").eq("user_id", userId).gte("timestamp", weekStart + "T00:00:00").lte("timestamp", weekEnd + "T23:59:59").or("source.eq.identity_vault,source.eq.telegram,source.eq.eval_interview").order("timestamp"),
+    db.from("vanguard_stream").select("source, content, timestamp, importance_score, classification").eq("user_id", userId).gte("timestamp", weekFrom).lte("timestamp", weekTo).or("source.eq.identity_vault,source.eq.telegram,source.eq.eval_interview").order("timestamp"),
     db.from("todo_sections").select("id, name, project_id").eq("user_id", userId).eq("is_archived", false),
-    db.from("todo_items").select("title, status, section_id, updated_at").eq("user_id", userId).in("status", ["done", "dropped"]).gte("updated_at", weekStart + "T00:00:00").lte("updated_at", weekEnd + "T23:59:59"),
+    db.from("todo_items").select("title, status, section_id, updated_at").eq("user_id", userId).in("status", ["done", "dropped"]).gte("updated_at", weekFrom).lte("updated_at", weekTo),
     db.from("projects").select("id, name, goal, status").eq("user_id", userId).eq("status", "active"),
     db.from("goal_kpis").select("id, name, unit, target, project_id, higher_is_better").eq("user_id", userId),
     db.from("kpi_entries").select("kpi_id, value").eq("user_id", userId).eq("week_start", weekStart),
     db.from("daily_reconciliations").select("date, day_score, mode, morning_action, midday_status, midday_blocker, planning_summary, user_response").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd).order("date"),
     db.from("vanguard_behavioral_patterns").select("pattern_type, title, evidence_text, status, confidence, occurrence_count").eq("user_id", userId).neq("status", "archived").neq("status", "user_rejected").order("confidence", { ascending: false }),
     db.from("vanguard_curiosity_queue").select("hypothesis, provocation, category, confidence_score").eq("user_id", userId).eq("status", "pending").order("confidence_score", { ascending: false }).limit(5),
-    db.from("claims").select("fact_text, epistemic_status, status, learned_at").eq("user_id", userId).gte("learned_at", weekStart + "T00:00:00").lte("learned_at", weekEnd + "T23:59:59"),
+    db.from("claims").select("fact_text, epistemic_status, status, learned_at").eq("user_id", userId).gte("learned_at", weekFrom).lte("learned_at", weekTo),
     db.from("phone_usage_daily").select("date, total_minutes, late_night_minutes, social_minutes, messaging_minutes, entertainment_minutes, browser_minutes, unlocks").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd).order("date"),
     db.from("life_goals").select("goal_cialo, goal_duch, goal_konto, date_cialo, date_duch, date_konto, anti_goal_cialo, anti_goal_duch, anti_goal_konto, bhag_pillar").eq("user_id", userId).maybeSingle(),
   ]);
@@ -156,9 +161,11 @@ export async function gatherWeekFacts(db: SupabaseClient<Database>, userId: stri
     return `${o.date}: ${parts.join(" · ")}`;
   });
 
-  const avgKcal = mean((nutrRes.data ?? []).map((n: any) => n.calories).filter(Boolean));
-  const avgProtein = mean((nutrRes.data ?? []).map((n: any) => n.protein).filter(Boolean));
-  const targetKcal = targetRes.data?.target_kcal ?? null;
+  // Średnie jedzenia tylko z pełnych, minionych dni (jedna definicja: MIN_FULL_DAY_KCAL, bez dzisiaj).
+  const fullDays = completeNutritionDays(nutrRes.data as Array<{ date: string; calories: number | null; protein: number | null }> | null, getWarsawDateString());
+  const avgKcal = averageOver(fullDays.map((n) => n.calories));
+  const avgProtein = averageOver(fullDays.map((n) => n.protein));
+  const targetKcal = (targetRes.data as { target_kcal?: number | null } | null)?.target_kcal ?? null;
 
   const runs = (runsRes.data ?? []) as Row[];
   const totalKm = runs.reduce((s, r) => s + (r.distance || 0), 0) / 1000;
@@ -223,7 +230,7 @@ export async function gatherWeekFacts(db: SupabaseClient<Database>, userId: stri
     taskRecurrence,
     dayNotes,
     daysWithoutNote,
-    avgKcal, avgProtein, targetKcal, nutritionDays: (nutrRes.data ?? []).length,
+    avgKcal, avgProtein, targetKcal, nutritionDays: fullDays.length,
     totalKm, runCount: runs.length,
     runs: runs.map((r) => ({ name: r.name, km: (r.distance / 1000).toFixed(1), type: r.sport_type })),
     habitLines, staleHighLines,

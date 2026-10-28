@@ -14,6 +14,6 @@ Deno.test('food planning uses current dated targets, the real weight column, con
   const {ctx}=await loadUserContext(owner,client,'morning',new Date('2026-12-15T12:00:00Z'));
   assertStringIncludes(ctx.profileLine,'80 kg');assertStringIncludes(ctx.historyBlock,'Jajko');
   assertEquals(ctx.mealPreferences?.allergies,['mleko']);
-  assertEquals(urls.find(url=>url.pathname.endsWith('nutrition_targets'))?.searchParams.get('date'),'eq.2026-12-15');
+  assertEquals(urls.find(url=>url.pathname.endsWith('nutrition_targets'))?.searchParams.get('date'),'lte.2026-12-15');
   assertEquals(urls.find(url=>url.pathname.endsWith('body_metrics'))?.searchParams.get('select'),'weight,date');
 });

@@ -3,7 +3,7 @@
  * @purpose Single source of truth for user's personal goal parameters.
  *
  * Reads from:
- *   - nutrition_targets  (most recent row) → protein_floor_g, target_kcal
+ *   - nutrition_targets  (wiersz obowiązujący dziś: date <= dziś) → protein_floor_g, target_kcal
  *   - nutrition_profile                    → protein_g_per_kg, sleep_target_hours, weight fallback
  *   - body_metrics                         → latest weight (for protein fallback calc)
  *
@@ -18,6 +18,7 @@
 
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { derivePersonalTargets, getWarsawDateString } from '@vanguard/domain';
+import { targetForDay } from './nutritionTargetForDay.ts';
 
 export interface PersonalTargets {
   /** Minimum daily protein (g). From nutrition_targets.protein_floor_g (latest).
@@ -35,15 +36,7 @@ export async function resolvePersonalTargets(
   userId: string,
 ): Promise<PersonalTargets> {
   const [targetsRes, profileRes, bodyRes] = await Promise.all([
-    supabase
-      .from('nutrition_targets')
-      .select('protein_floor_g, target_kcal')
-      .eq('user_id', userId)
-      // trener zapisuje cel na jutro z wyprzedzeniem: bierzemy cel obowiązujący dziś, nie najnowszy wiersz
-      .lte('date', getWarsawDateString())
-      .order('date', { ascending: false })
-      .limit(1)
-      .maybeSingle(),
+    targetForDay(supabase, userId, getWarsawDateString(), 'protein_floor_g, target_kcal'),
     supabase
       .from('nutrition_profile')
       .select('protein_g_per_kg, sleep_target_hours')

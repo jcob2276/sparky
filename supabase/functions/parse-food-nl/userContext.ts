@@ -2,6 +2,7 @@ import {createServiceClient} from '../_shared/supabase.ts';
 import type {UserParseContext,FoodCorrection} from '../_shared/foodParseCore.ts';
 import {formatWarsawDate,shiftDateStr,warsawTimeOfDay} from '@vanguard/domain';
 import {fetchMealPreferences} from '../_shared/mealPreferences.ts';
+import {targetForDay} from '../_shared/nutritionTargetForDay.ts';
 export async function loadUserContext(
   userId: string,
   db: ReturnType<typeof createServiceClient>,
@@ -12,7 +13,7 @@ export async function loadUserContext(
 
   const [profileRes, targetRes, weightRes, favRes, corrRes, historyRes, portionsRes, memoriesRes,mealPreferences] = await Promise.all([
     db.from('nutrition_profile').select('height_cm, sex, birth_date').eq('user_id', userId).maybeSingle(),
-    db.from('nutrition_targets').select('target_kcal, protein_floor_g').eq('user_id', userId).eq('date',today).maybeSingle(),
+    targetForDay(db, userId, today, 'target_kcal, protein_floor_g'),
     db.from('body_metrics').select('weight,date').eq('user_id', userId).gte('date',shiftDateStr(today,-30)).lte('date',today).order('date', { ascending: false }).limit(1).maybeSingle(),
     db.from('food_favorites').select('name, default_grams, use_count').eq('user_id', userId).order('use_count', { ascending: false }).limit(15),
     db.from('food_corrections').select('query_name, corrected_name, corrected_grams').eq('user_id', userId).order('updated_at', { ascending: false }).limit(10),
