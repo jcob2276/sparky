@@ -203,16 +203,16 @@ async function resolveFromSources(item: ParsedFoodItem, opts: ReconcileOpts): Pr
       const ref = lookupReferencePl(item.name);
       return ref ? { match: ref, source: 'database', macroSource: 'reference_pl', score: scoreFoodNameMatch(item.name, ref.name) } : null;
     },
-    // 3. Generic staples — tylko proste produkty.
-    async () => {
-      const local = isComposedDish ? null : lookupGenericFood(item.name);
-      return local ? { match: local, source: 'database', macroSource: 'generic', score: scoreFoodNameMatch(item.name, local.name) } : null;
-    },
-    // 4. USDA po angielskiej nazwie z parsera — proste produkty, nie potrawy złożone.
+    // 3. USDA po angielskiej nazwie z parsera — proste produkty, nie potrawy złożone.
     async () => {
       if (isComposedDish || !nameEn || !opts.db) return null;
       const usda = await lookupUsda(nameEn, opts.db);
       return usda ? { match: usda.match, source: 'database', macroSource: 'usda', score: usda.score } : null;
+    },
+    // 4. Generic staples — tylko proste produkty (gdy USDA nie ma pewnego dopasowania).
+    async () => {
+      const local = isComposedDish ? null : lookupGenericFood(item.name);
+      return local ? { match: local, source: 'database', macroSource: 'generic', score: scoreFoodNameMatch(item.name, local.name) } : null;
     },
     // 5. Open Food Facts — proste produkty.
     async () => {

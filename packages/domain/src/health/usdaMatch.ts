@@ -26,6 +26,9 @@ const STATE_WORDS = new Set([
   'dry', 'dried', 'canned', 'frozen', 'smoked', 'pickled', 'toasted', 'microwaved', 'sauteed', 'scrambled', 'poached',
 ]);
 
+/** Odmiany „odchudzone”/zamienniki: wybieramy je tylko, gdy zapytanie o nie prosi (mozzarella ≠ mozzarella nonfat). */
+const LEAN_OR_SUBSTITUTE = new Set(['nonfat', 'lowfat', 'low', 'reduced', 'skim', 'light', 'lite', 'imitation', 'substitute', 'diet', 'dietetic', 'fat-free', 'sugar-free'])
+
 const singular = (word: string) => (word.length > 3 && word.endsWith('s') && !word.endsWith('ss') ? word.slice(0, -1) : word);
 
 export function tokenize(text: string): string[] {
@@ -61,7 +64,8 @@ export function scoreUsdaCandidate(queryEn: string, description: string): { scor
   if (coverage < 0.6) return null;
 
   const extra = descTokens.filter((token) => !queryTokens.includes(token) && !STATE_WORDS.has(token)).length;
-  const score = 0.55 + 0.35 * coverage - Math.min(0.1, extra * 0.01) - Math.min(0.2, unrequestedStates * 0.1);
+  const unrequestedLean = descTokens.filter((token) => LEAN_OR_SUBSTITUTE.has(token) && !queryTokens.includes(token)).length;
+  const score = 0.55 + 0.35 * coverage - Math.min(0.1, extra * 0.01) - Math.min(0.2, unrequestedStates * 0.1) - Math.min(0.3, unrequestedLean * 0.15);
   return { score: Math.round(Math.max(0, Math.min(1, score)) * 1000) / 1000, coverage: Math.round(coverage * 100) / 100 };
 }
 

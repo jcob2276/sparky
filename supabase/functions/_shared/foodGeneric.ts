@@ -78,6 +78,9 @@ function normalizePlFood(s: string): string {
 }
 
 /** Score 0–1: how well candidate matches query. Rejects weak OFF/generic false positives. */
+/** Słowa oznaczające potrawę albo przetwór; kandydat z takim słowem nie pasuje do zapytania o sam składnik. */
+const DISH_TYPE_WORDS = ['zup', 'sos', 'salatk', 'sok', 'ciast', 'kisiel', 'dzem', 'przecier', 'koncentrat', 'krem', 'chips', 'chrup', 'napoj', 'surowk', 'mus', 'placek', 'zapiekank']
+
 export function scoreFoodNameMatch(query: string, candidateName: string): number {
   const qWords = normalizePlFood(query).split(/\s+/).filter((w) => w.length > 1)
   if (qWords.length === 0) return 0
@@ -94,6 +97,10 @@ export function scoreFoodNameMatch(query: string, candidateName: string): number
     )
     if (hasUnrequestedModifier) return 0
   }
+
+  // Skład potrawy lub przetworu to inny produkt niż sam składnik: „pomidor” nie jest „zupą pomidorową”.
+  const unrequestedDishType = DISH_TYPE_WORDS.some((dish) => nameWords.some((word) => word.startsWith(dish)) && !qWords.some((word) => word.startsWith(dish)))
+  if (unrequestedDishType) return 0
 
   let matched = 0
   for (const w of qWords) {

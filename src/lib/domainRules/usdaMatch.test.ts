@@ -44,3 +44,11 @@ describe('pickUsdaMatch', () => {
     expect(pickUsdaMatch('Tomatoes, grape, raw', tie)?.candidate.fdcId).toBe(11);
   });
 });
+
+describe('odmiany odchudzone', () => {
+  it('mozzarella bez dopisku nie wybiera wersji nonfat, choć jest krótsza', () => {
+    const cheeses = [c(1, 'Cheese, mozzarella, nonfat'), c(2, 'Cheese, mozzarella, whole milk'), c(3, 'Cheese, mozzarella, part-skim')];
+    expect(pickUsdaMatch('Cheese, mozzarella', cheeses)?.candidate.fdcId).toBe(2);
+    expect(pickUsdaMatch('Cheese, mozzarella, nonfat', cheeses)?.candidate.fdcId).toBe(1);
+  });
+});
