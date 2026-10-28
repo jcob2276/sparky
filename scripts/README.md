@@ -22,7 +22,6 @@ Layout: `ops/` (deploy, smoke, CI checks), `aw/` (ActivityWatch bridge), `analys
 
 | Script | Purpose | How to run |
 |---|---|---|
-| `aw/aw-bridge.cjs` | Sync ActivityWatch buckets → Supabase (local port 5601) | `node scripts/aw/aw-bridge.cjs` |
 | `aw/aw-daily-sync.cjs` | Daily AW sync (`--days=N` for backfill) | `node scripts/aw/aw-daily-sync.cjs` |
 | `aw/aw-desktop-import.cjs` | Import desktop AW bucket export | `node scripts/aw/aw-desktop-import.cjs <file>` |
 | `aw/aw-phone-import.cjs` | Import phone AW bucket export | `node scripts/aw/aw-phone-import.cjs <file>` |
