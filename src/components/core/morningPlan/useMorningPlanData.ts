@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchMorningPlanData, type MorningPlanData } from '../../../lib/morningPlanApi';
 import { TodoSlot, CalEvent } from './types';
+import { scheduledTimeHm } from './morningPlanHelpers';
 
 export const PRIORITY_COLORS: Record<string, string> = {
   urgent: 'text-danger',
@@ -44,7 +45,7 @@ function deriveLocalState(data: MorningPlanData, planningDate: string): MorningP
   allTasks.forEach((t) => {
     durations[t.id] = t.duration_minutes || 30;
     if (t.scheduled_time) {
-      times[t.id] = t.scheduled_time.split('T')[1]?.slice(0, 5) || '';
+      times[t.id] = scheduledTimeHm(t.scheduled_time);
     }
   });
 

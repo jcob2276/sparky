@@ -1,6 +1,6 @@
 import { TIMEZONE, SAUNA_WORKOUT_DAY_PATTERN } from '@vanguard/domain';
 import { supabase } from '../supabase';
-import { getTodayWarsaw } from '../date';
+import { getTodayWarsaw, shiftDateStr, warsawDayBoundsISO } from '../date';
 import { nutritionSeries } from './nutritionDays';
 import type { CialoRows, DuchRows, KontoRows } from './summaries';
 import { RUN_SPORT_TYPES } from '../runSports';
@@ -26,13 +26,15 @@ const num = (value: unknown): number | null => (value == null || value === '' ||
 
 /** Surowe dane do zakładki Ciało z okna `from..to` (razem z poprzednim okresem). */
 export async function fetchCialoRows(userId: string, from: string, to: string): Promise<CialoRows> {
+  const { fromISO } = warsawDayBoundsISO(from);
+  const { fromISO: untilISO } = warsawDayBoundsISO(shiftDateStr(to, 1));
   const [body, nutrition, sleep, workouts, latestFat, runs] = await Promise.all([
     supabase.from('body_metrics').select('date, weight, body_fat').eq('user_id', userId).gte('date', from).lte('date', to),
     supabase.from('daily_nutrition').select('date, protein, calories, fiber, avg_food_quality').eq('user_id', userId).gte('date', from).lte('date', to),
     supabase.from('oura_daily_summary').select('date, total_sleep_hours, sleep_score, hrv_avg, rhr_avg, readiness_score').eq('user_id', userId).gte('date', from).lte('date', to),
     supabase.from('workout_sessions').select('date').eq('user_id', userId).gte('date', from).lte('date', to).not('workout_day', 'ilike', SAUNA_WORKOUT_DAY_PATTERN),
     supabase.from('body_metrics').select('date, body_fat').eq('user_id', userId).not('body_fat', 'is', null).order('date', { ascending: false }).limit(1),
-    supabase.from('strava_activities_clean').select('start_date, distance, sport_type').eq('user_id', userId).eq('is_oura', false).in('sport_type', [...RUN_SPORT_TYPES]).gte('start_date', `${from}T00:00:00Z`).lte('start_date', `${to}T23:59:59Z`),
+    supabase.from('strava_activities_clean').select('start_date, distance, sport_type').eq('user_id', userId).eq('is_oura', false).in('sport_type', [...RUN_SPORT_TYPES]).gte('start_date', fromISO).lt('start_date', untilISO),
   ]);
   for (const result of [body, nutrition, sleep, workouts, latestFat, runs]) if (result.error) throw result.error;
   const today = getTodayWarsaw();
@@ -59,16 +61,21 @@ export async function fetchCialoRows(userId: string, from: string, to: string): 
 
 /** Zwycięstwa z Power List i dni z domknięciem z okna `from..to`. */
 export async function fetchDuchRows(userId: string, from: string, to: string): Promise<DuchRows> {
-  const [wins, tasks, scores, journal] = await Promise.all([
+  const { fromISO } = warsawDayBoundsISO(from);
+  const { fromISO: untilISO } = warsawDayBoundsISO(shiftDateStr(to, 1));
+  const [wins, scores, journal] = await Promise.all([
     supabase.from('daily_wins').select('id, date, result, mood_score, day_note').eq('user_id', userId).gte('date', from).lte('date', to),
-    supabase.from('daily_win_tasks').select('done, category, day_win_id').eq('user_id', userId).gte('created_at', `${from}T00:00:00Z`).limit(5000),
     supabase.from('daily_reconciliations').select('date, day_score').eq('user_id', userId).gte('date', from).lte('date', to),
-    supabase.from('vanguard_stream').select('timestamp').eq('user_id', userId).eq('source', 'telegram').gte('timestamp', `${from}T00:00:00Z`).lte('timestamp', `${to}T23:59:59Z`).limit(5000),
+    supabase.from('vanguard_stream').select('timestamp').eq('user_id', userId).eq('source', 'telegram').gte('timestamp', fromISO).lt('timestamp', untilISO).limit(5000),
   ]);
   if (wins.error) throw wins.error;
-  if (tasks.error) throw tasks.error;
   if (scores.error) throw scores.error;
   if (journal.error) throw journal.error;
+  const tasks = wins.data?.length
+    ? await supabase.from('daily_win_tasks').select('done, category, day_win_id').eq('user_id', userId)
+      .in('day_win_id', wins.data.map(row => row.id)).limit(5000)
+    : { data: [], error: null };
+  if (tasks.error) throw tasks.error;
   const dateByWin = new Map((wins.data ?? []).map((row) => [row.id, row.date]));
   const entriesByDay = new Map<string, number>();
   for (const row of journal.data ?? []) {

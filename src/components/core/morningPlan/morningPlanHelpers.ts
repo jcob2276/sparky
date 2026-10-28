@@ -1,3 +1,11 @@
+import { warsawTimeOfDay } from '../../../lib/date';
+
+/** "HH:MM" w Warszawie z zapisanego `scheduled_time` (baza zwraca timestamptz w UTC, więc nie wolno czytać cyfr wprost z ISO). */
+export function scheduledTimeHm(iso: string | null | undefined): string {
+  if (!iso || Number.isNaN(new Date(iso).getTime())) return '';
+  return warsawTimeOfDay(iso);
+}
+
 export function addMinutes(timeStr: string, minutes: number) {
   const [h, m] = timeStr.split(':').map(Number);
   const total = h * 60 + m + minutes;
