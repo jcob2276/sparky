@@ -6,6 +6,7 @@ import { getWarsawDayBoundaries, getWarsawDateString } from "../_shared/time.ts"
 import { logAuditEvent } from "../_shared/audit.ts";
 import { logCriticalError } from "../_shared/errorLogging.ts";
 import { getRecentStrongBehavioralPatterns } from "../_shared/vanguardPatterns.ts";
+import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from "../_shared/dailyWinTasks.ts";
 import type { DailyWinsRow, PhoneUsageDailyRow, DailyAggregateRow, StreamRow } from "./recapTypes.ts";
 import { generateDayNarrative, buildReflectionPrompt } from "./dailyPrompts.ts";
 
@@ -87,7 +88,7 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
         .limit(100),
       supabase
         .from("daily_wins")
-        .select("task_1, task_2, task_3, task_4, task_5, done_1, done_2, done_3, done_4, done_5, day_note, result")
+        .select(`day_note, result, daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`)
         .eq("user_id", VANGUARD_USER_ID)
         .eq("date", todayStr)
         .maybeSingle(),
@@ -122,7 +123,7 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
     const frictionRows = frictionRes.data || [];
 
     // Format tasks and execution
-    const winsData = winsRes.data as DailyWinsRow | null;
+    const winsData = winsRes.data ? withLegacySlots(winsRes.data) as DailyWinsRow : null;
     const taskParts: string[] = [];
     if (winsData) {
       for (let i = 1; i <= 5; i++) {
@@ -219,7 +220,7 @@ export async function runDailyReconciliation(req: Request): Promise<unknown> {
       voiceRows,
       streamRows,
       frictionRows,
-      wins: winsRes?.data || null,
+      wins: winsData,
       todos: todosRes?.data || [],
       agg: aggRes?.data || null,
     });

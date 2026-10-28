@@ -9,6 +9,7 @@ import { getStreamForWeeklySynthesis, insertStreamRecord } from "../_shared/repo
 import { verifyDataSufficiencyWithJev } from "../_shared/jevVerifier.ts";
 import { fetchHealthCoachContext } from "../_shared/healthCoachContext.ts";
 import { buildHealthCoachReview } from "../_shared/healthCoachReview.ts";
+import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from "../_shared/dailyWinTasks.ts";
 import {
   formatPlanningsText,
   formatDailyReflectionsText,
@@ -42,13 +43,13 @@ export async function runWeeklySynthesis(req: Request): Promise<unknown> {
 
     const biometrics = await safeExecute(supabase.from('vanguard_daily_aggregates').select('date, sleep_hours, hrv_avg, readiness_score, execution_score, final_state').eq('user_id', VANGUARD_USER_ID).gte('date', weekStart).order('date', { ascending: false }));
     const plannings = await safeExecute(supabase.from('daily_reconciliations').select('date, planning_summary, p2_parsed').eq('user_id', VANGUARD_USER_ID).gte('date', weekStart).not('planning_summary', 'is', null).order('date', { ascending: false }));
-    const dailyWinsRows = await safeExecute(
+    const dailyWinsRows = (await safeExecute(
       supabase.from('daily_wins')
-        .select('date, task_1, task_2, task_3, task_4, task_5, done_1, done_2, done_3, done_4, done_5, day_note, journal_entry, result')
+        .select(`date, day_note, journal_entry, result, daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`)
         .eq('user_id', VANGUARD_USER_ID)
         .gte('date', weekStart)
         .order('date', { ascending: false }),
-    );
+    ) || []).map(withLegacySlots);
     const dailyReflections = (dailyWinsRows || []).filter((d: any) =>
       (d.day_note && d.day_note.trim()) || (d.journal_entry && d.journal_entry.trim())
     );

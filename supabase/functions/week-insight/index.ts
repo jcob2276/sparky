@@ -2,7 +2,7 @@
  * @function week-insight
  * @trigger HTTP POST / Frontend (Tydzień → Analiza AI)
  * @role Analiza ostatnich 7 dni: plan 5 zadań, oceny i opinie dnia oraz dziennik głosowy z Telegrama; zwraca podsumowanie, 3 konkretne zmiany i powtarzające się wzorce.
- * @reads daily_wins, daily_reconciliations, vanguard_stream
+ * @reads daily_wins, daily_win_tasks, daily_reconciliations, vanguard_stream
  * @writes —
  * @calls deepseek-chat
  * @consumer Karta „Analiza AI” w zakładce Tydzień
@@ -11,6 +11,7 @@
 import { serveJson, HttpError } from '../_shared/http.ts'
 import { deepseekChat, parseJsonFromContent } from '../_shared/deepseek.ts'
 import { LLM_TASKS } from '../_shared/llm/tasks.ts'
+import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from '../_shared/dailyWinTasks.ts'
 import {
   WEEK_INSIGHT_SYSTEM_PROMPT,
   buildWeekInsightUserPrompt,
@@ -47,7 +48,7 @@ Deno.serve(serveJson(async (req, ctx) => {
   const [winsRes, scoresRes, journalRes] = await Promise.all([
     ctx.supabase
       .from('daily_wins')
-      .select('date, day_note, task_1, task_2, task_3, task_4, task_5, category_1, category_2, category_3, category_4, category_5, done_1, done_2, done_3, done_4, done_5')
+      .select(`date, day_note, daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`)
       .eq('user_id', userId).gte('date', from).lte('date', today),
     ctx.supabase
       .from('daily_reconciliations')
@@ -63,7 +64,7 @@ Deno.serve(serveJson(async (req, ctx) => {
   ])
   if (winsRes.error) throw winsRes.error
 
-  const winsByDate = new Map<string, Record<string, unknown>>((winsRes.data ?? []).map((r: Record<string, unknown>) => [String(r.date), r]))
+  const winsByDate = new Map<string, Record<string, unknown>>((winsRes.data ?? []).map(withLegacySlots).map(r => [String(r.date), r]))
   const scoreByDate = new Map<string, number | null>((scoresRes.data ?? []).map((r: { date: string; day_score: number | null }) => [r.date, r.day_score]))
 
   const days: WeekInsightDay[] = []

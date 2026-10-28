@@ -70,3 +70,27 @@ Deno.test("the calorie target is read by the shared rule: latest row up to the e
   assertEquals(calls.some((c) => c.method === "lte" && c.args[0] === "date" && c.args[1] === END), true);
   assertEquals(facts.targetKcal, 2200);
 });
+
+Deno.test("weekly facts count nested tasks in sparse slots and preserve day notes and recurrence", async () => {
+  const task = { completed_at: null, todo_id: null, checkpoint_id: null, pin_id: null,
+    project_id: "p1", target_value: "3", time_slot: "morning" };
+  const { db, recorded } = fakeDb({ daily_wins: [
+    { date: WEEK, result: "Z", day_note: "Good day", daily_win_tasks: [
+      { ...task, slot: 5, title: "Calls", done: true, category: "konto" },
+      { ...task, slot: 2, title: "Run", done: false, category: "cialo" },
+    ] },
+    { date: "2026-10-27", result: null, day_note: null, daily_win_tasks: [
+      { ...task, slot: 1, title: "Calls", done: false, category: "konto" },
+    ] },
+    { date: "2026-10-28", result: null, day_note: null, daily_win_tasks: [] },
+  ] });
+  const facts = await gatherWeekFacts(db, "u1", WEEK);
+  assertEquals(facts.pillarTally, { cialo: { done: 0, total: 1 }, duch: { done: 0, total: 0 }, konto: { done: 1, total: 2 } });
+  assertEquals(facts.taskRecurrence[0], { title: "Calls", total: 2, done: 1, rate: 50, history: `${WEEK}(✓), 2026-10-27(✗)` });
+  assertEquals(facts.dayLines[0], `${WEEK} [Z]: Run [Ciało]: ✗ · Calls [Konto]: ✓ [nota: Good day]`);
+  assertEquals(facts.dayNotes, [{ date: WEEK, note: "Good day" }]);
+  assertEquals(facts.daysWithoutNote, ["2026-10-27", "2026-10-28"]);
+  const select = String(recorded.daily_wins.find(c => c.method === "select")?.args[0]);
+  assertEquals(select.includes("daily_win_tasks("), true);
+  assertEquals(/\b(task_[1-5]|done_[1-5]|category_[1-5])\b/.test(select), false);
+});

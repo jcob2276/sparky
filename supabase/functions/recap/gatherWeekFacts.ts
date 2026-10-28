@@ -1,5 +1,6 @@
 import { HEALTH_THRESHOLDS, getSprintInfoForDate, getWarsawDateString, warsawDayBoundsISO } from "@vanguard/domain";
 import { targetForDay } from "../_shared/nutritionTargetForDay.ts";
+import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from "../_shared/dailyWinTasks.ts";
 import { averageOver, completeNutritionDays } from "./nutritionDays.ts";
 import { addDaysStr, monthThemeSourceForWeek, mean, isVoiceEntry, avgBedtimeLabel } from "./helpers.ts";
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -23,7 +24,7 @@ export async function gatherWeekFacts(db: SupabaseClient<Database>, userId: stri
     kpisRes, kpiEntriesRes, reconciliationsRes, behavioralPatternsRes, curiosityQueueRes,
     claimsRes, phoneUsageRes, lifeGoalsRes,
   ] = await Promise.all([
-    db.from("daily_wins").select("date, result, task_1, task_2, task_3, task_4, task_5, category_1, category_2, category_3, category_4, category_5, done_1, done_2, done_3, done_4, done_5, day_note, task_1_project_id, task_2_project_id, task_3_project_id, task_4_project_id, task_5_project_id, task_1_target_value, task_2_target_value, task_3_target_value, task_4_target_value, task_5_target_value").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd).order("date"),
+    db.from("daily_wins").select(`date, result, day_note, daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`).eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd).order("date"),
     db.from("oura_daily_summary").select("date, total_sleep_hours, bedtime_timestamp, bedtime_end_timestamp, readiness_score, sleep_score, deep_sleep_hours, rem_sleep_hours, latency_minutes").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd),
     db.from("daily_nutrition").select("date, calories, protein").eq("user_id", userId).gte("date", weekStart).lte("date", weekEnd),
     targetForDay(db, userId, weekEnd, "target_kcal"),
@@ -93,7 +94,7 @@ export async function gatherWeekFacts(db: SupabaseClient<Database>, userId: stri
   });
 
   // PowerList & Day Notes
-  const wins = winsRes.data ?? [];
+  const wins = (winsRes.data ?? []).map(withLegacySlots);
   const pillarTally: Record<string, { done: number; total: number }> = { cialo: { done: 0, total: 0 }, duch: { done: 0, total: 0 }, konto: { done: 0, total: 0 } };
   const dayLines: string[] = [];
   const taskMap = new Map<string, { total: number; done: number; dates: string[] }>();

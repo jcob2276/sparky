@@ -2,7 +2,7 @@
  * @function period-compare
  * @trigger HTTP POST / Frontend (Kronika → Porównanie AI)
  * @role Porównanie dwóch wybranych okresów (np. tydzień vs tydzień): sen, jedzenie, trening, sprzedaż, oceny dnia, zadania, opinie i dziennik z Telegrama; zwraca podsumowanie, co się poprawiło/pogorszyło, 3 zmiany i różnice w dzienniku.
- * @reads daily_wins, daily_reconciliations, oura_daily_summary, daily_nutrition, workout_sessions, strava_activities_clean, closer_daily_logs, vanguard_stream
+ * @reads daily_wins, daily_win_tasks, daily_reconciliations, oura_daily_summary, daily_nutrition, workout_sessions, strava_activities_clean, closer_daily_logs, vanguard_stream
  * @writes —
  * @calls deepseek-chat
  * @consumer Karta „Porównanie AI” w Kronice
@@ -12,6 +12,7 @@ import { RUN_SPORT_TYPES, SAUNA_WORKOUT_DAY_PATTERN } from '@vanguard/domain'
 import { serveJson, HttpError } from '../_shared/http.ts'
 import { deepseekChat, parseJsonFromContent } from '../_shared/deepseek.ts'
 import { LLM_TASKS } from '../_shared/llm/tasks.ts'
+import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from '../_shared/dailyWinTasks.ts'
 import { buildPeriodFacts, type PeriodRows } from './periodCompareCore.ts'
 import { COMPARE_SYSTEM_PROMPT, buildCompareUserPrompt, normalizeCompare, type FoodTargets } from './periodComparePrompt.ts'
 
@@ -44,7 +45,7 @@ Deno.serve(serveJson(async (req, ctx) => {
     const { start, end } = period
     const [wins, scores, oura, nutrition, workouts, runs, closer, journal] = await Promise.all([
       db.from('daily_wins')
-        .select('date, day_note, task_1, task_2, task_3, task_4, task_5, category_1, category_2, category_3, category_4, category_5, done_1, done_2, done_3, done_4, done_5')
+        .select(`date, day_note, daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`)
         .eq('user_id', userId).gte('date', start).lte('date', end),
       db.from('daily_reconciliations').select('date, day_score').eq('user_id', userId).gte('date', start).lte('date', end),
       db.from('oura_daily_summary').select('date, total_sleep_hours, sleep_score, hrv_avg, rhr_avg, readiness_score, bedtime_timestamp, bedtime_end_timestamp, latency_minutes, deep_sleep_hours, rem_sleep_hours, sleep_efficiency').eq('user_id', userId).gte('date', start).lte('date', end),
@@ -58,7 +59,7 @@ Deno.serve(serveJson(async (req, ctx) => {
     ])
     if (wins.error) throw wins.error
     return {
-      wins: wins.data ?? [],
+      wins: (wins.data ?? []).map(withLegacySlots),
       scores: scores.data ?? [],
       oura: oura.data ?? [],
       nutrition: nutrition.data ?? [],
