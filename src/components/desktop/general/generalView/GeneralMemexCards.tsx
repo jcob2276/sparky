@@ -6,7 +6,7 @@ import type { GeneralViewPattern, GeneralViewWiki } from '../hooks/useGeneralVie
 import { confidenceWord, type PlainHypothesis } from './memexPlain';
 import { Pressable } from '../../../ui/ControlPrimitives';
 import { formatMemorySourceDate } from '../../../../lib/memorySourcesApi';
-import WikiEvidenceSource from './WikiEvidenceSource';
+import WikiSources from './WikiSources';
 
 const PAGE_TYPE_ICONS: Record<string, React.ReactNode> = {
   training: <Activity size={12} />,
@@ -43,7 +43,7 @@ export function WikiEntry({ w, userId }: { w: GeneralViewWiki; userId: string })
           <span className="block break-words text-xs font-bold text-text-primary">{w.title}</span>
           {w.summary ? <span className="block text-2xs leading-relaxed text-text-muted">{cleanIntelText(w.summary, 180)}</span> : null}
           <span className="inline-block rounded-full border border-border-custom px-1.5 py-0.5 text-2xs text-text-muted">{status}</span>
-          <span className="block text-2xs font-semibold text-primary">{expanded ? 'Zwiń' : `Teza i źródła (${w.source_refs.length})`}</span>
+          <span className="block text-2xs font-semibold text-primary">{expanded ? 'Zwiń' : 'Teza i źródła'}</span>
         </span>
         <span className={`shrink-0 rounded-full border px-1.5 py-0.5 text-2xs font-bold ${CONF_COLOR(conf)}`}>
           {w.confidence === null ? 'Brak oceny' : `${confPct}%`}
@@ -58,11 +58,7 @@ export function WikiEntry({ w, userId }: { w: GeneralViewWiki; userId: string })
             <p key={index} className="whitespace-pre-wrap break-words">{part}</p>
           ))}
         </div>
-        <h4 className="text-xs font-bold text-text-primary">Źródła ({w.source_refs.length})</h4>
-        <p className="text-2xs text-text-muted">Cytaty pochodzą z chwili kompilacji. Podgląd oryginału pobiera bieżący zapis.</p>
-        {w.source_refs.length ? <ul className="space-y-2">
-          {w.source_refs.map((source, index) => <WikiEvidenceSource key={`${source.table}:${source.id}:${index}`} userId={userId} source={source} />)}
-        </ul> : <p className="text-xs text-text-muted">Brak odnośników do źródeł. Tego wniosku nie można tu zweryfikować.</p>}
+        <WikiSources userId={userId} pageId={w.id} legacyRefs={w.source_refs} />
       </section> : null}
     </div>
   );

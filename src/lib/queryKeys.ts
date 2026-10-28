@@ -112,6 +112,11 @@ export const desktopKeys = {
 };
 
 // ── NOTES KEYS ──
+export const wikiSourcesKeys = {
+  all: ['wiki-sources'] as const,
+  page: (userId: string, pageId: string) => [...wikiSourcesKeys.all, userId, pageId] as const,
+};
+
 export const notesKeys = {
   all: ['notes'] as const,
   list: (userId: string) => [...notesKeys.all, 'list', userId] as const,

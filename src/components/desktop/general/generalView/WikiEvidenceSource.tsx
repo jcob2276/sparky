@@ -1,6 +1,7 @@
 import { Pressable } from '../../../ui/ControlPrimitives';
 import { formatMemorySourceDate, memorySourceLabel, type MemorySourceRef } from '../../../../lib/memorySourcesApi';
 import { useMemorySource } from '../hooks/useMemorySource';
+import { truncateWikiQuote } from '../../../../lib/wikiSources';
 
 export default function WikiEvidenceSource({ userId, source }: { userId: string; source: MemorySourceRef }) {
   const state = useMemorySource(userId, source);
@@ -16,7 +17,7 @@ function WikiEvidenceSourceView({ source, state }: {
       <p className="text-xs font-semibold text-text-primary">{memorySourceLabel(source.table)}</p>
       <p className="text-2xs text-text-muted">{formatMemorySourceDate(source.date, source.date_precision)}</p>
       <p className="break-all text-2xs text-text-muted">Identyfikator: {source.id}</p>
-      {source.quote ? <blockquote className="whitespace-pre-wrap break-words border-l-2 border-primary/30 pl-2 text-xs text-text-secondary">{source.quote}</blockquote>
+      {source.quote ? <blockquote className="whitespace-pre-wrap break-words border-l-2 border-primary/30 pl-2 text-xs text-text-secondary">{truncateWikiQuote(source.quote)}</blockquote>
         : <p className="text-xs text-text-muted">Brak zapisanego cytatu.</p>}
       {!state.opened ? <Pressable onClick={state.open} className="text-xs font-semibold text-primary">Pokaż oryginał</Pressable> : null}
       {state.opened && state.isFetching ? <p role="status" className="text-xs text-text-muted">Pobieranie źródła…</p> : null}
