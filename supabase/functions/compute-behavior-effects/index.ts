@@ -2,7 +2,7 @@
  * @function compute-behavior-effects
  * @trigger HTTP POST / Frontend / manual
  * @role Oblicza wpływ zachowań i nawyków na strain/recovery przy użyciu Welch t-test + Cohen's d.
- * @reads behavior_log, daily_strain
+ * @reads behavior_log, habit_logs, daily_strain
  * @writes —
  * @calls —
  * @consumer Sekcja "What Moves You" w aplikacji
@@ -17,6 +17,7 @@ import { serveJson } from "../_shared/http.ts"
 import { studentTPValue } from "../_shared/stats.ts"
 import { isInterestingBehaviorEffect } from "../_shared/correlationInterest.ts"
 import { getWarsawDateString } from "../_shared/time.ts"
+import { LENIE_BEHAVIOR_KEY, lenieAsBehaviorRows } from "../_shared/lenieBehavior.ts"
 
 function erfApprox(x: number): number {
   const sign = x < 0 ? -1 : 1
@@ -97,14 +98,19 @@ Deno.serve(serveJson(async (req, ctx) => {
     const todayWarsaw = getWarsawDateString(now)
     const start90 = shiftDay(todayWarsaw, -90)
 
-    const [behaviorR, strainR] = await Promise.all([
+    const [behaviorR, lenieR, strainR] = await Promise.all([
+      // Lenie żyje w habit_logs (jedno źródło); klucz 'walenie' w behavior_log to kopia, więc go pomijamy.
       supabase.from('behavior_log').select('date, behavior_key, value')
-        .eq('user_id', userId).gte('date', start90).order('date'),
+        .eq('user_id', userId).neq('behavior_key', LENIE_BEHAVIOR_KEY).gte('date', start90).order('date'),
+      supabase.from('habit_logs').select('date, completed, habits!inner(name)')
+        .eq('user_id', userId).eq('completed', true).eq('habits.name', 'Lenie').gte('date', start90),
       supabase.from('daily_strain').select('date, recovery_score, illness_score')
         .eq('user_id', userId).gte('date', start90).order('date'),
     ])
     if (behaviorR.error) throw behaviorR.error
+    if (lenieR.error) throw lenieR.error
     if (strainR.error) throw strainR.error
+    const behaviorRows = [...(behaviorR.data ?? []), ...lenieAsBehaviorRows(lenieR.data)]
 
     const recoveryByDate: Record<string, number> = {}
     for (const r of strainR.data ?? []) {
@@ -113,7 +119,7 @@ Deno.serve(serveJson(async (req, ctx) => {
     const allDates = Object.keys(recoveryByDate)
 
     const byKey: Record<string, { date: string; value: number | null }[]> = {}
-    for (const row of behaviorR.data ?? []) {
+    for (const row of behaviorRows) {
       (byKey[row.behavior_key] ||= []).push({ date: row.date, value: row.value != null ? Number(row.value) : null })
     }
 
