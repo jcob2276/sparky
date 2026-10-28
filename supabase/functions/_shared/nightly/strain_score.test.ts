@@ -59,7 +59,7 @@ Deno.test('computeStrainScore — cardio zones calculate TRIMP correctly', () =>
 Deno.test('computeStrainScore — Strava run with high RPE adds bonus', () => {
   const result = computeStrainScore(
     baseInput({
-      runs: [{ perceived_exertion: 9, has_pr: false }],
+      runs: [{ perceived_exertion: 9, has_pr: false, sport_type: 'Run' }],
     }),
   );
   // no zones → cardioRaw = 0 + rpeBonus(30) = 30
@@ -169,4 +169,32 @@ Deno.test('computeStrainScore — mixed cardio + strength returns solid confiden
     }),
   );
   assertEquals(result.strainConfidence, 'solid');
+});
+
+// ─── isRunDay: tylko aktywności biegowe (isRunSport), obciążenie z wszystkich ───
+
+Deno.test('computeStrainScore — a ride is not a run day and gets no low-carb run penalty', () => {
+  const zones = { z1_regen_min: 0, z2_tlenowa_min: 100, z3_tempo_min: 0, z4_prog_min: 0, z5_max_min: 0 };
+  const ride = computeStrainScore(baseInput({
+    z: zones, runs: [{ perceived_exertion: 5, has_pr: false, sport_type: 'Ride' }],
+    kcal: 2700, carbs: 100, protein: 150,
+  }));
+  assertEquals(ride.isRunDay, false);
+
+  const run = computeStrainScore(baseInput({
+    z: zones, runs: [{ perceived_exertion: 5, has_pr: false, sport_type: 'Run' }],
+    kcal: 2700, carbs: 100, protein: 150,
+  }));
+  assertEquals(run.isRunDay, true);
+  assertEquals(run.fuelingPenalty - ride.fuelingPenalty, 15);
+});
+
+Deno.test('computeStrainScore — trail and virtual runs count, walks do not, load bonuses still use every activity', () => {
+  for (const sport of ['TrailRun', 'VirtualRun']) {
+    assertEquals(computeStrainScore(baseInput({ runs: [{ perceived_exertion: 4, has_pr: false, sport_type: sport }] })).isRunDay, true);
+  }
+  const walk = computeStrainScore(baseInput({ runs: [{ perceived_exertion: 8, has_pr: true, sport_type: 'Walk' }] }));
+  assertEquals(walk.isRunDay, false);
+  assertEquals(walk.hasPr, true);
+  assertEquals(walk.maxRpe, 8);
 });

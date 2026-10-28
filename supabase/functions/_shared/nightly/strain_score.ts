@@ -1,3 +1,4 @@
+import { isRunSport } from '@vanguard/domain';
 import { clamp } from './baselines.ts';
 
 const LEG_KW = ['przysiad', 'martwy', 'rdl', 'nog', 'leg', 'łydk', 'lydk', 'hip thrust', 'wykrok', 'lunge', 'calf', 'udo'];
@@ -20,6 +21,8 @@ interface OuraZonesData {
 interface StravaActivityData {
   perceived_exertion: number | null;
   has_pr: boolean | null;
+  /** Rodzaj aktywności; dzień biegowy wyznacza wyłącznie isRunSport, obciążenie liczy się ze wszystkich aktywności. */
+  sport_type?: string | null;
 }
 
 interface ExerciseLogData {
@@ -74,7 +77,7 @@ export function computeStrainScore(input: StrainInput): StrainResult {
   const maxRpe = runs.reduce((m: number, r) => Math.max(m, r.perceived_exertion || 0), 0);
   const rpeBonus = maxRpe >= 8 ? 30 : maxRpe >= 6 ? 15 : 0;
   const prBonus = runs.some((r) => r.has_pr) ? 20 : 0;
-  const isRunDay = runs.length > 0;
+  const isRunDay = runs.some((r) => isRunSport(r.sport_type));
   cardioRaw += rpeBonus + prBonus;
 
   // ── STRENGTH LOAD ──
