@@ -602,42 +602,6 @@ export type Database = {
         }
         Relationships: []
       }
-      companies: {
-        Row: {
-          created_at: string
-          industry: string | null
-          listing_source_url: string | null
-          listing_status: string
-          listing_status_date: string | null
-          market: string | null
-          name: string | null
-          sector: string | null
-          ticker: string
-        }
-        Insert: {
-          created_at?: string
-          industry?: string | null
-          listing_source_url?: string | null
-          listing_status?: string
-          listing_status_date?: string | null
-          market?: string | null
-          name?: string | null
-          sector?: string | null
-          ticker: string
-        }
-        Update: {
-          created_at?: string
-          industry?: string | null
-          listing_source_url?: string | null
-          listing_status?: string
-          listing_status_date?: string | null
-          market?: string | null
-          name?: string | null
-          sector?: string | null
-          ticker?: string
-        }
-        Relationships: []
-      }
       daily_food_entries: {
         Row: {
           amount: string | null
@@ -1026,6 +990,20 @@ export type Database = {
             columns: ["day_win_id"]
             isOneToOne: false
             referencedRelation: "daily_wins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_win_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_win_tasks_todo_id_fkey"
+            columns: ["todo_id"]
+            isOneToOne: false
+            referencedRelation: "todo_items"
             referencedColumns: ["id"]
           },
         ]
@@ -2463,33 +2441,6 @@ export type Database = {
         }
         Relationships: []
       }
-      food_parse_pending: {
-        Row: {
-          created_at: string
-          id: string
-          items: Json
-          log_date: string
-          meal_type: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          items: Json
-          log_date: string
-          meal_type: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          items?: Json
-          log_date?: string
-          meal_type?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       food_reference_pl: {
         Row: {
           calories: number
@@ -2525,6 +2476,72 @@ export type Database = {
           protein?: number
           saturated_fat?: number | null
           source_label?: string
+          sugar?: number | null
+        }
+        Relationships: []
+      }
+      food_reference_usda: {
+        Row: {
+          carbs: number
+          carbs_by_difference: number | null
+          category: string | null
+          created_at: string
+          data_type: string
+          description: string
+          embedded_at: string | null
+          embedding: string | null
+          energy_source: string
+          fat: number
+          fdc_id: number
+          fiber: number | null
+          kcal: number
+          portions: Json
+          protein: number
+          publication_date: string | null
+          salt: number | null
+          saturated_fat: number | null
+          sugar: number | null
+        }
+        Insert: {
+          carbs: number
+          carbs_by_difference?: number | null
+          category?: string | null
+          created_at?: string
+          data_type: string
+          description: string
+          embedded_at?: string | null
+          embedding?: string | null
+          energy_source: string
+          fat: number
+          fdc_id: number
+          fiber?: number | null
+          kcal: number
+          portions?: Json
+          protein: number
+          publication_date?: string | null
+          salt?: number | null
+          saturated_fat?: number | null
+          sugar?: number | null
+        }
+        Update: {
+          carbs?: number
+          carbs_by_difference?: number | null
+          category?: string | null
+          created_at?: string
+          data_type?: string
+          description?: string
+          embedded_at?: string | null
+          embedding?: string | null
+          energy_source?: string
+          fat?: number
+          fdc_id?: number
+          fiber?: number | null
+          kcal?: number
+          portions?: Json
+          protein?: number
+          publication_date?: string | null
+          salt?: number | null
+          saturated_fat?: number | null
           sugar?: number | null
         }
         Relationships: []
@@ -5063,18 +5080,21 @@ export type Database = {
       relations: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           is_singleton: boolean
           name: string
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           is_singleton?: boolean
           name: string
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           is_singleton?: boolean
           name?: string
@@ -5852,30 +5872,6 @@ export type Database = {
           },
         ]
       }
-      us_report_import_coverage: {
-        Row: {
-          checked_at: string | null
-          cik: number
-          error: string | null
-          report_count: number
-          status: string
-        }
-        Insert: {
-          checked_at?: string | null
-          cik: number
-          error?: string | null
-          report_count?: number
-          status?: string
-        }
-        Update: {
-          checked_at?: string | null
-          cik?: number
-          error?: string | null
-          report_count?: number
-          status?: string
-        }
-        Relationships: []
-      }
       user_fundament: {
         Row: {
           embedding: string | null
@@ -6275,33 +6271,6 @@ export type Database = {
         }
         Relationships: []
       }
-      vanguard_entity_aliases: {
-        Row: {
-          alias: string
-          canonical: string
-          created_at: string | null
-          id: string
-          reason: string | null
-          user_id: string
-        }
-        Insert: {
-          alias: string
-          canonical: string
-          created_at?: string | null
-          id?: string
-          reason?: string | null
-          user_id: string
-        }
-        Update: {
-          alias?: string
-          canonical?: string
-          created_at?: string | null
-          id?: string
-          reason?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       vanguard_entity_links: {
         Row: {
           confidence_score: number | null
@@ -6389,8 +6358,22 @@ export type Database = {
             foreignKeyName: "vanguard_entity_links_relation_fkey"
             columns: ["relation"]
             isOneToOne: false
-            referencedRelation: "vanguard_relation_ontology"
-            referencedColumns: ["relation"]
+            referencedRelation: "relations"
+            referencedColumns: ["name"]
+          },
+          {
+            foreignKeyName: "vanguard_entity_links_source_episode_id_fkey"
+            columns: ["source_episode_id"]
+            isOneToOne: false
+            referencedRelation: "v_friction_pipeline_status"
+            referencedColumns: ["stream_id"]
+          },
+          {
+            foreignKeyName: "vanguard_entity_links_source_episode_id_fkey"
+            columns: ["source_episode_id"]
+            isOneToOne: false
+            referencedRelation: "vanguard_stream"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "vanguard_entity_links_superseded_by_fkey"
@@ -6589,30 +6572,6 @@ export type Database = {
           query?: string | null
           reply?: string | null
           score?: number | null
-          user_id?: string
-        }
-        Relationships: []
-      }
-      vanguard_footprint: {
-        Row: {
-          category: string
-          id: string
-          payload: Json
-          timestamp: string | null
-          user_id: string
-        }
-        Insert: {
-          category: string
-          id?: string
-          payload: Json
-          timestamp?: string | null
-          user_id: string
-        }
-        Update: {
-          category?: string
-          id?: string
-          payload?: Json
-          timestamp?: string | null
           user_id?: string
         }
         Relationships: []
@@ -7123,24 +7082,6 @@ export type Database = {
         }
         Relationships: []
       }
-      vanguard_relation_ontology: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          relation: string
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          relation: string
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          relation?: string
-        }
-        Relationships: []
-      }
       vanguard_stream: {
         Row: {
           category: string | null
@@ -7550,51 +7491,6 @@ export type Database = {
           sort_order?: number
           type?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      vw_consensus: {
-        Row: {
-          buyer_names: Json | null
-          buyers: number | null
-          company_name: string | null
-          cusip: string | null
-          holders: number | null
-          id: string
-          net_buyers: number | null
-          new_positions: number | null
-          seller_names: Json | null
-          sellers: number | null
-          ticker: string | null
-          total_value: number | null
-        }
-        Insert: {
-          buyer_names?: Json | null
-          buyers?: number | null
-          company_name?: string | null
-          cusip?: string | null
-          holders?: number | null
-          id?: string
-          net_buyers?: number | null
-          new_positions?: number | null
-          seller_names?: Json | null
-          sellers?: number | null
-          ticker?: string | null
-          total_value?: number | null
-        }
-        Update: {
-          buyer_names?: Json | null
-          buyers?: number | null
-          company_name?: string | null
-          cusip?: string | null
-          holders?: number | null
-          id?: string
-          net_buyers?: number | null
-          new_positions?: number | null
-          seller_names?: Json | null
-          sellers?: number | null
-          ticker?: string | null
-          total_value?: number | null
         }
         Relationships: []
       }
@@ -8386,6 +8282,25 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      match_food_reference_usda: {
+        Args: { match_count?: number; query_embedding: string }
+        Returns: {
+          carbs: number
+          category: string
+          data_type: string
+          description: string
+          fat: number
+          fdc_id: number
+          fiber: number
+          kcal: number
+          portions: Json
+          protein: number
+          salt: number
+          saturated_fat: number
+          similarity: number
+          sugar: number
+        }[]
+      }
       match_vanguard_content: {
         Args: {
           match_count: number
@@ -8536,6 +8451,26 @@ export type Database = {
           target_type: string
         }[]
       }
+      search_food_reference_usda: {
+        Args: { match_count?: number; query_text: string }
+        Returns: {
+          carbs: number
+          category: string
+          data_type: string
+          description: string
+          fat: number
+          fdc_id: number
+          fiber: number
+          kcal: number
+          portions: Json
+          protein: number
+          salt: number
+          saturated_fat: number
+          score: number
+          sugar: number
+        }[]
+      }
+      set_food_reference_embeddings: { Args: { items: Json }; Returns: number }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
       sprint_info_for_date: {
