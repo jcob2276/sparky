@@ -130,7 +130,7 @@ naprawiła; te reguły utrzymują stan naprawiony:
 
 1. **Doc ratchet:** nowy plik `.md` tylko jeśli żaden istniejący nie pasuje. Plan sesyjny/brief
    dla agenta żyje w [`docs/agent/ACTIVE_WORK.md`](docs/agent/ACTIVE_WORK.md) (nadpisywany, nie
-   akumulowany) — nie jako nowy plik `FOO_PLAN.md`. Gdy praca się kończy: otwarte punkty
+   akumulowany; sekcja „Kanał Claude ↔ Codex” to skrzynka między agentami — czytaj na starcie) — nie jako nowy plik `FOO_PLAN.md`. Gdy praca się kończy: otwarte punkty
    przenieś do [`BACKLOG.md`](BACKLOG.md), plik planu/brief **skasuj** w tym samym commicie.
 2. **Zakaz liczb, które gniją** w ręcznie pisanych dokumentach (liczba edge functions, LOC,
    daty "last verified", numery wersji). Liczby wolno trzymać tylko w plikach generowanych

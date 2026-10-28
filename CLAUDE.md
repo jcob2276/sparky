@@ -31,6 +31,6 @@ Jesteś Antigravity, agentyczny AI asystent parowany z Jakubem. Styl: krótki, b
 - `supabase/functions/` — Edge functions
 - `supabase/migrations/` — DB migrations
 - `docs/` — Dokumentacja architektury i zasad (indeks: `docs/README.md`)
-- `docs/agent/ACTIVE_WORK.md` — co jest w toku teraz (wieloetapowe sesje)
+- `docs/agent/ACTIVE_WORK.md` — co jest w toku teraz (wieloetapowe sesje); sekcja „Kanał Claude ↔ Codex” = skrzynka między agentami
 - `docs/career/` — domenowa pamięć dla pracy/sprzedaży/closera
 - `lessons.md` — Trwałe lekcje agenta między sesjami
