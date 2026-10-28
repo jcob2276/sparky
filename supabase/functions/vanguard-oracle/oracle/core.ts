@@ -19,6 +19,8 @@ import { getStreamCutoffs, getWarsawDateString, getWarsawDayOfWeek, isWarsawWeek
 import { compressHistoryIfNeeded } from "../../_shared/contextCompression.ts";
 import { retrieveRagContext } from "./rag.ts";
 import { buildSystemPrompt } from "./systemPrompt.ts";
+import { buildFeedbackPromptBlock } from "../../_shared/feedbackPromptBlock.ts";
+import { getRecentFeedback } from "../../_shared/repos/feedbackRepo.ts";
 import { fetchWorldState } from "../../_shared/worldState.ts";
 import { logOracleRun, processOracleMutations } from "./mutations.ts";
 import { buildSqlTool } from "./sqlTool.ts";
@@ -93,7 +95,9 @@ export async function runOracleQuery(
 
   const rag = await retrieveRagContext(supabase, user_id, current_query, todayDate, fourteenDaysAgoDate, mode, cutoff72h);
   const [coreMemory, awarenessBase, echoesText, pillarsText] = await Promise.all([fetchCoreMemory(supabase, user_id), fetchConversationAwareness(supabase, user_id, now, todayDate), fetchEchoes(supabase, user_id, current_query, todayDate), fetchPillars(supabase, user_id)]);
-  const awarenessText = [awarenessBase, pillarsText, echoesText].filter(Boolean).join('\n\n');
+  const feedbackText = await getRecentFeedback(supabase, user_id, now).then(buildFeedbackPromptBlock)
+    .catch((err: unknown) => { console.error('[oracle] feedback block skipped:', err); return ''; });
+  const awarenessText = [awarenessBase, pillarsText, echoesText, feedbackText].filter(Boolean).join('\n\n');
 
   const { readinessScore, sleepHours } = circadianInputs(safeStateVector);
   const circadian = getCircadianStance(warsawHourFor(now, override_date), readinessScore, sleepHours);
