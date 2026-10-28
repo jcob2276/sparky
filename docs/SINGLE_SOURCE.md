@@ -51,12 +51,13 @@ Rozjazd w niezmienniku znaczy, że ktoś zapisuje obok właściciela.
 
 | Fakt | Właściciel (zapis) | Kopia pochodna i kto ją utrzymuje | Niezmiennik |
 |---|---|---|---|
-| Epizod nawyku „Lenie” (też `/lenie`, `/walenie`, `/pmo`) | `habit_logs` + `habits` (jeden zapis: `recordLenieEpisode`) | `behavior_log.walenie`, trigger `habit_logs_sync_lenie` (docelowo do usunięcia po przepięciu czytelników) | kopia = nawyk w obie strony |
+| Epizod nawyku „Lenie” (też `/lenie`, `/walenie`, `/pmo`) | `habit_logs` + `habits` (jeden zapis: `recordLenieEpisode`) | brak kopii; analizy czytają `habit_logs` (widok `vanguard_consolidated_activities`, `compute-behavior-effects` przez `lenieAsBehaviorRows`) | `behavior_log` nie ma klucza `walenie` |
 | Dzienny agregat jedzenia | `daily_food_entries` | `daily_nutrition` (trigger) | kcal i białko = suma wpisów dnia |
 | Zadania dnia (sloty 1–5) | `daily_win_tasks` (wiersze) | `daily_wins.task_N/done_N/…` (50 kolumn, utrzymywane triggerami `trg_sync_daily_win_tasks` i `trg_sync_daily_wins` w obie strony; od 28.10 trigger zmienia tylko różniące się sloty, więc identyfikatory zadań są stabilne; RPC planu porannego zapisuje wyłącznie `daily_win_tasks`) | tytuł i done slotów zgodne |
 | Wynik snu i gotowość dobowa | `oura_daily_summary` | `oura_enhanced.sleep_score/readiness_score` | równe w obu tabelach |
 | Godziny snu | `oura_daily_summary.total_sleep_hours` = suma epizodów z dnia | `oura_enhanced.total_sleep_hours` = najdłuższy epizod (inna definicja, nie kopia; do rozdzielenia nazw) | nie porównujemy |
 | Powiązania grafu wiedzy | `vanguard_entity_links` (model zapisu) | `claims` + `entities` + `relations` (trigger; Oracle czyta `claims`) | źródło powiązania istnieje w `entities` |
+| Lista relacji i aliasy encji grafu | `relations` (lista, opis, klucz obcy z powiązań) i `entity_aliases` (aliasy) | brak; dawne `vanguard_relation_ontology` i `vanguard_entity_aliases` scalone 28.10 (archiwum w schemacie `archive`) | FK `vanguard_entity_links.relation` → `relations(name)` |
 | Cel żywieniowy w dniu | `nutrition_targets` (wiersz `date <= dzień`) | brak; odczyt wyłącznie przez `fetchNutritionTargetForDay` (frontend) i `targetForDay` (funkcje brzegowe) | reguła w testach obu warstw |
 | Biometria stanu świata | `oura_daily_summary` | brak; wartości dnia tylko z dokładnej daty, wcześniejszy pomiar osobno (`last_available` z własną datą) | testy `worldStateOura` |
 

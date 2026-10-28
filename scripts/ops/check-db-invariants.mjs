@@ -120,15 +120,10 @@ const CHECKS = [
             ELSE e.value END`,
   },
   {
-    // Jedno źródło prawdy: nawyk „Lenie” (habit_logs). behavior_log.walenie to kopia pochodna utrzymywana
-    // triggerem habit_logs_sync_lenie; rozjazd w którąkolwiek stronę znaczy, że ktoś zapisuje obok triggera.
-    name: "behavior_log.walenie must mirror habit_logs 'Lenie' (completed) in both directions",
-    sql: `SELECT 'habit without copy ' || l.date AS issue FROM public.habit_logs l JOIN public.habits h ON h.id = l.habit_id AND h.name = 'Lenie'
-          WHERE l.completed IS TRUE AND NOT EXISTS (SELECT 1 FROM public.behavior_log b WHERE b.user_id = l.user_id AND b.date = l.date AND b.behavior_key = 'walenie')
-          UNION ALL
-          SELECT 'copy without habit ' || b.date FROM public.behavior_log b WHERE b.behavior_key = 'walenie'
-          AND NOT EXISTS (SELECT 1 FROM public.habit_logs l JOIN public.habits h ON h.id = l.habit_id AND h.name = 'Lenie'
-                          WHERE l.user_id = b.user_id AND l.date = b.date AND l.completed IS TRUE)`,
+    // Jedno źródło prawdy: nawyk „Lenie” (habit_logs). Kopia behavior_log.walenie została usunięta (28.10);
+    // wiersz o tym kluczu oznacza, że jakiś kod znowu zapisuje to zdarzenie obok habit_logs.
+    name: "behavior_log must not hold 'walenie' (Lenie lives only in habit_logs)",
+    sql: `SELECT b.date || ' ' || b.behavior_key AS issue FROM public.behavior_log b WHERE b.behavior_key = 'walenie'`,
   },
   {
     // daily_nutrition jest agregatem daily_food_entries (trigger); suma wpisów dnia musi się zgadzać.
