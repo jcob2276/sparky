@@ -91,7 +91,6 @@ export async function fetchWorldState(
     if (freshnessHours > thresholdHours) return 0.2; // Stale data
     return 1.0;
   };
-
   const { data: ouraData } = await supabase
     .from('oura_daily_summary')
     .select('*')
