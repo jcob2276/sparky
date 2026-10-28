@@ -24,6 +24,7 @@ import { useHaptics } from '../../../../hooks/useHaptics';
 import { notify } from '../../../../lib/notify';
 import { TIMEOUTS } from '../../../../lib/constants';
 import { slotDone, slotTitle } from '../../../../lib/daySlots';
+import { applyTodayTaskToggle } from '../../powerList/morningReflectionModel';
 
 type DailyWinRow = Tables<'daily_wins'> & {
   daily_win_tasks?: Tables<'daily_win_tasks'>[];
@@ -146,17 +147,10 @@ export function createDirectionActions(params: {
         const data = Object.keys(resultPatch).length > 0
           ? await updateDailyWin(userId, dayWin.id, resultPatch)
           : dayWin;
-        setHistory((prev) => prev.map((d) => (d.id === data.id
-          ? { ...data, [`done_${slot}`]: newValue, [`completed_at_${slot}`]: timestamp } as DailyWinRow
-          : d)));
+        const merged = applyTodayTaskToggle({ ...data, daily_win_tasks: dayWin.daily_win_tasks }, slot, newValue, timestamp);
+        setHistory((prev) => prev.map((d) => d.id === data.id ? merged : d));
       } else {
-        // Legacy wide-only row
-        const data = await updateDailyWin(userId, dayWin.id, {
-          ...resultPatch,
-          [`done_${slot}`]: newValue,
-          [`completed_at_${slot}`]: timestamp,
-        } as TablesUpdate<'daily_wins'>);
-        setHistory((prev) => prev.map((d) => (d.id === data.id ? data : d)));
+        throw new Error('Nie znaleziono zadania dnia.');
       }
       if (allDone) haptics.success();
     } catch (e: unknown) {

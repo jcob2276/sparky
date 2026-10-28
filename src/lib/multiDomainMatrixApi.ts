@@ -19,16 +19,7 @@ interface MatrixOuraRow {
 
 interface MatrixDailyWinRow {
   date: string;
-  task_1: string | null;
-  task_2: string | null;
-  task_3: string | null;
-  task_4: string | null;
-  task_5: string | null;
-  done_1: boolean | null;
-  done_2: boolean | null;
-  done_3: boolean | null;
-  done_4: boolean | null;
-  done_5: boolean | null;
+  daily_win_tasks: Array<{ slot: number; title: string; done: boolean | null }>;
   result: string | null;
 }
 

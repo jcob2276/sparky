@@ -52,7 +52,7 @@ export function useSpineGuidance(
       const overdueDays = lastReflectionAt ? daysSince(lastReflectionAt.slice(0, 10), today) : 999;
 
       const data = winsRes.data;
-      const yesterdayBlocked = Boolean(typeof data?.task_1 === 'string' && data.task_1.trim()) && !data?.day_note?.trim();
+      const yesterdayBlocked = Boolean(data?.daily_win_tasks.some(task => task.title?.trim())) && !data?.day_note?.trim();
 
       return {
         spine: spineData,

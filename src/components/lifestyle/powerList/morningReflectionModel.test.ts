@@ -50,7 +50,7 @@ describe('buildMorningReflectionRecord', () => {
     expect(win.daily_win_tasks?.[0].done).toBe(false);
   });
 
-  it('updates selected slot immediately and sets wide fields in today state', () => {
+  it('updates selected task immediately without changing mirrored fields', () => {
     const win = {
       id: 'win-today',
       date: '2026-09-15',
@@ -64,9 +64,21 @@ describe('buildMorningReflectionRecord', () => {
 
     const updated = applyTodayTaskToggle(win, 1, true, '2026-09-15T11:00:00Z');
 
-    expect(updated.done_1).toBe(true);
-    expect(updated.completed_at_1).toBe('2026-09-15T11:00:00Z');
+    expect(updated.done_1).toBe(false);
+    expect(updated.completed_at_1).toBeNull();
     expect(updated.daily_win_tasks?.[0].done).toBe(true);
+    expect(updated.daily_win_tasks?.[0].completed_at).toBe('2026-09-15T11:00:00Z');
     expect(updated.daily_win_tasks?.[1].done).toBe(false);
+  });
+
+  it('closes a sparse plan based on its task rows and reopens it on undo', () => {
+    const win = { day_note: 'Reviewed', result: null, daily_win_tasks: [
+      { slot: 5, title: 'Call', done: false, completed_at: null },
+    ] };
+    const completed = applyTodayTaskToggle(win, 5, true, 'now');
+    expect(completed.result).toBe('Z');
+    const undone = applyTodayTaskToggle(completed, 5, false, null);
+    expect(undone.result).toBeNull();
+    expect(undone.daily_win_tasks[0].completed_at).toBeNull();
   });
 });

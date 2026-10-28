@@ -1,5 +1,4 @@
-import { supabase } from './supabase';
-import { fetchDailyWinTasksForDay } from './dailyWinTasksApi';
+import { createDailyWinTasks, fetchDailyWinTasksForDay } from './dailyWinTasksApi';
 import { invalidateGoalSpineCache } from './goal/goalSpine.queries';
 
 type DraftTask = {
@@ -81,7 +80,7 @@ export async function addProjectActionToTopFive(
   const slot = [1, 2, 3, 4, 5].find((candidate) => !occupied.has(candidate));
   if (!slot) throw new Error('Top 5 jest już pełne.');
 
-  const { error: insertError } = await supabase.from('daily_win_tasks').insert({
+  await createDailyWinTasks(userId, [{
     day_win_id: day.id,
     user_id: userId,
     slot,
@@ -89,8 +88,7 @@ export async function addProjectActionToTopFive(
     project_id: projectId,
     category,
     done: false,
-  });
-  if (insertError) throw insertError;
+  }]);
   invalidateGoalSpineCache(userId);
   return 'today';
 }

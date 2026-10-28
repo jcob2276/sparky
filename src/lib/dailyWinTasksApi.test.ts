@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { adaptDailyWinTasks, fetchDailyWinTasks, fetchDailyWinTasksForDay } from './dailyWinTasksApi';
+import {
+  adaptDailyWinTasks, fetchDailyWinTasks, fetchDailyWinTasksForDay, updateDailyWinTaskBySlot,
+  persistDailyWinMetadata, persistDailyWin, createDailyWinTasks, removeDailyWinTasks,
+} from './dailyWinTasksApi';
 import type { Tables } from './database.types';
 
 const db = vi.hoisted(() => ({ data: null as unknown, error: null as unknown, calls: [] as unknown[][] }));
@@ -7,6 +10,10 @@ vi.mock('./supabase', () => ({ supabase: { from: (table: string) => {
   db.calls.push(['from', table]);
   const query = {
     select: (columns: string) => { db.calls.push(['select', columns]); return query; },
+    update: (payload: unknown) => { db.calls.push(['update', payload]); return query; },
+    upsert: (payload: unknown) => { db.calls.push(['upsert', payload]); return query; },
+    insert: (payload: unknown) => { db.calls.push(['insert', payload]); return query; },
+    delete: () => { db.calls.push(['delete']); return query; },
     eq: (key: string, value: string) => { db.calls.push(['eq', key, value]); return query; },
     gte: (key: string, value: string) => { db.calls.push(['gte', key, value]); return query; },
     lte: (key: string, value: string) => { db.calls.push(['lte', key, value]); return query; },
@@ -14,6 +21,7 @@ vi.mock('./supabase', () => ({ supabase: { from: (table: string) => {
     order: (key: string, options: unknown) => { db.calls.push(['order', key, options]); return query; },
     limit: (n: number) => { db.calls.push(['limit', n]); return query; },
     maybeSingle: () => query,
+    single: () => query,
     then: (resolve: (value: unknown) => unknown) => Promise.resolve({ data: db.data, error: db.error }).then(resolve),
   };
   return query;
@@ -74,5 +82,57 @@ describe('daily_win_tasks read adapter', () => {
     db.error = { message: 'RLS denied' };
     expect(await fetchDailyWinTasks('owner')).toMatchObject({ data: null, error: { message: 'RLS denied' } });
     expect(await fetchDailyWinTasksForDay('owner', '2026-10-28')).toMatchObject({ data: null, error: { message: 'RLS denied' } });
+  });
+});
+
+describe('task completion writes', () => {
+  it('updates only the owned task at the requested slot and stamps completion', async () => {
+    db.data = { id: 'task-5' };
+    await updateDailyWinTaskBySlot('owner', 'day', 5, true, '2026-10-28T19:00:00Z');
+    expect(db.calls).toEqual(expect.arrayContaining([
+      ['from', 'daily_win_tasks'], ['eq', 'user_id', 'owner'], ['eq', 'day_win_id', 'day'], ['eq', 'slot', 5],
+      ['update', { done: true, completed_at: '2026-10-28T19:00:00Z' }],
+    ]));
+    expect(db.calls).not.toContainEqual(['from', 'daily_wins']);
+  });
+
+  it('clears completed_at when undoing completion', async () => {
+    db.data = { id: 'task-2' };
+    await updateDailyWinTaskBySlot('owner', 'day', 2, false, null);
+    expect(db.calls).toContainEqual(['update', { done: false, completed_at: null }]);
+  });
+
+  it('rejects missing tasks and database errors instead of falling back to wide writes', async () => {
+    await expect(updateDailyWinTaskBySlot('owner', 'day', 1, true, 'now')).rejects.toThrow();
+    db.error = { message: 'denied' };
+    await expect(updateDailyWinTaskBySlot('owner', 'day', 1, true, 'now')).rejects.toMatchObject({ message: 'denied' });
+  });
+});
+
+describe('daily win metadata and task creation', () => {
+  it('returns task-derived compatibility fields after metadata updates and day creation', async () => {
+    db.data = { id: 'day', task_1: 'stale', done_1: false, daily_win_tasks: [task(1, { done: true })] };
+    expect(await persistDailyWinMetadata('owner', 'day', { day_note: 'Review' }))
+      .toMatchObject({ task_1: 'Task 1', done_1: true });
+    expect(db.calls).toContainEqual(['update', { day_note: 'Review' }]);
+    expect(db.calls).toContainEqual(['eq', 'user_id', 'owner']);
+    expect(await persistDailyWin('owner', { user_id: 'owner', date: '2026-10-28' }))
+      .toMatchObject({ task_1: 'Task 1', done_1: true });
+    for (const [, columns] of db.calls.filter(call => call[0] === 'select')) {
+      expect(String(columns).replace('daily_win_tasks(*)', '')).not.toMatch(/\*|(?:task|done|category|completed_at)_[1-5]/);
+    }
+  });
+
+  it('creates normalized task rows for the owner and scopes deletion to that owner and day', async () => {
+    db.data = [task(3)];
+    expect(await createDailyWinTasks('owner', [{ user_id: 'other', day_win_id: 'day', slot: 3, title: 'Call' }]))
+      .toEqual([task(3)]);
+    expect(db.calls).toContainEqual(['insert', [{ user_id: 'owner', day_win_id: 'day', slot: 3, title: 'Call' }]]);
+    await removeDailyWinTasks('owner', 'day');
+    expect(db.calls).toContainEqual(['eq', 'user_id', 'owner']);
+    expect(db.calls).toContainEqual(['eq', 'day_win_id', 'day']);
+    expect(db.calls.filter(call => call[0] === 'from')).toEqual([
+      ['from', 'daily_win_tasks'], ['from', 'daily_win_tasks'],
+    ]);
   });
 });

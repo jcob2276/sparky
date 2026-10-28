@@ -50,29 +50,26 @@ export function applyYesterdayTaskToggle<
   };
 }
 
-export function applyTodayTaskToggle<TWin extends Record<string, unknown>>(
+export function applyTodayTaskToggle<TWin extends {
+  daily_win_tasks?: Array<{ slot: number; title: string; done: boolean | null; completed_at: string | null }>;
+  day_note?: string | null;
+  result?: string | null;
+}>(
   win: TWin,
   slot: number,
   done: boolean,
   completedAt: string | null,
 ): TWin {
-  const field = `done_${slot}`;
-  const timeField = `completed_at_${slot}`;
-  const rawTasks = Array.isArray(win.daily_win_tasks) ? win.daily_win_tasks : [];
-  const tasks = rawTasks.map((task: unknown) =>
-    (task as { slot?: number }).slot === slot
-      ? { ...(task as Record<string, unknown>), done, completed_at: completedAt }
+  const tasks = (win.daily_win_tasks ?? []).map(task =>
+    task.slot === slot
+      ? { ...task, done, completed_at: completedAt }
       : task,
   );
 
-  const allDone = [1, 2, 3, 4, 5].every((i) => {
-    if (i === slot) return done;
-    const task = tasks.find((t: unknown) => (t as { slot?: number }).slot === i);
-    if (task) return Boolean((task as { done?: boolean }).done);
-    return Boolean(win[`done_${i}`]);
-  });
+  const activeTasks = tasks.filter(task => task.title.trim());
+  const allDone = activeTasks.length > 0 && activeTasks.every(task => task.done);
 
-  const hasNote = Boolean((win.day_note as string | undefined)?.trim());
+  const hasNote = Boolean(win.day_note?.trim());
   let result = win.result;
   if (allDone && hasNote) {
     result = 'Z';
@@ -83,8 +80,6 @@ export function applyTodayTaskToggle<TWin extends Record<string, unknown>>(
   return {
     ...win,
     result,
-    [field]: done,
-    [timeField]: completedAt,
     daily_win_tasks: tasks,
   };
 }

@@ -82,12 +82,8 @@ function createDomainMaps(
 
   const winsMap: Record<string, { done: number; total: number; tasks: { title: string; done: boolean }[] }> = {};
   for (const w of apiData?.wins || []) {
-    const tasks: { title: string; done: boolean }[] = [];
-    if (w.task_1) tasks.push({ title: w.task_1, done: !!w.done_1 });
-    if (w.task_2) tasks.push({ title: w.task_2, done: !!w.done_2 });
-    if (w.task_3) tasks.push({ title: w.task_3, done: !!w.done_3 });
-    if (w.task_4) tasks.push({ title: w.task_4, done: !!w.done_4 });
-    if (w.task_5) tasks.push({ title: w.task_5, done: !!w.done_5 });
+    const tasks = [...w.daily_win_tasks].sort((a, b) => a.slot - b.slot)
+      .filter(task => task.title).map(task => ({ title: task.title, done: Boolean(task.done) }));
     winsMap[w.date] = { done: tasks.filter(t => t.done).length, total: tasks.length, tasks };
   }
 

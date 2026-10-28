@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { fetchDailyWinTasksForDay } from './dailyWinTasksApi';
+import { fetchDailyWinTasksForDay, type DailyWinWithTasks } from './dailyWinTasksApi';
 import type { Tables, TablesInsert } from './database.types';
 
 type ShutdownFoodEntry = Pick<
@@ -7,7 +7,7 @@ type ShutdownFoodEntry = Pick<
   'id' | 'name' | 'brand' | 'calories' | 'protein' | 'carbs' | 'fat' | 'amount' | 'date' | 'meal_type'
 >;
 
-export async function fetchDailyWin(userId: string, date: string): Promise<Tables<'daily_wins'> | null> {
+export async function fetchDailyWin(userId: string, date: string): Promise<DailyWinWithTasks | null> {
   const { data, error } = await fetchDailyWinTasksForDay(userId, date);
   if (error) throw error;
   return data;

@@ -24,17 +24,13 @@ export function buildShutdownRecord({
   const dailyWinPatch: TablesUpdate<'daily_wins'> = {
     day_note: reflection,
     mood_score: moodScore,
-    done_1: completedTasks[0] ?? false,
-    done_2: completedTasks[1] ?? false,
-    done_3: completedTasks[2] ?? false,
-    done_4: completedTasks[3] ?? false,
-    done_5: completedTasks[4] ?? false,
     result: allDone ? 'Z' : 'P',
   };
   const reflectionPart = reflection ? ` | Refleksja: ${reflection}` : '';
 
   return {
     dailyWinPatch,
+    taskCompletions: activeTaskIndexes.map(index => ({ slot: index + 1, done: completedTasks[index] ?? false })),
     streamContent:
       `Domknięcie dnia: Wynik ${dayScore}/10 (Samopoczucie: ${moodScore}/5)` +
       reflectionPart,

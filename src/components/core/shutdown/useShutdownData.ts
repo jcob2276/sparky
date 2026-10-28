@@ -4,8 +4,8 @@ import { getTodayWarsaw } from '../../../lib/date';
 import { notify } from '../../../lib/notify';
 import { updateDailyWin } from '../../../lib/goal/goalSpine.mutations';
 import { useUserId } from '../../../store/useStore';
-import type { Tables } from '../../../lib/database.types';
-import { shutdownKeys } from '../../../lib/queryKeys';
+import { type DailyWinWithTasks, updateDailyWinTaskBySlot } from '../../../lib/dailyWinTasksApi';
+import { shutdownKeys, todoKeys } from '../../../lib/queryKeys';
 import {
   fetchDailyWin,
   fetchDailyReconciliationScore,
@@ -14,8 +14,8 @@ import {
 } from '../../../lib/shutdownApi';
 import { buildShutdownRecord } from './shutdownModel';
 
-function taskField(win: Tables<'daily_wins'>, key: string): string | null {
-  return (win as unknown as Record<string, string | null>)[key] ?? null;
+function completionState(win: DailyWinWithTasks): boolean[] {
+  return [1, 2, 3, 4, 5].map(slot => Boolean(win.daily_win_tasks.find(task => task.slot === slot)?.done));
 }
 
 interface ShutdownTask {
@@ -26,7 +26,7 @@ interface ShutdownTask {
 }
 
 interface ShutdownFetchedData {
-  todayWin: Tables<'daily_wins'> | null;
+  todayWin: DailyWinWithTasks | null;
   dayScore: number;
 }
 
@@ -43,7 +43,7 @@ function computeInitialFromCache(
   return {
     winId: win?.id ?? null,
     completedTasks: win
-      ? [!!win.done_1, !!win.done_2, !!win.done_3, !!win.done_4, !!win.done_5]
+      ? completionState(win)
       : [false, false, false, false, false],
     reflectionText: win?.day_note || '',
     moodScore: win?.mood_score || 3,
@@ -81,25 +81,19 @@ export function useShutdownData() {
 
   if (todayWin && syncedWinId !== todayWin.id) {
     setSyncedWinId(todayWin.id);
-    setCompletedTasks([
-      !!todayWin.done_1,
-      !!todayWin.done_2,
-      !!todayWin.done_3,
-      !!todayWin.done_4,
-      !!todayWin.done_5,
-    ]);
+    setCompletedTasks(completionState(todayWin));
     setReflectionText(todayWin.day_note || '');
     setMoodScore(todayWin.mood_score || 3);
     setDayScore(fetched?.dayScore ?? 7);
   }
 
   const tasksList: ShutdownTask[] = todayWin
-    ? [1, 2, 3, 4, 5]
-        .map((slot, idx) => ({
-          title: taskField(todayWin, `task_${slot}`),
-          todoId: taskField(todayWin, `task_${slot}_todo_id`),
-          done: completedTasks[idx],
-          idx,
+    ? [...todayWin.daily_win_tasks].sort((a, b) => a.slot - b.slot)
+        .map(task => ({
+          title: task.title,
+          todoId: task.todo_id,
+          done: completedTasks[task.slot - 1],
+          idx: task.slot - 1,
         }))
         .filter((task) => task.title?.trim())
     : [];
@@ -117,6 +111,12 @@ export function useShutdownData() {
         activeTaskIndexes: tasksList.map((task) => task.idx),
       });
 
+      const timestamp = new Date().toISOString();
+      for (const { slot, done } of record.taskCompletions) {
+        const task = todayWin.daily_win_tasks.find(row => row.slot === slot);
+        if (Boolean(task?.done) === done) continue;
+        await updateDailyWinTaskBySlot(userId, todayWin.id, slot, done, done ? timestamp : null);
+      }
       await updateDailyWin(userId, todayWin.id, record.dailyWinPatch);
       await upsertDailyReconciliationScore(userId, today, dayScore);
       await insertSparkyStream({
@@ -127,6 +127,7 @@ export function useShutdownData() {
         metadata: record.streamMetadata,
       });
       await queryClient.invalidateQueries({ queryKey: shutdownKeys.data(userId, today) });
+      await queryClient.invalidateQueries({ queryKey: todoKeys.dailyWins(userId, today) });
       return true;
     } catch (err: unknown) {
       console.error('Error saving daily shutdown:', err);

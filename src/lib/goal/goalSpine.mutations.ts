@@ -13,6 +13,7 @@ import type {
 import { invalidateGoalSpineCache } from './goalSpine.queries';
 import { currentWeekStart } from './goalSpine.queries';
 import type { Json } from '../database.types';
+import { persistDailyWin, persistDailyWinMetadata, persistDailyWinsPartial, persistDailyWinTaskDone } from '../dailyWinTasksApi';
 
 export * from './goalSpineSprint.mutations';
 export * from './goalSpineKpi.mutations';
@@ -159,13 +160,7 @@ export async function updateDailyWin(
   id: string,
   patch: DailyWinUpdate,
 ): Promise<DailyWinRow> {
-  const { data, error } = await supabase
-    .from('daily_wins')
-    .update(patch)
-    .eq('id', id)
-    .select()
-    .single();
-  if (error) throw new Error(error.message);
+  const data = await persistDailyWinMetadata(userId, id, patch);
   invalidateGoalSpineCache(userId);
   return data;
 }
@@ -177,25 +172,7 @@ export async function updateDailyWinTaskDone(
   done: boolean,
   completedAt: string | null,
 ): Promise<void> {
-  const payload = { done, completed_at: completedAt };
-  try {
-    const { error } = await supabase
-      .from('daily_win_tasks')
-      .update(payload)
-      .eq('id', taskId);
-    if (error) throw new Error(error.message);
-  } catch (err: unknown) {
-    const { isOfflineError, queueOfflineWrite } = await import('../offlineQueue');
-    if (isOfflineError(err)) {
-      await queueOfflineWrite(
-        'table:update:daily_win_tasks',
-        { match: { id: taskId }, payload },
-        'Odznaczenie zadania dnia',
-      );
-    } else {
-      throw err;
-    }
-  }
+  await persistDailyWinTaskDone(userId, taskId, done, completedAt);
   invalidateGoalSpineCache(userId);
 }
 
@@ -203,12 +180,7 @@ export async function insertDailyWin(
   userId: string,
   entry: DailyWinInsert,
 ): Promise<DailyWinRow> {
-  const { data, error } = await supabase
-    .from('daily_wins')
-    .upsert({ ...entry, user_id: userId }, { onConflict: 'user_id,date' })
-    .select()
-    .single();
-  if (error) throw new Error(error.message);
+  const data = await persistDailyWin(userId, entry);
   invalidateGoalSpineCache(userId);
   return data;
 }
@@ -216,7 +188,6 @@ export async function insertDailyWin(
 /** Auto-mark past unfinished days as partial (result = P). */
 export async function markDailyWinsPartial(userId: string, ids: string[]): Promise<void> {
   if (ids.length === 0) return;
-  const { error } = await supabase.from('daily_wins').update({ result: 'P' }).in('id', ids);
-  if (error) throw new Error(error.message);
+  await persistDailyWinsPartial(userId, ids);
   invalidateGoalSpineCache(userId);
 }

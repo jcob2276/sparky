@@ -11,6 +11,14 @@ function sources(dir: string): string[] {
 }
 
 describe('daily win read boundary', () => {
+  it('keeps all daily win table operations in dailyWinTasksApi', () => {
+    const forbidden = sources(root)
+      .filter(file => !file.endsWith('dailyWinTasksApi.ts'))
+      .filter(file => /\.from\(\s*['"]daily_(?:wins|win_tasks)['"]\s*\)/.test(readFileSync(file, 'utf8')))
+      .map(file => relative(root, file));
+    expect(forbidden).toEqual([]);
+  });
+
   // Only direct read queries: insert/update/upsert(...).select(...) are deliberately excluded.
   for (const file of sources(root)) {
     const source = readFileSync(file, 'utf8');

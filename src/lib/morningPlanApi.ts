@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { fetchDailyWinTasksForDay } from './dailyWinTasksApi';
+import { fetchDailyWinTasksForDay, removeDailyWinTasks, createDailyWinTasks } from './dailyWinTasksApi';
 import { shiftDateStr } from './date';
 import { getWeekStartWarsaw, shiftWeekStart } from './growth/growth';
 import type { Json, Tables, TablesInsert } from './database.types';
@@ -187,14 +187,7 @@ export async function updateTodoDueDate(
 }
 
 export async function deleteDailyWinTasks(userId: string, dayWinId: string): Promise<void> {
-  const { error } = await supabase
-    .from('daily_win_tasks')
-    .delete()
-    .eq('day_win_id', dayWinId);
-
-  if (error) {
-    throw error;
-  }
+  await removeDailyWinTasks(userId, dayWinId);
   invalidateGoalSpineCache(userId);
 }
 
@@ -202,14 +195,7 @@ export async function insertDailyWinTasks(
   userId: string,
   entries: TablesInsert<'daily_win_tasks'>[],
 ): Promise<Tables<'daily_win_tasks'>[]> {
-  const { data, error } = await supabase
-    .from('daily_win_tasks')
-    .insert(entries)
-    .select();
-
-  if (error) {
-    throw error;
-  }
+  const data = await createDailyWinTasks(userId, entries);
   invalidateGoalSpineCache(userId);
   return data ?? [];
 }

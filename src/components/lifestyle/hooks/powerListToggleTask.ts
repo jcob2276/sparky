@@ -10,7 +10,8 @@ import {
   updateDailyWin,
   updateDailyWinTaskDone,
 } from '../../../lib/goal/goalSpine';
-import type { DailyWinWithTasks, DailyWinRecord } from '../usePowerListTypes';
+import type { DailyWinWithTasks } from '../usePowerListTypes';
+import { applyTodayTaskToggle } from '../powerList/morningReflectionModel';
 import type { UsePowerListActionsArgs } from './usePowerListActionsTypes';
 
 export async function toggleTaskHelper(
@@ -22,21 +23,14 @@ export async function toggleTaskHelper(
   explicitTimestamp?: string | null,
 ) {
   if (!todayWinInput) return;
-  const todayWin = todayWinInput as DailyWinRecord;
+  const todayWin = todayWinInput;
   const slot = index + 1;
-  const field = `done_${slot}`;
-  const timeField = `completed_at_${slot}`;
-  const todoIdField = `task_${slot}_todo_id`;
-  const checkpointIdField = `task_${slot}_checkpoint_id`;
   const taskRow = (todayWin.daily_win_tasks ?? []).find((t) => t.slot === slot);
-  const newValue = explicitDone !== undefined ? explicitDone : (taskRow ? !taskRow.done : !todayWin[field]);
+  if (!taskRow) throw new Error('Nie znaleziono zadania dnia.');
+  const newValue = explicitDone !== undefined ? explicitDone : !taskRow.done;
   const timestamp = explicitTimestamp !== undefined ? explicitTimestamp : (newValue ? new Date().toISOString() : null);
 
-  const allDone = [1, 2, 3, 4, 5].every((i) => {
-    if (!todayWin[`task_${i}`]) return true;
-    if (i === slot) return newValue;
-    return todayWin[`done_${i}`];
-  });
+  const allDone = (todayWin.daily_win_tasks ?? []).every(task => !task.title || (task.slot === slot ? newValue : task.done));
 
   const hasNote = Boolean(todayWin.day_note?.trim());
   const resultPatch: TablesUpdate<'daily_wins'> = {};
@@ -48,39 +42,17 @@ export async function toggleTaskHelper(
   }
 
   try {
-    const taskRow = (todayWin.daily_win_tasks ?? []).find((t) => t.slot === slot);
-    let data: Awaited<ReturnType<typeof updateDailyWin>>;
+    await updateDailyWinTaskDone(args.userId, taskRow.id, newValue, timestamp);
+    const data = Object.keys(resultPatch).length > 0
+      ? await updateDailyWin(args.userId, todayWin.id, resultPatch) : todayWin;
+    const merged = applyTodayTaskToggle({ ...data, daily_win_tasks: todayWin.daily_win_tasks }, slot, newValue, timestamp);
 
-    if (taskRow) {
-      await updateDailyWinTaskDone(args.userId, taskRow.id, newValue, timestamp);
-      data = Object.keys(resultPatch).length > 0
-        ? await updateDailyWin(args.userId, todayWin.id, resultPatch)
-        : { ...todayWin, [field]: newValue, [timeField]: timestamp } as Awaited<ReturnType<typeof updateDailyWin>>;
-    } else {
-      // Legacy rows without daily_win_tasks — write wide columns directly.
-      data = await updateDailyWin(args.userId, todayWin.id, {
-        ...resultPatch,
-        [field]: newValue,
-        [timeField]: timestamp,
-      } as TablesUpdate<'daily_wins'>);
-    }
-
-    // Prefer wide-column mirror after trigger fan-out; merge local done state for UI.
-    const merged = {
-      ...data,
-      [field]: newValue,
-      [timeField]: timestamp,
-      daily_win_tasks: (todayWin.daily_win_tasks ?? []).map((t) =>
-        t.slot === slot ? { ...t, done: newValue, completed_at: timestamp } : t,
-      ),
-    };
-
-    if (args.onUpdate) args.onUpdate(merged as typeof data);
+    if (args.onUpdate) args.onUpdate(merged);
 
     if (newValue) {
-      const taskText = todayWin[`task_${slot}`] as string | null;
-      const category = (todayWin[`category_${slot}`] as string | null) ?? 'general';
-      const checkpointId = todayWin[checkpointIdField] as string | null;
+      const taskText = taskRow.title;
+      const category = taskRow.category ?? 'general';
+      const checkpointId = taskRow.checkpoint_id;
       if (checkpointId) {
         args.setCheckpointPrompt({
           index,
@@ -96,9 +68,9 @@ export async function toggleTaskHelper(
           metadata: {
             category,
             index: slot,
-            todo_id: (todayWin[todoIdField] as string | null) ?? null,
+            todo_id: taskRow.todo_id,
             checkpoint_id: checkpointId ?? null,
-            project_id: (todayWin[`task_${slot}_project_id`] as string | null) ?? null,
+            project_id: taskRow.project_id,
           },
         });
       }
@@ -106,8 +78,8 @@ export async function toggleTaskHelper(
       args.setCheckpointPrompt((p) => (p?.index === index ? null : p));
     }
 
-    const projectId = todayWin[`task_${slot}_project_id`] as string | null;
-    const targetValue = todayWin[`task_${slot}_target_value`] as string | null;
+    const projectId = taskRow.project_id;
+    const targetValue = taskRow.target_value;
     if (projectId && targetValue) {
       (async () => {
         try {

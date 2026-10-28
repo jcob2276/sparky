@@ -1,12 +1,15 @@
 import type { PostgrestError, SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from './supabase';
-import type { Database, Tables } from './database.types';
+import type { Database, Tables, TablesInsert, TablesUpdate } from './database.types';
 
 type Slot = 1 | 2 | 3 | 4 | 5;
 type SlotColumn = `task_${Slot}` | `category_${Slot}` | `done_${Slot}` | `completed_at_${Slot}`
   | `task_${Slot}_${'todo_id' | 'checkpoint_id' | 'pin_id' | 'project_id' | 'target_value' | 'time_slot'}`;
 type SlotColumns = Pick<Tables<'daily_wins'>, SlotColumn>;
-type DailyWinWithTasks = Tables<'daily_wins'> & { daily_win_tasks: Tables<'daily_win_tasks'>[] };
+export type DailyWinWithTasks = Omit<Tables<'daily_wins'>, SlotColumn> & { daily_win_tasks: Tables<'daily_win_tasks'>[] };
+export type DailyWinMetadataUpdate = Omit<TablesUpdate<'daily_wins'>, SlotColumn>;
+export type DailyWinMetadataInsert = Omit<TablesInsert<'daily_wins'>, SlotColumn>;
+type AdaptedDailyWin = DailyWinWithTasks & SlotColumns;
 type ReadResult<T> = { data: T | null; error: PostgrestError | null };
 
 // Explicit parent metadata: never request the fifty mirrored columns, even with select('*').
@@ -39,7 +42,7 @@ interface DayRange {
 /** Parent metadata plus normalized task rows, fetched in one PostgREST snapshot. */
 export async function fetchDailyWinTasks(
   userId: string, range: DayRange = {}, client: SupabaseClient<Database> = supabase,
-): Promise<ReadResult<DailyWinWithTasks[]>> {
+): Promise<ReadResult<AdaptedDailyWin[]>> {
   let query = client.from('daily_wins').select(DAY_WITH_TASKS).eq('user_id', userId);
   if (range.from) query = query.gte('date', range.from);
   if (range.to) query = query.lte('date', range.to);
@@ -50,14 +53,72 @@ export async function fetchDailyWinTasks(
   return { ...result, data: result.data?.map(adaptDailyWinTasks) ?? null };
 }
 
-export async function fetchDailyWinTasksForDay(userId: string, date: string): Promise<ReadResult<DailyWinWithTasks>> {
+export async function fetchDailyWinTasksForDay(userId: string, date: string): Promise<ReadResult<AdaptedDailyWin>> {
   const result = await supabase.from('daily_wins').select(DAY_WITH_TASKS)
     .eq('user_id', userId).eq('date', date).maybeSingle();
   return { ...result, data: result.data ? adaptDailyWinTasks(result.data) : null };
 }
 
-export async function fetchDailyWinTasksById(userId: string, id: string): Promise<ReadResult<DailyWinWithTasks>> {
+export async function fetchDailyWinTasksById(userId: string, id: string): Promise<ReadResult<AdaptedDailyWin>> {
   const result = await supabase.from('daily_wins').select(DAY_WITH_TASKS)
     .eq('user_id', userId).eq('id', id).single();
   return { ...result, data: result.data ? adaptDailyWinTasks(result.data) : null };
+}
+
+/** Missing rows are errors: never fall back to a mirrored daily_wins column. */
+export async function updateDailyWinTaskBySlot(
+  userId: string, dayWinId: string, slot: number, done: boolean, completedAt: string | null,
+): Promise<void> {
+  const { data, error } = await supabase.from('daily_win_tasks')
+    .update({ done, completed_at: completedAt }).eq('user_id', userId)
+    .eq('day_win_id', dayWinId).eq('slot', slot).select('id').maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('Nie znaleziono zadania dnia.');
+}
+
+export async function persistDailyWinTaskDone(
+  userId: string, taskId: string, done: boolean, completedAt: string | null,
+): Promise<void> {
+  const payload = { done, completed_at: completedAt };
+  try {
+    const { error } = await supabase.from('daily_win_tasks').update(payload)
+      .eq('user_id', userId).eq('id', taskId);
+    if (error) throw error;
+  } catch (err: unknown) {
+    const { isOfflineError, queueOfflineWrite } = await import('./offlineQueue');
+    if (!isOfflineError(err)) throw err;
+    await queueOfflineWrite('table:update:daily_win_tasks',
+      { match: { user_id: userId, id: taskId }, payload }, 'Odznaczenie zadania dnia');
+  }
+}
+
+export async function persistDailyWinMetadata(userId: string, id: string, patch: DailyWinMetadataUpdate) {
+  const { data, error } = await supabase.from('daily_wins').update(patch)
+    .eq('user_id', userId).eq('id', id).select(DAY_WITH_TASKS).single();
+  if (error) throw error;
+  return adaptDailyWinTasks(data);
+}
+
+export async function persistDailyWin(userId: string, entry: DailyWinMetadataInsert) {
+  const { data, error } = await supabase.from('daily_wins')
+    .upsert({ ...entry, user_id: userId }, { onConflict: 'user_id,date' }).select(DAY_WITH_TASKS).single();
+  if (error) throw error;
+  return adaptDailyWinTasks(data);
+}
+
+export async function persistDailyWinsPartial(userId: string, ids: string[]) {
+  const { error } = await supabase.from('daily_wins').update({ result: 'P' }).eq('user_id', userId).in('id', ids);
+  if (error) throw error;
+}
+
+export async function removeDailyWinTasks(userId: string, dayWinId: string) {
+  const { error } = await supabase.from('daily_win_tasks').delete().eq('user_id', userId).eq('day_win_id', dayWinId);
+  if (error) throw error;
+}
+
+export async function createDailyWinTasks(userId: string, entries: TablesInsert<'daily_win_tasks'>[]) {
+  const { data, error } = await supabase.from('daily_win_tasks')
+    .insert(entries.map(entry => ({ ...entry, user_id: userId }))).select();
+  if (error) throw error;
+  return data ?? [];
 }

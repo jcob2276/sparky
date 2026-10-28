@@ -12,13 +12,14 @@ describe('buildShutdownRecord', () => {
       activeTaskIndexes: [0, 1, 2],
     });
 
-    expect(record.dailyWinPatch).toMatchObject({
-      done_1: true,
-      done_2: false,
-      done_3: true,
+    expect(record.dailyWinPatch).toEqual({
+      day_note: 'Za dużo przełączeń kontekstu.',
       mood_score: 4,
       result: 'P',
     });
+    expect(record.taskCompletions).toEqual([
+      { slot: 1, done: true }, { slot: 2, done: false }, { slot: 3, done: true },
+    ]);
     expect(record.dailyWinPatch).not.toHaveProperty('daily_rpe');
     expect(record.streamContent).not.toContain('RPE');
     expect(record.streamMetadata).not.toHaveProperty('rpe');

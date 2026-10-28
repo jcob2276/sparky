@@ -10,7 +10,6 @@ import {
   type TaskSlot,
   type PowerListDraft,
   type DailyWinWithTasks,
-  type DailyWinRecord,
   powerListDraftKey,
 } from '../usePowerListTypes';
 
@@ -42,16 +41,9 @@ export function usePowerListEffects({
   planDaySignal: _planDaySignal,
 }: UsePowerListEffectsArgs) {
   // 1. Fetch project names/metadata when todayWin tasks update
-  const todoIds = [
-    todayWin?.task_1_todo_id,
-    todayWin?.task_2_todo_id,
-    todayWin?.task_3_todo_id,
-    todayWin?.task_4_todo_id,
-    todayWin?.task_5_todo_id,
-  ].filter((id): id is string => !!id);
-  const todayWinRecord = todayWin as DailyWinRecord | null;
-  const directProjectIds = [1, 2, 3, 4, 5]
-    .map((i) => todayWinRecord?.[`task_${i}_project_id`] as string | null)
+  const todoIds = (todayWin?.daily_win_tasks ?? []).map(task => task.todo_id)
+    .filter((id): id is string => !!id);
+  const directProjectIds = (todayWin?.daily_win_tasks ?? []).map(task => task.project_id)
     .filter((id): id is string => !!id);
 
   const projectMetadataQuery = useQuery<Record<string, { name: string; color: string | null }>>({
@@ -70,11 +62,11 @@ export function usePowerListEffects({
         const project = section?.project_id ? projectData.get(section.project_id) : null;
         if (project) result[item.id] = { name: project.name, color: project.color };
       }
-      for (let i = 1; i <= 5; i++) {
-        const pid = todayWinRecord?.[`task_${i}_project_id`] as string | null;
+      for (const task of todayWin?.daily_win_tasks ?? []) {
+        const pid = task.project_id;
         if (pid && projectData.has(pid)) {
           const project = projectData.get(pid) as { name: string; color: string | null };
-          result[`task_project_${i}`] = { name: project.name, color: project.color };
+          result[`task_project_${task.slot}`] = { name: project.name, color: project.color };
         }
       }
       return result;

@@ -1,7 +1,7 @@
 import { getSprintInfo } from '../growth/sprintUtils';
 import type { LifeGoalDisplayRow } from '../projects/lifeGoals';
 import type { WeekDirectionGoals } from '../growth/growthWeek';
-import type { Json, Tables, TablesInsert, TablesUpdate } from '../database.types';
+import type { Json, Tables } from '../database.types';
 import type { MonthlyReviewRow } from '../growth/monthReview';
 
 export type { MonthlyReviewRow, MonthlyReviewFields } from '../growth/monthReview';
@@ -152,5 +152,5 @@ export type CompleteWeeklyReviewOptions = {
 };
 
 export type DailyWinRow = Tables<'daily_wins'>;
-export type DailyWinUpdate = TablesUpdate<'daily_wins'>;
-export type DailyWinInsert = TablesInsert<'daily_wins'>;
+export type DailyWinUpdate = import('../dailyWinTasksApi').DailyWinMetadataUpdate;
+export type DailyWinInsert = import('../dailyWinTasksApi').DailyWinMetadataInsert;

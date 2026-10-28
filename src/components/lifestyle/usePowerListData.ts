@@ -36,7 +36,7 @@ const getAllProjectOptions = (active?: DirectionProjectSummary[]): ProjectOption
   active?.map((p) => ({ id: p.id, name: p.name, kpis: p.kpis ?? [] })) ?? [];
 
 function getEveningCloseDue(todayWin: DailyWinWithTasks | null): boolean {
-  if (!todayWin || todayWin.day_note?.trim() || !todayWin.task_1?.trim()) return false;
+  if (!todayWin || todayWin.day_note?.trim() || !todayWin.daily_win_tasks?.some(task => task.title?.trim())) return false;
   return todayWin.result === 'Z' || todayWin.result === 'P' || getWarsawHour() >= 20;
 }
 
@@ -181,8 +181,8 @@ export function usePowerListData({
     if (!effectiveTodayWin) return;
     const slot = index + 1;
     const taskRow = (effectiveTodayWin.daily_win_tasks ?? []).find((t) => t.slot === slot);
-    const field = `done_${slot}` as keyof DailyWinWithTasks;
-    const currentDone = taskRow ? Boolean(taskRow.done) : Boolean(effectiveTodayWin[field]);
+    if (!taskRow) return;
+    const currentDone = Boolean(taskRow.done);
     const nextDone = !currentDone;
     const timestamp = nextDone ? new Date().toISOString() : null;
 
