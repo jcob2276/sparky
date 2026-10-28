@@ -2193,6 +2193,7 @@ export type Database = {
           id: string
           is_pinned: boolean
           last_used: string
+          library_id: string | null
           name: string
           nutrient_sources: Json
           protein: number | null
@@ -2217,6 +2218,7 @@ export type Database = {
           id?: string
           is_pinned?: boolean
           last_used?: string
+          library_id?: string | null
           name: string
           nutrient_sources?: Json
           protein?: number | null
@@ -2241,6 +2243,7 @@ export type Database = {
           id?: string
           is_pinned?: boolean
           last_used?: string
+          library_id?: string | null
           name?: string
           nutrient_sources?: Json
           protein?: number | null
@@ -2253,7 +2256,15 @@ export type Database = {
           validation_reason?: string | null
           validation_status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "food_favorites_library_id_fkey"
+            columns: ["library_id"]
+            isOneToOne: false
+            referencedRelation: "food_library"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       food_history_repairs: {
         Row: {
