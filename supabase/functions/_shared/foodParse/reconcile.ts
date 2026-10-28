@@ -182,7 +182,7 @@ async function lookupViaLibraryRaw(name: string, userId: string, db: any): Promi
  * Potrawy złożone — ich makra już zawierają tłuszcz ze smażenia.
  * Nie mapujemy ich na surowe składniki z generic/reference (np. jajecznica → jajko ugotowane).
  */
-const COMPOSED_DISHES_RE = /\b(jajecznica|omlet|nalesnik|racuch|placek ziemniaczan|kotlet|schabowy|gulasz|bigos|gołąbk|pierogi|lazani|spaghetti|pizza|kebab|tortilla wrap|burrito|taco)\b/i;
+const COMPOSED_DISHES_RE = /\b(jajecznica|omlet|nalesnik|racuch|placek ziemniaczan|kotlet|schabowy|gulasz|bigos|gołąbk|pierogi|lazani|spaghetti (bolognese|carbonara|z )|pizza|kebab|tortilla wrap|burrito|taco)\b/i;
 
 type Resolved = { match: Per100gFood; source: ParsedFoodItem['source']; macroSource: NonNullable<ParsedFoodItem['parseMeta']>['macroSource']; score?: number };
 
