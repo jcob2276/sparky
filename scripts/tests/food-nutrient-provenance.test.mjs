@@ -34,6 +34,8 @@ try {
       RETURNS void LANGUAGE sql AS $$ SELECT $$;
   `);
   await db.exec(await readFile('supabase/migrations/20261027160425_food_nutrient_provenance.sql', 'utf8'));
+  await db.exec(await readFile('supabase/migrations/20261021211000_update_food_entry_saturated_fat.sql', 'utf8'));
+  await db.exec(await readFile('supabase/migrations/20261027222927_food_entry_portion_micronutrients.sql', 'utf8'));
   const payload = {
     name: 'Chleb', calories: 250, protein: 8, carbs: 48, fat: 2,
     fiber: 6, sugar: 3, saturated_fat: 0.5, salt: 1.2,
@@ -68,6 +70,31 @@ try {
   assert.equal(library.nutrient_sources.salt, 'data');
   await cache(1.1, { salt: 'data' });
   assert.equal(Number((await db.query('SELECT salt FROM food_library')).rows[0].salt), 1.1, 'new label data refreshes the cache');
+  await db.query("SELECT set_config('request.jwt.claim.sub',$1,false)", [owner]);
+  await db.query('SELECT update_food_entry($1,$2,$3::jsonb)', [owner, entry.id, JSON.stringify({ amount: '100 g', calories: 250, protein: 8, carbs: 48, fat: 2 })]);
+  const resized = (await db.query('SELECT * FROM daily_food_entries WHERE id=$1', [entry.id])).rows[0];
+  assert.equal(Number(resized.salt), 1.2, 'editing grams scales stored salt with the whole portion');
+  assert.equal(Number(resized.saturated_fat), 0.6, 'editing scales the previously rounded saturated fat');
+  assert.equal(Number(resized.fiber), 6);
+  assert.equal(Number(resized.sugar), 3);
+  await db.query('UPDATE daily_food_entries SET amount=$1 WHERE id=$2', ['100 gr', entry.id]);
+  await db.query('SELECT update_food_entry($1,$2,$3::jsonb)', [owner, entry.id, JSON.stringify({ amount: '200 g' })]);
+  assert.equal(Number((await db.query('SELECT salt FROM daily_food_entries WHERE id=$1', [entry.id])).rows[0].salt), 2.4, 'historical gr abbreviation follows the canonical parser');
+  await db.query('SELECT update_food_entry($1,$2,$3::jsonb)', [owner, entry.id, JSON.stringify({ amount: '100 gr' })]);
+  assert.equal(Number((await db.query('SELECT salt FROM daily_food_entries WHERE id=$1', [entry.id])).rows[0].salt), 1.2, 'the same abbreviation is valid in a new amount');
+  await db.query('UPDATE daily_food_entries SET amount=$1 WHERE id=$2', ['0,1 kg', entry.id]);
+  await db.query('SELECT update_food_entry($1,$2,$3::jsonb)', [owner, entry.id, JSON.stringify({ amount: '50 g' })]);
+  assert.equal(Number((await db.query('SELECT salt FROM daily_food_entries WHERE id=$1', [entry.id])).rows[0].salt), 0.6, 'unit conversion uses the mass, not the first number');
+  await db.query('SELECT update_food_entry($1,$2,$3::jsonb)', [owner, entry.id, JSON.stringify({ amount: '100 g', salt: 0.9 })]);
+  assert.equal(Number((await db.query('SELECT salt FROM daily_food_entries WHERE id=$1', [entry.id])).rows[0].salt), 0.9, 'an explicit nutrient correction wins over proportional scaling');
+  await db.query('SELECT update_food_entry($1,$2,$3::jsonb)', [owner, entry.id, JSON.stringify({ salt: null })]);
+  assert.equal((await db.query('SELECT salt FROM daily_food_entries WHERE id=$1', [entry.id])).rows[0].salt, null, 'explicitly missing data stays missing');
+  await db.query('UPDATE daily_food_entries SET amount=$1, salt=1.2 WHERE id=$2', ['1 porcja', entry.id]);
+  await db.query('SELECT update_food_entry($1,$2,$3::jsonb)', [owner, entry.id, JSON.stringify({ amount: '300 g' })]);
+  assert.equal(Number((await db.query('SELECT salt FROM daily_food_entries WHERE id=$1', [entry.id])).rows[0].salt), 1.2, 'assigning mass to an unweighed old portion preserves its whole-portion nutrients');
+  await assert.rejects(() => db.query('SELECT update_food_entry($1,$2,$3::jsonb)', [owner, entry.id, JSON.stringify({ amount: '0 g' })]), /invalid portion mass/);
+  await db.exec("SELECT set_config('request.jwt.claim.sub','',false)");
+  await assert.rejects(() => db.query('SELECT update_food_entry($1,$2,$3::jsonb)', [owner, entry.id, '{}']), /forbidden/);
   await db.exec(`
     CREATE SCHEMA cron; CREATE SCHEMA net;
     CREATE TABLE cron.job(jobid bigint,jobname text,command text);

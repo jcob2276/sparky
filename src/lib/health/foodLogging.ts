@@ -35,6 +35,8 @@ interface FoodParseMeta {
   baseFat?: number
   baseFiber?: number
   baseSugar?: number
+  baseSaturatedFat?: number
+  baseSalt?: number
   warnings?: string[]
   validationStatus?: 'accepted' | 'review'
 }

@@ -3,6 +3,7 @@ import { Pressable } from '../../../ui/ControlPrimitives';
 import type { RecentEntry } from '../hooks/useFoodEntryData';
 import { useEntryPhoto } from '../hooks/useEntryPhoto';
 import { useHaptics } from '../../../../hooks/useHaptics';
+import { parseAmountGrams } from '@vanguard/domain';
 import EditNameField from './EditNameField';
 import EditPhotoControls from './EditPhotoControls';
 import {
@@ -126,6 +127,11 @@ export default function EditScreen({
         />
 
         <PortionStepper grams={editGrams} setGrams={setEditGrams} />
+        {parseAmountGrams(editingEntry.amount) == null && (
+          <p className="text-xs text-warning">
+            Wpis zapisano jako „{editingEntry.amount ?? 'brak ilości'}”, bez masy. Podaj wagę całej tej porcji — zapisane kalorie i makra pozostaną takie same, chyba że wybierzesz ponowne przeliczenie.
+          </p>
+        )}
         <MealTypeSegmentedPicker mealType={editMealType} setMealType={setEditMealType} />
         <MacroCardsRow preview={editPreview} />
 
@@ -154,6 +160,7 @@ export default function EditScreen({
             saveEntryEdit();
           }}
           loading={editSaving}
+          disabled={!editPreview}
           className="min-h-12 flex-1 rounded-2xl text-sm font-semibold shadow-sm active:scale-[0.98] ui-interactive"
         >
           Zapisz zmiany

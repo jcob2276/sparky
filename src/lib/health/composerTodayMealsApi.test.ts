@@ -23,7 +23,7 @@ const mockEntries: TodayFoodEntry[] = [
     fiber: null,
     sugar: null,
     brand: null,
-    amount: '2 sztuki',
+    amount: '120 g',
     meal_type: 'breakfast',
     date: '2026-09-12',
   },
@@ -140,4 +140,10 @@ describe('copyFoodEntriesToDate', () => {
     });
     expect(confirmMealCapture).not.toHaveBeenCalled();
   });
+});
+
+it('validates every copied meal before the first write when a later meal has no mass', async () => {
+  vi.clearAllMocks();
+  await expect(copyFoodEntriesToDate('user-1', [mockEntries[1], { ...mockEntries[2], amount: '1 porcja' }], '2026-09-13')).rejects.toThrow(/mas/i);
+  expect(confirmMealCapture).not.toHaveBeenCalled();
 });

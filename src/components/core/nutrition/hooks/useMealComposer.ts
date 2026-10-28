@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { combineDateTimeWarsawISO, getTodayWarsaw, getYesterdayWarsaw } from '../../../../lib/date';
 import { useLoggedTime } from './useLoggedTime';
-import { notify } from '../../../../lib/notify';
 import {
   MEAL_TYPES,
   QUICK_CAPTURE_FAVORITES,
@@ -131,12 +130,21 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
     setDraftItems((current) => [...(current ?? []), recentProductToDraft(product)]);
   }, []);
 
+  const loadRepeatDraft = useCallback((entries: Parameters<typeof entriesToDraft>[0], name: string) => {
+    try {
+      setDraftItems(entriesToDraft(entries));
+      setMemoryName(name);
+      setError(null);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'Nie udało się wczytać posiłku.');
+    }
+  }, []);
+
   const loadTodayMealToDraft = useCallback((mealId: string) => {
     const meal = todayMealsQuery.data?.find((candidate) => candidate.id === mealId);
     if (!meal?.entries.length) return;
-    setDraftItems(entriesToDraft(meal.entries));
-    setMemoryName(meal.name);
-  }, [todayMealsQuery.data]);
+    loadRepeatDraft(meal.entries, meal.name);
+  }, [todayMealsQuery.data, loadRepeatDraft]);
 
   const { quickChips, handleQuickChip } = useMealComposerQuickChips({
     allTodayEntries: allTodayEntriesQuery.data,
@@ -160,10 +168,8 @@ export function useMealComposer(onSaved?: () => void, refreshSignal = 0) {
 
   const repeatYesterdayMeal = useCallback(() => {
     if (!yesterdayMealSuggestion?.entries.length) return;
-    setDraftItems(entriesToDraft(yesterdayMealSuggestion.entries));
-    setMemoryName(`Wczorajszy posiłek (${yesterdayMealSuggestion.mealLabel})`);
-    notify(`Załadowano wczorajszy ${yesterdayMealSuggestion.mealLabel} do edytora!`, 'success');
-  }, [yesterdayMealSuggestion]);
+    loadRepeatDraft(yesterdayMealSuggestion.entries, `Wczorajszy posiłek (${yesterdayMealSuggestion.mealLabel})`);
+  }, [yesterdayMealSuggestion, loadRepeatDraft]);
 
   const { suggestions: nextMealSuggestions, applySuggestion: applyNextMeal } = useNextMealSuggestions({
     userId,

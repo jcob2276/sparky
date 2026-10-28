@@ -78,3 +78,16 @@ describe('mealPortions', () => {
     expect(restored.protein).toBe(15);
   });
 });
+
+it('scales salt and saturated fat with the portion and restores their original baseline', () => {
+  const item = { ...baseItem, saturatedFat: 4, salt: 1.3 };
+  const half = scaleDraftItem(item, 60);
+  expect(half.saturatedFat).toBe(2);
+  expect(half.salt).toBe(0.65);
+  const double = scaleDraftItem(half, 240);
+  expect(double.saturatedFat).toBe(8);
+  expect(double.salt).toBe(2.6);
+  const restored = scaleDraftItem(scaleDraftItem(double, 0), 120);
+  expect(restored.saturatedFat).toBe(4);
+  expect(restored.salt).toBe(1.3);
+});

@@ -34,7 +34,7 @@ export default function WeekBalanceStrip({ week }: { week: WeekBalance }) {
       )}
       {week.partialDays > 0 && (
         <p className="text-2xs font-semibold text-warning">
-          {week.partialDays} {week.partialDays === 1 ? 'dzień oznaczony' : 'dni oznaczone'} jako niepełne: nie licz na dzienną pulę.
+          {week.partialDays} {week.partialDays === 1 ? 'dzień oznaczony jako niepełny' : 'dni oznaczone jako niepełne'}: nie licz na dzienną pulę.
         </p>
       )}
     </div>

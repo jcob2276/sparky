@@ -6,6 +6,8 @@
  * Funkcje formatujące są czyste (bez Deno/Supabase), fetch nigdy nie rzuca.
  */
 
+import { getWarsawDateString as warsawDay } from '../../../../packages/domain/src/date.ts';
+
 interface AwarenessChatRow { role: string; content: string; created_at: string | null }
 interface AwarenessMealRow { name: string; calories: number | null; protein: number | null; created_at: string | null }
 interface AwarenessEventRow { summary: string | null; start_time: string | null; end_time: string | null; location: string | null }
@@ -29,10 +31,6 @@ function hhmm(iso: string | null | undefined): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '?';
   return d.toLocaleTimeString('pl-PL', { timeZone: TZ, hour: '2-digit', minute: '2-digit' });
-}
-
-function warsawDay(d: Date): string {
-  return d.toLocaleDateString('en-CA', { timeZone: TZ });
 }
 
 /** „12 min temu", „3 h 20 min temu", „2 dni temu" — liczone w minutach, bez zaokrąglania do „wczoraj". */

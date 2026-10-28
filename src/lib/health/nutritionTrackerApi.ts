@@ -30,6 +30,9 @@ function captureTrustLevel(item: CaptureDraftItem): 'confirmed' | 'reference' | 
 
 export function buildCaptureItems(items: CaptureDraftItem[], inputMode?: MealCaptureSource): CaptureItemPayload[] {
   return items.map((item) => {
+    if (!Number.isFinite(item.grams) || item.grams <= 0) {
+      throw new Error(`Podaj prawidłową masę porcji dla „${item.name}”.`);
+    }
     const grams = Math.max(1, Math.round(item.grams));
     const scale = 100 / grams;
     const trustLevel = captureTrustLevel(item);

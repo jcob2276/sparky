@@ -83,8 +83,12 @@ describe('parseAmountGrams (kopiowanie wpisów)', () => {
     expect(parseAmountGrams('350 g')).toBe(350);
     expect(parseAmountGrams('250 ml')).toBe(250);
     expect(parseAmountGrams('1,5 kg')).toBe(1500);
-    expect(parseAmountGrams('1 porcja')).toBe(100);
-    expect(parseAmountGrams('3 szt.')).toBe(100);
-    expect(parseAmountGrams(null)).toBe(100);
+    expect(parseAmountGrams('1 porcja')).toBeNull();
+    expect(parseAmountGrams('3 szt.')).toBeNull();
+    expect(parseAmountGrams(null)).toBeNull();
   });
+});
+
+it('requires a weight before repeating an entry stored only in pieces', () => {
+  expect(() => entriesToDraft([{ ...entry(null), amount: '3 szt.' }])).toThrow(/mas/i);
 });

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchNutritionDayReviews, saveNutritionDayReview } from '../../../../lib/health/nutritionTrackerApi';
 import type { NutritionDayCompleteness } from '../../../../lib/health/nutritionTracker';
+import { notify } from '../../../../lib/notify';
 
 export interface DayReview {
   status: NutritionDayCompleteness;
@@ -25,7 +26,10 @@ export function useDayReview(userId: string | undefined, date: string): DayRevie
       queryClient.setQueryData(key, next);
       return { previous };
     },
-    onError: (_error, _next, context) => queryClient.setQueryData(key, context?.previous ?? 'unknown'),
+    onError: (error, _next, context) => {
+      queryClient.setQueryData(key, context?.previous ?? 'unknown');
+      notify(`Nie udało się zapisać kompletności dnia: ${error.message}`, 'error');
+    },
     onSettled: () => {
       void queryClient.invalidateQueries({ queryKey: ['week-balance'] });
       void queryClient.invalidateQueries({ queryKey: ['nutrition-data', userId] });

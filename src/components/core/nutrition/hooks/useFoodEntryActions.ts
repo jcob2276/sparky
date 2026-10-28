@@ -179,8 +179,9 @@ export function useFoodEntryActions({
       setQuickAddingId(entry.id);
       setError(null);
       try {
-        const grams = Math.max(1, parseGrams(entry.amount));
+        const grams = parseGrams(entry.amount);
         const per100 = derivePer100(entry);
+        if (grams == null || per100 == null) throw new Error('Brak masy porcji. Uzupełnij wagę w edycji wpisu przed kopiowaniem.');
         const queued = await addFoodEntryRpc(
           userId,
           grams,

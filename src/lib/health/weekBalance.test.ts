@@ -60,3 +60,11 @@ describe('computeWeekBalance', () => {
     expect(computeWeekBalance({ weekStart: WEEK, today: '2026-10-21', eatenByDate: {}, targetByDate: {}, fallbackTarget: null })).toBeNull();
   });
 });
+
+it('marks the current day as nonbinding immediately when it is explicitly partial', () => {
+  expect(computeWeekBalance({ weekStart: '2026-10-26', today: '2026-10-27', eatenByDate: { '2026-10-26': 2400, '2026-10-27': 1200 }, targetByDate: {}, fallbackTarget: 2400, completenessByDate: { '2026-10-26': 'complete', '2026-10-27': 'partial' } })).toMatchObject({ partialDays: 1, binding: false });
+});
+
+it('does not count an explicitly partial empty day again as a missing day', () => {
+  expect(computeWeekBalance({ weekStart: '2026-10-26', today: '2026-10-27', eatenByDate: {}, targetByDate: {}, fallbackTarget: 2400, completenessByDate: { '2026-10-26': 'partial' } })).toMatchObject({ partialDays: 1, missingDays: 0, binding: false });
+});

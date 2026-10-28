@@ -54,3 +54,7 @@ describe('buildCaptureItems', () => {
     expect(without.per100.salt).toBeNull();
   });
 });
+
+it.each([0, -1, NaN, Infinity])('rejects invalid mass %s instead of quietly writing 1 g', (grams) => {
+  expect(() => buildCaptureItems([{ ...base, grams, confidence: 'high', source: 'library' }])).toThrow(/mas/i);
+});

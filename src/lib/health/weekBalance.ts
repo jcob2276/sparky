@@ -12,7 +12,7 @@ export interface WeekBalance {
   daysLeft: number;
   /** Dni przed dzisiejszym bez wpisów jedzenia i bez potwierdzenia „dzień kompletny” (budżet liczy je w całości). */
   missingDays: number;
-  /** Dni przed dzisiejszym, które sam oznaczyłeś jako niepełne (część jedzenia nie została zapisana). */
+  /** Dni do dzisiaj włącznie oznaczone jako niepełne (część jedzenia nie została zapisana). */
   partialDays: number;
   /** Czy „zostało do zjedzenia” opiera się na pełnych danych; gdy nie, to tylko orientacja. */
   binding: boolean;
@@ -43,8 +43,8 @@ export function computeWeekBalance({ weekStart, today, eatenByDate, targetByDate
   const daysLeft = days.filter((d) => d >= today).length;
   const remaining = Math.round(budget - eaten);
   // Potwierdzony pełny dzień bez wpisów to świadomy post, nie dziura w dzienniku.
-  const missingDays = past.filter((d) => !(eatenByDate[d] > 0) && completenessByDate[d] !== 'complete').length;
-  const partialDays = past.filter((d) => completenessByDate[d] === 'partial').length;
+  const missingDays = past.filter((d) => !(eatenByDate[d] > 0) && (!completenessByDate[d] || completenessByDate[d] === 'unknown')).length;
+  const partialDays = elapsed.filter((d) => completenessByDate[d] === 'partial').length;
   return {
     eaten: Math.round(eaten),
     budget: Math.round(budget),

@@ -160,8 +160,9 @@ export async function copyFoodEntriesToDate(
   }
 
   const sourceDate = filteredEntries[0]?.date;
-  for (const [mealType, mealEntries] of groups.entries()) {
-    const draftItems = entriesToDraft(mealEntries);
+  // Validate every meal before the first write, so an unknown mass cannot leave a half-copied day.
+  const captures = [...groups].map(([mealType, mealEntries]) => ({ mealType, draftItems: entriesToDraft(mealEntries) }));
+  for (const { mealType, draftItems } of captures) {
     if (!draftItems.length) continue;
     await confirmMealCapture({
       userId,

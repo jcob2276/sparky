@@ -1,4 +1,5 @@
 import { formatDayLabel } from '../../../../lib/date';
+import { parseAmountGrams } from '@vanguard/domain';
 import { type ParsedFoodItem as NLFoodItem } from '../../../../lib/health/foodLogging';
 export type { FoodBase } from '../../../../lib/health/foodTypes';
 import type { FoodBase } from '../../../../lib/health/foodTypes';
@@ -27,15 +28,11 @@ export interface RecentEntry {
 
 export type NLItem = NLFoodItem;
 
-export function parseGrams(amount: string | null): number {
-  if (!amount) return 100;
-  const m = amount.match(/(\d+(?:[.,]\d+)?)/);
-  if (!m) return 100;
-  return Math.round(parseFloat(m[1].replace(',', '.')));
-}
+export const parseGrams = parseAmountGrams;
 
 export function derivePer100(entry: RecentEntry) {
-  const g = Math.max(1, parseGrams(entry.amount));
+  const g = parseGrams(entry.amount);
+  if (g == null) return null;
   return {
     calories: (entry.calories ?? 0) * 100 / g,
     protein: (entry.protein ?? 0) * 100 / g,

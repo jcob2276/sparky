@@ -25,7 +25,7 @@ export function useMealComposerRefresh({
 
   return useCallback(async () => {
     await contextQuery.refetch();
-    void queryClient.invalidateQueries({ queryKey: ['nutrition-meal-memories', userId] });
+    void queryClient.invalidateQueries({ queryKey: ['meal-memories', userId] });
     void queryClient.invalidateQueries({ queryKey: ['meal-composer-yesterday', userId, mealType] });
     void queryClient.invalidateQueries({ queryKey: ['recent-food-products', userId] });
     void queryClient.invalidateQueries({ queryKey: ['user-portions', userId] });

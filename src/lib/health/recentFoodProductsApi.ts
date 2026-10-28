@@ -38,8 +38,10 @@ export async function fetchRecentFoodProducts(userId: string, limit = 8): Promis
   for (const row of data ?? []) {
     const key = normalizeName(row.name);
     if (seen.has(key)) continue;
-    seen.add(key);
     const grams = parseAmountGrams(row.amount);
+    // Quick shortcuts require a known mass; entries without it remain editable in history.
+    if (grams == null) continue;
+    seen.add(key);
     products.push({
       id: row.id,
       name: row.name,

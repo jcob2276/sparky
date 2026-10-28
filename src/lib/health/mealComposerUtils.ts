@@ -81,16 +81,16 @@ export interface RepeatableFoodEntry {
 /**
  * Gramy z tekstu ilości, tylko gdy jest jawna jednostka masy/objętości (g, ml, kg, l).
  * „1 porcja” albo „3 szt.” to inny rodzaj ilości, więc nie zamieniają się w 1 g ani 3 g;
- * wtedy wracamy do 100 g jako neutralnej podstawy, którą trzeba potwierdzić ważeniem.
+ * brak masy pozostaje brakiem danych i wymaga uzupełnienia przed kopiowaniem.
  */
-export function parseAmountGrams(amount: string | null): number {
-  const grams = parseExplicitAmountGrams(amount);
-  return grams == null ? 100 : Math.max(1, Math.round(grams));
+export function parseAmountGrams(amount: string | null): number | null {
+  return parseExplicitAmountGrams(amount);
 }
 
 export function entriesToDraft(entries: RepeatableFoodEntry[]): MealDraftItem[] {
   return entries.map((entry, index) => {
     const grams = parseAmountGrams(entry.amount);
+    if (grams == null) throw new Error(`Brak masy dla „${entry.name}” (${entry.amount ?? 'brak ilości'}). Uzupełnij wagę w edycji wpisu przed kopiowaniem.`);
     const prior = readFoodProvenance(entry.parse_meta);
     return {
       id: `repeat-${index + 1}`,

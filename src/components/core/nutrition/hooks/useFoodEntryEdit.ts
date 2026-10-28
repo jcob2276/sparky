@@ -35,7 +35,7 @@ export function useFoodEntryEdit({
     initialEditEntry ?? null
   );
   const [editGrams, setEditGrams] = useState(
-    initialEditEntry ? String(parseGrams(initialEditEntry.amount)) : '100'
+    initialEditEntry ? String(parseGrams(initialEditEntry.amount) ?? '') : '100'
   );
   const [editName, setEditNameRaw] = useState(initialEditEntry?.name ?? '');
   const [editEstimateNote, setEditEstimateNote] = useState<string | null>(null);
@@ -57,8 +57,13 @@ export function useFoodEntryEdit({
   const [editDeleting, setEditDeleting] = useState(false);
 
   const editPreview = useMemo(() => {
-    if (!editPer100) return null;
-    const g = parseInt(editGrams, 10) || 0;
+    const g = parseGrams(`${editGrams} g`);
+    if (g == null) return null;
+    // This is the mass of the entire old portion, not a multiplier over invented grams.
+    if (!editPer100) return editingEntry ? {
+      calories: editingEntry.calories ?? 0, protein: editingEntry.protein ?? 0,
+      carbs: editingEntry.carbs, fat: editingEntry.fat,
+    } : null;
     return {
       calories: Math.round((editPer100.calories * g) / 100),
       protein: Math.round(((editPer100.protein * g) / 100) * 10) / 10,
@@ -71,14 +76,14 @@ export function useFoodEntryEdit({
           ? Math.round(((editPer100.fat * g) / 100) * 10) / 10
           : null,
     };
-  }, [editGrams, editPer100]);
+  }, [editGrams, editPer100, editingEntry]);
 
   const openEditEntry = useCallback(
     (entry: RecentEntry) => {
       setEditingEntry(entry);
       setEditNameRaw(entry.name);
       setEditEstimateNote(null);
-      setEditGrams(String(parseGrams(entry.amount)));
+      setEditGrams(String(parseGrams(entry.amount) ?? ''));
       setEditMealType(entry.meal_type ?? defaultMealType());
       setEditPer100(derivePer100(entry));
       setError(null);
@@ -90,10 +95,11 @@ export function useFoodEntryEdit({
   const reestimateFromName = useCallback(async () => {
     const name = editName.trim();
     if (!name || !userId || editReestimating) return;
+    const grams = parseGrams(`${editGrams} g`);
+    if (grams == null) { setError('Podaj masę całej porcji przed przeliczeniem.'); return; }
     setEditReestimating(true);
     setError(null);
     try {
-      const grams = parseInt(editGrams, 10) || 100;
       const result = await reestimateEntry({ userId, name, grams, mealGroupId: editingEntry?.meal_group_id });
       if (!result) {
         setError('Nie udało się przeliczyć — opisz dokładniej');
@@ -118,7 +124,8 @@ export function useFoodEntryEdit({
     setEditSaving(true);
     setError(null);
     try {
-      const newGrams = parseInt(editGrams, 10) || 100;
+      const newGrams = parseGrams(`${editGrams} g`);
+      if (newGrams == null) throw new Error('Podaj prawidłową masę całej porcji.');
       const newName = editName.trim() || editingEntry.name;
       const nameChanged = newName !== editingEntry.name;
       await updateFoodEntry(userId, editingEntry.id, {
@@ -131,7 +138,7 @@ export function useFoodEntryEdit({
         amount: `${newGrams} g`,
       });
       const origGrams = parseGrams(editingEntry.amount);
-      if (nameChanged || Math.abs(newGrams - origGrams) >= 5) {
+      if (nameChanged || origGrams == null || Math.abs(newGrams - origGrams) >= 5) {
         saveFoodCorrection(userId, editingEntry.name, newGrams, nameChanged ? newName : null).catch((e) =>
           console.warn('[FoodEntryModal] saveFoodCorrection failed', e)
         );

@@ -108,6 +108,8 @@ export function scaleDraftItem(item: MealDraftItem, newGrams: number): MealDraft
   const baseFat = item.parseMeta?.baseFat ?? item.fat;
   const baseFiber = item.parseMeta?.baseFiber ?? item.fiber;
   const baseSugar = item.parseMeta?.baseSugar ?? item.sugar;
+  const baseSaturatedFat = item.parseMeta?.baseSaturatedFat ?? item.saturatedFat;
+  const baseSalt = item.parseMeta?.baseSalt ?? item.salt;
 
   const grams = Math.max(0, Math.round(newGrams));
   const factor = baseGrams > 0 ? grams / baseGrams : 0;
@@ -121,6 +123,8 @@ export function scaleDraftItem(item: MealDraftItem, newGrams: number): MealDraft
     fat: scale(baseFat) ?? 0,
     fiber: scale(baseFiber),
     sugar: scale(baseSugar),
+    saturatedFat: scale(baseSaturatedFat),
+    salt: baseSalt == null ? undefined : Math.round(baseSalt * factor * 100) / 100,
     parseMeta: {
       ...(item.parseMeta ?? { macroSource: 'llm_estimate', parserVersion: 'composer-v1' }),
       baseGrams,
@@ -130,6 +134,8 @@ export function scaleDraftItem(item: MealDraftItem, newGrams: number): MealDraft
       baseFat,
       baseFiber,
       baseSugar,
+      baseSaturatedFat,
+      baseSalt,
     },
   };
 }
