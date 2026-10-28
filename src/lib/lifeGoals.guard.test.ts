@@ -46,7 +46,7 @@ describe('tabela właścicieli w SINGLE_SOURCE.md', () => {
     const missing = names.filter((name) => !new RegExp(String.raw`export (?:async )?function ${name}\b|export const ${name}\b`).test(code));
     expect(names.length).toBeGreaterThan(3);
     expect(missing).toEqual([]);
-  });
+  }, 30_000); // skan całego kodu; w pełnym, równoległym zestawie potrafi przekroczyć domyślne 5 s
 
   it('pola useLifeTargets() wymienione w tabeli są w typie LifeTargets', () => {
     const doc = readFileSync(join(ROOT, 'docs/SINGLE_SOURCE.md'), 'utf8');

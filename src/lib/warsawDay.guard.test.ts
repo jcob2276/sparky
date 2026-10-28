@@ -22,5 +22,5 @@ describe('dzień w strefie Warszawy', () => {
       .filter((file) => UTC_TODAY.test(readFileSync(file, 'utf8')))
       .map((file) => relative(ROOT, file));
     expect(offenders).toEqual([]);
-  });
+  }, 30_000); // skan całego kodu; w pełnym, równoległym zestawie potrafi przekroczyć domyślne 5 s
 });
