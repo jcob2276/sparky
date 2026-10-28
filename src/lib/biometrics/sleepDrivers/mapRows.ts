@@ -7,7 +7,7 @@ import { round } from './stats';
 export interface EnhancedRow {
   date: string;
   sleep_score: number | null;
-  total_sleep_hours: number | null;
+  main_sleep_hours: number | null;
   deep_sleep_hours: number | null;
   sleep_efficiency: number | null;
   sleep_average_hrv: number | null;
@@ -55,7 +55,7 @@ export function mapNights(enhanced: EnhancedRow[], summary: SummaryRow[]): Night
   for (const e of enhanced) byDate.set(e.date, { ...byDate.get(e.date), e });
   for (const s of summary) byDate.set(s.date, { ...byDate.get(s.date), s });
   return [...byDate.entries()].map(([date, { e, s }]) => {
-    const totalH = num(e?.total_sleep_hours) ?? num(s?.total_sleep_hours);
+    const totalH = num(e?.main_sleep_hours) ?? num(s?.total_sleep_hours);
     const deepH = num(e?.deep_sleep_hours) ?? num(s?.deep_sleep_hours);
     return {
       date,

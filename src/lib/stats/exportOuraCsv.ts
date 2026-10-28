@@ -8,7 +8,7 @@ export async function exportOuraCsv({ supabase = defaultSupabase, session, dateR
   // Dzienne agregaty (oura_enhanced)
   const enhancedCols = [
     'sleep_score', 'readiness_score',
-    'total_sleep_hours', 'time_in_bed_hours', 'deep_sleep_hours', 'rem_sleep_hours',
+    'main_sleep_hours', 'time_in_bed_hours', 'deep_sleep_hours', 'rem_sleep_hours',
     'light_sleep_hours', 'awake_time_minutes', 'restless_periods', 'sleep_efficiency',
     'sleep_latency_minutes', 'bedtime_start', 'bedtime_end',
     'sleep_average_heart_rate', 'sleep_lowest_heart_rate', 'sleep_average_hrv', 'sleep_average_breath',

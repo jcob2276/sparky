@@ -43,7 +43,7 @@ export async function fetchSleepDriversInput(userId: string): Promise<SleepDrive
 
   const [enhanced, summary, food, workouts, garmin, phone, pc, wins, settings] = await Promise.all([
     supabase.from('oura_enhanced')
-      .select('date,sleep_score,total_sleep_hours,deep_sleep_hours,sleep_efficiency,sleep_average_hrv,sleep_latency_minutes,bedtime_start')
+      .select('date,sleep_score,main_sleep_hours,deep_sleep_hours,sleep_efficiency,sleep_average_hrv,sleep_latency_minutes,bedtime_start')
       .eq('user_id', userId).gte('date', since),
     supabase.from('oura_daily_summary')
       .select('date,sleep_score,total_sleep_hours,deep_sleep_hours,sleep_efficiency,hrv_avg,latency_minutes,bedtime_timestamp')

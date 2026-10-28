@@ -4,7 +4,7 @@ import { mapNights, mapPhone, mapSessions, mapTop5 } from './mapRows';
 describe('mapNights', () => {
   it('łączy enhanced z summary i liczy procent snu głębokiego', () => {
     const nights = mapNights(
-      [{ date: '2026-10-10', sleep_score: 80, total_sleep_hours: 7.5, deep_sleep_hours: 1.5, sleep_efficiency: 90, sleep_average_hrv: null, sleep_latency_minutes: 12, bedtime_start: '2026-10-09T21:00:00Z' }],
+      [{ date: '2026-10-10', sleep_score: 80, main_sleep_hours: 7.5, deep_sleep_hours: 1.5, sleep_efficiency: 90, sleep_average_hrv: null, sleep_latency_minutes: 12, bedtime_start: '2026-10-09T21:00:00Z' }],
       [
         { date: '2026-10-10', sleep_score: 70, total_sleep_hours: null, deep_sleep_hours: null, sleep_efficiency: null, hrv_avg: 44, latency_minutes: 99, bedtime_timestamp: null },
         { date: '2026-10-11', sleep_score: 65, total_sleep_hours: null, deep_sleep_hours: null, sleep_efficiency: null, hrv_avg: null, latency_minutes: null, bedtime_timestamp: null },

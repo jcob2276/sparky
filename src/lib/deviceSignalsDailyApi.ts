@@ -80,7 +80,7 @@ export async function fetchOuraNights(
 ): Promise<OuraNightRow[]> {
   const { data, error } = await supabase
     .from('oura_enhanced')
-    .select('date, bedtime_start, bedtime_end, total_sleep_hours, sleep_score')
+    .select('date, bedtime_start, bedtime_end, main_sleep_hours, sleep_score')
     .eq('user_id', userId)
     .gte('date', fromDate)
     .lte('date', toDate)
@@ -90,7 +90,7 @@ export async function fetchOuraNights(
     date: r.date,
     bedtimeStart: r.bedtime_start,
     bedtimeEnd: r.bedtime_end,
-    totalSleepHours: r.total_sleep_hours,
+    totalSleepHours: r.main_sleep_hours,
     sleepScore: r.sleep_score,
   }));
 }

@@ -5,7 +5,7 @@ import { buildSleepRegularity, formatAxisClock, formatDuration, type SleepRegula
 const TODAY = '2026-10-19';
 
 function night(date: string, startIso: string, endIso: string, hours: number | null): SleepRegularityRow {
-  return { date, bedtime_start: startIso, bedtime_end: endIso, total_sleep_hours: hours };
+  return { date, bedtime_start: startIso, bedtime_end: endIso, main_sleep_hours: hours };
 }
 
 /** n nights ending on TODAY, falling asleep at 23:00 local (21:00Z) and sleeping 7 h. */

@@ -79,8 +79,8 @@ export default function DesktopOuraSleepCard({ userId }: { userId: string }) {
   const enhanced = ouraData?.enhanced;
   const oura = ouraData?.oura;
 
-  const totalSleepMins = enhanced?.total_sleep_hours != null
-    ? Math.round(Number(enhanced.total_sleep_hours) * 60)
+  const totalSleepMins = enhanced?.main_sleep_hours != null
+    ? Math.round(Number(enhanced.main_sleep_hours) * 60)
     : oura?.total_sleep_hours != null
     ? Math.round(Number(oura.total_sleep_hours) * 60)
     : null;

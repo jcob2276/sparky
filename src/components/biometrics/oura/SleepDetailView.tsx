@@ -44,7 +44,7 @@ export function SleepDetailView({ data }: { data: OuraHealthHubData }) {
   const enhanced = date && data.enhanced?.date === date ? data.enhanced : null;
   const oura = date && data.oura?.date === date ? data.oura : null;
   const nightDetails = date && data.nightDetails?.date === date ? data.nightDetails : null;
-  const totalSleepHours = enhanced?.total_sleep_hours ?? oura?.total_sleep_hours ?? null;
+  const totalSleepHours = enhanced?.main_sleep_hours ?? oura?.total_sleep_hours ?? null;
   const bedtimeStart = enhanced?.bedtime_start ?? oura?.bedtime_timestamp ?? null;
   const bedtimeEnd = enhanced?.bedtime_end ?? oura?.bedtime_end_timestamp ?? null;
   const bedtimeDurationHours = bedtimeStart && bedtimeEnd && Date.parse(bedtimeEnd) > Date.parse(bedtimeStart)

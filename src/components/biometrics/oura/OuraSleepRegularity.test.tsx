@@ -12,7 +12,7 @@ function rows(n: number): SleepRegularityRow[] {
       date: `2026-10-${d}`,
       bedtime_start: `2026-10-${prev}T21:00:00Z`,
       bedtime_end: `2026-10-${d}T04:30:00Z`,
-      total_sleep_hours: 7,
+      main_sleep_hours: 7,
     };
   });
 }

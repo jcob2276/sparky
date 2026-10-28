@@ -6,7 +6,7 @@ import { TARGET_WINDOW_NIGHTS, type SleepRegularityRow } from './ouraSleepRegula
 export async function fetchSleepRegularityRows(userId: string, todayDate: string): Promise<SleepRegularityRow[]> {
   const { data, error } = await supabase
     .from('oura_enhanced')
-    .select('date,bedtime_start,bedtime_end,total_sleep_hours')
+    .select('date,bedtime_start,bedtime_end,main_sleep_hours')
     .eq('user_id', userId)
     .gte('date', shiftDateStr(todayDate, -(TARGET_WINDOW_NIGHTS - 1)))
     .lte('date', todayDate)

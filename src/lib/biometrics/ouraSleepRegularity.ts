@@ -25,7 +25,7 @@ export interface SleepRegularityRow {
   date: string;
   bedtime_start: string | null;
   bedtime_end: string | null;
-  total_sleep_hours: number | null;
+  main_sleep_hours: number | null;
 }
 
 export interface RegularityNight {
@@ -112,7 +112,7 @@ interface ValidNight {
 }
 
 function parseRow(row: SleepRegularityRow): ValidNight | null {
-  if (!row.bedtime_start || !row.bedtime_end || row.total_sleep_hours == null || row.total_sleep_hours <= 0) return null;
+  if (!row.bedtime_start || !row.bedtime_end || row.main_sleep_hours == null || row.main_sleep_hours <= 0) return null;
   const startMs = Date.parse(row.bedtime_start);
   const endMs = Date.parse(row.bedtime_end);
   if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) return null;
@@ -123,7 +123,7 @@ function parseRow(row: SleepRegularityRow): ValidNight | null {
     date: row.date,
     bedtimeAxis,
     wakeAxis: bedtimeAxis + inBed,
-    sleepMinutes: Math.round(row.total_sleep_hours * 60),
+    sleepMinutes: Math.round(row.main_sleep_hours * 60),
   };
 }
 
