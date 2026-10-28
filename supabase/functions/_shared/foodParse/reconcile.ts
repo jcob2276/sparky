@@ -184,34 +184,65 @@ async function lookupViaLibraryRaw(name: string, userId: string, db: any): Promi
  */
 const COMPOSED_DISHES_RE = /\b(jajecznica|omlet|nalesnik|racuch|placek ziemniaczan|kotlet|schabowy|gulasz|bigos|gołąbk|pierogi|lazani|spaghetti|pizza|kebab|tortilla wrap|burrito|taco)\b/i;
 
-async function reconcileOne(item: ParsedFoodItem, opts: ReconcileOpts): Promise<ParsedFoodItem> {
-  // Potrawy złożone: nie próbuj dopasowywać do surowych składników — zostawiamy LLM-estimate lub reference_pl.
+type Resolved = { match: Per100gFood; source: ParsedFoodItem['source']; macroSource: NonNullable<ParsedFoodItem['parseMeta']>['macroSource']; score?: number };
+
+/** Dopasowanie w uchwytnej kolejności zaufania; odrzucone przez weryfikację (niska zgodność nazwy) przechodzi do kolejnego źródła, a nie od razu do szacunku LLM. */
+async function resolveFromSources(item: ParsedFoodItem, opts: ReconcileOpts): Promise<Resolved | null> {
+  // Potrawy złożone: nie dopasowujemy do surowych składników — zostaje LLM-estimate lub reference_pl.
   const isComposedDish = COMPOSED_DISHES_RE.test(normalizePl(item.name));
+  const nameEn = item.parseMeta?.nameEn;
+  const resolvers: Array<() => Promise<Resolved | null>> = [
+    // 1. Osobista biblioteka/ulubione — własne wpisy mają priorytet.
+    async () => {
+      if (!opts.userId || !opts.db) return null;
+      const lib = pickBestMatchScored(item.name, (await lookupViaLibraryRaw(item.name, opts.userId, opts.db)) ?? []);
+      return lib ? { match: lib.match, source: 'library', macroSource: 'library', score: lib.score } : null;
+    },
+    // 2. Polska baza referencyjna (złożone potrawy).
+    async () => {
+      const ref = lookupReferencePl(item.name);
+      return ref ? { match: ref, source: 'database', macroSource: 'reference_pl', score: scoreFoodNameMatch(item.name, ref.name) } : null;
+    },
+    // 3. Generic staples — tylko proste produkty.
+    async () => {
+      const local = isComposedDish ? null : lookupGenericFood(item.name);
+      return local ? { match: local, source: 'database', macroSource: 'generic', score: scoreFoodNameMatch(item.name, local.name) } : null;
+    },
+    // 4. USDA po angielskiej nazwie z parsera — proste produkty, nie potrawy złożone.
+    async () => {
+      if (isComposedDish || !nameEn || !opts.db) return null;
+      const usda = await lookupUsda(nameEn, opts.db);
+      return usda ? { match: usda.match, source: 'database', macroSource: 'usda', score: usda.score } : null;
+    },
+    // 5. Open Food Facts — proste produkty.
+    async () => {
+      if (isComposedDish) return null;
+      const remote = await lookupOffFast(item.name);
+      return remote?.match.calories != null ? { match: remote.match, source: 'database', macroSource: remote.macroSource, score: remote.score } : null;
+    },
+  ];
+  for (const resolve of resolvers) {
+    const found = await resolve();
+    if (!found?.match.calories) continue;
+    const uncertain = found.score != null && found.score >= 0.50 && found.score <= 0.72;
+    if (uncertain && opts.apiKey && !(await verifyMatchWithLLM(item.name, found.match.name, opts.apiKey))) continue;
+    return found;
+  }
+  return null;
+}
 
-  let match: Per100gFood | null = null;
-  let source: ParsedFoodItem['source'] = 'llm';
-  let macroSource: any = 'llm_estimate';
-  let matchScore: number | undefined;
-  let matchedName: string | undefined;
-
-  // Krok 1: Osobista biblioteka/ulubione użytkownika — zawsze sprawdzamy (własne wpisy mają priorytet).
-  if (opts.userId && opts.db) { const lib = pickBestMatchScored(item.name, (await lookupViaLibraryRaw(item.name, opts.userId, opts.db)) ?? []); if (lib) { match = lib.match; source = 'library'; macroSource = 'library'; matchScore = lib.score; matchedName = lib.match.name; } }
-
-  // Krok 2: Polska baza referencyjna (PZH-style złożone potrawy) — zawsze sprawdzamy.
-  if (!match?.calories) { const ref = lookupReferencePl(item.name); if (ref) { match = ref; source = 'database'; macroSource = 'reference_pl'; matchedName = ref.name; matchScore = scoreFoodNameMatch(item.name, ref.name); } }
-
-  // Krok 3: Generic staples — TYLKO jeśli to NIE jest potrawa złożona.
-  if (!match?.calories && !isComposedDish) { const local = lookupGenericFood(item.name); if (local) { match = local; source = 'database'; macroSource = 'generic'; matchedName = local.name; matchScore = scoreFoodNameMatch(item.name, local.name); } }
-
-  // Krok 3b: USDA FoodData Central po angielskiej nazwie z parsera — proste produkty, nie potrawy złożone i marki.
-  if (!match?.calories && !isComposedDish && item.parseMeta?.nameEn && opts.db) { const usda = await lookupUsda(item.parseMeta.nameEn, opts.db); if (usda) { match = usda.match; source = 'database'; macroSource = 'usda'; matchScore = usda.score; matchedName = usda.match.name; } }
-
-  // Krok 4: OpenFoodFacts — TYLKO jeśli to NIE jest potrawa złożona.
-  if (!match?.calories && !isComposedDish) { const remote = await lookupOffFast(item.name); if (remote?.match.calories != null) { match = remote.match; source = 'database'; macroSource = remote.macroSource; matchScore = remote.score; matchedName = remote.match.name; } }
-
-  if (matchScore != null && matchScore >= 0.50 && matchScore <= 0.72 && opts.apiKey && matchedName) { const ok = await verifyMatchWithLLM(item.name, matchedName, opts.apiKey); if (!ok) { match = null; source = 'llm'; macroSource = 'llm_estimate'; matchScore = undefined; matchedName = undefined; } }
-  if (match?.calories != null && source !== 'llm') { const recalculated = recalcFromPer100g(item.grams, match); const micro = mergeMicronutrients(recalculated, item, { fatG: recalculated.fat, grams: item.grams }, match.nutrient_sources); return { ...item, ...recalculated, ...micro.values, name: macroSource === 'usda' ? item.name : (match.name || item.name), confidence: 'high', source, assumptions: item.assumptions, parseMeta: { ...item.parseMeta, macroSource, matchScore, matchedName, dataSource: match.source ?? macroSource, parserVersion: PARSER_VERSION, micronutrientSources: micro.sources } }; }
-  return item;
+async function reconcileOne(item: ParsedFoodItem, opts: ReconcileOpts): Promise<ParsedFoodItem> {
+  const found = await resolveFromSources(item, opts);
+  if (!found) return item;
+  const { match, source, macroSource, score: matchScore } = found;
+  const recalculated = recalcFromPer100g(item.grams, match);
+  const micro = mergeMicronutrients(recalculated, item, { fatG: recalculated.fat, grams: item.grams }, match.nutrient_sources);
+  return {
+    ...item, ...recalculated, ...micro.values,
+    name: macroSource === 'usda' ? item.name : (match.name || item.name),
+    confidence: 'high', source, assumptions: item.assumptions,
+    parseMeta: { ...item.parseMeta, macroSource, matchScore, matchedName: match.name, dataSource: match.source ?? macroSource, parserVersion: PARSER_VERSION, micronutrientSources: micro.sources },
+  };
 }
 
 export async function reconcileItems(items: ParsedFoodItem[], opts: ReconcileOpts): Promise<ParsedFoodItem[]> { return Promise.all(items.map((item) => reconcileOne(item, opts))); }
