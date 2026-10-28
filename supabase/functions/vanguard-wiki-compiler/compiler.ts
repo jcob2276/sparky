@@ -192,7 +192,7 @@ async function persistResults(supabase: any, userId: string, now: Date, pages: W
               user_id: userId, title: titleText, content: knowledgeContent,
               category: pageType, importance_score: importanceScore,
               is_verified: isVerified, embedding, metadata: { slug, wiki_page_id: data.id },
-              updated_at: now.toISOString(),
+              // vanguard_knowledge nie ma kolumny updated_at: jej zapis powodował błąd upsertu (sync wiki cicho nie działał).
             };
             if (existingKn?.id) payloadKn.id = existingKn.id;
             else payloadKn.created_at = now.toISOString();
