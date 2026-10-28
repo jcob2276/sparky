@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from './supabase';
+import { fetchDailyWinTasksForDay } from './dailyWinTasksApi';
 import { getTodayWarsaw, getWeekStartWarsaw } from './date';
 import { SparkyCore, computeSignals } from './vanguardCore';
 import { syncCalendar } from './syncApi';
@@ -74,22 +75,18 @@ async function fetchDashboardData(userId: string): Promise<DashboardData> {
     } else {
       // live today_win and weekly calories: world_state is rebuilt once a night, so meals and ticks
       // from today would otherwise show only after the next rebuild
-      const [{ data: liveTodayWin }, { data: weekNutrition, error: weekNutritionError }] = await Promise.all([
-        supabase
-          .from('daily_wins')
-          .select('*, daily_win_tasks(*)')
-          .eq('user_id', userId)
-          .eq('date', today)
-          .maybeSingle(),
+      const [{ data: liveTodayWin, error: winError }, { data: weekNutrition, error: weekNutritionError }] = await Promise.all([
+        fetchDailyWinTasksForDay(userId, today),
         supabase.from('daily_nutrition').select('calories').eq('user_id', userId).gte('date', monday).lte('date', today),
       ]);
+      if (winError) throw winError;
       const liveWeeklyCalories = weekNutritionError
         ? null
         : (weekNutrition ?? []).reduce((sum, row) => sum + (Number(row.calories) || 0), 0);
 
       return {
         weeklyCalories: liveWeeklyCalories ?? state.nutrition?.weekly_calories ?? 0,
-        todayWin: liveTodayWin ?? state.execution?.today_win ?? null,
+        todayWin: liveTodayWin,
       };
     }
   }
@@ -105,13 +102,14 @@ async function fetchDashboardData(userId: string): Promise<DashboardData> {
     lastWorkoutRes
   ] = await Promise.all([
     supabase.from('daily_nutrition').select('calories').eq('user_id', userId).gte('date', monday),
-    supabase.from('daily_wins').select('*, daily_win_tasks(*)').eq('user_id', userId).eq('date', today).maybeSingle(),
+    fetchDailyWinTasksForDay(userId, today),
     fetchLiveProteinToday(userId, today),
     supabase.from('oura_daily_summary').select('*').eq('user_id', userId).order('date', { ascending: false }).limit(30),
     supabase.from('workout_sessions').select('date').eq('user_id', userId).order('date', { ascending: false }).limit(1).maybeSingle()
   ]);
 
   const nutrition = nutritionRes.data;
+  if (tDataRes.error) throw tDataRes.error;
   const tData = tDataRes.data;
   const ouraData = ouraDataRes.data;
   const lastWorkout = lastWorkoutRes.data;

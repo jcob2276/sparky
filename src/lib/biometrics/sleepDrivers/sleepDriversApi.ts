@@ -1,4 +1,5 @@
 import { supabase } from '../../supabase';
+import { fetchDailyWinTasks } from '../../dailyWinTasksApi';
 import { getTodayWarsaw, shiftDateStr, warsawDayBoundsISO } from '../../date';
 import type { SleepDriversInput } from './inputTypes';
 import { fetchWeatherHistory } from './weatherHistoryApi';
@@ -60,8 +61,7 @@ export async function fetchSleepDriversInput(userId: string): Promise<SleepDrive
     supabase.from('phone_usage_daily').select('*').eq('user_id', userId).gte('date', sinceDayBefore),
     supabase.from('aw_daily_summary')
       .select('date,total_active_seconds').eq('user_id', userId).gte('date', sinceDayBefore),
-    supabase.from('daily_wins')
-      .select('date,daily_win_tasks(done)').eq('user_id', userId).gte('date', since),
+    fetchDailyWinTasks(userId, { from: since }),
     supabase.from('user_settings').select('home_lat,home_lng').eq('user_id', userId).maybeSingle(),
   ]);
 

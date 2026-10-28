@@ -6,6 +6,7 @@ import {
 } from './todo';
 import { listProjects } from '../projects/projects';
 import { supabase } from '../supabase';
+import { fetchDailyWinTasksForDay } from '../dailyWinTasksApi';
 import type { Tables } from '../database.types';
 
 // Query Keys
@@ -72,14 +73,9 @@ export function useSmartLists(userId: string) {
 
 export function useDailyWins(userId: string, date: string) {
   return useQuery({
-    queryKey: ['todo', 'dailyWins', userId, date],
+    queryKey: todoKeys.dailyWins(userId, date),
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('daily_wins')
-        .select('id, daily_win_tasks(todo_id)')
-        .eq('user_id', userId)
-        .eq('date', date)
-        .maybeSingle();
+      const { data, error } = await fetchDailyWinTasksForDay(userId, date);
       if (error) throw new Error(error.message);
       return data || null;
     },
@@ -103,12 +99,7 @@ export async function fetchDailyWinWithTasks(
   userId: string,
   date: string
 ): Promise<(Tables<'daily_wins'> & { daily_win_tasks?: Tables<'daily_win_tasks'>[] }) | null> {
-  const { data, error } = await supabase
-    .from('daily_wins')
-    .select('*, daily_win_tasks(*)')
-    .eq('user_id', userId)
-    .eq('date', date)
-    .maybeSingle();
+  const { data, error } = await fetchDailyWinTasksForDay(userId, date);
   if (error) throw new Error(error.message);
   return data || null;
 }

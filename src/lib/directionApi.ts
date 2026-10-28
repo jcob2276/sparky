@@ -9,6 +9,7 @@ import {
   subDays,
 } from 'date-fns';
 import { supabase } from './supabase';
+import { fetchDailyWinTasks } from './dailyWinTasksApi';
 import {
   closingMonthStartForReview,
   fetchMonthlyReview,
@@ -73,7 +74,7 @@ export async function fetchDirectionData(
     sprintFactsData,
     activeThemeReviewData,
   ] = await Promise.all([
-    supabase.from('daily_wins').select('*, daily_win_tasks(*)').eq('user_id', userId).order('date', { ascending: false }).limit(60),
+    fetchDailyWinTasks(userId, { ascending: false, limit: 60 }),
     fetchWeeklyReviewFull(userId, currentWeekStart),
     planWeekStartStr ? fetchWeeklyReviewFull(userId, planWeekStartStr) : Promise.resolve(null),
     supabase.from('vanguard_calendar').select('summary, start_time, end_time').eq('user_id', userId).gte('start_time', calFrom).lt('start_time', calTo).order('start_time'),
@@ -90,12 +91,7 @@ export async function fetchDirectionData(
   if (pastUnfinished.length > 0) {
     try {
       await markDailyWinsPartial(userId, pastUnfinished.map((d) => d.id));
-      const { data } = await supabase
-        .from('daily_wins')
-        .select('*, daily_win_tasks(*)')
-        .eq('user_id', userId)
-        .order('date', { ascending: false })
-        .limit(60);
+      const { data } = await fetchDailyWinTasks(userId, { ascending: false, limit: 60 });
       refreshedHistory = data;
     } catch {
       /* non-fatal */
@@ -156,7 +152,7 @@ export async function fetchDirectionWeekBoard(userId: string, weekStart: string,
   const results = await Promise.all([
     supabase.from('learning_week_pins').select('id, slot, done, entity_type, entity_id, manual_title, project_id').eq('user_id', userId).eq('week_start', weekStart).order('sort_order'),
     supabase.from('goal_kpis').select('id, project_id, name, target').eq('user_id', userId),
-    supabase.from('daily_wins').select('date, task_1, task_2, task_3, task_4, task_5, done_1, done_2, done_3, done_4, done_5, daily_win_tasks(slot, title, done)').eq('user_id', userId).gte('date', weekStart).lt('date', weekEnd),
+    fetchDailyWinTasks(userId, { from: weekStart, before: weekEnd }),
     supabase.from('learning_week_focus').select('skill_id, subskill_id, target_level').eq('user_id', userId).eq('week_start', weekStart).maybeSingle(),
     supabase.from('learning_skills').select('id, key, label, parent_id').eq('user_id', userId).eq('active', true),
     supabase.from('vanguard_links').select('id, title').eq('user_id', userId).limit(80),

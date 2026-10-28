@@ -91,6 +91,7 @@ export const learningKeys = {
 // ── TODO KEYS ──
 export const todoKeys = {
   all: ['todo'] as const,
+  dailyWins: (userId: string, date: string) => [...todoKeys.all, 'dailyWins', userId, date] as const,
   sections: (userId: string) => [...todoKeys.all, 'sections', userId] as const,
   items: (userId: string) => [...todoKeys.all, 'items', userId] as const,
   stale: (userId: string) => [...todoKeys.all, 'stale', userId] as const,

@@ -4,6 +4,7 @@
 import { getSprintInfo } from './sprintUtils';
 import { getWeekStartWarsaw, shiftWeekStart } from './growth';
 import { supabase } from '../supabase';
+import { fetchDailyWinTasks } from '../dailyWinTasksApi';
 import type { Json } from '../database.types';
 import type { MonthPillarAverages } from './monthReview';
 
@@ -93,12 +94,7 @@ export async function gatherSprintFacts(userId: string): Promise<SprintFacts> {
       .select('week_start, review_completed_at, pillar_scores, week_intention, week_highlight, proud_of')
       .eq('user_id', userId)
       .in('week_start', weeks),
-    supabase
-      .from('daily_wins')
-      .select('date, result, task_1, task_2, task_3, task_4, task_5, done_1, done_2, done_3, done_4, done_5, daily_win_tasks(slot, title, done)')
-      .eq('user_id', userId)
-      .gte('date', sprint.sprintStart)
-      .lte('date', sprint.sprintEnd),
+    fetchDailyWinTasks(userId, { from: sprint.sprintStart, to: sprint.sprintEnd }),
     supabase.from('goal_kpis').select('id, name, target, unit, project_id').eq('user_id', userId),
     weeks.length
       ? supabase.from('kpi_entries').select('kpi_id, week_start, value').eq('user_id', userId).in('week_start', weeks)

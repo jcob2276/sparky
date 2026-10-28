@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Tables } from '../database.types';
+import { fetchDailyWinTasks } from '../dailyWinTasksApi';
 import { warsawDayBoundsISO } from '../date';
 import type { ExportStatsMarkdownParams } from './exportStatsTypes';
 import { emptyRes } from './exportStatsHelpers';
@@ -66,7 +67,7 @@ export async function fetchExportData(
     includeBody ? supabase.from('body_metrics').select('*').eq('user_id', session.user.id).gte('date', dateRange.from).lte('date', dateRange.to).order('date', { ascending: true }) : Promise.resolve(emptyRes()),
     includeNutrition ? supabase.from('daily_food_entries').select('*').eq('user_id', session.user.id).gte('date', dateRange.from).lte('date', dateRange.to).order('date', { ascending: true }) : Promise.resolve(emptyRes()),
     includeNutrition ? supabase.from('daily_nutrition').select('*').eq('user_id', session.user.id).gte('date', dateRange.from).lte('date', dateRange.to).order('date', { ascending: true }) : Promise.resolve(emptyRes()),
-    includeJournal ? supabase.from('daily_wins').select('*').eq('user_id', session.user.id).gte('date', dateRange.from).lte('date', dateRange.to).order('date', { ascending: true }) : Promise.resolve(emptyRes()),
+    includeJournal ? fetchDailyWinTasks(session.user.id, { from: dateRange.from, to: dateRange.to, ascending: true }, supabase) : Promise.resolve(emptyRes()),
     includeJournal ? supabase.from('vanguard_stream').select('id, content, source, created_at, metadata').eq('user_id', session.user.id).eq('source', 'telegram').gte('created_at', exportStartIso).lte('created_at', exportEndIso).order('created_at', { ascending: true }) : Promise.resolve(emptyRes()),
     supabase.from('weekly_reviews').select('*').eq('user_id', session.user.id).gte('week_start', dateRange.from).lte('week_start', dateRange.to),
     supabase.from('life_goals').select('*').eq('user_id', session.user.id).maybeSingle(),

@@ -3,6 +3,7 @@ import { queryClient as defaultQueryClient } from './queryClient';
 import { calendarKeys, todoKeys, notesKeys, lifeObligationKeys } from './queryKeys';
 import { getTodayWarsaw, shiftDateStr, warsawDayBoundsISO } from './date';
 import { supabase } from './supabase';
+import { fetchDailyWinTasksForDay } from './dailyWinTasksApi';
 import { fetchLifeObligations } from './lifeObligationsApi';
 import { listTodoItems, listTodoSections, listSmartLists } from './todo/todo';
 import { listProjects } from './projects/projects';
@@ -142,14 +143,9 @@ export async function prefetchTodoData(queryClient: QueryClient, userId: string)
       staleTime: 60_000,
     }),
     queryClient.prefetchQuery({
-      queryKey: ['todo', 'dailyWins', userId, today],
+      queryKey: todoKeys.dailyWins(userId, today),
       queryFn: async () => {
-        const { data, error } = await supabase
-          .from('daily_wins')
-          .select('id, daily_win_tasks(todo_id)')
-          .eq('user_id', userId)
-          .eq('date', today)
-          .maybeSingle();
+        const { data, error } = await fetchDailyWinTasksForDay(userId, today);
         if (error) throw new Error(error.message);
         return data || null;
       },

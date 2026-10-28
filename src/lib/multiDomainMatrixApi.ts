@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { fetchDailyWinTasks } from './dailyWinTasksApi';
 
 interface MatrixNutritionRow {
   date: string;
@@ -64,12 +65,7 @@ export async function fetchMultiDomainMatrixApi(
       .gte('date', startDate)
       .order('date', { ascending: true }),
 
-    supabase
-      .from('daily_wins')
-      .select('date, task_1, task_2, task_3, task_4, task_5, done_1, done_2, done_3, done_4, done_5, result')
-      .eq('user_id', userId)
-      .gte('date', startDate)
-      .order('date', { ascending: true }),
+    fetchDailyWinTasks(userId, { from: startDate, ascending: true }),
 
     supabase
       .from('habit_logs')

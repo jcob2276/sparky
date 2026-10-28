@@ -1,5 +1,6 @@
 import { TIMEZONE, SAUNA_WORKOUT_DAY_PATTERN } from '@vanguard/domain';
 import { supabase } from '../supabase';
+import { fetchDailyWinTasks } from '../dailyWinTasksApi';
 import { getTodayWarsaw, shiftDateStr, warsawDayBoundsISO } from '../date';
 import { nutritionSeries } from './nutritionDays';
 import type { CialoRows, DuchRows, KontoRows } from './summaries';
@@ -64,18 +65,14 @@ export async function fetchDuchRows(userId: string, from: string, to: string): P
   const { fromISO } = warsawDayBoundsISO(from);
   const { fromISO: untilISO } = warsawDayBoundsISO(shiftDateStr(to, 1));
   const [wins, scores, journal] = await Promise.all([
-    supabase.from('daily_wins').select('id, date, result, mood_score, day_note').eq('user_id', userId).gte('date', from).lte('date', to),
+    fetchDailyWinTasks(userId, { from, to }),
     supabase.from('daily_reconciliations').select('date, day_score').eq('user_id', userId).gte('date', from).lte('date', to),
     supabase.from('vanguard_stream').select('timestamp').eq('user_id', userId).eq('source', 'telegram').gte('timestamp', fromISO).lt('timestamp', untilISO).limit(5000),
   ]);
   if (wins.error) throw wins.error;
   if (scores.error) throw scores.error;
   if (journal.error) throw journal.error;
-  const tasks = wins.data?.length
-    ? await supabase.from('daily_win_tasks').select('done, category, day_win_id').eq('user_id', userId)
-      .in('day_win_id', wins.data.map(row => row.id)).limit(5000)
-    : { data: [], error: null };
-  if (tasks.error) throw tasks.error;
+  const tasks = (wins.data ?? []).flatMap(row => row.daily_win_tasks);
   const dateByWin = new Map((wins.data ?? []).map((row) => [row.id, row.date]));
   const entriesByDay = new Map<string, number>();
   for (const row of journal.data ?? []) {
@@ -88,7 +85,7 @@ export async function fetchDuchRows(userId: string, from: string, to: string): P
     wins: (wins.data ?? []).flatMap((row) => (row.date
       ? [{ date: row.date, result: row.result, mood: num(row.mood_score), hasNote: Boolean(row.day_note?.trim()) }]
       : [])),
-    tasks: (tasks.data ?? []).flatMap((row) => {
+    tasks: tasks.flatMap((row) => {
       const date = dateByWin.get(row.day_win_id);
       return date ? [{ date, done: Boolean(row.done), category: row.category }] : [];
     }),

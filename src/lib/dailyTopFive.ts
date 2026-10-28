@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { fetchDailyWinTasksForDay } from './dailyWinTasksApi';
 import { invalidateGoalSpineCache } from './goal/goalSpine.queries';
 
 type DraftTask = {
@@ -68,12 +69,7 @@ export async function addProjectActionToTopFive(
   const trimmedTitle = title.trim();
   if (!trimmedTitle) throw new Error('Projekt nie ma następnego działania.');
 
-  const { data: day, error } = await supabase
-    .from('daily_wins')
-    .select('id, daily_win_tasks(slot)')
-    .eq('user_id', userId)
-    .eq('date', date)
-    .maybeSingle();
+  const { data: day, error } = await fetchDailyWinTasksForDay(userId, date);
   if (error) throw error;
 
   if (!day) {

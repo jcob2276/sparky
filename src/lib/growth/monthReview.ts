@@ -7,6 +7,7 @@ import { pl } from 'date-fns/locale';
 
 import { getTodayWarsaw } from '../date';
 import { supabase } from '../supabase';
+import { fetchDailyWinTasks } from '../dailyWinTasksApi';
 import type { Json, Tables } from '../database.types';
 
 export type MonthlyReviewRow = Tables<'monthly_reviews'>;
@@ -153,12 +154,7 @@ export async function gatherMonthFacts(userId: string, monthStart: string): Prom
       .select('week_start, review_completed_at, pillar_scores')
       .eq('user_id', userId)
       .in('week_start', weeks.length ? weeks : ['1970-01-01']),
-    supabase
-      .from('daily_wins')
-      .select('date, result, task_1, task_2, task_3, task_4, task_5, done_1, done_2, done_3, done_4, done_5, daily_win_tasks(slot, title, done)')
-      .eq('user_id', userId)
-      .gte('date', monthStart)
-      .lte('date', monthEnd),
+    fetchDailyWinTasks(userId, { from: monthStart, to: monthEnd }),
     weeks.length
       ? supabase
           .from('kpi_entries')

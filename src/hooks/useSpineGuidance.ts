@@ -14,7 +14,7 @@ import {
   type SpineGuidance,
 } from '../lib/goal/goalSpineGuide';
 import { useGoalSpineInvalidation } from './useGoalSpineInvalidation';
-import { supabase } from '../lib/supabase';
+import { fetchDailyWinTasksForDay } from '../lib/dailyWinTasksApi';
 
 function daysSince(fromDate: string, toDate: string): number {
   const d1 = new Date(`${toDate}T12:00:00Z`);
@@ -46,12 +46,7 @@ export function useSpineGuidance(
         fetchGoalSpine(userId, weekStart, today),
         fetchWeeklyReviewFull(userId, weekStart),
         fetchLatestCompletedWeeklyReviewDate(userId),
-        supabase
-          .from('daily_wins')
-          .select('task_1, day_note')
-          .eq('user_id', userId)
-          .eq('date', yesterday)
-          .maybeSingle(),
+        fetchDailyWinTasksForDay(userId, yesterday),
       ]);
 
       const overdueDays = lastReflectionAt ? daysSince(lastReflectionAt.slice(0, 10), today) : 999;

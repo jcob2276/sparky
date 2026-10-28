@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { fetchDailyWinTasksForDay } from './dailyWinTasksApi';
 import { shiftDateStr } from './date';
 import { getWeekStartWarsaw, shiftWeekStart } from './growth/growth';
 import type { Json, Tables, TablesInsert } from './database.types';
@@ -105,12 +106,7 @@ export async function fetchMorningPlanData(
     .eq('date', planningDate)
     .maybeSingle();
 
-  const winPromise = supabase
-    .from('daily_wins')
-    .select('*, daily_win_tasks(*)')
-    .eq('user_id', userId)
-    .eq('date', planningDate)
-    .maybeSingle();
+  const winPromise = fetchDailyWinTasksForDay(userId, planningDate);
 
   const weekStartLocal = getWeekStartWarsaw(planningDate);
   const weekEndExclusive = shiftWeekStart(weekStartLocal, 1);

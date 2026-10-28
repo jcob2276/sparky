@@ -17,7 +17,8 @@ import {
   updateDailyWin,
   updateDailyWinTaskDone,
 } from '../../../../lib/goal/goalSpine';
-import { supabase, invokeEdge } from '../../../../lib/supabase';
+import { invokeEdge } from '../../../../lib/supabase';
+import { fetchDailyWinTasksById } from '../../../../lib/dailyWinTasksApi';
 import type { RecapResponse, RecapWeeklyRecapPhase2 } from '../../../../lib/edgeTypes';
 import { useHaptics } from '../../../../hooks/useHaptics';
 import { notify } from '../../../../lib/notify';
@@ -119,11 +120,7 @@ export function createDirectionActions(params: {
   async function togglePowerListTask(dayWinStale: DailyWinRow, index: number) {
     haptics.light();
     const slot = index + 1;
-    const { data: fresh } = await supabase
-      .from('daily_wins')
-      .select('*, daily_win_tasks(*)')
-      .eq('id', dayWinStale.id)
-      .single();
+    const { data: fresh } = await fetchDailyWinTasksById(userId, dayWinStale.id);
     const dayWin = (fresh as DailyWinRow | null) ?? dayWinStale;
     const newValue = !slotDone(dayWin, slot);
     const timestamp = newValue ? new Date().toISOString() : null;

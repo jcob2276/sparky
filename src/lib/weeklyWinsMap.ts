@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from './supabase';
+import { fetchDailyWinTasks } from './dailyWinTasksApi';
 import { getTodayWarsaw, shiftDateStr } from './date';
 
 export type WinsTask = {
@@ -117,13 +118,7 @@ export function useWeeklyWinsMap(userId: string) {
     queryKey: ['weekly-wins-map', userId, since],
     queryFn: async () => {
       const [winsRes, scoresRes] = await Promise.all([
-        supabase
-          .from('daily_wins')
-          .select('date, result, day_note, task_1, task_2, task_3, task_4, task_5, category_1, category_2, category_3, category_4, category_5, done_1, done_2, done_3, done_4, done_5')
-          .eq('user_id', userId)
-          .gte('date', since)
-          .lte('date', today)
-          .order('date', { ascending: true }),
+        fetchDailyWinTasks(userId, { from: since, to: today, ascending: true }),
         supabase
           .from('daily_reconciliations')
           .select('date, day_score')

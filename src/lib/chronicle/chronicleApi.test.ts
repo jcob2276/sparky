@@ -4,12 +4,13 @@ import { fetchCialoRows, fetchDuchRows, warsawDateKey } from './chronicleApi';
 const db = vi.hoisted(() => ({ tables: {} as Record<string, Record<string, unknown>[]> }));
 vi.mock('../supabase', () => ({ supabase: { from: (table: string) => {
   let rows = db.tables[table] ?? [];
+  let withTasks = false;
   const filter = (column: string, value: unknown, accepts: (a: number, b: number) => boolean) => {
     rows = rows.filter(row => accepts(Date.parse(String(row[column])), Date.parse(String(value))));
     return query;
   };
   const query = {
-    select: () => query,
+    select: (columns: string) => { withTasks = columns.includes('daily_win_tasks('); return query; },
     eq: (column: string, value: unknown) => { rows = rows.filter(row => row[column] === value); return query; },
     gte: (column: string, value: unknown) => filter(column, value, (a, b) => a >= b),
     lte: (column: string, value: unknown) => filter(column, value, (a, b) => a <= b),
@@ -17,7 +18,11 @@ vi.mock('../supabase', () => ({ supabase: { from: (table: string) => {
     not: () => query, order: () => query,
     in: (column: string, values: unknown[]) => { rows = rows.filter(row => values.includes(row[column])); return query; },
     limit: (count: number) => { rows = rows.slice(0, count); return query; },
-    then: (resolve: (value: unknown) => unknown) => Promise.resolve({ data: rows, error: null }).then(resolve),
+    then: (resolve: (value: unknown) => unknown) => Promise.resolve({
+      data: withTasks ? rows.map(row => ({ ...row, daily_win_tasks: (db.tables.daily_win_tasks ?? [])
+        .filter(task => task.day_win_id === row.id && task.user_id === row.user_id) })) : rows,
+      error: null,
+    }).then(resolve),
   };
   return query;
 } } }));
