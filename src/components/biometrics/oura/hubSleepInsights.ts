@@ -17,7 +17,9 @@ export function buildHubSleepInsights(data: OuraHealthHubData) {
     readiness_score: day.readiness_score,
     sleep_score: day.sleep_score,
   }));
-  return buildOuraSleepInsights(enhanced, insightHistory, aggregate);
+  // Moduł insightów liczy jedną nazwą pola; główny sen z oura_enhanced to jego „total_sleep_hours”.
+  const asInsightDay = <T extends { main_sleep_hours: number | null }>(day: T) => ({ ...day, total_sleep_hours: day.main_sleep_hours });
+  return buildOuraSleepInsights(enhanced ? asInsightDay(enhanced) : null, insightHistory.map(asInsightDay), aggregate);
 }
 
 export function minutesValue(minutes: number | null): string {

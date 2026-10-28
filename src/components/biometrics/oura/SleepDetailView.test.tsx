@@ -12,7 +12,7 @@ const referenceNight: OuraHealthHubData = {
   } as OuraHealthHubData['oura'],
   enhanced: {
     date: '2026-07-28',
-    total_sleep_hours: 7.7,
+    main_sleep_hours: 7.7,
     time_in_bed_hours: 9 + (10 / 60),
     awake_time_minutes: 88,
     rem_sleep_hours: 41 / 60,

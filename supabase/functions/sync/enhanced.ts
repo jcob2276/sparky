@@ -108,7 +108,7 @@ export const runEnhanced = async (req: Request) => {
       })
       Object.entries(mainSleepByDay).forEach(([d, it]: [string, any]) => {
         const r = ensure(d); if (!r) return
-        r.total_sleep_hours = it.total_sleep_duration ? it.total_sleep_duration / 3600 : null
+        r.main_sleep_hours = it.total_sleep_duration ? it.total_sleep_duration / 3600 : null
         r.time_in_bed_hours = it.time_in_bed ? it.time_in_bed / 3600 : null
         r.deep_sleep_hours = it.deep_sleep_duration ? it.deep_sleep_duration / 3600 : null
         r.rem_sleep_hours = it.rem_sleep_duration ? it.rem_sleep_duration / 3600 : null

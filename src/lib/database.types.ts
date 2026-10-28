@@ -1891,79 +1891,34 @@ export type Database = {
       }
       food_favorites: {
         Row: {
-          barcode: string | null
-          brand: string | null
-          calories: number | null
-          carbs: number | null
           created_at: string
           default_grams: number
-          fat: number | null
-          fiber: number | null
           id: string
           is_pinned: boolean
           last_used: string
-          library_id: string | null
-          name: string | null
-          nutrient_sources: Json
-          protein: number | null
-          salt: number | null
-          saturated_fat: number | null
-          sugar: number | null
+          library_id: string
           use_count: number
           user_id: string
-          validated_at: string | null
-          validation_reason: string | null
-          validation_status: string
         }
         Insert: {
-          barcode?: string | null
-          brand?: string | null
-          calories?: number | null
-          carbs?: number | null
           created_at?: string
           default_grams?: number
-          fat?: number | null
-          fiber?: number | null
           id?: string
           is_pinned?: boolean
           last_used?: string
-          library_id?: string | null
-          name?: string | null
-          nutrient_sources?: Json
-          protein?: number | null
-          salt?: number | null
-          saturated_fat?: number | null
-          sugar?: number | null
+          library_id: string
           use_count?: number
           user_id: string
-          validated_at?: string | null
-          validation_reason?: string | null
-          validation_status?: string
         }
         Update: {
-          barcode?: string | null
-          brand?: string | null
-          calories?: number | null
-          carbs?: number | null
           created_at?: string
           default_grams?: number
-          fat?: number | null
-          fiber?: number | null
           id?: string
           is_pinned?: boolean
           last_used?: string
-          library_id?: string | null
-          name?: string | null
-          nutrient_sources?: Json
-          protein?: number | null
-          salt?: number | null
-          saturated_fat?: number | null
-          sugar?: number | null
+          library_id?: string
           use_count?: number
           user_id?: string
-          validated_at?: string | null
-          validation_reason?: string | null
-          validation_status?: string
         }
         Relationships: [
           {
@@ -4278,7 +4233,6 @@ export type Database = {
           temperature_trend_deviation: number | null
           time_in_bed_hours: number | null
           total_calories: number | null
-          total_sleep_hours: number | null
           updated_at: string
           user_id: string
           vascular_age: number | null
@@ -4337,7 +4291,6 @@ export type Database = {
           temperature_trend_deviation?: number | null
           time_in_bed_hours?: number | null
           total_calories?: number | null
-          total_sleep_hours?: number | null
           updated_at?: string
           user_id: string
           vascular_age?: number | null
@@ -4396,7 +4349,6 @@ export type Database = {
           temperature_trend_deviation?: number | null
           time_in_bed_hours?: number | null
           total_calories?: number | null
-          total_sleep_hours?: number | null
           updated_at?: string
           user_id?: string
           vascular_age?: number | null
