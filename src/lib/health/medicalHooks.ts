@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchMedicalRecordData, fetchPreventionActions } from './medicalRecordsApi';
+import { medicalKeys } from '../queryKeys';
 
 const EMPTY_RECORD = { labs: [], bodyComposition: [], documents: [] };
 
@@ -30,7 +31,7 @@ export function useMedicalRecordData(userId: string | undefined) {
 
 export function useMedicalPreventionActions(userId: string | undefined) {
   return useQuery({
-    queryKey: ['prevention-actions', userId],
+    queryKey: medicalKeys.preventionActions(userId),
     queryFn: async () => {
       if (!userId) return [];
       return fetchPreventionActions(userId);

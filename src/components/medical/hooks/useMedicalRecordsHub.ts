@@ -20,8 +20,9 @@ import {
   type PreventionActionStatus,
 } from '../../../lib/health/medicalRecordsApi';
 
+import { medicalKeys } from '../../../lib/queryKeys';
+
 const EVENT_KEY = 'medical-events';
-const ACTION_KEY = 'medical-prevention-actions';
 
 export function useMedicalRecordsHub(
   userId: string | undefined,
@@ -38,7 +39,7 @@ export function useMedicalRecordsHub(
   });
 
   const actionsQuery = useQuery({
-    queryKey: [ACTION_KEY, userId],
+    queryKey: medicalKeys.preventionActions(userId),
     queryFn: () => fetchPreventionActions(userId as string),
     enabled: !!userId,
   });
@@ -73,7 +74,7 @@ export function useMedicalRecordsHub(
         snoozedUntil: input.status === 'snoozed' ? input.suggestion.dueOn : null,
       }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: [ACTION_KEY, userId] });
+      await queryClient.invalidateQueries({ queryKey: medicalKeys.preventionActions(userId) });
     },
     onError: () => notify('Nie udało się zapisać decyzji.', 'error'),
   });

@@ -2,12 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '../supabase';
 import { getTodayWarsaw, shiftDateStr, warsawDayBoundsISO } from '../date';
 import { buildRunningLoad, type RunningLoad } from './runningLoad';
+import { biometricsKeys } from '../queryKeys';
 
 /** Biegi z Garmina/Stravy z ostatnich 5 tygodni: obciążenie liczone z tętna (do Centrum Treningowego i mapy zmęczenia). */
 export function useRunningLoad(userId: string | undefined) {
   const today = getTodayWarsaw();
   return useQuery<RunningLoad>({
-    queryKey: ['running-load', 'hr-v2', userId, today],
+    queryKey: biometricsKeys.runningLoad(userId, today),
     enabled: Boolean(userId),
     staleTime: 10 * 60 * 1000,
     queryFn: async () => {

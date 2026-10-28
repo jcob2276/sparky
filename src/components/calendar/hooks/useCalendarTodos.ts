@@ -5,6 +5,7 @@ import { supabase } from '../../../lib/supabase';
 import { createTodoItem, setTodoStatus, updateTodoItem } from '../../../lib/todo/todo';
 import { fetchGoalLineage, type SectionGoalMaps } from '../../../lib/goal/goalLineage';
 import { combineDateTimeWarsawISO } from '../../../lib/date';
+import { todoKeys } from '../../../lib/queryKeys';
 import { parseTodoQuickInput } from '../../../lib/todo/todoParser';
 
 export interface CalendarTodo {
@@ -36,7 +37,7 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
 
   // 1. Inbox query
   const inboxQuery = useQuery<CalendarTodo[]>({
-    queryKey: ['calendar-todos-inbox', userId],
+    queryKey: todoKeys.calendarInbox(userId),
     queryFn: async () => {
       if (!userId) return [];
       const { data, error } = await supabase
@@ -57,7 +58,7 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
 
   // 2. Scheduled query
   const scheduledQuery = useQuery<CalendarTodo[]>({
-    queryKey: ['calendar-todos-scheduled', userId, rangeStart, rangeEnd],
+    queryKey: todoKeys.calendarScheduled(userId, rangeStart, rangeEnd),
     queryFn: async () => {
       if (!userId) return [];
       const { data, error } = await supabase
@@ -93,11 +94,8 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
   const goalMaps = useMemo(() => lineageQuery.data || { sectionGoalMap: {}, sectionDreamMap: {} }, [lineageQuery.data]);
 
   const invalidateTodos = useCallback(async () => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['calendar-todos-inbox', userId] }),
-      queryClient.invalidateQueries({ queryKey: ['calendar-todos-scheduled', userId, rangeStart, rangeEnd] }),
-    ]);
-  }, [queryClient, userId, rangeStart, rangeEnd]);
+    await queryClient.invalidateQueries({ queryKey: todoKeys.calendar(userId) });
+  }, [queryClient, userId]);
 
   const fetchAllTodos = useCallback(async () => {
     await Promise.all([
@@ -135,14 +133,14 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
     setTimeout(async () => {
       // Optimistically update query cache
       if (nextStatus === 'done') {
-        queryClient.setQueryData<CalendarTodo[]>(['calendar-todos-inbox', userId], (prev) =>
+        queryClient.setQueryData<CalendarTodo[]>(todoKeys.calendarInbox(userId), (prev) =>
           (prev || []).filter((t) => t.id !== id)
         );
-        queryClient.setQueryData<CalendarTodo[]>(['calendar-todos-scheduled', userId, rangeStart, rangeEnd], (prev) =>
+        queryClient.setQueryData<CalendarTodo[]>(todoKeys.calendarScheduled(userId, rangeStart, rangeEnd), (prev) =>
           (prev || []).map((t) => (t.id === id ? { ...t, status: 'done' } : t))
         );
       } else {
-        queryClient.setQueryData<CalendarTodo[]>(['calendar-todos-scheduled', userId, rangeStart, rangeEnd], (prev) =>
+        queryClient.setQueryData<CalendarTodo[]>(todoKeys.calendarScheduled(userId, rangeStart, rangeEnd), (prev) =>
           (prev || []).map((t) => (t.id === id ? { ...t, status: 'open' } : t))
         );
       }
@@ -179,7 +177,7 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
       });
     },
     onSuccess: (created) => {
-      queryClient.setQueryData<CalendarTodo[]>(['calendar-todos-inbox', userId], (prev) => [
+      queryClient.setQueryData<CalendarTodo[]>(todoKeys.calendarInbox(userId), (prev) => [
         created as CalendarTodo,
         ...(prev || []),
       ]);
@@ -229,7 +227,7 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
       });
     },
     onSuccess: (created) => {
-      queryClient.setQueryData<CalendarTodo[]>(['calendar-todos-scheduled', userId, rangeStart, rangeEnd], (prev) => [
+      queryClient.setQueryData<CalendarTodo[]>(todoKeys.calendarScheduled(userId, rangeStart, rangeEnd), (prev) => [
         ...(prev || []),
         created as CalendarTodo,
       ]);
@@ -261,7 +259,7 @@ export function useCalendarTodos({ userId, rangeStart, rangeEnd }: UseCalendarTo
       if (durationMinutes != null) patch.duration_minutes = durationMinutes;
 
       // Optimistically filter from inbox
-      queryClient.setQueryData<CalendarTodo[]>(['calendar-todos-inbox', userId], (prev) =>
+      queryClient.setQueryData<CalendarTodo[]>(todoKeys.calendarInbox(userId), (prev) =>
         (prev || []).filter((t) => t.id !== todo.id)
       );
 

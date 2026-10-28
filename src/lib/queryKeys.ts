@@ -31,6 +31,9 @@ export const biometricsKeys = {
   ouraHistory30: (userId: string) => [...biometricsKeys.all, 'ouraHistory30', userId] as const,
   weeklyPulse: (userId: string, since: string) => [...biometricsKeys.all, 'weeklyPulse', userId, since] as const,
   sleepDrivers: (userId: string) => [...biometricsKeys.all, 'sleepDrivers', userId] as const,
+  runningLoad: (userId: string | undefined, today: string) => [...biometricsKeys.all, 'runningLoad', 'hr-v2', userId, today] as const,
+  ouraBaselines: (userId: string, asOf: string | null) => [...biometricsKeys.all, 'ouraBaselines', userId, asOf] as const,
+  sleepRegularity: (userId: string, today: string) => [...biometricsKeys.all, 'sleepRegularity', userId, today] as const,
 };
 
 
@@ -39,6 +42,14 @@ export const calendarKeys = {
   all: ['calendar'] as const,
   events: (userId: string, rangeStart: string, rangeEnd: string) =>
     [...calendarKeys.all, 'events', userId, rangeStart, rangeEnd] as const,
+  /** Agenda dnia (Dziś, Zadania): w rodzinie kalendarza, więc każda mutacja wydarzeń ją odświeża. */
+  agenda: (userId: string | undefined, day: string) => [...calendarKeys.all, 'agenda', userId, day] as const,
+};
+
+// ── MEDICAL KEYS ──
+export const medicalKeys = {
+  /** Sugestie profilaktyczne (ukryj/odłóż): jeden klucz dla Kartoteki, ponownych badań i Laboratorium. */
+  preventionActions: (userId: string | undefined) => ['medical-prevention-actions', userId] as const,
 };
 
 // ── DASHBOARD KEYS ──
@@ -86,6 +97,11 @@ export const todoKeys = {
   projects: (userId: string) => [...todoKeys.all, 'projects', userId] as const,
   dreams: (userId: string) => [...todoKeys.all, 'dreams', userId] as const,
   smartLists: (userId: string) => [...todoKeys.all, 'smartLists', userId] as const,
+  /** Kopie `todo_items` w kalendarzu: w rodzinie `todo`, więc każda zmiana zadania je odświeża. */
+  calendar: (userId: string | undefined) => [...todoKeys.all, 'calendar', userId] as const,
+  calendarInbox: (userId: string | undefined) => [...todoKeys.calendar(userId), 'inbox'] as const,
+  calendarScheduled: (userId: string | undefined, rangeStart: string, rangeEnd: string) =>
+    [...todoKeys.calendar(userId), 'scheduled', rangeStart, rangeEnd] as const,
 };
 
 // ── DESKTOP KEYS ──

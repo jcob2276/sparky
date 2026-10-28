@@ -5,9 +5,9 @@ import { getTodayWarsaw, shiftDateStr } from '../date';
 import { mergeBodyMetricSavePayload } from './bodyMetrics';
 import { upsertBodyMetrics } from './bodyMetricsApi';
 import { bodyReminders, type BodyReminderRow } from './bodyReminders';
+import { BODY_REMINDERS_KEY as KEY, invalidateBodyMetricsConsumers } from './bodyMetricsCache';
 import type { TablesInsert } from '../database.types';
 
-const KEY = 'body-reminders';
 const HISTORY_DAYS = 120;
 export type BodyEntryInput = Record<'weight' | 'waist' | 'neck' | 'chest' | 'belly' | 'hips' | 'thigh' | 'biceps_l' | 'calf', string>;
 
@@ -44,11 +44,7 @@ export function useSaveBodyEntry(userId: string | undefined, rows: BodyReminderR
     const payload = mergeBodyMetricSavePayload(today, userId, rows.find((r) => r.date === today) ?? null, input);
     if (!payload) return false;
     await upsertBodyMetrics(payload as TablesInsert<'body_metrics'>);
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: [KEY, userId] }),
-      queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
-      queryClient.invalidateQueries({ queryKey: ['stats'] }),
-    ]);
+    await invalidateBodyMetricsConsumers(queryClient, userId);
     return true;
   };
 }

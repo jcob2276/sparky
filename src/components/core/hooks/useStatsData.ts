@@ -4,6 +4,7 @@ import { useUserId } from '../../../store/useStore';
 import { useUserSettings } from '../../../hooks/useUserSettings';
 import type { Tables, TablesInsert } from '../../../lib/database.types';
 import { upsertBodyMetrics } from '../../../lib/health/bodyMetricsApi';
+import { invalidateBodyMetricsConsumers } from '../../../lib/health/bodyMetricsCache';
 import {
   deleteWorkoutSession,
   updateWorkoutSession,
@@ -70,7 +71,7 @@ export function useStatsData() {
     onSuccess: () => {
       notify('Zapisano!', 'success');
       setNewMetric({ weight: '', waist: '', neck: '', chest: '', belly: '', hips: '', thigh: '', biceps_l: '', calf: '' });
-      refetchStats();
+      if (userId) void invalidateBodyMetricsConsumers(queryClient, userId);
     },
     onError: (error: Error) => {
       notify(error.message, 'error');

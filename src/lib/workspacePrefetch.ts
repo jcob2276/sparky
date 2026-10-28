@@ -79,7 +79,7 @@ export async function prefetchCalendarData(queryClient: QueryClient, userId: str
     }),
     // Calendar todos inbox
     queryClient.prefetchQuery({
-      queryKey: ['calendar-todos-inbox', userId],
+      queryKey: todoKeys.calendarInbox(userId),
       queryFn: async () => {
         const { data, error } = await supabase
           .from('todo_items')
@@ -96,7 +96,7 @@ export async function prefetchCalendarData(queryClient: QueryClient, userId: str
     }),
     // Calendar todos scheduled
     queryClient.prefetchQuery({
-      queryKey: ['calendar-todos-scheduled', userId, rangeStart, rangeEnd],
+      queryKey: todoKeys.calendarScheduled(userId, rangeStart, rangeEnd),
       queryFn: async () => {
         const { data, error } = await supabase
           .from('todo_items')

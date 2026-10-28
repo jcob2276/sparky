@@ -11,6 +11,7 @@ import { computeBiologyScoresLite } from '../../lib/getBased/biologyScoresLite';
 import { getTodayWarsaw, shiftDateStr, warsawDayBoundsISO } from '../../lib/date';
 import { useCreateCalendarEvent } from '../../lib/calendarApi';
 import { notify } from '../../lib/notify';
+import { medicalKeys } from '../../lib/queryKeys';
 import { ArrowLeft } from 'lucide-react';
 import Button from '../ui/Button';
 import type { RetestSuggestion } from '../../lib/health/medicalRetestSuggestions';
@@ -78,7 +79,7 @@ export default function MedicalLaboratoryPage({ onBack }: { onBack?: () => void 
     mutationFn: (input: { suggestionKey: string; status: PreventionActionStatus; snoozedUntil?: string | null }) =>
       savePreventionAction({ userId: userId as string, sourceUrl: '', ...input }),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['medical-prevention-actions', userId] });
+      await queryClient.invalidateQueries({ queryKey: medicalKeys.preventionActions(userId) });
     },
     onError: () => notify('Nie udało się zapisać decyzji.', 'error'),
   });

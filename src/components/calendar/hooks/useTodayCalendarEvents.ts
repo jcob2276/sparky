@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getTodayWarsaw, warsawDayBoundsISO } from '../../../lib/date';
 import { fetchCalendarAgenda, type CalendarAgendaEvent } from '../../../lib/calendarAgendaApi';
+import { calendarKeys } from '../../../lib/queryKeys';
 
 export function useTodayCalendarEvents(userId: string | undefined, day?: string) {
   const [nowMs, setNowMs] = useState(() => Date.now());
@@ -10,7 +11,7 @@ export function useTodayCalendarEvents(userId: string | undefined, day?: string)
   const { fromISO, toISO } = warsawDayBoundsISO(today);
 
   const { data: events = [], isLoading: loading } = useQuery<CalendarAgendaEvent[]>({
-    queryKey: ['today-calendar-events', userId, today],
+    queryKey: calendarKeys.agenda(userId, today),
     queryFn: () => userId ? fetchCalendarAgenda(userId, fromISO, toISO) : Promise.resolve([]),
     enabled: !!userId,
   });
