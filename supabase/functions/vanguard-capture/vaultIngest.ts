@@ -85,12 +85,12 @@ export async function handleVaultIngest(
 
   let triadCount = 0;
   if (deepseekKey) {
-    const { data: ontologyRows, error: ontologyErr } = await db
-      .from("vanguard_relation_ontology")
-      .select("relation");
+    const { data: relationRows, error: ontologyErr } = await db
+      .from("relations")
+      .select("name");
 
-    const ontologyList = (ontologyRows || []).map((row: any) => row.relation).filter(Boolean);
-    if (ontologyErr) console.warn('[capture] ontology fetch failed, using hardcoded fallback:', ontologyErr.message);
+    const ontologyList = (relationRows || []).map((row: any) => row.name).filter(Boolean);
+    if (ontologyErr) console.warn('[capture] relations fetch failed, using hardcoded fallback:', ontologyErr.message);
     const allowedRelations = ontologyList.length > 0 ? ontologyList : [
       "jest", "posiada", "studiuje", "pracuje_w", "mieszka_w", "ma_relacje_z",
       "zna_osobe", "chce", "dazy_do", "unika", "boi_sie", "prowadzido",
