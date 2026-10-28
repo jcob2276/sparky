@@ -103,3 +103,8 @@ Pole wyliczone bez danych wejściowych ma być `null` („nie wiem”), a nie `f
 Każdą poprawkę dowodź testem odtwarzającym błąd na starym kodzie albo zapytaniem pokazującym dane przed i po.
 Decyzje produktowe (która definicja jest właściwa, kasowanie danych, godziny powiadomień) zapisuj w tabeli
 „Znane rozjazdy” i zostaw użytkownikowi.
+
+## Decyzje o tabelach bez wspolnego wlasciciela (2026-10-28)
+- `vanguard_knowledge` zostaje osobna: fakty z wiki-compilera (kopia stron, jeden pisarz `vanguard-wiki-compiler`) i z Telegrama; czytaja ja `vanguard-architect` i `_shared/vanguardCoreMethods`. Nie scalac z `vanguard_wiki_pages` bez przepiecia obu czytelnikow.
+- `v_day` (widok-kregoslup dnia) NIE jest budowany: zadnego naturalnego konsumenta (`period-compare`, `teraz` czytaja inne kolumny); zbudowac dopiero razem z konsumentem.
+- Dzienniki bez czytelnika, utrzymywane retencja w `cleanup_old_logs`: `vanguard_oracle_runs`, `view_events` (90 dni), `vanguard_raw_events` (180 dni).
