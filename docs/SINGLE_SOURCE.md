@@ -44,6 +44,25 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 | Wyniki dnia Closera (sales calle i czas pracy) | `closer_daily_logs` | nagrania `closer_calls` wyznaczają minimum przez triggery; większy wpis ręczny zostaje, tych samych rozmów nie dodajemy drugi raz; `kpi_entries` jest projekcją tygodnia |
 | Wartości awaryjne celów i formatowanie ich tekstów | `src/lib/lifeGoals.ts` | tylko do czasu załadowania z bazy; odczyt przez `lifeTargetsApi.ts` |
 
+## Dane w bazie: właściciel, kopie pochodne i niezmienniki
+
+Kopia pochodna jest dozwolona tylko wtedy, gdy ma jednego pisarza (trigger albo funkcja) i niezmiennik w `npm run db:check-invariants`.
+Rozjazd w niezmienniku znaczy, że ktoś zapisuje obok właściciela.
+
+| Fakt | Właściciel (zapis) | Kopia pochodna i kto ją utrzymuje | Niezmiennik |
+|---|---|---|---|
+| Epizod nawyku „Lenie” (też `/lenie`, `/walenie`, `/pmo`) | `habit_logs` + `habits` (jeden zapis: `recordLenieEpisode`) | `behavior_log.walenie`, trigger `habit_logs_sync_lenie` (docelowo do usunięcia po przepięciu czytelników) | kopia = nawyk w obie strony |
+| Dzienny agregat jedzenia | `daily_food_entries` | `daily_nutrition` (trigger) | kcal i białko = suma wpisów dnia |
+| Zadania dnia (sloty 1–5) | `daily_win_tasks` (wiersze) | `daily_wins.task_N/done_N/…` (50 kolumn, okres przejściowy, zapisuje je RPC planu porannego) | tytuł i done slotów zgodne |
+| Wynik snu i gotowość dobowa | `oura_daily_summary` | `oura_enhanced.sleep_score/readiness_score` | równe w obu tabelach |
+| Godziny snu | `oura_daily_summary.total_sleep_hours` = suma epizodów z dnia | `oura_enhanced.total_sleep_hours` = najdłuższy epizod (inna definicja, nie kopia; do rozdzielenia nazw) | nie porównujemy |
+| Powiązania grafu wiedzy | `vanguard_entity_links` (model zapisu) | `claims` + `entities` + `relations` (trigger; Oracle czyta `claims`) | źródło powiązania istnieje w `entities` |
+| Cel żywieniowy w dniu | `nutrition_targets` (wiersz `date <= dzień`) | brak; odczyt wyłącznie przez `fetchNutritionTargetForDay` (frontend) i `targetForDay` (funkcje brzegowe) | reguła w testach obu warstw |
+| Biometria stanu świata | `oura_daily_summary` | brak; wartości dnia tylko z dokładnej daty, wcześniejszy pomiar osobno (`last_available` z własną datą) | testy `worldStateOura` |
+
+Klucze obce są obowiązkowe dla każdej kolumny `*_id`, która wskazuje wiersz innej tabeli (`NOT VALID`, potem `VALIDATE`, `ON DELETE SET NULL` dla powiązań opcjonalnych).
+Pominięte celowo: `vanguard_pipeline_runs.run_id` (identyfikator korelacji) i kolumny z logicznym grupowaniem bez tabeli rodzica (`meal_group_id`, `request_id`).
+
 ## Znane rozjazdy do ujednolicenia (usuwaj wiersz, gdy naprawione)
 
 | Temat | Gdzie się rozjeżdża | Decyzja |
