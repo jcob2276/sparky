@@ -3,6 +3,7 @@ import { getWarsawDateString } from "../../_shared/time.ts";
 import { DEFAULT_REPLY_KEYBOARD } from "../_utils/constants.ts";
 import { fetchWorldState } from "../../_shared/worldState.ts";
 import { insertStreamRecord } from "../../_shared/repos/streamRepo.ts";
+import { recordLenieEpisode } from "../../_shared/repos/habitLogsRepo.ts";
 
 export async function handleLenieCommand(
   text: string,
@@ -19,78 +20,13 @@ export async function handleLenieCommand(
 
     const today = getWarsawDateString();
 
-    // 1. Get or create habit "Lenie"
-    let { data: habit, error: habitErr } = await supabase
-      .from('habits')
-      .select('id')
-      .eq('user_id', vanguardUserId)
-      .eq('name', 'Lenie')
-      .maybeSingle();
-
-    if (habitErr) throw habitErr;
-
-    if (!habit) {
-      const { data: newHabit, error: hErr } = await supabase
-        .from('habits')
-        .insert({ user_id: vanguardUserId, name: 'Lenie', icon: '😒', is_positive: false })
-        .select('id')
-        .single();
-      if (hErr) throw hErr;
-      habit = newHabit;
-    }
-
-    // 2. Check if there's already a log for today
-    const { data: existing, error: findErr } = await supabase
-      .from('habit_logs')
-      .select('id, final_stimulus, context_note')
-      .eq('user_id', vanguardUserId)
-      .eq('habit_id', habit.id)
-      .eq('date', today)
-      .maybeSingle();
-
-    if (findErr) throw findErr;
-
-    let nextStimulus = stimulus;
-    let nextContext = contextNote;
-
-    if (existing) {
-      const prevStimuli = existing.final_stimulus ? [existing.final_stimulus] : [];
-      const newStimuli = [...prevStimuli];
-      if (stimulus) newStimuli.push(stimulus);
-      nextStimulus = newStimuli.join(' + ');
-
-      const prevContext = existing.context_note ? [existing.context_note] : [];
-      const newContexts = [...prevContext];
-      if (contextNote) newContexts.push(contextNote);
-      nextContext = newContexts.join(' · ');
-
-      const { error: updateErr } = await supabase
-        .from('habit_logs')
-        .update({
-          completed: true,
-          final_stimulus: nextStimulus || null,
-          context_note: nextContext || null,
-          logged_at: new Date().toISOString(),
-        })
-        .eq('id', existing.id);
-      if (updateErr) throw updateErr;
-    } else {
-      const { error: insertErr } = await supabase
-        .from('habit_logs')
-        .insert({
-          user_id: vanguardUserId,
-          habit_id: habit.id,
-          date: today,
-          completed: true,
-          final_stimulus: stimulus || null,
-          context_note: contextNote || null,
-          logged_at: new Date().toISOString(),
-        });
-      if (insertErr) throw insertErr;
-    }
+    // habits + habit_logs: jedyny zapis tego zdarzenia (kopię w behavior_log utrzymuje trigger)
+    const episode = await recordLenieEpisode(supabase, vanguardUserId, today, { stimulus, contextNote });
+    const nextStimulus = episode.stimulus;
+    const nextContext = episode.contextNote;
 
     // Mirror to vanguard_stream
-    const count = nextStimulus ? nextStimulus.split(' + ').length : 1;
+    const count = episode.count;
     const streamParts = [`[LOG NAWYKU] Lenie x${count}`];
     if (nextStimulus) streamParts.push(`Bodziec: ${nextStimulus}`);
     if (nextContext) streamParts.push(`Kontekst: ${nextContext}`);

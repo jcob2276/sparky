@@ -3,6 +3,7 @@ import { getWarsawDateString } from "../../_shared/time.ts";
 import { DEFAULT_REPLY_KEYBOARD } from "../_utils/constants.ts";
 import { fetchWorldState } from "../../_shared/worldState.ts";
 import { insertStreamRecord } from "../../_shared/repos/streamRepo.ts";
+import { recordLenieEpisode } from "../../_shared/repos/habitLogsRepo.ts";
 
 export async function handleWalenieCommand(
   text: string,
@@ -30,18 +31,9 @@ export async function handleWalenieCommand(
       }
     }
 
-    // 1. Upsert into behavior_log
-    const { error: logErr } = await supabase.from('behavior_log').upsert(
-      {
-        user_id: vanguardUserId,
-        date: dateStr,
-        behavior_key: 'walenie',
-        value: 1,
-        note,
-      },
-      { onConflict: 'user_id,date,behavior_key' }
-    );
-    if (logErr) throw logErr;
+    // 1. Ten sam zapis co /lenie: habit_logs („Lenie”) jest jedynym źródłem prawdy.
+    //    Kopię w behavior_log.walenie utrzymuje trigger habit_logs_sync_lenie.
+    await recordLenieEpisode(supabase, vanguardUserId, dateStr, { contextNote: note });
 
     // 2. Insert into vanguard_stream
     const streamContent = note ? `Epizod PMO / ejakulacja: ${note}` : 'Epizod PMO / ejakulacja';
