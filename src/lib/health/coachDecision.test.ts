@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { decideTraining, recentPainReport, HEALTH_COACH_SOURCES, type HealthCoachContext, type CoachRow, type HealthCoachSource, type CoachSignal } from '@vanguard/domain';
+import { afterEach, describe, expect, it } from 'vitest';
+import { decideTraining, recentPainReport, HEALTH_COACH_SOURCES, HEALTH_THRESHOLDS, type HealthCoachContext, type CoachRow, type HealthCoachSource, type CoachSignal } from '@vanguard/domain';
 function context(data: Partial<Record<HealthCoachSource, CoachRow[]>>): HealthCoachContext {
   return { asOf:'2026-10-14T12:00:00Z',localDate:'2026-10-14',windowStart:'2026-09-17',queryErrors:[],
     coverage: Object.fromEntries(HEALTH_COACH_SOURCES.map(key=>[key,data[key]?.length ?? 0])) as HealthCoachContext['coverage'],
@@ -10,7 +10,24 @@ const session = { key:'strength',date:'2026-10-14',type:'strength',name:'Siła',
   exercises:[{name:'Bench Press',sets:4,reps:8,rir:2,restSeconds:120,weightKg:null,equipment:['barbell'],pattern:'upper'}] };
 const planned = { id:'session',planned_date:'2026-10-14',completed:false,prescription:session };
 const constraints = {revision:1,availability:[{day:3,minutes:60}],equipment:['barbell'],limitations:[]};
+const originalThresholds = { ...HEALTH_THRESHOLDS };
+afterEach(() => { Object.assign(HEALTH_THRESHOLDS, originalThresholds); });
 describe('shared daily training decision', () => {
+  it.each([
+    { threshold: 'SLEEP_SHORT_H', value: 7, sleep: 6.5, readiness: 80, expected: 'reduce' },
+    { threshold: 'SLEEP_SHORT_H', value: 5, sleep: 5.5, readiness: 80, expected: 'keep' },
+    { threshold: 'SLEEP_SHORT_H', value: 7, sleep: 7, readiness: 80, expected: 'keep' },
+    { threshold: 'READINESS_PLAN_LOW', value: 75, sleep: 8, readiness: 70, expected: 'reduce' },
+    { threshold: 'READINESS_PLAN_LOW', value: 50, sleep: 8, readiness: 55, expected: 'keep' },
+    { threshold: 'READINESS_PLAN_LOW', value: 75, sleep: 8, readiness: 75, expected: 'keep' },
+  ] as const)('stosuje podmieniony $threshold=$value przy śnie $sleep i gotowości $readiness', ({ threshold, value, sleep, readiness, expected }) => {
+    HEALTH_THRESHOLDS[threshold] = value;
+    const result = decideTraining(context({ training_plan_workouts: [planned],
+      oura_daily_summary: [{ date: '2026-10-14', total_sleep_hours: sleep, readiness_score: readiness }] }), { constraints });
+    expect(result.recommendation).toBe(expected);
+    expect(result.replacement === null).toBe(expected === 'keep');
+  });
+
   it('does not equate missing sleep with good recovery or authorize increased load', () => {
     const result = decideTraining(context({training_plan_workouts:[planned]}), {constraints});
     expect(result.recommendation).toBe('unknown');

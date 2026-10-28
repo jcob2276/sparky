@@ -2,6 +2,7 @@ import type { CoachRow, HealthCoachContext, EvidenceRef } from './coachTypes.ts'
 import type { TrainingConstraints } from './healthGoals.ts';
 import type { TrainingSession } from './planValidation.ts';
 import { shiftDateStr, TIMEZONE } from '../date.ts';
+import { HEALTH_THRESHOLDS } from '../health/thresholds.ts';
 
 export interface CoachDecision {
   asOf: string; localDate: string; recommendation: 'unknown' | 'keep' | 'reduce' | 'recover';
@@ -105,7 +106,7 @@ export function decideTraining(context: HealthCoachContext, policy: { constraint
   } else if (result.missing.length) {
     result.reasons.push('Bez bieżących danych nie potwierdzam gotowości do zwiększania obciążenia.');
     result.replacement = lowerVolume(original);
-  } else if (sleep! < 6 || readiness! < 60) {
+  } else if (sleep! < HEALTH_THRESHOLDS.SLEEP_SHORT_H || readiness! < HEALTH_THRESHOLDS.READINESS_PLAN_LOW) {
     result.recommendation = 'reduce'; result.reasons.push(`Dzisiejsze dane: sen ${sleep}h, regeneracja ${readiness}. Proponuję mniejszą objętość.`);
     result.replacement = lowerVolume(original);
   } else {

@@ -4,6 +4,7 @@ import type { TodayNutritionSnapshot } from './foodLogging';
 import { TIMEOUTS } from '../constants';
 import { estimateCaffeineMg } from '@vanguard/domain';
 import { isRunSport } from '../runSports';
+import { fetchNutritionTargetForDay } from './nutritionTargetsApi';
 
 type NutritionTrajectory = 'on_track' | 'behind' | 'ahead';
 
@@ -119,7 +120,7 @@ export async function fetchNutritionDayContext(
 
   const { fromISO: dayStart, toISO: dayEnd } = warsawDayBoundsISO(date);
 
-  const [dayRow, targetRow, profileRow, stravaRes, sessionsRes, review, foodRes] = await Promise.all([
+  const [dayRow, targetRow, profileRow, stravaRes, sessionsRes, review, foodRes, effectiveTarget] = await Promise.all([
     supabase
       .from('daily_nutrition')
       .select('calories, protein, carbs, fat, avg_food_quality, food_quality_analysis')
@@ -158,6 +159,7 @@ export async function fetchNutritionDayContext(
       .eq('user_id', userId)
       .eq('date', date)
       .order('logged_at'),
+    fetchNutritionTargetForDay(userId, date),
   ]);
   for (const result of [dayRow,targetRow,profileRow,stravaRes,sessionsRes,review,foodRes]) if (result?.error) throw result.error;
   const target = targetRow.data;
@@ -202,8 +204,8 @@ export async function fetchNutritionDayContext(
     lastMealAt,
     lastCaffeineAt,
     caffeineMg: caffeineEntries.length > 0 ? caffeineMg : null,
-    targetKcal: target?.target_kcal ?? null,
-    targetProtein: target?.protein_floor_g ?? null,
+    targetKcal: effectiveTarget?.target_kcal ?? null,
+    targetProtein: effectiveTarget?.protein_floor_g ?? null,
     avgFoodQuality: dayRow.data?.avg_food_quality ?? null,
     foodQualityAnalysis: dayRow.data?.food_quality_analysis ?? null,
     addBackKcal,

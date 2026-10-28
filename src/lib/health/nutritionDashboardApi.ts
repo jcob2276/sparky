@@ -1,5 +1,6 @@
 import { supabase } from '../supabase';
 import { fetchNutritionDayReviews } from './nutritionTrackerApi';
+import { fetchNutritionTargetForDay } from './nutritionTargetsApi';
 
 export async function fetchNutritionDashboardData(input: {
   userId: string;
@@ -8,7 +9,7 @@ export async function fetchNutritionDashboardData(input: {
   calibrationSince: string;
 }) {
   const { userId, today, since, calibrationSince } = input;
-  const [targetRes, nutritionRes, entriesRes, calibrationRes, weightsRes, dayReviews, proteinFloorRes] = await Promise.all([
+  const [targetRes, nutritionRes, entriesRes, calibrationRes, weightsRes, dayReviews, effectiveTarget] = await Promise.all([
     supabase
       .from('nutrition_targets')
       .select('target_kcal, protein_floor_g, verdict, forecast_30d_weight_kg, forecast_60d_weight_kg, forecast_90d_weight_kg, forecast_30d_bf_pct, forecast_60d_bf_pct, forecast_90d_bf_pct, days_to_goal_est, adaptive_correction_kcal')
@@ -34,13 +35,17 @@ export async function fetchNutritionDashboardData(input: {
     supabase.from('body_metrics').select('date,weight').eq('user_id', userId)
       .gte('date', calibrationSince).not('weight', 'is', null).order('date', { ascending: true }),
     fetchNutritionDayReviews(userId, calibrationSince),
-    // Cel białka bywa pusty w dzisiejszym wierszu — bierzemy ostatni zapisany.
-    supabase.from('nutrition_targets').select('protein_floor_g').eq('user_id', userId)
-      .lte('date', today).not('protein_floor_g', 'is', null)
-      .order('date', { ascending: false }).limit(1).maybeSingle(),
+    fetchNutritionTargetForDay(userId, today),
   ]);
-  for (const result of [targetRes,nutritionRes,entriesRes,calibrationRes,weightsRes,proteinFloorRes]) if (result.error) throw result.error;
-  return { targetRes, nutritionRes, entriesRes, calibrationRes, weightsRes, dayReviews, proteinFloorRes };
+  for (const result of [targetRes,nutritionRes,entriesRes,calibrationRes,weightsRes]) if (result.error) throw result.error;
+  // Cele obowiązują do kolejnego wiersza; prognozy i werdykt dotyczą wyłącznie wskazanego dnia.
+  const data = targetRes.data || effectiveTarget ? {
+    ...targetRes.data,
+    target_kcal: effectiveTarget?.target_kcal ?? null,
+    protein_floor_g: effectiveTarget?.protein_floor_g ?? null,
+  } : null;
+  return { targetRes: { ...targetRes, data }, nutritionRes, entriesRes, calibrationRes, weightsRes, dayReviews,
+    proteinFloorRes: { data: effectiveTarget, error: null } };
 }
 
 export async function removeNutritionEntry(userId: string, entryId: string): Promise<void> {

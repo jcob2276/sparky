@@ -1,9 +1,34 @@
 import { describe, expect, it } from 'vitest';
+import { MIN_FULL_DAY_KCAL } from '@vanguard/domain';
 import { computeWeekBalance } from './weekBalance';
 
 const WEEK = '2026-10-19';
 
 describe('computeWeekBalance', () => {
+  it.each([undefined, 'unknown'] as const)('nie uznaje małego zapisu minionego dnia za pełny przy statusie %s', (completeness) => {
+    const result = computeWeekBalance({
+      weekStart: WEEK, today: '2026-10-20',
+      eatenByDate: { [WEEK]: MIN_FULL_DAY_KCAL - 1 }, targetByDate: {}, fallbackTarget: 2400,
+      completenessByDate: completeness ? { [WEEK]: completeness } : {},
+    });
+    expect(result).toMatchObject({ eaten: MIN_FULL_DAY_KCAL - 1, missingDays: 0, partialDays: 1, binding: false });
+  });
+
+  it.each([0, MIN_FULL_DAY_KCAL - 1])('potwierdzony post (%s kcal) nie jest luką ani niepełnym dniem', (calories) => {
+    expect(computeWeekBalance({
+      weekStart: WEEK, today: '2026-10-20', eatenByDate: { [WEEK]: calories },
+      targetByDate: {}, fallbackTarget: 2400, completenessByDate: { [WEEK]: 'complete' },
+    })).toMatchObject({ missingDays: 0, partialDays: 0, binding: true });
+  });
+
+  it('próg pełnego dnia jest włącznie, a dzisiejszy mały zapis pozostaje dniem w toku', () => {
+    expect(computeWeekBalance({
+      weekStart: WEEK, today: '2026-10-20',
+      eatenByDate: { [WEEK]: MIN_FULL_DAY_KCAL, '2026-10-20': 100 },
+      targetByDate: {}, fallbackTarget: 2400,
+    })).toMatchObject({ partialDays: 0, binding: true });
+  });
+
   it('sumuje zjedzone od poniedziałku i dolicza średni cel na dni przed nami', () => {
     const result = computeWeekBalance({
       weekStart: WEEK,

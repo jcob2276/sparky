@@ -1,4 +1,5 @@
 import { buildWeeklyNutritionPulse, type WeeklyNutritionPulseData } from '../weeklyNutritionPulse';
+import { completedNutritionDays } from '../chronicle/nutritionDays';
 import { computeWeekBalance, type WeekBalance } from './weekBalance';
 import { computeDayNutrientCoverage, type NutrientCoverage } from './nutrientCoverage';
 import type { WeekNutritionInputs } from './weekNutritionApi';
@@ -23,7 +24,7 @@ export function buildWeekNutrition(input: {
   const { data, weekStart, today, proteinGoal, fallbackTarget } = input;
   const eatenByDate: Record<string, number> = {};
   for (const row of data.rows) eatenByDate[row.date] = row.calories ?? 0;
-  const loggedDates = new Set(data.rows.filter((row) => row.date < today && (row.calories ?? 0) > 0).map((row) => row.date));
+  const loggedDates = new Set(completedNutritionDays(data.rows, today).map((row) => row.date));
   const coverage = computeDayNutrientCoverage(data.entries.filter((entry) => loggedDates.has(entry.date)));
   return {
     pulse: buildWeeklyNutritionPulse({ rows: data.rows, proteinGoal, kcalTarget: fallbackTarget, today }),
