@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 import { cacheFoodToLibrary } from '../../../../lib/health/foodLibraryApi';
 import { getTodayWarsaw } from '../../../../lib/date';
-import { scheduleFoodQualityAnalysis } from '../../../../lib/health/nutritionSideEffects';
+import { scheduleNutritionRefresh } from '../../../../lib/health/nutritionSideEffects';
 import type { FoodBase } from './foodEntryUtils';
 
 /** Side effects that run after a food entry has been logged online. */
 export function useFoodEntryPostSave(userId: string | undefined) {
   const afterFoodLog = useCallback(() => {
-    if (userId) scheduleFoodQualityAnalysis(userId, getTodayWarsaw());
+    if (userId) scheduleNutritionRefresh(userId, getTodayWarsaw());
   }, [userId]);
 
   const cacheToLibrary = useCallback(

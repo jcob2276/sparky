@@ -3,6 +3,7 @@ import { getWarsawDateString, warsawDayBoundsISO } from "./time.ts";
 import { getAggregateByDate } from "./repos/aggregatesRepo.ts";
 import { lastAvailableBiometrics, pickOuraRows, type LastAvailableBiometrics } from "./worldStateOura.ts";
 import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from "./dailyWinTasks.ts";
+import { isWorldStateCacheFresh } from "./worldStateCache.ts";
 
 interface WorldStateMeta {
   source: string;
@@ -61,7 +62,6 @@ export async function fetchWorldState(
 ): Promise<WorldState> {
   const date = dateStr || getWarsawDateString();
   const nowMs = nowMsOverride || Date.now();
-  const todayWarsaw = getWarsawDateString();
 
   if (!forceRefresh) {
     const { data: cached } = await supabase
@@ -71,14 +71,8 @@ export async function fetchWorldState(
       .eq('date', date)
       .maybeSingle();
 
-    if (cached) {
-      const isHistorical = date < todayWarsaw;
-      const cacheAgeMs = Date.now() - new Date(cached.updated_at).getTime();
-      const isFresh = isHistorical || cacheAgeMs < 15 * 60 * 1000; // 15 min TTL for today, infinite for past
-
-      if (isFresh) {
-        return cached.state_json as WorldState;
-      }
+    if (cached?.updated_at && isWorldStateCacheFresh(cached.updated_at, nowMs)) {
+      return cached.state_json as WorldState;
     }
   }
 

@@ -1,5 +1,6 @@
 import { TIMEOUTS } from '../constants';
 import { invokeEdge } from '../supabase';
+import { invalidateWorldStateDays } from '../worldStateApi';
 import { scheduleStrainRecompute } from './strainRefresh';
 
 const qualityTimers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -15,7 +16,7 @@ async function runFoodQualityAnalysis(userId: string, date: string): Promise<voi
   }
 }
 
-export function scheduleFoodQualityAnalysis(userId: string, date: string): void {
+function scheduleFoodQualityAnalysis(userId: string, date: string): void {
   const key = `${userId}:${date}`;
   const existing = qualityTimers.get(key);
   if (existing) clearTimeout(existing);
@@ -26,6 +27,7 @@ export function scheduleFoodQualityAnalysis(userId: string, date: string): void 
 }
 
 export function scheduleNutritionRefresh(userId: string, date: string): void {
+  void invalidateWorldStateDays(userId, [date]);
   scheduleFoodQualityAnalysis(userId, date);
   scheduleStrainRecompute(userId);
 }

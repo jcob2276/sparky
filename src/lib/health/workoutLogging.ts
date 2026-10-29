@@ -1,4 +1,5 @@
 import { supabase } from '../supabase'
+import { invalidateWorldStateDays } from '../worldStateApi'
 import { scheduleStrainRecompute } from './strainRefresh'
 import { rpcWithOfflineFallback } from '../offlineQueue'
 import { shiftDateStr } from '../date'
@@ -218,6 +219,7 @@ export async function saveWorkoutSession(
   })
 
   if (!queued) {
+    void invalidateWorldStateDays(userId, [opts.workoutDate])
     scheduleTrainingLoadAnalysis(userId, opts.workoutDate)
     scheduleStrainRecompute(userId)
   }
