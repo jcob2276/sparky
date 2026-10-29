@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { fetchDailyWinTasksForDay, type DailyWinWithTasks } from './dailyWinTasksApi';
-import type { Tables, TablesInsert } from './database.types';
+import type { Tables } from './database.types';
 
 type ShutdownFoodEntry = Pick<
   Tables<'daily_food_entries'>,
@@ -47,12 +47,7 @@ export async function upsertDailyReconciliationScore(userId: string, date: strin
   }
 }
 
-export async function insertSparkyStream(entry: TablesInsert<'vanguard_stream'>): Promise<void> {
-  const { error } = await supabase
-    .from('vanguard_stream')
-    .insert(entry);
-  if (error) throw error;
-}
+export { insertSparkyStream } from './streamApi';
 
 export async function fetchShutdownFoodEntries(
   userId: string,

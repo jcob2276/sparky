@@ -2,7 +2,6 @@ import { safeSendTelegram } from "../_utils/helpers.ts";
 import { getWarsawDateString } from "../../_shared/time.ts";
 import { DEFAULT_REPLY_KEYBOARD } from "../_utils/constants.ts";
 import { fetchWorldState } from "../../_shared/worldState.ts";
-import { insertStreamRecord } from "../../_shared/repos/streamRepo.ts";
 import { recordLenieEpisode } from "../../_shared/repos/habitLogsRepo.ts";
 
 export async function handleLenieCommand(
@@ -20,31 +19,10 @@ export async function handleLenieCommand(
 
     const today = getWarsawDateString();
 
-    // habits + habit_logs: jedyny zapis tego zdarzenia (kopię w behavior_log utrzymuje trigger)
+    // habits + habit_logs only — no stream mirror
     const episode = await recordLenieEpisode(supabase, vanguardUserId, today, { stimulus, contextNote });
     const nextStimulus = episode.stimulus;
-    const nextContext = episode.contextNote;
 
-    // Mirror to vanguard_stream
-    const count = episode.count;
-    const streamParts = [`[LOG NAWYKU] Lenie x${count}`];
-    if (nextStimulus) streamParts.push(`Bodziec: ${nextStimulus}`);
-    if (nextContext) streamParts.push(`Kontekst: ${nextContext}`);
-
-    try {
-      await insertStreamRecord(supabase, {
-        user_id: vanguardUserId,
-        content: streamParts.join(' · '),
-        source: 'habit_log',
-        category: 'behavior',
-        classification: 'habit_log',
-        metadata: { habit_name: 'Lenie', is_positive: false, date: today },
-      });
-    } catch (streamErr) {
-      console.warn('[commands] /lenie stream mirror failed:', (streamErr as Error).message);
-    }
-
-    // Invalidate world state cache
     fetchWorldState(supabase, vanguardUserId, today, undefined, true).catch((e) => {
       console.error("[telegram] fetchWorldState forceRefresh failed:", e);
     });

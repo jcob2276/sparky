@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
 import { getTodayWarsaw } from '../date';
 import { isOfflineError, queueOfflineWrite } from '../offlineQueue';
-import { mirrorHabitLogToStream } from '../behavior/behaviorEvidence';
 import type { Database } from '../database.types';
 
 export type HabitRow = Database['public']['Tables']['habits']['Row'];
@@ -98,7 +97,7 @@ export function useToggleHabit() {
     mutationFn: async ({
       userId,
       habitId,
-      habit,
+      habit: _habit,
       existingLog,
       sinceDate: _sinceDate,
     }: {
@@ -131,28 +130,6 @@ export function useToggleHabit() {
           await queueOfflineWrite('table:insert:habit_logs', { payload: logRow }, 'Zaznaczenie nawyku');
         }
 
-        if (habit) {
-          void mirrorHabitLogToStream(userId, habit, { completed: true, date: today }).catch(async (streamErr) => {
-            console.warn('[useToggleHabit] stream mirror failed, checking for offline', streamErr);
-            if (isOfflineError(streamErr)) {
-              const kind = habit.is_positive === false ? 'unikać' : 'wzmacniać';
-              const parts = [`[Nawyk/${habit.name}] (${kind}, ${today})`];
-              const streamPayload = {
-                user_id: userId,
-                content: parts.join(' · '),
-                source: 'habit_log',
-                category: habit.is_positive === false ? 'behavior' : 'habit',
-                classification: 'habit_log',
-                metadata: {
-                  habit_name: habit.name,
-                  is_positive: habit.is_positive !== false,
-                  date: today,
-                },
-              };
-              await queueOfflineWrite('table:insert:vanguard_stream', { payload: streamPayload }, 'Zapis zdarzenia do strumienia');
-            }
-          });
-        }
         return { newLog: logRow };
       }
     },

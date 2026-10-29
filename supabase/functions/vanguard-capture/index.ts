@@ -2,9 +2,9 @@
  * @function vanguard-capture
  * @trigger HTTP POST / Frontend / extension
  * @role Szybkie przechwytywanie notatek tekstowych i głosowych oraz zapisywanie do bazy jako stream/linki.
- * @reads vanguard_stream, vanguard_entity_links, entities, relations, vanguard_links
- * @writes vanguard_stream, vanguard_raw_events, vanguard_entity_links, audit_events, vanguard_links
- * @calls deepseek-v4-flash, gemini-embedding-001, Gemini audio (zapasowy model po awarii)
+ * @reads vanguard_stream, vanguard_links
+ * @writes vanguard_stream, vanguard_raw_events, audit_events, vanguard_links
+ * @calls deepseek-v4-flash (analiza linków), gemini-embedding-001, Gemini audio (zapasowy model po awarii)
  * @consumer Inbox w aplikacji frontendowej (stream i linki)
  * @status active
  */
@@ -14,6 +14,7 @@ import { resolveUserScope } from "../_shared/supabase.ts";
 import { serveJson } from "../_shared/http.ts";
 import { fetchUrlMetadata, generateLinkAnalysis } from "../vanguard-telegram/_handlers/savedLinks.ts";
 import { handleVaultIngest } from "./vaultIngest.ts";
+import { embed } from "./captureHelpers.ts";
 import { insertStreamRecord } from "../_shared/repos/streamRepo.ts";
 
 Deno.serve(serveJson(async (req, ctx) => {
@@ -30,6 +31,7 @@ Deno.serve(serveJson(async (req, ctx) => {
     let category = "identity_vault";
     let text = "";
     let action = "";
+    let classification: string | undefined;
 
     if (contentType.includes("multipart/form-data")) {
       const { userId: scopeId } = await resolveUserScope(req, null);
@@ -101,12 +103,18 @@ Deno.serve(serveJson(async (req, ctx) => {
       } else {
         content = String(body.content || "").trim();
         metadata = body.metadata || {};
+        if (typeof body.classification === "string" && body.classification.trim()) {
+          classification = body.classification.trim();
+        }
+        if (typeof body.category === "string" && body.category.trim()) {
+          category = body.category.trim();
+        }
       }
     }
 
     if (isVaultLog) {
       if (!text) throw new Error("Text is empty");
-      return await handleVaultIngest(db, userId, text, category, openAiKey, deepseekApiKey);
+      return await handleVaultIngest(db, userId, text, category, openAiKey);
     }
 
     if (!content) throw new Error("Content is empty");
@@ -137,7 +145,16 @@ Deno.serve(serveJson(async (req, ctx) => {
       return { ok: true, type: "link", data };
     }
 
-    const data = await insertStreamRecord(db, { user_id: userId, source, content, metadata });
+    const embedding = openAiKey ? await embed(content, openAiKey) : null;
+    const data = await insertStreamRecord(db, {
+      user_id: userId,
+      source,
+      content,
+      metadata,
+      embedding,
+      ...(classification ? { classification } : {}),
+      ...(category !== "identity_vault" ? { category } : {}),
+    });
 
     return { ok: true, type: "stream", data };
 }, { auth: 'none' }));

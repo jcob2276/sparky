@@ -113,13 +113,11 @@ export default function IdentityVault() {
       if (Object.keys(nonEmpty).length === 0) { setLoading(false); return; }
 
       let totalChunks = 0;
-      let totalTriads = 0;
       for (const [category, text] of Object.entries(nonEmpty)) {
         const result = await ingestVaultCategory(uid, category, text);
         totalChunks += result.chunks ?? 0;
-        totalTriads += result.triads ?? 0;
       }
-      console.debug(`[VAULT] Ingested ${totalChunks} chunks, ${totalTriads} triads`);
+      console.debug(`[VAULT] Ingested ${totalChunks} stream chunks`);
 
       await upsertUserFundament(uid, nonEmpty);
 

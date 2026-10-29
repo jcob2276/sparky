@@ -105,8 +105,8 @@ export class KnowledgeSaverInterceptor implements MessageInterceptor {
           eventType: "knowledge_ingest_deferred",
           severity: "info",
           message: isGeneralPoprawka
-            ? "User correction routed via ingest-vault-log"
-            : "Long vault note routed via proper path",
+            ? "User correction deferred to vanguard-capture vault path"
+            : "Long vault note deferred to vanguard-capture vault path",
           metadata: { category, length: rawContent.length, source: "telegram" },
         }).catch((e: unknown) => console.warn("[telegram] audit log failed:", e));
       }

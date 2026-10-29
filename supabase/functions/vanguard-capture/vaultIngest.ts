@@ -1,14 +1,18 @@
-import { deprecateSupersededLinks } from "../_shared/deprecateSupersededLinks.ts";
-import { chunkText, embed, sha256, extractTriadsWithOntology } from "./captureHelpers.ts";
+import { chunkText, embed, sha256 } from "./captureHelpers.ts";
 import { insertStreamRecord } from "../_shared/repos/streamRepo.ts";
 
+const MAX_ARCHITECT_CHUNKS = 3;
+
+/**
+ * Vault writes only to the evidence stream. Graph edges are extracted later by
+ * `vanguard-architect` from those stream chunks — never here.
+ */
 export async function handleVaultIngest(
   db: any,
   userId: string,
   text: string,
   category: string,
   openaiKey: string,
-  deepseekKey: string
 ): Promise<unknown> {
   console.log(`[capture/vault-ingest] user=${userId} category=${category} chars=${text.length}`);
 
@@ -28,7 +32,6 @@ export async function handleVaultIngest(
       duplicate: true,
       raw_event_id: rawEventId,
       chunks: 0,
-      triads: 0,
       message: "Ten vault log byl juz zaimportowany; pominieto duplikat.",
     };
   }
@@ -60,7 +63,7 @@ export async function handleVaultIngest(
     const chunk = chunks[i];
     const embedding = openaiKey ? await embed(chunk, openaiKey) : null;
 
-    const streamInserted = await insertStreamRecord(db, {
+    const inserted = await insertStreamRecord(db, {
       user_id: userId,
       source: "identity_vault",
       classification: category,
@@ -74,71 +77,25 @@ export async function handleVaultIngest(
         raw_event_id: rawEventId,
       },
     });
-
-    streamIds.push(streamInserted.id);
+    streamIds.push(inserted.id);
     streamCount++;
   }
 
-  const textSample = text.length > 12000
-    ? `${text.slice(0, 4000)}\n...\n${text.slice(text.length / 2 - 2000, text.length / 2 + 2000)}\n...\n${text.slice(-4000)}`
-    : text;
-
-  let triadCount = 0;
-  if (deepseekKey) {
-    const { data: relationRows, error: ontologyErr } = await db
-      .from("relations")
-      .select("name");
-
-    const ontologyList = (relationRows || []).map((row: any) => row.name).filter(Boolean);
-    if (ontologyErr) console.warn('[capture] relations fetch failed, using hardcoded fallback:', ontologyErr.message);
-    const allowedRelations = ontologyList.length > 0 ? ontologyList : [
-      "jest", "posiada", "studiuje", "pracuje_w", "mieszka_w", "ma_relacje_z",
-      "zna_osobe", "chce", "dazy_do", "unika", "boi_sie", "prowadzido",
-      "spowodowane_przez", "poprzedza", "nastepuje_po", "uzywa", "tworzy",
-      "cwiczy", "uczy_sie", "deklaruje", "czuje", "doswiadcza", "wynosi",
-      "dotyczy", "zawiera", "wspiera", "blokuje", "planuje", "wymaga",
-      "pamieta", "osiaga", "reaguje_na", "wywoluje", "wzmacnia", "oslabia",
-      "pracuje_nad", "ma_wspomnienie_z", "wskazuje_na", "ma_wskaznik",
-      "ma_egzamin", "analizuje",
-    ];
-    const triads = await extractTriadsWithOntology(textSample, category, deepseekKey, allowedRelations);
-    console.log(`[capture] ${triads.length} triads extracted`);
-
-    for (const triad of triads) {
-      if (!triad.source || !triad.relation || !triad.target) continue;
-      const { error } = await db.rpc("upsert_vanguard_entity_link", {
-        p_user_id: userId,
-        p_source: triad.source,
-        p_source_type: triad.source_type || "unknown",
-        p_relation: triad.relation,
-        p_target: triad.target,
-        p_target_type: triad.target_type || "unknown",
-        p_confidence_score: triad.confidence_score || 0.7,
-        p_memory_type: triad.memory_type || "fact",
-        p_layer: triad.layer || "intelligence",
-        p_metadata: {
-          source: "vault_ingest",
-          vault_category: category,
-          raw_event_id: rawEventId,
-          ingested_at: new Date().toISOString(),
-        },
-        p_source_episode_id: streamIds[0] || rawEventId,
-        p_observed_at: new Date().toISOString(),
-      });
-      if (!error) {
-        triadCount++;
-        const conf = triad.confidence_score || 0.7;
-        await deprecateSupersededLinks(
-          db, userId, triad.source, triad.relation, triad.target, conf, streamIds[0] || rawEventId
-        );
-      } else console.error("[capture] graph upsert error:", error);
-    }
+  // Graf powstaje tylko w vanguard-architect (jedyny pisarz). Nic innego nie uruchamia go dla Vaultu,
+  // więc wskazujemy mu pierwsze świeże fragmenty; reszta czeka na ręczny/zbiorczy przebieg.
+  const architectResults = await Promise.allSettled(
+    streamIds.slice(0, MAX_ARCHITECT_CHUNKS).map((recordId) =>
+      db.functions.invoke("vanguard-architect", { body: { type: "stream", record_id: recordId, limit: 1 } })
+    ),
+  );
+  for (const result of architectResults) {
+    if (result.status === "rejected") console.warn("[capture/vault-ingest] architect invoke failed:", result.reason);
+    else if (result.value?.error) console.warn("[capture/vault-ingest] architect invoke failed:", result.value.error);
   }
 
   return {
     success: true,
     chunks: streamCount,
-    triads: triadCount,
-    message: `Wgrano ${streamCount} chunkow i ${triadCount} relacji do grafu.`,
+    message: `Wgrano ${streamCount} chunkow do strumienia. Krawedzie grafu wyciaga vanguard-architect.`,
   };
 }

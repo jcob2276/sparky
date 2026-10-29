@@ -2,7 +2,6 @@ import { safeSendTelegram } from "../_utils/helpers.ts";
 import { getWarsawDateString } from "../../_shared/time.ts";
 import { DEFAULT_REPLY_KEYBOARD } from "../_utils/constants.ts";
 import { fetchWorldState } from "../../_shared/worldState.ts";
-import { insertStreamRecord } from "../../_shared/repos/streamRepo.ts";
 import { recordLenieEpisode } from "../../_shared/repos/habitLogsRepo.ts";
 
 export async function handleWalenieCommand(
@@ -31,28 +30,13 @@ export async function handleWalenieCommand(
       }
     }
 
-    // 1. Ten sam zapis co /lenie: habit_logs („Lenie”) jest jedynym źródłem prawdy.
-    //    Kopię w behavior_log.walenie utrzymuje trigger habit_logs_sync_lenie.
+    // habit_logs („Lenie”) is the only write path; no stream mirror.
     await recordLenieEpisode(supabase, vanguardUserId, dateStr, { contextNote: note });
 
-    // 2. Insert into vanguard_stream
-    const streamContent = note ? `Epizod PMO / ejakulacja: ${note}` : 'Epizod PMO / ejakulacja';
-    await insertStreamRecord(supabase, {
-      user_id: vanguardUserId,
-      source: 'telegram',
-      category: 'friction',
-      content: streamContent,
-      metadata: { behavior_key: 'walenie', date: dateStr, note },
-    }).catch((err: unknown) => {
-      console.warn('[walenie] insertStreamRecord failed:', err);
-    });
-
-    // 3. Invalidate world state cache
     fetchWorldState(supabase, vanguardUserId, dateStr, undefined, true).catch((e: unknown) => {
       console.error('[telegram] fetchWorldState forceRefresh failed:', e);
     });
 
-    // 4. Discreet Telegram confirmation
     await safeSendTelegram(
       chatId,
       `💧 Zanotowano epizod PMO / ejakulacji (${dateStr}).${note ? `\nNotatka: ${note}` : ''}`,

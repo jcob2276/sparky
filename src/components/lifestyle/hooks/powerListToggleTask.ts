@@ -1,7 +1,6 @@
 import type { useHaptics } from '../../../hooks/useHaptics';
 import { notify } from '../../../lib/notify';
 import type { TablesUpdate } from '../../../lib/database.types';
-import { appendStreamEntry } from '../../../lib/streamApi';
 import {
   applyKpiRollup,
   currentWeekStart,
@@ -51,27 +50,12 @@ export async function toggleTaskHelper(
 
     if (newValue) {
       const taskText = taskRow.title;
-      const category = taskRow.category ?? 'general';
       const checkpointId = taskRow.checkpoint_id;
-      if (checkpointId) {
+      if (checkpointId && taskText) {
         args.setCheckpointPrompt({
           index,
           checkpointId: checkpointId as string,
-          title: taskText as string,
-        });
-      }
-      if (taskText) {
-        void appendStreamEntry({
-          userId: args.userId,
-          source: 'powerlist',
-          content: `Powerlist ✓ [${category}]: ${taskText}`,
-          metadata: {
-            category,
-            index: slot,
-            todo_id: taskRow.todo_id,
-            checkpoint_id: checkpointId ?? null,
-            project_id: taskRow.project_id,
-          },
+          title: taskText,
         });
       }
     } else {

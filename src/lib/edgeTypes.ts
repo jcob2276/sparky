@@ -145,7 +145,7 @@ interface ParseFoodNLResponse {
   fridgeAnalysis?: import('@vanguard/domain').FridgeIngredientsAnalysis;
 }
 
-interface CaptureVaultResponse { ok?: boolean; success?: boolean; chunks: number; triads: number; message: string; }
+interface CaptureVaultResponse { ok?: boolean; success?: boolean; chunks: number; message: string; }
 interface CaptureLinkResponse { ok: boolean; type: 'link'; data: Record<string, unknown>; }
 interface CaptureStreamResponse { ok: boolean; type: 'stream'; data: Record<string, unknown>; }
 interface CaptureTranscriptionResponse { ok: boolean; type: 'transcription'; transcript: string; }

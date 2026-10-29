@@ -56,15 +56,14 @@ export async function ingestVaultCategory(
   userId: string,
   category: string,
   text: string
-): Promise<{ chunks?: number; triads?: number }> {
+): Promise<{ chunks?: number }> {
   const data = await invokeEdge('vanguard-capture', {
     body: { userId, category, text },
   });
-  const res = data as { error?: string; chunks?: number; triads?: number } | undefined;
+  const res = data as { error?: string; chunks?: number } | undefined;
   if (res?.error) throw new Error(res.error);
   return {
     chunks: typeof res?.chunks === 'number' ? res.chunks : 0,
-    triads: typeof res?.triads === 'number' ? res.triads : 0,
   };
 }
 
