@@ -7,7 +7,7 @@ export function getControllability(metric: string): number {
     m.includes('caffeine') || m.includes('coffee') ||
     m.includes('alcohol') || m.includes('alkohol') ||
     m.includes('meal') || m.includes('calories_late') ||
-    m.includes('dinner') || m.includes('walenie') || m.includes('pmo') || m.includes('masturb') ||
+    m.includes('dinner') || /(^|_)lenie($|_)/.test(m) || m.includes('pmo') || m.includes('masturb') ||
     m.includes('bedtime') || m.includes('screen') ||
     m.includes('phone_drift') || m.includes('phone_active') ||
     m.includes('creatine') || m.includes('omega3') || m.includes('lions_mane') ||

@@ -14,7 +14,6 @@ export { handleTodoCommand } from "../_commands/todo.ts";
 export { handleKeepCommand } from "../_commands/keep.ts";
 export { handlePostCommand } from "../_commands/post.ts";
 export { handleLenieCommand } from "../_commands/lenie.ts";
-export { handleWalenieCommand } from "../_commands/walenie.ts";
 export { handlePokeCommand } from "../_commands/poke.ts";
 export { handleTerazCommand } from "../_commands/teraz.ts";
 

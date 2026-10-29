@@ -99,7 +99,7 @@ Deno.serve(serveJson(async (req, ctx) => {
     const start90 = shiftDay(todayWarsaw, -90)
 
     const [behaviorR, lenieR, strainR] = await Promise.all([
-      // Lenie żyje w habit_logs (jedno źródło); klucz 'walenie' w behavior_log to kopia, więc go pomijamy.
+      // Lenie żyje w habit_logs (jedno źródło); behavior_log nie powinien mieć klucza 'lenie', więc go pomijamy.
       supabase.from('behavior_log').select('date, behavior_key, value')
         .eq('user_id', userId).neq('behavior_key', LENIE_BEHAVIOR_KEY).gte('date', start90).order('date'),
       supabase.from('habit_logs').select('date, completed, habits!inner(name)')

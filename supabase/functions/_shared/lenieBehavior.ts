@@ -1,8 +1,8 @@
 /**
- * Lenie w analizach zachowań. Jedyne źródło zdarzenia to habit_logs (nawyk „Lenie”); behavior_log.walenie było kopią
- * i znika. Analizy, które liczą po kluczu zachowania, dostają Lenie jako wiersz o kluczu `walenie`.
+ * Lenie w analizach zachowań. Jedyne źródło zdarzenia to habit_logs (nawyk „Lenie”); kopii w behavior_log nie ma.
+ * Analizy, które liczą po kluczu zachowania, dostają Lenie jako wiersz o kluczu `lenie`.
  */
-export const LENIE_BEHAVIOR_KEY = "walenie";
+export const LENIE_BEHAVIOR_KEY = "lenie";
 
 export interface BehaviorRow {
   date: string;

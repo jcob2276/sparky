@@ -182,7 +182,7 @@ Deprecated/dropped tables (do not use): `career_projects`, `career_moves`, `care
 |------|-----------------|------------|
 | Free text, friction, context | `vanguard_stream` | Telegram, voice |
 | Day's five tasks | `daily_win_tasks` | Power list writes the rows. Telegram (`/teraz`), Oracle and recap read that table. A checkoff is not a stream entry and has no embedding |
-| Daily habits incl. Lenie | `habits` + `habit_logs` | Desktop Nawyki, `/lenie`, `/walenie`. No stream mirror — consumers read `habit_logs` |
+| Daily habits incl. Lenie | `habits` + `habit_logs` | Desktop Nawyki, `/lenie` (opcjonalnie z datą: `/lenie wczoraj ...`, `/lenie 2026-10-20 ...`). No stream mirror — consumers read `habit_logs` |
 | Weekly task review done | `weekly_reviews.review_completed_at` | Todo WeeklyReviewModal. Not a stream entry |
 | Strength / wellness (sauna) | `workout_sessions` + `exercise_logs` | Workout logger, Sauna modal |
 | Confounders (alcohol, stress, illness, travel) | `behavior_log` | Desktop Sygnały dnia |

@@ -1,8 +1,8 @@
 /**
  * habitLogsRepo.ts — zapis epizodu nawyku „Lenie” (habits + habit_logs).
  *
- * To jedyne miejsce, które zapisuje to zdarzenie z Telegrama (/lenie, /walenie, /pmo).
- * Kopię w behavior_log.walenie utrzymuje trigger `habit_logs_sync_lenie`.
+ * To jedyne miejsce, które zapisuje to zdarzenie z Telegrama (/lenie).
+ * Kopii w behavior_log nie ma (klucz `lenie` w behavior_log jest zakazany przez niezmiennik).
  */
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import type { Database } from "../database.types.ts";

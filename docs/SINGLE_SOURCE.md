@@ -52,7 +52,7 @@ Rozjazd w niezmienniku znaczy, że ktoś zapisuje obok właściciela.
 
 | Fakt | Właściciel (zapis) | Kopia pochodna i kto ją utrzymuje | Niezmiennik |
 |---|---|---|---|
-| Epizod nawyku „Lenie” (też `/lenie`, `/walenie`, `/pmo`) | `habit_logs` + `habits` (jeden zapis: `recordLenieEpisode`) | brak kopii; analizy czytają `habit_logs` (widok `vanguard_consolidated_activities`, `compute-behavior-effects` przez `lenieAsBehaviorRows`) | `behavior_log` nie ma klucza `walenie` |
+| Epizod nawyku „Lenie” (komenda `/lenie`) | `habit_logs` + `habits` (jeden zapis: `recordLenieEpisode`) | brak kopii; analizy czytają `habit_logs` (widok `vanguard_consolidated_activities`, `compute-behavior-effects` przez `lenieAsBehaviorRows`) | `behavior_log` nie ma klucza `lenie` |
 | Dzienny agregat jedzenia | `daily_food_entries` | `daily_nutrition` (trigger) | kcal i białko = suma wpisów dnia |
 | Zadania dnia (sloty 1–5) | `daily_win_tasks` (wiersze) | brak kopii w kolumnach `daily_wins` (drop 2026-10-28: migracja `20261028300000_daily_wins_drop_slot_columns`); odczyt buduje `task_N`/`done_N` w pamięci (`adaptDailyWinTasks` / `withLegacySlots`). RPC planu porannego zapisuje wyłącznie `daily_win_tasks` | tytuł i done slotów zgodne z wierszami zadań |
 | Wynik snu i gotowość dobowa | `oura_daily_summary` | `oura_enhanced.sleep_score/readiness_score` | równe w obu tabelach |

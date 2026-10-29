@@ -98,7 +98,7 @@ export const METRIC_LABELS: Record<string, string> = {
   home_wifi_min: 'Czas w domu (Wi-Fi, min)',
   work_wifi_min: 'Czas w pracy (Wi-Fi, min)',
   headphones_min: 'Słuchawki (min)',
-  behav__walenie: 'Ejakulacja / PMO',
+  behav__lenie: 'Lenie',
   behav__pmo: 'PMO',
   behav__seks: 'Seks',
 }

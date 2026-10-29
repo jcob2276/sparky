@@ -120,10 +120,10 @@ const CHECKS = [
             ELSE e.value END`,
   },
   {
-    // Jedno źródło prawdy: nawyk „Lenie” (habit_logs). Kopia behavior_log.walenie została usunięta (28.10);
-    // wiersz o tym kluczu oznacza, że jakiś kod znowu zapisuje to zdarzenie obok habit_logs.
-    name: "behavior_log must not hold 'walenie' (Lenie lives only in habit_logs)",
-    sql: `SELECT b.date || ' ' || b.behavior_key AS issue FROM public.behavior_log b WHERE b.behavior_key = 'walenie'`,
+    // Jedno źródło prawdy: nawyk „Lenie” (habit_logs). Kopii w behavior_log nie ma (usunięta 28.10, nazwa ujednolicona 29.10);
+    // wiersz o kluczu 'lenie' (albo dawnym 'walenie') oznacza, że jakiś kod znowu zapisuje to zdarzenie obok habit_logs.
+    name: "behavior_log must not hold 'lenie' (Lenie lives only in habit_logs)",
+    sql: `SELECT b.date || ' ' || b.behavior_key AS issue FROM public.behavior_log b WHERE b.behavior_key IN ('lenie', 'walenie')`,
   },
   {
     // daily_nutrition jest agregatem daily_food_entries (trigger); suma wpisów dnia musi się zgadzać.

@@ -21,7 +21,7 @@ export interface BehaviorEffectLike {
 }
 
 /** Private / mundane behavior keys — hide unless statistically strong. */
-const PRIVATE_BEHAVIOR = /masturb|walenie|pmo|porn|fap|masturbacja/i
+const PRIVATE_BEHAVIOR = /masturb|pmo|porn|fap|(^|_)lenie($|_)/i
 
 function isPrivateBehaviorKey(key: string): boolean {
   return PRIVATE_BEHAVIOR.test(key)
