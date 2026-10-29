@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { addDays } from '../components/calendar/calendarHelpers';
-import type { CalendarEvent } from '../components/calendar/hooks/useCalendarWrite';
+import type { CalendarEvent } from '../lib/calendarApi';
 import { formatWarsawDate } from '../lib/date';
 
 interface UseSyncActivitiesProps {
