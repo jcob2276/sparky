@@ -1,6 +1,21 @@
 import { supabase } from '../supabase';
+import { getTodayWarsaw, getWeekStartWarsaw } from '../date';
 import type { GoalKpiRow, RollupDecision } from './goalSpine.types';
 import { invalidateGoalSpineCache } from './goalSpine.queries';
+import { fetchKpisForProject } from './goalSpine.queries';
+
+/** Closer weekly KPIs are absolute sums from closer_daily_logs — never delta-task or manual overwrite. */
+export async function isCloserAbsoluteKpi(kpiId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('goal_kpis')
+    .select('id, projects!inner(name)')
+    .eq('id', kpiId)
+    .maybeSingle();
+  if (error) throw error;
+  const project = data?.projects as { name?: string } | { name?: string }[] | null | undefined;
+  const name = Array.isArray(project) ? project[0]?.name : project?.name;
+  return typeof name === 'string' && /closer/i.test(name);
+}
 
 export async function addProjectKpi(
   userId: string,
@@ -73,6 +88,9 @@ export async function applyKpiRollup(
   weekStart: string,
   delta: number,
 ): Promise<void> {
+  if (await isCloserAbsoluteKpi(kpiId)) {
+    throw new Error('KPI Closera pochodzi z logów dnia — nie z odhaczeń zadań.');
+  }
   const { error } = await supabase.rpc('increment_kpi_entry_for_week', {
     p_kpi_id: kpiId,
     p_week_start: weekStart,
@@ -80,4 +98,31 @@ export async function applyKpiRollup(
   });
   if (error) throw error;
   invalidateGoalSpineCache(userId);
+}
+
+/**
+ * When a linked Todo flips done today, apply the same PowerList KPI delta (DC-02).
+ * Trigger already mirrors done ↔ daily_win_tasks; this only covers the KPI side-effect.
+ */
+export async function applyKpiRollupForLinkedTodo(
+  userId: string,
+  todoId: string,
+  sign: 1 | -1,
+): Promise<void> {
+  const today = getTodayWarsaw();
+  const { data: task, error } = await supabase
+    .from('daily_win_tasks')
+    .select('project_id, target_value, kpi_id, daily_wins!inner(date, user_id)')
+    .eq('todo_id', todoId)
+    .eq('user_id', userId)
+    .eq('daily_wins.date', today)
+    .eq('daily_wins.user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!task?.project_id || !task.target_value) return;
+
+  const kpis = await fetchKpisForProject(userId, task.project_id);
+  const decision = rollupTaskCompletion(task.target_value, kpis, sign, task.kpi_id);
+  if (!decision) return;
+  await applyKpiRollup(userId, decision.kpiId, getWeekStartWarsaw(today), decision.delta);
 }

@@ -187,11 +187,42 @@ export async function updateTodoItem(id: string, patch: TodoItemUpdate): Promise
   }
 }
 
-export async function setTodoStatus(item: { id: string }, status: string): Promise<TodoItemRow | void> {
-  return updateTodoItem(item.id, {
+/**
+ * Zmiana statusu z KPI: compare-and-set w jednym UPDATE-cie. Tylko wywołanie, które faktycznie zmieniło
+ * status (done <-> inne), uruchamia wkład KPI; równoległe odhaczenie dostaje 0 wierszy i niczego nie nalicza.
+ */
+export async function setTodoStatus(
+  item: { id: string; status?: string; user_id?: string },
+  status: string,
+): Promise<TodoItemRow | void> {
+  const patch: TodoItemUpdate = {
     status,
     completed_at: status === 'done' ? new Date().toISOString() : null,
-  });
+  };
+  const toDone = status === 'done';
+  try {
+    // Do 'done' wchodzimy tylko z innego statusu, a z 'done' wychodzimy tylko będąc w 'done'.
+    const base = supabase.from('todo_items').update(patch).eq('id', item.id);
+    const flip = await (toDone ? base.neq('status', 'done') : base.eq('status', 'done')).select().maybeSingle();
+    if (flip.error) throw new Error(flip.error.message);
+    if (flip.data) {
+      const { applyKpiRollupForLinkedTodo } = await import('../goal/goalSpineKpi.mutations');
+      void applyKpiRollupForLinkedTodo(flip.data.user_id, item.id, toDone ? 1 : -1).catch((err: unknown) => {
+        console.error('[todo] KPI rollup after status change failed:', err);
+      });
+      return flip.data;
+    }
+    // Równoległe odhaczenie już ustawiło 'done': nic do zrobienia, KPI policzyło tamto wywołanie.
+    if (toDone) return undefined;
+    // Zmiana między statusami innymi niż 'done' (np. open -> in_progress): zwykły zapis, bez KPI.
+    return await updateTodoItem(item.id, patch);
+  } catch (err: unknown) {
+    if (isOfflineError(err)) {
+      await queueOfflineWrite('table:update:todo_items', { match: { id: item.id }, payload: patch }, 'Edycja zadania');
+      return;
+    }
+    throw err;
+  }
 }
 
 export async function deleteTodoItem(id: string): Promise<void> {

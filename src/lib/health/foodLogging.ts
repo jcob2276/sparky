@@ -3,6 +3,8 @@ import { supabase } from '../supabase'
 import { invokeEdge } from '../supabase'
 import { TIMEOUTS } from '../constants'
 import { confirmMealCapture } from './nutritionTrackerApi'
+import { scheduleNutritionRefresh } from './nutritionSideEffects'
+import { pendingCaptureId, settleCaptures } from './pendingCaptureIds'
 import type { MicronutrientSources } from '@vanguard/domain'
 import type { MacroSource } from './foodTrust'
 
@@ -107,14 +109,18 @@ export async function saveParsedFoodItems(
   items: ParsedFoodItem[],
   opts: { date: string; mealType: string; mealGroupId?: string },
 ): Promise<void> {
+  // Bez jawnego mealGroupId ID trzymamy do sukcesu: ten sam tekst/posiłek ponowiony po błędzie nie dubluje zapisu.
+  const captureKey = opts.mealGroupId ? null : ['text', userId, opts.date, opts.mealType,
+    items.map((item) => `${item.name}:${item.grams}`).join(',')].join('|')
   await confirmMealCapture({
     userId,
     date: opts.date,
     mealType: opts.mealType,
     source: 'text',
     items: items.map((item, index) => ({ ...item, id: `text-${index + 1}` })),
-    captureId: opts.mealGroupId,
+    captureId: opts.mealGroupId ?? pendingCaptureId(captureKey as string),
   })
+  if (captureKey) settleCaptures([captureKey])
 }
 
 export async function saveFoodCorrection(
@@ -145,12 +151,19 @@ export async function updateFoodEntry(
     amount: string;
   }
 ): Promise<void> {
+  const { data: existing } = await supabase
+    .from('daily_food_entries')
+    .select('date')
+    .eq('id', entryId)
+    .eq('user_id', userId)
+    .maybeSingle();
   const { error } = await supabase.rpc('update_food_entry', {
     p_user_id: userId,
     p_entry_id: entryId,
     p_entry: entry,
   });
   if (error) throw error;
+  if (existing?.date) scheduleNutritionRefresh(userId, existing.date);
 }
 
 /** Gives a single entry a meal group, so a photo can be attached to it. */
@@ -164,11 +177,18 @@ export async function assignEntryMealGroup(userId: string, entryId: string, meal
 }
 
 export async function removeFoodEntry(userId: string, entryId: string): Promise<void> {
+  const { data: existing } = await supabase
+    .from('daily_food_entries')
+    .select('date')
+    .eq('id', entryId)
+    .eq('user_id', userId)
+    .maybeSingle();
   const { error } = await supabase.rpc('remove_food_entry', {
     p_user_id: userId,
     p_entry_id: entryId,
   });
   if (error) throw error;
+  if (existing?.date) scheduleNutritionRefresh(userId, existing.date);
 }
 
 export function confidenceLabel(item: ParsedFoodItem): string | null {

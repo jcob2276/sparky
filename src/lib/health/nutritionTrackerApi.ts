@@ -78,11 +78,15 @@ export async function confirmMealCapture(input: {
   items: CaptureDraftItem[];
   estimate?: { calories: number; minKcal: number; maxKcal: number };
   memoryName?: string;
-  captureId?: string;
+  /** Stable op id — required so retry/offline replay cannot mint a second meal (DC-04). */
+  captureId: string;
   loggedAt?: string;
 }): Promise<void> {
   if (!input.items.length) throw new Error('Posiłek nie zawiera żadnych pozycji');
-  const captureId = input.captureId ?? crypto.randomUUID();
+  const captureId = input.captureId?.trim();
+  if (!captureId) {
+    throw new Error('Brak captureId — nadaj ID przed pierwszym zapisem i trzymaj je przy retry.');
+  }
   const items = buildCaptureItems(input.items, input.source);
   const fingerprint = buildMealFingerprint(input.items);
   const { error } = await supabase.rpc('confirm_nutrition_meal_capture', {

@@ -85,7 +85,7 @@ export async function toggleTaskHelper(
         try {
           const kpis = await fetchKpisForProject(args.userId, projectId);
           const preferredKpi =
-            args.newTaskForm[index]?.kpiId ?? args.todaySlotKpis[index] ?? undefined;
+            taskRow.kpi_id ?? args.newTaskForm[index]?.kpiId ?? args.todaySlotKpis[index] ?? undefined;
           const decision = rollupTaskCompletion(
             targetValue,
             kpis,

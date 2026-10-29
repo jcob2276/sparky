@@ -938,6 +938,7 @@ export type Database = {
           day_win_id: string
           done: boolean | null
           id: string
+          kpi_id: string | null
           pin_id: string | null
           project_id: string | null
           slot: number
@@ -956,6 +957,7 @@ export type Database = {
           day_win_id: string
           done?: boolean | null
           id?: string
+          kpi_id?: string | null
           pin_id?: string | null
           project_id?: string | null
           slot: number
@@ -974,6 +976,7 @@ export type Database = {
           day_win_id?: string
           done?: boolean | null
           id?: string
+          kpi_id?: string | null
           pin_id?: string | null
           project_id?: string | null
           slot?: number
@@ -990,6 +993,13 @@ export type Database = {
             columns: ["day_win_id"]
             isOneToOne: false
             referencedRelation: "daily_wins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "daily_win_tasks_kpi_id_fkey"
+            columns: ["kpi_id"]
+            isOneToOne: false
+            referencedRelation: "goal_kpis"
             referencedColumns: ["id"]
           },
           {
@@ -5032,7 +5042,7 @@ export type Database = {
         Row: {
           date: string
           id: string
-          logged_at: string
+          logged_at: string | null
           note: string | null
           quantity: number
           supplement_id: string
@@ -5041,7 +5051,7 @@ export type Database = {
         Insert: {
           date: string
           id?: string
-          logged_at?: string
+          logged_at?: string | null
           note?: string | null
           quantity?: number
           supplement_id: string
@@ -5050,7 +5060,7 @@ export type Database = {
         Update: {
           date?: string
           id?: string
-          logged_at?: string
+          logged_at?: string | null
           note?: string | null
           quantity?: number
           supplement_id?: string

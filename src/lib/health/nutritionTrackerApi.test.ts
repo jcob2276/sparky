@@ -6,7 +6,14 @@ import { buildCaptureItems, confirmMealCapture } from './nutritionTrackerApi';
 import { removeFoodEntry, updateFoodEntry } from './foodLogging';
 
 const { rpc } = vi.hoisted(() => ({ rpc: vi.fn() }));
-vi.mock('../supabase', () => ({ supabase: { rpc } }));
+// updateFoodEntry/removeFoodEntry czytają datę wpisu przed zapisem (do odświeżenia dnia); w teście zawsze bez wyniku.
+const from = vi.hoisted(() => () => {
+  const q: Record<string, unknown> = {};
+  for (const m of ['select', 'eq']) q[m] = () => q;
+  q.maybeSingle = async () => ({ data: null, error: null });
+  return q;
+});
+vi.mock('../supabase', () => ({ supabase: { rpc, from } }));
 vi.mock('./nutritionSideEffects', () => ({ scheduleNutritionRefresh: vi.fn() }));
 
 const base = { id: 'x', name: 'Pierogi z serem', grams: 350, calories: 756, protein: 31.5, carbs: 98, fat: 24 };
@@ -91,7 +98,8 @@ async function prepareDiaryDb(db: PGlite, owner: string, other: string) {
         id uuid DEFAULT gen_random_uuid(), user_id uuid, name text, brand text, barcode text,
         calories integer, protein numeric, carbs numeric, fat numeric, fiber numeric, sugar numeric,
         saturated_fat numeric, default_grams integer, is_pinned boolean,
-        use_count integer DEFAULT 1, last_used timestamptz DEFAULT now()
+        use_count integer DEFAULT 1, last_used timestamptz DEFAULT now(), created_at timestamptz DEFAULT now(),
+      validation_status text, validation_reason text, validated_at timestamptz
       );
       CREATE UNIQUE INDEX food_favorites_user_name_brand_key ON food_favorites(user_id,name,coalesce(brand,''));
       CREATE TABLE food_library (
@@ -119,10 +127,9 @@ async function prepareDiaryDb(db: PGlite, owner: string, other: string) {
       '20261027160425_food_nutrient_provenance.sql',
       '20261027222927_food_entry_portion_micronutrients.sql',
     ]) await db.exec(await readFile(`supabase/migrations/${migration}`, 'utf8'));
-    await db.exec(await readFile('scripts/ops/food-favorites-library-cutover.sql', 'utf8'));
-    await db.exec(`ALTER TABLE food_favorites DROP COLUMN name,DROP COLUMN brand,DROP COLUMN barcode,
-      DROP COLUMN calories,DROP COLUMN protein,DROP COLUMN carbs,DROP COLUMN fat,DROP COLUMN fiber,
-      DROP COLUMN sugar,DROP COLUMN saturated_fat,DROP COLUMN salt,DROP COLUMN nutrient_sources`);
+    await db.exec('CREATE SCHEMA IF NOT EXISTS archive');
+    for (const migration of ['20261028280000_food_favorites_link_library.sql', '20261028310000_food_favorites_usage_only.sql', '20261028320000_food_favorites_drop_product_columns.sql'])
+      await db.exec(await readFile(`supabase/migrations/${migration}`, 'utf8'));
 }
 
 describe('nutrition diary aggregate regression', () => {
@@ -163,10 +170,17 @@ describe('nutrition diary aggregate regression', () => {
   });
 
   async function saveMeal(date: string, calories: number) {
-    await confirmMealCapture({ userId: owner, date, mealType: 'lunch', source: 'text', items: [{
-      ...base, id: `meal-${calories}`, name: `Posiłek ${calories}`, grams: 100,
-      calories, protein: 10, carbs: 20, fat: 5, confidence: 'high', source: 'library',
-    }] });
+    await confirmMealCapture({
+      userId: owner,
+      date,
+      mealType: 'lunch',
+      source: 'text',
+      captureId: crypto.randomUUID(),
+      items: [{
+        ...base, id: `meal-${calories}`, name: `Posiłek ${calories}`, grams: 100,
+        calories, protein: 10, carbs: 20, fat: 5, confidence: 'high', source: 'library',
+      }],
+    });
   }
 
   async function totals() {

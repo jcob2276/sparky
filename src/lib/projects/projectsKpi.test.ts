@@ -15,12 +15,23 @@ vi.mock('../goal/goalSpine.queries', () => ({
 
 describe('upsertKpiEntry', () => {
   const upsertMock = vi.fn();
+  const maybeSingleMock = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(supabase.from).mockReturnValue({
-      upsert: upsertMock,
-    } as unknown as ReturnType<typeof supabase.from>);
+    maybeSingleMock.mockResolvedValue({ data: { id: 'kpi-123', projects: { name: 'Inne' } }, error: null });
+    vi.mocked(supabase.from).mockImplementation((table: string) => {
+      if (table === 'goal_kpis') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: vi.fn().mockReturnValue({ maybeSingle: maybeSingleMock }),
+          }),
+        } as unknown as ReturnType<typeof supabase.from>;
+      }
+      return {
+        upsert: upsertMock,
+      } as unknown as ReturnType<typeof supabase.from>;
+    });
   });
 
   it('upserts kpi_entries with conflict resolution and invalidates goal spine and direction caches', async () => {
@@ -42,5 +53,14 @@ describe('upsertKpiEntry', () => {
 
     await expect(upsertKpiEntry('user-1', 'kpi-123', '2026-10-12', 42)).rejects.toThrow('Database upsert failure');
     expect(invalidateGoalSpineCache).not.toHaveBeenCalled();
+  });
+
+  it('rejects absolute upsert onto Closer-owned KPIs', async () => {
+    maybeSingleMock.mockResolvedValueOnce({
+      data: { id: 'kpi-closer', projects: { name: 'Closer Sales' } },
+      error: null,
+    });
+    await expect(upsertKpiEntry('user-1', 'kpi-closer', '2026-10-12', 42)).rejects.toThrow(/Closera/);
+    expect(upsertMock).not.toHaveBeenCalled();
   });
 });

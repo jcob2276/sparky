@@ -30,7 +30,7 @@ vi.mock('./supabase', () => ({ supabase: { from: (table: string) => {
 function task(slot: number, extra: Partial<Tables<'daily_win_tasks'>> = {}): Tables<'daily_win_tasks'> {
   return { id: `task-${slot}`, day_win_id: 'day', user_id: 'owner', slot, title: `Task ${slot}`,
     done: false, category: null, completed_at: null, todo_id: null, checkpoint_id: null,
-    pin_id: null, project_id: null, target_value: null, time_slot: null, created_at: null, updated_at: null, ...extra };
+    pin_id: null, project_id: null, target_value: null, time_slot: null, kpi_id: null, created_at: null, updated_at: null, ...extra };
 }
 
 beforeEach(() => { db.data = null; db.error = null; db.calls = []; });

@@ -20,7 +20,7 @@ try {
   for (const file of [
     '20260914232000_create_closer_daily_logs.sql',
     '20261021200000_closer_daily_logs_sales_closed.sql',
-    '20261025120000_closer_calls.sql',
+    '20261025101452_closer_calls.sql',
   ]) await db.exec(await readFile('supabase/migrations/' + file, 'utf8'));
   await db.query("INSERT INTO projects(user_id,name,status) VALUES ($1,'Closer','active')", [owner]);
   await db.query("INSERT INTO goal_kpis(user_id,project_id,name) SELECT $1,id,'Sales calle' FROM projects", [owner]);

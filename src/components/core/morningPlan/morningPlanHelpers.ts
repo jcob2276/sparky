@@ -6,12 +6,6 @@ export function scheduledTimeHm(iso: string | null | undefined): string {
   return warsawTimeOfDay(iso);
 }
 
-export function addMinutes(timeStr: string, minutes: number) {
-  const [h, m] = timeStr.split(':').map(Number);
-  const total = h * 60 + m + minutes;
-  return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
-}
-
 /** The date part of a stored calendar/scheduled ISO string (Warsaw wall-clock, per combineDateTimeWarsawISO). */
 export function isoDateStr(iso: string): string {
   return iso.split('T')[0];

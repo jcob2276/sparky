@@ -1,6 +1,7 @@
 import { supabase } from '../supabase';
 import type { Database } from '../database.types';
 import { invalidateGoalSpineCache } from '../goal/goalSpine.queries';
+import { isCloserAbsoluteKpi } from '../goal/goalSpineKpi.mutations';
 import { unwrap, unwrapMaybe } from '../supabaseUtils';
 import { createTodoItem, updateTodoItem, deleteTodoItem } from '../todo/todo';
 
@@ -223,6 +224,9 @@ export async function listGoalKpis(userId: string) {
 }
 
 export async function upsertKpiEntry(userId: string, kpiId: string, weekStart: string, value: number): Promise<void> {
+  if (await isCloserAbsoluteKpi(kpiId)) {
+    throw new Error('KPI Closera aktualizuje się z logów dnia — nie ręcznym upsertem z Projektów.');
+  }
   const { error } = await supabase
     .from('kpi_entries')
     .upsert(

@@ -1,6 +1,7 @@
 import { supabase } from '../supabase';
 import { entriesToDraft, type RepeatableFoodEntry } from './mealComposerUtils';
 import { confirmMealCapture } from './nutritionTrackerApi';
+import { pendingCaptureId, settleCaptures } from './pendingCaptureIds';
 
 export interface ComposerTodayMeal {
   id: string;
@@ -162,8 +163,13 @@ export async function copyFoodEntriesToDate(
   const sourceDate = filteredEntries[0]?.date;
   // Validate every meal before the first write, so an unknown mass cannot leave a half-copied day.
   const captures = [...groups].map(([mealType, mealEntries]) => ({ mealType, draftItems: entriesToDraft(mealEntries) }));
+  // Klucz operacji: ten sam użytkownik, dzień docelowy i zestaw wpisów = to samo kopiowanie (retry używa tych samych ID).
+  const operationKey = ['copy', userId, targetDate, targetMealType ?? '*', filteredEntries.map((e) => e.id).sort().join(',')].join('|');
+  const captureKeys: string[] = [];
   for (const { mealType, draftItems } of captures) {
     if (!draftItems.length) continue;
+    const captureKey = `${operationKey}#${mealType}`;
+    captureKeys.push(captureKey);
     await confirmMealCapture({
       userId,
       date: targetDate,
@@ -171,8 +177,10 @@ export async function copyFoodEntriesToDate(
       source: 'repeat',
       items: draftItems,
       memoryName: sourceDate ? `Kopia z ${sourceDate}` : undefined,
+      captureId: pendingCaptureId(captureKey),
     });
   }
+  settleCaptures(captureKeys);
 }
 
 export async function deleteFoodEntry(userId: string, entryId: string): Promise<void> {

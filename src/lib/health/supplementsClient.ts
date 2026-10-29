@@ -24,7 +24,8 @@ export type SupplementLog = {
   supplement_id: string;
   quantity: number;
   date: string;
-  logged_at: string;
+  /** Null = day known, clock time unknown (historical checkbox). */
+  logged_at: string | null;
   note: string | null;
 };
 

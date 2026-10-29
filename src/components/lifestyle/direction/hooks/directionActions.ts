@@ -149,6 +149,28 @@ export function createDirectionActions(params: {
           : dayWin;
         const merged = applyTodayTaskToggle({ ...data, daily_win_tasks: dayWin.daily_win_tasks }, slot, newValue, timestamp);
         setHistory((prev) => prev.map((d) => d.id === data.id ? merged : d));
+
+        // DC-02: same KPI contract as PowerList (today only; historical toggles do not rewrite weeks).
+        if (taskRow.todo_id) {
+          const { applyKpiRollupForLinkedTodo } = await import('../../../../lib/goal/goalSpineKpi.mutations');
+          void applyKpiRollupForLinkedTodo(userId, taskRow.todo_id, newValue ? 1 : -1).catch((err: unknown) => {
+            console.error('[directionActions] KPI rollup failed:', err);
+          });
+        } else if (taskRow.project_id && taskRow.target_value) {
+          const { applyKpiRollup, fetchKpisForProject, rollupTaskCompletion, currentWeekStart } = await import('../../../../lib/goal/goalSpine');
+          const { getTodayWarsaw } = await import('../../../../lib/date');
+          if (dayWin.date === getTodayWarsaw()) {
+            void (async () => {
+              try {
+                const kpis = await fetchKpisForProject(userId, taskRow.project_id as string);
+                const decision = rollupTaskCompletion(taskRow.target_value, kpis, newValue ? 1 : -1, taskRow.kpi_id);
+                if (decision) await applyKpiRollup(userId, decision.kpiId, currentWeekStart(), decision.delta);
+              } catch (err: unknown) {
+                console.error('[directionActions] KPI rollup failed:', err);
+              }
+            })();
+          }
+        }
       } else {
         throw new Error('Nie znaleziono zadania dnia.');
       }

@@ -6,6 +6,7 @@ import {
   fetchSupplementLogsSince,
   type SupplementLog,
 } from './supplementsClient';
+import { supplementLoggedAtForDate } from './supplementLogTime';
 
 export const supplementsKeys = {
   all: ['supplements'] as const,
@@ -71,11 +72,13 @@ export function useToggleSupplement() {
         }
         return { deletedLogId: existingLog.id };
       } else {
+        const logged_at = supplementLoggedAtForDate(date);
         const payload = {
           user_id: userId,
           supplement_id: supplementId,
           quantity: 1,
           date,
+          logged_at,
         };
         let newLog: SupplementLog;
         try {
@@ -88,7 +91,7 @@ export function useToggleSupplement() {
           newLog = data;
         } catch (err: unknown) {
           if (!isOfflineError(err)) throw err;
-          newLog = { id: crypto.randomUUID(), logged_at: new Date().toISOString(), note: null, ...payload };
+          newLog = { id: crypto.randomUUID(), note: null, ...payload };
           await queueOfflineWrite('table:insert:supplement_logs', { payload: newLog }, 'Zaznaczenie suplementu');
         }
         return { newLog };
@@ -143,14 +146,15 @@ export function useSetSupplementQuantity() {
         }
         return { ...existingLog, quantity };
       }
-      const payload = { user_id: userId, supplement_id: supplementId, quantity, date };
+      const logged_at = supplementLoggedAtForDate(date);
+      const payload = { user_id: userId, supplement_id: supplementId, quantity, date, logged_at };
       try {
         const { data, error } = await supabase.from('supplement_logs').insert(payload).select().single();
         if (error) throw error;
         return data as SupplementLog;
       } catch (err: unknown) {
         if (!isOfflineError(err)) throw err;
-        const local: SupplementLog = { id: crypto.randomUUID(), logged_at: new Date().toISOString(), note: null, ...payload };
+        const local: SupplementLog = { id: crypto.randomUUID(), note: null, ...payload };
         await queueOfflineWrite('table:insert:supplement_logs', { payload: local }, 'Zaznaczenie suplementu');
         return local;
       }

@@ -25,7 +25,12 @@ interface RawFoodEntry {
   logged_at: string | null;
   meal_group_id: string | null;
 }
-interface RawSupplementLog { id: string; logged_at: string; quantity: number; name: string | null }
+interface RawSupplementLog {
+  id: string;
+  logged_at: string | null;
+  quantity: number;
+  name: string | null;
+}
 interface RawStravaActivity {
   strava_id: number | null;
   name: string | null;
@@ -218,8 +223,9 @@ export function buildDayNightTimeline(raw: DayNightRaw): DayNightTimeline {
   const doses: CaffeineDose[] = caffeineEntries.map((c) => ({ at: c.at, mg: c.mg }));
   const nonCaffeine = raw.foodEntries.filter((e) => estimateCaffeineMg(e.name) === 0 && inWindow(toMs(e.logged_at)));
 
+  // Only logs with a known clock time appear on the axis (DC-11: null logged_at = day-only).
   const supplementMarkers: DayTimelineMarker[] = raw.supplementLogs
-    .filter((l) => inWindow(toMs(l.logged_at)))
+    .filter((l) => l.logged_at != null && inWindow(toMs(l.logged_at)))
     .map((l) => ({
       id: `supplement:${l.id}`,
       kind: 'supplement' as const,

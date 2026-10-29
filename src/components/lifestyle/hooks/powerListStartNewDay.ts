@@ -54,6 +54,7 @@ export async function startNewDayHelper(args: UsePowerListActionsArgs, haptics: 
       project_id: slot.projectId,
       pin_id: slot.pinId,
       target_value: slot.targetValue?.trim() || null,
+      kpi_id: slot.kpiId ?? null,
       time_slot: slot.timeSlot ?? null,
       done: false,
     }));

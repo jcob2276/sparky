@@ -3,10 +3,9 @@ import {
   updateTodoDueDate,
   submitMorningPlanRpc,
 } from '../../../lib/morningPlanApi';
-import { useCalendarWrite } from '../../calendar/hooks/useCalendarWrite';
 import { combineDateTimeWarsawISO } from '../../../lib/date';
 import { notify } from '../../../lib/notify';
-import { addMinutes, getDaytimeOverlapMinutes, isoDateStr, isoDurationMin, isoMinutesOfDay } from './morningPlanHelpers';
+import { getDaytimeOverlapMinutes, isoDateStr, isoDurationMin, isoMinutesOfDay } from './morningPlanHelpers';
 import { TodoSlot, CalEvent } from './types';
 import { CAPACITY_HOURS } from './useMorningPlanData';
 import { TimelineBlock } from '../../shared/DayTimeline';
@@ -45,8 +44,6 @@ export function useMorningPlanActions({
 }: UseMorningPlanActionsArgs) {
   const [activeSlotIdx, setActiveSlotIdx] = useState<number | null>(null);
   const [sending, setSending] = useState(false);
-
-  const { createEvent } = useCalendarWrite({ userId });
 
   const handleYesterdayAction = async (taskId: string, action: 'today' | 'later' | 'backlog' | 'drop' | 'done') => {
     const target = yesterdayTasks.find((t) => t.id === taskId);
@@ -179,35 +176,8 @@ export function useMorningPlanActions({
           duration_minutes: durations[task.id] || 30,
         }));
 
-      // Atomic: wins + slots + todo schedules (todayWinId unused — RPC upserts by date)
+      // Atomic: wins + slots + todo schedules. Calendar shows Todo via scheduled_time (DC-10) — no twin event.
       await submitMorningPlanRpc(userId, planningDate, slots, schedules);
-
-      // Best-effort calendar sync (external I/O — not in DB transaction)
-      let calendarErrors = 0;
-      for (const [taskId, task] of uniqueTasksMap.entries()) {
-        const startTime = times[taskId];
-        if (!startTime) continue;
-        const dur = durations[taskId] || 30;
-        const endTime = addMinutes(startTime, dur);
-        try {
-          await createEvent({
-            summary: task.title,
-            start: combineDateTimeWarsawISO(planningDate, startTime),
-            end: combineDateTimeWarsawISO(planningDate, endTime),
-            category: 'praca',
-          });
-        } catch (calErr: unknown) {
-          calendarErrors++;
-          console.warn('[morningPlan] calendar sync failed:', calErr);
-        }
-      }
-
-      if (calendarErrors > 0) {
-        notify(
-          `Plan zapisany. Kalendarz: ${calendarErrors} wydarzeń nie zsynchronizowano — spróbuj ponownie później.`,
-          'error',
-        );
-      }
       onClose();
     } catch (err: unknown) {
       console.error('[Action Error]', err);

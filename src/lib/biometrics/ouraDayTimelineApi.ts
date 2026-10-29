@@ -27,8 +27,12 @@ export async function fetchDayNightTimeline(userId: string, nightDate: string): 
       .eq('day', nightDate).order('ts'),
     supabase.from('daily_food_entries').select('id,name,calories,logged_at,meal_group_id').eq('user_id', userId)
       .gte('logged_at', fromISO).lte('logged_at', toISO).order('logged_at'),
-    supabase.from('supplement_logs').select('id,logged_at,quantity,supplements(name)').eq('user_id', userId)
-      .gte('logged_at', fromISO).lte('logged_at', toISO).order('logged_at'),
+    // Timed rows by logged_at window; undated-clock historical rows by date (DC-11).
+    supabase.from('supplement_logs').select('id,logged_at,quantity,date,supplements(name)').eq('user_id', userId)
+      .or(
+        `and(logged_at.gte.${fromISO},logged_at.lte.${toISO}),and(logged_at.is.null,date.eq.${nightDate}),and(logged_at.is.null,date.eq.${shiftDateStr(nightDate, -1)})`,
+      )
+      .order('logged_at', { ascending: true, nullsFirst: false }),
     supabase.from('strava_activities_clean')
       .select('strava_id,name,sport_type,start_date,moving_time,elapsed_time').eq('user_id', userId)
       .gte('start_date', fromISO).lte('start_date', toISO),
@@ -58,7 +62,7 @@ export async function fetchDayNightTimeline(userId: string, nightDate: string): 
     foodEntries: food.data ?? [],
     supplementLogs: (supplements.data ?? []).map((row) => ({
       id: row.id,
-      logged_at: row.logged_at,
+      logged_at: row.logged_at ?? null,
       quantity: row.quantity,
       name: row.supplements?.name ?? null,
     })),

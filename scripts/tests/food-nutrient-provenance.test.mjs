@@ -20,7 +20,8 @@ try {
       id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid, name text NOT NULL, brand text, barcode text,
       calories integer, protein numeric, carbs numeric, fat numeric, fiber numeric, sugar numeric,
       saturated_fat numeric, default_grams integer, is_pinned boolean,
-      use_count integer DEFAULT 1, last_used timestamptz DEFAULT now()
+      use_count integer DEFAULT 1, last_used timestamptz DEFAULT now(), created_at timestamptz DEFAULT now(),
+      validation_status text, validation_reason text, validated_at timestamptz
     );
     CREATE UNIQUE INDEX food_favorites_user_name_brand_key ON food_favorites(user_id,name,coalesce(brand,''));
     CREATE TABLE food_library (
@@ -39,11 +40,9 @@ try {
   await db.exec(await readFile('supabase/migrations/20261027160425_food_nutrient_provenance.sql', 'utf8'));
   await db.exec(await readFile('supabase/migrations/20261021211000_update_food_entry_saturated_fat.sql', 'utf8'));
   await db.exec(await readFile('supabase/migrations/20261027222927_food_entry_portion_micronutrients.sql', 'utf8'));
-  await db.exec(await readFile('scripts/ops/food-favorites-library-cutover.sql', 'utf8'));
-  // Exercise the future thin schema: no accidental legacy reads/writes can pass.
-  await db.exec(`ALTER TABLE food_favorites DROP COLUMN name,DROP COLUMN brand,DROP COLUMN barcode,
-    DROP COLUMN calories,DROP COLUMN protein,DROP COLUMN carbs,DROP COLUMN fat,DROP COLUMN fiber,
-    DROP COLUMN sugar,DROP COLUMN saturated_fat,DROP COLUMN salt,DROP COLUMN nutrient_sources`);
+  await db.exec('CREATE SCHEMA IF NOT EXISTS archive');
+  for (const migration of ['20261028280000_food_favorites_link_library.sql', '20261028310000_food_favorites_usage_only.sql', '20261028320000_food_favorites_drop_product_columns.sql'])
+    await db.exec(await readFile(`supabase/migrations/${migration}`, 'utf8'));
   const payload = {
     name: 'Chleb', calories: 250, protein: 8, carbs: 48, fat: 2,
     fiber: 6, sugar: 3, saturated_fat: 0.5, salt: 1.2,
