@@ -18,7 +18,6 @@ interface Props {
   onMoveDown?: () => void;
   onWarmup: () => void;
   onPlates: () => void;
-  onProgress: () => void;
   onRemoveSet: () => void;
   onSwap?: () => void;
   onRemove: () => void;
@@ -39,7 +38,6 @@ export default function LiveExerciseHeader({
   onMoveDown,
   onWarmup,
   onPlates,
-  onProgress,
   onRemoveSet,
   onSwap,
   onRemove,
@@ -112,7 +110,6 @@ export default function LiveExerciseHeader({
                 onClose={onCloseMenu}
                 onWarmup={onWarmup}
                 onPlates={onPlates}
-                onProgress={onProgress}
                 onRemoveSet={onRemoveSet}
                 onSwap={onSwap}
                 onRemove={onRemove}

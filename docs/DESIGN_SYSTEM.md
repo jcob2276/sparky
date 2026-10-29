@@ -3,7 +3,7 @@
 > **Cel tego pliku:** jedno miejsce które agent (AI lub człowiek) czyta PRZED dotknięciem kodu UI.
 > Zawiera twarde reguły, kompletną listę tokenów i komponentów z propami.
 >
-> **Visual preview:** `/dev/design-system` — żywa galeria wszystkich wariantów (uruchom dev server).
+> Galeria `/dev/design-system` została usunięta (2026-10-29); wzorce opisuje ten dokument.
 
 ---
 
@@ -515,9 +515,9 @@ Przed napisaniem/edytowaniem kodu UI:
 2. **Używaj tokenów** (`bg-danger`, `text-success`, `bg-surface-2`) zamiast hardkodowanych kolorów (`bg-rose-500`, `text-emerald-400`).
 3. **Nigdy nie pisz `rgba(99,102,241,...)` — użyj `var(--primary-N)` lub `color-mix(in srgb, var(--primary) N%, transparent)`. To samo w inline styles i SVG attrs.
 4. **Variant > boolean** — jeśli komponent ma warianty, używaj `variant="danger"` zamiast `isDanger={true}`.
-5. **Preview przed commit:** uruchom `/dev/design-system` żeby zobaczyć czy nowy wariant pasuje wizualnie.
+5. **Preview przed commit:** sprawdź nowy wariant na prawdziwym ekranie aplikacji (galerii design systemu już nie ma).
 6. **Dark mode:** tokeny automatycznie się przełączają. Nie pisz `dark:bg-...` ręcznie — użyj tokena.
 
 ---
 
-*Powiązane: [`FRONTEND_GUIDE.md`](FRONTEND_GUIDE.md) (organizacja kodu, ESLint, domeny), galeria: `/dev/design-system`*
+*Powiązane: [`FRONTEND_GUIDE.md`](FRONTEND_GUIDE.md) (organizacja kodu, ESLint, domeny)*

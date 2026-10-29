@@ -3,7 +3,6 @@ import {
   linearTrendSlope,
   rirAdjustedE1rm,
   rollingMax,
-  TREND_LABEL_PL,
   type TrendLabel,
 } from '@vanguard/domain';
 import {
@@ -20,7 +19,7 @@ interface ExerciseSetDetail {
   rir: number | null;
 }
 
-export interface ExerciseSessionSummary {
+interface ExerciseSessionSummary {
   date: string;
   setsLabel: string;
   headline: string;
@@ -45,7 +44,7 @@ export interface ExerciseProgressSummary {
   insight: string;
 }
 
-export function formatWeightLabel(weight: number): string {
+function formatWeightLabel(weight: number): string {
   return weight === 0 ? 'BW' : `${weight} kg`;
 }
 
@@ -261,5 +260,3 @@ export function buildExerciseProgress(
     insight,
   };
 }
-
-export { TREND_LABEL_PL };

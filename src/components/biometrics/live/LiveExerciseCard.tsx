@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Minus, Plus } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import { useExerciseVisual } from '../../../lib/health/exerciseImages';
@@ -119,7 +118,6 @@ export default function LiveExerciseCard({
   onSetUndone,
   onAllDone,
 }: Props) {
-  const navigate = useNavigate();
   const visual = useExerciseVisual(exercise.name);
   const { lastSession, allTimeBest1RM } = useExerciseHistory(exercise.name, userId);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -176,7 +174,6 @@ export default function LiveExerciseCard({
         onMoveDown={onMoveDown}
         onWarmup={addWarmup}
         onPlates={() => setPlatesOpen((v) => !v)}
-        onProgress={() => navigate({ pathname: '/cwiczenie', search: `?n=${encodeURIComponent(exercise.name)}` })}
         onRemoveSet={removeLastSet}
         onSwap={onSwap}
         onRemove={onRemove}

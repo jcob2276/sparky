@@ -1,5 +1,5 @@
 import { useEffect, lazy, Suspense, type ReactNode, useCallback } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAppAuthSession } from './hooks/useAppAuthSession';
 import { isNativePlatform } from './lib/native/platform';
 import { initUsageStatsSync } from './lib/native/usageStatsSync';
@@ -26,17 +26,12 @@ const MedicalLaboratoryPage = lazy(() => import('./components/medical/MedicalLab
 const CorrelationsPage = lazy(() => import('./components/correlations/CorrelationsPage'));
 const EndMyopiaCalculator = lazy(() => import('./components/medical/EndMyopiaCalculator'));
 const FinancePage = lazy(() => import('./components/finance/FinancePage'));
-const DesignSystemPage = lazy(() => import('./components/dev/DesignSystemPage'));
 const OuraHealthPage = lazy(() => import('./components/biometrics/OuraHealthPage'));
 const GrowthView = lazy(() => import('./components/growth/GrowthView'));
 import { queryClient } from './lib/queryClient';
 import { setupGlobalBleSync } from './lib/biometrics/ouraBleSync';
 
 const FALLBACK_SPINNER = <ShellSkeleton />;
-
-function KorealcjeRedirect() {
-  return <Navigate to="/korelacje" replace />;
-}
 
 function Screen({ kind, children }: { kind: PageTemplateKind; children: ReactNode }) {
   return <PageTemplateBoundary kind={kind}>{children}</PageTemplateBoundary>;
@@ -78,7 +73,6 @@ function useNativePlatformSync(userId: string | undefined, handleNativeNavigate:
 
 function AppRoutes() {
   const { session, loading } = useAppAuthSession();
-  const location = useLocation();
   const navigate = useNavigate();
 
   const handleNativeNavigate = useCallback((path: string) => {
@@ -97,14 +91,6 @@ function AppRoutes() {
     return FALLBACK_SPINNER;
   }
 
-  if (import.meta.env.DEV && location.pathname === '/dev/design-system') {
-    return (
-      <Suspense fallback={FALLBACK_SPINNER}>
-        <DesignSystemPage />
-      </Suspense>
-    );
-  }
-
   if (!session) return <Auth />;
 
   return (
@@ -120,7 +106,6 @@ function AppRoutes() {
       <Route path="/links" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/fundament" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/trening" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
-      <Route path="/cwiczenie" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/sauna" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
 
       <Route path="/dashboard" element={
@@ -159,19 +144,12 @@ function AppRoutes() {
           <Screen kind="dashboard"><OuraHealthPage /></Screen>
         </Suspense>
       } />
-      <Route path="/korealcje" element={<KorealcjeRedirect />} />
 
       <Route path="/optics" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="list"><EndMyopiaCalculator /></Screen>
         </Suspense>
       } />
-      <Route path="/dev/design-system" element={
-        <Suspense fallback={FALLBACK_SPINNER}>
-          <Screen kind="grid"><DesignSystemPage /></Screen>
-        </Suspense>
-      } />
-      <Route path="/czat" element={<Navigate to="/dzis" replace />} />
       <Route path="*" element={<Navigate to="/dzis" replace />} />
       </Routes>
   );

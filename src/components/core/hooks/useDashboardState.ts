@@ -131,7 +131,7 @@ export function useDashboardState(session: Session) {
 
   // Navigation
   useWorkoutResume(userId, useCallback(() => {
-    if (location.pathname === '/trening' || location.pathname === '/cwiczenie') return;
+    if (location.pathname === '/trening') return;
     navigate('/trening?mode=log');
   }, [location.pathname, navigate]));
 

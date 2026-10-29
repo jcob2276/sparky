@@ -464,17 +464,6 @@ Połączenia:
   zupełnie różną gęstość oraz architekturę ekranu;
 - zmiana wykonana w centrum dowodzenia jest natychmiast widoczna w Dziś i odwrotnie.
 
-### `/dev/design-system` — Design System
-
-**Cel:** deweloperski katalog komponentów i tokenów.
-
-- Dostępny bez sesji tylko w środowisku developerskim.
-- Nie jest powierzchnią produktu.
-
-### `/korealcje`
-
-Historyczny błąd w adresie. Przekierowuje do `/korelacje`.
-
 ## Telegram
 
 | Wejście | Efekt |

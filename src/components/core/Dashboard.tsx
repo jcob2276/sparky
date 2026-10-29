@@ -32,7 +32,6 @@ import Skeleton from '../ui/Skeleton';
 import { DashboardContext } from './context/DashboardContext';
 
 const TrainingRoute   = lazy(() => import('../biometrics/TrainingRoute'));
-const ExerciseProgressRoute = lazy(() => import('../biometrics/ExerciseProgressRoute'));
 const SaunaLoggerModal = lazy(() => import('../biometrics/SaunaLoggerModal'));
 const Fundament       = lazy(() => import('./Fundament'));
 const Keep            = lazy(() => import('../notes/Keep'));
@@ -112,11 +111,6 @@ function DashboardContent() {
   if (s.view === 'trening') return (
     <div className="animate-ios-modal flex-1 flex flex-col min-h-screen">
       <Suspense fallback={<ViewFallback />}><TrainingRoute initial={s.workoutInitial} onSaved={() => { s.refresh(); s.setWorkoutKey(k => k + 1); s.navigate('/dzis'); }} onBack={() => { s.setWorkoutInitial(null); s.refresh(); s.navigate('/dzis'); }} /></Suspense>
-    </div>
-  );
-  if (s.view === 'cwiczenie') return (
-    <div className="animate-ios-modal flex-1 flex flex-col min-h-screen">
-      <Suspense fallback={<ViewFallback />}><ExerciseProgressRoute onBack={() => s.navigate(-1)} /></Suspense>
     </div>
   );
 

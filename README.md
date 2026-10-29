@@ -67,19 +67,16 @@ produktu — [`docs/PRODUCT_LANGUAGE.md`](./docs/PRODUCT_LANGUAGE.md).
 | `/terminy` | obowiązki życiowe z wyprzedzeniem przypomnień |
 | `/links` | inbox zapisanych linków |
 | `/fundament` | fundament i kontekst tożsamości |
-| `/trening`, `/cwiczenie`, `/sauna` | dedykowane rejestratory i widoki aktywności |
+| `/trening`, `/sauna` | dedykowane rejestratory i widoki aktywności |
 | `/dashboard` | rozbudowany kokpit desktopowy |
 | `/finanse` | FIRE, runway, portfel i przepływy |
 | `/rozwoj` | umiejętności, eksperymenty i rozwój |
 | `/badania` | wyniki badań i trendy medyczne |
 | `/badania/laboratorium` | widok szczegółowych wyników badań laboratoryjnych |
 | `/korelacje` | zależności między zachowaniem a wynikami |
-| `/korealcje` | historyczna literówka przekierowywana do `/korelacje` |
 | `/oura` | pulpit biometrii i parametrów pierścienia Oura |
 | `/optics` | narzędzia związane ze wzrokiem |
 | `/settings` | konto, integracje, powiadomienia i konfiguracja |
-| `/czat` | alias przekierowujący do `/dzis` |
-| `/dev/design-system` | deweloperski podgląd design systemu, dostępny bez sesji tylko w trybie DEV |
 
 <!-- README_SYNC_ROUTES_END -->
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Flame, Scale, TrendingUp, Trash2, Minus, Repeat2 } from 'lucide-react';
+import { Flame, Scale, Trash2, Minus, Repeat2 } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 
 interface Props {
@@ -7,7 +7,6 @@ interface Props {
   onClose: () => void;
   onWarmup: () => void;
   onPlates: () => void;
-  onProgress: () => void;
   onRemoveSet: () => void;
   onSwap?: () => void;
   onRemove: () => void;
@@ -16,7 +15,7 @@ interface Props {
 const TRIGGER_SELECTOR = '[aria-label="Więcej opcji ćwiczenia"]';
 
 /** Rzadko potrzebne akcje ćwiczenia schowane w jednym menu, żeby karta zostawała prosta. */
-export default function LiveExerciseMenu({ canPlates, onClose, onWarmup, onPlates, onProgress, onRemoveSet, onSwap, onRemove }: Props) {
+export default function LiveExerciseMenu({ canPlates, onClose, onWarmup, onPlates, onRemoveSet, onSwap, onRemove }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   // Zamykanie po stuknięciu obok i klawiszem Esc — bez nakładki na cały ekran, która przykrywała pozycje menu.
@@ -46,7 +45,6 @@ export default function LiveExerciseMenu({ canPlates, onClose, onWarmup, onPlate
     <div ref={ref} role="menu" className="absolute right-0 top-11 z-[var(--z-modal)] w-56 rounded-2xl border border-border-custom bg-surface-solid p-1.5 shadow-lg">
       <Pressable role="menuitem" onClick={run(onWarmup)} className={item}><Flame size={16} className="text-warning" /> Dodaj rozgrzewkę</Pressable>
       {canPlates && <Pressable role="menuitem" onClick={run(onPlates)} className={item}><Scale size={16} className="text-primary" /> Talerze na sztandze</Pressable>}
-      <Pressable role="menuitem" onClick={run(onProgress)} className={item}><TrendingUp size={16} className="text-primary" /> Historia i progres</Pressable>
       <Pressable role="menuitem" onClick={run(onRemoveSet)} className={item}><Minus size={16} className="text-text-muted" /> Usuń ostatnią serię</Pressable>
       {onSwap && <Pressable role="menuitem" onClick={run(onSwap)} className={item}><Repeat2 size={16} className="text-primary" /> Zamień ćwiczenie</Pressable>}
       <Pressable role="menuitem" onClick={run(onRemove)} className={`${item} !text-danger`}><Trash2 size={16} /> Usuń ćwiczenie</Pressable>

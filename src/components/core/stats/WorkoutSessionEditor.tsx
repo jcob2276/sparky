@@ -1,5 +1,4 @@
 import { Edit3, Check, X, Trash2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import Button from '../../ui/Button';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
 import type { EditFormState, EditableExerciseLog } from '../hooks/useStatsData';
@@ -19,8 +18,6 @@ export function WorkoutSessionEditor({
   deleteLog,
   onCancel,
 }: WorkoutSessionEditorProps) {
-  const navigate = useNavigate();
-
   return (
     <div className="rounded-xl border-2 border-primary/50 bg-surface p-4 shadow-md space-y-3">
       <div className="flex items-center justify-between border-b border-border-custom pb-2.5">
@@ -58,12 +55,9 @@ export function WorkoutSessionEditor({
 
           return (
             <div key={log.id} className="flex items-center gap-2 bg-surface-solid/70 p-2 rounded-lg border border-border-custom/70 text-xs">
-              <Pressable
-                onClick={() => navigate(`/cwiczenie?n=${encodeURIComponent(log.exercise_name)}`)}
-                className="text-2xs w-28 truncate font-bold text-primary hover:underline text-left cursor-pointer"
-              >
+              <span className="text-2xs w-28 truncate font-bold text-text-primary text-left">
                 {log.exercise_name}
-              </Pressable>
+              </span>
 
               <div className="flex items-center gap-1 ml-auto">
                 <ControlInput
