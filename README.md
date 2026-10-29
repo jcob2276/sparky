@@ -71,8 +71,6 @@ produktu — [`docs/PRODUCT_LANGUAGE.md`](./docs/PRODUCT_LANGUAGE.md).
 | `/trening`, `/cwiczenie`, `/sauna` | dedykowane rejestratory i widoki aktywności |
 | `/dashboard` | rozbudowany kokpit desktopowy |
 | `/finanse` | FIRE, runway, portfel i przepływy |
-| `/inwestycje`, `/insiderzy` | widok inwestycji i ujawnień transakcji |
-| `/poker`, `/poker-lab` | analiza decyzji pokerowych |
 | `/rozwoj` | umiejętności, eksperymenty i rozwój |
 | `/badania` | wyniki badań i trendy medyczne |
 | `/badania/laboratorium` | widok szczegółowych wyników badań laboratoryjnych |
@@ -86,10 +84,8 @@ produktu — [`docs/PRODUCT_LANGUAGE.md`](./docs/PRODUCT_LANGUAGE.md).
 
 <!-- README_SYNC_ROUTES_END -->
 
-Główne widoki osobiste wymagają aktywnej sesji Supabase Auth. Widoki inwestycji
-(`/inwestycje`, `/insiderzy`, `/stocks`) i pokera (`/poker`, `/poker-lab`) mają
-osobne wejścia dostępne przed sprawdzeniem sesji. Podgląd design systemu jest
-dostępny bez sesji tylko w DEV.
+Główne widoki osobiste wymagają aktywnej sesji Supabase Auth. Podgląd design
+systemu jest dostępny bez sesji tylko w DEV.
 
 ### Zdrowie i aktywność
 
@@ -315,7 +311,6 @@ sprawdzane automatycznie względem odwołań w kodzie.
 | Google Calendar | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
 | NextDNS | `NEXTDNS_API_KEY`, `NEXTDNS_PROFILE_ID` |
 | Fathom (nagrania rozmów) | `FATHOM_WEBHOOK_SECRET` |
-| Ujawnienia inwestycyjne SEC | `SEC_USER_AGENT` |
 | MCP | `MCP_SERVER_SECRET` |
 | Web Push | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` |
 | Firebase/FCM | `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` |

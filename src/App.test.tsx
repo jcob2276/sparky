@@ -19,8 +19,6 @@ vi.mock('./components/core/OfflineStatusBanner', () => ({ OfflineStatusBanner: (
 vi.mock('./components/core/ActionHistoryController', () => ({ default: () => null }));
 vi.mock('./components/ui/ToastHost', () => ({ ToastHost: () => null }));
 vi.mock('./components/shared/PageTemplateBoundary', () => ({ default: ({ children }: { children: ReactNode }) => <>{children}</> }));
-vi.mock('./components/poker/PokerDecisionPage', () => ({ default: () => <div>Public poker</div> }));
-vi.mock('./components/investments/InvestmentsPage', () => ({ default: () => <div>Public investments</div> }));
 
 beforeEach(() => { source.owner = 'first'; window.history.replaceState({}, '', '/'); });
 afterEach(cleanup);
@@ -32,11 +30,4 @@ it('keeps a private draft for the same owner and removes it on a direct account 
   expect(screen.getByLabelText('Private draft')).toHaveValue('First account draft');
   source.owner = 'second'; rerender(<App />);
   expect(screen.getByLabelText('Private draft')).toHaveValue('');
-});
-
-it.each([['/poker', 'Public poker']])('keeps the existing anonymous entry at %s', async (path, label) => {
-  source.owner = null; window.history.replaceState({}, '', path);
-  render(<App />);
-  expect(await screen.findByText(label)).toBeInTheDocument();
-  expect(screen.queryByText('Sign in')).not.toBeInTheDocument();
 });

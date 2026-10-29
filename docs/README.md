@@ -31,9 +31,6 @@ kolejność czytania albo listę odnośników, powinien zamiast tego cytować te
 | 8 | [`VANGUARD_STATE.md`](./VANGUARD_STATE.md) | Stan aplikacji: zakładki, komponenty, tabele, integracje |
 | 9 | [`FEATURE_LIFECYCLE.md`](./FEATURE_LIFECYCLE.md) | Aktywne / disabled / deprecated / dropped |
 | 10 | [`PRODUCT_LANGUAGE.md`](./PRODUCT_LANGUAGE.md) | Kanoniczny słownik produktu (Plan, Move, Evidence, itp.) |
-| 11 | [`../.cursor/rules/vanguard-context.mdc`](../.cursor/rules/vanguard-context.mdc) | Filozofia, failure modes, co jest zablokowane (Cursor-specific) |
-| 12 | [`../.cursor/rules/vanguard-ops.mdc`](../.cursor/rules/vanguard-ops.mdc) | Deploy, secrets, DB constraints (Cursor-specific) |
-| 13 | [`../.cursor/rules/vanguard-agent-workflow.mdc`](../.cursor/rules/vanguard-agent-workflow.mdc) | Definition of done, checklist (Cursor-specific) |
 
 ## Domenowe (na żądanie)
 

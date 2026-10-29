@@ -29,7 +29,6 @@ const FinancePage = lazy(() => import('./components/finance/FinancePage'));
 const DesignSystemPage = lazy(() => import('./components/dev/DesignSystemPage'));
 const OuraHealthPage = lazy(() => import('./components/biometrics/OuraHealthPage'));
 const GrowthView = lazy(() => import('./components/growth/GrowthView'));
-const PokerDecisionPage = lazy(() => import('./components/poker/PokerDecisionPage'));
 import { queryClient } from './lib/queryClient';
 import { setupGlobalBleSync } from './lib/biometrics/ouraBleSync';
 
@@ -93,14 +92,6 @@ function AppRoutes() {
       void hideSplashScreen();
     }
   }, [loading]);
-
-  if (location.pathname === '/poker' || location.pathname === '/poker-lab') {
-    return (
-      <Suspense fallback={FALLBACK_SPINNER}>
-        <PokerDecisionPage />
-      </Suspense>
-    );
-  }
 
   if (loading) {
     return FALLBACK_SPINNER;
@@ -179,16 +170,6 @@ function AppRoutes() {
       <Route path="/dev/design-system" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="grid"><DesignSystemPage /></Screen>
-        </Suspense>
-      } />
-      <Route path="/poker" element={
-        <Suspense fallback={FALLBACK_SPINNER}>
-          <Screen kind="dashboard"><PokerDecisionPage /></Screen>
-        </Suspense>
-      } />
-      <Route path="/poker-lab" element={
-        <Suspense fallback={FALLBACK_SPINNER}>
-          <Screen kind="dashboard"><PokerDecisionPage /></Screen>
         </Suspense>
       } />
       <Route path="/czat" element={<Navigate to="/dzis" replace />} />

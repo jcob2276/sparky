@@ -16,7 +16,7 @@ function pwaPlugin(): PluginOption {
     injectManifest: {
       // Statyczne mini-aplikacje i raporty z public/ oraz biblioteka PDF (tylko skan do PDF) nie należą do powłoki:
       // pobieramy je przy pierwszym użyciu (patrz runtime cache w sw.ts), a nie przy instalacji.
-      globIgnores: ['libregto/**', 'poker/**', 'audit.html', 'raport_*.html', 'assets/es-*.js'],
+      globIgnores: ['audit.html', 'raport_*.html', 'assets/es-*.js'],
     },
     includeAssets: ['favicon.png', 'favicon.svg', 'apple-touch-icon.png', 'icons.svg'],
     manifest: {

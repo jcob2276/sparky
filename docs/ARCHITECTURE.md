@@ -119,7 +119,7 @@ During active planning session (`planning_status = active`): all messages go to 
 - Stream dedup by `telegram_message_id`.
 - Confirmed gate / epistemic guardrails in Oracle prompts.
 
-See [.cursor/rules/vanguard-context.mdc](../.cursor/rules/vanguard-context.mdc) for philosophy.
+See [KIERUNEK.md](./direction/KIERUNEK.md) for philosophy.
 
 ---
 

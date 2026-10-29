@@ -10,7 +10,7 @@ Jesteś Antigravity, agentyczny AI asystent parowany z Jakubem. Styl: krótki, b
 | Zadanie / Trigger | Skill / Zasady | Co załadować |
 |---|---|---|
 | "nowa funkcja", "deploy", "edge function" | backend-dev | docs/BACKEND_CONTRACT.md |
-| "baza", "migracja", "db", "tabela" | db-ops | .cursor/rules/vanguard-ops.mdc |
+| "baza", "migracja", "db", "tabela" | db-ops | supabase/functions/README.md |
 | "frontend", "komponent", "widok", "css" | frontend-dev | docs/FRONTEND_GUIDE.md |
 | "klasyfikacja", "classify", "oracle" | core-logic | docs/ARCHITECTURE.md |
 
@@ -18,7 +18,7 @@ Jesteś Antigravity, agentyczny AI asystent parowany z Jakubem. Styl: krótki, b
 1. **Timezone:** Zawsze używaj `Europe/Warsaw` na poziomie DB i JS (patrz [BACKEND_CONTRACT.md](docs/BACKEND_CONTRACT.md)).
 2. **Supabase & Auth:** Zawsze używaj `createServiceClient()` i `resolveUserScope()` (patrz [BACKEND_CONTRACT.md](docs/BACKEND_CONTRACT.md)).
 3. **Pętla Lekcji:** Przed pracą przeczytaj `lessons.md`. Po skończeniu pracy zaktualizuj `lessons.md` o błędy/lekcje.
-4. **Agent Workflow:** Postępuj według `.cursor/rules/vanguard-agent-workflow.mdc` (DoD).
+4. **Agent Workflow:** Postępuj według `AGENTS.md` (DoD).
 5. **No "as any":** Całkowity zakaz rzutowania na `as any` (używaj precyzyjnych typów lub `unknown` z type-guardem).
 6. **Data Access Layer:** Wszystkie interakcje z bazą we frontendzie przechodzą przez dedykowane serwisy `*Api.ts` (np. `notesApi.ts`). Brak bezpośrednich `supabase.from` w komponentach — egzekwowane przez ESLint (`no-restricted-syntax` w `eslint.config.js`), patrz [FRONTEND_GUIDE.md](docs/FRONTEND_GUIDE.md).
 7. **Pionowe plastry:** Buduj i modyfikuj system pionowymi plastrami (jedna funkcja/widok od bazy po UI), nie twórz wiszących kabli bez wpięcia do interfejsu.

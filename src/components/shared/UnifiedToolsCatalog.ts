@@ -11,7 +11,6 @@ import {
   Clock,
   TrendingUp,
   GraduationCap,
-  Dices,
 } from 'lucide-react';
 
 export interface WorkspaceToolDef {
@@ -115,13 +114,5 @@ export const WORKSPACE_TOOLS: WorkspaceToolDef[] = [
     path: '/korelacje',
     category: 'strategia_zdrowie',
     description: 'Korelacje nawyków, snu, HRV i energii',
-  },
-  {
-    id: 'poker',
-    label: 'Poker Decision Lab',
-    icon: Dices,
-    path: '/poker',
-    category: 'strategia_zdrowie',
-    description: 'Anti-Resulting, EV i decyzje w warunkach niepełnej informacji',
   },
 ];
