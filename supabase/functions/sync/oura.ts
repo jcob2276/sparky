@@ -131,7 +131,7 @@ export async function runOuraSync(req: Request): Promise<unknown> {
           }
         })
 
-        const upsertData = Object.values(summaries).map(s => {
+        const upsertData = Object.values(summaries).sort((a, b) => a.date.localeCompare(b.date)).map(s => {
           let isDisciplined = false
           if (s.bedtime_timestamp) {
             try {

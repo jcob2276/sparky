@@ -1,6 +1,6 @@
 import type { Json } from '../database.types';
 import { supabase } from '../supabase';
-import { buildMealFingerprint, type MealDraftItem, type MealMemoryRecord, type NutritionDayCompleteness } from './nutritionTracker';
+import { buildMealFingerprint, type MealDraftItem, type NutritionDayCompleteness } from './nutritionTracker';
 import { scheduleNutritionRefresh } from './nutritionSideEffects';
 import { deriveItemUncertainty } from './foodTrust';
 
@@ -142,14 +142,3 @@ export async function fetchNutritionDayReviews(userId: string, since: string) {
   return (data ?? []) as Array<{ date: string; completeness: NutritionDayCompleteness }>;
 }
 
-/** Zapamiętane posiłki (potwierdzone w dzienniku), z których składamy propozycje „co dalej”. */
-export async function fetchMealMemories(userId: string): Promise<MealMemoryRecord[]> {
-  const { data, error } = await supabase.from('nutrition_meal_memories')
-    .select('id,name,meal_type,items,confirmed_count')
-    .eq('user_id', userId)
-    .order('confirmed_count', { ascending: false })
-    .order('last_confirmed_at', { ascending: false })
-    .limit(80);
-  if (error) throw error;
-  return (data ?? []) as MealMemoryRecord[];
-}

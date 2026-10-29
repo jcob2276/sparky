@@ -23,7 +23,7 @@ export function computePerDay(opts: {
   date: string;
   todayWarsaw: string;
   now: Date;
-  zones: any; enh: any; summ: any; nutr: any;
+  zones: any; summ: any; nutr: any;
   workouts: any; strava: any; recon: any; food: any;
   baseByDate: any; respByDate: any; skinTempByDate: any;
   sleepByDate: Record<string, number>;
@@ -34,14 +34,13 @@ export function computePerDay(opts: {
   getBaselinesForDate: (d: string) => any;
   sleepTargetH?: number;
 }) {
-  const { date, todayWarsaw, now, zones, enh, summ, nutr, workouts, strava, recon, food,
+  const { date, todayWarsaw, now, zones, summ, nutr, workouts, strava, recon, food,
     baseByDate, respByDate, skinTempByDate, sleepByDate, strainHistRunning, illnessDates,
     weight, sex, ageYears, algoVersion, uid, getBaselinesForDate, sleepTargetH } = opts;
 
   const { hrvEwma, rhrEwma, sleepScoreEwma, respEwma, hrvBase, rhrBase } = getBaselinesForDate(date);
   const fuelingProvisional = date === todayWarsaw;
   const z = zones[date]?.[0] || null;
-  const e = enh[date]?.[0] || null;
   const s = summ[date]?.[0] || null;
   const n = nutr[date]?.[0] || null;
   const wsets = (workouts[date] || []).flatMap((w: any) => w.exercise_logs || []);
@@ -53,11 +52,12 @@ export function computePerDay(opts: {
   const carbs = n?.carbs != null ? Number(n.carbs) : null;
   const protein = n?.protein != null ? Number(n.protein) : null;
   const sleep = s?.total_sleep_hours ?? null;
+  const steps = s?.steps ?? null;
   const respToday = respByDate[date] ?? null;
   const skinTempToday = skinTempByDate[date] ?? null;
 
-  const strainScoreResult = computeStrainScore({ z, runs, wsets, steps: e?.steps ?? null, kcal, carbs, protein, fuelingProvisional, weight });
-  const recoveryScoreResult = computeRecoveryScore({ sleep, sleepByDate, date, respToday, skinTempToday, hrvAvg: s?.hrv_avg ?? null, rhrAvg: s?.rhr_avg ?? null, sleepScore: s?.sleep_score ?? null, readinessScore: s?.readiness_score ?? null, hrvEwma, rhrEwma, sleepScoreEwma, respEwma, hrvBase, rhrBase, subjectiveScore, ageYears, sex: (sex === 'F' || sex === 'M') ? sex : 'M', steps: e?.steps ?? null, sleepTargetH });
+  const strainScoreResult = computeStrainScore({ z, runs, wsets, steps, kcal, carbs, protein, fuelingProvisional, weight });
+  const recoveryScoreResult = computeRecoveryScore({ sleep, sleepByDate, date, respToday, skinTempToday, hrvAvg: s?.hrv_avg ?? null, rhrAvg: s?.rhr_avg ?? null, sleepScore: s?.sleep_score ?? null, readinessScore: s?.readiness_score ?? null, hrvEwma, rhrEwma, sleepScoreEwma, respEwma, hrvBase, rhrBase, subjectiveScore, ageYears, sex: (sex === 'F' || sex === 'M') ? sex : 'M', steps, sleepTargetH });
 
   let recovery = recoveryScoreResult.recovery;
   const strain = strainScoreResult.strain;
@@ -89,7 +89,7 @@ export function computePerDay(opts: {
   const parts: string[] = [];
   if (strainScoreResult.isRunDay) parts.push('bieg');
   if (strainScoreResult.strengthPts > 0) parts.push('siłownia');
-  if (e?.steps != null && e.steps >= 12000) parts.push(`${Math.round(e.steps / 1000)}k kroków`);
+  if (steps != null && steps >= 12000) parts.push(`${Math.round(steps / 1000)}k kroków`);
   if (kcal != null) parts.push(`${kcal} kcal`);
   const ctx = parts.join(' + ') || 'dzień regeneracyjny';
   const limiterPL: Record<string, string> = { sleep: 'głównym ograniczeniem jest sen', calories: 'za mało kalorii względem obciążenia', carbs: 'za mało węgli w dzień biegowy', cardio_load: 'wysoki koszt sercowo-naczyniowy', strength_load: 'ciężka sesja siłowa', mental_load: 'wysokie obciążenie mentalne', recovery_ok: 'regeneracja OK', illness: 'choroba/infekcja — ogranicz obciążenie' };
@@ -137,7 +137,7 @@ export function computePerDay(opts: {
       components: {
         zones: z || null, raw_total: Math.round(strainScoreResult.rawTotal * 10) / 10,
         run_rpe: strainScoreResult.maxRpe || null, pr: strainScoreResult.hasPr || null,
-        weight, kcal, carbs, protein, steps: e?.steps ?? null, sleep_h: sleep,
+        weight, kcal, carbs, protein, steps, sleep_h: sleep,
         hrv_base: hrvEwma ? Math.round(hrvEwma.center) : hrvBase ? Math.round(hrvBase) : null,
         rhr_base: rhrEwma ? Math.round(rhrEwma.center) : rhrBase ? Math.round(rhrBase) : null,
         hrv_ewma_nValid: hrvEwma?.nValid ?? null,

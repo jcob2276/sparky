@@ -146,7 +146,6 @@ export const runEnhanced = async (req: Request) => {
       activity.data?.forEach((it: any) => {
         const r = ensure(it.day); if (!r) return
         r.activity_score = it.score ?? null
-        r.steps = it.steps ?? null
         r.active_calories = it.active_calories ?? null
         r.total_calories = it.total_calories ?? null
         r.target_calories = it.target_calories ?? null
@@ -217,6 +216,12 @@ export const runEnhanced = async (req: Request) => {
           console.error('[oura-enh] upsert error', upErr)
           results.push({ user_id: u.user_id, error: upErr.message })
         } else {
+          // Never send a cached steps value in this upsert. The DB locks the source
+          // before projecting it, so an overlapping canonical update cannot be undone.
+          const { error: projectionError } = await supabase.rpc('refresh_oura_steps_projection', {
+            p_user_id: u.user_id, p_dates: rows.map((row) => row.date),
+          })
+          if (projectionError) throw projectionError
           results.push({ user_id: u.user_id, days_upserted: rows.length, dates: rows.map(r => r.date).sort() })
         }
       } else {

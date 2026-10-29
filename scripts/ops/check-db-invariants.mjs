@@ -153,6 +153,12 @@ const CHECKS = [
     sql: `SELECT DISTINCT l.source_entity FROM public.vanguard_entity_links l
           WHERE NOT EXISTS (SELECT 1 FROM public.entities e WHERE lower(e.canonical_name) = lower(l.source_entity))`,
   },
+  {
+    name: "oura_enhanced steps must project canonical oura_daily_summary steps",
+    sql: `SELECT s.date FROM public.oura_daily_summary s
+          JOIN public.oura_enhanced e ON e.user_id = s.user_id AND e.date = s.date
+          WHERE s.steps IS DISTINCT FROM e.steps`,
+  },
 ];
 
 const npx = (args) => execFileSync("npx", ["supabase", ...args], { encoding: "utf8", shell: process.platform === "win32", stdio: ["ignore", "pipe", "pipe"] });

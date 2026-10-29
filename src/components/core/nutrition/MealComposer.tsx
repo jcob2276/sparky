@@ -132,8 +132,6 @@ export default function MealComposer({ onSaved, refreshSignal = 0 }: { onSaved?:
             saving={c.saving}
             onChip={c.handleQuickChip}
             onOpenCopyDay={() => startTransition(() => setCopyDayOpen(true))}
-            nextMeals={c.nextMealSuggestions}
-            onNextMeal={c.applyNextMeal}
           />
         )}
 

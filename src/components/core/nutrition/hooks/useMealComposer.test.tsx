@@ -16,7 +16,6 @@ vi.mock('./useMealComposerSave', () => ({ useMealComposerSave: () => ({ saveDraf
 vi.mock('./useMealComposerCapture', () => ({ useMealComposerCapture: () => ({}) }));
 vi.mock('./useMealComposerRefresh', () => ({ useMealComposerRefresh: () => vi.fn() }));
 vi.mock('./useMealComposerQuickChips', () => ({ useMealComposerQuickChips: () => ({}) }));
-vi.mock('./useNextMealSuggestions', () => ({ useNextMealSuggestions: () => ({}) }));
 vi.mock('./useMealComposerBulkActions', () => ({ useMealComposerBulkActions: () => ({}) }));
 
 const clients: QueryClient[] = [];

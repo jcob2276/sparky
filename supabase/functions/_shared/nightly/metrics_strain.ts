@@ -1,7 +1,7 @@
 import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getWarsawDateString } from '../time.ts';
 import { ewmaBaseline } from './baselines.ts';
-import { byKey, type OuraDailySummaryRow, type OuraEnhancedRow, type OuraHrZonesDailyRow, type DailyNutritionRow, type WorkoutSessionRow, type StravaActivityRow, type DailyFoodEntryRow, type BehaviorLogRow, type DailyReconciliationRow } from './metricsTypes.ts';
+import { byKey, type OuraDailySummaryRow, type OuraHrZonesDailyRow, type DailyNutritionRow, type WorkoutSessionRow, type StravaActivityRow, type DailyFoodEntryRow, type BehaviorLogRow, type DailyReconciliationRow } from './metricsTypes.ts';
 import { buildIllnessDates, computePerDay } from './computePerDay.ts';
 import { resolvePersonalTargets } from '../personalTargets.ts';
 
@@ -67,10 +67,9 @@ export const runComputeDailyStrain = async (
         const strainHistRunning: Array<{ date: string; strain_score: number | null }> = [...(strainHistRows || [])];
 
         const winStart = dateFrom ? toWarsaw(new Date(startDate.getTime() - 864e5)) : toWarsaw(new Date(now.getTime() - (days + 1) * 864e5));
-        const [zonesR, enhR, summR, nutrR, wsR, stravaR, foodR, behaviorR, reconR] = await Promise.all([
+        const [zonesR, summR, nutrR, wsR, stravaR, foodR, behaviorR, reconR] = await Promise.all([
           supabase.from('oura_hr_zones_daily').select('day, z1_regen_min, z2_tlenowa_min, z3_tempo_min, z4_prog_min, z5_max_min, hr_max').eq('user_id', uid).gte('day', winStart),
-          supabase.from('oura_enhanced').select('date, steps, resilience_level').eq('user_id', uid).gte('date', winStart),
-          supabase.from('oura_daily_summary').select('date, readiness_score, hrv_avg, rhr_avg, total_sleep_hours, sleep_score').eq('user_id', uid).gte('date', winStart),
+          supabase.from('oura_daily_summary').select('date, steps, readiness_score, hrv_avg, rhr_avg, total_sleep_hours, sleep_score').eq('user_id', uid).gte('date', winStart),
           supabase.from('daily_nutrition').select('date, calories, protein, carbs').eq('user_id', uid).gte('date', winStart),
           supabase.from('workout_sessions').select('date, exercise_logs(exercise_name, rpe, rir, reps)').eq('user_id', uid).gte('date', winStart),
           supabase.from('strava_activities_clean').select('start_date, perceived_exertion, has_pr, sport_type, is_oura').eq('user_id', uid).eq('is_oura', false).gte('start_date', winStart + 'T00:00:00'),
@@ -80,7 +79,6 @@ export const runComputeDailyStrain = async (
         ]);
 
         const zones = byKey(zonesR.data as OuraHrZonesDailyRow[], (r) => r.day);
-        const enh = byKey(enhR.data as OuraEnhancedRow[], (r) => r.date);
         const summ = byKey(summR.data as OuraDailySummaryRow[], (r) => r.date);
         const nutr = byKey(nutrR.data as DailyNutritionRow[], (r) => r.date);
         const workouts = byKey(wsR.data as WorkoutSessionRow[], (r) => r.date);
@@ -96,7 +94,7 @@ export const runComputeDailyStrain = async (
         const upserts = [];
         for (const date of dayList) {
           const { row, strain } = computePerDay({
-            date, todayWarsaw, now, zones, enh, summ, nutr, workouts, strava, recon, food,
+            date, todayWarsaw, now, zones, summ, nutr, workouts, strava, recon, food,
             baseByDate, respByDate, skinTempByDate, sleepByDate, strainHistRunning, illnessDates,
             weight, sex, ageYears, algoVersion, uid, getBaselinesForDate, sleepTargetH,
           });

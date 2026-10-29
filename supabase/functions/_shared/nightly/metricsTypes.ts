@@ -5,14 +5,7 @@ export interface OuraDailySummaryRow {
   total_sleep_hours: number | null;
   sleep_score: number | null;
   readiness_score: number | null;
-}
-
-export interface OuraEnhancedRow {
-  date: string;
-  sleep_average_breath: number | null;
-  temperature_deviation: number | null;
   steps: number | null;
-  resilience_level: string | null;
 }
 
 export interface OuraHrZonesDailyRow {

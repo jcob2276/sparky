@@ -8013,6 +8013,10 @@ export type Database = {
         Args: { p_days?: number }
         Returns: number
       }
+      refresh_oura_steps_projection: {
+        Args: { p_dates: string[]; p_user_id: string }
+        Returns: undefined
+      }
       remove_food_entry: {
         Args: { p_entry_id: string; p_user_id: string }
         Returns: undefined
