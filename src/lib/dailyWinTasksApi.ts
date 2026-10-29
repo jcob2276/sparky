@@ -123,3 +123,18 @@ export async function createDailyWinTasks(userId: string, entries: TablesInsert<
   if (error) throw error;
   return data ?? [];
 }
+
+export interface TodoKpiBinding { project_id: string | null; target_value: string | null; kpi_id: string | null }
+
+/** Projekt/KPI zadania dnia powiązanego z Todo (tylko dziś); null, gdy Todo nie jest w planie dnia. */
+export async function fetchTodayTaskKpiBinding(
+  userId: string, todoId: string, date: string, client: SupabaseClient<Database> = supabase,
+): Promise<TodoKpiBinding | null> {
+  const { data, error } = await client.from('daily_win_tasks')
+    .select('project_id, target_value, kpi_id, daily_wins!inner(date, user_id)')
+    .eq('todo_id', todoId).eq('user_id', userId)
+    .eq('daily_wins.date', date).eq('daily_wins.user_id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? { project_id: data.project_id, target_value: data.target_value, kpi_id: data.kpi_id } : null;
+}

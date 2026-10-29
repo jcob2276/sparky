@@ -5,16 +5,15 @@ const task = vi.hoisted(() => ({ value: null as null | Record<string, unknown> }
 vi.mock('../supabase', () => ({
   supabase: {
     rpc,
-    from: (table: string) => {
+    from: () => {
       const q: Record<string, unknown> = {};
       for (const m of ['select', 'eq']) q[m] = () => q;
-      q.maybeSingle = async () => table === 'goal_kpis'
-        ? { data: { id: 'k', projects: { name: 'Inny' } }, error: null }
-        : { data: task.value, error: null };
+      q.maybeSingle = async () => ({ data: { id: 'k', projects: { name: 'Inny' } }, error: null });
       return q;
     },
   },
 }));
+vi.mock('../dailyWinTasksApi', () => ({ fetchTodayTaskKpiBinding: async () => task.value }));
 vi.mock('./goalSpine.queries', () => ({
   invalidateGoalSpineCache: vi.fn(),
   fetchKpisForProject: vi.fn().mockResolvedValue([

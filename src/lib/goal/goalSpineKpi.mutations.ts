@@ -3,6 +3,7 @@ import { getTodayWarsaw, getWeekStartWarsaw } from '../date';
 import type { GoalKpiRow, RollupDecision } from './goalSpine.types';
 import { invalidateGoalSpineCache } from './goalSpine.queries';
 import { fetchKpisForProject } from './goalSpine.queries';
+import { fetchTodayTaskKpiBinding } from '../dailyWinTasksApi';
 
 /** Closer weekly KPIs are absolute sums from closer_daily_logs — never delta-task or manual overwrite. */
 export async function isCloserAbsoluteKpi(kpiId: string): Promise<boolean> {
@@ -110,15 +111,7 @@ export async function applyKpiRollupForLinkedTodo(
   sign: 1 | -1,
 ): Promise<void> {
   const today = getTodayWarsaw();
-  const { data: task, error } = await supabase
-    .from('daily_win_tasks')
-    .select('project_id, target_value, kpi_id, daily_wins!inner(date, user_id)')
-    .eq('todo_id', todoId)
-    .eq('user_id', userId)
-    .eq('daily_wins.date', today)
-    .eq('daily_wins.user_id', userId)
-    .maybeSingle();
-  if (error) throw error;
+  const task = await fetchTodayTaskKpiBinding(userId, todoId, today);
   if (!task?.project_id || !task.target_value) return;
 
   const kpis = await fetchKpisForProject(userId, task.project_id);
