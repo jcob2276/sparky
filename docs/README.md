@@ -1,63 +1,41 @@
-# Documentation index & reading order
+# Dokumentacja Sparky
 
-SSOT dla nawigacji po dokumentacji. Każdy inny plik, który chciałby zdefiniować własną
-kolejność czytania albo listę odnośników, powinien zamiast tego cytować ten plik.
+## Na start
 
-## Start here
+Czytaj [AGENTS](../AGENTS.md), [bieżący handoff](agent/ACTIVE_WORK.md) i krótkie
+[lessons](../lessons.md), potem wyłącznie dokument właściwy dla zadania.
+Opis dla użytkownika i uruchomienie: [README](../README.md).
+Otwarte prace: [BACKLOG](../BACKLOG.md); kierunek produktu: [KIERUNEK](direction/KIERUNEK.md).
 
-- [`../CLAUDE.md`](../CLAUDE.md) — router dla Claude/Antigravity-style agentów (persona, routing table)
-- [`../AGENTS.md`](../AGENTS.md) — konstytucja repo: quick map, critical rules, reguły dokumentacji
-- [`../README.md`](../README.md) — ludzki punkt wejścia (co to za projekt)
+## Właściciele informacji
 
-## Quick start (5 minut)
-
-| # | Plik | Co tam jest |
-|---|---|---|
-| 1 | [`../AGENTS.md`](../AGENTS.md) | Konstytucja, reguły deployu, modele, critical rules |
-| 2 | [`ARCHITECTURE.md`](./ARCHITECTURE.md) | Przepływ danych, crony, podsystemy, mapa katalogów (jedna strona) |
-| 1b | [`SINGLE_SOURCE.md`](./SINGLE_SOURCE.md) | Jedno źródło prawdy: kto jest właścicielem każdego celu, progu i definicji, oraz metoda szukania rozjazdów. Sprawdź PRZED wpisaniem jakiejkolwiek liczby do kodu lub promptu |
-| 2b | [`DATA_MAP.md`](./DATA_MAP.md) | Generowana mapa danych: kto czyta/pisze każdą tabelę (TS + SQL + cron) oraz słownik mylących nazw (`vanguard_*`, `workout_day`). Sprawdź PRZED usunięciem czegokolwiek |
-| 3 | [`../supabase/functions/README.md`](../supabase/functions/README.md) | Rejestr edge functions: status, JWT, tabele, LOC |
-| 4 | [`BACKEND_CONTRACT.md`](./BACKEND_CONTRACT.md) | Twarde reguły deweloperskie i deployu dla backendu i funkcji edge |
-| 5 | [`FRONTEND_GUIDE.md`](./FRONTEND_GUIDE.md) | Standardy deweloperskie i zasady projektowe (UX/UI) dla `src/` |
-| 5b | [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md) | Tokeny, komponenty ui/, reguły dla agentów — czytać PRZED pisaniem kodu UI |
-| 6 | [`PRODUCT_PRINCIPLES.md`](./PRODUCT_PRINCIPLES.md) | Guardrails epistemiczne, feature gate, co jest zablokowane |
-
-## Pełne czytanie (15 minut)
-
-| # | Plik | Co tam jest |
-|---|---|---|
-| 7 | [`../BACKLOG.md`](../BACKLOG.md) | Jedyny backlog repo: audyt architektury (sekwencja z zależnościami), warstwa wiedzy, bugi/dług techniczny, dług frontendowy, pomysły funkcjonalne. Sprawdź tu PRZED rozpoczęciem pracy z audytu — żeby nie robić czegoś już zrobionego albo poza kolejnością zależności |
-| 8 | [`VANGUARD_STATE.md`](./VANGUARD_STATE.md) | Stan aplikacji: zakładki, komponenty, tabele, integracje |
-| 9 | [`FEATURE_LIFECYCLE.md`](./FEATURE_LIFECYCLE.md) | Aktywne / disabled / deprecated / dropped |
-| 10 | [`PRODUCT_LANGUAGE.md`](./PRODUCT_LANGUAGE.md) | Kanoniczny słownik produktu (Plan, Move, Evidence, itp.) |
-
-## Domenowe (na żądanie)
-
-| Plik | Kiedy czytać |
+| Potrzeba | Dokument |
 |---|---|
-| [`../lessons.md`](../lessons.md) | Przed każdą sesją — sprawdź czy problem już był |
-| [`agent/ACTIVE_WORK.md`](./agent/ACTIVE_WORK.md) | Co jest w toku teraz (krótki handoff, nadpisywany); Capacitor/APK; historia w `agent/archive/` |
-| [`direction/KIERUNEK.md`](./direction/KIERUNEK.md) | Wersja 10/10: jedna aplikacja-dziennik, która mierzy wszystko, co da się zmierzyć, i łączy wnioski |
-| [`direction/FEATURE_INSPIRATIONS.md`](./direction/FEATURE_INSPIRATIONS.md) | Bank pomysłów funkcjonalnych, posortowany wg dźwigni |
-| [`../supabase/migrations/README.md`](../supabase/migrations/README.md) | Przed dodaniem nowej migracji |
-| [`../scripts/README.md`](../scripts/README.md) | Przy uruchamianiu lokalnych skryptów |
-| [`runbooks/`](./runbooks/) | Przy incydentach (deploy, bot, DB, Telegram timeout) |
-| [`surface-contracts/BIOMETRICS.md`](./surface-contracts/BIOMETRICS.md) | Przed zmianą powierzchni biometrycznych (regression checklist) |
-| [`research/food-trackers-benchmark.md`](./research/food-trackers-benchmark.md) | Przed większą zmianą w module Jedzenie — co robią najlepsze trackery i mapa luk |
-| [`career/`](./career/) | Domena sprzedaż/closer — nie dotyczy Vanguard Core |
+| Przepływ danych i granice systemu | [ARCHITECTURE](ARCHITECTURE.md) |
+| Właściciel celu, progu, definicji | [SINGLE_SOURCE](SINGLE_SOURCE.md) — przed wpisaniem liczby do kodu/promptu |
+| Czytelnicy i pisarze tabel | [DATA_MAP](DATA_MAP.md) — generowana mapa, przed usuwaniem danych/kodu |
+| Funkcje, triggery, JWT, tabele | [Rejestr backendu](../supabase/functions/README.md) i generowany [FUNCTIONS](../supabase/functions/FUNCTIONS.md) |
+| Zmiana backendu | [BACKEND_CONTRACT](BACKEND_CONTRACT.md) |
+| Zmiana frontendu | [FRONTEND_GUIDE](FRONTEND_GUIDE.md) |
+| Wygląd, komponenty i tokeny UI | [DESIGN_SYSTEM](DESIGN_SYSTEM.md) |
+| Granice wnioskowania i zapisu AI | [PRODUCT_PRINCIPLES](PRODUCT_PRINCIPLES.md) |
+| Nazwy w produkcie | [PRODUCT_LANGUAGE](PRODUCT_LANGUAGE.md) |
+| Obecne moduły i wejścia | [VANGUARD_STATE](VANGUARD_STATE.md) |
+| Aktywne, wyłączone i usunięte ścieżki | [FEATURE_LIFECYCLE](FEATURE_LIFECYCLE.md) |
+| Migracje i odtwarzanie bazy | [Migracje](../supabase/migrations/README.md) |
+| Polecenia, testy i narzędzia | [scripts](../scripts/README.md), [CONTRIBUTING](../CONTRIBUTING.md) |
+| Incydent / deploy | [runbooks](runbooks/) |
+| Powierzchnie biometryczne | [BIOMETRICS](surface-contracts/BIOMETRICS.md) |
+| Zmiana modułu jedzenia | [Benchmark trackerów](research/food-trackers-benchmark.md) — materiał referencyjny, nie kolejka |
+| Kontekst pracy/sprzedaży | [career](career/) — treści domenowe, nie instrukcje globalne |
 
-## Authority (gdy sprzeczne)
+## Hierarchia i utrzymanie
 
-Gdy instrukcje w różnych plikach się różnią, wygrywa plik wyżej na liście:
+W razie sprzeczności: AGENTS → ARCHITECTURE → rejestr funkcji →
+BACKEND_CONTRACT → FRONTEND_GUIDE → pozostałe dokumenty właściwe dla zadania.
+Aktualny kod ustala stan implementacji; dokument nie dowodzi wdrożenia.
 
-1. `AGENTS.md` — konstytucja
-2. `ARCHITECTURE.md` — data flow
-3. `supabase/functions/README.md` — rejestr funkcji
-4. `BACKEND_CONTRACT.md` — dla zmian backendowych
-5. `FRONTEND_GUIDE.md` — dla zmian frontendowych i UI/UX
-6. Reszta w kolejności powyżej
-
-## Zasada VGM
-
-> Plik > Czat. Instrukcje w plikach, nie w wiadomościach. Agent czyta folder zanim odpowie.
+Jeden temat ma jednego właściciela. Pozostałe pliki linkują do niego.
+Nowy dokument powstaje wyłącznie, gdy żaden istniejący nie pasuje.
+Plan sesyjny żyje w ACTIVE_WORK, otwarte punkty w BACKLOG, historia w Git.
+Nie kopiuj inwentarzy, liczników, wersji i wyników dawnych testów do instrukcji.

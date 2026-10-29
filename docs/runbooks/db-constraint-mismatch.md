@@ -1,56 +1,21 @@
-# DB constraint mismatch
+# Niezgodność constraintu DB
 
-## Symptom
+Objaw: brak zapisu mimo odpowiedzi HTTP albo błąd Postgres CHECK/enum.
+Nie odtwarzaj dawnych INSERT-ów z dokumentacji — ustal tabelę, payload, rolę i
+rzeczywisty `error` z kodu/logów. Supabase JS zwraca `{error}` bez throw.
 
-Edge function returns 200 or 500, but no row saved. User sees partial bot response or silence after "Transkrybuję...".
-
-## Diagnosis
-
-Test INSERT manually in Supabase SQL editor:
+W SQL Editor sprawdź definicje (podmień nazwę tabeli):
 
 ```sql
-  audio_duration_seconds, word_count, evaluation_result, status)
-VALUES (
-  '<run_id>', '<user_id>', 0, 'rep_a', 'rep_a', 'test',
-  60, 100, '{"status":"diagnostic"}'::jsonb, 'diagnostic'
-);
+SELECT conname, pg_get_constraintdef(oid)
+FROM pg_constraint
+WHERE conrelid = 'public.daily_reconciliations'::regclass;
 ```
 
-If error mentions `check constraint`, the code uses a value not in the constraint.
+Dla `daily_reconciliations.planning_status` legalne wartości to
+`pending | active | completed`, nie `done`. Inne statusy sprawdzaj w schemacie i migracjach,
+a nie w historycznych przykładach.
 
-## Known constraints (as of 2026-05)
-
-```
-pass | partial | repeat_day | pending | diagnostic | self_check
-```
-
-```
-rep_a | rep_b | correction_rep_a | real_life_transfer
-```
-
-### daily_reconciliations.planning_status
-```
-pending | active | completed
-```
-NOT `done` — use `completed`.
-
-## Fix
-
-```sql
-  CHECK (status = ANY (ARRAY[
-    'pass','partial','repeat_day','pending','diagnostic','self_check'
-  ]));
-
-  CHECK (rep_type = ANY (ARRAY[
-    'rep_a','rep_b','correction_rep_a','real_life_transfer'
-  ]));
-```
-
-Always add a migration file after manual fix:
-
-```
-```
-
-## Prevention
-
-Before adding new status/rep_type values in code, update CHECK constraint first.
+Popraw caller lub dodaj uzasadnioną [migrację](../../supabase/migrations/README.md),
+zanim kod zacznie wysyłać nową wartość. Sprawdź RLS, NOT NULL i FK oraz test błędnej
+wartości; odpowiedź sukcesu musi odpowiadać rzeczywistemu zapisowi.

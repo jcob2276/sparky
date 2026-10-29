@@ -1,8 +1,7 @@
 # Jedno źródło prawdy (SSOT)
 
-Każda informacja ma **jednego właściciela**: jedno miejsce, w którym jest zapisana. Reszta aplikacji, Oracle i agenci
-AI **czytają** z niego i nie trzymają własnych kopii liczb. Rozjazd tej samej informacji w kilku miejscach jest błędem,
-nawet jeśli każda kopia osobno wygląda sensownie.
+Każdy fakt ma jednego właściciela. UI, Oracle i agenci czytają z niego; kopia pochodna
+ma jednego pisarza i sprawdzany niezmiennik. Zasady pracy: [AGENTS](../AGENTS.md).
 
 ## Zasady (dla ludzi i agentów)
 
@@ -10,7 +9,7 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 2. Jeśli fakt ma właściciela, czytaj z niego (hook `useLifeTargets`, resolver `personalTargets`, stała z jednego modułu).
 3. Jeśli faktu nie ma w tabeli, dopisz go tu **w tym samym commicie**, razem z właścicielem.
 4. W promptach AI i w tekstach dla użytkownika nie wpisuj liczb „z głowy”: liczba pochodzi z danych albo jej nie ma.
-5. Tekst opisowy (np. wizja w Fundamencie) nie jest źródłem liczb. Liczby celów żyją w tabelach i stamtąd są podawane.
+5. Tekst „O mnie dla AI” nie jest źródłem liczb. Liczby celów żyją w tabelach i stamtąd są podawane.
 6. `src/lib/lifeGoals.guard.test.ts` oblewa build, gdy w kodzie pojawi się wpisany na sztywno cel tłuszczu, wyciskania albo dochodu.
 7. Zmiana wartości = zmiana u właściciela. Po zmianie grepuj kod po starej wartości i nazwie.
 
@@ -21,7 +20,7 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 | Cel tłuszczu (%) | `nutrition_profile.goal_body_fat` | `useLifeTargets(userId).bodyFatPct` |
 | Cel wyciskania (kg, e1RM) | `life_targets.bench_goal_kg` (edycja: Ustawienia → Cele liczbowe) | `useLifeTargets(userId).benchKg` |
 | Cel dochodu netto (zł/msc) | `life_targets.income_goal_net_pln` | `useLifeTargets(userId).incomeNetPln` |
-| Cel majątku netto (zł) | `finance_profile.net_worth_target` (domyślnie 100 000 w bazie, lustrzany `DEFAULT_PROFILE` w `financeApi.ts`) | `useFinanceBundle(userId).data.profile.net_worth_target` |
+| Cel majątku netto (zł) | `finance_profile.net_worth_target`; fallback `DEFAULT_PROFILE` w `financeApi.ts` | `useFinanceBundle(userId).data.profile.net_worth_target` |
 | Cele tygodniowe sprzedaży (umówienia, sales calle, rozmowy odebrane, godziny) | `goal_kpis` (projekt closer) | `useCloserTargets(userId)` |
 | Cel skuteczności sprzedaży (close rate) | brak właściciela: nie wpisuj procentu do UI ani promptów | dopisz KPI w `goal_kpis` i czytaj stamtąd, jeśli ma wrócić |
 | Aktualny poziom tłuszczu (%) | ostatni pomiar `body_metrics.body_fat` | `nutrition_profile.current_body_fat_est` to tylko zapas, gdy pomiaru brak (healthspan, trener żywieniowy) |
@@ -54,12 +53,12 @@ Rozjazd w niezmienniku znaczy, że ktoś zapisuje obok właściciela.
 |---|---|---|---|
 | Epizod nawyku „Lenie” (komenda `/lenie`) | `habit_logs` + `habits` (jeden zapis: `recordLenieEpisode`) | brak kopii; analizy czytają `habit_logs` (widok `vanguard_consolidated_activities`, `compute-behavior-effects` przez `lenieAsBehaviorRows`) | `behavior_log` nie ma klucza `lenie` |
 | Dzienny agregat jedzenia | `daily_food_entries` | `daily_nutrition` (trigger) | kcal i białko = suma wpisów dnia |
-| Zadania dnia (sloty 1–5) | `daily_win_tasks` (wiersze) | brak kopii w kolumnach `daily_wins` (drop 2026-10-28: migracja `20261028300000_daily_wins_drop_slot_columns`); odczyt buduje `task_N`/`done_N` w pamięci (`adaptDailyWinTasks` / `withLegacySlots`). RPC planu porannego zapisuje wyłącznie `daily_win_tasks` | tytuł i done slotów zgodne z wierszami zadań |
+| Zadania dnia (sloty 1–5) | `daily_win_tasks` (wiersze) | `task_N`/`done_N` są adapterem odczytu (`adaptDailyWinTasks` / `withLegacySlots`), nie kolumnami `daily_wins`; RPC planu zapisuje tylko wiersze zadań | tytuł i done slotów zgodne z wierszami zadań |
 | Wynik snu i gotowość dobowa | `oura_daily_summary` | `oura_enhanced.sleep_score/readiness_score` | równe w obu tabelach |
 | Kroki Oury | `oura_daily_summary.steps` | `oura_enhanced.steps`: projekcja w bazie; import szczegółów nie zapisuje niezależnej liczby kroków | równe po właścicielu/dacie; obciążenie czyta źródło kanoniczne, zero jest znaną wartością |
-| Godziny snu | `oura_daily_summary.total_sleep_hours` = suma epizodów z dnia | `oura_enhanced.total_sleep_hours` = najdłuższy epizod (inna definicja, nie kopia; do rozdzielenia nazw) | nie porównujemy |
+| Godziny snu | `oura_daily_summary.total_sleep_hours` = suma epizodów z dnia | `oura_enhanced.main_sleep_hours` = najdłuższy epizod (inna definicja, nie kopia) | nie porównujemy |
 | Powiązania grafu wiedzy | `vanguard_entity_links` (model zapisu) | `claims` + `entities` + `relations` (trigger; Oracle czyta `claims`) | źródło powiązania istnieje w `entities` |
-| Lista relacji i aliasy encji grafu | `relations` (lista, opis, klucz obcy z powiązań) i `entity_aliases` (aliasy) | brak; dawne `vanguard_relation_ontology` i `vanguard_entity_aliases` scalone 28.10 (archiwum w schemacie `archive`) | FK `vanguard_entity_links.relation` → `relations(name)` |
+| Lista relacji i aliasy encji grafu | `relations` (lista, opis, klucz obcy z powiązań) i `entity_aliases` (aliasy) | brak; nie przywracać dawnych kopii `vanguard_relation_ontology` / `vanguard_entity_aliases` | FK `vanguard_entity_links.relation` → `relations(name)` |
 | Cel żywieniowy w dniu | `nutrition_targets` (wiersz `date <= dzień`) | brak; odczyt wyłącznie przez `fetchNutritionTargetForDay` (frontend) i `targetForDay` (funkcje brzegowe) | reguła w testach obu warstw |
 | Biometria stanu świata | `oura_daily_summary` | brak; wartości dnia tylko z dokładnej daty, wcześniejszy pomiar osobno (`last_available` z własną datą) | testy `worldStateOura` |
 
@@ -70,43 +69,23 @@ Pominięte celowo: `vanguard_pipeline_runs.run_id` (identyfikator korelacji) i k
 
 | Temat | Gdzie się rozjeżdża | Decyzja |
 |---|---|---|
-| Samodzielne aktywności z Oury (bez odpowiednika w Stravie) | pulpit desktopowy je liczy, Kronika, porównanie okresów, Puls i recap pomijają (`is_oura = false`) | do decyzji użytkownika; dziś dotyczy jednego biegu (24.05, 5,2 km) |
-| Portfele w Inwestycjach | zakodowane na sztywno (Jakub, Kondzio) vs `finance_holdings` | zostawione celowo, do przeniesienia do Finansów |
-| Cel Duch i cel sprintu 3 | `life_goals.goal_duch` pusty, brak wpisu `sprint_goals` | do uzupełnienia przez użytkownika |
+| Samodzielne aktywności z Oury (bez odpowiednika w Stravie) | różne zakresy desktopu i konsumentów `is_oura = false` | przed ujednoliceniem sprawdzić rzeczywiste rekordy i uzgodnić zakres z użytkownikiem |
+| Portfele w Inwestycjach | stałe portfele vs `finance_holdings` | sprawdzić obecnych konsumentów przed przeniesieniem do Finansów |
+| Cel Duch i cel sprintu | brak deklaracji nie uprawnia do automatycznego uzupełnienia | użytkownik wybiera cel i rytm jego aktualizacji |
 
 ## Jak szukać rozjazdów (metoda dla agentów)
 
-Rozjazd to ta sama informacja w dwóch miejscach z różną wartością albo definicją. Szukaj ich po kolei w pięciu warstwach,
-a każde znalezisko potwierdź danymi, zanim coś zmienisz.
+1. **Literały:** szukaj celów/progów w `src/`, funkcjach i domenie; liczba o tym samym znaczeniu ma jednego właściciela.
+2. **Definicje:** porównaj wybór daty, najnowszego obowiązującego wiersza, pełnych dni i aktywności; pułapki oraz helpery wskazano wyżej i w [lessons](../lessons.md).
+3. **Projekcje:** porównaj dane ze źródłem po userze/dacie; poprawkę utrwal w `db:check-invariants`.
+4. **Konsumenci:** sprawdź także zwracane pola obiektów — Knip nie wykrywa wszystkich nieużywanych pól.
+5. **Prompty/cache:** fikcyjny fallback nie jest faktem. Sprawdź pisarzy i wspólną invalidację (`invalidateLifeTargets`, `invalidateGoalSpineCache`, `queryKeys`). Brak wejścia daje NULL, nie zero/false.
 
-1. **Literały w kodzie.** Grepuj liczby celów i progów (`14`, `100 kg`, `150`, `6.5`, `1000`, `'%sauna%'`,
-   `'Europe/Warsaw'`, listy typu `['Run', 'TrailRun', ...]`) w `src`, `supabase/functions` i `packages/domain`.
-   Dwa wystąpienia tej samej liczby z tym samym znaczeniem to kandydat na jedną stałą w `@vanguard/domain`.
-2. **Kopie logiki.** Szukaj funkcji robiących to samo inaczej: „najnowszy wiersz” (`order desc limit 1`), średnie z dni,
-   początek tygodnia, sprint, „dzisiaj”. Typowe pułapki z historii repo:
-   - `order('date', desc).limit(1)` bez `lte('date', dzień)` łapie wiersze zapisane z wyprzedzeniem (cel i plan na jutro);
-   - `new Date().toISOString().slice(0, 10)` to dzień w UTC, po północy czasu polskiego wczorajszy (strażnik: `warsawDay.guard.test.ts`);
-   - średnie z dni bez `completedNutritionDays` wliczają dzisiejszy i niepełne dni;
-   - surowa `strava_activities` zamiast widoku `strava_activities_clean` dubluje biegi Oura + Strava.
-3. **Kopie danych w bazie.** Każda tabela pochodna (`kpi_entries`, `vanguard_daily_aggregates`, `daily_nutrition`,
-   `oura_enhanced`) porównaj zapytaniem ze źródłem (suma dni, ten sam dzień w dwóch tabelach). Rozjazd w danych
-   zwykle wskazuje błąd w kodzie zapisu, np. upsert całego wiersza nadpisujący istniejące pola `null`-em. Po naprawie
-   dopisz regułę do `scripts/ops/check-db-invariants.mjs`.
-4. **Pola liczone, których nikt nie czyta.** Dla każdego pola zwracanego przez hook lub API sprawdź grepem, czy ma
-   konsumenta w komponencie. Knip łapie martwe eksporty, ale nie martwe pola obiektu. Martwe pola z `?? 0` to
-   podwójny problem: zbędne zapytania i brak danych udający zero.
-5. **Prompty AI i teksty.** Szukaj zapasów typu `x || 'wymyślony fakt'` i liczb wpisanych do promptu. Zapas w prompcie
-   nigdy nie jest faktem o użytkowniku; liczby celów idą do promptu z właścicieli (blok „CELE LICZBOWE” w Oracle).
+Zmianę udowodnij testem odtwarzającym błąd lub zapytaniem przed/po. Definicje produktu,
+kasowanie danych i godziny powiadomień wymagają decyzji użytkownika.
 
-Przy każdej zmianie wartości lub nowym `useQuery` na cudzych danych sprawdź też wszystkich piszących i ich
-unieważnianie cache (np. `invalidateLifeTargets`, `invalidateGoalSpineCache`), inaczej ekrany pokażą starą liczbę.
-Pole wyliczone bez danych wejściowych ma być `null` („nie wiem”), a nie `false` albo `0`.
+## Odrębne magazyny i retencja
 
-Każdą poprawkę dowodź testem odtwarzającym błąd na starym kodzie albo zapytaniem pokazującym dane przed i po.
-Decyzje produktowe (która definicja jest właściwa, kasowanie danych, godziny powiadomień) zapisuj w tabeli
-„Znane rozjazdy” i zostaw użytkownikowi.
-
-## Decyzje o tabelach bez wspolnego wlasciciela (2026-10-28)
-- `vanguard_knowledge` zostaje osobna: fakty z wiki-compilera (kopia stron, jeden pisarz `vanguard-wiki-compiler`) i z Telegrama; czytaja ja `vanguard-architect` i `_shared/vanguardCoreMethods`. Nie scalac z `vanguard_wiki_pages` bez przepiecia obu czytelnikow.
-- `v_day` (widok-kregoslup dnia) NIE jest budowany: zadnego naturalnego konsumenta (`period-compare`, `teraz` czytaja inne kolumny); zbudowac dopiero razem z konsumentem.
-- Dzienniki bez czytelnika, utrzymywane retencja w `cleanup_old_logs`: `vanguard_oracle_runs`, `view_events` (90 dni), `vanguard_raw_events` (180 dni).
+- `vanguard_knowledge` czytają architect i `_shared/vanguardCoreMethods`; explicit Telegram zapisuje fakty, compiler kopiuje strony. Nie scalać z wiki bez przepięcia obu czytelników.
+- `v_day` budować dopiero razem z rzeczywistym konsumentem; sama wspólna data nie uzasadnia nowego widoku.
+- Retencję `vanguard_oracle_runs`, `view_events` i `vanguard_raw_events` definiuje `cleanup_old_logs`; nie utrzymuj kopii harmonogramu/liczników w instrukcjach.

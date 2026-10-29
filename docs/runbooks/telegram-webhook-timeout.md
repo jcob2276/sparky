@@ -1,46 +1,19 @@
-# Telegram webhook timeout
+# Telegram: timeout i częściowe wykonanie
 
-## Problem
+Bieżący przepływ to `vanguard-telegram` → trwały `vanguard_telegram_inbox` →
+`vanguard-telegram-worker`; odpowiedź wychodzi przez `outbound_messages` i sender.
+Webhook zwraca 200 dopiero po zapisie inboxu. Błąd akceptacji pozostaje retryable (503).
+Transkrypcja i LLM wykonują się w workerze, poza budżetem odpowiedzi webhooka.
 
-Telegram webhooks wait max **30 seconds** for HTTP 200. If processing takes longer, Telegram retries the same `update_id`.
+Przy duplikatach, samym ack głosu albo częściowym zapisie:
 
-## Symptoms
+1. Sprawdź status/error_log inboxu, worker i outbox według [diagnostyki bota](bot-not-responding.md).
+2. Rozróżnij błąd przyjęcia wiadomości od błędu przetwarzania/dostarczenia odpowiedzi.
+3. Gemini (`gemini.transcribe`, `GEMINI_API_KEY`) i DeepSeek diagnozuj w logach workera.
+4. Sprawdź `vanguard_stream.metadata.telegram_message_id` oraz `daily_reconciliations`:
+   istniejący stream przy refleksji nadal `sent` wymaga ścieżki resume, nie drugiego zapisu.
 
-- Duplicate "Transkrybuję..." / "Słucham..." messages
-- Same voice note processed multiple times
-- Partial state in DB (lock set but rep not saved)
-
-
-Process **synchronously** — return 200 only after:
-1. Gemini transcription (`gemini.transcribe`, secret `GEMINI_API_KEY`)
-2. DB save
-3. Feedback message sent
-
-Do NOT use `EdgeRuntime.waitUntil` for voice processing on Supabase — background tasks are killed after response.
-
-## Vanguard-specific note
-
-`vanguard-telegram` returns 200 immediately and processes in background IIFE. This works for text stream capture but voice transcription runs inside the background block.
-
-If voice hangs, user sees "Słucham..." with no follow-up — check logs for `gemini.transcribe` errors.
-
-## Timing budget
-
-| Step | Typical time |
-|---|---|
-| Telegram getFile + download | 1–3s |
-| Gemini transcription (2 min audio) | 5–15s |
-| DeepSeek eval | 2–5s |
-| DB writes | <1s |
-| **Total** | 8–20s (within 30s limit) |
-
-## If still timing out
-
-- Split: send immediate ack, process via separate queue (future)
-- Shorten audio or compress before transcription
-- Check Gemini latency (`gemini.transcribe`)
-
-## Dedup (if retries happen)
-
-
-Vanguard stream: dedup by `metadata.telegram_message_id`.
+Zachowaj idempotencję i trwałą kolejkę. Nie przenoś wymaganej pracy do IIFE ani
+`EdgeRuntime.waitUntil` po zwróceniu HTTP — nie gwarantują zakończenia zadania.
+Jeśli naprawiasz kod workera, awaituj przetwarzanie i zapis statusu przed jego odpowiedzią;
+jego 200 nie jest dowodem sukcesu domenowego.

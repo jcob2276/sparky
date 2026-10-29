@@ -1,50 +1,26 @@
-# Deploy edge function
+# Deploy Edge Function
 
-## Before deploy
+1. Sprawdź target, trigger i JWT w [rejestrze](../../supabase/functions/README.md) oraz
+   `supabase/config.toml`. Nie wdrażaj nazw usuniętych (`CRON_REMOVED` w smoke manifest).
+2. Testy/ratchet i nagłówki funkcji muszą odpowiadać zmianie; wymagania:
+   [BACKEND_CONTRACT.md](../BACKEND_CONTRACT.md).
+3. Po autoryzacji wdrożenia i z czystego drzewa uruchom z root repo:
 
-0. Record the deployment in [deployed_functions.md](deployed_functions.md) (Function name, Git SHA, Date, and your name).
-1. Read `supabase/functions/README.md` — confirm JWT setting for target function
-2. Cron/webhook = `verify_jwt: false` (patrz `supabase/functions/README.md`)
-
-## Deploy via Supabase MCP
-
-```
-deploy_edge_function(
-  project_id: YOUR_PROJECT_REF,
-  name: <function-slug>,
-  verify_jwt: false,   # for cron/webhook functions
-  files: [{ name: "index.ts", content: "..." }]
-)
+```powershell
+node scripts/ops/deploy-guard.mjs <function-name>
 ```
 
-## Deploy via CLI
+Jawny target zachowuje JWT zadeklarowany w config. Cron/webhook ma gateway
+`verify_jwt = false` i własną walidację auth; standardowy endpoint użytkownika zachowuje
+swój kontrakt tokenu/scope. Nie wyłączaj JWT zbiorczo, by naprawić pojedynczy błąd.
+Ścieżka bulk bez targetów używa `deploy-no-jwt.ps1`; sprawdź zakres przed uruchomieniem.
+Przy deployu MCP dołącz wszystkie zależności/importy i ten sam kontrakt JWT.
 
-```bash
-supabase functions deploy vanguard-telegram --no-verify-jwt
-supabase functions deploy vanguard-eval-interview --no-verify-jwt
-```
+Guard po udanym deployu próbuje zapisać SHA i funkcje w `audit_events`; sprawdź komunikat
+zapisu, bo failure audytu jest ostrzeżeniem. Nie prowadź drugiego ręcznego ledgeru
+pre-deploy. Stan live sprawdzaj `list_edge_functions` / `supabase functions list`, a nie historią notatek.
 
-Nie wdrażaj nazw z `CRON_REMOVED` w `scripts/ops/smoke-manifest.mjs`
-(`vanguard-morning-brief`, `vanguard-morning-ping`, `vanguard-midday-check` i reszta).
-Tych funkcji nie ma w repozytorium.
-
-## After deploy
-
-1. Supabase Dashboard → Edge Functions → Logs
-2. Look for **401 Unauthorized** in first 5 minutes
-3. For Telegram: send test message to bot
-4. For cron: wait for next scheduled run or trigger manually
-
-## Common failure: 401 after deploy
-
-**Cause:** Function deployed with `verify_jwt: true` but called by cron/Telegram without user JWT.
-
-**Fix:** Redeploy with `--no-verify-jwt` / `verify_jwt: false`.
-
-Affected functions: see list in `vanguard-ops.mdc`.
-
-## Common failure: function works locally but 500 in production
-
-**Cause:** Missing secret in Supabase dashboard.
-
-**Fix:** Settings → Edge Functions → Secrets. Verify all env vars from `AGENTS.md`.
+Następnie wykonaj [post-deploy smoke](post-deploy-smoke.md), sprawdź logi przez pierwsze
+5 minut i rzeczywistego konsumenta/zapis. 401: porównaj caller auth z config i kodem;
+cron/webhook z błędnym gateway JWT wymaga redeployu z poprawioną deklaracją.
+500: sprawdź logi oraz brakujące sekrety dostawców — bez wypisywania wartości do repo.

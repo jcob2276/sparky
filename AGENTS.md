@@ -1,162 +1,69 @@
-# AGENTS.md
+# Sparky — agent instructions
 
-Entry point for AI agents working in this repository.
+Repository constitution. Navigation and reading order: [docs/README.md](docs/README.md). Read [lessons.md](lessons.md) and the “Kanał Claude ↔ Codex” handoff in [ACTIVE_WORK.md](docs/agent/ACTIVE_WORK.md) at session start. Open work belongs in [BACKLOG.md](BACKLOG.md).
 
-## Quick map (read first)
+## Constitution
 
-- **Live daily loop:** user stream via `vanguard-telegram` → noon `vanguard-eval-interview` ("Wywiad") → evening `vanguard-daily-reconciliation` reflection. Tomorrow planning is app/Oracle-led, not Telegram evening planning. Autonomous morning brief/ping and legacy midday check are removed.
-- **Evidence:** `vanguard_stream` → `vanguard-auto-classify` → `friction_events` → `confirmed_friction_events` (VIEW)
-- **Compiled memory:** `vanguard-architect` builds graph from stream (including vault chunks); `vanguard-wiki-compiler` builds derived wiki pages — not inline Oracle chat writes to evidence. There is no `ingest-vault-log` function; vault ingest lives in `vanguard-capture` and writes stream only.
-- **Function registry (SSOT):** [`supabase/functions/README.md`](supabase/functions/README.md)
-- **One-page architecture:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-- **Doc index / reading order:** [`docs/README.md`](docs/README.md) — does not override this constitution.
-- **Product language:** [`docs/PRODUCT_LANGUAGE.md`](docs/PRODUCT_LANGUAGE.md) is the canonical vocabulary for UI/docs/agents.
-- **Backlog (single file, all open work):** [`BACKLOG.md`](BACKLOG.md)
+1. **System measures behavior. User gives meaning.** Evidence ≠ reasoning. Measure friction and recovery; recognize repeated states (spirals/momentum) only from evidence.
+2. **One friction/recovery write path:** `vanguard_stream` → `vanguard-auto-classify` → `friction_events` → `confirmed_friction_events` (VIEW).
+3. **Extend existing handlers/functions.** No second Telegram client or classifier; no Oracle chat-turn writes to graph/knowledge. `vanguard-architect` builds graph from stream; `vanguard-wiki-compiler` compiles derived wiki. Vault ingest is in `vanguard-capture`, writes stream only; do not restore `ingest-vault-log`.
+4. **Current-first:** stream from the last 72h beats archive. Pattern/state/trajectory claims require historical evidence and explicit N.
+5. **No shadow engine, psychoanalytic coaching, diagnosis or undeclared “digital twin” certainty.** User-controlled intentions (prayers, affirmations, goals) are allowed as declarations compared with behavior. No autonomous verdict that an intention/manifestation worked. [Product principles](docs/PRODUCT_PRINCIPLES.md#transurfing-layer-guardrail) govern this distinction.
+6. **Finish the last mile:** a feature is done when its result has an active consumer (UI/bot/cron/other function). Build vertical slices from storage to consumer; no disconnected wiring.
+7. **Metabolism, not hoarding:** condense data into useful beliefs/narrative rather than accumulating noise indefinitely.
+8. **Call the product Sparky** in UI, docs and user communication. “Vanguard” remains only in legacy technical identifiers (`vanguard-*`). Vocabulary: [PRODUCT_LANGUAGE.md](docs/PRODUCT_LANGUAGE.md).
 
-## Konstytucja (non-negotiable)
+Vision: [KIERUNEK.md](docs/direction/KIERUNEK.md) — one journal app that measures what can be measured and connects findings. Detecting self-deception is not a goal. Full epistemic/feature guardrails: [PRODUCT_PRINCIPLES.md](docs/PRODUCT_PRINCIPLES.md).
 
-1. **System measures behavior. User gives meaning.** Evidence layer ≠ reasoning layer. System mierzy tarcie (friction), odzyskiwanie (recovery) oraz rozpoznaje powtarzalne stany (spirals/momentum).
-2. **One write path for friction & recovery:** `vanguard_stream` → `vanguard-auto-classify` only.
-3. **Extend, don’t duplicate:** new features plug into existing handlers / README-listed functions — no parallel Telegram clients, no second classify pipeline, no Oracle writes to graph/knowledge on chat turns.
-4. **Current-first:** stream 72h beats archive; patterns need explicit N — system może wyciągać wnioski o stanie/trajectory, jeśli opiera je na twardych danych historycznych.
-5. **Do not build:** shadow engine, psychoanalytic coaching, undeclared “digital twin” certainty, **ani mechanizmu, w którym system autonomicznie orzeka, że „manifestacja/intencja zadziałała”** (metafizyczna pewność). Deklarowane intencje (modlitwy, afirmacje, cele) są DOZWOLONE jako warstwa **deklaracji** do konfrontacji z zachowaniem (Outcome Continuity). Wiążący jest „Transurfing Layer Guardrail” w [`docs/PRODUCT_PRINCIPLES.md`](docs/PRODUCT_PRINCIPLES.md), nie blankietowy zakaz.
-6. **Problem ostatniej mili:** Feature jest skończony, gdy jego wynik ktoś konsumuje — inaczej nie istnieje. Nie zostawiaj rozgrzebanych kabli i wpięć bez podłączenia do UI/Bota.
-7. **Metabolizm, nie hoarding:** System gromadzi dane po to, by je trawić i kondensować (wyciągać beliefs i narrację), a nie archiwizować w nieskończoność szum.
-8. **Kanoniczna nazwa to SPARKY:** Produkt, system i interfejs użytkownika to **Sparky**. Agenci MUSZĄ używać nazwy **Sparky** w komunikacji z użytkownikiem oraz w dokumentacji i interfejsie. Nazwa „Vanguard” to wyłącznie techniczny identyfikator legacy w backendzie/Edge Functions (`vanguard-*`).
+## Runtime map
 
-Full guardrails: [`docs/PRODUCT_PRINCIPLES.md`](docs/PRODUCT_PRINCIPLES.md)
+- Live loop: user stream via `vanguard-telegram` → noon `vanguard-eval-interview` (“Wywiad”) → evening `vanguard-daily-reconciliation` reflection. Tomorrow planning belongs to app/Oracle.
+- Morning brief/ping and legacy midday-check crons are removed (`CRON_REMOVED` in `scripts/ops/smoke-manifest.mjs`); never redeploy them. Observation-only mode is deprecated.
+- React SPA: `src/`; backend: `supabase/functions/`; integrations: `sync-*`/`analyze-*`; legacy workout uses `workout_*` tables.
+- Function status/JWT/tables: [function registry](supabase/functions/README.md). Data flow: [ARCHITECTURE.md](docs/ARCHITECTURE.md). Before changing/removing data: [SINGLE_SOURCE.md](docs/SINGLE_SOURCE.md), [DATA_MAP.md](docs/DATA_MAP.md).
 
-**Wizja długoterminowa (10/10):** [`docs/direction/KIERUNEK.md`](docs/direction/KIERUNEK.md) — jedna aplikacja-dziennik: mierzy wszystko, co da się zmierzyć, i łączy wnioski. Wykrywanie samooszukiwania nie jest celem.
+## Engineering and deploy
 
-## What this repo is
+- Prioritize code quality, structure, correctness and zero dead code before new features. Search existing implementations before adding helpers or pipelines.
+- No `as any`; use precise types or `unknown` with type guards.
+- Touched files over 300 lines require refactoring. New UI files must stay under 300 lines. Legacy files listed in `eslint.config.js`/`legacy-lines-baseline.json` may only shrink; never add exceptions to evade the ratchet.
+- One session/topic → one readable commit; working tree must be clean before the next topic. Record only new, reusable pitfalls in `lessons.md`, not execution history.
+- Store timestamps in UTC; domain days/display use `Europe/Warsaw` through canonical date helpers. Backend DB/auth use `createServiceClient()` and `resolveUserScope()`; see [BACKEND_CONTRACT.md](docs/BACKEND_CONTRACT.md).
+- Check constraints before INSERT: `planning_status` is `pending | active | completed`, never `done`.
+- Telegram secrets: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`. `vanguard-telegram` is a thin router: change one flow surgically.
+- Telegram webhook has a 30s budget: durably enqueue accepted updates in `vanguard_telegram_inbox` before ACK; enqueue failure stays retryable. `vanguard-telegram-worker` awaits required voice processing and writes within its own request before returning. Never rely on `EdgeRuntime.waitUntil` to finish required work after response.
+- Cron/webhook functions deploy with `verify_jwt: false` (`--no-verify-jwt`): `vanguard-daily-reconciliation`, `food-integrity-audit`, `vanguard-oracle`, `vanguard-auto-classify`, `vanguard-architect`, `vanguard-wiki-compiler`, `vanguard-analyst`, `save-daily-aggregate`, `vanguard-weekly-synthesis`, `vanguard-eval-interview`, `vanguard-nutrition-coach`, `sync-strava`, `rescore-workout-sessions`, `compute-illness-signal`, `vanguard-librarian`, `analyze-training-load`. Check the registry/config for all functions.
+- After deploy: `npm run smoke` (or `node scripts/ops/smoke-vanguard.mjs --with-service-role`) plus edge logs; no 401. Follow the backend contract and deploy runbook.
 
-Monorepo for **Sparky** (personal OS; backend services use legacy `vanguard-*` prefix) on a Supabase project configured through environment variables.
+## Frontend checklist — before finishing
 
-Local/Supabase sync: edge functions (+ `_shared/`) — exact count and last-verified date live only in [`supabase/functions/README.md`](supabase/functions/README.md) (the registry), not here. Do not copy the number into this file — it goes stale and this file has no mechanism to catch it.
+Follow [FRONTEND_GUIDE.md](docs/FRONTEND_GUIDE.md) and [DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md). Verify each item:
 
-| Subsystem | Purpose | Key paths |
-|---|---|---|
-| Vanguard Core | Daily loop, stream, oracle, planning, Telegram | `supabase/functions/vanguard-*` |
-| Integrations | Oura, Calendar, Garmin | `supabase/functions/sync-*`, `supabase/functions/analyze-*` |
-| Legacy workout | Original fitness tracking UI/tables | `src/` + `workout_*` tables |
+1. **Reuse helpers.** Before writing a helper, run `rg 'function <name>' src/components/notes/ src/lib/` and search other declaration forms. Import existing implementations. Notes helpers: `keepUtils.ts`; dates: `src/lib/date.ts`.
+2. **No raw Supabase in components.** Use `src/lib/*Api.ts` or `src/lib/<domain>/*.ts` for DB access and `invokeEdge()` from `src/lib/supabase.ts` for functions. Check `rg 'supabase\.from|supabase\.functions' src/components/`: zero matches except the whitelist in `eslint.config.js`.
+3. **No native dialogs.** Use `confirmDialog('message')` for destructive actions and `notify('message', 'error')` from `src/lib/notify.ts` for errors. Check `rg 'window\.confirm|window\.alert' src/components/`.
+4. **Separate data from JSX.** A file with `useQuery`/data mutations and rendered JSX must split into Container + View (Wzorzec A). Files over 300 lines without documented `/* eslint-disable max-lines */` are violations. Dense cursor/selection/DOM editors may have an explicit, explained exception.
+5. **Verify imports.** After creating/moving helpers run `npm run typecheck:ui`; fix errors before finishing.
+6. **Remove dead code.** After extraction run `rg '<OldComponentName>' src/`; remove the old implementation if no consumer remains.
 
-## CRITICAL RULES
+## Thesis: research and LaTeX invariants
 
-```
-Deploy:
-- Cron/webhook functions MUST deploy with verify_jwt: false (--no-verify-jwt)
-- Affected: vanguard-daily-reconciliation,
-  food-integrity-audit,
-  vanguard-oracle, vanguard-auto-classify, vanguard-architect,
-  vanguard-wiki-compiler,
-  vanguard-analyst, save-daily-aggregate, vanguard-weekly-synthesis,
-  vanguard-eval-interview, vanguard-nutrition-coach,
-  sync-strava, rescore-workout-sessions, compute-illness-signal,
-  vanguard-librarian, analyze-training-load
-- After deploy: `npm run smoke` (or `node scripts/ops/smoke-vanguard.mjs --with-service-role`) + edge logs — no 401
+- Never run complex Python inline strings containing quotes/commas in Windows PowerShell. Write `.py`/`.sh`, transfer with SCP, execute with `ssh -n`.
+- Verify primary authors and official peer-reviewed venues (EMNLP, ACL, IEEE, WWW, AACL) for every bibliography entry; remove hallucinated citations.
+- LaTeX must compile with exit 0 and no unresolved `Overfull \hbox`. Variable-width tables use `tabularx` with `X` columns; long formulas use `align`.
 
-Telegram:
-- Vanguard bot: TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+## Documentation rules
 
-DB constraints (verify before INSERT):
-- planning_status: pending | active | completed  (NOT 'done')
+1. Add `.md` only if no existing document fits. Session plans/handoffs use the overwritten [ACTIVE_WORK.md](docs/agent/ACTIVE_WORK.md); on completion move open items to [BACKLOG.md](BACKLOG.md) and delete separate finished plans/briefs in the same commit, without archiving them.
+2. No hand-maintained counts, LOC, “last verified” dates, deploy versions or copied state inventories. Keep generated facts in generated registry files (`supabase/functions/README.md`/`FUNCTIONS.md`) or compute on demand.
+3. A stale document must be repaired or deleted in the same change; no “STALE — do not trust” banners.
+4. One topic, one canonical file. Check [docs/README.md](docs/README.md) before adding sections; no parallel `v2`/`FINAL` docs or per-audit backlogs.
+5. Read an edited document fully and check the index for duplicate authority before changing it.
 
-Edge function gotchas:
-- EdgeRuntime.waitUntil does NOT keep background tasks alive after HTTP response
-- Telegram webhook timeout: 30s — long voice processing must be synchronous
-- vanguard-telegram is a thin router with handlers; change surgically, one flow at a time
-- Do NOT store deploy version numbers in rules/docs — they go stale weekly
+## Models
 
-Code Quality (FIRST before new features):
-- Code quality, structure, logic, cleanliness, and zero dead code MUST be prioritized over adding new features/components.
-- New frontend UI files MUST remain strictly under 300 lines (max-lines: 300). Proactively split layout containers from subcomponents (Wzorzec A).
-
-Frontend Pre-Commit Checklist (run BEFORE finishing any frontend work):
-Every item below comes from a real bug found in this repo. "It probably works" is not a check.
-
-1. HELPER DUPLICATION — grep before you write:
-   Before writing any helper function (formatDate, getPlainText, stripHtml, etc.) in a component,
-   run: grep -r "function <name>" src/components/notes/ src/lib/
-   If it already exists anywhere → import it, do NOT rewrite it.
-   Canonical helpers for notes: keepUtils.ts. Canonical helpers for dates: lib/date.ts.
-
-2. NO RAW SUPABASE IN COMPONENTS — always use the lib layer:
-   BANNED in src/components/**:
-     supabase.from(...)           → use functions from src/lib/*Api.ts or src/lib/<domain>/*.ts
-     supabase.functions.invoke()  → use invokeEdge() from src/lib/supabase.ts
-   HOW TO CHECK: grep -r "supabase\.from\|supabase\.functions" src/components/
-   Expected result: zero matches (or only files on the whitelist in eslint.config.js).
-
-3. NO NATIVE BROWSER DIALOGS — use the lib wrappers:
-   BANNED: window.confirm(), window.alert()
-   USE INSTEAD:
-     confirmDialog('message')  from src/lib/notify.ts  → for destructive actions
-     notify('message', 'error') from src/lib/notify.ts → for errors/toasts
-   HOW TO CHECK: grep -r "window\.confirm\|window\.alert" src/components/
-
-4. SINGLE RESPONSIBILITY — one file, one job:
-   A file mixes responsibilities if it BOTH fetches/mutates data AND renders JSX.
-   If a file has useQuery/supabase calls AND returns JSX → split into Container + View.
-   Files >300 lines without a documented eslint-disable comment are a hard violation.
-   Exception: files with dense cursor/selection/DOM logic (e.g. rich text editors) —
-   document the exception with /* eslint-disable max-lines */ + comment explaining why.
-
-5. VERIFY IMPORTS MATCH REALITY — do not trust that an import exists:
-   After moving or creating a helper, verify the import path resolves:
-   Run npm run typecheck:ui. Zero errors = green. Any error = fix before finishing.
-   Do NOT assume "the code looks right" without running typecheck.
-
-6. CHECK FOR DEAD CODE after every split/refactor:
-   After extracting a component, grep for the old function/class name.
-   If nothing imports it → delete it. Dead code is the #1 source of confusion.
-   HOW TO CHECK: grep -r "<OldComponentName>" src/
-
-Empirical Research & LaTeX Publishing Invariants (Thesis):
-- Remote Execution Invariant: Never run complex Python inline strings with quotes/commas in Windows PowerShell. Always write a script (.py or .sh), transfer via SCP, and run with ssh -n.
-- Citation Grounding: Every bibliographic entry must use verified primary authors and official peer-reviewed proceedings venues (EMNLP, ACL, IEEE, WWW, AACL), eliminating hallucinated names from working drafts.
-- Zero Overfull Policy: LaTeX manuscripts must compile with exit code 0, without unresolved Overfull \hbox warnings. Variable-width tables must use tabularx with X columns, and long formulas must use align.
-```
-
-## Where to read next
-
-**SSOT:** [`docs/README.md`](docs/README.md) — kanoniczna kolejność czytania dla agentów (quick start 5 min, pełne czytanie 15 min).
-
-## Reguły dokumentacji
-
-Ten repo miał w lipcu 2026 ponad 20 000 linii dokumentacji w 118 plikach — połowa martwa
-(archiwum, ukończone plany sesyjne, zdublowane routery). Konsolidacja 2026-07-11 to
-naprawiła; te reguły utrzymują stan naprawiony:
-
-1. **Doc ratchet:** nowy plik `.md` tylko jeśli żaden istniejący nie pasuje. Plan sesyjny/brief
-   dla agenta żyje w [`docs/agent/ACTIVE_WORK.md`](docs/agent/ACTIVE_WORK.md) (nadpisywany, nie
-   akumulowany; sekcja „Kanał Claude ↔ Codex” to skrzynka między agentami — czytaj na starcie) — nie jako nowy plik `FOO_PLAN.md`. Gdy praca się kończy: otwarte punkty
-   przenieś do [`BACKLOG.md`](BACKLOG.md), plik planu/brief **skasuj** w tym samym commicie.
-2. **Zakaz liczb, które gniją** w ręcznie pisanych dokumentach (liczba edge functions, LOC,
-   daty "last verified", numery wersji). Liczby wolno trzymać tylko w plikach generowanych
-   (`supabase/functions/README.md`/`FUNCTIONS.md`) albo policzyć na żądanie (`grep`/`wc -l`) —
-   nie kopiować jako statyczny tekst gdzie indziej.
-3. **Zakaz banerów "STALE — nie ufaj temu plikowi".** Dokument, który sam siebie oznacza jako
-   nieaktualny, ma dwie opcje: naprawić w tym samym commicie, albo skasować. Baner bez jednej
-   z tych dwóch akcji to szum, nie ostrzeżenie.
-4. **Jeden temat = jeden plik.** Zanim dopiszesz sekcję do istniejącego pliku, sprawdź `docs/README.md`
-   czy temat już nie ma swojego miejsca wyżej w hierarchii authority — nie twórz równoległego
-   pliku "v2"/"10/10"/"FINAL" obok istniejącego. Backlogi/plany łączą się w [`BACKLOG.md`](BACKLOG.md),
-   nie mnożą per audyt/sesja.
-5. **Holistyczność przy edycji:** przed zmianą pliku dokumentacji przeczytaj go w całości + sprawdź
-   `docs/README.md`, czy inny plik nie zawiera tej samej informacji (dubel = przyszła niespójność).
-   To samo co Zasada Skauta dla kodu (reguła 9 wyżej), rozciągnięte na dokumentację.
-
-## Models (current)
-
-- Default (most functions): `deepseek-v4-flash` — auto-classify, oracle, architect, wiki-compiler, reconciliation, nutrition-coach, etc.
-- Oracle deep mode (`!!`): `deepseek-reasoner`
-- Analyst nightly: `deepseek-reasoner` (pattern analysis)
-- JSON parsing tasks: `deepseek-chat` — food parsing, workout parsing, food quality, training load, librarian, eval-interview classification. Used where `responseFormat: json_object` is needed (v4-flash uses `reasoning_content` field, not suitable for structured JSON).
-- Transcription: Gemini audio (fallback między modelami Gemini, bez OpenAI). Sekret: `GEMINI_API_KEY`. `supabase/functions/_shared/openai.ts` to shim (`openaiChat`, `transcribeBlob`, `getEmbedding` wołają Gemini); parametr `openAiKey` w handlerach nie jest kluczem OpenAI.
-- Embeddings: Gemini `gemini-embedding-001` (1536 wymiarów); ten sam sekret. Gemini zastępuje OpenAI w całym runtime.
-
-## Current system state
-
-- Evening reconciliation (reflection-only in Telegram) + planning in app/Oracle: **ACTIVE**
-- Morning brief/ping + legacy midday check crons: **REMOVED** (brak tych funkcji w repo; nazwy w `scripts/ops/smoke-manifest.mjs` → `CRON_REMOVED`). Nie wdrażaj ich z powrotem. Noon interview + evening reflection: **ACTIVE**
-- Observation-only mode: **DEPRECATED**
+- Default: `deepseek-v4-flash` (classification, Oracle, architect, wiki, reconciliation, nutrition coach).
+- Oracle deep (`!!`) and nightly analyst: `deepseek-reasoner`.
+- Structured JSON (`responseFormat: json_object`): `deepseek-chat` (food/workout parsing, food quality, training load, librarian, interview classification); reasoning models may return `reasoning_content` instead of structured content.
+- Audio, vision and embeddings use Gemini, including fallback between Gemini models; secret `GEMINI_API_KEY`. `_shared/openai.ts` is a compatibility shim: `openaiChat`, `transcribeBlob`, `getEmbedding` call Gemini; legacy `openAiKey` parameters are not OpenAI keys.
+- Embeddings: `gemini-embedding-001`, 1536 dimensions. Do not restore OpenAI runtime fallbacks.

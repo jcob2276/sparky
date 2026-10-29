@@ -1,36 +1,19 @@
 # Product Language
 
-This is the canonical vocabulary for Sparky UI, docs, and agent-facing work. Code may keep legacy component/table names (`vanguard-*`) when renaming would create churn, but user-facing copy, docs, and agent responses must use **Sparky**.
+Canonical vocabulary for Sparky UI, docs and agents. Legacy technical identifiers (`vanguard-*`, component/table names) may remain when renaming creates churn; product copy and agent responses use **Sparky**.
 
-| Canonical term | Polish UI label | Meaning | Replaces / avoid |
-|---|---|---|---|
-| Sparky | Sparky | Canonical product, OS, and assistant name. | Vanguard (legacy technical ID) |
-| Plan | Plan | A bounded commitment for a day or week. Plans contain selected tasks/moves, not every possible intention. | Power List as a product name |
-| Move | Ruch | A concrete next action that can be started and completed. | vague task, idea, intention |
-| Artifact | Artefakt | A real output in the world: call made, message sent, shipped file, decision delivered. | "progress" without output |
-| Evidence | Dowód | Factual record that something happened. Evidence is not interpretation. | proof, insight, AI memory |
-| Reflection | Refleksja | User-given meaning after the fact: what mattered, what cost something, what to change. | AI diagnosis |
-| Note | Notatka | Parking space for raw thoughts, snippets, drafts, and non-committed material. | task, plan |
-| Task | Zadanie | Backlog item that may become a move inside a plan. | todo as a product label |
-| Goal | Cel kierunkowy | Directional outcome that gives context to plans and moves. | vague aspiration |
-| Project | Projekt | Container for related moves, evidence, and decisions in a domain. | folder, category |
-| Pattern | Wzorzec | Repeated observation with explicit N/evidence. | confirmed truth without sample size |
+| Term | Polish UI | Meaning |
+|---|---|---|
+| Sparky | Sparky | Product, OS and assistant; “Vanguard” is a legacy technical ID. |
+| Plan | Plan | Bounded day/week commitment containing selected moves; visible daily label: `Plan dnia`, not `Power List`. |
+| Move | Ruch | Concrete next action that can be started and completed, rather than an idea/intention. |
+| Artifact | Artefakt | Real output: call made, message sent, shipped file or decision delivered. `Artefakt dnia` is not a note or plan. |
+| Evidence | Dowód / Dowody | Factual record of what happened, distinct from interpretation or AI memory. |
+| Reflection | Refleksja | User-given meaning: what mattered, cost something or should change; never AI diagnosis. |
+| Note | Notatka / Notatki | Raw thoughts, snippets and drafts without commitment; visible label is not `Keep`. |
+| Task | Zadanie / Zadania | Backlog item that may become a move in a plan; avoid `Todo` except technical integrations/history. |
+| Goal | Cel kierunkowy | Directional outcome giving context to plans and moves. |
+| Project | Projekt | Related moves, evidence and decisions in a domain. |
+| Pattern | Wzorzec | Repeated observation with explicit N/evidence, never an unsupported confirmed truth. |
 
-## UI Rules
-
-- Always name the application **Sparky** (never Vanguard in user copy).
-- Use `Plan dnia` instead of `Power List` in visible copy.
-- Use `Zadania` instead of `Todo` in visible copy, unless referring to a technical integration/history.
-- Use `Notatki` instead of `Keep` in visible copy.
-- Use `Dowody` for factual logs and `Refleksja` for user interpretation.
-- Use `Artefakt dnia` only for externally visible output, not for notes or planning.
-
-## Agent Rules
-
-When changing product copy, preserve the distinction:
-
-- Plan says what should happen.
-- Move is what gets executed.
-- Evidence says what happened.
-- Reflection says what the user thinks it meant.
-- Pattern needs repeated evidence and an explicit sample size.
+Copy must preserve the sequence: plan says what should happen; move is executed; evidence says what happened; reflection says what the user thinks it meant; pattern requires repeated evidence and an explicit sample size.

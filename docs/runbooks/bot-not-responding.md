@@ -1,55 +1,32 @@
-# Bot not responding
+# Bot Sparky nie odpowiada
 
-## Vanguard bot (`vanguard-telegram`)
-
-### Symptom: no response at all (text, voice, buttons)
-
-1. Check edge function logs for `vanguard-telegram`
-2. **503 `Webhook secret not configured`** → set `TELEGRAM_WEBHOOK_SECRET` in Supabase secrets, then re-register webhook (see below)
-3. **403 on webhook** → Telegram `secret_token` ≠ Supabase `TELEGRAM_WEBHOOK_SECRET`, or webhook URL had `?apikey=` appended (wrong)
-4. Verify webhook: `getWebhookInfo` — `last_error_message`, `pending_update_count`
-5. Re-register (authenticated POST to edge function):
-
-```bash
-curl -X POST "$SUPABASE_URL/functions/v1/vanguard-telegram" \
-  -H "Authorization: Bearer $SB_SECRET_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{"fix_webhook":true}'
-```
-
-6. Webhook URL must be exactly: `https://YOUR_PROJECT_REF.supabase.co/functions/v1/vanguard-telegram` (**no** `?apikey=` query string)
-7. Check for **401** in logs → redeploy with `--no-verify-jwt`
-
-### Symptom: "Słucham..." then silence (voice)
-
-- Transkrypcja Gemini nie wróciła — logi `gemini.transcribe`, sekret `GEMINI_API_KEY` (nie `OPENAI_API_KEY`)
-- Evening reflection path exceeded Telegram 30s webhook (embedding + 3× LLM) — use `telegramFastPath` in `reconciliation.ts`
-- Telegram retry after partial save: idempotency on `vanguard_stream` used to return silently while `daily_reconciliations.status` stayed `sent` — resend voice or wait for deploy with resume logic
-
-### Symptom: reconciliation prompt sent, voice does nothing (no ack)
-
-- Old bug: pending reconciliation skipped the "🎤 Słucham..." ack, then webhook timed out → user saw nothing
-- Fix: always ack voice; fast reconciliation path; resume if stream row exists but reconciliation still `sent`
-
-### Symptom: "Transkrybuję..." / "Refleksja — transkrybuję..." then nothing
-
-- Check edge logs for Gemini transcription (`gemini.transcribe`) and DeepSeek errors
-- Check `daily_reconciliations.status` — if `sent` with `user_response` filled, resend voice to trigger resume
-
-## Quick DB checks
+1. Wyślij wejście do Oracle (np. `?` z pytaniem); sprawdź, czy nie przejęła go komenda lub refleksja.
+   Sprawdź logi `vanguard-telegram` i `getWebhookInfo` (`last_error_message`, `pending_update_count`).
+2. 503 „Webhook secret not configured”: brak `TELEGRAM_WEBHOOK_SECRET` w Supabase.
+   403: niezgodny `secret_token` albo nadawca. Sprawdź też `TELEGRAM_CHAT_ID` i bot token.
+3. URL webhooka musi kończyć się `/functions/v1/vanguard-telegram`, bez `?apikey=`.
+   Admin może ponownie zarejestrować webhook przez POST `{"fix_webhook":true}` z bearer
+   `TELEGRAM_SETUP_SECRET` (fallback: service-role). Użyj istniejącego sekretu; nie kopiuj go do repo/logów.
+4. Gateway 401: porównaj JWT z [rejestrem](../../supabase/functions/README.md) i
+   [procedurą deployu](deploy-edge-function.md). Worker/outbox wymagają service-role w kodzie.
+5. Webhook 200 oznacza trwały inbox, nie gotową odpowiedź. Sprawdź kolejki i logi worker/sender:
 
 ```sql
--- Pending reconciliation
-SELECT id, status, planning_status, date, user_response IS NOT NULL AS has_response, created_at
-FROM daily_reconciliations
-ORDER BY created_at DESC LIMIT 3;
+SELECT id, status, error_log, updated_at
+FROM vanguard_telegram_inbox ORDER BY created_at DESC LIMIT 10;
 
--- Stuck voice (stream saved, reconciliation not answered)
-SELECT s.id, s.content, s.metadata->>'reconciliation_id' AS recon_id, r.status
-FROM vanguard_stream s
-LEFT JOIN daily_reconciliations r ON r.id = (s.metadata->>'reconciliation_id')::uuid
-WHERE s.source = 'telegram'
-  AND s.metadata->>'reconciliation_id' IS NOT NULL
-ORDER BY s.created_at DESC LIMIT 5;
+SELECT id, status, attempts, send_after, error_log, updated_at
+FROM outbound_messages ORDER BY created_at DESC LIMIT 10;
+
+SELECT id, date, status, planning_status, user_response IS NOT NULL AS has_response
+FROM daily_reconciliations ORDER BY created_at DESC LIMIT 3;
 ```
 
+Inbox pending/processing bez postępu: sprawdź DB trigger i wywołanie `vanguard-telegram-worker`.
+Failed: czytaj `error_log` i `audit_events`. Outbox pending z przyszłym `send_after` jest zaplanowany;
+failed lub utknięty processing wymaga logów `vanguard-outbox-sender`, nie ponownego capture.
+
+Głos zatrzymany na „Transkrybuję…”: sprawdź Gemini (`gemini.transcribe`, `GEMINI_API_KEY`)
+i DeepSeek oraz status refleksji. Zanim ponowisz wiadomość, sprawdź stream i
+`metadata.telegram_message_id`; zachowaj dedup i istniejącą ścieżkę resume refleksji.
+[Timeout i granica przetwarzania](telegram-webhook-timeout.md).

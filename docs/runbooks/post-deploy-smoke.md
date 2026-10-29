@@ -1,90 +1,29 @@
-# Runbook: post-deploy smoke (Etap 5)
+# Post-deploy smoke
 
-## When to run
-
-After **any** deploy of cron, webhook, or `vanguard-telegram` functions.
-
-Goal: catch **401 Unauthorized** from `verify_jwt: true` on functions that pg_cron or Telegram call without a user JWT.
-
----
-
-## 1. Quick smoke (safe, ~30s)
-
-From repo root, with env loaded (`.env` or `.env.local`):
+Po deployu uruchom z root repo:
 
 ```powershell
-cd path/to/Vanguard
-node scripts/ops/smoke-vanguard.mjs --with-service-role
+npm run smoke
 ```
 
-- Uses **OPTIONS** only — no Telegram messages, no LLM spend.
-- **FAIL** on HTTP **401** → redeploy with `--no-verify-jwt`.
+To OPTIONS z/bez service-role — wykrywa niedostępność i przypadkowe gateway 401,
+bez wywoływania logiki cron/LLM/Telegram. Samo OPTIONS nie potwierdza autoryzacji
+POST, wykonania zadania ani zapisu danych; ostrzeżenia 5xx także wymagają analizy.
 
----
+`npm run smoke:safe` dodaje POST tylko dla targetów oznaczonych safe w
+[smoke-manifest.mjs](../../scripts/ops/smoke-manifest.mjs). Sprawdź tam body i oczekiwane
+skutki. `--invoke-crons` może wysłać Telegram i uruchomić LLM; używaj wyłącznie w
+zakresie autoryzowanego testu. Nie ponawiaj mutacji w ciemno.
 
-## 2. After changing function logic (optional)
+Skrypt ładuje brakujące zmienne z `.env.local`, `.env`, `supabase/.env`:
+URL z `SUPABASE_URL` / `VITE_SUPABASE_URL`, klucz z `SUPABASE_SERVICE_ROLE_KEY` / `SB_SECRET_KEY`.
+Przy braku klucza testy service-role są pomijane — sprawdź ostrzeżenia.
+`VANGUARD_USER_ID` i `VANGUARD_CRON_SECRET` są potrzebne tylko wskazanym POST w manifeście.
 
-```powershell
-node scripts/ops/smoke-vanguard.mjs --with-service-role --invoke-safe
-```
+Cron parity sprawdzaj [cron-check.sql](../../scripts/ops/cron-check.sql) względem manifestu:
+`CRON_FROM_MIGRATIONS` powinny istnieć, `CRON_DASHBOARD_ONLY` wymagają osobnego sprawdzenia,
+`CRON_REMOVED` muszą być nieobecne. Ustal UTC/DST, nie zgaduj po lokalnej godzinie.
 
-
-Do **not** use `--invoke-crons` unless you accept possible Telegram / LLM side effects.
-
----
-
-## 3. Cron parity (SQL)
-
-In Supabase **SQL Editor**, run:
-
-`scripts/ops/cron-check.sql`
-
-Compare with SSOT:
-
-`scripts/ops/smoke-manifest.mjs` → `CRON_FROM_MIGRATIONS`, `CRON_DASHBOARD_ONLY`, `CRON_REMOVED`
-
-| Source | Meaning |
-|--------|---------|
-| Migrations | Should exist if migrations applied |
-| Dashboard only | May be missing in SQL until you create job in UI |
-| CRON_REMOVED | Must return **zero rows** |
-
----
-
-## 4. Bulk redeploy (no JWT)
-
-```powershell
-.\scripts\ops\deploy-no-jwt.ps1
-# or single function:
-.\scripts\ops\deploy-no-jwt.ps1 vanguard-telegram
-```
-
-Then repeat step 1.
-
----
-
-## 5. Manual checks (still valuable)
-
-| Check | Where |
-|-------|--------|
-| Edge logs, no 401 | Dashboard → Edge Functions → Logs |
-| Telegram stream | Send one line to bot |
-| Evening loop | Only at real cron time, or `?force=true` on reconciliation URL (manual) |
-
----
-
-## Env vars
-
-| Variable | Smoke |
-|----------|--------|
-| `SUPABASE_URL` | Required (or default project URL) |
-| `SUPABASE_SERVICE_ROLE_KEY` | For `--with-service-role` |
-| `VANGUARD_CRON_SECRET` | Only for `save-daily-aggregate` POST tests |
-| `VANGUARD_USER_ID` | Oracle safe POST if using `--invoke-safe` |
-
----
-
-## Related
-
-- Migration history repair: `docs/runbooks/db-push-migration-repair.md`
-- Function registry: `supabase/functions/README.md`
+Odbiór: brak nieoczekiwanych 401/404 w logach, poprawny user/service scope, efekt w tabeli
+wynikowej i konsument UI/bot. Dla Telegrama sprawdź inbox → worker → outbox,
+nie tylko HTTP webhooka. Zmiany JWT wdrażaj według [runbooka](deploy-edge-function.md).

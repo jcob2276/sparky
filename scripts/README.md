@@ -1,39 +1,25 @@
-# Scripts
+# Skrypty lokalne Sparky
 
-One-off and local automation. Not part of the deployed daily loop — see `supabase/functions/` for production code.
+Poza runtime Edge Functions. Komendy npm i ich argumenty definiuje
+[package.json](../package.json); przy jednorazowym skrypcie przeczytaj nagłówek i skutki
+przed uruchomieniem. Nie zakładaj, że skrypt analityczny jest read-only.
 
-Layout: `ops/` (deploy, smoke, CI checks), `aw/` (ActivityWatch bridge), `analysis/` (eval + data analysis one-offs).
+| Katalog | Właściciel / punkty wejścia |
+|---|---|
+| `ops/` | Deploy, smoke, CI, kontrakty i baza. Deploy/odbiór: [runbook](../docs/runbooks/deploy-edge-function.md); migracje: [procedura](../supabase/migrations/README.md) |
+| `aw/` | Lokalny most ActivityWatch: `aw-daily-sync.cjs` (`--days=N` backfill), `aw-desktop-import.cjs <file>`, `aw-phone-import.cjs <file>` |
+| `analysis/` | Evale i analizy jednorazowe. `run_eval.mjs` wywołuje eval-runner; `backfill_triads.mjs` zapisuje przez architect; `table-usage-map.mjs` generuje DATA_MAP |
+| `tests/` | Testy SQL/migracji (`npm run test:sql`) |
 
-## ops/ — deploy, smoke, CI
+Źródła prawdy operacji:
 
-| Script | Purpose | How to run |
-|---|---|---|
-| `ops/smoke-vanguard.mjs` | Post-deploy: edge functions must not return **401** (JWT) | `npm run smoke` or `node scripts/ops/smoke-vanguard.mjs --with-service-role` |
-| `ops/deploy-no-jwt.ps1` | Deploy all cron/webhook functions with `--no-verify-jwt` | `.\scripts\ops\deploy-no-jwt.ps1` |
-| `ops/cron-check.sql` | Compare live `cron.job` vs manifest | Supabase SQL Editor |
-| `ops/smoke-manifest.mjs` | SSOT: no-verify-jwt list + cron expectations | imported by smoke script |
-| `ops/smoke-ui.mjs` | UI smoke check (CI) | `npm run smoke:ui` |
-| `ops/check-edge-functions.mjs` | Deno typecheck of all edge functions (CI) | `npm run typecheck` |
-| `ops/check-readme-sync.mjs` | README parity with routes, env vars, scripts, links, and Edge Function references | `npm run audit:readme` |
-| `ops/oss-audit.mjs` | Public-readiness audit (secrets, personal data) | `npm run oss:audit` |
-| `ops/e2e-daily-loop.mjs` | E2E daily-loop pipeline check (CI cron) | `npm run e2e:loop` |
+- `ops/smoke-manifest.mjs`: oczekiwane targety, JWT i crony; [smoke](../docs/runbooks/post-deploy-smoke.md).
+- `ops/check-frontend-ratchets.mjs`, `check-backend-contract.mjs` i ich baseline:
+  dług może maleć; zmiana dokumentacji nie zmienia egzekucji.
+- `npm run registry:generate` / `audit:registry`: rejestr funkcji z nagłówków kodu.
+- `npm run audit:readme`: zgodność README z trasami, env, skryptami i odnośnikami.
+- `npm run oss:audit`: public-readiness (sekrety i dane osobowe).
 
-## aw/ — ActivityWatch bridge
-
-| Script | Purpose | How to run |
-|---|---|---|
-| `aw/aw-daily-sync.cjs` | Daily AW sync (`--days=N` for backfill) | `node scripts/aw/aw-daily-sync.cjs` |
-| `aw/aw-desktop-import.cjs` | Import desktop AW bucket export | `node scripts/aw/aw-desktop-import.cjs <file>` |
-| `aw/aw-phone-import.cjs` | Import phone AW bucket export | `node scripts/aw/aw-phone-import.cjs <file>` |
-
-## analysis/ — eval + data analysis
-
-| Script | Purpose | How to run |
-|---|---|---|
-| `analysis/run_eval.mjs` | Batch runner for `vanguard-eval-runner` edge function | `node scripts/analysis/run_eval.mjs` |
-| `analysis/backfill_triads.mjs` | Retroactive `vanguard-architect` backfill over stream | `node scripts/analysis/backfill_triads.mjs` |
-| `analysis/audit-registry.mjs` | Function registry vs filesystem parity check | `npm run audit:registry` |
-| `analysis/analyze-weak-plans.mjs` | Analyse weak planning sessions | `node scripts/analysis/analyze-weak-plans.mjs` |
-| `analysis/closure_proposals_review.sql` | Review pending stream closure proposals | Supabase SQL editor |
-
-Env vars: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` (or anon key where sufficient). Scripts fail fast with a clear error if required env vars are missing.
+Sekrety i URL bierz z env wymaganych przez konkretny skrypt, nie z dokumentacji lub argumentów
+wklejanych do historii. Smoke obsługuje `SUPABASE_SERVICE_ROLE_KEY`/`SB_SECRET_KEY`;
+inne skrypty mogą mieć inne wymagania — sprawdź implementację.
