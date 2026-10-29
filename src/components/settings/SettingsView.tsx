@@ -19,6 +19,8 @@ import { invalidateLifeTargets } from '../../lib/lifeTargetsApi';
 import { notify } from '../../lib/notify';
 import type { Tables } from '../../lib/database.types';
 import AiContextSettings from './AiContextSettings';
+import AboutMeSettings from './AboutMeSettings';
+import BrainHealth from '../biometrics/BrainHealth';
 import LifeTargetsSettings from './LifeTargetsSettings';
 import SettingsSection from './SettingsSection';
 
@@ -143,6 +145,10 @@ export default function SettingsView() {
       <LifeTargetsSettings userId={session.user.id} />
 
       <AiContextSettings userId={session.user.id} />
+
+      <AboutMeSettings userId={session.user.id} />
+
+      <BrainHealth />
 
       {isNativePlatform() && <NativePermissionsCard userId={session.user.id} />}
       {isNativePlatform() && <DeviceSignalsCard userId={session.user.id} />}

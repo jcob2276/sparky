@@ -1,6 +1,6 @@
 import Button from '../../ui/Button';
 import { useNavigate } from 'react-router-dom';
-import { RefreshCw, Moon, Sun, Fingerprint, ShieldCheck, Smartphone, LayoutGrid } from 'lucide-react';
+import { RefreshCw, Moon, Sun, Settings, ShieldCheck, Smartphone, LayoutGrid } from 'lucide-react';
 import { BrandTitle } from '../../ui/BrandTitle';
 
 interface DesktopHeaderProps {
@@ -10,13 +10,12 @@ interface DesktopHeaderProps {
   setTheme: React.Dispatch<React.SetStateAction<string>>;
   syncAll: () => void;
   setShowHealth: (v: boolean) => void;
-  setShowFundament: (v: boolean) => void;
   onOpenTools?: () => void;
 }
 
 export default function DesktopHeader({
   now, syncing, theme,
-  setTheme, syncAll, setShowHealth, setShowFundament, onOpenTools,
+  setTheme, syncAll, setShowHealth, onOpenTools,
 }: DesktopHeaderProps) {
   const navigate = useNavigate();
 
@@ -46,7 +45,7 @@ export default function DesktopHeader({
         )}
         <div className="hidden sm:flex items-center gap-1.5 sm:gap-2">
           <Button onClick={() => setShowHealth(true)} variant="secondary" icon={<ShieldCheck size={14} />} className="rounded-full p-2.5" title="Status zdrowia systemu" />
-          <Button onClick={() => setShowFundament(true)} variant="secondary" icon={<Fingerprint size={14} />} className="rounded-full p-2.5" title="Fundament" />
+          <Button onClick={() => navigate('/settings')} variant="secondary" icon={<Settings size={14} />} className="rounded-full p-2.5" title="Ustawienia" />
         </div>
         <Button onClick={() => setTheme(t => t === 'light' ? 'dark' : 'light')} variant="secondary" icon={theme === 'light' ? <Moon size={14} /> : <Sun size={14} className="text-warning" />} className="rounded-full p-2 sm:p-2.5" aria-label={theme === 'light' ? 'Włącz ciemny motyw' : 'Włącz jasny motyw'} />
         <Button onClick={syncAll} variant="secondary" icon={<RefreshCw size={14} className={syncing ? 'animate-spin text-primary' : ''} />} className="rounded-full p-2 sm:p-2.5" disabled={syncing} aria-label="Synchronizuj dane" />

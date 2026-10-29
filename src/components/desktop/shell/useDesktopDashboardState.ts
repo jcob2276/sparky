@@ -49,7 +49,6 @@ export function useDesktopDashboardState({
   const [showSaunaModal, setShowSaunaModal] = useState(false);
   const [showWeightModal, setShowWeightModal] = useState(false);
   const [showToolsModal, setShowToolsModal] = useState(false);
-  const [showFundament, setShowFundament] = useState(false);
   const [showHealth, setShowHealth] = useState(false);
   const [theme, setTheme] = useState(() => localStorage.getItem(STORAGE_KEYS.THEME) || 'light');
 
@@ -142,8 +141,6 @@ export function useDesktopDashboardState({
     setShowWeightModal,
     showToolsModal,
     setShowToolsModal,
-    showFundament,
-    setShowFundament,
     showHealth,
     setShowHealth,
     theme,

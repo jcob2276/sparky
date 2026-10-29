@@ -201,24 +201,15 @@ Połączenia:
 - materiał może przejść do Keep lub Todo;
 - wiedza pochodna może być konsumowana przez Oracle.
 
-### `/fundament` — Fundament
+### Ustawienia → „O mnie dla AI” (dawny `/fundament`)
 
-**Cel:** świadomie zapisać stały kontekst tożsamości, misji i granic.
+Strona `/fundament` została usunięta (2026-10-29). Został jeden blok w Ustawieniach z trzema polami
+`user_fundament`, które czyta Oracle (RAG): Ja (`identity`), Ciało (`philosophy`), Wizja (`vision`).
 
-Funkcje:
-
-- misja długoterminowa;
-- filary;
-- wyzwalacze unikania;
-- baseline zachowania;
-- Identity Vault;
-- Data Hub i synchronizacja.
-
-Połączenia:
-
-- Oracle używa Fundamentu jako kontekstu, nie jako bieżącej prawdy;
-- Kierunek i refleksje mogą konfrontować deklaracje z zachowaniem;
-- zapis do Fundamentu jest świadomy, nie automatyczny.
+- zapis jest świadomy; do streamu trafiają tylko zmienione pola;
+- tożsamość można też dopisać przez Telegram;
+- dane `vanguard_identity` (misja, filary, drifters, baseline) zostały w bazie, ale nic ich nie czyta ani nie edytuje;
+- kalendarz i eksport mają własne miejsca (Ustawienia → Google Calendar, Historia → eksport).
 
 ## Zdrowie i sprawność
 

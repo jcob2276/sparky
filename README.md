@@ -66,7 +66,6 @@ produktu — [`docs/PRODUCT_LANGUAGE.md`](./docs/PRODUCT_LANGUAGE.md).
 | `/kalendarz` | kalendarz i bloki czasu |
 | `/terminy` | obowiązki życiowe z wyprzedzeniem przypomnień |
 | `/links` | inbox zapisanych linków |
-| `/fundament` | fundament i kontekst tożsamości |
 | `/trening`, `/sauna` | dedykowane rejestratory i widoki aktywności |
 | `/dashboard` | rozbudowany kokpit desktopowy |
 | `/finanse` | FIRE, runway, portfel i przepływy |

@@ -17,6 +17,8 @@ vi.mock('../../lib/native/platform', () => ({ isNativePlatform: () => false }));
 vi.mock('./NativePermissionsCard', () => ({ default: () => null }));
 vi.mock('./DeviceSignalsCard', () => ({ default: () => null }));
 vi.mock('./AiContextSettings', () => ({ default: () => null }));
+vi.mock('./AboutMeSettings', () => ({ default: () => null }));
+vi.mock('../biometrics/BrainHealth', () => ({ default: () => null }));
 vi.mock('../../hooks/useSyncActions', () => ({ useSyncActions: () => ({
   syncCalendar: async () => { notify('Google Calendar rozłączony', 'error'); }, startGoogleAuth: vi.fn(),
 }) }));

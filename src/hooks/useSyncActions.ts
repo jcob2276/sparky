@@ -48,7 +48,7 @@ async function runUnifiedSync(
  * Redirects the browser to Google OAuth consent screen.
  * Standalone so both useSyncActions and DesktopDashboard can use the same implementation.
  */
-export function startGoogleAuth(): void {
+function startGoogleAuth(): void {
   const options: Record<string, string> = {
     redirect_uri: window.location.origin,
     client_id: GOOGLE_CLIENT_ID,

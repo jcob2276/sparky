@@ -104,7 +104,6 @@ function AppRoutes() {
       <Route path="/kalendarz" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/terminy" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/links" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
-      <Route path="/fundament" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/trening" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/sauna" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
 

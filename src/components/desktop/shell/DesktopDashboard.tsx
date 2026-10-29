@@ -9,7 +9,6 @@ import { useNavigate } from 'react-router-dom';
 import { useUserId } from '../../../store/useStore';
 import Button from '../../ui/Button';
 import Spinner from '../../ui/Spinner';
-import { startGoogleAuth } from '../../../hooks/useSyncActions';
 import { useDesktopData } from './useDesktopData';
 import { useHabitsData } from '../health/useHabitsData';
 import { useDesktopDashboardState } from './useDesktopDashboardState';
@@ -21,7 +20,6 @@ import DesktopQuickWeightModal from './DesktopQuickWeightModal';
 import DesktopToolsLauncherModal from './DesktopToolsLauncherModal';
 
 const WorkoutLogger = lazy(() => import('../../biometrics/LiveWorkout'));
-const Fundament = lazy(() => import('../../core/Fundament'));
 const SystemHealth = lazy(() => import('../health/SystemHealth'));
 const SaunaLoggerModal = lazy(() => import('../../biometrics/SaunaLoggerModal'));
 
@@ -47,8 +45,6 @@ export default function DesktopDashboard() {
     setShowWeightModal,
     showToolsModal,
     setShowToolsModal,
-    showFundament,
-    setShowFundament,
     showHealth,
     setShowHealth,
     theme,
@@ -71,14 +67,6 @@ export default function DesktopDashboard() {
     </div>
   );
 
-  if (showFundament) return (
-    <div className="min-h-screen bg-background text-text-primary p-8 max-w-4xl mx-auto">
-      <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><Spinner size="md" /></div>}>
-        <Fundament onBack={() => { setShowFundament(false); refresh(); }} onSyncCalendar={startGoogleAuth} isSyncing={syncing} />
-      </Suspense>
-    </div>
-  );
-
   if (showWorkout) return (
     <Suspense fallback={<div className="min-h-screen bg-background flex items-center justify-center"><Spinner size="md" /></div>}>
       <WorkoutLogger initial={workoutInitial} onSaved={() => refresh()} onBack={() => { setShowWorkout(false); setWorkoutInitial(null); refresh(); }} />
@@ -92,7 +80,7 @@ export default function DesktopDashboard() {
         <DesktopHeader
           now={now} syncing={syncing}
           theme={theme} setTheme={setTheme} syncAll={syncAll}
-          setShowHealth={setShowHealth} setShowFundament={setShowFundament}
+          setShowHealth={setShowHealth}
           onOpenTools={() => setShowToolsModal(true)}
         />
 

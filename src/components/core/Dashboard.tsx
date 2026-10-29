@@ -33,7 +33,6 @@ import { DashboardContext } from './context/DashboardContext';
 
 const TrainingRoute   = lazy(() => import('../biometrics/TrainingRoute'));
 const SaunaLoggerModal = lazy(() => import('../biometrics/SaunaLoggerModal'));
-const Fundament       = lazy(() => import('./Fundament'));
 const Keep            = lazy(() => import('../notes/Keep'));
 const Todo            = lazy(() => import('../todo/Todo'));
 const LinksInbox      = lazy(() => import('../lifestyle/LinksInbox'));
@@ -96,7 +95,6 @@ function DashboardContent() {
   ], [s]);
 
   // ── Full-screen route views ──
-  if (s.view === 'fundament') return <Suspense fallback={<ViewFallback />}><Fundament onBack={s.goBack} onSyncCalendar={s.startGoogleAuth} isSyncing={s.isSyncing} /></Suspense>;
   if (s.view === 'keep') return <Suspense fallback={<ViewFallback />}><Keep onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} /></Suspense>;
   if (s.view === 'todo') return <Suspense fallback={<ViewFallback />}><Todo onBack={() => { s.refreshNudge(); s.goBack(); }} onNavigateTo={dest => s.navigate('/' + dest)} /></Suspense>;
   if (s.view === 'links') return <Suspense fallback={<ViewFallback />}><LinksInbox onBack={s.goBack} onNavigateTo={dest => s.navigate('/' + dest)} /></Suspense>;
@@ -150,7 +148,7 @@ function DashboardContent() {
             userId={userId}
             unreadCount={s.pendingActionCount}
             onAvatarLongPress={() => s.setActionCenterOpen(true)}
-            onAvatarClick={() => s.navigate('/fundament')}
+            onAvatarClick={() => s.navigate('/settings')}
             theme={s.theme}
             toggleTheme={s.toggleTheme}
             showLock={showLock}

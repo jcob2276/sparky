@@ -1,5 +1,5 @@
 import { supabase, invokeEdge } from './supabase';
-import type { Tables, Json } from './database.types';
+import type { Tables } from './database.types';
 
 export type UserFundamentRow = Tables<'user_fundament'>;
 
@@ -23,35 +23,6 @@ export async function upsertUserFundament(userId: string, patch: Record<string, 
   if (error) throw error;
 }
 
-export type SparkyIdentityRow = Tables<'vanguard_identity'>;
-
-export async function fetchSparkyIdentity(userId: string): Promise<SparkyIdentityRow | null> {
-  const { data, error } = await supabase
-    .from('vanguard_identity')
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle();
-  if (error) throw error;
-  return data;
-}
-
-export async function upsertSparkyIdentity(userId: string, payload: {
-  long_term_mission: string;
-  pillars: string[];
-  avoidance_triggers: string;
-  behavioral_baseline?: unknown;
-}): Promise<void> {
-  const { error } = await supabase.from('vanguard_identity').upsert({
-    user_id: userId,
-    long_term_mission: payload.long_term_mission,
-    pillars: payload.pillars,
-    avoidance_triggers: payload.avoidance_triggers,
-    behavioral_baseline: (payload.behavioral_baseline ?? null) as Json,
-    updated_at: new Date().toISOString(),
-  });
-  if (error) throw error;
-}
-
 export async function ingestVaultCategory(
   userId: string,
   category: string,
@@ -65,9 +36,4 @@ export async function ingestVaultCategory(
   return {
     chunks: typeof res?.chunks === 'number' ? res.chunks : 0,
   };
-}
-
-export async function getAuthUserId(): Promise<string | null> {
-  const { data } = await supabase.auth.getUser();
-  return data?.user?.id ?? null;
 }
