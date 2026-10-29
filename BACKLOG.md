@@ -1,1412 +1,268 @@
-# Sparky OS — Backlog
+# Sparky — backlog
 
-Jedyny backlog w repo. Wszystko odłożone, nieukończone lub zaplanowane żyje tutaj —
-nie w osobnych plikach per temat. Gdy plan/sesja się kończy, otwarte punkty lądują
-tutaj przed skasowaniem pliku planu (patrz `AGENTS.md`, sekcja "Reguły dokumentacji").
+Jedyna kolejka otwartej pracy. Kierunek: [KIERUNEK](docs/direction/KIERUNEK.md).
+Bieżący handoff: [ACTIVE_WORK](docs/agent/ACTIVE_WORK.md).
+Zasady i dokumenty domenowe: [indeks](docs/README.md).
 
-**Przed kodem:** `AGENTS.md` → `docs/ARCHITECTURE.md` → `supabase/functions/README.md`
+- **RÓB** — jedyna aktywna kolejka, w kolejności poniżej.
+- **PRZY OKAZJI** — tylko przy potrzebnej zmianie danego modułu.
+- **ZAMROŻ** — wymaga świadomego przywrócenia do RÓB; obecność kodu nie oznacza odbioru.
+- Zamknięcie wymaga konsumenta wyniku i dowodu działania. Blokady bezpieczeństwa i zależności mają pierwszeństwo.
+- Zakończone zadania i dawne audyty zachowuje Git. Nie odtwarzać z nich kolejki ani stanu produkcji.
 
-**Aktualny stan pracy w toku (co robi agent teraz):** [`docs/agent/ACTIVE_WORK.md`](docs/agent/ACTIVE_WORK.md).
-Ten plik (`BACKLOG.md`) to kolejka — rzeczy jeszcze nierozpoczęte albo wstrzymane.
+<a id="rob"></a>
 
----
+## RÓB — kolejność wykonania
 
-## Jak z tym pracować
+1. [DC-06 — aktualne źródło przed snapshotem i cache](#dc-06)
+2. [DC-09 — korekta treningu przelicza właściwe dni](#dc-09)
+3. [DC-12 — zakończony replay odświeża konsumentów](#dc-12)
+4. [Zakład C / Etap 1 — kontrola sum, agregatów i izolacji](#kontrola-agregatow)
+5. [Zakład C — Jedzenie ze zdjęcia i tekstu](#jedzenie-capture)
+6. [Telegram inbox — równoczesne powtórzenia i timeout](#telegram-inbox)
+7. [Zakład C — Dyktowanie](#dyktowanie)
+8. [Porządkowanie — BLE, nagranie i offline na urządzeniu](#odbior-urzadzenia)
+9. [Porządkowanie — regresja wspólnego drzewa i przegląd](#regresja-drzewa)
+10. [Zakład C / Etap 2 — rzeczywiste odpowiedzi Oracle](#odbior-oracle)
+11. [Zakład C / Etap 3 — zgodność celu BF](#cel-bf)
+12. [Zakład C — Pamięć celów, preferencji i ograniczeń](#pamiec-deklaracji)
+13. [Kartoteka — MedicalRecordsView / medical_events](#kartoteka)
+14. [Zakład C — Kontekst wyników badań](#kontekst-badan)
+15. [Zakład C — Objawy i możliwe czynniki towarzyszące](#objawy)
+16. [Zakład C — Podsumowania dnia, tygodnia i miesiąca](#podsumowania)
+17. [Zakład C — Luki żywieniowe i składniki odżywcze](#skladniki-odzywcze)
+18. [Zakład C — Zależności sen–HRV, stres–HRV i zachowania–wyniki](#zaleznosci)
+19. [Zakład C — Analizy i własne wykresy](#analizy)
 
-- Odhaczaj `[x]` po zamkniętym punkcie, nie usuwaj wiersza od razu — usuń przy najbliższym porządkowaniu sekcji.
-- Nowy punkt dopisuj do właściwej części, nie na końcu pliku.
-- Części I–II (audyt architektury + warstwa wiedzy) mają **twardą kolejność zależności** — nie przeskakuj.
-- Części III+ to checklisty niezależnych punktów — rób w dowolnej kolejności w ramach priorytetu.
+### Część III / DC-06 — aktualne źródło przed snapshotem i cache
+<a id="dc-06"></a>
 
----
+- [ ] Żywe wartości źródłowe mają pierwszeństwo w `dashboardApi.ts` i `_shared/worldState.ts`.
+  Rozróżnić zero, brak i błąd; cache musi mieć ważność/rewizję oraz unieważnianie dotkniętych dat.
+  Nie opierać poprawności na odświeżeniu Telegrama bez await.
+  **Zrobione 2026-10-29 (828b2d71):** cache world state ma TTL 15 min także dla przeszłych dni
+  (`isWorldStateCacheFresh`) i jest unieważniany po korekcie posiłku i treningu (best-effort).
+  **Zostaje:** `dashboardApi.ts` używa world state bez kontroli `updated_at`; fallback białka.
+  **Odbiór:** białko 0 nie staje się dawnym dodatnim wynikiem; korekta historii odświeża
+  Dashboard, tydzień i Oracle z tego samego źródła.
 
-# Część 0 — Audyt produktu Shape Up: jedna aplikacja, jeden kręgosłup
+### Część III / DC-09 — korekta treningu przelicza właściwe dni
+<a id="dc-09"></a>
 
-> Ten audyt jest nakładką produktową na techniczne priorytety poniżej. Nie zmienia P0
-> bezpieczeństwa ani konstytucji. Odpowiada na inne pytanie: **które elementy pomagają
-> Jakubowi podjąć decyzję lub wykonać ruch, a które tylko pokazują, że system ma dane?**
->
-> Zasada Shape Up: najpierw problem i apetyt, potem rozwiązanie. Czas jest stały, zakres
-> zmienny. Każdy zakład musi mieć konsumenta i ostatnią milę.
+- [ ] W `workoutApi.ts`, `useStatsData.ts` i `strainRefresh.ts` przekazać stare i nowe daty
+  zmiany do istniejących przeliczeń oraz unieważnić zależne okna i odczyty.
+  **Odbiór:** edycja, przeniesienie, usunięcie i zapis wstecz dają zgodne strain/world state
+  oraz podsumowania dotkniętych i zależnych dni; nie wystarcza `days: 1`.
 
-## North Star i granice produktu
+### Część III / DC-12 — replay odświeża konsumentów
+<a id="dc-12"></a>
 
-Sparky ma być osobistym systemem operacyjnym z jednym codziennym wejściem:
+- [ ] Po potwierdzonym zapisie w `offlineQueue.ts` unieważnić klucze dotkniętych domen.
+  Enqueue nie oznacza zatwierdzenia operacji.
+  **Odbiór:** wolny replay i wyścig z wcześniejszym refetch kończą się zgodnym UI/bazą
+  po reconnect, bez dodatkowego kliknięcia.
 
-```text
-złap sygnał → zrozum stan → wybierz ruch → wykonaj → rozlicz → zachowaj wiedzę
-```
+### Zakład C / Etap 1 — kontrola agregatów
+<a id="kontrola-agregatow"></a>
 
-Główny interfejs ma odpowiadać kolejno na cztery pytania:
+- [ ] Sprawdzić testy po poprawkach, kontrolny SELECT sum `daily_food_entries` vs
+  `daily_nutrition` oraz izolację użytkowników. Rozszerzać istniejące RPC/projekcje,
+  bez trzeciego agregatora. Daty i stany danych muszą być zgodne w UI i Oracle.
 
-1. **Co jest prawdą teraz?** — Dziś: stan, zobowiązania, pojemność.
-2. **Co robię dalej?** — jeden rekomendowany ruch i jawne alternatywy.
-3. **Czy utrzymuję kierunek?** — Tydzień/Kierunek, nie drugi planer.
-4. **Czego system się nauczył?** — Historia z decyzjami i zmianami, nie magazyn wykresów.
+### Zakład C — Jedzenie ze zdjęcia i tekstu
+<a id="jedzenie-capture"></a>
 
-Nie budujemy osobnych „aplikacji w aplikacji” dla każdej domeny. Dane specjalistyczne
-mogą być głębokie, ale wejście do nich ma prowadzić z powyższego kręgosłupa.
+- [ ] Odebrać istniejący capture/`parse-food-nl`: porcja → podgląd → potwierdzenie →
+  atomowy zapis → zgodne sumy → korekta. Sprawdzić jednostki, niepewne dopasowania,
+  dania złożone, pochodzenie `parse_meta` oraz retry z tym samym ID.
+  Jawne ilości i korekty użytkownika mają pierwszeństwo; import nie jest potwierdzonym źródłem.
+  Podejrzane wartości kierować do potwierdzenia, bez cichego przepisywania historii.
+  Jedzenie dodaje się i poprawia wyłącznie w aplikacji; Telegram tylko odczytuje `/dieta`.
 
-## Decyzja dla każdej powierzchni
+### Część III — Telegram inbox
+<a id="telegram-inbox"></a>
 
-| Domena / obecne wejścia | Realny problem i konsument | Stan ostatniej mili | Decyzja |
-|---|---|---|---|
-| **Dziś / główny Dashboard** | Mobilna, szybka orientacja i wybór następnego ruchu | To jest operacyjny rdzeń używany w ruchu | **Wzmacniać.** Domyślny start mobile: capture, decyzja i wykonanie |
-| **Tydzień + Kierunek + Projekty + Todo** | Zamiana celów na wykonalny tydzień i zadania | Wiele modeli planowania, niejasne właścicielstwo decyzji „co dziś” | **Scalić.** Kierunek wybiera, Tydzień negocjuje zakres, Todo wykonuje |
-| **Fundament / tożsamość** | Zachować świadomie przyjęte zasady i skonfrontować je z zachowaniem | Wartościowa warstwa odniesienia, lecz nie powinna być kolejnym planerem ani automatycznym sędzią | **Zostawić jako kontekst.** Odczyt dla Kierunku i refleksji; zapis tylko świadomy |
-| **Historia + tygodniowe/miesięczne rozliczenia** | Zobaczyć zmianę i wyciągnąć konsekwencję na przyszłość | Dane są, lecz historia łatwo kończy się na retrospekcji | **Wzmacniać.** Każdy ważny wniosek kończy się decyzją, korektą planu albo świadomym „bez zmian” |
-| **Stream + Notatki + Pocket + Wiki + Graf** | Szybko złapać materiał i odzyskać z niego użyteczną wiedzę | Dobra rura wejściowa, zbyt wiele magazynów i kolejek | **Scalić przepływ.** Jedno capture, jedna kolejka decyzji; graf/wiki pozostają warstwą pochodną |
-| **Oracle: Telegram** | Rozmowa ze wspólną pamięcią i możliwość wykonania działania | Telegram jako jedyny kanał konwersacyjny; aplikacja skupia się na pracy z danymi/artefaktami | **Telegram SSOT.** Brak emulacji czatu w aplikacji |
-| **Zdrowie: Oura + Trening + Żywienie + Sauna + Kartoteka + Optyka** | Jedna odpowiedź: co dziś wspiera zdrowie i co wymaga uwagi | Bogate źródła, ale rozproszone ekrany i powtórzone podsumowania | **Scalić w Zdrowie.** Kartoteka jest osią kliniczną; Oura/trening/żywienie są przebiegiem bieżącym |
-| **Korelacje / analityka / predykcje** | Sprawdzić hipotezę i zmienić zachowanie | Silnik istnieje, ale wykres bez decyzji jest ślepą uliczką | **Ukryć jako narzędzie dowodowe.** Pokazywać tylko w kontekście decyzji, z jakością danych i możliwością odrzucenia |
-| **Terminy + Kalendarz** | Nie przegapić zdarzenia, obowiązku, badania lub odnowienia | Czytelny problem; terminy mogą zasilać plan dnia i Kartotekę | **Wzmacniać i podłączyć.** Bez osobnego rytuału obsługi |
-| **Finanse** | Widzieć zobowiązania i wykonać następną decyzję finansową | Rozbudowany interfejs wyprzedza realne użycie | **Zamrozić szerokość.** Zostawić cashflow, stałe koszty i jeden cel; resztę odsłaniać dopiero po użyciu |
-| **Rozwój / Nauka** | Wybrać umiejętność i wykonać konkretną sesję | Osobny system priorytetów konkuruje z Kierunkiem i Todo | **Scalić z Kierunkiem.** Umiejętność jest typem projektu, nie kolejnym systemem operacyjnym |
-| **Desktop Dashboard / Scoreboard** | Rozszerzone centrum dowodzenia do spokojnej pracy na komputerze | Intencjonalnie szerszy od mobile: synteza między domenami, analityka, diagnostyka i sterowanie | **Wzmacniać jako osobny tryb pracy.** Współdzielić dane i logikę z mobile, ale nie wymuszać tego samego układu |
-| **Ustawienia / stan systemu / Design System** | Konfiguracja, uprawnienia i diagnostyka | Potrzebne, ale nie są produktem codziennym | **Zostawić narzędziowo.** Bez ekspozycji jako równorzędny filar |
+- [ ] Potwierdzić równoczesne powtórzenia oraz niejednoznaczny timeout po INSERT
+  do `vanguard_telegram_inbox`. Błąd zapisu ma być ponawialny i audytowany.
+  Guard wiadomości nie dowodzi atomowej deduplikacji inbox; nie obiecywać exactly-once.
 
-## Ukształtowane zakłady — kolejność po blokadach P0
+### Zakład C — Dyktowanie
+<a id="dyktowanie"></a>
 
-### Zakład A — Jeden system, dwa świadome tryby pracy
+- [ ] Odebrać istniejące voice/Gemini: transkrypcja → rozpoznanie polecenia →
+  właściwa odpowiedź/operacja i czytelny błąd. Zachować tekst oraz zasoby mikrofonu
+  przy przerwaniu, bez równoległego transkrybera.
 
-**Problem:** mobile i desktop mają różne zadania, ale bez jawnego kontraktu mogą
-powielać logikę, rozjechać nazwy oraz pokazywać sprzeczne interpretacje tych samych danych.
+### Porządkowanie — odbiór na urządzeniu
+<a id="odbior-urzadzenia"></a>
 
-**Apetyt:** maksymalnie 1 tydzień.
-**Pitch:** mobile pozostaje trybem operacyjnym (capture, Dziś, szybka decyzja i
-wykonanie), a Desktop Scoreboard pozostaje rozszerzonym centrum dowodzenia (synteza,
-analiza, planowanie i stan systemu). Oba tryby używają tych samych API, definicji metryk,
-statusów i akcji.
+- [ ] Na fizycznym urządzeniu sprawdzić ponowne połączenie BLE, przerwanie nagrania
+  i offline → online w APK. Osobno odebrać zapis kontekstu/notatek closera oraz
+  odtwarzanie Fathom na zalogowanej PWA; zachować link zewnętrzny przy błędzie playera.
+  Porównać tę samą noc Oura: datę, przedział, sumy/fazy, ruch i HR/HRV lub nazwane braki;
+  kontrakt: [BIOMETRICS](docs/surface-contracts/BIOMETRICS.md).
 
-**Breadboard:**
+### Porządkowanie — regresja wspólnego drzewa
+<a id="regresja-drzewa"></a>
 
-```text
-Mobile:  sygnał ──► decyzja ──► szybka akcja ──► powrót do Dziś
-                         │
-                         └──────── wspólny stan ────────┐
-                                                        ▼
-Desktop: przekrój domen ──► analiza ──► sterowanie/plan ──► zapis decyzji
-```
+- [ ] Po zakończeniu równoległej pracy uruchomić pełną regresję i niezależny przegląd.
+  Zestawy kontroli: [CONTRIBUTING](CONTRIBUTING.md), [backend](docs/BACKEND_CONTRACT.md)
+  i [frontend](docs/FRONTEND_GUIDE.md). Lokalny test nie potwierdza wdrożenia.
+  Przed odbiorem produkcyjnym sprawdzić w ledgerze migrację
+  `20261029120000_dc_consistency_morning_supplements.sql`; ewentualne zastosowanie
+  tylko przez `npm run db:apply`, bez zbiorczego odtwarzania starych migracji.
 
-**Rabbit holes:** robienie responsywnego klona mobile na desktopie, ujednolicanie
-layoutów na siłę albo przepisywanie wszystkich paneli.
-**No-go:** osobne wzory metryk, osobne API lub sprzeczne statusy dla mobile i desktopu;
-żadnej karty bez właściciela i decyzji, której służy.
+### Zakład C / Etap 2 — odpowiedzi Oracle
+<a id="odbior-oracle"></a>
 
-**Done:** istnieje jawna odpowiedzialność każdej powierzchni; ten sam stan i ta sama
-akcja dają zgodny rezultat w obu trybach, a przejście mobile ↔ desktop zachowuje kontekst.
+- [ ] Odebrać rzeczywiste „oceń treningi po zawodach” / „co dziś?” bez ponownego
+  pytania o dane już w bazie. Wspólny `HealthCoachContext` pokazuje te same sesje,
+  ograniczenia, daty, źródła i braki we wszystkich konsumentach.
+  Sprawdzić też porównanie okresów w Kronice, analizę/raport tygodnia i `/teraz`.
+  Przy błędzie sprawdzić logi konkretnej funkcji.
 
-### Zakład B — Planowanie bez konkurujących prawd
+### Zakład C / Etap 3 — zgodność celu BF
+<a id="cel-bf"></a>
 
-**Problem:** Dziś, Tydzień, Kierunek, Projekty i Todo potrafią równolegle mówić, co jest
-ważne, bez jawnej reguły rozstrzygającej.
+- [ ] Jawna zmiana celu synchronizuje `nutrition_profile` i KPI przez goal spine;
+  sprzeczne stare deklaracje pozostają widoczne, a historia jest zachowana.
+  Nie tworzyć drugiego magazynu celów.
 
-**Apetyt:** maksymalnie 2 tygodnie.
-**Pitch:** Kierunek przechowuje wybory długoterminowe; Tydzień ustala ograniczony zakres;
-Todo jest jedyną kolejką wykonawczą; Dziś wybiera z niej według pojemności. Refleksja
-zmienia jedną z tych warstw albo jawnie niczego nie zmienia.
+### Zakład C — pamięć deklaracji
+<a id="pamiec-deklaracji"></a>
 
-**Rabbit holes:** automatyczny „idealny plan”, przebudowa wszystkich tabel, rozbudowane
-estymacje czasu.
-**No-go:** nowy byt zadaniowy lub kolejny rytuał planowania.
+- [ ] Potwierdzone cele, preferencje i ograniczenia mają źródło, aktualność i korektę
+  oraz są odczytywane w następnej sesji. Core memory jest skrótem, nie kopią SSOT.
+  Porada modelu nie staje się faktem o użytkowniku.
 
-**Done:** jedno zadanie ma jedno źródło prawdy, a decyzja tygodniowa jest widoczna w Dziś
-bez ręcznego przepisywania.
+### Część V — Kartoteka
+<a id="kartoteka"></a>
 
-### Zakład C — Zdrowie jako odpowiedź, nie zbiór dashboardów
+- [ ] Testy i rzeczywisty zapis/odczyt `MedicalRecordsView` / `medical_events`,
+  w tym izolacja właściciela.
 
-**Problem:** dane kliniczne, regeneracja, trening, żywienie, sauna i optyka są bogate,
-ale użytkownik musi sam sklejać ich znaczenie.
+### Zakład C — kontekst wyników badań
+<a id="kontekst-badan"></a>
 
-**Apetyt:** maksymalnie 2 tygodnie po domknięciu Kartoteki.
-**Pitch:** wejście Zdrowie pokazuje: stan dzisiaj, aktywne zalecenia, nadchodzące terminy
-i historię. Szczegóły źródeł pozostają niżej. Propozycja profilaktyki zawsze pokazuje
-podstawę, termin i możliwość odroczenia/odrzucenia.
+- [ ] Odebrać Kartotekę i `medicalContext`: źródło, data, jednostki i kontekst wyniku,
+  bez diagnozy i zaleceń dawkowania. Nie budować konkurencyjnego raportera badań.
 
-**Rabbit holes:** diagnozowanie, lista „obowiązkowych” badań bez źródła, generowanie
-alarmów z każdej odchyłki.
-**No-go:** medyczna pewność, automatyczna diagnoza, zalecenia bez pochodzenia i daty.
+### Zakład C — objawy
+<a id="objawy"></a>
 
-**Done:** z ekranu Zdrowie da się w mniej niż minutę odpowiedzieć „czy coś wymaga mojego
-ruchu?” i wykonać ten ruch.
+- [ ] Istniejący capture/stream zachowuje zgłoszony objaw i kontekst zdrowia.
+  Hipoteza o czynnikach towarzyszących pozostaje oddzielona od zgłoszenia użytkownika.
 
-#### Sparky — prowadzenie treningu, żywienia i regeneracji: plan wdrożenia
+### Zakład C — podsumowania
+<a id="podsumowania"></a>
 
-**Status:** zakres do realizacji, bez rozpoczętej implementacji. Rozszerza Zakład C;
-jego wcześniejszy apetyt dotyczy konsolidacji widoków, nie całego programu poniżej.
-Po rozpoczęciu konkretnego etapu jego bieżący brief trafia do
-`docs/agent/ACTIVE_WORK.md`; ta sekcja pozostaje jedyną kolejką całego zakresu.
+- [ ] Odebrać istniejące recap/refleksje dnia, tygodnia i miesiąca:
+  wspólny kontekst zdrowia, jawne okno danych i zgodne sumy, bez kolejnego raportera.
 
-**Priorytet użytkownika: najpierw pełne pokrycie możliwości Bevel Intelligence.**
-Zakres odniesienia stanowią aktywne funkcje opisane przez producenta, a nie jego
-lista funkcji planowanych. Za ukończenie nie uznajemy samej obecności tabeli,
-helpera, promptu lub przycisku; każda pozycja wymaga przejścia realnego flow.
-Poniższa macierz jest bramką odbioru. Puste checkboxy oznaczają brak zakończonej
-weryfikacji całego flow, także gdy część implementacji już istnieje.
+### Zakład C — składniki odżywcze
+<a id="skladniki-odzywcze"></a>
 
-| Odbiór | Możliwość Bevel | Istniejący punkt w Sparky / obowiązkowe domknięcie |
-|---|---|---|
-| [ ] | Check-in i przypomnienia wybrane przez użytkownika | `schedule_poke`, outbox i istniejące przypomnienia; dodać edycję, wyłączenie, cykliczność i kontrolę deduplikacji. Bez samoczynnego przywrócenia starych porannych pingów. |
-| [ ] | Podsumowania dnia, tygodnia i miesiąca | Istniejące recap/refleksje; wspólny kontekst zdrowia i jawne okno danych, bez konkurencyjnego raportera. |
-| [ ] | Jedzenie ze zdjęcia i tekstu | Istniejący capture/`parse-food-nl`; sprawdzenie potwierdzania porcji, zapisu, sum i korekty. |
-| [ ] | Analiza menu restauracji | Zdjęcie menu + cele/preferencje → propozycje z uzasadnieniem; wybór dania nie jest automatycznym zapisem spożycia. |
-| [ ] | Posiłki ze składników w lodówce | Tekst/zdjęcie składników → wykonalne propozycje i brakujące produkty, z widoczną niepewnością ilości. |
-| [ ] | Tygodniowy jadłospis | Etap 7: porcje, preferencje i terminy treningów; zachowanie zatwierdzonego menu przy przeliczaniu kalorii. |
-| [ ] | Lista zakupów | Suma produktów z zaakceptowanego jadłospisu, jednostki i odhaczanie; bez automatycznego zamawiania. |
-| [ ] | Szacowana odpowiedź glikemiczna | Oddzielny model orientacyjny oparty na zweryfikowanych danych GI/porcji; brak danych jest jawny. Nie prezentować syntetycznej krzywej jako pomiaru glukozy lub diagnozy. |
-| [ ] | Luki żywieniowe i składniki odżywcze | Istniejące makra/błonnik i analiza jakości; tylko z wystarczająco kompletnych dni oraz faktycznie dostępnych składników. Bez rozpoznawania niedoborów z samego dziennika i przepisywania dawek. |
-| [ ] | Wielotygodniowy plan według celu i regeneracji | Etapy 3–6; szkic → podgląd → aktywacja → wykonanie → aktualizacja. |
-| [ ] | Generowanie sesji siłowej i cardio | Etap 5; czas, sprzęt, ograniczenia i start w istniejącym loggerze. |
-| [ ] | Odtworzenie planu ze zdjęcia | Rozszerzyć istniejący import planów; OCR → struktura → korekta → podgląd, bez automatycznej aktywacji błędnie rozpoznanych ciężarów. |
-| [ ] | Sugestie progresji ciężaru, serii i powtórzeń | Etapy 5–6; historia właściwego wariantu ćwiczenia, RIR/RPE, reguła i możliwość odrzucenia. |
-| [ ] | Regeneracja konkretnych partii | `muscleRecovery.ts` i BodyMap; modelowy szacunek z zakresem historii, a brak historii nie oznacza pełnej regeneracji ani utraty siły. |
-| [ ] | Analizy i własne wykresy | Obecne narzędzie read-only SQL i karty/wykresy; kontrola zakresu usera, źródła, okna oraz brakującego mianownika. |
-| [ ] | Zależności sen–HRV, stres–HRV i zachowania–wyniki | Istniejące korelacje i katalog metryk; pokazanie N, kompletności i confounderów, bez automatycznej diagnozy przetrenowania/przyczynowości. |
-| [ ] | Prognozy wyników, np. czasu biegu | Rozszerzyć istniejące prognozy o wyniki sportowe; warunki stosowalności modelu, przedział/scenariusz i walidacja na późniejszych wynikach. |
-| [ ] | Kontekst wyników badań | Istniejąca Kartoteka i `medicalContext`; źródło, data i jednostki, bez diagnozy oraz zaleceń dawkowania. |
-| [ ] | Objawy i możliwe czynniki towarzyszące | Istniejący capture/stream + kontekst zdrowia; oddzielić zgłoszony objaw od hipotezy o wyzwalaczu. |
-| [ ] | Pogoda w interpretacji treningu | `gc_weather` i istniejąca pogoda; używać miejsca/czasu faktycznej aktywności, nie bieżącej prognozy dla innego miasta. |
-| [ ] | Badania naukowe na żądanie | Rozszerzenie Oracle o weryfikowalne wyszukiwanie publikacji, identyfikatory/linki i krótkie podsumowanie; brak wymyślonych cytowań. |
-| [ ] | Pamięć celów, preferencji i zgłoszonych ograniczeń | Etap 3 i istniejące mechanizmy potwierdzania; źródło, korekta, aktualność i odczyt przy kolejnej sesji. |
-| [ ] | Kontekst oglądanego widoku | Jawnie wybrany kontekst ekranu Sparky przekazany do Oracle przez istniejący kanał; minimalny payload, bez przechwytywania innych aplikacji. |
-| [ ] | Pomoc w poruszaniu się po aplikacji | Istniejący katalog nawigacji jako źródło dozwolonych tras; odpowiedź z działającym linkiem, bez wymyślania ekranów. |
-| [ ] | Dyktowanie | Istniejące voice/Whisper; weryfikacja transkrypcja → rozpoznanie polecenia → właściwa odpowiedź/operacja i obsługa błędu. |
+- [ ] Odczyt makr/błonnika i analizy jakości tylko z wystarczająco kompletnych dni
+  i rzeczywiście dostępnych składników. Brak wartości jest jawny; dziennik jedzenia
+  nie rozpoznaje niedoborów ani dawek suplementów.
 
-**Kolejność:** najpierw fundament z etapów 1–2, następnie cele i plan z 3–6,
-żywienie i przeglądy z 7–8, potem pozostałe pozycje macierzy z podpięciem do
-tych samych kontraktów. Weryfikacja z etapu 10 obowiązuje w każdej dostawie.
-Etap 9 (ocena techniki) jest rozszerzeniem po zakresie Bevel — producent wskazuje
-analizę techniki jako aktualnie niedostępną. Specjalizacja pod konkurencję Runna
-i osobne funkcje spoza macierzy nie wyprzedzają domknięcia zakresu Bevel.
+### Zakład C — zależności
+<a id="zaleznosci"></a>
 
-**Goal:** Sparky prowadzi użytkownika od zadeklarowanych celów przez wspólny plan
-biegania, siły, umiejętności i żywienia do wykonania, przeglądu oraz mierzalnej korekty.
+- [ ] Odebrać istniejące korelacje/katalog metryk: sen–HRV, stres–HRV, zachowania–wyniki.
+  Pokazać N, okno, kompletność i confoundery. Brak automatycznej przyczynowości
+  lub diagnozy przetrenowania.
 
-**Architecture:** rozszerzamy istniejący Oracle, `analyze-training-load`,
-`vanguard-nutrition-coach`, goal spine, logger i syntezę tygodniową. Wspólny kontekst
-zdrowia zasila te same decyzje w Telegramie, Dziś, Treningu i Tygodniu. Obliczenia
-i walidacja są deterministyczne; model proponuje i wyjaśnia, a zaakceptowany plan
-ma trwałe wersje oraz powiązania z wykonanymi sesjami.
+### Zakład C — analizy
+<a id="analizy"></a>
 
-**Tech Stack:** obecny React/TypeScript, React Query, `packages/domain`, Supabase
-Postgres/Storage i Deno Edge Functions. Obowiązują istniejące prymitywy UI i kernel
-backendu. Brak uzasadnienia do przepisywania aplikacji lub dokładania GPU.
+- [ ] Odebrać istniejące read-only SQL, karty i wykresy: kontrola zakresu użytkownika,
+  źródła, dat i mianownika. Brakujące dane nie stają się zerem.
 
-**Spec:** opis produktu i kontrakty w tej sekcji; obowiązują też `AGENTS.md`,
-`docs/PRODUCT_LANGUAGE.md` i `docs/surface-contracts/BIOMETRICS.md`.
+<a id="przy-okazji"></a>
 
-**Dla wykonawcy:** realizować etapy osobno zgodnie z
-`superpowers:executing-plans` albo wybraną przez użytkownika metodą
-`superpowers:subagent-driven-development`. Plan nie upoważnia do nadpisania cudzych
-zmian w worktree. Każdy etap kończy się działającą ścieżką w produkcie i osobnym commitem.
+## PRZY OKAZJI — utrzymanie przy dotyku
 
-##### Docelowe doświadczenie i zakres
+- **Zakład A / Część 0:** mobile i desktop zachowują różne układy, wspólne API,
+  definicje metryk i mutacje. Usuwać duplikaty fetch/obliczeń i katalogów nawigacji
+  dopiero po sprawdzeniu konsumentów.
+- **Zakład B:** cele → tydzień → zadania → plan dnia mają jednego właściciela stanu.
+  Nie tworzyć nowych modeli zadania ani drugiego planera.
+- **Zakład C / Etap 5:** przy potrzebnej zmianie oddzielić dane `TrainingHubView` od widoku.
+- **Zakład C / Etap 7:** przepis/menu/załącznik jest danymi, nie instrukcją dla narzędzi;
+  stosować dozwolone źródła i limity, bez wykonywania poleceń i dowolnych URL.
+- **Część III / helpery:** zapisy Todo i KPI kierować przez kanoniczną warstwę;
+  wkład KPI zmieniać transakcyjnie, nie przez lokalny fallback +1.
+- **Część III / daty:** usuwać duplikaty formatterów, w tym `LeniePanelMini`,
+  korzystając z właścicieli wskazanych w [SINGLE_SOURCE](docs/SINGLE_SOURCE.md).
+- **Część III / offline:** starszych wpisów bez `ownerId` nie przypisywać bieżącemu
+  kontu ani odtwarzać bez ustalenia właściciela; błąd dead-letter nie usuwa oryginału.
+- **Część III / deploy:** kontrolować dryf kodu wdrożonych funkcji niezależnie od
+  dryfu migracji; testy edge dobierać do rzeczywiście zmienionych ścieżek.
+- **Część IV / PD1–PD3, P6, DS1/DS4:** przy dotyku usuwać `as any`, najpierw
+  regenerując nieaktualne typy; używać wspólnych modali, tokenów i empty states.
+  Limity/wyjątki mają właściciela w ESLint i baseline, nie w ręcznej liście LOC.
+- **Zakład D / Część II:** poprawiać istniejącą ekstrakcję/pamięć: walidacja triad,
+  propagacja `finishReason`, liczenie potwierdzonych zapisów i unikalnych epizodów.
+  Retry tego samego źródła nie zwiększa `evidence_count`. Zachować historię korekt,
+  pochodzenie i istniejący graf/wektory/FTS; nie dodawać drugiego profilu ani bazy.
+- **Część II / jakość AI:** przy zmianie promptu sprawdzić realne dobre/złe wyniki
+  oraz przypadki małej próby, sugestii psychologicznych i nieliniowych refleksji;
+  rosnąca pewność bez nowych danych nie jest postępem.
 
-1. **Moje cele:** wynik, standard wykonania, priorytet, punkt wyjścia z datą,
-   ograniczenia sprzętu/czasu i wskazanie, czego jeszcze nie wiemy.
-2. **Mój plan:** spójny blok treningowy i tydzień mieszczący się w dostępności;
-   bieganie, siła, nauka umiejętności, regeneracja i żywienie uwzględniają siebie.
-3. **Dziś:** konkretna sesja, powód wyboru, cele serii lub odcinków, wariant krótszy
-   i lżejszy. „Rozpocznij” otwiera wypełniony istniejący logger.
-4. **Po treningu:** wykonanie kontra założenia, zapas/odczucia i opcjonalna korekta
-   następnej sesji. Brak zapisu pozostaje brakiem, nie oznacza opuszczenia treningu.
-5. **Jedzenie:** cel energii i białka, propozycje posiłków/porcji pod preferencje,
-   plan posiłków oraz lista zakupów; planowanie nigdy nie zapisuje posiłku jako zjedzonego.
-6. **Tydzień:** postęp każdego celu, jakość danych, zmiany planu i jawne „bez zmian”.
-7. **Pamięć:** cele i potwierdzone preferencje są trwałe; pomiary zachowują daty,
-   a hipotezy i porady nie stają się faktami o użytkowniku.
-8. **Technika:** opcjonalne materiały z treningu i obserwacje z konkretnych kadrów;
-   użytkownik może skorygować ocenę. Bez diagnozowania wad postawy ze zdjęcia.
+<a id="zamroz"></a>
 
-Pierwszym scenariuszem akceptacyjnym jest zestaw celów z tej rozmowy: 10 km w 45 min,
-około 13% BF, 10 poprawnych pull-ups, poprawny muscle-up, 100 kg na ławce z zapasem
-i bardziej wyprostowana sylwetka. Standard podciągania, wariant muscle-upa, zapas na
-ławce i kryterium postawy wymagają doprecyzowania przy zatwierdzaniu celów. Do tego
-czasu pozostają szkicem; system nie zgaduje standardu ani nie ogłasza osiągnięcia.
+## ZAMROŻ — poza aktywną kolejką
 
-##### Alternatywy i decyzja
+Poniżej zachowano zamiar, nie instrukcję budowy. Przed odmrożeniem sprawdzić
+aktualny kod, dane i konsumenta. Nie przywracać usuniętych porannych pingów
+ani loggera jedzenia w Telegramie. Istniejących danych nie kasować w ramach freeze.
 
-- **Rekomendacja: wspólny kontekst + jeden spójny plan + kontrolowane korekty.**
-  Rozwiązuje konflikt celów i wykorzystuje obecną bazę oraz logger.
-- Samo ulepszenie promptu Oracle szybciej poprawiłoby rozmowę, lecz nie zapewni
-  trwałego planu, wykonania i rozliczenia zmian.
-- Osobna aplikacja fitness lub oddzielni autonomiczni trenerzy tworzyliby
-  konkurujące plany i pamięci. Złożoność nie daje tu wykazanej przewagi.
+### Zakład C — program prowadzenia treningu i żywienia
 
-##### Co wykorzystać i jakie luki naprawić
-
-| Istniejący element | Wykorzystanie / luka w obecnym kontrakcie |
+| Etap | Zachowany zakres i warunek odbioru |
 |---|---|
-| `workout_sessions`, `exercise_logs`, logger | Kanoniczne wykonanie. Dodać powiązanie z planem i standard wariantu ćwiczenia; zachować historię. |
-| `strava_activities_clean`, integracje Garmin/Intervals | Kanoniczne aktywności po deduplikacji. Nie budować kolejnego importera. |
-| `daily_strain`, Oura, illness signal | Istniejąca regeneracja i obciążenie. Nie dokładać konkurencyjnego recovery score. |
-| `training_plan_workouts` | Istnieje odczyt planu; potrzebna pełna ścieżka edycji, siłowe prescription i połączenie z loggerem. |
-| `workoutCoachEngine.ts` | Ma lokalne snapshoty i change-sety; brak produkcyjnych konsumentów poza testami. Typy obejmują operacje, których wykonanie nie jest obsługiwane. |
-| `analyze-training-load/coachBrain.ts` | Nadchodzący bieg jest ustawiony na `false`, a przekazany plan nie wpływa na decyzję. Fallback RPE jest traktowany jak RIR. |
-| `vanguard-oracle/oracle/rag.ts` | Główny kontekst pobiera sen, jedzenie i strain, lecz nie pełne serie ani biegi. Zapytanie o `system_proposals` wymaga dostosowania do rzeczywistego schematu. |
-| `healthContextFormatters.ts` | Najnowszy strain jest etykietowany jako „DZIŚ” bez dowodu zgodności daty. |
-| `daily_food_entries`, `daily_nutrition`, `nutrition_day_reviews` | Wpisy są źródłem spożycia; agregat musi się z nimi zgadzać, a kompletność pozostaje osobnym sygnałem. |
-| `vanguard-nutrition-coach` | Istnieją cele i kalibracja po kompletnych dniach; usunąć założenie, że każdy użytkownik stale trenuje do maratonu. |
-| goal spine, `goal_kpis`, `projects`, `nutrition_profile` | Jeden zapis celów i ograniczeń. Profil żywienia nie może zachować sprzecznego aktywnego celu BF. |
-| `oracle_pending_actions`, `oracle_recommendations`, outbox | Wykorzystać zatwierdzanie i historię decyzji; nie tworzyć nowej ogólnej kolejki rekomendacji. |
+| 3 — standardy celów | Trwałe cele przez goal spine, baseline i wersjonowany standard. Sekundy ≠ minuty, podchwyt ≠ nachwyt, e1RM ≠ wykonanie z zapasem, wizja ≠ zmierzony BF; subiektywny wynik potwierdza użytkownik. Pytać tylko o brakujące dane. |
+| 4 — wersje i joby | Idempotentne żądania, lease workera, owner RLS, konflikt rewizji i jedna atomowa aktywacja. Zmieniać tylko przyszłe nierozpoczęte sesje; zachować wykonanie/szkice i legacy ID. Undo tworzy rewizję przyszłości; status pending/error/retry ma konsumenta. |
+| 5 — wspólny plan | Bieganie/siła/skill uwzględniają czas, sprzęt, ból, konflikty i brak baseline; preview → akceptacja → wypełniony logger → wykonanie raz. Rozgrzewka i przerwy liczą się do czasu. Tydzień czyta ten sam plan, bez klonowania sesji do Todo i przenoszenia zewnętrznego kalendarza. |
+| 6 — adaptacja | Brak pomiaru i niepełne jedzenie nie uzasadniają progresji. Ból blokuje automatyczne zwiększenie. Propozycja ma policzone powody, before/after, rewizję, retry i undo; większe zmiany wymagają preview. Automatyka tylko w uprzednio przyjętej regule; bez fikcyjnych procentów bezpieczeństwa. |
+| 7 — żywienie | Cele energii/białka zgodne w UI/Oracle; kalibracja tylko na kompletnych dniach i aktualnych pomiarach. Menu/liczby porcji liczone z produktów, nie arytmetyki LLM; plan nie tworzy spożycia ani nie znika po przeliczeniu targetów. Bez nieograniczonego odjadania kalorii zegarka. |
+| 8 — przegląd | Rozróżnić brak wpisu od niewykonania i progres od skuteczności porady. Zmiana standardu nie przepisuje historii; preferencje mają kolejnego konsumenta. Porady pozostają w historii decyzji. Akceptacja rewizji lub jawne „bez zmian”. |
+| 9 — materiały | Prywatne zdjęcia/nagrania, zgoda i retencja; usunięcie oryginału, kadrów, miniaturek i analizy. Brak widoczności nie daje oceny; obcy user nie uzyskuje signed URL. Migracja publicznych zdjęć dopiero po sprawdzeniu wszystkich konsumentów. Wizja/BF/postawa to ograniczony szacunek, bez diagnozy. |
+| 10 — ewaluacja | Pełny flow cele → szkic → akceptacja → start → zapis/import → korekta → undo → tydzień, na PWA/APK, mobile/desktop, offline/reconnect, klawiaturze i wygasłej sesji. Scenariusze bólu, podróży, zawodów, braków i równoległej edycji. Modele porównywać na tych samych danych; reguły ocenia kod i człowiek. Pilot/wyłączenie automatyki zachowuje ręczny logger. |
 
-##### Global Constraints
+Kontrakty już istniejące w `packages/domain/src/training/coachTypes.ts`,
+`training_plan_workouts`, `training_plan_versions`, `health_coach_jobs`
+i pending actions są punktem wyjścia; nie odtwarzać dawnych planów od zera.
+Wdrożenie wymaga adekwatnych testów Vitest/Deno/SQL/RLS, typechecków, lint,
+ratchetów, contracts i buildów web/Android, następnie smoke/logów i realnego odbioru.
+Nie deklarować pełnego prowadzenia na podstawie samej obecności implementacji.
 
-- Nazwa w produkcie: **Sparky**. PWA/Windows i Android mają wspólne dane i reguły.
-- Dodawanie i korekta jedzenia odbywają się wyłącznie w aplikacji. Telegram zachowuje
-  suplementy, post i odczyt `/dieta`; nie odbudowywać w nim loggera posiłków.
-- Rozmowa pozostaje w istniejącym Oracle/Telegramie; aplikacja pokazuje cele,
-  plan, wykonanie i przegląd. Brak nowego niezależnego czatu w aplikacji.
-- `vanguard_stream → vanguard-auto-classify` pozostaje jedyną ścieżką friction/recovery
-  behawioralnego. Regeneracja fizjologiczna nie jest nowym zdarzeniem friction.
-- Oracle nie zapisuje swoich porad do grafu ani wiedzy jako faktów. Zapisy deklaracji
-  i planu są jawnie zleconymi operacjami domenowymi, nie automatyczną „nauką” z odpowiedzi.
-- Brak przywracania usuniętych porannych briefów/pingów i prewencyjnych alertów.
-  Decyzje są dostępne na żądanie; istniejące refleksje i przeglądy dostają wspólny kontekst.
-- Nowy UI: poniżej 300 linii na plik; Container/View, React Query, dostęp przez `src/lib`,
-  `invokeEdge`, istniejące dialogi i tokeny. Brak duplikacji helperów.
-- Dane w UTC, dzień użytkownika w `Europe/Warsaw`. Brak hardkodowanych offsetów.
-- Deduplikacja, jednostki, kalorie, progresja i ograniczenia nie zależą od arytmetyki LLM.
-- Każda zmiana schematu: migracja wygenerowana CLI, RLS, test właściciela i regeneracja typów.
-- Brak diagnoz i automatycznego potwierdzania techniki/BF na podstawie wizji AI.
-- Budżet nie ogranicza jakości, ale zakup usługi/modelu musi mieć wykazany zysk
-  w ewaluacji. Nie zamieniamy modeli globalnie przed porównaniem na tych samych danych.
+### Pozostały zakres odłożony
 
-##### Kontrakty współdzielone
-
-Nowy `packages/domain/src/training/coachTypes.ts` definiuje typy eksportowane przez
-istniejący indeks domeny; frontend i Edge importują jeden kontrakt.
-
-- `EvidenceRef`: `table`, `id`, `observedAt`, `kind` (`measured`, `self_reported`,
-  `estimated`, `derived`) i opcjonalny `algorithmVersion`.
-- `Signal<T>`: `value: T | null`, `state` (`current`, `historical`, `missing`,
-  `failed`, `provisional`), `refs: EvidenceRef[]`. Zera nie zastępują braków.
-- `HealthCoachContext`: `asOf`, `localDate`, `goals`, `constraints`, `activePlan`,
-  `sessions`, `runs`, `recovery`, `nutrition`, `body`, `coverage`, `queryErrors`.
-  Każda grupa metryk zachowuje źródła oraz zakres dat.
-- `SessionPrescription`: unia rozłączna `strength | run | skill | recovery`.
-  Siła: wariant ćwiczenia, serie, powtórzenia, ciężar/pomoc, RIR, odpoczynek;
-  bieg: rozgrzewka, odcinki, przerwy, schłodzenie i wybrany cel intensywności;
-  skill: progresja, objętość prób i kryterium jakości. Brak mieszania pomocy
-  w podciąganiu z dodatkowym ciężarem.
-- `TrainingPlanDraft`: zakres dat, cele/KPI, budżet czasu, sesje z prescription,
-  `baseRevision`, `contextRefs`, `policyVersion` i lista braków blokujących aktywację.
-- `CoachDecision`: `keep | lighten | reschedule | rest | progress`, `reasonCodes`,
-  `evidenceRefs`, `proposedChanges`, `baseRevision`. To propozycja, nie zapis wykonania.
-- `HealthGoalsInput`: istniejący `projectId`, lista KPI z `target`, `unit`,
-  `measurementSpec`, `priority`, `baselineRefs` oraz `constraints` (dni, czas,
-  sprzęt, preferencje i zadeklarowane ograniczenia). `measurementSpec` jest
-  wersjonowanym standardem wyniku, nie tekstem dowolnie interpretowanym przez model.
-- `PlanValidationResult`: `valid`, `blockingErrors`, `warnings`; każda pozycja ma
-  `code`, `sessionId` i czytelny opis. Wynik z błędami nie może zostać aktywowany.
-- `NutritionPlanDraft`: daty, policzone cele energii/białka, ograniczenia i źródła;
-  `MealPlanDraft`: datowane posiłki z produktami, porcjami, referencjami do biblioteki
-  oraz oznaczeniem szacunków. `HealthCoachWeeklyReview` jest kontraktem z etapu 8.
-
-Aktywne sesje nadal przechowuje `training_plan_workouts`. Nowe
-`training_plan_versions` przechowuje szkice i niezmienne snapshoty całego bloku;
-nie jest drugim kalendarzem. `oracle_pending_actions` wskazuje wersję/propozycję.
-Nowe `health_coach_jobs` przechowuje wyłącznie stan trwałych obliczeń, nie cele lub treningi.
-
-##### Review Focus
-
-1. Stary pomiar albo niedostępne API nie może zmienić się w aktualną wartość lub zero — etapy 1–2.
-2. Podchwyt/nachwyt, pomoc/dodatkowy ciężar, RPE/RIR i sekundy/minuty nie mogą się zlewać — etapy 1, 3 i 5.
-3. Podwójna akceptacja, timeout i równoległa edycja nie mogą podwoić treningów ani zgubić historii — etapy 4 i 6.
-4. Niepełny food log albo dwa importy jednej aktywności nie mogą zwiększyć deficytu/obciążenia — etapy 1, 2 i 7.
-5. Zmiana celu lub cofnięcie planu nie może przepisać dawnych wyników; AI nie staje się źródłem dowodu — etapy 3, 6 i 8.
-
-##### Etap 1 — wiarygodne dane przed rekomendacjami
-
-**Files:** modyfikacja `supabase/functions/analyze-training-load/coachBrain.ts`,
-`trainingRepo.ts`, `src/lib/health/nutritionTracker.ts`, `nutritionTrackerApi.ts`,
-`supabase/functions/vanguard-oracle/oracle/healthContextFormatters.ts` i `rag.ts`.
-Migrację naprawy agregatu jedzenia utworzyć przez `supabase migration new`;
-przed zmianą znaleźć istniejący trigger/RPC utrzymujący `daily_nutrition` i rozszerzyć go.
-
-**Interfaces:** `buildCoachBrain` otrzymuje rzeczywisty `planContext`;
-`formatStrainContext(rows, wantsFullBiometrics, localDate)` rozróżnia dziś i historię.
-Sumy `daily_nutrition` odpowiadają aktualnym `daily_food_entries` tego samego dnia/usera.
-
-- [ ] Dodać testy: `coachBrain.test.ts` (nadchodzący bieg wpływa na decyzję;
-  RPE 8 nie staje się RIR 8), `healthContextFormatters.test.ts` (wczorajszy strain
-  nie jest „DZIŚ”) oraz regresję nutrition tracker (edycja/usunięcie/przeniesienie
-  posiłku odświeża oba dni; równoległe zapisy nie gubią kalorii).
-- [ ] Uruchomić nowe testy i potwierdzić wskazane niezgodności przed poprawką.
-- [ ] Poprawić istniejące ścieżki; naprawę historycznych agregatów ograniczyć do
-  policzalnych wpisów. Brak `complete` nie jest zgodą na kalibrację diety.
-- [ ] Testy po poprawce, kontrolny SELECT sum vs agregat i test izolacji użytkowników.
-- [ ] Commit: `fix(health): reconcile source data and coach contracts`.
-
-**Done:** UI i Oracle pokazują prawdziwe daty oraz stan danych; nie powstaje trzeci agregator.
-
-##### Etap 2 — wspólny kontekst zdrowia dla całego prowadzenia
-
-**Files:** nowe `supabase/functions/_shared/healthCoachContext.ts`,
-`healthCoachContext.test.ts`, `packages/domain/src/training/coachTypes.ts`;
-modyfikacja `packages/domain/src/index.ts`, `analyze-training-load/trainingRepo.ts`,
-`vanguard-oracle/oracle/rag.ts`, `vanguard-nutrition-coach/nutritionCompute.ts`.
-
-**Interfaces:** `fetchHealthCoachContext({ supabase, userId, asOf }): Promise<HealthCoachContext>`.
-Kontekst bieżący zaczyna od ostatnich 72h; obciążenie korzysta z okna 28 dni,
-a historyczny punkt odniesienia wyników z maksymalnie 90 dni i jest tak oznaczony.
-Potwierdzone cele nie wygasają wraz z oknem treningowym.
-
-- [ ] Testy fixtures: sesja siłowa i bieg trafiają do kontekstu; brak Oury jest
-  `missing`; błąd zapytania `failed`; stara masa `historical`; niezamknięte jedzenie
-  `provisional`; duplikat Garmin/Strava liczony raz; `asOf` odcina dane z przyszłości.
-- [ ] Potwierdzić RED, wdrożyć jeden provider i zastąpić nim dublujące odczyty;
-  walidować odpowiedzi i uwzględnić pola stref HR dostępne w rzeczywistym schemacie.
-- [ ] Oracle dołącza kontekst treningowy przy pytaniach o trening, dietę, cele i
-  regenerację; nie polega wyłącznie na przypadkowym semantic retrieval.
-- [ ] Sprawdzić GREEN i odpowiedzi „oceń treningi po zawodach” / „co dziś?” bez
-  ponownego pytania o dane już obecne w bazie.
-- [ ] Commit: `feat(health): share evidence context across coaching`.
-
-**Done:** różne powierzchnie wskazują te same sesje, ograniczenia i braki.
-
-##### Etap 3 — cele, standardy i trwałe preferencje użytkownika
-
-**Files:** modyfikacja `src/lib/goal/goalSpine.types.ts`, `goalSpine.mutations.ts`,
-`goalSpine.queries.ts`, `src/lib/health/nutritionContext.ts`,
-`vanguard-oracle/oracle/coreMemory.ts`; nowe `src/lib/health/healthGoals.ts`,
-`healthGoals.test.ts` i `src/components/biometrics/workout/HealthGoalEditor.tsx`
-z osobnym kontenerem. Zmiany DB obejmują metadane pomiaru przy istniejących `goal_kpis`.
-
-**Interfaces:** `saveHealthGoals(input: HealthGoalsInput): Promise<void>` używa goal
-spine, nie tworzy `fitness_goals`. Specyfikacja KPI zawiera wariant, standard,
-priorytet i źródło wyniku. Dostępność/sprzęt/ograniczenia mają jeden potwierdzony
-rekord preferencji z datą; core memory jest skrótem, nie kopią SSOT celów.
-
-- [ ] Testy: sześć celów utrzymuje się między sesjami; 2700 sekund nie jest
-  2700 minutami; podchwyt nie zalicza nachwytu; e1RM nie zalicza 100 kg wykonanego
-  z zapasem; estymacja ze zdjęcia nie zalicza zmierzonego BF; nieznany standard
-  blokuje automatyczne zaliczenie. Cel subiektywny potwierdza użytkownik.
-- [ ] RED → migracja/metadane i zapis przez istniejące helpery → GREEN.
-- [ ] Jawna aktualizacja celu BF synchronizuje `nutrition_profile` i KPI;
-  sprzeczne stare deklaracje są widoczne, a historię zachowujemy.
-- [ ] UI pyta tylko o brakujące standardy, sprzęt, dostępność i ograniczenia;
-  wynik jest czytany przez wspólny kontekst, Dziś i Tydzień.
-- [ ] Commit: `feat(health): persist measurable goals and constraints`.
-
-##### Etap 4 — trwałe wersje planu i niezawodne generowanie
-
-**Files:** migracje `training_plan_versions`, `health_coach_jobs` oraz rozszerzeń
-`training_plan_workouts`; nowe `src/lib/health/trainingPlanApi.ts`,
-`supabase/functions/analyze-training-load/planRepo.ts`, `planJobs.ts`,
-`planJobs.test.ts`; modyfikacja `analyze-training-load/index.ts` i `src/lib/edgeTypes.ts`.
-
-**Interfaces:** akcje istniejącego endpointu: dotychczasowa analiza jako domyślna,
-`generate_plan`, `run_job`, `approve_plan`, `revert_plan`.
-`enqueueCoachJob(input, requestKey): Promise<{jobId}>` jest idempotentne.
-`approveTrainingPlan(versionId, baseRevision, requestKey)` działa atomowo w RPC.
-
-- [ ] Testy: retry zwraca ten sam job; job może zostać przejęty tylko przez jednego
-  workera; obcy user nie widzi zadania/wersji; wygasła dzierżawa daje ponowienie;
-  nieaktualna rewizja zwraca konflikt; dwie akceptacje tworzą jeden zestaw sesji.
-- [ ] RED → migracje/RLS/typy → repo i routing → GREEN.
-- [ ] `training_plan_workouts` zyskuje `plan_version_id`, `prescription`,
-  `workout_session_id` oraz znacznik świadomego pominięcia. Istniejące `completed`
-  pozostaje zgodne z powiązaniem wykonania; nie dodawać konkurencyjnego statusu ukończenia.
-- [ ] Szkic zapisuje się przed odpowiedzią. DB trigger wywołuje `run_job` przez
-  istniejący wzorzec pg_net; ten tryb wymaga service role, pozostałe wymagają ownera.
-  Worker kończy zapis przed HTTP response. Retry po awarii ma trwały licznik,
-  dzierżawę i jawny końcowy stan `failed`; brak `waitUntil` jako gwarancji wykonania.
-- [ ] Dodać techniczny cron odzyskujący niewysłane joby i wygasłe dzierżawy;
-  wywołuje tę samą akcję `run_job`, bez wysyłania alertów do użytkownika.
-  Po trzeciej nieudanej próbie job pozostaje `failed` do świadomego ponowienia.
-- [ ] Akceptacja atomowo wymienia wyłącznie przyszłe, nierozpoczęte sesje poprzedniej
-  wersji; zachowuje wykonane sesje i rozpoczęte szkice. Snapshot przechowuje stary
-  plan. Cofnięcie tworzy nową rewizję przyszłości, nie przywraca starych dat wykonania.
-  Legacy plan najpierw migrować do początkowej wersji z zachowaniem identyfikatorów.
-- [ ] Odczyt statusu działa z tabeli, UI pokazuje pending/error/retry. Joby
-  uruchomione na żądanie nie przywracają porannych powiadomień.
-- [ ] Commit: `feat(training): persist versioned plans and durable jobs`.
-
-##### Etap 5 — wspólny plan biegania, siły i umiejętności
-
-**Files:** nowe `packages/domain/src/training/planValidation.ts`,
-`src/lib/health/trainingPlanApi.test.ts`,
-`supabase/functions/analyze-training-load/planGenerator.ts`, `planGenerator.test.ts`,
-`src/components/biometrics/workout/TrainingPlanPreview.tsx` i kontener;
-modyfikacja `TrainingRoute.tsx`, `TrainingHubView.tsx`, `workoutLogging.ts`
-oraz `src/components/lifestyle/WeekHub.tsx`.
-
-**Interfaces:** `generateTrainingPlan(context, preferences): Promise<TrainingPlanDraft>`;
-`validateTrainingPlan(draft, context): PlanValidationResult`;
-`startPlannedWorkout(sessionId): Promise<WorkoutLoggerInitial>`.
-
-- [ ] Testy: plan mieści się w dniach, czasie i sprzęcie; sesje mają cel;
-  ograniczenia ruchowe są respektowane; ciężkie nogi kolidujące z kluczowym biegiem
-  są zgłaszane; za wysoki poziom podciągania ma regresję; brak baseline nie tworzy
-  fikcyjnego rekordu; rozgrzewka/odpoczynek liczą się do czasu.
-- [ ] RED → generator propozycji oraz deterministyczny walidator → GREEN.
-- [ ] Program obejmuje blok i konkretny najbliższy tydzień, progresję, lżejsze
-  tygodnie oraz wariant na mniej czasu. Tempo wynika z danych bieżących;
-  tempo docelowe na zawody nie staje się automatycznie tempem treningowym.
-- [ ] Preview pokazuje harmonogram, cel i kompromisy; zatwierdzenie aktywuje wersję.
-  Start sesji wypełnia logger; zapis wiąże wykonanie z planem dokładnie raz.
-  Import biegu proponuje dopasowanie; niepewne dopasowanie wymaga wyboru użytkownika.
-- [ ] Błąd/timeout generowania zachowuje aktywny plan. Przed akceptacją ponownie
-  sprawdzić rewizję celów, ograniczenia i nowe zgłoszenia bólu; nie aktywować
-  starego szkicu na zmienionych założeniach bez ponownego przeglądu.
-- [ ] Odseparować kontener danych `TrainingHubView` od widoku przy dotyku.
-  Nie dopisywać kolejnej warstwy fetchowania w JSX.
-- [ ] Tydzień pokazuje sesje z tego samego aktywnego planu. Dostępność uwzględnia
-  odczyt istniejącego kalendarza i ręczne ograniczenia; zdarzenia zewnętrzne nie są
-  przenoszone. Nie materializować każdej sesji jako nowego Todo; Dziś odsyła do
-  jej identyfikatora. Zapis/import i zmiana planu unieważniają wspólne query keys.
-- [ ] Commit: `feat(training): deliver hybrid plans into the workout logger`.
-
-**Done:** można przejść od sześciu celów do zaakceptowanego planu i zapisu sesji
-bez ręcznego przepisywania między Telegramem a aplikacją.
-
-##### Etap 6 — decyzja na dziś, adaptacja i cofanie zmian
-
-**Files:** nowe `packages/domain/src/training/coachDecision.ts`,
-`src/lib/health/coachDecision.test.ts`,
-`src/components/biometrics/workout/CoachDecisionCard.tsx` i kontener;
-modyfikacja `workoutCoachEngine.ts`, `analyze-training-load/coachBrain.ts`,
-`src/components/core/DashboardDzisTab.tsx`, `vanguard-oracle/oracle/core.ts`;
-osobny handler `vanguard-telegram/_handlers/trainingPlan.ts`.
-
-**Interfaces:** `decideTraining(context, policy): CoachDecision`;
-`applyCoachDecision(actionId, baseRevision, requestKey)` korzysta z RPC wersji planu.
-`DiscreteChange` jest walidowaną unią; nieobsługiwana operacja zwraca błąd.
-
-- [ ] Testy: brak snu nie oznacza dobrej regeneracji; zgłoszony ból blokuje
-  automatyczne zwiększenie obciążenia; niedologowane jedzenie nie zwiększa deficytu;
-  rozpoznany konflikt sesji proponuje realny zamiennik; ponowne kliknięcie jest
-  idempotentne; zmieniona rewizja wymaga odświeżenia; undo nie rusza wykonanych sesji.
-- [ ] RED → reguły i proposal/apply/revert → GREEN. Usunąć atrapowe procenty
-  „injury prevention” i podobne liczby bez walidowanej interpretacji.
-- [ ] Model tłumaczy policzone powody; nie ogłasza kontuzji, pełnej regeneracji
-  ani pewnego efektu konkretnej interwencji. Niska jakość danych daje ograniczony
-  wariant decyzji i nazwany brak, zamiast pewnej eskalacji.
-- [ ] Dziś/Trening/Oracle pokazują tę samą propozycję. Zmiana planu jest widoczna
-  jako before/after z uzasadnieniem i przyciskiem cofnięcia.
-- [ ] Domyślnie korekty są propozycją. Automatyczna progresja serii może działać
-  wyłącznie jako wcześniej zaakceptowana reguła planu, bez dodatkowego kliknięcia
-  przed każdą serią. Nowy blok, zmiana celu i większe przeplanowanie mają preview.
-- [ ] Commit: `feat(coach): adapt daily training with evidence and undo`.
-
-##### Etap 7 — żywienie dopasowane do wspólnego planu
-
-**Files:** modyfikacja `vanguard-nutrition-coach/nutritionCompute.ts`, `index.ts`,
-`nutritionCompute.test.ts`, `src/lib/health/nutritionContext.ts`,
-`nutritionCalibration.ts`, `src/components/biometrics/oura/OuraNutritionFuelingView.tsx`;
-nowe `supabase/functions/vanguard-nutrition-coach/mealPlanning.ts`,
-`src/lib/health/mealPlanApi.ts`, `mealPlanApi.test.ts` oraz małe widoki w obecnym module nutrition.
-
-**Interfaces:** `buildNutritionPlan(context): NutritionPlanDraft`;
-`buildMealPlan(targets, preferences, foodCandidates): MealPlanDraft`;
-`approveMealPlan(actionId, requestKey): Promise<void>`.
-Plan posiłków zapisuje się przy `nutrition_targets` w osobnym polu;
-przeliczanie targetu nie kasuje zaakceptowanego menu. Lista zakupów jest pochodną menu.
-
-- [ ] Testy: regeneracja po zawodach i kluczowy trening respektują ograniczenia
-  planu; stare pomiary i brak kompletnych dni blokują pozornie dokładną kalibrację;
-  cele białka/energii są zgodne w UI i Oracle; menu nie tworzy wpisów spożycia;
-  zmiana porcji przelicza makra z danych produktu, bez liczenia przez LLM.
-- [ ] RED → wspólne reguły/context i plan posiłków → GREEN.
-- [ ] Zastąpić stałą personę „maratończyka” aktualnymi celami i fazą treningu.
-  Uwzględnić preferencje, alergie/wykluczenia zadeklarowane przez użytkownika,
-  czas przygotowania i rzeczywiste produkty z biblioteki.
-- [ ] Propozycje z lodówki/menu/zdjęcia rozszerzają istniejący `parse-food-nl`;
-  nierozpoznana porcja wymaga doprecyzowania. Szacunek pozostaje oznaczony.
-- [ ] Przepis lub menu to treść wejściowa, nie instrukcja dla narzędzi. Nie
-  otwierać dowolnych URL ani wykonywać poleceń znalezionych w załącznikach;
-  dostępne parsery korzystają ze sprawdzonych źródeł i limitów załączników.
-- [ ] Cele dnia przeliczać po zmianie planu/importach, ale nie powodować
-  nieograniczonego „odjadania kalorii zegarka” ani automatycznych zakupów.
-- [ ] Commit: `feat(nutrition): coordinate fueling and meals with training`.
-
-##### Etap 8 — tygodniowe prowadzenie i pamięć wyników decyzji
-
-**Files:** modyfikacja `supabase/functions/recap/weekly-synthesis.ts`,
-`vanguard-oracle/oracle/mutations.ts`, `src/components/lifestyle/WeekHub.tsx`;
-nowe `supabase/functions/_shared/healthCoachReview.ts`,
-`healthCoachReview.test.ts`, `src/components/biometrics/workout/HealthCoachWeeklyReview.tsx`.
-
-**Interfaces:** `buildHealthCoachReview(context, decisions): HealthCoachWeeklyReview`.
-Wynik zawiera `goalProgress`, `adherence`, `coverage`, `decisions` i
-`nextWeekProposal`; zapis propozycji korzysta z istniejących pending actions.
-
-- [ ] Testy: brak wpisu nie równa się niewykonaniu; zmiana standardu nie przepisuje
-  dawnych wyników; brak danych daje „nie można ocenić”; progres z pomiaru jest
-  oddzielony od przypisania skuteczności radzie; plan tygodnia nie duplikuje sesji.
-- [ ] RED → przegląd i wpięcie do istniejącej syntezy/Week Hub → GREEN.
-- [ ] Zastąpić heurystyczne przypisywanie każdej porady treningowej do readiness
-  właściwą metryką celu. KPI fitness nie wpadają do fallbacku `execution_score`.
-- [ ] Potwierdzone preferencje i korekty są odczytywane przy następnym planie;
-  wygenerowane porady pozostają w historii decyzji, nie w grafie faktów.
-- [ ] Tydzień kończy się zaakceptowaną rewizją albo jawnym „bez zmian”.
-- [ ] Commit: `feat(coach): close weekly review and correction loop`.
-
-##### Etap 9 — technika, sylwetka i prywatne materiały
-
-**Files:** rozszerzenie istniejącego `analyze-physique` i obsługi `progress_photos`;
-nowe `src/lib/health/trainingFormApi.ts`, `trainingFormApi.test.ts`,
-`src/components/biometrics/workout/TrainingFormReview.tsx` i kontener;
-nowe `supabase/functions/analyze-training-load/formReview.ts` i `formReview.test.ts`,
-wywoływane przez job z etapu 4.
-Migracja `training_form_reviews` przechowuje metadane materiału, sesję, wariant,
-status, obserwacje i potwierdzenie użytkownika.
-
-**Interfaces:** `requestFormReview(sessionId, exerciseVariant, storagePath)`;
-`FormReview` wskazuje timestamp/kadr, obserwację, ograniczenia widoczności i
-proponowaną wskazówkę; nie zwraca diagnozy ani pewnego „technika poprawna”.
-
-- [ ] Testy: niedostępny kadr nie daje oceny; brak widoczności stawu nie tworzy
-  kąta; samo nagranie nie zalicza celu; wycofanie zgody usuwa materiał zgodnie
-  z polityką retencji; obcy user nie uzyskuje signed URL.
-- [ ] RED → prywatny upload i przegląd → GREEN. Istniejące zdjęcia fitness
-  przenieść etapowo z publicznych URL do prywatnych ścieżek, z migracją wszystkich
-  konsumentów i sprawdzeniem kompletności przed zamknięciem publicznego dostępu.
-- [ ] Najpierw zwalidować wyciskanie, podciąganie i muscle-up na materiałach
-  ocenionych przez kompetentnego człowieka. Użyć już dostępnej biblioteki vision
-  tylko jeśli poprawia wynik; nie kupować infrastruktury bez potrzeby.
-- [ ] Użytkownik wybiera zakres wykorzystania materiału przez model i termin
-  przechowywania; usunięcie obejmuje oryginał, kadry, miniatury i wynik analizy.
-- [ ] Zdjęcia sylwetki pokazują porównanie w czasie. Ocena BF z wizji pozostaje
-  szacunkiem; „wyprostowany” wymaga indywidualnego kryterium i deklaracji komfortu.
-- [ ] Commit: `feat(training): add private form review with visible limits`.
-
-##### Etap 10 — ewaluacja, wdrożenie i dowód ostatniej mili
-
-**Files:** nowe `scripts/analysis/eval-health-coach.mjs` i syntetyczne fixtures
-w `scripts/tests/fixtures/health-coach/`; modyfikacja dotkniętych nagłówków funkcji,
-`supabase/config.toml`, rejestru generowanego i manifestu smoke zgodnie z zakresem.
-
-- [ ] Zestaw regresji obejmuje wszystkie pozycje Review Focus i scenariusze:
-  powrót po zawodach, redukcja + siła + bieganie, zmiana celu, podróż/mało czasu,
-  ból, brak Oury, brak posiłków, stara waga, timeout modelu i równoległa edycja.
-- [ ] Porównać obecną konfigurację modeli z mocniejszymi kandydatami, z tym samym
-  kontekstem i zaślepioną oceną jakości. Mierzyć poprawność liczb/źródeł, zgodność
-  planu z ograniczeniami, użyteczność korekt, czas odpowiedzi i koszt.
-  Krytyczne reguły ocenia kod; druga odpowiedź LLM nie jest jedynym sędzią.
-- [ ] Osoba kompetentna w treningu przegląda bibliotekę reguł i próbkę planów
-  hybrydowych. Zakup takiego przeglądu lub usług jest osobnym działaniem wykonawczym.
-- [ ] Tryb pilota pokazuje propozycje przed zapisem. Automatyka ograniczona do
-  zaakceptowanych reguł; feature flag umożliwia powrót do loggera i ręcznego planu.
-- [ ] Przejść pełny flow: cele → szkic → akceptacja → start → zapis/import →
-  korekta → undo → przegląd tygodnia. Sprawdzić PWA i APK, mobile i desktop,
-  offline/reconnect, klawiaturę, duplikaty i wygasłą sesję.
-- [ ] Bramy: `npm run typecheck:ui`, `npm run typecheck`, focused Vitest/Deno,
-  lint zmienionych plików, `npm run ratchet:frontend`, `npm run ratchet:backend`,
-  `npm run contracts:check`, `npm run build`, `npm run mobile:build`.
-- [ ] Przed deployem porównać migracje ze schematem produkcji i przygotować
-  odtworzenie/wyłączenie funkcji. Po deployu: `npm run smoke`, edge logs bez 401,
-  kontrolny zapis/odczyt w tabelach i rzeczywisty przebieg UI/Telegram.
-- [ ] Commit: `test(coach): verify complete health coaching workflow`.
-
-##### Komendy weryfikacji etapów
-
-Każdy wymieniony nowy test najpierw ma wykazać konkretny brak, następnie przejść
-po implementacji. Poniżej zestawy startowe; testy SQL/RLS uruchamiać na izolowanej
-bazie z użytkownikami testowymi, bez mutowania osobistej historii produkcyjnej.
-
-| Etap | Komenda / oczekiwany rezultat po implementacji |
+| Oznaczenie / domena | Zachowany zamiar |
 |---|---|
-| 1 | `deno test --no-check --allow-env --import-map=supabase/functions/import_map.json supabase/functions/analyze-training-load/coachBrain.test.ts supabase/functions/vanguard-oracle/oracle/healthContextFormatters.test.ts` oraz `npx vitest run src/lib/health/nutritionTracker.test.ts src/lib/health/nutritionTrackerApi.test.ts` — PASS. |
-| 2 | `deno test --no-check --allow-env --import-map=supabase/functions/import_map.json supabase/functions/_shared/healthCoachContext.test.ts` — PASS, brak przecieku danych po `asOf`. |
-| 3 | `npx vitest run src/lib/health/healthGoals.test.ts src/lib/goal/goalSpine.test.ts` — PASS, standardy i zapis celów zachowane. |
-| 4 | `deno test --no-check --allow-env --import-map=supabase/functions/import_map.json supabase/functions/analyze-training-load/planJobs.test.ts` — PASS; osobno transakcyjny test dwóch akceptacji i owner isolation w SQL. |
-| 5 | `deno test --no-check --allow-env --import-map=supabase/functions/import_map.json supabase/functions/analyze-training-load/planGenerator.test.ts` oraz `npx vitest run src/lib/health/trainingPlanApi.test.ts src/lib/health/workoutLogging.test.ts` — PASS. |
-| 6 | `npx vitest run src/lib/health/coachDecision.test.ts src/lib/health/workoutCoachEngine.test.ts` — PASS, bez cichego pomijania operacji. |
-| 7 | `deno test --no-check --allow-env --import-map=supabase/functions/import_map.json supabase/functions/vanguard-nutrition-coach/nutritionCompute.test.ts` oraz `npx vitest run src/lib/health/mealPlanApi.test.ts src/lib/health/nutritionCalibration.test.ts` — PASS. |
-| 8 | `deno test --no-check --allow-env --import-map=supabase/functions/import_map.json supabase/functions/_shared/healthCoachReview.test.ts` — PASS, brak automatycznego przypisania przyczynowości. |
-| 9 | `npx vitest run src/lib/health/trainingFormApi.test.ts` i `deno test --no-check --allow-env --import-map=supabase/functions/import_map.json supabase/functions/analyze-training-load/formReview.test.ts` — PASS; osobno odmowa dostępu do cudzych materiałów. |
-| 10 | `node scripts/analysis/eval-health-coach.mjs` — wszystkie krytyczne asercje deterministyczne przechodzą; ocena człowieka i metryki modeli zapisane w raporcie. |
-
-##### Kolejność dostaw i kryterium ukończenia
-
-**Dostawa A — wiarygodna odpowiedź:** etapy 1–2. Oracle od razu widzi treningi,
-daty i niekompletność danych, także gdy użytkownik nie przypomina o bazie.
-
-**Dostawa B — realne prowadzenie:** etapy 3–5. Cele → zaakceptowany plan → logger
-→ zapis wykonania. To pierwsze kompletne doświadczenie treningowe.
-
-**Dostawa C — adaptacja i żywienie:** etapy 6–8. Jedna decyzja dzienna, spójne
-jedzenie, tygodniowy przegląd i korekty z możliwością cofnięcia.
-
-**Dostawa D — technika i pełna walidacja:** etapy 9–10. Prywatne materiały,
-zweryfikowane ograniczenia oceny i potwierdzony cały proces. Testy i kontrola
-wdrożenia obowiązują przy każdej wcześniejszej dostawie, nie dopiero tutaj.
-
-Całość jest ukończona, gdy użytkownik może prowadzić wszystkie zadeklarowane cele
-w jednym procesie, bez ręcznego sklejania danych i przepisywania planów. Każda
-rekomendacja ma źródła/datę, korekta ma historię, a brak danych jest jawny.
-Nie obiecujemy terminu osiągnięcia wyników sportowych jako kryterium odbioru oprogramowania.
-Efekty treningu oceniamy osobno trendem wyników, sylwetki, realizacji i obciążenia obsługą.
-
-Zakres referencyjny: [Bevel Intelligence](https://help.bevel.health/en/articles/11586817),
-[plany Bevel](https://help.bevel.health/en/articles/14207169),
-[WHOOP Coach](https://support.whoop.com/s/article/How-to-Use-the-AI-Powered-WHOOP-Coach),
-[bieganie i siła Runna](https://support.runna.com/en/articles/8216254-choosing-your-strength-goal-and-training-frequency).
-To porównanie funkcji deklarowanych przez producentów, nie dowód jakości ich porad.
-
-### Zakład D — Metabolizm wiedzy
-
-**Problem:** system umie przechowywać więcej niż użytkownik jest w stanie przejrzeć.
-
-**Apetyt:** maksymalnie 1 tydzień na domknięcie, bez nowego silnika AI.
-**Pitch:** każdy materiał ma jeden stan: inbox, przyjęty do wiedzy, zamieniony w działanie
-albo odrzucony. Kompilowana wiedza i niepewne twierdzenia trafiają do istniejącej bramki
-potwierdzenia, a nie do kolejnego feedu.
-
-**Rabbit holes:** nowa ontologia, nowy inbox, autonomiczne przepisywanie pamięci.
-**No-go:** zapis „prawdy o użytkowniku” bez dowodu lub potwierdzenia.
-
-**Done:** żadna aktywna kolejka nie ma producenta bez konsumenta; każda pozycja może
-zniknąć przez decyzję użytkownika.
-
-## Reguły odcinania zakresu
-
-- Najpierw przenosimy unikalną wartość, dopiero potem usuwamy duplikujący shell.
-- Moduł bez regularnego użycia nie dostaje nowych funkcji; dostaje jedno małe
-  doświadczenie walidujące albo freeze.
-- Wykres bez wskazania decyzji, jakości danych i następnego ruchu nie trafia na ekran główny.
-- Jedna nowa powierzchnia wymaga usunięcia albo wchłonięcia jednej starej.
-- Backendowy silnik może pozostać rozbudowany; frontend pokazuje tylko wynik potrzebny
-  do bieżącej decyzji.
-- Po każdym zakładzie następuje cooldown: pomiar użycia, usunięcie martwych ścieżek,
-  aktualizacja rejestru funkcji i dopiero kolejny pitch.
-
-## Blokery porządkowe ujawnione przez audyt
-
-Te punkty nie są osobnymi feature'ami; trzeba je zamknąć przed lub w trakcie Zakładu A:
-
-- [x] Dopisać brakującą funkcję `analyze-physique` do kanonicznego rejestru funkcji.
-- [x] Naprawić kontrakty danych w nagłówkach `vanguard-nightly` i `vanguard-telegram`,
-  żeby deklarowane odczyty odpowiadały rzeczywistości.
-- [x] Usunąć trzy potwierdzone martwe pliki wymienione w Ponytail audit.
-- [ ] Zweryfikować tabele widoczne wyłącznie po stronie odczytu: każda ma dostać
-  kanonicznego writera albo trafić do graveyard; nie budować UI na osieroconym kontrakcie.
-- [ ] Dodać pomiar wejść do domen i wykonanych akcji przed zamrażaniem kolejnych modułów.
-  Bez tego decyzje produktowe pozostają opinią zamiast obserwacją.
-
-### Porządkowanie istniejących ścieżek — bez rozbudowy produktu
-
-- [x] Usunąć nieosiągalne panele i przykładowe wyniki zdrowotne; zachować działające odczyty domen.
-- [x] Rozróżnić brak pomiaru, rzeczywiste zero, niekompletny dziennik i błąd źródła w podsumowaniach zdrowia.
-- [x] Ujednolicić wynik synchronizacji i cache propozycji; zwalniać mikrofon oraz zasoby BLE po zamknięciu.
-- [x] Zachować ręczny szkic i refleksję przy błędzie kontekstu; zapis planu udostępniać po poprawnym odczycie, także z zachowanego cache.
-- [x] Odizolować stan planu dnia według konta i dnia warszawskiego; ograniczyć podsumowanie tygodniowe do właściwego okna.
-- [x] Zachować szkice różnych notatek podczas równoległego autosave, przełączania notatek i błędu zapisu.
-- [x] Odrzucać spóźniony odczyt sesji po nowszym zdarzeniu logowania i resetować prywatne formularze przy zmianie konta.
-- [x] Usunąć fikcyjny portfel, ekspozycję ETF i oceny dywidend; zachować ręczny kalkulator bez przykładowych wpisów.
-- [x] Obsłużyć brak profilu finansowego w wynikach pochodnych; zachować rzeczywiste rekordy i edycję założeń.
-- [x] Przekazywać nieobsłużony błąd pipeline Telegrama do workera, żeby wpis trafiał do stanu błędu zamiast pozornego ukończenia.
-- [x] Zachować stan błędu kolejki po nieudanej obsłudze głosówki lub zapisie strumienia; zatrzymać Oracle przed odpowiedzią opartą na nieutrwalonej wiadomości.
-- [ ] Potwierdzić pełną regresję wspólnego drzewa po zakończeniu równoległej pracy oraz niezależny przegląd zmian.
-- [ ] Sprawdzić na urządzeniu fizycznym ponowne połączenie BLE, przerwanie nagrania i przejście offline → online w APK.
-
-## Ponytail audit — cięcia bez utraty produktu
-
-Ranking od największej bezpiecznej redukcji:
-
-1. `shrink:` pozostawić odrębny układ `src/components/desktop/**`, ale usunąć z niego
-   zduplikowane pobieranie, obliczenia i mutacje na rzecz wspólnych API oraz logiki domenowej.
-2. `delete:` usunąć nieużywane
-   `biometrics/oura/hooks/useScreenTimeCorrelation.ts`,
-   `core/morningPlan/MorningPlanStep1Review.tsx` i `lib/native/emfSensor.ts`.
-3. `yagni:` nie rozwijać Finance, Growth ani nowych sensorów przed
-   potwierdzonym regularnym użyciem istniejącego minimum.
-4. `shrink:` zastąpić równoległe skróty i katalogi wejść jednym katalogiem nawigacji
-   używanym przez mobile, desktop i Command Center.
-5. `delete:` wyczyścić nieużywane eksporty i typy wskazane przez Knip; zależności
-   build-time weryfikować przed usunięciem, nie ufać ślepo raportowi.
-6. `native:` nie znaleziono uzasadnionego przypadku zastąpienia zależności samą
-   platformą; nie wykonywać pozornego cięcia.
-
-`net: -280 lines, -0 deps` jest bezpieczne natychmiast dla trzech potwierdzonych martwych
-plików. Większa redukcja po wchłonięciu desktopowego shella musi wynikać z rzeczywistego
-diffu, nie z deklaracji.
-
-## Warunki przyjęcia kolejnych pomysłów
-
-Nowy pitch przechodzi do budowy tylko jeśli ma:
-
-- konkretny problem obserwowany w użyciu, nie samą możliwość techniczną;
-- jednego nazwanego konsumenta wyniku;
-- apetyt i elementy do odcięcia, gdy czas się kończy;
-- breadboard pokazujący wejście, decyzję, zapis i powrót do głównej pętli;
-- odpowiedź „co zastępuje lub upraszcza?”;
-- test ostatniej mili: gdzie wynik pojawi się w Dziś, Tygodniu, Historii albo rozmowie.
-
----
-
-# Część I — Audyt architektury 2026-07 (sekwencja z zależnościami)
-
-> Zebrane z sesji audytowej 2026-07-07. Kolejność = graf zależności, nie ranking ważności. Sekcje "Część II" niżej to pełny opis pozycji z Fazy 1.5–5.
-
-## Faza 0 — Bezpieczeństwo i domknięcie sesji (rób pierwsze, zawsze)
-
-1. **Backup** — nocny `pg_dump` (GitHub Action cron) + kopia bucketów (`progress-photos`, `todo-attachments`) + test odtworzenia na czystym projekcie.
-2. **Zielony typecheck na main** — `catch (e)` bez typu w `usePowerListData` (×3), `CalendarView:805`, typy `calendar-write`. Rób razem z Priorytetem 1 z Części III (`InsightsDashboard.tsx`, `GrowthView.tsx`, `PatternCard.tsx` — ten sam typ buga, jeden sweep).
-3. **Git** — czysty working tree przed każdą fazą.
-4. **`gatherUserContext`** — usuń z `OracleCard:351` i z `usePowerListData` na raz (ten sam wzorzec, 15 zapytań do kosza przy każdym otwarciu).
-5. **Sekrety/URL placeholdery w migracjach — pełny sweep.** `grep -rn "YOUR_PROJECT_REF\|YOUR_.*_KEY\|YOUR_.*_SECRET" supabase/migrations` i napraw wszystkie trafienia w jednej sesji. Znane: cron `metabolism` (`YOUR_SERVICE_ROLE_KEY`), `trigger_daily_snapshots` (URL z `YOUR_PROJECT_REF`).
-6. **Deploy + migracje zaległe** (`realtime_publication`, `metabolism_flag`, cron) + deploy `oracle`/`executor`/`metabolism`.
-7. **Test dwóch magii** — task z Telegrama pojawia się sam w otwartej apce; odpowiedź Oracle płynie strumieniem.
-8. **`VANGUARD_USER_ID` fail-fast** — wyjątek zamiast fallbacku na usera-ducha `0000...`.
-
-## Faza 1 — Strażnicy procesu (tydzień 1)
-
-9. **Reguły agentów w `AGENTS.md`/`FRONTEND_GUIDE.md`** + ESLint jako prawo: `max-lines` 300/150, `no-explicit-any: error`, lista LEGACY-wyjątków która może tylko maleć. Egzekucja per plik przy dotyku (zasada skauta), nie jednorazowy sweep całego repo.
-10. **Knip do CI** + wyczyścić martwe pliki/eksporty, które wskaże.
-
-## Faza 1.5 — Knowledge Leverage, Priorytet 1
-
-Wykonaj w tej kolejności (§1.3 wymaga §1.1 jako warunku) — pełny opis w Części II §1.1–§1.3:
-1. **[x] §1.1** Write-back `proposed_memory` z ClarificationRequest do grafu wiedzy — największa dźwignia/koszt całego audytu (~1 wieczór).
-2. **[x] §1.2** Kalibracja prognoz (Brier/MAE) — metryka nadrzędna.
-3. **[x] §1.3** Pompa active learning.
-
-## Faza 2 — Domknięcie rozliczeń
-
-Pełny opis w Części II §2.1–§2.3:
-1. **[x] §2.3** Nightly pipeline ledger.
-2. **[x] §2.2** `vanguard-backtester` — krok 2-3 dopiero PO §2.1 i bitemporalności z Fazy 4.
-3. **[x] §2.1** Rada Oracle'a jako obiekt.
-4. **Backfill/replay dla danych pochodnych** — `runComputeDailyStrain` i `metrics_*` przyjmują tylko "dziś". Dodaj `dateFrom/dateTo`, nightly dostaje tryb `?backfill=X..Y`. Rób razem z `algo_version` (Faza 4) — jedna migracja, jeden PR.
-
-## Faza 3 — Model pojemności + struktura frontendu
-
-1. (częściowo) Część II §7.1 — 10 z ~31 ręcznych `useEffect+useState` hooków zmigrowanych na react-query. Zostały głównie "god hooki" (`useWorkoutLogger`, `usePowerListEffects`, `useNutritionData` — 5 konsumentów) i debounced search (`useFoodEntrySearch`) — świadomie odłożone, wymagają dedykowanej sesji.
-4. (częściowo) Offline write queue — `lib/offlineQueue.ts` pokrywa kluczowe domeny (w tym bezpieczną izolację per konto i Dead Letter Queue). Pozostałe: `calendarApi.ts`, `kpiTrendApi.ts`.
-
-## Faza 4 — Graf wiedzy i backtester (przy najbliższym dotknięciu architekta/wiki-compilera)
-
-Część II §4.1–§4.9, w tej kolejności:
-1. **§4.6** Tabela encji — sprawdź najpierw `vanguard_entity_aliases` (martwa, patrz Część III write-orphany) zanim zbudujesz nową.
-2. **§4.5** Bitemporalność (`learned_at`) — rób razem z `algo_version` i backfill/replay z Fazy 2.
-3. **§4.1** Warstwa `claims` jako nadrzędna nad graf/wiki/fundament.
-4. **§4.2** Korelacje/patterns emitują claims.
-5. **[x] §4.3 + §4.4** `outcome_metric` per pattern + fix `user_id` w `outcomes.ts`.
-6. **§4.7** Dossier celu.
-7. **§4.8** Tygodniowy diff self-modelu.
-8. **§4.9** 4 Lenses do promptu — 15 minut, tylko tekst.
-
-## Faza 5 — Uczciwość danych, ludzie/świat zewnętrzny, ostatnie mile
-
-Część II §5.1–§5.6 (braki danych, coverage metryk, korekty LLM, cykliczność, pogoda, confoundery) i §6.1–§6.2 (maraton jako obiekt, raport dla trenera Igora):
-- `dream_id` auto-sugestia albo wycięcie.
-- [x] Cmentarz martwych tabel (schemat `graveyard`, po row-count) + regeneracja `database.types.ts`.
-- Jeden przełyk capture (Telegram/share/skróty/voice = aliasy jednej rury).
-- Telemetria `view_events`.
-- keep-triage → LinksInbox auto-tagowanie.
-- Cele żywieniowe → `MorningPlanModal`.
-- Panel zdrowia systemu z `audit_events` — bundle z §5.2 (licznik pokrycia metryk).
-- Sprzątanie repo (`.mimocode`, `screeny/`, `PRPs/`, `examples/`, skrypty jednorazowe).
-
-**[x] Budżet/kolejka powiadomień:** co najmniej 8 funkcji woła Telegram API bezpośrednio, bez wspólnej bramki. Tabela `outbound_messages(priority, dedupe_key, send_after)` + jeden worker wysyłający — zaimplementowane w `_shared/infra/telegram/send.ts` i `vanguard-outbox-sender`.
-
-## Frontend Code Debt — wyniki audytu 2026-07-16
-
-> Dane z rzeczywistego audytu. Rób przy dotyku pliku (zasada skauta), nie jednorazowym sweepem.
-
-### Pliki >300 linii bez dokumentowanego wyjątku (priorytet: split przy najbliższym dotknięciu)
-
-| Plik | Linie | Co z tym zrobić |
-|---|---|---|
-| `lifestyle/hooks/usePowerListActions.ts` | 437 | Hook — podziel na useActions + useMutations |
-| `todo/TodoCard.tsx` | 426 | [x] Rozbite na TodoCard.tsx i TodoCardCollapsedRow.tsx |
-| `notes/EditNoteModal.tsx` | 419 | Duży, ale gęsty — przy następnej dużej zmianie split |
-| `core/hooks/useDashboardState.ts` | 416 | God hook — podziel domenowo |
-| `medical/EndMyopiaCalculator.tsx` | 413 | Samodzielny kalkulator, można split na logikę + widok |
-| `growth/hooks/useGrowthData.ts` | 402 | Hook mieszający fetch z transformacją |
-| `projects/ProjectCardExpanded.tsx` | 363 | Miesza dane + JSX → split |
-| `biometrics/hooks/useWorkoutLogger.ts` | 349 | God hook — podziel domenowo |
-| `core/nutrition/hooks/useFoodEntryActions.ts` | 341 | Hook akcji — OK, ale sprawdź przy dotyku |
-| `desktop/fitness/fitnessScoreUtils.ts` | 328 | Util — OK do zostania jeśli czysta logika |
-
-**Reguła:** pliki hooks >300 linii ZAWSZE wymagają uzasadnienia lub podziału. Pliki *.tsx >300 linii ZAWSZE wymagają podziału na Container + View LUB dokumentowanego `/* eslint-disable max-lines */` z wyjaśnieniem.
-
-### Inline date formattery (toLocaleDateString) poza kanonicznymi wrapperami
-
-Znalezione w audycie pliki z inline `toLocaleDateString('pl-PL', ...)` — przy dotyku zastąp odpowiednim helperem z `lib/date.ts` lub modułowego utils:
-
-- `ai/ChatItems.tsx` (L35, L39) — [x] Plik usunięty podczas refaktoryzacji widoków AI
-- `desktop/fitness/MarathonPanel.tsx` (L51) — [x] Zastąpione przez formatLongDateWarsaw
-- `integrations/StravaWidget.tsx` (L45) — [x] Zastąpione przez formatShortDateWarsaw
-- `notes/EditNoteModal.tsx` (L91) — do naprawienia przy następnym refaktorze
-- `notes/InlineEditor.tsx` (L150) — do naprawienia przy następnym refaktorze
-
-Kanoniczne helpery: `keepUtils.relativeDate` (notatki), `todoUtils` (todo), `calendarHelpers` (kalendarz), `lib/date.ts` (wszystko inne).
-
----
-
-## Ciągłe / bez końca (zasada skauta — nie osobna sesja per punkt)
-
-- **LLM gateway + rejestr promptów**, rozszerzony o: centralizację sekretów (`DEEPSEEK_API_KEY` czytany bezpośrednio w ~30 plikach zamiast przez `_shared/config.ts`) i tier wrażliwości danych.
-- Reszta punktów ciągłych — wykonuj przy dotyku odpowiedniego modułu.
-
-### Rozwój — kolejne plastry planu nauki (po MVP z 2026-10-21)
-
-- [x] **Wirtualna półka (animowana biblioteka)** — zrobione 2026-10-21: `library_items`, półka z animacją, import hurtem (lista, Goodreads, Letterboxd), auto-wpis z planu.
-- [ ] Półka: okładki zamiast generowanych grzbietów (miniatura z `vanguard_links.thumbnail_url` dla filmów z YouTube, okładki z Open Library), ocena gwiazdkami w szybkim dopisie, grupowanie po latach.
-- [ ] Biblioteka bez pracy: dopis przez Telegram („przeczytałem X”, „obejrzałem Y”) i jednorazowe wyciągnięcie przeczytanych/obejrzanych z istniejących notatek i strumienia (za zgodą, z podglądem przed zapisem).
-- [ ] Telegram: `/nauka` i przycisk „Zrobione” wieczorem (wołają `log_learning_progress`).
-- [ ] Blok czasu na dzienny slot w kalendarzu (`calendar-write`).
-- [ ] Zamknięcie miesiąca: lista zrobione/odpuszczone, przeniesienie niedokończonych jednym kliknięciem, podpowiedzi następnego miesiąca z Pocket i umiejętności bez praktyki; statystyki do `monthly_reviews.ritual_stats`.
-- [ ] Pocket: pozycja z planu miesiąca na górze listy („najpierw to”), automatyczne uzupełnianie `resource_type`.
-
-**Zasada zamykająca Części I:** po Fazie 1.5 (§1.2 — kalibracja prognoz) masz obiektywny sygnał, czego jeszcze brakuje — jeśli krzywa błędu predykcji się wypłaszcza, dokładaj nowy sensor. Nie odwrotnie.
-
----
-
-# Część II — Warstwa wiedzy i dźwigni (Knowledge Leverage)
-
-> System już zbiera dane o Jakubie — pytanie tej części to czy faktycznie wie to, co zbiera, i czy się z tego rozlicza. Wspólny wzorzec każdej pozycji: **zero nowego codziennego inputu od Jakuba** — złączenie/domknięcie klocków, które już istnieją w kodzie.
-
-Kanoniczny flow wiedzy:
-
-```
-Telegram / voice / manual ingest
-        │
-        ▼
-  vanguard_stream          ← surowa ewidencja użytkownika (source of truth)
-        │
-        ├──► vanguard-auto-classify  → friction_events (jedyny pipeline tarcia)
-        ├──► vanguard-architect (batch) → vanguard_entity_links (graf wiedzy — triady)
-        ├──► vanguard-wiki-compiler → vanguard_wiki_pages (skompilowana pamięć, derived)
-        └──► ingest-vault-log (long-form) → stream chunks + graf RPC
-
-READ path: Oracle czyta graf + wiki + world_state + stream
-Nightly: agreguje dzień, liczy strain/illness/recovery, wykrywa patterny, liczy korelacje
-```
-
-Kluczowe tabele: `vanguard_entity_links` (graf, triady z `confidence_score`, `status`, `superseded_by`), `vanguard_wiki_pages` (derived, `source_refs`), `vanguard_wiki_review_items` (kolejka do przeglądu), `oracle_clarification_requests` (pytania Oracle do Jakuba), `vanguard_daily_aggregates`, `vanguard_behavioral_patterns` + `pattern_events`, `vanguard_oracle_runs` (read-only telemetria), `behavior_log` (confoundery).
-
-**Konstytucyjna zasada:** Oracle NIE zapisuje do grafu/wiedzy automatycznie w każdej turze rozmowy — celowo wyłączone w Sprint 0.7. Każda propozycja poniżej dotycząca zapisu do grafu MUSI przechodzić przez bramkę potwierdzenia człowieka (ClarificationRequest, §1.1).
-
-## 🥇 Priorytet 1 — najwyższa dźwignia, najniższy koszt
-
-### §1.1 Write-back `proposed_memory` z ClarificationRequest do grafu wiedzy
-
-**Problem:** `ClarificationRequestCard.tsx:65` po odpowiedzi robi tylko `.update({status:'answered', answer, answered_at})`. `proposed_memory` — fakt który Jakub właśnie POTWIERDZIŁ — nie ląduje nigdzie jako trwały fakt. Po kilku tygodniach kontekst wypadnie z okna i fakt zniknie.
-
-**Dlaczego najwyższa dźwignia:** to jest dokładnie bramka "human confirmation przed zapisem do grafu", której zabrakło przy amputacji Sprint 0.7. Nie trzeba jej projektować od zera — istnieje, tylko ostatni drut nie jest podłączony.
-
-**Co zbudować:**
-1. Po `status: 'answered'`, tylko gdy odpowiedź faktycznie potwierdza `proposed_memory`: insert do `vanguard_entity_links` z `source_entity`/`target_entity`/`relation`, `confidence_score: 0.95`, `status: 'active'`, `source: 'user_confirmed_clarification'`, `learned_at: now()`.
-2. Kolizja z istniejącym aktywnym faktem → oznacz stary jako `superseded` przez RPC `deprecate_superseded_facts` (helper w `_shared/` tylko gdy faktycznie podłączony do write-path).
-3. Test: odpowiedz na jedno pytanie Oracle w UI, sprawdź nowy wiersz w `vanguard_entity_links`.
-
-**Koszt:** ~1 wieczór.
-
-### §1.2 Kalibracja prognoz — metryka nadrzędna dla całej reszty audytu
-
-**Problem:** system twierdzi (Oracle, wiki, patterns), że "rozumie" Jakuba, ale nic tego nie weryfikuje. Scope-gates na predykcje uchylone 2026-07-02, brak jakiejkolwiek `predicted_*` w `database.types.ts`.
-
-**Co zbudować:**
-1. Tabela `vanguard_daily_predictions`: `user_id`, `date`, `predicted_at`, `metric` (`sleep_hours`/`readiness_score`/`execution_score`), `predicted_value`, `predicted_interval_low/high`, `actual_value`, `error`.
-2. Krok w `vanguard-nightly`: generuj predykcję na jutro (średnia ważona 7 dni + trend, LLM niekonieczny).
-3. Następnego dnia: uzupełnij `actual_value` z `vanguard_daily_aggregates`/`oura_daily_summary`, policz błąd.
-4. Po miesiącu: dashboard z Brier score/MAE. Malejący błąd = self-model się uczy. Płaski/rosnący = sygnał czego brakuje.
-
-### §1.3 Pompa active learning: `vanguard_wiki_review_items` → `oracle_clarification_requests`
-
-**Problem:** `vanguard-wiki-compiler` już generuje `ReviewDraft` do `vanguard_wiki_review_items`, ale nic jej nie konsumuje. `vanguard-eval-interview` zadaje generyczne pytanie, nie oparte na tym czego system jest niepewny.
-
-**Co zbudować:**
-1. W `vanguard-eval-interview` lub nowym kroku nightly: weź top 1-2 nieprzejrzane z `vanguard_wiki_review_items` (po `severity`) lub `vanguard_entity_links` z `confidence_score < 0.7`, najstarszy `created_at`.
-2. Wygeneruj `oracle_clarification_request` (reużyj `saveClarificationRequest`), `dedupe_key` zapobiega duplikatom.
-3. **§1.1 musi być zrobione przed tym punktem.**
-
-## 🥈 Priorytet 2 — domyka pętle rozliczenia
-
-### §2.1 Rada Oracle'a jako obiekt, nie gaz
-
-**Problem:** `systemPrompt.ts:93` definiuje `"fact | hypothesis | recommendation"`, ale żadna rekomendacja nie jest obiektem z warunkiem/metryką sukcesu/oknem ewaluacji.
-
-**Co zbudować:**
-1. Tabela `oracle_recommendations`: `id`, `oracle_run_id` (FK), `recommendation_text`, `related_metric`, `success_threshold`, `evaluation_window_days`, `status`, `outcome`.
-2. Gdy Oracle emituje `type: "recommendation"` — zapisz (rozszerz `logOracleRun`).
-3. Auto-ewaluacja: skopiuj wzorzec z `_shared/nightly/outcomes.ts` (`runPatternOutcomes`) — windowed join.
-
-### §2.2 `vanguard-backtester` — katalog jest pusty
-
-Zero plików źródłowych w `supabase/functions/vanguard-backtester`. **Dopiero PO §2.1 i §4.5** (bitemporalność) — inaczej backtester nie ma czego oceniać uczciwie (przeciek przyszłej wiedzy do przeszłości).
-
-### §2.3 Nightly nie ma księgi przebiegów (ledger)
-
-**Problem:** `vanguard-nightly/index.ts:79-89` — każdy krok owinięty w `.catch(e => console.error(e))`, pipeline leci dalej. Jeśli krok 3 padnie, `world_state` na końcu wygląda świeżo.
-
-**Co zbudować:**
-1. Tabela `vanguard_pipeline_runs`: `run_id`, `step_name`, `status`, `started_at`, `finished_at`, `error_message`.
-2. W `vanguard-nightly/index.ts` — opakuj każdy krok helperem zapisującym wpis przed/po.
-3. Heartbeat czyta ten ledger, nie testuje HTTP bezpośrednio.
-
-## 🥉 Priorytet 3 — model pojemności
-
-### §3.1 Zadania nie mają kosztu
-
-`todo_items` nie ma kolumny effort/energy/duration. `dailyPlanProposal.ts` widzi `readinessScore`/`recoveryScore`, ale nie ma czym tego wykorzystać — zadania nie deklarują ile kosztują.
-
-**Co zbudować:**
-1. Migracja: `estimated_effort` (enum `light/medium/heavy`) do `todo_items`.
-2. `vanguard-todo-extract`/`vanguard-todo-classify` — dodaj pole do istniejącego promptu klasyfikującego.
-3. `dailyPlanProposal.ts` — sumuj effort proponowanych zadań, porównaj z pojemnością dnia.
-
-## Graf wiedzy — pozycje strukturalne
-
-### §4.1 Warstwa `claims` jako nadrzędna nad graf/wiki/fundament
-
-**Problem:** pięć niezależnych magazynów wiedzy o Jakubie: `vanguard_entity_links`, `vanguard_wiki_pages`, `user_fundament`, `vanguard_preferences`, beliefs z `vanguard-metabolism` (hack: string wciśnięty w niepasujący kształt triady). Oracle sklejam wszystkie pięć konkatenacją tekstu bez referencji ani wspólnego confidence.
-
-**Co zbudować (przy okazji dotykania architekta/wiki-compilera, nie osobną sesją):** kanoniczny obiekt `claim` (treść, typ `fact`/`hypothesis`/`belief`/`preference`/`correlation`, confidence, `evidence_refs`, ważność w czasie, `learned_at`). Kierunek migracji, nie big-bang rewrite.
-
-### §4.2 Korelacje/patterns nie emitują wiedzy do grafu
-
-`correlationCatalog.ts` ma ~80 metryk numerycznych, `vanguard-architect` ekstrahuje triady z tekstu — te dwa światy nigdy się nie widzą.
-
-**Co zbudować:** krok w `vanguard-nightly` po `runComputeCorrelations` — istotne statystycznie korelacje emitują wpis do `claims`/`vanguard_entity_links` z `memory_type: 'correlation'`, `relation: 'koreluje_z'`.
-
-### §4.3 `pattern_events` oceniane jedną uniwersalną metryką
-
-`_shared/nightly/outcomes.ts` `runPatternOutcomes` ocenia SUKCES każdego patternu wyłącznie przez `execution_score >= 0.80`, niezależnie od domeny (sen, trening, jedzenie).
-
-**Co zbudować:** kolumna `outcome_metric` na `vanguard_behavioral_patterns` (z `correlationCatalog.ts`). W `outcomes.ts` zamień hardkodowane `execution_score` na dynamiczny lookup. Rób razem z §4.4.
-
-### §4.4 Bug: brak filtra `user_id` w `outcomes.ts`
-
-`outcomes.ts:29-33` — zapytanie do `vanguard_daily_aggregates` bez `.eq('user_id', userId)`. Napraw przy okazji §4.3.
-
-### §4.5 Brak bitemporalności — backtester będzie oszukiwał
-
-`vanguard_entity_links` nie rozróżnia `valid_at` (kiedy to było prawdą) vs `learned_at` (kiedy system się dowiedział). Backtester oceniający radę z 15 maja może skorzystać z wiedzy zdobytej w czerwcu.
-
-**Co zbudować:** kolumna `learned_at` (domyślnie `created_at`) na `vanguard_entity_links`. **Zrób PRZED napisaniem backtestera od zera** (§2.2), razem z `algo_version`.
-
-### §4.6 Graf jest stringowy, nie encyjny
-
-`vanguard-architect/extraction/processor.ts:44` — dedup encji to instrukcja w prompcie LLM, nie tabela. `vanguard_entity_links` trzyma source/target jako gołe stringi.
-
-**Co zbudować:** tabela `vanguard_entities`: `id`, `canonical_name`, `aliases` (text[]), `entity_type`, `embedding`. **Uwaga:** `vanguard_entity_aliases` już istnieje w bazie, ale jest martwa (porzucony resolwer) — sprawdź ją PRZED tworzeniem nowej tabeli.
-
-### §4.7 Dossier celu
-
-`vanguard-wiki-compiler` — nowy `page_type: 'goal'`. Dla każdego aktywnego `life_goal` kompiluj: relevantne korelacje, twierdzenia z grafu (przez encje z §4.6), eksperymenty, checkpointy, trend metryki vs gap do celu. Złączenie istniejących danych, nie nowe źródło.
-
-### §4.8 Tygodniowy diff self-modelu
-
-Krok w `vanguard-weekly-synthesis` — wiersze `vanguard_entity_links` z `created_at`/`superseded_at` w ostatnim tygodniu → krótkie podsumowanie ("3 nowe twierdzenia, 1 nadpisane: X→Y"). Prefill do `WeeklyReviewModal`.
-
-### §4.9 4 Lenses — 15 minut roboty
-
-Hidden Contexts, Energy Tides, Micro-Consistency, Interactive Curiosity — dodaj jako instrukcję do system promptu `vanguard-analyst` i/lub Oracle. Zero nowego kodu poza tekstem promptu.
-
-## Uczciwość danych — braki i skażenia próby
-
-### §5.1 Braki danych nie są rozróżnialne od zdarzeń
-
-Dzień bez zalogowanego posiłku wygląda identycznie jak dzień głodówki. Brak wpisu w `behavior_log` wygląda jak "na pewno nie wystąpiło", nie "nie wiadomo".
-
-**Co zbudować:** jedno tapnięcie przy powrocie po przerwie w logowaniu (>2 dni bez wpisu) z pytaniem "przerwa: OK / chory / podróż" → `behavior_log`. Silnik korelacji wyklucza oznaczone okna.
-
-### §5.2 Licznik pokrycia metryk — cicha śmierć rur danych
-
-Katalog ma ~80 metryk, nic nie mierzy jaki % dni każda faktycznie ma wartość. Rura, która się zepsuje, głoduje po cichu.
-
-**Co zbudować:** krok w `vanguard-nightly` liczący % dni z niepustą wartością (30 dni) per metryka → `metric_coverage_stats` lub `audit_events`. Panel zdrowia systemu.
-
-### §5.3 Korekty LLM giną bezpotomnie
-
-Gdy Jakub poprawia output LLM, poprawka nadpisuje wiersz — nic nie rejestruje że to była korekta BŁĘDU (vs zwykła edycja).
-
-**Co zbudować:** kolumna `corrected_from` (JSON) na tabelach z edytowalnym LLM outputem.
-
-### §5.4 Zero obsługi cykliczności w silniku korelacji
-
-`correlationEngine.ts` — zero wzmianki o dniu tygodnia/sezonie. Sesja egzaminacyjna (semestr PRz) zawsze traktowana jako świeża anomalia.
-
-**Co zbudować:** cechy cykliczne (`day_of_week`, `days_to_exam`) jako metryki pierwszej klasy w `correlationCatalog.ts`. Opcja stratyfikacji w silniku korelacji.
-
-### §5.5 Pogoda i fotoperiod nie karmią korelacji
-
-Pogoda widoczna w kalendarzu, ale nie w `correlationCatalog.ts`.
-
-**Co zbudować:** integracja Open-Meteo (nightly) — temperatura, ciśnienie, godziny światła → `daily_weather` → do katalogu korelacji. Priorytet: pora zasypiania (~01:00) to problem zdrowotny #1.
-
-### §5.6 Analityka bez modelu confounderów
-
-`behavior_log` ma kolumny na confoundery (alkohol, choroba, podróż, stres), silnik korelacji liczy surowe pary bez stratyfikacji.
-
-**Co zbudować:** minimalna wersja — flaga w `evidence_text`. Pełna wersja — stratyfikacja: licz korelację osobno dla dni z/bez confoundera.
-
-## Ludzie i świat zewnętrzny
-
-### §6.1 Maraton nie istnieje jako obiekt w systemie
-
-Kontekst: VO2max 47.1, cel sub-4h Koszyce 2026-10-04, trener Igor, gap +2.9 do celu, PR 1K 4:25.
-
-**Co zbudować:** dossier wyścigu (instancja §4.7). Krok w nightly: prognoza czasu maratonu z ostatnich biegów (formuła Riegela), planned-vs-executed treningu, countdown do 2026-10-04.
-
-### §6.2 Sparky jest single-player, cel #1 ma drugiego gracza
-
-Zero interfejsu dla trenera. Igor programuje trening na ślepo/ustnie, podczas gdy Sparky codziennie liczy strain/recovery/illness/RPE.
-
-**Co zbudować:** cotygodniowy raport dla trenera (link/PDF/Telegram-forward): trend objętości, recovery, flagi choroby/przemęczenia, RPE rzeczywiste vs zaplanowane. Zero nowego inputu od Jakuba.
-
-## Kolejność wykonania Części II
-
-1. **§1.1** (1 wieczór, odblokowuje ścieżkę zamkniętą od Sprint 0.7).
-2. **§1.2** (metryka nadrzędna — po niej wiadomo, czego brakuje).
-3. **§1.3** (wymaga §1.1).
-4. **§2.3** (wszystko inne stoi na tym, że nightly faktycznie się wykonuje).
-5. Reszta Priorytetu 2/3 + "Graf wiedzy" — przy najbliższym dotknięciu odpowiednich funkcji.
-6. "Uczciwość danych" + "Ludzie i świat zewnętrzny" — kandydaci na okresy niższego tempa.
-
----
-
-# Część III — Bugi i dług techniczny
-
-> Zebrane z audytu 2026-07-05. Checklist, nie plan.
-
-## Priorytet 1–2 — spójność przepływu danych
-
-Ta kolejka konkretyzuje wspólne kontrakty Zakładów A/B/C. Zapis źródłowy pozostaje kanoniczny;
-agregaty i cache są pochodne, a snapshot
-zachowuje historię i nie zastępuje aktualnego stanu. Rozszerzać istniejące RPC,
-projekcje i przeliczenia. Poniższa kolejność uwzględnia zależności; blokady P0 pozostają pierwsze.
-
-### DC-01 — P1: jeden stan wykonania Todo i PowerList
-
-- [x] **Problem:** zmiana wieczornej notatki/wyniku potrafi odbudować lustro i zgubić ukończenie zadania.
-  **Dowód:** `supabase/migrations/20260801103739_fix_power_list_todo_snapshot_sync.sql`
-  oraz guard głębokości triggera i odbudowa zadań w migracji `20260504000000_baseline.sql`:
-  `todo_items` ↔ `daily_win_tasks` ↔ sloty `daily_wins` mają konkurujące ścieżki zapisu.
-  **Minimum:** kanoniczny stan w modelu znormalizowanym; sloty tylko jako projekcja zgodności
-  w jednym kierunku. Zachować identyfikatory; edycja notatki/wyniku nie przebudowuje zadań.
-  **Odbiór:** ukończyć zadanie w Todo, zmienić wieczorną notatkę i wynik; ID oraz ukończenie
-  pozostają zgodne w Todo, PowerList, kalendarzu i historii, także przy równoległej edycji.
-
-### DC-02 — P1: wkład do KPI niezależny od miejsca ukończenia
-
-- [x] **Problem:** wkład zadania do KPI zależy od ekranu użytego do odhaczenia.
-  **Dowód:** `src/components/lifestyle/hooks/usePowerListActions.ts` aktualizuje wkład;
-  odpowiadającej operacji brakuje w ścieżkach Todo, kalendarza i historii.
-  **Minimum:** po DC-01 wspólna transakcyjna aktualizacja różnicy wkładu, odporna na retry;
-  ukończenie, cofnięcie i zmiana powiązania KPI korzystają z tego samego kontraktu.
-  **Odbiór:** wykonaj → cofnij → wykonaj z każdego wejścia daje identyczny KPI; retry i równoległe kliknięcia nie podwajają wkładu.
-
-### DC-03 — wycofane: atomowy zapis posiłku w Telegramie
-
-- [x] **Wycofane decyzją użytkownika:** dodawanie jedzenia jest wyłącznie w aplikacji.
-  Usunięcie loggera Telegrama zastępuje naprawę tej ścieżki; nie wdrażać adaptera zapisu.
-  Niezawodność istniejącego capture aplikacji pozostaje w DC-04.
-
-### DC-04 — P1: stała tożsamość zapisu przy retry i offline
-
-- [x] **Problem:** nowy identyfikator przy ponowieniu zmienia jedną intencję w dodatkowy posiłek/dawkę.
-  **Dowód:** `src/lib/health/nutritionTrackerApi.ts` generuje capture ID przy każdym wywołaniu
-  i dopisuje czas osobnym PATCH; `src/lib/health/supplementsApi.ts` tworzy ID dopiero po błędzie online.
-  **Minimum:** nadać ID przed pierwszym zapisem i zachować przez retry/kolejkę; czas zdarzenia
-  zapisywać w transakcji capture. Dla suplementów konflikt tego samego ID operacji jest sukcesem,
-  bez deduplikowania rzeczywistych kolejnych dawek. Wykorzystać istniejącą kolejkę i
-  `confirm_nutrition_meal_capture` aplikacji; zadanie nie zależy od wycofanego DC-03.
-  **Odbiór:** commit z utraconą odpowiedzią/błędem PATCH, potem retry/replay: jeden capture, jedna kopia produktów i dawki; te same sumy i ID.
-
-### DC-05 — wycofane: korekta posiłku odpowiedzią w Telegramie
-
-- [x] **Wycofane decyzją użytkownika:** korekta jedzenia pozostaje w aplikacji.
-  Nie budować powiązań potwierdzeń Telegrama z wpisami posiłków ani nowego routera korekt.
-
-### DC-06 — P1: aktualne źródło przed snapshotem i cache
-
-- [ ] **Problem:** stare podsumowanie może zastąpić rzeczywiste zero albo przetrwać korektę historii.
-  **Dowód:** `src/lib/dashboardApi.ts` używa world state bez kontroli `updated_at`, fallback
-  białka przywraca dawną dodatnią wartość, a tydzień bywa cache'owany;
-  `supabase/functions/_shared/worldState.ts` bezwarunkowo zwraca cache historycznego dnia.
-  **Minimum:** żywe wartości źródłowe mają pierwszeństwo; odróżnić zero, brak i błąd. Cache
-  ma rewizję/ważność i unieważnianie dotkniętych dat; nie opierać poprawności na refreshu Telegrama bez await.
-  **Odbiór:** żywe białko 0 nie staje się dawnym 85; korekta historycznego dnia odświeża
-  Dashboard, tydzień i Oracle z tego samego źródła, bez nowego równoległego silnika.
-
-### DC-07 — P2: tygodniowa aktywność z kanonicznego widoku
-
-- [ ] **Problem:** tygodniowy body pulse potrafi policzyć jedną aktywność z Oury/Garmina dwukrotnie.
-  **Dowód:** `src/lib/biometricsApi.ts` pobiera surowe `strava_activities`,
-  a `src/lib/weeklyBodyPulse.ts` używa tych rekordów z pominięciem widoku clean.
-  **Minimum:** odczyt `strava_activities_clean` z tą samą polityką źródła głównego
-  co pozostałe podsumowania; nie tworzyć kolejnego algorytmu deduplikacji w JavaScript.
-  **Odbiór:** pasujące importy Oura/Garmin dają jedną sesję i jednokrotny czas/dystans, zgodne z innymi podsumowaniami.
-
-### DC-08 — P2: pozostałe sporty nie stają się biegami
-
-- [ ] **Problem:** aktywność innego sportu zmienia biegowe flagi, fueling i wyjaśnienia dnia.
-  **Dowód:** `supabase/functions/_shared/nightly/computePerDay.ts` przekazuje wszystkie sporty jako biegi.
-  **Minimum:** jawny wspólny predykat biegu przy wyliczaniu biegowych pól;
-  zachować uzasadnione obciążenie innych sportów w ich właściwej części istniejących obliczeń.
-  **Odbiór:** rower/pływanie nie zwiększają kilometrów ani flag biegu; bieg zasila właściwe pola, obciążenie innych sportów nie znika.
-
-### DC-09 — P1: korekta treningu przelicza właściwe dni
-
-- [ ] **Problem:** edycja/usunięcie starego treningu lub zapis wstecz pozostawia stare strain/world state.
-  **Dowód:** `src/lib/health/workoutApi.ts`, `src/components/core/hooks/useStatsData.ts`
-  i `src/lib/health/strainRefresh.ts`; refresh wysyła `days: 1` niezależnie od daty zmiany.
-  **Minimum:** po regułach źródła z DC-06/07/08 przekazać stare i nowe daty oraz zależne okna
-  do istniejącego przeliczania; odbudować cache dotkniętej historii i unieważnić jej odczyty.
-  **Odbiór:** edycja, przeniesienie i usunięcie starego treningu dają zgodne strain/podsumowania dotkniętych i zależnych dni.
-
-### DC-10 — P2: jeden wewnętrzny wpis planu w kalendarzu
-
-- [x] **Problem:** każde wysłanie planu poranka tworzy scheduled Todo i niezależne wydarzenie kalendarza.
-  **Dowód:** `src/components/core/morningPlan/useMorningPlanActions.ts` zapisuje oba byty
-  bez trwałego powiązania i wspólnego cyklu edycji/usuwania.
-  **Minimum:** wewnętrzny kalendarz pokazuje projekcję Todo; eksport zewnętrzny, jeśli wybrany,
-  ma stabilną tożsamość oraz jawne upsert, przeniesienie i usunięcie powiązanego wydarzenia.
-  **Odbiór:** ponowny submit, zmiana terminu i usunięcie dają jeden spójny wpis; eksport nie rusza obcych wydarzeń.
-
-### DC-11 — P2: dzień suplementacji zgodny z czasem zdarzenia
-
-- [x] **Problem:** historyczny checkbox zapisuje dzień D, lecz `logged_at=now()` trafia na dzisiejszą oś czasu.
-  **Dowód:** `src/components/desktop/health/useSupplementsData.ts`,
-  `src/lib/health/supplementsApi.ts` oraz odczyt po `logged_at` w `src/lib/biometrics/ouraDayTimelineApi.ts`.
-  **Minimum:** oddzielić czas zdarzenia od czasu rejestracji. Historyczny zapis bez godziny
-  zachowuje dzień i nieznaną godzinę; nie fabrykować czasu spożycia ani typowej pory zażycia.
-  **Odbiór:** historyczny checkbox nie tworzy markera dziś; jawna historyczna godzina trafia na właściwą oś i do analizy.
-
-### DC-12 — P2: zakończony replay odświeża konsumentów
-
-- [ ] **Problem:** udany replay aktualizuje bazę, usuwa kolejkę i pokazuje toast, lecz zostawia stare query cache.
-  **Dowód:** `src/lib/offlineQueue.ts` nie informuje konsumentów o potwierdzonym zapisie.
-  **Minimum:** po sukcesie replay powiadomić wyłącznie dotknięte domeny i unieważnić ich klucze;
-  zachować rozróżnienie operacji oczekującej i zatwierdzonej, bez pozornego sukcesu przy enqueue.
-  **Odbiór:** wolny replay i wyścig z wcześniejszym refetch dają zgodne UI/bazę po reconnect, bez dodatkowego kliknięcia.
-
-**Zakres dowodu:** bieżące definicje triggerów Todo/PowerList sprawdzono także w produkcji.
-Próby rzeczywistych modułów TypeScript z podstawionym I/O odtworzyły częściowy posiłek
-i niedziałający routing korekty w wycofanej ścieżce Telegrama oraz nowe capture ID
-po błędzie PATCH, fallback 0 → 85,
-bezwarunkowy historyczny cache i brak invalidacji po replay. Pozostałe scenariusze to kryteria
-regresji ze śledzenia kodu; próby nie mutowały osobistej historii produkcyjnej.
-Szersze cele wspólnego kontekstu, backfill i coverage pozostają w istniejących sekcjach roadmapy.
-
-## 🟠 Priorytet 2 — write-orphany (dobuduj zapis albo usuń martwy odczyt)
-
-- [x] `endmyopia_daily_logs` — czyta `VisionJournal.tsx`, zero writera.
-- [ ] `user_fundament` — `IdentityVault.handleSave()` woła `ingest-vault-log`, niepotwierdzone czy zapisuje tabelę.
-- [ ] `nutrition_profile` — pełny zapis profilu i zgodność celu BF: Zakład C,
-  etapy 3 i 7 planu prowadzenia; nie budować osobnego writera poza tym zakresem.
-- [ ] `location_history` — czyta `exportStats.ts`, zero writera.
-- [ ] `medical_documents`, `medical_lab_results` — tylko jednorazowy seed, brak ścieżki dodania nowych wyników.
-- [ ] `training_plan_workouts` — wersjonowanie, edycja i wykonanie: Zakład C,
-  etapy 4–6 planu prowadzenia; jeden model planu i jedna ścieżka zapisu.
-- [ ] `user_portions` — RLS gotowe pod zapis LLM, zero insert/update wywołania.
-- [x] `morning_briefs` — całkowicie martwa.
-- [ ] `vanguard_entity_aliases` — martwa, porzucony resolwer encji (patrz Część II §4.6 — sprawdź przed budową nowej tabeli encji).
-
-## 🟡 Priorytet 3 — ominięte kanoniczne helpery
-
-- [ ] `todo_items` — surowe zapisy poza `lib/todo.ts`: `checkpoints.ts:85`, `projects.ts:119-183` (3 miejsca), `GrowthView.tsx:233`, `MorningPlanModal.tsx:396-397`, + 3 edge functions (`vanguard-telegram`, `vanguard-push-reminder`, `vanguard-todo-classify`).
-- [ ] `kpi_entries` — `Projects.tsx:386-391` omija RPC `increment_kpi_entry_for_week`; `KpiTrendSparkline.tsx:76-90` fallback liczy `+1` z lokalnego stanu.
-
-## 🟢 Priorytet 4 — duplikaty logiki daty/timezone
-
-- [ ] `useGrowthData.ts:281` — `todayStr = weekStart` (mylące), psuje liczenie "dni po terminie" przy oglądaniu innego tygodnia.
-- [ ] `fitnessScore.ts:307` — niska pewność, wymaga doczytania.
-- [ ] `LeniePanelMini.tsx:20` — poprawna logika, tylko zduplikowana (code smell, nieszkodliwe).
-
-## ⚪ Priorytet 6 — inne, mniej pilne
-
-- [ ] Test coverage edge functions: 4 pliki testowe na ~30 funkcji.
-- [ ] CI łapie dryf migracji DB, ale nie dryf **wdrożonego kodu funkcji** vs repo.
-- [ ] `as any` w `src/` — patrz Część IV §PD1/§PD2 dla aktualnego stanu i planu.
-- [ ] Offline queue: `dreamsApi.ts`, `calendarApi.ts`, `kpiTrendApi.ts` mają zero pokrycia offline.
-- [ ] Offline queue: starsze wpisy bez `ownerId` pozostają zachowane i pomijane przy replay.
-  Ustalić ich właściciela przed ewentualnym odtworzeniem; nie przypisywać automatycznie
-  do aktualnie zalogowanego konta. Nowe wpisy mają właściciela, a błąd kopii do dead-letter
-  nie usuwa oryginału.
-- [x] Telegram inbox: webhook potwierdza odbiór po udanym INSERT do
-  `vanguard_telegram_inbox`; błąd zapisu zwraca ponawialne HTTP 503 i trafia do audytu.
-  Lokalna regresja obejmuje wiadomości, callbacki i odmowę dostępu bez sekretu.
-- [ ] Telegram inbox: przed wdrożeniem potwierdzić zachowanie przy równoczesnych
-  powtórzeniach oraz niejednoznacznym timeout po zapisie. Istniejący guard wiadomości
-  nie jest dowodem atomowej deduplikacji inbox; nie obiecywać wykonania dokładnie raz.
-- [ ] Architektura `task_1..task_5`/`done_1..done_5` w `daily_wins` — sztywne sloty (świadomość, nie ruszać bez wyraźnej potrzeby).
-
----
-
-# Część IV — Frontend: dług strukturalny
-
-> **Stan bazowy (11.07.2026):** S0-S14 zamknięte. DS0/DS2/DS3/DS5 zamknięte; DS1 i DS4 częściowe. Spłata długu P1-P4 zamknięta (`fixed inset-0` 18→11, `session` prop 44→28, `as any` 119→59, `maxWarnings` 659→496). P5 4/5 zrobione. P6 (~111 mniejszych god-files) — nie zaczęte.
-
-## P0 — Backend krytyczne (blokery, rób pierwsze)
-
-### P0.1 — Nightly gubi wzorce co noc (~30 min)
-
-`_shared/nightly/patterns.ts:47` zwraca `status: "hypothesis"` — CHECK constraint na `vanguard_behavioral_patterns.status` dopuszcza tylko `pending/visible/user_confirmed/user_rejected/snoozed/archived`, insert cicho pada (`upsertPattern()` robi `console.error` i mimo to zwraca sukces).
-
-- [x] Zmień `"hypothesis"` → `"pending"` w `patterns.ts:47`, sprawdź resztę modułu (`grep hypothesis`).
-- [x] Deploy + weryfikacja: `SELECT count(*) FROM vanguard_behavioral_patterns WHERE status = 'pending'` przed/po następnym cronie — licznik musi rosnąć.
-
-### P0.2 — Brak walidacji tokenu na `verify_jwt=false` endpointach (~1h)
-
-`vanguard-nightly` i `vanguard-telegram-worker` mają `verify_jwt=false` i zero weryfikacji `Authorization`. Wzorzec poprawnej walidacji już istnieje w `vanguard-backtester`.
-
-- [x] Skopiuj wzorzec do obu funkcji.
-- [x] Sprawdź `cron.job.command` — jeśli service-role secret leży plaintextem, przenieś do Supabase Vault.
-- [x] Potwierdź że SECURITY DEFINER RPC (`get_desktop_dashboard_data` i inne wykonywalne przez `anon`) też objęte.
-
-### P0.3 — Cotygodniowy `vanguard_graph_cleanup()` niszczy claims (~1-2h)
-
-Trigger `tr_sync_entity_links_to_claims` przy DELETE z merge encji kasuje claims — sprzeczne z warstwą bi-temporalną (§4.5). `merged_into` (nowszy mechanizm) ma 0 użyć.
-
-- [x] Przeczytaj `vanguard_graph_cleanup()` i `tr_sync_entity_links_to_claims`.
-- [x] Zdecyduj: wyłącz stary trigram-merge na rzecz `merged_into`, albo soft-delete/re-parenting zamiast kaskadowego kasowania.
-- [x] Backfill `entity_aliases` jeśli `merged_into` ma to zastąpić.
-
-### P0.4 — Weryfikacja Fazy 4 (predykcje/rekomendacje) (~15 min)
-
-- [x] `SELECT count(*) FROM vanguard_predictions, oracle_recommendations, vanguard_pipeline_runs` — jeśli 0, debug przed zamknięciem tematu.
-
-## PD — Polish Debt: spłata liczników strukturalnych
-
-Zasada: jedna sesja = jedna kategoria = jeden commit, pełny zielony zestaw (`npm run typecheck:ui && npx eslint <dotknięte> && npm run test && npm run ratchet:frontend`) przed commitem, baseline w `scripts/ops/ratchet-baseline.json`/`legacy-lines-baseline.json` obniżony **w tym samym commicie**.
-
-### PD1 — `as any`: top offenderzy (~2h)
-
-Stan 2026-07-11 po P1-P4 (`as any` 119→59 ogółem; liczby z tabeli poniżej to stan wyjściowy audytu — zweryfikuj aktualne przed sesją):
-
-| Plik | Ile `as any` (audyt) |
-|---|---|
-| `src/lib/stats/exportStats.ts` | 60 |
-| `src/components/lifestyle/direction/hooks/useDirection.ts` | 10 |
-| `src/lib/offlineQueue.ts` | 4 |
-| `src/lib/health/foodLogging.ts` | 3 |
-| `src/lib/aiContext.ts` | 3 |
-| `src/components/projects/LifeGoalsCard.tsx` | 3 |
-| `src/components/lifestyle/usePowerListData.ts` | 3 |
-
-- [ ] `exportStats.ts` — sprawdź czy to jeden powtarzalny wzorzec, jeden typed helper zamiast castów osobno.
-- [ ] Reszta: doprecyzuj typ lub `unknown` + type-guard.
-- [ ] Jeśli powodem jest `database.types.ts` nieaktualny wobec schematu — `npm run db:update-types` najpierw.
-
-Wzorce sprawdzone bezpieczne: `catch (e: any)` → `catch (e: unknown)` + `e instanceof Error`; `(x as any).pole` po narrowing zwykle zbędny; `Promise<any>` → `Promise<unknown>`.
-
-### PD2 — `as any`: reszta
-
-- [ ] Pozostałe pliki z 1-2 wystąpieniami (`grep -rln "as any" src` po PD1 daje aktualną listę).
-- [ ] Priorytet: pliki dotykane i tak w innych sesjach.
-
-**Target:** 0. `patternCount_asAny` w baseline = 0.
-
-### PD3 — `fixed inset-0`: reszta po DS1
-
-- [ ] `grep -rl "fixed inset-0" src/components | grep -v "ui/Modal.tsx\|ui/ConfirmDialog.tsx"` — powinno być 0-1.
-
-### PD4/PD5 — God-files: fale 1 i 2
-
-Metoda: `docs/FRONTEND_GUIDE.md` §9 "Folder jako moduł" (Wzorzec A). Zawsze: przeczytaj cały plik przed splitem, weryfikacja wizualna przed/po, obniż `legacy-lines-baseline.json` w tym samym commicie.
-
-Fala 2 (po PD4): `exportStats.ts`, `usePowerListData.ts` (745 linii), `ProjectCard.tsx` (613), `GrowthView.tsx` (605), `useDirectionContext.ts` (605 — sprawdź `useGoalSpineInvalidation` deps przed podziałem, patrz `lessons.md` 2026-06-29 nieskończona pętla przy złych deps).
-
-### PD6 — `maxWarnings`: zejście (powtarzalne co sesję)
-
-- [ ] `npx eslint . -f json` → zsumuj warnings per `ruleId`, napraw jedną regułę naraz.
-- [ ] Po każdej naprawionej regule: obniż `--max-warnings=N` w `package.json` **i** `maxWarnings` w baseline.
-- [ ] Nie więcej niż 1-2 reguły na sesję.
-
-**Target:** 496 (stan po P1-P4) → w dół, minimum -100/sesję.
-
-## P5 — Rozbicie 5 największych god-files (4/5 zrobione)
-
-| # | Plik | Stan |
-|---|---|---|
-| 1 | `MorningPlanModal.tsx` | ✅ zrobione |
-| 2 | `CalendarGrid.tsx` | ✅ zrobione |
-| 3 | `LinksInbox.tsx` | ✅ zrobione |
-| 4 | `TodoCard.tsx` | ✅ zrobione |
-| 5 | `RichEditor.tsx` (855 linii) | **świadomie NIE dzielić** — gęsto powiązana logika DOM (`getSelection`/`Range`/`execCommand`); jedyne bezpieczne wydzielenie: `SLASH_COMMANDS` → osobny plik |
-
-## P6 — Reszta `LEGACY_FILES` (~111 plików, nie zaczęte)
-
-**Odkrycie do zrobienia najpierw (~15 min, zero ryzyka):** sprawdź ile wpisów na liście `LEGACY_FILES`/`legacy-lines-baseline.json` jest już dziś pod limitem 300 linii — usuń je z obu list bez dotykania kodu.
-
-**Klasyfikacja mechaniczna:**
-
-```bash
-grep -c "return (" plik.tsx                                    # 0 = czysta logika, nie widok
-grep -c "useState\|useReducer" plik.tsx                        # liczba stanów
-grep -cE "onTouch|onDrag|execCommand|getSelection|onPointerDown" plik.tsx  # gesty/DOM = czerwona flaga
-```
-
-| Tier | Kryterium | Batch | Wymaga planu |
-|---|---|---|---|
-| 1 | 300-400 linii, ≤4 `useState`, 0 gesty/DOM | do 3 plików/commit | nie |
-| 2 | 400-600 LUB (300-400 z >4 `useState`) | 1 plik/commit | nie, ale pełna weryfikacja |
-| 3 | 600+ LUB jakiekolwiek gesty/DOM | 1 plik/commit | **tak** + weryfikacja wizualna |
-
-**Twardy checklist dla KAŻDEGO pliku, każdy tier:**
-1. Przed edycją: `grep -c "notify(\|console\.warn(\|console\.error(" plik` — zapisz liczbę. Po rozbiciu suma we WSZYSTKICH nowych plikach musi być ≥ oryginalnej.
-2. Po przeniesieniu: sprawdź `eslint.config.js` (`LEGACY_FILES`, `NO_SUPABASE_IN_COMPONENTS_EXCEPTIONS`) i `legacy-lines-baseline.json` — nie śledzą `git mv` same.
-3. Weryfikacja w kolejności: `typecheck:ui` → `eslint <dotknięte>` → `test` → `ratchet:frontend`, napraw przed kolejnym plikiem.
-4. Tier 2/3: sprawdź że żaden `useState`/`useEffect` nie został zduplikowany między starym a nowym miejscem.
-5. Nie dotykaj `RichEditor.tsx`, `database.types.ts`. Zero zmian zachowania — bugi zauważone po drodze notuj osobno.
-
-**Kadencja:** po każdym Tier 3 — stop, zgłoś. Po każdych 5 plikach Tier 1/2 — krótkie podsumowanie, jedź dalej.
-
-## DS1/DS4 — reszta Design System (częściowe)
-
-**DS1 (modale/spinnery/empty states) — zostało (stan 2026-07-11):**
-- **9 plików** z ręcznym `fixed inset-0`: `DailyShutdownModal.tsx`, `DashboardFastCapture.tsx`, `MorningPlanModal.tsx` (backdrop wizarda), `FoodEntryModal.tsx`, `SearchModal.tsx`, `InsightCard.tsx`, `EndMyopiaCalculator.tsx`, `ActionCenterSheet.tsx`, `WeeklyReviewModal.tsx`. Migruj proste header+content na `ui/Modal`.
-- **30 plików** z `border-dashed` poza `ui/EmptyState.tsx`/`todo/EmptyState.tsx`.
-
-**DS4 (audyt responsywności) — zostało:** Desktop (`/dashboard`), Growth do końca, Medical, Settings, Tydzień, Historia. Dla każdego na 375px i 1280px: horizontal overflow, console errors (0 tolerowane), touch targets <44px, sidebar na mobile.
-
-**DS6 (adopcja ciągła)** — zasada skauta: dotykasz pliku z inline overlay/empty state/hardkodem koloru → przy okazji przepnij na wspólny komponent/token.
-
----
-
-# Część VI — Capacitor Android (APK)
-
-> PWA na Vercel zostaje PWA. APK = ten sam `src/` + shell w `android/`. SSOT sesji: `docs/agent/ACTIVE_WORK.md`.
-
-- [x] **Faza 1 — bootstrap:** Capacitor + `mobile:*` scripts + `isNativePlatform` (2026-07-21)
-- [ ] **Faza 2 — FCM push:** kod dual-send gotowy; blokuje Firebase `google-services.json` + secrets + migracja `push_fcm_tokens` + redeploy APK
-- [ ] **Faza 3 — Usage Stats → `phone_usage_daily`:** live ingest zamiast ręcznego AW phone import
-- [ ] **Faza 4 — lokalizacja:** foreground context → opcjonalnie background
-- [ ] **Faza 5 — sync w tle:** foreground service + battery/autostart wizard (Xiaomi)
-- [ ] **Faza 6 — polish APK:** ikona, share target, skróty startowe
-
----
-
-# Część V — Resolution Layer / Partner Mode
-
-> Hard Freeze na `vanguard-auto-classify` i kod produkcyjny zdjęty 2026-07-10.
-
-## Cel
-
-Telegram ma przestać być pasywnym Loggerem i stać się Partnerem: przed odpowiedzią bot sprawdza graf faktów (`public.claims`) i stan biometryczny (Oura).
-
-Warunek konieczny: graf encji (`entities`/`entity_aliases`/`claims`) musi być spójny — jedna realna rzecz = jedna encja. Dziś tak nie jest.
-
-## Diagnoza (zweryfikowana bezpośrednio w bazie)
-
-- `entities`: 232 wiersze, wszystkie utworzone 2026-07-08.
-- `entity_aliases`: **0 wierszy.** Trigger `tr_new_entity_alias` istnieje, ale 232 encje powstały zanim/bez tego by trigger je zasilił — Tier 1 (trigram) nie ma dziś na czym trafić.
-- Duplikaty potwierdzone (zgodność `kind` + wysokie podobieństwo): `Cyberbezpieczenstwo`/`Cyberbezpieczeństwo` — sim 0.74; `Kinga`/`Kuzynka Kinga` — sim 0.46.
-- Fałszywe alarmy odrzucone po sprawdzeniu `kind` (NIE scalać): `Analiza`/`Analiza Danych`/`Analityk Danych` — trzy różne pojęcia; `Siłownia` (place) vs `siłownia_jutro`/`siłownia_w_sobotę`/`siłownia_w_niedzielę` (event) — miejsce vs wydarzenia.
-
-## Otwarte zadania
-
-- [ ] Backfill `entity_aliases` dla istniejących 232 encji.
-- [ ] Ręczny merge: Kinga/Kuzynka Kinga, Cyberbezpieczenstwo/Cyberbezpieczeństwo.
-- [ ] Dodać krok B2 (fuzzy match + kind guardrail + confidence gap) do `resolve_entity()` + indeks GIN na `entity_aliases.alias`.
-- [ ] Podłączyć `fetchWorldState()` w `queryOracle` zamiast ręcznego `Promise.all`.
-- [ ] Dodać Resolution Layer (Tier 1 trigram / Tier 2 embedding+LLM) + odczyt `public.claims` do `queryOracle`.
-- [ ] Deploy `vanguard-telegram` po weryfikacji powyższego.
-
-## Otwarte z archiwum ACTIVE_WORK
-
-Niezweryfikowane punkty z usuniętego, 2000-liniowego handoffu. Przed pracą sprawdź w kodzie, czy punkt nadal istnieje.
-
-- [ ] **Finanse**: import CSV brokera (XTB/Revolut) do `finance_holdings`, dywidendy, TWR/MWR, PSD2, widget Androida.
-- [ ] **Badania**: sprawdzić, że kontekst medyczny trafia do Oracle z flagą świeżości.
-- [ ] **Healthspan v2**: stan kalibracji przy krótkiej historii, `methodology_version`/`coverage`/`evidence_summary`, szczegół punktu (zakres dat, N, źródła), weryfikacja na prawdziwym profilu Garmin/Oura.
-- [ ] **Kartoteka**: testy i weryfikacja `MedicalRecordsView` / `medical_events`.
-- [ ] **Notatki (foldery, Smart Foldery, gesty)** i **Functional iOS**: jedno przejście po ekranach 390×844 i 1440×900.
+| Zakład C / przypomnienia | Wybrane przez użytkownika check-iny: edycja, wyłączenie, cykliczność i deduplikacja przez istniejący outbox. |
+| Zakład C / posiłki | Menu restauracji, lodówka → propozycje, jadłospis i lista zakupów. Wybór nie oznacza spożycia; bez automatycznych zamówień. |
+| Zakład C / estymacje | Model glikemii nie jest pomiarem; regeneracja partii i prognozy wyników wymagają jawnego okna, ograniczeń oraz walidacji. |
+| Zakład C / import | Plan ze zdjęcia: OCR → korekta → preview, bez automatycznej aktywacji rozpoznanych ciężarów. |
+| Zakład C / pogoda | Kontekst miejsca i czasu rzeczywistej aktywności, nie bieżąca prognoza innego miasta. |
+| Zakład C / wiedza i nawigacja | Publikacje na żądanie z weryfikowalnymi źródłami; jawny kontekst oglądanego ekranu; pomoc z istniejącego katalogu tras. |
+| Część 0 / użycie | Pomiar wejść i wykonanych akcji przed dalszym zamrażaniem modułów. |
+| Część I / Rozwój | Okładki, oceny, grupowanie; import ukończonych materiałów tylko za zgodą i z preview; `/nauka`, slot kalendarza, przegląd miesiąca i powiązanie Pocket wymagają potwierdzonego użycia. |
+| Część II / dane | Backup DB/bucketów z testem odtworzenia; historyczny backfill/replay, `algo_version`, pokrycie metryk, korekty i confoundery/cykliczność przed rozbudową analityki. Najpierw sprawdzić istniejącą implementację. |
+| Część II / Auth | Sprawdzić bieżący stan ochrony przed ujawnionymi hasłami; dawny wpis nie dowodzi aktualnej konfiguracji ani uprawnia do zmiany ustawień konta. |
+| Część II / wiedza | `claims`, encje, aliasy i bitemporalność już istnieją: sprawdzić tożsamości, historię i konsumentów; dopiero potem dossier celu, diff pamięci lub eksport raportu dla trenera. Bez automatycznego merge różnych pojęć i nowego magazynu faktów. |
+| Część III / offline | Rozszerzenia poza istniejącą kolejką wymagają odtworzonego problemu; stare niepewne ścieżki/numery linii nie są zadaniem. |
+| Część V / Finanse | Import brokera, dywidendy, TWR/MWR, PSD2 i widget; przeniesienie portfeli z Inwestycji dopiero po sprawdzeniu obecnych konsumentów. |
+| Część V / Healthspan v2 | Kalibracja, wersja metody, coverage i źródła, szczegół N/dat oraz walidacja na prawdziwym profilu Garmin/Oura. |
+| Część V / Notatki i iOS | Szeroki odbiór folderów, gestów i układów dopiero dla konkretnego odtworzonego problemu. |
+| Closer | Materiały oferty/sprzedaży → kryteria etapów w `sales_playbook_criteria`; kalibracja ocen AI na rozmowach ocenionych przez użytkownika. |
+| Android | Nowe widgety i dalsza integracja BLE wymagają potrzeby; odbiór istniejących ścieżek pozostaje w RÓB. |
+| Dawne inspiracje / planowanie | Rollover/pruning, estymacja czasu i pojemności, focus/time tracking, przenoszenie celów, dynamiczne nawyki, rescheduling, deadline i bufory — tylko przez istniejące zadania/kalendarz i po decyzji o zakresie. |
+| Dawne inspiracje / ergonomia | Filtry, szablony, tagi, heatmapy i referencje do istniejących ID; nowe rutyny Telegrama lub kanały email/iOS dopiero przy realnym użyciu. |
+| Dawny audyt UX | Czytelność, motyw, kontrast, przepełnienie, ruch i dotyk sprawdzać przy dotyku. Osobny redesign Dziś, globalny hero, nowe wykresy, gęstość, podobne dni, plakaty i widgety pozostają pomysłami, nie kolejką. |
+
+Odrzucone: kolejny autonomiczny profil użytkownika, nowy silnik agentowy/baza grafowa
+bez wykazanej potrzeby, efekty muzyczne i dekoracyjne widgety bez konsumenta.
+Nie kupować nowych usług ani infrastruktury na podstawie samej możliwości technicznej.
