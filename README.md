@@ -322,6 +322,8 @@ sprawdzane automatycznie względem odwołań w kodzie.
 
 <!-- README_SYNC_BACKEND_ENV_END -->
 
+`OPENAI_API_KEY` nie jest ścieżką runtime. Transkrypcja i embeddingi używają `GEMINI_API_KEY` (`supabase/functions/_shared/openai.ts` to shim na Gemini).
+
 Nie wszystkie zmienne są potrzebne do samego uruchomienia interfejsu. `SB_SECRET_KEY`
 i `SUPABASE_SERVICE_ROLE_KEY` są obsługiwanymi przez kernel alternatywami klucza
 serwisowego. Sekrety backendu ustawia się w środowisku Supabase, nigdy w kodzie ani

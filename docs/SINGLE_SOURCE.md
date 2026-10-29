@@ -25,6 +25,7 @@ nawet jeśli każda kopia osobno wygląda sensownie.
 | Cele tygodniowe sprzedaży (umówienia, sales calle, rozmowy odebrane, godziny) | `goal_kpis` (projekt closer) | `useCloserTargets(userId)` |
 | Cel skuteczności sprzedaży (close rate) | brak właściciela: nie wpisuj procentu do UI ani promptów | dopisz KPI w `goal_kpis` i czytaj stamtąd, jeśli ma wrócić |
 | Aktualny poziom tłuszczu (%) | ostatni pomiar `body_metrics.body_fat` | `nutrition_profile.current_body_fat_est` to tylko zapas, gdy pomiaru brak (healthspan, trener żywieniowy) |
+| Estymata BF Navy dla mężczyzn | obwód `belly`, awaryjnie `waist`, oraz `neck` i wzrost | `compute_navy_bf` i helper UI stosują ten sam kontrakt; zmiana samego brzucha uruchamia przeliczenie |
 | Cel snu (h) | `nutrition_profile.sleep_target_hours` | `derivePersonalTargets().sleepTargetH` |
 | Białko i kcal dziennie | `nutrition_targets` (wiersz obowiązujący w danym dniu: `date <= dzień`, najnowszy; nie „najnowszy w ogóle”, bo trener zapisuje cel na jutro z wyprzedzeniem; frontend: `fetchNutritionTargetForDay`), awaryjnie waga × g/kg z profilu | `derivePersonalTargets` w `@vanguard/domain` (edge przez `personalTargets`, frontend wprost) |
 | Wizja i tożsamość (tekst) | `user_fundament` | Oracle; liczby celów dostaje osobno z właścicieli (blok „CELE LICZBOWE” w prompcie), tekst wizji nie jest ich źródłem |
@@ -53,8 +54,9 @@ Rozjazd w niezmienniku znaczy, że ktoś zapisuje obok właściciela.
 |---|---|---|---|
 | Epizod nawyku „Lenie” (też `/lenie`, `/walenie`, `/pmo`) | `habit_logs` + `habits` (jeden zapis: `recordLenieEpisode`) | brak kopii; analizy czytają `habit_logs` (widok `vanguard_consolidated_activities`, `compute-behavior-effects` przez `lenieAsBehaviorRows`) | `behavior_log` nie ma klucza `walenie` |
 | Dzienny agregat jedzenia | `daily_food_entries` | `daily_nutrition` (trigger) | kcal i białko = suma wpisów dnia |
-| Zadania dnia (sloty 1–5) | `daily_win_tasks` (wiersze) | `daily_wins.task_N/done_N/…` (50 kolumn, utrzymywane triggerami `trg_sync_daily_win_tasks` i `trg_sync_daily_wins` w obie strony; od 28.10 trigger zmienia tylko różniące się sloty, więc identyfikatory zadań są stabilne; RPC planu porannego zapisuje wyłącznie `daily_win_tasks`) | tytuł i done slotów zgodne |
+| Zadania dnia (sloty 1–5) | `daily_win_tasks` (wiersze) | brak kopii w kolumnach `daily_wins` (drop 2026-10-28: migracja `20261028300000_daily_wins_drop_slot_columns`); odczyt buduje `task_N`/`done_N` w pamięci (`adaptDailyWinTasks` / `withLegacySlots`). RPC planu porannego zapisuje wyłącznie `daily_win_tasks` | tytuł i done slotów zgodne z wierszami zadań |
 | Wynik snu i gotowość dobowa | `oura_daily_summary` | `oura_enhanced.sleep_score/readiness_score` | równe w obu tabelach |
+| Kroki Oury | `oura_daily_summary.steps` | `oura_enhanced.steps`: projekcja w bazie; import szczegółów nie zapisuje niezależnej liczby kroków | równe po właścicielu/dacie; obciążenie czyta źródło kanoniczne, zero jest znaną wartością |
 | Godziny snu | `oura_daily_summary.total_sleep_hours` = suma epizodów z dnia | `oura_enhanced.total_sleep_hours` = najdłuższy epizod (inna definicja, nie kopia; do rozdzielenia nazw) | nie porównujemy |
 | Powiązania grafu wiedzy | `vanguard_entity_links` (model zapisu) | `claims` + `entities` + `relations` (trigger; Oracle czyta `claims`) | źródło powiązania istnieje w `entities` |
 | Lista relacji i aliasy encji grafu | `relations` (lista, opis, klucz obcy z powiązań) i `entity_aliases` (aliasy) | brak; dawne `vanguard_relation_ontology` i `vanguard_entity_aliases` scalone 28.10 (archiwum w schemacie `archive`) | FK `vanguard_entity_links.relation` → `relations(name)` |

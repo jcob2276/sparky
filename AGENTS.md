@@ -6,7 +6,7 @@ Entry point for AI agents working in this repository.
 
 - **Live daily loop:** user stream via `vanguard-telegram` → noon `vanguard-eval-interview` ("Wywiad") → evening `vanguard-daily-reconciliation` reflection. Tomorrow planning is app/Oracle-led, not Telegram evening planning. Autonomous morning brief/ping and legacy midday check are removed.
 - **Evidence:** `vanguard_stream` → `vanguard-auto-classify` → `friction_events` → `confirmed_friction_events` (VIEW)
-- **Compiled memory:** `vanguard-architect` / `ingest-vault-log` build graph; `vanguard-wiki-compiler` builds derived wiki pages — not inline Oracle chat writes to evidence
+- **Compiled memory:** `vanguard-architect` builds graph from stream (including vault chunks); `vanguard-wiki-compiler` builds derived wiki pages — not inline Oracle chat writes to evidence. There is no `ingest-vault-log` function; vault ingest lives in `vanguard-capture` and writes stream only.
 - **Function registry (SSOT):** [`supabase/functions/README.md`](supabase/functions/README.md)
 - **One-page architecture:** [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 - **Doc index / reading order:** [`docs/README.md`](docs/README.md) — does not override this constitution.
@@ -26,7 +26,7 @@ Entry point for AI agents working in this repository.
 
 Full guardrails: [`docs/PRODUCT_PRINCIPLES.md`](docs/PRODUCT_PRINCIPLES.md)
 
-**Wizja długoterminowa (10/10):** [`docs/direction/KIERUNEK.md`](docs/direction/KIERUNEK.md) — North Star / Wersja 10/10.
+**Wizja długoterminowa (10/10):** [`docs/direction/KIERUNEK.md`](docs/direction/KIERUNEK.md) — jedna aplikacja-dziennik: mierzy wszystko, co da się zmierzyć, i łączy wnioski. Wykrywanie samooszukiwania nie jest celem.
 
 ## What this repo is
 
@@ -49,7 +49,6 @@ Deploy:
   food-integrity-audit,
   vanguard-oracle, vanguard-auto-classify, vanguard-architect,
   vanguard-wiki-compiler,
-  ingest-vault-log,
   vanguard-analyst, save-daily-aggregate, vanguard-weekly-synthesis,
   vanguard-eval-interview, vanguard-nutrition-coach,
   sync-strava, rescore-workout-sessions, compute-illness-signal,
@@ -153,11 +152,11 @@ naprawiła; te reguły utrzymują stan naprawiony:
 - Oracle deep mode (`!!`): `deepseek-reasoner`
 - Analyst nightly: `deepseek-reasoner` (pattern analysis)
 - JSON parsing tasks: `deepseek-chat` — food parsing, workout parsing, food quality, training load, librarian, eval-interview classification. Used where `responseFormat: json_object` is needed (v4-flash uses `reasoning_content` field, not suitable for structured JSON).
-- Transcription: Gemini audio (fallback między modelami Gemini, bez OpenAI)
-- Embeddings: Gemini `gemini-embedding-001` (1536 wymiarów); Gemini zastępuje OpenAI w całym runtime
+- Transcription: Gemini audio (fallback między modelami Gemini, bez OpenAI). Sekret: `GEMINI_API_KEY`. `supabase/functions/_shared/openai.ts` to shim (`openaiChat`, `transcribeBlob`, `getEmbedding` wołają Gemini); parametr `openAiKey` w handlerach nie jest kluczem OpenAI.
+- Embeddings: Gemini `gemini-embedding-001` (1536 wymiarów); ten sam sekret. Gemini zastępuje OpenAI w całym runtime.
 
 ## Current system state
 
 - Evening reconciliation (reflection-only in Telegram) + planning in app/Oracle: **ACTIVE**
-- Morning brief/ping + legacy midday check crons: **REMOVED** (functions return 410 stubs); noon interview + evening reflection: **ACTIVE**
+- Morning brief/ping + legacy midday check crons: **REMOVED** (brak tych funkcji w repo; nazwy w `scripts/ops/smoke-manifest.mjs` → `CRON_REMOVED`). Nie wdrażaj ich z powrotem. Noon interview + evening reflection: **ACTIVE**
 - Observation-only mode: **DEPRECATED**

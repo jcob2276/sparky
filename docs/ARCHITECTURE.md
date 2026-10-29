@@ -62,9 +62,11 @@ Telegram / voice / manual ingest
         │         (canonical friction pipeline; NOT architect)
         │
         ├──► vanguard-architect (batch) → vanguard_entity_links (graph)
+        │         sole graph writer from stream / vault chunks
         ├──► vanguard-wiki-compiler → vanguard_wiki_pages (derived compiled memory)
         │
-        └──► ingest-vault-log (long-form) → stream chunks + graph RPC
+        └──► vanguard-capture vault path → stream chunks only
+                  (no graph RPC; architect extracts edges later)
 
 READ path: Oracle, synthesis, analyst
          → confirmed_friction_events VIEW for patterns
@@ -178,8 +180,10 @@ Deprecated/dropped tables (do not use): `career_projects`, `career_moves`, `care
 
 | What | Canonical table | How to log |
 |------|-----------------|------------|
-| Free text, friction, context | `vanguard_stream` | Telegram, voice, PowerList, BlockTimer |
-| Daily habits incl. Lenie | `habits` + `habit_logs` | Desktop Nawyki, `/lenie` → also mirrors to stream |
+| Free text, friction, context | `vanguard_stream` | Telegram, voice |
+| Day's five tasks | `daily_win_tasks` | Power list writes the rows. Telegram (`/teraz`), Oracle and recap read that table. A checkoff is not a stream entry and has no embedding |
+| Daily habits incl. Lenie | `habits` + `habit_logs` | Desktop Nawyki, `/lenie`, `/walenie`. No stream mirror — consumers read `habit_logs` |
+| Weekly task review done | `weekly_reviews.review_completed_at` | Todo WeeklyReviewModal. Not a stream entry |
 | Strength / wellness (sauna) | `workout_sessions` + `exercise_logs` | Workout logger, Sauna modal |
 | Confounders (alcohol, stress, illness, travel) | `behavior_log` | Desktop Sygnały dnia |
 | Meals / caffeine | `daily_food_entries` | In-app food logger only; Telegram `/dieta` reads the summary |

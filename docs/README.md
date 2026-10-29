@@ -41,7 +41,7 @@ kolejność czytania albo listę odnośników, powinien zamiast tego cytować te
 |---|---|
 | [`../lessons.md`](../lessons.md) | Przed każdą sesją — sprawdź czy problem już był |
 | [`agent/ACTIVE_WORK.md`](./agent/ACTIVE_WORK.md) | Co jest w toku teraz (krótki handoff, nadpisywany); Capacitor/APK; historia w `agent/archive/` |
-| [`direction/KIERUNEK.md`](./direction/KIERUNEK.md) | North Star / Wersja 10/10 — ocena, czy zmiana przybliża czy oddala od kierunku |
+| [`direction/KIERUNEK.md`](./direction/KIERUNEK.md) | Wersja 10/10: jedna aplikacja-dziennik, która mierzy wszystko, co da się zmierzyć, i łączy wnioski |
 | [`direction/FEATURE_INSPIRATIONS.md`](./direction/FEATURE_INSPIRATIONS.md) | Bank pomysłów funkcjonalnych, posortowany wg dźwigni |
 | [`../supabase/migrations/README.md`](../supabase/migrations/README.md) | Przed dodaniem nowej migracji |
 | [`../scripts/README.md`](../scripts/README.md) | Przy uruchamianiu lokalnych skryptów |

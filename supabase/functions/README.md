@@ -13,8 +13,8 @@ For the complete, auto-generated list of Edge Functions, their triggers, roles, 
 Telegram / voice / vault
   -> vanguard_stream -> vanguard-auto-classify -> friction_events
        |                    (only friction path)
-       +-> vanguard-architect (batch graph)
-       +-> ingest-vault-log (long-form)
+       +-> vanguard-architect (batch graph; sole entity_links writer from stream)
+       +-> vanguard-capture vault path (long-form → stream chunks only)
        +-> vanguard-wiki-compiler (derived compiled wiki)
 
 Noon: vanguard-eval-interview -> reflective interview / thread-connecting question

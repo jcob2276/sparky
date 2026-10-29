@@ -1,134 +1,31 @@
 # KIERUNEK — North Star (Wersja 10/10)
 
-To jest **najważniejszy dokument** w tym repozytorium.
+To jest kierunek produktu. Zmianę oceniaj według tego, czy przybliża Sparky do tej wersji.
 
-Wszystko inne (roadmapy, architektura, kod, decyzje) powinno być oceniane pod kątem tego, czy przybliża nas do tego kierunku, czy od niego oddala.
+Sparky 10/10 to **jedna aplikacja**: najlepszy dziennik, jaki da się zrobić. Mierzy wszystko, co da się zmierzyć, i łączy z tego wnioski w tym samym miejscu, w którym prowadzi się zapis.
 
----
+## Czym jest 10/10
 
-## Wersja 10/10 (Idealna / Groteskowa)
+1. **All-in-one.** Jedno prywatne miejsce zamiast osobnych narzędzi do dnia, zadań, zdrowia, treningu, jedzenia, notatek i kalendarza. Wejście jest jedno. Domeny są głębokie, ale nie są osobnymi aplikacjami.
+2. **Pomiar.** Zapisuje wszystko, co da się zmierzyć ze źródeł, które już są: sen, tętno, trening, jedzenie, czas, zadania, kalendarz, głos, wpis. Dziura w pomiarze jest luką produktu, nie cechą.
+3. **Wnioski.** Pomiary z różnych dziedzin stoją obok siebie i dają się czytać jako jeden dziennik: co było, co się powtarza, co w danych idzie razem. Wniosek pokazuje źródło, liczbę i zakres dat.
+4. **Dziennik.** Najlepsza możliwa aplikacja do prowadzenia własnego zapisu. Szybka, cicha, bez coachingu i bez presji z powiadomień. Otwierasz ją, żeby zobaczyć dzień i dopisać fakt, nie żeby dostać werdykt.
 
-Vanguard OS przestaje być „aplikacją”.
+## Czego tu nie ma
 
-Staje się czymś bliższym **zewnętrznemu układowi nerwowemu i pamięci operacyjnej człowieka**.
+Wykrywanie samooszukiwania, niewypowiedzianych napięć, „prawdziwych” celów albo przewidywanie trajektorii życia lepiej niż człowiek. To wcześniejsza wizja. Jest nieaktualna, bo jest niemożliwa. System nie wie, kiedy ktoś kłamie sam sobie.
 
-Nie tylko zapisuje dane. Rozumie trajektorię życia w czasie.
+Nie budujemy coacha, motywatora ani wyroczni.
 
-### Co system wie
+## Jak oceniać zmianę
 
-System wie:
+Przybliża 10/10, gdy więcej życia da się zmierzyć w tej jednej aplikacji i gdy wniosek z kilku pomiarów da się przeczytać bez sklejania ekranów.
 
-- jakie środowiska wzmacniają Twoje wykonanie,
-- jakie osoby stabilizują albo destabilizują Ci psychikę,
-- jakie decyzje historycznie kończyły się wzrostem vs dryfem,
-- kiedy Twój mózg zaczyna wchodzić w avoidance zanim Ty sam to nazwiesz,
-- które cele są realnie Twoje, a które są tylko chwilowym pobudzeniem dopaminowym.
-
-### Jak działa w idealnej wersji
-
-Idealny Vanguard nie pyta już:
-
-> „co chcesz zrobić jutro?”
-
-On rozumie:
-
-- w jakim jesteś stanie,
-- jak wygląda Twój realny momentum,
-- jakie napięcia są niewypowiedziane,
-- gdzie kłamiesz sam sobie,
-- które działania mają najwyższy długoterminowy leverage,
-- kiedy potrzebujesz ciśnienia,
-- a kiedy regeneracji.
-
-I robi to **bez motywacyjnego bullshit’u**.
-
-### Najmocniejsza wersja systemu
-
-Najmocniejsza wersja systemu nie byłaby „inteligentniejszym chatbotem”.
-
-Byłaby czymś znacznie rzadszym:
-
-**systemem, który przez lata buduje niezwykle dokładny model Twojego rzeczywistego zachowania i potrafi przewidywać trajektorie życia lepiej niż Ty sam w danym momencie.**
-
-Nie:
-
-> „jak się czujesz?”
-
-Tylko:
-
-> „ostatnie 17 razy ten wzorzec kończył się 9 dniowym dryfem i izolacją społeczną — zatrzymaj to teraz.”
-
-Albo:
-
-> „twoje najlepsze okresy życia zawsze zaczynały się od tych trzech zachowań wykonywanych równolegle przez 2 tygodnie.”
-
-### Czym staje się Vanguard
-
-W idealnej wersji Vanguard staje się:
-
-- **behavioral debuggerem**,
-- **systemem anty-self-deception**,
-- **osobistym silnikiem decyzji**,
-- **pamięcią długoterminową**,
-- **warstwą ciągłości tożsamości**,
-- **interfejsem między „tym kim myślisz że jesteś” a „tym co pokazują dane”**.
-
-Po 5–10 latach danych taki system znałby:
-
-- rytm Twojego życia,
-- cykle wzrostu i autodestrukcji,
-- relację między snem, ludźmi, stresem, pracą i decyzjami,
-- rzeczy które realnie budują Ci przyszłość,
-- i rzeczy które systematycznie ją niszczą.
-
-Nie po to, żeby kontrolować człowieka.
-
-Po to, żeby człowiek **przestał być ślepy na samego siebie**.
+Oddala, gdy dokłada osobny system obok dziennika albo gdy system orzeka o motywacji, której nie zmierzył.
 
 ---
 
-## Zasada nadrzędna
+**Powiązane:**
 
-Wszystko co budujemy musi służyć jednemu celowi:
-
-**Zmniejszać ślepotę człowieka na samego siebie poprzez gromadzenie i pokazywanie behavioral evidence w długim terminie.**
-
-Nie budujemy:
-- AI coacha
-- motywacyjnego narzędzia
-- systemu do „rozwoju osobistego”
-- narzędzia do kontroli
-
-Budujemy:
-- zewnętrzną pamięć behawioralną
-- warstwę konfrontacji z rzeczywistością
-- system do redukowania samooszukiwania w czasie
-
----
-
-## Wersja 10/10 — praktyczna (Zintegrowany Kokpit)
-
-Wyżej opisana wersja idealna/groteskowa jest kierunkiem, nie specyfikacją najbliższego
-sprintu. Praktyczna wersja 10/10 — mierzalna, osiągalna — oznacza pełną unifikację,
-stabilność i rzetelność systemu jako **osobistego kokpitu samoobserwacji i logowania**:
-
-1. **Zunifikowane Centrum Dowodzenia** — jedno prywatne miejsce zamiast rozproszenia na
-   10 aplikacji: zarządzanie czasem i zadaniami (Todo, Projekty, Cele kierunkowe),
-   śledzenie zdrowia i sportu (Oura, Strava), przechowywanie myśli (Notatnik Keep, Linki),
-   dzienna pętla refleksyjna (Telegram reconciliation).
-2. **Rzetelna Pamięć Behawioralna** — system nie spekuluje i nie interpretuje, działa jako
-   bezwzględny archiwizator faktów. Lata czystych, ustrukturyzowanych danych (Evidence) o
-   tym, co rzeczywiście zjadłeś/wyćwiczyłeś/zapisałeś/zrealizowałeś — eliminujące
-   samooszukiwanie bez modeli predykcyjnych.
-3. **Zerowy Szum i Całkowita Kontrola** — zero powiadomień generujących sztuczną presję,
-   zero coachingowych monologów AI, szybki lokalny interfejs zorientowany na fakty.
-
-System, który nie wie "lepiej" od Ciebie — po prostu pamięta to, o czym Ty zapominasz.
-
----
-
-**Powiązane dokumenty:**
-- `docs/PRODUCT_PRINCIPLES.md` — guardrails, które muszą być przestrzegane po drodze
-- `docs/FEATURE_LIFECYCLE.md` — co jest aktywne, co deprecated
-
-Ten plik jest ważniejszy niż wszystkie inne.
+- `docs/PRODUCT_PRINCIPLES.md` — guardrails po drodze
+- `docs/FEATURE_LIFECYCLE.md` — co jest aktywne, co zdjęte

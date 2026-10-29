@@ -21,8 +21,12 @@ deploy_edge_function(
 
 ```bash
 supabase functions deploy vanguard-telegram --no-verify-jwt
-supabase functions deploy vanguard-morning-brief --no-verify-jwt
+supabase functions deploy vanguard-eval-interview --no-verify-jwt
 ```
+
+Nie wdrażaj nazw z `CRON_REMOVED` w `scripts/ops/smoke-manifest.mjs`
+(`vanguard-morning-brief`, `vanguard-morning-ping`, `vanguard-midday-check` i reszta).
+Tych funkcji nie ma w repozytorium.
 
 ## After deploy
 

@@ -538,7 +538,7 @@ Grupy:
 | Google Calendar | wydarzenia i ograniczenia czasu | Kalendarz, Dziś, planowanie |
 | Telegram | capture, rozmowa, wywiad, refleksja, powiadomienia | Stream, Oracle, Todo; suplementy/post i odczyt żywienia |
 | DeepSeek | klasyfikacja i większość rozumowania tekstowego | Oracle, analyst, parsery, wiki |
-| OpenAI | Whisper, embeddingi i analiza zdjęć sylwetki | Capture, graf, Historia |
+| Gemini | transkrypcja audio, embeddingi (`gemini-embedding-001`), analiza zdjęć sylwetki. Sekret: `GEMINI_API_KEY`. `openai.ts` to shim | Capture, graf, Historia |
 | Open Food Facts | informacje o produktach | Food logger |
 | ActivityWatch / Android Usage Stats | użycie urządzeń | zachowanie i korelacje |
 | Android lokalizacja | kontekst miejsca | stream/agregaty po podłączeniu konsumenta |

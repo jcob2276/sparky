@@ -15,7 +15,7 @@ Functions that require `verify_jwt: false`:
 - `vanguard-telegram`
 - `vanguard-oracle` (invoked server-to-server from telegram)
 - `vanguard-auto-classify` (DB trigger / cron)
-- `vanguard-architect`, `ingest-vault-log`
+- `vanguard-architect`
 - `vanguard-analyst`, `save-daily-aggregate`, `vanguard-weekly-synthesis`
 - `vanguard-eval-interview`, `vanguard-nutrition-coach`
 - `sync-strava`, `rescore-workout-sessions`, `compute-illness-signal`
@@ -32,7 +32,7 @@ Never store deploy version numbers in rules — they go stale weekly. Use Supaba
 | Secret | Used by |
 |---|---|
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Vanguard bot |
-| `OPENAI_API_KEY` | Whisper, embeddings |
+| `GEMINI_API_KEY` | Transkrypcja audio i embeddingi. `supabase/functions/_shared/openai.ts` przekazuje je do Gemini; `OPENAI_API_KEY` nie jest sekretem runtime. |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | All functions |
 | `VANGUARD_USER_ID` | All user-scoped operations |
 

@@ -4,7 +4,8 @@ This ledger tracks all manual deployments of Supabase Edge Functions. Always rec
 
 Historical deploys before this ledger existed are not backfilled — verify actual
 live state with `list_edge_functions` (Supabase MCP) or `supabase functions list`
-rather than trusting entries you didn't write yourself.
+rather than trusting entries you didn't write yourself. Starsze notatki
+(Whisper, OpenAI, zdjęte crony) nie są żywym kontraktem — modele i pętla dnia są w `AGENTS.md`.
 
 | Function Name | Git SHA | Deployed At | Deployed By | Notes / Reason |
 |---|---|---|---|---|

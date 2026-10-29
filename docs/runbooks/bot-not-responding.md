@@ -22,7 +22,7 @@ curl -X POST "$SUPABASE_URL/functions/v1/vanguard-telegram" \
 
 ### Symptom: "Słucham..." then silence (voice)
 
-- Whisper timeout — check `OPENAI_API_KEY`
+- Transkrypcja Gemini nie wróciła — logi `gemini.transcribe`, sekret `GEMINI_API_KEY` (nie `OPENAI_API_KEY`)
 - Evening reflection path exceeded Telegram 30s webhook (embedding + 3× LLM) — use `telegramFastPath` in `reconciliation.ts`
 - Telegram retry after partial save: idempotency on `vanguard_stream` used to return silently while `daily_reconciliations.status` stayed `sent` — resend voice or wait for deploy with resume logic
 
@@ -33,7 +33,7 @@ curl -X POST "$SUPABASE_URL/functions/v1/vanguard-telegram" \
 
 ### Symptom: "Transkrybuję..." / "Refleksja — transkrybuję..." then nothing
 
-- Check edge logs for Whisper/DeepSeek errors
+- Check edge logs for Gemini transcription (`gemini.transcribe`) and DeepSeek errors
 - Check `daily_reconciliations.status` — if `sent` with `user_response` filled, resend voice to trigger resume
 
 ## Quick DB checks

@@ -892,7 +892,7 @@ Kluczowe tabele: `vanguard_entity_links` (graf, triady z `confidence_score`, `st
 
 **Co zbudować:**
 1. Po `status: 'answered'`, tylko gdy odpowiedź faktycznie potwierdza `proposed_memory`: insert do `vanguard_entity_links` z `source_entity`/`target_entity`/`relation`, `confidence_score: 0.95`, `status: 'active'`, `source: 'user_confirmed_clarification'`, `learned_at: now()`.
-2. Kolizja z istniejącym aktywnym faktem → oznacz stary jako `superseded` przez `_shared/deprecateSupersededLinks.ts`.
+2. Kolizja z istniejącym aktywnym faktem → oznacz stary jako `superseded` przez RPC `deprecate_superseded_facts` (helper w `_shared/` tylko gdy faktycznie podłączony do write-path).
 3. Test: odpowiedz na jedno pytanie Oracle w UI, sprawdź nowy wiersz w `vanguard_entity_links`.
 
 **Koszt:** ~1 wieczór.
@@ -1075,7 +1075,7 @@ projekcje i przeliczenia. Poniższa kolejność uwzględnia zależności; blokad
 
 ### DC-01 — P1: jeden stan wykonania Todo i PowerList
 
-- [ ] **Problem:** zmiana wieczornej notatki/wyniku potrafi odbudować lustro i zgubić ukończenie zadania.
+- [x] **Problem:** zmiana wieczornej notatki/wyniku potrafi odbudować lustro i zgubić ukończenie zadania.
   **Dowód:** `supabase/migrations/20260801103739_fix_power_list_todo_snapshot_sync.sql`
   oraz guard głębokości triggera i odbudowa zadań w migracji `20260504000000_baseline.sql`:
   `todo_items` ↔ `daily_win_tasks` ↔ sloty `daily_wins` mają konkurujące ścieżki zapisu.
@@ -1086,7 +1086,7 @@ projekcje i przeliczenia. Poniższa kolejność uwzględnia zależności; blokad
 
 ### DC-02 — P1: wkład do KPI niezależny od miejsca ukończenia
 
-- [ ] **Problem:** wkład zadania do KPI zależy od ekranu użytego do odhaczenia.
+- [x] **Problem:** wkład zadania do KPI zależy od ekranu użytego do odhaczenia.
   **Dowód:** `src/components/lifestyle/hooks/usePowerListActions.ts` aktualizuje wkład;
   odpowiadającej operacji brakuje w ścieżkach Todo, kalendarza i historii.
   **Minimum:** po DC-01 wspólna transakcyjna aktualizacja różnicy wkładu, odporna na retry;
@@ -1101,7 +1101,7 @@ projekcje i przeliczenia. Poniższa kolejność uwzględnia zależności; blokad
 
 ### DC-04 — P1: stała tożsamość zapisu przy retry i offline
 
-- [ ] **Problem:** nowy identyfikator przy ponowieniu zmienia jedną intencję w dodatkowy posiłek/dawkę.
+- [x] **Problem:** nowy identyfikator przy ponowieniu zmienia jedną intencję w dodatkowy posiłek/dawkę.
   **Dowód:** `src/lib/health/nutritionTrackerApi.ts` generuje capture ID przy każdym wywołaniu
   i dopisuje czas osobnym PATCH; `src/lib/health/supplementsApi.ts` tworzy ID dopiero po błędzie online.
   **Minimum:** nadać ID przed pierwszym zapisem i zachować przez retry/kolejkę; czas zdarzenia
@@ -1154,7 +1154,7 @@ projekcje i przeliczenia. Poniższa kolejność uwzględnia zależności; blokad
 
 ### DC-10 — P2: jeden wewnętrzny wpis planu w kalendarzu
 
-- [ ] **Problem:** każde wysłanie planu poranka tworzy scheduled Todo i niezależne wydarzenie kalendarza.
+- [x] **Problem:** każde wysłanie planu poranka tworzy scheduled Todo i niezależne wydarzenie kalendarza.
   **Dowód:** `src/components/core/morningPlan/useMorningPlanActions.ts` zapisuje oba byty
   bez trwałego powiązania i wspólnego cyklu edycji/usuwania.
   **Minimum:** wewnętrzny kalendarz pokazuje projekcję Todo; eksport zewnętrzny, jeśli wybrany,
@@ -1163,7 +1163,7 @@ projekcje i przeliczenia. Poniższa kolejność uwzględnia zależności; blokad
 
 ### DC-11 — P2: dzień suplementacji zgodny z czasem zdarzenia
 
-- [ ] **Problem:** historyczny checkbox zapisuje dzień D, lecz `logged_at=now()` trafia na dzisiejszą oś czasu.
+- [x] **Problem:** historyczny checkbox zapisuje dzień D, lecz `logged_at=now()` trafia na dzisiejszą oś czasu.
   **Dowód:** `src/components/desktop/health/useSupplementsData.ts`,
   `src/lib/health/supplementsApi.ts` oraz odczyt po `logged_at` w `src/lib/biometrics/ouraDayTimelineApi.ts`.
   **Minimum:** oddzielić czas zdarzenia od czasu rejestracji. Historyczny zapis bez godziny

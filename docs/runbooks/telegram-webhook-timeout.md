@@ -12,7 +12,7 @@ Telegram webhooks wait max **30 seconds** for HTTP 200. If processing takes long
 
 
 Process **synchronously** — return 200 only after:
-1. Whisper transcription
+1. Gemini transcription (`gemini.transcribe`, secret `GEMINI_API_KEY`)
 2. DB save
 3. Feedback message sent
 
@@ -22,14 +22,14 @@ Do NOT use `EdgeRuntime.waitUntil` for voice processing on Supabase — backgrou
 
 `vanguard-telegram` returns 200 immediately and processes in background IIFE. This works for text stream capture but voice transcription runs inside the background block.
 
-If voice hangs, user sees "Słucham..." with no follow-up — check logs for Whisper errors.
+If voice hangs, user sees "Słucham..." with no follow-up — check logs for `gemini.transcribe` errors.
 
 ## Timing budget
 
 | Step | Typical time |
 |---|---|
 | Telegram getFile + download | 1–3s |
-| Whisper (2 min audio) | 5–15s |
+| Gemini transcription (2 min audio) | 5–15s |
 | DeepSeek eval | 2–5s |
 | DB writes | <1s |
 | **Total** | 8–20s (within 30s limit) |
@@ -37,8 +37,8 @@ If voice hangs, user sees "Słucham..." with no follow-up — check logs for Whi
 ## If still timing out
 
 - Split: send immediate ack, process via separate queue (future)
-- Shorten audio or compress before Whisper
-- Check OpenAI API latency
+- Shorten audio or compress before transcription
+- Check Gemini latency (`gemini.transcribe`)
 
 ## Dedup (if retries happen)
 

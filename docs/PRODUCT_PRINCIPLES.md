@@ -225,9 +225,9 @@ Vanguard nie ma być:
 
 Ma pomagać:
 - utrzymywać kierunek
-- widzieć powtarzalne wzorce
-- zmniejszać samooszukiwanie
-- szybciej zauważać spirale zachowań
+- widzieć powtarzalne wzorce w zapisanych danych
+- trzymać pomiary i wnioski w jednym dzienniku
+- szybciej zauważać spirale zachowań, które widać w danych
 
 Zakres jest ograniczony celowo.
 
@@ -321,7 +321,7 @@ Pełna wersja tej wizji opisana jest tutaj:
 
 → [docs/direction/KIERUNEK.md](./direction/KIERUNEK.md)
 
-W skrócie: Vanguard staje się w pełni zintegrowanym kokpitem samoobserwacji i logowania. System nie próbuje przewidywać przyszłości ani być cyfrowym bliźniakiem, lecz zapewnia bezbłędną, zunifikowaną i wolną od szumu pamięć behawioralną (Evidence), która pozwala użytkownikowi wyeliminować samooszukiwanie.
+W skrócie: Sparky 10/10 to jedna aplikacja-dziennik. Mierzy wszystko, co da się zmierzyć, i łączy z tego wnioski w jednym miejscu. Wykrywanie samooszukiwania i przewidywanie trajektorii życia nie są celem — to jest niemożliwe.
 
 ---
 
