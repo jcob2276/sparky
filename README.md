@@ -60,7 +60,6 @@ produktu — [`docs/PRODUCT_LANGUAGE.md`](./docs/PRODUCT_LANGUAGE.md).
 | `/` | alias strony Dziś |
 | `/dzis` | plan i wykonanie bieżącego dnia |
 | `/tydzien` | plan, przegląd i kierunek tygodnia |
-| `/projekty` | projekty, KPI i kamienie milowe |
 | `/historia` | historia zdrowia, aktywności i żywienia |
 | `/keep` | Notatki |
 | `/todo` | Zadania |

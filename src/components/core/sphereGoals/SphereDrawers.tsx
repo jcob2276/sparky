@@ -3,6 +3,7 @@ import { buildNorthStarSpheres, type PillarId } from '../../../lib/projects/pill
 import { useLifeTargets } from '../../../lib/lifeTargetsApi';
 import { useUserId } from '../../../store/useStore';
 import { PILLAR_CONFIG } from './sphereGoalsConfig';
+import { useSphereDirection } from './useSphereDirection';
 
 interface SphereDetailsProps {
   pillar: PillarId;
@@ -11,23 +12,36 @@ interface SphereDetailsProps {
 
 export function SphereDetailsDrawer({ pillar, onClose }: SphereDetailsProps) {
   const cfg = PILLAR_CONFIG[pillar];
-  const goal = buildNorthStarSpheres(useLifeTargets(useUserId() ?? ''))[pillar];
+  const userId = useUserId() ?? '';
+  const goal = buildNorthStarSpheres(useLifeTargets(userId))[pillar];
+  const { direction, daysLeft } = useSphereDirection(userId, pillar);
 
   return (
     <div className="rounded-2xl border border-border-custom/50 bg-surface-2/60 p-3.5 space-y-2.5 animate-fadeIn">
-      <div className="flex items-center justify-between border-b border-border-custom/40 pb-1.5">
+      <div className="flex items-center justify-between gap-2 border-b border-border-custom/40 pb-1.5">
         <span className={`text-2xs font-semibold tracking-wide ${cfg.badgeText}`}>
           Cel Sfery: {goal.title} ({goal.metric})
         </span>
-        <Pressable
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="text-2xs text-text-muted hover:text-text-primary cursor-pointer"
-        >
-          Zwiń
-        </Pressable>
+        <div className="flex shrink-0 items-center gap-2">
+          {daysLeft !== null && (
+            <span className="text-2xs font-semibold text-text-muted">
+              {daysLeft >= 0 ? `${daysLeft} dni do celu` : `${Math.abs(daysLeft)} dni po terminie`}
+            </span>
+          )}
+          <Pressable
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="text-2xs text-text-muted hover:text-text-primary cursor-pointer"
+          >
+            Zwiń
+          </Pressable>
+        </div>
       </div>
+
+      {direction && (
+        <p className="text-xs font-bold leading-relaxed text-text-primary">{direction}</p>
+      )}
 
       <p className="text-xs font-bold leading-relaxed text-text-primary italic">
         „{goal.affirmation}”

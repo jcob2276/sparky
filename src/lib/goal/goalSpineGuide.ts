@@ -10,7 +10,7 @@ import { isMonthlyHardGate, isMonthlySoftCue, monthLabel } from '../growth/month
 import { longTermDeclarationsOk, primaryBhagLine } from './longTermBridge';
 import { slotDone, slotTitle } from '../daySlots';
 
-export type SpineGuideTarget = 'dzis' | 'tydzien' | 'projekty' | 'dashboard';
+export type SpineGuideTarget = 'dzis' | 'tydzien' | 'dashboard';
 
 type SpineGuideAction =
   | { type: 'navigate'; target: SpineGuideTarget; label: string }
@@ -211,7 +211,7 @@ export function deriveSpineGuidance(
       primaryCue: bhag
         ? `Uzupełnij cele roczne — masz szkic, ale brakuje pełnego BHAG.`
         : 'Najpierw cele roczne (Ciało / Duch / Konto) — bez tego sprint nie ma kotwicy.',
-      primaryAction: { type: 'navigate', target: 'projekty', label: 'Cele życiowe' },
+      primaryAction: { type: 'navigate', target: 'dzis', label: 'Cele życiowe' },
       steps: withSteps(baseSteps, 'long_term'),
       readyForDay: false,
       dayProgress: null,

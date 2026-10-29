@@ -47,7 +47,6 @@ import { DashboardDzisTab } from './DashboardDzisTab';
 // Only the first tab ships in the entry chunk; the rest load on demand (and are prefetched when idle).
 const DashboardTydzienTab = lazy(() => import('./DashboardTydzienTab').then((m) => ({ default: m.DashboardTydzienTab })));
 const DashboardHistoriaTab = lazy(() => import('./DashboardHistoriaTab').then((m) => ({ default: m.DashboardHistoriaTab })));
-const DashboardProjektyTab = lazy(() => import('./DashboardProjektyTab').then((m) => ({ default: m.DashboardProjektyTab })));
 
 const TAB_ORDER = ['dzis', 'tydzien', 'historia'];
 
@@ -73,7 +72,7 @@ function DashboardContent() {
   useDashboardPrefetch(userId);
 
   const [visitedTabs, setVisitedTabs] = useState<string[]>(() => [s.view]);
-  if (['dzis', 'tydzien', 'historia', 'projekty'].includes(s.view) && !visitedTabs.includes(s.view)) {
+  if (['dzis', 'tydzien', 'historia'].includes(s.view) && !visitedTabs.includes(s.view)) {
     setVisitedTabs(prev => [...prev, s.view]);
   }
 
@@ -228,11 +227,6 @@ function DashboardContent() {
                 <ErrorBoundary inline>
                   <div className={s.view === 'historia' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
                     {visitedTabs.includes('historia') && <Suspense fallback={<ViewFallback />}><DashboardHistoriaTab /></Suspense>}
-                  </div>
-                </ErrorBoundary>
-                <ErrorBoundary inline>
-                  <div className={s.view === 'projekty' ? 'tab-panel tab-panel--active' : 'tab-panel'}>
-                    {visitedTabs.includes('projekty') && <Suspense fallback={<ViewFallback />}><DashboardProjektyTab /></Suspense>}
                   </div>
                 </ErrorBoundary>
               </>

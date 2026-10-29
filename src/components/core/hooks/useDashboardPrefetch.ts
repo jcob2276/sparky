@@ -60,7 +60,6 @@ export function useDashboardPrefetch(userId: string | undefined) {
 
     // Stage 2: secondary tools, then the desktop dashboard on wide screens only.
     const cancelStage2 = whenIdle(() => {
-      void import('../DashboardProjektyTab');
       void prefetchKeepData(queryClient, userId);
       void prefetchTerminyData(queryClient, userId);
       if (!isDesktopViewport()) return;

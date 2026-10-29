@@ -6,7 +6,6 @@ import {
   Bell,
   BookOpen,
   WalletCards,
-  FolderKanban,
   HeartPulse,
   Clock,
   TrendingUp,
@@ -75,14 +74,6 @@ export const WORKSPACE_TOOLS: WorkspaceToolDef[] = [
   },
 
   // Strategia, Zdrowie i Pamięć
-  {
-    id: 'projekty',
-    label: 'Kierunek',
-    icon: FolderKanban,
-    path: '/projekty',
-    category: 'strategia_zdrowie',
-    description: 'Cele długoterminowe, sprinty, projekty',
-  },
   {
     id: 'rozwoj',
     label: 'Nauka & Rozwój',

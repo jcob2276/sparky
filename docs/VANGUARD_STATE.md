@@ -72,25 +72,11 @@ Połączenia:
 - zatwierdzone decyzje wpływają na kolejne dni;
 - system proposals z analityka trafiają tu do ludzkiej decyzji.
 
-### `/projekty` — Kierunek
+### Kierunek (sekcja na Dziś, bez osobnej strony)
 
-**Cel:** utrzymywać trzy sfery życia, aktywne projekty i mierzalne postępy.
-
-Funkcje:
-
-- cele długoterminowe;
-- projekty i ich stan;
-- KPI;
-- kamienie milowe zapisane jako zadania;
-- dowody postępu;
-- Top 5 / priorytety kierunku.
-
-Połączenia:
-
-- projekt może grupować sekcję Todo;
-- wykonanie PowerList może zasilać KPI projektu;
-- Tydzień wybiera zakres z Kierunku;
-- Historia pokazuje rezultaty, a Oracle czyta projekty jako kontekst.
+Strona `/projekty` została usunięta (2026-10-29), a `/projekty` przekierowuje do `/dzis`.
+Trzy sfery (Ciało, Duch, Konto) są na ekranie Dziś jako zdjęcia celów; po kliknięciu pokazują
+pełny cel, liczbę dni do celu i „Dlaczego”. Dane (`projects`, `life_goals`, `goal_kpis`) zostają w bazie.
 
 ### `/historia` — Historia
 

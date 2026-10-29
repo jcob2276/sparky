@@ -9,7 +9,7 @@ export function useDashboardUrlRedirects(location: Location, navigate: Dashboard
     const params = new URLSearchParams(location.search);
     const viewParam = params.get('view');
     if (viewParam === 'kariera') {
-      navigate('/projekty', { replace: true });
+      navigate('/dzis', { replace: true });
     } else if (viewParam && TAB_ORDER.includes(viewParam)) {
       navigate('/' + viewParam, { replace: true });
     } else if (params.get('todo') === 'new') {

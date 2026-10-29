@@ -6,7 +6,7 @@ import { useSidebar } from '../ui/sidebar';
 import { useUserId } from '../../store/useStore';
 import { prefetchWorkspaceRoute } from '../../lib/workspacePrefetch';
 
-export type WorkspaceDestination = 'keep' | 'todo' | 'kalendarz' | 'links' | 'projekty' | 'terminy';
+export type WorkspaceDestination = 'keep' | 'todo' | 'kalendarz' | 'links' | 'terminy';
 
 const ITEMS = [
   { id: 'keep', label: 'Notatki', icon: StickyNote },

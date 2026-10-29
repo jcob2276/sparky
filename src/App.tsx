@@ -112,7 +112,6 @@ function AppRoutes() {
       <Route path="/" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/dzis" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/tydzien" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
-      <Route path="/projekty" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/historia" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/keep" element={<Screen kind="dashboard"><Dashboard /></Screen>} />
       <Route path="/todo" element={<Screen kind="dashboard"><Dashboard /></Screen>} />

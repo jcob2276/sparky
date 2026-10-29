@@ -73,7 +73,7 @@ export function kpiSlotHint(
       autoTarget,
       message: autoTarget
         ? `${name}: +${autoTarget} przy odhaczeniu → KPI tygodnia`
-        : `Ustaw cel tygodniowy dla „${name}" w Projekty`,
+        : `Ustaw cel tygodniowy KPI dla „${name}"`,
       rollupReady: Boolean(autoTarget),
     };
   }

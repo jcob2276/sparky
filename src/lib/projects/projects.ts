@@ -6,9 +6,9 @@ import { unwrap, unwrapMaybe } from '../supabaseUtils';
 import { createTodoItem, updateTodoItem, deleteTodoItem } from '../todo/todo';
 
 type ProjectInsert = Database['public']['Tables']['projects']['Insert'];
-export type ProjectUpdate = Database['public']['Tables']['projects']['Update'];
+type ProjectUpdate = Database['public']['Tables']['projects']['Update'];
 
-export type ProjectCheckpoint = {
+type ProjectCheckpoint = {
   id: string;
   user_id: string;
   project_id: string;

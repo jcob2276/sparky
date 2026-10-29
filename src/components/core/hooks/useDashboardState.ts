@@ -120,7 +120,7 @@ export function useDashboardState(session: Session) {
   // Data
   const { count: pendingActionCount, reload: reloadPendingActions } = usePendingActionCount();
   const { isSyncing, setSyncing } = useStore();
-  const isDashboardView = ['dzis', 'tydzien', 'projekty', 'historia'].includes(view);
+  const isDashboardView = ['dzis', 'tydzien', 'historia'].includes(view);
   const { weeklyCalories, todayWin, loading, refresh } = useDashboardData(session, isDashboardView);
   const { guidance: spineGuidance, loading: spineGuidanceLoading } = useSpineGuidance(userId, todayWin);
   const { syncCalendar, startGoogleAuth } = useSyncActions({ userId, accessToken, onRefresh: refresh, setSyncing });

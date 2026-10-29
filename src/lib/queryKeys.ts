@@ -154,12 +154,6 @@ export const linksKeys = {
   list: (userId: string) => [...linksKeys.all, userId] as const,
 };
 
-// ── PROJECTS KEYS ──
-export const projectsKeys = {
-  all: ['projects-data'] as const,
-  detail: (userId: string) => [...projectsKeys.all, userId] as const,
-};
-
 // ── ACTION CENTER KEYS ──
 export const actionCenterKeys = {
   all: ['action-center'] as const,

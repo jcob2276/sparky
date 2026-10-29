@@ -1,4 +1,4 @@
-import { Bookmark, CheckCircle2, Folder, Sparkles } from 'lucide-react';
+import { Bookmark, CheckCircle2, Sparkles } from 'lucide-react';
 import type { SparkyCommand } from './commandCatalog';
 
 export interface SearchResults {
@@ -37,7 +37,6 @@ export function searchToRows(
   return [
     ...results.todos.map((todo) => ({ id: `todo-${todo.id}`, title: todo.title, subtitle: `Zadanie · ${todo.status}`, icon: CheckCircle2, run: go(`/todo?task=${todo.id}`) })),
     ...results.notes.map((note) => ({ id: `note-${note.id}`, title: note.title || 'Bez tytułu', subtitle: 'Notatka', icon: Bookmark, run: go(`/keep?note=${note.id}`) })),
-    ...results.projects.map((project) => ({ id: `project-${project.id}`, title: project.name, subtitle: `Kierunek · ${project.status}`, icon: Folder, run: go(`/projekty?project=${project.id}`) })),
     ...results.graph.map((fact, index) => ({
       id: `fact-${index}`,
       title: `${fact.source_entity} → ${fact.target_entity}`,
