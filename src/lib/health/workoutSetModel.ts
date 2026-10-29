@@ -7,7 +7,7 @@
  * - Serie unilateralne: niezależne śledzenie lewej i prawej strony `sides: { L, R }`
  */
 
-export type SetType = 'straight' | 'warmup' | 'dropset' | 'restpause';
+type SetType = 'straight' | 'warmup' | 'dropset' | 'restpause';
 
 export interface DropSubRow {
   kg: number;
@@ -19,7 +19,7 @@ export interface RestPauseCluster {
   restSec: number;
 }
 
-export interface SideSetRow {
+interface SideSetRow {
   kg: number;
   reps: number;
   done: boolean;
@@ -43,15 +43,6 @@ export interface EnhancedWorkoutSet {
     L: SideSetRow;
     R: SideSetRow;
   };
-}
-
-/**
- * Zwraca typ serii (straight | warmup | dropset | restpause).
- */
-export function getSetType(s: Partial<EnhancedWorkoutSet>): SetType {
-  if (s.phase === 'warmup' || s.type === 'warmup') return 'warmup';
-  if (s.type === 'dropset' || s.type === 'restpause') return s.type;
-  return 'straight';
 }
 
 /**
@@ -126,7 +117,7 @@ export function nextDropWeight(prevWeight: number | string, pct = 20): number {
 /**
  * Sugerowana liczba powtórzeń dla kolejnego klastra w rest-pause (zwykle połowa poprzedniego, min. 1).
  */
-export function nextBurstReps(prevReps: number | string): number {
+function nextBurstReps(prevReps: number | string): number {
   const r = Number(prevReps) || 0;
   return Math.max(1, Math.round(r / 2));
 }

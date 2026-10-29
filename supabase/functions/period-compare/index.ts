@@ -2,7 +2,7 @@
  * @function period-compare
  * @trigger HTTP POST / Frontend (Kronika → Porównanie AI)
  * @role Porównanie dwóch wybranych okresów (np. tydzień vs tydzień): sen, jedzenie, trening, sprzedaż, oceny dnia, zadania, opinie i dziennik z Telegrama; zwraca podsumowanie, co się poprawiło/pogorszyło, 3 zmiany i różnice w dzienniku.
- * @reads daily_wins, daily_win_tasks, daily_reconciliations, oura_daily_summary, daily_nutrition, workout_sessions, strava_activities_clean, closer_daily_logs, vanguard_stream
+ * @reads daily_wins, daily_win_tasks, daily_reconciliations, oura_daily_summary, daily_nutrition, nutrition_targets, workout_sessions, strava_activities, strava_activities_clean, closer_daily_logs, vanguard_stream
  * @writes —
  * @calls deepseek-chat
  * @consumer Karta „Porównanie AI” w Kronice

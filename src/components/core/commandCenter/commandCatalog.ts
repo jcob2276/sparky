@@ -23,8 +23,6 @@ export interface SparkyCommand {
   run: () => Promise<unknown> | unknown;
 }
 
-export type VanguardCommand = SparkyCommand;
-
 interface CommandCatalogOptions {
   navigate: (path: string) => void;
   close: () => void;

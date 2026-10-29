@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import { parseDataCoverage } from './db-json-guards';
 
-export interface AuditEvent {
+interface AuditEvent {
   id: string;
   created_at: string;
   event_type: string;
@@ -23,14 +23,14 @@ export interface DataCoverage {
   overall_90: number;
 }
 
-export interface PredictionCalibrationItem {
+interface PredictionCalibrationItem {
   date: string;
   sleep_error: number | null;
   readiness_error: number | null;
   execution_error: number | null;
 }
 
-export interface PredictionCalibrationSummary {
+interface PredictionCalibrationSummary {
   sleep_mae: number | null;
   readiness_mae: number | null;
   execution_mae: number | null;

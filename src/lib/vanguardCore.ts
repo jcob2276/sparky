@@ -11,4 +11,4 @@
  * Re-audit if dependencies of vanguardCore.ts or its transitive imports ever gain Deno deps.
  */
 
-export { computeSignals, VanguardCore, VanguardCore as SparkyCore } from '../../supabase/functions/_shared/vanguardCore.ts';
+export { computeSignals, VanguardCore as SparkyCore } from '../../supabase/functions/_shared/vanguardCore.ts';

@@ -6,7 +6,7 @@ import { fetchKpisForProject } from './goalSpine.queries';
 import { fetchTodayTaskKpiBinding } from '../dailyWinTasksApi';
 
 /** Closer weekly KPIs are absolute sums from closer_daily_logs — never delta-task or manual overwrite. */
-export async function isCloserAbsoluteKpi(kpiId: string): Promise<boolean> {
+async function isCloserAbsoluteKpi(kpiId: string): Promise<boolean> {
   const { data, error } = await supabase
     .from('goal_kpis')
     .select('id, projects!inner(name)')

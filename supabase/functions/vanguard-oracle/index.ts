@@ -1,11 +1,11 @@
 /**
  * @function vanguard-oracle
- * @trigger HTTP POST / Wywoływane z Telegrama lub frontendowego czatu Wyroczni
+ * @trigger HTTP POST / Telegram oraz akcje API aplikacji
  * @role Silnik Wyroczni: obsługuje czat z RAG, generuje odpowiedzi, wnioskuje fakty i decyduje o akcjach.
- * @reads vanguard_oracle_runs, vanguard_stream, entities, claims, daily_strain, medical_lab_results, system_proposals, todo_items, projects, vanguard_notes, oracle_recommendations, oracle_clarification_requests, oracle_pending_actions, knowledge_insight_cards, daily_reconciliations, user_fundament, vanguard_preferences, oura_daily_summary, daily_nutrition, daily_food_entries, daily_wins, friction_events, vanguard_wiki_pages, vanguard_iron_rules, vanguard_calendar, phone_usage_daily, aw_daily_summary, sprint_goals, healthspan_snapshots, healthspan_checkins, healthspan_levers
+ * @reads vanguard_oracle_runs, vanguard_stream, entities, claims, daily_strain, medical_lab_results, system_proposals, todo_items, projects, vanguard_notes, oracle_recommendations, oracle_clarification_requests, oracle_pending_actions, knowledge_insight_cards, daily_reconciliations, user_fundament, vanguard_preferences, oura_daily_summary, daily_nutrition, daily_food_entries, daily_wins, friction_events, vanguard_wiki_pages, vanguard_iron_rules, vanguard_calendar, phone_usage_daily, aw_daily_summary, sprint_goals, healthspan_snapshots, healthspan_checkins, healthspan_levers, ai_chat_messages, outbound_messages, life_goals, goal_kpis, life_targets
  * @writes vanguard_oracle_runs, audit_events, knowledge_insight_cards, oracle_clarification_requests, oracle_pending_actions, oracle_recommendations
  * @calls deepseek-v4-flash (default), deepseek-reasoner (deep mode `!!`), gemini-embedding-001 (RAG)
- * @consumer Czat Wyroczni w Telegramie oraz w aplikacji webowej
+ * @consumer Czat Sparky w Telegramie; aplikacja: wyszukiwanie, kontekst kalendarza, analityka, rozbijanie zadań i planowanie dnia
  * @status active
  *
  * ⚠️  This file is intentionally thin — a Deno.serve wrapper only.

@@ -9,7 +9,7 @@
 
 import { getTodayWarsaw } from '../date';
 
-export interface ImportedSet {
+interface ImportedSet {
   setNumber: number;
   weightKg: number;
   reps: number;
@@ -19,7 +19,7 @@ export interface ImportedSet {
   notes?: string;
 }
 
-export interface ImportedExercise {
+interface ImportedExercise {
   name: string;
   muscleTags: string[];
   sets: ImportedSet[];

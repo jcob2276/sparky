@@ -5,7 +5,7 @@ import { deepseekChat, parseJsonFromContent } from "../../_shared/deepseek.ts";
 import { LLM_TASKS } from "../../_shared/llm/tasks.ts";
 import { buildOuraLine, fetchLatestOura } from "./ouraPlanContext.ts";
 
-export interface PlanSlot {
+interface PlanSlot {
   slot: number;
   category: "cialo" | "duch" | "konto" | "general";
   title: string;

@@ -1,1 +1,1 @@
-export { calibrateNutrition, type NutritionCalibration } from '@vanguard/domain';
+export { calibrateNutrition } from '@vanguard/domain';

@@ -1,11 +1,5 @@
 import { supabase } from './supabase';
 import { fetchDailyWinTasksForDay, type DailyWinWithTasks } from './dailyWinTasksApi';
-import type { Tables } from './database.types';
-
-type ShutdownFoodEntry = Pick<
-  Tables<'daily_food_entries'>,
-  'id' | 'name' | 'brand' | 'calories' | 'protein' | 'carbs' | 'fat' | 'amount' | 'date' | 'meal_type'
->;
 
 export async function fetchDailyWin(userId: string, date: string): Promise<DailyWinWithTasks | null> {
   const { data, error } = await fetchDailyWinTasksForDay(userId, date);
@@ -48,18 +42,3 @@ export async function upsertDailyReconciliationScore(userId: string, date: strin
 }
 
 export { insertSparkyStream } from './streamApi';
-
-export async function fetchShutdownFoodEntries(
-  userId: string,
-  date: string,
-): Promise<ShutdownFoodEntry[]> {
-  const { data, error } = await supabase
-    .from('daily_food_entries')
-    .select('id, name, brand, calories, protein, carbs, fat, amount, date, meal_type')
-    .eq('user_id', userId)
-    .eq('date', date)
-    .order('logged_at', { ascending: true, nullsFirst: false })
-    .order('created_at', { ascending: true });
-  if (error) throw error;
-  return data ?? [];
-}

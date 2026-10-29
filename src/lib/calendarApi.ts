@@ -11,8 +11,6 @@ export type SparkyCalendarRow = Database['public']['Tables']['vanguard_calendar'
   series_id?: string | null;
 };
 
-export type VanguardCalendarRow = SparkyCalendarRow;
-
 export interface CalendarEvent {
   id?: string;
   summary: string;

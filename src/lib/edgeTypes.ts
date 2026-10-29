@@ -36,7 +36,7 @@ interface AnalyzeFoodQualityError {
 
 type AnalyzeFoodQualityResponse = AnalyzeFoodQualitySingle | AnalyzeFoodQualityRange | AnalyzeFoodQualityError;
 
-export interface AnalyzeTrainingLoadResponse {
+interface AnalyzeTrainingLoadResponse {
   decision?: import('@vanguard/domain').CoachDecision;
   jobId?: string;
   versionId?: string;
@@ -180,7 +180,7 @@ interface NutritionCoachResponse {
 interface SyncOuraResponse { success: true; total_upserted: number; batches: number; warnings?: string[]; }
 interface SyncStravaResponse { ok: true; synced: number; primary: number; oura_duplicates: number; paired: number; rate_limited: boolean; }
 interface SyncCalendarResponse { success: true; calendarCount?: number; }
-export interface SyncQuotesResponse {
+interface SyncQuotesResponse {
   ok: boolean;
   rates?: { usdPln: number; eurPln: number; date: string };
   quotes?: Record<string, {
@@ -194,16 +194,6 @@ export interface SyncQuotesResponse {
   }>;
   timestamp?: string;
   error?: string;
-}
-
-export interface SyncInvestmentAiResponse {
-  ok?: boolean;
-  content?: string;
-  error?: string;
-  model?: string;
-  generatedAt?: string;
-  sources?: Array<{ dataset: string; records: number; unavailable: string | null }>;
-  jevEvaluation?: unknown;
 }
 
 type SyncResponse = SyncOuraResponse | SyncStravaResponse | SyncCalendarResponse | SyncQuotesResponse
@@ -288,7 +278,7 @@ export interface DailyPlanInterviewResponse {
   [key: string]: unknown;
 }
 
-export interface VanguardOracleResponse {
+interface VanguardOracleResponse {
   analytics?: import('@vanguard/domain').AnalyticsResult;
   answer?: string;
   subtasks?: string[];
@@ -302,7 +292,7 @@ export interface VanguardOracleResponse {
   [key: string]: unknown;
 }
 
-export interface FoodIntegrityAuditResponse {
+interface FoodIntegrityAuditResponse {
   users: number;
   results: Array<Record<string, number>>;
 }

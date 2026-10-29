@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { Target, Moon, Activity, Zap } from 'lucide-react';
 
-export const METRIC_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+const METRIC_META: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
   sleep_hours: {
     label: 'Sen',
     icon: <Moon size={12} />,

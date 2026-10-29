@@ -57,7 +57,7 @@ if (missingHeaders.length > 0) {
 }
 
 // Generate the markdown table content
-let md = `# Mapa Edge Functions Vanguard\n\n`;
+let md = `# Mapa Edge Functions Sparky\n\n`;
 md += `Ten plik jest generowany automatycznie i opisuje mapę domenową, triggery oraz statusy wszystkich **${parsedFunctions.length} aktywnych Edge Functions** w monorepo.\n\n`;
 md += `## Skaner Domenowy (Główna Mapa)\n\n`;
 md += `| Funkcja | Status | Trigger / Wyzwalacz | Rola | DB Odczyt (\`@reads\`) | DB Zapis (\`@writes\`) | Konsument |\n`;

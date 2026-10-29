@@ -11,8 +11,7 @@ import { calibrateNutrition } from '../../lib/health/nutritionCalibration';
 import { removeNutritionEntry } from '../../lib/health/nutritionDashboardApi';
 import { loadNutritionDashboard } from '../../lib/health/nutritionDashboardData';
 
-export type TodayEntry = Database['public']['Tables']['daily_food_entries']['Row'];
-export type DailyNutritionRow = Database['public']['Tables']['daily_nutrition']['Row'];
+type TodayEntry = Database['public']['Tables']['daily_food_entries']['Row'];
 
 const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'snack'] as const;
 const MEAL_LABEL: Record<string, string> = {

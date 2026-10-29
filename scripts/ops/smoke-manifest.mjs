@@ -1,12 +1,19 @@
 /**
- * SSOT for post-deploy smoke + deploy --no-verify-jwt lists.
- * Sync: docs/ARCHITECTURE.md (cron table), AGENTS.md (deploy rule).
+ * Operational smoke profiles and cron expectations.
+ * JWT configuration belongs to supabase/config.toml; audit:registry checks list parity.
  */
 
 export const PROJECT_REF = process.env.SUPABASE_PROJECT_REF || "YOUR_PROJECT_REF";
 
 /** Edge functions that MUST use verify_jwt: false in production. */
 export const NO_VERIFY_JWT_FUNCTIONS = [
+  "analyze-physique",
+  "closer-reanalyze",
+  "fathom-webhook",
+  "food-integrity-audit",
+  "food-micronutrient-backfill",
+  "food-reference-embed",
+  "parse-lab-results",
   "recap",
   "vanguard-nightly",
   "vanguard-telegram",
@@ -39,6 +46,8 @@ export const NO_VERIFY_JWT_FUNCTIONS = [
   "vanguard-mcp-server",
   "week-insight",
   "period-compare",
+  "widget-food",
+  "widget-tasks",
 ];
 
 

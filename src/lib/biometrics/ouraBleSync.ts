@@ -48,7 +48,7 @@ export function saveOuraDevice(address: string, name?: string): void {
   } catch { /* ignore */ }
 }
 
-export function clearSavedOuraDevice(): void {
+function clearSavedOuraDevice(): void {
   try {
     localStorage.removeItem(DEVICE_ADDRESS_KEY);
     localStorage.removeItem(DEVICE_NAME_KEY);
@@ -56,7 +56,7 @@ export function clearSavedOuraDevice(): void {
   } catch { /* ignore */ }
 }
 
-export function isOuraBleModeEnabled(): boolean {
+function isOuraBleModeEnabled(): boolean {
   try {
     return localStorage.getItem(BLE_MODE_KEY) === 'true';
   } catch {

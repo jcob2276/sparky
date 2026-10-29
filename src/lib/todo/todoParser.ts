@@ -23,8 +23,6 @@ const alternatives = (groups: string[][]) => groups.flat().map(escape).join('|')
 const boundary = (source: string) => new RegExp(`(^|\\s)(${source})(?=\\s|$|[,.!?])`, 'i');
 const toDateKey = (date: Date) => format(date, 'yyyy-MM-dd');
 
-export const TODO_NLP_HIGHLIGHT_REGEX = /((?:\b(?:p[1-4]|pilne|ważne|wazne|dzisiaj|dzis|dziś|jutro|pojutrze|za\s+(?:tydzień|tydzien|\d+\s+(?:dni|dzień|dzien|tygodnie|tygodni|miesiąc|miesiac|miesiące|miesiace|miesięcy|miesiecy))|za\s+(?:\d+\s*(?:min(?:ut(?:y|ę)?)?|godz(?:in(?:y|ę)?)?|h)|godzinę|godzine|pół\s+godziny|pol\s+godziny|kwadrans)|(?:w\s+)?(?:(?:następny|nastepny|przyszły|przyszly)\s+)?(?:poniedziałek|poniedzialek|wtorek|środa|sroda|czwartek|piątek|piatek|sobota|niedziela)|codziennie|co\s+(?:dzień|dzien|tydzień|tydzien|miesiąc|miesiac|poniedziałek|poniedzialek|wtorek|środa|sroda|czwartek|piątek|piatek|sobota|niedziela)|(?:każdy|kazdy)\s+(?:poniedziałek|poniedzialek|wtorek|środa|sroda|czwartek|piątek|piatek|sobota|niedziela)|(?:o|godz\.?|godzina)\s*\d{1,2}(?:[:.]\d{2})?|\d{1,2}:\d{2}|rano|w\s+południe|w\s+poludnie|wieczorem|w\s+nocy|\d{1,2}[./-]\d{1,2}(?:[./-]20\d{2})?)\b)|(?:!p[1-4]\b)|(?:[#@][\p{L}\d_-]+))/giu;
-
 function consume(text: string, match: RegExpMatchArray): string {
   if (match.index == null) return text;
   return `${text.slice(0, match.index)} ${text.slice(match.index + match[0].length)}`;

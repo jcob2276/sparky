@@ -9,7 +9,7 @@ import type { Database } from "../database.types.ts";
 
 type Client = SupabaseClient<Database>;
 
-export const LENIE_HABIT = { name: "Lenie", icon: "😒", is_positive: false } as const;
+const LENIE_HABIT = { name: "Lenie", icon: "😒", is_positive: false } as const;
 
 export interface LenieEpisode {
   /** Wszystkie bodźce z dnia, połączone " + ". */

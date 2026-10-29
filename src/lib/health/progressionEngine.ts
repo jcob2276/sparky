@@ -10,7 +10,7 @@
  * Oraz Epley Deload Candidate Search (dopasowanie ciężaru deloadu do siatki talerzy).
  */
 
-export type ProgressionPolicy = 'off' | 'linear' | 'greyskull' | 'double' | 'assisted' | 'bodyweight';
+type ProgressionPolicy = 'off' | 'linear' | 'greyskull' | 'double' | 'assisted' | 'bodyweight';
 
 export interface ProgressionTargetConfig {
   policy: ProgressionPolicy;
@@ -25,7 +25,6 @@ export interface ProgressionTargetConfig {
 }
 
 import {
-  DELOAD_FACTOR_DEFAULT,
   DEFAULT_INCREMENT_KG,
   selectEpleyDeloadCandidate,
   countConsecutiveStalls,
@@ -33,8 +32,6 @@ import {
 } from './progressionDeload';
 
 export {
-  DELOAD_FACTOR_DEFAULT,
-  DEFAULT_INCREMENT_KG,
   selectEpleyDeloadCandidate,
   countConsecutiveStalls,
   type PastSessionResult,
@@ -49,7 +46,7 @@ export interface NextPrescriptionResult {
   why: string;
 }
 
-export const MAX_BW_SETS = 6;
+const MAX_BW_SETS = 6;
 
 /**
  * Oblicza kolejną preskrypcję treningową dla danego ćwiczenia.

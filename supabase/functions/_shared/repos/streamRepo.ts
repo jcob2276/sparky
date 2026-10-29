@@ -15,26 +15,6 @@ type StreamInsert =
   & Omit<Database["public"]["Tables"]["vanguard_stream"]["Insert"], "embedding">
   & { embedding?: number[] | number[][] | string | null };
 
-export async function getStreamByUser(
-  db: Client,
-  userId: string,
-  opts?: { from?: string; to?: string; limit?: number },
-): Promise<StreamRow[]> {
-  let q = db
-    .from("vanguard_stream")
-    .select("*")
-    .eq("user_id", userId)
-    .order("timestamp", { ascending: false });
-
-  if (opts?.from) q = q.gte("timestamp", opts.from);
-  if (opts?.to) q = q.lte("timestamp", opts.to);
-  if (opts?.limit) q = q.limit(opts.limit);
-
-  const { data, error } = await q;
-  if (error) throw error;
-  return data ?? [];
-}
-
 export async function insertStreamRecord(
   db: Client,
   record: StreamInsert,
@@ -83,26 +63,6 @@ export async function getStreamByTelegramMessageId(
     .maybeSingle();
   if (error) throw error;
   return data;
-}
-
-export async function getStreamByClassification(
-  db: Client,
-  userId: string,
-  classification: string,
-  opts?: { limit?: number },
-): Promise<StreamRow[]> {
-  let q = db
-    .from("vanguard_stream")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("classification", classification)
-    .order("timestamp", { ascending: false });
-
-  if (opts?.limit) q = q.limit(opts.limit);
-
-  const { data, error } = await q;
-  if (error) throw error;
-  return data ?? [];
 }
 
 /** Content+timestamp only, for RAG context windows (Oracle prompt building). */

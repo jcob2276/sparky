@@ -1,4 +1,5 @@
-# Deploy all Vanguard functions that require verify_jwt: false
+# Deploy Sparky functions configured with verify_jwt: false in supabase/config.toml.
+# audit:registry checks this explicit target list against that configuration.
 # Usage: .\scripts\ops\deploy-no-jwt.ps1
 #        .\scripts\ops\deploy-no-jwt.ps1 vanguard-telegram vanguard-oracle
 
@@ -7,11 +8,18 @@ Set-Location (Resolve-Path (Join-Path $PSScriptRoot "..\.."))
 
 $all = @(
   "analyze-food-quality",
+  "analyze-physique",
   "analyze-training-load",
   "calendar-watch",
   "calendar-write",
+  "closer-reanalyze",
   "compute-behavior-effects",
+  "fathom-webhook",
+  "food-integrity-audit",
+  "food-micronutrient-backfill",
+  "food-reference-embed",
   "parse-food-nl",
+  "parse-lab-results",
   "parse-workout-nl",
   "recap",
   "sync",

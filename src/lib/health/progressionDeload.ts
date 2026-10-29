@@ -5,7 +5,7 @@
 
 import { epley } from './workout';
 
-export const DELOAD_FACTOR_DEFAULT = 0.9;
+const DELOAD_FACTOR_DEFAULT = 0.9;
 export const DEFAULT_INCREMENT_KG = 2.5;
 
 export interface PastSessionResult {

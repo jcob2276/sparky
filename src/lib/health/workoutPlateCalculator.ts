@@ -21,7 +21,7 @@ export const BAR_PRESETS: Record<BarType, BarPreset> = {
   custom: { id: 'custom', name: 'Niestandardowy', weightKg: 20 },
 };
 
-export interface PlateBreakdown {
+interface PlateBreakdown {
   plate: number;
   count: number;
 }

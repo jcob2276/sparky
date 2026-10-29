@@ -8,8 +8,6 @@ type SparkyStore = {
   setSyncing: (isSyncing: boolean) => void;
 };
 
-export type VanguardStore = SparkyStore;
-
 export const useStore = create<SparkyStore>((set) => ({
   session: null,
   isSyncing: false,

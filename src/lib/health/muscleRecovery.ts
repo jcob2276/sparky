@@ -12,7 +12,7 @@ export const FATIGUE_HALF_LIFE_MS = 36 * 60 * 60 * 1000; // 36h half-life zmęcz
 export const STRENGTH_FULL_MS = 14 * 24 * 60 * 60 * 1000; // 14 dni pełnej retencji siły
 export const STRENGTH_HALF_LIFE_MS = 28 * 24 * 60 * 60 * 1000; // 28 dni rozpadu do podłogi detreningu
 export const STRENGTH_FLOOR = 0.5; // Podłoga 50% siły dla mięśni nietrenowanych/detrenowanych
-export const FATIGUE_REF_VOLUME = 2000; // Referencyjny tonaż sesji dla 1 partii (kg)
+const FATIGUE_REF_VOLUME = 2000; // Referencyjny tonaż sesji dla 1 partii (kg)
 
 export const MUSCLE_GROUPS = [
   'klatka',
@@ -28,9 +28,7 @@ export const MUSCLE_GROUPS = [
   'łydki',
 ] as const;
 
-export type MuscleGroup = typeof MUSCLE_GROUPS[number] | string;
-
-export interface LoggedSetInput {
+interface LoggedSetInput {
   weightKg: number;
   reps: number;
   isWarmup?: boolean;
@@ -102,7 +100,7 @@ export function calculateSetTonnage(
 /**
  * Parsuje wejściowy timestamp sesji (ISO string lub number).
  */
-export function parseSessionTimestamp(date: string | number): number {
+function parseSessionTimestamp(date: string | number): number {
   if (typeof date === 'number') return date;
   if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return new Date(`${date}T12:00:00Z`).getTime();

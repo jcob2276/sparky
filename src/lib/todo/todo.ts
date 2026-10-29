@@ -88,27 +88,6 @@ interface CreateTodoItemFields {
   sort_order?: number | null;
 }
 
-/** Find any todo occupying (user_id, section_id, title) — unique constraint includes done/dropped. */
-export async function findTodoInSection(
-  userId: string,
-  sectionId: string,
-  title: string,
-): Promise<string | null> {
-  const trimmed = title.trim();
-  if (!trimmed) return null;
-
-  const row = await unwrapMaybe<{ id: string }>(
-    await supabase
-      .from('todo_items')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('section_id', sectionId)
-      .eq('title', trimmed)
-      .maybeSingle(),
-  );
-  return row?.id ?? null;
-}
-
 export function isUniqueTodoTitleError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err);
   return msg.includes('todo_items_user_id_section_id_title_key');
@@ -329,12 +308,4 @@ export async function logTaskReviewCompleted(userId: string, note: string): Prom
     metadata: { kind: TASK_REVIEW_KIND, date, note },
   });
   if (error) throw new Error(error.message);
-}
-
-export async function deleteTodoSection(sectionId: string): Promise<void> {
-  const { error } = await supabase
-    .from('todo_sections')
-    .delete()
-    .eq('id', sectionId);
-  if (error) throw error;
 }
