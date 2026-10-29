@@ -40,3 +40,22 @@ export async function fetchPendingClarificationRequests(userId: string): Promise
   if (error) throw error;
   return (data || []) as PendingClarification[];
 }
+
+export async function answerClarificationRequest(
+  requestId: string,
+  answer: Record<string, unknown>,
+): Promise<void> {
+  const { error } = await supabase
+    .from('oracle_clarification_requests')
+    .update({ status: 'answered', answer: answer as never, answered_at: new Date().toISOString() })
+    .eq('id', requestId);
+  if (error) throw error;
+}
+
+export async function dismissClarificationRequest(requestId: string): Promise<void> {
+  const { error } = await supabase
+    .from('oracle_clarification_requests')
+    .update({ status: 'dismissed' })
+    .eq('id', requestId);
+  if (error) throw error;
+}

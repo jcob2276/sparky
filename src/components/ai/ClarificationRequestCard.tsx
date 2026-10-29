@@ -1,8 +1,9 @@
 import { Pressable, ControlInput } from '../ui/ControlPrimitives';
 import { useState } from 'react';
 import { HelpCircle, Check } from 'lucide-react';
-import { supabase } from '../../lib/supabase';
 import { Card } from '../ui/Card';
+import { ClarificationConfirmActions } from './ClarificationConfirmActions';
+import { answerClarificationRequest, dismissClarificationRequest } from '../../lib/actionCenterApi';
 
 interface Option {
   id: string;
@@ -55,7 +56,7 @@ export function ClarificationRequestCard({ request, onAnswered }: Props) {
     }
   };
 
-  const submit = async (overrideAnswer?: object) => {
+  const submit = async (overrideAnswer?: Record<string, unknown>) => {
     setSubmitting(true);
     const answer = overrideAnswer ?? {
       option_ids: selectedIds,
@@ -63,20 +64,21 @@ export function ClarificationRequestCard({ request, onAnswered }: Props) {
       is_custom_answer: showCustom && !!customText,
       is_uncertain: selectedIds.includes('__uncertain__'),
     };
-    const { error } = await supabase
-      .from('oracle_clarification_requests')
-      .update({ status: 'answered', answer: answer as never, answered_at: new Date().toISOString() })
-      .eq('id', request.id);
-    if (error) console.error('[clarification] answer failed:', error.message);
+    try {
+      await answerClarificationRequest(request.id, answer);
+    } catch (err) {
+      console.error('[clarification] answer failed:', err instanceof Error ? err.message : err);
+    }
     setSubmitting(false);
     onAnswered();
   };
 
   const dismiss = async () => {
-    await supabase
-      .from('oracle_clarification_requests')
-      .update({ status: 'dismissed' })
-      .eq('id', request.id);
+    try {
+      await dismissClarificationRequest(request.id);
+    } catch (err) {
+      console.error('[clarification] dismiss failed:', err instanceof Error ? err.message : err);
+    }
     onAnswered();
   };
 
@@ -90,22 +92,11 @@ export function ClarificationRequestCard({ request, onAnswered }: Props) {
       </div>
 
       {request.response_type === 'confirm' && (
-        <div className="flex gap-2">
-          <Pressable
-            onClick={() => submit({ option_ids: ['yes'], is_uncertain: false })}
-            disabled={submitting}
-            className="flex-1 rounded-xl bg-primary py-2 text-sm font-bold text-on-accent ui-interactive active:scale-95 disabled:opacity-[var(--opacity-40)]"
-          >
-            Tak
-          </Pressable>
-          <Pressable
-            onClick={() => submit({ option_ids: ['no'], is_uncertain: false })}
-            disabled={submitting}
-            className="flex-1 rounded-xl border border-border-custom/30 py-2 text-sm font-semibold text-text-secondary ui-interactive active:scale-95 disabled:opacity-[var(--opacity-40)]"
-          >
-            Nie
-          </Pressable>
-        </div>
+        <ClarificationConfirmActions
+          submitting={submitting}
+          onYes={() => { void submit({ option_ids: ['yes'], is_uncertain: false }); }}
+          onNo={() => { void submit({ option_ids: ['no'], is_uncertain: false }); }}
+        />
       )}
 
       {(request.response_type === 'single_choice' || request.response_type === 'multi_choice') && (
