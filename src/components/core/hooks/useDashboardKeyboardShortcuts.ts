@@ -26,6 +26,7 @@ export function useDashboardKeyboardShortcuts({ openModal, navigate, pathname, s
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const key = e.key.toLowerCase();
+      if (e.key !== 'Escape' && document.querySelector('[role="dialog"][aria-modal="true"]')) return;
 
       // 1. Search shortcut (Cmd+K or Ctrl+K)
       if ((e.ctrlKey || e.metaKey) && key === 'k') {
@@ -60,12 +61,16 @@ export function useDashboardKeyboardShortcuts({ openModal, navigate, pathname, s
         setShowFastCapture(true);
       } else if (key === 'f' && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
-
+        const openFood = () => {
+          const composer = document.getElementById('meal-composer');
+          if (composer) composer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          else setShowQuickFoodEntry(true);
+        };
         if (pathname === '/dzis') {
-          document.getElementById('meal-composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          openFood();
         } else {
           navigate('/dzis');
-          setTimeout(() => document.getElementById('meal-composer')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+          setTimeout(openFood, 300);
         }
       }
     };

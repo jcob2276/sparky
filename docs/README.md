@@ -27,6 +27,7 @@ Otwarte prace: [BACKLOG](../BACKLOG.md); kierunek produktu: [KIERUNEK](direction
 | Incydent / deploy | [runbooks](runbooks/) |
 | Powierzchnie biometryczne | [BIOMETRICS](surface-contracts/BIOMETRICS.md) |
 | Zmiana modułu jedzenia | [Benchmark trackerów](research/food-trackers-benchmark.md) — materiał referencyjny, nie kolejka |
+| Wzorce Bevel dla Sparky | [Porównanie przepływów](research/bevel-benchmark.md) — dowody, różnice i zakres adaptacji |
 | Kontekst pracy/sprzedaży | [career](career/) — treści domenowe, nie instrukcje globalne |
 
 ## Hierarchia i utrzymanie

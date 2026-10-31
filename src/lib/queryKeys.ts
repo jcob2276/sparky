@@ -56,6 +56,7 @@ export const medicalKeys = {
 export const dashboardKeys = {
   all: ['dashboard'] as const,
   main: (userId: string) => [...dashboardKeys.all, 'main', userId] as const,
+  layout: (userId: string) => [...dashboardKeys.all, 'layout', userId] as const,
 };
 
 export const healthspanKeys = {

@@ -261,6 +261,8 @@ Nie deklarować pełnego prowadzenia na podstawie samej obecności implementacji
 | Android | Nowe widgety i dalsza integracja BLE wymagają potrzeby; odbiór istniejących ścieżek pozostaje w RÓB. |
 | Dawne inspiracje / planowanie | Rollover/pruning, estymacja czasu i pojemności, focus/time tracking, przenoszenie celów, dynamiczne nawyki, rescheduling, deadline i bufory — tylko przez istniejące zadania/kalendarz i po decyzji o zakresie. |
 | Dawne inspiracje / ergonomia | Filtry, szablony, tagi, heatmapy i referencje do istniejących ID; nowe rutyny Telegrama lub kanały email/iOS dopiero przy realnym użyciu. |
+| Bevel / szybkie akcje | Konfigurowalne akcje pod „+” otwierają istniejące formularze; zapis na koncie i odbiór skrótów/klawiatury. Punkt odniesienia: [porównanie Bevel](docs/research/bevel-benchmark.md). |
+| Bevel / jawne odpowiedzi dziennika | Rozróżnić tak/nie/brak odpowiedzi w istniejącym dzienniku i wszystkich konsumentach. Odbiór: korekta, N/dat grup i analiza tylko udokumentowanych obserwacji; bez kopiowania nawyków do stream. |
 | Dawny audyt UX | Czytelność, motyw, kontrast, przepełnienie, ruch i dotyk sprawdzać przy dotyku. Osobny redesign Dziś, globalny hero, nowe wykresy, gęstość, podobne dni, plakaty i widgety pozostają pomysłami, nie kolejką. |
 
 Odrzucone: kolejny autonomiczny profil użytkownika, nowy silnik agentowy/baza grafowa
