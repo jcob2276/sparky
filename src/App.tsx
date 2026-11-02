@@ -26,6 +26,7 @@ const MedicalLaboratoryPage = lazy(() => import('./components/medical/MedicalLab
 const CorrelationsPage = lazy(() => import('./components/correlations/CorrelationsPage'));
 const EndMyopiaCalculator = lazy(() => import('./components/medical/EndMyopiaCalculator'));
 const FinancePage = lazy(() => import('./components/finance/FinancePage'));
+const MonthPlanPage = lazy(() => import('./components/closer/MonthPlanPage'));
 const OuraHealthPage = lazy(() => import('./components/biometrics/OuraHealthPage'));
 const GrowthView = lazy(() => import('./components/growth/GrowthView'));
 import { queryClient } from './lib/queryClient';
@@ -116,6 +117,11 @@ function AppRoutes() {
       <Route path="/finanse" element={
         <Suspense fallback={FALLBACK_SPINNER}>
           <Screen kind="dashboard"><FinancePage /></Screen>
+        </Suspense>
+      } />
+      <Route path="/plan-listopad" element={
+        <Suspense fallback={FALLBACK_SPINNER}>
+          <Screen kind="dashboard"><MonthPlanPage /></Screen>
         </Suspense>
       } />
       <Route path="/rozwoj" element={
