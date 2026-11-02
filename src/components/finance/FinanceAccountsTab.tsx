@@ -6,6 +6,7 @@ import { formatPln } from '../../lib/finance/formatMoney';
 import { confirmDialog } from '../../lib/notify';
 import Button from '../ui/Button';
 import { ControlInput, ControlSelect } from '../ui/ControlPrimitives';
+import { FinanceSalesGoalCard } from './FinanceSalesGoalCard';
 import { FinanceEmpty, FinanceList, FinanceRow, FinanceSection } from './financeUi';
 
 interface FinanceAccountsTabProps {
@@ -133,6 +134,7 @@ export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccounts
           </FinanceList>
         )}
       </FinanceSection>
+      <FinanceSalesGoalCard />
     </div>
   );
 }
