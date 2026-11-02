@@ -97,12 +97,20 @@ export function buildMonthPlan(config: MonthPlanConfig): MonthPlan {
 
 export interface DayActual {
   appointments: number;
+  salesCalls: number;
   salesClosed: number;
+}
+
+/** Close rate jako ułamek 0–1; `null` bez żadnej rozmowy sprzedażowej. */
+export function closeRate(salesClosed: number, salesCalls: number): number | null {
+  return salesCalls > 0 ? salesClosed / salesCalls : null;
 }
 
 export interface PlanProgress {
   bookedDone: number;
   salesDone: number;
+  salesCallsDone: number;
+  closeRate: number | null;
   /** Brakujące umówienia względem minimum dni roboczych sprzed dzisiaj (weekend i nadwyżki je zmniejszają). */
   backlog: number;
   todayTarget: number;
@@ -119,9 +127,13 @@ export function summarizeProgress(plan: MonthPlan, actuals: Record<string, DayAc
   const backlog = Math.max(0, plannedBefore - sum((a) => a.appointments, today));
   const todayTarget = days.find((day) => day.date === today && day.kind === 'plan')?.target ?? 0;
   const todayNeeded = todayTarget + backlog;
+  const salesDone = sum((a) => a.salesClosed);
+  const salesCallsDone = sum((a) => a.salesCalls);
   return {
     bookedDone: sum((a) => a.appointments),
-    salesDone: sum((a) => a.salesClosed),
+    salesDone,
+    salesCallsDone,
+    closeRate: closeRate(salesDone, salesCallsDone),
     backlog,
     todayTarget,
     todayNeeded,

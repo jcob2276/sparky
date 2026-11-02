@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildMonthPlan, summarizeProgress, type PlanDay } from './monthPlan';
+import { buildMonthPlan, closeRate, summarizeProgress, type PlanDay } from './monthPlan';
 
 const config = { startDate: '2026-11-02', targetPln: 10000, showRate: 2 / 3, minSalesWeekDays: 3 };
 const plan = buildMonthPlan(config);
@@ -35,12 +35,12 @@ describe('buildMonthPlan', () => {
 
 describe('summarizeProgress', () => {
   it('liczy zaległość z dni sprzed dzisiaj, a weekend ją zmniejsza', () => {
-    const behind = summarizeProgress(plan, { '2026-11-02': { appointments: 3, salesClosed: 0 } }, '2026-11-03');
+    const behind = summarizeProgress(plan, { '2026-11-02': { appointments: 3, salesCalls: 0, salesClosed: 0 } }, '2026-11-03');
     expect(behind.backlog).toBe(3);
     expect(behind.todayNeeded).toBe(behind.todayTarget + 3);
     const weekend = summarizeProgress(
       plan,
-      { '2026-11-02': { appointments: 3, salesClosed: 0 }, '2026-11-07': { appointments: 3, salesClosed: 1 } },
+      { '2026-11-02': { appointments: 3, salesCalls: 0, salesClosed: 0 }, '2026-11-07': { appointments: 3, salesCalls: 2, salesClosed: 1 } },
       '2026-11-09',
     );
     expect(weekend.salesDone).toBe(1);
@@ -48,8 +48,23 @@ describe('summarizeProgress', () => {
   });
 
   it('nadwyżka nie ujemnia zaległości', () => {
-    const ahead = summarizeProgress(plan, { '2026-11-02': { appointments: 30, salesClosed: 0 } }, '2026-11-03');
+    const ahead = summarizeProgress(plan, { '2026-11-02': { appointments: 30, salesCalls: 0, salesClosed: 0 } }, '2026-11-03');
     expect(ahead.backlog).toBe(0);
     expect(ahead.todayBlocks).toBe(Math.ceil(ahead.todayTarget / 5));
+  });
+});
+
+describe('closeRate', () => {
+  it('to sprzedaże podzielone przez sales calle, a bez rozmów brak wartości', () => {
+    expect(closeRate(2, 8)).toBe(0.25);
+    expect(closeRate(0, 0)).toBeNull();
+  });
+
+  it('postęp liczy średni close rate z całego miesiąca', () => {
+    const progress = summarizeProgress(plan, {
+      '2026-11-02': { appointments: 5, salesCalls: 3, salesClosed: 1 },
+      '2026-11-03': { appointments: 5, salesCalls: 5, salesClosed: 1 },
+    }, '2026-11-04');
+    expect(progress).toMatchObject({ salesCallsDone: 8, salesDone: 2, closeRate: 0.25 });
   });
 });
