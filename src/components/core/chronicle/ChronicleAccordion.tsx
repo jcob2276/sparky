@@ -16,7 +16,7 @@ export default function ChronicleAccordion({ title, preview, defaultOpen = false
   const panelId = useId();
 
   return (
-    <section className="rounded-3xl border border-border-custom/60 bg-surface/70">
+    <section className="rounded-lg bg-surface-solid shadow-xs">
       <Pressable
         type="button"
         haptic="none"
@@ -29,7 +29,7 @@ export default function ChronicleAccordion({ title, preview, defaultOpen = false
           <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
           {preview && !open && <p className="truncate text-2xs font-semibold tabular-nums text-text-muted">{preview}</p>}
         </div>
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-3 text-text-muted" aria-hidden="true">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center text-text-muted" aria-hidden="true">
           <ChevronDown size={15} className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
         </span>
       </Pressable>

@@ -10,6 +10,7 @@ import ChroniclePeriodPicker from './chronicle/ChroniclePeriodPicker';
 import { periodLabel } from '../../lib/chronicle/periods';
 import { subscribeChronicleIntent, takeChronicleIntent } from '../../lib/chronicle/chronicleIntent';
 import ChronicleSummary from './chronicle/ChronicleSummary';
+import ChronicleWeekStrip from './chronicle/ChronicleWeekStrip';
 import { useChronicle } from './chronicle/useChronicle';
 import { useChronicleSelection } from './chronicle/useChronicleSelection';
 import type { ChroniclePeriod } from '../../lib/chronicle/periods';
@@ -49,6 +50,8 @@ export const DashboardHistoriaTab = memo(function DashboardHistoriaTab() {
 
   return (
     <div className="p-4 sm:p-5 pb-8 space-y-4">
+      <ChronicleWeekStrip userId={session.user.id} />
+
       <ChronicleControls
         goal={goal}
         onGoal={setGoal}

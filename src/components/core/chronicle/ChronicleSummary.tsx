@@ -11,7 +11,7 @@ const TONE_CLASS: Record<ChronicleTile['tone'], string> = {
 
 function Tile({ tile, wide, compareLabel }: { tile: ChronicleTile; wide: boolean; compareLabel: string }) {
   return (
-    <div className={`rounded-lg border border-border-custom/40 bg-surface/50 p-3 ${wide ? 'col-span-2' : ''}`}>
+    <div className={`rounded-lg bg-surface-2 p-3 ${wide ? 'col-span-2' : ''}`}>
       <p className="text-2xs font-semibold tracking-wide text-text-muted">{tile.label}</p>
       <p className="mt-1 text-xl font-semibold tabular-nums text-text-primary">
         {tile.value}
@@ -54,7 +54,7 @@ interface Props {
 
 /** Cel, kafelki ze zmianą względem poprzedniego okresu, wykres i uczciwe braki danych jednej zakładki Kroniki. */
 export default function ChronicleSummary({ summary, loading, error, periodTitle, compareLabel = 'poprzedni', showChart = true }: Props) {
-  if (loading) return <Skeleton className="h-64 w-full rounded-3xl" />;
+  if (loading) return <Skeleton className="h-64 w-full rounded-lg" />;
   if (error || !summary) {
     return <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-3 text-xs font-semibold text-warning">Nie udało się wczytać danych tego okresu.</p>;
   }
