@@ -70,7 +70,7 @@ export default function TodoDoneHistory() {
           <Pressable
             type="button"
             onClick={() => setVisibleDoneCount(prev => prev + 30)}
-            className="px-4 py-2 rounded-xl border border-border-custom bg-surface hover:bg-surface-solid text-xs font-bold text-text-secondary ui-interactive active:scale-95 cursor-pointer flex items-center justify-center"
+            className="px-4 py-2 rounded-lg border border-border-custom bg-surface hover:bg-surface-solid text-xs font-bold text-text-secondary ui-interactive active:scale-95 cursor-pointer flex items-center justify-center"
           >
             Pokaż więcej ukończonych ({doneItems.length - visibleDoneCount} pozostało)
           </Pressable>

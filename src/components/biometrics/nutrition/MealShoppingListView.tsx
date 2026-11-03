@@ -39,7 +39,7 @@ export function MealShoppingListView({ plan, checkedIds, onToggle,disabled }: Me
               variant="ghost"
               onClick={() => onToggle(item.productId)}
               disabled={disabled}
-              className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-surface-2 px-3 py-2 text-left transition hover:border-white/10 h-auto font-normal"
+              className="flex w-full items-center justify-between rounded-lg border border-white/5 bg-surface-2 px-3 py-2 text-left transition hover:border-white/10 h-auto font-normal"
             >
               <div className="flex items-center gap-2">
                 <Circle size={16} className="text-text-muted" />
@@ -63,7 +63,7 @@ export function MealShoppingListView({ plan, checkedIds, onToggle,disabled }: Me
                     variant="ghost"
                     onClick={() => onToggle(item.productId)}
                     disabled={disabled}
-                    className="flex w-full items-center justify-between rounded-xl border border-white/5 bg-surface-1 px-3 py-1.5 text-left transition hover:text-text-primary h-auto font-normal"
+                    className="flex w-full items-center justify-between rounded-lg border border-white/5 bg-surface-1 px-3 py-1.5 text-left transition hover:text-text-primary h-auto font-normal"
                   >
                     <div className="flex items-center gap-2 line-through text-text-muted">
                       <CheckCircle2 size={16} className="text-success" />

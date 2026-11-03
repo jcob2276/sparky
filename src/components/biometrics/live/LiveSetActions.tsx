@@ -23,7 +23,7 @@ export default function LiveSetActions({ isWarmup, canDelete, onToggleWarmup, on
     return () => window.clearTimeout(t);
   }, [confirming]);
 
-  const base = 'flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl border text-xs font-bold';
+  const base = 'flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border text-xs font-bold';
   const neutral = `${base} border-border-custom bg-surface-1 text-text-secondary`;
 
   if (confirming) {

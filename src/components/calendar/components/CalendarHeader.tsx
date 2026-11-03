@@ -215,7 +215,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
             variant="primary"
             size="sm"
             icon={<Plus size={15} />}
-            className={`h-9 px-3.5 rounded-xl font-bold text-xs max-md:hidden bg-primary text-on-accent shadow-xs hover:bg-primary-hover active:scale-95 ui-interactive ${searchOpen ? 'max-lg:hidden' : ''}`}
+            className={`h-9 px-3.5 rounded-lg font-bold text-xs max-md:hidden bg-primary text-on-accent shadow-xs hover:bg-primary-hover active:scale-95 ui-interactive ${searchOpen ? 'max-lg:hidden' : ''}`}
             aria-label="Dodaj nowe wydarzenie"
             title="Dodaj nowe wydarzenie (C)"
           >

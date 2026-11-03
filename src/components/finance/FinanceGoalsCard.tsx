@@ -69,7 +69,7 @@ export function FinanceGoalsCard({ goals, onAdd, onUpdate, onRemove }: FinanceGo
   };
 
   return (
-    <section className="space-y-4 rounded-2xl bg-surface-1 p-5" aria-label="Moje cele">
+    <section className="space-y-4 rounded-lg bg-surface-1 p-5" aria-label="Moje cele">
       <h2 className="text-base font-semibold">Moje cele</h2>
       {goals.length === 0 ? (
         <p className="text-sm text-text-muted">Dodaj cel, a pokażę postęp: wakacje, fundusz awaryjny, auto.</p>

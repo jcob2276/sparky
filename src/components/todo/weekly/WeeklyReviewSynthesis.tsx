@@ -29,7 +29,7 @@ export default function WeeklyReviewSynthesis() {
       </div>
 
       {aiRecap?.phase1?.narrative && (
-        <div className="bg-primary/50 dark:bg-primary/20 border border-primary dark:border-primary/40 rounded-xl p-3.5 space-y-2.5">
+        <div className="bg-primary/50 dark:bg-primary/20 border border-primary dark:border-primary/40 rounded-lg p-3.5 space-y-2.5">
           <div className="flex items-center gap-2 text-xs font-bold text-primary dark:text-primary">
             <Sparkles size={14} className="text-primary" />
             <span>System widzi (Podsumowanie):</span>
@@ -59,7 +59,7 @@ export default function WeeklyReviewSynthesis() {
           onChange={(e) => setWeeklyNote(e.target.value)}
           placeholder="Zapisz refleksje, np. 'Wyczyściłem 15 zaległych zadań, przełożyłem 3 projekty. W kolejnym tygodniu skupiam się na wdrożeniach Sparky.'"
           rows={4}
-          className="w-full bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/60 rounded-xl px-3 py-2 text-sm font-semibold text-text-primary placeholder:text-text-muted/30 focus:border-primary/50 outline-none transition-colors resize-none"
+          className="w-full bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/60 rounded-lg px-3 py-2 text-sm font-semibold text-text-primary placeholder:text-text-muted/30 focus:border-primary/50 outline-none transition-colors resize-none"
         />
       </div>
 
@@ -107,7 +107,7 @@ export default function WeeklyReviewSynthesis() {
               value={newPredictionText}
               onChange={(e) => setNewPredictionText(e.target.value)}
               placeholder="np. Przebiegnę 10km w czasie < 50 min"
-              className="bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/60 rounded-xl px-3 py-2 text-xs font-semibold text-text-primary placeholder:text-text-muted/30 focus:border-primary/50 outline-none transition-colors"
+              className="bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/60 rounded-lg px-3 py-2 text-xs font-semibold text-text-primary placeholder:text-text-muted/30 focus:border-primary/50 outline-none transition-colors"
             />
             <div className="flex items-center justify-between">
               <span className="text-2xs font-bold text-text-muted">
@@ -135,7 +135,7 @@ export default function WeeklyReviewSynthesis() {
               setNewPredictionText('');
               setNewPredictionConfidence(0.8);
             }}
-            className="px-3.5 py-2 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold flex items-center justify-center transition-colors self-start shrink-0"
+            className="px-3.5 py-2 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-bold flex items-center justify-center transition-colors self-start shrink-0"
           >
             Dodaj
           </Pressable>

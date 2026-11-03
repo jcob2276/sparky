@@ -103,7 +103,7 @@ export default function MealSupplementsWidget({ userId, date }: { userId: string
         ))}
       </div>
       {picking && (
-        <div role="group" aria-label={`Ile: ${picking.name}`} className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-border-custom/60 bg-surface-solid/50 p-2">
+        <div role="group" aria-label={`Ile: ${picking.name}`} className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border-custom/60 bg-surface-solid/50 p-2">
           <span className="px-1 text-xs font-bold text-text-secondary">{shortSupplementName(picking)} · ile?</span>
           {QUANTITY_CHOICES.map((n) => (
             <Pressable

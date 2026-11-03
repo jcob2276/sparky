@@ -37,7 +37,7 @@ export default function DragGhost({ item, posRef }: DragGhostProps) {
         willChange: 'transform',
         opacity: 'var(--ds-inline-style-0-93)'
       }}
-      className="rounded-2xl border border-primary/30 bg-surface/95 shadow-2xl px-4 py-3 backdrop-blur-[var(--blur-xl)]"
+      className="rounded-lg border border-primary/30 bg-surface/95 shadow-2xl px-4 py-3 backdrop-blur-[var(--blur-xl)]"
     >
       <div className="flex items-center gap-3">
         {icon ? (

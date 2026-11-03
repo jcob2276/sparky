@@ -68,7 +68,7 @@ function QuickStartCta({ onStart, onSauna, showStart }: { onStart: () => void; o
         <Pressable
           onClick={onSauna}
           aria-label="Zaloguj saunę"
-          className={`ui-interactive flex h-[3.25rem] cursor-pointer items-center justify-center gap-2 rounded-2xl border border-border-custom bg-surface-1 text-sm font-bold text-text-primary ${showStart ? 'px-5' : 'flex-1'}`}
+          className={`ui-interactive flex h-[3.25rem] cursor-pointer items-center justify-center gap-2 rounded-lg border border-border-custom bg-surface-1 text-sm font-bold text-text-primary ${showStart ? 'px-5' : 'flex-1'}`}
         >
           <Flame size={16} className="text-warning" />
           Sauna

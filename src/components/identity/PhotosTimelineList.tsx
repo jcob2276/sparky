@@ -47,7 +47,7 @@ export default function PhotosTimelineList({
             <div key={photo.id} className="snap-start shrink-0 space-y-1.5 group">
               <div
                 onClick={() => onSelect(photo.id)}
-                className={`relative w-20 aspect-[3/4] rounded-xl overflow-hidden border-2 transition-all duration-200 cursor-pointer ${
+                className={`relative w-20 aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all duration-200 cursor-pointer ${
                   isBase
                     ? 'border-emerald-500 scale-105 shadow-md shadow-emerald-500/20 ring-2 ring-emerald-500/20'
                     : isTarget

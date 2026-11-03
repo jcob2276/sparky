@@ -56,12 +56,12 @@ export function QuickAddForm({ fields, onSubmit, submitLabel = 'Dodaj' }: QuickA
 
           required
 
-          className="min-h-11 min-w-[var(--finance-range-width)] flex-1 rounded-xl border-0 bg-surface-2/70 px-3 py-2 text-sm ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35"
+          className="min-h-11 min-w-[var(--finance-range-width)] flex-1 rounded-lg border-0 bg-surface-2/70 px-3 py-2 text-sm ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35"
         />
 
       ))}
 
-      <Button type="submit" size="sm" className="rounded-xl active:scale-[var(--scale-pressed)]">
+      <Button type="submit" size="sm" className="rounded-lg active:scale-[var(--scale-pressed)]">
         {submitLabel}
 
       </Button>

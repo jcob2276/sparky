@@ -19,7 +19,7 @@ export function WorkoutSessionEditor({
   onCancel,
 }: WorkoutSessionEditorProps) {
   return (
-    <div className="rounded-xl border-2 border-primary/50 bg-surface p-4 shadow-md space-y-3">
+    <div className="rounded-lg border-2 border-primary/50 bg-surface p-4 shadow-md space-y-3">
       <div className="flex items-center justify-between border-b border-border-custom pb-2.5">
         <p className="text-xs font-semibold tracking-wide text-primary font-display flex items-center gap-1.5">
           <Edit3 size={13} />
@@ -38,7 +38,7 @@ export function WorkoutSessionEditor({
         value={editForm.workout_day ?? ''}
         onChange={(e) => setEditForm({ ...editForm, workout_day: e.target.value })}
         placeholder="Nazwa treningu..."
-        className="w-full bg-surface-solid border border-border-custom rounded-xl p-2.5 text-sm font-semibold text-text-primary outline-none focus:border-primary"
+        className="w-full bg-surface-solid border border-border-custom rounded-lg p-2.5 text-sm font-semibold text-text-primary outline-none focus:border-primary"
       />
 
       {/* Logs editor */}

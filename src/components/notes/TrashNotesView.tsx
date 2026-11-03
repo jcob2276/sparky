@@ -60,7 +60,7 @@ export default function TrashNotesView({
       </header>
       <div className="mx-auto flex max-w-3xl flex-col gap-2">
         {notes.map(note => (
-          <article key={note.id} className="rounded-xl border border-border-custom bg-surface-solid p-4">
+          <article key={note.id} className="rounded-lg border border-border-custom bg-surface-solid p-4">
             <div className="flex items-start justify-between gap-4">
               <div className="min-w-0">
                 <h3 className="truncate font-semibold">{note.title || 'Bez tytułu'}</h3>

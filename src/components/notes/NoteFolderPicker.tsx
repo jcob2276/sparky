@@ -67,7 +67,7 @@ export default function NoteFolderPicker({
         onClick={() => setOpen((prev) => !prev)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-custom/35 bg-surface-solid/65 hover:bg-surface-solid text-xs font-semibold text-text-primary shadow-2xs transition-all active:scale-[0.97]"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-custom/35 bg-surface-solid/65 hover:bg-surface-solid text-xs font-semibold text-text-primary shadow-2xs transition-all active:scale-[0.97]"
       >
         <Folder size={13} className="text-warning shrink-0" />
         <span className="truncate max-w-[140px]">{activeLabel}</span>
@@ -77,7 +77,7 @@ export default function NoteFolderPicker({
       {open && (
         <div
           role="listbox"
-          className="absolute left-0 top-full mt-1.5 z-[var(--z-popover)] min-w-[210px] max-w-[280px] rounded-2xl border border-border-custom/40 bg-surface-solid p-1.5 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-100"
+          className="absolute left-0 top-full mt-1.5 z-[var(--z-popover)] min-w-[210px] max-w-[280px] rounded-lg border border-border-custom/40 bg-surface-solid p-1.5 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-100"
         >
           <div className="max-h-56 overflow-y-auto space-y-0.5">
             <Pressable

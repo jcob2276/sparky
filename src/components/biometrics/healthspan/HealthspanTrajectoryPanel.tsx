@@ -33,7 +33,7 @@ export default function HealthspanTrajectoryPanel({
   }));
   if (!points.length) {
     return (
-      <section className="rounded-2xl border border-border-custom/40 bg-surface-1 p-5">
+      <section className="rounded-lg border border-border-custom/40 bg-surface-1 p-5">
         <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary">
           <Activity size={15} /> Trajektoria Healthspan
         </h3>
@@ -47,7 +47,7 @@ export default function HealthspanTrajectoryPanel({
 
   const hasModelChange = new Set(visiblePoints.map((point) => point.modelVersion)).size > 1;
   return (
-    <section className="rounded-2xl border border-border-custom/40 bg-surface-1 p-5">
+    <section className="rounded-lg border border-border-custom/40 bg-surface-1 p-5">
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary">

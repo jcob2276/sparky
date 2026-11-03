@@ -20,7 +20,7 @@ export default function VoicePlanSlotsPreview({ slots, onClearSlot }: Props) {
   const filledCount = slots.filter((s) => Boolean(s.title.trim())).length;
 
   return (
-    <div className="rounded-2xl border border-border-custom/40 bg-surface/50 p-3 space-y-2">
+    <div className="rounded-lg border border-border-custom/40 bg-surface/50 p-3 space-y-2">
       <div className="flex items-center justify-between px-1">
         <span className="text-2xs font-bold text-text-muted">
           5 Priorytetów Dnia
@@ -39,7 +39,7 @@ export default function VoicePlanSlotsPreview({ slots, onClearSlot }: Props) {
           return (
             <div
               key={slot.slot}
-              className={`flex items-center gap-2 p-2 rounded-xl border transition-all ${
+              className={`flex items-center gap-2 p-2 rounded-lg border transition-all ${
                 hasTitle
                   ? 'border-border-custom/60 bg-surface'
                   : 'border-dashed border-border-custom/40 bg-surface/20'

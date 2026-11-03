@@ -40,7 +40,7 @@ export default memo(function MealGroupCard({
   ) / 10;
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border-custom/80 bg-surface-solid/35 shadow-2xs ui-interactive hover:border-primary/30">
+    <div className="overflow-hidden rounded-lg border border-border-custom/80 bg-surface-solid/35 shadow-2xs ui-interactive hover:border-primary/30">
       {/* Header with Master Meal Toggle & Copy Action */}
       <div className="flex items-center justify-between border-b border-border-custom/40 bg-surface-solid/60 px-3.5 py-2.5">
         <Pressable
@@ -81,7 +81,7 @@ export default memo(function MealGroupCard({
           type="button"
           onClick={() => onCopyMeal(mealType)}
           disabled={copying || mealSelectedEntries.length === 0}
-          className="touch-manipulation flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary ui-interactive hover:bg-primary/20 active:scale-95 disabled:opacity-40"
+          className="touch-manipulation flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-bold text-primary ui-interactive hover:bg-primary/20 active:scale-95 disabled:opacity-40"
           title={`Kopiuj ${mealSelectedEntries.length} poz.`}
         >
           <Copy size={12} />

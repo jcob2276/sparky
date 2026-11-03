@@ -12,7 +12,7 @@ interface FinanceHoldingFormProps {
   onDone: () => void;
 }
 
-const fieldClass = 'min-h-11 w-full rounded-xl border-0 bg-surface-2/70 px-3 text-sm ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35';
+const fieldClass = 'min-h-11 w-full rounded-lg border-0 bg-surface-2/70 px-3 text-sm ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35';
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -74,11 +74,11 @@ export function FinanceHoldingForm({ holding, pending, onSubmit, onRemove, onDon
         </Field>
       </div>
       <div className="flex gap-2">
-        <Button type="submit" loading={pending} disabled={!valid} className="flex-1 rounded-xl">
+        <Button type="submit" loading={pending} disabled={!valid} className="flex-1 rounded-lg">
           {holding ? 'Zapisz zmiany' : 'Dodaj pozycję'}
         </Button>
         {holding && onRemove && (
-          <Button type="button" variant="ghost" onClick={onRemove} className="rounded-xl text-danger">Usuń</Button>
+          <Button type="button" variant="ghost" onClick={onRemove} className="rounded-lg text-danger">Usuń</Button>
         )}
       </div>
     </form>

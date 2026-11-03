@@ -14,7 +14,7 @@ interface Props {
 export default function CalendarSearchResults({ results, term, searching, onPick }: Props) {
   if (!term) return null;
   return (
-    <div className="absolute right-0 top-full z-[var(--z-popover)] mt-1 w-72 sm:w-88 overflow-hidden rounded-xl border border-border-custom/40 bg-surface-solid shadow-lg">
+    <div className="absolute right-0 top-full z-[var(--z-popover)] mt-1 w-72 sm:w-88 overflow-hidden rounded-lg border border-border-custom/40 bg-surface-solid shadow-lg">
       {results.length === 0 ? (
         <p role="status" className="px-3 py-2.5 text-xs font-medium text-text-muted">
           {searching ? 'Szukam…' : 'Brak wyników w ±6 miesiącach'}

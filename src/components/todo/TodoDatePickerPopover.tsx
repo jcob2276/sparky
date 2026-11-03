@@ -132,7 +132,7 @@ export default function TodoDatePickerPopover({
     <div
       ref={ref}
       onClick={(e) => e.stopPropagation()}
-      className={`${inline ? 'relative w-full' : 'absolute z-[var(--z-overlay)] top-full left-0 mt-2 w-[var(--ds-w-280px)] todo-popover-fit shadow-2xl'} rounded-2xl border border-border-custom bg-surface-solid flex flex-col gap-2.5 p-3 animate-in fade-in zoom-in-95 duration-[var(--motion-medium)] origin-top-left`}
+      className={`${inline ? 'relative w-full' : 'absolute z-[var(--z-overlay)] top-full left-0 mt-2 w-[var(--ds-w-280px)] todo-popover-fit shadow-2xl'} rounded-lg border border-border-custom bg-surface-solid flex flex-col gap-2.5 p-3 animate-in fade-in zoom-in-95 duration-[var(--motion-medium)] origin-top-left`}
     >
       <ControlInput
         autoFocus
@@ -142,14 +142,14 @@ export default function TodoDatePickerPopover({
         placeholder="Wpisz termin, np. jutro 15:00"
         aria-label="Wpisz termin"
         enterKeyHint="done"
-        className="w-full rounded-xl border border-border-custom/60 bg-surface/60 px-3 py-1.5 text-sm font-medium text-text-primary outline-none placeholder:text-text-muted/40 focus:border-primary/40"
+        className="w-full rounded-lg border border-border-custom/60 bg-surface/60 px-3 py-1.5 text-sm font-medium text-text-primary outline-none placeholder:text-text-muted/40 focus:border-primary/40"
       />
 
       <div className="flex flex-col gap-0.5">
         <Pressable
           type="button"
           onClick={() => pickDate(today)}
-          className={`flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-sm font-semibold transition-colors ${dueDate === today ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface/60'}`}
+          className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm font-semibold transition-colors ${dueDate === today ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface/60'}`}
         >
           <CalendarDays size={14} className="text-success" />
           <span className="flex-1 text-left">Dziś</span>
@@ -158,7 +158,7 @@ export default function TodoDatePickerPopover({
         <Pressable
           type="button"
           onClick={() => pickDate(tomorrowKey)}
-          className={`flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-sm font-semibold transition-colors ${dueDate === tomorrowKey ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface/60'}`}
+          className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm font-semibold transition-colors ${dueDate === tomorrowKey ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface/60'}`}
         >
           <Sun size={14} className="text-warning" />
           <span className="flex-1 text-left">Jutro</span>
@@ -167,7 +167,7 @@ export default function TodoDatePickerPopover({
         <Pressable
           type="button"
           onClick={() => pickDate(weekendKey)}
-          className={`flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-sm font-semibold transition-colors ${dueDate === weekendKey ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface/60'}`}
+          className={`flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm font-semibold transition-colors ${dueDate === weekendKey ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-surface/60'}`}
         >
           <Sofa size={14} className="text-info" />
           <span className="flex-1 text-left">Następny weekend</span>
@@ -222,12 +222,12 @@ export default function TodoDatePickerPopover({
           <Pressable
             type="button"
             onClick={() => setShowTime(true)}
-            className="flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-sm font-semibold text-text-muted hover:bg-surface/60 hover:text-text-primary transition-colors"
+            className="flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-sm font-semibold text-text-muted hover:bg-surface/60 hover:text-text-primary transition-colors"
           >
             <Clock3 size={13} /> Czas
           </Pressable>
         ) : (
-          <div className="flex items-center gap-2 rounded-xl border border-border-custom/50 px-2.5 py-1">
+          <div className="flex items-center gap-2 rounded-lg border border-border-custom/50 px-2.5 py-1">
             <Clock3 size={13} className="text-primary shrink-0" />
             <ControlInput
               type="time"
@@ -250,7 +250,7 @@ export default function TodoDatePickerPopover({
         <Pressable
           type="button"
           onClick={() => pickDate(null)}
-          className="flex items-center justify-center gap-1.5 rounded-xl border border-border-custom/50 py-1.5 text-xs font-semibold text-text-muted hover:text-danger transition-colors"
+          className="flex items-center justify-center gap-1.5 rounded-lg border border-border-custom/50 py-1.5 text-xs font-semibold text-text-muted hover:text-danger transition-colors"
         >
           <X size={11} /> Usuń termin
         </Pressable>

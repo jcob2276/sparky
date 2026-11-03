@@ -39,7 +39,7 @@ export default function GeneralMemexPanels({ userId, patterns, curiosity, wiki }
         <div className="space-y-2">
           {shown.map((h) => <HypothesisCard key={h.key} h={h} />)}
           {hypotheses.length === 0 && (
-            <div className="rounded-xl border border-dashed border-border-custom/40 py-6 text-center text-xs text-text-muted">
+            <div className="rounded-lg border border-dashed border-border-custom/40 py-6 text-center text-xs text-text-muted">
               <Brain size={20} className="mx-auto mb-2 opacity-40" />
               Za mało danych — wzorce pojawią się z czasem.
             </div>

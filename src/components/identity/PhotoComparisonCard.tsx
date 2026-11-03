@@ -31,7 +31,7 @@ export function PhotoComparisonCard({
   const targetDateStr = targetPhoto?.date ? format(parseISO(targetPhoto.date), 'dd.MM.yy') : '--';
 
   return (
-    <div className="rounded-2xl border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] overflow-hidden shadow-sm">
+    <div className="rounded-lg border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] overflow-hidden shadow-sm">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4 pb-3 sm:px-5 sm:pt-5">
         <div>
@@ -55,7 +55,7 @@ export function PhotoComparisonCard({
         <div className="flex items-center gap-2">
           {/* View mode toggle */}
           {basePhoto && targetPhoto && (
-            <div className="flex items-center rounded-xl bg-surface border border-border-custom p-0.5">
+            <div className="flex items-center rounded-lg bg-surface border border-border-custom p-0.5">
               <Pressable
                 onClick={() => setMode('side')}
                 className={`flex items-center gap-1 min-h-[40px] min-w-[40px] justify-center px-2.5 py-1.5 rounded-lg text-xs font-semibold ui-interactive ${
@@ -87,14 +87,14 @@ export function PhotoComparisonCard({
             <Pressable
               onClick={() => onAnalyze(targetPhoto)}
               disabled={analyzingId === targetPhoto.id}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-primary/30 bg-primary/10 text-primary hover:bg-primary hover:text-on-accent min-h-[44px] font-display text-xs font-semibold ui-interactive cursor-pointer shadow-sm"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-primary/30 bg-primary/10 text-primary hover:bg-primary hover:text-on-accent min-h-[44px] font-display text-xs font-semibold ui-interactive cursor-pointer shadow-sm"
             >
               {analyzingId === targetPhoto.id ? <Spinner size="sm" /> : <Sparkles size={14} />}
               <span>{targetPhoto.ai_analysis ? 'Wynik AI' : 'Analizuj AI'}</span>
             </Pressable>
           )}
 
-          <label className="cursor-pointer flex h-11 w-11 items-center justify-center rounded-xl border border-border-custom bg-surface text-text-secondary ui-interactive hover:bg-primary hover:border-primary hover:text-on-accent shadow-sm active:scale-95">
+          <label className="cursor-pointer flex h-11 w-11 items-center justify-center rounded-lg border border-border-custom bg-surface text-text-secondary ui-interactive hover:bg-primary hover:border-primary hover:text-on-accent shadow-sm active:scale-95">
             {uploading ? <Spinner size="sm" /> : <Camera size={15} />}
             <ControlInput type="file" accept="image/*" className="hidden" onChange={onUpload} disabled={uploading} />
           </label>

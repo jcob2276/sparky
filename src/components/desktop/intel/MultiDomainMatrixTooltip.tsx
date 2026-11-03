@@ -171,7 +171,7 @@ export function MultiDomainMatrixTooltip({ day, rect, selectedLayers }: Props) {
         zIndex: 9999,
         pointerEvents: 'none',
       }}
-      className="w-72 rounded-xl border border-border-custom bg-surface-solid/95 backdrop-blur-md p-3.5 shadow-2xl text-xs space-y-2.5 animate-in fade-in duration-150"
+      className="w-72 rounded-lg border border-border-custom bg-surface-solid/95 backdrop-blur-md p-3.5 shadow-2xl text-xs space-y-2.5 animate-in fade-in duration-150"
     >
       <div className="flex items-center justify-between border-b border-border-custom/50 pb-2">
         <div className="flex items-center gap-1.5">

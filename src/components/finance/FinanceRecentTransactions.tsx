@@ -48,7 +48,7 @@ export function FinanceRecentTransactions({ transactions, onShowAll }: FinanceRe
   const recent = transactions.slice(0, 6);
 
   return (
-    <section className="rounded-2xl bg-surface-1 p-2" aria-label="Ostatnie transakcje">
+    <section className="rounded-lg bg-surface-1 p-2" aria-label="Ostatnie transakcje">
       {recent.length === 0 ? (
         <p className="px-4 py-3 text-center text-sm text-text-muted">
           Brak wpisów. Użyj „Wydatek” albo „Wpływ”, a pojawią się tutaj.
@@ -59,7 +59,7 @@ export function FinanceRecentTransactions({ transactions, onShowAll }: FinanceRe
             const income = item.kind === 'income';
             const Icon = income ? ArrowDownLeft : CATEGORY_ICONS[item.category] ?? CircleDollarSign;
             return (
-              <li key={item.id} className="flex items-center gap-3 rounded-2xl px-3 py-3">
+              <li key={item.id} className="flex items-center gap-3 rounded-lg px-3 py-3">
                 <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${income ? 'bg-success/20 text-success' : 'bg-surface-2 text-text-primary'}`}>
                   <Icon size={20} aria-hidden="true" />
                 </span>
@@ -76,7 +76,7 @@ export function FinanceRecentTransactions({ transactions, onShowAll }: FinanceRe
         </ul>
       )}
       {recent.length > 0 && (
-        <Pressable type="button" onClick={onShowAll} className="w-full rounded-2xl py-3 text-sm font-semibold text-primary">
+        <Pressable type="button" onClick={onShowAll} className="w-full rounded-lg py-3 text-sm font-semibold text-primary">
           Wyświetl wszystko
         </Pressable>
       )}

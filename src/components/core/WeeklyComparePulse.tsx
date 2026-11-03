@@ -18,7 +18,7 @@ function Metric({ tile, onOpen }: { tile: ChronicleTile; onOpen: () => void }) {
     <Pressable
       type="button"
       onClick={onOpen}
-      className="rounded-2xl border border-border-custom/40 bg-surface/50 p-3 text-left active:scale-95 ui-interactive"
+      className="rounded-lg border border-border-custom/40 bg-surface/50 p-3 text-left active:scale-95 ui-interactive"
     >
       <p className="text-2xs font-semibold tracking-wide text-text-muted">{tile.label}</p>
       <p className="mt-1 text-xl font-semibold tabular-nums text-text-primary">
@@ -73,14 +73,14 @@ export default function WeeklyComparePulse() {
         <Pressable
           type="button"
           onClick={() => open('duch', 'week')}
-          className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl border border-primary/40 bg-primary/15 px-3 text-xs font-semibold text-primary active:scale-95 ui-interactive"
+          className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-primary/40 bg-primary/15 px-3 text-xs font-semibold text-primary active:scale-95 ui-interactive"
         >
           Porównaj tygodnie <ArrowRight size={13} aria-hidden="true" />
         </Pressable>
         <Pressable
           type="button"
           onClick={() => open('duch', 'month')}
-          className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-2xl border border-border-custom/60 bg-surface-solid/50 px-3 text-xs font-semibold text-text-primary active:scale-95 ui-interactive"
+          className="flex min-h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-border-custom/60 bg-surface-solid/50 px-3 text-xs font-semibold text-text-primary active:scale-95 ui-interactive"
         >
           Porównaj miesiące <ArrowRight size={13} aria-hidden="true" />
         </Pressable>

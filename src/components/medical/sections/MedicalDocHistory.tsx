@@ -81,7 +81,7 @@ export default function MedicalDocHistory({ documents }: MedicalDocHistoryProps)
         })}
 
         {documents.length === 0 && (
-          <div className="col-span-2 rounded-xl border border-dashed border-border-custom py-12 text-center">
+          <div className="col-span-2 rounded-lg border border-dashed border-border-custom py-12 text-center">
             <p className="text-xs text-text-muted italic">Brak zapisanych oryginalnych dokumentów PDF.</p>
           </div>
         )}

@@ -64,7 +64,7 @@ export function DataExportSection({
   ];
 
   return (
-    <section id="kronika-eksport" className="rounded-2xl border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
+    <section id="kronika-eksport" className="rounded-lg border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -78,7 +78,7 @@ export function DataExportSection({
             Raport danych (.md)
           </h2>
         </div>
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 text-primary border border-primary/20">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary border border-primary/20">
           <FileText size={16} />
         </div>
       </div>
@@ -111,7 +111,7 @@ export function DataExportSection({
               value={dateRange.from}
               onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
               onChange={(e) => setDateRange({ ...dateRange, from: e.target.value })}
-              className="w-full rounded-xl border border-border-custom bg-surface py-2.5 pl-8 pr-2.5 text-xs font-mono font-bold text-text-primary outline-none ui-interactive focus:border-primary"
+              className="w-full rounded-lg border border-border-custom bg-surface py-2.5 pl-8 pr-2.5 text-xs font-mono font-bold text-text-primary outline-none ui-interactive focus:border-primary"
             />
           </div>
           <div className="relative">
@@ -121,7 +121,7 @@ export function DataExportSection({
               value={dateRange.to}
               onClick={(e) => (e.currentTarget as HTMLInputElement).showPicker?.()}
               onChange={(e) => setDateRange({ ...dateRange, to: e.target.value })}
-              className="w-full rounded-xl border border-border-custom bg-surface py-2.5 pl-8 pr-2.5 text-xs font-mono font-bold text-text-primary outline-none ui-interactive focus:border-primary"
+              className="w-full rounded-lg border border-border-custom bg-surface py-2.5 pl-8 pr-2.5 text-xs font-mono font-bold text-text-primary outline-none ui-interactive focus:border-primary"
             />
           </div>
         </div>

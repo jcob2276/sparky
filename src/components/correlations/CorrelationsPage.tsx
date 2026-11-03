@@ -109,7 +109,7 @@ export default function CorrelationsPage() {
                   {sparseMetrics.map(m => (
                     <div
                       key={m.key}
-                      className="flex items-start gap-3 rounded-xl border border-border-custom/60 bg-surface-solid/30 px-4 py-3"
+                      className="flex items-start gap-3 rounded-lg border border-border-custom/60 bg-surface-solid/30 px-4 py-3"
                     >
                       {/* Progress bar as left indicator */}
                       <div className="mt-1 shrink-0">

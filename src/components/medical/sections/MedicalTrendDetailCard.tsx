@@ -50,7 +50,7 @@ export function MedicalTrendDetailCard({ selectedTrend, insight }: MedicalTrendD
       </div>
 
       {insight && (
-        <div className="flex items-start gap-2.5 rounded-xl bg-primary/[0.04] border border-primary/20 p-3 text-xs text-text-secondary leading-relaxed">
+        <div className="flex items-start gap-2.5 rounded-lg bg-primary/[0.04] border border-primary/20 p-3 text-xs text-text-secondary leading-relaxed">
           <Info size={16} className="text-primary shrink-0 mt-0.5" />
           <div>
             <span className="font-semibold text-text-primary block text-2xs tracking-normal">Interpretacja Analityczna</span>
@@ -60,21 +60,21 @@ export function MedicalTrendDetailCard({ selectedTrend, insight }: MedicalTrendD
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-        <div className="bg-background/20 p-2.5 rounded-xl border border-border-custom/40">
+        <div className="bg-background/20 p-2.5 rounded-lg border border-border-custom/40">
           <span className="text-text-muted font-bold block">Aktualny (ostatni)</span>
           <span className="text-sm font-semibold text-text-primary mt-0.5 block">{selectedTrend.currentValue} {selectedTrend.unit}</span>
         </div>
-        <div className="bg-background/20 p-2.5 rounded-xl border border-border-custom/40">
+        <div className="bg-background/20 p-2.5 rounded-lg border border-border-custom/40">
           <span className="text-text-muted font-bold block">Poprzedni pomiar</span>
           <span className="text-sm font-semibold text-text-secondary mt-0.5 block">{selectedTrend.prevValue} {selectedTrend.unit}</span>
         </div>
-        <div className="bg-background/20 p-2.5 rounded-xl border border-border-custom/40">
+        <div className="bg-background/20 p-2.5 rounded-lg border border-border-custom/40">
           <span className="text-text-muted font-bold block">Zmiana bezwzgl.</span>
           <span className="text-sm font-semibold text-text-primary mt-0.5 block">
             {selectedTrend.absoluteChange > 0 ? '+' : ''}{selectedTrend.absoluteChange.toFixed(2)}
           </span>
         </div>
-        <div className="bg-background/20 p-2.5 rounded-xl border border-border-custom/40">
+        <div className="bg-background/20 p-2.5 rounded-lg border border-border-custom/40">
           <span className="text-text-muted font-bold block">Zakres referencyjny</span>
           <span className="text-xs font-bold text-text-secondary mt-1 block">
             {localizeRefText(selectedTrend.ref_text) || (selectedTrend.ref_low != null && selectedTrend.ref_high != null ? `${selectedTrend.ref_low} – ${selectedTrend.ref_high}` : 'Standard')}
@@ -82,7 +82,7 @@ export function MedicalTrendDetailCard({ selectedTrend, insight }: MedicalTrendD
         </div>
       </div>
 
-      <div className="h-48 w-full bg-background/30 rounded-2xl p-2 border border-border-custom/60">
+      <div className="h-48 w-full bg-background/30 rounded-lg p-2 border border-border-custom/60">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={selectedTrend.history} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border-custom)" opacity={0.15} />

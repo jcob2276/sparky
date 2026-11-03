@@ -66,7 +66,7 @@ function DayCell({ day, selected, onSelect }: { day: WinsDayCell; selected: bool
         onClick={onSelect}
         aria-pressed={selected}
         aria-label={`${day.label}, ${day.doneCount} z ${day.plannedCount || 5} zadań${day.score != null ? `, ocena ${day.score}` : ''}`}
-        className={`flex aspect-square w-full max-w-11 items-center justify-center rounded-xl border text-xs font-semibold ui-interactive active:scale-95 ${cellClass(day.status)} ${
+        className={`flex aspect-square w-full max-w-11 items-center justify-center rounded-lg border text-xs font-semibold ui-interactive active:scale-95 ${cellClass(day.status)} ${
           selected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''
         }`}
       >

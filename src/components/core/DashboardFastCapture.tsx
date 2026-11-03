@@ -90,10 +90,10 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
                     variant="ghost"
                     aria-label={tile.label}
                     onClick={() => run(tile)}
-                    className="flex min-h-16 w-full items-center gap-3 rounded-2xl border border-black/8 bg-surface-2 p-3 text-left transition-colors hover:bg-surface-3 active:scale-[0.97] dark:border-white/10"
+                    className="flex min-h-16 w-full items-center gap-3 rounded-lg border border-black/8 bg-surface-2 p-3 text-left transition-colors hover:bg-surface-3 active:scale-[0.97] dark:border-white/10"
                   >
                     <span
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
                       style={{ color: tint, backgroundColor: `color-mix(in srgb, ${tint} 16%, transparent)` }}
                     >
                       <Icon size={22} aria-hidden="true" />
@@ -121,7 +121,7 @@ export const DashboardFastCaptureMenu = memo(function DashboardFastCaptureMenu({
                     onClick={() => run(tile)}
                     onMouseEnter={() => warm(tile)}
                     onTouchStart={() => warm(tile)}
-                    className="flex min-h-18 flex-col items-center justify-center gap-2 rounded-2xl border border-black/8 bg-surface-2 px-1 py-3 text-center transition-colors hover:bg-surface-3 active:scale-95 dark:border-white/10"
+                    className="flex min-h-18 flex-col items-center justify-center gap-2 rounded-lg border border-black/8 bg-surface-2 px-1 py-3 text-center transition-colors hover:bg-surface-3 active:scale-95 dark:border-white/10"
                   >
                     <span className="relative flex h-6 w-6 items-center justify-center text-text-primary">
                       <Icon size={22} aria-hidden="true" />

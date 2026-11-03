@@ -54,14 +54,14 @@ export default function WeeklyNutritionPulse({
       {pulse && hasDays && (
         <>
           <div className="grid grid-cols-2 gap-2">
-            <div className={`rounded-2xl border p-3 ${proteinLow ? 'border-warning/30 bg-warning/10' : 'border-border-custom/40 bg-surface/50'}`}>
+            <div className={`rounded-lg border p-3 ${proteinLow ? 'border-warning/30 bg-warning/10' : 'border-border-custom/40 bg-surface/50'}`}>
               <p className="text-2xs font-semibold tracking-wide text-text-muted">Białko / dzień</p>
               <p className="mt-1 text-xl font-semibold text-text-primary">
                 {formatGrams(pulse.avgProtein)}
                 {pulse.proteinGoal != null && <span className="ml-1 text-2xs font-bold text-text-muted">z {pulse.proteinGoal} g</span>}
               </p>
             </div>
-            <div className="rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
+            <div className="rounded-lg border border-border-custom/40 bg-surface/50 p-3">
               <p className="text-2xs font-semibold tracking-wide text-text-muted">Kalorie / dzień</p>
               <p className="mt-1 text-xl font-semibold text-text-primary">
                 {pulse.avgCalories}

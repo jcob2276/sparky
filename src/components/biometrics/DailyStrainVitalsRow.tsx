@@ -46,7 +46,7 @@ function formatVitalValue(
 ) {
   if (today == null) return '--';
   return (
-    <span className="flex items-baseline justify-center gap-0.5 whitespace-nowrap">
+    <span className="flex items-baseline gap-0.5 whitespace-nowrap">
       {today.toLocaleString('pl-PL')}
       {unit && <span className="text-2xs font-semibold text-text-muted">{unit}</span>}
       <TrendArrow today={today} yesterday={yesterday} better={better} />
@@ -74,7 +74,7 @@ export default function DailyStrainVitalsRow({
         : null;
 
   const sleepVal = sleepRawVal ? (
-    <span className="flex items-baseline justify-center gap-0.5 whitespace-nowrap">
+    <span className="flex items-baseline gap-0.5 whitespace-nowrap">
       {sleepRawVal}
       <TrendArrow today={oura.total_sleep_hours} yesterday={ouraYesterday?.total_sleep_hours} better="higher" />
     </span>
@@ -90,13 +90,13 @@ export default function DailyStrainVitalsRow({
       icon: Zap,
       label: 'HRV',
       value: formatVitalValue(oura.hrv_avg, ouraYesterday?.hrv_avg, 'ms', 'higher'),
-      color: zToVitalColor(hrvZ, 'text-dayA'),
+      color: zToVitalColor(hrvZ, 'text-text-primary'),
     },
     {
       icon: Activity,
       label: 'RHR',
       value: formatVitalValue(oura.rhr_avg, ouraYesterday?.rhr_avg, 'bpm', 'lower'),
-      color: zToVitalColor(rhrZ, 'text-dayB'),
+      color: zToVitalColor(rhrZ, 'text-text-primary'),
     },
     {
       icon: Moon,
@@ -117,13 +117,13 @@ export default function DailyStrainVitalsRow({
       icon: Thermometer,
       label: 'Temp',
       value: tempVal,
-      color: Math.abs(oura.temp_deviation || 0) > 0.5 ? 'text-danger' : 'text-text-secondary',
+      color: Math.abs(oura.temp_deviation || 0) > 0.5 ? 'text-danger' : 'text-text-primary',
     },
     {
       icon: Footprints,
       label: 'Kroki',
       value: formatVitalValue(oura.steps, ouraYesterday?.steps, '', 'higher'),
-      color: 'text-dayC',
+      color: 'text-text-primary',
     },
   ];
 
@@ -133,17 +133,17 @@ export default function DailyStrainVitalsRow({
     <div className="space-y-3 relative z-[var(--z-raised)]">
       {/* Primary Vitals Row */}
       <div className="h-px bg-border-custom/30" />
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-        {vitals.map(({ icon: Icon, label, value, color }) => (
+      <div className="grid grid-cols-2 gap-2">
+        {vitals.map(({ icon: Icon, label, value, color }, index) => (
           <div
             key={label}
-            className="flex min-w-0 flex-col items-center justify-center gap-1 rounded-xl border border-border-custom/40 bg-surface-2 px-1.5 py-2 text-center"
+            className={`flex min-w-0 flex-col items-start justify-center gap-1.5 rounded-lg bg-surface-2 px-3 py-2.5 ${index === vitals.length - 1 ? 'col-span-2' : ''}`}
           >
-            <p className="flex items-center justify-center gap-1 text-2xs font-bold uppercase tracking-wider text-text-muted">
-              <Icon size={11} className={color} aria-hidden="true" />
+            <p className="flex items-center gap-1.5 text-xs font-medium text-text-muted">
+              <Icon size={12} aria-hidden="true" />
               {label}
             </p>
-            <p className={`font-display text-base font-black leading-none ${color}`}>{value}</p>
+            <p className={`font-display text-xl font-semibold leading-none tabular-nums ${color}`}>{value}</p>
           </div>
         ))}
       </div>
@@ -153,7 +153,7 @@ export default function DailyStrainVitalsRow({
       <div className="pt-0.5">
         <Pressable
           onClick={() => setShowTelemetry(!showTelemetry)}
-          className="w-full flex items-center justify-between py-1.5 px-3 rounded-xl border border-border-custom/40 bg-surface-solid/30 hover:bg-surface-solid/60 text-2xs font-bold text-text-muted hover:text-text-primary transition-colors cursor-pointer"
+          className="w-full flex items-center justify-between py-1.5 px-3 rounded-lg border border-border-custom/40 bg-surface-solid/30 hover:bg-surface-solid/60 text-2xs font-bold text-text-muted hover:text-text-primary transition-colors cursor-pointer"
         >
           <span>{showTelemetry ? 'Zwiń szczegóły biometryczne' : 'Szczegóły biometrii (fazy snu, SpO₂, naczynia)'}</span>
           <ChevronDown size={12} className={`transition-transform duration-[var(--motion-fast)] ${showTelemetry ? 'rotate-180' : ''}`} />

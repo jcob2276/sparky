@@ -71,7 +71,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div
             role="alert"
             data-testid="inline-error-boundary"
-            className="rounded-2xl border border-danger/25 bg-danger/5 p-4 text-center my-2 space-y-2.5"
+            className="rounded-lg border border-danger/25 bg-danger/5 p-4 text-center my-2 space-y-2.5"
           >
             <div className="flex items-center justify-center gap-1.5 text-danger font-bold text-xs tracking-wide">
               <AlertTriangle size={14} className="shrink-0" />
@@ -86,7 +86,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 size="sm"
                 onClick={this.handleReset}
                 icon={<RefreshCw size={12} />}
-                className="rounded-xl text-xs"
+                className="rounded-lg text-xs"
               >
                 Spróbuj ponownie
               </Button>
@@ -101,7 +101,7 @@ export class ErrorBoundary extends Component<Props, State> {
           data-testid="root-error-boundary"
           className="min-h-screen bg-background flex flex-col items-center justify-center p-6 text-center"
         >
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-danger/10 text-danger border border-danger/20 mb-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-danger/10 text-danger border border-danger/20 mb-4">
             <AlertTriangle size={24} />
           </div>
           <h2 className="text-lg font-semibold text-text-primary mb-2 font-display tracking-wide">

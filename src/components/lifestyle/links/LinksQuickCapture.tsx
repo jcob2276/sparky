@@ -49,7 +49,7 @@ export function LinksQuickCapture({ onAddLink, loading }: LinksQuickCaptureProps
 
   return (
     <div
-      className={`mx-auto w-full max-w-[var(--ds-maxw-640px)] rounded-2xl border border-border-custom/40 bg-surface-solid/40 transition-all duration-[var(--motion-medium)] backdrop-blur-md shadow-xs ${
+      className={`mx-auto w-full max-w-[var(--ds-maxw-640px)] rounded-lg border border-border-custom/40 bg-surface-solid/40 transition-all duration-[var(--motion-medium)] backdrop-blur-md shadow-xs ${
         expanded ? 'p-3.5 shadow-md border-border-custom' : 'px-3.5 py-2 hover:border-border-custom'
       }`}
     >
@@ -64,7 +64,7 @@ export function LinksQuickCapture({ onAddLink, loading }: LinksQuickCaptureProps
           </div>
           <Pressable
             onClick={handlePasteClipboard}
-            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-solid rounded-xl transition-colors btn-press cursor-pointer"
+            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-solid rounded-lg transition-colors btn-press cursor-pointer"
             title="Wklej ze schowka"
           >
             <ClipboardPaste size={14} />
@@ -124,14 +124,14 @@ export function LinksQuickCapture({ onAddLink, loading }: LinksQuickCaptureProps
             <div className="flex items-center gap-1.5 shrink-0">
               <Pressable
                 onClick={() => setExpanded(false)}
-                className="px-2.5 py-1 text-xs font-semibold text-text-muted hover:text-text-primary rounded-xl cursor-pointer"
+                className="px-2.5 py-1 text-xs font-semibold text-text-muted hover:text-text-primary rounded-lg cursor-pointer"
               >
                 Anuluj
               </Pressable>
               <Pressable
                 onClick={handleSubmit}
                 disabled={loading || !url.trim()}
-                className="inline-flex items-center gap-1 px-3 py-1 rounded-xl bg-primary text-on-accent text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs btn-press cursor-pointer disabled:opacity-40"
+                className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-primary text-on-accent text-xs font-bold hover:bg-primary-hover transition-colors shadow-2xs btn-press cursor-pointer disabled:opacity-40"
               >
                 {loading ? <Spinner size="sm" className="h-3 w-3" /> : <Plus size={13} />}
                 <span>Zapisz</span>

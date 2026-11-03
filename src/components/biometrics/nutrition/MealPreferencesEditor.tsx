@@ -7,7 +7,7 @@ export function MealPreferencesEditor({initial,saving,error,onSave}:Props) {
   const [value,setValue]=useState(initial),[excluded,setExcluded]=useState(initial.excluded.join(', ')),[allergies,setAllergies]=useState(initial.allergies.join(', '));
   const change=(patch:Partial<MealPreferences>)=>setValue({...value,...patch,confirmed:false});
   const list=(raw:string)=>raw.split(',').map(item=>item.trim()).filter(Boolean);
-  return <details className="rounded-2xl border border-border-custom bg-surface p-4" open={!initial.confirmed}>
+  return <details className="rounded-lg border border-border-custom bg-surface p-4" open={!initial.confirmed}>
     <summary className="cursor-pointer text-sm font-semibold">Preferencje i ograniczenia żywienia</summary>
     <div className="mt-3 space-y-3">
       <label className="block text-xs">Sposób jedzenia<ControlSelect className="mt-1 w-full" value={value.pattern ?? 'any'} disabled={saving} onChange={event=>change({pattern:event.target.value as MealPreferences['pattern']})}>

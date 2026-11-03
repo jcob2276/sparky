@@ -60,7 +60,7 @@ export default function AboutMeSettings({ userId }: { userId: string }) {
               value={value(key)}
               onChange={(event) => setDraft((prev) => ({ ...prev, [key]: event.target.value }))}
               rows={4}
-              className="w-full resize-none rounded-2xl border border-border-custom bg-surface-solid p-3 text-sm text-text-primary outline-none focus:border-primary/50 focus:shadow-focus placeholder:text-text-muted/40"
+              className="w-full resize-none rounded-lg border border-border-custom bg-surface-solid p-3 text-sm text-text-primary outline-none focus:border-primary/50 focus:shadow-focus placeholder:text-text-muted/40"
             />
           </label>
         ))}

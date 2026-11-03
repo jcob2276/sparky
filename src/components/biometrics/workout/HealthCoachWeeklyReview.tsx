@@ -23,7 +23,7 @@ const ACTION_LABEL: Record<string, string> = { progress: 'Dołóż obciążenia'
 
 function ActivityChip({ label, value }: { label: string; value: string }) {
   return (
-    <div className="min-w-0 flex-1 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
+    <div className="min-w-0 flex-1 rounded-lg border border-border-custom/40 bg-surface/50 p-3">
       <p className="text-2xs font-semibold tracking-normal text-text-muted">{label}</p>
       <p className="mt-1 truncate text-base font-semibold text-text-primary">{value}</p>
     </div>
@@ -76,7 +76,7 @@ export function HealthCoachWeeklyReviewView({ review, activity, isLoading, error
             <Target size={11} className="text-primary" /> Cele
           </p>
           {measured.map((g) => (
-            <div key={g.kpiId} className="flex items-center justify-between gap-2 rounded-2xl border border-border-custom/40 bg-surface/50 px-3 py-2 text-xs">
+            <div key={g.kpiId} className="flex items-center justify-between gap-2 rounded-lg border border-border-custom/40 bg-surface/50 px-3 py-2 text-xs">
               <span className="min-w-0 truncate font-semibold text-text-primary">{g.name}</span>
               <span className="flex shrink-0 items-center gap-1 font-semibold text-text-primary">
                 {g.currentValue} {g.unit}
@@ -90,7 +90,7 @@ export function HealthCoachWeeklyReviewView({ review, activity, isLoading, error
       {error && <p className="text-xs text-text-muted">Nie udało się wczytać celów treningowych.</p>}
 
       {showProposal && (
-        <div className="space-y-1 rounded-2xl border border-primary/20 bg-primary/5 p-3">
+        <div className="space-y-1 rounded-lg border border-primary/20 bg-primary/5 p-3">
           <p className="text-xs font-semibold text-text-primary">Na kolejny tydzień: {ACTION_LABEL[proposal.action] ?? proposal.action}</p>
           <p className="text-xs leading-relaxed text-text-secondary">{proposal.rationale}</p>
         </div>

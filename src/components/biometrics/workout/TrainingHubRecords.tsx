@@ -10,7 +10,7 @@ export default function TrainingHubRecords({ records }: Props) {
   if (records.length === 0) {
     return (
       <div className="trening-panel-muted px-3.5 py-3 flex items-center gap-2.5">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/12 text-primary">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/12 text-primary">
           <Trophy size={15} />
         </div>
         <span className="text-xs text-text-secondary leading-snug">

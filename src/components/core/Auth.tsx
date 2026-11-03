@@ -109,7 +109,7 @@ export default function Auth() {
         <Pressable
           type="button"
           onClick={toggleTheme}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-border-custom bg-surface-2/80 text-text-secondary transition-colors hover:text-text-primary hover:bg-surface-2"
+          className="flex h-10 w-10 items-center justify-center rounded-lg border border-border-custom bg-surface-2/80 text-text-secondary transition-colors hover:text-text-primary hover:bg-surface-2"
           aria-label={theme === 'light' ? 'Przełącz na tryb ciemny' : 'Przełącz na tryb jasny'}
         >
           {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
@@ -131,7 +131,7 @@ export default function Auth() {
               alt="Sparky"
               width={64}
               height={64}
-              className="auth-logo-img rounded-2xl shadow-md border border-border-custom"
+              className="auth-logo-img rounded-lg shadow-md border border-border-custom"
             />
           </div>
           <h1 className="auth-title font-display text-text-primary tracking-tight">

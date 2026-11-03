@@ -13,19 +13,19 @@ function ThreePillars({ cialo, duch, konto }: ThreePillarsProps) {
   return (
     <div className="grid gap-2 sm:grid-cols-3 pt-1 border-t border-border-custom/30">
       {cialo && (
-        <div className="rounded-xl border border-success/20 bg-success/[0.04] p-2">
+        <div className="rounded-lg border border-success/20 bg-success/[0.04] p-2">
           <span className="text-3xs font-black uppercase tracking-wider text-success block">Ciało</span>
           <p className="mt-0.5 text-xs font-semibold text-text-primary leading-tight truncate">{cialo}</p>
         </div>
       )}
       {duch && (
-        <div className="rounded-xl border border-primary/20 bg-primary/[0.04] p-2">
+        <div className="rounded-lg border border-primary/20 bg-primary/[0.04] p-2">
           <span className="text-3xs font-black uppercase tracking-wider text-primary block">Duch</span>
           <p className="mt-0.5 text-xs font-semibold text-text-primary leading-tight truncate">{duch}</p>
         </div>
       )}
       {konto && (
-        <div className="rounded-xl border border-warning/20 bg-warning/[0.04] p-2">
+        <div className="rounded-lg border border-warning/20 bg-warning/[0.04] p-2">
           <span className="text-3xs font-black uppercase tracking-wider text-warning block">Konto</span>
           <p className="mt-0.5 text-xs font-semibold text-text-primary leading-tight truncate">{konto}</p>
         </div>

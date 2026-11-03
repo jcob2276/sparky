@@ -13,7 +13,7 @@ export default function TodoBatchClassifyChip() {
     <Pressable
       onClick={batchClassify}
       disabled={batchClassifying}
-      className="w-full flex items-center justify-between rounded-xl bg-surface-solid/80 border border-border-custom/50 px-3 py-2 text-left ui-interactive hover:border-primary/40 active:scale-[var(--ds-arbitrary-0-99)] disabled:opacity-[var(--opacity-50)] cursor-pointer shadow-xs mb-1"
+      className="w-full flex items-center justify-between rounded-lg bg-surface-solid/80 border border-border-custom/50 px-3 py-2 text-left ui-interactive hover:border-primary/40 active:scale-[var(--ds-arbitrary-0-99)] disabled:opacity-[var(--opacity-50)] cursor-pointer shadow-xs mb-1"
     >
       <div className="flex items-center gap-2 min-w-0">
         <div className="flex items-center justify-center w-6 h-6 rounded-lg bg-primary/10 text-primary shrink-0">

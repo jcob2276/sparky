@@ -44,7 +44,7 @@ export default function CalendarBudgetPanel({
     const { pct, statusText, barColor } = computeBudgetBarState(spent, minVal, maxVal, cat.color);
 
     return (
-      <div key={cat.key} className="p-2.5 bg-surface-solid/5 dark:bg-on-accent/[0.015] border border-border-custom/30 rounded-xl flex flex-col justify-between hover:bg-surface-solid/10 dark:hover:bg-on-accent/[0.025] ui-interactive">
+      <div key={cat.key} className="p-2.5 bg-surface-solid/5 dark:bg-on-accent/[0.015] border border-border-custom/30 rounded-lg flex flex-col justify-between hover:bg-surface-solid/10 dark:hover:bg-on-accent/[0.025] ui-interactive">
         <div className="flex items-center justify-between text-xs font-bold">
           <div className="flex items-center gap-1.5 min-w-0">
             <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cat.dot}`} />

@@ -38,7 +38,7 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
       ...(result?.factors.length === 0 ? ['pomiary VO2 Max, RHR, HRV lub bilansu snu'] : []),
     ];
     return (
-      <section className="space-y-2 rounded-xl border border-border-custom bg-surface-1 p-4 shadow-sm">
+      <section className="space-y-2 rounded-lg border border-border-custom bg-surface-1 p-4 shadow-sm">
         <h3 className="text-sm font-semibold text-text-primary">Szacowany wiek biologiczny</h3>
         <p className="text-sm text-text-secondary">Oszacowanie niedostępne. Brakuje: {missing.join(', ')}.</p>
         <p className="text-xs text-text-muted">Model wymaga znanego wieku od 18 do 100 lat, płci biologicznej i pomiarów.</p>
@@ -54,7 +54,7 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
     : 'Równy wiekowi';
 
   return (
-    <div className="rounded-xl border border-border-custom bg-surface-1 p-4 shadow-sm space-y-4">
+    <div className="rounded-lg border border-border-custom bg-surface-1 p-4 shadow-sm space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -82,7 +82,7 @@ export const BiologicalAgeCard: React.FC<BiologicalAgeCardProps> = ({
       </div>
 
       {/* Hero Metric Comparison */}
-      <div className="grid grid-cols-3 gap-2 rounded-xl bg-surface-2 p-3 text-center">
+      <div className="grid grid-cols-3 gap-2 rounded-lg bg-surface-2 p-3 text-center">
         <div>
           <p className="text-2xs text-text-secondary">Wiek metrykalny</p>
           <p className="mt-1 text-xl font-bold text-text-primary">{result.chronologicalAge} <span className="text-xs font-normal">lat</span></p>

@@ -25,7 +25,7 @@ const KIND_LABELS: Record<NewKind, string> = {
   debt: 'Dług (kredyt, rata)',
 };
 
-const fieldClass = 'min-h-11 rounded-xl border-0 bg-surface-2/70 px-3 text-sm ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35';
+const fieldClass = 'min-h-11 rounded-lg border-0 bg-surface-2/70 px-3 text-sm ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35';
 
 function AccountForm({ onAdd }: { onAdd: (input: { name: string; balance: number; type: FinanceAccountType; liquid: boolean }) => void }) {
   const [name, setName] = useState('');
@@ -56,7 +56,7 @@ function AccountForm({ onAdd }: { onAdd: (input: { name: string; balance: number
         {Object.entries(KIND_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
       </ControlSelect>
       <ControlInput type="number" inputMode="decimal" step="0.01" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="Saldo" aria-label="Saldo" className={`${fieldClass} w-32`} />
-      <Button type="submit" size="sm" disabled={!valid} className="rounded-xl">Dodaj</Button>
+      <Button type="submit" size="sm" disabled={!valid} className="rounded-lg">Dodaj</Button>
     </form>
   );
 }
@@ -78,7 +78,7 @@ function BalanceInput({ account, onSave }: { account: FinanceAccount; onSave: (b
       onChange={(event) => setValue(event.target.value)}
       onBlur={commit}
       onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }}
-      className="min-h-10 w-32 rounded-xl border-0 bg-surface-2/70 px-3 text-right text-sm tabular-nums ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35"
+      className="min-h-10 w-32 rounded-lg border-0 bg-surface-2/70 px-3 text-right text-sm tabular-nums ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35"
     />
   );
 }

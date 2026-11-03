@@ -54,7 +54,7 @@ export default function DesktopSaunaSection({ sessions, strava }: Props) {
     <Card variant="surface" padding="1.25rem" className="space-y-4 border-border-custom bg-surface/30">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="rounded-xl border border-warning/20 bg-warning/10 p-2 text-warning">
+          <div className="rounded-lg border border-warning/20 bg-warning/10 p-2 text-warning">
             <Flame size={20} />
           </div>
           <h3 className="text-sm font-bold tracking-tight text-text-primary">Sauna</h3>
@@ -67,19 +67,19 @@ export default function DesktopSaunaSection({ sessions, strava }: Props) {
       </div>
 
       <div className="grid grid-cols-3 gap-2">
-        <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
+        <div className="rounded-lg border border-border-custom bg-background/40 p-3 text-center">
           <p className="text-2xs font-bold tracking-wide text-text-muted">7 dni</p>
           <p className={`mt-1 text-2xl font-light ${isTargetMet ? 'text-success' : 'text-text-primary'}`}>
             {weekStats.sessionsCount}<span className="text-2xs text-text-muted"> / {targetSessionsPerWeek}</span>
           </p>
           <p className="mt-0.5 text-2xs text-text-muted">{weekStats.totalMinutes} min</p>
         </div>
-        <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
+        <div className="rounded-lg border border-border-custom bg-background/40 p-3 text-center">
           <p className="text-2xs font-bold tracking-wide text-text-muted">30 dni</p>
           <p className="mt-1 text-2xl font-light text-text-primary">{monthStats.sessionsCount}×</p>
           <p className="mt-0.5 text-2xs text-text-muted">{monthStats.totalMinutes} min</p>
         </div>
-        <div className="rounded-xl border border-border-custom bg-background/40 p-3 text-center">
+        <div className="rounded-lg border border-border-custom bg-background/40 p-3 text-center">
           <p className="text-2xs font-bold tracking-wide text-text-muted">Ostatnia</p>
           <p className="mt-1 text-sm font-semibold text-text-primary">{latestDateStr ? latestDateStr.slice(5) : '—'}</p>
           <p className="mt-0.5 text-2xs text-text-muted">{latestMinutes > 0 ? `${latestMinutes} min` : ''}</p>

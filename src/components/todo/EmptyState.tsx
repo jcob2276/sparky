@@ -25,7 +25,7 @@ export default function EmptyState({
 
   return (
     <div
-      className={`my-1 rounded-2xl border border-dashed px-4 py-5 text-center ui-interactive duration-[var(--motion-medium)] ${
+      className={`my-1 rounded-lg border border-dashed px-4 py-5 text-center ui-interactive duration-[var(--motion-medium)] ${
         isDragOver ? activeClass : inactiveClass
       }`}
     >

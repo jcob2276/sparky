@@ -137,7 +137,7 @@ export default function TodoCommandPalette() {
         role="dialog"
         aria-modal="true"
         aria-label="Paleta poleceń"
-        className="flex w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-border-custom bg-surface-solid shadow-2xl"
+        className="flex w-full max-w-xl flex-col overflow-hidden rounded-lg border border-border-custom bg-surface-solid shadow-2xl"
       >
         <div className="flex items-center gap-2 border-b border-border-custom/60 px-3.5">
           {breadcrumb

@@ -11,7 +11,7 @@ export default function MedicalBodyComposition({ rows }: MedicalBodyCompositionP
 
   if (!latest) {
     return (
-      <div className="rounded-xl border border-dashed border-border-custom py-12 text-center">
+      <div className="rounded-lg border border-dashed border-border-custom py-12 text-center">
         <p className="text-xs text-text-muted italic">Brak zarejestrowanych pomiarów składu ciała.</p>
       </div>
     );
@@ -46,7 +46,7 @@ export default function MedicalBodyComposition({ rows }: MedicalBodyCompositionP
       </div>
 
       {isHistorical && (
-        <div className="rounded-xl border border-warning/30 bg-warning/10 p-3 flex items-start gap-2.5 text-xs text-warning leading-relaxed">
+        <div className="rounded-lg border border-warning/30 bg-warning/10 p-3 flex items-start gap-2.5 text-xs text-warning leading-relaxed">
           <span className="text-base leading-none">⚠️</span>
           <div>
             <strong>Pomiar archiwalny z {measuredYear} roku (przy wadze {latest.weight_kg?.toFixed(1) ?? '66.8'} kg).</strong>

@@ -32,7 +32,7 @@ const FILTERS: Array<{ id: ShelfFilter; label: string }> = [
 
 function StatTile({ label, thisYear, total }: { label: string; thisYear: number; total: number }) {
   return (
-    <div className="rounded-xl border border-border-custom/40 bg-surface/40 px-3 py-2">
+    <div className="rounded-lg border border-border-custom/40 bg-surface/40 px-3 py-2">
       <p className="text-2xs font-semibold text-text-muted">{label}</p>
       <p className="text-sm font-semibold tabular-nums text-text-primary">
         {total} <span className="text-xs font-semibold text-text-muted">· w tym roku {thisYear}</span>
@@ -104,9 +104,9 @@ export default function LibraryShelf({ userId, today }: { userId: string; today:
       {library.error && <DataStateNotice tone="warning" title="Nie udało się wczytać biblioteki" detail={library.error.message} />}
 
       {library.isLoading ? (
-        <Skeleton className="h-48 w-full rounded-2xl" />
+        <Skeleton className="h-48 w-full rounded-lg" />
       ) : items.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border-custom/60 p-6 text-center space-y-3">
+        <div className="rounded-lg border border-dashed border-border-custom/60 p-6 text-center space-y-3">
           <BookMarked size={28} className="mx-auto text-text-muted" aria-hidden="true" />
           <p className="text-sm font-bold text-text-primary">Twoja biblioteka jest pusta.</p>
           <p className="text-xs text-text-muted">

@@ -93,7 +93,7 @@ export default function MedicalTrends({ series }: MedicalTrendsProps) {
                 <Pressable
                   key={s.key}
                   onClick={() => setSelectedChartKey(s.key)}
-                  className={`w-full text-left rounded-xl p-3 border ui-interactive flex items-center justify-between ${
+                  className={`w-full text-left rounded-lg p-3 border ui-interactive flex items-center justify-between ${
                     selectedTrend?.key === s.key
                       ? 'border-primary/50 bg-primary/[0.05]'
                       : 'border-border-custom bg-background/20 hover:bg-background/40'
@@ -142,7 +142,7 @@ export default function MedicalTrends({ series }: MedicalTrendsProps) {
           )}
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-border-custom py-12 text-center">
+        <div className="rounded-lg border border-dashed border-border-custom py-12 text-center">
           <p className="text-xs text-text-muted italic">Zbyt mało powtarzalnych pomiarów badań, aby wyznaczyć trendy.</p>
         </div>
       )}

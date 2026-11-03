@@ -113,7 +113,7 @@ export default function MealComposerDraftRow({
   }, [primaryUnits]);
 
   return (
-    <div className="rounded-xl border border-border-custom/70 bg-surface/80 p-3 space-y-2.5 animate-fade-in">
+    <div className="rounded-lg border border-border-custom/70 bg-surface/80 p-3 space-y-2.5 animate-fade-in">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-text-primary">{item.name}</p>

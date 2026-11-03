@@ -95,7 +95,7 @@ export function useTodoQuickAdd() {
     return (
       <Pressable
         onClick={() => openQuickAdd(sectionId)}
-        className="group mt-1 flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-sm font-medium text-text-secondary hover:bg-surface-solid hover:text-primary"
+        className="group mt-1 flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-sm font-medium text-text-secondary hover:bg-surface-solid hover:text-primary"
       >
         <span className="flex h-5 w-5 items-center justify-center text-lg leading-none group-hover:text-primary" aria-hidden="true">+</span>
         <span>Dodaj zadanie</span>

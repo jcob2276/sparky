@@ -19,7 +19,7 @@ export default function LibraryImportPreview({ fresh, duplicates, skipped }: Lib
         {skipped > 0 && <span className="font-semibold text-text-muted"> · pominięte: {skipped}</span>}
       </p>
       {fresh.length > 0 && (
-        <ul className="max-h-48 space-y-1 overflow-y-auto rounded-xl border border-border-custom/40 p-2" aria-label="Podgląd importu">
+        <ul className="max-h-48 space-y-1 overflow-y-auto rounded-lg border border-border-custom/40 p-2" aria-label="Podgląd importu">
           {fresh.slice(0, MAX_PREVIEW).map((item, index) => (
             <li key={`${item.title}-${index}`} className="flex items-baseline justify-between gap-2 text-xs">
               <span className="min-w-0 truncate text-text-primary">

@@ -36,13 +36,13 @@ export default function LiveExerciseMenu({ canPlates, onClose, onWarmup, onPlate
     };
   }, [onClose]);
 
-  const item = 'flex h-11 w-full items-center gap-2.5 rounded-xl px-3 text-left text-sm font-semibold text-text-primary hover:bg-surface-2';
+  const item = 'flex h-11 w-full items-center gap-2.5 rounded-lg px-3 text-left text-sm font-semibold text-text-primary hover:bg-surface-2';
   const run = (action: () => void) => () => {
     onClose();
     action();
   };
   return (
-    <div ref={ref} role="menu" className="absolute right-0 top-11 z-[var(--z-modal)] w-56 rounded-2xl border border-border-custom bg-surface-solid p-1.5 shadow-lg">
+    <div ref={ref} role="menu" className="absolute right-0 top-11 z-[var(--z-modal)] w-56 rounded-lg border border-border-custom bg-surface-solid p-1.5 shadow-lg">
       <Pressable role="menuitem" onClick={run(onWarmup)} className={item}><Flame size={16} className="text-warning" /> Dodaj rozgrzewkę</Pressable>
       {canPlates && <Pressable role="menuitem" onClick={run(onPlates)} className={item}><Scale size={16} className="text-primary" /> Talerze na sztandze</Pressable>}
       <Pressable role="menuitem" onClick={run(onRemoveSet)} className={item}><Minus size={16} className="text-text-muted" /> Usuń ostatnią serię</Pressable>

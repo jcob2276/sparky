@@ -12,7 +12,7 @@ const RECURRENCES = [
 
 export function TaskPlacement({ isTimed, onChange }: { isTimed: boolean; onChange: (timed: boolean) => void }) {
   return (
-    <div className="grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1" role="group" aria-label="Umiejscowienie zadania">
+    <div className="grid grid-cols-2 gap-1 rounded-lg bg-surface-2 p-1" role="group" aria-label="Umiejscowienie zadania">
       {[{ timed: false, label: 'Cały dzień' }, { timed: true, label: 'O godzinie' }].map((option) => {
         const active = option.timed === isTimed;
         return (
@@ -44,7 +44,7 @@ export function TaskDurationPicker({ value, onChange }: { value: number; onChang
             type="button"
             aria-pressed={value === minutes}
             onClick={() => onChange(minutes)}
-            className={`min-h-11 rounded-xl border text-sm font-bold transition-colors ${value === minutes ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border-custom text-text-muted hover:bg-surface-2'}`}
+            className={`min-h-11 rounded-lg border text-sm font-bold transition-colors ${value === minutes ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border-custom text-text-muted hover:bg-surface-2'}`}
           >
             {minutes < 60 ? `${minutes} min` : `${minutes / 60} godz.`}
           </Pressable>
@@ -67,7 +67,7 @@ export function TaskRecurrencePicker({ value, onChange }: { value: string; onCha
             type="button"
             aria-pressed={value === option.value}
             onClick={() => onChange(option.value || null)}
-            className={`min-h-11 rounded-xl border px-2 text-xs font-bold transition-colors ${value === option.value ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border-custom text-text-muted hover:bg-surface-2'}`}
+            className={`min-h-11 rounded-lg border px-2 text-xs font-bold transition-colors ${value === option.value ? 'border-primary/40 bg-primary/10 text-primary' : 'border-border-custom text-text-muted hover:bg-surface-2'}`}
           >
             {option.label}
           </Pressable>

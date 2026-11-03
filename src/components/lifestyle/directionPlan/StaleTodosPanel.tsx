@@ -12,7 +12,7 @@ export default function StaleTodosPanel() {
   });
   if (stale.length === 0) return null;
   return (
-    <div className="rounded-xl border border-warning/30 bg-warning/5 px-3.5 py-3 space-y-2">
+    <div className="rounded-lg border border-warning/30 bg-warning/5 px-3.5 py-3 space-y-2">
       <div>
         <p className="text-2xs font-semibold text-warning">Leżą bez ruchu (ponad {STALE_TODO_MIN_DAYS} dni)</p>
         <p className="mt-0.5 text-xs text-text-secondary leading-snug">

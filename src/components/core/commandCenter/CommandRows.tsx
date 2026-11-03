@@ -38,7 +38,7 @@ export function CommandRows({ items, activeIndex, onActiveIndex }: {
               void item.run();
             }}
             variant="ghost"
-            className={`group flex h-auto w-full items-center justify-start gap-3 rounded-xl px-3 py-2.5 text-left shadow-none transition-[background-color,transform] duration-[var(--motion-fast)] active:scale-97 ${active ? 'bg-primary/10' : 'hover:bg-surface-3'}`}
+            className={`group flex h-auto w-full items-center justify-start gap-3 rounded-lg px-3 py-2.5 text-left shadow-none transition-[background-color,transform] duration-[var(--motion-fast)] active:scale-97 ${active ? 'bg-primary/10' : 'hover:bg-surface-3'}`}
           >
             <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${active ? 'bg-primary/15 text-primary' : 'bg-surface-3 text-text-secondary'}`}><Icon size={17} /></span>
             <span className="min-w-0 flex-1">

@@ -55,7 +55,7 @@ export function WorkoutHistorySection({
   const displayedSessions = recentSessions.slice(0, showAllSessions ? 16 : 4);
 
   return (
-    <section id="kronika-silownia" className="rounded-2xl border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
+    <section id="kronika-silownia" className="rounded-lg border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -72,7 +72,7 @@ export function WorkoutHistorySection({
             </span>
           </h2>
         </div>
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-warning/10 text-warning border border-warning/20">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-warning/10 text-warning border border-warning/20">
           <Dumbbell size={16} />
         </div>
       </div>
@@ -80,7 +80,7 @@ export function WorkoutHistorySection({
       {/* Session Stream Cards */}
       <div className="space-y-2.5">
         {displayedSessions.length === 0 ? (
-          <div className="p-6 text-center text-xs font-bold text-text-muted bg-surface rounded-xl border border-border-custom">
+          <div className="p-6 text-center text-xs font-bold text-text-muted bg-surface rounded-lg border border-border-custom">
             Brak zarejestrowanych sesji siłowych
           </div>
         ) : (
@@ -119,7 +119,7 @@ export function WorkoutHistorySection({
             return (
               <div
                 key={s.id}
-                className="rounded-xl border border-border-custom bg-surface p-3 ui-interactive hover:border-border-custom/80 shadow-sm"
+                className="rounded-lg border border-border-custom bg-surface p-3 ui-interactive hover:border-border-custom/80 shadow-sm"
               >
                 <div className="flex items-center justify-between gap-2.5">
                   {/* Left: Date + Weekday badge */}
@@ -222,7 +222,7 @@ export function WorkoutHistorySection({
         <Pressable
           type="button"
           onClick={() => setShowAllSessions((v) => !v)}
-          className="w-full py-2 rounded-xl border border-border-custom bg-surface text-2xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-solid ui-interactive cursor-pointer flex items-center justify-center gap-1.5"
+          className="w-full py-2 rounded-lg border border-border-custom bg-surface text-2xs font-bold text-text-muted hover:text-text-primary hover:bg-surface-solid ui-interactive cursor-pointer flex items-center justify-center gap-1.5"
         >
           {showAllSessions ? (
             <>

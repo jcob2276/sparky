@@ -43,7 +43,7 @@ export default function PrescriptionCard({ title, prescription }: PrescriptionCa
 
       <div className="grid grid-cols-2 gap-4">
         {/* Left Eye */}
-        <div className="bg-surface/50 rounded-xl p-3 border border-border-custom">
+        <div className="bg-surface/50 rounded-lg p-3 border border-border-custom">
           <div className="text-xs font-bold text-text-muted tracking-normal mb-2">Lewe Oko (OS)</div>
           <div className="flex justify-between items-end">
             <div>
@@ -58,7 +58,7 @@ export default function PrescriptionCard({ title, prescription }: PrescriptionCa
         </div>
 
         {/* Right Eye */}
-        <div className="bg-surface/50 rounded-xl p-3 border border-border-custom">
+        <div className="bg-surface/50 rounded-lg p-3 border border-border-custom">
           <div className="text-xs font-bold text-text-muted tracking-normal mb-2">Prawe Oko (OD)</div>
           <div className="flex justify-between items-end">
             <div>

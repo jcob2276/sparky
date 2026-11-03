@@ -19,7 +19,7 @@ export function MonthPlanDay({ day, actual, today, selected, onSelect }: MonthPl
   const isPast = day.date < today;
   const label = `${dayNumber(day.date)}.${day.date.slice(5, 7)}`;
   const ring = selected ? '!ring-2 !ring-primary' : isToday ? '!ring-2 !ring-primary/50' : '';
-  const base = `flex min-h-20 w-full flex-col justify-between rounded-xl p-2 text-left ${ring}`;
+  const base = `flex min-h-20 w-full flex-col justify-between rounded-lg p-2 text-left ${ring}`;
   const counts = `umówiono ${booked}, sales calli ${calls}${sales ? `, sprzedaży ${sales}` : ''}`;
 
   if (day.kind === 'reserve') {

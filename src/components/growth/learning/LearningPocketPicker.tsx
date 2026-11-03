@@ -43,13 +43,13 @@ export default function LearningPocketPicker({ links, loading, error, onPick, on
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Szukaj w Pocket…"
             aria-label="Szukaj w Pocket"
-            className="w-full rounded-xl border border-border-custom/60 bg-surface-2 py-2 pl-9 pr-3 text-sm text-text-primary"
+            className="w-full rounded-lg border border-border-custom/60 bg-surface-2 py-2 pl-9 pr-3 text-sm text-text-primary"
           />
         </div>
 
         {error && <DataStateNotice tone="warning" title="Nie udało się wczytać Pocketa" detail={error.message} />}
         {loading ? (
-          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-lg" />
         ) : visible.length === 0 ? (
           <p className="py-4 text-center text-xs text-text-muted">
             {query ? 'Brak pasujących linków.' : 'Brak nieprzeczytanych linków w Pocket.'}
@@ -60,7 +60,7 @@ export default function LearningPocketPicker({ links, loading, error, onPick, on
               <li key={link.id}>
                 <Pressable
                   onClick={() => onPick(link)}
-                  className="flex w-full flex-col rounded-xl border border-border-custom/40 px-3 py-2 text-left hover:bg-surface-solid transition-colors"
+                  className="flex w-full flex-col rounded-lg border border-border-custom/40 px-3 py-2 text-left hover:bg-surface-solid transition-colors"
                 >
                   <span className="text-sm font-semibold text-text-primary line-clamp-2">{link.title}</span>
                   <span className="text-2xs text-text-muted">{link.domain}</span>

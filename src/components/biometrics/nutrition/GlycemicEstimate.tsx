@@ -15,7 +15,7 @@ function Assessment({items}:{items:GlycemicPortion[]}) {
     carbsPer100g:item.carbs == null || item.grams<=0?null:item.carbs*100/item.grams,
     fiberPer100g:item.fiber == null || item.grams<=0?null:item.fiber*100/item.grams,
     ...choice(item.id),portionConfirmed:choice(item.id).confirmed})));
-  return <details className="rounded-xl border border-border-custom p-3 text-xs">
+  return <details className="rounded-lg border border-border-custom p-3 text-xs">
     <summary className="cursor-pointer font-semibold">Orientacyjny ładunek glikemiczny (GL)</summary>
     <div className="mt-3 space-y-3">
       <p className="text-text-muted">Wybierz wyłącznie pasujący produkt i sposób przygotowania. Katalog obejmuje wybrane zmierzone produkty; brak odpowiednika oznacza brak oszacowania.</p>

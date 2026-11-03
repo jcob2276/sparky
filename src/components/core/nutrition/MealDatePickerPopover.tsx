@@ -117,7 +117,7 @@ function PopoverShortcuts({
       <Pressable
         type="button"
         onClick={() => onPick(twoDaysAgo)}
-        className={`flex items-center justify-center gap-1 rounded-xl border px-2 py-1.5 text-2xs font-bold ui-interactive active:scale-95 cursor-pointer ${
+        className={`flex items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-2xs font-bold ui-interactive active:scale-95 cursor-pointer ${
           logDate === twoDaysAgo
             ? 'border-primary bg-primary/10 text-primary'
             : 'border-border-custom/60 bg-surface-solid/30 text-text-secondary hover:border-primary/30'
@@ -129,7 +129,7 @@ function PopoverShortcuts({
       <Pressable
         type="button"
         onClick={() => onPick(threeDaysAgo)}
-        className={`flex items-center justify-center gap-1 rounded-xl border px-2 py-1.5 text-2xs font-bold ui-interactive active:scale-95 cursor-pointer ${
+        className={`flex items-center justify-center gap-1 rounded-lg border px-2 py-1.5 text-2xs font-bold ui-interactive active:scale-95 cursor-pointer ${
           logDate === threeDaysAgo
             ? 'border-primary bg-primary/10 text-primary'
             : 'border-border-custom/60 bg-surface-solid/30 text-text-secondary hover:border-primary/30'
@@ -216,7 +216,7 @@ export default function MealDatePickerPopover({
   return (
     <div
       ref={popoverRef}
-      className="absolute right-0 top-full z-[var(--z-overlay)] mt-2 w-72 rounded-2xl border border-border-custom bg-surface p-3.5 shadow-2xl backdrop-blur-xs animate-fadeIn"
+      className="absolute right-0 top-full z-[var(--z-overlay)] mt-2 w-72 rounded-lg border border-border-custom bg-surface p-3.5 shadow-2xl backdrop-blur-xs animate-fadeIn"
       onClick={(e) => e.stopPropagation()}
     >
       <PopoverHeader
@@ -256,7 +256,7 @@ export default function MealDatePickerPopover({
               type="button"
               disabled={isFuture}
               onClick={() => handlePickDate(key)}
-              className={`flex h-8 w-8 items-center justify-center mx-auto rounded-xl text-xs font-bold ui-interactive cursor-pointer ${
+              className={`flex h-8 w-8 items-center justify-center mx-auto rounded-lg text-xs font-bold ui-interactive cursor-pointer ${
                 isSelected
                   ? 'bg-primary text-on-accent shadow-xs font-semibold'
                   : isFuture

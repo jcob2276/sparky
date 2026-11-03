@@ -31,7 +31,7 @@ function Textarea({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full bg-surface border border-border-custom rounded-xl px-3 py-2 text-sm
+      className="w-full bg-surface border border-border-custom rounded-lg px-3 py-2 text-sm
         text-text-primary placeholder-text-muted resize-y min-h-[var(--ds-h-72px)] focus:outline-none
         focus:border-primary/50 transition-colors"
     />
@@ -73,7 +73,7 @@ export default function DirectionSprintMode({
 
   return (
     <div className="space-y-6 pb-6 border-b border-border-custom mb-6">
-      <div className="rounded-2xl border border-warning/30 bg-warning/5 px-4 py-3">
+      <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3">
         <p className="text-2xs font-semibold text-warning">Zamknięcie sprintu</p>
         <p className="mt-1 text-sm font-semibold text-text-primary">
           {sprintFacts.sprintLabel} · tydzień 12/12
@@ -110,7 +110,7 @@ export default function DirectionSprintMode({
             {sprintFacts.kpiSummaries.slice(0, 8).map((k) => (
               <li
                 key={`${k.name}-${k.projectName}`}
-                className="rounded-xl border border-border-custom bg-surface/50 px-3 py-2 text-xs text-text-secondary"
+                className="rounded-lg border border-border-custom bg-surface/50 px-3 py-2 text-xs text-text-secondary"
               >
                 <span className="font-semibold text-text-primary">{k.name}</span>
                 {k.projectName ? ` · ${k.projectName}` : ''}
@@ -151,7 +151,7 @@ export default function DirectionSprintMode({
               return (
                 <li
                   key={p.id}
-                  className="rounded-xl border border-border-custom bg-surface/40 px-3 py-2 space-y-1.5"
+                  className="rounded-lg border border-border-custom bg-surface/40 px-3 py-2 space-y-1.5"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-sm font-semibold text-text-primary truncate">{p.name}</span>
@@ -218,7 +218,7 @@ export default function DirectionSprintMode({
         type="button"
         onClick={onComplete}
         disabled={!canComplete || completing}
-        className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-on-accent
+        className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-bold text-on-accent
           disabled:opacity-[var(--opacity-40)] disabled:cursor-not-allowed transition-opacity"
       >
         {completing ? 'Zapisuję…' : `Zamknij sprint → cel na sprint ${sprintFacts.sprintNumber + 1}`}

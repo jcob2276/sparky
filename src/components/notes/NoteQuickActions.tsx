@@ -25,7 +25,7 @@ export default function NoteQuickActions({ note, onClose, onTogglePin, onArchive
             <X size={18} />
           </Pressable>
         </div>
-        <div className="overflow-hidden rounded-2xl bg-surface-1">
+        <div className="overflow-hidden rounded-lg bg-surface-1">
           <Pressable className="note-action-row" onClick={onTogglePin} icon={note.is_pinned ? <PinOff size={19} /> : <Pin size={19} />}>
             {note.is_pinned ? 'Odepnij' : 'Przypnij'}
           </Pressable>

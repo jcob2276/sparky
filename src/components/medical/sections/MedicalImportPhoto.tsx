@@ -32,7 +32,7 @@ export default function MedicalImportPhoto({ userId, onScanned }: MedicalImportP
   };
 
   return (
-    <div className="rounded-xl border border-primary/30 bg-primary/10 p-3">
+    <div className="rounded-lg border border-primary/30 bg-primary/10 p-3">
       <ControlInput ref={inputRef} type="file" accept="image/*,application/pdf" hidden onChange={(event) => void handleFile(event.target.files?.[0])} />
       <Button variant="outline" size="sm" disabled={busy || !userId} onClick={() => inputRef.current?.click()}>
         <Camera size={14} /> {busy ? 'AI czyta wyniki…' : 'Zdjęcie lub PDF wyniku'}

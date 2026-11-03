@@ -107,7 +107,7 @@ export function ClarificationRequestCard({ request, onAnswered }: Props) {
               <Pressable
                 key={opt.id}
                 onClick={() => toggleId(opt.id)}
-                className={`w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm font-medium ui-interactive active:scale-[var(--ds-arbitrary-0-98)] ${
+                className={`w-full flex items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium ui-interactive active:scale-[var(--ds-arbitrary-0-98)] ${
                   selected
                     ? 'bg-primary/10 text-primary border border-primary/30'
                     : 'bg-background border border-border-custom/20 text-text-secondary'
@@ -129,14 +129,14 @@ export function ClarificationRequestCard({ request, onAnswered }: Props) {
               onChange={e => setCustomText(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') submit(); }}
               placeholder="Twoja odpowiedź..."
-              className="w-full rounded-xl border border-primary/30 bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+              className="w-full rounded-lg border border-primary/30 bg-background px-3 py-2 text-sm outline-none focus:border-primary"
             />
           )}
           {selectedIds.length > 0 && (
             <Pressable
               onClick={() => submit()}
               disabled={submitting}
-              className="w-full rounded-xl bg-primary py-2 text-sm font-bold text-on-accent ui-interactive active:scale-95 disabled:opacity-[var(--opacity-40)] mt-1"
+              className="w-full rounded-lg bg-primary py-2 text-sm font-bold text-on-accent ui-interactive active:scale-95 disabled:opacity-[var(--opacity-40)] mt-1"
             >
               {submitting ? '...' : 'Potwierdź'}
             </Pressable>
@@ -152,20 +152,20 @@ export function ClarificationRequestCard({ request, onAnswered }: Props) {
             onChange={e => setCustomText(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && customText.trim()) submit(); }}
             placeholder="Twoja odpowiedź..."
-            className="w-full rounded-xl border border-border-custom/20 bg-background px-3 py-2 text-sm outline-none focus:border-primary"
+            className="w-full rounded-lg border border-border-custom/20 bg-background px-3 py-2 text-sm outline-none focus:border-primary"
           />
           <div className="flex gap-2">
             <Pressable
               onClick={() => submit({ text: customText, option_ids: [], is_uncertain: false })}
               disabled={!customText.trim() || submitting}
-              className="flex-1 rounded-xl bg-primary py-2 text-sm font-bold text-on-accent ui-interactive active:scale-95 disabled:opacity-[var(--opacity-40)]"
+              className="flex-1 rounded-lg bg-primary py-2 text-sm font-bold text-on-accent ui-interactive active:scale-95 disabled:opacity-[var(--opacity-40)]"
             >
               {submitting ? '...' : 'Wyślij'}
             </Pressable>
             <Pressable
               onClick={() => submit({ option_ids: ['__uncertain__'], is_uncertain: true })}
               disabled={submitting}
-              className="rounded-xl border border-border-custom/30 px-3 py-2 text-xs text-text-muted ui-interactive active:scale-95"
+              className="rounded-lg border border-border-custom/30 px-3 py-2 text-xs text-text-muted ui-interactive active:scale-95"
             >
               Nie wiem
             </Pressable>

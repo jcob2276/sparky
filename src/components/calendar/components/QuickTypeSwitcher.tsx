@@ -14,7 +14,7 @@ export function QuickTypeSwitcher({
   onSelectTask,
 }: QuickTypeSwitcherProps) {
   return (
-    <div className="flex p-0.5 rounded-xl bg-surface-solid/50 border border-border-custom/25">
+    <div className="flex p-0.5 rounded-lg bg-surface-solid/50 border border-border-custom/25">
       <Pressable
         type="button"
         onClick={onSelectEvent}

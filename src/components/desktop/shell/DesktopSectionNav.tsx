@@ -52,7 +52,7 @@ export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus 
                 <Pressable
                   variant="ghost"
                   onClick={() => onTabChange(id)}
-                  className={`w-full flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-xs font-bold ui-interactive text-left ${
+                  className={`w-full flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-xs font-bold ui-interactive text-left ${
                     isActive
                       ? 'bg-primary/10 text-primary font-semibold border border-primary/20 shadow-xs'
                       : 'text-text-muted hover:text-text-primary hover:bg-surface-solid/10'
@@ -79,7 +79,7 @@ export default function DesktopSectionNav({ activeTab, onTabChange, dailyStatus 
             <li key={href}>
               <Link
                 to={href}
-                className="flex items-center justify-between gap-2 rounded-xl px-2.5 py-2 text-xs font-semibold text-text-muted hover:text-text-primary hover:bg-surface-solid/10 ui-interactive"
+                className="flex items-center justify-between gap-2 rounded-lg px-2.5 py-2 text-xs font-semibold text-text-muted hover:text-text-primary hover:bg-surface-solid/10 ui-interactive"
               >
                 <div className="flex items-center gap-2.5 min-w-0 truncate">
                   <Icon size={14} className="shrink-0" />

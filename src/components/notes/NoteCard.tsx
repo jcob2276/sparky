@@ -217,7 +217,7 @@ export default function NoteCard({
             </Pressable>
             {showColorPopover && (
               <div
-                className="absolute bottom-full right-0 mb-1 z-30 rounded-xl border border-border-custom bg-background/95 p-1 shadow-xl backdrop-blur-md"
+                className="absolute bottom-full right-0 mb-1 z-30 rounded-lg border border-border-custom bg-background/95 p-1 shadow-xl backdrop-blur-md"
                 onClick={e => e.stopPropagation()}
               >
                 <NoteColorPicker

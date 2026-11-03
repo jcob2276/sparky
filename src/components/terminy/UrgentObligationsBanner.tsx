@@ -29,14 +29,14 @@ export function UrgentObligationsBanner({ userId, onNavigateToTerminy }: Props) 
   const isOverdue = topUrgent.daysLeft < 0;
   const isToday = topUrgent.daysLeft === 0;
 
-  let bannerMessage = '⚠️ Jutro upływa termin!';
-  if (isOverdue) bannerMessage = '🚨 Termin minął!';
-  else if (isToday) bannerMessage = '🚨 Dzisiaj upływa termin!';
+  let bannerMessage = 'Jutro upływa termin';
+  if (isOverdue) bannerMessage = 'Termin minął';
+  else if (isToday) bannerMessage = 'Dzisiaj upływa termin';
 
   const isPending = completedIds.has(topUrgent.item.id) || pending;
 
   return (
-    <div className="relative overflow-hidden rounded-[22px] border border-danger/30 bg-gradient-to-r from-danger/15 via-surface-solid to-surface-2 p-4 shadow-sm backdrop-blur-md">
+    <div className="rounded-[var(--radius-grouped)] border border-danger/30 bg-danger/10 p-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-danger/20 text-danger ring-1 ring-danger/40 mt-0.5 sm:mt-0">

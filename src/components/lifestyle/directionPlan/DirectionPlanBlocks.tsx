@@ -5,7 +5,7 @@ type Phase1Recap = { narrative: string; longterm_motif: string | null; question:
 
 export function Block1Narrative({ phase1, phase1Loading }: { phase1: Phase1Recap | null; phase1Loading: boolean }) {
   return (
-    <div className="rounded-2xl border border-primary/25 bg-gradient-to-b from-surface via-surface to-primary/[0.03] p-4 md:p-5 shadow-sm space-y-4">
+    <div className="rounded-[var(--radius-grouped)] border border-primary/25 bg-surface p-4 md:p-5 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-custom/50 pb-3">
         <div className="flex items-center gap-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/15 text-primary">
@@ -47,7 +47,7 @@ export function Block1Narrative({ phase1, phase1Loading }: { phase1: Phase1Recap
           </div>
 
           {phase1.longterm_motif && (
-            <div className="rounded-xl border border-warning/30 bg-warning/[0.06] p-3.5 space-y-1.5 animate-fadeIn">
+            <div className="rounded-lg border border-warning/30 bg-warning/[0.06] p-3.5 space-y-1.5 animate-fadeIn">
               <div className="flex items-center gap-2 text-warning">
                 <AlertTriangle size={14} />
                 <p className="text-2xs font-semibold">
@@ -61,7 +61,7 @@ export function Block1Narrative({ phase1, phase1Loading }: { phase1: Phase1Recap
           )}
 
           {phase1.question && (
-            <div className="rounded-xl border border-primary/30 bg-primary/[0.05] p-3.5 md:p-4 space-y-1.5 animate-fadeIn">
+            <div className="rounded-lg border border-primary/30 bg-primary/[0.05] p-3.5 md:p-4 space-y-1.5 animate-fadeIn">
               <div className="flex items-center gap-2 text-primary">
                 <MessageSquareQuote size={15} />
                 <p className="text-2xs font-semibold">

@@ -53,7 +53,7 @@ function MenuItem({
       type="button"
       role="menuitem"
       onClick={onClick}
-      className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl active:scale-[0.97] transition-[transform,background-color,color] duration-150 ease-out cursor-pointer ${
+      className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg active:scale-[0.97] transition-[transform,background-color,color] duration-150 ease-out cursor-pointer ${
         danger
           ? 'hover:bg-danger/15 text-danger'
           : 'hover:bg-surface-solid text-text-primary'
@@ -187,7 +187,7 @@ export function CalendarContextMenu({
       role="menu"
       aria-label={`Akcje dla: ${event.summary || 'Wydarzenie'}`}
       style={{ top: pos.y, left: pos.x }}
-      className="fixed z-[var(--z-emergency)] w-56 rounded-2xl border border-border-custom/50 bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 select-none text-xs font-semibold text-text-primary"
+      className="fixed z-[var(--z-emergency)] w-56 rounded-lg border border-border-custom/50 bg-background/95 p-1.5 shadow-2xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-150 select-none text-xs font-semibold text-text-primary"
       onClick={(e) => e.stopPropagation()}
       onContextMenu={(e) => e.preventDefault()}
     >
@@ -215,7 +215,7 @@ export function CalendarContextMenu({
           rel="noopener noreferrer"
           role="menuitem"
           onClick={onClose}
-          className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-primary text-on-accent font-bold mb-1 hover:brightness-110 active:scale-[0.98] ui-interactive"
+          className="flex items-center gap-2 px-2.5 py-2 rounded-lg bg-primary text-on-accent font-bold mb-1 hover:brightness-110 active:scale-[0.98] ui-interactive"
         >
           <Video size={14} />
           <span className="flex-1 truncate">Dołącz do spotkania</span>

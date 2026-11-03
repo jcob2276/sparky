@@ -126,7 +126,7 @@ function FavoriteRows(props: Pick<BrowseScreenProps, 'favorites' | 'quickAddingI
     <FoodRow key={food.id} name={food.name} subtitle={[food.brand, `${food.default_grams} g`].filter(Boolean).join(' · ')}
       calories={scale(food.calories, food.default_grams)} loading={props.quickAddingId === food.id}
       onTap={() => { props.setSelected(food); props.setGrams(String(food.default_grams)); }}
-      onQuickAdd={() => props.quickAddFavorite(food)} quickAddIcon={<Plus size={13} />} />
+      onQuickAdd={() => props.quickAddFavorite(food)} quickAddIcon={<Plus size={13} />} quickAddLabel="Dodaj do dziennika" />
   ))}</div>;
 }
 
@@ -139,7 +139,7 @@ function RecentRows(props: Pick<BrowseScreenProps, 'recent' | 'quickAddingId' | 
       <div className="space-y-1.5">{entries.map((entry) => (
         <FoodRow key={entry.id} name={entry.name} subtitle={[entry.brand, entry.amount].filter(Boolean).join(' · ')}
           calories={entry.calories} loading={props.quickAddingId === entry.id} onTap={() => props.openEditEntry(entry)}
-          onQuickAdd={() => props.quickRepeatEntry(entry)} quickAddIcon={<RotateCcw size={13} />} />
+          onQuickAdd={() => props.quickRepeatEntry(entry)} quickAddIcon={<RotateCcw size={13} />} quickAddLabel="Powtórz wpis" />
       ))}</div>
     </div>
   ))}</div>;

@@ -15,7 +15,7 @@ interface LearningAssignmentFormProps {
   onBack?: () => void;
 }
 
-const FIELD = 'w-full rounded-xl border border-border-custom/60 bg-surface-2 px-3 py-2 text-sm font-semibold text-text-primary';
+const FIELD = 'w-full rounded-lg border border-border-custom/60 bg-surface-2 px-3 py-2 text-sm font-semibold text-text-primary';
 const LABEL = 'text-xs font-bold text-text-secondary block mb-1';
 
 export default function LearningAssignmentForm({ form, skills, today, error, saving, onChange, onSubmit, onBack }: LearningAssignmentFormProps) {

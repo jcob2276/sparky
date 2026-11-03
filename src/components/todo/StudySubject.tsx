@@ -16,7 +16,7 @@ export default function StudySubject({ title, openCount, doneCount, children, on
   const panelId = useId();
 
   return (
-    <article className="overflow-hidden rounded-xl border border-border-custom/60 bg-surface-solid/40">
+    <article className="overflow-hidden rounded-lg border border-border-custom/60 bg-surface-solid/40">
       <h3>
         <Pressable
           aria-expanded={expanded} aria-controls={panelId}

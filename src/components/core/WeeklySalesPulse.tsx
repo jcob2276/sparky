@@ -9,7 +9,7 @@ import SalesPlanLines from './salesNumbers/SalesPlanLines';
 
 function Cell({ label, value, target }: { label: string; value: number; target?: number }) {
   return (
-    <div className="rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
+    <div className="rounded-lg border border-border-custom/40 bg-surface/50 p-3">
       <p className="text-2xs font-semibold tracking-wide text-text-muted">{label}</p>
       <p className="mt-1 text-xl font-semibold tabular-nums text-text-primary">
         {value}

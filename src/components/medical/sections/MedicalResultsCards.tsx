@@ -14,7 +14,7 @@ interface MedicalResultsCardsProps {
 export default function MedicalResultsCards({ items, onSelectMarker }: MedicalResultsCardsProps) {
   if (items.length === 0) {
     return (
-      <p className="rounded-2xl border border-border-custom bg-background/30 px-4 py-8 text-center text-sm italic text-text-muted">
+      <p className="rounded-lg border border-border-custom bg-background/30 px-4 py-8 text-center text-sm italic text-text-muted">
         Brak markerów spełniających kryteria filtrowania.
       </p>
     );
@@ -28,7 +28,7 @@ export default function MedicalResultsCards({ items, onSelectMarker }: MedicalRe
           <li key={current.id}>
             <Pressable
               onClick={() => onSelectMarker(current.marker_key)}
-              className="flex min-h-11 w-full items-center gap-3 rounded-2xl border border-border-custom bg-background/30 p-3 text-left"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg border border-border-custom bg-background/30 p-3 text-left"
             >
               <div className="min-w-0 flex-1">
                 <p className="flex items-start gap-1.5 text-sm font-bold leading-snug text-text-primary">

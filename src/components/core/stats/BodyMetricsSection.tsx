@@ -97,7 +97,7 @@ export function BodyMetricsSection({
   const bfBadgeColor = bf == null ? '' : bf < 10 ? 'text-warning bg-warning/10 border-warning/20' : bf < 16 ? 'text-success bg-success/10 border-success/20' : bf < 22 ? 'text-primary bg-primary/10 border-primary/20' : 'text-danger bg-danger/10 border-danger/20';
 
   return (
-    <section id="kronika-pomiary" className="rounded-2xl border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
+    <section id="kronika-pomiary" className="rounded-lg border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -112,7 +112,7 @@ export function BodyMetricsSection({
             <span className="text-xs font-normal text-text-muted">· Telemetria</span>
           </h2>
         </div>
-        <div className="flex items-center justify-center w-8 h-8 rounded-xl bg-primary/10 text-primary border border-primary/20">
+        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 text-primary border border-primary/20">
           <Activity size={16} />
         </div>
       </div>
@@ -120,7 +120,7 @@ export function BodyMetricsSection({
       {/* Hero Inputs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {/* Waga */}
-        <div className="relative rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm ui-interactive focus-within:border-primary/60 focus-within:shadow-focus">
+        <div className="relative rounded-lg border border-border-custom bg-surface p-3.5 shadow-sm ui-interactive focus-within:border-primary/60 focus-within:shadow-focus">
           <div className="flex items-center justify-between mb-1.5">
             <label className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-text-muted font-display">
               <Scale size={13} className="text-primary" />
@@ -140,7 +140,7 @@ export function BodyMetricsSection({
         </div>
 
         {/* Talia */}
-        <div className="relative rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm ui-interactive focus-within:border-primary/60 focus-within:shadow-focus">
+        <div className="relative rounded-lg border border-border-custom bg-surface p-3.5 shadow-sm ui-interactive focus-within:border-primary/60 focus-within:shadow-focus">
           <div className="flex items-center justify-between mb-1.5">
             <label className="flex items-center gap-1.5 text-xs font-bold tracking-wide text-text-muted font-display">
               <Ruler size={13} className="text-warning" />

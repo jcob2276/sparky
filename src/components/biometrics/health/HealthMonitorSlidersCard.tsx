@@ -37,7 +37,7 @@ export function HealthMonitorSlidersCard({ data }: HealthMonitorSlidersCardProps
   }, [data]);
 
   return (
-    <section className="rounded-2xl border border-border-custom/40 bg-surface-1 p-4 space-y-4">
+    <section className="rounded-lg border border-border-custom/40 bg-surface-1 p-4 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-custom/40 pb-3">
         <div className="flex items-center gap-2">
           <ShieldCheck size={18} className="text-primary shrink-0" />
@@ -113,7 +113,7 @@ function VitalSliderRow({ vital }: { vital: VitalBaseline }) {
   }[vital.status];
 
   return (
-    <div className="space-y-1.5 rounded-xl border border-border-custom/40 bg-surface-2/70 p-3">
+    <div className="space-y-1.5 rounded-lg border border-border-custom/40 bg-surface-2/70 p-3">
       <div className="flex items-center justify-between text-xs">
         <div className="flex items-center gap-2">
           <span className="font-semibold text-text-primary">{vital.name}</span>

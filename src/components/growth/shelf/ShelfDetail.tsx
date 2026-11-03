@@ -26,7 +26,7 @@ export default function ShelfDetail({ item, deleting, onDelete }: ShelfDetailPro
   ].filter((fact): fact is string => fact !== null);
 
   return (
-    <div role="region" aria-label={`Szczegóły: ${item.title}`} className="rounded-2xl border border-border-custom/50 bg-surface/50 p-4">
+    <div role="region" aria-label={`Szczegóły: ${item.title}`} className="rounded-lg border border-border-custom/50 bg-surface/50 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-text-primary leading-snug">{item.title}</h3>

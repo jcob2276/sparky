@@ -39,7 +39,7 @@ export function UpcomingObligationsStrip({ userId, onNavigateToTerminy }: Props)
         const soon = level === 'soon';
         return (
           <div key={row.item.id} className={`flex items-center gap-3 rounded-[var(--radius-grouped)] border p-3 ${soon ? 'border-warning/40 bg-warning/10' : 'border-border-custom bg-surface/60'}`}>
-            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${soon ? 'bg-warning/20 text-warning' : 'bg-surface-3 text-text-muted'}`}>
+            <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${soon ? 'bg-warning/20 text-warning' : 'bg-surface-3 text-text-muted'}`}>
               <Icon size={17} />
             </div>
             <Pressable type="button" onClick={onNavigateToTerminy} className="min-w-0 flex-1 text-left">

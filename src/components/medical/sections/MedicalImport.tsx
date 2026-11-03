@@ -185,7 +185,7 @@ export default function MedicalImport({ isOpen, onClose, series, onConfirmImport
 
             <div className="space-y-2">
               {rows.map((row) => (
-                <div key={row.localId} className="grid grid-cols-[1fr_5.5rem_5rem] sm:grid-cols-[1.4fr_6rem_5.5rem_5rem_5rem_1fr_auto] gap-2 items-center rounded-xl border border-border-custom bg-background/40 p-2">
+                <div key={row.localId} className="grid grid-cols-[1fr_5.5rem_5rem] sm:grid-cols-[1.4fr_6rem_5.5rem_5rem_5rem_1fr_auto] gap-2 items-center rounded-lg border border-border-custom bg-background/40 p-2">
                   <ControlInput
                     type="text"
                     placeholder="Nazwa markera (np. Ferrytyna)"

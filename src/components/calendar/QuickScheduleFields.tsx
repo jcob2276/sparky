@@ -23,7 +23,7 @@ export function QuickScheduleFields({ calData, conflicts, budgets }: Props) {
 
   return (
     <>
-      <div className="space-y-2.5 rounded-xl border border-border-custom/30 bg-surface-solid/30 p-3">
+      <div className="space-y-2.5 rounded-lg border border-border-custom/30 bg-surface-solid/30 p-3">
         <div className="flex items-center justify-between">
           <span className="flex items-center gap-1.5 text-xs font-bold text-text-muted"><Clock size={14} /> Kiedy</span>
           <label className="flex cursor-pointer select-none items-center gap-2 text-xs font-bold text-text-muted">
@@ -79,7 +79,7 @@ export function QuickScheduleFields({ calData, conflicts, budgets }: Props) {
           value={quickLocation}
           onChange={(event) => setQuickLocation(event.target.value)}
           placeholder="Lokalizacja (opcjonalnie)…"
-          className="w-full rounded-xl border border-border-custom/40 bg-surface-solid/30 py-2 pl-8 pr-3 text-xs"
+          className="w-full rounded-lg border border-border-custom/40 bg-surface-solid/30 py-2 pl-8 pr-3 text-xs"
         />
       </div>
       <div className="relative flex items-start">
@@ -89,10 +89,10 @@ export function QuickScheduleFields({ calData, conflicts, budgets }: Props) {
           onChange={(event) => setQuickDescription(event.target.value)}
           rows={2}
           placeholder="Notatka lub kontekst…"
-          className="w-full resize-y rounded-xl border border-border-custom/40 bg-surface-solid/30 py-2 pl-8 pr-3 text-xs"
+          className="w-full resize-y rounded-lg border border-border-custom/40 bg-surface-solid/30 py-2 pl-8 pr-3 text-xs"
         />
       </div>
-      <div className="flex items-center gap-2 rounded-xl border border-border-custom/30 bg-surface-solid/30 px-3 py-1.5 text-xs font-semibold">
+      <div className="flex items-center gap-2 rounded-lg border border-border-custom/30 bg-surface-solid/30 px-3 py-1.5 text-xs font-semibold">
         <Bell size={13} className="shrink-0 text-text-muted" />
         <span className="text-text-muted text-2xs">Przypomnienie:</span>
         <ControlSelect

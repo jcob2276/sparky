@@ -44,7 +44,7 @@ export function MedicalImportReviewStep({ resultDate, rows, onBack, onSave, savi
       </p>
       <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
         {rows.map((row) => (
-          <div key={row.markerName} className="flex items-center justify-between gap-3 rounded-xl border border-border-custom bg-background/40 p-3">
+          <div key={row.markerName} className="flex items-center justify-between gap-3 rounded-lg border border-border-custom bg-background/40 p-3">
             <div>
               <h4 className="text-xs font-bold text-text-primary">{row.markerName}</h4>
               <span className="font-mono text-2xs text-text-muted">

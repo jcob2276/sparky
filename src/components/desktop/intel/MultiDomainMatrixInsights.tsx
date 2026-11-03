@@ -36,7 +36,7 @@ export function MultiDomainMatrixInsights({ stats }: Props) {
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
         {/* Metric 1: Clean Rate */}
-        <div className="rounded-xl border border-border-custom bg-surface/40 p-2.5 space-y-1">
+        <div className="rounded-lg border border-border-custom bg-surface/40 p-2.5 space-y-1">
           <div className="flex items-center justify-between text-2xs text-text-muted">
             <span>Dni Czyste (No Lenie)</span>
             <span className="font-bold text-success">{cleanPercent}%</span>
@@ -52,7 +52,7 @@ export function MultiDomainMatrixInsights({ stats }: Props) {
         </div>
 
         {/* Metric 2: Sleep & Recovery contrast */}
-        <div className="rounded-xl border border-border-custom bg-surface/40 p-2.5 space-y-1">
+        <div className="rounded-lg border border-border-custom bg-surface/40 p-2.5 space-y-1">
           <div className="flex items-center justify-between text-2xs text-text-muted">
             <span>Sen: Czysto vs Incydent</span>
             <span className="font-bold text-info">Oura</span>
@@ -73,7 +73,7 @@ export function MultiDomainMatrixInsights({ stats }: Props) {
         </div>
 
         {/* Metric 3: Power List contrast */}
-        <div className="rounded-xl border border-border-custom bg-surface/40 p-2.5 space-y-1">
+        <div className="rounded-lg border border-border-custom bg-surface/40 p-2.5 space-y-1">
           <div className="flex items-center justify-between text-2xs text-text-muted">
             <span>Power List: Realizacja</span>
             <span className="font-bold text-primary">⚡</span>
@@ -94,7 +94,7 @@ export function MultiDomainMatrixInsights({ stats }: Props) {
         </div>
 
         {/* Metric 4: Full Stack Titan Days */}
-        <div className="rounded-xl border border-primary/20 bg-primary/5 p-2.5 space-y-1">
+        <div className="rounded-lg border border-primary/20 bg-primary/5 p-2.5 space-y-1">
           <div className="flex items-center justify-between text-2xs text-primary font-bold">
             <span>Dni Pełnej Formy</span>
             <span>🏆</span>

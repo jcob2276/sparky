@@ -34,7 +34,7 @@ export default function LiveRirChips({ value, onPick, onDismiss }: Props) {
             onClick={() => onPick(String(10 - option.rpe), String(option.rpe))}
             aria-pressed={current === option.rpe}
             aria-label={`RPE ${option.rpe}, ${option.label}`}
-            className={`flex h-12 flex-col items-center justify-center rounded-xl border ${
+            className={`flex h-12 flex-col items-center justify-center rounded-lg border ${
               current === option.rpe ? 'border-primary bg-primary/15 text-primary' : 'border-border-custom bg-surface-1 text-text-secondary'
             }`}
           >

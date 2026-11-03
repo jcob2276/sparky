@@ -39,7 +39,7 @@ interface Props {
 /** Wybór okresu (tydzień/miesiąc/rok) i drugiego okresu, z którym go zestawiamy. */
 export default function ChroniclePeriodPicker({ label, compareLabel, isCurrent, canCompareNewer, onShift, onShiftCompare, onReset }: Props) {
   return (
-    <div className="space-y-0.5 rounded-2xl border border-border-custom/40 bg-surface/50 px-2 py-1">
+    <div className="space-y-0.5 rounded-lg border border-border-custom/40 bg-surface/50 px-2 py-1">
       <div className="flex items-center justify-between gap-2">
         <Stepper label={label} what="Okres" canGoNewer={!isCurrent} onOlder={() => onShift(1)} onNewer={() => onShift(-1)} />
         {!isCurrent && (

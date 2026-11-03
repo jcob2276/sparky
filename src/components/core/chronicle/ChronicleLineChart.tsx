@@ -15,7 +15,7 @@ const format = (value: number) => value.toLocaleString('pl-PL', { maximumFractio
 export default function ChronicleLineChart({ values, labels, unit, ariaLabel }: Props) {
   const known = values.flatMap((value, index) => (value == null ? [] : [{ index, value }]));
   if (!known.length) {
-    return <p className="rounded-2xl border border-border-custom/40 bg-surface/40 px-3 py-6 text-center text-xs font-semibold text-text-muted">Brak danych do wykresu w tym okresie.</p>;
+    return <p className="rounded-lg border border-border-custom/40 bg-surface/40 px-3 py-6 text-center text-xs font-semibold text-text-muted">Brak danych do wykresu w tym okresie.</p>;
   }
   const min = Math.min(...known.map((p) => p.value));
   const max = Math.max(...known.map((p) => p.value));

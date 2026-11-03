@@ -13,7 +13,7 @@ export default function ManualTimePicker({ logger }: ManualTimePickerProps) {
   const [isOpen, setIsOpen] = useState(logger.manualTime);
 
   return (
-    <div className="rounded-2xl border border-border-custom/60 bg-surface-solid/30 overflow-hidden">
+    <div className="rounded-lg border border-border-custom/60 bg-surface-solid/30 overflow-hidden">
       <Button
         variant="ghost"
         type="button"
@@ -44,7 +44,7 @@ export default function ManualTimePicker({ logger }: ManualTimePickerProps) {
               type="date"
               value={logger.workoutDate}
               onChange={(e) => logger.setWorkoutDate(e.target.value)}
-              className="w-full bg-surface border border-border-custom rounded-xl px-2 py-1.5 text-xs font-bold text-text-primary outline-none focus:border-primary/50 text-center cursor-pointer"
+              className="w-full bg-surface border border-border-custom rounded-lg px-2 py-1.5 text-xs font-bold text-text-primary outline-none focus:border-primary/50 text-center cursor-pointer"
             />
           </div>
           <div className="space-y-1">
@@ -53,7 +53,7 @@ export default function ManualTimePicker({ logger }: ManualTimePickerProps) {
               type="time"
               value={logger.startTimeManual}
               onChange={(e) => logger.setStartTimeManual(e.target.value)}
-              className="w-full bg-surface border border-border-custom rounded-xl px-2 py-1.5 text-xs font-bold text-text-primary outline-none focus:border-primary/50 text-center cursor-pointer"
+              className="w-full bg-surface border border-border-custom rounded-lg px-2 py-1.5 text-xs font-bold text-text-primary outline-none focus:border-primary/50 text-center cursor-pointer"
             />
           </div>
           <div className="space-y-1">
@@ -62,7 +62,7 @@ export default function ManualTimePicker({ logger }: ManualTimePickerProps) {
               type="time"
               value={logger.endTimeManual}
               onChange={(e) => logger.setEndTimeManual(e.target.value)}
-              className="w-full bg-surface border border-border-custom rounded-xl px-2 py-1.5 text-xs font-bold text-text-primary outline-none focus:border-primary/50 text-center cursor-pointer"
+              className="w-full bg-surface border border-border-custom rounded-lg px-2 py-1.5 text-xs font-bold text-text-primary outline-none focus:border-primary/50 text-center cursor-pointer"
             />
           </div>
         </div>

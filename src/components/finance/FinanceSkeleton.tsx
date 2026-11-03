@@ -20,7 +20,7 @@ export function FinanceSkeleton() {
       </div>
       <div className="space-y-2">
         {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} variant="avatar" className="rounded-2xl bg-surface-1 p-3" />
+          <Skeleton key={index} variant="avatar" className="rounded-lg bg-surface-1 p-3" />
         ))}
       </div>
     </div>

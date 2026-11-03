@@ -35,7 +35,7 @@ export function MeasurePhaseOverlay({
 }: MeasurePhaseOverlayProps) {
   return (
     <FullscreenExperience label="Pomiar wzroku" tone="light">
-      <div className="absolute top-4 right-4 w-16 h-20 rounded-xl overflow-hidden border-2 border-border-custom shadow-lg">
+      <div className="absolute top-4 right-4 w-16 h-20 rounded-lg overflow-hidden border-2 border-border-custom shadow-lg">
         <video
           ref={pipVideoRef}
           autoPlay
@@ -49,7 +49,7 @@ export function MeasurePhaseOverlay({
       <div className="absolute top-4 left-4 flex items-center gap-3 z-[var(--z-raised)]">
         <Pressable
           onClick={onBack}
-          className="p-2 rounded-xl bg-scrim/5 text-text-muted hover:bg-scrim/10 transition-colors"
+          className="p-2 rounded-lg bg-scrim/5 text-text-muted hover:bg-scrim/10 transition-colors"
         >
           <ArrowLeft size={18} />
         </Pressable>
@@ -94,7 +94,7 @@ export function MeasurePhaseOverlay({
             <Pressable
               onClick={onManualCapture}
               disabled={!faceDetected}
-              className="bg-info text-on-accent font-semibold px-7 py-3 rounded-2xl text-sm disabled:opacity-[var(--opacity-30)] active:scale-95 ui-interactive"
+              className="bg-info text-on-accent font-semibold px-7 py-3 rounded-lg text-sm disabled:opacity-[var(--opacity-30)] active:scale-95 ui-interactive"
             >
               Złap pomiar
             </Pressable>
@@ -162,7 +162,7 @@ export function CapturedPhaseOverlay({
       </div>
 
       {saveError && (
-        <div className="w-full max-w-xs flex items-center gap-2 text-xs text-danger bg-danger/10 border border-danger/20 rounded-xl px-4 py-3">
+        <div className="w-full max-w-xs flex items-center gap-2 text-xs text-danger bg-danger/10 border border-danger/20 rounded-lg px-4 py-3">
           <AlertCircle size={14} className="shrink-0" />
           Błąd zapisu. Spróbuj ponownie.
         </div>
@@ -172,7 +172,7 @@ export function CapturedPhaseOverlay({
         <Pressable
           onClick={onSave}
           disabled={isSaving}
-          className="w-full py-5 bg-primary text-background font-semibold tracking-normal rounded-2xl flex items-center justify-center gap-2 active:scale-95 ui-interactive disabled:opacity-[var(--opacity-50)]"
+          className="w-full py-5 bg-primary text-background font-semibold tracking-normal rounded-lg flex items-center justify-center gap-2 active:scale-95 ui-interactive disabled:opacity-[var(--opacity-50)]"
         >
           <Check size={18} />
           {isSaving ? 'Zapisywanie...' : 'Zapisz pomiar'}

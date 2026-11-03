@@ -88,7 +88,7 @@ export default function TodoAnchoredPopover({ anchor, label, width = 232, onClos
   return createPortal(
     <div ref={ref} role="dialog" aria-label={label} data-side="below" onClick={(e) => e.stopPropagation()}
       style={{ left, top: anchor.bottom + 4, width: w }}
-      className="todo-pop fixed rounded-xl border border-border-custom bg-surface p-1.5 text-sm text-text-primary shadow-xl">
+      className="todo-pop fixed rounded-lg border border-border-custom bg-surface p-1.5 text-sm text-text-primary shadow-xl">
       {children}
     </div>,
     document.body,

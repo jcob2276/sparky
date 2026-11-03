@@ -79,7 +79,7 @@ function WeeklySphereDetailsDrawer({
   }
 
   return (
-    <div className="rounded-2xl border border-border-custom/50 bg-surface-2/60 p-3.5 space-y-2.5 animate-fadeIn">
+    <div className="rounded-lg border border-border-custom/50 bg-surface-2/60 p-3.5 space-y-2.5 animate-fadeIn">
       <div className="flex items-center justify-between border-b border-border-custom/40 pb-1.5">
         <span className={`text-2xs font-semibold tracking-wide ${cfg.badgeText}`}>
           {cfg.title}: {goal.title} ({goal.metric})
@@ -95,7 +95,7 @@ function WeeklySphereDetailsDrawer({
       </div>
 
       {historySummary && (
-        <p className="rounded-xl border border-border-custom/40 bg-background/50 p-2.5 text-xs font-semibold leading-snug text-text-secondary">
+        <p className="rounded-lg border border-border-custom/40 bg-background/50 p-2.5 text-xs font-semibold leading-snug text-text-secondary">
           {historySummary}
         </p>
       )}
@@ -155,7 +155,7 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-primary/10 text-primary border border-primary/20">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10 text-primary border border-primary/20">
             <Compass size={15} />
           </div>
           <div className="flex items-baseline gap-1.5">
@@ -178,7 +178,7 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
             <Pressable
               key={pillar}
               onClick={() => togglePillar(pillar)}
-              className={`flex flex-col justify-between rounded-2xl border p-2.5 text-left transition-all ui-interactive cursor-pointer ${
+              className={`flex flex-col justify-between rounded-lg border p-2.5 text-left transition-all ui-interactive cursor-pointer ${
                 isSelected
                   ? `${cfg.borderColor} ${cfg.bgActive} ring-1 ring-primary/30 shadow-xs`
                   : 'border-border-custom/60 bg-surface-2/40 hover:bg-surface-2/70'

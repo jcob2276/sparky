@@ -73,7 +73,7 @@ export default function GlassesCabinet() {
       </div>
 
       {loading ? (
-        <div className="h-24 rounded-2xl border border-border-custom bg-surface/30 animate-pulse" />
+        <div className="h-24 rounded-lg border border-border-custom bg-surface/30 animate-pulse" />
       ) : prescriptions.length === 0 ? (
         <EmptyState
           icon="👓"

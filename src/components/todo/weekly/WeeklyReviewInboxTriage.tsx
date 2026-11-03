@@ -38,7 +38,7 @@ export default function WeeklyReviewInboxTriage() {
             return (
               <div
                 key={item.id}
-                className="p-3 rounded-xl border border-border-custom/50 bg-surface-solid/30 flex items-center justify-between gap-3"
+                className="p-3 rounded-lg border border-border-custom/50 bg-surface-solid/30 flex items-center justify-between gap-3"
               >
                 <div className="min-w-0 flex-1">
                   <span className="text-sm font-bold text-text-primary block truncate">

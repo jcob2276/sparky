@@ -189,7 +189,7 @@ export default function TodoSidebar({
           ) : (
             <Pressable
               onClick={() => { cancelledRef.current = false; setAdding(true); }}
-              className="mt-0.5 flex min-h-11 items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm md:min-h-0 font-medium text-text-muted/60 hover:text-text-primary transition-colors"
+              className="mt-0.5 flex min-h-11 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm md:min-h-0 font-medium text-text-muted/60 hover:text-text-primary transition-colors"
             >
               <Plus size={12} /> Nowa lista
             </Pressable>

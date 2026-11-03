@@ -75,7 +75,7 @@ export default function WeekHub({
           size="md"
           type="button"
           onClick={onStartWeeklyReview}
-          className="flex w-full items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3.5 text-left transition-colors hover:bg-primary/15 active:scale-[var(--ds-arbitrary-0-99)]"
+          className="flex w-full items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3.5 text-left transition-colors hover:bg-primary/15 active:scale-[var(--ds-arbitrary-0-99)]"
         >
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-2xs font-semibold text-primary">
@@ -135,7 +135,7 @@ export default function WeekHub({
             {openMust.map((pin) => (
               <li
                 key={pin.id}
-                className="flex items-center gap-2.5 rounded-2xl border border-primary/25 bg-primary/[0.04] p-3 text-xs font-bold text-text-primary shadow-xs"
+                className="flex items-center gap-2.5 rounded-lg border border-primary/25 bg-primary/[0.04] p-3 text-xs font-bold text-text-primary shadow-xs"
               >
                 <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
                 <span className="truncate">{pin.title}</span>

@@ -17,7 +17,7 @@ export default function FinanceGoalScenarios({ metrics }: { metrics: FinanceMetr
   const effect = scenarios.extraSavingEffect;
 
   return (
-    <div className="space-y-2 rounded-xl bg-surface-2 p-3.5">
+    <div className="space-y-2 rounded-lg bg-surface-2 p-3.5">
       <p className="text-xs font-semibold tracking-wide text-text-muted">Kiedy cel, zależnie od zysku</p>
       <ul className="space-y-1 text-sm">
         {scenarios.returns.map((row) => (

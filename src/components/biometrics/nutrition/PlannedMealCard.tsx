@@ -13,7 +13,7 @@ const SCALE_FACTORS = [0.75, 1, 1.25, 1.5];
 
 export function PlannedMealCard({ meal, onResizeMeal,disabled }: PlannedMealCardProps) {
   return (
-    <article className="rounded-xl border border-border-custom/40 bg-surface-2 p-3 space-y-2">
+    <article className="rounded-lg border border-border-custom/40 bg-surface-2 p-3 space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-sm font-semibold text-text-primary">{meal.name}</span>

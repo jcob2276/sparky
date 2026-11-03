@@ -25,7 +25,7 @@ export default function DesktopQuickActionsBar({
   return (
     <div className="xl:hidden pb-1">
       {/* Przełącznik Widoków / Segmented Control — widoczny na węższych ekranach gdy ukryty jest panel boczny */}
-      <div className="flex items-center gap-1 p-1 bg-surface-solid/5 border border-border-custom/70 rounded-2xl w-full">
+      <div className="flex items-center gap-1 p-1 bg-surface-solid/5 border border-border-custom/70 rounded-lg w-full">
         {TABS.map(({ id, label, icon: Icon }) => {
           const isActive = activeTab === id;
           return (
@@ -33,7 +33,7 @@ export default function DesktopQuickActionsBar({
               key={id}
               variant="ghost"
               onClick={() => onTabChange(id)}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs font-bold ui-interactive min-w-0 ${
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-bold ui-interactive min-w-0 ${
                 isActive
                   ? 'bg-primary text-on-accent shadow-sm font-semibold'
                   : 'text-text-muted hover:text-text-primary hover:bg-surface-solid/10'

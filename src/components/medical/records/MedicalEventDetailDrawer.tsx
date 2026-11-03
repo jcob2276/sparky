@@ -21,7 +21,7 @@ function EventMarkersList({
   onSelectMarker?: (markerKey?: string) => void;
 }) {
   return (
-    <div className="max-h-72 overflow-y-auto rounded-xl border border-border-custom bg-surface-1 divide-y divide-border-custom/40">
+    <div className="max-h-72 overflow-y-auto rounded-lg border border-border-custom bg-surface-1 divide-y divide-border-custom/40">
       {markers.map((m, idx) => {
         const isAlert = m.flag && m.flag !== 'N' && m.flag !== 'normal';
         const refStr = m.refLow != null && m.refHigh != null
@@ -94,7 +94,7 @@ export default function MedicalEventDetailDrawer({
       }
     >
       <div className="space-y-5 p-1 pb-8">
-        <div className="rounded-2xl border border-border-custom bg-surface-1 p-4 space-y-2">
+        <div className="rounded-lg border border-border-custom bg-surface-1 p-4 space-y-2">
           <div className="flex items-center justify-between text-xs text-text-secondary">
             <span className="flex items-center gap-1.5 font-bold text-text-primary">
               <Calendar size={13} className="text-primary" /> {item.occurredOn}
@@ -173,7 +173,7 @@ export default function MedicalEventDetailDrawer({
               href={item.sourcePath}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 rounded-xl border border-border-custom bg-surface-2 py-2.5 px-4 text-xs font-bold text-primary hover:bg-surface-3 transition-colors"
+              className="flex items-center justify-center gap-2 rounded-lg border border-border-custom bg-surface-2 py-2.5 px-4 text-xs font-bold text-primary hover:bg-surface-3 transition-colors"
             >
               <Download size={14} /> Pobierz dokument źródłowy
             </a>

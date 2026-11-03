@@ -80,7 +80,7 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
         return (
           <div
             key={String(col.id)}
-            className="flex-shrink-0 todo-kanban-col snap-start flex flex-col rounded-2xl bg-surface/40 border border-border-custom/40"
+            className="flex-shrink-0 todo-kanban-col snap-start flex flex-col rounded-lg bg-surface/40 border border-border-custom/40"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
@@ -111,7 +111,7 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
                     key={item.id}
                     draggable
                     onDragStart={(e) => e.dataTransfer.setData('text/plain', item.id)}
-                    className="rounded-xl border border-border-custom/40 bg-background/70 px-3 py-2.5 cursor-grab active:cursor-grabbing hover:border-border-custom ui-interactive group hover:bg-surface-solid"
+                    className="rounded-lg border border-border-custom/40 bg-background/70 px-3 py-2.5 cursor-grab active:cursor-grabbing hover:border-border-custom ui-interactive group hover:bg-surface-solid"
                   >
                     <div className="flex items-start gap-2">
                       <Pressable
@@ -157,7 +157,7 @@ export default function KanbanView({ items, sections, setItems, today }: Props) 
               })}
 
               {colItems.length === 0 && (
-                <Card variant="surface" padding="1rem" style={{ boxShadow: 'none' }} className="!bg-transparent !rounded-xl border border-dashed border-border-custom/20 text-center">
+                <Card variant="surface" padding="1rem" style={{ boxShadow: 'none' }} className="!bg-transparent !rounded-lg border border-dashed border-border-custom/20 text-center">
                   <p className="text-2xs text-text-muted/60"><span className="hidden sm:inline">Przeciągnij tutaj</span><span className="sm:hidden">Brak zadań</span></p>
                 </Card>
               )}

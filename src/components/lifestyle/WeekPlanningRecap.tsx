@@ -21,7 +21,7 @@ export default function WeekPlanningRecap({
   }
 
   const errorNotice = direction.isError ? (
-      <div className="rounded-2xl border border-warning/30 bg-warning/5 px-4 py-3 text-xs text-warning">
+      <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-3 text-xs text-warning">
         Nie udało się wczytać podsumowania tygodnia{direction.error?.message ? `: ${direction.error.message}` : '.'}
       </div>
   ) : null;

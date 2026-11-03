@@ -103,9 +103,8 @@ function NextUrgentBanner({
           onEdit(next.item.id);
         }
       }}
-      className="group relative cursor-pointer overflow-hidden rounded-[28px] border border-white/20 dark:border-white/10 bg-gradient-to-br from-primary/20 via-surface-solid/90 to-surface-2/80 backdrop-blur-xl p-6.5 shadow-lg transition-all duration-200 ease-out active:scale-[0.98] hover:shadow-xl focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none md:p-8"
+      className="group relative cursor-pointer overflow-hidden rounded-[var(--radius-2xl)] border border-primary/25 bg-primary/10 p-6.5 transition-all duration-200 ease-out active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none md:p-8"
     >
-      <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
       <div className="relative flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="space-y-1.5">
           <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary ring-1 ring-primary/30">

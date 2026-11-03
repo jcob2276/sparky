@@ -63,7 +63,7 @@ export default function GrowthView({ session: propSession, onBack, onNavigateTo 
             <Pressable
               onClick={handleBack}
               aria-label="Wróć"
-              className="rounded-xl border border-border-custom p-2 text-text-muted hover:text-text-primary transition-colors"
+              className="rounded-lg border border-border-custom p-2 text-text-muted hover:text-text-primary transition-colors"
             >
               <ArrowLeft size={18} />
             </Pressable>
@@ -80,7 +80,7 @@ export default function GrowthView({ session: propSession, onBack, onNavigateTo 
           <Pressable
             onClick={openPocket}
             aria-label="Otwórz Pocket"
-            className="flex items-center gap-1.5 rounded-xl border border-border-custom px-3 py-2 text-xs font-bold text-text-muted hover:text-text-primary transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-border-custom px-3 py-2 text-xs font-bold text-text-muted hover:text-text-primary transition-colors"
           >
             <Inbox size={14} /> Pocket
           </Pressable>

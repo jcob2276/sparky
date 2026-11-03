@@ -115,7 +115,7 @@ export default function EisenhowerMatrix({ items, setItems }: Props) {
           return (
             <div
               key={q.key}
-              className={`rounded-2xl border p-3 sm:min-h-[var(--ds-h-180px)] ui-interactive duration-[var(--motion-medium)] ${q.color} ${dragOverQ === q.key ? 'scale-[var(--ds-arbitrary-1-01)] border-primary/50 shadow-md ring-2 ring-primary/10' : ''}`}
+              className={`rounded-lg border p-3 sm:min-h-[var(--ds-h-180px)] ui-interactive duration-[var(--motion-medium)] ${q.color} ${dragOverQ === q.key ? 'scale-[var(--ds-arbitrary-1-01)] border-primary/50 shadow-md ring-2 ring-primary/10' : ''}`}
               onDragOver={(e) => {
                 e.preventDefault();
                 setDragOverQ(q.key);
@@ -149,7 +149,7 @@ export default function EisenhowerMatrix({ items, setItems }: Props) {
                     key={item.id}
                     draggable
                     onDragStart={(e) => e.dataTransfer.setData('text/plain', item.id)}
-                    className="group flex items-start gap-2 rounded-xl bg-background/60 border border-border-custom/40 px-3 py-2.5 sm:cursor-grab sm:active:cursor-grabbing hover:border-border-custom transition-colors hover:bg-surface-solid"
+                    className="group flex items-start gap-2 rounded-lg bg-background/60 border border-border-custom/40 px-3 py-2.5 sm:cursor-grab sm:active:cursor-grabbing hover:border-border-custom transition-colors hover:bg-surface-solid"
                   >
                     <Pressable
                       onClick={(e) => {

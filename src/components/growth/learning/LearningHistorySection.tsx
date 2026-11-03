@@ -22,7 +22,7 @@ export default function LearningHistorySection({ items }: { items: LearningAssig
   for (const item of items) byMonth.set(item.month_start, [...(byMonth.get(item.month_start) ?? []), item]);
 
   return (
-    <details className="rounded-2xl border border-border-custom/40 bg-surface/30 p-4">
+    <details className="rounded-lg border border-border-custom/40 bg-surface/30 p-4">
       <summary className="cursor-pointer text-sm font-semibold text-text-primary">Niedokończone i odpuszczone</summary>
       <div className="mt-3 space-y-4">
         {[...byMonth.entries()].map(([month, list]) => (

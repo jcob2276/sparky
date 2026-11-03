@@ -98,9 +98,9 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
     <div className="space-y-3">
       <Pressable onClick={onClose} className="touch-manipulation text-xs font-bold text-text-muted hover:text-text-primary cursor-pointer">← Wstecz</Pressable>
       {detectorSupported && !cameraError ? (
-        <div className="relative rounded-2xl overflow-hidden bg-scrim aspect-square">
+        <div className="relative rounded-lg overflow-hidden bg-scrim aspect-square">
           <video ref={videoRef} muted playsInline className="w-full h-full object-cover" />
-          <div className="absolute inset-8 border-2 border-primary/70 rounded-xl pointer-events-none" />
+          <div className="absolute inset-8 border-2 border-primary/70 rounded-lg pointer-events-none" />
           {torchSupported && (
             <Pressable onClick={() => { void toggleTorch(); }} aria-label={torchOn ? 'Wyłącz latarkę' : 'Włącz latarkę'} aria-pressed={torchOn}
               className={`touch-manipulation absolute top-3 right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border cursor-pointer ${torchOn ? 'bg-primary text-on-accent border-primary' : 'bg-scrim/60 text-on-accent border-on-accent/30'}`}>
@@ -118,7 +118,7 @@ export default function BarcodeScanner({ onDetected, onClose, loading }: Barcode
           <ControlInput value={manualCode} onChange={(e) => setManualCode(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleManualSubmit(); }}
             inputMode="numeric" placeholder="Wpisz kod kreskowy..."
-            className="w-full rounded-xl border border-border-custom bg-surface-solid/40 pl-9 pr-2 py-2.5 text-sm text-text-primary outline-none focus:border-primary/40 placeholder:text-text-muted/40" />
+            className="w-full rounded-lg border border-border-custom bg-surface-solid/40 pl-9 pr-2 py-2.5 text-sm text-text-primary outline-none focus:border-primary/40 placeholder:text-text-muted/40" />
         </div>
         <Pressable onClick={handleManualSubmit} disabled={!manualCode.replace(/[\s-]+/g, '').trim() || loading} size="sm" className="touch-manipulation">Szukaj</Pressable>
       </div>

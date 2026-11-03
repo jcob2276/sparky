@@ -36,7 +36,7 @@ export default function WeeklyAiInsight({ today }: { today: string }) {
           <Pressable
             type="button"
             onClick={generate}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-primary/40 bg-primary/15 px-3 text-sm font-semibold text-primary active:scale-95 ui-interactive"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-primary/40 bg-primary/15 px-3 text-sm font-semibold text-primary active:scale-95 ui-interactive"
           >
             <Sparkles size={16} aria-hidden="true" />
             Przeanalizuj mój tydzień

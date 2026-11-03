@@ -23,20 +23,21 @@ const FALLBACK_TARGET_KCAL = 2000;
 function MealCalorieRing({ eaten, target }: { eaten: number; target: number }) {
   const ratio = target > 0 ? Math.min(1, Math.max(0, eaten / target)) : 0;
   const over = eaten > target;
+  const remaining = Math.round(target - eaten);
   return (
     <div
       role="img"
       aria-label={`Zjedzone ${eaten} z ${target} kcal`}
-      className="relative h-18 w-18 shrink-0"
+      className="relative h-32 w-32 shrink-0"
     >
       <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90" aria-hidden="true">
-        <circle cx="40" cy="40" r={RING_RADIUS} fill="none" strokeWidth="7" className="meal-ring-track" />
+        <circle cx="40" cy="40" r={RING_RADIUS} fill="none" strokeWidth="6" className="meal-ring-track" />
         <circle
           cx="40"
           cy="40"
           r={RING_RADIUS}
           fill="none"
-          strokeWidth="7"
+          strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={RING_CIRCUMFERENCE}
           strokeDashoffset={RING_CIRCUMFERENCE * (1 - ratio)}
@@ -44,14 +45,24 @@ function MealCalorieRing({ eaten, target }: { eaten: number; target: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center leading-none">
-        <span className="font-display text-lg font-semibold tabular-nums text-text-primary">{eaten}</span>
-        <span className="mt-0.5 text-2xs font-semibold tabular-nums text-text-muted">/ {target}</span>
+        <span className="text-2xs font-medium text-text-muted">{remaining >= 0 ? 'Zostało' : 'Ponad o'}</span>
+        <span className="mt-1 font-display text-3xl font-semibold tabular-nums text-text-primary">{Math.abs(remaining)}</span>
+        <span className="mt-1 text-2xs font-medium text-text-muted">kcal</span>
       </div>
     </div>
   );
 }
 
-function MacroRow({
+function RingSide({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="flex flex-col items-center gap-1 text-center">
+      <span className="text-xs font-medium text-text-muted">{label}</span>
+      <span className="font-display text-xl font-semibold tabular-nums text-text-primary">{value}</span>
+    </div>
+  );
+}
+
+function MacroTile({
   macro, label, grams, target, hint,
 }: {
   macro: 'protein' | 'carbs' | 'fat';
@@ -62,13 +73,14 @@ function MacroRow({
 }) {
   const ratio = target > 0 ? Math.min(1, grams / target) : 0;
   return (
-    <li className="meal-macro flex h-4 items-center gap-2" data-macro={macro} title={hint}>
-      <span className="meal-macro-label w-3 text-xs font-semibold">{label}</span>
-      <span className="meal-bar-track h-1.5 flex-1 overflow-hidden rounded-full">
-        <span className="meal-bar-fill block h-full w-full rounded-full" style={{ transform: `scaleX(${ratio})` }} />
+    <li className="meal-macro min-w-0 space-y-1.5 rounded-lg bg-surface-2 px-3 py-2.5" data-macro={macro} title={hint}>
+      <span className="meal-macro-label block text-xs font-medium">{label}</span>
+      <span className="block whitespace-nowrap tabular-nums text-text-muted">
+        <span className="text-sm font-semibold text-text-primary">{Math.round(grams)}</span>
+        <span className="text-2xs">/{target} g</span>
       </span>
-      <span className="w-18 text-right text-2xs font-semibold tabular-nums text-text-secondary">
-        <span className="text-xs font-semibold text-text-primary">{Math.round(grams)}</span>/{target} g
+      <span className="meal-bar-track block h-1.5 overflow-hidden rounded-full">
+        <span className="meal-bar-fill block h-full w-full rounded-full" style={{ transform: `scaleX(${ratio})` }} />
       </span>
     </li>
   );
@@ -107,7 +119,6 @@ export function ComposerProgress({
 }) {
   const targetKcal = totals.targetKcal ?? FALLBACK_TARGET_KCAL;
   const eaten = Math.round(totals.calories);
-  const remaining = Math.round(targetKcal - totals.calories);
   // B uses the real target; W/T are derived (T = 30% kcal, W = the rest) because only B/kcal targets are stored.
   const targetProtein = Math.round(totals.targetProtein ?? DEFAULT_PROTEIN_FLOOR_G);
   const targetFat = Math.round((targetKcal * 0.3) / 9);
@@ -115,31 +126,27 @@ export function ComposerProgress({
   const showQuality = qualityPending || totals.avgFoodQuality != null;
 
   return (
-    <div className="space-y-2">
-    <div className="flex items-center gap-3">
+    <div className="space-y-3">
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+      <RingSide label="Zjedzone" value={eaten} />
       <MealCalorieRing eaten={eaten} target={targetKcal} />
-      <div className="min-w-0 flex-1 space-y-1">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-semibold leading-5 text-text-muted">
-            {remaining >= 0 ? 'Zostało ' : 'Ponad o '}
-            <span className="font-semibold tabular-nums text-text-primary">{Math.abs(remaining)} kcal</span>
-          </p>
-          {showQuality && (
-            <span
-              title={totals.foodQualityAnalysis ?? undefined}
-              className="meal-quality shrink-0 rounded-md px-1.5 font-display text-2xs font-semibold tabular-nums"
-            >
-              {totals.avgFoodQuality != null ? `Jakość ${totals.avgFoodQuality}` : 'Jakość…'}
-            </span>
-          )}
-        </div>
-        <ul className="m-0 list-none space-y-0.5 p-0" aria-label="Makroskładniki: zjedzone / cel">
-          <MacroRow macro="protein" label="B" grams={totals.protein} target={targetProtein} />
-          <MacroRow macro="carbs" label="W" grams={macros?.carbs ?? 0} target={targetCarbs} hint="Cel orientacyjny" />
-          <MacroRow macro="fat" label="T" grams={macros?.fat ?? 0} target={targetFat} hint="Cel orientacyjny (30% kcal)" />
-        </ul>
-      </div>
+      <RingSide label="Cel" value={targetKcal} />
     </div>
+    {showQuality && (
+      <div className="flex justify-center">
+        <span
+          title={totals.foodQualityAnalysis ?? undefined}
+          className="meal-quality rounded-md px-2 py-0.5 font-display text-2xs font-semibold tabular-nums"
+        >
+          {totals.avgFoodQuality != null ? `Jakość ${totals.avgFoodQuality}` : 'Jakość…'}
+        </span>
+      </div>
+    )}
+    <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0" aria-label="Makroskładniki: zjedzone / cel">
+      <MacroTile macro="protein" label="Białko" grams={totals.protein} target={targetProtein} />
+      <MacroTile macro="carbs" label="Węgle" grams={macros?.carbs ?? 0} target={targetCarbs} hint="Cel orientacyjny" />
+      <MacroTile macro="fat" label="Tłuszcze" grams={macros?.fat ?? 0} target={targetFat} hint="Cel orientacyjny (30% kcal)" />
+    </ul>
     {energy && <EnergyRangeLine energy={energy} />}
     {nutrients && <NutrientCoverageStrip coverage={nutrients} />}
     {dayReview && <DayCompletenessToggle review={dayReview} />}

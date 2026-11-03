@@ -5,7 +5,7 @@ import type { useCoreMemoryHistory } from './useCoreMemoryHistory';
 
 type Props = ReturnType<typeof useCoreMemoryHistory>;
 export default function CoreMemoryHistoryView(props: Props) {
-  return <details className="rounded-xl border border-border-custom p-4" open={props.expanded}
+  return <details className="rounded-lg border border-border-custom p-4" open={props.expanded}
     onToggle={event => props.onExpand(event.currentTarget.open)}>
     <summary className="cursor-pointer text-sm font-semibold">Pamięć Sparky i historia zmian</summary>
     <div className="mt-3 space-y-3 text-xs">

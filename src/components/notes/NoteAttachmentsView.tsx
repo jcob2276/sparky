@@ -50,7 +50,7 @@ export default function NoteAttachmentsView({
             <Paperclip size={14} /> Dodaj
           </Pressable>
           {attachmentMenu && (
-            <div className="absolute bottom-9 right-0 z-[var(--z-sticky)] flex w-48 flex-col rounded-xl border border-border-custom bg-surface-solid p-1 shadow-xl">
+            <div className="absolute bottom-9 right-0 z-[var(--z-sticky)] flex w-48 flex-col rounded-lg border border-border-custom bg-surface-solid p-1 shadow-xl">
               <Pressable variant="ghost" className="justify-start" onClick={() => { setAttachmentMenu(false); setScanning(true); }}>
                 <Camera size={14} /> Skanuj dokument
               </Pressable>

@@ -60,9 +60,9 @@ export default function LearningMonthSection({
       {error && <DataStateNotice tone="warning" title="Nie udało się wczytać planu nauki" detail={error.message} />}
 
       {loading ? (
-        <Skeleton className="h-40 w-full rounded-2xl" />
+        <Skeleton className="h-40 w-full rounded-lg" />
       ) : assignments.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border-custom/60 p-6 text-center space-y-3">
+        <div className="rounded-lg border border-dashed border-border-custom/60 p-6 text-center space-y-3">
           <p className="text-sm font-bold text-text-primary">Nic nie jest zaplanowane na ten miesiąc.</p>
           <p className="text-xs text-text-muted">
             Wybierz książkę, kurs albo materiał z Pocketa. Aplikacja sama policzy, ile dziennie.

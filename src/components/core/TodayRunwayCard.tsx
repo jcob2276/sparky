@@ -99,7 +99,7 @@ export default function TodayRunwayCard() {
             <Pressable
               key={`${item.kind}-${item.id}`}
               onClick={() => openItem(item)}
-              className="flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left transition-colors hover:bg-surface-solid/60 active:scale-[0.99] cursor-pointer"
+              className="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left transition-colors hover:bg-surface-solid/60 active:scale-[0.99] cursor-pointer"
             >
               <span className="text-text-muted/80 shrink-0"><RunwayIcon kind={item.kind} /></span>
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-primary">{item.title}</span>

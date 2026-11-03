@@ -83,7 +83,7 @@ export function AppleRemindersSmartGrid({
             onClick={() => onSelectNavDest(card.id)}
             aria-label={`${card.title}: ${card.count} zadań`}
             aria-pressed={isActive}
-            className={`todo-instant min-w-0 flex flex-col items-start gap-2 lg:flex-row lg:items-center lg:gap-3 px-3 py-3 rounded-xl border cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
+            className={`todo-instant min-w-0 flex flex-col items-start gap-2 lg:flex-row lg:items-center lg:gap-3 px-3 py-3 rounded-lg border cursor-pointer text-left focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none ${
               isActive
                 ? 'border-primary/50 bg-primary/15 shadow-sm ring-2 ring-primary/20'
                 : 'border-transparent bg-surface-solid shadow-xs hover:shadow-sm'

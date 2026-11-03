@@ -29,7 +29,7 @@ export function FinanceSection({
           )}
         </header>
       )}
-      <div className="overflow-hidden rounded-2xl bg-surface-1/70 ring-1 ring-border-custom/25">
+      <div className="overflow-hidden rounded-lg bg-surface-1/70 ring-1 ring-border-custom/25">
         {children}
       </div>
     </section>

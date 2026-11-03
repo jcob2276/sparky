@@ -22,7 +22,7 @@ function Row({ item, onOpen }: { item: BodyReminder; onOpen: () => void }) {
         overdue ? 'border-danger/60 bg-danger/10 motion-safe:animate-pulse' : 'border-warning/40 bg-warning/10'
       }`}
     >
-      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${overdue ? 'bg-danger/20 text-danger' : 'bg-warning/20 text-warning'}`}>
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${overdue ? 'bg-danger/20 text-danger' : 'bg-warning/20 text-warning'}`}>
         {overdue ? <AlertTriangle size={17} /> : <Icon size={17} />}
       </div>
       <div className="min-w-0 flex-1">

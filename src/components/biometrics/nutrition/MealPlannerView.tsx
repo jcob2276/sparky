@@ -50,7 +50,7 @@ export function MealPlannerView({
   const requiresAllergenReview=Boolean(preferences?.allergies.length),reviewed=reviewedPlan === reviewKey;
 
   return (
-    <div className="rounded-2xl border border-white/5 bg-surface-1 p-4 space-y-4">
+    <div className="rounded-lg border border-white/5 bg-surface-1 p-4 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-3">
         <div>
           <h3 className="flex items-center gap-2 text-base font-semibold text-text-primary">
@@ -104,7 +104,7 @@ export function MealPlannerView({
       {preferencesChanged && <p role="status" className="text-xs text-warning">Preferencje zmieniły się od utworzenia tego menu. Sprawdź istniejące posiłki i ułóż nowy szkic.</p>}
 
       {!displayPlan ? (
-        <div className="rounded-xl border border-dashed border-white/10 p-6 text-center space-y-2">
+        <div className="rounded-lg border border-dashed border-white/10 p-6 text-center space-y-2">
           <p className="text-sm font-medium text-text-primary">Brak zaplanowanego jadłospisu na ten dzień</p>
           <p className="text-xs text-text-muted max-w-md mx-auto">
             {targetKcal == null || targetProtein == null ? 'Przy generowaniu Sparky sprawdzi aktualne dane do celu energii i białka. Jeżeli ich brakuje, wskaże, co uzupełnić.' : `Propozycje pod cel ${targetKcal} kcal i ${targetProtein} g białka z biblioteki produktów. Sprawdź porcje i etykiety przed zatwierdzeniem.`}
@@ -120,7 +120,7 @@ export function MealPlannerView({
       ) : (
         <div className="space-y-4">
           {isDraftOnly && (
-            <div className="flex items-center justify-between rounded-xl border border-warning/20 bg-warning/5 p-3">
+            <div className="flex items-center justify-between rounded-lg border border-warning/20 bg-warning/5 p-3">
               <div className="flex items-center gap-2 text-xs text-warning">
                 <AlertCircle size={16} />
                 <span>To jest szkic jadłospisu. Zatwierdź, aby aktywować plan i listę zakupów.</span>
@@ -143,7 +143,7 @@ export function MealPlannerView({
 
           {currentDay && (
             <div className="space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-secondary bg-surface-2 p-2.5 rounded-xl border border-white/5">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-text-secondary bg-surface-2 p-2.5 rounded-lg border border-white/5">
                 <span>
                   Suma dnia: <strong className="text-text-primary font-semibold">{currentDay.totals.calories} kcal</strong> (cel: {currentDay.target.calories} kcal)
                 </span>

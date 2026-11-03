@@ -91,7 +91,7 @@ export default function HealthspanProfilePanel({ profile, pace, today }: Props) 
       <ContributorSection title="Możliwości poprawy" contributors={opportunities} />
 
       {pace.confounders.length > 0 && (
-        <section className="rounded-2xl border border-warning/20 bg-warning/5 p-4">
+        <section className="rounded-lg border border-warning/20 bg-warning/5 p-4">
           <p className="text-xs font-bold text-warning">Kontekst ostatniego trendu</p>
           <p className="mt-1 text-sm text-text-secondary">
             {pace.confounders.join(', ')} może tymczasowo zmieniać Tempo. Pewność: {pace.confidence}%.
@@ -99,7 +99,7 @@ export default function HealthspanProfilePanel({ profile, pace, today }: Props) 
         </section>
       )}
 
-      <section className="rounded-2xl border border-white/10 bg-surface-1 p-4">
+      <section className="rounded-lg border border-white/10 bg-surface-1 p-4">
         <h3 className="text-sm font-bold text-text-primary">Metodologia</h3>
         <div className="mt-3 grid gap-3 text-xs leading-relaxed text-text-secondary sm:grid-cols-2">
           <p>
@@ -134,7 +134,7 @@ export default function HealthspanProfilePanel({ profile, pace, today }: Props) 
         </div>
       </section>
 
-      <footer className="rounded-2xl border border-white/10 p-4 text-xs leading-relaxed text-text-muted">
+      <footer className="rounded-lg border border-white/10 p-4 text-xs leading-relaxed text-text-muted">
         <p className="flex items-center gap-2 font-bold text-text-secondary">
           <ShieldCheck size={14} /> Jak czytać ten wynik
         </p>
@@ -160,7 +160,7 @@ function ContributorSection({
       <h3 className="mb-3 text-xs font-semibold tracking-normal text-text-muted">{title}</h3>
       <div className="space-y-2">
         {contributors.map((item) => (
-          <article key={item.key} className="rounded-2xl border border-white/10 bg-surface-1 p-4">
+          <article key={item.key} className="rounded-lg border border-white/10 bg-surface-1 p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="font-semibold text-text-primary">{item.label}</p>
@@ -189,7 +189,7 @@ function ContributorSection({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-white/5 px-4 py-3">
+    <div className="rounded-lg bg-white/5 px-4 py-3">
       <p className="text-2xs font-bold tracking-normal text-text-muted">{label}</p>
       <p className="mt-1 text-lg font-semibold text-text-primary">{value}</p>
     </div>

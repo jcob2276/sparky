@@ -161,7 +161,7 @@ export default function Photos() {
   if (photos.length === 0) {
     return (
       <Card className="text-center space-y-4 my-2" padding="1.5rem">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
           <Camera size={22} />
         </div>
         <div className="space-y-1">
@@ -173,7 +173,7 @@ export default function Photos() {
           </p>
         </div>
         <div className="pt-2">
-          <label className="inline-flex items-center gap-2 cursor-pointer bg-primary text-on-accent min-h-[48px] font-display font-semibold text-sm px-5 py-3 rounded-xl hover:bg-primary-hover ui-interactive active:scale-95 shadow-md shadow-primary/20 cursor-pointer">
+          <label className="inline-flex items-center gap-2 cursor-pointer bg-primary text-on-accent min-h-[48px] font-display font-semibold text-sm px-5 py-3 rounded-lg hover:bg-primary-hover ui-interactive active:scale-95 shadow-md shadow-primary/20 cursor-pointer">
             {uploading ? (
               <Spinner size="sm" className="!border-on-accent/30 !border-t-on-accent" />
             ) : (

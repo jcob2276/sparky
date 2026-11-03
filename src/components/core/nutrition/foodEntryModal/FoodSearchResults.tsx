@@ -51,7 +51,7 @@ export default function FoodSearchResults(props: FoodSearchResultsProps) {
             subtitle={[food.brand, `${grams}g/ml`].filter(Boolean).join(' · ')} calories={calories}
             loading={quickAddingId === `srch:${food.name}`}
             onTap={() => { setSelected(food); setGrams(String(grams)); }}
-            onQuickAdd={() => quickAddSearchResult(food)} quickAddIcon={<Plus size={13} />} />
+            onQuickAdd={() => quickAddSearchResult(food)} quickAddIcon={<Plus size={13} />} quickAddLabel="Dodaj do dziennika" />
         );
       })}
     </div>

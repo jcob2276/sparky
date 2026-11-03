@@ -36,7 +36,7 @@ function WorkspaceSidebarInner({
         {/* Mobile: toggle sheet via context. Desktop: sync external collapsed flag. */}
         <SidebarTrigger
           onClick={isMobile ? undefined : onCollapse}
-          className="hover:bg-surface-2 rounded-xl"
+          className="hover:bg-surface-2 rounded-lg"
         />
       </SidebarHeader>
       {children}

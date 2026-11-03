@@ -111,7 +111,7 @@ function FinancePage() {
           <FinanceSkeleton />
         )}
         {bundleQuery.error && (
-          <p className="rounded-2xl bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/20">
+          <p className="rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/20">
             {(bundleQuery.error as Error).message}
           </p>
         )}

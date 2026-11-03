@@ -1,3 +1,4 @@
+import { Plus } from 'lucide-react';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
 import Spinner from '../../ui/Spinner';
 import FoodRow from './FoodRow';
@@ -24,13 +25,13 @@ export function ComposerSearch({
   onPick: (food: FoodBase) => void;
 }) {
   return (
-    <div className="space-y-2 rounded-2xl border border-border-custom/70 bg-surface-solid/30 p-3">
+    <div className="space-y-2 rounded-lg border border-border-custom/70 bg-surface-solid/30 p-3">
       <ControlInput
         autoFocus
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Szukaj produktu…"
-        className="w-full rounded-xl border border-border-custom bg-surface px-3 py-2 text-sm"
+        className="w-full rounded-lg border border-border-custom bg-surface px-3 py-2 text-sm"
       />
       {searching && <Spinner size="sm" className="mx-auto" />}
       {!searching && query.trim().length >= 2 && results.length === 0 && !externalSearched && (
@@ -47,7 +48,8 @@ export function ComposerSearch({
             calories={scale(food.calories, food.defaultGrams ?? 100)}
             onTap={() => onPick(food)}
             onQuickAdd={() => onPick(food)}
-            quickAddIcon={<span className="text-xs font-semibold">+</span>}
+            quickAddIcon={<Plus size={13} />}
+            quickAddLabel="Dodaj do posiłku"
           />
         ))}
       </div>

@@ -10,7 +10,7 @@ export type ChartTooltipPayload = {
 export function Tip({ active = false, payload = [], label = '' }: { active?: boolean; payload?: ChartTooltipPayload[]; label?: string | number }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="rounded-xl border border-border-custom bg-surface-solid px-3 py-2 shadow-lg text-xs">
+    <div className="rounded-lg border border-border-custom bg-surface-solid px-3 py-2 shadow-lg text-xs">
       <p className="text-text-muted font-bold mb-1">{label}</p>
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.color }} className="font-semibold">

@@ -40,7 +40,7 @@ function EventsList({ userId, today }: { userId: string; today: string }) {
         return (
           <div
             key={ev.id}
-            className={`flex items-start gap-3 rounded-xl px-3 py-2.5 ${
+            className={`flex items-start gap-3 rounded-lg px-3 py-2.5 ${
               active ? 'bg-primary/10 ring-1 ring-primary/20' : past ? 'opacity-[var(--opacity-50)]' : 'hover:bg-surface-2'
             }`}
           >

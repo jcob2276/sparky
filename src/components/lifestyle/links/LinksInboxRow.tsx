@@ -144,7 +144,7 @@ export function LinksInboxRow({
 
   return (
     <div
-      className={`flex items-center justify-between gap-3 border rounded-2xl px-4 py-3 transition-all duration-[var(--motion-medium)] select-none ${
+      className={`flex items-center justify-between gap-3 border rounded-lg px-4 py-3 transition-all duration-[var(--motion-medium)] select-none ${
         isSelected
           ? 'bg-primary/10 border-primary/40 ring-1 ring-primary/30'
           : link.status === 'read'

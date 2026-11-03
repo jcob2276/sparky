@@ -24,7 +24,7 @@ export default function VoicePlanChatView({
   return (
     <div className="flex-1 overflow-y-auto space-y-3 pr-1 py-1 max-h-[300px] min-h-[160px]">
       {messages.length === 0 && !isRecording && (
-        <div className="flex flex-col items-center justify-center p-6 text-center space-y-2 rounded-2xl bg-surface-2/40 border border-border-custom/30">
+        <div className="flex flex-col items-center justify-center p-6 text-center space-y-2 rounded-lg bg-surface-2/40 border border-border-custom/30">
           <div className="size-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary">
             <Sparkles size={20} />
           </div>
@@ -45,7 +45,7 @@ export default function VoicePlanChatView({
             className={`flex items-start gap-2.5 ${isUser ? 'flex-row-reverse' : 'flex-row'}`}
           >
             <div
-              className={`size-7 rounded-xl flex items-center justify-center shrink-0 text-2xs font-bold ${
+              className={`size-7 rounded-lg flex items-center justify-center shrink-0 text-2xs font-bold ${
                 isUser
                   ? 'bg-surface-2 text-text-secondary border border-border-custom/40'
                   : 'bg-primary/20 text-primary border border-primary/30'
@@ -55,7 +55,7 @@ export default function VoicePlanChatView({
             </div>
 
             <div
-              className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-xs font-medium leading-relaxed ${
+              className={`max-w-[85%] rounded-lg px-3.5 py-2.5 text-xs font-medium leading-relaxed ${
                 isUser
                   ? 'bg-primary text-primary-foreground font-semibold rounded-tr-sm'
                   : 'bg-surface border border-border-custom/60 text-text-primary rounded-tl-sm'
@@ -70,10 +70,10 @@ export default function VoicePlanChatView({
       {/* Live speech preview while speaking */}
       {isRecording && interimTranscript && (
         <div className="flex items-start gap-2.5 flex-row-reverse animate-pulse">
-          <div className="size-7 rounded-xl bg-danger/20 text-danger border border-danger/30 flex items-center justify-center shrink-0">
+          <div className="size-7 rounded-lg bg-danger/20 text-danger border border-danger/30 flex items-center justify-center shrink-0">
             <User size={13} />
           </div>
-          <div className="max-w-[85%] rounded-2xl rounded-tr-sm px-3.5 py-2.5 text-xs bg-danger/10 border border-danger/30 text-text-primary italic">
+          <div className="max-w-[85%] rounded-lg rounded-tr-sm px-3.5 py-2.5 text-xs bg-danger/10 border border-danger/30 text-text-primary italic">
             „{interimTranscript}…”
           </div>
         </div>
@@ -82,10 +82,10 @@ export default function VoicePlanChatView({
       {/* Thinking state */}
       {isAnalyzing && (
         <div className="flex items-start gap-2.5">
-          <div className="size-7 rounded-xl bg-primary/20 text-primary border border-primary/30 flex items-center justify-center shrink-0 animate-spin">
+          <div className="size-7 rounded-lg bg-primary/20 text-primary border border-primary/30 flex items-center justify-center shrink-0 animate-spin">
             <Loader2 size={13} />
           </div>
-          <div className="rounded-2xl rounded-tl-sm px-3.5 py-2.5 text-xs bg-surface border border-border-custom/50 text-text-muted flex items-center gap-2">
+          <div className="rounded-lg rounded-tl-sm px-3.5 py-2.5 text-xs bg-surface border border-border-custom/50 text-text-muted flex items-center gap-2">
             <span>Sparky analizuje i układa priorytety…</span>
           </div>
         </div>

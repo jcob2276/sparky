@@ -244,7 +244,7 @@ export default function TerminyPageContent(props: Props) {
       <TerminyHeader onBack={props.onBack} onAdd={props.onAdd} onExportAllICS={props.onExportAllICS} />
       <ContentContainer width="default" className="flex-1 space-y-6 pb-16 pt-6">
         {props.isLoading && <div className="flex justify-center py-16"><Spinner /></div>}
-        {props.error && <p className="rounded-2xl bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/20">{props.error.message}</p>}
+        {props.error && <p className="rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger ring-1 ring-danger/20">{props.error.message}</p>}
         {!props.isLoading && !props.error && (
           <>
             <TerminyScorecards total={props.rows.length} urgent={props.urgentCount} notes={props.notesCount} />

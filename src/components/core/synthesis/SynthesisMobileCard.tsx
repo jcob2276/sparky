@@ -74,7 +74,7 @@ export default function SynthesisMobileCard({ synthesis, onDecision }: Props) {
 
       <div className="grid grid-cols-3 gap-1.5">
         {Object.entries(synthesis.trajectories).map(([domain, trajectory]) => (
-          <div key={domain} className="rounded-xl bg-surface-2 px-2 py-2 text-center">
+          <div key={domain} className="rounded-lg bg-surface-2 px-2 py-2 text-center">
             <p className="truncate text-2xs font-bold tracking-wide text-text-muted">
               {domainLabels[domain as SynthesisDomain]}
             </p>
@@ -93,7 +93,7 @@ export default function SynthesisMobileCard({ synthesis, onDecision }: Props) {
           <span className="text-2xs font-semibold text-text-muted">{synthesis.levers.length}/3</span>
         </div>
         {synthesis.levers.map((lever, index) => (
-          <div key={lever.id} className="flex min-h-11 items-center gap-2 rounded-xl border border-border-custom bg-surface px-2.5 py-2">
+          <div key={lever.id} className="flex min-h-11 items-center gap-2 rounded-lg border border-border-custom bg-surface px-2.5 py-2">
             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-2xs font-semibold text-primary">
               {index + 1}
             </span>
@@ -141,7 +141,7 @@ export default function SynthesisMobileCard({ synthesis, onDecision }: Props) {
       </section>
 
       {primaryConflict && (
-        <section className="rounded-xl border border-warning/20 bg-warning/[0.05] px-3 py-2.5">
+        <section className="rounded-lg border border-warning/20 bg-warning/[0.05] px-3 py-2.5">
           <div className="flex items-start gap-2">
             <AlertTriangle size={14} className="mt-0.5 shrink-0 text-warning" />
             <div>

@@ -40,7 +40,7 @@ export function VisionTilesRow({ items }: { items: VisionBoardItemRow[] }) {
       </div>
       <div className="grid grid-cols-4 gap-2">
         {tiles.slice(0, VISIBLE_TILES).map((tile) => (
-          <div key={tile.id} className="relative aspect-square overflow-hidden rounded-2xl border border-border-custom/60 bg-surface-2">
+          <div key={tile.id} className="relative aspect-square overflow-hidden rounded-lg border border-border-custom/60 bg-surface-2">
             {tile.contain && (
               <img
                 src={tile.src}

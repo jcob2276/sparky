@@ -31,7 +31,7 @@ export default function HealthspanPulseCard({
           </p>
         )}
       </div>
-      <div className="rounded-xl bg-surface-2 px-3 py-2">
+      <div className="rounded-lg bg-surface-2 px-3 py-2">
         <p className="flex items-center gap-1 text-2xs font-bold text-text-muted">
           <Activity size={11} /> Tempo
         </p>
@@ -40,7 +40,7 @@ export default function HealthspanPulseCard({
         </p>
       </div>
       {today?.capacity.score != null && (
-        <div className="rounded-xl bg-surface-2 px-3 py-2">
+        <div className="rounded-lg bg-surface-2 px-3 py-2">
           <p className="text-2xs font-bold text-text-muted">Pojemność</p>
           <p className="mt-0.5 text-sm font-semibold text-text-primary">{today.capacity.score}/100</p>
         </div>

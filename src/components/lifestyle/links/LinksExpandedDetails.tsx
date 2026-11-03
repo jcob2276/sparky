@@ -41,7 +41,7 @@ export function LinksExpandedDetails({
     <div className="mt-3 pt-3 space-y-3.5 border-t border-border-custom/30 text-left">
       {/* YouTube Embed */}
       {youtubeId && (
-        <div className="aspect-video w-full overflow-hidden rounded-xl bg-scrim shadow-inner border border-border-custom/50">
+        <div className="aspect-video w-full overflow-hidden rounded-lg bg-scrim shadow-inner border border-border-custom/50">
           <iframe
             src={`https://www.youtube.com/embed/${youtubeId}`}
             title={link.title}
@@ -146,7 +146,7 @@ export function LinksExpandedDetails({
           onBlur={() => onSaveNotes(link.id)}
           placeholder="Wpisz swoje refleksje lub wnioski (zapisuje się automatycznie)..."
           rows={2}
-          className="w-full resize-none rounded-xl border border-border-custom/30 bg-surface-solid/30 p-2 text-xs leading-relaxed text-text-primary outline-none focus:border-primary/40"
+          className="w-full resize-none rounded-lg border border-border-custom/30 bg-surface-solid/30 p-2 text-xs leading-relaxed text-text-primary outline-none focus:border-primary/40"
         />
       </div>
     </div>

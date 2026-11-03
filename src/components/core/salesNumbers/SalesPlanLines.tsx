@@ -28,7 +28,7 @@ export default function SalesPlanLines({ sums, today }: { sums: SalesSums; today
   if (lines.length === 0) return null;
 
   return (
-    <div className="space-y-1.5 rounded-2xl border border-primary/25 bg-primary/10 p-3">
+    <div className="space-y-1.5 rounded-lg border border-primary/25 bg-primary/10 p-3">
       <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-primary"><Target size={12} /> Plan na resztę tygodnia</p>
       {lines.map((line) => <p key={line} className="text-xs leading-snug text-text-primary">{line}</p>)}
       <p className="text-2xs text-text-muted">Liczone z Twoich liczb z tego tygodnia; mała próba oznacza duży rozrzut.</p>

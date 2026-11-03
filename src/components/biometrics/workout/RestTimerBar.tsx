@@ -104,7 +104,7 @@ export default function RestTimerBar({
       }`}
     >
       <div
-        className={`rounded-2xl border p-3 shadow-xl backdrop-blur-md transition-all duration-300 ${
+        className={`rounded-lg border p-3 shadow-xl backdrop-blur-md transition-all duration-300 ${
           isFlashing
             ? 'animate-pulse border-success bg-success/30 text-success ring-4 ring-success/50 shadow-[0_0_30px_rgba(34,197,94,0.4)]'
             : isDone
@@ -115,7 +115,7 @@ export default function RestTimerBar({
         <div className="flex items-center justify-between gap-3">
           {/* Left: icon + time */}
           <div className="flex items-center gap-2">
-            <div className={`rounded-xl p-1.5 ${isDone ? 'bg-success/20 text-success' : 'bg-success/20 text-success'}`}>
+            <div className={`rounded-lg p-1.5 ${isDone ? 'bg-success/20 text-success' : 'bg-success/20 text-success'}`}>
               <Timer size={16} />
             </div>
             <div>

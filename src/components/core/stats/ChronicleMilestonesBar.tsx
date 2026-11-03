@@ -70,7 +70,7 @@ export const ChronicleMilestonesBar = memo(function ChronicleMilestonesBar({
   }, [bodyData, recentSessions, latestBody]);
 
   return (
-    <section aria-label="Kamienie milowe transformacji" className="rounded-2xl border border-border-custom bg-gradient-to-br from-surface-solid/80 via-surface/60 to-surface-solid/40 p-4 sm:p-5 shadow-sm space-y-3.5">
+    <section aria-label="Kamienie milowe transformacji" className="rounded-[var(--radius-grouped)] border border-border-custom bg-surface-solid p-4 sm:p-5 space-y-3.5">
       {/* Top row: Days & Transformation Badge */}
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -98,7 +98,7 @@ export const ChronicleMilestonesBar = memo(function ChronicleMilestonesBar({
       {/* Grid of milestone indicators */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
         {/* Waga */}
-        <div className="rounded-xl border border-border-custom/70 bg-surface/70 p-2.5">
+        <div className="rounded-lg border border-border-custom/70 bg-surface/70 p-2.5">
           <span className="text-2xs font-bold text-text-muted">Waga</span>
           <div className="mt-1 flex items-baseline gap-1.5">
             <span className="text-base font-semibold text-text-primary font-mono leading-none">
@@ -115,7 +115,7 @@ export const ChronicleMilestonesBar = memo(function ChronicleMilestonesBar({
         </div>
 
         {/* Talia */}
-        <div className="rounded-xl border border-border-custom/70 bg-surface/70 p-2.5">
+        <div className="rounded-lg border border-border-custom/70 bg-surface/70 p-2.5">
           <span className="text-2xs font-bold text-text-muted">Talia</span>
           <div className="mt-1 flex items-baseline gap-1.5">
             <span className="text-base font-semibold text-text-primary font-mono leading-none">
@@ -132,7 +132,7 @@ export const ChronicleMilestonesBar = memo(function ChronicleMilestonesBar({
         </div>
 
         {/* Rekord Tonażu */}
-        <div className="rounded-xl border border-border-custom/70 bg-surface/70 p-2.5">
+        <div className="rounded-lg border border-border-custom/70 bg-surface/70 p-2.5">
           <span className="text-2xs font-bold text-text-muted">Max Tonaż</span>
           <div className="mt-1 flex items-baseline gap-1.5">
             <span className="text-base font-semibold text-text-primary font-mono leading-none">
@@ -147,7 +147,7 @@ export const ChronicleMilestonesBar = memo(function ChronicleMilestonesBar({
         </div>
 
         {/* Sesje siłowe */}
-        <div className="rounded-xl border border-border-custom/70 bg-surface/70 p-2.5">
+        <div className="rounded-lg border border-border-custom/70 bg-surface/70 p-2.5">
           <span className="text-2xs font-bold text-text-muted">Siłownia</span>
           <div className="mt-1 flex items-baseline gap-1.5">
             <span className="text-base font-semibold text-text-primary font-mono leading-none">

@@ -15,7 +15,7 @@ interface MonthPlanEntryFormProps {
   onSave: (date: string, counts: DayActual) => void;
 }
 
-const fieldClass = 'min-h-11 w-full rounded-xl border-0 bg-surface-2/70 px-3 text-base tabular-nums ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35';
+const fieldClass = 'min-h-11 w-full rounded-lg border-0 bg-surface-2/70 px-3 text-base tabular-nums ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35';
 const FIELDS = [
   { key: 'appointments', label: 'Umówione' },
   { key: 'salesCalls', label: 'Sales calle' },
@@ -48,7 +48,7 @@ export function MonthPlanEntryForm({ date, minDate, maxDate, initial, saving, di
 
   return (
     <form
-      className="space-y-3 rounded-2xl bg-surface-1/70 p-4 ring-1 ring-border-custom/25"
+      className="space-y-3 rounded-lg bg-surface-1/70 p-4 ring-1 ring-border-custom/25"
       onSubmit={(event) => {
         event.preventDefault();
         if (!error) onSave(date, counts);
@@ -80,7 +80,7 @@ export function MonthPlanEntryForm({ date, minDate, maxDate, initial, saving, di
         ))}
       </div>
       {error && <p role="alert" className="text-sm text-danger">{error}</p>}
-      <Button type="submit" disabled={Boolean(error) || disabled} loading={saving} className="w-full rounded-xl">Zapisz dzień</Button>
+      <Button type="submit" disabled={Boolean(error) || disabled} loading={saving} className="w-full rounded-lg">Zapisz dzień</Button>
     </form>
   );
 }

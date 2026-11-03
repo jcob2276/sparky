@@ -11,7 +11,7 @@ const TONE_CLASS: Record<ChronicleTile['tone'], string> = {
 
 function Tile({ tile, wide, compareLabel }: { tile: ChronicleTile; wide: boolean; compareLabel: string }) {
   return (
-    <div className={`rounded-2xl border border-border-custom/40 bg-surface/50 p-3 ${wide ? 'col-span-2' : ''}`}>
+    <div className={`rounded-lg border border-border-custom/40 bg-surface/50 p-3 ${wide ? 'col-span-2' : ''}`}>
       <p className="text-2xs font-semibold tracking-wide text-text-muted">{tile.label}</p>
       <p className="mt-1 text-xl font-semibold tabular-nums text-text-primary">
         {tile.value}
@@ -56,13 +56,13 @@ interface Props {
 export default function ChronicleSummary({ summary, loading, error, periodTitle, compareLabel = 'poprzedni', showChart = true }: Props) {
   if (loading) return <Skeleton className="h-64 w-full rounded-3xl" />;
   if (error || !summary) {
-    return <p className="rounded-2xl border border-warning/30 bg-warning/10 px-3 py-3 text-xs font-semibold text-warning">Nie udało się wczytać danych tego okresu.</p>;
+    return <p className="rounded-lg border border-warning/30 bg-warning/10 px-3 py-3 text-xs font-semibold text-warning">Nie udało się wczytać danych tego okresu.</p>;
   }
   const { goalLine, tiles, chart, notes } = summary;
   const groups = groupTiles(tiles);
   return (
     <section className="space-y-3" aria-label={`Podsumowanie: ${goalLine.title}`}>
-      <div className="space-y-1.5 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
+      <div className="space-y-1.5 rounded-lg border border-border-custom/40 bg-surface/50 p-3">
         <div className="flex items-baseline justify-between gap-2">
           <p className="text-2xs font-semibold tracking-wide text-text-muted">{goalLine.title} · {periodTitle}</p>
           {goalLine.pct != null && <span className="text-xs font-semibold tabular-nums text-text-primary">{goalLine.pct}%</span>}
@@ -89,7 +89,7 @@ export default function ChronicleSummary({ summary, loading, error, periodTitle,
       })}
 
       {showChart && (
-        <div className="space-y-1 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
+        <div className="space-y-1 rounded-lg border border-border-custom/40 bg-surface/50 p-3">
           <p className="text-2xs font-semibold tracking-wide text-text-muted">{chart.label}</p>
           <ChronicleLineChart values={chart.values} labels={chart.labels} unit={chart.unit} ariaLabel={`${chart.label}, ${periodTitle}`} />
         </div>

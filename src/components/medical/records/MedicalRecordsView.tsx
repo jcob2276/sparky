@@ -41,7 +41,7 @@ function MedicalViewHeader({
           <Link
             to="/"
             aria-label="Wróć"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-text-muted hover:bg-surface-2 border border-border-custom transition-colors"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-text-muted hover:bg-surface-2 border border-border-custom transition-colors"
           >
             <ArrowLeft size={18} />
           </Link>
@@ -53,7 +53,7 @@ function MedicalViewHeader({
           </div>
         </div>
 
-        <div className="hidden lg:flex items-center p-1 rounded-xl bg-surface-2 border border-border-custom">
+        <div className="hidden lg:flex items-center p-1 rounded-lg bg-surface-2 border border-border-custom">
           <Pressable className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-1 border border-border-custom shadow-xs text-xs font-bold text-text-primary">
             <Stethoscope size={13} className="text-primary" />
             <span>Kartoteka & Oś Zdrowia</span>

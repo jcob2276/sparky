@@ -29,7 +29,7 @@ export function FinanceBottomNav({ active, onChange }: FinanceBottomNavProps) {
                 type="button"
                 onClick={() => onChange(key)}
                 aria-current={selected ? 'page' : undefined}
-                className={`flex min-h-12 w-full flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-medium transition-colors duration-[var(--motion-fast)] ${selected ? 'text-primary' : 'text-text-muted hover:text-text-secondary'}`}
+                className={`flex min-h-12 w-full flex-col items-center justify-center gap-0.5 rounded-lg text-xs font-medium transition-colors duration-[var(--motion-fast)] ${selected ? 'text-primary' : 'text-text-muted hover:text-text-secondary'}`}
               >
                 <Icon size={22} strokeWidth={selected ? 2.25 : 1.75} aria-hidden="true" />
                 {label}

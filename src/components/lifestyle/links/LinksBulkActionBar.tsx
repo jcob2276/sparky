@@ -41,7 +41,7 @@ export function LinksBulkActionBar({
       className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[var(--z-floating-bar)] flex flex-col items-center gap-2"
     >
       {showCategoryMenu && (
-        <div className="rounded-2xl border border-border-custom bg-background/95 p-2 shadow-xl backdrop-blur-md min-w-[170px] animate-in fade-in zoom-in-95">
+        <div className="rounded-lg border border-border-custom bg-background/95 p-2 shadow-xl backdrop-blur-md min-w-[170px] animate-in fade-in zoom-in-95">
           <p className="px-2 py-1 text-2xs font-semibold text-text-muted">Kategoria</p>
           {CATEGORIES.map((cat) => (
             <Pressable
@@ -58,7 +58,7 @@ export function LinksBulkActionBar({
         </div>
       )}
 
-      <div className="flex items-center gap-1.5 rounded-2xl border border-border-custom/50 bg-background/95 px-3 py-2 shadow-2xl backdrop-blur-xl ring-1 ring-border-custom/20">
+      <div className="flex items-center gap-1.5 rounded-lg border border-border-custom/50 bg-background/95 px-3 py-2 shadow-2xl backdrop-blur-xl ring-1 ring-border-custom/20">
         <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-bold text-text-primary">
           <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary text-on-accent text-2xs font-semibold px-1">
             {selectedCount}
@@ -71,7 +71,7 @@ export function LinksBulkActionBar({
         <Pressable
           onClick={onSelectAll}
           disabled={busy}
-          className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
+          className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
           title="Zaznacz wszystkie widoczne"
         >
           <CheckCheck size={14} />
@@ -81,7 +81,7 @@ export function LinksBulkActionBar({
         <Pressable
           onClick={() => onBulkMarkRead('read')}
           disabled={busy}
-          className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
+          className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
           title="Oznacz jako przeczytane"
         >
           <Check size={14} />
@@ -91,7 +91,7 @@ export function LinksBulkActionBar({
         <Pressable
           onClick={() => setShowCategoryMenu(!showCategoryMenu)}
           disabled={busy}
-          className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
+          className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
           title="Zmień kategorię"
         >
           <FolderInput size={14} />
@@ -101,7 +101,7 @@ export function LinksBulkActionBar({
         <Pressable
           onClick={onBulkToTodo}
           disabled={busy}
-          className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
+          className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
           title="Konwertuj do zadań Todo"
         >
           <ListTodo size={14} />
@@ -111,7 +111,7 @@ export function LinksBulkActionBar({
         <Pressable
           onClick={onBulkDelete}
           disabled={busy}
-          className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-danger hover:bg-danger/10 transition-colors btn-press cursor-pointer"
+          className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-danger hover:bg-danger/10 transition-colors btn-press cursor-pointer"
           title="Usuń wybrane linki"
         >
           <Trash2 size={14} />
@@ -123,7 +123,7 @@ export function LinksBulkActionBar({
         <Pressable
           onClick={onClearSelection}
           disabled={busy}
-          className="p-1.5 rounded-xl text-text-muted hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
+          className="p-1.5 rounded-lg text-text-muted hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
           title="Anuluj wybór (Esc)"
           aria-label="Wyczyść zaznaczenie"
         >

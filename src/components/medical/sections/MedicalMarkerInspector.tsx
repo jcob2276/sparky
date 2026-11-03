@@ -45,7 +45,7 @@ export default function MedicalMarkerInspector({ markerKey, series, onClose }: M
       <div className="space-y-6">
         {/* Header Alert if out of bounds */}
         {hasFlag && (
-          <div className="rounded-xl border border-warning/30 bg-warning/[0.04] p-3 flex gap-2 items-start">
+          <div className="rounded-lg border border-warning/30 bg-warning/[0.04] p-3 flex gap-2 items-start">
             <AlertTriangle size={16} className="text-warning shrink-0 mt-0.5" />
             <div className="text-xs text-text-secondary">
               <span className="font-bold text-text-primary">Odchylenie od normy.</span> Ostatnia wartość ({latest.value} {latest.unit}) znajduje się poza zalecanym zakresem laboratoryjnym ({normStr}).
@@ -54,7 +54,7 @@ export default function MedicalMarkerInspector({ markerKey, series, onClose }: M
         )}
 
         {/* Latest Value Hero */}
-        <div className="bg-background/40 border border-border-custom rounded-2xl p-4 flex justify-between items-center">
+        <div className="bg-background/40 border border-border-custom rounded-lg p-4 flex justify-between items-center">
           <div>
             <span className="text-2xs font-semibold text-text-muted tracking-wide">Ostatni Pomiar</span>
             <p className="text-2xl font-semibold text-text-primary mt-1">
@@ -73,7 +73,7 @@ export default function MedicalMarkerInspector({ markerKey, series, onClose }: M
         {chartData.length >= 2 ? (
           <div className="space-y-2">
             <span className="text-2xs font-semibold text-text-muted tracking-wide">Historia Trendu ({chartData.length} pomiary)</span>
-            <div className="h-32 w-full bg-background/20 border border-border-custom rounded-2xl p-2">
+            <div className="h-32 w-full bg-background/20 border border-border-custom rounded-lg p-2">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                   <XAxis dataKey="date" tickFormatter={(str) => str.slice(2)} tick={{ fontSize: 9 }} stroke="var(--border-custom)" />
@@ -88,7 +88,7 @@ export default function MedicalMarkerInspector({ markerKey, series, onClose }: M
             </div>
           </div>
         ) : (
-          <p className="text-xs text-text-muted italic bg-background/10 rounded-xl p-3 border border-border-custom/50">
+          <p className="text-xs text-text-muted italic bg-background/10 rounded-lg p-3 border border-border-custom/50">
             Dwa pomiary pokazują zmianę. Do wyznaczenia wiarygodnego trendu potrzebne są przynajmniej 2 punkty pomiarowe.
           </p>
         )}

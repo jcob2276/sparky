@@ -126,7 +126,7 @@ export default function LiveWorkout({
           </div>
         )}
 
-        <Button variant="tonal" onClick={() => setPickerOpen(true)} className="!h-14 w-full !rounded-2xl !text-base !font-bold">
+        <Button variant="tonal" onClick={() => setPickerOpen(true)} className="!h-14 w-full !rounded-lg !text-base !font-bold">
           <Plus size={18} className="mr-1.5" /> Dodaj ćwiczenie
         </Button>
       </main>

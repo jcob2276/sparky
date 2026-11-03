@@ -29,7 +29,7 @@ export function FinanceBudgetField({ monthlyExpenses, onSave }: FinanceBudgetFie
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onBlur={commit}
-          className="min-h-12 w-full rounded-xl border-0 bg-surface-2/80 px-4 text-lg tabular-nums ring-1 ring-border-custom/30 transition-shadow focus:ring-2 focus:ring-primary/40"
+          className="min-h-12 w-full rounded-lg border-0 bg-surface-2/80 px-4 text-lg tabular-nums ring-1 ring-border-custom/30 transition-shadow focus:ring-2 focus:ring-primary/40"
         />
         <span className="shrink-0 text-sm text-text-muted">zł / mies.</span>
       </label>

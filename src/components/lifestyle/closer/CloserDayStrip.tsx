@@ -45,7 +45,7 @@ export default function CloserDayStrip({
   });
 
   return (
-    <div className="grid grid-cols-7 gap-1.5 p-1 rounded-2xl bg-surface-raised/40 border border-border-custom/25">
+    <div className="grid grid-cols-7 gap-1.5 p-1 rounded-lg bg-surface-raised/40 border border-border-custom/25">
       {days.map((d) => (
         <Pressable
           key={d.dateStr}
@@ -56,7 +56,7 @@ export default function CloserDayStrip({
             haptics.selection();
             onSelectDate(d.dateStr);
           }}
-          className={`relative flex flex-col items-center py-2 px-1 rounded-xl ui-interactive active:scale-95 ${
+          className={`relative flex flex-col items-center py-2 px-1 rounded-lg ui-interactive active:scale-95 ${
             d.isSelected
               ? 'bg-primary text-primary-foreground shadow-sm font-bold'
               : 'hover:bg-surface-solid/10 text-text-muted hover:text-text-primary'

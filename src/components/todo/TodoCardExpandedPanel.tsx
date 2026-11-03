@@ -194,7 +194,7 @@ export default function TodoCardExpandedPanel({
           <Pressable
             type="button"
             onClick={onDrop}
-            className="todo-instant min-h-11 rounded-xl border border-danger/15 bg-danger/5 px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger/10"
+            className="todo-instant min-h-11 rounded-lg border border-danger/15 bg-danger/5 px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger/10"
           >
             Odpuść zadanie
           </Pressable>

@@ -27,7 +27,7 @@ export default function FoodIntegrityCard() {
       {data && data.view.nutrients.length > 0 && (
         <ul className="m-0 grid list-none grid-cols-2 gap-2 p-0" aria-label="Pewność danych składników">
           {data.view.nutrients.map((row) => (
-            <li key={row.key} className="rounded-2xl border border-border-custom/40 bg-surface/50 px-3 py-2">
+            <li key={row.key} className="rounded-lg border border-border-custom/40 bg-surface/50 px-3 py-2">
               <p className="text-2xs font-semibold tracking-wide text-text-muted">{row.label}</p>
               <p className={`text-sm font-semibold tabular-nums ${TRUST_CLASS[row.trust]}`}>
                 {TRUST_LABEL[row.trust]} · {row.certainKcalSharePct}%
@@ -50,7 +50,7 @@ export default function FoodIntegrityCard() {
       {data && data.findings.slice(0, MAX_VISIBLE_FINDINGS).map((finding) => {
         const fixCalories = energyFixCalories(finding);
         return (
-          <div key={finding.id} className="space-y-2 rounded-2xl border border-border-custom/40 bg-surface/50 p-3">
+          <div key={finding.id} className="space-y-2 rounded-lg border border-border-custom/40 bg-surface/50 p-3">
             <p className="text-xs font-semibold text-text-secondary">{finding.message}</p>
             <div className="flex flex-wrap gap-2">
               {fixCalories != null && (

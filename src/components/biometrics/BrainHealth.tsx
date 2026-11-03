@@ -43,7 +43,7 @@ export default function BrainHealth() {
       ) : (
         <div className="grid grid-cols-1 gap-3">
           {report.map((row: BrainHealthRow) => (
-            <div key={row.table_name} className="bg-surface border border-border-custom p-3.5 rounded-xl space-y-2">
+            <div key={row.table_name} className="bg-surface border border-border-custom p-3.5 rounded-lg space-y-2">
               <div className="flex justify-between items-start">
                 <span className="text-2xs font-semibold text-text-secondary tracking-tight">
                   {row.table_name.replace('vanguard_', '')}

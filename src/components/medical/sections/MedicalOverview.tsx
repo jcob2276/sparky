@@ -59,7 +59,7 @@ export default function MedicalOverview({ series, supplements, onSelectMarker, o
               key={panel.id}
               type="button"
               onClick={() => onActionClick('wyniki')}
-              className="rounded-2xl border border-border-custom/60 bg-surface-solid/30 p-3 text-left active:scale-95 ui-interactive"
+              className="rounded-lg border border-border-custom/60 bg-surface-solid/30 p-3 text-left active:scale-95 ui-interactive"
             >
               <div className="flex items-center gap-1.5">
                 <span className={`h-2 w-2 shrink-0 rounded-full ${style.dot}`} aria-hidden="true" />

@@ -40,7 +40,7 @@ export default function WeeklyReviewStreamReview() {
             return (
               <div
                 key={entry.id}
-                className="p-3 rounded-xl border border-border-custom/50 bg-surface-solid/30 space-y-2"
+                className="p-3 rounded-lg border border-border-custom/50 bg-surface-solid/30 space-y-2"
               >
                 <div className="flex items-center gap-1.5 text-2xs font-bold text-text-muted">
                   {voice && <Mic size={10} className="text-primary shrink-0" />}

@@ -1,9 +1,10 @@
 import { Pressable } from '../ui/ControlPrimitives';
 import { getTodayWarsaw, getWarsawHour } from '../../lib/date';
-import { Brain, CheckCircle2, Target, Zap } from 'lucide-react';
+import { AlertTriangle, Brain, CheckCircle2, Target, Zap } from 'lucide-react';
 import { useUserId } from '../../store/useStore';
 import { useDailySnapshotQuery, useSaveDayScoreMutation } from '../../lib/dailySnapshotApi';
 import Badge from '../ui/Badge';
+import WeekDots from './WeekDots';
 
 const MODE_STYLE: Record<string, { label: string; color?: string }> = {
   rescue:   { label: 'Tryb ratunkowy', color: 'var(--color-danger)' },
@@ -60,10 +61,12 @@ export default function DailySnapshotCard() {
         </div>
       </div>
 
+      <WeekDots days={data?.weekDays ?? []} today={today} />
+
       {/* Rescue streak alert */}
       {rescueStreak >= 3 && (
-        <div className="flex items-center gap-2 rounded-xl border border-danger/20 bg-danger/[0.06] px-3 py-2">
-          <span className="text-sm">🔴</span>
+        <div className="flex items-center gap-2 rounded-lg border border-danger/20 bg-danger/[0.06] px-3 py-2">
+          <AlertTriangle size={14} className="shrink-0 text-danger" />
           <p className="text-xs font-bold text-danger">
             {rescueStreak} dni z rzędu tryb ratunkowy — czas zresetować priorytety
           </p>
@@ -72,7 +75,7 @@ export default function DailySnapshotCard() {
 
       {/* One clear move */}
       {snap.one_clear_move && (
-        <div className="rounded-2xl border border-primary/25 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent p-4 shadow-2xs">
+        <div className="rounded-[var(--radius-grouped)] border border-primary/25 bg-primary/10 p-4">
           <p className="text-2xs font-semibold tracking-wide text-primary mb-1.5 flex items-center gap-1.5">
             <Target size={12} /> Główny ruch dnia
           </p>
@@ -84,9 +87,9 @@ export default function DailySnapshotCard() {
 
       {/* Top 3 */}
       {snap.top3 && snap.top3.length > 0 && snap.top3[0] !== snap.one_clear_move && (
-        <div className="space-y-2">
+        <div className="divide-y divide-border-custom/50">
           {snap.top3.slice(0, 3).map((item: string, i: number) => (
-            <div key={i} className="flex items-start gap-3 rounded-xl border border-border-custom/40 bg-surface-solid/20 p-2.5">
+            <div key={i} className="flex items-start gap-3 py-2.5">
               <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-lg bg-primary/15 text-2xs font-semibold text-primary">
                 {i + 1}
               </div>
@@ -98,7 +101,7 @@ export default function DailySnapshotCard() {
 
       {/* Tension action */}
       {snap.tension_action?.action && snap.tension_action.action !== 'Zdefiniuj ruch napięciowy' && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-warning/20 bg-warning/5 px-3.5 py-2.5">
+        <div className="flex items-start gap-2.5 rounded-lg border border-warning/20 bg-warning/5 px-3.5 py-2.5">
           <Zap size={13} className="mt-0.5 shrink-0 text-warning" />
           <div>
             <span className="block text-2xs font-semibold tracking-wide text-warning">Działanie napięciowe</span>
@@ -109,7 +112,7 @@ export default function DailySnapshotCard() {
 
       {/* Midday blocker */}
       {midday?.blocker && (
-        <div className="flex items-start gap-2.5 rounded-xl border border-danger/20 bg-danger/5 px-3.5 py-2.5">
+        <div className="flex items-start gap-2.5 rounded-lg border border-danger/20 bg-danger/5 px-3.5 py-2.5">
           <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-danger" />
           <div>
             <span className="block text-2xs font-semibold tracking-wide text-danger">Bloker południowy</span>
@@ -120,7 +123,7 @@ export default function DailySnapshotCard() {
 
       {/* Evening Extraction (Kronika) */}
       {data?.eveningExtraction && (
-        <div className="rounded-2xl border border-border-custom/50 bg-surface-solid/30 p-4">
+        <div className="border-t border-border-custom/50 pt-4">
           <p className="text-2xs font-semibold tracking-wide text-text-muted mb-1.5">
             Kronika Dnia
           </p>
@@ -145,7 +148,7 @@ export default function DailySnapshotCard() {
                 key={s}
                 onClick={() => saveScore(s)}
                 disabled={savingScore}
-                className={`flex h-9 items-center justify-center rounded-xl text-xs font-semibold ui-interactive active:scale-90 cursor-pointer disabled:opacity-[var(--opacity-40)] ${
+                className={`flex h-9 items-center justify-center rounded-lg text-xs font-semibold ui-interactive active:scale-90 cursor-pointer disabled:opacity-[var(--opacity-40)] ${
                   s <= 3
                     ? 'bg-danger/10 text-danger hover:bg-danger/25 border border-danger/20'
                     : s <= 6

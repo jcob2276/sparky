@@ -29,7 +29,7 @@ function LoggedItemsHeader({ title, count, kcal, protein, open, locked, onToggle
       aria-expanded={open}
       disabled={locked}
       onClick={onToggle}
-      className="flex w-full items-center gap-3 rounded-2xl border border-border-custom/60 bg-surface-solid/40 px-3.5 py-2.5 text-left active:bg-surface-solid/70 ui-interactive"
+      className="flex w-full items-center gap-3 rounded-lg border border-border-custom/60 bg-surface-solid/40 px-3.5 py-2.5 text-left active:bg-surface-solid/70 ui-interactive"
     >
       <div className="min-w-0 flex-1">
         <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
@@ -63,7 +63,7 @@ function MealSummaryChips({ order, calories }: { order: string[]; calories: Map<
 
 function PastDayBanner({ onCopy, copying }: { onCopy: () => void; copying?: boolean }) {
   return (
-    <div className="flex items-center justify-between gap-3 p-3 rounded-2xl border border-primary/25 bg-primary/[0.05] shadow-2xs">
+    <div className="flex items-center justify-between gap-3 p-3 rounded-lg border border-primary/25 bg-primary/[0.05] shadow-2xs">
       <div className="min-w-0 flex-1">
         <p className="text-xs font-semibold text-text-primary leading-tight">Dzień z przeszłości</p>
         <p className="text-2xs font-medium text-text-muted">Możesz skopiować te posiłki do dzisiaj</p>
@@ -73,7 +73,7 @@ function PastDayBanner({ onCopy, copying }: { onCopy: () => void; copying?: bool
         variant="primary"
         onClick={onCopy}
         disabled={copying}
-        className="shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold shadow-xs active:scale-95 disabled:opacity-50"
+        className="shrink-0 flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold shadow-xs active:scale-95 disabled:opacity-50"
       >
         <Copy size={12} />
         <span>Skopiuj dzień</span>
@@ -167,7 +167,7 @@ export default memo(function MealComposerLoggedItems({
                   )}
                 </div>
               </div>
-              <div className="overflow-hidden rounded-xl border border-border-custom/60 bg-surface-solid/30 divide-y divide-border-custom/25">
+              <div className="overflow-hidden rounded-lg border border-border-custom/60 bg-surface-solid/30 divide-y divide-border-custom/25">
                 {group.map((entry) => (
                   <SwipeableFoodEntry
                     key={entry.id}

@@ -60,13 +60,13 @@ export default function MealComposerCustomProduct({
   }
 
   return (
-    <div className="space-y-2 rounded-xl border border-dashed border-primary/30 bg-primary/[0.03] p-3">
+    <div className="space-y-2 rounded-lg border border-dashed border-primary/30 bg-primary/[0.03] p-3">
       <p className="text-2xs font-semibold tracking-wide text-primary">Własny produkt (na 100g)</p>
       <ControlInput
         value={name}
         onChange={(event) => setName(event.target.value)}
         placeholder="Nazwa, np. Twaróg wiejski"
-        className="w-full rounded-xl border border-border-custom bg-surface px-3 py-2 text-sm"
+        className="w-full rounded-lg border border-border-custom bg-surface px-3 py-2 text-sm"
       />
       <div className="grid grid-cols-3 gap-2">
         <ControlInput
@@ -74,21 +74,21 @@ export default function MealComposerCustomProduct({
           onChange={(event) => setCalories(event.target.value)}
           placeholder="kcal"
           inputMode="decimal"
-          className="rounded-xl border border-border-custom bg-surface px-2 py-2 text-sm"
+          className="rounded-lg border border-border-custom bg-surface px-2 py-2 text-sm"
         />
         <ControlInput
           value={protein}
           onChange={(event) => setProtein(event.target.value)}
           placeholder="B (g)"
           inputMode="decimal"
-          className="rounded-xl border border-border-custom bg-surface px-2 py-2 text-sm"
+          className="rounded-lg border border-border-custom bg-surface px-2 py-2 text-sm"
         />
         <ControlInput
           value={grams}
           onChange={(event) => setGrams(event.target.value)}
           placeholder="Domyślnie g"
           inputMode="numeric"
-          className="rounded-xl border border-border-custom bg-surface px-2 py-2 text-sm"
+          className="rounded-lg border border-border-custom bg-surface px-2 py-2 text-sm"
         />
       </div>
       {error && <p role="alert" className="text-2xs text-danger">{error}</p>}

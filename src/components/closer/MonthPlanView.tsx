@@ -38,7 +38,7 @@ export function MonthPlanView({ plan, progress, actuals, today, targetPln, selec
 
   return (
     <div className="space-y-6">
-      <section className="space-y-4 rounded-2xl bg-surface-1/70 p-4 ring-1 ring-border-custom/25">
+      <section className="space-y-4 rounded-lg bg-surface-1/70 p-4 ring-1 ring-border-custom/25">
         <div className="flex items-baseline justify-between gap-3">
           <p className="text-sm text-text-muted">Cel listopada</p>
           <p className="text-lg font-semibold tabular-nums text-text-primary">{formatPln(targetPln)}</p>

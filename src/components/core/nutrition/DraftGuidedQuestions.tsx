@@ -16,7 +16,7 @@ export default function DraftGuidedQuestions({
   if (!questions.length) return null;
 
   return (
-    <div className="space-y-2 rounded-xl bg-surface/70 p-2.5" aria-label="Pytania doprecyzowujące">
+    <div className="space-y-2 rounded-lg bg-surface/70 p-2.5" aria-label="Pytania doprecyzowujące">
       {questions.map((question) => (
         <fieldset key={question.id} className="space-y-1.5">
           <legend className="text-xs font-bold text-text-primary">

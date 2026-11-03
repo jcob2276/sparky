@@ -37,7 +37,7 @@ export function FinanceRebalanceCard({ holdings, onBought }: FinanceRebalanceCar
               aria-label="Kwota dopłaty"
               value={amount}
               onChange={(event) => setAmount(event.target.value)}
-              className="min-h-11 w-32 rounded-xl border-0 bg-surface-2/80 px-3 text-base tabular-nums ring-1 ring-border-custom/30"
+              className="min-h-11 w-32 rounded-lg border-0 bg-surface-2/80 px-3 text-base tabular-nums ring-1 ring-border-custom/30"
             />
             <span className="text-sm text-text-muted">zł</span>
             {PRESETS.map((preset) => (

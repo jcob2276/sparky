@@ -146,7 +146,7 @@ export default function InlineEditor({
         <div className="text-2xs text-text-muted font-medium text-center block">{relativeDate(note.updated_at || note.created_at)}</div>
         <NoteSaveIndicator status={saveStatus} onRetry={retrySave} className="block h-4 shrink-0 text-2xs text-center opacity-[var(--opacity-55)]" />
         {aiResult && (
-          <div className="bg-text-primary/5 border border-border-custom/10 p-3 rounded-xl text-xs relative flex flex-col gap-1 leading-relaxed mb-2">
+          <div className="bg-text-primary/5 border border-border-custom/10 p-3 rounded-lg text-xs relative flex flex-col gap-1 leading-relaxed mb-2">
             <div className="flex items-center justify-between text-xs opacity-[var(--opacity-70)] font-semibold">
               <span>{aiResult.type === 'summary' ? 'Podsumowanie AI' : 'Wyekstrahowane zadania'}</span>
               <Pressable variant="ghost" size="sm" onClick={() => setAiResult(null)} className="hover:text-text-primary text-text-muted" aria-label="Zamknij wynik AI"><X size={14} /></Pressable>

@@ -41,7 +41,7 @@ function LabHeader({ onBack }: { onBack: () => void }) {
         <Button
           variant="ghost"
           aria-label="Wróć do Kartoteki"
-          className="shrink-0 rounded-xl border border-border-custom p-2.5 text-text-muted"
+          className="shrink-0 rounded-lg border border-border-custom p-2.5 text-text-muted"
           onClick={onBack}
         >
           <ArrowLeft size={18} />

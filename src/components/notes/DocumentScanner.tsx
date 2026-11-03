@@ -78,7 +78,7 @@ export default function DocumentScanner({ onClose, onComplete }: Props) {
         )}
         <div className="grid gap-4 sm:grid-cols-2">
           {pages.map((page, index) => (
-            <article key={page.id} className="rounded-xl bg-on-accent/10 p-2">
+            <article key={page.id} className="rounded-lg bg-on-accent/10 p-2">
               <img
                 src={page.dataUrl}
                 alt={`Strona ${index + 1}`}

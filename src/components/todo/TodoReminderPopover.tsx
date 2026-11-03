@@ -77,7 +77,7 @@ export default function TodoReminderPopover({
     <div
       ref={ref}
       onClick={(e) => e.stopPropagation()}
-      className={`${inline ? 'relative w-full' : 'absolute z-[var(--z-overlay)] top-full left-0 mt-2 w-[var(--ds-w-290px)] todo-popover-fit shadow-2xl'} rounded-2xl border border-border-custom bg-surface-solid flex flex-col gap-3 p-4 animate-in fade-in zoom-in-95 duration-[var(--motion-medium)] origin-top-left`}
+      className={`${inline ? 'relative w-full' : 'absolute z-[var(--z-overlay)] top-full left-0 mt-2 w-[var(--ds-w-290px)] todo-popover-fit shadow-2xl'} rounded-lg border border-border-custom bg-surface-solid flex flex-col gap-3 p-4 animate-in fade-in zoom-in-95 duration-[var(--motion-medium)] origin-top-left`}
     >
       <p className="text-sm font-semibold text-text-primary">Przypomnienia</p>
 
@@ -110,13 +110,13 @@ export default function TodoReminderPopover({
           onKeyDown={(ev) => { if (ev.key === 'Enter') { ev.preventDefault(); commitDatetime(); } }}
           aria-label="Data i godzina przypomnienia"
           autoFocus
-          className="w-full rounded-xl border border-border-custom/60 bg-surface/60 px-3 py-2 text-sm font-semibold text-text-primary outline-none focus:border-primary/40 [color-scheme:light] dark:[color-scheme:dark]"
+          className="w-full rounded-lg border border-border-custom/60 bg-surface/60 px-3 py-2 text-sm font-semibold text-text-primary outline-none focus:border-primary/40 [color-scheme:light] dark:[color-scheme:dark]"
         />
       ) : dueTimestamp ? (
         <ControlSelect
           value={offsetMinutes}
           onChange={(e) => setOffsetMinutes(Number(e.target.value))}
-          className="w-full rounded-xl border border-border-custom/60 bg-surface/60 px-3 py-2 text-sm font-semibold text-text-primary outline-none focus:border-primary/40 cursor-pointer"
+          className="w-full rounded-lg border border-border-custom/60 bg-surface/60 px-3 py-2 text-sm font-semibold text-text-primary outline-none focus:border-primary/40 cursor-pointer"
         >
           {OFFSET_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -138,7 +138,7 @@ export default function TodoReminderPopover({
           type="button"
           onClick={tab === 'datetime' ? commitDatetime : commitBefore}
           disabled={tab === 'datetime' ? !datetimeVal : !dueTimestamp}
-          className="flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-sm font-semibold text-on-accent disabled:opacity-[var(--opacity-30)] hover:bg-primary/90 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-on-accent disabled:opacity-[var(--opacity-30)] hover:bg-primary/90 transition-colors"
         >
           <Bell size={12} /> Dodaj przypomnienie
         </Pressable>

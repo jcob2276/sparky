@@ -36,7 +36,7 @@ export default function PowerListActive({
   return (
     <div className="space-y-3">
       {checkpointPrompt && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-success/25 bg-success/[0.06] px-3.5 py-2.5 animate-fadeIn">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-success/25 bg-success/[0.06] px-3.5 py-2.5 animate-fadeIn">
           <p className="text-xs font-semibold text-text-primary leading-snug min-w-0">
             Checkpoint: <span className="font-bold">{checkpointPrompt.title}</span> — oznaczyć jako done?
           </p>
@@ -60,7 +60,7 @@ export default function PowerListActive({
         </div>
       )}
 
-      <div className="divide-y divide-border-custom/60 overflow-hidden rounded-2xl border border-border-custom bg-surface">
+      <div className="divide-y divide-border-custom/60 overflow-hidden rounded-lg border border-border-custom bg-surface">
         {[...(todayWin.daily_win_tasks || [])]
           .sort((a: Tables<'daily_win_tasks'>, b: Tables<'daily_win_tasks'>) => a.slot - b.slot)
           .map((t: Tables<'daily_win_tasks'>) => {
@@ -85,7 +85,7 @@ export default function PowerListActive({
       </div>
 
       {showClosePrompt && (
-        <div className="flex items-center justify-between gap-3 rounded-2xl border border-primary/30 bg-surface/90 px-3.5 py-3 shadow-sm animate-fadeIn">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-primary/30 bg-surface/90 px-3.5 py-3 shadow-sm animate-fadeIn">
           <div className="min-w-0">
             <p className="text-2xs font-semibold text-primary">
               {allDone ? 'Komplet zadań' : 'Wieczorne domknięcie dnia'}
@@ -95,7 +95,7 @@ export default function PowerListActive({
           <Pressable
             type="button"
             onClick={onOpenShutdown}
-            className="shrink-0 rounded-xl bg-primary px-3.5 py-2 text-xs font-semibold text-on-accent transition-opacity hover:opacity-90 cursor-pointer shadow-xs"
+            className="shrink-0 rounded-lg bg-primary px-3.5 py-2 text-xs font-semibold text-on-accent transition-opacity hover:opacity-90 cursor-pointer shadow-xs"
           >
             Domknij dzień
           </Pressable>
@@ -103,7 +103,7 @@ export default function PowerListActive({
       )}
 
       {hasDayNote && (
-        <div className="rounded-xl border border-border-custom/60 bg-surface/40 px-3.5 py-2 space-y-0.5">
+        <div className="rounded-lg border border-border-custom/60 bg-surface/40 px-3.5 py-2 space-y-0.5">
           <p className="text-2xs font-semibold text-text-muted">
             Domknięcie dnia {todayWin.result ? `(${todayWin.result === 'Z' ? 'Wygrana Z' : 'P'})` : ''}
           </p>

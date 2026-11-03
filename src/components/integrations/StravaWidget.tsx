@@ -69,7 +69,7 @@ function RunCard({ activity }: { activity: StravaActivityItem }) {
   const elevation = activity.total_elevation_gain != null ? Math.round(activity.total_elevation_gain) : null;
 
   return (
-    <div className="rounded-xl border border-border-custom bg-surface p-3.5 shadow-sm ui-interactive hover:border-border-custom/80 space-y-3">
+    <div className="rounded-lg border border-border-custom bg-surface p-3.5 shadow-sm ui-interactive hover:border-border-custom/80 space-y-3">
       {/* Header */}
       <div className="flex items-start justify-between gap-2.5">
         <div className="min-w-0">
@@ -219,7 +219,7 @@ export default function StravaWidget() {
   }
 
   return (
-    <section id="kronika-bieganie" className="rounded-2xl border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
+    <section id="kronika-bieganie" className="rounded-lg border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
       <header className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-1.5">
@@ -236,7 +236,7 @@ export default function StravaWidget() {
         <Pressable
           onClick={handleSync}
           disabled={syncing}
-          className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl border border-border-custom bg-surface text-text-secondary ui-interactive hover:bg-surface-solid hover:text-text-primary active:scale-95 shadow-sm cursor-pointer"
+          className="flex min-h-[44px] min-w-[44px] items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-custom bg-surface text-text-secondary ui-interactive hover:bg-surface-solid hover:text-text-primary active:scale-95 shadow-sm cursor-pointer"
           title="Synchronizuj z Garmin / Strava"
         >
           <RefreshCw size={13} className={syncing ? 'animate-spin text-warning' : ''} />
@@ -247,7 +247,7 @@ export default function StravaWidget() {
       </header>
 
       {error && (
-        <div className="flex items-center gap-2 rounded-xl border border-danger/20 bg-danger/10 px-3 py-2 text-xs font-semibold text-danger">
+        <div className="flex items-center gap-2 rounded-lg border border-danger/20 bg-danger/10 px-3 py-2 text-xs font-semibold text-danger">
           <AlertTriangle size={13} />
           {error}
         </div>
@@ -259,7 +259,7 @@ export default function StravaWidget() {
           <Skeleton variant="card" lines={2} />
         </div>
       ) : activities.length === 0 ? (
-        <div className="p-6 text-center rounded-xl bg-surface border border-border-custom">
+        <div className="p-6 text-center rounded-lg bg-surface border border-border-custom">
           <p className="text-sm font-medium text-text-secondary">Brak biegów w feedzie</p>
           <p className="mt-1 text-xs text-text-muted">Kliknij Sync, aby pobrać ostatnie treningi z Garmin / Strava.</p>
         </div>

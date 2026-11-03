@@ -41,7 +41,7 @@ export default function NoteEditorMoreMenu(props: Props) {
       {open && (
         <>
           <Pressable className="ios-popover-dismiss-layer" onClick={() => setOpen(false)} aria-label="Zamknij menu" />
-          <div className="ios-anchored-popover keep-more-menu absolute right-0 top-9 z-[var(--z-overlay)] w-56 overflow-hidden rounded-xl border border-border-custom bg-surface-solid p-1 shadow-xl">
+          <div className="ios-anchored-popover keep-more-menu absolute right-0 top-9 z-[var(--z-overlay)] w-56 overflow-hidden rounded-lg border border-border-custom bg-surface-solid p-1 shadow-xl">
             <MenuItem icon={<Pin size={14} />} label={props.pinned ? 'Odepnij' : 'Przypnij'} onClick={() => run(props.onPin)} />
             <MenuItem icon={<Archive size={14} />} label="Archiwizuj" onClick={() => run(props.onArchive)} />
             <MenuItem icon={<Sparkles size={14} />} label="Podsumuj przez AI" onClick={() => run(props.onSummarize)} />

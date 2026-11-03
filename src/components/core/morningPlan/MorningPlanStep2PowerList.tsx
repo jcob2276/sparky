@@ -34,9 +34,9 @@ export default function MorningPlanStep2PowerList({
   return (
     <div className="space-y-4">
       {onOpenVoicePlanner && (
-        <div className="flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-primary/15 via-primary/5 to-transparent border border-primary/25 shadow-sm">
+        <div className="flex items-center justify-between p-3.5 rounded-[var(--radius-grouped)] bg-primary/10 border border-primary/25">
           <div className="flex items-center gap-2.5 min-w-0 pr-2">
-            <div className="size-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0 shadow-sm">
+            <div className="size-8 rounded-lg bg-primary text-primary-foreground flex items-center justify-center shrink-0 shadow-sm">
               <Mic size={15} />
             </div>
             <div className="min-w-0">
@@ -82,7 +82,7 @@ export default function MorningPlanStep2PowerList({
                 onChange={(event) => onEditSlot(index, event.target.value)}
                 placeholder={meta.placeholder}
                 aria-label={`${meta.label} - Działanie ${index + 1}`}
-                className="flex-1 rounded-xl border border-border-custom/60 bg-surface px-3 py-2.5 text-sm font-semibold text-text-primary"
+                className="flex-1 rounded-lg border border-border-custom/60 bg-surface px-3 py-2.5 text-sm font-semibold text-text-primary"
               />
               {slot && (
                 <Button
@@ -98,7 +98,7 @@ export default function MorningPlanStep2PowerList({
         })}
       </div>
 
-      <details className="rounded-2xl border border-border-custom/40 bg-surface-2 p-3">
+      <details className="rounded-lg border border-border-custom/40 bg-surface-2 p-3">
         <summary className="cursor-pointer text-xs font-bold text-text-secondary">
           Sugestie z Todo ({suggestions.length})
         </summary>

@@ -26,7 +26,7 @@ export default function MeasureHelp({ measure }: { measure: MeasureKey }) {
             <p className="text-sm font-semibold text-text-primary">{guide.where}</p>
             <p className="text-sm text-text-secondary">{guide.tip}</p>
           </div>
-          <p className="rounded-xl border border-border-custom bg-surface/60 p-3 text-xs text-text-muted">{GENERAL_TIP}</p>
+          <p className="rounded-lg border border-border-custom bg-surface/60 p-3 text-xs text-text-muted">{GENERAL_TIP}</p>
         </div>
       </Sheet>
     </>

@@ -9,6 +9,7 @@
  * @usedBy App.tsx (trasa "/")
  */
 import { Pressable } from '../ui/ControlPrimitives';
+import Button from '../ui/Button';
 import { TIMEZONE } from '../../lib/date';
 import { Suspense, lazy, useMemo, useState, useCallback, useDeferredValue } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -128,14 +129,12 @@ function DashboardContent() {
   ];
 
   const weeklyReviewNudge = new Date().getDay() === 0 && !s.taskReviewDoneThisWeek && (
-    <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4 flex items-center justify-between gap-4">
+    <div className="rounded-[var(--radius-grouped)] border border-primary/20 bg-primary/10 p-4 flex items-center justify-between gap-4">
       <div className="min-w-0">
         <h4 className="text-sm font-semibold text-primary tracking-wide">Tygodniowy Przegląd Zadań</h4>
         <p className="text-xs text-text-secondary mt-0.5 break-words">Niedziela to czas na oczyszczenie skrzynki i audyt projektów.</p>
       </div>
-      <Pressable onClick={() => s.setShowWeeklyReview(true)} className="shrink-0 px-3.5 py-2 bg-primary hover:bg-primary-hover text-on-accent rounded-xl text-xs font-semibold transition-colors btn-press shadow-sm">
-        Rozpocznij
-      </Pressable>
+      <Button className="min-h-11 shrink-0" onClick={() => s.setShowWeeklyReview(true)}>Rozpocznij</Button>
     </div>
   );
 
@@ -191,7 +190,7 @@ function DashboardContent() {
                   onSaved={() => { s.refresh(); s.setNutritionKey(k => k + 1); }}
                 />
                 {s.todayWin && isAfter20() && (
-                  <Pressable onClick={() => s.setShowShutdown(true)} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-primary/20 bg-primary/10 p-4 text-sm font-semibold tracking-wide text-primary hover:bg-primary/20 active:scale-95 ui-interactive shadow-sm mt-4">
+                  <Pressable onClick={() => s.setShowShutdown(true)} className="flex w-full items-center justify-center gap-2 rounded-[var(--radius-grouped)] border border-primary/20 bg-primary/10 p-4 text-sm font-semibold text-primary hover:bg-primary/20 ui-interactive mt-4">
                     Domknij Dzień (Rytuał Wieczorny)
                   </Pressable>
                 )}

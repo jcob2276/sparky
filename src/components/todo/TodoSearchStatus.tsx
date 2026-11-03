@@ -28,7 +28,7 @@ export function SearchHints({ query, onPick }: SearchHintsProps) {
     <div
       role="group"
       aria-label="Podpowiedzi składni"
-      className="absolute inset-x-0 top-full z-[var(--z-overlay)] mt-1.5 flex flex-wrap items-center gap-1.5 rounded-xl border border-border-custom bg-surface-solid p-2 shadow-2xl"
+      className="absolute inset-x-0 top-full z-[var(--z-overlay)] mt-1.5 flex flex-wrap items-center gap-1.5 rounded-lg border border-border-custom bg-surface-solid p-2 shadow-2xl"
       onMouseDown={(event) => event.preventDefault()}
     >
       <span className="px-1 todo-text-micro font-semibold text-text-muted/70">Filtry</span>

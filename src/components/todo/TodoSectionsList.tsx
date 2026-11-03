@@ -105,7 +105,7 @@ export default function TodoSectionsList({ renderInlineQuickCapture, renderAddTo
             setAddingSectionIndex(sectionsWithItems.length);
             setNewSectionForm({ name: '', notes: '' });
           }}
-          className="todo-instant flex min-h-11 w-full items-center justify-center rounded-xl border border-dashed border-border-custom text-sm font-medium text-text-secondary hover:bg-surface-solid focus-visible:shadow-focus"
+          className="todo-instant flex min-h-11 w-full items-center justify-center rounded-lg border border-dashed border-border-custom text-sm font-medium text-text-secondary hover:bg-surface-solid focus-visible:shadow-focus"
         >+ Dodaj sekcję</Pressable>
       {addingSectionIndex === sectionsWithItems.length && (
         <SectionForm

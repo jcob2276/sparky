@@ -48,15 +48,15 @@ export default function TimeFrameFields({
       <div className="grid grid-cols-3 gap-2">
         <label className="space-y-1 text-2xs font-bold text-text-muted">
           Od
-          <ControlInput type="time" value={starts[category] || ''} onChange={(event) => setStarts({ ...starts, [category]: event.target.value })} className="w-full rounded-xl border border-border-custom bg-surface px-2 py-2 text-xs" />
+          <ControlInput type="time" value={starts[category] || ''} onChange={(event) => setStarts({ ...starts, [category]: event.target.value })} className="w-full rounded-lg border border-border-custom bg-surface px-2 py-2 text-xs" />
         </label>
         <label className="space-y-1 text-2xs font-bold text-text-muted">
           Do
-          <ControlInput type="time" value={ends[category] || ''} onChange={(event) => setEnds({ ...ends, [category]: event.target.value })} className="w-full rounded-xl border border-border-custom bg-surface px-2 py-2 text-xs" />
+          <ControlInput type="time" value={ends[category] || ''} onChange={(event) => setEnds({ ...ends, [category]: event.target.value })} className="w-full rounded-lg border border-border-custom bg-surface px-2 py-2 text-xs" />
         </label>
         <label className="space-y-1 text-2xs font-bold text-text-muted">
           Zasada
-          <ControlSelect value={strengths[category] || 'prefer'} onChange={(event) => setStrengths({ ...strengths, [category]: event.target.value as 'prefer' | 'only' })} className="w-full rounded-xl border border-border-custom bg-surface px-2 py-2 text-xs">
+          <ControlSelect value={strengths[category] || 'prefer'} onChange={(event) => setStrengths({ ...strengths, [category]: event.target.value as 'prefer' | 'only' })} className="w-full rounded-lg border border-border-custom bg-surface px-2 py-2 text-xs">
             <option value="prefer">Preferuj</option>
             <option value="only">Tylko wtedy</option>
           </ControlSelect>

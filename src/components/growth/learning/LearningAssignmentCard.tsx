@@ -62,7 +62,7 @@ export default function LearningAssignmentCard({
   const total = Number(assignment.total);
 
   return (
-    <li className="rounded-2xl border border-border-custom/50 bg-surface/40 p-4 space-y-3">
+    <li className="rounded-lg border border-border-custom/50 bg-surface/40 p-4 space-y-3">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon size={16} aria-hidden="true" />

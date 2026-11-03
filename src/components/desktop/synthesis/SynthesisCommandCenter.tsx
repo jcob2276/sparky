@@ -63,7 +63,7 @@ const positiveDecision = (candidate: DecisionCandidate) => (
 
 export default function SynthesisCommandCenter({ synthesis, healthspan, onDecision }: Props) {
   return (
-    <section className="overflow-hidden rounded-2xl border border-border-custom bg-surface shadow-sm">
+    <section className="overflow-hidden rounded-lg border border-border-custom bg-surface shadow-sm">
       <header className="grid gap-px bg-border-custom xl:grid-cols-[1.4fr_1fr_1fr_0.8fr]">
         <div className="bg-surface p-5">
           <p className="text-2xs font-semibold tracking-wide text-primary">Synteza Sparky</p>
@@ -95,7 +95,7 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
               const view = trajectoryView[trajectory];
               const Icon = view.icon;
               return (
-                <div key={domain} className="rounded-xl bg-surface-2 px-3 py-2.5">
+                <div key={domain} className="rounded-lg bg-surface-2 px-3 py-2.5">
                   <p className="text-2xs font-bold tracking-wide text-text-muted">
                     {domainLabel[domain as SynthesisDomain]}
                   </p>
@@ -115,7 +115,7 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
           <PanelTitle>Kluczowe ruchy na dziś</PanelTitle>
           <div className="space-y-2">
             {synthesis.levers.map((lever, index) => (
-              <article key={lever.id} className="flex items-center gap-3 rounded-xl border border-border-custom px-3 py-3">
+              <article key={lever.id} className="flex items-center gap-3 rounded-lg border border-border-custom px-3 py-3">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
                   {index + 1}
                 </span>
@@ -157,7 +157,7 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
               </article>
             ))}
             {!synthesis.levers.length && (
-              <p className="rounded-xl bg-surface-2 p-4 text-sm text-text-muted">Brak pilnych ruchów.</p>
+              <p className="rounded-lg bg-surface-2 p-4 text-sm text-text-muted">Brak pilnych ruchów.</p>
             )}
           </div>
         </div>
@@ -166,7 +166,7 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
           <PanelTitle>Dlaczego teraz</PanelTitle>
           <div className="space-y-2">
             {synthesis.factors.slice(0, 3).map((factor) => (
-              <article key={factor.id} className="rounded-xl bg-surface-2 p-3">
+              <article key={factor.id} className="rounded-lg bg-surface-2 p-3">
                 <div className="flex items-start justify-between gap-3">
                   <p className="text-sm font-bold">{factor.title}</p>
                   <span className={factor.direction === 'positive' ? 'text-success' : 'text-danger'}>
@@ -178,7 +178,7 @@ export default function SynthesisCommandCenter({ synthesis, healthspan, onDecisi
             ))}
           </div>
           {synthesis.conflicts.slice(0, 2).map((conflict) => (
-            <article key={conflict.id} className="rounded-xl border border-warning/20 bg-warning/[0.05] p-3">
+            <article key={conflict.id} className="rounded-lg border border-warning/20 bg-warning/[0.05] p-3">
               <p className="flex items-center gap-2 text-sm font-bold">
                 <AlertTriangle size={14} className="text-warning" /> {conflict.title}
               </p>
@@ -220,7 +220,7 @@ function CandidateQueue({ candidates }: { candidates: DecisionCandidate[] }) {
       <PanelTitle>{`Kolejne w kolejce (${candidates.length})`}</PanelTitle>
       <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
         {candidates.slice(0, 8).map((candidate) => (
-          <div key={candidate.id} className="min-w-56 rounded-xl border border-border-custom px-3 py-2.5">
+          <div key={candidate.id} className="min-w-56 rounded-lg border border-border-custom px-3 py-2.5">
             <p className="text-2xs font-bold tracking-wide text-text-muted">
               {domainLabel[candidate.domain]} · {sourceLabel[candidate.source] ?? 'Zadanie'}
             </p>
@@ -239,7 +239,7 @@ function RecommendationOutcomes({ outcomes }: { outcomes: SparkySynthesis['recom
       <PanelTitle>Rozliczone rekomendacje</PanelTitle>
       <div className="mt-3 grid gap-2 xl:grid-cols-3">
         {outcomes.slice(0, 3).map((item) => (
-          <article key={item.id} className="rounded-xl bg-surface-2 p-3">
+          <article key={item.id} className="rounded-lg bg-surface-2 p-3">
             <div className="flex items-start justify-between gap-3">
               <p className="text-sm font-bold">{item.title}</p>
               <span className={`shrink-0 text-2xs font-semibold ${

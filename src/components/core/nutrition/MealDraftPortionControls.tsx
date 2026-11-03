@@ -84,7 +84,7 @@ export default function MealDraftPortionControls({
             key={unit}
             type="button"
             onClick={() => onUnitChange(unit)}
-            className={`min-h-11 rounded-xl border px-3 py-2 text-xs font-semibold ui-interactive duration-[var(--motion-fast)] ${
+            className={`min-h-11 rounded-lg border px-3 py-2 text-xs font-semibold ui-interactive duration-[var(--motion-fast)] ${
               portion.unit === unit
                 ? 'border-primary/30 bg-primary/10 text-primary'
                 : 'border-border-custom text-text-muted hover:bg-surface-2 hover:text-text-secondary'
@@ -98,7 +98,7 @@ export default function MealDraftPortionControls({
           <Pressable
             type="button"
             onClick={() => setUnitPickerOpen(true)}
-            className="flex min-h-11 items-center gap-1.5 rounded-xl border border-border-custom bg-surface px-3 text-xs font-medium text-text-secondary hover:bg-surface-2"
+            className="flex min-h-11 items-center gap-1.5 rounded-lg border border-border-custom bg-surface px-3 text-xs font-medium text-text-secondary hover:bg-surface-2"
             aria-label="Inna jednostka"
             aria-haspopup="dialog"
             aria-expanded={unitPickerOpen}
@@ -119,7 +119,7 @@ export default function MealDraftPortionControls({
                 onUnitChange(unit);
                 setUnitPickerOpen(false);
               }}
-              className={`flex min-h-12 items-center justify-between gap-3 rounded-xl border px-4 py-3 text-left text-sm font-medium ${
+              className={`flex min-h-12 items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left text-sm font-medium ${
                 portion.unit === unit ? 'border-primary/30 bg-primary/10 text-primary' : 'border-border-custom/60 bg-surface text-text-secondary hover:bg-surface-2'
               }`}
             >

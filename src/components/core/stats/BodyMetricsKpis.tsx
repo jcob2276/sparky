@@ -25,7 +25,7 @@ export function BodyMetricsKpis({
     <div className="grid grid-cols-3 gap-2 pt-0.5">
       {/* BMI */}
       {bmi != null && (
-        <div className="rounded-xl border border-border-custom bg-surface p-2 text-center">
+        <div className="rounded-lg border border-border-custom bg-surface p-2 text-center">
           <p className="text-2xs font-bold tracking-wide text-text-muted">BMI</p>
           <p className="text-sm font-semibold text-text-primary font-display mt-0.5">{bmi}</p>
           {bmiLabel && (
@@ -38,7 +38,7 @@ export function BodyMetricsKpis({
 
       {/* BF% US Navy */}
       {bf != null ? (
-        <div className="rounded-xl border border-border-custom bg-surface p-2 text-center">
+        <div className="rounded-lg border border-border-custom bg-surface p-2 text-center">
           <p className="text-2xs font-bold tracking-wide text-text-muted">BF% (Navy)</p>
           <p className="text-sm font-semibold text-text-primary font-display mt-0.5">{bf}%</p>
           {bfLabel && (
@@ -48,7 +48,7 @@ export function BodyMetricsKpis({
           )}
         </div>
       ) : latestBodyFat != null ? (
-        <div className="rounded-xl border border-border-custom bg-surface p-2 text-center">
+        <div className="rounded-lg border border-border-custom bg-surface p-2 text-center">
           <p className="text-2xs font-bold tracking-wide text-text-muted">Ostatni BF%</p>
           <p className="text-sm font-semibold text-text-primary font-display mt-0.5">{latestBodyFat}%</p>
           <span className="inline-block mt-1 text-2xs font-bold px-1.5 py-0.2 rounded border text-text-muted bg-surface-2/40 border-border-custom">
@@ -59,7 +59,7 @@ export function BodyMetricsKpis({
 
       {/* WHR */}
       {whr != null && (
-        <div className="rounded-xl border border-border-custom bg-surface p-2 text-center">
+        <div className="rounded-lg border border-border-custom bg-surface p-2 text-center">
           <p className="text-2xs font-bold tracking-wide text-text-muted">WHR (T/B)</p>
           <p className="text-sm font-semibold text-text-primary font-display mt-0.5">{whr}</p>
           <span className={`inline-block mt-1 text-2xs font-bold px-1.5 py-0.2 rounded border ${whr < 0.9 ? 'text-success bg-success/10 border-success/20' : 'text-warning bg-warning/10 border-warning/20'}`}>

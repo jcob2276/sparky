@@ -179,7 +179,7 @@ export default function GeneralRecommendationsPanel({
       <div>
         <Panel title={`Aktywne Zalecenia Wyroczni (${activeRecs.length})`}>
           <div className="space-y-4 max-h-[var(--ds-h-350px)] overflow-y-auto pr-1">
-            <div className="flex items-center justify-between px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-xs">
+            <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-primary/10 border border-primary/20 text-xs">
               <span className="flex items-center gap-1.5 font-bold text-primary">
                 <Compass size={14} />
                 Governor uwagi: max 3 priorytety
@@ -208,7 +208,7 @@ export default function GeneralRecommendationsPanel({
               );
             })}
             {activeRecs.length === 0 && (
-              <div className="text-center py-8 text-text-muted text-xs font-semibold border border-dashed border-border-custom/60 rounded-xl bg-surface/20">
+              <div className="text-center py-8 text-text-muted text-xs font-semibold border border-dashed border-border-custom/60 rounded-lg bg-surface/20">
                 Brak aktywnych zaleceń. Zapytaj Wyrocznię o radę, aby wyznaczyć nowe zalecenia.
               </div>
             )}
@@ -221,7 +221,7 @@ export default function GeneralRecommendationsPanel({
         <div>
           <Pressable
             onClick={() => setShowArchive((v) => !v)}
-            className="w-full flex items-center justify-between p-3 rounded-xl border border-border-custom bg-surface/30 text-xs font-semibold text-text-muted hover:text-text-primary transition-colors"
+            className="w-full flex items-center justify-between p-3 rounded-lg border border-border-custom bg-surface/30 text-xs font-semibold text-text-muted hover:text-text-primary transition-colors"
           >
             <span className="flex items-center gap-2">
               <Archive size={14} className="text-text-muted" />

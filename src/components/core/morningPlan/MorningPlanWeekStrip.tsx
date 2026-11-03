@@ -33,7 +33,7 @@ export default function MorningPlanWeekStrip({
         return (
           <div
             key={d}
-            className={`flex-1 flex flex-col items-center gap-1 rounded-xl py-1.5 transition-colors ${isTarget ? 'bg-primary/10' : ''}`}
+            className={`flex-1 flex flex-col items-center gap-1 rounded-lg py-1.5 transition-colors ${isTarget ? 'bg-primary/10' : ''}`}
           >
             <span className={`text-2xs font-semibold tracking-wide ${isTarget ? 'text-primary' : 'text-text-muted/70'}`}>
               {weekdayLabel}

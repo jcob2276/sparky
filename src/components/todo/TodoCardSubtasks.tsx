@@ -30,7 +30,7 @@ export default function TodoCardSubtasks({ childTasks, onAddChildTask, onToggleC
           {childTasks.map((child) => (
             <div
               key={child.id}
-              className="flex items-center gap-2 rounded-xl border border-border-custom/20 bg-surface-solid/30 px-3 py-1.5 ui-interactive hover:bg-surface-solid/50"
+              className="flex items-center gap-2 rounded-lg border border-border-custom/20 bg-surface-solid/30 px-3 py-1.5 ui-interactive hover:bg-surface-solid/50"
             >
               <Pressable onClick={() => onToggleChildTask?.(child)} className="shrink-0 btn-press">
                 <div
@@ -63,7 +63,7 @@ export default function TodoCardSubtasks({ childTasks, onAddChildTask, onToggleC
               setNewChildTask('');
             }
           }}
-          className="min-w-0 flex-1 rounded-xl border border-border-custom/40 bg-surface-solid/40 px-3 py-1.5 text-xs font-medium text-text-primary outline-none placeholder:text-text-muted/40 focus:border-primary/40 transition-colors"
+          className="min-w-0 flex-1 rounded-lg border border-border-custom/40 bg-surface-solid/40 px-3 py-1.5 text-xs font-medium text-text-primary outline-none placeholder:text-text-muted/40 focus:border-primary/40 transition-colors"
         />
         <Pressable
           onClick={() => {
@@ -73,7 +73,7 @@ export default function TodoCardSubtasks({ childTasks, onAddChildTask, onToggleC
             }
           }}
           disabled={!newChildTask.trim()}
-          className="rounded-xl bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary disabled:opacity-[var(--opacity-30)] hover:bg-primary/20 transition-colors btn-press"
+          className="rounded-lg bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary disabled:opacity-[var(--opacity-30)] hover:bg-primary/20 transition-colors btn-press"
         >
           Dodaj
         </Pressable>

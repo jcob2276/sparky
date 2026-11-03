@@ -25,7 +25,7 @@ export default function MedicalPassportHeader({ summary }: MedicalPassportHeader
           {summary.specialties.map((specialty) => (
             <span
               key={specialty}
-              className="rounded-xl border border-border-custom bg-surface-2 px-3 py-1 text-2xs font-bold text-text-secondary"
+              className="rounded-lg border border-border-custom bg-surface-2 px-3 py-1 text-2xs font-bold text-text-secondary"
             >
               {specialty}
             </span>

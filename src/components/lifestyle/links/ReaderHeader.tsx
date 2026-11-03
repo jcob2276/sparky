@@ -81,7 +81,7 @@ export function ReaderHeader({ link, readingTime, onToggleRead }: ReaderHeaderPr
           href={link.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-xl border border-border-custom bg-surface-solid/50 text-text-primary hover:bg-surface-solid transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-lg border border-border-custom bg-surface-solid/50 text-text-primary hover:bg-surface-solid transition-colors"
         >
           <ExternalLink size={13} />
           <span>Oryginał</span>

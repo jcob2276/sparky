@@ -141,7 +141,7 @@ export default function BodyMap({
   return (
     <div
       className={`flex flex-col items-center ${
-        compact ? '' : 'bg-surface/30 border border-border-custom rounded-2xl p-4'
+        compact ? '' : 'bg-surface/30 border border-border-custom rounded-lg p-4'
       } ${className}`}
     >
       {!compact && (

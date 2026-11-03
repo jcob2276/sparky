@@ -49,7 +49,7 @@ export default function RecurrencePicker({
     : ['', 'daily', 'weekly', 'monthly'];
 
   return (
-    <div className="space-y-2 rounded-xl border border-border-custom/30 bg-surface-solid/30 p-3">
+    <div className="space-y-2 rounded-lg border border-border-custom/30 bg-surface-solid/30 p-3">
       <div className="flex items-center gap-2 text-xs font-bold text-text-secondary">
         <Repeat size={14} className="text-text-muted" />
         <span>Powtarzanie</span>

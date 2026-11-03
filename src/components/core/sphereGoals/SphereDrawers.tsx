@@ -17,7 +17,7 @@ export function SphereDetailsDrawer({ pillar, onClose }: SphereDetailsProps) {
   const { direction, daysLeft } = useSphereDirection(userId, pillar);
 
   return (
-    <div className="rounded-2xl border border-border-custom/50 bg-surface-2/60 p-3.5 space-y-2.5 animate-fadeIn">
+    <div className="rounded-lg border border-border-custom/50 bg-surface-2/60 p-3.5 space-y-2.5 animate-fadeIn">
       <div className="flex items-center justify-between gap-2 border-b border-border-custom/40 pb-1.5">
         <span className={`text-2xs font-semibold tracking-wide ${cfg.badgeText}`}>
           Cel Sfery: {goal.title} ({goal.metric})

@@ -39,7 +39,7 @@ function MonthPlanPage() {
       <PageHeader title="Plan listopada" subtitle="10 000 zł z umawiania i zamykania" />
       <ContentContainer width="narrow">
         {actualsQuery.isError && (
-          <p role="alert" className="mb-4 rounded-xl bg-warning/10 p-3 text-sm text-text-secondary">
+          <p role="alert" className="mb-4 rounded-lg bg-warning/10 p-3 text-sm text-text-secondary">
             Nie wczytałem liczb z dziennika closera. Zapis dnia mógłby nadpisać zapisane liczby, więc poczekaj z wpisem.
           </p>
         )}

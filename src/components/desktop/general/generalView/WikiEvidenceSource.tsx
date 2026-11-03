@@ -13,7 +13,7 @@ function WikiEvidenceSourceView({ source, state }: {
   state: ReturnType<typeof useMemorySource>;
 }) {
   return (
-    <li className="space-y-2 rounded-xl border border-border-custom bg-surface-solid/40 p-3">
+    <li className="space-y-2 rounded-lg border border-border-custom bg-surface-solid/40 p-3">
       <p className="text-xs font-semibold text-text-primary">{memorySourceLabel(source.table)}</p>
       <p className="text-2xs text-text-muted">{formatMemorySourceDate(source.date, source.date_precision)}</p>
       <p className="break-all text-2xs text-text-muted">Identyfikator: {source.id}</p>

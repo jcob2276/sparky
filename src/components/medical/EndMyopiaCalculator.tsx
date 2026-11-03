@@ -205,7 +205,7 @@ export default function EndMyopiaCalculator() {
                 }
               }}
               aria-label="Wróć"
-              className="rounded-xl border border-border-custom p-2 text-text-muted hover:text-text-primary bg-surface transition-colors cursor-pointer"
+              className="rounded-lg border border-border-custom p-2 text-text-muted hover:text-text-primary bg-surface transition-colors cursor-pointer"
             >
               <ArrowLeft size={18} />
             </Pressable>
@@ -222,7 +222,7 @@ export default function EndMyopiaCalculator() {
             {/* Calibration */}
             {phase === 'calibrate' && (
               <div className="w-full max-w-sm bg-surface border border-border-custom rounded-3xl p-7 text-center shadow-xl">
-                <div className="w-14 h-14 rounded-2xl bg-warning/10 flex items-center justify-center mx-auto mb-5">
+                <div className="w-14 h-14 rounded-lg bg-warning/10 flex items-center justify-center mx-auto mb-5">
                   <Ruler className="text-warning" size={24} />
                 </div>
                 <h2 className="text-xl font-semibold mb-2">Kalibracja jednorazowa</h2>
@@ -230,13 +230,13 @@ export default function EndMyopiaCalculator() {
                   Wyciągnij rękę, trzymaj telefon dokładnie <span className="text-text-primary font-bold">40 cm</span> od twarzy. Twarz prosto w kamerę.
                 </p>
                 {isReady && !faceDetected && (
-                  <div className="flex items-center gap-2 text-xs text-warning/80 mb-5 bg-warning/10 border border-warning/20 rounded-xl px-3 py-2.5">
+                  <div className="flex items-center gap-2 text-xs text-warning/80 mb-5 bg-warning/10 border border-warning/20 rounded-lg px-3 py-2.5">
                     <div className="w-2 h-2 rounded-full bg-warning animate-pulse shrink-0" />
                     Skieruj twarz na kamerę
                   </div>
                 )}
                 {isReady && faceDetected && (
-                  <div className="flex items-center gap-2 text-xs text-success mb-5 bg-success/10 border border-success/20 rounded-xl px-3 py-2.5">
+                  <div className="flex items-center gap-2 text-xs text-success mb-5 bg-success/10 border border-success/20 rounded-lg px-3 py-2.5">
                     <div className="w-2 h-2 rounded-full bg-success shrink-0" />
                     Twarz wykryta — gotowy do kalibracji
                   </div>
@@ -244,7 +244,7 @@ export default function EndMyopiaCalculator() {
                 <Pressable
                   onClick={handleCalibrate}
                   disabled={!isReady || !faceDetected}
-                  className="w-full bg-primary text-background font-bold py-4 rounded-2xl disabled:opacity-[var(--opacity-30)] active:scale-95 ui-interactive"
+                  className="w-full bg-primary text-background font-bold py-4 rounded-lg disabled:opacity-[var(--opacity-30)] active:scale-95 ui-interactive"
                 >
                   {!isReady ? 'Ładowanie AI...' : 'Skalibruj na 40 cm'}
                 </Pressable>

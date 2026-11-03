@@ -82,7 +82,7 @@ export default function ContextMenu({ x, y, item, today, sections, onClose, onDe
   return createPortal(
     <div ref={ref} role="dialog" aria-label={`Opcje zadania: ${item.title}`} data-motion={pointerOpening ? 'pointer' : 'keyboard'}
       style={{ left, top, width, transformOrigin: `${Math.max(0, x - left)}px ${Math.max(0, y - top)}px` }}
-      className="todo-action-menu fixed overflow-y-auto overscroll-contain rounded-2xl border border-border-custom bg-surface p-2 shadow-xl text-sm text-text-primary">
+      className="todo-action-menu fixed overflow-y-auto overscroll-contain rounded-lg border border-border-custom bg-surface p-2 shadow-xl text-sm text-text-primary">
       <Pressable onClick={() => act(onEditStart)} className={rowClass}><Pencil size={17} aria-hidden="true" />Edytuj zadanie</Pressable>
       <div className="my-2 border-t border-border-custom" />
       <p className="flex items-center gap-2 px-3 text-xs font-medium text-text-secondary"><Calendar size={14} aria-hidden="true" />Termin</p>

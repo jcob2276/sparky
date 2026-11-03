@@ -25,7 +25,7 @@ interface Props {
 
 function Stat({ value, label }: { value: number; label: string }) {
   return (
-    <div className="rounded-xl border border-border-custom/30 bg-surface/50 px-2 py-2 text-center">
+    <div className="rounded-lg border border-border-custom/30 bg-surface/50 px-2 py-2 text-center">
       <div className="text-xl font-semibold tabular-nums text-text-primary">{value}</div>
       <div className="text-2xs font-bold tracking-wide text-text-muted">{label}</div>
     </div>
@@ -38,14 +38,14 @@ export default function MorningPlanYesterdayNumbers({ userId, planningDate }: Pr
   const week = useWeekSalesSums(userId, getWeekStartWarsaw(planningDate));
   const targets = useCloserTargets(userId);
 
-  if (day.loading) return <Skeleton className="h-28 w-full rounded-2xl" />;
+  if (day.loading) return <Skeleton className="h-28 w-full rounded-lg" />;
   if (day.loadError) {
     return <DataStateNotice tone="warning" title="Nie udało się wczytać liczb z wczoraj" detail={day.loadError.message} />;
   }
 
   if (!hasEnteredNumbers(day.row)) {
     return (
-      <section className="rounded-2xl border border-warning/30 bg-warning/[0.06] p-4 space-y-3" aria-labelledby="yesterday-missing">
+      <section className="rounded-lg border border-warning/30 bg-warning/[0.06] p-4 space-y-3" aria-labelledby="yesterday-missing">
         <div>
           <h3 id="yesterday-missing" className="text-sm font-semibold text-text-primary">Brakuje liczb z wczoraj</h3>
           <p className="text-xs text-text-secondary mt-0.5">Wpisz je teraz, żeby tydzień się zgadzał.</p>
@@ -64,7 +64,7 @@ export default function MorningPlanYesterdayNumbers({ userId, planningDate }: Pr
   const note = row.notes?.trim();
 
   return (
-    <section className="rounded-2xl border border-border-custom/40 bg-surface/40 p-4 space-y-3" aria-labelledby="yesterday-numbers">
+    <section className="rounded-lg border border-border-custom/40 bg-surface/40 p-4 space-y-3" aria-labelledby="yesterday-numbers">
       <h3 id="yesterday-numbers" className="text-xs font-semibold tracking-wide text-text-muted">Wczoraj</h3>
       <div className="grid grid-cols-4 gap-2">
         <Stat value={row.dials ?? 0} label="Odebrane" />

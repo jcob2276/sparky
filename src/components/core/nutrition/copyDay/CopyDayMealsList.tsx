@@ -33,7 +33,7 @@ export default memo(function CopyDayMealsList({
 
   if (!hasEntries) {
     return (
-      <div className="rounded-2xl border border-dashed border-border-custom/80 bg-surface-solid/20 p-8 text-center">
+      <div className="rounded-lg border border-dashed border-border-custom/80 bg-surface-solid/20 p-8 text-center">
         <p className="text-sm font-bold text-text-primary">Brak zapisanych posiłków w wybranym dniu</p>
         <p className="mt-1 text-xs text-text-muted">Wybierz inną datę z listy powyżej lub sprawdź kalendarz</p>
       </div>

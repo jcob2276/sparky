@@ -27,7 +27,7 @@ beforeEach(() => {
     expect(url.pathname).toBe('/rest/v1/vanguard_preferences');
     if ((init?.method ?? 'GET') === 'GET') {
       expect(url.searchParams.get('key')).toBe('eq.ui:today_layout');
-      if (failRead) return Response.json({ message: 'Read unavailable' }, { status: 503 });
+      if (failRead) return Response.json({ message: 'Read unavailable' }, { status: 500 });
       const owner = url.searchParams.get('user_id')?.replace('eq.', '') ?? '';
       const response = Response.json(records[owner] ? [{ value: records[owner] }] : []);
       if (delayRead) {

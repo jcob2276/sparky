@@ -14,14 +14,14 @@ export function ClarificationConfirmActions({
       <Pressable
         onClick={onYes}
         disabled={submitting}
-        className="flex-1 rounded-xl bg-primary py-2 text-sm font-bold text-on-accent ui-interactive active:scale-95 disabled:opacity-[var(--opacity-40)]"
+        className="flex-1 rounded-lg bg-primary py-2 text-sm font-bold text-on-accent ui-interactive active:scale-95 disabled:opacity-[var(--opacity-40)]"
       >
         Tak
       </Pressable>
       <Pressable
         onClick={onNo}
         disabled={submitting}
-        className="flex-1 rounded-xl border border-border-custom/30 py-2 text-sm font-semibold text-text-secondary ui-interactive active:scale-95 disabled:opacity-[var(--opacity-40)]"
+        className="flex-1 rounded-lg border border-border-custom/30 py-2 text-sm font-semibold text-text-secondary ui-interactive active:scale-95 disabled:opacity-[var(--opacity-40)]"
       >
         Nie
       </Pressable>

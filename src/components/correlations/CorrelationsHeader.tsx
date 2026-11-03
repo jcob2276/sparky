@@ -28,7 +28,7 @@ export default function CorrelationsHeader({ loading, onRefresh, daysOfData }: C
         <Pressable
           onClick={handleBack}
           aria-label="Wróć do poprzedniego widoku"
-          className="flex h-11 w-11 items-center justify-center rounded-xl text-text-secondary hover:bg-surface-2 hover:text-text-primary shrink-0 transition-colors cursor-pointer"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary hover:bg-surface-2 hover:text-text-primary shrink-0 transition-colors cursor-pointer"
         >
           <ArrowLeft size={20} />
         </Pressable>
@@ -45,7 +45,7 @@ export default function CorrelationsHeader({ loading, onRefresh, daysOfData }: C
           onClick={onRefresh}
           disabled={loading}
           aria-label="Odśwież analizę"
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-primary hover:bg-primary/5 ui-interactive disabled:opacity-50"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-primary hover:bg-primary/5 ui-interactive disabled:opacity-50"
           title="Odśwież analizę"
         >
           <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />

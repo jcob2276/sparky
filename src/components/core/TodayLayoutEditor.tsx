@@ -44,7 +44,7 @@ export function TodayLayoutEditor({ layout, saving, onSave, onClose }: Props) {
         Ustaw kolejność sekcji i wybierz, które widzisz na Dziś. Zmiana widoku nie usuwa danych.
         Pilne terminy i przypomnienia pomiarów pozostają widoczne.
       </p>
-      <ol className="divide-y divide-border-custom rounded-2xl border border-border-custom bg-surface">
+      <ol className="divide-y divide-border-custom rounded-lg border border-border-custom bg-surface">
         {draft.sections.map((section, index) => {
           const label = TODAY_SECTIONS.find(item => item.id === section.id)!.label;
           return (

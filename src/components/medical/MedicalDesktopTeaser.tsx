@@ -17,7 +17,7 @@ interface FlaggedAlertProps {
 function FlaggedMarkersAlert({ flaggedMarkers }: FlaggedAlertProps) {
   if (flaggedMarkers.length === 0) return null;
   return (
-    <div className="rounded-xl border border-warning/30 bg-warning/5 p-3 space-y-2">
+    <div className="rounded-lg border border-warning/30 bg-warning/5 p-3 space-y-2">
       <div className="flex items-center justify-between text-2xs">
         <span className="font-bold text-warning flex items-center gap-1.5">
           <AlertTriangle size={13} />
@@ -82,7 +82,7 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
     <Card variant="surface" className="bg-surface/30 border-border-custom space-y-4" padding="1.25rem">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2.5">
-          <div className="rounded-xl border border-error/20 bg-error/10 p-2 text-error">
+          <div className="rounded-lg border border-error/20 bg-error/10 p-2 text-error">
             <FolderHeart size={20} />
           </div>
           <div>
@@ -103,14 +103,14 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
         <div className="flex items-center gap-2">
           <Link
             to="/badania"
-            className="flex items-center gap-1.5 rounded-xl border border-border-custom bg-background/50 px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-border-custom bg-background/50 px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors"
           >
             <FileText size={13} />
             <span>Dokumenty</span>
           </Link>
           <Link
             to="/badania/laboratorium"
-            className="flex items-center gap-1.5 rounded-xl border border-error/30 bg-error/10 px-3 py-1.5 text-xs font-semibold text-error hover:bg-error/20 transition-colors"
+            className="flex items-center gap-1.5 rounded-lg border border-error/30 bg-error/10 px-3 py-1.5 text-xs font-semibold text-error hover:bg-error/20 transition-colors"
           >
             <span>Laboratorium</span>
             <ArrowUpRight size={14} />
@@ -119,9 +119,9 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
       </div>
 
       {loading ? (
-        <div className="h-28 animate-pulse rounded-xl bg-border-custom/30" />
+        <div className="h-28 animate-pulse rounded-lg bg-border-custom/30" />
       ) : series.length === 0 ? (
-        <div className="rounded-xl border border-border-custom bg-background/40 p-4 text-center">
+        <div className="rounded-lg border border-border-custom bg-background/40 p-4 text-center">
           <p className="text-xs text-text-muted">Brak wyników badań w bazie danych.</p>
           <Link to="/badania" className="mt-2 inline-flex text-xs font-semibold text-primary hover:underline">
             + Dodaj pierwsze wyniki badań (PDF lub ręcznie)
@@ -143,7 +143,7 @@ export default function MedicalDesktopTeaser({ userId }: { userId: string }) {
               {preview.map((s) => (
                 <div
                   key={s!.marker_key}
-                  className="rounded-xl border border-border-custom bg-background/40 px-3 py-2.5 flex flex-col justify-between hover:border-border-focus transition-colors"
+                  className="rounded-lg border border-border-custom bg-background/40 px-3 py-2.5 flex flex-col justify-between hover:border-border-focus transition-colors"
                 >
                   <p className="text-xs font-semibold leading-snug text-text-secondary line-clamp-2 break-words" title={s!.marker_name}>
                     {s!.marker_name}

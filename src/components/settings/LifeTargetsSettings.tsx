@@ -6,7 +6,7 @@ import Button from '../ui/Button';
 import { ControlInput } from '../ui/ControlPrimitives';
 import SettingsSection from './SettingsSection';
 
-const INPUT_CLASS = 'w-full rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm';
+const INPUT_CLASS = 'w-full rounded-lg border border-border-custom bg-surface-solid px-3 py-2.5 text-sm';
 
 /** Cele wyciskania i dochodu (właściciel: `life_targets`); cel tłuszczu zmieniasz w profilu żywieniowym. */
 export default function LifeTargetsSettings({ userId }: { userId: string }) {

@@ -24,7 +24,7 @@ interface StageBarProps {
 function OuraNightStageBar({ deepMins, remMins, lightMins, awakeMins, totalBar, latencyMins }: StageBarProps) {
   if (totalBar <= 0) return null;
   return (
-    <div className="space-y-1.5 rounded-xl border border-border-custom/50 bg-surface-2/30 p-3">
+    <div className="space-y-1.5 rounded-lg border border-border-custom/50 bg-surface-2/30 p-3">
       <div className="flex items-center justify-between text-2xs text-text-muted">
         <span>Fazy snu</span>
         {latencyMins != null && (
@@ -110,14 +110,14 @@ export default function DesktopOuraSleepCard({ userId }: { userId: string }) {
     <Card variant="surface" padding="1.25rem" className="space-y-4 border-border-custom bg-surface/30">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="rounded-xl border border-primary/20 bg-primary/10 p-2 text-primary">
+          <div className="rounded-lg border border-primary/20 bg-primary/10 p-2 text-primary">
             <Moon size={20} />
           </div>
           <h3 className="text-sm font-bold tracking-tight text-text-primary">Sen · ostatnia noc</h3>
         </div>
         <Link
           to="/oura"
-          className="flex items-center gap-1.5 rounded-xl border border-border-custom bg-background/50 px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg border border-border-custom bg-background/50 px-3 py-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors"
         >
           <span>Więcej</span>
           <ArrowUpRight size={14} />

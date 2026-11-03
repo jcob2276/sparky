@@ -38,7 +38,7 @@ export default function DailyStrainHeader({
             </span>
           )}
         </div>
-        <Button onClick={onRefresh} variant="secondary" icon={<RefreshCw size={11} className={refreshing ? 'animate-spin text-primary' : ''} />} className="rounded-xl p-2" title="Sync + przelicz" />
+        <Button onClick={onRefresh} variant="secondary" icon={<RefreshCw size={11} className={refreshing ? 'animate-spin text-primary' : ''} />} className="rounded-lg p-2" title="Sync + przelicz" />
       </div>
     </>
   );

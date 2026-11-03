@@ -71,7 +71,7 @@ function Field({
         const parsed = Number(next);
         onChange(Number.isFinite(parsed) && parsed > max ? String(max) : next);
       }}
-      className={`h-12 w-full min-w-0 rounded-xl border text-center text-lg font-bold tabular-nums text-text-primary outline-none transition-colors placeholder:font-semibold placeholder:text-text-muted/55 focus:border-primary ${border} ${
+      className={`h-12 w-full min-w-0 rounded-lg border text-center text-lg font-bold tabular-nums text-text-primary outline-none transition-colors placeholder:font-semibold placeholder:text-text-muted/55 focus:border-primary ${border} ${
         done ? 'bg-transparent' : 'bg-surface-2'
       }`}
     />
@@ -100,7 +100,7 @@ export default function LiveSetRow({ set, number, ghost, isNext, weightStep, isP
   const showSteppers = (isNext || focused) && !done;
 
   return (
-    <div className={`rounded-2xl px-1.5 py-1.5 transition-colors ${done ? 'bg-primary/10' : ''}`}>
+    <div className={`rounded-lg px-1.5 py-1.5 transition-colors ${done ? 'bg-primary/10' : ''}`}>
       <div className="grid grid-cols-[2.25rem_1fr_1fr_2.75rem] items-center gap-2">
         <Pressable
           onClick={onToggleActions}

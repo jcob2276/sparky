@@ -111,7 +111,7 @@ export default function ProjectWeekKpis({
                 const isComplete = hasTarget && val >= kpi.target!;
 
                 return (
-                  <div key={kpi.id} className="rounded-xl border border-border-custom/25 bg-surface/40 p-2.5 space-y-2">
+                  <div key={kpi.id} className="rounded-lg border border-border-custom/25 bg-surface/40 p-2.5 space-y-2">
                     <div className="flex items-center justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <span className="text-xs font-bold text-text-primary block truncate">{kpi.name}</span>

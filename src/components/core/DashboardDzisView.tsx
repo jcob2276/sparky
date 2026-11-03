@@ -68,13 +68,9 @@ export function DashboardDzisView(props: DashboardDzisViewProps) {
     <div className="min-h-full bg-background p-5 pb-32">
       <div className="mb-5 space-y-4">
         <DashboardGreeting />
-        <div className="flex justify-end">
-          <Button variant="ghost" className="min-h-11" icon={<SlidersHorizontal size={16} />}
-            disabled={props.layoutLoading || props.layoutError} onClick={props.onEdit}>Edytuj układ Dziś</Button>
-        </div>
-        <BodyMeasureBanner userId={props.userId} />
         <UrgentObligationsBanner userId={props.userId} onNavigateToTerminy={props.onOpenTerminy} />
         <UpcomingObligationsStrip userId={props.userId} onNavigateToTerminy={props.onOpenTerminy} />
+        <BodyMeasureBanner userId={props.userId} />
         {props.layoutError && <div className="space-y-2">
           <DataStateNotice tone="warning" title="Nie udało się wczytać Twojego układu"
             detail="Pokazujemy ostatnio dostępny układ lub domyślny. Ponów odczyt przed edycją, aby nie nadpisać zapisanych ustawień." />
@@ -95,6 +91,10 @@ export function DashboardDzisView(props: DashboardDzisViewProps) {
           </p>}
         </div>
       )}
+      <div className="mt-5 flex justify-center">
+        <Button variant="ghost" className="min-h-11" icon={<SlidersHorizontal size={16} />}
+          disabled={props.layoutLoading || props.layoutError} onClick={props.onEdit}>Edytuj układ Dziś</Button>
+      </div>
       <Sheet open={props.editing} onOpenChange={open => { if (!open && !props.saving) props.onCloseEditor(); }}
         title="Twój układ Dziś" side="bottom" compact>
         {props.editing && <TodayLayoutEditor layout={props.layout} saving={props.saving}

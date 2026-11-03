@@ -59,7 +59,7 @@ export default function MorningPlanStep3TimeBox({
       </div>
 
       {/* Workload Capacity indicator */}
-      <div className="p-3.5 bg-surface-2 dark:bg-on-accent/[0.015] border border-border-custom/50 rounded-2xl space-y-2">
+      <div className="p-3.5 bg-surface-2 dark:bg-on-accent/[0.015] border border-border-custom/50 rounded-lg space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-bold text-text-muted tracking-wide">Zapełnienie {dayWordGen} dnia</span>
           <span className={`text-xs font-semibold ${isOverloaded ? 'text-danger' : 'text-primary'}`}>
@@ -75,7 +75,7 @@ export default function MorningPlanStep3TimeBox({
           />
         </div>
         {isOverloaded && (
-          <div className="flex items-start gap-1.5 p-2 bg-danger/10 border border-danger/20 rounded-xl text-danger text-xs font-semibold">
+          <div className="flex items-start gap-1.5 p-2 bg-danger/10 border border-danger/20 rounded-lg text-danger text-xs font-semibold">
             <AlertTriangle size={13} className="shrink-0 mt-0.5" />
             <span>Ostrzeżenie przed przeładowaniem! Zaplanowany czas przekracza 8h. Rozważ odłożenie części zadań.</span>
           </div>
@@ -108,7 +108,7 @@ export default function MorningPlanStep3TimeBox({
             return (
               <div
                 key={task!.id}
-                className="p-3 bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/30 rounded-xl flex items-center justify-between gap-3"
+                className="p-3 bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/30 rounded-lg flex items-center justify-between gap-3"
               >
                 <div className="min-w-0 flex-1">
                   <span className="text-sm font-semibold text-text-primary block truncate">{task!.title}</span>
@@ -128,7 +128,7 @@ export default function MorningPlanStep3TimeBox({
                       type="time"
                       value={times[task!.id] || ''}
                       onChange={(e) => setTimes((prev) => ({ ...prev, [task!.id]: e.target.value }))}
-                      className="rounded-xl border border-border-custom/60 bg-surface-solid/50 px-2 py-1.5 text-xs font-bold text-text-primary outline-none focus:border-primary/40 cursor-pointer"
+                      className="rounded-lg border border-border-custom/60 bg-surface-solid/50 px-2 py-1.5 text-xs font-bold text-text-primary outline-none focus:border-primary/40 cursor-pointer"
                       style={{ width: 'var(--ds-inline-style-85)' }}
                     />
                     {hasTime && (
@@ -143,7 +143,7 @@ export default function MorningPlanStep3TimeBox({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1 bg-surface-solid/40 border border-border-custom/40 rounded-xl px-2 py-1">
+                  <div className="flex items-center gap-1 bg-surface-solid/40 border border-border-custom/40 rounded-lg px-2 py-1">
                     <ControlInput
                       type="number"
                       min="5"

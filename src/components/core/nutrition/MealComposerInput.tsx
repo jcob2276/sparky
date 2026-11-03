@@ -60,7 +60,7 @@ export function ComposerInput({
           aria-label="Opisz posiłek"
           enterKeyHint="send"
           placeholder="np. 2 jajka, kawa"
-          className="meal-input h-11 w-full rounded-xl border pl-3 pr-11 text-base"
+          className="meal-input h-11 w-full rounded-lg border pl-3 pr-11 text-base"
         />
         <Pressable
           onClick={onParse}
@@ -94,7 +94,7 @@ export function ComposerInput({
         disabled={scanningPhoto || saving}
         aria-label={scanningPhoto ? 'Skanuję zdjęcie…' : 'Dodaj zdjęcie posiłku'}
         title="Zdjęcie"
-        className="meal-photo-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+        className="meal-photo-btn flex h-11 w-11 shrink-0 items-center justify-center rounded-lg"
       >
         {scanningPhoto ? <Spinner size="sm" /> : <Camera size={20} aria-hidden="true" />}
       </Pressable>
@@ -103,7 +103,7 @@ export function ComposerInput({
         disabled={saving}
         aria-label="Skanuj kod kreskowy"
         title="Kod kreskowy"
-        className="meal-icon-btn flex h-11 w-10 shrink-0 items-center justify-center rounded-xl"
+        className="meal-icon-btn flex h-11 w-10 shrink-0 items-center justify-center rounded-lg"
       >
         <ScanLine size={19} aria-hidden="true" />
       </Pressable>
@@ -113,7 +113,7 @@ export function ComposerInput({
         aria-label="Szukaj produktu"
         aria-pressed={searchOpen}
         title="Szukaj"
-        className="meal-icon-btn flex h-11 w-10 shrink-0 items-center justify-center rounded-xl"
+        className="meal-icon-btn flex h-11 w-10 shrink-0 items-center justify-center rounded-lg"
       >
         <Search size={19} aria-hidden="true" />
       </Pressable>

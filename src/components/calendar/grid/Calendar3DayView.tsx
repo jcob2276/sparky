@@ -105,7 +105,7 @@ export const Calendar3DayView: React.FC<Calendar3DayViewProps> = ({
                       setCalView('dzien');
                     }
                   }}
-                  className="calendar-week-column group flex flex-col items-center justify-center py-2 text-center cursor-pointer rounded-xl hover:bg-surface-solid/40 active:scale-[0.98] transition-[transform,background-color] duration-150 ease-out"
+                  className="calendar-week-column group flex flex-col items-center justify-center py-2 text-center cursor-pointer rounded-lg hover:bg-surface-solid/40 active:scale-[0.98] transition-[transform,background-color] duration-150 ease-out"
                 >
                   <p className={`text-2xs font-semibold tracking-wider uppercase ${isToday ? 'text-primary font-bold' : 'text-text-muted'}`}>
                     {formatWeekdayShort(day)}

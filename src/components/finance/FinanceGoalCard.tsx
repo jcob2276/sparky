@@ -73,7 +73,7 @@ export function FinanceGoalCard({ metrics, snapshots, editing, onEditingChange, 
   const { goal } = metrics;
 
   return (
-    <section className="space-y-3 rounded-2xl bg-surface-1 p-5" aria-label="Cel majątku">
+    <section className="space-y-3 rounded-lg bg-surface-1 p-5" aria-label="Cel majątku">
       <div className="flex items-center justify-between gap-3">
         <Pressable
           type="button"

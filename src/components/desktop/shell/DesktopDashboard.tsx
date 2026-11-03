@@ -59,7 +59,7 @@ export default function DesktopDashboard() {
   if (showHealth) return (
     <div className="min-h-screen bg-background text-text-primary p-8 max-w-4xl mx-auto">
       <header className="mb-6 flex items-center gap-4">
-        <Button onClick={() => setShowHealth(false)} variant="secondary" size="sm" className="rounded-xl">← Powrót do Pulpitu</Button>
+        <Button onClick={() => setShowHealth(false)} variant="secondary" size="sm" className="rounded-lg">← Powrót do Pulpitu</Button>
       </header>
       <Suspense fallback={<div className="flex justify-center p-12"><Spinner size="md" /></div>}>
         <SystemHealth userId={userId ?? ''} />

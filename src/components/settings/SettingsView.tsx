@@ -102,7 +102,7 @@ export default function SettingsView() {
   return (
     <div className="ui-stagger min-h-screen bg-background p-5 pb-24 max-w-lg mx-auto space-y-4">
       <div className="flex items-center gap-3">
-        <Link to="/" aria-label="Wróć do widoku głównego" className="flex h-11 w-11 items-center justify-center rounded-xl text-text-secondary transition hover:bg-surface-2 hover:text-text-primary">
+        <Link to="/" aria-label="Wróć do widoku głównego" className="flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary transition hover:bg-surface-2 hover:text-text-primary">
           <ArrowLeft size={20} />
         </Link>
         <h1 className="font-display text-2xl font-semibold tracking-tight text-text-primary">Ustawienia</h1>
@@ -114,7 +114,7 @@ export default function SettingsView() {
           placeholder="Oura personal access token"
           value={form.oura_token ?? ''}
           onChange={(e) => setForm((f) => ({ ...f, oura_token: e.target.value }))}
-          className="w-full rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
+          className="w-full rounded-lg border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
         />
       </SettingsSection>
 
@@ -126,7 +126,7 @@ export default function SettingsView() {
             placeholder="Lat"
             value={form.home_lat ?? ''}
             onChange={(e) => setForm((f) => ({ ...f, home_lat: e.target.value ? Number(e.target.value) : null }))}
-            className="rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
+            className="rounded-lg border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
           />
           <ControlInput
             type="number"
@@ -134,7 +134,7 @@ export default function SettingsView() {
             placeholder="Lng"
             value={form.home_lng ?? ''}
             onChange={(e) => setForm((f) => ({ ...f, home_lng: e.target.value ? Number(e.target.value) : null }))}
-            className="rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
+            className="rounded-lg border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
           />
         </div>
       </SettingsSection>
@@ -193,7 +193,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
           <ControlSelect
             value={profile.sex ?? ''}
             onChange={(e) => onChange({ ...profile, sex: e.target.value || null })}
-            className="w-full rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
+            className="w-full rounded-lg border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
           >
             <option value="">Wybierz...</option>
             <option value="M">Mężczyzna</option>
@@ -207,7 +207,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
             placeholder="np. 180"
             value={profile.height_cm ?? ''}
             onChange={(e) => onChange({ ...profile, height_cm: e.target.value ? Number(e.target.value) : null })}
-            className="w-full rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
+            className="w-full rounded-lg border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
           />
         </div>
       </div>
@@ -217,7 +217,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
           type="date"
           value={profile.birth_date ? profile.birth_date.slice(0, 10) : ''}
           onChange={(e) => onChange({ ...profile, birth_date: e.target.value || null })}
-          className="w-full rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
+          className="w-full rounded-lg border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
         />
       </div>
       <div className="grid grid-cols-2 gap-2">
@@ -229,7 +229,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
             placeholder="np. 12"
             value={profile.goal_body_fat ?? ''}
             onChange={(e) => onChange({ ...profile, goal_body_fat: e.target.value ? Number(e.target.value) : null })}
-            className="w-full rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
+            className="w-full rounded-lg border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
           />
         </div>
         <div>
@@ -240,7 +240,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
             placeholder="np. 0.5"
             value={profile.weekly_loss_kg ?? ''}
             onChange={(e) => onChange({ ...profile, weekly_loss_kg: e.target.value ? Number(e.target.value) : 0.5 })}
-            className="w-full rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
+            className="w-full rounded-lg border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
           />
         </div>
       </div>
@@ -253,7 +253,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
             placeholder="np. 2.0"
             value={profile.protein_g_per_kg ?? ''}
             onChange={(e) => onChange({ ...profile, protein_g_per_kg: e.target.value ? Number(e.target.value) : 2.0 })}
-            className="w-full rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
+            className="w-full rounded-lg border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
           />
         </div>
         <div>
@@ -262,7 +262,7 @@ function NutritionProfileSettings({ profile, onChange }: NutritionProfileSetting
             type="date"
             value={profile.goal_target_date ? profile.goal_target_date.slice(0, 10) : ''}
             onChange={(e) => onChange({ ...profile, goal_target_date: e.target.value || null })}
-            className="w-full rounded-xl border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
+            className="w-full rounded-lg border border-border-custom bg-surface-solid px-3 py-2.5 text-sm"
           />
         </div>
       </div>

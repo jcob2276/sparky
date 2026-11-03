@@ -37,7 +37,7 @@ export default function GeneralView({
   }
 
   if (isError) return (
-    <div role="alert" className="space-y-2 rounded-xl border border-border-custom p-4 text-sm text-text-muted">
+    <div role="alert" className="space-y-2 rounded-lg border border-border-custom p-4 text-sm text-text-muted">
       <p>Nie udało się pobrać pamięci Sparky.</p>
       <Pressable onClick={() => void refetch()} className="text-primary">Spróbuj ponownie</Pressable>
     </div>

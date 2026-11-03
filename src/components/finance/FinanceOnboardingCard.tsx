@@ -25,7 +25,7 @@ export function FinanceOnboardingCard({ state, onNavigate }: FinanceOnboardingCa
   if (done === STEPS.length) return null;
 
   return (
-    <section className="space-y-3 rounded-2xl bg-primary p-5 text-on-accent" aria-label="Uzupełnij finanse">
+    <section className="space-y-3 rounded-lg bg-primary p-5 text-on-accent" aria-label="Uzupełnij finanse">
       <div>
         <h2 className="text-lg font-semibold">Uzupełnij swoje finanse</h2>
         <p className="text-sm opacity-80">{done} z {STEPS.length} gotowe. Bez tego majątek i cel będą puste.</p>
@@ -39,7 +39,7 @@ export function FinanceOnboardingCard({ state, onNavigate }: FinanceOnboardingCa
                 type="button"
                 disabled={complete}
                 onClick={() => onNavigate(step.tab)}
-                className="flex w-full items-center gap-3 rounded-2xl bg-background/25 px-3 py-3 text-left disabled:opacity-60"
+                className="flex w-full items-center gap-3 rounded-lg bg-background/25 px-3 py-3 text-left disabled:opacity-60"
               >
                 <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${complete ? 'bg-on-accent text-primary' : 'bg-background/30'}`}>
                   {complete ? <Check size={16} aria-hidden="true" /> : <ChevronRight size={16} aria-hidden="true" />}

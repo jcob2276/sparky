@@ -10,7 +10,7 @@ const ROLE_LABELS: Record<SalesRole, string> = {
   closer: 'Sam closer',
 };
 
-const fieldClass = 'min-h-11 w-full rounded-xl border-0 bg-surface-2/70 px-3 text-sm tabular-nums ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35';
+const fieldClass = 'min-h-11 w-full rounded-lg border-0 bg-surface-2/70 px-3 text-sm tabular-nums ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35';
 
 function parse(value: string): number {
   return Number(value.replace(',', '.'));

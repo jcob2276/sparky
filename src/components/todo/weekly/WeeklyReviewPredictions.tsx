@@ -48,7 +48,7 @@ export default function WeeklyReviewPredictions() {
 
       {/* Calibration Rollup Grid */}
       <div className="grid grid-cols-3 gap-3">
-        <div className="bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/50 rounded-xl p-3 flex flex-col justify-between space-y-1">
+        <div className="bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/50 rounded-lg p-3 flex flex-col justify-between space-y-1">
           <span className="text-2xs font-bold text-text-muted">
             Prognoza Snu
           </span>
@@ -57,7 +57,7 @@ export default function WeeklyReviewPredictions() {
           </span>
           <span className="text-2xs font-medium text-text-muted">Średni błąd (MAE)</span>
         </div>
-        <div className="bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/50 rounded-xl p-3 flex flex-col justify-between space-y-1">
+        <div className="bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/50 rounded-lg p-3 flex flex-col justify-between space-y-1">
           <span className="text-2xs font-bold text-text-muted">
             Wykonanie
           </span>
@@ -66,7 +66,7 @@ export default function WeeklyReviewPredictions() {
           </span>
           <span className="text-2xs font-medium text-text-muted">Średni błąd (MAE)</span>
         </div>
-        <div className="bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/50 rounded-xl p-3 flex flex-col justify-between space-y-1">
+        <div className="bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/50 rounded-lg p-3 flex flex-col justify-between space-y-1">
           <span className="text-2xs font-bold text-text-muted">
             Brier Wzorców
           </span>
@@ -79,7 +79,7 @@ export default function WeeklyReviewPredictions() {
 
       {/* Custom predictions calibration */}
       {resolvedCustom.length > 0 && (
-        <div className="bg-success/5 border border-success/10 rounded-xl p-3 flex items-center justify-between">
+        <div className="bg-success/5 border border-success/10 rounded-lg p-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <TrendingUp size={16} className="text-success" />
             <div className="flex flex-col">
@@ -101,7 +101,7 @@ export default function WeeklyReviewPredictions() {
           Rozstrzygnij prognozy własne ({pendingCustom.length})
         </span>
         {pendingCustom.length === 0 ? (
-          <div className="text-center py-4 bg-surface-2 dark:bg-on-accent/[0.01] border border-dashed border-border-custom/60 rounded-xl text-text-muted text-xs font-semibold">
+          <div className="text-center py-4 bg-surface-2 dark:bg-on-accent/[0.01] border border-dashed border-border-custom/60 rounded-lg text-text-muted text-xs font-semibold">
             Brak prognoz własnych do rozstrzygnięcia w tym tygodniu.
           </div>
         ) : (
@@ -109,7 +109,7 @@ export default function WeeklyReviewPredictions() {
             {pendingCustom.map((pred: Prediction) => (
               <div
                 key={pred.id}
-                className="bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/50 rounded-xl p-3 flex items-center justify-between"
+                className="bg-surface-2 dark:bg-on-accent/[0.01] border border-border-custom/50 rounded-lg p-3 flex items-center justify-between"
               >
                 <div className="space-y-0.5 border-none">
                   <p className="text-xs font-semibold text-text-primary">{pred.metric}</p>

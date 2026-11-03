@@ -28,14 +28,14 @@ export default function DesktopCorrelationsSummary({ userId }: { userId: string 
     <Card variant="surface" padding="1.25rem" className="space-y-4 border-border-custom bg-surface/30">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2.5">
-          <div className="rounded-xl border border-primary/20 bg-primary/10 p-2 text-primary">
+          <div className="rounded-lg border border-primary/20 bg-primary/10 p-2 text-primary">
             <BarChart2 size={20} />
           </div>
           <h3 className="text-sm font-bold tracking-tight text-text-primary">Co wpływa na co</h3>
         </div>
         <Link
           to="/korelacje"
-          className="flex items-center gap-1.5 rounded-xl border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
+          className="flex items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20 transition-colors"
         >
           <span>Więcej</span>
           <ArrowUpRight size={14} />
@@ -45,7 +45,7 @@ export default function DesktopCorrelationsSummary({ userId }: { userId: string 
       {isLoading ? (
         <Skeleton variant="block" className="h-28" />
       ) : topCorrelations.length === 0 ? (
-        <div className="rounded-xl border border-border-custom bg-background/40 p-4 text-center">
+        <div className="rounded-lg border border-border-custom bg-background/40 p-4 text-center">
           <p className="text-xs text-text-muted">
             {correlations.length === 0
               ? 'Wymaga zebrania min. 14 dni zsynchronizowanych danych Oura, żywienia i ekranu.'
@@ -62,7 +62,7 @@ export default function DesktopCorrelationsSummary({ userId }: { userId: string 
             return (
               <div
                 key={idx}
-                className="rounded-xl border border-border-custom bg-background/40 p-3 flex flex-col justify-between space-y-2 hover:border-border-focus transition-colors"
+                className="rounded-lg border border-border-custom bg-background/40 p-3 flex flex-col justify-between space-y-2 hover:border-border-focus transition-colors"
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">

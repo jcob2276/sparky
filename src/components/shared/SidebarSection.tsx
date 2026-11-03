@@ -57,7 +57,7 @@ function CollapsedSidebarItems({ items, bordered, className }: Pick<SidebarSecti
               onClick={item.onClick}
               title={title}
               aria-label={title}
-              className={`relative flex h-9 w-9 items-center justify-center rounded-xl ${item.active ? 'bg-primary/15 font-bold text-primary shadow-xs' : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary'}`}
+              className={`relative flex h-9 w-9 items-center justify-center rounded-lg ${item.active ? 'bg-primary/15 font-bold text-primary shadow-xs' : 'text-text-secondary hover:bg-surface-2 hover:text-text-primary'}`}
             >
               {item.icon ?? (item.colorDot
                 ? <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.colorDot }} />
@@ -162,7 +162,7 @@ export default function SidebarSection({
                   <>
                     <Pressable
                       onClick={item.onClick}
-                      className={`flex w-full min-w-0 items-center gap-2 rounded-xl px-2.5 py-1.5 text-left text-sm font-medium font-display transition-colors ${
+                      className={`flex w-full min-w-0 items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-sm font-medium font-display transition-colors ${
                         item.active
                           ? 'bg-primary/10 text-primary font-bold'
                           : 'text-text-secondary hover:bg-surface-solid/50 hover:text-text-primary'

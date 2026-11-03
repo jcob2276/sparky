@@ -80,7 +80,7 @@ export default function TrainingTodayCard({
           {details.exercises.slice(0, 6).map((ex, i) => (
             <div
               key={`${ex.name}-${i}`}
-              className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-xl bg-surface-1 border border-border-custom/35"
+              className="flex items-center justify-between text-xs py-1.5 px-2.5 rounded-lg bg-surface-1 border border-border-custom/35"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-text-muted font-mono text-2xs w-3">{i + 1}</span>
@@ -99,7 +99,7 @@ export default function TrainingTodayCard({
       )}
 
       {details.notes && (
-        <p className="text-xs text-text-secondary italic bg-surface-1 px-2.5 py-2 rounded-xl border border-border-custom/35">
+        <p className="text-xs text-text-secondary italic bg-surface-1 px-2.5 py-2 rounded-lg border border-border-custom/35">
           „{details.notes}”
         </p>
       )}

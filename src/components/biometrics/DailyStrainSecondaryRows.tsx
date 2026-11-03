@@ -190,7 +190,7 @@ export function CardiovascularRow({ enhanced }: { enhanced?: Tables<'oura_enhanc
 export function BedtimeAdviceBanner({ advice }: { advice: string | null }) {
   if (!advice) return null;
   return (
-    <div className="px-3 py-2 bg-primary/10 border border-primary/20 rounded-xl flex items-center justify-center gap-2 animate-fadeIn">
+    <div className="px-3 py-2 bg-primary/10 border border-primary/20 rounded-lg flex items-center justify-center gap-2 animate-fadeIn">
       <Moon size={11} className="text-primary animate-pulse" />
       <span className="text-2xs font-bold text-text-primary">{advice}</span>
     </div>

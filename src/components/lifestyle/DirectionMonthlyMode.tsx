@@ -38,7 +38,7 @@ function Textarea({
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full bg-surface/60 border border-border-custom/60 rounded-2xl px-4 py-3 text-sm
+      className="w-full bg-surface/60 border border-border-custom/60 rounded-lg px-4 py-3 text-sm
         text-text-primary placeholder-text-muted/60 resize-none focus:outline-none
         focus:border-primary/50 focus:bg-surface transition-colors leading-relaxed"
     />
@@ -52,7 +52,7 @@ function StatPill({ value, label, highlight }: { value: string; label: string; h
       ? 'text-warning'
       : 'text-text-primary';
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-border-custom/50 bg-surface/60 px-3 py-3 gap-0.5 text-center">
+    <div className="flex flex-col items-center justify-center rounded-lg border border-border-custom/50 bg-surface/60 px-3 py-3 gap-0.5 text-center">
       <span className={`text-2xl font-semibold tracking-tight leading-none ${color}`}>{value}</span>
       <span className="text-2xs font-bold text-text-muted mt-1 leading-tight">{label}</span>
     </div>
@@ -147,7 +147,7 @@ function MonthAiRecapCard({
   recapLoading: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-border-custom/60 bg-surface/40 overflow-hidden">
+    <div className="rounded-lg border border-border-custom/60 bg-surface/40 overflow-hidden">
       <div className="px-4 pt-4 pb-3 border-b border-border-custom/40">
         <p className="text-2xs font-semibold text-text-muted">Jak wyglądał twój miesiąc</p>
       </div>
@@ -212,7 +212,7 @@ export default function DirectionMonthlyMode({
   return (
     <div className="space-y-6 pb-6 border-b border-border-custom mb-6">
       {/* Header strip */}
-      <div className="rounded-2xl border border-warning/20 bg-warning/[0.06] px-4 py-3.5">
+      <div className="rounded-lg border border-warning/20 bg-warning/[0.06] px-4 py-3.5">
         <p className="text-2xs font-semibold text-warning">Przegląd miesiąca</p>
         <p className="mt-1 text-base font-bold text-text-primary capitalize">{monthFacts.monthLabel}</p>
         <p className="mt-1 text-xs text-text-secondary leading-relaxed">
@@ -288,7 +288,7 @@ export default function DirectionMonthlyMode({
         onClick={onComplete}
         disabled={!questionsOk || completing}
         loading={completing}
-        className="w-full rounded-2xl"
+        className="w-full rounded-lg"
       >
         {completing ? 'Zapisuję…' : 'Zamknij miesiąc → przejdź do tygodnia'}
       </Button>

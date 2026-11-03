@@ -33,7 +33,7 @@ export default function MealComposerDraft({
   const totals = useMemo(() => draftTotals(items), [items]);
 
   return (
-    <div className="space-y-3 rounded-2xl border border-primary/25 bg-primary/[0.05] p-3">
+    <div className="space-y-3 rounded-lg border border-primary/25 bg-primary/[0.05] p-3">
       <div className="flex items-center justify-between gap-2">
         <p className="text-2xs font-semibold tracking-wide text-primary">Twój posiłek</p>
         <span className="text-2xs font-bold text-text-muted">{items.length} poz.</span>

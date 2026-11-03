@@ -13,7 +13,7 @@ export default function MorningPlanLearningSlot({ userId }: { userId: string }) 
   const month = useLearningMonth(userId);
   const log = useLogLearningProgress();
 
-  if (month.isLoading) return <Skeleton className="h-24 w-full rounded-2xl" />;
+  if (month.isLoading) return <Skeleton className="h-24 w-full rounded-lg" />;
   if (month.error) {
     return <DataStateNotice tone="warning" title="Nie udało się wczytać planu nauki" detail={month.error.message} />;
   }
@@ -22,7 +22,7 @@ export default function MorningPlanLearningSlot({ userId }: { userId: string }) 
 
   if (visible.length === 0) {
     return (
-      <section className="rounded-2xl border border-dashed border-warning/40 bg-warning/[0.05] p-4" aria-labelledby="learning-missing">
+      <section className="rounded-lg border border-dashed border-warning/40 bg-warning/[0.05] p-4" aria-labelledby="learning-missing">
         <h3 id="learning-missing" className="text-sm font-semibold text-text-primary">Brak planu nauki na ten miesiąc</h3>
         <p className="mt-0.5 text-xs text-text-secondary">Wybierz do 3 materiałów w zakładce Rozwój, a tu pojawi się dzienny slot.</p>
       </section>
@@ -32,7 +32,7 @@ export default function MorningPlanLearningSlot({ userId }: { userId: string }) 
   const busyId = log.isPending ? log.variables?.assignmentId ?? null : null;
 
   return (
-    <section className="rounded-2xl border border-border-custom/40 bg-surface/40 p-4 space-y-3" aria-labelledby="learning-today">
+    <section className="rounded-lg border border-border-custom/40 bg-surface/40 p-4 space-y-3" aria-labelledby="learning-today">
       <h3 id="learning-today" className="text-xs font-semibold tracking-wide text-text-muted">Nauka na dziś</h3>
       <ul className="space-y-3">
         {visible.map((assignment) => {

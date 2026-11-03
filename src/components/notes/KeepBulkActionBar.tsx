@@ -40,7 +40,7 @@ export default function KeepBulkActionBar({
       className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[var(--z-floating-bar)] flex flex-col items-center gap-2"
     >
       {showPalette && (
-        <div className="rounded-2xl border border-border-custom bg-background/95 p-2 shadow-xl backdrop-blur-md animate-in fade-in zoom-in-95">
+        <div className="rounded-lg border border-border-custom bg-background/95 p-2 shadow-xl backdrop-blur-md animate-in fade-in zoom-in-95">
           <NoteColorPicker
             currentColor=""
             onSelectColor={(col) => {
@@ -52,7 +52,7 @@ export default function KeepBulkActionBar({
       )}
 
       {showFolderMenu && onBulkMoveFolder && (
-        <div className="max-h-48 overflow-y-auto rounded-2xl border border-border-custom bg-background/95 p-1.5 shadow-xl backdrop-blur-md min-w-[160px] animate-in fade-in zoom-in-95">
+        <div className="max-h-48 overflow-y-auto rounded-lg border border-border-custom bg-background/95 p-1.5 shadow-xl backdrop-blur-md min-w-[160px] animate-in fade-in zoom-in-95">
           <Pressable
             onClick={() => {
               onBulkMoveFolder(null);
@@ -77,7 +77,7 @@ export default function KeepBulkActionBar({
         </div>
       )}
 
-      <div className="flex items-center gap-1.5 rounded-2xl border border-border-custom/50 bg-background/95 px-3 py-2 shadow-2xl backdrop-blur-xl ring-1 ring-border-custom/20">
+      <div className="flex items-center gap-1.5 rounded-lg border border-border-custom/50 bg-background/95 px-3 py-2 shadow-2xl backdrop-blur-xl ring-1 ring-border-custom/20">
         <span className="flex items-center gap-1 px-1.5 py-0.5 text-xs font-bold text-text-primary">
           <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-primary text-on-accent text-2xs font-semibold px-1">
             {selectedCount}
@@ -90,7 +90,7 @@ export default function KeepBulkActionBar({
         <Pressable
           onClick={onSelectAll}
           disabled={busy}
-          className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
+          className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
           title="Zaznacz wszystkie"
         >
           <CheckCheck size={14} />
@@ -100,7 +100,7 @@ export default function KeepBulkActionBar({
         <Pressable
           onClick={onBulkPin}
           disabled={busy}
-          className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
+          className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
           title="Przypnij lub odepnij"
         >
           <Pin size={14} />
@@ -113,7 +113,7 @@ export default function KeepBulkActionBar({
             setShowFolderMenu(false);
           }}
           disabled={busy}
-          className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
+          className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
           title="Zmień kolor"
         >
           <Palette size={14} />
@@ -127,7 +127,7 @@ export default function KeepBulkActionBar({
               setShowPalette(false);
             }}
             disabled={busy}
-            className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
+            className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
             title="Przenieś do folderu"
           >
             <FolderInput size={14} />
@@ -138,7 +138,7 @@ export default function KeepBulkActionBar({
         <Pressable
           onClick={onBulkArchive}
           disabled={busy}
-          className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
+          className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-text-secondary hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
           title="Archiwizuj"
         >
           <Archive size={14} />
@@ -148,7 +148,7 @@ export default function KeepBulkActionBar({
         <Pressable
           onClick={onBulkDelete}
           disabled={busy}
-          className="flex items-center gap-1 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-danger hover:bg-danger/10 transition-colors btn-press cursor-pointer"
+          className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-danger hover:bg-danger/10 transition-colors btn-press cursor-pointer"
           title="Usuń wybrane"
         >
           <Trash2 size={14} />
@@ -160,7 +160,7 @@ export default function KeepBulkActionBar({
         <Pressable
           onClick={onClearSelection}
           disabled={busy}
-          className="p-1.5 rounded-xl text-text-muted hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
+          className="p-1.5 rounded-lg text-text-muted hover:bg-surface-solid hover:text-text-primary transition-colors btn-press cursor-pointer"
           title="Anuluj wybór (Esc)"
           aria-label="Wyczyść zaznaczenie"
         >

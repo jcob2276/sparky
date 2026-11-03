@@ -69,7 +69,7 @@ export default function NoteViewOptions({
             {onViewModeChange && viewMode && (
               <>
                 <p className="keep-view-options-label">Układ</p>
-                <div className="flex gap-1 p-1 rounded-xl bg-surface-2/60 mb-1">
+                <div className="flex gap-1 p-1 rounded-lg bg-surface-2/60 mb-1">
                   <Pressable
                     type="button"
                     role="menuitemradio"

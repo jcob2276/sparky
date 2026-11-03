@@ -122,7 +122,7 @@ export default function VisionJournal({ refreshTrigger = 0 }: { refreshTrigger?:
     <Card variant="surface" className="w-full flex flex-col gap-8 bg-surface/50 border-border-custom" padding="1.5rem">
       <div className="flex items-center justify-between border-b border-border-custom/40 pb-4">
         <span className="text-xs font-bold text-text-muted tracking-normal">Agregacja wykresu</span>
-        <div className="flex bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/60 rounded-xl p-0.5">
+        <div className="flex bg-surface-2 dark:bg-on-accent/[0.02] border border-border-custom/60 rounded-lg p-0.5">
           <Pressable
             onClick={() => setViewMode('daily')}
             className={`px-3 py-1 rounded-lg text-xs font-bold ui-interactive cursor-pointer ${

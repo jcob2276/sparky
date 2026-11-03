@@ -149,7 +149,7 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
               placeholder="Szukaj markeru…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-7 pr-7 py-1.5 text-xs rounded-xl border border-border-custom bg-background w-full sm:w-44 sm:focus:w-56 ui-interactive"
+              className="pl-7 pr-7 py-1.5 text-xs rounded-lg border border-border-custom bg-background w-full sm:w-44 sm:focus:w-56 ui-interactive"
             />
             {searchQuery && (
               <Pressable
@@ -164,7 +164,7 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
           <ControlSelect
             value={selectedCategory}
             onChange={e => setSelectedCategory(e.target.value)}
-            className="w-full min-w-0 rounded-xl border border-border-custom bg-background px-3 py-1.5 text-xs font-bold outline-none cursor-pointer sm:w-auto"
+            className="w-full min-w-0 rounded-lg border border-border-custom bg-background px-3 py-1.5 text-xs font-bold outline-none cursor-pointer sm:w-auto"
           >
             <option value="all">Układy biologiczne (Wszystkie)</option>
             {categories.filter(c => c !== 'all').map(c => (
@@ -194,7 +194,7 @@ export default function MedicalResultsTable({ series, onSelectMarker }: MedicalR
         <MedicalResultsCards items={filteredMarkers} onSelectMarker={onSelectMarker} />
       </div>
 
-      <div className="hidden overflow-x-auto rounded-2xl border border-border-custom bg-background/30 md:block">
+      <div className="hidden overflow-x-auto rounded-lg border border-border-custom bg-background/30 md:block">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="border-b border-border-custom text-2xs font-semibold text-text-muted tracking-wide bg-background/50">

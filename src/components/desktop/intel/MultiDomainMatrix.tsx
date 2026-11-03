@@ -59,7 +59,7 @@ export default function MultiDomainMatrix({
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border-custom">
         <div className="flex items-center gap-2.5">
-          <div className="rounded-xl border border-primary/20 bg-primary/10 p-2 text-primary">
+          <div className="rounded-lg border border-primary/20 bg-primary/10 p-2 text-primary">
             <Layers size={20} />
           </div>
           <h3 className="text-sm font-bold tracking-tight text-text-primary">Mapa dni · 13 tygodni</h3>

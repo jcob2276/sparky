@@ -54,7 +54,7 @@ export function LinksTriagePanel({
             const link = links.find(l => l.id === s.id);
             if (!link) return null;
             return (
-              <Card key={s.id} variant="outline" padding="1rem" className="!bg-surface-2/40 !border-border-custom !rounded-xl space-y-3">
+              <Card key={s.id} variant="outline" padding="1rem" className="!bg-surface-2/40 !border-border-custom !rounded-lg space-y-3">
                 <h4 className="text-sm font-bold text-text-primary leading-snug">{link.title}</h4>
 
                 <div className="flex flex-wrap gap-2 text-xs font-semibold">

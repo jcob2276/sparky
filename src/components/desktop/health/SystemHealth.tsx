@@ -171,7 +171,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
           </div>
 
           {healthQuery.data.calibrationHistory.length > 0 && (
-            <div className="bg-surface border border-border-custom/50 rounded-2xl p-4 space-y-2">
+            <div className="bg-surface border border-border-custom/50 rounded-lg p-4 space-y-2">
               <div className="flex justify-between items-center">
                 <span className="text-xs font-semibold text-text-secondary tracking-wide flex items-center gap-1">
                   <TrendingUp size={12} className="text-success" />
@@ -219,7 +219,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
           onClick={() => void healthQuery.refetch()}
           variant="secondary"
           icon={<RefreshCw size={12} className={loading ? 'animate-spin' : ''} />}
-          className="rounded-xl px-3.5 py-2 text-xs"
+          className="rounded-lg px-3.5 py-2 text-xs"
         >
           Odśwież
         </Pressable>
@@ -233,7 +233,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
       )}
 
       {!loading && events.length === 0 && (
-        <div className="text-center py-20 border border-dashed border-border-custom/60 rounded-2xl bg-surface/20">
+        <div className="text-center py-20 border border-dashed border-border-custom/60 rounded-lg bg-surface/20">
           <ShieldCheck className="mx-auto mb-2 text-success" size={32} />
           <p className="text-sm font-bold text-text-primary">System w pełni zdrowy!</p>
           <p className="text-xs text-text-muted mt-1">Brak zapisanych zdarzeń w dzienniku audytu.</p>
@@ -248,7 +248,7 @@ export default function SystemHealth({ userId }: { userId: string }) {
             return (
               <div
                 key={ev.id}
-                className="bg-surface border border-border-custom/50 rounded-2xl overflow-hidden ui-interactive duration-[var(--motion-medium)]"
+                className="bg-surface border border-border-custom/50 rounded-lg overflow-hidden ui-interactive duration-[var(--motion-medium)]"
               >
                 {/* Header Row */}
                 <div

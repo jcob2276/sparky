@@ -69,7 +69,7 @@ export function TerminyYearDistribution({
               }}
               aria-label={`${name}: ${count} terminów`}
               title={`${name}: ${count} ${count === 1 ? 'termin' : 'terminów'}${isCurrent ? ' (bieżący miesiąc)' : ''}`}
-              className={`flex flex-col items-center justify-center py-2 px-1 rounded-xl transition-all duration-150 relative text-center ${
+              className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg transition-all duration-150 relative text-center ${
                 isSelected
                   ? 'bg-primary text-on-accent font-bold shadow-xs scale-[1.02]'
                   : isCurrent

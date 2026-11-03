@@ -33,7 +33,7 @@ function DomainCardItem({ item }: { item: DomainItem }) {
   return (
     <Pressable
       onClick={item.toggle}
-      className={`flex items-center justify-between p-3 rounded-xl border ui-interactive text-left cursor-pointer ${
+      className={`flex items-center justify-between p-3 rounded-lg border ui-interactive text-left cursor-pointer ${
         item.active
           ? 'border-primary/50 bg-primary/5 shadow-sm'
           : 'border-border-custom bg-surface opacity-60 hover:opacity-100'

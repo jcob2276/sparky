@@ -22,7 +22,7 @@ function Divider({ title }: { title: string }) {
 function Textarea({ value, onChange, placeholder, rows = 4 }: { value: string; onChange: (v: string) => void; placeholder?: string; rows?: number }) {
   return (
     <ControlTextarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows}
-      className="w-full bg-surface border border-border-custom rounded-xl px-3 py-2 text-sm text-text-primary placeholder-text-muted resize-y min-h-[var(--ds-h-80px)] focus:outline-none focus:border-primary/50 transition-colors" />
+      className="w-full bg-surface border border-border-custom rounded-lg px-3 py-2 text-sm text-text-primary placeholder-text-muted resize-y min-h-[var(--ds-h-80px)] focus:outline-none focus:border-primary/50 transition-colors" />
   );
 }
 
@@ -75,7 +75,7 @@ export default function DirectionPlanWeekPlan({
         <div className="space-y-2">
           <p className="text-2xs font-semibold text-text-muted">Sugestie AI</p>
           {(direction.monthTheme || sprintBridge || longTermBridge) && (
-            <div className="rounded-xl border border-primary/15 bg-primary/[0.03] px-3 py-2.5 space-y-1.5">
+            <div className="rounded-lg border border-primary/15 bg-primary/[0.03] px-3 py-2.5 space-y-1.5">
               {longTermBridge && <p className="text-xs font-semibold text-text-primary leading-relaxed">{longTermBridge}</p>}
               {direction.monthTheme && (
                 <p className="text-xs text-text-secondary leading-relaxed">
@@ -88,7 +88,7 @@ export default function DirectionPlanWeekPlan({
           )}
           {(["cialo", "duch", "konto"] as const).map((p) =>
             block5material[p] ? (
-              <div key={p} className="bg-surface border border-border-custom rounded-xl px-3 py-2.5">
+              <div key={p} className="bg-surface border border-border-custom rounded-lg px-3 py-2.5">
                 <p className="text-xs font-bold text-text-muted mb-0.5">{p === "cialo" ? "Ciało" : p === "duch" ? "Duch" : "Konto"}</p>
                 <p className="text-xs text-text-secondary leading-relaxed">{block5material[p]}</p>
               </div>
@@ -111,7 +111,7 @@ export default function DirectionPlanWeekPlan({
           </Card>
         )}
         {rule && (
-          <div className="rounded-xl border border-primary/25 bg-primary/[0.06] px-3.5 py-2.5 space-y-1.5">
+          <div className="rounded-lg border border-primary/25 bg-primary/[0.06] px-3.5 py-2.5 space-y-1.5">
             <p className="text-2xs font-semibold text-primary">Twoja reguła na ten tydzień (z pytania 3)</p>
             <p className="text-xs font-semibold text-text-primary leading-snug">{rule}</p>
             {weekCommitment.trim() !== rule && (

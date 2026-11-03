@@ -64,7 +64,7 @@ function ScoreCell({
   accent?: boolean;
 }) {
   return (
-    <div className="min-w-0 rounded-xl border border-border-custom/30 bg-surface/50 px-2.5 py-2">
+    <div className="min-w-0 rounded-lg border border-border-custom/30 bg-surface/50 px-2.5 py-2">
       <p className="truncate text-2xs font-bold tracking-wide text-text-muted">{label}</p>
       <span className={`text-sm font-semibold ${accent ? 'text-primary' : 'text-text-primary'}`}>
         {value == null ? '—' : `${value}${suffix}`}

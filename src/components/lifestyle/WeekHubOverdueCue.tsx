@@ -11,7 +11,7 @@ export default function WeekHubOverdueCue({
   onStartWeeklyReview?: () => void;
 }) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-warning/25 bg-warning/[0.06] p-3.5">
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-warning/25 bg-warning/[0.06] p-3.5">
       <div className="min-w-0">
         <p className="flex items-center gap-1.5 text-2xs font-semibold text-warning">
           <History size={12} /> Poprzedni tydzień czeka na domknięcie
@@ -27,7 +27,7 @@ export default function WeekHubOverdueCue({
           type="button"
           onClick={onQuickComplete}
           disabled={closingOverdue}
-          className="rounded-xl px-3 py-1.5 text-xs font-bold text-warning border-warning/30 hover:bg-warning/10"
+          className="rounded-lg px-3 py-1.5 text-xs font-bold text-warning border-warning/30 hover:bg-warning/10"
         >
           <Check size={12} className="mr-1 inline" /> Zamknij tydzień
         </Button>

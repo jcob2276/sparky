@@ -45,7 +45,7 @@ export default function EventContextCard({ eventId, title }: { eventId: string; 
   if (!notes.length && !facts.length) return null;
 
   return (
-    <aside className="rounded-xl border border-primary/15 bg-primary/5 p-3" aria-label="Powiązany kontekst wydarzenia">
+    <aside className="rounded-lg border border-primary/15 bg-primary/5 p-3" aria-label="Powiązany kontekst wydarzenia">
       <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-primary">
         <Sparkles size={14} /> Przygotowanie
       </div>

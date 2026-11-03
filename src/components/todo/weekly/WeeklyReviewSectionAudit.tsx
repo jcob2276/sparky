@@ -63,7 +63,7 @@ export default function WeeklyReviewSectionAudit() {
 
             return (
               <div className="space-y-2.5">
-                <div className="p-3 bg-surface-2 dark:bg-on-accent/[0.01] rounded-xl border border-border-custom/30">
+                <div className="p-3 bg-surface-2 dark:bg-on-accent/[0.01] rounded-lg border border-border-custom/30">
                   <span className="text-xs font-semibold text-primary block">
                     Bieżący Projekt:
                   </span>
@@ -83,7 +83,7 @@ export default function WeeklyReviewSectionAudit() {
                       return (
                         <div
                           key={item.id}
-                          className="p-3 rounded-xl border border-border-custom/50 bg-surface-solid/30 flex items-center justify-between gap-3"
+                          className="p-3 rounded-lg border border-border-custom/50 bg-surface-solid/30 flex items-center justify-between gap-3"
                         >
                           <div className="min-w-0 flex-1">
                             <span className="text-sm font-bold text-text-primary block truncate">
