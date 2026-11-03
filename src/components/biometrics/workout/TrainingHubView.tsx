@@ -62,7 +62,7 @@ function QuickStartCta({ onStart, onSauna, showStart }: { onStart: () => void; o
         {showStart && (
           <Pressable onClick={onStart} className="trening-hero-cta ui-interactive flex flex-1 cursor-pointer items-center justify-center gap-2 py-3.5 text-sm">
             <Plus size={16} strokeWidth={2.5} />
-            Start Workout
+            Rozpocznij trening
           </Pressable>
         )}
         <Pressable

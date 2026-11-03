@@ -22,7 +22,7 @@ export default function WeeklyWinsMap() {
 
   return (
     <div className="space-y-3">
-      <section className="space-y-3 rounded-3xl border border-border-custom/60 bg-surface/70 p-4">
+      <section className="space-y-3 rounded-lg border border-border-custom/60 bg-surface/70 p-4">
         <div className="flex items-baseline justify-between gap-3">
           <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-text-muted">
             <CheckSquare size={12} className="text-primary" /> Pięć zwycięstw · 7 dni
@@ -66,7 +66,7 @@ function DayCell({ day, selected, onSelect }: { day: WinsDayCell; selected: bool
         onClick={onSelect}
         aria-pressed={selected}
         aria-label={`${day.label}, ${day.doneCount} z ${day.plannedCount || 5} zadań${day.score != null ? `, ocena ${day.score}` : ''}`}
-        className={`flex aspect-square w-full max-w-11 items-center justify-center rounded-lg border text-xs font-semibold ui-interactive active:scale-95 ${cellClass(day.status)} ${
+        className={`flex aspect-square w-full max-w-11 items-center justify-center rounded-full border text-xs font-semibold ui-interactive active:scale-95 ${cellClass(day.status)} ${
           selected ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''
         }`}
       >
@@ -78,7 +78,7 @@ function DayCell({ day, selected, onSelect }: { day: WinsDayCell; selected: bool
 }
 
 function cellClass(status: 'win' | 'loss' | 'open'): string {
-  if (status === 'win') return 'border-dayC/50 bg-dayC/20 text-dayC';
-  if (status === 'loss') return 'border-dayB/50 bg-dayB/20 text-dayB';
+  if (status === 'win') return 'border-transparent bg-success/15 text-success';
+  if (status === 'loss') return 'border-danger/30 bg-transparent text-danger';
   return 'border-border-custom bg-surface text-text-muted';
 }

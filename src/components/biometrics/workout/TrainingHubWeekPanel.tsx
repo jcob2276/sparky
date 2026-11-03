@@ -38,13 +38,13 @@ export default function TrainingHubWeekPanel({ fatigueByTag, week }: Props) {
 
         <div className="w-[5.5rem] shrink-0 flex flex-col justify-center gap-3 border-l border-border-custom/60 pl-3">
           <div>
-            <p className="text-2xs font-semibold tracking-normal text-text-muted">Reps</p>
+            <p className="text-2xs font-semibold tracking-normal text-text-muted">Powtórzenia</p>
             <p className="text-xl font-semibold text-text-primary font-display tabular-nums leading-none mt-1">
               {week.reps.toLocaleString('pl-PL')}
             </p>
           </div>
           <div>
-            <p className="text-2xs font-semibold tracking-normal text-text-muted">Volume</p>
+            <p className="text-2xs font-semibold tracking-normal text-text-muted">Objętość</p>
             <p className="text-xl font-semibold text-primary font-display tabular-nums leading-none mt-1">
               {volumeLabel}
             </p>
