@@ -1,7 +1,7 @@
 /**
  * @component AppleRemindersSmartGrid
  * @role Implements Apple Reminders top smart lists grid (Dzisiaj, Zaplanowane, Wszystkie, Flaga, Ukończone).
- *       Renders glassmorphic cards with Apple circular icons and live counter badges.
+ *       Neutralne kafelki z jednym akcentem dla aktywnej listy i licznikami na żywo.
  */
 
 import React from 'react';
@@ -34,40 +34,30 @@ export function AppleRemindersSmartGrid({
       title: 'Dzisiaj',
       count: todayCount,
       icon: Calendar,
-      bgColor: 'bg-primary',
-      textColor: 'text-primary',
     },
     {
       id: 'upcoming' as TodoNavDest,
       title: 'Zaplanowane',
       count: upcomingCount,
       icon: Clock,
-      bgColor: 'bg-danger',
-      textColor: 'text-danger',
     },
     {
       id: 'all' as TodoNavDest,
       title: 'Wszystkie',
       count: allCount,
       icon: Inbox,
-      bgColor: 'bg-text-primary text-background',
-      textColor: 'text-text-primary',
     },
     {
       id: 'flagged' as TodoNavDest,
       title: 'Z flagą',
       count: flaggedCount,
       icon: Flag,
-      bgColor: 'bg-warning',
-      textColor: 'text-warning',
     },
     {
       id: 'completed' as TodoNavDest,
       title: 'Ukończone',
       count: completedCount,
       icon: CheckCircle2,
-      bgColor: 'bg-success',
-      textColor: 'text-success',
     },
   ];
 
@@ -89,11 +79,11 @@ export function AppleRemindersSmartGrid({
                 : 'border-transparent bg-surface-solid shadow-xs hover:shadow-sm'
             }`}
           >
-            <div className={`w-7 h-7 shrink-0 rounded-full ${card.bgColor} ${card.bgColor.includes('text-') ? '' : 'text-on-accent'} flex items-center justify-center shadow-xs`}>
+            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isActive ? 'bg-primary text-on-accent' : 'bg-surface-2 text-text-secondary'}`}>
               <Icon size={14} strokeWidth={2.5} />
             </div>
             <div className="min-w-0 flex flex-col leading-none justify-center">
-              <span className={`text-2xl font-semibold tabular-nums tracking-tight ${card.textColor}`}>
+              <span className={`text-2xl font-semibold tabular-nums tracking-tight ${isActive ? 'text-primary' : 'text-text-primary'}`}>
                 {card.count}
               </span>
               <span className="text-xs font-medium text-text-secondary tracking-tight leading-tight break-words mt-0.5">

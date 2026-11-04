@@ -133,8 +133,8 @@ export function buildWeekInsights(days: WinsDayCell[], today: string): WeekInsig
     insights.push({
       id: 'category-score-gap',
       title: diff > 0
-        ? `Dni z zrobionym obszarem „${c.label}” oceniasz wyżej`
-        : `Dni z zrobionym obszarem „${c.label}” oceniasz niżej`,
+        ? `Dni ze zrobionym obszarem „${c.label}” oceniasz wyżej`
+        : `Dni ze zrobionym obszarem „${c.label}” oceniasz niżej`,
       detail: `Średnio ${format1(gap.doneAvg)} (${gap.doneDays} dni) wobec ${format1(gap.missedAvg)} (${gap.missedDays} dni bez). To mała próba — traktuj jak wskazówkę.`,
     });
   }

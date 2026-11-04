@@ -25,8 +25,8 @@ export default function TodoInboxZone({ renderInlineQuickCapture, renderAddTodoB
     >
       <div className="todo-grouped-header">
         <BucketHeader
-          icon="📥"
-          title="Skrzynka / Inbox"
+          icon=""
+          title="Skrzynka"
           count={inboxItems.length}
           collapsed={!!collapsedSections['inbox']}
           onToggle={() => toggleSectionCollapse('inbox')}

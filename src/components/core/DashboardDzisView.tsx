@@ -15,6 +15,7 @@ import DailySnapshotCard from './DailySnapshotCard';
 import FoodQuickCapture from './nutrition/FoodQuickCapture';
 import { ThreeSpheresGoalsCard } from './ThreeSpheresGoalsCard';
 import TodayRunwayCard from './TodayRunwayCard';
+import TodayVitalsHero from './TodayVitalsHero';
 import VisionHeroCard from './VisionHeroCard';
 import { TodayLayoutEditor } from './TodayLayoutEditor';
 
@@ -68,6 +69,7 @@ export function DashboardDzisView(props: DashboardDzisViewProps) {
     <div className="min-h-full bg-background p-5 pb-32">
       <div className="mb-5 space-y-4">
         <DashboardGreeting />
+        <TodayVitalsHero />
         <UrgentObligationsBanner userId={props.userId} onNavigateToTerminy={props.onOpenTerminy} />
         <UpcomingObligationsStrip userId={props.userId} onNavigateToTerminy={props.onOpenTerminy} />
         <BodyMeasureBanner userId={props.userId} />

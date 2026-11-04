@@ -56,7 +56,7 @@ export default function DailyStrainCard({
   const readinessLevel = row.readiness_level;
 
   return (
-    <div className={`relative overflow-hidden card rounded-3xl ${STATUS_RING[statusKey]} p-4 space-y-4`}>
+    <div className={`relative overflow-hidden card rounded-lg ${STATUS_RING[statusKey]} p-4 space-y-4`}>
 
       {sourceNotice}
       <DailyStrainHeader

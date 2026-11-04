@@ -53,7 +53,7 @@ export default function WeeklyComparePulse() {
   if (!loading && metrics.length === 0) return null;
 
   return (
-    <section className="space-y-3 rounded-3xl border border-border-custom/60 bg-surface/70 p-4">
+    <section className="space-y-3 rounded-lg border border-border-custom/60 bg-surface/70 p-4">
       <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-text-muted">
         <GitCompareArrows size={12} className="text-primary" /> Ten tydzień na tle poprzedniego
       </p>

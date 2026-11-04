@@ -34,7 +34,7 @@ export default function ChronicleAiCompare({ a, b }: Props) {
   const comparison = result?.comparison;
 
   return (
-    <section className="space-y-3 rounded-3xl border border-border-custom/60 bg-surface/70 p-4" aria-label="Porównanie AI">
+    <section className="space-y-3 rounded-lg border border-border-custom/60 bg-surface/70 p-4" aria-label="Porównanie AI">
       <div className="flex items-center justify-between gap-3">
         <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-text-muted">
           <Sparkles size={12} className="text-primary" /> Porównanie AI

@@ -41,7 +41,7 @@ export default function HealthspanProfilePanel({ profile, pace, today }: Props) 
 
   return (
     <div className="space-y-5">
-      <section className="overflow-hidden rounded-3xl border border-white/10 bg-surface-1">
+      <section className="overflow-hidden rounded-lg border border-white/10 bg-surface-1">
         <div className="grid gap-px bg-white/10 sm:grid-cols-3">
           <div className="bg-surface-1 p-5 sm:col-span-2">
             <p className="text-2xs font-semibold tracking-normal text-primary">Healthspan Intelligence</p>

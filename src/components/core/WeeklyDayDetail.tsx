@@ -14,7 +14,7 @@ export default function WeeklyDayDetail({ day, today, yesterday }: WeeklyDayDeta
   return (
     <section
       aria-label={`Szczegóły dnia ${day.date}`}
-      className="space-y-3 rounded-3xl border border-border-custom/60 bg-surface/70 p-4"
+      className="space-y-3 rounded-lg border border-border-custom/60 bg-surface/70 p-4"
     >
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-sm font-semibold text-text-primary">{formatDayLabel(day.date, today, yesterday, true)}</h3>

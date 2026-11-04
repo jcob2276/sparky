@@ -158,7 +158,7 @@ export default function LiveExerciseCard({
   const platesTarget = sets[nextIdx >= 0 ? nextIdx : sets.length - 1];
 
   return (
-    <section className={`rounded-3xl border bg-surface transition-colors ${active ? 'border-primary/40 shadow-sm' : 'border-border-custom'}`}>
+    <section className={`rounded-lg border bg-surface transition-colors ${active ? 'border-primary/40 shadow-sm' : 'border-border-custom'}`}>
       <LiveExerciseHeader
         name={exercise.name}
         subtitle={subtitle}

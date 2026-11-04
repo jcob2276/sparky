@@ -15,7 +15,7 @@ interface Props {
 export default function WeeklyCollapsible({ icon, title, summary, className = '', children }: Props) {
   const [open, setOpen] = useState(false);
   return (
-    <section className={`rounded-3xl border border-border-custom/60 bg-surface/70 ${className}`}>
+    <section className={`rounded-lg border border-border-custom/60 bg-surface/70 ${className}`}>
       <Pressable
         type="button"
         aria-expanded={open}

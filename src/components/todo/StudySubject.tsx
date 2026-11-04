@@ -2,6 +2,7 @@ import { useId, useState, type ReactNode } from 'react';
 import { BookOpen, ChevronDown } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
 import StudyAssignmentForm from './StudyAssignmentForm';
+import { pluralPl } from '../../lib/formatPl';
 
 interface StudySubjectProps {
   title: string;
@@ -27,7 +28,7 @@ export default function StudySubject({ title, openCount, doneCount, children, on
           <span className="min-w-0 flex-1">
             <span className="block text-sm font-semibold leading-snug text-text-primary">{title}</span>
             <span className="mt-1 block text-xs font-normal text-text-muted">
-              {openCount || doneCount ? `${openCount} do zrobienia · ${doneCount} wykonanych` : 'Brak zadań — dodaj pierwsze'}
+              {openCount || doneCount ? `${openCount} do zrobienia · ${doneCount} ${pluralPl(doneCount, 'wykonane', 'wykonane', 'wykonanych')}` : 'Brak zadań — dodaj pierwsze'}
             </span>
           </span>
           <ChevronDown size={18} className={`shrink-0 text-text-muted ${expanded ? 'rotate-180' : ''}`} />

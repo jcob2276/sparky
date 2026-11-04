@@ -11,7 +11,7 @@ export default function WeeklyAiInsight({ today }: { today: string }) {
   const insight = result?.insight;
 
   return (
-    <section className="space-y-3 rounded-3xl border border-border-custom/60 bg-surface/70 p-4">
+    <section className="space-y-3 rounded-lg border border-border-custom/60 bg-surface/70 p-4">
       <div className="flex items-center justify-between gap-3">
         <p className="flex items-center gap-1.5 text-2xs font-semibold tracking-wide text-text-muted">
           <Sparkles size={12} className="text-primary" /> Analiza AI · 7 dni

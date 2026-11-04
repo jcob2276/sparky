@@ -2,6 +2,7 @@ import { Pressable, ControlTextarea } from '../ui/ControlPrimitives';
 import React from 'react';
 import type { SprintFacts, SprintProjectDecision } from '../../lib/growth/sprintReview';
 import { Card } from '../ui/Card';
+import { formatDecimalPl } from '../../lib/formatPl';
 
 function Divider({ title }: { title: string }) {
   return (
@@ -115,8 +116,8 @@ export default function DirectionSprintMode({
                 <span className="font-semibold text-text-primary">{k.name}</span>
                 {k.projectName ? ` · ${k.projectName}` : ''}
                 {' — '}
-                {k.lastValue != null ? k.lastValue : '—'}
-                {k.target != null ? ` / ${k.target}` : ''}
+                {k.lastValue != null ? formatDecimalPl(k.lastValue) : '—'}
+                {k.target != null ? ` / ${formatDecimalPl(k.target)}` : ''}
                 {k.unit ? ` ${k.unit}` : ''}
                 <span className="text-text-muted"> ({k.weeksLogged} tyg.)</span>
               </li>
@@ -178,7 +179,7 @@ export default function DirectionSprintMode({
                     <ul className="text-xs text-text-muted space-y-0.5 pl-0.5">
                       {projectKpis.map((k) => (
                         <li key={k.name}>
-                          {k.name}: {k.lastValue ?? '—'}/{k.target ?? '?'}
+                          {k.name}: {k.lastValue != null ? formatDecimalPl(k.lastValue) : '—'} / {k.target != null ? formatDecimalPl(k.target) : '?'}
                           {k.unit ? ` ${k.unit}` : ''} ({k.weeksLogged} tyg.)
                         </li>
                       ))}
