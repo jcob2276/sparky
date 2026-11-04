@@ -14,6 +14,47 @@ Materiały sprzedażowe i kalibracja closera czekają na dane użytkownika.
 Pozostały rozwój Androida, Finansów, Healthspan i pamięci wymaga decyzji
 w backlogu. Nie tworzyć drugiego webhooka Fathom.
 
+## Plan wizualny „odslopowanie” (UI)
+
+Źródło wzorców: badanie Appllama (≈45 ekranów, 14 aplikacji), notatki w presecie
+`sparky-appllama-preset`. Jedna faza = jeden temat = jeden commit.
+
+**Zasady z badania (stosować wszędzie):**
+1. Jeden bohater na ekran (wielka liczba, pierścienie albo karta z grafiką); reszta cicha.
+2. Kolor to dane, kontrolki neutralne; główny CTA może być ciemną pigułką.
+3. Nagłówek sekcji leży na tle nad kartą; wiersze rozdziela cienka linia.
+4. Wpis = karta: ikona w kółku, tytuł, godzina po prawej, chipy kontekstu.
+5. Logowanie to arkusz z uchwytem, jedno pole główne i szeroki CTA.
+6. Historia = siatka dni (kropki nastroju, kafelki nawyku), nie lista liczb.
+7. Wynik snu/regeneracji ma grafikę i pierścień; szczegół metryki ma szablon:
+   liczba + zakres, wykres z pasmem celu, 30D/3M/6M/1R, tabela trendu 3/7/14/30/90.
+
+**Decyzje czekające na Jakuba:** font (Plus Jakarta Sans vs systemowy, bo aplikacja jest
+na Androidzie), akcent (zostaje niebieski czy nowa tożsamość), styl grafiki.
+
+**Fazy (kolejność wg zależności):**
+- F0 [zrobione] Tokeny promieni, EmptyState, toasty, pierścienie i werdykt na górze Dziś,
+  spójność liczb i odmiany, tydzień/Todo bez pięciu kolorów.
+- F1 Dziś: „Pięć zwycięstw” jako siatka ostatnich tygodni, cytat jako baner, nagłówki
+  sekcji na tle. Uwaga: układ Dziś jest zapisany per użytkownik (TodayLayout), więc nowe
+  sekcje wymagają domyślnej migracji. Zawęzić zapytanie historii Oura na Dziś
+  (dziś pobiera 365 dni, bohater potrzebuje ~14).
+- F2 Dziennik (Duch/Kronika): oś czasu kart wpisów, kalendarz kropek, dodawanie „Wczoraj”
+  i „Inny dzień”. Zgodne z KIERUNEK: jeden dziennik, który mierzy i łączy.
+- F3 Jedzenie: stały pasek makr, arkusz logowania z ciemnym CTA, jeden kolor na makro.
+- F4 Trening: aktywna sesja (ukończona seria = zielone tło, timer w wierszu), heatmapa
+  miesiąca, radar objętości.
+- F5 Sen i biologia: ciemny ekran snu z wykresem faz (sprawdzić, czy mamy minutowe fazy),
+  biomarkery jako lista z mini wykresem, szablon szczegółu metryki.
+- F6 Planer: oś czasu dnia (pionowa szyna godzin, wzór Structured), grupowanie Todo
+  poranek/popołudnie (wzór Tiimo), Kronika Sprint/Rok.
+- F7 Grafika: jeden styl, naprawa obrazków hero (w dev `/@fs/D:/...` zwraca HTML, uruchamiać
+  Vite z rzeczywistego D:).
+- F8 Odbiór: build produkcyjny, telefon Android, tryb ciemny, desktop; pomiar wydajności.
+
+**Bramki każdej fazy:** `tsc`, `eslint`, ratchet, Knip, testy dotkniętych modułów,
+weryfikacja w podglądzie. Nowe pliki UI < 300 linii.
+
 ## Środowisko lokalne
 
 `C:\Users\jakub\Desktop\Sparky` jest junction do `D:\Przeniesione\Desktop-Sparky`.
