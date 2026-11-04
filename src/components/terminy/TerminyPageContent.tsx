@@ -115,7 +115,7 @@ function TerminyScorecards({ total, urgent, notes }: { total: number; urgent: nu
   return (
     <div className="grid grid-cols-3 gap-3">
       {cards.map(({ label, value, Icon, color }) => (
-        <div key={label} className="flex h-full min-w-0 flex-col justify-between rounded-[20px] border border-border-custom/30 bg-surface-solid/70 p-3 shadow-xs backdrop-blur-md">
+        <div key={label} className="flex h-full min-w-0 flex-col justify-between rounded-lg border border-border-custom/30 bg-surface-solid/70 p-3 shadow-xs">
           <div className="flex items-start gap-1.5 text-xs font-semibold leading-tight text-text-muted">
             <Icon size={14} className={`mt-px shrink-0 ${color}`} />
             <span>{label}</span>

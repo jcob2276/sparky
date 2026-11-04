@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Inbox } from 'lucide-react';
+import { Calendar, FolderOpen, Flame, Glasses, Inbox, Search, type LucideIcon } from 'lucide-react';
 import Button from './Button';
 
 interface EmptyStateAction {
@@ -8,7 +8,7 @@ interface EmptyStateAction {
 }
 
 export interface EmptyStateProps {
-  /** Lucide icon element (preferred). A plain string (legacy emoji) is still rendered as-is. Defaults to `Inbox`. */
+  /** Lucide icon element (preferred). A legacy emoji string is mapped to a Lucide icon. Defaults to `Inbox`. */
   icon?: ReactNode;
   label: string;
   /** Optional second line with a hint or the reason the list is empty. */
@@ -19,15 +19,26 @@ export interface EmptyStateProps {
   className?: string;
 }
 
+const LEGACY_EMOJI_ICONS: Record<string, LucideIcon> = {
+  '🔍': Search,
+  '📅': Calendar,
+  '📥': Inbox,
+  '📂': FolderOpen,
+  '🔥': Flame,
+  '👓': Glasses,
+};
+
 export default function EmptyState({ icon, label, description, action, compact = false, className = '' }: EmptyStateProps) {
-  const glyph = icon ?? <Inbox size={compact ? 18 : 22} strokeWidth={1.75} aria-hidden="true" />;
+  const Legacy = typeof icon === 'string' ? (LEGACY_EMOJI_ICONS[icon] ?? Inbox) : null;
+  const size = compact ? 18 : 22;
+  const glyph = Legacy ? <Legacy size={size} strokeWidth={1.75} aria-hidden="true" /> : (icon ?? <Inbox size={size} strokeWidth={1.75} aria-hidden="true" />);
   return (
     <div
-      className={`mx-0 my-3 flex flex-col items-center rounded-[var(--radius-hero)] border border-dashed border-border-custom bg-surface-2 text-center ${compact ? 'gap-2 px-4 py-5' : 'gap-3 px-6 py-8'} ${className}`}
+      className={`mx-0 my-3 flex flex-col items-center rounded-[var(--radius-grouped)] bg-surface-2 text-center ${compact ? 'gap-2 px-4 py-5' : 'gap-3 px-6 py-8'} ${className}`}
     >
       <div
         className={`flex items-center justify-center rounded-full bg-surface-3 text-text-muted ${compact ? 'h-10 w-10 text-lg' : 'h-12 w-12 text-2xl'}`}
-        aria-hidden={typeof icon === 'string' ? undefined : true}
+        aria-hidden="true"
       >
         {glyph}
       </div>

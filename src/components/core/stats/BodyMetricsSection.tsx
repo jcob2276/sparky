@@ -97,7 +97,7 @@ export function BodyMetricsSection({
   const bfBadgeColor = bf == null ? '' : bf < 10 ? 'text-warning bg-warning/10 border-warning/20' : bf < 16 ? 'text-success bg-success/10 border-success/20' : bf < 22 ? 'text-primary bg-primary/10 border-primary/20' : 'text-danger bg-danger/10 border-danger/20';
 
   return (
-    <section id="kronika-pomiary" className="rounded-lg border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
+    <section id="kronika-pomiary" className="rounded-lg border border-border-custom bg-surface/50 p-4 sm:p-5 shadow-sm space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

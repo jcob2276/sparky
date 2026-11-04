@@ -5,9 +5,16 @@ import EmptyState from './EmptyState';
 
 describe('EmptyState', () => {
   it('renders icon and label', () => {
-    render(<EmptyState icon="📝" label="Brak notatek" />);
-    expect(screen.getByText('📝')).toBeInTheDocument();
+    const { container } = render(<EmptyState icon={<svg data-testid="custom-icon" />} label="Brak notatek" />);
+    expect(screen.getByTestId('custom-icon')).toBeInTheDocument();
+    expect(container.querySelector('svg')).not.toBeNull();
     expect(screen.getByText('Brak notatek')).toBeInTheDocument();
+  });
+
+  it('maps a legacy emoji icon to a lucide icon instead of printing the emoji', () => {
+    const { container } = render(<EmptyState icon="🔍" label="Brak wyników" />);
+    expect(screen.queryByText('🔍')).not.toBeInTheDocument();
+    expect(container.querySelector('svg')).not.toBeNull();
   });
 
   it('falls back to a lucide icon and renders description', () => {

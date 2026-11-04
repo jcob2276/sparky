@@ -219,7 +219,7 @@ export default function StravaWidget() {
   }
 
   return (
-    <section id="kronika-bieganie" className="rounded-lg border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
+    <section id="kronika-bieganie" className="rounded-lg border border-border-custom bg-surface/50 p-4 sm:p-5 shadow-sm space-y-4">
       <header className="flex items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-1.5">

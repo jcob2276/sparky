@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, Clock, Repeat, Tag, Timer, Zap } from 'lucide-react';
 import Button from '../ui/Button';
 import { ControlInput, Pressable } from '../ui/ControlPrimitives';
 import Modal from '../ui/Modal';
@@ -169,12 +169,12 @@ function QuickCreateForm({
                     key={`${token.type}-${idx}`}
                     className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/15 text-primary text-2xs font-semibold border border-primary/25"
                   >
-                    {token.type === 'time' && '🕒'}
-                    {token.type === 'duration' && '⏱️'}
-                    {token.type === 'date' && '📅'}
-                    {token.type === 'recurrence' && '🔁'}
-                    {token.type === 'tag' && '🏷️'}
-                    {token.type === 'priority' && '⚡'}
+                    {token.type === 'time' && <Clock size={11} aria-hidden="true" />}
+                    {token.type === 'duration' && <Timer size={11} aria-hidden="true" />}
+                    {token.type === 'date' && <Calendar size={11} aria-hidden="true" />}
+                    {token.type === 'recurrence' && <Repeat size={11} aria-hidden="true" />}
+                    {token.type === 'tag' && <Tag size={11} aria-hidden="true" />}
+                    {token.type === 'priority' && <Zap size={11} aria-hidden="true" />}
                     <span>{token.label}</span>
                   </span>
                 ))}

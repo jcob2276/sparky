@@ -151,7 +151,7 @@ export const WeeklySpheresOverviewCard = memo(function WeeklySpheresOverviewCard
   };
 
   return (
-    <section className="rounded-3xl border border-border-custom/70 bg-surface-solid/40 p-4 shadow-sm backdrop-blur-xs space-y-3">
+    <section className="rounded-lg border border-border-custom/70 bg-surface-solid/40 p-4 shadow-sm space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">

@@ -151,7 +151,7 @@ export function TerminyObligationCard({
       }
       className={`group relative flex flex-wrap items-center sm:flex-nowrap ${
         compact ? 'gap-2.5 rounded-lg p-2.5' : 'gap-3.5 rounded-[20px] p-3.5'
-      } border border-border-custom/30 bg-surface-solid/70 backdrop-blur-md shadow-xs transition-all duration-200 ease-out active:scale-[0.98] hover:border-border-custom/60 hover:bg-surface-2/70 hover:shadow-md ${
+      } border border-border-custom/30 bg-surface-solid/70 shadow-xs transition-all duration-200 ease-out active:scale-[0.98] hover:border-border-custom/60 hover:bg-surface-2/70 hover:shadow-md ${
         onEdit ? 'cursor-pointer' : ''
       }`}
     >

@@ -32,7 +32,7 @@ export function TerminyYearDistribution({
   const totalInYear = Object.values(counts).reduce((a, b) => a + b, 0);
 
   return (
-    <section aria-label="Rozkład terminów w roku" className="rounded-[22px] border border-border-custom/30 bg-surface-solid/60 backdrop-blur-md p-4 shadow-xs space-y-3">
+    <section aria-label="Rozkład terminów w roku" className="rounded-lg border border-border-custom/30 bg-surface-solid/60 p-4 shadow-xs space-y-3">
       <div className="flex items-center justify-between px-0.5">
         <div className="flex items-center gap-2">
           <CalendarRange size={15} className="text-primary" />

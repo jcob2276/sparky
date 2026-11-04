@@ -55,7 +55,7 @@ export function WorkoutHistorySection({
   const displayedSessions = recentSessions.slice(0, showAllSessions ? 16 : 4);
 
   return (
-    <section id="kronika-silownia" className="rounded-lg border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] p-4 sm:p-5 shadow-sm space-y-4">
+    <section id="kronika-silownia" className="rounded-lg border border-border-custom bg-surface/50 p-4 sm:p-5 shadow-sm space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

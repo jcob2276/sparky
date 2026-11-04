@@ -17,6 +17,11 @@ const TONE = {
   info: 'border-primary/20 bg-primary/10 text-text-primary',
 };
 
+/** Toast copy is written once in many places; emoji are decoration, so they are dropped here, not in 30 call sites. */
+function plainMessage(message: string): string {
+  return message.replace(/[\p{Extended_Pictographic}\uFE0F]/gu, '').replace(/\s{2,}/g, ' ').trim();
+}
+
 export function ToastHost() {
   const [items, setItems] = useState<ToastItem[]>([]);
 
@@ -33,13 +38,13 @@ export function ToastHost() {
               className={`pointer-events-auto flex items-center gap-2 rounded-[var(--radius-md)] border px-3 py-2.5 shadow-lg backdrop-blur-[var(--blur-md)] text-sm font-semibold animate-in slide-in-from-right-4 ${TONE[t.type]}`}
             >
               <Icon size={14} className="shrink-0" />
-              <span className="flex-1 leading-snug">{t.message}</span>
+              <span className="flex-1 leading-snug">{plainMessage(t.message)}</span>
               {t.action && (
                 <Button
                   variant="secondary"
                   size="sm"
                   onClick={t.action.onClick}
-                  className="ml-1 shrink-0 rounded-[var(--radius-sm)] px-2.5 py-1 text-xs font-black uppercase tracking-wide bg-scrim/10 hover:bg-scrim/20 text-current hover:text-current border-none shadow-none active:scale-95"
+                  className="ml-1 shrink-0 rounded-[var(--radius-sm)] px-2.5 py-1 text-xs font-semibold bg-scrim/10 hover:bg-scrim/20 text-current hover:text-current border-none shadow-none active:scale-95"
                 >
                   {t.action.label}
                 </Button>

@@ -31,7 +31,7 @@ export function PhotoComparisonCard({
   const targetDateStr = targetPhoto?.date ? format(parseISO(targetPhoto.date), 'dd.MM.yy') : '--';
 
   return (
-    <div className="rounded-lg border border-border-custom bg-surface/50 backdrop-blur-[var(--blur-md)] overflow-hidden shadow-sm">
+    <div className="rounded-lg border border-border-custom bg-surface/50 overflow-hidden shadow-sm">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 px-4 pt-4 pb-3 sm:px-5 sm:pt-5">
         <div>
