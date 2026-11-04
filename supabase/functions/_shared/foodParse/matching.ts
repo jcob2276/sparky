@@ -23,6 +23,18 @@ export function normalizePl(s: string): string {
     .replace(/ń/g, 'n').replace(/ó/g, 'o').replace(/ś/g, 's').replace(/ź|ż/g, 'z');
 }
 
+export function isDryTacoProduct(name: string): boolean {
+  const normalized = normalizePl(name);
+  return /\btaco(?:s(?:y|ow)?)?\b/.test(normalized)
+    && /^(?:taco(?:s(?:y|ow)?)?\s+)?(?:shells?|skorup\w*|muszl\w*|chips\w*|nachos?|przypraw\w*|seasoning)\b/.test(normalized.trim());
+}
+
+/** Ready dishes must not inherit nutrition from dry ingredients or packaged snacks. */
+export function isComposedDish(name: string): boolean {
+  const normalized = normalizePl(name);
+  return !isDryTacoProduct(normalized) && /\b(jajecznica|omlet|nalesnik|racuch|placek ziemniaczan|kotlet|schabowy|gulasz|bigos|golabk\w*|pierogi|lazani\w*|spaghetti (bolognese|carbonara|z )|pizza|kebab|tortilla wrap|burritos?|taco(?:s(?:y|ow)?)?)\b/.test(normalized);
+}
+
 export function pieceGramsForName(name: string): number | null {
   const n = normalizePl(name);
   for (const rule of PIECE_GRAMS_RULES) {

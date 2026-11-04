@@ -7,7 +7,7 @@ import { LLM_TASKS } from "../llm/tasks.ts";
 import { lookupGenericFood, scoreFoodNameMatch } from "../foodGeneric.ts";
 import { lookupReferencePl } from "../foodReferencePl.ts";
 import type { ParsedFoodItem, UserParseContext, FoodCorrection } from "../foodParseCore.ts";
-import { normalizePl, scaleParsedItem } from "./matching.ts";
+import { isComposedDish, isDryTacoProduct, normalizePl, scaleParsedItem } from "./matching.ts";
 import { isUnmatchedForMacros, normalizeRawItems, PARSER_VERSION } from "./normalize.ts";
 import { buildSystemPrompt } from "./prompts.ts";
 import type { createServiceClient } from '../supabase.ts';
@@ -21,6 +21,9 @@ export type ReconcileOpts = { supabaseUrl: string; serviceKey: string; userId?: 
 export function isPlausibleFoodCandidate(query: string, candidate: Per100gFood): boolean {
   const calories = Number(candidate.calories ?? 0);
   if (!Number.isFinite(calories) || calories <= 0 || calories > 1000) return false;
+  // A dry-product density is suspicious for a ready dish, even when an earlier log cached the same name.
+  // Reject the match and keep the labelled estimate; never clamp calories to this review threshold.
+  if (isComposedDish(query) && (isDryTacoProduct(candidate.name) || calories > 450)) return false;
   const normalized = normalizePl(`${query} ${candidate.name}`);
   if (/\b(bulka|chleb|bagietka|kajzerka)\b/.test(normalized) && calories < 180) {
     return false;
@@ -181,18 +184,12 @@ export async function lookupViaLibraryRaw(name: string, userId: string, db: Db):
   return merged.length ? merged : null;
 }
 
-/**
- * Potrawy złożone — ich makra już zawierają tłuszcz ze smażenia.
- * Nie mapujemy ich na surowe składniki z generic/reference (np. jajecznica → jajko ugotowane).
- */
-const COMPOSED_DISHES_RE = /\b(jajecznica|omlet|nalesnik|racuch|placek ziemniaczan|kotlet|schabowy|gulasz|bigos|gołąbk|pierogi|lazani|spaghetti (bolognese|carbonara|z )|pizza|kebab|tortilla wrap|burrito|taco)\b/i;
-
 type Resolved = { match: Per100gFood; source: ParsedFoodItem['source']; macroSource: NonNullable<ParsedFoodItem['parseMeta']>['macroSource']; score?: number };
 
 /** Dopasowanie w uchwytnej kolejności zaufania; odrzucone przez weryfikację (niska zgodność nazwy) przechodzi do kolejnego źródła, a nie od razu do szacunku LLM. */
 async function resolveFromSources(item: ParsedFoodItem, opts: ReconcileOpts): Promise<Resolved | null> {
   // Potrawy złożone: nie dopasowujemy do surowych składników — zostaje LLM-estimate lub reference_pl.
-  const isComposedDish = COMPOSED_DISHES_RE.test(normalizePl(item.name));
+  const composedDish = isComposedDish(item.name);
   const nameEn = item.parseMeta?.nameEn;
   const resolvers: Array<() => Promise<Resolved | null>> = [
     // 1. Osobista biblioteka/ulubione — własne wpisy mają priorytet.
@@ -208,25 +205,25 @@ async function resolveFromSources(item: ParsedFoodItem, opts: ReconcileOpts): Pr
     },
     // 3. USDA po angielskiej nazwie z parsera — proste produkty, nie potrawy złożone.
     async () => {
-      if (isComposedDish || !nameEn || !opts.db) return null;
+      if (composedDish || !nameEn || !opts.db) return null;
       const usda = await lookupUsda(nameEn, opts.db);
       return usda ? { match: usda.match, source: 'database', macroSource: 'usda', score: usda.score } : null;
     },
     // 4. Generic staples — tylko proste produkty (gdy USDA nie ma pewnego dopasowania).
     async () => {
-      const local = isComposedDish ? null : lookupGenericFood(item.name);
+      const local = composedDish ? null : lookupGenericFood(item.name);
       return local ? { match: local, source: 'database', macroSource: 'generic', score: scoreFoodNameMatch(item.name, local.name) } : null;
     },
     // 5. Open Food Facts — proste produkty.
     async () => {
-      if (isComposedDish) return null;
+      if (composedDish) return null;
       const remote = await lookupOffFast(item.name);
       return remote?.match.calories != null ? { match: remote.match, source: 'database', macroSource: remote.macroSource, score: remote.score } : null;
     },
   ];
   for (const resolve of resolvers) {
     const found = await resolve();
-    if (!found?.match.calories) continue;
+    if (!found?.match.calories || !isPlausibleFoodCandidate(item.name, found.match)) continue;
     const uncertain = found.score != null && found.score >= 0.50 && found.score <= 0.72;
     if (uncertain && opts.apiKey && !(await verifyMatchWithLLM(item.name, found.match.name, opts.apiKey))) continue;
     return found;
