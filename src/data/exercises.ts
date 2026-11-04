@@ -59,6 +59,11 @@ export const EXERCISES = [
   // Brzuch
   { name: 'Ab wheel rollout', tags: ['brzuch'] },
   { name: 'Russian twist', tags: ['brzuch'] },
+  { name: 'Plank', tags: ['brzuch'] },
+  { name: 'Leg raise na drążku', tags: ['brzuch'] },
+  { name: 'Cable crunch', tags: ['brzuch'] },
+  { name: 'Dead bug', tags: ['brzuch'] },
+  { name: 'Pallof press', tags: ['brzuch'] },
   // Wellness
   { name: 'Sauna', tags: ['wellness'] },
 ];
@@ -90,28 +95,6 @@ export * from './exerciseStimulus'
  * logged → assume the set counted (don't punish missing data).
  */
 // rirEffectiveness re-exported above from @vanguard/domain
-
-const TAG_COLOR: Record<string, string> = {
-  klatka:        'bg-blue-500/15 text-blue-300 border-blue-500/25',
-  plecy:         'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
-  barki:         'bg-violet-500/15 text-violet-300 border-violet-500/25',
-  biceps:        'bg-orange-500/15 text-orange-300 border-orange-500/25',
-  triceps:       'bg-rose-500/15 text-rose-300 border-rose-500/25',
-  czworogłowe:   'bg-yellow-500/15 text-yellow-300 border-yellow-500/25',
-  'dwugłowe ud': 'bg-amber-500/15 text-amber-300 border-amber-500/25',
-  pośladki:      'bg-pink-500/15 text-pink-300 border-pink-500/25',
-  nogi:          'bg-yellow-500/15 text-yellow-300 border-yellow-500/25',
-  brzuch:        'bg-teal-500/15 text-teal-300 border-teal-500/25',
-  łydki:         'bg-slate-400/15 text-slate-300 border-slate-400/25',
-  przedramiona:  'bg-cyan-500/15 text-cyan-300 border-cyan-500/25',
-  cardio:        'bg-red-500/15 text-red-300 border-red-500/25',
-  wellness:      'bg-teal-400/15 text-teal-300 border-teal-400/25',
-  plyo:          'bg-lime-500/15 text-lime-300 border-lime-500/25',
-};
-
-export function tagClass(tag: string): string {
-  return TAG_COLOR[tag] ?? 'bg-white/10 text-white/50 border-white/15';
-}
 
 // Find tags for a given exercise name (fuzzy, normalized)
 export function tagsForExercise(name: string): string[] {

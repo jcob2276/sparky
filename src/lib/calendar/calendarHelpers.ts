@@ -156,41 +156,6 @@ export function nowMinutes() {
   return n.getHours() * 60 + n.getMinutes();
 }
 
-export function computeBudgetBarState(
-  spent: number,
-  minVal: number | null | undefined,
-  maxVal: number | null | undefined,
-  baseColor: string,
-): { pct: number; statusText: string; barColor: string } {
-  if (minVal != null && minVal > 0 && maxVal != null && maxVal > 0) {
-    return {
-      pct: Math.min(100, (spent / maxVal) * 100),
-      statusText: `${spent.toFixed(1)}h / ${minVal}–${maxVal}h`,
-      barColor:
-        spent < minVal
-          ? 'bg-warning dark:bg-warning'
-          : spent > maxVal
-          ? 'bg-danger dark:bg-danger'
-          : 'bg-success dark:bg-success',
-    };
-  }
-  if (minVal != null && minVal > 0) {
-    return {
-      pct: Math.min(100, (spent / minVal) * 100),
-      statusText: `${spent.toFixed(1)}h / min ${minVal}h`,
-      barColor: spent >= minVal ? 'bg-success dark:bg-success' : 'bg-warning dark:bg-warning',
-    };
-  }
-  if (maxVal != null && maxVal > 0) {
-    return {
-      pct: Math.min(100, (spent / maxVal) * 100),
-      statusText: `${spent.toFixed(1)}h / max ${maxVal}h`,
-      barColor: spent > maxVal ? 'bg-danger dark:bg-danger' : baseColor,
-    };
-  }
-  return { pct: 0, statusText: `${spent.toFixed(1)}h`, barColor: baseColor };
-}
-
 /** „Sen” / „Sleep” jako osobne słowo na początku tytułu (nie „Sensor” ani „Konsensus”). */
 export function isSleepSummary(summary: string | null | undefined): boolean {
   return /^[^\p{L}\p{N}]*(?:sen|sleep)(?![\p{L}\p{N}])/iu.test(summary ?? '');

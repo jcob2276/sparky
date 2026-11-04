@@ -14,8 +14,6 @@ vi.mock('./DailySnapshotCard', () => ({ default: () => <p>Daily snapshot</p> }))
 vi.mock('./nutrition/FoodQuickCapture', () => ({ default: () => <p>Food log</p> }));
 vi.mock('./ThreeSpheresGoalsCard', () => ({ ThreeSpheresGoalsCard: () => <p>Goals</p> }));
 vi.mock('./TodayRunwayCard', () => ({ default: () => <p>Agenda</p> }));
-vi.mock('./TodayVitalsHero', () => ({ default: () => <p>Vitals hero</p> }));
-vi.mock('./WinsHistoryGrid', () => ({ default: () => null }));
 vi.mock('./VisionHeroCard', () => ({ default: () => <p>Vision</p> }));
 
 const props: DashboardDzisViewProps = {

@@ -58,7 +58,7 @@ export default function WeeklyWinsMap() {
 }
 
 function DayCell({ day, selected, onSelect }: { day: WinsDayCell; selected: boolean; onSelect: () => void }) {
-  const shown = day.score ?? (day.status === 'open' && day.doneCount > 0 ? day.doneCount : null);
+  const shown = day.score ?? (day.status === 'loss' || (day.status === 'open' && day.doneCount > 0) ? day.doneCount : null);
   return (
     <div className="flex flex-col items-center gap-1.5">
       <Pressable
@@ -79,6 +79,6 @@ function DayCell({ day, selected, onSelect }: { day: WinsDayCell; selected: bool
 
 function cellClass(status: 'win' | 'loss' | 'open'): string {
   if (status === 'win') return 'border-transparent bg-success/15 text-success';
-  if (status === 'loss') return 'border-danger/30 bg-transparent text-danger';
+  if (status === 'loss') return 'border-transparent bg-danger/15 text-danger';
   return 'border-border-custom bg-surface text-text-muted';
 }

@@ -33,7 +33,7 @@ export default function TerminySidebar({
   return (
     <WorkspaceSidebar collapsed={collapsed} onCollapse={onToggleCollapse} className="select-none">
       <div className={`flex-1 overflow-y-auto ${collapsed ? 'px-1 py-2 space-y-4' : 'px-4 pb-4 space-y-6'}`}>
-        <WorkspaceNavigation active="terminy" onNavigate={onNavigateTo} />
+        <WorkspaceNavigation active="terminy" onNavigate={onNavigateTo} className={collapsed ? '' : '-mx-4'} />
 
         <SidebarSection
           label="Terminy i Kategorie"

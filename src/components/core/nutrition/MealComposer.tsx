@@ -5,7 +5,6 @@ import { computeDayEnergyRange } from '../../../lib/health/nutritionAudit';
 import { useMealComposer } from './hooks/useMealComposer';
 import { useMealPhotoUrls } from './hooks/useMealPhotoUrls';
 import { useWeekBalance } from './hooks/useWeekBalance';
-import { useDayReview } from './hooks/useDayReview';
 import MealComposerView from './MealComposerView';
 
 function sumDayMacros(entries: Array<{ carbs: number | null; fat: number | null }>) {
@@ -22,8 +21,7 @@ export default function MealComposer({ onSaved, refreshSignal = 0 }: { onSaved?:
   const nutrients = useMemo(() => computeDayNutrientCoverage(c.allTodayEntries), [c.allTodayEntries]);
   const energy = useMemo(() => computeDayEnergyRange(c.allTodayEntries), [c.allTodayEntries]);
   const macros = useMemo(() => sumDayMacros(c.allTodayEntries), [c.allTodayEntries]);
-  const dayReview = useDayReview(session?.user.id, c.logDate);
   const week = useWeekBalance(session?.user.id, c.logDate, c.totals.calories, c.totals.targetKcal);
   if (!session) return null;
-  return <MealComposerView c={c} photoUrls={photoUrls} nutrients={nutrients} energy={energy} macros={macros} dayReview={dayReview} week={week} onSaved={onSaved} />;
+  return <MealComposerView c={c} photoUrls={photoUrls} nutrients={nutrients} energy={energy} macros={macros} week={week} onSaved={onSaved} />;
 }

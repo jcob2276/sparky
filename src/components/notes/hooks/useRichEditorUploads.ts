@@ -29,16 +29,18 @@ export function useRichEditorUploads({
     try {
       const attachment = await uploadNoteAttachment(userId, noteId, file);
       await queryClient.invalidateQueries({ queryKey: notesKeys.attachments(noteId) });
-      const safeLabel = document.createElement('span');
-      safeLabel.textContent = `📎 ${attachment.file_name}`;
       restoreSelection();
-      document.execCommand(
-        'insertHTML',
-        false,
-        `<p><span data-attachment-id="${attachment.id}" contenteditable="false">${safeLabel.innerHTML}</span></p><p><br></p>`
-      );
+      // Zdjęcie wstawiamy jako obraz w treści; src odświeżamy przy otwarciu notatki (podpisany URL wygasa).
+      const img = document.createElement('img');
+      img.className = 'keep-inline-img';
+      img.alt = '';
+      img.setAttribute('data-attachment-id', attachment.id);
+      if (attachment.signed_url) img.src = attachment.signed_url;
+      const holder = document.createElement('div');
+      holder.appendChild(img);
+      document.execCommand('insertHTML', false, `${holder.innerHTML}<p><br></p>`);
       handleInput();
-      notify('Zdjęcie zapisane jako załącznik', 'success');
+      notify('Zdjęcie dodane do notatki', 'success');
     } catch (error) {
       notify(error instanceof Error ? error.message : 'Nie udało się dodać załącznika', 'error');
     }

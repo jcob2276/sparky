@@ -5,6 +5,8 @@
  * @usedBy Keep (gdy viewMode === 'split')
  */
 import { useEffect, useState } from 'react';
+import { useResizableListWidth } from './hooks/useResizableListWidth';
+import SplitListResizer from './SplitListResizer';
 import { Bot, StickyNote } from 'lucide-react';
 import { Note } from './keepUtils';
 import InlineEditor from './InlineEditor';
@@ -62,13 +64,12 @@ export default function SplitNotesView({
   busy, allTags, onCreate: _onCreate, onExportChecklists, folders = [], onCreateFolder, onExportNote, onExportPdf, onShareNote, onLockNote,
   collectionView, gridProps, sections, bulk, quickFilter, setQuickFilter, quickFilterCounts, search,
 }: SplitNotesViewProps) {
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [actionNote, setActionNote] = useState<Note | null>(null);
-
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768), [actionNote, setActionNote] = useState<Note | null>(null);
+  const { listWidth, startResize, commitListWidth, bounds } = useResizableListWidth();
   useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    const onResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, []);
 
   useBackHandler(() => {
@@ -107,7 +108,7 @@ export default function SplitNotesView({
       {showCollection && (
         <section
           className={`keep-split-list-pane ${galleryMode ? 'gallery' : ''}`}
-          aria-label={galleryMode ? 'Galeria notatek' : 'Lista notatek'}
+          style={galleryMode || isMobile ? undefined : { width: listWidth }} aria-label={galleryMode ? 'Galeria notatek' : 'Lista notatek'}
         >
           {/* Top Quick Actions Bar: Filter pills */}
           {quickFilter && setQuickFilter && (
@@ -147,6 +148,8 @@ export default function SplitNotesView({
           )}
         </section>
       )}
+
+      {showCollection && showEditor && !galleryMode && !isMobile && <SplitListResizer width={listWidth} bounds={bounds} onStart={startResize} onCommit={commitListWidth} />}
 
       {/* Editor Pane - Visible on desktop, or on mobile when a note IS selected */}
       {showEditor && (

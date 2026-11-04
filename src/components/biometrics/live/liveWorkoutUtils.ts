@@ -111,6 +111,7 @@ export function formatClock(totalSeconds: number): string {
 
 export const MAX_KG = 600;
 export const MAX_REPS = 200;
+export const MAX_SECONDS = 600;
 
 /** Czyści wpis liczbowy: bez końcowej kropki i zer z przodu, w zadanych granicach (puste zostaje puste). */
 export function normalizeNumber(value: string, max: number, integer: boolean): string {

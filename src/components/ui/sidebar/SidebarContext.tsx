@@ -100,7 +100,8 @@ export function SidebarProvider({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleSidebar]);
 
-  const state: SidebarState = open ? 'expanded' : 'collapsed';
+  // Na telefonie szuflada zawsze jest rozwinięta; zwinięty stan dotyczy tylko paska na komputerze.
+  const state: SidebarState = open || isMobile ? 'expanded' : 'collapsed';
 
   const contextValue = useMemo<SidebarContextValue>(
     () => ({

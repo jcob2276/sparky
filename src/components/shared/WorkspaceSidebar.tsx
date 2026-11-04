@@ -11,6 +11,8 @@ export interface WorkspaceSidebarProps {
   /** When false, parent must wrap with SidebarProvider (e.g. calendar mobile trigger in header). */
   provideContext?: boolean;
   mobileTitle?: string;
+  /** Ukrywa przycisk zwijania w nagłówku panelu (gdy nagłówek strony ma własny). */
+  hideTrigger?: boolean;
 }
 
 function WorkspaceSidebarInner({
@@ -18,11 +20,13 @@ function WorkspaceSidebarInner({
   className = '',
   onCollapse,
   mobileTitle = 'Kalendarz',
+  hideTrigger = false,
 }: {
   children: ReactNode;
   className?: string;
   onCollapse?: () => void;
   mobileTitle?: string;
+  hideTrigger?: boolean;
 }) {
   const { state, isMobile } = useSidebar();
   const isCollapsed = state === 'collapsed';
@@ -34,10 +38,12 @@ function WorkspaceSidebarInner({
           <span className="pixel-label text-text-muted/60 tracking-wider">Workspace</span>
         )}
         {/* Mobile: toggle sheet via context. Desktop: sync external collapsed flag. */}
-        <SidebarTrigger
-          onClick={isMobile ? undefined : onCollapse}
-          className="hover:bg-surface-2 rounded-lg"
-        />
+        {!hideTrigger && (
+          <SidebarTrigger
+            onClick={isMobile ? undefined : onCollapse}
+            className="hover:bg-surface-2 rounded-lg"
+          />
+        )}
       </SidebarHeader>
       {children}
       <SidebarRail />
@@ -54,9 +60,10 @@ export default function WorkspaceSidebar({
   variant = 'sidebar',
   provideContext = true,
   mobileTitle,
+  hideTrigger,
 }: WorkspaceSidebarProps) {
   const inner = (
-    <WorkspaceSidebarInner className={className} onCollapse={onCollapse} mobileTitle={mobileTitle}>
+    <WorkspaceSidebarInner className={className} onCollapse={onCollapse} mobileTitle={mobileTitle} hideTrigger={hideTrigger}>
       {children}
     </WorkspaceSidebarInner>
   );

@@ -58,9 +58,13 @@ export function useNoteFolderActions({ queryClient, userId, folders }: NoteFolde
   }, [folders, queryClient, userId]);
 
   const handleDeleteFolder = useCallback(async (id: string) => {
-    await deleteNoteFolder(id);
-    await queryClient.invalidateQueries({ queryKey: notesKeys.all });
-    notify('Folder usunięty; notatki pozostały w Wszystkich', 'info');
+    try {
+      await deleteNoteFolder(id);
+      await queryClient.invalidateQueries({ queryKey: notesKeys.all });
+      notify('Folder usunięty; notatki pozostały w Wszystkich', 'info');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Nie udało się usunąć folderu', 'error');
+    }
   }, [queryClient]);
 
   const refreshSmartFolders = useCallback(async () => {

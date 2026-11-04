@@ -14,7 +14,6 @@ import { CalendarContext } from './context/CalendarContext';
 import CalendarSidebar from './components/CalendarSidebar';
 import CalendarHeader from './components/CalendarHeader';
 import CalendarTodoModal from './components/CalendarTodoModal';
-import CalendarBudgetModal from './components/CalendarBudgetModal';
 import CalendarShell from './components/CalendarShell';
 import CalendarShortcutsHelp from './components/CalendarShortcutsHelp';
 import { useCalendarViewState } from './hooks/useCalendarViewState';
@@ -103,7 +102,6 @@ export default function CalendarView({
           handleEditSave={actions.handleEditSave}
         />
         <CalendarTodoModal />
-        <CalendarBudgetModal />
         <CalendarShortcutsHelp isOpen={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
       </CalendarShell>
     </CalendarContext.Provider>

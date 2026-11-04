@@ -14,7 +14,6 @@ import type { useMealComposer } from './hooks/useMealComposer';
 import type { DayNutrientCoverage } from '../../../lib/health/nutrientCoverage';
 import type { DayEnergyRange } from '../../../lib/health/nutritionAudit';
 import type { WeekBalance } from '../../../lib/health/weekBalance';
-import type { DayReview } from './hooks/useDayReview';
 
 const FoodEntryModal = lazy(() => import('./FoodEntryModal'));
 const CopyDayModal = lazy(() => import('./CopyDayModal'));
@@ -25,12 +24,11 @@ interface Props {
   nutrients: DayNutrientCoverage;
   energy: DayEnergyRange | null;
   macros: { carbs: number | null; fat: number | null };
-  dayReview: DayReview;
   week: WeekBalance | null;
   onSaved?: () => void;
 }
 
-export default function MealComposerView({ c, photoUrls, nutrients, energy, macros, dayReview, week, onSaved }: Props) {
+export default function MealComposerView({ c, photoUrls, nutrients, energy, macros, week, onSaved }: Props) {
   const [editEntry, setEditEntry] = useState<RecentEntry | null>(null);
   const [copyDayOpen, setCopyDayOpen] = useState(false);
   const hasCalories = c.allTodayEntries.some((entry) => entry.calories != null) || c.totals.calories > 0;
@@ -58,7 +56,6 @@ export default function MealComposerView({ c, photoUrls, nutrients, energy, macr
           totals={c.totals}
           qualityPending={c.qualityPending}
           week={week}
-          dayReview={dayReview}
           nutrients={nutrients}
           energy={energy}
           hasEntries={hasCalories}

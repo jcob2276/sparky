@@ -2,8 +2,6 @@ import { useMemo } from 'react';
 import { useCalendar } from '../context/CalendarContext';
 import MiniCalendar from '../MiniCalendar';
 import SolarDayWidget from '../SolarDayWidget';
-import CalendarBudgetPanel from '../CalendarBudgetPanel';
-import { LIFE_SPHERES } from '../../../lib/projects/lifeSpheres';
 import { weekMon } from '../calendarHelpers';
 import { formatWarsawDate } from '../../../lib/date';
 import WorkspaceNavigation from '../../shared/WorkspaceNavigation';
@@ -28,24 +26,7 @@ function CalendarSidebarBody({
   const showPanels = isMobile || !collapsed;
 
   const {
-    calData: {
-      selectedDay,
-      setSelectedDay,
-      setWeekStart,
-      events,
-      setBudgetMinInputs,
-      setBudgetMaxInputs,
-      setFrameDaysInputs,
-      setFrameStartInputs,
-      setFrameEndInputs,
-      setFrameStrengthInputs,
-      setShowBudgetConfig,
-    },
-    timeBudgets: {
-      budgets,
-    },
-    categoryWeeklyTotals,
-    categoryPrevWeeklyTotals,
+    calData: { selectedDay, setSelectedDay, setWeekStart, events },
   } = useCalendar();
 
   const eventDatesSet = useMemo(() => {
@@ -60,7 +41,7 @@ function CalendarSidebarBody({
 
   return (
     <div className={`flex-1 overflow-y-auto overflow-x-hidden ${collapsed && !isMobile ? 'px-1 py-2 space-y-4' : 'px-3 pb-4 space-y-4'}`}>
-      {!isMobile && <WorkspaceNavigation active="kalendarz" onNavigate={onNavigateTo} />}
+      <WorkspaceNavigation active="kalendarz" onNavigate={onNavigateTo} className={collapsed && !isMobile ? '' : '-mx-3'} />
 
       {showPanels && (
         <>
@@ -75,37 +56,6 @@ function CalendarSidebarBody({
           />
 
           <SolarDayWidget dateStr={selectedDay} />
-
-          <CalendarBudgetPanel
-            categoryWeeklyTotals={categoryWeeklyTotals}
-            categoryPrevWeeklyTotals={categoryPrevWeeklyTotals}
-            budgets={budgets}
-            isMobile={isMobile}
-            onConfigure={() => {
-              const mins: Record<string, string> = {};
-              const maxs: Record<string, string> = {};
-              const days: Record<string, number[]> = {};
-              const starts: Record<string, string> = {};
-              const ends: Record<string, string> = {};
-              const strengths: Record<string, 'prefer' | 'only'> = {};
-              LIFE_SPHERES.map((s) => s.id).forEach((cat) => {
-                const b = budgets.find((item) => item.category === cat);
-                mins[cat] = b?.min_hours !== null && b?.min_hours !== undefined ? String(b.min_hours) : '';
-                maxs[cat] = b?.max_hours !== null && b?.max_hours !== undefined ? String(b.max_hours) : '';
-                days[cat] = b?.preferred_days || [];
-                starts[cat] = b?.preferred_start?.slice(0, 5) || '';
-                ends[cat] = b?.preferred_end?.slice(0, 5) || '';
-                strengths[cat] = b?.frame_strength === 'only' ? 'only' : 'prefer';
-              });
-              setBudgetMinInputs(mins);
-              setBudgetMaxInputs(maxs);
-              setFrameDaysInputs(days);
-              setFrameStartInputs(starts);
-              setFrameEndInputs(ends);
-              setFrameStrengthInputs(strengths);
-              setShowBudgetConfig(true);
-            }}
-          />
         </>
       )}
     </div>

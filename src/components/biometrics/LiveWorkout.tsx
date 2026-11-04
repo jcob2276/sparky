@@ -131,9 +131,6 @@ export default function LiveWorkout({
         <Button variant="tonal" onClick={() => setPickerOpen(true)} className="live-workout-add !h-14 w-full !rounded-lg !text-base !font-semibold">
           <Plus size={18} className="mr-1.5" /> Dodaj ćwiczenie
         </Button>
-        <Button variant="tonal-danger" onClick={() => void logger.handleBack()} className="min-h-12 w-full">
-          Anuluj trening
-        </Button>
       </main>
 
       {undo && (

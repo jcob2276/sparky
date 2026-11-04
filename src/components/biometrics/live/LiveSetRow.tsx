@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { Check, Trophy } from 'lucide-react';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
 import type { WorkoutSet } from '../workout/workoutUtils';
-import { MAX_KG, MAX_REPS, normalizeNumber, type SetGhost } from './liveWorkoutUtils';
+import { MAX_KG, MAX_REPS, MAX_SECONDS, normalizeNumber, type SetGhost } from './liveWorkoutUtils';
 
 interface Props {
   set: WorkoutSet;
@@ -15,6 +15,8 @@ interface Props {
   actionsOpen: boolean;
   /** Krótka podpowiedź po próbie zaliczenia serii bez powtórzeń. */
   needsReps: boolean;
+  /** Ćwiczenie izometryczne (plank, stanie na rękach): pole „powtórzeń” to sekundy. */
+  timed?: boolean;
   rest?: ReactNode;
   onChange: (patch: Partial<WorkoutSet>) => void;
   onToggleDone: () => void;
@@ -28,6 +30,7 @@ function Field({
   value,
   placeholder,
   integer,
+  max: maxOverride,
   done,
   invalid,
   onChange,
@@ -37,12 +40,13 @@ function Field({
   value: string;
   placeholder: string;
   integer: boolean;
+  max?: number;
   done: boolean;
   invalid: boolean;
   onChange: (next: string) => void;
   onFocusChange: (focused: boolean) => void;
 }) {
-  const max = integer ? MAX_REPS : MAX_KG;
+  const max = maxOverride ?? (integer ? MAX_REPS : MAX_KG);
   const border = invalid ? 'border-danger' : done ? 'border-transparent' : 'border-border-custom';
   return (
     <ControlInput
@@ -92,7 +96,7 @@ function StepButtons({ label, step, base, max, onChange }: { label: string; step
 }
 
 /** Jedna seria: numer (otwiera akcje), kg, powtórzenia, ptaszek. Poprzednie wartości są podpowiedzią, ptaszek je zatwierdza. */
-export default function LiveSetRow({ set, number, ghost, isNext, weightStep, isPr, actionsOpen, needsReps, rest, onChange, onToggleDone, onToggleActions }: Props) {
+export default function LiveSetRow({ set, number, ghost, isNext, weightStep, isPr, actionsOpen, needsReps, timed = false, rest, onChange, onToggleDone, onToggleActions }: Props) {
   const [focused, setFocused] = useState(false);
   const done = Boolean(set.done);
   const isWarmup = set.type === 'warmup';
@@ -114,7 +118,7 @@ export default function LiveSetRow({ set, number, ghost, isNext, weightStep, isP
           {isWarmup ? 'R' : number}
         </Pressable>
         <Field label={`Ciężar kg, seria ${number}`} value={set.kg} placeholder={ghost?.kg ?? ''} integer={false} done={done} invalid={false} onChange={(kg) => onChange({ kg })} onFocusChange={setFocused} />
-        <Field label={`Powtórzenia, seria ${number}`} value={set.reps} placeholder={ghost?.reps ?? ''} integer done={done} invalid={needsReps} onChange={(reps) => onChange({ reps })} onFocusChange={setFocused} />
+        <Field label={`${timed ? 'Czas w sekundach' : 'Powtórzenia'}, seria ${number}`} value={set.reps} placeholder={ghost?.reps ?? ''} integer max={timed ? MAX_SECONDS : undefined} done={done} invalid={needsReps} onChange={(reps) => onChange({ reps })} onFocusChange={setFocused} />
         <Pressable
           type="button"
           onClick={onToggleDone}
@@ -128,12 +132,12 @@ export default function LiveSetRow({ set, number, ghost, isNext, weightStep, isP
         </Pressable>
       </div>
       {done && rest}
-      {needsReps && !done && <p role="alert" className="mt-1 px-1 text-center text-xs font-semibold text-danger">Wpisz powtórzenia, żeby zaliczyć serię.</p>}
+      {needsReps && !done && <p role="alert" className="mt-1 px-1 text-center text-xs font-semibold text-danger">{timed ? 'Wpisz czas w sekundach, żeby zaliczyć serię.' : 'Wpisz powtórzenia, żeby zaliczyć serię.'}</p>}
       {showSteppers && (
         <div className="mt-1.5 grid grid-cols-[2.25rem_1fr_1fr_2.75rem] gap-2">
           <span />
           <StepButtons label="Ciężar" step={weightStep} base={kgBase} max={MAX_KG} onChange={(kg) => onChange({ kg })} />
-          <StepButtons label="Powtórzenia" step={1} base={repsBase} max={MAX_REPS} onChange={(reps) => onChange({ reps })} />
+          <StepButtons label={timed ? 'Sekundy' : 'Powtórzenia'} step={timed ? 5 : 1} base={repsBase} max={timed ? MAX_SECONDS : MAX_REPS} onChange={(reps) => onChange({ reps })} />
           <span />
         </div>
       )}

@@ -3,6 +3,7 @@ import { Minus, Plus } from 'lucide-react';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { useExerciseVisual } from '../../../lib/health/exerciseImages';
 import { sortedHistorySets } from '../../../lib/health/workoutSetFill';
+import { isIsometricExercise } from '../../../lib/health/bwSkillLadders';
 import { computeExerciseSuggestion } from '../../../lib/health/exerciseSuggestion';
 import type { useExerciseHistory, WorkoutExercise, WorkoutSet } from '../workout/workoutUtils';
 import BarbellPlatesPanel from '../workout/BarbellPlatesPanel';
@@ -140,6 +141,7 @@ export default function LiveExerciseCardView({
   };
   const isBarbell = visual?.isBarbell === true || BARBELL_NAME.test(exercise.name);
   const sets = exercise.sets;
+  const timed = isIsometricExercise(exercise.name);
   const workingSets = sets.filter((s) => s.type !== 'warmup');
   const doneCount = workingSets.filter((s) => s.done).length;
   const nextIdx = sets.findIndex((s) => !s.done);
@@ -196,7 +198,7 @@ export default function LiveExerciseCardView({
           <div className="grid grid-cols-[2.25rem_1fr_1fr_2.75rem] gap-2 px-1.5 pb-0.5 text-2xs font-bold tracking-normal text-text-muted">
             <span />
             <span className="text-center">kg</span>
-            <span className="text-center">powt.</span>
+            <span className="text-center">{timed ? 'sek' : 'powt.'}</span>
             <span />
           </div>
           {sets.map((set, idx) => !active && rest?.setId !== set.id ? null : (
@@ -210,6 +212,7 @@ export default function LiveExerciseCardView({
                 isPr={set.type !== 'warmup' && isPersonalRecord(set, allTimeBest1RM)}
                 actionsOpen={actionsSetId === set.id}
                 needsReps={needsRepsId === set.id}
+                timed={timed}
                 rest={rest?.setId === set.id ? <LiveRestPill {...rest} /> : undefined}
                 onChange={(patch) => {
                   patchSet(set.id, patch);

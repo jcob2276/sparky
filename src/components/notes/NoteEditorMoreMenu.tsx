@@ -56,7 +56,7 @@ export default function NoteEditorMoreMenu(props: Props) {
                   key={color.id}
                   className={`h-6 w-6 rounded-full border ${props.color === color.id ? 'ring-2 ring-primary' : ''}`}
                   style={{ backgroundColor: color.dot }}
-                  onClick={() => run(() => props.onColor(color.id))}
+                  onClick={() => props.onColor(color.id)}
                   title={color.label}
                 />
               ))}

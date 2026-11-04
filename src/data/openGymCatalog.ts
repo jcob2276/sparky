@@ -22,7 +22,7 @@ export interface OpenGymExercise {
 let catalogCache: OpenGymExercise[] | null = null;
 let catalogPromise: Promise<OpenGymExercise[]> | null = null;
 
-export async function loadOpenGymCatalog(): Promise<OpenGymExercise[]> {
+async function loadOpenGymCatalog(): Promise<OpenGymExercise[]> {
   if (catalogCache) return catalogCache;
   if (!catalogPromise) {
     catalogPromise = import('./openGymExercises.json').then((mod) => {
@@ -84,8 +84,6 @@ export function mapTargetToSparkyTags(target: string, secondaries: string[] = []
   return Array.from(set);
 }
 
-export const mapTargetToVanguardTags = mapTargetToSparkyTags;
-
 function rankCatalogHits(catalog: OpenGymExercise[], query: string, limit: number): OpenGymExercise[] {
   const q = query.trim();
   if (!q) return [];
@@ -110,14 +108,6 @@ function rankCatalogHits(catalog: OpenGymExercise[], query: string, limit: numbe
 export async function searchOpenGymCatalog(query: string, limit = 10): Promise<OpenGymExercise[]> {
   const catalog = await loadOpenGymCatalog();
   return rankCatalogHits(catalog, query, limit);
-}
-
-/**
- * Synchronous lookup if catalog was already preloaded into memory.
- */
-export function searchOpenGymCatalogSync(query: string, limit = 10): OpenGymExercise[] {
-  if (!catalogCache) return [];
-  return rankCatalogHits(catalogCache, query, limit);
 }
 
 /**

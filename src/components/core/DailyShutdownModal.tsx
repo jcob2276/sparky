@@ -9,8 +9,6 @@ import Modal from '../ui/Modal';
 import Skeleton from '../ui/Skeleton';
 import { useShutdownData } from './shutdown/useShutdownData';
 import DailyScorePicker from '../shared/DailyScorePicker';
-import SalesNumbersFields from './salesNumbers/SalesNumbersFields';
-import { useDaySalesNumbers } from './salesNumbers/useDaySalesNumbers';
 
 interface Props {
   onClose: () => void;
@@ -24,10 +22,8 @@ export default function DailyShutdownModal({
   onPlanTomorrow,
 }: Props) {
   const data = useShutdownData();
-  const sales = useDaySalesNumbers(data.userId, data.today);
 
   const handleSave = async () => {
-    if (!sales.complete || !(await sales.save())) return;
     const saved = await data.handleSaveShutdown();
     if (!saved) return;
     onSaved?.();
@@ -95,14 +91,6 @@ export default function DailyShutdownModal({
             ))}
           </section>
 
-          <section className="space-y-2" aria-labelledby="shutdown-sales-title">
-            <div className="flex items-baseline justify-between gap-2">
-              <h3 id="shutdown-sales-title" className="text-xs font-bold text-text-secondary">Liczby sprzedaży z dziś</h3>
-              <span className="text-2xs font-bold text-warning">wymagane</span>
-            </div>
-            <SalesNumbersFields idPrefix="shutdown" draft={sales.draft} onChange={sales.patchDraft} disabled={sales.saving || sales.loading} />
-          </section>
-
           <section className="space-y-1.5">
             <label className="text-xs font-bold text-text-primary block" htmlFor="shutdown-reflection">
               Co realnie poszło inaczej i dlaczego?
@@ -127,19 +115,13 @@ export default function DailyShutdownModal({
         </div>
 
         <footer className="p-4 border-t border-border-custom/20 space-y-2">
-          {!sales.complete && !sales.loading && (
-            <p className="text-xs font-semibold text-warning text-center">
-              Wpisz rozmowy odebrane, umówionych, rozmowy sprzedażowe i sprzedaże (może być 0), żeby zamknąć dzień.
-            </p>
-          )}
           <Button
             onClick={handleSave}
-            disabled={!sales.complete || sales.loading}
-            loading={data.saving || sales.saving}
+            loading={data.saving}
             icon={<Send size={14} />}
             className="w-full"
           >
-            {data.saving || sales.saving ? 'Zamykam dzień…' : 'Zatwierdź zamknięcie'}
+            {data.saving ? 'Zamykam dzień…' : 'Zatwierdź zamknięcie'}
           </Button>
         </footer>
       </div>

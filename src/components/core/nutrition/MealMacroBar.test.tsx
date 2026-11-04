@@ -8,8 +8,8 @@ describe('MealMacroBar', () => {
     const items = within(screen.getByRole('region', { name: 'Makroskładniki wybranego dnia' })).getAllByRole('listitem');
     expect(items[0]).toHaveTextContent('Kcal— / —');
     expect(items[1]).toHaveTextContent('Białko0 / — g');
-    expect(items[2]).toHaveTextContent('Tłuszcze— g');
-    expect(items[3]).toHaveTextContent('Węgle12,5 g');
+    expect(items[2]).toHaveTextContent('Tłuszcze— / — g');
+    expect(items[3]).toHaveTextContent('Węgle12,5 / — g');
     expect(screen.getByText('Dziennik jedzenia · brak danych kcal')).toBeInTheDocument();
   });
 
@@ -18,6 +18,7 @@ describe('MealMacroBar', () => {
     const items = screen.getAllByRole('listitem');
     expect(items[0]).toHaveTextContent(/1\s?500,5 \/ 2\s?200/);
     expect(items[1]).toHaveTextContent('90,5 / 130 g');
+    expect(items[2]).toHaveTextContent('40,2 / 73 g');
     expect(items[2]).toHaveAttribute('data-macro', 'fat');
     expect(items[3]).toHaveAttribute('data-macro', 'carbs');
     expect(screen.queryByText(/brak danych kcal/)).not.toBeInTheDocument();

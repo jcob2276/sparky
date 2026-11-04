@@ -73,7 +73,7 @@ const BW_SKILL_FAMILIES: BwSkillFamily[] = [
   },
 ];
 
-const ISOMETRIC_RE = /plank|deska|hang|zwis|l-?\s*sit$|hollow|hold|izometr/i;
+const ISOMETRIC_RE = /plank|deska|hang|zwis|l-?\s*sit$|hollow|hold|izometr|stanie na r[eę]k|handstand|wall\s*sit/i;
 
 export function isIsometricExercise(name: string): boolean {
   return ISOMETRIC_RE.test(name.trim());

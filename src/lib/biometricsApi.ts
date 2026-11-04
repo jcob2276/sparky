@@ -175,16 +175,6 @@ export function useOuraHistory30Days(userId: string) {
   });
 }
 
-/** Krótka historia Oura (domyślnie 21 dni) dla ekranu Dziś; wystarcza na porównanie 7 dni z 7. */
-export function useOuraRecentHistory(userId: string, days = 21) {
-  return useQuery({
-    queryKey: biometricsKeys.ouraRecent(userId, days),
-    queryFn: () => fetchOuraHistory(userId, days),
-    staleTime: 1000 * 60 * 30,
-    enabled: !!userId,
-  });
-}
-
 export function useOuraNightDetails(
   userId: string,
   date: string | null,

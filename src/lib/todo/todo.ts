@@ -24,13 +24,15 @@ export async function listTodoSections(userId: string): Promise<TodoSectionRow[]
   );
 }
 
-/** Dokładna liczba ukończonych zadań (lista pobiera tylko 60 ostatnich). */
-export async function countDoneTodoItems(userId: string): Promise<number> {
-  const { count, error } = await supabase
+/** Dokładna liczba zadań ukończonych od `sinceDate` (YYYY-MM-DD); bez daty: wszystkie (lista pobiera tylko 60 ostatnich). */
+export async function countDoneTodoItems(userId: string, sinceDate?: string): Promise<number> {
+  let query = supabase
     .from('todo_items')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('status', 'done');
+  if (sinceDate) query = query.gte('completed_at', sinceDate);
+  const { count, error } = await query;
   if (error) throw new Error(error.message);
   return count ?? 0;
 }

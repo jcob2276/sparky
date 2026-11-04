@@ -1,5 +1,6 @@
+import { createPortal } from 'react-dom';
 import { ChevronDown, ChevronRight, Folder, MoreHorizontal } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { NoteFolderNode } from '../../lib/noteFoldersApi';
 import { Pressable } from '../ui/ControlPrimitives';
 
@@ -34,7 +35,17 @@ function FolderBranch({
 }: FolderBranchProps) {
   const [expanded, setExpanded] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
   const hasChildren = folder.children.length > 0;
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (event: PointerEvent) => {
+      if (!(event.target as HTMLElement).closest('.keep-folder-menu, .keep-folder-actions')) setMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [menuOpen]);
 
   const run = (action: (value: NoteFolderNode) => void) => {
     setMenuOpen(false);
@@ -67,22 +78,32 @@ function FolderBranch({
         <div className="keep-folder-actions">
           <Pressable
             type="button"
+            className="min-h-11 min-w-11"
             aria-label={`Akcje folderu ${folder.name}`}
             aria-haspopup="menu"
             aria-expanded={menuOpen}
-            onClick={() => setMenuOpen(value => !value)}
+            onClick={(event) => {
+              event.stopPropagation();
+              // Menu jest `fixed`, żeby panel boczny z przewijaniem go nie przycinał.
+              const rect = event.currentTarget.getBoundingClientRect();
+              setMenuPos({ top: rect.bottom + 4, right: Math.max(8, window.innerWidth - rect.right) });
+              setMenuOpen(value => !value);
+            }}
           >
             <MoreHorizontal size={14} />
           </Pressable>
-          {menuOpen && (
-            <div role="menu" className="keep-folder-menu">
-              <Pressable type="button" role="menuitem" onClick={() => run(onCreateChild)}>Nowy podfolder</Pressable>
-              <Pressable type="button" role="menuitem" onClick={() => run(onRename)}>Zmień nazwę</Pressable>
-              <Pressable type="button" role="menuitem" onClick={() => run(onMove)}>Przenieś</Pressable>
-              <Pressable type="button" role="menuitem" onClick={() => { setMenuOpen(false); onReorder(folder, 'up'); }}>Przesuń wyżej</Pressable>
-              <Pressable type="button" role="menuitem" onClick={() => { setMenuOpen(false); onReorder(folder, 'down'); }}>Przesuń niżej</Pressable>
-              <Pressable type="button" role="menuitem" className="danger" onClick={() => run(onDelete)}>Usuń</Pressable>
-            </div>
+          {menuOpen && createPortal(
+            <>
+              <div role="menu" className="keep-folder-menu" style={menuPos ? { position: 'fixed', top: menuPos.top, right: menuPos.right, left: 'auto' } : undefined}>
+                <Pressable type="button" role="menuitem" onClick={() => run(onCreateChild)}>Nowy podfolder</Pressable>
+                <Pressable type="button" role="menuitem" onClick={() => run(onRename)}>Zmień nazwę</Pressable>
+                <Pressable type="button" role="menuitem" onClick={() => run(onMove)}>Przenieś</Pressable>
+                <Pressable type="button" role="menuitem" onClick={() => { setMenuOpen(false); onReorder(folder, 'up'); }}>Przesuń wyżej</Pressable>
+                <Pressable type="button" role="menuitem" onClick={() => { setMenuOpen(false); onReorder(folder, 'down'); }}>Przesuń niżej</Pressable>
+                <Pressable type="button" role="menuitem" className="danger" onClick={() => run(onDelete)}>Usuń</Pressable>
+              </div>
+            </>,
+            document.body,
           )}
         </div>
       </div>

@@ -22,12 +22,13 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-/** Zakończenie: trzy liczby, nazwa podpowiedziana automatycznie, opcjonalnie ocena i notatka. Jedno stuknięcie zapisuje. */
+/** Zakończenie: trzy liczby, nazwa podpowiedziana automatycznie, ocena RPE i obowiązkowa notatka. Jedno stuknięcie zapisuje. */
 export default function LiveFinishSheet({ open, onOpenChange, logger, duration }: Props) {
   const [showMore, setShowMore] = useState(false);
   const summary = summarize(logger.exercises);
   const suggestedName = autoWorkoutName(logger.exercises);
   const empty = summary.sets === 0;
+  const noteMissing = logger.notes.trim() === '';
   const unchecked = countUnchecked(logger.exercises);
 
   const save = () => {
@@ -70,23 +71,23 @@ export default function LiveFinishSheet({ open, onOpenChange, logger, duration }
           </div>
         </div>
 
-        <Pressable onClick={() => setShowMore((v) => !v)} className="text-sm font-semibold text-primary">
-          {showMore ? 'Mniej' : 'Notatka, data'}
-        </Pressable>
+        <div>
+          <label htmlFor="live-finish-note" className="mb-1.5 block text-xs font-bold text-text-secondary">Notatka *</label>
+          <ControlTextarea
+            id="live-finish-note"
+            aria-label="Notatka"
+            value={logger.notes}
+            onChange={(event) => logger.setNotes(event.target.value)}
+            placeholder="Jak poszło?"
+            rows={3}
+            className="w-full rounded-lg border border-border-custom bg-surface-2 p-3 text-sm text-text-primary placeholder:text-text-muted"
+          />
+        </div>
 
-        {showMore && (
-          <div className="space-y-3">
-            <ControlTextarea
-              aria-label="Notatka"
-              value={logger.notes}
-              onChange={(event) => logger.setNotes(event.target.value)}
-              placeholder="Jak poszło?"
-              rows={3}
-              className="w-full rounded-lg border border-border-custom bg-surface-2 p-3 text-sm text-text-primary placeholder:text-text-muted"
-            />
-            <ManualTimePicker logger={logger} />
-          </div>
-        )}
+        <Pressable onClick={() => setShowMore((v) => !v)} className="text-sm font-semibold text-primary">
+          {showMore ? 'Ukryj datę' : 'Zmień datę'}
+        </Pressable>
+        {showMore && <ManualTimePicker logger={logger} />}
 
         {unchecked > 0 && (
           <p className="rounded-lg bg-warning/10 px-3 py-2 text-sm font-semibold text-warning">
@@ -95,7 +96,8 @@ export default function LiveFinishSheet({ open, onOpenChange, logger, duration }
         )}
         {empty && <p className="text-center text-sm text-text-muted">Zalicz przynajmniej jedną serię, żeby zapisać trening.</p>}
         {!empty && logger.sessionRpe == null && <p className="text-center text-sm text-text-muted">Zaznacz RPE, żeby zapisać trening.</p>}
-        <Button variant="primary" size="lg" disabled={empty || logger.sessionRpe == null || logger.saving} onClick={save} className="w-full !h-14 !rounded-lg !text-base !font-semibold">
+        {!empty && logger.sessionRpe != null && noteMissing && <p className="text-center text-sm text-text-muted">Napisz notatkę, żeby zapisać trening.</p>}
+        <Button variant="primary" size="lg" disabled={empty || logger.sessionRpe == null || noteMissing || logger.saving} onClick={save} className="w-full !h-14 !rounded-lg !text-base !font-semibold">
           {logger.saving ? 'Zapisuję…' : 'Zapisz trening'}
         </Button>
       </div>

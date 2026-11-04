@@ -103,7 +103,7 @@ export default function WorkspaceNavigation({
   }
 
   return (
-    <nav aria-label="Workspace" className={`flex flex-col gap-0.5 ${className}`}>
+    <nav aria-label="Workspace" className={`flex flex-col gap-0.5 px-3 ${className}`}>
       {ITEMS.map(({ id, label, icon: Icon }) => {
         const isActive = active === id;
         return (

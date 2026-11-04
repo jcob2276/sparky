@@ -55,6 +55,11 @@ export const POLISH_TO_ENGLISH: Record<string, string> = {
   pompki: 'Pushups',
   'stanie na rękach': 'Handstand Push-Ups',
   'russian twist': 'Russian Twist',
+  plank: 'Plank',
+  'leg raise na drążku': 'Hanging Leg Raise',
+  'cable crunch': 'Cable Crunch',
+  'dead bug': 'Dead Bug',
+  'pallof press': 'Pallof Press',
   'face pull': 'Face Pull',
 };
 

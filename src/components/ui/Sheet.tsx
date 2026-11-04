@@ -108,7 +108,7 @@ function Sheet({ open, onOpenChange, title, children, side = 'right', compact = 
                 className="ios-sheet-handle"
               />
             )}
-            <header className="flex min-h-[52px] items-center justify-between border-b border-black/8 dark:border-white/10 px-5">
+            <header className={`flex min-h-[52px] items-center justify-between border-b border-black/8 dark:border-white/10 px-5 ${side === 'bottom' ? '' : 'pt-[max(env(safe-area-inset-top),1.75rem)]'}`}>
               <h2 className="text-lg font-bold tracking-tight text-text-primary">{title}</h2>
               <IconButton icon={<X size={18} />} label="Zamknij" onClick={() => { light(); onOpenChange(false); }} />
             </header>

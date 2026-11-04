@@ -3093,6 +3093,7 @@ a,
 .meal-macro[data-macro='fat'] { --meal-macro: var(--meal-fat); }
 .meal-macro-label { color: var(--meal-macro); }
 .meal-bar-track { background: var(--meal-track); }
+.meal-bar-fill { background: var(--meal-macro, var(--primary)); transition: transform var(--motion-fast, 150ms) ease-out; }
 .meal-quality { background: color-mix(in srgb, var(--color-warning) 15%, transparent); color: var(--color-warning); }
 .meal-input { border-color: var(--border-custom); background: var(--surface-2); color: var(--text-primary); }
 .meal-input:focus { border-color: var(--primary); background: var(--surface-1); }
@@ -3305,4 +3306,30 @@ progress,
   .calendar-event-pulse {
     animation: calendar-event-pulse 1.4s ease-out 1;
   }
+}
+
+/* Uchwyt zmiany szerokości listy notatek */
+.keep-split-resizer {
+  flex: 0 0 8px;
+  margin-left: -4px;
+  margin-right: -4px;
+  position: relative;
+  z-index: 2;
+  cursor: col-resize;
+  touch-action: none;
+}
+.keep-split-resizer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 3px;
+  width: 2px;
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+.keep-split-resizer:hover::after,
+.keep-split-resizer:focus-visible::after,
+.keep-split-resizer:active::after {
+  background: var(--primary);
 }

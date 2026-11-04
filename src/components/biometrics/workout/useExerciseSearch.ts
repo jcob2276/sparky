@@ -21,7 +21,8 @@ export interface ExerciseMatch {
   equipment?: string;
 }
 
-const STANDARD_LIMIT = 24;
+// Limit musi pomieścić cały katalog: filtr grupy mięśniowej działa po cięciu listy, więc dolne pozycje (np. brzuch) znikały.
+const STANDARD_LIMIT = 200;
 const OPENGYM_LIMIT = 20;
 
 function toTitle(name: string): string {

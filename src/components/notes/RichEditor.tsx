@@ -9,6 +9,7 @@ import { useRichEditorTriggers } from './hooks/useRichEditorTriggers';
 import { useRichEditorUploads } from './hooks/useRichEditorUploads';
 import { handleRichEditorKeyShortcuts } from './richEditorKeyHandlers';
 import { toDisplayHtml } from './markdownLite';
+import { useNoteAttachments } from '../../lib/noteAttachmentsApi';
 
 interface RichEditorProps {
   value: string;
@@ -37,6 +38,7 @@ export default function RichEditor({
 }: RichEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const { data: attachments } = useNoteAttachments(noteId ?? '');
 
   const handleInput = useCallback(() => {
     if (editorRef.current) {
@@ -77,6 +79,16 @@ export default function RichEditor({
       editorRef.current.innerHTML = html;
     }
   }, [value]);
+
+  // Zdjęcia w treści wskazują załącznik po id; świeży podpisany URL podstawiamy po otwarciu notatki.
+  useEffect(() => {
+    const editor = editorRef.current;
+    if (!editor || !attachments?.length) return;
+    editor.querySelectorAll<HTMLImageElement>('img[data-attachment-id]').forEach((img) => {
+      const fresh = attachments.find((a) => a.id === img.getAttribute('data-attachment-id'))?.signed_url;
+      if (fresh && img.getAttribute('src') !== fresh) img.setAttribute('src', fresh);
+    });
+  }, [value, attachments]);
 
   const handleEditorClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;

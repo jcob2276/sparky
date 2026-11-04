@@ -35,7 +35,7 @@ export default function KeepHeader({
     <WorkspaceHeader
       title="Notatki"
       onBack={onBack}
-      leading={<SidebarTrigger className="!h-11 !w-11 md:!h-9 md:!w-9" aria-label="Foldery i tagi" />}
+      leading={<SidebarTrigger className="!h-11 !w-11 md:hidden" aria-label="Foldery i tagi" />}
       center={(
         <div className="keep-search-wrap hidden md:block">
           <Search size={14} className="keep-search-icon" />
