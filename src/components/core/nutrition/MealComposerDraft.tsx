@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ControlInput } from '../../ui/ControlPrimitives';
+import { ControlInput } from '../../ui/ControlPrimitives';
+import Button from '../../ui/Button';
+import { formatDecimalPl, pluralPl } from '../../../lib/formatPl';
 import type { MealDraftItem } from '../../../lib/health/nutritionTracker';
 import { draftTotals } from '../../../lib/health/mealPortions';
 import MealComposerDraftRow from './MealComposerDraftRow';
@@ -33,10 +35,11 @@ export default function MealComposerDraft({
   const totals = useMemo(() => draftTotals(items), [items]);
 
   return (
-    <div className="space-y-3 rounded-lg border border-primary/25 bg-primary/[0.05] p-3">
+    <div className="space-y-3 rounded-xl border border-border-custom bg-surface p-3">
+      <div className="ios-sheet-handle" aria-hidden="true" />
       <div className="flex items-center justify-between gap-2">
-        <p className="text-2xs font-semibold tracking-wide text-primary">Twój posiłek</p>
-        <span className="text-2xs font-bold text-text-muted">{items.length} poz.</span>
+        <p className="text-sm font-semibold text-text-primary">Twój posiłek</p>
+        <span className="text-2xs text-text-muted">{items.length} {pluralPl(items.length, 'pozycja', 'pozycje', 'pozycji')}</span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -78,26 +81,26 @@ export default function MealComposerDraft({
 
       <DraftGuidedQuestions items={items} onChange={onChange} />
       <GlycemicEstimate items={items.map(item=>({id:item.id,name:item.name,grams:item.grams,carbs:item.carbs,fiber:item.fiber}))}/>
-      <div className="flex items-center justify-between gap-2 border-t border-border-custom/50 pt-2">
+      <div className="space-y-3 border-t border-border-custom/50 pt-3">
         <span className="text-xs text-text-muted">
-          <span className="font-semibold text-text-primary">{totals.calories} kcal</span>
+          <span className="font-semibold tabular-nums text-text-primary">{formatDecimalPl(totals.calories)} kcal</span>
           {' · '}
-          <span className="font-bold text-primary">{totals.protein}B</span>
+          <span className="meal-macro meal-macro-label tabular-nums" data-macro="protein">{formatDecimalPl(totals.protein)} B</span>
           {' · '}
-          <span className="font-bold text-warning">{totals.carbs}W</span>
+          <span className="meal-macro meal-macro-label tabular-nums" data-macro="carbs">{items.some((item) => item.carbs != null) ? formatDecimalPl(totals.carbs) : '—'} W</span>
           {' · '}
-          <span className="font-bold text-text-secondary">{totals.fat}T</span>
+          <span className="meal-macro meal-macro-label tabular-nums" data-macro="fat">{items.some((item) => item.fat != null) ? formatDecimalPl(totals.fat) : '—'} T</span>
         </span>
-        <Pressable
-          variant="primary"
-          size="sm"
+        <Button
+          variant="neutral"
+          size="lg"
           onClick={() => onSave(rememberIds, memoryName.trim() || undefined)}
           loading={saving}
           disabled={!items.length}
-          className="transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out,ease-out)] active:scale-[0.97]"
+          className="min-h-14 w-full"
         >
           Zapisz posiłek
-        </Pressable>
+        </Button>
       </div>
     </div>
   );

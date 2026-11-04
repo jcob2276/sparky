@@ -154,14 +154,14 @@ export default function EditScreen({
         </Pressable>
         <Pressable
           type="button"
-          variant="primary"
+          variant="neutral"
           onClick={() => {
             haptics.success();
             saveEntryEdit();
           }}
           loading={editSaving}
           disabled={!editPreview}
-          className="min-h-12 flex-1 rounded-2xl text-sm font-semibold shadow-sm active:scale-[0.98] ui-interactive"
+          className="min-h-14 flex-1 text-sm font-semibold"
         >
           Zapisz zmiany
         </Pressable>

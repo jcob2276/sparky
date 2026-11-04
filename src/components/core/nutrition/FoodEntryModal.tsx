@@ -66,6 +66,7 @@ export default function FoodEntryModal({ onClose, onSaved, initialEditEntry, ini
   return (
     <Modal
       isOpen={true}
+      ariaLabel={screen === 'edit' ? 'Edytuj wpis jedzenia' : headerTitle}
       onClose={onClose}
       showCloseButton={false}
       padding="p-0"
@@ -75,6 +76,7 @@ export default function FoodEntryModal({ onClose, onSaved, initialEditEntry, ini
       containerRef={sheetRef}
       className="max-h-[var(--ds-h-94dvh)] sm:max-h-[88vh] flex flex-col overflow-hidden"
     >
+      <div className="ios-sheet-handle shrink-0" aria-hidden="true" />
       {screen !== 'edit' && (
         <FoodEntryHeader
           headerTitle={headerTitle}

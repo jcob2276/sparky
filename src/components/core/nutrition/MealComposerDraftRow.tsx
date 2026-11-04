@@ -1,5 +1,6 @@
 import { Bookmark, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { formatDecimalPl } from '../../../lib/formatPl';
 import { Pressable } from '../../ui/ControlPrimitives';
 import type { MealDraftItem } from '../../../lib/health/nutritionTracker';
 import {
@@ -118,7 +119,7 @@ export default function MealComposerDraftRow({
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-text-primary">{item.name}</p>
           <p className="mt-0.5 text-2xs text-text-muted">
-            {item.calories} kcal · {item.protein}B · {item.carbs}W · {item.fat}T
+            {formatDecimalPl(item.calories)} kcal · <span className="meal-macro meal-macro-label" data-macro="protein">{formatDecimalPl(item.protein)} B</span> · <span className="meal-macro meal-macro-label" data-macro="carbs">{item.carbs == null ? '—' : formatDecimalPl(item.carbs)} W</span> · <span className="meal-macro meal-macro-label" data-macro="fat">{item.fat == null ? '—' : formatDecimalPl(item.fat)} T</span>
           </p>
           {item.assumptions?.length ? (
             <p className="mt-0.5 text-2xs leading-snug text-warning/90">{item.assumptions.join(' · ')}</p>
@@ -138,10 +139,11 @@ export default function MealComposerDraftRow({
           onClick={() => onRememberChange(!remember)}
           className={`shrink-0 p-1 ${remember ? 'text-primary' : 'text-text-muted hover:text-primary'}`}
           title={remember ? 'Zapamiętam tę porcję' : 'Nie zapamiętuj porcji'}
+          aria-label={remember ? 'Nie zapamiętuj porcji' : 'Zapamiętaj porcję'}
         >
           <Bookmark size={14} className={remember ? 'fill-current' : ''} />
         </Pressable>
-        <Pressable variant="ghost" onClick={onRemove} className="shrink-0 min-h-11 min-w-11 p-1 flex items-center justify-center text-text-muted hover:text-danger">
+        <Pressable variant="ghost" onClick={onRemove} aria-label={`Usuń ${item.name}`} className="shrink-0 min-h-11 min-w-11 p-1 flex items-center justify-center text-text-muted hover:text-danger">
           <Trash2 size={14} />
         </Pressable>
       </div>

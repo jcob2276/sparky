@@ -1,4 +1,4 @@
-import { DEFAULT_PROTEIN_FLOOR_G } from '@vanguard/domain';
+import { formatDecimalPl } from '../../../lib/formatPl';
 import type { WeekBalance } from '../../../lib/health/weekBalance';
 import type { DayNutrientCoverage } from '../../../lib/health/nutrientCoverage';
 import type { DayEnergyRange } from '../../../lib/health/nutritionAudit';
@@ -18,7 +18,6 @@ type Totals = {
 
 const RING_RADIUS = 34;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-const FALLBACK_TARGET_KCAL = 2000;
 
 function MealCalorieRing({ eaten, target }: { eaten: number; target: number }) {
   const ratio = target > 0 ? Math.min(1, Math.max(0, eaten / target)) : 0;
@@ -53,36 +52,12 @@ function MealCalorieRing({ eaten, target }: { eaten: number; target: number }) {
   );
 }
 
-function RingSide({ label, value }: { label: string; value: number }) {
+function RingSide({ label, value }: { label: string; value: number | null }) {
   return (
     <div className="flex flex-col items-center gap-1 text-center">
       <span className="text-xs font-medium text-text-muted">{label}</span>
-      <span className="font-display text-xl font-semibold tabular-nums text-text-primary">{value}</span>
+      <span className="font-display text-xl font-semibold tabular-nums text-text-primary">{value == null ? '—' : formatDecimalPl(value)}</span>
     </div>
-  );
-}
-
-function MacroTile({
-  macro, label, grams, target, hint,
-}: {
-  macro: 'protein' | 'carbs' | 'fat';
-  label: string;
-  grams: number;
-  target: number;
-  hint?: string;
-}) {
-  const ratio = target > 0 ? Math.min(1, grams / target) : 0;
-  return (
-    <li className="meal-macro min-w-0 space-y-1.5 rounded-lg bg-surface-2 px-3 py-2.5" data-macro={macro} title={hint}>
-      <span className="meal-macro-label block text-xs font-medium">{label}</span>
-      <span className="block whitespace-nowrap tabular-nums text-text-muted">
-        <span className="text-sm font-semibold text-text-primary">{Math.round(grams)}</span>
-        <span className="text-2xs">/{target} g</span>
-      </span>
-      <span className="meal-bar-track block h-1.5 overflow-hidden rounded-full">
-        <span className="meal-bar-fill block h-full w-full rounded-full" style={{ transform: `scaleX(${ratio})` }} />
-      </span>
-    </li>
   );
 }
 
@@ -103,7 +78,7 @@ function EnergyRangeLine({ energy }: { energy: DayEnergyRange }) {
 export function ComposerProgress({
   totals,
   qualityPending,
-  macros,
+  hasEntries,
   week,
   nutrients,
   energy,
@@ -111,25 +86,26 @@ export function ComposerProgress({
 }: {
   totals: Totals;
   qualityPending: boolean;
-  macros?: { carbs: number; fat: number };
+  hasEntries: boolean;
   week?: WeekBalance | null;
   nutrients?: DayNutrientCoverage;
   energy?: DayEnergyRange | null;
   dayReview?: DayReview;
 }) {
-  const targetKcal = totals.targetKcal ?? FALLBACK_TARGET_KCAL;
+  const targetKcal = totals.targetKcal;
   const eaten = Math.round(totals.calories);
-  // B uses the real target; W/T are derived (T = 30% kcal, W = the rest) because only B/kcal targets are stored.
-  const targetProtein = Math.round(totals.targetProtein ?? DEFAULT_PROTEIN_FLOOR_G);
-  const targetFat = Math.round((targetKcal * 0.3) / 9);
-  const targetCarbs = Math.max(0, Math.round((targetKcal - targetProtein * 4 - targetFat * 9) / 4));
   const showQuality = qualityPending || totals.avgFoodQuality != null;
 
   return (
     <div className="space-y-3">
     <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-      <RingSide label="Zjedzone" value={eaten} />
-      <MealCalorieRing eaten={eaten} target={targetKcal} />
+      <RingSide label="Zjedzone" value={hasEntries ? eaten : null} />
+      {hasEntries && targetKcal != null && targetKcal > 0 ? <MealCalorieRing eaten={eaten} target={targetKcal} /> : (
+        <div className="flex h-32 w-32 flex-col items-center justify-center text-center text-text-muted">
+          <span className="text-3xl">—</span>
+          <span className="mt-1 text-2xs">{hasEntries ? 'Brak celu kcal' : 'Dziennik jedzenia · brak danych kcal'}</span>
+        </div>
+      )}
       <RingSide label="Cel" value={targetKcal} />
     </div>
     {showQuality && (
@@ -142,11 +118,6 @@ export function ComposerProgress({
         </span>
       </div>
     )}
-    <ul className="m-0 grid list-none grid-cols-3 gap-2 p-0" aria-label="Makroskładniki: zjedzone / cel">
-      <MacroTile macro="protein" label="Białko" grams={totals.protein} target={targetProtein} />
-      <MacroTile macro="carbs" label="Węgle" grams={macros?.carbs ?? 0} target={targetCarbs} hint="Cel orientacyjny" />
-      <MacroTile macro="fat" label="Tłuszcze" grams={macros?.fat ?? 0} target={targetFat} hint="Cel orientacyjny (30% kcal)" />
-    </ul>
     {energy && <EnergyRangeLine energy={energy} />}
     {nutrients && <NutrientCoverageStrip coverage={nutrients} />}
     {dayReview && <DayCompletenessToggle review={dayReview} />}

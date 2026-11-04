@@ -80,14 +80,14 @@ export default function PortionScreen({
 
       <Pressable
         type="button"
-        variant="primary"
+        variant="neutral"
         onClick={() => {
           haptics.success();
           save();
         }}
         disabled={saving || savedFlash}
         loading={saving}
-        className="w-full rounded-2xl py-3 text-sm font-semibold active:scale-[0.98] ui-interactive shadow-sm"
+        className="min-h-14 w-full text-sm font-semibold"
       >
         {savedFlash ? 'Zapisano!' : 'Dodaj do dziennika'}
       </Pressable>

@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { formatDecimalPl } from '../../../../lib/formatPl';
 import { Minus, Plus } from 'lucide-react';
 import { Pressable, ControlInput } from '../../../ui/ControlPrimitives';
 import { MEAL_TYPES } from '../../../../lib/health/foodLogging';
@@ -15,21 +16,21 @@ export function MacroCardsRow({ preview }: { preview: MacroPreview | null }) {
   if (!preview) return null;
   return (
     <div className="grid grid-cols-4 gap-2">
-      <div className="rounded-2xl border border-border-custom/40 bg-surface-solid/30 p-2.5 text-center">
-        <p className="font-display text-base font-semibold text-text-primary leading-none">{preview.calories ?? '–'}</p>
+      <div className="rounded-lg bg-surface-2 p-2 text-center">
+        <p className="font-display text-base font-semibold tabular-nums text-text-primary leading-none">{preview.calories == null ? '—' : formatDecimalPl(preview.calories)}</p>
         <p className="mt-1 text-2xs font-semibold tracking-wide text-text-muted">Kcal</p>
       </div>
-      <div className="rounded-2xl border border-primary/20 bg-primary/[0.04] p-2.5 text-center">
-        <p className="font-display text-base font-semibold text-primary leading-none">{preview.protein ?? '–'}</p>
-        <p className="mt-1 text-2xs font-semibold tracking-wide text-primary">Białko</p>
+      <div className="meal-macro meal-macro-label rounded-lg bg-surface-2 p-2 text-center" data-macro="protein">
+        <p className="font-display text-base font-semibold tabular-nums leading-none">{preview.protein == null ? '—' : formatDecimalPl(preview.protein)}</p>
+        <p className="mt-1 text-2xs font-medium">Białko</p>
       </div>
-      <div className="rounded-2xl border border-border-custom/40 bg-surface-solid/30 p-2.5 text-center">
-        <p className="font-display text-base font-semibold text-text-primary leading-none">{preview.carbs ?? '–'}</p>
-        <p className="mt-1 text-2xs font-semibold tracking-wide text-text-muted">Węgle</p>
+      <div className="meal-macro meal-macro-label rounded-lg bg-surface-2 p-2 text-center" data-macro="carbs">
+        <p className="font-display text-base font-semibold tabular-nums leading-none">{preview.carbs == null ? '—' : formatDecimalPl(preview.carbs)}</p>
+        <p className="mt-1 text-2xs font-medium">Węgle</p>
       </div>
-      <div className="rounded-2xl border border-border-custom/40 bg-surface-solid/30 p-2.5 text-center">
-        <p className="font-display text-base font-semibold text-text-primary leading-none">{preview.fat ?? '–'}</p>
-        <p className="mt-1 text-2xs font-semibold tracking-wide text-text-muted">Tłuszcz</p>
+      <div className="meal-macro meal-macro-label rounded-lg bg-surface-2 p-2 text-center" data-macro="fat">
+        <p className="font-display text-base font-semibold tabular-nums leading-none">{preview.fat == null ? '—' : formatDecimalPl(preview.fat)}</p>
+        <p className="mt-1 text-2xs font-medium">Tłuszcze</p>
       </div>
     </div>
   );

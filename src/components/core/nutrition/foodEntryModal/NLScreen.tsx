@@ -1,5 +1,6 @@
 import { Pressable, ControlTextarea } from '../../../ui/ControlPrimitives';
 import type { Dispatch, SetStateAction } from 'react';
+import { formatDecimalPl, pluralPl } from '../../../../lib/formatPl';
 import { Sparkles, Trash2, Check } from 'lucide-react';
 import { confidenceLabel, MEAL_TYPES } from '../../../../lib/health/foodLogging';
 import type { ParsedFoodItem } from '../../../../lib/health/foodLogging';
@@ -89,7 +90,7 @@ export default function NLScreen({
                 <div className="flex-1 min-w-0">
                   <p className={`text-sm font-semibold truncate ${removed ? 'line-through text-text-muted' : 'text-text-primary'}`}>{item.name}</p>
                   <p className="text-2xs text-text-muted flex items-center gap-1.5">
-                    <span>{item.grams}g</span>
+                    <span>{item.grams == null ? '—' : formatDecimalPl(item.grams)} g</span>
                     {confidenceLabel(item) && (
                       <span className={`rounded px-1 py-0.5 text-2xs font-bold tracking-wide ${
                         item.confidence === 'low' ? 'bg-warning/15 text-warning' :
@@ -105,9 +106,9 @@ export default function NLScreen({
                   ) : null}
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="text-xs font-semibold text-text-secondary">{item.calories} kcal</p>
+                  <p className="text-xs font-semibold tabular-nums text-text-secondary">{formatDecimalPl(item.calories)} kcal</p>
                   <p className="text-2xs text-text-muted">
-                    {item.protein}B · {item.carbs ?? '?'}W · {item.fat ?? '?'}T
+                    <span className="meal-macro meal-macro-label" data-macro="protein">{formatDecimalPl(item.protein)} B</span> · <span className="meal-macro meal-macro-label" data-macro="carbs">{item.carbs == null ? '—' : formatDecimalPl(item.carbs)} W</span> · <span className="meal-macro meal-macro-label" data-macro="fat">{item.fat == null ? '—' : formatDecimalPl(item.fat)} T</span>
                   </p>
                 </div>
                 <Pressable
@@ -118,6 +119,7 @@ export default function NLScreen({
                     return next;
                   })}
                   className="shrink-0 rounded-full p-1 text-text-muted hover:text-danger hover:bg-danger/10 active:scale-95 ui-interactive"
+                  aria-label={`${removed ? 'Przywróć' : 'Usuń'} ${item.name}`}
                 >
                   {removed ? <Check size={13} className="text-success" /> : <Trash2 size={13} />}
                 </Pressable>
@@ -135,22 +137,22 @@ export default function NLScreen({
                 const totT = Math.round(active.reduce((s, item) => s + (item.fat ?? 0), 0) * 10) / 10;
                 return (
                   <span className="text-xs text-text-muted">
-                    Łącznie: <span className="font-semibold text-text-secondary">{totKcal} kcal</span>
-                    {' · '}<span className="font-bold text-primary">{totB}B</span>
-                    {' · '}<span className="font-bold text-warning">{totW}W</span>
-                    {' · '}<span className="font-bold text-text-secondary">{totT}T</span>
+                    Łącznie: <span className="font-semibold text-text-secondary">{formatDecimalPl(totKcal)} kcal</span>
+                    {' · '}<span className="meal-macro meal-macro-label" data-macro="protein">{formatDecimalPl(totB)} B</span>
+                    {' · '}<span className="meal-macro meal-macro-label" data-macro="carbs">{active.some((item) => item.carbs != null) ? formatDecimalPl(totW) : '—'} W</span>
+                    {' · '}<span className="meal-macro meal-macro-label" data-macro="fat">{active.some((item) => item.fat != null) ? formatDecimalPl(totT) : '—'} T</span>
                   </span>
                 );
               })()}
             </div>
             <Pressable
-              variant="primary"
+              variant="neutral"
               onClick={saveNLItems}
               loading={nlSaving}
               disabled={nlActiveCount === 0}
-              className="w-full"
+              className="min-h-14 w-full"
             >
-              Dodaj {nlActiveCount} {nlActiveCount === 1 ? 'produkt' : nlActiveCount < 5 ? 'produkty' : 'produktów'}
+              Dodaj {nlActiveCount} {pluralPl(nlActiveCount, 'produkt', 'produkty', 'produktów')}
             </Pressable>
           </div>
         </div>
