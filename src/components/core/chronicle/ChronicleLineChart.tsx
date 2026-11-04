@@ -14,8 +14,15 @@ const format = (value: number) => value.toLocaleString('pl-PL', { maximumFractio
 /** Prosty wykres liniowy: dni bez danych to przerwa, a punkty po obu stronach łączy linia przerywana. */
 export default function ChronicleLineChart({ values, labels, unit, ariaLabel }: Props) {
   const known = values.flatMap((value, index) => (value == null ? [] : [{ index, value }]));
-  if (!known.length) {
-    return <p className="rounded-lg border border-border-custom/40 bg-surface/40 px-3 py-6 text-center text-xs font-semibold text-text-muted">Brak danych do wykresu w tym okresie.</p>;
+  if (known.length < 2) {
+    const only = known[0];
+    return (
+      <p className="rounded-lg bg-surface-2 px-3 py-6 text-center text-xs font-semibold text-text-muted">
+        {only
+          ? <>Jeden pomiar w tym okresie: <span className="text-text-primary">{format(only.value)}{unit ? ` ${unit}` : ''}</span>. Wykres pojawi się od dwóch.</>
+          : 'Brak danych do wykresu w tym okresie.'}
+      </p>
+    );
   }
   const min = Math.min(...known.map((p) => p.value));
   const max = Math.max(...known.map((p) => p.value));
@@ -49,7 +56,7 @@ export default function ChronicleLineChart({ values, labels, unit, ariaLabel }: 
       {known.map((point) => (
         <circle key={point.index} cx={x(point.index)} cy={y(point.value)} r={point.index === last.index ? 4 : 2.5} fill="currentColor" />
       ))}
-      <text x={Math.min(x(last.index), W - PAD.right)} y={Math.max(y(last.value) - 8, 10)} textAnchor="middle" fontSize="10" fontWeight="700" fill="currentColor" className="text-text-primary">
+      <text x={Math.min(x(last.index), W - PAD.right)} y={Math.max(y(last.value) - 8, 10)} textAnchor={x(last.index) < 36 ? 'start' : x(last.index) > W - 36 ? 'end' : 'middle'} fontSize="10" fontWeight="700" fill="currentColor" className="text-text-primary">
         {format(last.value)}{unit ? ` ${unit}` : ''}
       </text>
       {labels.map((label, index) => (index % step === 0 ? (
