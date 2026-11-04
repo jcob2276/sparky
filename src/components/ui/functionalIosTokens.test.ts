@@ -31,8 +31,8 @@ describe('Functional iOS token contract', () => {
   it('defines geometry by component role', () => {
     const light = contractBlock('/* Functional iOS light */');
 
-    expect(light).toContain('--radius-grouped: 14px;');
-    expect(light).toContain('--radius-hero: 22px;');
+    expect(light).toContain('--radius-grouped: 18px;');
+    expect(light).toContain('--radius-hero: 24px;');
     expect(light).toContain('--radius-sheet: 28px;');
     expect(light).toContain('--text-screen-title: 34px;');
   });

@@ -512,7 +512,7 @@
   --surface-solid: #FFFFFF;
   --border: rgb(60 60 67 / 22%);
   --separator: rgb(60 60 67 / 29%);
-  --text-primary: #000000;
+  --text-primary: #1C1C1E;
   --text-secondary: rgb(60 60 67);
   --text-muted: rgb(60 60 67 / 60%);
   --direction: #FF9500;
@@ -601,8 +601,8 @@
   --color-priority-low-hover: rgba(128, 128, 128, 0.15);
 
   /* ── Functional iOS geometry ── */
-  --radius-grouped: 14px;
-  --radius-hero: 22px;
+  --radius-grouped: 18px;
+  --radius-hero: 24px;
   --radius-sheet: 28px;
   --text-screen-title: 34px;
   --tracking-screen-title: -0.022em;
@@ -1968,8 +1968,8 @@ html.ios-sheet-active #root {
     border: 0.5px solid var(--separator);
     border-radius: var(--radius-grouped);
     box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      0 4px 12px -2px rgba(0, 0, 0, 0.06),
+      0 1px 2px rgba(16, 24, 40, 0.04),
+      0 6px 20px -4px rgba(16, 24, 40, 0.08),
       inset 0 1px 0 rgba(255, 255, 255, 0.08);
   }
 
@@ -2280,10 +2280,10 @@ html.ios-sheet-active #root {
     --rating-tone: var(--text-secondary);
     min-width: var(--touch-target);
     min-height: var(--touch-target);
-    border: 0.5px solid color-mix(in srgb, var(--rating-tone) 35%, var(--separator));
+    border: 0.5px solid var(--separator);
     border-radius: var(--radius-md);
-    background: color-mix(in srgb, var(--rating-tone) 8%, var(--surface-solid));
-    color: var(--rating-tone);
+    background: var(--surface-2);
+    color: var(--text-secondary);
     font-weight: 700;
   }
 
