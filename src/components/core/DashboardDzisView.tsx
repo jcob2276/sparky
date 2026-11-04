@@ -16,6 +16,7 @@ import FoodQuickCapture from './nutrition/FoodQuickCapture';
 import { ThreeSpheresGoalsCard } from './ThreeSpheresGoalsCard';
 import TodayRunwayCard from './TodayRunwayCard';
 import TodayVitalsHero from './TodayVitalsHero';
+import WinsHistoryGrid from './WinsHistoryGrid';
 import VisionHeroCard from './VisionHeroCard';
 import { TodayLayoutEditor } from './TodayLayoutEditor';
 
@@ -58,6 +59,7 @@ export function DashboardDzisView(props: DashboardDzisViewProps) {
     plan: <div className="space-y-5">
       {props.weeklyReviewDue && <WeeklyReview onOpen={props.onOpenWeeklyReview} />}
       <PowerList {...props.plan} />
+      <WinsHistoryGrid />
     </div>,
     recovery: <DailyStrainCard refreshSignal={props.nutritionKey + props.workoutKey} />,
     food: <FoodQuickCapture refreshSignal={props.nutritionKey} onSaved={props.onFoodSaved} />,
