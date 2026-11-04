@@ -26,8 +26,18 @@ w backlogu. Nie tworzyć drugiego webhooka Fathom.
 4. Wpis = karta: ikona w kółku, tytuł, godzina po prawej, chipy kontekstu.
 5. Logowanie to arkusz z uchwytem, jedno pole główne i szeroki CTA.
 6. Historia = siatka dni (kropki nastroju, kafelki nawyku), nie lista liczb.
-7. Wynik snu/regeneracji ma grafikę i pierścień; szczegół metryki ma szablon:
+7. Aplikacja ma jednego użytkownika: pomijamy wzorce monetyzacji i społeczne, wolno ciężkie
+   media (zdjęcia, mapa, duże ilustracje) i gęste dane.
+8. Wynik snu/regeneracji ma grafikę i pierścień; szczegół metryki ma szablon:
    liczba + zakres, wykres z pasmem celu, 30D/3M/6M/1R, tabela trendu 3/7/14/30/90.
+9. Zgodność z KIERUNEK i PRODUCT_PRINCIPLES (ważniejsza niż wzorce z badania): cichy
+   dziennik, nie coach. Bez płomieni, serii i pochwał; bez motywacyjnych cytatów jako
+   elementu UI; bez push (coaching tylko na żądanie). Brak danych to „—” ze źródłem, nigdy
+   zero. Karta wniosku zawsze pokazuje źródło, N, zakres dat i status inferred/confirmed.
+   Nie orzekamy, że intencja/manifestacja zadziałała.
+10. Atomy do wspólnego użycia: liczba/pierścień (pomiar), karta wpisu (fakt), karta wniosku,
+   siatka dni (historia, neutralna), arkusz logowania. „+” = dopisz fakt (tekst, głos,
+   zdjęcie, pomiar), także wstecz.
 
 **Decyzje czekające na Jakuba:** font (Plus Jakarta Sans vs systemowy, bo aplikacja jest
 na Androidzie), akcent (zostaje niebieski czy nowa tożsamość), styl grafiki.
@@ -35,12 +45,17 @@ na Androidzie), akcent (zostaje niebieski czy nowa tożsamość), styl grafiki.
 **Fazy (kolejność wg zależności):**
 - F0 [zrobione] Tokeny promieni, EmptyState, toasty, pierścienie i werdykt na górze Dziś,
   spójność liczb i odmiany, tydzień/Todo bez pięciu kolorów.
-- F1 Dziś: „Pięć zwycięstw” jako siatka ostatnich tygodni, cytat jako baner, nagłówki
-  sekcji na tle. Uwaga: układ Dziś jest zapisany per użytkownik (TodayLayout), więc nowe
+- F1 Dziś: „Pięć zwycięstw” jako neutralna siatka ostatnich tygodni, nagłówki sekcji na
+  tle. Sprawdzić, czy „Obciążenie 0” w bohaterze to wynik, czy brak danych (pokazać „—”). Uwaga: układ Dziś jest zapisany per użytkownik (TodayLayout), więc nowe
   sekcje wymagają domyślnej migracji. Zawęzić zapytanie historii Oura na Dziś
   (dziś pobiera 365 dni, bohater potrzebuje ~14).
+- F1b Kierunek i cele: kamień milowy jako karta ze zdjęciem, dniami do terminu i linią postępu;
+  siatka dni bez płomienia i licznika presji; kalendarz dnia ze zdjęciem w komórce.
+  Tablica wizji tylko jako deklaracje użytkownika (guardrail Transurfing).
 - F2 Dziennik (Duch/Kronika): oś czasu kart wpisów, kalendarz kropek, dodawanie „Wczoraj”
   i „Inny dzień”. Zgodne z KIERUNEK: jeden dziennik, który mierzy i łączy.
+- F2b Karta wniosku (Korelacje, Tydzień): źródło, N, zakres dat, status inferred/confirmed,
+  ścieżka korekty; jedna karta w całej aplikacji.
 - F3 Jedzenie: stały pasek makr, arkusz logowania z ciemnym CTA, jeden kolor na makro.
 - F4 Trening: aktywna sesja (ukończona seria = zielone tło, timer w wierszu), heatmapa
   miesiąca, radar objętości.
