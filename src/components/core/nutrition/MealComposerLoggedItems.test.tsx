@@ -23,7 +23,7 @@ describe('MealComposerLoggedItems', () => {
     expect(screen.getByText('Śniadanie 250')).toBeInTheDocument();
     expect(screen.getByText('Obiad 0')).toBeInTheDocument();
     const toggle = screen.getByRole('button', { expanded: false });
-    expect(toggle).toHaveTextContent('2 pozycje · 250 kcal · 10.3 g B');
+    expect(toggle).toHaveTextContent('2 pozycje · 250 kcal · 10,3 g B');
     fireEvent.click(toggle);
     fireEvent.click(screen.getByText('Owsianka'));
     expect(onEditEntry).toHaveBeenCalledWith({

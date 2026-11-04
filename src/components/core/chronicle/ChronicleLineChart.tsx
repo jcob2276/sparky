@@ -19,7 +19,7 @@ export default function ChronicleLineChart({ values, labels, unit, ariaLabel }: 
     return (
       <p className="rounded-lg bg-surface-2 px-3 py-6 text-center text-xs font-semibold text-text-muted">
         {only
-          ? <>Jeden pomiar w tym okresie: <span className="text-text-primary">{format(only.value)}{unit ? ` ${unit}` : ''}</span>. Wykres pojawi się od dwóch.</>
+          ? <>Jeden punkt w tym okresie:{' '}<span className="text-text-primary">{format(only.value)}{unit ? ` ${unit}` : ''}</span>. Wykres pojawi się od dwóch.</>
           : 'Brak danych do wykresu w tym okresie.'}
       </p>
     );
@@ -41,6 +41,9 @@ export default function ChronicleLineChart({ values, labels, unit, ariaLabel }: 
       <title>{ariaLabel}</title>
       {[0, 0.5, 1].map((t) => (
         <line key={t} x1={PAD.left} x2={W - PAD.right} y1={PAD.top + innerH * t} y2={PAD.top + innerH * t} stroke="currentColor" className="text-border-custom" strokeWidth={0.5} />
+      ))}
+      {[{ t: 0, v: hi }, { t: 1, v: lo }].map(({ t, v }) => (
+        <text key={t} x={PAD.left} y={PAD.top + innerH * t + -3} fontSize="8" fill="currentColor" className="text-text-muted">{format(v)}</text>
       ))}
       {known.slice(1).map((point, i) => {
         const prev = known[i];

@@ -1,3 +1,4 @@
+import { formatDecimalPl } from '../../../lib/formatPl';
 import type { DayNutrientCoverage, NutrientCoverage } from '../../../lib/health/nutrientCoverage';
 
 function Cell({ label, data }: { label: string; data: NutrientCoverage }) {
@@ -13,7 +14,7 @@ function Cell({ label, data }: { label: string; data: NutrientCoverage }) {
         <span className="font-semibold text-warning">brak danych</span>
       ) : (
         <>
-          <span className="font-semibold text-text-primary">{missing ? '≥ ' : ''}{data.total} g</span>
+          <span className="font-semibold text-text-primary">{missing ? '≥ ' : ''}{formatDecimalPl(data.total)} g</span>
           {missing && <span className="text-warning"> ({data.known}/{data.items})</span>}
         </>
       )}

@@ -68,7 +68,7 @@ describe('ChronicleSummary', () => {
   it('przy jednym pomiarze nie rysuje samotnego punktu, tylko podaje wartość', () => {
     render(<ChronicleSummary summary={{ ...summary, chart: { ...summary.chart, unit: 'kg', values: [null, 77, null] } }} loading={false} error={null} periodTitle="Ten miesiąc" />);
     expect(screen.queryByRole('img', { name: 'Umówieni, Ten miesiąc' })).not.toBeInTheDocument();
-    expect(screen.getByText(/Jeden pomiar w tym okresie/)).toBeInTheDocument();
+    expect(screen.getByText(/Jeden punkt w tym okresie/)).toBeInTheDocument();
     expect(screen.getByText('77 kg')).toBeInTheDocument();
   });
 

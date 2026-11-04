@@ -61,7 +61,6 @@ export default function SupplementChip({ sup, quantity, disabled, onToggle, onLo
           : 'border-border-custom bg-surface-solid/50 text-text-secondary hover:border-success/40'
       }`}
     >
-      <span aria-hidden>{sup.emoji || '💊'}</span>
       <span>{shortSupplementName(sup)}</span>
       {taken && quantity > 1 && <span className="tabular-nums">×{quantity}</span>}
       {taken ? <Check size={12} strokeWidth={3} /> : <Plus size={12} className="opacity-60" />}

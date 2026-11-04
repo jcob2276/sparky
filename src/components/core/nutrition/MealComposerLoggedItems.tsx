@@ -4,6 +4,7 @@ import { Pressable } from '../../ui/ControlPrimitives';
 import type { TodayFoodEntry } from '../../../lib/health/composerTodayMealsApi';
 import type { RecentEntry } from './hooks/foodEntryUtils';
 import SwipeableFoodEntry from './SwipeableFoodEntry';
+import { formatDecimalPl, pluralPl } from '../../../lib/formatPl';
 
 const MEAL_LABEL: Record<string, string> = {
   breakfast: 'Śniadanie',
@@ -34,7 +35,7 @@ function LoggedItemsHeader({ title, count, kcal, protein, open, locked, onToggle
       <div className="min-w-0 flex-1">
         <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
         <p className="text-2xs font-semibold tabular-nums text-text-muted">
-          {count} {count === 1 ? 'pozycja' : 'pozycje'}&nbsp;&middot;&nbsp;{kcal} kcal&nbsp;&middot;&nbsp;<span className="text-primary">{protein} g B</span>
+          {count} {pluralPl(count, 'pozycja', 'pozycje', 'pozycji')}&nbsp;&middot;&nbsp;{kcal} kcal&nbsp;&middot;&nbsp;<span className="text-primary">{formatDecimalPl(Number(protein))} g B</span>
         </p>
       </div>
       {!locked && (
@@ -211,7 +212,7 @@ export default memo(function MealComposerLoggedItems({
                           {entry.protein != null && (
                             <>
                               <span>&middot;</span>
-                              <span className="text-primary font-semibold">{Math.round(entry.protein * 10) / 10}g B</span>
+                              <span className="text-primary font-semibold">{formatDecimalPl(entry.protein)} g B</span>
                             </>
                           )}
                         </div>
