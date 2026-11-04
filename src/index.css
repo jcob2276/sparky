@@ -2926,7 +2926,7 @@ a,
 .oura-ring-band[data-band='strain'] { color: var(--oura-band-strain); }
 .oura-ring-value { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.875rem; font-weight: 300; font-variant-numeric: tabular-nums; color: var(--text-primary); }
 @media (prefers-reduced-motion: no-preference) {
-  .oura-ring-arc { animation: oura-ring-fill var(--oura-ring-duration) ease-out both; }
+  .oura-ring-arc { animation: oura-ring-fill var(--oura-ring-duration) ease-out backwards; transition: stroke-dashoffset var(--oura-ring-duration) cubic-bezier(0.22, 1, 0.36, 1); }
 }
 @keyframes oura-ring-fill { from { stroke-dashoffset: var(--oura-ring-c); } }
 .oura-base { display: grid; gap: 1rem; }
@@ -3082,7 +3082,7 @@ a,
 .readiness-ring-arc[data-band='attention'] { stroke: var(--color-danger); }
 .readiness-ring-value { position: absolute; inset: 0; display: grid; place-items: center; font-size: 1.5rem; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-primary); }
 @media (prefers-reduced-motion: no-preference) {
-  .readiness-ring-arc { animation: readiness-ring-fill var(--readiness-ring-duration) ease-out both; }
+  .readiness-ring-arc { animation: readiness-ring-fill var(--readiness-ring-duration) ease-out backwards; transition: stroke-dashoffset var(--readiness-ring-duration) cubic-bezier(0.22, 1, 0.36, 1); }
 }
 @keyframes readiness-ring-fill { from { stroke-dashoffset: var(--readiness-ring-c); } }
 
