@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
+import { parseStrainComponents } from '../../lib/db-json-guards';
 import { buildHealthDirection } from '../../lib/biometrics/healthDirection';
 import { buildScoreRings } from '../../lib/biometrics/ouraScoreBands';
-import { useDailyStrainOura, useOuraHistory30Days } from '../../lib/biometricsApi';
+import { useDailyStrainOura, useOuraRecentHistory } from '../../lib/biometricsApi';
 import { formatShortDateWarsaw } from '../../lib/date';
 import { useUserId } from '../../store/useStore';
 import { OuraScoreRings } from '../biometrics/oura/OuraScoreRings';
@@ -12,7 +13,7 @@ export default function TodayVitalsHero() {
   const userId = useUserId();
   const navigate = useNavigate();
   const daily = useDailyStrainOura(userId ?? '');
-  const history = useOuraHistory30Days(userId ?? '');
+  const history = useOuraRecentHistory(userId ?? '');
   if (!userId) return null;
   if (daily.isLoading) return <Skeleton variant="card" lines={3} />;
   const oura = daily.data?.oura;
@@ -23,7 +24,9 @@ export default function TodayVitalsHero() {
   const summaries = [...(history.data?.ouraHistory ?? []).filter(row => row.date !== asOf), oura];
   const enhanced = [...(history.data?.enhancedHistory ?? []).filter(row => row.date !== asOf), ...(enhancedToday ? [enhancedToday] : [])];
   const direction = buildHealthDirection({ asOf, summaries, enhanced });
-  const rings = buildScoreRings({ asOf, summaries, enhanced, strainScore: daily.data?.row?.strain_score });
+  const row = daily.data?.row;
+  const calibrating = (row ? parseStrainComponents(row.components) : null)?.strain_confidence === 'calibrating';
+  const rings = buildScoreRings({ asOf, summaries, enhanced, strainScore: calibrating ? null : row?.strain_score });
   const open = () => navigate('/oura');
 
   return (

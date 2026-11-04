@@ -150,37 +150,36 @@ export function useWeeklyBodyPulse(userId: string) {
   });
 }
 
+async function fetchOuraHistory(userId: string, days: number) {
+  const startDate = shiftDateStr(getTodayWarsaw(), -days);
+  const [{ data: ouraHistory, error: e1 }, { data: enhancedHistory, error: e2 }] = await Promise.all([
+    supabase.from('oura_daily_summary').select('*').eq('user_id', userId).gte('date', startDate).order('date', { ascending: true }),
+    supabase.from('oura_enhanced').select('*').eq('user_id', userId).gte('date', startDate).order('date', { ascending: true }),
+  ]);
+  if (e1) console.warn('[fetchOuraHistory] e1 warning:', e1.message);
+  if (e2) console.warn('[fetchOuraHistory] e2 warning:', e2.message);
+  return {
+    sourceErrors: collectBiometricReadErrors({ oura_daily_summary: e1, oura_enhanced: e2 }),
+    ouraHistory: ouraHistory || [],
+    enhancedHistory: enhancedHistory || [],
+  };
+}
+
+/** Pełna historia Oura (365 dni) dla ekranu szczegółów. */
 export function useOuraHistory30Days(userId: string) {
   return useQuery({
     queryKey: biometricsKeys.ouraHistory30(userId),
-    queryFn: async () => {
-      const todayStr = getTodayWarsaw();
-      const startDate = shiftDateStr(todayStr, -365); // Full Oura history (7+ months)
+    queryFn: () => fetchOuraHistory(userId, 365),
+    staleTime: 1000 * 60 * 30,
+    enabled: !!userId,
+  });
+}
 
-      const [{ data: ouraHistory, error: e1 }, { data: enhancedHistory, error: e2 }] = await Promise.all([
-        supabase
-          .from('oura_daily_summary')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('date', startDate)
-          .order('date', { ascending: true }),
-        supabase
-          .from('oura_enhanced')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('date', startDate)
-          .order('date', { ascending: true }),
-      ]);
-
-      if (e1) console.warn('[useOuraHistory30Days] e1 warning:', e1.message);
-      if (e2) console.warn('[useOuraHistory30Days] e2 warning:', e2.message);
-
-      return {
-        sourceErrors: collectBiometricReadErrors({ oura_daily_summary: e1, oura_enhanced: e2 }),
-        ouraHistory: ouraHistory || [],
-        enhancedHistory: enhancedHistory || [],
-      };
-    },
+/** Krótka historia Oura (domyślnie 21 dni) dla ekranu Dziś; wystarcza na porównanie 7 dni z 7. */
+export function useOuraRecentHistory(userId: string, days = 21) {
+  return useQuery({
+    queryKey: biometricsKeys.ouraRecent(userId, days),
+    queryFn: () => fetchOuraHistory(userId, days),
     staleTime: 1000 * 60 * 30,
     enabled: !!userId,
   });
