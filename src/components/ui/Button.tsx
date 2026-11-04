@@ -3,7 +3,7 @@ import Spinner from './Spinner';
 import { haptics } from '../../hooks/useHaptics';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'tonal';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'tonal' | 'neutral' | 'tonal-danger';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   icon?: React.ReactNode;
@@ -41,6 +41,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button({
     ghost: 'ui-button--ghost bg-transparent text-primary',
     danger: 'ui-button--danger bg-danger text-on-accent',
     tonal: 'ui-button--tonal bg-primary/10 text-primary',
+    neutral: 'ui-button--neutral',
+    'tonal-danger': 'ui-button--tonal-danger',
   };
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {

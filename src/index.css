@@ -2149,6 +2149,21 @@ html.ios-sheet-active #root {
     color: var(--primary);
   }
 
+  .ui-button--neutral {
+    background: var(--button-neutral-bg);
+    color: var(--button-neutral-fg);
+    border-radius: var(--radius-full);
+  }
+
+  .ui-button--neutral:hover { background: var(--button-neutral-hover); }
+  .ui-button--tonal-danger {
+    background: color-mix(in srgb, var(--color-danger) 10%, var(--surface));
+    color: var(--color-danger);
+  }
+  .ui-button--tonal-danger:hover {
+    background: color-mix(in srgb, var(--color-danger) 16%, var(--surface));
+  }
+
   .ui-button:active:not(:disabled),
   .ui-pressable:active:not(:disabled) {
     transform: scale(var(--ios-press-scale));
@@ -3031,15 +3046,39 @@ a,
 
 /* ── Meal composer (Posiłek card) tokens ─────────────────────────────── */
 :root {
+  --button-neutral-bg: var(--text-primary);
+  --button-neutral-fg: var(--surface);
+  --button-neutral-hover: var(--text-secondary);
+  --workout-complete-color: var(--color-success);
+  --workout-complete-bg: color-mix(in srgb, var(--color-success) 10%, var(--surface));
+  --workout-action-color: var(--primary);
+  --workout-action-bg: var(--surface-tonal);
+  --meal-log-max-height: calc(100svh - var(--dashboard-padding-navigation) - var(--toolbar-height));
   --meal-protein: var(--primary);
-  --meal-carbs: var(--color-success);
-  --meal-fat: var(--color-warning);
+  --meal-carbs: color-mix(in srgb, var(--color-success) 55%, var(--text-primary));
+  --meal-fat: color-mix(in srgb, var(--color-warning) 55%, var(--text-primary));
   --meal-track: var(--surface-3);
   --meal-ring: var(--primary);
   --meal-ring-over: var(--color-warning);
   --meal-segment-bg: var(--surface-2);
   --meal-segment-on: var(--surface-1);
 }
+.dark {
+  --button-neutral-bg: var(--surface-3);
+  --button-neutral-fg: var(--text-primary);
+  --button-neutral-hover: var(--surface-raised);
+  --workout-complete-color: var(--color-success);
+  --workout-complete-bg: color-mix(in srgb, var(--color-success) 14%, var(--surface));
+  --workout-action-color: var(--primary);
+  --workout-action-bg: var(--surface-tonal);
+}
+.meal-composer.ui-card { max-height: var(--meal-log-max-height); overflow: auto; overscroll-behavior-y: contain; }
+.meal-macro-dock { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--surface); border-bottom: 1px solid var(--separator); border-radius: var(--radius-grouped) var(--radius-grouped) 0 0; }
+.live-set-complete { background: var(--workout-complete-bg); }
+.live-set-check { background: var(--workout-complete-color); border-color: var(--workout-complete-color); color: var(--button-neutral-bg); }
+.live-workout-add.ui-button { background: var(--workout-action-bg); color: var(--workout-action-color); }
+.live-rest-row { background: var(--workout-action-bg); color: var(--text-primary); }
+.live-rest-row button { color: var(--workout-action-color); }
 .meal-segment { padding: 2px; border-radius: 0.625rem; background: var(--meal-segment-bg); }
 .meal-segment-item { display: inline-flex; align-items: center; justify-content: center; min-height: 2rem; border-radius: 0.5rem; font-weight: 700; color: var(--text-muted); }
 .meal-segment-item[aria-pressed='true'] { background: var(--meal-segment-on); color: var(--primary); box-shadow: 0 1px 2px rgb(0 0 0 / 12%); }
@@ -3054,7 +3093,6 @@ a,
 .meal-macro[data-macro='fat'] { --meal-macro: var(--meal-fat); }
 .meal-macro-label { color: var(--meal-macro); }
 .meal-bar-track { background: var(--meal-track); }
-.meal-bar-fill { background: var(--meal-macro); transform-origin: left center; transition: transform 300ms ease-out; }
 .meal-quality { background: color-mix(in srgb, var(--color-warning) 15%, transparent); color: var(--color-warning); }
 .meal-input { border-color: var(--border-custom); background: var(--surface-2); color: var(--text-primary); }
 .meal-input:focus { border-color: var(--primary); background: var(--surface-1); }
@@ -3067,7 +3105,6 @@ a,
 .meal-chips::-webkit-scrollbar { display: none; }
 .meal-chip { display: inline-flex; flex-shrink: 0; align-items: center; gap: 0.375rem; min-height: 2.25rem; padding: 0 0.75rem; border-radius: 9999px; border: 1px solid var(--border-custom); background: var(--surface-2); font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); }
 .meal-chip-accent { border-color: color-mix(in srgb, var(--primary) 40%, transparent); background: var(--surface-tonal); color: var(--primary); font-weight: 700; }
-@media (prefers-reduced-motion: reduce) { .meal-bar-fill { transition: none; } }
 
 /* "Stan dnia" card: recovery ring that works in light and dark themes. */
 :root {
