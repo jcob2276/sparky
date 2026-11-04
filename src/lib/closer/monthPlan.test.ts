@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildMonthPlan, closeRate, summarizeProgress, type PlanDay } from './monthPlan';
+import { buildMonthPlan, closeRate, EMPTY_DAY, isReflected, summarizeProgress, type DayActual, type PlanDay } from './monthPlan';
 
 const config = { startDate: '2026-11-02', targetPln: 10000, showRate: 2 / 3, minSalesWeekDays: 3 };
 const plan = buildMonthPlan(config);
+const day = (patch: Partial<DayActual>): DayActual => ({ ...EMPTY_DAY, ...patch });
 const days = plan.weeks.flatMap((week) => week.cells).filter((cell): cell is PlanDay => cell !== null);
 
 describe('buildMonthPlan', () => {
@@ -35,12 +36,12 @@ describe('buildMonthPlan', () => {
 
 describe('summarizeProgress', () => {
   it('liczy zaległość z dni sprzed dzisiaj, a weekend ją zmniejsza', () => {
-    const behind = summarizeProgress(plan, { '2026-11-02': { appointments: 3, salesCalls: 0, salesClosed: 0 } }, '2026-11-03');
+    const behind = summarizeProgress(plan, { '2026-11-02': day({ appointments: 3, salesCalls: 0, salesClosed: 0 }) }, '2026-11-03');
     expect(behind.backlog).toBe(3);
     expect(behind.todayNeeded).toBe(behind.todayTarget + 3);
     const weekend = summarizeProgress(
       plan,
-      { '2026-11-02': { appointments: 3, salesCalls: 0, salesClosed: 0 }, '2026-11-07': { appointments: 3, salesCalls: 2, salesClosed: 1 } },
+      { '2026-11-02': day({ appointments: 3, salesCalls: 0, salesClosed: 0 }), '2026-11-07': day({ appointments: 3, salesCalls: 2, salesClosed: 1 }) },
       '2026-11-09',
     );
     expect(weekend.salesDone).toBe(1);
@@ -48,7 +49,7 @@ describe('summarizeProgress', () => {
   });
 
   it('nadwyżka nie ujemnia zaległości', () => {
-    const ahead = summarizeProgress(plan, { '2026-11-02': { appointments: 30, salesCalls: 0, salesClosed: 0 } }, '2026-11-03');
+    const ahead = summarizeProgress(plan, { '2026-11-02': day({ appointments: 30, salesCalls: 0, salesClosed: 0 }) }, '2026-11-03');
     expect(ahead.backlog).toBe(0);
     expect(ahead.todayBlocks).toBe(Math.ceil(ahead.todayTarget / 5));
   });
@@ -62,9 +63,27 @@ describe('closeRate', () => {
 
   it('postęp liczy średni close rate z całego miesiąca', () => {
     const progress = summarizeProgress(plan, {
-      '2026-11-02': { appointments: 5, salesCalls: 3, salesClosed: 1 },
-      '2026-11-03': { appointments: 5, salesCalls: 5, salesClosed: 1 },
+      '2026-11-02': day({ appointments: 5, salesCalls: 3, salesClosed: 1 }),
+      '2026-11-03': day({ appointments: 5, salesCalls: 5, salesClosed: 1 }),
     }, '2026-11-04');
     expect(progress).toMatchObject({ salesCallsDone: 8, salesDone: 2, closeRate: 0.25 });
+  });
+});
+
+describe('czas i refleksja', () => {
+  it('sumuje dials, czas pracy, refleksji i nauki oraz liczy dni z refleksją', () => {
+    const progress = summarizeProgress(plan, {
+      '2026-11-02': day({ dials: 20, workMinutes: 120, reflectionMinutes: 15, learningMinutes: 30, reflection: 'Za wcześnie podałem cenę, jutro zapytam o gotowość.' }),
+      '2026-11-03': day({ dials: 10, workMinutes: 60, learningMinutes: 20, reflection: 'krótko' }),
+    }, '2026-11-04');
+    expect(progress).toMatchObject({
+      dialsDone: 30, workMinutesDone: 180, reflectionMinutesDone: 15, learningMinutesDone: 50, reflectedDays: 1, elapsedPlanDays: 3,
+    });
+  });
+
+  it('refleksja krótsza niż minimum nie zamyka dnia', () => {
+    expect(isReflected(day({ reflection: '   za krótko  ' }))).toBe(false);
+    expect(isReflected(day({ reflection: 'Dwanaście zdań to nie musi być, wystarczy sens.' }))).toBe(true);
+    expect(isReflected(undefined)).toBe(false);
   });
 });

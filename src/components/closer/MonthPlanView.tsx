@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { closeRate, MEETINGS_PER_BLOCK, type DayActual, type MonthPlan, type PlanProgress } from '../../lib/closer/monthPlan';
+import { closeRate, isReflected, LEARNING_TARGET_MIN, MEETINGS_PER_BLOCK, REFLECTION_TARGET_MIN, type DayActual, type MonthPlan, type PlanProgress } from '../../lib/closer/monthPlan';
 import { formatPln } from '../../lib/finance/formatMoney';
 import { MonthPlanDay } from './MonthPlanDay';
 
@@ -20,6 +20,7 @@ const WEEKDAYS = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
 const MIN_CALLS_FOR_RATE = 5;
 const short = (date: string) => `${Number(date.slice(8))}.${date.slice(5, 7)}`;
 const percent = (rate: number | null) => (rate === null ? '—' : `${Math.round(rate * 100)}%`);
+const hoursLabel = (minutes: number) => `${Math.floor(minutes / 60)} h ${String(minutes % 60).padStart(2, '0')} min`;
 
 function Stat({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
@@ -34,6 +35,7 @@ function Stat({ label, value, hint }: { label: string; value: string; hint: stri
 export function MonthPlanView({ plan, progress, actuals, today, targetPln, selectedDate, onSelectDate, entry }: MonthPlanViewProps) {
   const { totals } = plan;
   const pct = Math.min(100, (progress.bookedDone / totals.booked) * 100);
+  const todayDay = actuals[today];
   const smallSample = progress.salesCallsDone > 0 && progress.salesCallsDone < MIN_CALLS_FOR_RATE;
 
   return (
@@ -55,7 +57,8 @@ export function MonthPlanView({ plan, progress, actuals, today, targetPln, selec
         <div className="h-2 overflow-hidden rounded-full bg-surface-2" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Umówione spotkania w miesiącu">
           <div className="h-full rounded-full bg-primary transition-[width] duration-[var(--motion-slow)] ease-[var(--ease-out)]" style={{ width: `${pct}%` }} />
         </div>
-        <div className="grid grid-cols-2 gap-3 border-t border-border-custom/20 pt-3">
+        <div className="grid grid-cols-3 gap-3 border-t border-border-custom/20 pt-3">
+          <Stat label="Dials" value={String(progress.dialsDone)} hint="w listopadzie" />
           <Stat label="Sales calle" value={String(progress.salesCallsDone)} hint="w listopadzie" />
           <Stat
             label="Close rate"
@@ -63,6 +66,22 @@ export function MonthPlanView({ plan, progress, actuals, today, targetPln, selec
             hint={progress.salesCallsDone === 0 ? 'brak rozmów' : `${progress.salesDone} z ${progress.salesCallsDone}${smallSample ? ' · mała próba' : ''}`}
           />
         </div>
+        <div className="grid grid-cols-3 gap-3 border-t border-border-custom/20 pt-3">
+          <Stat label="Praca" value={hoursLabel(progress.workMinutesDone)} hint="w listopadzie" />
+          <Stat
+            label="Self-refleksja"
+            value={`${progress.reflectionMinutesDone} min`}
+            hint={`dziś ${todayDay?.reflectionMinutes ?? 0}/${REFLECTION_TARGET_MIN} min`}
+          />
+          <Stat
+            label="Nauka"
+            value={`${progress.learningMinutesDone} min`}
+            hint={`dziś ${todayDay?.learningMinutes ?? 0}/${LEARNING_TARGET_MIN} min`}
+          />
+        </div>
+        <p className={`text-sm ${progress.reflectedDays >= progress.elapsedPlanDays ? 'text-success' : 'text-warning'}`}>
+          Zamknięte dni z refleksją: {progress.reflectedDays} z {progress.elapsedPlanDays}
+        </p>
       </section>
 
       {entry}
@@ -76,6 +95,7 @@ export function MonthPlanView({ plan, progress, actuals, today, targetPln, selec
           const sum = (pick: (a: DayActual) => number) => dates.reduce((total, date) => total + (actuals[date] ? pick(actuals[date]) : 0), 0);
           const sold = sum((a) => a.salesClosed);
           const calls = sum((a) => a.salesCalls);
+          const reflected = dates.filter((date) => isReflected(actuals[date])).length;
           return (
             <div key={dates[0]} className="space-y-1.5">
               <div className="grid grid-cols-7 gap-1.5">
@@ -87,6 +107,9 @@ export function MonthPlanView({ plan, progress, actuals, today, targetPln, selec
                 <span>{short(dates[0])}–{short(dates[dates.length - 1])}</span>
                 <span className="tabular-nums">minimum {week.bookedMin} umówionych · zrobione {sum((a) => a.appointments)}</span>
                 <span className="tabular-nums">sprzedaż {sold}/{week.salesMin} · calle {calls} · CR {percent(closeRate(sold, calls))}</span>
+                <span className="w-full tabular-nums">
+                  dials {sum((a) => a.dials)} · praca {hoursLabel(sum((a) => a.workMinutes))} · refleksja {sum((a) => a.reflectionMinutes)} min · nauka {sum((a) => a.learningMinutes)} min · zamknięte dni {reflected}
+                </span>
               </p>
             </div>
           );
@@ -96,7 +119,7 @@ export function MonthPlanView({ plan, progress, actuals, today, targetPln, selec
       <p className="px-1 text-sm leading-relaxed text-text-muted">
         Minimum dnia to liczba umówionych spotkań, nie odbytych. W {MEETINGS_PER_BLOCK} spotkań na godzinę wychodzi 60 min bloku.
         Sobota, niedziela i 11.11 są rezerwą na nadrabianie, więc zaległość z dni roboczych wlicza się w „Dziś”.
-        Kliknij dzień, żeby wpisać liczby. Close rate to sprzedaże podzielone przez sales calle.
+        Kliknij dzień, żeby wpisać liczby, czas i refleksję. Dzień jest zamknięty dopiero z refleksją. Close rate to sprzedaże podzielone przez sales calle. Cele self-refleksji i nauki to minima dzienne.
       </p>
     </div>
   );

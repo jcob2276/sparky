@@ -95,11 +95,29 @@ export function buildMonthPlan(config: MonthPlanConfig): MonthPlan {
   return { weeks, totals: { sales, held, booked, payout: held * MEETING_PAY + sales * OWN_SALE_PAY, planDays } };
 }
 
+/** Refleksja liczy się jako zamykająca dzień od tylu znaków. */
+export const REFLECTION_MIN_CHARS = 15;
+/** Dzienne minima wzrostu: self-refleksja i nauka (minuty). */
+export const REFLECTION_TARGET_MIN = 15;
+export const LEARNING_TARGET_MIN = 30;
+
 export interface DayActual {
+  dials: number;
   appointments: number;
   salesCalls: number;
   salesClosed: number;
+  workMinutes: number;
+  reflectionMinutes: number;
+  learningMinutes: number;
+  /** Tekst refleksji dnia (kolumna `notes`). */
+  reflection: string;
 }
+
+export const EMPTY_DAY: DayActual = {
+  dials: 0, appointments: 0, salesCalls: 0, salesClosed: 0, workMinutes: 0, reflectionMinutes: 0, learningMinutes: 0, reflection: '',
+};
+
+export const isReflected = (actual: DayActual | undefined) => (actual?.reflection.trim().length ?? 0) >= REFLECTION_MIN_CHARS;
 
 /** Close rate jako ułamek 0–1; `null` bez żadnej rozmowy sprzedażowej. */
 export function closeRate(salesClosed: number, salesCalls: number): number | null {
@@ -111,6 +129,13 @@ export interface PlanProgress {
   salesDone: number;
   salesCallsDone: number;
   closeRate: number | null;
+  dialsDone: number;
+  workMinutesDone: number;
+  reflectionMinutesDone: number;
+  learningMinutesDone: number;
+  /** Dni z zapisaną refleksją i ile dni planu już minęło lub trwa (z rezerwą, jeśli ją wpisano). */
+  reflectedDays: number;
+  elapsedPlanDays: number;
   /** Brakujące umówienia względem minimum dni roboczych sprzed dzisiaj (weekend i nadwyżki je zmniejszają). */
   backlog: number;
   todayTarget: number;
@@ -128,12 +153,20 @@ export function summarizeProgress(plan: MonthPlan, actuals: Record<string, DayAc
   const todayTarget = days.find((day) => day.date === today && day.kind === 'plan')?.target ?? 0;
   const todayNeeded = todayTarget + backlog;
   const salesDone = sum((a) => a.salesClosed);
+  const elapsedPlanDays = days.filter((day) => day.kind === 'plan' && day.date <= today).length;
+  const reflectedDays = Object.entries(actuals).filter(([date, actual]) => date >= days[0].date && isReflected(actual)).length;
   const salesCallsDone = sum((a) => a.salesCalls);
   return {
     bookedDone: sum((a) => a.appointments),
     salesDone,
     salesCallsDone,
     closeRate: closeRate(salesDone, salesCallsDone),
+    dialsDone: sum((a) => a.dials),
+    workMinutesDone: sum((a) => a.workMinutes),
+    reflectionMinutesDone: sum((a) => a.reflectionMinutes),
+    learningMinutesDone: sum((a) => a.learningMinutes),
+    reflectedDays,
+    elapsedPlanDays,
     backlog,
     todayTarget,
     todayNeeded,

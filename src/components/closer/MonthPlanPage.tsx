@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { buildMonthPlan, monthEnd, summarizeProgress, type DayActual } from '../../lib/closer/monthPlan';
-import { useCloserRangeActuals, useSaveCloserDayCounts } from '../../lib/closer/closerMonthLogsApi';
+import { canCloseDay } from '../../lib/closer/monthPlanEntry';
+import { useCloserRangeActuals, useSaveCloserDay } from '../../lib/closer/closerMonthLogsApi';
 import { getTodayWarsaw } from '../../lib/date';
 import { notify } from '../../lib/notify';
 import { useStore } from '../../store/useStore';
@@ -22,21 +23,21 @@ function MonthPlanPage() {
   const actualsQuery = useCloserRangeActuals(userId, PLAN.startDate, END_DATE);
   const actuals = useMemo(() => actualsQuery.data ?? {}, [actualsQuery.data]);
   const progress = useMemo(() => summarizeProgress(plan, actuals, today), [plan, actuals, today]);
-  const save = useSaveCloserDayCounts(userId);
+  const save = useSaveCloserDay(userId);
 
-  const saveDay = (date: string, counts: DayActual) => {
-    save.mutate({ date, counts }, {
-      onSuccess: () => notify('Zapisano dzień', 'success'),
+  const saveDay = (date: string, day: DayActual) => {
+    save.mutate({ date, day }, {
+      onSuccess: () => notify(canCloseDay(day) ? 'Dzień zamknięty' : 'Zapisano liczby, dzień czeka na refleksję', 'success'),
       onError: (err) => notify(err instanceof Error ? err.message : 'Nie udało się zapisać dnia', 'error'),
     });
   };
 
   const selected = actuals[selectedDate];
-  const formKey = `${selectedDate}:${selected?.appointments ?? 0}:${selected?.salesCalls ?? 0}:${selected?.salesClosed ?? 0}`;
+  const formKey = `${selectedDate}:${JSON.stringify(selected ?? null)}`;
 
   return (
     <div className="min-h-screen bg-background">
-      <PageHeader title="Plan listopada" subtitle="10 000 zł z umawiania i zamykania" />
+      <PageHeader title="Plan listopada" subtitle="10 000 zł z umawiania i zamykania, plus refleksja i nauka" />
       <ContentContainer width="narrow">
         {actualsQuery.isError && (
           <p role="alert" className="mb-4 rounded-lg bg-warning/10 p-3 text-sm text-text-secondary">

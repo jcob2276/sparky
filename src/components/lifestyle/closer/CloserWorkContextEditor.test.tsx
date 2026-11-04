@@ -4,7 +4,7 @@ import CloserWorkContextEditor from './CloserWorkContextEditor';
 import CloserDayInputs from './CloserDayInputs';
 import type { CloserDailyLogRow } from '../../../lib/closer/closerApi';
 const row: CloserDailyLogRow = { id: 'day', user_id: 'u', date: '2026-10-25', dials: 7, appointments: 2,
-  sales_calls: 3, sales_closed: 1, work_hours: 1.5, notes: 'Mało snu', numbers_entered_at: null, work_energy: 2, work_pressure: 4, created_at: '', updated_at: '' };
+  sales_calls: 3, sales_closed: 1, work_hours: 1.5, reflection_minutes: 0, learning_minutes: 0, notes: 'Mało snu', numbers_entered_at: null, work_energy: 2, work_pressure: 4, created_at: '', updated_at: '' };
 beforeEach(() => localStorage.clear());
 afterEach(cleanup);
 describe('personal work context', () => {

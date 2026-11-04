@@ -37,6 +37,8 @@ export async function upsertCloserDailyLog(
     appointments?: number;
     sales_calls?: number;
     sales_closed?: number;
+    reflection_minutes?: number;
+    learning_minutes?: number;
     notes?: string | null;
   },
 ): Promise<CloserDailyLogRow> {

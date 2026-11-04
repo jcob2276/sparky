@@ -41,7 +41,7 @@ ma jednego pisarza i sprawdzany niezmiennik. Zasady pracy: [AGENTS](../AGENTS.md
 | Nazwa aplikacji i persony AI w promptach | `APP_NAME` w `@vanguard/domain` | nie wpisuj nazwy asystenta w treści promptu |
 | Strefa czasu aplikacji | `TIMEZONE` (`WARSAW_TZ`) w `@vanguard/domain` | dni jako klucze `YYYY-MM-DD` w Warszawie; nie wpisuj literału strefy; `src/lib/warsawDay.guard.test.ts` zabrania „dzisiaj” z UTC |
 | Tydzień (pon–nd) | `getWeekStartWarsaw` | |
-| Wyniki dnia Closera (sales calle i czas pracy) | `closer_daily_logs` | nagrania `closer_calls` wyznaczają minimum przez triggery; większy wpis ręczny zostaje, tych samych rozmów nie dodajemy drugi raz; `kpi_entries` jest projekcją tygodnia |
+| Wyniki dnia Closera (sales calle i czas pracy) | `closer_daily_logs` | nagrania `closer_calls` wyznaczają minimum przez triggery; większy wpis ręczny zostaje, tych samych rozmów nie dodajemy drugi raz; `kpi_entries` jest projekcją tygodnia; minuty self-refleksji i nauki (`reflection_minutes`, `learning_minutes`) oraz tekst refleksji (`notes`) zapisuje plan miesiąca `/plan-listopad` |
 | Wartości awaryjne celów i formatowanie ich tekstów | `src/lib/lifeGoals.ts` | tylko do czasu załadowania z bazy; odczyt przez `lifeTargetsApi.ts` |
 
 ## Dane w bazie: właściciel, kopie pochodne i niezmienniki

@@ -19,7 +19,7 @@ vi.mock('../salesNumbers/useDaySalesNumbers', () => ({ useDaySalesNumbers: () =>
 vi.mock('../salesNumbers/useWeekSalesSums', () => ({ useWeekSalesSums: () => state.week }));
 
 const log = (patch: Partial<CloserDailyLogRow>): CloserDailyLogRow => ({
-  id: 'l', user_id: 'u', date: '2026-10-20', dials: 0, work_hours: 0, appointments: 0, sales_calls: 0, sales_closed: 0,
+  id: 'l', user_id: 'u', date: '2026-10-20', dials: 0, work_hours: 0, reflection_minutes: 0, learning_minutes: 0, appointments: 0, sales_calls: 0, sales_closed: 0,
   numbers_entered_at: null, work_energy: null, work_pressure: null, notes: null, created_at: '', updated_at: '', ...patch,
 });
 

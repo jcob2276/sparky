@@ -19,6 +19,8 @@ const row = (patch: Partial<CloserDailyLogRow>): CloserDailyLogRow => ({
   date: '2026-10-19',
   dials: 0,
   work_hours: 0,
+  reflection_minutes: 0,
+  learning_minutes: 0,
   appointments: 0,
   sales_calls: 0,
   sales_closed: 0,

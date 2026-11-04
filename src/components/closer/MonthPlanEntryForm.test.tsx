@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { EMPTY_DAY } from '../../lib/closer/monthPlan';
 import { MonthPlanEntryForm } from './MonthPlanEntryForm';
 
 function setup(overrides: Partial<Parameters<typeof MonthPlanEntryForm>[0]> = {}) {
@@ -9,7 +10,7 @@ function setup(overrides: Partial<Parameters<typeof MonthPlanEntryForm>[0]> = {}
       date="2026-11-04"
       minDate="2026-11-02"
       maxDate="2026-11-30"
-      initial={{ appointments: 3, salesCalls: 2, salesClosed: 1 }}
+      initial={{ ...EMPTY_DAY, appointments: 3, salesCalls: 2, salesClosed: 1 }}
       saving={false}
       disabled={false}
       onDateChange={() => undefined}
@@ -26,20 +27,40 @@ describe('MonthPlanEntryForm', () => {
     expect(screen.getByText('close rate dnia 50%')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('Umówione'), { target: { value: '6' } });
     fireEvent.change(screen.getByLabelText('Sales calle'), { target: { value: '4' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Zapisz dzień' }));
-    expect(onSave).toHaveBeenCalledWith('2026-11-04', { appointments: 6, salesCalls: 4, salesClosed: 1 });
+    fireEvent.change(screen.getByLabelText('Dials'), { target: { value: '25' } });
+    fireEvent.change(screen.getByLabelText('Praca'), { target: { value: '150' } });
+    fireEvent.change(screen.getByLabelText(/Self-refleksja/), { target: { value: '15' } });
+    fireEvent.change(screen.getByLabelText(/Nauka/), { target: { value: '30' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Zapisz liczby bez zamykania dnia' }));
+    expect(onSave).toHaveBeenCalledWith('2026-11-04', {
+      dials: 25, appointments: 6, salesCalls: 4, salesClosed: 1, workMinutes: 150, reflectionMinutes: 15, learningMinutes: 30, reflection: '',
+    });
   });
 
   it('nie pozwala zapisać większej liczby sprzedaży niż sales calli', () => {
     const onSave = setup();
     fireEvent.change(screen.getByLabelText('Sprzedaże'), { target: { value: '3' } });
     expect(screen.getByRole('alert')).toHaveTextContent('Sprzedaży nie może być więcej niż sales calli.');
-    expect(screen.getByRole('button', { name: 'Zapisz dzień' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Zapisz liczby bez zamykania dnia' })).toBeDisabled();
     expect(onSave).not.toHaveBeenCalled();
   });
 
   it('blokuje zapis, gdy zapisane liczby jeszcze się nie wczytały', () => {
     setup({ disabled: true });
-    expect(screen.getByRole('button', { name: 'Zapisz dzień' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Zapisz liczby bez zamykania dnia' })).toBeDisabled();
+  });
+
+  it('zamyka dzień dopiero po refleksji o minimalnej długości i zapisuje jej tekst', () => {
+    const onSave = setup();
+    expect(screen.getByText(/min\. 15 znaków/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText(/Refleksja dnia/), { target: { value: 'Za szybko podałem cenę.' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Zamknij dzień' }));
+    expect(onSave).toHaveBeenCalledWith('2026-11-04', expect.objectContaining({ reflection: 'Za szybko podałem cenę.' }));
+  });
+
+  it('nie pozwala wpisać więcej niż 1440 minut', () => {
+    setup();
+    fireEvent.change(screen.getByLabelText('Praca'), { target: { value: '1500' } });
+    expect(screen.getByRole('alert')).toHaveTextContent('Doba ma 1440 minut');
   });
 });
