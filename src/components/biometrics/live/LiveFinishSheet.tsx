@@ -15,9 +15,9 @@ interface Props {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl bg-surface-2 px-3 py-2.5 text-center">
-      <p className="text-xl font-semibold tabular-nums text-text-primary">{value}</p>
-      <p className="text-2xs font-bold tracking-normal text-text-muted">{label}</p>
+    <div className="px-3 py-1 text-center">
+      <p className="text-2xl font-semibold tabular-nums text-text-primary">{value}</p>
+      <p className="mt-0.5 text-xs font-medium text-text-muted">{label}</p>
     </div>
   );
 }
@@ -38,7 +38,7 @@ export default function LiveFinishSheet({ open, onOpenChange, logger, duration }
   return (
     <Sheet open={open} onOpenChange={onOpenChange} title="Koniec treningu" side="bottom">
       <div className="trening-theme space-y-4 !bg-transparent px-1 pt-1">
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 divide-x divide-border-custom/50 border-b border-border-custom/50 pb-3">
           <Stat label="Czas" value={duration ?? '—'} />
           <Stat label="Serie" value={String(summary.sets)} />
           <Stat label="Objętość" value={formatKg(summary.volumeKg)} />
@@ -49,7 +49,7 @@ export default function LiveFinishSheet({ open, onOpenChange, logger, duration }
           value={logger.workoutName}
           onChange={(event) => logger.setWorkoutName(event.target.value)}
           placeholder={suggestedName}
-          className="h-12 w-full rounded-2xl border border-border-custom bg-surface-2 px-4 text-base font-semibold text-text-primary placeholder:text-text-muted"
+          className="h-12 w-full rounded-lg border border-border-custom bg-surface-2 px-4 text-base font-semibold text-text-primary placeholder:text-text-muted"
         />
 
         <div>
@@ -82,20 +82,20 @@ export default function LiveFinishSheet({ open, onOpenChange, logger, duration }
               onChange={(event) => logger.setNotes(event.target.value)}
               placeholder="Jak poszło?"
               rows={3}
-              className="w-full rounded-2xl border border-border-custom bg-surface-2 p-3 text-sm text-text-primary placeholder:text-text-muted"
+              className="w-full rounded-lg border border-border-custom bg-surface-2 p-3 text-sm text-text-primary placeholder:text-text-muted"
             />
             <ManualTimePicker logger={logger} />
           </div>
         )}
 
         {unchecked > 0 && (
-          <p className="rounded-2xl bg-warning/10 px-3 py-2 text-sm font-semibold text-warning">
+          <p className="rounded-lg bg-warning/10 px-3 py-2 text-sm font-semibold text-warning">
             {unchecked} {unchecked === 1 ? 'seria ma wpisane wartości, ale bez ✓' : 'serie mają wpisane wartości, ale bez ✓'} — zapiszą się razem z treningiem.
           </p>
         )}
         {empty && <p className="text-center text-sm text-text-muted">Zalicz przynajmniej jedną serię, żeby zapisać trening.</p>}
         {!empty && logger.sessionRpe == null && <p className="text-center text-sm text-text-muted">Zaznacz RPE, żeby zapisać trening.</p>}
-        <Button variant="primary" size="lg" disabled={empty || logger.sessionRpe == null || logger.saving} onClick={save} className="w-full !h-14 !rounded-2xl !text-base !font-semibold">
+        <Button variant="primary" size="lg" disabled={empty || logger.sessionRpe == null || logger.saving} onClick={save} className="w-full !h-14 !rounded-lg !text-base !font-semibold">
           {logger.saving ? 'Zapisuję…' : 'Zapisz trening'}
         </Button>
       </div>

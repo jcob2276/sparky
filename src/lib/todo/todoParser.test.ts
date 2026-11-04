@@ -280,3 +280,24 @@ describe('matchSectionByTag', () => {
     expect(matchSectionByTag(['zdr', 'zak'], [...sections, { id: 's4', name: 'Zdrowa dieta' }]).sectionId).toBe('s2');
   });
 });
+
+describe('time ranges', () => {
+  it('turns "19:00-20:00" into start time and one-hour duration', () => {
+    const result = parseTodoQuickInput('Trening kalisteniczny poniedziałek 19:00-20:00', MONDAY);
+    expect(result.title).toBe('Trening kalisteniczny');
+    expect(result.scheduled_time).toBe('19:00');
+    expect(result.duration_minutes).toBe(60);
+    expect(result.due_date).toBe('2024-01-15');
+  });
+
+  it('understands "od 19 do 20:30"', () => {
+    const result = parseTodoQuickInput('spacer od 19 do 20:30', MONDAY);
+    expect(result.scheduled_time).toBe('19:00');
+    expect(result.duration_minutes).toBe(90);
+  });
+
+  it('ignores a range that ends before it starts', () => {
+    const result = parseTodoQuickInput('zadanie 20:00-19:00', MONDAY);
+    expect(result.duration_minutes).toBeNull();
+  });
+});

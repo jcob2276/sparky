@@ -120,13 +120,13 @@ export default function LiveWorkout({
         ))}
 
         {exercises.length === 0 && (
-          <div className="rounded-3xl border border-dashed border-primary/40 px-4 py-10 text-center">
+          <div className="px-4 pb-2 pt-10 text-center">
             <p className="text-lg font-bold text-text-primary">Zacznij od pierwszego ćwiczenia</p>
             <p className="mt-1 text-sm text-text-muted">Poprzednie ciężary podpowiemy same.</p>
           </div>
         )}
 
-        <Button variant="tonal" onClick={() => setPickerOpen(true)} className="!h-14 w-full !rounded-lg !text-base !font-bold">
+        <Button variant={exercises.length === 0 ? 'primary' : 'tonal'} onClick={() => setPickerOpen(true)} className="!h-14 w-full !rounded-lg !text-base !font-bold">
           <Plus size={18} className="mr-1.5" /> Dodaj ćwiczenie
         </Button>
       </main>

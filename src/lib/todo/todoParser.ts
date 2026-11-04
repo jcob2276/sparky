@@ -218,8 +218,26 @@ export function parseTodoQuickInput(input: string | null | undefined, nowOverrid
     }
   }
 
+  // "19:00-20:00", "od 19 do 20:30": start time and duration in one go (end must be after start).
+  const range = title.match(/(^|\s)(?:od\s*([01]?\d|2[0-3])(?:[:.]([0-5]\d))?\s*do\s*([01]?\d|2[0-3])(?:[:.]([0-5]\d))?|([01]?\d|2[0-3]):([0-5]\d)\s*[-–]\s*([01]?\d|2[0-3]):([0-5]\d))(?=\s|$|[,.!?])/i);
+  let rangeUsed = false;
+  if (range) {
+    const [startH, startM, endH, endM] = range[2] != null
+      ? [range[2], range[3], range[4], range[5]]
+      : [range[6], range[7], range[8], range[9]];
+    const startMin = Number(startH) * 60 + Number(startM || 0);
+    const rangeMinutes = Number(endH) * 60 + Number(endM || 0) - startMin;
+    if (rangeMinutes > 0) {
+      const value = `${String(Number(startH)).padStart(2, '0')}:${String(Number(startM || 0)).padStart(2, '0')}`;
+      add('time', value, value);
+      add('duration', rangeMinutes < 60 ? `${rangeMinutes} min` : `${Math.floor(rangeMinutes / 60)} godz.${rangeMinutes % 60 ? ` ${rangeMinutes % 60} min` : ''}`, String(rangeMinutes));
+      title = consume(title, range);
+      rangeUsed = true;
+    }
+  }
+
   // "o 15", "godz. 9.30", "15:00", "na 15:00" ("na 15" alone is not a time: "bilet na 15 osób").
-  const time = title.match(/(^|\s)(?:(?:o|godz\.?|godzina)\s*([01]?\d|2[0-3])(?:[:.]([0-5]\d))?|(?:na\s*)?([01]?\d|2[0-3]):([0-5]\d))(?=\s|$|[,.!?])/i);
+  const time = rangeUsed ? null : title.match(/(^|\s)(?:(?:o|godz\.?|godzina)\s*([01]?\d|2[0-3])(?:[:.]([0-5]\d))?|(?:na\s*)?([01]?\d|2[0-3]):([0-5]\d))(?=\s|$|[,.!?])/i);
   const period = !time && title.match(boundary('rano|w\\s+południe|w\\s+poludnie|wieczorem|w\\s+nocy'));
   if (time) {
     const hours = time[2] ?? time[4];
