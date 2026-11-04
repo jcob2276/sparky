@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Check, Trophy } from 'lucide-react';
 import { ControlInput, Pressable } from '../../ui/ControlPrimitives';
 import type { WorkoutSet } from '../workout/workoutUtils';
@@ -15,6 +15,7 @@ interface Props {
   actionsOpen: boolean;
   /** Krótka podpowiedź po próbie zaliczenia serii bez powtórzeń. */
   needsReps: boolean;
+  rest?: ReactNode;
   onChange: (patch: Partial<WorkoutSet>) => void;
   onToggleDone: () => void;
   onToggleActions: () => void;
@@ -91,7 +92,7 @@ function StepButtons({ label, step, base, max, onChange }: { label: string; step
 }
 
 /** Jedna seria: numer (otwiera akcje), kg, powtórzenia, ptaszek. Poprzednie wartości są podpowiedzią, ptaszek je zatwierdza. */
-export default function LiveSetRow({ set, number, ghost, isNext, weightStep, isPr, actionsOpen, needsReps, onChange, onToggleDone, onToggleActions }: Props) {
+export default function LiveSetRow({ set, number, ghost, isNext, weightStep, isPr, actionsOpen, needsReps, rest, onChange, onToggleDone, onToggleActions }: Props) {
   const [focused, setFocused] = useState(false);
   const done = Boolean(set.done);
   const isWarmup = set.type === 'warmup';
@@ -100,7 +101,7 @@ export default function LiveSetRow({ set, number, ghost, isNext, weightStep, isP
   const showSteppers = (isNext || focused) && !done;
 
   return (
-    <div className={`rounded-lg px-1.5 py-1.5 transition-colors ${done ? 'bg-primary/10' : ''}`}>
+    <div className={`rounded-lg px-1.5 py-1.5 transition-colors ${done ? 'live-set-complete' : ''}`}>
       <div className="grid grid-cols-[2.25rem_1fr_1fr_2.75rem] items-center gap-2">
         <Pressable
           onClick={onToggleActions}
@@ -120,12 +121,13 @@ export default function LiveSetRow({ set, number, ghost, isNext, weightStep, isP
           aria-pressed={done}
           aria-label={done ? `Cofnij serię ${number}` : `Zalicz serię ${number}`}
           className={`flex h-11 w-11 items-center justify-center rounded-full border-2 transition-all active:scale-90 ${
-            done ? 'border-primary bg-primary text-on-accent' : 'border-border-custom bg-surface-1 text-text-muted'
+            done ? 'live-set-check' : 'border-border-custom bg-surface-1 text-text-muted'
           }`}
         >
           <Check size={20} strokeWidth={3} />
         </Pressable>
       </div>
+      {done && rest}
       {needsReps && !done && <p role="alert" className="mt-1 px-1 text-center text-xs font-semibold text-danger">Wpisz powtórzenia, żeby zaliczyć serię.</p>}
       {showSteppers && (
         <div className="mt-1.5 grid grid-cols-[2.25rem_1fr_1fr_2.75rem] gap-2">

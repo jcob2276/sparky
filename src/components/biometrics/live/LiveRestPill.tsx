@@ -1,27 +1,26 @@
 import { Pressable } from '../../ui/ControlPrimitives';
 import { formatClock } from './liveWorkoutUtils';
 
-interface Props {
+export interface LiveRestProps {
   remaining: number;
   finished: boolean;
   onAdjust: (deltaSeconds: number) => void;
   onSkip: () => void;
 }
 
-/** Pływający timer przerwy: sam startuje po serii, można skrócić/wydłużyć lub pominąć. */
-export default function LiveRestPill({ remaining, finished, onAdjust, onSkip }: Props) {
-  const step = 'h-10 rounded-full border border-border-custom bg-surface-1 px-3 text-xs font-bold text-text-secondary active:bg-primary/10';
+/** Timer w zaliczonej serii; korzysta ze wspólnego odliczania sesji. */
+export default function LiveRestPill({ remaining, finished, onAdjust, onSkip }: LiveRestProps) {
+  const step = 'min-h-11 rounded-full px-2 text-xs font-semibold tabular-nums';
   return (
     <div
       role="timer"
       aria-live="off"
-      className={`flex items-center gap-2 rounded-full border px-3 py-2 shadow-lg backdrop-blur ${
-        finished ? 'border-primary bg-primary text-on-accent' : 'border-border-custom bg-surface-solid text-text-primary'
-      }`}
+      aria-label="Odpoczynek po serii"
+      className="live-rest-row mt-2 flex flex-wrap items-center gap-1 rounded-md px-2 py-1"
     >
       <div className="min-w-0 flex-1 pl-1">
-        <p className={`text-2xs font-bold tracking-normal ${finished ? 'text-on-accent' : 'text-text-muted'}`}>{finished ? 'Koniec przerwy' : 'Przerwa'}</p>
-        <p className="text-xl font-semibold leading-none tabular-nums">{finished ? 'Do dzieła' : formatClock(remaining)}</p>
+        <p className="text-2xs text-text-muted">{finished ? 'Koniec przerwy' : 'Przerwa'}</p>
+        <p className="font-mono text-base font-semibold leading-none tabular-nums">{formatClock(Math.max(0, remaining))}</p>
       </div>
       {!finished && (
         <>
@@ -29,7 +28,7 @@ export default function LiveRestPill({ remaining, finished, onAdjust, onSkip }: 
           <Pressable onClick={() => onAdjust(15)} className={step} aria-label="Wydłuż przerwę o 15 sekund">+15</Pressable>
         </>
       )}
-      <Pressable onClick={onSkip} className={`h-10 rounded-full px-3 text-xs font-bold ${finished ? 'bg-on-accent/15' : 'text-primary'}`}>
+      <Pressable onClick={onSkip} className={step}>
         {finished ? 'OK' : 'Pomiń'}
       </Pressable>
     </div>

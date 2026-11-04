@@ -17,12 +17,12 @@ import ExercisePickerModal from './workout/ExercisePickerModal';
 import TrainingHubAppearanceSheet from './workout/TrainingHubAppearanceSheet';
 import { useTreningAccent } from './workout/useTreningAccent';
 import LiveExerciseCard from './live/LiveExerciseCard';
-import LiveRestPill from './live/LiveRestPill';
 import LiveUndoBar from './live/LiveUndoBar';
 import LiveFinishSheet from './live/LiveFinishSheet';
 import { useRestTimer } from './live/useRestTimer';
 import { summarize } from './live/liveWorkoutUtils';
 import { useLiveExerciseOps } from './live/useLiveExerciseOps';
+import { pluralPl } from '../../lib/formatPl';
 import './workout/treningTheme.css';
 
 export default function LiveWorkout({
@@ -42,6 +42,7 @@ export default function LiveWorkout({
   const [finishOpen, setFinishOpen] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [restTarget, setRestTarget] = useState<{ exerciseId: number; setId: number } | null>(null);
 
   useEffect(() => {
     let lock: WakeLockSentinel | null = null;
@@ -86,7 +87,7 @@ export default function LiveWorkout({
         <div className="min-w-0 flex-1 text-center">
           <p className="text-xl font-semibold tabular-nums leading-none text-text-primary">{logger.elapsed ?? '00:00'}</p>
           <p className="mt-0.5 text-2xs font-bold tracking-normal text-text-muted">
-            {summary.sets > 0 ? `${summary.sets} serii` : 'Trening'}
+            {summary.sets > 0 ? `${summary.sets} ${pluralPl(summary.sets, 'seria', 'serie', 'serii')}` : 'Trening'}
           </p>
         </div>
         <Pressable onClick={() => setAppearanceOpen(true)} aria-label="Wygląd treningu" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-text-secondary hover:text-primary">
@@ -97,7 +98,7 @@ export default function LiveWorkout({
         </Button>
       </header>
 
-      <main className="mx-auto w-full max-w-md flex-1 space-y-3 px-3 pb-44 pt-3">
+      <main className="mx-auto w-full max-w-md flex-1 space-y-3 px-3 pb-24 pt-3">
         {exercises.filter((e) => e.sets?.length).map((exercise, idx) => (
           <LiveExerciseCard
             key={exercise.id}
@@ -113,7 +114,8 @@ export default function LiveWorkout({
             onRemove={() => void removeExercise(exercise.id)}
             onSwap={() => void requestSwap(exercise.id, () => window.setTimeout(() => setPickerOpen(true), 0))}
             onUndoable={(message, run) => setUndo({ message, run })}
-            onSetDone={rest.start}
+            onSetDone={(seconds, setId) => { setRestTarget({ exerciseId: exercise.id, setId }); rest.start(seconds); }}
+            rest={rest.active && restTarget?.exerciseId === exercise.id ? { setId: restTarget.setId, remaining: rest.remaining, finished: rest.finished, onAdjust: rest.adjust, onSkip: rest.skip } : undefined}
             onSetUndone={rest.skip}
             onAllDone={() => advanceFrom(exercise.id)}
           />
@@ -126,12 +128,15 @@ export default function LiveWorkout({
           </div>
         )}
 
-        <Button variant={exercises.length === 0 ? 'primary' : 'tonal'} onClick={() => setPickerOpen(true)} className="!h-14 w-full !rounded-lg !text-base !font-bold">
+        <Button variant="tonal" onClick={() => setPickerOpen(true)} className="live-workout-add !h-14 w-full !rounded-lg !text-base !font-semibold">
           <Plus size={18} className="mr-1.5" /> Dodaj ćwiczenie
+        </Button>
+        <Button variant="tonal-danger" onClick={() => void logger.handleBack()} className="min-h-12 w-full">
+          Anuluj trening
         </Button>
       </main>
 
-      {(rest.active || undo) && (
+      {undo && (
         <div className="fixed inset-x-0 bottom-0 z-[var(--z-sticky)] mx-auto w-full max-w-md space-y-2 px-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
           {undo && (
             <LiveUndoBar
@@ -143,7 +148,6 @@ export default function LiveWorkout({
               onExpire={expireUndo}
             />
           )}
-          {rest.active && <LiveRestPill remaining={rest.remaining} finished={rest.finished} onAdjust={rest.adjust} onSkip={rest.skip} />}
         </div>
       )}
 

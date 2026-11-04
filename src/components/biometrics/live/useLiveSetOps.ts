@@ -10,7 +10,7 @@ interface Options {
   /** Ciężar docelowy do rampy rozgrzewkowej, gdy seria robocza jeszcze go nie ma. */
   fallbackKg: number;
   onUndoable?: (message: string, undo: () => void) => void;
-  onSetDone: (restSeconds: number) => void;
+  onSetDone: (restSeconds: number, setId: number) => void;
   onSetUndone?: () => void;
   onAllDone: () => void;
 }
@@ -56,7 +56,7 @@ export function useLiveSetOps({ exercise, onChange, ghostOf, fallbackKg, onUndoa
       reps: set.reps.trim() ? set.reps : ghost?.reps ?? '',
     });
     setRirSetId(set.type === 'warmup' || set.rir.trim() ? null : set.id);
-    if (set.type !== 'warmup') onSetDone(defaultRestSeconds(exercise.name));
+    if (set.type !== 'warmup') onSetDone(defaultRestSeconds(exercise.name), set.id);
     if (sets.every((s) => s.id === set.id || s.done)) onAllDone();
   };
 

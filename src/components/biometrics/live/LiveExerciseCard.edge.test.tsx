@@ -53,6 +53,7 @@ describe('completing a set', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Zalicz serię 1' }));
     expect((onChange.mock.calls[0][0] as WorkoutExercise).sets[0]).toMatchObject({ done: true, reps: '12' });
     expect(onSetDone).toHaveBeenCalledTimes(1);
+    expect(onSetDone).toHaveBeenCalledWith(expect.any(Number), 1);
   });
 
   it('ignores an accidental double tap on the check', () => {
@@ -73,6 +74,25 @@ describe('completing a set', () => {
     const { onSetUndone } = renderCard(exercise([set({ kg: '50', reps: '8', done: true })]));
     fireEvent.click(screen.getByRole('button', { name: 'Cofnij serię 1' }));
     expect(onSetUndone).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('rest inside a completed set', () => {
+  it('keeps the timer inside its row after advancing to another exercise', () => {
+    const onAdjust = vi.fn();
+    const onSkip = vi.fn();
+    renderCard(exercise([set({ done: true, kg: '50', reps: '8' }), set()]), {
+      active: false,
+      rest: { setId: 1, remaining: 90, finished: false, onAdjust, onSkip },
+    });
+    const timer = screen.getByRole('timer', { name: 'Odpoczynek po serii' });
+    expect(timer).toHaveTextContent('1:30');
+    expect(timer.closest('.live-set-complete')).toContainElement(screen.getByRole('button', { name: 'Cofnij serię 1' }));
+    expect(screen.queryByRole('button', { name: 'Zalicz serię 2' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Wydłuż przerwę o 15 sekund' }));
+    expect(onAdjust).toHaveBeenCalledWith(15);
+    fireEvent.click(screen.getByRole('button', { name: 'Pomiń' }));
+    expect(onSkip).toHaveBeenCalledOnce();
   });
 });
 
