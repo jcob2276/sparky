@@ -7,7 +7,7 @@ export function buildPushMessage(date:string,s:Signals,verdict:Record<string,unk
     t.intake_so_far == null?'Brak wpisów spożycia':`Zapisano dotąd ${Math.round(t.intake_so_far)} kcal`,
     t.food_complete?'Dzień potwierdzony jako kompletny.':'Dziennik jest otwarty; wpisy nie określają pełnego bilansu dnia.',
   ];
-  if(s.energy.est_maintenance != null) lines.push(`Utrzymanie masy: około ${s.energy.est_maintenance} kcal · ${s.energy.maintenance_basis === 'estimated_wearable'?'szacunek zegarka':'szacunek bilansu energii'}`);
+  if(s.energy.est_maintenance != null) lines.push(`Utrzymanie masy: około ${s.energy.est_maintenance} kcal · ${s.energy.maintenance_basis === 'estimated_wearable'?'szacunek zegarka':s.energy.maintenance_basis === 'blended_log_wearable'?'bilans z dziennika + zegarek':'szacunek bilansu energii'}${s.energy.maintenance_uncertainty_kcal != null?` · ±${s.energy.maintenance_uncertainty_kcal} kcal`:''}`);
   if(s.activity.recovery_hold) lines.push('Dziś regeneracja ma pierwszeństwo przed redukcją.');
   else if(s.activity.key_training_day) lines.push('Cel uwzględnia kluczową sesję treningową.');
   lines.push(s.calibration.message);

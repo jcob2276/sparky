@@ -42,4 +42,26 @@ describe('nutrition calibration', () => {
     expect(calibrateNutrition(intake,[{date:'2026-01-01',weight_kg:80},{date:'2026-01-14',weight_kg:79}],reviews,'2026-02-15').status).toBe('collecting');
     expect(calibrateNutrition(Array(14).fill(intake[0]),[{date:'2026-01-01',weight_kg:80},{date:'2026-01-14',weight_kg:79}],reviews,'2026-01-14').loggedDays).toBe(1);
   });
+
+  it('uses all weigh-ins, so one noisy endpoint does not fake a trend', () => {
+    const days = Array.from({ length: 21 }, (_, i) => ({ date: `2026-01-${String(i + 1).padStart(2, '0')}`, calories: 2500 }));
+    const reviews = days.map((day) => ({ date: day.date, completeness: 'complete' as const }));
+    // stabilna waga ~77 kg, ostatni pomiar +1,2 kg (woda)
+    const weights = days.map((day, i) => ({ date: day.date, weight_kg: i === 20 ? 78.2 : 77 + (i % 2 ? 0.2 : -0.2) }));
+    const result = calibrateNutrition(days, weights, reviews, '2026-01-21');
+    expect(result.status).toBe('ready');
+    expect(Math.abs(result.weeklyWeightChangeKg ?? 9)).toBeLessThan(0.35);
+    expect(result.maintenanceUncertaintyKcal).toBeGreaterThan(0);
+    expect(result.confidence).not.toBeNull();
+  });
+
+  it('reports lower confidence for noisy weight data', () => {
+    const days = Array.from({ length: 21 }, (_, i) => ({ date: `2026-01-${String(i + 1).padStart(2, '0')}`, calories: 2500 }));
+    const reviews = days.map((day) => ({ date: day.date, completeness: 'complete' as const }));
+    const quiet = days.map((day) => ({ date: day.date, weight_kg: 77 }));
+    const noisy = days.map((day, i) => ({ date: day.date, weight_kg: 77 + (i % 2 ? 1.5 : -1.5) }));
+    const a = calibrateNutrition(days, quiet, reviews, '2026-01-21');
+    const b = calibrateNutrition(days, noisy, reviews, '2026-01-21');
+    expect(b.maintenanceUncertaintyKcal!).toBeGreaterThan(a.maintenanceUncertaintyKcal!);
+  });
 });

@@ -1,11 +1,13 @@
 import { getWarsawDayBoundaries, getWarsawDateString } from "../_shared/time.ts";
 import { fetchMedicalContext } from "../_shared/medicalContext.ts";
 import { fetchHealthCoachContext } from '../_shared/healthCoachContext.ts';
-import { shiftDateStr, calibrateNutrition, type CoachRow, type HealthCoachSource } from '@vanguard/domain';
+import { shiftDateStr, calibrateNutrition, weightSlope, type CoachRow, type HealthCoachSource } from '@vanguard/domain';
 import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import {HttpError} from '../_shared/http.ts';
 
 const KCAL_PER_KG = 7700;
+/** Niepewność (1σ) całodobowego wydatku z noszonego urządzenia, kcal. */
+const WEARABLE_SIGMA_KCAL = 300;
 
 const num = (v: unknown): number | null => (v == null || isNaN(Number(v)) ? null : Number(v));
 const mean = (xs: number[]): number | null => xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : null;
@@ -43,7 +45,8 @@ export function computeNutritionSignals(data: Omit<Awaited<ReturnType<typeof fet
   const latestWeight = weightFresh ? num(last.weight) : null;
   const weightDaysSpan = first && last ? (Date.parse(last.date)-Date.parse(first.date))/86400000 : 0;
   const reliableWeightWindow = weightDaysSpan >= 13 && last != null && last.date >= shiftDateStr(evidenceDate,-7);
-  const weightTrendPerWeek = reliableWeightWindow ? +((Number(last.weight)-Number(first.weight))*7/weightDaysSpan).toFixed(2) : null;
+  const trendFit = reliableWeightWindow ? weightSlope(weights.map(row=>({date:row.date,weight_kg:num(row.weight)}))) : null;
+  const weightTrendPerWeek = trendFit ? +(trendFit.perDay*7).toFixed(2) : null;
   const calibration = calibrateNutrition(nutr.map(row=>({date:row.date,calories:num(row.calories)})),
     weights.map(row=>({date:row.date,weight_kg:num(row.weight)})),dayReviews.map(row=>({date:row.date,completeness:String(row.completeness)})),evidenceDate);
   const completeDates = new Set(dayReviews.map(row=>row.date));
@@ -55,8 +58,13 @@ export function computeNutritionSignals(data: Omit<Awaited<ReturnType<typeof fet
   const avgTdeeOura = energyRecent ? roundMean(oura.filter(row=>(num(row.total_calories) ?? 0)>0),'total_calories') : null;
   const avgActive = roundMean(oura,'active_calories');
   const maintFromLog = calibration.maintenanceEstimateKcal;
-  const estMaintenance = maintFromLog != null && maintFromLog > 0 ? maintFromLog : avgTdeeOura;
-  const maintenanceBasis = maintFromLog != null ? 'estimated_energy_balance' : avgTdeeOura != null ? 'estimated_wearable' : 'missing';
+  const logSigma = calibration.maintenanceUncertaintyKcal;
+  const hasLog = maintFromLog != null && maintFromLog > 0 && logSigma != null && logSigma > 0;
+  // Bilans z logu i wydatek z urządzenia ważone odwrotnością wariancji: słaby log nie dominuje, mocny koryguje urządzenie.
+  const wLog = hasLog ? 1/logSigma**2 : 0, wWear = avgTdeeOura != null ? 1/WEARABLE_SIGMA_KCAL**2 : 0;
+  const estMaintenance = wLog+wWear > 0 ? Math.round(((hasLog ? maintFromLog : 0)*wLog+(avgTdeeOura ?? 0)*wWear)/(wLog+wWear)) : null;
+  const maintenanceBasis = hasLog && avgTdeeOura != null ? 'blended_log_wearable' : hasLog ? 'estimated_energy_balance' : avgTdeeOura != null ? 'estimated_wearable' : 'missing';
+  const maintenanceSigma = wLog+wWear > 0 ? Math.round(1/Math.sqrt(wLog+wWear)) : null;
   const todayPlans = context?.sources.training_plan_workouts.value?.filter(row=>row.planned_date === today && !row.skipped_at) ?? [];
   const todayPlan = todayPlans[0];
   const recentLongEffort = runs.some(row=>(num(row.distance) ?? 0)>=30000 && String(row.start_date)>=shiftDateStr(today,-3));
@@ -88,7 +96,7 @@ export function computeNutritionSignals(data: Omit<Awaited<ReturnType<typeof fet
     profile:{height_cm:num(profile.height_cm),age,sex:profile.sex,goal_body_fat:num(profile.goal_body_fat),current_body_fat_est:latestMeasuredBf ?? num(profile.current_body_fat_est),body_fat_source:latestMeasuredBf != null ? 'measured' : 'profile_estimate',event_name:profile.event_name,event_date:profile.event_date,days_to_event:daysToEvent,in_taper:inTaper,weekly_loss_kg:targetWeeklyLossKg},
     body:{weight:latestWeight,weight_date:last?.date ?? null,weight_state:latestWeight == null?'missing_or_stale':'measured',waist:weightFresh?num(last?.waist):null,belly:weightFresh?num(last?.belly):null,weight_trend_kg_per_week:weightTrendPerWeek,weight_window_days:Math.round(weightDaysSpan)},
     forecast:{kind:'estimated_scenario',assumptions:'Liniowy trend masy wymaga aktualnych pomiarów i pełnych dni; nie przewiduje rozkładu tłuszczu i masy beztłuszczowej.',target_weekly_loss_kg:targetWeeklyLossKg,observed_weekly_loss_kg:weightTrendPerWeek == null?null:-weightTrendPerWeek,adaptive_correction_kcal:adaptiveCorrectionKcal,forecast_30d:forecast30,forecast_60d:forecast60,forecast_90d:forecast90,days_to_goal_est:daysToGoalEst},
-    energy:{avg_tdee_oura:avgTdeeOura,oura_adjusted:avgTdeeOura,avg_active:avgActive,avg_intake_logged:avgIntake,maintenance_from_log:maintFromLog,est_maintenance:estMaintenance,maintenance_basis:maintenanceBasis,underlog_gap_kcal:underlogGap,days_logged_30:daysLogged,wearable_days:clean(oura,'total_calories').length},
+    energy:{avg_tdee_oura:avgTdeeOura,oura_adjusted:avgTdeeOura,avg_active:avgActive,avg_intake_logged:avgIntake,maintenance_from_log:maintFromLog,est_maintenance:estMaintenance,maintenance_uncertainty_kcal:maintenanceSigma,maintenance_confidence:calibration.confidence,maintenance_basis:maintenanceBasis,underlog_gap_kcal:underlogGap,days_logged_30:daysLogged,wearable_days:clean(oura,'total_calories').length},
     macros:{avg_protein:avgProtein,protein_per_kg:avgProtein == null || latestWeight == null?null:+(avgProtein/latestWeight).toFixed(2),avg_carbs:avgCarbs,avg_fat:avgFat,avg_fiber:avgFiber,intake_cv:null},
     activity:{avg_steps:roundMean(oura,'steps'),run_km_30d:+(runs.reduce((sum,row)=>sum+(num(row.distance) ?? 0),0)/1000).toFixed(1),runs_30d:runs.length,gym_30d:gym.length,planned_today:todayPlan ?? null,recovery_hold:recoveryHold,key_training_day:keyTrainingDay},
     recovery:{avg_sleep_h:mean(clean(oura,'total_sleep_hours')),avg_readiness:roundMean(oura,'readiness_score'),avg_hrv:roundMean(oura,'hrv_avg'),avg_rhr:roundMean(oura,'rhr_avg')},
