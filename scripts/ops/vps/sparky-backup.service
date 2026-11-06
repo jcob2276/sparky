@@ -1,0 +1,9 @@
+[Unit]
+Description=Sparky: kopia zapasowa bazy Supabase
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/sparky-backup-db.sh
+Nice=10

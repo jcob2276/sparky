@@ -1,0 +1,9 @@
+[Unit]
+Description=Sparky: kopia plikow (Uptime Kuma + buckety Supabase)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/sparky-backup-files.sh
+Nice=10

@@ -1,0 +1,10 @@
+[Unit]
+Description=Sparky: nocna kopia bazy (03:15 czasu polskiego)
+
+[Timer]
+OnCalendar=*-*-* 03:15:00 Europe/Warsaw
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,3 @@
+
+# Skrypty VPS musza miec koniec linii LF (uruchamiane na Linuksie)
+scripts/ops/vps/* text eol=lf
