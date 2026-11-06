@@ -9,7 +9,7 @@ ENV_FILE=/etc/sparky-backup.env
 
 DIR=${BACKUP_DIR:-/var/backups/sparky}
 KUMA_DIR=${KUMA_DIR:-/opt/uptime-kuma/data}
-BUCKETS=${BUCKETS:-"progress-photos todo-attachments"}
+BUCKETS=${BUCKETS:-"meal-photos note-attachments progress-photos todo-attachments"}
 mkdir -p "$DIR/kuma" "$DIR/buckets"
 FAIL=0
 
@@ -36,8 +36,25 @@ else
   echo "Kuma: brak $KUMA_DIR, pomijam"
 fi
 
-# --- 2) Buckety Supabase Storage (przyrostowo, bez kasowania lokalnych kopii) ---
-if [ -n "${SUPABASE_URL:-}" ] && [ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
+# --- 2a) Buckety przez S3 (zalecane; klucze z Supabase Storage -> S3 Connection) ---
+# Wymaga w /etc/sparky-backup.env: S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY (S3_REGION opcjonalnie).
+# `rclone copy` jest przyrostowy i niczego nie kasuje lokalnie (zachowuje usuniete pliki).
+if [ -n "${S3_ACCESS_KEY_ID:-}" ] && [ -n "${S3_SECRET_ACCESS_KEY:-}" ] && [ -n "${S3_ENDPOINT:-}" ] && command -v rclone >/dev/null; then
+  export RCLONE_CONFIG_SUPA_TYPE=s3 RCLONE_CONFIG_SUPA_PROVIDER=Other \
+         RCLONE_CONFIG_SUPA_ACCESS_KEY_ID="$S3_ACCESS_KEY_ID" \
+         RCLONE_CONFIG_SUPA_SECRET_ACCESS_KEY="$S3_SECRET_ACCESS_KEY" \
+         RCLONE_CONFIG_SUPA_ENDPOINT="$S3_ENDPOINT" \
+         RCLONE_CONFIG_SUPA_REGION="${S3_REGION:-eu-west-1}"
+  for b in $BUCKETS; do
+    mkdir -p "$DIR/buckets/$b"
+    if rclone copy "SUPA:$b" "$DIR/buckets/$b" --transfers 4 --retries 2 --stats 0 2>&1 | tail -3; [ "${PIPESTATUS[0]}" -eq 0 ]; then
+      echo "Bucket $b (S3): OK, plikow $(find "$DIR/buckets/$b" -type f | wc -l), $(du -sh "$DIR/buckets/$b" | cut -f1)"
+    else
+      echo "Bucket $b (S3): BLAD"; FAIL=1
+    fi
+  done
+# --- 2b) Awaryjnie: Storage REST z kluczem service_role (dziala tylko ze starym kluczem JWT) ---
+elif [ -n "${SUPABASE_URL:-}" ] && [ -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]; then
   AUTH=(-H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY")
 
   list_prefix() {  # $1=bucket $2=prefix -> wypisuje sciezki plikow
