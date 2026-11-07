@@ -11,6 +11,14 @@
       "command": "npx",
       "args": ["-y", "claude-context-mcp"],
       "env": {}
+    },
+    "appllama": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote@latest",
+        "https://mcp.appllama.io/mcp"
+      ]
     }
   }
 }

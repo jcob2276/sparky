@@ -99,6 +99,7 @@ export default defineConfig(({ mode }) => {
   return {
     base: forCapacitor ? './' : '/',
     resolve: {
+      preserveSymlinks: true,
       alias: {
         '@vanguard/domain': path.resolve(__dirname, './packages/domain/src/index.ts')
       }

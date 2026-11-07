@@ -32,6 +32,7 @@ import { useLinksKeyboardShortcuts } from './links/hooks/useLinksKeyboardShortcu
 import { CATEGORIES, CATEGORY_DOTS } from './links/linksUtils';
 import WorkspaceNavigation from '../shared/WorkspaceNavigation';
 import { WorkspaceHeader } from '../shared/WorkspaceHeader';
+import { SidebarProvider, SidebarTrigger } from '../ui/sidebar';
 import WorkspaceSidebar from '../shared/WorkspaceSidebar';
 import SidebarSection from '../shared/SidebarSection';
 
@@ -91,6 +92,7 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
   );
 
   return (
+    <SidebarProvider>
     <div className="flex h-dvh overflow-hidden bg-background text-text-primary">
       <style>{`
         @keyframes pop-check {
@@ -112,7 +114,7 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
       `}</style>
 
       {/* Sidebar */}
-      <WorkspaceSidebar>
+      <WorkspaceSidebar provideContext={false} mobileTitle="Pocket">
         <WorkspaceNavigation active="links" onNavigate={onNavigateTo} />
 
         {CATEGORIES.length > 0 && (
@@ -138,6 +140,7 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
           title="Pocket"
           subtitle={d.unreadCount > 0 ? `${d.unreadCount} do przeczytania` : 'Wszystko przeczytane'}
           onBack={onBack}
+          leading={<SidebarTrigger className="!h-11 !w-11 md:hidden" aria-label="Otwórz nawigację" />}
           center={isNarrow ? undefined : searchField}
           secondaryRow={isNarrow ? <div className="px-[var(--space-4)] pt-2">{searchField}</div> : undefined}
           actions={
@@ -284,5 +287,6 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
         applyTriageSuggestion={d.applyTriageSuggestion}
       />
     </div>
+    </SidebarProvider>
   );
 }

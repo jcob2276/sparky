@@ -59,7 +59,7 @@ export function MeasurePhaseOverlay({
           }`}
         >
           <div className={`w-2 h-2 rounded-full ${faceDetected ? 'bg-success' : 'bg-danger animate-pulse'}`} />
-          {faceDetected ? `${distance!.toFixed(1)} cm` : 'Brak twarzy'}
+          {!faceDetected ? 'Brak twarzy' : distance == null ? 'Skalibruj' : `${distance.toFixed(1)} cm`}
         </div>
       </div>
 

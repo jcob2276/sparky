@@ -31,7 +31,7 @@ export default function TerminySidebar({
   const healthCount = rows.filter((r) => r.item.kind === 'health_admin').length;
 
   return (
-    <WorkspaceSidebar collapsed={collapsed} onCollapse={onToggleCollapse} className="select-none">
+    <WorkspaceSidebar collapsed={collapsed} onCollapse={onToggleCollapse} className="select-none" provideContext={false} mobileTitle="Terminy">
       <div className={`flex-1 overflow-y-auto ${collapsed ? 'px-1 py-2 space-y-4' : 'px-4 pb-4 space-y-6'}`}>
         <WorkspaceNavigation active="terminy" onNavigate={onNavigateTo} className={collapsed ? '' : '-mx-4'} />
 

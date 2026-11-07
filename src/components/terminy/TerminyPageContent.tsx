@@ -1,3 +1,4 @@
+import { SidebarTrigger } from '../ui/sidebar';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertTriangle,
@@ -82,6 +83,7 @@ function TerminyHeader({
         <Pressable onClick={onBack} aria-label="Wróć" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-surface-2/60 text-text-secondary transition-all duration-150 hover:bg-surface-3 hover:text-text-primary active:scale-90 cursor-pointer">
           <ArrowLeft size={18} strokeWidth={2.2} />
         </Pressable>
+        <SidebarTrigger className="!h-9 !w-9 shrink-0 md:hidden" aria-label="Otwórz nawigację" />
         <div className="min-w-0 flex-1">
           <h1 className="text-xl font-bold tracking-tight text-text-primary">Terminy</h1>
           <p className="text-xs text-text-muted truncate">Urodziny, przeglądy, polisy, dom i finanse</p>

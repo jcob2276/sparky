@@ -50,6 +50,29 @@ function WeeklyReview({ onOpen }: { onOpen: () => void }) {
   );
 }
 
+type VisibleSection = { id: TodaySectionId; visible: boolean };
+
+type LayoutChunk =
+  | { type: 'full'; section: VisibleSection }
+  | { type: 'columns'; sections: VisibleSection[] };
+
+function chunkVisibleSections(visible: VisibleSection[]): LayoutChunk[] {
+  const chunks: LayoutChunk[] = [];
+  for (const section of visible) {
+    if (section.id === 'vision' || section.id === 'goals') {
+      chunks.push({ type: 'full', section });
+    } else {
+      const last = chunks[chunks.length - 1];
+      if (last && last.type === 'columns') {
+        last.sections.push(section);
+      } else {
+        chunks.push({ type: 'columns', sections: [section] });
+      }
+    }
+  }
+  return chunks;
+}
+
 export function DashboardDzisView(props: DashboardDzisViewProps) {
   const sections: Record<TodaySectionId, ReactNode> = {
     vision: <VisionHeroCard />,
@@ -63,7 +86,23 @@ export function DashboardDzisView(props: DashboardDzisViewProps) {
     agenda: <TodayRunwayCard />,
     snapshot: <DailySnapshotCard />,
   };
+
   const visible = props.layout.sections.filter(section => section.visible);
+  const chunks = chunkVisibleSections(visible);
+
+  const renderCard = (section: VisibleSection) => (
+    <div
+      key={section.id}
+      data-today-section={section.id}
+      id={section.id === 'food' ? 'meal-composer' : undefined}
+      className="w-full"
+    >
+      <Suspense fallback={<Skeleton variant="card" lines={4} />}>
+        {sections[section.id]}
+      </Suspense>
+    </div>
+  );
+
   return (
     <div className="min-h-full bg-background p-5 pb-32">
       <div className="mb-5 space-y-4">
@@ -77,24 +116,42 @@ export function DashboardDzisView(props: DashboardDzisViewProps) {
           <Button variant="outline" onClick={props.onRetryLayout}>Ponów odczyt układu</Button>
         </div>}
       </div>
+
       {props.layoutLoading ? <Skeleton variant="card" lines={5} /> : (
-        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
-          {visible.map(section => (
-            <div key={section.id} data-today-section={section.id}
-              id={section.id === 'food' ? 'meal-composer' : undefined}
-              className={section.id === 'vision' || section.id === 'goals' ? 'lg:col-span-2' : ''}>
-              <Suspense fallback={<Skeleton variant="card" lines={4} />}>{sections[section.id]}</Suspense>
-            </div>
-          ))}
-          {visible.length === 0 && <p className="text-sm text-text-muted lg:col-span-2">
-            Wszystkie sekcje są ukryte. Wybierz „Edytuj układ Dziś”, aby je przywrócić.
-          </p>}
+        <div className="space-y-5">
+          {visible.length === 0 ? (
+            <p className="text-sm text-text-muted">
+              Wszystkie sekcje są ukryte. Wybierz „Edytuj układ Dziś”, aby je przywrócić.
+            </p>
+          ) : (
+            chunks.map((chunk, idx) => {
+              if (chunk.type === 'full') {
+                return renderCard(chunk.section);
+              }
+              const left = chunk.sections.filter((_, i) => i % 2 === 0);
+              const right = chunk.sections.filter((_, i) => i % 2 === 1);
+              return (
+                <div key={idx} className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
+                  <div className="flex flex-col gap-5">
+                    {left.map(renderCard)}
+                  </div>
+                  {right.length > 0 && (
+                    <div className="flex flex-col gap-5">
+                      {right.map(renderCard)}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
         </div>
       )}
+
       <div className="mt-5 flex justify-center">
         <Button variant="ghost" className="min-h-11" icon={<SlidersHorizontal size={16} />}
           disabled={props.layoutLoading || props.layoutError} onClick={props.onEdit}>Edytuj układ Dziś</Button>
       </div>
+
       <Sheet open={props.editing} onOpenChange={open => { if (!open && !props.saving) props.onCloseEditor(); }}
         title="Twój układ Dziś" side="bottom" compact>
         {props.editing && <TodayLayoutEditor layout={props.layout} saving={props.saving}

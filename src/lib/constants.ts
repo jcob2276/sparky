@@ -22,7 +22,8 @@ export const STORAGE_KEYS = {
   GAP_PROMPT_DISMISSED_FOR: 'vanguard_gap_prompt_dismissed_for',
   CALENDAR_SIDEBAR_COLLAPSED: 'vanguard_calendar_sidebar_collapsed',
   LAST_REMINDER_DATE: 'last_reminder_date',
-  ENDMYOPIA_CALIBRATION: 'endmyopia_calibration',
+  // v2: odległość liczona w pikselach (z proporcją kadru), stare kalibracje były zniekształcone.
+  ENDMYOPIA_CALIBRATION: 'endmyopia_calibration_v2',
   ENDMYOPIA_AUTO_CAPTURE: 'endmyopia_auto_capture',
   BACKGROUND_SYNC_ENABLED: 'vanguard_background_sync_enabled',
   /** Scoped accent for /trening (.trening-theme) — not global Sparky theme. */

@@ -2458,6 +2458,7 @@ html.ios-sheet-active #root {
 [data-ui="pressable"],
 [data-ui="control-input"],
 [data-ui="control-select"],
+[data-ui="control-select-trigger"],
 [data-ui="control-textarea"],
 button,
 a,
@@ -3053,7 +3054,6 @@ a,
   --workout-complete-bg: color-mix(in srgb, var(--color-success) 10%, var(--surface));
   --workout-action-color: var(--primary);
   --workout-action-bg: var(--surface-tonal);
-  --meal-log-max-height: calc(100svh - var(--dashboard-padding-navigation) - var(--toolbar-height));
   --meal-protein: var(--primary);
   --meal-carbs: color-mix(in srgb, var(--color-success) 55%, var(--text-primary));
   --meal-fat: color-mix(in srgb, var(--color-warning) 55%, var(--text-primary));
@@ -3072,7 +3072,7 @@ a,
   --workout-action-color: var(--primary);
   --workout-action-bg: var(--surface-tonal);
 }
-.meal-composer.ui-card { max-height: var(--meal-log-max-height); overflow: auto; overscroll-behavior-y: contain; }
+.meal-composer.ui-card { overflow: visible; }
 .meal-macro-dock { position: sticky; top: 0; z-index: var(--z-sticky); background: var(--surface); border-bottom: 1px solid var(--separator); border-radius: var(--radius-grouped) var(--radius-grouped) 0 0; }
 .live-set-complete { background: var(--workout-complete-bg); }
 .live-set-check { background: var(--workout-complete-color); border-color: var(--workout-complete-color); color: var(--button-neutral-bg); }

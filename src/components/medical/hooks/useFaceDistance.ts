@@ -53,25 +53,36 @@ export function useFaceDistance(videoRef: React.RefObject<HTMLVideoElement | nul
     };
   }, []);
 
-  function measurePixelDist(landmarks: { x: number; y: number }[]) {
+  // Współrzędne landmarków są znormalizowane osobno do szerokości i wysokości kadru;
+  // bez przeliczenia na piksele odległość między oczami jest zniekształcona (zwłaszcza przy pochyleniu głowy).
+  function measurePixelDist(landmarks: { x: number; y: number }[], video: HTMLVideoElement) {
     const pt1 = landmarks[33];
     const pt2 = landmarks[263];
-    return Math.sqrt((pt2.x - pt1.x) ** 2 + (pt2.y - pt1.y) ** 2);
+    const w = video.videoWidth || 1;
+    const h = video.videoHeight || 1;
+    return Math.sqrt(((pt2.x - pt1.x) * w) ** 2 + ((pt2.y - pt1.y) * h) ** 2);
   }
 
   const calibrate = useCallback(
-    (knownDistanceCm: number) => {
-      if (!landmarkerRef.current || !videoRef.current) return;
-      const results = landmarkerRef.current.detectForVideo(videoRef.current, performance.now());
+    (knownDistanceCm: number): boolean => {
+      if (!landmarkerRef.current || !videoRef.current) return false;
+      let results: ReturnType<FaceLandmarker['detectForVideo']>;
+      try {
+        results = landmarkerRef.current.detectForVideo(videoRef.current, performance.now());
+      } catch {
+        return false;
+      }
       if (results.faceLandmarks?.length > 0) {
-        const pixelDist = measurePixelDist(results.faceLandmarks[0]);
+        const pixelDist = measurePixelDist(results.faceLandmarks[0], videoRef.current);
         const factor = knownDistanceCm * pixelDist;
         setCalibrationFactor(factor);
         localStorage.setItem(STORAGE_KEYS.ENDMYOPIA_CALIBRATION, factor.toString());
         bufferRef.current = [];
         stableStartRef.current = null;
         lastStableValueRef.current = null;
+        return true;
       }
+      return false;
     },
     [videoRef]
   );
@@ -103,7 +114,7 @@ export function useFaceDistance(videoRef: React.RefObject<HTMLVideoElement | nul
             const hasFace = Boolean(results.faceLandmarks && results.faceLandmarks.length > 0);
             setFaceDetected(hasFace);
             if (hasFace && calibrationFactor) {
-              const pixelDist = measurePixelDist(results.faceLandmarks[0]);
+              const pixelDist = measurePixelDist(results.faceLandmarks[0], video);
               const raw = calibrationFactor / pixelDist;
 
               // Smoothing

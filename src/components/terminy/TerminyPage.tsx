@@ -12,6 +12,7 @@ import {
   useLifeObligations,
   type LifeObligation,
 } from '../../lib/lifeObligationsApi';
+import { SidebarProvider } from '../ui/sidebar';
 import TerminyAddSheet from './TerminyAddSheet';
 import TerminySidebar from './TerminySidebar';
 import TerminyPageContent, {
@@ -130,6 +131,7 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
 
   const initialKind: LifeObligationKind = tab === 'horizon' ? 'people' : tab;
   return (
+    <SidebarProvider open={!sidebarCollapsed} onOpenChange={(open) => setSidebarCollapsed(!open)}>
     <div className="flex h-dvh w-full overflow-hidden bg-background text-text-primary">
       <TerminySidebar tab={tab} setTab={changeTab} rows={allRows} onNavigateTo={onNavigateTo} collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
       <TerminyPageContent
@@ -162,5 +164,6 @@ export default function TerminyPage({ onBack, onNavigateTo }: Props) {
       />
       <TerminyAddSheet open={addOpen} onClose={closeAdd} onSubmit={submit} pending={add.isPending || update.isPending} initialTemplate={seedTemplate} initialKind={initialKind} editing={editing} />
     </div>
+    </SidebarProvider>
   );
 }
