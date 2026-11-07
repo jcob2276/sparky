@@ -11,6 +11,9 @@
 import { resolveUserScope } from '../_shared/supabase.ts'
 import { serveJson } from '../_shared/http.ts'
 import { runOuraSync } from './oura.ts'
+import { runEnhanced } from './enhanced.ts'
+import { runTimeseries } from './timeseries.ts'
+import { runHeartrateRaw } from './heartrateRaw.ts'
 import { runStravaSync } from './strava.ts'
 import { runCalendarSync } from './calendar.ts'
 import { runNextDnsSync } from './nextdns.ts'
@@ -30,12 +33,21 @@ Deno.serve(serveJson(async (req) => {
     service = body.service
   }
 
-  if (service !== 'quotes') {
+  // `quotes` jest publiczne, a `oura-hr-raw` uwierzytelnia się własnym sekretem (ARCHIVE_SECRET), nie JWT.
+  if (service !== 'quotes' && service !== 'oura-hr-raw') {
     await resolveUserScope(req, userId ?? null)
   }
 
   if (service === 'oura') {
     return await runOuraSync(req)
+  } else if (service === 'oura-enhanced') {
+    // Samodzielne uruchomienie rozszerzonych danych (fazy snu itd.) z własnym `days` — do uzupełniania historii.
+    return await runEnhanced(req)
+  } else if (service === 'oura-timeseries') {
+    // Szeregi czasowe Oury z własnym `days` — do uzupełniania dziennego rollupu tętna wstecz.
+    return await runTimeseries(req)
+  } else if (service === 'oura-hr-raw') {
+    return await runHeartrateRaw(req)
   } else if (service === 'strava') {
     return await runStravaSync(req)
   } else if (service === 'calendar') {

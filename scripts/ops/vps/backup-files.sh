@@ -36,6 +36,19 @@ else
   echo "Kuma: brak $KUMA_DIR, pomijam"
 fi
 
+# --- 1b) Archiwum surowych szeregow (SQLite workera): spojny snapshot, rotacja 30 dni ---
+ARCHIVE_DB=${ARCHIVE_DB:-/var/lib/sparky-archive/archive.db}
+if [ -f "$ARCHIVE_DB" ] && command -v sqlite3 >/dev/null; then
+  mkdir -p "$DIR/archive"
+  TS=$(date +%Y%m%d-%H%M%S)
+  if sqlite3 "$ARCHIVE_DB" ".backup '$DIR/archive/archive-$TS.db'" && gzip -f "$DIR/archive/archive-$TS.db"; then
+    echo "Archiwum: OK archive-$TS.db.gz"
+  else
+    FAIL=1
+  fi
+  find "$DIR/archive" -name 'archive-*.db.gz' -mtime +30 -delete
+fi
+
 # --- 2a) Buckety przez S3 (zalecane; klucze z Supabase Storage -> S3 Connection) ---
 # Wymaga w /etc/sparky-backup.env: S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY (S3_REGION opcjonalnie).
 # `rclone copy` jest przyrostowy i niczego nie kasuje lokalnie (zachowuje usuniete pliki).

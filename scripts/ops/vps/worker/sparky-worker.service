@@ -15,6 +15,9 @@ ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
 MemoryMax=1G
+# Archiwum surowych szeregow (SQLite): /var/lib/sparky-archive, zapisywalne mimo ProtectSystem=strict.
+StateDirectory=sparky-archive
+StateDirectoryMode=0750
 
 [Install]
 WantedBy=multi-user.target
