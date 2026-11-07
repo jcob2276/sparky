@@ -1,7 +1,7 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { classifyImpactFactors } from '@vanguard/domain';
 import { useUserId } from '../../../store/useStore';
-import { useCorrelationsQuery } from '../../../lib/correlationsApi';
+import { DEFAULT_CORRELATION_WINDOW_DAYS, useCorrelationsQuery } from '../../../lib/correlationsApi';
 
 const COVERAGE_HINTS: Record<string, { label: string; action: string }> = {
   caffeine_mg:         { label: 'Kofeina (mg)', action: 'Loguj kawę w posiłkach z godziną (logged_at)' },
@@ -18,7 +18,6 @@ const COVERAGE_HINTS: Record<string, { label: string; action: string }> = {
   supplement_omega3:   { label: 'Omega-3', action: 'Log suplementów → omega-3' },
   phone_active_hours:  { label: 'Czas ekranu', action: 'ActivityWatch sync' },
   productivity_ratio:  { label: 'Produktywność ekranu', action: 'ActivityWatch — stosunek produktywności' },
-  habit_count:         { label: 'Nawyki dzienne', action: 'Uzupełniaj nawyki w app codziennie' },
   food_quality:        { label: 'Jakość jedzenia', action: 'Oceniaj jakość posiłków po zapisaniu' },
   insulin_load:        { label: 'Insulin load', action: 'Loguj posiłki z dokładnymi produktami' },
 };
@@ -27,9 +26,10 @@ const NEEDED_DAYS = 25;
 
 export function useCorrelationsData() {
   const userId = useUserId();
+  const [windowDays, setWindowDays] = useState(DEFAULT_CORRELATION_WINDOW_DAYS);
 
   // Always exclude weak — weak signals are noise, not insight
-  const query = useCorrelationsQuery(userId, false);
+  const query = useCorrelationsQuery(userId, false, windowDays);
   const correlations = useMemo(() => query.data?.correlations ?? [], [query.data]);
   const coverage = useMemo(() => query.data?.coverage ?? {}, [query.data]);
   const stats = query.data?.stats ?? null;
@@ -94,5 +94,7 @@ export function useCorrelationsData() {
     load,
     sparseMetrics,
     daysOfData,
+    windowDays,
+    setWindowDays,
   };
 }

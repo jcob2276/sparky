@@ -1,6 +1,7 @@
 import { aggregateStravaRuns } from '../correlationSeries.ts';
 import { syncWeatherDaily } from '../weatherSync.ts';
 import { DAILY_WIN_TASK_COLUMNS, withLegacySlots } from '../dailyWinTasks.ts';
+import { fetchAllRows } from './correlationWindow.ts';
 
 export interface PreparedCorrelationData {
   strainRows: any[];
@@ -20,6 +21,7 @@ export interface PreparedCorrelationData {
   bodyRows: any[];
   weatherRows: any[];
   deviceRows: any[];
+  hrDailyRows: any[];
 }
 
 /** Fetches raw data from 18 Supabase tables required for correlation analysis. */
@@ -31,7 +33,7 @@ async function fetchRawCorrelationData(supabase: any, userId: string, start90: s
     supabase.from('daily_nutrition').select('date, calories, protein, carbs, fat, sugar, fiber, insulin_load, avg_food_quality').eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('vanguard_daily_aggregates').select('date, execution_score, identity_score, dopamine_load_index, screen_time_min, fragmentation_index').eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('friction_events').select('occurred_at, friction_type').eq('user_id', userId).gte('occurred_at', start90 + 'T00:00:00Z'),
-    supabase.from('daily_food_entries').select('date, name, logged_at, calories, carbs, fat, protein, meal_type').eq('user_id', userId).gte('date', start90).order('date'),
+    fetchAllRows<any>((from: number, to: number) => supabase.from('daily_food_entries').select('date, name, logged_at, calories, carbs, fat, protein, meal_type').eq('user_id', userId).gte('date', start90).order('date').order('id').range(from, to)),
     supabase.from('vanguard_consolidated_activities').select('event_date, source_type, category, label, metric_value, metadata').eq('user_id', userId).gte('event_date', start90),
     supabase.from('daily_wins').select(`date, mood_score, daily_rpe, daily_win_tasks(${DAILY_WIN_TASK_COLUMNS})`).eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('daily_reconciliations').select('date, day_score, phone_drift_morning').eq('user_id', userId).gte('date', start90),
@@ -43,10 +45,11 @@ async function fetchRawCorrelationData(supabase: any, userId: string, start90: s
     supabase.from('habit_logs').select('date, completed, habits(name)').eq('user_id', userId).gte('date', start90),
     supabase.from('weather_daily').select('date, temp_mean, temp_max, humidity_mean, precip_mm, sunshine_h').eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('device_signals_daily').select('date, event_count, unlocks, screen_on_min, screen_after_22_min, evening_lux_avg, notif_per_hour, phone_sleep_min, home_wifi_min, work_wifi_min, headphones_min').eq('user_id', userId).gte('date', start90).order('date'),
+    supabase.from('oura_hr_daily').select('date, day_avg_bpm, day_p90_bpm, day_rest_bpm').eq('user_id', userId).gte('date', start90).order('date'),
   ]);
 }
 
-/** Fetches and prepares 90-day time series data for correlation analysis. */
+/** Fetches and prepares time series data (window starts at `start90`, historically 90 days) for correlation analysis. */
 export async function fetchAndPrepareCorrelationData(
   supabase: any,
   userId: string,
@@ -56,11 +59,11 @@ export async function fetchAndPrepareCorrelationData(
   await syncWeatherDaily(supabase, userId, start90, todayWarsaw);
   const [
     strainR, ouraR, ouraEnhR, nutrR, aggregatesR, frictionR, foodR, consolidatedR,
-    winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR, weatherR, deviceR,
+    winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR, weatherR, deviceR, hrDailyR,
   ] = await fetchRawCorrelationData(supabase, userId, start90);
 
   // Log queries failing (non-fatal, warning only)
-  const queries = { strainR, ouraR, ouraEnhR, nutrR, aggregatesR, frictionR, foodR, consolidatedR, winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR, weatherR, deviceR };
+  const queries = { strainR, ouraR, ouraEnhR, nutrR, aggregatesR, frictionR, foodR, consolidatedR, winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR, weatherR, deviceR, hrDailyR };
   for (const [name, res] of Object.entries(queries)) {
     if (res.error) {
       console.warn(`[correlations] query failed: ${name}: ${res.error.message}`);
@@ -120,6 +123,7 @@ export async function fetchAndPrepareCorrelationData(
       bodyRows: bodyR.data ?? [],
       weatherRows: weatherR.data ?? [],
       deviceRows: deviceR.data ?? [],
+      hrDailyRows: hrDailyR.data ?? [],
     },
     habitLogR,
   };

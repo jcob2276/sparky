@@ -99,7 +99,7 @@ Deno.serve(serveJson(async (req, ctx) => {
         case 'detect-patterns':
           return await runDetectPatterns(supabase, scopedUserId);
         case 'compute-correlations':
-          return await runComputeCorrelations(supabase, scopedUserId, body.include_weak === true);
+          return await runComputeCorrelations(supabase, scopedUserId, body.include_weak === true, body.window_days);
         case 'rescore-workout-sessions':
           return await runRescoreWorkoutSessions(supabase, scopedUserId, body.days ?? 3);
         default:

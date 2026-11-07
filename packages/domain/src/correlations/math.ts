@@ -130,10 +130,11 @@ export const ALLOWED_INPUTS = new Set([
   'insulin_load', 'steps', 'workout_strain', 'strain', 'screen_time_min',
   'night_screen_min', 'planned_blocks_count', 'gym_tonnage_mg', 'sauna_min',
   'fragmentation_index', 'phone_drift', 'phone_active_h', 'creatine_taken',
-  'omega3_taken', 'lions_mane_taken', 'd3_taken', 'habit_count',
+  'omega3_taken', 'lions_mane_taken', 'd3_taken',
   'weather_temp_mean', 'weather_sunshine_h', 'weather_precip_mm', 'weather_humidity',
   'phone_unlocks', 'phone_screen_min', 'screen_after_22_min', 'evening_lux', 'notif_per_hour',
-  'home_wifi_min', 'work_wifi_min', 'headphones_min'
+  'home_wifi_min', 'work_wifi_min', 'headphones_min',
+  'hr_day_avg', 'hr_day_p90', 'hr_day_rest', 'stress_manual'
 ]);
 
 export const REDUNDANT_GROUPS = [
@@ -144,7 +145,8 @@ export const REDUNDANT_GROUPS = [
   ['screen_time_min', 'fragmentation_index', 'phone_active_h', 'dopamine_load_index', 'phone_screen_min', 'phone_unlocks', 'notif_per_hour'],
   ['screen_after_22_min', 'night_screen_min'],
   ['weather_temp_mean', 'weather_temp_max'],
-  ['dinner_calories', 'dinner_carbs', 'dinner_fat']
+  ['dinner_calories', 'dinner_carbs', 'dinner_fat'],
+  ['hr_day_avg', 'hr_day_p90', 'hr_day_rest', 'rhr']
 ];
 
 export function isAllowedInput(metric: string): boolean {

@@ -12,6 +12,7 @@ import { buildMetricSeries } from '../correlationSeries.ts'
 import { correlationInterestScore, isInterestingCorrelation } from '../correlationInterest.ts'
 import { getWarsawDateString } from '../time.ts'
 import { fetchAndPrepareCorrelationData } from './correlationsDataFetcher.ts'
+import { clampCorrelationWindow, correlationWindowStart } from './correlationWindow.ts'
 
 interface CorrelationResult {
   id: string
@@ -129,18 +130,16 @@ function computePair(
 export const runComputeCorrelations = async (
   supabase: any,
   userId: string,
-  includeWeak = false
+  includeWeak = false,
+  windowDaysInput?: unknown,
 ): Promise<{ success: boolean; results: any[]; coverage: any; stats: any; window_days: number; filtered: boolean; mode: string }> => {
   try {
     const now = new Date()
     const todayWarsaw = getWarsawDateString(now)
-    const start90 = (() => {
-      const d = new Date(todayWarsaw + 'T12:00:00Z')
-      d.setUTCDate(d.getUTCDate() - 90)
-      return d.toISOString().slice(0, 10)
-    })()
+    const windowDays = clampCorrelationWindow(windowDaysInput)
+    const windowStart = correlationWindowStart(todayWarsaw, windowDays)
 
-    const { data: prepared, habitLogR } = await fetchAndPrepareCorrelationData(supabase, userId, start90, todayWarsaw);
+    const { data: prepared, habitLogR } = await fetchAndPrepareCorrelationData(supabase, userId, windowStart, todayWarsaw);
 
     const series = buildMetricSeries({
       todayWarsaw,
@@ -158,10 +157,10 @@ export const runComputeCorrelations = async (
       supplementRows: prepared.supplementRows,
       stravaRows: prepared.stravaRows,
       awRows: prepared.awRows,
-      habitRows: [],
       bodyRows: prepared.bodyRows,
       weatherRows: prepared.weatherRows,
       deviceRows: prepared.deviceRows,
+      hrDailyRows: prepared.hrDailyRows,
     })
 
     const habitLogRows = (habitLogR.data ?? []).flatMap((row: any) => {
@@ -249,7 +248,7 @@ export const runComputeCorrelations = async (
       metrics_tracked: metrics.length,
     }
 
-    return { success: true, results: output, coverage, stats, window_days: 90, filtered: !includeWeak, mode: 'discovery' }
+    return { success: true, results: output, coverage, stats, window_days: windowDays, filtered: !includeWeak, mode: 'discovery' }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err)
     console.error('[compute-correlations]', err)

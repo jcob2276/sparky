@@ -6,7 +6,7 @@ const baseInput = (): SeriesBuildInput => ({
   todayWarsaw: '2026-10-23',
   strainRows: [], ouraRows: [], ouraEnhRows: [], nutrRows: [], aggregateRows: [], frictionRows: [],
   foodRows: [], workoutRows: [], winsRows: [], reconRows: [], behaviorRows: [], supplementRows: [],
-  stravaRows: [], awRows: [], habitRows: [], bodyRows: [],
+  stravaRows: [], awRows: [], bodyRows: [],
 })
 
 Deno.test('parseWeatherDaily — dobowe wartosci, sloneczne sekundy na godziny, wilgotnosc ze sredniej godzinowej', () => {

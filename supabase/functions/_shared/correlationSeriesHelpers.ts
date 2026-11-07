@@ -19,10 +19,11 @@ export function emptySeries(): Record<string, SeriesPoint[]> {
     friction_count: [], avoidance_count: [], procrastination_count: [],
     alcohol_units: [], travel_day: [], illness_day: [], stress_manual: [],
     creatine_taken: [], omega3_taken: [], lions_mane_taken: [], d3_taken: [],
-    habit_count: [], weight_kg: [],
+    weight_kg: [],
     weather_temp_mean: [], weather_temp_max: [], weather_sunshine_h: [], weather_precip_mm: [], weather_humidity: [],
     phone_unlocks: [], phone_screen_min: [], screen_after_22_min: [], evening_lux: [], notif_per_hour: [],
     phone_sleep_min: [], home_wifi_min: [], work_wifi_min: [], headphones_min: [],
+    hr_day_avg: [], hr_day_p90: [], hr_day_rest: [],
   }
 }
 
@@ -42,10 +43,10 @@ export interface SeriesBuildInput {
   supplementRows: { date: string; slug: string }[]
   stravaRows: { day: string; hr_avg: number | null; perceived_exertion: number | null; cadence_spm: number | null; suffer_score: number | null; distance: number | null }[]
   awRows: { date: string; productivity_ratio: number | null; phone_active_seconds: number | null }[]
-  habitRows: Record<string, unknown>[]
   bodyRows: { date: string; weight: number | null }[]
   weatherRows?: Record<string, unknown>[]
   deviceRows?: Record<string, unknown>[]
+  hrDailyRows?: Record<string, unknown>[]
 }
 
 export function aggregateStravaRuns(

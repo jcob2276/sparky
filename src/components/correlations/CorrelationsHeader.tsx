@@ -6,12 +6,21 @@ interface CorrelationsHeaderProps {
   loading: boolean;
   onRefresh: () => void;
   daysOfData?: number;
+  windowDays: number;
+  onWindowChange: (days: number) => void;
 }
 
-export default function CorrelationsHeader({ loading, onRefresh, daysOfData }: CorrelationsHeaderProps) {
+const WINDOW_OPTIONS = [
+  { days: 90, label: '90 dni' },
+  { days: 365, label: 'Rok' },
+] as const;
+
+export default function CorrelationsHeader({
+  loading, onRefresh, daysOfData, windowDays, onWindowChange,
+}: CorrelationsHeaderProps) {
   const navigate = useNavigate();
   const subtitle = daysOfData && daysOfData > 0
-    ? `Twoje wzorce · ${daysOfData} dni logowania · obserwacje, nie diagnozy`
+    ? `Twoje wzorce · okno ${windowDays} dni · ${daysOfData} dni z danymi · obserwacje, nie diagnozy`
     : 'Skan odkrywczy · obserwacje, nie diagnozy';
 
   const handleBack = () => {
@@ -39,6 +48,21 @@ export default function CorrelationsHeader({ loading, onRefresh, daysOfData }: C
           <p className="text-xs text-text-muted truncate mt-0.5">
             {subtitle}
           </p>
+        </div>
+        <div role="group" aria-label="Okno analizy" className="flex shrink-0 rounded-lg bg-surface-3 p-0.5">
+          {WINDOW_OPTIONS.map(({ days, label }) => (
+            <Pressable
+              key={days}
+              type="button"
+              onClick={() => onWindowChange(days)}
+              aria-pressed={windowDays === days}
+              className={`h-9 rounded-md px-3 text-xs font-semibold ui-interactive ${
+                windowDays === days ? 'bg-surface text-text-primary shadow-sm' : 'text-text-secondary'
+              }`}
+            >
+              {label}
+            </Pressable>
+          ))}
         </div>
         <Pressable
           type="button"

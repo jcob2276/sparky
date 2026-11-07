@@ -48,7 +48,7 @@ const SUPLEMENTY_METRICS = new Set([
 const ZACHOWANIE_METRICS = new Set([
   'mood_score', 'daily_rpe', 'plan_done_pct', 'day_score',
   'friction_count', 'avoidance_count', 'procrastination_count', 'travel_day', 'illness_day',
-  'stress_manual', 'habit_count', 'weight_kg',
+  'stress_manual', 'weight_kg',
 ])
 
 function behaviorMetricId(behaviorKey: string): string {

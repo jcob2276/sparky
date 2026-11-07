@@ -16,11 +16,15 @@ export interface CorrelationsData {
 
 const correlationsKeys = {
   all: ['correlations'] as const,
-  forUser: (userId: string, includeWeak: boolean) => [...correlationsKeys.all, userId, includeWeak] as const,
+  forUser: (userId: string, includeWeak: boolean, windowDays: number) =>
+    [...correlationsKeys.all, userId, includeWeak, windowDays] as const,
 };
 
-async function fetchCorrelationsData(userId: string, includeWeak: boolean): Promise<CorrelationsData> {
-  const payload = { user_id: userId, include_weak: includeWeak };
+/** Domyślne okno skanu korelacji; backend dopuszcza 30-365 dni. */
+export const DEFAULT_CORRELATION_WINDOW_DAYS = 90;
+
+async function fetchCorrelationsData(userId: string, includeWeak: boolean, windowDays: number): Promise<CorrelationsData> {
+  const payload = { user_id: userId, include_weak: includeWeak, window_days: windowDays };
   const [corrRes, behRes] = await Promise.all([
     supabase.functions.invoke('vanguard-nightly?action=compute-correlations', { body: payload }),
     supabase.functions.invoke('compute-behavior-effects', { body: payload }),
@@ -41,10 +45,14 @@ async function fetchCorrelationsData(userId: string, includeWeak: boolean): Prom
   };
 }
 
-export function useCorrelationsQuery(userId: string | undefined, includeWeak: boolean) {
+export function useCorrelationsQuery(
+  userId: string | undefined,
+  includeWeak: boolean,
+  windowDays: number = DEFAULT_CORRELATION_WINDOW_DAYS,
+) {
   return useQuery({
-    queryKey: correlationsKeys.forUser(userId || '', includeWeak),
-    queryFn: () => fetchCorrelationsData(userId as string, includeWeak),
+    queryKey: correlationsKeys.forUser(userId || '', includeWeak, windowDays),
+    queryFn: () => fetchCorrelationsData(userId as string, includeWeak, windowDays),
     enabled: !!userId,
     // compute-correlations to ciężki endpoint przeliczający, nie odczyt — nightly liczy go
     // co noc, więc w ciągu dnia wynik się nie zmienia. Bez staleTime React Query odpalałby

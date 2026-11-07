@@ -1,5 +1,6 @@
 import CorrelationCard from './CorrelationCard';
 import CorrelationsHeader from './CorrelationsHeader';
+import DailyContextLog from './DailyContextLog';
 import { useCorrelationsData } from './hooks/useCorrelationsData';
 import { Card } from '../ui/Card';
 import Skeleton from '../ui/Skeleton';
@@ -15,13 +16,21 @@ export default function CorrelationsPage() {
     loading,
     error,
     load,
+    windowDays,
+    setWindowDays,
   } = useCorrelationsData();
 
   if (!userId) return null;
 
   return (
     <div className="min-h-screen w-full bg-background text-text-primary flex flex-col">
-      <CorrelationsHeader loading={loading} onRefresh={load} daysOfData={daysOfData} />
+      <CorrelationsHeader
+        loading={loading}
+        onRefresh={load}
+        daysOfData={daysOfData}
+        windowDays={windowDays}
+        onWindowChange={setWindowDays}
+      />
 
       <main className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-6 py-6 space-y-8 pb-20 ui-stagger">
         {loading && (
@@ -146,6 +155,8 @@ export default function CorrelationsPage() {
             )}
           </>
         )}
+
+        <DailyContextLog />
       </main>
     </div>
   );

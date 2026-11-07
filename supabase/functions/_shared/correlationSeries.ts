@@ -191,7 +191,7 @@ export function buildMetricSeries(input: SeriesBuildInput): Record<string, Serie
     const val = row.value ?? 1
     if (key.includes('alcohol') || key === 'alkohol') series.alcohol_units.push({ day: row.date, value: Number(val) })
     else if (key === 'travel' || key === 'podroz') series.travel_day.push({ day: row.date, value: 1 })
-    else if (key.includes('illness') || key.includes('choroba')) series.illness_day.push({ day: row.date, value: Number(val) })
+    else if (key.includes('illness') || key.includes('choroba') || key === 'sick' || key === 'chory') series.illness_day.push({ day: row.date, value: Number(val) })
     else if (key.includes('stress') || key === 'stres') series.stress_manual.push({ day: row.date, value: Number(val) })
   }
 
@@ -213,16 +213,6 @@ export function buildMetricSeries(input: SeriesBuildInput): Record<string, Serie
     if (a.phone_active_seconds != null) series.phone_active_h.push({ day: a.date, value: Number(a.phone_active_seconds) / 3600 })
   }
 
-  // Habits completed per day
-  const HABIT_KEYS = ['bar_hang', 'child_pose', 'chin_tucks', 'couch_stretch', 'glute_bridge', 'protein_170g']
-  for (const h of input.habitRows) {
-    const date = String(h.date ?? '')
-    if (!date) continue
-    let count = 0
-    for (const key of HABIT_KEYS) if (h[key]) count++
-    if (count > 0) series.habit_count.push({ day: date, value: count })
-  }
-
   // Body weight
   for (const b of input.bodyRows) {
     if (b.weight != null) series.weight_kg.push({ day: b.date, value: Number(b.weight) })
@@ -236,6 +226,14 @@ export function buildMetricSeries(input: SeriesBuildInput): Record<string, Serie
     if (r.sunshine_h != null) series.weather_sunshine_h.push({ day, value: Number(r.sunshine_h) })
     if (r.precip_mm != null) series.weather_precip_mm.push({ day, value: Number(r.precip_mm) })
     if (r.humidity_mean != null) series.weather_humidity.push({ day, value: Number(r.humidity_mean) })
+  }
+
+  // Dzienny rollup tętna Oury (oura_hr_daily) — surowe próbki żyją tylko 14 dni, rollup zostaje.
+  for (const r of input.hrDailyRows ?? []) {
+    const day = String(r.date)
+    if (r.day_avg_bpm != null) series.hr_day_avg.push({ day, value: Number(r.day_avg_bpm) })
+    if (r.day_p90_bpm != null) series.hr_day_p90.push({ day, value: Number(r.day_p90_bpm) })
+    if (r.day_rest_bpm != null) series.hr_day_rest.push({ day, value: Number(r.day_rest_bpm) })
   }
 
   for (const r of input.deviceRows ?? []) {
