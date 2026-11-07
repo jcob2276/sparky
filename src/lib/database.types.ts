@@ -8544,6 +8544,10 @@ export type Database = {
           sugar: number
         }[]
       }
+      set_bank_account_visibility: {
+        Args: { p_account_id: string; p_hidden: boolean }
+        Returns: undefined
+      }
       set_bank_transaction_category: {
         Args: {
           p_category: string

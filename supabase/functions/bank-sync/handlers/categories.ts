@@ -4,11 +4,16 @@ import { HttpError } from '../../_shared/http.ts';
 import { safeExecute } from '../../_shared/supabase.ts';
 
 async function context(db: SupabaseClient, userId: string) {
-  const accounts: Array<{ iban: string | null }> = await safeExecute(db.from('bank_accounts').select('iban').eq('user_id', userId));
+  const accounts: Array<{ iban: string | null; name: string | null }> = await safeExecute(
+    db.from('bank_accounts').select('iban, name').eq('user_id', userId),
+  );
   const rules: Array<{ counterparty_key: string; category: string }> = await safeExecute(db.from('bank_category_rules')
     .select('counterparty_key, category').eq('user_id', userId));
-  return { ibans: accounts.flatMap(a => a.iban ? [a.iban] : []),
-    rules: new Map(rules.filter(r => Object.hasOwn(BANK_CATEGORY_LABELS, r.category)).map(r => [r.counterparty_key, r.category as BankCategory])) };
+  return {
+    ibans: accounts.flatMap(a => a.iban ? [a.iban] : []),
+    names: accounts.flatMap(a => a.name ? [a.name] : []),
+    rules: new Map(rules.filter(r => Object.hasOwn(BANK_CATEGORY_LABELS, r.category)).map(r => [r.counterparty_key, r.category as BankCategory])),
+  };
 }
 
 export async function categorizeUser(db: SupabaseClient, userId: string, all: boolean): Promise<{ updated: number }> {
@@ -21,7 +26,7 @@ export async function categorizeUser(db: SupabaseClient, userId: string, all: bo
     const rows: Array<{ id: string; counterparty_name: string | null; counterparty_iban: string | null; remittance: string | null; direction: 'debit' | 'credit' }> = await safeExecute(q);
     for (const r of rows) {
       const category = categorizeBankTransaction({ counterparty: r.counterparty_name, counterpartyIban: r.counterparty_iban,
-        remittance: r.remittance, direction: r.direction }, ctx.rules, ctx.ibans);
+        remittance: r.remittance, direction: r.direction }, ctx.rules, ctx.ibans, ctx.names);
       const ids = groups.get(category) ?? [];
       ids.push(r.id);
       groups.set(category, ids);
@@ -62,7 +67,7 @@ export async function setCategory(db: SupabaseClient, userId: string | null,
     if (tx.direction === 'debit') ctx.rules.delete(bankCounterpartyKey(tx.counterparty_name));
   }
   const category = ctx ? categorizeBankTransaction({ counterparty: tx.counterparty_name, counterpartyIban: tx.counterparty_iban,
-    remittance: tx.remittance, direction: tx.direction }, ctx.rules, ctx.ibans) : input.category as string;
+    remittance: tx.remittance, direction: tx.direction }, ctx.rules, ctx.ibans, ctx.names) : input.category as string;
   if (automatic && input.forgetRule === true && key) {
     const related: string[] = [];
     for (let from = 0; ; from += 500) {

@@ -39,7 +39,15 @@ export function BankConnectionPanel(props: BankConnectionPanelProps) {
       {data?.connection?.last_error && <p role="alert" className="px-4 pb-4 text-sm text-danger">Ostatnia próba: {data.connection.last_error}</p>}
       {data?.connection?.last_note && <p className="px-4 pb-4 text-sm text-text-muted">{data.connection.last_note}</p>}
       {loading && <FinanceEmpty>Wczytuję dane z banku…</FinanceEmpty>}
-      <BankAccountList accounts={accounts} financeAccounts={props.financeAccounts} linking={props.linking} onLink={props.onLink} />
+      <BankAccountList
+        accounts={accounts}
+        hiddenAccounts={data?.hiddenAccounts}
+        financeAccounts={props.financeAccounts}
+        linking={props.linking}
+        onLink={props.onLink}
+        onToggleVisibility={props.onToggleVisibility}
+        togglingVisibility={props.togglingVisibility}
+      />
       {dates.length > 0 && <p className="px-4 pb-4 text-xs text-text-muted">Dostępne transakcje: {dates[0]} – {dates[dates.length - 1]} · {data?.transactionCount} pozycji. Zakres importu może być niepełny.</p>}
       {data && connected && !accounts.length && <FinanceEmpty>Nie ma widocznych rachunków. Sprawdź zgodę i połączenie z bankiem.</FinanceEmpty>}
       {missingAccounts.map(account => <div key={account.id} className="space-y-2 border-t border-border-custom/20 p-4">

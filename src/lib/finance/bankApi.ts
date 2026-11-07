@@ -13,6 +13,7 @@ export interface BankAccount {
   balance: number | null; balance_synced_at: string | null; balance_type?: string | null;
   history_complete?: boolean; history_cursor?: string | null;
   transactions_synced_at?: string | null; transactions_from?: string | null;
+  hidden?: boolean;
 }
 export interface BankTransaction {
   id: string; account_id: string; amount: number; currency: string; booking_date: string | null;
@@ -22,6 +23,7 @@ export interface BankTransaction {
 export interface BankData {
   connection: BankConnection | null;
   accounts: BankAccount[];
+  hiddenAccounts?: BankAccount[];
   transactions: BankTransaction[];
   transactionCount: number;
 }
@@ -34,10 +36,12 @@ async function fetchBankData(userId: string): Promise<BankData> {
     supabase.from('bank_connections').select('id, aspsp_name, status, valid_until, last_synced_at, last_error, last_note')
       .eq('user_id', userId).in('status', ['active', 'expired']).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('bank_accounts')
-      .select('id, iban, name, currency, balance, balance_type, balance_synced_at, history_complete, history_cursor, transactions_synced_at, transactions_from')
-      .eq('user_id', userId).eq('hidden', false).order('created_at'),
+      .select('id, iban, name, currency, balance, balance_type, balance_synced_at, history_complete, history_cursor, transactions_synced_at, transactions_from, hidden')
+      .eq('user_id', userId).order('created_at'),
   ]);
-  const accounts = unwrapList(accountsRes);
+  const allAccounts = unwrapList(accountsRes);
+  const accounts = allAccounts.filter(a => !a.hidden);
+  const hiddenAccounts = allAccounts.filter(a => !!a.hidden);
   const transactions: BankTransaction[] = [];
   const cutoff = new Date().toISOString();
   if (accounts.length) {
@@ -54,7 +58,7 @@ async function fetchBankData(userId: string): Promise<BankData> {
     }
   }
   return { connection: unwrapMaybe(connectionRes) as BankConnection | null, accounts,
-    transactions, transactionCount: transactions.length };
+    hiddenAccounts, transactions, transactionCount: transactions.length };
 }
 
 export function useBankData(userId: string | undefined) {
@@ -91,5 +95,17 @@ export function useBankActions(userId: string | undefined) {
   const assignCategory = useMutation({ mutationFn: async (input: BankCategoryAssignment) => {
     await invokeEdge('bank-sync', { body: { action: 'set_category', ...input } });
   }, onSettled: refresh });
-  return { connect, sync, assignCategory };
+
+  const toggleVisibility = useMutation({
+    mutationFn: async ({ accountId, hidden }: { accountId: string; hidden: boolean }) => {
+      const res = await supabase.rpc('set_bank_account_visibility', {
+        p_account_id: accountId,
+        p_hidden: hidden,
+      });
+      if (res.error) throw res.error;
+    },
+    onSettled: refresh,
+  });
+
+  return { connect, sync, assignCategory, toggleVisibility };
 }

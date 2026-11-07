@@ -18,8 +18,7 @@ async function fetchBank(input: Parameters<typeof fetch>[0], init?: RequestInit)
   expect(url.searchParams.get('user_id')).toBe('eq.owner');
   if (url.pathname.endsWith('/bank_connections')) return Response.json(null);
   if (url.pathname.endsWith('/bank_accounts')) {
-    expect(url.searchParams.get('hidden')).toBe('eq.false');
-    return Response.json([{ id: 'a', currency: 'PLN', balance: 10 }]);
+    return Response.json([{ id: 'a', currency: 'PLN', balance: 10, hidden: false }]);
   }
   expect(url.searchParams.get('account_id')).toBe('in.(a)');
   expect(url.searchParams.get('created_at')).toMatch(/^lte\./);

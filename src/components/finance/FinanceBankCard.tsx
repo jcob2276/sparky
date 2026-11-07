@@ -27,7 +27,7 @@ export function FinanceBankCard({ financeAccounts = [], mode, onManageAccounts, 
 }) {
   const userId = useStore((s) => s.session?.user?.id);
   const query = useBankData(userId);
-  const { connect, sync, assignCategory } = useBankActions(userId);
+  const { connect, sync, assignCategory, toggleVisibility } = useBankActions(userId);
   const link = useFinanceBankLink(userId);
   const bundle = useFinanceBundle(userId);
   const resolve = useResolveBankEntry(userId);
@@ -61,6 +61,16 @@ export function FinanceBankCard({ financeAccounts = [], mode, onManageAccounts, 
       connecting={connect.isPending}
       syncing={sync.isPending}
       assigning={assignCategory.isPending}
+      togglingVisibility={toggleVisibility.isPending}
+      onToggleVisibility={(account, hidden) => {
+        toggleVisibility.mutate(
+          { accountId: account.id, hidden },
+          {
+            onError: onError('Nie udało się zmienić widoczności rachunku'),
+            onSuccess: () => notify(hidden ? 'Rachunek został ukryty.' : 'Rachunek został przywrócony.', 'success'),
+          },
+        );
+      }}
       onConnect={() => connect.mutate(undefined, { onError: onError('Nie udało się rozpocząć połączenia z bankiem') })}
       onSync={() => { if (query.error) void query.refetch(); else sync.mutate(undefined, {
         onError: onError('Synchronizacja z bankiem nie powiodła się'), onSuccess: message => notify(message, 'info'),

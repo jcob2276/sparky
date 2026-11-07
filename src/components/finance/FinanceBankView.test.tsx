@@ -7,6 +7,7 @@ afterEach(cleanup);
 const data: BankData = {
   connection: { id: 'c', aspsp_name: 'Bank', status: 'active', valid_until: null, last_synced_at: null, last_error: null, last_note: null },
   accounts: [{ id: 'a', iban: 'PL1234', name: 'Konto', currency: 'PLN', balance: 500, balance_synced_at: null, history_complete: false }],
+  hiddenAccounts: [],
   transactions: [{ id: 't', account_id: 'a', amount: -20, currency: 'PLN', booking_date: '2026-11-03', counterparty_name: 'Sklep', remittance: 'Opis', category: 'zakupy', status: 'BOOK' },
     { id: 't2', account_id: 'a', amount: -9, currency: 'PLN', booking_date: '2026-10-03', counterparty_name: 'Stary sklep', remittance: null, category: 'zakupy', status: 'BOOK' }],
   transactionCount: 2,
@@ -52,5 +53,16 @@ describe('bank view', () => {
   it('shows a read error instead of suggesting an empty bank', () => {
     render(<FinanceBankView {...props} data={undefined} error="Nie można pobrać historii" />);
     expect(screen.getByRole('alert')).toHaveTextContent('Nie można pobrać historii');
+  });
+  it('renders hidden accounts with restore action', () => {
+    const onToggle = vi.fn();
+    const dataWithHidden: BankData = {
+      ...data,
+      hiddenAccounts: [{ id: 'h1', iban: 'PL9999', name: 'Pekao puste', currency: 'PLN', balance: 0, balance_synced_at: null, hidden: true }],
+    };
+    render(<FinanceBankView {...props} mode="accounts" data={dataWithHidden} onToggleVisibility={onToggle} />);
+    expect(screen.getByText(/Ukryte rachunki \(1\)/)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Przywróć rachunek' }));
+    expect(onToggle).toHaveBeenCalledWith(dataWithHidden.hiddenAccounts?.[0], false);
   });
 });

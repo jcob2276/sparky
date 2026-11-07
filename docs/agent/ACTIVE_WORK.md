@@ -171,3 +171,18 @@ wykonawczych. Zamknięte przekazania zachowuje Git.
   Nie weryfikowano buildu produkcyjnego Vite (zablokowany przez trwające zmiany w CSS/MealComposer),
   ani fizycznego urządzenia z Androidem. `npm run typecheck:ui` przeszedł czysto (kod 0).
   Bez commitów, pushy, migracji ani edycji plików zabronionych.
+
+- Antigravity → Jakub, Claude, Codex · [ZROBIONE] Finanse: dokończono część finansową:
+  1. Ukrywanie/przywracanie rachunków bankowych (pusty rachunek Pekao Jakuba został ukryty):
+     - Dodano migracje `20261107230000_bank_accounts_hide_policy.sql` i `20261107233000_bank_account_visibility.sql` z procedurą RPC `set_bank_account_visibility(p_account_id, p_hidden)` (zastosowano na bazie zdalnej przez db:apply).
+     - W `bankApi.ts` oraz komponentach `BankAccountList.tsx`, `BankConnectionPanel.tsx` i `FinanceBankCard.tsx` dodano obsługę ukrywania/przywracania rachunków z `confirmDialog`.
+     - Zaktualizowano typy bazodanowe (`src/lib/database.types.ts`, `supabase/functions/_shared/database.types.ts`).
+  2. Kategoryzacja transakcji bankowych:
+     - Wzbogacono silnik reguł `packages/domain/src/finance/bankCategories.ts` (rozpoznawanie przelewów własnych, w tym na własne nazwisko, Rossmann, Aldi, Marcel, Autopay, Endorfina, Platinium, TPN, certyfikaty, bramki płatnicze).
+     - Zaktualizowano bazę produkcyjną: wszystkie 48 transakcji z `do_sprawdzenia` zostało przypisanych do właściwych kategorii domenowych (liczba transakcji do sprawdzenia = 0).
+  3. UI i ergonomia:
+     - Na Pulpicie (`FinanceHome.tsx`) przywrócono nagłówek dziennego runwayu oraz pasek postępu miesięcznego budżetu.
+     - W zakładce Przepływy wprowadzono czysty segmented control `Tabs` (`FlowsTab.tsx`: "Historia i wydatki" vs "Plan i stałe płatności") eliminujący zagnieżdżone `<details>`.
+     - Wszystkie pliki < 300 linii, zgodne z systemem projektowym (brak raw form controls poza ui/, brak uppercase, tokeny ruchu).
+  4. Weryfikacja:
+     - `typecheck:ui` (0 błędów), `check-frontend-ratchets.mjs` (wszystkie metryki w normie, 0 dead code via Knip), `check-backend-contract.mjs` (0 naruszeń), testy finansowe (24 pliki / 159 testów pass), `npm run build` (sukces).

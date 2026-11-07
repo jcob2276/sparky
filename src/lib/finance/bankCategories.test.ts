@@ -10,30 +10,45 @@ describe('categorizeBankTransaction', () => {
     ['ZABKA Z8349 K.1        RZESZOW', 'zakupy_spozywcze'],
     ['DELIKATESY FRAC        RZESZOW', 'zakupy_spozywcze'],
     ['ELECLERC               RZESZOW', 'zakupy_spozywcze'],
+    ['ALDI SP. Z O.O.        KROSNO', 'zakupy_spozywcze'],
     ['MCDONALDS 072 RZESZOW  RZESZOW', 'jedzenie_na_miescie'],
     ['KROKIECIK              RZESZOW', 'jedzenie_na_miescie'],
     ['POPEYES MILLENIUM      RZESZOW', 'jedzenie_na_miescie'],
     ['PL KFC KROSNO BIESZCZA KROSNO', 'jedzenie_na_miescie'],
     ['BAR TAURUS NR15        ZORY', 'jedzenie_na_miescie'],
+    ['WOLF PUB         74113 KROSNO', 'jedzenie_na_miescie'],
+    ['AUTOMATY VENDI MAR     RZESZOW', 'jedzenie_na_miescie'],
     ['GOOGLE PLAY APPS       DUBLIN', 'subskrypcje'],
     ['GOOGLE YOUTUBEPREMIUM  LONDON', 'subskrypcje'],
     ['BOLT.EU/R/2609240747   TALLINN', 'transport'],
     ['ORLEN STACJA NR 1454   KROSNO', 'transport'],
     ['ZTM RZESZOW BILETOMAT  RZESZOW', 'transport'],
+    ['MARCEL SPRZEDA MOBIL   RZESZOW', 'transport'],
+    ['ONO MOSNOV             MOSNOV', 'transport'],
+    ['AUTOPAY S.A.', 'transport'],
     ['DECATHLON RZESZOW      RZESZOW', 'sport'],
+    ['ENDORFINA PLATINIUM    RZESZOW', 'sport'],
     ['ALLEGROPAY             POZNAN', 'zakupy'],
     ['VINTED, UAB', 'zakupy'],
+    ['DRUK PINGWINEK         RZESZOW', 'zakupy'],
+    ['LINK.COM* CERTIVERSE   SOUTH SAN FR', 'zakupy'],
+    ['PAYPRO S.A.', 'zakupy'],
+    ['PAYU', 'zakupy'],
     ['LEROY MERLIN KROSNO    KROSNO', 'dom'],
     ['T-MOBILE POLSKA        WARSZAWA', 'telekom'],
     ['XTB.COM/PL', 'inwestycje'],
     ['POLICJA MANDAT KARNY 0 RZESZOW', 'oplaty'],
     ['AKADEMIA FRYZJERSKA NO RZESZOW', 'uroda'],
+    ['ROSSMANN 03            KROSNO', 'uroda'],
+    ['WWW.BOOKSY.COM', 'uroda'],
     ['RUBIN CLUB             RZESZOW', 'rozrywka'],
     ['GRYCAN LODZIARNIE FIRM KROSNO', 'jedzenie_na_miescie'],
     ['CHOCHOLOWSKIE TERMY WY CHOCHOLOW', 'rozrywka'],
+    ['DREAM ZONE TOMASZ BOJA KROSNO', 'rozrywka'],
     ['KIWI.COM S.R.O', 'podroze'],
+    ['TPN KALATOWKI          ZAKOPANE', 'podroze'],
     ['HOBBYKING.COM          INTERNET', 'zakupy'],
-    ['PAYPRO S.A.', 'do_sprawdzenia'],
+    ['REVOLUT**3862*         DUBLIN', 'przelewy_wlasne'],
     ['CASHBILL ECOMM', 'do_sprawdzenia'],
   ])('%s -> %s', (name, expected) => {
     expect(debit(name)).toBe(expected);
@@ -49,13 +64,14 @@ describe('categorizeBankTransaction', () => {
     expect(debit('BARBER SHOP RZESZOW')).toBe('uroda');
   });
 
-  it('sama nazwa nie potwierdza własnego rachunku', () => {
+  it('przelewy na własne rachunki przez IBAN lub nazwisko właściciela', () => {
     expect(debit('JAN KOWALSKI', 'Przelew środków PRZELEW MOBILE')).toBe('do_sprawdzenia');
-    expect(debit('REVOLUT**3862*         DUBLIN')).toBe('do_sprawdzenia');
+    expect(categorizeBankTransaction({ counterparty: 'JAN KOWALSKI', remittance: null, direction: 'debit' }, new Map(), [], ['JAN KOWALSKI'])).toBe('przelewy_wlasne');
+    expect(categorizeBankTransaction({ counterparty: 'JAKUB ŁUKASZ SOBOŃ', remittance: 'Przelew środków', direction: 'debit' }, new Map(), [], ['Jakub Soboń'])).toBe('przelewy_wlasne');
     expect(categorizeBankTransaction({ counterparty: 'Jan', remittance: null, direction: 'debit', counterpartyIban: 'PL 123' }, new Map(), ['PL123'])).toBe('przelewy_wlasne');
   });
 
-  it('bez znanej nazwy właściciela przelew na własne nazwisko nie jest uznany za własny', () => {
+  it('bez znanej nazwy właściciela przelew na inne nazwisko nie jest uznany za własny', () => {
     expect(categorizeBankTransaction({ counterparty: 'JAN KOWALSKI', remittance: 'x', direction: 'debit' })).toBe('do_sprawdzenia');
   });
 
@@ -74,6 +90,7 @@ describe('categorizeBankTransaction', () => {
   it('puste dane zostają do sprawdzenia', () => {
     expect(debit(null, null)).toBe('do_sprawdzenia');
   });
+
   it('wypłata od brokera nie jest dochodem, a jawna dywidenda jest', () => {
     expect(categorizeBankTransaction({ counterparty: 'XTB', remittance: 'Wypłata środków', direction: 'credit' })).toBe('inwestycje');
     expect(categorizeBankTransaction({ counterparty: 'DEGIRO', remittance: 'Dywidenda', direction: 'credit' })).toBe('dochody_kapitalowe');

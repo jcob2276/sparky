@@ -1,7 +1,7 @@
 /**
  * Kategorie transakcji bankowych liczone regułami po nazwie kontrahenta i opisie.
  * Czysta funkcja bez sieci: ten sam kod działa na krawędzi (zapis przy synchronizacji) i w aplikacji.
- * Własne transfery wymagają zgodności rachunków, a ręczne reguły uwzględniają kierunek.
+ * Własne transfery wymagają zgodności rachunków lub nazwy właściciela, a ręczne reguły uwzględniają kierunek.
  */
 
 export const BANK_CATEGORY_LABELS = {
@@ -55,27 +55,29 @@ export function normalizeBankText(text: string | null): string {
 type Keyword = string;
 
 const RULES: ReadonlyArray<readonly [BankCategory, readonly Keyword[]]> = [
+  ['przelewy_wlasne', ['REVOLUT', 'PRZELEW WLASNY']],
   ['subskrypcje', ['GOOGLE PLAY', 'YOUTUBE', 'NETFLIX', 'SPOTIFY', 'APPLE.COM', 'ICLOUD', 'OPENAI', 'CHATGPT',
     'ANTHROPIC', 'CLAUDE.AI', 'DISNEY', 'HBO', 'TWITCH']],
   ['jedzenie_na_miescie', ['MCDONALD', 'w:KFC', 'KROKIECIK', 'POPEYES', 'KEBAB', 'DONER', 'MEXICO', 'RESTAURACJA',
     'w:BAR', 'PIZZ', 'BURGER', 'STARBUCKS', 'COSTA COFFEE', 'KAWIARNIA', 'PYSZNE', 'GLOVO', 'WOLT', 'UBER EATS',
-    'GRECKIE', 'SUSHI', 'CUKIERNIA', 'LODZIAR', 'PIEROGARNIA', 'BISTRO']],
+    'GRECKIE', 'SUSHI', 'CUKIERNIA', 'LODZIAR', 'PIEROGARNIA', 'BISTRO', 'w:PUB', 'VENDI', 'w:AUTOMAT', 'LUCEX']],
   ['zakupy_spozywcze', ['BIEDRONKA', 'ZABKA', 'FRAC', 'ZIELONY KOSZYK', 'DELIKATESY', 'LECLERC', 'SPOZYWCZY',
     'w:PSS', 'SPOLEM', 'LIDL', 'KAUFLAND', 'CARREFOUR', 'AUCHAN', 'STOKROTKA', 'w:DINO', 'NETTO', 'POLOMARKET',
-    'POLVEND', 'PIEKARNIA', 'ZOO CENTRUM']],
+    'POLVEND', 'PIEKARNIA', 'ZOO CENTRUM', 'ALDI']],
   ['transport', ['w:BOLT', 'BOLT.EU', 'w:UBER', 'ORLEN', 'w:BP', 'SHELL', 'CIRCLE K', 'MOYA', 'LOTOS', 'w:ZTM',
-    'BILETOMAT', 'w:PKP', 'INTERCITY', 'FLIXBUS', 'PARKING', 'MYJNIA', 'TAXI', 'JAKDOJADE', 'w:MPK']],
-  ['podroze', ['KIWI.COM', 'RYANAIR', 'WIZZ', 'BOOKING.COM', 'AIRBNB', 'HOTEL', 'HOSTEL', 'LOT POLISH']],
-  ['sport', ['DECATHLON', 'WRSPORT', 'TRENER', 'SILOWNIA', 'FITNESS', 'w:GYM', 'BASEN', 'w:SPORT']],
+    'BILETOMAT', 'w:PKP', 'INTERCITY', 'FLIXBUS', 'PARKING', 'MYJNIA', 'TAXI', 'JAKDOJADE', 'w:MPK', 'MARCEL',
+    'w:ONO', 'AUTOPAY', 'w:KCA']],
+  ['podroze', ['KIWI.COM', 'RYANAIR', 'WIZZ', 'BOOKING.COM', 'AIRBNB', 'HOTEL', 'HOSTEL', 'LOT POLISH', 'TPN', 'KALATOWKI']],
+  ['sport', ['DECATHLON', 'WRSPORT', 'TRENER', 'SILOWNIA', 'FITNESS', 'w:GYM', 'BASEN', 'w:SPORT', 'ENDORFINA', 'PLATINIUM']],
   ['zakupy', ['HOBBYKING', 'ALLEGRO', 'ALIEXPRESS', 'ALIPAY', 'VINTED', 'w:OLX', 'w:TEMU', 'AMAZON', 'ZALANDO', 'EMPIK',
-    'MEDIAEXPERT', 'MEDIA MARKT', 'EURO AGD', 'RTV EURO']],
+    'MEDIAEXPERT', 'MEDIA MARKT', 'EURO AGD', 'RTV EURO', 'PINGWINEK', 'CERTIVERSE', 'HENRICKMEDIA', 'PAYPRO', 'PAYU', 'NUVEI']],
   ['dom', ['LEROY', 'CASTORAMA', 'w:OBI', 'IKEA', 'BRICOMAN', 'JYSK']],
   ['telekom', ['T-MOBILE', 'TMOBILE', 'ORANGE', 'w:PLAY', 'w:PLUS', 'VECTRA', 'NETIA', 'INEA']],
   ['zdrowie', ['APTEKA', 'MEDICOVER', 'LUXMED', 'LUX MED', 'DENTYST', 'STOMATOLOG', 'OPTYK', 'LEKARZ',
     'CENTRUM MEDYCZNE', 'SZPITAL']],
-  ['uroda', ['FRYZJER', 'BARBER', 'KOSMETYCZ', 'MANICURE', 'PAZNOKCI']],
+  ['uroda', ['FRYZJER', 'BARBER', 'KOSMETYCZ', 'MANICURE', 'PAZNOKCI', 'ROSSMANN', 'BOOKSY', 'HEBE', 'SEPHORA', 'DOUGLAS']],
   ['rozrywka', ['KINO', 'CINEMA', 'w:CLUB', 'w:KLUB', 'STEAM', 'PLAYSTATION', 'XBOX', 'MUZEUM', 'BOWLING',
-    'TERMY', 'AQUAPARK', 'FORTUNA', 'BETCLIC', 'w:STS', 'ESCAPE ROOM']],
+    'TERMY', 'AQUAPARK', 'FORTUNA', 'BETCLIC', 'w:STS', 'ESCAPE ROOM', 'DREAM ZONE']],
   ['inwestycje', ['w:XTB', 'XTB.COM', 'TRADE REPUBLIC', 'DEGIRO', 'BINANCE', 'COINBASE', 'KRAKEN', 'BITSTAMP',
     'ZONDA']],
   ['oplaty', ['MANDAT', 'POLICJA', 'URZAD', 'w:ZUS', 'PODATEK', 'PROWIZJA', 'ODSETKI', 'OPLATA ZA']],
@@ -97,11 +99,15 @@ export const bankCounterpartyKey = (counterparty: string | null, direction?: 'de
 
 /**
  * @param userRules ręczne wybory użytkownika (klucz kontrahenta -> kategoria); mają pierwszeństwo przed regułami.
+ * @param ownIbans IBAN-y własnych rachunków użytkownika.
+ * @param ownNames Nazwy właściciela rachunku (np. z nagłówków kont bankowych); dopasowanie kontrahenta traktuje jako przelew własny.
  *                  Nierozpoznane transakcje zostają `do_sprawdzenia`, żeby użytkownik mógł je przypisać sam.
  */
 export function categorizeBankTransaction(
-  input: BankCategoryInput, userRules: ReadonlyMap<string, BankCategory> = new Map(),
+  input: BankCategoryInput,
+  userRules: ReadonlyMap<string, BankCategory> = new Map(),
   ownIbans: readonly string[] = [],
+  ownNames: readonly string[] = [],
 ): BankCategory {
   const party = normalizeBankText(input.counterparty);
   const remembered = party ? userRules.get(bankCounterpartyKey(input.counterparty, input.direction))
@@ -111,6 +117,16 @@ export function categorizeBankTransaction(
 
   const iban = input.counterpartyIban?.replace(/\s/g, '').toUpperCase();
   if (iban && ownIbans.some(own => own.replace(/\s/g, '').toUpperCase() === iban)) return 'przelewy_wlasne';
+
+  if (party && ownNames.some(name => {
+    const norm = normalizeBankText(name);
+    if (!norm) return false;
+    if (party === norm || party.includes(norm) || norm.includes(party)) return true;
+    const nameTokens = norm.split(' ').filter(t => t.length > 2);
+    return nameTokens.length > 0 && nameTokens.every(t => party.includes(t));
+  })) {
+    return 'przelewy_wlasne';
+  }
 
   if (input.direction === 'credit') {
     if (/ZWROT|REFUND|REKLAMACJ/.test(text)) return 'zwrot';
