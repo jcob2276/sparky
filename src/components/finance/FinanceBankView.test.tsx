@@ -12,9 +12,26 @@ const data: BankData = {
   transactionCount: 2,
 };
 const props = { data, health: { kind: 'ok', daysLeft: null } as const, loading: false, connecting: false, syncing: false, assigning: false,
+  mode: 'activity' as const,
   onConnect: vi.fn(), onSync: vi.fn(), onAssignCategory: vi.fn(async () => true) };
 
 describe('bank view', () => {
+  it('keeps unavailable linked accounts recoverable without repeating visible balances', () => {
+    const missing = { id: 'missing', user_id: 'u', name: 'Ukryty rachunek', balance: 100, account_type: 'bank', is_liquid: true, bank_account_id: 'hidden', sort_order: 0, coingecko_id: null, crypto_amount: null, created_at: '' };
+    const remove = vi.fn();
+    render(<FinanceBankView {...props} mode="accounts" missingAccounts={[missing]} onRemoveMissingAccount={remove} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Usuń konto z Finansów' }));
+    expect(remove).toHaveBeenCalledWith(missing);
+    expect(screen.queryByLabelText('Szukaj transakcji')).not.toBeInTheDocument();
+  });
+  it('keeps account management separate from transaction analysis', () => {
+    const view = render(<FinanceBankView {...props} mode="accounts" />);
+    expect(screen.getByText(/Aktualizacja transakcji:/)).toBeInTheDocument();
+    expect(screen.queryByLabelText('Szukaj transakcji')).not.toBeInTheDocument();
+    view.rerender(<FinanceBankView {...props} />);
+    expect(screen.queryByText(/Aktualizacja transakcji:/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Szukaj transakcji')).toBeInTheDocument();
+  });
   it('filters the complete history by month and search', () => {
     render(<FinanceBankView {...props} />);
     fireEvent.change(screen.getByLabelText('Miesiąc'), { target: { value: '2026-10' } });

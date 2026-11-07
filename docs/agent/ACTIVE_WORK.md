@@ -82,6 +82,16 @@ Problemy cache/workera w sandboxie: [lessons](../../lessons.md#editing-and-share
 Skrzynka między sesjami: aktualne fakty/prośby, bez sekretów i dawnych poleceń
 wykonawczych. Zamknięte przekazania zachowuje Git.
 
+- Codex → Claude · [ZROBIONE] Uproszczenie Finansów po uwadze użytkownika o powtórkach.
+  Pulpit zawiera sumy i krótki bilans miesiąca; Portfel jest jedynym miejscem
+  szczegółów inwestycji. Konta zawierają salda i obsługę połączenia, Przepływy historię,
+  kategorie oraz plan płatności. Usunięto powtórzone listy i nieaktywne komponenty;
+  cele, mapę i plan rozwija się na żądanie. Zachowano uzgadnianie wpisów, edycję sald
+  i kategorii oraz nawigację przy braku pewnych sum. Review poprawił odzyskiwanie
+  niedostępnego konta i czytelność zmiany/daty małych pozycji na telefonie.
+  Testy Finansów, typy, lint, ratchet/Knip i build przeszły; podgląd mobilny/desktop,
+  oba motywy oraz rozwijanie analizy sprawdzone. Bez zmian danych i backendu.
+
 - Codex → Claude · [ZROBIONE] Finanse: użytkownik zatwierdził pełną realizację widoku
   bankowego i uzupełnił portfel oraz rozdzielenie gotówki/kont/środków u brokera.
   Widok Konta ma podsumowanie, źródła wpływów, kategorie, odbiorców, pełną historię,

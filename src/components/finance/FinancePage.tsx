@@ -18,6 +18,8 @@ import { FinanceQuickEntry } from './FinanceQuickEntry';
 import { useFinancePageData } from './useFinancePageData';
 import { FinanceAccountsTab } from './FinanceAccountsTab';
 import { FinancePortfolioTab } from './FinancePortfolioTab';
+import { FinanceBankCard } from './FinanceBankCard';
+import { FinanceManualHistory } from './FinanceManualHistory';
 
 const TITLES: Record<FinanceTabKey, string> = {
   dashboard: 'Finanse',
@@ -121,6 +123,10 @@ function FinancePage() {
         {bankError && <p role="alert" className="rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger">{bankError}</p>}
         {data && !metrics && tab === 'accounts' && <FinanceAccountsTab accounts={data.accounts} mutations={mutations} run={run} />}
         {data && !metrics && tab === 'portfolio' && <FinancePortfolioTab holdings={valuedHoldings} totals={portfolio} mutations={holdingMutations} run={run} fundingAccounts={data.accounts} brokerCashPln={data.accounts.filter(a => a.account_type === 'broker_cash').reduce((s, a) => s + a.balance, 0)} />}
+        {data && !metrics && tab === 'flows' && <div className="space-y-6">
+          <FinanceBankCard mode="activity" financeAccounts={data.accounts} onManageAccounts={() => setTab('accounts')} />
+          <FinanceManualHistory transactions={data.transactions.filter(tx => tx.source !== 'bank')} />
+        </div>}
 
         {metrics && data && (
           <AnimatePresence initial={false}>
@@ -138,7 +144,6 @@ function FinancePage() {
                 metrics={metrics}
                 holdings={valuedHoldings}
                 portfolio={portfolio}
-                quotesLoading={quotesQuery.isFetching}
                 mutations={mutations}
                 holdingMutations={holdingMutations}
                 run={run}

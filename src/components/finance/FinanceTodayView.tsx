@@ -1,6 +1,5 @@
 import { formatPln } from '../../lib/finance/formatMoney';
 import type { CashflowMonthSummary } from '@vanguard/domain';
-import type { FinanceTransaction } from '../../lib/financeApi';
 import type { FinanceMetrics } from './useFinanceMetrics';
 import {
   FinanceEmpty,
@@ -24,7 +23,6 @@ interface FinanceTodayViewProps {
   monthKey: string;
   cashflow: CashflowMonthSummary;
   todayDay: number;
-  recentTransactions: FinanceTransaction[];
 }
 
 const EVENT_LABEL: Record<string, string> = {
@@ -33,26 +31,6 @@ const EVENT_LABEL: Record<string, string> = {
   income: 'wpływ',
   expense: 'wydatek',
 };
-
-function RecentSpending({ transactions }: { transactions: FinanceTransaction[] }) {
-  const expenses = transactions.filter((t) => t.kind === 'expense').slice(0, 5);
-  if (expenses.length === 0) return null;
-
-  return (
-    <FinanceSection title="Ostatnie wydatki">
-      <FinanceList>
-        {expenses.map((t) => (
-          <FinanceRow
-            key={t.id}
-            primary={t.note || t.category}
-            secondary={t.transaction_date}
-            trailing={<span className="text-danger">{formatPln(Math.abs(t.amount))}</span>}
-          />
-        ))}
-      </FinanceList>
-    </FinanceSection>
-  );
-}
 
 function MonthAhead({
   monthKey,
@@ -104,7 +82,6 @@ export function FinanceTodayView({
   monthKey,
   cashflow,
   todayDay,
-  recentTransactions,
 }: FinanceTodayViewProps) {
   const headline = buildTodayHeadline(metrics);
   const context = buildTodayContext(metrics);
@@ -123,7 +100,6 @@ export function FinanceTodayView({
       </header>
 
       {metrics.hasBudget && budgetProgress && <FinanceBudgetProgress progress={budgetProgress} monthLabel={monthLabel} />}
-      <RecentSpending transactions={recentTransactions} />
       <MonthAhead monthKey={monthKey} summary={cashflow} todayDay={todayDay} />
     </div>
   );

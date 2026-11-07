@@ -19,7 +19,12 @@ function readBankReturn(): 'connected' | 'denied' | null {
   return value;
 }
 
-export function FinanceBankCard({ financeAccounts = [] }: { financeAccounts?: FinanceAccount[] }) {
+export function FinanceBankCard({ financeAccounts = [], mode, onManageAccounts, onRemoveMissingAccount }: {
+  financeAccounts?: FinanceAccount[];
+  mode: 'accounts' | 'activity';
+  onManageAccounts?: () => void;
+  onRemoveMissingAccount?: (account: FinanceAccount) => void;
+}) {
   const userId = useStore((s) => s.session?.user?.id);
   const query = useBankData(userId);
   const { connect, sync, assignCategory } = useBankActions(userId);
@@ -29,18 +34,23 @@ export function FinanceBankCard({ financeAccounts = [] }: { financeAccounts?: Fi
   const { mutate: runSync } = sync;
 
   useEffect(() => {
+    if (mode !== 'accounts') return;
     const result = readBankReturn();
     if (result === 'denied') notify('Zgoda w banku nie została udzielona.', 'error');
     if (result === 'connected') {
       notify('Bank połączony. Pobieram dane…', 'success');
       runSync();
     }
-  }, [runSync]);
+  }, [runSync, mode]);
 
   const onError = (message: string) => (err: unknown) => notify(err instanceof Error ? err.message : message, 'error');
 
   return (<>
     <FinanceBankView
+      mode={mode}
+      onManageAccounts={onManageAccounts}
+      missingAccounts={query.isLoading ? [] : financeAccounts.filter(account => account.bank_account_id && !query.data?.accounts.some(bank => bank.id === account.bank_account_id))}
+      onRemoveMissingAccount={onRemoveMissingAccount}
       data={query.data}
       error={query.error?.message}
       financeAccounts={financeAccounts}
@@ -60,7 +70,7 @@ export function FinanceBankCard({ financeAccounts = [] }: { financeAccounts?: Fi
         catch (err: unknown) { onError('Nie udało się zapisać kategorii')(err); return false; }
       }}
     />
-    <BankManualReconciliation accounts={financeAccounts} manual={bundle.data?.transactions ?? []} bank={query.data?.transactions ?? []} pending={resolve.isPending}
-      onResolve={(id, bankTransactionId) => resolve.mutate({ id, bankTransactionId }, { onError: onError('Nie udało się uzgodnić wpisu') })} />
+    {mode === 'accounts' && <BankManualReconciliation accounts={financeAccounts} manual={bundle.data?.transactions ?? []} bank={query.data?.transactions ?? []} pending={resolve.isPending}
+      onResolve={(id, bankTransactionId) => resolve.mutate({ id, bankTransactionId }, { onError: onError('Nie udało się uzgodnić wpisu') })} />}
   </>);
 }

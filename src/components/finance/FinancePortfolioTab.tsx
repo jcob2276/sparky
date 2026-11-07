@@ -12,6 +12,7 @@ import { FinanceEmpty, FinanceList, FinanceRow, FinanceSection } from './finance
 import { FinanceHoldingForm } from './FinanceHoldingForm';
 import { FinanceHoldingsHeatmap } from './FinanceHoldingsHeatmap';
 import { FinanceRebalanceCard } from './FinanceRebalanceCard';
+import { formatWarsawDate } from '../../lib/date';
 
 interface FinancePortfolioTabProps {
   holdings: ValuedHolding[];
@@ -69,7 +70,10 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCa
     <div className="space-y-8">
       <Summary totals={totals} brokerCashPln={brokerCashPln} />
 
-      <FinanceHoldingsHeatmap holdings={holdings} loading={false} />
+      <details className="space-y-3">
+        <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-text-secondary">Pokaż mapę portfela</summary>
+        <FinanceHoldingsHeatmap holdings={holdings} loading={false} />
+      </details>
 
       <FinanceSection title="Pozycje">
         {holdings.length === 0 ? (
@@ -84,10 +88,16 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCa
                   trailing={(
                     <span className="block text-right">
                       {item.valuationSource === 'missing' ? '—' : formatPln(item.valuePln)}
-                      <span className={`block text-sm ${tone(item.pnlPln)}`}>{pct(item.pnlPct)}</span>
+                      <span className={`block text-sm ${tone(item.pnlPln)}`}>{pct(item.pnlPct)} łącznie</span>
                     </span>
                   )}
-                />
+                >
+                  <p className="mt-1 text-xs text-text-muted">
+                    {item.assetClass === 'crypto' ? 'Zmiana dzienna' : 'Ostatnia sesja'}
+                    {item.quoteAsOf ? ` · ${formatWarsawDate(item.quoteAsOf)}` : ' · data notowania niepodana'}
+                    {' · '}<span className={tone(item.dayChangePct)}>{pct(item.dayChangePct)}</span>
+                  </p>
+                </FinanceRow>
               </Pressable>
             ))}
           </FinanceList>
@@ -97,6 +107,8 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCa
         </div>
       </FinanceSection>
 
+      <details className="space-y-3">
+      <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-text-secondary">Zaplanuj dopłatę</summary>
       <FinanceRebalanceCard
         holdings={holdings}
         fundingAccounts={fundingAccounts}
@@ -105,6 +117,7 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCa
           await mutations.addPurchase.mutateAsync({ holding, units, pricePln, accountId });
         })}
       />
+      </details>
 
       <Sheet open={editing != null} onOpenChange={(open) => { if (!open) close(); }} title={editing === 'new' ? 'Nowa pozycja' : 'Edytuj pozycję'} side="bottom" compact>
         {editing != null && (

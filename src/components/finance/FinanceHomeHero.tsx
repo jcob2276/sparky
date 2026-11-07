@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowDownLeft, ArrowUpRight, Calculator, MoreHorizontal, type LucideIcon } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, type LucideIcon } from 'lucide-react';
 import type { PortfolioTotals } from '@vanguard/domain';
 import { formatPln } from '../../lib/finance/formatMoney';
 import { Pressable } from '../ui/ControlPrimitives';
@@ -20,8 +20,6 @@ interface FinanceHomeHeroProps {
   hasHoldings: boolean;
   hasAccounts: boolean;
   onQuickEntry: (kind: 'expense' | 'income') => void;
-  onRebalance: () => void;
-  onMore: () => void;
 }
 
 function ActionButton({ icon: Icon, label, onClick }: { icon: LucideIcon; label: string; onClick: () => void }) {
@@ -44,7 +42,7 @@ function changeLine(change: number, pct: number | null): { text: string; tone: s
   };
 }
 
-export function FinanceHomeHero({ metrics, portfolio, hasHoldings, hasAccounts, onQuickEntry, onRebalance, onMore }: FinanceHomeHeroProps) {
+export function FinanceHomeHero({ metrics, portfolio, hasHoldings, hasAccounts, onQuickEntry }: FinanceHomeHeroProps) {
   const [segment, setSegment] = useState<Segment>('net');
   const amounts: Record<Segment, number> = { net: metrics.netWorth, invest: metrics.investments, bank: metrics.bankCash, cash: metrics.physicalCash };
   const labels: Record<Segment, string> = { net: 'Majątek netto', invest: 'Wartość inwestycji', bank: 'Środki na kontach', cash: 'Gotówka fizyczna' };
@@ -86,11 +84,9 @@ export function FinanceHomeHero({ metrics, portfolio, hasHoldings, hasAccounts, 
         )}
       </div>
 
-      <div className="mx-auto flex max-w-sm justify-between px-1">
+      <div className="mx-auto flex justify-center gap-8">
         <ActionButton icon={ArrowUpRight} label="Wydatek" onClick={() => onQuickEntry('expense')} />
         <ActionButton icon={ArrowDownLeft} label="Wpływ" onClick={() => onQuickEntry('income')} />
-        <ActionButton icon={Calculator} label="Dopłata" onClick={onRebalance} />
-        <ActionButton icon={MoreHorizontal} label="Więcej" onClick={onMore} />
       </div>
     </section>
   );

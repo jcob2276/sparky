@@ -7,7 +7,6 @@ import { confirmDialog } from '../../lib/notify';
 import Button from '../ui/Button';
 import { ControlInput, ControlSelect } from '../ui/ControlPrimitives';
 import { FinanceBankCard } from './FinanceBankCard';
-import { FinanceSalesGoalCard } from './FinanceSalesGoalCard';
 import { FinanceEmpty, FinanceList, FinanceRow, FinanceSection } from './financeUi';
 
 interface FinanceAccountsTabProps {
@@ -86,9 +85,8 @@ function BalanceInput({ account, onSave }: { account: FinanceAccount; onSave: (b
 }
 
 export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccountsTabProps) {
-  const assets = accounts.filter((account) => account.balance >= 0);
   const debts = accounts.filter((account) => account.balance < 0);
-  const manual = accounts.filter((account) => !account.coingecko_id);
+  const manual = accounts.filter((account) => !account.coingecko_id && !account.bank_account_id);
 
   const remove = async (account: FinanceAccount) => {
     if (!(await confirmDialog(`Usunąć konto „${account.name}"?`))) return;
@@ -97,11 +95,13 @@ export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccounts
 
   return (
     <div className="space-y-8">
-      <FinanceBankCard financeAccounts={accounts} />
+      <FinanceBankCard mode="accounts" financeAccounts={accounts} onRemoveMissingAccount={account => void remove(account)} />
       <FinanceSection
-        title="Konta i gotówka"
-        subtitle={`Aktywa ${formatPln(assets.reduce((n, a) => n + a.balance, 0))}${debts.length ? ` · długi ${formatPln(debts.reduce((n, a) => n + a.balance, 0))}` : ''}. Inwestycje dodajesz w Portfelu.`}
+        title="Pozostałe środki i zobowiązania"
+        subtitle={`${debts.length ? `Długi ${formatPln(debts.reduce((n, a) => n + a.balance, 0))}. ` : ''}Gotówka, środki u brokera i konta bez synchronizacji.`}
       >
+        <details className="px-4">
+        <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-text-secondary">Dodaj konto lub środki</summary>
         <AccountForm
           onAdd={(input) => void run(async () => {
             await mutations.addAccount.mutateAsync({
@@ -112,8 +112,9 @@ export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccounts
             });
           })}
         />
+        </details>
         {manual.length === 0 ? (
-          <FinanceEmpty>Dodaj konto bankowe i gotówkę, żeby majątek netto i poduszka miały podstawę.</FinanceEmpty>
+          <FinanceEmpty>Tu dodasz gotówkę, dodatkowe środki lub zobowiązanie.</FinanceEmpty>
         ) : (
           <FinanceList>
             {manual.map((account) => (
@@ -122,7 +123,7 @@ export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccounts
                 primary={account.name}
                 secondary={account.balance < 0 ? 'Dług' : FINANCE_ACCOUNT_LABELS[account.account_type as FinanceAccountType] ?? account.account_type}
                 trailing={(
-                  account.bank_account_id ? <span className="text-sm text-text-muted">{formatPln(account.balance, 2)} · z banku</span> : <BalanceInput
+                  <BalanceInput
                     key={account.balance}
                     account={account}
                     onSave={(balance) => void run(async () => { await mutations.updateAccount.mutateAsync({ id: account.id, balance }); })}
@@ -137,7 +138,6 @@ export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccounts
           </FinanceList>
         )}
       </FinanceSection>
-      <FinanceSalesGoalCard />
     </div>
   );
 }

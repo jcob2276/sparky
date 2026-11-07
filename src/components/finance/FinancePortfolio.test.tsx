@@ -1,10 +1,31 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, expect, it, vi } from 'vitest';
-import { valueHoldings, type HoldingInput } from '@vanguard/domain';
+import { computePortfolioTotals, valueHoldings, type HoldingInput } from '@vanguard/domain';
 import { FinanceHoldingsHeatmap } from './FinanceHoldingsHeatmap';
 import { FinanceRebalanceCard } from './FinanceRebalanceCard';
 import { FinanceQuickEntry } from './FinanceQuickEntry';
 import type { FinanceAccount } from '../../lib/financeApi';
+import { FinancePortfolioTab } from './FinancePortfolioTab';
+import { useHoldingMutations } from '../../lib/finance/holdingsApi';
+
+it('shows session and crypto daily changes with quote dates in position rows, including small positions', () => {
+  const holdings = valueHoldings([
+    holding('BTC-USD', { assetClass: 'crypto', quantity: 0.001 }),
+    holding('ABC', { quantity: 100 }),
+  ], { 'BTC-USD': { pricePln: 200000, changePct: -0.12, asOf: '2026-11-07T12:00:00Z' }, ABC: { pricePln: 150, changePct: 2.5, asOf: '2026-11-06T20:00:00Z' } });
+  function Portfolio() {
+    const mutations = useHoldingMutations(undefined);
+    return <FinancePortfolioTab holdings={holdings} totals={computePortfolioTotals(holdings)} mutations={mutations} run={async fn => fn()} />;
+  }
+  render(<QueryClientProvider client={new QueryClient()}><Portfolio /></QueryClientProvider>);
+  const crypto = screen.getByRole('button', { name: /BTC-USD/ });
+  expect(within(crypto).getByText(/Zmiana dzienna/)).toHaveTextContent('2026-11-07');
+  expect(within(crypto).getByText('-0,12%')).toBeVisible();
+  const stock = screen.getByRole('button', { name: /ABC/ });
+  expect(within(stock).getByText(/Ostatnia sesja/)).toHaveTextContent('2026-11-06');
+  expect(within(stock).getByText('+2,50%')).toBeVisible();
+});
 
 const holding = (id: string, overrides: Partial<HoldingInput> = {}): HoldingInput => ({
   id, ticker: id.toUpperCase(), name: id, assetClass: 'etf', quantity: 10, avgCostPln: 100, targetWeightPct: null, ...overrides,

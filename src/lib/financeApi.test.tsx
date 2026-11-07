@@ -103,7 +103,7 @@ function BudgetTab({ tab }: { tab: FinanceTabKey }) {
   if (!query.data || !metrics) return null;
   const portfolio = { valuePln: 0, costPln: 0, pnlPln: 0, pnlPct: null, dayChangePln: 0, dayChangePct: null, unquotedCount: 0 };
   return <FinanceTabContent tab={tab} data={query.data} metrics={metrics} holdings={[]} portfolio={portfolio}
-    quotesLoading={false} mutations={mutations} holdingMutations={holdingMutations}
+    mutations={mutations} holdingMutations={holdingMutations}
     run={async (fn) => fn()} saveProfilePatch={() => {}} onQuickEntry={() => {}} onNavigate={() => {}} />;
 }
 
@@ -113,10 +113,11 @@ it.each(['dashboard', 'flows'] as const)('keeps actual records and inputs in %s 
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   render(<QueryClientProvider client={client}><BudgetTab tab={tab} /></QueryClientProvider>);
   if (tab === 'flows') {
+    fireEvent.click(await screen.findByText('Plan i stałe płatności'));
     await screen.findByText('Pensja');
     expect(screen.getByLabelText(/Plan wydatków na miesiąc/)).toHaveValue(null);
   } else {
-    await screen.findByText(/Wpisz plan wydatków/);
+    await screen.findByRole('button', { name: /Ustaw dochód i wydatki/ });
     expect(screen.queryByText('Zostało w miesiącu')).not.toBeInTheDocument();
   }
 });
