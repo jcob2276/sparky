@@ -34,9 +34,9 @@ describe('Auth component - render and interactions', () => {
     localStorage.clear();
   });
 
-  it('renders Sparky login card with email and password inputs', () => {
+  it('renders Sparky login screen with email and password inputs', () => {
     render(<Auth />);
-    expect(screen.getByRole('heading', { name: 'Sparky' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Zaloguj się' })).toBeInTheDocument();
     expect(screen.getByPlaceholderText('twoj@email.pl')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Zaloguj się' })).toBeInTheDocument();
@@ -57,13 +57,10 @@ describe('Auth component - render and interactions', () => {
     expect(passwordInput).toHaveAttribute('type', 'password');
   });
 
-  it('toggles theme when clicking the theme switch button', () => {
+  // Theme toggle removed: auth screen always uses dark mode (photo background).
+  it('photo-bg auth has no theme toggle button', () => {
     render(<Auth />);
-    const themeButton = screen.getByRole('button', { name: /Przełącz na tryb/i });
-    expect(themeButton).toBeInTheDocument();
-
-    fireEvent.click(themeButton);
-    expect(localStorage.getItem('vanguard_theme')).toBe('dark');
+    expect(screen.queryByRole('button', { name: /Przełącz na tryb/i })).toBeNull();
   });
 });
 

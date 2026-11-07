@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Eye, EyeOff, LockKeyhole, Moon, Sun } from 'lucide-react';
+import { Eye, EyeOff, LockKeyhole } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { STORAGE_KEYS } from '../../lib/constants';
 import { ControlInput, Pressable } from '../ui/ControlPrimitives';
 import './auth.css';
 
@@ -14,33 +13,19 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
-    return (localStorage.getItem(STORAGE_KEYS.THEME) as 'light' | 'dark') || 'light';
-  });
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem(STORAGE_KEYS.THEME) || 'light';
-    document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+    // Auth screen is immersive dark
+    document.documentElement.classList.add('dark');
     if (email) {
       passwordRef.current?.focus();
     } else {
       emailRef.current?.focus();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
-    try {
-      localStorage.setItem(STORAGE_KEYS.THEME, nextTheme);
-    } catch {
-      /* ignore quota errors */
-    }
-  };
 
   const triggerShake = () => {
     const el = cardRef.current;
@@ -76,7 +61,7 @@ export default function Auth() {
     try {
       localStorage.setItem(EMAIL_CACHE_KEY, trimmedEmail);
     } catch {
-      /* ignore quota errors in Safari Private mode */
+      /* ignore quota errors */
     }
 
     try {
@@ -104,104 +89,103 @@ export default function Auth() {
   };
 
   return (
-    <main className="relative flex min-h-screen w-full items-center justify-center p-4 selection:bg-primary/20">
-      <div className="absolute top-4 right-4">
-        <Pressable
-          type="button"
-          onClick={toggleTheme}
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-border-custom bg-surface-2/80 text-text-secondary transition-colors hover:text-text-primary hover:bg-surface-2"
-          aria-label={theme === 'light' ? 'Przełącz na tryb ciemny' : 'Przełącz na tryb jasny'}
-        >
-          {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
-        </Pressable>
+    <main className="auth-hero">
+      {/* Full-bleed cinematic background */}
+      <div className="auth-hero-bg" aria-hidden="true">
+        <img
+          src={`${import.meta.env.BASE_URL}auth_hero.jpg`}
+          alt=""
+          className="auth-hero-img"
+        />
+        <div className="auth-hero-scrim" />
+        <div className="auth-hero-vignette" />
       </div>
 
-      <div className="auth-bg" aria-hidden="true">
-        <div className="auth-orb auth-orb-1" />
-        <div className="auth-orb auth-orb-2" />
-        <div className="auth-orb auth-orb-3" />
-        <div className="auth-noise" />
-      </div>
+      {/* Centered luxury glass card */}
+      <div className="auth-hero-content">
+        <div ref={cardRef} className="auth-luxury-card">
+          <div className="auth-card-glow" aria-hidden="true" />
 
-      <div ref={cardRef} className="auth-card w-full max-w-sm">
-        <div className="mb-7 flex flex-col items-center text-center">
-          <div className="auth-logo-wrap mb-4">
-            <img
-              src={`${import.meta.env.BASE_URL}favicon.svg`}
-              alt="Sparky"
-              width={64}
-              height={64}
-              className="auth-logo-img rounded-lg shadow-md border border-border-custom"
-            />
-          </div>
-          <h1 className="auth-title font-display text-text-primary tracking-tight">
-            Sparky
-          </h1>
-          <p className="auth-subtitle">
-            Wpisz dane, aby wejść do systemu.
-          </p>
-        </div>
-
-        <form onSubmit={handleSignIn} className="space-y-4" noValidate>
-          {error && (
-            <div role="alert" className="auth-error">
-              {error}
-            </div>
-          )}
-
-          <label className="auth-field" style={{ '--stagger': '0' } as React.CSSProperties}>
-            <span className="auth-label">Email</span>
-            <ControlInput
-              ref={emailRef}
-              type="email"
-              required
-              autoComplete="email"
-              inputMode="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="twoj@email.pl"
-              className="auth-input"
-            />
-          </label>
-
-          <label className="auth-field" style={{ '--stagger': '1' } as React.CSSProperties}>
-            <span className="auth-label">Hasło</span>
-            <div className="relative flex items-center">
-              <ControlInput
-                ref={passwordRef}
-                type={showPassword ? 'text' : 'password'}
-                required
-                autoComplete="current-password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="auth-input auth-input-pw"
+          {/* Logo & Brand Header */}
+          <div className="auth-card-header">
+            <div className="auth-logo-box">
+              <img
+                src={`${import.meta.env.BASE_URL}favicon.svg`}
+                alt="Sparky"
+                width={40}
+                height={40}
+                className="auth-logo-badge"
               />
-              <Pressable
-                type="button"
-                onClick={() => setShowPassword((v) => !v)}
-                className="auth-eye-btn"
-                tabIndex={-1}
-                aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
-              >
-                {showPassword
-                  ? <EyeOff size={18} strokeWidth={1.8} />
-                  : <Eye size={18} strokeWidth={1.8} />}
-              </Pressable>
             </div>
-          </label>
+            <div className="text-center mt-3">
+              <span className="auth-brand-badge">Sparky OS</span>
+              <h1 className="auth-card-title">Zaloguj się</h1>
+              <p className="auth-card-sub">Wpisz dane, aby wejść do systemu.</p>
+            </div>
+          </div>
 
-          <Pressable
-            type="submit"
-            variant="primary"
-            size="lg"
-            loading={loading}
-            icon={<LockKeyhole size={16} />}
-            className="auth-submit mt-2 w-full font-semibold shadow-md"
-          >
-            Zaloguj się
-          </Pressable>
-        </form>
+          {/* Form */}
+          <form onSubmit={handleSignIn} className="auth-card-form" noValidate>
+            {error && (
+              <div role="alert" className="auth-error">
+                {error}
+              </div>
+            )}
+
+            <label className="auth-field" style={{ '--stagger': '0' } as React.CSSProperties}>
+              <span className="auth-label">Email</span>
+              <ControlInput
+                ref={emailRef}
+                type="email"
+                required
+                autoComplete="email"
+                inputMode="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="twoj@email.pl"
+                className="auth-input auth-input-dark"
+              />
+            </label>
+
+            <label className="auth-field" style={{ '--stagger': '1' } as React.CSSProperties}>
+              <span className="auth-label">Hasło</span>
+              <div className="relative flex items-center">
+                <ControlInput
+                  ref={passwordRef}
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="auth-input auth-input-dark auth-input-pw"
+                />
+                <Pressable
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="auth-eye-btn"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Ukryj hasło' : 'Pokaż hasło'}
+                >
+                  {showPassword
+                    ? <EyeOff size={18} strokeWidth={1.8} />
+                    : <Eye size={18} strokeWidth={1.8} />}
+                </Pressable>
+              </div>
+            </label>
+
+            <Pressable
+              type="submit"
+              variant="primary"
+              size="lg"
+              loading={loading}
+              icon={<LockKeyhole size={16} />}
+              className="auth-submit auth-submit-hero mt-2 w-full font-semibold"
+            >
+              Zaloguj się
+            </Pressable>
+          </form>
+        </div>
       </div>
     </main>
   );
