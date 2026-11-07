@@ -110,8 +110,9 @@ Zasady i dokumenty domenowe: [indeks](docs/README.md).
   zachowanie bieżącej przy akcji zbiorczej i powrót do logowania na drugim urządzeniu.
   Backend zarządzania jest zastosowany. Obowiązuje standardowa ważność wydanego JWT;
   natychmiastowa blokada wszystkich API wymaga osobnej decyzji o szerszych regułach dostępu.
-- [ ] Odblokować globalne kontrole: ratchet stylów `core/auth.css`, nieużywany
-  `DayCompletenessToggle.tsx` i deklaracje binarnego `powershell` w Knip;
+- [ ] Odblokować globalne kontrole: deklaracje binarnego `powershell` w Knip i zmniejszyć
+  liczniki stylów podniesione przez nowy `core/auth.css` (kolory poza `index.css`, lokalne
+  deklaracje wizualne, wartości liczbowe CSS);
   reguły odczytu `bank_connections`, `bank_accounts`, `bank_transactions` powinny
   opakować `auth.uid()` w `(select auth.uid())`, zgodnie z kontrolą initplan.
 - [ ] Po zakończeniu równoległej pracy uruchomić pełną regresję i niezależny przegląd.
