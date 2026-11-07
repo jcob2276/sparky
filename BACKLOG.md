@@ -105,9 +105,11 @@ Zasady i dokumenty domenowe: [indeks](docs/README.md).
 ### Porządkowanie — regresja wspólnego drzewa
 <a id="regresja-drzewa"></a>
 
-- [ ] Wdrożyć frontend podglądu „Aktywne sesje” w Ustawieniach i odebrać na
-  zalogowanej PWA/APK. RPC `list_my_sessions` jest zastosowane; sprawdzić zgodność
-  listy z rzeczywistymi logowaniami i oznaczenie bieżącej sesji.
+- [ ] Odebrać zarządzanie „Aktywne sesje” na zalogowanej PWA/APK po publikacji
+  frontendu: osobne Zalogowane/Historia, wylogowanie wskazanej i pozostałych sesji,
+  zachowanie bieżącej przy akcji zbiorczej i powrót do logowania na drugim urządzeniu.
+  Backend zarządzania jest zastosowany. Obowiązuje standardowa ważność wydanego JWT;
+  natychmiastowa blokada wszystkich API wymaga osobnej decyzji o szerszych regułach dostępu.
 - [ ] Odblokować globalne kontrole: ratchet stylów `core/auth.css`, nieużywany
   `DayCompletenessToggle.tsx` i deklaracje binarnego `powershell` w Knip;
   reguły odczytu `bank_connections`, `bank_accounts`, `bank_transactions` powinny

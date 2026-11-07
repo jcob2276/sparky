@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useSession, useStore } from '../store/useStore';
+import { queryClient } from '../lib/queryClient';
+import { useSessionRevocation } from './useSessionRevocation';
 
 export function useAppAuthSession() {
   const session = useSession();
   const setSession = useStore(state => state.setSession);
   const [loading, setLoading] = useState(true);
+  useSessionRevocation(session);
 
   useEffect(() => {
     let mounted = true;
@@ -18,6 +21,7 @@ export function useAppAuthSession() {
       if (!mounted) return;
       authEventReceived = true;
       setSession(currentSession);
+      if (!currentSession) queryClient.clear();
       setLoading(false);
       window.clearTimeout(safetyTimer);
     });

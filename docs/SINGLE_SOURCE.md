@@ -41,6 +41,8 @@ ma jednego pisarza i sprawdzany niezmiennik. Zasady pracy: [AGENTS](../AGENTS.md
 | Nazwa aplikacji i persony AI w promptach | `APP_NAME` w `@vanguard/domain` | nie wpisuj nazwy asystenta w treści promptu |
 | Strefa czasu aplikacji | `TIMEZONE` (`WARSAW_TZ`) w `@vanguard/domain` | dni jako klucze `YYYY-MM-DD` w Warszawie; nie wpisuj literału strefy; `src/lib/warsawDay.guard.test.ts` zabrania „dzisiaj” z UTC |
 | Tydzień (pon–nd) | `getWeekStartWarsaw` | |
+| Ważność i zakończenie sesji aplikacji | `auth.sessions` i jej dane odświeżania; `is_current_session_active`, `revoke_my_session`, Auth `signOut` | historia zakończeń nie nadaje dostępu; standardowe wylogowanie nie unieważnia już wydanego JWT przed jego terminem |
+| Podział sesji na ostatnio używane i starsze | `RECENT_SESSION_DAYS` w `settings/ActiveSessionsView.tsx` | wyłącznie prezentacja; starsze ważne sesje nadal mają przycisk wylogowania |
 | Wyniki dnia Closera (sales calle i czas pracy) | `closer_daily_logs` | nagrania `closer_calls` wyznaczają minimum przez triggery; większy wpis ręczny zostaje, tych samych rozmów nie dodajemy drugi raz; `kpi_entries` jest projekcją tygodnia; minuty self-refleksji i nauki (`reflection_minutes`, `learning_minutes`) oraz tekst refleksji (`notes`) zapisuje plan miesiąca `/plan-listopad` |
 | Wartości awaryjne celów i formatowanie ich tekstów | `src/lib/lifeGoals.ts` | tylko do czasu załadowania z bazy; odczyt przez `lifeTargetsApi.ts` |
 
@@ -89,3 +91,4 @@ kasowanie danych i godziny powiadomień wymagają decyzji użytkownika.
 - `vanguard_knowledge` czytają architect i `_shared/vanguardCoreMethods`; explicit Telegram zapisuje fakty, compiler kopiuje strony. Nie scalać z wiki bez przepięcia obu czytelników.
 - `v_day` budować dopiero razem z rzeczywistym konsumentem; sama wspólna data nie uzasadnia nowego widoku.
 - Retencję `vanguard_oracle_runs`, `view_events` i `vanguard_raw_events` definiuje `cleanup_old_logs`; nie utrzymuj kopii harmonogramu/liczników w instrukcjach.
+- Zakończone logowania zapisuje wyłącznie `private.archive_ended_auth_session` przed usunięciem `auth.sessions`; `get_my_session_activity` łączy metadane żywych sesji z tym archiwum. Migracja `manage_auth_sessions` określa retencję oraz limit odczytu archiwum. Nie rekonstruować nieznanych wcześniejszych zakończeń ani tożsamości osoby z IP/user-agent.

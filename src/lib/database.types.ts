@@ -138,6 +138,39 @@ export type Database = {
         }
         Relationships: []
       }
+      auth_session_history: {
+        Row: {
+          authentication_methods: string[]
+          created_at: string | null
+          ended_at: string
+          id: string
+          ip: string | null
+          last_refreshed_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          authentication_methods?: string[]
+          created_at?: string | null
+          ended_at?: string
+          id: string
+          ip?: string | null
+          last_refreshed_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          authentication_methods?: string[]
+          created_at?: string | null
+          ended_at?: string
+          id?: string
+          ip?: string | null
+          last_refreshed_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       aw_daily_summary: {
         Row: {
           categories: Json | null
@@ -8101,6 +8134,20 @@ export type Database = {
       }
       get_data_coverage: { Args: { p_user_id: string }; Returns: Json }
       get_desktop_dashboard_data: { Args: { p_user_id: string }; Returns: Json }
+      get_my_session_activity: {
+        Args: never
+        Returns: {
+          authentication_methods: string[]
+          created_at: string
+          ended_at: string
+          id: string
+          ip: string
+          is_current: boolean
+          last_refreshed_at: string
+          status: string
+          user_agent: string
+        }[]
+      }
       get_vanguard_graph_context: {
         Args: {
           max_depth?: number
@@ -8129,6 +8176,7 @@ export type Database = {
         Args: { p_delta: number; p_kpi_id: string; p_week_start: string }
         Returns: undefined
       }
+      is_current_session_active: { Args: never; Returns: boolean }
       link_planned_running_activity: {
         Args: { p_plan_workout_id: string; p_strava_id: number }
         Returns: undefined
@@ -8268,6 +8316,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      revoke_my_session: { Args: { p_session_id: string }; Returns: boolean }
       save_food_correction: {
         Args: {
           p_corrected_grams: number

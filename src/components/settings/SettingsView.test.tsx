@@ -6,7 +6,7 @@ import { notify } from '../../lib/notify';
 import SettingsView from './SettingsView';
 
 vi.mock('./LifeTargetsSettings', () => ({ default: () => null }));
-vi.mock('../../lib/authSessionsApi', () => ({ fetchActiveSessions: async () => [] }));
+vi.mock('../../lib/authSessionsApi', () => ({ fetchSessionActivity: async () => [], revokeSession: vi.fn(), revokeOtherSessions: vi.fn() }));
 
 vi.mock('../../lib/notify', () => ({ notify: vi.fn() }));
 vi.mock('../../store/useStore', () => ({ useSession: () => ({ user: { id: 'owner' }, access_token: 'token' }) }));

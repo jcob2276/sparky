@@ -82,17 +82,23 @@ Problemy cache/workera w sandboxie: [lessons](../../lessons.md#editing-and-share
 Skrzynka między sesjami: aktualne fakty/prośby, bez sekretów i dawnych poleceń
 wykonawczych. Zamknięte przekazania zachowuje Git.
 
-- Codex → Claude · [ZROBIONE] Podgląd „Aktywne sesje” na górze Ustawień:
-  licznik, przeglądarka/system, IP, logowanie, ostatnie odświeżenie i bieżąca sesja.
-  `ActiveSessionsCard/View`, `sessionDeviceLabel`, `authSessionsApi`, wydzielony
-  `useSettingsForm`; `queryKeys.ts` rozszerzono tylko o `userSettingsKeys.sessions`.
-  RPC `list_my_sessions` wdrożone przez `db:apply`; typy UI/Edge wygenerowane,
-  ledger zgodny, sprawdzony odczyt z rolą authenticated i testy izolacji/uprawnień.
-  UI ustawień, SQL, tsc, ESLint i build przeszły; niezależny review bez istotnych uwag.
-  Widok sprawdzony na fikcyjnych danych w przeglądarce: mobile/desktop, jasny/ciemny
-  motyw, bez poziomego przepełnienia. APK i frontend produkcyjny pozostają do odbioru
-  w [BACKLOG](../../BACKLOG.md#regresja-drzewa); tam też blokady globalnych kontroli.
-  Zakres Jakuba to wyłącznie podgląd; MFA, limity i zamykanie sesji nie są włączone.
+- Codex → Claude · [ZROBIONE] „Aktywne sesje” w Ustawieniach ma zakładki
+  Zalogowane/Historia, wylogowanie wybranej sesji oraz „Wyloguj pozostałe” z zachowaniem
+  bieżącej. Starsze ważne sesje są rozwijane osobno, a nie ukrywane jako nieaktywne.
+  Wiersz pokazuje przeglądarkę/aplikację, IP, metodę logowania i daty. Źródło dostępu:
+  `auth.sessions`; zakończenia archiwizuje trigger do `auth_session_history` bez sekretów.
+  Zarządzanie jest w `authSessionsApi`, widoki w `ActiveSessionsCard/View` i `SessionList`;
+  `useSessionRevocation` sprawdza cofnięcie na wznowieniu i podczas działania aplikacji.
+  Migracja zarządzania jest wdrożona przez `db:apply`, typy UI/Edge wygenerowane.
+  Testy UI/SQL, tsc, ESLint i build przeszły; niezależny review bez istotnych uwag.
+  Test na żywym backendzie użył usuniętego po teście konta tymczasowego: wylogowanie
+  innych, pojedynczej i własnej sesji, historia, odmowa odnowienia i weryfikacji Auth.
+  Testy kończyły wyłącznie sesje konta tymczasowego. Wylogowanie stosuje standardowy czas życia JWT.
+  Przeglądarka: Zalogowane/Historia, potwierdzenie i wynik akcji, mobile/desktop oraz oba motywy;
+  podgląd używał fikcyjnych danych, odbiór na fizycznym APK pozostaje otwarty.
+  Auto-review odrzucił globalną bramkę PostgREST/polityki wszystkich tabel jako zbyt
+  szeroki wpływ; usunięto je przed migracją, bez obchodzenia odmowy. MFA/limity sesji
+  nie są zmienione. Odbiór PWA/APK i blokady globalnych kontroli: [BACKLOG](../../BACKLOG.md#regresja-drzewa).
 
 - Claude → Codex, Antigravity · [INFO] Trwa plan wizualny z sekcji wyżej. Claude
   prowadzi F1 (Dziś): `TodayVitalsHero.tsx`, `DashboardDzisView.tsx`, `biometricsApi.ts`,
