@@ -28,7 +28,36 @@ function keytelKcalPerMin(bpm: number, weightKg: number, age: number, isMale: bo
     : (-20.4022 + 0.4472 * bpm - 0.1263 * weightKg + 0.074 * age) / 4.184;
 }
 
-export async function runRescoreWorkoutSessionsInternal(supabase: any, userId: string, days: number): Promise<any> {
+const OURA_HEARTRATE_URL = 'https://api.ouraring.com/v2/usercollection/heartrate';
+
+/**
+ * Surowe tętno w `oura_heartrate` jest przycinane po 14 dniach (sync/timeseries.ts), więc starszy
+ * trening nie ma w bazie próbek. Okno treningu jest krótkie, więc pobieramy je raz z API Oury
+ * i zapisujemy tylko wyliczone wyniki na sesji — surowe próbki nie wracają do bazy.
+ */
+async function fetchOuraHeartrateWindow(
+  token: string, startIso: string, endIso: string,
+): Promise<{ ts: string; bpm: number }[]> {
+  const samples: { ts: string; bpm: number }[] = [];
+  let nextToken: string | null = null;
+  for (let page = 0; page < 5; page++) {
+    const url: string = `${OURA_HEARTRATE_URL}?start_datetime=${encodeURIComponent(startIso)}&end_datetime=${encodeURIComponent(endIso)}`
+      + (nextToken ? `&next_token=${encodeURIComponent(nextToken)}` : '');
+    const res: Response = await fetch(url, { headers: { Authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15000) });
+    if (!res.ok) { console.warn(`[rescore] oura heartrate ${res.status}`); break; }
+    const json: { data?: { timestamp?: string; bpm?: number }[]; next_token?: string | null } = await res.json();
+    for (const it of json.data ?? []) {
+      if (it.timestamp && typeof it.bpm === 'number') samples.push({ ts: it.timestamp, bpm: it.bpm });
+    }
+    nextToken = json.next_token ?? null;
+    if (!nextToken) break;
+  }
+  return samples;
+}
+
+export async function runRescoreWorkoutSessionsInternal(
+  supabase: any, userId: string, days: number, ouraToken: string | null = null,
+): Promise<any> {
   const since = new Date(Date.now() - days * 86400000).toISOString();
 
   const { data: profile } = await supabase
@@ -62,12 +91,21 @@ export async function runRescoreWorkoutSessionsInternal(supabase: any, userId: s
 
   const updates: any[] = [];
   for (const s of (sessions || [])) {
-    const { data: hrSamples, error: hrErr } = await supabase
+    const { data: dbSamples, error: hrErr } = await supabase
       .from('oura_heartrate')
       .select('ts, bpm')
       .eq('user_id', userId)
       .gte('ts', s.start_time).lte('ts', s.end_time);
-    if (hrErr || !hrSamples?.length) continue;
+    let hrSamples: { ts: string; bpm: number }[] = hrErr ? [] : (dbSamples ?? []);
+    if (!hrSamples.length && ouraToken) {
+      hrSamples = await fetchOuraHeartrateWindow(
+        ouraToken, new Date(s.start_time).toISOString(), new Date(s.end_time).toISOString(),
+      ).catch((e: unknown) => {
+        console.warn(`[rescore] oura fallback failed for ${s.id}:`, e instanceof Error ? e.message : e);
+        return [];
+      });
+    }
+    if (!hrSamples.length) continue;
 
     const bpms = hrSamples.map((r: any) => r.bpm);
     const avgHr = bpms.reduce((a: number, b: number) => a + b, 0) / bpms.length;
@@ -102,7 +140,7 @@ export async function runRescoreWorkoutSessions(
   scopedUserId: string | null,
   days: number
 ): Promise<{ success: boolean; results: any[] }> {
-  let uq = supabase.from('user_settings').select('user_id').not('oura_token', 'is', null);
+  let uq = supabase.from('user_settings').select('user_id, oura_token').not('oura_token', 'is', null);
   if (scopedUserId) uq = uq.eq('user_id', scopedUserId);
   const { data: users, error: uErr } = await uq;
   if (uErr) throw uErr;
@@ -111,7 +149,7 @@ export async function runRescoreWorkoutSessions(
   for (const u of (users || [])) {
     const uid = u.user_id;
     try {
-      const res = await runRescoreWorkoutSessionsInternal(supabase, uid, days);
+      const res = await runRescoreWorkoutSessionsInternal(supabase, uid, days, u.oura_token ?? null);
       results.push(res);
     } catch (error: any) {
       console.error(`[rescore] user ${uid} failed`, error);

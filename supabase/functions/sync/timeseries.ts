@@ -1,5 +1,6 @@
 import { createServiceClient } from "../_shared/supabase.ts"
 import { resolveUserScope } from "../_shared/supabase.ts"
+import { rollupDailyHeartrate } from "./heartrateRollup.ts"
 
 const OURA_BASE = 'https://api.ouraring.com/v2/usercollection'
 
@@ -8,7 +9,7 @@ const PHASE_MAP: Record<string, string> = { '1': 'deep', '2': 'light', '3': 'rem
 const serviceClient = createServiceClient
 
 // Podąża za next_token aż do końca. Cap stron na wszelki wypadek.
-async function fetchAllPages(baseUrl: string, headers: Record<string, string>, maxPages = 120): Promise<any[]> {
+export async function fetchAllPages(baseUrl: string, headers: Record<string, string>, maxPages = 120): Promise<any[]> {
   let all: any[] = []
   let token: string | null = null
   let pages = 0
@@ -74,6 +75,9 @@ async function fetchHeartrateWindowed(
   return all
 }
 
+/** Surowe tętno i szeregi snu są trzymane tylko tyle dni; dłuższa historia żyje w dziennym rollupie. */
+const HR_RETENTION_DAYS = 14
+
 function avgOf(obj: any): number | null {
   if (!obj || !Array.isArray(obj.items)) return null
   const vals = obj.items.filter((v: any) => v !== null && v !== undefined)
@@ -130,7 +134,12 @@ export const runTimeseries = async (req: Request) => {
     const startDate = new Date(now.getTime() - days * 24 * 3600 * 1000).toISOString().split('T')[0]
     const dateRange = `start_date=${startDate}&end_date=${endDate}`
     const startDt = new Date(now.getTime() - days * 24 * 3600 * 1000).toISOString()
-    const endDt = new Date(now.getTime() + 24 * 3600 * 1000).toISOString()
+    // `endDaysAgo` pozwala backfillować historię oknami; bez niego okno kończy się jutro (zwykły sync).
+    const endDaysAgo: number | null = typeof body.endDaysAgo === 'number' ? body.endDaysAgo : null
+    const endDt = endDaysAgo === null
+      ? new Date(now.getTime() + 24 * 3600 * 1000).toISOString()
+      : new Date(now.getTime() - endDaysAgo * 24 * 3600 * 1000).toISOString()
+    const rollupEndDate = endDaysAgo === null ? null : endDt.split('T')[0]
 
     const results: any[] = []
 
@@ -158,7 +167,17 @@ export const runTimeseries = async (req: Request) => {
       const hrRows = hr
         .filter((it: any) => it.timestamp && it.bpm != null)
         .map((it: any) => ({ user_id: uid, ts: it.timestamp, bpm: it.bpm, source: it.source || null }))
-      await record('heartrate', 'oura_heartrate', hrRows, 'user_id,ts,source')
+      // Dzienny rollup liczymy z pełnego pobrania, a surowe próbki starsze niż okno przycinania
+      // (poniżej) nie trafiają do bazy w ogóle — inaczej backfill wstawiałby je tylko po to, by je skasować.
+      const hrCutoff = new Date(now.getTime() - HR_RETENTION_DAYS * 24 * 3600 * 1000).toISOString()
+      await record('heartrate', 'oura_heartrate', hrRows.filter((r: any) => r.ts >= hrCutoff), 'user_id,ts,source')
+      await record('heartrate_daily', 'oura_hr_daily',
+        rollupDailyHeartrate(uid, hrRows, startDate, rollupEndDate), 'user_id,date', false)
+      // Backfill dziennego rollupu: sam wpis tętna wystarczy, reszta szeregów (sen) jest ciężka pamięciowo.
+      if (body.heartrateOnly === true) {
+        results.push({ user_id: uid, counts, ...(Object.keys(errors).length ? { errors } : {}) })
+        continue
+      }
 
       // ── 2-4. sleep → hr / hrv / phase timelines ───────────────────────────
       const sleepPeriods = await fetchAllPages(`${OURA_BASE}/sleep?${dateRange}`, headers)
@@ -222,7 +241,7 @@ export const runTimeseries = async (req: Request) => {
       // ── 8. Prune high-res timeseries older than 14 days to prevent bloat ───
       // allSettled, not all — prune is best-effort housekeeping and must not throw
       // (a rejected promise here would abort reporting for this and all later users).
-      const cutoff = new Date(now.getTime() - 14 * 24 * 3600 * 1000).toISOString()
+      const cutoff = new Date(now.getTime() - HR_RETENTION_DAYS * 24 * 3600 * 1000).toISOString()
       const pruneResults = await Promise.allSettled([
         supabase.from('oura_heartrate').delete().eq('user_id', uid).lt('ts', cutoff),
         supabase.from('oura_sleep_hr_timeline').delete().eq('user_id', uid).lt('ts', cutoff),
