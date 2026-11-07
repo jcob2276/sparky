@@ -19,6 +19,14 @@ interface AppleRemindersSmartGridProps {
   completedCount: number;
 }
 
+const TONES = {
+  primary: { chip: 'bg-primary/15 text-primary', count: 'text-primary' },
+  danger: { chip: 'bg-danger/15 text-danger', count: 'text-danger' },
+  'text-secondary': { chip: 'bg-surface-2 text-text-secondary', count: 'text-text-primary' },
+  warning: { chip: 'bg-warning/15 text-warning', count: 'text-warning' },
+  success: { chip: 'bg-success/15 text-success', count: 'text-success' },
+} as const;
+
 export function AppleRemindersSmartGrid({
   navDest,
   onSelectNavDest,
@@ -34,30 +42,35 @@ export function AppleRemindersSmartGrid({
       title: 'Dzisiaj',
       count: todayCount,
       icon: Calendar,
+      tone: 'primary' as keyof typeof TONES,
     },
     {
       id: 'upcoming' as TodoNavDest,
       title: 'Zaplanowane',
       count: upcomingCount,
       icon: Clock,
+      tone: 'danger' as keyof typeof TONES,
     },
     {
       id: 'all' as TodoNavDest,
       title: 'Wszystkie',
       count: allCount,
       icon: Inbox,
+      tone: 'text-secondary' as keyof typeof TONES,
     },
     {
       id: 'flagged' as TodoNavDest,
       title: 'Z flagą',
       count: flaggedCount,
       icon: Flag,
+      tone: 'warning' as keyof typeof TONES,
     },
     {
       id: 'completed' as TodoNavDest,
       title: 'Ukończone',
       count: completedCount,
       icon: CheckCircle2,
+      tone: 'success' as keyof typeof TONES,
     },
   ];
 
@@ -66,6 +79,7 @@ export function AppleRemindersSmartGrid({
       {cards.map((card) => {
         const isActive = navDest === card.id;
         const Icon = card.icon;
+        const tone = TONES[card.tone];
 
         return (
           <Pressable
@@ -79,11 +93,11 @@ export function AppleRemindersSmartGrid({
                 : 'border-transparent bg-surface-solid shadow-xs hover:shadow-sm'
             }`}
           >
-            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isActive ? 'bg-primary text-on-accent' : 'bg-surface-2 text-text-secondary'}`}>
+            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${isActive ? 'bg-primary text-on-accent' : tone.chip}`}>
               <Icon size={14} strokeWidth={2.5} />
             </div>
             <div className="min-w-0 flex flex-col leading-none justify-center">
-              <span className={`text-2xl font-semibold tabular-nums tracking-tight ${isActive ? 'text-primary' : 'text-text-primary'}`}>
+              <span className={`text-2xl font-semibold tabular-nums tracking-tight ${isActive ? 'text-primary' : tone.count}`}>
                 {card.count}
               </span>
               <span className="text-xs font-medium text-text-secondary tracking-tight leading-tight break-words mt-0.5">

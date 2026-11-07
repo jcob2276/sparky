@@ -4,6 +4,7 @@ import { usePersistentDraft } from '../../../hooks/usePersistentDraft';
 import { matchSectionByTag, parseTodoQuickInput } from '../../../lib/todo/todoParser';
 import { combineDateTimeWarsawISO } from '../../../lib/date';
 import { createTodoItem } from '../../../lib/todo/todo';
+import { parseTodoBraindump } from '../../../lib/todo/braindumpApi';
 
 type TodoItemRow = Database['public']['Tables']['todo_items']['Row'];
 
@@ -156,7 +157,35 @@ export function useTodoQuickCapture({
       });
   };
 
+  /** Rozpisuje dyktando/monolog przez AI na zadania i dodaje je na listę. Zwraca liczbę dodanych. */
+  const addBrainDump = async (text: string, sections: ReadonlyArray<{ id: string; name: string }>): Promise<number> => {
+    const tasks = await parseTodoBraindump(text, sections);
+    const created: TodoItemRow[] = [];
+    for (const task of tasks) {
+      const scheduled_time = task.scheduled_time && task.due_date
+        ? combineDateTimeWarsawISO(task.due_date, task.scheduled_time)
+        : null;
+      try {
+        created.push(await createTodoItem(userId, {
+          title: task.title,
+          notes: task.notes || undefined,
+          priority: task.priority,
+          is_important: task.is_important,
+          due_date: task.due_date || undefined,
+          scheduled_time: scheduled_time || undefined,
+          reminder_at: scheduled_time || undefined,
+          section_id: task.section_id || undefined,
+        }));
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : String(err));
+      }
+    }
+    if (created.length) setItems((prev) => [...created.reverse(), ...prev]);
+    return created.length;
+  };
+
   return {
+    addBrainDump,
     form,
     setForm,
     isExpanded,

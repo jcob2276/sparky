@@ -246,6 +246,18 @@ export interface WeekAiInsightResponse {
   basedOn: { days: number; journalEntries: number };
 }
 
+export interface ParseTodoBraindumpResponse {
+  tasks: Array<{
+    title: string;
+    priority: 'urgent' | 'high' | 'normal' | 'low';
+    is_important: boolean;
+    due_date: string | null;
+    scheduled_time: string | null;
+    section_id: string | null;
+    notes: string | null;
+  }>;
+}
+
 interface ParseWorkoutNLResponse {
   workout_name?: string;
   exercises: Array<{
@@ -308,6 +320,7 @@ export interface EdgeFunctionResponses {
   'vanguard-keep-triage': KeepTriageResponse;
   'parse-food-nl': ParseFoodNLResponse;
   'parse-workout-nl': ParseWorkoutNLResponse;
+  'parse-todo-braindump': ParseTodoBraindumpResponse;
   'week-insight': WeekAiInsightResponse;
   'period-compare': PeriodCompareResponse;
   'parse-lab-results': ParseLabResultsResponse;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Calendar, ChevronDown, Flag, Folder, ScanText, SlidersHorizontal, Tag } from 'lucide-react';
+import { Bell, Calendar, ChevronDown, Folder, ScanText, Sparkles, SlidersHorizontal, Tag } from 'lucide-react';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import { ControlInput, ControlSelect, ControlTextarea, Pressable } from '../ui/ControlPrimitives';
@@ -7,6 +7,10 @@ import { formatShortMonthLabel, shiftDateStr } from '../../lib/date';
 import { matchSectionByTag } from '../../lib/todo/todoParser';
 import TodoDatePickerPopover from './TodoDatePickerPopover';
 import TodoReminderPopover from './TodoReminderPopover';
+import TodoDictationBar from './TodoDictationBar';
+import TodoPriorityChips from './TodoPriorityChips';
+import { useDictationCapture } from './hooks/useDictationCapture';
+import { notify } from '../../lib/notify';
 
 interface TodoFormState {
   title: string; notes: string; priority: string; tagsText: string; due_date: string; deadline_date: string;
@@ -28,6 +32,8 @@ interface Props {
   };
   today: string;
   onOpenScanText?: () => void;
+  /** Rozpisuje tekst/dyktando przez AI na wiele zadań; zwraca liczbę dodanych. */
+  onBrainDump?: (text: string) => Promise<number>;
 }
 
 const EMPTY_FORM: TodoFormState = {
@@ -37,9 +43,26 @@ const EMPTY_FORM: TodoFormState = {
 
 export default function TodoQuickCapture({
   quickCaptureRef, form, setForm, isExpanded, setIsExpanded, busy, addItem,
-  sections, parsedInput, today, onOpenScanText,
+  sections, parsedInput, today, onOpenScanText, onBrainDump,
 }: Props) {
   const [openPopover, setOpenPopover] = useState<'date' | 'reminder' | null>(null);
+  const [aiBusy, setAiBusy] = useState(false);
+  const runBrainDump = async (text: string) => {
+    if (!onBrainDump || !text.trim()) return;
+    setAiBusy(true);
+    try {
+      const count = await onBrainDump(text);
+      if (count === 0) { notify('Nie znalazłem w tym żadnych zadań', 'error'); return; }
+      notify(`Dodano ${count} ${count === 1 ? 'zadanie' : 'zadań'}`, 'success');
+      setForm(EMPTY_FORM);
+      setIsExpanded(false);
+    } catch (err: unknown) {
+      notify(err instanceof Error ? err.message : 'AI nie rozpisało zadań', 'error');
+    } finally {
+      setAiBusy(false);
+    }
+  };
+  const dictation = useDictationCapture(runBrainDump);
   const [showDetails, setShowDetails] = useState(Boolean(form.notes || form.tagsText || form.reminder_at));
   const dueDate = parsedInput.due_date || form.due_date || '';
   const priority = parsedInput.priority || form.priority;
@@ -66,6 +89,7 @@ export default function TodoQuickCapture({
   return (
     <Modal isOpen={isExpanded} onClose={() => setIsExpanded(false)} title="Nowe zadanie" size="xl" containerRef={quickCaptureRef} className="bg-surface-1">
         <div>
+          {onBrainDump ? <div className="mb-4"><TodoDictationBar state={aiBusy ? 'processing' : dictation.state} seconds={dictation.seconds} onStart={() => void dictation.start()} onStop={dictation.stop} /></div> : null}
           <div>
             <label htmlFor="todo-title-input" className="sr-only">Co chcesz zrobić?</label>
             <ControlInput
@@ -82,7 +106,7 @@ export default function TodoQuickCapture({
                   submit(!(event.ctrlKey || event.metaKey));
                 }
               }}
-              placeholder="Co chcesz zrobić?"
+              placeholder="Albo wpisz: Zadzwonić do Marka jutro 15:00"
               className="min-h-14 w-full rounded-md border border-border-custom bg-surface-1 px-3 text-base font-medium text-text-primary placeholder:font-normal placeholder:text-text-muted focus:border-primary"
             />
             {parsedInput.tokens.length > 0 ? (
@@ -94,7 +118,7 @@ export default function TodoQuickCapture({
                 ))}
               </div>
             ) : null}
-            <p id="todo-title-hint" className="mt-2 text-xs leading-relaxed text-text-muted">Np. „Zadzwonić do Marka jutro 15:00 !p1 #praca @telefon”. Enter dodaje i zostawia pole dla kolejnego, Ctrl+Enter dodaje i zamyka.</p>
+            <p id="todo-title-hint" className="sr-only">Enter dodaje zadanie i zostawia pole dla kolejnego, Ctrl+Enter dodaje i zamyka. Można użyć !p1, #lista, @tag.</p>
           </div>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -104,12 +128,7 @@ export default function TodoQuickCapture({
               </Pressable>
             </div>
 
-            <div className="relative">
-              <Flag size={16} className={`pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 ${priority === 'urgent' ? 'text-danger' : priority === 'high' ? 'text-warning' : 'text-text-muted'}`} />
-              <ControlSelect value={priority} onChange={(event) => setForm({ ...form, priority: event.target.value })} className="min-h-11 cursor-pointer rounded-md border border-border-custom bg-surface-1 pl-9 pr-3 text-xs font-medium text-text-secondary" aria-label="Priorytet">
-                <option value="urgent">P1 · Pilny</option><option value="high">P2 · Wysoki</option><option value="normal">P3 · Normalny</option><option value="low">P4 · Niski</option>
-              </ControlSelect>
-            </div>
+            <TodoPriorityChips value={priority} onChange={(value) => setForm({ ...form, priority: value })} />
 
             <div className="relative min-w-0 max-w-full">
               <Folder size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
@@ -148,7 +167,8 @@ export default function TodoQuickCapture({
 
         <footer className="mt-4 flex items-center justify-end gap-2 border-t border-border-custom/50 pt-4">
           <Button variant="ghost" onClick={cancel} className="text-text-secondary">Anuluj</Button>
-          <Button onClick={() => submit(false)} disabled={busy || !form.title.trim()} loading={busy}>Dodaj zadanie</Button>
+          {onBrainDump ? <Button variant="outline" onClick={() => void runBrainDump(form.title)} disabled={aiBusy || !form.title.trim()} loading={aiBusy} icon={<Sparkles size={16} />}>Rozpisz AI</Button> : null}
+          <Button onClick={() => submit(false)} disabled={busy || !form.title.trim()} loading={busy}>Dodaj</Button>
         </footer>
         </div>
     </Modal>

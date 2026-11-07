@@ -9,7 +9,7 @@ import { TODO_QUICK_ADD_EVENT } from './useTodoKeyboard';
 export function useTodoQuickAdd() {
   const {
     quickCaptureRef, form, setForm, isExpanded, setIsExpanded,
-    busy, addItem, sections, parsedInput, today,
+    busy, addItem, addBrainDump, sections, parsedInput, today,
   } = useTodoContext();
 
   const [activeAddSectionId, setActiveAddSectionId] = useState<string | null>(null);
@@ -85,6 +85,11 @@ export function useTodoQuickAdd() {
           parsedInput={parsedInput}
           today={today}
           onOpenScanText={() => setScanTextOpen(true)}
+          onBrainDump={async (text) => {
+            const count = await addBrainDump(text, sections);
+            if (count > 0) setActiveAddSectionId(null);
+            return count;
+          }}
         />
       </div>
     );

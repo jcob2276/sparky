@@ -21,6 +21,7 @@ $all = @(
   "food-reference-embed",
   "parse-food-nl",
   "parse-lab-results",
+  "parse-todo-braindump",
   "parse-workout-nl",
   "recap",
   "sync",

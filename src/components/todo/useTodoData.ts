@@ -79,6 +79,7 @@ export function useTodoData() {
     quickCaptureRef,
     parsedInput,
     addItem,
+    addBrainDump,
   } = useTodoQuickCapture({
     userId,
     activeFilterSection,
@@ -168,6 +169,7 @@ export function useTodoData() {
     classifyInBackground,
     batchClassify,
     addItem,
+    addBrainDump,
     saveEditTitle,
     handleDragStart,
     showContextMenu,
