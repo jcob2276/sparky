@@ -25,14 +25,14 @@ function daysLeftInWarsawMonth(today: string): number {
 function spentThisMonth(transactions: FinanceBundle['transactions'], today: string): number {
   const prefix = today.slice(0, 7);
   return transactions
-    .filter((t) => t.kind === 'expense' && t.transaction_date.startsWith(prefix))
+    .filter((t) => t.kind === 'expense' && t.transaction_date.startsWith(prefix) && t.transaction_date <= today)
     .reduce((n, t) => n + Math.abs(t.amount), 0);
 }
 
 function earnedThisMonth(transactions: FinanceBundle['transactions'], today: string): number {
   const prefix = today.slice(0, 7);
   return transactions
-    .filter((t) => t.kind === 'income' && t.transaction_date.startsWith(prefix))
+    .filter((t) => t.kind === 'income' && t.flow_kind !== 'refund' && t.transaction_date.startsWith(prefix) && t.transaction_date <= today)
     .reduce((n, t) => n + Math.abs(t.amount), 0);
 }
 
@@ -114,6 +114,8 @@ export function useFinanceMetrics(bundle: FinanceBundle | undefined, portfolioVa
       netWorth,
       liquid,
       investments,
+      physicalCash: accounts.filter(a => a.account_type === 'cash').reduce((s, a) => s + a.balance, 0),
+      bankCash: accounts.filter(a => a.account_type === 'bank').reduce((s, a) => s + a.balance, 0),
       effectiveIncome,
       effectiveExpenses,
       incomeBreakdown,
@@ -125,6 +127,7 @@ export function useFinanceMetrics(bundle: FinanceBundle | undefined, portfolioVa
       safeToSpend,
       spentThisMonth: spentMonth,
       earnedThisMonth: earnedThisMonth(transactions, today),
+      refundsThisMonth: transactions.filter(t => t.flow_kind === 'refund' && t.transaction_date.startsWith(monthKey) && t.transaction_date <= today).reduce((s, t) => s + Math.abs(t.amount), 0),
       allocation,
       goal,
       monthlySaving,

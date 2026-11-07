@@ -235,6 +235,8 @@ export type Database = {
           iban: string | null
           id: string
           name: string | null
+          transactions_from: string | null
+          transactions_synced_at: string | null
           user_id: string
         }
         Insert: {
@@ -252,6 +254,8 @@ export type Database = {
           iban?: string | null
           id?: string
           name?: string | null
+          transactions_from?: string | null
+          transactions_synced_at?: string | null
           user_id: string
         }
         Update: {
@@ -269,6 +273,8 @@ export type Database = {
           iban?: string | null
           id?: string
           name?: string | null
+          transactions_from?: string | null
+          transactions_synced_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -1760,6 +1766,7 @@ export type Database = {
         Row: {
           account_type: string
           balance: number
+          bank_account_id: string | null
           coingecko_id: string | null
           created_at: string
           crypto_amount: number | null
@@ -1772,6 +1779,7 @@ export type Database = {
         Insert: {
           account_type?: string
           balance?: number
+          bank_account_id?: string | null
           coingecko_id?: string | null
           created_at?: string
           crypto_amount?: number | null
@@ -1784,6 +1792,7 @@ export type Database = {
         Update: {
           account_type?: string
           balance?: number
+          bank_account_id?: string | null
           coingecko_id?: string | null
           created_at?: string
           crypto_amount?: number | null
@@ -1793,7 +1802,15 @@ export type Database = {
           sort_order?: number
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "finance_accounts_own_bank_fk"
+            columns: ["user_id", "bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["user_id", "id"]
+          },
+        ]
       }
       finance_bills: {
         Row: {
@@ -1867,11 +1884,16 @@ export type Database = {
       finance_holdings: {
         Row: {
           asset_class: string
+          avg_cost_currency: string
+          avg_cost_original: number | null
           avg_cost_pln: number
           created_at: string
           id: string
           name: string
           quantity: number
+          snapshot_as_of: string | null
+          snapshot_price_pln: number | null
+          snapshot_source: string | null
           target_weight_pct: number | null
           ticker: string
           updated_at: string
@@ -1879,11 +1901,16 @@ export type Database = {
         }
         Insert: {
           asset_class?: string
+          avg_cost_currency?: string
+          avg_cost_original?: number | null
           avg_cost_pln?: number
           created_at?: string
           id?: string
           name: string
           quantity: number
+          snapshot_as_of?: string | null
+          snapshot_price_pln?: number | null
+          snapshot_source?: string | null
           target_weight_pct?: number | null
           ticker: string
           updated_at?: string
@@ -1891,11 +1918,16 @@ export type Database = {
         }
         Update: {
           asset_class?: string
+          avg_cost_currency?: string
+          avg_cost_original?: number | null
           avg_cost_pln?: number
           created_at?: string
           id?: string
           name?: string
           quantity?: number
+          snapshot_as_of?: string | null
+          snapshot_price_pln?: number | null
+          snapshot_source?: string | null
           target_weight_pct?: number | null
           ticker?: string
           updated_at?: string
@@ -2042,6 +2074,8 @@ export type Database = {
         Row: {
           account_id: string | null
           amount: number
+          bank_reconciled: boolean
+          bank_transaction_id: string | null
           category: string
           created_at: string
           dedup_hash: string | null
@@ -2054,6 +2088,8 @@ export type Database = {
         Insert: {
           account_id?: string | null
           amount: number
+          bank_reconciled?: boolean
+          bank_transaction_id?: string | null
           category?: string
           created_at?: string
           dedup_hash?: string | null
@@ -2066,6 +2102,8 @@ export type Database = {
         Update: {
           account_id?: string | null
           amount?: number
+          bank_reconciled?: boolean
+          bank_transaction_id?: string | null
           category?: string
           created_at?: string
           dedup_hash?: string | null
@@ -2076,6 +2114,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "finance_transaction_own_bank_fk"
+            columns: ["user_id", "bank_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "bank_transactions"
+            referencedColumns: ["user_id", "id"]
+          },
           {
             foreignKeyName: "finance_transactions_account_id_fkey"
             columns: ["account_id"]
@@ -8006,6 +8051,8 @@ export type Database = {
         Returns: {
           account_id: string | null
           amount: number
+          bank_reconciled: boolean
+          bank_transaction_id: string | null
           category: string
           created_at: string
           dedup_hash: string | null
@@ -8189,6 +8236,16 @@ export type Database = {
           entity_name: string
         }[]
       }
+      forget_bank_category_rule: {
+        Args: {
+          p_category: string
+          p_key: string
+          p_related_ids: string[]
+          p_transaction_id: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       get_brain_health_report: {
         Args: { user_id_param: string }
         Returns: {
@@ -8323,6 +8380,15 @@ export type Database = {
         }[]
       }
       oracle_readonly_query: { Args: { query_text: string }; Returns: Json }
+      record_finance_holding_purchase: {
+        Args: {
+          p_account_id?: string
+          p_holding_id: string
+          p_price_pln: number
+          p_units: number
+        }
+        Returns: undefined
+      }
       refresh_device_signals_daily: {
         Args: { p_days?: number }
         Returns: number
@@ -8477,6 +8543,17 @@ export type Database = {
           score: number
           sugar: number
         }[]
+      }
+      set_bank_transaction_category: {
+        Args: {
+          p_category: string
+          p_counterparty_key?: string
+          p_remember?: boolean
+          p_source: string
+          p_transaction_id: string
+          p_user_id: string
+        }
+        Returns: undefined
       }
       set_food_reference_embeddings: { Args: { items: Json }; Returns: number }
       show_limit: { Args: never; Returns: number }

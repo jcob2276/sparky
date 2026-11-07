@@ -16,6 +16,7 @@ export type FinanceExpenseCategory = (typeof FINANCE_EXPENSE_CATEGORIES)[number]
 export const FINANCE_ACCOUNT_TYPES = [
   'cash',
   'bank',
+  'broker_cash',
   'etf',
   'stocks',
   'btc',
@@ -52,6 +53,7 @@ export const FINANCE_INCOME_LABELS: Record<FinanceIncomeType, string> = {
 export const FINANCE_ACCOUNT_LABELS: Record<FinanceAccountType, string> = {
   cash: 'Gotówka',
   bank: 'Bank',
+  broker_cash: 'Środki u brokera',
   etf: 'ETF',
   stocks: 'Akcje',
   btc: 'Krypto',

@@ -16,11 +16,12 @@ interface FinanceAccountsTabProps {
   run: (fn: () => Promise<void>) => Promise<void>;
 }
 
-type NewKind = 'cash' | 'bank' | 'bonds' | 'other' | 'debt';
+type NewKind = 'cash' | 'bank' | 'broker_cash' | 'bonds' | 'other' | 'debt';
 
 const KIND_LABELS: Record<NewKind, string> = {
   cash: 'Gotówka',
   bank: 'Konto bankowe',
+  broker_cash: 'Wolne środki u brokera',
   bonds: 'Obligacje',
   other: 'Inne aktywo',
   debt: 'Dług (kredyt, rata)',
@@ -96,7 +97,7 @@ export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccounts
 
   return (
     <div className="space-y-8">
-      <FinanceBankCard />
+      <FinanceBankCard financeAccounts={accounts} />
       <FinanceSection
         title="Konta i gotówka"
         subtitle={`Aktywa ${formatPln(assets.reduce((n, a) => n + a.balance, 0))}${debts.length ? ` · długi ${formatPln(debts.reduce((n, a) => n + a.balance, 0))}` : ''}. Inwestycje dodajesz w Portfelu.`}
@@ -121,7 +122,7 @@ export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccounts
                 primary={account.name}
                 secondary={account.balance < 0 ? 'Dług' : FINANCE_ACCOUNT_LABELS[account.account_type as FinanceAccountType] ?? account.account_type}
                 trailing={(
-                  <BalanceInput
+                  account.bank_account_id ? <span className="text-sm text-text-muted">{formatPln(account.balance, 2)} · z banku</span> : <BalanceInput
                     key={account.balance}
                     account={account}
                     onSave={(balance) => void run(async () => { await mutations.updateAccount.mutateAsync({ id: account.id, balance }); })}

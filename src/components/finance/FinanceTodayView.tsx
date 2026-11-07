@@ -73,7 +73,7 @@ function MonthAhead({
     >
       {activeDays.length === 0 ? (
         <FinanceEmpty>
-          Jak dodasz dochód i rachunki w Przepływach, zobaczysz tu kalendarz miesiąca.
+          Brak zaplanowanych przepływów w pozostałych dniach tego miesiąca.
         </FinanceEmpty>
       ) : (
         <FinanceList>

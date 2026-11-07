@@ -1,7 +1,7 @@
 /**
  * Kategorie transakcji bankowych liczone regułami po nazwie kontrahenta i opisie.
  * Czysta funkcja bez sieci: ten sam kod działa na krawędzi (zapis przy synchronizacji) i w aplikacji.
- * Nazwy właściciela rachunku przychodzą z danych (bank_accounts.name), nie są wpisane w kodzie.
+ * Własne transfery wymagają zgodności rachunków, a ręczne reguły uwzględniają kierunek.
  */
 
 export const BANK_CATEGORY_LABELS = {
@@ -22,6 +22,10 @@ export const BANK_CATEGORY_LABELS = {
   przelewy_do_osob: 'Przelewy do osób',
   przelewy_wlasne: 'Przelewy własne',
   wynagrodzenie: 'Wynagrodzenie',
+  dzialalnosc: 'Działalność i faktury',
+  dochody_kapitalowe: 'Dywidendy i odsetki',
+  zwrot: 'Zwroty',
+  gotowka: 'Gotówka',
   wplyw: 'Inne wpływy',
   inne: 'Inne',
   do_sprawdzenia: 'Do sprawdzenia',
@@ -33,13 +37,14 @@ export interface BankCategoryInput {
   counterparty: string | null;
   remittance: string | null;
   direction: 'debit' | 'credit';
+  counterpartyIban?: string | null;
 }
 
 /** Wielkie litery bez polskich znaków i nadmiarowych spacji, żeby reguły były odporne na zapis banku. */
 export function normalizeBankText(text: string | null): string {
   return (text ?? '')
     .replace(/[łŁ]/g, 'l')
-    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
     .replace(/[^A-Z0-9.*@ -]+/g, ' ')
     .replace(/\s+/g, ' ')
@@ -85,28 +90,39 @@ function matches(haystack: string, keyword: Keyword): boolean {
 }
 
 /** Klucz kontrahenta do zapamiętanych wyborów użytkownika: znormalizowana nazwa. */
-export const bankCounterpartyKey = (counterparty: string | null): string => normalizeBankText(counterparty);
+export const bankCounterpartyKey = (counterparty: string | null, direction?: 'debit' | 'credit'): string => {
+  const key = normalizeBankText(counterparty);
+  return key && direction ? `${direction}:${key}` : key;
+};
 
 /**
- * @param ownNames nazwy właściciela rachunków (z bank_accounts.name): przelew do samego siebie to nie wydatek.
  * @param userRules ręczne wybory użytkownika (klucz kontrahenta -> kategoria); mają pierwszeństwo przed regułami.
  *                  Nierozpoznane transakcje zostają `do_sprawdzenia`, żeby użytkownik mógł je przypisać sam.
  */
 export function categorizeBankTransaction(
-  input: BankCategoryInput, ownNames: readonly string[] = [], userRules: ReadonlyMap<string, BankCategory> = new Map(),
+  input: BankCategoryInput, userRules: ReadonlyMap<string, BankCategory> = new Map(),
+  ownIbans: readonly string[] = [],
 ): BankCategory {
   const party = normalizeBankText(input.counterparty);
-  const remembered = party ? userRules.get(party) : undefined;
+  const remembered = party ? userRules.get(bankCounterpartyKey(input.counterparty, input.direction))
+    ?? (input.direction === 'debit' ? userRules.get(party) : undefined) : undefined;
   if (remembered) return remembered;
   const text = `${party} ${normalizeBankText(input.remittance)}`.trim();
 
-  const own = ownNames.map(normalizeBankText).filter((n) => n.length >= 5);
-  if (party && (own.some((n) => party === n || party.includes(n)) || party.startsWith('REVOLUT'))) return 'przelewy_wlasne';
-  if (normalizeBankText(input.remittance).includes('PRZELEW NA TELEFON')) return 'przelewy_do_osob';
+  const iban = input.counterpartyIban?.replace(/\s/g, '').toUpperCase();
+  if (iban && ownIbans.some(own => own.replace(/\s/g, '').toUpperCase() === iban)) return 'przelewy_wlasne';
 
   if (input.direction === 'credit') {
-    return /WYNAGRODZENIE|PENSJA|UMOWA ZLECENIE|FAKTURA/.test(text) ? 'wynagrodzenie' : 'wplyw';
+    if (/ZWROT|REFUND|REKLAMACJ/.test(text)) return 'zwrot';
+    if (/WYNAGRODZENIE|PENSJA|UMOWA ZLECENIE/.test(text)) return 'wynagrodzenie';
+    if (/FAKTURA/.test(text)) return 'dzialalnosc';
+    if (/DYWIDEND|ODSETKI/.test(text)) return 'dochody_kapitalowe';
+    const investments = RULES.find(([category]) => category === 'inwestycje');
+    if (investments?.[1].some(keyword => matches(text, keyword))) return 'inwestycje';
+    return 'wplyw';
   }
+  if (/WYPLATA.*BANKOMAT|BANKOMAT|ATM CASH/.test(text)) return 'gotowka';
+  if (normalizeBankText(input.remittance).includes('PRZELEW NA TELEFON')) return 'przelewy_do_osob';
   for (const [category, keywords] of RULES) {
     if (keywords.some((k) => matches(text, k))) return category;
   }

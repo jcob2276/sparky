@@ -28,11 +28,14 @@ export function FinanceHoldingForm({ holding, pending, onSubmit, onRemove, onDon
   const [name, setName] = useState(holding?.name ?? '');
   const [assetClass, setAssetClass] = useState<HoldingAssetClass>(holding?.assetClass ?? 'etf');
   const [quantity, setQuantity] = useState(holding ? String(holding.quantity) : '');
-  const [avgCost, setAvgCost] = useState(holding ? String(holding.avgCostPln) : '');
+  const [avgCost, setAvgCost] = useState(holding && (holding.avgCostPln > 0 || !holding.avgCostCurrency || holding.avgCostCurrency === 'PLN') ? String(holding.avgCostPln) : '');
+  const [currency, setCurrency] = useState<'PLN' | 'USD' | 'EUR'>(holding?.avgCostCurrency ?? 'PLN');
+  const [originalCost, setOriginalCost] = useState(holding?.avgCostOriginal != null ? String(holding.avgCostOriginal) : '');
   const [target, setTarget] = useState(holding?.targetWeightPct != null ? String(holding.targetWeightPct) : '');
 
   const num = (value: string) => Number(value.replace(',', '.'));
-  const valid = ticker.trim().length > 0 && name.trim().length > 0 && num(quantity) >= 0 && quantity !== '' && num(avgCost) >= 0 && avgCost !== '';
+  const valid = ticker.trim().length > 0 && name.trim().length > 0 && Number.isFinite(num(quantity)) && num(quantity) >= 0 && quantity !== ''
+    && (currency === 'PLN' ? avgCost !== '' && Number.isFinite(num(avgCost)) && num(avgCost) >= 0 : originalCost !== '' && Number.isFinite(num(originalCost)) && num(originalCost) >= 0);
 
   return (
     <form
@@ -45,7 +48,9 @@ export function FinanceHoldingForm({ holding, pending, onSubmit, onRemove, onDon
           name,
           assetClass,
           quantity: num(quantity),
-          avgCostPln: num(avgCost),
+          avgCostPln: currency === 'PLN' ? num(avgCost) : currency === holding?.avgCostCurrency && num(originalCost) === holding.avgCostOriginal ? holding.avgCostPln : 0,
+          avgCostCurrency: currency,
+          avgCostOriginal: currency === 'PLN' ? num(avgCost) : num(originalCost),
           targetWeightPct: target.trim() === '' ? null : num(target),
         });
         if (saved) onDone();
@@ -69,10 +74,16 @@ export function FinanceHoldingForm({ holding, pending, onSubmit, onRemove, onDon
         <Field label="Ilość jednostek">
           <ControlInput type="number" inputMode="decimal" min="0" step="any" value={quantity} onChange={(e) => setQuantity(e.target.value)} className={fieldClass} />
         </Field>
-        <Field label="Średnia cena zakupu (PLN)">
-          <ControlInput type="number" inputMode="decimal" min="0" step="any" value={avgCost} onChange={(e) => setAvgCost(e.target.value)} className={fieldClass} />
+        <Field label="Waluta kosztu zakupu">
+          <ControlSelect value={currency} onChange={e => setCurrency(e.target.value as 'PLN' | 'USD' | 'EUR')} className={fieldClass}>
+            <option value="PLN">PLN</option><option value="USD">USD</option><option value="EUR">EUR</option>
+          </ControlSelect>
+        </Field>
+        <Field label={`Średnia cena zakupu (${currency})`}>
+          <ControlInput type="number" inputMode="decimal" min="0" step="any" value={currency === 'PLN' ? avgCost : originalCost} onChange={e => currency === 'PLN' ? setAvgCost(e.target.value) : setOriginalCost(e.target.value)} className={fieldClass} />
         </Field>
       </div>
+      {currency !== 'PLN' && <p className="text-sm text-text-muted">Koszt pozostaje w oryginalnej walucie. Zysk w PLN wymaga historycznego kosztu w PLN; bieżący kurs nie zastępuje kursu zakupu.</p>}
       <div className="flex gap-2">
         <Button type="submit" loading={pending} disabled={!valid} className="flex-1 rounded-lg">
           {holding ? 'Zapisz zmiany' : 'Dodaj pozycję'}

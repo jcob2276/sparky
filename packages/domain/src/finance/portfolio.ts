@@ -16,6 +16,11 @@ export interface HoldingInput {
   quantity: number;
   avgCostPln: number;
   targetWeightPct: number | null;
+  avgCostCurrency?: 'PLN' | 'USD' | 'EUR';
+  avgCostOriginal?: number | null;
+  snapshotPricePln?: number | null;
+  snapshotSource?: string | null;
+  snapshotAsOf?: string | null;
 }
 
 export interface HoldingQuote {
@@ -34,6 +39,9 @@ export interface ValuedHolding extends HoldingInput {
   dayChangePct: number | null;
   dayChangePln: number;
   weightPct: number;
+  hasCostBasis?: boolean;
+  valuationSource?: 'live' | 'snapshot' | 'cost' | 'missing';
+  quoteAsOf?: string | null;
 }
 
 export interface PortfolioTotals {
@@ -44,9 +52,12 @@ export interface PortfolioTotals {
   dayChangePln: number;
   dayChangePct: number | null;
   unquotedCount: number;
+  incompleteCostCount?: number;
+  snapshotCount?: number;
+  unvaluedCount?: number;
 }
 
-const round2 = (value: number) => Math.round(value * 100) / 100;
+const round2 = (value: number) => Math.round((value + Math.sign(value) * Number.EPSILON * Math.abs(value)) * 100) / 100;
 
 /** Pozycja bez notowania jest wyceniana po koszcie, żeby majątek nie spadał do zera przy braku danych. */
 export function valueHoldings(
@@ -56,7 +67,9 @@ export function valueHoldings(
   const rows = holdings.map((holding) => {
     const quote = quotes[holding.ticker.toUpperCase()] ?? quotes[holding.ticker];
     const hasQuote = quote != null && Number.isFinite(quote.pricePln) && quote.pricePln > 0;
-    const pricePln = hasQuote ? quote.pricePln : null;
+    const snapshot = holding.snapshotPricePln != null && Number.isFinite(holding.snapshotPricePln) && holding.snapshotPricePln > 0;
+    const hasCostBasis = holding.avgCostPln > 0 || (!holding.avgCostOriginal && (!holding.avgCostCurrency || holding.avgCostCurrency === 'PLN'));
+    const pricePln = hasQuote ? quote.pricePln : snapshot ? holding.snapshotPricePln! : null;
     const costPln = holding.quantity * holding.avgCostPln;
     const valuePln = pricePln != null ? holding.quantity * pricePln : costPln;
     const dayChangePct = hasQuote ? quote.changePct : null;
@@ -67,8 +80,11 @@ export function valueHoldings(
       hasQuote,
       valuePln: round2(valuePln),
       costPln: round2(costPln),
-      pnlPln: round2(valuePln - costPln),
-      pnlPct: costPln > 0 ? round2(((valuePln - costPln) / costPln) * 100) : null,
+      pnlPln: hasCostBasis ? round2(valuePln - costPln) : 0,
+      pnlPct: hasCostBasis && costPln > 0 ? round2(((valuePln - costPln) / costPln) * 100) : null,
+      hasCostBasis,
+      valuationSource: hasQuote ? 'live' as const : snapshot ? 'snapshot' as const : hasCostBasis && (costPln > 0 || holding.quantity === 0) ? 'cost' as const : 'missing' as const,
+      quoteAsOf: hasQuote ? quote.asOf : null,
       dayChangePct,
       dayChangePln: round2(dayChangePln),
       weightPct: 0,
@@ -83,14 +99,18 @@ export function computePortfolioTotals(rows: ValuedHolding[]): PortfolioTotals {
   const costPln = round2(rows.reduce((sum, row) => sum + row.costPln, 0));
   const dayChangePln = round2(rows.reduce((sum, row) => sum + row.dayChangePln, 0));
   const previous = valuePln - dayChangePln;
+  const incompleteCostCount = rows.filter(row => row.hasCostBasis === false).length;
   return {
     valuePln,
     costPln,
-    pnlPln: round2(valuePln - costPln),
-    pnlPct: costPln > 0 ? round2(((valuePln - costPln) / costPln) * 100) : null,
+    pnlPln: incompleteCostCount ? 0 : round2(valuePln - costPln),
+    pnlPct: !incompleteCostCount && costPln > 0 ? round2(((valuePln - costPln) / costPln) * 100) : null,
     dayChangePln,
     dayChangePct: previous > 0 ? round2((dayChangePln / previous) * 100) : null,
     unquotedCount: rows.filter((row) => !row.hasQuote).length,
+    incompleteCostCount,
+    snapshotCount: rows.filter(row => row.valuationSource === 'snapshot').length,
+    unvaluedCount: rows.filter(row => row.valuationSource === 'missing').length,
   };
 }
 

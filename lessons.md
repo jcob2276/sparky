@@ -22,6 +22,10 @@ Read before a task; add only a new, reusable pitfall after an actual failure. Ru
 - New `SECURITY DEFINER` functions need least-privilege grants/revokes (`PUBLIC`, `anon`, `authenticated`) and either an `auth.uid()` ownership check or service-only access. Test permissions and `db:check-invariants`; qualify extension functions when hardening `search_path`.
 - Test SQL functions in transactions that roll back, including realistic auth claims. Data repairs need before/after records, one transaction, and independently predicted totals/invariants.
 - Apply migrations through `npm run db:apply`; MCP-assigned ledger versions can differ from filenames. Reconcile against the actual ledger before deploy, not guessed timestamps. Regenerate both frontend and `_shared` DB types; avoid importing unrelated uncommitted schema changes.
+- Check a new migration in chronological filename order as well as against the live schema.
+  An already-applied migration can have a later identifier than the current clock, so a new
+  file can accidentally precede its dependencies. Test fresh replay; repair ordering with
+  an additive prerequisite migration rather than renaming applied versions.
 - Read a request body once; pass parsed input to sub-handlers. Supabase builders are PromiseLike: use `await`/`try-catch`, not `.catch()` assumed to exist on the builder.
 
 ## Time, intervals and cache

@@ -16,6 +16,8 @@ import { FinanceTabContent, type FinanceTabKey } from './FinanceTabContent';
 import { FinanceBottomNav } from './FinanceBottomNav';
 import { FinanceQuickEntry } from './FinanceQuickEntry';
 import { useFinancePageData } from './useFinancePageData';
+import { FinanceAccountsTab } from './FinanceAccountsTab';
+import { FinancePortfolioTab } from './FinancePortfolioTab';
 
 const TITLES: Record<FinanceTabKey, string> = {
   dashboard: 'Finanse',
@@ -27,14 +29,14 @@ const TITLES: Record<FinanceTabKey, string> = {
 const WIDTH_BY_TAB: Record<FinanceTabKey, 'narrow' | 'default' | 'wide'> = {
   dashboard: 'default',
   portfolio: 'default',
-  accounts: 'narrow',
+  accounts: 'default',
   flows: 'wide',
 };
 
 function FinancePage() {
   const userId = useStore((s) => s.session?.user?.id);
   const initial = (useStore((s) => s.session?.user?.email) ?? 'S').charAt(0).toUpperCase();
-  const { bundleQuery, holdingsQuery, quotesQuery, valuedHoldings, portfolio, data, metrics } = useFinancePageData(userId);
+  const { bundleQuery, bankError, holdingsQuery, quotesQuery, valuedHoldings, portfolio, data, metrics } = useFinancePageData(userId);
   const mutations = useFinanceMutations(userId);
   const holdingMutations = useHoldingMutations(userId);
   const cashEntry = useCashEntryMutation(userId);
@@ -116,6 +118,9 @@ function FinancePage() {
             {(bundleQuery.error as Error).message}
           </p>
         )}
+        {bankError && <p role="alert" className="rounded-lg bg-danger/10 px-4 py-3 text-sm text-danger">{bankError}</p>}
+        {data && !metrics && tab === 'accounts' && <FinanceAccountsTab accounts={data.accounts} mutations={mutations} run={run} />}
+        {data && !metrics && tab === 'portfolio' && <FinancePortfolioTab holdings={valuedHoldings} totals={portfolio} mutations={holdingMutations} run={run} fundingAccounts={data.accounts} brokerCashPln={data.accounts.filter(a => a.account_type === 'broker_cash').reduce((s, a) => s + a.balance, 0)} />}
 
         {metrics && data && (
           <AnimatePresence initial={false}>
@@ -148,7 +153,7 @@ function FinancePage() {
 
       {data && (
         <FinanceQuickEntry
-          accounts={data.accounts}
+          accounts={data.accounts.filter(account => !account.bank_account_id)}
           pending={cashEntry.isPending}
           open={quickEntry.open}
           initialKind={quickEntry.kind}

@@ -46,8 +46,9 @@ describe('FinanceRebalanceCard', () => {
     fireEvent.change(screen.getByLabelText('Kwota dopłaty'), { target: { value: '500' } });
 
     expect(screen.getByText('B')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Źródło środków na zakup'), { target: { value: 'external' } });
     fireEvent.click(screen.getByRole('button', { name: /Kupione/ }));
-    expect(onBought).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }), 10, 50);
+    expect(onBought).toHaveBeenCalledWith(expect.objectContaining({ id: 'b' }), 10, 50, null);
   });
 });
 

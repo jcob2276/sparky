@@ -4,11 +4,13 @@ import {
   type CashflowMonthSummary,
 } from '@vanguard/domain';
 import type { FinanceBundle } from '../financeApi';
+import { getTodayWarsaw } from '../date';
 
 export function buildFinanceCashflowMonth(
-  bundle: FinanceBundle,
+  bundle: Pick<FinanceBundle, 'bills' | 'subscriptions' | 'incomeSources' | 'transactions'>,
   monthKey: string,
   startingBalance: number,
+  today = getTodayWarsaw(),
 ): CashflowMonthSummary {
   const [year, month] = monthKey.split('-').map(Number);
   const events: CashflowEventInput[] = [];
@@ -39,15 +41,10 @@ export function buildFinanceCashflowMonth(
     });
   }
 
-  for (const tx of bundle.transactions) {
-    if (tx.kind !== 'expense' || !tx.transaction_date.startsWith(monthKey)) continue;
-    events.push({
-      kind: 'expense',
-      name: tx.note?.trim() || tx.category,
-      amount: Math.abs(tx.amount),
-      day: Number(tx.transaction_date.split('-')[2]) || 1,
-    });
-  }
-
-  return buildCashflowMonth(year, month, events, startingBalance);
+  // Saldo jest bieżące: wykonane transakcje już się w nim znajdują. Prognoza obejmuje tylko przyszłe plany.
+  const currentMonth = today.slice(0, 7);
+  const days = new Date(year, month, 0).getDate();
+  const remaining = monthKey < currentMonth ? [] : monthKey > currentMonth ? events
+    : events.filter(event => Math.min(event.day, days) > Number(today.slice(8)));
+  return buildCashflowMonth(year, month, remaining, startingBalance);
 }

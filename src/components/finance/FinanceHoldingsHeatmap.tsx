@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { layoutTreemap, type ValuedHolding } from '@vanguard/domain';
 import { FinanceEmpty, FinanceSection } from './financeUi';
+import { formatWarsawDate } from '../../lib/date';
 
 interface FinanceHoldingsHeatmapProps {
   holdings: ValuedHolding[];
@@ -33,7 +34,7 @@ export function FinanceHoldingsHeatmap({ holdings, loading }: FinanceHoldingsHea
   const byId = useMemo(() => new Map(holdings.map((item) => [item.id, item])), [holdings]);
 
   return (
-    <FinanceSection title="Mapa cieplna dnia" subtitle="Wielkość kafelka to wartość pozycji, kolor to zmiana dzienna.">
+    <FinanceSection title="Mapa portfela" subtitle="Wielkość to wartość pozycji. Kolor: akcje i ETF-y względem poprzedniego zamknięcia, krypto — zmiana dzienna; daty w opisach pozycji.">
       {holdings.length === 0 ? (
         <FinanceEmpty>Dodaj pozycje, a zobaczysz tu swoje akcje i ETF-y.</FinanceEmpty>
       ) : (
@@ -52,7 +53,7 @@ export function FinanceHoldingsHeatmap({ holdings, loading }: FinanceHoldingsHea
               <div
                 key={rect.id}
                 role="listitem"
-                title={`${item.name}: ${formatChange(item.dayChangePct)}`}
+                title={`${item.name}: ${formatChange(item.dayChangePct)} · ${item.quoteAsOf ? formatWarsawDate(item.quoteAsOf) : 'data notowania niepodana'}`}
                 className="absolute overflow-hidden rounded-lg p-1.5 ring-1 ring-surface-1"
                 style={{
                   left: `${rect.x}%`,

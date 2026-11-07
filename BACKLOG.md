@@ -218,6 +218,24 @@ Zasady i dokumenty domenowe: [indeks](docs/README.md).
   oraz przypadki małej próby, sugestii psychologicznych i nieliniowych refleksji;
   rosnąca pewność bez nowych danych nie jest postępem.
 
+### Finanse — odbiór na urządzeniu i historia
+<a id="finanse-bank"></a>
+
+- [ ] Odebrać gotowy widok na fizycznym Androidzie/PWA/APK: filtry, pełna historia,
+  korekta pojedynczej kategorii/reguły i jej reset, ponowne wejście po synchronizacji,
+  jasny/ciemny motyw, arkusz edycji i rozdzielenie gotówki, kont oraz inwestycji.
+- [ ] Po realnym odnowieniu zgody w PeoPay potwierdzić zachowanie tożsamości rachunku,
+  transakcji, ręcznych kategorii i powiązania z Finansami. Nie inicjować nowej zgody
+  wyłącznie w celu automatycznego testu bez obecności użytkownika.
+- [ ] Gdy bank pozwoli na pełny backfill, potwierdzić daty pokrycia i porównania okresów;
+  limit/niepełna historia pozostają jawne. Nie utożsamiać najstarszej transakcji z dowodem
+  kompletności. MCC/kurs/kod operacji wymagają rzeczywiście niepustych danych dostawcy.
+- [ ] Przy dalszym rozwoju korelacji bankowych uzgodnić ich definicję z widokiem Finansów:
+  pokrycie, ukryte rachunki, statusy, waluty i gotówka; nie dopisywać zer w lukach bez
+  potwierdzonej kompletności. Sam wykres nie dowodzi zmiany zachowania ani przyczynowości.
+- [ ] Dokończyć pełną regresję Vitest po usunięciu problemu startu workerów w Windows;
+  lokalne testy finansów i pozostałe kontrole nie są dowodem przejścia całego repo.
+
 <a id="zamroz"></a>
 
 ## ZAMROŻ — poza aktywną kolejką
@@ -262,7 +280,7 @@ Nie deklarować pełnego prowadzenia na podstawie samej obecności implementacji
 | Część II / Auth | Sprawdzić bieżący stan ochrony przed ujawnionymi hasłami; dawny wpis nie dowodzi aktualnej konfiguracji ani uprawnia do zmiany ustawień konta. |
 | Część II / wiedza | `claims`, encje, aliasy i bitemporalność już istnieją: sprawdzić tożsamości, historię i konsumentów; dopiero potem dossier celu, diff pamięci lub eksport raportu dla trenera. Bez automatycznego merge różnych pojęć i nowego magazynu faktów. |
 | Część III / offline | Rozszerzenia poza istniejącą kolejką wymagają odtworzonego problemu; stare niepewne ścieżki/numery linii nie są zadaniem. |
-| Część V / Finanse | Import brokera, dywidendy, TWR/MWR, PSD2 i widget; przeniesienie portfeli z Inwestycji dopiero po sprawdzeniu obecnych konsumentów. |
+| Część V / Finanse | Import brokera, dywidendy, TWR/MWR i widget; przeniesienie portfeli z Inwestycji dopiero po sprawdzeniu obecnych konsumentów. Widok bankowy ma osobny [zakres](#finanse-bank). |
 | Część V / Healthspan v2 | Kalibracja, wersja metody, coverage i źródła, szczegół N/dat oraz walidacja na prawdziwym profilu Garmin/Oura. |
 | Część V / Notatki i iOS | Szeroki odbiór folderów, gestów i układów dopiero dla konkretnego odtworzonego problemu. |
 | Closer | Materiały oferty/sprzedaży → kryteria etapów w `sales_playbook_criteria`; kalibracja ocen AI na rozmowach ocenionych przez użytkownika. |

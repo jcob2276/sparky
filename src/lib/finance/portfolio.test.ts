@@ -20,6 +20,15 @@ const holding = (id: string, overrides: Partial<HoldingInput> = {}): HoldingInpu
 });
 
 describe('valueHoldings', () => {
+  it('preserves foreign purchase costs without inventing a PLN gain, and uses an explicit screenshot valuation', () => {
+    const rows = valueHoldings([
+      holding('btc', { assetClass: 'crypto', quantity: 0.00333335, avgCostPln: 0, avgCostCurrency: 'USD', avgCostOriginal: 81000 }),
+      holding('stock', { quantity: 0.5, avgCostPln: 200, snapshotPricePln: 220, snapshotSource: 'user_screenshot' }),
+    ], { BTC: { pricePln: 300000, changePct: 1, asOf: null } });
+    expect(rows[0]).toMatchObject({ valuePln: 1000.01, pnlPct: null, hasCostBasis: false, avgCostOriginal: 81000 });
+    expect(rows[1]).toMatchObject({ valuePln: 110, pnlPln: 10, valuationSource: 'snapshot' });
+    expect(computePortfolioTotals(rows)).toMatchObject({ pnlPct: null, incompleteCostCount: 1, snapshotCount: 1 });
+  });
   it('values by quote, falls back to cost without quote, and computes weights', () => {
     const rows = valueHoldings(
       [holding('a'), holding('b', { quantity: 5, avgCostPln: 200 })],

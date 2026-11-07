@@ -35,4 +35,8 @@ describe('bank period accounting', () => {
     expect(report.sources).toEqual([expect.objectContaining({ name: 'Sklep', total: 300, count: 2 })]);
     expect(analyzeBankPeriod([])).toMatchObject({ income: 0, expenses: 0, sources: [], spending: [] });
   });
+  it('drills an income card into the same booked movement, excluding refunds, future and pending rows', () => {
+    const rows = [tx('salary', 100, 'wynagrodzenie'), tx('refund', 20, 'zwrot'), tx('pending', 50, 'wplyw', {status:'PDNG'}), tx('future', 80, 'wplyw', {booking_date:'2026-11-20'})];
+    expect(filterBankTransactions(rows,{currency:'PLN',direction:'income',bookedOnly:true,today:'2026-11-07'}).map(t=>t.id)).toEqual(['salary']);
+  });
 });

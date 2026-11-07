@@ -41,15 +41,21 @@ export async function completeConnection(db: SupabaseClient, state: string, code
       status: 'active', valid_until: session.access?.valid_until ?? null, last_error: null, updated_at: new Date().toISOString(),
     }).eq('id', connection.id),
   );
-  const rows = session.accounts.map((a) => ({
+  for (const a of session.accounts) {
+    const iban = a.account_id?.iban?.replace(/\s/g, '').toUpperCase() ?? null;
+    const existing = iban ? await safeExecute(db.from('bank_accounts').select('id')
+      .eq('user_id', connection.user_id).eq('iban', iban).maybeSingle()) : null;
+    const row = {
     user_id: connection.user_id,
     connection_id: connection.id,
     account_uid: a.uid,
-    iban: a.account_id?.iban ?? null,
+    iban,
     name: a.name ?? null,
     currency: a.currency ?? null,
-  }));
-  if (rows.length) await safeExecute(db.from('bank_accounts').upsert(rows, { onConflict: 'connection_id,account_uid' }));
+    };
+    if (existing) await safeExecute(db.from('bank_accounts').update(row).eq('id', existing.id));
+    else await safeExecute(db.from('bank_accounts').upsert(row, { onConflict: 'connection_id,account_uid' }));
+  }
 }
 
 export async function failConnection(db: SupabaseClient, state: string, reason: string): Promise<void> {

@@ -5,11 +5,12 @@ import { formatPln } from '../../lib/finance/formatMoney';
 import { Pressable } from '../ui/ControlPrimitives';
 import type { FinanceMetrics } from './useFinanceMetrics';
 
-type Segment = 'net' | 'invest' | 'cash';
+type Segment = 'net' | 'invest' | 'bank' | 'cash';
 
 const SEGMENTS: Array<{ key: Segment; label: string }> = [
   { key: 'net', label: 'Majątek' },
   { key: 'invest', label: 'Inwestycje' },
+  { key: 'bank', label: 'Konta' },
   { key: 'cash', label: 'Gotówka' },
 ];
 
@@ -38,29 +39,31 @@ function changeLine(change: number, pct: number | null): { text: string; tone: s
   const sign = change > 0 ? '+' : change < 0 ? '−' : '';
   const percent = pct == null ? '' : ` (${sign}${Math.abs(pct).toFixed(2).replace('.', ',')}%)`;
   return {
-    text: `${sign}${formatPln(Math.abs(change), 2)}${percent} dziś`,
+    text: `${sign}${formatPln(Math.abs(change), 2)}${percent} wg ostatnich notowań`,
     tone: change > 0 ? 'text-success' : change < 0 ? 'text-danger' : 'text-text-secondary',
   };
 }
 
 export function FinanceHomeHero({ metrics, portfolio, hasHoldings, hasAccounts, onQuickEntry, onRebalance, onMore }: FinanceHomeHeroProps) {
   const [segment, setSegment] = useState<Segment>('net');
-  const amount = segment === 'net' ? metrics.netWorth : segment === 'invest' ? portfolio.valuePln : metrics.liquid;
-  const label = segment === 'net' ? 'Majątek netto' : segment === 'invest' ? 'Wartość inwestycji' : 'Płynna gotówka';
-  const showChange = segment !== 'cash' && hasHoldings;
+  const amounts: Record<Segment, number> = { net: metrics.netWorth, invest: metrics.investments, bank: metrics.bankCash, cash: metrics.physicalCash };
+  const labels: Record<Segment, string> = { net: 'Majątek netto', invest: 'Wartość inwestycji', bank: 'Środki na kontach', cash: 'Gotówka fizyczna' };
+  const amount = amounts[segment];
+  const label = labels[segment];
+  const showChange = (segment === 'net' || segment === 'invest') && hasHoldings && !portfolio.unquotedCount;
   const isUnset = amount === 0 && !hasAccounts && !hasHoldings;
   const line = changeLine(portfolio.dayChangePln, portfolio.dayChangePct);
 
   return (
     <section className="space-y-6 text-center" aria-label={label}>
-      <div className="flex flex-wrap justify-center gap-2" role="group" aria-label="Widok">
+      <div className="mx-auto grid w-full max-w-lg grid-cols-4 gap-1" role="group" aria-label="Widok">
         {SEGMENTS.map((item) => (
           <Pressable
             key={item.key}
             type="button"
             onClick={() => setSegment(item.key)}
             aria-pressed={segment === item.key}
-            className={`min-h-11 rounded-full px-4 text-sm font-semibold transition-colors duration-[var(--motion-fast)] ${segment === item.key ? 'bg-text-primary text-background' : 'bg-background/40 text-text-secondary'}`}
+            className={`min-h-11 rounded-full px-1 text-xs font-semibold transition-colors duration-[var(--motion-fast)] sm:px-3 sm:text-sm ${segment === item.key ? 'bg-text-primary text-background' : 'bg-background/40 text-text-secondary'}`}
           >
             {item.label}
           </Pressable>

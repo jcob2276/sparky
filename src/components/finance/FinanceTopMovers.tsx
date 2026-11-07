@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
 import type { ValuedHolding } from '@vanguard/domain';
+import { formatWarsawDate } from '../../lib/date';
 import { Pressable } from '../ui/ControlPrimitives';
 
 interface FinanceTopMoversProps {
@@ -24,23 +24,16 @@ function shortTicker(ticker: string): string {
   return ticker.replace(/\.(WA|DE|L|AS|US|PL|UK)$/i, '');
 }
 
-export function FinanceTopMovers({ holdings, onShowAll }: FinanceTopMoversProps) {
-  const movers = useMemo(
-    () => holdings
-      .filter((item) => item.dayChangePct != null)
-      .sort((a, b) => Math.abs(b.dayChangePct ?? 0) - Math.abs(a.dayChangePct ?? 0))
-      .slice(0, MAX_MOVERS),
-    [holdings],
-  );
-  if (movers.length === 0) return null;
+function MoversGroup({ movers, title, onShowAll }: { movers: ValuedHolding[]; title: string; onShowAll: () => void }) {
   const labels = movers.map((item) => shortTicker(item.ticker));
-
+  const dates = [...new Set(movers.flatMap(item => item.quoteAsOf ? [formatWarsawDate(item.quoteAsOf)] : []))].sort();
   return (
-    <section aria-label="Najwięksi ruszający dziś" className="space-y-3">
+    <section aria-label={title} className="space-y-3">
       <div className="flex items-center justify-between px-1">
-        <h2 className="text-base font-semibold">Dziś najbardziej się ruszają</h2>
+        <h2 className="text-base font-semibold">{title}</h2>
         <Pressable type="button" onClick={onShowAll} className="text-sm font-semibold text-primary">Portfel</Pressable>
       </div>
+      <p className="px-1 text-xs text-text-muted">Notowania z: {dates.length ? dates.join(', ') : 'data niepodana'}. {movers[0]?.assetClass === 'crypto' ? 'Handel trwa także w weekendy.' : 'Zmiana względem poprzedniego zamknięcia.'}</p>
       <ul className="no-scrollbar -mx-4 flex gap-4 overflow-x-auto px-4 pb-1">
         {movers.map((item, index) => {
           const change = item.dayChangePct ?? 0;
@@ -61,4 +54,16 @@ export function FinanceTopMovers({ holdings, onShowAll }: FinanceTopMoversProps)
       </ul>
     </section>
   );
+}
+
+export function FinanceTopMovers({ holdings, onShowAll }: FinanceTopMoversProps) {
+  const sorted = holdings.filter(item => item.dayChangePct != null)
+    .sort((a, b) => Math.abs(b.dayChangePct ?? 0) - Math.abs(a.dayChangePct ?? 0));
+  const stocks = sorted.filter(item => item.assetClass !== 'crypto').slice(0, MAX_MOVERS);
+  const crypto = sorted.filter(item => item.assetClass === 'crypto').slice(0, MAX_MOVERS);
+  if (!sorted.length) return null;
+  return <div className="space-y-5">
+    {stocks.length > 0 && <MoversGroup movers={stocks} title="Zmiana ostatniej sesji" onShowAll={onShowAll} />}
+    {crypto.length > 0 && <MoversGroup movers={crypto} title="Krypto · zmiana dzienna" onShowAll={onShowAll} />}
+  </div>;
 }

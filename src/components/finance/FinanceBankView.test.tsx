@@ -1,0 +1,39 @@
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { FinanceBankView } from './FinanceBankView';
+import type { BankData } from '../../lib/finance/bankApi';
+
+afterEach(cleanup);
+const data: BankData = {
+  connection: { id: 'c', aspsp_name: 'Bank', status: 'active', valid_until: null, last_synced_at: null, last_error: null, last_note: null },
+  accounts: [{ id: 'a', iban: 'PL1234', name: 'Konto', currency: 'PLN', balance: 500, balance_synced_at: null, history_complete: false }],
+  transactions: [{ id: 't', account_id: 'a', amount: -20, currency: 'PLN', booking_date: '2026-11-03', counterparty_name: 'Sklep', remittance: 'Opis', category: 'zakupy', status: 'BOOK' },
+    { id: 't2', account_id: 'a', amount: -9, currency: 'PLN', booking_date: '2026-10-03', counterparty_name: 'Stary sklep', remittance: null, category: 'zakupy', status: 'BOOK' }],
+  transactionCount: 2,
+};
+const props = { data, health: { kind: 'ok', daysLeft: null } as const, loading: false, connecting: false, syncing: false, assigning: false,
+  onConnect: vi.fn(), onSync: vi.fn(), onAssignCategory: vi.fn(async () => true) };
+
+describe('bank view', () => {
+  it('filters the complete history by month and search', () => {
+    render(<FinanceBankView {...props} />);
+    fireEvent.change(screen.getByLabelText('Miesiąc'), { target: { value: '2026-10' } });
+    expect(screen.getByRole('button', { name: 'Zmień kategorię: Stary sklep' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Zmień kategorię: Sklep' })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Szukaj transakcji'), { target: { value: 'nie ma' } });
+    expect(screen.getByText('Brak transakcji dla tych filtrów.')).toBeInTheDocument();
+  });
+  it('edits recognised categories and defaults to a single transaction', async () => {
+    const save = vi.fn(async () => true);
+    render(<FinanceBankView {...props} onAssignCategory={save} />);
+    fireEvent.change(screen.getByLabelText('Miesiąc'), { target: { value: '2026-11' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Zmień kategorię: Sklep' }));
+    fireEvent.change(screen.getByLabelText('Nowa kategoria'), { target: { value: 'zdrowie' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Zapisz kategorię' }));
+    await waitFor(() => expect(save).toHaveBeenCalledWith({ transactionId: 't', category: 'zdrowie', remember: false }));
+  });
+  it('shows a read error instead of suggesting an empty bank', () => {
+    render(<FinanceBankView {...props} data={undefined} error="Nie można pobrać historii" />);
+    expect(screen.getByRole('alert')).toHaveTextContent('Nie można pobrać historii');
+  });
+});

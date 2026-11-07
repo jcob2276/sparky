@@ -65,7 +65,7 @@ export function FinanceRecentTransactions({ transactions, onShowAll }: FinanceRe
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-base font-medium">{item.note || item.category}</p>
-                  <p className="text-sm text-text-muted">{dayLabel(item.transaction_date, today)}{item.note ? ` · ${item.category}` : ''}</p>
+                  <p className="text-sm text-text-muted">{dayLabel(item.transaction_date, today)}{item.note ? ` · ${item.category}` : ''}{item.source === 'bank' ? ' · bank' : ''}</p>
                 </div>
                 <p className={`shrink-0 text-base font-semibold tabular-nums ${income ? 'text-success' : 'text-text-primary'}`}>
                   {income ? '+' : '−'}{formatPln(Math.abs(item.amount), 2)}

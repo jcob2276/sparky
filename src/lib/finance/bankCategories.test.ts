@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { BANK_CATEGORY_LABELS, bankCounterpartyKey, categorizeBankTransaction, type BankCategory } from '@vanguard/domain';
 
-const OWN = ['JAN KOWALSKI'];
 const debit = (counterparty: string | null, remittance: string | null = 'TRANSAKCJA KARTĄ PŁATNICZĄ') =>
-  categorizeBankTransaction({ counterparty, remittance, direction: 'debit' }, OWN);
+  categorizeBankTransaction({ counterparty, remittance, direction: 'debit' });
 
 describe('categorizeBankTransaction', () => {
   it.each<[string, BankCategory]>([
@@ -50,9 +49,10 @@ describe('categorizeBankTransaction', () => {
     expect(debit('BARBER SHOP RZESZOW')).toBe('uroda');
   });
 
-  it('przelew do samego siebie i doładowanie Revolut to przelewy własne, nie wydatek', () => {
-    expect(debit('JAN KOWALSKI', 'Przelew środków PRZELEW MOBILE')).toBe('przelewy_wlasne');
-    expect(debit('REVOLUT**3862*         DUBLIN')).toBe('przelewy_wlasne');
+  it('sama nazwa nie potwierdza własnego rachunku', () => {
+    expect(debit('JAN KOWALSKI', 'Przelew środków PRZELEW MOBILE')).toBe('do_sprawdzenia');
+    expect(debit('REVOLUT**3862*         DUBLIN')).toBe('do_sprawdzenia');
+    expect(categorizeBankTransaction({ counterparty: 'Jan', remittance: null, direction: 'debit', counterpartyIban: 'PL 123' }, new Map(), ['PL123'])).toBe('przelewy_wlasne');
   });
 
   it('bez znanej nazwy właściciela przelew na własne nazwisko nie jest uznany za własny', () => {
@@ -64,19 +64,26 @@ describe('categorizeBankTransaction', () => {
   });
 
   it('wpływy: wynagrodzenie, własny przelew, reszta', () => {
-    expect(categorizeBankTransaction({ counterparty: 'FIRMA SP Z O O', remittance: 'Wynagrodzenie za wrzesień', direction: 'credit' }, OWN)).toBe('wynagrodzenie');
-    expect(categorizeBankTransaction({ counterparty: 'JAN KOWALSKI', remittance: 'Przelew', direction: 'credit' }, OWN)).toBe('przelewy_wlasne');
-    expect(categorizeBankTransaction({ counterparty: 'ANNA NOWAK', remittance: 'zwrot', direction: 'credit' }, OWN)).toBe('wplyw');
+    expect(categorizeBankTransaction({ counterparty: 'FIRMA SP Z O O', remittance: 'Wynagrodzenie za wrzesień', direction: 'credit' })).toBe('wynagrodzenie');
+    expect(categorizeBankTransaction({ counterparty: 'JAN KOWALSKI', remittance: 'Przelew', direction: 'credit' })).toBe('wplyw');
+    expect(categorizeBankTransaction({ counterparty: 'ANNA NOWAK', remittance: 'zwrot', direction: 'credit' })).toBe('zwrot');
+    expect(categorizeBankTransaction({ counterparty: 'FIRMA', remittance: 'Faktura 1', direction: 'credit' })).toBe('dzialalnosc');
+    expect(categorizeBankTransaction({ counterparty: 'OSOBA', remittance: 'Przelew na telefon', direction: 'credit' })).toBe('wplyw');
   });
 
   it('puste dane zostają do sprawdzenia', () => {
     expect(debit(null, null)).toBe('do_sprawdzenia');
   });
+  it('wypłata od brokera nie jest dochodem, a jawna dywidenda jest', () => {
+    expect(categorizeBankTransaction({ counterparty: 'XTB', remittance: 'Wypłata środków', direction: 'credit' })).toBe('inwestycje');
+    expect(categorizeBankTransaction({ counterparty: 'DEGIRO', remittance: 'Dywidenda', direction: 'credit' })).toBe('dochody_kapitalowe');
+  });
 
   it('ręczny wybór użytkownika ma pierwszeństwo przed regułami i dotyczy kontrahenta niezależnie od zapisu', () => {
     const rules = new Map([[bankCounterpartyKey('PAYPRO S.A.'), 'zdrowie' as const]]);
-    expect(categorizeBankTransaction({ counterparty: 'PAYPRO  S.A.', remittance: null, direction: 'debit' }, [], rules)).toBe('zdrowie');
-    expect(categorizeBankTransaction({ counterparty: 'BIEDRONKA 1', remittance: null, direction: 'debit' }, [], rules)).toBe('zakupy_spozywcze');
+    expect(categorizeBankTransaction({ counterparty: 'PAYPRO  S.A.', remittance: null, direction: 'debit' }, rules)).toBe('zdrowie');
+    expect(categorizeBankTransaction({ counterparty: 'BIEDRONKA 1', remittance: null, direction: 'debit' }, rules)).toBe('zakupy_spozywcze');
+    expect(categorizeBankTransaction({ counterparty: 'PAYPRO S.A.', remittance: null, direction: 'credit' }, rules)).toBe('wplyw');
   });
 
   it('każda kategoria ma polską etykietę', () => {

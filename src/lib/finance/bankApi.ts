@@ -2,133 +2,94 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { invokeEdge, supabase } from '../supabase';
 import { financeKeys } from '../queryKeys';
 import { unwrapList, unwrapMaybe } from '../supabaseUtils';
-import { detectRecurring, type RecurringPayment } from '@vanguard/domain';
-import { getTodayWarsaw, shiftDateStr } from '../date';
 import type { BankConnectionStatus } from './bankStatus';
-import { summarizeSpending, type CategorySpending } from './bankSpending';
 
 interface BankConnection {
-  id: string;
-  aspsp_name: string;
-  status: BankConnectionStatus;
-  valid_until: string | null;
-  last_synced_at: string | null;
-  last_error: string | null;
-  last_note: string | null;
+  id: string; aspsp_name: string; status: BankConnectionStatus; valid_until: string | null;
+  last_synced_at: string | null; last_error: string | null; last_note: string | null;
 }
-
 export interface BankAccount {
-  id: string;
-  iban: string | null;
-  name: string | null;
-  currency: string | null;
-  balance: number | null;
-  balance_synced_at: string | null;
+  id: string; iban: string | null; name: string | null; currency: string | null;
+  balance: number | null; balance_synced_at: string | null; balance_type?: string | null;
+  history_complete?: boolean; history_cursor?: string | null;
+  transactions_synced_at?: string | null; transactions_from?: string | null;
 }
-
 export interface BankTransaction {
-  id: string;
-  account_id: string;
-  amount: number;
-  currency: string;
-  booking_date: string | null;
-  counterparty_name: string | null;
-  remittance: string | null;
-  category: string | null;
+  id: string; account_id: string; amount: number; currency: string; booking_date: string | null;
+  counterparty_name: string | null; remittance: string | null; category: string | null;
+  category_source?: string; status?: string | null;
 }
-
 export interface BankData {
   connection: BankConnection | null;
   accounts: BankAccount[];
   transactions: BankTransaction[];
   transactionCount: number;
-  /** Wydatki bieżącego miesiąca po kategorii (bez przelewów własnych). */
-  monthSpending: CategorySpending[];
-  /** Transakcje, których reguły nie rozpoznały — czekają na ręczne przypisanie (największe pierwsze). */
-  review: BankTransaction[];
-  reviewCount: number;
-  /** Wydatki, które wracają regularnie (subskrypcje, abonamenty). */
-  recurring: RecurringPayment[];
 }
+export interface BankCategoryAssignment { transactionId: string; category: string | null; remember: boolean; forgetRule?: boolean }
 
-const RECENT_LIMIT = 15;
-const REVIEW_LIMIT = 8;
-const RECURRING_LOOKBACK_DAYS = 400;
-const NEEDS_REVIEW = 'category.is.null,category.eq.do_sprawdzenia';
-const TX_COLUMNS = 'id, account_id, amount, currency, booking_date, counterparty_name, remittance, category';
+const TX_COLUMNS = 'id, account_id, amount, currency, booking_date, counterparty_name, remittance, category, category_source, status:raw->>status';
 
 async function fetchBankData(userId: string): Promise<BankData> {
-  const monthStart = `${getTodayWarsaw().slice(0, 7)}-01`;
-  const historyStart = shiftDateStr(getTodayWarsaw(), -RECURRING_LOOKBACK_DAYS);
-  const [connectionRes, accountsRes, transactionsRes, countRes, monthRes, reviewRes, reviewCountRes, historyRes] = await Promise.all([
-    supabase.from('bank_connections')
-      .select('id, aspsp_name, status, valid_until, last_synced_at, last_error, last_note')
-      .eq('user_id', userId).in('status', ['active', 'expired'])
-      .order('created_at', { ascending: false }).limit(1).maybeSingle(),
+  const [connectionRes, accountsRes] = await Promise.all([
+    supabase.from('bank_connections').select('id, aspsp_name, status, valid_until, last_synced_at, last_error, last_note')
+      .eq('user_id', userId).in('status', ['active', 'expired']).order('created_at', { ascending: false }).limit(1).maybeSingle(),
     supabase.from('bank_accounts')
-      .select('id, iban, name, currency, balance, balance_synced_at')
+      .select('id, iban, name, currency, balance, balance_type, balance_synced_at, history_complete, history_cursor, transactions_synced_at, transactions_from')
       .eq('user_id', userId).eq('hidden', false).order('created_at'),
-    supabase.from('bank_transactions')
-      .select(TX_COLUMNS)
-      .eq('user_id', userId).order('booking_date', { ascending: false }).order('created_at', { ascending: false }).limit(RECENT_LIMIT),
-    supabase.from('bank_transactions').select('id', { count: 'exact', head: true }).eq('user_id', userId),
-    supabase.from('bank_transactions').select('amount, category')
-      .eq('user_id', userId).lt('amount', 0).gte('booking_date', monthStart).limit(1000),
-    supabase.from('bank_transactions').select(TX_COLUMNS).eq('user_id', userId).or(NEEDS_REVIEW)
-      .order('amount', { ascending: true }).limit(REVIEW_LIMIT),
-    supabase.from('bank_transactions').select('id', { count: 'exact', head: true }).eq('user_id', userId).or(NEEDS_REVIEW),
-    supabase.from('bank_transactions').select('counterparty_name, amount, booking_date')
-      .eq('user_id', userId).lt('amount', 0).gte('booking_date', historyStart).limit(1000),
   ]);
-  if (countRes.error) throw new Error(countRes.error.message);
-  if (reviewCountRes.error) throw new Error(reviewCountRes.error.message);
-  return {
-    connection: unwrapMaybe(connectionRes) as BankConnection | null,
-    accounts: unwrapList(accountsRes) as BankAccount[],
-    transactions: unwrapList(transactionsRes) as BankTransaction[],
-    transactionCount: countRes.count ?? 0,
-    monthSpending: summarizeSpending(unwrapList(monthRes)),
-    review: unwrapList(reviewRes) as BankTransaction[],
-    reviewCount: reviewCountRes.count ?? 0,
-    recurring: detectRecurring(unwrapList(historyRes).flatMap((r) => (r.booking_date
-      ? [{ counterparty: r.counterparty_name, amount: Number(r.amount), date: r.booking_date }]
-      : []))),
-  };
+  const accounts = unwrapList(accountsRes);
+  const transactions: BankTransaction[] = [];
+  const cutoff = new Date().toISOString();
+  if (accounts.length) {
+    for (let from = 0; ;) {
+      const res = await supabase.from('bank_transactions').select(TX_COLUMNS, { count: 'exact' })
+        .eq('user_id', userId).in('account_id', accounts.map(a => a.id)).lte('created_at', cutoff)
+        .order('id').range(from, from + 499);
+      const rows = unwrapList(res);
+      if (res.count == null) throw new Error('Nie można potwierdzić kompletności historii bankowej');
+      transactions.push(...rows.map(row => ({ ...row, status: row.status ?? 'OTHR' })));
+      from += rows.length;
+      if (from >= res.count) break;
+      if (!rows.length) throw new Error('Historia bankowa jest niepełna. Spróbuj ponownie.');
+    }
+  }
+  return { connection: unwrapMaybe(connectionRes) as BankConnection | null, accounts,
+    transactions, transactionCount: transactions.length };
 }
 
 export function useBankData(userId: string | undefined) {
-  return useQuery({
-    queryKey: financeKeys.bank(userId ?? ''),
-    queryFn: () => fetchBankData(userId!),
-    enabled: !!userId,
-  });
+  return useQuery({ queryKey: financeKeys.bank(userId ?? ''), queryFn: () => fetchBankData(userId!), enabled: !!userId,
+    staleTime: 60_000, refetchOnWindowFocus: 'always', refetchInterval: 5 * 60_000 });
 }
 
-/** Start zgody (przekierowanie do banku) i synchronizacja. Odczyt tylko przez edge function bank-sync. */
+interface SyncResult { ok: boolean; limited?: boolean; historyPending?: boolean; skipped?: string; message?: string }
+
 export function useBankActions(userId: string | undefined) {
   const queryClient = useQueryClient();
-  const refresh = () => queryClient.invalidateQueries({ queryKey: financeKeys.bank(userId ?? '') });
+  const refresh = async () => {
+    await Promise.all([queryClient.invalidateQueries({ queryKey: financeKeys.bank(userId ?? '') }),
+      queryClient.invalidateQueries({ queryKey: financeKeys.bundle(userId ?? '') })]);
+  };
+  const connect = useMutation({ mutationFn: async () => {
+    const res = await invokeEdge('bank-sync', { body: { action: 'start' } });
+    if (typeof res.url !== 'string') throw new Error('Bank nie zwrócił adresu zgody');
+    return res.url;
+  }, onSuccess: url => { window.location.assign(url); } });
 
-  const connect = useMutation({
-    mutationFn: async () => {
-      const res = await invokeEdge('bank-sync', { body: { action: 'start' } });
-      if (typeof res.url !== 'string') throw new Error('Bank nie zwrócił adresu zgody');
-      return res.url;
-    },
-    onSuccess: (url) => { window.location.assign(url); },
-  });
+  const sync = useMutation({ mutationFn: async () => {
+    const res = await invokeEdge('bank-sync', { body: { action: 'sync' } });
+    const results: SyncResult[] = Array.isArray(res.results) ? res.results.filter((r: unknown): r is SyncResult =>
+      !!r && typeof r === 'object' && 'ok' in r && typeof r.ok === 'boolean') : [];
+    if (!results?.length) throw new Error('Brak aktywnego połączenia z bankiem');
+    const failed = results.find(r => !r.ok);
+    if (failed) throw new Error(failed.message ?? 'Synchronizacja się nie powiodła');
+    if (results.some(r => r.skipped === 'cooldown')) return 'Dane były niedawno pobierane. Kolejna próba jest dostępna po 15 minutach.';
+    if (results.some(r => r.limited)) return 'Bank ogranicza odczyty. Pokazuję ostatnio pobrane dane.';
+    return results.some(r => r.historyPending) ? 'Bieżące dane pobrane. Starsza historia jest jeszcze niepełna.' : 'Dane bankowe zaktualizowane.';
+  }, onSettled: refresh });
 
-  const sync = useMutation({
-    mutationFn: async () => { await invokeEdge('bank-sync', { body: { action: 'sync' } }); },
-    onSettled: refresh,
-  });
-
-  const assignCategory = useMutation({
-    mutationFn: async (input: { transactionId: string; category: string; remember: boolean }) => {
-      await invokeEdge('bank-sync', { body: { action: 'set_category', ...input } });
-    },
-    onSettled: refresh,
-  });
-
+  const assignCategory = useMutation({ mutationFn: async (input: BankCategoryAssignment) => {
+    await invokeEdge('bank-sync', { body: { action: 'set_category', ...input } });
+  }, onSettled: refresh });
   return { connect, sync, assignCategory };
 }

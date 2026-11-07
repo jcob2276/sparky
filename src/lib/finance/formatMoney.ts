@@ -1,7 +1,11 @@
 export function formatPln(value: number, fractionDigits = 0): string {
+  return formatCurrency(value, 'PLN', fractionDigits);
+}
+
+export function formatCurrency(value: number, currency = 'PLN', fractionDigits = 2): string {
   return new Intl.NumberFormat('pl-PL', {
     style: 'currency',
-    currency: 'PLN',
+    currency,
     minimumFractionDigits: fractionDigits,
     maximumFractionDigits: fractionDigits,
   }).format(Number.isFinite(value) ? value : 0);

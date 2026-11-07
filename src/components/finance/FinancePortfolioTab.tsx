@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import type { HoldingInput, PortfolioTotals, ValuedHolding } from '@vanguard/domain';
 import type { HoldingFormInput, HoldingMutations } from '../../lib/finance/holdingsApi';
-import { formatPln } from '../../lib/finance/formatMoney';
+import type { FinanceAccount } from '../../lib/financeApi';
+import { formatCurrency, formatPln } from '../../lib/finance/formatMoney';
 import { confirmDialog } from '../../lib/notify';
 import Button from '../ui/Button';
 import Sheet from '../ui/Sheet';
@@ -17,29 +18,32 @@ interface FinancePortfolioTabProps {
   totals: PortfolioTotals;
   mutations: HoldingMutations;
   run: (fn: () => Promise<void>) => Promise<void>;
+  brokerCashPln?: number;
+  fundingAccounts?: FinanceAccount[];
 }
 
 const pct = (value: number | null) => (value == null ? '—' : `${value > 0 ? '+' : ''}${value.toFixed(2).replace('.', ',')}%`);
 const tone = (value: number | null) => (value == null || value === 0 ? 'text-text-muted' : value > 0 ? 'text-success' : 'text-danger');
 
-function Summary({ totals }: { totals: PortfolioTotals }) {
+function Summary({ totals, brokerCashPln }: { totals: PortfolioTotals; brokerCashPln: number }) {
   return (
     <section className="space-y-1 pt-1">
       <p className="text-sm text-text-muted">Wartość portfela</p>
-      <p className="text-3xl font-semibold tabular-nums tracking-[var(--tracking-tight)] text-text-primary">{formatPln(totals.valuePln)}</p>
+      <p className="text-3xl font-semibold tabular-nums tracking-[var(--tracking-tight)] text-text-primary">{totals.unvaluedCount ? '—' : formatPln(totals.valuePln + brokerCashPln)}</p>
+      <p className="text-sm text-text-muted">W tym wolne środki na rachunku inwestycyjnym: {formatPln(brokerCashPln, 2)}</p>
       <p className="text-sm tabular-nums">
-        <span className={tone(totals.pnlPln)}>{formatPln(totals.pnlPln)} ({pct(totals.pnlPct)}) łącznie</span>
-        <span className="text-text-muted"> · dziś </span>
-        <span className={tone(totals.dayChangePln)}>{formatPln(totals.dayChangePln)} ({pct(totals.dayChangePct)})</span>
+        <span className={tone(totals.pnlPln)}>{totals.incompleteCostCount ? 'Wynik w PLN: — (brak historycznego kosztu w PLN)' : `${formatPln(totals.pnlPln)} (${pct(totals.pnlPct)}) łącznie`}</span>
+        <span className="text-text-muted"> · zmiana wg notowań </span>
+        <span className={tone(totals.dayChangePln)}>{totals.unquotedCount ? '— (niepełne notowania)' : `${formatPln(totals.dayChangePln)} (${pct(totals.dayChangePct)})`}</span>
       </p>
       {totals.unquotedCount > 0 && (
-        <p className="text-sm text-warning">{totals.unquotedCount} poz. bez notowania jest wyceniona po koszcie zakupu.</p>
+        <p className="text-sm text-warning">Bez bieżącego notowania: {totals.unquotedCount}. Wycena ze zrzutu: {totals.snapshotCount ?? 0}; brak wyceny: {totals.unvaluedCount ?? 0}. Pozostałe mają wycenę po koszcie zakupu.</p>
       )}
     </section>
   );
 }
 
-export function FinancePortfolioTab({ holdings, totals, mutations, run }: FinancePortfolioTabProps) {
+export function FinancePortfolioTab({ holdings, totals, mutations, run, brokerCashPln = 0, fundingAccounts = [] }: FinancePortfolioTabProps) {
   const [editing, setEditing] = useState<HoldingInput | 'new' | null>(null);
   const close = () => setEditing(null);
 
@@ -63,7 +67,7 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run }: Financ
 
   return (
     <div className="space-y-8">
-      <Summary totals={totals} />
+      <Summary totals={totals} brokerCashPln={brokerCashPln} />
 
       <FinanceHoldingsHeatmap holdings={holdings} loading={false} />
 
@@ -76,10 +80,10 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run }: Financ
               <Pressable key={item.id} type="button" onClick={() => setEditing(item)} className="block w-full text-left transition-colors hover:bg-surface-2/50">
                 <FinanceRow
                   primary={item.ticker}
-                  secondary={`${item.name} · ${item.weightPct.toFixed(1).replace('.', ',')}%${item.targetWeightPct != null ? ` / cel ${item.targetWeightPct}%` : ''}`}
+                  secondary={`${item.name} · ${item.weightPct.toFixed(1).replace('.', ',')}%${item.targetWeightPct != null ? ` / cel ${item.targetWeightPct}%` : ''}${item.avgCostOriginal != null ? ` · średni koszt ${formatCurrency(item.avgCostOriginal, item.avgCostCurrency || 'PLN')}` : ''}${item.valuationSource === 'snapshot' ? ` · wycena ze zrzutu (${item.snapshotAsOf || 'data notowania niepodana'})` : item.valuationSource === 'cost' ? ' · wycena po koszcie' : item.valuationSource === 'missing' ? ' · brak wyceny' : ''}`}
                   trailing={(
                     <span className="block text-right">
-                      {formatPln(item.valuePln)}
+                      {item.valuationSource === 'missing' ? '—' : formatPln(item.valuePln)}
                       <span className={`block text-sm ${tone(item.pnlPln)}`}>{pct(item.pnlPct)}</span>
                     </span>
                   )}
@@ -95,8 +99,10 @@ export function FinancePortfolioTab({ holdings, totals, mutations, run }: Financ
 
       <FinanceRebalanceCard
         holdings={holdings}
-        onBought={(holding, units, pricePln) => void run(async () => {
-          await mutations.addPurchase.mutateAsync({ holding, units, pricePln });
+        fundingAccounts={fundingAccounts}
+        pending={mutations.addPurchase.isPending}
+        onBought={(holding, units, pricePln, accountId) => void run(async () => {
+          await mutations.addPurchase.mutateAsync({ holding, units, pricePln, accountId });
         })}
       />
 

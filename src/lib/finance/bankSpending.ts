@@ -25,7 +25,7 @@ export function summarizeSpending(rows: readonly SpendingRow[]): CategorySpendin
   for (const row of rows) {
     if (row.amount >= 0) continue;
     const category = isCategory(row.category) ? row.category : 'do_sprawdzenia';
-    if (category === 'przelewy_wlasne') continue;
+    if (['przelewy_wlasne', 'inwestycje', 'gotowka'].includes(category)) continue;
     totals.set(category, (totals.get(category) ?? 0) + Math.abs(row.amount));
   }
   const sum = [...totals.values()].reduce((a, b) => a + b, 0);

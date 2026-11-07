@@ -35,9 +35,10 @@ function MonthFlow({ metrics }: { metrics: FinanceMetrics }) {
   const tiles = [
     { label: 'Wpływy w miesiącu', amount: metrics.earnedThisMonth, icon: ArrowDownLeft, tone: 'bg-success/20 text-success' },
     { label: 'Wydatki w miesiącu', amount: metrics.spentThisMonth, icon: ArrowUpRight, tone: 'bg-danger/20 text-danger' },
+    { label: 'Zwroty w miesiącu', amount: metrics.refundsThisMonth, icon: ArrowDownLeft, tone: 'bg-surface-2 text-text-secondary' },
   ];
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {tiles.map(({ label, amount, icon: Icon, tone }) => (
         <div key={label} className="flex items-center gap-3 rounded-lg bg-surface-1 p-4">
           <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${tone}`}>
@@ -73,7 +74,7 @@ export function FinanceHome({ data, metrics, holdings, portfolio, quotesLoading,
         onNavigate={onNavigate}
       />
       <FinanceTopMovers holdings={holdings} onShowAll={() => onNavigate('portfolio')} />
-      <FinanceRecentTransactions transactions={data.transactions} onShowAll={() => onNavigate('flows')} />
+      <FinanceRecentTransactions transactions={data.transactions} onShowAll={() => onNavigate('accounts')} />
       <FinanceGoalCard
         metrics={metrics}
         snapshots={data.snapshots}

@@ -82,6 +82,25 @@ Problemy cache/workera w sandboxie: [lessons](../../lessons.md#editing-and-share
 Skrzynka między sesjami: aktualne fakty/prośby, bez sekretów i dawnych poleceń
 wykonawczych. Zamknięte przekazania zachowuje Git.
 
+- Codex → Claude · [ZROBIONE] Finanse: użytkownik zatwierdził pełną realizację widoku
+  bankowego i uzupełnił portfel oraz rozdzielenie gotówki/kont/środków u brokera.
+  Widok Konta ma podsumowanie, źródła wpływów, kategorie, odbiorców, pełną historię,
+  filtry, edycję kategorii z wyborem zakresu, reset reguły i propozycje cykliczności.
+  Bank zasila wspólne Finanse przez jawne powiązanie; ręczne wpisy wymagają uzgodnienia,
+  a brak wyceny/pokrycia wstrzymuje niepewne sumy i snapshoty. Koszty portfela zachowują
+  oryginalną walutę; zrzut jest jawnym fallbackiem, nie notowaniem live. Zmiany giełdowe
+  mają datę ostatniej sesji, krypto osobną etykietę. Zakup pozycji atomowo uzgadnia
+  ilość, oba koszty i wskazane źródło środków. Dane użytkownika są w bazie, nie w repo.
+  Migracje zastosowano przez db:apply; bank-sync wdrożono z czystego checkoutu.
+  Smoke przeszedł; logi potwierdzają poprawną kategoryzację i odmowę bez autoryzacji.
+  Istniejącą historię przeliczono, zachowując ręczne poprawki. Testy Finansów, SQL,
+  typy, lint, ratchety i build przeszły; pełny Vitest zatrzymuje się na starcie workerów.
+  Otwarte odbiory urządzenia/historii: [BACKLOG](../../BACKLOG.md#finanse-bank).
+  Przegląd kodu poprawił deduplikację, zakres drill-down i uzgodnienie ręcznych wpisów;
+  testy obejmują też świeże odtworzenie bankowych migracji w kolejności nazw.
+  Globalny backend ratchet odblokowano wydzieleniem istniejącej agregacji bankowej do
+  correlationSeriesHelpers, bez zmiany jej zachowania. Pozostałych tematów nie wdrażać.
+
 - Codex → Claude · [ZROBIONE] „Aktywne sesje” w Ustawieniach ma zakładki
   Zalogowane/Historia, wylogowanie wybranej sesji oraz „Wyloguj pozostałe” z zachowaniem
   bieżącej. Starsze ważne sesje są rozwijane osobno, a nie ukrywane jako nieaktywne.

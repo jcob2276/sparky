@@ -34,12 +34,12 @@ export class EbError extends Error {
 }
 
 /**
- * Limit odczytów PSD2 po stronie banku: 429 ASPSP_RATE_LIMIT_EXCEEDED albo 400 ASPSP_ERROR przy transakcjach.
+ * Limit odczytów PSD2: 429 lub jawny kod limitu. ASPSP_ERROR to ogólny błąd banku.
  * To stan przejściowy (limit dobowy bez obecności użytkownika), a nie awaria połączenia ani wygasła zgoda.
  */
 export const isBankReadLimit = (err: unknown): boolean =>
   err instanceof EbError
-  && (err.status === 429 || err.code === 'ASPSP_RATE_LIMIT_EXCEEDED' || (err.status === 400 && err.code === 'ASPSP_ERROR'));
+  && (err.status === 429 || err.code === 'ASPSP_RATE_LIMIT_EXCEEDED');
 
 const b64url = (input: string | Uint8Array): string => {
   const bytes = typeof input === 'string' ? new TextEncoder().encode(input) : input;
@@ -117,10 +117,12 @@ export interface BankTransactionRow {
 
 /** Kwota ze znakiem: obciazenie ujemne, uznanie dodatnie. Kontrahent to druga strona przelewu. */
 export function mapTransaction(t: EbTransaction): BankTransactionRow | null {
-  const id = t.transaction_id ?? t.entry_reference;
+  // transaction_id służy do pobrania szczegółu i może się zmieniać. Bez trwałego klucza nie zgadujemy tożsamości.
+  const id = t.entry_reference ? `entry:${t.entry_reference}` : null;
   if (!id) return null;
   const debit = t.credit_debit_indicator === 'DBIT';
   const abs = Math.abs(Number(t.transaction_amount.amount));
+  if (!Number.isFinite(abs)) return null;
   const party = debit ? t.creditor : t.debtor;
   const partyAccount = debit ? t.creditor_account : t.debtor_account;
   const remittance = t.remittance_information?.join(' ').trim();

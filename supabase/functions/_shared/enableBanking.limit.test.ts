@@ -3,7 +3,7 @@ import { EbError, isBankReadLimit } from './enableBanking.ts'
 
 Deno.test('isBankReadLimit rozpoznaje limity odczytu banku', () => {
   assertEquals(isBankReadLimit(new EbError(429, 'ASPSP_RATE_LIMIT_EXCEEDED', 'x')), true)
-  assertEquals(isBankReadLimit(new EbError(400, 'ASPSP_ERROR', 'x')), true)
+  assertEquals(isBankReadLimit(new EbError(400, 'ASPSP_ERROR', 'x')), false)
   assertEquals(isBankReadLimit(new EbError(429, 'UNKNOWN', 'x')), true)
 })
 

@@ -28,6 +28,7 @@ export interface FinanceAccount {
   coingecko_id: string | null;
   crypto_amount: number | null;
   created_at: string;
+  bank_account_id?: string | null;
 }
 
 interface FinanceGoal {
@@ -87,6 +88,10 @@ export interface FinanceTransaction {
   kind: 'expense' | 'income';
   account_id?: string | null;
   created_at: string;
+  flow_kind?: 'income' | 'expense' | 'refund';
+  source?: 'bank';
+  bank_transaction_id?: string | null;
+  bank_reconciled?: boolean;
 }
 
 export interface FinanceIncomeSource {
@@ -121,6 +126,7 @@ export interface FinanceBundle {
   transactions: FinanceTransaction[];
   incomeSources: FinanceIncomeSource[];
   snapshots: FinanceSnapshot[];
+  bankReconciliationPending?: number;
 }
 
 const DEFAULT_PROFILE: Omit<FinanceProfile, 'user_id' | 'updated_at'> = {
@@ -154,22 +160,14 @@ function mapProfile(row: Record<string, unknown>): FinanceProfile {
   };
 }
 
-async function fetchFinanceTransactions(userId: string, monthKey: string): Promise<FinanceTransaction[]> {
-  const { data: recent, error: recentError } = await supabase.from('finance_transactions')
-    .select('*').eq('user_id', userId)
-    .order('transaction_date', { ascending: false }).order('id', { ascending: false }).limit(50);
-  if (recentError) throw new Error(recentError.message);
-  const records = new Map((recent ?? []).map(row => [row.id, row as FinanceTransaction]));
-  const [year, month] = monthKey.split('-').map(Number);
-  const nextYear = month === 12 ? year + 1 : year;
-  const nextMonthNum = month === 12 ? 1 : month + 1;
-  const nextMonth = `${nextYear}-${String(nextMonthNum).padStart(2, '0')}-01`;
+async function fetchFinanceTransactions(userId: string): Promise<FinanceTransaction[]> {
+  const records = new Map<string, FinanceTransaction>();
+  const cutoff = new Date().toISOString();
   let offset = 0;
   for (;;) {
     const { data, error, count } = await supabase.from('finance_transactions')
       .select('*', { count: 'exact' }).eq('user_id', userId)
-      .gte('transaction_date', `${monthKey}-01`).lt('transaction_date', nextMonth)
-      .order('transaction_date', { ascending: false }).order('id', { ascending: false })
+      .lte('created_at', cutoff).order('id')
       .range(offset, offset + 499);
     if (error) throw new Error(error.message);
     if (count == null) throw new Error('Nie można potwierdzić kompletności transakcji miesiąca');
@@ -182,7 +180,7 @@ async function fetchFinanceTransactions(userId: string, monthKey: string): Promi
   return [...records.values()].sort((a, b) => b.transaction_date.localeCompare(a.transaction_date) || b.id.localeCompare(a.id));
 }
 
-async function fetchFinanceBundle(userId: string, monthKey: string): Promise<FinanceBundle> {
+async function fetchFinanceBundle(userId: string): Promise<FinanceBundle> {
   const [
     profileRes,
     accountsRes,
@@ -200,7 +198,7 @@ async function fetchFinanceBundle(userId: string, monthKey: string): Promise<Fin
     supabase.from('finance_wishlist').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
     supabase.from('finance_subscriptions').select('*').eq('user_id', userId).order('name'),
     supabase.from('finance_bills').select('*').eq('user_id', userId).order('due_day'),
-    fetchFinanceTransactions(userId, monthKey),
+    fetchFinanceTransactions(userId),
     supabase.from('finance_income_sources').select('*').eq('user_id', userId).order('name'),
     supabase.from('finance_snapshots').select('*').eq('user_id', userId).order('snapshot_month', { ascending: false }).limit(24),
   ]);
@@ -245,7 +243,7 @@ export function useFinanceBundle(userId: string | undefined) {
 
   return useQuery({
     queryKey: [...financeKeys.bundle(userId ?? ''), monthKey],
-    queryFn: () => fetchFinanceBundle(userId!, monthKey),
+    queryFn: () => fetchFinanceBundle(userId!),
     enabled: !!userId,
   });
 }
@@ -254,7 +252,7 @@ export function sumAccountBalances(accounts: FinanceAccount[]): { netWorth: numb
   let liquid = 0;
   let investments = 0;
   for (const a of accounts) {
-    if (a.is_liquid) liquid += a.balance;
+    if (a.is_liquid && a.account_type !== 'broker_cash') liquid += a.balance;
     else investments += a.balance;
   }
   return { netWorth: liquid + investments, liquid, investments };
