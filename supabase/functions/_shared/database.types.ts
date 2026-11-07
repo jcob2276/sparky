@@ -228,6 +228,8 @@ export type Database = {
           connection_id: string
           created_at: string
           currency: string | null
+          hidden: boolean
+          history_attempted_at: string | null
           history_complete: boolean
           history_cursor: string | null
           iban: string | null
@@ -243,6 +245,8 @@ export type Database = {
           connection_id: string
           created_at?: string
           currency?: string | null
+          hidden?: boolean
+          history_attempted_at?: string | null
           history_complete?: boolean
           history_cursor?: string | null
           iban?: string | null
@@ -258,6 +262,8 @@ export type Database = {
           connection_id?: string
           created_at?: string
           currency?: string | null
+          hidden?: boolean
+          history_attempted_at?: string | null
           history_complete?: boolean
           history_cursor?: string | null
           iban?: string | null
@@ -274,6 +280,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      bank_category_rules: {
+        Row: {
+          category: string
+          counterparty_key: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          counterparty_key: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          counterparty_key?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       bank_connection_secrets: {
         Row: {
@@ -308,6 +335,7 @@ export type Database = {
           created_at: string
           id: string
           last_error: string | null
+          last_note: string | null
           last_synced_at: string | null
           provider: string
           status: string
@@ -321,6 +349,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_error?: string | null
+          last_note?: string | null
           last_synced_at?: string | null
           provider?: string
           status?: string
@@ -334,6 +363,7 @@ export type Database = {
           created_at?: string
           id?: string
           last_error?: string | null
+          last_note?: string | null
           last_synced_at?: string | null
           provider?: string
           status?: string
@@ -348,6 +378,8 @@ export type Database = {
           account_id: string
           amount: number
           booking_date: string | null
+          category: string | null
+          category_source: string
           counterparty_iban: string | null
           counterparty_name: string | null
           created_at: string
@@ -364,6 +396,8 @@ export type Database = {
           account_id: string
           amount: number
           booking_date?: string | null
+          category?: string | null
+          category_source?: string
           counterparty_iban?: string | null
           counterparty_name?: string | null
           created_at?: string
@@ -380,6 +414,8 @@ export type Database = {
           account_id?: string
           amount?: number
           booking_date?: string | null
+          category?: string | null
+          category_source?: string
           counterparty_iban?: string | null
           counterparty_name?: string | null
           created_at?: string
@@ -4612,6 +4648,36 @@ export type Database = {
           id?: string
           source?: string | null
           ts?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      oura_hr_daily: {
+        Row: {
+          date: string
+          day_avg_bpm: number | null
+          day_p90_bpm: number | null
+          day_rest_bpm: number | null
+          samples: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          date: string
+          day_avg_bpm?: number | null
+          day_p90_bpm?: number | null
+          day_rest_bpm?: number | null
+          samples?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          date?: string
+          day_avg_bpm?: number | null
+          day_p90_bpm?: number | null
+          day_rest_bpm?: number | null
+          samples?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

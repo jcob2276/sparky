@@ -22,6 +22,7 @@ export interface PreparedCorrelationData {
   weatherRows: any[];
   deviceRows: any[];
   hrDailyRows: any[];
+  bankRows: any[];
 }
 
 /** Fetches raw data from 18 Supabase tables required for correlation analysis. */
@@ -46,6 +47,8 @@ async function fetchRawCorrelationData(supabase: any, userId: string, start90: s
     supabase.from('weather_daily').select('date, temp_mean, temp_max, humidity_mean, precip_mm, sunshine_h').eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('device_signals_daily').select('date, event_count, unlocks, screen_on_min, screen_after_22_min, evening_lux_avg, notif_per_hour, phone_sleep_min, home_wifi_min, work_wifi_min, headphones_min').eq('user_id', userId).gte('date', start90).order('date'),
     supabase.from('oura_hr_daily').select('date, day_avg_bpm, day_p90_bpm, day_rest_bpm').eq('user_id', userId).gte('date', start90).order('date'),
+    // Wydatki z banku (obciążenia); stronicowane, bo dłuższe okno przekracza max_rows PostgREST.
+    fetchAllRows<any>((from: number, to: number) => supabase.from('bank_transactions').select('booking_date, amount, category').eq('user_id', userId).lt('amount', 0).gte('booking_date', start90).order('booking_date').order('id').range(from, to)),
   ]);
 }
 
@@ -59,11 +62,11 @@ export async function fetchAndPrepareCorrelationData(
   await syncWeatherDaily(supabase, userId, start90, todayWarsaw);
   const [
     strainR, ouraR, ouraEnhR, nutrR, aggregatesR, frictionR, foodR, consolidatedR,
-    winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR, weatherR, deviceR, hrDailyR,
+    winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR, weatherR, deviceR, hrDailyR, bankR,
   ] = await fetchRawCorrelationData(supabase, userId, start90);
 
   // Log queries failing (non-fatal, warning only)
-  const queries = { strainR, ouraR, ouraEnhR, nutrR, aggregatesR, frictionR, foodR, consolidatedR, winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR, weatherR, deviceR, hrDailyR };
+  const queries = { strainR, ouraR, ouraEnhR, nutrR, aggregatesR, frictionR, foodR, consolidatedR, winsR, reconR, suppLogR, suppR, stravaR, awR, bodyR, habitLogR, weatherR, deviceR, hrDailyR, bankR };
   for (const [name, res] of Object.entries(queries)) {
     if (res.error) {
       console.warn(`[correlations] query failed: ${name}: ${res.error.message}`);
@@ -124,6 +127,7 @@ export async function fetchAndPrepareCorrelationData(
       weatherRows: weatherR.data ?? [],
       deviceRows: deviceR.data ?? [],
       hrDailyRows: hrDailyR.data ?? [],
+      bankRows: bankR.data ?? [],
     },
     habitLogR,
   };

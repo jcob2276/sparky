@@ -19,7 +19,7 @@ function readBankReturn(): 'connected' | 'denied' | null {
 export function FinanceBankCard() {
   const userId = useStore((s) => s.session?.user?.id);
   const query = useBankData(userId);
-  const { connect, sync } = useBankActions(userId);
+  const { connect, sync, assignCategory } = useBankActions(userId);
   const { mutate: runSync } = sync;
 
   useEffect(() => {
@@ -40,8 +40,13 @@ export function FinanceBankCard() {
       loading={query.isLoading}
       connecting={connect.isPending}
       syncing={sync.isPending}
+      assigning={assignCategory.isPending}
       onConnect={() => connect.mutate(undefined, { onError: onError('Nie udało się rozpocząć połączenia z bankiem') })}
       onSync={() => sync.mutate(undefined, { onError: onError('Synchronizacja z bankiem nie powiodła się') })}
+      onAssignCategory={(transactionId, category) => assignCategory.mutate(
+        { transactionId, category, remember: true },
+        { onError: onError('Nie udało się zapisać kategorii') },
+      )}
     />
   );
 }

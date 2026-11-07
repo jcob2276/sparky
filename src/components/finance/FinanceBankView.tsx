@@ -2,6 +2,10 @@ import type { BankAccount, BankData, BankTransaction } from '../../lib/finance/b
 import { needsRenewal, type BankHealth } from '../../lib/finance/bankStatus';
 import { formatWarsawDate } from '../../lib/date';
 import { formatPln } from '../../lib/finance/formatMoney';
+import { bankCategoryLabel } from '../../lib/finance/bankSpending';
+import { BankSpendingSummary } from './BankSpendingSummary';
+import { BankReviewList } from './BankReviewList';
+import { BankRecurringList } from './BankRecurringList';
 import Button from '../ui/Button';
 import { FinanceEmpty, FinanceList, FinanceRow, FinanceSection } from './financeUi';
 
@@ -11,8 +15,10 @@ interface FinanceBankViewProps {
   loading: boolean;
   connecting: boolean;
   syncing: boolean;
+  assigning: boolean;
   onConnect: () => void;
   onSync: () => void;
+  onAssignCategory: (transactionId: string, category: string) => void;
 }
 
 function healthLine(health: BankHealth): string {
@@ -24,6 +30,9 @@ function healthLine(health: BankHealth): string {
     case 'failed': return 'Ostatnie połączenie z bankiem się nie udało. Spróbuj ponownie.';
   }
 }
+
+/** Bank wpisuje ten sam opis przy każdej płatności kartą — nie niesie informacji, a zaśmieca listę. */
+const GENERIC_CARD_REMITTANCE = /^TRANSAKCJA KART/i;
 
 function ibanTail(account: BankAccount): string {
   return account.iban ? `…${account.iban.slice(-4)}` : '';
@@ -49,13 +58,19 @@ function TransactionRow({ tx }: { tx: BankTransaction }) {
   return (
     <FinanceRow
       primary={tx.counterparty_name ?? tx.remittance ?? 'Transakcja'}
-      secondary={`${tx.booking_date ? formatWarsawDate(tx.booking_date) : ''}${tx.counterparty_name && tx.remittance ? ` · ${tx.remittance}` : ''}`}
+      secondary={[
+        tx.booking_date ? formatWarsawDate(tx.booking_date) : '',
+        bankCategoryLabel(tx.category),
+        tx.counterparty_name && tx.remittance && !GENERIC_CARD_REMITTANCE.test(tx.remittance) ? tx.remittance : '',
+      ].filter(Boolean).join(' · ')}
       trailing={<span className={credit ? 'text-success' : undefined}>{`${credit ? '+' : ''}${formatPln(tx.amount, 2)}`}</span>}
     />
   );
 }
 
-export function FinanceBankView({ data, health, loading, connecting, syncing, onConnect, onSync }: FinanceBankViewProps) {
+export function FinanceBankView({
+  data, health, loading, connecting, syncing, assigning, onConnect, onSync, onAssignCategory,
+}: FinanceBankViewProps) {
   const renew = needsRenewal(health);
   const connected = health.kind !== 'none';
   const lastSync = data?.connection?.last_synced_at;
@@ -78,8 +93,16 @@ export function FinanceBankView({ data, health, loading, connecting, syncing, on
       {data?.connection?.last_error && connected && (
         <p className="px-4 pb-3 text-xs text-danger">Ostatni błąd: {data.connection.last_error}</p>
       )}
+      {!data?.connection?.last_error && data?.connection?.last_note && connected && (
+        <p className="px-4 pb-3 text-xs text-text-muted">{data.connection.last_note}</p>
+      )}
       {loading && <FinanceEmpty>Wczytuję dane z banku…</FinanceEmpty>}
       {data && data.accounts.length > 0 && <AccountRows accounts={data.accounts} />}
+      {data && <BankSpendingSummary spending={data.monthSpending} />}
+      {data && (
+        <BankReviewList items={data.review} total={data.reviewCount} pending={assigning} onAssign={onAssignCategory} />
+      )}
+      {data && <BankRecurringList items={data.recurring} />}
       {data && data.transactions.length > 0 && (
         <>
           <p className="border-t border-border-custom/20 px-4 pb-1 pt-3 text-xs text-text-muted">

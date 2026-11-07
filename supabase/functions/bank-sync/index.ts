@@ -1,16 +1,16 @@
 /**
  * @function bank-sync
- * @trigger POST z aplikacji (start, sync) + GET callback z banku (przekierowanie po zgodzie) + cron sync (service role)
+ * @trigger POST z aplikacji (start, sync, categorize, set_category) + GET callback z banku (przekierowanie po zgodzie) + cron sync (service role)
  * @role Open banking PSD2 (Enable Banking, tylko odczyt): zgoda w banku, rachunki, salda i pelna historia transakcji
  * @reads bank_connections, bank_connection_secrets, bank_accounts, bank_transactions
  * @writes bank_connections, bank_connection_secrets, bank_accounts, bank_transactions
- * @consumer brak jeszcze UI; dane czytane z bank_* przez RLS
+ * @consumer Finanse > Bank (FinanceBankCard); dane czytane z bank_* przez RLS
  * @status active
  */
 import { HttpError, serveJson } from '../_shared/http.ts';
 import { resolveUserScope } from '../_shared/supabase.ts';
 import { completeConnection, failConnection, startConnection } from './handlers/connect.ts';
-import { syncUser } from './handlers/sync.ts';
+import { recategorize, setCategory, syncUser } from './handlers/sync.ts';
 
 // auth 'none': GET callback nie niesie JWT (chroni go jednorazowy, losowy state); POST sprawdza uzytkownika recznie.
 Deno.serve(serveJson(async (req, ctx) => {
@@ -40,8 +40,12 @@ Deno.serve(serveJson(async (req, ctx) => {
       return await startConnection(db, scope.userId);
     }
     case 'sync':
-      return { results: await syncUser(db, scope.userId) };
+      return { results: await syncUser(db, scope.userId, !scope.isServiceRole) };
+    case 'categorize':
+      return await recategorize(db, scope.userId);
+    case 'set_category':
+      return await setCategory(db, scope.userId, body);
     default:
-      throw new HttpError(400, 'Nieznana akcja (start | sync)');
+      throw new HttpError(400, 'Nieznana akcja (start | sync | categorize | set_category)');
   }
 }, { auth: 'none' }));

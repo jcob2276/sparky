@@ -22,6 +22,7 @@ const ZYW_METRICS = new Set([
   'calories', 'protein', 'carbs', 'fat', 'sugar', 'fiber', 'insulin_load', 'food_quality', 'fueling',
   'caffeine_mg', 'caffeine_late_mg', 'last_coffee_hour', 'last_meal_hour', 'calories_late', 'alcohol_units',
   'dinner_hour', 'dinner_calories', 'dinner_carbs', 'dinner_fat', 'dinner_to_bed_gap_h',
+  'spend_food', 'spend_eating_out',
 ])
 
 const TRENING_METRICS = new Set([
@@ -48,7 +49,7 @@ const SUPLEMENTY_METRICS = new Set([
 const ZACHOWANIE_METRICS = new Set([
   'mood_score', 'daily_rpe', 'plan_done_pct', 'day_score',
   'friction_count', 'avoidance_count', 'procrastination_count', 'travel_day', 'illness_day',
-  'stress_manual', 'weight_kg',
+  'stress_manual', 'weight_kg', 'spend_total',
 ])
 
 function behaviorMetricId(behaviorKey: string): string {

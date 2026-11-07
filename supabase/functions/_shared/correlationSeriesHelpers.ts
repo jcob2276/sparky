@@ -24,6 +24,7 @@ export function emptySeries(): Record<string, SeriesPoint[]> {
     phone_unlocks: [], phone_screen_min: [], screen_after_22_min: [], evening_lux: [], notif_per_hour: [],
     phone_sleep_min: [], home_wifi_min: [], work_wifi_min: [], headphones_min: [],
     hr_day_avg: [], hr_day_p90: [], hr_day_rest: [],
+    spend_total: [], spend_food: [], spend_eating_out: [],
   }
 }
 
@@ -47,6 +48,7 @@ export interface SeriesBuildInput {
   weatherRows?: Record<string, unknown>[]
   deviceRows?: Record<string, unknown>[]
   hrDailyRows?: Record<string, unknown>[]
+  bankRows?: { booking_date: string | null; amount: number | string; category: string | null }[]
 }
 
 export function aggregateStravaRuns(

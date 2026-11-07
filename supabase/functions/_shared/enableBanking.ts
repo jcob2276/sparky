@@ -33,6 +33,14 @@ export class EbError extends Error {
   constructor(readonly status: number, readonly code: string, message: string) { super(message); }
 }
 
+/**
+ * Limit odczytów PSD2 po stronie banku: 429 ASPSP_RATE_LIMIT_EXCEEDED albo 400 ASPSP_ERROR przy transakcjach.
+ * To stan przejściowy (limit dobowy bez obecności użytkownika), a nie awaria połączenia ani wygasła zgoda.
+ */
+export const isBankReadLimit = (err: unknown): boolean =>
+  err instanceof EbError
+  && (err.status === 429 || err.code === 'ASPSP_RATE_LIMIT_EXCEEDED' || (err.status === 400 && err.code === 'ASPSP_ERROR'));
+
 const b64url = (input: string | Uint8Array): string => {
   const bytes = typeof input === 'string' ? new TextEncoder().encode(input) : input;
   let bin = '';

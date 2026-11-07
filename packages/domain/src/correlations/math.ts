@@ -134,7 +134,8 @@ export const ALLOWED_INPUTS = new Set([
   'weather_temp_mean', 'weather_sunshine_h', 'weather_precip_mm', 'weather_humidity',
   'phone_unlocks', 'phone_screen_min', 'screen_after_22_min', 'evening_lux', 'notif_per_hour',
   'home_wifi_min', 'work_wifi_min', 'headphones_min',
-  'hr_day_avg', 'hr_day_p90', 'hr_day_rest', 'stress_manual'
+  'hr_day_avg', 'hr_day_p90', 'hr_day_rest', 'stress_manual',
+  'spend_total', 'spend_food', 'spend_eating_out'
 ]);
 
 export const REDUNDANT_GROUPS = [
@@ -146,7 +147,8 @@ export const REDUNDANT_GROUPS = [
   ['screen_after_22_min', 'night_screen_min'],
   ['weather_temp_mean', 'weather_temp_max'],
   ['dinner_calories', 'dinner_carbs', 'dinner_fat'],
-  ['hr_day_avg', 'hr_day_p90', 'hr_day_rest', 'rhr']
+  ['hr_day_avg', 'hr_day_p90', 'hr_day_rest', 'rhr'],
+  ['spend_total', 'spend_food', 'spend_eating_out']
 ];
 
 export function isAllowedInput(metric: string): boolean {

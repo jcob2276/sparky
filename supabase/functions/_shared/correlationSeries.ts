@@ -1,4 +1,4 @@
-import type { SeriesPoint } from './correlationEngine.ts'
+import { shiftDay, type SeriesPoint } from './correlationEngine.ts'
 import { estimateCaffeineMg } from './caffeineEstimate.ts'
 import { getWarsawDateString } from './time.ts'
 import {
@@ -234,6 +234,29 @@ export function buildMetricSeries(input: SeriesBuildInput): Record<string, Serie
     if (r.day_avg_bpm != null) series.hr_day_avg.push({ day, value: Number(r.day_avg_bpm) })
     if (r.day_p90_bpm != null) series.hr_day_p90.push({ day, value: Number(r.day_p90_bpm) })
     if (r.day_rest_bpm != null) series.hr_day_rest.push({ day, value: Number(r.day_rest_bpm) })
+  }
+
+  // Wydatki z banku po dniach. Dni bez obciążeń między pierwszą a ostatnią transakcją to realne zero
+  // (bank jest zsynchronizowany), a przelewy własne i inwestycje nie są wydatkiem.
+  const spendByDay = new Map<string, { total: number; food: number; eatingOut: number }>()
+  for (const r of input.bankRows ?? []) {
+    const day = r.booking_date
+    const amount = Math.abs(Number(r.amount))
+    if (!day || !Number.isFinite(amount) || r.category === 'przelewy_wlasne' || r.category === 'inwestycje') continue
+    const acc = spendByDay.get(day) ?? { total: 0, food: 0, eatingOut: 0 }
+    acc.total += amount
+    if (r.category === 'zakupy_spozywcze' || r.category === 'jedzenie_na_miescie') acc.food += amount
+    if (r.category === 'jedzenie_na_miescie') acc.eatingOut += amount
+    spendByDay.set(day, acc)
+  }
+  if (spendByDay.size > 0) {
+    const days = [...spendByDay.keys()].sort()
+    for (let day = days[0]; day <= days[days.length - 1]; day = shiftDay(day, 1) ?? '9999-12-31') {
+      const acc = spendByDay.get(day) ?? { total: 0, food: 0, eatingOut: 0 }
+      series.spend_total.push({ day, value: Math.round(acc.total * 100) / 100 })
+      series.spend_food.push({ day, value: Math.round(acc.food * 100) / 100 })
+      series.spend_eating_out.push({ day, value: Math.round(acc.eatingOut * 100) / 100 })
+    }
   }
 
   for (const r of input.deviceRows ?? []) {
