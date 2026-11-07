@@ -38,7 +38,8 @@ function FinancePage() {
   const mutations = useFinanceMutations(userId);
   const holdingMutations = useHoldingMutations(userId);
   const cashEntry = useCashEntryMutation(userId);
-  const [tab, setTab] = useState<FinanceTabKey>('dashboard');
+  // Powrót z banku (?bank=connected|denied) ląduje na Kontach, gdzie karta Bank obsługuje wynik.
+  const [tab, setTab] = useState<FinanceTabKey>(() => (new URLSearchParams(window.location.search).has('bank') ? 'accounts' : 'dashboard'));
   const [quickEntry, setQuickEntry] = useState<{ open: boolean; kind: 'expense' | 'income' }>({ open: false, kind: 'expense' });
   const reduceMotion = useReducedMotion();
 
