@@ -1,101 +1,21 @@
 import Button from '../ui/Button';
 import { ControlInput, ControlSelect } from '../ui/ControlPrimitives';
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Save, MapPin, Watch, Calendar, ArrowLeft, User } from 'lucide-react';
 import { isNativePlatform } from '../../lib/native/platform';
 import NativePermissionsCard from './NativePermissionsCard';
 import DeviceSignalsCard from './DeviceSignalsCard';
-import {
-  fetchNutritionProfile,
-  upsertNutritionProfile,
-} from '../../lib/userSettingsApi';
-import { useUserSettings, useUpdateUserSettings } from '../../hooks/useUserSettings';
-import { useQueryClient } from '@tanstack/react-query';
-import { userSettingsKeys } from '../../lib/queryKeys';
-import { useSyncActions } from '../../hooks/useSyncActions';
-import { useSession } from '../../store/useStore';
-import { invalidateLifeTargets } from '../../lib/lifeTargetsApi';
-import { notify } from '../../lib/notify';
 import type { Tables } from '../../lib/database.types';
 import AiContextSettings from './AiContextSettings';
 import AboutMeSettings from './AboutMeSettings';
 import BrainHealth from '../biometrics/BrainHealth';
 import LifeTargetsSettings from './LifeTargetsSettings';
 import SettingsSection from './SettingsSection';
+import ActiveSessionsCard from './ActiveSessionsCard';
+import { useSettingsForm } from './useSettingsForm';
 
 export default function SettingsView() {
-  const session = useSession();
-  const queryClient = useQueryClient();
-  const userId = session?.user?.id ?? '';
-  const { data: userSettings } = useUserSettings(userId);
-  const updateSettingsMutation = useUpdateUserSettings();
-  const [form, setForm] = useState<Partial<Tables<'user_settings'>>>({});
-  const [profile, setProfile] = useState<Partial<Tables<'nutrition_profile'>>>({});
-  const [saving, setSaving] = useState(false);
-
-  const { syncCalendar, startGoogleAuth } = useSyncActions({
-    userId: session?.user?.id ?? '',
-    accessToken: session?.access_token ?? '',
-    onRefresh: () => {
-      if (!session?.user?.id) return;
-      void queryClient.invalidateQueries({
-        queryKey: userSettingsKeys.detail(session.user.id),
-      });
-    },
-    setSyncing: () => {},
-  });
-
-  useEffect(() => {
-    if (userSettings) void (async () => { setForm(userSettings); })();
-  }, [userSettings]);
-
-  useEffect(() => {
-    async function loadProfile() {
-      try {
-        const data = await fetchNutritionProfile(userId);
-        if (data) setProfile(data);
-      } catch (err: unknown) {
-        console.error('[SettingsView] Failed to load profile:', err);
-      }
-    }
-    if (userId) {
-      void loadProfile();
-    }
-  }, [userId]);
-
-  const save = async () => {
-    if (!userId) return;
-    setSaving(true);
-    try {
-      await updateSettingsMutation.mutateAsync({
-        user_id: userId,
-        oura_token: form.oura_token || null,
-        home_lat: form.home_lat ?? null,
-        home_lng: form.home_lng ?? null,
-        updated_at: new Date().toISOString(),
-      });
-
-      await upsertNutritionProfile({
-        user_id: userId,
-        birth_date: profile.birth_date || null,
-        sex: profile.sex || null,
-        height_cm: profile.height_cm ? Number(profile.height_cm) : null,
-        goal_body_fat: profile.goal_body_fat ? Number(profile.goal_body_fat) : null,
-        goal_target_date: profile.goal_target_date || null,
-        protein_g_per_kg: profile.protein_g_per_kg ? Number(profile.protein_g_per_kg) : 2.0,
-        weekly_loss_kg: profile.weekly_loss_kg ? Number(profile.weekly_loss_kg) : 0.5,
-        updated_at: new Date().toISOString(),
-      });
-
-      invalidateLifeTargets(queryClient, userId);
-      notify('Ustawienia zapisane.', 'success');
-    } catch (e: unknown) {
-      notify(e instanceof Error ? (e as Error).message : 'Błąd zapisu', 'error');
-    } finally {
-      setSaving(false);
-    }
-  };
+  const { session, form, setForm, profile, setProfile, saving, save, syncCalendar, startGoogleAuth } = useSettingsForm();
 
   if (!session) return null;
 
@@ -107,6 +27,8 @@ export default function SettingsView() {
         </Link>
         <h1 className="font-display text-2xl font-semibold tracking-tight text-text-primary">Ustawienia</h1>
       </div>
+
+      <ActiveSessionsCard userId={session.user.id} />
 
       <SettingsSection icon={<Watch size={16} />} title="Oura" description="Token pozwala pobierać sen, gotowość i aktywność.">
         <ControlInput

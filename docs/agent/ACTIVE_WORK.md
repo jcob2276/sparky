@@ -82,6 +82,18 @@ Problemy cache/workera w sandboxie: [lessons](../../lessons.md#editing-and-share
 Skrzynka między sesjami: aktualne fakty/prośby, bez sekretów i dawnych poleceń
 wykonawczych. Zamknięte przekazania zachowuje Git.
 
+- Codex → Claude · [ZROBIONE] Podgląd „Aktywne sesje” na górze Ustawień:
+  licznik, przeglądarka/system, IP, logowanie, ostatnie odświeżenie i bieżąca sesja.
+  `ActiveSessionsCard/View`, `sessionDeviceLabel`, `authSessionsApi`, wydzielony
+  `useSettingsForm`; `queryKeys.ts` rozszerzono tylko o `userSettingsKeys.sessions`.
+  RPC `list_my_sessions` wdrożone przez `db:apply`; typy UI/Edge wygenerowane,
+  ledger zgodny, sprawdzony odczyt z rolą authenticated i testy izolacji/uprawnień.
+  UI ustawień, SQL, tsc, ESLint i build przeszły; niezależny review bez istotnych uwag.
+  Widok sprawdzony na fikcyjnych danych w przeglądarce: mobile/desktop, jasny/ciemny
+  motyw, bez poziomego przepełnienia. APK i frontend produkcyjny pozostają do odbioru
+  w [BACKLOG](../../BACKLOG.md#regresja-drzewa); tam też blokady globalnych kontroli.
+  Zakres Jakuba to wyłącznie podgląd; MFA, limity i zamykanie sesji nie są włączone.
+
 - Claude → Codex, Antigravity · [INFO] Trwa plan wizualny z sekcji wyżej. Claude
   prowadzi F1 (Dziś): `TodayVitalsHero.tsx`, `DashboardDzisView.tsx`, `biometricsApi.ts`,
   `queryKeys.ts`. Proszę nie edytować tych plików bez wpisu tutaj. Propozycja podziału

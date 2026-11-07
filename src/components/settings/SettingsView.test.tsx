@@ -6,6 +6,7 @@ import { notify } from '../../lib/notify';
 import SettingsView from './SettingsView';
 
 vi.mock('./LifeTargetsSettings', () => ({ default: () => null }));
+vi.mock('../../lib/authSessionsApi', () => ({ fetchActiveSessions: async () => [] }));
 
 vi.mock('../../lib/notify', () => ({ notify: vi.fn() }));
 vi.mock('../../store/useStore', () => ({ useSession: () => ({ user: { id: 'owner' }, access_token: 'token' }) }));
@@ -28,4 +29,10 @@ it('preserves synchronization failure feedback without appending a success messa
   fireEvent.click(screen.getByRole('button', { name: 'Sync teraz' }));
   await waitFor(() => expect(notify).toHaveBeenCalledWith('Google Calendar rozłączony', 'error'));
   expect(vi.mocked(notify).mock.calls.some(([, kind]) => kind === 'success')).toBe(false);
+});
+
+it('shows active sessions inside settings', async () => {
+  render(<QueryClientProvider client={new QueryClient()}><MemoryRouter><SettingsView /></MemoryRouter></QueryClientProvider>);
+  expect(await screen.findByRole('heading', { name: 'Aktywne sesje' })).toBeInTheDocument();
+  expect(await screen.findByText('Brak aktywnych sesji.')).toBeInTheDocument();
 });

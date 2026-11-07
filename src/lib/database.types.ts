@@ -8133,6 +8133,17 @@ export type Database = {
         Args: { p_plan_workout_id: string; p_strava_id: number }
         Returns: undefined
       }
+      list_my_sessions: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          ip: string
+          is_current: boolean
+          last_refreshed_at: string
+          user_agent: string
+        }[]
+      }
       log_learning_progress: {
         Args: { p_amount: number; p_assignment_id: string; p_date: string }
         Returns: {

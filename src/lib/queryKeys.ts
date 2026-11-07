@@ -185,6 +185,7 @@ export const mealPlanKeys = {
 export const userSettingsKeys = {
   all: ['user-settings'] as const,
   detail: (userId: string) => [...userSettingsKeys.all, userId] as const,
+  sessions: (userId: string) => [...userSettingsKeys.detail(userId), 'sessions'] as const,
 };
 
 // ── SHUTDOWN KEYS ──

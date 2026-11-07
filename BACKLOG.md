@@ -105,6 +105,13 @@ Zasady i dokumenty domenowe: [indeks](docs/README.md).
 ### Porządkowanie — regresja wspólnego drzewa
 <a id="regresja-drzewa"></a>
 
+- [ ] Wdrożyć frontend podglądu „Aktywne sesje” w Ustawieniach i odebrać na
+  zalogowanej PWA/APK. RPC `list_my_sessions` jest zastosowane; sprawdzić zgodność
+  listy z rzeczywistymi logowaniami i oznaczenie bieżącej sesji.
+- [ ] Odblokować globalne kontrole: ratchet stylów `core/auth.css`, nieużywany
+  `DayCompletenessToggle.tsx` i deklaracje binarnego `powershell` w Knip;
+  reguły odczytu `bank_connections`, `bank_accounts`, `bank_transactions` powinny
+  opakować `auth.uid()` w `(select auth.uid())`, zgodnie z kontrolą initplan.
 - [ ] Po zakończeniu równoległej pracy uruchomić pełną regresję i niezależny przegląd.
   Zestawy kontroli: [CONTRIBUTING](CONTRIBUTING.md), [backend](docs/BACKEND_CONTRACT.md)
   i [frontend](docs/FRONTEND_GUIDE.md). Lokalny test nie potwierdza wdrożenia.
