@@ -1,0 +1,20 @@
+[Unit]
+Description=Sparky: worker kolejki pgmq (sparky_jobs)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=sparky-worker
+EnvironmentFile=/etc/sparky-worker.env
+ExecStart=/opt/sparky-worker/venv/bin/python /opt/sparky-worker/sparky-worker.py
+Restart=always
+RestartSec=5
+Nice=10
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+MemoryMax=1G
+
+[Install]
+WantedBy=multi-user.target
