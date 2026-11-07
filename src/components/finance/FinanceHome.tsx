@@ -94,8 +94,8 @@ export function FinanceHome({
         onNavigate={onNavigate}
       />
       <MonthFlow metrics={metrics} />
-      <details className="group space-y-6">
-        <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-text-secondary">Cele i struktura majątku</summary>
+      <section className="space-y-6" aria-label="Cele i struktura majątku">
+        <h2 className="text-sm font-semibold text-text-secondary">Cele i struktura majątku</h2>
         <FinanceGoalCard
           metrics={metrics}
           snapshots={data.snapshots}
@@ -128,7 +128,7 @@ export function FinanceHome({
           <FinanceAllocationCard accounts={data.accounts} holdings={holdings} />
           <FinanceEmergencyCard metrics={metrics} />
         </div>
-      </details>
+      </section>
     </div>
   );
 }

@@ -86,7 +86,8 @@ wykonawczych. Zamknięte przekazania zachowuje Git.
   Pulpit zawiera sumy i krótki bilans miesiąca; Portfel jest jedynym miejscem
   szczegółów inwestycji. Konta zawierają salda i obsługę połączenia, Przepływy historię,
   kategorie oraz plan płatności. Usunięto powtórzone listy i nieaktywne komponenty;
-  cele, mapę i plan rozwija się na żądanie. Zachowano uzgadnianie wpisów, edycję sald
+  cele i strukturę majątku pokazuje się od razu; mapę i plan rozwija się na żądanie.
+  Zachowano uzgadnianie wpisów, edycję sald
   i kategorii oraz nawigację przy braku pewnych sum. Review poprawił odzyskiwanie
   niedostępnego konta i czytelność zmiany/daty małych pozycji na telefonie.
   Testy Finansów, typy, lint, ratchet/Knip i build przeszły; podgląd mobilny/desktop,
