@@ -206,6 +206,11 @@ import_map = "./functions/import_map.json"
 # own auth in serveJson (user JWT or service key); the gateway check would reject non-JWT secret keys
 verify_jwt = false
 
+[functions.bank-sync]
+import_map = "./functions/import_map.json"
+# GET callback z banku nie niesie JWT (chroni go jednorazowy state); POST sprawdza uzytkownika w kodzie
+verify_jwt = false
+
 [functions.food-integrity-audit]
 import_map = "./functions/import_map.json"
 verify_jwt = false

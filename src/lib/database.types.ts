@@ -186,6 +186,189 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_accounts: {
+        Row: {
+          account_uid: string
+          balance: number | null
+          balance_synced_at: string | null
+          balance_type: string | null
+          connection_id: string
+          created_at: string
+          currency: string | null
+          history_complete: boolean
+          history_cursor: string | null
+          iban: string | null
+          id: string
+          name: string | null
+          user_id: string
+        }
+        Insert: {
+          account_uid: string
+          balance?: number | null
+          balance_synced_at?: string | null
+          balance_type?: string | null
+          connection_id: string
+          created_at?: string
+          currency?: string | null
+          history_complete?: boolean
+          history_cursor?: string | null
+          iban?: string | null
+          id?: string
+          name?: string | null
+          user_id: string
+        }
+        Update: {
+          account_uid?: string
+          balance?: number | null
+          balance_synced_at?: string | null
+          balance_type?: string | null
+          connection_id?: string
+          created_at?: string
+          currency?: string | null
+          history_complete?: boolean
+          history_cursor?: string | null
+          iban?: string | null
+          id?: string
+          name?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_accounts_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "bank_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_connection_secrets: {
+        Row: {
+          connection_id: string
+          pending_state: string | null
+          session_id: string | null
+        }
+        Insert: {
+          connection_id: string
+          pending_state?: string | null
+          session_id?: string | null
+        }
+        Update: {
+          connection_id?: string
+          pending_state?: string | null
+          session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_connection_secrets_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: true
+            referencedRelation: "bank_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bank_connections: {
+        Row: {
+          aspsp_country: string
+          aspsp_name: string
+          created_at: string
+          id: string
+          last_error: string | null
+          last_synced_at: string | null
+          provider: string
+          status: string
+          updated_at: string
+          user_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          aspsp_country: string
+          aspsp_name: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          provider?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          aspsp_country?: string
+          aspsp_name?: string
+          created_at?: string
+          id?: string
+          last_error?: string | null
+          last_synced_at?: string | null
+          provider?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          valid_until?: string | null
+        }
+        Relationships: []
+      }
+      bank_transactions: {
+        Row: {
+          account_id: string
+          amount: number
+          booking_date: string | null
+          counterparty_iban: string | null
+          counterparty_name: string | null
+          created_at: string
+          currency: string
+          direction: string
+          id: string
+          raw: Json
+          remittance: string | null
+          transaction_id: string
+          user_id: string
+          value_date: string | null
+        }
+        Insert: {
+          account_id: string
+          amount: number
+          booking_date?: string | null
+          counterparty_iban?: string | null
+          counterparty_name?: string | null
+          created_at?: string
+          currency: string
+          direction: string
+          id?: string
+          raw: Json
+          remittance?: string | null
+          transaction_id: string
+          user_id: string
+          value_date?: string | null
+        }
+        Update: {
+          account_id?: string
+          amount?: number
+          booking_date?: string | null
+          counterparty_iban?: string | null
+          counterparty_name?: string | null
+          created_at?: string
+          currency?: string
+          direction?: string
+          id?: string
+          raw?: Json
+          remittance?: string | null
+          transaction_id?: string
+          user_id?: string
+          value_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       behavior_log: {
         Row: {
           behavior_key: string

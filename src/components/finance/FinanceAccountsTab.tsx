@@ -6,6 +6,7 @@ import { formatPln } from '../../lib/finance/formatMoney';
 import { confirmDialog } from '../../lib/notify';
 import Button from '../ui/Button';
 import { ControlInput, ControlSelect } from '../ui/ControlPrimitives';
+import { FinanceBankCard } from './FinanceBankCard';
 import { FinanceSalesGoalCard } from './FinanceSalesGoalCard';
 import { FinanceEmpty, FinanceList, FinanceRow, FinanceSection } from './financeUi';
 
@@ -95,6 +96,7 @@ export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccounts
 
   return (
     <div className="space-y-8">
+      <FinanceBankCard />
       <FinanceSection
         title="Konta i gotówka"
         subtitle={`Aktywa ${formatPln(assets.reduce((n, a) => n + a.balance, 0))}${debts.length ? ` · długi ${formatPln(debts.reduce((n, a) => n + a.balance, 0))}` : ''}. Inwestycje dodajesz w Portfelu.`}

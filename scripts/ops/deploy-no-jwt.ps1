@@ -10,6 +10,7 @@ $all = @(
   "analyze-food-quality",
   "analyze-physique",
   "analyze-training-load",
+  "bank-sync",
   "calendar-watch",
   "calendar-write",
   "closer-reanalyze",
