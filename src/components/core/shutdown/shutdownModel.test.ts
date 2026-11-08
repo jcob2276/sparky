@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildShutdownRecord } from './shutdownModel';
+import { buildShutdownRecord, mergeCompletions } from './shutdownModel';
 
 describe('buildShutdownRecord', () => {
   it('persists task completion and omits daily RPE', () => {
@@ -36,5 +36,12 @@ describe('buildShutdownRecord', () => {
     });
 
     expect(record.dailyWinPatch.result).toBe('Z');
+  });
+});
+
+describe('mergeCompletions', () => {
+  it('slot nieruszony w formularzu bierze świeży stan z bazy, zmieniony wygrywa', () => {
+    expect(mergeCompletions([false, true, false], [false, true, false], [true, true, true])).toEqual([true, true, true]);
+    expect(mergeCompletions([false, true, false], [false, false, true], [true, true, false])).toEqual([true, false, true]);
   });
 });

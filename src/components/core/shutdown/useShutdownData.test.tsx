@@ -6,7 +6,7 @@ import { shutdownKeys, todoKeys } from '../../../lib/queryKeys';
 import { useShutdownData } from './useShutdownData';
 
 const m = vi.hoisted(() => ({
-  updateSlot: vi.fn(), updateDay: vi.fn(), score: vi.fn(), stream: vi.fn(),
+  updateSlot: vi.fn(), updateDay: vi.fn(), score: vi.fn(), stream: vi.fn(), fetchWin: vi.fn(),
 }));
 vi.mock('../../../store/useStore', () => ({ useUserId: () => 'owner' }));
 vi.mock('../../../lib/date', () => ({ getTodayWarsaw: () => '2026-10-28' }));
@@ -14,7 +14,7 @@ vi.mock('../../../lib/notify', () => ({ notify: vi.fn() }));
 vi.mock('../../../lib/dailyWinTasksApi', () => ({ updateDailyWinTaskBySlot: m.updateSlot }));
 vi.mock('../../../lib/goal/goalSpine.mutations', () => ({ updateDailyWin: m.updateDay }));
 vi.mock('../../../lib/shutdownApi', () => ({
-  fetchDailyWin: vi.fn(), fetchDailyReconciliationScore: vi.fn(),
+  fetchDailyWin: m.fetchWin, fetchDailyReconciliationScore: vi.fn(),
   upsertDailyReconciliationScore: m.score, insertSparkyStream: m.stream,
 }));
 
@@ -33,7 +33,7 @@ function setup() {
   return { ...renderHook(() => useShutdownData(), { wrapper }), invalidate };
 }
 
-beforeEach(() => { vi.clearAllMocks(); m.updateSlot.mockResolvedValue(undefined); });
+beforeEach(() => { vi.clearAllMocks(); m.updateSlot.mockResolvedValue(undefined); m.fetchWin.mockResolvedValue(null); });
 
 describe('shutdown normalized tasks', () => {
   it('loads sparse slots and saves completion by slot without changing an earlier timestamp', async () => {
@@ -49,6 +49,18 @@ describe('shutdown normalized tasks', () => {
     expect(m.updateDay).toHaveBeenCalledWith('owner', 'day', { day_note: '', mood_score: 4, result: 'Z' });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: shutdownKeys.data('owner', '2026-10-28') });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: todoKeys.dailyWins('owner', '2026-10-28') });
+  });
+
+  it('nie cofa zadań odhaczonych poza formularzem i liczy wynik ze świeżego stanu', async () => {
+    const { result } = setup();
+    // formularz wczytał slot 5 jako niewykonany, ale w międzyczasie odhaczono go w liście dnia
+    m.fetchWin.mockResolvedValue({ id: 'day', day_note: '', mood_score: 4, daily_win_tasks: [
+      { slot: 5, title: 'Call', todo_id: 'todo', done: true, completed_at: 'later' },
+      { slot: 2, title: 'Run', todo_id: null, done: true, completed_at: 'old' },
+    ] });
+    await act(async () => { expect(await result.current.handleSaveShutdown()).toBe(true); });
+    expect(m.updateSlot).not.toHaveBeenCalled();
+    expect(m.updateDay).toHaveBeenCalledWith('owner', 'day', { day_note: '', mood_score: 4, result: 'Z' });
   });
 
   it('clears completion time when unchecked and stops closing the day on a failed task write', async () => {

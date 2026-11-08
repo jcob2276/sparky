@@ -42,3 +42,11 @@ export function buildShutdownRecord({
     },
   };
 }
+
+/**
+ * Łączy stan formularza ze świeżym stanem z bazy. Slot, którego w formularzu nie ruszyłeś (równy stanowi wczytanemu),
+ * bierzemy z bazy; slot zmieniony w formularzu wygrywa.
+ */
+export function mergeCompletions(baseline: boolean[], form: boolean[], fresh: boolean[]): boolean[] {
+  return fresh.map((dbValue, index) => (form[index] !== baseline[index] ? Boolean(form[index]) : dbValue));
+}

@@ -12,7 +12,7 @@ import {
   upsertDailyReconciliationScore,
   insertSparkyStream,
 } from '../../../lib/shutdownApi';
-import { buildShutdownRecord } from './shutdownModel';
+import { buildShutdownRecord, mergeCompletions } from './shutdownModel';
 
 function completionState(win: DailyWinWithTasks): boolean[] {
   return [1, 2, 3, 4, 5].map(slot => Boolean(win.daily_win_tasks.find(task => task.slot === slot)?.done));
@@ -73,6 +73,10 @@ export function useShutdownData() {
   const [completedTasks, setCompletedTasks] = useState<boolean[]>(
     initial?.completedTasks ?? [false, false, false, false, false],
   );
+  // Stan zadań w chwili, gdy formularz go wczytał; pozwala odróżnić to, co zmieniłeś tu, od zmian zrobionych gdzie indziej.
+  const [baseline, setBaseline] = useState<boolean[]>(
+    initial?.completedTasks ?? [false, false, false, false, false],
+  );
   const [reflectionText, setReflectionText] = useState(initial?.reflectionText ?? '');
   const [moodScore, setMoodScore] = useState(initial?.moodScore ?? 3);
   const [dayScore, setDayScore] = useState(initial?.dayScore ?? 7);
@@ -82,6 +86,7 @@ export function useShutdownData() {
   if (todayWin && syncedWinId !== todayWin.id) {
     setSyncedWinId(todayWin.id);
     setCompletedTasks(completionState(todayWin));
+    setBaseline(completionState(todayWin));
     setReflectionText(todayWin.day_note || '');
     setMoodScore(todayWin.mood_score || 3);
     setDayScore(fetched?.dayScore ?? 7);
@@ -102,18 +107,22 @@ export function useShutdownData() {
     if (!userId || !todayWin) return false;
     setSaving(true);
     try {
+      // Zadania mogły zostać odhaczone poza tym formularzem (lista dnia, następnego dnia). Bierzemy świeży stan z bazy,
+      // a nadpisujemy tylko to, co zmieniłeś tutaj; inaczej stary stan formularza dałby P albo cofnąłby odhaczenia.
+      const freshWin = (await fetchDailyWin(userId, today)) ?? todayWin;
+      const merged = mergeCompletions(baseline, completedTasks, completionState(freshWin));
       const record = buildShutdownRecord({
         date: today,
         dayScore,
         moodScore,
         reflectionText,
-        completedTasks,
+        completedTasks: merged,
         activeTaskIndexes: tasksList.map((task) => task.idx),
       });
 
       const timestamp = new Date().toISOString();
       for (const { slot, done } of record.taskCompletions) {
-        const task = todayWin.daily_win_tasks.find(row => row.slot === slot);
+        const task = freshWin.daily_win_tasks.find(row => row.slot === slot);
         if (Boolean(task?.done) === done) continue;
         await updateDailyWinTaskBySlot(userId, todayWin.id, slot, done, done ? timestamp : null);
       }
@@ -126,6 +135,8 @@ export function useShutdownData() {
         classification: 'reflection:evening',
         metadata: record.streamMetadata,
       });
+      setCompletedTasks(merged);
+      setBaseline(merged);
       await queryClient.invalidateQueries({ queryKey: shutdownKeys.data(userId, today) });
       await queryClient.invalidateQueries({ queryKey: todoKeys.dailyWins(userId, today) });
       return true;
