@@ -8,10 +8,21 @@
  * @status active
  */
 import { HttpError, serveJson } from '../_shared/http.ts';
+import type { PsuInfo } from '../_shared/enableBanking.ts';
 import { resolveUserScope } from '../_shared/supabase.ts';
 import { completeConnection, failConnection, startConnection } from './handlers/connect.ts';
-import { syncUser } from './handlers/sync.ts';
+import { diagnoseBank, syncUser } from './handlers/sync.ts';
 import { recategorize, setCategory } from './handlers/categories.ts';
+
+/** Dane przeglądarki użytkownika z żądania (IP z nagłówków proxy, User-Agent itd.) jako nagłówki PSU. */
+function psuInfoFromRequest(req: Request): PsuInfo {
+  const h = req.headers;
+  return {
+    ip: h.get('cf-connecting-ip') ?? h.get('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
+    userAgent: h.get('user-agent'), accept: h.get('accept'), acceptLanguage: h.get('accept-language'),
+    acceptEncoding: h.get('accept-encoding'), referer: h.get('referer') ?? h.get('origin'),
+  };
+}
 
 // auth 'none': GET callback nie niesie JWT (chroni go jednorazowy, losowy state); POST sprawdza uzytkownika recznie.
 Deno.serve(serveJson(async (req, ctx) => {
@@ -40,8 +51,17 @@ Deno.serve(serveJson(async (req, ctx) => {
       if (!scope.userId) throw new HttpError(400, 'Brak userId');
       return await startConnection(db, scope.userId);
     }
-    case 'sync':
-      return { results: await syncUser(db, scope.userId, !scope.isServiceRole) };
+    case 'sync': {
+      // Użytkownik w aplikacji: jego nagłówki PSU idą do banku (zapytanie „online”). Klucz serwisowy (cron) działa „w tle”,
+      // chyba że jawnie poda body.psu (ręczne uruchomienie w imieniu obecnego użytkownika).
+      const online: PsuInfo | null = scope.isServiceRole
+        ? (body.psu && typeof body.psu === 'object' ? body.psu : null)
+        : psuInfoFromRequest(req);
+      return { results: await syncUser(db, scope.userId, !scope.isServiceRole || online !== null, online) };
+    }
+    case 'diagnose':
+      if (!scope.isServiceRole) throw new HttpError(400, 'Diagnostyka tylko z kluczem serwisowym');
+      return await diagnoseBank(db, body.psu && typeof body.psu === 'object' ? body.psu : null);
     case 'categorize':
       return await recategorize(db, scope.userId);
     case 'set_category':

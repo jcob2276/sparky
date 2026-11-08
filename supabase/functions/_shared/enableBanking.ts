@@ -30,7 +30,15 @@ export interface EbBalance { balance_type: string; balance_amount: EbAmount; las
 export interface EbTransactionsPage { transactions?: EbTransaction[]; continuation_key?: string | null }
 
 export class EbError extends Error {
-  constructor(readonly status: number, readonly code: string, message: string) { super(message); }
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    message: string,
+    /** Nagłówek Retry-After z odpowiedzi banku/Enable Banking (sekundy), jeśli podano. */
+    readonly retryAfterSeconds: number | null = null,
+    /** Surowe ciało odpowiedzi błędu (do logów i diagnostyki). */
+    readonly detail: unknown = null,
+  ) { super(message); }
 }
 
 /**
@@ -67,18 +75,34 @@ async function signJwt(nowSeconds = Math.floor(Date.now() / 1000)): Promise<stri
   return `${head}.${body}.${b64url(new Uint8Array(sig))}`;
 }
 
-async function call<T>(method: 'GET' | 'POST', path: string, body?: unknown): Promise<T> {
+/** Nagłówki PSU (Psu-Ip-Address itd.) oznaczają zapytanie jako wykonane przy obecnym użytkowniku, poza limitem zapytań w tle. */
+export type PsuHeaders = Record<string, string>;
+
+async function call<T>(method: 'GET' | 'POST', path: string, body?: unknown, extraHeaders: PsuHeaders = {}): Promise<T> {
   const res = await fetch(`${API}${path}`, {
     method,
-    headers: { Authorization: `Bearer ${await signJwt()}`, 'Content-Type': 'application/json' },
+    headers: { Authorization: `Bearer ${await signJwt()}`, 'Content-Type': 'application/json', ...extraHeaders },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const code = typeof data?.error === 'string' ? data.error : 'UNKNOWN';
-    throw new EbError(res.status, code, `Enable Banking ${method} ${path.split('?')[0]} -> ${res.status} ${code}`);
+    const retry = Number(res.headers.get('retry-after'));
+    throw new EbError(res.status, code, `Enable Banking ${method} ${path.split('?')[0]} -> ${res.status} ${code}`,
+      Number.isFinite(retry) && retry > 0 ? retry : null, data);
   }
   return data as T;
+}
+
+/**
+ * Diagnostyka limitu: jedno zapytanie o saldo bez rzucania wyjątkiem. Zwraca status, nagłówki dotyczące limitów
+ * i (tylko przy błędzie) ciało odpowiedzi. Treść udanej odpowiedzi (saldo) nigdy nie jest zwracana.
+ */
+export async function ebProbe(path: string, extraHeaders: PsuHeaders = {}): Promise<{ status: number; headers: Record<string, string>; body: unknown }> {
+  const res = await fetch(`${API}${path}`, { headers: { Authorization: `Bearer ${await signJwt()}`, ...extraHeaders } });
+  const headers: Record<string, string> = {};
+  res.headers.forEach((value, key) => { if (/^(retry-after|x-ratelimit|ratelimit|date)/i.test(key)) headers[key] = value; });
+  return { status: res.status, headers, body: res.ok ? null : await res.json().catch(() => null) };
 }
 
 export const ebStartAuth = (params: {
@@ -93,15 +117,49 @@ export const ebStartAuth = (params: {
 
 export const ebCreateSession = (code: string) => call<EbSession>('POST', '/sessions', { code });
 
-export const ebBalances = (accountUid: string) =>
-  call<{ balances?: EbBalance[] }>('GET', `/accounts/${accountUid}/balances`);
+export const ebBalances = (accountUid: string, psu: PsuHeaders = {}) =>
+  call<{ balances?: EbBalance[] }>('GET', `/accounts/${accountUid}/balances`, undefined, psu);
 
-export const ebTransactions = (accountUid: string, dateFrom: string, continuationKey?: string | null, dateTo?: string | null) => {
+export const ebTransactions = (accountUid: string, dateFrom: string, continuationKey?: string | null, dateTo?: string | null, psu: PsuHeaders = {}) => {
   const q = new URLSearchParams({ date_from: dateFrom });
   if (dateTo) q.set('date_to', dateTo);
   if (continuationKey) q.set('continuation_key', continuationKey);
-  return call<EbTransactionsPage>('GET', `/accounts/${accountUid}/transactions?${q}`);
+  return call<EbTransactionsPage>('GET', `/accounts/${accountUid}/transactions?${q}`, undefined, psu);
 };
+
+export interface EbAspsp { name: string; country: string; required_psu_headers?: string[]; maximum_consent_validity?: number }
+
+/** Dane banku (m.in. lista wymaganych nagłówków PSU). To zapytanie do Enable Banking, nie do banku, więc nie liczy się do limitu. */
+export async function ebAspsp(name: string, country: string): Promise<EbAspsp | null> {
+  const res = await call<{ aspsps?: EbAspsp[] }>('GET', `/aspsps?country=${encodeURIComponent(country)}`);
+  return res.aspsps?.find((a) => a.name === name) ?? null;
+}
+
+export interface PsuInfo {
+  ip?: string | null; userAgent?: string | null; accept?: string | null;
+  acceptLanguage?: string | null; acceptEncoding?: string | null; referer?: string | null;
+}
+
+const PSU_FIELDS: Array<[string, keyof PsuInfo]> = [
+  ['psu-ip-address', 'ip'], ['psu-user-agent', 'userAgent'], ['psu-accept', 'accept'],
+  ['psu-accept-language', 'acceptLanguage'], ['psu-accept-encoding', 'acceptEncoding'], ['psu-referer', 'referer'],
+];
+const headerCase = (name: string): string => name.split('-').map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('-');
+
+/**
+ * Buduje nagłówki PSU z danych żądania użytkownika. Zasada Enable Banking: wszystkie wymagane przez bank albo żadne.
+ * Brak któregokolwiek wymaganego nagłówka (np. geolokalizacji) = null, czyli zapytanie zostaje „w tle”.
+ */
+export function buildPsuHeaders(info: PsuInfo, required: string[]): PsuHeaders | null {
+  const headers: PsuHeaders = {};
+  for (const [name, key] of PSU_FIELDS) {
+    const value = info[key]?.trim();
+    if (value) headers[headerCase(name)] = value;
+  }
+  const have = new Set(Object.keys(headers).map((k) => k.toLowerCase()));
+  if (required.some((r) => !have.has(r.toLowerCase()))) return null;
+  return Object.keys(headers).length ? headers : null;
+}
 
 export interface BankTransactionRow {
   transaction_id: string;

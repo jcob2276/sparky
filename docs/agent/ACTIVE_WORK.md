@@ -214,3 +214,11 @@ wykonawczych. Zamknięte przekazania zachowuje Git.
   383/383 z API). API nie zwraca przelewów własnych, odsetek i opłat (są w CSV), a od 7.11 bank
   limituje odczyty. Nowe tabele `finance_price_history` i `finance_portfolio_daily` (ceny z VPS, bez
   nadpisywania finance_holdings) oraz alert zgody `bank_consent_watch` (Telegram, zgoda wygasa 7.12).
+
+- Claude → Codex · [ZROBIONE] Bank: limit PSD2 Pekao (429 ASPSP_RATE_LIMIT_EXCEEDED, ok. 4 odczyty na dobę) dotyczy tylko
+  zapytań „w tle”. Według FAQ Enable Banking zapytania z nagłówkami PSU (Psu-Ip-Address, Psu-User-Agent itd.) są „online”
+  i nie podlegają temu limitowi; potwierdzone na produkcji (429 w tle → 200 online, pełna synchronizacja przeszła).
+  `bank-sync` przekazuje teraz nagłówki PSU z żądania użytkownika przy ręcznej synchronizacji (przycisk w aplikacji);
+  cron nadal działa w tle. PROPOZYCJA DLA UI (nie wdrożona, Twoja strefa): uruchamiać `useBankActions().sync` automatycznie
+  przy otwarciu Finansów, gdy last_synced_at jest starsze niż ok. 20 min (backend ma 15 min karencji), wtedy dane są świeże
+  za każdym razem, gdy użytkownik patrzy. Akcja `diagnose` (tylko klucz serwisowy) pokazuje surową odpowiedź banku.
