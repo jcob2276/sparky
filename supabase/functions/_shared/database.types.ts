@@ -7173,6 +7173,7 @@ export type Database = {
           id: string
           importance_score: number | null
           metadata: Json | null
+          origin: string | null
           situation_fingerprint: string | null
           source: string | null
           tags: string[] | null
@@ -7190,6 +7191,7 @@ export type Database = {
           id?: string
           importance_score?: number | null
           metadata?: Json | null
+          origin?: string | null
           situation_fingerprint?: string | null
           source?: string | null
           tags?: string[] | null
@@ -7207,6 +7209,7 @@ export type Database = {
           id?: string
           importance_score?: number | null
           metadata?: Json | null
+          origin?: string | null
           situation_fingerprint?: string | null
           source?: string | null
           tags?: string[] | null
@@ -8676,6 +8679,7 @@ export type Database = {
         Returns: undefined
       }
       vanguard_graph_cleanup: { Args: never; Returns: undefined }
+      vanguard_stream_origin: { Args: { src: string }; Returns: string }
     }
     Enums: {
       endmyopia_eye_enum: "left" | "right" | "both"

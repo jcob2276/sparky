@@ -38,7 +38,36 @@ export interface BankCategoryInput {
   remittance: string | null;
   direction: 'debit' | 'credit';
   counterpartyIban?: string | null;
+  /** Kategoria nadana przez sam bank (np. z eksportu CSV); używana dopiero, gdy żadna reguła nie rozpoznała kontrahenta. */
+  bankCategory?: string | null;
 }
+
+/** Etykieta kategorii banku (po normalizacji) na naszą kategorię. Nieobecne etykiety („Bez kategorii”, „Inne”) zostają do sprawdzenia. */
+const BANK_LABEL_TO_CATEGORY: Readonly<Record<string, BankCategory>> = {
+  'ARTYKULY SPOZYWCZE': 'zakupy_spozywcze',
+  'ALKOHOL': 'zakupy_spozywcze',
+  'RESTAURACJE I KAWIARNIE': 'jedzenie_na_miescie',
+  'PUBY I KLUBY': 'rozrywka',
+  'SPORT': 'sport',
+  'ZAKUPY PRZEZ INTERNET': 'zakupy',
+  'UBRANIA': 'zakupy',
+  'ARTYKULY SZKOLNE/BIUROWE': 'zakupy',
+  'KOMPUTER, KONSOLA': 'zakupy',
+  'SPRZET AGD I RTV': 'zakupy',
+  'MULTIMEDIA': 'subskrypcje',
+  'ZALOZENIE LOKATY, ZAKUP FUNDUSZY, AKCJI': 'inwestycje',
+  'PALIWO': 'transport',
+  'TRANSPORT PUBLICZNY': 'transport',
+  'WYPLATA Z BANKOMATU': 'gotowka',
+  'HOTELE': 'podroze',
+  'INTERNET, TV, TELEFON': 'telekom',
+  'WODA': 'dom',
+  'OGROD': 'dom',
+  'CZESNE, OPLATY ORGANIZACYJNE': 'oplaty',
+};
+
+const categoryFromBankLabel = (label: string | null | undefined): BankCategory | null =>
+  BANK_LABEL_TO_CATEGORY[normalizeBankText(label ?? null)] ?? null;
 
 /** Wielkie litery bez polskich znaków i nadmiarowych spacji, żeby reguły były odporne na zapis banku. */
 export function normalizeBankText(text: string | null): string {
@@ -137,5 +166,5 @@ export function categorizeBankTransaction(
   for (const [category, keywords] of RULES) {
     if (keywords.some((k) => matches(text, k))) return category;
   }
-  return 'do_sprawdzenia';
+  return categoryFromBankLabel(input.bankCategory) ?? 'do_sprawdzenia';
 }

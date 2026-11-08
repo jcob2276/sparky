@@ -19,13 +19,13 @@ export async function categorizeUser(db: SupabaseClient, userId: string, all: bo
   const ctx = await context(db, userId);
   const groups = new Map<BankCategory, string[]>();
   for (let from = 0; ; from += 500) {
-    let q = db.from('bank_transactions').select('id, counterparty_name, counterparty_iban, remittance, direction')
+    let q = db.from('bank_transactions').select('id, counterparty_name, counterparty_iban, remittance, direction, raw')
       .eq('user_id', userId).neq('category_source', 'manual').order('id').range(from, from + 499);
     if (!all) q = q.is('category', null);
-    const rows: Array<{ id: string; counterparty_name: string | null; counterparty_iban: string | null; remittance: string | null; direction: 'debit' | 'credit' }> = await safeExecute(q);
+    const rows: Array<{ id: string; counterparty_name: string | null; counterparty_iban: string | null; remittance: string | null; direction: 'debit' | 'credit'; raw: unknown }> = await safeExecute(q);
     for (const r of rows) {
       const category = categorizeBankTransaction({ counterparty: r.counterparty_name, counterpartyIban: r.counterparty_iban,
-        remittance: r.remittance, direction: r.direction }, ctx.rules, ctx.ibans);
+        remittance: r.remittance, direction: r.direction, bankCategory: bankCategoryOf(r.raw) }, ctx.rules, ctx.ibans);
       const ids = groups.get(category) ?? [];
       ids.push(r.id);
       groups.set(category, ids);
@@ -56,7 +56,7 @@ export async function setCategory(db: SupabaseClient, userId: string | null,
   if (!automatic && (typeof input.category !== 'string' || !Object.hasOwn(BANK_CATEGORY_LABELS, input.category))) throw new HttpError(400, 'Nieznana kategoria');
   const id = typeof input.transactionId === 'string' ? input.transactionId : '';
   if (!/^[0-9a-f-]{36}$/i.test(id)) throw new HttpError(400, 'Niepoprawna transakcja');
-  const tx = await safeExecute(db.from('bank_transactions').select('id, counterparty_name, counterparty_iban, remittance, direction')
+  const tx = await safeExecute(db.from('bank_transactions').select('id, counterparty_name, counterparty_iban, remittance, direction, raw')
     .eq('id', id).eq('user_id', userId).maybeSingle());
   if (!tx) throw new HttpError(404, 'Nie znaleziono transakcji');
   const directionKey = bankCounterpartyKey(tx.counterparty_name, tx.direction);
@@ -72,7 +72,7 @@ export async function setCategory(db: SupabaseClient, userId: string | null,
     if (key.startsWith('debit:')) ctx.rules.delete(legacyKey);
   }
   const category = ctx ? categorizeBankTransaction({ counterparty: tx.counterparty_name, counterpartyIban: tx.counterparty_iban,
-    remittance: tx.remittance, direction: tx.direction }, ctx.rules, ctx.ibans) : input.category as string;
+    remittance: tx.remittance, direction: tx.direction, bankCategory: bankCategoryOf(tx.raw) }, ctx.rules, ctx.ibans) : input.category as string;
   if (automatic && input.forgetRule === true && key) {
     const related: string[] = [];
     for (let from = 0; ; from += 500) {
@@ -93,4 +93,10 @@ export async function setCategory(db: SupabaseClient, userId: string | null,
     p_counterparty_key: key || null }));
   if (!automatic && input.remember === true && key) await recategorize(db, userId);
   return { remembered: !automatic && input.remember === true && !!key };
+}
+
+/** Kategoria nadana przez bank, jeśli wiersz pochodzi z eksportu CSV (zapisana w raw._bank_category). */
+function bankCategoryOf(raw: unknown): string | null {
+  const value = (raw as { _bank_category?: unknown } | null)?._bank_category;
+  return typeof value === 'string' && value.trim() ? value : null;
 }

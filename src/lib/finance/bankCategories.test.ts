@@ -135,6 +135,17 @@ describe('categorizeBankTransaction', () => {
     expect(categorizeBankTransaction({ counterparty: 'PAYPRO S.A.', remittance: null, direction: 'credit' }, rules)).toBe('wplyw');
   });
 
+  it('kategoria banku z CSV rozstrzyga tylko to, czego nie rozpoznała żadna reguła', () => {
+    const unknown = { counterparty: 'KOSICE MARATHON.COM KOSICE', remittance: null, direction: 'debit' as const };
+    expect(categorizeBankTransaction(unknown)).toBe('do_sprawdzenia');
+    expect(categorizeBankTransaction({ ...unknown, bankCategory: 'Sport' })).toBe('sport');
+    expect(categorizeBankTransaction({ ...unknown, bankCategory: 'Bez kategorii' })).toBe('do_sprawdzenia');
+    // reguła nazwy wygrywa z etykietą banku
+    expect(categorizeBankTransaction({ counterparty: 'BIEDRONKA 1', remittance: null, direction: 'debit', bankCategory: 'Sport' })).toBe('zakupy_spozywcze');
+    // wpływów kategoria banku nie dotyczy
+    expect(categorizeBankTransaction({ counterparty: 'KTOŚ', remittance: null, direction: 'credit', bankCategory: 'Sport' })).toBe('wplyw');
+  });
+
   it('każda kategoria ma polską etykietę', () => {
     for (const key of Object.keys(BANK_CATEGORY_LABELS)) {
       expect(BANK_CATEGORY_LABELS[key as BankCategory].length).toBeGreaterThan(2);
