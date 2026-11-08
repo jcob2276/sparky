@@ -8,8 +8,9 @@ export async function confirmAndDeleteTodoItem(
   item: TodoItemRow,
   setItems: Dispatch<SetStateAction<TodoItemRow[]>>,
   setError: (message: string) => void,
+  message = `Usunąć zadanie „${item.title}” na stałe?`,
 ) {
-  if (!await confirmDialog(`Usunąć zadanie „${item.title}” na stałe?`)) return;
+  if (!await confirmDialog(message)) return;
   await playTodoExit(item.id);
   setItems(previous => previous.filter(current => current.id !== item.id));
   try {

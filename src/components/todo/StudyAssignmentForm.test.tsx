@@ -8,8 +8,8 @@ afterEach(cleanup);
 describe('study assignments', () => {
   it('opens the subject with a keyboard-accessible button and saves a task with its date', async () => {
     const save = vi.fn().mockResolvedValue(undefined);
-    render(<StudySubject title="Kryptografia kwantowa" openCount={0} doneCount={0} onSave={save}>{null}</StudySubject>);
-    const subject = screen.getByRole('button', { name: /Kryptografia kwantowa/ });
+    render(<StudySubject title="Kryptografia kwantowa" openCount={0} doneCount={0} onRename={vi.fn()} onDelete={vi.fn()} onSave={save}>{null}</StudySubject>);
+    const subject = screen.getByRole('button', { name: /^Kryptografia kwantowa/ });
     expect(subject.getAttribute('aria-expanded')).toBe('false');
     fireEvent.click(subject);
     fireEvent.change(screen.getByLabelText('Co jest do zrobienia?'), { target: { value: '  Oddać projekt  ' } });

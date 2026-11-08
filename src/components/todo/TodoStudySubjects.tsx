@@ -1,15 +1,25 @@
 import { useTodoContext } from './context/TodoContext';
 import { useStudyTaskComposer } from './hooks/useStudyTaskComposer';
 import { isStudySubject } from '../../lib/todo/studySubjects';
+import { updateTodoItem } from '../../lib/todo/todo';
+import { applyOptimisticPatch } from './todoOptimistic';
+import { confirmAndDeleteTodoItem } from './todoDeleteAction';
 import TodoCardConnected from './TodoCardConnected';
 import StudySubject from './StudySubject';
+import { ControlSelect } from '../ui/ControlPrimitives';
 import type { TodoItemRow } from '../../lib/todo/todo';
 
 export default function TodoStudySubjects({ items }: { items: TodoItemRow[] }) {
-  const { getChildren } = useTodoContext();
+  const { getChildren, setItems, setError } = useTodoContext();
   const saveAssignment = useStudyTaskComposer();
   const subjects = items.filter(isStudySubject);
   const otherTasks = items.filter(item => !isStudySubject(item));
+
+  function moveToSubject(task: TodoItemRow, subjectId: string) {
+    if (!subjectId) return;
+    applyOptimisticPatch(setItems, task, { parent_task_id: subjectId },
+      () => updateTodoItem(task.id, { parent_task_id: subjectId }), setError);
+  }
 
   return (
     <div onClick={event => event.stopPropagation()} className="space-y-3">
@@ -25,6 +35,10 @@ export default function TodoStudySubjects({ items }: { items: TodoItemRow[] }) {
             openCount={assignments.filter(item => item.status === 'open').length}
             doneCount={assignments.filter(item => item.status === 'done').length}
             onSave={(title, date) => saveAssignment(subject, title, date)}
+            onRename={title => applyOptimisticPatch(setItems, subject, { title },
+              () => updateTodoItem(subject.id, { title }), setError)}
+            onDelete={() => void confirmAndDeleteTodoItem(subject, setItems, setError,
+              `Usunąć przedmiot „${subject.title}” razem z ${assignments.length} zadaniami? Tego nie da się cofnąć.`)}
           >
             <div className="todo-focus-grid px-2 sm:px-3">
               {assignments.map(item => <TodoCardConnected key={item.id} item={item} />)}
@@ -32,7 +46,24 @@ export default function TodoStudySubjects({ items }: { items: TodoItemRow[] }) {
           </StudySubject>
         );
       })}
-      <div className="todo-focus-grid">{otherTasks.map(item => <TodoCardConnected key={item.id} item={item} />)}</div>
+      <div className="todo-focus-grid">
+        {otherTasks.map(item => (
+          <div key={item.id}>
+            <TodoCardConnected item={item} />
+            {subjects.length > 0 && (
+              <ControlSelect
+                value=""
+                onChange={event => moveToSubject(item, event.target.value)}
+                aria-label={`Przenieś do przedmiotu: ${item.title}`}
+                className="mx-3 mb-2 h-11 rounded-lg border border-border-custom bg-surface-solid px-2 text-base text-text-secondary"
+              >
+                <option value="">Przenieś do przedmiotu…</option>
+                {subjects.map(subject => <option key={subject.id} value={subject.id}>{subject.title}</option>)}
+              </ControlSelect>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
