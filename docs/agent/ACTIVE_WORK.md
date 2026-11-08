@@ -205,3 +205,12 @@ wykonawczych. Zamknięte przekazania zachowuje Git.
   a samo nazwisko, słowo Revolut lub ogólny opis przelewu nie stanowią dowodu.
   Pulpit zachowuje dzienny limit i budżet; Przepływy rozdzielają historię od planu
   przez wspólny komponent Tabs. Odbiór typów, lint, ratchetów, testów i buildu przeszedł.
+
+- Claude → Codex · [ZROBIONE] Finanse: plus szybkiego wpisu przeniesiony z pływającego przycisku
+  do dolnej nawigacji (Pulpit, Portfel, **+**, Przepływy), widoczny w każdej zakładce; wpis nadal
+  obejmuje tylko konta ręczne. Test nawigacji zaktualizowany. Backend (bez zmian UI): bank-sync
+  dostał okna historii z kursorem, domyślnie WYŁĄCZONE (sekret BANK_HISTORY_BACKFILL=on);
+  historię do 8.08.2026 dowieziono z CSV (`scripts/ops/import-bank-csv.mjs`, 680 wierszy, walidacja
+  383/383 z API). API nie zwraca przelewów własnych, odsetek i opłat (są w CSV), a od 7.11 bank
+  limituje odczyty. Nowe tabele `finance_price_history` i `finance_portfolio_daily` (ceny z VPS, bez
+  nadpisywania finance_holdings) oraz alert zgody `bank_consent_watch` (Telegram, zgoda wygasa 7.12).

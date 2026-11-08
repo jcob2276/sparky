@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
 import { FINANCE_EXPENSE_CATEGORIES, FINANCE_INCOME_LABELS } from '@vanguard/domain';
 import type { FinanceAccount } from '../../lib/financeApi';
 import type { CashEntryInput } from '../../lib/finance/cashEntryApi';
 import { formatPln } from '../../lib/finance/formatMoney';
 import { applyKeypadKey, keyFromKeyboard, parseKeypadAmount } from '../../lib/finance/keypadInput';
 import { loadQuickEntryMemory, saveQuickEntryMemory } from '../../lib/finance/quickEntryMemory';
-import Fab from '../ui/Fab';
 import Sheet from '../ui/Sheet';
 import { ToggleChip } from '../ui/ToggleChip';
 import { ControlInput, ControlSelect, Pressable } from '../ui/ControlPrimitives';
@@ -20,7 +18,6 @@ interface FinanceQuickEntryProps {
   open: boolean;
   initialKind: Kind;
   onOpenChange: (open: boolean) => void;
-  showFab: boolean;
   onSubmit: (input: CashEntryInput) => Promise<boolean>;
 }
 
@@ -153,14 +150,9 @@ function EntryForm({ accounts, pending, initialKind, onSubmit, onDone }: Pick<Fi
   );
 }
 
-export function FinanceQuickEntry({ accounts, pending, open, initialKind, onOpenChange, showFab, onSubmit }: FinanceQuickEntryProps) {
+export function FinanceQuickEntry({ accounts, pending, open, initialKind, onOpenChange, onSubmit }: FinanceQuickEntryProps) {
   return (
     <>
-      {showFab && !open && (
-        <Fab onClick={() => onOpenChange(true)} title="Szybki wpis" size="lg">
-          <Plus size={24} aria-hidden="true" />
-        </Fab>
-      )}
       <Sheet open={open} onOpenChange={onOpenChange} title="Szybki wpis" side="bottom" compact>
         {open && <EntryForm accounts={accounts} pending={pending} initialKind={initialKind} onSubmit={onSubmit} onDone={() => onOpenChange(false)} />}
       </Sheet>

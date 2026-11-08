@@ -177,11 +177,10 @@ function FinancePage() {
           open={quickEntry.open}
           initialKind={quickEntry.kind}
           onOpenChange={(open) => setQuickEntry((current) => ({ ...current, open }))}
-          showFab={tab !== 'dashboard'}
           onSubmit={saveCashEntry}
         />
       )}
-      <FinanceBottomNav active={tab} onChange={navigate} />
+      <FinanceBottomNav active={tab} onChange={navigate} onAdd={() => setQuickEntry({ open: true, kind: 'expense' })} />
     </div>
   );
 }

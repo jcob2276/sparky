@@ -83,12 +83,22 @@ describe('FinancePage', () => {
     expect(screen.getByText(/Zaloguj się/)).toBeInTheDocument();
   });
 
-  it('keeps only the three main destinations in the bottom navigation', () => {
+  it('keeps the three main destinations with the quick-entry plus in the middle of the bottom navigation', () => {
     openFinance();
     const nav = within(screen.getByRole('navigation', { name: 'Sekcje finansów' }));
-    expect(nav.getAllByRole('button').map(button => button.textContent)).toEqual(['Pulpit', 'Portfel', 'Przepływy']);
+    expect(nav.getAllByRole('button').map(button => button.getAttribute('aria-label') ?? button.textContent))
+      .toEqual(['Pulpit', 'Portfel', 'Szybki wpis', 'Przepływy']);
     fireEvent.click(nav.getByRole('button', { name: 'Portfel' }));
     expect(screen.getByRole('region', { name: 'Podsumowanie portfela' })).toBeInTheDocument();
+  });
+
+  it.each(['Pulpit', 'Portfel', 'Przepływy'])('opens quick entry from the bottom plus on %s', async (tabName) => {
+    openFinance();
+    const nav = within(screen.getByRole('navigation', { name: 'Sekcje finansów' }));
+    fireEvent.click(nav.getByRole('button', { name: tabName }));
+    expect(screen.queryByRole('group', { name: 'Kategoria' })).not.toBeInTheDocument();
+    fireEvent.click(nav.getByRole('button', { name: 'Szybki wpis' }));
+    expect(await screen.findByRole('group', { name: 'Kategoria' })).toBeInTheDocument();
   });
 
   it.each([false, true])('opens account management from the gear and returns to the source tab (metrics: %s)', async (withMetrics) => {
