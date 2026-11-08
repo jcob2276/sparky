@@ -116,6 +116,7 @@ export function useFinanceMetrics(bundle: FinanceBundle | undefined, portfolioVa
       investments,
       physicalCash: accounts.filter(a => a.account_type === 'cash').reduce((s, a) => s + a.balance, 0),
       bankCash: accounts.filter(a => a.account_type === 'bank').reduce((s, a) => s + a.balance, 0),
+      savingsCash: accounts.filter(a => a.account_type === 'savings').reduce((s, a) => s + a.balance, 0),
       effectiveIncome,
       effectiveExpenses,
       incomeBreakdown,

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ArrowDownLeft, ArrowUpRight, type LucideIcon } from 'lucide-react';
 import type { PortfolioTotals } from '@vanguard/domain';
 import { formatPln } from '../../lib/finance/formatMoney';
-import { Pressable } from '../ui/ControlPrimitives';
+import { ControlInput, Pressable } from '../ui/ControlPrimitives';
 import type { FinanceMetrics } from './useFinanceMetrics';
 
 type Segment = 'net' | 'invest' | 'bank' | 'cash';
@@ -44,8 +44,10 @@ function changeLine(change: number, pct: number | null): { text: string; tone: s
 
 export function FinanceHomeHero({ metrics, portfolio, hasHoldings, hasAccounts, onQuickEntry }: FinanceHomeHeroProps) {
   const [segment, setSegment] = useState<Segment>('net');
-  const amounts: Record<Segment, number> = { net: metrics.netWorth, invest: metrics.investments, bank: metrics.bankCash, cash: metrics.physicalCash };
-  const labels: Record<Segment, string> = { net: 'Majątek netto', invest: 'Wartość inwestycji', bank: 'Środki na kontach', cash: 'Gotówka fizyczna' };
+  const [includeSavings, setIncludeSavings] = useState(false);
+  const excludedSavings = includeSavings ? 0 : metrics.savingsCash;
+  const amounts: Record<Segment, number> = { net: metrics.netWorth - excludedSavings, invest: metrics.investments, bank: metrics.bankCash + (includeSavings ? metrics.savingsCash : 0), cash: metrics.physicalCash };
+  const labels: Record<Segment, string> = { net: excludedSavings ? 'Majątek bez oszczędności' : 'Majątek netto', invest: 'Wartość inwestycji', bank: includeSavings ? 'Środki na kontach i oszczędności' : 'Środki na kontach', cash: 'Gotówka fizyczna' };
   const amount = amounts[segment];
   const label = labels[segment];
   const showChange = (segment === 'net' || segment === 'invest') && hasHoldings && !portfolio.unquotedCount;
@@ -83,6 +85,11 @@ export function FinanceHomeHero({ metrics, portfolio, hasHoldings, hasAccounts, 
           </p>
         )}
       </div>
+
+      {metrics.savingsCash > 0 && <label className="mx-auto flex min-h-11 w-fit cursor-pointer items-center gap-2 text-sm text-text-secondary">
+        <ControlInput type="checkbox" checked={includeSavings} onChange={event => setIncludeSavings(event.target.checked)} className="h-4 w-4 accent-primary" />
+        Uwzględnij oszczędności
+      </label>}
 
       <div className="mx-auto flex justify-center gap-8">
         <ActionButton icon={ArrowUpRight} label="Wydatek" onClick={() => onQuickEntry('expense')} />

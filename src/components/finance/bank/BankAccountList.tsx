@@ -45,7 +45,7 @@ export function BankAccountList({
                   onChange={e => { if (e.target.value) onLink(a, e.target.value === 'new' ? undefined : e.target.value); }} className="min-h-11 w-full rounded-lg bg-surface-2 px-3 text-sm">
                   <option value="">Uwzględnij w podsumowaniu Finansów…</option>
                   <option value="new">Dodaj jako osobne konto</option>
-                  {financeAccounts.filter(f => f.account_type === 'bank' && !f.bank_account_id).map(f => <option key={f.id} value={f.id}>Powiąż z „{f.name}”</option>)}
+                  {financeAccounts.filter(f => ['bank', 'savings'].includes(f.account_type) && !f.bank_account_id).map(f => <option key={f.id} value={f.id}>Powiąż z „{f.name}”</option>)}
                 </ControlSelect>
                 <p className="text-xs text-text-muted">Powiąż istniejące konto, jeśli to ten sam rachunek. Saldo będzie pochodzić z banku. Ręczne wpisy zachowamy i uzgodnimy z importem przed wspólnym podsumowaniem. {a.currency !== 'PLN' ? 'Rachunki walutowe pozostają w widoku bankowym.' : ''}</p>
               </div>)}

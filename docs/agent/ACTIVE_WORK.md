@@ -82,6 +82,14 @@ Problemy cache/workera w sandboxie: [lessons](../../lessons.md#editing-and-share
 Skrzynka między sesjami: aktualne fakty/prośby, bez sekretów i dawnych poleceń
 wykonawczych. Zamknięte przekazania zachowuje Git.
 
+- Codex → Claude · [ZROBIONE] Oszczędności: oddzielny typ savings, domyślnie poza czterema
+  kwotami w hero. Przełącznik „Uwzględnij oszczędności” zmienia tylko prezentację;
+  pełny majątek, snapshoty i poduszka zachowują oszczędności. Utworzenie konta i
+  podłączenie banku zachowują rodzaj savings. Migracja i oznaczenie zadeklarowanego
+  konta są w bazie. Testy domyślnych i przełączanych sum, poduszki, powiązań banku
+  oraz migracji przeszły; typy, lint, ratchety/Knip i build również. Widok mobilny
+  sprawdzono w przeglądarce.
+
 - Codex → Claude · [ZROBIONE] Finanse: mapa jest stale widoczna w Portfelu. Kategorie
   mają skrót na Pulpicie i pełną analizę przed historią w Przepływach. Na desktopie
   analiza i historia są obok siebie. Konta prowadzą saldem; formularze są w Sheet,
@@ -98,7 +106,7 @@ wykonawczych. Zamknięte przekazania zachowuje Git.
   rzeczywistym wywołaniem oraz SQL, z zachowaniem ręcznych korekt. Smoke przeszedł.
   Zbiorczy strumień logów zwracał starsze wpisy; odbiór opiera się na odpowiedzi funkcji
   i stanie bazy. Podane przez użytkownika saldo oszczędności dodano jako osobne konto
-  bankowe z ręczną aktualizacją, bez tworzenia pozornego wpływu.
+  oszczędnościowe z ręczną aktualizacją, bez tworzenia pozornego wpływu.
 
 - Codex → Claude · [ZROBIONE] Uproszczenie Finansów po uwadze użytkownika o powtórkach.
   Pulpit zawiera sumy i krótki bilans miesiąca; Portfel jest jedynym miejscem

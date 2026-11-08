@@ -43,7 +43,7 @@ export function useFinanceMutations(userId: string | undefined) {
         name: input.name.trim(),
         balance: isCrypto ? 0 : input.balance,
         account_type: input.account_type,
-        is_liquid: input.is_liquid ?? (input.account_type === 'cash' || input.account_type === 'bank'),
+        is_liquid: input.is_liquid ?? (input.account_type === 'cash' || input.account_type === 'bank' || input.account_type === 'savings'),
         coingecko_id: input.coingecko_id ?? null,
         crypto_amount: input.crypto_amount ?? null,
       });

@@ -17,11 +17,12 @@ interface FinanceAccountsTabProps {
   run: (fn: () => Promise<void>) => Promise<void>;
 }
 
-type NewKind = 'cash' | 'bank' | 'broker_cash' | 'bonds' | 'other' | 'debt';
+type NewKind = 'cash' | 'bank' | 'savings' | 'broker_cash' | 'bonds' | 'other' | 'debt';
 
 const KIND_LABELS: Record<NewKind, string> = {
   cash: 'Gotówka',
   bank: 'Konto bankowe',
+  savings: 'Konto oszczędnościowe',
   broker_cash: 'Wolne środki u brokera',
   bonds: 'Obligacje',
   other: 'Inne aktywo',
@@ -48,7 +49,7 @@ function AccountForm({ onAdd, pending }: { onAdd: (input: { name: string; balanc
           name,
           balance: isDebt ? -Math.abs(value) : value,
           type: isDebt ? 'other' : kind,
-          liquid: kind === 'cash' || kind === 'bank',
+          liquid: kind === 'cash' || kind === 'bank' || kind === 'savings',
         });
       }}
     >
