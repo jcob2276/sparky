@@ -7,11 +7,3 @@ export * from './goalSpine.types';
 export * from './goalSpine.queries';
 export * from './goalSpine.mutations';
 
-// Month review re-exports
-export {
-  closingMonthStartForReview,
-  gatherMonthFacts,
-} from '../growth/monthReview';
-
-// Sprint review re-exports
-export { gatherSprintFacts } from '../growth/sprintReview';

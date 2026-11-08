@@ -60,12 +60,6 @@ export async function fetchDailyWinTasksForDay(userId: string, date: string): Pr
   return { ...result, data: result.data ? adaptDailyWinTasks(result.data) : null };
 }
 
-export async function fetchDailyWinTasksById(userId: string, id: string): Promise<ReadResult<AdaptedDailyWin>> {
-  const result = await supabase.from('daily_wins').select(DAY_WITH_TASKS)
-    .eq('user_id', userId).eq('id', id).single();
-  return { ...result, data: result.data ? adaptDailyWinTasks(result.data) : null };
-}
-
 /** Missing rows are errors: never fall back to a mirrored daily_wins column. */
 export async function updateDailyWinTaskBySlot(
   userId: string, dayWinId: string, slot: number, done: boolean, completedAt: string | null,
@@ -105,11 +99,6 @@ export async function persistDailyWin(userId: string, entry: DailyWinMetadataIns
     .upsert({ ...entry, user_id: userId }, { onConflict: 'user_id,date' }).select(DAY_WITH_TASKS).single();
   if (error) throw error;
   return adaptDailyWinTasks(data);
-}
-
-export async function persistDailyWinsPartial(userId: string, ids: string[]) {
-  const { error } = await supabase.from('daily_wins').update({ result: 'P' }).eq('user_id', userId).in('id', ids);
-  if (error) throw error;
 }
 
 export async function removeDailyWinTasks(userId: string, dayWinId: string) {

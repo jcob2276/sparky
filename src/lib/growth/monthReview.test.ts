@@ -6,7 +6,6 @@ import {
   isFirstSundayMonthlyRitual,
   isMonthlyHardGate,
   isMonthlySoftCue,
-  weekStartsInMonth,
 } from './monthReview';
 
 describe('monthReview timing', () => {
@@ -35,12 +34,5 @@ describe('monthReview timing', () => {
     expect(isFirstSundayMonthlyRitual('2026-03-01')).toBe(true);
     expect(isFirstSundayMonthlyRitual('2026-03-08')).toBe(false);
     expect(isFirstSundayMonthlyRitual('2026-03-09')).toBe(false);
-  });
-
-  it('lists week starts overlapping month', () => {
-    const weeks = weekStartsInMonth('2026-06-01');
-    expect(weeks[0]).toBe('2026-05-25');
-    expect(weeks).toContain('2026-06-01');
-    expect(weeks).toContain('2026-06-29');
   });
 });

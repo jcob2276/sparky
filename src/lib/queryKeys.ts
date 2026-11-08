@@ -23,6 +23,13 @@ export const goalSpineKeys = {
   forUser: (userId: string) => [...goalSpineKeys.all, userId] as const,
 };
 
+// ── REVIEW CYCLE KEYS (zaległe przeglądy: tydzień, miesiąc, sprint) ──
+export const reviewCycleKeys = {
+  all: ['reviewCycle'] as const,
+  due: (userId: string, today: string) => [...reviewCycleKeys.all, userId, 'due', today] as const,
+  context: (userId: string, dueKey: string) => [...reviewCycleKeys.all, userId, 'context', dueKey] as const,
+};
+
 // ── BIOMETRICS KEYS ──
 export const biometricsKeys = {
   all: ['biometrics'] as const,
@@ -132,23 +139,6 @@ export const notesKeys = {
 export const statsOverviewKeys = {
   all: ['statsOverview'] as const,
   forUser: (userId: string) => [...statsOverviewKeys.all, userId] as const,
-};
-
-// ── PROJECT WEEK KPIS KEYS ──
-export const projectWeekKpisKeys = {
-  all: ['project-week-kpis'] as const,
-  list: (userId: string, weekStart: string, projectIdsKey: string) =>
-    [...projectWeekKpisKeys.all, userId, weekStart, projectIdsKey] as const,
-};
-
-// ── DIRECTION KEYS ──
-export const directionKeys = {
-  all: ['direction'] as const,
-  data: (userId: string, weekStart: string) => [...directionKeys.all, userId, weekStart] as const,
-  monthlyProgress: (userId: string, startMonth: string, endMonth: string) =>
-    [...directionKeys.all, 'monthlyProgress', userId, startMonth, endMonth] as const,
-  radarProgress: (userId: string, startWeek: string, endWeek: string) =>
-    [...directionKeys.all, 'radarProgress', userId, startWeek, endWeek] as const,
 };
 
 // ── LINKS KEYS ──

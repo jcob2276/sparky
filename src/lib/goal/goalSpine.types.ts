@@ -1,11 +1,10 @@
 import { getSprintInfo } from '../growth/sprintUtils';
 import type { LifeGoalDisplayRow } from '../projects/lifeGoals';
 import type { WeekDirectionGoals } from '../growth/growthWeek';
-import type { Json, Tables } from '../database.types';
+import type { Tables } from '../database.types';
 import type { MonthlyReviewRow } from '../growth/monthReview';
 
-export type { MonthlyReviewRow, MonthlyReviewFields } from '../growth/monthReview';
-export type { SprintProjectDecision } from '../growth/sprintReview';
+export type { MonthlyReviewRow } from '../growth/monthReview';
 
 export type WeekReviewRow = Pick<
   Tables<'weekly_reviews'>,
@@ -116,40 +115,9 @@ export type ProjectRow = Pick<
 >;
 export type DreamRow = Pick<Tables<'dreams'>, 'id' | 'life_goal'>;
 
-export type WeeklyReflectionFields = {
-  proud_of?: string | null;
-  do_differently?: string | null;
-  sabotage?: string | null;
-  obligation?: string | null;
-  week_highlight?: string | null;
-  week_regret?: string | null;
-  new_belief?: string | null;
-  pillar_scores?: Json;
-  bottleneck?: string | null;
-};
-
-export type WeeklyPlanFields = {
-  week_intention?: string | null;
-  week_commitment?: string | null;
-  week_goal_cialo?: string | null;
-  week_goal_duch?: string | null;
-  week_goal_konto?: string | null;
-  deepening_answers?: Record<string, string> | null;
-};
-
 export type GoalKpiRow = Tables<'goal_kpis'>;
 
-export type ProjectWeekKpi = {
-  kpi: GoalKpiRow;
-  thisWeekValue: number | null;
-};
-
 export type RollupDecision = { kpiId: string; delta: number } | null;
-
-export type CompleteWeeklyReviewOptions = {
-  /** Sunday ritual: plan fields go on the upcoming week, reflection stays on closing week. */
-  planWeekStart?: string | null;
-};
 
 export type DailyWinRow = Tables<'daily_wins'>;
 export type DailyWinUpdate = import('../dailyWinTasksApi').DailyWinMetadataUpdate;

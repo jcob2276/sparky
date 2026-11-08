@@ -1,4 +1,3 @@
-import { getTodayWarsaw } from '../date';
 import {
   weekGoalsAreEmpty,
 } from './goalSpine.queries';
@@ -6,7 +5,6 @@ import type {
   GoalSpine,
   WeeklyReviewRow,
 } from './goalSpine.types';
-import { isMonthlyHardGate, isMonthlySoftCue, monthLabel } from '../growth/monthReview';
 import { longTermDeclarationsOk, primaryBhagLine } from './longTermBridge';
 import { slotDone, slotTitle } from '../daySlots';
 
@@ -180,28 +178,16 @@ export function deriveSpineGuidance(
   spine: GoalSpine,
   ctx: SpineGuideContext,
 ): SpineGuidance {
-  const today = ctx.today ?? getTodayWarsaw();
-  const isSunday = new Date(`${today}T12:00:00Z`).getUTCDay() === 0;
   const day = ctx.day ?? dayWinStateFromRow(null);
 
   const sprintGoalOk = Boolean(spine.sprint.goalText?.trim());
-  const sprintCloseOk = Boolean(spine.sprintReview?.completed_at);
   const longTermOk = longTermDeclarationsOk(spine.longTerm);
-  const monthOk = !spine.month.due || Boolean(spine.month.review?.completed_at);
   const weekGoalsOk = !weekGoalsAreEmpty(spine.week);
-  const weekReflectionOk = Boolean(ctx.weeklyReview?.review_completed_at);
 
   const baseSteps: SpineGuideStep[] = [
     { id: 'long_term', label: 'Cele roczne / BHAG', status: longTermOk ? 'done' : 'pending' },
     { id: 'sprint', label: 'Cel sprintu (12 tyg.)', status: sprintGoalOk ? 'done' : 'pending' },
-    ...(spine.sprint.isClosingWeek
-      ? ([{ id: 'sprint_close', label: 'Zamknięcie sprintu', status: sprintCloseOk ? 'done' : 'pending' }] as SpineGuideStep[])
-      : []),
-    ...(spine.month.closingMonthStart
-      ? ([{ id: 'month', label: 'Przegląd miesiąca', status: monthOk ? 'done' : 'pending' }] as SpineGuideStep[])
-      : []),
     { id: 'week', label: 'Cele tygodnia', status: weekGoalsOk ? 'done' : 'pending' },
-    { id: 'week_reflection', label: 'Refleksja tygodnia', status: weekReflectionOk ? 'done' : 'pending' },
     { id: 'day', label: '5 zwycięstw dziś', status: dayStepStatus(day) },
   ];
 
@@ -213,16 +199,6 @@ export function deriveSpineGuidance(
         : 'Najpierw cele roczne (Ciało / Duch / Konto) — bez tego sprint nie ma kotwicy.',
       primaryAction: { type: 'navigate', target: 'dzis', label: 'Cele życiowe' },
       steps: withSteps(baseSteps, 'long_term'),
-      readyForDay: false,
-      dayProgress: null,
-    };
-  }
-
-  if (spine.sprint.isClosingWeek && !sprintCloseOk) {
-    return {
-      primaryCue: 'Tydzień 12/12 — zamknij sprint w Tygodniu: agregat + cel na następne 12 tyg.',
-      primaryAction: { type: 'navigate', target: 'tydzien', label: 'Zamknij sprint' },
-      steps: withSteps(baseSteps, 'sprint_close'),
       readyForDay: false,
       dayProgress: null,
     };
@@ -241,21 +217,6 @@ export function deriveSpineGuidance(
     };
   }
 
-  if (spine.month.due && !monthOk && isMonthlyHardGate(today)) {
-    const label = spine.month.closingMonthStart
-      ? monthLabel(spine.month.closingMonthStart)
-      : 'miesiąc';
-    return {
-      primaryCue: isSunday
-        ? `Niedziela — najpierw zamknij ${label}, potem tydzień.`
-        : `Przegląd miesiąca (${label}) — zrób to w Tygodniu, zanim ruszysz dalej.`,
-      primaryAction: { type: 'navigate', target: 'tydzien', label: 'Przegląd miesiąca' },
-      steps: withSteps(baseSteps, 'month'),
-      readyForDay: false,
-      dayProgress: null,
-    };
-  }
-
   if (!weekGoalsOk) {
     const fallback = spine.week.source === 'fallback';
     return {
@@ -269,42 +230,5 @@ export function deriveSpineGuidance(
     };
   }
 
-  if (isSunday && !weekReflectionOk) {
-    return {
-      primaryCue: 'Niedziela — zamknij refleksję tygodnia, zanim planujesz kolejny.',
-      primaryAction: { type: 'navigate', target: 'tydzien', label: 'Refleksja w Tygodniu' },
-      steps: withSteps(baseSteps, 'week_reflection'),
-      readyForDay: false,
-      dayProgress: null,
-    };
-  }
-
-  if (!weekReflectionOk && ctx.weekReflectionOverdueDays !== null && ctx.weekReflectionOverdueDays > 14) {
-    return {
-      primaryCue: 'Dawno nie było refleksji tygodnia — 10 minut w zakładce Tydzień.',
-      primaryAction: { type: 'navigate', target: 'tydzien', label: 'Otwórz Tydzień' },
-      steps: withSteps(baseSteps, 'week_reflection'),
-      readyForDay: false,
-      dayProgress: null,
-    };
-  }
-
-  const guidance = deriveDayGuidance(spine, day, baseSteps);
-
-  if (spine.month.due && !monthOk && isMonthlySoftCue(today)) {
-    const label = spine.month.closingMonthStart
-      ? monthLabel(spine.month.closingMonthStart)
-      : 'miesiąc';
-    return {
-      ...guidance,
-      primaryCue: `Przegląd ${label} wciąż otwarty — 15 min w Tygodniu. ${guidance.primaryCue}`,
-      steps: withSteps(baseSteps, 'month'),
-      primaryAction:
-        guidance.primaryAction.type === 'none'
-          ? { type: 'navigate', target: 'tydzien', label: 'Przegląd miesiąca' }
-          : guidance.primaryAction,
-    };
-  }
-
-  return guidance;
+  return deriveDayGuidance(spine, day, baseSteps);
 }

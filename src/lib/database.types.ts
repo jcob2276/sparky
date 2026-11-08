@@ -3842,11 +3842,15 @@ export type Database = {
           completed_at: string | null
           correction_note: string | null
           created_at: string | null
+          goal_cialo: string | null
+          goal_duch: string | null
+          goal_konto: string | null
           id: string
           leverage_note: string | null
           month_start: string
           month_theme: string | null
           pattern_note: string | null
+          pillar_scores: Json | null
           ritual_stats: Json | null
           updated_at: string | null
           user_id: string
@@ -3857,11 +3861,15 @@ export type Database = {
           completed_at?: string | null
           correction_note?: string | null
           created_at?: string | null
+          goal_cialo?: string | null
+          goal_duch?: string | null
+          goal_konto?: string | null
           id?: string
           leverage_note?: string | null
           month_start: string
           month_theme?: string | null
           pattern_note?: string | null
+          pillar_scores?: Json | null
           ritual_stats?: Json | null
           updated_at?: string | null
           user_id: string
@@ -3872,11 +3880,15 @@ export type Database = {
           completed_at?: string | null
           correction_note?: string | null
           created_at?: string | null
+          goal_cialo?: string | null
+          goal_duch?: string | null
+          goal_konto?: string | null
           id?: string
           leverage_note?: string | null
           month_start?: string
           month_theme?: string | null
           pattern_note?: string | null
+          pillar_scores?: Json | null
           ritual_stats?: Json | null
           updated_at?: string | null
           user_id?: string
@@ -5222,6 +5234,9 @@ export type Database = {
         Row: {
           created_at: string | null
           focus_project_ids: string[] | null
+          goal_cialo: string | null
+          goal_duch: string | null
+          goal_konto: string | null
           goal_text: string | null
           id: string
           personal_year: number
@@ -5232,6 +5247,9 @@ export type Database = {
         Insert: {
           created_at?: string | null
           focus_project_ids?: string[] | null
+          goal_cialo?: string | null
+          goal_duch?: string | null
+          goal_konto?: string | null
           goal_text?: string | null
           id?: string
           personal_year: number
@@ -5242,6 +5260,9 @@ export type Database = {
         Update: {
           created_at?: string | null
           focus_project_ids?: string[] | null
+          goal_cialo?: string | null
+          goal_duch?: string | null
+          goal_konto?: string | null
           goal_text?: string | null
           id?: string
           personal_year?: number
@@ -5257,6 +5278,7 @@ export type Database = {
           created_at: string | null
           id: string
           personal_year: number
+          pillar_scores: Json | null
           reflection: string | null
           sprint_number: number
           updated_at: string | null
@@ -5267,6 +5289,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           personal_year: number
+          pillar_scores?: Json | null
           reflection?: string | null
           sprint_number: number
           updated_at?: string | null
@@ -5277,6 +5300,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           personal_year?: number
+          pillar_scores?: Json | null
           reflection?: string | null
           sprint_number?: number
           updated_at?: string | null

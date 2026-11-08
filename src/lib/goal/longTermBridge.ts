@@ -20,13 +20,3 @@ export function longTermDeclarationsOk(longTerm: LongTermGoals): boolean {
   if (!d) return false;
   return Boolean(d.goal_cialo?.trim() || d.goal_duch?.trim() || d.goal_konto?.trim());
 }
-
-export function formatSprintFromLongTerm(
-  bhagLine: string | null,
-  sprintGoal: string | null | undefined,
-): string | null {
-  if (!bhagLine?.trim()) return null;
-  const sprint = sprintGoal?.trim();
-  if (!sprint) return `Rok / BHAG: ${bhagLine.trim()} — ustaw cel sprintu`;
-  return `Rok / BHAG: ${bhagLine.trim()} — sprint: ${sprint}`;
-}

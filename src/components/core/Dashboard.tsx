@@ -31,6 +31,7 @@ import { useDashboardPrefetch } from './hooks/useDashboardPrefetch';
 import Spinner from '../ui/Spinner';
 import Skeleton from '../ui/Skeleton';
 import { DashboardContext } from './context/DashboardContext';
+import ReviewGate from '../review/ReviewGate';
 
 const TrainingRoute   = lazy(() => import('../biometrics/TrainingRoute'));
 const SaunaLoggerModal = lazy(() => import('../biometrics/SaunaLoggerModal'));
@@ -269,5 +270,10 @@ function DashboardContent() {
 export default function Dashboard() {
   const session = useSession();
   if (!session) return null;
-  return <DashboardContent />;
+  return (
+    <>
+      <DashboardContent />
+      <ReviewGate />
+    </>
+  );
 }

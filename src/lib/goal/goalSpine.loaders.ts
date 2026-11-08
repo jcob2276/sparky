@@ -197,7 +197,7 @@ export async function fetchSprintReview(userId: string): Promise<SprintReview | 
   });
 }
 
-export async function fetchMonthlyReview(
+async function fetchMonthlyReview(
   userId: string,
   monthStart: string,
 ): Promise<MonthlyReviewRow | null> {

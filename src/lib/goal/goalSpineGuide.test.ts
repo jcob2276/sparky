@@ -174,53 +174,6 @@ describe('deriveSpineGuidance', () => {
 
 
 
-  it('does not block day when monthly is due (no hard gate)', () => {
-    const spine = baseSpine();
-    spine.month = {
-      closingMonthStart: '2026-05-01',
-      review: null,
-      due: true,
-      activeTheme: null,
-      activeMonthLabel: 'czerwiec 2026',
-    };
-    const g = deriveSpineGuidance(spine, { ...readyCtx(), today: '2026-06-03' });
-    expect(g.readyForDay).toBe(true);
-    expect(g.primaryAction?.type).toBe('plan_day');
-  });
-
-  it('soft cue for monthly after day 7 without blocking day', () => {
-    const spine = baseSpine();
-    spine.month = {
-      closingMonthStart: '2026-05-01',
-      review: null,
-      due: true,
-      activeTheme: null,
-      activeMonthLabel: 'czerwiec 2026',
-    };
-    const g = deriveSpineGuidance(spine, { ...readyCtx(), today: '2026-06-10' });
-    expect(g.readyForDay).toBe(true);
-    expect(g.primaryCue).toContain('Przegląd');
-    expect(g.steps.some((s) => s.id === 'month' && s.status === 'now')).toBe(true);
-  });
-
-  it('prompts sprint close on week 12', () => {
-
-    const spine = baseSpine();
-
-    spine.sprint.isClosingWeek = true;
-
-    spine.sprint.weekInSprint = 12;
-
-    const g = deriveSpineGuidance(spine, readyCtx());
-
-    expect(g.primaryAction).toMatchObject({ type: 'navigate', target: 'tydzien' });
-
-    expect(g.steps.some((s) => s.id === 'sprint_close' && s.status === 'now')).toBe(true);
-
-  });
-
-
-
   it('does not nag about week reflection when it was recently completed for a prior week', () => {
     const g = deriveSpineGuidance(baseSpine(), {
       ...readyCtx(),

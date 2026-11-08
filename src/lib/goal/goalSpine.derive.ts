@@ -81,11 +81,6 @@ export function previousWeekStart(fromWeekStart?: string): string {
   return shiftWeekStart(base, -1);
 }
 
-export function nextWeekStart(fromWeekStart?: string): string {
-  const base = fromWeekStart ?? currentWeekStart();
-  return shiftWeekStart(base, 1);
-}
-
 export function isSprintClosingWeek(sprint: Pick<SprintContext, 'weekInSprint'>): boolean {
   return sprint.weekInSprint === 12;
 }

@@ -20,13 +20,6 @@ export async function fetchCloserCalls(userId: string): Promise<CloserCallSummar
   }
 }
 
-export async function fetchCloserCall(userId: string, callId: string): Promise<CloserCallRow> {
-  const { data, error } = await supabase.from('closer_calls').select('*')
-    .eq('id', callId).eq('user_id', userId).single();
-  if (error) throw error;
-  return data;
-}
-
 export async function saveCloserCallNotes(userId: string, callId: string, notes: string): Promise<CloserCallRow> {
   const { data, error } = await supabase.from('closer_calls')
     .update({ review_notes: notes, updated_at: new Date().toISOString() })

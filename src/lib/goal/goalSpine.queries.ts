@@ -4,7 +4,6 @@ import type {
   WeeklyReviewRow,
   GoalSpine,
   GoalKpiRow,
-  ProjectWeekKpi,
 } from './goalSpine.types';
 import { queryClient } from '../queryClient';
 import { goalSpineKeys } from '../queryKeys';
@@ -74,47 +73,6 @@ export async function fetchGoalSpine(
         loadMonthlySlice(userId, today),
       ]);
       return { weekStart, sprint, month, week, longTerm, sprintReview };
-    },
-  });
-}
-
-export async function fetchProjectWeekKpis(
-  userId: string,
-  projectIds: string[],
-  weekStart: string,
-): Promise<Record<string, ProjectWeekKpi[]>> {
-  if (projectIds.length === 0) return {};
-  const sortedIds = projectIds.slice().sort();
-  return queryClient.fetchQuery({
-    queryKey: goalSpineKeys.projectKpis(userId, weekStart, sortedIds),
-    queryFn: async () => {
-      const { data: kpis, error: kpiErr } = await supabase
-        .from('goal_kpis')
-        .select('*')
-        .eq('user_id', userId)
-        .in('project_id', projectIds);
-      if (kpiErr) throw kpiErr;
-
-      const kpiIds = (kpis ?? []).map((k) => k.id);
-      let entries: { kpi_id: string; value: number | null }[] = [];
-      if (kpiIds.length > 0) {
-        const { data, error } = await supabase
-          .from('kpi_entries')
-          .select('kpi_id, value')
-          .eq('user_id', userId)
-          .eq('week_start', weekStart)
-          .in('kpi_id', kpiIds);
-        if (error) throw error;
-        entries = data ?? [];
-      }
-      const valueByKpi = new Map(entries.map((e) => [e.kpi_id, e.value]));
-
-      const byProject: Record<string, ProjectWeekKpi[]> = {};
-      for (const kpi of (kpis ?? []) as GoalKpiRow[]) {
-        if (!kpi.project_id) continue;
-        (byProject[kpi.project_id] ??= []).push({ kpi, thisWeekValue: valueByKpi.get(kpi.id) ?? null });
-      }
-      return byProject;
     },
   });
 }

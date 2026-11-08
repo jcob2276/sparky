@@ -18,36 +18,6 @@ async function isCloserAbsoluteKpi(kpiId: string): Promise<boolean> {
   return typeof name === 'string' && /closer/i.test(name);
 }
 
-export async function addProjectKpi(
-  userId: string,
-  projectId: string,
-  pillar: string,
-  fields: { name: string; unit: string; target?: number | null },
-): Promise<GoalKpiRow> {
-  const { data, error } = await supabase
-    .from('goal_kpis')
-    .insert({
-      user_id: userId,
-      project_id: projectId,
-      pillar,
-      name: fields.name.trim(),
-      unit: fields.unit.trim(),
-      target: fields.target ?? null,
-      higher_is_better: true,
-    })
-    .select()
-    .single();
-  if (error) throw error;
-  invalidateGoalSpineCache(userId);
-  return data;
-}
-
-export async function setProjectKpiTarget(userId: string, kpiId: string, target: number | null): Promise<void> {
-  const { error } = await supabase.from('goal_kpis').update({ target }).eq('id', kpiId);
-  if (error) throw error;
-  invalidateGoalSpineCache(userId);
-}
-
 /** Pure decision: does this daily task completion roll up into a project KPI? */
 export function rollupTaskCompletion(
   targetValue: string | null | undefined,

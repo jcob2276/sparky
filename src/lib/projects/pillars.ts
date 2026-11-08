@@ -1,4 +1,3 @@
-import { Shield, Zap, Wallet, type LucideIcon } from 'lucide-react';
 import { bodyShort, incomeLabel, incomeShort, type LifeTargets } from '../lifeGoals';
 
 /**
@@ -8,22 +7,7 @@ import { bodyShort, incomeLabel, incomeShort, type LifeTargets } from '../lifeGo
  * from here instead of redefining a local pillar map.
  */
 
-export const PILLARS = ['cialo', 'duch', 'konto'] as const;
-export type PillarId = typeof PILLARS[number];
-
-export const PILLAR_META: Record<PillarId, {
-  label: string;
-  icon: LucideIcon;
-  text: string;
-  bg: string;
-  border: string;
-  dot: string;
-  color: string;
-}> = {
-  cialo: { label: 'Ciało', icon: Shield, text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', dot: 'bg-emerald-500', color: 'emerald' },
-  duch:  { label: 'Duch',  icon: Zap,    text: 'text-indigo-600 dark:text-indigo-400',   bg: 'bg-indigo-500/10',  border: 'border-indigo-500/30',  dot: 'bg-indigo-500',  color: 'indigo' },
-  konto: { label: 'Konto', icon: Wallet, text: 'text-amber-600 dark:text-amber-400',     bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   dot: 'bg-amber-500',   color: 'amber'  },
-};
+export type PillarId = 'cialo' | 'duch' | 'konto';
 
 /** Every project/dream color swatch that maps to a pillar (a pillar has several valid colors). */
 export const COLOR_TO_PILLAR: Record<string, PillarId> = {

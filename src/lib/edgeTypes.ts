@@ -71,10 +71,10 @@ interface AnalyzeTrainingLoadResponse {
 interface RecapReflectionResponse { ok: true; mode: 'reflection'; id: string; manual: boolean; voice_count_24h: number; stream_count_24h: number; events_count: number; }
 interface RecapWeeklySynthesisResponse { success: true; week: string; }
 interface RecapWeeklyRecapPhase1 { phase1: { narrative: string; longterm_motif: string | null; question: string; }; }
-export interface RecapWeeklyRecapPhase2 { phase2: { narrative_check: string; deepening_questions: string[]; block5_material: { cialo: string; duch: string; konto: string; }; }; }
+interface RecapWeeklyRecapPhase2 { phase2: { narrative_check: string; deepening_questions: string[]; block5_material: { cialo: string; duch: string; konto: string; }; }; }
 
 type RecapWeeklyRecapResponse = RecapWeeklyRecapPhase1 | RecapWeeklyRecapPhase2;
-export type RecapResponse = RecapReflectionResponse | RecapWeeklySynthesisResponse | RecapWeeklyRecapResponse;
+type RecapResponse = RecapReflectionResponse | RecapWeeklySynthesisResponse | RecapWeeklyRecapResponse;
 
 interface AutoClassifyStreamResponse {
   success: boolean;
