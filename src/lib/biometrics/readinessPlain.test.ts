@@ -70,6 +70,41 @@ describe('buildReadinessBrief', () => {
     expect(brief.reasons.every((r) => r.key !== 'mystery' && r.key !== 'respRate')).toBe(true);
   });
 
+  it('does not blame a chronic sleep debt that is your usual level', () => {
+    const brief = buildReadinessBrief({
+      level: 'strained',
+      sleepScore: 81,
+      sleepDebtH: -5.9,
+      signals: [
+        { key: 'hrv', flag: 'watch', detail: '' },
+        { key: 'rhr', flag: 'watch', detail: '' },
+        { key: 'sleepScore', flag: 'good', detail: '' },
+        { key: 'sleepDebt', flag: 'neutral', detail: '' },
+      ],
+    });
+    expect(brief.drivers).toBe('Najmocniej ciągną w dół: niskie HRV i podwyższone tętno spoczynkowe.');
+    const debt = brief.reasons.find((r) => r.key === 'sleepDebt');
+    expect(debt?.tone ?? 'neutral').toBe('neutral');
+  });
+
+  it('blames the debt only when it is worse than usual, and rates sleep against your own norm', () => {
+    const brief = buildReadinessBrief({
+      level: 'strained',
+      sleepScore: 70,
+      sleepDebtH: -6,
+      signals: [
+        { key: 'sleepScore', flag: 'bad', detail: '' },
+        { key: 'sleepDebt', flag: 'watch', detail: '' },
+      ],
+    });
+    expect(brief.reasons.find((r) => r.key === 'sleep')?.text).toBe('Sen słabszy niż zwykle (70/100).');
+    expect(brief.drivers).toBe('Najmocniej ciągną w dół: słaby sen i dług snu 6 h.');
+  });
+
+  it('names no culprits on a normal day', () => {
+    expect(buildReadinessBrief({ level: 'balanced', signals: [{ key: 'hrv', flag: 'watch', detail: '' }] }).drivers).toBeNull();
+  });
+
   it('formats hours as hours and minutes', () => {
     expect(formatHours(-3.2)).toBe('3 h 12 min');
     expect(formatHours(0.5)).toBe('30 min');

@@ -58,8 +58,15 @@ function toneOf(flag: string): ReasonTone {
   return flag === 'good' || flag === 'watch' || flag === 'bad' ? flag : 'neutral';
 }
 
-function sleepReason(score: number): ReadinessReason {
+/** Nowe dane niosą własną ocenę snu względem Twojej normy; starsze wiersze oceniamy po samej liczbie. */
+function sleepReason(score: number, signal?: ReadinessSignalInput): ReadinessReason {
   const n = Math.round(score);
+  if (signal) {
+    const tone = toneOf(signal.flag);
+    if (tone === 'good') return { key: 'sleep', tone, text: `Sen lepszy niż zwykle (${n}/100).` };
+    if (tone === 'neutral') return { key: 'sleep', tone, text: `Sen w Twojej normie (${n}/100).` };
+    return { key: 'sleep', tone, text: `Sen słabszy niż zwykle (${n}/100).` };
+  }
   if (score >= 85) return { key: 'sleep', tone: 'good', text: `Sen był bardzo dobry (${n}/100).` };
   if (score >= 70) return { key: 'sleep', tone: 'neutral', text: `Sen był w normie (${n}/100).` };
   if (score >= 55) return { key: 'sleep', tone: 'watch', text: `Sen był przeciętny (${n}/100).` };
@@ -120,6 +127,7 @@ const DRIVER_PHRASE: Record<string, string> = {
 function buildDrivers(reasons: ReadinessReason[], sleepDebtH: number | null | undefined): string | null {
   const phrases = reasons
     .filter((r) => r.tone === 'watch' || r.tone === 'bad')
+    .sort((a, b) => TONE_ORDER[a.tone] - TONE_ORDER[b.tone])
     .map((r) => {
       if (r.key === 'sleep') return r.tone === 'bad' ? 'słaby sen' : 'przeciętny sen';
       if (r.key === 'sleepDebt' && sleepDebtH != null) return `dług snu ${formatHours(sleepDebtH)}`;
@@ -136,11 +144,24 @@ export function buildReadinessBrief(input: ReadinessInput): ReadinessBrief {
   const verdict = (input.level && VERDICTS[input.level]) || NO_DATA;
   const reasons: ReadinessReason[] = [];
 
-  if (input.sleepScore != null && Number.isFinite(input.sleepScore)) reasons.push(sleepReason(input.sleepScore));
+  const signals = input.signals ?? [];
+  const sleepSignal = signals.find((s) => s.key === 'sleepScore');
+  const debtSignal = signals.find((s) => s.key === 'sleepDebt');
+
+  if (input.sleepScore != null && Number.isFinite(input.sleepScore)) reasons.push(sleepReason(input.sleepScore, sleepSignal));
   if (input.sleepDebtH != null && input.sleepDebtH <= -1) {
-    reasons.push({ key: 'sleepDebt', tone: input.sleepDebtH <= -3 ? 'bad' : 'watch', text: `Brakuje Ci ${formatHours(input.sleepDebtH)} snu z ostatnich dni.` });
+    const text = `Brakuje Ci ${formatHours(input.sleepDebtH)} snu z ostatnich dni.`;
+    if (debtSignal) {
+      // Dług, który masz od tygodni, to Twoja norma, a nie powód dzisiejszego werdyktu.
+      const tone = toneOf(debtSignal.flag);
+      const above = tone === 'watch' || tone === 'bad';
+      reasons.push({ key: 'sleepDebt', tone, text: `${text} ${above ? 'To więcej niż zwykle.' : 'To mniej więcej Twój zwykły poziom.'}` });
+    } else {
+      reasons.push({ key: 'sleepDebt', tone: input.sleepDebtH <= -3 ? 'bad' : 'watch', text });
+    }
   }
-  for (const signal of input.signals ?? []) {
+  for (const signal of signals) {
+    if (signal.key === 'sleepScore' || signal.key === 'sleepDebt') continue;
     const reason = signalReason(signal);
     if (reason) reasons.push(reason);
   }
@@ -151,5 +172,7 @@ export function buildReadinessBrief(input: ReadinessInput): ReadinessBrief {
     return TONE_ORDER[a.tone] - TONE_ORDER[b.tone];
   });
 
-  return { ...verdict, drivers: buildDrivers(reasons, input.sleepDebtH), reasons: reasons.slice(0, MAX_REASONS) };
+  // Na zwykły dzień nikt nie „ciągnie w dół”; winowajców wskazujemy tylko przy negatywnym werdykcie.
+  const negative = input.level === 'strained' || input.level === 'rundown';
+  return { ...verdict, drivers: negative ? buildDrivers(reasons, input.sleepDebtH) : null, reasons: reasons.slice(0, MAX_REASONS) };
 }

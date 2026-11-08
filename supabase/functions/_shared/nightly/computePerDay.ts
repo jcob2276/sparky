@@ -2,6 +2,7 @@ import { HEALTH_THRESHOLDS } from '@vanguard/domain';
 import { clamp } from './baselines.ts';
 import { computeReadiness, type ReadinessDay } from './readiness.ts';
 import { computeRecoveryScore } from './recovery_score.ts';
+import { sleepDebtExcess } from './sleepDebt.ts';
 import { computeStrainScore } from './strain_score.ts';
 import { estimateCaffeineMg } from '../caffeineEstimate.ts';
 
@@ -108,7 +109,13 @@ export function computePerDay(opts: {
     respRate: respByDate[d] ?? null,
     strain: strainByDate[d] ?? null,
   }));
-  const readiness = computeReadiness(readinessDays, date);
+  const sleepByDateToday = sleep != null ? { ...sleepByDate, [date]: Number(sleep) } : sleepByDate;
+  const readiness = computeReadiness(readinessDays, date, {
+    hrvZ: recoveryScoreResult.zHrv,
+    rhrZ: recoveryScoreResult.zRhr,
+    sleepScoreZ: recoveryScoreResult.zSleepScore,
+    sleepDebtExcessH: sleepDebtExcess(sleepByDateToday, date),
+  });
 
   // Caffeine decay
   const refTs = date === todayWarsaw ? now.getTime() : new Date(date + 'T22:00:00').getTime();
