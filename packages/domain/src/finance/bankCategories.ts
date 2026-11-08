@@ -1,7 +1,7 @@
 /**
  * Kategorie transakcji bankowych liczone regułami po nazwie kontrahenta i opisie.
  * Czysta funkcja bez sieci: ten sam kod działa na krawędzi (zapis przy synchronizacji) i w aplikacji.
- * Własne transfery wymagają zgodności rachunków lub nazwy właściciela, a ręczne reguły uwzględniają kierunek.
+ * Własne transfery wymagają zgodności IBAN lub potwierdzenia użytkownika, a ręczne reguły uwzględniają kierunek.
  */
 
 export const BANK_CATEGORY_LABELS = {
@@ -55,7 +55,6 @@ export function normalizeBankText(text: string | null): string {
 type Keyword = string;
 
 const RULES: ReadonlyArray<readonly [BankCategory, readonly Keyword[]]> = [
-  ['przelewy_wlasne', ['REVOLUT', 'PRZELEW WLASNY']],
   ['subskrypcje', ['GOOGLE PLAY', 'YOUTUBE', 'NETFLIX', 'SPOTIFY', 'APPLE.COM', 'ICLOUD', 'OPENAI', 'CHATGPT',
     'ANTHROPIC', 'CLAUDE.AI', 'DISNEY', 'HBO', 'TWITCH']],
   ['jedzenie_na_miescie', ['MCDONALD', 'w:KFC', 'KROKIECIK', 'POPEYES', 'KEBAB', 'DONER', 'MEXICO', 'RESTAURACJA',
@@ -97,18 +96,24 @@ export const bankCounterpartyKey = (counterparty: string | null, direction?: 'de
   return key && direction ? `${direction}:${key}` : key;
 };
 
+/** Własność rachunku potwierdzona przez użytkownika; klucz obejmuje oba kierunki tylko tego IBAN. */
+export const bankOwnIbanKey = (iban: string | null | undefined): string => {
+  const normalized = (iban ?? '').replace(/\s/g, '').toUpperCase();
+  return normalized ? `own-iban:${normalized}` : '';
+};
+
 /**
  * @param userRules ręczne wybory użytkownika (klucz kontrahenta -> kategoria); mają pierwszeństwo przed regułami.
  * @param ownIbans IBAN-y własnych rachunków użytkownika.
- * @param ownNames Nazwy właściciela rachunku (np. z nagłówków kont bankowych); dopasowanie kontrahenta traktuje jako przelew własny.
  *                  Nierozpoznane transakcje zostają `do_sprawdzenia`, żeby użytkownik mógł je przypisać sam.
  */
 export function categorizeBankTransaction(
   input: BankCategoryInput,
   userRules: ReadonlyMap<string, BankCategory> = new Map(),
   ownIbans: readonly string[] = [],
-  ownNames: readonly string[] = [],
 ): BankCategory {
+  const ownKey = bankOwnIbanKey(input.counterpartyIban);
+  if (ownKey && userRules.get(ownKey) === 'przelewy_wlasne') return 'przelewy_wlasne';
   const party = normalizeBankText(input.counterparty);
   const remembered = party ? userRules.get(bankCounterpartyKey(input.counterparty, input.direction))
     ?? (input.direction === 'debit' ? userRules.get(party) : undefined) : undefined;
@@ -117,16 +122,6 @@ export function categorizeBankTransaction(
 
   const iban = input.counterpartyIban?.replace(/\s/g, '').toUpperCase();
   if (iban && ownIbans.some(own => own.replace(/\s/g, '').toUpperCase() === iban)) return 'przelewy_wlasne';
-
-  if (party && ownNames.some(name => {
-    const norm = normalizeBankText(name);
-    if (!norm) return false;
-    if (party === norm || party.includes(norm) || norm.includes(party)) return true;
-    const nameTokens = norm.split(' ').filter(t => t.length > 2);
-    return nameTokens.length > 0 && nameTokens.every(t => party.includes(t));
-  })) {
-    return 'przelewy_wlasne';
-  }
 
   if (input.direction === 'credit') {
     if (/ZWROT|REFUND|REKLAMACJ/.test(text)) return 'zwrot';

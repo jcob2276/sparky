@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { BarChart3 } from 'lucide-react';
+import { ArrowLeft, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
 import { useFinanceMutations } from '../../lib/financeApi';
@@ -24,7 +24,7 @@ import { FinanceManualHistory } from './FinanceManualHistory';
 const TITLES: Record<FinanceTabKey, string> = {
   dashboard: 'Finanse',
   portfolio: 'Portfel',
-  accounts: 'Konta',
+  accounts: 'Ustawienia finansów',
   flows: 'Przepływy',
 };
 
@@ -42,10 +42,16 @@ function FinancePage() {
   const mutations = useFinanceMutations(userId);
   const holdingMutations = useHoldingMutations(userId);
   const cashEntry = useCashEntryMutation(userId);
-  // Powrót z banku (?bank=connected|denied) ląduje na Kontach, gdzie karta Bank obsługuje wynik.
+  // Powrót z banku (?bank=connected|denied) otwiera ustawienia, gdzie karta Bank obsługuje wynik.
   const [tab, setTab] = useState<FinanceTabKey>(() => (new URLSearchParams(window.location.search).has('bank') ? 'accounts' : 'dashboard'));
+  const [returnTab, setReturnTab] = useState<Exclude<FinanceTabKey, 'accounts'>>('dashboard');
   const [quickEntry, setQuickEntry] = useState<{ open: boolean; kind: 'expense' | 'income' }>({ open: false, kind: 'expense' });
   const reduceMotion = useReducedMotion();
+  const navigate = (next: FinanceTabKey) => {
+    if (next === 'accounts' && tab !== 'accounts') setReturnTab(tab);
+    setTab(next);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
 
   const run = async (fn: () => Promise<void>) => {
     try {
@@ -88,25 +94,33 @@ function FinancePage() {
 
   return (
     <div className="relative min-h-screen bg-background text-text-primary">
-      <div className="finance-glow pointer-events-none absolute inset-x-0 top-0 h-[26rem]" aria-hidden="true" />
+      {(tab === 'dashboard' || tab === 'portfolio') && <div className="finance-glow pointer-events-none absolute inset-x-0 top-0 h-[26rem]" aria-hidden="true" />}
 
       <header className="relative z-[var(--z-sticky)]">
         <div className="mx-auto flex max-w-[var(--content-default)] items-center gap-3 px-[var(--space-4)] pb-2 pt-[max(0.75rem,env(safe-area-inset-top))] md:px-[var(--space-8)]">
-          <Link
+          {tab === 'accounts' ? <Pressable
+            type="button"
+            onClick={() => navigate(returnTab)}
+            aria-label="Wróć do finansów"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-background/40 text-text-primary ring-1 ring-text-primary/15"
+          >
+            <ArrowLeft size={18} aria-hidden="true" />
+          </Pressable> : <Link
             to="/dzis"
             aria-label="Wróć do Sparky"
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-background/40 text-sm font-bold text-text-primary ring-1 ring-text-primary/15 transition-transform duration-[var(--motion-fast)] ease-[var(--ease-out)] active:scale-95"
           >
             {initial}
-          </Link>
+          </Link>}
           <h1 className="flex-1 text-center text-base font-semibold">{TITLES[tab]}</h1>
           <Pressable
             type="button"
-            onClick={() => setTab('portfolio')}
-            aria-label="Portfel"
+            onClick={() => navigate('accounts')}
+            aria-label="Ustawienia finansów"
+            aria-current={tab === 'accounts' ? 'page' : undefined}
             className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-background/40 text-text-primary ring-1 ring-text-primary/15"
           >
-            <BarChart3 size={18} aria-hidden="true" />
+            <Settings size={18} aria-hidden="true" />
           </Pressable>
         </div>
       </header>
@@ -124,7 +138,7 @@ function FinancePage() {
         {data && !metrics && tab === 'accounts' && <FinanceAccountsTab accounts={data.accounts} mutations={mutations} run={run} />}
         {data && !metrics && tab === 'portfolio' && <FinancePortfolioTab holdings={valuedHoldings} totals={portfolio} mutations={holdingMutations} run={run} fundingAccounts={data.accounts} brokerCashPln={data.accounts.filter(a => a.account_type === 'broker_cash').reduce((s, a) => s + a.balance, 0)} />}
         {data && !metrics && tab === 'flows' && <div className="space-y-6">
-          <FinanceBankCard mode="activity" financeAccounts={data.accounts} onManageAccounts={() => setTab('accounts')} />
+          <FinanceBankCard mode="activity" financeAccounts={data.accounts} onManageAccounts={() => navigate('accounts')} />
           <FinanceManualHistory transactions={data.transactions.filter(tx => tx.source !== 'bank')} />
         </div>}
 
@@ -149,7 +163,7 @@ function FinancePage() {
                 run={run}
                 saveProfilePatch={saveProfilePatch}
                 onQuickEntry={(kind) => setQuickEntry({ open: true, kind })}
-                onNavigate={setTab}
+                onNavigate={navigate}
               />
             </motion.div>
           </AnimatePresence>
@@ -167,7 +181,7 @@ function FinancePage() {
           onSubmit={saveCashEntry}
         />
       )}
-      <FinanceBottomNav active={tab} onChange={setTab} />
+      <FinanceBottomNav active={tab} onChange={navigate} />
     </div>
   );
 }

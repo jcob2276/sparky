@@ -24,7 +24,7 @@ export function useFinancePageData(userId: string | undefined) {
       const linked = bundleQuery.data.accounts.some(a => a.bank_account_id);
       if (linked && (bankQuery.error || !bankQuery.data)) return { data: bundleQuery.data, error: bankQuery.error?.message || 'Wczytuję salda bankowe…' };
       const bundle = bankQuery.data ? mergeBankFinance(bundleQuery.data, bankQuery.data, getTodayWarsaw()) : bundleQuery.data;
-      if (bundle.bankReconciliationPending) return { data: bundle, error: `Uzgodnij ręczne wpisy z bankiem w Kontach (${bundle.bankReconciliationPending}), żeby nie policzyć ich podwójnie.` };
+      if (bundle.bankReconciliationPending) return { data: bundle, error: `Uzgodnij ręczne wpisy z bankiem w ustawieniach finansów (${bundle.bankReconciliationPending}), żeby nie policzyć ich podwójnie.` };
       return { data: { ...bundle, accounts: applyCoinPrices(bundle.accounts, coinPricesQuery.data) }, error: null };
     } catch (err: unknown) { return { data: bundleQuery.data, error: err instanceof Error ? err.message : 'Błąd danych bankowych' }; }
   }, [bundleQuery.data, bankQuery.data, bankQuery.error, coinPricesQuery.data]);

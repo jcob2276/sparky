@@ -19,6 +19,7 @@ it('shows session and crypto daily changes with quote dates in position rows, in
     return <FinancePortfolioTab holdings={holdings} totals={computePortfolioTotals(holdings)} mutations={mutations} run={async fn => fn()} />;
   }
   render(<QueryClientProvider client={new QueryClient()}><Portfolio /></QueryClientProvider>);
+  expect(screen.getByRole('list', { name: 'Pozycje portfela według wartości i zmiany dziennej' })).toBeVisible();
   const crypto = screen.getByRole('button', { name: /BTC-USD/ });
   expect(within(crypto).getByText(/Zmiana dzienna/)).toHaveTextContent('2026-11-07');
   expect(within(crypto).getByText('-0,12%')).toBeVisible();

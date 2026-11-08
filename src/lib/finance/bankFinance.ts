@@ -9,7 +9,7 @@ export function mergeBankFinance(bundle: FinanceBundle, bank: BankData, today: s
   const accounts = bundle.accounts.map(account => {
     if (!account.bank_account_id) return account;
     const source = bank.accounts.find(a => a.id === account.bank_account_id);
-    if (!source || source.currency !== 'PLN' || source.balance == null) throw new Error(`Brak aktualnego salda bankowego: ${account.name}. Sprawdź Konta.`);
+    if (!source || source.currency !== 'PLN' || source.balance == null) throw new Error(`Brak aktualnego salda bankowego: ${account.name}. Sprawdź ustawienia finansów.`);
     return { ...account, balance: source.balance };
   });
   const linkedIds = new Set(linked.values());

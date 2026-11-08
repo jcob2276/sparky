@@ -15,17 +15,17 @@ export function BankFilters({ filters, accounts, currencies, onChange }: Props) 
         <label className="min-w-0 space-y-1 text-xs text-text-muted">Miesiąc
           <ControlInput type="month" aria-label="Miesiąc" max={getTodayWarsaw().slice(0, 7)} value={filters.month ?? ''} onChange={e => onChange({ month: e.target.value })} className={controlClass} />
         </label>
-        <label className="min-w-0 space-y-1 text-xs text-text-muted">Rachunek
+        <label className="min-w-0 space-y-1 text-xs text-text-muted">Rachunek{currencies.length === 1 ? ` · ${currencies[0]}` : ''}
           <ControlSelect aria-label="Rachunek" value={filters.accountId ?? ''} onChange={e => onChange({ accountId: e.target.value })} className={controlClass}>
             <option value="">Wszystkie widoczne</option>
             {accounts.map(a => <option key={a.id} value={a.id}>Rachunek {a.iban ? `…${a.iban.slice(-4)}` : a.name}</option>)}
           </ControlSelect>
         </label>
-        <label className="min-w-0 space-y-1 text-xs text-text-muted">Waluta
+        {currencies.length > 1 && <label className="min-w-0 space-y-1 text-xs text-text-muted">Waluta
           <ControlSelect aria-label="Waluta" value={filters.currency} onChange={e => onChange({ currency: e.target.value })} className={controlClass}>
             {currencies.map(currency => <option key={currency} value={currency}>{currency}</option>)}
           </ControlSelect>
-        </label>
+        </label>}
       </div>
       <ControlInput aria-label="Szukaj transakcji" placeholder="Szukaj kontrahenta lub opisu…" value={filters.search ?? ''} onChange={e => onChange({ search: e.target.value })} className={controlClass} />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">

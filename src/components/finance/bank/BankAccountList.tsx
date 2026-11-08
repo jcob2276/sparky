@@ -38,7 +38,7 @@ export function BankAccountList({
               trailing={a.balance == null ? '—' : formatCurrency(a.balance, a.currency || 'PLN')}>
               <p className="mt-1 text-xs text-text-muted">Aktualizacja transakcji: {stamp(a.transactions_synced_at)}. {a.history_complete ? 'Pobrano dostępną historię.' : 'Starsza historia jest niepełna.'}{a.transactions_from ? ` Zakres od ${formatWarsawDate(a.transactions_from)}.` : ''}</p>
               {onLink && (linked ? <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-text-secondary">
-                <span>Podsumowanie Finansów: {linked.name}</span>
+                <span>Uwzględniony w majątku</span>
                 <Button size="sm" variant="ghost" disabled={linking} onClick={() => onLink(a, linked.id, true)}>Odłącz aktualizację</Button>
               </div> : <div className="mt-3 space-y-2">
                 <ControlSelect aria-label={`Uwzględnij rachunek ${a.iban?.slice(-4) ?? a.id}`} value="" disabled={linking || a.currency !== 'PLN' || a.balance == null}

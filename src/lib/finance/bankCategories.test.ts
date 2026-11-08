@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BANK_CATEGORY_LABELS, bankCounterpartyKey, categorizeBankTransaction, type BankCategory } from '@vanguard/domain';
+import { BANK_CATEGORY_LABELS, bankCounterpartyKey, bankOwnIbanKey, categorizeBankTransaction, type BankCategory } from '@vanguard/domain';
 
 const debit = (counterparty: string | null, remittance: string | null = 'TRANSAKCJA KARTĄ PŁATNICZĄ') =>
   categorizeBankTransaction({ counterparty, remittance, direction: 'debit' });
@@ -48,7 +48,7 @@ describe('categorizeBankTransaction', () => {
     ['KIWI.COM S.R.O', 'podroze'],
     ['TPN KALATOWKI          ZAKOPANE', 'podroze'],
     ['HOBBYKING.COM          INTERNET', 'zakupy'],
-    ['REVOLUT**3862*         DUBLIN', 'przelewy_wlasne'],
+    ['REVOLUT**3862*         DUBLIN', 'do_sprawdzenia'],
     ['CASHBILL ECOMM', 'do_sprawdzenia'],
   ])('%s -> %s', (name, expected) => {
     expect(debit(name)).toBe(expected);
@@ -64,15 +64,47 @@ describe('categorizeBankTransaction', () => {
     expect(debit('BARBER SHOP RZESZOW')).toBe('uroda');
   });
 
-  it('przelewy na własne rachunki przez IBAN lub nazwisko właściciela', () => {
+  it('przelew na własny rachunek wymaga zgodnego IBAN, a nazwa ani opis nie potwierdzają własności', () => {
     expect(debit('JAN KOWALSKI', 'Przelew środków PRZELEW MOBILE')).toBe('do_sprawdzenia');
-    expect(categorizeBankTransaction({ counterparty: 'JAN KOWALSKI', remittance: null, direction: 'debit' }, new Map(), [], ['JAN KOWALSKI'])).toBe('przelewy_wlasne');
-    expect(categorizeBankTransaction({ counterparty: 'JAKUB ŁUKASZ SOBOŃ', remittance: 'Przelew środków', direction: 'debit' }, new Map(), [], ['Jakub Soboń'])).toBe('przelewy_wlasne');
+    expect(debit('JAN KOWALSKI', 'PRZELEW WŁASNY')).toBe('do_sprawdzenia');
     expect(categorizeBankTransaction({ counterparty: 'Jan', remittance: null, direction: 'debit', counterpartyIban: 'PL 123' }, new Map(), ['PL123'])).toBe('przelewy_wlasne');
   });
 
   it('bez znanej nazwy właściciela przelew na inne nazwisko nie jest uznany za własny', () => {
     expect(categorizeBankTransaction({ counterparty: 'JAN KOWALSKI', remittance: 'x', direction: 'debit' })).toBe('do_sprawdzenia');
+  });
+
+  it.each(['debit', 'credit'] as const)('potwierdzony zewnętrzny IBAN rozpoznaje %s po normalizacji', direction => {
+    const rules = new Map<string, BankCategory>([['own-iban:PL61109010140000071219812874', 'przelewy_wlasne']]);
+    expect(categorizeBankTransaction({ counterparty: null, remittance: null, direction,
+      counterpartyIban: ' pl61 1090 1014 0000 0712 1981 2874 ' }, rules)).toBe('przelewy_wlasne');
+  });
+
+  it('reguła własnego IBAN ma pierwszeństwo przed nazwą, ale nie obejmuje innego ani brakującego IBAN', () => {
+    const rules = new Map<string, BankCategory>([
+      ['own-iban:PL61109010140000071219812874', 'przelewy_wlasne'],
+      ['debit:JAN KOWALSKI', 'zakupy'], ['credit:JAN KOWALSKI', 'wynagrodzenie'],
+    ]);
+    for (const direction of ['debit', 'credit'] as const) {
+      const input = { counterparty: 'Jan Kowalski', remittance: null, direction };
+      expect(categorizeBankTransaction({ ...input, counterpartyIban: 'PL61109010140000071219812874' }, rules)).toBe('przelewy_wlasne');
+      const fallback = direction === 'debit' ? 'zakupy' : 'wynagrodzenie';
+      expect(categorizeBankTransaction({ ...input, counterpartyIban: 'PL62109010140000071219812874' }, rules)).toBe(fallback);
+      expect(categorizeBankTransaction(input, rules)).toBe(fallback);
+    }
+  });
+
+  it('bez IBAN zapamiętana własność nie wynika z nazwy ani opisu', () => {
+    const rules = new Map<string, BankCategory>([['own-iban:PL61109010140000071219812874', 'przelewy_wlasne']]);
+    expect(categorizeBankTransaction({ counterparty: 'Jan Kowalski', remittance: 'Oszczędności', direction: 'debit' }, rules)).toBe('do_sprawdzenia');
+    expect(categorizeBankTransaction({ counterparty: 'Jan Kowalski', remittance: 'Oszczędności', direction: 'credit' }, rules)).toBe('wplyw');
+  });
+
+  it('klucz własnego rachunku normalizuje zapis IBAN i pomija brak numeru', () => {
+    expect(bankOwnIbanKey(' pl61 1090 1014 0000 0712 1981 2874 ')).toBe('own-iban:PL61109010140000071219812874');
+    expect(bankOwnIbanKey(null)).toBe('');
+    expect(bankOwnIbanKey(undefined)).toBe('');
+    expect(bankOwnIbanKey('  ')).toBe('');
   });
 
   it('przelew na telefon to przelew do osoby', () => {

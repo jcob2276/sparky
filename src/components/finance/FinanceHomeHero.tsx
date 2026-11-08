@@ -75,7 +75,7 @@ export function FinanceHomeHero({ metrics, portfolio, hasHoldings, hasAccounts, 
         </p>
         {isUnset ? (
           <p className="mx-auto min-h-5 max-w-xs text-sm font-medium text-text-muted">
-            Dodaj konto w zakładce Konta, a pokażemy tu stan.
+            Dodaj konto w ustawieniach finansów, a pokażemy tu stan.
           </p>
         ) : (
           <p className={`min-h-5 text-sm font-medium tabular-nums ${showChange ? line.tone : 'text-transparent'}`} aria-hidden={!showChange}>

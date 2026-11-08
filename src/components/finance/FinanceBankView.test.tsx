@@ -17,6 +17,15 @@ const props = { data, health: { kind: 'ok', daysLeft: null } as const, loading: 
   onConnect: vi.fn(), onSync: vi.fn(), onAssignCategory: vi.fn(async () => true) };
 
 describe('bank view', () => {
+  it('shows spending categories on the dashboard without hiding them or duplicating the history', () => {
+    const open = vi.fn();
+    render(<FinanceBankView {...props} mode="overview" onOpenDetails={open} />);
+    expect(screen.getByText('Na co wychodzi')).toBeVisible();
+    expect(screen.getByText('Zakupy')).toBeVisible();
+    expect(screen.queryByText('Historia transakcji')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Pełna analiza i historia' }));
+    expect(open).toHaveBeenCalledOnce();
+  });
   it('keeps unavailable linked accounts recoverable without repeating visible balances', () => {
     const missing = { id: 'missing', user_id: 'u', name: 'Ukryty rachunek', balance: 100, account_type: 'bank', is_liquid: true, bank_account_id: 'hidden', sort_order: 0, coingecko_id: null, crypto_amount: null, created_at: '' };
     const remove = vi.fn();

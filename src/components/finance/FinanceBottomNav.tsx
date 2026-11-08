@@ -1,11 +1,10 @@
-import { ArrowLeftRight, Briefcase, Home, Landmark, type LucideIcon } from 'lucide-react';
+import { ArrowLeftRight, Briefcase, Home, type LucideIcon } from 'lucide-react';
 import { Pressable } from '../ui/ControlPrimitives';
 import type { FinanceTabKey } from './FinanceTabContent';
 
 const ITEMS: Array<{ key: FinanceTabKey; label: string; icon: LucideIcon }> = [
   { key: 'dashboard', label: 'Pulpit', icon: Home },
   { key: 'portfolio', label: 'Portfel', icon: Briefcase },
-  { key: 'accounts', label: 'Konta', icon: Landmark },
   { key: 'flows', label: 'Przepływy', icon: ArrowLeftRight },
 ];
 

@@ -34,7 +34,7 @@ export function FinanceHoldingsHeatmap({ holdings, loading }: FinanceHoldingsHea
   const byId = useMemo(() => new Map(holdings.map((item) => [item.id, item])), [holdings]);
 
   return (
-    <FinanceSection title="Mapa portfela" subtitle="Wielkość to wartość pozycji. Kolor: akcje i ETF-y względem poprzedniego zamknięcia, krypto — zmiana dzienna; daty w opisach pozycji.">
+    <FinanceSection title="Mapa portfela" subtitle="Wielkość: wartość pozycji. Kolor: zmiana ostatniej sesji; dla krypto — zmiana dzienna.">
       {holdings.length === 0 ? (
         <FinanceEmpty>Dodaj pozycje, a zobaczysz tu swoje akcje i ETF-y.</FinanceEmpty>
       ) : (

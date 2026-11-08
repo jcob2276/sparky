@@ -17,7 +17,7 @@ export interface BankAccount {
 }
 export interface BankTransaction {
   id: string; account_id: string; amount: number; currency: string; booking_date: string | null;
-  counterparty_name: string | null; remittance: string | null; category: string | null;
+  counterparty_name: string | null; counterparty_iban?: string | null; remittance: string | null; category: string | null;
   category_source?: string; status?: string | null;
 }
 export interface BankData {
@@ -29,7 +29,7 @@ export interface BankData {
 }
 export interface BankCategoryAssignment { transactionId: string; category: string | null; remember: boolean; forgetRule?: boolean }
 
-const TX_COLUMNS = 'id, account_id, amount, currency, booking_date, counterparty_name, remittance, category, category_source, status:raw->>status';
+const TX_COLUMNS = 'id, account_id, amount, currency, booking_date, counterparty_name, counterparty_iban, remittance, category, category_source, status:raw->>status';
 
 async function fetchBankData(userId: string): Promise<BankData> {
   const [connectionRes, accountsRes] = await Promise.all([

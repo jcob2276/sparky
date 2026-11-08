@@ -19,9 +19,10 @@ function readBankReturn(): 'connected' | 'denied' | null {
   return value;
 }
 
-export function FinanceBankCard({ financeAccounts = [], mode, onManageAccounts, onRemoveMissingAccount }: {
+export function FinanceBankCard({ financeAccounts = [], mode, onManageAccounts, onRemoveMissingAccount, onOpenDetails }: {
   financeAccounts?: FinanceAccount[];
-  mode: 'accounts' | 'activity';
+  mode: 'accounts' | 'activity' | 'overview';
+  onOpenDetails?: () => void;
   onManageAccounts?: () => void;
   onRemoveMissingAccount?: (account: FinanceAccount) => void;
 }) {
@@ -48,6 +49,7 @@ export function FinanceBankCard({ financeAccounts = [], mode, onManageAccounts, 
   return (<>
     <FinanceBankView
       mode={mode}
+      onOpenDetails={onOpenDetails}
       onManageAccounts={onManageAccounts}
       missingAccounts={query.isLoading ? [] : financeAccounts.filter(account => account.bank_account_id && !query.data?.accounts.some(bank => bank.id === account.bank_account_id))}
       onRemoveMissingAccount={onRemoveMissingAccount}

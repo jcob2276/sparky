@@ -113,7 +113,7 @@ it.each(['dashboard', 'flows'] as const)('keeps actual records and inputs in %s 
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } });
   render(<QueryClientProvider client={client}><BudgetTab tab={tab} /></QueryClientProvider>);
   if (tab === 'flows') {
-    fireEvent.click(await screen.findByText('Plan i stałe płatności'));
+    fireEvent.click(await screen.findByRole('tab', { name: 'Plan i stałe płatności' }));
     await screen.findByText('Pensja');
     expect(screen.getByLabelText(/Plan wydatków na miesiąc/)).toHaveValue(null);
   } else {

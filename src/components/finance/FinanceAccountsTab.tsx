@@ -5,7 +5,9 @@ import type { FinanceMutations } from '../../lib/financeMutations';
 import { formatPln } from '../../lib/finance/formatMoney';
 import { confirmDialog } from '../../lib/notify';
 import Button from '../ui/Button';
-import { ControlInput, ControlSelect } from '../ui/ControlPrimitives';
+import Sheet from '../ui/Sheet';
+import { ControlInput, Pressable } from '../ui/ControlPrimitives';
+import { ChevronRight, Plus } from 'lucide-react';
 import { FinanceBankCard } from './FinanceBankCard';
 import { FinanceEmpty, FinanceList, FinanceRow, FinanceSection } from './financeUi';
 
@@ -28,7 +30,7 @@ const KIND_LABELS: Record<NewKind, string> = {
 
 const fieldClass = 'min-h-11 rounded-lg border-0 bg-surface-2/70 px-3 text-sm ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35';
 
-function AccountForm({ onAdd }: { onAdd: (input: { name: string; balance: number; type: FinanceAccountType; liquid: boolean }) => void }) {
+function AccountForm({ onAdd, pending }: { onAdd: (input: { name: string; balance: number; type: FinanceAccountType; liquid: boolean }) => void; pending: boolean }) {
   const [name, setName] = useState('');
   const [kind, setKind] = useState<NewKind>('bank');
   const [balance, setBalance] = useState('');
@@ -37,10 +39,10 @@ function AccountForm({ onAdd }: { onAdd: (input: { name: string; balance: number
 
   return (
     <form
-      className="flex flex-wrap items-end gap-2 px-4 pb-4 pt-1"
+      className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
-        if (!valid) return;
+        if (!valid || pending) return;
         const isDebt = kind === 'debt';
         onAdd({
           name,
@@ -48,96 +50,176 @@ function AccountForm({ onAdd }: { onAdd: (input: { name: string; balance: number
           type: isDebt ? 'other' : kind,
           liquid: kind === 'cash' || kind === 'bank',
         });
-        setName('');
-        setBalance('');
       }}
     >
-      <ControlInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Nazwa (np. mBank, portfel)" aria-label="Nazwa konta" className={`${fieldClass} min-w-40 flex-1`} />
-      <ControlSelect value={kind} onChange={(e) => setKind(e.target.value as NewKind)} aria-label="Rodzaj" className={fieldClass}>
-        {Object.entries(KIND_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-      </ControlSelect>
-      <ControlInput type="number" inputMode="decimal" step="0.01" value={balance} onChange={(e) => setBalance(e.target.value)} placeholder="Saldo" aria-label="Saldo" className={`${fieldClass} w-32`} />
-      <Button type="submit" size="sm" disabled={!valid} className="rounded-lg">Dodaj</Button>
+      <label className="block space-y-1 text-sm text-text-secondary">
+        Nazwa konta
+        <ControlInput value={name} onChange={(e) => setName(e.target.value)} placeholder="Np. oszczędności" aria-label="Nazwa konta" className={`${fieldClass} w-full`} />
+      </label>
+      <fieldset className="space-y-2">
+        <legend className="text-sm text-text-secondary">Rodzaj konta</legend>
+        <div className="flex flex-wrap gap-2">
+          {(Object.keys(KIND_LABELS) as NewKind[]).map((key) => (
+            <Pressable
+              key={key}
+              type="button"
+              aria-pressed={kind === key}
+              onClick={() => setKind(key)}
+              className={`min-h-11 rounded-lg px-3 text-sm ${kind === key ? 'bg-text-primary text-background' : 'bg-surface-2 text-text-secondary'}`}
+            >
+              {KIND_LABELS[key]}
+            </Pressable>
+          ))}
+        </div>
+      </fieldset>
+      <label className="block space-y-1 text-sm text-text-secondary">
+        Saldo początkowe
+        <ControlInput
+          type="number"
+          inputMode="decimal"
+          step="0.01"
+          value={balance}
+          onChange={(e) => setBalance(e.target.value)}
+          aria-label="Saldo początkowe"
+          className={`${fieldClass} w-full`}
+        />
+      </label>
+      <Button type="submit" loading={pending} disabled={!valid} className="w-full">
+        Dodaj konto
+      </Button>
     </form>
   );
 }
 
-function BalanceInput({ account, onSave }: { account: FinanceAccount; onSave: (balance: number) => void }) {
+function BalanceForm({ account, onSave, pending }: { account: FinanceAccount; onSave: (balance: number) => void; pending: boolean }) {
   const [value, setValue] = useState(String(account.balance));
-  const commit = () => {
-    const parsed = Number(value.replace(',', '.'));
-    if (Number.isFinite(parsed) && parsed !== account.balance) onSave(parsed);
-    else setValue(String(account.balance));
-  };
+  const parsed = Number(value.replace(',', '.'));
+  const valid = value.trim() !== '' && Number.isFinite(parsed);
   return (
-    <ControlInput
-      type="number"
-      inputMode="decimal"
-      step="0.01"
-      aria-label={`Saldo ${account.name}`}
-      value={value}
-      onChange={(event) => setValue(event.target.value)}
-      onBlur={commit}
-      onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }}
-      className="min-h-10 w-32 rounded-lg border-0 bg-surface-2/70 px-3 text-right text-sm tabular-nums ring-1 ring-border-custom/25 focus:ring-2 focus:ring-primary/35"
-    />
+    <form
+      className="space-y-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        if (valid && !pending) onSave(parsed);
+      }}
+    >
+      <label className="block space-y-1 text-sm text-text-secondary">
+        Saldo
+        <ControlInput
+          type="number"
+          inputMode="decimal"
+          step="0.01"
+          aria-label={`Saldo ${account.name}`}
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          className={`${fieldClass} w-full tabular-nums`}
+        />
+      </label>
+      <Button type="submit" loading={pending} disabled={!valid} className="w-full">
+        Zapisz saldo
+      </Button>
+    </form>
   );
 }
 
 export function FinanceAccountsTab({ accounts, mutations, run }: FinanceAccountsTabProps) {
+  const [editing, setEditing] = useState<string | null>(null);
   const debts = accounts.filter((account) => account.balance < 0);
   const manual = accounts.filter((account) => !account.coingecko_id && !account.bank_account_id);
+  const selected = manual.find((account) => account.id === editing);
 
   const remove = async (account: FinanceAccount) => {
     if (!(await confirmDialog(`Usunąć konto „${account.name}"?`))) return;
-    await run(async () => { await mutations.removeAccount.mutateAsync(account.id); });
+    await run(async () => {
+      await mutations.removeAccount.mutateAsync(account.id);
+      setEditing(null);
+    });
   };
 
   return (
     <div className="space-y-8">
-      <FinanceBankCard mode="accounts" financeAccounts={accounts} onRemoveMissingAccount={account => void remove(account)} />
+      <FinanceBankCard mode="accounts" financeAccounts={accounts} onRemoveMissingAccount={(account) => void remove(account)} />
       <FinanceSection
-        title="Pozostałe środki i zobowiązania"
+        title="Gotówka i pozostałe środki"
         subtitle={`${debts.length ? `Długi ${formatPln(debts.reduce((n, a) => n + a.balance, 0))}. ` : ''}Gotówka, środki u brokera i konta bez synchronizacji.`}
       >
-        <details className="px-4">
-        <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-text-secondary">Dodaj konto lub środki</summary>
-        <AccountForm
-          onAdd={(input) => void run(async () => {
-            await mutations.addAccount.mutateAsync({
-              name: input.name,
-              balance: input.balance,
-              account_type: input.type,
-              is_liquid: input.liquid,
-            });
-          })}
-        />
-        </details>
         {manual.length === 0 ? (
           <FinanceEmpty>Tu dodasz gotówkę, dodatkowe środki lub zobowiązanie.</FinanceEmpty>
         ) : (
           <FinanceList>
             {manual.map((account) => (
-              <FinanceRow
+              <Pressable
                 key={account.id}
-                primary={account.name}
-                secondary={account.balance < 0 ? 'Dług' : FINANCE_ACCOUNT_LABELS[account.account_type as FinanceAccountType] ?? account.account_type}
-                trailing={(
-                  <BalanceInput
-                    key={account.balance}
-                    account={account}
-                    onSave={(balance) => void run(async () => { await mutations.updateAccount.mutateAsync({ id: account.id, balance }); })}
-                  />
-                )}
+                type="button"
+                onClick={() => setEditing(account.id)}
+                className="block w-full text-left hover:bg-surface-2/50"
+                aria-label={`Edytuj ${account.name}`}
               >
-                <div className="mt-1">
-                  <Button variant="ghost" size="sm" onClick={() => void remove(account)} className="text-danger">Usuń</Button>
-                </div>
-              </FinanceRow>
+                <FinanceRow
+                  primary={account.name}
+                  secondary={account.balance < 0 ? 'Dług' : (FINANCE_ACCOUNT_LABELS[account.account_type as FinanceAccountType] ?? account.account_type)}
+                  trailing={
+                    <span className="flex items-center gap-2">
+                      {formatPln(account.balance, 2)}
+                      <ChevronRight size={16} className="text-text-muted" aria-hidden="true" />
+                    </span>
+                  }
+                />
+              </Pressable>
             ))}
           </FinanceList>
         )}
+        <div className="border-t border-border-custom/20 p-3">
+          <Button variant="ghost" size="sm" icon={<Plus size={16} />} onClick={() => setEditing('new')}>
+            Dodaj konto lub środki
+          </Button>
+        </div>
       </FinanceSection>
+      <Sheet
+        open={editing != null}
+        onOpenChange={(open) => {
+          if (!open) setEditing(null);
+        }}
+        title={editing === 'new' ? 'Nowe konto lub środki' : selected?.name || 'Konto'}
+        side="bottom"
+        compact
+      >
+        {editing === 'new' && (
+          <AccountForm
+            pending={mutations.addAccount.isPending}
+            onAdd={(input) =>
+              void run(async () => {
+                await mutations.addAccount.mutateAsync({ name: input.name, balance: input.balance, account_type: input.type, is_liquid: input.liquid });
+                setEditing(null);
+              })
+            }
+          />
+        )}
+        {selected && (
+          <div className="space-y-6">
+            <BalanceForm
+              key={selected.id}
+              account={selected}
+              pending={mutations.updateAccount.isPending}
+              onSave={(balance) =>
+                void run(async () => {
+                  await mutations.updateAccount.mutateAsync({ id: selected.id, balance });
+                  setEditing(null);
+                })
+              }
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={mutations.updateAccount.isPending || mutations.removeAccount.isPending}
+              className="text-danger"
+              onClick={() => void remove(selected)}
+            >
+              Usuń konto z Finansów
+            </Button>
+          </div>
+        )}
+      </Sheet>
     </div>
   );
 }

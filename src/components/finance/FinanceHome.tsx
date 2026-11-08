@@ -12,6 +12,7 @@ import { FinanceGoalCard } from './FinanceGoalCard';
 import { FinanceGoalsCard } from './FinanceGoalsCard';
 import { FinanceHomeHero } from './FinanceHomeHero';
 import { FinanceOnboardingCard } from './FinanceOnboardingCard';
+import { FinanceBankCard } from './FinanceBankCard';
 import { buildTodayContext, buildTodayHeadline, formatMonthLabel } from './financeNarrative';
 import type { FinanceTabKey } from './FinanceTabContent';
 import type { FinanceMetrics } from './useFinanceMetrics';
@@ -104,6 +105,7 @@ export function FinanceHome({
         onNavigate={onNavigate}
       />
       <MonthFlow metrics={metrics} />
+      <FinanceBankCard mode="overview" financeAccounts={data.accounts} onOpenDetails={() => onNavigate('flows')} onManageAccounts={() => onNavigate('accounts')} />
 
       {metrics.hasBudget ? (
         <div className="rounded-2xl border border-border-custom/25 bg-surface-1/90 p-5 shadow-sm">
@@ -173,6 +175,10 @@ export function FinanceHome({
           onEditingChange={setGoalEditing}
           onSaveTarget={onSaveTarget}
         />
+        <div className="grid gap-6 lg:grid-cols-2">
+          <FinanceEmergencyCard metrics={metrics} />
+          <FinanceAllocationCard accounts={data.accounts} holdings={holdings} />
+        </div>
         <FinanceGoalsCard
           goals={data.goals}
           onAdd={(input) =>
@@ -194,10 +200,6 @@ export function FinanceHome({
             })
           }
         />
-        <div className="grid gap-6 lg:grid-cols-2">
-          <FinanceAllocationCard accounts={data.accounts} holdings={holdings} />
-          <FinanceEmergencyCard metrics={metrics} />
-        </div>
       </section>
     </div>
   );
