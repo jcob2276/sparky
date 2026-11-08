@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import Button from '../ui/Button';
 import { useUserId } from '../../store/useStore';
-import { CalendarDays, Target, AlertCircle, ChevronRight } from 'lucide-react';
+import { Target, AlertCircle } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 // import ProjectWeekKpis from './ProjectWeekKpis';
 import { SystemProposalCard } from '../shared/SystemProposalCard';
 import { useDirectionContext } from './direction/hooks/useDirectionContext';
@@ -10,10 +11,13 @@ import { usePendingProposals } from '../../hooks/usePendingProposals';
 import DataStateNotice from '../core/DataStateNotice';
 import { getTodayWarsaw, shiftWeekStart, shiftDateStr } from '../../lib/date';
 import { getWeekStartWarsaw } from '../../lib/growth/growth';
-import { quickCompleteOverdueWeeklyReview } from '../../lib/goal/goalSpine';
+import { quickCompleteWeeklyReview, type QuickWeeklyReviewAnswers } from '../../lib/goal/goalSpine';
+import { useWeekFacts } from '../../lib/goal/weekFacts';
+import { goalSpineKeys } from '../../lib/queryKeys';
 import { notify } from '../../lib/notify';
 import HealthCoachWeeklyReviewContainer from '../biometrics/workout/HealthCoachWeeklyReview';
-import WeekHubOverdueCue from './WeekHubOverdueCue';
+import WeekHubQuickReview from './WeekHubQuickReview';
+import WeekCoverageCard from './WeekCoverageCard';
 
 export default function WeekHub({
   onOpenActionCenter,
@@ -29,28 +33,29 @@ export default function WeekHub({
   const direction = useDirectionContext(userId, weekStart);
   const { guidance } = useSpineGuidance(userId);
 
-  const [closingOverdue, setClosingOverdue] = useState(false);
+  const queryClient = useQueryClient();
+  const factsQuery = useWeekFacts(userId, weekStart);
+  const [savingReview, setSavingReview] = useState(false);
 
   const weekReflectionPending = guidance?.steps.some(
     (s: { id: string; status: string }) => s.id === 'week_reflection' && s.status !== 'done',
   );
-  const showReviewCta = Boolean(weekReflectionPending && onStartWeeklyReview);
-  const sundayReviewCta = showReviewCta && isSunday;
-  const overdueReviewCue = showReviewCta && !isSunday;
+  // W niedzielę zamykamy bieżący tydzień, w pozostałe dni zaległy poprzedni.
+  const closingWeek = isSunday ? weekStart : shiftWeekStart(weekStart, -1);
 
-  const handleQuickComplete = async () => {
+  const handleQuickReview = async (answers: QuickWeeklyReviewAnswers) => {
     if (!userId) return;
-    setClosingOverdue(true);
+    setSavingReview(true);
     try {
-      const prevWeek = shiftWeekStart(weekStart, -1);
-      await quickCompleteOverdueWeeklyReview(userId, prevWeek, 'Zamknięty (szybkie odblokowanie)');
-      notify('Poprzedni tydzień został domknięty', 'success');
+      await quickCompleteWeeklyReview(userId, closingWeek, answers);
+      notify('Przegląd tygodnia zapisany', 'success');
+      await queryClient.invalidateQueries({ queryKey: goalSpineKeys.weekFacts(userId, weekStart) });
       await direction.reload();
     } catch (err) {
-      notify('Nie udało się zamknąć poprzedniego tygodnia', 'error');
-      console.warn('[WeekHub] quickCompleteOverdueWeeklyReview error:', err);
+      notify('Nie udało się zapisać przeglądu tygodnia', 'error');
+      console.warn('[WeekHub] quickCompleteWeeklyReview error:', err);
     } finally {
-      setClosingOverdue(false);
+      setSavingReview(false);
     }
   };
 
@@ -69,31 +74,15 @@ export default function WeekHub({
           weekEnd={shiftDateStr(weekStart, 6)}
         />
       )}
-      {sundayReviewCta && (
-        <Button
-          variant="tonal"
-          size="md"
-          type="button"
-          onClick={onStartWeeklyReview}
-          className="flex w-full items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3.5 text-left transition-colors hover:bg-primary/15 active:scale-[var(--ds-arbitrary-0-99)]"
-        >
-          <div className="min-w-0">
-            <p className="flex items-center gap-2 text-2xs font-semibold text-primary">
-              <CalendarDays size={12} /> Zamknięcie tygodnia
-            </p>
-            <p className="mt-1 text-sm font-semibold text-text-primary leading-snug">
-              Niedziela — refleksja + plan następnego tygodnia
-            </p>
-          </div>
-          <ChevronRight size={18} className="shrink-0 text-primary" />
-        </Button>
-      )}
+      {factsQuery.data && <WeekCoverageCard facts={factsQuery.data} showReport={isSunday} />}
+      {factsQuery.isError && <DataStateNotice title="Nie udało się policzyć pokrycia tygodnia" detail={factsQuery.error.message} tone="warning" />}
 
-      {overdueReviewCue && (
-        <WeekHubOverdueCue
-          closingOverdue={closingOverdue}
-          onQuickComplete={() => { void handleQuickComplete(); }}
-          onStartWeeklyReview={onStartWeeklyReview}
+      {weekReflectionPending && (
+        <WeekHubQuickReview
+          weekLabel={closingWeek}
+          saving={savingReview}
+          onSave={(answers) => { void handleQuickReview(answers); }}
+          onStartFullReview={onStartWeeklyReview}
         />
       )}
 

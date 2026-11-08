@@ -8681,6 +8681,10 @@ export type Database = {
       }
       vanguard_graph_cleanup: { Args: never; Returns: undefined }
       vanguard_stream_origin: { Args: { src: string }; Returns: string }
+      week_facts: {
+        Args: { p_user: string; p_week_start: string }
+        Returns: Json
+      }
     }
     Enums: {
       endmyopia_eye_enum: "left" | "right" | "both"

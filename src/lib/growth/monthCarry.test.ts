@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { monthCarryToWeekPlan } from './monthCarry';
-import type { MonthFacts } from './monthReview';
+import { collectWeeklyAnswers, type MonthFacts } from './monthReview';
 
 const facts: MonthFacts = {
   monthStart: '2026-05-01',
@@ -8,6 +8,7 @@ const facts: MonthFacts = {
   monthLabel: 'maj 2026',
   weeksInMonth: 5,
   weeksReviewed: 4,
+  weeklyAnswers: [],
   powerListDone: 40,
   powerListPlanned: 50,
   powerListZ: 12,
@@ -31,5 +32,18 @@ describe('monthCarryToWeekPlan', () => {
     expect(plan.commitment).toBe('Więcej snu');
     expect(plan.cialo).toBe('Więcej snu');
     expect(plan.duch).toBe('Deep work rano');
+  });
+});
+
+describe('collectWeeklyAnswers', () => {
+  it('bierze tylko tygodnie z odpowiedzią użytkownika, po kolei, bez pustych spacji', () => {
+    expect(collectWeeklyAnswers([
+      { week_start: '2026-10-12', proud_of: '  Maraton ', sabotage: null, do_differently: '' },
+      { week_start: '2026-10-05', proud_of: null, sabotage: null, do_differently: null },
+      { week_start: '2026-10-19', proud_of: null, sabotage: 'Sen', do_differently: 'Spać o 22:30' },
+    ])).toEqual([
+      { weekStart: '2026-10-12', wentWell: 'Maraton', didNotWork: '', oneChange: '' },
+      { weekStart: '2026-10-19', wentWell: '', didNotWork: 'Sen', oneChange: 'Spać o 22:30' },
+    ]);
   });
 });

@@ -18,12 +18,30 @@ export type MonthPillarAverages = {
   konto: number | null;
 };
 
+/** Odpowiedzi użytkownika z przeglądów tygodni miesiąca; miesiąc składa się z nich, nie z domysłów systemu. */
+export type MonthWeeklyAnswer = { weekStart: string; wentWell: string; didNotWork: string; oneChange: string };
+
+export function collectWeeklyAnswers(
+  reviews: ReadonlyArray<{ week_start: string; proud_of?: string | null; sabotage?: string | null; do_differently?: string | null }>,
+): MonthWeeklyAnswer[] {
+  return reviews
+    .map((r) => ({
+      weekStart: r.week_start,
+      wentWell: r.proud_of?.trim() ?? '',
+      didNotWork: r.sabotage?.trim() ?? '',
+      oneChange: r.do_differently?.trim() ?? '',
+    }))
+    .filter((a) => a.wentWell || a.didNotWork || a.oneChange)
+    .sort((a, b) => a.weekStart.localeCompare(b.weekStart));
+}
+
 export type MonthFacts = {
   monthStart: string;
   monthEnd: string;
   monthLabel: string;
   weeksInMonth: number;
   weeksReviewed: number;
+  weeklyAnswers: MonthWeeklyAnswer[];
   powerListDone: number;
   powerListPlanned: number;
   powerListZ: number;
@@ -151,7 +169,7 @@ export async function gatherMonthFacts(userId: string, monthStart: string): Prom
   ] = await Promise.all([
     supabase
       .from('weekly_reviews')
-      .select('week_start, review_completed_at, pillar_scores')
+      .select('week_start, review_completed_at, pillar_scores, proud_of, sabotage, do_differently')
       .eq('user_id', userId)
       .in('week_start', weeks.length ? weeks : ['1970-01-01']),
     fetchDailyWinTasks(userId, { from: monthStart, to: monthEnd }),
@@ -214,6 +232,7 @@ export async function gatherMonthFacts(userId: string, monthStart: string): Prom
     monthLabel: monthLabel(monthStart),
     weeksInMonth: weeks.length,
     weeksReviewed: reviewedWeeks,
+    weeklyAnswers: collectWeeklyAnswers(reviews ?? []),
     powerListDone,
     powerListPlanned,
     powerListZ,

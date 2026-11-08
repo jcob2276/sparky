@@ -13,7 +13,8 @@ vi.mock('../../hooks/useSpineGuidance', () => ({ useSpineGuidance: () => ({ guid
 vi.mock('../../lib/systemProposals', () => ({
   fetchPendingProposals: async () => { throw new Error('offline'); }, syncFrictionProposals: async () => {}, resolveProposal: vi.fn(),
 }));
-vi.mock('../../lib/goal/goalSpine', () => ({ quickCompleteOverdueWeeklyReview: vi.fn() }));
+vi.mock('../../lib/goal/goalSpine', () => ({ quickCompleteWeeklyReview: vi.fn() }));
+vi.mock('../../lib/goal/weekFacts', () => ({ useWeekFacts: () => ({ data: undefined, isError: false, error: null }) }));
 vi.mock('../shared/WeekLoopSummary', () => ({ default: () => <div data-testid="week-plan-form" /> }));
 vi.mock('./ProjectWeekKpis', () => ({ default: () => null }));
 vi.mock('../biometrics/workout/TrainingPlanContainer', () => ({ default: () => null }));

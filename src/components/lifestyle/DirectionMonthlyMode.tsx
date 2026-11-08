@@ -139,6 +139,25 @@ function MonthStatsGrid({ monthFacts }: { monthFacts: MonthFacts }) {
   );
 }
 
+function MonthWeeklyAnswers({ answers }: { answers: MonthFacts['weeklyAnswers'] }) {
+  if (answers.length === 0) {
+    return <p className="text-xs text-text-muted">Brak przeglądów tygodni w tym miesiącu. Bez nich miesiąc zostaje bez Twojego głosu.</p>;
+  }
+  return (
+    <div className="space-y-3 rounded-lg border border-border-custom/60 bg-surface/40 p-4">
+      <p className="text-2xs font-semibold text-text-muted">Z Twoich przeglądów tygodni</p>
+      {answers.map((answer) => (
+        <div key={answer.weekStart} className="space-y-1 text-xs text-text-secondary">
+          <p className="font-semibold text-text-primary">Tydzień od {answer.weekStart}</p>
+          {answer.wentWell && <p>Poszło: {answer.wentWell}</p>}
+          {answer.didNotWork && <p>Nie działało: {answer.didNotWork}</p>}
+          {answer.oneChange && <p>Zmiana: {answer.oneChange}</p>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function MonthAiRecapCard({
   recap,
   recapLoading,
@@ -224,6 +243,8 @@ export default function DirectionMonthlyMode({
       <MonthStatsGrid monthFacts={monthFacts} />
 
       {/* AI Narrative — full-width feature block */}
+      <MonthWeeklyAnswers answers={monthFacts.weeklyAnswers} />
+
       <MonthAiRecapCard recap={recap} recapLoading={recapLoading} />
 
       {/* Reflection questions */}

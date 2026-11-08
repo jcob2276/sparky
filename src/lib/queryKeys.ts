@@ -15,6 +15,7 @@ export const goalSpineKeys = {
   monthReview: (userId: string, monthStart: string) => [...goalSpineKeys.all, userId, 'monthReview', monthStart] as const,
   latestKpiValues: (userId: string, sortedIds: string[]) => [...goalSpineKeys.all, userId, 'latestKpiValues', sortedIds] as const,
   review: (userId: string, weekStart: string) => [...goalSpineKeys.all, userId, 'review', weekStart] as const,
+  weekFacts: (userId: string, weekStart: string) => [...goalSpineKeys.all, userId, 'weekFacts', weekStart] as const,
   reviewLatestCompletedDate: (userId: string) => [...goalSpineKeys.all, userId, 'reviewLatestCompletedDate'] as const,
   full: (userId: string, weekStart: string, currentToday: string) => [...goalSpineKeys.all, userId, 'full', weekStart, currentToday] as const,
   projectKpis: (userId: string, weekStart: string, sortedIds: string[]) => [...goalSpineKeys.all, userId, 'projectKpis', weekStart, sortedIds] as const,

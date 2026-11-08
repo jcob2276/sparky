@@ -36,20 +36,36 @@ export async function saveWeeklyReviewReflection(
   return data;
 }
 
-export async function quickCompleteOverdueWeeklyReview(
+export interface QuickWeeklyReviewAnswers {
+  wentWell: string;
+  didNotWork: string;
+  oneChange: string;
+}
+
+/** Krótki przegląd tygodnia: trzy odpowiedzi użytkownika w istniejących polach (proud_of, sabotage, do_differently). */
+export async function quickCompleteWeeklyReview(
   userId: string,
   closingWeekStart: string,
-  note?: string,
+  answers: QuickWeeklyReviewAnswers,
 ): Promise<WeeklyReviewRow | null> {
+  const clean = (value: string) => value.trim() || null;
+  const fields = {
+    proud_of: clean(answers.wentWell),
+    sabotage: clean(answers.didNotWork),
+    do_differently: clean(answers.oneChange),
+  };
+  if (!fields.proud_of && !fields.sabotage && !fields.do_differently) {
+    throw new Error('Przegląd bez żadnej odpowiedzi nie jest przeglądem.');
+  }
   const completedAt = new Date().toISOString();
-  const trimmed = note?.trim() || null;
   const { data, error } = await supabase
     .from('weekly_reviews')
     .upsert(
       {
         user_id: userId,
         week_start: closingWeekStart,
-        week_highlight: trimmed,
+        ...fields,
+        bottleneck: fields.do_differently,
         review_completed_at: completedAt,
       },
       { onConflict: 'user_id,week_start' },
