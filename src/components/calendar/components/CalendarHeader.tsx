@@ -163,7 +163,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
               onClick={() => setSearchOpen(true)}
               variant="secondary"
               size="sm"
-              className="calendar-icon-action h-11 w-11 shrink-0 !p-0 sm:h-9 sm:w-9"
+              className="calendar-icon-action hidden h-11 w-11 shrink-0 !p-0 sm:inline-flex sm:h-9 sm:w-9"
               aria-label="Szukaj wydarzeń"
               icon={<Search size={14} />}
             />
@@ -193,7 +193,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
             variant="secondary"
             size="sm"
             icon={<CalendarIcon size={14} />}
-            className={`calendar-today-button h-11 w-11 shrink-0 font-bold text-xs sm:h-9 sm:w-auto sm:px-3.5 ${searchOpen ? 'max-sm:hidden' : ''}`}
+            className="calendar-today-button hidden h-11 w-11 shrink-0 font-bold text-xs sm:inline-flex sm:h-9 sm:w-auto sm:px-3.5"
             aria-label="Dzisiaj"
             title="Przejdź do dzisiaj (T)"
           >
@@ -204,7 +204,7 @@ export default function CalendarHeader({ onBack }: CalendarHeaderProps) {
             variant="secondary"
             size="sm"
             icon={<RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />}
-            className={`calendar-sync-button h-11 w-11 shrink-0 sm:h-9 md:w-auto md:px-3.5 ${searchOpen ? 'max-sm:hidden' : ''}`}
+            className="calendar-sync-button hidden h-11 w-11 shrink-0 sm:inline-flex sm:h-9 md:w-auto md:px-3.5"
             aria-label={isSyncing ? 'Synchronizuję' : 'Synchronizuj'}
             title="Synchronizuj z Google Calendar"
           >

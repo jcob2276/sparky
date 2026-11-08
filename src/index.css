@@ -2586,7 +2586,7 @@ a,
   .todo-task-row:hover { background: color-mix(in srgb, var(--surface-solid) 30%, transparent); }
 }
 /* Origin-aware pointer disclosure. Keyboard and reduced-motion openings are instant. */
-.todo-action-menu { z-index: 10000; width: min(18rem, calc(100vw - 16px)); max-height: calc(100dvh - 16px); }
+.todo-action-menu { z-index: calc(var(--z-overlay) - 1); width: min(18rem, calc(100vw - 16px)); max-height: calc(100dvh - 16px); }
 @media (min-width: 640px) { .study-assignment-fields { grid-template-columns: minmax(0, 1fr) 10rem; } }
 .todo-action-menu[data-motion="pointer"] {
   opacity: 1;
@@ -3332,4 +3332,14 @@ progress,
 .keep-split-resizer:focus-visible::after,
 .keep-split-resizer:active::after {
   background: var(--primary);
+}
+
+/* Wydajnosc na telefonie: backdrop-filter na WebView Androida jest kosztowny (przy kazdej klatce przewijania
+   rozmywa tlo). Na urzadzeniach dotykowych zostaje pelna, nieprzezroczysta powierzchnia. */
+@media (hover: none) and (pointer: coarse) {
+  *, *::before, *::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .ui-floating-layer, .ui-floating-nav { background: var(--surface-solid); }
 }

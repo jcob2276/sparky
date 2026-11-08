@@ -169,19 +169,19 @@ export function eventColor(ev: CalRow) {
   }
 
   const categoryMap: Record<string, string> = {
-    brak: 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-950 dark:text-indigo-100 border border-indigo-200/90 dark:border-indigo-800/70 border-l-[4px] border-l-indigo-600 dark:border-l-indigo-500 shadow-2xs hover:bg-indigo-200/80 dark:hover:bg-indigo-900/80',
-    none: 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-950 dark:text-indigo-100 border border-indigo-200/90 dark:border-indigo-800/70 border-l-[4px] border-l-indigo-600 dark:border-l-indigo-500 shadow-2xs hover:bg-indigo-200/80 dark:hover:bg-indigo-900/80',
-    praca: 'bg-blue-100 dark:bg-blue-950/80 text-blue-950 dark:text-blue-100 border border-blue-200/90 dark:border-blue-800/70 border-l-[4px] border-l-blue-600 dark:border-l-blue-500 shadow-2xs hover:bg-blue-200/80 dark:hover:bg-blue-900/80',
-    work: 'bg-blue-100 dark:bg-blue-950/80 text-blue-950 dark:text-blue-100 border border-blue-200/90 dark:border-blue-800/70 border-l-[4px] border-l-blue-600 dark:border-l-blue-500 shadow-2xs hover:bg-blue-200/80 dark:hover:bg-blue-900/80',
-    cialo_trening: 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-950 dark:text-emerald-100 border border-emerald-200/90 dark:border-emerald-800/70 border-l-[4px] border-l-emerald-600 dark:border-l-emerald-500 shadow-2xs hover:bg-emerald-200/80 dark:hover:bg-emerald-900/80',
-    health: 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-950 dark:text-emerald-100 border border-emerald-200/90 dark:border-emerald-800/70 border-l-[4px] border-l-emerald-600 dark:border-l-emerald-500 shadow-2xs hover:bg-emerald-200/80 dark:hover:bg-emerald-900/80',
-    sport: 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-950 dark:text-emerald-100 border border-emerald-200/90 dark:border-emerald-800/70 border-l-[4px] border-l-emerald-600 dark:border-l-emerald-500 shadow-2xs hover:bg-emerald-200/80 dark:hover:bg-emerald-900/80',
-    duch_refleksja: 'bg-cyan-100 dark:bg-cyan-950/80 text-cyan-950 dark:text-cyan-100 border border-cyan-200/90 dark:border-cyan-800/70 border-l-[4px] border-l-cyan-600 dark:border-l-cyan-500 shadow-2xs hover:bg-cyan-200/80 dark:hover:bg-cyan-900/80',
-    study: 'bg-cyan-100 dark:bg-cyan-950/80 text-cyan-950 dark:text-cyan-100 border border-cyan-200/90 dark:border-cyan-800/70 border-l-[4px] border-l-cyan-600 dark:border-l-cyan-500 shadow-2xs hover:bg-cyan-200/80 dark:hover:bg-cyan-900/80',
-    finanse: 'bg-amber-100 dark:bg-amber-950/80 text-amber-950 dark:text-amber-100 border border-amber-200/90 dark:border-amber-800/70 border-l-[4px] border-l-amber-500 dark:border-l-amber-400 shadow-2xs hover:bg-amber-200/80 dark:hover:bg-amber-900/80',
-    relacje_rodzina: 'bg-purple-100 dark:bg-purple-950/80 text-purple-950 dark:text-purple-100 border border-purple-200/90 dark:border-purple-800/70 border-l-[4px] border-l-purple-600 dark:border-l-purple-500 shadow-2xs hover:bg-purple-200/80 dark:hover:bg-purple-900/80',
-    personal: 'bg-purple-100 dark:bg-purple-950/80 text-purple-950 dark:text-purple-100 border border-purple-200/90 dark:border-purple-800/70 border-l-[4px] border-l-purple-600 dark:border-l-purple-500 shadow-2xs hover:bg-purple-200/80 dark:hover:bg-purple-900/80',
-    odpoczynek_regeneracja: 'bg-rose-100 dark:bg-rose-950/80 text-rose-950 dark:text-rose-100 border border-rose-200/90 dark:border-rose-800/70 border-l-[4px] border-l-rose-600 dark:border-l-rose-500 shadow-2xs hover:bg-rose-200/80 dark:hover:bg-rose-900/80',
+    brak: 'bg-indigo-500 text-white border border-indigo-600 border-l-[4px] border-l-indigo-700 shadow-2xs hover:bg-indigo-600',
+    none: 'bg-indigo-500 text-white border border-indigo-600 border-l-[4px] border-l-indigo-700 shadow-2xs hover:bg-indigo-600',
+    praca: 'bg-blue-500 text-white border border-blue-600 border-l-[4px] border-l-blue-700 shadow-2xs hover:bg-blue-600',
+    work: 'bg-blue-500 text-white border border-blue-600 border-l-[4px] border-l-blue-700 shadow-2xs hover:bg-blue-600',
+    cialo_trening: 'bg-emerald-500 text-white border border-emerald-600 border-l-[4px] border-l-emerald-700 shadow-2xs hover:bg-emerald-600',
+    health: 'bg-emerald-500 text-white border border-emerald-600 border-l-[4px] border-l-emerald-700 shadow-2xs hover:bg-emerald-600',
+    sport: 'bg-emerald-500 text-white border border-emerald-600 border-l-[4px] border-l-emerald-700 shadow-2xs hover:bg-emerald-600',
+    duch_refleksja: 'bg-cyan-500 text-white border border-cyan-600 border-l-[4px] border-l-cyan-700 shadow-2xs hover:bg-cyan-600',
+    study: 'bg-cyan-500 text-white border border-cyan-600 border-l-[4px] border-l-cyan-700 shadow-2xs hover:bg-cyan-600',
+    finanse: 'bg-amber-500 text-white border border-amber-600 border-l-[4px] border-l-amber-700 shadow-2xs hover:bg-amber-600',
+    relacje_rodzina: 'bg-purple-500 text-white border border-purple-600 border-l-[4px] border-l-purple-700 shadow-2xs hover:bg-purple-600',
+    personal: 'bg-purple-500 text-white border border-purple-600 border-l-[4px] border-l-purple-700 shadow-2xs hover:bg-purple-600',
+    odpoczynek_regeneracja: 'bg-rose-500 text-white border border-rose-600 border-l-[4px] border-l-rose-700 shadow-2xs hover:bg-rose-600',
   };
 
   // 1. Explicit database category

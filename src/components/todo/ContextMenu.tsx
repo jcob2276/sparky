@@ -41,6 +41,9 @@ export default function ContextMenu({ x, y, item, today, sections, onClose, onDe
     }
     panel?.querySelector<HTMLButtonElement>('button')?.focus();
     const closeOutside = (event: PointerEvent) => {
+      const target = event.target as Element | null;
+      // Arkusz wyboru (ControlSelect) jest osobnym portalem: tap w niego nie moze zamykac menu ani odmontowywac selecta przed wyborem.
+      if (target?.closest?.('[aria-modal="true"]')) return;
       if (panel && !panel.contains(event.target as Node)) onCloseRef.current();
     };
     const navigate = (event: KeyboardEvent) => {

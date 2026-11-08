@@ -24,7 +24,7 @@ export interface WeekFacts {
   review_answers: boolean;
 }
 
-export type CoverageStatus = 'ok' | 'gap' | 'info';
+type CoverageStatus = 'ok' | 'gap' | 'info';
 export interface CoverageRow { key: string; label: string; value: string; status: CoverageStatus }
 
 const hours = (value: number | null) => (value == null ? 'brak' : `${value.toFixed(1).replace('.', ',')} h`);
@@ -57,10 +57,45 @@ export function buildWeekReport(facts: WeekFacts): { lines: string[]; gaps: stri
   return { lines, gaps };
 }
 
-export async function fetchWeekFacts(userId: string, weekStart: string): Promise<WeekFacts> {
+async function fetchWeekFacts(userId: string, weekStart: string): Promise<WeekFacts> {
   const { data, error } = await supabase.rpc('week_facts', { p_user: userId, p_week_start: weekStart });
   if (error) throw error;
-  return data as unknown as WeekFacts;
+  return parseWeekFacts(data);
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null && !Array.isArray(value);
+const num = (row: Record<string, unknown>, key: string): number => {
+  const value = row[key];
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+};
+const numOrNull = (row: Record<string, unknown>, key: string): number | null => {
+  const value = row[key];
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+};
+
+/** Odpowiedz RPC to JSON bez typu: pola sprawdzamy jawnie, brak liczby to 0 (a dla srednich null), nie zgadywanie. */
+function parseWeekFacts(raw: unknown): WeekFacts {
+  if (!isRecord(raw) || typeof raw.week_start !== 'string') throw new Error('week_facts: nieprawidlowa odpowiedz');
+  return {
+    week_start: raw.week_start,
+    days_elapsed: num(raw, 'days_elapsed'),
+    own_entry_days: num(raw, 'own_entry_days'),
+    own_words: num(raw, 'own_words'),
+    days_closed: num(raw, 'days_closed'),
+    wins_z: num(raw, 'wins_z'),
+    wins_p: num(raw, 'wins_p'),
+    tasks_planned: num(raw, 'tasks_planned'),
+    tasks_done: num(raw, 'tasks_done'),
+    workouts: num(raw, 'workouts'),
+    saunas: num(raw, 'saunas'),
+    sleep_nights: num(raw, 'sleep_nights'),
+    sleep_avg_h: numOrNull(raw, 'sleep_avg_h'),
+    readiness_avg: numOrNull(raw, 'readiness_avg'),
+    spend_pln: num(raw, 'spend_pln'),
+    spend_tx: num(raw, 'spend_tx'),
+    review_done: raw.review_done === true,
+    review_answers: raw.review_answers === true,
+  };
 }
 
 export function useWeekFacts(userId: string, weekStart: string) {
