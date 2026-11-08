@@ -12,7 +12,12 @@ const MANUAL_COOLDOWN_MS = 15 * 60e3;
 /** Okna historii na jedno uruchomienie: cron 3x dziennie bierze po jednym oknie, reczna synchronizacja (uzytkownik obecny) wiecej. */
 const AUTO_HISTORY_WINDOWS = 1;
 const MANUAL_HISTORY_WINDOWS = 12;
-const LIMIT_NOTE = 'Bank ogranicza odczyt. Pokazuję ostatnio pobrane dane; spróbuję ponownie później.';
+/**
+ * Pobieranie starszej historii z banku jest domyślnie wyłączone (limity PSD2 Pekao); historię dowozi import CSV.
+ * Włączenie: sekret funkcji BANK_HISTORY_BACKFILL=on.
+ */
+const HISTORY_BACKFILL_ENABLED = Deno.env.get('BANK_HISTORY_BACKFILL') === 'on';
+const LIMIT_NOTE ='Bank ogranicza odczyt. Pokazuję ostatnio pobrane dane; spróbuję ponownie później.';
 const HISTORY_PENDING_NOTE = 'Starsza historia nie została jeszcze w całości pobrana.';
 
 interface AccountRow {
@@ -139,6 +144,7 @@ export async function syncUser(db: SupabaseClient, userId: string | null, manual
         try {
           await syncBalance(db, a);
           await syncRecent(db, a);
+          if (!HISTORY_BACKFILL_ENABLED) continue; // starsza historia z importu CSV, nie z odczytów banku
           try {
             if (!(await backfill(db, a, manual ? MANUAL_HISTORY_WINDOWS : AUTO_HISTORY_WINDOWS))) historyPending = true;
           } catch (historyErr) {
@@ -150,7 +156,7 @@ export async function syncUser(db: SupabaseClient, userId: string | null, manual
         } catch (err) {
           if (!isBankReadLimit(err)) throw err;
           limited = true;
-          historyPending ||= !a.history_complete;
+          historyPending ||= HISTORY_BACKFILL_ENABLED && !a.history_complete;
           break;
         }
       }
