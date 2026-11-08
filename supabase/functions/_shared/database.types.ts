@@ -8264,6 +8264,7 @@ export type Database = {
         Returns: string
       }
       cron_refresh_device_signals_daily: { Args: never; Returns: undefined }
+      daily_win_result_for: { Args: { win_id: string }; Returns: string }
       delete_note_folder_hierarchy: {
         Args: { folder_id: string }
         Returns: undefined
