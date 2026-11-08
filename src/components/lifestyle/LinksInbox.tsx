@@ -138,7 +138,7 @@ export default function LinksInbox({ onBack, onNavigateTo }: { onBack: () => voi
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         <WorkspaceHeader
           title="Pocket"
-          subtitle={d.unreadCount > 0 ? `${d.unreadCount} do przeczytania` : 'Wszystko przeczytane'}
+          subtitle={d.unreadCount > 0 ? `${d.unreadCount} nowych` : 'Brak nowych'}
           onBack={onBack}
           leading={<SidebarTrigger className="!h-11 !w-11 md:hidden" aria-label="Otwórz nawigację" />}
           center={isNarrow ? undefined : searchField}
