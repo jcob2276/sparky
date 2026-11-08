@@ -67,7 +67,6 @@
 @media (max-width: 767px) {
   .calendar-shell {
     background: var(--background);
-    padding-top: env(safe-area-inset-top);
     box-sizing: border-box;
   }
 
