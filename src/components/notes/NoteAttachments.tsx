@@ -31,7 +31,7 @@ export default function NoteAttachments({ noteId, onInsertText }: { noteId: stri
       onDraw={openDrawing}
     />
     {drawing?.previewUrl && <Pressable type="button" className="note-drawing-preview" onClick={openDrawing}>
-      <img src={drawing.previewUrl} alt="Podgląd rysunku" />
+      <img decoding="async" loading="lazy" src={drawing.previewUrl} alt="Podgląd rysunku" />
       <span>Rysunek · edytuj</span>
     </Pressable>}
     {/* Keep the note visible while the editor loads; no temporary overlay or spinner. */}

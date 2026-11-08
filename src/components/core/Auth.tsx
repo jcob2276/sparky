@@ -92,7 +92,7 @@ export default function Auth() {
     <main className="auth-hero">
       {/* Full-bleed cinematic background */}
       <div className="auth-hero-bg" aria-hidden="true">
-        <img
+        <img decoding="async"
           src={`${import.meta.env.BASE_URL}auth_hero.jpg`}
           alt=""
           className="auth-hero-img"
@@ -109,7 +109,7 @@ export default function Auth() {
           {/* Logo & Brand Header */}
           <div className="auth-card-header">
             <div className="auth-logo-box">
-              <img
+              <img decoding="async"
                 src={`${import.meta.env.BASE_URL}favicon.svg`}
                 alt="Sparky"
                 width={40}

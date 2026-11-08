@@ -24,7 +24,7 @@ export default function MealScanOverlay({ file }: { file: File }) {
   return createPortal(
     <div className="meal-scan" role="status" aria-live="polite" aria-label={STAGES[stage]}>
       <div className="meal-scan__frame">
-        <img src={url} alt="" className="meal-scan__photo" />
+        <img decoding="async" loading="lazy" src={url} alt="" className="meal-scan__photo" />
         <div className="meal-scan__tint" aria-hidden="true" />
         <div className="meal-scan__beam" aria-hidden="true" />
         <span className="meal-scan__corner meal-scan__corner--tl" aria-hidden="true" />

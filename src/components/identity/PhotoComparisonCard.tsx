@@ -117,7 +117,7 @@ export function PhotoComparisonCard({
               <div className="relative flex-1 border-r border-border-custom overflow-hidden">
                 {basePhoto ? (
                   <>
-                    <img src={basePhoto.image_url} alt="Zdjęcie bazowe sylwetki" className="absolute inset-0 w-full h-full object-cover" />
+                    <img decoding="async" loading="lazy" src={basePhoto.image_url} alt="Zdjęcie bazowe sylwetki" className="absolute inset-0 w-full h-full object-cover" />
                     <div className="absolute top-3 left-3 bg-surface/85 backdrop-blur-md px-2.5 py-1 rounded-full border border-border-custom shadow-sm">
                       <p className="text-2xs font-semibold text-text-secondary">Baza: {baseDateStr}</p>
                     </div>
@@ -131,7 +131,7 @@ export function PhotoComparisonCard({
               <div className="relative flex-1 overflow-hidden">
                 {targetPhoto ? (
                   <>
-                    <img src={targetPhoto.image_url} alt="Zdjęcie docelowe sylwetki" className="absolute inset-0 w-full h-full object-cover" />
+                    <img decoding="async" loading="lazy" src={targetPhoto.image_url} alt="Zdjęcie docelowe sylwetki" className="absolute inset-0 w-full h-full object-cover" />
                     <div className="absolute top-3 right-3 bg-primary/20 backdrop-blur-md px-2.5 py-1 rounded-full border border-primary/30 shadow-sm">
                       <p className="text-2xs font-semibold text-primary">Cel: {targetDateStr}</p>
                     </div>

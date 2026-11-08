@@ -85,7 +85,7 @@ export function PhotoCompareSlider({
       }}
     >
       {/* Target (Cel) Photo - Full background */}
-      <img
+      <img decoding="async" loading="lazy"
         src={targetPhotoUrl}
         alt="Docelowa sylwetka"
         className="absolute inset-0 w-full h-full object-cover pointer-events-none"
@@ -96,7 +96,7 @@ export function PhotoCompareSlider({
         className="absolute inset-0 overflow-hidden pointer-events-none"
         style={{ width: `${sliderPos}%` }}
       >
-        <img
+        <img decoding="async" loading="lazy"
           src={basePhotoUrl}
           alt="Bazowa sylwetka"
           className="absolute inset-0 w-full h-full object-cover max-w-none"

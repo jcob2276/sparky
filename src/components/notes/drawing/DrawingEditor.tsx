@@ -131,7 +131,7 @@ export default function DrawingEditor({ userId, noteId, onClose, onInsertText }:
       await downloadBlob(png, 'rysunek.png');
       return;
     }
-    printable.document.write(`<img src="${url}" style="display:block;max-width:100%;margin:auto"><script>addEventListener('load',()=>{print();setTimeout(()=>close(),500)})</script>`);
+    printable.document.write(`<img decoding="async" loading="lazy" src="${url}" style="display:block;max-width:100%;margin:auto"><script>addEventListener('load',()=>{print();setTimeout(()=>close(),500)})</script>`);
     printable.document.close();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   };

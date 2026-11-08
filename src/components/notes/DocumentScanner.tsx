@@ -79,7 +79,7 @@ export default function DocumentScanner({ onClose, onComplete }: Props) {
         <div className="grid gap-4 sm:grid-cols-2">
           {pages.map((page, index) => (
             <article key={page.id} className="rounded-lg bg-on-accent/10 p-2">
-              <img
+              <img decoding="async" loading="lazy"
                 src={page.dataUrl}
                 alt={`Strona ${index + 1}`}
                 className={`mx-auto max-h-[var(--ios-document-page-height)] ${page.filter === 'grayscale' ? 'grayscale' : page.filter === 'contrast' ? 'grayscale contrast-150' : ''}`}

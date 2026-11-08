@@ -194,7 +194,7 @@ export default memo(function MealComposerLoggedItems({
                       className="flex w-full items-center justify-between gap-3 px-3 py-1 text-left transition-colors duration-150 hover:bg-surface-solid/50 active:bg-surface-solid/80"
                     >
                       {entry.meal_group_id && photoUrls[entry.meal_group_id] && (
-                        <img
+                        <img decoding="async"
                           src={photoUrls[entry.meal_group_id]}
                           alt={`Zdjęcie posiłku: ${entry.name}`}
                           loading="lazy"

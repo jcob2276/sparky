@@ -42,7 +42,7 @@ interface EditScreenProps {
 function PhotoBackdrop({ url }: { url: string }) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-      <img src={url} alt="" className="h-full w-full scale-110 object-cover" />
+      <img decoding="async" loading="lazy" src={url} alt="" className="h-full w-full scale-110 object-cover" />
       <div className="absolute inset-0 bg-gradient-to-b from-black/45 via-surface/80 to-surface/95" />
     </div>
   );

@@ -55,7 +55,7 @@ export default function PhotosTimelineList({
                     : 'border-border-custom opacity-70 hover:opacity-100 hover:border-text-muted/40 hover:scale-[1.02]'
                 }`}
               >
-                <img
+                <img decoding="async"
                   src={photo.thumbnail_url || photo.image_url}
                   alt={`Zdjęcie sylwetki z ${photo.date ? format(parseISO(photo.date), 'dd.MM.yyyy') : ''}`}
                   className={`w-full h-full object-cover ui-interactive ${

@@ -53,7 +53,7 @@ export default function DocumentCornerEditor({ source, onCancel, onApply }: Prop
         onPointerUp={() => setDragging(null)}
         onPointerCancel={() => setDragging(null)}
       >
-        <img src={source} alt="Dopasowanie dokumentu" className="max-h-[var(--ios-document-editor-height)] max-w-full" />
+        <img decoding="async" loading="lazy" src={source} alt="Dopasowanie dokumentu" className="max-h-[var(--ios-document-editor-height)] max-w-full" />
         <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full">
           <polygon points={points} fill="var(--ios-scanner-selection-fill)" stroke="var(--ios-scanner-selection)" strokeWidth=".7" />
         </svg>

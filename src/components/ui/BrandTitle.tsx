@@ -6,7 +6,7 @@ export function BrandTitle({ className = '' }: BrandTitleProps) {
   const last = word.slice(-1);
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
-      <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={28} height={28} className="shrink-0" />
+      <img decoding="async" loading="lazy" src={`${import.meta.env.BASE_URL}favicon.svg`} alt="" width={28} height={28} className="shrink-0" />
       <span style={{ letterSpacing: 'var(--ds-inline-style-0-25em)', fontWeight: 'var(--ds-inline-style-900)', textTransform: 'uppercase' }}>
         {body}
         <span style={{ color: 'var(--color-primary)' }}>{last}</span>

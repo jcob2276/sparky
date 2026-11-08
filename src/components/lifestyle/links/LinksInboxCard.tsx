@@ -44,7 +44,7 @@ function LinksCardThumbnail({
           onClick={onToggleSelect}
           className="w-full block cursor-pointer"
         >
-          <img
+          <img decoding="async"
             src={thumbnailUrl}
             alt={title}
             className="w-full aspect-video object-cover"
@@ -59,7 +59,7 @@ function LinksCardThumbnail({
           onClick={() => haptic([6])}
           className="w-full block cursor-pointer transition-opacity"
         >
-          <img
+          <img decoding="async"
             src={thumbnailUrl}
             alt={title}
             className="w-full aspect-video object-cover"
@@ -204,7 +204,7 @@ export function LinksInboxCard({
 
             {isSelectMode ? (
               <div className="flex items-center gap-1 select-none">
-                <img
+                <img decoding="async" loading="lazy"
                   src={`https://www.google.com/s2/favicons?sz=32&domain=${link.domain}`}
                   alt=""
                   className="w-3.5 h-3.5 rounded-sm object-contain"
@@ -220,7 +220,7 @@ export function LinksInboxCard({
                 onClick={() => haptic([6])}
                 className="flex items-center gap-1 select-none hover:text-text-primary transition-colors cursor-pointer"
               >
-                <img
+                <img decoding="async" loading="lazy"
                   src={`https://www.google.com/s2/favicons?sz=32&domain=${link.domain}`}
                   alt=""
                   className="w-3.5 h-3.5 rounded-sm object-contain"

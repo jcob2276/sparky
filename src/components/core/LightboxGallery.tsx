@@ -117,7 +117,7 @@ export default function LightboxGallery({ images, initialIndex, onClose }: Props
                 ${idx === initialIndex ? 'ring-2 ring-white/30 ring-offset-1 ring-offset-black' : ''}
               `}
             >
-              <img
+              <img decoding="async"
                 src={img.src}
                 alt={img.alt}
                 className={`w-full h-full object-cover ${img.objectPosition ?? 'object-center'}`}
@@ -144,7 +144,7 @@ export default function LightboxGallery({ images, initialIndex, onClose }: Props
             else onClose();
           }}
         >
-          <img
+          <img decoding="async"
             src={images[zoomed].src}
             alt={images[zoomed].alt}
             className="max-w-full max-h-[75vh] rounded-2xl border border-white/15 shadow-2xl object-contain"

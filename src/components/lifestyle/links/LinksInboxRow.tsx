@@ -175,7 +175,7 @@ export function LinksInboxRow({
           onClick={onToggleSelect}
           className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer text-left"
         >
-          <img
+          <img decoding="async" loading="lazy"
             src={`https://www.google.com/s2/favicons?sz=32&domain=${link.domain}`}
             alt=""
             className="w-4 h-4 rounded-sm object-contain shrink-0"
@@ -205,7 +205,7 @@ export function LinksInboxRow({
           onClick={() => haptic([6])}
           className="group/row flex items-center gap-3 min-w-0 flex-1 cursor-pointer text-left"
         >
-          <img
+          <img decoding="async" loading="lazy"
             src={`https://www.google.com/s2/favicons?sz=32&domain=${link.domain}`}
             alt=""
             className="w-4 h-4 rounded-sm object-contain shrink-0"

@@ -92,7 +92,7 @@ export default function NoteAttachmentsView({
             <div key={attachment.id} className="contents">
             <div className="flex min-w-0 items-center gap-2 rounded-lg border border-border-custom/30 p-2">
               {attachment.mime_type.startsWith('image/') && attachment.signed_url ? (
-                <img src={attachment.signed_url} alt={attachment.file_name} className="h-10 w-10 rounded object-cover" />
+                <img decoding="async" loading="lazy" src={attachment.signed_url} alt={attachment.file_name} className="h-10 w-10 rounded object-cover" />
               ) : (
                 <FileIcon size={20} className="shrink-0 text-text-muted" />
               )}
