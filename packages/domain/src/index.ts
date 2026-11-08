@@ -62,6 +62,7 @@ export * from './finance/snowballEngine.ts';
 export * from './finance/portfolio.ts';
 export * from './finance/bankCategories.ts';
 export * from './finance/bankRecurring.ts';
+export * from './finance/bankHistory.ts';
 export * from './lifeObligations.ts';
 export * from './phoneUsage.ts';
 export * from './deviceSignals.ts';

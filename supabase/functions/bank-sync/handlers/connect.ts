@@ -41,6 +41,12 @@ export async function completeConnection(db: SupabaseClient, state: string, code
       status: 'active', valid_until: session.access?.valid_until ?? null, last_error: null, updated_at: new Date().toISOString(),
     }).eq('id', connection.id),
   );
+  // Nowa zgoda zastępuje starsze aktywne połączenia tego banku (rachunki przejmujemy po IBAN niżej),
+  // inaczej stara zgoda zostałaby „aktywna” i alert o jej wygaśnięciu mylił.
+  await safeExecute(
+    db.from('bank_connections').update({ status: 'expired', last_note: 'Zastąpione nową zgodą.', updated_at: new Date().toISOString() })
+      .eq('user_id', connection.user_id).eq('status', 'active').neq('id', connection.id),
+  );
   for (const a of session.accounts) {
     const iban = a.account_id?.iban?.replace(/\s/g, '').toUpperCase() ?? null;
     const existing = iban ? await safeExecute(db.from('bank_accounts').select('id')

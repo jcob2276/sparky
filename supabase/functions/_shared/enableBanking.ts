@@ -96,8 +96,9 @@ export const ebCreateSession = (code: string) => call<EbSession>('POST', '/sessi
 export const ebBalances = (accountUid: string) =>
   call<{ balances?: EbBalance[] }>('GET', `/accounts/${accountUid}/balances`);
 
-export const ebTransactions = (accountUid: string, dateFrom: string, continuationKey?: string | null) => {
+export const ebTransactions = (accountUid: string, dateFrom: string, continuationKey?: string | null, dateTo?: string | null) => {
   const q = new URLSearchParams({ date_from: dateFrom });
+  if (dateTo) q.set('date_to', dateTo);
   if (continuationKey) q.set('continuation_key', continuationKey);
   return call<EbTransactionsPage>('GET', `/accounts/${accountUid}/transactions?${q}`);
 };
