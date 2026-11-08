@@ -32,3 +32,18 @@ find "$DIR/weekly"  -name 'db-*.sql.gz' -mtime +90  -delete
 find "$DIR/monthly" -name 'db-*.sql.gz' -mtime +370 -delete
 
 echo "OK $OUT $(du -h "$OUT" | cut -f1)"
+
+# --- Dane finansowe jako JSON Lines (kazda tabela bank_* i finance_* OPROCZ bank_connection_secrets) ---
+# Kopie dzienne 30 dni, miesieczne (1. dnia) bez wygasania: surowe odpowiedzi banku zostaja nawet po rotacji dumpow.
+FIN="$DIR/finance"
+mkdir -p "$FIN/daily" "$FIN/monthly"
+FTMP="$FIN/daily/.tmp-$TS"
+mkdir -p "$FTMP"
+for t in $(psql "$DATABASE_URL" -At -c "select table_name from information_schema.tables where table_schema='public' and table_type='BASE TABLE' and (table_name like 'bank\_%' or table_name like 'finance\_%') and table_name <> 'bank_connection_secrets' order by 1"); do
+  psql "$DATABASE_URL" -At -c "select row_to_json(x) from public.\"$t\" x" | gzip -9 > "$FTMP/$t.jsonl.gz"
+done
+tar -czf "$FIN/daily/finance-$TS.tar.gz" -C "$FTMP" .
+rm -rf "$FTMP"
+[ "$(date +%d)" = 01 ] && cp "$FIN/daily/finance-$TS.tar.gz" "$FIN/monthly/"
+find "$FIN/daily" -name 'finance-*.tar.gz' -mtime +30 -delete
+echo "OK finance $(du -h "$FIN/daily/finance-$TS.tar.gz" | cut -f1)"

@@ -1965,6 +1965,69 @@ export type Database = {
         }
         Relationships: []
       }
+      finance_portfolio_daily: {
+        Row: {
+          as_of: string
+          by_class: Json
+          computed_at: string
+          positions: Json
+          source: string
+          total_pln: number
+          user_id: string
+        }
+        Insert: {
+          as_of: string
+          by_class?: Json
+          computed_at?: string
+          positions?: Json
+          source?: string
+          total_pln: number
+          user_id: string
+        }
+        Update: {
+          as_of?: string
+          by_class?: Json
+          computed_at?: string
+          positions?: Json
+          source?: string
+          total_pln?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      finance_price_history: {
+        Row: {
+          close: number
+          close_pln: number
+          currency: string
+          fetched_at: string
+          fx_to_pln: number
+          price_date: string
+          source: string
+          ticker: string
+        }
+        Insert: {
+          close: number
+          close_pln: number
+          currency: string
+          fetched_at?: string
+          fx_to_pln: number
+          price_date: string
+          source?: string
+          ticker: string
+        }
+        Update: {
+          close?: number
+          close_pln?: number
+          currency?: string
+          fetched_at?: string
+          fx_to_pln?: number
+          price_date?: string
+          source?: string
+          ticker?: string
+        }
+        Relationships: []
+      }
       finance_profile: {
         Row: {
           emergency_target_months: number
@@ -8077,6 +8140,13 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      bank_consent_watch: {
+        Args: { p_dry?: boolean; p_now?: string }
+        Returns: {
+          dedupe: string
+          msg: string
+        }[]
       }
       cache_food_to_library: {
         Args: {

@@ -10,6 +10,9 @@ Maszyna Oracle Always Free (Frankfurt, A1.Flex 2 OCPU / 12 GB / 200 GB), dostep 
 | Backup plikow (Kuma + 4 buckety przez S3/rclone) | `backup-files.sh` + `sparky-backup-files.{service,timer}` | 03:45, przyrostowo, nic nie kasuje |
 | Worker kolejki `pgmq.sparky_jobs` | `worker/sparky-worker.py` + `.service` | ciagle; rola DB `sparky_worker` (tylko kolejka) |
 | Archiwum surowego tetna Oury (SQLite) | `/var/lib/sparky-archive/archive.db` (zapisuje worker) | pg_cron `archive-oura-hr-daily` 04:10 UTC; kopia w `backup-files.sh` (`/var/backups/sparky/archive`) |
+| Kopia danych finansowych (JSON Lines, bez `bank_connection_secrets`) | `backup-db.sh` -> `/var/backups/sparky/finance` | z backupem bazy 03:15; dzienne 30 dni, miesieczne (1. dnia) bez wygasania |
+| Ceny i wartosc portfela | handler `fetch_prices` w `sparky-worker.py` (yfinance + kursy do PLN) | pg_cron `fetch-prices-daily` pn-pt 23:00 UTC; tabele `finance_price_history`, `finance_portfolio_daily` |
+| Alert zgody bankowej | funkcja SQL `bank_consent_watch()` (bez VPS) | pg_cron `bank-consent-watch` 07:00 UTC; 7/3/1 dni przed koncem, po terminie, cisza >48 h -> Telegram przez `outbound_messages` |
 | Uptime Kuma | `/opt/uptime-kuma` (Docker) | `http://100.100.25.95:3001`, tylko Tailscale |
 
 Sekrety: `../vps-set-db-password.ps1` (DATABASE_URL), `../vps-set-service-key.ps1`. Klucze S3 do bucketow: `S3_ENDPOINT`,
